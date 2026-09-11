@@ -1,0 +1,582 @@
+{
+  "id": "work-avatar",
+  "name": "Work Avatar",
+  "description": "A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place your face goes, in your brand's colours and face.",
+  "a11yLabel": "Round profile photo in a ring reading {{default text \"nothing\"}}",
+  "version": "1.2.0",
+  "engineVersion": "^1.159.0",
+  "status": "community",
+  "category": "everyone",
+  "tags": [
+    "avatar",
+    "linkedin",
+    "profile",
+    "headshot",
+    "badge",
+    "ring",
+    "campaign",
+    "hashtag",
+    "social"
+  ],
+  "examples": [
+    {
+      "label": "Three-quarter gradient ring",
+      "values": {
+        "text": "#OPEN SOURCE ADVOCATE"
+      }
+    },
+    {
+      "label": "Half ring, mono photo",
+      "values": {
+        "ringStyle": "half",
+        "treatment": "mono",
+        "text": "#POWERED BY OPEN SOURCE",
+        "textAnchor": "middle",
+        "textPosition": 50
+      }
+    },
+    {
+      "label": "Full ring, duotone, heart",
+      "values": {
+        "ringStyle": "full",
+        "treatment": "duotone",
+        "ringGradient": false,
+        "text": "#I ♥ OPEN SOURCE",
+        "textAnchor": "middle",
+        "textPosition": 50
+      }
+    },
+    {
+      "label": "Full ring, text on top",
+      "values": {
+        "ringStyle": "full",
+        "ringGradient": false,
+        "textSide": "outside",
+        "text": "#SPEAKER",
+        "textAnchor": "middle",
+        "textPosition": 50,
+        "textSize": 70
+      }
+    }
+  ],
+  "render": {
+    "width": 1200,
+    "height": 1200,
+    "formats": [
+      "png",
+      "jpg",
+      "webp",
+      "avif",
+      "svg",
+      "pdf"
+    ],
+    "actions": [
+      "copy",
+      "download",
+      "save"
+    ],
+    "filenameFrom": [
+      "text"
+    ],
+    "transparentBg": false
+  },
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "guide": {
+    "title": "Put it on LinkedIn",
+    "tracks": [
+      {
+        "id": "linkedin",
+        "label": "LinkedIn",
+        "steps": [
+          "Open **Export**, keep **PNG**, and press **Download**.",
+          "On LinkedIn, open your profile, select your photo, then **Change photo** and **Upload photo**.",
+          "Leave the crop at full size so the whole ring stays in the circle, then **Save photo**."
+        ],
+        "note": "LinkedIn flattens transparency, so keep a solid backdrop for uploads. Team members can paste a share link of this badge to make their own in one step."
+      }
+    ]
+  },
+  "inputs": [
+    {
+      "id": "photo",
+      "label": "Photo",
+      "type": "asset",
+      "assetType": "image",
+      "allowUpload": true,
+      "section": "Photo",
+      "help": "Your headshot. Drag it on the canvas to reframe, scroll to zoom. Without one a placeholder silhouette stands in."
+    },
+    {
+      "id": "imageFraming",
+      "label": "Zoom & Position",
+      "type": "vector",
+      "framingFor": "photo",
+      "section": "Photo",
+      "help": "Drag the photo on the canvas to move it, scroll to zoom, or set the numbers here.",
+      "fields": [
+        {
+          "id": "zoom",
+          "label": "Zoom",
+          "min": 100,
+          "max": 400,
+          "step": 1,
+          "default": 100
+        },
+        {
+          "id": "x",
+          "label": "X",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "default": 50
+        },
+        {
+          "id": "y",
+          "label": "Y",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "default": 50
+        },
+        {
+          "id": "rotate",
+          "label": "Rotate",
+          "min": -180,
+          "max": 180,
+          "step": 0.5,
+          "default": 0
+        }
+      ]
+    },
+    {
+      "id": "photoSize",
+      "label": "Photo size",
+      "type": "number",
+      "display": "slider",
+      "default": 100,
+      "min": 40,
+      "max": 100,
+      "step": 1,
+      "section": "Photo",
+      "suffix": "%",
+      "help": "Scales the photo disc down inside the ring - a gap between photo and ring, or a smaller cut-out on its backdrop."
+    },
+    {
+      "id": "photoBackdrop",
+      "label": "Behind the photo",
+      "type": "select",
+      "default": "solid",
+      "section": "Photo",
+      "help": "The disc a cut-out headshot sits on once its background is removed. None keeps the transparency through to a transparent export.",
+      "options": [
+        {
+          "value": "solid",
+          "label": "Solid colour"
+        },
+        {
+          "value": "glow",
+          "label": "Soft glow"
+        },
+        {
+          "value": "none",
+          "label": "Nothing"
+        }
+      ]
+    },
+    {
+      "id": "photoBg",
+      "label": "Backdrop colour",
+      "type": "color",
+      "default": "{color.semantic.surface}",
+      "section": "Photo"
+    },
+    {
+      "id": "photoBg2",
+      "label": "Glow colour",
+      "type": "color",
+      "default": "{color.semantic.secondary}",
+      "section": "Photo",
+      "showIf": {
+        "photoBackdrop": "glow"
+      }
+    },
+    {
+      "id": "treatment",
+      "label": "Treatment",
+      "type": "select",
+      "default": "none",
+      "section": "Photo",
+      "help": "A colour treatment on the photo. Applied on your device and baked into every export.",
+      "options": [
+        {
+          "value": "none",
+          "label": "As shot"
+        },
+        {
+          "value": "mono",
+          "label": "Black & white"
+        },
+        {
+          "value": "duotone",
+          "label": "Duotone"
+        },
+        {
+          "value": "tint",
+          "label": "Colour wash"
+        },
+        {
+          "value": "warm",
+          "label": "Warm"
+        },
+        {
+          "value": "cool",
+          "label": "Cool"
+        },
+        {
+          "value": "pop",
+          "label": "Pop"
+        },
+        {
+          "value": "matte",
+          "label": "Matte"
+        }
+      ]
+    },
+    {
+      "id": "treatmentAmount",
+      "label": "Amount",
+      "type": "number",
+      "display": "slider",
+      "default": 100,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "section": "Photo",
+      "suffix": "%"
+    },
+    {
+      "id": "treatShadow",
+      "label": "Shadows",
+      "type": "color",
+      "default": "{color.semantic.primary}",
+      "section": "Photo",
+      "showIf": {
+        "treatment": "duotone"
+      }
+    },
+    {
+      "id": "treatHighlight",
+      "label": "Highlights",
+      "type": "color",
+      "default": "{color.semantic.surface}",
+      "section": "Photo",
+      "showIf": {
+        "treatment": "duotone"
+      }
+    },
+    {
+      "id": "tintColor",
+      "label": "Wash colour",
+      "type": "color",
+      "default": "{color.semantic.secondary}",
+      "section": "Photo",
+      "showIf": {
+        "treatment": "tint"
+      }
+    },
+    {
+      "id": "ringStyle",
+      "label": "Ring",
+      "type": "select",
+      "default": "arc",
+      "section": "Ring",
+      "options": [
+        {
+          "value": "arc",
+          "label": "Three-quarter ring"
+        },
+        {
+          "value": "half",
+          "label": "Half ring"
+        },
+        {
+          "value": "full",
+          "label": "Full ring"
+        },
+        {
+          "value": "none",
+          "label": "No ring"
+        }
+      ]
+    },
+    {
+      "id": "ringWidth",
+      "label": "Ring width",
+      "type": "number",
+      "display": "slider",
+      "default": 20,
+      "min": 8,
+      "max": 40,
+      "step": 1,
+      "section": "Ring",
+      "suffix": "%",
+      "help": "As a share of the avatar's radius."
+    },
+    {
+      "id": "ringOverlay",
+      "label": "Ring over the photo",
+      "type": "boolean",
+      "default": true,
+      "section": "Ring",
+      "help": "The photo can fill the whole circle with the ring on top of its edge, or sit inside the ring's inner edge."
+    },
+    {
+      "id": "ringRotate",
+      "label": "Turn",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -180,
+      "max": 180,
+      "step": 1,
+      "section": "Ring",
+      "suffix": "°",
+      "help": "Turns the whole ring, opening and text together."
+    },
+    {
+      "id": "ringColor",
+      "label": "Ring colour",
+      "type": "color",
+      "default": "{color.semantic.primary}",
+      "section": "Ring",
+      "help": "With a gradient on, this is the colour at both ends of the ring."
+    },
+    {
+      "id": "ringGradient",
+      "label": "Gradient along the ring",
+      "type": "boolean",
+      "default": true,
+      "section": "Ring"
+    },
+    {
+      "id": "ringColor2",
+      "label": "Middle colour",
+      "type": "color",
+      "default": "{color.semantic.secondary}",
+      "section": "Ring",
+      "showIf": {
+        "ringGradient": true
+      }
+    },
+    {
+      "id": "ringSpread",
+      "label": "Middle colour spread",
+      "type": "number",
+      "display": "slider",
+      "default": 55,
+      "min": 0,
+      "max": 90,
+      "step": 1,
+      "section": "Ring",
+      "suffix": "%",
+      "showIf": {
+        "ringGradient": true
+      },
+      "help": "How much of the ring is fully the middle colour. The rest blends out to the ring colour at each end."
+    },
+    {
+      "id": "ringFade",
+      "label": "Fade the ends",
+      "type": "number",
+      "display": "slider",
+      "default": 12,
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "section": "Ring",
+      "suffix": "%",
+      "help": "How much of each end of an open ring feathers out. A full ring has no ends."
+    },
+    {
+      "id": "text",
+      "label": "Ring text",
+      "type": "text",
+      "default": "#OPEN SOURCE ADVOCATE",
+      "maxLength": 60,
+      "placeholder": "#HASHTAG or a short line",
+      "section": "Text",
+      "help": "Runs along the ring in your brand face, as real outlines. A ♥ is drawn even when the font has no heart."
+    },
+    {
+      "id": "uppercase",
+      "label": "Uppercase",
+      "type": "boolean",
+      "default": true,
+      "section": "Text"
+    },
+    {
+      "id": "textColor",
+      "label": "Text colour",
+      "type": "color",
+      "default": "{color.semantic.on-primary}",
+      "section": "Text"
+    },
+    {
+      "id": "textSize",
+      "label": "Text size",
+      "type": "number",
+      "display": "slider",
+      "default": 62,
+      "min": 35,
+      "max": 90,
+      "step": 1,
+      "section": "Text",
+      "suffix": "%",
+      "help": "As a share of the ring's width. Text that would not fit the ring is shrunk to fit."
+    },
+    {
+      "id": "textFont",
+      "label": "Face",
+      "type": "select",
+      "default": "brand",
+      "section": "Text",
+      "options": [
+        {
+          "value": "brand",
+          "label": "Brand face"
+        },
+        {
+          "value": "mono",
+          "label": "Brand mono"
+        }
+      ]
+    },
+    {
+      "id": "textWeight",
+      "label": "Weight",
+      "type": "select",
+      "default": "700",
+      "section": "Text",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "800",
+          "label": "Extra bold"
+        }
+      ]
+    },
+    {
+      "id": "textItalic",
+      "label": "Italic",
+      "type": "boolean",
+      "default": false,
+      "section": "Text"
+    },
+    {
+      "id": "textTracking",
+      "label": "Letter spacing",
+      "type": "number",
+      "display": "slider",
+      "default": 8,
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "section": "Text",
+      "suffix": "%"
+    },
+    {
+      "id": "textSide",
+      "label": "Reads along",
+      "type": "select",
+      "default": "inside",
+      "section": "Text",
+      "options": [
+        {
+          "value": "inside",
+          "label": "The bottom, tops facing in"
+        },
+        {
+          "value": "outside",
+          "label": "The top, tops facing out"
+        }
+      ]
+    },
+    {
+      "id": "textAnchor",
+      "label": "Anchor",
+      "type": "select",
+      "default": "start",
+      "section": "Text",
+      "options": [
+        {
+          "value": "start",
+          "label": "Start of the text"
+        },
+        {
+          "value": "middle",
+          "label": "Middle of the text"
+        },
+        {
+          "value": "end",
+          "label": "End of the text"
+        }
+      ]
+    },
+    {
+      "id": "textPosition",
+      "label": "Position on the ring",
+      "type": "number",
+      "display": "slider",
+      "default": 10,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "section": "Text",
+      "suffix": "%",
+      "help": "Where the anchor sits along the ring, from where reading starts to where it ends."
+    },
+    {
+      "id": "bgColor",
+      "label": "Backdrop colour",
+      "type": "color",
+      "default": "{color.semantic.surface}",
+      "section": "Canvas",
+      "showIf": {
+        "transparentBg": false
+      },
+      "help": "Painted behind the avatar unless the background is transparent. LinkedIn flattens transparency on upload, so keep a colour for a profile photo."
+    },
+    {
+      "id": "margin",
+      "label": "Safe margin",
+      "type": "number",
+      "display": "slider",
+      "default": 3,
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "section": "Canvas",
+      "suffix": "%",
+      "help": "Breathing room inside the square, so a site's own circular crop never clips the ring."
+    }
+  ]
+}

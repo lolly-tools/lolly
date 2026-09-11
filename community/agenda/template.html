@@ -1,0 +1,263 @@
+{{!-- Agenda.
+     Three renders of one table. The hook has already grouped the sessions by
+     day, given every track its colour and column, and worked out each cell's
+     place in the timetable lattice, so this file only prints what it was handed.
+     Every length in styles.css is a multiple of --ag-u (a thousandth of the
+     sheet's own width, in container units), so the same layout holds at A4, at
+     a poster size and on a 1080p screen. --}}
+<div class="ag-root{{#if isCompact}} ag-compact{{/if}} ag-mode-{{mode}} ag-style-{{programmeStyle}}"
+     style="--ag-paper:{{paperColor}};--ag-ink:{{inkColor}};--ag-muted:{{mutedColor}};--ag-rule:{{ruleColor}};--ag-accent:{{accentColor}};--ag-flag:{{flagColor}}">
+
+  {{#if error}}
+  <p class="ag-error">{{error}}</p>
+  {{else}}
+
+  <header class="ag-head">
+    {{#if headingText}}<h1 class="ag-title">{{headingText}}</h1>{{/if}}
+    {{#if subtitleText}}<p class="ag-sub">{{subtitleText}}</p>{{/if}}
+    {{#if hasTracks}}
+    <ul class="ag-legend">
+      {{#each tracks}}
+      <li class="ag-legend-item"><span class="ag-dot" style="background:{{colour}}"></span>{{name}}</li>
+      {{/each}}
+    </ul>
+    {{/if}}
+  </header>
+
+  {{#if isEmpty}}
+  <p class="ag-empty">Add a row to the sessions table and the programme appears here.</p>
+  {{/if}}
+
+  {{!-- The list. Time runs DOWN the page and tracks run ACROSS it: one row per
+        start time, with everything that starts together side by side in track
+        order. Rows take the height their content needs, which is the one thing
+        that separates this from the timetable below. --}}
+  {{#if isList}}
+  <div class="ag-list">
+    {{#each days}}
+    <section class="ag-day">
+      <div class="ag-day-head">{{#if hasLabel}}<h2 class="ag-day-title">{{label}}</h2>{{/if}}<span class="ag-day-range">{{timeRange}}</span></div>
+      {{#if hasWarning}}<p class="ag-warn">{{warning}}</p>{{/if}}
+
+      <div class="ag-grid-head" style="grid-template-columns:{{list.colTemplate}}">
+        <span class="ag-grid-corner"></span>
+        {{#if ../hasTracks}}
+        {{#each ../tracks}}
+        <span class="ag-col-head" style="--ag-c:{{colour}};--ag-on:{{textColour}}">{{name}}</span>
+        {{/each}}
+        {{else}}
+        <span class="ag-col-head ag-col-head-plain">{{../plenaryName}}</span>
+        {{/if}}
+      </div>
+
+      <div class="ag-rows">
+        {{#each list.rows}}
+        <div class="ag-lrow" style="grid-template-columns:{{colTemplate}}">
+          <span class="ag-ltime">{{timeText}}</span>
+          {{#if wide}}
+          <div class="ag-lcell ag-lcell-wide{{#if session.isBreak}} ag-lcell-break{{/if}}"
+               style="grid-column:2 / span {{wideSpan}};--ag-c:{{session.colour}};--ag-t:{{session.tint}};--ag-e:{{session.edge}};--ag-on:{{session.textColour}}">
+            <span class="ag-lname">{{session.title}}</span>
+            <span class="ag-lmeta">
+              <span class="ag-ltimes">{{session.startText}} - {{session.endText}}</span>
+              {{#if session.hasKind}}<span class="ag-kind">{{session.kindWord}}</span>{{/if}}
+              {{#if session.showSpeaker}}<span class="ag-speaker">{{session.speaker}}</span>{{/if}}
+              {{#if session.showRoom}}<span class="ag-room">{{session.room}}</span>{{/if}}
+            </span>
+            {{#if session.hasNote}}<span class="ag-note">{{session.note}}</span>{{/if}}
+          </div>
+          {{else}}
+          {{#each cells}}
+          <div class="ag-lslot">
+            {{#each sessions}}
+            <div class="ag-lcell" style="--ag-c:{{colour}};--ag-t:{{tint}};--ag-e:{{edge}};--ag-on:{{textColour}}">
+              <span class="ag-lname">{{title}}</span>
+              <span class="ag-lmeta">
+                <span class="ag-ltimes">{{startText}} - {{endText}}</span>
+                {{#if hasKind}}<span class="ag-kind">{{kindWord}}</span>{{/if}}
+              </span>
+              {{#if showSpeaker}}<span class="ag-speaker">{{speaker}}</span>{{/if}}
+              {{#if showRoom}}<span class="ag-room">{{room}}</span>{{/if}}
+              {{#if hasNote}}<span class="ag-note">{{note}}</span>{{/if}}
+            </div>
+            {{/each}}
+          </div>
+          {{/each}}
+          {{/if}}
+        </div>
+        {{/each}}
+      </div>
+    </section>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  {{#if isGrid}}
+  <div class="ag-grids">
+    {{#each days}}
+    <section class="ag-day">
+      <div class="ag-day-head">{{#if hasLabel}}<h2 class="ag-day-title">{{label}}</h2>{{/if}}<span class="ag-day-range">{{timeRange}}</span></div>
+      {{#if hasWarning}}<p class="ag-warn">{{warning}}</p>{{/if}}
+
+      <div class="ag-grid-head" style="grid-template-columns:{{grid.colTemplate}}">
+        <span class="ag-grid-corner"></span>
+        {{#if ../hasTracks}}
+        {{#each ../tracks}}
+        <span class="ag-col-head" style="--ag-c:{{colour}};--ag-on:{{textColour}}">{{name}}</span>
+        {{/each}}
+        {{else}}
+        <span class="ag-col-head ag-col-head-plain">{{../plenaryName}}</span>
+        {{/if}}
+      </div>
+
+      <div class="ag-grid" style="grid-template-columns:{{grid.colTemplate}};grid-template-rows:{{grid.rowTemplate}}">
+        {{#each grid.slots}}
+        <span class="ag-slot" style="grid-column:1;grid-row:{{row}}">{{label}}</span>
+        {{/each}}
+        {{#each grid.items}}
+        {{!-- No time inside a cell: the row it sits on IS its start time, printed
+              once in the gutter, and a block that ends on a later band shows that
+              by how far it reaches. --}}
+        <div class="ag-cell{{#if session.isBreak}} ag-cell-break{{/if}}{{#if session.plenary}} ag-cell-wide{{/if}}"
+             style="grid-column:{{colStart}} / span {{colSpan}};grid-row:{{rowStart}} / span {{rowSpan}};--ag-c:{{session.colour}};--ag-t:{{session.tint}};--ag-e:{{session.edge}};--ag-on:{{session.textColour}}">
+          <span class="ag-cell-name">{{session.title}}</span>
+          {{#if session.showSpeaker}}<span class="ag-cell-speaker">{{session.speaker}}</span>{{/if}}
+          {{#if session.showRoom}}<span class="ag-cell-room">{{session.room}}</span>{{/if}}
+        </div>
+        {{/each}}
+      </div>
+      <p class="ag-grid-foot">{{grid.lastTime}}</p>
+    </section>
+    {{/each}}
+  </div>
+  {{/if}}
+
+  {{#if isBoard}}
+  <div class="ag-board" data-speakers="{{#if showSpeakers}}1{{else}}0{{/if}}" data-rooms="{{#if showRooms}}1{{else}}0{{/if}}">
+    <p class="ag-clock"><span data-ag-clock>{{nowNext.clock}}</span><span class="ag-clock-sec" data-ag-secs></span></p>
+    <div class="ag-board-cols">
+      {{#each nowNext.columns}}
+      <section class="ag-board-col" data-ag-track="{{name}}"
+               style="--ag-c:{{colour}};--ag-t:{{tint}};--ag-e:{{edge}};--ag-on:{{textColour}}">
+        <h2 class="ag-board-track">{{name}}</h2>
+
+        <div class="ag-board-slot ag-board-slot-now">
+          <p class="ag-board-label">{{../boardNowLabel}}</p>
+          <div class="ag-board-body" data-ag-body="now">
+            {{#if hasNow}}
+            <p class="ag-board-name">{{now.title}}</p>
+            <p class="ag-board-times">{{now.startText}} - {{now.endText}}</p>
+            {{#if showSpeaker}}{{#if now.speaker}}<p class="ag-board-who">{{now.speaker}}</p>{{/if}}{{/if}}
+            {{#if showRoom}}{{#if now.room}}<p class="ag-board-where">{{now.room}}</p>{{/if}}{{/if}}
+            {{else}}<p class="ag-board-idle">No session now</p>
+            {{/if}}
+          </div>
+        </div>
+
+        <div class="ag-board-slot ag-board-slot-next">
+          <p class="ag-board-label">{{../boardNextLabel}}</p>
+          <div class="ag-board-body" data-ag-body="next">
+            {{#if hasNext}}
+            <p class="ag-board-name">{{next.title}}</p>
+            <p class="ag-board-times">{{next.startText}} - {{next.endText}}</p>
+            {{#if showSpeaker}}{{#if next.speaker}}<p class="ag-board-who">{{next.speaker}}</p>{{/if}}{{/if}}
+            {{#if showRoom}}{{#if next.room}}<p class="ag-board-where">{{next.room}}</p>{{/if}}{{/if}}
+            {{else}}<p class="ag-board-idle">Nothing scheduled next</p>
+            {{/if}}
+          </div>
+        </div>
+      </section>
+      {{/each}}
+    </div>
+  </div>
+
+  <script type="application/json" id="ag-board-data">{{{boardJson}}}</script>
+  <script>
+  (function () {
+    // The board is the one layout that follows a clock, so it is the one that
+    // has to keep moving after the render. The hook already painted the right
+    // answer for this instant; this only keeps it true. Every paint re-runs this
+    // script (the shell clones template scripts), so the previous timer is
+    // cleared first and everything lives inside the IIFE - a top-level const
+    // would throw "already declared" on the second visit and silently kill the
+    // whole script.
+    if (window.__agendaTimer) { clearInterval(window.__agendaTimer); window.__agendaTimer = null; }
+    var root = document.querySelector('.ag-board');
+    var island = document.getElementById('ag-board-data');
+    if (!root || !island) return;
+
+    var data = null;
+    try { data = JSON.parse(island.textContent || 'null'); } catch (e) { data = null; }
+    // A frozen board (the "pretend the time is" input) must not move: that is
+    // what makes a shared link and an exported picture show the same thing.
+    if (!data || !data.sessions || data.frozen) return;
+
+    var wantSpeaker = root.getAttribute('data-speakers') === '1';
+    var wantRoom = root.getAttribute('data-rooms') === '1';
+    var clock = root.querySelector('[data-ag-clock]');
+    var secs = root.querySelector('[data-ag-secs]');
+    var columns = root.querySelectorAll('[data-ag-track]');
+
+    function pad(n) { return (n < 10 ? '0' : '') + n; }
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    // Minutes since the epoch in the viewer's own wall clock - the same integer
+    // the hook computes, so the two never disagree about what is on.
+    function nowMinutes() {
+      var d = new Date();
+      return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 60000 + d.getHours() * 60 + d.getMinutes();
+    }
+    function hhmm(m) {
+      var x = ((m % 1440) + 1440) % 1440;
+      return pad(Math.floor(x / 60)) + ':' + pad(x % 60);
+    }
+    function block(s, empty) {
+      if (!s) return '<p class="ag-board-idle">' + esc(empty) + '</p>';
+      var out = '<p class="ag-board-name">' + esc(s.title) + '</p>' +
+        '<p class="ag-board-times">' + esc(s.startText) + ' - ' + esc(s.endText) + '</p>';
+      if (wantSpeaker && s.speaker) out += '<p class="ag-board-who">' + esc(s.speaker) + '</p>';
+      if (wantRoom && s.room) out += '<p class="ag-board-where">' + esc(s.room) + '</p>';
+      return out;
+    }
+    function repaint(nowMin) {
+      for (var i = 0; i < columns.length; i++) {
+        var name = columns[i].getAttribute('data-ag-track');
+        var current = null;
+        var next = null;
+        for (var j = 0; j < data.sessions.length; j++) {
+          var s = data.sessions[j];
+          if (s.track !== name) continue;
+          if (s.start <= nowMin && nowMin < s.end) { if (!current || s.start > current.start) current = s; }
+          else if (s.start > nowMin && (!next || s.start < next.start)) next = s;
+        }
+        var nowBody = columns[i].querySelector('[data-ag-body="now"]');
+        var nextBody = columns[i].querySelector('[data-ag-body="next"]');
+        if (nowBody) nowBody.innerHTML = block(current, 'No session now');
+        if (nextBody) nextBody.innerHTML = block(next, 'Nothing scheduled next');
+      }
+    }
+
+    // The clock reads every second; what is ON only changes on a half-minute,
+    // so the programme is re-read then rather than sixty times a minute.
+    var bucket = -1;
+    function tick() {
+      if (!root.isConnected) { clearInterval(window.__agendaTimer); window.__agendaTimer = null; return; }
+      var d = new Date();
+      var mins = nowMinutes();
+      if (clock) clock.textContent = hhmm(mins);
+      if (secs) secs.textContent = ':' + pad(d.getSeconds());
+      var b = Math.floor(d.getTime() / 30000);
+      if (b !== bucket) { bucket = b; repaint(mins); }
+    }
+    tick();
+    window.__agendaTimer = setInterval(tick, 1000);
+  }());
+  </script>
+  {{/if}}
+
+  {{#if zoneWarning}}<p class="ag-zone-warn">{{zoneWarning}}</p>{{/if}}
+  {{/if}}
+</div>

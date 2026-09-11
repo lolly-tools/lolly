@@ -1,0 +1,28 @@
+/* Contrast Checker - the sheet is a native <svg> so the CLI's DOM-free vector
+   export works. The only styled DOM is the wrap. Chrome hexes inside the SVG
+   are deliberately neutral: the colours under test come from the inputs, and
+   the sheet around them must not tint the judgement. */
+
+.cx-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--brand-surface, #f7f7f5);
+}
+
+.cx-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Type follows the ACTIVE BRAND: the chrome vars are derived from the brand's
+   font tokens (brand-vars.ts), so under any profile the sheet renders and
+   exports in that brand's faces. The font-family attributes inside the SVG
+   stay as the fallback for a standalone file with no stylesheet. */
+.cx-svg text {
+  font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
+}
+.cx-svg text.cx-mono {
+  font-family: var(--font-mono, 'SUSE Mono', ui-monospace, monospace);
+}

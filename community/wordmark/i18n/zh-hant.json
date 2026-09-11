@@ -1,0 +1,19 @@
+{
+  "name": "字標",
+  "description": "輸入一個詞，即可取得以您品牌字型製作的純路徑向量文字標誌 - 收件者無需安裝該字型。",
+  "a11yLabel": "字標顯示為 {{default text \"Wordmark\"}}",
+  "inputs.text.label": "文字",
+  "inputs.font.label": "字體",
+  "inputs.font.options.brand": "品牌字型",
+  "inputs.font.options.mono": "等寬字型",
+  "inputs.weight.label": "粗細",
+  "inputs.tracking.label": "字距",
+  "inputs.tracking.help": "在設定大小下的字距（px）。",
+  "inputs.size.label": "尺寸",
+  "inputs.size.help": "外框成形時所用的字型大小 - 字距追蹤以此為準。",
+  "inputs.color.label": "色彩",
+  "inputs.features.label": "OpenType 功能",
+  "inputs.features.options.none": "標準",
+  "inputs.features.options.liga-off": "無連字",
+  "inputs.features.options.salt": "風格替代字"
+}

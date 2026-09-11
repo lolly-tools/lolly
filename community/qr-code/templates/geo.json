@@ -1,0 +1,22 @@
+{
+  "id": "geo",
+  "name": "Map location",
+  "category": "Utility",
+  "description": "Scan to open a pin in the phone's maps app. For a venue, a trailhead or a meeting point.",
+  "values": {
+    "payload": "geo",
+    "lat": -34.928,
+    "lng": 138.6,
+    "ecl": "M",
+    "padding": 4,
+    "join": true
+  },
+  "presets": [
+    {
+      "id": "signage",
+      "name": "Wayfinding sign",
+      "description": "Dark ink, wide quiet zone, high redundancy for a code that lives outdoors.",
+      "values": { "color": "#1a1a2e", "background": "#faf7f2", "padding": 6, "ecl": "H" }
+    }
+  ]
+}

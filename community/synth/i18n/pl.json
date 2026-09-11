@@ -1,0 +1,4 @@
+{
+  "name": "Synth",
+  "description": "Wizualny instrument, na którym grasz. Cztery sceny działają na żywo na GPU: płynny atrament, rój cząsteczek lecący w stronę Twojego nagłówka albo Twojego logo, efekt sprzężenia zwrotnego i Twoja własna kamera. Każdy kolor pochodzi z Twojej palety marki, a obraz reaguje na Twój kursor, na utwór muzyczny i na kontroler MIDI. Eksportuj nieruchomy kadr albo bezszwową pętlę."
+}

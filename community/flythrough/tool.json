@@ -1,0 +1,80 @@
+{
+  "id": "flythrough",
+  "name": "Flythrough",
+  "version": "0.2.2",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "singleInstance": true,
+  "category": "designer",
+  "description": "Fly a real 3D camera through a screenshot. The picture lifts into layers at real depth; big shapes extrude into solid objects; a timeline of poses animates the whole move - depth, opacity, perspective, extrusion, tilt, rotate, scale and the camera flight - then loops it home. Add, drag and reorder poses. Export as video.",
+  "a11yLabel": "3D camera flythrough of a screenshot",
+  "tags": ["3d", "flythrough", "screenshot", "camera", "parallax", "video", "depth", "exploded", "extrude"],
+  "render": {
+    "width": 1280,
+    "height": 720,
+    "formats": ["png", "jpg", "webp", "webm", "mp4", "gif", "avif", "tiff", "webp-anim"],
+    "actions": ["copy", "download", "save"],
+    "convertPaths": false,
+    "video": { "wait": 2, "duration": 6 }
+  },
+  "isolate": true,
+  "hooks": { "onInit": true, "onInput": true },
+  "inputs": [
+    {
+      "id": "shot",
+      "urlKey": "sh",
+      "label": "Screenshot",
+      "type": "asset",
+      "assetType": "image",
+      "allowUpload": true,
+      "help": "Pick or upload the image to fly through. An SVG lifts into real layers for parallax + extrusion; a bitmap flies as one plane."
+    },
+    { "id": "background", "urlKey": "bg", "label": "Background", "section": "Scene", "type": "color", "default": "#0e1726" },
+    {
+      "id": "move", "urlKey": "m", "label": "Camera flight", "section": "Scene", "type": "select", "default": "immersive",
+      "options": [
+        { "value": "custom", "label": "Custom (drive from poses)" },
+        { "value": "immersive", "label": "Dive inside" },
+        { "value": "glide", "label": "Surface glide" },
+        { "value": "orbit", "label": "Orbit" },
+        { "value": "push-in", "label": "Push in" },
+        { "value": "still", "label": "Still (hold first pose)" }
+      ],
+      "help": "A preset flight, or Custom to drive the camera (distance + height) from the poses. Depth, opacity, extrusion, tilt, rotate and scale animate across the poses under ANY flight - except Still, which holds the FIRST pose static so you can configure a single pose without matching Start and End."
+    },
+    { "id": "iso", "urlKey": "iso", "label": "Isometric (no perspective)", "section": "Scene", "type": "boolean", "default": false, "help": "Switch to a real orthographic camera - parallel projection, no perspective convergence. Combine with Tilt + Rotate for a true isometric. Perspective (FOV) is disabled while this is on." },
+    { "id": "duration", "urlKey": "sec", "label": "Seconds", "section": "Scene", "type": "number", "display": "slider", "default": 6, "min": 1, "max": 30, "step": 0.5, "help": "Length of the move. Match the export Duration for a clean loop." },
+    { "id": "loop", "urlKey": "lp", "label": "Loop home", "section": "Scene", "type": "boolean", "default": true, "help": "On: eases out to End then reverses home (seamless loop). Off: plays once, Start → End." },
+    { "id": "reverse", "urlKey": "rev", "label": "Reverse poses", "section": "Scene", "type": "boolean", "default": false, "help": "Play the poses back to front - a one-click fix when you built the move backwards. The pose list stays as-is; only the play direction flips." },
+    { "id": "light", "urlKey": "lt", "label": "Light", "section": "Scene", "type": "number", "display": "slider", "default": 1, "min": 0, "max": 2.5, "step": 0.05, "help": "How hard the key light rakes across the extruded side walls - higher gives the solids more form and contrast." },
+    { "id": "shadow", "urlKey": "sd", "label": "Shadow", "section": "Scene", "type": "number", "display": "slider", "default": 0.35, "min": 0, "max": 1, "step": 0.05, "help": "Strength of the soft shadow each layer casts on the one behind it." },
+    { "id": "floor", "urlKey": "fl", "label": "Studio floor", "section": "Scene", "type": "number", "display": "slider", "default": 0, "min": 0, "max": 1, "step": 0.05, "help": "A soft showroom floor shadow pooled under the base - wider than the subject and receding along the floor. 0 is off." },
+    { "id": "floorViewport", "urlKey": "flv", "label": "Floor: anchor to viewport", "section": "Scene", "type": "boolean", "default": false, "help": "Off: the floor is anchored to the subject and tilts with it (a diorama the camera flies around). On: the floor stays a fixed horizontal ground in the viewport while the subject tilts above it." },
+
+    {
+      "id": "poses", "urlKey": "ps", "label": "Poses", "section": "Poses", "type": "blocks", "labelledFields": true, "rowActions": true,
+      "help": "The keyframes of the move. The first pose is the start, the last is the end; add poses in between and drag to reorder. The animation tweens across them (Loop reverses home). Every pose carries the full state - depth, opacity, extrusion, scale, tilt, rotate, perspective (FOV), and the custom-flight camera distance + height.",
+      "fields": [
+        { "id": "label", "urlKey": "n", "label": "Name", "type": "text", "icon": "tag", "default": "", "placeholder": "Pose" },
+        { "id": "depth", "urlKey": "d", "label": "Depth", "type": "number", "display": "slider", "icon": "layers", "default": 0.8, "min": 0.04, "max": 3, "step": 0.02, "help": "Layer separation. Low is near-flat; higher explodes the stack." },
+        { "id": "opacity", "urlKey": "o", "label": "Opacity", "type": "number", "display": "slider", "icon": "opacity", "default": 1, "min": 0, "max": 1, "step": 0.05, "help": "Layer opacity. 0 is fully invisible - animate from 0 for a FORMING effect." },
+        { "id": "extrude", "urlKey": "x", "label": "Extrusion", "type": "number", "display": "slider", "icon": "box", "default": 0, "min": 0, "max": 1, "step": 0.02, "help": "Thickness of the big shapes (cards, panels, logos). 0 is flat." },
+        { "id": "scale", "urlKey": "sc", "label": "Scale", "type": "number", "display": "slider", "icon": "resize", "default": 1, "min": 0.2, "max": 3, "step": 0.05, "help": "Resize the whole subject." },
+        { "id": "tiltX", "urlKey": "t", "label": "Tilt X (pitch)", "type": "number", "display": "slider", "icon": "arrowsV", "default": 0, "min": -180, "max": 180, "step": 1, "help": "Pitch - tip the subject back or forward about the horizontal axis. Toward ±90° the far edge recedes to a horizon." },
+        { "id": "tiltY", "urlKey": "r", "label": "Tilt Y (yaw)", "type": "number", "display": "slider", "icon": "arrowsH", "default": 0, "min": -180, "max": 180, "step": 1, "help": "Yaw - turn the subject left or right about the vertical axis, like a door. ±180 is a full sweep." },
+        { "id": "tiltZ", "urlKey": "tz", "label": "Tilt Z (roll)", "type": "number", "display": "slider", "icon": "rotateCw", "default": 0, "min": -180, "max": 180, "step": 1, "help": "Roll - bank the subject in its own plane (rotate it clockwise/anti-clockwise as you look at it)." },
+        { "id": "offsetX", "urlKey": "ox", "label": "Move X", "type": "number", "display": "slider", "icon": "moveX", "default": 0, "min": -3, "max": 3, "step": 0.05, "help": "Slide the subject left / right within the frame. Or Shift-drag the canvas." },
+        { "id": "offsetY", "urlKey": "oy", "label": "Move Y", "type": "number", "display": "slider", "icon": "moveY", "default": 0, "min": -3, "max": 3, "step": 0.05, "help": "Slide the subject up / down within the frame - e.g. to lift a subject cut off at the bottom. Or Shift-drag the canvas." },
+        { "id": "fov", "urlKey": "p", "label": "Perspective", "type": "number", "display": "slider", "icon": "camera", "default": 42, "min": 20, "max": 85, "step": 1, "help": "Lens field-of-view. Wider exaggerates the depth. Ignored when Isometric is on." },
+        { "id": "distance", "urlKey": "dz", "label": "Camera distance", "type": "number", "display": "slider", "icon": "zoomIn", "default": 1, "min": 0.3, "max": 1.6, "step": 0.05, "help": "Custom flight only: 1 frames the whole stack; lower dives in among the layers." },
+        { "id": "height", "urlKey": "y", "label": "Camera height", "type": "number", "display": "slider", "icon": "move", "default": 0, "min": -1, "max": 1, "step": 0.05, "help": "Custom flight only: raise or lower the lens." }
+      ],
+      "default": [
+        { "label": "Start", "depth": 0.8, "opacity": 1, "extrude": 0, "scale": 1, "tiltX": 0, "tiltY": 0, "tiltZ": 0, "offsetX": 0, "offsetY": 0, "fov": 42, "distance": 1, "height": 0 },
+        { "label": "End", "depth": 1.6, "opacity": 1, "extrude": 0.15, "scale": 1, "tiltX": 0, "tiltY": 0, "tiltZ": 0, "offsetX": 0, "offsetY": 0, "fov": 58, "distance": 0.42, "height": -0.32 }
+      ]
+    },
+
+    { "id": "camera", "urlKey": "kf", "label": "Custom camera path", "section": "Advanced", "type": "text", "default": "", "help": "A keyframe track in Lolly's kf wire (e.g. t0_rx0_ry-30*t3000_eo_rx-20_ry30). Overrides the flight above - same format as the Design tool's camera, so it's URL-shareable." }
+  ]
+}

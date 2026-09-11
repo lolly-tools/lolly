@@ -1,0 +1,226 @@
+<!-- data-canvas-input is DECLARED, not left to annotateTemplate: it would bake in
+     the first id the anno list mentions ("move"), and a select is one of the
+     shell's inline-edit controls - so every click meant for the focus pick would
+     also pop a camera-move dropdown over the picture. `focus` is a vector, which
+     has no inline editor, so the click focuses its sidebar row and nothing else. -->
+<div data-export-error="Pick a photo and wait for depth before exporting." class="sp-wrap" data-canvas-input="focus" data-lolly-anno="{{move}} {{amount}} {{duration}} {{fog}} {{fogAmount}} {{dof}} {{depthContrast}}">
+  <canvas class="sp-canvas" id="sp-canvas" data-capture-stream></canvas>
+</div>
+<script type="application/json" id="sp-state">{{{_state}}}</script>
+<script>
+(function () {
+  /* Idempotent per-paint IIFE - the template re-runs on EVERY paint (the
+     'Template script IIFE required' invariant). An epoch guard drops stale async
+     callbacks from a prior paint; the previous renderer is disposed before a new
+     one is built, because WebGL contexts are capped around 16 per tab and are
+     not collected promptly. Mirrors tools/synth/template.html. */
+  window.__lollySpatialEpoch = (window.__lollySpatialEpoch || 0) + 1;
+  var EP = window.__lollySpatialEpoch;
+  function alive() { return window.__lollySpatialEpoch === EP; }
+
+  var canvas = document.getElementById('sp-canvas');
+  var stateEl = document.getElementById('sp-state');
+  if (!canvas || !stateEl) return;
+  var cfg; try { cfg = JSON.parse(stateEl.textContent || '{}'); } catch (e) { return; }
+  if (!cfg || !cfg.move) return;
+
+  /* Async readiness handshake: the export path must WAIT for the library, the
+     photo and the first painted frame, else it snapshots a blank canvas. */
+  window.__toolHasReadySignal = true;
+  var readyFired = false;
+  function fireReady() {
+    if (readyFired) return; readyFired = true;
+    try { document.dispatchEvent(new CustomEvent('tool:ready')); } catch (e) {}
+  }
+
+  if (window.__lollySpatial && typeof window.__lollySpatial.dispose === 'function') {
+    try { window.__lollySpatial.dispose(); } catch (e) {}
+    window.__lollySpatial = null;
+  }
+
+  var wrap = canvas.parentElement;
+  var overlay = null, renderer = null;
+  window.__lollySpatial = { dispose: function () {
+    if (overlay) overlay.remove();
+    if (renderer) renderer.dispose();
+  } };
+  function message(txt, retry, actionLabel) {
+    if (!alive()) return;
+    wrap.setAttribute('data-export-error', txt);
+    if (overlay) overlay.remove();
+    overlay = document.createElement('div');
+    overlay.className = 'sp-status';
+    overlay.setAttribute('role', 'status');
+    overlay.setAttribute('data-export-hide', '');
+    // A sibling of the scaled artwork keeps guidance readable on a phone.
+    var stage = canvas.closest('.tool-canvas-outer') || wrap;
+    Object.assign(overlay.style, {
+      position: 'absolute', inset: '0', display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', gap: '12px', padding: '20px',
+      boxSizing: 'border-box', textAlign: 'center', zIndex: '3',
+      font: '16px/1.45 var(--font-brand, system-ui)',
+      background: 'var(--brand-surface, #ffffff)', color: 'var(--brand-text, #16202b)'
+    });
+    var label = document.createElement('p'); label.textContent = txt; overlay.appendChild(label);
+    if (retry) {
+      var button = document.createElement('button');
+      button.type = 'button'; button.textContent = actionLabel || 'Retry depth';
+      Object.assign(button.style, { font: 'inherit', padding: '10px 16px', cursor: 'pointer', border: '0', borderRadius: 'var(--radius, 12px)', background: 'var(--brand-primary, #16202b)', color: 'var(--brand-on-primary, #fff)' });
+      button.addEventListener('click', retry); overlay.appendChild(button);
+    }
+    stage.appendChild(overlay);
+  }
+  function depthReady(inst, map) {
+    if (!alive()) return;
+    if (!map || !(map.width > 0 && map.height > 0) || !map.data || map.data.length !== map.width * map.height || !map.data.every(Number.isFinite)) {
+      CACHE.map = null; CACHE.url = '';
+      message('Depth could not be read or was cancelled. Check the job details and try again.', requestDepth);
+      return;
+    }
+    try { inst.setDepth(map, true); } // Paint a complete depth frame before releasing export.
+    catch (e) { message('The depth scene could not be drawn. Reload the tool to retry.'); return; }
+    wrap.removeAttribute('data-export-error');
+    if (overlay) { overlay.remove(); overlay = null; }
+    fireReady();
+  }
+
+  if (!cfg.photoUrl) {
+    message('Pick a photo to bring it into three dimensions.', function () {
+      var picker = document.querySelector('.asset-picker-trigger[data-input-id="photo"]');
+      if (picker) picker.click();
+    }, 'Choose photo');
+    return;
+  }
+  message('Reading depth… You can cancel in the job panel.');
+
+  var LIB = '/tools/spatial-photo/lib/spatial.js';
+  function loadLib() {
+    if (window.LollySpatial) return Promise.resolve(window.LollySpatial);
+    window.__lollySpatialLoading = window.__lollySpatialLoading || new Promise(function (res, rej) {
+      var s = document.createElement('script');
+      s.src = LIB;
+      s.onload = function () { res(window.LollySpatial); };
+      s.onerror = function () { s.remove(); window.__lollySpatialLoading = null; rej(new Error('spatial lib load failed')); };
+      document.head.appendChild(s);
+    });
+    return window.__lollySpatialLoading;
+  }
+
+  function loadImage(url) {
+    return new Promise(function (res, rej) {
+      var img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function () { res(img); };
+      img.onerror = function () { rej(new Error('image load failed')); };
+      img.src = url;
+    });
+  }
+
+  /* The computed map survives a paint. Every slider drag re-runs this whole
+     template, and re-asking for depth on each one would re-inflate the scene and
+     re-queue a heavy job for a picture that has not changed. Keyed on the photo
+     URL, so changing the picture drops it.
+
+     The IN-FLIGHT promise is parked here too, not just the finished map: the
+     first pass is a model download plus a multi-second inference, and every drag
+     during it is another paint. Without `p`, each of those would see an empty
+     cache and queue its own heavy job for the same picture. */
+  var CACHE = window.__lollySpatialDepth = window.__lollySpatialDepth || { url: '', map: null, p: null };
+
+  Promise.all([loadLib(), loadImage(cfg.photoUrl)]).then(function (both) {
+    if (!alive()) return;
+    var LollySpatial = both[0], img = both[1];
+    if (!LollySpatial || !LollySpatial.create) { message('The renderer failed to load. Reload this tool to retry.'); return; }
+
+    var inst;
+    try {
+      inst = LollySpatial.create(canvas, cfg);
+      inst.setPhoto(img);
+    } catch (err) {
+      console.error('[spatial-photo] init error:', err);
+      message(String((err && err.message) || err));
+      return;
+    }
+
+    /* The deterministic export-frame clock. Registered ON THE CANVAS, never on
+       window: a window global survives SPA tool navigation and would let a
+       detached canvas drive an unrelated tool's export. `create` already painted
+       one frame synchronously (a headless or hidden-tab host may never fire a
+       rAF), so this only has to answer the exporter's own phases. */
+    canvas.__lollyFrameRender = function (t01) {
+      if (!alive()) return;
+      inst.renderLoopFrame(t01);
+    };
+
+    renderer = inst;
+    wireFocusPick(inst);
+
+    requestDepth();
+  }).catch(function (e) {
+    console.error('[spatial-photo]', e);
+    message('That picture could not be read. Choose another photo.');
+  });
+
+  function requestDepth() {
+    if (!alive() || !renderer) return;
+    if (CACHE.url === cfg.photoUrl && CACHE.map) { depthReady(renderer, CACHE.map); return; }
+    var depth = window.__lollyDepth;
+    if (!depth || typeof depth.forImage !== 'function') {
+      message('Depth is unavailable in this host. Open Spatial Photo in the web app to create and export a scene.');
+      return;
+    }
+    message('Reading depth… You can cancel in the job panel.');
+    if (CACHE.url !== cfg.photoUrl || !CACHE.p) {
+      CACHE.url = cfg.photoUrl;
+      CACHE.map = null;
+      CACHE.p = depth.forImage(cfg.photoUrl);
+    }
+    var req = CACHE.p;
+    req.then(function (map) {
+      if (CACHE.p === req) {
+        CACHE.p = null; CACHE.map = map || null;
+        if (!map) CACHE.url = '';
+      }
+      if (alive()) depthReady(renderer, map);
+    }, function (e) {
+      if (CACHE.p === req) { CACHE.p = null; CACHE.url = ''; }
+      console.warn('[spatial-photo] depth unavailable:', e);
+      if (alive()) message('Depth could not be read. Check your connection and try again.', requestDepth);
+    });
+  }
+
+  /* Click the canvas to set the focus point. It writes the `focus` vector input
+     through the supported DOM path (set the .vec-num fields, fire one 'input',
+     the shell's vector commit reads them all at once) - never a parallel state,
+     so URL / undo / save come for free. A drag is not a click: the pointer has
+     to come up close to where it went down. */
+  function wireFocusPick(inst) {
+    var down = null;
+    canvas.style.cursor = 'crosshair';
+    canvas.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0) return;
+      down = { x: e.clientX, y: e.clientY };
+    });
+    canvas.addEventListener('pointerup', function (e) {
+      if (!down) return;
+      var moved = Math.abs(e.clientX - down.x) + Math.abs(e.clientY - down.y);
+      down = null;
+      if (moved > 4) return;
+      var r = canvas.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      var fx = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+      var fy = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
+      var panel = document.getElementById('tool-inputs'); if (!panel) return;
+      var vi = panel.querySelector('.vector-input[data-input-id="focus"]'); if (!vi) return;
+      var vals = { x: Math.round(fx * 100) / 100, y: Math.round(fy * 100) / 100 };
+      for (var fid in vals) {
+        var el = vi.querySelector('.vec-num[data-vec-field="' + fid + '"]');
+        if (el) el.value = String(vals[fid]);
+      }
+      var any = vi.querySelector('.vec-num');
+      if (any) any.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    canvas.addEventListener('pointercancel', function () { down = null; });
+  }
+})();
+</script>

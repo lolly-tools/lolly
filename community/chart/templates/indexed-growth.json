@@ -1,0 +1,29 @@
+{
+  "id": "indexed-growth",
+  "name": "Indexed growth",
+  "category": "Editorial",
+  "description": "Compare differently sized series from a shared starting point of 100.",
+  "values": {
+    "renderMode": "statistical",
+    "chartType": "line",
+    "plotType": "indexed-change",
+    "chartStyle": "editorial",
+    "data": "Quarter,Enterprise,Small business,Partners\nQ1,240,42,18\nQ2,261,48,21\nQ3,274,57,27\nQ4,301,63,31\nQ5,326,71,38\nQ6,352,84,45",
+    "heading": "Partners are growing fastest",
+    "subheading": "Each route to market indexed to its first quarter",
+    "yTitle": "Index (first quarter = 100)",
+    "showGrid": true,
+    "showLegend": true
+  },
+  "presets": [
+    {
+      "id": "stagger",
+      "name": "Build the story",
+      "description": "Bring the marks in progressively for a presentation.",
+      "values": {
+        "plotMotionPreset": "stagger",
+        "animSpeed": 2.2
+      }
+    }
+  ]
+}

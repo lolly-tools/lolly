@@ -1,0 +1,286 @@
+{
+  "id": "snippet",
+  "name": "Snippet",
+  "description": "Turn code snippets into clean, syntax-highlighted, shareable images.",
+  "version": "1.2.3",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "everyone",
+  "tags": [
+    "code",
+    "developer",
+    "snippet",
+    "export"
+  ],
+  "featured": {
+    "order": 5
+  },
+  "render": {
+    "width": 1200,
+    "height": 800,
+    "formats": ["png", "svg", "penpot", "jpg", "webp", "pdf"],
+    "actions": [
+      "copy",
+      "download",
+      "save"
+    ],
+    "transparentBg": false
+  },
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "code",
+      "label": "Code",
+      "type": "longtext",
+      "default": "const greet = (name) => {\n  console.log(`Hello, ${name}!`);\n  return name;\n};\n\ngreet('World');",
+      "placeholder": "Paste your code here…"
+    },
+    {
+      "id": "scale",
+      "label": "Size",
+      "type": "number",
+      "display": "slider",
+      "default": 100,
+      "min": 70,
+      "max": 200,
+      "step": 5
+    },
+    {
+      "id": "lineHeight",
+      "label": "Line height",
+      "type": "number",
+      "display": "slider",
+      "default": 1.7,
+      "min": 0.75,
+      "max": 2,
+      "step": 0.05
+    },
+    {
+      "id": "fileName",
+      "label": "Filename",
+      "type": "text",
+      "urlKey": "name",
+      "default": "",
+      "placeholder": "snippet.js",
+      "help": "Shown in the window title bar. Spaces are fine (e.g. My Component.tsx)."
+    },
+    {
+      "id": "titleScale",
+      "label": "Title size",
+      "type": "number",
+      "display": "slider",
+      "help": "Scales the window title bar text (and its icon) independently of the code.",
+      "default": 100,
+      "min": 50,
+      "max": 200,
+      "step": 5
+    },
+    {
+      "id": "titleIcon",
+      "label": "Title bar icon",
+      "type": "asset",
+      "assetType": "image",
+      "allowUpload": true,
+      "help": "Optional logo or glyph shown in the window title bar, before the filename. Drop in a brand mark to make the frame yours."
+    },
+    {
+      "id": "iconScale",
+      "label": "Icon size",
+      "type": "number",
+      "display": "slider",
+      "help": "Scales just the title bar icon, on top of the title size.",
+      "default": 100,
+      "min": 50,
+      "max": 250,
+      "step": 5
+    },
+    {
+      "id": "language",
+      "label": "Language",
+      "type": "select",
+      "default": "javascript",
+      "options": [
+        {
+          "value": "auto",
+          "label": "Auto Detect"
+        },
+        {
+          "value": "javascript",
+          "label": "JavaScript"
+        },
+        {
+          "value": "typescript",
+          "label": "TypeScript"
+        },
+        {
+          "value": "python",
+          "label": "Python"
+        },
+        {
+          "value": "rust",
+          "label": "Rust"
+        },
+        {
+          "value": "go",
+          "label": "Go"
+        },
+        {
+          "value": "css",
+          "label": "CSS"
+        },
+        {
+          "value": "html",
+          "label": "HTML"
+        },
+        {
+          "value": "bash",
+          "label": "Bash / Shell"
+        },
+        {
+          "value": "dockerfile",
+          "label": "Dockerfile"
+        },
+        {
+          "value": "json",
+          "label": "JSON"
+        },
+        {
+          "value": "plain",
+          "label": "Plain Text"
+        }
+      ]
+    },
+    {
+      "id": "theme",
+      "label": "Theme",
+      "type": "select",
+      "default": "suse-dark",
+      "options": [
+        {
+          "value": "suse-dark",
+          "label": "Brand Dark"
+        },
+        {
+          "value": "suse-light",
+          "label": "Brand Light"
+        },
+        {
+          "value": "github-dark",
+          "label": "GitHub Dark"
+        },
+        {
+          "value": "nord",
+          "label": "Nord"
+        }
+      ]
+    },
+    {
+      "id": "windowStyle",
+      "label": "Window Manager",
+      "type": "select",
+      "default": "nuremberg",
+      "help": "Window chrome look. Nuremberg = GNOME Adwaita, Cupertino = macOS, Redmond = Windows.",
+      "options": [
+        {
+          "value": "cupertino",
+          "label": "Cupertino"
+        },
+        {
+          "value": "redmond",
+          "label": "Redmond"
+        },
+        {
+          "value": "nuremberg",
+          "label": "Nuremberg"
+        }
+      ]
+    },
+    {
+      "id": "calloutMode",
+      "label": "Comment callouts",
+      "type": "select",
+      "default": "off",
+      "help": "Turn trailing end-of-line comments into pill callouts pointing at the line, instead of dim inline text.",
+      "options": [
+        {
+          "value": "off",
+          "label": "Off"
+        },
+        {
+          "value": "all",
+          "label": "Every trailing comment"
+        },
+        {
+          "value": "tags",
+          "label": "Tags only (TODO, FIXME…)"
+        },
+        {
+          "value": "custom",
+          "label": "Custom prefix"
+        }
+      ]
+    },
+    {
+      "id": "calloutPrefix",
+      "label": "Callout prefixes",
+      "type": "text",
+      "default": "",
+      "placeholder": "TODO, FIXME, @param",
+      "help": "Comma-separated. Only trailing comments starting with one of these become callouts. Used when Comment callouts is set to Custom prefix."
+    },
+    {
+      "id": "calloutFont",
+      "label": "Callout text",
+      "type": "select",
+      "default": "mono",
+      "help": "Font for callout pills. Markdown in the comment is honoured: **bold**, __bold__, *italic*, _italic_.",
+      "options": [
+        {
+          "value": "mono",
+          "label": "Mono"
+        },
+        {
+          "value": "mono-italic",
+          "label": "Mono italic"
+        },
+        {
+          "value": "brand",
+          "label": "Brand sans"
+        },
+        {
+          "value": "brand-italic",
+          "label": "Brand italic"
+        }
+      ]
+    },
+    {
+      "id": "lineNumbers",
+      "label": "Line Numbers",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "id": "showWindow",
+      "label": "Window Chrome",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "id": "shadow",
+      "label": "Drop shadow",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "id": "blinkCursor",
+      "label": "Blink cursor",
+      "help": "A terminal-style blinking caret after the code, on screen. Off keeps the exported still clean.",
+      "type": "boolean",
+      "default": false
+    }
+  ]
+}

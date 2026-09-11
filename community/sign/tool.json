@@ -1,0 +1,29 @@
+{
+  "id": "sign",
+  "name": "Sign",
+  "description": "Place your signature on a PDF, optionally add a Content Credential and lock the result.",
+  "version": "1.0.1",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "utility",
+  "privacy": "on-device",
+  "tags": ["pdf", "sign", "signature", "initials", "date", "credential", "lock", "password"],
+  "a11yLabel": "PDF signing workspace for {{fileName}}",
+  "render": { "width": 820, "height": 650, "formats": ["pdf"], "export": false, "layout": "canvas", "actions": [] },
+  "hooks": { "onInit": true, "onInput": true, "exportFile": true },
+  "inputs": [
+    { "id": "source", "label": "PDF", "type": "file", "accept": ["application/pdf", ".pdf"], "maxSize": 104857600, "help": "The PDF stays on this device." },
+    { "id": "signature", "label": "Signature", "type": "asset", "assetType": "image", "allowUpload": true, "help": "Use a transparent PNG/JPEG, upload an image, or paste the output link from the Signature tool." },
+    { "id": "signatureInk", "label": "Drawn signature", "type": "longtext", "default": "", "rows": 2, "maxLength": 20000, "help": "Signature strokes drawn directly in this tool." },
+    { "id": "page", "label": "Page", "type": "number", "default": 1, "min": 1, "max": 9999, "step": 1 },
+    { "id": "position", "label": "Position in PDF points", "type": "vector", "fields": [
+      { "id": "x", "label": "X", "min": 0, "max": 2000, "step": 1, "default": 72 },
+      { "id": "y", "label": "Y from top", "min": 0, "max": 2000, "step": 1, "default": 620 },
+      { "id": "width", "label": "Width", "min": 12, "max": 1000, "step": 1, "default": 144 }
+    ], "help": "Drag the signature on the page preview or enter exact PDF-point coordinates." },
+    { "id": "initials", "label": "Initials (optional)", "type": "asset", "assetType": "image", "allowUpload": true },
+    { "id": "date", "label": "Add today's date", "type": "boolean", "default": true },
+    { "id": "seal", "label": "Add a Content Credential", "type": "boolean", "default": true, "help": "Names the signer from the profile when Use my details is on. This is optional provenance, not a regulated e-signature service." },
+    { "id": "lock", "label": "Lock with an open password", "type": "boolean", "default": false, "help": "The password is requested only when downloading and is never stored in tool state. Locking and Content Credentials cannot be combined because encryption would invalidate the credential." }
+  ]
+}

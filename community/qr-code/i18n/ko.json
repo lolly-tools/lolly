@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "링크, 연락처 카드, Wi-Fi 네트워크, 캘린더 일정, 위치, 일반 텍스트까지 QR 코드로 만들어요.",
+  "featured.blurb": "브랜드 색상 그대로 만드는 QR 코드",
+  "a11yLabel": "{{default url \"(설정된 URL 없음)\"}}(으)로 연결되는 QR 코드",
+  "inputs.url.label": "URL",
+  "inputs.color.label": "모듈 색상",
+  "inputs.background.label": "배경",
+  "inputs.ecl.label": "오류 정정",
+  "inputs.ecl.options.L": "낮음 (7%)",
+  "inputs.ecl.options.M": "중간 (15%)",
+  "inputs.ecl.options.Q": "높은 편 (25%)",
+  "inputs.ecl.options.H": "높음 (30%)",
+  "inputs.padding.label": "여백 영역",
+  "inputs.padding.help": "코드 주위의 여백 모듈이에요. 최소 4를 권장해요.",
+  "inputs.join.label": "모듈 병합",
+  "inputs.join.help": "모든 모듈을 하나의 SVG 경로로 합쳐요. 작은 크기에서 더 선명해요."
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "上傳 PowerPoint 簡報，讓其色彩與字型套用您的品牌 - 在您的裝置上重建，不會上傳任何內容。",
+  "a11yLabel": "{{fileName}} 的簡報品牌重塑工具",
+  "inputs.source.label": "PowerPoint 檔案",
+  "inputs.source.help": "一個 .pptx 檔案。會在您的裝置上讀取,絕不上傳。",
+  "inputs.useTheme.label": "套用品牌主題",
+  "inputs.useTheme.help": "將簡報的主題配色與字型換成你的品牌 - 所有連結至主題的顏色都會自動套用。",
+  "inputs.colorMap.label": "顏色對應",
+  "inputs.colorMap.help": "投影片中找到的固定色彩，各自附上建議的品牌色彩。移除某列可讓該色彩保持不變。",
+  "inputs.colorMap.fields.from.label": "原始",
+  "inputs.colorMap.fields.to.label": "品牌",
+  "inputs.fontMap.label": "字型對應",
+  "inputs.fontMap.help": "簡報中使用的字體,各自對應品牌替代字體。刪除某列即可保留該字體。",
+  "inputs.fontMap.fields.from.label": "原始",
+  "inputs.fontMap.fields.to.label": "品牌",
+  "inputs.dropFonts.label": "移除內嵌字型",
+  "inputs.dropFonts.help": "檔案中內嵌的舊品牌字型在替換後已過時,且可能涉及授權限制。"
+}

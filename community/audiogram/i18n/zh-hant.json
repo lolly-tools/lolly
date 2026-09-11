@@ -1,0 +1,22 @@
+{
+  "name": "音訊圖",
+  "description": "把語音片段或歌曲變成隨聲音律動的品牌影片 - 長條、頻譜、環形、山脊或示波器樣式，隨時可用於社群媒體。",
+  "a11yLabel": "為 {{default title \"an audio clip\"}} 製作附動態波形的音訊圖卡片",
+  "inputs.audio.label": "音訊",
+  "inputs.audio.help": "從你的媒體庫選擇曲目,或上傳一段片段。系統會在你的裝置上解碼以繪製波形 - 音訊絕不會離開瀏覽器。留空則顯示預留波形。若要在匯出檔案中聽到聲音,請在下載選項中將「音訊軌道」設為「此工具的音訊」。",
+  "inputs.title.label": "標題",
+  "inputs.title.help": "卡片上的標題 - 集數名稱或重點引言。",
+  "inputs.subtitle.label": "副標題",
+  "inputs.subtitle.help": "標題下方的較小行文 - 節目名稱、來賓或收聽位置。",
+  "inputs.style.label": "波形樣式",
+  "inputs.style.options.bars": "長條",
+  "inputs.style.options.wave": "波浪",
+  "inputs.style.options.ring": "環形",
+  "inputs.size.label": "尺寸",
+  "inputs.size.options.square": "正方形 (1:1)",
+  "inputs.size.options.wide": "寬螢幕 (16:9)",
+  "inputs.size.options.story": "限時動態 (9:16)",
+  "inputs.accent.label": "波形顏色",
+  "inputs.ink.label": "文字顏色",
+  "inputs.bg.label": "背景"
+}

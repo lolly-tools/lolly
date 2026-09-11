@@ -1,0 +1,76 @@
+{
+  "id": "scan-code",
+  "name": "Scan",
+  "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+  "a11yLabel": "{{default a11yScan \"Code reader\"}}",
+  "version": "0.1.1",
+  "engineVersion": ">=1.153.0",
+  "status": "experimental",
+  "category": "utility",
+  "tags": ["qr", "scan", "reader", "barcode", "wifi", "safety", "offline", "privacy"],
+  "featured": {
+    "order": 7,
+    "blurb": "Read any code, safely and offline"
+  },
+  "render": {
+    "width": 480,
+    "height": 640,
+    "formats": ["png"],
+    "export": false,
+    "webPreview": true,
+    "actions": [],
+    "liveFacing": "environment",
+    "liveCameraWhen": { "input": "mode", "value": "camera" }
+  },
+  "inputs": [
+    {
+      "id": "mode",
+      "label": "Source",
+      "type": "select",
+      "default": "camera",
+      "help": "Point the camera at a code, scan a saved image, or paste a code's text to inspect it. Whatever the source, the code is read on this device - nothing is uploaded.",
+      "options": [
+        { "value": "camera", "label": "Camera" },
+        { "value": "image", "label": "From image" },
+        { "value": "paste", "label": "Paste text" }
+      ]
+    },
+    {
+      "id": "image",
+      "label": "Image",
+      "type": "file",
+      "accept": ["image/jpeg", "image/png", "image/webp", "image/gif", ".jpg", ".jpeg", ".png", ".webp", ".gif"],
+      "maxSize": 26214400,
+      "showIf": { "mode": "image" },
+      "help": "A photo or screenshot containing a code. The bytes stay in memory on this device."
+    },
+    {
+      "id": "paste",
+      "label": "Code text",
+      "type": "longtext",
+      "rows": 3,
+      "default": "",
+      "showIf": { "mode": "paste" },
+      "help": "Paste the exact text a scanner returned, to inspect it with the same safety checks without pointing a camera."
+    },
+    {
+      "id": "keepHistory",
+      "label": "Remember recent scans",
+      "type": "boolean",
+      "default": false,
+      "help": "Keeps a short list you can look back at, cleared with one tap. Passwords and other secrets are never kept."
+    },
+    {
+      "id": "beep",
+      "label": "Beep on scan",
+      "type": "boolean",
+      "default": true,
+      "showIf": { "mode": "camera" }
+    }
+  ],
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "onFrame": true
+  }
+}

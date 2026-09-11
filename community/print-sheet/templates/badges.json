@@ -1,0 +1,35 @@
+{
+  "id": "badges",
+  "name": "Badges and cards",
+  "category": "Print",
+  "description": "Straight-cut sheet for name badges, business cards and place cards.",
+  "values": {
+    "sheet": "a4",
+    "rows": 2,
+    "cols": 2,
+    "gap": 5,
+    "margin": 10,
+    "ticks": true,
+    "tickShape": "rect"
+  },
+  "presets": [
+    {
+      "id": "four-up",
+      "name": "4 up",
+      "description": "Two by two - conference badge size.",
+      "values": { "rows": 2, "cols": 2, "gap": 5 }
+    },
+    {
+      "id": "ten-up",
+      "name": "10 up",
+      "description": "Five rows of two - business cards.",
+      "values": { "rows": 5, "cols": 2, "gap": 4 }
+    },
+    {
+      "id": "letter-eight-up",
+      "name": "8 up on Letter",
+      "description": "Four rows of two on US Letter stock.",
+      "values": { "sheet": "letter", "rows": 4, "cols": 2, "gap": 4 }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Konvertera bild",
+  "description": "Gör om HEIC, TIFF eller vilket foto som helst till WebP, JPEG eller PNG - på din enhet.",
+  "a11yLabel": "Bildkonvertering för {{fileName}}",
+  "inputs.source.label": "Bild",
+  "inputs.source.help": "En HEIC-, HEIF-, JPEG-, PNG-, WebP-, AVIF- eller TIFF-bild. Den läses i din webbläsare och lämnar aldrig din enhet.",
+  "inputs.target.label": "Konvertera till",
+  "inputs.target.help": "Utdataformatet. WebP är oftast minst; PNG är förlustfritt.",
+  "inputs.target.options.webp": "WebP - minst, behåller transparens",
+  "inputs.target.options.jpeg": "JPEG - universellt, för foton",
+  "inputs.target.options.png": "PNG - förlustfri, behåller transparens",
+  "inputs.quality.label": "Kvalitet",
+  "inputs.quality.help": "Kvalitet för de förlustbehäftade formaten. Lägre värde ger mindre fil och mjukare detaljer. PNG ignorerar det.",
+  "inputs.maxEdge.label": "Längsta sidan (px)",
+  "inputs.maxEdge.help": "Skala ner så att den längsta sidan är högst så här många pixlar. 0 behåller originalstorleken. Skalar aldrig upp.",
+  "inputs.keepLocation.label": "Behåll plats",
+  "inputs.keepLocation.help": "Tar med fotots GPS-position i den konverterade filen. Av som standard - platsen är en personlig uppgift. Fotots övriga uppgifter (upphovsman, copyright, tagningsdatum) följer alltid med, och kortet visar exakt vad som hände."
+}

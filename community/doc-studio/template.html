@@ -1,0 +1,116 @@
+<style>
+  /* All CSS lives here: the engine applies it to the canvas DOM for the live preview AND
+     the vector PDF walk. doc- prefixed so unscoped rules can't leak. This styles the
+     hook's rendered HTML; the editor (views/doc-editor.js) mirrors these rules onto its
+     ProseMirror DOM so the on-screen editor and the exported pages match. */
+
+  .doc {
+    box-sizing: border-box; width: 100%; height: 100%;
+    overflow-y: auto; overflow-x: hidden;
+    background: transparent; padding: 0 0 22px;
+    font-family: var(--doc-font, "SUSE", system-ui, sans-serif);
+    color: var(--ink); -webkit-font-smoothing: antialiased;
+  }
+  .doc-page {
+    box-sizing: border-box; position: relative;
+    width: var(--pw); height: var(--ph);
+    margin: 0 auto 22px; background: var(--paper);
+    overflow: hidden; box-shadow: 0 6px 28px rgba(0, 0, 0, .28);
+  }
+  .doc-page:last-child { margin-bottom: 0; }
+  .doc-body {
+    box-sizing: border-box; position: absolute;
+    left: var(--margin-x); right: var(--margin-x);
+    top: var(--margin-y); bottom: calc(var(--margin-y) + var(--footer-h));
+    overflow: hidden;
+    /* Multi-column pages. N=1 is a no-op single column. The browser balances the page's
+       blocks; the hook has already budgeted contentH×N of content onto this page. */
+    column-count: var(--cols, 1);
+    column-gap: var(--col-gap, 24px);
+  }
+  /* Blocks that carry a fill or border must never FRAGMENT across a column: a fragment's
+     background/border draws wrong in the vector export (getBoundingClientRect unions the
+     two fragment boxes into one that spans the gutter). break-inside:avoid is only
+     advisory (dropped when the block is taller than a column), so instead make these span
+     ALL columns - a spanning box is a single, unfragmentable box. Tables, code, quotes,
+     rules and the top two heading levels (which carry an accent underline) span; short
+     h3/h4 just avoid an ugly mid-heading split. Paragraphs, lists and images have no fill
+     to mis-draw, so they flow within the columns (image is atomic → moves whole). */
+  .doc-h1, .doc-h2, .doc-table, .doc-quote, .doc-pre, .doc-hr {
+    column-span: all; -webkit-column-span: all; break-inside: avoid;
+  }
+  .doc-h3, .doc-h4, .doc-fig { break-inside: avoid; }
+
+  /* Inline marks. */
+  .doc-body strong { font-weight: 700; }
+  .doc-body em { font-style: italic; }
+  .doc-body u { text-decoration: underline; }
+  .doc-body s { text-decoration: line-through; }
+  .doc-code { font-family: "SUSE Mono", ui-monospace, monospace; font-size: .92em; background: var(--head-bg); padding: .05em .3em; border-radius: 3px; }
+
+  /* Blocks. */
+  .doc-p { font-size: var(--body-size); line-height: var(--line-h); color: var(--ink); margin: 0 0 .5em; overflow-wrap: break-word; }
+  .doc-p:last-child { margin-bottom: 0; }
+  .doc-h { font-weight: 700; line-height: 1.15; letter-spacing: -.01em; color: var(--ink); margin: .7em 0 .3em; overflow-wrap: break-word; }
+  .doc-h:first-child { margin-top: 0; }
+  .doc-h1 { font-size: var(--h1); padding-bottom: .18em; border-bottom: 2px solid var(--accent); }
+  .doc-h2 { font-size: var(--h2); padding-bottom: .16em; border-bottom: 2px solid var(--accent); }
+  .doc-h3 { font-size: var(--h3); }
+  .doc-h4 { font-size: var(--h4); }
+
+  .doc-ul, .doc-ol { font-size: var(--body-size); line-height: var(--line-h); margin: .3em 0 .6em; padding-left: 1.5em; }
+  .doc-ul { list-style: none; }
+  .doc-ul > li { position: relative; }
+  .doc-ul > li::before { content: ""; position: absolute; left: -1em; top: .62em; width: .34em; height: .34em; border-radius: 50%; background: var(--accent); }
+  .doc-ol { list-style: decimal; }
+  .doc-ol > li::marker { color: var(--accent); font-weight: 700; }
+  .doc-body li { margin: 0 0 .2em; }
+  .doc-li-p { margin: 0; }
+
+  .doc-quote { margin: .5em 0; padding-left: .9em; border-left: 3px solid var(--accent); color: var(--muted); }
+  .doc-pre { font-family: "SUSE Mono", ui-monospace, monospace; font-size: calc(var(--body-size) * .9); background: var(--head-bg); padding: .7em .9em; border-radius: 6px; overflow-x: auto; margin: .5em 0; }
+  .doc-hr { border: none; border-top: 1px solid var(--table-line); margin: 1em 0; }
+  .doc-fig { margin: .5em 0; }
+  .doc-fig img { max-width: 100%; height: auto; display: block; border-radius: 4px; }
+
+  /* Table - a CSS grid of bordered cells (grid draws vector-cleanly, unlike <table>).
+     Border style (grid/rows/none) and cell padding (tight/normal/roomy) are per-table
+     presets; a per-cell fill is an inline background (set from the editor's cell selection). */
+  .doc-table { display: grid; width: 100%; border: 1px solid var(--table-line); margin: .5em 0; }
+  .doc-cell {
+    font-size: calc(var(--body-size) * .94); line-height: 1.4; color: var(--ink);
+    padding: .38em .55em; border-top: 1px solid var(--table-line); border-left: 1px solid var(--table-line);
+    overflow-wrap: break-word;
+  }
+  .doc-cell-head { font-weight: 700; background: var(--head-bg); }
+  /* Border presets - cells always draw top+left; the table draws the outer edge. */
+  .doc-tb-rows { border-left: none; border-right: none; }
+  .doc-tb-rows > .doc-cell { border-left: none; }
+  .doc-tb-none { border: none; }
+  .doc-tb-none > .doc-cell { border-top: none; border-left: none; }
+  /* Padding presets. */
+  .doc-pad-tight > .doc-cell { padding: .2em .35em; }
+  .doc-pad-roomy > .doc-cell { padding: .62em .85em; }
+
+  .doc-footer {
+    position: absolute; left: var(--margin-x); right: var(--margin-x);
+    bottom: calc(var(--footer-h) * .4);
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: var(--footer-size); color: var(--muted);
+  }
+  .doc-footer-title { font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 72%; }
+</style>
+
+<div class="doc" data-lolly-anno-font="{{font}}" data-lolly-anno-accent="{{accent}}" data-lolly-anno-theme="{{theme}}"{{#if sourceAuthor}} data-source-author="{{sourceAuthor}}"{{/if}} style="{{{docStyle}}}">
+  {{#each pages}}
+  <div class="doc-page" data-pdf-page data-lolly-anno="{{pageSize}}">
+    <div class="doc-body" data-lolly-anno="{{columns}}">{{{html}}}</div>
+    {{#if hasFooter}}
+    <div class="doc-footer">
+      <span class="doc-footer-title">{{docTitle}}</span>
+      {{#if showNums}}<span class="doc-footer-page">{{pageNo}} / {{pageTotal}}</span>{{/if}}
+    </div>
+    {{/if}}
+  </div>
+  {{/each}}
+</div>

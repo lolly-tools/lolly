@@ -1,0 +1,172 @@
+{
+  "id": "claim",
+  "name": "Claim",
+  "description": "Claim your name on any media you've already made - image, PDF, video or audio. Stamp your author, copyright and licence as Content Credentials (a durable raster Imprint too), preserving any credential already inside the file - all on your device, before you upload it anywhere.",
+  "a11yLabel": "Embed credentials into your files",
+  "version": "2.0.0",
+  "engineVersion": "^1.104.0",
+  "requires": ["c2pa"],
+  "status": "official",
+  "category": "utility",
+  "tags": [
+    "provenance",
+    "copyright",
+    "licence",
+    "license",
+    "watermark",
+    "imprint",
+    "durable",
+    "c2pa",
+    "content credentials",
+    "metadata",
+    "exif",
+    "creative commons",
+    "image",
+    "photo",
+    "pdf",
+    "video",
+    "audio",
+    "artist",
+    "ip",
+    "rights",
+    "batch"
+  ],
+  "render": {
+    "width": 760,
+    "height": 620,
+    "formats": [
+      "png",
+      "jpg",
+      "webp",
+      "avif",
+      "tiff",
+      "gif",
+      "svg",
+      "penpot",
+      "pdf",
+      "mp4",
+      "webm",
+      "m4a",
+      "mp3",
+      "wav"
+    ],
+    "export": false,
+    "actions": []
+  },
+  "hooks": {
+    "onInput": true,
+    "exportFile": true
+  },
+  "inputs": [
+    {
+      "id": "files",
+      "label": "Your files",
+      "type": "file",
+      "multiple": true,
+      "accept": [
+        "image/*",
+        "application/pdf",
+        "video/mp4",
+        "video/quicktime",
+        "video/webm",
+        "audio/mpeg",
+        "audio/mp4",
+        "audio/aac",
+        "audio/wav",
+        "audio/x-wav",
+        ".m4a",
+        ".mp4",
+        ".mov",
+        ".webm"
+      ],
+      "help": "Drop the finished work you want to claim - photos, a PDF, an MP4, an audio clip. Each file is stamped on your device and handed back; nothing is uploaded. Drop several to stamp them all at once."
+    },
+    {
+      "id": "creator",
+      "label": "Artist / author",
+      "type": "text",
+      "section": "Credentials",
+      "bindToMeta": "author",
+      "help": "Your name - embedded as the file's author/creator (dc:creator in the Content Credential; EXIF Artist / XMP where the format carries it)."
+    },
+    {
+      "id": "copyright",
+      "label": "Copyright notice",
+      "type": "text",
+      "section": "Credentials",
+      "bindToMeta": "copyright",
+      "help": "The © line written into the file, e.g. © 2026 Your Name. Left blank, no copyright is asserted."
+    },
+    {
+      "id": "license",
+      "label": "Rights / licence",
+      "type": "select",
+      "section": "Credentials",
+      "bindToMeta": "license",
+      "default": "All rights reserved",
+      "help": "How others may use your work. Proprietary keeps every right; the Creative Commons options grant specific permissions and embed a link to the licence deed.",
+      "options": [
+        {
+          "value": "All rights reserved",
+          "label": "Proprietary - All rights reserved"
+        },
+        {
+          "value": "CC0 1.0 (Public Domain) · https://creativecommons.org/publicdomain/zero/1.0/",
+          "label": "CC0 1.0 - Public Domain (no rights reserved)"
+        },
+        {
+          "value": "CC BY 4.0 · https://creativecommons.org/licenses/by/4.0/",
+          "label": "CC BY 4.0 - Attribution"
+        },
+        {
+          "value": "CC BY-SA 4.0 · https://creativecommons.org/licenses/by-sa/4.0/",
+          "label": "CC BY-SA 4.0 - Attribution-ShareAlike"
+        },
+        {
+          "value": "CC BY-ND 4.0 · https://creativecommons.org/licenses/by-nd/4.0/",
+          "label": "CC BY-ND 4.0 - Attribution-NoDerivatives"
+        },
+        {
+          "value": "CC BY-NC 4.0 · https://creativecommons.org/licenses/by-nc/4.0/",
+          "label": "CC BY-NC 4.0 - Attribution-NonCommercial"
+        },
+        {
+          "value": "CC BY-NC-SA 4.0 · https://creativecommons.org/licenses/by-nc-sa/4.0/",
+          "label": "CC BY-NC-SA 4.0 - NonCommercial-ShareAlike"
+        },
+        {
+          "value": "CC BY-NC-ND 4.0 · https://creativecommons.org/licenses/by-nc-nd/4.0/",
+          "label": "CC BY-NC-ND 4.0 - NonCommercial-NoDerivatives"
+        },
+        {
+          "value": "Public Domain Mark 1.0 · https://creativecommons.org/publicdomain/mark/1.0/",
+          "label": "Public Domain Mark - already in the public domain"
+        }
+      ]
+    },
+    {
+      "id": "contact",
+      "label": "Contact",
+      "type": "text",
+      "section": "Credentials",
+      "bindToMeta": "contact",
+      "help": "Optional - how to reach you for licensing (email or site), embedded alongside the author."
+    },
+    {
+      "id": "title",
+      "label": "Title / description",
+      "type": "text",
+      "section": "Credentials",
+      "bindToMeta": "description",
+      "help": "Optional - a short title or description of the work."
+    },
+    {
+      "id": "durableMark",
+      "label": "Add a durable invisible watermark",
+      "type": "boolean",
+      "section": "Marks",
+      "default": false,
+      "help": "Raster images only (JPEG/PNG/WebP). Embeds an imperceptible neural watermark that survives screenshotting and re-encoding - what strips the Content Credential. Ignored for PDF, video and audio."
+    }
+  ]
+}

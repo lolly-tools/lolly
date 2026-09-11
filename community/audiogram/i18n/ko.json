@@ -1,0 +1,22 @@
+{
+  "name": "오디오그램",
+  "description": "음성 클립이나 노래를 소리에 맞춰 실제로 움직이는 브랜드 영상으로 변환하세요 - 바, 스펙트럼, 링, 능선 또는 스코프, 소셜용으로 준비됩니다.",
+  "a11yLabel": "애니메이션 파형이 있는 {{default title \"an audio clip\"}}용 오디오그램 카드",
+  "inputs.audio.label": "오디오",
+  "inputs.audio.help": "라이브러리에서 트랙을 선택하거나 클립을 업로드하세요. 파형을 그리기 위해 기기에서 디코딩되며, 오디오는 브라우저를 벗어나지 않아요. 비워두면 자리표시자 파형이 표시돼요. 내보내기에서 소리를 들으려면 다운로드 옵션의 오디오 트랙에서 \"이 도구의 오디오\"를 선택하세요.",
+  "inputs.title.label": "제목",
+  "inputs.title.help": "카드의 헤드라인이에요 - 에피소드 이름이나 인용구예요.",
+  "inputs.subtitle.label": "부제목",
+  "inputs.subtitle.help": "제목 아래의 작은 줄이에요 - 쇼 이름, 게스트, 또는 청취 방법을 보여줘요.",
+  "inputs.style.label": "파형 스타일",
+  "inputs.style.options.bars": "막대",
+  "inputs.style.options.wave": "웨이브",
+  "inputs.style.options.ring": "링",
+  "inputs.size.label": "크기",
+  "inputs.size.options.square": "정사각형 (1:1)",
+  "inputs.size.options.wide": "와이드 (16:9)",
+  "inputs.size.options.story": "스토리 (9:16)",
+  "inputs.accent.label": "파형 색상",
+  "inputs.ink.label": "텍스트 색상",
+  "inputs.bg.label": "배경"
+}

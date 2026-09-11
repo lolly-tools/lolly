@@ -1,0 +1,348 @@
+/* Screenshot Frame.
+   Every brand var carries a comma fallback: an unbranded canvas leaves the
+   slot UNSET, so a bare var() would collapse the rule. */
+
+.sf-root {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: SUSE, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.sf-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* The stage takes the full content height so the window's max-height below has
+   a definite box to resolve against (a percentage against an auto height is
+   ignored). Root padding is inside that height, box-sizing is border-box. */
+.sf-stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  max-width: 100%;
+  height: 100%;
+  width: calc(var(--sf-scale, 78) * 1%);
+}
+
+/* A phone is portrait, so the same slider has to mean a much narrower box. */
+.sf-frame--phone .sf-stage {
+  width: calc(var(--sf-scale, 78) * 0.22%);
+}
+
+/* Width comes from the slider; height is capped so a wide frame at a small
+   padding shrinks its screen instead of running off the canvas. Every shipped
+   default, template and example fits without the cap biting. */
+.sf-window {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  max-height: 100%;
+  box-shadow: var(--sf-shadow, none);
+  border-radius: var(--sf-radius, 16px);
+  background: var(--brand-surface, #f6f7f9);
+}
+
+.sf-frame--none .sf-window {
+  background: transparent;
+}
+
+/* ── The screenshot itself ─────────────────────────────────────────────── */
+
+.sf-shot {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--sf-radius, 16px);
+  aspect-ratio: 16 / 10;
+  background: var(--brand-surface, #eef1f5);
+  /* The one part that gives way when the window hits its height cap. */
+  min-height: 0;
+}
+
+.sf-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* fit / position / transform come from the {{framing}} helper inline
+     (plans/148) - one recipe shared with every other framed image. */
+}
+
+.sf-frame--browser .sf-shot,
+.sf-frame--laptop .sf-shot {
+  border-radius: 0 0 var(--sf-radius, 16px) var(--sf-radius, 16px);
+}
+
+/* ── Browser window ────────────────────────────────────────────────────── */
+
+/* The slider drives the outer corner, and the window clips, so the shot's own
+   radius below only has to agree with it. */
+.sf-frame--browser .sf-window {
+  border-radius: var(--sf-radius, 16px);
+  overflow: hidden;
+}
+
+.sf-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  background: var(--brand-surface, #eceef2);
+  border-bottom: 1px solid var(--brand-edge, rgba(17, 24, 39, 0.10));
+}
+
+.sf-ctl {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.sf-chrome--cupertino .sf-ctl { gap: 8px; }
+.sf-chrome--redmond .sf-ctl,
+.sf-chrome--nuremberg .sf-ctl { order: 3; }
+
+.sf-dot,
+.sf-cap,
+.sf-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sf-cap { width: 34px; }
+
+.sf-tab {
+  flex: 0 1 auto;
+  max-width: 40%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand-text, #1f2937);
+  background: var(--brand-surface, #ffffff);
+  border-radius: 8px;
+  padding: 5px 12px;
+}
+
+.sf-address {
+  flex: 0 1 auto;
+  margin: 0 auto;
+  min-width: 0;
+  max-width: 58%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: center;
+  font-size: 13px;
+  color: var(--brand-muted, #5b6472);
+  background: var(--brand-surface, #ffffff);
+  border: 1px solid var(--brand-edge, rgba(17, 24, 39, 0.08));
+  border-radius: 999px;
+  padding: 5px 18px;
+}
+
+/* ── Phone ─────────────────────────────────────────────────────────────── */
+
+.sf-frame--phone .sf-window {
+  border-radius: 46px;
+  padding: 12px;
+  background: var(--brand-text, #1c1f26);
+}
+
+.sf-frame--phone .sf-shot {
+  aspect-ratio: 9 / 19.5;
+  border-radius: 34px;
+}
+
+.sf-status {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 18px;
+}
+
+.sf-status-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  opacity: 0.82;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The island floats over the top of the screen, so it sits below the status
+   row in the flow and is pulled down over the shot. */
+.sf-island {
+  position: absolute;
+  left: 50%;
+  top: 20px;
+  transform: translateX(-50%);
+  width: 74px;
+  height: 20px;
+  border-radius: 999px;
+  background: #101319;
+  z-index: 2;
+}
+
+/* Side buttons, drawn on the bezel. */
+.sf-frame--phone .sf-window::before,
+.sf-frame--phone .sf-window::after {
+  content: "";
+  position: absolute;
+  width: 3px;
+  border-radius: 3px;
+  background: var(--brand-edge, rgba(255, 255, 255, 0.22));
+}
+
+.sf-frame--phone .sf-window::before {
+  left: -3px;
+  top: 22%;
+  height: 9%;
+}
+
+.sf-frame--phone .sf-window::after {
+  right: -3px;
+  top: 26%;
+  height: 15%;
+}
+
+/* ── Laptop ────────────────────────────────────────────────────────────── */
+
+.sf-frame--laptop .sf-window {
+  border-radius: var(--sf-radius, 16px) var(--sf-radius, 16px) 0 0;
+  padding: 12px 12px 0;
+  background: var(--brand-text, #23262d);
+}
+
+.sf-frame--laptop .sf-shot {
+  border-radius: 6px;
+}
+
+.sf-base {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  height: 22px;
+  margin: 0 -34px;
+  border-radius: 0 0 12px 12px;
+  background: var(--brand-edge, #c9ced6);
+}
+
+.sf-lip {
+  width: 16%;
+  height: 6px;
+  border-radius: 0 0 8px 8px;
+  background: var(--brand-muted, #9aa2ad);
+}
+
+/* ── Dark frame ────────────────────────────────────────────────────────── */
+
+.sf-dark .sf-window,
+.sf-dark .sf-titlebar {
+  background: #1e2128;
+  border-bottom-color: rgba(255, 255, 255, 0.10);
+}
+
+.sf-dark .sf-tab,
+.sf-dark .sf-address {
+  color: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* No frame means no box, dark or light: the dark rule above would otherwise
+   put an opaque panel behind a bare shot. */
+.sf-dark.sf-frame--none .sf-window { background: transparent; }
+
+.sf-dark .sf-base { background: #3a3f48; }
+.sf-dark .sf-lip { background: #575d68; }
+
+/* ── Placeholder screen (no picture chosen yet) ────────────────────────── */
+
+.sf-ph {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  background: var(--brand-surface, #f7f8fa);
+}
+
+.sf-ph-rail {
+  flex: 0 0 22%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 26px 18px;
+  background: var(--brand-edge, #e7eaf0);
+}
+
+.sf-ph-rail span {
+  display: block;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--brand-muted, #c4cad4);
+  opacity: 0.7;
+}
+
+.sf-ph-rail span:nth-child(2) { width: 78%; }
+.sf-ph-rail span:nth-child(3) { width: 60%; }
+
+.sf-ph-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 30px 34px;
+  min-width: 0;
+}
+
+.sf-ph-bar {
+  height: 12px;
+  border-radius: 6px;
+  background: var(--brand-muted, #ccd2dc);
+  opacity: 0.65;
+}
+
+.sf-ph-bar-wide { width: 62%; }
+.sf-ph-bar-mid { width: 40%; }
+.sf-ph-bar-short { width: 28%; }
+
+.sf-ph-card {
+  flex: 1 1 auto;
+  min-height: 40px;
+  border-radius: 12px;
+  background: var(--brand-edge, #e7eaf0);
+}
+
+/* ── Failure note (never exported) ─────────────────────────────────────── */
+
+.sf-error {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
+  z-index: 3;
+  margin: 0;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+  text-align: center;
+  color: #7a4d00;
+  background: rgba(255, 196, 87, 0.22);
+  border: 1px solid rgba(214, 138, 0, 0.4);
+  border-radius: 8px;
+}

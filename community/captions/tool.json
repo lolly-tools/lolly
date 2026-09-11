@@ -1,0 +1,176 @@
+{
+  "id": "captions",
+  "name": "Captions",
+  "description": "Subtitles for a clip - turn its speech into text on device or drop in an SRT/VTT file, style the cues, and export burned-in frames plus clean .srt and .vtt sidecars.",
+  "a11yLabel": "A {{default style \"bar\"}} caption over a clip, showing the cue at {{default t 0}} seconds",
+  "version": "1.0.2",
+  "engineVersion": ">=1.150.0",
+  "status": "community",
+  "category": "everyone",
+  "tags": [
+    "captions",
+    "subtitles",
+    "srt",
+    "vtt",
+    "transcript",
+    "accessibility",
+    "video",
+    "audio"
+  ],
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "examples": [
+    {
+      "label": "Interview - bar captions",
+      "values": {
+        "style": "bar",
+        "position": "bottom",
+        "time": 1.2,
+        "transcript": "1\n00:00:00,200 --> 00:00:02,400\nCaptions are how most people meet your work.\n\n2\n00:00:02,600 --> 00:00:05,000\nDrop in an SRT file, or transcribe the clip on your device.\n\n3\n00:00:05,200 --> 00:00:07,800\nNothing is uploaded, and nothing is invented."
+      }
+    },
+    {
+      "label": "Field notes - outline over VTT",
+      "values": {
+        "style": "outline",
+        "position": "bottom",
+        "time": 1.0,
+        "showTimecodes": true,
+        "transcript": "WEBVTT\n\nNOTE Recorded on the field day.\n\nintro\n00:00:00.000 --> 00:00:02.500\n<v Ana>Every clip should carry its words.\n\n00:00:02.700 --> 00:00:05.600 line:90%\nSubtitles travel further than sound does."
+      }
+    },
+    {
+      "label": "Karaoke - word by word",
+      "values": {
+        "style": "karaoke",
+        "position": "centre",
+        "time": 1.5,
+        "fontSize": 72,
+        "transcript": "1\n00:00:00,000 --> 00:00:03,000\nSing along with every single word.\n\n2\n00:00:03,200 --> 00:00:06,000\nThe line lights up as it is spoken."
+      }
+    }
+  ],
+  "render": {
+    "width": 1920,
+    "height": 1080,
+    "formats": ["png", "svg", "penpot", "srt", "vtt", "json", "jpg", "webp"],
+    "actions": [
+      "copy",
+      "download",
+      "save"
+    ],
+    "transcribe": {
+      "source": "media",
+      "target": "transcript",
+      "format": "srt"
+    }
+  },
+  "inputs": [
+    {
+      "id": "media",
+      "label": "Clip",
+      "type": "asset",
+      "assetType": "any",
+      "allowUpload": true,
+      "help": "Audio or video. The clip is what gets transcribed, and it is what the captions sit over. Everything happens on your device."
+    },
+    {
+      "id": "transcript",
+      "label": "Transcript",
+      "type": "longtext",
+      "rows": 8,
+      "default": "1\n00:00:00,000 --> 00:00:02,400\nCaptions are how most people meet your work.\n\n2\n00:00:02,600 --> 00:00:05,000\nDrop in an SRT file, or transcribe the clip on your device.\n\n3\n00:00:05,200 --> 00:00:07,800\nNothing is uploaded, and nothing is invented.",
+      "dataSource": {
+        "accept": ".srt,.vtt,.txt,text/plain,text/vtt"
+      },
+      "help": "SRT or WebVTT cues. Add data drops an existing .srt or .vtt file straight in, so you never need the speech model. Transcribe fills this from the clip where on-device speech is available; the CLI has none, so this field is the CLI path.",
+      "placeholder": "1\n00:00:00,000 --> 00:00:02,000\nYour first line"
+    },
+    {
+      "id": "style",
+      "label": "Caption style",
+      "type": "select",
+      "default": "bar",
+      "options": [
+        { "value": "bar", "label": "Bar" },
+        { "value": "outline", "label": "Outline" },
+        { "value": "box", "label": "Box" },
+        { "value": "karaoke", "label": "Karaoke highlight" }
+      ],
+      "help": "Bar runs the full width, Box hugs the words, Outline drops the fill and keeps a readable edge, Karaoke lights each word as it is spoken."
+    },
+    {
+      "id": "position",
+      "label": "Position",
+      "type": "select",
+      "default": "bottom",
+      "options": [
+        { "value": "bottom", "label": "Bottom" },
+        { "value": "top", "label": "Top" },
+        { "value": "centre", "label": "Centre" }
+      ]
+    },
+    {
+      "id": "fontSize",
+      "label": "Text size",
+      "type": "number",
+      "display": "slider",
+      "default": 54,
+      "min": 20,
+      "max": 140,
+      "step": 1
+    },
+    {
+      "id": "color",
+      "label": "Text colour",
+      "type": "color",
+      "default": "{color.semantic.on-primary}"
+    },
+    {
+      "id": "background",
+      "label": "Caption background",
+      "type": "color",
+      "default": "{color.semantic.primary}"
+    },
+    {
+      "id": "maxLines",
+      "label": "Lines per cue",
+      "type": "number",
+      "default": 2,
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "help": "How many lines a cue is split across. A very long cue still wraps to fit the frame."
+    },
+    {
+      "id": "showTimecodes",
+      "label": "Show timecode",
+      "type": "boolean",
+      "default": false,
+      "help": "Prints the cue's in and out times above the words. Handy for review, rarely wanted in a finished frame."
+    },
+    {
+      "id": "burnIn",
+      "label": "Burn captions in",
+      "type": "boolean",
+      "default": true,
+      "help": "On, the cue is drawn over the frame. Off, the frame stays clean and the words travel in the .srt and .vtt sidecars instead."
+    },
+    {
+      "id": "time",
+      "urlKey": "t",
+      "label": "Preview time",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 600,
+      "step": 0.1,
+      "unit": "s",
+      "help": "Which second of the clip the still shows. The cue covering this moment is the one drawn."
+    }
+  ]
+}

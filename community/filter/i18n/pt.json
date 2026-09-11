@@ -1,0 +1,5 @@
+{
+  "name": "Filtro",
+  "description": "Uma ferramenta para efeitos fotográficos: escolha meio-tom, scanline, posterize, voronoi, dither ou arte ASCII (vetor) ou duotone, pixel-stretch, imperfeições ou glitch (raster). Sobreposições de marca, câmera ao vivo e exportação para tantos formatos quanto cada efeito suportar.",
+  "featured.blurb": "Dez efeitos fotográficos, vetor ou raster, numa só ferramenta"
+}

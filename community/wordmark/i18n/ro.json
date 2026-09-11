@@ -1,0 +1,19 @@
+{
+  "name": "Wordmark",
+  "description": "Scrie un cuvânt, obții un logo tip vector cu trasee pure, în fontul brandului tău - destinatarii nu au nevoie de fontul instalat.",
+  "a11yLabel": "Wordmark cu textul {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Text",
+  "inputs.font.label": "Font",
+  "inputs.font.options.brand": "Font brand",
+  "inputs.font.options.mono": "Font mono",
+  "inputs.weight.label": "Grosime",
+  "inputs.tracking.label": "Tracking",
+  "inputs.tracking.help": "Spațiere între litere în px la dimensiunea setată.",
+  "inputs.size.label": "Dimensiune",
+  "inputs.size.help": "Dimensiunea fontului la care sunt modelate contururile - tracking-ul este relativ la aceasta.",
+  "inputs.color.label": "Culoare",
+  "inputs.features.label": "Funcții OpenType",
+  "inputs.features.options.none": "Standard",
+  "inputs.features.options.liga-off": "Fără ligaturi",
+  "inputs.features.options.salt": "Alternative stilistice"
+}

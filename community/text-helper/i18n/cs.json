@@ -1,0 +1,5 @@
+{
+  "name": "Textový pomocník",
+  "description": "Formátuj, dekóduj, hashuj a anonymizuj text - JSON, JWT a další.",
+  "a11yLabel": "Textový pomocník - dílna pro JSON / YAML / Helm / JWT / Base64 / hash / anonymizaci na zařízení"
+}

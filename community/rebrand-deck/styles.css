@@ -1,0 +1,192 @@
+/* Colours follow the ACTIVE BRAND via the --brand-* semantic vars the web shell
+   mirrors onto the tool canvas (brand-vars.ts) - never the bare shadcn HSL
+   triples (--primary et al), which carry a different value format. Every
+   use-site keeps a neutral fallback so the sheet stays valid where no brand is
+   mounted (CLI/headless). Alpha blends go through color-mix, since the vars
+   hold full colour values, not triples. */
+.rbd {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  /* `--font-brand` (the brand's primary face), NOT `--brand-font-body` - that name is
+     defined nowhere, so this rendered in the system fallback regardless of brand. */
+  font-family: var(--font-brand, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif);
+  color: var(--brand-text, #17232b);
+  background: var(--brand-surface, #f7f8f8);
+}
+
+.rbd-empty {
+  max-width: 480px;
+  text-align: center;
+  padding: 40px 28px;
+  border: 2px dashed var(--brand-edge, #d6d6d6);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.rbd-empty:hover {
+  border-color: var(--brand-primary, #30ba78);
+  background: color-mix(in oklab, var(--brand-primary, #30ba78) 5%, transparent);
+}
+.rbd-empty-icon { color: var(--brand-primary, #30ba78); margin-bottom: 12px; }
+.rbd-empty-icon svg { width: 48px; height: 48px; }
+.rbd-empty h2 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+.rbd-empty p { margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: var(--brand-muted, #4a4a4a); }
+.rbd-empty-note { font-size: 12px !important; color: var(--brand-muted, #4a4a4a) !important; margin: 14px 0 0 !important; }
+
+.rbd-pick {
+  appearance: none;
+  border: none;
+  background: var(--brand-primary, #30ba78);
+  color: var(--brand-on-primary, #fff);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.rbd-pick:hover { background: color-mix(in oklab, var(--brand-primary, #30ba78), black 12%); }
+
+.rbd-card {
+  width: 100%;
+  max-width: 520px;
+  background: color-mix(in oklab, var(--brand-surface, #f7f8f8), white 55%);
+  border: 1px solid var(--brand-edge, #d6d6d6);
+  border-radius: 16px;
+  padding: 22px 24px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / .06);
+}
+.rbd-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid color-mix(in oklab, var(--brand-edge, #d6d6d6) 60%, transparent);
+}
+.rbd-file { font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.rbd-size { font-size: 13px; color: var(--brand-muted, #4a4a4a); flex-shrink: 0; }
+.rbd-replace {
+  appearance: none;
+  border: 1px solid var(--brand-edge, #d6d6d6);
+  background: transparent;
+  color: var(--brand-text, #17232b);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.rbd-replace:hover { border-color: var(--brand-primary, #30ba78); color: var(--brand-primary, #30ba78); }
+
+.rbd-summary {
+  margin: 14px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--brand-muted, #4a4a4a);
+}
+
+.rbd-theme { margin-top: 14px; }
+.rbd-theme-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand-muted, #4a4a4a);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  margin-bottom: 8px;
+}
+.rbd-strip { display: flex; flex-wrap: wrap; gap: 6px; }
+.rbd-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 6px;
+  border: 1px solid var(--brand-edge, #d6d6d6);
+  border-radius: 999px;
+}
+.rbd-chip i {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgb(0 0 0 / .12);
+}
+.rbd-chip em { font-style: normal; font-size: 10px; color: var(--brand-muted, #4a4a4a); }
+
+.rbd-settings { border: none; margin: 16px 0 0; padding: 0; }
+.rbd-settings legend {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--brand-muted, #4a4a4a);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  padding: 0;
+  margin-bottom: 8px;
+}
+
+.rbd-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--brand-text, #17232b);
+  cursor: pointer;
+}
+.rbd-check input { width: 15px; height: 15px; accent-color: var(--brand-primary, #30ba78); cursor: pointer; flex-shrink: 0; }
+
+.rbd-result {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--brand-primary, #30ba78) 10%, transparent);
+}
+.rbd-result-note { font-size: 13px; font-weight: 600; color: var(--brand-text, #17232b); }
+
+.rbd-state { margin-top: 16px; }
+.rbd-lead { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+
+/* "This won't do what you're expecting" - a flattened deck, or a PDF. A tinted
+   panel on all four sides (not a rule down one edge), tinted with a translucent
+   amber so it reads the same over a light or a dark brand surface. */
+.rbd-state-warn {
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: color-mix(in oklab, #e8a33d 16%, transparent);
+  border: 1px solid color-mix(in oklab, #e8a33d 38%, transparent);
+}
+.rbd-state-warn .rbd-note { color: var(--brand-text, #17232b); margin-top: 6px; }
+
+.rbd-note { font-size: 12px; color: var(--brand-muted, #4a4a4a); line-height: 1.5; margin: 8px 0 0; }
+.rbd-note code { background: color-mix(in oklab, var(--brand-edge, #d6d6d6) 45%, transparent); padding: 1px 5px; border-radius: 4px; font-size: 11px; }
+
+.rbd-download {
+  appearance: none;
+  border: none;
+  width: 100%;
+  margin-top: 18px;
+  background: var(--brand-primary, #30ba78);
+  color: var(--brand-on-primary, #fff);
+  font-size: 14px;
+  font-weight: 650;
+  padding: 12px 18px;
+  border-radius: 11px;
+  cursor: pointer;
+}
+.rbd-download:hover { background: color-mix(in oklab, var(--brand-primary, #30ba78), black 12%); }
+/* Still offered (the theme part IS rewritten), but not the confident primary
+   call to action - the download can't change what the user can see. */
+.rbd-download.is-noop {
+  background: transparent;
+  color: var(--brand-muted, #4a4a4a);
+  border: 1px solid var(--brand-edge, #d6d6d6);
+}
+.rbd-download.is-noop:hover { background: color-mix(in oklab, var(--brand-edge, #d6d6d6) 30%, transparent); }
+.rbd-download.is-busy { opacity: .7; cursor: progress; }
+.rbd-download.is-error { background: #c22f2f; color: #fff; }
+.rbd-tail { margin-top: 12px; }

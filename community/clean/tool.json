@@ -1,0 +1,29 @@
+{
+  "id": "clean",
+  "name": "Clean",
+  "description": "Clean a voice recording, trim edge silence and set its loudness on your device.",
+  "version": "1.0.1",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "utility",
+  "privacy": "on-device",
+  "tags": ["audio", "video", "voice", "denoise", "noise", "normalize", "loudness", "silence", "wav", "mp3", "m4a", "opus"],
+  "a11yLabel": "Audio cleanup for {{fileName}}",
+  "render": { "width": 820, "height": 620, "formats": ["wav", "mp3", "m4a", "opus", "mp4", "webm"], "export": false, "layout": "canvas", "actions": [] },
+  "hooks": { "onInit": true, "onInput": true, "exportFile": true },
+  "inputs": [
+    { "id": "source", "label": "Audio or video", "type": "file", "accept": ["audio/*", "video/*", ".wav", ".mp3", ".m4a", ".opus", ".ogg", ".mp4", ".mov", ".webm"], "maxSize": 536870912, "help": "Decoded and processed locally. A video keeps its picture while its audio track is replaced." },
+    { "id": "denoise", "label": "Voice cleanup", "type": "select", "default": "off", "options": [
+      { "value": "off", "label": "Off" }, { "value": "light", "label": "Light" }, { "value": "strong", "label": "Strong" }
+    ]},
+    { "id": "normalize", "label": "Loudness", "type": "select", "default": "-16", "options": [
+      { "value": "off", "label": "Leave unchanged" }, { "value": "-16", "label": "Podcast · -16 LUFS" },
+      { "value": "-14", "label": "Streaming · -14 LUFS" }, { "value": "-23", "label": "Broadcast · -23 LUFS" }
+    ]},
+    { "id": "trimSilence", "label": "Trim leading and trailing silence", "type": "boolean", "default": true },
+    { "id": "audioFormat", "label": "Audio output", "type": "select", "default": "wav", "options": [
+      { "value": "wav", "label": "WAV" }, { "value": "mp3", "label": "MP3" },
+      { "value": "m4a", "label": "M4A" }, { "value": "opus", "label": "Opus" }
+    ], "help": "For video input, the source video container wins and this choice only applies to audio-only files." }
+  ]
+}

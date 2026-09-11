@@ -1,0 +1,18 @@
+{
+  "name": "이미지 변환",
+  "description": "HEIC, TIFF 또는 다른 사진을 WebP, JPEG 또는 PNG로 변환하세요 - 기기 내에서 처리됩니다.",
+  "a11yLabel": "{{fileName}} 이미지 변환",
+  "inputs.source.label": "이미지",
+  "inputs.source.help": "HEIC, HEIF, JPEG, PNG, WebP, AVIF 또는 TIFF 이미지예요. 브라우저에서 읽히며 기기 밖으로 나가지 않아요.",
+  "inputs.target.label": "변환 대상",
+  "inputs.target.help": "출력 형식이에요. WebP가 보통 가장 작고, PNG는 무손실이에요.",
+  "inputs.target.options.webp": "WebP - 가장 작고 투명도 유지",
+  "inputs.target.options.jpeg": "JPEG - 범용, 사진용",
+  "inputs.target.options.png": "PNG - 무손실, 투명도 유지",
+  "inputs.quality.label": "품질",
+  "inputs.quality.help": "손실 포맷의 품질이에요. 낮을수록 파일이 작아지고 디테일이 부드러워져요. PNG에는 적용되지 않아요.",
+  "inputs.maxEdge.label": "긴 변 (px)",
+  "inputs.maxEdge.help": "긴 쪽 변이 최대 이 픽셀 수를 넘지 않도록 축소해요. 0이면 원본 크기를 유지해요. 확대는 하지 않아요.",
+  "inputs.keepLocation.label": "위치 정보 유지",
+  "inputs.keepLocation.help": "사진의 GPS 위치를 변환된 파일로 옮깁니다. 기본값은 꺼짐입니다 - 위치는 개인 정보입니다. 사진의 다른 정보(작성자, 저작권, 촬영 날짜)는 항상 옮겨지며, 카드에 정확히 무엇이 일어났는지 표시됩니다."
+}

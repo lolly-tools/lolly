@@ -1,0 +1,323 @@
+{
+  "id": "frame",
+  "name": "Frame",
+  "description": "Drop in a screenshot and get it framed, padded and shadowed on a brand backdrop.",
+  "a11yLabel": "Screenshot in a {{default frame \"browser\"}} frame on a {{default backdrop \"gradient\"}} backdrop",
+  "version": "1.1.1",
+  "engineVersion": "^1.0.0",
+  "status": "community",
+  "category": "everyone",
+  "tags": [
+    "screenshot",
+    "frame",
+    "mockup",
+    "device",
+    "browser",
+    "social"
+  ],
+  "examples": [
+    {
+      "label": "Browser - silk-flow mesh inside",
+      "values": {
+        "image": {
+          "source": "remote",
+          "id": "https://lolly.tools/tool/gradient.svg?mode=flow&count=4&color1=%230ea5e9&color2=%23a78bfa&color3=%23f472b6&color4=%230b1021&flowSpeed=24&waveScale=100&waveAmp=70&angle=35&seed=12",
+          "_unresolved": true
+        },
+        "frame": "browser",
+        "windowStyle": "nuremberg",
+        "url": "https://lolly.tools/gradient",
+        "title": "Mesh Gradient",
+        "backdrop": "gradient",
+        "background": "{color.semantic.primary}",
+        "color2": "{color.semantic.secondary}",
+        "dark": false
+      }
+    },
+    {
+      "label": "Phone - sunset-haze mesh inside",
+      "values": {
+        "image": {
+          "source": "remote",
+          "id": "https://lolly.tools/tool/gradient.svg?count=3&color1=%23ff9a8b&color2=%23f2a65a&color3=%23ffd3bd&blend=screen&spread=95&blur=10&grain=30",
+          "_unresolved": true
+        },
+        "frame": "phone",
+        "title": "Field notes",
+        "backdrop": "gradient",
+        "background": "#f6c99f",
+        "color2": "#e8836b",
+        "padding": 72,
+        "scale": 90,
+        "shadow": 65
+      }
+    },
+    {
+      "label": "Laptop - synth headline swarm inside",
+      "values": {
+        "image": {
+          "source": "remote",
+          "id": "https://lolly.tools/tool/synth.png?scene=swarm&text=SYNTH&particles=200000&intensity=1.5&speed=0.7&seed=11",
+          "_unresolved": true
+        },
+        "frame": "laptop",
+        "backdrop": "solid",
+        "background": "{color.semantic.primary}",
+        "padding": 88,
+        "scale": 78,
+        "radius": 10
+      }
+    },
+    {
+      "label": "Bare shot - aurora-night mesh inside",
+      "values": {
+        "image": {
+          "source": "remote",
+          "id": "https://lolly.tools/tool/gradient.svg?count=4&color1=%2322d3ee&color2=%23a78bfa&color3=%2310b981&color4=%230b1021&blend=screen&spread=110&blur=8&grain=60",
+          "_unresolved": true
+        },
+        "frame": "none",
+        "backdrop": "transparent",
+        "padding": 48,
+        "scale": 88,
+        "radius": 24,
+        "shadow": 40
+      }
+    }
+  ],
+  "render": {
+    "width": 1600,
+    "height": 1000,
+    "formats": ["png", "jpg", "webp", "svg", "penpot", "pdf", "avif", "tiff"],
+    "actions": [
+      "copy",
+      "download",
+      "save"
+    ],
+    "filenameFrom": [
+      "title",
+      "url"
+    ],
+    "transparentBg": false
+  },
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true
+  },
+  "inputs": [
+    {
+      "id": "image",
+      "label": "Screenshot",
+      "type": "asset",
+      "assetType": "image",
+      "allowUpload": true,
+      "help": "Drop in a screen grab. Without one the frame shows a plain placeholder screen."
+    },
+    {
+      "id": "imageFraming",
+      "label": "Zoom & Position",
+      "framingFor": "image",
+      "help": "Drag the image on the canvas to move it, scroll to zoom, and hold Alt while dragging to correct converging verticals. Or set the numbers here.",
+      "type": "vector",
+      "fields": [
+        {
+          "id": "zoom",
+          "label": "Zoom",
+          "min": 100,
+          "max": 400,
+          "step": 1,
+          "default": 100
+        },
+        {
+          "id": "x",
+          "label": "X",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "default": 50
+        },
+        {
+          "id": "y",
+          "label": "Y",
+          "min": 0,
+          "max": 100,
+          "step": 1,
+          "default": 50
+        },
+        {
+          "id": "rotate",
+          "label": "Rotate",
+          "min": -180,
+          "max": 180,
+          "step": 0.5,
+          "default": 0
+        },
+        {
+          "id": "pitch",
+          "label": "Vertical",
+          "min": -45,
+          "max": 45,
+          "step": 0.5,
+          "default": 0
+        },
+        {
+          "id": "yaw",
+          "label": "Horizontal",
+          "min": -45,
+          "max": 45,
+          "step": 0.5,
+          "default": 0
+        }
+      ]
+    },
+    {
+      "id": "frame",
+      "label": "Frame",
+      "type": "select",
+      "default": "browser",
+      "options": [
+        {
+          "value": "browser",
+          "label": "Browser window"
+        },
+        {
+          "value": "phone",
+          "label": "Phone"
+        },
+        {
+          "value": "laptop",
+          "label": "Laptop"
+        },
+        {
+          "value": "none",
+          "label": "No frame"
+        }
+      ]
+    },
+    {
+      "id": "windowStyle",
+      "label": "Window buttons",
+      "type": "select",
+      "default": "nuremberg",
+      "showIf": {
+        "frame": "browser"
+      },
+      "help": "Window chrome look. Nuremberg = GNOME Adwaita, Cupertino = macOS, Redmond = Windows.",
+      "options": [
+        {
+          "value": "cupertino",
+          "label": "Cupertino"
+        },
+        {
+          "value": "redmond",
+          "label": "Redmond"
+        },
+        {
+          "value": "nuremberg",
+          "label": "Nuremberg"
+        }
+      ]
+    },
+    {
+      "id": "url",
+      "label": "Address",
+      "type": "url",
+      "default": "https://lolly.tools",
+      "showIf": {
+        "frame": "browser"
+      },
+      "help": "Shown in the address bar. The protocol is dropped."
+    },
+    {
+      "id": "title",
+      "label": "Title",
+      "type": "text",
+      "default": "",
+      "placeholder": "Tab or status title"
+    },
+    {
+      "id": "backdrop",
+      "label": "Backdrop",
+      "type": "select",
+      "default": "gradient",
+      "options": [
+        {
+          "value": "gradient",
+          "label": "Gradient"
+        },
+        {
+          "value": "solid",
+          "label": "Solid colour"
+        },
+        {
+          "value": "transparent",
+          "label": "Transparent"
+        }
+      ]
+    },
+    {
+      "id": "background",
+      "label": "Backdrop colour",
+      "type": "color",
+      "default": "{color.semantic.primary}"
+    },
+    {
+      "id": "color2",
+      "label": "Second colour",
+      "type": "color",
+      "default": "{color.semantic.secondary}",
+      "showIf": {
+        "backdrop": "gradient"
+      }
+    },
+    {
+      "id": "padding",
+      "label": "Padding",
+      "type": "number",
+      "display": "slider",
+      "default": 72,
+      "min": 0,
+      "max": 200,
+      "step": 4
+    },
+    {
+      "id": "scale",
+      "label": "Frame size",
+      "type": "number",
+      "display": "slider",
+      "default": 78,
+      "min": 50,
+      "max": 100,
+      "step": 1,
+      "help": "Frame width as a percentage of the canvas."
+    },
+    {
+      "id": "radius",
+      "label": "Corner radius",
+      "type": "number",
+      "display": "slider",
+      "default": 16,
+      "min": 0,
+      "max": 48,
+      "step": 1
+    },
+    {
+      "id": "shadow",
+      "label": "Shadow",
+      "type": "number",
+      "display": "slider",
+      "default": 55,
+      "min": 0,
+      "max": 100,
+      "step": 1
+    },
+    {
+      "id": "dark",
+      "label": "Dark frame",
+      "type": "boolean",
+      "default": false
+    }
+  ]
+}

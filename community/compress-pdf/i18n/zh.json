@@ -1,0 +1,14 @@
+{
+  "name": "Compress",
+  "description": "通过重新压缩图片来缩小 PDF - 在你的设备上完成。",
+  "a11yLabel": "{{fileName}} 的 PDF 压缩器",
+  "inputs.source.label": "PDF",
+  "inputs.source.help": "PDF 文件。文件在浏览器中读取，不会离开你的设备。",
+  "inputs.level.label": "压缩程度",
+  "inputs.level.help": "内嵌图片的压缩强度。强度越高，文件越小，图片也越模糊。",
+  "inputs.level.options.light": "轻度 - 保持高质量",
+  "inputs.level.options.balanced": "均衡",
+  "inputs.level.options.strong": "强力 - 文件最小",
+  "inputs.grayscale.label": "将图片转换为灰度",
+  "inputs.grayscale.help": "去除图片颜色以进一步节省空间--适用于扫描的文本文档。"
+}

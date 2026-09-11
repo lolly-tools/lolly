@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "Envie uma apresentação PowerPoint e ajuste suas cores e fontes à sua marca - reconstruída no seu dispositivo, nada é enviado.",
+  "a11yLabel": "Rebrander de deck para {{fileName}}",
+  "inputs.source.label": "Arquivo do PowerPoint",
+  "inputs.source.help": "Um arquivo .pptx. É lido no seu dispositivo e nunca é enviado.",
+  "inputs.useTheme.label": "Aplicar tema da marca",
+  "inputs.useTheme.help": "Troque a paleta e as fontes do tema do deck pelas da sua marca - toda cor vinculada ao tema é atualizada automaticamente.",
+  "inputs.colorMap.label": "Mapeamento de cores",
+  "inputs.colorMap.help": "Cores fixas encontradas nos slides, cada uma com sua cor de marca sugerida. Remova uma linha para deixar aquela cor como está.",
+  "inputs.colorMap.fields.from.label": "Original",
+  "inputs.colorMap.fields.to.label": "Marca",
+  "inputs.fontMap.label": "Mapeamento de fontes",
+  "inputs.fontMap.help": "Fontes citadas no deck, cada uma com sua substituta da marca. Remova uma linha para manter aquela fonte.",
+  "inputs.fontMap.fields.from.label": "Original",
+  "inputs.fontMap.fields.to.label": "Marca",
+  "inputs.dropFonts.label": "Remover fontes incorporadas",
+  "inputs.dropFonts.help": "Fontes da marca antiga incorporadas no arquivo ficam desatualizadas após uma troca e podem ter restrições de licença."
+}

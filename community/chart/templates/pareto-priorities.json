@@ -1,0 +1,13 @@
+{
+  "id": "pareto-priorities",
+  "name": "Where to focus first",
+  "category": "Comparison",
+  "description": "Rank the biggest causes and see when their cumulative share reaches 80%.",
+  "values": {
+    "chartIntent": "manual", "renderMode": "vector", "chartType": "pareto", "chartStyle": "editorial",
+    "heading": "Three issues cause most support requests",
+    "subheading": "Bars: request count · line: cumulative share on the right axis",
+    "data": "Issue,Requests\nBilling,180\nSign-in,260\nSetup,120\nImport,60\nNotifications,35\nOther,25",
+    "paretoCumulative": true, "paretoThreshold": 80, "numberFormat": "integer", "labelLayout": "wrap", "transparentBg": false
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "隠しデータの削除",
+  "description": "画像やPDFに隠されたメタデータを表示・削除 - デバイス上で処理します。",
+  "a11yLabel": "{{fileName}} の隠しデータレポート",
+  "inputs.source.label": "画像またはPDF",
+  "inputs.source.help": "JPEG、PNG、SVG、PDFに対応しています。ファイルはブラウザ内で読み込まれ、お使いの端末から外部に送信されることはありません。"
+}

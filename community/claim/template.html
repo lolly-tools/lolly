@@ -1,0 +1,58 @@
+<!-- Embed, Imprint & Track - a transform tool. The canvas is a drop zone + a
+     manifest of what's about to be stamped; the real work is in hooks.js
+     (exportFile). Files are handed back UNTOUCHED except for the marks: the C2PA
+     credential on every format, plus the pixel Imprint / durable mark on raster. -->
+<div class="eit">
+  {{#unless hasFiles}}
+    <div class="eit-empty" data-file-pick tabindex="0" role="button" aria-label="Choose files to stamp">
+      <div class="eit-empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 12.2V4.5q0-2-2-2H4q-2 0-2 2v9q0 2 2 2h9"/>
+          <circle cx="6.5" cy="7.3" r="1.3"/>
+          <path d="M2.9 12.6l2.8-2.5 2.2 1.8 2.4-2.3 1.7 1.65"/>
+          <path d="M18 12l4.5 1.8v2.5c0 3.1-1.9 4.8-4.5 5.7-2.6-.9-4.5-2.6-4.5-5.7v-2.5z"/>
+          <path d="M16.2 16.6l1.4 1.45 2.6-2.7"/>
+        </svg>
+      </div>
+      <h2>Claim your name on work you've already made</h2>
+      <p>Drop images, a PDF, a video or an audio clip anywhere here - or choose files below. Each one is stamped with your author, copyright and licence as Content Credentials (a durable Imprint too, on images), then handed straight back.</p>
+      <button type="button" class="eit-pick" data-file-pick>Choose files…</button>
+      <p class="eit-note">Everything happens in your browser. Nothing is uploaded.</p>
+    </div>
+  {{/unless}}
+
+  {{#if hasFiles}}
+    <div class="eit-card">
+      <div class="eit-head">
+        <span class="eit-count">{{fileCount}} file{{#unless (eq fileCount 1)}}s{{/unless}} ready</span>
+        <button type="button" class="eit-replace" data-file-pick>Add more…</button>
+      </div>
+
+      <ul class="eit-files">
+        {{#each fileList}}
+          <li class="eit-file {{#unless supported}}is-unsupported{{/unless}}">
+            <span class="eit-file-name" title="{{name}}">{{name}}</span>
+            <span class="eit-file-kind">{{#if supported}}{{kind}} · {{size}}{{else}}unsupported{{/if}}</span>
+          </li>
+        {{/each}}
+      </ul>
+
+      {{#if unsupportedCount}}
+        <p class="eit-warn">{{unsupportedCount}} file{{#unless (eq unsupportedCount 1)}}s{{/unless}} can't carry a credential and will be handed back unchanged. Supported: JPEG, PNG, WebP, AVIF, TIFF, GIF, SVG, PDF, MP4/MOV, WebM, M4A, MP3, WAV.</p>
+      {{/if}}
+
+      {{#if needsName}}
+        <p class="eit-hint">Add your name under <strong>Credentials</strong> so the claim carries your authorship.</p>
+      {{/if}}
+
+      {{#if durableOn}}
+        {{#if rasterCount}}
+          <p class="eit-hint">A durable invisible watermark will ride the {{rasterCount}} raster image{{#unless (eq rasterCount 1)}}s{{/unless}}.</p>
+        {{/if}}
+      {{/if}}
+
+      <button type="button" class="eit-download" data-export-file data-busy-label="Stamping…">{{downloadLabel}}</button>
+      <p class="eit-note">The bytes of your work are preserved - only the marks are added. Any credential already inside a file is carried forward, not lost.</p>
+    </div>
+  {{/if}}
+</div>

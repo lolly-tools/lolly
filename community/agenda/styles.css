@@ -1,0 +1,477 @@
+/* Agenda.
+   Every length is a multiple of --ag-u, a thousandth of the sheet's OWN width in
+   container units, so one layout holds at A4 portrait, at a poster size and on a
+   1080p board without a media query. The canvas previews at whatever pixel size
+   fits the tool view and the export stage paints at the true page size, so an
+   absolute px unit would agree with only one of them.
+
+   Colours arrive three ways, in this order: the custom properties the hook
+   resolved from the active design system, then the --brand-* slots the shell
+   projects onto the tool canvas, then a literal. The comma fallback on every
+   --brand-* reference is required - a design system with no such slot leaves the
+   var UNSET, not empty, so a bare reference would collapse the whole
+   declaration. Type follows the active system through --font-brand.
+
+   Print-clean by design: rules, tints and flat fills, no shadows and no blend
+   modes, so the CMYK PDF separates as drawn. */
+
+.ag-root {
+  container-type: size;
+  --ag-u: 0.1cqw;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: calc(46 * var(--ag-u)) calc(46 * var(--ag-u)) calc(38 * var(--ag-u));
+  display: flex;
+  flex-direction: column;
+  gap: calc(22 * var(--ag-u));
+  background: var(--ag-paper, var(--brand-surface, #ffffff));
+  color: var(--ag-ink, var(--brand-text, #1f2933));
+  font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
+  font-size: calc(16 * var(--ag-u));
+  line-height: 1.3;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ag-root * { box-sizing: border-box; }
+
+/* ── Head ─────────────────────────────────────────────────────────────────── */
+
+.ag-head {
+  display: flex;
+  flex-direction: column;
+  gap: calc(8 * var(--ag-u));
+  border-top: calc(5 * var(--ag-u)) solid var(--ag-accent, currentColor);
+  border-bottom: calc(1 * var(--ag-u)) solid var(--ag-rule, var(--brand-edge, #d7dbe0));
+  padding: calc(20 * var(--ag-u)) 0 calc(20 * var(--ag-u));
+}
+
+.ag-title {
+  margin: 0;
+  font-size: calc(48 * var(--ag-u));
+  font-weight: 700;
+  line-height: 1.08;
+
+  overflow-wrap: anywhere;
+}
+
+.ag-sub {
+  margin: 0;
+  font-size: calc(19 * var(--ag-u));
+  color: var(--ag-muted, var(--brand-muted, #6b7280));
+}
+
+.ag-legend {
+  margin: calc(6 * var(--ag-u)) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(8 * var(--ag-u)) calc(20 * var(--ag-u));
+  font-size: calc(15 * var(--ag-u));
+}
+
+.ag-legend-item {
+  display: flex;
+  align-items: center;
+  gap: calc(7 * var(--ag-u));
+  padding: calc(5 * var(--ag-u)) calc(9 * var(--ag-u));
+  border: calc(1 * var(--ag-u)) solid var(--ag-rule, #d7dbe0);
+  border-radius: calc(5 * var(--ag-u));
+  font-weight: 600;
+}
+
+.ag-dot {
+  width: calc(13 * var(--ag-u));
+  height: calc(13 * var(--ag-u));
+  border-radius: 50%;
+  display: block;
+}
+
+/* ── Day sections, shared by the list and the timetable ───────────────────── */
+
+.ag-day-title {
+  margin: 0 0 calc(6 * var(--ag-u));
+  font-size: calc(21 * var(--ag-u));
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.ag-day-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: calc(6 * var(--ag-u)); margin-bottom: calc(9 * var(--ag-u)); }
+.ag-day-head .ag-day-title { margin: 0; }
+.ag-day-range { font-size: calc(13 * var(--ag-u)); font-variant-numeric: tabular-nums; color: var(--ag-muted, #6b7280); white-space: nowrap; }
+
+.ag-warn {
+  margin: 0 0 calc(8 * var(--ag-u));
+  font-size: calc(14 * var(--ag-u));
+  font-weight: 500;
+  color: var(--ag-flag);
+}
+
+.ag-zone-warn {
+  margin: 0;
+  font-size: calc(13 * var(--ag-u));
+  color: var(--ag-flag);
+}
+
+.ag-empty,
+.ag-error {
+  margin: auto 0;
+  font-size: calc(20 * var(--ag-u));
+  color: var(--ag-muted, var(--brand-muted, #6b7280));
+}
+
+/* ── List ─────────────────────────────────────────────────────────────────── */
+
+.ag-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(22 * var(--ag-u));
+}
+
+.ag-rows {
+  display: flex;
+  flex-direction: column;
+  gap: calc(6 * var(--ag-u));
+}
+
+/* One row per start time. The columns are the same lattice the timetable uses,
+   so what runs at the same time sits side by side and the eye reads across a
+   time before it reads down the day. */
+.ag-lrow {
+  display: grid;
+  gap: calc(6 * var(--ag-u));
+  align-items: stretch;
+  border-top: calc(1 * var(--ag-u)) solid var(--ag-rule, var(--brand-edge, #d7dbe0));
+  padding-top: calc(6 * var(--ag-u));
+}
+
+.ag-ltime {
+  grid-column: 1;
+  padding-top: calc(6 * var(--ag-u));
+  font-size: calc(17 * var(--ag-u));
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ag-lslot {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(4 * var(--ag-u));
+}
+
+/* Tinted cards and a narrow track rule keep identity in colour and position. */
+.ag-lcell {
+  min-width: 0;
+  padding: calc(8 * var(--ag-u)) calc(10 * var(--ag-u));
+  border-radius: calc(4 * var(--ag-u));
+  background: var(--ag-t, #f2f4f6);
+  display: flex;
+  flex-direction: column;
+  gap: calc(2 * var(--ag-u));
+  border-inline-start: calc(3 * var(--ag-u)) solid var(--ag-c, currentColor);
+  overflow-wrap: anywhere;
+}
+
+.ag-lcell-break {
+  background: transparent;
+  border: calc(1 * var(--ag-u)) solid var(--ag-rule, var(--brand-edge, #d7dbe0));
+}
+
+.ag-lname {
+  font-size: calc(18 * var(--ag-u));
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.ag-lcell-wide .ag-lname { font-size: calc(19 * var(--ag-u)); }
+
+.ag-lmeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: calc(3 * var(--ag-u)) calc(10 * var(--ag-u));
+}
+
+.ag-ltimes {
+  font-size: calc(12 * var(--ag-u));
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ag-ink, #1f2933);
+}
+
+.ag-lcell-break .ag-ltimes { color: var(--ag-muted, var(--brand-muted, #6b7280)); }
+
+.ag-kind {
+  font-size: calc(11 * var(--ag-u));
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ag-muted, var(--brand-muted, #6b7280));
+}
+
+.ag-speaker,
+.ag-room {
+  font-size: calc(12 * var(--ag-u));
+  line-height: 1.25;
+  color: var(--ag-muted, var(--brand-muted, #6b7280));
+}
+
+.ag-note {
+  font-size: calc(12 * var(--ag-u));
+  font-style: italic;
+  line-height: 1.25;
+  color: var(--ag-muted, var(--brand-muted, #6b7280));
+}
+
+/* ── Timetable ────────────────────────────────────────────────────────────── */
+
+.ag-grids {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(24 * var(--ag-u));
+}
+
+.ag-grids .ag-day {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ag-grid-head {
+  display: grid;
+  gap: calc(6 * var(--ag-u));
+  margin-bottom: calc(6 * var(--ag-u));
+}
+
+.ag-col-head {
+  padding: calc(6 * var(--ag-u)) calc(8 * var(--ag-u));
+  background: var(--ag-c, #888888);
+  color: var(--ag-on, #ffffff);
+  font-size: calc(16 * var(--ag-u));
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: center;
+  border-radius: calc(4 * var(--ag-u));
+}
+
+.ag-col-head-plain {
+  background: transparent;
+  color: var(--ag-muted, var(--brand-muted, #6b7280));
+  border: calc(1 * var(--ag-u)) solid var(--ag-rule, var(--brand-edge, #d7dbe0));
+}
+
+/* The lattice. Row heights are proportional to each band's real length (the hook
+   writes the template), which needs a DEFINITE height to resolve against - hence
+   the flex column above and min-height:0 all the way down. */
+.ag-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  gap: calc(6 * var(--ag-u));
+  font-size: calc(14 * var(--ag-u));
+  border-top: calc(1 * var(--ag-u)) solid var(--ag-rule, var(--brand-edge, #d7dbe0));
+  padding-top: calc(6 * var(--ag-u));
+}
+
+.ag-slot {
+  font-size: calc(16 * var(--ag-u));
+  font-variant-numeric: tabular-nums;
+  color: var(--ag-muted, var(--brand-muted, #6b7280));
+  border-top: calc(1 * var(--ag-u)) solid var(--ag-rule, var(--brand-edge, #d7dbe0));
+  padding-top: calc(3 * var(--ag-u));
+  margin-top: calc(-6 * var(--ag-u));
+}
+
+/* A tinted fill and one track rule leave the timetable lighter than full boxes. */
+.ag-cell {
+  overflow: hidden;
+  padding: calc(6 * var(--ag-u)) calc(8 * var(--ag-u));
+  border-radius: calc(4 * var(--ag-u));
+  background: var(--ag-t, #f2f4f6);
+  display: flex;
+  flex-direction: column;
+  gap: calc(2 * var(--ag-u));
+  border-inline-start: calc(3 * var(--ag-u)) solid var(--ag-c, currentColor);
+  overflow-wrap: anywhere;
+}
+
+.ag-cell-break {
+  background: transparent;
+  border: calc(1 * var(--ag-u)) solid var(--ag-rule, var(--brand-edge, #d7dbe0));
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.ag-cell-name {
+  font-size: calc(18 * var(--ag-u));
+  font-weight: 650;
+  line-height: 1.18;
+}
+
+.ag-cell-speaker,
+.ag-cell-room {
+  font-size: calc(14 * var(--ag-u));
+  color: var(--ag-muted, var(--brand-muted, #6b7280));
+}
+
+.ag-grid-foot {
+  margin: calc(4 * var(--ag-u)) 0 0;
+  font-size: calc(13 * var(--ag-u));
+  font-variant-numeric: tabular-nums;
+  color: var(--ag-muted, var(--brand-muted, #6b7280));
+}
+
+/* ── Board ────────────────────────────────────────────────────────────────── */
+
+/* The board is the one layout that is usually WIDER than it is tall - a screen
+   by the door rather than a sheet of paper - and a unit taken from the width
+   alone would set 16:9 type from a measurement the height has to live with. So
+   here the unit is whichever of the two is smaller, which leaves an A4 board
+   byte-identical (its width already governs) and stops a 1920 x 1080 one
+   running off the bottom. */
+.ag-mode-board { --ag-u: min(0.1cqw, 0.14cqh); }
+
+.ag-board {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(16 * var(--ag-u));
+}
+
+.ag-clock {
+  margin: 0;
+  align-self: flex-end;
+  font-size: calc(42 * var(--ag-u));
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.ag-clock-sec {
+  font-size: calc(22 * var(--ag-u));
+  font-weight: 400;
+  color: var(--ag-muted, var(--brand-muted, #6b7280));
+}
+
+.ag-board-cols {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: calc(16 * var(--ag-u));
+}
+
+.ag-board-col {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(12 * var(--ag-u));
+  overflow-wrap: anywhere;
+}
+
+/* The track's colour as a filled name plate, which is what carries the column at
+   ten metres. */
+.ag-board-track {
+  margin: 0;
+  padding: calc(8 * var(--ag-u)) calc(12 * var(--ag-u));
+  border-radius: calc(6 * var(--ag-u));
+  background: var(--ag-c, #888888);
+  color: var(--ag-on, #ffffff);
+  font-size: calc(24 * var(--ag-u));
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.ag-board-slot {
+  min-height: 0;
+  padding: calc(12 * var(--ag-u));
+  border-radius: calc(6 * var(--ag-u));
+  background: var(--ag-t, #f2f4f6);
+}
+
+.ag-board-slot-now { flex: 1 1 auto; }
+
+.ag-board-slot-next {
+  flex: 0 1 auto;
+  background: transparent;
+  border: calc(1 * var(--ag-u)) solid var(--ag-rule, var(--brand-edge, #d7dbe0));
+}
+
+.ag-board-label {
+  margin: 0 0 calc(6 * var(--ag-u));
+  font-size: calc(14 * var(--ag-u));
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ag-muted, var(--brand-muted, #6b7280));
+}
+
+.ag-board-name {
+  margin: 0;
+  font-size: calc(30 * var(--ag-u));
+  font-weight: 600;
+  line-height: 1.12;
+}
+
+.ag-board-slot-next .ag-board-name { font-size: calc(21 * var(--ag-u)); }
+.ag-board-idle { margin: 0; font-size: calc(18 * var(--ag-u)); line-height: 1.4; color: var(--ag-muted, #6b7280); }
+
+.ag-board-times {
+  margin: calc(6 * var(--ag-u)) 0 0;
+  font-size: calc(20 * var(--ag-u));
+  font-variant-numeric: tabular-nums;
+  color: var(--ag-ink, #1f2933);
+  font-weight: 600;
+}
+
+.ag-board-slot-next .ag-board-times { font-size: calc(16 * var(--ag-u)); }
+
+.ag-board-who,
+.ag-board-where {
+  margin: calc(4 * var(--ag-u)) 0 0;
+  font-size: calc(17 * var(--ag-u));
+  color: var(--ag-muted, var(--brand-muted, #6b7280));
+}
+
+.ag-board-slot-next .ag-board-who,
+.ag-board-slot-next .ag-board-where { font-size: calc(14 * var(--ag-u)); }
+
+/* ── Tighter spacing ──────────────────────────────────────────────────────── */
+
+.ag-compact { font-size: calc(14 * var(--ag-u)); padding: calc(34 * var(--ag-u)); gap: calc(14 * var(--ag-u)); }
+.ag-compact .ag-title { font-size: calc(30 * var(--ag-u)); }
+.ag-compact .ag-sub { font-size: calc(16 * var(--ag-u)); }
+.ag-compact .ag-list { gap: calc(14 * var(--ag-u)); }
+.ag-compact .ag-lrow { gap: calc(4 * var(--ag-u)); padding-top: calc(4 * var(--ag-u)); }
+.ag-compact .ag-lcell { padding: calc(5 * var(--ag-u)) calc(7 * var(--ag-u)); }
+.ag-compact .ag-lname { font-size: calc(13 * var(--ag-u)); }
+.ag-compact .ag-lcell-wide .ag-lname { font-size: calc(14 * var(--ag-u)); }
+.ag-compact .ag-ltime { font-size: calc(14 * var(--ag-u)); }
+.ag-compact .ag-day-title { font-size: calc(18 * var(--ag-u)); }
+
+/* Minimal keeps track identity in the name plates and side rules. Night uses
+   the hook's own dark paper/ink pair, so export and live canvas stay identical. */
+.ag-style-minimal .ag-lcell,
+.ag-style-minimal .ag-cell,
+.ag-style-minimal .ag-board-slot { background: transparent; }
+.ag-style-minimal .ag-legend-item { border-color: transparent; padding-inline: 0; }
+.ag-style-minimal .ag-head { border-top-width: calc(2 * var(--ag-u)); }
+.ag-style-night .ag-cell,
+.ag-style-night .ag-lcell { border-inline-start-width: calc(4 * var(--ag-u)); }
+.ag-style-night .ag-board-slot-next { background: var(--ag-paper); }
+.ag-compact .ag-head { padding-block: calc(12 * var(--ag-u)); }
+.ag-compact .ag-cell-name { font-size: calc(16 * var(--ag-u)); }
+.ag-compact .ag-cell-speaker,
+.ag-compact .ag-cell-room { font-size: calc(12 * var(--ag-u)); }

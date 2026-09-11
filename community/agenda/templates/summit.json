@@ -1,0 +1,48 @@
+{
+  "id": "summit",
+  "name": "Two-day summit",
+  "category": "Conference",
+  "description": "Two days, two tracks, and a plenary opening and closing each day.",
+  "values": {
+    "title": "Open Infrastructure Summit",
+    "subtitle": "Two days at the Maritime Museum",
+    "layout": "grid",
+    "now": "",
+    "tz": "Europe/Berlin",
+    "showSpeakers": true,
+    "showRooms": true,
+    "compact": true,
+    "plenaryLabel": "",
+    "nowLabel": "",
+    "nextLabel": "",
+    "sessions": {
+      "columns": ["Date", "Start", "End", "Title", "Speaker", "Track", "Room", "Kind", "Note"],
+      "rows": [
+        ["2026-03-10", "09:30", "10:00", "Welcome and what we are here for", "Ingrid Sorensen", "", "Great Hall", "keynote", ""],
+        ["2026-03-10", "10:15", "11:00", "Running a registry your users can audit", "Sam Oyelaran", "Operate", "Room 1", "session", ""],
+        ["2026-03-10", "10:15", "11:00", "Reproducible builds, one year on", "Ana Kovač", "Build", "Room 2", "session", ""],
+        ["2026-03-10", "11:00", "11:30", "Coffee", "", "", "Atrium", "break", ""],
+        ["2026-03-10", "11:30", "12:15", "Backups nobody has ever restored", "Jonas Weber", "Operate", "Room 1", "session", ""],
+        ["2026-03-10", "11:30", "13:00", "Workshop: signing what you ship", "Priya Nair", "Build", "Room 2", "workshop", "Bring a laptop"],
+        ["2026-03-10", "13:00", "14:00", "Lunch", "", "", "Atrium", "break", ""],
+        ["2026-03-10", "14:00", "14:45", "The upgrade nobody scheduled", "Tomás Herrera", "Operate", "Room 1", "session", ""],
+        ["2026-03-10", "17:30", "19:30", "Museum tour and dinner", "", "", "Ship Gallery", "social", "Tickets at the desk"],
+        ["2026-03-11", "09:30", "10:00", "What we learned yesterday", "Maya Lindqvist", "", "Great Hall", "keynote", ""],
+        ["2026-03-11", "10:15", "11:00", "Cutting the pager rota in half", "Lena Fischer", "Operate", "Room 1", "session", ""],
+        ["2026-03-11", "10:15", "11:00", "Packaging for people who do not package", "Ana Kovač", "Build", "Room 2", "session", ""],
+        ["2026-03-11", "11:00", "11:30", "Coffee", "", "", "Atrium", "break", ""],
+        ["2026-03-11", "11:30", "12:15", "Migrating a fleet without a maintenance window", "Sam Oyelaran", "Operate", "Room 1", "session", ""],
+        ["2026-03-11", "11:30", "12:15", "Build caches that stay honest", "Priya Nair", "Build", "Room 2", "session", ""],
+        ["2026-03-11", "12:30", "13:00", "Closing plenary and where we meet next", "Ingrid Sorensen", "", "Great Hall", "keynote", ""]
+      ]
+    }
+  },
+  "presets": [
+    {
+      "id": "programme-list",
+      "name": "Printed programme",
+      "description": "Both days as a list, rows sized by their words.",
+      "values": { "layout": "list", "compact": true }
+    }
+  ]
+}

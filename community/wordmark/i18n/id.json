@@ -1,0 +1,19 @@
+{
+  "name": "Wordmark",
+  "description": "Ketik sebuah kata, dapatkan wordmark vektor path murni dalam font brand Anda - penerima tidak perlu memasang font tersebut.",
+  "a11yLabel": "Wordmark berbunyi {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Teks",
+  "inputs.font.label": "Font",
+  "inputs.font.options.brand": "Font brand",
+  "inputs.font.options.mono": "Font mono",
+  "inputs.weight.label": "Ketebalan",
+  "inputs.tracking.label": "Tracking",
+  "inputs.tracking.help": "Jarak antarhuruf dalam px pada ukuran yang ditetapkan.",
+  "inputs.size.label": "Ukuran",
+  "inputs.size.help": "Ukuran font tempat outline dibentuk - tracking bersifat relatif terhadap ini.",
+  "inputs.color.label": "Warna",
+  "inputs.features.label": "Fitur OpenType",
+  "inputs.features.options.none": "Standar",
+  "inputs.features.options.liga-off": "Tanpa ligatur",
+  "inputs.features.options.salt": "Alternatif stilistik"
+}

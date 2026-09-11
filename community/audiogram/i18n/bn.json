@@ -1,0 +1,22 @@
+{
+  "name": "অডিওগ্রাম",
+  "description": "একটি ভয়েস ক্লিপ বা গান থেকে এমন একটি ব্র্যান্ডেড ভিডিও তৈরি করুন যা শব্দের সাথে সত্যিই নড়ে - বার, স্পেকট্রাম, রিং, রিজলাইন বা স্কোপ, সোশ্যালের জন্য প্রস্তুত।",
+  "a11yLabel": "{{default title \"an audio clip\"}}-এর জন্য অ্যানিমেটেড ওয়েভফর্মসহ অডিওগ্রাম কার্ড",
+  "inputs.audio.label": "অডিও",
+  "inputs.audio.help": "আপনার লাইব্রেরি থেকে একটি ট্র্যাক বেছে নিন বা একটি ক্লিপ আপলোড করুন। ওয়েভফর্ম আঁকার জন্য এটি আপনার ডিভাইসেই ডিকোড করা হয় - অডিও কখনো ব্রাউজার ছেড়ে যায় না। প্লেসহোল্ডার ওয়েভফর্মের জন্য খালি রাখুন। এক্সপোর্টে শুনতে, ডাউনলোড অপশনে Audio track হিসেবে \"এই টুলের অডিও\" বেছে নিন।",
+  "inputs.title.label": "শিরোনাম",
+  "inputs.title.help": "কার্ডের হেডলাইন - একটি এপিসোডের নাম বা পুল-কোট।",
+  "inputs.subtitle.label": "উপশিরোনাম",
+  "inputs.subtitle.help": "শিরোনামের নিচে একটি ছোট লাইন - শো-এর নাম, গেস্ট, অথবা কোথায় শোনা যাবে।",
+  "inputs.style.label": "ওয়েভফর্ম স্টাইল",
+  "inputs.style.options.bars": "বার",
+  "inputs.style.options.wave": "ওয়েভ",
+  "inputs.style.options.ring": "রিং",
+  "inputs.size.label": "আকার",
+  "inputs.size.options.square": "স্কোয়ার (1:1)",
+  "inputs.size.options.wide": "ওয়াইড (16:9)",
+  "inputs.size.options.story": "স্টোরি (9:16)",
+  "inputs.accent.label": "ওয়েভফর্ম রং",
+  "inputs.ink.label": "টেক্সটের রং",
+  "inputs.bg.label": "ব্যাকগ্রাউন্ড"
+}

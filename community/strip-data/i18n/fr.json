@@ -1,0 +1,7 @@
+{
+  "name": "Supprimer les données cachées",
+  "description": "Révélez et supprimez les métadonnées cachées des images et PDF - sur votre appareil.",
+  "a11yLabel": "Rapport de données cachées pour {{fileName}}",
+  "inputs.source.label": "Image ou PDF",
+  "inputs.source.help": "Un fichier JPEG, PNG, SVG ou PDF. Il est lu dans ton navigateur et ne quitte jamais ton appareil."
+}

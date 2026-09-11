@@ -1,0 +1,240 @@
+<div class="p2i-root"
+     style="--p2i-pad:{{pad}}px; --p2i-line:{{line}}; --p2i-para:{{para}}; --p2i-fs:{{fontSize}}px; --p2i-cols:{{initialColumns}}; --p2i-wrap:{{wrap}};"
+     data-columns="{{columns}}"
+     data-min="{{minSize}}"
+     data-max="{{maxSize}}"
+     data-pad="{{pad}}"
+     data-page-w="{{pageW}}">
+
+  <div class="p2i-cols" data-canvas-input="text">
+    {{#each paras}}<p>{{this}}</p>{{/each}}
+  </div>
+
+  {{#if isEmpty}}
+  <div class="p2i-empty" data-export-hide>Paste or drop text anywhere here</div>
+  {{else}}
+  <div class="p2i-stats" data-export-hide>
+    <b>{{chars}}</b> chars &middot; ~<b>{{textTokens}}</b> text tokens<br>
+    <b>{{dims}}</b> page &middot; ~<b>{{imageTokens}}</b> image tokens &middot; <span class="p2i-fit">measuring&hellip;</span>
+    {{#if verdict}}
+    {{#if verdict.even}}
+    <span class="p2i-verdict is-even">Line ball &middot; image and text cost about the same</span>
+    {{else}}{{#if verdict.cheaper}}
+    <span class="p2i-verdict is-win">Image wins by <b>{{verdict.factor}}&times;</b> &middot; saves ~{{verdict.delta}} tokens</span>
+    {{else}}
+    <span class="p2i-verdict is-loss">Text wins by <b>{{verdict.factor}}&times;</b> &middot; page costs ~{{verdict.delta}} more</span>
+    {{/if}}{{/if}}
+    {{/if}}
+    <span class="p2i-note">Estimates. Image cost is Claude&rsquo;s w&times;h&divide;750; other models tile differently.</span>
+  </div>
+  {{/if}}
+
+  <div class="p2i-drop" data-export-hide>Drop to replace the text</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var root = document.currentScript && document.currentScript.closest('.p2i-root');
+  if (!root) return;
+
+  var cols  = root.querySelector('.p2i-cols');
+  var stats = root.querySelector('.p2i-stats');
+  var fitEl = root.querySelector('.p2i-fit');
+
+  // `|| fallback` is safe for MIN/MAX (never legitimately 0) but WRONG for PAD:
+  // the new Margin input can be 0, and `Number("0") || 32` would silently reinstate
+  // a 32px margin - making the control dead at its own minimum and, worse, diverging
+  // from the CLI (whose jsdom path keeps the inline --p2i-pad:0px). Read it NaN-aware
+  // so an explicit 0 survives.
+  function readNum(v, fallback) {
+    var n = Number(v);
+    return isFinite(n) ? n : fallback;
+  }
+  var MIN = readNum(root.dataset.min, 6);
+  var MAX = readNum(root.dataset.max, 44);
+  var PAD = readNum(root.dataset.pad, 32);
+  var PAGE_W = readNum(root.dataset.pageW, 1024) || 1024;   // never divide by 0
+
+  // ── Export px → DOM px ─────────────────────────────────────────────────────
+  // Every number hooks.js hands over is in export pixels, but the stage only
+  // paints the canvas 1:1 up to the tool's native 1024 - ask for a bigger page
+  // and it's previewed shrunk and scaled back up at capture. So a size that
+  // "fits" is scale-invariant (both axes shrink together) but the LEGIBILITY
+  // FLOOR is not: 6px of preview is 12px of a 2048 export, and it's the exported
+  // pixels a model has to read. Convert once, fit in DOM px, report in export px.
+  //
+  // clientWidth is immune to the stage's fit-to-window transform (which scales
+  // visually and leaves the DOM box alone), so this reads the export scale only.
+  function domScale() {
+    var w = root.clientWidth;
+    return w > 0 && PAGE_W > 0 ? w / PAGE_W : 1;
+  }
+
+  // ── Writing back to the sidebar ────────────────────────────────────────────
+  // A canvas paste/drop has to land in the "text" input, and the only supported
+  // way in from template code is the control the sidebar already owns: set its
+  // value and fire the same `input` event a keystroke would. The shell's own
+  // listener picks it up and calls runtime.setInput, so this rides the exact
+  // path typing does - no shell change, nothing to keep in sync.
+  //
+  // Scoped to #tool-inputs rather than the document: /multi renders several
+  // tools side by side and a global [data-input-id] query would hit whichever
+  // card happened to be first. No panel (or no match) means fail closed - better
+  // to ignore the paste than to write it into the wrong session.
+  function setText(value) {
+    var panel = document.getElementById('tool-inputs');
+    if (!panel) return false;
+    var ctl = panel.querySelector('[data-input-id="text"]');
+    if (!ctl) return false;
+    ctl.value = value;
+    ctl.dispatchEvent(new Event('input', { bubbles: true }));
+    return true;
+  }
+
+  // ── Fit pass ───────────────────────────────────────────────────────────────
+  // hooks.js already estimated a size off the monospace grid, which is what the
+  // first paint (and any DOM-less shell) uses. Here we have real layout, so we
+  // can account for what the arithmetic can't: ragged line ends, short paragraph
+  // tails, unbreakable runs.
+  //
+  // The fit test leans on `column-fill: auto` + `overflow: hidden`. Columns fill
+  // in order rather than balancing, so text that doesn't fit spills into an
+  // extra column past the right edge - which an overflow:hidden box reports as
+  // scrollWidth > clientWidth. One number, no per-line measuring.
+  function fits() {
+    return cols.scrollWidth <= cols.clientWidth + 1;
+  }
+
+  function apply(n, fs) {
+    root.style.setProperty('--p2i-cols', String(n));
+    root.style.setProperty('--p2i-fs', fs + 'px');
+  }
+
+  // Largest size at which `n` columns hold all the text, searched between the
+  // floor and ceiling in DOM px. `over` is 0 when it fits, else how far past the
+  // edge it spills at the floor - which is what we rank by when nothing fits.
+  function measure(n, min, max) {
+    apply(n, max);
+    if (fits()) return { n: n, fs: max, over: 0 };
+
+    apply(n, min);
+    if (!fits()) return { n: n, fs: min, over: cols.scrollWidth - cols.clientWidth };
+
+    // Bisect between the two: 8 rounds over a ~38px range lands inside 0.15px,
+    // well under one device pixel at any sane export scale.
+    var lo = min, hi = max;
+    for (var i = 0; i < 8; i++) {
+      var mid = (lo + hi) / 2;
+      apply(n, mid);
+      if (fits()) lo = mid; else hi = mid;
+    }
+    return { n: n, fs: lo, over: 0 };
+  }
+
+  function fit() {
+    if (!cols || !cols.clientWidth) return;   // no layout engine (jsdom/CLI) - keep the estimate
+
+    // Re-scale the margin before anything is measured: it sets the inner box the
+    // whole search runs against.
+    var s = domScale();
+    root.style.setProperty('--p2i-pad', (PAD * s) + 'px');
+
+    var declared = root.dataset.columns;
+    // A mono grid holds ~the same number of glyphs however you slice it - the
+    // column count only changes how much is WASTED. Narrow columns waste less on
+    // short authored lines (lists, code, chat logs) and more on reflowed prose,
+    // and which way that falls is not worth predicting, so auto just tries them.
+    var candidates = declared === 'auto' ? [1, 2, 3, 4] : [Number(declared) || 1];
+
+    var results = candidates.map(function (n) { return measure(n, MIN * s, MAX * s); });
+    var fitting = results.filter(function (r) { return r.over === 0; });
+
+    var pick = fitting.length
+      ? fitting.reduce(function (a, b) { return b.fs > a.fs ? b : a; })
+      : results.reduce(function (a, b) { return b.over < a.over ? b : a; });
+
+    apply(pick.n, pick.fs);
+    report(pick, s);
+  }
+
+  function report(pick, s) {
+    if (!stats || !fitEl) return;
+    if (pick.over > 0) {
+      // Clamped at the floor and still overflowing. Say so rather than shrinking
+      // into a smudge no model can read - the text is clipped, and silently
+      // dropping the tail would be the worse failure.
+      stats.classList.add('is-over');
+      fitEl.textContent = 'clipped at ' + MIN + ' px - too much text';
+    } else {
+      stats.classList.remove('is-over');
+      // Back into export px: the preview's size is an artefact of the stage, the
+      // exported size is the one a model actually gets.
+      fitEl.textContent = (Math.round((pick.fs / (s || 1)) * 10) / 10) + ' px type';
+    }
+  }
+
+  fit();
+
+  // ── Drop ───────────────────────────────────────────────────────────────────
+  // Wired on the root, which innerHTML rebuilds every paint - so these listeners
+  // die with the element they were attached to and there is nothing to clean up.
+  var MAX_BYTES = 2 * 1024 * 1024;
+
+  function isTexty(file) {
+    return /^text\//.test(file.type)
+      || /^(application\/)?(json|xml|x-yaml|yaml|javascript|sql|csv)$/.test(file.type)
+      || (!file.type && /\.(txt|md|markdown|json|ya?ml|csv|tsv|log|html?|css|jsx?|tsx?|py|rb|go|rs|sh|sql|toml|ini|env)$/i.test(file.name));
+  }
+
+  root.addEventListener('dragover', function (e) {
+    e.preventDefault();
+    root.classList.add('is-dropping');
+  });
+
+  root.addEventListener('dragleave', function (e) {
+    // Fires for every child crossed on the way through; only the pointer actually
+    // leaving the canvas should clear the state.
+    if (e.relatedTarget && root.contains(e.relatedTarget)) return;
+    root.classList.remove('is-dropping');
+  });
+
+  root.addEventListener('drop', function (e) {
+    e.preventDefault();
+    root.classList.remove('is-dropping');
+
+    var file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) {
+      if (!isTexty(file) || file.size > MAX_BYTES) return;
+      var reader = new FileReader();
+      reader.onload = function () { setText(String(reader.result || '')); };
+      reader.readAsText(file);
+      return;
+    }
+
+    var text = e.dataTransfer && e.dataTransfer.getData('text/plain');
+    if (text) setText(text);
+  });
+
+  // ── Paste ──────────────────────────────────────────────────────────────────
+  // The canvas isn't focusable, so there is no element to hang this off - it has
+  // to be a document listener. Registered once per page (the script re-runs on
+  // every paint) and guarded on the canvas still being mounted, so it goes inert
+  // when the user navigates away rather than firing into a dead tool.
+  if (!window.__p2iPasteWired) {
+    window.__p2iPasteWired = true;
+    document.addEventListener('paste', function (e) {
+      if (!document.querySelector('.p2i-root')) return;
+
+      // A paste aimed at a real field is theirs, not ours - including the
+      // sidebar's own Text box.
+      var t = e.target;
+      if (t && t.closest && t.closest('input, textarea, select, [contenteditable]')) return;
+
+      var text = e.clipboardData && e.clipboardData.getData('text/plain');
+      if (text && setText(text)) e.preventDefault();
+    });
+  }
+})();
+</script>
+</div>

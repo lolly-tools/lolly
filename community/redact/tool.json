@@ -1,0 +1,117 @@
+{
+  "id": "redact",
+  "name": "Redact",
+  "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device.",
+  "version": "1.6.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "utility",
+  "privacy": "on-device",
+  "tags": ["privacy", "redact", "redaction", "black out", "censor", "remove", "metadata", "exif", "image", "photo", "screenshot", "pdf", "document", "svg", "acropalypse", "hidden text"],
+  "a11yLabel": "Redaction workspace for {{fileName}}",
+  "render": {
+    "width": 760,
+    "height": 620,
+    "formats": ["png", "jpg", "webp", "svg", "penpot", "pdf"],
+    "export": false,
+    "actions": []
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "exportFile": true
+  },
+  "inputs": [
+    {
+      "id": "source",
+      "label": "Image, SVG or PDF",
+      "type": "file",
+      "accept": ["image/jpeg", "image/png", "image/webp", "image/svg+xml", "application/pdf", ".jpg", ".jpeg", ".png", ".webp", ".svg", ".pdf"],
+      "maxSize": 52428800,
+      "help": "A JPEG, PNG, WebP, SVG or PDF. It's read in your browser and never leaves your device. You can also drop it straight onto the canvas."
+    },
+    {
+      "id": "style",
+      "label": "Redaction style",
+      "type": "select",
+      "default": "branded",
+      "options": [
+        { "value": "solid", "label": "Solid" },
+        { "value": "branded", "label": "Branded" },
+        { "value": "stamped", "label": "Stamped" }
+      ],
+      "help": "How the mark looks. Solid is a square near-black bar. Branded takes a dark tone from the loaded brand and rounds the corners slightly. Stamped adds a small label on top of the bar. Every style is 100% opaque, so all three destroy exactly the same pixels; the rounded shape is grown by its own corner radius so the area you marked stays completely covered."
+    },
+    {
+      "id": "stampLabel",
+      "label": "Stamp text",
+      "type": "text",
+      "default": "",
+      "maxLength": 24,
+      "showIf": { "style": "stamped" },
+      "help": "Painted on top of the bar, where the covered pixels are already gone. Leave it empty to use your profile name, or the word REDACTED when there is none. It is never taken from the content you covered."
+    },
+    {
+      "id": "quantise",
+      "label": "Round bar widths",
+      "type": "boolean",
+      "default": true,
+      "help": "Rounds every bar's width up to a coarse grid so the bar's length gives away less about the length of what it hides."
+    },
+    {
+      "id": "grayscale",
+      "label": "Scanned page",
+      "type": "boolean",
+      "default": false,
+      "help": "Drops all colour from the page. For scans of printed pages this removes the yellow channel that colour laser tracking dots live in. The redaction marks keep their own colour."
+    },
+    {
+      "id": "svgVector",
+      "label": "Keep SVG as vector",
+      "type": "boolean",
+      "default": false,
+      "showIf": { "fileKind": "SVG" },
+      "help": "I understand: every element a bar touches is deleted from the file and the area is painted over, and the output is still SVG, a readable text format. Marks have to be drawn on the preview so their elements can be measured."
+    },
+    {
+      "id": "resign",
+      "label": "Add a fresh Content Credential",
+      "type": "boolean",
+      "default": false,
+      "showIf": { "fileKind": "PDF" },
+      "help": "Off by default. When on, the redacted PDF is signed as a new work: your name from your profile as its author, the app that made it, and one edit step saying content was removed and the file rebuilt. No ingredients and no thumbnail of the original travel with it. Your name is only recorded when \"Use my details\" is on in your profile."
+    },
+    {
+      "id": "bars",
+      "label": "Redaction bars",
+      "type": "blocks",
+      "labelledFields": true,
+      "showIf": { "source": "__drawn-on-canvas" },
+      "fields": [
+        { "id": "page", "label": "Page", "type": "number", "default": 1, "min": 1, "step": 1 },
+        { "id": "x", "label": "X", "type": "number", "default": 0, "min": 0 },
+        { "id": "y", "label": "Y", "type": "number", "default": 0, "min": 0 },
+        { "id": "w", "label": "Width", "type": "number", "default": 0, "min": 0 },
+        { "id": "h", "label": "Height", "type": "number", "default": 0, "min": 0 },
+        { "id": "n", "label": "Touched elements", "type": "text", "default": "" }
+      ]
+    },
+    {
+      "id": "ocr",
+      "label": "Text read request",
+      "type": "text",
+      "default": "",
+      "maxLength": 24,
+      "showIf": { "fileKind": "__never-rendered" },
+      "help": "Written by the Suggest button on the canvas, never shown. A new value asks the tool to read the picture with the on-device text reader and propose redaction regions; \"off\" cancels a read in progress. Suggestions are only ever offered, a bar is added when you accept one."
+    },
+    {
+      "id": "fileKind",
+      "label": "Detected file type",
+      "type": "text",
+      "default": "",
+      "showIf": { "fileKind": "__never-rendered" },
+      "help": "Written by the tool from the loaded file's magic bytes, so format-only options (vector SVG export, PDF Content Credentials) can hide themselves for a file they do not apply to. Never shown."
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+/* Palette Lab - the sheet itself is a native <svg> coloured entirely from the
+   seed, so the only styled DOM is the wrap and the data-export-hide DTCG
+   panel. Brand-agnostic: --brand-* semantic vars with neutral fallbacks. */
+
+.pl-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.pl-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.pl-tokens {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  max-width: min(420px, calc(100% - 32px));
+  border: 1px solid var(--brand-edge, rgba(0, 0, 0, 0.14));
+  border-radius: 12px;
+  background: var(--brand-surface, #fff);
+  color: var(--brand-text, #17232b);
+  /* `--font-brand` (the brand's primary face), NOT `--brand-font-body` - that name is
+     defined nowhere, so this rendered in the system fallback regardless of brand. */
+  font-family: var(--font-brand, ui-sans-serif, system-ui, sans-serif);
+  font-size: 13px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+
+.pl-tokens-summary {
+  padding: 9px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pl-tokens-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 14px 14px;
+}
+
+.pl-tokens-hint {
+  margin: 0;
+  color: var(--brand-muted, #5b6470);
+  line-height: 1.45;
+}
+
+.pl-copy {
+  align-self: flex-start;
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--brand-primary, #2d6bd8);
+  color: var(--brand-on-primary, #fff);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pl-copy:hover {
+  filter: brightness(1.08);
+}
+
+.pl-copy.is-copied {
+  filter: none;
+  opacity: 0.85;
+}
+
+.pl-pre {
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  padding: 10px;
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--brand-text, #17232b) 6%, transparent);
+  font-family: var(--font-mono, 'SUSE Mono', ui-monospace, Menlo, Consolas, monospace);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* Type follows the ACTIVE BRAND: the chrome vars are derived from the brand's
+   font tokens (brand-vars.ts), so under any profile the sheet renders and
+   exports in that brand's faces. The font-family attributes inside the SVG
+   stay as the fallback for a standalone file with no stylesheet. */
+.pl-svg text {
+  font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
+}
+.pl-svg text.pl-mono {
+  font-family: var(--font-mono, 'SUSE Mono', ui-monospace, monospace);
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Compress",
+  "description": "Verkleinert ein PDF durch Neukomprimierung seiner Bilder - auf Ihrem Gerät.",
+  "a11yLabel": "PDF-Kompressor für {{fileName}}",
+  "inputs.source.label": "PDF",
+  "inputs.source.help": "Eine PDF-Datei. Sie wird in Ihrem Browser gelesen und verlässt Ihr Gerät nie.",
+  "inputs.level.label": "Komprimierung",
+  "inputs.level.help": "Wie stark eingebettete Bilder komprimiert werden. Stärker bedeutet kleinere Dateien und weichere Bilder.",
+  "inputs.level.options.light": "Leicht - hohe Qualität beibehalten",
+  "inputs.level.options.balanced": "Ausgewogen",
+  "inputs.level.options.strong": "Stark - kleinste Datei",
+  "inputs.grayscale.label": "Bilder in Graustufen umwandeln",
+  "inputs.grayscale.help": "Entfernt die Farbe aus Bildern für zusätzliche Einsparungen - nützlich für gescannte Textdokumente."
+}

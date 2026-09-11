@@ -1,0 +1,42 @@
+{
+  "id": "letterhead",
+  "name": "Letterhead",
+  "category": "Identity",
+  "description": "An A4 sheet with the lockup, a letter, and the address in the footer.",
+  "values": {
+    "piece": "letterhead",
+    "firstname": "Nadia",
+    "lastname": "Okafor",
+    "jobTitle": "Head of Design",
+    "email": "nadia@example.com",
+    "phone": "+44 20 7946 0142",
+    "company": "Northline Studio",
+    "url": "northline.studio",
+    "address": "12 Barrow Lane, Bristol BS1 4QD",
+    "tagline": "Design that keeps its promises.",
+    "body": "Dear Sam,\n\nThank you for the notes on the second round. We have folded them into the drawings and the revised set is attached.\n\nTwo things worth a call before Friday:\n\n- the entrance sign is now 30 mm shorter\n- the small print moves to the reverse\n\nWith thanks,",
+    "color": "{color.semantic.text}",
+    "background": "{color.semantic.surface}",
+    "accent": "{color.semantic.primary}"
+  },
+  "presets": [
+    {
+      "id": "letterhead-warm",
+      "name": "Warm paper",
+      "description": "Off-white stock with a rust accent.",
+      "values": {
+        "color": "#241d16",
+        "background": "#faf6ef",
+        "accent": "#8a5a2b"
+      }
+    },
+    {
+      "id": "letterhead-blank",
+      "name": "Second sheet",
+      "description": "The same furniture with no letter - the continuation page.",
+      "values": {
+        "body": ""
+      }
+    }
+  ]
+}

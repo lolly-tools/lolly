@@ -1,0 +1,26 @@
+.fly-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.fly-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.fly-msg {
+  position: absolute;
+  inset: auto 0 12px 0;
+  text-align: center;
+  font: 500 13px/1.4 SUSE, system-ui, sans-serif;
+  color: #e7eefb;
+  opacity: 0.85;
+  pointer-events: none;
+}

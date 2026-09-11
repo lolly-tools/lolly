@@ -1,0 +1,22 @@
+{
+  "countries": {
+    "url": "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-50m.json",
+    "sha256": "04342cdc1e3016bcd7db1630de95684d67b79fe3c8c460321e87aef469502394"
+  },
+  "centres": {
+    "url": "https://raw.githubusercontent.com/eggert/tz/2026c/zone.tab",
+    "sha256": "7cc78ea166261b3dedf951cdd721051460851e6fcd96c12b8e3194cf25677f21"
+  },
+  "cities": {
+    "url": "https://raw.githubusercontent.com/kevinroberts/city-timezones/3b4979521a38d71e0141d7a36f097af9967f0dd8/data/cityMap.json",
+    "sha256": "b6f9fdb832109d62124249b1bd3ac3dce7f2baae52cbcf3b82c17f1f6f2e6bf5"
+  },
+  "zones": {
+    "url": "https://github.com/evansiroky/timezone-boundary-builder/releases/download/2026c/timezones.geojson.zip",
+    "sha256": "7d3f0c5a33b6acd891335c0ad5ba767736b6914cb1a1d68c71921c17ce358948"
+  },
+  "atlas": {
+    "url": "https://cdn.jsdelivr.net/npm/world-atlas@2.0.2/countries-110m.json",
+    "sha256": "2516c915867c7baf18ddec727aec46c315541a07cfb3d79a6559b05d5e94eee8"
+  }
+}

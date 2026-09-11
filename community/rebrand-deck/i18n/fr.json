@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "Chargez un diaporama PowerPoint et calez ses couleurs et polices sur votre marque - reconstruit sur votre appareil, rien n'est envoyé en ligne.",
+  "a11yLabel": "Rebrandeur de diaporama pour {{fileName}}",
+  "inputs.source.label": "Fichier PowerPoint",
+  "inputs.source.help": "Un fichier .pptx. Il est lu sur ton appareil et jamais envoyé.",
+  "inputs.useTheme.label": "Appliquer le thème de marque",
+  "inputs.useTheme.help": "Remplace la palette du thème et les polices du deck par ta marque - chaque couleur liée au thème suit automatiquement.",
+  "inputs.colorMap.label": "Mappage des couleurs",
+  "inputs.colorMap.help": "Couleurs codées en dur trouvées dans les diapositives, chacune avec sa couleur de marque suggérée. Supprime une ligne pour laisser cette couleur telle quelle.",
+  "inputs.colorMap.fields.from.label": "Original",
+  "inputs.colorMap.fields.to.label": "Marque",
+  "inputs.fontMap.label": "Mappage des polices",
+  "inputs.fontMap.help": "Polices nommées dans le deck, chacune avec son remplacement de marque. Supprime une ligne pour garder cette police.",
+  "inputs.fontMap.fields.from.label": "Original",
+  "inputs.fontMap.fields.to.label": "Marque",
+  "inputs.dropFonts.label": "Supprimer les polices intégrées",
+  "inputs.dropFonts.help": "Les polices de l'ancienne marque intégrées dans le fichier sont obsolètes après un changement et peuvent être soumises à des restrictions de licence."
+}

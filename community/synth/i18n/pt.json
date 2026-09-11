@@ -1,0 +1,4 @@
+{
+  "name": "Synth",
+  "description": "Um instrumento visual que você toca. Quatro cenas rodam ao vivo na GPU: tinta fluida, um enxame de partículas que voa em direção ao seu título ou ao seu logotipo, um campo de feedback e a sua própria câmera. Todas as cores vêm da paleta da sua marca, e a imagem reage ao seu ponteiro, a uma faixa de música e a um controlador MIDI. Exporte uma imagem estática ou um loop contínuo."
+}

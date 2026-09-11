@@ -1,0 +1,22 @@
+{
+  "name": "Audiograma",
+  "description": "Transforme um clip de voz ou música num vídeo com sua marca que realmente se move com o som - barras, espectro, anel, cordilheira ou osciloscópio, pronto para redes sociais.",
+  "a11yLabel": "Cartão de audiograma para {{default title \"an audio clip\"}} com forma de onda animada",
+  "inputs.audio.label": "Áudio",
+  "inputs.audio.help": "Escolha uma faixa da sua biblioteca ou envie um clipe. Ela é decodificada no seu dispositivo para desenhar a forma de onda - o áudio nunca sai do navegador. Deixe vazio para uma forma de onda de exemplo. Para ouvi-la na exportação, escolha \"Áudio desta ferramenta\" como Faixa de áudio nas opções de download.",
+  "inputs.title.label": "Título",
+  "inputs.title.help": "O título no card - um nome de episódio ou uma citação de destaque.",
+  "inputs.subtitle.label": "Subtítulo",
+  "inputs.subtitle.help": "Uma linha menor abaixo do título - nome do programa, convidado ou onde ouvir.",
+  "inputs.style.label": "Estilo da forma de onda",
+  "inputs.style.options.bars": "Barras",
+  "inputs.style.options.wave": "Onda",
+  "inputs.style.options.ring": "Anel",
+  "inputs.size.label": "Tamanho",
+  "inputs.size.options.square": "Quadrado (1:1)",
+  "inputs.size.options.wide": "Panorâmico (16:9)",
+  "inputs.size.options.story": "Story (9:16)",
+  "inputs.accent.label": "Cor da forma de onda",
+  "inputs.ink.label": "Cor do texto",
+  "inputs.bg.label": "Fundo"
+}

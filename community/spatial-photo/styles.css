@@ -1,0 +1,18 @@
+/* Auto-scoped to #tool-canvas by the shell. The <canvas> backing store is the
+   export resolution (set by the renderer); CSS only scales it to the stage. */
+.sp-wrap {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.sp-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  touch-action: none; /* a tap sets focus instead of scrolling the page */
+}

@@ -1,0 +1,396 @@
+{
+  "id": "jump",
+  "name": "Jump",
+  "description": "A one-link landing page: your links, heading, portrait and colours on an expressive page - and the whole page lives inside the link you share.",
+  "a11yLabel": "Jump page {{default heading \"Links\"}} holding {{default linkCount \"no\"}} links",
+  "version": "1.2.0",
+  "engineVersion": "^1.82.0",
+  "status": "community",
+  "category": "utility",
+  "tags": [
+    "links",
+    "landing",
+    "linktree",
+    "bio",
+    "jump",
+    "marketing",
+    "share"
+  ],
+  "examples": [
+    {
+      "label": "Aurora front door",
+      "values": {
+        "heading": "Northwind Studio",
+        "subheading": "Everything we make, one link.",
+        "style": "aurora",
+        "accent": "#2563eb",
+        "background": "#0b1020",
+        "color": "#eef2ff",
+        "links": {
+          "columns": [
+            "URL",
+            "Name",
+            "Emoji"
+          ],
+          "rows": [
+            [
+              "https://example.com/work",
+              "Portfolio",
+              ""
+            ],
+            [
+              "https://example.com/book",
+              "Book a session",
+              ""
+            ],
+            [
+              "https://example.com/news",
+              "Newsletter",
+              ""
+            ],
+            [
+              "https://example.com/hello",
+              "Contact",
+              ""
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "label": "Front page",
+      "values": {
+        "heading": "Ana Kovac",
+        "subheading": "Writing, photography and the occasional talk.",
+        "style": "editorial",
+        "accent": "#b91c1c",
+        "background": "#faf7f2",
+        "color": "#1c1917",
+        "links": {
+          "columns": [
+            "URL",
+            "Name",
+            "Emoji"
+          ],
+          "rows": [
+            [
+              "https://example.com/essays",
+              "Writing",
+              ""
+            ],
+            [
+              "https://example.com/photos",
+              "Photography",
+              ""
+            ],
+            [
+              "https://example.com/talks",
+              "Talks",
+              ""
+            ],
+            [
+              "https://example.com/now",
+              "Now",
+              ""
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "label": "Playroom",
+      "values": {
+        "heading": "Pick a door",
+        "subheading": "",
+        "style": "orbit",
+        "accent": "#7c3aed",
+        "background": "#faf9fd",
+        "color": "#1c1730",
+        "links": {
+          "columns": [
+            "URL",
+            "Name",
+            "Emoji"
+          ],
+          "rows": [
+            [
+              "https://example.com/game",
+              "Play",
+              "🎮"
+            ],
+            [
+              "https://example.com/music",
+              "Listen",
+              "🎧"
+            ],
+            [
+              "https://example.com/shop",
+              "Shop",
+              "🛍️"
+            ],
+            [
+              "https://example.com/chat",
+              "Chat",
+              "💬"
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "label": "Conference talk",
+      "values": {
+        "heading": "Thanks for listening",
+        "subheading": "The slides, the paper and the demo from today's talk.",
+        "style": "cards",
+        "accent": "#0d7a5f",
+        "background": "#f5f7f4",
+        "color": "#132019",
+        "links": {
+          "columns": [
+            "URL",
+            "Name",
+            "Emoji"
+          ],
+          "rows": [
+            [
+              "https://example.com/talk/slides",
+              "Slides (PDF)",
+              ""
+            ],
+            [
+              "https://example.com/talk/paper",
+              "The paper",
+              ""
+            ],
+            [
+              "https://example.com/talk/demo",
+              "Live demo",
+              ""
+            ]
+          ]
+        }
+      }
+    },
+    {
+      "label": "Forwarder",
+      "values": {
+        "heading": "Redirecting",
+        "subheading": "One link that forwards you on.",
+        "onVisit": "gate",
+        "accent": "#2563eb",
+        "background": "#f6f8fc",
+        "color": "#16202b",
+        "links": {
+          "columns": [
+            "URL",
+            "Name",
+            "Emoji"
+          ],
+          "rows": [
+            [
+              "https://example.com/live",
+              "Destination",
+              ""
+            ]
+          ]
+        }
+      }
+    }
+  ],
+  "render": {
+    "width": 900,
+    "height": 1400,
+    "formats": [
+      "html"
+    ],
+    "export": false,
+    "webPreview": true
+  },
+  "inputs": [
+    {
+      "id": "style",
+      "label": "Style",
+      "type": "select",
+      "urlKey": "st",
+      "section": "Style",
+      "default": "cinema",
+      "help": "\"Scroll cinema\" opens full-height with one scene per link. \"Aurora glass\", \"Front page\", \"Cover story\" and \"Playroom\" are expressive landing pages built from your brand colours and type; Buttons, Cards and Minimal are plain lists.",
+      "options": [
+        {
+          "value": "cinema",
+          "label": "Scroll cinema"
+        },
+        {
+          "value": "aurora",
+          "label": "Aurora glass"
+        },
+        {
+          "value": "editorial",
+          "label": "Front page"
+        },
+        {
+          "value": "mural",
+          "label": "Cover story"
+        },
+        {
+          "value": "orbit",
+          "label": "Playroom"
+        },
+        {
+          "value": "buttons",
+          "label": "Buttons"
+        },
+        {
+          "value": "cards",
+          "label": "Cards"
+        },
+        {
+          "value": "minimal",
+          "label": "Minimal"
+        }
+      ]
+    },
+    {
+      "id": "mood",
+      "label": "Mood",
+      "type": "select",
+      "urlKey": "m",
+      "section": "Style",
+      "default": "calm",
+      "help": "How far the page moves: one dial, turning whatever its style animates. Aurora glass: the speed the light field flows. Scroll cinema: how far each scene travels as it arrives. Playroom: how buoyant the bubbles float and how hard they bounce in. Front page and Cover story: how much travel the type and the picture reveal take. It changes nothing for the plain lists, and nothing for a visitor who asks for reduced motion.",
+      "options": [
+        {
+          "value": "calm",
+          "label": "Calm"
+        },
+        {
+          "value": "bold",
+          "label": "Bold"
+        },
+        {
+          "value": "electric",
+          "label": "Electric"
+        }
+      ]
+    },
+    {
+      "id": "color",
+      "label": "Text",
+      "type": "color",
+      "urlKey": "ink",
+      "section": "Style",
+      "default": "{color.semantic.text}",
+      "help": "The page reads in both colour schemes: whichever pair of text and background you set, the other one is derived from it, and a visitor sees the one their device asks for."
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "type": "color",
+      "urlKey": "pp",
+      "section": "Style",
+      "default": "{color.semantic.surface}"
+    },
+    {
+      "id": "accent",
+      "label": "Accent",
+      "type": "color",
+      "urlKey": "ac",
+      "section": "Style",
+      "default": "{color.semantic.primary}",
+      "help": "Colours the buttons, the glass glow and the link marks."
+    },
+    {
+      "id": "footer",
+      "label": "Show the Lolly line",
+      "type": "boolean",
+      "urlKey": "ft",
+      "section": "Style",
+      "default": true,
+      "help": "A visible \"Made with Lolly\" line closing the animated styles. Nothing is embedded in the link either way - turning it off simply removes the line."
+    },
+    {
+      "id": "links",
+      "label": "Links",
+      "type": "table",
+      "urlKey": "l",
+      "columnEditors": [
+        "url",
+        "text",
+        "emoji"
+      ],
+      "help": "Up to ten, one row per link. The address goes first; the name is optional, and a blank one shows the site's own name. Tap a cell in the Emoji column to pick a glyph. Everything starts empty on purpose: only what you type travels, so a page built from the CLI or a hand-typed link never carries sample content. Share with the Share button - the whole page lives inside the link, offline, nothing on a server.",
+      "default": {
+        "columns": [
+          "URL",
+          "Name",
+          "Emoji"
+        ],
+        "rows": []
+      }
+    },
+    {
+      "id": "heading",
+      "label": "Heading",
+      "type": "text",
+      "urlKey": "t",
+      "default": "",
+      "maxLength": 60,
+      "placeholder": "Find us everywhere"
+    },
+    {
+      "id": "subheading",
+      "label": "Sub-heading",
+      "type": "text",
+      "urlKey": "sub",
+      "default": "",
+      "maxLength": 120,
+      "placeholder": "One link for all of it."
+    },
+    {
+      "id": "avatar",
+      "label": "Portrait",
+      "type": "asset",
+      "assetType": "image",
+      "allowUpload": true,
+      "urlKey": "av",
+      "help": "A face or logo above the heading. A catalog or brand asset travels as a tiny reference, so the share link stays short; an uploaded picture only opens on this device unless the link is packed."
+    },
+    {
+      "id": "backdrop",
+      "label": "Backdrop",
+      "type": "asset",
+      "assetType": "image",
+      "allowUpload": true,
+      "urlKey": "bg",
+      "help": "A full-bleed picture behind the page. The Cover story style builds its whole opening from it; Aurora dims it under the glass. Catalog and brand assets keep the share link tiny."
+    },
+    {
+      "id": "onVisit",
+      "label": "On visit",
+      "type": "select",
+      "urlKey": "go",
+      "default": "page",
+      "help": "\"Forward\" turns the page into a redirect to the first link - a URL forwarder. Add a password in the Share dialog for a password-gated forwarder. \"Forward after a human check\" adds a press-and-hold step first, so a casual bot following the link does not sail straight through. The check is a speed bump, not proof: whoever holds a link without a password can still read where it points.",
+      "options": [
+        {
+          "value": "page",
+          "label": "Show the links page"
+        },
+        {
+          "value": "forward",
+          "label": "Forward to the first link"
+        },
+        {
+          "value": "gate",
+          "label": "Forward after a human check"
+        }
+      ]
+    }
+  ],
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  }
+}

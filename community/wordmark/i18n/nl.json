@@ -1,0 +1,19 @@
+{
+  "name": "Wordmark",
+  "description": "Typ een woord, krijg een puur pad-vector wordmark in je merkfont - ontvangers hebben het font nooit geïnstalleerd nodig.",
+  "a11yLabel": "Wordmark met tekst {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Tekst",
+  "inputs.font.label": "Lettertype",
+  "inputs.font.options.brand": "Merklettertype",
+  "inputs.font.options.mono": "Mono-lettertype",
+  "inputs.weight.label": "Gewicht",
+  "inputs.tracking.label": "Tracking",
+  "inputs.tracking.help": "Letterspatiëring in px bij de ingestelde grootte.",
+  "inputs.size.label": "Grootte",
+  "inputs.size.help": "Lettergrootte waarop de contouren zijn vormgegeven - tracking is hierop gebaseerd.",
+  "inputs.color.label": "Kleur",
+  "inputs.features.label": "OpenType-functies",
+  "inputs.features.options.none": "Standaard",
+  "inputs.features.options.liga-off": "Geen ligaturen",
+  "inputs.features.options.salt": "Stilistische alternatieven"
+}

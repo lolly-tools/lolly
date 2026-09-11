@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "Códigos QR para un enlace, una tarjeta de contacto, una red Wi-Fi, un evento de calendario, una ubicación o texto sencillo.",
+  "a11yLabel": "Código QR que enlaza con {{default url \"(sin URL configurada)\"}}",
+  "featured.blurb": "Códigos QR en cualquier color de marca",
+  "inputs.url.label": "URL",
+  "inputs.color.label": "Color de los módulos",
+  "inputs.background.label": "Fondo",
+  "inputs.ecl.label": "Corrección de errores",
+  "inputs.ecl.options.L": "Baja (7%)",
+  "inputs.ecl.options.M": "Media (15%)",
+  "inputs.ecl.options.Q": "Cuartil (25%)",
+  "inputs.ecl.options.H": "Alta (30%)",
+  "inputs.padding.label": "Zona de silencio",
+  "inputs.padding.help": "Módulos de espacio en blanco alrededor del código. Se recomienda un mínimo de 4.",
+  "inputs.join.label": "Módulos unidos",
+  "inputs.join.help": "Combina todos los módulos en una sola ruta SVG. Más nítido en tamaños pequeños."
+}

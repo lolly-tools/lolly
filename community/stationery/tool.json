@@ -1,0 +1,211 @@
+{
+  "id": "stationery",
+  "name": "Stationery",
+  "description": "Business cards, letterhead and compliments slips from your brand - each piece sized to its real print trim, ready as a print PDF.",
+  "version": "1.0.1",
+  "engineVersion": "^1.0.0",
+  "status": "community",
+  "category": "everyone",
+  "tags": [
+    "business card",
+    "letterhead",
+    "compliments slip",
+    "print",
+    "identity",
+    "stationery"
+  ],
+  "render": {
+    "width": 850,
+    "height": 550,
+    "formats": ["pdf", "pdf-cmyk", "svg", "penpot", "png", "jpg", "webp", "tiff", "cmyk-tiff"],
+    "actions": ["copy", "download", "save"],
+    "printMarks": true,
+    "filenameFrom": ["piece", "lastname"],
+    "transparentBg": false
+  },
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "piece",
+      "label": "Piece",
+      "type": "select",
+      "default": "business-card-front",
+      "help": "Which piece of the set you are making. Each option is a real print trim, and picking one sets the export size - a card exports as an 85 × 55 mm page, a letterhead as A4.",
+      "options": [
+        {
+          "value": "business-card-front",
+          "label": "Business card, front · 85 × 55 mm",
+          "width": 85,
+          "height": 55,
+          "unit": "mm"
+        },
+        {
+          "value": "business-card-back",
+          "label": "Business card, back · 85 × 55 mm",
+          "width": 85,
+          "height": 55,
+          "unit": "mm"
+        },
+        {
+          "value": "letterhead",
+          "label": "Letterhead · A4, 210 × 297 mm",
+          "width": 210,
+          "height": 297,
+          "unit": "mm"
+        },
+        {
+          "value": "comp-slip",
+          "label": "Compliments slip · DL, 210 × 99 mm",
+          "width": 210,
+          "height": 99,
+          "unit": "mm"
+        }
+      ]
+    },
+    {
+      "id": "firstname",
+      "label": "First name",
+      "type": "text",
+      "group": "Person",
+      "default": "Nadia",
+      "bindToProfile": "firstname"
+    },
+    {
+      "id": "lastname",
+      "label": "Last name",
+      "type": "text",
+      "group": "Person",
+      "default": "Okafor",
+      "bindToProfile": "lastname"
+    },
+    {
+      "id": "jobTitle",
+      "label": "Job title",
+      "type": "text",
+      "group": "Person",
+      "default": "Head of Design"
+    },
+    {
+      "id": "email",
+      "label": "Email",
+      "type": "text",
+      "group": "Person",
+      "default": "nadia@example.com",
+      "bindToProfile": "email"
+    },
+    {
+      "id": "phone",
+      "label": "Phone",
+      "type": "text",
+      "group": "Person",
+      "default": "+44 20 7946 0142",
+      "bindToProfile": "phone"
+    },
+    {
+      "id": "company",
+      "label": "Company",
+      "type": "text",
+      "group": "Organisation",
+      "default": "Northline Studio",
+      "help": "Also the wordmark on every piece when your brand has no logo asset to place."
+    },
+    {
+      "id": "url",
+      "label": "Website",
+      "type": "url",
+      "group": "Organisation",
+      "default": "northline.studio"
+    },
+    {
+      "id": "address",
+      "label": "Address",
+      "type": "text",
+      "group": "Organisation",
+      "default": "12 Barrow Lane, Bristol BS1 4QD",
+      "help": "One line. It sits in the footer of the letterhead and the compliments slip."
+    },
+    {
+      "id": "tagline",
+      "label": "Tagline",
+      "type": "text",
+      "group": "Organisation",
+      "default": "Design that keeps its promises.",
+      "help": "The line printed on the card back and across the compliments slip. \"With compliments\" is the usual one for the slip."
+    },
+    {
+      "id": "body",
+      "label": "Letter",
+      "type": "longtext",
+      "group": "Organisation",
+      "default": "Dear Sam,\n\nThank you for the notes on the second round. We have folded them into the drawings and the revised set is attached.\n\nWith thanks,",
+      "help": "Only used on the letterhead. Markdown: **bold**, *italic*, and lines starting with - become a list.",
+      "showIf": { "piece": "letterhead" }
+    },
+    {
+      "id": "color",
+      "label": "Ink",
+      "type": "color",
+      "group": "Look",
+      "default": "{color.semantic.text}"
+    },
+    {
+      "id": "background",
+      "label": "Paper",
+      "type": "color",
+      "group": "Look",
+      "default": "{color.semantic.surface}"
+    },
+    {
+      "id": "accent",
+      "label": "Accent",
+      "type": "color",
+      "group": "Look",
+      "default": "{color.semantic.primary}",
+      "help": "The edge bar, the rules, and the field the card back prints on."
+    }
+  ],
+  "examples": [
+    {
+      "label": "Card front, teal edge",
+      "values": {
+        "piece": "business-card-front",
+        "color": "#17232b",
+        "background": "#ffffff",
+        "accent": "#1f5f52"
+      }
+    },
+    {
+      "label": "Card back, accent field",
+      "values": {
+        "piece": "business-card-back",
+        "color": "#17232b",
+        "background": "#ffffff",
+        "accent": "#1f5f52",
+        "tagline": "Design that keeps its promises."
+      }
+    },
+    {
+      "label": "Letterhead on warm paper",
+      "values": {
+        "piece": "letterhead",
+        "color": "#241d16",
+        "background": "#faf6ef",
+        "accent": "#8a5a2b"
+      }
+    },
+    {
+      "label": "Compliments slip",
+      "values": {
+        "piece": "comp-slip",
+        "color": "#17232b",
+        "background": "#f7f8fa",
+        "accent": "#1f5f52",
+        "tagline": "With compliments"
+      }
+    }
+  ]
+}

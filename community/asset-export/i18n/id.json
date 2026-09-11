@@ -1,0 +1,15 @@
+{
+  "name": "Ekspor Aset",
+  "description": "Render aset katalog apa pun - atau tautan alat Lolly - ke format dan ukuran apa pun.",
+  "a11yLabel": "Aset yang diekspor",
+  "inputs.src.label": "Aset",
+  "inputs.src.help": "Aset yang akan di-render - id katalog (lihat `lolly assets`) atau tautan alat lolly.tools yang ditempel. Aset vektor tetap vektor melalui SVG/PDF; aset raster disematkan sebagai gambar.",
+  "inputs.fit.label": "Penyesuaian",
+  "inputs.fit.help": "Contain menampilkan seluruh aset di dalam bingkai; Cover mengisi bingkai dan mungkin memotong tepinya.",
+  "inputs.fit.options.contain": "Contain (seluruh aset, dengan letterbox)",
+  "inputs.fit.options.cover": "Cover (mengisi, mungkin dipotong)",
+  "inputs.background.label": "Latar belakang",
+  "inputs.background.help": "Warna di belakang aset. Aktifkan \"Tanpa BG\" di ekspor untuk menghilangkannya (transparan).",
+  "inputs.transparentBg.label": "Tanpa latar belakang",
+  "inputs.transparentBg.help": "Hilangkan warna latar belakang agar aset diekspor dengan transparansi (PNG/SVG/WebP)."
+}

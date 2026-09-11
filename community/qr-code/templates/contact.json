@@ -1,0 +1,26 @@
+{
+  "id": "contact",
+  "name": "Contact page link",
+  "category": "Utility",
+  "description": "Share your contact or profile page from a business card or badge.",
+  "values": {
+    "url": "https://example.com/contact",
+    "ecl": "Q",
+    "padding": 4,
+    "join": true
+  },
+  "presets": [
+    {
+      "id": "card",
+      "name": "Business card",
+      "description": "High redundancy and a tight quiet zone for card-sized print.",
+      "values": { "ecl": "H", "padding": 2 }
+    },
+    {
+      "id": "brand",
+      "name": "Brand colours",
+      "description": "Modules in your brand primary on the brand surface.",
+      "values": { "color": "{color.semantic.primary}", "background": "{color.semantic.surface}" }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "Audiogram",
+  "description": "Gjør en talesnutt eller sang til en merkevarevideo som faktisk beveger seg med lyden - stolper, spektrum, ring, ryggrekke eller oscilloskop, klar for sosiale medier.",
+  "a11yLabel": "Audiogram-kort for {{default title \"an audio clip\"}} med en animert bølgeform",
+  "inputs.audio.label": "Lyd",
+  "inputs.audio.help": "Velg et spor fra biblioteket ditt, eller last opp et klipp. Det dekodes på enheten din for å tegne bølgeformen - lyden forlater aldri nettleseren. La stå tomt for en plassholder-bølgeform. For å høre den i eksporten, velg \"Dette verktøyets lyd\" som lydspor i nedlastingsalternativene.",
+  "inputs.title.label": "Tittel",
+  "inputs.title.help": "Overskriften på kortet - et episodenavn eller et sitat.",
+  "inputs.subtitle.label": "Undertittel",
+  "inputs.subtitle.help": "En mindre linje under tittelen - programnavn, gjest eller hvor du kan lytte.",
+  "inputs.style.label": "Bølgeformstil",
+  "inputs.style.options.bars": "Stolper",
+  "inputs.style.options.wave": "Bølge",
+  "inputs.style.options.ring": "Ring",
+  "inputs.size.label": "Størrelse",
+  "inputs.size.options.square": "Kvadrat (1:1)",
+  "inputs.size.options.wide": "Bred (16:9)",
+  "inputs.size.options.story": "Story (9:16)",
+  "inputs.accent.label": "Bølgeformfarge",
+  "inputs.ink.label": "Tekstfarge",
+  "inputs.bg.label": "Bakgrunn"
+}

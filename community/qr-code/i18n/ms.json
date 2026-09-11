@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "Kod QR untuk pautan, kad kenalan, rangkaian Wi-Fi, acara kalendar, lokasi atau teks biasa.",
+  "featured.blurb": "Kod QR dalam sebarang warna jenama",
+  "a11yLabel": "Kod QR yang menghubungkan ke {{default url \"(no URL set)\"}}",
+  "inputs.url.label": "URL",
+  "inputs.color.label": "Warna modul",
+  "inputs.background.label": "Latar belakang",
+  "inputs.ecl.label": "Pembetulan ralat",
+  "inputs.ecl.options.L": "Rendah (7%)",
+  "inputs.ecl.options.M": "Sederhana (15%)",
+  "inputs.ecl.options.Q": "Kuartil (25%)",
+  "inputs.ecl.options.H": "Tinggi (30%)",
+  "inputs.padding.label": "Zon senyap",
+  "inputs.padding.help": "Modul ruang putih di sekeliling kod. Minimum 4 disyorkan.",
+  "inputs.join.label": "Modul digabungkan",
+  "inputs.join.help": "Gabungkan semua modul menjadi satu laluan SVG. Lebih tajam pada saiz kecil."
+}

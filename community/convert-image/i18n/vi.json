@@ -1,0 +1,18 @@
+{
+  "name": "Chuyển đổi ảnh",
+  "description": "Biến HEIC, TIFF hoặc bất kỳ ảnh nào thành WebP, JPEG hoặc PNG - ngay trên thiết bị của bạn.",
+  "a11yLabel": "Chuyển đổi ảnh cho {{fileName}}",
+  "inputs.source.label": "Hình ảnh",
+  "inputs.source.help": "Ảnh HEIC, HEIF, JPEG, PNG, WebP, AVIF hoặc TIFF. Được đọc trong trình duyệt của bạn, không bao giờ rời khỏi thiết bị.",
+  "inputs.target.label": "Chuyển đổi sang",
+  "inputs.target.help": "Định dạng đầu ra. WebP thường nhỏ nhất; PNG không mất dữ liệu.",
+  "inputs.target.options.webp": "WebP - nhỏ nhất, giữ độ trong suốt",
+  "inputs.target.options.jpeg": "JPEG - phổ biến, dùng cho ảnh chụp",
+  "inputs.target.options.png": "PNG - không mất dữ liệu, giữ độ trong suốt",
+  "inputs.quality.label": "Chất lượng",
+  "inputs.quality.help": "Chất lượng cho các định dạng lossy. Thấp hơn nghĩa là tệp nhỏ hơn và chi tiết mờ hơn. PNG bỏ qua giá trị này.",
+  "inputs.maxEdge.label": "Cạnh dài nhất (px)",
+  "inputs.maxEdge.help": "Giảm kích thước sao cho cạnh dài nhất tối đa bằng số pixel này. 0 giữ nguyên kích thước gốc. Không bao giờ phóng to.",
+  "inputs.keepLocation.label": "Giữ vị trí",
+  "inputs.keepLocation.help": "Đưa vị trí GPS của ảnh vào tệp đã chuyển đổi. Tắt theo mặc định - vị trí là dữ liệu cá nhân. Các thông tin khác của ảnh (tác giả, bản quyền, ngày chụp) luôn được đưa theo, và thẻ hiển thị chính xác điều gì đã xảy ra."
+}

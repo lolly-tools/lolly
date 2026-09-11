@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "QR kódy pro odkaz, kontaktní kartu, síť Wi-Fi, událost v kalendáři, polohu nebo prostý text.",
+  "a11yLabel": "QR kód odkazující na {{default url \"(žádná adresa URL)\"}}",
+  "featured.blurb": "QR kódy v libovolné barvě značky",
+  "inputs.url.label": "URL",
+  "inputs.color.label": "Barva modulů",
+  "inputs.background.label": "Pozadí",
+  "inputs.ecl.label": "Korekce chyb",
+  "inputs.ecl.options.L": "Nízká (7 %)",
+  "inputs.ecl.options.M": "Střední (15 %)",
+  "inputs.ecl.options.Q": "Kvartil (25 %)",
+  "inputs.ecl.options.H": "Vysoká (30 %)",
+  "inputs.padding.label": "Klidová zóna",
+  "inputs.padding.help": "Moduly bílého prostoru kolem kódu. Doporučené minimum jsou 4.",
+  "inputs.join.label": "Spojené moduly",
+  "inputs.join.help": "Sloučí všechny moduly do jedné SVG cesty. Ostřejší při malých velikostech."
+}

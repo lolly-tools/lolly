@@ -1,0 +1,34 @@
+{
+  "id": "trend-line",
+  "name": "Trend line",
+  "category": "Lines",
+  "description": "A 12 month line comparing this year with last year.",
+  "values": {
+    "chartType": "line",
+    "data": "Month,This year,Last year\nJan,118,96\nFeb,124,101\nMar,131,99\nApr,129,104\nMay,142,108\nJun,155,112\nJul,151,117\nAug,163,115\nSep,171,121\nOct,168,126\nNov,182,124\nDec,196,131",
+    "curve": "monotone",
+    "heading": "Monthly active users",
+    "lineWidth": 3,
+    "showPoints": false
+  },
+  "presets": [
+    {
+      "id": "filled-area",
+      "name": "Filled area",
+      "description": "Fill under the lines to weight the volume.",
+      "values": { "chartType": "area", "fillOpacity": 35 }
+    },
+    {
+      "id": "with-points",
+      "name": "With points",
+      "description": "Mark each month with a point.",
+      "values": { "showPoints": true }
+    },
+    {
+      "id": "moving-average",
+      "name": "Moving average",
+      "description": "Overlay a moving average to smooth the noise.",
+      "values": { "trend": "movavg" }
+    }
+  ]
+}

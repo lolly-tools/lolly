@@ -1,0 +1,19 @@
+{
+  "name": "شعار نصي",
+  "description": "اكتب كلمة، واحصل على شعار نصي متجهي نقي المسارات بخط علامتك التجارية - لا يحتاج المستلمون أبداً لتثبيت الخط.",
+  "a11yLabel": "شعار نصي يعرض {{default text \"Wordmark\"}}",
+  "inputs.text.label": "النص",
+  "inputs.font.label": "الخط",
+  "inputs.font.options.brand": "خط العلامة التجارية",
+  "inputs.font.options.mono": "خط أحادي التباعد",
+  "inputs.weight.label": "الوزن",
+  "inputs.tracking.label": "تباعد الأحرف",
+  "inputs.tracking.help": "تباعد الأحرف بوحدة px عند الحجم المحدد.",
+  "inputs.size.label": "الحجم",
+  "inputs.size.help": "حجم الخط الذي تشكل عليه الحدود الخارجية - تباعد الأحرف نسبي إلى هذا.",
+  "inputs.color.label": "اللون",
+  "inputs.features.label": "ميزات OpenType",
+  "inputs.features.options.none": "قياسي",
+  "inputs.features.options.liga-off": "بلا روابط حرفية",
+  "inputs.features.options.salt": "البدائل الأسلوبية"
+}

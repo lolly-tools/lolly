@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "Unggah dek PowerPoint dan sesuaikan warna serta fontnya dengan brand Anda - dibangun ulang di perangkat Anda, tidak ada yang diunggah.",
+  "a11yLabel": "Pengubah merek presentasi untuk {{fileName}}",
+  "inputs.source.label": "File PowerPoint",
+  "inputs.source.help": "File .pptx. Dibaca di perangkat Anda dan tidak pernah diunggah.",
+  "inputs.useTheme.label": "Terapkan tema brand",
+  "inputs.useTheme.help": "Ganti palet tema dan font deck ke brand Anda - setiap warna yang tertaut ke tema otomatis mengikuti.",
+  "inputs.colorMap.label": "Pemetaan warna",
+  "inputs.colorMap.help": "Warna hardcoded ditemukan di slide, masing-masing dengan warna merek yang disarankan. Hapus baris untuk membiarkan warna tersebut apa adanya.",
+  "inputs.colorMap.fields.from.label": "Asli",
+  "inputs.colorMap.fields.to.label": "Brand",
+  "inputs.fontMap.label": "Pemetaan font",
+  "inputs.fontMap.help": "Typeface yang disebutkan dalam deck, masing-masing dengan pengganti brand-nya. Hapus satu baris untuk mempertahankan font tersebut.",
+  "inputs.fontMap.fields.from.label": "Asli",
+  "inputs.fontMap.fields.to.label": "Brand",
+  "inputs.dropFonts.label": "Hapus font tersemat",
+  "inputs.dropFonts.help": "Font merek lama yang disematkan dalam file menjadi usang setelah penggantian dan mungkin terikat lisensi."
+}

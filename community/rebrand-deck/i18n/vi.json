@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "Tải lên một bộ PowerPoint và khớp màu sắc, font chữ theo thương hiệu của bạn - dựng lại ngay trên thiết bị của bạn, không tải lên đâu cả.",
+  "a11yLabel": "Công cụ đổi thương hiệu bộ slide cho {{fileName}}",
+  "inputs.source.label": "Tệp PowerPoint",
+  "inputs.source.help": "Tệp .pptx. Được đọc trên thiết bị của bạn, không bao giờ tải lên.",
+  "inputs.useTheme.label": "Áp dụng chủ đề thương hiệu",
+  "inputs.useTheme.help": "Đổi bảng màu chủ đề và phông chữ của bộ trình chiếu sang thương hiệu của bạn - mọi màu liên kết với chủ đề sẽ tự động thay đổi theo.",
+  "inputs.colorMap.label": "Ánh xạ màu",
+  "inputs.colorMap.help": "Các màu được gán cứng tìm thấy trên các trang chiếu, mỗi màu kèm màu thương hiệu được gợi ý. Xóa một hàng để giữ nguyên màu đó.",
+  "inputs.colorMap.fields.from.label": "Bản gốc",
+  "inputs.colorMap.fields.to.label": "Thương hiệu",
+  "inputs.fontMap.label": "Ánh xạ phông chữ",
+  "inputs.fontMap.help": "Các phông chữ được nêu tên trong bộ trình chiếu, mỗi phông có phông thay thế theo thương hiệu. Xoá một hàng để giữ nguyên phông đó.",
+  "inputs.fontMap.fields.from.label": "Bản gốc",
+  "inputs.fontMap.fields.to.label": "Thương hiệu",
+  "inputs.dropFonts.label": "Xóa phông chữ được nhúng",
+  "inputs.dropFonts.help": "Phông chữ thương hiệu cũ nhúng trong tệp sẽ lỗi thời sau khi đổi thương hiệu và có thể vướng vấn đề bản quyền."
+}

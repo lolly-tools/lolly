@@ -1,0 +1,59 @@
+{{!-- Certificate.
+     The sheet is HTML so the copy wraps and centres itself at any page size,
+     with one plain <svg> layer for the border rules: geometry every exporter
+     walks the same way, rather than a decorated CSS border the vector export
+     cannot recover. Every size in styles.css is a multiple of --ct-u, a
+     thousandth of the sheet's own width in container units, so A4, US Letter
+     and the screen size share one layout at whatever pixel size the sheet is
+     being painted. Colours arrive as custom properties the hook resolved. --}}
+<div class="ct-root" style="--ct-name-size:{{nameSizeU}};--ct-course-size:{{courseSizeU}};--ct-ink:{{inkColor}};--ct-paper:{{paperColor}};--ct-accent:{{accentColor}};--ct-muted:{{mutedColor}};--ct-rule-soft:{{ruleSoftColor}}">
+
+  <svg class="ct-frame" viewBox="0 0 1000 {{vbH}}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+    <rect x="26" y="26" width="948" height="{{frameH}}" fill="none" stroke="{{accentColor}}" stroke-width="5"/>
+    <rect x="40" y="40" width="920" height="{{innerH}}" fill="none" stroke="{{ruleSoftColor}}" stroke-width="1.5"/>
+    <g fill="{{accentColor}}">
+      <path transform="translate(40 40)" d="M0 -8 L8 0 L0 8 L-8 0 Z"/>
+      <path transform="translate(960 40)" d="M0 -8 L8 0 L0 8 L-8 0 Z"/>
+      <path transform="translate(40 {{innerBottom}})" d="M0 -8 L8 0 L0 8 L-8 0 Z"/>
+      <path transform="translate(960 {{innerBottom}})" d="M0 -8 L8 0 L0 8 L-8 0 Z"/>
+    </g>
+  </svg>
+
+  <div class="ct-body">
+    {{#if error}}
+    <p class="ct-error">{{error}}</p>
+    {{else}}
+
+    <header class="ct-issuer">
+      {{#if hasLogo}}<img class="ct-logo" src="{{logoUrl}}" alt="">{{/if}}
+      {{#if companyText}}<p class="ct-company">{{companyText}}</p>{{/if}}
+    </header>
+
+    <h1 class="ct-title">{{titleText}}</h1>
+    <p class="ct-lead">{{leadText}}</p>
+    <p class="ct-name">{{recipientName}}</p>
+    <div class="ct-name-rule"></div>
+    <p class="ct-cite">{{citeText}}</p>
+    <p class="ct-course">{{courseText}}</p>
+
+    <div class="ct-sign">
+      {{#if hasDate}}
+      <div class="ct-sign-col">
+        <div class="ct-sign-rule"></div>
+        <p class="ct-sign-value">{{dateText}}</p>
+        <p class="ct-sign-label">Date</p>
+      </div>
+      {{/if}}
+      {{#if hasPresenter}}
+      <div class="ct-sign-col">
+        <div class="ct-sign-rule"></div>
+        <p class="ct-sign-value">{{presenterText}}</p>
+        <p class="ct-sign-label">{{presenterTitleText}}</p>
+      </div>
+      {{/if}}
+    </div>
+
+    {{#if serialText}}<p class="ct-serial">{{serialText}}</p>{{/if}}
+    {{/if}}
+  </div>
+</div>

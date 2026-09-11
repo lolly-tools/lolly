@@ -1,0 +1,25 @@
+{
+  "id": "karaoke",
+  "name": "Karaoke",
+  "category": "Captions",
+  "description": "One line in the middle of the frame, lighting up word by word as it is spoken.",
+  "values": {
+    "style": "karaoke",
+    "position": "centre",
+    "fontSize": 72,
+    "color": "{color.semantic.on-primary}",
+    "background": "{color.semantic.primary}",
+    "maxLines": 2,
+    "showTimecodes": false,
+    "burnIn": true,
+    "time": 0
+  },
+  "presets": [
+    {
+      "id": "lower",
+      "name": "Lower third",
+      "description": "The same word-by-word lift, sitting where subtitles usually do.",
+      "values": { "position": "bottom", "fontSize": 60 }
+    }
+  ]
+}

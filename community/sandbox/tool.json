@@ -1,0 +1,101 @@
+{
+  "id": "sandbox",
+  "name": "Sandbox",
+  "description": "Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant.",
+  "version": "1.5.1",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "singleInstance": true,
+  "category": "utility",
+  "tags": [
+    "code",
+    "html",
+    "css",
+    "javascript",
+    "js",
+    "jsx",
+    "typescript",
+    "tsx",
+    "react",
+    "component",
+    "playground",
+    "sandbox",
+    "preview",
+    "codepen",
+    "developer",
+    "run",
+    "paste",
+    "snippet",
+    "ai",
+    "chatgpt",
+    "gemini",
+    "offline"
+  ],
+  "a11yLabel": "Run Web Code - a private, offline HTML / CSS / JavaScript sandbox",
+  "render": {
+    "width": 1280,
+    "height": 800,
+    "formats": ["png", "svg", "penpot", "pdf", "jpg", "webp"],
+    "export": true,
+    "sidebar": false,
+    "actions": [
+      "copy",
+      "download"
+    ]
+  },
+  "hooks": {
+    "beforeExport": true
+  },
+  "inputs": [
+    {
+      "id": "html",
+      "type": "longtext",
+      "label": "HTML",
+      "default": "",
+      "help": "The HTML pane. Lives in the synced model so a live pairing session shares it; the editor UI is on the canvas, not in a sidebar."
+    },
+    {
+      "id": "css",
+      "type": "longtext",
+      "label": "CSS",
+      "default": ""
+    },
+    {
+      "id": "js",
+      "type": "longtext",
+      "label": "JavaScript",
+      "default": ""
+    },
+    {
+      "id": "head",
+      "type": "longtext",
+      "label": "Persistent head",
+      "default": "",
+      "help": "Markup added to the <head> of every preview (meta, fonts, base styles, library <script>/<link>). Now travels with the pen rather than being saved per-device."
+    },
+    {
+      "id": "mode",
+      "type": "select",
+      "label": "JS language",
+      "default": "none",
+      "options": [
+        {
+          "value": "none",
+          "label": "Plain JS"
+        },
+        {
+          "value": "jsx",
+          "label": "JSX (React)"
+        },
+        {
+          "value": "ts",
+          "label": "TypeScript"
+        },
+        {
+          "value": "tsx",
+          "label": "TSX (React + TS)"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "자산 내보내기",
+  "description": "카탈로그 자산 - 또는 Lolly 도구 링크 - 를 원하는 포맷과 크기로 렌더링합니다.",
+  "a11yLabel": "내보낸 자산",
+  "inputs.src.label": "자산",
+  "inputs.src.help": "렌더링할 자산입니다 - 카탈로그 ID(`lolly assets` 참고) 또는 붙여넣은 lolly.tools 도구 링크입니다. 벡터 자산은 SVG/PDF에서도 벡터로 유지되며, 래스터 자산은 이미지로 삽입됩니다.",
+  "inputs.fit.label": "맞춤",
+  "inputs.fit.help": "'포함'은 프레임 안에 전체 자산을 레터박스로 표시합니다. '채우기'는 프레임을 가득 채우며 가장자리가 잘릴 수 있습니다.",
+  "inputs.fit.options.contain": "포함 (전체 자산, 레터박스)",
+  "inputs.fit.options.cover": "채우기 (가득 채움, 잘릴 수 있음)",
+  "inputs.background.label": "배경",
+  "inputs.background.help": "자산 뒤의 색상입니다. 내보내기에서 \"배경 없음\"을 켜면 제거됩니다(투명).",
+  "inputs.transparentBg.label": "배경 없음",
+  "inputs.transparentBg.help": "배경 채우기를 제거하여 자산을 투명 배경으로 내보냅니다(PNG/SVG/WebP)."
+}

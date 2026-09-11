@@ -1,0 +1,28 @@
+{
+  "id": "inventory",
+  "name": "Inventory label",
+  "category": "Utility",
+  "description": "A Data Matrix for archive boxes, assets and small parts - scans from a thumbnail-sized square.",
+  "values": {
+    "payload": "text",
+    "symbology": "datamatrix",
+    "text": "ARCHIVE-BOX-0042",
+    "padding": 2,
+    "color": "#1a1a2e",
+    "background": "#ffffff"
+  },
+  "presets": [
+    {
+      "id": "legacy",
+      "name": "Code 39 asset tag",
+      "description": "For older laser scanners that only read linear codes.",
+      "values": { "payload": "code39", "value": "INV-2026-0042" }
+    },
+    {
+      "id": "library",
+      "name": "Library Codabar",
+      "description": "The classic membership and circulation symbology.",
+      "values": { "payload": "codabar", "value": "31117013206375" }
+    }
+  ]
+}

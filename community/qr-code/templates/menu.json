@@ -1,0 +1,32 @@
+{
+  "id": "menu",
+  "name": "Table tent menu",
+  "category": "Utility",
+  "description": "Link diners to an online menu, with extra redundancy for small print.",
+  "values": {
+    "url": "https://example.com/menu",
+    "ecl": "H",
+    "padding": 6,
+    "join": true
+  },
+  "presets": [
+    {
+      "id": "classic",
+      "name": "Classic",
+      "description": "Near-black on warm white for tabletop print.",
+      "values": { "color": "#1a1a2e", "background": "#faf7f2" }
+    },
+    {
+      "id": "fresh",
+      "name": "Fresh",
+      "description": "Deep teal on a pale mint ground.",
+      "values": { "color": "#0f766e", "background": "#ecfdf5" }
+    },
+    {
+      "id": "brand",
+      "name": "Brand colours",
+      "description": "Modules in your brand primary on the brand surface.",
+      "values": { "color": "{color.semantic.primary}", "background": "{color.semantic.surface}" }
+    }
+  ]
+}

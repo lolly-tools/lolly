@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "Bağlantı, kişi kartı, Wi-Fi ağı, takvim etkinliği, konum ya da düz metin için QR kodları.",
+  "a11yLabel": "{{default url \"(no URL set)\"}} adresine bağlanan QR kodu",
+  "featured.blurb": "Her marka renginde QR kodları",
+  "inputs.url.label": "URL",
+  "inputs.color.label": "Modül rengi",
+  "inputs.background.label": "Arka plan",
+  "inputs.ecl.label": "Hata düzeltme",
+  "inputs.ecl.options.L": "Düşük (%7)",
+  "inputs.ecl.options.M": "Orta (%15)",
+  "inputs.ecl.options.Q": "Çeyrek (%25)",
+  "inputs.ecl.options.H": "Yüksek (%30)",
+  "inputs.padding.label": "Sessiz bölge",
+  "inputs.padding.help": "Kodun çevresindeki boşluk modülleri. En az 4 önerilir.",
+  "inputs.join.label": "Birleşik modüller",
+  "inputs.join.help": "Tüm modülleri tek bir SVG yoluna birleştirir. Küçük boyutlarda daha net."
+}

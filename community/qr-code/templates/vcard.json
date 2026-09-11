@@ -1,0 +1,33 @@
+{
+  "id": "vcard",
+  "name": "Contact card",
+  "category": "Utility",
+  "description": "Scan to save a contact straight into the phone's address book, no page to load.",
+  "values": {
+    "payload": "vcard",
+    "firstname": "Ana",
+    "lastname": "Kovac",
+    "company": "Northwind Studio",
+    "jobTitle": "Creative Director",
+    "phone": "+61 400 000 000",
+    "email": "ana@example.com",
+    "url": "https://example.com/ana",
+    "ecl": "Q",
+    "padding": 4,
+    "join": true
+  },
+  "presets": [
+    {
+      "id": "card",
+      "name": "Business card",
+      "description": "Quartile redundancy and a tight quiet zone for card-sized print.",
+      "values": { "ecl": "Q", "padding": 2 }
+    },
+    {
+      "id": "brand",
+      "name": "Brand colours",
+      "description": "Modules in your brand primary on the brand surface.",
+      "values": { "color": "{color.semantic.primary}", "background": "{color.semantic.surface}" }
+    }
+  ]
+}

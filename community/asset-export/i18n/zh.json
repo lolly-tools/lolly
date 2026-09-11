@@ -1,0 +1,15 @@
+{
+  "name": "资源导出",
+  "description": "将任意目录素材 - 或 Lolly 工具链接 - 渲染为任意格式和尺寸。",
+  "a11yLabel": "导出的资源",
+  "inputs.src.label": "资源",
+  "inputs.src.help": "要渲染的资源--目录 ID（参见 `lolly assets`）或粘贴的 lolly.tools 工具链接。矢量资源在 SVG/PDF 中保持矢量；位图资源以图片形式嵌入。",
+  "inputs.fit.label": "适应方式",
+  "inputs.fit.help": "“包含”会在画框内显示完整资源；“覆盖”会填满画框，边缘可能被裁剪。",
+  "inputs.fit.options.contain": "包含（完整资源，加黑边）",
+  "inputs.fit.options.cover": "覆盖（填满，可能裁剪）",
+  "inputs.background.label": "背景",
+  "inputs.background.help": "资源背后的颜色。导出时打开“无背景”可去除它（透明）。",
+  "inputs.transparentBg.label": "无背景",
+  "inputs.transparentBg.help": "去除背景填充，使资源以透明方式导出（PNG/SVG/WebP）。"
+}

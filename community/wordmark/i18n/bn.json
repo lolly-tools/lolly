@@ -1,0 +1,19 @@
+{
+  "name": "ওয়ার্ডমার্ক",
+  "description": "একটি শব্দ টাইপ করুন, আপনার ব্র্যান্ড ফন্টে একটি পিওর-পাথ ভেক্টর ওয়ার্ডমার্ক পান - প্রাপকদের কখনও ফন্ট ইনস্টল করার দরকার হয় না।",
+  "a11yLabel": "{{default text \"Wordmark\"}} লেখা ওয়ার্ডমার্ক",
+  "inputs.text.label": "টেক্সট",
+  "inputs.font.label": "ফন্ট",
+  "inputs.font.options.brand": "ব্র্যান্ড ফন্ট",
+  "inputs.font.options.mono": "মনো ফন্ট",
+  "inputs.weight.label": "ওয়েট",
+  "inputs.tracking.label": "ট্র্যাকিং",
+  "inputs.tracking.help": "সেট সাইজে px-এ লেটার-স্পেসিং।",
+  "inputs.size.label": "আকার",
+  "inputs.size.help": "আউটলাইন যে ফন্ট সাইজে শেপ করা হয় - ট্র্যাকিং এই অনুযায়ী নির্ধারিত হয়।",
+  "inputs.color.label": "রং",
+  "inputs.features.label": "OpenType ফিচার",
+  "inputs.features.options.none": "স্ট্যান্ডার্ড",
+  "inputs.features.options.liga-off": "কোনো লিগেচার নেই",
+  "inputs.features.options.salt": "স্টাইলিস্টিক অল্টারনেট"
+}

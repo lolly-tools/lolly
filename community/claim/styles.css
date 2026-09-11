@@ -1,0 +1,124 @@
+/* Embed, Imprint & Track. Colours follow the app's theme tokens on <html
+   data-theme> (tokens.css), inherited into the scoped tool canvas, so the tool
+   restyles itself the instant the theme changes. Light-theme fallbacks keep the
+   sheet valid in shells without the tokens. */
+.eit {
+  --e-bg:      var(--background, 0 0% 98%);
+  --e-fg:      var(--foreground, 224 71% 4%);
+  --e-muted:   var(--muted-foreground, 215 20% 38%);
+  --e-card:    var(--card, 0 0% 100%);
+  --e-bd:      var(--border, 214 28% 84%);
+  --e-fill:    var(--muted, 210 40% 96%);
+  --e-brand:   var(--primary, 171 62% 12%);
+  --e-brandfg: var(--primary-foreground, 0 0% 100%);
+  --e-warn:    var(--destructive, 0 72% 51%);
+
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  box-sizing: border-box;
+  font-family: var(--font-brand, "SUSE", system-ui, sans-serif);
+  color: hsl(var(--e-fg));
+  background: hsl(var(--e-bg));
+}
+
+/* The empty state IS the click-to-pick drop zone (shell wires the picker to
+   [data-file-pick]; drag-drop covers the whole canvas). */
+.eit-empty {
+  max-width: 460px;
+  text-align: center;
+  cursor: pointer;
+  border: 2px dashed hsl(var(--e-bd));
+  border-radius: 16px;
+  padding: 40px 32px;
+  transition: border-color .15s ease, background .15s ease;
+}
+.eit-empty:hover,
+.eit-empty:focus-visible { border-color: hsl(var(--e-brand)); outline: none; }
+.is-file-dragover .eit-empty { border-color: hsl(var(--e-brand)); background: hsl(var(--e-brand) / .06); }
+
+.eit-empty-icon {
+  width: 56px; height: 56px;
+  margin: 0 auto 14px;
+  color: hsl(var(--e-brand));
+}
+.eit-empty-icon svg { width: 100%; height: 100%; }
+.eit-empty h2 { margin: 0 0 8px; font-size: 20px; font-weight: 650; }
+.eit-empty p { margin: 0 auto 16px; max-width: 40ch; font-size: 14px; line-height: 1.5; color: hsl(var(--e-muted)); }
+.eit-note { font-size: 12px; color: hsl(var(--e-muted)); margin: 12px 0 0; }
+
+.eit-pick,
+.eit-download {
+  appearance: none;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  background: hsl(var(--e-brand));
+  color: hsl(var(--e-brandfg));
+  transition: filter .15s ease;
+}
+.eit-pick:hover,
+.eit-download:hover { filter: brightness(1.08); }
+.eit-download[data-busy] { opacity: .7; pointer-events: none; }
+.eit-download.is-error { background: hsl(var(--e-warn)); }
+
+/* ── Populated card ── */
+.eit-card {
+  width: 100%;
+  max-width: 520px;
+  background: hsl(var(--e-card));
+  border: 1px solid hsl(var(--e-bd));
+  border-radius: 16px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+.is-file-dragover .eit-card { border-color: hsl(var(--e-brand)); }
+
+.eit-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.eit-count { font-weight: 650; font-size: 15px; }
+.eit-replace {
+  appearance: none;
+  border: 1px solid hsl(var(--e-bd));
+  background: transparent;
+  color: hsl(var(--e-fg));
+  border-radius: 8px;
+  padding: 5px 12px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.eit-replace:hover { background: hsl(var(--e-fill)); }
+
+.eit-files { list-style: none; margin: 0 0 14px; padding: 0; max-height: 220px; overflow-y: auto; }
+.eit-file {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: hsl(var(--e-fill) / .6);
+  margin-bottom: 6px;
+}
+.eit-file-name { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.eit-file-kind { font-size: 12px; color: hsl(var(--e-muted)); flex: none; text-transform: capitalize; }
+.eit-file.is-unsupported { opacity: .6; }
+.eit-file.is-unsupported .eit-file-kind { color: hsl(var(--e-warn)); }
+
+.eit-warn { font-size: 12.5px; color: hsl(var(--e-warn)); line-height: 1.45; margin: 0 0 12px; }
+.eit-hint { font-size: 12.5px; color: hsl(var(--e-muted)); line-height: 1.45; margin: 0 0 12px; }
+.eit-hint strong { color: hsl(var(--e-fg)); }
+
+.eit-download { width: 100%; margin-top: 4px; }

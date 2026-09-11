@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "PowerPoint 덱을 업로드하면 색상과 폰트를 브랜드에 맞춰 스냅합니다 - 기기 내에서 재구성되며, 아무것도 업로드되지 않습니다.",
+  "a11yLabel": "{{fileName}}용 덱 리브랜딩",
+  "inputs.source.label": "PowerPoint 파일",
+  "inputs.source.help": ".pptx 파일이에요. 기기에서 읽히며 업로드되지 않아요.",
+  "inputs.useTheme.label": "브랜드 테마 적용",
+  "inputs.useTheme.help": "데크의 테마 팔레트와 폰트를 브랜드에 맞게 바꿔요 - 테마에 연결된 모든 색상이 자동으로 따라가요.",
+  "inputs.colorMap.label": "색상 매핑",
+  "inputs.colorMap.help": "슬라이드에서 발견된 하드코딩된 색상이에요. 각각에 제안된 브랜드 색상이 있어요. 행을 삭제하면 해당 색상은 그대로 둬요.",
+  "inputs.colorMap.fields.from.label": "원본",
+  "inputs.colorMap.fields.to.label": "브랜드",
+  "inputs.fontMap.label": "폰트 매핑",
+  "inputs.fontMap.help": "덱에 지정된 서체 목록이며, 각각 브랜드 대체 서체가 있어요. 행을 삭제하면 해당 폰트를 유지해요.",
+  "inputs.fontMap.fields.from.label": "원본",
+  "inputs.fontMap.fields.to.label": "브랜드",
+  "inputs.dropFonts.label": "내장된 글꼴 제거",
+  "inputs.dropFonts.help": "파일에 내장된 이전 브랜드 글꼴은 교체 후 오래된 상태이며 라이선스 문제가 있을 수 있어요."
+}

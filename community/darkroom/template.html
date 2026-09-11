@@ -1,0 +1,390 @@
+<div class="bs-wrap">
+  <svg xmlns="http://www.w3.org/2000/svg" class="bs-svg" viewBox="0 0 {{width}} {{height}}" width="{{width}}" height="{{height}}"
+       preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block;">
+    {{#if outSrc}}
+    <!-- The whole composition (framed photo + colour pipeline + texture pass) is
+         baked into one bitmap by hooks.js - a deterministic canvas render so it
+         looks identical in every browser and every export path. The bitmap already
+         carries the export aspect, so it maps 1:1 over the viewBox.
+
+         Double-buffer: each render replaces this DOM wholesale, and the new
+         <image>'s data URL must decode before it paints - the previous bitmap
+         (browser-cached → instant) sits underneath while that happens; the inline
+         script below drops it once the top image has loaded. -->
+    {{#if prevSrc}}<image href="{{prevSrc}}" data-bs-base="1" x="0" y="0" width="{{width}}" height="{{height}}" preserveAspectRatio="none"/>{{/if}}
+    <!-- data-framing marks THIS element as the framed image for the shell's
+         framing overlay (plans/148). The bitmap is already framed by hooks.js
+         through the same frameRect maths the overlay writes into, so dragging
+         here and the numbers in the sidebar are two views of one value. -->
+    <image data-lolly-anno="{{filmLook}} {{treatment}}" href="{{outSrc}}" data-bs-top="1" data-framing="imageFraming" x="0" y="0" width="{{width}}" height="{{height}}" preserveAspectRatio="none"/>
+    {{#if split}}{{#if beforeSrc}}
+    <!-- Before/after split: the untouched framed source laid over the graded base
+         and clipped to one side of a divider the user can drag + rotate. It's part
+         of the artwork (NOT [data-export-hide]) so a raster export bakes it exactly
+         as shown; the drag grips are screen-only chrome in the HUD below. The clip
+         geometry + seam coordinates are wired live by the split controller script. -->
+    <clipPath data-bs-clip clipPathUnits="userSpaceOnUse"><rect x="0" y="0" width="{{width}}" height="{{height}}"/></clipPath>
+    <image data-bs-before href="{{beforeSrc}}" x="0" y="0" width="{{width}}" height="{{height}}" preserveAspectRatio="none"/>
+    <line data-bs-seam x1="0" y1="0" x2="0" y2="0" stroke="#ffffff" stroke-width="2" stroke-opacity="0.92" stroke-linecap="butt"/>
+    {{/if}}{{/if}}
+    {{else}}
+    <rect width="{{width}}" height="{{height}}" fill="#101018"/>
+    <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+          font-family="SUSE, system-ui, sans-serif" font-size="34" fill="#9ca3af">{{default note "Choose an image to grade"}}</text>
+    {{/if}}
+  </svg>
+
+  <!-- Screen-only chrome: excluded from EVERY export via data-export-hide. -->
+  <div class="bs-hud" data-export-hide aria-hidden="true">
+    {{#if split}}{{#if beforeSrc}}
+    <!-- Drag/rotate grips for the before/after divider. The visible line is the
+         SVG seam above; these dots move (centre) and rotate (offset) it. -->
+    <div class="bs-split" data-bs-split>
+      <span class="bs-split-label bs-split-before">Before</span>
+      <span class="bs-split-label bs-split-after">After</span>
+      <span class="bs-split-grip bs-split-move" data-bs-split-move role="slider" tabindex="0" aria-label="Move before/after divider" title="Drag to move the divider"></span>
+      <span class="bs-split-grip bs-split-rot" data-bs-split-rot role="slider" tabindex="0" aria-label="Rotate before/after divider" title="Drag to rotate the divider"></span>
+    </div>
+    {{/if}}{{/if}}
+    {{#if lutLabel}}<span class="bs-chip bs-chip-lut" title="Loaded LUT">{{lutLabel}}</span>{{/if}}
+    {{#if lutNote}}<span class="bs-chip bs-chip-err">{{lutNote}}</span>{{/if}}
+    {{#if histSvg}}
+    <!-- Movable + resizable histogram (screen only, never exported). -->
+    <div class="bs-hist" data-bs-hist title="Drag to move · pull the corner to resize">
+      {{{histSvg}}}
+      <span class="bs-hist-resize" data-bs-hist-resize aria-hidden="true"></span>
+    </div>
+    {{/if}}
+  </div>
+  {{#if layers.length}}
+  <!-- Layered mode only: rebuild the stack as a layered PSD (screen-only chrome,
+       outside the aria-hidden HUD so it stays reachable). -->
+  <button type="button" class="bs-psd-download" data-export-file data-export-hide data-busy-label="Building PSD…">Download layered PSD</button>
+  {{/if}}
+</div>
+<div data-img-key="{{#if image}}{{asset image}}{{/if}}" hidden aria-hidden="true"></div>
+<script>
+// Sync the SVG frame to the export dimension controls so non-square exports
+// compose correctly. IIFE + var: this <script> is re-created and re-run on every
+// paint, so top-level const/let would throw on the second render.
+(function () {
+  var svgs = document.querySelectorAll('svg.bs-svg');
+  var svg = svgs[svgs.length - 1];
+  if (!svg) return;
+  var vb = (svg.getAttribute('viewBox') || '0 0 1080 1080').split(/\s+/).map(Number);
+  var wEl = document.querySelector('[data-action="export-width"]');
+  var hEl = document.querySelector('[data-action="export-height"]');
+  var W = (wEl && parseFloat(wEl.value) > 0) ? parseFloat(wEl.value) : vb[2];
+  var H = (hEl && parseFloat(hEl.value) > 0) ? parseFloat(hEl.value) : vb[3];
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+  var ims = svg.querySelectorAll('image[data-bs-top],image[data-bs-base]');
+  for (var i = 0; i < ims.length; i++) { ims[i].setAttribute('width', W); ims[i].setAttribute('height', H); }
+  // Drop the previous-frame base layer once the new (top) image has painted, so
+  // the settled DOM / export carries a single image.
+  var base = svg.querySelector('[data-bs-base]');
+  var top = svg.querySelector('[data-bs-top]');
+  if (base && top) {
+    var drop = function () { if (base && base.parentNode) base.parentNode.removeChild(base); };
+    top.addEventListener('load', drop, { once: true });
+    setTimeout(drop, 350);
+  }
+})();
+</script>
+<script>
+/* Auto-fit the canvas to a newly chosen image (native pixel dimensions) - the
+   same convention as the community filter-* tools: the template stamps the
+   user-picked image URL as data-img-key (empty for the demo scene); when the
+   key CHANGES to a new image we snap the export Width/Height fields to the
+   image's native size (probed, capped, aspect preserved). Keyed on the
+   #tool-canvas element (recreated per mount; absent for the off-screen export
+   canvas → never resizes the bar during an export). IIFE + var: re-run each
+   render, so top-level const/let would throw. */
+(function () {
+  var anchor = document.querySelector('[data-img-key]');
+  if (!anchor) return;
+  var canvas = anchor.closest('#tool-canvas');
+  if (!canvas) return;
+  var key = anchor.getAttribute('data-img-key') || '';
+  if (!('__filterFitKey' in canvas)) { canvas.__filterFitKey = key; return; }
+  if (canvas.__filterFitKey === key) return;
+  if (!key) { canvas.__filterFitKey = ''; return; }
+  var uEl = document.querySelector('[data-action="export-unit"]');
+  if (uEl && uEl.value && uEl.value !== 'px') return;
+  var wEl = document.querySelector('[data-action="export-width"]');
+  var hEl = document.querySelector('[data-action="export-height"]');
+  if (!wEl || !hEl) return;
+
+  var MAX = 8000;
+  function apply(nw, nh) {
+    if (!(nw > 0 && nh > 0)) return;
+    canvas.__filterFitKey = key;
+    var s = Math.min(1, MAX / Math.max(nw, nh));
+    var W = Math.max(1, Math.round(nw * s));
+    var H = Math.max(1, Math.round(nh * s));
+    var changed = false;
+    if (parseFloat(wEl.value) !== W) { wEl.value = String(W); changed = true; }
+    if (parseFloat(hEl.value) !== H) { hEl.value = String(H); changed = true; }
+    if (changed) {
+      wEl.dispatchEvent(new Event('input', { bubbles: true }));
+      hEl.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+
+  if (canvas.__filterFitProbe === key) return;
+  canvas.__filterFitProbe = key;
+  var probe = new Image();
+  probe.onload = function () { apply(probe.naturalWidth, probe.naturalHeight); };
+  probe.onerror = function () { if (canvas.__filterFitProbe === key) canvas.__filterFitProbe = null; };
+  probe.src = key;
+  if (probe.complete && probe.naturalWidth > 0) apply(probe.naturalWidth, probe.naturalHeight);
+})();
+</script>
+<script>
+/* Before/after split controller - makes the divider draggable and rotatable.
+   The graded result is the SVG's base artwork; when the split is on we lay the
+   untouched "before" image over it, clipped to one side of a divider. The clip +
+   seam live in the SVG so a raster export bakes the divider exactly as shown; the
+   grips live in the [data-export-hide] HUD, so they never reach an export.
+   Geometry {ox,oy,ang} (box fractions + radians) is stashed on the stable
+   per-instance container so it survives each paint's wholesale DOM swap. Scoped
+   to THIS instance via document.currentScript (multi-canvas safe). IIFE + var:
+   the <script> is re-created and re-run on every paint. */
+(function () {
+  var me = document.currentScript;
+  var root = me && me.parentNode; if (!root || !root.querySelector) return;
+  var wrap = root.querySelector('.bs-wrap'); if (!wrap) return;
+  var svg = wrap.querySelector('svg.bs-svg'); if (!svg) return;
+  var before = svg.querySelector('image[data-bs-before]');
+  var clip = svg.querySelector('[data-bs-clip]');
+  var seam = svg.querySelector('[data-bs-seam]');
+  var panel = wrap.querySelector('[data-bs-split]');
+  if (!before || !clip || !seam || !panel) return;   // split off → nothing to drive
+
+  var moveGrip = panel.querySelector('[data-bs-split-move]');
+  var rotGrip = panel.querySelector('[data-bs-split-rot]');
+  var labBefore = panel.querySelector('.bs-split-before');
+  var labAfter = panel.querySelector('.bs-split-after');
+
+  var g = root.__bsSplit || { ox: 0.5, oy: 0.5, ang: 0 };
+  root.__bsSplit = g;
+
+  // Per-instance clip id so several canvases on one page never collide on url(#…).
+  var seq = (window.__bsClipSeq = (window.__bsClipSeq || 0) + 1);
+  var clipId = 'bs-clip-' + seq;
+  clip.id = clipId;
+  var rect = clip.querySelector('rect');
+  before.setAttribute('clip-path', 'url(#' + clipId + ')');
+
+  function dims() {
+    var vb = svg.viewBox && svg.viewBox.baseVal;
+    var W = (vb && vb.width) || parseFloat(svg.getAttribute('width')) || 1080;
+    var H = (vb && vb.height) || parseFloat(svg.getAttribute('height')) || 1080;
+    return { W: W, H: H };
+  }
+
+  function apply() {
+    var d = dims(), W = d.W, H = d.H, r = W / H;
+    var px = g.ox * W, py = g.oy * H, deg = g.ang * 180 / Math.PI, BIG = 4 * (W + H);
+    before.setAttribute('width', W); before.setAttribute('height', H);
+    // Clip = the half-plane on the "before" side (left when ang=0): a big rect
+    // whose right edge lies on the divider, rotated about the pivot.
+    if (rect) {
+      rect.setAttribute('x', px - BIG); rect.setAttribute('y', py - BIG);
+      rect.setAttribute('width', BIG); rect.setAttribute('height', 2 * BIG);
+      rect.setAttribute('transform', 'rotate(' + deg + ' ' + px + ' ' + py + ')');
+    }
+    seam.setAttribute('x1', px); seam.setAttribute('y1', py - BIG);
+    seam.setAttribute('x2', px); seam.setAttribute('y2', py + BIG);
+    seam.setAttribute('transform', 'rotate(' + deg + ' ' + px + ' ' + py + ')');
+    seam.setAttribute('stroke-width', Math.max(1.5, W / 450));
+    // Grips + labels in % of the box (resize-proof): a screen step of k·width
+    // becomes a top offset of k·(W/H).
+    var s = Math.sin(g.ang), c = Math.cos(g.ang);
+    function place(el, lf, tf) { if (el) { el.style.left = (lf * 100) + '%'; el.style.top = (tf * 100) + '%'; } }
+    place(moveGrip, g.ox, g.oy);
+    place(rotGrip, g.ox + (-s) * 0.18, g.oy + c * 0.18 * r);   // along the divider
+    place(labBefore, g.ox - c * 0.16, g.oy - s * 0.16 * r);    // −normal side
+    place(labAfter, g.ox + c * 0.16, g.oy + s * 0.16 * r);     // +normal side
+  }
+
+  function drag(grip, mode) {
+    if (!grip || grip.__bsWired) return;
+    grip.__bsWired = 1;
+    grip.addEventListener('pointerdown', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      try { grip.setPointerCapture(e.pointerId); } catch (_) {}
+      function mv(ev) {
+        var b = wrap.getBoundingClientRect(), bw = b.width || 1, bh = b.height || 1;
+        if (mode === 'move') {
+          g.ox = Math.min(1, Math.max(0, (ev.clientX - b.left) / bw));
+          g.oy = Math.min(1, Math.max(0, (ev.clientY - b.top) / bh));
+        } else {
+          var vx = (ev.clientX - b.left) - g.ox * bw, vy = (ev.clientY - b.top) - g.oy * bh;
+          if (vx * vx + vy * vy > 4) g.ang = Math.atan2(-vx, vy);
+        }
+        apply();
+      }
+      function up(ev) {
+        grip.removeEventListener('pointermove', mv);
+        grip.removeEventListener('pointerup', up);
+        grip.removeEventListener('pointercancel', up);
+        try { grip.releasePointerCapture(ev.pointerId); } catch (_) {}
+      }
+      grip.addEventListener('pointermove', mv);
+      grip.addEventListener('pointerup', up);
+      grip.addEventListener('pointercancel', up);
+    });
+  }
+
+  drag(moveGrip, 'move');
+  drag(rotGrip, 'rot');
+  apply();
+})();
+</script>
+<script>
+/* Histogram card - movable + resizable, screen only, and FREE-FLOATING over the
+   whole viewport (not trapped in the image box). #tool-canvas carries the
+   content-fit transform + overflow:hidden, which both traps position:fixed and
+   clips it - so the card is PORTALED out to #tool-layout, the first ancestor with
+   no transform/clip, where position:fixed resolves to the viewport. That layer is
+   inside the tool view (torn down on unmount → no orphan; absent from the offscreen
+   export stage → no flash) and OUTSIDE the exported canvas node (so exports never
+   include it - the "never rendered" guarantee holds). Geometry {x,y,w,h} in
+   VIEWPORT px is stashed on the stable per-instance #tool-canvas so it survives
+   each paint's DOM swap. IIFE + var: re-created + re-run every paint; scoped to
+   THIS instance via document.currentScript. */
+(function () {
+  var me = document.currentScript;
+  var stash = me && me.parentNode; if (!stash || !stash.querySelector) return;   // #tool-canvas
+  var wrap = stash.querySelector('.bs-wrap'); if (!wrap) return;
+  var srcCard = wrap.querySelector('[data-bs-hist]');
+  var layer = stash.closest ? stash.closest('#tool-layout') : null;
+
+  // Histogram off → tear down any portaled card and forget the ref.
+  if (!srcCard) {
+    if (stash.__bsHistCard && stash.__bsHistCard.parentNode) stash.__bsHistCard.remove();
+    stash.__bsHistCard = null;
+    return;
+  }
+  // Only float when there's a clip-free layer AND the canvas is actually on-screen
+  // (an offscreen export/preview stage sits at left:-100000px → don't portal/flash).
+  var ar = wrap.getBoundingClientRect();
+  var onScreen = ar.right > 0 && ar.left < innerWidth && ar.bottom > 0 && ar.top < innerHeight;
+  if (!layer || !onScreen) return;   // fallback: card stays in the HUD (styled by CSS), non-interactive
+
+  // The tool's styles.css is scoped to #tool-canvas, so a card portaled ABOVE it
+  // loses every rule. Inject the float look once, UNSCOPED, into <head> (head
+  // styles are never re-scoped by the shell). Qualified on .bs-hist--float so it
+  // only dresses portaled cards, never the in-HUD fallback.
+  if (!document.getElementById('bs-hist-float-css')) {
+    var st = document.createElement('style');
+    st.id = 'bs-hist-float-css';
+    st.textContent =
+      '.bs-hist--float{position:fixed;z-index:60;margin:0;padding:6px;border-radius:8px;' +
+      'background:rgba(12,14,22,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);' +
+      'border:1px solid rgba(255,255,255,.18);box-shadow:0 8px 28px rgba(0,0,0,.45);opacity:1;' +
+      'pointer-events:auto;touch-action:none;cursor:move;font-family:SUSE,system-ui,-apple-system,sans-serif;}' +
+      '.bs-hist--float svg{display:block;width:100%;height:100%;}' +
+      '.bs-hist--float .bs-hist-resize{position:absolute;right:0;bottom:0;width:16px;height:16px;' +
+      'cursor:nwse-resize;touch-action:none;border-bottom-right-radius:8px;background:' +
+      'linear-gradient(-45deg,transparent 0 4px,rgba(255,255,255,.85) 4px 5px,transparent 5px 8px,rgba(255,255,255,.85) 8px 9px,transparent 9px);}';
+    document.head.appendChild(st);
+  }
+
+  // Portal the FRESH card out; drop the previous paint's portaled card.
+  if (stash.__bsHistCard && stash.__bsHistCard !== srcCard && stash.__bsHistCard.parentNode) stash.__bsHistCard.remove();
+  layer.appendChild(srcCard);
+  srcCard.classList.add('bs-hist--float');
+  stash.__bsHistCard = srcCard;
+  var card = srcCard, grip = card.querySelector('[data-bs-hist-resize]');
+  var MINW = 120, MINH = 56;
+
+  function clampGeom(x) {
+    x.w = Math.min(innerWidth, Math.max(MINW, x.w));
+    x.h = Math.min(innerHeight, Math.max(MINH, x.h));
+    x.x = Math.min(innerWidth - x.w, Math.max(0, x.x));
+    x.y = Math.min(innerHeight - x.h, Math.max(0, x.y));
+    return x;
+  }
+
+  var g = stash.__bsHist;
+  if (!g) {
+    // First placement: bottom-left of the image, but in VIEWPORT coords so it can
+    // then be dragged anywhere.
+    var w = Math.min(260, Math.max(MINW, ar.width * 0.26)), h = w * 0.4; // 5:2
+    g = { x: ar.left + 12, y: ar.bottom - h - 12, w: w, h: h };
+  }
+  stash.__bsHist = clampGeom(g);
+
+  function apply() {
+    card.style.left = g.x + 'px'; card.style.top = g.y + 'px';
+    card.style.right = 'auto'; card.style.bottom = 'auto';
+    card.style.width = g.w + 'px'; card.style.height = g.h + 'px';
+  }
+
+  function startDrag(e, mode) {
+    e.preventDefault(); e.stopPropagation();
+    var sx = e.clientX, sy = e.clientY, o = { x: g.x, y: g.y, w: g.w, h: g.h };
+    var target = mode === 'resize' ? grip : card;
+    try { target.setPointerCapture(e.pointerId); } catch (_) {}
+    function mv(ev) {
+      var dx = ev.clientX - sx, dy = ev.clientY - sy;
+      if (mode === 'resize') { g.w = o.w + dx; g.h = o.h + dy; }
+      else { g.x = o.x + dx; g.y = o.y + dy; }
+      clampGeom(g); apply();
+    }
+    function up(ev) {
+      target.removeEventListener('pointermove', mv);
+      target.removeEventListener('pointerup', up);
+      target.removeEventListener('pointercancel', up);
+      try { target.releasePointerCapture(ev.pointerId); } catch (_) {}
+    }
+    target.addEventListener('pointermove', mv);
+    target.addEventListener('pointerup', up);
+    target.addEventListener('pointercancel', up);
+  }
+
+  card.addEventListener('pointerdown', function (e) {
+    var onGrip = grip && (e.target === grip || (e.target.closest && e.target.closest('[data-bs-hist-resize]')));
+    startDrag(e, onGrip ? 'resize' : 'move');
+  });
+  apply();
+})();
+</script>
+<script>
+/* HSL / Colour mixer - paint each band's slider with a Lightroom-style coloured
+   gradient track. The sliders are ordinary declared inputs in the sidebar; a
+   tool can't inject controls there and its styles.css is scoped to #tool-canvas,
+   so we inject the track look ONCE, UNSCOPED, into <head> (head styles are never
+   re-scoped by the shell - same trick the histogram-float CSS uses). The rules
+   target the shell's own `.custom-slider .cs-track/.cs-fill/.cs-thumb` markup by
+   [data-input-id], so they only ever dress THESE sliders and never touch the
+   render (the SVG bitmap) or any export stage (which clones #tool-canvas, not the
+   sidebar). Injected once, guarded by id; IIFE + var since this re-runs each paint. */
+(function () {
+  if (document.getElementById('bs-hsl-mix-css')) return;
+  var names = ['Red', 'Orange', 'Yellow', 'Green', 'Aqua', 'Blue', 'Purple', 'Magenta'];
+  var hues = [0, 30, 60, 120, 180, 225, 280, 320];
+  function h(hh, s, l) { return 'hsl(' + ((hh % 360) + 360) % 360 + ' ' + s + '% ' + l + '%)'; }
+  var rules = [
+    // Common look for every mixer slider: a taller track, no coloured fill (the
+    // gradient IS the meaning), and a neutral knob that reads on any hue.
+    '.custom-slider[data-input-id^="hsl"] .cs-track{height:7px;border-radius:4px;}',
+    '.custom-slider[data-input-id^="hsl"] .cs-fill{background:transparent;}',
+    '.custom-slider[data-input-id^="hsl"] .cs-thumb{background:#fff;border:1.5px solid rgba(0,0,0,.55);box-shadow:0 1px 3px rgba(0,0,0,.5);}'
+  ];
+  for (var i = 0; i < names.length; i++) {
+    var c = hues[i];
+    // Hue: rotate through the neighbouring hues. Sat: grey → rich. Lum: dark → light.
+    rules.push('.custom-slider[data-input-id="hslHue' + names[i] + '"] .cs-track{background:linear-gradient(90deg,' + h(c - 45, 65, 50) + ',' + h(c, 85, 50) + ',' + h(c + 45, 65, 50) + ');}');
+    rules.push('.custom-slider[data-input-id="hslSat' + names[i] + '"] .cs-track{background:linear-gradient(90deg,' + h(c, 6, 55) + ',' + h(c, 90, 50) + ');}');
+    rules.push('.custom-slider[data-input-id="hslLum' + names[i] + '"] .cs-track{background:linear-gradient(90deg,' + h(c, 60, 12) + ',' + h(c, 55, 90) + ');}');
+  }
+  var st = document.createElement('style');
+  st.id = 'bs-hsl-mix-css';
+  st.textContent = rules.join('');
+  document.head.appendChild(st);
+})();
+</script>

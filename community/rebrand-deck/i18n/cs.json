@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "Nahraj prezentaci PowerPoint a přizpůsob její barvy a fonty své značce - přestavěno na tvém zařízení, nic se nikam nenahrává.",
+  "a11yLabel": "Přeznačení prezentace pro {{fileName}}",
+  "inputs.source.label": "Soubor PowerPoint",
+  "inputs.source.help": "Soubor .pptx. Čte se na tvém zařízení a nikdy se nenahrává.",
+  "inputs.useTheme.label": "Použít motiv značky",
+  "inputs.useTheme.help": "Přepni paletu motivu a písma prezentace na svou značku - každá barva propojená s motivem se upraví automaticky.",
+  "inputs.colorMap.label": "Mapování barev",
+  "inputs.colorMap.help": "Napevno zadané barvy nalezené ve snímcích, každá s navrženou barvou značky. Odstraněním řádku barvu ponecháš beze změny.",
+  "inputs.colorMap.fields.from.label": "Originál",
+  "inputs.colorMap.fields.to.label": "Značka",
+  "inputs.fontMap.label": "Mapování písem",
+  "inputs.fontMap.help": "Písma použitá v prezentaci, každé se svou náhradou ze značky. Odstraněním řádku písmo zachováš.",
+  "inputs.fontMap.fields.from.label": "Originál",
+  "inputs.fontMap.fields.to.label": "Značka",
+  "inputs.dropFonts.label": "Odstranit vložená písma",
+  "inputs.dropFonts.help": "Fonty staré značky vložené v souboru jsou po výměně zastaralé a mohou být licenčně omezené."
+}

@@ -1,0 +1,15 @@
+{
+  "name": "Eksporter ressurs",
+  "description": "Render en hvilken som helst katalogressurs - eller en Lolly-verktøylenke - ut til et hvilket som helst format og størrelse.",
+  "a11yLabel": "Eksportert ressurs",
+  "inputs.src.label": "Ressurs",
+  "inputs.src.help": "Ressursen som skal renderes - en katalog-ID (se `lolly assets`) eller en limt inn lolly.tools-verktøylenke. Vektorressurser forblir vektorbaserte gjennom SVG/PDF; rasterressurser bygges inn som bilder.",
+  "inputs.fit.label": "Tilpasning",
+  "inputs.fit.help": "Contain viser hele ressursen innenfor rammen; Cover fyller rammen og kan beskjære kantene.",
+  "inputs.fit.options.contain": "Contain (hele ressursen, med kantstriper)",
+  "inputs.fit.options.cover": "Cover (fyller ut, kan beskjæres)",
+  "inputs.background.label": "Bakgrunn",
+  "inputs.background.help": "Fargen bak ressursen. Slå på «Ingen bakgrunn» ved eksport for å fjerne den (transparent).",
+  "inputs.transparentBg.label": "Ingen bakgrunn",
+  "inputs.transparentBg.help": "Fjerner bakgrunnsfyllet slik at ressursen eksporteres med transparens (PNG/SVG/WebP)."
+}

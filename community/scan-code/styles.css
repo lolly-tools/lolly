@@ -1,0 +1,151 @@
+/* scan-code (plans/162 Part 2). Reader UI: a viewfinder region and a results
+   card. Warnings use a full colour wash, never a single-edge rail (house rule
+   for radiused elements). Copy-first: the primary button is Copy; opening is a
+   secondary, explicitly-labelled affordance. */
+
+.sc {
+  font: 15px/1.5 var(--font-brand, system-ui, -apple-system, "Segoe UI", sans-serif);
+  color: #1a1a1a;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sc-viewfinder {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: 16px;
+  background: #0d1b17;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+/* The live camera image fills the viewfinder. */
+.sc-vf { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* The found-code quad, drawn in frame coordinates over the live image. */
+.sc-vf__quad {
+  /* Found-code highlight inherits the active design system's accent; the
+     literal is the unbranded-canvas fallback (brand-inherit house rule). */
+  fill: color-mix(in srgb, var(--brand-primary, #30ba78) 22%, transparent);
+  stroke: var(--brand-primary, #30ba78);
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+/* A centred reticle so the user knows where to aim - a full rounded frame, not a
+   single-edge rail (house rule). */
+.sc-vf__reticle {
+  position: absolute;
+  width: 66%;
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.9), 0 0 0 9999px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+}
+.sc-viewfinder__frame {
+  width: 72%;
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.85);
+  display: grid;
+  place-items: end center;
+  padding-bottom: 10px;
+  text-align: center;
+}
+.sc-viewfinder__hint { color: rgba(255, 255, 255, 0.9); font-size: 13px; padding: 0 8px; }
+
+.sc-empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: #6b6b6b;
+  background: #f4f3f0;
+  border-radius: 14px;
+}
+
+.sc-result {
+  background: #f7f6f3;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sc-result__head { display: flex; align-items: center; gap: 8px; }
+.sc-badge {
+  font-weight: 700;
+  font-size: 14px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #0c322c;
+  color: #fff;
+}
+.sc-fmt {
+  font: 11px ui-monospace, Menlo, Consolas, monospace;
+  color: #6b6b6b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sc-value {
+  font: 14px ui-monospace, Menlo, Consolas, monospace;
+  word-break: break-all;
+  background: #fff;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.sc-value--secret { color: #7a1f12; }
+.sc-punycode { font: 12px ui-monospace, monospace; color: #6b6b6b; margin-top: 4px; }
+
+.sc-fields { display: flex; flex-direction: column; gap: 2px; }
+.sc-field {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid #eceae5;
+}
+.sc-field:last-child { border-bottom: 0; }
+.sc-field__k { flex: 0 0 34%; color: #6b6b6b; font-size: 13px; }
+.sc-field__v { flex: 1; word-break: break-word; }
+.sc-field--secret .sc-field__v { font-family: ui-monospace, monospace; }
+.sc-reveal {
+  border: 0;
+  background: #e9e7e1;
+  border-radius: 8px;
+  padding: 3px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* A full wash - the code carries a risk worth reading before acting. */
+.sc-warn {
+  background: #fff5f0;
+  color: #7a2a12;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 13px;
+}
+.sc-warn__h { font-weight: 700; display: block; margin-bottom: 6px; }
+.sc-warn ul { margin: 0; padding-left: 18px; }
+.sc-warn li + li { margin-top: 5px; }
+
+.sc-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.sc-btn {
+  appearance: none;
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  background: #e9e7e1;
+  color: #1a1a1a;
+  display: inline-flex;
+  align-items: center;
+}
+.sc-btn--primary { background: #0c322c; color: #fff; }
+
+.sc-foot { font-size: 12px; color: #8a8a8a; margin: 0; }

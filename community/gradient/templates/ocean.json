@@ -1,0 +1,22 @@
+{
+  "id": "ocean",
+  "name": "Ocean",
+  "category": "Background",
+  "description": "Cool blues and sea green for calm, spacious backdrops.",
+  "values": {
+    "count": 3,
+    "color1": "#38bdf8",
+    "color2": "#0e7490",
+    "color3": "#a5f3fc",
+    "blend": "normal",
+    "spread": 90,
+    "blur": 14,
+    "grain": 15,
+    "grainBlend": "soft-light"
+  },
+  "presets": [
+    { "id": "deep-water", "name": "Deep water", "description": "Dark navy and teal well below the surface.", "values": { "color1": "#0c4a6e", "color2": "#1e3a8a", "color3": "#155e75" } },
+    { "id": "lagoon", "name": "Lagoon", "description": "Bright turquoise over pale shallows.", "values": { "color1": "#2dd4bf", "color2": "#38bdf8", "color3": "#d1fae5" } },
+    { "id": "storm", "name": "Storm", "description": "Grey swell with a cold blue break.", "values": { "color1": "#334155", "color2": "#0ea5e9", "color3": "#94a3b8", "grain": 55, "blur": 6 } }
+  ]
+}

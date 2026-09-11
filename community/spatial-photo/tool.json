@@ -1,0 +1,141 @@
+{
+  "id": "spatial-photo",
+  "name": "Spatial Photo",
+  "version": "0.1.2",
+  "engineVersion": "^1.152.0",
+  "status": "experimental",
+  "singleInstance": true,
+  "category": "designer",
+  "description": "Drop in one photo and move a camera through it: depth is read on your device, so a flat picture becomes a scene with real parallax, atmosphere and focus.",
+  "a11yLabel": "Parallax {{default move \"dolly-in\"}} camera move through a photograph",
+  "tags": ["photo", "depth", "parallax", "3d", "motion", "loop", "webgl"],
+  "render": {
+    "width": 1280,
+    "height": 720,
+    "formats": ["png", "jpg", "webp", "webm", "mp4", "gif", "avif", "tiff", "webp-anim"],
+    "actions": ["copy", "download", "save"],
+    "convertPaths": false,
+    "c2pa": true,
+    "video": { "wait": 2, "duration": 6 }
+  },
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true
+  },
+  "inputs": [
+    {
+      "id": "photo",
+      "label": "Photo",
+      "section": "Photo",
+      "type": "asset",
+      "assetType": "image",
+      "allowUpload": true,
+      "help": "Pick a photo or upload your own. Depth is read on your device - the pixels never leave the browser. The export is a fixed 1280 by 720 frame, whatever the picture's own size."
+    },
+
+    {
+      "id": "move",
+      "label": "Camera move",
+      "section": "Move",
+      "type": "select",
+      "default": "sway",
+      "help": "Each move is a closed loop, so a video comes back to where it started with no seam.",
+      "options": [
+        { "value": "sway", "label": "Sway" },
+        { "value": "dolly-in", "label": "Dolly in" },
+        { "value": "dolly-out", "label": "Dolly out" },
+        { "value": "push-tilt", "label": "Push and tilt" },
+        { "value": "vertigo", "label": "Vertigo (dolly zoom)" },
+        { "value": "drift", "label": "Drift" }
+      ]
+    },
+    {
+      "id": "amount",
+      "label": "Amount",
+      "section": "Move",
+      "type": "number",
+      "display": "slider",
+      "default": 0.6,
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "help": "How far the camera travels. Each move has its own ceiling: one photo has one layer, so a bigger move than this would smear what should be hidden behind the foreground.",
+      "rangeWhen": [
+        { "when": { "move": "vertigo" }, "max": 0.6 },
+        { "when": { "move": "sway" }, "max": 0.7 },
+        { "when": { "move": "dolly-out" }, "max": 0.8 },
+        { "when": { "move": "push-tilt" }, "max": 0.8 }
+      ]
+    },
+    {
+      "id": "duration",
+      "label": "Loop seconds",
+      "section": "Move",
+      "type": "number",
+      "display": "slider",
+      "default": 6,
+      "min": 2,
+      "max": 12,
+      "step": 0.5,
+      "help": "Seconds for one loop on screen. A video export loops cleanly at any length."
+    },
+
+    {
+      "id": "focus",
+      "label": "Focus point",
+      "section": "Focus",
+      "type": "vector",
+      "help": "Click the canvas to focus there. Everything at that distance stays sharp; the rest falls away.",
+      "fields": [
+        { "id": "x", "label": "X", "symbol": "", "min": 0, "max": 1, "step": 0.01, "default": 0.5 },
+        { "id": "y", "label": "Y", "symbol": "", "min": 0, "max": 1, "step": 0.01, "default": 0.5 }
+      ]
+    },
+    {
+      "id": "dof",
+      "label": "Depth of field",
+      "section": "Focus",
+      "type": "number",
+      "display": "slider",
+      "default": 0.35,
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "help": "How hard everything away from the focus point blurs. Zero keeps the whole picture sharp."
+    },
+
+    {
+      "id": "fog",
+      "label": "Atmosphere",
+      "section": "Atmosphere",
+      "type": "color",
+      "default": "{color.semantic.secondary}",
+      "help": "The colour distance washes toward - a brand haze on the far field rather than a generic grey."
+    },
+    {
+      "id": "fogAmount",
+      "label": "Atmosphere strength",
+      "section": "Atmosphere",
+      "type": "number",
+      "display": "slider",
+      "default": 0.45,
+      "min": 0,
+      "max": 1,
+      "step": 0.05
+    },
+    {
+      "id": "depthContrast",
+      "label": "Depth contrast",
+      "section": "Atmosphere",
+      "type": "number",
+      "display": "slider",
+      "default": 1.25,
+      "min": 0.2,
+      "max": 3,
+      "step": 0.05,
+      "help": "Stretches or flattens the relief the model read. Above 1 exaggerates near and far; below 1 calms a picture the model read too eagerly."
+    }
+  ]
+}

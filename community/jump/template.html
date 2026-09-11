@@ -1,0 +1,390 @@
+<!-- Both colour schemes travel on the root: -l is the light reading, -d the
+     dark one. Never the bare --jp-ink/--jp-paper/... the styles read - the
+     mapping block at the top of styles.css points those at one set or the
+     other from prefers-color-scheme, so all eight styles gain both modes at
+     once and no rule below has to know a scheme exists. -->
+<div class="jp-root jp-{{default style "cinema"}}{{#if redirect}} jp-is-forward{{/if}}{{#if hasBackdrop}} jp-has-bg{{/if}}{{#if hasAvatar}} jp-has-avatar{{/if}}" style="--jp-ink-l:{{inkL}};--jp-paper-l:{{paperL}};--jp-accent-l:{{accentL}};--jp-shade-l:{{shadeL}};--jp-on-accent-l:{{onAccentL}};--jp-muted-l:{{mutedL}};--jp-edge-l:{{edgeL}};--jp-card-l:{{cardL}};--jp-ink-d:{{inkD}};--jp-paper-d:{{paperD}};--jp-accent-d:{{accentD}};--jp-shade-d:{{shadeD}};--jp-on-accent-d:{{onAccentD}};--jp-muted-d:{{mutedD}};--jp-edge-d:{{edgeD}};--jp-card-d:{{cardD}};--jp-motion:{{motionScale}}">
+
+  {{#if hasBackdrop}}
+  <div class="jp-backdrop" aria-hidden="true"><img class="jp-backdrop-img" src="{{asset backdrop}}" alt=""></div>
+  {{/if}}
+
+  <!-- The aurora's light field: a WebGL gradient-mesh canvas (booted by the
+       script below), with the blurred CSS lobes as the no-WebGL fallback, the
+       grain film and the pointer glow. Every style but aurora display:nones the
+       whole veil, so the cost elsewhere is a handful of unpainted nodes. -->
+  <div class="jp-veil" aria-hidden="true"><canvas class="jp-mesh" data-jp-mesh data-mesh-a="{{accentL}}" data-mesh-b="{{meshBL}}" data-mesh-c="{{meshCL}}" data-mesh-p="{{paperL}}" data-mesh-a-d="{{accentD}}" data-mesh-b-d="{{meshBD}}" data-mesh-c-d="{{meshCD}}" data-mesh-p-d="{{paperD}}" data-mesh-speed="{{motionScale}}"></canvas><i class="jp-blob jp-blob-a"></i><i class="jp-blob jp-blob-b"></i><i class="jp-blob jp-blob-c"></i><i class="jp-grain"></i><i class="jp-glow" data-jp-glow></i></div>
+
+  <header class="jp-head">
+    {{#if hasAvatar}}<span class="jp-avatar" data-canvas-input="avatar"><img class="jp-avatar-img" src="{{asset avatar}}" alt=""></span>{{/if}}
+    {{#if hasHeading}}<h1 class="jp-heading" data-canvas-input="heading">{{#each headingWords}}<span class="jp-word" style="--jp-w:{{i}}">{{w}}</span> {{/each}}</h1>{{/if}}
+    {{#if subheading}}<p class="jp-sub">{{subheading}}</p>{{/if}}
+    {{#if showCue}}<span class="jp-cue" aria-hidden="true"></span>{{/if}}
+  </header>
+
+  {{#if error}}
+  <p class="jp-note">{{error}}</p>
+  {{else}}
+    {{#if redirect}}
+    <div class="jp-forward" data-jp-forward data-jp-href="{{redirectHref}}" data-jp-host="{{redirectHost}}" data-jp-challenge="{{challenge}}">
+      {{#if challenge}}
+      <button type="button" class="jp-hold" data-jp-hold>
+        <span class="jp-hold-fill" data-jp-fill></span>
+        <span class="jp-hold-label">Press and hold to continue</span>
+      </button>
+      <p class="jp-forward-to">You'll be taken to <strong>{{redirectHost}}</strong></p>
+      {{else}}
+      <p class="jp-forward-to" data-jp-note>Taking you to <strong>{{redirectHost}}</strong>&hellip;</p>
+      {{/if}}
+      <noscript><a class="jp-link" href="{{redirectHref}}" rel="noopener">Continue to {{redirectHost}}</a></noscript>
+    </div>
+    {{else}}
+    <nav class="jp-list">
+      {{#each items}}
+      <a class="jp-link {{sceneParity}} {{sceneWash}}" href="{{href}}" rel="noopener" style="--jp-i:{{n}};--jp-seed:{{seed}}">
+        {{#if icon}}<span class="jp-icon" aria-hidden="true">{{icon}}</span>{{/if}}
+        {{#if ghost}}<span class="jp-ghost" aria-hidden="true">{{ghost}}</span>{{/if}}
+        <span class="jp-num" aria-hidden="true">{{num}}</span>
+        <span class="jp-label">{{label}}</span>
+        <span class="jp-host">{{host}}</span>
+      </a>
+      {{/each}}
+    </nav>
+    {{#if showFooter}}
+    <footer class="jp-foot">
+      {{#if hasHeading}}<p class="jp-foot-echo">{{heading}}</p>{{/if}}
+      <a class="jp-foot-made" href="https://lolly.tools/info" target="_blank" rel="noopener">Made with Lolly</a>
+    </footer>
+    {{/if}}
+    {{/if}}
+  {{/if}}
+
+  <script>
+  // One IIFE, four jobs (the canvas re-runs it on every repaint, so IIFE + var,
+  // and every loop stops itself once its root leaves the document).
+  // 1. Stamp `jp-live` where the page really scrolls: the visitor page
+  //    (`.tool-layout.is-visitor`) and the editor's scrolling document preview
+  //    (`.tool-layout.is-paged`). Tool CSS is scoped to the canvas and cannot
+  //    see those classes, and jp-live is the sole gate on scroll-driven motion.
+  // 2. Redirect on visit - VISITOR ONLY; the editor only narrates.
+  // 3. Aurora: a lerped glow that trails the pointer across the light field.
+  // 4. Playroom: a magnetic pull toward the pointer on each bubble.
+  // 3 + 4 only run where hovering is real and motion is welcome.
+  (function () {
+    var visitor = !!document.querySelector('.tool-layout.is-visitor');
+    var scrolly = visitor || !!document.querySelector('.tool-layout.is-paged');
+    var root = document.querySelector('.jp-root');
+    if (!root) return;
+    if (scrolly) root.classList.add('jp-live');
+
+    var fine = typeof matchMedia === 'function'
+      && matchMedia('(hover: hover) and (pointer: fine)').matches
+      && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var calm = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // Aurora: the liquid-glass engine. ONE WebGL1 canvas renders the whole
+    // scene: the flowing gradient-mesh field, three floating glass orbs shaded
+    // as spheres (refraction, fresnel rim, moving specular), and a true glass
+    // slab under every link pill - the slab RE-SAMPLES the live field through a
+    // rounded-rect SDF normal, once per colour channel, which is what real
+    // chromatic aberration is. The DOM pills stay on top for crisp text, focus
+    // and clicks; their rects are synced into the shader every frame, so CSS
+    // motion (disclosure, hover lift) drags the refraction with it.
+    // On any failure the CSS-lobe fallback stays; reduced motion renders one
+    // settled frame and keeps full (static) refraction.
+    var mesh = root.querySelector('[data-jp-mesh]');
+    if (mesh && root.classList.contains('jp-aurora')) (function () {
+      var gl = mesh.getContext('webgl', { antialias: false, alpha: false })
+            || mesh.getContext('experimental-webgl', { antialias: false, alpha: false });
+      if (!gl) return;
+      var toV = function (hex) {
+        return [parseInt(hex.slice(1, 3), 16) / 255, parseInt(hex.slice(3, 5), 16) / 255, parseInt(hex.slice(5, 7), 16) / 255];
+      };
+      var VS = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+      var FS = '#ifdef GL_FRAGMENT_PRECISION_HIGH\nprecision highp float;\n#else\nprecision mediump float;\n#endif\n'
+        + 'uniform vec2 R;uniform float T;uniform vec2 M;'
+        + 'uniform vec3 A,B,C,P;'
+        + 'uniform vec4 RC[10];uniform float RAD;uniform int N;uniform vec3 HOV;'
+        + 'float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}'
+        + 'float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);'
+        + 'return mix(mix(h(i),h(i+vec2(1.,0.)),f.x),mix(h(i+vec2(0.,1.)),h(i+vec2(1.,1.)),f.x),f.y);}'
+        + 'float fbm(vec2 p){float v=0.,a=.5;for(int k=0;k<4;k++){v+=a*n(p);p*=2.03;a*=.5;}return v;}'
+        + 'vec3 field(vec2 fc){'
+        + 'vec2 uv=fc/R;uv.x*=R.x/R.y;'
+        + 'vec2 mw=(M-uv)*.3;'
+        + 'vec2 q=vec2(fbm(uv*1.4+T*.5),fbm(uv*1.4-T*.4));'
+        + 'vec2 w=vec2(fbm(uv*2.1+q*1.7+T*.6+mw),fbm(uv*2.2-q*1.3-T*.5));'
+        + 'vec3 col=mix(P,A,smoothstep(.15,.85,fbm(uv*1.2+w*1.5)));'
+        + 'col=mix(col,B,.75*smoothstep(.35,.92,fbm(uv*1.8-w+T*.15)));'
+        + 'col=mix(col,C,.65*smoothstep(.5,.96,fbm(uv*1.5+w*2.-T*.12)));'
+        + 'col+=A*.1*smoothstep(.55,1.,sin(uv.y*3.-T*1.2+q.x*2.)*.5+.5);'
+        + 'col*=mix(.78,1.,smoothstep(1.3,.2,distance(uv,vec2(.5*R.x/R.y,.42))));'
+        + 'return col;}'
+        + 'float sdBox(vec2 p,vec2 b,float r){vec2 q=abs(p)-b+r;return length(max(q,0.))+min(max(q.x,q.y),0.)-r;}'
+        + 'void main(){'
+        + 'vec2 fc=gl_FragCoord.xy;'
+        + 'vec3 col=field(fc);'
+        /* Orbs: parametric drift paths, sphere-shaded glass. */
+        + 'for(int i=0;i<3;i++){float fi=float(i);'
+        + 'vec2 c=R*vec2(.5+.37*sin(T*(.5+.13*fi)+fi*2.1),.4+.3*cos(T*(.4+.17*fi)+fi*1.7));'
+        + 'float rad=min(R.x,R.y)*(.1+.035*fi);'
+        + 'vec2 dv=fc-c;float l=length(dv);'
+        + 'if(l<rad){vec2 sn=dv/rad;float z=sqrt(max(0.,1.-dot(sn,sn)));'
+        + 'vec2 off=sn*(1.-z)*rad*.55;'
+        + 'vec3 rf;rf.r=field(fc-off*1.14).r;rf.g=field(fc-off).g;rf.b=field(fc-off*.86).b;'
+        + 'float fres=pow(1.-z,2.6);'
+        + 'vec3 g=rf*1.06+vec3(.16)*fres;'
+        + 'vec3 nl=normalize(vec3(cos(T*.9),sin(T*.9)+1.4,1.2));'
+        + 'g+=vec3(.5)*pow(max(0.,dot(normalize(vec3(sn,z)),nl)),28.);'
+        + 'col=mix(col,g,smoothstep(rad,rad-2.,l));}}'
+        /* Pill slabs: SDF glass with bevel, per-channel refraction, frost,
+           sweeping specular, hover tilt boost. */
+        + 'for(int i=0;i<10;i++){if(i>=N)break;'
+        + 'vec4 rc=RC[i];vec2 p=fc-(rc.xy+rc.zw*.5);'
+        + 'float d=sdBox(p,rc.zw*.5,RAD);'
+        + 'if(d<0.){'
+        + 'float hb=(abs(float(i)-HOV.x)<.5)?HOV.y:0.;'
+        + 'float e=.75;'
+        + 'vec2 g2=vec2(sdBox(p+vec2(e,0.),rc.zw*.5,RAD)-sdBox(p-vec2(e,0.),rc.zw*.5,RAD),'
+        + 'sdBox(p+vec2(0.,e),rc.zw*.5,RAD)-sdBox(p-vec2(0.,e),rc.zw*.5,RAD));'
+        + 'vec2 nn=normalize(g2+vec2(1e-4));'
+        + 'float bevel=smoothstep(-22.,-1.,d);'
+        + 'vec2 ctr=rc.xy+rc.zw*.5;'
+        + 'vec2 lfc=ctr+p*(.9-hb*.04);'
+        + 'vec2 off=nn*(10.+bevel*34.+hb*16.)+vec2(hb*8.*(M.x-.5),0.);'
+        + 'vec3 rf;rf.r=field(lfc+off*1.28).r;rf.g=field(lfc+off).g;rf.b=field(lfc+off*.72).b;'
+        + 'vec3 fr=(field(lfc+vec2(3.,1.5))+field(lfc-vec2(2.,3.)))*.5;'
+        + 'vec3 gc=mix(rf,fr,.3)*1.09+vec3(.05);'
+        + 'float sx=p.x/max(rc.z,1.)+.5-fract(T*.1)*1.6+.3;'
+        + 'gc+=vec3(.09+hb*.13)*smoothstep(0.,.18,sx)*smoothstep(.42,.2,sx);'
+        + 'gc+=vec3(.15+hb*.1)*pow(bevel,3.);'
+        + 'col=mix(col,gc,smoothstep(0.,-1.5,d));}}'
+        + 'col+=vec3((h(fc*.7)-.5)*.012);'
+        + 'gl_FragColor=vec4(col,1.);}';
+      var sh = function (type, src) {
+        var s = gl.createShader(type);
+        gl.shaderSource(s, src); gl.compileShader(s);
+        return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null;
+      };
+      var vs = sh(gl.VERTEX_SHADER, VS), fs = sh(gl.FRAGMENT_SHADER, FS);
+      if (!vs || !fs) return;
+      var prog = gl.createProgram();
+      gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+      gl.useProgram(prog);
+      var buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+      var loc = gl.getAttribLocation(prog, 'p');
+      gl.enableVertexAttribArray(loc);
+      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+      var U = function (nm) { return gl.getUniformLocation(prog, nm); };
+      var uR = U('R'), uT = U('T'), uM = U('M'), uRC = U('RC'), uRAD = U('RAD'), uN = U('N'), uHOV = U('HOV');
+      var uA = U('A'), uB = U('B'), uC = U('C'), uP = U('P');
+      // The shader is a canvas, not CSS, so prefers-color-scheme cannot reach
+      // it: the scheme is read here and the four colour uniforms re-uploaded
+      // when the visitor's device switches under a page already on screen.
+      var schemeQ = typeof matchMedia === 'function' ? matchMedia('(prefers-color-scheme: dark)') : null;
+      var att = function (nm, fb) {
+        var dv = schemeQ && schemeQ.matches ? mesh.getAttribute(nm + '-d') : null;
+        return toV(dv || mesh.getAttribute(nm) || fb);
+      };
+      var palette = function () {
+        gl.uniform3fv(uA, att('data-mesh-a', '#2563eb'));
+        gl.uniform3fv(uB, att('data-mesh-b', '#7c3aed'));
+        gl.uniform3fv(uC, att('data-mesh-c', '#0d7a5f'));
+        gl.uniform3fv(uP, att('data-mesh-p', '#f7f8fa'));
+      };
+      palette();
+      var speed = parseFloat(mesh.getAttribute('data-mesh-speed') || '1') || 1;
+      var rects = new Float32Array(40);
+      var mouse = [0.5, 0.4], mT = [0.5, 0.4];
+      var hovI = -1, hovA = 0;
+      var scaleFB = 1;
+      var size = function () {
+        var r = mesh.getBoundingClientRect();
+        if (!r.width || !r.height) return false;
+        var dpr = Math.min(1.25, window.devicePixelRatio || 1);
+        var wpx = Math.max(2, Math.round(r.width * dpr)), hpx = Math.max(2, Math.round(r.height * dpr));
+        if (mesh.width !== wpx || mesh.height !== hpx) {
+          mesh.width = wpx; mesh.height = hpx;
+          gl.viewport(0, 0, wpx, hpx);
+        }
+        scaleFB = wpx / r.width;
+        gl.uniform2f(uR, mesh.width, mesh.height);
+        return true;
+      };
+      // The slab geometry, read from the real DOM every frame - transforms and
+      // all - so the refraction rides the pills through every CSS motion.
+      var syncRects = function () {
+        var cb = mesh.getBoundingClientRect();
+        var links = root.querySelectorAll('.jp-list .jp-link');
+        var count = Math.min(10, links.length);
+        for (var i = 0; i < count; i++) {
+          var b = links[i].getBoundingClientRect();
+          rects[i * 4] = (b.left - cb.left) * scaleFB;
+          rects[i * 4 + 1] = mesh.height - (b.bottom - cb.top) * scaleFB;   // GL is y-up
+          rects[i * 4 + 2] = b.width * scaleFB;
+          rects[i * 4 + 3] = b.height * scaleFB;
+        }
+        gl.uniform4fv(uRC, rects);
+        gl.uniform1i(uN, count);
+        gl.uniform1f(uRAD, 24 * scaleFB);
+      };
+      root.addEventListener('pointermove', function (e) {
+        var cb = mesh.getBoundingClientRect();
+        if (!cb.width || !cb.height) return;
+        mT[0] = ((e.clientX - cb.left) / cb.width) * (cb.width / cb.height);
+        mT[1] = 1 - (e.clientY - cb.top) / cb.height;
+        var pill = e.target && e.target.closest ? e.target.closest('.jp-link') : null;
+        if (pill) {
+          var links = root.querySelectorAll('.jp-list .jp-link');
+          for (var i = 0; i < links.length; i++) if (links[i] === pill) { hovI = i; break; }
+        } else hovI = -1;
+      });
+      root.addEventListener('pointerleave', function () { hovI = -1; });
+      root.addEventListener('pointerdown', function (e) {
+        var pill = e.target && e.target.closest ? e.target.closest('.jp-link') : null;
+        if (!pill) return;
+        var links = root.querySelectorAll('.jp-list .jp-link');
+        for (var i = 0; i < links.length; i++) if (links[i] === pill) { hovI = i; break; }
+      });
+      root.addEventListener('pointerup', function () { if (!fine) hovI = -1; });
+      var draw = function (t) {
+        mouse[0] += (mT[0] - mouse[0]) * 0.07;
+        mouse[1] += (mT[1] - mouse[1]) * 0.07;
+        hovA += ((hovI >= 0 ? 1 : 0) - hovA) * 0.12;
+        gl.uniform2f(uM, mouse[0], mouse[1]);
+        gl.uniform3f(uHOV, hovI >= 0 ? hovI : -2, hovA, 0);
+        gl.uniform1f(uT, t);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+      };
+      if (!size()) return;
+      root.classList.add('jp-mesh-ok');
+      // A scheme flip while the page is open: the running loop picks the new
+      // uniforms up on its own next frame, but the reduced-motion path has
+      // already drawn its one settled frame, so that one redraws here. The
+      // listener retires itself once a repaint has replaced this canvas.
+      var onScheme = function () {
+        if (!mesh.isConnected) { schemeQ.removeEventListener('change', onScheme); return; }
+        palette();
+        if (calm && size()) { syncRects(); draw(6.4); }
+      };
+      if (schemeQ && schemeQ.addEventListener) schemeQ.addEventListener('change', onScheme);
+      if (calm) {
+        // One settled frame: full refraction, no motion. Rects need one
+        // post-layout beat before they are real.
+        setTimeout(function () { if (mesh.isConnected && size()) { syncRects(); draw(6.4); } }, 250);
+        return;
+      }
+      var t0 = null, tBase = 0, running = false;
+      var tick = function (now) {
+        if (!mesh.isConnected) return;              // a repaint replaced this canvas
+        if (document.hidden) { running = false; tBase += now - (t0 === null ? now : t0); t0 = null; return; }
+        if (t0 === null) t0 = now;
+        if (size()) { syncRects(); draw(((tBase + now - t0) / 1000) * 0.35 * speed); }
+        requestAnimationFrame(tick);
+      };
+      var start = function () { if (running || !mesh.isConnected) return; running = true; requestAnimationFrame(tick); };
+      document.addEventListener('visibilitychange', function () { if (!document.hidden) start(); });
+      start();
+    })();
+
+    // Cover story: chapter snap. The tool's own CSS may not style the page's
+    // scroller (it is the host's), so the script arms gentle proximity snap on
+    // the real scrolling element - visitor page only, and never under reduced
+    // motion. Proximity, not mandatory: the visitor still owns the scroll.
+    if (visitor && !calm && root.classList.contains('jp-mural') && document.scrollingElement) {
+      document.scrollingElement.style.scrollSnapType = 'y proximity';
+    }
+
+    // Aurora pointer glow: ease --jp-gx/--jp-gy toward the pointer each frame.
+    var glow = root.querySelector('[data-jp-glow]');
+    if (fine && glow && root.classList.contains('jp-aurora') && !root.classList.contains('jp-mesh-ok')) {
+      var gx = 0.5, gy = 0.35, tx = gx, ty = gy, going = false;
+      var move = function (e) {
+        var r = root.getBoundingClientRect();
+        if (!r.width || !r.height) return;
+        tx = (e.clientX - r.left) / r.width;
+        ty = (e.clientY - r.top) / r.height;
+        if (!going) { going = true; requestAnimationFrame(step); }
+      };
+      var step = function () {
+        if (!root.isConnected) return;                  // repaint replaced us
+        gx += (tx - gx) * 0.08; gy += (ty - gy) * 0.08;
+        root.style.setProperty('--jp-gx', (gx * 100).toFixed(2) + '%');
+        root.style.setProperty('--jp-gy', (gy * 100).toFixed(2) + '%');
+        if (Math.abs(tx - gx) + Math.abs(ty - gy) > 0.002) requestAnimationFrame(step);
+        else going = false;
+      };
+      root.addEventListener('pointermove', move);
+    }
+
+    // Playroom magnetism: each bubble leans a few px toward a near pointer.
+    if (fine && root.classList.contains('jp-orbit')) {
+      var pull = 14;
+      root.addEventListener('pointermove', function (e) {
+        if (!root.isConnected) return;
+        var links = root.querySelectorAll('.jp-link');
+        for (var i = 0; i < links.length; i++) {
+          var b = links[i].getBoundingClientRect();
+          var dx = e.clientX - (b.left + b.width / 2);
+          var dy = e.clientY - (b.top + b.height / 2);
+          var d = Math.sqrt(dx * dx + dy * dy);
+          var reach = Math.max(b.width, 160);
+          var k = d < reach ? (1 - d / reach) : 0;
+          links[i].style.setProperty('--jp-mx', (dx / (d || 1)) * pull * k + 'px');
+          links[i].style.setProperty('--jp-my', (dy / (d || 1)) * pull * k + 'px');
+        }
+      });
+      root.addEventListener('pointerleave', function () {
+        var links = root.querySelectorAll('.jp-link');
+        for (var i = 0; i < links.length; i++) {
+          links[i].style.setProperty('--jp-mx', '0px');
+          links[i].style.setProperty('--jp-my', '0px');
+        }
+      });
+    }
+
+    var fwd = document.querySelector('[data-jp-forward]');
+    if (!fwd) return;
+    var href = fwd.getAttribute('data-jp-href') || '';
+    if (!href) return;
+    var host = fwd.getAttribute('data-jp-host') || 'the link';
+
+    function go() {
+      if (visitor) { window.location.replace(href); return; }
+      var note = document.createElement('p');
+      note.className = 'jp-forward-note';
+      note.textContent = 'Preview - visitors continue to ' + host;
+      fwd.appendChild(note);
+    }
+
+    // No human check: forward straight away.
+    if (fwd.getAttribute('data-jp-challenge') !== '1') { go(); return; }
+
+    var btn = fwd.querySelector('[data-jp-hold]');
+    var fill = fwd.querySelector('[data-jp-fill]');
+    if (!btn) { go(); return; }
+
+    var HOLD_MS = 900;
+    var raf = null, start = 0, done = false;
+    function frame(t) {
+      if (!start) start = t;
+      var p = Math.min(1, (t - start) / HOLD_MS);
+      if (fill) fill.style.width = (p * 100) + '%';
+      if (p >= 1) { done = true; btn.classList.add('is-done'); go(); return; }
+      raf = requestAnimationFrame(frame);
+    }
+    function begin(e) { if (e && e.preventDefault) e.preventDefault(); if (done || start || raf) return; raf = requestAnimationFrame(frame); }
+    function cancel() { if (done) return; if (raf) cancelAnimationFrame(raf); raf = null; start = 0; if (fill) fill.style.width = '0%'; }
+    btn.addEventListener('pointerdown', begin);
+    btn.addEventListener('pointerup', cancel);
+    btn.addEventListener('pointerleave', cancel);
+    btn.addEventListener('pointercancel', cancel);
+    btn.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') begin(e); });
+    btn.addEventListener('keyup', cancel);
+  })();
+  </script>
+
+</div>

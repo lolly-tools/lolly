@@ -1,0 +1,4 @@
+{
+  "name": "Üzerinden Uçuş",
+  "description": "Bir ekran görüntüsünün içinden gerçek bir 3D kamera uçurun. Görsel, gerçek derinlikte katmanlara ayrılır; büyük şekiller katı nesnelere dönüşür; poz zaman çizelgesi tüm hareketi canlandırır - derinlik, opaklık, perspektif, çıkıntı, eğim, döndürme, ölçek ve kamera uçuşu - ardından başlangıca döngüler. Pozlar ekleyin, sürükleyin ve yeniden sıralayın. Video olarak dışa aktarın."
+}

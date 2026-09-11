@@ -1,0 +1,76 @@
+{
+  "id": "convert-image",
+  "name": "Convert Image",
+  "description": "Turn HEIC, TIFF or any photo into WebP, JPEG or PNG - on your device.",
+  "version": "1.1.1",
+  "engineVersion": "^1.0.0",
+  "status": "community",
+  "category": "utility",
+  "privacy": "on-device",
+  "tags": ["image", "convert", "heic", "heif", "avif", "tiff", "webp", "jpeg", "png", "photo", "compress", "resize", "iphone", "privacy"],
+  "a11yLabel": "Image conversion for {{fileName}}",
+  "render": {
+    "width": 760,
+    "height": 620,
+    "formats": ["webp", "jpg", "png", "avif"],
+    "export": false,
+    "layout": "canvas",
+    "actions": []
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "exportFile": true
+  },
+  "inputs": [
+    {
+      "id": "source",
+      "label": "Image",
+      "type": "file",
+      "accept": ["image/heic", "image/heif", "image/jpeg", "image/png", "image/webp", "image/avif", "image/tiff", ".heic", ".heif", ".jpg", ".jpeg", ".png", ".webp", ".avif", ".tif", ".tiff"],
+      "maxSize": 52428800,
+      "help": "A HEIC, HEIF, JPEG, PNG, WebP, AVIF or TIFF image. It's read in your browser and never leaves your device."
+    },
+    {
+      "id": "target",
+      "label": "Convert to",
+      "type": "select",
+      "default": "webp",
+      "options": [
+        { "value": "webp", "label": "WebP - smallest, keeps transparency" },
+        { "value": "jpeg", "label": "JPEG - universal, for photos" },
+        { "value": "png", "label": "PNG - lossless, keeps transparency" }
+      ],
+      "help": "The output format. WebP is usually the smallest; PNG is lossless."
+    },
+    {
+      "id": "quality",
+      "label": "Quality",
+      "type": "number",
+      "default": 85,
+      "min": 10,
+      "max": 100,
+      "step": 5,
+      "display": "slider",
+      "showIf": { "target": ["webp", "jpeg"] },
+      "help": "Quality for the lossy formats. Lower means a smaller file and softer detail. PNG ignores it."
+    },
+    {
+      "id": "maxEdge",
+      "label": "Longest edge (px)",
+      "type": "number",
+      "default": 0,
+      "min": 0,
+      "max": 10000,
+      "step": 1,
+      "help": "Downscale so the longest edge is at most this many pixels. 0 keeps the original size. Never upscales."
+    },
+    {
+      "id": "keepLocation",
+      "label": "Keep location",
+      "type": "boolean",
+      "default": false,
+      "help": "Carry the photo's GPS position into the converted file. Off by default - location is personal data. The photo's other details (author, copyright, capture date) always carry over, and the card says exactly what happened."
+    }
+  ]
+}

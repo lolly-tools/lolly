@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "Încarcă o prezentare PowerPoint și adaptează-i culorile și fonturile la brandul tău - reconstruită pe dispozitivul tău, nimic nu este încărcat.",
+  "a11yLabel": "Rebrander prezentare pentru {{fileName}}",
+  "inputs.source.label": "Fișier PowerPoint",
+  "inputs.source.help": "Un fișier .pptx. Este citit pe dispozitivul tău și nu este niciodată încărcat.",
+  "inputs.useTheme.label": "Aplică tema brandului",
+  "inputs.useTheme.help": "Înlocuiește paleta de culori și fonturile temei prezentării cu cele ale brandului tău - fiecare culoare legată de temă se actualizează automat.",
+  "inputs.colorMap.label": "Mapare culori",
+  "inputs.colorMap.help": "Culori codate direct găsite pe slide-uri, fiecare cu culoarea de brand sugerată. Elimină un rând pentru a lăsa acea culoare neschimbată.",
+  "inputs.colorMap.fields.from.label": "Original",
+  "inputs.colorMap.fields.to.label": "Marcă",
+  "inputs.fontMap.label": "Mapare fonturi",
+  "inputs.fontMap.help": "Fonturile numite în prezentare, fiecare cu înlocuirea sa de brand. Șterge un rând pentru a păstra acel font.",
+  "inputs.fontMap.fields.from.label": "Original",
+  "inputs.fontMap.fields.to.label": "Marcă",
+  "inputs.dropFonts.label": "Elimină fonturile încorporate",
+  "inputs.dropFonts.help": "Fonturile vechiului brand încorporate în fișier sunt învechite după o schimbare și pot avea restricții de licență."
+}

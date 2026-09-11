@@ -1,0 +1,56 @@
+{{{svgContent}}}
+{{!-- Unified Filter tool. Every effect's hook returns a COMPLETE inline <svg> string
+      as `svgContent` (halftone/scanline/posterize/voronoi/imperfections as shapes or an
+      <image>; pixel-stretch and duotone/colour-treatment as their pre-baked bitmaps,
+      each wrapped in an <svg> by the hook). That single drawable root is what the CLI's
+      vector path (rootSvgOf) needs for true svg/pdf/emf export of the vector effects.
+      The trailing <script> is exempt from that drawable-child count. --}}
+<script>
+/* Auto-fit the canvas to a newly chosen image (native pixel dimensions). The hook
+   stamps the chosen image's URL as data-img-key on the root <svg> (halftone/…/duotone;
+   empty for the demo default / a live camera frame). When the key changes to a new
+   image we snap the export Width/Height to the image's native size (probed, capped,
+   aspect preserved). Keyed on the #tool-canvas element (recreated per mount → auto-
+   scoped, absent for the off-screen export canvas → never resizes the bar mid-export).
+   No [data-img-key] → no-op. IIFE + var: re-run each render. */
+(function () {
+  var anchor = document.querySelector('[data-img-key]');
+  if (!anchor) return;
+  var canvas = anchor.closest('#tool-canvas');
+  if (!canvas) return;
+  var key = anchor.getAttribute('data-img-key') || '';
+  if (!('__filterFitKey' in canvas)) { canvas.__filterFitKey = key; return; }
+  if (canvas.__filterFitKey === key) return;
+  if (!key) { canvas.__filterFitKey = ''; return; }
+  var uEl = document.querySelector('[data-action="export-unit"]');
+  if (uEl && uEl.value && uEl.value !== 'px') return;
+  var wEl = document.querySelector('[data-action="export-width"]');
+  var hEl = document.querySelector('[data-action="export-height"]');
+  if (!wEl || !hEl) return;
+  var MAX = 8000;
+  function apply(nw, nh) {
+    if (!(nw > 0 && nh > 0)) return;
+    canvas.__filterFitKey = key;
+    var s = Math.min(1, MAX / Math.max(nw, nh));
+    var W = Math.max(1, Math.round(nw * s));
+    var H = Math.max(1, Math.round(nh * s));
+    var changed = false;
+    if (parseFloat(wEl.value) !== W) { wEl.value = String(W); changed = true; }
+    if (parseFloat(hEl.value) !== H) { hEl.value = String(H); changed = true; }
+    if (changed) {
+      wEl.dispatchEvent(new Event('input', { bubbles: true }));
+      hEl.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+  var nw = parseFloat(anchor.getAttribute('data-img-w'));
+  var nh = parseFloat(anchor.getAttribute('data-img-h'));
+  if (nw > 0 && nh > 0) { apply(nw, nh); return; }
+  if (canvas.__filterFitProbe === key) return;
+  canvas.__filterFitProbe = key;
+  var probe = new Image();
+  probe.onload = function () { apply(probe.naturalWidth, probe.naturalHeight); };
+  probe.onerror = function () { if (canvas.__filterFitProbe === key) canvas.__filterFitProbe = null; };
+  probe.src = key;
+  if (probe.complete && probe.naturalWidth > 0) apply(probe.naturalWidth, probe.naturalHeight);
+})();
+</script>

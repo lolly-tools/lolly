@@ -1,0 +1,15 @@
+{
+  "name": "Asset-export",
+  "description": "Render elk catalogusbestand - of een Lolly-toollink - naar elk formaat en elke afmeting.",
+  "a11yLabel": "Geëxporteerd asset",
+  "inputs.src.label": "Asset",
+  "inputs.src.help": "Het asset dat gerenderd wordt - een catalogus-id (zie `lolly assets`) of een geplakte lolly.tools-toollink. Vectorassets blijven vector in SVG/PDF; rasterassets worden ingesloten als afbeelding.",
+  "inputs.fit.label": "Passend maken",
+  "inputs.fit.help": "Contain toont het hele asset binnen het kader; Cover vult het kader en kan de randen bijsnijden.",
+  "inputs.fit.options.contain": "Contain (hele asset, met balken)",
+  "inputs.fit.options.cover": "Cover (vult, kan bijsnijden)",
+  "inputs.background.label": "Achtergrond",
+  "inputs.background.help": "De kleur achter het asset. Zet \"Geen BG\" aan bij exporteren om deze te verwijderen (transparant).",
+  "inputs.transparentBg.label": "Geen achtergrond",
+  "inputs.transparentBg.help": "Verwijder de achtergrondvulling zodat het asset exporteert op transparantie (PNG/SVG/WebP)."
+}

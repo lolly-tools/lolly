@@ -1,0 +1,19 @@
+{
+  "name": "워드마크",
+  "description": "단어를 입력하면 브랜드 폰트로 된 순수 패스 벡터 워드마크를 얻습니다 - 받는 사람이 폰트를 따로 설치할 필요가 없습니다.",
+  "a11yLabel": "{{default text \"Wordmark\"}}라고 표시된 워드마크",
+  "inputs.text.label": "텍스트",
+  "inputs.font.label": "글꼴",
+  "inputs.font.options.brand": "브랜드 글꼴",
+  "inputs.font.options.mono": "모노 폰트",
+  "inputs.weight.label": "굵기",
+  "inputs.tracking.label": "자간",
+  "inputs.tracking.help": "설정한 크기에서의 자간(px)이에요.",
+  "inputs.size.label": "크기",
+  "inputs.size.help": "윤곽선을 그리는 기준 폰트 크기예요 - 자간은 이 값에 상대적이에요.",
+  "inputs.color.label": "색상",
+  "inputs.features.label": "OpenType 기능",
+  "inputs.features.options.none": "표준",
+  "inputs.features.options.liga-off": "리거처 없음",
+  "inputs.features.options.salt": "스타일 대체 글자"
+}

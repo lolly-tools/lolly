@@ -1,0 +1,18 @@
+{
+  "name": "轉換圖片",
+  "description": "將 HEIC、TIFF 或任何相片轉換為 WebP、JPEG 或 PNG - 在您的裝置上完成。",
+  "a11yLabel": "{{fileName}} 的圖片轉換",
+  "inputs.source.label": "圖片",
+  "inputs.source.help": "一張 HEIC、HEIF、JPEG、PNG、WebP、AVIF 或 TIFF 圖片。會在您的瀏覽器中讀取,絕不離開您的裝置。",
+  "inputs.target.label": "轉換為",
+  "inputs.target.help": "輸出格式。WebP 通常檔案最小；PNG 則為無損。",
+  "inputs.target.options.webp": "WebP - 檔案最小,保留透明度",
+  "inputs.target.options.jpeg": "JPEG - 通用，適合相片",
+  "inputs.target.options.png": "PNG - 無損,保留透明度",
+  "inputs.quality.label": "品質",
+  "inputs.quality.help": "適用於破壞性格式的品質。數值越低,檔案越小、細節越柔和。PNG 會忽略此設定。",
+  "inputs.maxEdge.label": "最長邊 (px)",
+  "inputs.maxEdge.help": "縮小圖片，讓最長邊不超過此像素數。0 表示保留原始大小。絕不放大。",
+  "inputs.keepLocation.label": "保留位置資訊",
+  "inputs.keepLocation.help": "將照片的 GPS 位置帶入轉換後的檔案。預設關閉 - 位置屬於個人資料。照片的其他資訊(作者、版權、拍攝日期)一律會帶入,卡片會準確顯示發生了什麼。"
+}

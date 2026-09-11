@@ -1,0 +1,22 @@
+{
+  "name": "Audiogramma",
+  "description": "Trasforma una clip vocale o una canzone in un video brandizzato che si muove davvero con il suono - barre, spettro, anello, ridgeline o oscilloscopio, pronto per i social.",
+  "a11yLabel": "Scheda audiogramma per {{default title \"an audio clip\"}} con una forma d'onda animata",
+  "inputs.audio.label": "Audio",
+  "inputs.audio.help": "Scegli una traccia dalla tua libreria o carica una clip. Viene decodificata sul tuo dispositivo per disegnare la forma d'onda - l'audio non lascia mai il browser. Lascia vuoto per una forma d'onda segnaposto. Per sentirla nell'esportazione, scegli \"Audio di questo strumento\" come traccia Audio nelle opzioni di download.",
+  "inputs.title.label": "Titolo",
+  "inputs.title.help": "Il titolo sulla card - un nome di episodio o una citazione in evidenza.",
+  "inputs.subtitle.label": "Sottotitolo",
+  "inputs.subtitle.help": "Una riga più piccola sotto il titolo - nome dello show, ospite, o dove ascoltare.",
+  "inputs.style.label": "Stile della forma d'onda",
+  "inputs.style.options.bars": "Barre",
+  "inputs.style.options.wave": "Onda",
+  "inputs.style.options.ring": "Anello",
+  "inputs.size.label": "Dimensione",
+  "inputs.size.options.square": "Quadrato (1:1)",
+  "inputs.size.options.wide": "Panoramico (16:9)",
+  "inputs.size.options.story": "Storia (9:16)",
+  "inputs.accent.label": "Colore della forma d'onda",
+  "inputs.ink.label": "Colore del testo",
+  "inputs.bg.label": "Sfondo"
+}

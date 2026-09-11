@@ -1,0 +1,28 @@
+svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  margin: 0 auto;
+}
+
+/* Click-to-focus: annotated parts (card→data source, background, title) jump to
+   their sidebar control on click - hint that they're interactive. */
+[data-canvas-input] { cursor: pointer; }
+
+/* Type follows the ACTIVE BRAND: the chrome vars are derived from the brand's
+   font tokens (brand-vars.ts), so under any profile the diagram renders and
+   exports in that brand's faces. The font-family attributes the hook writes
+   into the SVG stay as the fallback for a standalone file with no stylesheet. */
+svg text {
+  font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
+}
+
+/* Dated roadmap axis: tick dates and the today marker in the brand mono face.
+   The rule (not an attribute) is what the vector export reads, since it resolves a
+   run's COMPUTED font-family before outlining it. */
+svg text.db-axis {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+}
+
+.db-warning { font-family: var(--font-brand, system-ui); font-size: 16px; line-height: 1.4; padding: 12px; color: var(--brand-text, #16202b); background: var(--brand-surface, #fff); }

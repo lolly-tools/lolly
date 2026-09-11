@@ -1,0 +1,759 @@
+{
+  "id": "audiogram",
+  "name": "Audiogram",
+  "description": "Turn a voice clip or song into a branded video that actually moves with the sound - bars, spectrum, ring, ridgeline or scope, ready for social.",
+  "a11yLabel": "Audiogram card for {{default title \"an audio clip\"}} with a waveform animated from the audio",
+  "version": "2.7.2",
+  "engineVersion": ">=1.150.0 <2.0.0",
+  "status": "community",
+  "category": "everyone",
+  "tags": [
+    "audio",
+    "audiogram",
+    "waveform",
+    "spectrum",
+    "podcast",
+    "music",
+    "voice",
+    "video",
+    "social",
+    "quote",
+    "visualizer"
+  ],
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true
+  },
+  "examples": [
+    {
+      "label": "Podcast quote - bars",
+      "values": {
+        "title": "Slow is smooth, smooth is fast",
+        "subtitle": "The Build Notes podcast · Ep. 41",
+        "style": "bars"
+      }
+    },
+    {
+      "label": "Interview - captioned",
+      "values": {
+        "title": "In her own words",
+        "subtitle": "Field notes · episode 12",
+        "style": "wave",
+        "transcript": "1\n00:00:00,200 --> 00:00:03,400\nWe started with one question.\n\n2\n00:00:03,600 --> 00:00:07,000\nWhat would you build if nothing had to scale?\n"
+      }
+    },
+    {
+      "label": "Broadcast - wave",
+      "values": {
+        "title": "Morning briefing",
+        "subtitle": "Live weekdays · 06:00",
+        "style": "wave"
+      }
+    },
+    {
+      "label": "Release - ring",
+      "values": {
+        "title": "New episode out now",
+        "subtitle": "Listen anywhere",
+        "style": "ring"
+      }
+    },
+    {
+      "label": "Music - spectrum",
+      "values": {
+        "title": "Tide Pool",
+        "subtitle": "Out now everywhere",
+        "style": "spectrum",
+        "layout": "overlay"
+      }
+    },
+    {
+      "label": "Ridgeline",
+      "values": {
+        "title": "Signal",
+        "subtitle": "A year of listening",
+        "style": "ridge",
+        "layout": "center"
+      }
+    },
+    {
+      "label": "MilkDrop revival",
+      "values": {
+        "title": "Turn it up",
+        "subtitle": "MilkDrop, twenty years on",
+        "style": "milkdrop",
+        "layout": "overlay",
+        "vizLook": "stock:geiss-thumb-drum"
+      }
+    }
+  ],
+  "render": {
+    "width": 1080,
+    "height": 1080,
+    "formats": ["png", "webm", "mp4", "gif", "webp-anim", "html", "wav", "mp3", "m4a", "opus", "srt", "vtt", "apng"],
+    "actions": [
+      "copy",
+      "download",
+      "save"
+    ],
+    "video": {
+      "wait": 0,
+      "duration": 8
+    },
+    "capture": "audio",
+    "convertPaths": false,
+    "transcribe": {
+      "source": "audio",
+      "target": "transcript",
+      "format": "srt",
+      "auto": "autoCaption"
+    }
+  },
+  "inputs": [
+    {
+      "id": "audio",
+      "label": "Audio",
+      "type": "asset",
+      "assetType": "audio",
+      "allowUpload": true,
+      "help": "Pick a track from your library, upload a clip, or tap Record to speak one now. It's decoded on your device to drive the animation - the audio never leaves the browser. The animation and the exported video run the full length of the clip; very long clips (over about 10 minutes) still work but get a coarser animation. Leave empty for a placeholder waveform. To hear it in the export, choose \"This tool's audio\" as the Audio track in the download options."
+    },
+    {
+      "id": "title",
+      "label": "Title",
+      "type": "text",
+      "default": "Now playing",
+      "help": "The headline on the card - an episode name or a pull-quote."
+    },
+    {
+      "id": "subtitle",
+      "label": "Subtitle",
+      "type": "text",
+      "default": "",
+      "help": "A smaller line under the title - show name, guest, or where to listen."
+    },
+    {
+      "id": "style",
+      "label": "Visual style",
+      "type": "select",
+      "default": "bars",
+      "options": [
+        {
+          "value": "bars",
+          "label": "Bars"
+        },
+        {
+          "value": "mirror",
+          "label": "Mirror bars"
+        },
+        {
+          "value": "spectrum",
+          "label": "Spectrum"
+        },
+        {
+          "value": "wave",
+          "label": "Wave + playhead"
+        },
+        {
+          "value": "scope",
+          "label": "Oscilloscope"
+        },
+        {
+          "value": "ring",
+          "label": "Ring"
+        },
+        {
+          "value": "blob",
+          "label": "Blob"
+        },
+        {
+          "value": "ridge",
+          "label": "Ridgeline"
+        },
+        {
+          "value": "dots",
+          "label": "Dots"
+        },
+        {
+          "value": "milkdrop",
+          "label": "MilkDrop (WebGL)"
+        }
+      ],
+      "help": "MilkDrop runs the real thing: a WebGL visualiser driven frame by frame from your clip, in your brand colours. Where it cannot run (no WebGL, a headless render) the card falls back to bars. Bars, mirror and spectrum read the real frequency spectrum. Wave shows the clip's envelope with a playhead. Oscilloscope draws the actual waveform. Ring, blob, ridgeline and dots are frequency-driven too."
+    },
+    {
+      "id": "vizLook",
+      "label": "Visualiser preset",
+      "type": "select",
+      "default": "bloom",
+      "options": [
+        {
+          "value": "bloom",
+          "label": "Bloom (Lolly)"
+        },
+        {
+          "value": "aurora",
+          "label": "Aurora (Lolly)"
+        },
+        {
+          "value": "pulse",
+          "label": "Brand Pulse (Lolly)"
+        },
+        {
+          "value": "tunnel",
+          "label": "Tunnel (Lolly)"
+        },
+        {
+          "value": "vortex",
+          "label": "Vortex (Lolly)"
+        },
+        {
+          "value": "kaleido",
+          "label": "Kaleidoscope (Lolly)"
+        },
+        {
+          "value": "watercolour",
+          "label": "Watercolour (Lolly)"
+        },
+        {
+          "value": "drift",
+          "label": "Drift (Lolly)"
+        },
+        {
+          "value": "stock:mig-085",
+          "label": "_Mig_085"
+        },
+        {
+          "value": "stock:royal-mashup-197",
+          "label": "Mashup (197) · $$$ Royal"
+        },
+        {
+          "value": "stock:royal-mashup-431",
+          "label": "Mashup (431) · $$$ Royal"
+        },
+        {
+          "value": "stock:an-adamfx-n-martin-infusion-2-flexi-why-the-sky-looks-diffrent-toda-2b5a",
+          "label": "Why The Sky Looks Diffrent Today - AdamFx n Martin Infusion - Tack Tile Disfunction B · An AdamFX n Martin Infusion 2 flexi"
+        },
+        {
+          "value": "stock:eo-s-phat-cubetrace-v2",
+          "label": "cubetrace - v2 · Eo.S. + Phat"
+        },
+        {
+          "value": "stock:flexi-bouncing-balls-double-mindblob-neon-mix",
+          "label": "bouncing balls [double mindblob neon mix] · flexi"
+        },
+        {
+          "value": "stock:flexi-alien-fish-pond",
+          "label": "alien fish pond · Flexi"
+        },
+        {
+          "value": "stock:flexi-mindblob-shiny-mix",
+          "label": "mindblob [shiny mix] · Flexi"
+        },
+        {
+          "value": "stock:flexi-fishbrain-geiss-martin-tokamak-witchery",
+          "label": "tokamak witchery · Flexi, fishbrain, Geiss + Martin"
+        },
+        {
+          "value": "stock:flexi-martin-geiss-dedicated-to-the-sherwin-maxawow",
+          "label": "dedicated to the sherwin maxawow · Flexi, martin + geiss"
+        },
+        {
+          "value": "stock:geiss-cauldron-painterly-2-saturation-remix",
+          "label": "Cauldron - painterly 2 (saturation remix) · Geiss"
+        },
+        {
+          "value": "stock:geiss-reaction-diffusion-2",
+          "label": "Reaction Diffusion 2 · Geiss"
+        },
+        {
+          "value": "stock:geiss-thumb-drum",
+          "label": "Thumb Drum · Geiss"
+        },
+        {
+          "value": "stock:krash-illusion-spiral-movement",
+          "label": "Spiral Movement · Krash + Illusion"
+        },
+        {
+          "value": "stock:martin-chain-breaker",
+          "label": "chain breaker · martin"
+        },
+        {
+          "value": "stock:martin-extreme-heat",
+          "label": "extreme heat · martin"
+        },
+        {
+          "value": "stock:martin-mandelbox-explorer-high-speed-demo-version",
+          "label": "mandelbox explorer - high speed demo version · martin"
+        },
+        {
+          "value": "stock:martin-reflections-on-black-tiles",
+          "label": "reflections on black tiles · martin"
+        },
+        {
+          "value": "stock:martin-witchcraft-reloaded",
+          "label": "witchcraft reloaded · martin"
+        },
+        {
+          "value": "stock:martin-acid-wiring",
+          "label": "acid wiring · Martin"
+        },
+        {
+          "value": "stock:martin-qbikal-surface-turbulence-iib",
+          "label": "QBikal - Surface Turbulence IIb · Martin"
+        },
+        {
+          "value": "stock:martin-shadow-harlequins-shape-code-fata-morgana",
+          "label": "fata morgana · martin [shadow harlequins shape code]"
+        },
+        {
+          "value": "stock:milk-artist-at-our-best-fed-slowfast-ft-adamfx-n-martin-hd-cosmofx",
+          "label": "FED - SlowFast Ft AdamFX n Martin - HD CosmoFX · Milk Artist At our Best"
+        },
+        {
+          "value": "stock:suksma-uninitialized-variabowl-hydroponic-chronic",
+          "label": "uninitialized variabowl (hydroponic chronic) · suksma"
+        },
+        {
+          "value": "stock:unchained-rewop",
+          "label": "Rewop · Unchained"
+        },
+        {
+          "value": "stock:unchained-rovastar-wormhole-pillars-hall-of-shadows-mix",
+          "label": "Wormhole Pillars (Hall of Shadows mix) · Unchained & Rovastar"
+        },
+        {
+          "value": "stock:zylot-paint-spill-music-reactive-paint-mix",
+          "label": "Paint Spill (Music Reactive Paint Mix) · Zylot"
+        },
+        {
+          "value": "stock:mig-049",
+          "label": "_Mig_049"
+        },
+        {
+          "value": "stock:phat-fishbrain-eo-s-mandala-chasers-remix",
+          "label": "Phat+fiShbRaiN+Eo.S_Mandala_Chasers_remix"
+        },
+        {
+          "value": "stock:sawtooth-grin-roam",
+          "label": "sawtooth grin roam"
+        },
+        {
+          "value": "stock:aderrasi-wanderer-in-curved-space-mash0000-faclempt-kibitzing-meshu-b2c0",
+          "label": "Wanderer in Curved Space - mash0000 - faclempt kibitzing meshuggana schmaltz (Geiss color mix) · _Aderrasi"
+        },
+        {
+          "value": "stock:geiss-artifact-01",
+          "label": "Artifact 01 · _Geiss"
+        },
+        {
+          "value": "stock:rovastar-geiss-hurricane-nightmare-posterize-mix",
+          "label": "Hurricane Nightmare (Posterize Mix) · _Rovastar + Geiss"
+        },
+        {
+          "value": "stock:royal-mashup-220",
+          "label": "Mashup (220) · $$$ Royal"
+        },
+        {
+          "value": "stock:aderrasi-potion-of-spirits",
+          "label": "Potion of Spirits · Aderrasi"
+        },
+        {
+          "value": "stock:aderrasi-songflower-moss-posy",
+          "label": "Songflower (Moss Posy) · Aderrasi"
+        },
+        {
+          "value": "stock:aderrasi-storm-of-the-eye-thunder-mash0000-quasi-pseudo-meta-concentrics",
+          "label": "Storm of the Eye (Thunder) - mash0000 - quasi pseudo meta concentrics · Aderrasi"
+        },
+        {
+          "value": "stock:aderrasi-geiss-airhandler-kali-mix-canvas-mix",
+          "label": "Airhandler (Kali Mix) - Canvas Mix · Aderrasi + Geiss"
+        },
+        {
+          "value": "stock:cope-the-neverending-explosion-of-red-liquid-fire",
+          "label": "The Neverending Explosion of Red Liquid Fire · Cope"
+        },
+        {
+          "value": "stock:cope-martin-mother-of-pearl",
+          "label": "mother-of-pearl · cope + martin"
+        },
+        {
+          "value": "stock:eo-s-glowsticks-v2-05-and-proton-lights-krash-s-beat-code-phat-remix02b",
+          "label": "glowsticks v2 05 and proton lights (+Krash′s beat code) _Phat_remix02b · Eo.S."
+        },
+        {
+          "value": "stock:eo-s-zylot-skylight-stained-glass-majesty-mix",
+          "label": "skylight (Stained Glass Majesty mix) · Eo.S. + Zylot"
+        },
+        {
+          "value": "stock:fishbrain-flexi-witchcraft-2-0",
+          "label": "witchcraft 2.0 · fiShbRaiN + Flexi"
+        },
+        {
+          "value": "stock:flexi-mom-why-the-sky-looks-different-today",
+          "label": "mom, why the sky looks different today · flexi"
+        },
+        {
+          "value": "stock:flexi-patternton-district-of-media-capitol-of-the-united-abstractio-a6fd",
+          "label": "patternton, district of media, capitol of the united abstractions of fractopia · flexi"
+        },
+        {
+          "value": "stock:flexi-swing-out-on-the-spiral",
+          "label": "swing out on the spiral · flexi"
+        },
+        {
+          "value": "stock:flexi-what-is-the-matrix",
+          "label": "what is the matrix · flexi"
+        },
+        {
+          "value": "stock:flexi-area-51",
+          "label": "area 51 · Flexi"
+        },
+        {
+          "value": "stock:flexi-infused-with-the-spiral",
+          "label": "infused with the spiral · Flexi"
+        },
+        {
+          "value": "stock:flexi-mindblob-mix",
+          "label": "mindblob mix · Flexi"
+        },
+        {
+          "value": "stock:flexi-predator-prey-spirals",
+          "label": "predator-prey-spirals · Flexi"
+        },
+        {
+          "value": "stock:flexi-smashing-fractals-acid-etching-mix",
+          "label": "smashing fractals [acid etching mix] · Flexi"
+        },
+        {
+          "value": "stock:flexi-truly-soft-piece-of-software-this-is-generic-texturing-jelly",
+          "label": "truly soft piece of software - this is generic texturing (Jelly) · Flexi"
+        },
+        {
+          "value": "stock:flexi-amandio-c-organic-random-mashup",
+          "label": "organic [random mashup] · flexi + amandio c"
+        },
+        {
+          "value": "stock:flexi-amandio-c-piercing-05-kopie-2-kopie",
+          "label": "piercing 05 - Kopie (2) - Kopie · Flexi + amandio c"
+        },
+        {
+          "value": "stock:flexi-fishbrain-neon-mindblob-grafitti",
+          "label": "neon mindblob grafitti · flexi + fishbrain"
+        },
+        {
+          "value": "stock:flexi-geiss-pogo-cubes-vs-tokamak-vs-game-of-life-stahls-jelly-4-5--4215",
+          "label": "pogo cubes vs. tokamak vs. game of life [stahls jelly 4.5 finish] · flexi + geiss"
+        },
+        {
+          "value": "stock:flexi-martin-astral-projection",
+          "label": "astral projection · Flexi + Martin"
+        },
+        {
+          "value": "stock:flexi-martin-cascading-decay-swing",
+          "label": "cascading decay swing · Flexi + Martin"
+        },
+        {
+          "value": "stock:flexi-stahlregen-jelly-showoff-parade",
+          "label": "jelly showoff parade · Flexi + stahlregen"
+        },
+        {
+          "value": "stock:fumbling-foo-flexi-martin-orb-unchained-star-nova-v7b",
+          "label": "Star Nova v7b · Fumbling_Foo & Flexi, Martin, Orb, Unchained"
+        },
+        {
+          "value": "stock:geiss-flexi-martin-disconnected",
+          "label": "disconnected · Geiss + Flexi + Martin"
+        },
+        {
+          "value": "stock:geiss-flexi-stahlregen-thumbdrum-tokamak-crossfiring-aftermath-jell-db1f",
+          "label": "Thumbdrum Tokamak [crossfiring aftermath jelly mashup] · Geiss, Flexi + Stahlregen"
+        },
+        {
+          "value": "stock:goody-the-wild-vort",
+          "label": "The Wild Vort · Goody"
+        },
+        {
+          "value": "stock:high-altitude-basket-unraveling-singh-grooves-nitrogen-argon-nz",
+          "label": "singh grooves nitrogen argon nz+ · high-altitude basket unraveling"
+        },
+        {
+          "value": "stock:martin-angel-flight",
+          "label": "angel flight · martin"
+        },
+        {
+          "value": "stock:martin-another-kind-of-groove",
+          "label": "another kind of groove · martin"
+        },
+        {
+          "value": "stock:martin-bombyx-mori",
+          "label": "bombyx mori · martin"
+        },
+        {
+          "value": "stock:martin-castle-in-the-air",
+          "label": "castle in the air · martin"
+        },
+        {
+          "value": "stock:martin-disco-mix-4",
+          "label": "disco mix 4 · martin"
+        },
+        {
+          "value": "stock:martin-frosty-caves-2",
+          "label": "frosty caves 2 · martin"
+        },
+        {
+          "value": "stock:martin-fruit-machine",
+          "label": "fruit machine · martin"
+        },
+        {
+          "value": "stock:martin-ghost-city",
+          "label": "ghost city · martin"
+        },
+        {
+          "value": "stock:martin-glass-corridor",
+          "label": "glass corridor · martin"
+        },
+        {
+          "value": "stock:martin-infinity-2010-update",
+          "label": "infinity (2010 update) · martin"
+        },
+        {
+          "value": "stock:martin-mucus-cervix",
+          "label": "mucus cervix · martin"
+        },
+        {
+          "value": "stock:martin-stormy-sea-2010-update",
+          "label": "stormy sea (2010 update) · martin"
+        },
+        {
+          "value": "stock:martin-the-bridge-of-khazad-dum",
+          "label": "The Bridge of Khazad-Dum · martin"
+        },
+        {
+          "value": "stock:martin-liquid-arrows",
+          "label": "liquid arrows · Martin"
+        },
+        {
+          "value": "stock:martin-flexi-diamond-cutter-prismaticvortex-com-camille-i-wish-i-wi-f784",
+          "label": "diamond cutter [prismaticvortex.com] - camille - i wish i wish i wish i was constrained · martin + flexi"
+        },
+        {
+          "value": "stock:martin-flexi-fishbrain-sto-enterstate-random-mashup",
+          "label": "enterstate [random mashup] · martin, flexi, fishbrain + sto"
+        },
+        {
+          "value": "stock:orb-waaa",
+          "label": "Waaa · ORB"
+        },
+        {
+          "value": "stock:rovastar-oozing-resistance",
+          "label": "Oozing Resistance · Rovastar"
+        },
+        {
+          "value": "stock:rovastar-loadus-geiss-fractaldrop-triple-mix",
+          "label": "FractalDrop (Triple Mix) · Rovastar + Loadus + Geiss"
+        },
+        {
+          "value": "stock:shifter-dark-tides-bdrv-mix-2",
+          "label": "dark tides bdrv mix 2 · shifter"
+        },
+        {
+          "value": "stock:suksma-heretical-crosscut-playpen",
+          "label": "heretical crosscut playpen · suksma"
+        },
+        {
+          "value": "stock:suksma-rovastar-sunflower-passion-enlightment-mix-phat-edit-flexi-u-4421",
+          "label": "Rovastar - Sunflower Passion (Enlightment Mix)_Phat_edit + flexi und martin shaders - circumflex in character classes in regular expression · suksma"
+        },
+        {
+          "value": "stock:suksma-vector-exp-1-couldn-t-not",
+          "label": "vector exp 1 - couldn′t not · suksma"
+        },
+        {
+          "value": "stock:tonymilkdrop-leonardo-da-vinci-s-balloon-flexi-merry-go-round-techstyle",
+          "label": "Leonardo Da Vinci's Balloon [Flexi - merry-go-round + techstyle] · TonyMilkdrop"
+        },
+        {
+          "value": "stock:tonymilkdrop-magellan-s-nebula-flexi-you-enter-first-multiverse",
+          "label": "Magellan's Nebula [Flexi - you enter first + multiverse] · TonyMilkdrop"
+        },
+        {
+          "value": "stock:zylot-star-ornament",
+          "label": "Star Ornament · Zylot"
+        },
+        {
+          "value": "stock:zylot-true-visionary-final-mix",
+          "label": "True Visionary (Final Mix) · Zylot"
+        }
+      ],
+      "help": "Only used by the MilkDrop style. The Lolly presets are built from your brand palette; the rest are community MilkDrop presets, run as their authors wrote them with your colours pushed through. Their names stay on the card unless you turn the credit off.",
+      "showIf": {
+        "style": "milkdrop"
+      }
+    },
+    {
+      "id": "vizBrand",
+      "label": "Brand influence",
+      "type": "select",
+      "default": "strong",
+      "options": [
+        {
+          "value": "off",
+          "label": "None · the preset's own colours"
+        },
+        {
+          "value": "subtle",
+          "label": "Subtle"
+        },
+        {
+          "value": "strong",
+          "label": "Strong"
+        },
+        {
+          "value": "full",
+          "label": "Full · brand colour throughout"
+        }
+      ],
+      "help": "How far a community preset is pulled toward your palette. Its light and shade are kept either way, so the motion still reads as the author made it.",
+      "showIf": {
+        "style": "milkdrop"
+      }
+    },
+    {
+      "id": "credit",
+      "label": "Credit the preset author",
+      "type": "boolean",
+      "default": true,
+      "help": "Prints the preset's name and author on the card. On by default: these presets are twenty years of other people's craft.",
+      "showIf": {
+        "style": "milkdrop"
+      }
+    },
+    {
+      "id": "layout",
+      "label": "Layout",
+      "type": "select",
+      "default": "bottom",
+      "options": [
+        {
+          "value": "bottom",
+          "label": "Text under the visual"
+        },
+        {
+          "value": "center",
+          "label": "Text above the visual"
+        },
+        {
+          "value": "overlay",
+          "label": "Full-bleed visual, text over"
+        },
+        {
+          "value": "overlay-top",
+          "label": "Full-bleed visual, text on top"
+        },
+        {
+          "value": "overlay-center",
+          "label": "Full-bleed visual, text centred"
+        },
+        {
+          "value": "minimal",
+          "label": "Visual only"
+        }
+      ]
+    },
+    {
+      "id": "size",
+      "label": "Size",
+      "type": "select",
+      "default": "square",
+      "options": [
+        {
+          "value": "square",
+          "label": "Square (1:1)",
+          "width": 1080,
+          "height": 1080,
+          "unit": "px"
+        },
+        {
+          "value": "wide",
+          "label": "Wide (16:9)",
+          "width": 1920,
+          "height": 1080,
+          "unit": "px"
+        },
+        {
+          "value": "story",
+          "label": "Story (9:16)",
+          "width": 1080,
+          "height": 1920,
+          "unit": "px"
+        }
+      ]
+    },
+    {
+      "id": "start",
+      "label": "Start at",
+      "type": "number",
+      "default": 0,
+      "min": 0,
+      "max": 3600,
+      "step": 0.5,
+      "unit": "s",
+      "help": "Where in the clip to begin, in seconds. The animation and the audio in the exported video both start here and run to the end of the clip. An audio-only export (WAV, MP3, M4A or Opus) is that same excerpt, not the whole file."
+    },
+    {
+      "id": "beat",
+      "label": "Kick on the beat",
+      "type": "boolean",
+      "default": true,
+      "help": "Adds a pulse on each detected beat. Has no effect on speech or ambient audio, where there is no steady tempo to find."
+    },
+    {
+      "id": "captions",
+      "label": "Captions",
+      "type": "boolean",
+      "default": true,
+      "help": "Shows subtitles when the audio was scripted in Lolly, or when a transcript is set below. The script's own word timings drive them where it has any; otherwise the transcript does."
+    },
+    {
+      "id": "transcript",
+      "label": "Transcript",
+      "type": "longtext",
+      "default": "",
+      "rows": 6,
+      "dataSource": {
+        "accept": ".srt,.vtt,text/plain,text/vtt"
+      },
+      "help": "Subtitles as SRT. Filled by Transcribe, or drop in your own file."
+    },
+    {
+      "id": "autoCaption",
+      "label": "Auto-caption",
+      "type": "boolean",
+      "default": false,
+      "help": "Transcribe a newly picked clip on the spot, with no click. Runs on your device; the first run downloads the speech model once."
+    },
+    {
+      "id": "accent",
+      "label": "Waveform colour",
+      "type": "color",
+      "default": "{color.semantic.secondary}"
+    },
+    {
+      "id": "ink",
+      "label": "Text colour",
+      "type": "color",
+      "default": "{color.semantic.on-primary}"
+    },
+    {
+      "id": "bg",
+      "label": "Background",
+      "type": "color",
+      "default": "{color.semantic.primary}"
+    }
+  ]
+}

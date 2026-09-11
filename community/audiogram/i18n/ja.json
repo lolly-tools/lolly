@@ -1,0 +1,22 @@
+{
+  "name": "オーディオグラム",
+  "description": "ボイスクリップや曲を、音にちゃんと合わせて動くブランド動画に変換 - バー、スペクトラム、リング、リッジライン、スコープ、SNS投稿にすぐ使えます。",
+  "a11yLabel": "アニメーションする波形を使った、{{default title \"an audio clip\"}}のオーディオグラムカード",
+  "inputs.audio.label": "オーディオ",
+  "inputs.audio.help": "ライブラリからトラックを選択するか、クリップをアップロードしてください。波形を描くためにデバイス上でデコードされ、音声がブラウザの外に出ることはありません。空欄のままにするとプレースホルダーの波形になります。エクスポートで音声を聞くには、ダウンロードオプションのオーディオトラックで「このツールの音声」を選択してください。",
+  "inputs.title.label": "タイトル",
+  "inputs.title.help": "カードの見出しです - エピソード名や引用文などです。",
+  "inputs.subtitle.label": "サブタイトル",
+  "inputs.subtitle.help": "タイトルの下に表示する小さな一行 - 番組名、ゲスト、視聴方法など。",
+  "inputs.style.label": "波形のスタイル",
+  "inputs.style.options.bars": "バー",
+  "inputs.style.options.wave": "ウェーブ",
+  "inputs.style.options.ring": "リング",
+  "inputs.size.label": "サイズ",
+  "inputs.size.options.square": "正方形 (1:1)",
+  "inputs.size.options.wide": "ワイド (16:9)",
+  "inputs.size.options.story": "ストーリー (9:16)",
+  "inputs.accent.label": "波形の色",
+  "inputs.ink.label": "テキストカラー",
+  "inputs.bg.label": "背景"
+}

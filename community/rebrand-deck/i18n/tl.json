@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "Mag-upload ng PowerPoint deck at i-snap ang kulay at font nito sa iyong brand - muling binuo sa iyong device, walang na-upload.",
+  "a11yLabel": "Deck rebrander para sa {{fileName}}",
+  "inputs.source.label": "PowerPoint file",
+  "inputs.source.help": "Isang .pptx file. Nababasa ito sa iyong device at hindi kailanman ina-upload.",
+  "inputs.useTheme.label": "I-apply ang brand theme",
+  "inputs.useTheme.help": "Palitan ang theme palette at fonts ng deck sa iyong brand - awtomatikong susunod ang bawat kulay na naka-link sa theme.",
+  "inputs.colorMap.label": "Mapping ng kulay",
+  "inputs.colorMap.help": "Mga hardcoded na kulay na nakita sa mga slide, may kasamang mungkahing kulay ng brand ang bawat isa. Alisin ang isang row para hindi na galawin ang kulay na iyon.",
+  "inputs.colorMap.fields.from.label": "Orihinal",
+  "inputs.colorMap.fields.to.label": "Brand",
+  "inputs.fontMap.label": "Pagmamapa ng font",
+  "inputs.fontMap.help": "Mga typeface na nabanggit sa deck, bawat isa may sariling brand replacement. Alisin ang row para panatilihin ang font na iyon.",
+  "inputs.fontMap.fields.from.label": "Orihinal",
+  "inputs.fontMap.fields.to.label": "Brand",
+  "inputs.dropFonts.label": "Alisin ang mga naka-embed na font",
+  "inputs.dropFonts.help": "Ang mga font ng lumang brand na naka-embed sa file ay laos na pagkatapos ng swap at maaaring may isyu sa lisensya."
+}

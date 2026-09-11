@@ -1,0 +1,5 @@
+{
+  "name": "Bộ lọc",
+  "description": "Một công cụ cho hiệu ứng ảnh: chọn halftone, scanline, posterize, voronoi, dither hoặc ASCII art (vector) hoặc duotone, pixel-stretch, khiếm khuyết hoặc glitch (raster). Lớp phủ thương hiệu, camera trực tiếp, và xuất ra nhiều định dạng tùy theo từng hiệu ứng hỗ trợ.",
+  "featured.blurb": "Mười hiệu ứng ảnh, vector hoặc raster, trong một công cụ"
+}

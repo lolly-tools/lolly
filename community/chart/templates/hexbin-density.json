@@ -1,0 +1,38 @@
+{
+  "id": "hexbin-density",
+  "name": "Hexbin density",
+  "category": "Statistical",
+  "description": "Aggregate overlapping observations into a perceptual brand ramp instead of painting an unreadable point cloud.",
+  "values": {
+    "renderMode": "statistical",
+    "chartType": "scatter",
+    "plotType": "hexbin",
+    "chartStyle": "technical",
+    "data": "Reach,Engagement\n18,24\n19,27\n20,26\n21,31\n22,29\n23,34\n24,33\n25,38\n26,35\n27,41\n28,39\n29,44\n30,42\n31,47\n32,45\n33,51\n34,48\n35,54\n36,52\n37,57\n38,56\n39,60\n40,58\n41,63\n42,61\n43,67\n44,64\n45,69\n46,68\n47,72\n28,47\n31,39\n34,55\n37,49\n40,66\n43,58\n46,75\n49,70\n52,79\n55,77",
+    "heading": "The opportunity cluster is moving up and right",
+    "xTitle": "Reach",
+    "yTitle": "Engagement",
+    "plotBinWidth": 30,
+    "showGrid": false
+  },
+  "presets": [
+    {
+      "id": "contours",
+      "name": "Contours",
+      "description": "Use a smoothed density field with source observations underneath.",
+      "values": {
+        "plotType": "density-contour",
+        "plotBandwidth": 24,
+        "plotShowRaw": true
+      }
+    },
+    {
+      "id": "raw-fit",
+      "name": "Regression",
+      "description": "Return to individual observations and fit a relationship.",
+      "values": {
+        "plotType": "regression"
+      }
+    }
+  ]
+}

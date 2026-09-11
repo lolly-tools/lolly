@@ -1,0 +1,1197 @@
+{{!-- data-mode reads the modeAttr EXTRA - deliberately not an input id and
+      no input-id word may appear inside the wrap tag's braces: annotateTemplate
+      would map every canvas click to that input's sidebar popover, fighting
+      the point-editing UX. The script treats a missing attr as the default
+      method. --}}
+<div class="mg-wrap" data-mode="{{modeAttr}}">
+  {{{svgContent}}}
+  <div class="mg-dots" data-export-hide aria-hidden="true" data-dots="{{dotsJson}}"></div>
+  <div class="mg-mesh-ui" data-export-hide aria-hidden="true" data-mesh="{{meshJson}}"></div>
+  <div class="mg-actions" data-export-hide data-palette="{{paletteJson}}">
+    <button type="button" class="mg-act" data-mg-act="colors" title="Shuffle colours (from the brand palette)" aria-label="Shuffle colours from the brand palette">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>
+    </button>
+    <button type="button" class="mg-act" data-mg-act="positions" title="Shuffle positions" aria-label="Shuffle colour point positions">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.8-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>
+    </button>
+    <button type="button" class="mg-act" data-mg-act="mesh-reset" title="Reset the mesh to the colour swatches" aria-label="Reset the mesh grid to the colour swatches">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+    </button>
+  </div>
+</div>
+<script>
+  (function () {
+    'use strict';
+    /* Mesh Gradient canvas script - one IIFE, five modes (data-mode on the wrap):
+       - blend: draggable colour-point dots moving <radialGradient> cx/cy live
+         (userSpaceOnUse - no re-render); commit on release.
+       - warp:  the same dots driving the WebGL Shepard-interpolation shader's
+         point uniforms live; commit on release. Drift orbits replicate the
+         blend drift math per frame, so exports are frame-exact.
+       - flow:  whatamesh-style simplex-noise shader; seamless loop; no dots.
+       - subdivide / mesh: the Coons-patch editor - draggable grid nodes,
+         per-direction tangent handles on the selected node, a colour popover,
+         and (mesh) a gouraud software raster with a low-res preview during a
+         drag and a full-res bake otherwise. Commit = serialise to the
+         meshData input.
+       Everything overlaid is data-export-hide; exports never see the chrome.
+       All mesh math is the shared mesh-core/mesh-raster regions (canonical:
+       community/_shared/mesh.js - byte-identical to the hooks' copy). */
+    var cs = document.currentScript;
+    var wrap = cs && cs.previousElementSibling && cs.previousElementSibling.classList
+      && cs.previousElementSibling.classList.contains('mg-wrap')
+      ? cs.previousElementSibling
+      : null;
+    if (!wrap) {
+      var wraps = document.querySelectorAll('.mg-wrap');
+      wrap = wraps[wraps.length - 1];
+    }
+    if (!wrap) return;
+    var mode = wrap.getAttribute('data-mode') || 'blend';
+    /* Per-canvas commit channel (the shell binds it to THIS session's runtime,
+       so an edit never leaks to sibling designs in multi-edit). Absent offscreen
+       and in older shells - then commit() falls back to the sidebar poke below.
+       The stable canvas element also holds our focus/selection markers so N
+       mounted instances don't stomp one shared window global. */
+    var canvasRoot = wrap.closest('[data-lolly-canvas]');
+    var commitFn = canvasRoot && canvasRoot.__lollyCommit;
+    var focusStore = canvasRoot || window;
+    var dotsBox = wrap.querySelector('.mg-dots');
+    var meshBox = wrap.querySelector('.mg-mesh-ui');
+    var actions = wrap.querySelector('.mg-actions');
+    if (!dotsBox || dotsBox.dataset.mgWired) return;
+    dotsBox.dataset.mgWired = '1';
+
+    function alive() { return document.contains(wrap); }
+
+    /* Reduced motion: the OS media query OR the app's a11y pref attribute.
+       Calms LIVE playback only - an explicit video export still animates,
+       because the export pipeline drives frames through __lollyFrameRender. */
+    var calm = false;
+    try {
+      calm = (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)
+        || document.documentElement.getAttribute('data-a11y-motion') === 'reduce';
+    } catch (e) { /* jsdom */ }
+
+    /* ── commit helpers ──────────────────────────────────────────────────── */
+    function commitPos(n, x, y) {
+      if (commitFn) { commitFn('pos' + n, { x: Math.round(x), y: Math.round(y) }); return; }
+      var box = document.querySelector('[data-input-id="pos' + n + '"]');
+      if (!box) return;
+      var nx = box.querySelector('.vec-num[data-vec-field="x"]');
+      var ny = box.querySelector('.vec-num[data-vec-field="y"]');
+      if (!nx || !ny) return;
+      nx.value = String(Math.round(x));
+      ny.value = String(Math.round(y));
+      nx.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    function commitColor(j, hex) {
+      if (commitFn) { commitFn('color' + j, hex); return; }
+      var inp = document.querySelector('input[type="color"][data-input-id="color' + j + '"]');
+      if (inp) {
+        inp.value = hex;
+        inp.dispatchEvent(new Event('input', { bubbles: true }));
+        inp.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }
+    function commitMeshData(str) {
+      if (commitFn) { commitFn('meshData', str); return; }
+      var el = document.querySelector('input[data-input-id="meshData"], textarea[data-input-id="meshData"]');
+      if (!el) return;
+      el.value = str;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    function commitValue(id, value) {
+      if (commitFn) { commitFn(id, value); return; }
+      var el = document.querySelector('[data-input-id="' + id + '"]');
+      if (!el || !('value' in el)) return;
+      el.value = String(value);
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      el.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    var palette = [];
+    if (actions) {
+      try { palette = JSON.parse(actions.getAttribute('data-palette') || '[]'); } catch (e) { palette = []; }
+      palette = (Array.isArray(palette) ? palette : []).filter(function (v) {
+        return /^#[0-9a-f]{6}$/i.test(String(v));
+      });
+    }
+
+// === lolly:shared mesh-core - generated from community/_shared/mesh.js; edit there and run npm run sync:shared ===
+function mgmClamp(n, lo, hi) { return Math.min(hi, Math.max(lo, n)); }
+
+function mgmHexRgb(hex) {
+  var m = /^#?([0-9a-f]{6})$/i.exec(String(hex || '').trim());
+  if (!m) return [128, 128, 128];
+  var n = parseInt(m[1], 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function mgmRgbHex(rgb) {
+  var s = '#';
+  for (var i = 0; i < 3; i++) {
+    var v = mgmClamp(Math.round(rgb[i]), 0, 255).toString(16);
+    s += v.length < 2 ? '0' + v : v;
+  }
+  return s;
+}
+
+// Evenly spaced grid; colours cycle diagonally through the swatches so every
+// swatch shows up and neighbouring nodes differ.
+function mgmDefaultMesh(rows, cols, colors) {
+  rows = mgmClamp(Math.round(rows) || 3, 2, 8);
+  cols = mgmClamp(Math.round(cols) || 3, 2, 8);
+  var nodes = [];
+  for (var r = 0; r < rows; r++) {
+    for (var c = 0; c < cols; c++) {
+      nodes.push({
+        x: cols > 1 ? c * 100 / (cols - 1) : 50,
+        y: rows > 1 ? r * 100 / (rows - 1) : 50,
+        color: colors[(r + c) % colors.length] || '#808080',
+      });
+    }
+  }
+  return { rows: rows, cols: cols, nodes: nodes };
+}
+
+// Compact, URL-friendly serialisation: "R.C:x,y,hex[,Edx~dy][,Wdx~dy]...;..."
+// (hex without '#'; handle offsets in %, one decimal). Round-trips through
+// mgmParseMesh exactly.
+function mgmNum1(v) { return String(Math.round(v * 10) / 10); }
+function mgmSerializeMesh(mesh) {
+  var out = [];
+  for (var i = 0; i < mesh.nodes.length; i++) {
+    var n = mesh.nodes[i];
+    var s = mgmNum1(n.x) + ',' + mgmNum1(n.y) + ',' + mgmRgbHex(mgmHexRgb(n.color)).slice(1);
+    if (n.h) {
+      for (var k = 0; k < 4; k++) {
+        var dir = 'EWNS'[k];
+        var h = n.h[dir];
+        if (h) s += ',' + dir + mgmNum1(h[0]) + '~' + mgmNum1(h[1]);
+      }
+    }
+    out.push(s);
+  }
+  return mesh.rows + '.' + mesh.cols + ':' + out.join(';');
+}
+
+// Returns a mesh or null; null on any malformation or a node-count mismatch
+// (so a stale string from an older rows/cols setting falls back to defaults).
+function mgmParseMesh(str) {
+  var m = /^(\d+)\.(\d+):(.*)$/.exec(String(str || '').trim());
+  if (!m) return null;
+  var rows = parseInt(m[1], 10), cols = parseInt(m[2], 10);
+  if (!(rows >= 2 && rows <= 8 && cols >= 2 && cols <= 8)) return null;
+  var toks = m[3].split(';');
+  if (toks.length !== rows * cols) return null;
+  var nodes = [];
+  for (var i = 0; i < toks.length; i++) {
+    var parts = toks[i].split(',');
+    if (parts.length < 3) return null;
+    var x = Number(parts[0]), y = Number(parts[1]);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    if (!/^[0-9a-f]{6}$/i.test(parts[2])) return null;
+    var node = { x: mgmClamp(x, 0, 100), y: mgmClamp(y, 0, 100), color: '#' + parts[2].toLowerCase() };
+    for (var j = 3; j < parts.length; j++) {
+      var hm = /^([EWNS])(-?\d+(?:\.\d+)?)~(-?\d+(?:\.\d+)?)$/.exec(parts[j]);
+      if (!hm) return null;
+      if (!node.h) node.h = {};
+      node.h[hm[1]] = [mgmClamp(Number(hm[2]), -60, 60), mgmClamp(Number(hm[3]), -60, 60)];
+    }
+    nodes.push(node);
+  }
+  return { rows: rows, cols: cols, nodes: nodes };
+}
+
+// Per-node Bezier control offsets toward each existing neighbour, [dx,dy] in %.
+// Auto = Catmull-Rom (central difference /6, one-sided /3) scaled so
+// curvature 50 is classic Catmull-Rom and 0 is straight; an `h` override wins.
+function mgmMeshTangents(mesh, curvature) {
+  var k = mgmClamp(Number(curvature) || 0, 0, 100) / 50;
+  var R = mesh.rows, C = mesh.cols, nodes = mesh.nodes;
+  function at(r, c) { return nodes[r * C + c]; }
+  function diff(a, b, f) { return [(a.x - b.x) * f, (a.y - b.y) * f]; }
+  var out = [];
+  for (var r = 0; r < R; r++) {
+    for (var c = 0; c < C; c++) {
+      var n = at(r, c), t = { E: null, W: null, N: null, S: null };
+      if (c < C - 1) t.E = (n.h && n.h.E) || (c > 0 ? diff(at(r, c + 1), at(r, c - 1), k / 6) : diff(at(r, c + 1), n, k / 3));
+      if (c > 0) t.W = (n.h && n.h.W) || (c < C - 1 ? diff(at(r, c - 1), at(r, c + 1), k / 6) : diff(at(r, c - 1), n, k / 3));
+      if (r > 0) t.N = (n.h && n.h.N) || (r < R - 1 ? diff(at(r - 1, c), at(r + 1, c), k / 6) : diff(at(r - 1, c), n, k / 3));
+      if (r < R - 1) t.S = (n.h && n.h.S) || (r > 0 ? diff(at(r + 1, c), at(r - 1, c), k / 6) : diff(at(r + 1, c), n, k / 3));
+      out.push(t);
+    }
+  }
+  return out;
+}
+
+// One Coons patch per grid cell. Boundaries are cubics [p0,p1,p2,p3]
+// ([x,y] each): top nw->ne and bottom sw->se run in u; left nw->sw and
+// right ne->se run in v. colors = corner RGBs [nw, ne, sw, se].
+function mgmMeshPatches(mesh, curvature) {
+  var tg = mgmMeshTangents(mesh, curvature);
+  var C = mesh.cols, nodes = mesh.nodes, patches = [];
+  function P(n) { return [n.x, n.y]; }
+  function off(n, h) { return [n.x + h[0], n.y + h[1]]; }
+  for (var r = 0; r < mesh.rows - 1; r++) {
+    for (var c = 0; c < C - 1; c++) {
+      var iA = r * C + c, iB = iA + 1, iC = iA + C, iD = iC + 1;
+      var A = nodes[iA], B = nodes[iB], Cn = nodes[iC], D = nodes[iD];
+      patches.push({
+        top: [P(A), off(A, tg[iA].E), off(B, tg[iB].W), P(B)],
+        bottom: [P(Cn), off(Cn, tg[iC].E), off(D, tg[iD].W), P(D)],
+        left: [P(A), off(A, tg[iA].S), off(Cn, tg[iC].N), P(Cn)],
+        right: [P(B), off(B, tg[iB].S), off(D, tg[iD].N), P(D)],
+        colors: [mgmHexRgb(A.color), mgmHexRgb(B.color), mgmHexRgb(Cn.color), mgmHexRgb(D.color)],
+      });
+    }
+  }
+  return patches;
+}
+
+function mgmBez(p, t) {
+  var s = 1 - t, a = s * s * s, b = 3 * s * s * t, c2 = 3 * s * t * t, d = t * t * t;
+  return [a * p[0][0] + b * p[1][0] + c2 * p[2][0] + d * p[3][0],
+          a * p[0][1] + b * p[1][1] + c2 * p[2][1] + d * p[3][1]];
+}
+
+// Bilinearly blended Coons surface point (standard formula: ruled surfaces in
+// u and v minus the bilinear of the corners).
+function mgmCoonsPoint(patch, u, v) {
+  var T = mgmBez(patch.top, u), Bo = mgmBez(patch.bottom, u);
+  var L = mgmBez(patch.left, v), R = mgmBez(patch.right, v);
+  var nw = patch.top[0], ne = patch.top[3], sw = patch.bottom[0], se = patch.bottom[3];
+  var bu0 = 1 - u, bv0 = 1 - v;
+  var out = [0, 0];
+  for (var i = 0; i < 2; i++) {
+    out[i] = bv0 * T[i] + v * Bo[i] + bu0 * L[i] + u * R[i]
+      - (bu0 * bv0 * nw[i] + u * bv0 * ne[i] + bu0 * v * sw[i] + u * v * se[i]);
+  }
+  return out;
+}
+
+// Sample a patch on an (n+1)x(n+1) grid: positions via mgmCoonsPoint, colours
+// bilinear across the corners. Row-major, v-major: index = iv*(n+1)+iu.
+function mgmPatchGrid(patch, n) {
+  var pts = [], cols = [], cs = patch.colors;
+  for (var iv = 0; iv <= n; iv++) {
+    var v = iv / n;
+    for (var iu = 0; iu <= n; iu++) {
+      var u = iu / n;
+      pts.push(mgmCoonsPoint(patch, u, v));
+      var c = [0, 0, 0];
+      for (var i = 0; i < 3; i++) {
+        var topc = cs[0][i] + (cs[1][i] - cs[0][i]) * u;
+        var botc = cs[2][i] + (cs[3][i] - cs[2][i]) * u;
+        c[i] = topc + (botc - topc) * v;
+      }
+      cols.push(c);
+    }
+  }
+  return { n: n, pts: pts, cols: cols };
+}
+// === /lolly:shared mesh-core ===
+
+// === lolly:shared mesh-raster - generated from community/_shared/mesh.js; edit there and run npm run sync:shared ===
+// Gouraud-shaded software rasteriser for mesh patches (the canvas Mesh mode).
+// Fills triangles with barycentric colour interpolation straight into an
+// ImageData buffer - no per-call canvas path overhead, no seams (inclusive
+// edge test paints shared edges from both sides with the same colour).
+function mgmFillTri(d, W, H, x0, y0, c0, x1, y1, c1, x2, y2, c2) {
+  var area = (x1 - x0) * (y2 - y0) - (y1 - y0) * (x2 - x0);
+  if (area > -1e-9 && area < 1e-9) return;
+  var inv = 1 / area;
+  var minX = Math.max(0, Math.floor(Math.min(x0, x1, x2)));
+  var maxX = Math.min(W - 1, Math.ceil(Math.max(x0, x1, x2)));
+  var minY = Math.max(0, Math.floor(Math.min(y0, y1, y2)));
+  var maxY = Math.min(H - 1, Math.ceil(Math.max(y0, y1, y2)));
+  for (var y = minY; y <= maxY; y++) {
+    var py = y + 0.5, row = y * W;
+    for (var x = minX; x <= maxX; x++) {
+      var px = x + 0.5;
+      var w0 = (x1 - px) * (y2 - py) - (x2 - px) * (y1 - py);
+      var w1 = (x2 - px) * (y0 - py) - (x0 - px) * (y2 - py);
+      var w2 = area - w0 - w1;
+      if (area > 0 ? (w0 < 0 || w1 < 0 || w2 < 0) : (w0 > 0 || w1 > 0 || w2 > 0)) continue;
+      var i4 = (row + x) * 4;
+      d[i4] = (w0 * c0[0] + w1 * c1[0] + w2 * c2[0]) * inv;
+      d[i4 + 1] = (w0 * c0[1] + w1 * c1[1] + w2 * c2[1]) * inv;
+      d[i4 + 2] = (w0 * c0[2] + w1 * c1[2] + w2 * c2[2]) * inv;
+      d[i4 + 3] = 255;
+    }
+  }
+}
+
+// Paint every patch into an ImageData data buffer of W x H pixels. `n` is the
+// per-patch subdivision (quads per axis); patch coords are 0-100 %, scaled to
+// pixels here. Each sub-quad becomes two gouraud triangles.
+function mgmPaintMesh(d, W, H, patches, n) {
+  var sx = W / 100, sy = H / 100;
+  for (var p = 0; p < patches.length; p++) {
+    var g = mgmPatchGrid(patches[p], n);
+    var stride = n + 1;
+    for (var iv = 0; iv < n; iv++) {
+      for (var iu = 0; iu < n; iu++) {
+        var i00 = iv * stride + iu, i10 = i00 + 1, i01 = i00 + stride, i11 = i01 + 1;
+        var a = g.pts[i00], b = g.pts[i10], c = g.pts[i01], e = g.pts[i11];
+        mgmFillTri(d, W, H, a[0] * sx, a[1] * sy, g.cols[i00], b[0] * sx, b[1] * sy, g.cols[i10], e[0] * sx, e[1] * sy, g.cols[i11]);
+        mgmFillTri(d, W, H, a[0] * sx, a[1] * sy, g.cols[i00], e[0] * sx, e[1] * sy, g.cols[i11], c[0] * sx, c[1] * sy, g.cols[i01]);
+      }
+    }
+  }
+}
+// === /lolly:shared mesh-raster ===
+
+    /* ── WebGL helper (flow + warp) ──────────────────────────────────────── */
+    /* preserveDrawingBuffer so dom-to-image / the direct-canvas blit can read
+       the buffer after the paint task ends. On failure return null - the CSS
+       gradient the hook set as the canvas background shows through instead. */
+    var VS = 'attribute vec2 aP;void main(){gl_Position=vec4(aP,0.0,1.0);}';
+    function makeGL(canvas, frag) {
+      var gl = null;
+      try {
+        gl = canvas.getContext('webgl', { preserveDrawingBuffer: true, antialias: false })
+          || canvas.getContext('experimental-webgl', { preserveDrawingBuffer: true });
+      } catch (e) { gl = null; }
+      if (!gl) return null;
+      function sh(type, src) {
+        var s = gl.createShader(type);
+        gl.shaderSource(s, src);
+        gl.compileShader(s);
+        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) return null;
+        return s;
+      }
+      var v = sh(gl.VERTEX_SHADER, VS);
+      var f = sh(gl.FRAGMENT_SHADER, frag);
+      if (!v || !f) return null;
+      var prog = gl.createProgram();
+      gl.attachShader(prog, v);
+      gl.attachShader(prog, f);
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return null;
+      gl.useProgram(prog);
+      var buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+      var loc = gl.getAttribLocation(prog, 'aP');
+      gl.enableVertexAttribArray(loc);
+      gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      return {
+        gl: gl,
+        u: function (name) { return gl.getUniformLocation(prog, name); },
+        draw: function () { gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4); },
+      };
+    }
+    function hexVec(hex) {
+      var c = mgmHexRgb(hex);
+      return [c[0] / 255, c[1] / 255, c[2] / 255];
+    }
+    /* Live playback loop; the export frame clock (__lollyFrameDriven) and an
+       off-screen canvas (multi-edit mounts up to 50 instances) both pause it. */
+    function startLoop(canvas, speed, paint) {
+      var onScreen = true;
+      if (typeof IntersectionObserver === 'function') {
+        try {
+          new IntersectionObserver(function (es) { onScreen = !!(es[0] && es[0].isIntersecting); }).observe(canvas);
+        } catch (e) { /* keep painting */ }
+      }
+      var t0 = performance.now();
+      function tick(now) {
+        if (!document.contains(canvas)) return;
+        if (!canvas.__lollyFrameDriven && onScreen) paint((((now - t0) / 1000) / speed) % 1);
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    /* ── flow: whatamesh-style noise field ───────────────────────────────── */
+    /* 3D simplex noise by Ian McEwan & Stefan Gustavson, Ashima Arts
+       (github.com/ashima/webgl-noise, MIT). Time runs on a circle through the
+       3D noise domain, so the loop is seamless by construction. */
+    var SNOISE = [
+      'vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}',
+      'vec4 mod289(vec4 x){return x-floor(x*(1.0/289.0))*289.0;}',
+      'vec4 permute(vec4 x){return mod289(((x*34.0)+1.0)*x);}',
+      'vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-0.85373472095314*r;}',
+      'float snoise(vec3 v){',
+      'const vec2 C=vec2(1.0/6.0,1.0/3.0);const vec4 D=vec4(0.0,0.5,1.0,2.0);',
+      'vec3 i=floor(v+dot(v,C.yyy));vec3 x0=v-i+dot(i,C.xxx);',
+      'vec3 g=step(x0.yzx,x0.xyz);vec3 l=1.0-g;',
+      'vec3 i1=min(g.xyz,l.zxy);vec3 i2=max(g.xyz,l.zxy);',
+      'vec3 x1=x0-i1+C.xxx;vec3 x2=x0-i2+C.yyy;vec3 x3=x0-D.yyy;',
+      'i=mod289(i);',
+      'vec4 p=permute(permute(permute(i.z+vec4(0.0,i1.z,i2.z,1.0))+i.y+vec4(0.0,i1.y,i2.y,1.0))+i.x+vec4(0.0,i1.x,i2.x,1.0));',
+      'float n_=0.142857142857;vec3 ns=n_*D.wyz-D.xzx;',
+      'vec4 j=p-49.0*floor(p*ns.z*ns.z);',
+      'vec4 x_=floor(j*ns.z);vec4 y_=floor(j-7.0*x_);',
+      'vec4 x=x_*ns.x+ns.yyyy;vec4 y=y_*ns.x+ns.yyyy;',
+      'vec4 h=1.0-abs(x)-abs(y);',
+      'vec4 b0=vec4(x.xy,y.xy);vec4 b1=vec4(x.zw,y.zw);',
+      'vec4 s0=floor(b0)*2.0+1.0;vec4 s1=floor(b1)*2.0+1.0;',
+      'vec4 sh=-step(h,vec4(0.0));',
+      'vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;',
+      'vec3 p0=vec3(a0.xy,h.x);vec3 p1=vec3(a0.zw,h.y);vec3 p2=vec3(a1.xy,h.z);vec3 p3=vec3(a1.zw,h.w);',
+      'vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));',
+      'p0*=norm.x;p1*=norm.y;p2*=norm.z;p3*=norm.w;',
+      'vec4 m=max(0.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0);',
+      'm=m*m;',
+      'return 42.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));}',
+    ].join('\n');
+
+    var FLOW_FRAG = [
+      'precision highp float;',
+      'uniform vec2 uRes;uniform float uPhase;uniform float uCount;',
+      'uniform vec3 uC[6];uniform float uScale;uniform float uAmp;uniform float uAngle;uniform float uSeed;',
+      SNOISE,
+      'void main(){',
+      'vec2 p=gl_FragCoord.xy/uRes;',
+      'vec2 q=p-0.5;q.x*=uRes.x/uRes.y;',
+      'float ca=cos(uAngle),sa=sin(uAngle);',
+      'q=vec2(ca*q.x-sa*q.y,sa*q.x+ca*q.y);',
+      'float band=q.y;',
+      'float R=0.25+0.75*uAmp;',
+      'float lz=R*cos(6.28318530718*uPhase)+uSeed*19.7;',
+      'float lx=R*sin(6.28318530718*uPhase);',
+      'vec2 s=q*uScale;',
+      'float w1=snoise(vec3(s*0.7+vec2(lx,0.0)+uSeed,lz));',
+      'float w2=snoise(vec3(s*0.8+vec2(0.0,lx)-uSeed*3.1,lz+7.3));',
+      's+=vec2(w1,w2)*(0.25+0.55*uAmp);',
+      'vec3 col=uC[0];',
+      'for(int i=1;i<6;i++){',
+      'if(float(i)>=uCount)break;',
+      'float fi=float(i);',
+      'float f=snoise(vec3(s*(0.85+0.14*fi)+vec2(fi*3.7+uSeed*1.3,fi*9.2),lz+fi*11.17));',
+      'float t=smoothstep(-0.25,0.6,f+0.5-band*1.4-fi*(1.4/uCount));',
+      'col=mix(col,uC[i],t);}',
+      'gl_FragColor=vec4(col,1.0);}',
+    ].join('\n');
+
+    function initFlow() {
+      var canvas = wrap.querySelector('canvas.mg-flow-canvas');
+      if (!canvas || canvas.dataset.mgWired) return;
+      canvas.dataset.mgWired = '1';
+      var cfg;
+      try { cfg = JSON.parse(canvas.getAttribute('data-flow') || '{}'); } catch (e) { return; }
+      if (!cfg || !Array.isArray(cfg.colors) || !cfg.colors.length) return;
+      var G = makeGL(canvas, FLOW_FRAG);
+      if (!G) return; // CSS-gradient backdrop stays visible
+      var cols = [];
+      for (var i = 0; i < 6; i++) {
+        var c = hexVec(cfg.colors[Math.min(i, cfg.colors.length - 1)]);
+        cols.push(c[0], c[1], c[2]);
+      }
+      var gl = G.gl;
+      gl.uniform2f(G.u('uRes'), canvas.width, canvas.height);
+      gl.uniform1f(G.u('uCount'), cfg.colors.length);
+      gl.uniform3fv(G.u('uC'), new Float32Array(cols));
+      gl.uniform1f(G.u('uScale'), (Number(cfg.scale) || 120) / 100 * 1.4);
+      gl.uniform1f(G.u('uAmp'), (Number(cfg.amp) || 0) / 100);
+      gl.uniform1f(G.u('uAngle'), (Number(cfg.angle) || 0) * Math.PI / 180);
+      gl.uniform1f(G.u('uSeed'), Number(cfg.seed) || 7);
+      var uPhase = G.u('uPhase');
+      var speed = Math.max(1, Number(cfg.speed) || 20);
+      function paint(phase) {
+        gl.uniform1f(uPhase, phase);
+        G.draw();
+      }
+      /* Deterministic export clock: t is the clip's normalized time, clipSec
+         its real length - map onto our loop so a custom-length export still
+         moves at the authored speed. */
+      canvas.__lollyFrameRender = function (t, clipSec) {
+        paint((((clipSec || speed) * t) / speed) % 1);
+      };
+      paint(0);
+      if (!calm) startLoop(canvas, speed, paint);
+    }
+
+    /* ── warp: Shepard inverse-distance colour field ─────────────────────── */
+    var WARP_FRAG = [
+      'precision highp float;',
+      'uniform vec2 uRes;uniform float uCount;uniform float uPower;',
+      'uniform vec3 uC[6];uniform vec2 uP[6];',
+      'void main(){',
+      'vec2 p=vec2(gl_FragCoord.x/uRes.x,1.0-gl_FragCoord.y/uRes.y);',
+      'float aspect=uRes.x/uRes.y;',
+      'vec3 acc=vec3(0.0);float wsum=0.0;',
+      'for(int i=0;i<6;i++){',
+      'if(float(i)>=uCount)break;',
+      'vec2 d=vec2((p.x-uP[i].x)*aspect,p.y-uP[i].y);',
+      'float w=pow(dot(d,d)+1e-4,-uPower);',
+      'acc+=uC[i]*w;wsum+=w;}',
+      'gl_FragColor=vec4(acc/wsum,1.0);}',
+    ].join('\n');
+
+    /* One drift orbit, identical numbers to the blend mode's CSS keyframes
+       (golden-angle rotation, alternating spin, 3-10% amplitude, t=0 on the
+       set position) - but evaluated per frame, in % units. */
+    function orbitOffset(i, t, distancePct) {
+      var theta = (i * 137.508 + 23) * Math.PI / 180;
+      var amp = (3 + ((i * 53) % 71) / 10) * distancePct / 100;
+      var dir = i % 2 === 0 ? 1 : -1;
+      var r = amp / 2;
+      var ox = r * Math.cos(theta), oy = r * Math.sin(theta);
+      var a = theta + Math.PI + dir * 2 * Math.PI * t;
+      /* Blend desyncs blobs with negative animation-delay; same phase shift. */
+      var shifted = a + dir * 2 * Math.PI * (i / 6);
+      return [ox + r * Math.cos(shifted), oy + r * Math.sin(shifted)];
+    }
+
+    function initWarp() {
+      var canvas = wrap.querySelector('canvas.mg-warp-canvas');
+      if (!canvas || canvas.dataset.mgWired) return;
+      canvas.dataset.mgWired = '1';
+      var cfg;
+      try { cfg = JSON.parse(canvas.getAttribute('data-warp') || '{}'); } catch (e) { return; }
+      if (!cfg || !Array.isArray(cfg.pts) || !cfg.pts.length) return;
+      var live = cfg.pts.map(function (p) { return [Number(p[0]) || 0, Number(p[1]) || 0]; });
+      var G = makeGL(canvas, WARP_FRAG);
+      if (!G) return; // CSS radial-gradient backdrop stays visible
+      var cols = [];
+      for (var i = 0; i < 6; i++) {
+        var c = hexVec(cfg.colors[Math.min(i, cfg.colors.length - 1)]);
+        cols.push(c[0], c[1], c[2]);
+      }
+      var gl = G.gl;
+      gl.uniform2f(G.u('uRes'), canvas.width, canvas.height);
+      gl.uniform1f(G.u('uCount'), cfg.pts.length);
+      gl.uniform3fv(G.u('uC'), new Float32Array(cols));
+      /* spread 30 (tight) -> sharp falloff, 140 (wide) -> soft wash. */
+      gl.uniform1f(G.u('uPower'), Math.min(3.0, Math.max(0.9, 3.4 - (Number(cfg.spread) || 75) / 45)));
+      var uP = G.u('uP');
+      var animate = !!cfg.animate;
+      var speed = Math.max(1, Number(cfg.speed) || 12);
+      var distance = Number(cfg.distance) || 0;
+      var pbuf = new Float32Array(12);
+      function paint(phase) {
+        for (var j = 0; j < 6; j++) {
+          var src = live[Math.min(j, live.length - 1)];
+          var x = src[0], y = src[1];
+          if (animate && distance > 0 && j < live.length) {
+            var o = orbitOffset(j, phase, distance);
+            x += o[0]; y += o[1];
+          }
+          pbuf[j * 2] = x / 100;
+          pbuf[j * 2 + 1] = y / 100;
+        }
+        gl.uniform2fv(uP, pbuf);
+        G.draw();
+      }
+      canvas.__lollyFrameRender = function (t, clipSec) {
+        paint(animate ? (((clipSec || speed) * t) / speed) % 1 : 0);
+      };
+      paint(0);
+      if (animate && !calm) startLoop(canvas, speed, paint);
+      /* Live drag channel for the dots overlay. */
+      canvas.__mgWarpMove = function (idx, x, y) {
+        if (idx >= 0 && idx < live.length) {
+          live[idx] = [x, y];
+          if (!(animate && !calm)) paint(0); // loop repaints on its own next frame
+        }
+      };
+    }
+
+    /* ── blend + warp: draggable colour-point dots ───────────────────────── */
+    function initDots() {
+      var pts;
+      try { pts = JSON.parse(dotsBox.getAttribute('data-dots') || '[]'); } catch (e) { pts = []; }
+      if (!Array.isArray(pts) || !pts.length) return;
+      var svg = wrap.querySelector('svg.mg-svg');
+      var warpCanvas = wrap.querySelector('canvas.mg-warp-canvas');
+
+      /* A commit re-renders the tool and replaces this DOM, so an arrow-key
+         nudge would lose focus after one press. Debounce the commit and leave a
+         marker so the next render's script re-focuses the same dot. */
+      var nudgeTimer = null;
+      function commitDebounced(n, x, y) {
+        clearTimeout(nudgeTimer);
+        nudgeTimer = setTimeout(function () {
+          if (!alive()) return;
+          focusStore.__mgFocusDot = { n: n, t: Date.now() };
+          commitPos(n, x, y);
+        }, 350);
+      }
+      /* Consume the marker only when fresh: a commit whose hydrated output is
+         byte-identical skips the repaint, and a stale marker must not steal
+         focus on some unrelated render minutes later. */
+      var refocusMark = focusStore.__mgFocusDot;
+      focusStore.__mgFocusDot = null;
+      var refocus = refocusMark && typeof refocusMark === 'object'
+        && Date.now() - refocusMark.t < 2000 ? refocusMark.n : null;
+
+      pts.forEach(function (pt, idx) {
+        var n = idx + 1;
+        var dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'mg-dot';
+        /* Not a tab stop: the canvas is a single role="img" for screen readers
+           and the sidebar X/Y fields are the accessible path. A click still
+           focuses the dot, so drag-then-arrow-key fine-tuning works. */
+        dot.tabIndex = -1;
+        dot.style.left = pt.x + '%';
+        dot.style.top = pt.y + '%';
+        dot.style.setProperty('--dot-c', pt.color);
+        dot.title = 'Colour point ' + n + ' - drag to move';
+        dotsBox.appendChild(dot);
+        if (refocus === n) { dot.focus(); refocus = null; }
+
+        var grad = svg ? svg.querySelector('#mg-g' + n) : null;
+        var cur = { x: pt.x, y: pt.y };
+
+        function place(x, y) {
+          cur.x = x; cur.y = y;
+          dot.style.left = x + '%';
+          dot.style.top = y + '%';
+          if (grad) {
+            grad.setAttribute('cx', (x * 16).toFixed(1));
+            grad.setAttribute('cy', (y * 9).toFixed(1));
+          }
+          if (warpCanvas && warpCanvas.__mgWarpMove) warpCanvas.__mgWarpMove(idx, x, y);
+        }
+
+        dot.addEventListener('pointerdown', function (e) {
+          e.preventDefault(); // stops text-selection/scroll - but also native focus
+          dot.focus();
+          /* A pending nudge commit firing mid-drag would re-render and tear the
+             dragged dot out from under the pointer capture. */
+          clearTimeout(nudgeTimer);
+          dot.setPointerCapture(e.pointerId);
+          var rect = wrap.getBoundingClientRect();
+          function toPct(ev) {
+            return {
+              x: Math.max(0, Math.min(100, (ev.clientX - rect.left) / rect.width * 100)),
+              y: Math.max(0, Math.min(100, (ev.clientY - rect.top) / rect.height * 100)),
+            };
+          }
+          function onMove(ev) {
+            if (!alive()) return;
+            var p = toPct(ev);
+            place(p.x, p.y);
+          }
+          function onUp() {
+            dot.removeEventListener('pointermove', onMove);
+            dot.removeEventListener('pointerup', onUp);
+            dot.removeEventListener('pointercancel', onUp);
+            if (alive()) {
+              focusStore.__mgFocusDot = { n: n, t: Date.now() }; // keep the dot focused across the commit re-render
+              commitPos(n, cur.x, cur.y);
+            }
+          }
+          dot.addEventListener('pointermove', onMove);
+          dot.addEventListener('pointerup', onUp);
+          dot.addEventListener('pointercancel', onUp);
+        });
+
+        /* Keyboard nudge: arrows move 1%, Shift+arrows 5%. */
+        dot.addEventListener('keydown', function (e) {
+          var d = e.shiftKey ? 5 : 1;
+          var dx = e.key === 'ArrowLeft' ? -d : e.key === 'ArrowRight' ? d : 0;
+          var dy = e.key === 'ArrowUp' ? -d : e.key === 'ArrowDown' ? d : 0;
+          if (!dx && !dy) return;
+          e.preventDefault();
+          place(Math.max(0, Math.min(100, cur.x + dx)), Math.max(0, Math.min(100, cur.y + dy)));
+          commitDebounced(n, cur.x, cur.y);
+        });
+      });
+    }
+
+    /* ── subdivide + mesh: the Coons-patch editor ────────────────────────── */
+    function initMeshEditor() {
+      if (!meshBox) return;
+      var state;
+      try { state = JSON.parse(meshBox.getAttribute('data-mesh') || ''); } catch (e) { return; }
+      if (!state || !Array.isArray(state.nodes)) return;
+      var mesh = { rows: state.rows, cols: state.cols, nodes: state.nodes.map(function (n) {
+        var c = { x: n.x, y: n.y, color: n.color };
+        if (n.h) c.h = { E: n.h.E, W: n.h.W, N: n.h.N, S: n.h.S };
+        return c;
+      }) };
+      var curvature = Number(state.curvature) || 0;
+      var painter = mode === 'mesh' ? initMeshPainter(mesh, curvature) : null;
+
+      /* Wireframe overlay: viewBox 0 0 100 100 + preserveAspectRatio="none"
+         puts it straight in node % coordinates. */
+      var SVGNS = 'http://www.w3.org/2000/svg';
+      var wire = document.createElementNS(SVGNS, 'svg');
+      wire.setAttribute('class', 'mg-wire');
+      wire.setAttribute('viewBox', '0 0 100 100');
+      wire.setAttribute('preserveAspectRatio', 'none');
+      meshBox.appendChild(wire);
+
+      var selected = -1;
+      var dots = [];
+      var handleBox = document.createElement('div');
+      handleBox.className = 'mg-handles';
+      meshBox.appendChild(handleBox);
+
+      function nodeAt(r, c) { return mesh.nodes[r * mesh.cols + c]; }
+
+      function drawWire() {
+        var patches = mgmMeshPatches(mesh, curvature);
+        var d = '';
+        patches.forEach(function (p) {
+          ['top', 'bottom', 'left', 'right'].forEach(function (edge) {
+            var b = p[edge];
+            d += 'M' + b[0][0].toFixed(1) + ' ' + b[0][1].toFixed(1)
+              + 'C' + b[1][0].toFixed(1) + ' ' + b[1][1].toFixed(1)
+              + ' ' + b[2][0].toFixed(1) + ' ' + b[2][1].toFixed(1)
+              + ' ' + b[3][0].toFixed(1) + ' ' + b[3][1].toFixed(1);
+          });
+        });
+        var frag = '<path d="' + d + '" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="1" vector-effect="non-scaling-stroke"/>'
+          + '<path d="' + d + '" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke"/>';
+        if (selected >= 0) {
+          var tg = mgmMeshTangents(mesh, curvature)[selected];
+          var n = mesh.nodes[selected];
+          ['E', 'W', 'N', 'S'].forEach(function (dir) {
+            if (tg[dir]) {
+              frag += '<line x1="' + n.x.toFixed(1) + '" y1="' + n.y.toFixed(1)
+                + '" x2="' + (n.x + tg[dir][0]).toFixed(1) + '" y2="' + (n.y + tg[dir][1]).toFixed(1)
+                + '" stroke="rgba(255,255,255,.9)" stroke-width="1" vector-effect="non-scaling-stroke"/>';
+            }
+          });
+        }
+        wire.innerHTML = frag;
+      }
+
+      function serializeCommit() {
+        colorDirty = false; // any commit path settles a pending colour edit
+        focusStore.__mgSelNode = selected >= 0 ? { i: selected, t: Date.now() } : null;
+        commitMeshData(mgmSerializeMesh(mesh));
+      }
+
+      /* Articulation vs bake: while a pointer is down we redraw only the
+         wireframe (subdivide) or a quarter-res preview (mesh); the full-res
+         result re-bakes on release via the commit re-render. */
+      var previewQueued = false;
+      function refresh(light) {
+        drawWire();
+        placeHandles();
+        if (painter && !previewQueued) {
+          previewQueued = true;
+          requestAnimationFrame(function () {
+            previewQueued = false;
+            if (!alive()) return;
+            if (light) painter.preview(); else painter.bake();
+          });
+        }
+      }
+
+      /* Handles: draggable Bezier control offsets of the selected node. */
+      function placeHandles() {
+        handleBox.innerHTML = '';
+        if (selected < 0) return;
+        var tg = mgmMeshTangents(mesh, curvature)[selected];
+        var n = mesh.nodes[selected];
+        ['E', 'W', 'N', 'S'].forEach(function (dir) {
+          if (!tg[dir]) return;
+          var h = document.createElement('button');
+          h.type = 'button';
+          h.className = 'mg-handle';
+          h.tabIndex = -1;
+          h.title = 'Tangent handle - drag to reshape; double-click the node to reset';
+          h.style.left = (n.x + tg[dir][0]) + '%';
+          h.style.top = (n.y + tg[dir][1]) + '%';
+          h.addEventListener('pointerdown', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            h.setPointerCapture(e.pointerId);
+            var rect = wrap.getBoundingClientRect();
+            function onMove(ev) {
+              if (!alive()) return;
+              var x = Math.max(0, Math.min(100, (ev.clientX - rect.left) / rect.width * 100));
+              var y = Math.max(0, Math.min(100, (ev.clientY - rect.top) / rect.height * 100));
+              if (!n.h) n.h = {};
+              n.h[dir] = [Math.max(-60, Math.min(60, x - n.x)), Math.max(-60, Math.min(60, y - n.y))];
+              h.style.left = (n.x + n.h[dir][0]) + '%';
+              h.style.top = (n.y + n.h[dir][1]) + '%';
+              refresh(true);
+            }
+            function onUp() {
+              h.removeEventListener('pointermove', onMove);
+              h.removeEventListener('pointerup', onUp);
+              h.removeEventListener('pointercancel', onUp);
+              if (alive()) serializeCommit();
+            }
+            h.addEventListener('pointermove', onMove);
+            h.addEventListener('pointerup', onUp);
+            h.addEventListener('pointercancel', onUp);
+          });
+          handleBox.appendChild(h);
+        });
+      }
+
+      /* Colour popover for the selected node. Preferred: the shell's ONE
+         colour field via the per-canvas channel (__lollyColorField mounts
+         components/color-field.ts - full picker: value field, sliders, alpha,
+         the whole brand palette grid). Fallback (offscreen / legacy shells):
+         the self-contained swatch strip + native input. Colour edits apply
+         LIVE to the preview; the meshData commit is deferred past active
+         interaction, because a commit re-renders this DOM and would tear a
+         mid-drag slider (or mid-typed hex) out from under the pointer. */
+      var pop = document.createElement('div');
+      pop.className = 'mg-pop';
+      meshBox.appendChild(pop);
+      var colorInput = document.createElement('input');
+      colorInput.type = 'color';
+      colorInput.className = 'mg-pop-picker';
+      colorInput.setAttribute('aria-label', 'Custom colour for the selected mesh node');
+      pop.tabIndex = -1;
+      var mountField = canvasRoot && canvasRoot.__lollyColorField;
+      var colorCommitTimer = null;
+      var colorInteracting = false;
+      var colorDirty = false;
+
+      function applyNodeColor(v) {
+        if (selected < 0) return false;
+        var m6 = /^#[0-9a-f]{6}/i.exec(String(v || ''));
+        if (!m6) return false; // transparent / mid-edit junk - mesh nodes are opaque hex
+        mesh.nodes[selected].color = m6[0].toLowerCase();
+        dots[selected].style.setProperty('--dot-c', mesh.nodes[selected].color);
+        refresh(true);
+        return true;
+      }
+      function flushNodeColor(delay) {
+        clearTimeout(colorCommitTimer);
+        colorCommitTimer = setTimeout(function () {
+          if (alive() && colorDirty && selected >= 0) { colorDirty = false; serializeCommit(); }
+        }, delay);
+      }
+
+      function showPop() {
+        pop.innerHTML = '';
+        pop.classList.toggle('mg-pop--field', !!mountField);
+        if (selected < 0) { pop.classList.remove('open'); return; }
+        var n = mesh.nodes[selected];
+        if (mountField) {
+          var holder = document.createElement('div');
+          holder.className = 'mg-pop-field';
+          pop.appendChild(holder);
+          focusStore.__mgPopSeq = (focusStore.__mgPopSeq || 0) + 1;
+          mountField(holder, 'mg-node-color-' + focusStore.__mgPopSeq, {
+            value: n.color,
+            inline: true,
+            dials: false,
+            onChange: function (v) {
+              if (!applyNodeColor(v)) return;
+              colorDirty = true;
+              /* Typing has no interact hooks - a generous debounce keeps the
+                 re-render away from a half-typed value. */
+              if (!colorInteracting) flushNodeColor(900);
+            },
+            onInteractStart: function () { colorInteracting = true; clearTimeout(colorCommitTimer); },
+            onInteractEnd: function () { colorInteracting = false; flushNodeColor(250); },
+          });
+        } else {
+          palette.slice(0, 12).forEach(function (hex) {
+            var b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'mg-swatch';
+            b.style.background = hex;
+            b.title = hex;
+            b.setAttribute('aria-label', 'Set node colour ' + hex);
+            b.addEventListener('click', function () {
+              n.color = hex;
+              serializeCommit();
+            });
+            pop.appendChild(b);
+          });
+          colorInput.value = /^#[0-9a-f]{6}$/i.test(n.color) ? n.color : '#808080';
+          pop.appendChild(colorInput);
+        }
+        pop.style.left = Math.min(mountField ? 60 : 88, Math.max(4, n.x)) + '%';
+        pop.style.top = Math.min(mountField ? 52 : 92, Math.max(4, n.y + 4)) + '%';
+        pop.classList.add('open');
+      }
+      colorInput.addEventListener('input', function () {
+        if (selected < 0) return;
+        mesh.nodes[selected].color = colorInput.value;
+        refresh(false);
+      });
+      colorInput.addEventListener('change', function () {
+        if (selected < 0) return;
+        mesh.nodes[selected].color = colorInput.value;
+        serializeCommit();
+      });
+
+      function select(i) {
+        /* A pending colour edit commits before the selection moves - the
+           commit's re-render restores the NEW selection via __mgSelNode. */
+        if (colorDirty && selected >= 0 && i !== selected) {
+          clearTimeout(colorCommitTimer);
+          colorDirty = false;
+          selected = i;
+          focusStore.__mgSelNode = i >= 0 ? { i: i, t: Date.now() } : null;
+          commitMeshData(mgmSerializeMesh(mesh));
+          return;
+        }
+        selected = i;
+        meshBox.classList.toggle('has-sel', i >= 0);
+        dots.forEach(function (d, j) { d.classList.toggle('sel', j === i); });
+        placeHandles();
+        showPop();
+        drawWire();
+      }
+
+      /* Esc deselects (the house rule: Escape closes any overlay). */
+      wrap.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && selected >= 0) { e.stopPropagation(); select(-1); }
+      });
+
+      var nudgeTimer = null;
+      mesh.nodes.forEach(function (n, i) {
+        var dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'mg-dot mg-node';
+        dot.tabIndex = -1;
+        dot.style.left = n.x + '%';
+        dot.style.top = n.y + '%';
+        dot.style.setProperty('--dot-c', n.color);
+        dot.title = 'Mesh node - drag to move, click to edit colour and handles';
+        meshBox.appendChild(dot);
+        dots.push(dot);
+
+        dot.addEventListener('dblclick', function () {
+          if (n.h) { delete n.h; serializeCommit(); }
+        });
+
+        dot.addEventListener('pointerdown', function (e) {
+          e.preventDefault();
+          dot.focus();
+          clearTimeout(nudgeTimer);
+          dot.setPointerCapture(e.pointerId);
+          var rect = wrap.getBoundingClientRect();
+          var sx = e.clientX, sy = e.clientY, moved = false;
+          function onMove(ev) {
+            if (!alive()) return;
+            if (!moved && Math.abs(ev.clientX - sx) + Math.abs(ev.clientY - sy) < 4) return;
+            moved = true;
+            n.x = Math.max(0, Math.min(100, (ev.clientX - rect.left) / rect.width * 100));
+            n.y = Math.max(0, Math.min(100, (ev.clientY - rect.top) / rect.height * 100));
+            dot.style.left = n.x + '%';
+            dot.style.top = n.y + '%';
+            refresh(true);
+          }
+          function onUp() {
+            dot.removeEventListener('pointermove', onMove);
+            dot.removeEventListener('pointerup', onUp);
+            dot.removeEventListener('pointercancel', onUp);
+            if (!alive()) return;
+            if (moved) serializeCommit();
+            else select(selected === i ? -1 : i);
+          }
+          dot.addEventListener('pointermove', onMove);
+          dot.addEventListener('pointerup', onUp);
+          dot.addEventListener('pointercancel', onUp);
+        });
+
+        dot.addEventListener('keydown', function (e) {
+          var d = e.shiftKey ? 5 : 1;
+          var dx = e.key === 'ArrowLeft' ? -d : e.key === 'ArrowRight' ? d : 0;
+          var dy = e.key === 'ArrowUp' ? -d : e.key === 'ArrowDown' ? d : 0;
+          if (!dx && !dy) return;
+          e.preventDefault();
+          n.x = Math.max(0, Math.min(100, n.x + dx));
+          n.y = Math.max(0, Math.min(100, n.y + dy));
+          dot.style.left = n.x + '%';
+          dot.style.top = n.y + '%';
+          refresh(true);
+          clearTimeout(nudgeTimer);
+          nudgeTimer = setTimeout(function () {
+            if (alive()) { focusStore.__mgSelNode = { i: i, t: Date.now() }; serializeCommit(); }
+          }, 350);
+        });
+      });
+
+      drawWire();
+
+      /* Restore the selection across the commit re-render. */
+      var selMark = focusStore.__mgSelNode;
+      focusStore.__mgSelNode = null;
+      if (selMark && typeof selMark === 'object' && Date.now() - selMark.t < 2000
+        && selMark.i >= 0 && selMark.i < mesh.nodes.length) {
+        select(selMark.i);
+        dots[selMark.i].focus();
+      }
+
+      /* Shared with the action buttons: shuffle/reset write through the same
+         commit path, so every shuffled state stays URL-expressible. */
+      meshEditor = {
+        shuffleColors: function () {
+          if (palette.length < 2) return;
+          var pool = [];
+          mesh.nodes.forEach(function (n) {
+            if (!pool.length) pool = palette.slice();
+            n.color = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+          });
+          serializeCommit();
+        },
+        /* Jitter each node around its grid slot; border nodes stay pinned to
+           their border axis so the gradient keeps covering the frame. */
+        jitterPositions: function () {
+          var cw = mesh.cols > 1 ? 100 / (mesh.cols - 1) : 0;
+          var ch = mesh.rows > 1 ? 100 / (mesh.rows - 1) : 0;
+          for (var r = 0; r < mesh.rows; r++) {
+            for (var c = 0; c < mesh.cols; c++) {
+              var n = nodeAt(r, c);
+              var bx = mesh.cols > 1 ? c * cw : 50;
+              var by = mesh.rows > 1 ? r * ch : 50;
+              n.x = c === 0 ? 0 : c === mesh.cols - 1 ? 100
+                : Math.max(0, Math.min(100, bx + (Math.random() - 0.5) * cw * 0.85));
+              n.y = r === 0 ? 0 : r === mesh.rows - 1 ? 100
+                : Math.max(0, Math.min(100, by + (Math.random() - 0.5) * ch * 0.85));
+            }
+          }
+          serializeCommit();
+        },
+      };
+    }
+
+    /* Full-res gouraud bake + quarter-res drag preview for the mesh mode.
+       The backing store stays full size either way, so an export mid-preview
+       still ships full geometry - just softer until the next bake. */
+    function initMeshPainter(mesh, curvature) {
+      var canvas = wrap.querySelector('canvas.mg-mesh-canvas');
+      if (!canvas) return null;
+      var ctx2 = null;
+      try { ctx2 = canvas.getContext('2d'); } catch (e) { ctx2 = null; }
+      if (!ctx2) return null;
+      var W = canvas.width, H = canvas.height;
+      var full, pre, pctx, preImg;
+      var PW = Math.round(W / 4), PH = Math.round(H / 4);
+      function fillBase(data, w, h) {
+        var mean = [0, 0, 0];
+        mesh.nodes.forEach(function (n) {
+          var c = mgmHexRgb(n.color);
+          mean[0] += c[0]; mean[1] += c[1]; mean[2] += c[2];
+        });
+        var k = mesh.nodes.length;
+        var px = new Uint32Array(data.buffer);
+        /* Little-endian ABGR pack - every shipping target. */
+        px.fill((255 << 24) | ((mean[2] / k) << 16) | ((mean[1] / k) << 8) | (mean[0] / k));
+      }
+      /* ponytail: uniform subdivision per patch (no adaptive depth) - quads land
+         ~12px so gouraud interpolation hides the linearity; adaptive splits only
+         matter past 5x5 grids, which the manifest caps anyway. */
+      function quadsPerPatch(scale) {
+        var n = Math.round(W / Math.max(1, mesh.cols - 1) / 12 * scale);
+        return Math.max(3, Math.min(48, n));
+      }
+      var api = {
+        bake: function () {
+          if (!full) full = ctx2.createImageData(W, H);
+          fillBase(full.data, W, H);
+          mgmPaintMesh(full.data, W, H, mgmMeshPatches(mesh, curvature), quadsPerPatch(1));
+          ctx2.putImageData(full, 0, 0);
+        },
+        preview: function () {
+          if (!pre) {
+            pre = document.createElement('canvas');
+            pre.width = PW; pre.height = PH;
+            pctx = pre.getContext('2d');
+            preImg = pctx.createImageData(PW, PH);
+          }
+          fillBase(preImg.data, PW, PH);
+          mgmPaintMesh(preImg.data, PW, PH, mgmMeshPatches(mesh, curvature), quadsPerPatch(0.35));
+          pctx.putImageData(preImg, 0, 0);
+          ctx2.imageSmoothingEnabled = true;
+          ctx2.drawImage(pre, 0, 0, W, H);
+        },
+      };
+      api.bake();
+      return api;
+    }
+
+    /* ── canvas action buttons ───────────────────────────────────────────── */
+    var meshEditor = null;
+    if (mode === 'flow') initFlow();
+    else if (mode === 'warp') { initWarp(); initDots(); }
+    else if (mode === 'blend') initDots();
+    else initMeshEditor();
+
+    /* Both shuffles write CONCRETE values (hex into inputs / meshData, ints
+       into the vector fields, a plain int seed), so a shuffled state stays
+       deterministic - the URL, saves and re-renders reproduce it exactly; no
+       randomness survives into the render path. */
+    function actShuffleColors() {
+      if (meshEditor) { meshEditor.shuffleColors(); return; }
+      if (palette.length < 2) return;
+      var slots = dotsBox.querySelectorAll('.mg-dot').length || 2;
+      var pool = [];
+      for (var j = 1; j <= slots; j++) {
+        if (!pool.length) pool = palette.slice();
+        commitColor(j, pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+      }
+    }
+    function actShufflePositions() {
+      if (meshEditor) { meshEditor.jitterPositions(); return; }
+      if (mode === 'flow') { commitValue('seed', 1 + Math.floor(Math.random() * 999)); return; }
+      var dotCount = dotsBox.querySelectorAll('.mg-dot').length;
+      for (var i = 1; i <= dotCount; i++) {
+        commitPos(i, 5 + Math.random() * 90, 5 + Math.random() * 90);
+      }
+    }
+    function runAct(act) {
+      if (act === 'mesh-reset') commitMeshData('');
+      else if (act === 'positions') actShufflePositions();
+      else if (act === 'colors') actShuffleColors();
+    }
+
+    if (actions && !actions.dataset.mgWired) {
+      actions.dataset.mgWired = '1';
+      actions.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest ? e.target.closest('[data-mg-act]') : null;
+        if (btn && alive()) runAct(btn.getAttribute('data-mg-act'));
+      });
+    }
+
+    /* Sidebar shuffle buttons: the hover-revealed canvas overlays are easy to
+       miss, so the same actions also live as visible buttons right under the
+       mode tabs. Only the LIVE editing instance injects (never an offscreen
+       batch/compose copy), rebuilt each render so per-mode labels stay right.
+       styles.css never reaches the sidebar - a scoped head <style> does. */
+    (function sidebarActions() {
+      if (!wrap.closest('#tool-canvas')) return;
+      var modeEl = document.querySelector('.tool-layout [data-input-id="mode"]');
+      var row = modeEl ? modeEl.closest('.input-row') : null;
+      if (!row || !row.parentNode) return;
+      var old = row.parentNode.querySelector('.mg-side-actions');
+      if (old) old.remove();
+      if (!document.getElementById('mg-side-style')) {
+        var st = document.createElement('style');
+        st.id = 'mg-side-style';
+        st.textContent = '.mg-side-actions{display:flex;gap:8px;margin:10px 0 4px}'
+          + '.mg-side-btn{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;'
+          + 'padding:7px 10px;border-radius:8px;border:1px solid rgba(127,127,127,.35);'
+          + 'background:transparent;color:inherit;font:inherit;font-size:12px;cursor:pointer}'
+          + '.mg-side-btn:hover{background:rgba(127,127,127,.12)}'
+          + '.mg-side-btn svg{width:14px;height:14px;flex:none}';
+        document.head.appendChild(st);
+      }
+      var ICONS = {
+        colors: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>',
+        positions: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.8-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/></svg>',
+        reset: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>',
+      };
+      var bar = document.createElement('div');
+      bar.className = 'mg-side-actions';
+      function addBtn(act, label) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'mg-side-btn';
+        b.innerHTML = ICONS[act === 'mesh-reset' ? 'reset' : act] + '<span></span>';
+        b.querySelector('span').textContent = label;
+        b.addEventListener('click', function () { runAct(act); });
+        bar.appendChild(b);
+      }
+      addBtn('colors', 'Shuffle colours');
+      if (mode === 'blend' || mode === 'warp') addBtn('positions', 'Shuffle positions');
+      else if (mode === 'flow') addBtn('positions', 'New wave');
+      else addBtn('positions', 'Shuffle nodes');
+      if (mode === 'subdivide' || mode === 'mesh') addBtn('mesh-reset', 'Reset mesh');
+      row.parentNode.insertBefore(bar, row.nextSibling);
+    })();
+  })();
+</script>

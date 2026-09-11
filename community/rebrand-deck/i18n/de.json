@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "Laden Sie eine PowerPoint-Präsentation hoch und richten Sie ihre Farben und Schriften an Ihrer Marke aus - neu aufgebaut auf Ihrem Gerät, nichts wird hochgeladen.",
+  "a11yLabel": "Deck-Rebrander für {{fileName}}",
+  "inputs.source.label": "PowerPoint-Datei",
+  "inputs.source.help": "Eine .pptx-Datei. Sie wird auf Ihrem Gerät gelesen und nie hochgeladen.",
+  "inputs.useTheme.label": "Marken-Theme anwenden",
+  "inputs.useTheme.help": "Tauscht die Design-Palette und Schriften der Präsentation gegen Ihre Marke aus - jede designverknüpfte Farbe folgt automatisch.",
+  "inputs.colorMap.label": "Farbzuordnung",
+  "inputs.colorMap.help": "Hartcodierte Farben, die auf den Folien gefunden wurden, jeweils mit ihrer vorgeschlagenen Markenfarbe. Entfernen Sie eine Zeile, um diese Farbe unverändert zu lassen.",
+  "inputs.colorMap.fields.from.label": "Original",
+  "inputs.colorMap.fields.to.label": "Marke",
+  "inputs.fontMap.label": "Schriftzuordnung",
+  "inputs.fontMap.help": "Schriftarten, die in der Präsentation genannt werden, jeweils mit ihrem Markenersatz. Entfernen Sie eine Zeile, um diese Schrift beizubehalten.",
+  "inputs.fontMap.fields.from.label": "Original",
+  "inputs.fontMap.fields.to.label": "Marke",
+  "inputs.dropFonts.label": "Eingebettete Schriftarten entfernen",
+  "inputs.dropFonts.help": "In der Datei eingebettete Schriften der alten Marke sind nach einem Wechsel veraltet und können lizenzrechtlich belastet sein."
+}

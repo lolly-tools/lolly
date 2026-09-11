@@ -1,0 +1,110 @@
+<div class="cvt">
+  {{#unless hasFile}}
+    <div class="cvt-empty" data-file-pick>
+      <div class="cvt-empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="14" height="14" rx="2"/><circle cx="8" cy="8" r="1.6"/><path d="m3 14 4-4 5 5"/><path d="M21 11v6a4 4 0 0 1-4 4h-6"/><path d="m14 18 3 3 3-3"/></svg>
+      </div>
+      <h2>Convert an image</h2>
+      <p>Drag an image anywhere onto this area, or choose one below. HEIC and HEIF (iPhone photos), AVIF, TIFF, JPEG, PNG and WebP come in - WebP, JPEG or PNG comes out.</p>
+      <button type="button" class="cvt-pick" data-file-pick>Choose an image…</button>
+      <p class="cvt-empty-note">Everything happens in your browser. Your photo is never uploaded.</p>
+    </div>
+  {{/unless}}
+
+  {{#if hasFile}}
+    <div class="cvt-card">
+      <div class="cvt-head">
+        <span class="cvt-file" title="{{fileName}}">{{fileName}}</span>
+        <span class="cvt-size">{{fileSize}}</span>
+        <button type="button" class="cvt-replace" data-file-pick>Replace</button>
+      </div>
+
+      {{#unless supported}}
+        {{#if imagesUnavailable}}
+          <div class="cvt-state">
+            <p class="cvt-lead">Image conversion isn't available here.</p>
+            <p class="cvt-note">Open this tool in the Lolly web or desktop app to convert an image.</p>
+          </div>
+        {{else}}
+          <div class="cvt-state">
+            <p class="cvt-lead">This doesn't look like an image we can read.</p>
+            <p class="cvt-note">Choose a HEIC, HEIF, JPEG, PNG, WebP, AVIF or TIFF file.</p>
+          </div>
+        {{/if}}
+      {{/unless}}
+
+      {{#if supported}}
+        {{#if sourceMeta}}<p class="cvt-meta">{{sourceMeta}}</p>{{/if}}
+
+        <fieldset class="cvt-settings">
+          <legend>Convert to</legend>
+          <div class="cvt-seg" role="radiogroup" aria-label="Output format">
+            <label class="cvt-seg-opt">
+              <input type="radio" name="cvt-format" value="webp" data-input-id="format" {{#if (eq format "webp")}}checked{{/if}}>
+              <span>WebP</span>
+            </label>
+            <label class="cvt-seg-opt">
+              <input type="radio" name="cvt-format" value="jpeg" data-input-id="format" {{#if (eq format "jpeg")}}checked{{/if}}>
+              <span>JPEG</span>
+            </label>
+            <label class="cvt-seg-opt">
+              <input type="radio" name="cvt-format" value="png" data-input-id="format" {{#if (eq format "png")}}checked{{/if}}>
+              <span>PNG</span>
+            </label>
+          </div>
+
+          {{#unless (eq format "png")}}
+            <label class="cvt-row" for="cvt-quality">
+              <span class="cvt-row-label">Quality</span>
+              <input id="cvt-quality" type="range" min="10" max="100" step="5" value="{{quality}}" data-input-id="quality">
+              <output id="cvt-quality-val" class="cvt-row-val" for="cvt-quality">{{quality}}%</output>
+            </label>
+          {{/unless}}
+
+          <label class="cvt-row" for="cvt-maxedge">
+            <span class="cvt-row-label">Longest edge</span>
+            <input id="cvt-maxedge" type="number" min="0" max="10000" step="1" inputmode="numeric" value="{{maxEdge}}" data-input-id="maxEdge">
+            <span class="cvt-row-val">px · 0 = keep</span>
+          </label>
+
+          <label class="cvt-row cvt-check" for="cvt-keeploc">
+            <input id="cvt-keeploc" type="checkbox" data-input-id="keepLocation" {{#if keepLocation}}checked{{/if}}>
+            <span>Keep location (GPS) if the photo has one</span>
+          </label>
+        </fieldset>
+
+        {{#if animatedNote}}
+          <p class="cvt-note">This is an animated image - converting keeps only its first frame.</p>
+        {{/if}}
+
+        {{#if done}}
+          <div class="cvt-result {{#if saved}}cvt-result--win{{/if}}">
+            <span class="cvt-result-size">{{fileSize}} → {{outSize}}</span>
+            <span class="cvt-result-delta {{#if grew}}cvt-result-delta--grew{{/if}}">{{deltaText}}</span>
+            {{#if outMeta}}<span class="cvt-result-meta">{{outMeta}}</span>{{/if}}
+            {{#if carriedLine}}<span class="cvt-result-carry">{{carriedLine}}</span>{{/if}}
+          </div>
+        {{/if}}
+
+        {{#if pending}}
+          <div class="cvt-result">
+            <span class="cvt-result-delta">Ready - your converted image is built when you download.</span>
+          </div>
+        {{/if}}
+
+        <button type="button" class="cvt-download" data-export-file data-busy-label="Converting…">Download {{formatLabel}}</button>
+        <p class="cvt-note cvt-tail">Converted on your device - the file is decoded and re-encoded in your browser, never uploaded. The photo's own details (author, copyright, capture date) carry into the new file; location is dropped unless you keep it.</p>
+      {{/if}}
+    </div>
+  {{/if}}
+</div>
+
+<script>
+(function () {
+  // Live % readout while the quality slider is dragged: the shell commits the
+  // value on 'change' (release) and repaints, so mid-drag feedback is local.
+  var q = document.getElementById('cvt-quality');
+  var out = document.getElementById('cvt-quality-val');
+  if (q && out) q.addEventListener('input', function () { out.textContent = q.value + '%'; });
+})();
+</script>

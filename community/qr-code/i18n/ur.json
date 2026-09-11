@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "کسی لنک، رابطہ کارڈ، Wi-Fi نیٹ ورک، کیلنڈر ایونٹ، مقام یا سادہ متن کے لیے QR کوڈز۔",
+  "a11yLabel": "{{default url \"(no URL set)\"}} سے منسلک QR کوڈ",
+  "featured.blurb": "کسی بھی برانڈ رنگ میں QR کوڈز",
+  "inputs.url.label": "URL",
+  "inputs.color.label": "ماڈیول رنگ",
+  "inputs.background.label": "پس منظر",
+  "inputs.ecl.label": "ایرر کوریکشن",
+  "inputs.ecl.options.L": "کم (7%)",
+  "inputs.ecl.options.M": "درمیانہ (15%)",
+  "inputs.ecl.options.Q": "کوارٹائل (25%)",
+  "inputs.ecl.options.H": "زیادہ (30%)",
+  "inputs.padding.label": "کوائٹ زون",
+  "inputs.padding.help": "کوڈ کے ارد گرد سفید جگہ کے ماڈیولز۔ کم از کم 4 تجویز کردہ ہے۔",
+  "inputs.join.label": "جڑے ہوئے ماڈیولز",
+  "inputs.join.help": "تمام ماڈیولز کو ایک ہی SVG پاتھ میں ضم کریں۔ چھوٹے سائز پر زیادہ واضح۔"
+}

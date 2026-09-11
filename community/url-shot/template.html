@@ -1,0 +1,331 @@
+<div class="url-shot{{cmpClass}}" data-shot-root
+     data-url="{{default url ''}}"
+     data-css="{{default css ''}}"
+     data-scroll="{{default scrollDepth 0}}"
+     data-wait="{{default waitMs 500}}"
+     data-zoom="{{default zoom 1}}"
+     data-crop-top="{{default cropTop 0}}"
+     data-crop-right="{{default cropRight 0}}"
+     data-crop-bottom="{{default cropBottom 0}}"
+     data-crop-left="{{default cropLeft 0}}">
+  <img data-capture class="shot" alt="" data-lolly-anno="{{recolor}} {{tintColor}}"/>
+  <canvas data-shot-canvas class="shot" hidden></canvas>
+  <div class="placeholder" data-placeholder>
+    <div class="badge">URL Capture</div>
+    <p class="target">{{default url "No URL set"}}</p>
+    <div class="ph-actions">
+      <button type="button" class="compose-btn" data-compose data-export-hide hidden>Compose visually</button>
+      {{#if captureAvailable}}<button type="button" class="preview-btn" data-preview data-busy-label="Capturing…">
+        Click to preview
+      </button>{{/if}}
+    </div>
+    <p class="hint">{{#if captureAvailable}}Preview the page here, then Export to save. SVG gives a true vector; webm/mp4 pans a scroll of the page.{{else}}Live capture needs the Lolly browser extension, desktop app, or CLI. Connect the extension and reload this tool to preview and export.{{/if}}</p>
+  </div>
+{{#if cmpPhone}}
+  <!-- The phone frame follows the desktop one in the flow, so a row lays them out
+       desktop-left / phone-right whether the desktop shows a capture or is still
+       waiting as the placeholder. -->
+  <div class="cmp-phone" data-cmp-phone>
+    <div class="cmp-phone-body" style="aspect-ratio:{{cmpAspect}}">
+      <p class="cmp-phone-ph" data-cmp-placeholder>{{default url "No URL set"}}</p>
+      <img data-capture-mobile class="cmp-phone-shot" alt=""/>
+      <span class="cmp-phone-notch"></span>
+    </div>
+  </div>
+{{/if}}
+  <button type="button" class="shot-compose" data-compose data-export-hide hidden aria-label="Compose visually" title="Compose visually">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h7v7H3z"/><path d="M14 14h7v7h-7z"/><path d="M14 3h7v7h-7z" opacity=".4"/><path d="M3 14h7v7H3z" opacity=".4"/></svg>
+  </button>
+  {{#if captureAvailable}}<button type="button" class="shot-refresh" data-preview data-icon-only aria-label="Re-capture the page" title="Re-capture the page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
+  </button>{{/if}}
+
+<script>
+(function () {
+  'use strict';
+  var root = document.currentScript && document.currentScript.closest('.url-shot');
+  if (!root) return;
+
+  // Same-origin only: a browser can't frame or read a cross-origin page (X-Frame-
+  // Options / CSP / tainted canvas), so visual composition is offered exactly when
+  // the target is one of OUR OWN app routes - the docs-author case. A bare "/…"
+  // path, or a URL whose origin matches ours, qualifies; anything else keeps the
+  // capture-only flow (export still routes through the desktop/CLI capture path).
+  function sameOriginUrl(raw) {
+    var u = String(raw || '').trim();
+    if (!u) return '';
+    if (u.charAt(0) === '/') return location.origin + u;
+    try { return new URL(u, location.href).origin === location.origin ? u : ''; } catch (e) { return ''; }
+  }
+
+  var target = sameOriginUrl(root.dataset.url);
+  root.querySelectorAll('[data-compose]').forEach(function (b) { b.hidden = !target; });
+  if (!target) return;
+
+  // Write a value back to the tool. Prefer the shell's runtime setter (reaches
+  // custom controls like the crop/scroll SLIDERS, which aren't native inputs), and
+  // fall back to the native-input pattern (set value + fire `input`) for shells
+  // that don't expose it. Both land in runtime.setInput - URL sync, undo, dirty and
+  // session-save all come free.
+  function setInput(id, value) {
+    if (typeof window.__lollySetInput === 'function') { window.__lollySetInput(id, value); return; }
+    var panel = document.getElementById('tool-inputs');
+    var ctl = panel && panel.querySelector('[data-input-id="' + id + '"]');
+    if (!ctl) return;
+    ctl.value = value;
+    ctl.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  // Buttons re-bind every paint (innerHTML rebuilds the canvas); the overlay lives
+  // on <body> so it survives repaints - a live iframe inside the canvas would
+  // reload on every keystroke.
+  root.querySelectorAll('[data-compose]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (window.__lollyUrlComposer || !window.__lollyOpenUrlComposer) return;
+      window.__lollyOpenUrlComposer({
+        url: target,
+        css: root.dataset.css || '',
+        scroll: Number(root.dataset.scroll) || 0,
+        wait: Number(root.dataset.wait) || 500,
+        zoom: Number(root.dataset.zoom) || 1,
+        crop: {
+          top: Number(root.dataset.cropTop) || 0, right: Number(root.dataset.cropRight) || 0,
+          bottom: Number(root.dataset.cropBottom) || 0, left: Number(root.dataset.cropLeft) || 0
+        }
+      }, setInput);
+    });
+  });
+
+  // Define the composer factory once per page - pure DOM/UI, no host dependency.
+  if (window.__lollyOpenUrlComposer) return;
+
+  // The overlay is body-level, so its CSS can't live in the tool's (canvas-scoped)
+  // styles.css - inject it into <head> once.
+  function ensureStyles() {
+    if (document.getElementById('__urlc_styles')) return;
+    /* The composer is a fixed overlay appended to <head>/<body>, OUTSIDE the
+       tool-canvas root that carries the injected --brand-* / --font-brand
+       vars - so the accent and font are resolved here in JS from the canvas'
+       computed style and interpolated as literals; the SUSE-era values are
+       only the unbranded fallback. */
+    var brandSrc = document.querySelector('#tool-canvas') || document.documentElement;
+    var bcs; try { bcs = getComputedStyle(brandSrc); } catch (e) { bcs = null; }
+    var acc = bcs ? bcs.getPropertyValue('--brand-primary').trim() : '';
+    if (!/^#[0-9a-f]{6}$/i.test(acc)) acc = '#30ba78';
+    var accR = parseInt(acc.slice(1, 3), 16), accG = parseInt(acc.slice(3, 5), 16), accB = parseInt(acc.slice(5, 7), 16);
+    function accShade(f) {
+      return 'rgb(' + Math.round(accR * f) + ',' + Math.round(accG * f) + ',' + Math.round(accB * f) + ')';
+    }
+    var accGlow = 'rgba(' + accR + ',' + accG + ',' + accB + ',.35)';
+    var uiFont = (bcs ? bcs.getPropertyValue('--font-brand').trim() : '') || 'SUSE';
+    var st = document.createElement('style'); st.id = '__urlc_styles';
+    st.textContent = [
+      '.urlc-back{position:fixed;inset:0;z-index:2147483000;background:rgba(15,23,32,.72);display:grid;place-items:center;padding:2vmin;font-family:' + uiFont + ',system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}',
+      '.urlc-stage{display:flex;flex-direction:column;gap:.75rem;width:min(96vw,1180px);max-height:96vh;background:#fff;border-radius:14px;padding:1rem;box-shadow:0 24px 80px rgba(0,0,0,.5);color:#141b24}',
+      '.urlc-frame-wrap{position:relative;align-self:center;background:#f4f5f7;outline:1px solid #d7dbe0;overflow:hidden}',
+      '.urlc-frame{border:0;background:#fff;display:block}',
+      '.urlc-shade{position:absolute;inset:0;background:rgba(15,23,32,.42);pointer-events:none}',
+      '.urlc-edge{position:absolute;z-index:3}',
+      '.urlc-edge-top,.urlc-edge-bottom{left:0;right:0;height:14px;margin-top:-7px;cursor:ns-resize}',
+      '.urlc-edge-bottom{margin-top:0;margin-bottom:-7px}',
+      '.urlc-edge-left,.urlc-edge-right{top:0;bottom:0;width:14px;margin-left:-7px;cursor:ew-resize}',
+      '.urlc-edge-right{margin-left:0;margin-right:-7px}',
+      '.urlc-edge::after{content:"";position:absolute;background:' + acc + ';box-shadow:0 0 0 1px rgba(255,255,255,.6)}',
+      '.urlc-edge-top::after,.urlc-edge-bottom::after{left:0;right:0;top:6px;height:2px}',
+      '.urlc-edge-left::after,.urlc-edge-right::after{top:0;bottom:0;left:6px;width:2px}',
+      '.urlc-edge:hover::after{background:' + accShade(0.82) + ';box-shadow:0 0 0 2px ' + accGlow + '}',
+      '.urlc-bar{display:flex;flex-direction:column;gap:.55rem;font-size:.85rem}',
+      '.urlc-url-row{display:flex;align-items:baseline;gap:.5rem;font-size:.78rem}',
+      '.urlc-url-lbl{color:#5c6672;text-transform:uppercase;letter-spacing:.04em;font-size:.68rem}',
+      '.urlc-url{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.78rem;color:#141b24;overflow-x:auto;white-space:nowrap;flex:1}',
+      '.urlc-url-note{color:' + acc + ';font-size:.7rem;white-space:nowrap}',
+      '.urlc-row{display:flex;align-items:center;gap:.75rem}',
+      '.urlc-scroll-lbl{display:flex;align-items:center;gap:.5rem;flex:1}',
+      '.urlc-scroll{flex:1}',
+      '.urlc-scroll-val{min-width:3ch;color:#5c6672;font-variant-numeric:tabular-nums}',
+      '.urlc-css-lbl{display:flex;flex-direction:column;gap:.25rem;color:#5c6672;font-size:.78rem}',
+      '.urlc-css{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;padding:.4rem .55rem;border:1px solid #d7dbe0;border-radius:8px;resize:vertical;color:#141b24}',
+      '.urlc-recipe-row{display:flex;align-items:center;gap:.5rem;background:#f4f5f7;border:1px solid #e4e7eb;border-radius:8px;padding:.35rem .5rem}',
+      '.urlc-recipe{flex:1;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.72rem;color:#3a4652;white-space:nowrap;overflow-x:auto}',
+      '.urlc-actions{display:flex;justify-content:flex-end;gap:.5rem}',
+      '.urlc-back button{font:inherit;font-size:.82rem;font-weight:600;border-radius:999px;padding:.45rem .9rem;cursor:pointer;border:1px solid #d7dbe0;background:#fff;color:#141b24}',
+      '.urlc-back button:hover{background:#f1f3f5}',
+      '.urlc-apply{background:' + acc + '!important;color:#fff!important;border-color:' + acc + '!important}',
+      '.urlc-apply:hover{background:' + accShade(0.82) + '!important}',
+      '.urlc-copy{white-space:nowrap}'
+    ].join('');
+    document.head.appendChild(st);
+  }
+
+  window.__lollyOpenUrlComposer = function (state, write) {
+    if (window.__lollyUrlComposer) return;
+    ensureStyles();
+    var W = 1440, H = 900;   // docs default target; the recipe carries these
+
+    var back = document.createElement('div'); back.className = 'urlc-back';
+    window.__lollyUrlComposer = back;
+    var stage = document.createElement('div'); stage.className = 'urlc-stage';
+    var frameWrap = document.createElement('div'); frameWrap.className = 'urlc-frame-wrap';
+    var frame = document.createElement('iframe'); frame.className = 'urlc-frame';
+    frame.setAttribute('title', 'Composer preview');
+    frame.style.width = W + 'px'; frame.style.height = H + 'px';
+    frameWrap.appendChild(frame);
+
+    var shade = document.createElement('div'); shade.className = 'urlc-shade';
+    frameWrap.appendChild(shade);
+    var edges = {};
+    ['top', 'right', 'bottom', 'left'].forEach(function (side) {
+      var e = document.createElement('div');
+      e.className = 'urlc-edge urlc-edge-' + side; e.dataset.side = side;
+      frameWrap.appendChild(e); edges[side] = e;
+    });
+    stage.appendChild(frameWrap);
+
+    var bar = document.createElement('div'); bar.className = 'urlc-bar';
+    bar.innerHTML =
+      '<div class="urlc-url-row"><span class="urlc-url-lbl">Previewing</span><code class="urlc-url"></code><span class="urlc-url-note"></span></div>' +
+      '<div class="urlc-row"><label class="urlc-scroll-lbl">Scroll <input type="range" min="0" max="1" step="0.02" class="urlc-scroll"></label>' +
+      '<span class="urlc-scroll-val"></span>' +
+      '<button type="button" class="urlc-reset">Reset crop</button></div>' +
+      '<label class="urlc-css-lbl">CSS overrides<textarea class="urlc-css" rows="2" spellcheck="false" placeholder=".welcome-dialog{display:none}"></textarea></label>' +
+      '<div class="urlc-recipe-row"><code class="urlc-recipe"></code><button type="button" class="urlc-copy">Copy recipe</button></div>' +
+      '<div class="urlc-actions"><button type="button" class="urlc-cancel">Cancel</button><button type="button" class="urlc-apply">Apply to tool</button></div>';
+    stage.appendChild(bar);
+    back.appendChild(stage);
+    document.body.appendChild(back);
+
+    var crop = { top: state.crop.top, right: state.crop.right, bottom: state.crop.bottom, left: state.crop.left };
+    var scroll = state.scroll, css = state.css || '', wait = state.wait || 1000, zoom = state.zoom || 1;
+    var scrollEl = bar.querySelector('.urlc-scroll'), scrollVal = bar.querySelector('.urlc-scroll-val');
+    var cssEl = bar.querySelector('.urlc-css'), recipeEl = bar.querySelector('.urlc-recipe');
+    var urlEl = bar.querySelector('.urlc-url'), urlNote = bar.querySelector('.urlc-url-note');
+    scrollEl.value = String(scroll); cssEl.value = css;
+
+    // The recipe captures a URL, a scroll, a crop and CSS - but NOT interactive
+    // state you reach by clicking inside the preview (expanding a panel, opening a
+    // menu). Anything that's URL-addressable IS captured: navigate/deep-link inside
+    // the frame and we sync the recipe's url to the frame's live location. For a
+    // pure UI toggle that doesn't move the URL, use a deep-link (e.g. ?focus=…) or
+    // a CSS override to force the state - those the recipe reproduces.
+    function relUrl() {
+      try {
+        var h = frame.contentWindow.location.href;
+        return h.indexOf(location.origin) === 0 ? h.slice(location.origin.length) : state.url;
+      } catch (e) { return state.url; }
+    }
+    function syncUrl() {
+      var rel = relUrl();
+      var changed = rel && rel !== state.url;
+      if (changed) { state.url = rel; refreshRecipe(); }
+      if (urlEl) urlEl.textContent = state.url;
+      if (urlNote) urlNote.textContent = changed ? 'captured from preview' : '';
+    }
+
+    function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+    function round(n) { return Math.round(n * 1000) / 1000; }
+    function fitFrame() {
+      var availW = (stage.clientWidth || W) - 4, availH = (stage.clientHeight || H) - 220;
+      var s = Math.min(availW / W, availH / H, 1);
+      frame.style.transform = 'scale(' + s + ')'; frame.style.transformOrigin = 'top left';
+      frameWrap.style.width = (W * s) + 'px'; frameWrap.style.height = (H * s) + 'px';
+      placeEdges();
+    }
+    function placeEdges() {
+      var t = crop.top * 100, r = crop.right * 100, b = crop.bottom * 100, l = crop.left * 100;
+      shade.style.clipPath = 'polygon(0% 0%,100% 0%,100% 100%,0% 100%,0% ' + t + '%,' + l + '% ' + t + '%,' + l + '% ' + (100 - b) + '%,' + (100 - r) + '% ' + (100 - b) + '%,' + (100 - r) + '% ' + t + '%,0% ' + t + '%)';
+      edges.top.style.top = t + '%'; edges.bottom.style.bottom = b + '%';
+      edges.left.style.left = l + '%'; edges.right.style.right = r + '%';
+    }
+    function recipe() {
+      var slug = (state.url.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'shot').slice(0, 40);
+      var q = ['url=' + encodeURIComponent(state.url), 'width=' + W, 'height=' + H, 'dpi=192', 'waitMs=' + Math.round(wait)];
+      if (scroll > 0) q.push('scrollDepth=' + round(scroll));
+      if (zoom && Math.abs(zoom - 1) > 1e-3) q.push('zoom=' + round(zoom));
+      ['top', 'right', 'bottom', 'left'].forEach(function (side) { if (crop[side] > 0) q.push('crop' + cap(side) + '=' + round(crop[side])); });
+      if (css.trim()) q.push('css=' + encodeURIComponent(css));
+      q.push('format=svg', 'filename=' + slug);
+      return '/t/url-shot?' + q.join('&');
+    }
+    function refreshRecipe() { recipeEl.textContent = recipe(); }
+    function injectCss() {
+      try {
+        var doc = frame.contentDocument; if (!doc) return;
+        var tag = doc.getElementById('__urlc_css');
+        if (!tag) { tag = doc.createElement('style'); tag.id = '__urlc_css'; (doc.head || doc.documentElement).appendChild(tag); }
+        tag.textContent = css;
+      } catch (e) {}
+    }
+    function scrollFrame() {
+      try {
+        var win = frame.contentWindow, doc = frame.contentDocument; if (!win || !doc) return;
+        var max = Math.max(0, doc.body.scrollHeight - win.innerHeight);
+        win.scrollTo(0, scroll * max);
+      } catch (e) {}
+    }
+
+    frame.addEventListener('load', function () {
+      injectCss(); scrollFrame(); syncUrl();
+      // Hash routing keeps the same window, so a click that deep-links (e.g. a
+      // section that sets ?focus=…) fires hashchange, not load - catch both.
+      try {
+        frame.contentWindow.addEventListener('hashchange', syncUrl);
+        frame.contentWindow.addEventListener('popstate', syncUrl);
+      } catch (e) {}
+    });
+    frame.src = state.url;
+
+    var dragging = null;
+    // An iframe swallows pointermove while the pointer is over it, so a crop drag
+    // that crosses the frame would stall. Make the frame transparent to pointers
+    // for the duration of a drag so the parent window keeps receiving the moves.
+    function onDown(e) { dragging = e.currentTarget.dataset.side; frame.style.pointerEvents = 'none'; e.preventDefault(); }
+    function onMove(e) {
+      if (!dragging) return;
+      var box = frameWrap.getBoundingClientRect();
+      var fx = Math.min(1, Math.max(0, (e.clientX - box.left) / (box.width || 1)));
+      var fy = Math.min(1, Math.max(0, (e.clientY - box.top) / (box.height || 1)));
+      if (dragging === 'top') crop.top = Math.min(0.9, Math.max(0, fy));
+      else if (dragging === 'bottom') crop.bottom = Math.min(0.9, Math.max(0, 1 - fy));
+      else if (dragging === 'left') crop.left = Math.min(0.9, Math.max(0, fx));
+      else if (dragging === 'right') crop.right = Math.min(0.9, Math.max(0, 1 - fx));
+      placeEdges(); refreshRecipe();
+    }
+    function onUp() { dragging = null; frame.style.pointerEvents = ''; }
+    Object.keys(edges).forEach(function (k) { edges[k].addEventListener('pointerdown', onDown); });
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+
+    scrollEl.addEventListener('input', function () { scroll = Number(scrollEl.value) || 0; scrollVal.textContent = Math.round(scroll * 100) + '%'; scrollFrame(); refreshRecipe(); });
+    cssEl.addEventListener('input', function () { css = cssEl.value; injectCss(); refreshRecipe(); });
+    bar.querySelector('.urlc-reset').addEventListener('click', function () { crop = { top: 0, right: 0, bottom: 0, left: 0 }; placeEdges(); refreshRecipe(); });
+
+    function close() {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', fitFrame);
+      back.remove(); window.__lollyUrlComposer = null;
+    }
+    function onKey(e) { if (e.key === 'Escape') close(); }
+    window.addEventListener('keydown', onKey);
+    back.addEventListener('pointerdown', function (e) { if (e.target === back) close(); });
+    bar.querySelector('.urlc-cancel').addEventListener('click', close);
+    bar.querySelector('.urlc-copy').addEventListener('click', function () {
+      var b = this;
+      try { navigator.clipboard.writeText(location.origin + recipe()).then(function () { b.textContent = 'Copied!'; setTimeout(function () { b.textContent = 'Copy recipe'; }, 1200); }); } catch (e) {}
+    });
+    bar.querySelector('.urlc-apply').addEventListener('click', function () {
+      write('cropTop', round(crop.top)); write('cropRight', round(crop.right));
+      write('cropBottom', round(crop.bottom)); write('cropLeft', round(crop.left));
+      write('scrollDepth', round(scroll)); write('css', css);
+      close();
+    });
+
+    scrollVal.textContent = Math.round(scroll * 100) + '%';
+    if (urlEl) urlEl.textContent = state.url;
+    fitFrame(); refreshRecipe();
+    window.addEventListener('resize', fitFrame);
+  };
+})();
+</script>
+</div>

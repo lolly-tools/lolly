@@ -1,0 +1,35 @@
+{
+  "id": "laptop",
+  "name": "Laptop",
+  "category": "Screenshot",
+  "description": "A wide app view on a laptop, for release notes and case studies.",
+  "values": {
+    "image": { "source": "remote", "id": "https://lolly.tools/tool/gradient.svg?mode=flow&count=4&color1=%230ea5e9&color2=%23a78bfa&color3=%23f472b6&color4=%230b1021&flowSpeed=24&waveScale=100&waveAmp=70&angle=35&seed=12", "_unresolved": true },
+    "frame": "laptop",
+    "windowStyle": "nuremberg",
+    "url": "https://lolly.tools",
+    "title": "",
+    "backdrop": "solid",
+    "background": "{color.semantic.primary}",
+    "color2": "{color.semantic.secondary}",
+    "padding": 88,
+    "scale": 78,
+    "radius": 10,
+    "shadow": 55,
+    "dark": false
+  },
+  "presets": [
+    {
+      "id": "brand",
+      "name": "Brand ground",
+      "description": "One flat brand colour behind the machine.",
+      "values": { "backdrop": "solid", "background": "{color.semantic.primary}" }
+    },
+    {
+      "id": "studio",
+      "name": "Studio gradient",
+      "description": "A soft two-colour wash and a deeper shadow.",
+      "values": { "backdrop": "gradient", "shadow": 75, "padding": 96 }
+    }
+  ]
+}

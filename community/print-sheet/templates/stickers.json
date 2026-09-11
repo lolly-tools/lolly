@@ -1,0 +1,35 @@
+{
+  "id": "stickers",
+  "name": "Sticker sheet",
+  "category": "Print",
+  "description": "Rounded die lines around every cell, for cut-out stickers and labels.",
+  "values": {
+    "sheet": "a4",
+    "rows": 3,
+    "cols": 3,
+    "gap": 6,
+    "margin": 12,
+    "ticks": true,
+    "tickShape": "round-rect"
+  },
+  "presets": [
+    {
+      "id": "nine-up",
+      "name": "9 up",
+      "description": "Three by three - big stickers.",
+      "values": { "rows": 3, "cols": 3, "gap": 6 }
+    },
+    {
+      "id": "twenty-up",
+      "name": "20 up",
+      "description": "Five rows of four - small round-cornered labels.",
+      "values": { "rows": 5, "cols": 4, "gap": 4, "margin": 10 }
+    },
+    {
+      "id": "a3-thirty-up",
+      "name": "30 up on A3",
+      "description": "Six rows of five on A3 - a full print run in one pass.",
+      "values": { "sheet": "a3", "rows": 6, "cols": 5, "gap": 5, "margin": 12 }
+    }
+  ]
+}

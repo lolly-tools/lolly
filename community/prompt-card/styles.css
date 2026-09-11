@@ -1,0 +1,160 @@
+/* Prompt to Image.
+ *
+ * The page is deliberately not brand-themed: white ground, black text, one mono
+ * face, no dark-mode variant. The output is read by a machine, so maximum
+ * contrast and a fixed grid beat house style - and a mono face means the layout
+ * estimate in hooks.js is arithmetic rather than guesswork.
+ *
+ * Geometry (--p2i-pad, --p2i-line) is pushed in from hooks.js so there is one
+ * source of truth for it; --p2i-fs and --p2i-cols are overwritten by the
+ * template's fit pass once real layout exists to measure. */
+
+.p2i-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #ffffff;
+  color: #000000;
+  container-type: size;
+}
+
+.p2i-cols {
+  position: absolute;
+  inset: var(--p2i-pad, 32px);
+  overflow: hidden;
+
+  columns: var(--p2i-cols, 1);
+  column-gap: calc(var(--p2i-fs, 14px) * 2);
+  /* A hairline between columns so the reading order stays unambiguous once the
+     text is dense. Light enough that it can't be mistaken for a glyph. */
+  column-rule: 1px solid #e5e5e5;
+  /* Fill each column to the bottom before starting the next one, rather than
+     balancing. Balancing would leave every column short of the box, and the
+     template's fit test reads "does it overflow to an N+1th column?" - which
+     only means anything when the columns are filled in order. */
+  column-fill: auto;
+
+  font-family: "SUSE Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--p2i-fs, 14px);
+  line-height: var(--p2i-line, 1.35);
+  font-variant-ligatures: none;
+  /* Long unbroken runs (URLs, base64, hashes) would otherwise punch out of the
+     column and get clipped rather than wrapped. */
+  overflow-wrap: break-word;
+}
+
+.p2i-cols p {
+  /* One blank line between paragraphs - the mono convention, and the clearest
+     structural signal a reader (human or model) gets out of an untitled wall of
+     text. em resolves against --p2i-fs, so the gap tracks the fitted size, and
+     --p2i-para scales it from the "Paragraph gap" input (0 closes it entirely). */
+  margin: 0 0 calc(var(--p2i-line, 1.35) * var(--p2i-para, 1) * 1em);
+  /* pre-wrap keeps the author's line breaks; normal reflows the paragraph to the
+     column width. Set per-render from the "Keep line breaks" input. */
+  white-space: var(--p2i-wrap, pre-wrap);
+  /* Never strand a single line of a paragraph on its own at a column boundary. */
+  orphans: 2;
+  widows: 2;
+}
+
+.p2i-cols p:last-child { margin-bottom: 0; }
+
+/* ── Screen-only furniture ────────────────────────────────────────────────────
+   Everything below carries [data-export-hide], so the web export bridge detaches
+   it before rasterising. The exported image is only ever white ground + black
+   text + the column rules. */
+
+.p2i-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8cqmin;
+  text-align: center;
+  font-family: "SUSE Mono", ui-monospace, monospace;
+  font-size: 3.4cqmin;
+  line-height: 1.6;
+  color: #8a8a8a;
+  pointer-events: none;
+}
+
+.p2i-stats {
+  position: absolute;
+  right: 2cqmin;
+  bottom: 2cqmin;
+  padding: 1.4cqmin 2.2cqmin;
+  border-radius: 1.6cqmin;
+  background: rgba(244, 244, 244, 0.94);
+  font-family: "SUSE Mono", ui-monospace, monospace;
+  font-size: 2.2cqmin;
+  line-height: 1.5;
+  color: #555555;
+  text-align: right;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.p2i-stats b {
+  font-weight: 700;
+  color: #111111;
+}
+
+/* The verdict: is this page actually cheaper than sending the text? An image is
+   a flat price whatever it holds, so the answer flips as the page is dragged
+   bigger - it earns its own line, and a colour, because it's the one number that
+   says whether the export was worth making. */
+.p2i-stats .p2i-verdict {
+  display: block;
+  margin-top: 0.5cqmin;
+  font-weight: 700;
+}
+.p2i-stats .p2i-verdict.is-win  { color: #1f6b3b; }
+.p2i-stats .p2i-verdict.is-loss { color: #8a4b00; }
+/* Break-even: neither wins, so neither colour - a neutral grey that reads as
+   "your call" rather than a verdict. */
+.p2i-stats .p2i-verdict.is-even { color: #555555; }
+.p2i-stats .p2i-verdict b { color: inherit; }
+
+.p2i-stats .p2i-note {
+  display: block;
+  margin-top: 0.5cqmin;
+  font-size: 1.7cqmin;
+  color: #8a8a8a;
+}
+
+/* Overflow warning - the text needed a size below the legibility floor, so it is
+   clamped and clipped rather than shrunk into an unreadable smudge. */
+.p2i-stats.is-over {
+  background: rgba(255, 238, 214, 0.96);
+  color: #7a4a00;
+}
+.p2i-stats.is-over b { color: #7a4a00; }
+.p2i-stats.is-over .p2i-note { color: #9a6a24; }
+/* A clipped page can't be compared honestly - it doesn't hold all the text, so a
+   "saving" measured against the full prompt is really just the words that fell
+   off the end. Fold the verdict into the warning until it fits. */
+.p2i-stats.is-over .p2i-verdict.is-win,
+.p2i-stats.is-over .p2i-verdict.is-loss,
+.p2i-stats.is-over .p2i-verdict.is-even { color: #9a6a24; }
+
+/* Drop target. Painted only while a drag is actually over the canvas. */
+.p2i-drop {
+  position: absolute;
+  inset: 1.2cqmin;
+  border-radius: 1.6cqmin;
+  outline: 0.5cqmin dashed #999999;
+  outline-offset: -0.5cqmin;
+  background: rgba(255, 255, 255, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "SUSE Mono", ui-monospace, monospace;
+  font-size: 3.4cqmin;
+  color: #333333;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.p2i-root.is-dropping .p2i-drop { opacity: 1; }

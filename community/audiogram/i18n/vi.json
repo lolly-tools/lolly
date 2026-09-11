@@ -1,0 +1,22 @@
+{
+  "name": "Audiogram",
+  "description": "Biến một đoạn giọng nói hoặc bài hát thành video có thương hiệu chuyển động thực sự theo âm thanh - cột, phổ, vòng, đường sống núi hoặc dao động ký, sẵn sàng cho mạng xã hội.",
+  "a11yLabel": "Thẻ Audiogram cho {{default title \"an audio clip\"}} với dạng sóng hoạt ảnh",
+  "inputs.audio.label": "Âm thanh",
+  "inputs.audio.help": "Chọn một bản nhạc từ thư viện của bạn hoặc tải lên một đoạn clip. Nó được giải mã trên thiết bị của bạn để vẽ dạng sóng - âm thanh không bao giờ rời khỏi trình duyệt. Để trống để có dạng sóng giữ chỗ. Để nghe trong bản xuất, hãy chọn \"Âm thanh của công cụ này\" làm kênh âm thanh trong tùy chọn tải xuống.",
+  "inputs.title.label": "Tiêu đề",
+  "inputs.title.help": "Tiêu đề trên thẻ - tên tập hoặc một câu trích dẫn nổi bật.",
+  "inputs.subtitle.label": "Phụ đề",
+  "inputs.subtitle.help": "Một dòng nhỏ hơn dưới tiêu đề - tên chương trình, khách mời, hoặc nơi để nghe.",
+  "inputs.style.label": "Kiểu dạng sóng",
+  "inputs.style.options.bars": "Thanh",
+  "inputs.style.options.wave": "Sóng",
+  "inputs.style.options.ring": "Vòng",
+  "inputs.size.label": "Kích thước",
+  "inputs.size.options.square": "Vuông (1:1)",
+  "inputs.size.options.wide": "Rộng (16:9)",
+  "inputs.size.options.story": "Story (9:16)",
+  "inputs.accent.label": "Màu dạng sóng",
+  "inputs.ink.label": "Màu văn bản",
+  "inputs.bg.label": "Nền"
+}

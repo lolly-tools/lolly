@@ -1,0 +1,46 @@
+{
+  "id": "distribution-lab",
+  "name": "Distribution explorer",
+  "category": "Statistical",
+  "description": "Start with observations and switch among boxes, rugs, histograms, density ridges and cumulative distributions without repasting data.",
+  "values": {
+    "renderMode": "statistical",
+    "chartType": "box",
+    "plotType": "box-observations",
+    "chartStyle": "technical",
+    "data": "Observation,New flow,Current flow\n01,41,52\n02,44,61\n03,46,55\n04,47,69\n05,49,58\n06,50,72\n07,52,63\n08,53,77\n09,55,66\n10,57,81\n11,59,70\n12,62,84",
+    "heading": "The new flow is faster and more consistent",
+    "subheading": "Task completion time in seconds",
+    "xTitle": "Seconds",
+    "plotShowRaw": true,
+    "showGrid": true,
+    "showLegend": false
+  },
+  "presets": [
+    {
+      "id": "rug",
+      "name": "Histogram + rug",
+      "description": "Keep every observation visible beneath the binned shape.",
+      "values": {
+        "plotType": "rug-histogram"
+      }
+    },
+    {
+      "id": "ridges",
+      "name": "Density panels",
+      "description": "Compare smooth distribution shapes in aligned small multiples.",
+      "values": {
+        "plotType": "density-ridges"
+      }
+    },
+    {
+      "id": "cumulative",
+      "name": "Cumulative share",
+      "description": "Read the share of observations at or below any value.",
+      "values": {
+        "plotType": "ecdf",
+        "showLegend": true
+      }
+    }
+  ]
+}

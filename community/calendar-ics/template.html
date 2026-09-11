@@ -1,0 +1,72 @@
+{{#if isMonth}}
+<div class="cm-sheet{{#if showWeeks}} cm-has-wk{{/if}}">
+  <h1 class="cm-title">{{monthTitle}}</h1>
+
+  {{#if needsMonth}}
+  <p class="cm-hint">Set the month as YYYY-MM, or enter a date, and the grid draws itself here.</p>
+  {{else}}
+  <div class="cm-grid">
+    <div class="cm-row cm-dows">
+      {{#if showWeeks}}<div class="cm-wk">Wk</div>{{/if}}
+      {{#each weekdayNames}}<div class="cm-dow">{{this}}</div>{{/each}}
+    </div>
+    {{#each weeks}}
+    <div class="cm-row">
+      {{#if showWeeks}}<div class="cm-wk">{{num}}</div>{{/if}}
+      {{#each days}}
+      <div class="cm-day{{#if dim}} cm-dim{{/if}}">
+        <span class="cm-num">{{day}}</span>{{#each chips}}<span class="cm-chip">{{#if time}}<span class="cm-chip-t">{{time}}</span>{{/if}}{{title}}</span>{{/each}}{{#if more}}<span class="cm-more">{{moreLabel}}</span>{{/if}}
+      </div>
+      {{/each}}
+    </div>
+    {{/each}}
+  </div>
+  {{#if skippedRows}}<p class="cm-note">{{skippedNote}}</p>{{/if}}
+  {{/if}}
+</div>
+{{else}}
+<div class="cal-stage">
+  <article class="cal-card">
+    <aside class="cal-chip{{#if multiDay}} cal-chip-range{{/if}}">
+      <span class="cal-chip-month">{{cardMonth}}</span>
+      <span class="cal-chip-day">{{cardDay}}</span>
+      <span class="cal-chip-weekday">{{cardTileSub}}</span>
+    </aside>
+
+    <div class="cal-main">
+      <p class="cal-kicker">Calendar event <span class="cal-ext">.ics</span></p>
+      <h1 class="cal-title">{{cardTitle}}</h1>
+      <p class="cal-when">{{cardWhen}}</p>
+
+      <ul class="cal-meta">
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#30ba78" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg>
+          <span>{{cardTimeRange}}</span>
+        </li>
+        {{#if hasLocation}}
+        <li>
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#30ba78" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          <span>{{city}}</span>
+        </li>
+        {{/if}}
+        {{#if hasReminder}}
+        <li data-lolly-anno="{{reminder}}">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#30ba78" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg>
+          <span>{{reminderLabel}}</span>
+        </li>
+        {{/if}}
+        {{#if hasUrl}}
+        <li class="cal-link">
+          <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="#30ba78" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 15l6-6"/><path d="M10.5 7.5l1.8-1.8a3.5 3.5 0 0 1 5 5l-1.8 1.8"/><path d="M13.5 16.5l-1.8 1.8a3.5 3.5 0 0 1-5-5l1.8-1.8"/></svg>
+          <span>{{url}}</span>
+        </li>
+        {{/if}}
+      </ul>
+
+      {{#if hasDescription}}
+      <p class="cal-desc">{{description}}</p>
+      {{/if}}
+    </div>
+  </article>
+</div>
+{{/if}}

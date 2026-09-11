@@ -1,0 +1,39 @@
+/* Editor-only scannability feedback (plans/162 Part 3). These blocks carry
+   data-export-hide, so they never reach the exported PNG/SVG/PDF (the CLI's
+   rootSvgOf skips them; the web raster path detaches them) - they are guidance
+   while designing, not part of the asset. A full colour wash (not a single-edge
+   rail) marks them, per the house rule on radiused elements. */
+
+.qr-scan-warn {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff5f5;
+  color: #7a1f12;
+  font: 13px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.qr-scan-warn__h {
+  font-weight: 700;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.qr-scan-warn ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.qr-scan-warn li + li {
+  margin-top: 4px;
+}
+
+.qr-scan-warn p {
+  margin: 0;
+}
+
+.qr-scan-info {
+  margin: 8px 0 0;
+  font: 12px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: #6b6b6b;
+}

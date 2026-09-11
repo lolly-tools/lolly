@@ -1,0 +1,1103 @@
+{
+  "id": "record",
+  "name": "Record",
+  "description": "Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically.",
+  "a11yLabel": "Record - an editable intro and outro around a camera clip",
+  "version": "1.4.1",
+  "engineVersion": ">=1.150.0 <2.0.0",
+  "status": "official",
+  "category": "everyone",
+  "tags": [
+    "video",
+    "record",
+    "recording",
+    "camera",
+    "microphone",
+    "talking head",
+    "intro",
+    "outro",
+    "bookend",
+    "lower-third",
+    "reel",
+    "social",
+    "portrait",
+    "editor",
+    "layout",
+    "transition",
+    "animation",
+    "motion",
+    "wysiwyg"
+  ],
+  "capabilities": [
+    "camera",
+    "microphone"
+  ],
+  "render": {
+    "width": 1080,
+    "height": 1920,
+    "formats": ["mp4", "webm", "srt", "vtt", "gif", "webp-anim"],
+    "capture": "av",
+    "actions": [
+      "download",
+      "save"
+    ],
+    "layout": "editor",
+    "paged": true,
+    "dims": false,
+    "printMarks": false,
+    "convertPaths": false,
+    "transparentBg": false,
+    "video": {
+      "wait": 0,
+      "duration": 8
+    },
+    "pages": {
+      "count": "frames",
+      "width": "pageW",
+      "height": "pageH",
+      "gap": 56,
+      "min": 3,
+      "max": 3
+    },
+    "transcribe": {
+      "source": "clip",
+      "target": "transcript",
+      "format": "srt",
+      "auto": "autoCaption"
+    }
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true
+  },
+  "inputs": [
+    {
+      "id": "frames",
+      "type": "number",
+      "label": "Frames",
+      "default": 3,
+      "min": 3,
+      "max": 3,
+      "group": "size",
+      "help": "Fixed at three: an intro card, your camera, and an outro card."
+    },
+    {
+      "id": "pageW",
+      "type": "number",
+      "label": "Frame width",
+      "default": 1080,
+      "min": 100,
+      "max": 8000,
+      "group": "size"
+    },
+    {
+      "id": "pageH",
+      "type": "number",
+      "label": "Frame height",
+      "default": 1920,
+      "min": 100,
+      "max": 8000,
+      "group": "size"
+    },
+    {
+      "id": "brandColor",
+      "label": "Bookend colour",
+      "type": "color",
+      "default": "{color.semantic.primary}",
+      "help": "Fills the intro and outro cards and tints the fade at the very ends of the clip."
+    },
+    {
+      "id": "accent",
+      "label": "Accent",
+      "type": "color",
+      "default": "{color.semantic.secondary}"
+    },
+    {
+      "id": "clip",
+      "type": "asset",
+      "label": "Camera clip",
+      "assetType": "video",
+      "allowUpload": true,
+      "help": "Your recorded take - tap ● on the middle frame to film it, or drop in a video. The intro and outro wrap around it on export."
+    },
+    {
+      "id": "clipFit",
+      "type": "select",
+      "label": "Video fit",
+      "default": "cover",
+      "options": [
+        {
+          "value": "cover",
+          "label": "Fill frame (crop)"
+        },
+        {
+          "value": "contain",
+          "label": "Fit whole video"
+        }
+      ],
+      "help": "How your clip sits in the frame. Fill crops it to cover the frame edge-to-edge; Fit shows the whole video with bars - handy when you upload a landscape or square recording into a portrait frame."
+    },
+    {
+      "id": "transcript",
+      "label": "Transcript",
+      "type": "longtext",
+      "default": "",
+      "rows": 6,
+      "group": "Subtitles",
+      "dataSource": {
+        "accept": ".srt,.vtt,text/plain,text/vtt"
+      },
+      "help": "Subtitles as SRT. Filled by Transcribe, or drop in your own file. Exported as an .srt or .vtt file to upload alongside the video, not burned into the picture. Times shift to match the intro card in front of your clip."
+    },
+    {
+      "id": "autoCaption",
+      "label": "Auto-caption",
+      "type": "boolean",
+      "default": false,
+      "group": "Subtitles",
+      "help": "Transcribe a newly recorded take on the spot, with no click. Runs on your device; the first run downloads the speech model once."
+    },
+    {
+      "id": "introMs",
+      "label": "Intro length",
+      "type": "number",
+      "display": "slider",
+      "min": 800,
+      "max": 5000,
+      "step": 100,
+      "default": 2200,
+      "group": "Timing",
+      "help": "How long the intro card holds on screen (milliseconds) before the camera clip."
+    },
+    {
+      "id": "outroMs",
+      "label": "Outro length",
+      "type": "number",
+      "display": "slider",
+      "min": 800,
+      "max": 5000,
+      "step": 100,
+      "default": 2400,
+      "group": "Timing",
+      "help": "How long the outro card holds after the camera clip."
+    },
+    {
+      "id": "enterMs",
+      "label": "Entrance speed",
+      "type": "number",
+      "display": "slider",
+      "min": 200,
+      "max": 1600,
+      "step": 50,
+      "default": 650,
+      "group": "Timing",
+      "help": "How long each object takes to animate in with its chosen transition."
+    },
+    {
+      "id": "boxes",
+      "urlKey": "bx",
+      "type": "blocks",
+      "label": "Objects",
+      "labelledFields": true,
+      "addMenu": {
+        "field": "kind",
+        "label": "Add object"
+      },
+      "canvas": {
+        "idField": "id",
+        "xField": "x",
+        "yField": "y",
+        "wField": "w",
+        "hField": "h",
+        "rotationField": "rot",
+        "shapeField": "shape",
+        "radiusField": "radius",
+        "fillField": "bg",
+        "opacityField": "opacity",
+        "imageField": "image",
+        "imgPosField": "imgpos",
+        "textField": "text",
+        "textColorField": "fg",
+        "fontSizeField": "fontSize",
+        "alignField": "align",
+        "valignField": "valign",
+        "weightField": "weight",
+        "fontField": "font",
+        "lineHeightField": "lineHeight",
+        "trackingField": "tracking",
+        "ligaturesField": "ligatures",
+        "alternatesField": "alternates",
+        "padField": "pad",
+        "fitField": "fit",
+        "blendField": "blend",
+        "groupField": "group",
+        "clipField": "clip",
+        "shadowField": "shadow",
+        "shadowColorField": "shadowColor",
+        "shadowXField": "shadowX",
+        "shadowYField": "shadowY",
+        "shadowBlurField": "shadowBlur",
+        "minSize": 8,
+        "import": {
+          "formats": [
+            "svg",
+            "penpot",
+            "pdf",
+            "ai",
+            "idml"
+          ]
+        },
+        "addKinds": [
+          {
+            "id": "text",
+            "label": "Text",
+            "seed": {
+              "kind": "text",
+              "bg": "",
+              "shape": "rect",
+              "text": "Text",
+              "fg": "#ffffff",
+              "fontSize": 72,
+              "valign": "top",
+              "font": "SUSE",
+              "lineHeight": 1.1,
+              "transition": "rise",
+              "delay": 0
+            }
+          },
+          {
+            "id": "box",
+            "label": "Box",
+            "seed": {
+              "kind": "box",
+              "bg": "#30BA78",
+              "shape": "rounded",
+              "text": "",
+              "transition": "grow",
+              "delay": 0
+            }
+          },
+          {
+            "id": "image",
+            "label": "Image",
+            "seed": {
+              "kind": "image",
+              "bg": "",
+              "shape": "rect",
+              "fit": "contain",
+              "text": "",
+              "transition": "pop",
+              "delay": 0
+            }
+          },
+          {
+            "id": "lottie",
+            "label": "Animation",
+            "seed": {
+              "kind": "image",
+              "bg": "",
+              "shape": "rect",
+              "fit": "contain",
+              "text": "",
+              "transition": "fade",
+              "delay": 0
+            }
+          },
+          {
+            "id": "video",
+            "label": "Video",
+            "seed": {
+              "kind": "image",
+              "bg": "",
+              "shape": "rounded",
+              "fit": "cover",
+              "text": "",
+              "transition": "fade",
+              "delay": 0
+            }
+          }
+        ]
+      },
+      "fields": [
+        {
+          "id": "id",
+          "type": "text"
+        },
+        {
+          "id": "kind",
+          "type": "select",
+          "label": "Kind",
+          "default": "text",
+          "options": [
+            {
+              "value": "box",
+              "label": "Box",
+              "repeatable": true
+            },
+            {
+              "value": "text",
+              "label": "Text",
+              "repeatable": true
+            },
+            {
+              "value": "image",
+              "label": "Image",
+              "repeatable": true
+            }
+          ]
+        },
+        {
+          "id": "x",
+          "type": "number",
+          "label": "X",
+          "default": 120
+        },
+        {
+          "id": "y",
+          "type": "number",
+          "label": "Y",
+          "default": 120
+        },
+        {
+          "id": "w",
+          "type": "number",
+          "label": "Width",
+          "default": 480,
+          "min": 1
+        },
+        {
+          "id": "h",
+          "type": "number",
+          "label": "Height",
+          "default": 200,
+          "min": 1
+        },
+        {
+          "id": "rot",
+          "type": "number",
+          "label": "Rotation",
+          "default": 0,
+          "min": -180,
+          "max": 180
+        },
+        {
+          "id": "transition",
+          "type": "select",
+          "label": "Enter with",
+          "default": "fade",
+          "group": "Motion",
+          "help": "How this object animates in on export - during the intro/outro hold, or (for objects over the camera) as the clip starts and ends.",
+          "options": [
+            {
+              "value": "fade",
+              "label": "Fade"
+            },
+            {
+              "value": "pop",
+              "label": "Pop"
+            },
+            {
+              "value": "grow",
+              "label": "Grow"
+            },
+            {
+              "value": "rise",
+              "label": "Rise"
+            },
+            {
+              "value": "drop",
+              "label": "Drop"
+            },
+            {
+              "value": "slide-left",
+              "label": "Slide from right"
+            },
+            {
+              "value": "slide-right",
+              "label": "Slide from left"
+            },
+            {
+              "value": "slide-up",
+              "label": "Slide from below"
+            },
+            {
+              "value": "slide-down",
+              "label": "Slide from above"
+            },
+            {
+              "value": "zoom-in",
+              "label": "Zoom in"
+            },
+            {
+              "value": "zoom-out",
+              "label": "Zoom out"
+            },
+            {
+              "value": "tilt",
+              "label": "Tilt"
+            },
+            {
+              "value": "swoop",
+              "label": "Swoop"
+            },
+            {
+              "value": "spin",
+              "label": "Spin"
+            },
+            {
+              "value": "drift",
+              "label": "Drift"
+            },
+            {
+              "value": "none",
+              "label": "Cut (no animation)"
+            }
+          ]
+        },
+        {
+          "id": "delay",
+          "type": "number",
+          "label": "Start delay",
+          "default": 0,
+          "min": 0,
+          "max": 4000,
+          "step": 50,
+          "display": "slider",
+          "group": "Motion",
+          "help": "Milliseconds to wait before this object enters - stagger objects for a cascade."
+        },
+        {
+          "id": "shape",
+          "type": "select",
+          "label": "Shape",
+          "default": "rect",
+          "options": [
+            {
+              "value": "rect",
+              "label": "Rectangle"
+            },
+            {
+              "value": "rounded",
+              "label": "Rounded"
+            },
+            {
+              "value": "pill",
+              "label": "Pill"
+            },
+            {
+              "value": "ellipse",
+              "label": "Ellipse"
+            }
+          ]
+        },
+        {
+          "id": "radius",
+          "type": "number",
+          "label": "Corner radius",
+          "default": 16,
+          "min": 0,
+          "showIf": {
+            "shape": "rounded"
+          }
+        },
+        {
+          "id": "bg",
+          "type": "color",
+          "label": "Fill",
+          "default": "{color.semantic.secondary}"
+        },
+        {
+          "id": "opacity",
+          "type": "number",
+          "label": "Opacity",
+          "default": 100,
+          "min": 0,
+          "max": 100,
+          "display": "slider"
+        },
+        {
+          "id": "image",
+          "type": "asset",
+          "label": "Image, animation or video",
+          "assetType": "any",
+          "allowUpload": true,
+          "help": "A photo, logo, SVG, GIF, Lottie animation, or a short video. Animations and video play live on the canvas; the camera clip in the middle frame is your recording."
+        },
+        {
+          "id": "fit",
+          "type": "select",
+          "label": "Image fit",
+          "default": "contain",
+          "options": [
+            {
+              "value": "contain",
+              "label": "Contain (fit inside)"
+            },
+            {
+              "value": "cover",
+              "label": "Cover (crop to fill)"
+            },
+            {
+              "value": "fill",
+              "label": "Stretch"
+            }
+          ]
+        },
+        {
+          "id": "blend",
+          "type": "select",
+          "label": "Blend mode",
+          "default": "normal",
+          "options": [
+            {
+              "value": "normal",
+              "label": "Normal"
+            },
+            {
+              "value": "multiply",
+              "label": "Multiply"
+            },
+            {
+              "value": "screen",
+              "label": "Screen"
+            },
+            {
+              "value": "overlay",
+              "label": "Overlay"
+            },
+            {
+              "value": "darken",
+              "label": "Darken"
+            },
+            {
+              "value": "lighten",
+              "label": "Lighten"
+            },
+            {
+              "value": "color-dodge",
+              "label": "Colour dodge"
+            },
+            {
+              "value": "color-burn",
+              "label": "Colour burn"
+            },
+            {
+              "value": "hard-light",
+              "label": "Hard light"
+            },
+            {
+              "value": "soft-light",
+              "label": "Soft light"
+            },
+            {
+              "value": "difference",
+              "label": "Difference"
+            },
+            {
+              "value": "exclusion",
+              "label": "Exclusion"
+            },
+            {
+              "value": "hue",
+              "label": "Hue"
+            },
+            {
+              "value": "saturation",
+              "label": "Saturation"
+            },
+            {
+              "value": "color",
+              "label": "Colour"
+            },
+            {
+              "value": "luminosity",
+              "label": "Luminosity"
+            }
+          ]
+        },
+        {
+          "id": "text",
+          "type": "text",
+          "label": "Text",
+          "default": "",
+          "multilineFor": [
+            "box",
+            "text",
+            "image"
+          ],
+          "rows": 3,
+          "help": "Rich text: **bold**, *italic* / _italic_, and lines starting with - or • become bullets."
+        },
+        {
+          "id": "fg",
+          "type": "color",
+          "label": "Text colour",
+          "default": "{color.semantic.on-primary}"
+        },
+        {
+          "id": "fontSize",
+          "type": "number",
+          "label": "Text size",
+          "default": 64,
+          "min": 4
+        },
+        {
+          "id": "align",
+          "type": "select",
+          "label": "Align",
+          "default": "center",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left"
+            },
+            {
+              "value": "center",
+              "label": "Centre"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ]
+        },
+        {
+          "id": "valign",
+          "type": "select",
+          "label": "Vertical",
+          "default": "middle",
+          "options": [
+            {
+              "value": "top",
+              "label": "Top"
+            },
+            {
+              "value": "middle",
+              "label": "Middle"
+            },
+            {
+              "value": "bottom",
+              "label": "Bottom"
+            }
+          ]
+        },
+        {
+          "id": "weight",
+          "type": "select",
+          "label": "Weight",
+          "default": "500",
+          "help": "Heaviest weights depend on the chosen font - a mono font may cap below Black (900).",
+          "options": [
+            {
+              "value": "100",
+              "label": "Thin"
+            },
+            {
+              "value": "200",
+              "label": "Extra light"
+            },
+            {
+              "value": "300",
+              "label": "Light"
+            },
+            {
+              "value": "400",
+              "label": "Regular"
+            },
+            {
+              "value": "500",
+              "label": "Medium"
+            },
+            {
+              "value": "600",
+              "label": "Semibold"
+            },
+            {
+              "value": "700",
+              "label": "Bold"
+            },
+            {
+              "value": "800",
+              "label": "Extrabold"
+            },
+            {
+              "value": "900",
+              "label": "Black"
+            }
+          ]
+        },
+        {
+          "id": "font",
+          "type": "select",
+          "label": "Font",
+          "default": "SUSE",
+          "options": [
+            {
+              "value": "SUSE",
+              "label": "Brand Sans"
+            },
+            {
+              "value": "SUSE Mono",
+              "label": "Brand Mono"
+            }
+          ]
+        },
+        {
+          "id": "lineHeight",
+          "type": "number",
+          "label": "Line height",
+          "default": 1.1,
+          "min": 0.7,
+          "max": 3,
+          "step": 0.05
+        },
+        {
+          "id": "tracking",
+          "type": "number",
+          "label": "Kerning",
+          "default": 0,
+          "min": -100,
+          "max": 400,
+          "step": 0.5,
+          "help": "Uniform letter spacing (tracking) in px."
+        },
+        {
+          "id": "ligatures",
+          "type": "boolean",
+          "label": "Ligatures",
+          "default": true
+        },
+        {
+          "id": "alternates",
+          "type": "boolean",
+          "label": "Stylistic alternates",
+          "default": false
+        },
+        {
+          "id": "group",
+          "type": "text",
+          "label": "Group",
+          "default": ""
+        },
+        {
+          "id": "clip",
+          "type": "text",
+          "label": "Clip to",
+          "default": ""
+        },
+        {
+          "id": "pad",
+          "type": "number",
+          "label": "Text padding",
+          "default": 8,
+          "min": 0
+        },
+        {
+          "id": "shadow",
+          "type": "select",
+          "label": "Shadow",
+          "default": "none",
+          "help": "What the drop shadow applies to: the box outline, the text, or the visible content (image alpha).",
+          "options": [
+            {
+              "value": "none",
+              "label": "None"
+            },
+            {
+              "value": "box",
+              "label": "Box"
+            },
+            {
+              "value": "text",
+              "label": "Text"
+            },
+            {
+              "value": "content",
+              "label": "Content"
+            }
+          ]
+        },
+        {
+          "id": "shadowColor",
+          "type": "color",
+          "label": "Shadow colour",
+          "default": "#00000055"
+        },
+        {
+          "id": "shadowX",
+          "type": "number",
+          "label": "Shadow X",
+          "default": 0,
+          "min": -300,
+          "max": 300
+        },
+        {
+          "id": "shadowY",
+          "type": "number",
+          "label": "Shadow Y",
+          "default": 6,
+          "min": -300,
+          "max": 300
+        },
+        {
+          "id": "shadowBlur",
+          "type": "number",
+          "label": "Shadow blur",
+          "default": 24,
+          "min": 0,
+          "max": 300
+        },
+        {
+          "id": "imgpos",
+          "type": "select",
+          "label": "Image position",
+          "default": "center",
+          "options": [
+            {
+              "value": "left top",
+              "label": "Top left"
+            },
+            {
+              "value": "center top",
+              "label": "Top"
+            },
+            {
+              "value": "right top",
+              "label": "Top right"
+            },
+            {
+              "value": "left center",
+              "label": "Left"
+            },
+            {
+              "value": "center",
+              "label": "Centre"
+            },
+            {
+              "value": "right center",
+              "label": "Right"
+            },
+            {
+              "value": "left bottom",
+              "label": "Bottom left"
+            },
+            {
+              "value": "center bottom",
+              "label": "Bottom"
+            },
+            {
+              "value": "right bottom",
+              "label": "Bottom right"
+            }
+          ]
+        },
+        {
+          "id": "transitionEase",
+          "type": "select",
+          "label": "Easing",
+          "default": "",
+          "group": "Motion",
+          "help": "The timing curve this object's entrance follows. Geometry only - the fade keeps its own fast ramp, deliberately, because a slow one turns to mud through video compression. Default leaves the transition on its built-in curve.",
+          "options": [
+            {
+              "value": "",
+              "label": "Default"
+            },
+            {
+              "value": "linear",
+              "label": "Linear"
+            },
+            {
+              "value": "ease-out",
+              "label": "Ease out"
+            },
+            {
+              "value": "ease-in",
+              "label": "Ease in"
+            },
+            {
+              "value": "ease-in-out",
+              "label": "Ease in and out"
+            },
+            {
+              "value": "overshoot",
+              "label": "Overshoot"
+            },
+            {
+              "value": "anticipate",
+              "label": "Anticipate"
+            }
+          ]
+        }
+      ],
+      "default": [
+        {
+          "id": "iBg",
+          "kind": "box",
+          "x": 0,
+          "y": 0,
+          "w": 1080,
+          "h": 1920,
+          "rot": 0,
+          "shape": "rect",
+          "bg": "#111827",
+          "transition": "none",
+          "delay": 0
+        },
+        {
+          "id": "iTitle",
+          "kind": "text",
+          "x": 120,
+          "y": 880,
+          "w": 840,
+          "h": 300,
+          "rot": 0,
+          "shape": "rect",
+          "text": "Hello 👋",
+          "fg": "#ffffff",
+          "fontSize": 128,
+          "align": "center",
+          "valign": "top",
+          "weight": "700",
+          "font": "SUSE",
+          "lineHeight": 1.02,
+          "transition": "rise",
+          "delay": 150
+        },
+        {
+          "id": "iSub",
+          "kind": "text",
+          "x": 160,
+          "y": 1200,
+          "w": 760,
+          "h": 140,
+          "rot": 0,
+          "shape": "rect",
+          "text": "A quick word from me",
+          "fg": "#c7d2fe",
+          "fontSize": 52,
+          "align": "center",
+          "valign": "top",
+          "weight": "500",
+          "font": "SUSE",
+          "lineHeight": 1.15,
+          "transition": "fade",
+          "delay": 350
+        },
+        {
+          "id": "bName",
+          "kind": "text",
+          "x": 1200,
+          "y": 1560,
+          "w": 760,
+          "h": 130,
+          "rot": 0,
+          "shape": "rounded",
+          "radius": 18,
+          "bg": "#111827cc",
+          "text": "Your Name",
+          "fg": "#ffffff",
+          "fontSize": 64,
+          "align": "left",
+          "valign": "middle",
+          "weight": "800",
+          "font": "SUSE",
+          "lineHeight": 1.05,
+          "pad": 30,
+          "transition": "slide-left",
+          "delay": 250
+        },
+        {
+          "id": "bRole",
+          "kind": "text",
+          "x": 1200,
+          "y": 1700,
+          "w": 760,
+          "h": 80,
+          "rot": 0,
+          "shape": "rounded",
+          "radius": 12,
+          "bg": "#6366f1",
+          "text": "Role · @handle",
+          "fg": "#ffffff",
+          "fontSize": 38,
+          "align": "left",
+          "valign": "middle",
+          "weight": "600",
+          "font": "SUSE",
+          "lineHeight": 1.1,
+          "pad": 22,
+          "transition": "slide-left",
+          "delay": 400
+        },
+        {
+          "id": "oBg",
+          "kind": "box",
+          "x": 2272,
+          "y": 0,
+          "w": 1080,
+          "h": 1920,
+          "rot": 0,
+          "shape": "rect",
+          "bg": "#111827",
+          "transition": "none",
+          "delay": 0
+        },
+        {
+          "id": "oTitle",
+          "kind": "text",
+          "x": 2352,
+          "y": 880,
+          "w": 920,
+          "h": 240,
+          "rot": 0,
+          "shape": "rect",
+          "text": "Thanks for\nwatching",
+          "fg": "#ffffff",
+          "fontSize": 108,
+          "align": "center",
+          "valign": "top",
+          "weight": "700",
+          "font": "SUSE",
+          "lineHeight": 1.02,
+          "transition": "rise",
+          "delay": 150
+        },
+        {
+          "id": "oCta",
+          "kind": "box",
+          "x": 2612,
+          "y": 1240,
+          "w": 400,
+          "h": 110,
+          "rot": 0,
+          "shape": "pill",
+          "bg": "#6366f1",
+          "transition": "grow",
+          "delay": 350
+        },
+        {
+          "id": "oCtaT",
+          "kind": "text",
+          "x": 2612,
+          "y": 1240,
+          "w": 400,
+          "h": 110,
+          "rot": 0,
+          "shape": "rect",
+          "text": "yoursite.com",
+          "fg": "#ffffff",
+          "fontSize": 46,
+          "align": "center",
+          "valign": "middle",
+          "weight": "700",
+          "font": "SUSE",
+          "lineHeight": 1.1,
+          "transition": "grow",
+          "delay": 400
+        }
+      ]
+    }
+  ]
+}

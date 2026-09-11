@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "लिंक, कॉन्टैक्ट कार्ड, Wi-Fi नेटवर्क, कैलेंडर इवेंट, लोकेशन या सादे टेक्स्ट के लिए QR कोड।",
+  "a11yLabel": "{{default url \"(no URL set)\"}} से लिंक करता QR कोड",
+  "featured.blurb": "किसी भी ब्रांड रंग में QR कोड",
+  "inputs.url.label": "URL",
+  "inputs.color.label": "मॉड्यूल रंग",
+  "inputs.background.label": "बैकग्राउंड",
+  "inputs.ecl.label": "त्रुटि सुधार",
+  "inputs.ecl.options.L": "कम (7%)",
+  "inputs.ecl.options.M": "मध्यम (15%)",
+  "inputs.ecl.options.Q": "क्वार्टाइल (25%)",
+  "inputs.ecl.options.H": "उच्च (30%)",
+  "inputs.padding.label": "क्वाइट ज़ोन",
+  "inputs.padding.help": "कोड के चारों ओर सफ़ेद जगह के मॉड्यूल। न्यूनतम 4 की सलाह दी जाती है।",
+  "inputs.join.label": "जुड़े हुए मॉड्यूल",
+  "inputs.join.help": "सभी मॉड्यूल को एक ही SVG पाथ में मिला दें। छोटे आकारों पर ज़्यादा क्रिस्प दिखता है।"
+}

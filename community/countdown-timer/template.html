@@ -1,0 +1,344 @@
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.ct-root {
+  width: 100%; height: 100%;
+  background: var(--brand-text, #111);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-brand, SUSE, ui-sans-serif, sans-serif);
+}
+
+.ct-canvas {
+  position: relative;
+  width: clamp(280px, 72vmin, 580px);
+  height: clamp(280px, 72vmin, 580px);
+}
+
+/* SVG rotated so the arc starts at 12 o'clock */
+.ct-donut {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transform: rotate(-90deg);
+}
+
+.ct-track {
+  fill: none;
+  stroke: color-mix(in srgb, var(--brand-primary, #30ba78) 14%, transparent);
+  stroke-width: 10;
+}
+
+.ct-ring {
+  fill: none;
+  stroke: var(--brand-primary, #30ba78);
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear, stroke 0.4s ease;
+}
+
+.ct-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* ── Time display ─────────────────────────────────────── */
+.ct-time {
+  font-size: clamp(48px, 13vmin, 96px);
+  font-weight: 200;
+  letter-spacing: -0.04em;
+  color: #fff;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.45s ease;
+}
+/* When the "click to pause" hint fades on idle, glide the time down to the true
+   centre of the ring (recovering the space the hint left); it slides back up when
+   the hint returns. Running-state only - paused keeps its label + controls put. */
+.ct-root.ct-idle[data-state="running"] .ct-time { transform: translateY(11px); }
+
+.ct-hint {
+  font-size: clamp(10px, 1.8vmin, 13px);
+  color: rgba(255, 255, 255, 0.28);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 500;
+  transition: opacity 0.45s ease;
+}
+/* Idle (no mouse/keyboard for 3s): fade the hint too - driven from .ct-root so it
+   applies to whichever hint is currently rendered in the overlay. The paused state
+   keeps its "paused" label (and Reset/Resume) visible. */
+.ct-root.ct-idle:not([data-state="paused"]) .ct-hint { opacity: 0; }
+
+/* ── Set-state input ──────────────────────────────────── */
+.ct-input {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid color-mix(in srgb, var(--brand-primary, #30ba78) 35%, transparent);
+  color: #fff;
+  font-family: inherit;
+  font-size: clamp(48px, 13vmin, 96px);
+  font-weight: 200;
+  letter-spacing: -0.04em;
+  border-radius:0;
+  text-align: center;
+  width: 5.5ch;
+  outline: none;
+  font-variant-numeric: tabular-nums;
+  padding-bottom: 4px;
+  caret-color: var(--brand-primary, #30ba78);
+}
+.ct-input::selection { background: color-mix(in srgb, var(--brand-primary, #30ba78) 30%, transparent); }
+.ct-input:focus { border-bottom-color: var(--brand-primary, #30ba78); }
+
+/* ── Buttons ──────────────────────────────────────────── */
+.ct-controls { display: flex; gap: 10px; margin-top: 6px; }
+
+.ct-btn {
+  border: none;
+  border-radius: 100px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 10px 26px;
+  transition: opacity 0.15s;
+}
+.ct-btn:hover { opacity: 0.78; }
+
+.ct-btn-primary { background: var(--brand-primary, #30ba78); color: var(--brand-on-primary, #111); }
+
+.ct-btn-ghost {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  transition: opacity 0.15s, color 0.15s, border-color 0.15s;
+}
+.ct-btn-ghost:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.38);
+  opacity: 1;
+}
+
+/* ── Done state ───────────────────────────────────────── */
+@keyframes ct-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.25; }
+}
+.ct-time-done {
+  color: #fe7c3f;
+  animation: ct-pulse 1.2s ease-in-out infinite;
+}
+</style>
+
+<div class="ct-root">
+  <div class="ct-canvas" id="ct-canvas">
+    <svg class="ct-donut" viewBox="0 0 200 200" aria-hidden="true">
+      <circle class="ct-track" cx="100" cy="100" r="80"/>
+      <circle class="ct-ring"  id="ct-ring"  cx="100" cy="100" r="80"/>
+    </svg>
+    <div class="ct-overlay" id="ct-overlay"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var C = 2 * Math.PI * 80; // circumference ≈ 502.65
+
+  var canvas  = document.getElementById('ct-canvas');
+  var overlay = document.getElementById('ct-overlay');
+  var ring    = document.getElementById('ct-ring');
+  var root    = canvas.closest('.ct-root');
+
+  ring.setAttribute('stroke-dasharray',  C);
+  ring.setAttribute('stroke-dashoffset', 0);
+
+  var state    = 'set';
+  var totalMs  = 5 * 60 * 1000;
+  var remainMs = totalMs;
+  var startAt  = null;
+  var tickId   = null;
+
+  // ── State machine ──────────────────────────────────────────────────────────
+
+  function go(s) {
+    state = s;
+    if (root) root.dataset.state = s;   // lets CSS keep the hint visible while paused
+    clearTick();
+    updateRing();
+    if      (s === 'set')     renderSet();
+    else if (s === 'running') { renderRunning(); scheduleTick(); }
+    else if (s === 'paused')  renderPaused();
+    else if (s === 'done')    { remainMs = 0; updateRing(); renderDone(); }
+  }
+
+  function start(ms) {
+    if (!ms || ms <= 0) return;
+    totalMs  = ms;
+    remainMs = ms;
+    startAt  = Date.now();
+    go('running');
+  }
+
+  function pause()  { go('paused'); }
+
+  function resume() {
+    startAt = Date.now() - (totalMs - remainMs);
+    go('running');
+  }
+
+  function reset()  { remainMs = totalMs; go('set'); }
+
+  // ── Tick ──────────────────────────────────────────────────────────────────
+
+  function scheduleTick() {
+    tickId = setTimeout(function () {
+      remainMs = Math.max(0, totalMs - (Date.now() - startAt));
+      updateRing();
+      var el = document.getElementById('ct-display');
+      if (el) el.textContent = fmt(remainMs);
+      remainMs <= 0 ? go('done') : scheduleTick();
+    }, 1000);
+  }
+
+  function clearTick() {
+    if (tickId !== null) { clearTimeout(tickId); tickId = null; }
+  }
+
+  // ── Ring ──────────────────────────────────────────────────────────────────
+
+  function updateRing() {
+    var frac = totalMs > 0 ? Math.max(0, remainMs / totalMs) : 0;
+    ring.setAttribute('stroke-dashoffset', C * (1 - frac));
+    ring.style.stroke = (state === 'done') ? '#fe7c3f' : 'var(--brand-primary, #30ba78)';
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
+  function renderSet() {
+    ring.setAttribute('stroke-dashoffset', 0); // full ring as "ready" signal
+    canvas.style.cursor = 'default';
+    overlay.innerHTML =
+      '<input class="ct-input" id="ct-input" type="text" value="' + fmt(totalMs) + '" ' +
+        'autocomplete="off" spellcheck="false" maxlength="5">' +
+      '<div class="ct-hint">enter time · press enter</div>' +
+      '<div class="ct-controls">' +
+        '<button class="ct-btn ct-btn-primary" id="ct-start-btn">Start</button>' +
+      '</div>';
+
+    var input = document.getElementById('ct-input');
+    function doStart() { start(parse(input.value)); }
+
+    input.addEventListener('keydown', function (e) { if (e.key === 'Enter') doStart(); });
+    document.getElementById('ct-start-btn').addEventListener('click', function (e) {
+      e.stopPropagation(); doStart();
+    });
+    setTimeout(function () { if (input) { input.focus(); input.select(); } }, 40);
+  }
+
+  function renderRunning() {
+    canvas.style.cursor = 'pointer';
+    overlay.innerHTML =
+      '<div class="ct-time" id="ct-display">' + fmt(remainMs) + '</div>' +
+      '<div class="ct-hint">click to pause</div>';
+  }
+
+  function renderPaused() {
+    canvas.style.cursor = 'default';
+    overlay.innerHTML =
+      '<div class="ct-time">' + fmt(remainMs) + '</div>' +
+      '<div class="ct-hint">paused</div>' +
+      '<div class="ct-controls">' +
+        '<button class="ct-btn ct-btn-ghost"   id="ct-reset-btn">Reset</button>' +
+        '<button class="ct-btn ct-btn-primary" id="ct-resume-btn">Resume</button>' +
+      '</div>';
+
+    document.getElementById('ct-reset-btn').addEventListener('click',  function (e) { e.stopPropagation(); reset(); });
+    document.getElementById('ct-resume-btn').addEventListener('click', function (e) { e.stopPropagation(); resume(); });
+  }
+
+  function renderDone() {
+    canvas.style.cursor = 'default';
+    overlay.innerHTML =
+      '<div class="ct-time ct-time-done">0:00</div>' +
+      '<div class="ct-hint" style="color:rgba(254,124,63,0.5)">time\'s up</div>' +
+      '<div class="ct-controls">' +
+        '<button class="ct-btn ct-btn-primary" id="ct-again-btn">Set again</button>' +
+      '</div>';
+
+    document.getElementById('ct-again-btn').addEventListener('click', function (e) { e.stopPropagation(); reset(); });
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  function fmt(ms) {
+    var s   = Math.ceil(ms / 1000);
+    var min = Math.floor(s / 60);
+    var sec = s % 60;
+    return min + ':' + (sec < 10 ? '0' : '') + sec;
+  }
+
+  function parse(v) {
+    v = (v || '').trim();
+    if (v.indexOf(':') >= 0) {
+      var p = v.split(':');
+      return ((parseInt(p[0]) || 0) * 60 + (parseInt(p[1]) || 0)) * 1000;
+    }
+    var n = parseFloat(v);
+    return ((n > 0 && isFinite(n)) ? n : 5) * 60 * 1000;
+  }
+
+  // ── Canvas click → pause while running ────────────────────────────────────
+
+  canvas.addEventListener('click', function () {
+    if (state === 'running') pause();
+  });
+
+  // ── Auto-hide the shell "Tools" back button after 3s of no mouse/keyboard ──
+  // For an immersive timer, fade the corner "Tools" link away when the pointer and
+  // keyboard have been idle for 3s; any activity brings it back. The listeners live
+  // on window and self-remove once the button leaves the DOM (tool navigation), so
+  // nothing leaks - this template script re-run is guarded by a flag on the button.
+  (function () {
+    var back = document.querySelector('.tools-home.home-full') || document.querySelector('.tools-home');
+    if (!back || back.__ctIdle) return;
+    back.__ctIdle = true;
+    back.style.transition = 'opacity 0.45s ease';
+    var idle = null;
+    var events = ['mousemove', 'pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart'];
+    function cleanup() {
+      if (idle) { clearTimeout(idle); idle = null; }
+      events.forEach(function (ev) { window.removeEventListener(ev, onActivity, true); });
+    }
+    function hide() {
+      if (!back.isConnected) { cleanup(); return; }
+      back.style.opacity = '0';
+      back.style.pointerEvents = 'none';
+      if (root) root.classList.add('ct-idle');   // fade the on-screen hint too
+    }
+    function arm() { if (idle) clearTimeout(idle); idle = setTimeout(hide, 3000); }
+    function onActivity() {
+      if (!back.isConnected) { cleanup(); return; }
+      back.style.opacity = '';
+      back.style.pointerEvents = '';
+      if (root) root.classList.remove('ct-idle');
+      arm();
+    }
+    events.forEach(function (ev) { window.addEventListener(ev, onActivity, true); });
+    arm();
+  }());
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+
+  go('set');
+
+}());
+</script>

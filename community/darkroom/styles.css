@@ -1,0 +1,161 @@
+/* Bitmap Studio - screen-only chrome over the render. Everything here styles
+   the [data-export-hide] HUD; the artwork itself is one composed bitmap inside
+   the SVG and carries no CSS dependency, so exports are byte-stable. */
+
+.bs-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.bs-hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-family: SUSE, system-ui, -apple-system, sans-serif;
+}
+
+.bs-chip {
+  position: absolute;
+  top: 10px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #fff;
+  background: rgba(12, 14, 22, 0.55);
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+  max-width: 46%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bs-chip-lut   { right: 10px; }
+
+.bs-chip-err {
+  right: 10px;
+  top: auto;
+  bottom: 10px;
+  background: rgba(140, 34, 34, 0.8);
+}
+
+/* ── Before/after divider grips ──────────────────────────────────────────────
+   Screen-only handles over the SVG seam. The line itself is baked in the SVG;
+   these dots move (centre) and rotate (offset) it. */
+.bs-split { position: absolute; inset: 0; pointer-events: none; }
+
+.bs-split-grip {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;               /* centre on the (left,top) point */
+  border-radius: 999px;
+  background: rgba(12, 14, 22, 0.55);
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  pointer-events: auto;
+  touch-action: none;
+  cursor: grab;
+}
+.bs-split-grip:active { cursor: grabbing; }
+.bs-split-grip:focus-visible { outline: 2px solid #6ea8ff; outline-offset: 2px; }
+
+/* Move grip: a hollow ring with a dot. Rotate grip: a ↻ hint. */
+.bs-split-move::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+}
+.bs-split-rot {
+  cursor: crosshair;
+  background: rgba(110, 168, 255, 0.35);
+  border-color: #cfe0ff;
+}
+
+.bs-split-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #fff;
+  background: rgba(12, 14, 22, 0.55);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* ── Histogram card - movable + resizable, quiet until hovered ────────────────
+   Position + size are set inline by the controller script; these are the resting
+   look. */
+.bs-hist {
+  position: absolute;
+  left: 10px;
+  top: auto;
+  bottom: 10px;
+  width: 30%;
+  min-width: 140px;
+  max-width: 260px;
+  aspect-ratio: 5 / 2;
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(12, 14, 22, 0.55);
+  backdrop-filter: blur(4px);
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+  pointer-events: auto;
+  touch-action: none;
+  cursor: move;
+}
+
+.bs-wrap:hover .bs-hist { opacity: 1; }
+
+.bs-hist svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.bs-hist-resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  touch-action: none;
+  background:
+    linear-gradient(-45deg, transparent 0 4px, rgba(255, 255, 255, 0.85) 4px 5px,
+      transparent 5px 8px, rgba(255, 255, 255, 0.85) 8px 9px, transparent 9px);
+  border-bottom-right-radius: 8px;
+}
+
+/* Layered mode: the PSD rebuild button (screen only, never exported). */
+.bs-psd-download {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(20, 22, 30, 0.82);
+  color: #fff;
+  font: 500 13px/1 SUSE, system-ui, sans-serif;
+  cursor: pointer;
+  opacity: 0.35;
+  transition: opacity 0.15s ease;
+}
+
+.bs-psd-download:hover,
+.bs-psd-download:focus-visible {
+  opacity: 1;
+}
+
+.bs-psd-download[disabled] {
+  opacity: 0.5;
+  cursor: wait;
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Convertește imagine",
+  "description": "Transformă HEIC, TIFF sau orice fotografie în WebP, JPEG sau PNG - pe dispozitivul tău.",
+  "a11yLabel": "Conversie imagine pentru {{fileName}}",
+  "inputs.source.label": "Imagine",
+  "inputs.source.help": "O imagine HEIC, HEIF, JPEG, PNG, WebP, AVIF sau TIFF. Este citită în browserul tău și nu îți părăsește niciodată dispozitivul.",
+  "inputs.target.label": "Convertește în",
+  "inputs.target.help": "Formatul de ieșire. WebP e de obicei cel mai mic; PNG e fără pierderi.",
+  "inputs.target.options.webp": "WebP - cel mai mic, păstrează transparența",
+  "inputs.target.options.jpeg": "JPEG - universal, pentru fotografii",
+  "inputs.target.options.png": "PNG - fără pierderi, păstrează transparența",
+  "inputs.quality.label": "Calitate",
+  "inputs.quality.help": "Calitatea pentru formatele cu pierderi. O valoare mai mică înseamnă un fișier mai mic și detalii mai estompate. PNG o ignoră.",
+  "inputs.maxEdge.label": "Cea mai lungă latură (px)",
+  "inputs.maxEdge.help": "Micșorează astfel încât latura cea mai lungă să aibă cel mult atâția pixeli. 0 păstrează dimensiunea originală. Nu mărește niciodată.",
+  "inputs.keepLocation.label": "Păstrează locația",
+  "inputs.keepLocation.help": "Preia poziția GPS a fotografiei în fișierul convertit. Dezactivat implicit - locația este o dată personală. Celelalte date ale fotografiei (autor, copyright, data capturii) sunt preluate întotdeauna, iar cardul arată exact ce s-a întâmplat."
+}

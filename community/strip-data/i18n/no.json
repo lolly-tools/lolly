@@ -1,0 +1,7 @@
+{
+  "name": "Fjern skjulte data",
+  "description": "Avslør og fjern skjult metadata fra bilder og PDF-er - på din enhet.",
+  "a11yLabel": "Rapport om skjulte data for {{fileName}}",
+  "inputs.source.label": "Bilde eller PDF",
+  "inputs.source.help": "En JPEG-, PNG-, SVG- eller PDF-fil. Den leses i nettleseren din og forlater aldri enheten din."
+}

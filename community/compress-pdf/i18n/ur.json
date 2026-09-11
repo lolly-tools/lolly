@@ -1,0 +1,14 @@
+{
+  "name": "Compress",
+  "description": "اپنی تصاویر کو دوبارہ کمپریس کر کے PDF کو چھوٹا کریں - آپ کے آلے پر۔",
+  "a11yLabel": "{{fileName}} کے لیے PDF کمپریسر",
+  "inputs.source.label": "PDF",
+  "inputs.source.help": "ایک PDF فائل۔ یہ آپ کے براؤزر میں پڑھی جاتی ہے اور کبھی آپ کے آلے سے باہر نہیں جاتی۔",
+  "inputs.level.label": "کمپریشن",
+  "inputs.level.help": "ایمبیڈڈ تصاویر کو کتنی سختی سے کمپریس کرنا ہے۔ زیادہ سخت کا مطلب چھوٹی فائلیں اور نرم تصاویر ہیں۔",
+  "inputs.level.options.light": "ہلکا - معیار بلند رکھیں",
+  "inputs.level.options.balanced": "متوازن",
+  "inputs.level.options.strong": "مضبوط - سب سے چھوٹی فائل",
+  "inputs.grayscale.label": "تصاویر کو گرے اسکیل میں تبدیل کریں",
+  "inputs.grayscale.help": "اضافی بچت کے لیے تصاویر سے رنگ ہٹا دیں - اسکین شدہ متنی دستاویزات کے لیے مفید۔"
+}

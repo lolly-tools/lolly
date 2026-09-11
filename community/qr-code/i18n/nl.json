@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "QR-codes voor een link, contactkaart, Wi-Fi-netwerk, agenda-afspraak, locatie of platte tekst.",
+  "featured.blurb": "QR-codes in elke merkkleur",
+  "a11yLabel": "QR-code die linkt naar {{default url \"(no URL set)\"}}",
+  "inputs.url.label": "URL",
+  "inputs.color.label": "Modulekleur",
+  "inputs.background.label": "Achtergrond",
+  "inputs.ecl.label": "Foutcorrectie",
+  "inputs.ecl.options.L": "Laag (7%)",
+  "inputs.ecl.options.M": "Gemiddeld (15%)",
+  "inputs.ecl.options.Q": "Quartiel (25%)",
+  "inputs.ecl.options.H": "Hoog (30%)",
+  "inputs.padding.label": "Stille zone",
+  "inputs.padding.help": "Modules witruimte rond de code. Minimaal 4 aanbevolen.",
+  "inputs.join.label": "Samengevoegde modules",
+  "inputs.join.help": "Voeg alle modules samen tot één SVG-pad. Scherper op kleine formaten."
+}

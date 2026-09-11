@@ -1,0 +1,20 @@
+<div class="wa-root" style="{{{rootStyle}}}">
+  {{{filterDefs}}}
+
+  <div class="wa-photo" style="{{{photoStyle}}}">
+    {{#if photo.url}}
+    <img class="wa-img" src="{{asset photo}}" alt="" {{framing "imageFraming" style=filterCss}}>
+    {{else}}
+    <svg class="wa-ph" viewBox="0 0 100 100" aria-hidden="true">
+      <rect class="wa-ph-bg" width="100" height="100"/>
+      <circle class="wa-ph-fg" cx="50" cy="40" r="17"/>
+      <path class="wa-ph-fg" d="M15 100c2-22 17-34 35-34s33 12 35 34z"/>
+    </svg>
+    {{/if}}
+  </div>
+
+  {{{ringSvg}}}
+  {{{textSvg}}}
+
+  {{#if waWarning}}<p class="wa-warn" data-export-hide role="status">{{waWarning}}</p>{{/if}}
+</div>

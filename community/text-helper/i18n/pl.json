@@ -1,0 +1,5 @@
+{
+  "name": "Pomocnik tekstu",
+  "description": "Formatuj, dekoduj, hashuj i anonimizuj tekst - JSON, JWT i więcej.",
+  "a11yLabel": "Pomocnik tekstu - lokalny warsztat JSON / YAML / Helm / JWT / Base64 / hash / anonimizacja"
+}

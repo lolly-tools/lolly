@@ -1,0 +1,27 @@
+{
+  "id": "palette",
+  "name": "Whole palette",
+  "category": "Utility",
+  "description": "Every combination of your brand colours as a pass/fail matrix.",
+  "values": {
+    "color": "#14171a",
+    "background": "#ffffff",
+    "mode": "palette",
+    "textSize": "normal",
+    "sample": "Readable at every size"
+  },
+  "presets": [
+    {
+      "id": "text-pairs",
+      "name": "Text pairings",
+      "description": "Judged at the normal-text bars, for body copy on brand surfaces.",
+      "values": { "textSize": "normal" }
+    },
+    {
+      "id": "display-pairs",
+      "name": "Display pairings",
+      "description": "Judged at the large-text bars, for headlines and display type.",
+      "values": { "textSize": "large" }
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+<main class="utility"><div class="pages-root" data-operation="{{operation}}" data-pages="{{pagesText}}" data-total-pages="{{totalPages}}">
+  {{#unless hasFile}}<section class="empty"><div class="mark">▤</div><h1>Arrange PDF pages</h1><p>Choose one or more PDFs, then drag every page into the order you need.</p><button class="btn btn--primary" type="button" data-file-pick>Choose PDFs…</button><small>Processed on this device. Never uploaded.</small></section>{{/unless}}
+  {{#if hasFile}}<section class="card">
+    <header><div><strong title="{{fileName}}">{{fileName}}</strong><span>{{fileSize}}</span></div><button type="button" class="btn btn--ghost quiet" data-file-pick>Add PDFs…</button></header>
+
+    <section class="documents" aria-label="Selected PDF files">
+      {{#each documents}}<div class="document"><span class="document-number">{{number}}</span><span class="document-name" title="{{name}}">{{name}}</span><small>{{pageLabel}}</small><button class="btn btn--ghost btn--sm" type="button" data-remove-file="{{index}}" aria-label="Remove {{name}}">×</button></div>{{/each}}
+    </section>
+
+    <section class="controls" aria-label="Page operation settings">
+      <label><span>Action</span><select class="field-select field-select--sm" data-input-id="operation">
+        <option value="reorder" {{#if (eq operation "reorder")}}selected{{/if}}>Reorder / combine</option>
+        <option value="rotate" {{#if (eq operation "rotate")}}selected{{/if}}>Rotate</option>
+        <option value="extract" {{#if (eq operation "extract")}}selected{{/if}}>Extract</option>
+        <option value="delete" {{#if (eq operation "delete")}}selected{{/if}}>Delete</option>
+        <option value="merge" {{#if (eq operation "merge")}}selected{{/if}}>Merge as selected</option>
+        <option value="split" {{#if (eq operation "split")}}selected{{/if}}>Split</option>
+      </select></label>
+      <label class="pages-field"><span>{{selectionLabel}}</span><input class="field-input field-input--sm" data-input-id="pages" type="text" value="{{pagesText}}" aria-describedby="pages-help"></label>
+      {{#if isRotate}}<label><span>Turn</span><select class="field-select field-select--sm" data-input-id="rotation">
+        <option value="90" {{#if (eq rotationText "90")}}selected{{/if}}>90° clockwise</option>
+        <option value="180" {{#if (eq rotationText "180")}}selected{{/if}}>180°</option>
+        <option value="270" {{#if (eq rotationText "270")}}selected{{/if}}>270° clockwise</option>
+      </select></label>{{/if}}
+      <small id="pages-help">{{pagesHelp}}</small>
+    </section>
+
+    {{#if error}}<div class="notice bad"><strong>Cannot continue</strong><span>{{error}}</span></div>{{/if}}
+    {{#if available}}
+      <nav class="preview-nav" aria-label="Preview window">
+        <button type="button" class="btn btn--ghost quiet" data-preview-window="{{previousWindow}}" {{#unless hasPrevious}}disabled{{/unless}}>← Previous</button>
+        <label>From position <input class="field-input field-input--sm field-input--auto" type="number" min="1" max="{{orderLength}}" data-input-id="previewPage" value="{{previewStart}}"></label>
+        <span>{{previewStart}}–{{previewEnd}} of {{orderLength}}</span>
+        <button type="button" class="btn btn--ghost quiet" data-preview-window="{{nextWindow}}" {{#unless hasNext}}disabled{{/unless}}>Next →</button>
+      </nav>
+      <section class="strip" aria-label="PDF page previews">
+        {{#each preview}}<figure class="page {{#if chosen}}chosen{{/if}}" data-page-card data-page="{{page}}" data-occurrence="{{occurrence}}" data-chosen="{{#if chosen}}true{{else}}false{{/if}}" draggable="{{#if ../isReorder}}true{{else}}false{{/if}}" title="{{sourceName}}, page {{localPage}} · {{sizeLabel}}">
+          <div class="page-preview"><div class="page-paper" style="width:{{previewWidth}}px;height:{{previewHeight}}px">{{#if svg}}{{{svg}}}{{else}}<span class="missing-preview">Page {{localPage}}<br>Preview unavailable</span>{{/if}}</div></div>
+          {{#if ../canSelect}}<button type="button" class="btn btn--ghost page-select quiet" data-page-select aria-pressed="{{#if chosen}}true{{else}}false{{/if}}">{{#if chosen}}✓ Selected{{else}}Select page{{/if}}</button>{{/if}}
+          <figcaption><span class="page-number">{{page}}</span><span class="page-origin">PDF {{document}} · p{{localPage}}</span></figcaption>
+          {{#if ../isReorder}}<div class="page-moves"><button class="btn btn--ghost btn--sm" type="button" data-page-move="-1" aria-label="Move position {{ordinal}} left" {{#if first}}disabled{{/if}}>←</button><span aria-hidden="true">⠿ drag</span><button class="btn btn--ghost btn--sm" type="button" data-page-move="1" aria-label="Move position {{ordinal}} right" {{#if last}}disabled{{/if}}>→</button></div><label class="move-to">Move to <input class="field-input field-input--sm field-input--auto" type="number" min="1" max="{{../orderLength}}" value="{{ordinal}}" data-move-to aria-label="Move position {{ordinal}} to position"></label>{{/if}}
+        </figure>{{/each}}
+        {{#if previewUnavailable}}<p class="muted preview-note">Some previews could not be rendered. Page positions still work; export validates the actual PDF. {{previewError}}</p>{{/if}}
+      </section>
+      {{#if pending}}<div class="notice" role="status">Preparing page result…</div>{{/if}}
+      {{#if ready}}<div class="result" role="status"><strong>{{summary}}</strong><span>{{operations}}</span>{{#if sizeAfter}}<span>Output size {{sizeAfter}}</span>{{/if}}</div>{{/if}}
+      <button type="button" class="btn btn--primary download" data-export-file data-export-archive="{{archiveName}}" data-busy-label="Working…" {{#unless ready}}disabled{{/unless}}>{{#if isSplit}}Download split PDFs{{else}}Download PDF{{/if}}</button>
+      <p class="muted">Every page keeps its original dimensions. Document metadata is preserved; re-saving invalidates an existing digital signature.</p>
+    {{/if}}
+  </section>{{/if}}
+</div></main>
+<script>(function(){
+  var cs=document.currentScript,root=cs&&cs.previousElementSibling&&cs.previousElementSibling.querySelector('.pages-root');
+  if(!root){var roots=document.querySelectorAll('.pages-root');root=roots[roots.length-1];}
+  if(!root||root.dataset.wired)return;root.dataset.wired='1';
+  var canvas=root.closest('[data-lolly-canvas]'),commit=canvas&&canvas.__lollyCommit,model=canvas&&canvas.__lollyModel;
+  if(!commit)return;
+  var total=Math.max(0,Number(root.dataset.totalPages)||0),operation=root.dataset.operation||'reorder';
+  function expand(text){
+    var out=[];String(text||'').split(',').forEach(function(part){var m=/^\s*(\d+)(?:-(\d*))?\s*$/.exec(part);if(!m)return;var a=Number(m[1]),b=m[2]===undefined?a:(m[2]?Number(m[2]):total);if(a<1||a>total||b<1||b>total)return;var step=a<=b?1:-1;for(var n=a;;n+=step){out.push(n);if(n===b)break;}});return out;
+  }
+  function compact(list){
+    if(!list.length)return'';var parts=[],start=list[0],last=start,step=0;
+    function flush(){var run=Math.abs(last-start)+1;parts.push(run>=3?start+'-'+last:(run===2?start+','+last:String(start)));}
+    for(var i=1;i<list.length;i++){var next=list[i],nextStep=next-last;if((step===0&&(nextStep===1||nextStep===-1))||(step!==0&&nextStep===step)){step=nextStep;last=next;}else{flush();start=last=next;step=0;}}flush();return parts.join(',');
+  }
+  function currentOrder(){var text=root.dataset.pages||'';return !text&&operation==='reorder'?Array.from({length:total},function(_,i){return i+1;}):expand(text);}
+  function setOrder(list){var value=compact(list);root.dataset.pages=value;commit('pages',value);}
+  function move(from,to){
+    var order=currentOrder();if(from<0||to<0||from>=order.length||to>=order.length||from===to)return;
+    var source=order.splice(from,1)[0];order.splice(to,0,source);
+    root.querySelectorAll('[data-page-card]').forEach(function(c){var at=Number(c.dataset.occurrence);c.dataset.occurrence=at===from?to:(from<to&&at>from&&at<=to?at-1:(from>to&&at>=to&&at<from?at+1:at));});
+    setOrder(order);
+  }
+  root.querySelectorAll('[data-page-move]').forEach(function(b){b.addEventListener('click',function(e){e.stopPropagation();var at=Number(b.closest('[data-page-card]').dataset.occurrence);move(at,at+Number(b.dataset.pageMove));});});
+  root.querySelectorAll('[data-move-to]').forEach(function(input){input.addEventListener('change',function(){move(Number(input.closest('[data-page-card]').dataset.occurrence),Number(input.value)-1);});});
+  root.querySelectorAll('[data-preview-window]').forEach(function(b){b.addEventListener('click',function(){commit('previewPage',Number(b.dataset.previewWindow));});});
+  var dragged=null;
+  root.querySelectorAll('[data-page-card]').forEach(function(card){
+    card.addEventListener('dragstart',function(e){if(operation!=='reorder'||e.target.closest('input,button')){e.preventDefault();return;}dragged=Number(card.dataset.occurrence);card.classList.add('dragging');if(e.dataTransfer){e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('application/x-lolly-page',String(dragged));}});
+    card.addEventListener('dragend',function(){dragged=null;card.classList.remove('dragging');root.querySelectorAll('.drop-target').forEach(function(c){c.classList.remove('drop-target');});});
+    card.addEventListener('dragover',function(e){if(operation==='reorder'&&dragged!==null){e.preventDefault();card.classList.add('drop-target');if(e.dataTransfer)e.dataTransfer.dropEffect='move';}});
+    card.addEventListener('dragleave',function(){card.classList.remove('drop-target');});
+    card.addEventListener('drop',function(e){if(operation!=='reorder'||dragged===null)return;e.preventDefault();var from=dragged,to=Number(card.dataset.occurrence),r=card.getBoundingClientRect();if(e.clientX>r.left+r.width/2)to++;if(from<to)to--;move(from,to);dragged=null;card.classList.remove('drop-target');});
+    card.addEventListener('click',function(e){if(operation!=='rotate'&&operation!=='extract'&&operation!=='delete')return;if(e.target.closest('button')&&!e.target.closest('[data-page-select]'))return;var page=Number(card.dataset.page),order=currentOrder(),at=order.indexOf(page);if(at>=0)order=order.filter(function(n){return n!==page;});else order.push(page);order.sort(function(a,b){return a-b;});setOrder(order);});
+  });
+  root.querySelectorAll('[data-remove-file]').forEach(function(b){b.addEventListener('click',function(){if(!model)return;var row=model().find(function(i){return i.id==='source';}),files=row&&Array.isArray(row.value)?row.value.slice():[];var index=Number(b.dataset.removeFile);if(index<0||index>=files.length)return;files.splice(index,1);commit('pages','1-');commit('previewPage',1);commit('source',files);});});
+})();</script>

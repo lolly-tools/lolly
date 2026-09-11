@@ -1,0 +1,490 @@
+{
+  "id": "qr-code",
+  "name": "QR Code",
+  "description": "Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locations and text - plus retail and logistics barcodes from EAN-13 and Code 128 to ITF-14, GS1-128, GS1 DataBar and MaxiCode.",
+  "a11yLabel": "Scannable code holding {{default qrSummary \"nothing yet\"}}",
+  "version": "2.6.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "everyone",
+  "tags": ["qr", "url", "link", "marketing", "vcard", "wifi", "barcode", "gs1", "datamatrix", "shipping", "packaging"],
+  "featured": {
+    "order": 6,
+    "blurb": "QR codes in any brand colour"
+  },
+  "examples": [
+    { "label": "Ink on paper", "values": { "url": "https://lolly.tools", "color": "#1a1a2e", "background": "#faf7f2" } },
+    { "label": "Brand primary, joined modules", "values": { "url": "https://lolly.tools", "color": "{color.semantic.primary}", "background": "{color.semantic.surface}", "join": true } },
+    { "label": "Guest Wi-Fi card", "values": { "payload": "wifi", "ssid": "Studio Guest", "wifiKey": "welcome-2026", "wifiSecurity": "WPA", "color": "#134e4a", "background": "#f0fdfa", "ecl": "Q" } },
+    { "label": "Contact card", "values": { "payload": "vcard", "firstname": "Ana", "lastname": "Kovac", "company": "Northwind Studio", "jobTitle": "Creative Director", "email": "ana@example.com", "phone": "+61 400 000 000", "url": "https://example.com/ana", "color": "#3f3f46", "background": "#fafaf9", "ecl": "Q" } },
+    { "label": "Night mode", "values": { "url": "https://lolly.tools/gallery", "color": "#93c5fd", "background": "#0b1021", "padding": 6 } },
+    { "label": "High-redundancy seal", "values": { "url": "https://lolly.tools/#/valid", "ecl": "H", "padding": 2, "join": true, "color": "#0f766e", "background": "#ecfdf5" } },
+    { "label": "Food batch, GS1 Data Matrix", "values": { "payload": "gs1", "gs1Carrier": "gs1datamatrix", "value": "(01)09521234543213(17)270831(10)LOT42", "color": "#7c2d12", "background": "#fff7ed" } },
+    { "label": "Carton, ITF-14", "values": { "payload": "itf14", "value": "1931234567890", "color": "#1a1a2e", "background": "#faf7f2" } }
+  ],
+  "render": {
+    "width": 600,
+    "height": 600,
+    "formats": ["svg", "penpot", "png", "jpeg", "webp", "avif", "tiff", "pdf", "pdf-cmyk", "cmyk-tiff", "eps", "eps-cmyk", "dxf", "emf" ],
+    "actions": ["copy", "download", "save"],
+    "filenameFrom": ["url", "ssid", "eventName", "firstname"],
+    "transparentBg": false
+  },
+  "inputs": [
+    {
+      "id": "payload",
+      "label": "Encodes",
+      "type": "select",
+      "urlKey": "p",
+      "default": "url",
+      "help": "What a scanner gets: a 2D code (pick its shape below) carrying a link, text, a contact, a network, an event or a map pin - or a product and logistics barcode: EAN-13, EAN-8, UPC-A, UPC-E, Code 128, ITF-14, Code 39, Codabar, ISBN, GS1 DataBar, a GS1 element string, or MaxiCode.",
+      "options": [
+        { "value": "url", "label": "Link" },
+        { "value": "text", "label": "Plain text" },
+        { "value": "vcard", "label": "Contact card" },
+        { "value": "wifi", "label": "Wi-Fi network" },
+        { "value": "event", "label": "Calendar event" },
+        { "value": "geo", "label": "Location" },
+        { "value": "ean13", "label": "Barcode · EAN-13" },
+        { "value": "ean8", "label": "Barcode · EAN-8" },
+        { "value": "upca", "label": "Barcode · UPC-A" },
+        { "value": "upce", "label": "Barcode · UPC-E" },
+        { "value": "code128", "label": "Barcode · Code 128" },
+        { "value": "code39", "label": "Barcode · Code 39" },
+        { "value": "codabar", "label": "Barcode · Codabar" },
+        { "value": "itf14", "label": "Carton · ITF-14" },
+        { "value": "isbn", "label": "Book · ISBN" },
+        { "value": "databar", "label": "Retail · GS1 DataBar" },
+        { "value": "gs1", "label": "GS1 · Element string" },
+        { "value": "maxicode", "label": "Shipping · MaxiCode" }
+      ]
+    },
+    {
+      "id": "symbology",
+      "label": "Code shape",
+      "type": "select",
+      "urlKey": "sym",
+      "default": "qr",
+      "help": "The symbol that carries the content. QR reads best with phone cameras; Micro QR suits tiny labels; Data Matrix is the industrial standard for marking small parts; Aztec is common on tickets and transit passes; PDF417 holds long text the way IDs and boarding passes do.",
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"] },
+      "options": [
+        { "value": "qr", "label": "QR code" },
+        { "value": "microqr", "label": "Micro QR" },
+        { "value": "datamatrix", "label": "Data Matrix" },
+        { "value": "aztec", "label": "Aztec" },
+        { "value": "pdf417", "label": "PDF417" }
+      ]
+    },
+    {
+      "id": "url",
+      "label": "URL",
+      "type": "url",
+      "required": true,
+      "default": "https://lolly.tools",
+      "help": "The link a scanner opens. On a contact card it becomes the card's website line.",
+      "showIf": { "payload": ["url", "vcard"] }
+    },
+    {
+      "id": "text",
+      "label": "Text",
+      "type": "longtext",
+      "rows": 4,
+      "default": "",
+      "showIf": { "payload": "text" }
+    },
+    {
+      "id": "firstname",
+      "label": "First name",
+      "type": "text",
+      "default": "",
+      "showIf": { "payload": "vcard" }
+    },
+    {
+      "id": "lastname",
+      "label": "Last name",
+      "type": "text",
+      "default": "",
+      "showIf": { "payload": "vcard" }
+    },
+    {
+      "id": "company",
+      "label": "Company",
+      "type": "text",
+      "default": "",
+      "showIf": { "payload": "vcard" }
+    },
+    {
+      "id": "jobTitle",
+      "label": "Job title",
+      "type": "text",
+      "default": "",
+      "showIf": { "payload": "vcard" }
+    },
+    {
+      "id": "phone",
+      "label": "Phone",
+      "type": "text",
+      "default": "",
+      "showIf": { "payload": "vcard" }
+    },
+    {
+      "id": "email",
+      "label": "Email",
+      "type": "text",
+      "default": "",
+      "showIf": { "payload": "vcard" }
+    },
+    {
+      "id": "ssid",
+      "label": "Network name",
+      "type": "text",
+      "default": "",
+      "showIf": { "payload": "wifi" },
+      "help": "The SSID exactly as it appears when joining, including capitals."
+    },
+    {
+      "id": "wifiKey",
+      "label": "Password",
+      "type": "text",
+      "default": "",
+      "showIf": { "payload": "wifi" },
+      "help": "Printed into the code in the clear, the way every Wi-Fi QR works. Use it for guest networks, not for anything you would not put on a poster."
+    },
+    {
+      "id": "wifiSecurity",
+      "label": "Security",
+      "type": "select",
+      "default": "WPA",
+      "showIf": { "payload": "wifi" },
+      "options": [
+        { "value": "WPA", "label": "WPA / WPA2 / WPA3" },
+        { "value": "WEP", "label": "WEP" },
+        { "value": "nopass", "label": "Open, no password" }
+      ]
+    },
+    {
+      "id": "wifiHidden",
+      "label": "Hidden network",
+      "type": "boolean",
+      "default": false,
+      "showIf": { "payload": "wifi" },
+      "help": "Turn on when the network does not broadcast its name."
+    },
+    {
+      "id": "eventName",
+      "label": "Event name",
+      "type": "text",
+      "default": "",
+      "showIf": { "payload": "event" }
+    },
+    {
+      "id": "eventStart",
+      "label": "Starts",
+      "type": "datetime-local",
+      "default": "",
+      "showIf": { "payload": "event" }
+    },
+    {
+      "id": "eventEnd",
+      "label": "Ends",
+      "type": "datetime-local",
+      "default": "",
+      "showIf": { "payload": "event" }
+    },
+    {
+      "id": "eventLocation",
+      "label": "Location",
+      "type": "text",
+      "default": "",
+      "showIf": { "payload": "event" }
+    },
+    {
+      "id": "eventDetails",
+      "label": "Details",
+      "type": "longtext",
+      "rows": 3,
+      "default": "",
+      "showIf": { "payload": "event" }
+    },
+    {
+      "id": "lat",
+      "label": "Latitude",
+      "type": "number",
+      "default": 0,
+      "min": -90,
+      "max": 90,
+      "step": 0.000001,
+      "showIf": { "payload": "geo" }
+    },
+    {
+      "id": "lng",
+      "label": "Longitude",
+      "type": "number",
+      "default": 0,
+      "min": -180,
+      "max": 180,
+      "step": 0.000001,
+      "showIf": { "payload": "geo" }
+    },
+    {
+      "id": "value",
+      "label": "Number or text",
+      "type": "text",
+      "default": "4006381333931",
+      "showIf": { "payload": ["ean13", "ean8", "upca", "upce", "code128", "code39", "codabar", "itf14", "isbn", "databar", "gs1", "maxicode"] },
+      "help": "The number or text the code carries. In a retail number spaces and hyphens are ignored; give it one digit short and the check digit is worked out for you. Code 128 takes any printable ASCII. A GS1 element string is typed with its AIs in brackets, like (01)09521234543213(17)270831(10)LOT42. ISBN keeps the dashes as printed on the book."
+    },
+    {
+      "id": "gs1Carrier",
+      "label": "Carrier",
+      "type": "select",
+      "default": "gs1-128",
+      "showIf": { "payload": "gs1" },
+      "help": "GS1-128 bars suit wide logistics labels; GS1 Data Matrix fits the same element string into a small square for packaging and healthcare marking.",
+      "options": [
+        { "value": "gs1-128", "label": "GS1-128 bars" },
+        { "value": "gs1datamatrix", "label": "GS1 Data Matrix" }
+      ]
+    },
+    {
+      "id": "showText",
+      "label": "Print the number",
+      "type": "boolean",
+      "default": true,
+      "showIf": { "payload": ["ean13", "ean8", "upca", "upce", "code128", "code39", "codabar", "itf14", "isbn", "databar", "gs1"] },
+      "help": "The human-readable line under the bars. EAN-13, EAN-8, UPC-A and Code 128 set it in your brand's monospace face; the logistics symbologies print the specs' own OCR-B, drawn as outlines so no font is needed."
+    },
+    {
+      "id": "moduleWidth",
+      "label": "Bar width",
+      "type": "number",
+      "display": "slider",
+      "default": 3,
+      "min": 1,
+      "max": 10,
+      "step": 0.5,
+      "showIf": { "payload": ["ean13", "ean8", "upca", "code128"] },
+      "help": "Width of one module, the thinnest bar. Retail print uses 0.33 mm; set the export size in millimetres to hit it."
+    },
+    {
+      "id": "barHeight",
+      "label": "Bar height",
+      "type": "number",
+      "display": "slider",
+      "default": 160,
+      "min": 40,
+      "max": 400,
+      "step": 5,
+      "showIf": { "payload": ["ean13", "ean8", "upca", "upce", "code128", "code39", "codabar", "itf14", "isbn", "databar", "gs1"] },
+      "help": "Taller bars are easier to scan at an angle."
+    },
+    {
+      "id": "quiet",
+      "label": "Quiet zone",
+      "type": "number",
+      "display": "slider",
+      "default": 11,
+      "min": 0,
+      "max": 24,
+      "step": 1,
+      "showIf": { "payload": ["ean13", "ean8", "upca", "upce", "code128", "code39", "codabar", "itf14", "isbn", "databar", "gs1", "maxicode"] },
+      "help": "Modules of clear space each side, and a scanner fails without it. The standards ask for 11 on an EAN-13, 10 on a Code 128 or ITF-14, 9 on a UPC-A."
+    },
+    {
+      "id": "color",
+      "label": "Module color",
+      "type": "color",
+      "default": "{color.semantic.text}"
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "type": "color",
+      "default": "{color.semantic.surface}"
+    },
+    {
+      "id": "ecl",
+      "label": "Error correction",
+      "type": "select",
+      "default": "M",
+      "help": "How much of the symbol can be damaged and still scan. Micro QR supports up to Quartile; High falls back to Quartile there.",
+      "options": [
+        { "value": "L", "label": "Low (7%)" },
+        { "value": "M", "label": "Medium (15%)" },
+        { "value": "Q", "label": "Quartile (25%)" },
+        { "value": "H", "label": "High (30%)" }
+      ],
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"], "symbology": ["qr", "microqr"] }
+    },
+    {
+      "id": "padding",
+      "label": "Quiet zone",
+      "type": "number",
+      "display": "slider",
+      "default": 4,
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"] },
+      "help": "Modules of white space around the code. Minimum 4 recommended."
+    },
+    {
+      "id": "moduleShape",
+      "label": "Module shape",
+      "type": "select",
+      "default": "square",
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"], "symbology": "qr" },
+      "help": "The shape of each dark cell. Square scans most reliably; Rounded and Dot soften the look; Fluid merges neighbours into smooth connected blobs. The three corner finders are styled separately below.",
+      "options": [
+        { "value": "square", "label": "Square" },
+        { "value": "rounded", "label": "Rounded" },
+        { "value": "dot", "label": "Dot" },
+        { "value": "fluid", "label": "Fluid" }
+      ]
+    },
+    {
+      "id": "join",
+      "label": "Joined modules",
+      "type": "boolean",
+      "default": true,
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"], "symbology": "qr", "moduleShape": "square" },
+      "help": "Merge all square modules into a single SVG path instead of one rect per module. Crisper at small sizes, and it removes the faint grid that independent antialiased edges produce between neighbouring modules. (Rounded, Dot and Fluid define their own connectivity.)"
+    },
+    {
+      "id": "eyeShape",
+      "label": "Finder eyes",
+      "type": "select",
+      "default": "square",
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"], "symbology": "qr" },
+      "help": "The shape of the three corner locators - the most recognisable branded-QR cue. Their 1:1:3:1:1 finder proportions are preserved whatever the shape, so scanners still lock on.",
+      "options": [
+        { "value": "square", "label": "Square" },
+        { "value": "rounded", "label": "Rounded" },
+        { "value": "leaf", "label": "Leaf" },
+        { "value": "circle", "label": "Circle" }
+      ]
+    },
+    {
+      "id": "eyeColor",
+      "label": "Eye color",
+      "type": "color",
+      "default": "",
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"], "symbology": "qr" },
+      "help": "A separate colour for the three finder eyes. Leave empty to match the module colour. Contrast against the background is checked the same way."
+    },
+    {
+      "id": "fill",
+      "label": "Fill",
+      "type": "select",
+      "default": "solid",
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"], "symbology": "qr" },
+      "help": "Solid uses the module colour. Gradient ramps from the module colour to a second colour, blended perceptually (OKLab) and painted as crisp per-module bands so it exports identically as PNG, SVG and PDF.",
+      "options": [
+        { "value": "solid", "label": "Solid" },
+        { "value": "gradient", "label": "Gradient" }
+      ]
+    },
+    {
+      "id": "color2",
+      "label": "Gradient end color",
+      "type": "color",
+      "default": "{color.semantic.primary}",
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"], "symbology": "qr", "fill": "gradient" },
+      "help": "The colour the gradient ramps toward, from the module colour."
+    },
+    {
+      "id": "gradientType",
+      "label": "Gradient type",
+      "type": "select",
+      "default": "linear",
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"], "symbology": "qr", "fill": "gradient" },
+      "options": [
+        { "value": "linear", "label": "Linear" },
+        { "value": "radial", "label": "Radial" }
+      ]
+    },
+    {
+      "id": "angle",
+      "label": "Gradient angle",
+      "type": "number",
+      "display": "slider",
+      "default": 45,
+      "min": 0,
+      "max": 360,
+      "step": 15,
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"], "symbology": "qr", "fill": "gradient", "gradientType": "linear" },
+      "help": "Direction of a linear gradient, in degrees."
+    },
+    {
+      "id": "logo",
+      "label": "Center logo",
+      "type": "asset",
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"], "symbology": "qr" },
+      "help": "A brand mark placed in the middle of the code - a catalog id or a pasted lolly.tools link. Error correction is raised to High automatically so the covered modules stay recoverable; keep the logo small enough (the scannability check flags it if not)."
+    },
+    {
+      "id": "logoScale",
+      "label": "Logo size",
+      "type": "number",
+      "display": "slider",
+      "default": 22,
+      "min": 8,
+      "max": 32,
+      "step": 1,
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"], "symbology": "qr" },
+      "help": "Logo width as a percentage of the code. Above ~30% even High error correction can't recover the covered data - the scannability check is the backstop."
+    },
+    {
+      "id": "logoPad",
+      "label": "Logo padding",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 0,
+      "max": 4,
+      "step": 1,
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"], "symbology": "qr" },
+      "help": "Clear modules kept as a quiet ring around the logo, so it reads as intentional negative space rather than damage."
+    },
+    {
+      "id": "logoShape",
+      "label": "Logo backing",
+      "type": "select",
+      "default": "rounded",
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"], "symbology": "qr" },
+      "options": [
+        { "value": "square", "label": "Square" },
+        { "value": "rounded", "label": "Rounded" },
+        { "value": "circle", "label": "Circle" }
+      ]
+    },
+    {
+      "id": "frame",
+      "label": "Frame",
+      "type": "select",
+      "default": "none",
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"], "symbology": "qr" },
+      "help": "An optional call-to-action around the code. Label adds a caption beneath it; Arrow points at it; Badge draws a card. Frames sit outside the code and never affect scanning.",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "label", "label": "Caption" },
+        { "value": "arrow", "label": "Arrow + caption" },
+        { "value": "badge", "label": "Badge card" }
+      ]
+    },
+    {
+      "id": "frameText",
+      "label": "Frame text",
+      "type": "text",
+      "default": "Scan me",
+      "showIf": { "payload": ["url", "text", "vcard", "wifi", "event", "geo"], "symbology": "qr", "frame": ["label", "arrow", "badge"] },
+      "help": "The call-to-action wording."
+    }
+  ],
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true
+  }
+}

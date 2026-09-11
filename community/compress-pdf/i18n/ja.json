@@ -1,0 +1,14 @@
+{
+  "name": "Compress",
+  "description": "画像を再圧縮してPDFを軽量化 - デバイス上で処理します。",
+  "a11yLabel": "{{fileName}} のPDF圧縮ツール",
+  "inputs.source.label": "PDF",
+  "inputs.source.help": "PDFファイルです。ブラウザ内で読み込まれ、お使いの端末の外に送信されることはありません。",
+  "inputs.level.label": "圧縮レベル",
+  "inputs.level.help": "埋め込み画像をどれだけ圧縮するかを設定します。強くするほどファイルサイズは小さくなりますが、画像はぼやけます。",
+  "inputs.level.options.light": "軽度 - 画質を優先",
+  "inputs.level.options.balanced": "バランス",
+  "inputs.level.options.strong": "強度 - ファイルサイズを最小化",
+  "inputs.grayscale.label": "画像をグレースケールに変換",
+  "inputs.grayscale.help": "画像から色を取り除いてさらに容量を削減します。スキャンしたテキスト文書に便利です。"
+}

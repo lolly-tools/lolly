@@ -1,0 +1,22 @@
+{
+  "name": "Audiogram",
+  "description": "Ubah klip suara atau lagu menjadi video berjenama yang benar-benar bergerak mengikut bunyi - bar, spektrum, gelang, ridgeline atau skop, sedia untuk media sosial.",
+  "a11yLabel": "Kad audiogram untuk {{default title \"an audio clip\"}} dengan bentuk gelombang beranimasi",
+  "inputs.audio.label": "Audio",
+  "inputs.audio.help": "Pilih trek daripada pustaka anda atau muat naik klip. Ia dinyahkod pada peranti anda untuk melukis bentuk gelombang - audio tidak pernah meninggalkan pelayar. Biarkan kosong untuk bentuk gelombang ruang letak. Untuk mendengarnya dalam eksport, pilih \"Audio alat ini\" sebagai trek Audio dalam pilihan muat turun.",
+  "inputs.title.label": "Tajuk",
+  "inputs.title.help": "Tajuk utama pada kad - nama episod atau petikan tarik.",
+  "inputs.subtitle.label": "Subtajuk",
+  "inputs.subtitle.help": "Baris lebih kecil di bawah tajuk - nama rancangan, tetamu, atau tempat untuk mendengar.",
+  "inputs.style.label": "Gaya bentuk gelombang",
+  "inputs.style.options.bars": "Bar",
+  "inputs.style.options.wave": "Gelombang",
+  "inputs.style.options.ring": "Cincin",
+  "inputs.size.label": "Saiz",
+  "inputs.size.options.square": "Segi empat sama (1:1)",
+  "inputs.size.options.wide": "Lebar (16:9)",
+  "inputs.size.options.story": "Story (9:16)",
+  "inputs.accent.label": "Warna bentuk gelombang",
+  "inputs.ink.label": "Warna teks",
+  "inputs.bg.label": "Latar belakang"
+}

@@ -1,0 +1,50 @@
+{
+  "id": "conference-day",
+  "name": "Conference day",
+  "category": "Conference",
+  "description": "One day, three tracks, a keynote to open and drinks to close.",
+  "values": {
+    "title": "Northwind Summit 2026",
+    "subtitle": "Riverside Conference Centre",
+    "layout": "grid",
+    "now": "",
+    "tz": "",
+    "showSpeakers": true,
+    "showRooms": true,
+    "compact": false,
+    "plenaryLabel": "",
+    "nowLabel": "",
+    "nextLabel": "",
+    "sessions": {
+      "columns": ["Date", "Start", "End", "Title", "Speaker", "Track", "Room", "Kind", "Note"],
+      "rows": [
+        ["2026-10-14", "09:00", "09:45", "Opening keynote: building in the open", "Maya Lindqvist", "", "Auditorium", "keynote", "Doors open at 08:30"],
+        ["2026-10-14", "10:00", "10:45", "Design tokens that survive a rebrand", "Ana Kovač", "Design", "Hall A", "session", ""],
+        ["2026-10-14", "10:00", "10:45", "Shipping containers without the drama", "Tomás Herrera", "Platform", "Hall B", "session", ""],
+        ["2026-10-14", "10:00", "11:30", "Workshop: your first accessible component", "Priya Nair", "Practice", "Studio 1", "workshop", "Bring a laptop"],
+        ["2026-10-14", "10:45", "11:15", "Coffee", "", "", "Foyer", "break", ""],
+        ["2026-10-14", "11:15", "12:00", "Type on screen, type in print", "Lena Fischer", "Design", "Hall A", "session", ""],
+        ["2026-10-14", "11:15", "12:00", "Observability on a small budget", "Jonas Weber", "Platform", "Hall B", "session", ""],
+        ["2026-10-14", "12:00", "13:00", "Lunch", "", "", "Foyer", "break", ""],
+        ["2026-10-14", "13:00", "13:45", "Colour, contrast and the people who need it", "Ingrid Sorensen", "Design", "Hall A", "session", ""],
+        ["2026-10-14", "13:00", "13:45", "Rolling back without the panic", "Sam Oyelaran", "Platform", "Hall B", "session", ""],
+        ["2026-10-14", "14:00", "14:45", "Closing panel: what we ship next", "", "", "Auditorium", "keynote", ""],
+        ["2026-10-14", "17:00", "19:00", "Drinks at the riverside bar", "", "", "Foyer", "social", "Everyone welcome"]
+      ]
+    }
+  },
+  "presets": [
+    {
+      "id": "programme-list",
+      "name": "Printed programme",
+      "description": "The same day with rows sized by their words rather than by the clock.",
+      "values": { "layout": "list" }
+    },
+    {
+      "id": "door-screen",
+      "name": "Door screen",
+      "description": "What is on now in each track, for a screen in the foyer.",
+      "values": { "layout": "board", "now": "" }
+    }
+  ]
+}

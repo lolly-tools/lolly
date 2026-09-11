@@ -1,0 +1,54 @@
+{
+  "id": "comparison",
+  "name": "Us and them",
+  "category": "Marketing",
+  "description": "Two columns side by side, yours picked out.",
+  "values": {
+    "heading": "How we compare",
+    "subheading": "The same job, side by side.",
+    "cta": "Switch today",
+    "highlight": 1,
+    "highlightLabel": "Our pick",
+    "layout": "cards",
+    "background": "{color.semantic.surface}",
+    "accent": "{color.semantic.primary}",
+    "data": {
+      "columns": ["Feature", "Us", "The usual tool"],
+      "rows": [
+        ["Price", "Free", "$18 / month"],
+        ["Tagline", "Runs on your device", "Runs on their servers"],
+        ["Works offline", "yes", "no"],
+        ["Files stay on your machine", "yes", "no"],
+        ["Brand tokens built in", "yes", "no"],
+        ["Print-ready PDF", "yes", "yes"],
+        ["Command line", "yes", "no"],
+        ["Set-up time", "None", "Half a day"]
+      ]
+    }
+  },
+  "presets": [
+    {
+      "id": "before-after",
+      "name": "Before and after",
+      "description": "The old way against the new one, with the new way featured.",
+      "values": {
+        "heading": "Before and after",
+        "subheading": "How long a first asset takes, before and after.",
+        "cta": "",
+        "highlight": 2,
+        "highlightLabel": "After",
+        "data": {
+          "columns": ["Step", "Before", "After"],
+          "rows": [
+            ["Price", "Two days", "Two minutes"],
+            ["Tagline", "Ticket, queue, review", "Type it, export it"],
+            ["Brand check", "By hand", "yes"],
+            ["Print bleed and marks", "no", "yes"],
+            ["Works offline", "no", "yes"],
+            ["Cost per asset", "$40", "$0"]
+          ]
+        }
+      }
+    }
+  ]
+}

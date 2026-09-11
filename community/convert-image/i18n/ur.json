@@ -1,0 +1,18 @@
+{
+  "name": "تصویر تبدیل کریں",
+  "description": "HEIC, TIFF یا کسی بھی تصویر کو WebP، JPEG یا PNG میں بدلیں - آپ کے آلے پر۔",
+  "a11yLabel": "{{fileName}} کے لیے تصویر کی تبدیلی",
+  "inputs.source.label": "تصویر",
+  "inputs.source.help": "ایک HEIC، HEIF، JPEG، PNG، WebP، AVIF یا TIFF تصویر۔ یہ آپ کے براؤزر میں پڑھی جاتی ہے اور کبھی آپ کے ڈیوائس سے باہر نہیں جاتی۔",
+  "inputs.target.label": "میں تبدیل کریں",
+  "inputs.target.help": "آؤٹ پٹ فارمیٹ۔ WebP عام طور پر سب سے چھوٹا ہوتا ہے؛ PNG لاس لیس ہے۔",
+  "inputs.target.options.webp": "WebP - سب سے چھوٹا، شفافیت برقرار رکھتا ہے",
+  "inputs.target.options.jpeg": "JPEG - یونیورسل، تصاویر کے لیے",
+  "inputs.target.options.png": "PNG - بغیر نقصان کے، شفافیت برقرار رکھتا ہے",
+  "inputs.quality.label": "کوالٹی",
+  "inputs.quality.help": "نقصان دہ فارمیٹس کے لیے کوالٹی۔ کم ویلیو کا مطلب ہے چھوٹی فائل اور نرم تفصیل۔ PNG اسے نظر انداز کرتا ہے۔",
+  "inputs.maxEdge.label": "طویل ترین کنارہ (px)",
+  "inputs.maxEdge.help": "سب سے لمبے کنارے کو زیادہ سے زیادہ اتنے پکسلز تک ڈاؤن اسکیل کریں۔ 0 اصل سائز برقرار رکھتا ہے۔ کبھی اپ اسکیل نہیں کرتا۔",
+  "inputs.keepLocation.label": "مقام رکھیں",
+  "inputs.keepLocation.help": "تصویر کا GPS مقام تبدیل شدہ فائل میں منتقل کرتا ہے۔ طے شدہ طور پر بند - مقام ذاتی ڈیٹا ہے۔ تصویر کی باقی تفصیلات (مصنف، کاپی رائٹ، کھینچنے کی تاریخ) ہمیشہ منتقل ہوتی ہیں، اور کارڈ بالکل دکھاتا ہے کہ کیا ہوا۔"
+}

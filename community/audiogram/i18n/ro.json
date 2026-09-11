@@ -1,0 +1,22 @@
+{
+  "name": "Audiogramă",
+  "description": "Transformă un clip vocal sau o piesă într-un videoclip cu brandul tău care se mișcă odată cu sunetul - bare, spectru, inel, creastă sau osciloscop, gata pentru social.",
+  "a11yLabel": "Card audiogramă pentru {{default title \"an audio clip\"}} cu o formă de undă animată",
+  "inputs.audio.label": "Audio",
+  "inputs.audio.help": "Alege o piesă din biblioteca ta sau încarcă un clip. Se decodează pe dispozitivul tău pentru a desena forma de undă - sunetul nu părăsește niciodată browserul. Lasă gol pentru o formă de undă substitut. Ca să-l auzi în export, alege \"Sunetul acestui instrument\" ca pistă audio în opțiunile de descărcare.",
+  "inputs.title.label": "Titlu",
+  "inputs.title.help": "Titlul de pe card - un nume de episod sau un citat evidențiat.",
+  "inputs.subtitle.label": "Subtitlu",
+  "inputs.subtitle.help": "O linie mai mică sub titlu - numele emisiunii, invitatul sau unde poate fi ascultat.",
+  "inputs.style.label": "Stilul formei de undă",
+  "inputs.style.options.bars": "Bare",
+  "inputs.style.options.wave": "Undă",
+  "inputs.style.options.ring": "Inel",
+  "inputs.size.label": "Dimensiune",
+  "inputs.size.options.square": "Pătrat (1:1)",
+  "inputs.size.options.wide": "Lat (16:9)",
+  "inputs.size.options.story": "Story (9:16)",
+  "inputs.accent.label": "Culoarea formei de undă",
+  "inputs.ink.label": "Culoarea textului",
+  "inputs.bg.label": "Fundal"
+}

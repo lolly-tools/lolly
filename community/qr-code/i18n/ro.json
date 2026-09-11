@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "Coduri QR pentru un link, o carte de vizită, o rețea Wi-Fi, un eveniment de calendar, o locație sau text simplu.",
+  "featured.blurb": "Coduri QR în orice culoare de brand",
+  "a11yLabel": "Cod QR care trimite la {{default url \"(no URL set)\"}}",
+  "inputs.color.label": "Culoarea modulelor",
+  "inputs.background.label": "Fundal",
+  "inputs.ecl.label": "Corecție de erori",
+  "inputs.ecl.options.L": "Scăzută (7%)",
+  "inputs.ecl.options.M": "Medie (15%)",
+  "inputs.ecl.options.Q": "Cvartilă (25%)",
+  "inputs.ecl.options.H": "Ridicată (30%)",
+  "inputs.padding.label": "Zonă de liniște",
+  "inputs.padding.help": "Module de spațiu alb în jurul codului. Se recomandă minimum 4.",
+  "inputs.join.label": "Module unite",
+  "inputs.join.help": "Unește toate modulele într-un singur traseu SVG. Mai clar la dimensiuni mici.",
+  "inputs.url.label": "URL"
+}

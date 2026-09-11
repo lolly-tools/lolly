@@ -1,0 +1,14 @@
+{
+  "name": "Compress",
+  "description": "Görsellerini yeniden sıkıştırarak bir PDF'yi küçültün - cihazınızda.",
+  "a11yLabel": "{{fileName}} için PDF sıkıştırıcı",
+  "inputs.source.label": "PDF",
+  "inputs.source.help": "Bir PDF dosyası. Tarayıcında okunur ve cihazından asla ayrılmaz.",
+  "inputs.level.label": "Sıkıştırma",
+  "inputs.level.help": "Gömülü görsellerin ne kadar sıkıştırılacağı. Daha güçlü sıkıştırma, daha küçük dosyalar ve daha yumuşak görseller demektir.",
+  "inputs.level.options.light": "Hafif - kaliteyi yüksek tut",
+  "inputs.level.options.balanced": "Dengeli",
+  "inputs.level.options.strong": "Güçlü - en küçük dosya",
+  "inputs.grayscale.label": "Görselleri gri tonlamaya dönüştür",
+  "inputs.grayscale.help": "Ekstra tasarruf için görsellerden rengi kaldır - taranmış metin belgeleri için faydalı."
+}

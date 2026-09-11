@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "產生連結、聯絡卡、Wi-Fi 網路、行事曆活動、地點或純文字用的 QR Code。",
+  "a11yLabel": "連結到 {{default url \"(no URL set)\"}} 的 QR Code",
+  "featured.blurb": "任何品牌色都能產生 QR Code",
+  "inputs.url.label": "網址",
+  "inputs.color.label": "模組顏色",
+  "inputs.background.label": "背景",
+  "inputs.ecl.label": "容錯等級",
+  "inputs.ecl.options.L": "低 (7%)",
+  "inputs.ecl.options.M": "中 (15%)",
+  "inputs.ecl.options.Q": "四分位 (25%)",
+  "inputs.ecl.options.H": "高 (30%)",
+  "inputs.padding.label": "留白區",
+  "inputs.padding.help": "QR Code 四周的留白模組數。建議至少為 4。",
+  "inputs.join.label": "合併模組",
+  "inputs.join.help": "將所有模組合併為單一 SVG 路徑，尺寸較小時更清晰。"
+}

@@ -1,0 +1,18 @@
+{
+  "name": "画像を変換",
+  "description": "HEIC、TIFF、その他の写真をWebP、JPEG、PNGに変換 - デバイス上で処理します。",
+  "a11yLabel": "{{fileName}} の画像変換",
+  "inputs.source.label": "画像",
+  "inputs.source.help": "HEIC、HEIF、JPEG、PNG、WebP、AVIF、TIFF画像です。ブラウザ内で読み込まれ、デバイスの外に出ることはありません。",
+  "inputs.target.label": "変換先",
+  "inputs.target.help": "出力形式です。WebPは通常最小サイズで、PNGはロスレスです。",
+  "inputs.target.options.webp": "WebP - 最小サイズで透明度を維持",
+  "inputs.target.options.jpeg": "JPEG - 汎用、写真向け",
+  "inputs.target.options.png": "PNG - 可逆、透明を保持",
+  "inputs.quality.label": "品質",
+  "inputs.quality.help": "非可逆形式の画質です。低くするとファイルが小さくなり、ディテールが柔らかくなります。PNGには影響しません。",
+  "inputs.maxEdge.label": "最長辺 (px)",
+  "inputs.maxEdge.help": "最長辺がこのピクセル数以下になるように縮小します。0 は元のサイズを維持します。拡大は行いません。",
+  "inputs.keepLocation.label": "位置情報を保持",
+  "inputs.keepLocation.help": "写真のGPS位置情報を変換後のファイルに引き継ぎます。既定ではオフです - 位置情報は個人情報です。写真のその他の情報(作者、著作権、撮影日)は常に引き継がれ、カードに何が起きたかが正確に表示されます。"
+}

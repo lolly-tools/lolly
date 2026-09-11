@@ -1,0 +1,19 @@
+{
+  "name": "Текстово лого",
+  "description": "Напиши дума, получи чисто пътечна векторна словна марка в шрифта на бранда си - получателите никога не се нуждаят от инсталиран шрифт.",
+  "a11yLabel": "Текстово лого, изписващо {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Текст",
+  "inputs.font.label": "Шрифт",
+  "inputs.font.options.brand": "Шрифт на бранда",
+  "inputs.font.options.mono": "Моно шрифт",
+  "inputs.weight.label": "Дебелина",
+  "inputs.tracking.label": "Разредка",
+  "inputs.tracking.help": "Разредка на буквите в px при зададения размер.",
+  "inputs.size.label": "Размер",
+  "inputs.size.help": "Размер на шрифта, при който са оформени контурите - разредката е спрямо него.",
+  "inputs.color.label": "Цвят",
+  "inputs.features.label": "OpenType функции",
+  "inputs.features.options.none": "Стандартен",
+  "inputs.features.options.liga-off": "Без лигатури",
+  "inputs.features.options.salt": "Стилистични алтернативи"
+}

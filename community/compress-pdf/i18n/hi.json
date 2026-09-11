@@ -1,0 +1,14 @@
+{
+  "name": "Compress",
+  "description": "अपनी डिवाइस पर - इमेज को फिर से कंप्रेस करके PDF का आकार घटाएँ।",
+  "a11yLabel": "{{fileName}} के लिए PDF कंप्रेसर",
+  "inputs.source.label": "PDF",
+  "inputs.source.help": "एक PDF फ़ाइल। यह आपके ब्राउज़र में पढ़ी जाती है और कभी आपके डिवाइस से बाहर नहीं जाती।",
+  "inputs.level.label": "कंप्रेशन",
+  "inputs.level.help": "एम्बेडेड इमेजों को कितना कंप्रेस किया जाए। जितना ज़्यादा कंप्रेशन, उतनी छोटी फ़ाइलें और उतनी ही सॉफ़्ट इमेज।",
+  "inputs.level.options.light": "हल्का - क्वालिटी ऊँची रखें",
+  "inputs.level.options.balanced": "संतुलित",
+  "inputs.level.options.strong": "ज़्यादा - सबसे छोटी फ़ाइल",
+  "inputs.grayscale.label": "इमेजों को ग्रेस्केल में बदलें",
+  "inputs.grayscale.help": "अतिरिक्त बचत के लिए इमेजों से रंग हटाएँ - स्कैन किए गए टेक्स्ट दस्तावेज़ों के लिए उपयोगी।"
+}

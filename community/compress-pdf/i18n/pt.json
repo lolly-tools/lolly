@@ -1,0 +1,14 @@
+{
+  "name": "Compress",
+  "description": "Reduza um PDF recomprimindo suas imagens - no seu dispositivo.",
+  "a11yLabel": "Compactador de PDF para {{fileName}}",
+  "inputs.source.label": "PDF",
+  "inputs.source.help": "Um arquivo PDF. Ele é lido no seu navegador e nunca sai do seu dispositivo.",
+  "inputs.level.label": "Compactação",
+  "inputs.level.options.light": "Leve - mantém a qualidade alta",
+  "inputs.level.options.balanced": "Equilibrado",
+  "inputs.level.options.strong": "Forte - menor arquivo",
+  "inputs.level.help": "Quão forte compactar as imagens incorporadas. Quanto mais forte, menor o arquivo e mais suaves as imagens.",
+  "inputs.grayscale.label": "Converter imagens em tons de cinza",
+  "inputs.grayscale.help": "Remove a cor das imagens para economizar ainda mais - útil para documentos de texto digitalizados."
+}

@@ -1,0 +1,116 @@
+/* Record - a three-frame filmstrip: intro card | live camera | outro card. Objects
+   carry GLOBAL coordinates across the whole strip; hooks.js buckets them into their
+   frame (by centre) and emits each at LOCAL coordinates, so a headless CLI/URL render
+   matches the browser. Per-object styling is computed in hooks.js and applied inline;
+   these classes carry only structural layout. Auto-scoped to #tool-canvas.
+
+   The frames sit side by side in a flex row with gap: var(--gap). That gap MUST equal
+   hooks.js GAP and render.pages.gap in tool.json, or the free-canvas overlay's object
+   handles (global coords) will drift from the rendered frames. */
+
+.rec-strip {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--gap, 56px);
+  width: max-content;
+}
+
+/* One frame = one [data-pdf-page]. Locked to the frame size; overflow:hidden clips
+   content that bleeds off. (The overlay lifts this to overflow:visible while an object
+   is dragged, so one crossing between frames stays visible mid-drag.) */
+.rec-frame {
+  position: relative;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: var(--pw, 1080px);
+  height: var(--ph, 1920px);
+  overflow: hidden;
+  background: var(--brand, #0c322c);
+}
+
+/* ── Camera frame (middle) ─────────────────────────────────────────────────
+   Fills the middle frame with black behind the live viewfinder the shell mounts
+   into [data-record-camera]. isolation:isolate contains the viewfinder's z-index
+   so sibling overlay objects (later in DOM) always paint above it. */
+.rec-camera {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  isolation: isolate;
+  overflow: hidden;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* The shell's viewfinder / self-view video fills the camera frame. */
+.rec-camera .canvas-record-viewfinder { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+/* The recorded take plays back in the middle frame, behind the live viewfinder. */
+.rec-clip { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; background: #000; }
+/* While framing, the live viewfinder owns the frame - drop the placeholder hint. */
+.rec-camera:has(.canvas-record-viewfinder) .rec-camera-hint { display: none; }
+
+.rec-camera-hint {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 0 12%;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.92);
+  font-family: "SUSE", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+}
+.rec-camera-dot {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #ef5b5b;
+  box-shadow: 0 0 0 12px rgba(239, 91, 91, 0.18);
+}
+
+/* ── Objects (shared with Carousel Maker / Design) ──────────────────── */
+.lolly-box {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  overflow: hidden;
+  /* transform-origin centre so hooks.js rotate() spins about the box middle -
+     must match the free-canvas overlay's rotation model. */
+  transform-origin: 50% 50%;
+}
+
+.lolly-box-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.lolly-box-lottie { pointer-events: none; }
+.lolly-box-lottie > svg { display: block; width: 100%; height: 100%; }
+
+.lolly-box-text {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 8px;
+  box-sizing: border-box;
+  font-family: "SUSE", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.12;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.lolly-box-text strong { font-weight: bolder; }
+.lolly-box-text em { font-style: italic; }

@@ -1,0 +1,230 @@
+.mg-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.mg-wrap svg.mg-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.mg-dots {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Hover-revealed drag handles for the colour points. Hidden at rest so the
+   gradient reads clean; data-export-hide keeps them out of every export. */
+.mg-dot {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: var(--dot-c, #888);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35), inset 0 0 0 1px rgba(0, 0, 0, 0.15);
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.mg-wrap:hover .mg-dot,
+.mg-dot:focus-visible,
+.mg-dot:active {
+  opacity: 1;
+}
+
+.mg-dot:active {
+  cursor: grabbing;
+}
+
+/* Shuffle buttons - hover-revealed like the dots, excluded from exports. */
+.mg-actions {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.mg-wrap:hover .mg-actions,
+.mg-actions:focus-within {
+  opacity: 1;
+}
+
+.mg-act {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 18, 23, 0.55);
+  color: #fff;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+}
+
+.mg-act:hover {
+  background: rgba(15, 18, 23, 0.78);
+}
+
+.mg-act svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* The raster modes' canvases (flow / warp / mesh) fill the frame like the SVG
+   does; the CSS background on flow/warp is the no-WebGL fallback backdrop. */
+.mg-wrap canvas.mg-flow-canvas,
+.mg-wrap canvas.mg-warp-canvas,
+.mg-wrap canvas.mg-mesh-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The reset action only means something in the two mesh modes. */
+.mg-wrap:not([data-mode="subdivide"]):not([data-mode="mesh"]) .mg-act[data-mg-act="mesh-reset"] {
+  display: none;
+}
+
+/* ── Coons-mesh editor overlay (subdivide + mesh modes) ─────────────────── */
+.mg-mesh-ui {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Wireframe: hover-revealed like the dots, pinned on while a node is
+   selected so handle edits stay legible. */
+.mg-wire {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.mg-wrap:hover .mg-wire,
+.mg-mesh-ui.has-sel .mg-wire {
+  opacity: 0.6;
+}
+
+.mg-node.sel {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+.mg-mesh-ui.has-sel .mg-dot {
+  opacity: 1;
+}
+
+.mg-handles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.mg-handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  padding: 0;
+  border-radius: 3px;
+  border: 1.5px solid #fff;
+  background: rgba(15, 18, 23, 0.75);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.mg-handle:active {
+  cursor: grabbing;
+}
+
+/* Node colour popover. With the shell's colour-field channel present it hosts
+   the app's full picker on an app-theme surface (system `Canvas` colours track
+   the page colour-scheme); without it, the self-contained swatch strip below. */
+.mg-pop.mg-pop--field {
+  max-width: none;
+  width: 268px;
+  padding: 10px;
+  background: Canvas;
+  color: CanvasText;
+  border: 1px solid rgba(127, 127, 127, 0.35);
+  backdrop-filter: none;
+}
+
+.mg-pop-field {
+  width: 100%;
+}
+
+/* Node colour popover: brand swatches + the free picker. */
+.mg-pop {
+  position: absolute;
+  display: none;
+  max-width: 180px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  padding: 7px;
+  border-radius: 10px;
+  background: rgba(15, 18, 23, 0.82);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  pointer-events: auto;
+}
+
+.mg-pop.open {
+  display: flex;
+}
+
+.mg-swatch {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1.5px solid rgba(255, 255, 255, 0.75);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.mg-pop-picker {
+  width: 26px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+/* No hover on touch - keep the handles gently visible. */
+@media (pointer: coarse) {
+  .mg-dot {
+    opacity: 0.85;
+  }
+
+  .mg-actions {
+    opacity: 0.9;
+  }
+
+  .mg-wire {
+    opacity: 0.4;
+  }
+}

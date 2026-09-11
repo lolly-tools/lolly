@@ -1,0 +1,102 @@
+<div class="rbd">
+  {{#unless hasFile}}
+    <div class="rbd-empty" data-file-pick>
+      <div class="rbd-empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5.5A1.5 1.5 0 0 1 4.5 4h15A1.5 1.5 0 0 1 21 5.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 13.5Z"/><path d="M12 15v2.5"/><path d="m8.5 21 3.5-3.5L15.5 21"/><path d="M12 6.4s-2.4 2.5-2.4 4a2.4 2.4 0 0 0 4.8 0c0-1.5-2.4-4-2.4-4Z"/></svg>
+      </div>
+      <h2>Rebrand a deck</h2>
+      <p>Drag a PowerPoint file anywhere onto this area, or choose one below. We read its theme, colours and typefaces, snap them to your brand, and rebuild the file.</p>
+      <button type="button" class="rbd-pick" data-file-pick>Choose a .pptx…</button>
+      <p class="rbd-empty-note">Bring the editable deck, not an export: a PDF - or slides that are just flat pictures - has its colours baked into the image, and comes back unchanged.</p>
+      <p class="rbd-empty-note">Everything happens on your device. Your deck is never uploaded.</p>
+    </div>
+  {{/unless}}
+
+  {{#if hasFile}}
+    <div class="rbd-card">
+      <div class="rbd-head">
+        <span class="rbd-file" title="{{fileName}}">{{fileName}}</span>
+        <span class="rbd-size">{{fileSize}}</span>
+        <button type="button" class="rbd-replace" data-file-pick>Replace</button>
+      </div>
+
+      {{#if unsupported}}
+        {{#if isPdfFile}}
+          <div class="rbd-state rbd-state-warn">
+            <p class="rbd-lead">A PDF can't be rebranded.</p>
+            <p class="rbd-note">Exporting to PDF flattens the deck: its colours and typefaces stop being editable values and become part of the printed page, and where the pages are plain bitmap images there is nothing left to edit at all. Re-saving it would not change a single pixel. Open the original <code>.pptx</code> and rebrand that instead.</p>
+          </div>
+        {{else}}
+          <div class="rbd-state">
+            <p class="rbd-lead">Could not read this file as a PowerPoint deck.</p>
+            <p class="rbd-note">Choose a <code>.pptx</code> file - the older binary <code>.ppt</code> format isn't supported.</p>
+          </div>
+        {{/if}}
+      {{/if}}
+
+      {{#if pptxUnavailable}}
+        <div class="rbd-state">
+          <p class="rbd-lead">Deck rebranding isn't available here.</p>
+          <p class="rbd-note">Open this tool in the Lolly web or desktop app to rebrand a deck.</p>
+        </div>
+      {{/if}}
+
+      {{#if ready}}
+        {{#if pending}}
+          <div class="rbd-state">
+            <p class="rbd-lead">Reading your deck…</p>
+            <p class="rbd-note">Large decks take a moment - the review appears as soon as it's ready.</p>
+          </div>
+        {{/if}}
+
+        {{#if done}}
+          <p class="rbd-summary">{{summaryText}}</p>
+
+          {{#if flattened}}
+            <div class="rbd-state rbd-state-warn">
+              <p class="rbd-lead">This deck won't change.</p>
+              <p class="rbd-note">{{flattenedText}}</p>
+            </div>
+          {{/if}}
+
+          {{#if hasTheme}}
+            <div class="rbd-theme">
+              <span class="rbd-theme-label">Brand theme</span>
+              <div class="rbd-strip" role="img" aria-label="Theme colours, current and rebranded">
+                {{#each themeRows}}
+                  <span class="rbd-chip" title="{{slot}}"><i style="background: {{from}}"></i><em aria-hidden="true">→</em><i style="background: {{to}}"></i></span>
+                {{/each}}
+              </div>
+            </div>
+          {{/if}}
+        {{/if}}
+
+        <fieldset class="rbd-settings">
+          <legend>Rebrand</legend>
+          <label class="rbd-check">
+            <input type="checkbox" data-input-id="useTheme" {{#if useTheme}}checked{{/if}}>
+            <span>Apply brand theme - theme-linked colours and fonts follow automatically</span>
+          </label>
+          <label class="rbd-check">
+            <input type="checkbox" data-input-id="dropFonts" {{#if dropFonts}}checked{{/if}}>
+            <span>Remove embedded fonts</span>
+          </label>
+        </fieldset>
+
+        {{#if done}}
+          {{#if reviewText}}
+            <div class="rbd-result">
+              <span class="rbd-result-note">{{reviewText}}</span>
+            </div>
+          {{/if}}
+          {{#unless flattened}}
+            <p class="rbd-note">The hardcoded colours and typefaces found on the slides are prefilled as mapping rows in the sidebar - adjust any row, or remove it to leave that colour or font alone.</p>
+          {{/unless}}
+        {{/if}}
+
+        <button type="button" class="rbd-download{{#if flattened}} is-noop{{/if}}" data-export-file data-busy-label="Rebranding…">{{#if flattened}}Download anyway{{else}}Download rebranded deck{{/if}}</button>
+        <p class="rbd-note rbd-tail">The rebuild is surgical: only the theme slots and mapped values are rewritten - every untouched part of the file is preserved byte-for-byte, including images, animations and speaker notes. That preservation cuts both ways: a colour or typeface baked into a picture is part of that picture, so a slide made of images comes back unchanged.</p>
+      {{/if}}
+    </div>
+  {{/if}}
+</div>

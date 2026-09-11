@@ -1,0 +1,7 @@
+{
+  "name": "Ta bort dold data",
+  "description": "Avslöja och ta bort dold metadata från bilder och PDF:er - på din enhet.",
+  "a11yLabel": "Rapport om dold data för {{fileName}}",
+  "inputs.source.label": "Bild eller PDF",
+  "inputs.source.help": "En JPEG-, PNG-, SVG- eller PDF-fil. Den läses i din webbläsare och lämnar aldrig din enhet."
+}

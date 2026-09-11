@@ -1,0 +1,22 @@
+{
+  "name": "مخطط صوتي",
+  "description": "حوّل مقطع صوتي أو أغنية إلى فيديو بعلامتك التجارية يتحرك فعلاً مع الصوت - أعمدة، طيف، حلقة، تلال أو نطاق، جاهز لمواقع التواصل.",
+  "a11yLabel": "بطاقة مخطط صوتي لـ{{default title \"an audio clip\"}} مع موجة صوتية متحركة",
+  "inputs.audio.label": "الصوت",
+  "inputs.audio.help": "اختر مقطعا من مكتبتك أو ارفع مقطعا صوتيا. يتم فك ترميزه على جهازك لرسم الموجة الصوتية - الصوت لا يغادر المتصفح أبدا. اتركه فارغا لموجة صوتية نائبة. لسماعه في التصدير، اختر \"صوت هذه الأداة\" كمسار الصوت في خيارات التنزيل.",
+  "inputs.title.label": "العنوان",
+  "inputs.title.help": "العنوان الرئيسي على البطاقة - اسم الحلقة أو اقتباس بارز.",
+  "inputs.subtitle.label": "العنوان الفرعي",
+  "inputs.subtitle.help": "سطر أصغر تحت العنوان - اسم البرنامج أو الضيف أو مكان الاستماع.",
+  "inputs.style.label": "نمط الموجة",
+  "inputs.style.options.bars": "أشرطة",
+  "inputs.style.options.wave": "موجة",
+  "inputs.style.options.ring": "حلقة",
+  "inputs.size.label": "الحجم",
+  "inputs.size.options.square": "مربع (1:1)",
+  "inputs.size.options.wide": "عريض (16:9)",
+  "inputs.size.options.story": "قصة (9:16)",
+  "inputs.accent.label": "لون الموجة",
+  "inputs.ink.label": "لون النص",
+  "inputs.bg.label": "الخلفية"
+}

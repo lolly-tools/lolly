@@ -1,0 +1,19 @@
+{
+  "name": "Slovní značka",
+  "description": "Napiš slovo a získej čistě vektorovou wordmarku ve fontu tvé značky - příjemci nikdy nepotřebují mít font nainstalovaný.",
+  "a11yLabel": "Slovní značka s textem {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Text",
+  "inputs.font.label": "Písmo",
+  "inputs.font.options.brand": "Písmo značky",
+  "inputs.font.options.mono": "Mono font",
+  "inputs.weight.label": "Řez",
+  "inputs.tracking.label": "Prostrkání",
+  "inputs.tracking.help": "Prostrkání písma v px při nastavené velikosti.",
+  "inputs.size.label": "Velikost",
+  "inputs.size.help": "Velikost písma, při které se tvoří obrysy - prostrkání se k ní vztahuje.",
+  "inputs.color.label": "Barva",
+  "inputs.features.label": "Funkce OpenType",
+  "inputs.features.options.none": "Standardní",
+  "inputs.features.options.liga-off": "Žádné ligatury",
+  "inputs.features.options.salt": "Stylistické alternativy"
+}

@@ -1,0 +1,37 @@
+{
+  "id": "spatial-scatter",
+  "name": "Spatial scatter",
+  "category": "3-D",
+  "description": "Map four numeric columns to x, y, z and point size in a real scene.",
+  "values": {
+    "renderMode": "scene",
+    "chartType": "scatter",
+    "sceneType": "scatter3d",
+    "chartStyle": "studio-3d",
+    "data": "Reach,Engagement,Retention,Audience\n18,42,31,14\n27,55,46,22\n34,38,62,18\n45,71,58,31\n52,64,79,38\n63,82,68,44\n71,73,91,52\n84,89,76,61",
+    "heading": "Campaign opportunity space",
+    "motionPreset": "orbit",
+    "cameraProjection": "perspective",
+    "showLegend": false
+  },
+  "presets": [
+    {
+      "id": "glass",
+      "name": "Glass",
+      "description": "Use translucent points with brand-coloured lighting.",
+      "values": {
+        "chartStyle": "glass-3d"
+      }
+    },
+    {
+      "id": "still",
+      "name": "Still",
+      "description": "Choose a fixed orthographic analytical view.",
+      "values": {
+        "chartStyle": "technical",
+        "cameraProjection": "orthographic",
+        "motionPreset": "none"
+      }
+    }
+  ]
+}

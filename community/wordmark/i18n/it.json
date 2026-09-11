@@ -1,0 +1,19 @@
+{
+  "name": "Wordmark",
+  "description": "Digita una parola, ottieni un wordmark vettoriale a percorso puro nel font del tuo brand - i destinatari non hanno mai bisogno del font installato.",
+  "a11yLabel": "Wordmark con testo {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Testo",
+  "inputs.font.label": "Carattere",
+  "inputs.font.options.brand": "Font del brand",
+  "inputs.font.options.mono": "Font mono",
+  "inputs.weight.label": "Spessore",
+  "inputs.tracking.label": "Tracking",
+  "inputs.tracking.help": "Spaziatura tra lettere in px alla dimensione impostata.",
+  "inputs.size.label": "Dimensione",
+  "inputs.size.help": "Dimensione del font a cui sono modellati i contorni - la spaziatura è relativa a questa.",
+  "inputs.color.label": "Colore",
+  "inputs.features.label": "Funzionalità OpenType",
+  "inputs.features.options.none": "Standard",
+  "inputs.features.options.liga-off": "Nessuna legatura",
+  "inputs.features.options.salt": "Alternative stilistiche"
+}

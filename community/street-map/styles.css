@@ -1,0 +1,88 @@
+/* Street Map - layout + chrome. Map geometry colors are set as SVG attributes
+   in the template script (so they survive SVG/PDF export without relying on CSS
+   custom properties resolving in every shell). */
+
+.sm-root {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  font-family: var(--font-brand, SUSE, ui-sans-serif, sans-serif);
+  --sm-bg: #f5f2ec;
+}
+.sm-root.sm-dark  { --sm-bg: #10131a; }
+.sm-root.sm-light { --sm-bg: #f5f2ec; }
+
+.sm-root { background: var(--sm-bg); }
+
+.sm-map-wrap {
+  width: 100%;
+  height: 100%;
+}
+.sm-map-wrap svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: grab;
+}
+.sm-map-wrap svg:active { cursor: grabbing; }
+
+/* Zoom controls - hidden in exports, revealed on hover over the map. */
+.sm-zoom-controls {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+}
+.sm-map-wrap:hover + .sm-zoom-controls,
+.sm-map-wrap:focus-within + .sm-zoom-controls,
+.sm-zoom-controls:hover,
+.sm-zoom-controls:focus-within {
+  display: flex;
+}
+.sm-zoom-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  background: rgba(127, 127, 127, 0.18);
+  color: inherit;
+  backdrop-filter: blur(6px);
+}
+.sm-zoom-btn:hover { background: rgba(127, 127, 127, 0.32); }
+
+/* Route notice - only ever present when a GPX had something wrong with it, and
+   marked data-export-hide so it never prints into the map. */
+.sm-route-warn {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  max-width: 60%;
+  margin: 0;
+  padding: 7px 11px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: inherit;
+  background: rgba(127, 127, 127, 0.18);
+  backdrop-filter: blur(6px);
+}
+.sm-route-warn:empty { display: none; }
+
+.sm-msg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  text-align: center;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: rgba(127, 127, 127, 0.9);
+}

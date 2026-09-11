@@ -1,0 +1,197 @@
+/* Link Card.
+   One card, three sizes. Everything is measured in container units against the
+   card itself, so the same drawing holds at 1200 x 630, at 1080 square and at
+   1200 x 600 - and at whatever pixel size the canvas happens to preview at.
+
+   Every colour arrives as a custom property the template sets from the hook's
+   resolved set; the fallbacks below are the same literals the hook falls back
+   to, so a brand with no tokens still paints. Type follows the active brand
+   through --font-brand. */
+
+.lc-card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  container-type: size;
+  box-sizing: border-box;
+  display: flex;
+  background: var(--lc-card, #ffffff);
+  color: var(--lc-ink, #17232b);
+  font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+  /* Inherited, so it covers the heading, the description and the chip in one
+     declaration. A pasted address as a title, or a long hostname in the chip,
+     is one unbreakable word: without this it runs past its column and gets cut
+     off mid-word by the text block's own overflow. */
+  overflow-wrap: anywhere;
+}
+
+.lc-card *,
+.lc-card *::before,
+.lc-card *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Text left, thumbnail right: the DOM order is media first so a shell that
+   drops the flex direction still leads with the picture. */
+.lc-split { flex-direction: row-reverse; }
+.lc-stack { flex-direction: column; }
+
+/* ── The thumbnail panel ──────────────────────────────────────────────────── */
+
+.lc-media {
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 auto;
+  background: var(--lc-rule, #dde2e5);
+}
+
+.lc-split .lc-media { width: 41%; height: 100%; }
+.lc-stack .lc-media { width: 100%; height: 52%; }
+
+.lc-thumb {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The stand-in for an empty slot: an accent panel with the site's initial,
+   which is a placed thing rather than the grey box of a missing image. */
+.lc-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--lc-accent, #1f5f52);
+  color: var(--lc-accent-ink, #ffffff);
+}
+
+.lc-placeholder-mark {
+  font-size: 26cqmin;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  opacity: 0.9;
+}
+
+/* ── The text column ──────────────────────────────────────────────────────── */
+
+.lc-body {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 6.4cqmin;
+  gap: 3cqmin;
+  overflow: hidden;
+}
+
+/* The favicon-style chip: a rounded accent square carrying the site's initial,
+   then the address without its protocol, then the site name under it. */
+.lc-chip {
+  display: flex;
+  align-items: center;
+  gap: 2.2cqmin;
+}
+
+.lc-favicon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 7cqmin;
+  height: 7cqmin;
+  border-radius: 1.8cqmin;
+  background: var(--lc-accent, #1f5f52);
+  color: var(--lc-accent-ink, #ffffff);
+  font-size: 4cqmin;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.lc-chip-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.lc-host {
+  font-size: 3.4cqmin;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+}
+
+.lc-site {
+  font-size: 2.9cqmin;
+  line-height: 1.25;
+  color: var(--lc-muted, #6b7780);
+}
+
+/* Overlong copy is clipped, and every clip budget below is an EXACT whole
+   number of lines (max-height = line-height x N). Anything else cuts through
+   the next line's ascenders and leaves a sliver of type along the edge of an
+   exported card, which reads as a broken render rather than a trimmed one.
+   tests/link-card.test.ts holds the sheet to it. */
+.lc-heading {
+  font-size: 7.6cqmin;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  max-height: 3.3em;   /* 3 lines */
+  overflow: hidden;
+}
+
+/* A short accent rule rather than a full-width border: it holds the two blocks
+   of type apart without drawing a line across the whole card. */
+.lc-rule {
+  width: 11cqmin;
+  height: 0.9cqmin;
+  border-radius: 0.45cqmin;
+  background: var(--lc-accent, #1f5f52);
+  flex: 0 0 auto;
+}
+
+.lc-desc {
+  font-size: 3.7cqmin;
+  line-height: 1.42;
+  color: var(--lc-muted, #6b7780);
+  max-height: 2.84em;   /* 2 lines */
+  overflow: hidden;
+}
+
+/* The active brand's lockup, when the brand ships one, sitting at the foot of
+   the text column. */
+.lc-lockup { margin-top: auto; padding-top: 2cqmin; }
+
+.lc-logo {
+  display: block;
+  width: auto;
+  max-width: 44%;
+  max-height: 6cqmin;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.lc-error {
+  padding: 6cqmin;
+  color: var(--lc-muted, #6b7780);
+  font-size: 4cqmin;
+  line-height: 1.4;
+}
+
+/* ── Per-size trims ───────────────────────────────────────────────────────── */
+
+/* The square has the most room, so the type grows into it. */
+.lc-square .lc-heading { font-size: 7cqmin; max-height: 4.4em; }    /* 4 lines */
+.lc-square .lc-desc { font-size: 3.4cqmin; max-height: 4.26em; }    /* 3 lines */
+.lc-square .lc-body { padding: 6cqmin; gap: 3.4cqmin; }
+
+/* The summary card is the shortest of the three; the description gets one line
+   less rather than a smaller size. */
+.lc-twitter-summary .lc-heading { font-size: 7cqmin; max-height: 2.2em; }  /* 2 lines */
+.lc-twitter-summary .lc-desc { max-height: 1.42em; }                       /* 1 line */

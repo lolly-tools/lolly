@@ -1,0 +1,4 @@
+{
+  "name": "Flythrough",
+  "description": "Zboară cu o cameră 3D reală printr-o captură de ecran. Imaginea se ridică în straturi la adâncime reală; formele mari se extrudează în obiecte solide; o cronologie de poziții animează întreaga mișcare - adâncime, opacitate, perspectivă, extrudare, înclinare, rotire, scalare și zborul camerei - apoi o reia în buclă. Adaugă, trage și reordonează poziții. Exportă ca video."
+}

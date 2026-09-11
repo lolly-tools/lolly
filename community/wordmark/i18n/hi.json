@@ -1,0 +1,19 @@
+{
+  "name": "वर्डमार्क",
+  "description": "एक शब्द टाइप करें, अपने ब्रांड फ़ॉन्ट में शुद्ध-पाथ वेक्टर वर्डमार्क पाएँ - पाने वालों को फ़ॉन्ट इंस्टॉल करने की कभी ज़रूरत नहीं पड़ती।",
+  "a11yLabel": "वर्डमार्क जिसमें लिखा है {{default text \"Wordmark\"}}",
+  "inputs.text.label": "टेक्स्ट",
+  "inputs.font.label": "फ़ॉन्ट",
+  "inputs.font.options.brand": "ब्रांड फ़ॉन्ट",
+  "inputs.font.options.mono": "मोनो फ़ॉन्ट",
+  "inputs.weight.label": "वेट",
+  "inputs.tracking.label": "ट्रैकिंग",
+  "inputs.tracking.help": "सेट आकार पर px में लेटर-स्पेसिंग।",
+  "inputs.size.label": "आकार",
+  "inputs.size.help": "फ़ॉन्ट साइज़ जिस पर आउटलाइन शेप की जाती हैं - ट्रैकिंग इसी के सापेक्ष है।",
+  "inputs.color.label": "रंग",
+  "inputs.features.label": "OpenType सुविधाएं",
+  "inputs.features.options.none": "मानक",
+  "inputs.features.options.liga-off": "कोई लिगेचर नहीं",
+  "inputs.features.options.salt": "स्टाइलिस्टिक ऑल्टरनेट्स"
+}

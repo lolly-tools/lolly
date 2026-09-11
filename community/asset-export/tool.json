@@ -1,0 +1,147 @@
+{
+  "id": "asset-export",
+  "name": "Asset Export",
+  "description": "Render any catalog asset - or a Lolly tool link - out to any format and size.",
+  "a11yLabel": "Exported asset",
+  "version": "1.1.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "everyone",
+  "listed": false,
+  "tags": [
+    "asset",
+    "export",
+    "convert",
+    "format",
+    "logo",
+    "image",
+    "svg",
+    "png",
+    "pdf"
+  ],
+  "examples": [
+    {
+      "label": "Whole asset, brand surface",
+      "values": {
+        "src": {
+          "source": "library",
+          "id": "lolly/demo/lolly-spin",
+          "_unresolved": true
+        },
+        "fit": "contain",
+        "width": 1000,
+        "height": 1000
+      }
+    },
+    {
+      "label": "Filled square crop",
+      "values": {
+        "src": {
+          "source": "library",
+          "id": "lolly/demo/lolly-spin",
+          "_unresolved": true
+        },
+        "fit": "cover",
+        "width": 1000,
+        "height": 1000
+      }
+    },
+    {
+      "label": "Wide banner",
+      "values": {
+        "src": {
+          "source": "library",
+          "id": "lolly/demo/lolly-spin",
+          "_unresolved": true
+        },
+        "fit": "contain",
+        "width": 1600,
+        "height": 600
+      }
+    }
+  ],
+  "render": {
+    "width": 1000,
+    "height": 1000,
+    "formats": [
+      "svg",
+      "penpot",
+      "png",
+      "jpg",
+      "webp",
+      "pdf",
+      "pdf-cmyk",
+      "cmyk-tiff",
+      "ico",
+      "zip",
+      "avif",
+      "tiff",
+      "eps",
+      "dxf",
+      "emf"
+    ],
+    "actions": [
+      "copy",
+      "download",
+      "save"
+    ],
+    "transparentBg": false
+  },
+  "inputs": [
+    {
+      "id": "src",
+      "label": "Asset",
+      "type": "asset",
+      "help": "The asset to render - a catalog id (see `lolly assets`) or a pasted lolly.tools tool link. Vector assets stay vector through SVG/PDF; raster assets embed as images."
+    },
+    {
+      "id": "fit",
+      "label": "Fit",
+      "type": "select",
+      "default": "contain",
+      "options": [
+        {
+          "value": "contain",
+          "label": "Contain (whole asset, letterboxed)"
+        },
+        {
+          "value": "cover",
+          "label": "Cover (fill, may crop)"
+        }
+      ],
+      "help": "Contain shows the whole asset inside the frame; Cover fills the frame and may crop the edges."
+    },
+    {
+      "id": "width",
+      "label": "Width",
+      "type": "number",
+      "default": 1000,
+      "min": 1,
+      "max": 8000,
+      "group": "export"
+    },
+    {
+      "id": "height",
+      "label": "Height",
+      "type": "number",
+      "default": 1000,
+      "min": 1,
+      "max": 8000,
+      "group": "export"
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "type": "color",
+      "default": "{color.semantic.surface}",
+      "help": "The colour behind the asset. Turn on \"Transparent background\" to drop it."
+    },
+    {
+      "id": "transparentBg",
+      "label": "No background",
+      "type": "boolean",
+      "default": false,
+      "help": "Drop the background fill so the asset exports on transparency (PNG/SVG/WebP)."
+    }
+  ]
+}

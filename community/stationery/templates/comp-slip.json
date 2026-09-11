@@ -1,0 +1,41 @@
+{
+  "id": "comp-slip",
+  "name": "Compliments slip",
+  "category": "Identity",
+  "description": "A DL slip, 210 x 99 mm, to go in the envelope with everything else.",
+  "values": {
+    "piece": "comp-slip",
+    "firstname": "Nadia",
+    "lastname": "Okafor",
+    "jobTitle": "Head of Design",
+    "email": "nadia@example.com",
+    "phone": "+44 20 7946 0142",
+    "company": "Northline Studio",
+    "url": "northline.studio",
+    "address": "12 Barrow Lane, Bristol BS1 4QD",
+    "tagline": "With compliments",
+    "color": "{color.semantic.text}",
+    "background": "{color.semantic.surface}",
+    "accent": "{color.semantic.primary}"
+  },
+  "presets": [
+    {
+      "id": "comp-slip-thanks",
+      "name": "Thank you",
+      "description": "The same slip with a warmer line on it.",
+      "values": {
+        "tagline": "Thank you"
+      }
+    },
+    {
+      "id": "comp-slip-ink",
+      "name": "Ink slip",
+      "description": "Dark stock, pale ink, mint accent.",
+      "values": {
+        "color": "#f4f6f7",
+        "background": "#14181b",
+        "accent": "#7fd1b9"
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "تصدير الأصول",
+  "description": "اعرض أي أصل من الكتالوج - أو رابط أداة Lolly - بأي صيغة وحجم.",
+  "a11yLabel": "الأصل المُصدَّر",
+  "inputs.src.label": "الأصل",
+  "inputs.src.help": "الأصل المطلوب تصديره - معرّف من الكتالوج (راجع `lolly assets`) أو رابط أداة تم لصقه من lolly.tools. الأصول المتجهة (Vector) تبقى متجهة عبر SVG وPDF؛ أما الأصول النقطية (Raster) فتُضمَّن كصور.",
+  "inputs.fit.label": "الملاءمة",
+  "inputs.fit.help": "يعرض وضع الاحتواء (Contain) الأصل كاملاً داخل الإطار؛ بينما يملأ وضع التغطية (Cover) الإطار بالكامل وقد يقتصّ الحواف.",
+  "inputs.fit.options.contain": "احتواء (الأصل بالكامل، مع أشرطة فارغة حول الحواف)",
+  "inputs.fit.options.cover": "تغطية (ملء الإطار، قد يقتصّ الحواف)",
+  "inputs.background.label": "الخلفية",
+  "inputs.background.help": "اللون خلف الأصل. فعِّل «بدون خلفية» عند التصدير لإزالته (ليصبح شفافًا).",
+  "inputs.transparentBg.label": "بدون خلفية",
+  "inputs.transparentBg.help": "أزل تعبئة الخلفية ليصدَّر الأصل على خلفية شفافة (PNG وSVG وWebP)."
+}

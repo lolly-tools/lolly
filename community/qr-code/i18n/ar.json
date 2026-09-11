@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "رموز QR لرابط، أو بطاقة تواصل، أو شبكة Wi-Fi، أو موعد في التقويم، أو موقع جغرافي، أو نص عادي.",
+  "a11yLabel": "رمز QR يرتبط بـ {{default url \"(no URL set)\"}}",
+  "featured.blurb": "رموز QR بأي لون من ألوان علامتك",
+  "inputs.url.label": "URL",
+  "inputs.color.label": "لون الوحدات",
+  "inputs.background.label": "الخلفية",
+  "inputs.ecl.label": "تصحيح الأخطاء",
+  "inputs.ecl.options.L": "منخفض (7%)",
+  "inputs.ecl.options.M": "متوسط (15%)",
+  "inputs.ecl.options.Q": "ربعي (25%)",
+  "inputs.ecl.options.H": "مرتفع (30%)",
+  "inputs.padding.label": "المنطقة الهادئة",
+  "inputs.padding.help": "وحدات من الفراغ الأبيض حول الرمز. ينصح بـ 4 على الأقل.",
+  "inputs.join.label": "وحدات موصولة",
+  "inputs.join.help": "ادمج كل الوحدات في مسار SVG واحد. أوضح عند الأحجام الصغيرة."
+}

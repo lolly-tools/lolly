@@ -1,0 +1,204 @@
+{
+  "id": "url-shot",
+  "name": "URL Screenshot",
+  "description": "Any web page, at any scroll-depth, with custom CSS",
+  "a11yLabel": "Screenshot of {{default url \"(no URL set)\"}}",
+  "version": "0.2.2",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "utility",
+  "tags": ["url", "screenshot", "capture", "web", "preview", "developer", "qa"],
+  "capabilities": ["capture"],
+  "render": {
+    "width": 1280,
+    "height": 720,
+    "formats": ["png", "jpg", "webp", "svg", "penpot", "pdf", "webm", "mp4", "avif", "tiff", "gif"],
+    "actions": ["download", "save"],
+    "convertPaths": false,
+    "preview": {
+      "format": "webp",
+      "auto": true
+    },
+    "video": {
+      "wait": 0,
+      "duration": 4
+    }
+  },
+  "inputs": [
+    {
+      "id": "url",
+      "label": "URL",
+      "type": "url",
+      "required": true,
+      "default": "https://lolly.tools",
+      "help": "The page to capture. Captured at export time in a real browser engine."
+    },
+    {
+      "id": "scrollDepth",
+      "label": "Scroll depth",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "help": "How far down the page to scroll before capturing. 0 = top, 1 = bottom. For a video, this is where the pan STARTS."
+    },
+    {
+      "id": "scrollTo",
+      "label": "Scroll to (video)",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "help": "Video export only: pan DOWN to this depth over the clip - a scroll of the page from 'Scroll depth' to here. Set equal to 'Scroll depth' for a still hold. Ignored for image formats."
+    },
+    {
+      "id": "zoom",
+      "label": "Zoom",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 0.25,
+      "max": 5,
+      "step": 0.25,
+      "help": "Browser zoom level - magnifies the page before the shot (like Ctrl/Cmd +), so even a bitmap capture is enlarged and crisp rather than upscaled. 1 = 100%."
+    },
+    {
+      "id": "waitMs",
+      "label": "Settle delay (ms)",
+      "type": "number",
+      "default": 500,
+      "min": 0,
+      "max": 15000,
+      "step": 100,
+      "help": "Time to wait after load (and after scrolling) before the shot - lets fonts, images and animations settle."
+    },
+    {
+      "id": "css",
+      "label": "Custom CSS",
+      "type": "longtext",
+      "rows": 6,
+      "default": "",
+      "help": "CSS injected into the page before the screenshot - e.g. hide a cookie banner (.cookie-bar { display: none }) or restyle elements."
+    },
+    {
+      "id": "cropTop",
+      "label": "Crop top",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 0.9,
+      "step": 0.01,
+      "help": "Trim in from the top edge, as a 0–0.9 fraction of the height. Raster (png/jpg/svg) only."
+    },
+    {
+      "id": "cropRight",
+      "label": "Crop right",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 0.9,
+      "step": 0.01,
+      "help": "Trim in from the right edge, as a 0–0.9 fraction of the width."
+    },
+    {
+      "id": "cropBottom",
+      "label": "Crop bottom",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 0.9,
+      "step": 0.01,
+      "help": "Trim in from the bottom edge, as a 0–0.9 fraction of the height."
+    },
+    {
+      "id": "cropLeft",
+      "label": "Crop left",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 0.9,
+      "step": 0.01,
+      "help": "Trim in from the left edge, as a 0–0.9 fraction of the width."
+    },
+    {
+      "id": "recolor",
+      "label": "Recolor",
+      "type": "select",
+      "default": "none",
+      "options": [
+        { "value": "none", "label": "Original colours" },
+        { "value": "invert", "label": "Invert (keep hues)" },
+        { "value": "grayscale", "label": "Grayscale" },
+        { "value": "sepia", "label": "Sepia" },
+        { "value": "hue", "label": "Hue shift" },
+        { "value": "tint", "label": "Tint (swap to a colour)" }
+      ],
+      "help": "Recolour the whole page before capture. 'Hue shift' rotates every colour by the angle below; 'Tint' desaturates then washes it in the tint colour."
+    },
+    {
+      "id": "hue",
+      "label": "Hue angle",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "step": 5,
+      "help": "Degrees to rotate every colour by when Recolor is 'Hue shift'."
+    },
+    {
+      "id": "tintColor",
+      "label": "Tint colour",
+      "type": "color",
+      "default": "{color.semantic.primary}",
+      "help": "The colour the page is washed in when Recolor is 'Tint'."
+    },
+    {
+      "id": "compare",
+      "label": "Compare viewports",
+      "type": "select",
+      "default": "single",
+      "options": [
+        { "value": "single", "label": "Single frame" },
+        { "value": "side", "label": "Desktop and phone, side by side" },
+        { "value": "overlap", "label": "Phone over the desktop corner" }
+      ],
+      "help": "Capture the same page twice - once at the export size, once at the phone viewport below - and lay both out in one frame. Still formats only; a webm/mp4 scroll pan stays a single desktop frame."
+    },
+    {
+      "id": "mobileWidth",
+      "label": "Phone width",
+      "type": "number",
+      "default": 390,
+      "min": 200,
+      "max": 2000,
+      "step": 1,
+      "showIf": { "compare": ["side", "overlap"] },
+      "help": "Viewport width for the second capture, in px. 390 is a current iPhone / Pixel class device."
+    },
+    {
+      "id": "mobileHeight",
+      "label": "Phone height",
+      "type": "number",
+      "default": 844,
+      "min": 200,
+      "max": 4000,
+      "step": 1,
+      "showIf": { "compare": ["side", "overlap"] },
+      "help": "Viewport height for the second capture, in px. It also sets the phone frame's proportions."
+    }
+  ],
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true
+  }
+}

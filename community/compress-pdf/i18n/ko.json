@@ -1,0 +1,14 @@
+{
+  "name": "Compress",
+  "description": "PDF 내 이미지를 재압축해 용량을 줄입니다 - 기기 내에서 처리됩니다.",
+  "a11yLabel": "{{fileName}}용 PDF 압축기",
+  "inputs.source.label": "PDF",
+  "inputs.source.help": "PDF 파일이에요. 브라우저에서 읽히며 기기 밖으로 나가지 않아요.",
+  "inputs.level.label": "압축",
+  "inputs.level.help": "내장된 이미지를 얼마나 강하게 압축할지 정해요. 강할수록 파일은 작아지고 이미지는 부드러워져요.",
+  "inputs.level.options.light": "약하게 - 고화질 유지",
+  "inputs.level.options.balanced": "균형",
+  "inputs.level.options.strong": "강하게 - 최소 용량",
+  "inputs.grayscale.label": "이미지를 흑백으로 변환",
+  "inputs.grayscale.help": "이미지에서 색상을 제거해 용량을 더 줄여요 - 스캔한 텍스트 문서에 유용해요."
+}

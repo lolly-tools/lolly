@@ -1,0 +1,25 @@
+<main class="utility">
+ {{#unless hasFile}}<section class="empty" data-file-pick><div class="mark">≋</div><h1>Clean a recording</h1><p>Reduce voice noise, trim silent edges and finish to a useful loudness.</p><button class="btn btn--primary" type="button" data-file-pick>Choose audio or video…</button><small>On-device processing. Your recording is never uploaded.</small></section>{{/unless}}
+ {{#if hasFile}}<section class="card"><header><strong>{{fileName}}</strong><span>{{fileSize}}</span><button type="button" class="btn btn--ghost quiet" data-file-pick>Replace</button></header>
+  {{#if error}}<div class="notice bad"><strong>Cannot continue</strong><span>{{error}}</span></div>{{/if}}
+  {{#if available}}<div class="wave" role="img" aria-label="Source waveform">{{#each wave}}<i style="height:{{h}}px"></i>{{/each}}</div>
+   {{#if sourceUrl}}<!-- biome-ignore lint/a11y/useMediaCaption: the uploaded recording has no separate caption track --><audio class="player" controls preload="metadata" src="{{sourceUrl}}"></audio>{{/if}}
+   <section class="controls" aria-label="Audio cleanup settings">
+    <label>Voice cleanup<select class="field-select field-select--sm" data-input-id="denoise">
+     <option value="off" {{#if (eq denoise "off")}}selected{{/if}}>Off</option><option value="light" {{#if (eq denoise "light")}}selected{{/if}}>Light</option><option value="strong" {{#if (eq denoise "strong")}}selected{{/if}}>Strong</option>
+    </select></label>
+    <label>Loudness<select class="field-select field-select--sm" data-input-id="normalize">
+     <option value="off" {{#if (eq normalize "off")}}selected{{/if}}>Leave unchanged</option><option value="-16" {{#if (eq normalize "-16")}}selected{{/if}}>Podcast · -16 LUFS</option><option value="-14" {{#if (eq normalize "-14")}}selected{{/if}}>Streaming · -14 LUFS</option><option value="-23" {{#if (eq normalize "-23")}}selected{{/if}}>Broadcast · -23 LUFS</option>
+    </select></label>
+    <label>Audio output<select class="field-select field-select--sm" data-input-id="audioFormat" aria-describedby="clean-video-format">
+     <option value="wav" {{#if (eq audioFormat "wav")}}selected{{/if}}>WAV</option><option value="mp3" {{#if (eq audioFormat "mp3")}}selected{{/if}}>MP3</option><option value="m4a" {{#if (eq audioFormat "m4a")}}selected{{/if}}>M4A</option><option value="opus" {{#if (eq audioFormat "opus")}}selected{{/if}}>Opus</option>
+    </select></label>
+    <label class="check"><input class="field-check" type="checkbox" data-input-id="trimSilence" {{#if trimSilence}}checked{{/if}}>Trim leading and trailing silence</label>
+    <small id="clean-video-format">Audio output applies to audio-only files. Video keeps its picture, timing and container.</small>
+   </section>
+   {{#if pending}}<div class="notice"><strong>Ready to clean</strong><span>The finished measurements will be calculated during download.</span></div>{{/if}}
+   {{#if done}}<div class="metrics"><div><small>Before</small><strong>{{before}}</strong></div><b>→</b><div><small>After</small><strong>{{after}}</strong></div><div><small>True peak</small><strong>{{peak}}</strong></div><div><small>Trimmed</small><strong>{{trimmed}}</strong></div></div><div class="notice"><strong>{{outputText}}</strong><span>{{operations}}</span></div>{{/if}}
+   <button type="button" class="btn btn--primary download" data-export-file data-busy-label="Cleaning…">Download cleaned file</button><p class="muted">No watermark or credential is added. Video inputs keep their picture and receive the cleaned audio track.</p>
+  {{/if}}
+ </section>{{/if}}
+</main>

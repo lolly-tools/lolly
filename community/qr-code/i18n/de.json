@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "QR-Codes für einen Link, eine Kontaktkarte, ein Wi-Fi-Netzwerk, einen Kalendertermin, einen Standort oder reinen Text.",
+  "featured.blurb": "QR-Codes in jeder Markenfarbe",
+  "a11yLabel": "QR-Code, der zu {{default url \"(keine URL festgelegt)\"}} verlinkt",
+  "inputs.url.label": "URL",
+  "inputs.color.label": "Modulfarbe",
+  "inputs.background.label": "Hintergrund",
+  "inputs.ecl.label": "Fehlerkorrektur",
+  "inputs.ecl.options.L": "Niedrig (7%)",
+  "inputs.ecl.options.M": "Mittel (15%)",
+  "inputs.ecl.options.Q": "Quartil (25%)",
+  "inputs.ecl.options.H": "Hoch (30%)",
+  "inputs.padding.label": "Ruhezone",
+  "inputs.padding.help": "Module aus Weißraum rund um den Code. Mindestens 4 empfohlen.",
+  "inputs.join.label": "Verbundene Module",
+  "inputs.join.help": "Fügt alle Module zu einem einzigen SVG-Pfad zusammen. Schärfer bei kleinen Größen."
+}

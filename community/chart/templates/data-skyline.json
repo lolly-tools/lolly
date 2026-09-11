@@ -1,0 +1,47 @@
+{
+  "id": "data-skyline",
+  "name": "Fly the data skyline",
+  "category": "Cinematic",
+  "description": "Build a branded skyline from the values, then travel alongside the series that matters most.",
+  "values": {
+    "renderMode": "cinematic",
+    "cinematicType": "skyline3d",
+    "chartType": "bar",
+    "sceneMaterial": "gloss",
+    "data": "Quarter,Revenue,Operating cost\nQ1,38,27\nQ2,46,31\nQ3,59,37\nQ4,54,40\nQ5,72,45\nQ6,81,51\nQ7,77,55\nQ8,96,61",
+    "heading": "The revenue skyline",
+    "subheading": "Tower height is value; the camera follows Revenue through time",
+    "flightSeries": "Revenue",
+    "flightHeight": 1.05,
+    "flightLookAhead": 1.8,
+    "flightBank": 5,
+    "flightFov": 52,
+    "animSpeed": 0.95,
+    "showLegend": true,
+    "showGrid": true,
+    "sceneShadows": true
+  },
+  "presets": [
+    {
+      "id": "editorial-overview",
+      "name": "Editorial overview",
+      "description": "Use a calmer, higher camera and a narrower lens for reports and presentations.",
+      "values": {
+        "flightHeight": 1.65,
+        "flightLookAhead": 2.9,
+        "flightBank": 2,
+        "flightFov": 39,
+        "animSpeed": 1.25
+      }
+    },
+    {
+      "id": "cost-route",
+      "name": "Follow operating cost",
+      "description": "Keep the shared scale and city, but move the point of view to the comparison series.",
+      "values": {
+        "flightSeries": "Operating cost",
+        "heading": "Operating cost through the skyline"
+      }
+    }
+  ]
+}

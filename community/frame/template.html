@@ -1,0 +1,46 @@
+<div class="sf-root {{frameClass}}{{#if dark}} sf-dark{{/if}}"
+     style="padding:{{padPx}}px; --sf-scale:{{scalePct}}; --sf-radius:{{radiusPx}}px; --sf-shadow:{{{shadowCss}}}">
+
+  {{#if backdropCss}}<div class="sf-backdrop" style="background:{{{backdropCss}}}"></div>{{/if}}
+
+  <div class="sf-stage">
+    <div class="sf-window">
+
+      {{#if isBrowser}}
+      <div class="sf-titlebar {{chromeClass}}">
+        <span class="sf-ctl">{{{chromeGlyphs}}}</span>
+        {{#if title}}<span class="sf-tab">{{title}}</span>{{/if}}
+        <span class="sf-address">{{displayHost}}</span>
+      </div>
+      {{/if}}
+
+      {{#if isPhone}}
+      <div class="sf-status">
+        <span class="sf-status-title">{{title}}</span>
+        <span class="sf-island"></span>
+      </div>
+      {{/if}}
+
+      <div class="sf-shot">
+        {{#if image.url}}
+        <img class="sf-img" src="{{asset image}}" alt="" {{framing "imageFraming"}}>
+        {{else}}
+        <div class="sf-ph" aria-hidden="true">
+          <div class="sf-ph-rail"><span></span><span></span><span></span></div>
+          <div class="sf-ph-body">
+            <div class="sf-ph-bar sf-ph-bar-wide"></div>
+            <div class="sf-ph-bar sf-ph-bar-mid"></div>
+            <div class="sf-ph-card"></div>
+            <div class="sf-ph-bar sf-ph-bar-short"></div>
+          </div>
+        </div>
+        {{/if}}
+      </div>
+
+      {{#if isLaptop}}<div class="sf-base"><span class="sf-lip"></span></div>{{/if}}
+
+    </div>
+  </div>
+
+  {{#if sfError}}<p class="sf-error" data-export-hide role="status">{{sfError}}</p>{{/if}}
+</div>

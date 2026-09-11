@@ -1,0 +1,14 @@
+{
+  "name": "Compress",
+  "description": "Paliitin ang isang PDF sa pamamagitan ng muling pag-compress ng mga larawan nito - sa iyong device.",
+  "a11yLabel": "PDF compressor para sa {{fileName}}",
+  "inputs.source.label": "PDF",
+  "inputs.source.help": "Isang PDF file. Binabasa ito sa browser mo at hindi ito umaalis sa device mo.",
+  "inputs.level.label": "Compression",
+  "inputs.level.help": "Gaano kalakas i-compress ang mga naka-embed na larawan. Mas malakas, mas maliit ang file pero mas malabo ang mga larawan.",
+  "inputs.level.options.light": "Magaan - panatilihing mataas ang kalidad",
+  "inputs.level.options.balanced": "Balanseado",
+  "inputs.level.options.strong": "Malakas - pinakamaliit na file",
+  "inputs.grayscale.label": "Gawing grayscale ang mga larawan",
+  "inputs.grayscale.help": "Alisin ang kulay sa mga larawan para sa dagdag na tipid - kapaki-pakinabang para sa mga na-scan na dokumentong teksto."
+}

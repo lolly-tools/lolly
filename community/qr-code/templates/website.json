@@ -1,0 +1,32 @@
+{
+  "id": "website",
+  "name": "Website link",
+  "category": "Utility",
+  "description": "A clean scannable link to any web page.",
+  "values": {
+    "url": "https://example.com",
+    "ecl": "M",
+    "padding": 4,
+    "join": true
+  },
+  "presets": [
+    {
+      "id": "brand",
+      "name": "Brand colours",
+      "description": "Modules in your brand primary on the brand surface.",
+      "values": { "color": "{color.semantic.primary}", "background": "{color.semantic.surface}" }
+    },
+    {
+      "id": "ink",
+      "name": "Ink on paper",
+      "description": "Near-black on warm white for print.",
+      "values": { "color": "#1a1a2e", "background": "#faf7f2" }
+    },
+    {
+      "id": "night",
+      "name": "Night mode",
+      "description": "Light modules on a dark ground for screens and slides.",
+      "values": { "color": "#93c5fd", "background": "#0b1021", "padding": 6 }
+    }
+  ]
+}

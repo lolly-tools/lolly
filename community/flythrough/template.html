@@ -1,0 +1,733 @@
+<div class="fly-wrap" data-lolly-anno="{{move}} {{background}}">
+  <canvas class="fly-canvas" id="fly-canvas" data-canvas-input="shot" data-capture-stream></canvas>
+</div>
+<script type="application/json" id="fly-state">{{{_state}}}</script>
+<script>
+(function () {
+  /* Idempotent per-paint IIFE ('Template script IIFE required'). Epoch guard drops stale
+     async callbacks; the previous renderer is disposed so we never leak WebGL contexts. */
+  window.__lollyFlyEpoch = (window.__lollyFlyEpoch || 0) + 1;
+  var EP = window.__lollyFlyEpoch;
+  function alive() { return window.__lollyFlyEpoch === EP; }
+
+  var canvas = document.getElementById('fly-canvas');
+  var stateEl = document.getElementById('fly-state');
+  if (!canvas || !stateEl) return;
+  var cfg; try { cfg = JSON.parse(stateEl.textContent || '{}'); } catch (e) { return; }
+  if (!cfg || !cfg.shotUrl) return;
+  var POSES = (cfg.poses && cfg.poses.length) ? cfg.poses : [{}];
+  // Sample the pose timeline at eased progress s ∈ [0,1]: find the segment and lerp between
+  // the two adjacent poses. Fewer than two → held static. The N-keyframe generalisation of
+  // the old Start→End tween - every animatable channel reads through here.
+  function poseAt(s) {
+    var n = POSES.length;
+    if (n < 2) return POSES[0] || {};
+    var f = Math.max(0, Math.min(1, s)) * (n - 1);
+    var i = Math.min(n - 2, Math.floor(f)), t = f - i;
+    var A = POSES[i], B = POSES[i + 1];
+    var L = function (k, dv) { var a = A[k] != null ? A[k] : dv, b = B[k] != null ? B[k] : dv; return a + (b - a) * t; };
+    return { depth: L('depth', 1), opacity: L('opacity', 1), fov: L('fov', 42), extrude: L('extrude', 0),
+             scale: L('scale', 1), tiltX: L('tiltX', 0), tiltY: L('tiltY', 0), tiltZ: L('tiltZ', 0),
+             offsetX: L('offsetX', 0), offsetY: L('offsetY', 0),
+             distance: L('distance', 1), height: L('height', 0) };
+  }
+
+  if (window.__lollyFly && typeof window.__lollyFly.dispose === 'function') {
+    try { window.__lollyFly.dispose(); } catch (e) {}
+    window.__lollyFly = null;
+  }
+
+  window.__toolHasReadySignal = true;
+  var readyFired = false;
+  function fireReady() { if (readyFired) return; readyFired = true; try { document.dispatchEvent(new CustomEvent('tool:ready')); } catch (e) {} }
+  function message(txt) { var w = canvas && canvas.parentNode; if (w) { var d = document.createElement('div'); d.className = 'fly-msg'; d.textContent = txt; w.appendChild(d); } }
+
+  var LIB = '/tools/flythrough/lib/three.min.js';
+  function loadThree() {
+    if (window.LollyThree) return Promise.resolve(window.LollyThree);
+    window.__lollyThreeLoading = window.__lollyThreeLoading || new Promise(function (res, rej) {
+      var s = document.createElement('script'); s.src = LIB;
+      s.onload = function () { res(window.LollyThree); };
+      s.onerror = function () { s.remove(); window.__lollyThreeLoading = null; rej(new Error('three load failed')); };
+      document.head.appendChild(s);
+    });
+    return window.__lollyThreeLoading;
+  }
+
+  function d2r(d) { return d * Math.PI / 180; }
+  function easeInOut(p) { return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; }
+  function pingpong(p) { var t = (p % 1) * 2; return t > 1 ? 2 - t : t; }
+  function lerp(a, b, s) { return a + (b - a) * s; }
+
+  loadThree().then(function (THREE) {
+    if (!alive()) return;
+    if (!THREE || !THREE.WebGLRenderer) { message('3D library failed to load.'); fireReady(); return; }
+    try { start(THREE); } catch (err) { console.error('[flythrough] init error:', err); message(String(err && err.message || err)); fireReady(); }
+  }).catch(function (e) { console.error('[flythrough]', e); message('3D library failed to load.'); fireReady(); });
+
+  function start(THREE) {
+    var W = cfg.width, H = cfg.height;
+    // Supersample reference: textures are sampled ABOVE the export size so a dive-in that
+    // magnifies the picture keeps crisp edges instead of showing the texture's own texels.
+    var baseW = Math.max(W, H, 1280);
+    // logarithmicDepthBuffer: depth precision is otherwise crushed at the far end of the
+    // stack, which is what tears the base layers against their extruded slabs at grazing
+    // angles. A log buffer spreads precision across the whole range and cures it.
+    var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, preserveDrawingBuffer: true, logarithmicDepthBuffer: true });
+    renderer.setPixelRatio(1);
+    renderer.setSize(W, H, false);
+    if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    var scene = new THREE.Scene();
+    scene.background = new THREE.Color(cfg.background || '#0e1726');
+    // Lights so the EXTRUDED walls shade and read as solid (the flat textured fronts are
+    // MeshBasic / unlit, so the picture shows exactly as-is). The Light slider rakes the
+    // key harder for more form on the side walls.
+    scene.add(new THREE.AmbientLight(0xffffff, 0.78));
+    var key = new THREE.DirectionalLight(0xffffff, 0.7 * (cfg.light != null ? cfg.light : 1));
+    key.position.set(0.4, 0.9, 2); scene.add(key);
+
+    // Everything liftable lives in a GROUP: the Dive / Custom flights TILT this group back
+    // like a floor (the far plane recedes to a horizon; depth becomes ground / extruded /
+    // sky), while the orbit presets leave it flat and move the lens.
+    var stackGroup = new THREE.Group();
+    scene.add(stackGroup);
+
+    // ── Studio floor: a soft showroom shadow pooled at the BASE of the stack. Anchor mode:
+    //    OBJECT (default) parents it to the stackGroup so it's a rigid part of the diorama -
+    //    tilts / rotates / scales WITH the subject, giving the camera a fixed ground reference
+    //    so a flight reads as the CAMERA moving. VIEWPORT parents it to the world so it stays
+    //    a fixed horizontal ground and the subject tilts above it. A radial-gradient blob laid
+    //    flat, sized wider than the base and elongated along the floor. Off at 0. ──
+    var floorMesh = null, floorTex = null;
+    if (cfg.floor > 0.001) {
+      var fc = document.createElement('canvas'); fc.width = fc.height = 256;
+      var fg = fc.getContext('2d');
+      var grd = fg.createRadialGradient(128, 128, 4, 128, 128, 124);
+      grd.addColorStop(0, 'rgba(0,0,0,0.78)');
+      grd.addColorStop(0.4, 'rgba(0,0,0,0.5)');
+      grd.addColorStop(0.72, 'rgba(0,0,0,0.2)');
+      grd.addColorStop(1, 'rgba(0,0,0,0)');
+      fg.fillStyle = grd; fg.beginPath(); fg.arc(128, 128, 128, 0, Math.PI * 2); fg.fill();
+      floorTex = new THREE.CanvasTexture(fc); floorTex.needsUpdate = true;
+      floorMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(1, 1),
+        new THREE.MeshBasicMaterial({ map: floorTex, transparent: true, depthWrite: false })
+      );
+      floorMesh.rotation.x = -Math.PI / 2;   // lie flat: local x → x, local y → z
+      floorMesh.position.set(0, -1.004, 0);  // at the base (updateStack re-sets y for viewport mode)
+      floorMesh.renderOrder = -1;            // paint under everything
+      if (cfg.floorViewport) scene.add(floorMesh);      // fixed world ground
+      else stackGroup.add(floorMesh);                   // rigid with the objects
+    }
+
+    // Offscreen measuring SVG - the browser computes exact path geometry (getBBox +
+    // getPointAtLength) so we never hand-parse a `d` string. Reused for every path.
+    var SVGNS = 'http://www.w3.org/2000/svg';
+    var measSvg = document.createElementNS(SVGNS, 'svg');
+    measSvg.setAttribute('width', '10'); measSvg.setAttribute('height', '10');
+    measSvg.style.cssText = 'position:absolute;left:-99999px;top:-99999px;width:10px;height:10px;overflow:hidden;opacity:0;pointer-events:none';
+    document.body.appendChild(measSvg);
+    var measPath = document.createElementNS(SVGNS, 'path');
+    measSvg.appendChild(measPath);
+
+    // near 0.05 (not 0.01): the depth buffer is hugely front-weighted, so pushing the near
+    // plane out this much sharpens depth precision through the stack and is the real lever
+    // against z-fighting between the layers and their extruded solids. Still closer than the
+    // deepest dive gets to a layer, so nothing clips.
+    // Projection is a TOGGLE, not a flight: Isometric = a real ORTHOGRAPHIC camera (parallel
+    // projection - no perspective convergence), the textbook way to get a true iso look once
+    // the stack is tilted/rotated to the iso angle. FOV is meaningless without perspective,
+    // so the FOV sliders are hidden when this is on (showIf in the manifest). A perspective
+    // camera keeps the animatable FOV. The toggle re-mounts the tool, so the type is fixed
+    // per render - no runtime swap needed.
+    var isOrtho = !!cfg.iso;
+    var camAspect = W / H;
+    var REF_FOV = (POSES[0] && POSES[0].fov) || 42;
+    var camera = isOrtho
+      ? new THREE.OrthographicCamera(-1.2 * camAspect, 1.2 * camAspect, 1.2, -1.2, 0.01, 100)
+      : new THREE.PerspectiveCamera(REF_FOV, camAspect, 0.05, 100);
+    var fitDist = 3, planeW = 3.5, planeH = 2;
+    // Ortho has no perspective dolly, so "getting closer" must scale the frustum instead:
+    // zoom = fitDist / distance reproduces the perspective 1/d apparent-size curve for every
+    // flight uniformly, so presets feel the same in either projection. Inert for perspective.
+    function dollyOrtho() {
+      if (!isOrtho) return;
+      var dist = Math.max(0.001, camera.position.length());
+      camera.zoom = fitDist / dist;
+      camera.updateProjectionMatrix();
+    }
+
+    var disposed = false, raf = 0;
+    var textures = [], layerMeshes = [];
+    var animState = null;   // a per-frame re-rasterised animated-SVG shot (first cut: single plane)
+    var dragPin = false;    // true while the user drags the canvas to articulate the subject
+
+    // Per-shot cache (window-scoped, survives the WebGL re-inits the shell fires on every
+    // input change): the parsed solid SHAPES and the rasterised layer CANVASES depend only on
+    // the SHOT, not the pose - so a pose-slider drag (shot unchanged) reuses them instead of
+    // re-sampling every path (a main-thread stall - hundreds of getPointAtLength) and
+    // re-rasterising every SVG (an async reload flicker) each frame, which is what made the
+    // sliders stall. Reset when the shot changes so a new picture never renders with the old
+    // one's geometry or pixels.
+    function flyCache() {
+      var c = window.__lollyFlyCache, key = cfg.shotUrl || '';
+      if (!c || c.shot !== key) { c = { shot: key, solids: {}, tex: {} }; window.__lollyFlyCache = c; }
+      return c;
+    }
+
+    // ── real extrusion: parse the BIG solid shapes out of a layer's SVG and build 3D
+    //    solids (front/back caps + side walls) coloured by fill. Small shapes, text-as-
+    //    paths, gradient/image fills and complex paths stay FLAT on the textured plane -
+    //    only cards / panels / buttons get true thickness, which keeps the poly count low. ──
+    function buildSolids(svgText, aspect, layerKey) {
+      var out = [];
+      var cache = flyCache();
+      var ck = (layerKey || 's') + '|' + Math.round((aspect || 1) * 1000);
+      var meshFromDesc = function (shape, color, order) {
+        var geo = new THREE.ExtrudeGeometry(shape, { depth: 1, bevelEnabled: false, curveSegments: 6, steps: 1 });
+        geo.computeVertexNormals();   // smooth wall shading (no banding); caps stay flat
+        var mat = new THREE.MeshStandardMaterial({ color: color, roughness: 0.85, metalness: 0.0, transparent: false, side: THREE.FrontSide });
+        var mesh = new THREE.Mesh(geo, mat); mesh.visible = false; mesh.userData.order = order;
+        return mesh;
+      };
+      var cd = cache.solids[ck];
+      if (cd) {   // cache hit - reuse the parsed shapes; no DOM parse, no path sampling
+        for (var ci = 0; ci < cd.length; ci++) out.push(meshFromDesc(cd[ci].shape, cd[ci].color, ci));
+        return out;
+      }
+      var descs = [];
+      var store = function () { cache.solids[ck] = descs; return out; };
+      if (!svgText) return store();
+      var doc; try { doc = new DOMParser().parseFromString(svgText, 'image/svg+xml'); } catch (e) { return store(); }
+      if (!doc || doc.getElementsByTagName('parsererror').length) return store();
+      var vb = cfg.viewBox || { w: W, h: H }, vbW = vb.w || W, vbH = vb.h || H;
+      var pw = 2 * aspect, ph = 2, sx = pw / vbW, sy = ph / vbH;
+      var lx = function (x) { return (x / vbW - 0.5) * pw; };
+      var ly = function (y) { return (0.5 - y / vbH) * ph; };          // SVG y-down → three y-up
+      var minArea = 0.015 * vbW * vbH;   // skip anything under ~1.5% of the frame (text, tiny icons)
+      // A shape is skipped as a BACKPLATE only when it is essentially edge-to-edge (fills
+      // ≥94% of BOTH axes) - a true background whose extruded slab would z-fight its own
+      // texture. A large HERO shape (a logo, a gear, a chameleon body) is NOT a backplate
+      // just because it's big: it has margins on at least one axis, so it still extrudes.
+      // (The old 0.6-of-area cap wrongly filtered every hero logo out of the extrusion.)
+      var isBackplate = function (bw, bh) { return bw >= 0.94 * vbW && bh >= 0.94 * vbH; };
+      function resolveFill(el) {
+        var f = el.getAttribute('fill'), st = el.getAttribute('style');
+        if ((!f || f === '') && st) { var m = /fill\s*:\s*([^;]+)/.exec(st); if (m) f = m[1].trim(); }
+        if (!f || f === 'none' || f === 'transparent' || f === 'currentColor') return null;
+        // Gradient fill (linear/radial) → the average of its stop colours, so gradient
+        // shapes (e.g. the icon's radial-gradient "shadow" rings) still extrude with a tone.
+        var u = /^url\(['"]?#([^'")]+)/i.exec(f);
+        if (u) {
+          var grad = doc.getElementById(u[1]); if (!grad) return null;
+          var stops = grad.getElementsByTagName('stop'), r = 0, g = 0, b = 0, n = 0;
+          for (var k = 0; k < stops.length; k++) {
+            var sc = stops[k].getAttribute('stop-color'), ss = stops[k].getAttribute('style');
+            if (!sc && ss) { var mm = /stop-color\s*:\s*([^;]+)/.exec(ss); if (mm) sc = mm[1].trim(); }
+            if (!sc) continue;
+            try { var c = new THREE.Color(sc); r += c.r; g += c.g; b += c.b; n++; } catch (e) {}
+          }
+          if (n) { var col = new THREE.Color(); col.setRGB(r / n, g / n, b / n); return col; }
+          return new THREE.Color(0x808080);
+        }
+        try { return new THREE.Color(f); } catch (e) { return null; }
+      }
+      function roundedRect(x, y, w, h, r) {   // x,y = bottom-left in three-local units
+        r = Math.max(0, Math.min(r, w / 2, h / 2));
+        var s = new THREE.Shape();
+        s.moveTo(x + r, y); s.lineTo(x + w - r, y);
+        if (r > 0) s.quadraticCurveTo(x + w, y, x + w, y + r);
+        s.lineTo(x + w, y + h - r);
+        if (r > 0) s.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        s.lineTo(x + r, y + h);
+        if (r > 0) s.quadraticCurveTo(x, y + h, x, y + h - r);
+        s.lineTo(x, y + r);
+        if (r > 0) s.quadraticCurveTo(x, y, x + r, y);
+        return s;
+      }
+      // Record the shape+colour into the per-shot cache AND build its mesh now. FrontSide,
+      // not DoubleSide: a closed opaque solid only needs its outward faces (DoubleSide's
+      // interior back-walls z-fought on thin shapes - the green cracks + duplicate "copies").
+      // meshFromDesc smooths the wall normals (no banding); it flips to DoubleSide only when
+      // x-ray/ghosted (updateStack). On a later re-init the cache hit above skips this parse.
+      function extrude(shape, color) {
+        descs.push({ shape: shape, color: color });
+        out.push(meshFromDesc(shape, color, out.length));   // order = paint order (index)
+      }
+      var i, el;
+      var rects = doc.getElementsByTagName('rect');
+      for (i = 0; i < rects.length; i++) {
+        el = rects[i];
+        var w = parseFloat(el.getAttribute('width')) || 0, h = parseFloat(el.getAttribute('height')) || 0;
+        if (w * h < minArea || isBackplate(w, h)) continue;
+        var fill = resolveFill(el); if (!fill) continue;
+        var x = parseFloat(el.getAttribute('x')) || 0, y = parseFloat(el.getAttribute('y')) || 0;
+        var rx = parseFloat(el.getAttribute('rx')); if (isNaN(rx)) rx = parseFloat(el.getAttribute('ry')) || 0;
+        extrude(roundedRect(lx(x), ly(y + h), w * sx, h * sy, rx * sx), fill);
+      }
+      var circles = doc.getElementsByTagName('circle');
+      for (i = 0; i < circles.length; i++) {
+        el = circles[i];
+        var r = parseFloat(el.getAttribute('r')) || 0;
+        if (Math.PI * r * r < minArea || isBackplate(2 * r, 2 * r)) continue;
+        var cfl = resolveFill(el); if (!cfl) continue;
+        var cs = new THREE.Shape();
+        cs.absellipse(lx(parseFloat(el.getAttribute('cx')) || 0), ly(parseFloat(el.getAttribute('cy')) || 0), r * sx, r * sy, 0, Math.PI * 2, false, 0);
+        extrude(cs, cfl);
+      }
+      var ells = doc.getElementsByTagName('ellipse');
+      for (i = 0; i < ells.length; i++) {
+        el = ells[i];
+        var erx = parseFloat(el.getAttribute('rx')) || 0, ery = parseFloat(el.getAttribute('ry')) || 0;
+        if (Math.PI * erx * ery < minArea || isBackplate(2 * erx, 2 * ery)) continue;
+        var efl = resolveFill(el); if (!efl) continue;
+        var es = new THREE.Shape();
+        es.absellipse(lx(parseFloat(el.getAttribute('cx')) || 0), ly(parseFloat(el.getAttribute('cy')) || 0), erx * sx, ery * sy, 0, Math.PI * 2, false, 0);
+        extrude(es, efl);
+      }
+      // Compose the transform chain (self + every ancestor <g transform>) into one matrix,
+      // so a path that carries - or sits under - a transform still lands on the picture. The
+      // shared measPath ignores transforms (getBBox/getPointAtLength are local), so we bake
+      // the CTM into each sampled point ourselves instead of hand-multiplying matrices.
+      function pathCtm(node) {
+        var parts = [];
+        for (var n = node; n && n.nodeType === 1 && (n.tagName || '').toLowerCase() !== 'svg'; n = n.parentNode) {
+          var t = n.getAttribute && n.getAttribute('transform'); if (t) parts.unshift(t);   // outermost first
+        }
+        if (!parts.length) return null;
+        var mtx = null;
+        try {
+          measPath.setAttribute('transform', parts.join(' '));
+          var cons = measPath.transform && measPath.transform.baseVal && measPath.transform.baseVal.consolidate();
+          mtx = cons ? cons.matrix : null;
+        } catch (e) { mtx = null; }
+        measPath.removeAttribute('transform');
+        return mtx;
+      }
+      // PATHS (the icon's whole body). The browser computes the geometry: getTotalLength +
+      // getPointAtLength sample the outline into a polyline; subpaths (holes) are detected as
+      // big jumps between samples and split into ShapePath subpaths, so ShapePath.toShapes
+      // carves the holes correctly. Area is gated in TRANSFORMED viewBox units - tiny (text
+      // glyphs) and near-full-frame (backgrounds) both stay flat on the texture.
+      var paths = doc.getElementsByTagName('path');
+      for (i = 0; i < paths.length; i++) {
+        el = paths[i];
+        var pf = resolveFill(el); if (!pf) continue;
+        var d = el.getAttribute('d'); if (!d) continue;
+        measPath.setAttribute('d', d);
+        var len; try { len = measPath.getTotalLength(); } catch (e) { continue; }
+        if (!(len > 0)) continue;
+        var mtx = pathCtm(el);
+        var steps = Math.max(32, Math.min(400, Math.round(len / 4)));
+        var pts = [], minx = Infinity, miny = Infinity, maxx = -Infinity, maxy = -Infinity;
+        for (var t2 = 0; t2 <= steps; t2++) {
+          var lp; try { lp = measPath.getPointAtLength(len * t2 / steps); } catch (e) { break; }
+          var vp = mtx ? lp.matrixTransform(mtx) : lp;
+          pts.push(vp);
+          if (vp.x < minx) minx = vp.x; if (vp.x > maxx) maxx = vp.x;
+          if (vp.y < miny) miny = vp.y; if (vp.y > maxy) maxy = vp.y;
+        }
+        if (pts.length < 3) continue;
+        var pw2 = maxx - minx, ph2 = maxy - miny, area = pw2 * ph2;
+        if (area < minArea || isBackplate(pw2, ph2)) continue;
+        var diag2 = Math.hypot(pw2, ph2), jump = diag2 * 0.06;
+        // Drop points closer than ~0.4% of the shape's diagonal to the previous KEPT point:
+        // getPointAtLength bunches samples at tight corners / a spiral's centre, and those
+        // near-coincident points make zero-area wall quads that show as thin cracks. A
+        // subpath break (a jump) always emits a fresh moveTo regardless.
+        var minStep = diag2 * 0.004;
+        var sp = new THREE.ShapePath(), prev = null, started = false;
+        for (var q = 0; q < pts.length; q++) {
+          var p = pts[q];
+          var jumped = prev && Math.hypot(p.x - prev.x, p.y - prev.y) > jump;
+          if (jumped) { sp.moveTo(lx(p.x), ly(p.y)); prev = p; continue; }
+          if (started && prev && Math.hypot(p.x - prev.x, p.y - prev.y) < minStep) continue;
+          if (!started) sp.moveTo(lx(p.x), ly(p.y));
+          else sp.lineTo(lx(p.x), ly(p.y));
+          started = true; prev = p;
+        }
+        var shapes; try { shapes = sp.toShapes(true); } catch (e) { shapes = []; }
+        for (var sh = 0; sh < shapes.length; sh++) extrude(shapes[sh], pf);
+      }
+      return store();
+    }
+
+    // ── texture loading (rasterise onto a fixed-size canvas: robust for SVG AND raster) ──
+    var layers = (cfg.layers && cfg.layers.length >= 2) ? cfg.layers : null;
+    var toLoad = layers ? layers.length : 1;
+    var loaded = 0;
+    function onLoaded() { loaded++; renderFrame(0); if (loaded >= toLoad) fireReady(); }
+    // Wrap a rasterised canvas in a fresh texture (called on both the load path and a cache
+    // hit). The canvas is CPU-side and survives the old renderer's dispose(), so re-wrapping
+    // it is cheap; only the GPU re-upload is unavoidable on a new context.
+    function texFromCanvas(cv) {
+      var tex = new THREE.CanvasTexture(cv); tex.needsUpdate = true;
+      if ('colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace;
+      try { tex.anisotropy = renderer.capabilities.getMaxAnisotropy(); } catch (e) {}
+      return tex;
+    }
+    function rasterTex(url, aspect, texW, cb, texKey) {
+      var cache = flyCache(), tk = (texKey || 't') + '|' + Math.round(texW);
+      var hit = cache.tex[tk];
+      if (hit) { cb(texFromCanvas(hit.cv), hit.a); return; }   // cache hit - no Image reload
+      var img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function () {
+        if (disposed || !alive()) { cb(null); return; }
+        var a = (aspect && aspect > 0) ? aspect : ((img.naturalWidth || W) / (img.naturalHeight || H));
+        var TW = Math.max(1, Math.round(texW)), TH = Math.max(1, Math.round(TW / a));
+        var cv = document.createElement('canvas'); cv.width = TW; cv.height = TH;
+        var cx = cv.getContext('2d'); cx.clearRect(0, 0, TW, TH);
+        try { cx.drawImage(img, 0, 0, TW, TH); } catch (e) { console.error('[flythrough] draw failed', e); cb(null); return; }
+        cache.tex[tk] = { cv: cv, a: a };
+        cb(texFromCanvas(cv), a);
+      };
+      img.onerror = function () { console.error('[flythrough] image load failed:', String(url).slice(0, 64)); cb(null); };
+      img.src = url;
+    }
+
+    // An SVG with only a viewBox (no width/height - the common case) rasterises at its tiny
+    // intrinsic size and then upscales, which is what aliases a dive-in. Force an explicit
+    // high-res width/height into the root so the browser rasterises the VECTOR at that size.
+    function sizedSvgDataUrl(markup, texW, texH) {
+      var sized = markup.replace(/<svg\b([^>]*)>/i, function (m, attrs) {
+        var a = attrs.replace(/\s(?:width|height)\s*=\s*"[^"]*"/gi, '');
+        return '<svg' + a + ' width="' + Math.round(texW) + '" height="' + Math.round(texH) + '">';
+      });
+      return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(sized);
+    }
+    function svgAspect(markup) {
+      var vb = /viewBox\s*=\s*"([^"]+)"/i.exec(markup);
+      if (vb) { var p = vb[1].split(/[\s,]+/).map(parseFloat); if (p.length === 4 && p[3] > 0) return p[2] / p[3]; }
+      return 1;
+    }
+
+    // One layer: the FRONT textured plane (DoubleSide, so it stays visible when the camera
+    // flies through it), a soft SHADOW, and the extruded SOLIDS for its big shapes.
+    function addLayer(tex, unitZ, aspect, svgText, layerKey) {
+      textures.push(tex);
+      planeH = 2; planeW = 2 * aspect;
+      var geo = new THREE.PlaneGeometry(planeW, planeH);
+      var front = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide }));
+      var shadow = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: tex, transparent: true, color: 0x000000, depthWrite: false, side: THREE.DoubleSide }));
+      shadow.visible = false;
+      var solids = buildSolids(svgText, aspect, layerKey);
+      for (var k = 0; k < solids.length; k++) stackGroup.add(solids[k]);
+      stackGroup.add(shadow); stackGroup.add(front);
+      layerMeshes.push({ front: front, shadow: shadow, solids: solids, unitZ: unitZ });
+      fitDist = (planeH / 2) / Math.tan(d2r(REF_FOV) / 2);
+    }
+
+    if (layers) {
+      var vb = cfg.viewBox;
+      var aspect = (vb && vb.h > 0) ? (vb.w / vb.h) : (W / H);
+      var N = layers.length;
+      // Supersampled, shrinking as the layer count grows so many layers don't exhaust GPU
+      // memory - but never below the export size, so edges stay crisp on a dive-in.
+      var texW = Math.max(1024, Math.min(2048, Math.round(baseW * 2.4 / Math.sqrt(N))));
+      for (var i = 0; i < N; i++) {
+        (function (i) {
+          var svgText = layers[i].svg;
+          var url = sizedSvgDataUrl(svgText, texW, texW / aspect);
+          rasterTex(url, aspect, texW, function (tex) {
+            if (disposed || !alive() || !tex) { onLoaded(); return; }
+            addLayer(tex, i - (N - 1) / 2, aspect, svgText, 'L' + i);   // back → front
+            onLoaded();
+          }, 'L' + i);
+        })(i);
+      }
+    } else {
+      var tw = Math.min(4096, baseW * 2);
+      var url = cfg.shotUrl;
+      var done = function (tex, a) {
+        if (disposed || !alive() || !tex) { message('Could not load the image.'); onLoaded(); return; }
+        addLayer(tex, 0, a, singleSvg, 'single'); onLoaded();
+      };
+      var singleSvg = null;   // set to the SVG markup when the single shot is a vector (below)
+      // If the single shot is a vector (SVG - or any imported vector, which becomes SVG),
+      // fetch its markup and sample it at high res via its viewBox; a raster loads directly
+      // (no wasteful text fetch).
+      var maybeSvg = /\.svg(\?|#|$)/i.test(url) || /^data:image\/svg/i.test(url) || /^blob:/i.test(url);
+      if (maybeSvg) {
+        fetch(url).then(function (r) { return r.text(); }).then(function (txt) {
+          if (disposed || !alive()) return;
+          if (/<svg/i.test(txt)) { singleSvg = txt; var a = svgAspect(txt); rasterTex(sizedSvgDataUrl(txt, tw, tw / a), a, tw, done, 'single'); }
+          else rasterTex(url, null, tw, done, 'single');
+        }).catch(function () { rasterTex(url, null, tw, done, 'single'); });
+      } else {
+        rasterTex(url, null, tw, done, 'single');
+      }
+    }
+
+    // ── per-frame: tween the STACK state (Depth / Opacity / Extrusion) from the pose ──
+    function updateStack(ps) {
+      var depth = ps.depth != null ? ps.depth : 1;
+      var opacity = ps.opacity != null ? ps.opacity : 1;
+      var extrude = ps.extrude || 0;
+      var shadowK = cfg.shadow != null ? cfg.shadow : 0.35;
+      // Studio floor sizing: wider than the base in x, elongated along the floor (z). Opacity
+      // tracks the slider directly. Two anchor modes: OBJECT (child of stackGroup - the group
+      // already applies the subject Scale/Tilt/Rotate, so only base-relative size is set here)
+      // vs VIEWPORT (child of the scene - a fixed horizontal ground, so the subject Scale is
+      // applied to the floor by hand and it never tilts).
+      if (floorMesh) {
+        floorMesh.material.opacity = Math.max(0, Math.min(1, cfg.floor));
+        if (cfg.floorViewport) {
+          var fscl = ps.scale != null ? ps.scale : 1;
+          floorMesh.scale.set(planeW * 1.8 * fscl, planeW * 1.1 * fscl, 1);
+          floorMesh.position.set(0, -1.004 * fscl, 0);
+        } else {
+          floorMesh.scale.set(planeW * 1.8, planeW * 1.1, 1);
+        }
+      }
+      var N = layerMeshes.length;
+      var gap = N > 1 ? (0.7 * depth) / (N - 1) : 0;
+      var realDepth = extrude * 0.5;
+      var opaque = opacity >= 0.999, showEx = realDepth > 0.001;
+      for (var i = 0; i < N; i++) {
+        var L = layerMeshes[i], z = L.unitZ * gap;
+        L.front.position.z = z;
+        L.front.material.opacity = opacity; L.front.material.depthWrite = opaque;
+        for (var k = 0; k < L.solids.length; k++) {
+          var sm = L.solids[k];
+          sm.visible = showEx;
+          if (showEx) {
+            // Front cap sits just behind the textured face; the solid extrudes AWAY from
+            // the lens. scale.z is the animating thickness (unit geometry, no rebuild). The
+            // solid stays OPAQUE (occludes the texture from behind) until Opacity < 1.
+            // Front caps are STAGGERED by paint order (last-painted a hair in front) so a
+            // shape sitting ON another - a square on a card - never shares its cap plane and
+            // z-fights. All stay behind the texture (topOrder → 0.006, earlier further back).
+            var back = 0.008 + (L.solids.length - 1 - (sm.userData.order || 0)) * 0.0026;
+            sm.scale.z = realDepth;
+            sm.position.z = z - back - realDepth;
+            var wantT = opacity < 0.999;
+            // Opaque solids cull back-faces (FrontSide - clean walls). A GHOSTED solid needs
+            // its back walls drawn or it reads as a hollow shell, so x-ray flips to DoubleSide.
+            var wantSide = wantT ? THREE.DoubleSide : THREE.FrontSide;
+            if (sm.material.transparent !== wantT || sm.material.side !== wantSide) {
+              sm.material.transparent = wantT; sm.material.side = wantSide; sm.material.needsUpdate = true;
+            }
+            sm.material.opacity = opacity;
+            sm.material.depthWrite = true;
+          }
+        }
+        L.shadow.visible = showEx && shadowK > 0.001;
+        if (L.shadow.visible) { L.shadow.position.set(realDepth * 0.5, -realDepth * 0.5, z - Math.max(realDepth + 0.008, gap * 0.9)); L.shadow.material.opacity = shadowK * opacity; }
+      }
+      // FOV animates only under a PERSPECTIVE camera. Orthographic (Isometric) has no FOV -
+      // its apparent size is driven by dollyOrtho()'s zoom instead - so leave it alone.
+      if (!isOrtho) {
+        var fov = ps.fov || 42;
+        if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; camera.updateProjectionMatrix(); }
+      }
+    }
+
+    // ── per-frame: orient the SUBJECT, then place the camera. `p` raw loop progress; `s`
+    //    eased Start→End (ping-pongs home when Loop is on). Tilt X/Y/Z (pitch/yaw/roll) +
+    //    Scale are GLOBAL subject transforms available under every flight, so people can dial
+    //    the exact angle on all three axes (ortho + tilt = a true isometric). Presets move
+    //    the lens; a Dive adds its own lie-back on X on top of the user's Tilt X. ──
+    function placeCamera(p, s, ps) {
+      var txR = d2r(ps.tiltX || 0);   // pitch - lie the stack back toward a horizon
+      var tyR = d2r(ps.tiltY || 0);   // yaw - turn it left / right
+      var tzR = d2r(ps.tiltZ || 0);   // roll - bank it in its own plane
+      var scl = ps.scale != null ? ps.scale : 1;
+      var presetTiltR = 0;   // a preset (Dive) adds its OWN lie-back on top of the user's
+      camera.up.set(0, 1, 0);
+      // Translate: slide the whole subject within the frame (world X/Y). Applied to the group
+      // position so it composes with rotation + scale and moves a cut-off subject into view.
+      stackGroup.position.set(ps.offsetX || 0, ps.offsetY || 0, 0);
+
+      // A custom camera PATH (Advanced kf track) overrides the flight, but still rides the
+      // global Tilt X/Y/Z + Scale so it composes with the angle controls.
+      if (cfg.cameraSamples && cfg.cameraSamples.length >= 2) {
+        stackGroup.rotation.set(txR, tyR, tzR); stackGroup.scale.setScalar(Math.max(0.05, scl));
+        var poses = cfg.cameraSamples, fi = p * (poses.length - 1);
+        var i0 = Math.floor(fi), i1 = Math.min(poses.length - 1, i0 + 1), fr = fi - i0, A = poses[i0], B = poses[i1];
+        var ch = function (k) { var a = (A[k] == null ? 0 : A[k]), b = (B[k] == null ? 0 : B[k]); return a + (b - a) * fr; };
+        var yaw = d2r(ch('ry')), pit = d2r(-ch('rx')), dd = fitDist + ch('z') / 300, tx = ch('x') / 300, ty = -ch('y') / 300;
+        camera.position.set(tx + Math.sin(yaw) * Math.cos(pit) * dd, ty + Math.sin(pit) * dd, Math.cos(yaw) * Math.cos(pit) * dd);
+        camera.lookAt(tx, ty, 0); dollyOrtho(); return;
+      }
+
+      var d = fitDist;
+      if (cfg.move === 'custom' || cfg.move === 'immersive') {
+        // Dive IN: dolly from the framing distance toward the stack. `custom` reads the
+        // Start/End distance + height; `immersive` is a strong preset dive with its own
+        // lie-back so it looks dramatic out of the box even with Tilt at 0.
+        var dist = (cfg.move === 'custom')
+          ? (ps.distance != null ? ps.distance : 1)
+          : lerp(1, 0.42, s);
+        var hgt = (cfg.move === 'custom') ? (ps.height || 0) : lerp(0, 0.12, s);
+        if (cfg.move === 'immersive') presetTiltR = d2r(lerp(0, 62, s));
+        stackGroup.rotation.set(txR + presetTiltR, tyR, tzR); stackGroup.scale.setScalar(Math.max(0.05, scl));
+        camera.position.set(0, hgt, d * dist);
+        camera.lookAt(0, -hgt * 0.6, 0);
+        dollyOrtho(); return;
+      }
+
+      stackGroup.rotation.set(txR, tyR, tzR); stackGroup.scale.setScalar(Math.max(0.05, scl));
+      if (cfg.move === 'orbit') {
+        var a = d2r(30) * Math.sin(p * Math.PI * 2);
+        camera.position.set(Math.sin(a) * d, d * 0.10, Math.cos(a) * d);
+      } else if (cfg.move === 'push-in') {
+        camera.position.set(0, 0, d * (1.35 - 0.6 * easeInOut(pingpong(p))));
+      } else if (cfg.move === 'still') {
+        camera.position.set(0, 0, d);
+      } else { // glide
+        var g = p * Math.PI * 2, yw = Math.sin(g) * d2r(18), pc = d2r(10) + Math.sin(g * 0.5) * d2r(5);
+        camera.position.set(Math.sin(yw) * Math.cos(pc) * d, Math.sin(pc) * d, Math.cos(yw) * Math.cos(pc) * d);
+      }
+      camera.lookAt(0, 0, 0);
+      dollyOrtho();
+    }
+
+    function animS(p) { return cfg.loop ? pingpong(p) : Math.max(0, Math.min(1, p)); }
+    function renderFrame(p) {
+      // "Still" is a single-pose configurator: it HOLDS the first pose (the Start card) and
+      // never tweens - s pinned to 0 - so people can dial one pose in without keeping Start
+      // and End in sync. (Same result a single-pose Custom scene gives.) Every other flight
+      // eases across the pose timeline.
+      var s = (cfg.move === 'still' || dragPin) ? 0 : easeInOut(animS(p));
+      var ps = poseAt(s);
+      updateStack(ps); placeCamera(p, s, ps); renderer.render(scene, camera);
+    }
+
+    var t0 = null, resumeAfterDrive = false;
+    function loop() {
+      if (disposed || !alive()) return;
+      if (canvas.__lollyFrameDriven) { raf = requestAnimationFrame(loop); return; }
+      if (resumeAfterDrive) { t0 = null; resumeAfterDrive = false; }
+      raf = requestAnimationFrame(function (ts) {
+        if (disposed || !alive()) return;
+        if (t0 === null) t0 = ts;
+        var elapsed = (ts - t0) / 1000;
+        var p = (cfg.duration <= 0) ? 0 : (elapsed / cfg.duration);
+        p = p - Math.floor(p);
+        renderFrame(p); loop();
+      });
+    }
+
+    canvas.__lollyFrameRender = function (t01) { if (!alive()) return; resumeAfterDrive = true; renderFrame((t01 || 0) - Math.floor(t01 || 0)); };
+
+    // ── Drag to articulate: click-drag the canvas to orbit the subject, like handling a real
+    //    object in 3D. Plain drag = Tilt Y (yaw, horizontal) + Tilt X (pitch, vertical). Hold
+    //    ⌘ / Ctrl and horizontal drag = Tilt Z (ROLL) instead. The preview is pinned to the
+    //    FIRST pose while dragging (instant, local - no re-render); on RELEASE the changed
+    //    axes are written back to that pose's Tilt sliders through the sidebar DOM (the
+    //    supported input-write path: set the control + fire 'input'), so URL / undo / save all
+    //    come for free. Commit is deferred to release because a mid-drag commit re-hydrates the
+    //    template (new WebGL canvas) and would break the gesture; each axis commits on its own
+    //    frame so a later one doesn't read a stale model and clobber an earlier one. ──
+    (function wireDragTilt() {
+      var SENS = 0.5;      // degrees per pixel (rotation)
+      var PAN = 0.006;     // world units per pixel (translation)
+      var clamp180 = function (v) { return Math.max(-180, Math.min(180, v)); };
+      var clampOff = function (v) { return Math.max(-3, Math.min(3, v)); };
+      var pose0 = function () { return (cfg.poses && cfg.poses[0]) ? cfg.poses[0] : null; };
+      // Gesture mode from the held modifier: Shift = pan (translate), ⌘/Ctrl = roll, none =
+      // orbit (pitch + yaw). Shift wins if both are down. No wheel handler at all - scrolling
+      // stays the page's / canvas's own, so nothing fights the core scroll.
+      var modeOf = function (e) { return e.shiftKey ? 'pan' : (e.metaKey || e.ctrlKey) ? 'roll' : 'rot'; };
+      var commitAxis = function (fieldId, value) {
+        var panel = document.getElementById('tool-inputs');   // SCOPE to the sidebar, never global
+        if (!panel) return;
+        var c = panel.querySelector('[data-field-id="poses:0:' + fieldId + '"]');
+        if (!c) return;
+        c.value = String(value);
+        c.dispatchEvent(new Event('input', { bubbles: true }));   // shell listener → runtime.setInput
+      };
+      var dg = { on: false, sx: 0, sy: 0, bx: 0, by: 0, bz: 0, box: 0, boy: 0, px: 0, yw: 0, rz: 0, ox: 0, oy: 0, moved: false, mode: 'rot', pid: null, chP: false, chY: false, chR: false, chOX: false, chOY: false };
+      var anchor = function (e) {   // (re)set the drag origin + base values to the live pose
+        var p0 = pose0();
+        dg.sx = e.clientX; dg.sy = e.clientY;
+        dg.bx = (p0 && p0.tiltX != null) ? +p0.tiltX : dg.px;
+        dg.by = (p0 && p0.tiltY != null) ? +p0.tiltY : dg.yw;
+        dg.bz = (p0 && p0.tiltZ != null) ? +p0.tiltZ : dg.rz;
+        dg.box = (p0 && p0.offsetX != null) ? +p0.offsetX : dg.ox;
+        dg.boy = (p0 && p0.offsetY != null) ? +p0.offsetY : dg.oy;
+      };
+      canvas.style.touchAction = 'none';   // let touch drags work without scrolling the page
+      canvas.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0) return;
+        dg.on = true; dg.moved = false; dg.chP = dg.chY = dg.chR = dg.chOX = dg.chOY = false;
+        dg.mode = modeOf(e);
+        anchor(e);
+        dg.px = dg.bx; dg.yw = dg.by; dg.rz = dg.bz; dg.ox = dg.box; dg.oy = dg.boy; dg.pid = e.pointerId;
+        try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+      });
+      canvas.addEventListener('pointermove', function (e) {
+        if (!dg.on) return;
+        var mode = modeOf(e);
+        if (mode !== dg.mode) { anchor(e); dg.mode = mode; }   // seamless switch orbit ⇄ roll ⇄ pan
+        var dx = e.clientX - dg.sx, dy = e.clientY - dg.sy;
+        if (Math.abs(dx) + Math.abs(dy) > 3) dg.moved = true;
+        var p0 = pose0(); if (!p0) return;
+        if (mode === 'pan') {
+          dg.ox = clampOff(dg.box + dx * PAN);    // Shift + drag → move X (right = +)
+          dg.oy = clampOff(dg.boy - dy * PAN);    // drag up → move up
+          p0.offsetX = dg.ox; p0.offsetY = dg.oy; dg.chOX = true; dg.chOY = true;
+        } else if (mode === 'roll') {
+          dg.rz = clamp180(dg.bz + dx * SENS);    // ⌘ + horizontal drag → roll (Tilt Z)
+          p0.tiltZ = dg.rz; dg.chR = true;
+        } else {
+          dg.px = clamp180(dg.bx + dy * SENS);    // vertical drag → pitch (Tilt X)
+          dg.yw = clamp180(dg.by + dx * SENS);    // horizontal drag → yaw (Tilt Y)
+          p0.tiltX = dg.px; p0.tiltY = dg.yw; dg.chP = true; dg.chY = true;
+        }
+        dragPin = true; renderFrame(0);          // instant local feedback (no model write)
+      });
+      var end = function () {
+        if (!dg.on) return;
+        dg.on = false;
+        try { canvas.releasePointerCapture(dg.pid); } catch (_) {}
+        if (dg.moved) {
+          // Swallow the click that would otherwise open the shot picker after a drag.
+          var kill = function (ev) { ev.stopPropagation(); ev.preventDefault(); };
+          canvas.addEventListener('click', kill, true);
+          setTimeout(function () { canvas.removeEventListener('click', kill, true); }, 350);
+          var pending = [];
+          if (dg.chP) pending.push(['tiltX', Math.round(dg.px)]);
+          if (dg.chY) pending.push(['tiltY', Math.round(dg.yw)]);
+          if (dg.chR) pending.push(['tiltZ', Math.round(dg.rz)]);
+          if (dg.chOX) pending.push(['offsetX', Math.round(dg.ox * 100) / 100]);
+          if (dg.chOY) pending.push(['offsetY', Math.round(dg.oy * 100) / 100]);
+          var flush = function (i) {   // one field per frame - each reads the freshly-committed model
+            if (i >= pending.length) return;
+            commitAxis(pending[i][0], pending[i][1]);
+            requestAnimationFrame(function () { flush(i + 1); });
+          };
+          flush(0);
+        }
+        dragPin = false;
+      };
+      canvas.addEventListener('pointerup', end);
+      canvas.addEventListener('pointercancel', end);
+    })();
+
+    renderFrame(0);
+    if (!disposed) loop();
+
+    window.__lollyFly = {
+      dispose: function () {
+        disposed = true;
+        if (raf) cancelAnimationFrame(raf);
+        for (var i = 0; i < layerMeshes.length; i++) {
+          var L = layerMeshes[i];
+          try {
+            L.front.geometry.dispose(); L.front.material.dispose(); L.shadow.material.dispose();
+            for (var k = 0; k < L.solids.length; k++) { L.solids[k].geometry.dispose(); L.solids[k].material.dispose(); }
+          } catch (e) {}
+        }
+        for (var j = 0; j < textures.length; j++) { try { textures[j].dispose(); } catch (e) {} }
+        try { if (floorMesh) { floorMesh.geometry.dispose(); floorMesh.material.dispose(); } if (floorTex) floorTex.dispose(); } catch (e) {}
+        try { if (measSvg && measSvg.parentNode) measSvg.parentNode.removeChild(measSvg); } catch (e) {}
+        try { renderer.dispose(); } catch (e) {}
+        try { renderer.forceContextLoss(); } catch (e) {}
+      }
+    };
+  }
+})();
+</script>

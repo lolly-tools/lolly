@@ -1,0 +1,43 @@
+/* Auto-scoped to #tool-canvas by the shell. The <canvas> fills the stage; its
+   backing-store size is set by the renderer (export resolution), CSS scales it.
+   Mirrors tools/3d/styles.css. */
+.booth-wrap {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.booth-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  touch-action: none; /* let the renderer own drag/pinch instead of scrolling */
+}
+
+/* The click proxy that hands a raycast hit to the shell's asset picker (see
+   template.html). Deliberately NOT display:none / [hidden] - a synthetic click
+   must still dispatch and bubble to the shell's delegated handler. Zero-sized and
+   inert so it can never take a real pointer event or affect layout, and it
+   contributes nothing to an export. */
+.booth-proxy {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.booth-msg {
+  font-family: 'SUSE', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  color: #9aa0a6;
+  padding: 16px;
+  text-align: center;
+}

@@ -1,0 +1,53 @@
+{
+  "id": "award",
+  "name": "Award",
+  "category": "Recognition",
+  "description": "An award or a thank-you, signed by whoever hands it over.",
+  "values": {
+    "certKind": "award",
+    "heading": "",
+    "firstname": "Tomás",
+    "lastname": "Herrera",
+    "awardtopic": "The 2026 Innovation Award",
+    "awarddate": "2026-05-09",
+    "presenter": "Ingrid Sorensen",
+    "presenterTitle": "Chair of the Jury",
+    "company": "Northwind Institute",
+    "brandLogo": true,
+    "serial": "",
+    "pageSize": "a4-landscape",
+    "color": "{color.semantic.text}",
+    "background": "{color.semantic.surface}",
+    "accent": "{color.semantic.primary}"
+  },
+  "presets": [
+    {
+      "id": "appreciation",
+      "name": "Thank you",
+      "description": "Appreciation for time given, rather than a prize won.",
+      "values": {
+        "certKind": "appreciation",
+        "firstname": "Priya",
+        "lastname": "Nair",
+        "awardtopic": "Two years of volunteering",
+        "awarddate": "2026-03-02",
+        "presenter": "Jonas Weber",
+        "presenterTitle": "Community Lead"
+      }
+    },
+    {
+      "id": "team-of-the-year",
+      "name": "Team of the year",
+      "description": "A titled award with your own wording in place of the kind.",
+      "values": {
+        "heading": "Team of the Year",
+        "firstname": "The Atlas",
+        "lastname": "Team",
+        "awardtopic": "For shipping the 2026 platform on time and in the open",
+        "awarddate": "2026-12-04",
+        "presenter": "Maya Lindqvist",
+        "presenterTitle": "Chief Executive"
+      }
+    }
+  ]
+}

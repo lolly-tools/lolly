@@ -1,0 +1,27 @@
+{
+  "id": "pages",
+  "name": "Pages",
+  "description": "Reorder, rotate, extract, delete, merge or split PDF pages on your device.",
+  "version": "1.0.1",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "utility",
+  "privacy": "on-device",
+  "tags": ["pdf", "pages", "reorder", "rotate", "extract", "delete", "merge", "split"],
+  "a11yLabel": "PDF page manager for {{fileName}}",
+  "render": { "width": 820, "height": 650, "formats": ["pdf", "zip"], "export": false, "layout": "canvas", "actions": [] },
+  "hooks": { "onInit": true, "onInput": true, "exportFile": true },
+  "inputs": [
+    { "id": "source", "label": "PDFs", "type": "file", "multiple": true, "accept": ["application/pdf", ".pdf"], "maxSize": 104857600, "help": "Choose one or more PDFs. Their pages form one draggable sequence and stay on this device." },
+    { "id": "operation", "label": "Operation", "type": "select", "default": "reorder", "options": [
+      { "value": "reorder", "label": "Reorder" }, { "value": "rotate", "label": "Rotate" },
+      { "value": "extract", "label": "Extract" }, { "value": "delete", "label": "Delete" },
+      { "value": "merge", "label": "Merge" }, { "value": "split", "label": "Split" }
+    ]},
+    { "id": "pages", "label": "Pages", "type": "text", "default": "1-", "maxLength": 20000, "help": "1-based pages and ranges, for example 1-3,7,10-. Reorder accepts a new sequence such as 3,1-2. Each comma-separated range becomes a PDF when splitting." },
+    { "id": "previewPage", "label": "First preview position", "type": "number", "default": 1, "min": 1, "step": 1, "help": "View any part of a long page sequence, 30 thumbnails at a time." },
+    { "id": "rotation", "label": "Rotation", "type": "select", "default": "90", "showIf": { "operation": "rotate" }, "options": [
+      { "value": "90", "label": "90° clockwise" }, { "value": "180", "label": "180°" }, { "value": "270", "label": "270° clockwise" }
+    ]}
+  ]
+}

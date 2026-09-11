@@ -1,0 +1,19 @@
+{
+  "name": "Logotipo",
+  "description": "Escribe una palabra y obtén un logotipo vectorial de trazado puro en la fuente de tu marca - los destinatarios nunca necesitan tener la fuente instalada.",
+  "a11yLabel": "Logotipo que dice {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Texto",
+  "inputs.font.label": "Tipografía",
+  "inputs.font.options.brand": "Fuente de marca",
+  "inputs.font.options.mono": "Fuente mono",
+  "inputs.weight.label": "Peso",
+  "inputs.tracking.label": "Interletrado",
+  "inputs.tracking.help": "Espaciado entre letras en px al tamaño establecido.",
+  "inputs.size.label": "Tamaño",
+  "inputs.size.help": "Tamaño de fuente en el que se forman los contornos - el interletraje es relativo a este.",
+  "inputs.color.label": "Color",
+  "inputs.features.label": "Características OpenType",
+  "inputs.features.options.none": "Estándar",
+  "inputs.features.options.liga-off": "Sin ligaduras",
+  "inputs.features.options.salt": "Alternativos estilísticos"
+}

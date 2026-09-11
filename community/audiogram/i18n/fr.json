@@ -1,0 +1,22 @@
+{
+  "name": "Audiogramme",
+  "description": "Transformez un extrait vocal ou une chanson en vidéo de marque qui bouge vraiment avec le son - barres, spectre, anneau, crête ou oscilloscope, prête pour les réseaux sociaux.",
+  "a11yLabel": "Carte audiogramme pour {{default title \"un extrait audio\"}} avec une forme d'onde animée",
+  "inputs.audio.label": "Audio",
+  "inputs.audio.help": "Choisis une piste dans ta bibliothèque ou importe un clip. Il est décodé sur ton appareil pour dessiner la forme d'onde - l'audio ne quitte jamais le navigateur. Laisse vide pour une forme d'onde de remplacement. Pour l'entendre dans l'export, choisis « Audio de cet outil » comme piste audio dans les options de téléchargement.",
+  "inputs.title.label": "Titre",
+  "inputs.title.help": "Le titre sur la carte - un nom d'épisode ou une citation.",
+  "inputs.subtitle.label": "Sous-titre",
+  "inputs.subtitle.help": "Une ligne plus petite sous le titre - nom de l'émission, invité, ou où écouter.",
+  "inputs.style.label": "Style de forme d'onde",
+  "inputs.style.options.bars": "Barres",
+  "inputs.style.options.wave": "Vague",
+  "inputs.style.options.ring": "Anneau",
+  "inputs.size.label": "Taille",
+  "inputs.size.options.square": "Carré (1:1)",
+  "inputs.size.options.wide": "Large (16:9)",
+  "inputs.size.options.story": "Story (9:16)",
+  "inputs.accent.label": "Couleur de la forme d'onde",
+  "inputs.ink.label": "Couleur du texte",
+  "inputs.bg.label": "Fond"
+}

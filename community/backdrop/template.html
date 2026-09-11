@@ -1,0 +1,321 @@
+<div class="bd-wrap">
+  {{{svgContent}}}
+</div>
+<script>
+  (function () {
+    'use strict';
+    /* Backdrop canvas script.
+       Mounts a curated or original fragment through Paper Shaders
+       (lib/paper-shaders.min.js, Apache-2.0) and drives it three ways:
+       - LIVE: the mount's own rAF at the effect's designed pace x the speed
+         knob (0 under reduced motion - a video export still animates).
+       - STILL: the canvas always sits on the `phase` scrub position, so what
+         you see is exactly what a still export captures.
+       - VIDEO: the shell's deterministic frame clock (__lollyFrameRender)
+         pauses the mount and drives setFrame() per captured frame, so clips
+         are frame-exact at any fps. Clips are NOT seamless loops (upstream
+         time is open-ended, plans/164) - the export bar length picks the cut.
+       Every effect's `intensity`/`density` map onto its own most expressive
+       uniforms, curated so 50 reproduces the shader author's designed look.
+       No WebGL2 -> the host's CSS-gradient wash stays visible. */
+    var cs = document.currentScript;
+    var wrap = cs && cs.previousElementSibling && cs.previousElementSibling.classList
+      && cs.previousElementSibling.classList.contains('bd-wrap')
+      ? cs.previousElementSibling
+      : null;
+    if (!wrap) {
+      var wraps = document.querySelectorAll('.bd-wrap');
+      wrap = wraps[wraps.length - 1];
+    }
+    if (!wrap) return;
+    var host = wrap.querySelector('.bd-host');
+    if (!host || host.dataset.bdWired) return;
+    host.dataset.bdWired = '1';
+    var cfg;
+    try { cfg = JSON.parse(host.getAttribute('data-bd') || '{}'); } catch (e) { return; }
+    if (!cfg || !cfg.effect) return;
+    var canvasRoot = wrap.closest('[data-lolly-canvas]');
+    var store = canvasRoot || wrap;
+
+    var calm = false;
+    try {
+      calm = (typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches)
+        || document.documentElement.getAttribute('data-a11y-motion') === 'reduce';
+    } catch (e) { /* jsdom */ }
+
+    /* Original, stateless fields inspired by Flexi's flowing, folded MilkDrop
+       imagery. No feedback buffer or audio dependency: any exported frame can
+       be sought directly. The colour treatment follows Neurospicy's viz-stock
+       brandBlend: re-map brightness through swatches, retain relief, then add
+       a counterpoint highlight. Influence uses the same four blend amounts. */
+    var BRAND_MIX = { off: 0, subtle: 0.35, strong: 0.7, full: 0.94 };
+    function fluxUniforms(I, D, C) {
+      var accent = C.arr[0], best = -1;
+      C.arr.forEach(function (c) {
+        var chroma = Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]);
+        var distance = Math.abs(c[0] - C.arr[0][0]) + Math.abs(c[1] - C.arr[0][1]) + Math.abs(c[2] - C.arr[0][2]);
+        var score = chroma * (0.25 + distance);
+        if (score > best) { best = score; accent = c; }
+      });
+      return { u_colors: C.arr, u_colorsCount: C.arr.length, u_colorBack: C.back,
+        u_colorAccent: accent, u_intensity: I, u_density: D, u_brandMix: BRAND_MIX[cfg.brandInfluence] ?? 0.7 };
+    }
+    var FLUX_HEADER = `#version 300 es
+precision highp float;
+uniform float u_time;
+uniform vec4 u_colors[6];
+uniform float u_colorsCount;
+uniform vec4 u_colorBack;
+uniform vec4 u_colorAccent;
+uniform float u_intensity;
+uniform float u_density;
+uniform float u_brandMix;
+in mediump vec2 v_objectUV;
+out vec4 fragColor;
+const float TAU = 6.28318530718;
+mat2 turn(float a) { return mat2(cos(a), -sin(a), sin(a), cos(a)); }
+
+// A non-wrapping ramp: even a single swatch keeps shadows and lit facets.
+// Interpolating squared channels avoids a dark seam between bright swatches.
+vec3 palette(float t) {
+  float at = clamp(t, 0.0, 1.0) * max(0.0, u_colorsCount - 1.0);
+  vec3 c = u_colors[0].rgb;
+  for (int i = 1; i < 6; i++) {
+    if (float(i) >= u_colorsCount) break;
+    float blend = smoothstep(0.0, 1.0, clamp(at - float(i - 1), 0.0, 1.0));
+    c = sqrt(mix(c * c, u_colors[i].rgb * u_colors[i].rgb, blend));
+  }
+  return c;
+}
+vec3 finish(float light, float hue, float rim, vec2 p) {
+  float l = clamp(light, 0.0, 1.0);
+  vec3 spectrum = 0.5 + 0.5 * cos(TAU * (hue + l * 0.32 + vec3(0.0, 0.33, 0.67)));
+  spectrum = spectrum * (0.2 + 0.85 * l) + rim * 0.26;
+  vec3 brand = palette((l - 0.08) * 1.42 + 0.08 * sin(hue * TAU)) * (0.28 + 0.95 * l);
+  brand += u_colorAccent.rgb * rim * 0.32;
+  brand = mix(brand, mix(u_colorAccent.rgb, vec3(1.0), 0.4), clamp(rim * 0.46, 0.0, 0.5));
+  vec3 c = mix(spectrum, brand, u_brandMix);
+  c = mix(u_colorBack.rgb, c, smoothstep(0.015, 0.3, l));
+  // Gentle edge falloff preserves the chosen ground on light and dark palettes.
+  return mix(c, u_colorBack.rgb, 0.2 * smoothstep(0.4, 1.65, length(p)));
+}
+`;
+    var CUSTOM_SHADERS = {
+      silkFlowFragmentShader: FLUX_HEADER + `
+void main() {
+  vec2 p = v_objectUV * 2.0;
+  vec2 q = turn(-0.45) * p;
+  float t = u_time * 0.24;
+  // Nested displacement makes broad folds curl into finer silk filaments.
+  for (int i = 0; i < 4; i++) {
+    float f = float(i);
+    q += (0.18 + u_intensity * 0.22) / (1.0 + f * 0.5)
+      * sin(q.yx * (1.7 + f * 0.65) + vec2(t, -t * 0.7) + f * 1.6);
+    q = turn(0.16) * q;
+  }
+  float fold = q.y * (5.0 + u_density * 9.0) + sin(q.x * 2.1 + t) * 1.7;
+  fold += 0.45 * sin(fold * 0.65 + q.x * 2.3 - t);
+  float crest = 0.5 + 0.5 * sin(fold);
+  float satin = pow(crest, 1.7);
+  float threadPhase = fold * 7.0 + q.x * 4.0;
+  float thread = pow(0.5 + 0.5 * sin(threadPhase), 10.0) * smoothstep(0.15, 0.8, crest);
+  thread *= 1.0 - smoothstep(0.6, 2.0, fwidth(threadPhase));
+  float rim = pow(crest, 48.0) + thread * 0.4;
+  float light = 0.09 + satin * (0.58 + u_intensity * 0.2) + thread * 0.09;
+  fragColor = vec4(finish(light, q.x * 0.16 + t * 0.035, rim, p), 1.0);
+}
+`,
+      prismBloomFragmentShader: FLUX_HEADER + `
+void main() {
+  vec2 p = v_objectUV * 2.0;
+  float t = u_time * 0.2;
+  float r = length(p);
+  float petals = floor(5.0 + u_density * 7.0);
+  float wedge = TAU / petals;
+  float angle = atan(p.y, p.x) + t * 0.16;
+  float folded = abs(mod(angle + wedge * 0.5, wedge) - wedge * 0.5);
+  vec2 q = r * vec2(cos(folded), sin(folded));
+  // Mirrored curved facets open and close around a luminous centre.
+  float curve = length(q - vec2(0.6 + 0.15 * sin(t), 0.34));
+  float phase = curve * (13.0 + u_density * 9.0) - t * 1.2
+    + sin(r * 5.0 - t) * (0.5 + u_intensity * 1.8);
+  float facet = 0.5 + 0.5 * cos(phase);
+  float beams = pow(0.5 + 0.5 * cos(folded * petals), 6.0);
+  float etchPhase = q.y * 48.0 + sin(q.x * 12.0 - t) * 2.0;
+  float etch = pow(0.5 + 0.5 * cos(etchPhase), 18.0) * pow(facet, 4.0);
+  etch *= 1.0 - smoothstep(0.6, 2.0, fwidth(etchPhase));
+  float rim = pow(facet, 28.0) * (0.4 + beams * 0.6) + etch * 0.6;
+  float halo = exp(-r * r * 2.2);
+  float light = 0.06 + pow(facet, 3.0) * (0.4 + u_intensity * 0.28)
+    + halo * 0.15 + beams * 0.09;
+  fragColor = vec4(finish(light, r * 0.22 - t * 0.06, rim, p), 1.0);
+}
+`,
+      liquidContoursFragmentShader: FLUX_HEADER + `
+float terrain(vec2 p, float t) {
+  float h = 0.0;
+  float amplitude = 0.55;
+  for (int i = 0; i < 4; i++) {
+    p += sin(p.yx * 1.2 + t * 0.3) * (0.2 + u_intensity * 0.35);
+    h += amplitude * sin(p.x + t) * cos(p.y - t * 0.6);
+    p = turn(0.83) * p * 1.85 + 1.4;
+    amplitude *= 0.45;
+  }
+  return h;
+}
+void main() {
+  vec2 p = v_objectUV * 2.0;
+  float t = u_time * 0.22;
+  float h = terrain(p * 1.65, t);
+  float bands = h * (7.0 + u_density * 15.0) + t * 0.45;
+  float ridge = 0.5 + 0.5 * sin(bands);
+  float width = max(fwidth(bands), 0.015);
+  float line = 1.0 - smoothstep(0.035, 0.035 + width * 1.3, abs(cos(bands)));
+  // Screen-space slope gives the contours a metallic, embossed edge.
+  vec2 slope = vec2(dFdx(h), dFdy(h)) / max(length(fwidth(p)), 0.0001);
+  vec3 normal = normalize(vec3(-slope * 1.4, 1.0));
+  float shine = pow(max(dot(normal, normalize(vec3(-0.5, 0.7, 1.0))), 0.0), 12.0);
+  float light = 0.12 + ridge * 0.34 + h * 0.12 + shine * (0.2 + u_intensity * 0.25);
+  fragColor = vec4(finish(light, h * 0.32 + t * 0.04, line * 0.55 + shine * 0.6, p), 1.0);
+}
+`,
+    };
+
+    /* ── per-effect curation ─────────────────────────────────────────────────
+       I/D are the intensity/density knobs in 0..1; each map is tuned so 0.5
+       lands on the upstream defaultPreset. speed/scale carry each effect's
+       designed multipliers the same way. Enum uniforms use the upstream
+       numeric values (WarpPatterns.checks=0, DitheringShapes.sphere=7,
+       DitheringTypes['4x4']=3,
+       PulsingBorderAspectRatios.auto=0). */
+    var EFFECTS = {
+      'metaballs': { frag: 'metaballsFragmentShader', fit: 'object', speed: 1, scale: 1, noise: true,
+        u: function (I, D, C) { return { u_colorBack: C.back, u_colors: C.arr, u_colorsCount: C.arr.length, u_size: 0.3 + I * 0.6, u_count: Math.round(3 + D * 17) }; } },
+      'smoke-ring': { frag: 'smokeRingFragmentShader', fit: 'object', speed: 0.5, scale: 0.8, noise: true,
+        u: function (I, D, C) { return { u_colorBack: C.back, u_colors: C.arr, u_colorsCount: C.arr.length, u_thickness: 0.2 + I * 0.9, u_noiseScale: 1 + D * 4, u_noiseIterations: 8, u_radius: 0.25, u_innerShape: 0.7 }; } },
+      'voronoi': { frag: 'voronoiFragmentShader', fit: 'pattern', speed: 0.5, scale: 0.5, noise: true,
+        u: function (I, D, C) { return { u_colors: C.arr, u_colorsCount: C.arr.length, u_colorGap: C.back, u_colorGlow: C.arr[0], u_distortion: I * 0.8, u_gap: 0.01 + D * 0.06, u_glow: 0, u_stepsPerColor: 3 }; } },
+      'neuro-noise': { frag: 'neuroNoiseFragmentShader', fit: 'pattern', speed: 1, scale: 1,
+        u: function (I, D, C) { return { u_colorFront: C.arr[0], u_colorMid: C.arr[1] || C.arr[0], u_colorBack: C.back, u_contrast: I * 0.6, u_brightness: D * 0.12 }; } },
+      'perlin-noise': { frag: 'perlinNoiseFragmentShader', fit: 'pattern', speed: 0.5, scale: 1,
+        u: function (I, D, C) { return { u_colorFront: C.arr[0], u_colorBack: C.back, u_proportion: 0.15 + I * 0.4, u_softness: D * 0.6, u_octaveCount: 2, u_persistence: 1, u_lacunarity: 1.5 }; } },
+      'dithering': { frag: 'ditheringFragmentShader', fit: 'pattern', speed: 1, scale: 0.6,
+        u: function (I, D, C) { return { u_colorFront: C.arr[0], u_colorBack: C.back, u_pxSize: 2 * Math.pow(4, I - 0.5), u_shape: 7, u_type: 3 }; } },
+      'warp': { frag: 'warpFragmentShader', fit: 'pattern', speed: 1, scale: 1, noise: true,
+        u: function (I, D, C) { return { u_colors: C.arr, u_colorsCount: C.arr.length, u_distortion: I * 0.6, u_swirl: D * 1.6, u_swirlIterations: 10, u_proportion: 0.45, u_softness: 1, u_shape: 0, u_shapeScale: 0.1 }; } },
+      'spiral': { frag: 'spiralFragmentShader', fit: 'pattern', speed: 1, scale: 1,
+        u: function (I, D, C) { return { u_colorFront: C.arr[0], u_colorBack: C.back, u_density: 0.3 + I * 1.4, u_strokeWidth: 0.2 + D * 0.6, u_distortion: 0, u_strokeTaper: 0, u_strokeCap: 0, u_noise: 0, u_noiseFrequency: 0, u_softness: 0 }; } },
+      'swirl': { frag: 'swirlFragmentShader', fit: 'object', speed: 0.32, scale: 1,
+        u: function (I, D, C) { return { u_colors: C.arr, u_colorsCount: C.arr.length, u_colorBack: C.back, u_twist: 0.05 + I * 0.4, u_bandCount: Math.round(2 + D * 8), u_center: 0.2, u_proportion: 0.5, u_softness: 0, u_noise: 0.2, u_noiseFrequency: 0.4 }; } },
+      'silk-flow': { frag: 'silkFlowFragmentShader', fit: 'object', speed: 0.8, scale: 1, u: fluxUniforms },
+      'prism-bloom': { frag: 'prismBloomFragmentShader', fit: 'object', speed: 0.7, scale: 1, u: fluxUniforms },
+      'liquid-contours': { frag: 'liquidContoursFragmentShader', fit: 'object', speed: 0.65, scale: 1, u: fluxUniforms },
+      'dot-orbit': { frag: 'dotOrbitFragmentShader', fit: 'pattern', speed: 1.5, scale: 1, noise: true,
+        u: function (I, D, C) { return { u_colorBack: C.back, u_colors: C.arr, u_colorsCount: C.arr.length, u_spreading: I * 2, u_size: 0.4 + D * 1.2, u_sizeRange: 0, u_stepsPerColor: 4 }; } },
+      'god-rays': { frag: 'godRaysFragmentShader', fit: 'object', speed: 0.75, scale: 1, noise: true, offsetY: -0.55,
+        u: function (I, D, C) { return { u_colorBack: C.back, u_colorBloom: C.arr[0], u_colors: C.arr, u_colorsCount: C.arr.length, u_intensity: I * 1.6, u_density: D * 0.7, u_spotty: 0.3, u_midIntensity: 0.4, u_midSize: 0.2, u_bloom: 0.4 }; } },
+      'color-panels': { frag: 'colorPanelsFragmentShader', fit: 'object', speed: 0.5, scale: 0.8,
+        u: function (I, D, C) { return { u_colors: C.arr, u_colorsCount: C.arr.length, u_colorBack: C.back, u_length: 0.5 + I * 1.2, u_density: 1 + D * 4, u_angle1: 0, u_angle2: 0, u_edges: 0, u_blur: 0, u_fadeIn: 1, u_fadeOut: 0.3, u_gradient: 0 }; } },
+      'pulsing-border': { frag: 'pulsingBorderFragmentShader', fit: 'object', speed: 1, scale: 0.6, noise: true,
+        u: function (I, D, C) { return { u_colors: C.arr, u_colorsCount: C.arr.length, u_colorBack: C.back, u_intensity: I * 0.5, u_spots: Math.round(2 + D * 8), u_thickness: 0.1, u_roundness: 0.25, u_softness: 0.75, u_bloom: 0.25, u_pulse: 0.25, u_smoke: 0.3, u_smokeSize: 0.6, u_aspectRatio: 0, u_marginLeft: 0, u_marginRight: 0, u_marginTop: 0, u_marginBottom: 0 }; } },
+    };
+    /* Playback is anchored on a nominal 10 s scrub span: `phase` picks a
+       moment inside it, and the export clock advances from there. */
+    var PHASE_SPAN_MS = 10000;
+
+    function init() {
+      var PS = window.PaperShaders;
+      var spec = PS && EFFECTS[cfg.effect];
+      if (!spec || !PS.ShaderMount) return; // fallback wash stays
+      var prev = store.__bdMount;
+      if (prev) { try { prev.dispose(); } catch (e) { /* replaced DOM */ } store.__bdMount = null; }
+
+      var C = {
+        arr: cfg.colors.map(PS.getShaderColorFromString),
+        back: PS.getShaderColorFromString(cfg.background),
+      };
+      var I = cfg.intensity / 100, D = cfg.density / 100;
+      var uniforms = spec.u(I, D, C);
+      if (spec.noise) {
+        /* ShaderMount refuses an undecoded image, and getShaderNoiseTexture()
+           hands back a fresh data-URI Image every call - decode it ONCE per
+           page and remount when ready (instant on every later render). */
+        var img = window.__bdNoise || (window.__bdNoise = PS.getShaderNoiseTexture());
+        if (!img.complete) {
+          img.addEventListener('load', function () { if (document.contains(wrap) && !store.__bdMount) init(); }, { once: true });
+          return;
+        }
+        uniforms.u_noiseTexture = img;
+      }
+      /* Sizing block (pattern fills the plane, object composes a figure). */
+      uniforms.u_fit = spec.fit === 'object' ? 1 : 0;
+      uniforms.u_scale = spec.scale * (cfg.scale / 100);
+      uniforms.u_rotation = cfg.rotation;
+      uniforms.u_offsetX = 0;
+      uniforms.u_offsetY = spec.offsetY || 0;
+      uniforms.u_originX = 0.5;
+      uniforms.u_originY = 0.5;
+      uniforms.u_worldWidth = 0;
+      uniforms.u_worldHeight = 0;
+
+      var effSpeed = spec.speed * (cfg.speed / 100);
+      var phaseMs = (cfg.phase / 100) * PHASE_SPAN_MS;
+      var liveSpeed = calm ? 0 : effSpeed;
+      var mount;
+      try {
+        /* preserveDrawingBuffer so dom-to-image / the direct canvas blit can
+           read pixels outside the paint task. */
+        mount = new PS.ShaderMount(host, CUSTOM_SHADERS[spec.frag] || PS[spec.frag], uniforms, { preserveDrawingBuffer: true }, 0, phaseMs);
+      } catch (e) { return; } // no WebGL2 - the CSS wash carries
+      store.__bdMount = mount;
+      /* Paint the chosen moment NOW: with speed 0 (reduced motion, the speed
+         knob at 0) the mount's own loop never runs,
+         and its constructor doesn't render a first frame on its own. Then
+         paint it AGAIN inside a rAF - with no animation loop running,
+         Chromium can leave the first out-of-frame GL paint uncomposited, so
+         the screen keeps whatever was under the canvas until something else
+         forces a composite. Same frame both times, so nothing moves. */
+      /* gl.flush() after each out-of-loop paint: without a running rAF loop
+         the driver can sit on the queued draw and the compositor keeps
+         whatever was under the canvas (observed: the frame only appeared
+         after something read the canvas back, which forces the flush). */
+      function paintPhase() {
+        mount.setFrame(phaseMs);
+        if (mount.gl && mount.gl.flush) mount.gl.flush();
+      }
+      paintPhase();
+      requestAnimationFrame(function () {
+        if (document.contains(mount.canvasElement)) paintPhase();
+      });
+      mount.setSpeed(liveSpeed);
+
+      /* Deterministic export clock: the pipeline raises __lollyFrameDriven,
+         we park the mount's own rAF and paint exact frames; a tiny watcher
+         hands playback back when the capture ends. */
+      var cv = mount.canvasElement;
+      var driving = false;
+      function watchRelease() {
+        if (!document.contains(cv)) return;
+        if (cv.__lollyFrameDriven) { requestAnimationFrame(watchRelease); return; }
+        driving = false;
+        mount.setSpeed(liveSpeed);
+      }
+      cv.__lollyFrameRender = function (t, clipSec) {
+        if (!driving) { driving = true; mount.setSpeed(0); requestAnimationFrame(watchRelease); }
+        mount.setFrame(phaseMs + (t || 0) * (clipSec || 8) * 1000 * (effSpeed || spec.speed || 1));
+      };
+    }
+
+    /* The vendored lib loads once per page from the tool's own lib/ dir
+       (street-map's pattern); every later render reuses the global. */
+    if (window.PaperShaders) { init(); return; }
+    var tag = document.getElementById('bd-lib');
+    if (!tag) {
+      tag = document.createElement('script');
+      tag.id = 'bd-lib';
+      tag.src = '/tools/backdrop/lib/paper-shaders.min.js';
+      document.head.appendChild(tag);
+    }
+    tag.addEventListener('load', function () { if (document.contains(wrap)) init(); });
+  })();
+</script>

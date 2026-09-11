@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "Upload een PowerPoint-presentatie en pas de kleuren en fonts aan je merk aan - herbouwd op je eigen apparaat, niets wordt geüpload.",
+  "a11yLabel": "Deck-rebrander voor {{fileName}}",
+  "inputs.source.label": "PowerPoint-bestand",
+  "inputs.source.help": "Een .pptx-bestand. Het wordt op je apparaat gelezen en nooit geüpload.",
+  "inputs.useTheme.label": "Merkthema toepassen",
+  "inputs.useTheme.help": "Wissel het thema-palet en de lettertypen van het deck naar je merk - elke aan het thema gekoppelde kleur volgt automatisch.",
+  "inputs.colorMap.label": "Kleurtoewijzing",
+  "inputs.colorMap.help": "Hardgecodeerde kleuren gevonden op de dia's, elk met de voorgestelde merkkleur. Verwijder een rij om die kleur ongemoeid te laten.",
+  "inputs.colorMap.fields.from.label": "Origineel",
+  "inputs.colorMap.fields.to.label": "Merk",
+  "inputs.fontMap.label": "Lettertype-mapping",
+  "inputs.fontMap.help": "Lettertypes genoemd in de deck, elk met zijn merkvervanging. Verwijder een rij om dat lettertype te behouden.",
+  "inputs.fontMap.fields.from.label": "Origineel",
+  "inputs.fontMap.fields.to.label": "Merk",
+  "inputs.dropFonts.label": "Ingesloten lettertypen verwijderen",
+  "inputs.dropFonts.help": "Lettertypen van het oude merk die in het bestand zijn ingesloten, zijn verouderd na een wissel en kunnen licentiebeperkingen hebben."
+}

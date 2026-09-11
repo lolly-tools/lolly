@@ -1,0 +1,4 @@
+{
+  "name": "Flythrough",
+  "description": "Flyg en riktig 3D-kamera genom en skärmbild. Bilden lyfter till lager med verkligt djup; stora former bygger ut till fasta objekt; en tidslinje med poser animerar hela förloppet - djup, opacitet, perspektiv, extrudering, lutning, rotation, skala och kameraflygningen - och slingar sedan tillbaka. Lägg till, dra och ändra ordning på poser. Exportera som video."
+}

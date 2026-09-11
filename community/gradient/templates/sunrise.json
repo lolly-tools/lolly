@@ -1,0 +1,22 @@
+{
+  "id": "sunrise",
+  "name": "Sunrise",
+  "category": "Background",
+  "description": "Warm amber and coral light for hero banners and covers.",
+  "values": {
+    "count": 3,
+    "color1": "#ffb36b",
+    "color2": "#ff6f61",
+    "color3": "#ffe8d1",
+    "blend": "screen",
+    "spread": 100,
+    "blur": 12,
+    "grain": 20,
+    "grainBlend": "soft-light"
+  },
+  "presets": [
+    { "id": "golden-hour", "name": "Golden hour", "description": "Deeper amber sinking into red.", "values": { "color1": "#f59e0b", "color2": "#dc2626", "color3": "#fde68a" } },
+    { "id": "dusk", "name": "Dusk", "description": "Pink fading into violet after the sun drops.", "values": { "color1": "#f472b6", "color2": "#c084fc", "color3": "#fecdd3" } },
+    { "id": "soft-glow", "name": "Soft glow", "description": "The same warmth melted into a gentle haze.", "values": { "spread": 130, "blur": 24, "grain": 8 } }
+  ]
+}

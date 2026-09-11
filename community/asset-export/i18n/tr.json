@@ -1,0 +1,15 @@
+{
+  "name": "Varlık Dışa Aktarma",
+  "description": "Herhangi bir katalog varlığını - veya bir Lolly araç bağlantısını - istediğiniz biçime ve boyuta dönüştürün.",
+  "a11yLabel": "Dışa aktarılan varlık",
+  "inputs.src.label": "Varlık",
+  "inputs.src.help": "Oluşturulacak varlık - bir katalog id'si (bkz. `lolly assets`) veya yapıştırılmış bir lolly.tools araç bağlantısı. Vektör varlıklar SVG/PDF boyunca vektör kalır; raster varlıklar görsel olarak gömülür.",
+  "inputs.fit.label": "Sığdır",
+  "inputs.fit.help": "Contain, varlığın tamamını çerçeve içinde gösterir; Cover çerçeveyi doldurur ve kenarları kırpabilir.",
+  "inputs.fit.options.contain": "Contain (varlığın tamamı, letterbox'lı)",
+  "inputs.fit.options.cover": "Cover (doldurur, kırpabilir)",
+  "inputs.background.label": "Arka plan",
+  "inputs.background.help": "Varlığın arkasındaki renk. Şeffaf olması için dışa aktarmada \"Arka Plan Yok\" seçeneğini aç.",
+  "inputs.transparentBg.label": "Arka plan yok",
+  "inputs.transparentBg.help": "Varlığın şeffaf zeminde dışa aktarılması için arka plan dolgusunu kaldır (PNG/SVG/WebP)."
+}

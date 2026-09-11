@@ -1,0 +1,5 @@
+{
+  "name": "Filtr",
+  "description": "Jedno narzędzie do efektów zdjęciowych: wybierz rastr punktowy, linie skanowania, posteryzację, voronoi, dithering lub sztukę ASCII (wektor) albo dwutoniowość, rozciąganie pikseli, niedoskonałości lub glitch (raster). Nakładki marki, obraz z kamery na żywo i eksport do tylu formatów, ile obsługuje dany efekt.",
+  "featured.blurb": "Dziesięć efektów zdjęciowych, wektorowo lub rastrowo, w jednym narzędziu"
+}

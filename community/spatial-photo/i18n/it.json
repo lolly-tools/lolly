@@ -1,0 +1,4 @@
+{
+  "name": "Foto spaziale",
+  "description": "Carica una foto e muovi una telecamera al suo interno: la profondità viene letta sul tuo dispositivo, così un'immagine piatta diventa una scena con parallasse reale, atmosfera e messa a fuoco."
+}

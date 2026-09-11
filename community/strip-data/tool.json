@@ -1,0 +1,35 @@
+{
+  "id": "strip-data",
+  "name": "Strip Hidden Data",
+  "description": "Reveal and remove hidden metadata from images and PDFs - on your device.",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "utility",
+  "privacy": "on-device",
+  "tags": ["privacy", "exif", "metadata", "gps", "image", "photo", "strip", "clean", "jpeg", "png", "svg", "vector", "pdf", "document", "inkscape", "illustrator"],
+  "a11yLabel": "Hidden-data report for {{fileName}}",
+  "render": {
+    "width": 760,
+    "height": 620,
+    "formats": ["jpg", "png", "svg", "penpot", "pdf"],
+    "export": false,
+    "layout": "canvas",
+    "actions": []
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "exportFile": true
+  },
+  "inputs": [
+    {
+      "id": "source",
+      "label": "Image or PDF",
+      "type": "file",
+      "accept": ["image/jpeg", "image/png", "image/svg+xml", "application/pdf", ".jpg", ".jpeg", ".png", ".svg", ".pdf"],
+      "maxSize": 52428800,
+      "help": "A JPEG, PNG, SVG or PDF. It's read in your browser and never leaves your device."
+    }
+  ]
+}

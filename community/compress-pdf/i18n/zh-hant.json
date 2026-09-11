@@ -1,0 +1,14 @@
+{
+  "name": "Compress",
+  "description": "透過重新壓縮圖片來縮小 PDF - 在您的裝置上完成。",
+  "a11yLabel": "{{fileName}} 的 PDF 壓縮工具",
+  "inputs.source.label": "PDF",
+  "inputs.source.help": "PDF 檔案。系統會在你的瀏覽器中讀取，檔案不會離開你的裝置。",
+  "inputs.level.label": "壓縮程度",
+  "inputs.level.help": "決定內嵌圖片的壓縮強度。壓縮越強，檔案越小，但圖片也會越模糊。",
+  "inputs.level.options.light": "輕度 - 保持高畫質",
+  "inputs.level.options.balanced": "均衡",
+  "inputs.level.options.strong": "強力 - 檔案最小",
+  "inputs.grayscale.label": "將圖片轉為灰階",
+  "inputs.grayscale.help": "移除圖片色彩以進一步縮小檔案，適合掃描的文字文件。"
+}

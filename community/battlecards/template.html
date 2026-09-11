@@ -1,0 +1,151 @@
+<div class="bc-card {{#if (eq orientation "portrait")}}is-portrait{{/if}}"
+     style="--bc-accent: {{default accent "#4f46e5"}}; --bc-bg: {{#if transparentBg}}transparent{{else}}{{default bg "#ffffff"}}{{/if}}; --bc-ink: {{default ink "#111827"}};">
+  <div class="bc-inner">
+    <header class="bc-head">
+      <span class="bc-deck">{{default title "Battlecards"}}</span>
+      <span class="bc-pageno">{{page.number}} / {{page.count}}</span>
+    </header>
+
+    {{!-- Per-card icon: an "Icon" column, looked up by name so the table can
+          keep it anywhere (the canvas pick creates it if absent). Absolutely
+          positioned so an empty slot never moves exported geometry; the web
+          shell's cell editor arms it as a click-to-pick target (data-pick-armed).
+          No whitespace inside the span - the :empty styling depends on it. --}}
+    <span class="bc-icon" data-cell-pick="{{page.index}}" data-pick-column="Icon" data-pick-tag="icon">{{#if (lookup page.byColumn "icon")}}{{{markdown (lookup page.byColumn "icon")}}}{{/if}}</span>
+
+    {{!-- data-cell stamps each rendered cell with its source address
+          (row = page.index, col = original column index) so the web shell's
+          on-canvas editor can bake edits straight back into the table input.
+          data-cell-md marks markdown cells; data-cell-empty marks the em-dash
+          placeholder (cleared on focus, restored on an empty commit). --}}
+    {{#if page.first}}
+      <h1 class="bc-title" data-cell="{{page.index}}:0" data-fit>{{page.first}}</h1>
+    {{else if page.cells.length}}
+      <h1 class="bc-title bc-title--empty" data-cell="{{page.index}}:0" data-cell-empty>-</h1>
+    {{else}}
+      <h1 class="bc-title bc-title--empty">Paste a table to start</h1>
+    {{/if}}
+
+    {{!-- Cell copy is markdown: the engine's {{markdown}} helper turns it into a
+          fixed, escape-first tag set (headings, lists, bold/italic, links, images),
+          so a pasted spreadsheet cell can carry structure without the tool needing
+          a hook. An empty cell keeps the em-dash placeholder rather than a hole.
+          The Icon column renders in the header slot above, never as a field. --}}
+    <div class="bc-fields">
+      {{#each page.fields}}
+      {{#unless (eq (lower column) "icon")}}
+      <div class="bc-field">
+        <div class="bc-field-label">{{column}}</div>
+        {{#if value}}
+        <div class="bc-field-value" data-cell="{{../page.index}}:{{col}}" data-cell-md data-fit>{{{markdown value}}}</div>
+        {{else}}
+        <div class="bc-field-value bc-field-value--empty" data-cell="{{../page.index}}:{{col}}" data-cell-md data-cell-empty>-</div>
+        {{/if}}
+      </div>
+      {{/unless}}
+      {{/each}}
+    </div>
+
+    {{#if footer}}<footer class="bc-foot">{{footer}}</footer>{{/if}}
+  </div>
+
+  {{!-- ── Text-fit pass ───────────────────────────────────────────────────────
+        Shrink-only fit for the card's text slots (title, field values). Each slot
+        is a fixed-size, clipped box: styles.css sizes its font as
+        calc(<size> * var(--fit, 1)) and the copy overflows it. This finds the
+        largest --fit (≤ 1) at which the copy stops overflowing and writes it inline
+        on the slot. A unitless RATIO is scale-invariant - correct at both the stage
+        preview size and the scaled-up export DOM - and shrink-only, so a card that
+        already fits is never touched.
+
+        IIFE + var throughout: template scripts share the page's global scope and
+        re-run on every paint and soft revisit - a top-level const/let would throw
+        "already declared" on the second run and kill the whole script. --}}
+  <script>
+  (function () {
+    var script = document.currentScript;
+    // Scope to THIS card, never document-wide: /multi mounts several tool canvases
+    // in one document, and every paged card runs its own copy of this script.
+    var root = (script && script.closest) ? script.closest('.bc-card') : null;
+    if (!root) return;
+
+    var MAX_STEPS = 9;      // bisection steps after the guess - ~0.2% of the authored size
+    var MIN_FIT = 0.08;     // the floor; below this the copy is hopeless and gets clipped
+    function f3(x) { return Math.round(x * 1000) / 1000; }
+
+    // A fit slot's room (`have`) vs. what its copy wants (`need`), both in px.
+    //   have - the space the copy may fill. For a hard-capped box (the title, capped
+    //          by max-height) that is the CAP, not the box's current clientHeight:
+    //          while the copy is short the box shrink-wraps it (clientHeight < cap),
+    //          and measuring against the wrapped height would read the box's own
+    //          line-box rounding as a 1–2px overflow and shrink copy that plainly
+    //          fits. Against the cap a short title reads as needing far less than it
+    //          has, so it is left alone; only copy that truly overruns the cap shrinks.
+    //          A value panel has no cap and never shrink-wraps (flex:1), so there
+    //          have === clientHeight, the honest fixed box.
+    //   need - the copy's natural extent (scrollHeight). Width counts too: an
+    //          unbreakable run can overflow sideways with height to spare, so a
+    //          horizontal overflow forces a shrink.
+    function measure(el) {
+      var cs = getComputedStyle(el);
+      var have = el.clientHeight;
+      var cap = parseFloat(cs.maxHeight);              // NaN when max-height is 'none'
+      if (cap && cap > have) have = cap;
+      if (have <= 0) return null;
+      var overW = el.scrollWidth - el.clientWidth;
+      var need = el.scrollHeight + (overW > 0.5 ? have : 0);
+      return { have: have, need: need, lh: parseFloat(cs.lineHeight) || 0 };
+    }
+    // Measuring against the cap already kills the shrink-wrap false-positive, so the
+    // tolerance can stay tight - a hair over a line's rounding - and copy is shrunk
+    // until it sits WITHIN its box rather than a partial last line clipping at the
+    // edge. A tenth of a line is imperceptible (a descender tip) yet scale-stable.
+    function fits(el) {
+      var m = measure(el);
+      if (!m) return true;
+      return m.need <= m.have + Math.max(1, m.lh * 0.1);
+    }
+    // Text height grows roughly with the SQUARE of the size (taller lines, and more
+    // of them once it wraps), so sqrt(have/need) lands the first probe close. Worth
+    // doing: every probe forces a synchronous reflow, and this pass re-runs on paint.
+    function guess(el) {
+      var m = measure(el);
+      if (!m || m.need <= 0) return 1;
+      return Math.sqrt(m.have / m.need);
+    }
+    function fitOne(el) {
+      el.style.removeProperty('--fit');
+      if (fits(el)) return;                 // fits as authored - shrink-only, so leave it
+      var lo = MIN_FIT, hi = 1;             // hi is known not to fit; lo is the floor we'd settle for
+      var g = guess(el);
+      if (g > lo && g < hi) {
+        el.style.setProperty('--fit', String(f3(g)));
+        if (fits(el)) lo = g; else hi = g;
+      }
+      for (var i = 0; i < MAX_STEPS && hi - lo > 0.004; i++) {
+        var mid = (lo + hi) / 2;
+        el.style.setProperty('--fit', String(f3(mid)));
+        if (fits(el)) lo = mid; else hi = mid;
+      }
+      el.style.setProperty('--fit', String(f3(lo)));
+    }
+    function runAll() {
+      // No layout at all (the CLI's pure-jsdom svg/html path) → every measurement
+      // reads 0 and every box "fits". Leave the authored sizes standing instead.
+      if (!root.isConnected || !root.clientWidth) return;
+      var els = root.querySelectorAll('[data-fit]');
+      for (var i = 0; i < els.length; i++) fitOne(els[i]);
+    }
+
+    runAll();
+    try {
+      if (document.fonts && document.fonts.status !== 'loaded') {
+        // The first pass may have measured FALLBACK font metrics - the wrong widths.
+        // The export path awaits document.fonts.ready then mutation-silence, so this
+        // re-fit lands inside the capture's wait rather than after the frame is taken.
+        document.fonts.ready.then(runAll);
+      }
+    } catch (e) { /* no font-loading API - the first pass stands */ }
+  })();
+  </script>
+</div>

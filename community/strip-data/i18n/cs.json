@@ -1,0 +1,7 @@
+{
+  "name": "Odstranění skrytých dat",
+  "description": "Odhal a odstraň skrytá metadata z obrázků a PDF - na tvém zařízení.",
+  "a11yLabel": "Zpráva o skrytých datech pro {{fileName}}",
+  "inputs.source.label": "Obrázek nebo PDF",
+  "inputs.source.help": "JPEG, PNG, SVG nebo PDF. Soubor se čte přímo v prohlížeči a nikdy neopustí tvé zařízení."
+}

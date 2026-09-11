@@ -1,0 +1,30 @@
+{
+  "id": "wifi",
+  "name": "Wi-Fi network",
+  "category": "Utility",
+  "description": "Scan to join the network. For the sign by the door, the reception desk or the studio wall.",
+  "values": {
+    "payload": "wifi",
+    "ssid": "Studio Guest",
+    "wifiKey": "welcome-2026",
+    "wifiSecurity": "WPA",
+    "wifiHidden": false,
+    "ecl": "Q",
+    "padding": 4,
+    "join": true
+  },
+  "presets": [
+    {
+      "id": "guest",
+      "name": "Guest network",
+      "description": "Dark ink on warm white, generous quiet zone for a printed sign.",
+      "values": { "color": "#1a1a2e", "background": "#faf7f2", "padding": 6 }
+    },
+    {
+      "id": "hidden",
+      "name": "Hidden network",
+      "description": "For a network that does not broadcast its name.",
+      "values": { "wifiHidden": true, "ecl": "H" }
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+.gr-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  font-family: var(--font-brand, ui-sans-serif, system-ui, sans-serif);
+}
+
+.gr-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  margin: auto;
+}
+
+/* Why 0 x 0 and absolute rather than display:none: the export looks the clock
+   up with querySelectorAll, and a positioned zero-box never affects layout or
+   gets rasterised. Same trick as deck-builder's .sl-clock. */
+.gr-clock {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.gr-note {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #fff;
+  background: rgba(23, 35, 43, 0.86);
+}

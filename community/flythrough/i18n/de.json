@@ -1,0 +1,4 @@
+{
+  "name": "Flythrough",
+  "description": "Führt eine echte 3D-Kamera durch einen Screenshot. Das Bild hebt sich in Schichten mit echter Tiefe an; große Formen werden zu festen Objekten extrudiert; eine Zeitleiste aus Posen animiert die ganze Bewegung - Tiefe, Deckkraft, Perspektive, Extrusion, Neigung, Drehung, Skalierung und der Kameraflug - und läuft dann zurück zum Ausgangspunkt. Posen hinzufügen, ziehen und neu anordnen. Export als Video."
+}

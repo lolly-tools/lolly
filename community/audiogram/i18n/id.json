@@ -1,0 +1,22 @@
+{
+  "name": "Audiogram",
+  "description": "Ubah klip suara atau lagu menjadi video bermerek yang benar-benar bergerak mengikuti suara - bar, spektrum, cincin, ridgeline atau scope, siap untuk media sosial.",
+  "a11yLabel": "Kartu Audiogram untuk {{default title \"an audio clip\"}} dengan waveform beranimasi",
+  "inputs.audio.label": "Audio",
+  "inputs.audio.help": "Pilih trek dari pustaka Anda atau unggah klip. Ini didekode di perangkat Anda untuk menggambar bentuk gelombang - audio tidak pernah meninggalkan browser. Biarkan kosong untuk bentuk gelombang placeholder. Untuk mendengarkannya di hasil ekspor, pilih \"Audio alat ini\" sebagai Trek Audio di opsi unduhan.",
+  "inputs.title.label": "Judul",
+  "inputs.title.help": "Judul utama pada kartu - nama episode atau pull-quote.",
+  "inputs.subtitle.label": "Subjudul",
+  "inputs.subtitle.help": "Baris lebih kecil di bawah judul - nama acara, tamu, atau tempat mendengarkan.",
+  "inputs.style.label": "Gaya waveform",
+  "inputs.style.options.bars": "Batang",
+  "inputs.style.options.wave": "Gelombang",
+  "inputs.style.options.ring": "Cincin",
+  "inputs.size.label": "Ukuran",
+  "inputs.size.options.square": "Persegi (1:1)",
+  "inputs.size.options.wide": "Lebar (16:9)",
+  "inputs.size.options.story": "Story (9:16)",
+  "inputs.accent.label": "Warna waveform",
+  "inputs.ink.label": "Warna teks",
+  "inputs.bg.label": "Latar belakang"
+}

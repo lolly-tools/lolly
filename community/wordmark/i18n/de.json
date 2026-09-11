@@ -1,0 +1,19 @@
+{
+  "name": "Wortmarke",
+  "description": "Ein Wort eingeben, ein reines Vektor-Wortmarke-Ergebnis in Ihrer Markenschrift erhalten - Empfänger brauchen die Schrift nie installiert.",
+  "a11yLabel": "Wortmarke liest {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Text",
+  "inputs.font.label": "Schrift",
+  "inputs.font.options.brand": "Marken-Schrift",
+  "inputs.font.options.mono": "Mono-Schrift",
+  "inputs.weight.label": "Schriftstärke",
+  "inputs.tracking.label": "Tracking",
+  "inputs.tracking.help": "Zeichenabstand in px bei der eingestellten Größe.",
+  "inputs.size.label": "Größe",
+  "inputs.size.help": "Schriftgröße, mit der die Umrisse geformt werden - die Laufweite bezieht sich darauf.",
+  "inputs.color.label": "Farbe",
+  "inputs.features.label": "OpenType-Funktionen",
+  "inputs.features.options.none": "Standard",
+  "inputs.features.options.liga-off": "Keine Ligaturen",
+  "inputs.features.options.salt": "Stilistische Alternativen"
+}

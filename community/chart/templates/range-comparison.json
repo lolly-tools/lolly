@@ -1,0 +1,13 @@
+{
+  "id": "range-comparison",
+  "name": "Compare low–high ranges",
+  "category": "Comparison",
+  "description": "Floating bars show the full interval with optional arithmetic midpoint ticks.",
+  "values": {
+    "chartIntent": "manual", "renderMode": "vector", "chartType": "range-bar", "chartStyle": "editorial",
+    "heading": "Delivery estimates by workstream",
+    "subheading": "Low–high estimate in days · tick: midpoint of the range",
+    "data": "Workstream,Low,High\nDiscovery,3,8\nDesign,6,14\nImplementation,12,25\nReview,4,10\nRelease,2,5",
+    "rangeMidpoint": true, "numberFormat": "integer", "labelLayout": "wrap", "barPadding": 0.3, "transparentBg": false
+  }
+}

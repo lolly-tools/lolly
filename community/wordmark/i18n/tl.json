@@ -1,0 +1,19 @@
+{
+  "name": "Wordmark",
+  "description": "Mag-type ng salita, kumuha ng purong pure-path vector wordmark sa font ng iyong brand - hindi na kailangan ng tatanggap na naka-install ang font.",
+  "a11yLabel": "Wordmark na nagsasabing {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Teksto",
+  "inputs.font.label": "Font",
+  "inputs.font.options.brand": "Brand font",
+  "inputs.font.options.mono": "Mono font",
+  "inputs.weight.label": "Weight",
+  "inputs.tracking.label": "Tracking",
+  "inputs.tracking.help": "Letter-spacing sa px sa itinakdang laki.",
+  "inputs.size.label": "Sukat",
+  "inputs.size.help": "Laki ng font kung saan hinuhugis ang mga outline - ang tracking ay batay dito.",
+  "inputs.color.label": "Kulay",
+  "inputs.features.label": "OpenType features",
+  "inputs.features.options.none": "Standard",
+  "inputs.features.options.liga-off": "Walang ligature",
+  "inputs.features.options.salt": "Stylistic alternates"
+}

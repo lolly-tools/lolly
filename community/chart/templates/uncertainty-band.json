@@ -1,0 +1,39 @@
+{
+  "id": "uncertainty-band",
+  "name": "Forecast range",
+  "category": "Editorial",
+  "description": "Show an expected path inside an honest low-to-high range, with the active brand setting the hierarchy.",
+  "values": {
+    "renderMode": "statistical",
+    "chartType": "area",
+    "plotType": "range-band",
+    "chartStyle": "editorial",
+    "data": "Month,Low,Expected,High\nJan,32,41,52\nFeb,35,46,58\nMar,39,51,64\nApr,43,57,71\nMay,47,62,78\nJun,50,68,85\nJul,54,73,91\nAug,58,79,98",
+    "heading": "Demand is likely to keep climbing",
+    "subheading": "Expected monthly demand with a planning range",
+    "yTitle": "Forecast index",
+    "showGrid": true,
+    "showLegend": true
+  },
+  "presets": [
+    {
+      "id": "reveal",
+      "name": "Reveal",
+      "description": "Draw the forecast across the page with deterministic motion.",
+      "values": {
+        "plotMotionPreset": "reveal",
+        "animSpeed": 2.5
+      }
+    },
+    {
+      "id": "difference",
+      "name": "Compare two paths",
+      "description": "Use the first two series to emphasise the distance between them.",
+      "values": {
+        "plotType": "difference-area",
+        "data": "Month,Plan,Actual\nJan,34,32\nFeb,39,42\nMar,45,48\nApr,52,49\nMay,58,64\nJun,66,72\nJul,73,81\nAug,80,91",
+        "heading": "Actual demand has pulled ahead of plan"
+      }
+    }
+  ]
+}

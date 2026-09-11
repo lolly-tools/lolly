@@ -1,0 +1,14 @@
+{
+  "name": "Compress",
+  "description": "এর ছবিগুলো পুনরায় সংকুচিত করে একটি PDF ছোট করুন - আপনার ডিভাইসেই।",
+  "a11yLabel": "{{fileName}}-এর জন্য PDF কম্প্রেসর",
+  "inputs.source.label": "PDF",
+  "inputs.source.help": "একটি PDF ফাইল। এটি আপনার ব্রাউজারে পড়া হয় এবং কখনও আপনার ডিভাইস ছেড়ে যায় না।",
+  "inputs.level.label": "কম্প্রেশন",
+  "inputs.level.help": "এমবেড করা ছবিগুলো কতটা জোরে কম্প্রেস হবে। যত জোরালো, ফাইল তত ছোট আর ছবি তত নরম।",
+  "inputs.level.options.light": "হালকা - মান উঁচু রাখুন",
+  "inputs.level.options.balanced": "ভারসাম্যপূর্ণ",
+  "inputs.level.options.strong": "জোরালো - সবচেয়ে ছোট ফাইল",
+  "inputs.grayscale.label": "ছবিগুলো গ্রেস্কেলে রূপান্তর করুন",
+  "inputs.grayscale.help": "বাড়তি সাশ্রয়ের জন্য ছবি থেকে রং বাদ দিন - স্ক্যান করা টেক্সট ডকুমেন্টের জন্য উপযোগী।"
+}

@@ -1,0 +1,6 @@
+name,hex,on,wcag,level,apca,target,reach
+{{#each csvRows}}{{csvCell name}},{{csvCell hex}},{{csvCell on}},{{csvCell wcag}},{{csvCell level}},{{csvCell apca}},{{csvCell target}},{{csvCell reach}}
+{{/each}}{{#if gridCsvRows}}
+fg,bg,ratio,level
+{{#each gridCsvRows}}{{csvCell fg}},{{csvCell bg}},{{csvCell ratio}},{{csvCell level}}
+{{/each}}{{/if}}

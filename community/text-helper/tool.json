@@ -1,0 +1,19 @@
+{
+  "id": "text-helper",
+  "name": "Text Helper",
+  "description": "Format, decode, hash and de-identify text - JSON, JWT and more.",
+  "version": "1.3.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "utility",
+  "privacy": "on-device",
+  "tags": ["privacy", "json", "yaml", "helm", "kubernetes", "jwt", "base64", "url", "hash", "sha256", "developer", "format", "decode", "text", "de-identify", "anonymise", "anonymize", "redact", "pii"],
+  "a11yLabel": "Text Helper - on-device JSON / YAML / Helm / JWT / Base64 / hash / de-identify workbench",
+  "render": {
+    "width": 1100,
+    "height": 820,
+    "formats": ["html"],
+    "export": false
+  },
+  "inputs": []
+}

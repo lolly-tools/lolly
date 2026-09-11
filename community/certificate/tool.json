@@ -1,0 +1,239 @@
+{
+  "id": "certificate",
+  "name": "Certificate",
+  "description": "Completion and award certificates from the active brand - one name at a time, or a whole roster from a CSV in Bulk from rows.",
+  "a11yLabel": "{{default titleText \"Certificate\"}} for {{default recipientName \"a recipient\"}}",
+  "version": "1.0.3",
+  "engineVersion": "^1.0.0",
+  "status": "community",
+  "category": "everyone",
+  "tags": ["certificate", "award", "training", "course", "completion", "print", "roster"],
+  "examples": [
+    {
+      "label": "Course completion",
+      "values": {
+        "certKind": "completion",
+        "firstname": "Ana",
+        "lastname": "Kovač",
+        "awardtopic": "Container Fundamentals",
+        "awarddate": "2026-06-18",
+        "presenter": "Maya Lindqvist",
+        "presenterTitle": "Programme Director",
+        "company": "Northwind Institute"
+      }
+    },
+    {
+      "label": "Award",
+      "values": {
+        "certKind": "award",
+        "firstname": "Tomás",
+        "lastname": "Herrera",
+        "awardtopic": "The 2026 Innovation Award",
+        "awarddate": "2026-05-09",
+        "presenter": "Ingrid Sorensen",
+        "presenterTitle": "Chair of the Jury",
+        "company": "Northwind Institute",
+        "serial": "No. 2026-0413"
+      }
+    },
+    {
+      "label": "Appreciation",
+      "values": {
+        "certKind": "appreciation",
+        "firstname": "Priya",
+        "lastname": "Nair",
+        "awardtopic": "Two years of volunteering",
+        "awarddate": "2026-03-02",
+        "presenter": "Jonas Weber",
+        "presenterTitle": "Community Lead",
+        "company": "Riverside Library"
+      }
+    },
+    {
+      "label": "Achievement on screen",
+      "values": {
+        "certKind": "achievement",
+        "pageSize": "screen",
+        "firstname": "Lena",
+        "lastname": "Fischer",
+        "awardtopic": "Top of the 2026 cohort",
+        "awarddate": "2026-07-24",
+        "presenter": "Maya Lindqvist",
+        "presenterTitle": "Programme Director",
+        "company": "Northwind Institute"
+      }
+    }
+  ],
+  "render": {
+    "width": 1123,
+    "height": 794,
+    "formats": ["pdf", "pdf-cmyk", "svg", "penpot", "png", "jpg", "webp", "tiff", "cmyk-tiff"],
+    "actions": ["download", "save"],
+    "printMarks": true,
+    "filenameFrom": ["firstname", "lastname", "awardtopic"],
+    "transparentBg": false
+  },
+  "inputs": [
+    {
+      "id": "certKind",
+      "label": "Kind",
+      "type": "select",
+      "urlKey": "k",
+      "default": "completion",
+      "help": "Sets the wording: the title and the line above what the certificate is for. Leave the Title field empty to keep the wording in step with this.",
+      "options": [
+        { "value": "completion", "label": "Completion" },
+        { "value": "achievement", "label": "Achievement" },
+        { "value": "award", "label": "Award" },
+        { "value": "appreciation", "label": "Appreciation" }
+      ]
+    },
+    {
+      "id": "heading",
+      "label": "Title",
+      "type": "text",
+      "default": "",
+      "maxLength": 60,
+      "placeholder": "Certificate of Completion",
+      "help": "Leave empty to follow the Kind above."
+    },
+    {
+      "id": "firstname",
+      "label": "First name",
+      "type": "text",
+      "default": "Ana",
+      "maxLength": 60,
+      "bindToProfile": "firstname"
+    },
+    {
+      "id": "lastname",
+      "label": "Last name",
+      "type": "text",
+      "default": "Kovač",
+      "maxLength": 60,
+      "bindToProfile": "lastname"
+    },
+    {
+      "id": "awardtopic",
+      "label": "Course or award",
+      "type": "text",
+      "default": "Container Fundamentals",
+      "maxLength": 120,
+      "help": "What the certificate is for - a course title, an award name, or the contribution being recognised."
+    },
+    {
+      "id": "awarddate",
+      "label": "Date",
+      "type": "date",
+      "default": "2026-06-18",
+      "help": "Printed in full above the date line, e.g. 18 June 2026."
+    },
+    {
+      "id": "presenter",
+      "label": "Signed by",
+      "type": "text",
+      "default": "Maya Lindqvist",
+      "maxLength": 60,
+      "section": "Signature",
+      "help": "The name printed above the signature line. Leave empty to drop the whole signature column."
+    },
+    {
+      "id": "presenterTitle",
+      "label": "Their role",
+      "type": "text",
+      "default": "Programme Director",
+      "maxLength": 60,
+      "section": "Signature"
+    },
+    {
+      "id": "company",
+      "label": "Issued by",
+      "type": "text",
+      "default": "Northwind Institute",
+      "maxLength": 80,
+      "section": "Issuer",
+      "help": "Printed at the top when the brand ships no logo, or under it when it does."
+    },
+    {
+      "id": "brandLogo",
+      "label": "Brand logo",
+      "type": "boolean",
+      "default": true,
+      "section": "Issuer",
+      "help": "Place the active brand's logo at the top - the light or dark version to suit the paper colour. Falls back to the Issued by line when the brand ships no logo."
+    },
+    {
+      "id": "serial",
+      "label": "Reference",
+      "type": "text",
+      "default": "",
+      "maxLength": 60,
+      "section": "Issuer",
+      "placeholder": "No. 2026-0413",
+      "help": "Optional small line at the foot of the sheet. Plain text, exactly as typed - the tool never makes one up."
+    },
+    {
+      "id": "pageSize",
+      "label": "Sheet",
+      "type": "select",
+      "urlKey": "ps",
+      "default": "a4-landscape",
+      "help": "Sets the sheet proportion and the exported page size.",
+      "options": [
+        { "value": "a4-landscape", "label": "A4 landscape · 297 × 210 mm", "width": 297, "height": 210, "unit": "mm" },
+        { "value": "letter-landscape", "label": "US Letter landscape · 11 × 8.5 in", "width": 11, "height": 8.5, "unit": "in" },
+        { "value": "screen", "label": "Screen · 1600 × 1131 px", "width": 1600, "height": 1131, "unit": "px" }
+      ]
+    },
+    {
+      "id": "color",
+      "label": "Ink",
+      "type": "color",
+      "default": "{color.semantic.text}",
+      "section": "Colour"
+    },
+    {
+      "id": "background",
+      "label": "Paper",
+      "type": "color",
+      "default": "{color.semantic.surface}",
+      "section": "Colour"
+    },
+    {
+      "id": "accent",
+      "label": "Accent",
+      "type": "color",
+      "default": "{color.semantic.primary}",
+      "section": "Colour",
+      "help": "Colours the border rules and the recipient's name."
+    }
+  ],
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "guide": {
+    "title": "One certificate, or the whole roster",
+    "tracks": [
+      {
+        "id": "one",
+        "label": "One person",
+        "steps": [
+          "Pick a **Kind** - completion, achievement, award or appreciation. It writes the title and the line above the award topic, so leave **Title** empty unless you want your own wording.",
+          "Fill in the name, what it is for, and the date. **Signed by** and **Their role** print above and below the signature line; leave **Signed by** empty to drop that column.",
+          "**Sheet** sets the real page size. A4 and US Letter export at their true physical size, so a PDF prints as the page it says it is."
+        ]
+      },
+      {
+        "id": "roster",
+        "label": "A whole roster",
+        "steps": [
+          "Open **Bulk from rows** from the tool menu. It opens the batch grid with this tool already loaded.",
+          "Import a CSV whose columns are named **firstname**, **lastname**, **awardtopic** and **awarddate**. Those are the same input ids the badge and stationery tools use, so one roster feeds all of them.",
+          "Anything you leave out of the CSV keeps the value set here - the issuer, the signature line and the colours are filled in once for every row.",
+          "Export the whole run: each row renders its own sheet and they come back as one zip."
+        ]
+      }
+    ]
+  }
+}

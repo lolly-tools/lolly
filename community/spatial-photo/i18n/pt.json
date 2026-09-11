@@ -1,0 +1,4 @@
+{
+  "name": "Spatial Photo",
+  "description": "Solte uma foto e mova uma câmera por dentro dela: a profundidade é lida no seu dispositivo, então uma imagem plana vira uma cena com paralaxe, atmosfera e foco reais."
+}

@@ -1,0 +1,4 @@
+{
+  "name": "Survol 3D",
+  "description": "Faites voler une vraie caméra 3D à travers une capture d'écran. L'image se soulève en couches à une vraie profondeur ; les grandes formes s'extrudent en objets solides ; une chronologie de poses anime tout le mouvement - profondeur, opacité, perspective, extrusion, inclinaison, rotation, échelle et vol de caméra - puis boucle vers le point de départ. Ajoutez, glissez et réordonnez les poses. Exportez en vidéo."
+}

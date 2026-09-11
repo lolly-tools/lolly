@@ -1,0 +1,142 @@
+{
+  "id": "growth",
+  "name": "Growth",
+  "description": "Differential growth: a line that repels itself until it folds into coral. Seed it from a ring, a burst, your headline's letterforms or your logo, and export the result as real, plotter-ready SVG paths.",
+  "a11yLabel": "Differential growth pattern grown from a {{seedShape}} seed",
+  "version": "1.1.1",
+  "engineVersion": "^1.152.0",
+  "status": "community",
+  "category": "designer",
+  "tags": ["generative", "art", "plotter", "vector", "svg", "organic", "pattern"],
+  "examples": [
+    { "label": "Rosette", "values": { "seedShape": "ring", "symmetry": "radial-6", "density": 40, "steps": 110, "weight": 3, "seed": 12 } },
+    { "label": "Snowflake", "values": { "seedShape": "line", "symmetry": "radial-6", "density": 28, "steps": 160, "weight": 3, "seed": 3 } },
+    { "label": "Grown wordmark", "values": { "seedShape": "text", "text": "GROW", "density": 74, "steps": 120, "weight": 2, "seed": 21 } },
+    { "label": "Plotter paper", "values": { "seedShape": "burst", "background": "{color.semantic.surface}", "color1": "{color.semantic.secondary}", "color2": "{color.semantic.text}", "color3": "{color.spectrum.teal}", "density": 46, "steps": 300, "weight": 2, "seed": 7 } }
+  ],
+  "render": {
+    "width": 1200,
+    "height": 1200,
+    "formats": ["svg", "penpot", "pdf", "png", "jpg", "webp", "gif", "webm", "mp4", "avif", "tiff", "emf", "eps", "dxf", "webp-anim"],
+    "actions": ["copy", "download", "save"],
+    "convertPaths": false,
+    "video": { "wait": 0, "duration": 6 }
+  },
+  "inputs": [
+    {
+      "id": "seedShape",
+      "label": "Seed",
+      "type": "select",
+      "default": "burst",
+      "help": "What the growth starts from. Text and Logo trace your own outlines, so every counter and hole grows into its own organism.",
+      "options": [
+        { "value": "burst", "label": "Burst (several rings)" },
+        { "value": "ring", "label": "Ring" },
+        { "value": "line", "label": "Line" },
+        { "value": "text", "label": "Text" },
+        { "value": "logo", "label": "Logo" }
+      ]
+    },
+    {
+      "id": "text",
+      "label": "Headline",
+      "type": "text",
+      "default": "GROW",
+      "maxLength": 60,
+      "showIf": { "seedShape": ["text"] },
+      "help": "Outlined in your brand font, then grown."
+    },
+    {
+      "id": "logo",
+      "label": "Logo",
+      "type": "asset",
+      "showIf": { "seedShape": ["logo"] },
+      "help": "Traced as a silhouette at a fixed sampling size, so the same logo always seeds the same shape."
+    },
+    { "id": "color1", "label": "Colour 1", "type": "color", "default": "{color.semantic.secondary}" },
+    { "id": "color2", "label": "Colour 2", "type": "color", "default": "{color.semantic.surface}", "help": "Colours cycle by loop and by symmetry stamp, so a plain Ring with no symmetry only ever uses Colour 1." },
+    { "id": "color3", "label": "Colour 3", "type": "color", "default": "{color.spectrum.teal}" },
+    { "id": "background", "label": "Background", "type": "color", "default": "{color.semantic.text}" },
+    {
+      "id": "density",
+      "label": "Density",
+      "section": "Growth",
+      "type": "number",
+      "display": "slider",
+      "default": 46,
+      "min": 20,
+      "max": 100,
+      "step": 1,
+      "help": "How tightly the line packs against itself. Higher is finer and slower."
+    },
+    {
+      "id": "steps",
+      "label": "Steps",
+      "section": "Growth",
+      "type": "number",
+      "display": "slider",
+      "default": 300,
+      "min": 20,
+      "max": 2400,
+      "step": 10,
+      "help": "How long it grows for. The pattern stops filling once it runs out of nodes, so very high values mostly just take longer."
+    },
+    {
+      "id": "symmetry",
+      "label": "Symmetry",
+      "section": "Growth",
+      "type": "select",
+      "default": "none",
+      "help": "Grows one organism and stamps it around the centre.",
+      "options": [
+        { "value": "none", "label": "None" },
+        { "value": "mirror", "label": "Mirror" },
+        { "value": "radial-3", "label": "Radial x3" },
+        { "value": "radial-6", "label": "Radial x6" }
+      ]
+    },
+    {
+      "id": "weight",
+      "label": "Line weight",
+      "section": "Line",
+      "type": "number",
+      "display": "slider",
+      "default": 3,
+      "min": 0.5,
+      "max": 8,
+      "step": 0.5
+    },
+    {
+      "id": "taper",
+      "label": "Taper",
+      "section": "Line",
+      "type": "boolean",
+      "default": false,
+      "showIf": { "seedShape": ["burst", "text", "logo"] },
+      "help": "Thins each successive loop, so older growth reads heavier."
+    },
+    {
+      "id": "seed",
+      "label": "Variation",
+      "section": "Growth",
+      "type": "number",
+      "default": 7,
+      "min": 0,
+      "max": 9999,
+      "step": 1,
+      "help": "Same variation and settings always grow the same pattern."
+    },
+    {
+      "id": "grown",
+      "label": "Finished piece",
+      "section": "Growth",
+      "type": "boolean",
+      "default": true,
+      "help": "On lands on the finished organism. Turn it off to watch it grow from the seed - that is what an animated export records."
+    }
+  ],
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "ورڈ مارک",
+  "description": "ایک لفظ ٹائپ کریں، اپنے برانڈ فونٹ میں خالص پاتھ ویکٹر ورڈ مارک حاصل کریں - وصول کنندگان کو کبھی فونٹ انسٹال کرنے کی ضرورت نہیں پڑتی۔",
+  "a11yLabel": "ورڈ مارک جس پر لکھا ہے {{default text \"Wordmark\"}}",
+  "inputs.text.label": "ٹیکسٹ",
+  "inputs.font.label": "فونٹ",
+  "inputs.font.options.brand": "برانڈ فونٹ",
+  "inputs.font.options.mono": "مونو فونٹ",
+  "inputs.weight.label": "وزن",
+  "inputs.tracking.label": "ٹریکنگ",
+  "inputs.tracking.help": "مقرر کردہ سائز پر px میں لیٹر اسپیسنگ۔",
+  "inputs.size.label": "سائز",
+  "inputs.size.help": "فونٹ سائز جس پر آؤٹ لائنز کو شکل دی جاتی ہے - ٹریکنگ اسی سے متعلق ہے۔",
+  "inputs.color.label": "رنگ",
+  "inputs.features.label": "OpenType خصوصیات",
+  "inputs.features.options.none": "معیاری",
+  "inputs.features.options.liga-off": "کوئی لگیچرز نہیں",
+  "inputs.features.options.salt": "اسٹائلسٹک متبادلات"
+}

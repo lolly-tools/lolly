@@ -1,0 +1,19 @@
+{
+  "name": "Вордмарк",
+  "description": "Введіть слово, отримайте чисто-контурний векторний логотип-напис шрифтом вашого бренду - отримувачам не потрібно мати цей шрифт встановленим.",
+  "a11yLabel": "Вордмарк з текстом {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Текст",
+  "inputs.font.label": "Шрифт",
+  "inputs.font.options.brand": "Шрифт бренду",
+  "inputs.font.options.mono": "Моноширинний шрифт",
+  "inputs.weight.label": "Насиченість",
+  "inputs.tracking.label": "Трекінг",
+  "inputs.tracking.help": "Міжлітерний інтервал у px за встановленого розміру.",
+  "inputs.size.label": "Розмір",
+  "inputs.size.help": "Розмір шрифту, за яким формуються контури - трекінг обчислюється відносно нього.",
+  "inputs.color.label": "Колір",
+  "inputs.features.label": "Функції OpenType",
+  "inputs.features.options.none": "Стандартний",
+  "inputs.features.options.liga-off": "Без лігатур",
+  "inputs.features.options.salt": "Стилістичні альтернативи"
+}

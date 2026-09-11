@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "上传 PowerPoint 演示文稿,将其颜色和字体适配为你的品牌 - 在你的设备上重建,无需上传任何内容。",
+  "a11yLabel": "{{fileName}} 的演示文稿改版工具",
+  "inputs.source.label": "PowerPoint 文件",
+  "inputs.source.help": "一个 .pptx 文件。它在你的设备上读取,绝不会上传。",
+  "inputs.useTheme.label": "应用品牌主题",
+  "inputs.useTheme.help": "将演示文稿的主题配色和字体替换为你的品牌 - 所有与主题关联的颜色都会自动跟随更新。",
+  "inputs.colorMap.label": "颜色映射",
+  "inputs.colorMap.help": "幻灯片中发现的硬编码颜色,每个都有建议的品牌颜色。删除某一行可保留该颜色不变。",
+  "inputs.colorMap.fields.from.label": "原始",
+  "inputs.colorMap.fields.to.label": "品牌",
+  "inputs.fontMap.label": "字体映射",
+  "inputs.fontMap.help": "演示文稿中提到的字体，每种都有对应的品牌替换字体。删除一行以保留该字体。",
+  "inputs.fontMap.fields.from.label": "原始",
+  "inputs.fontMap.fields.to.label": "品牌",
+  "inputs.dropFonts.label": "移除嵌入字体",
+  "inputs.dropFonts.help": "文件中嵌入的旧品牌字体在替换后已过时，且可能存在许可限制。"
+}

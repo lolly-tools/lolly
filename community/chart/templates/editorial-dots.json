@@ -1,0 +1,37 @@
+{
+  "id": "editorial-dots",
+  "name": "Editorial dot comparison",
+  "category": "Editorial",
+  "description": "A low-ink comparison that keeps every value visible and uses position, colour and symbol together.",
+  "values": {
+    "renderMode": "statistical",
+    "chartType": "lollipop",
+    "plotType": "dot-strip",
+    "chartStyle": "editorial",
+    "data": "Measure,Current,Previous\nAwareness,82,71\nConsideration,68,63\nPreference,57,49\nIntent,44,38\nAdoption,31,27",
+    "heading": "The whole funnel moved forward",
+    "subheading": "Share of respondents, current and previous wave",
+    "showLegend": true,
+    "showGrid": false,
+    "numberFormat": "percent"
+  },
+  "presets": [
+    {
+      "id": "range",
+      "name": "Range",
+      "description": "Connect the two observations as an interval.",
+      "values": {
+        "plotType": "interval"
+      }
+    },
+    {
+      "id": "technical",
+      "name": "Technical",
+      "description": "Add analytical grid and denser typography.",
+      "values": {
+        "chartStyle": "technical",
+        "showGrid": true
+      }
+    }
+  ]
+}

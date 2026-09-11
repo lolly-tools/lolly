@@ -1,0 +1,19 @@
+{
+  "name": "ワードマーク",
+  "description": "単語を入力すると、ブランドフォントによる純粋なパスのベクターワードマークが得られます - 受け取った側はフォントをインストールする必要がありません。",
+  "a11yLabel": "{{default text \"Wordmark\"}}と表示されるワードマーク",
+  "inputs.text.label": "テキスト",
+  "inputs.font.label": "フォント",
+  "inputs.font.options.brand": "ブランドフォント",
+  "inputs.font.options.mono": "モノクロフォント",
+  "inputs.weight.label": "太さ",
+  "inputs.tracking.label": "トラッキング",
+  "inputs.tracking.help": "設定したサイズでの文字間隔(px)です。",
+  "inputs.size.label": "サイズ",
+  "inputs.size.help": "アウトラインを描く基準のフォントサイズです - トラッキングはこれを基準とした相対値です。",
+  "inputs.color.label": "カラー",
+  "inputs.features.label": "OpenTypeフィーチャー",
+  "inputs.features.options.none": "標準",
+  "inputs.features.options.liga-off": "リガチャなし",
+  "inputs.features.options.salt": "スタイル代替字"
+}

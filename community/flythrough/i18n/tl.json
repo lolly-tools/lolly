@@ -1,0 +1,4 @@
+{
+  "name": "Flythrough",
+  "description": "Magpalipad ng tunay na 3D camera sa isang screenshot. Naghihiwalay ang larawan sa mga layer sa tunay na lalim; ang malalaking hugis ay nagiging solid na bagay; isang timeline ng mga pose ang nagbibigay-buhay sa buong galaw - lalim, opacity, perspective, extrusion, tilt, rotate, scale at ang paglipad ng camera - pagkatapos ay ino-loop pabalik. Magdagdag, mag-drag at mag-reorder ng mga pose. Mag-export bilang video."
+}

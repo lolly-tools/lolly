@@ -1,0 +1,5 @@
+{
+  "name": "Text-Helfer",
+  "description": "Formatiert, dekodiert, hasht und anonymisiert Text - JSON, JWT und mehr.",
+  "a11yLabel": "Text-Helfer - geräteinterner Arbeitsbereich für JSON / YAML / Helm / JWT / Base64 / Hash / Anonymisierung"
+}

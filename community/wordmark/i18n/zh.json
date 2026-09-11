@@ -1,0 +1,19 @@
+{
+  "name": "文字标志",
+  "description": "输入一个词,即可获得使用你品牌字体的纯路径矢量文字标 - 收件人无需安装该字体。",
+  "a11yLabel": "文字标志内容为{{default text \"Wordmark\"}}",
+  "inputs.text.label": "文本",
+  "inputs.font.label": "字体",
+  "inputs.font.options.brand": "品牌字体",
+  "inputs.font.options.mono": "等宽字体",
+  "inputs.weight.label": "字重",
+  "inputs.tracking.label": "字符间距",
+  "inputs.tracking.help": "所设字号下的字间距(px)。",
+  "inputs.size.label": "大小",
+  "inputs.size.help": "轮廓成形所用的字号 - 字距相对于此计算。",
+  "inputs.color.label": "颜色",
+  "inputs.features.label": "OpenType 特性",
+  "inputs.features.options.none": "标准",
+  "inputs.features.options.liga-off": "无连字",
+  "inputs.features.options.salt": "风格替代字符"
+}

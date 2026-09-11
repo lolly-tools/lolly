@@ -1,0 +1,15 @@
+{
+  "name": "Esportazione risorsa",
+  "description": "Rendi qualsiasi asset del catalogo - o un link a uno strumento Lolly - in qualsiasi formato e dimensione.",
+  "a11yLabel": "Risorsa esportata",
+  "inputs.src.label": "Risorsa",
+  "inputs.src.help": "La risorsa da renderizzare: un id del catalogo (vedi `lolly assets`) oppure un link a uno strumento lolly.tools incollato. Le risorse vettoriali restano vettoriali in SVG/PDF; le risorse raster vengono incorporate come immagini.",
+  "inputs.fit.label": "Adattamento",
+  "inputs.fit.help": "Contieni mostra l'intera risorsa dentro il riquadro; Copri riempie il riquadro e potrebbe ritagliare i bordi.",
+  "inputs.fit.options.contain": "Contieni (risorsa intera, con bande)",
+  "inputs.fit.options.cover": "Copri (riempie, potrebbe ritagliare)",
+  "inputs.background.label": "Sfondo",
+  "inputs.background.help": "Il colore dietro la risorsa. Attiva \"Nessuno sfondo\" nell'esportazione per rimuoverlo (trasparente).",
+  "inputs.transparentBg.label": "Nessuno sfondo",
+  "inputs.transparentBg.help": "Rimuove il riempimento dello sfondo così la risorsa viene esportata su trasparenza (PNG/SVG/WebP)."
+}

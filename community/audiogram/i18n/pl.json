@@ -1,0 +1,22 @@
+{
+  "name": "Audiogram",
+  "description": "Zamień nagranie głosowe lub piosenkę w markowe wideo, które faktycznie porusza się z dźwiękiem - słupki, spektrum, pierścień, linia grzbietowa lub oscyloskop, gotowe na social media.",
+  "a11yLabel": "Karta audiogramu dla {{default title \"an audio clip\"}} z animowaną falą dźwiękową",
+  "inputs.audio.label": "Audio",
+  "inputs.audio.help": "Wybierz utwór z biblioteki lub prześlij klip. Jest dekodowany na twoim urządzeniu, aby narysować przebieg fali - dźwięk nigdy nie opuszcza przeglądarki. Zostaw puste dla przykładowego przebiegu fali. Aby usłyszeć go w eksporcie, wybierz \"Dźwięk tego narzędzia\" jako ścieżkę dźwiękową w opcjach pobierania.",
+  "inputs.title.label": "Tytuł",
+  "inputs.title.help": "Nagłówek na karcie - nazwa odcinka lub cytat wyróżniony.",
+  "inputs.subtitle.label": "Podtytuł",
+  "inputs.subtitle.help": "Mniejsza linia pod tytułem - nazwa audycji, gość lub gdzie słuchać.",
+  "inputs.style.label": "Styl fali",
+  "inputs.style.options.bars": "Słupki",
+  "inputs.style.options.wave": "Fala",
+  "inputs.style.options.ring": "Pierścień",
+  "inputs.size.label": "Rozmiar",
+  "inputs.size.options.square": "Kwadrat (1:1)",
+  "inputs.size.options.wide": "Szeroki (16:9)",
+  "inputs.size.options.story": "Historia (9:16)",
+  "inputs.accent.label": "Kolor fali",
+  "inputs.ink.label": "Kolor tekstu",
+  "inputs.bg.label": "Tło"
+}

@@ -1,0 +1,7 @@
+{
+  "name": "清除隐藏数据",
+  "description": "揭示并移除图像和 PDF 中的隐藏元数据 - 在你的设备上完成。",
+  "a11yLabel": "{{fileName}} 的隐藏数据报告",
+  "inputs.source.label": "图片或 PDF",
+  "inputs.source.help": "JPEG、PNG、SVG 或 PDF 文件。文件在浏览器中读取，不会离开你的设备。"
+}

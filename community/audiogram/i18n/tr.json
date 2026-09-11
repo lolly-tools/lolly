@@ -1,0 +1,22 @@
+{
+  "name": "Audiogram",
+  "description": "Bir ses klibini veya şarkıyı, sesle gerçekten hareket eden markalı bir videoya dönüştürün - çubuklar, spektrum, halka, sırt çizgisi veya osiloskop, sosyal medyaya hazır.",
+  "a11yLabel": "{{default title \"an audio clip\"}} için animasyonlu dalga formuyla Audiogram kartı",
+  "inputs.audio.label": "Ses",
+  "inputs.audio.help": "Kitaplığından bir parça seç ya da bir klip yükle. Dalga formunu çizmek için cihazında çözülür - ses tarayıcıdan asla çıkmaz. Yer tutucu bir dalga formu için boş bırak. Dışa aktarımda duymak için indirme seçeneklerinde Ses parçası olarak \"Bu aracın sesi\"ni seç.",
+  "inputs.title.label": "Başlık",
+  "inputs.title.help": "Karttaki başlık - bir bölüm adı veya öne çıkan alıntı.",
+  "inputs.subtitle.label": "Alt başlık",
+  "inputs.subtitle.help": "Başlığın altında daha küçük bir satır - program adı, konuk veya nereden dinleneceği.",
+  "inputs.style.label": "Dalga formu stili",
+  "inputs.style.options.bars": "Çubuklar",
+  "inputs.style.options.wave": "Dalga",
+  "inputs.style.options.ring": "Halka",
+  "inputs.size.label": "Boyut",
+  "inputs.size.options.square": "Kare (1:1)",
+  "inputs.size.options.wide": "Geniş (16:9)",
+  "inputs.size.options.story": "Hikaye (9:16)",
+  "inputs.accent.label": "Dalga formu rengi",
+  "inputs.ink.label": "Metin rengi",
+  "inputs.bg.label": "Arka plan"
+}

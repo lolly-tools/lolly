@@ -1,0 +1,49 @@
+/* Print Sheet. The canvas is a working surface, not part of the deliverable:
+   each page keeps its true paper aspect, and the area around it is just mat.
+   Pages stack in a scrolling column - one [data-pdf-page] box each, so the
+   multi-page export path splits them into true PDF pages. */
+
+.ps-doc {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  padding: 22px 0;
+  background: var(--brand-surface, #f7f7f5);
+}
+
+/* One sheet. Sized in px (mm converted at 96 DPI) by the inline style the
+   template writes, so the box is the true paper ratio and each page exports as
+   one PDF page at that size. */
+.ps-page {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  background: #fff;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, .18);
+}
+
+/* The svg fills its page box exactly - both are the same sheet px - so there is
+   no distortion, and the viewBox stays in mm. */
+.ps-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Type follows the ACTIVE BRAND (the chrome vars are derived from the brand's
+   font tokens in brand-vars.ts). The font-family attributes inside the SVG
+   stay as the fallback for a standalone file with no stylesheet. */
+.ps-svg text.ps-text {
+  font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
+}
+
+/* Marks and die lines take the brand ink when there is one, so a sheet printed
+   from a dark-ink brand pack matches the rest of that brand's print output. */
+.ps-svg .ps-tick,
+.ps-svg .ps-cut {
+  stroke: var(--brand-text, #14171a);
+}

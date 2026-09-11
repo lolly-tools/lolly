@@ -1,0 +1,959 @@
+/* Colours follow the app's core theme switcher (light / dark / suse). Every hue
+   is sourced from the app design tokens on <html data-theme> (tokens.css) - they
+   inherit into the scoped tool canvas, so the tool restyles itself the instant
+   the theme changes. Fallbacks (light theme) keep the sheet valid in shells that
+   don't ship the tokens. The `--rd-*` aliases hold bare HSL triples so use-sites
+   can alpha-composite: hsl(var(--x) / .1).
+
+   House rules honoured here: separators are full-width hairlines on a flat
+   surface, never a coloured border on one side of a rounded card; red appears
+   only on real failures (the export button's error state, warn-tone findings of
+   data that is actually present) and never as guidance. */
+.rd {
+  --rd-bg:      var(--background, 0 0% 98%);
+  --rd-fg:      var(--foreground, 224 71% 4%);
+  --rd-muted:   var(--muted-foreground, 215 20% 38%);
+  --rd-card:    var(--card, 0 0% 100%);
+  --rd-bd:      var(--border, 214 28% 84%);
+  --rd-fill:    var(--muted, 210 40% 96%);
+  --rd-brand:   var(--primary, 171 62% 12%);
+  --rd-brandfg: var(--primary-foreground, 0 0% 100%);
+  --rd-warn:    var(--destructive, 0 72% 51%);
+  --rd-warnfg:  var(--destructive-foreground, 0 0% 100%);
+  /* A whole colour, not an HSL triple: --brand-warn is the loaded brand's own
+     warm tone (brand-vars.ts sets it as a hex on :root) and there is no triple
+     form of it. Used for the partly-covered treatment, which is a warning the
+     user can act on, NOT a failure - failures are the only red in this tool. */
+  --rd-attn:    var(--brand-warn, #b45309);
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  font-family: var(--font-brand, "SUSE", system-ui, sans-serif);
+  color: hsl(var(--rd-fg));
+  background: hsl(var(--rd-bg));
+}
+
+/* ── Empty state - IS the click-to-pick drop zone ── */
+.rd-empty {
+  max-width: 460px;
+  margin: auto;
+  text-align: center;
+  cursor: pointer;
+}
+.rd-empty-icon {
+  display: inline-flex;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 14px;
+  color: hsl(var(--rd-brand));
+}
+.rd-empty-icon svg { width: 100%; height: 100%; }
+.rd-empty h2 {
+  margin: 0 0 10px;
+  font-size: 22px;
+  font-weight: 700;
+}
+.rd-empty p {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: hsl(var(--rd-muted));
+}
+.rd-empty-note {
+  font-weight: 600;
+  color: hsl(var(--rd-brand)) !important;
+}
+.rd-pick {
+  margin: 6px 0 14px;
+  padding: 10px 18px;
+  border: 1px solid hsl(var(--rd-brand));
+  border-radius: 10px;
+  background: hsl(var(--rd-card));
+  color: hsl(var(--rd-brand));
+  font: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.rd-pick:hover { background: hsl(var(--rd-brand)); color: hsl(var(--rd-brandfg)); }
+
+/* ── Full-height workspace: two docks with the drawing surface stretched
+   between them, so a page claims every pixel of height the stage can give it,
+   instead of a fixed-width column that capped the preview and stacked the whole
+   status report underneath. ── */
+.rd-work {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Degraded states (unsupported file, PDF engine missing) - a centred card, not
+   the dock layout. */
+.rd-msg {
+  margin: auto;
+  max-width: 460px;
+  text-align: center;
+}
+.rd-msg-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 10px;
+  margin-bottom: 14px;
+}
+
+/* The stage is the flex column: top dock (auto), viewport (flex:1), bottom dock
+   (auto). It still carries the drawing surface's data-* attributes and stays the
+   ancestor of the rail, frames and page scroller the script queries. */
+.rd-stage {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+}
+
+/* Docks: fixed-height panels, each with a collapsible body so either can be
+   folded away to hand its height to the viewport. */
+.rd-dock { flex: none; min-width: 0; }
+.rd-dock-top { padding-bottom: 8px; }
+.rd-dock-bottom {
+  padding-top: 10px;
+  margin-top: 8px;
+  border-top: 1px solid hsl(var(--rd-bd) / 0.6);
+}
+.rd-dock[data-collapsed] .rd-dock-body { display: none; }
+
+.rd-dock-toggle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1px solid hsl(var(--rd-bd));
+  border-radius: 8px;
+  background: hsl(var(--rd-card));
+  color: hsl(var(--rd-muted));
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.rd-dock-toggle svg { width: 15px; height: 15px; transition: transform 0.15s ease; }
+.rd-dock-toggle:hover { border-color: hsl(var(--rd-brand)); color: hsl(var(--rd-brand)); }
+.rd-dock[data-collapsed] .rd-dock-toggle svg { transform: rotate(180deg); }
+
+/* Bottom dock: a one-line summary + collapse control, the collapsible body
+   (coverage + how-to), and the always-visible gate + download foot. */
+.rd-dock-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 26px;
+}
+.rd-dock-summary {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: hsl(var(--rd-fg) / 0.85);
+}
+.rd-dock-bottom .rd-dock-body { margin-top: 10px; }
+.rd-dock-foot { margin-top: 12px; }
+.rd-dock-top .rd-dock-body { margin-top: 8px; }
+
+/* ── Viewport: the drawing surface, taking all the height between the docks.
+   The PDF page scroller fills it through flexbox; a single image/SVG frame is
+   centred and capped to the live viewport height via --rd-frameview. ── */
+.rd-viewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+/* A single image/SVG frame is letterboxed in the viewport: centred, capped to
+   the viewport width, and to the live viewport height via --rd-frameview on the
+   image itself. */
+.rd-viewport > .rd-frame:not(.rd-pageframe) {
+  margin: auto;
+  max-width: 100%;
+  min-height: 0;
+}
+
+.rd-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+.rd-head .rd-file { flex: 1 1 120px; }
+.rd-file {
+  font-weight: 700;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rd-kind {
+  flex: none;
+  font-family: var(--font-mono, "SUSE Mono", monospace);
+  font-size: 11px;
+  color: hsl(var(--rd-muted));
+  letter-spacing: 0.04em;
+}
+.rd-replace {
+  flex: none;
+  padding: 4px 10px;
+  border: 1px solid hsl(var(--rd-bd));
+  border-radius: 7px;
+  background: hsl(var(--rd-card));
+  color: hsl(var(--rd-muted));
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.rd-replace:hover { border-color: hsl(var(--rd-brand)); color: hsl(var(--rd-brand)); }
+
+/* ── Advisory toasts - the shell's quiet-notice idiom (translucent blurred pill,
+   hairline border, see .toast in parts/tool-chrome.css), not a card bolted to
+   the top of the drawing surface.
+
+   STICKY, directly under the sticky rail. The page stack now scrolls in its own
+   bounded box rather than growing the canvas, so on a PDF this is belt and
+   braces; it still earns its keep for a very tall image, where the canvas is
+   taller than the stage and a toast anchored to the top of the tool would paint
+   far above what the reader is looking at. It is
+   not position:fixed either: the shell's stage zoom puts a transform on the
+   canvas wrapper, and a transformed ancestor becomes the containing block for
+   fixed descendants, so a "viewport" toast would snap back into the same trap
+   the moment anyone zoomed in. Sticky is measured against the scrollport and is
+   immune to that. height:0 keeps it out of flow so no gap appears when there is
+   no toast.
+
+   Entrance is a TRANSITION, not a keyframe: the script adds .is-visible on the
+   next frame, and the reduced-motion block at the foot of this sheet can then
+   neutralise it. A keyframe could not be, and the app's accessibility prefs
+   deliberately never reach inside .tool-canvas, so this sheet honours the
+   preference itself. Neutral surface on purpose: an advisory is guidance, not a
+   failure. ── */
+.rd-toasts {
+  position: absolute;
+  top: var(--rd-toast-top, 56px);
+  right: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  max-width: min(24rem, calc(100% - 8px));
+  max-height: calc(100% - var(--rd-toast-top, 56px) - 8px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  pointer-events: none;
+}
+.rd-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 100%;
+  padding: 10px 10px 10px 14px;
+  pointer-events: auto;
+  background: hsl(var(--rd-card) / 0.92);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid hsl(var(--rd-bd));
+  border-radius: 14px;
+  box-shadow: 0 8px 30px hsl(0 0% 0% / 0.18);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.16s ease, transform 0.22s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.rd-toast.is-visible {
+  opacity: 1;
+  transform: none;
+}
+.rd-toast-text {
+  font-size: 13px;
+  line-height: 1.45;
+  color: hsl(var(--rd-fg) / 0.92);
+}
+.rd-toast-x {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: -2px -2px 0 0;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: hsl(var(--rd-muted));
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.rd-toast-x:hover { background: hsl(var(--rd-fill)); color: hsl(var(--rd-fg)); }
+
+/* A reference card (hidden data, limits, how-it-signs): richer body, stays put
+   until dismissed. */
+.rd-toast-body { min-width: 0; flex: 1 1 auto; }
+.rd-toast-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: hsl(var(--rd-fg));
+}
+/* A long findings list stays inside its card rather than pushing the stack off
+   the bottom of the stage. */
+.rd-toast .rd-findings { max-height: 42vh; overflow-y: auto; }
+.rd-toast .rd-reveal-toggle { margin: 0 0 8px; }
+.rd-toast .rd-reveal-cb:checked ~ .rd-findings { margin-top: 2px; }
+
+/* ── Degraded / unsupported states ── */
+.rd-state { text-align: center; margin-bottom: 8px; }
+.rd-state-lead {
+  margin: 4px 0 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: hsl(var(--rd-brand));
+}
+
+/* ── Marking rail: the toolbar, now docked (not sticky) in the top dock. ── */
+.rd-rail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+}
+.rd-rail-group {
+  display: inline-flex;
+  gap: 4px;
+  padding: 3px;
+  background: hsl(var(--rd-fill));
+  border: 1px solid hsl(var(--rd-bd) / 0.6);
+  border-radius: 10px;
+}
+.rd-rail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: hsl(var(--rd-muted));
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.rd-rail-btn svg {
+  width: 15px;
+  height: 15px;
+  flex: none;
+}
+.rd-rail-btn:hover { color: hsl(var(--rd-fg)); }
+/* Selected reads as ON in every theme. The old pill filled with --card inside a
+   group filled with --muted, and in dark (card 7% L, muted 14% L) and suse
+   (17% on 20%) the ACTIVE tool came out darker than the rail: a segmented
+   control saying "this one is off". A brand tint is lighter-or-darker agnostic
+   because it changes HUE, and the border and label carry the same signal. */
+.rd-rail-btn[aria-pressed="true"] {
+  background: hsl(var(--rd-brand) / 0.14);
+  border-color: hsl(var(--rd-brand) / 0.55);
+  color: hsl(var(--rd-brand));
+}
+.rd-rail-btn[aria-pressed="true"]:hover { background: hsl(var(--rd-brand) / 0.2); }
+.rd-rail-presets .rd-rail-btn { padding: 5px 9px; }
+/* Which page you are looking at, and two buttons that step the scroller. Quiet
+   on purpose: it is a cue, not a control surface. */
+.rd-pagenav { align-items: center; }
+.rd-pagenav .rd-rail-btn { padding: 5px 7px; }
+.rd-pagenow {
+  padding: 0 2px;
+  font-family: var(--font-mono, "SUSE Mono", monospace);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: hsl(var(--rd-muted));
+  white-space: nowrap;
+}
+
+.rd-frame {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  line-height: 0;
+  cursor: crosshair;
+  touch-action: none; /* pointer drawing, not scrolling, over the preview */
+  border: 1px solid hsl(var(--rd-bd));
+  border-radius: 8px;
+  overflow: hidden;
+  background:
+    repeating-conic-gradient(hsl(var(--rd-fill)) 0% 25%, hsl(var(--rd-card)) 0% 50%)
+    0 0 / 16px 16px; /* checkerboard so alpha regions read as such */
+}
+.rd-img {
+  display: block;
+  max-width: 100%;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+/* A single-frame source (a photo, a screenshot, an SVG) gets the same bounding
+   the page stack gets. Without a height cap a 3024x4032 phone photo laid out a
+   frame taller than the stage, the tool reported that height to the shell, and
+   fitCanvas scaled the WHOLE tool - rail labels, the 22px delete dots, the
+   download button - to about half size. The script keeps this property in step
+   with the stage, so the preview is as large as the stage can actually show. */
+.rd-frame:not(.rd-pageframe) > .rd-img {
+  max-height: var(--rd-frameview, 520px);
+  width: auto;
+}
+/* PDF pages and SVG sources render as INLINE svg, not <img> - that is the only
+   way anything can read a node's painted bounds. The root carries width/height
+   attributes at the file's natural size, so max-width plus height:auto scales
+   it down exactly the way an <img> would, and the client-to-frame mapping the
+   drawing surface uses stays one uniform scale. */
+svg.rd-img {
+  height: auto;
+  overflow: hidden; /* a page's artwork must not paint outside its own frame */
+}
+/* An inline fragment brings its own paint; nothing in it may take pointer
+   events away from the drawing surface or answer a hit test. */
+svg.rd-img * {
+  pointer-events: none;
+}
+.rd-marks {
+  position: absolute;
+  inset: 0;
+}
+/* The mark. --rd-ink is set on the stage by the template script from the value
+   the HOOK resolved (the loaded brand's dark tone, or the neutral near-black
+   when no brand is loaded) - the same value the export burns, so the preview
+   cannot drift from the file. It is never read from the app's --brand-*
+   properties directly, which would be a second source of truth.
+
+   The fill is fully opaque and there is no way to make it otherwise: colour is
+   security-neutral, translucency is not. Rounded corners come from the script as
+   real pixel radii on a box that has already been GROWN by the radius, so what
+   the user marked stays completely inside the opaque area. */
+.rd-bar {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* Deliberately NOT overflow:hidden - the remove dot is positioned outside this
+     box on purpose, and clipping it would take the tool's own documented removal
+     path away. The stamp cannot overflow instead: it is only drawn on a bar with
+     room for it, by the same fit rule the export uses. */
+  background: var(--rd-ink, #14161a);
+  opacity: 1;
+}
+/* The stamp sits on top of a bar that is already opaque, so it can reveal
+   nothing. Its colour is chosen against the ink by the hook. */
+.rd-bar-stamp {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+/* The draft is a preview of the SHAPE, so it is deliberately not the final
+   opacity - nothing is committed yet. */
+.rd-bar.rd-draft {
+  background: color-mix(in srgb, var(--rd-ink, #14161a) 72%, transparent);
+  outline: 1px solid hsl(var(--rd-brand) / 0.9);
+}
+/* Partly-covered element: an item a bar reaches but does not finish, so it
+   stays readable. Not red - red in this tool means a check actually failed and
+   nothing downloaded; this is a mark the user can still fix, and it is drawn on
+   the brand's own warm tone with a FULL hairline plus a hatch fill (never a
+   one-sided border, and never a dashed outline, which this app reserves for
+   drop targets). */
+.rd-partial {
+  position: absolute;
+  border: 2px solid var(--rd-attn);
+  border-radius: 3px;
+  background: repeating-linear-gradient(
+    45deg,
+    color-mix(in srgb, var(--rd-attn) 26%, transparent) 0 5px,
+    transparent 5px 10px
+  );
+  pointer-events: none;
+}
+/* A SUGGESTED region: what the on-device reader thinks might be personal data,
+   offered for a person to accept. It is not a mark and must never be mistaken
+   for one, so it is the opposite of the bar in every respect - hollow rather
+   than opaque, dotted rather than solid, and in the theme's own brand tone
+   rather than the ink or the warm attention colour the partly-covered warning
+   owns. Dotted and not dashed on purpose: a dashed outline means a drop target
+   everywhere else in this app. A loose guess (.is-maybe) drops to a thinner,
+   quieter outline, and its chip carries a question mark. */
+.rd-sugg {
+  position: absolute;
+  border: 2px dotted hsl(var(--rd-brand));
+  border-radius: 3px;
+  background: hsl(var(--rd-brand) / 0.08);
+}
+.rd-sugg.is-maybe {
+  border-width: 1px;
+  background: hsl(var(--rd-brand) / 0.05);
+}
+/* Anchored below the region, so the chip never sits on the very pixels the
+   person is deciding about. */
+.rd-sugg-chip {
+  position: absolute;
+  top: 100%;
+  left: -2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 3px;
+  padding: 1px 2px 1px 6px;
+  border: 1px solid hsl(var(--rd-brand) / 0.55);
+  border-radius: 6px;
+  background: hsl(var(--rd-card));
+  color: hsl(var(--rd-brand));
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+/* Near the bottom edge the frame would clip the chip, so it hangs above. */
+.rd-sugg-chip.is-above {
+  top: auto;
+  bottom: 100%;
+  margin: 0 0 3px;
+}
+.rd-sugg-name { padding-right: 2px; }
+.rd-sugg-ok,
+.rd-sugg-no {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid hsl(var(--rd-bd));
+  border-radius: 5px;
+  background: hsl(var(--rd-card));
+  color: hsl(var(--rd-muted));
+  font: inherit;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+.rd-sugg-ok:hover,
+.rd-sugg-ok:focus-visible {
+  border-color: hsl(var(--rd-brand));
+  color: hsl(var(--rd-brand));
+}
+.rd-sugg-no:hover,
+.rd-sugg-no:focus-visible {
+  border-color: hsl(var(--rd-fg) / 0.4);
+  color: hsl(var(--rd-fg));
+}
+/* Reading runs in the hook, so there is no global job toast for it: this button
+   is the whole busy state, and clicking it aborts the read. */
+.rd-rail-btn.is-busy {
+  color: hsl(var(--rd-brand));
+  cursor: progress;
+}
+.rd-rail-btn.is-busy svg { animation: rd-spin 1.1s linear infinite; }
+@keyframes rd-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .rd-rail-btn.is-busy svg { animation: none; }
+}
+
+.rd-stroke {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+/* Removing a bar is a routine edit, so it is NOT red - red in this tool means a
+   check actually failed (the download button's .is-error state). The dot is a
+   neutral chip on the theme card colour, sized as a real tap target, and it is
+   permanently visible on any device with no hover, where the old hover-only dot
+   made the tool's own documented removal path unreachable. */
+.rd-bar-del {
+  position: absolute;
+  top: -11px;
+  right: -11px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid hsl(var(--rd-bd));
+  border-radius: 50%;
+  background: hsl(var(--rd-card));
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s, border-color 0.12s, color 0.12s;
+}
+.rd-bar-del::before {
+  content: "×";
+  display: block;
+  font-size: 15px;
+  line-height: 20px;
+  color: hsl(var(--rd-muted));
+  font-weight: 700;
+}
+.rd-bar-del:hover {
+  border-color: hsl(var(--rd-brand));
+}
+.rd-bar-del:hover::before { color: hsl(var(--rd-brand)); }
+.rd-bar:hover .rd-bar-del,
+.rd-bar-del:focus-visible { opacity: 1; }
+/* No hover to reveal it with: show it always. */
+@media (hover: none) {
+  .rd-bar-del { opacity: 1; }
+}
+
+/* Remove mode: bars become the click targets, their dots stay visible, and the
+   surface stops advertising drawing. */
+.rd-stage[data-rd-mode="erase"] .rd-frame { cursor: default; }
+.rd-stage[data-rd-mode="erase"] .rd-bar { cursor: pointer; }
+.rd-stage[data-rd-mode="erase"] .rd-bar-del { opacity: 1; }
+.rd-stage[data-rd-mode="erase"] .rd-bar:hover { outline: 2px solid hsl(var(--rd-brand)); }
+
+.rd-stage-hint {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: hsl(var(--rd-muted) / 0.8);
+}
+
+/* ── PDF page stack (host.pdf.pages previews) ──
+   FIT TO WIDTH, SCROLL VERTICALLY. One page fills the column at a size you can
+   actually read, and the stack scrolls inside this box.
+
+   The alternative - letting the canvas grow to the summed height of every page -
+   hands the shell a 760-by-many-thousand canvas, and fitCanvas scales the whole
+   thing down to fit the stage: a ten-page document becomes one strip of
+   illegible grey, which is exactly the report this replaces. Redact's canvas is
+   never exported (exportFile owns the output), so a bounded, scrollable working
+   surface costs nothing and the export is byte-identical either way.
+
+   overscroll-behavior keeps a flick at the end of the document from scrolling
+   the app behind it. The height is a custom property because the script sets it
+   from the stage the shell will actually show - this value is only the ceiling
+   for a roomy stage, and it is NOT declared on this element, or the inherited
+   one could never win. */
+.rd-scroll {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  padding-right: 2px; /* room for the scrollbar so it never sits on the page */
+}
+/* Pages fill the column at a readable size, capped so a portrait page is not
+   stretched absurdly wide on a large screen and centred; the now full-height
+   viewport is what shows most of a page at once. */
+.rd-pagestack {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  width: 100%;
+  max-width: 52rem;
+  margin-inline: auto;
+}
+/* A page frame takes the full column width; the inline SVG keeps its aspect
+   from its own viewBox, so height follows. The pointer maths divide by the live
+   bounding rect, so nothing about the drawing surface depends on this size. */
+/* A page frame is PAPER. The page SVG is transparent by design (engine
+   pdf-svg leaves the plate to the caller) and the rebuilt PDF composites onto
+   opaque white, so without a plate here a dark or brand theme showed black glyph
+   paths on near-black through the frame's alpha checkerboard - the document you
+   are trying to redact, unreadable, and disagreeing with the file it exports.
+   The checkerboard still earns its keep on a raster or SVG source, where alpha
+   is the file's own. */
+.rd-pageframe {
+  display: block;
+  width: 100%;
+  background: #fff;
+}
+.rd-pageframe > svg.rd-img {
+  width: 100%;
+}
+.rd-page-chip {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: hsl(var(--rd-card) / 0.9);
+  border: 1px solid hsl(var(--rd-bd) / 0.7);
+  font-family: var(--font-mono, "SUSE Mono", monospace);
+  font-size: 10px;
+  line-height: 1.4;
+  color: hsl(var(--rd-muted));
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+.rd-pages {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.rd-page-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 12px;
+  background: hsl(var(--rd-fill));
+  border-radius: 8px;
+  font-size: 12.5px;
+}
+
+/* ── Bottom-dock body: coverage line + meter ── */
+.rd-line {
+  margin: 0 0 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: hsl(var(--rd-fg) / 0.85);
+}
+
+/* Coverage meter */
+.rd-meter {
+  height: 8px;
+  margin: 2px 0 8px;
+  border-radius: 999px;
+  background: hsl(var(--rd-fill));
+  border: 1px solid hsl(var(--rd-bd) / 0.7);
+  overflow: hidden;
+}
+.rd-meter-fill {
+  display: block;
+  height: 100%;
+  background: hsl(var(--rd-brand));
+  border-radius: inherit;
+  transition: width 0.15s ease-out;
+}
+
+/* Findings: one summary line, values behind the reveal (strip-data's pattern:
+   visually hidden checkbox, keyboard reachable). Now hosted inside the hidden-
+   data toast card. */
+.rd-reveal-cb {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.rd-reveal-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 10px;
+  padding: 5px 11px;
+  border-radius: 8px;
+  background: hsl(var(--rd-brand) / 0.1);
+  color: hsl(var(--rd-brand));
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s;
+}
+.rd-reveal-toggle:hover { background: hsl(var(--rd-brand) / 0.16); }
+.rd-reveal-cb:focus-visible ~ .rd-reveal-toggle {
+  outline: 2px solid hsl(var(--rd-brand));
+  outline-offset: 2px;
+}
+.rd-reveal-icon {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  transform: rotate(-90deg);
+  transition: transform 0.12s;
+}
+.rd-reveal-cb:checked ~ .rd-reveal-toggle .rd-reveal-icon { transform: rotate(0deg); }
+.rd-reveal-hide { display: none; }
+.rd-reveal-cb:checked ~ .rd-reveal-toggle .rd-reveal-show { display: none; }
+.rd-reveal-cb:checked ~ .rd-reveal-toggle .rd-reveal-hide { display: inline; }
+
+.rd-findings {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: none;
+  gap: 6px;
+}
+.rd-reveal-cb:checked ~ .rd-findings { display: grid; }
+.rd-finding {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  background: hsl(var(--rd-fill));
+  border-radius: 8px;
+  border: 1px solid hsl(var(--rd-bd) / 0.6);
+}
+.rd-finding.warn {
+  background: hsl(var(--rd-warn) / 0.1);
+  border-color: hsl(var(--rd-warn) / 0.45);
+}
+.rd-finding-label {
+  font-weight: 600;
+  font-size: 13px;
+}
+/* Mix the destructive red toward the theme foreground so the warning label
+   stays legible in dark/suse, where --destructive is a fill hue. */
+.rd-finding.warn .rd-finding-label { color: color-mix(in oklab, hsl(var(--rd-warn)), hsl(var(--rd-fg)) 30%); }
+.rd-finding-detail {
+  font-family: var(--font-mono, "SUSE Mono", monospace);
+  font-size: 12px;
+  color: hsl(var(--rd-muted));
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+}
+
+/* "What will not be removed" - the bullet list, now hosted in its own toast
+   card (the native <details> disclosure was retired with the status strip). */
+.rd-limits {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.rd-limits li {
+  position: relative;
+  padding-left: 14px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: hsl(var(--rd-muted));
+}
+.rd-limits li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: hsl(var(--rd-bd));
+}
+
+/* ── Gate line + download, in the bottom dock foot ──
+   The export gate is the whole differentiator over drawing a rectangle in
+   Preview, so it is not fine print: full-size text on a tinted brand strip with
+   a tick that means "this is a tested fact", directly above the button it
+   governs and always visible even when the dock body is collapsed. */
+.rd-gate {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: hsl(var(--rd-brand) / 0.1);
+  border: 1px solid hsl(var(--rd-brand) / 0.28);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: hsl(var(--rd-fg) / 0.92);
+}
+.rd-gate-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  color: hsl(var(--rd-brand));
+}
+.rd-download {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 10px;
+  background: hsl(var(--rd-brand));
+  color: hsl(var(--rd-brandfg));
+  font: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.12s, opacity 0.12s;
+}
+.rd-download:hover { background: hsl(var(--rd-brand) / 0.9); }
+.rd-download.is-busy { opacity: 0.7; cursor: progress; }
+.rd-download.is-error { background: hsl(var(--rd-warn)); color: hsl(var(--rd-warnfg)); }
+.rd-download:disabled {
+  background: hsl(var(--rd-fill));
+  color: hsl(var(--rd-muted));
+  cursor: default;
+}
+.rd-download:disabled:hover { background: hsl(var(--rd-fill)); }
+
+.rd-note {
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: hsl(var(--rd-muted) / 0.8);
+}
+.rd-note code {
+  font-family: var(--font-mono, "SUSE Mono", monospace);
+  font-size: 11px;
+  background: hsl(var(--rd-fill));
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: hsl(var(--rd-muted));
+}
+
+/* ── Reduced motion ──────────────────────────────────────────────────────────
+   The app's accessibility preferences deliberately stop at the tool canvas
+   boundary (a render is the user's creative output and its geometry is shared
+   with the CLI export path), so nothing outside this file will calm the tool's
+   own chrome. Every transition here is decoration on a state change that is
+   already visible without it, so the OS preference simply turns them off.
+   Nothing inside a bar or a page frame is touched, and no geometry moves, so an
+   exported PNG/SVG/PDF is byte-identical either way. */
+@media (prefers-reduced-motion: reduce) {
+  .rd-toast {
+    transition: none;
+    transform: none;
+  }
+  .rd-pick,
+  .rd-replace,
+  .rd-rail-btn,
+  .rd-bar-del,
+  .rd-meter-fill,
+  .rd-reveal-toggle,
+  .rd-reveal-icon,
+  .rd-download {
+    transition: none;
+  }
+}

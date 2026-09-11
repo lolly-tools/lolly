@@ -1,0 +1,29 @@
+<div class="rec-strip" data-record-stage
+     data-intro-ms="{{default introMs 2200}}" data-outro-ms="{{default outroMs 2400}}" data-enter-ms="{{default enterMs 650}}"
+     data-clip-fit="{{default clipFit "cover"}}"
+     style="{{{stripStyle}}}">
+  {{#each framesOut}}
+  <div class="rec-frame" data-record-frame="{{role}}" data-frame-index="{{@index}}" data-pdf-page data-lolly-anno="{{brandColor}} {{accent}}" style="background:{{bg}}">
+    {{#if isCamera}}
+    <div class="rec-camera" data-record-camera>
+      {{#if @root.clip}}
+      <video class="rec-clip" data-record-clip src="{{asset @root.clip}}" style="object-fit:{{default @root.clipFit "cover"}}" autoplay muted loop playsinline></video>
+      {{else}}
+      <div class="rec-camera-hint" data-export-hide>
+        <span class="rec-camera-dot"></span>
+        <span>Tap ● Warm the camera to frame up<br>- your clip records here</span>
+      </div>
+      {{/if}}
+    </div>
+    {{/if}}
+    {{#each boxes}}
+    <div class="lolly-box" data-canvas-input="boxes:{{flatIndex}}" data-box-id="{{default id flatIndex}}"
+         data-transition="{{transition}}" data-transition-ease="{{transitionEase}}" data-delay="{{delay}}" data-frame-role="{{role}}"
+         style="{{{boxStyle}}}">
+      {{{mediaHtml}}}
+      <div class="lolly-box-text" style="{{{textStyle}}}">{{{textHtml}}}</div>
+    </div>
+    {{/each}}
+  </div>
+  {{/each}}
+</div>

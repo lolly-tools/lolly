@@ -1,0 +1,15 @@
+{
+  "name": "資源匯出",
+  "description": "將任何目錄素材 - 或 Lolly 工具連結 - 轉換為任何格式與尺寸。",
+  "a11yLabel": "匯出的資源",
+  "inputs.src.label": "資源",
+  "inputs.src.help": "要匯出的資源--可以是目錄 ID（參見 `lolly assets`）或貼上的 lolly.tools 工具連結。向量資源在 SVG/PDF 中會保持向量格式；點陣資源則以圖片形式嵌入。",
+  "inputs.fit.label": "縮放方式",
+  "inputs.fit.help": "「包含」會在畫面內完整顯示整個資源（加上留白）；「覆蓋」會填滿畫面，但邊緣可能被裁切。",
+  "inputs.fit.options.contain": "包含（完整資源，加上留白）",
+  "inputs.fit.options.cover": "覆蓋（填滿畫面，可能裁切）",
+  "inputs.background.label": "背景",
+  "inputs.background.help": "資源後方的顏色。匯出時開啟「無背景」可移除背景（變透明）。",
+  "inputs.transparentBg.label": "無背景",
+  "inputs.transparentBg.help": "移除背景填色，讓資源以透明方式匯出（PNG/SVG/WebP）。"
+}

@@ -1,0 +1,110 @@
+.sc-window {
+  position: relative;
+  overflow: hidden;          /* THE crop - a clip, never a scale */
+  width: 100%;
+  height: 100%;
+  background: var(--brand-surface, #f4f4f5);
+}
+
+.sc-img {
+  position: absolute;
+  display: block;
+  image-rendering: auto;     /* at renderScale === 1 there is nothing to filter */
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Placeholder screen shown until there is a shot. Deliberately NOT [data-export-hide]:
+   the thumbnail capture runs the export path, so anything hidden from an export is also
+   hidden from the gallery tile - which is how this tool shipped a blank card. Every fill
+   is a brand token, so the tile reads as this brand rather than a grey stock graphic. */
+.sc-ph {
+  position: absolute;
+  inset: 0;
+  background: var(--brand-edge, #e4e4e7);
+}
+
+/* The whole placeholder is vector: the export canvas is 7680x4320 by default, and a
+   viewBox scales to it exactly where a px-sized DOM wireframe would not. */
+.sc-ph-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* One tonal ladder off two brand tokens: the ground is --brand-edge, the window is the
+   lighter --brand-surface, and everything inside it is --brand-muted at an opacity. The
+   window chrome cannot BE --brand-edge - that is the ground colour, so the titlebar would
+   vanish into it and leave the dots floating on nothing. */
+.sc-ph-screen { fill: var(--brand-surface, #f4f4f5); }
+.sc-ph-chrome { fill: var(--brand-muted, #6b7280); opacity: 0.16; }
+.sc-ph-dot { fill: var(--brand-muted, #6b7280); opacity: 0.45; }
+.sc-ph-bar { fill: var(--brand-muted, #6b7280); opacity: 0.28; }
+.sc-ph-card { fill: var(--brand-muted, #6b7280); opacity: 0.12; }
+
+/* The crop marquee is what separates this tool from a plain screenshot framer, so it
+   carries the only strong stroke in the placeholder. Dash lengths are viewBox units. */
+.sc-ph-crop {
+  fill: none;
+  stroke: var(--brand-muted, #6b7280);
+  stroke-width: 0.9;
+  stroke-dasharray: 3 2.4;
+  opacity: 0.75;
+}
+
+.sc-ph-grip {
+  fill: none;
+  stroke: var(--brand-muted, #6b7280);
+  stroke-width: 1.6;
+  stroke-linecap: square;
+}
+
+/* While a take is recording the shell mirrors the live stream into this same window as a
+   [data-export-hide] <video>; the placeholder behind it would show through the letterbox
+   bars of a non-16:9 screen. Drop it for the duration - the export clone has no video, so
+   the placeholder is back by the time anything is captured. */
+.sc-window:has(.canvas-screen-preview) .sc-ph { display: none; }
+
+.sc-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  text-align: center;
+  padding: 1rem;
+  color: var(--brand-muted, #6b7280);
+  /* `--font-brand` (the brand's primary face), NOT `--brand-font-body` - that name is
+     defined nowhere, so this rendered in the system fallback regardless of brand. */
+  font-family: var(--font-brand, ui-sans-serif, system-ui, sans-serif);
+}
+
+.sc-empty-title {
+  margin: 0;
+  font-size: 1em;
+}
+
+/* The empty state adapts to whether screen capture is actually usable. The shell
+   control adds .has-record to #tool-stage ONLY when it mounts (getDisplayMedia is
+   present in a secure context) - where it doesn't, the Screenshot/Record buttons never
+   appear, so pointing at them would be a lie. Default to the upload instruction; show
+   the capture instruction only under the class. The class lives on the stage (outside
+   #tool-content), so it survives the per-paint template rebuild. */
+.sc-empty-capture { display: none; }
+.sc-empty-upload { display: block; }
+
+#tool-stage.has-record .sc-empty-capture { display: block; }
+#tool-stage.has-record .sc-empty-upload { display: none; }
+
+.sc-empty-title strong {
+  color: var(--brand-text, #18181b);
+  font-weight: 600;
+}
+
+.sc-empty-sub {
+  margin: 0;
+  font-size: 0.875em;
+  opacity: 0.75;
+}

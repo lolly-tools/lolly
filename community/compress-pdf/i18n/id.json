@@ -1,0 +1,14 @@
+{
+  "name": "Compress",
+  "description": "Perkecil PDF dengan mengompresi ulang gambarnya - di perangkat Anda.",
+  "a11yLabel": "Kompresor PDF untuk {{fileName}}",
+  "inputs.source.label": "PDF",
+  "inputs.source.help": "Berkas PDF. Dibaca di browser Anda dan tidak pernah meninggalkan perangkat Anda.",
+  "inputs.level.label": "Kompresi",
+  "inputs.level.help": "Seberapa kuat gambar yang disematkan dikompres. Semakin kuat berarti berkas semakin kecil dan gambar semakin lembut.",
+  "inputs.level.options.light": "Ringan - kualitas tetap tinggi",
+  "inputs.level.options.balanced": "Seimbang",
+  "inputs.level.options.strong": "Kuat - berkas terkecil",
+  "inputs.grayscale.label": "Ubah gambar menjadi skala abu-abu",
+  "inputs.grayscale.help": "Hilangkan warna dari gambar untuk penghematan ekstra - berguna untuk dokumen teks hasil pindaian."
+}

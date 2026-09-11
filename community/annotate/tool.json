@@ -1,0 +1,160 @@
+{
+  "id": "annotate",
+  "name": "Annotate",
+  "description": "Mark up your own screenshot on your device - arrows, boxes, numbered steps, callouts, highlighter and a spotlight dim.",
+  "version": "1.0.1",
+  "engineVersion": "^1.0.0",
+  "status": "community",
+  "category": "utility",
+  "privacy": "on-device",
+  "tags": ["annotate", "markup", "arrow", "callout", "highlight", "spotlight", "screenshot", "steps", "numbered", "review", "documentation", "image"],
+  "a11yLabel": "Annotation workspace with {{markCount}} mark{{#if markPlural}}s{{/if}}",
+  "examples": [
+    {
+      "label": "Three numbered steps",
+      "values": {
+        "annotStyle": "solid",
+        "accent": "{color.semantic.primary}",
+        "strokeWidth": 4,
+        "annotations": [
+          { "kind": "pin", "x": 11, "y": 21, "text": "Pick a template" },
+          { "kind": "pin", "x": 52, "y": 37, "text": "Set the words" },
+          { "kind": "pin", "x": 84, "y": 76, "text": "Download" }
+        ]
+      }
+    },
+    {
+      "label": "Point at it and say why",
+      "values": {
+        "annotStyle": "sketchy",
+        "accent": "#d9480f",
+        "strokeWidth": 5,
+        "annotations": [
+          { "kind": "box", "x": 46, "y": 22, "w": 30, "h": 27 },
+          { "kind": "arrow", "x": 22, "y": 78, "w": 22, "h": -22 },
+          { "kind": "callout", "x": 8, "y": 80, "w": 34, "h": 13, "text": "This panel moved" }
+        ]
+      }
+    },
+    {
+      "label": "Spotlight one detail",
+      "values": {
+        "annotStyle": "solid",
+        "accent": "#f2b705",
+        "strokeWidth": 3,
+        "annotations": [
+          { "kind": "spotlight", "x": 44, "y": 20, "w": 34, "h": 31 },
+          { "kind": "pin", "x": 47, "y": 24, "text": "" }
+        ]
+      }
+    },
+    {
+      "label": "Highlighter pass",
+      "values": {
+        "annotStyle": "solid",
+        "accent": "#0d7a5f",
+        "strokeWidth": 3,
+        "annotations": [
+          { "kind": "highlight", "x": 9, "y": 33, "w": 27, "h": 6 },
+          { "kind": "highlight", "x": 9, "y": 44, "w": 21, "h": 6 },
+          { "kind": "box", "x": 45, "y": 60, "w": 32, "h": 19 }
+        ]
+      }
+    }
+  ],
+  "render": {
+    "width": 1200,
+    "height": 750,
+    "formats": ["png", "jpg", "webp", "avif", "tiff"],
+    "export": false,
+    "actions": []
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "exportFile": true
+  },
+  "inputs": [
+    {
+      "id": "source",
+      "label": "Picture",
+      "type": "file",
+      "accept": ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml", ".jpg", ".jpeg", ".png", ".webp", ".gif", ".svg"],
+      "maxSize": 52428800,
+      "help": "A JPEG, PNG, WebP, GIF or SVG. It is read in your browser and never leaves your device; you can also drop it straight onto the canvas. PDF pages are out of scope here - export the page as an image first, or use Redact for a PDF. Without a picture the tool draws a placeholder screen so the marks still have something to sit on."
+    },
+    {
+      "id": "annotations",
+      "label": "Marks",
+      "urlKey": "an",
+      "type": "blocks",
+      "labelledFields": true,
+      "addMenu": { "field": "kind", "label": "Add mark" },
+      "default": [
+        { "kind": "pin", "x": 11, "y": 21, "w": 0, "h": 0, "text": "Start here" },
+        { "kind": "box", "x": 46, "y": 24, "w": 30, "h": 26, "text": "" },
+        { "kind": "arrow", "x": 20, "y": 74, "w": 24, "h": -18, "text": "" }
+      ],
+      "help": "Every mark is a row. Draw on the picture to add one, drag a mark to move it, drag its corner dot to resize, tap the cross to take it off. Numbers on step pins are counted for you.",
+      "fields": [
+        {
+          "id": "kind",
+          "label": "Kind",
+          "type": "select",
+          "default": "arrow",
+          "options": [
+            { "value": "arrow", "label": "Arrow", "repeatable": true },
+            { "value": "box", "label": "Box", "repeatable": true },
+            { "value": "pin", "label": "Step pin", "repeatable": true },
+            { "value": "callout", "label": "Callout", "repeatable": true },
+            { "value": "highlight", "label": "Highlighter", "repeatable": true },
+            { "value": "spotlight", "label": "Spotlight", "repeatable": true }
+          ]
+        },
+        { "id": "x", "label": "X", "type": "number", "default": 20, "min": -20, "max": 120, "step": 0.1, "help": "Left edge as a percentage of the picture's width. An arrow starts here." },
+        { "id": "y", "label": "Y", "type": "number", "default": 20, "min": -20, "max": 120, "step": 0.1, "help": "Top edge as a percentage of the picture's height. An arrow starts here." },
+        { "id": "w", "label": "Width", "type": "number", "default": 22, "min": -120, "max": 120, "step": 0.1, "showFor": ["arrow", "box", "callout", "highlight", "spotlight"], "help": "Percentage of the picture's width. An arrow reads it as the horizontal run to its point, so it may be negative." },
+        { "id": "h", "label": "Height", "type": "number", "default": 14, "min": -120, "max": 120, "step": 0.1, "showFor": ["arrow", "box", "callout", "highlight", "spotlight"], "help": "Percentage of the picture's height. An arrow reads it as the vertical run to its point, so it may be negative." },
+        { "id": "text", "label": "Label", "type": "text", "default": "", "showFor": ["callout", "pin"], "help": "Words for a callout, or an optional caption beside a step pin. A step pin's number is worked out from its position in this list, so there is nothing to type." }
+      ]
+    },
+    {
+      "id": "accent",
+      "label": "Accent",
+      "type": "color",
+      "default": "{color.semantic.primary}",
+      "help": "One colour for every mark. Callouts and pins put their words in whichever of black or white reads better on it."
+    },
+    {
+      "id": "strokeWidth",
+      "label": "Line weight",
+      "type": "number",
+      "display": "slider",
+      "default": 4,
+      "min": 1,
+      "max": 12,
+      "step": 1,
+      "help": "Scales with the picture, so the same weight looks the same on a phone grab and a 4K screenshot."
+    },
+    {
+      "id": "annotStyle",
+      "label": "Mark style",
+      "type": "select",
+      "default": "solid",
+      "options": [
+        { "value": "solid", "label": "Solid" },
+        { "value": "sketchy", "label": "Sketchy" }
+      ],
+      "help": "Sketchy gives every line a slight hand-drawn wobble. The wobble is worked out from the mark's position in the list, so it never changes between renders or between the preview and the file you download."
+    },
+    {
+      "id": "ocr",
+      "label": "Text read request",
+      "type": "text",
+      "default": "",
+      "maxLength": 24,
+      "showIf": { "ocr": "__never-rendered" },
+      "help": "Written by the Snap to text button on the canvas, never shown. A new value asks the tool to read the picture with the on-device text reader and offer each text line as an anchor to place a mark on; \"off\" cancels a read in progress. Anchors are only ever offered - a mark is added when you click one."
+    }
+  ]
+}

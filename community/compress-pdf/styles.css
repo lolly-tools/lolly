@@ -1,0 +1,154 @@
+/* Colours follow the app's core theme switcher (light / dark / suse) - sourced
+   from the app design tokens on <html data-theme> (tokens.css), which inherit
+   into the scoped tool canvas, so the tool restyles the instant the theme
+   changes. Fallbacks (light theme) keep the sheet valid where the tokens aren't
+   loaded (CLI/headless). `--cmp-*` aliases hold bare HSL triples so use-sites can
+   alpha-composite: hsl(var(--x) / .1). */
+.cmp {
+  --cmp-bg:      var(--background, 0 0% 98%);
+  --cmp-fg:      var(--foreground, 224 71% 4%);
+  --cmp-muted:   var(--muted-foreground, 215 20% 38%);
+  --cmp-card:    var(--card, 0 0% 100%);
+  --cmp-bd:      var(--border, 214 28% 84%);
+  --cmp-fill:    var(--muted, 210 40% 96%);
+  --cmp-brand:   var(--primary, 171 62% 12%);
+  --cmp-brandfg: var(--primary-foreground, 0 0% 100%);
+  --cmp-warn:    var(--destructive, 0 72% 51%);
+  --cmp-warnfg:  var(--destructive-foreground, 0 0% 100%);
+
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  font-family: SUSE, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: hsl(var(--cmp-fg));
+  background: hsl(var(--cmp-bg));
+}
+
+.cmp-empty {
+  max-width: 480px;
+  text-align: center;
+  padding: 40px 28px;
+  border: 2px dashed hsl(var(--cmp-bd));
+  border-radius: 16px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.cmp-empty:hover { border-color: hsl(var(--cmp-brand)); background: hsl(var(--cmp-brand) / .05); }
+.cmp-empty-icon { color: hsl(var(--cmp-brand)); margin-bottom: 12px; }
+.cmp-empty-icon svg { width: 48px; height: 48px; }
+.cmp-empty h2 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+.cmp-empty p { margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: hsl(var(--cmp-muted)); }
+.cmp-empty-note { font-size: 12px !important; color: hsl(var(--cmp-muted) / .85) !important; margin: 14px 0 0 !important; }
+
+.cmp-pick {
+  appearance: none;
+  border: none;
+  background: hsl(var(--cmp-brand));
+  color: hsl(var(--cmp-brandfg));
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.cmp-pick:hover { background: hsl(var(--cmp-brand) / .9); }
+
+.cmp-card {
+  width: 100%;
+  max-width: 520px;
+  background: hsl(var(--cmp-card));
+  border: 1px solid hsl(var(--cmp-bd));
+  border-radius: 16px;
+  padding: 22px 24px;
+  box-shadow: 0 1px 3px hsl(0 0% 0% / .06);
+}
+.cmp-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid hsl(var(--cmp-bd) / .6);
+}
+.cmp-file { font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.cmp-size { font-size: 13px; color: hsl(var(--cmp-muted)); flex-shrink: 0; }
+.cmp-replace {
+  appearance: none;
+  border: 1px solid hsl(var(--cmp-bd));
+  background: hsl(var(--cmp-fill));
+  color: hsl(var(--cmp-fg) / .85);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.cmp-replace:hover { border-color: hsl(var(--cmp-brand)); color: hsl(var(--cmp-brand)); }
+
+.cmp-settings { border: none; margin: 18px 0 0; padding: 0; }
+.cmp-settings legend { font-size: 12px; font-weight: 600; color: hsl(var(--cmp-muted)); text-transform: uppercase; letter-spacing: .04em; padding: 0; margin-bottom: 8px; }
+
+.cmp-seg { display: flex; gap: 6px; }
+.cmp-seg-opt { flex: 1; position: relative; cursor: pointer; }
+.cmp-seg-opt input { position: absolute; opacity: 0; pointer-events: none; }
+.cmp-seg-opt span {
+  display: block;
+  text-align: center;
+  padding: 9px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: hsl(var(--cmp-fg) / .85);
+  background: hsl(var(--cmp-fill));
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.cmp-seg-opt:hover span { background: hsl(var(--cmp-fill) / .7); }
+.cmp-seg-opt input:checked + span { background: hsl(var(--cmp-brand) / .12); border-color: hsl(var(--cmp-brand)); color: hsl(var(--cmp-brand)); }
+.cmp-seg-opt input:focus-visible + span { outline: 2px solid hsl(var(--cmp-brand)); outline-offset: 2px; }
+
+.cmp-check { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; color: hsl(var(--cmp-fg) / .85); cursor: pointer; }
+.cmp-check input { width: 15px; height: 15px; accent-color: hsl(var(--cmp-brand)); cursor: pointer; }
+
+.cmp-result {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: hsl(var(--cmp-fill));
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cmp-result--win { background: hsl(var(--cmp-brand) / .1); }
+.cmp-result-size { font-size: 17px; font-weight: 700; }
+.cmp-result-saved { font-size: 13px; color: hsl(var(--cmp-brand)); font-weight: 600; }
+.cmp-result:not(.cmp-result--win) .cmp-result-saved { color: hsl(var(--cmp-muted)); }
+
+.cmp-state { margin-top: 16px; }
+.cmp-lead { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+
+.cmp-note { font-size: 12px; color: hsl(var(--cmp-muted)); line-height: 1.5; margin: 8px 0 0; }
+.cmp-note code { background: hsl(var(--cmp-fill)); padding: 1px 5px; border-radius: 4px; font-size: 11px; }
+
+.cmp-download {
+  appearance: none;
+  border: none;
+  width: 100%;
+  margin-top: 18px;
+  background: hsl(var(--cmp-brand));
+  color: hsl(var(--cmp-brandfg));
+  font-size: 14px;
+  font-weight: 650;
+  padding: 12px 18px;
+  border-radius: 11px;
+  cursor: pointer;
+}
+.cmp-download:hover { background: hsl(var(--cmp-brand) / .9); }
+.cmp-download.is-busy { opacity: .7; cursor: progress; }
+.cmp-download.is-error { background: hsl(var(--cmp-warn)); color: hsl(var(--cmp-warnfg)); }
+.cmp-tail { margin-top: 12px; }

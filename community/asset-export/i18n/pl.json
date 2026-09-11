@@ -1,0 +1,15 @@
+{
+  "name": "Eksport zasobu",
+  "description": "Renderuj dowolny zasób z katalogu - lub link do narzędzia Lolly - w dowolnym formacie i rozmiarze.",
+  "a11yLabel": "Wyeksportowany zasób",
+  "inputs.src.label": "Zasób",
+  "inputs.src.help": "Zasób do wyrenderowania - identyfikator z katalogu (zobacz `lolly assets`) lub wklejony link do narzędzia lolly.tools. Zasoby wektorowe pozostają wektorowe w SVG/PDF; zasoby rastrowe są osadzane jako obrazy.",
+  "inputs.fit.label": "Dopasowanie",
+  "inputs.fit.help": "Zawieranie pokazuje cały zasób w ramce; Wypełnienie wypełnia ramkę i może przycinać krawędzie.",
+  "inputs.fit.options.contain": "Zawieranie (cały zasób, z paskami)",
+  "inputs.fit.options.cover": "Wypełnienie (wypełnia, może przycinać)",
+  "inputs.background.label": "Tło",
+  "inputs.background.help": "Kolor za zasobem. Włącz „Bez tła” w eksporcie, aby go usunąć (przezroczystość).",
+  "inputs.transparentBg.label": "Bez tła",
+  "inputs.transparentBg.help": "Usuń wypełnienie tła, aby zasób był eksportowany na przezroczystości (PNG/SVG/WebP)."
+}

@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "লিঙ্ক, কন্টাক্ট কার্ড, Wi-Fi নেটওয়ার্ক, ক্যালেন্ডার ইভেন্ট, লোকেশন বা সাধারণ টেক্সটের জন্য QR কোড।",
+  "a11yLabel": "QR কোড, লিঙ্ক: {{default url \"(no URL set)\"}}",
+  "featured.blurb": "যেকোনো ব্র্যান্ড রঙে QR কোড",
+  "inputs.url.label": "URL",
+  "inputs.color.label": "মডিউলের রং",
+  "inputs.background.label": "ব্যাকগ্রাউন্ড",
+  "inputs.ecl.label": "ত্রুটি সংশোধন",
+  "inputs.ecl.options.L": "নিম্ন (7%)",
+  "inputs.ecl.options.M": "মাঝারি (15%)",
+  "inputs.ecl.options.Q": "কোয়ার্টাইল (25%)",
+  "inputs.ecl.options.H": "উচ্চ (30%)",
+  "inputs.padding.label": "কোয়াইট জোন",
+  "inputs.padding.help": "কোডের চারপাশে সাদা জায়গার মডিউল। ন্যূনতম 4 রাখার পরামর্শ দেওয়া হয়।",
+  "inputs.join.label": "যুক্ত মডিউল",
+  "inputs.join.help": "সব মডিউল একটি একক SVG পাথে মিশিয়ে দিন। ছোট আকারে আরও স্পষ্ট দেখায়।"
+}

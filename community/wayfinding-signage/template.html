@@ -1,0 +1,182 @@
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* The stage fills the canvas; the sign sits centred at its true trim aspect.
+   container-type:size makes every cqmin below scale with the sign, so one set
+   of sizes works across A4 → A1 and both orientations. */
+.way-stage {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  container-type: size;
+  background: transparent;
+  /* Type follows the ACTIVE brand: no @font-face here (the community pattern -
+     the shell loads the active brand's faces and brand-vars.ts injects the var).
+     The directional glyphs the arrows use live in the fallback stack too. */
+  font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+.way {
+  width: 100%; max-width: 100%; max-height: 100%;
+  container-type: size;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  color: var(--ink, #0c322c);
+  border-radius: 2.4cqmin;
+}
+
+.way-accent { flex: none; height: 2.2cqmin; background: var(--accent); }
+
+/* ── Header: logo + event name ── */
+.way-head {
+  flex: none;
+  display: flex; flex-direction: column; align-items: center; gap: 2cqmin;
+  padding: 6cqmin 7cqmin 1cqmin;
+  text-align: center;
+}
+.way-logo { max-width: 62%; max-height: 13cqmin; object-fit: contain; }
+.way-event {
+  font-size: 3cqmin; font-weight: 600; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--muted); line-height: 1.2;
+}
+
+.way-heading {
+  flex: none; text-align: center;
+  font-size: 8.5cqmin; font-weight: var(--text-weight, 800);
+  line-height: 1; letter-spacing: -0.02em;
+  padding: 2.5cqmin 6cqmin 0; color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* ── Directions: a stack of arrow + label rows ──
+   Rows share the list height equally (flex: 1), so however many destinations
+   you add they fill the sign - no empty gap below, no overflow. Each row is its
+   own size container, so the arrow + label size to the row's height (cqh): more
+   rows → shorter rows → smaller type; fewer rows → bigger type. */
+.way-list {
+  flex: 1; min-height: 0; overflow: hidden;
+  display: flex; flex-direction: column;
+  padding: 4cqmin 7cqmin 6cqmin;
+}
+.way-row {
+  flex: 1 1 0; min-height: 0;
+  container-type: size;
+  display: flex; align-items: center; gap: 3.5cqmin;
+  border-bottom: 0.3cqmin solid var(--hairline);
+}
+.way-row:last-child { border-bottom: 0; }
+/* Arrow on the left → the row hugs the left edge, reads "← Destination".
+   Arrow on the right → row-reverse flips it to the right edge, "Destination →". */
+.way-row--left  { justify-content: flex-start; text-align: left; }
+.way-row--right { flex-direction: row-reverse; justify-content: flex-start; text-align: right; }
+
+.way-arrow {
+  flex: none; font-size: 58cqh; font-weight: var(--text-weight, 800);
+  line-height: 1; color: var(--row-accent, var(--accent));
+}
+.way-label {
+  flex: 1 1 0; min-width: 0;
+  /* --label-scale (1 = no shrink) is computed once per render by the fit script
+     below so the LONGEST label fits on its line; all rows share it, so they stay
+     the same size. text-overflow:ellipsis is the safety net if the script can't run. */
+  font-size: calc(34cqh * var(--label-scale, 1)); font-weight: var(--text-weight, 800);
+  line-height: 1; letter-spacing: -0.01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* A row can show an image (e.g. a sponsor's logo) in place of the text label.
+   It takes the label's slot and aligns to the same edge the text would: left for
+   a left-arrow row, right for a right-arrow row (which is row-reversed). */
+.way-img {
+  flex: 1 1 0; min-width: 0;
+  height: 64cqh; max-width: 100%;
+  object-fit: contain; object-position: left center;
+}
+.way-row--right .way-img { object-position: right center; }
+
+/* ── Landscape: header is a row; type steps down to use the width ── */
+.way-landscape .way-head {
+  flex-direction: row; align-items: center; justify-content: space-between;
+  padding: 4cqmin 6cqmin 1cqmin; text-align: left;
+}
+.way-landscape .way-logo { max-width: 40%; max-height: 16cqmin; }
+.way-landscape .way-event { text-align: right; }
+.way-landscape .way-heading { font-size: 7cqmin; text-align: left; padding: 1.5cqmin 6cqmin 0; }
+/* Arrow + label auto-fit to each row's height (cqh) in any orientation. */
+</style>
+
+<div class="way-stage" data-lolly-anno="{{size}}">
+  <div class="way way-{{orient}}"
+       style="aspect-ratio: {{aspW}} / {{aspH}};
+              --accent: {{accent}}; --ink: {{ink}}; --muted: {{muted}}; --hairline: {{hairline}};
+              --text-weight: {{default textWeight 800}};
+              background: {{bgStyle}};">
+
+    <div class="way-accent"></div>
+
+    {{#if hasHeader}}
+    <header class="way-head">
+      {{#if eventLogo}}<img class="way-logo" src="{{asset eventLogo}}" alt="">{{/if}}
+      {{#if eventName}}<div class="way-event">{{eventName}}</div>{{/if}}
+    </header>
+    {{/if}}
+
+    {{#if heading}}<div class="way-heading">{{heading}}</div>{{/if}}
+
+    <main class="way-list">
+      {{#each directionsOut}}
+        <div class="way-row way-row--{{side}}" data-canvas-input="directions:{{bi}}" style="--row-accent: {{accent}};">
+          <span class="way-arrow">{{glyph}}</span>
+          {{#if imageUrl}}
+            <img class="way-img" src="{{imageUrl}}" alt="{{imageAlt}}">
+          {{else}}
+            <span class="way-label">{{label}}</span>
+          {{/if}}
+        </div>
+      {{/each}}
+    </main>
+  </div>
+</div>
+
+<script>
+(function () {
+  // Auto-fit the direction labels: shrink EVERY label by one uniform factor so
+  // the longest fits on a single line - no ellipsis truncation, and all rows keep
+  // the same text size. The template is logic-less, so the measuring lives here.
+  //
+  // The factor is resolution-independent: a label's text width and the box it
+  // sits in both scale with the sign, so the ratio (and therefore the needed
+  // shrink) is the same at A4 or A1, portrait or landscape - one measurement holds
+  // for every export size. We measure at the currently-applied scale and back-
+  // solve, so it's exact in a single pass with no reset-to-full-size flash.
+  function fit() {
+    var way = document.querySelector('.way');
+    if (!way) return;
+    var labels = document.querySelectorAll('.way-label');
+    if (!labels.length) return;
+    var cur = parseFloat(way.style.getPropertyValue('--label-scale')) || 1;
+    var scale = 1;
+    for (var i = 0; i < labels.length; i++) {
+      var el = labels[i];
+      var avail = el.clientWidth, need = el.scrollWidth;   // box vs full text width
+      if (avail > 0 && need > avail) {
+        var fitScale = cur * avail / need;
+        if (fitScale < scale) scale = fitScale;
+      }
+    }
+    if (scale < 1) scale *= 0.985;                         // hairline rounding margin
+    way.style.setProperty('--label-scale', String(scale));
+  }
+  function run() { try { fit(); } catch (e) { /* never block the render */ } }
+
+  // Glyph widths are only correct once the brand's font has loaded; measure
+  // then, one frame later so layout has flushed at the sign's final size.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () { requestAnimationFrame(run); });
+  } else {
+    requestAnimationFrame(run);
+  }
+})();
+</script>

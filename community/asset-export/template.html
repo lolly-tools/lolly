@@ -1,0 +1,58 @@
+<svg class="ax-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{width}} {{height}}" preserveAspectRatio="xMidYMid meet" data-img-key="{{asset src}}">
+  {{!-- Oversized so it fills any output aspect: with the root's "meet" the viewBox
+        is letterboxed, and this rect extends well past it into the margins (the outer
+        SVG clips at the viewport). --}}
+  {{#unless transparentBg}}<rect x="-12000" y="-12000" width="26000" height="26000" fill="{{background}}"/>{{/unless}}
+  {{#if src}}<image href="{{asset src}}" x="0" y="0" width="{{width}}" height="{{height}}" preserveAspectRatio="{{#if (eq fit "cover")}}xMidYMid slice{{else}}xMidYMid meet{{/if}}"/>{{/if}}
+</svg>
+{{!-- Auto-fit the canvas to the chosen asset's native aspect ratio. This tool has NO
+     hooks.js, so the anchor above carries only the asset URL (data-img-key) and the
+     <script> below PROBES it (new Image()) for the native size, then snaps the export
+     Width/Height. Same shared logic as the filter tools; the export bar's width/height
+     fields feed the {{width}}/{{height}} inputs, so the viewBox above reflows. Keyed on
+     #tool-canvas (per mount → auto-scoped; absent for the off-screen export canvas).
+     The <script> is exempt from the CLI's single-root-<svg> drawable-child count. --}}
+<script>
+(function () {
+  var anchor = document.querySelector('[data-img-key]');
+  if (!anchor) return;
+  var canvas = anchor.closest('#tool-canvas');
+  if (!canvas) return;                        // off-screen export canvas → never touch the export bar
+  var key = anchor.getAttribute('data-img-key') || '';
+  if (!('__axFitKey' in canvas)) {            // FIRST run: adopt whatever asset+size is already set as the
+    canvas.__axFitKey = key;                  // baseline WITHOUT resizing, so a catalog-crop flow that passed
+    return;                                   // explicit dims (or a saved size) is respected. Only a LATER
+  }                                           // asset change snaps.
+  if (canvas.__axFitKey === key) return;      // asset unchanged since mount / last snap → respect manual resize
+  if (!key) { canvas.__axFitKey = ''; return; }
+  var uEl = document.querySelector('[data-action="export-unit"]');
+  if (uEl && uEl.value && uEl.value !== 'px') return; // a deliberate mm/in page - don't override it
+  var wEl = document.querySelector('[data-action="export-width"]');
+  var hEl = document.querySelector('[data-action="export-height"]');
+  if (!wEl || !hEl) return;
+
+  var MAX = 8000;
+  function apply(nw, nh) {
+    if (!(nw > 0 && nh > 0)) return;
+    canvas.__axFitKey = key;                  // record BEFORE dispatch so the re-render it triggers is a no-op
+    var s = Math.min(1, MAX / Math.max(nw, nh));
+    var W = Math.max(1, Math.round(nw * s));
+    var H = Math.max(1, Math.round(nh * s));
+    var changed = false;
+    if (parseFloat(wEl.value) !== W) { wEl.value = String(W); changed = true; }
+    if (parseFloat(hEl.value) !== H) { hEl.value = String(H); changed = true; }
+    if (changed) {
+      wEl.dispatchEvent(new Event('input', { bubbles: true }));
+      hEl.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+
+  if (canvas.__axFitProbe === key) return;    // a probe for this key is already in flight
+  canvas.__axFitProbe = key;
+  var probe = new Image();
+  probe.onload = function () { apply(probe.naturalWidth, probe.naturalHeight); };
+  probe.onerror = function () { if (canvas.__axFitProbe === key) canvas.__axFitProbe = null; };
+  probe.src = key;                            // the key IS the asset URL
+  if (probe.complete && probe.naturalWidth > 0) apply(probe.naturalWidth, probe.naturalHeight);
+})();
+</script>

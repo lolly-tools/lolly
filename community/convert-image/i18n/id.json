@@ -1,0 +1,18 @@
+{
+  "name": "Konversi Gambar",
+  "description": "Ubah HEIC, TIFF atau foto apa pun menjadi WebP, JPEG atau PNG - di perangkat Anda.",
+  "a11yLabel": "Konversi gambar untuk {{fileName}}",
+  "inputs.source.label": "Gambar",
+  "inputs.source.help": "Gambar HEIC, HEIF, JPEG, PNG, WebP, AVIF, atau TIFF. Dibaca di browser Anda dan tidak pernah meninggalkan perangkat Anda.",
+  "inputs.target.label": "Konversi ke",
+  "inputs.target.help": "Format output. WebP biasanya paling kecil; PNG lossless.",
+  "inputs.target.options.webp": "WebP - terkecil, mempertahankan transparansi",
+  "inputs.target.options.jpeg": "JPEG - universal, untuk foto",
+  "inputs.target.options.png": "PNG - lossless, mempertahankan transparansi",
+  "inputs.quality.label": "Kualitas",
+  "inputs.quality.help": "Kualitas untuk format lossy. Lebih rendah berarti file lebih kecil dan detail lebih lembut. PNG mengabaikannya.",
+  "inputs.maxEdge.label": "Sisi terpanjang (px)",
+  "inputs.maxEdge.help": "Perkecil sehingga sisi terpanjang paling banyak sebesar ini dalam piksel. 0 mempertahankan ukuran asli. Tidak pernah memperbesar.",
+  "inputs.keepLocation.label": "Simpan lokasi",
+  "inputs.keepLocation.help": "Membawa posisi GPS foto ke file hasil konversi. Nonaktif secara default - lokasi adalah data pribadi. Detail foto lainnya (penulis, hak cipta, tanggal pengambilan) selalu ikut terbawa, dan kartu menunjukkan persis apa yang terjadi."
+}

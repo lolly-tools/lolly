@@ -1,0 +1,7 @@
+{
+  "name": "Alisin ang Nakatagong Data",
+  "description": "Ipakita at alisin ang mga nakatagong metadata mula sa mga larawan at PDF - sa iyong device.",
+  "a11yLabel": "Ulat ng nakatagong data para sa {{fileName}}",
+  "inputs.source.label": "Larawan o PDF",
+  "inputs.source.help": "JPEG, PNG, SVG, o PDF. Babasahin ito sa browser mo at hindi ito aalis sa device mo."
+}

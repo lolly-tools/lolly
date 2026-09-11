@@ -1,0 +1,35 @@
+{
+  "id": "phone",
+  "name": "Phone",
+  "category": "Screenshot",
+  "description": "A portrait app screen in a phone bezel, for stores and social posts.",
+  "values": {
+    "image": { "source": "remote", "id": "https://lolly.tools/tool/gradient.svg?count=3&color1=%23ff9a8b&color2=%23f2a65a&color3=%23ffd3bd&blend=screen&spread=95&blur=10&grain=30", "_unresolved": true },
+    "frame": "phone",
+    "windowStyle": "nuremberg",
+    "url": "https://lolly.tools",
+    "title": "",
+    "backdrop": "gradient",
+    "background": "#f6c99f",
+    "color2": "#e8836b",
+    "padding": 72,
+    "scale": 90,
+    "radius": 16,
+    "shadow": 65,
+    "dark": false
+  },
+  "presets": [
+    {
+      "id": "warm",
+      "name": "Warm gradient",
+      "description": "Sunset wash behind the handset.",
+      "values": { "backdrop": "gradient", "background": "#f6c99f", "color2": "#e8836b" }
+    },
+    {
+      "id": "clean",
+      "name": "Clean ground",
+      "description": "One flat brand colour, more room for a caption.",
+      "values": { "backdrop": "solid", "background": "{color.semantic.surface}", "padding": 110, "shadow": 45 }
+    }
+  ]
+}

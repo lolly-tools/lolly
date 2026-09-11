@@ -1,0 +1,14 @@
+{
+  "name": "Compress",
+  "description": "Zmniejsz plik PDF poprzez ponowną kompresję jego obrazów - na Twoim urządzeniu.",
+  "a11yLabel": "Kompresor PDF dla {{fileName}}",
+  "inputs.source.label": "PDF",
+  "inputs.source.help": "Plik PDF. Jest odczytywany w Twojej przeglądarce i nigdy nie opuszcza Twojego urządzenia.",
+  "inputs.level.label": "Kompresja",
+  "inputs.level.help": "Jak silnie kompresować osadzone obrazy. Silniejsza kompresja oznacza mniejsze pliki i mniej wyraźne obrazy.",
+  "inputs.level.options.light": "Słaba - zachowaj wysoką jakość",
+  "inputs.level.options.balanced": "Zrównoważona",
+  "inputs.level.options.strong": "Silna - najmniejszy plik",
+  "inputs.grayscale.label": "Konwertuj obrazy do skali szarości",
+  "inputs.grayscale.help": "Usuń kolor z obrazów dla dodatkowej redukcji rozmiaru - przydatne w przypadku zeskanowanych dokumentów tekstowych."
+}

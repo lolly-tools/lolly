@@ -1,0 +1,7 @@
+{
+  "name": "Buang Data Tersembunyi",
+  "description": "Dedah dan buang metadata tersembunyi daripada imej dan PDF - pada peranti anda.",
+  "a11yLabel": "Laporan data tersembunyi untuk {{fileName}}",
+  "inputs.source.label": "Imej atau PDF",
+  "inputs.source.help": "Fail JPEG, PNG, SVG atau PDF. Fail ini dibaca dalam pelayar anda dan tidak sekali-kali meninggalkan peranti anda."
+}

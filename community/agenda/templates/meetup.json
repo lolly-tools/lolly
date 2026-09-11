@@ -1,0 +1,39 @@
+{
+  "id": "meetup",
+  "name": "Evening meetup",
+  "category": "Meetup",
+  "description": "One evening, one room, four things on. No tracks to split.",
+  "values": {
+    "title": "Riverside Front-End Meetup",
+    "subtitle": "Thursday at the old print works",
+    "layout": "list",
+    "now": "",
+    "tz": "",
+    "showSpeakers": true,
+    "showRooms": false,
+    "compact": false,
+    "plenaryLabel": "",
+    "nowLabel": "",
+    "nextLabel": "",
+    "sessions": {
+      "columns": ["Date", "Start", "End", "Title", "Speaker", "Track", "Room", "Kind", "Note"],
+      "rows": [
+        ["2026-11-05", "18:00", "18:20", "Doors, pizza and hellos", "", "", "Ground floor", "social", ""],
+        ["2026-11-05", "18:20", "18:50", "Lightning talks", "Five of you, five minutes each", "", "Ground floor", "session", "Sign up on the board by the door"],
+        ["2026-11-05", "18:50", "19:35", "Shipping on a Friday and sleeping on Saturday", "Jonas Weber", "", "Ground floor", "session", ""],
+        ["2026-11-05", "19:35", "20:30", "Drinks and carry on", "", "", "Ground floor", "social", ""]
+      ]
+    }
+  },
+  "presets": [
+    {
+      "id": "board",
+      "name": "On the door",
+      "description": "The same evening as a screen in the entrance.",
+      "values": {
+        "layout": "board",
+        "now": "2026-11-05T18:35"
+      }
+    }
+  ]
+}

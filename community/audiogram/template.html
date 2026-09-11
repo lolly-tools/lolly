@@ -1,0 +1,712 @@
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.ag-root {
+  width: 100%; height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 7%;
+  background: var(--ag-bg, #101828);
+  color: var(--ag-ink, #eef1f4);
+  /* `--font-brand` is the brand's primary face - the shell sets it from the active
+     brand pack, and it carries headings, body copy and UI alike. NOT
+     `--brand-font-body`, which is defined nowhere: this card silently rendered in
+     the system fallback for its whole life. Fallbacks stay generic because a
+     community tool has to look right under ANY brand. */
+  font-family: var(--font-brand, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif);
+  overflow: hidden;
+}
+
+/* Layout is a class on the root, so the same markup serves all four and the
+   canvas keeps one sizing rule (flex:1) in every case. */
+.ag-root.is-bottom { justify-content: flex-end; }
+.ag-root.is-center { justify-content: flex-start; }
+/* "Visual only" means exactly that: the user's own text is dropped and the visual runs
+   edge to edge. Setting only `justify-content` here left the title and subtitle on the
+   card and kept the 7% padding, so the option did nothing a viewer could see.
+   The artist credit deliberately SURVIVES - it is not the user's copy, it is someone
+   else's name, and it has its own toggle for anyone who wants it gone. */
+.ag-root.is-minimal { padding: 0; justify-content: flex-end; }
+.ag-root.is-minimal .ag-meta { display: none; }
+.ag-root.is-minimal .ag-wavebox { position: absolute; inset: 0; }
+.ag-root.is-minimal .ag-credit { position: relative; margin: 0 7% 7%; text-shadow: 0 2px 18px rgb(0 0 0 / 45%); }
+/* Overlay family: the visual fills the card edge to edge and the text sits on it,
+   so the padding comes off the wavebox and back onto the text alone. Three text
+   positions - bottom (the original), top, and centred both ways. */
+.ag-root.is-overlay,
+.ag-root.is-overlay-top,
+.ag-root.is-overlay-center { padding: 0; }
+.ag-root.is-overlay { justify-content: flex-end; }
+.ag-root.is-overlay-top { justify-content: flex-start; }
+.ag-root.is-overlay-center { justify-content: center; }
+.ag-root.is-overlay .ag-wavebox,
+.ag-root.is-overlay-top .ag-wavebox,
+.ag-root.is-overlay-center .ag-wavebox { position: absolute; inset: 0; }
+.ag-root.is-overlay .ag-meta,
+.ag-root.is-overlay-top .ag-meta,
+.ag-root.is-overlay-center .ag-meta {
+  position: relative;
+  margin: 7%;
+  /* A shadow, not a solid scrim: the visual has to stay visible behind the words
+     while the words stay readable over whatever it happens to be doing. */
+  text-shadow: 0 2px 18px rgb(0 0 0 / 45%);
+}
+/* Centred means both axes: the root centres the text block vertically, and the
+   badge + lines row centres itself and its copy horizontally. */
+.ag-root.is-overlay-center .ag-meta { justify-content: center; text-align: center; }
+
+.ag-wavebox { flex: 1 1 auto; min-height: 0; position: relative; }
+/* The export frame-clock anchor for captioned renders (the slides / filter-*
+   pattern): 0×0, paints nothing, exists only to be the FIRST canvas that
+   registers a frame renderer. Absolute so the flex column never sees it. */
+.ag-clock { position: absolute; width: 0; height: 0; }
+/* The caption layer. LAST in the wavebox so it paints over every visual,
+   including a shell-mounted MilkDrop canvas. */
+.ag-wavebox .ag-cap { pointer-events: none; }
+/* The MilkDrop surface. The element is an empty placeholder the shell mounts a WebGL
+   canvas into (see lib/viz-tool-mount.ts) - the tool never holds the context itself. */
+.ag-viz { position: absolute; inset: 0; }
+.ag-wavebox canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* The still - the poster frame as real SVG, built in hooks.js from the same packed
+   bytes the canvas unpacks. It is the BASE layer: a script-less render (the gallery
+   preview pipeline, a CLI html render), a reduced-motion viewer and the moment
+   before the preview loop starts all show it.
+   #ag-wave carries the MOTION and is revealed only while it is painting one, so the
+   two are never on screen together. Keyed on `.is-live`, which the script adds when the
+   live loop or an export frame clock starts driving frames.
+   A capture that wants the still holds it with two rules of its own, which is exactly
+   what the docs screenshot recipes pass in `css=` (the shots pipeline's own advice for a
+   moving part in a vector shot - see build-docs-shots.ts's ineffectiveTolerance warning):
+   `#ag-wave{display:none!important}.ag-ph{display:block!important}`. Rules rather than a
+   self-correcting probe in the loop, because the probe cost a forced layout every frame
+   to serve one caller. */
+.ag-ph { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.ag-root:not(.is-live) #ag-wave { display: none; }
+.ag-root.is-live .ag-ph { display: none; }
+
+.ag-meta { flex: 0 0 auto; display: flex; align-items: flex-start; gap: 18px; }
+.ag-root.is-center .ag-meta { order: -1; }
+.ag-badge {
+  flex: 0 0 auto;
+  width: 52px; height: 52px;
+  margin-top: 4px;
+  color: var(--ag-accent, #5b8def);
+}
+.ag-badge svg { width: 100%; height: 100%; display: block; }
+.ag-lines { min-width: 0; }
+/* Attribution for an artist preset. Small and quiet, but always ON THE CARD rather
+   than in the UI around it: a shared audiogram has to carry the credit with it. */
+.ag-credit {
+  flex: 0 0 auto;
+  margin-top: 14px;
+  font-size: 20px;
+  line-height: 1.3;
+  /* Readable over a busy visualiser, not competing with the title - a credit nobody
+     can read is the same as no credit. */
+  opacity: 0.75;
+}
+.ag-root.is-overlay .ag-credit,
+.ag-root.is-overlay-top .ag-credit { margin: 0 7% 7%; position: relative; text-shadow: 0 2px 18px rgb(0 0 0 / 45%); }
+.ag-root.is-overlay-center .ag-credit { margin: 14px 7% 0; position: relative; text-align: center; text-shadow: 0 2px 18px rgb(0 0 0 / 45%); }
+.ag-title {
+  /* The heading face where the brand declares a separate one, otherwise the primary
+     face the root already set - the same `var(--font-display, var(--font-brand))`
+     pairing the brand editor's type-role samples use. */
+  font-family: var(--font-display, var(--font-brand, inherit));
+  font-size: 56px;
+  line-height: 1.12;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  overflow-wrap: break-word;
+}
+.ag-subtitle {
+  margin-top: 10px;
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 450;
+  opacity: 0.62;
+  overflow-wrap: break-word;
+}
+</style>
+
+<div class="ag-root is-{{default layout "bottom"}}" id="ag-root"
+     style="--ag-accent: {{default accent "#5b8def"}}; --ag-ink: {{default ink "#eef1f4"}}; --ag-bg: {{default bg "#101828"}};"
+     {{!-- The bed's in-point, read by the export bar: the picture starts `start`
+           seconds into the clip, so the exported video's audio has to as well. --}}
+     data-audio-start="{{default start 0}}"
+     {{!-- The bed's analysed length, read by the export bar to seed Duration. --}}
+     data-clip-ms="{{agClipMs}}"
+     data-style="{{default style "bars"}}"
+     data-accent="{{default accent "#5b8def"}}"
+     data-ink="{{default ink "#eef1f4"}}"
+     data-bg="{{default bg "#101828"}}"
+     data-ag-cues="{{agCues}}"
+     data-ag-meta="{{agMeta}}"
+     data-ag-colors="{{agColors}}"
+     data-ag-beats="{{agBeats}}"
+     data-ag-data="{{agData}}">
+  {{#if agCues}}
+  {{!-- The frame-clock anchor. The export takes the FIRST canvas carrying a
+        renderer, and the caption layer must be driven even when the shell's
+        MilkDrop canvas (mounted before #ag-wave) owns the picture - so this
+        inert canvas registers first and forwards the tick. Only present when
+        there are cues, so an uncaptioned card is byte-identical. --}}
+  <canvas id="ag-clock" class="ag-clock" width="0" height="0" aria-hidden="true"></canvas>
+  {{/if}}
+  <div class="ag-wavebox">
+    {{!-- The still, FIRST so every live surface paints over it: hooks.js builds the
+          whole <svg class="ag-ph"> from the packed analysis and sanitises every
+          colour it writes into an attribute, hence the raw stache. Not a canvas, so
+          it never competes for the export frame clock. --}}
+    {{{agStill}}}
+    {{#if agVizPreset}}
+    {{!-- Before the fallback canvas on purpose: the export frame clock takes the FIRST
+          canvas that registers a frame renderer, and the shell's canvas lands here. --}}
+    <div class="ag-viz"
+         data-lolly-viz="{{agVizPreset}}"
+         data-viz-colors="{{agVizColors}}"
+         data-viz-hero="{{default accent "#5b8def"}}"
+         data-viz-brand="{{default vizBrand "strong"}}"
+         data-viz-meta="{{agVizMeta}}"
+         data-viz-wave="{{agWave}}"
+         data-viz-fallback="#ag-wave"></div>
+    {{/if}}
+    <canvas id="ag-wave" aria-hidden="true"></canvas>
+    {{#if agCues}}
+    {{!-- Captions paint here, on top of whichever visual is live - #ag-wave, or
+          the viz canvas that hides it. Kept out of #ag-wave so the MilkDrop
+          style gets subtitles too. --}}
+    <canvas id="ag-cap" class="ag-cap" aria-hidden="true"></canvas>
+    {{/if}}
+  </div>
+  {{#if title}}
+  <div class="ag-meta">
+    <div class="ag-badge" aria-hidden="true">
+      {{!-- Resolved colours baked in (not currentColor) so the script-less preview
+            svg pipeline and <img>-embedded renders keep the brand accent. --}}
+      <svg viewBox="0 0 52 52" fill="none"><circle cx="26" cy="26" r="24" stroke="{{default accent "#5b8def"}}" stroke-width="3"/><path d="M21 17.5v17l14-8.5z" fill="{{default accent "#5b8def"}}"/></svg>
+    </div>
+    <div class="ag-lines">
+      <div class="ag-title">{{title}}</div>
+      {{#if subtitle}}<div class="ag-subtitle">{{subtitle}}</div>{{/if}}
+    </div>
+  </div>
+  {{else}}
+  {{#if subtitle}}
+  <div class="ag-meta">
+    <div class="ag-lines"><div class="ag-subtitle">{{subtitle}}</div></div>
+  </div>
+  {{/if}}
+  {{/if}}
+  {{#if agCredit}}<div class="ag-credit">{{agCredit}}</div>{{/if}}
+</div>
+
+<script>
+(function () {
+  var root = document.getElementById('ag-root');
+  var canvas = document.getElementById('ag-wave');
+  if (!root || !canvas || typeof canvas.getContext !== 'function') return;
+  var ctx = canvas.getContext('2d');
+  if (!ctx) return; // headless (jsdom) - the static .ag-ph fallback stays visible
+
+  // ── The payload ────────────────────────────────────────────────────────────
+  //
+  // hooks.js has already analysed the audio and packed it (see its header for
+  // why bytes rather than JSON). Nothing here fetches, decodes or awaits: this
+  // script re-runs on every repaint, so async work would race the export frame
+  // clock and a video could start from a half-populated track - which is exactly
+  // the bug the old version needed a readiness handshake to paper over.
+  //
+  // Section order is the contract with hooks.js build():
+  //   rms, peak, bass, mid, treb, flux   - COUNT bytes each
+  //   magnitude                          - COUNT × BANDS
+  //   overview                           - BUCKETS
+  //   scope                              - COUNT × SCOPE (that style only)
+
+  var meta;
+  try { meta = JSON.parse(root.dataset.agMeta || '{}'); } catch (e) { meta = {}; }
+  var COUNT = meta.count | 0;
+  var BANDS = meta.bands | 0;
+  var BUCK  = meta.buckets | 0;
+  var SCOPE = meta.scope | 0;
+  var DUR   = meta.dur || 8;
+
+  var B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  function unb64(s) {
+    var clean = String(s || '').replace(/[^A-Za-z0-9+/]/g, '');
+    var out = new Uint8Array(Math.floor(clean.length * 3 / 4));
+    var at = 0, buf = 0, bits = 0;
+    for (var i = 0; i < clean.length; i++) {
+      buf = (buf << 6) | B64.indexOf(clean.charAt(i));
+      bits += 6;
+      if (bits >= 8) { bits -= 8; out[at++] = (buf >> bits) & 255; }
+    }
+    return out.subarray(0, at);
+  }
+
+  var raw = unb64(root.dataset.agData);
+  // A payload that disagrees with its own header is a bug, not something to draw
+  // around: bail to the static fallback rather than render a garbled waveform.
+  var need = COUNT * 6 + COUNT * BANDS + BUCK + COUNT * SCOPE;
+  if (!COUNT || !BANDS || raw.length < need) return;
+
+  var off = 0;
+  function take(n) { var s = raw.subarray(off, off + n); off += n; return s; }
+  var RMS = take(COUNT), PEAK = take(COUNT), BASS = take(COUNT);
+  var MID = take(COUNT), TREB = take(COUNT), FLUX = take(COUNT);
+  var MAG = take(COUNT * BANDS);
+  var OVER = take(BUCK);
+  var WAVE = SCOPE ? take(COUNT * SCOPE) : null;
+
+  var COLORS = (root.dataset.agColors || '').split(/\s+/).filter(Boolean);
+  var accent = root.dataset.accent || COLORS[0] || '#5b8def';
+  if (!COLORS.length) COLORS = [accent];
+
+  // Beat frames as a lookup, so the draw loop tests membership instead of
+  // scanning a list every frame.
+  var BEATS = {};
+  (root.dataset.agBeats || '').split(/\s+/).filter(Boolean).forEach(function (f) { BEATS[f | 0] = 1; });
+
+  var style = root.dataset.style || 'bars';
+  var SS = 2;      // backing-store supersample, so a 1920px export stays crisp
+  var MAXW = 3200; // backing-store cap
+
+  // ── Captions ───────────────────────────────────────────────────────────────
+  //
+  // Cues come pre-grouped from hooks.js (a mirror of engine/src/captions.ts) as
+  // [{t0,t1,text}], seconds relative to the analysed window - present only when
+  // the clip carries its own word timings (a Script-audio asset). Drawn on the
+  // dedicated top canvas #ag-cap so they ride every style, including a
+  // shell-mounted MilkDrop canvas that covers #ag-wave.
+  var cap = document.getElementById('ag-cap');
+  var clockEl = document.getElementById('ag-clock');
+  var CUES;
+  try { CUES = JSON.parse(root.dataset.agCues || '[]'); } catch (e) { CUES = []; }
+  if (!Array.isArray(CUES)) CUES = [];
+  var capCtx = cap && typeof cap.getContext === 'function' ? cap.getContext('2d') : null;
+  var captions = !!(capCtx && clockEl && CUES.length);
+  var INK = root.dataset.ink || '#eef1f4';
+  var BG = root.dataset.bg || '#101828';
+
+  // ── Reading the track ──────────────────────────────────────────────────────
+
+  function at(track, f) { return track[f < 0 ? 0 : f >= COUNT ? COUNT - 1 : f] / 255; }
+
+  /** Band `b` of `n` for frame `f`, 0..1. The payload is finer than any style
+   *  draws, so a style samples it at its own resolution (taking the MAX over the
+   *  source bins - a mean smears a narrow peak into its neighbours and the bars
+   *  stop looking like the sound). */
+  function band(f, b, n) {
+    var lo = Math.floor((b / n) * BANDS);
+    var hi = Math.max(lo + 1, Math.floor(((b + 1) / n) * BANDS));
+    var m = 0;
+    for (var k = lo; k < hi && k < BANDS; k++) { var v = MAG[f * BANDS + k]; if (v > m) m = v; }
+    return m / 255;
+  }
+
+  /**
+   * Beat kick - a short decaying bump over the frames just after a detected beat.
+   * Zero when the analysis found no tempo (speech, ambience), which is the common
+   * case and has to look deliberate rather than dead: every style already has a
+   * motion of its own and adds this on top.
+   */
+  function kick(f) {
+    for (var d = 0; d < 5; d++) if (BEATS[f - d]) return (1 - d / 5) * 0.35;
+    return 0;
+  }
+
+  function fit(c) {
+    c = c || canvas;
+    var box = c.parentNode;
+    var w = box.offsetWidth || 600, h = box.offsetHeight || 300;
+    var scale = Math.min(SS, MAXW / Math.max(1, w));
+    var bw = Math.round(w * scale), bh = Math.round(h * scale);
+    if (c.width !== bw || c.height !== bh) { c.width = bw; c.height = bh; }
+  }
+
+  function bar(x, y, w, h, r) {
+    if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); ctx.fill(); }
+    else ctx.fillRect(x, y, w, h);
+  }
+
+  /** The brand ramp as a gradient - used by the styles where height or depth
+   *  carries meaning, so the far end of a tall bar is the ramp's light end. */
+  function grad(x0, y0, x1, y1) {
+    var g = ctx.createLinearGradient(x0, y0, x1, y1);
+    for (var i = 0; i < COLORS.length; i++) g.addColorStop(i / Math.max(1, COLORS.length - 1), COLORS[i]);
+    return g;
+  }
+
+  // ── The styles ─────────────────────────────────────────────────────────────
+  //
+  // Each takes (W, H, f, p): backing-store size, the analysis frame, and progress
+  // through the clip. All of them read the REAL analysis - there is no shared
+  // fake envelope with a travelling bump any more.
+
+  function drawBars(W, H, f, p, mirror) {
+    var N = 40, slot = W / N, gap = slot * 0.42, bw = slot - gap, k = kick(f);
+    ctx.fillStyle = grad(0, H, 0, 0);
+    for (var i = 0; i < N; i++) {
+      var v = Math.min(1, band(f, i, N) * (1 + k));
+      var h = Math.max(H * 0.015, v * H * (mirror ? 0.46 : 0.9));
+      if (mirror) {
+        bar(i * slot + gap / 2, H / 2 - h, bw, h, bw / 2);
+        // The lower half is faint rather than a true mirror, so the centre line
+        // reads as a baseline instead of an axis of symmetry.
+        ctx.globalAlpha = 0.45;
+        bar(i * slot + gap / 2, H / 2, bw, h, bw / 2);
+        ctx.globalAlpha = 1;
+      } else {
+        bar(i * slot + gap / 2, (H - h) / 2, bw, h, bw / 2);
+      }
+    }
+  }
+
+  function drawSpectrum(W, H, f, p) {
+    // Every band, floor-anchored, no gaps - the continuous-curtain look that
+    // reads as a spectrum rather than as a chart.
+    var N = BANDS, slot = W / N, k = kick(f);
+    ctx.fillStyle = grad(0, H, 0, H * 0.1);
+    ctx.beginPath();
+    ctx.moveTo(0, H);
+    for (var i = 0; i < N; i++) {
+      var v = Math.min(1, band(f, i, N) * (1 + k));
+      var y = H - Math.max(2, v * H * 0.92);
+      ctx.lineTo(i * slot, y);
+      ctx.lineTo((i + 1) * slot, y);
+    }
+    ctx.lineTo(W, H);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawWave(W, H, f, p) {
+    // The podcast classic: the clip's whole envelope with the played part solid
+    // and a playhead. The one style whose SHAPE is static and whose motion is the
+    // progress - which is exactly why people reach for it.
+    var mid = H / 2, step = W / Math.max(1, BUCK - 1);
+    function trace() {
+      ctx.beginPath();
+      ctx.moveTo(0, mid - (OVER[0] / 255) * H * 0.42);
+      for (var q = 1; q < BUCK; q++) ctx.lineTo(q * step, mid - (OVER[q] / 255) * H * 0.42);
+      for (var r = BUCK - 1; r >= 0; r--) ctx.lineTo(r * step, mid + (OVER[r] / 255) * H * 0.42);
+      ctx.closePath();
+    }
+    ctx.fillStyle = accent;
+    ctx.globalAlpha = 0.38;
+    trace(); ctx.fill();
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, W * p, H); ctx.clip();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = grad(0, H, 0, 0);
+    trace(); ctx.fill();
+    ctx.restore();
+    ctx.globalAlpha = 0.85;
+    ctx.fillStyle = COLORS[COLORS.length - 1] || accent;
+    ctx.fillRect(Math.max(0, W * p - Math.max(1, W * 0.002)), H * 0.06, Math.max(2, W * 0.004), H * 0.88);
+    ctx.globalAlpha = 1;
+  }
+
+  function drawScope(W, H, f, p) {
+    // A real oscilloscope over this frame's own samples. Without the sample
+    // windows (an older payload, or a style switch caught mid-render) fall back
+    // to the envelope rather than draw a flat line.
+    if (!WAVE) { drawWave(W, H, f, p); return; }
+    var mid = H / 2, step = W / (SCOPE - 1), base = f * SCOPE;
+    ctx.lineWidth = Math.max(2, H * 0.012);
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = grad(0, 0, W, 0);
+    ctx.beginPath();
+    for (var i = 0; i < SCOPE; i++) {
+      var s = (WAVE[base + i] - 128) / 128;
+      var y = mid - s * H * 0.44;
+      if (i) ctx.lineTo(i * step, y); else ctx.moveTo(i * step, y);
+    }
+    ctx.stroke();
+  }
+
+  function drawRing(W, H, f, p) {
+    var N = 72, cx = W / 2, cy = H / 2, R = Math.min(W, H) * 0.27, k = kick(f);
+    ctx.lineCap = 'round';
+    ctx.lineWidth = Math.max(2, (2 * Math.PI * R / N) * 0.45);
+    ctx.strokeStyle = grad(0, cy - R, 0, cy + R);
+    for (var i = 0; i < N; i++) {
+      var a = (i / N) * 2 * Math.PI - Math.PI / 2;
+      var v = Math.min(1, band(f, i, N) * (1 + k));
+      var len = Math.min(W, H) * (0.03 + v * 0.19);
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(a) * R, cy + Math.sin(a) * R);
+      ctx.lineTo(cx + Math.cos(a) * (R + len), cy + Math.sin(a) * (R + len));
+      ctx.stroke();
+    }
+    // The inner circle breathes with overall loudness, so the ring has a centre
+    // that is doing something even through a quiet passage.
+    ctx.globalAlpha = 0.35;
+    ctx.lineWidth = Math.max(2, R * 0.02);
+    ctx.strokeStyle = accent;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R * (0.8 + at(RMS, f) * 0.08 + k * 0.1), 0, 2 * Math.PI);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawBlob(W, H, f, p) {
+    // An organic shape whose deformation IS the spectrum: five harmonics around the
+    // circle, each weighted by one band's energy, so a bass-heavy moment swells into
+    // slow lobes and a bright one adds fine ripple. Bass also swells the whole
+    // radius, so the shape breathes.
+    //
+    // Built from SINUSOIDS rather than by sampling the spectrum per angle. The
+    // sampled version snapped each angle to a discrete band index, which gave flat
+    // runs joined by vertical walls - it rendered as a cog, not a blob. A sum of
+    // harmonics is smooth and seam-free by construction (every term is 2π-periodic,
+    // so the curve closes exactly).
+    var N = 160, cx = W / 2, cy = H / 2;
+    var R = Math.min(W, H) * (0.19 + at(BASS, f) * 0.09 + kick(f) * 0.05);
+    // Harmonic number, amplitude, and a fixed phase offset so the lobes are not all
+    // aligned into a star. Deterministic - no time term, so a still frame is stable.
+    var HARM = [[2, 0.13, 0.0], [3, 0.10, 1.1], [5, 0.07, 2.3], [7, 0.05, 0.6], [11, 0.03, 1.9]];
+    ctx.fillStyle = grad(0, cy - R, 0, cy + R);
+    ctx.beginPath();
+    for (var i = 0; i <= N; i++) {
+      var a = (i / N) * 2 * Math.PI - Math.PI / 2;
+      var r = 1;
+      for (var k = 0; k < HARM.length; k++) {
+        r += band(f, k, HARM.length) * HARM[k][1] * Math.sin(HARM[k][0] * a + HARM[k][2]);
+      }
+      var x = cx + Math.cos(a) * R * r, y = cy + Math.sin(a) * R * r;
+      if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawRidge(W, H, f, p) {
+    // A waterfall: this frame in front, the recent past receding upward. It reads
+    // as history, so even a still frame says "this is a piece of music".
+    var ROWS = 18, N = 34, k = kick(f);
+    for (var r = ROWS - 1; r >= 0; r--) {
+      var src = f - r * 2;
+      if (src < 0) continue;
+      var depth = r / ROWS;
+      var y = H * (0.92 - depth * 0.72);
+      var amp = H * 0.16 * (1 - depth * 0.55);
+      ctx.globalAlpha = 0.9 - depth * 0.75;
+      ctx.fillStyle = COLORS[Math.min(COLORS.length - 1, Math.round(depth * (COLORS.length - 1)))];
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      for (var i = 0; i < N; i++) {
+        var v = Math.min(1, band(src, i, N) * (1 + (r === 0 ? k : 0)));
+        ctx.lineTo((i / (N - 1)) * W, y - v * amp);
+      }
+      ctx.lineTo(W, y);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function drawDots(W, H, f, p) {
+    // A grid where each column is a band and rows light up in turn - the LED-meter
+    // idea, so a quiet passage reads as sparse rather than as small.
+    var COLS = 24, ROWS = 12, k = kick(f);
+    var cw = W / COLS, ch = H / ROWS, rad = Math.min(cw, ch) * 0.28;
+    for (var c = 0; c < COLS; c++) {
+      var lit = Math.min(1, band(f, c, COLS) * (1 + k)) * ROWS;
+      for (var r = 0; r < ROWS; r++) {
+        var on = lit - r;
+        if (on <= 0) { ctx.globalAlpha = 0.1; ctx.fillStyle = accent; }
+        else {
+          ctx.globalAlpha = Math.min(1, 0.35 + on);
+          ctx.fillStyle = COLORS[Math.min(COLORS.length - 1, Math.round((r / ROWS) * (COLORS.length - 1)))];
+        }
+        ctx.beginPath();
+        ctx.arc(c * cw + cw / 2, H - (r * ch + ch / 2), rad, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  var STYLES = {
+    bars: function (W, H, f, p) { drawBars(W, H, f, p, false); },
+    mirror: function (W, H, f, p) { drawBars(W, H, f, p, true); },
+    spectrum: drawSpectrum,
+    wave: drawWave,
+    scope: drawScope,
+    ring: drawRing,
+    blob: drawBlob,
+    ridge: drawRidge,
+    dots: drawDots
+  };
+
+  /**
+   * The poster frame: the loudest frame in the middle 80% of the clip. A still of
+   * an audiogram should show the waveform doing something, and clips routinely
+   * open on silence - so t=0 is the wrong frame to freeze.
+   */
+  var posterFrame = (function () {
+    var lo = Math.floor(COUNT * 0.1), hi = Math.ceil(COUNT * 0.9), best = lo, bv = -1;
+    for (var i = lo; i < hi && i < COUNT; i++) if (RMS[i] > bv) { bv = RMS[i]; best = i; }
+    return best;
+  })();
+
+  function draw(p, poster) {
+    fit();
+    var W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    var f = poster ? posterFrame : Math.min(COUNT - 1, Math.max(0, Math.floor(p * COUNT)));
+    // The progress a style paints follows the frame it is drawing, so the poster's
+    // playhead sits under its own waveform rather than at the far left.
+    var prog = poster ? (posterFrame + 0.5) / COUNT : p;
+    (STYLES[style] || STYLES.bars)(W, H, f, prog);
+  }
+
+  /** The cue on screen at `t` seconds, or null during silence. Linear - a
+   *  narration is at most a few hundred cues and this runs once per frame. */
+  function cueAtTime(t) {
+    for (var i = 0; i < CUES.length; i++) if (t >= CUES[i].t0 && t < CUES[i].t1) return CUES[i];
+    return null;
+  }
+
+  /**
+   * The lower-third caption for normalised clip time `p`, drawn onto #ag-cap:
+   * the active cue wrapped to at most two lines over a translucent plate in the
+   * card's own background colour, text in the ink colour. Payload-only and
+   * synchronous, like every other draw here.
+   */
+  // `span` is the length in seconds that `p` is a fraction OF. Live playback has
+  // only one answer (DUR, the analysed clip), but an EXPORT decides its own length
+  // - the frame plan can lower the frame rate or, at the extreme, truncate - and it
+  // hands that length in. Preferring it is what keeps a cue on the word: mapping p
+  // onto DUR while the video actually ran for a different number of seconds is what
+  // made a long narration paint its whole caption track over a short clip.
+  function drawCaption(p, span) {
+    if (!captions) return;
+    fit(cap);
+    var W = cap.width, H = cap.height;
+    capCtx.clearRect(0, 0, W, H);
+    var cue = cueAtTime(p * (span > 0 ? span : DUR));
+    if (!cue) return;
+    // Type set against the box so a story export and a square preview carry the
+    // same proportion; the family follows the card's own (brand) face.
+    var fs = Math.max(16, Math.round(Math.min(W, H) * 0.052));
+    var fam = 'sans-serif';
+    try { fam = getComputedStyle(root).fontFamily || fam; } catch (e) { /* headless */ }
+    capCtx.font = '600 ' + fs + 'px ' + fam;
+    capCtx.textAlign = 'center';
+    capCtx.textBaseline = 'middle';
+    // Greedy wrap, one break at most: hooks.js caps a cue at 42 characters, so
+    // two lines always hold it - a third would climb into the visual.
+    var maxW = W * 0.86;
+    var wordsArr = cue.text.split(' ');
+    var lines = [];
+    var line = '';
+    for (var i = 0; i < wordsArr.length; i++) {
+      var next = line ? line + ' ' + wordsArr[i] : wordsArr[i];
+      if (line && !lines.length && capCtx.measureText(next).width > maxW) { lines.push(line); line = wordsArr[i]; }
+      else line = next;
+    }
+    lines.push(line);
+    var lh = fs * 1.3;
+    var padX = fs * 0.7, padY = fs * 0.45;
+    var wMax = 0;
+    for (var j = 0; j < lines.length; j++) {
+      var lw = capCtx.measureText(lines[j]).width;
+      if (lw > wMax) wMax = lw;
+    }
+    var pw = Math.min(W * 0.94, wMax + padX * 2);
+    var phH = lines.length * lh + padY * 2;
+    var px = (W - pw) / 2;
+    var py = H - Math.max(H * 0.045, fs * 0.8) - phH;
+    capCtx.globalAlpha = 0.72;
+    capCtx.fillStyle = BG;
+    if (capCtx.roundRect) { capCtx.beginPath(); capCtx.roundRect(px, py, pw, phH, fs * 0.35); capCtx.fill(); }
+    else capCtx.fillRect(px, py, pw, phH);
+    capCtx.globalAlpha = 1;
+    capCtx.fillStyle = INK;
+    for (var k = 0; k < lines.length; k++) {
+      capCtx.fillText(lines[k], W / 2, py + padY + (k + 0.5) * lh);
+    }
+  }
+
+  /** The shell-mounted MilkDrop canvas, when it is live and driveable. */
+  function vizCanvas() {
+    var el = root.querySelector('.ag-viz canvas');
+    return el && typeof el.__lollyFrameRender === 'function' ? el : null;
+  }
+
+  /**
+   * Reveal the canvas and put the still away. Called the moment something is
+   * actually going to paint a frame - the live preview loop, or an export frame
+   * clock - and never before, so everything that does NOT animate (a script-less
+   * render, prefers-reduced-motion, a capture that pins the still with its own
+   * CSS) keeps the vector poster hooks.js built.
+   */
+  function live() { if (!root.classList.contains('is-live')) root.classList.add('is-live'); }
+
+  // Deterministic export frame clock (shared convention - see the slides tool and
+  // bridge/export.ts): stills and every gif/webm/mp4/webp frame call this with the
+  // normalised clip time; t=0 is the poster frame.
+  //
+  // With captions the anchor moves to the inert #ag-clock (first in the DOM, so
+  // the export picks it over a mounted MilkDrop canvas): it draws the caption and
+  // forwards the tick to whichever visual is live, mirroring the driven flag so
+  // the visualizer's own preview loop stands down while the export drives.
+  if (captions) {
+    clockEl.__lollyFrameRender = function (t, clipSec) {
+      live();
+      var vc = vizCanvas();
+      if (vc) { vc.__lollyFrameDriven = clockEl.__lollyFrameDriven; vc.__lollyFrameRender(t, clipSec); }
+      else draw(t, t === 0);
+      drawCaption(t === 0 ? (posterFrame + 0.5) / COUNT : t, clipSec);
+    };
+  } else {
+    canvas.__lollyFrameRender = function (t) { live(); draw(t, t === 0); };
+  }
+
+  // Live preview loop. A repaint replaces the canvas (the loop dies via
+  // isConnected); a script re-run on the SAME canvas (an export-size change) bumps
+  // the generation token so the older loop stops. Bails while the export clock
+  // drives frames, and honours prefers-reduced-motion by leaving the SVG still up.
+  var gen = (canvas.__agGen = (canvas.__agGen || 0) + 1);
+  var reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Paint the poster into the (still hidden) canvas up front, so the swap to it on
+  // the loop's first frame is a change of surface and not a flash of empty box.
+  draw(0, true);
+  drawCaption((posterFrame + 0.5) / COUNT);
+  if (!reduce && typeof requestAnimationFrame === 'function') {
+    var t0 = null;
+    var loop = function (now) {
+      if (!canvas.isConnected || canvas.__agGen !== gen) return;
+      // The captioned clock anchor owns the driven flag when it exists.
+      var driven = (captions ? clockEl : canvas).__lollyFrameDriven;
+      // Motion is about to happen, so the canvas takes the still's place. BEFORE the
+      // offsetParent tests below, not after: the canvas is display:none until
+      // `.is-live`, so waiting for it to be laid out would wait forever.
+      if (!driven) live();
+      // offsetParent is null once the shell hides this canvas behind a mounted
+      // visualizer - drawing a full frame into something nobody can see, alongside a
+      // WebGL render, is pure waste. It keeps polling so it resumes if the viz goes.
+      // Captions keep animating either way: theirs is the canvas on top.
+      if (!driven && (captions || canvas.offsetParent !== null)) {
+        if (t0 === null) t0 = now;
+        var period = DUR * 1000;
+        var p = ((now - t0) % period) / period;
+        if (canvas.offsetParent !== null) draw(p, false);
+        if (captions) {
+          drawCaption(p);
+          // Export over: hand the visualizer its preview loop back (the clock's
+          // forwarder raised its flag while the export drove the frames).
+          var vc = vizCanvas();
+          if (vc && vc.__lollyFrameDriven) vc.__lollyFrameDriven = false;
+        }
+      }
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+})();
+</script>

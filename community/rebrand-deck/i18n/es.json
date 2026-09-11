@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "Sube una presentación de PowerPoint y ajusta sus colores y fuentes a tu marca - reconstruida en tu dispositivo, sin subir nada.",
+  "a11yLabel": "Cambio de marca de la presentación para {{fileName}}",
+  "inputs.source.label": "Archivo PowerPoint",
+  "inputs.source.help": "Un archivo .pptx. Se lee en tu dispositivo y nunca se sube.",
+  "inputs.useTheme.label": "Aplicar tema de marca",
+  "inputs.useTheme.help": "Cambia la paleta de temas y las fuentes de la presentación a tu marca - cada color vinculado al tema se actualiza automáticamente.",
+  "inputs.colorMap.label": "Mapeo de color",
+  "inputs.colorMap.help": "Colores codificados encontrados en las diapositivas, cada uno con su color de marca sugerido. Elimina una fila para dejar ese color como está.",
+  "inputs.colorMap.fields.from.label": "Original",
+  "inputs.colorMap.fields.to.label": "Marca",
+  "inputs.fontMap.label": "Asignación de fuentes",
+  "inputs.fontMap.help": "Tipografías nombradas en el deck, cada una con su reemplazo de marca. Elimina una fila para conservar esa fuente.",
+  "inputs.fontMap.fields.from.label": "Original",
+  "inputs.fontMap.fields.to.label": "Marca",
+  "inputs.dropFonts.label": "Quitar fuentes incrustadas",
+  "inputs.dropFonts.help": "Las fuentes de la marca anterior incrustadas en el archivo quedan obsoletas tras un cambio y pueden tener restricciones de licencia."
+}

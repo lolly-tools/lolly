@@ -1,0 +1,2744 @@
+{{#if _useThree}}
+<div class="chart3d-wrap" data-chart3d-wrap data-renderer="{{_rendererFamily}}" data-style="{{_chartStyle}}"
+     role="img" aria-label="{{_chartDescription}}"
+     style="position:relative;width:100%;max-width:{{width}}px;aspect-ratio:{{width}}/{{height}};overflow:hidden;background:{{_bgFill}};font-family:var(--font-brand,'SUSE',system-ui,-apple-system,sans-serif);">
+  <!-- First paint, CLI and vector-export path. It stays in the DOM after WebGL
+       succeeds so SVG/PDF can deliberately choose real geometry over pixels. -->
+  <svg data-chart3d-fallback xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{width}} {{height}}"
+       width="{{width}}" height="{{height}}" style="position:absolute;inset:0;width:100%;height:100%;display:block;">
+    <title>{{_chartTitle}}</title>
+    <desc>{{_chartDescription}}</desc>
+    <rect width="{{width}}" height="{{height}}" fill="{{_bgFill}}"/>
+    {{{_threeFallback}}}
+  </svg>
+  <!-- Three renders to a detached GPU canvas, then copies into this 2-D
+       presentation canvas. That makes the ordinary Lolly image/video capture
+       path deterministic and avoids preserveDrawingBuffer. -->
+  <canvas data-chart3d-canvas data-capture-stream width="{{width}}" height="{{height}}"
+          style="position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;"></canvas>
+  <svg data-chart3d-overlay xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{width}} {{height}}"
+       width="{{width}}" height="{{height}}" aria-hidden="true"
+       style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;overflow:visible;">
+    <style>[data-chart3d-overlay] text{font-family:var(--font-brand,'SUSE',system-ui,-apple-system,sans-serif)}</style>
+    <g data-chart3d-overlay-root></g>
+  </svg>
+</div>
+{{{_a11yTable}}}
+<canvas data-chart3d-clock width="1" height="1" style="display:none" aria-hidden="true"></canvas>
+<script type="application/json" data-chart3d-state>{{{_state}}}</script>
+<script>
+(function () {
+  var cs = document.currentScript;
+  var ROOT = (cs && cs.parentNode) || document;
+  ROOT.__chart3dEpoch = (ROOT.__chart3dEpoch || 0) + 1;
+  var epoch = ROOT.__chart3dEpoch;
+  var wrap = ROOT.querySelector('[data-chart3d-wrap]');
+  var stateEl = ROOT.querySelector('[data-chart3d-state]');
+  var clock = ROOT.querySelector('[data-chart3d-clock]');
+  if (!wrap || !stateEl) return;
+
+  var state;
+  try { state = JSON.parse(stateEl.textContent || '{}'); } catch (e) { return; }
+
+  window.__toolHasReadySignal = true;
+  var readyFired = false;
+  function fireReady() {
+    if (readyFired) return;
+    readyFired = true;
+    try { document.dispatchEvent(new CustomEvent('tool:ready')); } catch (e) {}
+  }
+
+  if (ROOT.__lollyChart3d && typeof ROOT.__lollyChart3d.dispose === 'function') {
+    try { ROOT.__lollyChart3d.dispose(); } catch (e) {}
+    ROOT.__lollyChart3d = null;
+  }
+
+  function loadOnce(name, src, present) {
+    if (present()) return Promise.resolve();
+    window[name] = window[name] || new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = function () { s.remove(); window[name] = null; reject(new Error(src + ' failed to load')); };
+      document.head.appendChild(s);
+    });
+    return window[name];
+  }
+
+  Promise.all([
+    loadOnce('__lollyChartThreeLoading', '/tools/chart/lib/three-chart.min.js', function () { return !!window.LollyChartThree; }),
+    loadOnce('__lollyChartAdapterLoading', '/tools/chart/lib/chart-three.js', function () { return !!window.LollyChart3D; })
+  ]).then(function () {
+    if (ROOT.__chart3dEpoch !== epoch) return;
+    if (!window.LollyChartThree || !window.LollyChart3D) throw new Error('3-D chart renderer is unavailable');
+    var mounted = window.LollyChart3D.mount({ root: wrap, state: state, THREE: window.LollyChartThree });
+    ROOT.__lollyChart3d = mounted;
+    if (clock && mounted && typeof mounted.renderAt === 'function') clock.__lollyFrameRender = mounted.renderAt;
+    fireReady();
+  }).catch(function (err) {
+    wrap.setAttribute('data-backend', 'vector-fallback');
+    console.error('[chart 3d]', err);
+    fireReady();
+  });
+})();
+</script>
+{{else}}
+{{#if _usePlot}}
+<div data-chart-plot-wrap data-renderer="{{_rendererFamily}}" data-style="{{_chartStyle}}"
+     style="position:relative;width:100%;max-width:{{width}}px;aspect-ratio:{{width}}/{{height}};overflow:hidden;background:{{_bgFill}};font-family:var(--font-brand,'SUSE',system-ui,-apple-system,sans-serif);">
+  <svg data-chart-plot-fallback xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{width}} {{height}}"
+       width="{{width}}" height="{{height}}" role="img" aria-label="{{_chartDescription}}"
+       style="position:absolute;inset:0;width:100%;height:100%;display:block;">
+    <title>{{_chartTitle}}</title>
+    <desc>{{_chartDescription}}</desc>
+    <rect width="{{width}}" height="{{height}}" fill="{{_bgFill}}"/>
+    {{{_plotFallback}}}
+  </svg>
+  <div data-chart-plot-root style="position:absolute;inset:0;width:100%;height:100%;display:none;"></div>
+  <canvas data-chart-plot-clock width="1" height="1" style="display:none" aria-hidden="true"></canvas>
+</div>
+{{{_a11yTable}}}
+<script type="application/json" data-chart-plot-state>{{{_state}}}</script>
+<script>
+(function () {
+  var cs = document.currentScript;
+  var ROOT = (cs && cs.parentNode) || document;
+  ROOT.__chartPlotEpoch = (ROOT.__chartPlotEpoch || 0) + 1;
+  var epoch = ROOT.__chartPlotEpoch;
+  var wrap = ROOT.querySelector('[data-chart-plot-wrap]');
+  var stateEl = ROOT.querySelector('[data-chart-plot-state]');
+  var clock = ROOT.querySelector('[data-chart-plot-clock]');
+  if (!wrap || !stateEl) return;
+  var state;
+  try { state = JSON.parse(stateEl.textContent || '{}'); } catch (e) { return; }
+
+  window.__toolHasReadySignal = true;
+  var ready = false;
+  function fireReady() {
+    if (ready) return; ready = true;
+    try { document.dispatchEvent(new CustomEvent('tool:ready')); } catch (e) {}
+  }
+  function loadOnce(name, src, present) {
+    if (present()) return Promise.resolve();
+    window[name] = window[name] || new Promise(function (resolve, reject) {
+      var s = document.createElement('script'); s.src = src; s.onload = resolve;
+      s.onerror = function () { s.remove(); window[name] = null; reject(new Error(src + ' failed to load')); };
+      document.head.appendChild(s);
+    });
+    return window[name];
+  }
+  if (ROOT.__lollyChartPlot && typeof ROOT.__lollyChartPlot.dispose === 'function') {
+    try { ROOT.__lollyChartPlot.dispose(); } catch (e) {}
+    ROOT.__lollyChartPlot = null;
+  }
+  // Observable Plot's official browser build deliberately shares Chart's pinned
+  // D3 runtime. Load sequentially so the UMD factory always sees window.d3.
+  loadOnce('__d3Loading', '/tools/chart/lib/d3.min.js', function () { return !!window.d3; })
+    .then(function () { return loadOnce('__lollyObservablePlotLoading', '/tools/chart/lib/observable-plot.min.js', function () { return !!window.Plot; }); })
+    .then(function () { return loadOnce('__lollyChartPlotAdapterLoading', '/tools/chart/lib/chart-plot.js', function () { return !!window.LollyChartPlot; }); })
+    .then(function () {
+      if (ROOT.__chartPlotEpoch !== epoch) return;
+      if (!window.Plot || !window.LollyChartPlot) throw new Error('Statistical chart renderer is unavailable');
+      ROOT.__lollyChartPlot = window.LollyChartPlot.mount({ root: wrap, state: state, Plot: window.Plot, clock: clock });
+      if (ROOT.__lollyChartPlot) {
+        wrap.__lollyPlotPoster = ROOT.__lollyChartPlot.poster;
+        wrap.__lollyPlotRestore = ROOT.__lollyChartPlot.restore;
+      }
+      fireReady();
+    }).catch(function (err) {
+      wrap.setAttribute('data-backend', 'semantic-fallback');
+      console.error('[chart statistical]', err);
+      fireReady();
+    });
+})();
+</script>
+{{else}}
+<svg id="d3-svg" xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 {{width}} {{height}}" width="{{width}}" height="{{height}}"
+     style="width:100%;height:auto;display:block;"
+     data-lolly-anno="{{renderMode}} {{chartType}} {{sceneType}} {{delimiter}} {{stackMode}} {{curve}} {{sizeBy}} {{sort}} {{yScaleType}} {{numberFormat}} {{palette}} {{colorBy}} {{textColor}} {{strokeColor}} {{legendPosition}}">
+  <title>{{_chartTitle}}</title>
+  <desc>{{_chartDescription}}</desc>
+  <defs>
+    <style>
+      /* Brand font via the injected var (community pattern - no @font-face here;
+         the shell loads the active brand's faces). 'SUSE' rides the fallback
+         tail so an already-registered face still resolves on older shells. */
+      #d3-svg text, #d3-svg tspan { font-family: var(--font-brand, 'SUSE', system-ui, -apple-system, sans-serif); }
+      /* Click-to-focus: annotated parts jump to their sidebar control on click - hint it. */
+      #d3-svg [data-canvas-input] { cursor: pointer; }
+      /* Click-to-recolour: bars/slices open a brand-swatch picker on click. */
+      #d3-svg [data-recolor] { cursor: pointer; }
+      /* Click a data label to annotate it (arrow + note). */
+      #d3-svg [data-annot] { cursor: pointer; }
+    </style>
+  </defs>
+  <rect id="d3-bg" width="{{width}}" height="{{height}}" fill="{{_bgFill}}" pointer-events="all"/>
+  <g id="d3-plot" data-canvas-input="data"></g>
+</svg>
+{{{_a11yTable}}}
+<!-- Export frame-clock carrier. The animated chart is rAF-driven SVG (no <canvas>), but
+     the video/apng/webp-anim pipeline seeks motion through a deterministic clock it finds
+     on a descendant <canvas> OR the export node itself (see createFrameSource →
+     frameClockCanvas). This hidden 1×1 canvas carries __lollyFrameRender so the export can
+     drive each exact phase; startAnim also puts the hook on #d3-svg for whichever element
+     the export captures. display:none → found by querySelectorAll, never rasterised. -->
+<canvas id="d3-clock" width="1" height="1" style="display:none" aria-hidden="true"></canvas>
+<script type="application/json" id="d3-state">{{{_state}}}</script>
+<script>
+(function () {
+  /* Idempotent per-paint IIFE (the template re-runs on every render). An epoch
+     guard drops any stale async callback from a previous paint. See street-map.
+     Multi-edit mounts MANY d3 instances inline in ONE document, so everything
+     resolves against THIS instance's own container (found via the running
+     <script>) and its per-instance state (epoch, rAF handle) lives on that ROOT
+     - never on `window`, which would collide across cards and, via duplicate
+     ids + a shared epoch, blank all but one. Only the d3 library itself and its
+     load promise stay global (loaded once, legitimately shared). */
+  var _cs = document.currentScript;
+  var ROOT = (_cs && _cs.parentNode) || document;
+  ROOT.__d3Epoch = (ROOT.__d3Epoch || 0) + 1;
+  var _ep = ROOT.__d3Epoch;
+  function alive() { return ROOT.__d3Epoch === _ep; }
+
+  var stateEl = ROOT.querySelector('#d3-state');
+  var svgEl = ROOT.querySelector('#d3-svg');
+  if (!stateEl || !svgEl) return;
+  /* Scoped once: the plot/bg live inside THIS svg, the clock beside it - d3.select
+     and getElementById would otherwise grab the first match across all cards. */
+  var plotEl = svgEl.querySelector('#d3-plot');
+  var bgEl = svgEl.querySelector('#d3-bg');
+  var clockEl = ROOT.querySelector('#d3-clock');
+
+  var state;
+  try { state = JSON.parse(stateEl.textContent || '{}'); } catch (e) { return; }
+  if (!state || !state.cfg) return;
+
+  /* Load d3 once (dedupe concurrent loads across re-paints), then render. */
+  var LIB = '/tools/chart/lib/d3.min.js';
+  function loadD3() {
+    if (window.d3) return Promise.resolve();
+    window.__d3Loading = window.__d3Loading || new Promise(function (res, rej) {
+      var s = document.createElement('script');
+      s.src = LIB; s.onload = res;
+      /* Remove the failed node so a re-paint doesn't accrete orphan <script>s. */
+      s.onerror = function () { s.remove(); window.__d3Loading = null; rej(new Error('d3 load failed')); };
+      document.head.appendChild(s);
+    });
+    return window.__d3Loading;
+  }
+
+  loadD3().then(function () {
+    if (!alive()) return;
+    /* Loaded but no global (e.g. an SPA fallback served index.html at the lib URL)
+       - surface it rather than leaving a silently blank canvas. */
+    if (!window.d3) { message('Chart library failed to load.'); return; }
+    try { render(state, window.d3); startAnim(state, window.d3); }
+    catch (err) { console.error('[d3] render error:', err); message(String(err && err.message || err)); }
+  }).catch(function (e) { console.error('[d3]', e); message('Chart library failed to load.'); });
+
+  /* ── palettes (shipped fallback) ──────────────────────────────────────────────────────── */
+  /* Ordered categorical hues - distinct colour families, CVD-considered. */
+  /* Lead with a green that clears WCAG 1.4.11 (3:1) on white - Pine #30BA78 is
+     only ~2.5:1, so the deeper #008657 takes slot 0 (like the reference tool). */
+  var CATEGORICAL = ['#008657','#2453FF','#FE7C3F','#5D4F99','#00BDA7','#BD3314','#3C8EEF','#192072','#30BA78','#FAB088'];
+  /* Sequential ramps, light → dark, as interpolate anchors. The dark anchor is the
+     neutral near-black ink #111111 (not any brand's ink hex). SHIPPED = the fallback
+     when the hook couldn't derive brand ramps (older shell / no host.color). */
+  var SHIPPED_RAMPS = {
+    suse:      ['#DDF3EA','#8FE3C0','#30BA78','#0C7C4E','#111111'],
+    pine:      ['#DDF3EA','#8FE3C0','#30BA78','#0C7C4E','#111111'],
+    waterhole: ['#E3EAFF','#93A9FF','#2453FF','#1B37B8','#192072'],
+    warm:      ['#FDE7D8','#FAB088','#FE7C3F','#C6461B','#7A2A10'],
+    cool:      ['#BFF1EA','#5FC7D8','#2E77E6','#1E2C86','#192072'],
+    diverging: ['#2453FF','#93A9FF','#EFEFEF','#FCB98F','#FE7C3F'],
+    mono:      ['#D6E3DE','#93B7AA','#3E7D68','#1C4E40','#111111']
+  };
+  /* Chart types that support click-to-recolour (a single label → one brand-swatch
+     override). Shared by render()'s tagMark gate AND setupRecolor's click gate so
+     the two never drift. Single-series categorical charts, like pie/donut. */
+  var RECOLOR_CHARTS = ['bar','bar-horizontal','pie','donut','radial-bar','treemap','pack','funnel','waffle','lollipop','polar','waterfall','pareto','bullet','range-bar'];
+
+  /* ── colour helpers (WCAG legibility guard, ported from chart-creator) ─────── */
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+  function isHex(s) { return /^#[0-9a-fA-F]{6}$/.test(String(s)); }
+  function lum(hex) {
+    var c = String(hex).replace('#', '');
+    if (c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+    var f = function (v) { v /= 255; return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); };
+    return 0.2126*f(parseInt(c.slice(0,2),16)) + 0.7152*f(parseInt(c.slice(2,4),16)) + 0.0722*f(parseInt(c.slice(4,6),16));
+  }
+  function contrast(a, b) { var hi = Math.max(lum(a),lum(b)), lo = Math.min(lum(a),lum(b)); return (hi+0.05)/(lo+0.05); }
+  /* Crossover for the near-black ink #111111 (luminance ~0.005) is ~0.18 - above it
+     dark ink out-contrasts white on the mark (matches chart-creator's autoText). */
+  function autoText(bg) { return lum(bg) > 0.179 ? '#111111' : '#ffffff'; }
+  /* Auto ink for chart chrome (titles/axes/labels/legend/gridlines) when the user
+     leaves "Text & axis colour" blank - contrasts with the background so a dark bg
+     flips everything light without the user colouring each element. */
+  function autoInk(bg) { return lum(bg) > 0.42 ? '#141414' : '#f4f4f4'; }
+  function toRgb(hex){var c=String(hex).replace('#','');return [parseInt(c.slice(0,2),16),parseInt(c.slice(2,4),16),parseInt(c.slice(4,6),16)];}
+  function toHex(a){return '#'+a.map(function(v){return clamp(Math.round(v),0,255).toString(16).padStart(2,'0');}).join('');}
+  /* Nudge a fill away from the surface until it clears a legibility floor. */
+  function legible(hex, bg, floor) {
+    if (!isHex(hex) || !isHex(bg)) return hex;
+    var FLOOR = floor || 1.9;
+    if (contrast(hex, bg) >= FLOOR) return hex;
+    var target = lum(bg) > 0.4 ? [0,0,0] : [255,255,255];
+    var rgb = toRgb(hex);
+    for (var t = 0.15; t < 1; t += 0.15) {
+      var cand = toHex(rgb.map(function (v,i){ return v + (target[i]-v)*t; }));
+      if (contrast(cand, bg) >= FLOOR) return cand;
+    }
+    return toHex(target);
+  }
+
+  function message(text) {
+    var d3 = window.d3;
+    if (!d3) return;
+    var svg = d3.select(svgEl);
+    var W = state.cfg.width, H = state.cfg.height;
+    svg.attr('viewBox', '0 0 '+W+' '+H).attr('width', W).attr('height', H);
+    d3.select(bgEl).attr('width', W).attr('height', H);
+    var g = d3.select(plotEl); g.selectAll('*').remove();
+    var size = clamp(W / 30, 14, 26);
+    var lines = wrapToWidth(text || 'No data', Math.max(80, W - 64), size, 500, 6);
+    var colour = isHex(state.cfg.textColor) ? state.cfg.textColor : autoInk(state.cfg.transparent ? '#ffffff' : state.cfg.background);
+    drawTextLines(g, lines, W / 2, H / 2, 'middle', size, 500, colour, 1, 'center');
+  }
+
+  /* ── keyframe animation ──────────────────────────────────────────────────────
+     When the data carries frames (a frame/time column), morph the chart between
+     them on a loop by re-rendering with tweened series each tick. render() clears
+     and redraws #d3-plot every call, so the DOM genuinely changes frame-to-frame -
+     which is what lets the existing video pipeline (render.video) capture it as a
+     looping APNG / MP4 / WebM, and what animates it live in the preview. The epoch
+     guard stops a stale loop the moment a new paint supersedes it.
+
+     Playback is driven by a normalised clock t∈[0,1). A shared `window.__lollyAnim`
+     is the CONTRACT with the shell's transport bar: the tool publishes {active,
+     labels, loopMs, curT} and reads back {playing, scrubT} so a generic play/pause/
+     scrub control can drive ANY animated tool without knowing its internals. When no
+     transport is present the tool just free-runs. */
+  function startAnim(baseState, d3) {
+    if (ROOT.__d3Raf) { cancelAnimationFrame(ROOT.__d3Raf); ROOT.__d3Raf = 0; }
+    var data = baseState.data, cfg = baseState.cfg, frames = data.frames, labels = data.frameLabels || [];
+    if (!frames || frames.length < 2) {
+      if (window.__lollyAnim) window.__lollyAnim.active = false;   // hide the transport
+      [clockEl, svgEl].forEach(function (el) { if (el) delete el.__lollyFrameRender; });  // a static chart must not be export-driven
+      svgEl.__lollyBuildSmil = null; svgEl.__lollyRestoreLive = null; svgEl.__lollySmilActive = false;   // clear a stale SMIL builder so a static SVG export stays static
+      return;
+    }
+    var nF = frames.length, stepMs = clamp(cfg.animSpeed || 1.5, 0.3, 8) * 1000, holdFrac = 0.35, loopMs = nF * stepMs;
+    var bounce = cfg.animDirection === 'bounce', easeMode = cfg.animEase || 'smooth';
+    var guardBg = cfg.transparent ? '#ffffff' : (isHex(cfg.background) ? cfg.background : '#ffffff');
+    var ink = isHex(cfg.textColor) ? cfg.textColor : autoInk(guardBg);
+    var easeIO = function (t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; };
+    /* Tween two frames' series element-wise; a value absent in one frame appears/
+       disappears (uses the finite endpoint) rather than snapping through 0. */
+    var lerp = function (A, B, tw) {
+      return A.map(function (sa, si) {
+        var sb = B[si] || sa;
+        return { name: sa.name, values: sa.values.map(function (va, ci) {
+          var a = isFinite(va) ? +va : null, vb = sb.values[ci], b = isFinite(vb) ? +vb : null;
+          if (a == null && b == null) return null;   // absent in BOTH → stays hidden (null)
+          if (a == null) return b * tw;              // appearing: grow 0 → b
+          if (b == null) return a * (1 - tw);        // leaving: shrink a → 0
+          return a + (b - a) * tw;
+        }) };
+      });
+    };
+    /* Map the clock t∈[0,1) → (frame i, frame j, tween tw), honouring direction +
+       easing. Bounce plays 0→last→0 without wrapping; loop wraps last→0. */
+    function frameFor(t) {
+      var i, j, local;
+      if (bounce) { var u = t < 0.5 ? t * 2 : (1 - t) * 2; var p = u * (nF - 1); i = Math.min(nF - 1, Math.floor(p)); j = Math.min(nF - 1, i + 1); local = p - i; }
+      else { var q = t * nF; i = Math.floor(q) % nF; j = (i + 1) % nF; local = q - Math.floor(q); }
+      var tw = easeMode === 'steps' ? 0 : easeMode === 'linear' ? local : (local < holdFrac ? 0 : easeIO((local - holdFrac) / (1 - holdFrac)));
+      return { i: i, j: j, tw: tw };
+    }
+    function draw(t) {
+      var f = frameFor(t);
+      var tweened = lerp(frames[f.i], frames[f.j], f.tw);
+      /* scatter reads numericCols (x/y); the others read series - feed the tween to the right one. */
+      var st = { cfg: cfg, data: { categories: data.categories, series: tweened,
+        numericCols: cfg.chartType === 'scatter' ? tweened : [], errorValues: null } };
+      try { render(st, d3); } catch (e) { console.error('[d3 anim]', e); return; }
+      if (cfg.frameLabelShow !== false && labels.length) {
+        var fSz = clamp(cfg.frameLabelSize || 36, 8, 160), fPos = cfg.frameLabelPos || 'tr';
+        var left = (fPos === 'tl' || fPos === 'bl'), bottom = (fPos === 'bl' || fPos === 'br');
+        d3.select(plotEl).append('text').attr('x', left ? 18 : cfg.width - 18).attr('y', bottom ? cfg.height - 18 : fSz + 12)
+          .attr('text-anchor', left ? 'start' : 'end').attr('font-size', fSz).attr('font-weight', cfg.frameLabelWeight || 700)
+          .attr('fill', isHex(cfg.frameLabelColor) ? cfg.frameLabelColor : ink).attr('opacity', 0.92).text(labels[f.tw < 0.5 ? f.i : f.j]);
+      }
+    }
+    /* Deterministic EXPORT clock: the video/apng/webp-anim pipeline freezes this tool's
+       rAF (sets __lollyFrameDriven) and calls __lollyFrameRender(t) to paint each exact
+       phase, so the exported motion FOLLOWS the animation instead of one held frame. The
+       hook rides both the hidden #d3-clock <canvas> (found via querySelectorAll) and
+       #d3-svg (the node itself), covering whichever element the export captures. */
+    var clockEls = [clockEl, svgEl].filter(Boolean);
+    clockEls.forEach(function (el) { el.__lollyFrameRender = function (t) { draw(clamp(+t || 0, 0, 0.999999)); }; });
+    var frameDriven = function () { for (var i = 0; i < clockEls.length; i++) if (clockEls[i].__lollyFrameDriven) return true; return false; };
+    /* Animated-SVG (SMIL) export: a sampled flipbook. Render draw(k/N) into N sibling
+       <g>s and cycle their visibility with discrete-opacity SMIL - reuses the exact live
+       renderer, so labels, hide-empties and every chart type come along for free, and a
+       self-contained looping vector SVG plays natively. Driven by the beforeExport hook
+       (format=svg); the rAF loop parks on __d3SmilActive so it can't clobber the build. */
+    svgEl.__lollySmilActive = false;
+    var SVGNS = 'http://www.w3.org/2000/svg', loopSec = loopMs / 1000;
+    svgEl.__lollyBuildSmil = function () {
+      if (!frames || frames.length < 2) return false;
+      var plot = plotEl; if (!plot) return false;
+      svgEl.__lollySmilActive = true;
+      var N = Math.max(nF * 2, Math.min(60, Math.round(loopSec * 12)));   // ~12 fps, capped
+      var groups = [], k;
+      for (k = 0; k < N; k++) {
+        draw(k / N);
+        var g = document.createElementNS(SVGNS, 'g');
+        while (plot.firstChild) g.appendChild(plot.firstChild);
+        groups.push(g);
+      }
+      groups.forEach(function (g, i) {
+        g.setAttribute('opacity', i === 0 ? '1' : '0');
+        var an = document.createElementNS(SVGNS, 'animate');
+        an.setAttribute('attributeName', 'opacity');
+        an.setAttribute('values', '0;1;0;0');           // visible only during this frame's slot
+        an.setAttribute('keyTimes', '0;' + (i / N).toFixed(5) + ';' + ((i + 1) / N).toFixed(5) + ';1');
+        an.setAttribute('calcMode', 'discrete');
+        an.setAttribute('dur', loopSec + 's');
+        an.setAttribute('repeatCount', 'indefinite');
+        g.appendChild(an);
+        plot.appendChild(g);
+      });
+      return true;
+    };
+    svgEl.__lollyRestoreLive = function () { svgEl.__lollySmilActive = false; try { draw((A && A.curT) || 0); } catch (e) { /* ignore */ } };
+    /* Publish/refresh the transport contract, carrying playing state + position over
+       a re-paint so a pause or scrub survives an input tweak. */
+    var prev = window.__lollyAnim || {};
+    var A = window.__lollyAnim = { active: true, labels: labels, loopMs: loopMs, curT: prev.curT || 0,
+      playing: prev.playing !== false, scrubT: (prev.scrubT != null ? prev.scrubT : null), gen: (prev.gen || 0) + 1 };
+    var clock = (prev.curT || 0) * loopMs, prevTs = null, lastDraw = -1e9, lastT = -1;
+    function tick(ts) {
+      if (!alive()) return;                                   // a newer paint owns the canvas now
+      if (frameDriven() || svgEl.__lollySmilActive) { ROOT.__d3Raf = requestAnimationFrame(tick); return; }   // export owns the frame - don't clobber it
+      if (prevTs == null) prevTs = ts;
+      var dt = ts - prevTs; prevTs = ts;
+      var t;
+      if (A.scrubT != null) { t = clamp(A.scrubT, 0, 1); clock = t * loopMs; }       // scrubbing: hold at position
+      else if (A.playing !== false) { clock = (clock + dt) % loopMs; t = clock / loopMs; }  // playing
+      else { t = clock / loopMs; }                                                   // paused: hold
+      var playing = A.scrubT == null && A.playing !== false;
+      if ((playing && ts - lastDraw >= 32) || (!playing && Math.abs(t - lastT) > 0.0005) || lastT < 0) { draw(t); lastDraw = ts; lastT = t; }
+      A.curT = t; A.active = true;
+      ROOT.__d3Raf = requestAnimationFrame(tick);
+    }
+    ROOT.__d3Raf = requestAnimationFrame(tick);
+  }
+
+  /* ── render ────────────────────────────────────────────────────────────────── */
+  function render(state, d3) {
+    var cfg = state.cfg, data = state.data;
+    cfg.bar3d = cfg.barStyle === 'iso3d';
+    cfg.pie3d = cfg.pieStyle === 'iso3d';
+    /* ── palette source ───────────────────────────────────────────────────────
+       'ordered'  categorical - the brand's swatches in their authored order (the
+                  default; follows the palette the way the brand shows it).
+       'suse'     categorical - the brand's spectrum, spaced apart for contrast.
+       'seed'     categorical + ramps extrapolated from one base colour (the hook
+                  builds cfg.seedPalette off host.color).
+       the rest   sequential / diverging ramps. */
+    var pal = String(cfg.palette || 'ordered');
+    var SEED = (pal === 'seed' && cfg.seedPalette) ? cfg.seedPalette : null;
+    var CAT_ORDERED = (cfg.brandOrdered && cfg.brandOrdered.length) ? cfg.brandOrdered : null;
+    function isRampPalette(p) { return ['pine','waterhole','warm','cool','diverging','mono'].indexOf(p) >= 0; }
+    /* Brand-native ramps when the hook derived them (variations + combinations of
+       the brand's own hues); a seed palette brings its own; the shipped hand-tuned
+       set is the last fallback. */
+    var RAMPS = (SEED && SEED.ramps && SEED.ramps.suse) ? SEED.ramps
+              : (cfg.brandRamps && cfg.brandRamps.suse) ? cfg.brandRamps : SHIPPED_RAMPS;
+    /* Reference lines & bands across the value axis (targets/averages/thresholds). */
+    var references = parseReferences(cfg.reference);
+    /* Click-to-recolour overrides (label → hex) + pattern differentiation. */
+    var overrides = parseOverrides(cfg.colorOverrides);
+    var patternsOn = cfg.differentiate === 'both' || (cfg.differentiate === 'auto' && cfg.brandMono);
+    var texDefs = null, texCache = {};   // lazily-created <defs> for texture patterns
+    var W = cfg.width, H = cfg.height;
+    var guardBg = cfg.transparent ? '#ffffff' : (isHex(cfg.background) ? cfg.background : '#ffffff');
+    var ink = isHex(cfg.textColor) ? cfg.textColor : autoInk(guardBg);
+
+    var svg = d3.select(svgEl);
+    svg.attr('viewBox', '0 0 '+W+' '+H).attr('width', W).attr('height', H);
+    d3.select(bgEl).attr('width', W).attr('height', H).attr('fill', cfg.transparent ? 'none' : (isHex(cfg.background) ? cfg.background : '#ffffff'));
+    var root = d3.select(plotEl); root.selectAll('*').remove();
+
+    var cats = (data.categories || []).slice();
+    var series = (data.series || []).map(function (s) { return { name: s.name, values: (s.values||[]).slice() }; });
+    var numericCols = (data.numericCols || []);
+    if (data.comparison && data.comparison.error) { message(data.comparison.error); return; }
+
+    /* Charts whose legend keys are the series (they also need cats + series). */
+    var needSeries = ['bar','bar-horizontal','line','area','radar','lollipop','dumbbell','slope','bump','stream','marimekko'].indexOf(cfg.chartType) >= 0;
+    var needScatter = cfg.chartType === 'scatter' || cfg.chartType === 'parallel';
+    var needHist = cfg.chartType === 'histogram';
+    var needDist = ['box','violin','beeswarm'].indexOf(cfg.chartType) >= 0;   // distribution charts run off numericCols
+    if ((needSeries && (!cats.length || !series.length)) ||
+        (needScatter && numericCols.length < 2) ||
+        (needHist && !numericCols.length) ||
+        (needDist && !numericCols.length) ||
+        (!needSeries && !needScatter && !needHist && !needDist && (!cats.length || !series.length))) {
+      message(data.note || (needScatter ? 'This chart needs at least two numeric columns.' : 'Paste a table with a label column and numeric columns.'));
+      return;
+    }
+
+    /* Colour functions. The categorical option follows the active brand's
+       spectrum when the hook resolved one (cfg.brandPalette - see hooks.js);
+       the shipped set is the fallback. */
+    var slots = cfg.paletteSlots || [];   // manual Colour 1..6 (blank = brand palette)
+    /* Ramp interpolator honouring the Colour blend choice. Smooth = perceptual
+       CIELAB (passes through each anchor); sRGB = the classic B-spline blend. Vivid
+       is a TWO-colour CIELCh journey - from a base colour to the Second colour, the
+       short way or the long way round the hue circle (like Colour Lab's blend ramp),
+       so the midtones keep their chroma. Any failure falls back to the sRGB basis. */
+    /* A Vivid (CIELCh) interpolation between two colours. Short takes the shortest
+       hue arc; Long takes the COMPLEMENTARY (longer) arc round the wheel - and a
+       FULL 360° loop when the two hues coincide, so "Long way round" always travels
+       (d3.interpolateHclLong only skips the shortest-path wrap, so it looks identical
+       to Short whenever the hues are <180° apart - which surprised on green→dark).
+       An achromatic endpoint (near-black/grey) borrows the other's hue so there is
+       still an arc to walk; chroma/lightness interpolate linearly. */
+    function vividInterp(from, to, longWay) {
+      var A = d3.hcl(from), B = d3.hcl(to);
+      var ha = isNaN(A.h) ? B.h : A.h, hb = isNaN(B.h) ? A.h : B.h;
+      if (isNaN(ha)) { ha = 0; hb = 0; }           // both achromatic - nothing to travel
+      var d = (((hb - ha) % 360) + 540) % 360 - 180;   // shortest signed delta, (-180, 180]
+      if (longWay) d = d > 0 ? d - 360 : d + 360;      // the long arc; d===0 → a full -360 loop
+      return function (t) { return d3.hcl(ha + d * t, A.c + (B.c - A.c) * t, A.l + (B.l - A.l) * t) + ''; };
+    }
+    function makeRamp(anchors) {
+      var a = (anchors && anchors.length) ? anchors : (RAMPS.suse || SHIPPED_RAMPS.suse);
+      var blend = cfg.paletteBlend || 'smooth';
+      try {
+        if (blend === 'vivid') {
+          var from = isHex(VIVID_FROM) ? VIVID_FROM : a[0];
+          var to   = isHex(VIVID_TO) ? VIVID_TO : a[a.length - 1];
+          return vividInterp(from, to, cfg.hueRoute === 'long');
+        }
+        if (blend === 'smooth') return d3.piecewise(d3.interpolateLab, a);
+      } catch (e) { /* fall through to sRGB */ }
+      return d3.interpolateRgbBasis(a);
+    }
+    /* Anchors for a sequential/diverging read of the current palette. The
+       categorical palettes (ordered / suse / seed) borrow a brand sequential ramp. */
+    function rampAnchorsFor(p) {
+      if (SEED) return SEED.ramps[p] || SEED.ramps.suse || RAMPS.suse;
+      if (!isRampPalette(p)) return RAMPS.pine || RAMPS.suse;
+      return RAMPS[p] || RAMPS.suse;
+    }
+    /* Vivid's two endpoints. The 'from' is the palette's own base hue - the seed in
+       From-a-base-colour mode, else the most chromatic anchor of the current ramp
+       (its true hue, not a light/dark end). The 'to' is the Second colour input,
+       falling back to the ramp's far end when blank. makeRamp reads both above. */
+    function _mostChromatic(anchors) {
+      var best = anchors[0], bc = -1;
+      for (var i = 0; i < anchors.length; i++) { var ch = d3.hcl(anchors[i]).c; if (isFinite(ch) && ch > bc) { bc = ch; best = anchors[i]; } }
+      return best;
+    }
+    var _vividAnchors = rampAnchorsFor(pal);
+    var VIVID_FROM = (SEED && SEED.categorical && SEED.categorical[0]) ? SEED.categorical[0] : _mostChromatic(_vividAnchors);
+    var VIVID_TO   = isHex(cfg.paletteBlendTo) ? cfg.paletteBlendTo : _vividAnchors[_vividAnchors.length - 1];
+    function catColorFn(n) {
+      var catList = null;
+      if (pal === 'ordered')   catList = CAT_ORDERED || CATEGORICAL;
+      // Seed mode is a DISTINCT categorical set by default - but choosing Vivid turns
+      // it into a hue journey (base → Second colour, short/long way), so the series
+      // sample that ramp instead. (Ramp palettes already sample it: catList stays null.)
+      else if (pal === 'seed' && cfg.paletteBlend !== 'vivid')
+                               catList = (SEED && SEED.categorical && SEED.categorical.length) ? SEED.categorical
+                                       : ((cfg.brandPalette && cfg.brandPalette.length) ? cfg.brandPalette : CATEGORICAL);
+      else if (pal === 'suse') catList = (cfg.brandPalette && cfg.brandPalette.length) ? cfg.brandPalette : CATEGORICAL;
+      var baseFn;
+      if (catList) {
+        baseFn = function (i) { return legible(catList[i % catList.length], guardBg); };
+      } else {
+        var ramp = makeRamp(rampAnchorsFor(pal));
+        // Vivid is a two-colour journey → span the FULL ramp so the first series is the
+        // base colour and the LAST is the Second colour exactly, interpolating between.
+        // A sequential ramp insets to 0.12–0.88 to skip its pale / near-black ends.
+        var vivid = cfg.paletteBlend === 'vivid';
+        baseFn = function (i) {
+          var t = n <= 1 ? (vivid ? 0 : 0.72) : (vivid ? (i / (n - 1)) : (0.12 + 0.76 * (i / (n - 1))));
+          return legible(ramp(t), guardBg);
+        };
+      }
+      return function (i) {
+        var col = (slots[i] && isHex(slots[i])) ? legible(slots[i], guardBg) : baseFn(i);
+        if (data.comparison) {
+          var parsed = d3.color(col);
+          return legible(parsed ? parsed.formatHex() : col, guardBg, 3);
+        }
+        return col;
+      };
+    }
+    function seqColorFn(min, max) {
+      var ramp = makeRamp(rampAnchorsFor(pal));
+      /* A diverging ramp is only meaningful centred on zero - when the data spans
+         zero, put the neutral middle at 0 with a symmetric domain so blue/orange
+         straddle it. Otherwise fall back to the plain min→max sequential mapping. */
+      if (pal === 'diverging' && min < 0 && max > 0) {
+        var m = Math.max(-min, max);
+        return function (v) { return ramp(clamp(0.5 + v / (2 * m), 0, 1)); };
+      }
+      return function (v) { var t = max > min ? (v - min) / (max - min) : 0.5; return ramp(clamp(t, 0.05, 1)); };
+    }
+
+    /* A value's colour, honouring a click-to-recolour override on its label. */
+    function overrideColor(label, base) {
+      return (label != null && overrides[label]) ? legible(overrides[label], guardBg, data.comparison ? 3 : undefined) : base;
+    }
+    /* Texture url for a mark's differentiation index (null when patterns are off);
+       the <defs> is created lazily inside the plot on first use. */
+    function textureFor(index, base) {
+      if (!patternsOn) return null;
+      if (!texDefs) texDefs = root.append('defs').attr('class', 'd3-tex');
+      return ensureTexture(texDefs, index | 0, base, texCache);
+    }
+    function overlayRect(g, x, y, w, h, rx, index, base) {
+      var tex = textureFor(index, base); if (!tex) return;
+      var r = g.append('rect').attr('x', x).attr('y', y).attr('width', Math.max(0, w)).attr('height', Math.max(0, h)).attr('fill', tex).attr('pointer-events', 'none');
+      if (rx > 0) r.attr('rx', Math.min(rx, w / 2, h / 2)).attr('ry', Math.min(rx, w / 2, h / 2));
+    }
+    function overlayPath(g, dStr, index, base) {
+      var tex = textureFor(index, base); if (!tex) return;
+      g.append('path').attr('d', dStr).attr('fill', tex).attr('pointer-events', 'none');
+    }
+    /* Tag a mark so a click opens the brand-swatch recolour picker for its value. */
+    var recolorEnabled = RECOLOR_CHARTS.indexOf(cfg.chartType) >= 0;
+    function tagMark(sel, label) { if (recolorEnabled && sel && label != null) sel.attr('data-recolor', String(label)); return sel; }
+    /* Apply the chosen drop shadow / glow to a mark (glow tints to the mark's own colour). */
+    var shadowDefs = null, shadowCache = {};
+    function markShadow(sel, col) {
+      if (!sel || !cfg.shadow || cfg.shadow === 'none') return sel;
+      if (!shadowDefs) shadowDefs = root.append('defs').attr('class', 'd3-shadow');
+      var u = ensureShadow(shadowDefs, cfg.shadow, col, shadowCache);
+      if (u) sel.attr('filter', u);
+      return sel;
+    }
+
+    /* Data-label annotations (arrow + note). Tag a value label so a click opens the
+       annotation widget; draw the badge at the category's outer extent. */
+    var annotEnabled = ['bar', 'bar-horizontal', 'line', 'area'].indexOf(cfg.chartType) >= 0;
+    var annotations = parseAnnotations(cfg.annotations);
+    function tagAnnot(sel, key) { if (annotEnabled && sel && key != null) sel.attr('data-annot', String(key)); return sel; }
+    /* Tag a data label AND, if it has an annotation, draw the badge inline right
+       after it (sharing the label's baseline). x/anchor/text describe the label. */
+    function labelAnnot(sel, key, x, baselineY, anchor, text) {
+      if (!annotEnabled) return sel;
+      if (sel && key != null) sel.attr('data-annot', String(key));
+      var a = annotations[key]; if (!a || (!a.i && !a.t)) return sel;
+      var lsz = clamp(cfg.labelSize, 9, 30), w = measureText(String(text), lsz, 600);
+      var endX = (anchor === 'end') ? x : (anchor === 'middle') ? x + w / 2 : x + w;
+      drawAnnotInline(root, endX + 8, baselineY, a, clamp(cfg.labelSize, 12, 24), ink);
+      return sel;
+    }
+
+    /* Number formatting. */
+    var fmt = makeFmt(cfg.numberFormat, d3);
+
+    /* ── title band ──────────────────────────────────────────────────────────── */
+    var PAD = Math.round(Math.min(W, H) * 0.045) + 16;
+    var titleH = 0;
+    if (cfg.heading && cfg.subheading) titleH = 78;
+    else if (cfg.heading || cfg.subheading) titleH = 48;
+    /* Title position (top/bottom) + alignment (left/centre/right). */
+    var titleTop = cfg.titlePosition !== 'bottom';
+    var titleAlign = cfg.titleAlign || 'left';
+    var titleX = titleAlign === 'center' ? W / 2 : titleAlign === 'right' ? W - PAD : PAD;
+    var titleAnchor = titleAlign === 'center' ? 'middle' : titleAlign === 'right' ? 'end' : 'start';
+    var bandTop = titleTop ? PAD : H - PAD - titleH;
+    if (cfg.heading) {
+      root.append('text').attr('x', titleX).attr('y', bandTop + 34).attr('text-anchor', titleAnchor).attr('data-canvas-input', 'heading')
+        .attr('font-size', cfg.titleSize || 34).attr('font-weight', cfg.titleWeight).attr('fill', ink).text(cfg.heading);
+    }
+    if (cfg.subheading) {
+      root.append('text').attr('x', titleX).attr('y', bandTop + (cfg.heading ? 66 : 30)).attr('text-anchor', titleAnchor).attr('data-canvas-input', 'subheading')
+        .attr('font-size', 20).attr('font-weight', 400).attr('fill', ink).attr('opacity', 0.62).text(cfg.subheading);
+    }
+
+    /* ── legend items ────────────────────────────────────────────────────────── */
+    var legendItems = null;
+    /* Charts whose legend keys are the categories (treemap/pack/sunburst/icicle
+       self-label their cells, so they carry no swatch legend). */
+    var catCharts = ['pie','donut','radial-bar','polar','funnel','waffle'];
+    var barByCat = (cfg.chartType === 'bar' || cfg.chartType === 'bar-horizontal') && cfg.colorBy === 'category';
+    if (cfg.showLegend) {
+      if (needSeries && !barByCat && series.length > 1) {
+        var scf = catColorFn(series.length);
+        legendItems = series.map(function (s, i) { return { label: s.name, color: scf(i), tex: i }; });
+      } else if (catCharts.indexOf(cfg.chartType) >= 0 || barByCat) {
+        var ccf = catColorFn(cats.length);
+        legendItems = cats.map(function (c, i) { return { label: c, color: overrideColor(c, ccf(i)), tex: i }; });
+      }
+    }
+    if (data.comparison && cfg.showLegend) {
+      var comparisonColors = catColorFn(2);
+      legendItems = cfg.chartType === 'pareto'
+        ? [{ label: series[0].name, color: comparisonColors(0), tex: 0 }].concat(cfg.paretoCumulative ? [{ label: 'Cumulative share (%) · right axis', color: comparisonColors(1), tex: 1 }] : [])
+        : cfg.chartType === 'bullet' ? [{ label: series[0].name, color: comparisonColors(0), tex: 0 }, { label: (series[1] && series[1].name || 'Target') + ' · vertical tick', color: ink, tex: 0 }]
+        : [{ label: series[0].name + ' – ' + series[1].name, color: comparisonColors(0), tex: 0 }].concat(cfg.rangeMidpoint ? [{ label: 'Midpoint · tick', color: ink, tex: 0 }] : []);
+    }
+
+    /* ── plot rect after title + legend ──────────────────────────────────────── */
+    var box = { x: PAD, y: titleTop ? PAD + titleH : PAD, w: W - 2*PAD, h: H - 2*PAD - titleH };
+    var legPos = cfg.legendPosition;               // 2-char side+alignment code
+    var legSide = legPos.charAt(0);                 // t / b / l / r
+    var legendReserve = 0;
+    if (legendItems && legendItems.length) {
+      var lm = legendMetrics(cfg);
+      if (legSide === 'l' || legSide === 'r') {
+        var longest = legendItems.reduce(function (m, it) { return Math.max(m, String(it.label).length); }, 0);
+        legendReserve = clamp(Math.round(longest * lm.sz * 0.56) + lm.dot + 28, 120, Math.round(W * 0.34));
+        if (legSide === 'l') box.x += legendReserve; box.w -= legendReserve;
+      } else {
+        var rows = estimateLegendRows(legendItems, box.w, lm.sz, lm.dot, lm.gap);
+        legendReserve = rows * (lm.sz + 12) + 16;
+        if (legSide === 't') box.y += legendReserve; box.h -= legendReserve;
+      }
+    }
+    var recommendationY = null;
+    if (data.recommendation && W >= 520 && H >= 320) {
+      recommendationY = box.y;
+      box.y += 108; box.h -= 108;
+    }
+
+    var api = { d3: d3, root: root, cfg: cfg, data: data, cats: cats, series: series, numericCols: numericCols,
+                box: box, ink: ink, guardBg: guardBg, fmt: fmt, catColorFn: catColorFn, seqColorFn: seqColorFn,
+                barByCat: barByCat, override: overrideColor, textureFor: textureFor,
+                overlayRect: overlayRect, overlayPath: overlayPath, patternsOn: patternsOn, swatches: cfg.brandSwatches,
+                recolorEnabled: recolorEnabled, tagMark: tagMark, markShadow: markShadow, references: references,
+                errors: (data.errorValues || null),
+                annotEnabled: annotEnabled, annotations: annotations, tagAnnot: tagAnnot, labelAnnot: labelAnnot };
+
+    /* ── dispatch ────────────────────────────────────────────────────────────── */
+    switch (cfg.chartType) {
+      case 'bar':            drawBars(api, false); break;
+      case 'bar-horizontal': drawBars(api, true); break;
+      case 'line':           drawLineArea(api, false); break;
+      case 'area':           drawLineArea(api, true); break;
+      case 'scatter':        drawScatter(api); break;
+      case 'pie':            drawPie(api, false); break;
+      case 'donut':          drawPie(api, true); break;
+      case 'radial-bar':     drawRadialBar(api); break;
+      case 'radar':          drawRadar(api); break;
+      case 'treemap':        drawHierarchy(api, 'treemap'); break;
+      case 'pack':           drawHierarchy(api, 'pack'); break;
+      case 'heatmap':        drawHeatmap(api); break;
+      case 'histogram':      drawHistogram(api); break;
+      case 'box':            drawDistribution(api, 'box'); break;
+      case 'violin':         drawDistribution(api, 'violin'); break;
+      case 'beeswarm':       drawDistribution(api, 'beeswarm'); break;
+      case 'lollipop':       drawLollipop(api); break;
+      case 'dumbbell':       drawDumbbell(api); break;
+      case 'pareto':         drawComparison(api, 'pareto'); break;
+      case 'bullet':         drawComparison(api, 'bullet'); break;
+      case 'range-bar':      drawComparison(api, 'range-bar'); break;
+      case 'slope':          drawSlope(api); break;
+      case 'bump':           drawBump(api); break;
+      case 'stream':         drawStream(api); break;
+      case 'waterfall':      drawWaterfall(api); break;
+      case 'marimekko':      drawMarimekko(api); break;
+      case 'parallel':       drawParallel(api); break;
+      case 'polar':          drawPolar(api); break;
+      case 'funnel':         drawFunnel(api); break;
+      case 'gauge':          drawGauge(api); break;
+      case 'waffle':         drawWaffle(api); break;
+      case 'sunburst':       drawSunburst(api); break;
+      case 'icicle':         drawIcicle(api); break;
+      case 'chord':          drawChord(api); break;
+      case 'wordcloud':      drawWordcloud(api); break;
+      default:               drawBars(api, false);
+    }
+
+    /* Legend drawn last so it sits above the plot. */
+    if (legendItems && legendItems.length) drawLegend(api, legendItems, legPos, legendReserve, PAD, titleH);
+
+    /* Explain an inferred starting point in the live editor. It is authoring
+       guidance, not chart content, so export walkers remove the whole card. */
+    if (data.recommendation && recommendationY != null) {
+      var rec = data.recommendation, cardW = Math.min(500, Math.max(300, W * .42), W - PAD * 2);
+      var cardX = W - PAD - cardW, cardY = recommendationY;
+      var recG = root.append('g').attr('data-export-hide', '').attr('role', 'note')
+        .attr('aria-label', 'Chart recommendation: ' + rec.label + '. ' + rec.reason);
+      recG.append('rect').attr('x', cardX).attr('y', cardY).attr('width', cardW).attr('height', 96)
+        .attr('rx', 12).attr('fill', guardBg).attr('fill-opacity', .94).attr('stroke', ink).attr('stroke-opacity', .24);
+      recG.append('text').attr('x', cardX + 16).attr('y', cardY + 26).attr('fill', ink)
+        .attr('font-size', 14).attr('font-weight', 750).text('Recommended · ' + rec.label + ' · ' + rec.confidence + ' confidence');
+      var recReason = String(rec.reason || '');
+      if (recReason.length > 96) recReason = recReason.slice(0, 93).replace(/\s+\S*$/, '') + '…';
+      recG.append('text').attr('x', cardX + 16).attr('y', cardY + 53).attr('fill', ink)
+        .attr('fill-opacity', .66).attr('font-size', 13).text(recReason);
+      recG.append('text').attr('x', cardX + 16).attr('y', cardY + 77).attr('fill', ink)
+        .attr('fill-opacity', .48).attr('font-size', 12).text(data.profileSummary || '');
+    }
+
+    /* A quiet diagnostic caption when the parser reshaped/adjusted the data
+       (pivoted long data, single column, truncation, header hint) - so the user
+       sees WHAT happened instead of a silently-surprising chart. */
+    if (data.note) root.append('text').attr('x', PAD).attr('y', H - 12)
+      .attr('font-size', 15).attr('font-weight', 400).attr('fill', ink).attr('opacity', 0.5).text(data.note);
+
+    setupRecolor(svgEl, cfg, overrides);
+    clearMeasure();   // drop the hidden measuring node so it never lands in an export
+  }
+
+  /* ── shared: number format ───────────────────────────────────────────────── */
+  function makeFmt(kind, d3) {
+    switch (kind) {
+      case 'si':       return function (v) { return d3.format('~s')(v); };
+      case 'comma':    return function (v) { return d3.format(',')(v); };
+      case 'integer':  return function (v) { return d3.format(',.0f')(v); };
+      case 'decimal1': return function (v) { return d3.format(',.1f')(v); };
+      case 'decimal2': return function (v) { return d3.format(',.2f')(v); };
+      case 'percent':  return function (v) { return d3.format(',.1~f')(v) + '%'; };
+      case 'currency': return function (v) { return '€' + d3.format(',')(round2(v)); };
+      default:         return function (v) {
+        if (!isFinite(v)) return '';
+        var a = Math.abs(v);
+        if (a >= 10000) return d3.format('~s')(v);
+        if (Number.isInteger(v)) return d3.format(',')(v);
+        return d3.format(',.2~f')(v);
+      };
+    }
+  }
+  function round2(v){ return Math.round(v*100)/100; }
+  function trunc(s, n) { s = String(s); return s.length > n ? s.slice(0, Math.max(1, n-1)) + '…' : s; }
+
+  /* ── text measurement + wrapping (survey-length category labels) ──────────── */
+  /* One hidden <text> measured with getComputedTextLength (falls back to a
+     char-width estimate when layout is unavailable, e.g. headless jsdom). Cached
+     per size|weight|string so wrapping many labels stays cheap. Reused across
+     re-paints (id 'd3-measure') and removed by clearMeasure() at the end of a
+     render so it never lands in an exported SVG. */
+  var _measNode = null, _measCache = {};
+  function measureText(s, sz, weight) {
+    s = String(s == null ? '' : s); if (s === '') return 0;
+    var key = sz + '|' + weight + '|' + s;
+    if (_measCache[key] != null) return _measCache[key];
+    var w = 0;
+    try {
+      if (!_measNode) {
+        _measNode = svgEl.querySelector('#d3-measure');
+        if (!_measNode) {
+          _measNode = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          _measNode.setAttribute('id', 'd3-measure');
+          _measNode.setAttribute('x', '-9999'); _measNode.setAttribute('y', '-9999');
+          _measNode.setAttribute('visibility', 'hidden');
+          svgEl.appendChild(_measNode);
+        }
+      }
+      _measNode.setAttribute('font-size', sz);
+      _measNode.setAttribute('font-weight', weight);
+      _measNode.textContent = s;
+      w = _measNode.getComputedTextLength ? _measNode.getComputedTextLength() : 0;
+    } catch (e) { w = 0; }
+    if (!(w > 0)) w = s.length * sz * 0.54;   // headless / no-layout fallback
+    _measCache[key] = w; return w;
+  }
+  function clearMeasure() { if (_measNode && _measNode.parentNode) _measNode.parentNode.removeChild(_measNode); _measNode = null; }
+  function fitPrefix(t, maxW, sz, weight) {
+    var lo = 1, hi = t.length, fit = 1;
+    while (lo <= hi) { var mid = (lo + hi) >> 1; if (measureText(t.slice(0, mid), sz, weight) <= maxW) { fit = mid; lo = mid + 1; } else hi = mid - 1; }
+    return fit;
+  }
+  /* Greedy word-wrap to a pixel width; hard-breaks a single over-long token. */
+  function wrapAll(s, maxW, sz, weight) {
+    s = String(s == null ? '' : s).replace(/\s+/g, ' ').trim();
+    if (!s) return [''];
+    if (maxW < 8) maxW = 8;
+    var tokens = s.split(' '), lines = [], cur = '';
+    for (var i = 0; i < tokens.length; i++) {
+      var t = tokens[i];
+      if (measureText(t, sz, weight) > maxW) {                 // token wider than the column
+        if (cur) { lines.push(cur); cur = ''; }
+        while (measureText(t, sz, weight) > maxW && t.length > 1) { var f = fitPrefix(t, maxW, sz, weight); lines.push(t.slice(0, f)); t = t.slice(f); }
+        cur = t; continue;
+      }
+      var trial = cur ? cur + ' ' + t : t;
+      if (!cur || measureText(trial, sz, weight) <= maxW) cur = trial;
+      else { lines.push(cur); cur = t; }
+    }
+    if (cur) lines.push(cur);
+    return lines.length ? lines : [''];
+  }
+  function ellipsizeToWidth(s, maxW, sz, weight) {
+    s = String(s == null ? '' : s);
+    if (measureText(s, sz, weight) <= maxW) return s;
+    var base = s.replace(/…+$/, '');
+    while (base.length > 1 && measureText(base + '…', sz, weight) > maxW) base = base.slice(0, -1);
+    return base + '…';
+  }
+  /* Wrap to at most maxLines; the final line is ellipsised if content remains. */
+  function wrapToWidth(s, maxW, sz, weight, maxLines) {
+    maxLines = Math.max(1, Math.min(6, (maxLines | 0) || 1));
+    var lines = wrapAll(s, maxW, sz, weight);
+    if (lines.length <= maxLines) return lines;
+    lines = lines.slice(0, maxLines);
+    lines[maxLines - 1] = ellipsizeToWidth(lines[maxLines - 1] + '…', maxW, sz, weight);
+    return lines;
+  }
+  /* Draw label lines centred on yAnchor ('center') or descending from it ('top'). */
+  function drawTextLines(g, lines, x, yAnchor, anchor, sz, weight, fill, opacity, mode) {
+    var lineH = sz * 1.12;
+    var y0 = mode === 'top' ? yAnchor + sz : yAnchor - (lines.length - 1) * lineH / 2 + sz * 0.34;
+    lines.forEach(function (ln, i) {
+      g.append('text').attr('x', x).attr('y', y0 + i * lineH).attr('text-anchor', anchor)
+        .attr('font-size', sz).attr('font-weight', weight).attr('fill', fill).attr('opacity', opacity).text(ln);
+    });
+  }
+
+  /* ── category-label layout planning (bar / lollipop / dumbbell) ───────────── */
+  var CAT_LABEL_CHARTS = { bar: 1, 'bar-horizontal': 1, lollipop: 1, dumbbell: 1, pareto: 1, bullet: 1, 'range-bar': 1 };
+  var AUTO_CAP_FRAC = 0.42;   // auto-fit label area never exceeds this share of the box
+  function catSz(cfg) { return clamp(cfg.labelSize, 11, 24); }
+  /* Resolve 'auto' into a concrete layout for the orientation + label lengths. */
+  function resolveLayout(api, horizontal) {
+    var cfg = api.cfg, L = cfg.labelLayout || 'auto';
+    if (L === 'horizontal' || L === 'wrap' || L === 'angled') return L;
+    if (horizontal) return 'wrap';                          // long labels flow into the left column
+    var sz = catSz(cfg), n = Math.max(1, api.cats.length);
+    var stepApprox = Math.max(10, (api.box.w - sz * 3.2 - 16) / n);
+    var longest = 0;
+    for (var i = 0; i < api.cats.length; i++) longest = Math.max(longest, measureText(api.cats[i], sz, cfg.labelWeight));
+    return longest <= stepApprox * 0.95 ? 'horizontal' : 'angled';
+  }
+  /* Pixels to reserve for the category labels on their axis side. */
+  function categoryMarginPx(api, horizontal) {
+    var cfg = api.cfg, b = api.box, sz = catSz(cfg), n = Math.max(1, api.cats.length), i, k;
+    if (horizontal) {
+      var capW = (cfg.labelReserve > 0 ? cfg.labelReserve / 100 : AUTO_CAP_FRAC) * b.w;
+      if (cfg.labelReserve > 0) return clamp(capW, 40, b.w * 0.7);
+      var need = 0;                                          // auto: fit the wrapped column to content
+      for (i = 0; i < api.cats.length; i++) {
+        var lines = wrapToWidth(api.cats[i], capW, sz, cfg.labelWeight, cfg.labelLines);
+        for (k = 0; k < lines.length; k++) need = Math.max(need, measureText(lines[k], sz, cfg.labelWeight));
+      }
+      return clamp(need + 14, 40, capW + 14);
+    }
+    if (cfg.labelReserve > 0) return clamp(cfg.labelReserve / 100 * b.h, sz * 1.6, b.h * 0.6);
+    var layout = resolveLayout(api, false);
+    if (layout === 'angled') {
+      var maxLen = 0;
+      for (i = 0; i < api.cats.length; i++) maxLen = Math.max(maxLen, measureText(api.cats[i], sz, cfg.labelWeight));
+      var capH = AUTO_CAP_FRAC * b.h;
+      maxLen = Math.min(maxLen, capH / 0.7071);              // ellipsised beyond the cap at draw time
+      return clamp(maxLen * 0.7071 + sz, sz * 2, capH + 10);
+    }
+    if (layout === 'wrap') {
+      var stepApprox = Math.max(10, (b.w - sz * 3.2 - 16) / n), maxLines = 1;
+      for (i = 0; i < api.cats.length; i++) maxLines = Math.max(maxLines, wrapToWidth(api.cats[i], stepApprox, sz, cfg.labelWeight, cfg.labelLines).length);
+      return (maxLines + 0.3) * sz * 1.12 + 12;
+    }
+    return sz * 2 + 8;                                        // single horizontal line
+  }
+
+  /* ── faux-3-D extruded bar (top + right side face, then a crisp front) ────── */
+  function shade(hex, amt) {                                  // amt>0 → lighten, <0 → darken
+    if (!isHex(hex)) return hex;
+    var rgb = toRgb(hex), t = amt > 0 ? [255, 255, 255] : [0, 0, 0], a = Math.min(1, Math.abs(amt));
+    return toHex(rgb.map(function (v, i) { return v + (t[i] - v) * a; }));
+  }
+  function bar3d(g, x, y, w, h, col, dep) {
+    if (w <= 0 || h <= 0) return null;
+    var dx = dep * 0.72, dy = -dep * 0.52;
+    g.append('path').attr('d', 'M' + x + ' ' + y + ' L' + (x + w) + ' ' + y + ' L' + (x + w + dx) + ' ' + (y + dy) + ' L' + (x + dx) + ' ' + (y + dy) + ' Z').attr('fill', shade(col, 0.20));
+    g.append('path').attr('d', 'M' + (x + w) + ' ' + y + ' L' + (x + w + dx) + ' ' + (y + dy) + ' L' + (x + w + dx) + ' ' + (y + h + dy) + ' L' + (x + w) + ' ' + (y + h) + ' Z').attr('fill', shade(col, -0.24));
+    return g.append('rect').attr('x', x).attr('y', y).attr('width', w).attr('height', h).attr('fill', col);
+  }
+  function barDepth(cfg, thick) { return cfg.depth3d > 0 ? cfg.depth3d : clamp(thick * 0.28, 6, 34); }
+
+  /* ── click-to-recolour overrides + differentiation patterns ───────────────── */
+  /* Parse the colorOverrides input (a JSON map: category/series label → hex) that
+     the canvas click-to-recolour writes. Silently ignores anything unparseable or
+     non-hex, so a half-typed value never breaks the render. */
+  function parseOverrides(s) {
+    s = String(s == null ? '' : s).trim();
+    if (!s || s.charAt(0) !== '{') return {};
+    try {
+      var o = JSON.parse(s), out = {};
+      for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k) && isHex(o[k])) out[k] = String(o[k]).toLowerCase();
+      return out;
+    } catch (e) { return {}; }
+  }
+  /* A tiled SVG <pattern> texture (transparent background, brand-tint strokes) to
+     layer OVER a solid mark, so series stay distinct with few brand hues, in
+     greyscale print, and for colour-blind readers. The solid base is drawn
+     separately underneath, so a format that can't render patterns (EMF/EPS/DXF)
+     still shows the tint. Index 0 is solid (no overlay). 8 textures cycle. */
+  function ensureTexture(defs, index, baseColor, cache) {
+    var t = ((index % 8) + 8) % 8;
+    if (t === 0 || !defs) return null;
+    var base = isHex(baseColor) ? baseColor : '#888888';
+    var ink = shade(base, lum(base) > 0.55 ? -0.5 : 0.55);
+    var id = 'd3tex-' + t + '-' + base.replace('#', '');
+    if (cache[id]) return 'url(#' + id + ')';
+    cache[id] = true;
+    var p = defs.append('pattern').attr('id', id).attr('patternUnits', 'userSpaceOnUse').attr('width', 7).attr('height', 7);
+    var sw = 2.2, op = 0.9;
+    function line(x1, y1, x2, y2) { p.append('line').attr('x1', x1).attr('y1', y1).attr('x2', x2).attr('y2', y2).attr('stroke', ink).attr('stroke-width', sw).attr('stroke-opacity', op).attr('stroke-linecap', 'round'); }
+    if (t === 1) { p.attr('patternTransform', 'rotate(45)'); line(0, 0, 0, 7); }        // diagonal /
+    else if (t === 2) { p.attr('patternTransform', 'rotate(-45)'); line(0, 0, 0, 7); }  // diagonal \
+    else if (t === 3) { p.append('circle').attr('cx', 3.5).attr('cy', 3.5).attr('r', 1.5).attr('fill', ink).attr('fill-opacity', op); }  // dots
+    else if (t === 4) { line(0, 3.5, 7, 3.5); }                                          // horizontal
+    else if (t === 5) { line(3.5, 0, 3.5, 7); }                                          // vertical
+    else if (t === 6) { line(0, 0, 7, 7); line(0, 7, 7, 0); }                            // crosshatch
+    else if (t === 7) { line(0, 3.5, 7, 3.5); line(3.5, 0, 3.5, 7); }                    // grid
+    return 'url(#' + id + ')';
+  }
+
+  /* ── shadow / depth (feDropShadow) ─────────────────────────────────────────── */
+  /* Opt-in drop shadow (soft/medium/strong) to lift marks off the background and
+     sharpen the contrast between values, or a colour-matched glow. A neutral drop
+     shares one filter; a glow gets one per colour. SVG/PNG faithful, EMF/EPS keep
+     a vector shadow (engine gaussianShadowRings), PDF rasterises while a filter is
+     present - so this is opt-in (default none). */
+  var SHADOW_PRESETS = {
+    soft:   { dy: 1, blur: 5,  op: 0.20, glow: false },
+    medium: { dy: 2, blur: 10, op: 0.28, glow: false },
+    strong: { dy: 3, blur: 16, op: 0.36, glow: false },
+    glow:   { dy: 0, blur: 10, op: 0.60, glow: true }
+  };
+  function ensureShadow(defs, preset, color, cache) {
+    var p = SHADOW_PRESETS[preset]; if (!p || !defs) return null;
+    var col = p.glow ? (isHex(color) ? color : '#ffffff') : '#000000';
+    var id = 'd3sh-' + preset + (p.glow ? '-' + col.replace('#', '') : '');
+    if (cache[id]) return 'url(#' + id + ')';
+    cache[id] = true;
+    defs.append('filter').attr('id', id).attr('x', '-60%').attr('y', '-60%').attr('width', '220%').attr('height', '220%')
+      .append('feDropShadow').attr('dx', 0).attr('dy', p.dy).attr('stdDeviation', p.blur).attr('flood-color', col).attr('flood-opacity', p.op);
+    return 'url(#' + id + ')';
+  }
+
+  /* ── shared: legend ───────────────────────────────────────────────────────── */
+  /* Legend sizing: text size, indicator size (0 = auto from text), item gap. */
+  function legendMetrics(cfg) {
+    var sz = cfg.legendTextSize > 0 ? clamp(cfg.legendTextSize, 8, 48) : clamp(cfg.labelSize, 12, 30);
+    var dot = cfg.legendSwatchSize > 0 ? clamp(cfg.legendSwatchSize, 4, 48) : clamp(sz * 0.82, 10, 30);
+    return { sz: sz, dot: dot, gap: clamp(cfg.legendGap, 0, 80) };
+  }
+  function estimateLegendRows(items, width, sz, dot, gap) {
+    var x = 0, rows = 1;
+    for (var i = 0; i < items.length; i++) {
+      var w = dot + 8 + String(items[i].label).length * sz * 0.56 + gap;
+      if (x + w > width && x > 0) { rows++; x = 0; }
+      x += w;
+    }
+    return rows;
+  }
+  /* Position is a side (t/b/l/r) + alignment. Vertical sides (l/r) stack a column
+     aligned top/centre/bottom; horizontal sides (t/b) pack rows aligned left/
+     centre/right. Optional mono / bold / italic font toggles. */
+  function drawLegend(api, items, pos, reserve, PAD, titleH) {
+    var cfg = api.cfg, ink = api.ink, W = cfg.width, H = cfg.height;
+    var side = pos.charAt(0), align = pos.charAt(1);
+    var m = legendMetrics(cfg), sz = m.sz, dot = m.dot, gap = m.gap, rowH = sz + 12;
+    var rx = clamp(cfg.legendRadius, 0, dot / 2);
+    var g = api.root.append('g').attr('class', 'legend').attr('data-canvas-input', 'legendPosition');
+    function styleText(t) {
+      t.attr('font-size', sz).attr('font-weight', cfg.legendBold ? 700 : cfg.labelWeight).attr('fill', isHex(cfg.legendColor) ? cfg.legendColor : ink).attr('opacity', 0.9);
+      if (cfg.legendItalic) t.attr('font-style', 'italic');
+      if (cfg.legendMono) t.attr('font-family', 'ui-monospace, SFMono-Regular, Menlo, monospace');
+      return t;
+    }
+    function itemW(it) { return dot + 8 + String(trunc(it.label, 40)).length * sz * 0.56 + gap; }
+
+    if (side === 'l' || side === 'r') {
+      var lx = (side === 'l') ? PAD : W - reserve + 8;
+      var pitch = Math.max(dot, sz) + gap;         // gap now applies to the row spacing
+      var totalH = items.length * pitch;
+      var top = (align === 't') ? PAD + titleH : (align === 'b') ? H - PAD - totalH : api.box.y + api.box.h/2 - totalH/2;
+      top = clamp(top, PAD + titleH, Math.max(PAD + titleH, H - PAD - totalH));
+      items.forEach(function (it, i) {
+        var y = top + i * pitch;
+        g.append('rect').attr('x', lx).attr('y', y).attr('width', dot).attr('height', dot).attr('rx', rx).attr('fill', it.color);
+        api.overlayRect(g, lx, y, dot, dot, rx, it.tex, it.color);
+        styleText(g.append('text').attr('x', lx + dot + 8).attr('y', y + dot*0.82).text(trunc(it.label, 30)));
+      });
+      return;
+    }
+    // horizontal (t/b): pack items into rows, then align each row l/c/r
+    var maxW = W - 2*PAD, rows = [[]], rowW = [0], ri = 0;
+    items.forEach(function (it) {
+      var w = itemW(it);
+      if (rowW[ri] + w > maxW && rows[ri].length) { ri++; rows[ri] = []; rowW[ri] = 0; }
+      rows[ri].push(it); rowW[ri] += w;
+    });
+    var y0 = (side === 't') ? PAD + titleH + sz : H - reserve + sz + 4;
+    rows.forEach(function (row, r) {
+      var rw = Math.max(0, rowW[r] - gap);   // no trailing gap
+      var startX = (align === 'l') ? PAD : (align === 'r') ? PAD + maxW - rw : PAD + (maxW - rw) / 2;
+      var cx = startX, y = y0 + r * rowH;
+      row.forEach(function (it) {
+        g.append('rect').attr('x', cx).attr('y', y - dot*0.85).attr('width', dot).attr('height', dot).attr('rx', rx).attr('fill', it.color);
+        api.overlayRect(g, cx, y - dot*0.85, dot, dot, rx, it.tex, it.color);
+        styleText(g.append('text').attr('x', cx + dot + 8).attr('y', y).text(trunc(it.label, 40)));
+        cx += itemW(it);
+      });
+    });
+  }
+
+  /* ── shared: cartesian axes ───────────────────────────────────────────────── */
+  function makeYScale(type, domain, range, d3) {
+    if (type === 'log') {
+      var lo = domain[0] > 0 ? domain[0] : (domain[1] > 0 ? domain[1] / 1000 : 1);
+      return d3.scaleLog([lo, domain[1] > lo ? domain[1] : lo * 10], range);
+    }
+    if (type === 'sqrt') return d3.scaleSqrt([Math.max(0, domain[0]), domain[1]], range).nice();
+    return d3.scaleLinear(domain, range).nice();
+  }
+  /* Draw a linear/log value axis + gridlines along `dir` ('y' vertical bars up, or 'x' horizontal). */
+  function drawValueAxis(api, plot, scale, dir) {
+    var d3 = api.d3, cfg = api.cfg, ink = api.ink;
+    if (!cfg.showGrid && !cfg.showAxes) return;
+    var ticks = scale.ticks ? scale.ticks(cfg.tickCount) : [];
+    var g = api.root.append('g').attr('class', 'value-axis').attr('data-canvas-input', 'numberFormat');
+    ticks.forEach(function (t) {
+      if (dir === 'y') {
+        var y = scale(t);
+        if (cfg.showGrid) g.append('line').attr('x1', plot.x).attr('y1', y).attr('x2', plot.x + plot.w).attr('y2', y)
+          .attr('stroke', ink).attr('stroke-width', 1).attr('opacity', t === 0 ? 0.28 : 0.1);
+        if (cfg.showAxes) g.append('text').attr('x', plot.x - 8).attr('y', y + 5).attr('text-anchor', 'end')
+          .attr('font-size', clamp(cfg.labelSize, 11, 22)).attr('fill', ink).attr('opacity', 0.6).text(api.fmt(t));
+      } else {
+        var x = scale(t);
+        if (cfg.showGrid) g.append('line').attr('x1', x).attr('y1', plot.y).attr('x2', x).attr('y2', plot.y + plot.h)
+          .attr('stroke', ink).attr('stroke-width', 1).attr('opacity', t === 0 ? 0.28 : 0.1);
+        if (cfg.showAxes) g.append('text').attr('x', x).attr('y', plot.y + plot.h + clamp(cfg.labelSize,11,22) + 6).attr('text-anchor', 'middle')
+          .attr('font-size', clamp(cfg.labelSize, 11, 22)).attr('fill', ink).attr('opacity', 0.6).text(api.fmt(t));
+      }
+    });
+  }
+
+  /* ── reference lines & bands ──────────────────────────────────────────────── */
+  /* One per input line: a number or a stat (avg/median/min/max) → a dashed guide
+     line; a range 'lo..hi' → a shaded band; optional label + trailing #colour. */
+  function parseReferences(s) {
+    var out = [];
+    String(s == null ? '' : s).split(/\r?\n/).forEach(function (line) {
+      line = line.trim(); if (!line) return;
+      var color = null, m = line.match(/(#[0-9a-fA-F]{3,8})\s*$/);
+      if (m) { color = m[1]; line = line.slice(0, m.index).trim(); }
+      var sp = line.indexOf(' '), head = sp < 0 ? line : line.slice(0, sp), label = sp < 0 ? '' : line.slice(sp + 1).trim();
+      var band = head.match(/^(-?\d*\.?\d+)\.\.(-?\d*\.?\d+)$/);
+      if (band) { out.push({ kind: 'band', v1: parseFloat(band[1]), v2: parseFloat(band[2]), label: label, color: color }); return; }
+      if (/^(avg|mean|median|min|max)$/i.test(head)) { out.push({ kind: 'stat', stat: /mean/i.test(head) ? 'avg' : head.toLowerCase(), label: label || head, color: color }); return; }
+      if (/^-?\d*\.?\d+$/.test(head)) out.push({ kind: 'line', v: parseFloat(head), label: label, color: color });
+    });
+    return out;
+  }
+  function drawReferences(api, plot, scale, dir) {
+    var refs = api.references; if (!refs || !refs.length || !scale) return;
+    var cfg = api.cfg, ink = api.ink, sz = clamp(cfg.labelSize, 11, 20);
+    var vals = []; (api.series || []).forEach(function (s) { (s.values || []).forEach(function (v) { if (isFinite(v)) vals.push(+v); }); });
+    function stat(name) {
+      if (!vals.length) return NaN;
+      if (name === 'min') return Math.min.apply(null, vals);
+      if (name === 'max') return Math.max.apply(null, vals);
+      if (name === 'median') { var a = vals.slice().sort(function (x, y) { return x - y; }), n = a.length; return n % 2 ? a[(n - 1) / 2] : (a[n / 2 - 1] + a[n / 2]) / 2; }
+      return vals.reduce(function (mm, v) { return mm + v; }, 0) / vals.length;   // avg
+    }
+    var g = api.root.append('g').attr('class', 'refs');
+    refs.forEach(function (r) {
+      var col = isHex(r.color) ? r.color : ink;
+      if (r.kind === 'band') {
+        var p1 = scale(r.v1), p2 = scale(r.v2); if (!isFinite(p1) || !isFinite(p2)) return;
+        var lo = Math.min(p1, p2), hi = Math.max(p1, p2);
+        if (dir === 'y') g.append('rect').attr('x', plot.x).attr('y', lo).attr('width', plot.w).attr('height', hi - lo).attr('fill', col).attr('opacity', 0.1);
+        else g.append('rect').attr('x', lo).attr('y', plot.y).attr('width', hi - lo).attr('height', plot.h).attr('fill', col).attr('opacity', 0.1);
+        if (r.label) {
+          if (dir === 'y') g.append('text').attr('x', plot.x + plot.w - 4).attr('y', (lo + hi) / 2 + sz * 0.34).attr('text-anchor', 'end').attr('font-size', sz).attr('font-weight', 600).attr('fill', col).attr('opacity', 0.85).text(r.label);
+          else g.append('text').attr('x', (lo + hi) / 2).attr('y', plot.y + sz).attr('text-anchor', 'middle').attr('font-size', sz).attr('font-weight', 600).attr('fill', col).attr('opacity', 0.85).text(r.label);
+        }
+        return;
+      }
+      var v = r.kind === 'stat' ? stat(r.stat) : r.v, p = scale(v); if (!isFinite(p)) return;
+      var lbl = ((r.label || '') + (r.kind === 'stat' && vals.length ? ' ' + api.fmt(v) : '')).trim();
+      if (dir === 'y') {
+        g.append('line').attr('x1', plot.x).attr('y1', p).attr('x2', plot.x + plot.w).attr('y2', p).attr('stroke', col).attr('stroke-width', 1.5).attr('stroke-dasharray', '5 4').attr('opacity', 0.85);
+        if (lbl) g.append('text').attr('x', plot.x + plot.w - 4).attr('y', p - 5).attr('text-anchor', 'end').attr('font-size', sz).attr('font-weight', 600).attr('fill', col).attr('opacity', 0.9).text(lbl);
+      } else {
+        g.append('line').attr('x1', p).attr('y1', plot.y).attr('x2', p).attr('y2', plot.y + plot.h).attr('stroke', col).attr('stroke-width', 1.5).attr('stroke-dasharray', '5 4').attr('opacity', 0.85);
+        if (lbl) g.append('text').attr('x', p + 4).attr('y', plot.y + sz).attr('text-anchor', 'start').attr('font-size', sz).attr('font-weight', 600).attr('fill', col).attr('opacity', 0.9).text(lbl);
+      }
+    });
+  }
+  /* ── trend / regression fit ───────────────────────────────────────────────
+     Least-squares over cleaned (x,y) pairs. exp/log/power linearise in log space;
+     R² is always measured against the ORIGINAL y (a poor exp fit reports honestly).
+     Returns { predict, r2 } or null. */
+  function linFit(X, Y) {
+    var n = 0, sx = 0, sy = 0, sxx = 0, sxy = 0;
+    for (var i = 0; i < X.length; i++) {
+      var x = X[i], y = Y[i]; if (!isFinite(x) || !isFinite(y)) continue;
+      n++; sx += x; sy += y; sxx += x * x; sxy += x * y;
+    }
+    if (n < 2) return null;
+    var d = n * sxx - sx * sx; if (Math.abs(d) < 1e-12) return null;
+    var b = (n * sxy - sx * sy) / d;
+    return { a: (sy - b * sx) / n, b: b };
+  }
+  function det3(m) {
+    return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
+         - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+         + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+  }
+  function poly2Fit(X, Y) {   // solve the 3×3 normal equations for a + b·x + c·x²
+    var S0 = 0, S1 = 0, S2 = 0, S3 = 0, S4 = 0, T0 = 0, T1 = 0, T2 = 0;
+    for (var i = 0; i < X.length; i++) {
+      var x = X[i], y = Y[i]; if (!isFinite(x) || !isFinite(y)) continue;
+      var x2 = x * x; S0++; S1 += x; S2 += x2; S3 += x2 * x; S4 += x2 * x2; T0 += y; T1 += x * y; T2 += x2 * y;
+    }
+    if (S0 < 3) return null;
+    var M = [[S0, S1, S2], [S1, S2, S3], [S2, S3, S4]], D = det3(M);
+    if (Math.abs(D) < 1e-9) return null;
+    var out = [], T = [T0, T1, T2];
+    for (var k = 0; k < 3; k++) {
+      var Mk = [M[0].slice(), M[1].slice(), M[2].slice()];
+      Mk[0][k] = T[0]; Mk[1][k] = T[1]; Mk[2][k] = T[2];
+      out.push(det3(Mk) / D);
+    }
+    return out;
+  }
+  function r2of(X, Y, predict) {
+    var yb = 0, n = 0, i;
+    for (i = 0; i < X.length; i++) if (isFinite(X[i]) && isFinite(Y[i])) { yb += Y[i]; n++; }
+    if (n < 2) return NaN; yb /= n;
+    var ssr = 0, sst = 0;
+    for (i = 0; i < X.length; i++) {
+      if (!isFinite(X[i]) || !isFinite(Y[i])) continue;
+      var p = predict(X[i]); if (!isFinite(p)) continue;
+      ssr += (Y[i] - p) * (Y[i] - p); sst += (Y[i] - yb) * (Y[i] - yb);
+    }
+    return sst > 0 ? 1 - ssr / sst : NaN;
+  }
+  function regress(xs, ys, type) {
+    var X = [], Y = [], i;
+    for (i = 0; i < xs.length; i++) if (isFinite(xs[i]) && isFinite(ys[i])) { X.push(+xs[i]); Y.push(+ys[i]); }
+    if (X.length < 2) return null;
+    var predict;
+    if (type === 'linear') {
+      var f = linFit(X, Y); if (!f) return null; predict = function (x) { return f.a + f.b * x; };
+    } else if (type === 'poly2') {
+      var c = poly2Fit(X, Y); if (!c) return null; predict = function (x) { return c[0] + c[1] * x + c[2] * x * x; };
+    } else if (type === 'exp') {              // y = a·e^{bx}, needs y > 0
+      var lx = [], ly = []; for (i = 0; i < X.length; i++) if (Y[i] > 0) { lx.push(X[i]); ly.push(Math.log(Y[i])); }
+      var fe = linFit(lx, ly); if (!fe) return null; var ae = Math.exp(fe.a), be = fe.b;
+      predict = function (x) { return ae * Math.exp(be * x); };
+    } else if (type === 'log') {              // y = a + b·ln(x), needs x > 0
+      var gx = [], gy = []; for (i = 0; i < X.length; i++) if (X[i] > 0) { gx.push(Math.log(X[i])); gy.push(Y[i]); }
+      var fl = linFit(gx, gy); if (!fl) return null; predict = function (x) { return x > 0 ? fl.a + fl.b * Math.log(x) : NaN; };
+    } else if (type === 'power') {            // y = a·x^b, needs x > 0, y > 0
+      var px = [], py = []; for (i = 0; i < X.length; i++) if (X[i] > 0 && Y[i] > 0) { px.push(Math.log(X[i])); py.push(Math.log(Y[i])); }
+      var fp = linFit(px, py); if (!fp) return null; var ap = Math.exp(fp.a), bp = fp.b;
+      predict = function (x) { return x > 0 ? ap * Math.pow(x, bp) : NaN; };
+    } else return null;
+    return { predict: predict, r2: r2of(X, Y, predict) };
+  }
+  /* Draw a fitted trend (or moving average) over one series/cloud. xScale/yScale
+     map DATA units → pixels; sampled to 48 points so curves render smooth. Plain
+     <path>/<text> → exports vector-clean. */
+  function drawTrend(api, plot, xScale, yScale, xdata, ydata, col, showR2) {
+    var type = api.cfg.trend; if (!type || type === 'none') return;
+    var g = api.root.append('g').attr('class', 'trend');
+    var toPath = function (pts) { return 'M' + pts.map(function (p) { return p[0].toFixed(2) + ' ' + p[1].toFixed(2); }).join('L'); };
+    if (type === 'movavg') {                  // centred window, scales with n, in data order
+      var pts = [], win = Math.max(2, Math.round(xdata.length / 6));
+      for (var i = 0; i < xdata.length; i++) {
+        var lo = Math.max(0, i - (win >> 1)), hi = Math.min(xdata.length - 1, lo + win - 1), s = 0, m = 0;
+        for (var j = lo; j <= hi; j++) if (isFinite(ydata[j])) { s += +ydata[j]; m++; }
+        if (!m || !isFinite(xdata[i])) continue;
+        var pxm = xScale(xdata[i]), pym = yScale(s / m); if (isFinite(pxm) && isFinite(pym)) pts.push([pxm, pym]);
+      }
+      if (pts.length >= 2) g.append('path').attr('d', toPath(pts)).attr('fill', 'none').attr('stroke', col)
+        .attr('stroke-width', 2).attr('stroke-dasharray', '6 4').attr('opacity', 0.9);
+      return;
+    }
+    var fit = regress(xdata, ydata, type); if (!fit) return;
+    var xv = xdata.filter(isFinite); if (xv.length < 2) return;
+    var xmin = Math.min.apply(null, xv), xmax = Math.max.apply(null, xv), N = 48, out = [], last = null;
+    for (var k = 0; k <= N; k++) {
+      var x = xmin + (xmax - xmin) * k / N, yy = fit.predict(x); if (!isFinite(yy)) continue;
+      var px = xScale(x), py = yScale(yy); if (isFinite(px) && isFinite(py)) { out.push([px, py]); last = [px, py]; }
+    }
+    if (out.length < 2) return;
+    g.append('path').attr('d', toPath(out)).attr('fill', 'none').attr('stroke', col)
+      .attr('stroke-width', 2).attr('stroke-dasharray', '6 4').attr('opacity', 0.92);
+    if (showR2 && isFinite(fit.r2) && last) {
+      var sz = clamp(api.cfg.labelSize, 10, 18);
+      g.append('text').attr('x', last[0] - 4).attr('y', last[1] - 5).attr('text-anchor', 'end')
+        .attr('font-size', sz).attr('font-weight', 600).attr('fill', col).attr('opacity', 0.9).text('R² ' + fit.r2.toFixed(2));
+    }
+  }
+  /* Error whiskers with end caps. `scale` maps value→pixel on the value axis;
+     `centers[i]` is the cross-axis pixel of point i; horizontal flips the axes. */
+  function drawErrorBars(api, centers, values, errs, scale, horizontal, col) {
+    if (!errs || !errs.length) return;
+    var g = api.root.append('g').attr('class', 'errbars'), cap = 4;
+    for (var i = 0; i < values.length; i++) {
+      var e = errs[i], v = values[i]; if (e == null || !isFinite(e) || e <= 0 || !isFinite(v)) continue;
+      var c = centers[i]; if (!isFinite(c)) continue;
+      var p1 = scale(v - e), p2 = scale(v + e); if (!isFinite(p1) || !isFinite(p2)) continue;
+      var whisk = function (x1, y1, x2, y2) { g.append('line').attr('x1', x1).attr('y1', y1).attr('x2', x2).attr('y2', y2).attr('stroke', col).attr('stroke-width', 1.5).attr('opacity', 0.85); };
+      if (horizontal) { whisk(p1, c, p2, c); whisk(p1, c - cap, p1, c + cap); whisk(p2, c - cap, p2, c + cap); }
+      else { whisk(c, p1, c, p2); whisk(c - cap, p1, c + cap, p1); whisk(c - cap, p2, c + cap, p2); }
+    }
+  }
+  /* Category tick labels - auto-fit: wrap into the column (horizontal bars),
+     angle 45° or wrap (vertical bars) when labels would collide, ellipsising
+     only as a last resort. All output is plain SVG <text> (rotate transforms and
+     tspans) so it exports vector-clean. */
+  function drawCategoryAxis(api, plot, band, horizontal) {
+    var cfg = api.cfg, ink = api.ink, sz = catSz(cfg), weight = cfg.labelWeight;
+    if (!cfg.showAxes) return;
+    var cats = band.domain();
+    function label(c) { return api.categoryLabel ? api.categoryLabel(c) : c; }
+    var g = api.root.append('g').attr('class', 'cat-axis');
+    var layout = resolveLayout(api, horizontal);
+    if (horizontal) {
+      var maxW = Math.max(20, plot.x - api.box.x - 8);
+      cats.forEach(function (c) {
+        var yc = band(c) + band.bandwidth() / 2;
+        drawTextLines(g, wrapToWidth(label(c), maxW, sz, weight, cfg.labelLines), plot.x - 8, yc, 'end', sz, weight, ink, 0.8, 'center');
+      });
+      return;
+    }
+    if (layout === 'angled') {
+      var capH = (cfg.labelReserve > 0 ? cfg.labelReserve / 100 : AUTO_CAP_FRAC) * api.box.h;
+      var maxLen = capH / 0.7071, ay = plot.y + plot.h + sz * 0.6 + 4;
+      cats.forEach(function (c) {
+        var ax = band(c) + band.bandwidth() / 2;
+        g.append('text').attr('transform', 'rotate(-45 ' + ax + ' ' + ay + ')').attr('x', ax).attr('y', ay)
+          .attr('text-anchor', 'end').attr('font-size', sz).attr('font-weight', weight).attr('fill', ink).attr('opacity', 0.8)
+          .text(ellipsizeToWidth(label(c), maxLen, sz, weight));
+      });
+      return;
+    }
+    if (layout === 'wrap') {
+      var step = band.step();
+      cats.forEach(function (c) {
+        var xc = band(c) + band.bandwidth() / 2;
+        drawTextLines(g, wrapToWidth(label(c), Math.max(20, step - 2), sz, weight, cfg.labelLines), xc, plot.y + plot.h + 6, 'middle', sz, weight, ink, 0.8, 'top');
+      });
+      return;
+    }
+    // single horizontal line - thin out to avoid collisions, ellipsise to slot
+    var stepW = band.step();
+    var every = Math.ceil(cats.length / Math.max(1, Math.floor(plot.w / 52)));
+    cats.forEach(function (c, i) {
+      if (every > 1 && i % every !== 0) return;
+      var x = band(c) + band.bandwidth() / 2;
+      g.append('text').attr('x', x).attr('y', plot.y + plot.h + sz + 6).attr('text-anchor', 'middle')
+        .attr('font-size', sz).attr('font-weight', weight).attr('fill', ink).attr('opacity', 0.8)
+        .text(ellipsizeToWidth(label(c), stepW * (every > 1 ? every : 1) - 4, sz, weight));
+    });
+  }
+  function drawAxisTitles(api, plot, horizontal) {
+    var cfg = api.cfg, ink = api.ink;
+    var sz = cfg.axisTitleSize > 0 ? clamp(cfg.axisTitleSize, 6, 80) : clamp(cfg.labelSize, 12, 22);
+    var w = cfg.axisTitleWeight || 600, col = isHex(cfg.axisTitleColor) ? cfg.axisTitleColor : ink;
+    if (cfg.xTitle) api.root.append('text').attr('x', plot.x + plot.w/2).attr('y', plot.y + plot.h + sz*2 + 18).attr('data-canvas-input', 'xTitle')
+      .attr('text-anchor', 'middle').attr('font-size', sz).attr('font-weight', w).attr('fill', col).attr('opacity', 0.75).text(cfg.xTitle);
+    /* Y title kept horizontal (no rotation → survives vector export), above the axis. */
+    if (cfg.yTitle) api.root.append('text').attr('x', plot.x).attr('y', plot.y - 10).attr('data-canvas-input', 'yTitle')
+      .attr('text-anchor', 'start').attr('font-size', sz).attr('font-weight', w).attr('fill', col).attr('opacity', 0.75).text(cfg.yTitle);
+  }
+
+  /* Inset the plot box to leave room for axes/labels. Category-label charts
+     (bar / lollipop / dumbbell) size the label side to the actual wrapped/angled
+     labels; every other chart keeps the original fixed margins. */
+  function insetForAxes(api, horizontal) {
+    var cfg = api.cfg, b = api.box, sz = clamp(cfg.labelSize, 11, 24);
+    var atSz = cfg.axisTitleSize > 0 ? clamp(cfg.axisTitleSize, 6, 80) : clamp(cfg.labelSize, 12, 22);   // reserve for the axis title's own size
+    var smart = !!CAT_LABEL_CHARTS[cfg.chartType];
+    var top = cfg.yTitle ? atSz + 14 : 6, right = 12, left, bottom;
+    if (horizontal) {
+      left = cfg.showAxes ? (smart ? categoryMarginPx(api, true) : Math.min(b.w * 0.28, 200)) : 8;
+      bottom = (cfg.showAxes ? sz * 2 + 8 : 8) + (cfg.xTitle ? atSz + 12 : 0);
+    } else {
+      left = cfg.showAxes ? sz * 3.2 : 8;
+      bottom = (cfg.showAxes ? (smart ? categoryMarginPx(api, false) : sz * 2 + 8) : 8) + (cfg.xTitle ? atSz + 12 : 0);
+      if (smart && cfg.showAxes && resolveLayout(api, false) === 'angled') right = 44;
+    }
+    return { x: b.x + left, y: b.y + top, w: Math.max(20, b.w - left - right), h: Math.max(20, b.h - top - bottom) };
+  }
+
+  /* ── bars (vertical + horizontal; grouped / stacked / stacked100) ─────────── */
+  function drawBars(api, horizontal) {
+    var d3 = api.d3, cfg = api.cfg, series = api.series;
+    var plot = insetForAxes(api, horizontal);
+    var mode = (series.length > 1) ? cfg.stackMode : 'grouped';
+    var scf = api.catColorFn(series.length), ccf = api.catColorFn(api.cats.length);
+    var rx = clamp(cfg.cornerRadius, 0, 40);
+    var stroke = cfg.strokeWidth > 0 ? { s: cfg.strokeColor, w: cfg.strokeWidth } : null;
+
+    /* Optional sort reorders categories by their series total (or A→Z), carrying
+       every series' values with them. `origIdx[k]` is the ORIGINAL index of the
+       category now at position k, so category colours stay pinned to the legend. */
+    var order = d3.range(api.cats.length);
+    if (cfg.sort === 'desc' || cfg.sort === 'asc') {
+      var total = function (i) { return d3.sum(series, function (s) { return isFinite(s.values[i]) ? +s.values[i] : 0; }); };
+      order.sort(function (a, b) { return cfg.sort === 'desc' ? total(b) - total(a) : total(a) - total(b); });
+    } else if (cfg.sort === 'alpha') {
+      order.sort(function (a, b) { return String(api.cats[a]).localeCompare(String(api.cats[b])); });
+    }
+    var cats = order.map(function (i) { return api.cats[i]; });
+    series = series.map(function (s) { return { name: s.name, values: order.map(function (i) { return s.values[i]; }) }; });
+    function colorFor(si, ci) { return api.barByCat ? ccf(order[ci]) : scf(si); }
+    /* error magnitudes must ride the same reorder as the bars (single-series only). */
+    api.errorsOrdered = api.errors ? order.map(function (i) { return api.errors[i]; }) : null;
+
+    /* Rows keyed by series for d3.stack. */
+    var rows = cats.map(function (c, i) { var o = { _c: c }; series.forEach(function (s) { o[s.name] = +s.values[i] || 0; }); return o; });
+    var keys = series.map(function (s) { return s.name; });
+
+    if (mode === 'grouped') {
+      var maxV = d3.max(series, function (s) { return d3.max(s.values, function (v) { return +v || 0; }); }) || 1;
+      var minV = Math.min(0, d3.min(series, function (s) { return d3.min(s.values, function (v) { return +v || 0; }); }) || 0);
+      if (cfg.animExtent) { maxV = cfg.animExtent[1]; minV = cfg.animExtent[0]; }   // fixed axis while animating
+      var dom = [cfg.yZero ? Math.min(0, minV) : minV, cfg.yMax > 0 ? cfg.yMax : maxV];
+      layoutGroupedBars(api, plot, horizontal, cats, series, dom, colorFor, rx, stroke);
+    } else {
+      var pct100 = mode === 'stacked100';
+      /* Diverging offset so a negative value stacks BELOW the baseline instead of
+         being mis-summed as positive-direction and clipped (Expand for 100%). */
+      var offset = pct100 ? d3.stackOffsetExpand : d3.stackOffsetDiverging;
+      var stacked = d3.stack().keys(keys).offset(offset)(rows);
+      var maxT = d3.max(stacked, function (layer) { return d3.max(layer, function (d) { return d[1]; }); }) || 1;
+      var minB = d3.min(stacked, function (layer) { return d3.min(layer, function (d) { return d[0]; }); }) || 0;
+      if (cfg.animExtent && !pct100) { maxT = cfg.animExtent[1]; minB = cfg.animExtent[0]; }   // fixed axis while animating
+      var dom = [pct100 ? 0 : Math.min(0, minB), pct100 ? 1 : (cfg.yMax > 0 ? cfg.yMax : maxT)];
+      layoutStackedBars(api, plot, horizontal, cats, stacked, dom, scf, rx, stroke, pct100);
+    }
+    drawAxisTitles(api, plot, horizontal);
+  }
+
+  function layoutGroupedBars(api, plot, horizontal, cats, series, dom, colorFor, rx, stroke) {
+    var d3 = api.d3, cfg = api.cfg;
+    var band = d3.scaleBand().domain(cats).range(horizontal ? [plot.y, plot.y + plot.h] : [plot.x, plot.x + plot.w]).padding(cfg.barPadding);
+    var inner = d3.scaleBand().domain(series.map(function (s){return s.name;})).range([0, band.bandwidth()]).padding(clamp(cfg.barGap, 0, 0.8));
+    var val = makeYScale(cfg.yScaleType, dom, horizontal ? [plot.x, plot.x + plot.w] : [plot.y + plot.h, plot.y], d3);
+    drawValueAxis(api, plot, val, horizontal ? 'x' : 'y');
+    drawCategoryAxis(api, plot, band, horizontal);
+    var base = baselinePx(val, cfg.yScaleType);
+    var g = api.root.append('g');
+    cats.forEach(function (c, ci) {
+      series.forEach(function (s, si) {
+        var raw = s.values[ci], v = +raw;
+        /* While animating, drop a bar (and its label) for a category a frame has no
+           data for - absent (null) or ~empty - so blanks don't clutter as '0 0 0 0'.
+           Gated on animExtent so a static chart's genuine zeros are unaffected. */
+        if (cfg.animExtent) { var eps = Math.max(1e-9, (cfg.animExtent[1] - cfg.animExtent[0]) * 0.002); if (raw == null || !isFinite(v) || Math.abs(v) < eps) return; }
+        if (!isFinite(v)) return;
+        var pv = val(v); if (!isFinite(pv)) return;               // log(≤0) etc.
+        var texIdx = api.barByCat ? ci : si;
+        var col = api.override(c, legible(colorFor(si, ci), api.guardBg));
+        var akey = series.length > 1 ? c + ' · ' + s.name : c;
+        if (horizontal) {
+          var h0 = inner.bandwidth(), h = cfg.barThickness > 0 ? Math.min(h0, cfg.barThickness) : h0;
+          var y = band(c) + inner(s.name) + (h0 - h) / 2;
+          var x0 = Math.min(base, pv), x1 = Math.max(base, pv), ww = Math.max(0, x1 - x0);
+          api.markShadow(api.tagMark(cfg.bar3d ? bar3d(g, x0, y, ww, h, col, barDepth(cfg, h)) : rect(g, x0, y, ww, h, col, Math.min(rx, h/2), stroke), c), col);
+          api.overlayRect(g, x0, y, ww, h, cfg.bar3d ? 0 : Math.min(rx, h/2), texIdx, col);
+          if (cfg.showValues) valueLabel(api, x1 + 6 + cfg.valueOffset + (cfg.bar3d ? barDepth(cfg, h) * 0.72 : 0), y + h/2 + 5, api.fmt(v), 'start', api.ink, 0.75, akey);
+        } else {
+          var w0 = inner.bandwidth(), w = cfg.barThickness > 0 ? Math.min(w0, cfg.barThickness) : w0;
+          var x = band(c) + inner(s.name) + (w0 - w) / 2;
+          var y0 = Math.min(base, pv), y1 = Math.max(base, pv), hh = Math.max(0, y1 - y0);
+          api.markShadow(api.tagMark(cfg.bar3d ? bar3d(g, x, y0, w, hh, col, barDepth(cfg, w)) : rect(g, x, y0, w, hh, col, Math.min(rx, w/2), stroke), c), col);
+          api.overlayRect(g, x, y0, w, hh, cfg.bar3d ? 0 : Math.min(rx, w/2), texIdx, col);
+          if (cfg.showValues) valueLabel(api, x + w/2, y0 - 6 - cfg.valueOffset - (cfg.bar3d ? barDepth(cfg, w) * 0.52 : 0), api.fmt(v), 'middle', api.ink, 0.75, akey);
+        }
+      });
+    });
+    if (api.errorsOrdered && series.length === 1)
+      drawErrorBars(api, cats.map(function (c) { return band(c) + band.bandwidth() / 2; }), series[0].values, api.errorsOrdered, val, horizontal, api.ink);
+    drawReferences(api, plot, val, horizontal ? 'x' : 'y');
+  }
+
+  /* Pixel of the value baseline: 0 clamped into a linear domain, else the axis
+     floor (log/sqrt never straddle 0). */
+  function baselinePx(scale, type) {
+    var dom = scale.domain();
+    if (type === 'log' || type === 'sqrt') return scale(dom[0]);
+    var lo = Math.min(dom[0], dom[1]), hi = Math.max(dom[0], dom[1]);
+    return scale(clamp(0, lo, hi));
+  }
+
+  function layoutStackedBars(api, plot, horizontal, cats, stacked, dom, scf, rx, stroke, pct) {
+    var d3 = api.d3, cfg = api.cfg;
+    var band = d3.scaleBand().domain(cats).range(horizontal ? [plot.y, plot.y + plot.h] : [plot.x, plot.x + plot.w]).padding(cfg.barPadding);
+    var val = makeYScale('linear', dom, horizontal ? [plot.x, plot.x + plot.w] : [plot.y + plot.h, plot.y], d3);
+    drawValueAxis(api, plot, pct ? d3.scaleLinear([0,100], horizontal ? [plot.x, plot.x+plot.w] : [plot.y+plot.h, plot.y]) : val, horizontal ? 'x' : 'y');
+    drawCategoryAxis(api, plot, band, horizontal);
+    var g = api.root.append('g');
+    stacked.forEach(function (layer, si) {
+      var layerCol = legible(scf(si), api.guardBg);
+      layer.forEach(function (d, ci) {
+        var a = d[0], b = d[1]; if (!isFinite(a) || !isFinite(b) || b - a === 0) return;
+        var c = cats[ci], col = api.override(c, layerCol), akey = stacked.length > 1 ? c + ' · ' + layer.key : c;
+        /* Draw between the two pixel positions regardless of sign order, so a
+           negative segment (a > b) renders on the correct side of the baseline. */
+        var pa = val(a), pb = val(b);
+        if (horizontal) {
+          var h0 = band.bandwidth(), h = cfg.barThickness > 0 ? Math.min(h0, cfg.barThickness) : h0;
+          var y = band(c) + (h0 - h) / 2, xx = Math.min(pa, pb), ww = Math.abs(pb - pa);
+          api.markShadow(api.tagMark(cfg.bar3d ? bar3d(g, xx, y, ww, h, col, barDepth(cfg, h)) : rect(g, xx, y, ww, h, col, 0, stroke), c), col);
+          api.overlayRect(g, xx, y, ww, h, 0, si, col);
+          if (cfg.showValues && ww > 26) valueLabel(api, (pa+pb)/2, y + h/2 + 5, pct ? Math.round((b-a)*100)+'%' : api.fmt(b-a), 'middle', autoText(col), 1, akey);
+        } else {
+          var w0 = band.bandwidth(), w = cfg.barThickness > 0 ? Math.min(w0, cfg.barThickness) : w0;
+          var x = band(c) + (w0 - w) / 2, yy = Math.min(pa, pb), hh = Math.abs(pa - pb);
+          api.markShadow(api.tagMark(cfg.bar3d ? bar3d(g, x, yy, w, hh, col, barDepth(cfg, w)) : rect(g, x, yy, w, hh, col, 0, stroke), c), col);
+          api.overlayRect(g, x, yy, w, hh, 0, si, col);
+          if (cfg.showValues && hh > 22) valueLabel(api, x + w/2, (pa+pb)/2 + 5, pct ? Math.round((b-a)*100)+'%' : api.fmt(b-a), 'middle', autoText(col), 1, akey);
+        }
+      });
+    });
+    drawReferences(api, plot, val, horizontal ? 'x' : 'y');
+  }
+
+  /* ── line + area ──────────────────────────────────────────────────────────── */
+  var CURVES = null;
+  function curveOf(d3, name) {
+    CURVES = CURVES || { linear: d3.curveLinear, monotone: d3.curveMonotoneX, natural: d3.curveNatural,
+      catmullRom: d3.curveCatmullRom, cardinal: d3.curveCardinal, basis: d3.curveBasis,
+      step: d3.curveStep, stepBefore: d3.curveStepBefore, stepAfter: d3.curveStepAfter, bumpX: d3.curveBumpX };
+    return CURVES[name] || d3.curveMonotoneX;
+  }
+  /* Parse the label column as dates (ISO, Y-M, D/M/Y, 'Jan 2024', 'Q1 2024', a
+     plain 4-digit year, …). Returns per-index Date|null + whether it reads as a
+     real time series (≥60% parse). Month-only labels ('Jan') stay categorical -
+     no year, and evenly spaced anyway. */
+  function parseCatDates(cats, d3) {
+    var qre1 = /^Q([1-4])[\s\-]?(\d{4})$/i, qre2 = /^(\d{4})[\s\-]?Q([1-4])$/i;
+    var parsers = [d3.isoParse,
+      d3.timeParse('%Y-%m-%d'), d3.timeParse('%Y/%m/%d'), d3.timeParse('%m/%d/%Y'), d3.timeParse('%d/%m/%Y'),
+      d3.timeParse('%d %b %Y'), d3.timeParse('%b %d, %Y'), d3.timeParse('%d %B %Y'), d3.timeParse('%B %d, %Y'),
+      d3.timeParse('%b %Y'), d3.timeParse('%B %Y'), d3.timeParse('%b-%Y'), d3.timeParse('%Y-%m'), d3.timeParse('%Y/%m')];
+    function one(s) {
+      s = String(s == null ? '' : s).trim(); if (!s) return null;
+      var q = s.match(qre1); if (q) return new Date(+q[2], (+q[1] - 1) * 3, 1);
+      q = s.match(qre2); if (q) return new Date(+q[1], (+q[2] - 1) * 3, 1);
+      if (/^\d{4}$/.test(s)) { var yr = +s; return (yr >= 1900 && yr <= 2100) ? new Date(yr, 0, 1) : null; }
+      /* A bare number that isn't a 4-digit year is a sequence index / count, NOT a
+         date - guard before the parsers, since the browser Date fallback coerces
+         "1" → Jan 2001, "2" → 2002… and mislabels a plain 1,2,3… column as time. */
+      if (/^-?\d*\.?\d+$/.test(s)) return null;
+      for (var i = 0; i < parsers.length; i++) { var d = parsers[i](s); if (d && d.getFullYear() >= 1900 && d.getFullYear() <= 2100) return d; }
+      return null;
+    }
+    var dates = cats.map(one), valid = dates.filter(Boolean).length;
+    return { dates: dates, valid: valid, isTime: valid >= 2 && valid >= Math.ceil(cats.length * 0.6) };
+  }
+  function drawLineArea(api, isArea) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats, series = api.series;
+    var plot = insetForAxes(api, false);
+    var stacked = isArea && series.length > 1 && cfg.stackMode !== 'grouped';
+    /* x positioning: a real time scale when the labels are dates (proportional
+       gaps + date ticks), else the evenly-spaced point scale. `pos[i]` is each
+       category's pixel x; `timeMode` switches the axis labels to time ticks. */
+    var td = cfg.timeAxis === 'off' ? { dates: [], valid: 0, isTime: false } : parseCatDates(cats, d3);
+    var timeMode = td.valid >= 2 && (cfg.timeAxis === 'on' || td.isTime);
+    var pos, xt = null;
+    if (timeMode) {
+      var ext = d3.extent(td.dates.filter(Boolean));
+      if (+ext[0] === +ext[1]) ext = [new Date(+ext[0] - 864e5), new Date(+ext[1] + 864e5)];
+      xt = d3.scaleTime(ext, [plot.x, plot.x + plot.w]);
+      pos = td.dates.map(function (dd) { return dd ? xt(dd) : null; });
+    } else {
+      var xp = d3.scalePoint().domain(cats).range([plot.x, plot.x + plot.w]).padding(0.5);
+      pos = cats.map(function (c) { return xp(c); });
+    }
+    var scf = api.catColorFn(series.length);
+    var curve = curveOf(d3, cfg.curve);
+    var dom, layers = null;
+
+    if (stacked) {
+      var pct = cfg.stackMode === 'stacked100';
+      var rows = cats.map(function (c, i) { var o = {}; series.forEach(function (s){ o[s.name] = +s.values[i] || 0; }); return o; });
+      /* Diverging offset so negative values stack below the baseline (Expand for %). */
+      layers = d3.stack().keys(series.map(function (s){return s.name;})).offset(pct ? d3.stackOffsetExpand : d3.stackOffsetDiverging)(rows);
+      var maxT = d3.max(layers, function (l){ return d3.max(l, function (d){ return d[1]; }); }) || 1;
+      var minB = d3.min(layers, function (l){ return d3.min(l, function (d){ return d[0]; }); }) || 0;
+      if (cfg.animExtent && !pct) { maxT = cfg.animExtent[1]; minB = cfg.animExtent[0]; }   // fixed axis while animating
+      dom = [pct ? 0 : Math.min(0, minB), pct ? 1 : (cfg.yMax > 0 ? cfg.yMax : maxT)];
+    } else {
+      var maxV = d3.max(series, function (s){ return d3.max(s.values, function (v){ return isFinite(v) ? +v : -Infinity; }); }) || 1;
+      var minV = d3.min(series, function (s){ return d3.min(s.values, function (v){ return isFinite(v) ? +v : Infinity; }); });
+      minV = isFinite(minV) ? minV : 0;
+      if (cfg.animExtent) { maxV = cfg.animExtent[1]; minV = cfg.animExtent[0]; }   // fixed axis while animating
+      dom = [cfg.yZero ? Math.min(0, minV) : minV, cfg.yMax > 0 ? cfg.yMax : maxV];
+    }
+    var y = makeYScale(stacked ? 'linear' : cfg.yScaleType, dom, [plot.y + plot.h, plot.y], d3);
+    drawValueAxis(api, plot, y, 'y');
+    /* x axis: time ticks when in time mode, else evenly-spaced category labels */
+    (function () {
+      var sz = clamp(cfg.labelSize, 11, 24);
+      if (!cfg.showAxes) return;
+      if (timeMode) {
+        var tf = xt.tickFormat();
+        /* Ask for a coarse count (d3 snaps to a nice interval), then thin to a
+           min pixel spacing so labels never collide whatever interval it picks. */
+        var lastX = -1e9;
+        xt.ticks(Math.max(2, Math.min(10, Math.floor(plot.w / 120)))).forEach(function (t) {
+          var xx = xt(t); if (xx - lastX < 74) return; lastX = xx;
+          api.root.append('text').attr('x', xx).attr('y', plot.y + plot.h + sz + 6).attr('text-anchor', 'middle')
+            .attr('font-size', sz).attr('font-weight', cfg.labelWeight).attr('fill', api.ink).attr('opacity', 0.8).text(tf(t));
+        });
+      } else {
+        var every = Math.ceil(cats.length / Math.max(1, Math.floor(plot.w / 60)));
+        cats.forEach(function (c, i) {
+          if (every > 1 && i % every !== 0) return;
+          api.root.append('text').attr('x', pos[i]).attr('y', plot.y + plot.h + sz + 6).attr('text-anchor', 'middle')
+            .attr('font-size', sz).attr('font-weight', cfg.labelWeight).attr('fill', api.ink).attr('opacity', 0.8).text(trunc(c, 12));
+        });
+      }
+    })();
+    var g = api.root.append('g');
+    var fo = cfg.fillOpacity;
+
+    if (stacked) {
+      var area = d3.area().x(function (d, i){ return pos[i]; }).y0(function (d){ return y(d[0]); }).y1(function (d){ return y(d[1]); }).curve(curve);
+      layers.forEach(function (layer, si) {
+        var col = legible(scf(si), api.guardBg);
+        api.markShadow(g.append('path').attr('d', area(layer)).attr('fill', col).attr('fill-opacity', clamp(fo, 0.15, 1))
+          .attr('stroke', col).attr('stroke-width', 1), col);
+      });
+    } else {
+      series.forEach(function (s, si) {
+        var col = legible(scf(si), api.guardBg);
+        var pts = s.values.map(function (v, i){ return { c: cats[i], v: v, xp: pos[i] }; });
+        /* Also require a finite scaled y so a non-positive value under a log scale
+           becomes a bridged GAP rather than an invalid (NaN) path coordinate. */
+        var defined = function (d){ return isFinite(d.v) && isFinite(y(d.v)) && isFinite(d.xp); };
+        if (isArea) {
+          var area = d3.area().defined(defined).x(function (d){ return d.xp; }).y0(y(dom[0] < 0 ? 0 : dom[0])).y1(function (d){ return y(d.v); }).curve(curve);
+          g.append('path').attr('d', area(pts)).attr('fill', col).attr('fill-opacity', clamp(fo, 0.08, 1)).attr('stroke', 'none');
+        }
+        var line = d3.line().defined(defined).x(function (d){ return d.xp; }).y(function (d){ return y(d.v); }).curve(curve);
+        api.markShadow(g.append('path').attr('d', line(pts)).attr('fill', 'none').attr('stroke', col)
+          .attr('stroke-width', cfg.lineWidth).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round'), col);
+        if (cfg.showPoints) pts.forEach(function (d) {
+          if (!isFinite(d.v) || !isFinite(y(d.v)) || !isFinite(d.xp)) return;
+          g.append('circle').attr('cx', d.xp).attr('cy', y(d.v)).attr('r', clamp(cfg.pointSize/2, 2, 20))
+            .attr('fill', col).attr('stroke', api.guardBg).attr('stroke-width', 1.5);
+          if (cfg.showValues) valueLabel(api, d.xp, y(d.v) - clamp(cfg.pointSize/2,2,20) - 6 - cfg.valueOffset, api.fmt(d.v), 'middle', api.ink, 0.8, series.length > 1 ? d.c + ' · ' + s.name : d.c);
+        });
+      });
+    }
+    /* trend / error bars - non-stacked only. x in DATA units: date-ms in time mode
+       (fed through the time scale), else the category index mapped linearly across
+       the point band (equals pos[i] at integers). */
+    if (!stacked && (cfg.trend !== 'none' || api.errors)) {
+      var nC = cats.length, xdataT, xForTrend;
+      if (timeMode) {
+        xdataT = td.dates.map(function (dd) { return dd ? +dd : NaN; });
+        xForTrend = function (ms) { return xt(new Date(ms)); };
+      } else {
+        xdataT = cats.map(function (_, i) { return i; });
+        xForTrend = function (ix) { return nC > 1 ? pos[0] + (pos[nC - 1] - pos[0]) * ix / (nC - 1) : pos[0]; };
+      }
+      series.forEach(function (s, si) {
+        drawTrend(api, plot, xForTrend, y, xdataT, s.values, legible(scf(si), api.guardBg), series.length === 1);
+      });
+      if (api.errors && series.length === 1)
+        drawErrorBars(api, xdataT.map(function (xv) { return isFinite(xv) ? xForTrend(xv) : NaN; }), series[0].values, api.errors, y, false, api.ink);
+    }
+    drawReferences(api, plot, y, 'y');
+    drawAxisTitles(api, plot, false);
+  }
+
+  /* ── scatter / bubble ─────────────────────────────────────────────────────── */
+  function drawScatter(api) {
+    var d3 = api.d3, cfg = api.cfg, cols = api.numericCols, cats = api.cats;
+    var plot = insetForAxes(api, false);
+    var xs = cols[0].values, ys = cols[1].values;
+    var sizeVals = (cfg.sizeBy === 'auto' && cols[2]) ? cols[2].values : null;
+    var xdom = extentPad(d3, xs, cfg.yZero), ydom = extentPad(d3, ys, cfg.yZero);
+    /* Fixed axes over ALL frames so both scales hold still while the points move. */
+    if (cfg.animExtentX) { var pxx = (cfg.animExtentX[1] - cfg.animExtentX[0]) * 0.06 || 1; xdom = [cfg.animExtentX[0] - pxx, cfg.animExtentX[1] + pxx]; }
+    if (cfg.animExtent)  { var pyy = (cfg.animExtent[1] - cfg.animExtent[0]) * 0.06 || 1; ydom = [cfg.animExtent[0] - pyy, cfg.animExtent[1] + pyy]; }
+    if (cfg.yMax > 0) ydom[1] = cfg.yMax;
+    var x = makeYScale(cfg.yScaleType === 'log' ? 'linear' : cfg.yScaleType, xdom, [plot.x, plot.x + plot.w], d3);
+    var y = makeYScale(cfg.yScaleType, ydom, [plot.y + plot.h, plot.y], d3);
+    /* grid on both axes */
+    drawValueAxis(api, plot, y, 'y');
+    drawValueAxis(api, plot, x, 'x');
+    var r0 = clamp(cfg.pointSize/2, 3, 30);
+    var rScale = null;
+    if (sizeVals) { var sd = d3.extent(sizeVals.filter(isFinite)); rScale = d3.scaleSqrt(sd[0] === sd[1] ? [0, sd[1]||1] : sd, [Math.max(4,r0*0.5), r0*2.4]); }
+    var col = legible(api.catColorFn(1)(0), api.guardBg);
+    var g = api.root.append('g');
+    xs.forEach(function (xv, i) {
+      var yv = ys[i]; if (!isFinite(xv) || !isFinite(yv)) return;
+      var px = x(xv), py = y(yv); if (!isFinite(px) || !isFinite(py)) return;  // log(≤0) etc.
+      var r = rScale && isFinite(sizeVals[i]) ? rScale(sizeVals[i]) : r0;
+      var c = g.append('circle').attr('cx', px).attr('cy', py).attr('r', r)
+        .attr('fill', col).attr('fill-opacity', clamp(cfg.fillOpacity, 0.15, 1));
+      if (cfg.strokeWidth > 0) c.attr('stroke', cfg.strokeColor).attr('stroke-width', cfg.strokeWidth);
+      else c.attr('stroke', api.guardBg).attr('stroke-width', 1);
+      if (cfg.showValues && cats[i]) valueLabel(api, px, py - r - 5 - cfg.valueOffset, trunc(cats[i], 14), 'middle', api.ink, 0.8);
+    });
+    if (api.errors) drawErrorBars(api, xs.map(function (xv) { return isFinite(xv) ? x(xv) : NaN; }), ys, api.errors, y, false, api.ink);
+    drawTrend(api, plot, x, y, xs, ys, api.ink, true);
+    drawReferences(api, plot, y, 'y');
+    var atSz = cfg.axisTitleSize > 0 ? clamp(cfg.axisTitleSize, 6, 80) : clamp(cfg.labelSize, 12, 22);
+    var atW = cfg.axisTitleWeight || 600, atC = isHex(cfg.axisTitleColor) ? cfg.axisTitleColor : api.ink;
+    api.root.append('text').attr('x', plot.x + plot.w/2).attr('y', plot.y + plot.h + atSz*2 + 14).attr('data-canvas-input', 'xTitle')
+      .attr('text-anchor','middle').attr('font-size', atSz).attr('font-weight',atW).attr('fill',atC).attr('opacity',0.75)
+      .text(cfg.xTitle || cols[0].name);
+    api.root.append('text').attr('x', plot.x).attr('y', plot.y - 10).attr('data-canvas-input', 'yTitle')
+      .attr('text-anchor','start').attr('font-size', atSz).attr('font-weight',atW).attr('fill',atC).attr('opacity',0.75)
+      .text(cfg.yTitle || cols[1].name);
+  }
+  function extentPad(d3, arr, zero) {
+    var e = d3.extent(arr.filter(isFinite));
+    if (!isFinite(e[0])) e = [0, 1];
+    if (zero) e[0] = Math.min(0, e[0]);
+    if (e[0] === e[1]) { e[0] -= 1; e[1] += 1; }
+    var pad = (e[1] - e[0]) * 0.06;
+    /* Pad the low end too (don't push a zero baseline below zero) so the min point
+       isn't drawn flush on the axis edge. */
+    return [(zero && e[0] === 0) ? 0 : e[0] - pad, e[1] + pad];
+  }
+
+  /* ── distribution charts (box / violin / beeswarm) ─────────────────────────
+     Each NUMERIC column is one group's distribution (raw observations); or, for
+     tidy data (one numeric column + a repeated label column), the values grouped
+     by that label. Groups sit on a band x-axis over a shared value y-axis. */
+  function distGroups(api) {
+    var cats = api.cats, ncols = api.numericCols;
+    var uniq = {}; cats.forEach(function (c) { uniq[c] = 1; });
+    if (ncols.length === 1 && Object.keys(uniq).length < cats.length) {   // tidy: group the value column by label
+      var order = [], map = {};
+      cats.forEach(function (c, i) { var v = ncols[0].values[i]; if (!isFinite(v)) return; if (!(c in map)) { map[c] = []; order.push(c); } map[c].push(+v); });
+      return order.map(function (c) { return { name: c, values: map[c] }; });
+    }
+    return ncols.map(function (col) { return { name: col.name, values: col.values.filter(isFinite).map(Number) }; });
+  }
+  function quantiles(vals) {
+    var a = vals.filter(isFinite).slice().sort(function (x, y) { return x - y; });
+    if (!a.length) return null;
+    var q = function (p) { var idx = (a.length - 1) * p, lo = Math.floor(idx), hi = Math.ceil(idx); return a[lo] + (a[hi] - a[lo]) * (idx - lo); };
+    var q1 = q(0.25), med = q(0.5), q3 = q(0.75), iqr = q3 - q1, loF = q1 - 1.5 * iqr, hiF = q3 + 1.5 * iqr;
+    var inl = a.filter(function (v) { return v >= loF && v <= hiF; });
+    return { min: a[0], max: a[a.length - 1], q1: q1, med: med, q3: q3,
+      whiskLo: inl.length ? inl[0] : a[0], whiskHi: inl.length ? inl[inl.length - 1] : a[a.length - 1],
+      outliers: a.filter(function (v) { return v < loF || v > hiF; }), n: a.length };
+  }
+  function drawDistribution(api, mode) {
+    var d3 = api.d3, cfg = api.cfg;
+    var groups = distGroups(api).filter(function (g) { return g.values.length; });
+    if (!groups.length) return;
+    var plot = insetForAxes(api, false);
+    var band = d3.scaleBand().domain(groups.map(function (g) { return g.name; })).range([plot.x, plot.x + plot.w]).padding(0.3);
+    var allv = []; groups.forEach(function (g) { g.values.forEach(function (v) { allv.push(v); }); });
+    var e = d3.extent(allv), pad = ((e[1] - e[0]) || Math.abs(e[0]) || 1) * 0.06;
+    var dom = [cfg.yZero ? Math.min(0, e[0]) : e[0] - pad, cfg.yMax > 0 ? cfg.yMax : e[1] + pad];
+    var y = makeYScale(cfg.yScaleType, dom, [plot.y + plot.h, plot.y], d3);
+    drawValueAxis(api, plot, y, 'y');
+    drawCategoryAxis(api, plot, band, false);
+    var scf = api.catColorFn(groups.length), g = api.root.append('g');
+    groups.forEach(function (grp, gi) {
+      var cx = band(grp.name) + band.bandwidth() / 2, bw = band.bandwidth();
+      var col = api.override(grp.name, legible(scf(gi), api.guardBg));
+      if (mode === 'violin') drawViolin(api, g, grp, cx, bw, y, col, d3);
+      else if (mode === 'beeswarm') drawBeeswarm(api, g, grp, cx, bw, y, col);
+      else drawBox(api, g, grp, cx, bw, y, col);
+    });
+    drawReferences(api, plot, y, 'y');
+    drawAxisTitles(api, plot, false);
+  }
+  function drawBox(api, g, grp, cx, bw, y, col) {
+    var q = quantiles(grp.values); if (!q) return;
+    var w = Math.min(bw * 0.72, 96), x0 = cx - w / 2, capW = w * 0.5;
+    var stem = function (x1, y1, x2, y2) { g.append('line').attr('x1', x1).attr('y1', y1).attr('x2', x2).attr('y2', y2).attr('stroke', col).attr('stroke-width', 1.5); };
+    stem(cx, y(q.whiskLo), cx, y(q.whiskHi));                            // whisker
+    stem(cx - capW / 2, y(q.whiskLo), cx + capW / 2, y(q.whiskLo));      // lower cap
+    stem(cx - capW / 2, y(q.whiskHi), cx + capW / 2, y(q.whiskHi));      // upper cap
+    var yb = Math.min(y(q.q1), y(q.q3)), hb = Math.abs(y(q.q1) - y(q.q3));
+    api.tagMark(rect(g, x0, yb, w, hb, col, 2, null).attr('fill-opacity', clamp(api.cfg.fillOpacity, 0.25, 0.85)), grp.name);
+    g.append('line').attr('x1', x0).attr('y1', y(q.med)).attr('x2', x0 + w).attr('y2', y(q.med)).attr('stroke', api.guardBg).attr('stroke-width', 2);  // median
+    q.outliers.forEach(function (v) { g.append('circle').attr('cx', cx).attr('cy', y(v)).attr('r', 2.5).attr('fill', col).attr('fill-opacity', 0.85).attr('stroke', api.guardBg).attr('stroke-width', 0.5); });
+    if (api.cfg.showValues) valueLabel(api, cx, y(q.med) - 8 - api.cfg.valueOffset, api.fmt(q.med), 'middle', api.ink, 0.85, grp.name);
+  }
+  function drawViolin(api, g, grp, cx, bw, y, col, d3) {
+    var vals = grp.values; if (vals.length < 2) { drawBox(api, g, grp, cx, bw, y, col); return; }
+    var dom = y.domain(), lo = Math.min(dom[0], dom[1]), hi = Math.max(dom[0], dom[1]);
+    var n = vals.length, sd = d3.deviation(vals) || (hi - lo) / 10 || 1, h = 1.06 * sd * Math.pow(n, -0.2) || (hi - lo) / 20;
+    var N = 48, half = Math.min(bw * 0.46, 80), dens = [], maxD = 0;   // Gaussian KDE, Silverman bandwidth
+    for (var i = 0; i <= N; i++) {
+      var yv = lo + (hi - lo) * i / N, s = 0;
+      for (var j = 0; j < n; j++) { var u = (yv - vals[j]) / h; s += Math.exp(-0.5 * u * u); }
+      s /= (n * h * Math.sqrt(2 * Math.PI)); dens.push([yv, s]); if (s > maxD) maxD = s;
+    }
+    if (maxD <= 0) return;
+    var right = dens.map(function (d) { return [cx + (d[1] / maxD) * half, y(d[0])]; });
+    var left = dens.slice().reverse().map(function (d) { return [cx - (d[1] / maxD) * half, y(d[0])]; });
+    var pts = right.concat(left);
+    api.tagMark(g.append('path').attr('d', 'M' + pts.map(function (p) { return p[0].toFixed(2) + ' ' + p[1].toFixed(2); }).join('L') + 'Z')
+      .attr('fill', col).attr('fill-opacity', clamp(api.cfg.fillOpacity, 0.25, 0.8)).attr('stroke', col).attr('stroke-width', 1), grp.name);
+    var q = quantiles(vals);
+    if (q) g.append('line').attr('x1', cx - half * 0.3).attr('y1', y(q.med)).attr('x2', cx + half * 0.3).attr('y2', y(q.med)).attr('stroke', api.guardBg).attr('stroke-width', 2);
+  }
+  function drawBeeswarm(api, g, grp, cx, bw, y, col) {
+    var r = clamp(api.cfg.pointSize / 2, 2, 7), placed = [], half = Math.min(bw * 0.46, 90);
+    var step = Math.max(2, r * 1.6), minD2 = (2 * r) * (2 * r);
+    var vals = grp.values.slice().sort(function (a, b) { return a - b; });
+    if (vals.length > 600) { var keep = [], st = vals.length / 600; for (var t = 0; t < vals.length; t += st) keep.push(vals[Math.floor(t)]); vals = keep; }  // O(n²) packing cap
+    vals.forEach(function (v) {
+      var py = y(v); if (!isFinite(py)) return;
+      var px = cx, k = 0;
+      for (;;) {
+        var off = k === 0 ? 0 : (k % 2 ? 1 : -1) * Math.ceil(k / 2) * step;
+        var cand = cx + off, ok = Math.abs(off) <= half;
+        if (ok) for (var m = 0; m < placed.length; m++) { var dx = cand - placed[m][0], dy = py - placed[m][1]; if (dx * dx + dy * dy < minD2) { ok = false; break; } }
+        if (ok) { px = cand; break; }
+        if (++k > 180) { px = cx; break; }
+      }
+      placed.push([px, py]);
+      g.append('circle').attr('cx', px).attr('cy', py).attr('r', r).attr('fill', col).attr('fill-opacity', clamp(api.cfg.fillOpacity, 0.5, 1)).attr('stroke', api.guardBg).attr('stroke-width', 0.5);
+    });
+  }
+
+  /* ── pie / donut ──────────────────────────────────────────────────────────── */
+  function drawPie(api, isDonut) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats;
+    var vals = api.series[0].values.map(function (v){ return Math.abs(+v) || 0; });
+    var items = cats.map(function (c, i){ return { label: c, value: vals[i], oi: i }; });
+    items = sortItems(items, cfg.sort);
+    var total = d3.sum(items, function (d){ return d.value; }) || 1;
+    var b = api.box;
+    var cx = b.x + b.w/2, cy = b.y + b.h/2;
+    var R = Math.min(b.w, b.h)/2 * 0.92;
+    var ir = isDonut ? R * cfg.donutRadius : 0;
+    var ccf = api.catColorFn(cats.length);
+    if (cfg.pie3d) { drawPie3d(api, items, total, cx, cy, R, ir, ccf); return; }
+    var pie = d3.pie().sort(null).value(function (d){ return d.value; }).padAngle(cfg.sliceGap / Math.max(R,1));
+    var arc = d3.arc().innerRadius(ir).outerRadius(R).cornerRadius(clamp(cfg.cornerRadius, 0, 40));
+    var g = api.root.append('g').attr('transform', 'translate(' + cx + ',' + cy + ')');
+    var stroke = cfg.strokeWidth > 0 ? { s: cfg.strokeColor, w: cfg.strokeWidth } : null;
+    pie(items).forEach(function (d, i) {
+      var col = api.override(d.data.label, legible(ccf(d.data.oi), api.guardBg));
+      var p = g.append('path').attr('d', arc(d)).attr('fill', col);
+      if (stroke) p.attr('stroke', stroke.s).attr('stroke-width', stroke.w).attr('stroke-linejoin', 'round');
+      api.markShadow(api.tagMark(p, d.data.label), col);
+      api.overlayPath(g, arc(d), i, col);
+      var frac = d.data.value / total;
+      if (cfg.showValues && frac > 0.03) {
+        var c = arc.centroid(d);
+        var lab = cfg.numberFormat === 'percent' || cfg.numberFormat === 'auto' ? Math.round(frac*100) + '%' : api.fmt(d.data.value);
+        g.append('text').attr('x', c[0]).attr('y', c[1] + 6).attr('text-anchor', 'middle')
+          .attr('font-size', clamp(cfg.labelSize, 12, 30)).attr('font-weight', 700).attr('fill', autoText(col)).text(lab);
+      }
+    });
+    if (isDonut && cfg.heading === '' && cfg.subheading === '') { /* nothing centred by default */ }
+  }
+
+  /* Faux-3-D pie/donut: squash to a tilted ellipse and drop a darkened copy of
+     the disc behind + below to read as an extruded rim. Slice labels are placed
+     in un-squashed screen space so the type isn't vertically compressed. */
+  function drawPie3d(api, items, total, cx, cy, R, ir, ccf) {
+    var d3 = api.d3, cfg = api.cfg;
+    var k = 0.60;                                       // vertical squash → tilt
+    var dep = cfg.depth3d > 0 ? cfg.depth3d : clamp(R * 0.22, 10, 48);
+    var depLocal = dep / k;
+    var pieTop = d3.pie().sort(null).value(function (d) { return d.value; }).padAngle(cfg.sliceGap / Math.max(R, 1));
+    var pieBase = d3.pie().sort(null).value(function (d) { return d.value; }).padAngle(0);
+    var arcGen = d3.arc().innerRadius(ir).outerRadius(R).cornerRadius(0);
+    var topArcs = pieTop(items), baseArcs = pieBase(items);
+    var oy = cy - dep * 0.5;
+    var g = api.root.append('g').attr('transform', 'translate(' + cx + ',' + oy + ') scale(1,' + k + ')');
+    var baseG = g.append('g').attr('transform', 'translate(0,' + depLocal + ')');
+    baseArcs.forEach(function (d) { baseG.append('path').attr('d', arcGen(d)).attr('fill', shade(api.override(d.data.label, legible(ccf(d.data.oi), api.guardBg)), -0.30)); });
+    var stroke = cfg.strokeWidth > 0 ? { s: cfg.strokeColor, w: cfg.strokeWidth } : null;
+    topArcs.forEach(function (d, i) {
+      var col = api.override(d.data.label, legible(ccf(d.data.oi), api.guardBg));
+      var p = g.append('path').attr('d', arcGen(d)).attr('fill', col);
+      if (stroke) p.attr('stroke', stroke.s).attr('stroke-width', stroke.w).attr('stroke-linejoin', 'round');
+      api.markShadow(api.tagMark(p, d.data.label), col);
+      api.overlayPath(g, arcGen(d), i, col);
+      var frac = d.data.value / total;
+      if (cfg.showValues && frac > 0.03) {
+        var c = arcGen.centroid(d);
+        var lab = (cfg.numberFormat === 'percent' || cfg.numberFormat === 'auto') ? Math.round(frac * 100) + '%' : api.fmt(d.data.value);
+        api.root.append('text').attr('x', cx + c[0]).attr('y', oy + k * c[1] + 6).attr('text-anchor', 'middle')
+          .attr('font-size', clamp(cfg.labelSize, 12, 30)).attr('font-weight', 700).attr('fill', autoText(col)).text(lab);
+      }
+    });
+  }
+
+  /* ── radial bar ───────────────────────────────────────────────────────────── */
+  function drawRadialBar(api) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats;
+    var vals = api.series[0].values.map(function (v){ return Math.abs(+v) || 0; });
+    var items = sortItems(cats.map(function (c,i){ return { label: c, value: vals[i], oi: i }; }), cfg.sort);
+    var b = api.box, cx = b.x + b.w/2, cy = b.y + b.h/2;
+    var R = Math.min(b.w, b.h)/2 * 0.9;
+    var ir = Math.max(24, R * cfg.donutRadius);
+    var maxV = cfg.yMax > 0 ? cfg.yMax : (d3.max(items, function (d){ return d.value; }) || 1);
+    var xb = d3.scaleBand().domain(items.map(function (d){ return d.label; })).range([0, 2*Math.PI]).padding(clamp(cfg.barPadding, 0, 0.6));
+    var rScale = makeYScale(cfg.yScaleType === 'log' ? 'linear' : cfg.yScaleType, [0, maxV], [ir, R], d3);
+    var arc = d3.arc().innerRadius(function (d){ return ir; }).outerRadius(function (d){ return rScale(d.value); })
+      .startAngle(function (d){ return xb(d.label); }).endAngle(function (d){ return xb(d.label) + xb.bandwidth(); })
+      .padAngle(0.01).cornerRadius(clamp(cfg.cornerRadius, 0, 40));
+    var ccf = api.catColorFn(cats.length);
+    var g = api.root.append('g').attr('transform', 'translate(' + cx + ',' + cy + ')');
+    /* faint track rings */
+    if (cfg.showGrid) rScale.ticks(4).forEach(function (t){ if (t<=0) return; g.append('circle').attr('r', rScale(t)).attr('fill','none').attr('stroke', api.ink).attr('opacity', 0.1); });
+    items.forEach(function (d, i) {
+      var col = api.override(d.label, legible(ccf(d.oi), api.guardBg));
+      var p = api.tagMark(g.append('path').attr('d', arc(d)).attr('fill', col), d.label);
+      if (cfg.strokeWidth > 0) p.attr('stroke', cfg.strokeColor).attr('stroke-width', cfg.strokeWidth).attr('stroke-linejoin','round');
+      var mid = xb(d.label) + xb.bandwidth()/2 - Math.PI/2;
+      var rr = rScale(d.value) + 14;
+      if (cfg.showValues) {
+        var lx = Math.cos(mid)*rr, ly = Math.sin(mid)*rr;
+        g.append('text').attr('x', lx).attr('y', ly + 5).attr('text-anchor', Math.cos(mid) > 0.1 ? 'start' : Math.cos(mid) < -0.1 ? 'end' : 'middle')
+          .attr('font-size', clamp(cfg.labelSize, 11, 22)).attr('font-weight', 600).attr('fill', api.ink).attr('opacity', 0.8)
+          .text(trunc(d.label, 12) + ' ' + api.fmt(d.value));
+      }
+    });
+  }
+
+  /* ── radar ────────────────────────────────────────────────────────────────── */
+  function drawRadar(api) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats, series = api.series;
+    var b = api.box, cx = b.x + b.w/2, cy = b.y + b.h/2;
+    var R = Math.min(b.w, b.h)/2 * 0.82;
+    var n = cats.length; if (n < 3) { drawBars(api, false); return; }
+    var maxV = cfg.yMax > 0 ? cfg.yMax : (d3.max(series, function (s){ return d3.max(s.values, function (v){ return +v||0; }); }) || 1);
+    var rScale = d3.scaleLinear([0, maxV], [0, R]);
+    var angle = function (i){ return (i / n) * 2*Math.PI - Math.PI/2; };
+    var g = api.root.append('g').attr('transform', 'translate(' + cx + ',' + cy + ')');
+    /* rings + spokes + axis labels */
+    var rings = rScale.ticks(clamp(cfg.tickCount, 3, 6));
+    rings.forEach(function (t) {
+      if (t <= 0) return;
+      var pts = d3.range(n).map(function (i){ return [Math.cos(angle(i))*rScale(t), Math.sin(angle(i))*rScale(t)]; });
+      g.append('polygon').attr('points', pts.map(function (p){ return p[0].toFixed(1)+','+p[1].toFixed(1); }).join(' '))
+        .attr('fill', 'none').attr('stroke', api.ink).attr('opacity', 0.12);
+      if (cfg.showAxes) g.append('text').attr('x', 4).attr('y', -rScale(t) - 2).attr('font-size', clamp(cfg.labelSize,10,18)).attr('fill', api.ink).attr('opacity', 0.45).text(api.fmt(t));
+    });
+    cats.forEach(function (c, i) {
+      var a = angle(i), ex = Math.cos(a)*R, ey = Math.sin(a)*R;
+      g.append('line').attr('x1', 0).attr('y1', 0).attr('x2', ex).attr('y2', ey).attr('stroke', api.ink).attr('opacity', 0.14);
+      var lr = R + 16;
+      g.append('text').attr('x', Math.cos(a)*lr).attr('y', Math.sin(a)*lr + 4)
+        .attr('text-anchor', Math.cos(a) > 0.2 ? 'start' : Math.cos(a) < -0.2 ? 'end' : 'middle')
+        .attr('font-size', clamp(cfg.labelSize, 11, 22)).attr('font-weight', 500).attr('fill', api.ink).attr('opacity', 0.8).text(trunc(c, 14));
+    });
+    var scf = api.catColorFn(series.length);
+    series.forEach(function (s, si) {
+      var col = legible(scf(si), api.guardBg);
+      var pts = cats.map(function (c, i){ var v = +s.values[i] || 0; return [Math.cos(angle(i))*rScale(v), Math.sin(angle(i))*rScale(v)]; });
+      var poly = pts.map(function (p){ return p[0].toFixed(1)+','+p[1].toFixed(1); }).join(' ');
+      g.append('polygon').attr('points', poly).attr('fill', col).attr('fill-opacity', clamp(cfg.fillOpacity*0.5, 0.05, 0.7))
+        .attr('stroke', col).attr('stroke-width', cfg.lineWidth).attr('stroke-linejoin', 'round');
+      if (cfg.showPoints) pts.forEach(function (p){ g.append('circle').attr('cx', p[0]).attr('cy', p[1]).attr('r', clamp(cfg.pointSize/2,2,12)).attr('fill', col); });
+    });
+  }
+
+  /* ── treemap / circle pack ────────────────────────────────────────────────── */
+  function drawHierarchy(api, kind) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats;
+    var vals = api.series[0].values.map(function (v){ return Math.abs(+v) || 0; });
+    var items = sortItems(cats.map(function (c,i){ return { label: c, value: vals[i], oi: i }; }), cfg.sort === 'none' ? 'desc' : cfg.sort);
+    var b = api.box;
+    var rootNode = d3.hierarchy({ children: items }).sum(function (d){ return d.value || 0; }).sort(function (a,c){ return c.value - a.value; });
+    var maxV = d3.max(items, function (d){ return d.value; }) || 1;
+    var seq = api.seqColorFn(0, maxV);
+    var ccf = api.catColorFn(cats.length);
+    /* Only the true ramp palettes colour a cell by its value; the categorical
+       palettes (ordered / suse / seed) colour each cell by its own hue. */
+    var useSeq = ['pine','waterhole','warm','cool','diverging','mono'].indexOf(cfg.palette) >= 0;
+    var g = api.root.append('g');
+    var stroke = cfg.strokeWidth > 0 ? { s: cfg.strokeColor, w: cfg.strokeWidth } : { s: (cfg.transparent ? '#ffffff' : cfg.background), w: 2 };
+
+    if (kind === 'treemap') {
+      d3.treemap().size([b.w, b.h]).paddingInner(clamp(cfg.sliceGap || 3, 1, 12)).round(true)(rootNode);
+      rootNode.leaves().forEach(function (leaf) {
+        var col = api.override(leaf.data.label, legible(useSeq ? seq(leaf.value) : ccf(leaf.data.oi), api.guardBg));
+        api.tagMark(rect(g, b.x + leaf.x0, b.y + leaf.y0, leaf.x1 - leaf.x0, leaf.y1 - leaf.y0, col, clamp(cfg.cornerRadius,0,20), stroke), leaf.data.label);
+        labelCell(api, b.x + leaf.x0 + 8, b.y + leaf.y0 + 8, leaf.x1 - leaf.x0 - 12, leaf.y1 - leaf.y0 - 8, leaf.data.label, leaf.value, autoText(col));
+      });
+    } else {
+      d3.pack().size([b.w, b.h]).padding(clamp(cfg.sliceGap || 3, 1, 14))(rootNode);
+      rootNode.leaves().forEach(function (leaf) {
+        var col = api.override(leaf.data.label, legible(useSeq ? seq(leaf.value) : ccf(leaf.data.oi), api.guardBg));
+        var c = g.append('circle').attr('cx', b.x + leaf.x).attr('cy', b.y + leaf.y).attr('r', leaf.r).attr('fill', col);
+        api.tagMark(c, leaf.data.label);
+        if (stroke) c.attr('stroke', stroke.s).attr('stroke-width', stroke.w);
+        if (leaf.r > 22) {
+          g.append('text').attr('x', b.x + leaf.x).attr('y', b.y + leaf.y + 2).attr('text-anchor', 'middle')
+            .attr('font-size', clamp(Math.min(leaf.r*0.5, cfg.labelSize), 9, 28)).attr('font-weight', 600).attr('fill', autoText(col))
+            .text(trunc(leaf.data.label, Math.max(3, Math.floor(leaf.r/6))));
+          if (cfg.showValues && leaf.r > 34) g.append('text').attr('x', b.x + leaf.x).attr('y', b.y + leaf.y + clamp(leaf.r*0.32,12,22)).attr('text-anchor','middle')
+            .attr('font-size', clamp(leaf.r*0.32, 9, 20)).attr('fill', autoText(col)).attr('opacity', 0.85).text(api.fmt(leaf.value));
+        }
+      });
+    }
+  }
+  function labelCell(api, x, y, w, h, label, value, fill) {
+    var cfg = api.cfg;
+    if (w < 34 || h < 22) return;
+    var sz = clamp(Math.min(cfg.labelSize, w/5, h/2.4), 9, 30);
+    api.root.append('text').attr('x', x).attr('y', y + sz).attr('font-size', sz).attr('font-weight', 600).attr('fill', fill)
+      .text(trunc(label, Math.max(3, Math.floor(w / (sz*0.55)))));
+    if (cfg.showValues && h > sz*2 + 8) api.root.append('text').attr('x', x).attr('y', y + sz*2 + 4).attr('font-size', sz*0.85).attr('fill', fill).attr('opacity', 0.85).text(api.fmt(value));
+  }
+
+  /* ── heatmap ──────────────────────────────────────────────────────────────── */
+  function drawHeatmap(api) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats, series = api.series;
+    var plot = insetForAxes(api, true);
+    /* Reserve a strip above the grid for the column headers. */
+    if (cfg.showAxes) { var head = clamp(cfg.labelSize, 10, 20) + 14; plot = { x: plot.x, y: plot.y + head, w: plot.w, h: Math.max(20, plot.h - head) }; }
+    var colNames = series.map(function (s){ return s.name; });
+    var x = d3.scaleBand().domain(colNames).range([plot.x, plot.x + plot.w]).padding(0.04);
+    var y = d3.scaleBand().domain(cats).range([plot.y, plot.y + plot.h]).padding(0.04);
+    var all = [];
+    series.forEach(function (s){ s.values.forEach(function (v){ if (isFinite(v)) all.push(+v); }); });
+    var lo = d3.min(all), hi = d3.max(all);
+    if (!isFinite(lo)) { lo = 0; hi = 1; }
+    var seq = api.seqColorFn(lo, hi);
+    var g = api.root.append('g');
+    var sz = clamp(cfg.labelSize, 10, 20);
+    /* column headers */
+    if (cfg.showAxes) colNames.forEach(function (c){ g.append('text').attr('x', x(c) + x.bandwidth()/2).attr('y', plot.y - 8).attr('text-anchor','middle').attr('font-size', sz).attr('font-weight',500).attr('fill', api.ink).attr('opacity',0.8).text(trunc(c, Math.max(4, Math.floor(x.bandwidth()/(sz*0.5))))); });
+    if (cfg.showAxes) cats.forEach(function (c){ g.append('text').attr('x', plot.x - 8).attr('y', y(c) + y.bandwidth()/2 + sz*0.34).attr('text-anchor','end').attr('font-size', sz).attr('font-weight',500).attr('fill', api.ink).attr('opacity',0.8).text(trunc(c, 18)); });
+    cats.forEach(function (c, ri) {
+      series.forEach(function (s) {
+        var v = s.values[ri];
+        var col = isFinite(v) ? legible(seq(+v), api.guardBg) : (cfg.transparent ? '#ffffff' : cfg.background);
+        var r = rect(g, x(s.name), y(c), x.bandwidth(), y.bandwidth(), isFinite(v) ? col : 'none', clamp(cfg.cornerRadius,0,14), cfg.strokeWidth>0?{s:cfg.strokeColor,w:cfg.strokeWidth}:null);
+        if (!isFinite(v)) r.attr('opacity', 0.25);
+        if (cfg.showValues && isFinite(v) && x.bandwidth() > 30 && y.bandwidth() > 20)
+          g.append('text').attr('x', x(s.name) + x.bandwidth()/2).attr('y', y(c) + y.bandwidth()/2 + 5).attr('text-anchor','middle')
+            .attr('font-size', clamp(Math.min(sz, y.bandwidth()/2.2), 8, 20)).attr('font-weight', 600).attr('fill', autoText(col)).text(api.fmt(+v));
+      });
+    });
+  }
+
+  /* ── histogram ────────────────────────────────────────────────────────────── */
+  function drawHistogram(api) {
+    var d3 = api.d3, cfg = api.cfg;
+    var col0 = api.numericCols[0];
+    var vals = col0.values.filter(isFinite);
+    var plot = insetForAxes(api, false);
+    var dom = d3.extent(vals); if (!isFinite(dom[0])) dom = [0, 1];
+    if (dom[0] === dom[1]) { dom = [dom[0] - 0.5, dom[1] + 0.5]; }
+    var x = d3.scaleLinear(dom, [plot.x, plot.x + plot.w]).nice();
+    var thresholds = cfg.binCount > 0 ? cfg.binCount : d3.thresholdSturges(vals);
+    var bins = d3.bin().domain(x.domain()).thresholds(thresholds)(vals);
+    var maxC = d3.max(bins, function (b){ return b.length; }) || 1;
+    var y = makeYScale(cfg.yScaleType === 'log' ? 'linear' : cfg.yScaleType, [0, cfg.yMax > 0 ? cfg.yMax : maxC], [plot.y + plot.h, plot.y], d3);
+    drawValueAxis(api, plot, y, 'y');
+    /* x ticks */
+    if (cfg.showAxes) x.ticks(cfg.tickCount).forEach(function (t){ api.root.append('text').attr('x', x(t)).attr('y', plot.y + plot.h + clamp(cfg.labelSize,11,22) + 6).attr('text-anchor','middle').attr('font-size', clamp(cfg.labelSize,11,22)).attr('fill', api.ink).attr('opacity',0.6).text(api.fmt(t)); });
+    var col = legible(api.catColorFn(1)(0), api.guardBg);
+    var g = api.root.append('g');
+    var pad = clamp(cfg.barPadding, 0, 0.6);
+    bins.forEach(function (bn) {
+      var bx = x(bn.x0), bw = Math.max(1, x(bn.x1) - x(bn.x0));
+      var gap = bw * pad;
+      var h = (plot.y + plot.h) - y(bn.length);
+      if (h <= 0) return;
+      rect(g, bx + gap/2, y(bn.length), Math.max(1, bw - gap), h, col, clamp(cfg.cornerRadius, 0, 14), cfg.strokeWidth>0?{s:cfg.strokeColor,w:cfg.strokeWidth}:null);
+      if (cfg.showValues && bw > 20) valueLabel(api, bx + bw/2, y(bn.length) - 6 - cfg.valueOffset, String(bn.length), 'middle', api.ink, 0.75);
+    });
+    drawAxisTitles(api, plot, false);
+    if (!cfg.xTitle) api.root.append('text').attr('x', plot.x + plot.w/2).attr('y', plot.y + plot.h + clamp(cfg.labelSize,12,22)*2 + 14).attr('text-anchor','middle').attr('font-size', clamp(cfg.labelSize,12,22)).attr('font-weight',600).attr('fill',api.ink).attr('opacity',0.6).text(col0.name);
+  }
+
+  /* ══ EXPANDED CHART TYPES ═══════════════════════════════════════════════════
+     Every renderer below reuses the shared helpers (insetForAxes, makeYScale,
+     drawValueAxis/CategoryAxis, rect, valueLabel, catColorFn, legible, arc) and
+     emits only vector-safe SVG (rect/circle/line/path/polygon/text, no rotation). */
+
+  function niceCeil(v) {
+    if (!(v > 0)) return 10;
+    var mag = Math.pow(10, Math.floor(Math.log10(v))), f = v / mag;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10) * mag;
+  }
+  // d3-arc angle (0 = 12 o'clock, clockwise) → screen point at radius r.
+  function polarXY(a, r) { return [Math.sin(a) * r, -Math.cos(a) * r]; }
+
+  /* ── lollipop (stem + head) ─────────────────────────────────────────────── */
+  function drawLollipop(api) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats, series = api.series;
+    var plot = insetForAxes(api, false);
+    var maxV = d3.max(series, function (s) { return d3.max(s.values, function (v) { return +v || 0; }); }) || 1;
+    var minV = Math.min(0, d3.min(series, function (s) { return d3.min(s.values, function (v) { return +v || 0; }); }) || 0);
+    var dom = [cfg.yZero ? Math.min(0, minV) : minV, cfg.yMax > 0 ? cfg.yMax : maxV];
+    var band = d3.scaleBand().domain(cats).range([plot.x, plot.x + plot.w]).padding(0.35);
+    var inner = d3.scaleBand().domain(series.map(function (s) { return s.name; })).range([0, band.bandwidth()]).padding(0.2);
+    var val = makeYScale(cfg.yScaleType, dom, [plot.y + plot.h, plot.y], d3);
+    drawValueAxis(api, plot, val, 'y'); drawCategoryAxis(api, plot, band, false);
+    var base = baselinePx(val, cfg.yScaleType), scf = api.catColorFn(series.length);
+    var g = api.root.append('g'), r = clamp(inner.bandwidth() * 0.36, 4, 20);
+    cats.forEach(function (c, ci) { series.forEach(function (s, si) {
+      var v = +s.values[ci]; if (!isFinite(v)) return; var pv = val(v); if (!isFinite(pv)) return;
+      var x = band(c) + inner(s.name) + inner.bandwidth() / 2, col = api.override(c, legible(scf(si), api.guardBg));
+      api.tagMark(g.append('line').attr('x1', x).attr('y1', base).attr('x2', x).attr('y2', pv).attr('stroke', col).attr('stroke-width', clamp(cfg.lineWidth, 2, 8)), c);
+      api.tagMark(g.append('circle').attr('cx', x).attr('cy', pv).attr('r', r).attr('fill', col), c);
+      if (cfg.showValues) valueLabel(api, x, pv - r - 5 - cfg.valueOffset, api.fmt(v), 'middle', api.ink, 0.8);
+    }); });
+    drawAxisTitles(api, plot, false);
+  }
+
+  /* ── dumbbell / Cleveland dot plot (needs ≥2 series) ────────────────────── */
+  function drawDumbbell(api) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats, series = api.series;
+    if (series.length < 2) { drawLollipop(api); return; }
+    var plot = insetForAxes(api, true);
+    var maxV = d3.max(series, function (s) { return d3.max(s.values, function (v) { return +v || 0; }); }) || 1;
+    var minV = Math.min(0, d3.min(series, function (s) { return d3.min(s.values, function (v) { return +v || 0; }); }) || 0);
+    var dom = [cfg.yZero ? Math.min(0, minV) : minV, cfg.yMax > 0 ? cfg.yMax : maxV];
+    var band = d3.scaleBand().domain(cats).range([plot.y, plot.y + plot.h]).padding(0.45);
+    var x = makeYScale(cfg.yScaleType, dom, [plot.x, plot.x + plot.w], d3);
+    drawValueAxis(api, plot, x, 'x'); drawCategoryAxis(api, plot, band, true);
+    var scf = api.catColorFn(series.length), g = api.root.append('g'), r = clamp(band.bandwidth() * 0.3, 5, 16);
+    cats.forEach(function (c, ci) {
+      var y = band(c) + band.bandwidth() / 2;
+      var px = series.map(function (s) { return +s.values[ci]; }).filter(isFinite).map(function (v) { return x(v); });
+      if (px.length >= 2) g.append('line').attr('x1', Math.min.apply(null, px)).attr('y1', y).attr('x2', Math.max.apply(null, px)).attr('y2', y)
+        .attr('stroke', api.ink).attr('opacity', 0.25).attr('stroke-width', clamp(cfg.lineWidth, 2, 6));
+      series.forEach(function (s, si) { var v = +s.values[ci]; if (!isFinite(v)) return;
+        g.append('circle').attr('cx', x(v)).attr('cy', y).attr('r', r).attr('fill', legible(scf(si), api.guardBg)).attr('stroke', api.guardBg).attr('stroke-width', 1.5);
+      });
+    });
+    drawAxisTitles(api, plot, true);
+  }
+
+  /* Compound comparison charts. Index bands keep repeated labels distinct;
+     every renderer consumes the hook's prepared rows, including missing cells. */
+  function drawComparison(api, kind) {
+    var d3 = api.d3, cfg = api.cfg, rows = api.data.comparison.rows;
+    var horizontal = kind !== 'pareto', colours = api.catColorFn(2);
+    api.cats = rows.map(function (r) { return r.category; });
+    api.categoryLabel = function (i) { return rows[i].category; };
+    var plot = insetForAxes(api, horizontal);
+    if (kind === 'pareto' && cfg.paretoCumulative) plot.w = Math.max(20, plot.w - 70);
+    // Value labels live inside the output frame even for the largest measure.
+    if (cfg.showValues && !horizontal) { plot.y += 28; plot.h = Math.max(20, plot.h - 28); }
+    var band = d3.scaleBand().domain(rows.map(function (_, i) { return i; }))
+      .range(horizontal ? [plot.y, plot.y + plot.h] : [plot.x, plot.x + plot.w]).padding(cfg.barPadding);
+    var max = d3.max(rows, function (r) { return kind === 'range-bar' ? r.high : Math.max(r.value, r.target || 0, r.maximum || 0); }) || 1;
+    var min = kind === 'range-bar' ? Math.min(0, d3.min(rows, function (r) { return r.low; })) : 0;
+    var scale = d3.scaleLinear().domain([min, Math.max(max, cfg.yMax || 0)]).nice()
+      .range(horizontal ? [plot.x, plot.x + plot.w] : [plot.y + plot.h, plot.y]);
+    drawValueAxis(api, plot, scale, horizontal ? 'x' : 'y');
+    drawCategoryAxis(api, plot, band, horizontal);
+    var g = api.root.append('g').attr('data-comparison', kind);
+    rows.forEach(function (r, i) {
+      var col = api.override(r.category, colours(0)), lane = band(i), bw = band.bandwidth();
+      var mark, label;
+      if (kind === 'pareto') {
+        mark = g.append('rect').attr('x', lane).attr('y', scale(r.value)).attr('width', bw).attr('height', Math.max(0, scale(0) - scale(r.value))).attr('fill', col);
+        if (cfg.showValues) valueLabel(api, lane + bw / 2, scale(r.value) - 9, api.fmt(r.value), 'middle', api.ink, 1);
+        label = r.category + ': ' + api.fmt(r.value) + ' · cumulative ' + r.cumulative.toFixed(1) + '%';
+      } else if (kind === 'bullet') {
+        var cy = lane + bw / 2, barH = Math.max(1, bw * .34), target = r.target;
+        if (cfg.bulletBands && target != null) {
+          [1, .8, .6].forEach(function (factor, n) {
+            g.append('rect').attr('x', scale(0)).attr('y', lane + bw * .12).attr('width', Math.max(0, scale(target * factor) - scale(0))).attr('height', bw * .76).attr('fill', api.ink).attr('opacity', .055 + n * .045);
+          });
+        }
+        mark = g.append('rect').attr('x', scale(0)).attr('y', cy - barH / 2).attr('width', Math.max(0, scale(r.value) - scale(0))).attr('height', barH).attr('fill', col);
+        if (target != null) g.append('line').attr('data-target', target).attr('x1', scale(target)).attr('x2', scale(target)).attr('y1', cy - bw * .4).attr('y2', cy + bw * .4).attr('stroke', api.ink).attr('stroke-width', cfg.lineWidth);
+        label = r.category + ': ' + api.fmt(r.value) + (target == null ? ' · no target' : ' / ' + api.fmt(target) + ' target');
+        if (cfg.showValues) valueLabel(api, plot.x + plot.w, lane + Math.max(10, bw * .1), api.fmt(r.value) + (target == null ? '' : ' / ' + api.fmt(target)), 'end', api.ink, 1);
+      } else {
+        var h = Math.max(1, bw * .45), mid = (r.low + r.high) / 2, y = lane + bw / 2;
+        mark = g.append('rect').attr('x', scale(r.low)).attr('y', y - h / 2).attr('width', Math.max(1, scale(r.high) - scale(r.low))).attr('height', h).attr('fill', col);
+        if (cfg.rangeMidpoint) g.append('line').attr('data-midpoint', mid).attr('x1', scale(mid)).attr('x2', scale(mid)).attr('y1', y - h / 2 - 4).attr('y2', y + h / 2 + 4).attr('stroke', api.ink).attr('stroke-width', cfg.lineWidth);
+        label = r.category + ': ' + api.fmt(r.low) + ' – ' + api.fmt(r.high);
+        if (cfg.showValues) valueLabel(api, Math.min(plot.x + plot.w, Math.max(plot.x + 30, scale(mid))), lane + Math.max(10, bw * .15), api.fmt(r.low) + ' – ' + api.fmt(r.high), 'middle', api.ink, 1);
+      }
+      mark.attr('data-value', kind === 'range-bar' ? r.high - r.low : r.value).attr('rx', Math.min(cfg.cornerRadius, band.bandwidth() * .15));
+      mark.append('title').text(label);
+      api.tagMark(mark, r.category);
+    });
+    if (kind === 'pareto' && cfg.paretoCumulative) {
+      var percent = d3.scaleLinear().domain([0, 100]).range([plot.y + plot.h, plot.y]);
+      var line = d3.line().x(function (_, i) { return band(i) + band.bandwidth() / 2; }).y(function (r) { return percent(r.cumulative); });
+      g.append('path').attr('data-cumulative', 'true').attr('d', line(rows)).attr('fill', 'none').attr('stroke', colours(1)).attr('stroke-width', cfg.lineWidth);
+      rows.forEach(function (r, i) { g.append('circle').attr('cx', band(i) + band.bandwidth() / 2).attr('cy', percent(r.cumulative)).attr('r', Math.max(2, cfg.pointSize / 2)).attr('fill', colours(1)).append('title').text(r.cumulative.toFixed(1) + '%'); });
+      if (cfg.showAxes) [0, 20, 40, 60, 80, 100].forEach(function (p) { g.append('text').attr('x', plot.x + plot.w + 12).attr('y', percent(p) + 5).attr('fill', api.ink).attr('font-size', clamp(cfg.labelSize, 11, 22)).text(p + '%'); });
+      if (cfg.paretoThreshold > 0) {
+        var py = percent(cfg.paretoThreshold);
+        g.append('line').attr('data-threshold', cfg.paretoThreshold).attr('x1', plot.x).attr('x2', plot.x + plot.w).attr('y1', py).attr('y2', py).attr('stroke', api.ink).attr('opacity', .55).attr('stroke-dasharray', '6 5');
+        g.append('text').attr('x', plot.x + 5).attr('y', py - 6).attr('fill', api.ink).attr('font-size', 13).text(cfg.paretoThreshold + '% reference');
+      }
+    }
+    drawAxisTitles(api, plot, horizontal);
+  }
+
+  /* ── slope chart (straight segments, end-labelled) ──────────────────────── */
+  function drawSlope(api) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats, series = api.series;
+    var plot = insetForAxes(api, false);
+    var maxV = d3.max(series, function (s) { return d3.max(s.values, function (v) { return +v || 0; }); }) || 1;
+    var minV = d3.min(series, function (s) { return d3.min(s.values, function (v) { return +v || 0; }); }); minV = isFinite(minV) ? minV : 0;
+    var y = makeYScale(cfg.yScaleType, [cfg.yZero ? Math.min(0, minV) : minV, cfg.yMax > 0 ? cfg.yMax : maxV], [plot.y + plot.h, plot.y], d3);
+    var x = d3.scalePoint().domain(cats).range([plot.x, plot.x + plot.w]).padding(0.5);
+    drawValueAxis(api, plot, y, 'y');
+    var sz = clamp(cfg.labelSize, 11, 22);
+    if (cfg.showAxes) cats.forEach(function (c) { api.root.append('text').attr('x', x(c)).attr('y', plot.y + plot.h + sz + 6).attr('text-anchor', 'middle').attr('font-size', sz).attr('font-weight', 500).attr('fill', api.ink).attr('opacity', 0.8).text(trunc(c, 14)); });
+    var scf = api.catColorFn(series.length), g = api.root.append('g');
+    series.forEach(function (s, si) { var col = legible(scf(si), api.guardBg);
+      var pts = cats.map(function (c, i) { return { x: x(c), y: isFinite(s.values[i]) ? y(s.values[i]) : null }; }).filter(function (p) { return p.y != null; });
+      if (!pts.length) return;
+      g.append('path').attr('d', pts.map(function (p, i) { return (i ? 'L' : 'M') + p.x + ' ' + p.y; }).join(' ')).attr('fill', 'none').attr('stroke', col).attr('stroke-width', clamp(cfg.lineWidth, 2, 8)).attr('stroke-linejoin', 'round');
+      pts.forEach(function (p) { g.append('circle').attr('cx', p.x).attr('cy', p.y).attr('r', clamp(cfg.pointSize / 2, 3, 9)).attr('fill', col); });
+      var last = pts[pts.length - 1];
+      g.append('text').attr('x', last.x + 8).attr('y', last.y + 4).attr('font-size', sz).attr('font-weight', 600).attr('fill', col).text(trunc(s.name, 14));
+    });
+    drawAxisTitles(api, plot, false);
+  }
+
+  /* ── bump / ranking chart ───────────────────────────────────────────────── */
+  function drawBump(api) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats, series = api.series;
+    var plot = insetForAxes(api, false), n = series.length;
+    var x = d3.scalePoint().domain(cats).range([plot.x, plot.x + plot.w]).padding(0.6);
+    var y = d3.scalePoint().domain(d3.range(1, n + 1)).range([plot.y, plot.y + plot.h]).padding(0.5);
+    var ranks = cats.map(function (_, ci) {
+      var order = series.map(function (s, si) { return { si: si, v: +s.values[ci] || 0 }; }).sort(function (a, b) { return b.v - a.v; });
+      var m = {}; order.forEach(function (o, idx) { m[o.si] = idx + 1; }); return m;
+    });
+    var sz = clamp(cfg.labelSize, 11, 22);
+    if (cfg.showAxes) { d3.range(1, n + 1).forEach(function (rk) { api.root.append('text').attr('x', plot.x - 10).attr('y', y(rk) + 5).attr('text-anchor', 'end').attr('font-size', sz).attr('fill', api.ink).attr('opacity', 0.5).text('#' + rk); });
+      cats.forEach(function (c) { api.root.append('text').attr('x', x(c)).attr('y', plot.y + plot.h + sz + 6).attr('text-anchor', 'middle').attr('font-size', sz).attr('font-weight', 500).attr('fill', api.ink).attr('opacity', 0.8).text(trunc(c, 14)); }); }
+    var scf = api.catColorFn(n), g = api.root.append('g');
+    series.forEach(function (s, si) { var col = legible(scf(si), api.guardBg);
+      var line = d3.line().x(function (_, ci) { return x(cats[ci]); }).y(function (_, ci) { return y(ranks[ci][si]); }).curve(d3.curveMonotoneX);
+      g.append('path').attr('d', line(cats)).attr('fill', 'none').attr('stroke', col).attr('stroke-width', clamp(cfg.lineWidth, 3, 12)).attr('stroke-linecap', 'round');
+      cats.forEach(function (c, ci) { g.append('circle').attr('cx', x(c)).attr('cy', y(ranks[ci][si])).attr('r', clamp(cfg.pointSize / 2, 4, 12)).attr('fill', col).attr('stroke', api.guardBg).attr('stroke-width', 2); });
+      var lc = cats[cats.length - 1];
+      g.append('text').attr('x', x(lc) + 10).attr('y', y(ranks[cats.length - 1][si]) + 4).attr('font-size', sz).attr('font-weight', 600).attr('fill', col).text(trunc(s.name, 12));
+    });
+  }
+
+  /* ── streamgraph (wiggle offset, basis curve) ───────────────────────────── */
+  function drawStream(api) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats, series = api.series;
+    var plot = insetForAxes(api, false);
+    var rows = cats.map(function (c, i) { var o = {}; series.forEach(function (s) { o[s.name] = +s.values[i] || 0; }); return o; });
+    var layers = d3.stack().keys(series.map(function (s) { return s.name; })).offset(d3.stackOffsetWiggle).order(d3.stackOrderInsideOut)(rows);
+    var lo = d3.min(layers, function (l) { return d3.min(l, function (d) { return d[0]; }); });
+    var hi = d3.max(layers, function (l) { return d3.max(l, function (d) { return d[1]; }); });
+    var x = d3.scalePoint().domain(cats).range([plot.x, plot.x + plot.w]).padding(0.4);
+    var y = d3.scaleLinear([lo, hi], [plot.y + plot.h, plot.y]);
+    var area = d3.area().x(function (_, i) { return x(cats[i]); }).y0(function (d) { return y(d[0]); }).y1(function (d) { return y(d[1]); }).curve(d3.curveBasis);
+    var scf = api.catColorFn(series.length), g = api.root.append('g');
+    layers.forEach(function (l, si) { g.append('path').attr('d', area(l)).attr('fill', legible(scf(si), api.guardBg)).attr('fill-opacity', clamp(cfg.fillOpacity, 0.3, 1)); });
+    var sz = clamp(cfg.labelSize, 11, 22), every = Math.ceil(cats.length / 8);
+    if (cfg.showAxes) cats.forEach(function (c, i) { if (i % every) return; api.root.append('text').attr('x', x(c)).attr('y', plot.y + plot.h + sz + 6).attr('text-anchor', 'middle').attr('font-size', sz).attr('fill', api.ink).attr('opacity', 0.7).text(trunc(c, 12)); });
+  }
+
+  /* ── waterfall (single series, running total) ───────────────────────────── */
+  function drawWaterfall(api) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats;
+    var vals = api.series[0].values.map(function (v) { return +v || 0; });
+    var plot = insetForAxes(api, false), cum = 0;
+    var steps = vals.map(function (v) { var s = cum; cum += v; return { start: s, end: cum, v: v }; });
+    var lo = Math.min(0, d3.min(steps, function (s) { return Math.min(s.start, s.end); }));
+    var hi = Math.max(0, d3.max(steps, function (s) { return Math.max(s.start, s.end); }));
+    var band = d3.scaleBand().domain(cats).range([plot.x, plot.x + plot.w]).padding(clamp(cfg.barPadding, 0.1, 0.6));
+    var y = d3.scaleLinear([lo, hi], [plot.y + plot.h, plot.y]).nice();
+    drawValueAxis(api, plot, y, 'y'); drawCategoryAxis(api, plot, band, false);
+    var up = legible(api.catColorFn(1)(0), api.guardBg), down = legible('#BD3314', api.guardBg);
+    var g = api.root.append('g'), rx = clamp(cfg.cornerRadius, 0, 10);
+    steps.forEach(function (s, i) { var c = cats[i], y0 = y(Math.max(s.start, s.end)), y1 = y(Math.min(s.start, s.end));
+      api.tagMark(rect(g, band(c), y0, band.bandwidth(), Math.max(1, y1 - y0), api.override(c, s.v >= 0 ? up : down), rx, null), c);
+      if (i < steps.length - 1) g.append('line').attr('x1', band(c) + band.bandwidth()).attr('y1', y(s.end)).attr('x2', band(cats[i + 1])).attr('y2', y(s.end)).attr('stroke', api.ink).attr('opacity', 0.2);
+      if (cfg.showValues) valueLabel(api, band(c) + band.bandwidth() / 2, y0 - 6 - cfg.valueOffset, (s.v >= 0 ? '+' : '') + api.fmt(s.v), 'middle', api.ink, 0.75);
+    });
+    drawAxisTitles(api, plot, false);
+  }
+
+  /* ── marimekko / mekko (variable-width 100% stacks) ─────────────────────── */
+  function drawMarimekko(api) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats, series = api.series;
+    var plot = insetForAxes(api, false);
+    var totals = cats.map(function (_, i) { return series.reduce(function (a, s) { return a + Math.abs(+s.values[i] || 0); }, 0); });
+    var grand = d3.sum(totals) || 1, scf = api.catColorFn(series.length), g = api.root.append('g'), gap = 4;
+    var xcur = plot.x, sz = clamp(cfg.labelSize, 10, 18);
+    cats.forEach(function (c, ci) {
+      var wtot = (totals[ci] / grand) * (plot.w - gap * Math.max(0, cats.length - 1)), t = totals[ci] || 1, ycur = plot.y;
+      series.forEach(function (s, si) { var v = Math.abs(+s.values[ci] || 0), h = (v / t) * plot.h, col = legible(scf(si), api.guardBg);
+        rect(g, xcur, ycur, wtot, h, col, 0, { s: api.guardBg, w: 1 });
+        if (cfg.showValues && h > 18 && wtot > 26) valueLabel(api, xcur + wtot / 2, ycur + h / 2 + 5, api.fmt(+s.values[ci] || 0), 'middle', autoText(col), 1);
+        ycur += h;
+      });
+      if (cfg.showAxes) api.root.append('text').attr('x', xcur + wtot / 2).attr('y', plot.y + plot.h + sz + 6).attr('text-anchor', 'middle').attr('font-size', sz).attr('font-weight', 500).attr('fill', api.ink).attr('opacity', 0.8).text(trunc(c, Math.max(3, Math.floor(wtot / (sz * 0.55)))));
+      xcur += wtot + gap;
+    });
+  }
+
+  /* ── parallel coordinates (numeric columns) ─────────────────────────────── */
+  function drawParallel(api) {
+    var d3 = api.d3, cfg = api.cfg, cols = api.numericCols;
+    if (cols.length < 2) { drawScatter(api); return; }
+    var plot = insetForAxes(api, false);
+    var xs = cols.map(function (_, i) { return plot.x + (cols.length === 1 ? 0 : i / (cols.length - 1)) * plot.w; });
+    var scales = cols.map(function (col) { var e = d3.extent(col.values.filter(isFinite)); if (!isFinite(e[0])) e = [0, 1]; if (e[0] === e[1]) { e[0] -= 1; e[1] += 1; } return d3.scaleLinear(e, [plot.y + plot.h, plot.y]).nice(); });
+    var g = api.root.append('g'), sz = clamp(cfg.labelSize, 10, 18);
+    cols.forEach(function (col, i) { g.append('line').attr('x1', xs[i]).attr('y1', plot.y).attr('x2', xs[i]).attr('y2', plot.y + plot.h).attr('stroke', api.ink).attr('opacity', 0.25);
+      if (cfg.showAxes) { g.append('text').attr('x', xs[i]).attr('y', plot.y - 8).attr('text-anchor', 'middle').attr('font-size', sz).attr('font-weight', 600).attr('fill', api.ink).attr('opacity', 0.8).text(trunc(col.name, 12));
+        scales[i].ticks(4).forEach(function (t) { g.append('text').attr('x', xs[i] - 6).attr('y', scales[i](t) + 4).attr('text-anchor', 'end').attr('font-size', sz * 0.8).attr('fill', api.ink).attr('opacity', 0.4).text(api.fmt(t)); }); }
+    });
+    var nRows = cols[0].values.length, ccf = api.catColorFn(nRows);
+    for (var r = 0; r < nRows; r++) { var pts = cols.map(function (col, i) { var v = col.values[r]; return isFinite(v) ? [xs[i], scales[i](v)] : null; });
+      if (pts.some(function (p) { return !p; })) continue;
+      g.append('path').attr('d', pts.map(function (p, i) { return (i ? 'L' : 'M') + p[0] + ' ' + p[1]; }).join(' ')).attr('fill', 'none').attr('stroke', legible(ccf(r), api.guardBg)).attr('stroke-width', clamp(cfg.lineWidth, 1, 4)).attr('stroke-opacity', clamp(cfg.fillOpacity, 0.25, 1)).attr('stroke-linejoin', 'round');
+    }
+  }
+
+  /* ── polar area / nightingale rose (equal angle, radius ∝ value) ────────── */
+  function drawPolar(api) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats;
+    var vals = api.series[0].values.map(function (v) { return Math.abs(+v) || 0; });
+    var items = sortItems(cats.map(function (c, i) { return { label: c, value: vals[i], oi: i }; }), cfg.sort);
+    var b = api.box, cx = b.x + b.w / 2, cy = b.y + b.h / 2, R = Math.min(b.w, b.h) / 2 * 0.9;
+    var maxV = d3.max(items, function (d) { return d.value; }) || 1, rScale = d3.scaleSqrt([0, maxV], [0, R]);
+    var n = items.length, ang = 2 * Math.PI / n, ccf = api.catColorFn(cats.length), g = api.root.append('g').attr('transform', 'translate(' + cx + ',' + cy + ')');
+    if (cfg.showGrid) rScale.ticks(4).forEach(function (t) { if (t <= 0) return; g.append('circle').attr('r', rScale(t)).attr('fill', 'none').attr('stroke', api.ink).attr('opacity', 0.1); });
+    items.forEach(function (d, i) {
+      var arc = d3.arc().innerRadius(0).outerRadius(rScale(d.value)).startAngle(i * ang).endAngle((i + 1) * ang - 0.02).cornerRadius(clamp(cfg.cornerRadius, 0, 20));
+      api.tagMark(g.append('path').attr('d', arc()).attr('fill', api.override(d.label, legible(ccf(d.oi), api.guardBg))), d.label);
+      var mid = (i + 0.5) * ang, p = polarXY(mid, rScale(d.value) + 14);
+      if (cfg.showValues) g.append('text').attr('x', p[0]).attr('y', p[1] + 4).attr('text-anchor', p[0] > 1 ? 'start' : p[0] < -1 ? 'end' : 'middle').attr('font-size', clamp(cfg.labelSize, 11, 20)).attr('font-weight', 600).attr('fill', api.ink).attr('opacity', 0.85).text(trunc(d.label, 10));
+    });
+  }
+
+  /* ── funnel (stacked trapezoids) ────────────────────────────────────────── */
+  function drawFunnel(api) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats;
+    var vals = api.series[0].values.map(function (v) { return Math.abs(+v) || 0; });
+    var items = cats.map(function (c, i) { return { label: c, value: vals[i], oi: i }; });
+    if (cfg.sort !== 'none') items = sortItems(items, cfg.sort === 'asc' ? 'asc' : 'desc');
+    var b = api.box, maxV = d3.max(items, function (d) { return d.value; }) || 1, n = items.length, h = b.h / n, cx = b.x + b.w / 2, maxW = b.w * 0.9;
+    var ccf = api.catColorFn(cats.length), g = api.root.append('g'), wOf = function (v) { return (v / maxV) * maxW; };
+    items.forEach(function (d, i) {
+      var y0 = b.y + i * h, y1 = y0 + h * 0.86, wTop = wOf(d.value), wBot = wOf(i < n - 1 ? items[i + 1].value : d.value * 0.55), col = api.override(d.label, legible(ccf(d.oi), api.guardBg));
+      api.tagMark(g.append('polygon').attr('points', [[cx - wTop / 2, y0], [cx + wTop / 2, y0], [cx + wBot / 2, y1], [cx - wBot / 2, y1]].map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ')).attr('fill', col), d.label);
+      g.append('text').attr('x', cx).attr('y', (y0 + y1) / 2 + 5).attr('text-anchor', 'middle').attr('font-size', clamp(cfg.labelSize, 12, 24)).attr('font-weight', 700).attr('fill', autoText(col)).text(trunc(d.label, 16) + (cfg.showValues ? '  ' + api.fmt(d.value) : ''));
+    });
+  }
+
+  /* ── gauge (single-value dial) ──────────────────────────────────────────── */
+  function drawGauge(api) {
+    var d3 = api.d3, cfg = api.cfg;
+    var v = +api.series[0].values[0] || 0;
+    var maxV = cfg.yMax > 0 ? cfg.yMax : niceCeil(Math.max(d3.max(api.series[0].values, function (x) { return +x || 0; }) || 100, v));
+    var b = api.box, cx = b.x + b.w / 2, cy = b.y + b.h * 0.68, R = Math.min(b.w / 2, b.h * 0.68) * 0.92, ir = R * Math.max(0.55, cfg.donutRadius);
+    var a0 = -Math.PI / 2, a1 = Math.PI / 2, frac = clamp(v / (maxV || 1), 0, 1), g = api.root.append('g').attr('transform', 'translate(' + cx + ',' + cy + ')');
+    g.append('path').attr('d', d3.arc().innerRadius(ir).outerRadius(R).startAngle(a0).endAngle(a1).cornerRadius(6)()).attr('fill', api.ink).attr('opacity', 0.1);
+    g.append('path').attr('d', d3.arc().innerRadius(ir).outerRadius(R).startAngle(a0).endAngle(a0 + frac * (a1 - a0)).cornerRadius(6)()).attr('fill', legible(api.catColorFn(1)(0), api.guardBg));
+    g.append('text').attr('x', 0).attr('y', -R * 0.02).attr('text-anchor', 'middle').attr('font-size', Math.min(b.w, b.h) * 0.17).attr('font-weight', 800).attr('fill', api.ink).text(api.fmt(v));
+    if (api.cats[0]) g.append('text').attr('x', 0).attr('y', R * 0.24).attr('text-anchor', 'middle').attr('font-size', clamp(cfg.labelSize, 14, 30)).attr('fill', api.ink).attr('opacity', 0.6).text(trunc(api.cats[0], 22));
+  }
+
+  /* ── waffle / pictogram (10×10 share grid) ──────────────────────────────── */
+  function drawWaffle(api) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats;
+    var vals = api.series[0].values.map(function (v) { return Math.abs(+v) || 0; });
+    var items = sortItems(cats.map(function (c, i) { return { label: c, value: vals[i], oi: i }; }), cfg.sort === 'none' ? 'desc' : cfg.sort);
+    var total = d3.sum(items, function (d) { return d.value; }) || 1, b = api.box, cols = 10, rows = 10, N = cols * rows;
+    var counts = items.map(function (d) { return Math.round(d.value / total * N); });
+    if (counts.length) counts[0] += N - d3.sum(counts);
+    var cell = Math.min(b.w, b.h) / Math.max(cols, rows), gap = cell * 0.14, sz = cell - gap;
+    var ox = b.x + (b.w - cols * cell) / 2, oy = b.y + (b.h - rows * cell) / 2, ccf = api.catColorFn(cats.length), g = api.root.append('g');
+    var seq = []; items.forEach(function (d, idx) { for (var k = 0; k < counts[idx]; k++) seq.push(d.oi); });
+    for (var idx = 0; idx < N; idx++) { var oi = seq[idx];
+      var rr = rows - 1 - Math.floor(idx / cols), cc = idx % cols;
+      var lbl = oi == null ? null : cats[oi];
+      var fill = oi == null ? api.ink : api.override(lbl, legible(ccf(oi), api.guardBg));
+      var el = api.tagMark(rect(g, ox + cc * cell, oy + rr * cell, sz, sz, fill, clamp(cfg.cornerRadius * 0.3, 0, cell * 0.3), null), lbl);
+      if (oi == null) el.attr('opacity', 0.08);
+    }
+  }
+
+  /* ── sunburst (2-level: category → series) ──────────────────────────────── */
+  function hierData(cats, series) {
+    return { name: 'root', children: cats.map(function (c, i) { return { name: c, children: series.map(function (s) { return { name: s.name, value: Math.abs(+s.values[i] || 0) }; }) }; }) };
+  }
+  function drawSunburst(api) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats, series = api.series;
+    var b = api.box, cx = b.x + b.w / 2, cy = b.y + b.h / 2, R = Math.min(b.w, b.h) / 2 * 0.94;
+    var root = d3.hierarchy(hierData(cats, series)).sum(function (d) { return d.value || 0; }).sort(function (a, c) { return c.value - a.value; });
+    d3.partition().size([2 * Math.PI, R])(root);
+    var arc = d3.arc().startAngle(function (d) { return d.x0; }).endAngle(function (d) { return d.x1; }).innerRadius(function (d) { return d.y0; }).outerRadius(function (d) { return d.y1; }).padAngle(0.005).cornerRadius(clamp(cfg.cornerRadius * 0.3, 0, 4));
+    var ccf = api.catColorFn(cats.length), g = api.root.append('g').attr('transform', 'translate(' + cx + ',' + cy + ')');
+    root.descendants().filter(function (d) { return d.depth > 0; }).forEach(function (d) {
+      var top = d.depth === 1 ? d : d.parent, col = legible(ccf(cats.indexOf(top.data.name)), api.guardBg);
+      if (d.depth === 2) col = d3.color(col).brighter(0.45) + '';
+      g.append('path').attr('d', arc(d)).attr('fill', col).attr('stroke', api.guardBg).attr('stroke-width', 1);
+      if (cfg.showValues && (d.x1 - d.x0) > 0.14) { var a = (d.x0 + d.x1) / 2, r = (d.y0 + d.y1) / 2, p = polarXY(a, r);
+        g.append('text').attr('x', p[0]).attr('y', p[1] + 4).attr('text-anchor', 'middle').attr('font-size', clamp(cfg.labelSize * 0.7, 9, 16)).attr('fill', autoText(col)).text(trunc(d.data.name, 8)); }
+    });
+  }
+
+  /* ── icicle (partition rectangles) ──────────────────────────────────────── */
+  function drawIcicle(api) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats, series = api.series, b = api.box;
+    var root = d3.hierarchy(hierData(cats, series)).sum(function (d) { return d.value || 0; }).sort(function (a, c) { return c.value - a.value; });
+    d3.partition().size([b.w, b.h]).padding(1)(root);
+    var ccf = api.catColorFn(cats.length), g = api.root.append('g');
+    root.descendants().filter(function (d) { return d.depth > 0; }).forEach(function (d) {
+      var top = d.depth === 1 ? d : d.parent, col = legible(ccf(cats.indexOf(top.data.name)), api.guardBg);
+      if (d.depth === 2) col = d3.color(col).brighter(0.45) + '';
+      rect(g, b.x + d.x0, b.y + d.y0, d.x1 - d.x0, d.y1 - d.y0, col, clamp(cfg.cornerRadius * 0.3, 0, 4), { s: api.guardBg, w: 1 });
+      var w = d.x1 - d.x0, hh = d.y1 - d.y0, sz = clamp(cfg.labelSize * 0.7, 9, 16);
+      if (cfg.showValues && w > 34 && hh > 18) g.append('text').attr('x', b.x + d.x0 + 6).attr('y', b.y + d.y0 + sz + 2).attr('font-size', sz).attr('font-weight', 600).attr('fill', autoText(col)).text(trunc(d.data.name, Math.floor(w / (sz * 0.55))));
+    });
+  }
+
+  /* ── chord (categories × series as a flow matrix) ───────────────────────── */
+  function drawChord(api) {
+    var d3 = api.d3, cfg = api.cfg, cats = api.cats, series = api.series, n = cats.length;
+    if (series.length < 2 || n < 2) { drawRadar(api); return; }
+    var m = cats.map(function (_, i) { return d3.range(n).map(function (j) { return series[j] ? Math.abs(+series[j].values[i] || 0) : 0; }); });
+    var b = api.box, cx = b.x + b.w / 2, cy = b.y + b.h / 2, R = Math.min(b.w, b.h) / 2 * 0.8, ir = R * 0.94;
+    var chord = d3.chord().padAngle(0.045).sortSubgroups(d3.descending)(m);
+    var arc = d3.arc().innerRadius(ir).outerRadius(R), ribbon = d3.ribbon().radius(ir), ccf = api.catColorFn(n);
+    var g = api.root.append('g').attr('transform', 'translate(' + cx + ',' + cy + ')');
+    chord.forEach(function (ch) { g.append('path').attr('d', ribbon(ch)).attr('fill', legible(ccf(ch.source.index), api.guardBg)).attr('fill-opacity', clamp(cfg.fillOpacity, 0.3, 0.85)).attr('stroke', api.guardBg).attr('stroke-width', 0.5); });
+    chord.groups.forEach(function (grp) { var col = legible(ccf(grp.index), api.guardBg);
+      g.append('path').attr('d', arc(grp)).attr('fill', col);
+      var a = (grp.startAngle + grp.endAngle) / 2, p = polarXY(a, R + 12);
+      g.append('text').attr('x', p[0]).attr('y', p[1] + 4).attr('text-anchor', p[0] > 1 ? 'start' : p[0] < -1 ? 'end' : 'middle').attr('font-size', clamp(cfg.labelSize, 11, 20)).attr('fill', api.ink).attr('opacity', 0.85).text(trunc(cats[grp.index] || '', 12)); });
+  }
+
+
+  /* ── low-level draw helpers ───────────────────────────────────────────────── */
+  /* ── word cloud (label,count) ─────────────────────────────────────────────── */
+  /* Words sized by their count and packed on an Archimedean spiral with AABB
+     collision - self-contained (no d3-cloud), vector-clean SVG <text>. Ideal for
+     tallies of open-text / multiple-choice responses. */
+  function drawWordcloud(api) {
+    var d3 = api.d3, cfg = api.cfg, b = api.box;
+    var vals = (api.series[0] && api.series[0].values) || [];
+    var items = api.cats.map(function (c, i) { return { label: String(c == null ? '' : c).trim(), value: Math.abs(+vals[i]) || 0 }; })
+      .filter(function (d) { return d.label; });
+    if (!items.some(function (d) { return d.value > 0; })) items.forEach(function (d) { d.value = 1; });
+    items = items.filter(function (d) { return d.value > 0; });
+    if (!items.length) { message('Paste a label,count table to build a word cloud.'); return; }
+    items.sort(function (m, n) { return n.value - m.value; });
+    var maxV = items[0].value, minV = items[items.length - 1].value;
+    var minPx = clamp(Math.min(b.w, b.h) * 0.028, 12, 26);
+    var maxPx = clamp(Math.min(b.w, b.h) * 0.16, minPx + 8, 150);
+    var sizeOf = (maxV === minV) ? function () { return (minPx + maxPx) / 2; }
+      : d3.scaleSqrt().domain([minV, maxV]).range([minPx, maxPx]);
+    var ccf = api.catColorFn(items.length);
+    var cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+    var placed = [], skipped = 0;
+    var g = api.root.append('g').attr('class', 'wordcloud');
+    items.forEach(function (d, idx) {
+      var sz = Math.round(sizeOf(d.value)), vertical = (idx % 7 === 3);
+      var box = placeWord(d.label, sz, vertical, placed, cx, cy, b);
+      if (!box) { sz = Math.round(sz * 0.7); vertical = false; box = placeWord(d.label, sz, false, placed, cx, cy, b); }
+      if (!box) { skipped++; return; }
+      placed.push(box);
+      var col = legible(ccf(idx), api.guardBg);
+      var t = g.append('text').attr('x', box.cx).attr('y', box.cy + sz * 0.34).attr('text-anchor', 'middle')
+        .attr('font-size', sz).attr('font-weight', clamp(cfg.labelWeight, 400, 900)).attr('fill', col).text(d.label);
+      if (vertical) t.attr('transform', 'rotate(-90 ' + box.cx + ' ' + box.cy + ')');
+      if (cfg.showValues) t.append('title').text(d.label + ': ' + api.fmt(d.value));
+    });
+    if (skipped > 0) api.root.append('text').attr('x', b.x).attr('y', b.y + b.h - 4)
+      .attr('font-size', 14).attr('fill', api.ink).attr('opacity', 0.5).text(skipped + (skipped > 1 ? ' words didn’t fit' : ' word didn’t fit'));
+  }
+  function placeWord(text, sz, vertical, placed, cx, cy, b) {
+    var wpx = measureText(text, sz, 600);
+    var w = vertical ? sz * 1.15 : wpx + 8;
+    var h = vertical ? wpx + 8 : sz * 1.12;
+    var step = Math.max(6, sz * 0.32);
+    for (var i = 0; i < 3000; i++) {
+      var th = i * 0.35, r = step * Math.sqrt(i) * 0.55;
+      var px = cx + r * Math.cos(th) * 1.4, py = cy + r * Math.sin(th) * 0.82;
+      var x = px - w / 2, y = py - h / 2;
+      if (x < b.x || y < b.y || x + w > b.x + b.w || y + h > b.y + b.h) continue;
+      var hit = false;
+      for (var j = 0; j < placed.length; j++) {
+        var q = placed[j];
+        if (x < q.x + q.w && x + w > q.x && y < q.y + q.h && y + h > q.y) { hit = true; break; }
+      }
+      if (!hit) return { cx: px, cy: py, x: x, y: y, w: w, h: h };
+    }
+    return null;
+  }
+
+  /* ── click-to-recolour picker ─────────────────────────────────────────────── */
+  /* Clicking a bar/slice (tagged data-recolor="<label>") opens a brand-swatch
+     popover; picking a swatch writes an override into the colorOverrides input via
+     the sidebar control (the exact path typing takes - URL sync / undo / save come
+     free). Many values can be highlighted at once (the override is a map). The
+     click listener is wired ONCE per svg (capture phase, so a mark click doesn't
+     also trigger the shell's click-to-focus); its state is refreshed each paint. */
+  function setupRecolor(svgEl, cfg, overrides) {
+    var enabled = RECOLOR_CHARTS.indexOf(cfg.chartType) >= 0;
+    var annotEnabled = ['bar', 'bar-horizontal', 'line', 'area'].indexOf(cfg.chartType) >= 0;
+    var swatches = (cfg.brandSwatches || []).filter(function (s) { return s && s.value && !/^#[0-9a-f]{6}00$/i.test(s.value); });
+    svgEl.__d3Recolor = { enabled: enabled && swatches.length > 0, swatches: swatches, overrides: overrides,
+                          annotEnabled: annotEnabled, annotations: parseAnnotations(cfg.annotations) };
+    if (svgEl.__d3RecolorWired) return;
+    svgEl.__d3RecolorWired = true;
+    svgEl.addEventListener('click', function (ev) {
+      var st = svgEl.__d3Recolor; if (!st) return;
+      var mark = ev.target && ev.target.closest && ev.target.closest('[data-recolor]');
+      if (mark && st.enabled) { ev.preventDefault(); ev.stopPropagation(); openSwatchPopover(ev.clientX, ev.clientY, mark.getAttribute('data-recolor'), st); return; }
+      var lbl = ev.target && ev.target.closest && ev.target.closest('[data-annot]');
+      if (lbl && st.annotEnabled) { ev.preventDefault(); ev.stopPropagation(); openAnnotWidget(ev.clientX, ev.clientY, lbl.getAttribute('data-annot'), st); }
+    }, true);
+  }
+  function closeSwatchPopover() {
+    var ex = document.getElementById('d3-recolor-pop'); if (ex && ex.parentNode) ex.parentNode.removeChild(ex);
+    if (window.__d3PopClose) { document.removeEventListener('mousedown', window.__d3PopClose, true); document.removeEventListener('keydown', window.__d3PopKey, true); window.__d3PopClose = null; window.__d3PopKey = null; }
+  }
+  /* Write a new overrides map to the sidebar input, riding the typing path. */
+  function writeOverride(label, hex, st) {
+    var ov = {}; for (var k in st.overrides) if (Object.prototype.hasOwnProperty.call(st.overrides, k)) ov[k] = st.overrides[k];
+    if (hex) ov[label] = hex; else delete ov[label];
+    var panel = document.getElementById('tool-inputs');           // scope, never a global query
+    var ctl = panel && panel.querySelector('[data-input-id="colorOverrides"]');
+    if (ctl) {
+      ctl.value = Object.keys(ov).length ? JSON.stringify(ov) : '';
+      ctl.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    closeSwatchPopover();
+  }
+  function openSwatchPopover(x, y, label, st) {
+    closeSwatchPopover();
+    var css = function (el, s) { el.setAttribute('style', s); };
+    var pop = document.createElement('div');
+    pop.id = 'd3-recolor-pop';
+    /* Canvas/CanvasText system colours → theme-aware (light + dark) with no JS. */
+    css(pop, 'position:fixed;z-index:2147483000;left:0;top:0;background:Canvas;color:CanvasText;border:1px solid rgba(128,128,128,.35);border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,.28);padding:11px;max-width:236px;font:13px/1.3 SUSE,system-ui,-apple-system,sans-serif;');
+    var title = document.createElement('div');
+    title.textContent = label;
+    css(title, 'font-weight:600;margin:0 2px 9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:214px;');
+    pop.appendChild(title);
+    var grid = document.createElement('div');
+    css(grid, 'display:grid;grid-template-columns:repeat(6,1fr);gap:7px;max-height:46vh;overflow-y:auto;');
+    st.swatches.forEach(function (s) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.title = s.name;
+      css(b, 'width:26px;height:26px;border-radius:50%;border:1px solid rgba(128,128,128,.4);cursor:pointer;padding:0;background:' + s.value + ';');
+      b.addEventListener('click', function (e) { e.stopPropagation(); writeOverride(label, s.value, st); });
+      grid.appendChild(b);
+    });
+    pop.appendChild(grid);
+    var reset = document.createElement('button');
+    reset.type = 'button'; reset.textContent = 'Reset to palette';
+    css(reset, 'display:block;width:100%;margin-top:10px;padding:7px;border:1px solid rgba(128,128,128,.3);border-radius:8px;background:transparent;color:inherit;cursor:pointer;font:inherit;');
+    reset.addEventListener('click', function (e) { e.stopPropagation(); writeOverride(label, null, st); });
+    pop.appendChild(reset);
+    document.body.appendChild(pop);
+    var r = pop.getBoundingClientRect();
+    pop.style.left = Math.max(8, Math.min(x, window.innerWidth - r.width - 8)) + 'px';
+    pop.style.top = Math.max(8, Math.min(y + 8, window.innerHeight - r.height - 8)) + 'px';
+    window.__d3PopClose = function (e) { if (!pop.contains(e.target)) closeSwatchPopover(); };
+    window.__d3PopKey = function (e) { if (e.key === 'Escape') closeSwatchPopover(); };
+    setTimeout(function () { document.addEventListener('mousedown', window.__d3PopClose, true); document.addEventListener('keydown', window.__d3PopKey, true); }, 0);
+  }
+
+  /* ── data-label annotations (arrows + notes) ──────────────────────────────── */
+  /* Click a value label (tagged data-annot="<category>") → a floating widget:
+     a directional-arrow icon + a short note + optional text/fill colours (set one
+     and the other auto-contrasts). The statistician's end-of-bar/line marker -
+     significance, an event, a small-sample flag. Writes an `annotations` JSON map
+     (category → {i,t,fg,bg}) through the sidebar input (URL sync / undo / save). */
+  function parseAnnotations(s) {
+    s = String(s == null ? '' : s).trim();
+    if (!s || s.charAt(0) !== '{') return {};
+    try {
+      var o = JSON.parse(s), out = {};
+      for (var k in o) {
+        if (!Object.prototype.hasOwnProperty.call(o, k)) continue;
+        var a = o[k]; if (!a || typeof a !== 'object') continue;
+        out[k] = { i: typeof a.i === 'string' ? a.i : '', t: typeof a.t === 'string' ? a.t : '',
+                   fg: isHex(a.fg) ? a.fg : '', bg: isHex(a.bg) ? a.bg : '' };
+      }
+      return out;
+    } catch (e) { return {}; }
+  }
+  var ARROW_ANGLE = { up: 0, 'up-right': 45, right: 90, 'down-right': 135, down: 180, 'down-left': 225, left: 270, 'up-left': 315 };
+  var ANNOT_ICONS = ['up', 'up-right', 'right', 'down-right', 'down', 'down-left', 'left', 'up-left', 'star', 'dot'];
+  /* Canonical icon geometry centred on the origin (arrows point up, rotated by dir). */
+  function iconPath(key, s) {
+    if (key === 'star') {
+      var d = '', R = s * 0.5, r = s * 0.21;
+      for (var i = 0; i < 10; i++) { var ang = -Math.PI/2 + i * Math.PI/5, rad = (i % 2 === 0) ? R : r; d += (i ? ' L' : 'M') + (Math.cos(ang)*rad).toFixed(2) + ' ' + (Math.sin(ang)*rad).toFixed(2); }
+      return { d: d + ' Z', fill: true };
+    }
+    if (key === 'dot') { var rr = s * 0.3; return { d: 'M' + (-rr) + ' 0a' + rr + ' ' + rr + ' 0 1 0 ' + (2*rr) + ' 0a' + rr + ' ' + rr + ' 0 1 0 ' + (-2*rr) + ' 0Z', fill: true }; }
+    var h = s * 0.5;   // up arrow: shaft + chevron head
+    return { d: 'M0 ' + h + ' L0 ' + (-h) + ' M' + (-s*0.32) + ' ' + (-h*0.36) + ' L0 ' + (-h) + ' L' + (s*0.32) + ' ' + (-h*0.36), fill: false };
+  }
+  function drawIcon(g, cx, cy, s, key, color) {
+    var ic = iconPath(key, s), ang = ARROW_ANGLE[key] || 0;
+    var el = g.append('path').attr('d', ic.d).attr('transform', 'translate(' + cx + ' ' + cy + ') rotate(' + ang + ')');
+    if (ic.fill) el.attr('fill', color).attr('stroke', 'none');
+    else el.attr('fill', 'none').attr('stroke', color).attr('stroke-width', Math.max(1.6, s * 0.16)).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+    return el;
+  }
+  /* One colour set → the other contrasts; neither → plain ink, no fill. */
+  function annotColors(ann, ink) {
+    if (ann.fg && ann.bg) return { fg: ann.fg, bg: ann.bg };
+    if (ann.fg) return { fg: ann.fg, bg: (lum(ann.fg) > 0.5 ? '#111111' : '#ffffff') };
+    if (ann.bg) return { fg: autoText(ann.bg), bg: ann.bg };
+    return { fg: ink, bg: null };
+  }
+  /* Render the badge INLINE starting at startX, with its text baseline on
+     baselineY - so it sits at the end of a data label, sharing that label's
+     baseline (the "↗ Big Jump" after "120" placement). */
+  function drawAnnotInline(g, startX, baselineY, ann, sz, ink) {
+    if (!ann || (!ann.i && !ann.t)) return;
+    var col = annotColors(ann, ink);
+    var iconS = sz * 0.98, padX = sz * 0.5, padY = sz * 0.36, gapIT = (ann.i && ann.t) ? sz * 0.3 : 0;
+    var textW = ann.t ? measureText(ann.t, sz, 600) : 0;
+    var contentW = (ann.i ? iconS : 0) + gapIT + textW;
+    var midY = baselineY - sz * 0.34;   // visual centre of a baseline-set text run
+    var bge = g.append('g').attr('class', 'annot');
+    if (col.bg) {
+      var bh = Math.max(iconS, sz) + 2 * padY;
+      bge.append('rect').attr('x', startX - padX).attr('y', midY - bh/2).attr('width', contentW + 2 * padX).attr('height', bh).attr('rx', Math.min(bh/2, 9)).attr('fill', col.bg);
+    }
+    var ix = startX;
+    if (ann.i) { drawIcon(bge, ix + iconS/2, midY, iconS, ann.i, col.fg); ix += iconS + gapIT; }
+    if (ann.t) bge.append('text').attr('x', ix).attr('y', baselineY).attr('text-anchor', 'start').attr('font-size', sz).attr('font-weight', 600).attr('fill', col.fg).text(ann.t);
+  }
+
+  function closeAnnotWidget() {
+    var ex = document.getElementById('d3-annot-pop'); if (ex && ex.parentNode) ex.parentNode.removeChild(ex);
+    if (window.__d3AnnClose) { document.removeEventListener('mousedown', window.__d3AnnClose, true); document.removeEventListener('keydown', window.__d3AnnKey, true); window.__d3AnnClose = null; window.__d3AnnKey = null; }
+  }
+  /* Merge one category's annotation into the current input map and write it back. */
+  function writeAnnotation(key, ann) {
+    var panel = document.getElementById('tool-inputs');
+    var ctl = panel && panel.querySelector('[data-input-id="annotations"]');
+    if (!ctl) return;
+    var map = {};
+    try { var cur = JSON.parse(ctl.value || '{}'); if (cur && typeof cur === 'object') map = cur; } catch (e) {}
+    var clean = {};
+    if (ann.i) clean.i = ann.i;
+    if (ann.t) clean.t = ann.t;
+    if (ann.fg) clean.fg = ann.fg;
+    if (ann.bg) clean.bg = ann.bg;
+    if (Object.keys(clean).length) map[key] = clean; else delete map[key];
+    ctl.value = Object.keys(map).length ? JSON.stringify(map) : '';
+    ctl.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  function openAnnotWidget(x, y, key, st) {
+    closeSwatchPopover(); closeAnnotWidget();
+    var ann = { i: '', t: '', fg: '', bg: '' }, cur = st.annotations && st.annotations[key];
+    if (cur) { ann.i = cur.i || ''; ann.t = cur.t || ''; ann.fg = cur.fg || ''; ann.bg = cur.bg || ''; }
+    var css = function (el, s) { el.setAttribute('style', s); };
+    var pop = document.createElement('div'); pop.id = 'd3-annot-pop';
+    css(pop, 'position:fixed;z-index:2147483000;left:0;top:0;background:Canvas;color:CanvasText;border:1px solid rgba(128,128,128,.35);border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,.28);padding:12px;width:264px;font:13px/1.35 SUSE,system-ui,-apple-system,sans-serif;');
+    var title = document.createElement('div'); title.textContent = 'Annotate: ' + key;
+    css(title, 'font-weight:600;margin:0 2px 9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;');
+    pop.appendChild(title);
+    var iconGrid = document.createElement('div'); css(iconGrid, 'display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:9px;');
+    function renderIcons() {
+      iconGrid.innerHTML = '';
+      var none = document.createElement('button'); none.type = 'button'; none.textContent = '∅'; none.title = 'no icon';
+      css(none, 'height:30px;border-radius:7px;border:1px solid rgba(128,128,128,.35);background:' + (ann.i ? 'transparent' : 'rgba(128,128,128,.22)') + ';cursor:pointer;font:inherit;color:inherit;');
+      none.addEventListener('click', function (e) { e.stopPropagation(); ann.i = ''; writeAnnotation(key, ann); renderIcons(); });
+      iconGrid.appendChild(none);
+      ANNOT_ICONS.forEach(function (ik) {
+        var b = document.createElement('button'); b.type = 'button'; b.title = ik;
+        css(b, 'height:30px;border-radius:7px;border:1px solid rgba(128,128,128,.35);background:' + (ann.i === ik ? 'rgba(128,128,128,.25)' : 'transparent') + ';cursor:pointer;padding:0;color:inherit;');
+        var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('viewBox', '-12 -12 24 24'); svg.setAttribute('width', '20'); svg.setAttribute('height', '20');
+        var ic = iconPath(ik, 18), ang = ARROW_ANGLE[ik] || 0;
+        var p = document.createElementNS('http://www.w3.org/2000/svg', 'path'); p.setAttribute('d', ic.d); p.setAttribute('transform', 'rotate(' + ang + ')');
+        if (ic.fill) { p.setAttribute('fill', 'currentColor'); } else { p.setAttribute('fill', 'none'); p.setAttribute('stroke', 'currentColor'); p.setAttribute('stroke-width', '2.4'); p.setAttribute('stroke-linecap', 'round'); p.setAttribute('stroke-linejoin', 'round'); }
+        svg.appendChild(p); b.appendChild(svg);
+        b.addEventListener('click', function (e) { e.stopPropagation(); ann.i = ik; writeAnnotation(key, ann); renderIcons(); });
+        iconGrid.appendChild(b);
+      });
+    }
+    renderIcons(); pop.appendChild(iconGrid);
+    var txt = document.createElement('input'); txt.type = 'text'; txt.placeholder = 'note (e.g. p<.05, n=12, launch)'; txt.value = ann.t;
+    css(txt, 'width:100%;box-sizing:border-box;padding:6px 8px;border:1px solid rgba(128,128,128,.35);border-radius:8px;background:transparent;color:inherit;font:inherit;margin-bottom:9px;');
+    txt.addEventListener('click', function (e) { e.stopPropagation(); });
+    txt.addEventListener('input', function () { ann.t = txt.value; writeAnnotation(key, ann); });
+    pop.appendChild(txt);
+    var colourWrap = document.createElement('div');
+    function colourRow(label, get, set) {
+      var wrap = document.createElement('div'); css(wrap, 'margin-bottom:8px;');
+      var lab = document.createElement('div'); lab.textContent = label; css(lab, 'font-size:11px;opacity:.7;margin:0 2px 4px;'); wrap.appendChild(lab);
+      var row = document.createElement('div'); css(row, 'display:flex;flex-wrap:wrap;gap:5px;align-items:center;');
+      var auto = document.createElement('button'); auto.type = 'button'; auto.textContent = 'auto';
+      css(auto, 'height:22px;padding:0 9px;border-radius:20px;border:1px solid rgba(128,128,128,.35);background:' + (get() ? 'transparent' : 'rgba(128,128,128,.25)') + ';cursor:pointer;font:11px SUSE,system-ui;color:inherit;');
+      auto.addEventListener('click', function (e) { e.stopPropagation(); set(''); writeAnnotation(key, ann); rebuild(); });
+      row.appendChild(auto);
+      (st.swatches || []).slice(0, 12).forEach(function (sw) {
+        var b = document.createElement('button'); b.type = 'button'; b.title = sw.name;
+        css(b, 'width:22px;height:22px;border-radius:50%;border:' + (get() === sw.value ? '2px solid CanvasText' : '1px solid rgba(128,128,128,.4)') + ';cursor:pointer;padding:0;background:' + sw.value + ';');
+        b.addEventListener('click', function (e) { e.stopPropagation(); set(sw.value); writeAnnotation(key, ann); rebuild(); });
+        row.appendChild(b);
+      });
+      wrap.appendChild(row); return wrap;
+    }
+    function rebuild() {
+      colourWrap.innerHTML = '';
+      colourWrap.appendChild(colourRow('Text colour', function () { return ann.fg; }, function (v) { ann.fg = v; }));
+      colourWrap.appendChild(colourRow('Fill colour', function () { return ann.bg; }, function (v) { ann.bg = v; }));
+    }
+    rebuild(); pop.appendChild(colourWrap);
+    var rm = document.createElement('button'); rm.type = 'button'; rm.textContent = 'Remove annotation';
+    css(rm, 'display:block;width:100%;margin-top:6px;padding:7px;border:1px solid rgba(128,128,128,.3);border-radius:8px;background:transparent;color:inherit;cursor:pointer;font:inherit;');
+    rm.addEventListener('click', function (e) { e.stopPropagation(); ann = { i: '', t: '', fg: '', bg: '' }; writeAnnotation(key, ann); closeAnnotWidget(); });
+    pop.appendChild(rm);
+    document.body.appendChild(pop);
+    var r = pop.getBoundingClientRect();
+    pop.style.left = Math.max(8, Math.min(x, window.innerWidth - r.width - 8)) + 'px';
+    pop.style.top = Math.max(8, Math.min(y + 8, window.innerHeight - r.height - 8)) + 'px';
+    window.__d3AnnClose = function (e) { if (!pop.contains(e.target)) closeAnnotWidget(); };
+    window.__d3AnnKey = function (e) { if (e.key === 'Escape') closeAnnotWidget(); };
+    setTimeout(function () { document.addEventListener('mousedown', window.__d3AnnClose, true); document.addEventListener('keydown', window.__d3AnnKey, true); }, 0);
+  }
+
+  function rect(g, x, y, w, h, fill, rx, stroke) {
+    var r = g.append('rect').attr('x', x).attr('y', y).attr('width', Math.max(0, w)).attr('height', Math.max(0, h)).attr('fill', fill);
+    if (rx > 0) r.attr('rx', Math.min(rx, w/2, h/2)).attr('ry', Math.min(rx, w/2, h/2));
+    if (stroke && stroke.w > 0) r.attr('stroke', stroke.s).attr('stroke-width', stroke.w);
+    return r;
+  }
+  function valueLabel(api, x, y, text, anchor, fill, opacity, annotKey) {
+    var cfg = api.cfg;
+    /* Data-label styling: own size (0 = auto, follows the label text size), weight and
+       colour (blank = the auto-contrast fill the caller computed). Distance from the mark
+       is applied at the call sites (it's directional). */
+    var sz = cfg.valueSize > 0 ? clamp(cfg.valueSize, 6, 80) : clamp(cfg.labelSize, 9, 30);
+    var col = isHex(cfg.valueColor) ? cfg.valueColor : fill;
+    var sel = api.root.append('text').attr('x', x).attr('y', y).attr('text-anchor', anchor || 'middle').attr('data-canvas-input', 'showValues')
+      .attr('font-size', sz).attr('font-weight', cfg.valueWeight || 600).attr('fill', col).attr('opacity', opacity == null ? 1 : opacity).text(text);
+    if (annotKey != null) api.labelAnnot(sel, annotKey, x, y, anchor || 'middle', text);
+    return sel;
+  }
+  function sortItems(items, order) {
+    var a = items.slice();
+    if (order === 'desc') a.sort(function (m, n){ return n.value - m.value; });
+    else if (order === 'asc') a.sort(function (m, n){ return m.value - n.value; });
+    else if (order === 'alpha') a.sort(function (m, n){ return String(m.label).localeCompare(String(n.label)); });
+    return a;
+  }
+})();
+</script>
+{{/if}}
+{{/if}}

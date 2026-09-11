@@ -1,0 +1,942 @@
+<div class="booth-wrap">
+  <canvas class="booth-canvas" id="booth-canvas" data-capture-stream></canvas>
+  <!-- Click proxy. Clicking a WebGL panel can't open the sidebar's asset picker
+       directly (a raycast hit is not a DOM node, and template scripts have no
+       `host`), so the raycast stamps the hit panel's role onto this hidden element
+       and clicks it: the shell's delegated [data-canvas-input] handler then opens
+       its own asset picker for that input id and commits the pick. No shell
+       changes, and the picker stays byte-for-byte the sidebar's. Kept out of the
+       layout (not display:none - a click must still bubble). -->
+  <span class="booth-proxy" id="booth-proxy" aria-hidden="true"></span>
+</div>
+<script type="application/json" id="booth-state">{{{_state}}}</script>
+<script>
+(function () {
+  /* Idempotent per-paint IIFE - the template re-runs on EVERY paint (see the
+     'Template script IIFE required' invariant). An epoch guard drops stale async
+     callbacks from a prior paint; the previous renderer is disposed so we never
+     leak WebGL contexts (browsers cap ~16). Mirrors tools/3d/template.html. */
+  window.__lollyBoothEpoch = (window.__lollyBoothEpoch || 0) + 1;
+  var EP = window.__lollyBoothEpoch;
+  function alive() { return window.__lollyBoothEpoch === EP; }
+
+  var canvas = document.getElementById('booth-canvas');
+  var proxy = document.getElementById('booth-proxy');
+  var stateEl = document.getElementById('booth-state');
+  if (!canvas || !stateEl) return;
+  var cfg; try { cfg = JSON.parse(stateEl.textContent || '{}'); } catch (e) { return; }
+  if (!cfg || !cfg.panels) return;
+
+  /* Async readiness handshake: tell the export path to WAIT until every panel
+     texture has decoded and the first frame is drawn, else it snapshots a blank
+     or half-dressed booth. */
+  window.__toolHasReadySignal = true;
+  var readyFired = false;
+  function fireReady() {
+    if (readyFired) return; readyFired = true;
+    try { document.dispatchEvent(new CustomEvent('tool:ready')); } catch (e) {}
+  }
+
+  /* Tear down the renderer from the previous paint (its <canvas> was just
+     replaced by the innerHTML swap, so its GL context is orphaned). */
+  if (window.__lollyBooth && typeof window.__lollyBooth.dispose === 'function') {
+    try { window.__lollyBooth.dispose(); } catch (e) {}
+    window.__lollyBooth = null;
+  }
+
+  function message(txt) {
+    var w = canvas && canvas.parentNode;
+    if (w) { var d = document.createElement('div'); d.className = 'booth-msg'; d.textContent = txt; w.appendChild(d); }
+  }
+
+  /* Borrow three.js from the community `flythrough` tool - both live in this
+     public pack, so the profile view always mounts them together and this URL is
+     stable on every profile. (Was `/tools/3d/lib/...`, but `3d` moved to the
+     PRIVATE brands/suse pack, so that 404'd - and defaulted to "3D library failed
+     to load." - on lolly-start, public clones and CI.) A tool id is a permanent
+     contract, so this path is stable. A second copy would be ~780 KB of duplicate
+     three.js to keep version-synced; if `flythrough` ever leaves community, vendor
+     a copy here. */
+  var LIB = '/tools/flythrough/lib/three.min.js';
+  function loadThree() {
+    if (window.LollyThree) return Promise.resolve(window.LollyThree);
+    window.__lollyThreeLoading = window.__lollyThreeLoading || new Promise(function (res, rej) {
+      var s = document.createElement('script');
+      s.src = LIB;
+      s.onload = function () { res(window.LollyThree); };
+      s.onerror = function () { s.remove(); window.__lollyThreeLoading = null; rej(new Error('three load failed')); };
+      document.head.appendChild(s);
+    });
+    return window.__lollyThreeLoading;
+  }
+
+  // ---- booth designs --------------------------------------------------------
+  // Procedural, not GLB: a booth is boxes and planes, so modelling it in data
+  // costs nothing to author and a new stand is a table entry, not an asset
+  // pipeline. Metres; ground at y=0; the stand faces +z (the camera's side).
+  //
+  // A panel is a thin box whose LOCAL +z face carries the artwork, so `rot` aims
+  // it: roty 90 faces +x, rotx -90 faces up (a floor decal). `role` matches an
+  // asset input id in tool.json and a key in cfg.panels.
+  var DESIGNS = {
+    inline: {
+      panels: [
+        { role: 'backWall', w: 3,   h: 2.5,  t: 0.06, pos: [0, 1.25, -1.5] },
+        { role: 'header',   w: 3,   h: 0.45, t: 0.08, pos: [0, 2.73, -1.5] },
+        { role: 'screen',   w: 1.1, h: 0.62, t: 0.04, pos: [-0.85, 1.55, -1.43] },
+        { role: 'counter',  w: 1.4, h: 0.9,  t: 0.03, pos: [0.75, 0.5, 0.765] },
+        { role: 'floor',    w: 2.4, h: 2.4,  t: 0.01, pos: [0, 0.005, 0.1], rot: [-90, 0, 0] },
+      ],
+      struct: [
+        { size: [1.5, 1.0, 0.6],   pos: [0.75, 0.5, 0.45] },   // counter body
+        { size: [0.08, 2.96, 0.08], pos: [-1.54, 1.48, -1.54] }, // uprights
+        { size: [0.08, 2.96, 0.08], pos: [1.54, 1.48, -1.54] },
+        { size: [1.2, 0.72, 0.05], pos: [-0.85, 1.55, -1.46] }, // screen bezel
+      ],
+    },
+    corner: {
+      panels: [
+        { role: 'backWall', w: 3,   h: 2.5,  t: 0.06, pos: [0, 1.25, -1.5] },
+        { role: 'leftWing', w: 3,   h: 2.5,  t: 0.06, pos: [-1.5, 1.25, 0], rot: [0, 90, 0] },
+        { role: 'header',   w: 3,   h: 0.45, t: 0.08, pos: [0, 2.73, -1.5] },
+        { role: 'screen',   w: 1.1, h: 0.62, t: 0.04, pos: [-1.43, 1.55, -0.6], rot: [0, 90, 0] },
+        { role: 'counter',  w: 1.4, h: 0.9,  t: 0.03, pos: [0.75, 0.5, 0.765] },
+        { role: 'floor',    w: 2.4, h: 2.4,  t: 0.01, pos: [-0.1, 0.005, 0.1], rot: [-90, 0, 0] },
+      ],
+      struct: [
+        { size: [1.5, 1.0, 0.6],   pos: [0.75, 0.5, 0.45] },
+        { size: [0.08, 2.96, 0.08], pos: [-1.54, 1.48, -1.54] },
+        { size: [0.08, 2.96, 0.08], pos: [1.54, 1.48, -1.54] },
+        { size: [0.08, 2.96, 0.08], pos: [-1.54, 1.48, 1.46] },
+        { size: [0.05, 0.72, 1.2], pos: [-1.46, 1.55, -0.6] },
+      ],
+    },
+    // The tower sits front-LEFT on purpose. The default camera views from +x/+z,
+    // so anything parked front-right eclipses the whole stand - which is exactly
+    // what the first pass did.
+    island: {
+      panels: [
+        { role: 'backWall',  w: 4,   h: 2.6,  t: 0.06, pos: [0, 1.3, -1.75] },
+        { role: 'leftWing',  w: 2.5, h: 2.6,  t: 0.06, pos: [-2.0, 1.3, -0.55], rot: [0, 90, 0] },
+        // Faces OUTWARD (+x), unlike the left wing. Panels are single-sided, so an
+        // inward-facing right wing shows the default camera nothing but its
+        // unprinted back - a black slab across a third of the frame. Outward-facing
+        // is also what an island stand actually does with its street-side fin.
+        { role: 'rightWing', w: 2.2, h: 2.6,  t: 0.06, pos: [2.0, 1.3, -0.65], rot: [0, 90, 0] },
+        { role: 'header',    w: 4.3, h: 0.55, t: 0.1,  pos: [0, 3.05, -0.7] },
+        { role: 'screen',    w: 1.4, h: 0.79, t: 0.04, pos: [0, 1.62, -1.68] },
+        { role: 'tower',     w: 0.8, h: 2.3,  t: 0.05, pos: [-2.0, 1.25, 1.34] },
+        { role: 'counter',   w: 1.8, h: 0.9,  t: 0.03, pos: [0.7, 0.5, 1.265] },
+        { role: 'floor',     w: 3.6, h: 2.4,  t: 0.01, pos: [0, 0.005, -0.3], rot: [-90, 0, 0] },
+      ],
+      struct: [
+        { size: [1.9, 1.0, 0.6],    pos: [0.7, 0.5, 0.95] },     // counter body
+        { size: [0.9, 2.5, 0.26],   pos: [-2.0, 1.25, 1.2] },    // tower body
+        { size: [0.1, 3.35, 0.1],   pos: [-2.04, 1.675, -1.79] }, // uprights, to the header truss
+        { size: [0.1, 3.35, 0.1],   pos: [2.04, 1.675, -1.79] },
+        { size: [0.1, 3.35, 0.1],   pos: [-2.04, 1.675, 0.7] },
+        { size: [0.1, 3.35, 0.1],   pos: [2.04, 1.675, 0.7] },
+        { size: [4.2, 0.08, 0.08],  pos: [0, 3.32, -1.79] },     // header truss
+        { size: [4.2, 0.08, 0.08],  pos: [0, 3.32, 0.7] },
+        { size: [0.08, 0.08, 2.55], pos: [-2.04, 3.32, -0.55] },
+        { size: [0.08, 0.08, 2.55], pos: [2.04, 3.32, -0.55] },
+        { size: [1.52, 0.91, 0.05], pos: [0, 1.62, -1.71] },     // screen bezel
+      ],
+    },
+    kiosk: {
+      panels: [
+        { role: 'tower',   w: 0.9, h: 2.4, t: 0.05, pos: [0, 1.3, -0.28] },
+        { role: 'counter', w: 1.2, h: 0.9, t: 0.03, pos: [0, 0.5, 0.615] },
+      ],
+      struct: [
+        { size: [1.0, 2.5, 0.22], pos: [0, 1.3, -0.38] },  // totem body
+        { size: [1.3, 1.0, 0.6],  pos: [0, 0.5, 0.3] },    // counter body
+        { size: [1.1, 0.04, 0.5], pos: [0, 1.02, 0.35] },  // counter top lip
+      ],
+    },
+  };
+
+  // Human-readable panel names - used for the empty-panel placeholder art. Kept
+  // in step with the input labels in tool.json.
+  var ROLE_LABEL = {
+    backWall: 'Back wall', leftWing: 'Left wing', rightWing: 'Right wing',
+    header: 'Header', counter: 'Counter front', tower: 'Tower',
+    screen: 'Screen', floor: 'Floor decal',
+  };
+
+  loadThree().then(function (THREE) {
+    if (!alive()) return;
+    if (!THREE || !THREE.WebGLRenderer) { message('3D library failed to load.'); fireReady(); return; }
+    try { start(THREE); }
+    catch (err) { console.error('[booth-studio] init error:', err); message(String(err && err.message || err)); fireReady(); }
+  }).catch(function (e) { console.error('[booth-studio]', e); message('3D library failed to load.'); fireReady(); });
+
+  // ---- helpers --------------------------------------------------------------
+  function easeInOut(p) { return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; }
+  function ease(p, kind) { return kind === 'linear' ? p : easeInOut(Math.max(0, Math.min(1, p))); }
+  function pingpong(p) { var t = (p % 1) * 2; return t > 1 ? 2 - t : t; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function d2r(d) { return d * Math.PI / 180; }
+
+  // Decoded-image cache, keyed by URL and hung off `window` so it OUTLIVES the
+  // per-paint teardown. Network + decode is the expensive part of a repaint (a
+  // slider drag repaints constantly); compositing from a cached bitmap is cheap.
+  // Rejections are not cached, so a transient failure can retry on the next paint.
+  var imgCache = window.__lollyBoothImgs = window.__lollyBoothImgs || {};
+  function loadImage(url) {
+    if (imgCache[url]) return imgCache[url];
+    var p = new Promise(function (res, rej) {
+      var img = new Image();
+      // Best-effort: a cross-origin panel image without CORS headers would taint
+      // the 2D canvas we composite on, which taints the WebGL canvas, which makes
+      // toDataURL throw and every export come out blank.
+      img.crossOrigin = 'anonymous';
+      img.onload = function () { res(img); };
+      img.onerror = function () { rej(new Error('image load failed: ' + url)); };
+      img.src = url;
+    });
+    p.catch(function () { delete imgCache[url]; });
+    imgCache[url] = p;
+    return p;
+  }
+
+  // Background video. Cached on `window` like the images, and for a stronger
+  // reason: the template re-runs on EVERY paint, so a per-paint <video> would
+  // restart playback on every slider nudge. The element is deliberately detached
+  // (never in the DOM) - it exists only as a frame source to draw from.
+  var vidCache = window.__lollyBoothVids = window.__lollyBoothVids || {};
+  function loadVideo(url) {
+    if (vidCache[url]) return vidCache[url];
+    var p = new Promise(function (res, rej) {
+      var v = document.createElement('video');
+      v.crossOrigin = 'anonymous';
+      v.muted = true;          // required for autoplay
+      v.loop = true;
+      v.playsInline = true;
+      v.preload = 'auto';
+      v.onloadeddata = function () { res(v); };
+      v.onerror = function () { rej(new Error('video load failed: ' + url)); };
+      v.src = url;
+    });
+    p.catch(function () { delete vidCache[url]; });
+    vidCache[url] = p;
+    return p;
+  }
+
+  function loadMedia(slot) {
+    return slot.kind === 'video' ? loadVideo(slot.url) : loadImage(slot.url);
+  }
+  function mediaSize(m) {
+    return { w: m.naturalWidth || m.videoWidth || m.width || 1, h: m.naturalHeight || m.videoHeight || m.height || 1 };
+  }
+
+  // Texture pixels for a panel of a given aspect, capped so a wall and a fascia
+  // both stay sharp without allocating 1024² for a thin strip.
+  function texSize(w, h) {
+    var MAX = 1024, a = w / h;
+    return a >= 1 ? { w: MAX, h: Math.max(16, Math.round(MAX / a)) }
+                  : { w: Math.max(16, Math.round(MAX * a)), h: MAX };
+  }
+
+  // Composite artwork onto a 2D canvas at the panel's exact aspect, rather than
+  // driving THREE texture repeat/offset: it makes `contain` letterboxing, padding
+  // and the empty-panel placeholder all one code path, with no wrap-mode edge
+  // smearing, and costs one draw per panel per paint.
+  function panelCanvas(p, img, cfg) {
+    var s = texSize(p.w, p.h);
+    var c = document.createElement('canvas'); c.width = s.w; c.height = s.h;
+    var ctx = c.getContext('2d');
+    ctx.fillStyle = cfg.panelBase;
+    ctx.fillRect(0, 0, s.w, s.h);
+
+    if (!img) { drawPlaceholder(ctx, s, p); return c; }
+
+    // Fit is per-panel (the sidebar's icon-toggle on each image slot), so read it
+    // off the slot rather than a global.
+    var slot = cfg.panels[p.role];
+    var fit = (slot && slot.fit) || 'cover';
+    var iw = img.naturalWidth || img.width || 1;
+    var ih = img.naturalHeight || img.height || 1;
+    var framing = (slot && slot.framing) || null;
+    if (fit === 'contain') {
+      // Contain keeps this tool's own padding inset - artwork on a panel should
+      // not touch the frame - so it frames into the padded box and offsets.
+      var pad = (cfg.padding / 100) * Math.min(s.w, s.h);
+      ctx.save();
+      ctx.translate(pad, pad);
+      drawFramed(ctx, img, iw, ih, Math.max(1, s.w - pad * 2), Math.max(1, s.h - pad * 2), framing, 'contain');
+      ctx.restore();
+    } else {
+      drawFramed(ctx, img, iw, ih, s.w, s.h, framing, 'cover');
+    }
+    return c;
+  }
+
+  // An unset panel. Deliberately reads as an empty slot rather than an
+  // affordance ("click to add"), because this art is captured verbatim by every
+  // export - a hint would ship inside the sponsor's PNG. Discoverability comes
+  // from the hover highlight and the sidebar's Panels list instead.
+  function drawPlaceholder(ctx, s, p) {
+    // Just a quiet name on the flat brand colour. An earlier pass drew a dashed
+    // border here and the whole stand read as an unbuilt wireframe rather than an
+    // undressed booth - and that art is what a sponsor sees in any export where a
+    // panel was left empty. The click affordance lives in the hover highlight.
+    var label = (ROLE_LABEL[p.role] || p.role).toUpperCase();
+    var size = Math.max(10, Math.min(s.w, s.h) * 0.055);
+    ctx.font = '600 ' + size + 'px SUSE, system-ui, -apple-system, Segoe UI, sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.letterSpacing = (size * 0.14) + 'px';
+    ctx.fillText(label, s.w / 2, s.h / 2);
+  }
+
+  function texFromCanvas(THREE, c) {
+    var t = new THREE.CanvasTexture(c);
+    if ('colorSpace' in t) t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
+    return t;
+  }
+
+  // The backdrop, composited on a 2D canvas: colour/gradient base, then the
+  // background content blurred + blended over it. Doing it in 2D (rather than as
+  // a textured quad in the scene) is what makes blend modes and a real blur free -
+  // globalCompositeOperation and ctx.filter do both natively, and the result maps
+  // 1:1 onto scene.background because it's authored at the render aspect.
+  //
+  // BG_W is well under the render width on purpose: this is a backdrop, usually
+  // blurred, and it is re-composited EVERY FRAME when the source is a video -
+  // so full-resolution blur per frame would be paid for nothing visible.
+  var BG_W = 1280;
+  function backgroundCanvas(cfg, media, aspect) {
+    var w = BG_W, h = Math.max(1, Math.round(BG_W / aspect));
+    var c = document.createElement('canvas'); c.width = w; c.height = h;
+    var ctx = c.getContext('2d');
+
+    if (cfg.gradientBg) {
+      var g = ctx.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, cfg.bgColor2); g.addColorStop(1, cfg.background);
+      ctx.fillStyle = g;
+    } else {
+      ctx.fillStyle = cfg.background;
+    }
+    ctx.fillRect(0, 0, w, h);
+
+    if (media && cfg.bgOpacity > 0) {
+      // Blur is authored against the 1600-wide render, so scale it to this canvas
+      // - otherwise the slider would mean different amounts at different BG_W.
+      var blur = cfg.bgBlur * (w / 1600);
+      // Overscan by the blur radius. A blur samples beyond the source edges, so an
+      // image drawn exactly to the canvas edge fades to transparent at the border
+      // and the base colour shows through as a bright halo - very visible under a
+      // blend mode. Growing the draw rect pushes that fade off-canvas.
+      var over = blur * 3;
+      ctx.save();
+      if (blur > 0.01) ctx.filter = 'blur(' + blur.toFixed(2) + 'px)';
+      ctx.globalAlpha = cfg.bgOpacity;
+      ctx.globalCompositeOperation = cfg.bgBlend;
+      drawMedia(ctx, media, w, h, cfg.bgFit, cfg.bgPosition, over);
+      ctx.restore();
+    }
+    return c;
+  }
+
+  // Fit `media` into a w×h box (grown by `over` on every side) with the shared
+  // framing maths - the SAME placement as every other tool's image slot and as
+  // the DOM {{framing}} recipe (plans/148). This used to be a fifth hand-written
+  // copy of the same cover/contain arithmetic; the `over` bleed (which pushes a
+  // blur's transparent fade off-canvas) is the only thing left that is local to
+  // this tool, and it is expressed by simply framing into the grown box and
+  // translating back.
+  function drawMedia(ctx, media, w, h, fit, framing, over) {
+    var s = mediaSize(media);
+    ctx.save();
+    ctx.translate(-over, -over);
+    drawFramed(ctx, media, s.w, s.h, w + over * 2, h + over * 2, framing, fit);
+    ctx.restore();
+  }
+
+// === lolly:shared frameRect - generated from community/_shared/framing.js; edit there and run npm run sync:shared ===
+// Where an iw×ih image lands inside a W×H frame, as CSS would place it:
+// object-fit + object-position + transform:scale about the pan point. Returns
+// source/destination rects for one drawImage, plus the roll and its origin.
+function frameRect(iw, ih, W, H, framing, fit) {
+  var f = framing || {};
+  var nz = Number(f.zoom); var zoom = isFinite(nz) ? Math.max(1, nz) : 100;
+  var nx = Number(f.x); var px = (isFinite(nx) ? nx : 50) / 100;
+  var ny = Number(f.y); var py = (isFinite(ny) ? ny : 50) / 100;
+  var nr = Number(f.rotate); var rotate = isFinite(nr) ? nr : 0;
+  if (!(iw > 0) || !(ih > 0) || !(W > 0) || !(H > 0)) {
+    return { sx: 0, sy: 0, sw: Math.max(1, iw), sh: Math.max(1, ih),
+      dx: 0, dy: 0, dw: W, dh: H, rotate: rotate, originX: W / 2, originY: H / 2 };
+  }
+  var base = fit === 'contain' ? Math.min(W / iw, H / ih) : Math.max(W / iw, H / ih);
+  var s = base * (zoom / 100);
+  var dw = iw * s, dh = ih * s;
+  return { sx: 0, sy: 0, sw: iw, sh: ih,
+    dx: (W - dw) * px, dy: (H - dh) * py, dw: dw, dh: dh,
+    rotate: rotate, originX: W * px, originY: H * py };
+}
+// === /lolly:shared frameRect ===
+
+// === lolly:shared projectFraming - generated from community/_shared/framing.js; edit there and run npm run sync:shared ===
+// The CSS perspective projection, expanded by hand: roll about Z, then yaw about
+// Y, then pitch about X, then the perspective divide - all about the pan origin.
+// 1200 is the same viewing distance the {{framing}} helper writes into
+// `perspective(...)`, so the canvas and the DOM tilt identically.
+var FRAMING_PERSPECTIVE = 1200;
+function projectFraming(px, py, originX, originY, framing, persp) {
+  var f = framing || {};
+  var d = isFinite(Number(persp)) && Number(persp) > 0 ? Number(persp) : FRAMING_PERSPECTIVE;
+  var roll = Number(f.rotate) || 0, pitch = Number(f.pitch) || 0, yaw = Number(f.yaw) || 0;
+  var X = px - originX, Y = py - originY, Z = 0;
+  var rad = Math.PI / 180, c, s, nx, ny, nz;
+  if (roll) {
+    c = Math.cos(roll * rad); s = Math.sin(roll * rad);
+    nx = X * c - Y * s; ny = X * s + Y * c; X = nx; Y = ny;
+  }
+  if (yaw) {
+    c = Math.cos(yaw * rad); s = Math.sin(yaw * rad);
+    nx = X * c + Z * s; nz = -X * s + Z * c; X = nx; Z = nz;
+  }
+  if (pitch) {
+    c = Math.cos(pitch * rad); s = Math.sin(pitch * rad);
+    ny = Y * c - Z * s; nz = Y * s + Z * c; Y = ny; Z = nz;
+  }
+  var w = 1 - Z / d;
+  var k = 1 / (w > 1e-3 ? w : 1e-3);
+  return { x: originX + X * k, y: originY + Y * k };
+}
+// === /lolly:shared projectFraming ===
+
+// === lolly:shared drawFramed - generated from community/_shared/framing.js; edit there and run npm run sync:shared ===
+// Draw `source` into the current context's W×H frame with the given framing.
+// Needs frameRect() and projectFraming() in scope.
+//
+// No tilt: one drawImage, with roll applied about the pan point (matching CSS
+// transform-origin). Tilted: a mesh of small quads, each drawn with the affine
+// map through three of its projected corners - canvas 2-D has no projective
+// transform, so perspective emerges from the subdivision. Tiles are drawn with a
+// half-pixel overlap because adjacent affine patches otherwise leave hairline
+// seams where their edges disagree.
+// Measured against the exact projection at a hard 12 degree pitch / 9 degree yaw
+// on a 1080 frame: 8 tiles is 11.0px out at the worst corner, 16 is 2.9, 24 is
+// 1.3. 24 is the live-preview compromise - a canvas tool redraws this per frame,
+// and 576 draws is affordable where 1024 starts to cost. The shell's one-off bake
+// (lib/framing-bake.ts) uses 32 for the extra half-pixel.
+var FRAMING_TILES = 24;
+function drawFramed(ctx, source, iw, ih, W, H, framing, fit) {
+  var r = frameRect(iw, ih, W, H, framing, fit);
+  var f = framing || {};
+  ctx.imageSmoothingEnabled = true;
+  if (ctx.imageSmoothingQuality) ctx.imageSmoothingQuality = 'high';
+  if (!Number(f.pitch) && !Number(f.yaw)) {
+    if (r.rotate) {
+      ctx.save();
+      ctx.translate(r.originX, r.originY);
+      ctx.rotate(r.rotate * Math.PI / 180);
+      ctx.translate(-r.originX, -r.originY);
+    }
+    ctx.drawImage(source, r.sx, r.sy, r.sw, r.sh, r.dx, r.dy, r.dw, r.dh);
+    if (r.rotate) ctx.restore();
+    return;
+  }
+  var n = FRAMING_TILES;
+  var tw = r.sw / n, th = r.sh / n;       // source tile
+  var dw = r.dw / n, dh = r.dh / n;       // destination tile, before projection
+  var over = 0.5;
+  for (var j = 0; j < n; j++) {
+    for (var i = 0; i < n; i++) {
+      var x0 = r.dx + i * dw, y0 = r.dy + j * dh;
+      var p00 = projectFraming(x0, y0, r.originX, r.originY, f);
+      var p10 = projectFraming(x0 + dw, y0, r.originX, r.originY, f);
+      var p01 = projectFraming(x0, y0 + dh, r.originX, r.originY, f);
+      // The affine that carries the tile's own unit square onto its projected
+      // corners: columns are the two edge vectors, translation is the corner.
+      var a = (p10.x - p00.x) / dw, b = (p10.y - p00.y) / dw;
+      var c = (p01.x - p00.x) / dh, d = (p01.y - p00.y) / dh;
+      if (!isFinite(a) || !isFinite(b) || !isFinite(c) || !isFinite(d)) continue;
+      ctx.save();
+      // transform(), not setTransform(): the caller may already have a transform
+      // on the context (a translate into a panel, a device-pixel scale), and
+      // replacing it would move every tile out of that space.
+      ctx.transform(a, b, c, d, p00.x, p00.y);
+      // In tile space the destination is the un-projected tile at the origin.
+      ctx.drawImage(source,
+        r.sx + i * tw, r.sy + j * th, tw, th,
+        0, 0, dw + over, dh + over);
+      ctx.restore();
+    }
+  }
+}
+// === /lolly:shared drawFramed ===
+
+  // A person silhouette, drawn once and billboarded - it sells the scale of the
+  // stand (is this a 3×3 or a 6×6?) without the weight of a rigged human model.
+  function personTexture(THREE) {
+    var c = document.createElement('canvas'); c.width = 128; c.height = 320;
+    var x = c.getContext('2d');
+    // Solid. A translucent figure standing in front of a panel ghosts the artwork
+    // through itself and reads as a smudge on the render; a solid silhouette just
+    // reads as a person at the stand.
+    x.fillStyle = '#98a0a8';
+    x.beginPath(); x.arc(64, 42, 26, 0, Math.PI * 2); x.fill();     // head
+    x.beginPath();
+    x.moveTo(64, 74);
+    x.bezierCurveTo(104, 82, 108, 150, 100, 200);                   // right shoulder → arm
+    x.lineTo(94, 318); x.lineTo(72, 318); x.lineTo(68, 210);        // right leg
+    x.lineTo(60, 210); x.lineTo(56, 318); x.lineTo(34, 318);        // left leg
+    x.lineTo(28, 200);
+    x.bezierCurveTo(20, 150, 24, 82, 64, 74);                       // left arm → shoulder
+    x.closePath(); x.fill();
+    return texFromCanvas(THREE, c);
+  }
+
+  function start(THREE) {
+    // Backing store == the manifest's render size, so the export resolution is
+    // exact and deterministic. Keep in step with render.width/height in tool.json.
+    var W = 1600, H = 1000;
+    var design = DESIGNS[cfg.design] || DESIGNS.corner;
+
+    // Declared up front: the async panel-texture callbacks below close over
+    // `disposed`, and addPeople() populates `people` before the render loop is
+    // set up - `var` hoisting would otherwise make these undefined at use.
+    var raf = 0, disposed = false, hovered = null, people = [];
+    // Backdrop state. bgVideo is set only for a moving background, and is the flag
+    // the render loop uses to decide whether to re-composite per frame.
+    var bgTex = null, bgCanvas = null, bgVideo = null;
+
+    // preserveDrawingBuffer:true is LOAD-BEARING: the export path reads the canvas
+    // via toDataURL() after the frame composites, so without it every raster/video
+    // export comes out blank. alpha:true supports transparentBg.
+    var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+    renderer.setPixelRatio(1);            // backing store == export resolution, deterministic
+    renderer.setSize(W, H, false);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = cfg.exposure;
+    if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
+    if (cfg.shadows) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
+
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(cfg.camera.fov, W / H, 0.01, 1000);
+
+    // Image-based lighting: gives the panels and the aluminium frame real
+    // reflections. RoomEnvironment is built into the bundle, so no HDR file ships
+    // and the tool still works offline.
+    var pmrem = new THREE.PMREMGenerator(renderer);
+    var envTex = pmrem.fromScene(new THREE.RoomEnvironment(), 0.04).texture;
+    scene.environment = envTex;
+
+    applyScene(THREE, scene, renderer);
+
+    // The backdrop. Installed synchronously with whatever we have (colour/gradient
+    // only), then upgraded once the content decodes - so the stand is never held
+    // behind a background download, and a failed one degrades to the plain sweep
+    // rather than to nothing.
+    function paintBackdrop(media) {
+      if (cfg.transparentBg) return;
+      bgCanvas = backgroundCanvas(cfg, media || null, W / H);
+      var t = texFromCanvas(THREE, bgCanvas);
+      if (bgTex) bgTex.dispose();
+      bgTex = t;
+      scene.background = t;
+    }
+    paintBackdrop(null);
+
+    var booth = new THREE.Group();
+    scene.add(booth);
+
+    var frameMat = new THREE.MeshStandardMaterial({ color: new THREE.Color(cfg.structure), metalness: 0.65, roughness: 0.35 });
+    var disposables = [frameMat];
+
+    design.struct.forEach(function (b) {
+      var m = new THREE.Mesh(new THREE.BoxGeometry(b.size[0], b.size[1], b.size[2]), frameMat);
+      m.position.set(b.pos[0], b.pos[1], b.pos[2]);
+      if (cfg.shadows) { m.castShadow = true; m.receiveShadow = true; }
+      disposables.push(m.geometry);
+      booth.add(m);
+    });
+
+    // Panels. Each is a thin box: the LOCAL +z face (BoxGeometry material index 4)
+    // carries the artwork, the other five take the frame colour, so a panel has
+    // real edges instead of reading as a floating decal.
+    var panelMeshes = [];
+    var pending = [];
+    design.panels.forEach(function (p) {
+      // Printed vinyl/fabric, not glass: the studio environment map otherwise
+      // rakes a specular sheen across a big flat wall and it reads as a lightbox.
+      // High roughness + a damped env contribution keeps the artwork legible.
+      var art = new THREE.MeshStandardMaterial({ roughness: 0.94, metalness: 0.0, envMapIntensity: 0.35 });
+      var edge = new THREE.MeshStandardMaterial({ color: new THREE.Color(cfg.structure), roughness: 0.5, metalness: 0.4 });
+      disposables.push(art, edge);
+      var geo = new THREE.BoxGeometry(p.w, p.h, p.t);
+      disposables.push(geo);
+      var mesh = new THREE.Mesh(geo, [edge, edge, edge, edge, art, edge]);
+      mesh.position.set(p.pos[0], p.pos[1], p.pos[2]);
+      var rot = p.rot || [0, 0, 0];
+      mesh.rotation.set(d2r(rot[0]), d2r(rot[1]), d2r(rot[2]));
+      if (cfg.shadows) { mesh.castShadow = true; mesh.receiveShadow = true; }
+      // What the raycast needs to turn a hit into an input id.
+      mesh.userData.role = p.role;
+      mesh.userData.artMat = art;
+      booth.add(mesh);
+      panelMeshes.push(mesh);
+
+      var slot = cfg.panels[p.role];
+      // Placeholder immediately, artwork when it decodes - so the booth is never
+      // blank while images are in flight, and a failed image degrades to the
+      // labelled empty panel rather than a hole.
+      art.map = texFromCanvas(THREE, panelCanvas(p, null, cfg));
+      disposables.push(art.map);
+      if (slot && slot.url) {
+        pending.push(loadImage(slot.url).then(function (img) {
+          if (!alive() || disposed) return;
+          var t = texFromCanvas(THREE, panelCanvas(p, img, cfg));
+          if (art.map) art.map.dispose();
+          art.map = t; art.needsUpdate = true;
+          disposables.push(t);
+        }).catch(function (e) { console.warn('[booth-studio] panel ' + p.role + ':', e && e.message); }));
+      }
+    });
+
+    if (cfg.bg && !cfg.transparentBg) {
+      pending.push(loadMedia(cfg.bg).then(function (m) {
+        if (!alive() || disposed) return;
+        if (cfg.bg.kind === 'video') {
+          bgVideo = m;
+          // Autoplay can be refused (no gesture / power saving). The frame that IS
+          // decoded still composites, so a refused play degrades to a still frame
+          // rather than a blank backdrop.
+          var go = m.play();
+          if (go && go.catch) go.catch(function () {});
+        }
+        paintBackdrop(m);
+      }).catch(function (e) { console.warn('[booth-studio] background:', e && e.message); }));
+    }
+
+    // Frame the stand from its real bounds, so every design (and any panel sizes
+    // we add later) composes itself without hand-tuned per-design camera numbers.
+    var box = new THREE.Box3().setFromObject(booth);
+    var size = new THREE.Vector3(); box.getSize(size);
+    var center = new THREE.Vector3(); box.getCenter(center);
+    var frame = {
+      size: Math.max(size.x, size.y, size.z) || 1,
+      center: new THREE.Vector3(center.x, center.y, center.z),
+    };
+
+    // Framing. Fitting the largest dimension against the vertical FOV (what the
+    // `3d` tool does, for a roughly cubic model on a square canvas) wastes most of
+    // a 16:10 frame on a wide flat stand. Measuring half-extents from the bbox
+    // CENTRE is also wrong - the near corners are up to `radius` closer to the
+    // camera and project bigger, which silently overflows the frame.
+    //
+    // So solve it exactly: for each bbox corner, find the smallest camera distance
+    // that still lands it inside both FOVs, and take the largest answer. A corner
+    // at offset v needs |v·right| <= (d + v·fwd)·tan(hFov/2), i.e.
+    // d >= |v·right|/tan(hFov/2) - v·fwd - and the same against the vertical.
+    var vFov = d2r(cfg.camera.fov);
+    var hFov = 2 * Math.atan(Math.tan(vFov / 2) * (W / H));
+    var tH = Math.tan(hFov / 2), tV = Math.tan(vFov / 2);
+    var corners = [];
+    for (var ci = 0; ci < 8; ci++) {
+      corners.push(new THREE.Vector3(
+        ci & 1 ? box.max.x : box.min.x,
+        ci & 2 ? box.max.y : box.min.y,
+        ci & 4 ? box.max.z : box.min.z
+      ).sub(frame.center));
+    }
+    function fitDistanceFor(azi, elev) {
+      var ar = d2r(azi), er = d2r(elev);
+      var dir = new THREE.Vector3(Math.cos(er) * Math.sin(ar), Math.sin(er), Math.cos(er) * Math.cos(ar));
+      var fwd = dir.clone().negate();
+      var right = new THREE.Vector3().crossVectors(fwd, new THREE.Vector3(0, 1, 0));
+      if (right.lengthSq() < 1e-6) right.set(1, 0, 0);   // camera straight down
+      right.normalize();
+      var up = new THREE.Vector3().crossVectors(right, fwd).normalize();
+      var need = 0;
+      for (var i = 0; i < corners.length; i++) {
+        var v = corners[i], f = v.dot(fwd);
+        need = Math.max(need, Math.abs(v.dot(right)) / tH - f, Math.abs(v.dot(up)) / tV - f);
+      }
+      return need;
+    }
+    // A move that swings the camera has to stay framed at EVERY angle it passes
+    // through, not just the base pose - otherwise a turntable clips its own edges
+    // mid-orbit. A static shot fits its one pose, which frames it tightest.
+    var swings = cfg.cameraMove === 'orbit' || cfg.cameraMove === 'arc' || cfg.cameraMove === 'reveal';
+    var need = 0;
+    if (swings) {
+      for (var a = 0; a < 360; a += 15) need = Math.max(need, fitDistanceFor(a, cfg.camera.tilt));
+      if (cfg.cameraMove === 'reveal') need = Math.max(need, fitDistanceFor(cfg.camera.rotation - 18, cfg.camera.tilt + 26));
+    } else {
+      need = fitDistanceFor(cfg.camera.rotation, cfg.camera.tilt);
+    }
+    frame.fitDist = Math.max(0.1, need) * 1.06;   // a little air around the stand
+
+    // Placed AFTER framing so they can sit relative to the stand's real bounds:
+    // fixed world coords turn into giants beside a kiosk and clip through an
+    // island's tower.
+    if (cfg.people) addPeople(THREE, scene, disposables, box, size);
+
+    if (cfg.shadows) {
+      var ground = new THREE.Mesh(new THREE.PlaneGeometry(frame.size * 14, frame.size * 14), new THREE.ShadowMaterial({ opacity: 0.32 }));
+      ground.rotation.x = -Math.PI / 2;
+      ground.receiveShadow = true;
+      disposables.push(ground.geometry, ground.material);
+      scene.add(ground);
+      // Fit each shadow-casting light's ortho frustum to the stand, so shadows
+      // don't clip (three's default is ±5, smaller than an island booth).
+      scene.traverse(function (o) {
+        if (o.isDirectionalLight && o.castShadow) {
+          var s = o.shadow.camera, r = frame.size * 1.4;
+          s.left = -r; s.right = r; s.top = r; s.bottom = -r;
+          s.near = 0.01; s.far = frame.size * 24; s.updateProjectionMatrix();
+        }
+      });
+    }
+
+    var clock = new THREE.Clock();
+    var raycaster = new THREE.Raycaster();
+    var ndc = new THREE.Vector2();
+
+    function poseAt(t) {
+      var b = cfg.camera;
+      var azi = b.rotation, elev = b.tilt, zoom = b.zoom, pan = b.pan, fov = b.fov;
+      var dur = cfg.duration, p = dur > 0 ? t / dur : 0;
+      var mv = cfg.cameraMove;
+      if (mv === 'orbit') {
+        azi = b.rotation + (t / dur) * 360;
+      } else if (mv === 'arc') {
+        azi = b.rotation + (pingpong(p) - 0.5) * 80;
+      } else if (mv === 'push-in') {
+        var pin = pingpong(p);
+        zoom = lerp(b.zoom * 0.72, b.zoom * 1.18, ease(pin, cfg.easing));
+        fov = lerp(b.fov * 1.1, b.fov * 0.94, ease(pin, cfg.easing));
+      } else if (mv === 'reveal') {
+        var pr = ease(pingpong(p), cfg.easing);
+        elev = lerp(b.tilt + 26, b.tilt, pr);
+        zoom = lerp(b.zoom * 0.8, b.zoom, pr);
+        azi = b.rotation + lerp(-18, 0, pr);
+      }
+      return { azi: azi, elev: elev, zoom: Math.max(0.1, zoom), pan: pan, fov: fov };
+    }
+
+    // Re-draw a moving backdrop into the SAME canvas the texture already wraps -
+    // needsUpdate re-uploads it, so a video costs one texture, not one per frame.
+    function refreshBackdrop() {
+      if (!bgVideo || !bgCanvas || !bgTex || cfg.transparentBg) return;
+      if (bgVideo.readyState < 2) return;                 // nothing decoded yet
+      var ctx = bgCanvas.getContext('2d');
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none';
+      var w = bgCanvas.width, h = bgCanvas.height;
+      if (cfg.gradientBg) {
+        var g = ctx.createLinearGradient(0, 0, 0, h);
+        g.addColorStop(0, cfg.bgColor2); g.addColorStop(1, cfg.background);
+        ctx.fillStyle = g;
+      } else { ctx.fillStyle = cfg.background; }
+      ctx.fillRect(0, 0, w, h);
+      if (cfg.bgOpacity > 0) {
+        var blur = cfg.bgBlur * (w / 1600);
+        ctx.save();
+        if (blur > 0.01) ctx.filter = 'blur(' + blur.toFixed(2) + 'px)';
+        ctx.globalAlpha = cfg.bgOpacity;
+        ctx.globalCompositeOperation = cfg.bgBlend;
+        drawMedia(ctx, bgVideo, w, h, cfg.bgFit, cfg.bgPosition, blur * 3);
+        ctx.restore();
+      }
+      bgTex.needsUpdate = true;
+    }
+
+    function renderFrame(t) {
+      refreshBackdrop();
+      var q = poseAt(t);
+      var target = new THREE.Vector3(frame.center.x + q.pan * frame.size * 0.5, frame.center.y, frame.center.z);
+      var dist = frame.fitDist / q.zoom;
+      var ar = d2r(q.azi), er = d2r(q.elev);
+      camera.position.set(
+        target.x + dist * Math.cos(er) * Math.sin(ar),
+        target.y + dist * Math.sin(er),
+        target.z + dist * Math.cos(er) * Math.cos(ar)
+      );
+      camera.lookAt(target);
+      if (camera.fov !== q.fov) { camera.fov = q.fov; camera.updateProjectionMatrix(); }
+      billboard(camera);
+      renderer.render(scene, camera);
+    }
+
+    function billboard(cam) {
+      for (var i = 0; i < people.length; i++) {
+        // Yaw-only: a silhouette that pitched toward a raised camera would lean
+        // off the floor.
+        var p = people[i];
+        p.rotation.y = Math.atan2(cam.position.x - p.position.x, cam.position.z - p.position.z);
+      }
+    }
+    function addPeople(THREE, scene, disp, box, size) {
+      var tex = personTexture(THREE);
+      // alphaTest (not blended transparency) cuts the silhouette out of the quad
+      // while still writing depth, so the figures sort correctly against the stand
+      // instead of ghosting through whatever is behind them.
+      var mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.5, depthWrite: true });
+      disp.push(tex, mat);
+      // Real adult heights, standing just outside the stand's footprint and a step
+      // in front of it - so they never mask the artwork we are selling, and the
+      // viewer gets an instant read on whether this is a 3×3 or a 6×6.
+      // ONE figure, off the -x edge, at the stand's OWN depth.
+      //
+      // Depth: the camera distance scales with the stand, so a fixed step FORWARD
+      // puts a figure at half the camera distance of a small kiosk and it looms in
+      // like a giant. At the stand's own depth every design reads at a truthful
+      // relative scale (a 1.76 m adult really is most of a 2.4 m totem).
+      //
+      // Side: the default camera comes in from +x, so a figure off the +x edge
+      // perspective-projects straight over the back wall - i.e. a person-shaped
+      // hole in the sponsor's logo, which is the one thing this render is selling.
+      // -x is the side that stays clear. One figure is enough to set the scale.
+      var cz = (box.min.z + box.max.z) / 2;
+      var spots = [
+        { h: 1.76, x: box.min.x - 0.5, z: cz + size.z * 0.25 },
+      ];
+      spots.forEach(function (s) {
+        var g = new THREE.PlaneGeometry(s.h * 0.4, s.h);
+        disp.push(g);
+        var m = new THREE.Mesh(g, mat);
+        m.position.set(s.x, s.h / 2, s.z);
+        scene.add(m);
+        people.push(m);
+      });
+    }
+
+    // ---- click a panel → the shell's asset picker ---------------------------
+    function pickAt(ev) {
+      var r = canvas.getBoundingClientRect();
+      if (!r.width || !r.height) return null;
+      ndc.x = ((ev.clientX - r.left) / r.width) * 2 - 1;
+      ndc.y = -((ev.clientY - r.top) / r.height) * 2 + 1;
+      raycaster.setFromCamera(ndc, camera);
+      // Raycast rather than projecting DOM hotspots over the canvas: it gets
+      // occlusion right for free (a tower in front of the back wall correctly
+      // takes the click) and needs no per-frame reprojection.
+      var hits = raycaster.intersectObjects(panelMeshes, false);
+      for (var i = 0; i < hits.length; i++) {
+        // Only the artwork face is clickable - an edge hit would be a panel the
+        // user can't even see the front of.
+        if (hits[i].face && hits[i].face.materialIndex === 4) return hits[i].object;
+      }
+      return null;
+    }
+
+    function setHover(mesh) {
+      if (hovered === mesh) return;
+      if (hovered) hovered.userData.artMat.emissive.setHex(0x000000);
+      hovered = mesh;
+      if (hovered) hovered.userData.artMat.emissive.setHex(0x2a2a2a);
+      canvas.style.cursor = hovered ? 'pointer' : '';
+    }
+
+    function onMove(ev) { if (!disposed && alive()) setHover(pickAt(ev)); }
+    function onLeave() { if (!disposed && alive()) setHover(null); }
+    function onClick(ev) {
+      if (disposed || !alive() || !proxy) return;
+      var mesh = pickAt(ev);
+      if (!mesh) return;
+      // Hand off to the shell: stamp the hit panel's input id on the proxy and
+      // click it, so the delegated [data-canvas-input] handler opens the asset
+      // picker for that input and commits the pick through the normal path.
+      proxy.setAttribute('data-canvas-input', mesh.userData.role);
+      proxy.click();
+    }
+    canvas.addEventListener('pointermove', onMove);
+    canvas.addEventListener('pointerleave', onLeave);
+    canvas.addEventListener('click', onClick);
+
+    function loop() {
+      if (disposed || !alive()) return;
+      // While the exporter drives deterministic frames, stop advancing on
+      // wall-clock (that would clobber the exact phase between the sync paint and
+      // the async capture); keep the loop alive so it resumes once the flag clears.
+      if (canvas.__lollyFrameDriven) { raf = requestAnimationFrame(loop); return; }
+      if (resumeAfterDrive) { clock.getDelta(); resumeAfterDrive = false; }
+      renderFrame(cfg.cameraMove === 'static' ? 0 : clock.getElapsedTime());
+      raf = requestAnimationFrame(loop);
+    }
+
+    // Opt into the deterministic export-frame clock (shells export bridge): render
+    // an exact frame at normalized loop time t∈[0,1) → seconds. Stored ON THE
+    // CANVAS (per-node) so it can't leak across tool navigation. Makes gif/apng +
+    // stills capture a clean, reproducible loop instead of a random wall-clock
+    // frame - and drops the hover highlight, which must never bake into an export.
+    var resumeAfterDrive = false;
+    canvas.__lollyFrameRender = function (t01) {
+      if (!alive()) return;
+      resumeAfterDrive = true;   // clock reset owed once wall-clock playback resumes
+      setHover(null);
+      renderFrame((t01 || 0) * cfg.duration);
+    };
+
+    // One SYNC frame now - a headless/hidden tab may never fire rAF - then hold
+    // `tool:ready` until every panel image has decoded, so exports capture the
+    // dressed booth rather than a wall of placeholders.
+    renderFrame(0);
+    Promise.all(pending).then(function () {
+      if (!alive() || disposed) return;
+      renderFrame(0);
+      fireReady();
+    });
+    if (!pending.length) fireReady();
+    loop();
+
+    window.__lollyBooth = {
+      dispose: function () {
+        disposed = true;
+        if (raf) cancelAnimationFrame(raf);
+        canvas.removeEventListener('pointermove', onMove);
+        canvas.removeEventListener('pointerleave', onLeave);
+        canvas.removeEventListener('click', onClick);
+        // The element stays in vidCache (that's what keeps playback continuous
+        // across paints) but MUST stop decoding - otherwise navigating away from
+        // the tool leaves a video running for the rest of the session.
+        if (bgVideo) { try { bgVideo.pause(); } catch (e) {} bgVideo = null; }
+        if (bgTex) { try { bgTex.dispose(); } catch (e) {} bgTex = null; }
+        disposables.forEach(function (d) { try { d.dispose(); } catch (e) {} });
+        try { pmrem.dispose(); } catch (e) {}
+        try { renderer.dispose(); } catch (e) {}
+        try { renderer.forceContextLoss(); } catch (e) {}
+      }
+    };
+  }
+
+  // ---- hall lighting presets -----------------------------------------------
+  function applyScene(THREE, scene, renderer) {
+    // Transparency wins over everything: the point is to hand back an alpha PNG,
+    // so a backdrop colour/gradient/photo would defeat it.
+    if (cfg.transparentBg) { scene.background = null; renderer.setClearColor(0x000000, 0); }
+    // else: the caller installs the composited backdrop (it may need to await media).
+
+    function dir(color, intensity, x, y, z, shadow) {
+      var l = new THREE.DirectionalLight(color, intensity);
+      l.position.set(x, y, z);
+      if (shadow && cfg.shadows) { l.castShadow = true; l.shadow.mapSize.set(2048, 2048); l.shadow.bias = -0.0005; }
+      scene.add(l); return l;
+    }
+    function hemi(sky, ground, intensity) { scene.add(new THREE.HemisphereLight(sky, ground, intensity)); }
+
+    switch (cfg.scene) {
+      case 'bright':
+        hemi(0xffffff, 0xcccccc, 0.7); dir(0xffffff, 2.2, 4, 8, 6, true); dir(0xffffff, 0.7, -5, 4, -3, false); break;
+      case 'evening':
+        scene.add(new THREE.AmbientLight(0x2a2440, 0.5)); dir(0xffd9a8, 2.0, -4, 6, 5, true); dir(0x6688ff, 0.7, 5, 3, -3, false); break;
+      case 'keynote':
+        scene.add(new THREE.AmbientLight(0x1a2030, 0.35)); dir(0xffffff, 3.0, 0, 9, 5, true); dir(0x4488ff, 0.8, -6, 3, -4, false); break;
+      case 'expo':
+      default:
+        // Overhead hall rig: a broad cool key from the ceiling plus a warm bounce
+        // off the floor, which is what a convention centre's lighting grid does.
+        hemi(0xdce6ff, 0x6b6459, 0.6);
+        dir(0xfff4e6, 1.9, 3, 9, 5, true);
+        dir(0xbfd4ff, 0.6, -5, 4, 2, false);
+        break;
+    }
+  }
+})();
+</script>

@@ -1,0 +1,553 @@
+<div class="an">
+  <div class="an-stage"
+       data-marks="{{marksJson}}"
+       data-geom="{{geomJson}}"
+       data-anchors="{{anchorsJson}}"
+       data-source-key="{{sourceKey}}"{{#if pending}} data-pending="1"{{/if}}>
+
+    <!-- TOP DOCK: what is loaded, and which mark the next drag draws. -->
+    <div class="an-dock an-dock-top" data-export-hide>
+      <div class="an-head">
+        {{#if hasFile}}
+          <span class="an-file" title="{{fileName}}">{{fileName}}</span>
+          <span class="an-size">{{fileSize}}</span>
+          <button type="button" class="an-pick" data-file-pick>Replace</button>
+        {{else}}
+          <span class="an-file">No picture yet - marks are drawn on a placeholder screen</span>
+          <button type="button" class="an-pick" data-file-pick>Choose a picture…</button>
+        {{/if}}
+      </div>
+      <div class="an-rail" role="toolbar" aria-label="Mark tools">
+        <div class="an-rail-group" data-rail-kinds>
+          <button type="button" class="an-rail-btn" data-kind="arrow" aria-pressed="true" title="Drag from the tail to the point">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 18 18 6"/><path d="M11 6h7v7"/></svg>
+            <span>Arrow</span>
+          </button>
+          <button type="button" class="an-rail-btn" data-kind="box" aria-pressed="false" title="Drag a rectangle around something">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="2"/></svg>
+            <span>Box</span>
+          </button>
+          <button type="button" class="an-rail-btn" data-kind="pin" aria-pressed="false" title="Tap to drop the next numbered step">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M10.5 9.5 12 8.6V16"/></svg>
+            <span>Step</span>
+          </button>
+          <button type="button" class="an-rail-btn" data-kind="callout" aria-pressed="false" title="Drag a label box, then type into its row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-4 4v-4H4z"/></svg>
+            <span>Callout</span>
+          </button>
+          <button type="button" class="an-rail-btn" data-kind="highlight" aria-pressed="false" title="Drag a translucent wash over a line">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19h16"/><path d="M7 15 15 7l3 3-8 8z"/></svg>
+            <span>Highlight</span>
+          </button>
+          <button type="button" class="an-rail-btn" data-kind="spotlight" aria-pressed="false" title="Dim everything except this rectangle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="5"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg>
+            <span>Spotlight</span>
+          </button>
+        </div>
+        {{#if ocrAvailable}}
+          <!-- SNAP TO TEXT (the M7 pattern, see hooks.js). The on-device reader
+               finds the text lines in this picture and each one becomes an
+               anchor: click one and the armed mark is placed on it. Anchors are
+               never marks - nothing is added until a person clicks. Rendered
+               only where a reader exists, so a shell without host.ocr is
+               unchanged. -->
+          <div class="an-rail-group" data-ocr-group>
+            {{#if ocrPending}}
+              <button type="button" class="an-rail-btn is-busy" data-ocr-cancel title="Stop reading this picture">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/></svg>
+                <span>Reading…</span>
+              </button>
+            {{else}}
+              <button type="button" class="an-rail-btn" data-ocr-run title="Read the text in this picture on your device and offer each line as a place to put a mark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+                <span>Snap to text</span>
+              </button>
+            {{/if}}
+            {{#if hasAnchors}}
+              <button type="button" class="an-rail-btn" data-anchors-clear title="Hide the text anchors">Clear {{anchorCount}}</button>
+            {{/if}}
+          </div>
+        {{/if}}
+      </div>
+    </div>
+
+    <!-- VIEWPORT: the picture, the overlay, and the invisible handles layer. -->
+    <div class="an-viewport">
+      <div class="an-frame" style="aspect-ratio: {{aspectCss}}; --an-ar: {{aspectNum}}">
+        {{#if hasFile}}
+          <img class="an-img" src="{{previewUrl}}" alt="Picture being annotated: {{fileName}}" draggable="false">
+        {{else}}
+          <!-- The generated placeholder. Deliberately a neutral mock of an app
+               window rather than a bundled photo: the shipped examples have to
+               draw on something, and nothing about a stand-in should look like
+               the user's own content or ship a picture in the repo. -->
+          <svg class="an-img an-ph" viewBox="0 0 1600 1000" role="img" aria-label="Placeholder screen">
+            <rect width="1600" height="1000" fill="#eaeef4"/>
+            <rect x="80" y="70" width="1440" height="860" rx="26" fill="#ffffff"/>
+            <path d="M80 96a26 26 0 0 1 26-26h1388a26 26 0 0 1 26 26v50H80z" fill="#f2f5f9"/>
+            <circle cx="126" cy="108" r="9" fill="#d7dee8"/>
+            <circle cx="156" cy="108" r="9" fill="#d7dee8"/>
+            <circle cx="186" cy="108" r="9" fill="#d7dee8"/>
+            <rect x="232" y="96" width="420" height="24" rx="12" fill="#e3e9f1"/>
+            <rect x="80" y="146" width="300" height="784" fill="#f7f9fc"/>
+            <rect x="116" y="188" width="200" height="18" rx="9" fill="#dde4ee"/>
+            <rect x="116" y="230" width="164" height="18" rx="9" fill="#e6ebf3"/>
+            <rect x="116" y="272" width="188" height="18" rx="9" fill="#e6ebf3"/>
+            <rect x="116" y="314" width="140" height="18" rx="9" fill="#e6ebf3"/>
+            <rect x="432" y="196" width="360" height="30" rx="15" fill="#dde4ee"/>
+            <rect x="432" y="248" width="640" height="16" rx="8" fill="#eaeff6"/>
+            <rect x="432" y="278" width="560" height="16" rx="8" fill="#eaeff6"/>
+            <rect x="432" y="348" width="332" height="220" rx="18" fill="#f2f5fa"/>
+            <rect x="800" y="348" width="332" height="220" rx="18" fill="#f2f5fa"/>
+            <rect x="1168" y="348" width="288" height="220" rx="18" fill="#f2f5fa"/>
+            <rect x="432" y="620" width="1024" height="16" rx="8" fill="#eaeff6"/>
+            <rect x="432" y="650" width="880" height="16" rx="8" fill="#eaeff6"/>
+            <rect x="432" y="712" width="196" height="44" rx="22" fill="#dde4ee"/>
+          </svg>
+        {{/if}}
+        {{{overlay}}}
+        <div class="an-handles" data-export-hide></div>
+      </div>
+    </div>
+
+    <!-- BOTTOM DOCK: what the marks amount to, and the download. -->
+    <div class="an-dock an-dock-bottom" data-export-hide>
+      <p class="an-hint">
+        {{#if hasMarks}}{{markCount}} mark{{#if markPlural}}s{{/if}}.{{else}}No marks yet.{{/if}}
+        Drag on the picture to draw the armed mark, drag a mark to move it, drag its corner dot to resize, tap its cross to take it off. Callout and step words are typed in the Marks rows in the sidebar.
+        {{#if hasAnchors}} {{anchorCount}} text line{{#if anchorPlural}}s were{{else}} was{{/if}} found: click one to put the armed mark on it. An anchor is a suggestion, never a mark.{{/if}}
+      </p>
+      {{#if ocrError}}<p class="an-note">{{ocrError}}</p>{{/if}}
+      {{#if ocrRead}}{{#unless hasAnchors}}<p class="an-note">No text was recognised in this picture. Keep placing marks by hand.</p>{{/unless}}{{/if}}
+      <div class="an-foot">
+        {{#if hasFile}}
+          {{#if hasMarks}}
+            <button type="button" class="an-download" data-export-file data-busy-label="Drawing…">{{downloadLabel}}</button>
+          {{else}}
+            <!-- Nothing to draw yet. Downloading here would hand back a
+                 re-encoded copy of the person's own file, which is a quiet
+                 quality loss on a JPEG and no use to anyone. Redact holds the
+                 same line with its bars. -->
+            <button type="button" class="an-download" disabled>Add a mark to download a copy</button>
+          {{/if}}
+        {{else}}
+          <button type="button" class="an-download" data-file-pick>Choose a picture to annotate</button>
+        {{/if}}
+        <span class="an-privacy">Your picture is annotated in this browser and never uploaded.</span>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  (function () {
+    'use strict';
+    /* Drawing surface for annotate. One committed `marks` array; the armed kind
+       decides what the next empty-space drag draws. Every write goes through
+       the canvas commit channel, so undo, URL mode, save and the sidebar rows
+       all see exactly what the pointer did.
+
+       Coordinates here are the tool's own units: PERCENTAGES of the frame, x/w
+       of its width and y/h of its height. Every measurement divides a client
+       delta by the frame's live bounding rect, so the shell's stage zoom (a
+       uniform transform on the canvas wrapper) cancels out. Live DOM feedback
+       during a gesture, ONE commit of the whole array on release. */
+    var cs = document.currentScript;
+    var wrap = cs && cs.previousElementSibling && cs.previousElementSibling.classList
+      && cs.previousElementSibling.classList.contains('an')
+      ? cs.previousElementSibling
+      : null;
+    if (!wrap) {
+      var all = document.querySelectorAll('.an');
+      wrap = all[all.length - 1];
+    }
+    if (!wrap) return;
+
+    var stage = wrap.querySelector('.an-stage');
+    if (!stage || stage.dataset.anWired) return;
+    stage.dataset.anWired = '1';
+
+    var canvasRoot = wrap.closest('[data-lolly-canvas]');
+    var commitFn = canvasRoot && canvasRoot.__lollyCommit;
+    /* History-free writes, for requests rather than edits: asking to read the
+       picture is not a change to the drawing and must not sit on the undo stack
+       in front of the marks, which is what a person actually wants to take
+       back. */
+    var quietFn = (canvasRoot && canvasRoot.__lollyCommitQuiet) || commitFn;
+    var nudgeFn = canvasRoot && canvasRoot.__lollyNudge;
+
+    function alive() { return document.contains(wrap); }
+
+    function readJson(attr, fallback) {
+      try {
+        var v = JSON.parse(stage.getAttribute(attr) || '');
+        return v == null ? fallback : v;
+      } catch (e) { return fallback; }
+    }
+
+    var marks = readJson('data-marks', []);
+    if (!Array.isArray(marks)) marks = [];
+    var geom = readJson('data-geom', {});
+    var anchors = readJson('data-anchors', []);
+    if (!Array.isArray(anchors)) anchors = [];
+    var vbH = Number(geom.vbH) > 0 ? Number(geom.vbH) : 62.5;
+    var accent = typeof geom.accent === 'string' ? geom.accent : '#2563eb';
+    var KINDS = Array.isArray(geom.kinds) ? geom.kinds : ['arrow', 'box', 'pin', 'callout', 'highlight', 'spotlight'];
+
+    /* The pin's drawn radius in overlay units is 1.6 + sw * 0.9 (hooks.js). Its
+       hit box is that radius expressed on each axis: one overlay unit is 1% of
+       the WIDTH on both axes, so the vertical half-size has to be divided back
+       out by the frame's aspect. */
+    var pinR = 1.6 + (Number(geom.sw) || 1) * 0.9;
+
+    /* Default size, in percent, for a mark placed with a tap rather than a
+       drag. An arrow gets a run up and to the right; everything else gets a
+       block centred on the tap. */
+    var DEFAULTS = {
+      arrow: { w: 18, h: -14 },
+      box: { w: 26, h: 18 },
+      callout: { w: 30, h: 12 },
+      highlight: { w: 24, h: 6 },
+      spotlight: { w: 30, h: 26 },
+      pin: { w: 0, h: 0 }
+    };
+
+    function commit(next) {
+      if (commitFn) { commitFn('annotations', next); return; }
+      /* Offscreen export or an older shell with no commit channel: the sidebar
+         poke, which only a field that can hold the whole array can take. */
+      var el = document.querySelector('[data-input-id="annotations"]');
+      var field = el && el.querySelector ? el.querySelector('textarea, input[type="text"], input[type="hidden"]') : null;
+      if (!field) return;
+      field.value = JSON.stringify(next);
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+      field.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    /* ── Armed kind. Parked on the persistent canvas container, because every
+       commit repaints this subtree through innerHTML and a plain local would
+       forget the chosen tool on each stroke. ── */
+    var armed = (canvasRoot && canvasRoot.dataset.anKind) || 'arrow';
+    if (KINDS.indexOf(armed) === -1) armed = 'arrow';
+
+    function syncRail() {
+      var btns = stage.querySelectorAll('.an-rail-btn[data-kind]');
+      Array.prototype.forEach.call(btns, function (b) {
+        b.setAttribute('aria-pressed', b.getAttribute('data-kind') === armed ? 'true' : 'false');
+      });
+    }
+    var kindGroup = stage.querySelector('[data-rail-kinds]');
+    if (kindGroup) {
+      kindGroup.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest ? e.target.closest('[data-kind]') : null;
+        if (!btn || !alive()) return;
+        armed = btn.getAttribute('data-kind');
+        if (canvasRoot) canvasRoot.dataset.anKind = armed;
+        syncRail();
+      });
+    }
+    syncRail();
+
+    /* ── Asking for a text read. The request travels as a value on the `ocr`
+       input, because a template script has no host bridge: the hook owns
+       host.ocr and the model is the only channel from this canvas to it. A
+       nonce, not a flag, so a second click asks for a second read; 'off'
+       aborts one in flight. ── */
+    var ocrGroup = stage.querySelector('[data-ocr-group]');
+    if (ocrGroup && quietFn) {
+      ocrGroup.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest ? e.target.closest('button') : null;
+        if (!btn || !alive()) return;
+        if (btn.hasAttribute('data-ocr-run')) quietFn('ocr', String(Date.now()));
+        else if (btn.hasAttribute('data-ocr-cancel')) quietFn('ocr', 'off');
+        else if (btn.hasAttribute('data-anchors-clear')) quietFn('ocr', 'off');
+      });
+    }
+
+    /* A job that outlives this pass (measuring a large picture, or a text read)
+       publishes data-pending, and the canvas polls the hook through the nudge
+       channel - no history entry, and the live value is read at tick time
+       rather than the one captured at paint. Without a channel there is nothing
+       here that can re-run onInput, so the poll simply never starts. */
+    if (stage.hasAttribute('data-pending') && nudgeFn) {
+      var polls = 0;
+      var timer = setInterval(function () {
+        if (!alive() || !stage.hasAttribute('data-pending')) { clearInterval(timer); return; }
+        if (++polls > 150) { clearInterval(timer); return; }
+        nudgeFn('annotations');
+      }, 700);
+    }
+
+    /* The frame's width cap (styles.css) needs the height the viewport can
+       actually give it, which no stylesheet can read off a parent. Publishing
+       it here is what keeps the picture's ratio on both axes, and with it the
+       agreement between where a mark is drawn and where its handle sits. The
+       var only feeds a child's max width, so it can never grow the viewport
+       back and drive the observer in a loop. */
+    var viewport = stage.querySelector('.an-viewport');
+    if (viewport) {
+      var syncView = function () {
+        if (!alive()) return;
+        var vh = Math.floor(viewport.clientHeight);
+        if (vh > 40) wrap.style.setProperty('--an-frameview', vh + 'px');
+      };
+      syncView();
+      if (typeof ResizeObserver !== 'undefined') {
+        if (window.__anViewRO) window.__anViewRO.disconnect();
+        window.__anViewRO = new ResizeObserver(syncView);
+        window.__anViewRO.observe(viewport);
+      }
+    }
+
+    var frame = stage.querySelector('.an-frame');
+    var handles = stage.querySelector('.an-handles');
+    if (!frame || !handles) return;
+
+    /* ── Geometry. A mark's HIT BOX in percent: the same rectangle for the box
+       kinds, the bounding box of the run for an arrow, and a square around the
+       dot for a pin. ── */
+    function hitBox(m) {
+      if (m.kind === 'pin') {
+        var ry = pinR / vbH * 100;
+        return { x: m.x - pinR, y: m.y - ry, w: pinR * 2, h: ry * 2 };
+      }
+      var x = m.w < 0 ? m.x + m.w : m.x;
+      var y = m.h < 0 ? m.y + m.h : m.y;
+      return { x: x, y: y, w: Math.abs(m.w), h: Math.abs(m.h) };
+    }
+
+    function pct(ev, rect) {
+      return {
+        x: (Math.max(rect.left, Math.min(rect.right, ev.clientX)) - rect.left) / rect.width * 100,
+        y: (Math.max(rect.top, Math.min(rect.bottom, ev.clientY)) - rect.top) / rect.height * 100
+      };
+    }
+    function r1(n) { return Math.round(n * 10) / 10; }
+
+    /* Is this gesture too small to be worth a row? ONE rule for drawing and for
+       resizing, because they used to disagree: a box with no area is a stray
+       click, but an arrow is a line, and a horizontal one legitimately has no
+       height at all. Judging an arrow on either axis meant a level arrow could
+       be drawn and then never resized again. */
+    function tooSmall(m) {
+      if (m.kind === 'pin') return false;
+      var flatX = Math.abs(m.w) < 0.5, flatY = Math.abs(m.h) < 0.5;
+      return m.kind === 'arrow' ? (flatX && flatY) : (flatX || flatY);
+    }
+
+    function place(kind, p) {
+      var d = DEFAULTS[kind] || DEFAULTS.box;
+      if (kind === 'pin') return { kind: kind, x: r1(p.x), y: r1(p.y), w: 0, h: 0, text: '' };
+      if (kind === 'arrow') return { kind: kind, x: r1(p.x), y: r1(p.y), w: d.w, h: d.h, text: '' };
+      return { kind: kind, x: r1(p.x - d.w / 2), y: r1(p.y - d.h / 2), w: d.w, h: d.h, text: '' };
+    }
+
+    /* ── The handles layer. Transparent boxes over the marks the overlay drew:
+       a press moves, the corner dot resizes, the cross removes. They live in
+       HTML rather than in the overlay SVG so the exported file carries the
+       drawing and nothing of the workspace. ── */
+    function renderHandles() {
+      if (!alive()) return;
+      handles.textContent = '';
+      for (var i = 0; i < marks.length; i++) {
+        var m = marks[i];
+        if (!m || !m.kind) continue;
+        var b = hitBox(m);
+        var el = document.createElement('div');
+        el.className = 'an-hit';
+        el.setAttribute('data-idx', String(i));
+        el.style.left = b.x + '%';
+        el.style.top = b.y + '%';
+        el.style.width = Math.max(b.w, 1.5) + '%';
+        el.style.height = Math.max(b.h, 1.5 / vbH * 100) + '%';
+        var del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'an-del';
+        del.setAttribute('data-del', String(i));
+        del.setAttribute('aria-label', 'Remove this ' + m.kind);
+        del.title = 'Remove';
+        el.appendChild(del);
+        if (m.kind !== 'pin') {
+          var grip = document.createElement('button');
+          grip.type = 'button';
+          grip.className = 'an-grip';
+          grip.setAttribute('data-grip', String(i));
+          grip.setAttribute('aria-label', 'Resize this ' + m.kind);
+          grip.title = 'Resize';
+          el.appendChild(grip);
+        }
+        handles.appendChild(el);
+      }
+      renderAnchors();
+    }
+
+    /* Text-line anchors from the reader: an outline you can click to place the
+       armed mark on that line. Never a mark until it is clicked. */
+    function renderAnchors() {
+      for (var i = 0; i < anchors.length; i++) {
+        var a = anchors[i];
+        if (!(a.w > 0) || !(a.h > 0)) continue;
+        var el = document.createElement('button');
+        el.type = 'button';
+        el.className = 'an-anchor';
+        el.setAttribute('data-anchor', String(i));
+        el.style.left = a.x + '%';
+        el.style.top = a.y + '%';
+        el.style.width = a.w + '%';
+        el.style.height = a.h + '%';
+        el.title = a.text ? 'Put the ' + armed + ' on: ' + a.text : 'Put the ' + armed + ' here';
+        el.setAttribute('aria-label', el.title);
+        handles.appendChild(el);
+      }
+    }
+
+    /* The armed mark, sized onto a text line the reader found. Over-inclusive
+       on purpose: a box or a wash covers the whole line, a callout sits under
+       it, an arrow points at its left edge. */
+    function onAnchor(a) {
+      var padX = 0.6, padY = a.h * 0.25;
+      if (armed === 'box' || armed === 'highlight' || armed === 'spotlight') {
+        return { kind: armed, x: r1(a.x - padX), y: r1(a.y - padY), w: r1(a.w + padX * 2), h: r1(a.h + padY * 2), text: '' };
+      }
+      if (armed === 'callout') {
+        return { kind: armed, x: r1(a.x), y: r1(a.y + a.h + 1), w: r1(Math.max(a.w, 18)), h: r1(Math.max(a.h * 2.4, 8)), text: a.text || '' };
+      }
+      if (armed === 'pin') {
+        return { kind: 'pin', x: r1(Math.max(0, a.x - pinR)), y: r1(a.y + a.h / 2), w: 0, h: 0, text: '' };
+      }
+      return { kind: 'arrow', x: r1(a.x - 12), y: r1(a.y + a.h + 12), w: 12, h: r1(-(a.h + 12)), text: '' };
+    }
+
+    handles.addEventListener('click', function (e) {
+      if (!alive()) return;
+      var t = e.target;
+      var del = t && t.closest ? t.closest('[data-del]') : null;
+      if (del) {
+        e.preventDefault();
+        var di = parseInt(del.getAttribute('data-del'), 10);
+        if (di >= 0 && di < marks.length) commit(marks.slice(0, di).concat(marks.slice(di + 1)));
+        return;
+      }
+      var an = t && t.closest ? t.closest('[data-anchor]') : null;
+      if (an) {
+        e.preventDefault();
+        var ai = parseInt(an.getAttribute('data-anchor'), 10);
+        if (anchors[ai]) commit(marks.concat([onAnchor(anchors[ai])]));
+      }
+    });
+
+    /* ── One pointer gesture: move a mark, resize a mark, or draw a new one.
+       Multi-touch belongs to the shell's stage zoom: the frame sets
+       touch-action:none, so a pinch arrives as two pointerdowns, and the second
+       one abandons the gesture in flight rather than committing a stray mark. ── */
+    var abortGesture = null;
+
+    frame.addEventListener('pointerdown', function (e) {
+      if (!alive()) return;
+      if (e.target && e.target.closest && e.target.closest('.an-del, .an-anchor')) return;
+      if (e.button !== undefined && e.button !== 0) return;
+      if (abortGesture) { abortGesture(); return; }
+      if (e.isPrimary === false) return;
+
+      var rect = frame.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      e.preventDefault();
+      frame.setPointerCapture(e.pointerId);
+
+      var start = pct(e, rect);
+      var grip = e.target && e.target.closest ? e.target.closest('[data-grip]') : null;
+      var hit = grip ? null : (e.target && e.target.closest ? e.target.closest('.an-hit') : null);
+      var idx = grip ? parseInt(grip.getAttribute('data-grip'), 10)
+        : (hit ? parseInt(hit.getAttribute('data-idx'), 10) : -1);
+      var origin = idx >= 0 && marks[idx] ? marks[idx] : null;
+      var mode = grip ? 'resize' : (origin ? 'move' : 'draw');
+      var kind = origin ? origin.kind : armed;
+
+      var draft = null, line = null;
+      if (mode === 'draw') {
+        if (kind === 'arrow') {
+          draft = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          draft.setAttribute('class', 'an-draft an-draft-line');
+          draft.setAttribute('viewBox', '0 0 100 ' + vbH);
+          draft.setAttribute('preserveAspectRatio', 'none');
+          line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+          line.setAttribute('stroke', accent);
+          line.setAttribute('stroke-width', String(Math.max(0.4, Number(geom.sw) || 1)));
+          line.setAttribute('stroke-linecap', 'round');
+          draft.appendChild(line);
+        } else if (kind !== 'pin') {
+          draft = document.createElement('div');
+          draft.className = 'an-draft';
+          draft.style.borderColor = accent;
+        }
+        if (draft) handles.appendChild(draft);
+      }
+
+      function next(ev) {
+        var p = pct(ev, rect);
+        if (mode === 'move') {
+          var dx = p.x - start.x, dy = p.y - start.y;
+          return { kind: origin.kind, x: r1(origin.x + dx), y: r1(origin.y + dy), w: origin.w, h: origin.h, text: origin.text };
+        }
+        if (mode === 'resize') {
+          return { kind: origin.kind, x: origin.x, y: origin.y, w: r1(p.x - origin.x), h: r1(p.y - origin.y), text: origin.text };
+        }
+        if (kind === 'pin') return place('pin', p);
+        return { kind: kind, x: r1(start.x), y: r1(start.y), w: r1(p.x - start.x), h: r1(p.y - start.y), text: '' };
+      }
+
+      function paint(ev) {
+        if (!draft) return;
+        var m = next(ev);
+        if (line) {
+          line.setAttribute('x1', String(m.x));
+          line.setAttribute('y1', String(m.y * vbH / 100));
+          line.setAttribute('x2', String(m.x + m.w));
+          line.setAttribute('y2', String((m.y + m.h) * vbH / 100));
+          return;
+        }
+        var b = hitBox(m);
+        draft.style.left = b.x + '%';
+        draft.style.top = b.y + '%';
+        draft.style.width = b.w + '%';
+        draft.style.height = b.h + '%';
+      }
+
+      function teardown() {
+        abortGesture = null;
+        frame.removeEventListener('pointermove', onMove);
+        frame.removeEventListener('pointerup', onUp);
+        frame.removeEventListener('pointercancel', onUp);
+        if (draft && draft.parentNode) draft.parentNode.removeChild(draft);
+        try { frame.releasePointerCapture(e.pointerId); } catch (err) { /* already released */ }
+      }
+      function onMove(ev) { if (alive()) paint(ev); }
+      function onUp(ev) {
+        teardown();
+        if (!alive()) return;
+        var p = pct(ev, rect);
+        var moved = Math.abs(p.x - start.x) * rect.width / 100 > 3
+          || Math.abs(p.y - start.y) * rect.height / 100 > 3;
+        var m = next(ev);
+        if (mode === 'draw') {
+          /* A tap is not a drag: it places the armed mark at its own size,
+             which is the only way to put down a step pin at all. */
+          if (!moved) m = place(kind, start);
+          if (tooSmall(m)) return;
+          commit(marks.concat([m]));
+          return;
+        }
+        if (mode === 'resize' && tooSmall(m)) return;
+        if (mode === 'move' && !moved) return;
+        commit(marks.slice(0, idx).concat([m], marks.slice(idx + 1)));
+      }
+
+      abortGesture = teardown;
+      paint(e);
+      frame.addEventListener('pointermove', onMove);
+      frame.addEventListener('pointerup', onUp);
+      frame.addEventListener('pointercancel', onUp);
+    });
+
+    renderHandles();
+  })();
+</script>

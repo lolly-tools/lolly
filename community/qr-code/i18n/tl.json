@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "Mga QR code para sa isang link, contact card, Wi-Fi network, calendar event, lokasyon o plain text.",
+  "featured.blurb": "Mga QR code sa kahit anong kulay ng brand",
+  "a11yLabel": "QR code na naka-link sa {{default url \"(walang naka-set na URL)\"}}",
+  "inputs.url.label": "URL",
+  "inputs.color.label": "Kulay ng module",
+  "inputs.background.label": "Background",
+  "inputs.ecl.label": "Pagwawasto ng error",
+  "inputs.ecl.options.L": "Mababa (7%)",
+  "inputs.ecl.options.M": "Katamtaman (15%)",
+  "inputs.ecl.options.Q": "Quartile (25%)",
+  "inputs.ecl.options.H": "Mataas (30%)",
+  "inputs.padding.label": "Tahimik na sona",
+  "inputs.padding.help": "Mga module ng puting espasyo sa paligid ng code. Inirerekomenda ang minimum na 4.",
+  "inputs.join.label": "Pinagsamang mga module",
+  "inputs.join.help": "Pagsamahin ang lahat ng module sa iisang SVG path. Mas malinaw sa maliliit na sukat."
+}

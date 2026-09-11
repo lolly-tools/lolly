@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "Carica una presentazione PowerPoint e adatta colori e font al tuo brand - ricostruita sul tuo dispositivo, senza caricamenti.",
+  "a11yLabel": "Rebranding del deck per {{fileName}}",
+  "inputs.source.label": "File PowerPoint",
+  "inputs.source.help": "Un file .pptx. Viene letto sul tuo dispositivo e non viene mai caricato.",
+  "inputs.useTheme.label": "Applica tema del brand",
+  "inputs.useTheme.help": "Sostituisci la palette del tema e i font della presentazione con quelli del tuo brand - ogni colore collegato al tema si aggiorna automaticamente.",
+  "inputs.colorMap.label": "Mappatura colore",
+  "inputs.colorMap.help": "Colori hardcoded trovati nelle slide, ciascuno con il colore del brand suggerito. Rimuovi una riga per lasciare invariato quel colore.",
+  "inputs.colorMap.fields.from.label": "Originale",
+  "inputs.colorMap.fields.to.label": "Brand",
+  "inputs.fontMap.label": "Mappatura dei font",
+  "inputs.fontMap.help": "I font indicati nella presentazione, ciascuno con la sua sostituzione brand. Rimuovi una riga per mantenere quel font.",
+  "inputs.fontMap.fields.from.label": "Originale",
+  "inputs.fontMap.fields.to.label": "Brand",
+  "inputs.dropFonts.label": "Rimuovi i font incorporati",
+  "inputs.dropFonts.help": "I font del vecchio brand incorporati nel file diventano obsoleti dopo una sostituzione e potrebbero avere vincoli di licenza."
+}

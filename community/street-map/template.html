@@ -1,0 +1,367 @@
+<div class="sm-root sm-{{theme}}" id="sm-root">
+  <div class="sm-map-wrap" id="sm-map" data-lolly-anno="{{city}} {{roadColor}} {{waterColor}} {{background}}"></div>
+  <div class="sm-zoom-controls">
+    <button class="sm-zoom-btn" id="sm-zi" type="button" aria-label="Zoom in">+</button>
+    <button class="sm-zoom-btn" id="sm-zo" type="button" aria-label="Zoom out">&minus;</button>
+    <button class="sm-zoom-btn" id="sm-zr" type="button" aria-label="Reset view">&#8962;</button>
+  </div>
+  <p class="sm-route-warn" role="status" data-export-hide>{{routeWarning}}</p>
+</div>
+
+<script>
+(function () {
+  /* ── Resolve THIS instance's own root (multi-edit mounts several maps) ──────── */
+  /* Own root = this script's previous sibling; fall back to the newest .sm-root
+     when the shell executes the script detached (currentScript null). Every id
+     below (#sm-map, #sm-zi…) repeats across instances, so all lookups are scoped
+     to smRoot rather than document-global. */
+  var cs = document.currentScript;
+  var smRoot = cs && cs.previousElementSibling && cs.previousElementSibling.classList
+    && cs.previousElementSibling.classList.contains('sm-root')
+    ? cs.previousElementSibling : null;
+  if (!smRoot) { var roots = document.querySelectorAll('.sm-root'); smRoot = roots[roots.length - 1] || null; }
+  if (!smRoot) return;
+  var mapEl = smRoot.querySelector('#sm-map') || smRoot.querySelector('.sm-map-wrap');
+  if (!mapEl) return;
+
+  /* Per-canvas commit channel + per-instance state live on the STABLE canvas
+     element (it survives each paint's innerHTML swap), so N mounted maps never
+     share one viewport / epoch / debounce timer. Absent offscreen and in older
+     shells - then the window fallback keeps the previous single-instance path.
+     __smLoading/__smCities/__smClip below stay window-global on purpose: those
+     are content caches every instance should share. */
+  var canvasRoot = smRoot.closest('[data-lolly-canvas]');
+  var commitFn = canvasRoot && canvasRoot.__lollyCommit;
+  var stateStore = canvasRoot || window;
+
+  /* ── Epoch guard - a newer render of THIS map cancels its own stale draws ───── */
+  stateStore.__smEpoch = (stateStore.__smEpoch || 0) + 1;
+  var _ep = stateStore.__smEpoch;
+  function alive() { return stateStore.__smEpoch === _ep && document.contains(mapEl); }
+  clearTimeout(stateStore.__smViewTimer);
+
+  /* ── Inputs (via _-prefixed extras so annotateTemplate leaves them alone) ──── */
+  var city       = '{{_city}}' || 'nuremberg';
+  var theme      = '{{_theme}}' === 'dark' ? 'dark' : 'light';
+  var minorWeight = parseFloat('{{_minorRoadWeight}}') || 1;
+  var majorWeight = parseFloat('{{_majorRoadWeight}}') || 1;
+  var waterWeight = parseFloat('{{_waterWeight}}') || 1;
+  var showWater  = '{{_showWater}}' === 'yes';
+  var roadColor  = '{{_roadColor}}';
+  var waterColor = '{{_waterColor}}';
+  var bgColor    = '{{_background}}';
+  var viewIn     = '{{_view}}';
+  var routeColor = '{{_routeColor}}';
+  var routeWidth = parseFloat('{{_routeWidth}}') || 3;
+  var routeFit   = '{{_routeFit}}' === 'yes';
+
+  /* ── Palette (set as SVG attributes so colors survive vector export) ───────── */
+  var PALETTES = {
+    light: { bg: '#f5f2ec', road: '#2e2c29', water: '#bcd6e8', waterLine: '#8fb8d4', route: '#d9480f' },
+    dark:  { bg: '#10131a', road: '#d7dde4', water: '#16323f', waterLine: '#2c5870', route: '#ff922b' },
+  };
+  var pal = PALETTES[theme] || PALETTES.light;
+  if (roadColor)  pal = Object.assign({}, pal, { road: roadColor });
+  if (waterColor) pal = Object.assign({}, pal, { water: waterColor, waterLine: waterColor });
+  if (bgColor)    pal = Object.assign({}, pal, { bg: bgColor });
+  if (routeColor) pal = Object.assign({}, pal, { route: routeColor });
+
+  /* ── GPX route, parsed in hooks.js and handed over as flat "lon,lat" lists ─── */
+  function decodePts(s) {
+    if (!s) return [];
+    var out = [];
+    s.split(';').forEach(function (pair) {
+      var xy = pair.split(',');
+      var lon = parseFloat(xy[0]), lat = parseFloat(xy[1]);
+      if (isFinite(lon) && isFinite(lat)) out.push([lon, lat]);
+    });
+    return out;
+  }
+  var routeLines = '{{_routeSegs}}'.split('|').map(decodePts)
+    .filter(function (line) { return line.length > 1; });
+  var routeDots = decodePts('{{_routeDots}}');
+
+  /* Stroke width (px) per road tier, before the roadWeight multiplier. */
+  var TIER_W = { 0: 0.4, 1: 0.6, 2: 1.0, 3: 1.5, 4: 2.0, 5: 2.6 };
+
+  /* ── Script loader (dedupes concurrent loads across re-renders) ────────────── */
+  function loadScript(src, present) {
+    if (present()) return Promise.resolve();
+    window.__smLoading = window.__smLoading || {};
+    if (!window.__smLoading[src]) {
+      window.__smLoading[src] = new Promise(function (res, rej) {
+        var s = document.createElement('script');
+        s.src = src; s.onload = res;
+        s.onerror = function () { delete window.__smLoading[src]; rej(new Error('Failed: ' + src)); };
+        document.head.appendChild(s);
+      });
+    }
+    return window.__smLoading[src];
+  }
+
+  function message(text) {
+    mapEl.innerHTML = '';
+    var d = document.createElement('div');
+    d.className = 'sm-msg';
+    d.textContent = text;
+    mapEl.appendChild(d);
+  }
+
+  /* ── Projection scale: how many px the canvas width spans on the ground ─────── */
+  function mercatorScale(spanMetres, widthPx, latDeg) {
+    var EQUATOR_M = 40075016.686;
+    var metresPerPx = spanMetres / widthPx;
+    return (EQUATOR_M * Math.cos(latDeg * Math.PI / 180)) / (2 * Math.PI * metresPerPx);
+  }
+
+  var BASE_SPAN_M = 700; /* ~5 city blocks across the canvas at the default view */
+
+  /* ── Draw ──────────────────────────────────────────────────────────────────── */
+  function draw(fc) {
+    if (!alive()) return;
+    mapEl.innerHTML = '';
+
+    var W = mapEl.clientWidth  || 900;
+    var H = mapEl.clientHeight || 900;
+    var center = fc.center || [11.0767, 49.4521];
+
+    var svg = window.d3.select(mapEl).append('svg')
+      .attr('viewBox', '0 0 ' + W + ' ' + H)
+      .attr('preserveAspectRatio', 'xMidYMid meet')
+      .style('width', '100%').style('height', '100%');
+
+    /* Background rect - first child, outside the panned group, so every export
+       format carries the theme background. */
+    svg.append('rect').attr('x', 0).attr('y', 0).attr('width', W).attr('height', H)
+      .attr('fill', pal.bg);
+
+    /* All geometry lives in gMap so d3.zoom transforms it as a unit. */
+    var gMap = svg.append('g').attr('class', 'sm-map-g');
+
+    var proj = window.d3.geoMercator()
+      .center(center)
+      .scale(mercatorScale(BASE_SPAN_M, W, center[1]))
+      .translate([W / 2, H / 2]);
+    var path = window.d3.geoPath(proj);
+
+    function collection(features) { return { type: 'FeatureCollection', features: features }; }
+
+    var feats  = fc.features || [];
+    var waters = feats.filter(function (f) { return f.properties.k === 'water'; });
+    var rivers = feats.filter(function (f) { return f.properties.k === 'waterway'; });
+    var roads  = feats.filter(function (f) { return f.properties.k === 'road'; });
+
+    /* Water bodies (fill). Build a planar projected path rather than using
+       geoPath's spherical fill: OSM polygon rings have inconsistent winding, and
+       a reversed ring makes geoPath fill the whole-globe complement (flooding the
+       canvas). At city scale a planar fill is indistinguishable and winding-safe. */
+    if (showWater && waters.length) {
+      var wd = '';
+      waters.forEach(function (f) {
+        if (f.geometry.type !== 'Polygon') return;
+        f.geometry.coordinates.forEach(function (ring) {
+          if (ring.length < 3) return;
+          for (var i = 0; i < ring.length; i++) {
+            var p = proj(ring[i]);
+            if (!p) continue;
+            wd += (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1);
+          }
+          wd += 'Z';
+        });
+      });
+      if (wd) {
+        gMap.append('path').attr('d', wd)
+          .attr('fill', pal.water).attr('stroke', 'none').attr('fill-rule', 'nonzero');
+      }
+    }
+    /* Rivers / streams (center-lines) */
+    if (showWater && rivers.length) {
+      gMap.append('path').datum(collection(rivers))
+        .attr('fill', 'none').attr('stroke', pal.waterLine)
+        .attr('stroke-width', 1.2 * waterWeight)
+        .attr('vector-effect', 'non-scaling-stroke')
+        .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round')
+        .attr('d', path);
+    }
+
+    /* Roads - one path per weight tier, thinnest first so majors sit on top. */
+    var byTier = {};
+    roads.forEach(function (f) {
+      var t = f.properties.w == null ? 2 : f.properties.w;
+      (byTier[t] = byTier[t] || []).push(f);
+    });
+    Object.keys(byTier).map(Number).sort(function (a, b) { return a - b; }).forEach(function (t) {
+      /* Tiers 0–2 are minor streets, 3+ are major roads - each scaled by its own slider. */
+      var weight = t <= 2 ? minorWeight : majorWeight;
+      gMap.append('path').datum(collection(byTier[t]))
+        .attr('fill', 'none').attr('stroke', pal.road)
+        .attr('stroke-width', (TIER_W[t] || 1) * weight)
+        .attr('vector-effect', 'non-scaling-stroke')
+        .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round')
+        .attr('d', path);
+    });
+
+    /* ── Route overlay - above the roads, drawn with the SAME `path` (and its
+       `proj`) as every road and river, so the two can never disagree about
+       where a coordinate sits. There is no second projection in this file. ──── */
+    if (routeLines.length) {
+      gMap.append('path').datum(collection(routeLines.map(function (pts) {
+        return { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: pts } };
+      })))
+        .attr('class', 'sm-route')
+        .attr('fill', 'none').attr('stroke', pal.route)
+        .attr('stroke-width', routeWidth)
+        .attr('vector-effect', 'non-scaling-stroke')
+        .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round')
+        .attr('d', path);
+    }
+
+    /* Marker radii are screen sizes, like every stroke on this map
+       (non-scaling-stroke). A circle's `r` does ride the zoom transform though,
+       so each dot remembers its base radius and sizeDots divides by the live
+       scale. Without that, auto-fitting a small loop (up to 8x) swells the start
+       dot until it covers the route it is marking. */
+    var dots = [];
+    function dot(lonlat, r, fill, stroke) {
+      var p = proj(lonlat);
+      if (!p || !isFinite(p[0]) || !isFinite(p[1])) return;
+      var c = gMap.append('circle').attr('class', 'sm-route-dot')
+        .attr('cx', p[0].toFixed(1)).attr('cy', p[1].toFixed(1)).attr('r', r).attr('fill', fill);
+      if (stroke) {
+        c.attr('stroke', stroke).attr('stroke-width', routeWidth)
+          .attr('vector-effect', 'non-scaling-stroke');
+      }
+      dots.push({ el: c, r: r });
+    }
+    function sizeDots(k) {
+      dots.forEach(function (d) { d.el.attr('r', d.r / k); });
+    }
+    routeDots.forEach(function (p) { dot(p, routeWidth * 1.1, pal.route); });
+    if (routeLines.length) {
+      var lastLine = routeLines[routeLines.length - 1];
+      dot(routeLines[0][0], routeWidth * 1.7, pal.route);                 /* start: solid */
+      dot(lastLine[lastLine.length - 1], routeWidth * 1.7, pal.bg, pal.route); /* end: ring */
+    }
+
+    /* Frame the route's bounding box. Same `proj`, so the box is measured in the
+       canvas coordinates the zoom transform works in. */
+    function fitToRoute() {
+      var pts = routeDots.slice();
+      routeLines.forEach(function (line) { pts = pts.concat(line); });
+      var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      pts.forEach(function (ll) {
+        var p = proj(ll);
+        if (!p || !isFinite(p[0]) || !isFinite(p[1])) return;
+        if (p[0] < x0) x0 = p[0];
+        if (p[0] > x1) x1 = p[0];
+        if (p[1] < y0) y0 = p[1];
+        if (p[1] > y1) y1 = p[1];
+      });
+      if (!isFinite(x0) || !isFinite(y0)) return null;
+      /* A single-point route has no extent - 1px keeps the scale finite and the
+         clamp below (d3.zoom's own scaleExtent) does the rest. */
+      var k = 0.85 * Math.min(W / Math.max(x1 - x0, 1), H / Math.max(y1 - y0, 1));
+      k = Math.max(0.3, Math.min(8, k));
+      return window.d3.zoomIdentity
+        .translate(W / 2 - k * (x0 + x1) / 2, H / 2 - k * (y0 + y1) / 2)
+        .scale(k);
+    }
+
+    /* ── Pan + zoom ───────────────────────────────────────────────────────────── */
+    var _applying = false;
+    var zoomFn = window.d3.zoom().scaleExtent([0.3, 8]).on('zoom', function (event) {
+      gMap.attr('transform', event.transform);
+      sizeDots(event.transform.k);
+      stateStore.__smView = event.transform;
+      if (_applying) return;
+      /* Debounce-save the viewport to the `view` input so it survives reload and
+         is URL-shareable / part of saved state. */
+      clearTimeout(stateStore.__smViewTimer);
+      stateStore.__smViewTimer = setTimeout(function () {
+        if (!alive()) return;
+        var t = stateStore.__smView; if (!t) return;
+        var encoded = t.k.toFixed(4) + ',' + t.x.toFixed(2) + ',' + t.y.toFixed(2);
+        if (encoded === stateStore.__smViewSaved) return; /* unchanged → no needless re-render */
+        stateStore.__smViewSaved = encoded;
+        /* Preferred: 1:1 to this canvas's own runtime. */
+        if (commitFn) { commitFn('view', encoded); return; }
+        /* Fallback (offscreen / legacy shell): poke the one sidebar control. */
+        var inp = document.querySelector('[data-input-id="view"]');
+        if (inp && inp.value !== encoded) {
+          inp.value = encoded;
+          inp.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }, 600);
+    });
+    svg.call(zoomFn);
+
+    /* Restore: prefer live in-session transform (so theme/weight tweaks don't
+       reset the pan), else the saved `view` param from URL / saved slot. */
+    if (!viewIn) stateStore.__smView = null;
+    /* Seed the "last saved" guard from the persisted value so a restore doesn't
+       immediately re-commit the same viewport. */
+    if (viewIn) stateStore.__smViewSaved = viewIn;
+    var restore = stateStore.__smView || (function () {
+      if (!viewIn) return null;
+      var p = viewIn.split(',').map(Number);
+      return (p.length === 3 && p[0] > 0 && p.every(isFinite))
+        ? window.d3.zoomIdentity.translate(p[1], p[2]).scale(p[0]) : null;
+    })();
+    /* Auto-fit a dropped route, but only while the viewport is an untouched
+       default (the hook decides that, via _routeFit). It is applied under the
+       _applying guard, so it never writes `view` - the moment the user pans or
+       zoom does, their framing is saved and wins from then on. */
+    if (!restore && routeFit) restore = fitToRoute();
+    if (restore) {
+      _applying = true;
+      svg.call(zoomFn.transform, restore);
+      _applying = false;
+    }
+
+    /* Zoom buttons (scoped to this instance's own root - ids repeat across maps) */
+    var zi = smRoot.querySelector('#sm-zi');
+    var zo = smRoot.querySelector('#sm-zo');
+    var zr = smRoot.querySelector('#sm-zr');
+    if (zi) zi.onclick = function () { svg.transition().duration(220).call(zoomFn.scaleBy, 1.5); };
+    if (zo) zo.onclick = function () { svg.transition().duration(220).call(zoomFn.scaleBy, 0.667); };
+    if (zr) zr.onclick = function () {
+      stateStore.__smView = null;
+      svg.transition().duration(280).call(zoomFn.transform, window.d3.zoomIdentity);
+    };
+  }
+
+  /* ── Load d3 → city registry → road clip → draw ───────────────────────────── */
+  var LIB = '/tools/street-map/lib/';
+  loadScript(LIB + 'd3.min.js', function () { return !!window.d3; })
+    .then(function () {
+      window.__smCities = window.__smCities ||
+        fetch(LIB + 'cities.json').then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status); return r.json();
+        })
+        /* Evict on failure so a transient blip doesn't poison every instance
+           until reload (matches the __smLoading loader cache above). */
+        .catch(function (e) { window.__smCities = null; throw e; });
+      return window.__smCities;
+    })
+    .then(function (cities) {
+      window.__smCities = Promise.resolve(cities);
+      var entry = cities[city];
+      if (!entry) { message('“' + city + '” isn’t bundled yet. Add it with scripts/build-street-clips.ts.'); return; }
+      window.__smClip = window.__smClip || {};
+      if (!window.__smClip[city]) {
+        window.__smClip[city] = fetch(LIB + entry.data).then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status); return r.json();
+        })
+        /* Evict on failure so a blip loading one city doesn't blank every
+           sibling cell of that city until reload (see __smLoading above). */
+        .catch(function (e) { delete window.__smClip[city]; throw e; });
+      }
+      return window.__smClip[city].then(function (fc) { draw(fc); });
+    })
+    .catch(function (e) {
+      if (!alive()) return;
+      console.error('[street-map] load error:', e);
+      message('Map failed to load.');
+    });
+})();
+</script>

@@ -1,0 +1,28 @@
+{
+  "id": "guided-chart",
+  "name": "Let Chart recommend",
+  "category": "Start here",
+  "description": "Paste or replace a table and get an explained, on-brand starting form with editable field mappings.",
+  "values": {
+    "chartIntent": "auto",
+    "data": "Month,Revenue,Cost\n2026-01,£128000,£84000\n2026-02,£139000,£88000\n2026-03,£151000,£91000\n2026-04,£168000,£97000\n2026-05,£184000,£101000\n2026-06,£207000,£109000",
+    "heading": "Revenue is pulling away from cost",
+    "subheading": "Chart profiles the fields, chooses a starting form and explains why",
+    "numberFormat": "currency",
+    "showPoints": true
+  },
+  "presets": [
+    {
+      "id": "relationship",
+      "name": "Ask about relationship",
+      "description": "Reframe the same measures as an association and start with a statistical view.",
+      "values": { "chartIntent": "relationship" }
+    },
+    {
+      "id": "story",
+      "name": "Tell it cinematically",
+      "description": "Use row order as the route and the first measure as camera altitude.",
+      "values": { "chartIntent": "story" }
+    }
+  ]
+}

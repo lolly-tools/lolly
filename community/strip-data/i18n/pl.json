@@ -1,0 +1,7 @@
+{
+  "name": "Usuń ukryte dane",
+  "description": "Odkryj i usuń ukryte metadane z obrazów i plików PDF - na Twoim urządzeniu.",
+  "a11yLabel": "Raport ukrytych danych dla {{fileName}}",
+  "inputs.source.label": "Obraz lub PDF",
+  "inputs.source.help": "JPEG, PNG, SVG lub PDF. Odczytywany w przeglądarce i nigdy nie opuszcza Twojego urządzenia."
+}

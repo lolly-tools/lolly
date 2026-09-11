@@ -1,0 +1,7 @@
+{
+  "name": "Gizli Verileri Kaldır",
+  "description": "Görsellerdeki ve PDF'lerdeki gizli meta verileri ortaya çıkarın ve kaldırın - cihazınızda.",
+  "a11yLabel": "{{fileName}} için gizli veri raporu",
+  "inputs.source.label": "Görsel veya PDF",
+  "inputs.source.help": "Bir JPEG, PNG, SVG veya PDF. Tarayıcında okunur ve cihazından asla ayrılmaz."
+}

@@ -1,0 +1,172 @@
+{
+  "id": "3d",
+  "name": "3D",
+  "version": "1.3.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "singleInstance": true,
+  "category": "designer",
+  "description": "Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation.",
+  "a11yLabel": "3D render of {{default model \"a model\"}} in {{default scene \"studio\"}} lighting",
+  "tags": ["3d", "gltf", "glb", "render", "turntable", "product"],
+  "render": {
+    "width": 1280,
+    "height": 1280,
+    "formats": ["png", "jpg", "webp", "webm", "mp4", "gif", "avif", "tiff", "apng", "webp-anim"],
+    "actions": ["copy", "download", "save"],
+    "convertPaths": false,
+    "video": { "wait": 2, "duration": 5 }
+  },
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "model",
+      "label": "Model",
+      "section": "Model",
+      "type": "select",
+      "default": "duck",
+      "help": "A bundled sample model. Upload your own below to override.",
+      "options": [
+        { "value": "duck", "label": "Duck" },
+        { "value": "cat", "label": "Cat" }
+      ]
+    },
+    {
+      "id": "modelUpload",
+      "label": "Upload a model",
+      "section": "Model",
+      "type": "file",
+      "accept": [".glb", ".gltf", "model/gltf-binary", "model/gltf+json"],
+      "maxSize": 33554432,
+      "help": "Your own .glb (recommended) - replaces the sample. Never uploaded; read on-device."
+    },
+
+    {
+      "id": "scene",
+      "label": "Scene",
+      "section": "Scene",
+      "type": "select",
+      "default": "soft-glow",
+      "help": "A lighting + environment preset.",
+      "options": [
+        { "value": "soft-glow", "label": "Soft glow" },
+        { "value": "plain", "label": "Plain" },
+        { "value": "natural", "label": "Natural" },
+        { "value": "bright-studio", "label": "Bright studio" },
+        { "value": "serious-studio", "label": "Serious studio" },
+        { "value": "fun-gradient", "label": "Fun gradient" },
+        { "value": "suse-green", "label": "Green" }
+      ]
+    },
+    { "id": "envIntensity", "label": "Light intensity", "section": "Scene", "type": "number", "display": "slider", "default": 1, "min": 0, "max": 3, "step": 0.05 },
+    { "id": "envRotation", "label": "Environment rotation", "section": "Scene", "type": "number", "display": "slider", "default": 0, "min": 0, "max": 360, "step": 1 },
+
+    { "id": "background", "label": "Background", "section": "Rendering", "type": "color", "default": "#eef1f4" },
+    { "id": "bgColor2", "label": "Gradient end", "section": "Rendering", "type": "color", "default": "{color.semantic.secondary}", "showIf": { "scene": "fun-gradient" } },
+    { "id": "transparentBg", "label": "Transparent background", "section": "Rendering", "type": "boolean", "default": true, "help": "Render on transparency (PNG/WebP keep the alpha)." },
+    { "id": "exposure", "label": "Exposure", "section": "Rendering", "type": "number", "display": "slider", "default": 1, "min": 0.1, "max": 3, "step": 0.05 },
+    { "id": "shadows", "label": "Contact shadow", "section": "Rendering", "type": "boolean", "default": true },
+
+    {
+      "id": "camera",
+      "label": "Camera pose",
+      "section": "Camera",
+      "type": "vector",
+      "help": "The base shot. A camera move (below) animates from here.",
+      "fields": [
+        { "id": "fov", "label": "Field of view", "symbol": "°", "min": 20, "max": 90, "step": 1, "default": 45 },
+        { "id": "rotation", "label": "Rotation", "symbol": "°", "min": 0, "max": 360, "step": 1, "default": 215 },
+        { "id": "tilt", "label": "Tilt", "symbol": "°", "min": -10, "max": 80, "step": 1, "default": 12 },
+        { "id": "zoom", "label": "Zoom", "symbol": "×", "min": 0.4, "max": 2.5, "step": 0.05, "default": 1 },
+        { "id": "pan", "label": "Pan", "symbol": "", "min": -1, "max": 1, "step": 0.05, "default": 0 }
+      ]
+    },
+
+    {
+      "id": "modelRotate",
+      "label": "Rotate model",
+      "section": "Transform",
+      "type": "vector",
+      "help": "Drag the canvas to orbit the model (⌘/Ctrl-drag rolls). Or set the angle here - degrees, about the model's centre, independent of the camera.",
+      "fields": [
+        { "id": "pitch", "label": "Pitch", "symbol": "°", "min": -180, "max": 180, "step": 1, "default": 0 },
+        { "id": "yaw", "label": "Yaw", "symbol": "°", "min": -180, "max": 180, "step": 1, "default": 0 },
+        { "id": "tilt", "label": "Tilt", "symbol": "°", "min": -180, "max": 180, "step": 1, "default": 0 }
+      ]
+    },
+    {
+      "id": "modelTranslate",
+      "label": "Move model",
+      "section": "Transform",
+      "type": "vector",
+      "help": "Shift-drag the canvas to move the model. Offset from centre in model widths (positive Y lifts it off the ground).",
+      "fields": [
+        { "id": "x", "label": "X", "symbol": "", "min": -2, "max": 2, "step": 0.05, "default": 0 },
+        { "id": "y", "label": "Y", "symbol": "", "min": -2, "max": 2, "step": 0.05, "default": 0 },
+        { "id": "z", "label": "Z", "symbol": "", "min": -2, "max": 2, "step": 0.05, "default": 0 }
+      ]
+    },
+    {
+      "id": "modelScale",
+      "label": "Scale model",
+      "section": "Transform",
+      "type": "vector",
+      "help": "Alt-drag the canvas to scale. Uniform size multiplier about the model's centre.",
+      "fields": [
+        { "id": "scale", "label": "Scale", "symbol": "×", "min": 0.1, "max": 4, "step": 0.05, "default": 1 }
+      ]
+    },
+
+    {
+      "id": "cameraMove",
+      "label": "Camera move",
+      "section": "Animation",
+      "type": "select",
+      "default": "orbit",
+      "help": "Our own camera animation, independent of the model's own clips.",
+      "options": [
+        { "value": "static", "label": "Static (no move)" },
+        { "value": "orbit", "label": "Orbit 360°" },
+        { "value": "arc", "label": "Arc (sweep)" },
+        { "value": "dolly-in", "label": "Dolly in" },
+        { "value": "dolly-out", "label": "Dolly out" },
+        { "value": "push-in", "label": "Push in" },
+        { "value": "custom", "label": "Custom keyframes" }
+      ]
+    },
+    { "id": "duration", "label": "Loop seconds", "section": "Animation", "type": "number", "display": "slider", "default": 5, "min": 1, "max": 30, "step": 0.5, "help": "Seconds for one loop of the move. For a video, set the export Duration to match for a clean loop.", "showIf": { "cameraMove": ["orbit", "arc", "dolly-in", "dolly-out", "push-in", "custom"] } },
+    { "id": "loop", "label": "Loop", "section": "Animation", "type": "boolean", "default": true, "showIf": { "cameraMove": ["orbit", "arc", "dolly-in", "dolly-out", "push-in", "custom"] } },
+    { "id": "easing", "label": "Easing", "section": "Animation", "type": "select", "default": "ease-in-out", "showIf": { "cameraMove": ["arc", "dolly-in", "dolly-out", "push-in"] }, "options": [ { "value": "linear", "label": "Linear" }, { "value": "ease-in-out", "label": "Ease in-out" } ] },
+    {
+      "id": "cameraKeyframes",
+      "label": "Keyframes",
+      "section": "Animation",
+      "type": "blocks",
+      "showIf": { "cameraMove": "custom" },
+      "help": "Each row is a camera pose at a time (seconds). Interpolated in order.",
+      "fields": [
+        { "id": "time", "label": "Time (s)", "type": "number", "default": 0, "min": 0, "max": 60, "step": 0.1 },
+        { "id": "fov", "label": "FOV", "type": "number", "default": 45, "min": 20, "max": 90, "step": 1 },
+        { "id": "rotation", "label": "Rotation", "type": "number", "default": 0, "min": -720, "max": 720, "step": 1 },
+        { "id": "zoom", "label": "Zoom", "type": "number", "default": 1, "min": 0.4, "max": 2.5, "step": 0.05 },
+        { "id": "pan", "label": "Pan", "type": "number", "default": 0, "min": -1, "max": 1, "step": 0.05 },
+        { "id": "tilt", "label": "Tilt", "type": "number", "default": 12, "min": -10, "max": 80, "step": 1 },
+        { "id": "easing", "label": "Easing", "type": "select", "default": "ease-in-out", "options": [ { "value": "linear", "label": "Linear" }, { "value": "ease-in-out", "label": "Ease in-out" } ] }
+      ],
+      "default": [
+        { "time": 0, "fov": 55, "rotation": 0, "zoom": 1.4, "pan": 0, "tilt": 6, "easing": "ease-in-out" },
+        { "time": 5, "fov": 40, "rotation": 120, "zoom": 1, "pan": 0, "tilt": 20, "easing": "ease-in-out" }
+      ]
+    },
+
+    { "id": "playClip", "label": "Play model animation", "section": "Model motion", "type": "boolean", "default": true, "help": "Plays the model's own baked clip when it has one." },
+    { "id": "clipIndex", "label": "Clip", "section": "Model motion", "type": "number", "default": 0, "min": 0, "max": 12, "step": 1, "showIf": { "playClip": true } },
+
+    { "id": "applyTint", "label": "Recolor", "section": "Material", "type": "boolean", "default": false },
+    { "id": "tint", "label": "Tint", "section": "Material", "type": "color", "default": "{color.semantic.secondary}", "showIf": { "applyTint": true } }
+  ]
+}

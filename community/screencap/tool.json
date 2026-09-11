@@ -1,0 +1,120 @@
+{
+  "id": "screencap",
+  "name": "Screen Capture",
+  "description": "Screenshot or record your whole screen, a window, or a browser tab. Drag on the canvas to crop - the export stays the exact pixels you captured.",
+  "a11yLabel": "Screen capture, ready to crop and export",
+  "version": "1.1.1",
+  "engineVersion": ">=1.54.0 <2.0.0",
+  "status": "community",
+  "category": "utility",
+  "tags": [
+    "screenshot",
+    "screen",
+    "recording",
+    "capture",
+    "crop",
+    "developer",
+    "qa"
+  ],
+  "capabilities": [
+    "screen",
+    "microphone"
+  ],
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "render": {
+    "width": 7680,
+    "height": 4320,
+    "formats": ["png", "jpg", "webp", "avif", "tiff"],
+    "actions": [
+      "copy",
+      "download",
+      "save"
+    ],
+    "capture": "screen",
+    "dims": true,
+    "transparentBg": false
+  },
+  "inputs": [
+    {
+      "id": "shot",
+      "label": "Screenshot",
+      "section": "Capture",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "help": "Pick an image to crop, or use the Screenshot button above the canvas where your browser supports screen capture."
+    },
+    {
+      "id": "crop",
+      "label": "Crop",
+      "section": "Capture",
+      "type": "vector",
+      "help": "Region of the shot to export, as a percentage. Drag on the canvas to set it.",
+      "fields": [
+        {
+          "id": "x",
+          "label": "X",
+          "symbol": "X",
+          "min": 0,
+          "max": 100,
+          "step": 0.01,
+          "default": 0
+        },
+        {
+          "id": "y",
+          "label": "Y",
+          "symbol": "Y",
+          "min": 0,
+          "max": 100,
+          "step": 0.01,
+          "default": 0
+        },
+        {
+          "id": "w",
+          "label": "Width",
+          "symbol": "W",
+          "min": 0.01,
+          "max": 100,
+          "step": 0.01,
+          "default": 100
+        },
+        {
+          "id": "h",
+          "label": "Height",
+          "symbol": "H",
+          "min": 0.01,
+          "max": 100,
+          "step": 0.01,
+          "default": 100
+        }
+      ]
+    },
+    {
+      "id": "title",
+      "label": "Recording name",
+      "section": "Recording",
+      "type": "text",
+      "default": "screen-recording",
+      "help": "Filename for a saved screen recording."
+    },
+    {
+      "id": "systemAudio",
+      "label": "System audio",
+      "section": "Recording",
+      "type": "boolean",
+      "default": true,
+      "help": "Record the sound from the shared screen or tab. Full system-wide audio is Chrome on Windows/ChromeOS; on a tab it's the tab's audio; on macOS and Firefox there may be no system sound at all."
+    },
+    {
+      "id": "micNarration",
+      "label": "Narrate",
+      "section": "Recording",
+      "type": "boolean",
+      "default": false,
+      "help": "Also record your microphone so you can talk over the take."
+    }
+  ]
+}

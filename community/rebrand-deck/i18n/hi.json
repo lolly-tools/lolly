@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "PowerPoint डेक अपलोड करें और उसके रंग व फ़ॉन्ट अपने ब्रांड के अनुरूप कर लें - आपकी डिवाइस पर फिर से बनाया गया, कुछ भी अपलोड नहीं होता।",
+  "a11yLabel": "{{fileName}} के लिए डेक रीब्रांडर",
+  "inputs.source.label": "PowerPoint फ़ाइल",
+  "inputs.source.help": "एक .pptx फ़ाइल। यह आपकी डिवाइस पर पढ़ी जाती है और कभी अपलोड नहीं होती।",
+  "inputs.useTheme.label": "ब्रांड थीम लागू करें",
+  "inputs.useTheme.help": "डेक की थीम पैलेट और फ़ॉन्ट को अपने ब्रांड में बदलें - हर थीम-लिंक्ड रंग अपने आप अनुसरण करता है।",
+  "inputs.colorMap.label": "रंग मैपिंग",
+  "inputs.colorMap.help": "स्लाइडों में मिले हार्डकोडेड रंग, प्रत्येक के साथ उसका सुझाया गया ब्रांड रंग। उस रंग को अपरिवर्तित छोड़ने के लिए पंक्ति हटाएँ।",
+  "inputs.colorMap.fields.from.label": "मूल",
+  "inputs.colorMap.fields.to.label": "ब्रांड",
+  "inputs.fontMap.label": "फ़ॉन्ट मैपिंग",
+  "inputs.fontMap.help": "डेक में नामित टाइपफ़ेस, हर एक के साथ उसका ब्रांड रिप्लेसमेंट। उस फ़ॉन्ट को बनाए रखने के लिए एक पंक्ति हटाएं।",
+  "inputs.fontMap.fields.from.label": "मूल",
+  "inputs.fontMap.fields.to.label": "ब्रांड",
+  "inputs.dropFonts.label": "एम्बेडेड फ़ॉन्ट हटाएं",
+  "inputs.dropFonts.help": "फ़ाइल में एम्बेडेड पुराने-ब्रांड फ़ॉन्ट स्वैप के बाद पुराने हो जाते हैं और लाइसेंस-बाधित हो सकते हैं।"
+}

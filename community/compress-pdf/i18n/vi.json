@@ -1,0 +1,14 @@
+{
+  "name": "Compress",
+  "description": "Thu nhỏ PDF bằng cách nén lại hình ảnh trong đó - ngay trên thiết bị của bạn.",
+  "a11yLabel": "Công cụ nén PDF cho {{fileName}}",
+  "inputs.source.label": "PDF",
+  "inputs.source.help": "Một tệp PDF. Tệp được đọc ngay trong trình duyệt của bạn và không bao giờ rời khỏi thiết bị.",
+  "inputs.level.label": "Mức nén",
+  "inputs.level.help": "Mức độ nén hình ảnh nhúng trong tệp. Nén càng mạnh thì tệp càng nhỏ nhưng hình ảnh càng mờ.",
+  "inputs.level.options.light": "Nhẹ - giữ chất lượng cao",
+  "inputs.level.options.balanced": "Cân bằng",
+  "inputs.level.options.strong": "Mạnh - tệp nhỏ nhất",
+  "inputs.grayscale.label": "Chuyển hình ảnh sang thang xám",
+  "inputs.grayscale.help": "Loại bỏ màu khỏi hình ảnh để tiết kiệm thêm dung lượng - hữu ích cho tài liệu văn bản được quét."
+}

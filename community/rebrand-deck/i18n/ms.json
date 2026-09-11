@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "Muat naik koleksi PowerPoint dan padankan warna serta fonnya dengan jenama anda - dibina semula pada peranti anda, tiada apa dimuat naik.",
+  "a11yLabel": "Penjenamaan semula dek untuk {{fileName}}",
+  "inputs.source.label": "Fail PowerPoint",
+  "inputs.source.help": "Fail .pptx. Ia dibaca pada peranti anda dan tidak sekali-kali dimuat naik.",
+  "inputs.useTheme.label": "Guna tema jenama",
+  "inputs.useTheme.help": "Tukar palet tema dan fon dek kepada jenama anda - setiap warna yang terikat dengan tema mengikutinya secara automatik.",
+  "inputs.colorMap.label": "Pemetaan warna",
+  "inputs.colorMap.help": "Warna dikodkan keras yang ditemui pada slaid, setiap satu dengan warna jenama yang dicadangkan. Buang satu baris untuk membiarkan warna itu tidak diubah.",
+  "inputs.colorMap.fields.from.label": "Asal",
+  "inputs.colorMap.fields.to.label": "Jenama",
+  "inputs.fontMap.label": "Pemetaan fon",
+  "inputs.fontMap.help": "Fon yang dinamakan dalam dek, setiap satu dengan penggantian jenama. Buang baris untuk mengekalkan fon itu.",
+  "inputs.fontMap.fields.from.label": "Asal",
+  "inputs.fontMap.fields.to.label": "Jenama",
+  "inputs.dropFonts.label": "Buang fon terbenam",
+  "inputs.dropFonts.help": "Fon jenama lama yang terbenam dalam fail menjadi lapuk selepas pertukaran dan mungkin terikat lesen."
+}

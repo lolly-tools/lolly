@@ -1,0 +1,34 @@
+{
+  "id": "quarterly-bars",
+  "name": "Quarterly bars",
+  "category": "Bars",
+  "description": "Grouped bars comparing three product lines across four quarters.",
+  "values": {
+    "chartType": "bar",
+    "data": "Quarter,Product A,Product B,Product C\nQ1,42,31,18\nQ2,48,36,22\nQ3,55,40,27\nQ4,63,47,35",
+    "stackMode": "grouped",
+    "heading": "Units sold by quarter",
+    "showValues": true,
+    "cornerRadius": 4
+  },
+  "presets": [
+    {
+      "id": "stacked",
+      "name": "Stacked",
+      "description": "Stack the series to show the quarterly total.",
+      "values": { "stackMode": "stacked" }
+    },
+    {
+      "id": "share-of-total",
+      "name": "Share of total",
+      "description": "Normalise each quarter to 100 percent.",
+      "values": { "stackMode": "stacked100" }
+    },
+    {
+      "id": "horizontal",
+      "name": "Horizontal",
+      "description": "Turn the bars sideways for long category names.",
+      "values": { "chartType": "bar-horizontal" }
+    }
+  ]
+}

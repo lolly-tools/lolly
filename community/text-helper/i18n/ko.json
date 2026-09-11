@@ -1,0 +1,5 @@
+{
+  "name": "텍스트 도우미",
+  "description": "텍스트를 서식화, 디코딩, 해시, 비식별화하세요 - JSON, JWT 등.",
+  "a11yLabel": "텍스트 도우미 - 기기 내 JSON / YAML / Helm / JWT / Base64 / 해시 / 비식별화 작업 공간"
+}

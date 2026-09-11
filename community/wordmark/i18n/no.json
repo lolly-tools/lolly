@@ -1,0 +1,19 @@
+{
+  "name": "Wordmark",
+  "description": "Skriv et ord, få en ren stimerkevare i vektorbaner i merkevarens skrift - mottakere trenger aldri skriften installert.",
+  "a11yLabel": "Wordmark med teksten {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Tekst",
+  "inputs.font.label": "Skrift",
+  "inputs.font.options.brand": "Merkevareskrift",
+  "inputs.font.options.mono": "Mono-skrift",
+  "inputs.weight.label": "Vekt",
+  "inputs.tracking.label": "Sperring",
+  "inputs.tracking.help": "Bokstavavstand i px ved angitt størrelse.",
+  "inputs.size.label": "Størrelse",
+  "inputs.size.help": "Skriftstørrelsen konturene formes ved - sporing er relativt til denne.",
+  "inputs.color.label": "Farge",
+  "inputs.features.label": "OpenType-funksjoner",
+  "inputs.features.options.none": "Standard",
+  "inputs.features.options.liga-off": "Ingen ligaturer",
+  "inputs.features.options.salt": "Stilistiske alternativer"
+}

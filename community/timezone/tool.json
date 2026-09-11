@@ -1,0 +1,862 @@
+{
+  "id": "timezone",
+  "name": "Timezone",
+  "version": "1.1.0",
+  "engineVersion": "^1.186.0",
+  "status": "official",
+  "category": "event",
+  "singleInstance": true,
+  "description": "Turn places and timezones into brand-led artwork. Rotate a vector atlas or a detailed WebGL globe, unfold projections, label your people and places, then export artwork, a camera tour or structured schedules.",
+  "a11yLabel": "World timezone artwork with labelled places and local times",
+  "tags": [
+    "timezone",
+    "globe",
+    "world",
+    "map",
+    "webinar",
+    "event",
+    "datacentre",
+    "clock",
+    "tour",
+    "video",
+    "brand"
+  ],
+  "render": {
+    "width": 1440,
+    "height": 1080,
+    "formats": [
+      "svg",
+      "png",
+      "pdf",
+      "webp",
+      "jpeg",
+      "webm",
+      "mp4",
+      "gif",
+      "json",
+      "csv",
+      "md",
+      "ics"
+    ],
+    "actions": [
+      "copy",
+      "download",
+      "save"
+    ],
+    "video": {
+      "wait": 1,
+      "duration": 12
+    }
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true
+  },
+  "inputs": [
+    {
+      "id": "heading",
+      "label": "Headline",
+      "type": "text",
+      "default": "",
+      "section": "Story"
+    },
+    {
+      "id": "eyebrow",
+      "label": "Series / overline",
+      "type": "text",
+      "default": "",
+      "section": "Story"
+    },
+    {
+      "id": "annotation",
+      "label": "Description",
+      "type": "longtext",
+      "default": "",
+      "section": "Story"
+    },
+    {
+      "id": "footer",
+      "label": "Call to action / footer",
+      "type": "text",
+      "default": "",
+      "section": "Story"
+    },
+    {
+      "id": "timeMode",
+      "label": "Time",
+      "type": "select",
+      "default": "now",
+      "section": "Time",
+      "options": [
+        {
+          "value": "now",
+          "label": "Live \u00b7 now"
+        },
+        {
+          "value": "fixed",
+          "label": "Scheduled moment"
+        }
+      ]
+    },
+    {
+      "id": "eventTime",
+      "label": "Scheduled date & time",
+      "type": "datetime-local",
+      "default": "",
+      "section": "Time",
+      "help": "Interpreted in the reference timezone, never the browser timezone."
+    },
+    {
+      "id": "referenceZone",
+      "label": "Reference timezone",
+      "type": "text",
+      "default": "",
+      "section": "Time",
+      "help": "Optional reference clock. IANA identifier, e.g. Europe/London. Scheduled times use UTC when blank."
+    },
+    {
+      "id": "ambiguity",
+      "label": "Repeated autumn hour",
+      "type": "select",
+      "default": "earlier",
+      "section": "Time",
+      "options": [
+        {
+          "value": "earlier",
+          "label": "First occurrence"
+        },
+        {
+          "value": "later",
+          "label": "Second occurrence"
+        }
+      ]
+    },
+    {
+      "id": "eventMinutes",
+      "label": "Event duration (minutes)",
+      "type": "number",
+      "default": 60,
+      "section": "Time",
+      "min": 1,
+      "max": 1440,
+      "step": 1,
+      "display": "slider"
+    },
+    {
+      "id": "clockStyle",
+      "label": "Clock display",
+      "type": "select",
+      "default": "24",
+      "section": "Time",
+      "options": [
+        {
+          "value": "24",
+          "label": "24 hour"
+        },
+        {
+          "value": "12",
+          "label": "12 hour"
+        }
+      ]
+    },
+    {
+      "id": "locations",
+      "label": "Places",
+      "type": "blocks",
+      "default": [
+        {
+          "place": "London, GB"
+        },
+        {
+          "place": "Nuremberg, DE"
+        },
+        {
+          "place": "Prague, CZ"
+        },
+        {
+          "place": "Sofia, BG"
+        },
+        {
+          "place": "San Francisco, US"
+        },
+        {
+          "place": "Noosa, AU"
+        }
+      ],
+      "section": "Places",
+      "help": "Type a city or IANA timezone in the first column; press Enter for the next row. The remaining columns are optional. Paste a list of cities or a spreadsheet with these column headings. Add a country code for ambiguous cities (London, GB). Pop out for more space. Move rows up to set the tour route. Fill region accepts yes or no; coordinates and timezone override the lookup.",
+      "fields": [
+        {
+          "id": "label",
+          "label": "Label",
+          "type": "text",
+          "default": ""
+        },
+        {
+          "id": "place",
+          "label": "City",
+          "type": "text",
+          "default": "",
+          "placeholder": "London, GB / Europe/London"
+        },
+        {
+          "id": "timezone",
+          "label": "Timezone",
+          "type": "text",
+          "default": "",
+          "placeholder": "Europe/London"
+        },
+        {
+          "id": "annotation",
+          "label": "Note",
+          "type": "text",
+          "default": ""
+        },
+        {
+          "id": "color",
+          "label": "Colour",
+          "type": "color",
+          "default": ""
+        },
+        {
+          "id": "spread",
+          "label": "Fill region",
+          "type": "boolean",
+          "default": false
+        },
+        {
+          "id": "longitude",
+          "label": "Longitude",
+          "type": "text",
+          "default": "",
+          "placeholder": "-0.12"
+        },
+        {
+          "id": "latitude",
+          "label": "Latitude",
+          "type": "text",
+          "default": "",
+          "placeholder": "51.51"
+        }
+      ],
+      "tableColumns": [
+        "place",
+        "label",
+        "annotation",
+        "timezone",
+        "color",
+        "spread",
+        "longitude",
+        "latitude"
+      ]
+    },
+    {
+      "id": "composition",
+      "label": "Composition",
+      "type": "select",
+      "default": "artwork",
+      "section": "Map",
+      "options": [
+        {
+          "value": "artwork",
+          "label": "Map and details"
+        },
+        {
+          "value": "map",
+          "label": "Map only"
+        }
+      ],
+      "help": "Map only keeps locations for pins, regions and camera tours, while hiding the headline, reference clock, location cards and footer."
+    },
+    {
+      "id": "mapFit",
+      "label": "Map framing",
+      "type": "select",
+      "default": "width",
+      "section": "Map",
+      "options": [
+        {
+          "value": "width",
+          "label": "Fill width"
+        },
+        {
+          "value": "fit",
+          "label": "Fit whole map"
+        }
+      ],
+      "help": "Fill width uses the available canvas width and crops vertically when needed. Fit whole map keeps the full globe or projection in view. Zoom remains adjustable."
+    },
+    {
+      "id": "renderer",
+      "label": "Map renderer",
+      "type": "select",
+      "default": "vector",
+      "section": "Map",
+      "options": [
+        {
+          "value": "vector",
+          "label": "Vector atlas"
+        },
+        {
+          "value": "webgl",
+          "label": "WebGL globe"
+        }
+      ]
+    },
+    {
+      "id": "projection",
+      "label": "Projection",
+      "type": "select",
+      "default": "globe",
+      "section": "Map",
+      "options": [
+        {
+          "value": "globe",
+          "label": "Globe"
+        },
+        {
+          "value": "equalEarth",
+          "label": "Equal Earth"
+        },
+        {
+          "value": "naturalEarth",
+          "label": "Natural Earth"
+        },
+        {
+          "value": "equirectangular",
+          "label": "Equirectangular"
+        },
+        {
+          "value": "mercator",
+          "label": "Mercator"
+        }
+      ]
+    },
+    {
+      "id": "unfold",
+      "label": "Unfold globe \u2192 projection",
+      "type": "number",
+      "default": 1,
+      "section": "Map",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "display": "slider",
+      "help": "WebGL: blend the globe into the chosen flat projection. Globe ignores this control."
+    },
+    {
+      "id": "view",
+      "label": "View \u00b7 longitude, latitude, roll, zoom",
+      "type": "text",
+      "default": "15,22,0,1",
+      "section": "Map",
+      "help": "Drag the map to rotate. Shift-drag to roll. Scroll to zoom. This shared camera is saved in URLs and slots."
+    },
+    {
+      "id": "fov",
+      "label": "Camera field of view",
+      "type": "number",
+      "default": 40,
+      "section": "Map",
+      "min": 20,
+      "max": 80,
+      "step": 1,
+      "display": "slider"
+    },
+    {
+      "id": "tilt",
+      "label": "Map tilt",
+      "type": "number",
+      "default": 0,
+      "section": "Map",
+      "min": -65,
+      "max": 65,
+      "step": 1,
+      "display": "slider",
+      "help": "WebGL camera tilt, also available when the map is unfolded."
+    },
+    {
+      "id": "showGrid",
+      "label": "Graticule",
+      "type": "boolean",
+      "default": true,
+      "section": "Map"
+    },
+    {
+      "id": "showBorders",
+      "label": "Country borders",
+      "type": "boolean",
+      "default": true,
+      "section": "Map"
+    },
+    {
+      "id": "showNight",
+      "label": "Day / night shading",
+      "type": "boolean",
+      "default": true,
+      "section": "Map"
+    },
+    {
+      "id": "showLabels",
+      "label": "Labels on map",
+      "type": "boolean",
+      "default": true,
+      "section": "Map"
+    },
+    {
+      "id": "showConnections",
+      "label": "Connections between places",
+      "type": "boolean",
+      "default": true,
+      "section": "Map"
+    },
+    {
+      "id": "regionOpacity",
+      "label": "Region colour strength",
+      "type": "number",
+      "default": 0.45,
+      "section": "Map",
+      "min": 0,
+      "max": 1,
+      "step": 0.05,
+      "display": "slider"
+    },
+    {
+      "id": "theme",
+      "label": "Brand treatment",
+      "type": "select",
+      "default": "midnight",
+      "section": "Design",
+      "options": [
+        {
+          "value": "midnight",
+          "label": "Midnight"
+        },
+        {
+          "value": "paper",
+          "label": "Paper"
+        },
+        {
+          "value": "brand",
+          "label": "Brand colour"
+        },
+        {
+          "value": "minimal",
+          "label": "Quiet atlas"
+        }
+      ]
+    },
+    {
+      "id": "accent",
+      "label": "Accent",
+      "type": "color",
+      "default": "{color.semantic.primary}",
+      "section": "Design"
+    },
+    {
+      "id": "background",
+      "label": "Background override",
+      "type": "color",
+      "default": "",
+      "section": "Design"
+    },
+    {
+      "id": "ink",
+      "label": "Text override",
+      "type": "color",
+      "default": "",
+      "section": "Design"
+    },
+    {
+      "id": "titleSize",
+      "label": "Headline size",
+      "type": "number",
+      "default": 68,
+      "section": "Design",
+      "min": 24,
+      "max": 120,
+      "step": 1,
+      "display": "slider"
+    },
+    {
+      "id": "titleWeight",
+      "label": "Headline weight",
+      "type": "number",
+      "default": 500,
+      "section": "Design",
+      "min": 100,
+      "max": 900,
+      "step": 100,
+      "display": "slider"
+    },
+    {
+      "id": "labelSize",
+      "label": "Map label size",
+      "type": "number",
+      "default": 15,
+      "section": "Design",
+      "min": 10,
+      "max": 30,
+      "step": 1,
+      "display": "slider"
+    },
+    {
+      "id": "mapScale",
+      "label": "Map size",
+      "type": "number",
+      "default": 1,
+      "section": "Design",
+      "min": 0.5,
+      "max": 1.5,
+      "step": 0.05,
+      "display": "slider"
+    },
+    {
+      "id": "motion",
+      "label": "Animation",
+      "type": "select",
+      "default": "still",
+      "section": "Motion",
+      "options": [
+        {
+          "value": "still",
+          "label": "Still"
+        },
+        {
+          "value": "tour",
+          "label": "Tour places"
+        },
+        {
+          "value": "orbit",
+          "label": "World orbit"
+        },
+        {
+          "value": "unfold",
+          "label": "Unfold & return"
+        }
+      ]
+    },
+    {
+      "id": "duration",
+      "label": "Loop duration (seconds)",
+      "type": "number",
+      "default": 12,
+      "section": "Motion",
+      "min": 2,
+      "max": 120,
+      "step": 1,
+      "display": "slider",
+      "help": "Set the export duration to the same length so the loop repeats without a visible jump."
+    },
+    {
+      "id": "tourHold",
+      "label": "Hold at each place",
+      "type": "number",
+      "default": 0.35,
+      "section": "Motion",
+      "min": 0,
+      "max": 0.8,
+      "step": 0.05,
+      "display": "slider"
+    }
+  ],
+  "guide": {
+    "title": "Make your world",
+    "tracks": [
+      {
+        "id": "create",
+        "label": "Create",
+        "steps": [
+          "Edit the Places table. Replace the example cities, press Enter to move down, or paste a city list or spreadsheet. Add a country code to disambiguate. Labels, notes, colours and timezone fills are optional; pop the table out for more room.",
+          "Compose the artwork. The map fills the available width; choose Fit whole map to keep the entire globe in frame. Drag to rotate, Shift-drag to roll, and scroll to zoom. Set artwork size in Export.",
+          "Share a moment. Leave time on Now for a live clock, or schedule a moment in a reference timezone. Export JSON, CSV, Markdown or a calendar event.",
+          "Make it move. Choose Map only for a clean animation, retaining locations for tours and regions. Choose Tour, Orbit or Unfold, then export MP4, WebM or GIF. Match export duration to the animation duration for a complete loop."
+        ]
+      }
+    ]
+  },
+  "examples": [
+    {
+      "label": "Global webinar",
+      "values": {
+        "heading": "Ideas without borders.",
+        "eyebrow": "THE GLOBAL WEBINAR",
+        "annotation": "A conversation that travels with you.",
+        "footer": "Save your place \u2192",
+        "timeMode": "now",
+        "eventTime": "",
+        "referenceZone": "Europe/London",
+        "ambiguity": "earlier",
+        "eventMinutes": 60,
+        "clockStyle": "24",
+        "locations": [
+          {
+            "label": "London",
+            "place": "Europe/London",
+            "annotation": "EMEA \u00b7 Studio",
+            "color": "",
+            "spread": true
+          },
+          {
+            "label": "New York",
+            "place": "America/New_York",
+            "annotation": "Americas \u00b7 Live",
+            "color": "",
+            "spread": true
+          },
+          {
+            "label": "Singapore",
+            "place": "Asia/Singapore",
+            "annotation": "APAC \u00b7 Connect",
+            "color": "",
+            "spread": true
+          }
+        ],
+        "renderer": "webgl",
+        "projection": "globe",
+        "unfold": 1,
+        "view": "15,22,0,1",
+        "fov": 40,
+        "tilt": 0,
+        "showGrid": true,
+        "showBorders": true,
+        "showNight": true,
+        "showLabels": true,
+        "showConnections": true,
+        "regionOpacity": 0.45,
+        "theme": "midnight",
+        "accent": "{color.semantic.primary}",
+        "background": "",
+        "ink": "",
+        "titleSize": 68,
+        "titleWeight": 500,
+        "labelSize": 15,
+        "mapScale": 1,
+        "motion": "still",
+        "duration": 12,
+        "tourHold": 0.35,
+        "composition": "artwork",
+        "mapFit": "width"
+      }
+    },
+    {
+      "label": "Infrastructure atlas",
+      "values": {
+        "heading": "Always connected.",
+        "eyebrow": "GLOBAL INFRASTRUCTURE",
+        "annotation": "Follow the sun. Know every region.",
+        "footer": "",
+        "timeMode": "now",
+        "eventTime": "",
+        "referenceZone": "",
+        "ambiguity": "earlier",
+        "eventMinutes": 60,
+        "clockStyle": "24",
+        "locations": [
+          {
+            "label": "London \u00b7 Primary",
+            "place": "Europe/London",
+            "annotation": "EMEA infrastructure",
+            "spread": true
+          },
+          {
+            "label": "Virginia \u00b7 East",
+            "place": "America/New_York",
+            "annotation": "Americas infrastructure",
+            "spread": true
+          },
+          {
+            "label": "Singapore \u00b7 Edge",
+            "place": "Asia/Singapore",
+            "annotation": "APAC infrastructure",
+            "spread": true
+          }
+        ],
+        "renderer": "vector",
+        "projection": "equalEarth",
+        "unfold": 1,
+        "view": "15,22,0,1",
+        "fov": 40,
+        "tilt": 0,
+        "showGrid": true,
+        "showBorders": true,
+        "showNight": false,
+        "showLabels": true,
+        "showConnections": true,
+        "regionOpacity": 0.45,
+        "theme": "paper",
+        "accent": "{color.semantic.primary}",
+        "background": "",
+        "ink": "",
+        "titleSize": 68,
+        "titleWeight": 500,
+        "labelSize": 15,
+        "mapScale": 1,
+        "motion": "still",
+        "duration": 12,
+        "tourHold": 0.35,
+        "composition": "artwork",
+        "mapFit": "width"
+      }
+    },
+    {
+      "label": "Around the world",
+      "values": {
+        "heading": "See you around.",
+        "eyebrow": "",
+        "annotation": "",
+        "footer": "",
+        "timeMode": "now",
+        "eventTime": "",
+        "referenceZone": "",
+        "ambiguity": "earlier",
+        "eventMinutes": 60,
+        "clockStyle": "24",
+        "locations": [
+          {
+            "label": "London",
+            "place": "Europe/London",
+            "annotation": "EMEA \u00b7 Studio",
+            "color": "",
+            "spread": true
+          },
+          {
+            "label": "New York",
+            "place": "America/New_York",
+            "annotation": "Americas \u00b7 Live",
+            "color": "",
+            "spread": true
+          },
+          {
+            "label": "Singapore",
+            "place": "Asia/Singapore",
+            "annotation": "APAC \u00b7 Connect",
+            "color": "",
+            "spread": true
+          }
+        ],
+        "renderer": "webgl",
+        "projection": "globe",
+        "unfold": 1,
+        "view": "15,22,0,1",
+        "fov": 40,
+        "tilt": 0,
+        "showGrid": true,
+        "showBorders": true,
+        "showNight": true,
+        "showLabels": true,
+        "showConnections": true,
+        "regionOpacity": 0.45,
+        "theme": "midnight",
+        "accent": "{color.semantic.primary}",
+        "background": "",
+        "ink": "",
+        "titleSize": 68,
+        "titleWeight": 500,
+        "labelSize": 15,
+        "mapScale": 1,
+        "motion": "tour",
+        "duration": 12,
+        "tourHold": 0.35,
+        "composition": "artwork",
+        "mapFit": "width"
+      }
+    },
+    {
+      "label": "Unfold the world",
+      "values": {
+        "heading": "One world. Many perspectives.",
+        "eyebrow": "",
+        "annotation": "",
+        "footer": "",
+        "timeMode": "now",
+        "eventTime": "",
+        "referenceZone": "",
+        "ambiguity": "earlier",
+        "eventMinutes": 60,
+        "clockStyle": "24",
+        "locations": [
+          {
+            "label": "London",
+            "place": "Europe/London",
+            "annotation": "EMEA \u00b7 Studio",
+            "color": "",
+            "spread": true
+          },
+          {
+            "label": "New York",
+            "place": "America/New_York",
+            "annotation": "Americas \u00b7 Live",
+            "color": "",
+            "spread": true
+          },
+          {
+            "label": "Singapore",
+            "place": "Asia/Singapore",
+            "annotation": "APAC \u00b7 Connect",
+            "color": "",
+            "spread": true
+          }
+        ],
+        "renderer": "webgl",
+        "projection": "equalEarth",
+        "unfold": 1,
+        "view": "15,22,0,1",
+        "fov": 40,
+        "tilt": 0,
+        "showGrid": true,
+        "showBorders": true,
+        "showNight": true,
+        "showLabels": true,
+        "showConnections": true,
+        "regionOpacity": 0.45,
+        "theme": "brand",
+        "accent": "{color.semantic.primary}",
+        "background": "",
+        "ink": "",
+        "titleSize": 68,
+        "titleWeight": 500,
+        "labelSize": 15,
+        "mapScale": 1,
+        "motion": "unfold",
+        "duration": 12,
+        "tourHold": 0.35,
+        "composition": "artwork",
+        "mapFit": "width"
+      }
+    }
+  ],
+  "templates": [
+    {
+      "id": "around-the-world",
+      "name": "Around the world",
+      "category": "Timezone",
+      "description": "A camera tour between labelled locations."
+    },
+    {
+      "id": "global-webinar",
+      "name": "Global webinar",
+      "category": "Timezone",
+      "description": "An invitation with local times for a global audience."
+    },
+    {
+      "id": "infrastructure-atlas",
+      "name": "Infrastructure atlas",
+      "category": "Timezone",
+      "description": "A clean vector atlas of your infrastructure regions."
+    },
+    {
+      "id": "unfold-the-world",
+      "name": "Unfold the world",
+      "category": "Timezone",
+      "description": "Animate a globe into an Equal Earth map."
+    },
+    {
+      "id": "map-animation",
+      "name": "Map animation",
+      "category": "Timezone",
+      "description": "A full-width rotating globe, ready to export as a clean background animation."
+    }
+  ]
+}

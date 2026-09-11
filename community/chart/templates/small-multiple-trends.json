@@ -1,0 +1,35 @@
+{
+  "id": "small-multiple-trends",
+  "name": "Small multiple trends",
+  "category": "Statistical",
+  "description": "Give every series its own aligned panel so crossings and different baselines remain legible.",
+  "values": {
+    "renderMode": "statistical",
+    "chartType": "line",
+    "plotType": "small-multiples",
+    "chartStyle": "editorial",
+    "data": "Month,Direct,Partner,Self-service\nJan,42,31,18\nFeb,47,34,22\nMar,45,39,29\nApr,53,41,37\nMay,58,46,43\nJun,64,52,51\nJul,62,59,57\nAug,71,63,66",
+    "heading": "Every route to market is growing",
+    "subheading": "Monthly qualified opportunities by source",
+    "plotFacetDirection": "rows",
+    "showGrid": true
+  },
+  "presets": [
+    {
+      "id": "columns",
+      "name": "Side by side",
+      "description": "Arrange the series as compact columns.",
+      "values": {
+        "plotFacetDirection": "columns"
+      }
+    },
+    {
+      "id": "distributions",
+      "name": "Distributions",
+      "description": "Compare each series as a faceted histogram.",
+      "values": {
+        "plotType": "distribution-facets"
+      }
+    }
+  ]
+}

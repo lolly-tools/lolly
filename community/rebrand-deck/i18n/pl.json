@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "Prześlij prezentację PowerPoint i dopasuj jej kolory i czcionki do swojej marki - odbudowane na Twoim urządzeniu, nic nie jest przesyłane.",
+  "a11yLabel": "Rebranding prezentacji dla {{fileName}}",
+  "inputs.source.label": "Plik PowerPoint",
+  "inputs.source.help": "Plik .pptx. Jest odczytywany na twoim urządzeniu i nigdy nie jest przesyłany.",
+  "inputs.useTheme.label": "Zastosuj motyw marki",
+  "inputs.useTheme.help": "Zamień paletę motywu prezentacji i czcionki na swoją markę - każdy kolor powiązany z motywem podąża za nią automatycznie.",
+  "inputs.colorMap.label": "Mapowanie kolorów",
+  "inputs.colorMap.help": "Znalezione kolory zakodowane na sztywno na slajdach, każdy z proponowanym kolorem marki. Usuń wiersz, aby zostawić ten kolor bez zmian.",
+  "inputs.colorMap.fields.from.label": "Oryginał",
+  "inputs.colorMap.fields.to.label": "Marka",
+  "inputs.fontMap.label": "Mapowanie czcionek",
+  "inputs.fontMap.help": "Czcionki użyte w prezentacji, każda z zamiennikiem marki. Usuń wiersz, aby zachować tę czcionkę.",
+  "inputs.fontMap.fields.from.label": "Oryginał",
+  "inputs.fontMap.fields.to.label": "Marka",
+  "inputs.dropFonts.label": "Usuń osadzone czcionki",
+  "inputs.dropFonts.help": "Czcionki starej marki osadzone w pliku są nieaktualne po zmianie i mogą być obciążone ograniczeniami licencyjnymi."
+}

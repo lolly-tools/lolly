@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "Ladda upp en PowerPoint-presentation och matcha dess färger och typsnitt mot ditt varumärke - ombyggd på din enhet, inget laddas upp.",
+  "a11yLabel": "Bildspelsombrandare för {{fileName}}",
+  "inputs.source.label": "PowerPoint-fil",
+  "inputs.source.help": "En .pptx-fil. Den läses på din enhet och laddas aldrig upp.",
+  "inputs.useTheme.label": "Använd varumärkestema",
+  "inputs.useTheme.help": "Byt presentationens temapalett och typsnitt till ditt varumärke - varje temalänkad färg följer automatiskt.",
+  "inputs.colorMap.label": "Färgmappning",
+  "inputs.colorMap.help": "Hårdkodade färger som hittats i bilderna, var och en med sin föreslagna varumärkesfärg. Ta bort en rad för att lämna den färgen orörd.",
+  "inputs.colorMap.fields.from.label": "Original",
+  "inputs.colorMap.fields.to.label": "Varumärke",
+  "inputs.fontMap.label": "Typsnittsmappning",
+  "inputs.fontMap.help": "Typsnitt som namnges i presentationen, vart och ett med sin varumärkesersättning. Ta bort en rad för att behålla det typsnittet.",
+  "inputs.fontMap.fields.from.label": "Original",
+  "inputs.fontMap.fields.to.label": "Varumärke",
+  "inputs.dropFonts.label": "Ta bort inbäddade typsnitt",
+  "inputs.dropFonts.help": "Typsnitt från det gamla varumärket som är inbäddade i filen blir inaktuella efter ett byte och kan vara licensbelagda."
+}

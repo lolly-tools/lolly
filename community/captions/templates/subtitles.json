@@ -1,0 +1,31 @@
+{
+  "id": "subtitles",
+  "name": "Subtitles",
+  "category": "Captions",
+  "description": "Broadcast-style subtitles across the foot of the frame, two lines at most.",
+  "values": {
+    "style": "bar",
+    "position": "bottom",
+    "fontSize": 54,
+    "color": "{color.semantic.on-primary}",
+    "background": "{color.semantic.primary}",
+    "maxLines": 2,
+    "showTimecodes": false,
+    "burnIn": true,
+    "time": 0
+  },
+  "presets": [
+    {
+      "id": "outline",
+      "name": "Outline",
+      "description": "No plate. The words carry their own edge, so the picture stays whole.",
+      "values": { "style": "outline", "fontSize": 60 }
+    },
+    {
+      "id": "box",
+      "name": "Boxed",
+      "description": "A rounded plate that hugs the words rather than the frame.",
+      "values": { "style": "box", "fontSize": 52 }
+    }
+  ]
+}

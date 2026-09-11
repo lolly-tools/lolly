@@ -1,0 +1,22 @@
+{
+  "name": "Audiogram",
+  "description": "Proměň hlasový klip nebo skladbu ve značkové video, které se skutečně hýbe se zvukem - pruhy, spektrum, prstenec, hřebínek nebo osciloskop, připravené na sociální sítě.",
+  "a11yLabel": "Audiogram karta pro {{default title \"an audio clip\"}} s animovanou zvukovou vlnou",
+  "inputs.audio.label": "Zvuk",
+  "inputs.audio.help": "Vyber skladbu ze své knihovny nebo nahraj klip. Dekóduje se na tvém zařízení a vykreslí zvukovou křivku - zvuk nikdy neopustí prohlížeč. Nech prázdné pro zástupnou křivku. Aby bylo v exportu slyšet, zvol v možnostech stahování jako zvukovou stopu \"Zvuk tohoto nástroje\".",
+  "inputs.title.label": "Název",
+  "inputs.title.help": "Nadpis na kartě - název epizody nebo citát.",
+  "inputs.subtitle.label": "Podtitulek",
+  "inputs.subtitle.help": "Menší řádek pod titulkem - název pořadu, host, nebo kde poslouchat.",
+  "inputs.style.label": "Styl zvukové vlny",
+  "inputs.style.options.bars": "Sloupce",
+  "inputs.style.options.wave": "Vlna",
+  "inputs.style.options.ring": "Prstenec",
+  "inputs.size.label": "Velikost",
+  "inputs.size.options.square": "Čtverec (1:1)",
+  "inputs.size.options.wide": "Široký (16:9)",
+  "inputs.size.options.story": "Story (9:16)",
+  "inputs.accent.label": "Barva zvukové vlny",
+  "inputs.ink.label": "Barva textu",
+  "inputs.bg.label": "Pozadí"
+}

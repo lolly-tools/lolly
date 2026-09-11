@@ -1,0 +1,207 @@
+{
+  "id": "backdrop",
+  "name": "Backdrop",
+  "description": "Living backdrops from your design system's colours: sixteen GPU effects - flowing silk, prismatic blooms, liquid contours, metaballs, god rays and more. Tune, freeze the exact moment you want, and export stills or motion loops for heroes, walls and meeting backgrounds.",
+  "a11yLabel": "Animated {{effect}} backdrop",
+  "version": "1.1.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "singleInstance": true,
+  "category": "everyone",
+  "tags": ["backdrop", "background", "wallpaper", "hero", "animated", "generative", "brand"],
+  "examples": [
+    { "label": "Lava lamp", "values": { "effect": "metaballs", "count": 4, "intensity": 55, "density": 45 } },
+    { "label": "Cathedral rays", "values": { "effect": "god-rays", "count": 4, "intensity": 60, "density": 45 } },
+    { "label": "Neural drift", "values": { "effect": "neuro-noise", "intensity": 50, "density": 40, "speed": 80 } },
+    { "label": "Smoke halo", "values": { "effect": "smoke-ring", "count": 2, "intensity": 55, "density": 40, "speed": 80 } },
+    { "label": "Velvet warp", "values": { "effect": "warp", "count": 4, "intensity": 45, "density": 65 } },
+    { "label": "Liquid silk", "values": { "effect": "silk-flow", "count": 3, "intensity": 60, "density": 45, "speed": 70 } },
+    { "label": "Prismatic bloom", "values": { "effect": "prism-bloom", "count": 4, "intensity": 60, "density": 55, "speed": 65 } },
+    { "label": "Mercury contours", "values": { "effect": "liquid-contours", "count": 3, "intensity": 65, "density": 40, "speed": 70 } }
+  ],
+  "render": {
+    "width": 1600,
+    "height": 900,
+    "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif", "tiff", "webp-anim"],
+    "actions": ["copy", "download", "save"],
+    "video": { "wait": 0, "duration": 8 }
+  },
+  "inputs": [
+    {
+      "id": "effect",
+      "label": "Effect",
+      "type": "select",
+      "default": "metaballs",
+      "help": "Every effect moves and takes your colours. Silk flow, Prism bloom and Liquid contours bring a MilkDrop-inspired play of light and colour.",
+      "options": [
+        { "value": "metaballs", "label": "Metaballs", "badge": "orbs", "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"] },
+        { "value": "smoke-ring", "label": "Smoke ring", "badge": "orbs", "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"] },
+        { "value": "voronoi", "label": "Voronoi", "badge": "orbs", "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"] },
+        { "value": "neuro-noise", "label": "Neuro noise", "badge": "noise", "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"] },
+        { "value": "perlin-noise", "label": "Perlin", "badge": "noise", "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"] },
+        { "value": "dithering", "label": "Dither", "badge": "noise", "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"] },
+        { "value": "warp", "label": "Warp", "badge": "flow", "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"] },
+        { "value": "spiral", "label": "Spiral", "badge": "flow", "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"] },
+        { "value": "swirl", "label": "Swirl", "badge": "flow", "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"] },
+        { "value": "silk-flow", "label": "Silk flow", "badge": "flux", "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"] },
+        { "value": "prism-bloom", "label": "Prism bloom", "badge": "flux", "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"] },
+        { "value": "liquid-contours", "label": "Liquid contours", "badge": "flux", "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"] },
+        { "value": "dot-orbit", "label": "Dot orbit", "badge": "dots", "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"] },
+        { "value": "god-rays", "label": "God rays", "badge": "light", "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"] },
+        { "value": "color-panels", "label": "Panels", "badge": "light", "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"] },
+        { "value": "pulsing-border", "label": "Pulse frame", "badge": "light", "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"] }
+      ]
+    },
+    {
+      "id": "count",
+      "label": "Colours",
+      "type": "number",
+      "display": "slider",
+      "default": 4,
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "help": "How many swatches feed the effect. Two-colour effects (Neuro, Perlin, Dither, Spiral) use the first one or two."
+    },
+    {
+      "id": "color1",
+      "label": "Colour 1",
+      "type": "color",
+      "default": "{color.semantic.primary}"
+    },
+    {
+      "id": "color2",
+      "label": "Colour 2",
+      "type": "color",
+      "default": "{color.semantic.secondary}",
+      "showIf": { "count": [2, 3, 4, 5, 6] }
+    },
+    {
+      "id": "color3",
+      "label": "Colour 3",
+      "type": "color",
+      "default": "{color.semantic.muted}",
+      "showIf": { "count": [3, 4, 5, 6] }
+    },
+    {
+      "id": "color4",
+      "label": "Colour 4",
+      "type": "color",
+      "default": "{color.semantic.text}",
+      "showIf": { "count": [4, 5, 6] }
+    },
+    {
+      "id": "color5",
+      "label": "Colour 5",
+      "type": "color",
+      "default": "{color.semantic.edge}",
+      "showIf": { "count": [5, 6] }
+    },
+    {
+      "id": "color6",
+      "label": "Colour 6",
+      "type": "color",
+      "default": "{color.semantic.on-primary}",
+      "showIf": { "count": [6] }
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "type": "color",
+      "default": "{color.semantic.surface}",
+      "help": "The field behind the effect. Dark grounds make the colours glow; try your design system's surface for a calmer wash."
+    },
+    {
+      "id": "brandInfluence",
+      "label": "Brand influence",
+      "type": "select",
+      "default": "strong",
+      "showIf": { "effect": ["silk-flow", "prism-bloom", "liquid-contours"] },
+      "options": [
+        { "value": "off", "label": "Off" },
+        { "value": "subtle", "label": "Subtle" },
+        { "value": "strong", "label": "Strong" },
+        { "value": "full", "label": "Full" }
+      ],
+      "help": "How strongly your swatches shape the colour. Strong keeps a little spectral shimmer; Full follows your palette most closely, preserving shadows and luminous edges. Off reveals the original spectrum."
+    },
+    {
+      "id": "intensity",
+      "label": "Intensity",
+      "section": "Character",
+      "type": "number",
+      "display": "slider",
+      "default": 50,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "help": "The effect's main character dial - ball size, ray strength, twist, distortion - tuned per effect so 50 is the designed look."
+    },
+    {
+      "id": "density",
+      "label": "Density",
+      "section": "Character",
+      "type": "number",
+      "display": "slider",
+      "default": 50,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "showIf": { "effect": ["metaballs", "neuro-noise", "perlin-noise", "warp", "spiral", "swirl", "silk-flow", "prism-bloom", "liquid-contours", "dot-orbit", "voronoi", "smoke-ring", "god-rays", "color-panels", "pulsing-border"] },
+      "help": "The effect's secondary dial - how many, how tight, how detailed."
+    },
+    {
+      "id": "scale",
+      "label": "Scale",
+      "section": "Character",
+      "type": "number",
+      "display": "slider",
+      "default": 100,
+      "min": 25,
+      "max": 400,
+      "step": 5,
+      "help": "Zoom of the whole field - higher magnifies the shapes, lower packs more of them in."
+    },
+    {
+      "id": "rotation",
+      "label": "Rotation",
+      "section": "Character",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 360,
+      "step": 5
+    },
+    {
+      "id": "speed",
+      "label": "Speed",
+      "section": "Motion",
+      "type": "number",
+      "display": "slider",
+      "default": 100,
+      "min": 0,
+      "max": 300,
+      "step": 5,
+      "showIf": { "effect": ["metaballs", "neuro-noise", "perlin-noise", "warp", "spiral", "swirl", "silk-flow", "prism-bloom", "liquid-contours", "dot-orbit", "voronoi", "smoke-ring", "god-rays", "color-panels", "pulsing-border", "dithering"] },
+      "help": "Playback speed, as a percentage of each effect's designed pace. 0 freezes the live canvas; a video export still moves. Clips are not seamless loops - pick a length in the export bar where the cut sits well."
+    },
+    {
+      "id": "phase",
+      "label": "Moment",
+      "section": "Motion",
+      "type": "number",
+      "display": "slider",
+      "default": 35,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "help": "Scrub through the animation to choose the exact frame a still export captures - and where playback starts. Defaults past the start because several effects are still gathering themselves at moment 0."
+    }
+  ],
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  }
+}

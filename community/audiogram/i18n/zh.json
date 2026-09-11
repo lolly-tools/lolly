@@ -1,0 +1,22 @@
+{
+  "name": "音频图",
+  "description": "将语音片段或歌曲变成随声音律动的品牌视频 - 柱状、频谱、圆环、山脊或示波图,适配社交平台。",
+  "a11yLabel": "为 {{default title \"an audio clip\"}} 制作的带动态波形的音频图卡",
+  "inputs.audio.label": "音频",
+  "inputs.audio.help": "从素材库选择一首曲目，或上传一段片段。它会在你的设备上解码以绘制波形 - 音频不会离开浏览器。留空则显示占位波形。要在导出中听到声音，请在下载选项中将音轨选择为\"此工具的音频\"。",
+  "inputs.title.label": "标题",
+  "inputs.title.help": "卡片上的标题 - 剧集名称或摘要引语。",
+  "inputs.subtitle.label": "副标题",
+  "inputs.subtitle.help": "标题下方的小字 - 节目名称、嘉宾或收听渠道。",
+  "inputs.style.label": "波形样式",
+  "inputs.style.options.bars": "条形",
+  "inputs.style.options.wave": "波浪",
+  "inputs.style.options.ring": "圆环",
+  "inputs.size.label": "大小",
+  "inputs.size.options.square": "正方形 (1:1)",
+  "inputs.size.options.wide": "宽屏 (16:9)",
+  "inputs.size.options.story": "故事 (9:16)",
+  "inputs.accent.label": "波形颜色",
+  "inputs.ink.label": "文本颜色",
+  "inputs.bg.label": "背景"
+}

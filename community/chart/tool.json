@@ -1,0 +1,3083 @@
+{
+  "id": "chart",
+  "name": "Chart",
+  "description": "Charts from first paste to advanced visualisation - explained data recommendations, explicit field mapping, 35 classic vector families including Pareto, bullet targets and range bars, sixteen statistical and editorial articulations, real-z 3-D scenes, cinematic flights, deterministic motion, accessible descriptions and styles compiled from the active brand profile.",
+  "version": "1.25.0",
+  "engineVersion": "^1.181.0",
+  "status": "official",
+  "category": "designer",
+  "a11yLabel": "{{_effectiveChartType}} chart{{#if heading}} — {{heading}}{{/if}}",
+  "tags": [
+    "chart",
+    "d3",
+    "data",
+    "visualization",
+    "graph",
+    "plot",
+    "bar",
+    "line",
+    "area",
+    "scatter",
+    "pie",
+    "donut",
+    "radar",
+    "treemap",
+    "heatmap",
+    "histogram",
+    "wordcloud",
+    "word cloud",
+    "3d",
+    "cinematic",
+    "flythrough",
+    "statistical",
+    "editorial",
+    "regression",
+    "density",
+    "facets",
+    "survey",
+    "svg",
+    "vector",
+    "csv"
+  ],
+  "featured": {
+    "order": 3,
+    "blurb": "Paste a table — Chart makes it clear, accessible and unmistakably on-brand"
+  },
+  "examples": [
+    {
+      "label": "Trend line",
+      "values": {
+        "chartType": "line",
+        "heading": "Signups are compounding",
+        "data": "Month,Signups,Churned\nJan,120,30\nFeb,150,32\nMar,210,28\nApr,260,35\nMay,330,31\nJun,410,29",
+        "showPoints": true,
+        "palette": "cool"
+      }
+    },
+    {
+      "label": "Donut of segments",
+      "values": {
+        "chartType": "donut",
+        "data": "Segment,Share\nEnterprise,38\nSMB,27\nPartner,20\nSelf-serve,15",
+        "palette": "warm",
+        "showValues": true,
+        "legendPosition": "rc"
+      }
+    },
+    {
+      "label": "Stacked bars",
+      "values": {
+        "chartType": "bar",
+        "stackMode": "stacked",
+        "data": "Quarter,North,South,East\nQ1,42,28,12\nQ2,49,35,18\nQ3,55,41,24\nQ4,61,48,31",
+        "palette": "mono",
+        "cornerRadius": 4
+      }
+    },
+    {
+      "label": "Radar profile",
+      "values": {
+        "chartType": "radar",
+        "data": "Axis,Design,Engineering\nStrategy,7,5\nCraft,8,9\nSpeed,6,8\nRigour,7,9\nStory,9,6",
+        "fillOpacity": 40,
+        "palette": "diverging"
+      }
+    },
+    {
+      "label": "Waffle share",
+      "values": {
+        "chartType": "waffle",
+        "data": "Status,Count\nDone,68\nIn progress,22\nBlocked,10",
+        "palette": "warm"
+      }
+    },
+    {
+      "label": "Survey word cloud",
+      "values": {
+        "chartType": "wordcloud",
+        "data": "Response,Count\nStrongly agree,42\nAgree,31\nIt depends on the context,26\nNeutral,18\nDisagree,11\nStrongly disagree,7\nPrefer not to say,4",
+        "palette": "suse"
+      }
+    },
+    {
+      "label": "Real 3-D bars",
+      "values": {
+        "renderMode": "scene",
+        "chartType": "bar",
+        "sceneType": "bar3d",
+        "chartStyle": "studio-3d",
+        "heading": "Responses by team and wave",
+        "data": "Team,First wave,Second wave,Final wave\nDesign,42,51,63\nEngineering,58,66,74\nSales,33,47,59\nSupport,27,39,52",
+        "motionPreset": "reveal-orbit",
+        "cameraProjection": "orthographic"
+      }
+    },
+    {
+      "label": "Brand terrain",
+      "values": {
+        "renderMode": "scene",
+        "chartType": "heatmap",
+        "sceneType": "surface3d",
+        "chartStyle": "glass-3d",
+        "heading": "Demand surface",
+        "data": "Hour,Monday,Tuesday,Wednesday,Thursday,Friday\n08:00,12,18,14,17,22\n10:00,23,31,28,35,42\n12:00,46,55,61,58,68\n14:00,38,49,53,57,63\n16:00,29,41,47,51,58\n18:00,18,27,33,39,46",
+        "motionPreset": "orbit"
+      }
+    }
+  ],
+  "render": {
+    "width": 1280,
+    "height": 800,
+    "formats": [
+      "png",
+      "md",
+      "svg",
+      "penpot",
+      "emf",
+      "pdf",
+      "pdf-cmyk",
+      "cmyk-tiff",
+      "tiff",
+      "pptx",
+      "webp",
+      "jpg",
+      "apng",
+      "webp-anim",
+      "gif",
+      "webm",
+      "mp4",
+      "avif",
+      "csv",
+      "json"
+    ],
+    "video": {
+      "wait": 0.3,
+      "duration": 6
+    },
+    "actions": [
+      "copy",
+      "download",
+      "save"
+    ],
+    "transparentBg": true
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true,
+    "afterExport": true
+  },
+  "isolate": true,
+  "inputs": [
+    {
+      "id": "chartIntent",
+      "urlKey": "goal",
+      "label": "What should the chart show?",
+      "type": "select",
+      "default": "manual",
+      "options": [
+        {
+          "value": "manual",
+          "label": "Choose the form myself"
+        },
+        {
+          "value": "auto",
+          "label": "Recommend from my data"
+        },
+        {
+          "value": "compare",
+          "label": "Compare values"
+        },
+        {
+          "value": "trend",
+          "label": "Show change over time"
+        },
+        {
+          "value": "composition",
+          "label": "Show parts of a whole"
+        },
+        {
+          "value": "distribution",
+          "label": "Understand a distribution"
+        },
+        {
+          "value": "relationship",
+          "label": "Explain a relationship"
+        },
+        {
+          "value": "uncertainty",
+          "label": "Show range or uncertainty"
+        },
+        {
+          "value": "story",
+          "label": "Tell a cinematic story"
+        }
+      ],
+      "help": "Choose a communication goal and Chart profiles the pasted table, explains its assumptions, maps suitable fields and switches to a defensible starting form. Choose the form myself to keep every renderer choice fully manual."
+    },
+    {
+      "id": "renderMode",
+      "urlKey": "rm",
+      "label": "Mode",
+      "type": "select",
+      "display": "segmented",
+      "default": "vector",
+      "options": [
+        {
+          "value": "vector",
+          "label": "Vector"
+        },
+        {
+          "value": "statistical",
+          "label": "Stats"
+        },
+        {
+          "value": "scene",
+          "label": "3-D"
+        },
+        {
+          "value": "cinematic",
+          "label": "Cinema"
+        }
+      ],
+      "help": "Switch renderer without replacing your work. The table, titles, brand palette, labels, formatting and shared layout settings follow between classic D3/SVG, Observable Plot's statistical SVG grammar, comparable Three.js scenes and data-driven cinematic flights. Renderer-specific controls stay parked and return when you switch back."
+    },
+    {
+      "id": "chartType",
+      "urlKey": "ct",
+      "label": "2-D chart type",
+      "type": "select",
+      "default": "bar",
+      "showIf": {
+        "renderMode": "vector"
+      },
+      "options": [
+        {
+          "value": "bar",
+          "label": "Bar — vertical"
+        },
+        {
+          "value": "bar-horizontal",
+          "label": "Bar — horizontal"
+        },
+        {
+          "value": "line",
+          "label": "Line"
+        },
+        {
+          "value": "area",
+          "label": "Area"
+        },
+        {
+          "value": "scatter",
+          "label": "Scatter / bubble"
+        },
+        {
+          "value": "pie",
+          "label": "Pie"
+        },
+        {
+          "value": "donut",
+          "label": "Donut"
+        },
+        {
+          "value": "radial-bar",
+          "label": "Radial bar"
+        },
+        {
+          "value": "radar",
+          "label": "Radar"
+        },
+        {
+          "value": "treemap",
+          "label": "Treemap"
+        },
+        {
+          "value": "pack",
+          "label": "Circle pack"
+        },
+        {
+          "value": "heatmap",
+          "label": "Heatmap"
+        },
+        {
+          "value": "histogram",
+          "label": "Histogram"
+        },
+        {
+          "value": "box",
+          "label": "Box plot"
+        },
+        {
+          "value": "violin",
+          "label": "Violin"
+        },
+        {
+          "value": "beeswarm",
+          "label": "Beeswarm"
+        },
+        {
+          "value": "lollipop",
+          "label": "Lollipop"
+        },
+        {
+          "value": "dumbbell",
+          "label": "Dumbbell / dot plot"
+        },
+        {
+          "value": "pareto",
+          "label": "Pareto · ranked bars + cumulative share"
+        },
+        {
+          "value": "bullet",
+          "label": "Bullet · actual against target"
+        },
+        {
+          "value": "range-bar",
+          "label": "Range bars · low to high"
+        },
+        {
+          "value": "slope",
+          "label": "Slope"
+        },
+        {
+          "value": "bump",
+          "label": "Bump / ranking"
+        },
+        {
+          "value": "stream",
+          "label": "Streamgraph"
+        },
+        {
+          "value": "waterfall",
+          "label": "Waterfall"
+        },
+        {
+          "value": "marimekko",
+          "label": "Marimekko / mekko"
+        },
+        {
+          "value": "parallel",
+          "label": "Parallel coordinates"
+        },
+        {
+          "value": "polar",
+          "label": "Polar area / rose"
+        },
+        {
+          "value": "funnel",
+          "label": "Funnel"
+        },
+        {
+          "value": "gauge",
+          "label": "Gauge / dial"
+        },
+        {
+          "value": "waffle",
+          "label": "Waffle / pictogram"
+        },
+        {
+          "value": "sunburst",
+          "label": "Sunburst"
+        },
+        {
+          "value": "icicle",
+          "label": "Icicle"
+        },
+        {
+          "value": "chord",
+          "label": "Chord"
+        },
+        {
+          "value": "wordcloud",
+          "label": "Word cloud"
+        }
+      ]
+    },
+    {
+      "id": "paretoCumulative",
+      "label": "Show cumulative percentage",
+      "type": "boolean",
+      "default": true,
+      "section": "Pareto",
+      "showIf": {
+        "renderMode": "vector",
+        "chartType": "pareto"
+      },
+      "help": "Uses the first numeric series, ranked largest first. The line uses the percentage axis on the right. Missing values are omitted; negative values need a different chart."
+    },
+    {
+      "id": "paretoThreshold",
+      "label": "Cumulative reference (%)",
+      "type": "number",
+      "default": 80,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "section": "Pareto",
+      "showIf": {
+        "renderMode": "vector",
+        "chartType": "pareto",
+        "paretoCumulative": true
+      },
+      "help": "A dashed reference on the percentage axis. Set 0 to hide it."
+    },
+    {
+      "id": "bulletTarget",
+      "label": "Fallback target",
+      "type": "number",
+      "default": 100,
+      "min": 0,
+      "section": "Bullet targets",
+      "showIf": {
+        "renderMode": "vector",
+        "chartType": "bullet"
+      },
+      "help": "Columns are Label, Actual, Target, then optional Maximum. This target is used only when there is no Target column; empty cells stay missing. All rows share one scale."
+    },
+    {
+      "id": "bulletBands",
+      "label": "Show target bands",
+      "type": "boolean",
+      "default": true,
+      "section": "Bullet targets",
+      "showIf": {
+        "renderMode": "vector",
+        "chartType": "bullet"
+      },
+      "help": "Neutral background bands mark 60%, 80% and 100% of each row’s target. A vertical tick shows the target itself."
+    },
+    {
+      "id": "rangeMidpoint",
+      "label": "Show range midpoint",
+      "type": "boolean",
+      "default": true,
+      "section": "Range bars",
+      "showIf": {
+        "renderMode": "vector",
+        "chartType": "range-bar"
+      },
+      "help": "Columns are Label, Low, High. A small tick marks the arithmetic midpoint, not an observed mean. Reversed endpoints are put in low-to-high order; incomplete rows are omitted."
+    },
+    {
+      "id": "plotType",
+      "urlKey": "pf",
+      "label": "Statistical form",
+      "type": "select",
+      "default": "dot-strip",
+      "showIf": {
+        "renderMode": "statistical"
+      },
+      "options": [
+        {
+          "value": "dot-strip",
+          "label": "Editorial dot plot"
+        },
+        {
+          "value": "interval",
+          "label": "Interval / range"
+        },
+        {
+          "value": "range-band",
+          "label": "Range / uncertainty band"
+        },
+        {
+          "value": "difference-area",
+          "label": "Difference between series"
+        },
+        {
+          "value": "indexed-change",
+          "label": "Indexed change — base 100"
+        },
+        {
+          "value": "box-observations",
+          "label": "Box + observations"
+        },
+        {
+          "value": "rug-histogram",
+          "label": "Histogram + rug"
+        },
+        {
+          "value": "small-multiples",
+          "label": "Small multiple trends"
+        },
+        {
+          "value": "distribution-facets",
+          "label": "Distribution facets"
+        },
+        {
+          "value": "density-ridges",
+          "label": "Density small multiples"
+        },
+        {
+          "value": "ecdf",
+          "label": "Cumulative distribution"
+        },
+        {
+          "value": "control-band",
+          "label": "Control band"
+        },
+        {
+          "value": "hexbin",
+          "label": "Hexbin density"
+        },
+        {
+          "value": "density-contour",
+          "label": "Density contours"
+        },
+        {
+          "value": "regression",
+          "label": "Scatter + regression"
+        },
+        {
+          "value": "candlestick",
+          "label": "Candlestick / OHLC"
+        }
+      ],
+      "help": "Curated layered and transformed SVG forms for comparison, change, distributions, uncertainty, relationships, monitoring and finance. Density, hexbin and regression use the first two numeric columns. Range band uses Low, Expected, High; candlestick uses Open, High, Low, Close."
+    },
+    {
+      "id": "sceneType",
+      "urlKey": "sct",
+      "label": "3-D chart type",
+      "type": "select",
+      "default": "bar3d",
+      "showIf": {
+        "renderMode": "scene"
+      },
+      "options": [
+        {
+          "value": "bar3d",
+          "label": "Bars — categories × series"
+        },
+        {
+          "value": "scatter3d",
+          "label": "Scatter — x / y / z"
+        },
+        {
+          "value": "surface3d",
+          "label": "Surface — value grid"
+        }
+      ],
+      "help": "Choose how the same table is interpreted in the real 3-D scene. Bars use a label column plus numeric series; Scatter uses at least three numeric columns; Surface uses the table as a value grid."
+    },
+    {
+      "id": "cinematicType",
+      "urlKey": "cft",
+      "label": "Cinematic form",
+      "type": "select",
+      "default": "flythrough3d",
+      "showIf": {
+        "renderMode": "cinematic"
+      },
+      "options": [
+        {
+          "value": "flythrough3d",
+          "label": "Data flight — follow values"
+        },
+        {
+          "value": "ribbon3d",
+          "label": "Ribbon canyon — compare series"
+        },
+        {
+          "value": "constellation3d",
+          "label": "Constellation — tour observations"
+        },
+        {
+          "value": "skyline3d",
+          "label": "Data skyline — fly past values"
+        }
+      ],
+      "help": "Turn the same table into a paced story. Category order becomes the route, numeric values set altitude, and series occupy real depth. Data flight follows the chosen series; Ribbon canyon keeps all series legible; Constellation tours observations; Data skyline turns values into towers along the route."
+    },
+    {
+      "id": "plotBins",
+      "urlKey": "pbn",
+      "label": "Bins / contour levels",
+      "section": "Statistical",
+      "type": "number",
+      "display": "slider",
+      "default": 20,
+      "min": 6,
+      "max": 60,
+      "step": 1,
+      "showIf": {
+        "renderMode": "statistical",
+        "plotType": [
+          "rug-histogram",
+          "distribution-facets",
+          "density-contour"
+        ]
+      },
+      "help": "Resolution for distribution bins and density contour levels. More reveals fine structure but can overstate noise in a small sample."
+    },
+    {
+      "id": "plotBinWidth",
+      "urlKey": "pbw",
+      "label": "Hexagon size",
+      "section": "Statistical",
+      "type": "number",
+      "display": "slider",
+      "default": 24,
+      "min": 6,
+      "max": 64,
+      "step": 1,
+      "showIf": {
+        "renderMode": "statistical",
+        "plotType": "hexbin"
+      },
+      "help": "Hexbin width in output pixels. Larger cells summarise more observations and reduce visual noise."
+    },
+    {
+      "id": "plotBandwidth",
+      "urlKey": "pbnd",
+      "label": "Density smoothing",
+      "section": "Statistical",
+      "type": "number",
+      "display": "slider",
+      "default": 20,
+      "min": 4,
+      "max": 80,
+      "step": 1,
+      "showIf": {
+        "renderMode": "statistical",
+        "plotType": [
+          "density-contour",
+          "density-ridges"
+        ]
+      },
+      "help": "Kernel bandwidth in output pixels. Low values retain local detail; high values reveal only the broad distribution."
+    },
+    {
+      "id": "plotShowRaw",
+      "urlKey": "praw",
+      "label": "Show observations",
+      "section": "Statistical",
+      "type": "boolean",
+      "default": true,
+      "showIf": {
+        "renderMode": "statistical",
+        "plotType": [
+          "box-observations",
+          "rug-histogram",
+          "density-contour",
+          "regression"
+        ]
+      },
+      "help": "Keep the source observations visible beneath the fitted density or regression layer."
+    },
+    {
+      "id": "plotConfidenceBand",
+      "urlKey": "pci",
+      "label": "95% confidence band",
+      "section": "Statistical",
+      "type": "boolean",
+      "default": true,
+      "showIf": {
+        "renderMode": "statistical",
+        "plotType": "regression"
+      },
+      "help": "Show the fitted regression's 95% confidence interval. This describes uncertainty in the fitted mean, not prediction bounds for an individual observation."
+    },
+    {
+      "id": "plotFacetDirection",
+      "urlKey": "pfd",
+      "label": "Facet direction",
+      "section": "Statistical",
+      "type": "select",
+      "default": "rows",
+      "options": [
+        {
+          "value": "rows",
+          "label": "Rows — shared width"
+        },
+        {
+          "value": "columns",
+          "label": "Columns — side by side"
+        }
+      ],
+      "showIf": {
+        "renderMode": "statistical",
+        "plotType": [
+          "small-multiples",
+          "rug-histogram",
+          "distribution-facets",
+          "density-ridges"
+        ]
+      },
+      "help": "Lay small multiples in rows for easier scale comparison or columns for a compact presentation."
+    },
+    {
+      "id": "plotMotionPreset",
+      "urlKey": "psm",
+      "label": "Statistical motion",
+      "section": "Animation",
+      "type": "select",
+      "default": "none",
+      "options": [
+        {
+          "value": "none",
+          "label": "Still"
+        },
+        {
+          "value": "reveal",
+          "label": "Reveal across the plot"
+        },
+        {
+          "value": "stagger",
+          "label": "Build mark by mark"
+        }
+      ],
+      "showIf": {
+        "renderMode": "statistical"
+      },
+      "help": "A deterministic entrance treatment driven by Lolly's exact frame clock. If Animate by column is set, data-frame interpolation takes priority. Preview and GIF/APNG/WebP/MP4/WebM export use the same phases; static vector export uses the complete poster."
+    },
+    {
+      "id": "data",
+      "urlKey": "d",
+      "label": "Paste your table",
+      "type": "longtext",
+      "dataSource": {},
+      "rows": 9,
+      "placeholder": "Quarter,Coffee,Tea,Juice\nQ1,42,28,12\nQ2,49,35,18",
+      "help": "Copy cells straight from Excel, Google Sheets or Numbers and paste here — they come across as a clean table (no fiddling with commas). Or type/paste CSV or TSV. First row = column headers; the first text column becomes the labels and every numeric column a series. The chart rebuilds automatically.",
+      "default": "Quarter,Coffee,Tea,Juice\nQ1,42,28,12\nQ2,49,35,18\nQ3,55,41,24\nQ4,63,52,33"
+    },
+    {
+      "id": "chartStyle",
+      "urlKey": "sty",
+      "label": "Style",
+      "type": "select",
+      "default": "brand-default",
+      "options": [
+        {
+          "value": "brand-default",
+          "label": "Brand — default"
+        },
+        {
+          "value": "editorial",
+          "label": "Editorial — quiet and direct"
+        },
+        {
+          "value": "technical",
+          "label": "Technical — precise and dense"
+        },
+        {
+          "value": "poster",
+          "label": "Poster — bold and minimal"
+        },
+        {
+          "value": "iso-vector",
+          "label": "Isometric — vector depth"
+        },
+        {
+          "value": "studio-3d",
+          "label": "Studio 3-D — brand materials"
+        },
+        {
+          "value": "glass-3d",
+          "label": "Glass 3-D — translucent"
+        }
+      ],
+      "help": "A curated presentation layer above the chart type. Styles inherit the active brand's typography, ordered colours, ramps, patterns and motion character. Controls you change explicitly always win. Studio and Glass affect the real 3-D chart types; Isometric keeps projected depth as editable vectors."
+    },
+    {
+      "id": "palette",
+      "urlKey": "pl",
+      "label": "Palette",
+      "section": "Colour & style",
+      "type": "select",
+      "default": "ordered",
+      "options": [
+        {
+          "value": "ordered",
+          "label": "Brand — ordered"
+        },
+        {
+          "value": "suse",
+          "label": "Brand — categorical"
+        },
+        {
+          "value": "seed",
+          "label": "From a base colour"
+        },
+        {
+          "value": "pine",
+          "label": "Brand — sequential"
+        },
+        {
+          "value": "waterhole",
+          "label": "Brand — sequential (2nd hue)"
+        },
+        {
+          "value": "warm",
+          "label": "Warm (brand-tinted)"
+        },
+        {
+          "value": "cool",
+          "label": "Cool (brand-tinted)"
+        },
+        {
+          "value": "diverging",
+          "label": "Diverging (brand)"
+        },
+        {
+          "value": "mono",
+          "label": "Monochrome (brand)"
+        }
+      ],
+      "help": "Ordered follows your brand palette in its own order (the default for most brands); Categorical spaces the brand hues apart for maximum contrast; From a base colour extrapolates a full set from one seed. The rest are sequential and diverging ramps built from your brand."
+    },
+    {
+      "id": "paletteSeed",
+      "urlKey": "pz",
+      "label": "Base colour",
+      "section": "Colour & style",
+      "type": "color",
+      "default": "{color.semantic.primary}",
+      "help": "The colour the palette extrapolates from — a spread of distinct hues for categorical charts, and light-to-dark ramps for sequential ones. Change it to re-key every colour off one hue.",
+      "showIf": {
+        "palette": [
+          "seed"
+        ]
+      }
+    },
+    {
+      "id": "paletteBlend",
+      "urlKey": "pb",
+      "label": "Colour blend",
+      "section": "Colour & style",
+      "type": "select",
+      "default": "smooth",
+      "options": [
+        {
+          "value": "smooth",
+          "label": "Smooth (perceptually even)"
+        },
+        {
+          "value": "vivid",
+          "label": "Vivid (keeps chroma)"
+        },
+        {
+          "value": "srgb",
+          "label": "sRGB (classic)"
+        }
+      ],
+      "help": "How the sequential and diverging ramps blend between colours. Smooth is perceptually even; Vivid travels round the hue circle so the midtones keep their chroma; sRGB is the plain blend a CSS gradient uses.",
+      "showIf": {
+        "palette": [
+          "pine",
+          "waterhole",
+          "warm",
+          "cool",
+          "diverging",
+          "mono",
+          "seed"
+        ]
+      }
+    },
+    {
+      "id": "paletteBlendTo",
+      "urlKey": "p2",
+      "label": "Second colour",
+      "section": "Colour & style",
+      "type": "color",
+      "default": "{color.semantic.secondary}",
+      "help": "Vivid travels from the palette’s base colour to this one, round the hue circle. In From-a-base-colour mode the Base colour is the start and this is the end.",
+      "showIf": {
+        "paletteBlend": [
+          "vivid"
+        ],
+        "palette": [
+          "pine",
+          "waterhole",
+          "warm",
+          "cool",
+          "diverging",
+          "mono",
+          "seed"
+        ]
+      }
+    },
+    {
+      "id": "hueRoute",
+      "urlKey": "hr",
+      "label": "Hue route",
+      "section": "Colour & style",
+      "type": "select",
+      "default": "short",
+      "options": [
+        {
+          "value": "short",
+          "label": "Short way"
+        },
+        {
+          "value": "long",
+          "label": "Long way round"
+        }
+      ],
+      "help": "Which way round the colour wheel Vivid travels between the two colours — the short arc or the long one.",
+      "showIf": {
+        "paletteBlend": [
+          "vivid"
+        ],
+        "palette": [
+          "pine",
+          "waterhole",
+          "warm",
+          "cool",
+          "diverging",
+          "mono",
+          "seed"
+        ]
+      }
+    },
+    {
+      "id": "colorBy",
+      "urlKey": "cb",
+      "label": "Colour by",
+      "section": "Colour & style",
+      "type": "select",
+      "default": "series",
+      "options": [
+        {
+          "value": "series",
+          "label": "Series"
+        },
+        {
+          "value": "category",
+          "label": "Category"
+        }
+      ],
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal"
+        ]
+      }
+    },
+    {
+      "id": "barStyle",
+      "urlKey": "b3",
+      "label": "Bar look",
+      "section": "Colour & style",
+      "type": "select",
+      "default": "flat",
+      "options": [
+        {
+          "value": "flat",
+          "label": "Flat"
+        },
+        {
+          "value": "iso3d",
+          "label": "3-D (extruded)"
+        }
+      ],
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal"
+        ]
+      }
+    },
+    {
+      "id": "pieStyle",
+      "urlKey": "p3",
+      "label": "Pie look",
+      "section": "Colour & style",
+      "type": "select",
+      "default": "flat",
+      "options": [
+        {
+          "value": "flat",
+          "label": "Flat"
+        },
+        {
+          "value": "iso3d",
+          "label": "3-D (tilted)"
+        }
+      ],
+      "showIf": {
+        "chartType": [
+          "pie",
+          "donut"
+        ]
+      }
+    },
+    {
+      "id": "depth3d",
+      "urlKey": "dp",
+      "label": "3-D depth (px, 0 = auto)",
+      "section": "Colour & style",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 160,
+      "step": 1,
+      "help": "How far vector bars or pie slices are projected in the Isometric style. Real 3-D scenes use their own camera and material controls.",
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "pie",
+          "donut"
+        ]
+      }
+    },
+    {
+      "id": "cameraProjection",
+      "urlKey": "cpr",
+      "label": "Camera",
+      "section": "3-D scene",
+      "type": "select",
+      "default": "perspective",
+      "options": [
+        {
+          "value": "perspective",
+          "label": "Perspective — spatial"
+        },
+        {
+          "value": "orthographic",
+          "label": "Orthographic — comparable"
+        }
+      ],
+      "help": "Orthographic keeps equally sized values equally sized at every depth; perspective gives a more cinematic scene.",
+      "showIf": {
+        "renderMode": "scene"
+      }
+    },
+    {
+      "id": "cameraAzimuth",
+      "urlKey": "caz",
+      "label": "Camera angle",
+      "section": "3-D scene",
+      "type": "number",
+      "display": "slider",
+      "default": 38,
+      "min": -180,
+      "max": 180,
+      "step": 1,
+      "showIf": {
+        "renderMode": "scene"
+      }
+    },
+    {
+      "id": "cameraElevation",
+      "urlKey": "cel",
+      "label": "Camera elevation",
+      "section": "3-D scene",
+      "type": "number",
+      "display": "slider",
+      "default": 24,
+      "min": 5,
+      "max": 80,
+      "step": 1,
+      "showIf": {
+        "renderMode": "scene"
+      }
+    },
+    {
+      "id": "flightSeries",
+      "urlKey": "cfs",
+      "label": "Camera follows",
+      "section": "Cinematic flight",
+      "type": "text",
+      "default": "",
+      "placeholder": "First series, or a name / number",
+      "help": "The series whose values drive the camera altitude. Leave blank for the first numeric series, enter its header, or use a 1-based series number.",
+      "showIf": {
+        "renderMode": "cinematic"
+      }
+    },
+    {
+      "id": "flightHeight",
+      "urlKey": "cfh",
+      "label": "Camera clearance",
+      "section": "Cinematic flight",
+      "type": "number",
+      "display": "slider",
+      "default": 0.85,
+      "min": 0.2,
+      "max": 3,
+      "step": 0.05,
+      "help": "Distance above the selected value path. Lower feels faster and more dramatic; higher preserves more context.",
+      "showIf": {
+        "renderMode": "cinematic"
+      }
+    },
+    {
+      "id": "flightLookAhead",
+      "urlKey": "cfla",
+      "label": "Look ahead",
+      "section": "Cinematic flight",
+      "type": "number",
+      "display": "slider",
+      "default": 1.5,
+      "min": 0.4,
+      "max": 5,
+      "step": 0.1,
+      "help": "How many category steps ahead the camera aims. Short values track peaks closely; longer values make the movement calmer.",
+      "showIf": {
+        "renderMode": "cinematic"
+      }
+    },
+    {
+      "id": "flightBank",
+      "urlKey": "cfb",
+      "label": "Bank with change",
+      "section": "Cinematic flight",
+      "type": "number",
+      "display": "slider",
+      "default": 10,
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "help": "Maximum camera roll in degrees. The local rise and fall in the chosen series controls the direction and amount.",
+      "showIf": {
+        "renderMode": "cinematic"
+      }
+    },
+    {
+      "id": "flightFov",
+      "urlKey": "cff",
+      "label": "Field of view",
+      "section": "Cinematic flight",
+      "type": "number",
+      "display": "slider",
+      "default": 54,
+      "min": 28,
+      "max": 82,
+      "step": 1,
+      "help": "Lens angle in degrees. A wider view feels faster; a narrower view compresses the scene and reads more analytically.",
+      "showIf": {
+        "renderMode": "cinematic"
+      }
+    },
+    {
+      "id": "sceneMaterial",
+      "urlKey": "mat",
+      "label": "Material",
+      "section": "3-D scene",
+      "type": "select",
+      "default": "matte",
+      "options": [
+        {
+          "value": "accurate",
+          "label": "Accurate colour — unlit"
+        },
+        {
+          "value": "matte",
+          "label": "Matte"
+        },
+        {
+          "value": "gloss",
+          "label": "Gloss"
+        },
+        {
+          "value": "glass",
+          "label": "Glass"
+        }
+      ],
+      "help": "Accurate colour keeps the scene closest to the brand swatches. Lit materials add depth; legends retain the exact semantic colours.",
+      "showIf": {
+        "renderMode": [
+          "scene",
+          "cinematic"
+        ]
+      }
+    },
+    {
+      "id": "sceneRoughness",
+      "urlKey": "rou",
+      "label": "Roughness",
+      "section": "3-D scene",
+      "type": "number",
+      "display": "slider",
+      "default": 0.58,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "showIf": {
+        "renderMode": [
+          "scene",
+          "cinematic"
+        ]
+      }
+    },
+    {
+      "id": "sceneMetalness",
+      "urlKey": "met",
+      "label": "Metalness",
+      "section": "3-D scene",
+      "type": "number",
+      "display": "slider",
+      "default": 0.04,
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "showIf": {
+        "renderMode": [
+          "scene",
+          "cinematic"
+        ]
+      }
+    },
+    {
+      "id": "sceneShadows",
+      "urlKey": "s3s",
+      "label": "Scene shadows",
+      "section": "3-D scene",
+      "type": "boolean",
+      "default": true,
+      "showIf": {
+        "renderMode": [
+          "scene",
+          "cinematic"
+        ]
+      }
+    },
+    {
+      "id": "shadow",
+      "urlKey": "sh",
+      "label": "Shadow / depth",
+      "section": "Colour & style",
+      "type": "select",
+      "default": "none",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "soft",
+          "label": "Soft"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "strong",
+          "label": "Strong"
+        },
+        {
+          "value": "glow",
+          "label": "Glow (colour halo)"
+        }
+      ],
+      "help": "Lift marks off the background with a soft drop shadow — depth and better contrast between values — or a colour-matched glow for an on-screen dashboard look. SVG and PNG stay crisp; EMF/EPS keep a vector shadow; PDF rasterises the chart while a shadow is on.",
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "pie",
+          "donut",
+          "line",
+          "area"
+        ]
+      }
+    },
+    {
+      "id": "differentiate",
+      "urlKey": "df",
+      "label": "Differentiate series by",
+      "section": "Colour & style",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {
+          "value": "auto",
+          "label": "Auto (patterns for monochrome brands)"
+        },
+        {
+          "value": "colour",
+          "label": "Colour only"
+        },
+        {
+          "value": "both",
+          "label": "Colour + pattern"
+        }
+      ],
+      "help": "Add stripes, hatching and dots on top of colour so series stay distinct even with few brand hues — and in greyscale print or for colour-blind readers. Auto turns patterns on when the brand has a limited palette.",
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "pie",
+          "donut"
+        ]
+      }
+    },
+    {
+      "id": "colorOverrides",
+      "urlKey": "co",
+      "label": "Highlighted values",
+      "section": "Colour & style",
+      "type": "text",
+      "default": "",
+      "placeholder": "click a bar or slice to recolour",
+      "help": "Click a bar or slice on the canvas to recolour it from your brand swatches — highlight one or several related values to draw the eye. Advanced: a JSON map of label → colour.",
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "pie",
+          "donut",
+          "radial-bar",
+          "treemap",
+          "pack",
+          "funnel",
+          "waffle",
+          "lollipop",
+          "polar",
+          "waterfall"
+        ]
+      }
+    },
+    {
+      "id": "transparentBg",
+      "label": "Transparent background",
+      "section": "Colour & style",
+      "type": "boolean",
+      "default": true,
+      "help": "Turn off for a solid background. Transparent charts use dark automatic text for placement on light surfaces; choose a light text colour for dark destinations."
+    },
+    {
+      "id": "background",
+      "urlKey": "bg",
+      "label": "Background",
+      "section": "Colour & style",
+      "type": "color",
+      "default": "{color.semantic.surface}",
+      "showIf": { "transparentBg": false }
+    },
+    {
+      "id": "textColor",
+      "urlKey": "tc",
+      "label": "Text & axis colour",
+      "section": "Colour & style",
+      "type": "color",
+      "default": "",
+      "help": "Leave blank to contrast automatically with the background — so setting a dark background flips the titles, axes, labels, legend and gridlines to a light ink without you colouring each one. Set a colour to override."
+    },
+    {
+      "id": "strokeWidth",
+      "urlKey": "ow",
+      "label": "Mark outline width",
+      "section": "Colour & style",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 12,
+      "step": 1,
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "pie",
+          "donut",
+          "radial-bar",
+          "treemap",
+          "pack",
+          "heatmap",
+          "scatter",
+          "histogram"
+        ]
+      }
+    },
+    {
+      "id": "strokeColor",
+      "urlKey": "oc",
+      "label": "Mark outline colour",
+      "section": "Colour & style",
+      "type": "color",
+      "default": "{color.semantic.surface}",
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "pie",
+          "donut",
+          "radial-bar",
+          "treemap",
+          "pack",
+          "heatmap",
+          "scatter",
+          "histogram"
+        ]
+      }
+    },
+    {
+      "id": "hasHeader",
+      "urlKey": "hh",
+      "label": "First row is a header",
+      "section": "Data",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "id": "delimiter",
+      "urlKey": "dl",
+      "label": "Column separator",
+      "section": "Data",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {
+          "value": "auto",
+          "label": "Auto-detect"
+        },
+        {
+          "value": "comma",
+          "label": "Comma  ,"
+        },
+        {
+          "value": "tab",
+          "label": "Tab"
+        },
+        {
+          "value": "semicolon",
+          "label": "Semicolon  ;"
+        },
+        {
+          "value": "pipe",
+          "label": "Pipe  |"
+        }
+      ]
+    },
+    {
+      "id": "transpose",
+      "urlKey": "tp",
+      "label": "Swap rows & columns",
+      "section": "Data",
+      "type": "boolean",
+      "default": false,
+      "help": "Flip the table so the header row becomes the categories and each row becomes a series."
+    },
+    {
+      "id": "labelColumn",
+      "urlKey": "lc",
+      "label": "X / category",
+      "section": "Field mapping",
+      "type": "text",
+      "default": "",
+      "placeholder": "auto (first column)",
+      "help": "Field for horizontal position, category or route order — enter a column name or its 1-based number. Blank lets Chart infer it."
+    },
+    {
+      "id": "seriesColumns",
+      "urlKey": "sc",
+      "label": "Y / measure(s)",
+      "section": "Field mapping",
+      "type": "text",
+      "default": "",
+      "placeholder": "auto (all numeric)",
+      "help": "Fields for vertical position or values, comma-separated and in display order. Blank uses the inferred measures."
+    },
+    {
+      "id": "pivotColumn",
+      "urlKey": "pv",
+      "label": "Colour / series / facet",
+      "section": "Field mapping",
+      "type": "text",
+      "default": "",
+      "placeholder": "auto (for long data)",
+      "help": "For long or tidy data, the field whose values become series, colours or facets. Blank lets Chart detect repeated-category tables."
+    },
+    {
+      "id": "zColumn",
+      "urlKey": "zc",
+      "label": "Z / depth",
+      "section": "Field mapping",
+      "type": "text",
+      "default": "",
+      "placeholder": "auto (third numeric field)",
+      "help": "Numeric field for real depth in spatial scatter and advanced 3-D mappings. Blank uses the third inferred measure."
+    },
+    {
+      "id": "sizeColumn",
+      "urlKey": "szc",
+      "label": "Size",
+      "section": "Field mapping",
+      "type": "text",
+      "default": "",
+      "placeholder": "auto (fourth numeric field)",
+      "help": "Numeric field for bubble or point size. Blank uses the next available measure where that chart supports size."
+    },
+    {
+      "id": "frameColumn",
+      "urlKey": "fc",
+      "label": "Frame / time",
+      "section": "Animation",
+      "type": "text",
+      "default": "",
+      "placeholder": "e.g. Quarter, Year, Wave",
+      "help": "Name (or 1-based number) of a frame / time column — its distinct values (e.g. Q1, Q2, Q3) become animation keyframes. Classic and Statistical charts interpolate the same typed data; 3-D scenes use their Motion control. Export to GIF/APNG/animated WebP or MP4/WebM for exact-clock motion; static SVG/PDF uses the complete poster.",
+      "showIf": {
+        "renderMode": [
+          "vector",
+          "statistical"
+        ]
+      }
+    },
+    {
+      "id": "motionPreset",
+      "urlKey": "mp",
+      "label": "Motion",
+      "section": "Animation",
+      "type": "select",
+      "default": "none",
+      "options": [
+        {
+          "value": "none",
+          "label": "Still"
+        },
+        {
+          "value": "reveal",
+          "label": "Reveal data"
+        },
+        {
+          "value": "orbit",
+          "label": "Orbit camera"
+        },
+        {
+          "value": "reveal-orbit",
+          "label": "Reveal + orbit"
+        }
+      ],
+      "help": "Deterministic scene motion: preview, scrubbing and exported video all render from the same exact clock.",
+      "showIf": {
+        "renderMode": "scene"
+      }
+    },
+    {
+      "id": "animSpeed",
+      "urlKey": "as",
+      "label": "Seconds per frame",
+      "section": "Animation",
+      "type": "number",
+      "default": 1.5,
+      "min": 0.3,
+      "max": 8,
+      "step": 0.1,
+      "help": "How long each data frame or 3-D motion phase lasts. One full data loop = frames × this. Set the export duration to a multiple for a seamless loop."
+    },
+    {
+      "id": "frameLabelShow",
+      "urlKey": "fl",
+      "label": "Show frame label",
+      "section": "Animation",
+      "type": "boolean",
+      "default": true,
+      "help": "Show the current keyframe's name (e.g. the quarter) as a caption while the animation plays.",
+      "showIf": {
+        "renderMode": [
+          "vector",
+          "statistical"
+        ]
+      }
+    },
+    {
+      "id": "frameLabelSize",
+      "urlKey": "fls",
+      "label": "Frame label size",
+      "section": "Animation",
+      "type": "number",
+      "display": "slider",
+      "default": 36,
+      "min": 10,
+      "max": 120,
+      "step": 1,
+      "help": "Font size (px) of the keyframe caption.",
+      "showIf": {
+        "renderMode": [
+          "vector",
+          "statistical"
+        ]
+      }
+    },
+    {
+      "id": "frameLabelWeight",
+      "urlKey": "flw",
+      "label": "Frame label weight",
+      "section": "Animation",
+      "type": "select",
+      "default": "700",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "800",
+          "label": "Heavy"
+        }
+      ],
+      "showIf": {
+        "renderMode": [
+          "vector",
+          "statistical"
+        ]
+      }
+    },
+    {
+      "id": "frameLabelColor",
+      "urlKey": "flc",
+      "label": "Frame label colour",
+      "section": "Animation",
+      "type": "color",
+      "default": "",
+      "help": "Blank = auto-contrast with the background.",
+      "showIf": {
+        "renderMode": [
+          "vector",
+          "statistical"
+        ]
+      }
+    },
+    {
+      "id": "frameLabelPos",
+      "urlKey": "flp",
+      "label": "Frame label position",
+      "section": "Animation",
+      "type": "select",
+      "default": "tr",
+      "options": [
+        {
+          "value": "tl",
+          "label": "Top left"
+        },
+        {
+          "value": "tr",
+          "label": "Top right"
+        },
+        {
+          "value": "bl",
+          "label": "Bottom left"
+        },
+        {
+          "value": "br",
+          "label": "Bottom right"
+        }
+      ],
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "line",
+          "area",
+          "pie",
+          "donut",
+          "scatter"
+        ]
+      }
+    },
+    {
+      "id": "animEase",
+      "urlKey": "ae",
+      "label": "Motion",
+      "section": "Animation",
+      "type": "select",
+      "default": "smooth",
+      "options": [
+        {
+          "value": "smooth",
+          "label": "Smooth (hold + ease)"
+        },
+        {
+          "value": "linear",
+          "label": "Linear (constant)"
+        },
+        {
+          "value": "steps",
+          "label": "Steps (snap between frames)"
+        }
+      ],
+      "help": "How values or scene motion progress: Smooth eases, Linear moves at a constant rate, and Steps snaps between data frames."
+    },
+    {
+      "id": "animDirection",
+      "urlKey": "ad",
+      "label": "Loop style",
+      "section": "Animation",
+      "type": "select",
+      "default": "loop",
+      "options": [
+        {
+          "value": "loop",
+          "label": "Loop (jump back to start)"
+        },
+        {
+          "value": "bounce",
+          "label": "Bounce (play back in reverse)"
+        }
+      ],
+      "help": "Loop restarts from the first frame each cycle; Bounce plays forward then back for a seamless ping-pong."
+    },
+    {
+      "id": "stackMode",
+      "urlKey": "sm",
+      "label": "Series layout",
+      "section": "Chart",
+      "type": "select",
+      "default": "grouped",
+      "options": [
+        {
+          "value": "grouped",
+          "label": "Grouped (side by side)"
+        },
+        {
+          "value": "stacked",
+          "label": "Stacked"
+        },
+        {
+          "value": "stacked100",
+          "label": "Stacked 100%"
+        }
+      ],
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "area"
+        ]
+      }
+    },
+    {
+      "id": "curve",
+      "urlKey": "cv",
+      "label": "Line shape",
+      "section": "Chart",
+      "type": "select",
+      "default": "monotone",
+      "options": [
+        {
+          "value": "linear",
+          "label": "Straight"
+        },
+        {
+          "value": "monotone",
+          "label": "Smooth (monotone)"
+        },
+        {
+          "value": "natural",
+          "label": "Smooth (natural)"
+        },
+        {
+          "value": "catmullRom",
+          "label": "Smooth (Catmull–Rom)"
+        },
+        {
+          "value": "cardinal",
+          "label": "Smooth (cardinal)"
+        },
+        {
+          "value": "basis",
+          "label": "Smooth (basis)"
+        },
+        {
+          "value": "step",
+          "label": "Step (mid)"
+        },
+        {
+          "value": "stepBefore",
+          "label": "Step (before)"
+        },
+        {
+          "value": "stepAfter",
+          "label": "Step (after)"
+        },
+        {
+          "value": "bumpX",
+          "label": "Bump"
+        }
+      ],
+      "showIf": {
+        "chartType": [
+          "line",
+          "area"
+        ]
+      }
+    },
+    {
+      "id": "showPoints",
+      "urlKey": "pt",
+      "label": "Show point markers",
+      "section": "Chart",
+      "type": "boolean",
+      "default": false,
+      "showIf": {
+        "chartType": [
+          "line",
+          "area"
+        ]
+      }
+    },
+    {
+      "id": "pointSize",
+      "urlKey": "ps",
+      "label": "Point size",
+      "section": "Chart",
+      "type": "number",
+      "display": "slider",
+      "default": 10,
+      "min": 2,
+      "max": 48,
+      "step": 1,
+      "showIf": {
+        "chartType": [
+          "scatter",
+          "line",
+          "area",
+          "slope",
+          "bump",
+          "dumbbell",
+          "lollipop",
+          "pareto"
+        ]
+      }
+    },
+    {
+      "id": "sizeBy",
+      "urlKey": "sz",
+      "label": "Bubble size",
+      "section": "Chart",
+      "type": "select",
+      "default": "uniform",
+      "options": [
+        {
+          "value": "uniform",
+          "label": "Uniform dots"
+        },
+        {
+          "value": "auto",
+          "label": "By 3rd number column (bubble)"
+        }
+      ],
+      "showIf": {
+        "chartType": "scatter"
+      }
+    },
+    {
+      "id": "lineWidth",
+      "urlKey": "lw",
+      "label": "Line width",
+      "section": "Chart",
+      "type": "number",
+      "display": "slider",
+      "default": 3,
+      "min": 1,
+      "max": 16,
+      "step": 1,
+      "showIf": {
+        "chartType": [
+          "line",
+          "area",
+          "radar",
+          "lollipop",
+          "dumbbell",
+          "slope",
+          "bump",
+          "stream",
+          "parallel",
+          "pareto",
+          "bullet",
+          "range-bar"
+        ]
+      }
+    },
+    {
+      "id": "fillOpacity",
+      "urlKey": "fo",
+      "label": "Fill opacity %",
+      "section": "Chart",
+      "type": "number",
+      "display": "slider",
+      "default": 85,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "showIf": {
+        "chartType": [
+          "area",
+          "radar",
+          "scatter",
+          "stream",
+          "parallel",
+          "chord"
+        ]
+      }
+    },
+    {
+      "id": "donutRadius",
+      "urlKey": "dr",
+      "label": "Inner radius (hole)",
+      "section": "Chart",
+      "type": "number",
+      "display": "slider",
+      "default": 0.55,
+      "min": 0,
+      "max": 0.9,
+      "step": 0.01,
+      "showIf": {
+        "chartType": [
+          "donut",
+          "radial-bar",
+          "gauge"
+        ]
+      }
+    },
+    {
+      "id": "sliceGap",
+      "urlKey": "sg",
+      "label": "Gap between slices",
+      "section": "Chart",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 0,
+      "max": 24,
+      "step": 1,
+      "showIf": {
+        "chartType": [
+          "pie",
+          "donut",
+          "radial-bar"
+        ]
+      }
+    },
+    {
+      "id": "cornerRadius",
+      "urlKey": "cr",
+      "label": "Corner radius",
+      "section": "Chart",
+      "type": "number",
+      "display": "slider",
+      "default": 6,
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "pie",
+          "donut",
+          "radial-bar",
+          "treemap",
+          "heatmap",
+          "histogram",
+          "polar",
+          "funnel",
+          "waffle",
+          "sunburst",
+          "icicle",
+          "waterfall",
+          "pareto",
+          "bullet",
+          "range-bar"
+        ]
+      }
+    },
+    {
+      "id": "barPadding",
+      "urlKey": "bp",
+      "label": "Bar spacing",
+      "section": "Chart",
+      "type": "number",
+      "display": "slider",
+      "default": 0.2,
+      "min": 0,
+      "max": 0.9,
+      "step": 0.01,
+      "help": "Gap between categories (each group of bars).",
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "radial-bar",
+          "histogram",
+          "waterfall",
+          "lollipop",
+          "pareto",
+          "bullet",
+          "range-bar"
+        ]
+      }
+    },
+    {
+      "id": "barGap",
+      "urlKey": "bpg",
+      "label": "Series gap",
+      "section": "Chart",
+      "type": "number",
+      "display": "slider",
+      "default": 0.08,
+      "min": 0,
+      "max": 0.8,
+      "step": 0.01,
+      "help": "Gap between the bars of different series WITHIN a group (grouped bars only).",
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal"
+        ]
+      }
+    },
+    {
+      "id": "binCount",
+      "urlKey": "bc",
+      "label": "Bins (0 = auto)",
+      "section": "Chart",
+      "type": "number",
+      "default": 0,
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "showIf": {
+        "chartType": "histogram"
+      }
+    },
+    {
+      "id": "sort",
+      "urlKey": "so",
+      "label": "Sort",
+      "section": "Chart",
+      "type": "select",
+      "default": "none",
+      "options": [
+        {
+          "value": "none",
+          "label": "As entered"
+        },
+        {
+          "value": "desc",
+          "label": "Largest first"
+        },
+        {
+          "value": "asc",
+          "label": "Smallest first"
+        },
+        {
+          "value": "alpha",
+          "label": "A → Z by label"
+        }
+      ],
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "pie",
+          "donut",
+          "radial-bar",
+          "treemap",
+          "pack",
+          "polar",
+          "funnel",
+          "waffle"
+        ]
+      }
+    },
+    {
+      "id": "labelLayout",
+      "urlKey": "ll",
+      "label": "Category label layout",
+      "section": "Labels & bar size",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {
+          "value": "auto",
+          "label": "Auto-fit"
+        },
+        {
+          "value": "horizontal",
+          "label": "Horizontal"
+        },
+        {
+          "value": "angled",
+          "label": "Angled (45°)"
+        },
+        {
+          "value": "wrap",
+          "label": "Wrap to lines"
+        }
+      ],
+      "help": "How long category labels are fitted. Auto wraps them into the label column on horizontal bars, and angles or wraps them on vertical bars when they'd collide — instead of truncating them.",
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "lollipop",
+          "dumbbell",
+          "pareto",
+          "bullet",
+          "range-bar"
+        ]
+      }
+    },
+    {
+      "id": "labelReserve",
+      "urlKey": "lr",
+      "label": "Label area (%, 0 = auto)",
+      "section": "Labels & bar size",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "help": "How much of the picture to hand to the category labels — the width of the label column on horizontal bars, or the height of the label strip on vertical bars. 0 fits automatically; raise it to give long labels more room (the bars take the rest).",
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "lollipop",
+          "dumbbell",
+          "pareto",
+          "bullet",
+          "range-bar"
+        ]
+      }
+    },
+    {
+      "id": "labelLines",
+      "urlKey": "ln",
+      "label": "Max label lines",
+      "section": "Labels & bar size",
+      "type": "number",
+      "display": "slider",
+      "default": 2,
+      "min": 1,
+      "max": 4,
+      "step": 1,
+      "help": "How many lines a wrapped category label may use before it's trimmed with an ellipsis.",
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "lollipop",
+          "dumbbell",
+          "pareto",
+          "bullet",
+          "range-bar"
+        ]
+      }
+    },
+    {
+      "id": "barThickness",
+      "urlKey": "bt",
+      "label": "Bar thickness (px, 0 = auto)",
+      "section": "Labels & bar size",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 400,
+      "step": 1,
+      "help": "Cap the thickness of each bar. 0 lets bars fill their slot; a value makes them thinner and centres them, freeing space for labels.",
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal"
+        ]
+      }
+    },
+    {
+      "id": "yScaleType",
+      "urlKey": "ys",
+      "label": "Value scale",
+      "section": "Axes & scale",
+      "type": "select",
+      "default": "linear",
+      "options": [
+        {
+          "value": "linear",
+          "label": "Linear"
+        },
+        {
+          "value": "log",
+          "label": "Logarithmic"
+        },
+        {
+          "value": "sqrt",
+          "label": "Square-root"
+        }
+      ],
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "line",
+          "area",
+          "scatter",
+          "histogram",
+          "lollipop",
+          "dumbbell",
+          "slope",
+          "bump",
+          "waterfall",
+          "marimekko",
+          "parallel"
+        ]
+      }
+    },
+    {
+      "id": "yZero",
+      "urlKey": "yz",
+      "label": "Start value axis at zero",
+      "section": "Axes & scale",
+      "type": "boolean",
+      "default": true,
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "line",
+          "area",
+          "scatter",
+          "lollipop",
+          "dumbbell",
+          "slope",
+          "bump"
+        ]
+      }
+    },
+    {
+      "id": "yMax",
+      "urlKey": "ym",
+      "label": "Value axis max (0 = auto)",
+      "section": "Axes & scale",
+      "type": "number",
+      "default": 0,
+      "min": 0,
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "line",
+          "area",
+          "scatter",
+          "histogram",
+          "lollipop",
+          "dumbbell",
+          "slope",
+          "bump",
+          "waterfall",
+          "gauge",
+          "pareto",
+          "bullet",
+          "range-bar"
+        ]
+      }
+    },
+    {
+      "id": "showGrid",
+      "urlKey": "gd",
+      "label": "Gridlines",
+      "section": "Axes & scale",
+      "type": "boolean",
+      "default": true,
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "line",
+          "area",
+          "scatter",
+          "histogram",
+          "lollipop",
+          "dumbbell",
+          "slope",
+          "bump",
+          "waterfall",
+          "polar",
+          "pareto",
+          "bullet",
+          "range-bar"
+        ]
+      }
+    },
+    {
+      "id": "showAxes",
+      "urlKey": "ax",
+      "label": "Axis lines & ticks",
+      "section": "Axes & scale",
+      "type": "boolean",
+      "default": true,
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "line",
+          "area",
+          "scatter",
+          "histogram",
+          "lollipop",
+          "dumbbell",
+          "slope",
+          "bump",
+          "waterfall",
+          "marimekko",
+          "parallel",
+          "pareto",
+          "bullet",
+          "range-bar"
+        ]
+      }
+    },
+    {
+      "id": "tickCount",
+      "urlKey": "tk",
+      "label": "Approx. tick count",
+      "section": "Axes & scale",
+      "type": "number",
+      "display": "slider",
+      "default": 5,
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "line",
+          "area",
+          "scatter",
+          "histogram",
+          "lollipop",
+          "dumbbell",
+          "slope",
+          "bump",
+          "waterfall",
+          "pareto",
+          "bullet",
+          "range-bar"
+        ]
+      }
+    },
+    {
+      "id": "numberFormat",
+      "urlKey": "nf",
+      "label": "Number format",
+      "section": "Axes & scale",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {
+          "value": "auto",
+          "label": "Auto"
+        },
+        {
+          "value": "si",
+          "label": "SI (1.2k, 3.4M)"
+        },
+        {
+          "value": "comma",
+          "label": "Thousands (1,234)"
+        },
+        {
+          "value": "integer",
+          "label": "Integer"
+        },
+        {
+          "value": "decimal1",
+          "label": "1 decimal"
+        },
+        {
+          "value": "decimal2",
+          "label": "2 decimals"
+        },
+        {
+          "value": "percent",
+          "label": "Percent"
+        },
+        {
+          "value": "currency",
+          "label": "Currency (€)"
+        }
+      ]
+    },
+    {
+      "id": "xTitle",
+      "urlKey": "xt",
+      "label": "X-axis title",
+      "section": "Axes & scale",
+      "type": "text",
+      "default": "",
+      "placeholder": "Optional",
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "line",
+          "area",
+          "scatter",
+          "histogram",
+          "lollipop",
+          "dumbbell",
+          "slope",
+          "bump",
+          "waterfall",
+          "marimekko",
+          "pareto",
+          "bullet",
+          "range-bar"
+        ]
+      }
+    },
+    {
+      "id": "yTitle",
+      "urlKey": "yt",
+      "label": "Y-axis title",
+      "section": "Axes & scale",
+      "type": "text",
+      "default": "",
+      "placeholder": "Optional",
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "line",
+          "area",
+          "scatter",
+          "histogram",
+          "lollipop",
+          "dumbbell",
+          "slope",
+          "bump",
+          "waterfall",
+          "marimekko",
+          "pareto",
+          "bullet",
+          "range-bar"
+        ]
+      }
+    },
+    {
+      "id": "timeAxis",
+      "urlKey": "tax",
+      "label": "Time axis",
+      "section": "Axes & scale",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        {
+          "value": "auto",
+          "label": "Auto-detect dates"
+        },
+        {
+          "value": "on",
+          "label": "On (parse dates)"
+        },
+        {
+          "value": "off",
+          "label": "Off (categories)"
+        }
+      ],
+      "help": "When the label column holds dates (2024-01-15, Jan 2024, Q1 2024, a plain year…), plot them on a real time axis — proportional spacing that respects the actual gaps, with nice date ticks. Auto detects; off keeps evenly-spaced categories.",
+      "showIf": {
+        "chartType": [
+          "line",
+          "area"
+        ]
+      }
+    },
+    {
+      "id": "reference",
+      "urlKey": "rf",
+      "label": "Reference lines & bands",
+      "section": "Axes & scale",
+      "type": "longtext",
+      "rows": 3,
+      "default": "",
+      "placeholder": "avg\n100 Goal #30ba78\n80..120 Target",
+      "help": "Draw guide lines and shaded bands across the value axis — one per line. A number (e.g. 100) or a statistic (avg, median, min, max) draws a line; a range (80..120) draws a band. Add an optional label and a #colour: '100 Goal #30ba78'. Great for targets, thresholds and averages.",
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "line",
+          "area",
+          "scatter",
+          "box",
+          "violin",
+          "beeswarm"
+        ]
+      }
+    },
+    {
+      "id": "trend",
+      "urlKey": "tr",
+      "label": "Trend / fit line",
+      "section": "Axes & scale",
+      "type": "select",
+      "default": "none",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "linear",
+          "label": "Linear (least squares)"
+        },
+        {
+          "value": "poly2",
+          "label": "Quadratic curve"
+        },
+        {
+          "value": "exp",
+          "label": "Exponential"
+        },
+        {
+          "value": "log",
+          "label": "Logarithmic"
+        },
+        {
+          "value": "power",
+          "label": "Power"
+        },
+        {
+          "value": "movavg",
+          "label": "Moving average"
+        }
+      ],
+      "help": "Overlay a fitted trend line. Linear/quadratic/exponential/log/power are least-squares regressions (R² shown at the line's end); moving average smooths the series. Drawn dashed over each series (line/area) or the point cloud (scatter).",
+      "showIf": {
+        "chartType": [
+          "line",
+          "area",
+          "scatter"
+        ]
+      }
+    },
+    {
+      "id": "errorColumn",
+      "urlKey": "ec",
+      "label": "Uncertainty / error",
+      "section": "Axes & scale",
+      "type": "text",
+      "default": "",
+      "placeholder": "e.g. Error, StdDev, or 4",
+      "help": "Name (or 1-based number) of a column holding the ± error for each value — draws whiskers with end caps around every point/bar. The column is used for the error, not plotted as its own series. Leave blank for none.",
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "line",
+          "area",
+          "scatter"
+        ]
+      }
+    },
+    {
+      "id": "palette1",
+      "urlKey": "c1",
+      "label": "Colour 1",
+      "section": "Custom palette",
+      "type": "color",
+      "default": "",
+      "help": "Set your categorical palette slot by slot — Colour 1 is the first series (or category), Colour 2 the second, and so on. Leave a slot blank to use the brand palette there. Great for leading with your primary set, then your other brand colours."
+    },
+    {
+      "id": "palette2",
+      "urlKey": "c2",
+      "label": "Colour 2",
+      "section": "Custom palette",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "id": "palette3",
+      "urlKey": "c3",
+      "label": "Colour 3",
+      "section": "Custom palette",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "id": "palette4",
+      "urlKey": "c4",
+      "label": "Colour 4",
+      "section": "Custom palette",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "id": "palette5",
+      "urlKey": "c5",
+      "label": "Colour 5",
+      "section": "Custom palette",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "id": "palette6",
+      "urlKey": "c6",
+      "label": "Colour 6",
+      "section": "Custom palette",
+      "type": "color",
+      "default": ""
+    },
+    {
+      "id": "annotations",
+      "urlKey": "an",
+      "label": "Annotations",
+      "section": "Annotations",
+      "type": "longtext",
+      "rows": 2,
+      "default": "",
+      "placeholder": "click a data label to annotate",
+      "help": "Click a data label (or category label) on a bar or line chart to attach a directional arrow + a short note — for statistical significance, an event, a small-sample flag, or any callout. Set a text or fill colour and the other contrasts automatically. Advanced: a JSON map of label → {icon, text, colours}.",
+      "showIf": {
+        "chartType": [
+          "bar",
+          "bar-horizontal",
+          "line",
+          "area"
+        ]
+      }
+    },
+    {
+      "id": "heading",
+      "urlKey": "t",
+      "label": "Title",
+      "section": "Titles & labels",
+      "type": "text",
+      "default": "",
+      "placeholder": "Chart title"
+    },
+    {
+      "id": "subheading",
+      "urlKey": "st",
+      "label": "Subtitle / source",
+      "section": "Titles & labels",
+      "type": "text",
+      "default": "",
+      "placeholder": "Optional subtitle or data source"
+    },
+    {
+      "id": "titleSize",
+      "urlKey": "tz",
+      "label": "Title text size",
+      "section": "Titles & labels",
+      "type": "number",
+      "display": "slider",
+      "default": 34,
+      "min": 14,
+      "max": 72,
+      "step": 1
+    },
+    {
+      "id": "titleWeight",
+      "urlKey": "tw",
+      "label": "Title weight",
+      "section": "Titles & labels",
+      "type": "number",
+      "display": "slider",
+      "default": 500,
+      "min": 100,
+      "max": 900,
+      "step": 100,
+      "help": "Font weight of the chart title (100 Thin → 900 Black)."
+    },
+    {
+      "id": "titlePosition",
+      "urlKey": "tpo",
+      "label": "Title position",
+      "section": "Titles & labels",
+      "type": "select",
+      "default": "top",
+      "options": [
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        }
+      ]
+    },
+    {
+      "id": "titleAlign",
+      "urlKey": "tal",
+      "label": "Title alignment",
+      "section": "Titles & labels",
+      "type": "select",
+      "default": "left",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Centre"
+        },
+        {
+          "value": "right",
+          "label": "Right"
+        }
+      ]
+    },
+    {
+      "id": "showValues",
+      "urlKey": "sv",
+      "label": "Show data labels",
+      "section": "Titles & labels",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "id": "valueSize",
+      "urlKey": "vsz",
+      "label": "Data label size",
+      "section": "Titles & labels",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "help": "Font size of the value labels on bars/points/slices, in px. 0 = auto (follows the label text size)."
+    },
+    {
+      "id": "valueOffset",
+      "urlKey": "voff",
+      "label": "Data label distance",
+      "section": "Titles & labels",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -20,
+      "max": 80,
+      "step": 1,
+      "help": "Extra gap (px) between a value label and its bar/point. Positive pushes it further away; negative pulls it in over the mark."
+    },
+    {
+      "id": "valueWeight",
+      "urlKey": "vw",
+      "label": "Data label weight",
+      "section": "Titles & labels",
+      "type": "select",
+      "default": "600",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "800",
+          "label": "Heavy"
+        }
+      ],
+      "help": "Font weight of the value labels."
+    },
+    {
+      "id": "valueColor",
+      "urlKey": "vc",
+      "label": "Data label colour",
+      "section": "Titles & labels",
+      "type": "color",
+      "default": "",
+      "help": "Colour of the value labels. Leave blank to auto-contrast with the background (dark bg → light labels, and legible text inside stacked bars)."
+    },
+    {
+      "id": "labelSize",
+      "urlKey": "lz",
+      "label": "Label text size",
+      "section": "Titles & labels",
+      "type": "number",
+      "display": "slider",
+      "default": 22,
+      "min": 8,
+      "max": 56,
+      "step": 1
+    },
+    {
+      "id": "labelWeight",
+      "urlKey": "lb",
+      "label": "Label weight",
+      "section": "Titles & labels",
+      "type": "number",
+      "display": "slider",
+      "default": 500,
+      "min": 100,
+      "max": 900,
+      "step": 100,
+      "help": "Font weight of the axis category labels and legend (100 Thin → 900 Black)."
+    },
+    {
+      "id": "axisTitleSize",
+      "urlKey": "ats",
+      "label": "Axis title size",
+      "section": "Titles & labels",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "help": "Font size (px) of the x/y axis titles. 0 = auto."
+    },
+    {
+      "id": "axisTitleWeight",
+      "urlKey": "atw",
+      "label": "Axis title weight",
+      "section": "Titles & labels",
+      "type": "select",
+      "default": "600",
+      "options": [
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "600",
+          "label": "Semibold"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        },
+        {
+          "value": "800",
+          "label": "Heavy"
+        }
+      ]
+    },
+    {
+      "id": "axisTitleColor",
+      "urlKey": "atc",
+      "label": "Axis title colour",
+      "section": "Titles & labels",
+      "type": "color",
+      "default": "",
+      "help": "Blank = auto-contrast with the background."
+    },
+    {
+      "id": "showLegend",
+      "urlKey": "lg",
+      "label": "Show legend",
+      "section": "Legend",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "id": "legendPosition",
+      "urlKey": "lp",
+      "label": "Legend position",
+      "section": "Legend",
+      "type": "select",
+      "default": "bc",
+      "options": [
+        {
+          "value": "tl",
+          "label": "Top · left"
+        },
+        {
+          "value": "tc",
+          "label": "Top · centre"
+        },
+        {
+          "value": "tr",
+          "label": "Top · right"
+        },
+        {
+          "value": "bl",
+          "label": "Bottom · left"
+        },
+        {
+          "value": "bc",
+          "label": "Bottom · centre"
+        },
+        {
+          "value": "br",
+          "label": "Bottom · right"
+        },
+        {
+          "value": "lt",
+          "label": "Left · top"
+        },
+        {
+          "value": "lc",
+          "label": "Left · centre"
+        },
+        {
+          "value": "lb",
+          "label": "Left · bottom"
+        },
+        {
+          "value": "rt",
+          "label": "Right · top"
+        },
+        {
+          "value": "rc",
+          "label": "Right · centre"
+        },
+        {
+          "value": "rb",
+          "label": "Right · bottom"
+        }
+      ],
+      "showIf": {
+        "showLegend": true
+      }
+    },
+    {
+      "id": "legendTextSize",
+      "urlKey": "lts",
+      "label": "Legend text size (0 = auto)",
+      "section": "Legend",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 48,
+      "step": 1,
+      "showIf": {
+        "showLegend": true
+      }
+    },
+    {
+      "id": "legendSwatchSize",
+      "urlKey": "lss",
+      "label": "Indicator size (0 = auto)",
+      "section": "Legend",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 48,
+      "step": 1,
+      "showIf": {
+        "showLegend": true
+      }
+    },
+    {
+      "id": "legendGap",
+      "urlKey": "lgp",
+      "label": "Legend item gap",
+      "section": "Legend",
+      "type": "number",
+      "display": "slider",
+      "default": 24,
+      "min": 0,
+      "max": 80,
+      "step": 1,
+      "help": "Space between legend items — horizontal spacing on top/bottom legends, row spacing on left/right legends.",
+      "showIf": {
+        "showLegend": true
+      }
+    },
+    {
+      "id": "legendRadius",
+      "urlKey": "lrd",
+      "label": "Indicator radius",
+      "section": "Legend",
+      "type": "number",
+      "display": "slider",
+      "default": 3,
+      "min": 0,
+      "max": 24,
+      "step": 1,
+      "help": "Corner radius of the legend indicator — 0 is a square, high values make a circular dot.",
+      "showIf": {
+        "showLegend": true
+      }
+    },
+    {
+      "id": "legendMono",
+      "urlKey": "lmo",
+      "label": "Monospace",
+      "section": "Legend",
+      "type": "boolean",
+      "default": false,
+      "showIf": {
+        "showLegend": true
+      }
+    },
+    {
+      "id": "legendBold",
+      "urlKey": "lbo",
+      "label": "Bold",
+      "section": "Legend",
+      "type": "boolean",
+      "default": false,
+      "showIf": {
+        "showLegend": true
+      }
+    },
+    {
+      "id": "legendItalic",
+      "urlKey": "lit",
+      "label": "Italic",
+      "section": "Legend",
+      "type": "boolean",
+      "default": false,
+      "showIf": {
+        "showLegend": true
+      }
+    },
+    {
+      "id": "legendColor",
+      "urlKey": "lgc",
+      "label": "Legend text colour",
+      "section": "Legend",
+      "type": "color",
+      "default": "",
+      "help": "Blank = auto-contrast with the background."
+    },
+    {
+      "id": "width",
+      "label": "Width",
+      "type": "number",
+      "default": 1280,
+      "min": 100,
+      "max": 8000,
+      "group": "export"
+    },
+    {
+      "id": "height",
+      "label": "Height",
+      "type": "number",
+      "default": 800,
+      "min": 100,
+      "max": 8000,
+      "group": "export"
+    }
+  ]
+}

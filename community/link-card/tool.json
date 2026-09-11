@@ -1,0 +1,176 @@
+{
+  "id": "link-card",
+  "name": "Link Card",
+  "description": "Paste a link, get a branded social card - title, description, site chip and a thumbnail, at Open Graph, square or summary size.",
+  "a11yLabel": "Link card for {{siteLabel}}: {{headingLabel}}",
+  "version": "1.0.1",
+  "engineVersion": "^1.0.0",
+  "status": "community",
+  "category": "everyone",
+  "tags": [
+    "open graph",
+    "og image",
+    "social card",
+    "link preview",
+    "share",
+    "twitter card",
+    "thumbnail"
+  ],
+  "render": {
+    "width": 1200,
+    "height": 630,
+    "formats": ["png", "jpg", "webp", "svg", "penpot", "pdf", "avif", "tiff"],
+    "actions": ["copy", "download", "save"],
+    "filenameFrom": ["siteName", "heading"],
+    "transparentBg": false
+  },
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "url",
+      "label": "Link",
+      "type": "url",
+      "required": true,
+      "default": "https://atlasfield.io/notes/quiet-interfaces",
+      "help": "The page this card points at. Only the site is printed, without the protocol, so a long address stays out of the artwork."
+    },
+    {
+      "id": "heading",
+      "label": "Title",
+      "type": "text",
+      "default": "Quiet interfaces do more with less",
+      "help": "The page title. Nothing here fetches the page, so type it in."
+    },
+    {
+      "id": "body",
+      "label": "Description",
+      "type": "longtext",
+      "default": "A field note on restraint - fewer controls, clearer defaults, and what happens when a product stops shouting.",
+      "help": "The line under the title. Two lines is the most that reads well at thumbnail size."
+    },
+    {
+      "id": "siteName",
+      "label": "Site name",
+      "type": "text",
+      "default": "Atlas Field",
+      "help": "Printed in the chip beside the address. Its first letter is the monogram on the chip."
+    },
+    {
+      "id": "image",
+      "label": "Thumbnail",
+      "type": "asset",
+      "assetType": "image",
+      "allowUpload": true,
+      "help": "Drop in a picture, or paste a Lolly URL Capture link for a live screenshot of the page. Leave it empty and the card prints a monogram panel."
+    },
+    {
+      "id": "imageFraming",
+      "label": "Zoom & Position",
+      "type": "vector",
+      "help": "Zoom scales the thumbnail up; X / Y pan it within its panel (like object-position). Drag a label or type a value.",
+      "fields": [
+        { "id": "zoom", "label": "Zoom", "min": 100, "max": 400, "step": 1, "default": 100 },
+        { "id": "x", "label": "X", "min": 0, "max": 100, "step": 1, "default": 50 },
+        { "id": "y", "label": "Y", "min": 0, "max": 100, "step": 1, "default": 50 }
+      ]
+    },
+    {
+      "id": "layout",
+      "label": "Size",
+      "type": "select",
+      "default": "og-horizontal",
+      "help": "Where the card is going. Picking one sets the export size, so the file comes out at the size the platform wants.",
+      "options": [
+        {
+          "value": "og-horizontal",
+          "label": "Open Graph - 1200 x 630",
+          "width": 1200,
+          "height": 630,
+          "unit": "px"
+        },
+        {
+          "value": "square",
+          "label": "Square - 1080 x 1080",
+          "width": 1080,
+          "height": 1080,
+          "unit": "px"
+        },
+        {
+          "value": "twitter-summary",
+          "label": "Summary card - 1200 x 600",
+          "width": 1200,
+          "height": 600,
+          "unit": "px"
+        }
+      ]
+    },
+    {
+      "id": "color",
+      "label": "Ink",
+      "type": "color",
+      "group": "Look",
+      "default": "{color.semantic.text}"
+    },
+    {
+      "id": "background",
+      "label": "Card",
+      "type": "color",
+      "group": "Look",
+      "default": "{color.semantic.surface}"
+    },
+    {
+      "id": "accent",
+      "label": "Accent",
+      "type": "color",
+      "group": "Look",
+      "default": "{color.semantic.primary}",
+      "help": "The chip, the rule under the title, and the monogram panel that stands in for a missing thumbnail."
+    }
+  ],
+  "examples": [
+    {
+      "label": "Open Graph, light",
+      "values": {
+        "layout": "og-horizontal",
+        "color": "#17232b",
+        "background": "#ffffff",
+        "accent": "#1f5f52"
+      }
+    },
+    {
+      "label": "Square, warm paper",
+      "values": {
+        "layout": "square",
+        "heading": "Field notes, collected",
+        "body": "Six months of small decisions, written down while they were still fresh enough to argue about.",
+        "color": "#241d16",
+        "background": "#faf6ef",
+        "accent": "#8a5a2b"
+      }
+    },
+    {
+      "label": "Summary card, cool grey",
+      "values": {
+        "layout": "twitter-summary",
+        "heading": "Release 4.2 is out",
+        "body": "Faster exports, a calmer sidebar, and print sizes that are finally true to the millimetre.",
+        "color": "#14181b",
+        "background": "#f4f6f7",
+        "accent": "#2b5f9e"
+      }
+    },
+    {
+      "label": "Ink card",
+      "values": {
+        "layout": "og-horizontal",
+        "color": "#f4f6f7",
+        "background": "#14181b",
+        "accent": "#7fd1b9"
+      }
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "ارفع عرض PowerPoint واضبط ألوانه وخطوطه على علامتك التجارية - يُعاد بناؤه على جهازك، دون رفع أي شيء.",
+  "a11yLabel": "أداة إعادة العلامة التجارية للعرض {{fileName}}",
+  "inputs.source.label": "ملف PowerPoint",
+  "inputs.source.help": "ملف .pptx. تتم قراءته على جهازك ولا يرفع أبدا.",
+  "inputs.useTheme.label": "تطبيق سمة العلامة التجارية",
+  "inputs.useTheme.help": "استبدل لوحة ألوان العرض وخطوطه بعلامتك التجارية - يتبع كل لون مرتبط بالسمة ذلك تلقائيا.",
+  "inputs.colorMap.label": "تعيين الألوان",
+  "inputs.colorMap.help": "ألوان ثابتة موجودة في الشرائح، لكل منها لون العلامة التجارية المقترح لها. احذف صفا لترك ذلك اللون دون تغيير.",
+  "inputs.colorMap.fields.from.label": "الأصلي",
+  "inputs.colorMap.fields.to.label": "العلامة التجارية",
+  "inputs.fontMap.label": "تخطيط الخط",
+  "inputs.fontMap.help": "الخطوط المذكورة في العرض التقديمي، كل منها مع بديله من العلامة التجارية. احذف صفا للإبقاء على ذلك الخط.",
+  "inputs.fontMap.fields.from.label": "الأصلي",
+  "inputs.fontMap.fields.to.label": "العلامة التجارية",
+  "inputs.dropFonts.label": "إزالة الخطوط المضمنة",
+  "inputs.dropFonts.help": "الخطوط الخاصة بالعلامة التجارية القديمة المضمنة في الملف تصبح قديمة بعد الاستبدال وقد تكون مقيدة بترخيص."
+}

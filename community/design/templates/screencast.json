@@ -1,0 +1,24 @@
+{
+  "id": "screencast",
+  "name": "YouTube screencast",
+  "category": "Video",
+  "description": "A 16:9 recording workspace. Record your screen, then trim, add captions, and export MP4.",
+  "values": {
+    "boxes": [
+      {
+        "id": "scene1",
+        "name": "Screen recording",
+        "kind": "frame",
+        "x": 0,
+        "y": 0,
+        "w": 1920,
+        "h": 1080,
+        "rot": 0,
+        "shape": "rect",
+        "bg": "var(--brand-surface, #ffffff)",
+        "order": 0,
+        "clipChildren": true
+      }
+    ]
+  }
+}

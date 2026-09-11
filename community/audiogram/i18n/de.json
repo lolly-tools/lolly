@@ -1,0 +1,22 @@
+{
+  "name": "Audiogramm",
+  "description": "Verwandelt eine Sprachaufnahme oder einen Song in ein Marken-Video, das sich wirklich zum Klang bewegt - Balken, Spektrum, Ring, Ridgeline oder Scope, bereit für Social Media.",
+  "a11yLabel": "Audiogramm-Karte für {{default title \"an audio clip\"}} mit animierter Wellenform",
+  "inputs.audio.label": "Audio",
+  "inputs.audio.help": "Wählen Sie einen Titel aus Ihrer Bibliothek oder laden Sie einen Clip hoch. Er wird auf Ihrem Gerät dekodiert, um die Wellenform zu zeichnen - das Audio verlässt den Browser nie. Leer lassen für eine Platzhalter-Wellenform. Um es im Export zu hören, wählen Sie \"Audio dieses Tools\" als Audiospur in den Download-Optionen.",
+  "inputs.title.label": "Titel",
+  "inputs.title.help": "Die Überschrift auf der Karte - ein Episodenname oder ein hervorgehobenes Zitat.",
+  "inputs.subtitle.label": "Untertitel",
+  "inputs.subtitle.help": "Eine kleinere Zeile unter dem Titel - Sendungsname, Gast oder wo man zuhören kann.",
+  "inputs.style.label": "Wellenform-Stil",
+  "inputs.style.options.bars": "Balken",
+  "inputs.style.options.wave": "Welle",
+  "inputs.style.options.ring": "Ring",
+  "inputs.size.label": "Größe",
+  "inputs.size.options.square": "Quadrat (1:1)",
+  "inputs.size.options.wide": "Breit (16:9)",
+  "inputs.size.options.story": "Story (9:16)",
+  "inputs.accent.label": "Wellenform-Farbe",
+  "inputs.ink.label": "Textfarbe",
+  "inputs.bg.label": "Hintergrund"
+}

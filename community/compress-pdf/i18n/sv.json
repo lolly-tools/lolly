@@ -1,0 +1,14 @@
+{
+  "name": "Compress",
+  "description": "Krympa en PDF genom att komprimera om bilderna - på din enhet.",
+  "a11yLabel": "PDF-komprimerare för {{fileName}}",
+  "inputs.source.label": "PDF",
+  "inputs.source.help": "En PDF-fil. Den läses i din webbläsare och lämnar aldrig din enhet.",
+  "inputs.level.label": "Komprimering",
+  "inputs.level.help": "Hur hårt inbäddade bilder komprimeras. Starkare betyder mindre filer och mjukare bilder.",
+  "inputs.level.options.light": "Lätt - behåll hög kvalitet",
+  "inputs.level.options.balanced": "Balanserad",
+  "inputs.level.options.strong": "Stark - minsta fil",
+  "inputs.grayscale.label": "Konvertera bilder till gråskala",
+  "inputs.grayscale.help": "Ta bort färg från bilder för extra besparingar - användbart för skannade textdokument."
+}

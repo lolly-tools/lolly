@@ -1,0 +1,7 @@
+{
+  "name": "Rimuovi dati nascosti",
+  "description": "Rivela e rimuovi metadati nascosti da immagini e PDF - sul tuo dispositivo.",
+  "a11yLabel": "Report sui dati nascosti per {{fileName}}",
+  "inputs.source.label": "Immagine o PDF",
+  "inputs.source.help": "Un file JPEG, PNG, SVG o PDF. Viene letto nel tuo browser e non lascia mai il tuo dispositivo."
+}

@@ -1,0 +1,426 @@
+{
+  "nuremberg": {
+    "label": "Nuremberg",
+    "center": [
+      11.0767,
+      49.4521
+    ],
+    "data": "roads/nuremberg.json"
+  },
+  "provo": {
+    "label": "Provo",
+    "center": [
+      -111.6586,
+      40.2338
+    ],
+    "data": "roads/provo.json"
+  },
+  "munich": {
+    "label": "Munich",
+    "center": [
+      11.5755,
+      48.1374
+    ],
+    "data": "roads/munich.json"
+  },
+  "berlin": {
+    "label": "Berlin",
+    "center": [
+      13.405,
+      52.52
+    ],
+    "data": "roads/berlin.json"
+  },
+  "prague": {
+    "label": "Prague",
+    "center": [
+      14.4209,
+      50.0875
+    ],
+    "data": "roads/prague.json"
+  },
+  "london": {
+    "label": "London",
+    "center": [
+      -0.1276,
+      51.5072
+    ],
+    "data": "roads/london.json"
+  },
+  "paris": {
+    "label": "Paris",
+    "center": [
+      2.3376,
+      48.8606
+    ],
+    "data": "roads/paris.json"
+  },
+  "barcelona": {
+    "label": "Barcelona",
+    "center": [
+      2.1734,
+      41.3851
+    ],
+    "data": "roads/barcelona.json"
+  },
+  "amsterdam": {
+    "label": "Amsterdam",
+    "center": [
+      4.8952,
+      52.3702
+    ],
+    "data": "roads/amsterdam.json"
+  },
+  "dublin": {
+    "label": "Dublin",
+    "center": [
+      -6.2603,
+      53.3498
+    ],
+    "data": "roads/dublin.json"
+  },
+  "newyork": {
+    "label": "New York",
+    "center": [
+      -73.9857,
+      40.7484
+    ],
+    "data": "roads/newyork.json"
+  },
+  "sanfrancisco": {
+    "label": "San Francisco",
+    "center": [
+      -122.4089,
+      37.7837
+    ],
+    "data": "roads/sanfrancisco.json"
+  },
+  "tokyo": {
+    "label": "Tokyo",
+    "center": [
+      139.7671,
+      35.6812
+    ],
+    "data": "roads/tokyo.json"
+  },
+  "singapore": {
+    "label": "Singapore",
+    "center": [
+      103.8519,
+      1.2897
+    ],
+    "data": "roads/singapore.json"
+  },
+  "sydney": {
+    "label": "Sydney",
+    "center": [
+      151.2093,
+      -33.8688
+    ],
+    "data": "roads/sydney.json"
+  },
+  "madrid": {
+    "label": "Madrid",
+    "center": [
+      -3.7038,
+      40.4168
+    ],
+    "data": "roads/madrid.json"
+  },
+  "rome": {
+    "label": "Rome",
+    "center": [
+      12.4823,
+      41.8955
+    ],
+    "data": "roads/rome.json"
+  },
+  "vienna": {
+    "label": "Vienna",
+    "center": [
+      16.3725,
+      48.2085
+    ],
+    "data": "roads/vienna.json"
+  },
+  "lisbon": {
+    "label": "Lisbon",
+    "center": [
+      -9.1393,
+      38.7139
+    ],
+    "data": "roads/lisbon.json"
+  },
+  "copenhagen": {
+    "label": "Copenhagen",
+    "center": [
+      12.57,
+      55.6759
+    ],
+    "data": "roads/copenhagen.json"
+  },
+  "stockholm": {
+    "label": "Stockholm",
+    "center": [
+      18.0686,
+      59.3293
+    ],
+    "data": "roads/stockholm.json"
+  },
+  "oslo": {
+    "label": "Oslo",
+    "center": [
+      10.739,
+      59.9133
+    ],
+    "data": "roads/oslo.json"
+  },
+  "helsinki": {
+    "label": "Helsinki",
+    "center": [
+      24.942,
+      60.1699
+    ],
+    "data": "roads/helsinki.json"
+  },
+  "warsaw": {
+    "label": "Warsaw",
+    "center": [
+      21.0122,
+      52.2297
+    ],
+    "data": "roads/warsaw.json"
+  },
+  "budapest": {
+    "label": "Budapest",
+    "center": [
+      19.0536,
+      47.4972
+    ],
+    "data": "roads/budapest.json"
+  },
+  "athens": {
+    "label": "Athens",
+    "center": [
+      23.7348,
+      37.9755
+    ],
+    "data": "roads/athens.json"
+  },
+  "brussels": {
+    "label": "Brussels",
+    "center": [
+      4.3525,
+      50.8467
+    ],
+    "data": "roads/brussels.json"
+  },
+  "zurich": {
+    "label": "Zurich",
+    "center": [
+      8.54,
+      47.3744
+    ],
+    "data": "roads/zurich.json"
+  },
+  "edinburgh": {
+    "label": "Edinburgh",
+    "center": [
+      -3.19,
+      55.9533
+    ],
+    "data": "roads/edinburgh.json"
+  },
+  "istanbul": {
+    "label": "Istanbul",
+    "center": [
+      28.977,
+      41.0086
+    ],
+    "data": "roads/istanbul.json"
+  },
+  "moscow": {
+    "label": "Moscow",
+    "center": [
+      37.6173,
+      55.7558
+    ],
+    "data": "roads/moscow.json"
+  },
+  "washington": {
+    "label": "Washington, DC",
+    "center": [
+      -77.0364,
+      38.8951
+    ],
+    "data": "roads/washington.json"
+  },
+  "chicago": {
+    "label": "Chicago",
+    "center": [
+      -87.6298,
+      41.8781
+    ],
+    "data": "roads/chicago.json"
+  },
+  "losangeles": {
+    "label": "Los Angeles",
+    "center": [
+      -118.2437,
+      34.0522
+    ],
+    "data": "roads/losangeles.json"
+  },
+  "toronto": {
+    "label": "Toronto",
+    "center": [
+      -79.3832,
+      43.6532
+    ],
+    "data": "roads/toronto.json"
+  },
+  "vancouver": {
+    "label": "Vancouver",
+    "center": [
+      -123.1207,
+      49.2827
+    ],
+    "data": "roads/vancouver.json"
+  },
+  "mexicocity": {
+    "label": "Mexico City",
+    "center": [
+      -99.1332,
+      19.4326
+    ],
+    "data": "roads/mexicocity.json"
+  },
+  "buenosaires": {
+    "label": "Buenos Aires",
+    "center": [
+      -58.3816,
+      -34.6037
+    ],
+    "data": "roads/buenosaires.json"
+  },
+  "riodejaneiro": {
+    "label": "Rio de Janeiro",
+    "center": [
+      -43.1822,
+      -22.9035
+    ],
+    "data": "roads/riodejaneiro.json"
+  },
+  "saopaulo": {
+    "label": "São Paulo",
+    "center": [
+      -46.6388,
+      -23.5475
+    ],
+    "data": "roads/saopaulo.json"
+  },
+  "beijing": {
+    "label": "Beijing",
+    "center": [
+      116.4074,
+      39.9087
+    ],
+    "data": "roads/beijing.json"
+  },
+  "shanghai": {
+    "label": "Shanghai",
+    "center": [
+      121.475,
+      31.2304
+    ],
+    "data": "roads/shanghai.json"
+  },
+  "seoul": {
+    "label": "Seoul",
+    "center": [
+      126.978,
+      37.5665
+    ],
+    "data": "roads/seoul.json"
+  },
+  "bangkok": {
+    "label": "Bangkok",
+    "center": [
+      100.5333,
+      13.746
+    ],
+    "data": "roads/bangkok.json"
+  },
+  "hongkong": {
+    "label": "Hong Kong",
+    "center": [
+      114.1577,
+      22.282
+    ],
+    "data": "roads/hongkong.json"
+  },
+  "mumbai": {
+    "label": "Mumbai",
+    "center": [
+      72.8311,
+      18.9389
+    ],
+    "data": "roads/mumbai.json"
+  },
+  "delhi": {
+    "label": "Delhi",
+    "center": [
+      77.2197,
+      28.6328
+    ],
+    "data": "roads/delhi.json"
+  },
+  "dubai": {
+    "label": "Dubai",
+    "center": [
+      55.2744,
+      25.1972
+    ],
+    "data": "roads/dubai.json"
+  },
+  "kualalumpur": {
+    "label": "Kuala Lumpur",
+    "center": [
+      101.6958,
+      3.1478
+    ],
+    "data": "roads/kualalumpur.json"
+  },
+  "cairo": {
+    "label": "Cairo",
+    "center": [
+      31.2357,
+      30.0444
+    ],
+    "data": "roads/cairo.json"
+  },
+  "capetown": {
+    "label": "Cape Town",
+    "center": [
+      18.4241,
+      -33.9249
+    ],
+    "data": "roads/capetown.json"
+  },
+  "brisbane": {
+    "label": "Brisbane",
+    "center": [
+      153.0251,
+      -27.4698
+    ],
+    "data": "roads/brisbane.json"
+  },
+  "noosa": {
+    "label": "Noosa",
+    "center": [
+      153.091,
+      -26.391
+    ],
+    "data": "roads/noosa.json"
+  }
+}

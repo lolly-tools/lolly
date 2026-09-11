@@ -1,0 +1,4 @@
+{
+  "name": "Flythrough",
+  "description": "Laat een echte 3D-camera door een screenshot vliegen. De afbeelding komt in lagen op echte diepte te liggen; grote vormen worden uitgestulpt tot solide objecten; een tijdlijn van poses animeert de hele beweging - diepte, dekking, perspectief, extrusie, kanteling, rotatie, schaal en de cameravlucht - en loopt daarna weer terug naar huis. Voeg poses toe, sleep ze en herschik ze. Exporteer als video."
+}

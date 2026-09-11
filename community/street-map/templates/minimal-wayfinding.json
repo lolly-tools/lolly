@@ -1,0 +1,22 @@
+{
+  "id": "minimal-wayfinding",
+  "name": "Minimal wayfinding",
+  "category": "Wayfinding",
+  "description": "A clean high-contrast street grid for signage and directions.",
+  "values": {
+    "city": "berlin",
+    "theme": "light",
+    "roadColor": "#111111",
+    "waterColor": "#c7d2da",
+    "background": "#ffffff",
+    "minorRoadWeight": 2,
+    "majorRoadWeight": 3.5,
+    "showWater": true,
+    "waterWeight": 4
+  },
+  "presets": [
+    { "id": "berlin", "name": "Berlin", "description": "Wide avenues that read at a glance.", "values": { "city": "berlin" } },
+    { "id": "zurich", "name": "Zurich", "description": "A compact centre split by the river.", "values": { "city": "zurich" } },
+    { "id": "copenhagen", "name": "Copenhagen", "description": "Harbour streets in crisp black and white.", "values": { "city": "copenhagen" } }
+  ]
+}

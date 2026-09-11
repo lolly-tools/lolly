@@ -1,0 +1,188 @@
+{
+  "id": "doc-studio",
+  "name": "Doc Studio",
+  "description": "Write a multi-page document on the canvas - rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF.",
+  "a11yLabel": "{{default docTitle \"Untitled\"}} - multi-page document",
+  "version": "1.2.1",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "designer",
+  "tags": [
+    "document",
+    "doc",
+    "word",
+    "rich text",
+    "editor",
+    "pages",
+    "pdf",
+    "report",
+    "letter",
+    "writing",
+    "wysiwyg",
+    "tables",
+    "compose"
+  ],
+  "render": {
+    "width": 794,
+    "height": 1123,
+    "formats": ["pdf", "pptx", "svg", "penpot", "md", "docx", "odt", "html"],
+    "actions": [
+      "download",
+      "save"
+    ],
+    "layout": "document",
+    "paged": true,
+    "c2pa": true,
+    "aspectWarning": {
+      "max": 1,
+      "message": "A document flows in portrait pages. A landscape or wider size breaks the page flow - keep height the longer side."
+    }
+  },
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "pageSize",
+      "label": "Page size",
+      "type": "select",
+      "default": "a4",
+      "help": "Sets every page's size and the exported PDF page size.",
+      "options": [
+        {
+          "value": "a4",
+          "label": "A4 · 210 × 297 mm",
+          "width": 210,
+          "height": 297,
+          "unit": "mm"
+        },
+        {
+          "value": "letter",
+          "label": "US Letter · 216 × 279 mm",
+          "width": 216,
+          "height": 279,
+          "unit": "mm"
+        },
+        {
+          "value": "a5",
+          "label": "A5 · 148 × 210 mm",
+          "width": 148,
+          "height": 210,
+          "unit": "mm"
+        }
+      ]
+    },
+    {
+      "id": "docTitle",
+      "label": "Document title",
+      "type": "text",
+      "default": "Untitled document",
+      "maxLength": 120,
+      "help": "Shown in the running footer of every page."
+    },
+    {
+      "id": "sourceAuthor",
+      "label": "Original author",
+      "type": "text",
+      "default": "",
+      "help": "The author of an imported document, filled in automatically from the file's own properties. The exported document credits them alongside you. Clear it to leave them out."
+    },
+    {
+      "id": "font",
+      "label": "Body typeface",
+      "type": "select",
+      "default": "SUSE",
+      "help": "The whole document is set in this face. Pasted text is normalised to it, so exports stay on brand.",
+      "options": [
+        {
+          "value": "SUSE",
+          "label": "SUSE"
+        },
+        {
+          "value": "SUSE Mono",
+          "label": "SUSE Mono"
+        }
+      ]
+    },
+    {
+      "id": "accent",
+      "label": "Accent colour",
+      "type": "color",
+      "default": "{color.semantic.secondary}",
+      "help": "Used for headings, rules and table headers."
+    },
+    {
+      "id": "theme",
+      "label": "Paper",
+      "type": "select",
+      "default": "light",
+      "help": "Light paper (dark ink) or dark paper (light ink).",
+      "options": [
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ]
+    },
+    {
+      "id": "pageNumbers",
+      "label": "Page numbers",
+      "type": "boolean",
+      "default": true,
+      "help": "Show \"n / total\" in the footer of each page."
+    },
+    {
+      "id": "columns",
+      "label": "Columns",
+      "type": "select",
+      "default": "1",
+      "urlKey": "col",
+      "help": "Number of text columns per page. Content flows down each column, then onto the next page.",
+      "options": [
+        {
+          "value": "1",
+          "label": "1 column"
+        },
+        {
+          "value": "2",
+          "label": "2 columns"
+        },
+        {
+          "value": "3",
+          "label": "3 columns"
+        }
+      ]
+    },
+    {
+      "id": "content",
+      "label": "Document",
+      "type": "longtext",
+      "default": "",
+      "help": "The document itself - stored as portable rich-text (ProseMirror) JSON. Written on the canvas with the Doc Studio editor; the engine renders this JSON into pages for export. Empty falls back to a starter document."
+    },
+    {
+      "id": "width",
+      "label": "Page width",
+      "type": "number",
+      "default": 794,
+      "min": 100,
+      "max": 8000,
+      "group": "export"
+    },
+    {
+      "id": "height",
+      "label": "Page height",
+      "type": "number",
+      "default": 1123,
+      "min": 100,
+      "max": 8000,
+      "group": "export"
+    }
+  ]
+}

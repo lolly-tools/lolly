@@ -1,0 +1,15 @@
+{
+  "name": "Eksport Aset",
+  "description": "Render mana-mana aset katalog - atau pautan alat Lolly - kepada sebarang format dan saiz.",
+  "a11yLabel": "Aset yang dieksport",
+  "inputs.src.label": "Aset",
+  "inputs.src.help": "Aset untuk dirender - ID katalog (lihat `lolly assets`) atau pautan alat lolly.tools yang ditampal. Aset vektor kekal vektor melalui SVG/PDF; aset raster dibenamkan sebagai imej.",
+  "inputs.fit.label": "Muat Suai",
+  "inputs.fit.help": "\"Sesuai\" memaparkan keseluruhan aset di dalam bingkai; \"Litupi\" memenuhi bingkai dan mungkin memotong tepi.",
+  "inputs.fit.options.contain": "Sesuai (seluruh aset, berjalur hitam)",
+  "inputs.fit.options.cover": "Litupi (penuh bingkai, mungkin terpotong)",
+  "inputs.background.label": "Latar Belakang",
+  "inputs.background.help": "Warna di belakang aset. Hidupkan \"Tiada Latar Belakang\" semasa eksport untuk membuangnya (lutsinar).",
+  "inputs.transparentBg.label": "Tiada Latar Belakang",
+  "inputs.transparentBg.help": "Buang isian latar belakang supaya aset dieksport dengan lutsinar (PNG/SVG/WebP)."
+}

@@ -1,0 +1,27 @@
+{
+  "id": "text",
+  "name": "Plain text",
+  "category": "Utility",
+  "description": "Scan to read a short message. Nothing opens, nothing loads, the words are in the code.",
+  "values": {
+    "payload": "text",
+    "text": "Kiln 3 fires Tuesday at 7am. Load by Monday 5pm.",
+    "ecl": "M",
+    "padding": 4,
+    "join": true
+  },
+  "presets": [
+    {
+      "id": "label",
+      "name": "Shelf label",
+      "description": "Small print, so high redundancy and a tight quiet zone.",
+      "values": { "ecl": "H", "padding": 2 }
+    },
+    {
+      "id": "brand",
+      "name": "Brand colours",
+      "description": "Modules in your brand primary on the brand surface.",
+      "values": { "color": "{color.semantic.primary}", "background": "{color.semantic.surface}" }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "Görseli Dönüştür",
+  "description": "HEIC, TIFF veya herhangi bir fotoğrafı WebP, JPEG veya PNG'ye dönüştürün - cihazınızda.",
+  "a11yLabel": "{{fileName}} için görsel dönüştürme",
+  "inputs.source.label": "Görsel",
+  "inputs.source.help": "Bir HEIC, HEIF, JPEG, PNG, WebP, AVIF veya TIFF görüntüsü. Tarayıcında okunur ve cihazından asla çıkmaz.",
+  "inputs.target.label": "Şuna dönüştür",
+  "inputs.target.help": "Çıktı formatı. WebP genellikle en küçüğüdür; PNG kayıpsızdır.",
+  "inputs.target.options.webp": "WebP - en küçük, şeffaflığı korur",
+  "inputs.target.options.jpeg": "JPEG - evrensel, fotoğraflar için",
+  "inputs.target.options.png": "PNG - kayıpsız, saydamlığı korur",
+  "inputs.quality.label": "Kalite",
+  "inputs.quality.help": "Kayıplı biçimler için kalite. Düşük değer daha küçük dosya ve daha yumuşak ayrıntı anlamına gelir. PNG bunu yok sayar.",
+  "inputs.maxEdge.label": "En uzun kenar (px)",
+  "inputs.maxEdge.help": "En uzun kenarı en fazla bu kadar piksel olacak şekilde küçült. 0 orijinal boyutu korur. Asla büyütmez.",
+  "inputs.keepLocation.label": "Konumu koru",
+  "inputs.keepLocation.help": "Fotoğrafın GPS konumunu dönüştürülen dosyaya taşır. Varsayılan olarak kapalı - konum kişisel bir veridir. Fotoğrafın diğer bilgileri (yazar, telif hakkı, çekim tarihi) her zaman taşınır ve kart tam olarak ne olduğunu gösterir."
+}

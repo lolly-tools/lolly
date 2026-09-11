@@ -1,0 +1,19 @@
+{
+  "name": "Wordmark",
+  "description": "Bir sözcük yazın, marka yazı tipinizde saf yol tabanlı bir vektör logotype alın - alıcıların yazı tipini yüklü bulundurmasına hiç gerek kalmaz.",
+  "a11yLabel": "{{default text \"Wordmark\"}} yazan Wordmark",
+  "inputs.text.label": "Metin",
+  "inputs.font.label": "Yazı tipi",
+  "inputs.font.options.brand": "Marka yazı tipi",
+  "inputs.font.options.mono": "Mono yazı tipi",
+  "inputs.weight.label": "Kalınlık",
+  "inputs.tracking.label": "Aralık",
+  "inputs.tracking.help": "Ayarlanan boyutta piksel cinsinden harf aralığı.",
+  "inputs.size.label": "Boyut",
+  "inputs.size.help": "Anahatların şekillendirildiği yazı tipi boyutu - harf aralığı buna görecelidir.",
+  "inputs.color.label": "Renk",
+  "inputs.features.label": "OpenType özellikleri",
+  "inputs.features.options.none": "Standart",
+  "inputs.features.options.liga-off": "Ligatür yok",
+  "inputs.features.options.salt": "Stilistik alternatifler"
+}

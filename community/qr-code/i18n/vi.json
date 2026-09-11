@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "Tạo mã QR cho một liên kết, danh thiếp liên hệ, mạng Wi-Fi, sự kiện lịch, vị trí hoặc văn bản thuần.",
+  "featured.blurb": "Mã QR theo bất kỳ màu thương hiệu nào",
+  "a11yLabel": "Mã QR liên kết đến {{default url \"(chưa đặt URL)\"}}",
+  "inputs.url.label": "URL",
+  "inputs.color.label": "Màu mô-đun",
+  "inputs.background.label": "Nền",
+  "inputs.ecl.label": "Sửa lỗi",
+  "inputs.ecl.options.L": "Thấp (7%)",
+  "inputs.ecl.options.M": "Trung bình (15%)",
+  "inputs.ecl.options.Q": "Phần tư (25%)",
+  "inputs.ecl.options.H": "Cao (30%)",
+  "inputs.padding.label": "Vùng đệm",
+  "inputs.padding.help": "Số mô-đun khoảng trắng quanh mã. Khuyến nghị tối thiểu là 4.",
+  "inputs.join.label": "Ghép mô-đun",
+  "inputs.join.help": "Gộp tất cả mô-đun thành một đường dẫn SVG duy nhất. Sắc nét hơn ở kích thước nhỏ."
+}

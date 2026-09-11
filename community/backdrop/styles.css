@@ -1,0 +1,29 @@
+/* backdrop - a full-bleed GPU field. The .bd-host carries the CSS-gradient
+   fallback wash as its background; the ShaderMount prepends its own canvas
+   inside, which paints over it when WebGL2 is available. */
+
+.bd-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.bd-host {
+  position: absolute;
+  inset: 0;
+  /* Paper Shaders isolates the host and puts its canvas at z-index -1;
+     the fallback wash sits one layer deeper so the shader covers it. */
+}
+
+.bd-wash {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+.bd-host canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

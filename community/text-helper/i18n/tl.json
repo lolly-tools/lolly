@@ -1,0 +1,5 @@
+{
+  "name": "Katulong sa Text",
+  "description": "I-format, i-decode, i-hash at i-de-identify ang text - JSON, JWT at iba pa.",
+  "a11yLabel": "Katulong sa Text - on-device na workbench para sa JSON / YAML / Helm / JWT / Base64 / hash / de-identify"
+}

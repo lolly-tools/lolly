@@ -1,0 +1,7 @@
+{
+  "name": "Versteckte Daten entfernen",
+  "description": "Deckt versteckte Metadaten in Bildern und PDFs auf und entfernt sie - auf Ihrem Gerät.",
+  "a11yLabel": "Bericht über versteckte Daten für {{fileName}}",
+  "inputs.source.label": "Bild oder PDF",
+  "inputs.source.help": "Eine JPEG-, PNG-, SVG- oder PDF-Datei. Sie wird in Ihrem Browser gelesen und verlässt Ihr Gerät nicht."
+}

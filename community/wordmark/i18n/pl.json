@@ -1,0 +1,19 @@
+{
+  "name": "Znak słowny",
+  "description": "Wpisz słowo, otrzymaj czysto wektorowy znak słowny w czcionce Twojej marki - odbiorcy nigdy nie potrzebują tej czcionki zainstalowanej.",
+  "a11yLabel": "Znak słowny z tekstem {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Tekst",
+  "inputs.font.label": "Czcionka",
+  "inputs.font.options.brand": "Czcionka marki",
+  "inputs.font.options.mono": "Czcionka mono",
+  "inputs.weight.label": "Waga",
+  "inputs.tracking.label": "Odstępy",
+  "inputs.tracking.help": "Odstępy między literami w px przy ustawionym rozmiarze.",
+  "inputs.size.label": "Rozmiar",
+  "inputs.size.help": "Rozmiar czcionki, przy którym kształtowane są kontury - tracking jest liczony względem niego.",
+  "inputs.color.label": "Kolor",
+  "inputs.features.label": "Funkcje OpenType",
+  "inputs.features.options.none": "Standardowy",
+  "inputs.features.options.liga-off": "Bez ligatur",
+  "inputs.features.options.salt": "Alternatywy stylistyczne"
+}

@@ -1,0 +1,4 @@
+{
+  "name": "Synthé",
+  "description": "Un instrument visuel que tu joues en direct. Quatre scènes tournent en temps réel sur le GPU : encre fluide, un essaim de particules qui fonce vers ton titre ou ton logo, un champ de feedback et ta propre caméra. Chaque couleur vient de ta palette de marque. L'image réagit à ton pointeur, à un morceau de musique et à un contrôleur MIDI. Exporte une image fixe ou une boucle parfaite."
+}

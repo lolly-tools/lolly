@@ -1,0 +1,22 @@
+{
+  "id": "night-map",
+  "name": "Night map",
+  "category": "Poster",
+  "description": "Neon streets glowing on a deep night background.",
+  "values": {
+    "city": "tokyo",
+    "theme": "dark",
+    "roadColor": "#22d3ee",
+    "waterColor": "#0e7490",
+    "background": "#0b1021",
+    "minorRoadWeight": 4,
+    "majorRoadWeight": 6.5,
+    "showWater": true,
+    "waterWeight": 6
+  },
+  "presets": [
+    { "id": "tokyo", "name": "Tokyo", "description": "The neon original.", "values": { "city": "tokyo" } },
+    { "id": "hong-kong", "name": "Hong Kong", "description": "Harbour lights and dense streets.", "values": { "city": "hongkong" } },
+    { "id": "london", "name": "London", "description": "The Thames cutting through the glow.", "values": { "city": "london" } }
+  ]
+}

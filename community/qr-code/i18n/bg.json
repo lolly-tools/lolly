@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "QR кодове за линк, визитка за контакт, Wi-Fi мрежа, събитие в календара, местоположение или обикновен текст.",
+  "a11yLabel": "QR код, водещ към {{default url \"(no URL set)\"}}",
+  "featured.blurb": "QR кодове във всеки брандов цвят",
+  "inputs.url.label": "URL",
+  "inputs.color.label": "Цвят на модулите",
+  "inputs.background.label": "Фон",
+  "inputs.ecl.label": "Корекция на грешки",
+  "inputs.ecl.options.L": "Ниска (7%)",
+  "inputs.ecl.options.M": "Средна (15%)",
+  "inputs.ecl.options.Q": "Квартил (25%)",
+  "inputs.ecl.options.H": "Висока (30%)",
+  "inputs.padding.label": "Тиха зона",
+  "inputs.padding.help": "Модули бяло поле около кода. Препоръчва се минимум 4.",
+  "inputs.join.label": "Слети модули",
+  "inputs.join.help": "Обединява всички модули в един SVG контур. По-отчетливо при малки размери."
+}

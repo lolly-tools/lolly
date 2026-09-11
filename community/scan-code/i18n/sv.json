@@ -1,0 +1,5 @@
+{
+  "name": "Scan",
+  "description": "Read QR codes and barcodes on-device, with nothing sent to any cloud. A reader, not an opener: it decodes, classifies and explains what a code carries - links, Wi-Fi, contacts, product codes - and lets you act deliberately. Copy is always the first action; opening, joining or adding is an explicit, informed tap.",
+  "featured.blurb": "Read any code, safely and offline"
+}

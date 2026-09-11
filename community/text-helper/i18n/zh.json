@@ -1,0 +1,5 @@
+{
+  "name": "文本助手",
+  "description": "格式化、解码、哈希与去标识文本 - JSON、JWT 等。",
+  "a11yLabel": "文本助手 - 本地 JSON / YAML / Helm / JWT / Base64 / 哈希 / 去标识化工作台"
+}

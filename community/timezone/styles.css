@@ -1,0 +1,17 @@
+.tz-root { position: relative; width: 100%; height: 100%; overflow: hidden; isolation: isolate; }
+.tz-art, .tz-artwork { display: block; width: 100%; height: 100%; }
+.tz-globe, .tz-pins, .tz-interaction { position: absolute; }
+.tz-globe[hidden] { display: none; }
+.tz-globe { z-index: 1; pointer-events: none; }
+.tz-pins { z-index: 2; pointer-events: none; }
+.tz-interaction { z-index: 3; touch-action: none; cursor: grab; border-radius: 8px; }
+.tz-interaction:active { cursor: grabbing; }
+.tz-interaction:focus-visible { outline: 2px solid var(--color-primary, #8bb6ac); outline-offset: -3px; }
+.tz-controls { position: absolute; z-index: 4; left: 50%; top: 12px; transform: translateX(-50%); display: flex; align-items: center; gap: 5px; padding: 5px; border: 1px solid #ffffff25; border-radius: 12px; background: #162022ef; color: #f3f4ee; font: 12px var(--font-brand, sans-serif); opacity: 0; transition: opacity .15s; max-width: 96%; }
+.tz-root:hover .tz-controls, .tz-root:focus-within .tz-controls { opacity: 1; }
+.tz-controls button { border: 0; border-radius: 7px; background: #ffffff12; color: inherit; padding: 8px 12px; cursor: pointer; white-space: nowrap; font: inherit; }
+.tz-controls button:hover, .tz-controls button:focus-visible { background: #ffffff29; }
+.tz-status { max-width: 270px; font-size: 10px; padding: 0 8px; }
+.tz-art [data-place-index] { cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .tz-controls { transition: none; } }
+@media (max-width: 700px) { .tz-status { display: none; } .tz-controls { top: 12px; } }

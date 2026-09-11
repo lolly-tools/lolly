@@ -1,0 +1,2017 @@
+<div class="rd">
+  {{#unless hasFile}}
+    <div class="rd-empty" data-file-pick>
+      <div class="rd-empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13.5h8" stroke-width="3"/><path d="M8 18h5"/></svg>
+      </div>
+      <h2>Redact an image, SVG or PDF</h2>
+      <p>Drop a JPEG, PNG, WebP, SVG or PDF anywhere here, or choose one below. Draw bars over what should go. The file is rebuilt from scratch so covered content and hidden data are removed, not hidden, and the output is verified before it downloads.</p>
+      <button type="button" class="rd-pick" data-file-pick>Choose a file…</button>
+      <p class="rd-empty-note">Everything happens in your browser. Your file is never uploaded.</p>
+    </div>
+  {{/unless}}
+
+  {{#if hasFile}}
+    <div class="rd-work">
+
+      {{#unless supported}}
+        <div class="rd-msg">
+          <div class="rd-msg-head">
+            <span class="rd-file" title="{{fileName}}">{{fileName}}</span>
+            <span class="rd-kind">{{kind}} · {{fileSize}}</span>
+            <button type="button" class="rd-replace" data-file-pick data-export-hide>Replace</button>
+          </div>
+          <div class="rd-state">
+            <p class="rd-state-lead">This doesn't look like a supported file.</p>
+            <p class="rd-note">Choose a <code>JPEG</code>, <code>PNG</code>, <code>WebP</code>, <code>SVG</code> or <code>PDF</code> file.</p>
+          </div>
+        </div>
+      {{/unless}}
+
+      {{#if supported}}
+        {{#if pdfUnavailable}}
+          <div class="rd-msg">
+            <div class="rd-msg-head">
+              <span class="rd-file" title="{{fileName}}">{{fileName}}</span>
+              <span class="rd-kind">{{kind}} · {{fileSize}}</span>
+              <button type="button" class="rd-replace" data-file-pick data-export-hide>Replace</button>
+            </div>
+            <div class="rd-state">
+              <p class="rd-state-lead">PDF redaction isn't available here.</p>
+              <p class="rd-note">Open this tool in the Lolly web app to redact a PDF. Images and SVG work everywhere.</p>
+            </div>
+          </div>
+        {{else}}
+
+          <!-- data-export-wait says the drawing surface still owes these bars
+               work: page previews rendering, or a bar that arrived from a link,
+               the sidebar or an automation run and has not been snapped to
+               cover yet. A person cannot click through it (the button is right
+               under the stage and the surface settles in one frame), but the
+               CLI and MCP browser tiers click as soon as the button enables,
+               and without this they burned bars exactly as supplied - the
+               clipped-glyph leak snap-to-cover exists to close. -->
+          <div class="rd-stage" data-bars="{{barsJson}}" data-presets="{{presetsJson}}" data-geom="{{geomJson}}" data-mark="{{markJson}}" data-suggest="{{suggestJson}}" data-suggest-file="{{fileName}}|{{fileSize}}"{{#if pagesPending}} data-pages-pending="1"{{/if}}{{#if ocrPending}} data-ocr-pending="1"{{/if}}{{#if exportWait}} data-export-wait="1"{{/if}}>
+
+            <!-- TOP DOCK: file identity + the marking toolbar. Docked to the top
+                 of the stage and collapsible, so a long page can take the full
+                 height between the two docks. -->
+            <div class="rd-dock rd-dock-top" data-dock="top" data-export-hide>
+              <div class="rd-head">
+                <span class="rd-file" title="{{fileName}}">{{fileName}}</span>
+                <span class="rd-kind">{{kind}} · {{fileSize}}</span>
+                <button type="button" class="rd-replace" data-file-pick data-export-hide>Replace</button>
+                <button type="button" class="rd-dock-toggle" data-dock-toggle="top" aria-expanded="true" aria-label="Collapse tools" title="Collapse tools">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 15l-6-6-6 6"/></svg>
+                </button>
+              </div>
+              <div class="rd-dock-body">
+                <div class="rd-rail" role="toolbar" aria-label="Marking tools">
+              <div class="rd-rail-group" data-rail-modes>
+                <button type="button" class="rd-rail-btn" data-mode="bar" aria-pressed="true" title="Drag a rectangle over what should go">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="9" width="16" height="6" rx="1" fill="currentColor"/></svg>
+                  <span>Bar</span>
+                </button>
+                <button type="button" class="rd-rail-btn" data-mode="marker" aria-pressed="false" title="Scribble freehand, committed as solid bands">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17c3-6 5 4 8-3s5 1 8-5"/></svg>
+                  <span>Marker</span>
+                </button>
+                <button type="button" class="rd-rail-btn" data-mode="erase" aria-pressed="false" title="Tap a bar to remove it">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12l8 8 8-8-8-8z"/><path d="M9 7l8 8"/></svg>
+                  <span>Remove</span>
+                </button>
+              </div>
+              <div class="rd-rail-group rd-rail-presets" data-rail-presets aria-label="Bar height">
+                <button type="button" class="rd-rail-btn" data-preset="free" aria-pressed="true" title="Bar height follows the drag">Free</button>
+                <button type="button" class="rd-rail-btn" data-preset="line" aria-pressed="false" title="One text line tall">Line</button>
+                <button type="button" class="rd-rail-btn" data-preset="heading" aria-pressed="false" title="Heading tall">Heading</button>
+                <button type="button" class="rd-rail-btn" data-preset="block" aria-pressed="false" title="A paragraph block tall">Block</button>
+              </div>
+              {{#if ocrAvailable}}
+                <!-- SUGGEST. The on-device reader looks at this picture's pixels
+                     and the tool proposes a region wherever a line reads like
+                     personal data. Nothing is applied: each proposal is an
+                     outline with an accept and a dismiss, and accepting adds an
+                     ordinary bar through the ordinary commit path. The group is
+                     rendered only where a reader exists, so the CLI and any
+                     shell without host.ocr are unchanged. -->
+                <div class="rd-rail-group rd-rail-ocr" data-ocr-group>
+                  {{#if ocrPending}}
+                    <button type="button" class="rd-rail-btn is-busy" data-ocr-cancel title="Stop reading this picture">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/></svg>
+                      <span>Reading…</span>
+                    </button>
+                  {{else}}
+                    <button type="button" class="rd-rail-btn" data-ocr-run title="Read the text in this picture on your device and propose bars over anything that looks personal">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+                      <span>Suggest</span>
+                    </button>
+                  {{/if}}
+                  {{#if hasSuggestions}}
+                    <button type="button" class="rd-rail-btn" data-sugg-accept-all title="Turn every suggestion still showing into a bar">
+                      <span>Accept {{suggestCount}}</span>
+                    </button>
+                  {{/if}}
+                </div>
+              {{/if}}
+              {{#if hasManyPages}}
+                <!-- Quiet page cue for the scrolling stack: which page you are on,
+                     and two buttons that step the scroller. The buttons are not
+                     decoration - a page frame sets touch-action:none so a drag on
+                     it draws a bar, which leaves touch users with no way to reach
+                     page 7 by finger. -->
+                <div class="rd-rail-group rd-pagenav" data-page-nav>
+                  <button type="button" class="rd-rail-btn" data-page-step="-1" aria-label="Previous page" title="Previous page">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 15l-6-6-6 6"/></svg>
+                  </button>
+                  <span class="rd-pagenow" data-page-now aria-live="polite">Page 1 of {{pageCount}}</span>
+                  <button type="button" class="rd-rail-btn" data-page-step="1" aria-label="Next page" title="Next page">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                  </button>
+                </div>
+              {{/if}}
+            </div>
+              </div>
+            </div>
+            <!-- /TOP DOCK -->
+
+            <!-- VIEWPORT: the drawing surface, flex:1 between the two docks so it
+                 takes every pixel of height the stage can give it. -->
+            <div class="rd-viewport">
+            {{#unless isPdfKind}}
+              {{#if hasInlineSvg}}
+                <!-- An SVG source renders INLINE, never as <img src="blob:…">: an
+                     SVG inside an <img> is a closed document, so no element in it
+                     can be measured and snap-to-cover, the partial-coverage
+                     warning and vector deletion would all be impossible. The
+                     markup in this raw slot is the user's own file, opened on
+                     their own device, and it has already been through
+                     prepareInlineSvg in hooks.js - script and foreignObject
+                     subtrees deleted, on* handlers and javascript: hrefs dropped,
+                     every <style> rule rescoped under the root so a stray
+                     `.cls-1 { fill: #fff }` cannot repaint the app. -->
+                <div class="rd-frame" data-page="1" data-ptw="{{svgW}}" data-pth="{{svgH}}">
+                  {{{inlineSvg}}}
+                  <div class="rd-marks" data-export-hide></div>
+                </div>
+              {{else}}
+                <div class="rd-frame">
+                  <img class="rd-img" src="{{previewUrl}}" alt="Preview of {{fileName}}" draggable="false">
+                  <div class="rd-marks" data-export-hide></div>
+                </div>
+              {{/if}}
+            {{/unless}}
+
+            {{#if isPdfKind}}
+              {{#if hasPdfPages}}
+                <!-- FIT TO WIDTH, SCROLL VERTICALLY. One page fills the available
+                     width and the stack scrolls inside this box. The alternative -
+                     letting the canvas grow to the full height of every page -
+                     hands the shell a 760x9000 canvas, which it dutifully scales
+                     to fit the stage: a whole document rendered as one strip too
+                     small to read the words you are trying to redact. This canvas
+                     is never exported (exportFile owns the output), so a
+                     content-fit, scrollable working surface costs nothing. -->
+                <div class="rd-scroll" data-page-scroll>
+                <div class="rd-pagestack">
+                  {{#each pdfPages}}
+                    <div class="rd-frame rd-pageframe" data-page="{{page}}" data-ptw="{{w}}" data-pth="{{h}}">
+                      <!-- Inline, for the same reason as the SVG source above. This
+                           markup is OUR OWN renderer's output (host.pdf.pages →
+                           engine pdf-svg, text already outlined to paths), passed
+                           through the same prepareInlineSvg pass. -->
+                      {{{svg}}}
+                      <span class="rd-page-chip" data-export-hide>Page {{page}}</span>
+                      <div class="rd-marks" data-export-hide></div>
+                    </div>
+                  {{/each}}
+                </div>
+                </div>
+              {{/if}}
+              {{#if pagesPending}}
+                <p class="rd-note" data-pages-note>Rendering pages…</p>
+              {{/if}}
+              {{#if pagesError}}
+                <p class="rd-note">{{pagesError}}</p>
+              {{/if}}
+              {{#unless hasPdfPages}}{{#unless pagesPending}}
+                {{#unless pagesError}}
+                  <p class="rd-note">Page previews aren't available in this app, so bars can't be drawn here. Open this tool in the Lolly web app to redact this PDF.</p>
+                {{/unless}}
+                {{#if hasPageBars}}
+                  <ul class="rd-pages">
+                    {{#each pageBars}}
+                      <li class="rd-page-row"><span>Page {{page}}</span><span>{{count}} bar{{#if plural}}s{{/if}}</span></li>
+                    {{/each}}
+                  </ul>
+                {{/if}}
+              {{/unless}}{{/unless}}
+            {{/if}}
+            </div>
+            <!-- /VIEWPORT -->
+
+            <!-- BOTTOM DOCK: what the marks amount to, and the action. A
+                 collapsible body (coverage + how-to) over an always-visible
+                 gate + download, so the action never scrolls away. -->
+            <div class="rd-dock rd-dock-bottom" data-dock="bottom" data-export-hide>
+              <div class="rd-dock-head">
+                <span class="rd-dock-summary">
+                  {{#unless isPdfKind}}{{#if hasCoverage}}{{coverageText}}{{/if}}{{/unless}}
+                  {{#if isPdfKind}}{{#if hasBars}}{{barCount}} bar{{#if barPlural}}s{{/if}} set{{/if}}{{/if}}
+                </span>
+                <button type="button" class="rd-dock-toggle" data-dock-toggle="bottom" aria-expanded="true" aria-label="Collapse details" title="Collapse details">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+              </div>
+              <div class="rd-dock-body">
+                {{#unless isPdfKind}}
+                  {{#if hasCoverage}}
+                    <div class="rd-meter" role="img" aria-label="{{coverageText}}">
+                      <span class="rd-meter-fill" style="width: {{coveragePct}}%"></span>
+                    </div>
+                    {{#if vectorMode}}
+                      <p class="rd-line">{{coverageText}} Anything a bar touches is removed from the file before the rectangle is painted.</p>
+                    {{else}}
+                      <p class="rd-line">{{coverageText}} The pixels under each bar are gone from the output.</p>
+                    {{/if}}
+                  {{/if}}
+                {{/unless}}
+                {{#if isPdfKind}}
+                  {{#if hasBars}}
+                    <p class="rd-line">{{barCount}} bar{{#if barPlural}}s{{/if}} set. Each page is flattened to a picture with the bars burned in.</p>
+                  {{/if}}
+                {{/if}}
+                <p class="rd-stage-hint">Drag on the preview to draw a bar. To take one off, tap its corner dot or switch to Remove and tap the bar. Pinch or Cmd-scroll to zoom in on detail.{{#if hasManyPages}} Pages scroll in the viewport above, one page wide; the arrows in the toolbar step through them.{{/if}}
+                  {{#if canMeasure}}A bar grows to cover every element it touches, so it can never clip a word in half.{{else}}{{#if isRaster}}This is a picture, so there are no elements to measure: a bar covers exactly the area you draw and nothing more.{{else}}Nothing in this file could be measured, so a bar covers exactly the area you draw and nothing more.{{/if}}{{/if}}</p>
+              </div>
+              <div class="rd-dock-foot">
+                {{#if pdfRedactUnavailable}}
+                  <div class="rd-state">
+                    <p class="rd-state-lead">PDF redaction isn't available in this app yet.</p>
+                    <p class="rd-note">The notes in the corner still apply. Open this tool in the Lolly web app to produce the redacted copy.</p>
+                  </div>
+                {{else}}
+                  <p class="rd-gate">
+                    <svg class="rd-gate-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                    <span>Re-read and checked before it downloads. If a check fails, nothing downloads.</span>
+                  </p>
+                  {{#if isPdfKind}}
+                    {{#unless hasBars}}
+                      <button type="button" class="rd-download" data-export-file disabled>Draw a bar over what should go first</button>
+                    {{else}}
+                      <button type="button" class="rd-download" data-export-file data-busy-label="Redacting…">{{downloadLabel}}</button>
+                    {{/unless}}
+                  {{else}}
+                    <button type="button" class="rd-download" data-export-file data-busy-label="Redacting…">{{downloadLabel}}</button>
+                  {{/if}}
+                {{/if}}
+              </div>
+            </div>
+            <!-- /BOTTOM DOCK -->
+          </div>
+          <!-- /STAGE -->
+
+          <!-- TOASTS: everything informational, docked to the top-right corner and
+               dismissable. The advisory (partial coverage, snap-to-cover) clears
+               itself; the reference cards (hidden data found, what will not be
+               removed, how it signs) stay until dismissed. Absolute inside the
+               work area rather than position:fixed, which the stage-zoom transform
+               would trap; keyed by file so a new file shows its own set. -->
+          <div class="rd-toasts" data-export-hide aria-live="polite" role="status">
+            {{#if toastKey}}
+              <div class="rd-toast" data-toast-key="{{toastKey}}">
+                <span class="rd-toast-text">{{toastText}}</span>
+                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
+              </div>
+            {{/if}}
+
+            {{#if foundSummary}}
+              <div class="rd-toast rd-toast-keep" data-toast-key="found|{{fileName}}|{{fileSize}}">
+                <div class="rd-toast-body">
+                  <p class="rd-toast-title">{{foundSummary}}</p>
+                  <input type="checkbox" id="rd-show-details" class="rd-reveal-cb">
+                  <label for="rd-show-details" class="rd-reveal-toggle">
+                    <span class="rd-reveal-icon" aria-hidden="true"></span>
+                    <span class="rd-reveal-show">Show details</span>
+                    <span class="rd-reveal-hide">Hide details</span>
+                  </label>
+                  <ul class="rd-findings">
+                    {{#each findings}}
+                      <li class="rd-finding {{tone}}">
+                        <span class="rd-finding-label">{{label}}</span>
+                        <span class="rd-finding-detail" title="{{detail}}">{{detail}}</span>
+                      </li>
+                    {{/each}}
+                  </ul>
+                </div>
+                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
+              </div>
+            {{/if}}
+
+            {{#if nothingFound}}
+              <div class="rd-toast rd-toast-keep" data-toast-key="nothing|{{fileName}}|{{fileSize}}">
+                <span class="rd-toast-text">No hidden data was found by these checks. Absence of a finding is not proof there is nothing there.</span>
+                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
+              </div>
+            {{/if}}
+            {{#if analysisPending}}
+              <div class="rd-toast rd-toast-keep" data-toast-key="analysing|{{fileName}}|{{fileSize}}">
+                <span class="rd-toast-text">Still reading the document structure…</span>
+                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
+              </div>
+            {{/if}}
+            {{#if analysisFailed}}
+              <div class="rd-toast rd-toast-keep" data-toast-key="analysisfailed|{{fileName}}|{{fileSize}}">
+                <span class="rd-toast-text">The document structure could not be read, so nothing can be claimed about attachments, scripts or earlier versions.</span>
+                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
+              </div>
+            {{/if}}
+
+            {{#if ocrError}}
+              <div class="rd-toast rd-toast-keep" data-toast-key="ocrerr|{{fileName}}|{{fileSize}}">
+                <span class="rd-toast-text">{{ocrError}}</span>
+                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
+              </div>
+            {{/if}}
+            {{#if hasSuggestions}}
+              <div class="rd-toast rd-toast-keep" data-toast-key="sugg|{{fileName}}|{{fileSize}}|{{suggestCount}}">
+                <span class="rd-toast-text">{{suggestCount}} suggested region{{#if suggestPlural}}s{{/if}} from reading this picture on your device. Each one is a guess offered for you to accept or dismiss, never a redaction: nothing is covered until you accept it. A suggestion covers the whole line a match sits on, and a reader misses text it cannot see, so keep marking by hand as well.</span>
+                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
+              </div>
+            {{/if}}
+            {{#if ocrRead}}{{#unless hasSuggestions}}
+              <div class="rd-toast rd-toast-keep" data-toast-key="suggnone|{{fileName}}|{{fileSize}}">
+                <span class="rd-toast-text">Nothing in this picture read as personal data. That is not proof there is none: the reader only sees text it can recognise, and it does not know what matters to you.</span>
+                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
+              </div>
+            {{/unless}}{{/if}}
+
+            {{#if staleNote}}
+              <div class="rd-toast rd-toast-keep" data-toast-key="stale|{{fileName}}|{{fileSize}}">
+                <span class="rd-toast-text">{{staleNote}}</span>
+                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
+              </div>
+            {{/if}}
+
+            {{#if vectorMode}}
+              <div class="rd-toast rd-toast-keep" data-toast-key="vector|{{fileName}}|{{fileSize}}">
+                <span class="rd-toast-text">Vector mode removes metadata, comments, scripts, editor data and embedded images, and deletes every element a bar touches, whole. A word half under a bar goes entirely, because half a word is a leak. The output is still SVG, a readable text format, so export a PNG if that matters. Marks have to be drawn on the preview so their elements can be measured.</span>
+                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
+              </div>
+            {{/if}}
+            {{#if resignUnavailable}}
+              <div class="rd-toast rd-toast-keep" data-toast-key="resignun|{{fileName}}|{{fileSize}}">
+                <span class="rd-toast-text">A fresh Content Credential isn't available in this app, the redacted file will be exported without one.</span>
+                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
+              </div>
+            {{/if}}
+            {{#if isPdfKind}}{{#if resign}}{{#unless resignUnavailable}}
+              <div class="rd-toast rd-toast-keep" data-toast-key="resign|{{fileName}}|{{fileSize}}">
+                <span class="rd-toast-text">The redacted copy is signed as a new work: {{#if authorKnown}}you ({{authorName}}) as its author{{else}}no author name, because "Use my details" is off in your profile{{/if}}, this app as the software, and one edit step reading "Covered content removed and the file rebuilt". No ingredients and no thumbnail of the original travel with it.</span>
+                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
+              </div>
+            {{/unless}}{{/if}}{{/if}}
+            {{#if stampText}}
+              <div class="rd-toast rd-toast-keep" data-toast-key="stamp|{{fileName}}|{{fileSize}}">
+                <span class="rd-toast-text">Each mark is stamped &ldquo;{{stampText}}&rdquo;, painted on top of the bar where the covered pixels are already gone. Stamp text never comes from the content you covered.</span>
+                <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
+              </div>
+            {{/if}}
+
+            <div class="rd-toast rd-toast-keep" data-toast-key="limits|{{fileName}}|{{fileSize}}">
+              <div class="rd-toast-body">
+                <p class="rd-toast-title">What will not be removed</p>
+                <ul class="rd-limits">
+                  <li>A bar destroys only the pixels it covers. Invisible watermarks such as Google's SynthID span the whole image and this tool cannot detect or remove them.</li>
+                  <li>A bar's width can still hint at the length of what it hides. Rounding widths up to a coarse grid softens this, it does not remove it.</li>
+                  <li>Scans of printed pages can carry tracking dots from colour laser printers. The scanned page mode drops the yellow channel they live in, other print forensics remain.</li>
+                  <li>There is no blur or pixelate option on purpose. Blurred text has been recovered in practice, a solid fill has no inverse.</li>
+                </ul>
+              </div>
+              <button type="button" class="rd-toast-x" aria-label="Dismiss">&#215;</button>
+            </div>
+          </div>
+          <!-- /TOASTS -->
+        {{/if}}
+      {{/if}}
+    </div>
+  {{/if}}
+</div>
+<script>
+  (function () {
+    'use strict';
+    /* Marking surface for redact. One committed bars array; three pointer modes
+       (bar, marker, erase) plus preset bar heights, all held on the PERSISTENT
+       canvas container's dataset ([data-lolly-canvas] survives every repaint;
+       this stage div does not). Coordinate space per frame: data-ptw/data-pth
+       present = PDF points (scale = ptw / rect.width); absent = the image's
+       natural pixels. All maths divide client deltas by the frame's live
+       bounding rect, so the shell's stage zoom (a uniform transform on the
+       canvas wrapper) cancels out. Live DOM feedback only during a gesture;
+       ONE commit of the whole bars array on release. */
+    var cs = document.currentScript;
+    var wrap = cs && cs.previousElementSibling && cs.previousElementSibling.classList
+      && cs.previousElementSibling.classList.contains('rd')
+      ? cs.previousElementSibling
+      : null;
+    if (!wrap) {
+      var wraps = document.querySelectorAll('.rd');
+      wrap = wraps[wraps.length - 1];
+    }
+    if (!wrap) return;
+
+    var canvasRoot = wrap.closest('[data-lolly-canvas]');
+    var commitFn = canvasRoot && canvasRoot.__lollyCommit;
+    var nudgeFn = canvasRoot && canvasRoot.__lollyNudge;
+    /* History-free writes, for the re-measure pass only: a correction nobody
+       asked for must not sit on the undo stack (and must not then fight the
+       user, who undoes it only for the next paint to redo it). Older shells
+       without the channel fall back to the ordinary commit - a stray history
+       entry is a far smaller problem than an unmeasured bar. */
+    var quietFn = (canvasRoot && canvasRoot.__lollyCommitQuiet) || commitFn;
+
+    function alive() { return document.contains(wrap); }
+
+    /* ── Fill the stage. The tool is a full-height flex column (top dock,
+       viewport, bottom dock); the job here is only to PIN the live canvas to the
+       stage's own height so the shell renders it at scale 1 and the viewport's
+       flex:1 claims every remaining pixel. Only the interactive #tool-canvas -
+       the off-screen batch renderer sizes itself.
+
+       The old model grew the canvas to the tool's natural height and then sized a
+       preview box back down to fit; the flex column does that distribution
+       itself, so all this owes the layout is the right outer height. A single
+       image/SVG frame still needs a pixel cap (it is inline, not a flex-filling
+       scroller), so --rd-frameview is set to the live viewport height; the PDF
+       page scroller fills the viewport through flexbox and needs no measurement.
+       --rd-toast-top keeps the top-right toast stack clear of the top dock. ── */
+    var syncHeight = null;
+    if (canvasRoot && canvasRoot.id === 'tool-canvas') {
+      /* The stage is the canvas's grandparent (canvas → centred outer → stage),
+         and it is outside the canvas transform, so its rect is honest. 32px is
+         the gutter fitCanvas itself subtracts. */
+      var stageAvail = function () {
+        var outer = canvasRoot.parentElement;
+        var stageEl = outer && outer.parentElement;
+        if (!stageEl || typeof stageEl.getBoundingClientRect !== 'function') return 0;
+        return Math.floor(stageEl.getBoundingClientRect().height) - 32;
+      };
+      syncHeight = function () {
+        var avail = stageAvail();
+        if (!(avail > 200)) return;
+        if ((parseInt(canvasRoot.style.height, 10) || 0) !== avail) {
+          canvasRoot.style.height = avail + 'px';
+          canvasRoot.dispatchEvent(new CustomEvent('canvas-resize'));
+        }
+        var dockTop = wrap.querySelector('.rd-dock-top');
+        if (dockTop) wrap.style.setProperty('--rd-toast-top', (dockTop.offsetHeight + 12) + 'px');
+        var vp = wrap.querySelector('.rd-viewport');
+        if (vp) {
+          var vh = Math.floor(vp.clientHeight);
+          if (vh > 40) wrap.style.setProperty('--rd-frameview', vh + 'px');
+        }
+      };
+      syncHeight();
+      /* Re-fit when the STAGE changes size (window resize, sidebar toggle). The
+         canvas is pinned to the stage height, so observing the stage - not the
+         tool - is what avoids a growth feedback loop. */
+      var outer0 = canvasRoot.parentElement;
+      var stageEl0 = outer0 && outer0.parentElement;
+      if (typeof ResizeObserver !== 'undefined' && stageEl0) {
+        if (window.__rdSizeRO) window.__rdSizeRO.disconnect();
+        window.__rdSizeRO = new ResizeObserver(function () {
+          (typeof requestAnimationFrame === 'function' ? requestAnimationFrame : setTimeout)(syncHeight);
+        });
+        window.__rdSizeRO.observe(stageEl0);
+      }
+      /* The viewport's clientHeight is only right once the docks have laid out. */
+      if (typeof requestAnimationFrame === 'function') requestAnimationFrame(syncHeight);
+    }
+
+    /* ── Advisory toast: at most one, auto-dismiss, Escape or the close button
+       dismisses early. The hooks emit each advisory key once per file; the
+       dataset done-list only stops a dismissed toast reappearing on repaints
+       that re-render the same extras. Keys carry file identity from the hook,
+       so a new file is never muted by the old file's record. The done-list is
+       newline-delimited (it used to use a raw U+0001, which is invisible in an
+       editor and does not survive a copy-paste). ── */
+    function wireToastEl(toast, key, keep) {
+      var timer;
+      function dismiss() {
+        clearTimeout(timer);
+        document.removeEventListener('keydown', onKey, true);
+        if (canvasRoot && key) {
+          var d = canvasRoot.dataset.rdToastDone || '';
+          if (d.split('\n').indexOf(key) === -1) {
+            canvasRoot.dataset.rdToastDone = d ? d + '\n' + key : key;
+          }
+        }
+        if (toast.parentNode) toast.parentNode.removeChild(toast);
+      }
+      function onKey(e) {
+        if (!alive() || !document.contains(toast)) {
+          document.removeEventListener('keydown', onKey, true);
+          return;
+        }
+        if (e.key === 'Escape') { e.stopPropagation(); dismiss(); }
+      }
+      /* A transient advisory slides in on the next frame so the CSS TRANSITION
+         plays it (a transition, not a keyframe, so prefers-reduced-motion can
+         neutralise it - the app's own .toast made the same choice). A kept
+         reference card is recreated on every repaint, so it appears at once
+         rather than re-animating each time a bar is drawn, and it never
+         auto-dismisses - it stays until the person closes it. */
+      if (keep) {
+        toast.classList.add('is-visible');
+      } else if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(function () { if (toast.parentNode) toast.classList.add('is-visible'); });
+      } else {
+        toast.classList.add('is-visible');
+      }
+      if (!keep) timer = setTimeout(dismiss, 5000);
+      document.addEventListener('keydown', onKey, true);
+      var x = toast.querySelector('.rd-toast-x');
+      if (x) x.addEventListener('click', dismiss);
+    }
+
+    /* The hook raises its advisories by rendering a toast into the markup; the
+       partial-coverage warning is computed HERE, from the live DOM, so it needs
+       to raise one too. Same element, same classes, same dismissal - one toast
+       mechanism, not two. */
+    function pushToast(text, key) {
+      var box = wrap.querySelector('.rd-toasts');
+      if (!box) return;
+      var toast = document.createElement('div');
+      toast.className = 'rd-toast';
+      var span = document.createElement('span');
+      span.className = 'rd-toast-text';
+      span.textContent = text;
+      var x = document.createElement('button');
+      x.type = 'button';
+      x.className = 'rd-toast-x';
+      x.setAttribute('aria-label', 'Dismiss');
+      x.textContent = '×';
+      toast.appendChild(span);
+      toast.appendChild(x);
+      box.appendChild(toast);
+      wireToastEl(toast, key || '', false);
+    }
+
+    /* Wire every toast the markup rendered: the transient advisory (auto-clears)
+       and the persistent reference cards (rd-toast-keep, stay until dismissed).
+       A card already dismissed for THIS file - the done-list is keyed by file -
+       is removed rather than re-shown, so a repaint does not bring back what the
+       person closed. Runs per repaint because innerHTML recreates the box. */
+    (function wireToasts() {
+      var box = wrap.querySelector('.rd-toasts');
+      if (!box || box.dataset.rdWired) return;
+      box.dataset.rdWired = '1';
+      var doneList = (canvasRoot && canvasRoot.dataset.rdToastDone) ? canvasRoot.dataset.rdToastDone.split('\n') : [];
+      var toasts = box.querySelectorAll('.rd-toast');
+      Array.prototype.forEach.call(toasts, function (toast) {
+        var key = toast.getAttribute('data-toast-key') || '';
+        if (key && doneList.indexOf(key) !== -1) {
+          if (toast.parentNode) toast.parentNode.removeChild(toast);
+          return;
+        }
+        wireToastEl(toast, key, toast.classList.contains('rd-toast-keep'));
+      });
+    })();
+
+    /* ── Dock collapse: fold either dock away to hand its height to the viewport.
+       State rides the persistent canvas container (like the rail mode/preset and
+       the findings reveal), because every commit repaints via innerHTML. ── */
+    (function wireDocks() {
+      var toggles = wrap.querySelectorAll('[data-dock-toggle]');
+      if (!toggles.length) return;
+      Array.prototype.forEach.call(toggles, function (btn) {
+        var which = btn.getAttribute('data-dock-toggle');
+        var dock = btn.closest ? btn.closest('.rd-dock') : null;
+        if (!dock) return;
+        var dsKey = which === 'bottom' ? 'rdDockBottom' : 'rdDockTop';
+        var collapsed = !!(canvasRoot && canvasRoot.dataset[dsKey] === '1');
+        function apply() {
+          if (collapsed) dock.setAttribute('data-collapsed', '1');
+          else dock.removeAttribute('data-collapsed');
+          btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+        }
+        apply();
+        btn.addEventListener('click', function () {
+          collapsed = !collapsed;
+          if (canvasRoot) canvasRoot.dataset[dsKey] = collapsed ? '1' : '0';
+          apply();
+          /* Folding a dock changes the viewport height; re-measure so a single
+             image frame and the toast anchor follow. */
+          if (typeof syncHeight === 'function') {
+            (typeof requestAnimationFrame === 'function' ? requestAnimationFrame : setTimeout)(syncHeight);
+          }
+        });
+      });
+    })();
+
+    /* ── Findings reveal: the checkbox holds its open/closed state in the DOM
+       only, and every commit repaints via innerHTML - so without this the list
+       slammed shut each time a bar was drawn. State rides the persistent canvas
+       container, like the rail's mode/preset. The id is also re-keyed per canvas
+       so N mounted copies (multi-edit) don't all point their label at the first
+       checkbox in the document. ── */
+    (function wireReveal() {
+      var cb = wrap.querySelector('.rd-reveal-cb');
+      var label = wrap.querySelector('.rd-reveal-toggle');
+      if (!cb) return;
+      if (canvasRoot && canvasRoot.id && cb.id) {
+        var uid = cb.id + '-' + canvasRoot.id;
+        cb.id = uid;
+        if (label) label.setAttribute('for', uid);
+      }
+      if (canvasRoot && canvasRoot.dataset.rdDetails === '1') cb.checked = true;
+      cb.addEventListener('change', function () {
+        if (canvasRoot) canvasRoot.dataset.rdDetails = cb.checked ? '1' : '0';
+      });
+    })();
+
+    var stage = wrap.querySelector('.rd-stage');
+    if (!stage || stage.dataset.rdWired) return;
+    stage.dataset.rdWired = '1';
+
+    var bars;
+    try { bars = JSON.parse(stage.getAttribute('data-bars') || '[]'); } catch (e) { bars = []; }
+    if (!Array.isArray(bars)) bars = [];
+
+    var presetFracs;
+    try { presetFracs = JSON.parse(stage.getAttribute('data-presets') || '{}'); } catch (e2) { presetFracs = {}; }
+
+    var geom;
+    try { geom = JSON.parse(stage.getAttribute('data-geom') || '{}'); } catch (e3) { geom = {}; }
+    if (typeof geom.inflate !== 'number') geom.inflate = 2;
+    if (typeof geom.radius !== 'number') geom.radius = 0;
+
+    /* How the mark looks - resolved in the hook (brand ink, corner radius, stamp
+       text) and shipped here whole, so the preview paints the same shape and the
+       same colour the export burns. The stylesheet reads the ink through a
+       custom property this script SETS from the same value, rather than reading
+       the app's brand variables itself: one resolved colour, one source, so the
+       preview can never quietly disagree with the file. */
+    var markCfg;
+    try { markCfg = JSON.parse(stage.getAttribute('data-mark') || '{}'); } catch (e4) { markCfg = {}; }
+    if (typeof markCfg.ink !== 'string') markCfg.ink = '#14161a';
+    if (typeof markCfg.labelInk !== 'string') markCfg.labelInk = '#ffffff';
+    if (typeof markCfg.label !== 'string') markCfg.label = '';
+    if (typeof markCfg.radius !== 'number') markCfg.radius = 0;
+    stage.style.setProperty('--rd-ink', markCfg.ink);
+
+    /* ── Suggested regions (M7) ─────────────────────────────────────────────
+       Proposals from the hook's OCR read: [{page,x,y,w,h,kind,label,maybe,text}]
+       in the frame's own units, exactly like a bar. They are NEVER bars. Each
+       one draws as an outline with an accept and a dismiss, and accepting adds
+       an ordinary bar through the same commit() every drawn bar goes through -
+       so undo, URL mode, save and the export gate all behave identically to a
+       mark the person drew by hand.
+
+       Dismissals ride the persistent canvas container: every commit repaints
+       via innerHTML, so a local would forget what the person just waved away
+       and put it straight back. They are therefore scoped to the FILE by hand -
+       a key is only geometry plus a kind, and two scans of the same form line
+       up exactly, so an unscoped list would silently withhold a suggestion on
+       the second document because it was waved away on the first. ── */
+    var suggs;
+    try { suggs = JSON.parse(stage.getAttribute('data-suggest') || '[]'); } catch (e5) { suggs = []; }
+    if (!Array.isArray(suggs)) suggs = [];
+    var suggFile = stage.getAttribute('data-suggest-file') || '';
+
+    function suggKey(s) {
+      return [s.page || 1, s.x, s.y, s.w, s.h, s.kind || ''].join(':');
+    }
+    function suggDismissed() {
+      var d = (canvasRoot && canvasRoot.dataset.rdSuggOff) || '';
+      var rows = d ? d.split('\n') : [];
+      /* Row 0 names the file the rest belong to. A different file starts over. */
+      if (!rows.length || rows[0] !== suggFile) return [];
+      return rows.slice(1);
+    }
+    function suggDismiss(keys) {
+      if (!canvasRoot) return;
+      var list = suggDismissed();
+      for (var i = 0; i < keys.length; i++) {
+        if (list.indexOf(keys[i]) === -1) list.push(keys[i]);
+      }
+      canvasRoot.dataset.rdSuggOff = [suggFile].concat(list).join('\n');
+    }
+    /* A suggestion becomes a bar with no node addresses ('n' absent): it was
+       measured against PIXELS, not against elements, and a raster frame has no
+       elements to name. Vector mode is never offered on a raster source, so
+       nothing downstream can mistake that for a measurement it can trust. */
+    function suggBar(s) {
+      return { page: s.page || 1, x: s.x, y: s.y, w: s.w, h: s.h, n: '' };
+    }
+
+    /* @geom-mirror-start
+       Pure geometry, mirrored from hooks.js (rectTouches / rectOverlaps /
+       unionBox / effBox / snapBarToNodes / subtractBox / uncoveredParts /
+       partialNodes / paintedShape). The hook
+       owns the maths and is where the behaviour is tested; this copy exists
+       because the measuring has to happen where the DOM is, and a sandboxed
+       hook cannot be called mid-gesture. tests/redact.test.ts extracts THIS
+       block, evaluates it, and compares every function against the hook's copy
+       case by case - so the two cannot drift silently. Keep it pure: no DOM, no
+       closure over anything above. */
+    var RDGeom = (function () {
+      /* Shares any area at all, shared edges included. The disjointness test the
+         exact rectangle subtraction needs, and nothing else - see the hook. */
+      function rectTouches(a, b) {
+        return !(a.x + a.w < b.x || b.x + b.w < a.x || a.y + a.h < b.y || b.y + b.h < a.y);
+      }
+      /* A real, positive-area overlap on BOTH axes: the test for "this bar is
+         actually over that node". Abutting line boxes share an edge and nothing
+         else, and counting that is what let a bar chain along a paragraph. */
+      function rectOverlaps(a, b, eps) {
+        var e = (eps == null) ? 0.25 : eps;
+        var ox = Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x);
+        var oy = Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y);
+        return ox > e && oy > e;
+      }
+      function unionBox(a, b) {
+        var x = Math.min(a.x, b.x);
+        var y = Math.min(a.y, b.y);
+        return {
+          x: x, y: y,
+          w: Math.max(a.x + a.w, b.x + b.w) - x,
+          h: Math.max(a.y + a.h, b.y + b.h) - y
+        };
+      }
+      /* The box a bar actually PAINTS: integer snap, inflation, optional width
+         quantise, clamped to the frame. Node maths probe with this, so a node
+         the widened bar will cover is a node the export deletes. */
+      function effBox(bar, W, H, quantise, inflate, grid) {
+        var x0 = Math.floor(bar.x) - inflate;
+        var y0 = Math.floor(bar.y) - inflate;
+        var x1 = Math.ceil(bar.x + bar.w) + inflate;
+        var y1 = Math.ceil(bar.y + bar.h) + inflate;
+        if (quantise && grid > 0) {
+          var qw = Math.ceil((x1 - x0) / grid) * grid;
+          var extra = qw - (x1 - x0);
+          x0 = x0 - Math.floor(extra / 2);
+          x1 = x1 + Math.ceil(extra / 2);
+        }
+        x0 = Math.max(0, x0); y0 = Math.max(0, y0);
+        x1 = Math.min(W, x1); y1 = Math.min(H, y1);
+        if (x1 <= x0 || y1 <= y0) return { x: bar.x, y: bar.y, w: bar.w, h: bar.h };
+        return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+      }
+      /* A node this big is the PAGE, not a thing on it - a scanned page's one
+         image XObject, an artboard rect, a full-bleed background. Union a bar
+         with it and the mark becomes the whole page; delete it in vector mode
+         and the artwork loses its backdrop. Excluded from the node set, so a bar
+         over it covers exactly what was drawn. */
+      function isBackdropNode(nb, W, H) {
+        if (!nb || !(W > 0) || !(H > 0)) return false;
+        return nb.w >= W * 0.85 && nb.h >= H * 0.85;
+      }
+      function usableNode(nb) {
+        return !!nb && isFinite(nb.x) && isFinite(nb.y) && nb.w >= 0 && nb.h >= 0;
+      }
+      /* ONE pass: grow to the union of the nodes the user's own rectangle is
+         over, and stop. Running this to a fixed point over the GROWN box is a
+         flood fill on body text - the bar reaches a word, grows, now overlaps
+         its neighbour and the line above, and swallows the paragraph. A union
+         contains every box it was built from, so a targeted node is still fully
+         covered; nothing the grown box newly reaches can enlarge it further.
+         `hit` (what vector export DELETES) is answered against the FINAL painted
+         box instead, because anything painted over must be deleted or it stays
+         extractable. See hooks.js for the full reasoning. */
+      function snapBarToNodes(bar, nodes, effOf) {
+        var raw = { x: bar.x, y: bar.y, w: bar.w, h: bar.h };
+        var probe = effOf ? effOf(raw) : raw;
+        var box = raw;
+        var i, nb;
+        for (i = 0; i < nodes.length; i++) {
+          nb = nodes[i];
+          if (!usableNode(nb)) continue;
+          if (!rectOverlaps(probe, nb)) continue;
+          box = unionBox(box, nb);
+        }
+        var final = effOf ? effOf(box) : box;
+        var hit = [];
+        for (i = 0; i < nodes.length; i++) {
+          nb = nodes[i];
+          if (!usableNode(nb)) continue;
+          if (rectOverlaps(final, nb)) hit.push(i);
+        }
+        return { x: box.x, y: box.y, w: box.w, h: box.h, hit: hit };
+      }
+      function subtractBox(r, c) {
+        if (!rectTouches(r, c)) return [r];
+        var out = [];
+        var top = Math.max(r.y, Math.min(r.y + r.h, c.y));
+        var bottom = Math.min(r.y + r.h, Math.max(r.y, c.y + c.h));
+        if (top > r.y) out.push({ x: r.x, y: r.y, w: r.w, h: top - r.y });
+        if (bottom < r.y + r.h) out.push({ x: r.x, y: bottom, w: r.w, h: r.y + r.h - bottom });
+        var midH = bottom - top;
+        if (midH > 0) {
+          var left = Math.max(r.x, Math.min(r.x + r.w, c.x));
+          var right = Math.min(r.x + r.w, Math.max(r.x, c.x + c.w));
+          if (left > r.x) out.push({ x: r.x, y: top, w: left - r.x, h: midH });
+          if (right < r.x + r.w) out.push({ x: right, y: top, w: r.x + r.w - right, h: midH });
+        }
+        return out;
+      }
+      function uncoveredParts(node, covers, eps) {
+        var e = (eps == null) ? 0.75 : eps;
+        var parts = [{ x: node.x, y: node.y, w: node.w, h: node.h }];
+        for (var i = 0; i < covers.length; i++) {
+          var next = [];
+          for (var j = 0; j < parts.length; j++) {
+            var pieces = subtractBox(parts[j], covers[i]);
+            for (var k = 0; k < pieces.length; k++) next.push(pieces[k]);
+          }
+          parts = next.filter(function (p) { return p.w > e && p.h > e; });
+          if (!parts.length) break;
+        }
+        return parts;
+      }
+      function partialNodes(nodes, covers, eps) {
+        var out = [];
+        if (!covers.length) return out;
+        for (var i = 0; i < nodes.length; i++) {
+          var nb = nodes[i];
+          if (!nb || !(nb.w > 0) || !(nb.h > 0)) continue;
+          var touched = false;
+          for (var c = 0; c < covers.length; c++) {
+            if (rectOverlaps(covers[c], nb)) { touched = true; break; }
+          }
+          if (!touched) continue;
+          var parts = uncoveredParts(nb, covers, eps);
+          if (parts.length) out.push({ index: i, parts: parts });
+        }
+        return out;
+      }
+      /* THE ROUNDED-CORNER RULE, mirrored from hooks.js paintedShape. A rounded
+         rectangle does not cover the corners of the box it is inscribed in, so
+         the painted box is INFLATED by the radius first: each arc's centre then
+         sits exactly on a corner of the requested rect, and containment follows
+         by construction. A corner whose sides clamped to the frame is painted
+         square, because the clamp drags that centre inward. This is why the
+         preview can claim to be the same shape as the export - it runs the same
+         maths, and tests/redact.test.ts compares the two case by case. */
+      function paintedShape(rect, radius, W, H) {
+        var rad = Math.max(0, Math.floor(Number(radius) || 0));
+        if (!rad) return { x0: rect.x0, y0: rect.y0, x1: rect.x1, y1: rect.y1, radii: [0, 0, 0, 0] };
+        var wantX0 = rect.x0 - rad, wantY0 = rect.y0 - rad;
+        var wantX1 = rect.x1 + rad, wantY1 = rect.y1 + rad;
+        var x0 = Math.max(0, wantX0), y0 = Math.max(0, wantY0);
+        var x1 = Math.min(W, wantX1), y1 = Math.min(H, wantY1);
+        var cL = x0 > wantX0, cT = y0 > wantY0, cR = x1 < wantX1, cB = y1 < wantY1;
+        var cap = Math.max(0, Math.min(rad, Math.floor(Math.min(x1 - x0, y1 - y0) / 2)));
+        return {
+          x0: x0, y0: y0, x1: x1, y1: y1,
+          radii: [
+            (cL || cT) ? 0 : cap,
+            (cR || cT) ? 0 : cap,
+            (cR || cB) ? 0 : cap,
+            (cL || cB) ? 0 : cap
+          ]
+        };
+      }
+      return {
+        rectTouches: rectTouches, rectOverlaps: rectOverlaps,
+        unionBox: unionBox, effBox: effBox,
+        snapBarToNodes: snapBarToNodes, subtractBox: subtractBox,
+        uncoveredParts: uncoveredParts, partialNodes: partialNodes,
+        paintedShape: paintedShape, isBackdropNode: isBackdropNode
+      };
+    })();
+    /* @geom-mirror-end */
+
+    /* @resnap-plan-start
+       Pure: which bars on a page still have to be measured against it, and what
+       they become. Split out of the DOM wiring on purpose - jsdom answers every
+       getBoundingClientRect with zeroes, so the wiring around this cannot be
+       tested off-browser, but the decision it encodes is the part that can leak
+       and so is the part worth pinning. tests/redact.test.ts extracts and
+       evaluates THIS block. Keep it pure: no DOM, RDGeom only. */
+    var RDResnap = (function (G) {
+      /* Has this bar ever been measured against the page? Mirrors the hook's
+         parseNodeMarks test: 'm' or 'm:3,17' means measured; anything else
+         (missing, empty, junk) means it has never been near a DOM. */
+      function measured(b) {
+        var s = (b && b.n != null) ? String(b.n).trim() : '';
+        return s.charAt(0) === 'm';
+      }
+
+      /* The addresses a committed bar carries: 'm' = measured, nothing under
+         it; 'm:3,17' = measured, delete these. An empty string would mean NEVER
+         measured, and vector export refuses that rather than covering what it
+         promised to delete - so this never returns one. */
+      function marksFor(nodes, hit) {
+        var ids = [];
+        for (var i = 0; i < hit.length; i++) {
+          var n = nodes[hit[i]];
+          if (n && n.idx >= 0 && ids.indexOf(n.idx) === -1) ids.push(n.idx);
+        }
+        ids.sort(function (a, b) { return a - b; });
+        return ids.length ? 'm:' + ids.join(',') : 'm';
+      }
+
+      /* The integer close-out the draw path applies on release, so a re-snapped
+         bar is indistinguishable from a drawn one. */
+      function closeOut(s, W, H) {
+        var x = Math.max(0, Math.floor(s.x));
+        var y = Math.max(0, Math.floor(s.y));
+        return { x: x, y: y, w: Math.min(W, Math.ceil(s.x + s.w)) - x, h: Math.min(H, Math.ceil(s.y + s.h)) - y };
+      }
+
+      /* The nodes a bar's PAINTED box touches right now, as indices into
+         `nodes`. This is exactly the set vector export has to delete for that
+         bar, and it is read from the page in front of us rather than from what
+         the bar remembers. */
+      function touching(cover, nodes, G) {
+        var out = [];
+        for (var i = 0; i < nodes.length; i++) {
+          var nb = nodes[i];
+          if (!nb || !isFinite(nb.x) || !isFinite(nb.y) || !(nb.w >= 0) || !(nb.h >= 0)) continue;
+          if (G.rectOverlaps(cover, nb)) out.push(i);
+        }
+        return out;
+      }
+
+      /* Returns { changed, next } over the WHOLE document array, correcting
+         only bars on `page`. A bar is re-snapped when it was never measured, and
+         only then - its geometry is otherwise the user's.
+
+         There used to be a second trigger: a bar that left any node partly
+         covered was re-grown. That was load bearing while growth ran to a fixed
+         point (a capped snap could come back still overlapping something it had
+         not swallowed, and the bar would creep outward one commit per render).
+         With growth bounded to a single pass it becomes the creep instead: a bar
+         whose inflation or quantise grid clips the word beside it is partial by
+         construction, would be re-grown to swallow that word, would then clip
+         the next one, and would walk across the line a render at a time - the
+         same flood fill, arriving slowly. A drawn bar is grown once, when it is
+         drawn, and after that partial coverage is REPORTED (RDGeom.partialNodes,
+         the .rd-partial overlay and the toast) rather than silently corrected.
+
+         Its ADDRESSES are checked separately, and always. "Measured" was being
+         read as "measured against THIS page", which it is not: the same bars
+         input survives a source swap, the sidebar blocks editor moves a bar
+         without going near the DOM, and a batch instruction string is applied
+         to file after file. A bar carrying 'm:37,41' that now sits over
+         different words made vector export delete the elements it USED to touch
+         and paint an opaque rect over the ones it now touches - the covered
+         text still in the file, fully extractable, and the gate silent because
+         it only greps for what was removed. So a settled bar keeps its
+         geometry, and its addresses are rewritten to whatever it actually
+         touches now. */
+      function plan(bars, page, nodes, W, H, effOf) {
+        var mine = [];
+        for (var i = 0; i < bars.length; i++) {
+          var b = bars[i];
+          if ((b.page || 1) !== page) continue;
+          if (!(b.w > 0) || !(b.h > 0)) continue;
+          mine.push({ i: i, b: b });
+        }
+        if (!mine.length || !nodes.length) return { changed: false, next: bars };
+
+        var covers = mine.map(function (m) { return effOf(m.b); });
+        var next = bars.slice();
+        var changed = false;
+        function clone(bar) {
+          var copy = {};
+          for (var k in bar) {
+            if (Object.prototype.hasOwnProperty.call(bar, k)) copy[k] = bar[k];
+          }
+          return copy;
+        }
+
+        for (var m = 0; m < mine.length; m++) {
+          var idx = mine[m].i, bar = mine[m].b;
+          if (measured(bar)) {
+            /* Settled: the geometry is the user's and is left alone, but the
+               addresses must describe THIS page. */
+            var cur = marksFor(nodes, touching(covers[m], nodes, G));
+            if (bar.n === cur) continue;
+            var fixed = clone(bar);
+            fixed.n = cur;
+            next[idx] = fixed;
+            changed = true;
+            continue;
+          }
+          var s = G.snapBarToNodes({ x: bar.x, y: bar.y, w: bar.w, h: bar.h }, nodes, effOf);
+          var r = closeOut(s, W, H);
+          if (!(r.w > 0) || !(r.h > 0)) continue;
+          var n = marksFor(nodes, s.hit);
+          if (bar.x === r.x && bar.y === r.y && bar.w === r.w && bar.h === r.h && bar.n === n) continue;
+          var copy = clone(bar);
+          copy.x = r.x; copy.y = r.y; copy.w = r.w; copy.h = r.h; copy.n = n;
+          next[idx] = copy;
+          changed = true;
+        }
+        return { changed: changed, next: next };
+      }
+
+      return { measured: measured, marksFor: marksFor, closeOut: closeOut, touching: touching, plan: plan };
+    })(RDGeom);
+    /* @resnap-plan-end */
+
+    /* ── Node measurement. Only reachable because the page is INLINE svg: an
+       SVG inside an <img> is a closed document and none of this would exist.
+       Leaf drawables only - snapping to a <g> would swallow siblings the user
+       never touched, and a <text> box already contains its tspans. Anything
+       inside a paint-server or clip definition is skipped: it has no painted
+       box of its own, and deleting it would change artwork elsewhere. ── */
+    var NODE_TAGS = {
+      text: 1, path: 1, rect: 1, circle: 1, ellipse: 1, line: 1,
+      polyline: 1, polygon: 1, image: 1, use: 1
+    };
+    var SKIP_INSIDE = {
+      defs: 1, clippath: 1, mask: 1, symbol: 1, marker: 1, pattern: 1,
+      lineargradient: 1, radialgradient: 1, filter: 1
+    };
+
+    function insideDefinition(el, root) {
+      for (var p = el.parentNode; p && p !== root; p = p.parentNode) {
+        if (SKIP_INSIDE[String(p.tagName || '').toLowerCase()]) return true;
+      }
+      return false;
+    }
+
+    /* Node boxes in the frame's own bar space (PDF points, or the SVG's natural
+       pixels). getBoundingClientRect, not getBBox: it already carries every
+       ancestor transform and the painted stroke, which is the over-inclusive
+       side to err on. Called ONCE per gesture (at pointerdown) and once per
+       repaint for the coverage check, never per pointermove. */
+    /* WORD boxes inside one text element, measured with a DOM Range over its
+       character data. Page frames only, and the reason is granularity: one
+       interpreted PDF text run is one <text> carrying a <tspan> PER LINE (engine
+       pdf-svg), so the element's box is the whole paragraph and a bar snapped to
+       it covers the paragraph however tightly it was drawn. Whole lines are not
+       much better - you cannot redact a name out of a sentence. A range rect is
+       the same ruler as everything else here (client rects, so ancestor
+       transforms and the frame's fit scale are already in it), which is why this
+       is a Range and not getExtentOfChar's user-space box.
+
+       Only page frames get this. An SVG frame's nodes decide what vector export
+       DELETES, and deleting a whole <text> because a bar covered one word of it
+       would remove lines the user can still see. The page path only rasterises,
+       so here the finer unit costs nothing and buys word-level redaction.
+
+       Returns false when there is nothing to split (no Range support, no text),
+       and the caller falls back to the element box. */
+    function wordSplit(el, idx, push) {
+      var doc = el.ownerDocument;
+      if (!doc || typeof doc.createRange !== 'function') return false;
+      var leaves = el.getElementsByTagName('tspan');
+      var hosts = (leaves && leaves.length) ? leaves : [el];
+      var any = false;
+      for (var s = 0; s < hosts.length; s++) {
+        var tn = hosts[s].firstChild;
+        /* Character data only: a tspan wrapping more tspans is handled by its
+           own turn in the list. */
+        if (!tn || tn.nodeType !== 3) continue;
+        var text = String(tn.nodeValue || '');
+        /* Already one word: its own box IS the word box, and a Range would only
+           be a slower way to ask. Worth the special case - an interpreted page
+           can carry several hundred of these, and this walk runs per render. */
+        if (text.trim() && !/\s/.test(text.trim())) {
+          push(hosts[s], hosts[s].getBoundingClientRect(), idx);
+          any = true;
+          continue;
+        }
+        var i = 0;
+        while (i < text.length) {
+          if (/\s/.test(text.charAt(i))) { i++; continue; }
+          var j = i;
+          while (j < text.length && !/\s/.test(text.charAt(j))) j++;
+          var range = doc.createRange();
+          range.setStart(tn, i);
+          range.setEnd(tn, j);
+          var r = range.getBoundingClientRect();
+          if (r && (r.width > 0 || r.height > 0)) { push(hosts[s], r, idx); any = true; }
+          i = j;
+        }
+      }
+      return any;
+    }
+
+    /* ── Paper, and why it is not a node ────────────────────────────────────
+       An interpreted PDF page is not just its ink. A page produced by a word
+       processor carries a WHITE RECTANGLE PER LINE OF TEXT - the run's own
+       background box, 450pt wide on a 612pt page, invisible against the paper
+       and meaningless to a reader. It is a node like any other to a
+       getBoundingClientRect walk, and it was the real reason a 20x20pt bar came
+       back 475pt wide: snap-to-cover was not chaining across the paragraph so
+       much as landing on the paragraph's own upholstery.
+
+       So a node with nothing visible to cover is not a node. Two cases, both
+       decided from computed style rather than from tag names:
+         · no paint at all (fill none/transparent, no stroke, zero opacity)
+         · filled with the page's own background colour and not stroked
+       Text, images and <use> are never treated as paper: white text on a dark
+       plate is content, and the page background is a poor guide to what sits
+       under a nested reference.
+
+       Excluding is the SAFE direction in every consumer. Growth: a bar no longer
+       inherits a full-width backdrop it was never aimed at. Coverage warnings: a
+       white rectangle is not "partly covered and still readable". Vector export:
+       a paper rectangle is not deleted - and that one matters twice over, since
+       a white box drawn OVER text is how people fake a redaction, and removing
+       it would expose exactly what its author was hiding. */
+    function paintOf(el) {
+      var v = el.ownerDocument && el.ownerDocument.defaultView;
+      if (!v || typeof v.getComputedStyle !== 'function') return null;
+      try { return v.getComputedStyle(el); } catch (e) { return null; }
+    }
+
+    /* The page's own background colour, read off the backdrop node the walk is
+       about to discard. Falls back to white, which is what a PDF page is. */
+    var PAPER_SCAN = 8;   // drawables to look at before giving up on a backdrop
+
+    function paperFill(all, sp, sx, sy, rr) {
+      var looked = 0;
+      for (var i = 0; i < all.length; i++) {
+        var el = all[i];
+        if (!NODE_TAGS[String(el.tagName || '').toLowerCase()]) continue;
+        /* Paint order is back-to-front, so the page's own backdrop is one of
+           the first things drawn. Looking further would mean a client rect for
+           every element on the page, on every render, to find something that is
+           either at the front of the list or not there at all. */
+        if (++looked > PAPER_SCAN) break;
+        var r = el.getBoundingClientRect();
+        var nb = { x: (r.left - rr.left) * sx, y: (r.top - rr.top) * sy, w: r.width * sx, h: r.height * sy };
+        if (!RDGeom.isBackdropNode(nb, sp.w, sp.h)) continue;
+        var cs = paintOf(el);
+        var f = cs && cs.fill;
+        if (f && f !== 'none') return f;
+      }
+      return 'rgb(255, 255, 255)';
+    }
+
+    /* Shapes only. Text, images and <use> are never paper (white text on a dark
+       plate is content), and skipping them by tag keeps getComputedStyle - the
+       expensive call here - off the several hundred text runs of a page. */
+    var PAPER_TAGS = { path: 1, rect: 1, circle: 1, ellipse: 1, line: 1, polyline: 1, polygon: 1 };
+
+    function isPaperNode(el, tag, paper) {
+      if (!PAPER_TAGS[tag]) return false;
+      var cs = paintOf(el);
+      if (!cs) return false;
+      if (parseFloat(cs.opacity) === 0) return true;
+      var stroked = cs.stroke && cs.stroke !== 'none' && parseFloat(cs.strokeOpacity) !== 0;
+      if (stroked) return false;
+      var fill = cs.fill;
+      if (!fill || fill === 'none' || parseFloat(cs.fillOpacity) === 0) return true;
+      /* Both strings come from getComputedStyle, so they are normalised the
+         same way and a plain comparison is exact. */
+      return fill === paper;
+    }
+
+    function collectNodes(root, sp, fine) {
+      var out = [];
+      if (!root || String(root.tagName || '').toLowerCase() !== 'svg') return out;
+      if (typeof root.querySelectorAll !== 'function') return out;
+      var rr = root.getBoundingClientRect();
+      if (!(rr.width > 0) || !(rr.height > 0)) return out;
+      var sx = sp.w / rr.width, sy = sp.h / rr.height;
+      function push(el, rect, idx) {
+        if (!(rect.width > 0) && !(rect.height > 0)) return;
+        var nb = {
+          el: el,
+          idx: isFinite(idx) ? idx : -1,
+          x: (rect.left - rr.left) * sx,
+          y: (rect.top - rr.top) * sy,
+          w: rect.width * sx,
+          h: rect.height * sy
+        };
+        /* The page's own backdrop is not an element a bar was aimed at. */
+        if (RDGeom.isBackdropNode(nb, sp.w, sp.h)) return;
+        out.push(nb);
+      }
+      var all = root.querySelectorAll('*');
+      var paper = paperFill(all, sp, sx, sy, rr);
+      for (var i = 0; i < all.length; i++) {
+        var el = all[i];
+        var tag = String(el.tagName || '').toLowerCase();
+        if (!NODE_TAGS[tag]) continue;
+        if (insideDefinition(el, root)) continue;
+        if (isPaperNode(el, tag, paper)) continue;
+        var idx = parseInt(el.getAttribute('data-rdn') || '', 10);
+        /* LINE granularity, page frames only. One interpreted PDF text run is
+           one <text> element carrying a <tspan> PER LINE (engine pdf-svg), so
+           its box is the whole paragraph - and a bar snapped to that covers the
+           paragraph however tightly it was drawn. On a page frame the tspans are
+           the honest unit: they are what a reader sees as separate things, and
+           the page path only ever RASTERISES, so nothing here decides what gets
+           deleted from a file. SVG frames keep whole-element boxes precisely
+           because there it does: vector mode deletes the addressed <text>, and
+           snapping to one line of it would paint one line and remove them all. */
+        if (fine && tag === 'text' && wordSplit(el, idx, push)) continue;
+        push(el, el.getBoundingClientRect(), idx);
+      }
+      return out;
+    }
+
+    /* The addresses a committed bar carries - owned by the pure @resnap-plan
+       block, because the draw path and the re-measure pass must write the same
+       string for the same nodes. */
+    var marksFor = RDResnap.marksFor;
+
+    function commit(next) {
+      if (commitFn) { commitFn('bars', next); return; }
+      /* Legacy poke: only a field that can hold the whole JSON array may take
+         it (bars renders nowhere as a text field now, so this is usually a
+         no-op outside old shells). */
+      var el = document.querySelector('[data-input-id="bars"]');
+      if (!el) return;
+      var field = el.matches('textarea, input[type="text"], input[type="hidden"]')
+        ? el
+        : el.querySelector('textarea, input[type="text"], input[type="hidden"]');
+      if (!field) return;
+      field.value = JSON.stringify(next);
+      field.dispatchEvent(new Event('input', { bubbles: true }));
+      field.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
+    /* Accepting is the ONLY way a suggestion becomes a bar, and it goes through
+       the same commit as a drawn one - one write of the whole array, on the
+       undo stack, in the URL, in the saved session. Accepted keys are dismissed
+       first so the repaint that follows the commit does not draw the proposal
+       again on top of the bar it just became. */
+    function acceptSuggestions(keys) {
+      var add = [];
+      for (var i = 0; i < suggs.length; i++) {
+        if (keys.indexOf(suggKey(suggs[i])) === -1) continue;
+        add.push(suggBar(suggs[i]));
+      }
+      suggDismiss(keys);
+      if (add.length) commit(bars.concat(add));
+    }
+
+    /* While the shell renders the page previews, poll by re-running onInput with
+       the bars input's CURRENT runtime value (the nudge channel: no history
+       entry, no stale value). Without any channel nothing here can re-run
+       onInput, so say so instead of showing "Rendering pages…" forever. */
+    if (stage.hasAttribute('data-pages-pending')) {
+      var pendingNote = wrap.querySelector('[data-pages-note]');
+      if (!nudgeFn) {
+        if (pendingNote) pendingNote.textContent = 'Rendering pages… This view cannot refresh itself. Change any input to check for the finished previews.';
+      } else {
+        var polls = 0;
+        var pollTimer = setInterval(function () {
+          if (!alive() || !stage.hasAttribute('data-pages-pending')) {
+            clearInterval(pollTimer);
+            return;
+          }
+          if (++polls > 40) {
+            clearInterval(pollTimer);
+            if (pendingNote) pendingNote.textContent = 'Rendering pages is taking a while. Change any input to check again.';
+            return;
+          }
+          nudgeFn('bars');
+        }, 700);
+      }
+    }
+
+    /* ── Pointer-mode + preset state, persisted on the canvas container so a
+       repaint (every commit repaints) keeps the chosen tool. ── */
+    var mode = (canvasRoot && canvasRoot.dataset.rdMode) || 'bar';
+    var preset = (canvasRoot && canvasRoot.dataset.rdPreset) || 'free';
+
+    function syncRail() {
+      stage.setAttribute('data-rd-mode', mode);
+      var btns = stage.querySelectorAll('.rd-rail-btn');
+      Array.prototype.forEach.call(btns, function (b) {
+        if (b.hasAttribute('data-mode')) b.setAttribute('aria-pressed', b.getAttribute('data-mode') === mode ? 'true' : 'false');
+        if (b.hasAttribute('data-preset')) b.setAttribute('aria-pressed', b.getAttribute('data-preset') === preset ? 'true' : 'false');
+      });
+    }
+    /* ── Ask for a read, stop a read, take every suggestion ─────────────────
+       The request travels as a value on the `ocr` input, because a template
+       script has no host bridge: the hook owns host.ocr, and the only channel
+       from this canvas to the hook is the model. A nonce (not a flag) so a
+       second click asks for a second read; 'off' aborts one in flight.
+
+       Written through the history-free channel: asking to read is not an edit
+       to the document, and it must not sit on the undo stack in front of the
+       bars, which is what a person actually wants to take back. ── */
+    var ocrGroup = stage.querySelector('[data-ocr-group]');
+    if (ocrGroup) {
+      ocrGroup.addEventListener('click', function (e) {
+        if (!alive()) return;
+        var btn = e.target && e.target.closest ? e.target.closest('button') : null;
+        if (!btn) return;
+        if (btn.hasAttribute('data-ocr-run') && quietFn) quietFn('ocr', String(Date.now()));
+        else if (btn.hasAttribute('data-ocr-cancel') && quietFn) quietFn('ocr', 'off');
+        else if (btn.hasAttribute('data-sugg-accept-all')) {
+          var off = suggDismissed();
+          var keys = [];
+          for (var i = 0; i < suggs.length; i++) {
+            var key = suggKey(suggs[i]);
+            if (off.indexOf(key) === -1) keys.push(key);
+          }
+          acceptSuggestions(keys);
+        }
+      });
+    }
+
+    /* A read that outlives this pass publishes data-ocr-pending, and the canvas
+       polls the hook the same way it polls for page previews. A hook cannot
+       reach the shell's heavy-job queue, so there is no global toast for this
+       one: the rail button IS the busy state, and cancel is a real
+       AbortSignal on the far side. */
+    if (stage.hasAttribute('data-ocr-pending') && nudgeFn) {
+      var ocrPolls = 0;
+      var ocrTimer = setInterval(function () {
+        if (!alive() || !stage.hasAttribute('data-ocr-pending')) {
+          clearInterval(ocrTimer);
+          return;
+        }
+        if (++ocrPolls > 150) { clearInterval(ocrTimer); return; }
+        nudgeFn('ocr');
+      }, 700);
+    }
+
+    var rail = stage.querySelector('.rd-rail');
+    if (rail) {
+      rail.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest ? e.target.closest('.rd-rail-btn') : null;
+        if (!btn || !alive()) return;
+        var m = btn.getAttribute('data-mode');
+        var p = btn.getAttribute('data-preset');
+        if (m) { mode = m; if (canvasRoot) canvasRoot.dataset.rdMode = m; }
+        if (p) { preset = p; if (canvasRoot) canvasRoot.dataset.rdPreset = p; }
+        syncRail();
+      });
+    }
+    syncRail();
+
+    /* Preset height in FRAME units. The fractions come from the hook (the one
+       source of truth, tested there); free/unknown returns 0 = follow the drag. */
+    function presetH(frameH) {
+      if (!Object.prototype.hasOwnProperty.call(presetFracs, preset)) return 0;
+      return Math.max(6, Math.round(frameH * presetFracs[preset]));
+    }
+
+    /* Frame space - the units bars, node bounds and the export all share.
+       data-ptw/data-pth declare it (PDF points for a page, natural pixels for
+       an inline SVG source); a raster <img> has neither, so its own natural
+       pixel size is the space. */
+    function frameSpace(frame, img) {
+      var ptw = parseFloat(frame.getAttribute('data-ptw') || '');
+      var pth = parseFloat(frame.getAttribute('data-pth') || '');
+      if (isFinite(ptw) && ptw > 0 && isFinite(pth) && pth > 0) return { w: ptw, h: pth };
+      var r = img.getBoundingClientRect();
+      return { w: img.naturalWidth || r.width, h: img.naturalHeight || r.height };
+    }
+
+    /* Split a freehand stroke into horizontal bands: a band grows while its
+       vertical extent stays within one text line, a bigger jump starts the next
+       band. Each band commits as one solid bar inflated by the stroke radius. */
+    function strokeBands(pts, r, limit) {
+      var bands = [];
+      var cur = null;
+      for (var i = 0; i < pts.length; i++) {
+        var p = pts[i];
+        if (!cur) { cur = { x0: p.x, x1: p.x, y0: p.y, y1: p.y }; continue; }
+        var ny0 = Math.min(cur.y0, p.y);
+        var ny1 = Math.max(cur.y1, p.y);
+        if (ny1 - ny0 > limit) {
+          bands.push(cur);
+          cur = { x0: p.x, x1: p.x, y0: p.y, y1: p.y };
+        } else {
+          cur.y0 = ny0; cur.y1 = ny1;
+          cur.x0 = Math.min(cur.x0, p.x);
+          cur.x1 = Math.max(cur.x1, p.x);
+        }
+      }
+      if (cur) bands.push(cur);
+      var out = [];
+      for (var j = 0; j < bands.length; j++) {
+        var b = bands[j];
+        out.push({
+          x: Math.round(b.x0 - r), y: Math.round(b.y0 - r),
+          w: Math.round((b.x1 - b.x0) + 2 * r), h: Math.round((b.y1 - b.y0) + 2 * r),
+        });
+      }
+      return out;
+    }
+
+    /* How much the SHELL is scaling this canvas. #tool-canvas is laid out at its
+       natural size and then scaled with a CSS transform to fit the stage (plus
+       whatever stage zoom is applied), so a client rect measured inside it is
+       already multiplied by that factor while an inline `borderRadius: 4px` is
+       resolved in the unscaled layout box and scaled AGAIN on paint. Anything
+       written as a CSS length therefore has to be divided by this first. Layout
+       offsets are immune to transforms, which is what makes them the ruler. */
+    function shellScale() {
+      if (!canvasRoot || !canvasRoot.offsetWidth) return 1;
+      var r = canvasRoot.getBoundingClientRect();
+      var k = r.width / canvasRoot.offsetWidth;
+      return (isFinite(k) && k > 0.01) ? k : 1;
+    }
+
+    /* One warning for the whole document, not one per frame: the frames each
+       count their own partly-covered elements, this coalesces the totals and
+       raises a single toast when the number CHANGES. A repaint that reproduces
+       the same count stays quiet, so the warning never nags. */
+    var partialTimer = null;
+    function reportPartials() {
+      if (partialTimer) return;
+      partialTimer = setTimeout(function () {
+        partialTimer = null;
+        if (!alive()) return;
+        var total = 0;
+        var fs = stage.querySelectorAll('.rd-frame');
+        for (var i = 0; i < fs.length; i++) total += (fs[i].__rdPartials || 0);
+        var prev = canvasRoot ? (parseInt(canvasRoot.dataset.rdPartialCount || '0', 10) || 0) : 0;
+        if (canvasRoot) canvasRoot.dataset.rdPartialCount = String(total);
+        if (total > 0 && total !== prev) {
+          /* Says exactly what was computed - an item with ink under a bar and
+             ink outside it - and nothing about which bar meant to take it. A
+             bar can clip a neighbour it was never aimed at, and for that one the
+             fix is to pull back rather than to widen, so the copy offers both.
+             See partialNodes in hooks.js for why both are reported. */
+          pushToast(total === 1
+            ? '1 item is only partly covered and stays readable. Widen its bar over the rest of it, or pull the bar off it.'
+            : total + ' items are only partly covered and stay readable. Widen their bars over the rest of them, or pull the bars off them.');
+        }
+      }, 0);
+    }
+
+    function wireFrame(frame) {
+      /* .rd-img is an <img> for a raster source and an inline <svg> element for
+         a PDF page or an SVG source. Everything below measures through
+         getBoundingClientRect, which both answer identically. */
+      var img = frame.querySelector('.rd-img');
+      var marks = frame.querySelector('.rd-marks');
+      if (!img || !marks) return;
+      var page = parseInt(frame.getAttribute('data-page') || '1', 10) || 1;
+      var isVectorFrame = String(img.tagName || '').toLowerCase() === 'svg';
+      /* Points for a PDF page, natural pixels for an SVG or an image. */
+      var grid = frame.hasAttribute('data-ptw') && frame.classList.contains('rd-pageframe')
+        ? (geom.gridPt || 18)
+        : (geom.gridPx || 24);
+
+      function effOfIn(sp) {
+        return function (b) {
+          return RDGeom.effBox(b, sp.w, sp.h, geom.quantise !== false, geom.inflate, grid);
+        };
+      }
+
+      /* Nodes a bar could touch, in frame units. Empty for a raster source -
+         flat pixels have no elements, so neither snap-to-cover nor the
+         partial-coverage warning can fire there, and the copy says so. */
+      function nodesNow(sp) {
+        return isVectorFrame ? collectNodes(img, sp, frame.classList.contains('rd-pageframe')) : [];
+      }
+
+
+      /* The painted boxes of this page's bars - the same rect the coverage
+         maths use, and the test for "has this page anything to measure for". */
+      function coversNow(sp) {
+        var eff = effOfIn(sp);
+        var out = [];
+        for (var i = 0; i < bars.length; i++) {
+          var b = bars[i];
+          if ((b.page || 1) !== page || !(b.w > 0) || !(b.h > 0)) continue;
+          out.push(eff(b));
+        }
+        return out;
+      }
+
+      /* What the document-wide re-measure pass needs from THIS page: the
+         measured nodes and the probe geometry. Published on the frame rather
+         than acted on here - see resnapAll, which is the only thing allowed to
+         commit, because every frame shares one document-wide bars array and a
+         per-frame commit would hand back a copy that reverts its neighbours. */
+      frame.__rdMeasure = function () {
+        if (!isVectorFrame) return null;
+        var sp = frameSpace(frame, img);
+        if (!sp.w || !sp.h) return null;
+        var nodes = nodesNow(sp);
+        if (!nodes.length) return null;
+        return { page: page, nodes: nodes, w: sp.w, h: sp.h, eff: effOfIn(sp) };
+      };
+
+      /* Elements a bar reaches but does not finish. Normally impossible right
+         after a draw (snap just grew the bar past them); it shows up after an
+         undo, a sidebar edit, or a neighbouring bar being removed. Returns the
+         count so the stage can raise one toast for the whole document. */
+      function renderPartials(sp, nodes) {
+        var mine = bars.filter(function (b) {
+          return (b.page || 1) === page && b.w > 0 && b.h > 0;
+        });
+        if (!isVectorFrame || !mine.length) return 0;
+        if (!nodes.length) return 0;
+        var eff = effOfIn(sp);
+        var covers = mine.map(eff);
+        var partials = RDGeom.partialNodes(nodes, covers, null);
+        for (var i = 0; i < partials.length; i++) {
+          var nb = nodes[partials[i].index];
+          var el = document.createElement('div');
+          el.className = 'rd-partial';
+          el.style.left = (nb.x / sp.w * 100) + '%';
+          el.style.top = (nb.y / sp.h * 100) + '%';
+          el.style.width = (nb.w / sp.w * 100) + '%';
+          el.style.height = (nb.h / sp.h * 100) + '%';
+          marks.appendChild(el);
+        }
+        return partials.length;
+      }
+
+      /* The box a bar actually PAINTS, in frame units: the effective rect
+         (integer snap, inflation, optional width quantise, clamp) grown by the
+         corner radius. The preview draws this, not the raw drag box, because the
+         export burns exactly this - a preview of the pre-inflation rectangle
+         would understate the covered area and hide the quantise widening. */
+      function shapeOf(b, sp) {
+        var e = RDGeom.effBox(b, sp.w, sp.h, geom.quantise !== false, geom.inflate, grid);
+        return RDGeom.paintedShape(
+          { x0: e.x, y0: e.y, x1: e.x + e.w, y1: e.y + e.h },
+          geom.radius, sp.w, sp.h
+        );
+      }
+
+      /* Frame units → CSS px as WRITTEN INTO A STYLE, which is not the same
+         number as frame units → on-screen px. `scale` is measured off a client
+         rect and so already carries the shell's canvas transform; an inline
+         length is resolved before that transform and scaled by it again. Divide
+         it back out or every radius and font size is off by the fit factor
+         squared (at a typical fit of 0.7, corners at 49% of their true size). */
+      function cssUnits(frameUnits, scale) {
+        return frameUnits * scale / shellScale();
+      }
+
+      /* The size the EXPORT computes its stamp in. For a page that is device
+         pixels at the rebuild's dpi, for an image and an SVG it is the file's
+         own units - and the "too small for a label" cut is applied in that
+         space, so the preview has to ask the question in the same one or it
+         hides a stamp the downloaded file paints. */
+      var stampUnit = frame.classList.contains('rd-pageframe')
+        ? ((geom.dpi || 200) / 72)
+        : 1;
+
+      /* Place a mark element over the frame and give it the SAME rounded shape
+         the export paints. The radii are frame units, so they are converted to
+         CSS pixels through the frame's live on-screen scale (a percentage
+         border-radius would be an ellipse, not a circular corner, and would
+         stop matching the export the moment the frame was not square). */
+      function styleShape(el, s, sp, scale) {
+        el.style.left = (s.x0 / sp.w * 100) + '%';
+        el.style.top = (s.y0 / sp.h * 100) + '%';
+        el.style.width = ((s.x1 - s.x0) / sp.w * 100) + '%';
+        el.style.height = ((s.y1 - s.y0) / sp.h * 100) + '%';
+        el.style.borderRadius = s.radii.map(function (r) {
+          return cssUnits(r, scale).toFixed(2) + 'px';
+        }).join(' ');
+      }
+
+      function renderBars() {
+        if (!alive()) return;
+        marks.textContent = '';
+        var sp = frameSpace(frame, img);
+        if (!sp.w || !sp.h) return;
+        /* Measured once and shared: the re-snap pass and the partial-coverage
+           overlay ask the same question of the same DOM. Skipped outright for a
+           page with nothing on it - walking every element of every page of a
+           long document on every render is the one expensive thing here, and a
+           page with no bar has neither a leak to find nor an address to fill
+           in. */
+        var nodes = coversNow(sp).length ? nodesNow(sp) : [];
+        var fr = img.getBoundingClientRect();
+        var scale = fr.width > 0 ? fr.width / sp.w : 1;
+        bars.forEach(function (b, idx) {
+          if ((b.page || 1) !== page) return;
+          if (!(b.w > 0) || !(b.h > 0)) return;
+          var el = document.createElement('div');
+          el.className = 'rd-bar';
+          el.setAttribute('data-idx', String(idx));
+          var s = shapeOf(b, sp);
+          styleShape(el, s, sp, scale);
+          if (markCfg.label) {
+            /* The stamp is drawn on top of an already-opaque bar, so it can
+               reveal nothing. Sized and dropped in the EXPORT's own units
+               (stampFit / stampLayout), then converted for display - sizing it
+               in CSS pixels made the cut depend on how big the preview happened
+               to be, so a big photo showed a clean bar and downloaded a stamped
+               one. */
+            var boxH = (s.y1 - s.y0) * stampUnit;
+            var boxW = (s.x1 - s.x0) * stampUnit;
+            var size = Math.floor(Math.min(14 * stampUnit, boxH * 0.5));
+            if (size >= 7 && markCfg.label.length * size * 0.62 <= boxW * 0.86) {
+              var tag = document.createElement('span');
+              tag.className = 'rd-bar-stamp';
+              tag.textContent = markCfg.label;
+              tag.style.color = markCfg.labelInk;
+              tag.style.fontSize = cssUnits(size / stampUnit, scale).toFixed(2) + 'px';
+              el.appendChild(tag);
+            }
+          }
+          var del = document.createElement('button');
+          del.type = 'button';
+          del.className = 'rd-bar-del';
+          del.setAttribute('data-idx', String(idx));
+          del.setAttribute('aria-label', 'Remove this redaction bar');
+          del.title = 'Remove bar';
+          el.appendChild(del);
+          marks.appendChild(el);
+        });
+        renderSuggestions(sp);
+        frame.__rdPartials = renderPartials(sp, nodes);
+        reportPartials();
+      }
+
+      /* Proposals, drawn over the same frame as the bars. Dotted and in the
+         theme's own brand tone, deliberately unlike both the mark (opaque ink)
+         and the partly-covered warning (a solid warm hairline plus a hatch) -
+         and never dashed, which this app reserves for drop targets. The chip
+         names what was recognised and carries the two buttons; a suggestion
+         cannot turn into a bar without one of them being clicked. */
+      function renderSuggestions(sp) {
+        if (!suggs.length) return;
+        var off = suggDismissed();
+        for (var i = 0; i < suggs.length; i++) {
+          var s = suggs[i];
+          if ((s.page || 1) !== page) continue;
+          if (!(s.w > 0) || !(s.h > 0)) continue;
+          var key = suggKey(s);
+          if (off.indexOf(key) !== -1) continue;
+          var el = document.createElement('div');
+          el.className = 'rd-sugg' + (s.maybe ? ' is-maybe' : '');
+          el.setAttribute('data-sugg-key', key);
+          el.style.left = (s.x / sp.w * 100) + '%';
+          el.style.top = (s.y / sp.h * 100) + '%';
+          el.style.width = (s.w / sp.w * 100) + '%';
+          el.style.height = (s.h / sp.h * 100) + '%';
+          if (s.text) el.title = (s.label || 'Suggested') + ': ' + s.text;
+          var chip = document.createElement('span');
+          /* The chip hangs below the region so it never sits on the pixels the
+             person is deciding about - but the frame clips its overflow, so a
+             region near the bottom edge would have an accept button nobody can
+             reach. Those flip above instead. */
+          chip.className = 'rd-sugg-chip'
+            + ((s.y + s.h) / sp.h > 0.88 ? ' is-above' : '');
+          var name = document.createElement('span');
+          name.className = 'rd-sugg-name';
+          /* The question mark is the whole honesty of a loose match: a
+             capitalised word pair is a guess, and the chip says so. */
+          name.textContent = (s.label || 'Suggested') + (s.maybe ? '?' : '');
+          chip.appendChild(name);
+          var ok = document.createElement('button');
+          ok.type = 'button';
+          ok.className = 'rd-sugg-ok';
+          ok.setAttribute('data-sugg-accept', key);
+          ok.setAttribute('aria-label', 'Cover this suggested ' + (s.label || 'region') + ' with a bar');
+          ok.title = 'Cover it';
+          ok.textContent = '✓';
+          var no = document.createElement('button');
+          no.type = 'button';
+          no.className = 'rd-sugg-no';
+          no.setAttribute('data-sugg-dismiss', key);
+          no.setAttribute('aria-label', 'Dismiss this suggestion');
+          no.title = 'Dismiss';
+          no.textContent = '×';
+          chip.appendChild(ok);
+          chip.appendChild(no);
+          el.appendChild(chip);
+          marks.appendChild(el);
+        }
+      }
+      if (isVectorFrame || img.complete) renderBars();
+      else img.addEventListener('load', renderBars);
+
+      function removeBar(idx) {
+        if (idx < 0 || idx >= bars.length) return;
+        commit(bars.slice(0, idx).concat(bars.slice(idx + 1)));
+      }
+
+      marks.addEventListener('click', function (e) {
+        if (!alive()) return;
+        var t = e.target;
+        var ok = t && t.closest ? t.closest('[data-sugg-accept]') : null;
+        if (ok) {
+          e.preventDefault();
+          acceptSuggestions([ok.getAttribute('data-sugg-accept')]);
+          return;
+        }
+        var no = t && t.closest ? t.closest('[data-sugg-dismiss]') : null;
+        if (no) {
+          e.preventDefault();
+          suggDismiss([no.getAttribute('data-sugg-dismiss')]);
+          renderBars();
+          return;
+        }
+        var del = e.target && e.target.closest ? e.target.closest('.rd-bar-del') : null;
+        if (del) {
+          e.preventDefault();
+          removeBar(parseInt(del.getAttribute('data-idx') || '-1', 10));
+          return;
+        }
+        if (mode === 'erase') {
+          var bar = e.target && e.target.closest ? e.target.closest('.rd-bar') : null;
+          if (bar) {
+            e.preventDefault();
+            removeBar(parseInt(bar.getAttribute('data-idx') || '-1', 10));
+          }
+        }
+      });
+
+      /* Draw: pointer capture on the frame, live feedback during the gesture,
+         single commit on release. Erase mode never draws.
+
+         Multi-touch belongs to the shell's stage zoom, not to us. The frame sets
+         touch-action:none, so a pinch arrives here as two pointerdowns; without
+         a guard each opened its own gesture and released as a full-width bar
+         over content nobody meant to cover. So: only the PRIMARY pointer starts
+         a gesture, and the arrival of any second pointer ABANDONS the one in
+         flight (draft removed, nothing committed) and leaves the pinch to
+         stage-nav, which is still receiving the same bubbled events. */
+      var abortGesture = null;
+      frame.addEventListener('pointerdown', function (e) {
+        if (!alive() || mode === 'erase') return;
+        /* The remove dot and a suggestion's accept/dismiss chip are controls
+           sitting on the drawing surface: a press on one is a click, never the
+           start of a bar. */
+        if (e.target && e.target.closest && e.target.closest('.rd-bar-del, .rd-sugg-chip')) return;
+        if (e.button !== undefined && e.button !== 0) return;
+        if (abortGesture) { abortGesture(); return; }   /* second finger: pinch, not a bar */
+        if (e.isPrimary === false) return;
+        e.preventDefault();
+        frame.setPointerCapture(e.pointerId);
+        var rect = img.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        var sp = frameSpace(frame, img);
+        var sx = sp.w / rect.width;
+        var sy = sp.h / rect.height;
+        var drawScale = rect.width / sp.w; /* frame units → CSS px, for the radii */
+        /* SNAP-TO-COVER. Candidates are measured ONCE, here, so pointermove
+           stays a pure arithmetic loop. A bar that half-covers a glyph is a
+           leak - ascenders and descenders sticking out of a strikethrough are
+           still readable - so on release the bar grows to contain every element
+           it is OVER. There is no off switch: shipping a leak mode would undo
+           the one promise this tool makes. It grows once, to what the drag
+           reached, and not to what the growth then reaches - see snapBarToNodes.
+           The draft shows the grown outline DURING the drag, so the growth is
+           never a surprise on release. */
+        var nodes = nodesNow(sp);
+        var eff = effOfIn(sp);
+        function snapOf(raw) {
+          return nodes.length
+            ? RDGeom.snapBarToNodes(raw, nodes, eff)
+            : { x: raw.x, y: raw.y, w: raw.w, h: raw.h, hit: [] };
+        }
+        var startX = e.clientX, startY = e.clientY;
+        var fixedH = mode === 'bar' ? presetH(sp.h) : 0; /* frame units; 0 = free */
+        var pts = []; /* marker stroke, frame space */
+        var draft = null, strokeSvg = null, strokeLine = null;
+
+        if (mode === 'bar') {
+          draft = document.createElement('div');
+          draft.className = 'rd-bar rd-draft';
+          marks.appendChild(draft);
+        } else {
+          strokeSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          strokeSvg.setAttribute('class', 'rd-stroke');
+          strokeSvg.setAttribute('viewBox', '0 0 ' + sp.w + ' ' + sp.h);
+          strokeSvg.setAttribute('preserveAspectRatio', 'none');
+          strokeLine = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+          strokeLine.setAttribute('fill', 'none');
+          strokeLine.setAttribute('stroke', '#000');
+          strokeLine.setAttribute('stroke-linecap', 'round');
+          strokeLine.setAttribute('stroke-linejoin', 'round');
+          strokeLine.setAttribute('stroke-width', String(Math.max(6, Math.round(sp.h * 0.02))));
+          strokeSvg.appendChild(strokeLine);
+          marks.appendChild(strokeSvg);
+        }
+
+        function toFrame(ev) {
+          var cx = Math.max(rect.left, Math.min(rect.right, ev.clientX));
+          var cy = Math.max(rect.top, Math.min(rect.bottom, ev.clientY));
+          return { x: (cx - rect.left) * sx, y: (cy - rect.top) * sy };
+        }
+        function box(ev) {
+          var x0 = Math.max(rect.left, Math.min(startX, ev.clientX));
+          var y0 = Math.max(rect.top, Math.min(startY, ev.clientY));
+          var x1 = Math.min(rect.right, Math.max(startX, ev.clientX));
+          var y1 = Math.min(rect.bottom, Math.max(startY, ev.clientY));
+          if (fixedH > 0) {
+            /* Preset height: the drag sets the x range, the bar is one preset
+               tall centred on the gesture's vertical midpoint. */
+            var midF = ((y0 + y1) / 2 - rect.top) * sy;
+            var topF = Math.max(0, Math.min(sp.h - fixedH, midF - fixedH / 2));
+            y0 = rect.top + (topF / sy);
+            y1 = rect.top + ((topF + fixedH) / sy);
+          }
+          return { x0: x0, y0: y0, x1: x1, y1: y1 };
+        }
+        /* A client-space box in FRAME units - the space bars, node bounds and
+           the export all share. */
+        function rawFrom(b) {
+          return {
+            x: (b.x0 - rect.left) * sx,
+            y: (b.y0 - rect.top) * sy,
+            w: (b.x1 - b.x0) * sx,
+            h: fixedH > 0 ? fixedH : (b.y1 - b.y0) * sy
+          };
+        }
+        function paint(ev) {
+          if (mode === 'bar' && draft) {
+            /* The draft shows the shape that will actually be painted - grown
+               to cover every element it touches, inflated, quantised and
+               rounded - so nothing about the committed bar is a surprise on
+               release. */
+            var s = snapOf(rawFrom(box(ev)));
+            styleShape(draft, shapeOf({ x: s.x, y: s.y, w: s.w, h: s.h }, sp), sp, drawScale);
+          } else if (strokeLine) {
+            var p = toFrame(ev);
+            pts.push(p);
+            strokeLine.setAttribute('points', strokeLine.getAttribute('points')
+              ? strokeLine.getAttribute('points') + ' ' + p.x.toFixed(1) + ',' + p.y.toFixed(1)
+              : p.x.toFixed(1) + ',' + p.y.toFixed(1));
+          }
+        }
+        function onMove(ev) {
+          if (!alive()) return;
+          paint(ev);
+        }
+        /* Detach and clear the live feedback WITHOUT committing. onUp calls it
+           and then decides what to commit; the second-finger abort calls it and
+           decides nothing. */
+        function teardown() {
+          abortGesture = null;
+          frame.removeEventListener('pointermove', onMove);
+          frame.removeEventListener('pointerup', onUp);
+          frame.removeEventListener('pointercancel', onUp);
+          if (draft && draft.parentNode) draft.parentNode.removeChild(draft);
+          if (strokeSvg && strokeSvg.parentNode) strokeSvg.parentNode.removeChild(strokeSvg);
+          try { frame.releasePointerCapture(e.pointerId); } catch (err) { /* already released */ }
+        }
+        function onUp(ev) {
+          teardown();
+          if (!alive()) return;
+
+          /* Every committed bar carries the addresses of the elements it
+             touches, so vector export can delete them instead of covering
+             them. 'm' with no list means measured and nothing under it - an
+             EMPTY string would mean never measured, and the export refuses
+             that rather than quietly covering what it promised to delete. */
+          function finish(raw) {
+            var s = snapOf(raw);
+            var x = Math.max(0, Math.floor(s.x));
+            var y = Math.max(0, Math.floor(s.y));
+            var w = Math.min(sp.w, Math.ceil(s.x + s.w)) - x;
+            var h = Math.min(sp.h, Math.ceil(s.y + s.h)) - y;
+            if (!(w > 0) || !(h > 0)) return null;
+            return { page: page, x: x, y: y, w: w, h: h, n: marksFor(nodes, s.hit) };
+          }
+
+          if (mode === 'marker') {
+            if (pts.length < 2) return;
+            var lineH = Math.max(6, Math.round(sp.h * 0.02));
+            var bands = strokeBands(pts, Math.round(lineH / 2), lineH);
+            var add = [];
+            for (var i = 0; i < bands.length; i++) {
+              var bd = bands[i];
+              if (!(bd.w > 0) || !(bd.h > 0)) continue;
+              var row = finish({ x: bd.x, y: bd.y, w: bd.w, h: bd.h });
+              if (row) add.push(row);
+            }
+            if (add.length) commit(bars.concat(add));
+            return;
+          }
+
+          var b = box(ev);
+          /* A stray click is not a bar: minimum 4 CLIENT px of drag (width only
+             when a preset owns the height). */
+          if (b.x1 - b.x0 < 4 || (fixedH === 0 && b.y1 - b.y0 < 4)) return;
+          var next = finish(rawFrom(b));
+          if (!next) return;
+          commit(bars.concat([next]));
+        }
+        abortGesture = teardown;
+        paint(e);
+        frame.addEventListener('pointermove', onMove);
+        frame.addEventListener('pointerup', onUp);
+        frame.addEventListener('pointercancel', onUp);
+      });
+    }
+
+    var frames = stage.querySelectorAll('.rd-frame');
+    Array.prototype.forEach.call(frames, wireFrame);
+
+    /* ── MEASURE THE BARS THIS CANVAS DID NOT DRAW ──────────────────────────
+       snap-to-cover and the node addresses vector export deletes are computed
+       on pointerup, which only ever runs for a bar drawn here. A bar that
+       arrived any other way - the sidebar blocks editor, a share link, `lolly
+       redact --bars=`, an MCP call, a session saved before addresses existed -
+       has never been near a DOM: it names no nodes, so vector export refuses it
+       outright, and nothing ever grew it off a half-covered glyph. That second
+       half is the leak snap-to-cover exists to close, and it does not care
+       where the bar came from.
+
+       ONE pass over the whole document, here rather than inside wireFrame,
+       because every frame shares one bars array: a per-frame commit rebuilds
+       the entire array from the snapshot this script parsed at render time, so
+       page 2's correction would hand back page 1's uncorrected row and revert
+       it. The repaint that would refresh the snapshot is rAF-deferred, so the
+       frames cannot see each other's work - they have to be folded together
+       before anything is committed. */
+    (function resnapAll() {
+      var next = bars, changed = false;
+      for (var i = 0; i < frames.length; i++) {
+        var m = frames[i].__rdMeasure && frames[i].__rdMeasure();
+        if (!m) continue;
+        var out = RDResnap.plan(next, m.page, m.nodes, m.w, m.h, m.eff);
+        if (out.changed) { next = out.next; changed = true; }
+      }
+      if (!changed) return;
+
+      /* Parked on the canvas container, which survives the innerHTML swap each
+         paint performs - the script itself does not, so a plain local would
+         forget every time. Without it a document that cannot settle (a node
+         running off the page edge can never be fully contained) would be
+         re-corrected on render after render. */
+      var sig = JSON.stringify(next);
+      if (canvasRoot && canvasRoot.dataset.rdResnapSig === sig) return;
+      if (canvasRoot) canvasRoot.dataset.rdResnapSig = sig;
+      if (quietFn) quietFn('bars', next);
+      else commit(next);   /* offscreen export / old shell: the sidebar poke */
+    })();
+
+    /* ── Page scroller: a quiet "which page am I on" readout plus two step
+       buttons. The readout is the page whose box covers the middle of the
+       scrollport, which is what a reader means by "the page I am on" when two
+       are partly visible. The scroll position rides the canvas container so a
+       repaint (every commit repaints) does not throw the reader back to page 1. ── */
+    (function wirePageScroll() {
+      var scroller = stage.querySelector('[data-page-scroll]');
+      if (!scroller) return;
+      var readout = stage.querySelector('[data-page-now]');
+      var pages = scroller.querySelectorAll('.rd-pageframe');
+      if (!pages.length) return;
+
+      var keep = canvasRoot ? parseFloat(canvasRoot.dataset.rdScrollTop || '') : NaN;
+      if (isFinite(keep) && keep > 0) scroller.scrollTop = keep;
+
+      /* Client rects are in the stage's SCALED space; scrollTop is in unscaled
+         layout pixels. Everything below either compares rects with rects, or
+         divides a rect delta by this factor before touching scrollTop. */
+      function stageScale() {
+        var r = scroller.getBoundingClientRect();
+        return scroller.clientHeight > 0 ? (r.height / scroller.clientHeight) : 1;
+      }
+      function currentIndex() {
+        var sr = scroller.getBoundingClientRect();
+        var mid = sr.top + sr.height / 2;
+        for (var i = 0; i < pages.length; i++) {
+          var r = pages[i].getBoundingClientRect();
+          if (r.bottom >= mid) return i;
+        }
+        return pages.length - 1;
+      }
+      function sync() {
+        if (!alive()) return;
+        if (canvasRoot) canvasRoot.dataset.rdScrollTop = String(Math.round(scroller.scrollTop));
+        if (readout) {
+          var label = 'Page ' + (currentIndex() + 1) + ' of ' + pages.length;
+          if (readout.textContent !== label) readout.textContent = label;
+        }
+      }
+      var ticking = false;
+      scroller.addEventListener('scroll', function () {
+        if (ticking) return;
+        ticking = true;
+        (typeof requestAnimationFrame === 'function' ? requestAnimationFrame : setTimeout)(function () {
+          ticking = false;
+          sync();
+        });
+      }, { passive: true });
+
+      var nav = stage.querySelector('[data-page-nav]');
+      if (nav) {
+        nav.addEventListener('click', function (e) {
+          var btn = e.target && e.target.closest ? e.target.closest('[data-page-step]') : null;
+          if (!btn || !alive()) return;
+          var step = parseInt(btn.getAttribute('data-page-step') || '0', 10) || 0;
+          var next = Math.max(0, Math.min(pages.length - 1, currentIndex() + step));
+          /* Measured, not offsetTop: the frames' offsetParent depends on which
+             ancestor happens to be positioned, and a client-rect delta is
+             correct under the stage's scale transform either way. */
+          var k = stageScale() || 1;
+          var top = scroller.scrollTop
+            + (pages[next].getBoundingClientRect().top - scroller.getBoundingClientRect().top) / k;
+          scroller.scrollTo
+            ? scroller.scrollTo({ top: top, behavior: prefersCalm() ? 'auto' : 'smooth' })
+            : (scroller.scrollTop = top);
+          sync();
+        });
+      }
+      sync();
+    })();
+
+    /* The app's accessibility preferences deliberately stop at the tool canvas,
+       so a tool that moves something itself honours the OS preference itself. */
+    function prefersCalm() {
+      return typeof matchMedia === 'function'
+        && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+  })();
+</script>

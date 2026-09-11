@@ -1,0 +1,45 @@
+<div class="lc-card lc-{{layoutShape}} lc-{{layoutId}}"
+     data-card-w="{{cardW}}" data-card-h="{{cardH}}" data-card-unit="{{cardUnit}}"
+     style="--lc-ink:{{inkColor}};--lc-card:{{cardColor}};--lc-accent:{{accentColor}};--lc-accent-ink:{{accentInk}};--lc-muted:{{mutedColor}};--lc-rule:{{ruleColor}}">
+
+  {{#if error}}
+  <p class="lc-error">{{error}}</p>
+  {{else}}
+
+  <div class="lc-media">
+    {{#if hasThumb}}
+    <img class="lc-thumb" src="{{asset image}}" alt="" style="{{framingStyle}}">
+    {{else}}
+    {{!-- No thumbnail: a designed panel, never a broken image. The monogram is
+          the site's own initial, so an empty slot still looks placed. --}}
+    <div class="lc-placeholder" aria-hidden="true">
+      <span class="lc-placeholder-mark">{{monogram}}</span>
+    </div>
+    {{/if}}
+  </div>
+
+  <div class="lc-body">
+    {{#if hasChip}}
+    <div class="lc-chip">
+      <span class="lc-favicon">{{monogram}}</span>
+      <span class="lc-chip-text">
+        {{#if hostDisplay}}<span class="lc-host">{{hostDisplay}}</span>{{/if}}
+        {{#if siteText}}<span class="lc-site">{{siteText}}</span>{{/if}}
+      </span>
+    </div>
+    {{/if}}
+
+    {{#if headingText}}<h1 class="lc-heading">{{headingText}}</h1>{{/if}}
+    <div class="lc-rule"></div>
+    {{#if bodyText}}<p class="lc-desc">{{bodyText}}</p>{{/if}}
+
+    {{!-- The ACTIVE BRAND's lockup, not the linked site's, so naming the site
+          here would caption the wrong thing. Decorative: the canvas carries the
+          whole card as one summary (manifest.a11yLabel). --}}
+    {{#if hasLogo}}
+    <div class="lc-lockup"><img class="lc-logo" src="{{logoUrl}}" alt=""></div>
+    {{/if}}
+  </div>
+
+  {{/if}}
+</div>

@@ -1,0 +1,297 @@
+{
+  "id": "color-palette",
+  "name": "Palette Lab",
+  "description": "Grow a palette from one seed colour - harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export.",
+  "version": "2.3.3",
+  "engineVersion": "^1.0.0",
+  "status": "community",
+  "category": "utility",
+  "tags": [
+    "color",
+    "palette",
+    "tokens",
+    "contrast",
+    "brand",
+    "accessibility",
+    "colour-blind"
+  ],
+  "render": {
+    "width": 1600,
+    "height": 1000,
+    "formats": ["svg", "penpot", "png", "jpg", "webp", "csv", "json", "css", "scss", "gpl", "ase", "avif", "pdf"],
+    "actions": [
+      "copy",
+      "download",
+      "save"
+    ],
+    "transparentBg": false
+  },
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true,
+    "exportStill": true
+  },
+  "inputs": [
+    {
+      "id": "seed",
+      "label": "Seed colour",
+      "type": "color",
+      "default": "{color.semantic.primary}",
+      "help": "The colour the whole palette grows from - defaults to your brand primary."
+    },
+    {
+      "id": "harmony",
+      "label": "Harmony",
+      "type": "select",
+      "default": "triad-3",
+      "help": "How the accent hues rotate around the seed.",
+      "options": [
+        {
+          "value": "complement",
+          "label": "Complementary"
+        },
+        {
+          "value": "adjacent-3",
+          "label": "Adjacent"
+        },
+        {
+          "value": "triad-3",
+          "label": "Triad"
+        },
+        {
+          "value": "tetrad-4",
+          "label": "Tetrad"
+        },
+        {
+          "value": "free-2",
+          "label": "Free (2)"
+        },
+        {
+          "value": "free-3",
+          "label": "Free (3)"
+        },
+        {
+          "value": "free-4",
+          "label": "Free (4)"
+        }
+      ]
+    },
+    {
+      "id": "steps",
+      "label": "Ramp steps",
+      "type": "number",
+      "display": "slider",
+      "default": 7,
+      "min": 3,
+      "max": 11,
+      "step": 1,
+      "help": "Tones per ramp, dark to light."
+    },
+    {
+      "id": "neutrals",
+      "label": "Include neutrals",
+      "type": "boolean",
+      "default": true,
+      "help": "Adds a seed-tinted grey ramp for text and surfaces."
+    },
+    {
+      "id": "mode",
+      "urlKey": "m",
+      "label": "Ramp mode",
+      "type": "select",
+      "default": "oklab",
+      "help": "Perceptual grows each ramp as even OKLab tones. Contrast solves every step to a target APCA readability level against the background.",
+      "options": [
+        {
+          "value": "oklab",
+          "label": "Perceptual (OKLab)"
+        },
+        {
+          "value": "contrast",
+          "label": "Contrast (APCA)"
+        }
+      ]
+    },
+    {
+      "id": "bg",
+      "urlKey": "b",
+      "label": "Background",
+      "type": "color",
+      "default": "{color.semantic.surface}",
+      "help": "The surface the palette sits on. In Contrast mode every step is solved for readability against it - defaults to your brand surface (white in a neutral brand)."
+    },
+    {
+      "id": "contrastCurve",
+      "urlKey": "cc",
+      "label": "Contrast curve",
+      "type": "select",
+      "default": "even",
+      "help": "How the target APCA Lc is spread across the ramp in Contrast mode.",
+      "options": [
+        {
+          "value": "even",
+          "label": "Even"
+        },
+        {
+          "value": "text",
+          "label": "Text-first"
+        },
+        {
+          "value": "ui",
+          "label": "UI states"
+        }
+      ]
+    },
+    {
+      "id": "lcTargets",
+      "urlKey": "lc",
+      "label": "Custom Lc targets",
+      "type": "text",
+      "default": "",
+      "help": "Optional comma list of APCA Lc targets, one per step (e.g. 15,30,45,60,75,90). Overrides the curve when set."
+    },
+    {
+      "id": "cssStyle",
+      "urlKey": "cs",
+      "label": "CSS export style",
+      "type": "select",
+      "default": "variables",
+      "help": "How the CSS download is shaped. Variables emit :root custom properties; Classes emit bg/text/border utility classes. Only affects the CSS export.",
+      "options": [
+        {
+          "value": "variables",
+          "label": "Custom properties"
+        },
+        {
+          "value": "classes",
+          "label": "Utility classes"
+        }
+      ]
+    },
+    {
+      "id": "vision",
+      "urlKey": "v",
+      "label": "Colour vision",
+      "type": "select",
+      "default": "normal",
+      "help": "Repaints the whole sheet as another viewer sees it. Every label keeps the real hex, and the reported ratios still describe your actual palette.",
+      "options": [
+        {
+          "value": "normal",
+          "label": "Normal vision"
+        },
+        {
+          "value": "protan",
+          "label": "Protanopia"
+        },
+        {
+          "value": "deutan",
+          "label": "Deuteranopia"
+        },
+        {
+          "value": "tritan",
+          "label": "Tritanopia"
+        },
+        {
+          "value": "gray",
+          "label": "Greyscale"
+        }
+      ]
+    },
+    {
+      "id": "grid",
+      "urlKey": "g",
+      "label": "Contrast grid",
+      "type": "boolean",
+      "default": false,
+      "help": "Adds a matrix under the ramps: every base colour as text on every base colour as a background, with its WCAG ratio and level."
+    }
+  ],
+  "examples": [
+    {
+      "label": "Ocean triad",
+      "values": {
+        "seed": "#2563eb",
+        "harmony": "triad-3",
+        "steps": 7,
+        "neutrals": true
+      }
+    },
+    {
+      "label": "Terracotta complement",
+      "values": {
+        "seed": "#c2410c",
+        "harmony": "complement",
+        "steps": 9,
+        "neutrals": true
+      }
+    },
+    {
+      "label": "Forest tetrad",
+      "values": {
+        "seed": "#166534",
+        "harmony": "tetrad-4",
+        "steps": 7,
+        "neutrals": false
+      }
+    },
+    {
+      "label": "Contrast ramp on white",
+      "values": {
+        "seed": "#2563eb",
+        "harmony": "triad-3",
+        "steps": 6,
+        "neutrals": true,
+        "mode": "contrast",
+        "bg": "#ffffff",
+        "contrastCurve": "even"
+      }
+    },
+    {
+      "label": "Text-first on ink",
+      "values": {
+        "seed": "#22d3ee",
+        "harmony": "adjacent-3",
+        "steps": 5,
+        "neutrals": false,
+        "mode": "contrast",
+        "bg": "#0b1220",
+        "contrastCurve": "text"
+      }
+    },
+    {
+      "label": "Custom Lc steps",
+      "values": {
+        "seed": "#16a34a",
+        "harmony": "complement",
+        "steps": 6,
+        "neutrals": true,
+        "mode": "contrast",
+        "bg": "#f8fafc",
+        "lcTargets": "15,30,45,60,75,90"
+      }
+    },
+    {
+      "label": "Contrast grid",
+      "values": {
+        "seed": "#2563eb",
+        "harmony": "triad-3",
+        "steps": 6,
+        "neutrals": true,
+        "grid": true
+      }
+    },
+    {
+      "label": "Deuteranopia preview",
+      "values": {
+        "seed": "#c2410c",
+        "harmony": "triad-3",
+        "steps": 7,
+        "neutrals": true,
+        "vision": "deutan"
+      }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "Eliminar datos ocultos",
+  "description": "Revela y elimina metadatos ocultos de imágenes y PDFs - en tu dispositivo.",
+  "a11yLabel": "Informe de datos ocultos para {{fileName}}",
+  "inputs.source.label": "Imagen o PDF",
+  "inputs.source.help": "Un JPEG, PNG, SVG o PDF. Se lee en tu navegador y nunca sale de tu dispositivo."
+}

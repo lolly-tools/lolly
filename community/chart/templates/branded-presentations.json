@@ -1,0 +1,40 @@
+{
+  "id": "branded-presentations",
+  "name": "Editorial comparison",
+  "category": "Styles",
+  "description": "A quiet comparison that inherits the active brand's type, colours and surface.",
+  "values": {
+    "chartType": "bar",
+    "chartStyle": "editorial",
+    "data": "Market,Current year,Previous year\nNorth,82,71\nSouth,68,64\nEast,91,76\nWest,74,69",
+    "heading": "Performance by market",
+    "showValues": true,
+    "showLegend": true
+  },
+  "presets": [
+    {
+      "id": "technical",
+      "name": "Technical",
+      "description": "Denser axes, grid and patterns for analytical work.",
+      "values": {
+        "chartStyle": "technical"
+      }
+    },
+    {
+      "id": "poster",
+      "name": "Poster",
+      "description": "Bold type and direct labels for a presentation graphic.",
+      "values": {
+        "chartStyle": "poster"
+      }
+    },
+    {
+      "id": "isometric",
+      "name": "Isometric",
+      "description": "Projected vector depth that remains editable in SVG.",
+      "values": {
+        "chartStyle": "iso-vector"
+      }
+    }
+  ]
+}

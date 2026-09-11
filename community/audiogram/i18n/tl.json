@@ -1,0 +1,22 @@
+{
+  "name": "Audiogram",
+  "description": "Gawing branded video ang isang voice clip o kanta na talagang gumagalaw kasabay ng tunog - bars, spectrum, ring, ridgeline o scope, handa para sa social.",
+  "a11yLabel": "Audiogram card para sa {{default title \"an audio clip\"}} na may animated na waveform",
+  "inputs.audio.label": "Audio",
+  "inputs.audio.help": "Pumili ng track mula sa iyong library o mag-upload ng clip. Dine-decode ito sa iyong device para iguhit ang waveform - hindi umaalis ang audio sa browser. Iwanang blangko para sa placeholder na waveform. Para marinig ito sa export, piliin ang \"Audio ng tool na ito\" bilang Audio track sa mga opsyon ng download.",
+  "inputs.title.label": "Pamagat",
+  "inputs.title.help": "Ang headline sa card - isang pangalan ng episode o isang pull-quote.",
+  "inputs.subtitle.label": "Subtitle",
+  "inputs.subtitle.help": "Mas maliit na linya sa ilalim ng pamagat - pangalan ng show, guest, o kung saan pakinggan.",
+  "inputs.style.label": "Estilo ng waveform",
+  "inputs.style.options.bars": "Mga Bar",
+  "inputs.style.options.wave": "Wave",
+  "inputs.style.options.ring": "Ring",
+  "inputs.size.label": "Sukat",
+  "inputs.size.options.square": "Parisukat (1:1)",
+  "inputs.size.options.wide": "Malapad (16:9)",
+  "inputs.size.options.story": "Story (9:16)",
+  "inputs.accent.label": "Kulay ng waveform",
+  "inputs.ink.label": "Kulay ng text",
+  "inputs.bg.label": "Background"
+}

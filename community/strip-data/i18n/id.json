@@ -1,0 +1,7 @@
+{
+  "name": "Hapus Data Tersembunyi",
+  "description": "Ungkap dan hapus metadata tersembunyi dari gambar dan PDF - di perangkat Anda.",
+  "a11yLabel": "Laporan data tersembunyi untuk {{fileName}}",
+  "inputs.source.label": "Gambar atau PDF",
+  "inputs.source.help": "Berkas JPEG, PNG, SVG, atau PDF. Dibaca di browser Anda dan tidak pernah meninggalkan perangkat Anda."
+}

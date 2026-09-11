@@ -1,0 +1,48 @@
+<div class="cp-root cp-pos--{{capPos}} cp-style--{{capStyle}}"
+     style="--cp-ink: {{inkColor}}; --cp-bg: {{bgColor}}; --cp-fs: {{fsPx}}px;">
+
+  <div class="cp-stage" data-canvas-input="media">
+    {{#if isVideo}}
+    <video class="cp-media" src="{{mediaUrl}}" preload="metadata" muted playsinline></video>
+    {{/if}}
+    {{#if isImage}}
+    <img class="cp-media" src="{{mediaUrl}}" alt="">
+    {{/if}}
+    {{#if isAudio}}
+    <div class="cp-art">
+      <svg class="cp-art-wave" viewBox="0 0 240 64" preserveAspectRatio="none" aria-hidden="true">{{{artBars}}}</svg>
+      <p class="cp-art-name">{{mediaName}}</p>
+    </div>
+    {{/if}}
+    {{#unless hasMedia}}
+    <div class="cp-blank" aria-hidden="true"><span class="cp-blank-mark"></span></div>
+    {{/unless}}
+
+    {{#if showCue}}
+    <div class="cp-cap">
+      {{#if showTc}}<p class="cp-tc">{{tcStart}} &rarr; {{tcEnd}}</p>{{/if}}
+      <div class="cp-plate">
+        {{#each cueRows}}
+        <p class="cp-line">{{#each words}}<span class="{{cls}}">{{text}}</span> {{/each}}</p>
+        {{/each}}
+      </div>
+    </div>
+    {{/if}}
+  </div>
+
+  <aside class="cp-review" data-export-hide>
+    <p class="cp-review-head{{#if isEmpty}} is-empty{{/if}}">{{listHead}}</p>
+    {{#each warnings}}<p class="cp-warn">{{this}}</p>{{/each}}
+    {{#if capError}}<p class="cp-warn" role="status">{{capError}}</p>{{/if}}
+    {{#if cueCount}}
+    <ol class="cp-cues">
+      {{#each cues}}
+      <li class="cp-cue{{#if current}} is-current{{/if}}">
+        <span class="cp-cue-tc">{{tc}}</span>
+        <span class="cp-cue-text">{{text}}</span>
+      </li>
+      {{/each}}
+    </ol>
+    {{/if}}
+  </aside>
+</div>

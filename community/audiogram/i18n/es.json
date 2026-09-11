@@ -1,0 +1,22 @@
+{
+  "name": "Audiograma",
+  "description": "Convierte una nota de voz o una canción en un vídeo de marca que se mueve de verdad con el sonido - barras, espectro, anillo, cresta o barrido, listo para redes sociales.",
+  "a11yLabel": "Tarjeta de audiograma para {{default title \"an audio clip\"}} con una forma de onda animada",
+  "inputs.audio.label": "Audio",
+  "inputs.audio.help": "Elige una pista de tu biblioteca o sube un clip. Se decodifica en tu dispositivo para dibujar la forma de onda - el audio nunca sale del navegador. Déjalo vacío para una forma de onda de marcador de posición. Para escucharlo en la exportación, elige \"El audio de esta herramienta\" como pista de audio en las opciones de descarga.",
+  "inputs.title.label": "Título",
+  "inputs.title.help": "El titular de la tarjeta - un nombre de episodio o una cita destacada.",
+  "inputs.subtitle.label": "Subtítulo",
+  "inputs.subtitle.help": "Una línea más pequeña bajo el título - nombre del programa, invitado o dónde escuchar.",
+  "inputs.style.label": "Estilo de la forma de onda",
+  "inputs.style.options.bars": "Barras",
+  "inputs.style.options.wave": "Onda",
+  "inputs.style.options.ring": "Anillo",
+  "inputs.size.label": "Tamaño",
+  "inputs.size.options.square": "Cuadrado (1:1)",
+  "inputs.size.options.wide": "Ancho (16:9)",
+  "inputs.size.options.story": "Historia (9:16)",
+  "inputs.accent.label": "Color de la forma de onda",
+  "inputs.ink.label": "Color del texto",
+  "inputs.bg.label": "Fondo"
+}

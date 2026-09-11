@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "Last opp en PowerPoint-presentasjon og tilpass fargene og skriftene til merkevaren din - gjenoppbygd på din enhet, ingenting lastes opp.",
+  "a11yLabel": "Presentasjons-rebrander for {{fileName}}",
+  "inputs.source.label": "PowerPoint-fil",
+  "inputs.source.help": "En .pptx-fil. Den leses på enheten din og lastes aldri opp.",
+  "inputs.useTheme.label": "Bruk merkevaretema",
+  "inputs.useTheme.help": "Bytt ut lysbildeseriens temapalett og skrifter med merkevaren din - hver temakoblet farge følger automatisk med.",
+  "inputs.colorMap.label": "Fargetilordning",
+  "inputs.colorMap.help": "Hardkodede farger funnet i lysbildene, hver med sin foreslåtte merkevarefarge. Fjern en rad for å la den fargen være uendret.",
+  "inputs.colorMap.fields.from.label": "Original",
+  "inputs.colorMap.fields.to.label": "Merkevare",
+  "inputs.fontMap.label": "Skrifttilordning",
+  "inputs.fontMap.help": "Skrifttyper nevnt i presentasjonen, hver med sin erstatning fra merkevaren. Fjern en rad for å beholde den skriften.",
+  "inputs.fontMap.fields.from.label": "Original",
+  "inputs.fontMap.fields.to.label": "Merkevare",
+  "inputs.dropFonts.label": "Fjern innebygde fonter",
+  "inputs.dropFonts.help": "Skrifter fra den gamle merkevaren som er innebygd i filen, er utdaterte etter et bytte og kan ha lisensbegrensninger."
+}

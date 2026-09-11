@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "QR-коди для посилання, контактної картки, мережі Wi-Fi, події в календарі, місця розташування або звичайного тексту.",
+  "a11yLabel": "QR-код, що веде на {{default url \"(URL не задано)\"}}",
+  "featured.blurb": "QR-коди у будь-якому брендовому кольорі",
+  "inputs.url.label": "URL-адреса",
+  "inputs.color.label": "Колір модуля",
+  "inputs.background.label": "Фон",
+  "inputs.ecl.label": "Корекція помилок",
+  "inputs.ecl.options.L": "Низький (7%)",
+  "inputs.ecl.options.M": "Середній (15%)",
+  "inputs.ecl.options.Q": "Квартиль (25%)",
+  "inputs.ecl.options.H": "Високий (30%)",
+  "inputs.padding.label": "Тиха зона",
+  "inputs.padding.help": "Модулі білого простору навколо коду. Рекомендований мінімум - 4.",
+  "inputs.join.label": "Об'єднані модулі",
+  "inputs.join.help": "Об'єднати всі модулі в один SVG-контур. Чіткіше при малих розмірах."
+}

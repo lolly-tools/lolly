@@ -1,0 +1,26 @@
+{
+  "id": "event",
+  "name": "Event RSVP",
+  "category": "Utility",
+  "description": "Point guests at your RSVP or ticket page from an invite or poster.",
+  "values": {
+    "url": "https://example.com/rsvp",
+    "ecl": "Q",
+    "padding": 4,
+    "join": true
+  },
+  "presets": [
+    {
+      "id": "invite",
+      "name": "Printed invite",
+      "description": "Dark ink on warm white with a generous quiet zone.",
+      "values": { "color": "#1a1a2e", "background": "#faf7f2", "padding": 6 }
+    },
+    {
+      "id": "screen",
+      "name": "On screen",
+      "description": "Light modules on dark for a closing slide.",
+      "values": { "color": "#93c5fd", "background": "#0b1021" }
+    }
+  ]
+}

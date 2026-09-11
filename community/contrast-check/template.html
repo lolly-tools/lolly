@@ -1,0 +1,80 @@
+<div class="cx-wrap">
+  <svg class="cx-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {{vbW}} {{vbH}}" width="{{vbW}}" height="{{vbH}}" style="width:100%;height:auto;display:block" role="img" aria-label="Contrast and colour-vision check sheet">
+    <rect x="0" y="0" width="{{vbW}}" height="{{vbH}}" fill="#f7f7f5"/>
+    <text x="60" y="84" fill="#14171a" font-family="{{@root._fontBrand}}" font-size="42" font-weight="700">Contrast Checker</text>
+    <text x="60" y="118" fill="#14171a" fill-opacity="0.66" class="cx-mono" font-family="{{@root._fontMono}}" font-size="19">{{subtitle}}</text>
+    <line x1="60" y1="136" x2="{{vbR}}" y2="136" stroke="#14171a" stroke-opacity="0.14" stroke-width="1.5"/>
+    {{#if note}}<text x="{{vbR}}" y="118" text-anchor="end" fill="#14171a" fill-opacity="0.66" font-family="{{@root._fontBrand}}" font-size="16">{{note}}</text>{{/if}}
+
+    {{#if error}}
+    <!-- The hook failed, so there are no colours to paint. Show the reason and
+         nothing else: the panels below fill from the fgHex/bgHex extras, and an
+         empty fill attribute is invalid, so it would paint them solid black. -->
+    <text x="60" y="200" fill="#14171a" font-family="{{@root._fontBrand}}" font-size="22">{{error}}</text>
+    {{else}}
+    {{#if isPalette}}
+    <!-- Palette mode: foreground rows on background columns. -->
+    <text x="60" y="176" fill="#14171a" fill-opacity="0.7" font-family="{{@root._fontBrand}}" font-size="16" font-weight="600">{{paletteCaption}}</text>
+    {{#each colHeads}}
+    <rect x="{{x}}" y="192" width="18" height="18" rx="4" fill="{{hex}}" stroke="#14171a" stroke-opacity="0.2"/>
+    <text x="{{textX}}" y="206" fill="#14171a" fill-opacity="0.8" font-family="{{@root._fontBrand}}" font-size="11">{{name}}</text>
+    {{/each}}
+    {{#each rowHeads}}
+    <rect x="60" y="{{y}}" width="26" height="26" rx="6" fill="{{hex}}" stroke="#14171a" stroke-opacity="0.2"/>
+    <text x="96" y="{{textY}}" fill="#14171a" fill-opacity="0.85" font-family="{{@root._fontBrand}}" font-size="14">{{name}}</text>
+    {{/each}}
+    {{#each cells}}
+    <rect x="{{x}}" y="{{y}}" width="{{w}}" height="{{h}}" rx="6" fill="{{bg}}" stroke="#14171a" stroke-opacity="0.12"/>
+    <!-- The verdict chip carries the value itself, on a solid guaranteed-contrast
+         fill, so a failing (low-contrast) pair's number stays readable - which it
+         would not, drawn in the pair's own colours. WCAG: pass/warn/fail with a
+         tick/cross. APCA: neutral ink, red below the usable floor, no mark. -->
+    <rect x="{{chipX}}" y="{{chipY}}" width="{{chipW}}" height="{{chipH}}" rx="{{chipR}}" fill="{{chipFill}}"/>
+    <g transform="translate({{chipIconX}} {{chipIconY}}) scale({{chipS}})"><path d="{{chipMark}}" fill="none" stroke="{{chipInk}}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <text x="{{chipTextX}}" y="{{chipTextY}}" fill="{{chipInk}}" font-family="{{@root._fontBrand}}" font-size="{{chipFont}}" font-weight="700">{{chipWord}}</text>
+    {{/each}}
+    {{else}}
+    <!-- Pair mode: the sample panel, the results block, the vision strip. -->
+    <rect x="60" y="170" width="840" height="520" rx="16" fill="{{bgHex}}"/>
+    <rect x="60" y="170" width="840" height="520" rx="16" fill="none" stroke="{{fgHex}}" stroke-opacity="0.25"/>
+    <text x="100" y="252" fill="{{fgHex}}" font-family="{{@root._fontBrand}}" font-size="42" font-weight="700">{{sampleShort}}</text>
+    <text x="100" y="330" fill="{{fgHex}}" font-family="{{@root._fontBrand}}" font-size="28">{{sampleMid}}</text>
+    <text x="100" y="382" fill="{{fgHex}}" font-family="{{@root._fontBrand}}" font-size="17">{{sample}}</text>
+    <rect x="100" y="440" width="270" height="58" rx="29" fill="{{fgHex}}"/>
+    <text x="235" y="477" text-anchor="middle" fill="{{bgHex}}" font-family="{{@root._fontBrand}}" font-size="20" font-weight="600">Primary action</text>
+    <rect x="400" y="440" width="270" height="58" rx="29" fill="none" stroke="{{fgHex}}" stroke-width="2"/>
+    <text x="535" y="477" text-anchor="middle" fill="{{fgHex}}" font-family="{{@root._fontBrand}}" font-size="20" font-weight="600">Secondary action</text>
+    <text x="100" y="560" fill="{{fgHex}}" fill-opacity="0.75" class="cx-mono" font-family="{{@root._fontMono}}" font-size="16">Text {{fgHex}} on {{bgHex}}</text>
+    <rect x="{{verdictChip.chipX}}" y="{{verdictChip.chipY}}" width="{{verdictChip.chipW}}" height="{{verdictChip.chipH}}" rx="{{verdictChip.chipR}}" fill="{{verdictChip.chipFill}}"/>
+    <g transform="translate({{verdictChip.chipIconX}} {{verdictChip.chipIconY}}) scale({{verdictChip.chipS}})"><path d="{{verdictChip.chipMark}}" fill="none" stroke="{{verdictChip.chipInk}}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <text x="{{verdictChip.chipTextX}}" y="{{verdictChip.chipTextY}}" fill="{{verdictChip.chipInk}}" font-family="{{@root._fontBrand}}" font-size="{{verdictChip.chipFont}}" font-weight="700">{{verdictChip.chipWord}}</text>
+    <text x="{{verdictChip.chipAfterX}}" y="640" fill="{{fgHex}}" font-family="{{@root._fontBrand}}" font-size="22" font-weight="600">{{verdict}}</text>
+
+    <rect x="940" y="170" width="600" height="520" rx="16" fill="#ffffff" stroke="#14171a" stroke-opacity="0.14"/>
+    <text x="980" y="248" fill="#14171a" font-family="{{@root._fontBrand}}" font-size="54" font-weight="700">{{ratioText}}</text>
+    <text x="980" y="278" fill="#14171a" fill-opacity="0.62" font-family="{{@root._fontBrand}}" font-size="15">WCAG 2.1 contrast ratio</text>
+    <text x="980" y="330" fill="#14171a" font-family="{{@root._fontBrand}}" font-size="30" font-weight="600">{{lcText}}</text>
+    <text x="980" y="356" fill="#14171a" fill-opacity="0.62" font-family="{{@root._fontBrand}}" font-size="15">APCA: {{band}}</text>
+    <line x1="980" y1="376" x2="1500" y2="376" stroke="#14171a" stroke-opacity="0.12" stroke-width="1.5"/>
+    {{#each checks}}
+    <rect x="{{chipX}}" y="{{chipY}}" width="{{chipW}}" height="{{chipH}}" rx="{{chipR}}" fill="{{chipFill}}"/>
+    <g transform="translate({{chipIconX}} {{chipIconY}}) scale({{chipS}})"><path d="{{chipMark}}" fill="none" stroke="{{chipInk}}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <text x="{{chipTextX}}" y="{{chipTextY}}" fill="{{chipInk}}" font-family="{{@root._fontBrand}}" font-size="{{chipFont}}" font-weight="700">{{chipWord}}</text>
+    <text x="{{chipAfterX}}" y="{{y}}" fill="#14171a" font-family="{{@root._fontBrand}}" font-size="17">{{label}}</text>
+    <text x="1500" y="{{y}}" text-anchor="end" fill="#14171a" fill-opacity="0.7" font-family="{{@root._fontBrand}}" font-size="17" font-weight="600">needs {{need}}</text>
+    {{/each}}
+
+    <text x="60" y="722" fill="#14171a" fill-opacity="0.7" font-family="{{@root._fontBrand}}" font-size="16" font-weight="600">The same pair as other viewers see it, each with its own recomputed ratio.</text>
+    {{#each sims}}
+    <rect x="{{x}}" y="740" width="280" height="210" rx="12" fill="{{bg}}" stroke="#14171a" stroke-opacity="0.14"/>
+    <text x="{{textX}}" y="776" fill="{{fg}}" font-family="{{@root._fontBrand}}" font-size="16" font-weight="600">{{name}}</text>
+    <text x="{{cx}}" y="856" text-anchor="middle" fill="{{fg}}" font-family="{{@root._fontBrand}}" font-size="44" font-weight="700">Aa</text>
+    <text x="{{textX}}" y="900" fill="{{fg}}" class="cx-mono" font-family="{{@root._fontMono}}" font-size="15">{{ratioText}}</text>
+    <rect x="{{chipX}}" y="{{chipY}}" width="{{chipW}}" height="{{chipH}}" rx="{{chipR}}" fill="{{chipFill}}"/>
+    <g transform="translate({{chipIconX}} {{chipIconY}}) scale({{chipS}})"><path d="{{chipMark}}" fill="none" stroke="{{chipInk}}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <text x="{{chipTextX}}" y="{{chipTextY}}" fill="{{chipInk}}" font-family="{{@root._fontBrand}}" font-size="{{chipFont}}" font-weight="700">{{chipWord}}</text>
+    {{/each}}
+    {{/if}}
+    {{/if}}
+  </svg>
+</div>

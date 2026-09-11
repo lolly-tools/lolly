@@ -1,0 +1,15 @@
+{
+  "name": "Xuất tài nguyên",
+  "description": "Xuất bất kỳ tài sản danh mục nào - hoặc liên kết công cụ Lolly - ra mọi định dạng và kích thước.",
+  "a11yLabel": "Tài nguyên đã xuất",
+  "inputs.src.label": "Tài nguyên",
+  "inputs.src.help": "Tài nguyên cần xuất - một id danh mục (xem `lolly assets`) hoặc một liên kết công cụ lolly.tools đã dán vào. Tài nguyên vector giữ nguyên dạng vector khi xuất SVG/PDF; tài nguyên raster được nhúng dưới dạng hình ảnh.",
+  "inputs.fit.label": "Vừa khung",
+  "inputs.fit.help": "Contain hiển thị toàn bộ tài nguyên trong khung hình (có viền đệm); Cover lấp đầy khung hình và có thể cắt bớt các cạnh.",
+  "inputs.fit.options.contain": "Contain (toàn bộ tài nguyên, có viền đệm)",
+  "inputs.fit.options.cover": "Cover (lấp đầy, có thể bị cắt)",
+  "inputs.background.label": "Nền",
+  "inputs.background.help": "Màu phía sau tài nguyên. Bật \"Không nền\" trong phần xuất để bỏ màu nền (trong suốt).",
+  "inputs.transparentBg.label": "Không nền",
+  "inputs.transparentBg.help": "Bỏ màu nền để tài nguyên xuất ra trên nền trong suốt (PNG/SVG/WebP)."
+}

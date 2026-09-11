@@ -1,0 +1,54 @@
+{{!-- Print Sheet. Each page is one [data-pdf-page] box (the generic multi-page
+      export path splits on these - shells/web/src/bridge/export.ts renderPdf)
+      holding ONE native <svg> whose viewBox is in MILLIMETRES, so every
+      coordinate the hook emits is a real print measurement and the vector export
+      path (web walker and the DOM-free CLI one) carries it through unchanged. The
+      paper is deliberately white: this is stock, not a brand surface. A single
+      dropped design fills the sheet; several cycle across the cells; tapping a
+      cell (data-canvas-input="cells:N") focuses that block to swap it. --}}
+<div class="ps-doc">
+  {{#each sheets}}
+  <div class="ps-page" data-pdf-page style="width:{{sheetPxW}}px; height:{{sheetPxH}}px;">
+    <svg class="ps-svg" xmlns="http://www.w3.org/2000/svg"
+         viewBox="0 0 {{sheetW}} {{sheetH}}" width="{{sheetPxW}}" height="{{sheetPxH}}"
+         role="img" aria-label="Print sheet, {{default rowsOut 0}} rows by {{default colsOut 0}} columns">
+      <rect x="0" y="0" width="{{sheetW}}" height="{{sheetH}}" fill="#ffffff"/>
+
+      {{#if ../error}}
+      <text class="ps-text" x="12" y="20" font-family="system-ui, sans-serif" font-size="5" fill="#14171a">{{../error}}</text>
+      {{else}}
+
+      {{#each cells}}
+      {{#if hasUrl}}
+      <image href="{{url}}" x="{{x}}" y="{{y}}" width="{{w}}" height="{{h}}"
+             preserveAspectRatio="xMidYMid meet" data-canvas-input="cells:{{block}}"/>
+      {{else}}
+      <rect class="ps-empty" x="{{x}}" y="{{y}}" width="{{w}}" height="{{h}}" rx="{{rx}}"
+            fill="none" stroke="#14171a" stroke-opacity="0.18" stroke-width="0.2" stroke-dasharray="2 2"/>
+      {{/if}}
+      {{/each}}
+
+      {{#if isRound}}
+      {{!-- Die line: the rounded outline each sticker is cut on. Dashed so it
+            reads as a guide, not as printed artwork. --}}
+      {{#each cells}}
+      <rect class="ps-cut" x="{{x}}" y="{{y}}" width="{{w}}" height="{{h}}" rx="{{rx}}"
+            fill="none" stroke="#14171a" stroke-opacity="0.5" stroke-width="{{../hairline}}" stroke-dasharray="1.6 1.2"/>
+      {{/each}}
+      {{/if}}
+
+      {{#each ticks}}
+      <line class="ps-tick" x1="{{x1}}" y1="{{y1}}" x2="{{x2}}" y2="{{y2}}"
+            stroke="#14171a" stroke-width="{{../hairline}}"/>
+      {{/each}}
+
+      {{#if hint}}
+      <text class="ps-text" x="{{hintX}}" y="{{hintY}}" text-anchor="middle"
+            font-family="system-ui, sans-serif" font-size="{{hintSize}}" fill="#14171a" fill-opacity="0.62">Drop designs, or paste a Lolly tool link, to fill the sheet</text>
+      {{/if}}
+
+      {{/if}}
+    </svg>
+  </div>
+  {{/each}}
+</div>

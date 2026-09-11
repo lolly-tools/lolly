@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "ایک PowerPoint ڈیک اپ لوڈ کریں اور اس کے رنگ اور فونٹس اپنے برانڈ کے مطابق کر لیں - آپ کے آلے پر دوبارہ بنایا گیا، کچھ بھی اپ لوڈ نہیں ہوتا۔",
+  "a11yLabel": "{{fileName}} کے لیے ڈیک ری برانڈر",
+  "inputs.source.label": "PowerPoint فائل",
+  "inputs.source.help": "ایک .pptx فائل۔ یہ آپ کے ڈیوائس پر پڑھی جاتی ہے اور کبھی اپ لوڈ نہیں ہوتی۔",
+  "inputs.useTheme.label": "برانڈ تھیم لاگو کریں",
+  "inputs.useTheme.help": "ڈیک کے تھیم پیلٹ اور فونٹس کو اپنے برانڈ میں بدلیں - ہر تھیم سے منسلک رنگ خودکار طور پر پیروی کرتا ہے۔",
+  "inputs.colorMap.label": "رنگ میپنگ",
+  "inputs.colorMap.help": "سلائیڈز پر ملنے والے ہارڈ کوڈڈ رنگ، ہر ایک کے ساتھ اس کا تجویز کردہ برانڈ رنگ۔ اس رنگ کو نہ چھیڑنے کے لیے قطار ہٹائیں۔",
+  "inputs.colorMap.fields.from.label": "اصل",
+  "inputs.colorMap.fields.to.label": "برانڈ",
+  "inputs.fontMap.label": "فونٹ میپنگ",
+  "inputs.fontMap.help": "ڈیک میں نام لیے گئے ٹائپ فیسز، ہر ایک کے ساتھ اس کا برانڈ متبادل۔ اس فونٹ کو برقرار رکھنے کے لیے ایک قطار ہٹائیں۔",
+  "inputs.fontMap.fields.from.label": "اصل",
+  "inputs.fontMap.fields.to.label": "برانڈ",
+  "inputs.dropFonts.label": "ایمبیڈڈ فونٹس ہٹائیں",
+  "inputs.dropFonts.help": "فائل میں شامل پرانے برانڈ کے فونٹس تبدیلی کے بعد پرانے ہو جاتے ہیں اور لائسنس کی پابندیوں میں جکڑے ہو سکتے ہیں۔"
+}

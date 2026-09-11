@@ -1,0 +1,38 @@
+{
+  "id": "square",
+  "name": "Square share card",
+  "category": "Social",
+  "description": "A 1080 x 1080 card for the feeds that crop everything else - thumbnail on top, title and description under it.",
+  "values": {
+    "url": "https://atlasfield.io/notes/quiet-interfaces",
+    "heading": "Field notes, collected",
+    "body": "Six months of small decisions, written down while they were still fresh enough to argue about.",
+    "siteName": "Atlas Field",
+    "layout": "square",
+    "color": "{color.semantic.text}",
+    "background": "{color.semantic.surface}",
+    "accent": "{color.semantic.primary}"
+  },
+  "presets": [
+    {
+      "id": "square-warm",
+      "name": "Warm paper",
+      "description": "Off-white stock with a brown accent.",
+      "values": {
+        "color": "#241d16",
+        "background": "#faf6ef",
+        "accent": "#8a5a2b"
+      }
+    },
+    {
+      "id": "square-event",
+      "name": "Event link",
+      "description": "The card for a talk or a meet-up page.",
+      "values": {
+        "heading": "Open studio, Thursday",
+        "body": "Doors from six. Come and see what the last quarter looked like before it was tidied up.",
+        "url": "https://atlasfield.io/events/open-studio"
+      }
+    }
+  ]
+}

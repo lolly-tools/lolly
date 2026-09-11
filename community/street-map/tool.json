@@ -1,0 +1,202 @@
+{
+  "id": "street-map",
+  "name": "Street Map",
+  "description": "Clean vector street-block maps of any city. Works offline.",
+  "a11yLabel": "Street map centered on {{city}}",
+  "version": "0.5.1",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "designer",
+  "tags": ["map", "street", "city", "location", "vector", "offline", "osm"],
+  "examples": [
+    { "label": "Paris in ink", "values": { "city": "paris", "roadColor": "#1a1a2e", "waterColor": "#93c5fd", "background": "#faf7f2" } },
+    { "label": "Tokyo neon", "values": { "city": "tokyo", "theme": "dark", "roadColor": "#22d3ee", "waterColor": "#0e7490", "background": "#0b1021" } },
+    { "label": "Amsterdam canals", "values": { "city": "amsterdam", "roadColor": "#94a3b8", "waterColor": "#0ea5e9", "waterWeight": 10, "background": "#ffffff" } },
+    { "label": "Brand-primary Berlin", "values": { "city": "berlin", "roadColor": "{color.semantic.primary}", "waterColor": "{color.semantic.secondary}", "background": "{color.semantic.surface}" } },
+    { "label": "Nuremberg morning run", "values": { "city": "nuremberg", "theme": "light", "roadColor": "#cfc7ba", "waterColor": "#bcd6e8", "background": "#faf7f2", "routeColor": "{color.semantic.primary}", "routeWidth": 4, "route": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx version=\"1.1\" creator=\"Lolly\" xmlns=\"http://www.topografix.com/GPX/1/1\">\n <trk><name>Altstadt loop</name><trkseg>\n  <trkpt lat=\"49.4530\" lon=\"11.0740\"/>\n  <trkpt lat=\"49.4538\" lon=\"11.0752\"/>\n  <trkpt lat=\"49.4547\" lon=\"11.0764\"/>\n  <trkpt lat=\"49.4553\" lon=\"11.0781\"/>\n  <trkpt lat=\"49.4547\" lon=\"11.0796\"/>\n  <trkpt lat=\"49.4536\" lon=\"11.0798\"/>\n  <trkpt lat=\"49.4527\" lon=\"11.0779\"/>\n  <trkpt lat=\"49.4529\" lon=\"11.0745\"/>\n </trkseg></trk>\n</gpx>" } }
+  ],
+  "render": {
+    "width": 900,
+    "height": 900,
+    "formats": ["svg", "penpot", "emf", "dxf", "pdf", "pdf-cmyk", "png", "jpg", "webp", "avif", "tiff", "eps"],
+    "actions": ["copy", "download", "save"],
+    "transparentBg": false
+  },
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "city",
+      "label": "City",
+      "type": "select",
+      "default": "nuremberg",
+      "help": "Add more cities offline with scripts/build-street-clips.ts - no API at render time.",
+      "options": [
+        { "value": "amsterdam", "label": "Amsterdam" },
+        { "value": "athens", "label": "Athens" },
+        { "value": "bangkok", "label": "Bangkok" },
+        { "value": "barcelona", "label": "Barcelona" },
+        { "value": "beijing", "label": "Beijing" },
+        { "value": "berlin", "label": "Berlin" },
+        { "value": "brisbane", "label": "Brisbane" },
+        { "value": "brussels", "label": "Brussels" },
+        { "value": "budapest", "label": "Budapest" },
+        { "value": "buenosaires", "label": "Buenos Aires" },
+        { "value": "cairo", "label": "Cairo" },
+        { "value": "capetown", "label": "Cape Town" },
+        { "value": "chicago", "label": "Chicago" },
+        { "value": "copenhagen", "label": "Copenhagen" },
+        { "value": "delhi", "label": "Delhi" },
+        { "value": "dubai", "label": "Dubai" },
+        { "value": "dublin", "label": "Dublin" },
+        { "value": "edinburgh", "label": "Edinburgh" },
+        { "value": "helsinki", "label": "Helsinki" },
+        { "value": "hongkong", "label": "Hong Kong" },
+        { "value": "istanbul", "label": "Istanbul" },
+        { "value": "kualalumpur", "label": "Kuala Lumpur" },
+        { "value": "lisbon", "label": "Lisbon" },
+        { "value": "london", "label": "London" },
+        { "value": "losangeles", "label": "Los Angeles" },
+        { "value": "madrid", "label": "Madrid" },
+        { "value": "mexicocity", "label": "Mexico City" },
+        { "value": "moscow", "label": "Moscow" },
+        { "value": "mumbai", "label": "Mumbai" },
+        { "value": "munich", "label": "Munich" },
+        { "value": "newyork", "label": "New York" },
+        { "value": "noosa", "label": "Noosa" },
+        { "value": "nuremberg", "label": "Nuremberg" },
+        { "value": "oslo", "label": "Oslo" },
+        { "value": "paris", "label": "Paris" },
+        { "value": "prague", "label": "Prague" },
+        { "value": "provo", "label": "Provo" },
+        { "value": "riodejaneiro", "label": "Rio de Janeiro" },
+        { "value": "rome", "label": "Rome" },
+        { "value": "sanfrancisco", "label": "San Francisco" },
+        { "value": "saopaulo", "label": "São Paulo" },
+        { "value": "seoul", "label": "Seoul" },
+        { "value": "shanghai", "label": "Shanghai" },
+        { "value": "singapore", "label": "Singapore" },
+        { "value": "stockholm", "label": "Stockholm" },
+        { "value": "sydney", "label": "Sydney" },
+        { "value": "tokyo", "label": "Tokyo" },
+        { "value": "toronto", "label": "Toronto" },
+        { "value": "vancouver", "label": "Vancouver" },
+        { "value": "vienna", "label": "Vienna" },
+        { "value": "warsaw", "label": "Warsaw" },
+        { "value": "washington", "label": "Washington, DC" },
+        { "value": "zurich", "label": "Zurich" }
+      ]
+    },
+    {
+      "id": "theme",
+      "label": "Theme",
+      "type": "select",
+      "default": "light",
+      "options": [
+        { "value": "light", "label": "Light" },
+        { "value": "dark", "label": "Dark" }
+      ]
+    },
+    {
+      "id": "minorRoadWeight",
+      "label": "Minor road weight",
+      "type": "number",
+      "display": "slider",
+      "default": 6.02,
+      "min": 0.25,
+      "max": 24,
+      "step": 0.01,
+      "help": "Stroke thickness of minor streets (service, residential, tertiary)."
+    },
+    {
+      "id": "majorRoadWeight",
+      "label": "Major road weight",
+      "type": "number",
+      "display": "slider",
+      "default": 5.46,
+      "min": 0.25,
+      "max": 24,
+      "step": 0.01,
+      "help": "Stroke thickness of major roads (secondary, primary, motorway)."
+    },
+    {
+      "id": "showWater",
+      "label": "Show water",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "id": "waterWeight",
+      "label": "Waterway weight",
+      "type": "number",
+      "display": "slider",
+      "default": 6.72,
+      "min": 0.25,
+      "max": 30,
+      "step": 0.01,
+      "help": "Stroke thickness of rivers and streams. Crank it up to make waterways more prominent."
+    },
+    {
+      "id": "roadColor",
+      "label": "Road color",
+      "type": "color",
+      "default": "{color.semantic.primary}",
+      "help": "Leave empty to use the theme's default."
+    },
+    {
+      "id": "waterColor",
+      "label": "Water color",
+      "type": "color",
+      "default": "{color.semantic.secondary}",
+      "help": "Leave empty to use the theme's default."
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "type": "color",
+      "default": "transparent",
+      "help": "Leave empty to use the theme's default."
+    },
+    {
+      "id": "route",
+      "label": "Route (GPX)",
+      "type": "longtext",
+      "rows": 4,
+      "default": "",
+      "dataSource": {
+        "accept": ".gpx,application/gpx+xml,.txt"
+      },
+      "placeholder": "<gpx>…</gpx>",
+      "help": "Add a GPX file: the track draws over the map, waypoints become dots. The map frames it until you pan or zoom."
+    },
+    {
+      "id": "routeColor",
+      "label": "Route color",
+      "type": "color",
+      "default": "",
+      "help": "The track line and its start and end dots. Leave empty for the theme's route color, which stands out from the roads."
+    },
+    {
+      "id": "routeWidth",
+      "label": "Route weight",
+      "type": "number",
+      "display": "slider",
+      "default": 3,
+      "min": 0.5,
+      "max": 16,
+      "step": 0.1,
+      "help": "Stroke thickness of the route line."
+    },
+    {
+      "id": "view",
+      "label": "Map viewport",
+      "type": "text",
+      "default": "",
+      "placeholder": "pan & zoom to set",
+      "help": "Auto-saved when you pan or zoom. Clear to reset to the default framing."
+    }
+  ]
+}

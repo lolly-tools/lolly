@@ -1,0 +1,18 @@
+{
+  "name": "Tukar Imej",
+  "description": "Ubah HEIC, TIFF atau mana-mana foto menjadi WebP, JPEG atau PNG - pada peranti anda.",
+  "a11yLabel": "Penukaran imej untuk {{fileName}}",
+  "inputs.source.label": "Imej",
+  "inputs.source.help": "Imej HEIC, HEIF, JPEG, PNG, WebP, AVIF atau TIFF. Ia dibaca dalam pelayar anda dan tidak sekali-kali meninggalkan peranti anda.",
+  "inputs.target.label": "Tukar kepada",
+  "inputs.target.help": "Format output. WebP biasanya yang paling kecil; PNG tanpa kehilangan kualiti.",
+  "inputs.target.options.webp": "WebP - paling kecil, mengekalkan ketelusan",
+  "inputs.target.options.jpeg": "JPEG - sejagat, untuk foto",
+  "inputs.target.options.png": "PNG - tanpa kehilangan kualiti, mengekalkan ketelusan",
+  "inputs.quality.label": "Kualiti",
+  "inputs.quality.help": "Kualiti untuk format lossy. Lebih rendah bermakna fail lebih kecil dan perincian lebih lembut. PNG mengabaikannya.",
+  "inputs.maxEdge.label": "Tepi terpanjang (px)",
+  "inputs.maxEdge.help": "Turunkan skala supaya tepi terpanjang paling banyak seberapa piksel ini. 0 mengekalkan saiz asal. Tidak pernah menaikkan skala.",
+  "inputs.keepLocation.label": "Kekalkan lokasi",
+  "inputs.keepLocation.help": "Membawa kedudukan GPS foto ke dalam fail yang ditukar. Dimatikan secara lalai - lokasi ialah data peribadi. Butiran foto yang lain (pengarang, hak cipta, tarikh tangkapan) sentiasa dibawa bersama, dan kad menunjukkan dengan tepat apa yang berlaku."
+}

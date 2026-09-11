@@ -1,0 +1,158 @@
+{
+  "id": "print-sheet",
+  "name": "Print Sheet",
+  "description": "Lay one design - or a whole pile of them - out n-up on A4, Letter or A3, across as many pages as it takes, with crop marks in the margin.",
+  "a11yLabel": "Print sheet, {{default rowsOut rows}} rows by {{default colsOut cols}} columns",
+  "version": "2.0.1",
+  "engineVersion": "^1.0.0",
+  "status": "community",
+  "category": "everyone",
+  "tags": ["print", "imposition", "n-up", "sheet", "crop marks", "stickers", "badges", "business cards", "a4", "letter", "step and repeat"],
+  "examples": [
+    {
+      "label": "QR codes, 3 x 3 to cut apart",
+      "values": {
+        "sheet": "a4", "rows": 3, "cols": 3, "gap": 6, "margin": 12, "ticks": true, "tickShape": "rect", "fill": "repeat",
+        "cells": [{ "art": { "id": "https://lolly.tools/tool/qr-code.svg?url=https%3A%2F%2Flolly.tools" } }]
+      }
+    },
+    {
+      "label": "Badges, 2 x 2 on A4",
+      "values": { "sheet": "a4", "rows": 2, "cols": 2, "gap": 5, "margin": 10, "ticks": true, "tickShape": "rect" }
+    },
+    {
+      "label": "Stickers, 3 x 3 round-cut",
+      "values": { "sheet": "a4", "rows": 3, "cols": 3, "gap": 6, "margin": 12, "ticks": true, "tickShape": "round-rect" }
+    },
+    {
+      "label": "Cards, 2 x 5 on A4",
+      "values": { "sheet": "a4", "rows": 5, "cols": 2, "gap": 4, "margin": 10, "ticks": true, "tickShape": "rect" }
+    }
+  ],
+  "render": {
+    "width": 794,
+    "height": 1123,
+    "formats": ["pdf", "pdf-cmyk", "svg", "penpot", "png", "cmyk-tiff"],
+    "actions": ["download", "save", "copy"],
+    "paged": true,
+    "convertPaths": false
+  },
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "cells",
+      "label": "Artwork",
+      "type": "blocks",
+      "labelledFields": true,
+      "dropToAdd": { "field": "art", "accept": "image/*" },
+      "help": "Drop in one design or a whole pile - each becomes a cell you can cut apart. Paste a LOLLY TOOL LINK (a share link from any tool - a name badge, a QR code, a card) and that tool renders live into its cell and re-renders whenever the sheet is opened. One design fills the whole sheet; several cycle across the cells. Tap any cell on the sheet to swap what is in it, and Batch or Multi-edit can send a whole run straight here.",
+      "fields": [
+        { "id": "art", "label": "Image or tool link", "type": "asset", "assetType": "image", "allowUpload": true }
+      ],
+      "default": []
+    },
+    {
+      "id": "fill",
+      "label": "Fill",
+      "type": "select",
+      "default": "repeat",
+      "display": "segmented",
+      "help": "Repeat cycles your designs to fill every cell of every page - one design makes a full sheet of the same thing, several make a mixed sheet. Each once places every design a single time and adds pages until they all fit - a proof sheet.",
+      "options": [
+        { "value": "repeat", "label": "Repeat to fill" },
+        { "value": "once", "label": "Each once" }
+      ]
+    },
+    {
+      "id": "pages",
+      "label": "Pages",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 1,
+      "max": 20,
+      "step": 1,
+      "showIf": { "fill": ["repeat"] },
+      "help": "How many sheets to print. Each is the same grid; the designs keep cycling across them so neighbouring pages stay varied. Each once sets its own page count."
+    },
+    {
+      "id": "sheet",
+      "label": "Sheet",
+      "type": "select",
+      "default": "a4",
+      "help": "Paper size. Picking one also sets the export page size, so the PDF comes out at true scale.",
+      "options": [
+        { "value": "a4", "label": "A4 portrait - 210 x 297 mm", "width": 210, "height": 297, "unit": "mm" },
+        { "value": "a4l", "label": "A4 landscape - 297 x 210 mm", "width": 297, "height": 210, "unit": "mm" },
+        { "value": "letter", "label": "US Letter - 8.5 x 11 in", "width": 215.9, "height": 279.4, "unit": "mm" },
+        { "value": "a3", "label": "A3 portrait - 297 x 420 mm", "width": 297, "height": 420, "unit": "mm" }
+      ]
+    },
+    {
+      "id": "rows",
+      "label": "Rows",
+      "type": "number",
+      "display": "slider",
+      "default": 2,
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "help": "Cells down each sheet. Rows times columns is capped at 40 cells a sheet."
+    },
+    {
+      "id": "cols",
+      "label": "Columns",
+      "type": "number",
+      "display": "slider",
+      "default": 2,
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "help": "Cells across each sheet."
+    },
+    {
+      "id": "gap",
+      "label": "Gap",
+      "type": "number",
+      "display": "slider",
+      "default": 5,
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "help": "Space between cells, in millimetres. Zero butts them edge to edge for a single cut between neighbours."
+    },
+    {
+      "id": "margin",
+      "label": "Sheet margin",
+      "type": "number",
+      "display": "slider",
+      "default": 10,
+      "min": 0,
+      "max": 30,
+      "step": 1,
+      "help": "Unprinted border, in millimetres. The crop marks live here, and most desktop printers cannot print closer than about 5 mm to the paper edge."
+    },
+    {
+      "id": "ticks",
+      "label": "Crop marks",
+      "type": "boolean",
+      "default": true,
+      "help": "Short lines in the margin off every cell edge, to line a guillotine or a knife up on."
+    },
+    {
+      "id": "tickShape",
+      "label": "Cut shape",
+      "type": "select",
+      "default": "rect",
+      "help": "Straight cut leaves the cells square. Rounded corners add a dashed die line around each cell, the sticker-sheet shape.",
+      "options": [
+        { "value": "rect", "label": "Straight cut" },
+        { "value": "round-rect", "label": "Rounded corners (stickers)" }
+      ]
+    }
+  ]
+}

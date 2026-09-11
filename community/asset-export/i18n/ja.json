@@ -1,0 +1,15 @@
+{
+  "name": "アセットエクスポート",
+  "description": "カタログ内のあらゆるアセット、または Lolly ツールのリンクを、任意のフォーマットとサイズで書き出します。",
+  "a11yLabel": "書き出されたアセット",
+  "inputs.src.label": "アセット",
+  "inputs.src.help": "書き出すアセットです。カタログID（`lolly assets` を参照）または貼り付けたlolly.toolsのツールリンクを指定できます。ベクターアセットはSVG/PDFでもベクターのまま保持され、ラスターアセットは画像として埋め込まれます。",
+  "inputs.fit.label": "フィット",
+  "inputs.fit.help": "「収める」はアセット全体をフレーム内にレターボックス表示します。「覆う」はフレームを埋めますが、端が切り取られる場合があります。",
+  "inputs.fit.options.contain": "収める（アセット全体、レターボックス表示）",
+  "inputs.fit.options.cover": "覆う（フレームを埋める、切り取られる場合あり）",
+  "inputs.background.label": "背景",
+  "inputs.background.help": "アセットの背後の色です。書き出し時に「背景なし」をオンにすると削除されます（透明になります）。",
+  "inputs.transparentBg.label": "背景なし",
+  "inputs.transparentBg.help": "背景の塗りを削除し、アセットを透明な状態で書き出します（PNG/SVG/WebP）。"
+}

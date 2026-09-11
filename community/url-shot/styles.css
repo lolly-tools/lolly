@@ -1,0 +1,315 @@
+.url-shot {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #f4f4f4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The captured screenshot, injected into [data-capture] by beforeExport.
+   The capture is taken at the EXPORT dimensions, so the canvas (which adopts the
+   export size) and the image share an aspect ratio: object-fit: contain then fills
+   it exactly with no crop and no distortion. If they ever diverged, contain would
+   letterbox (preserving the whole capture) rather than silently crop or stretch. */
+.url-shot .shot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+/* Explicit hidden wins over the block above (higher specificity): the hook shows
+   exactly one .shot at a time - the <img> for a raster/vector still, the <canvas>
+   for a panned scroll video. */
+.url-shot .shot[hidden] {
+  display: none;
+}
+/* Hide the image until a capture has set its src (canvas has no src, so scope to img). */
+.url-shot img.shot:not([src]) {
+  display: none;
+}
+
+/* ── Compare: the same page at two viewports in one frame ──────────────────
+   Both layouts are pure CSS on the root modifier the hook sets, so single mode
+   matches no rule below and renders exactly as it always did. The phone bezel is
+   a lighter cousin of frame's: a thin dark surround, a rounded screen
+   and a notch pill, no side buttons - this tool's subject is the page, not the
+   device. ── */
+
+/* Side by side: desktop left, phone right, both centred on the frame. */
+.url-shot--side {
+  flex-direction: row;
+  gap: 4%;
+  padding: 4%;
+  box-sizing: border-box;
+}
+.url-shot--side .shot {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 8px;
+  box-shadow: 0 6px 22px rgba(12, 24, 34, 0.18);
+}
+.url-shot--side .placeholder {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.url-shot--side .cmp-phone {
+  flex: 0 0 auto;
+  height: 92%;
+  display: flex;
+  align-items: center;
+}
+
+/* Overlap: the phone tucks over the desktop's lower right corner. The desktop
+   keeps the whole frame, so the two reads as one composition rather than a row. */
+.url-shot--overlap .cmp-phone {
+  position: absolute;
+  right: 4%;
+  bottom: 4%;
+  height: 64%;
+  z-index: 4;
+}
+
+.url-shot .cmp-phone-body {
+  position: relative;
+  height: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 22px;
+  padding: 5px;
+  box-sizing: border-box;
+  background: var(--brand-text, #1c1f26);
+  box-shadow: 0 8px 26px rgba(12, 24, 34, 0.28);
+}
+.url-shot .cmp-phone-shot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* contain, not cover, for the same reason the desktop frame uses it: a crop
+     inset shrinks the capture but not the bezel, and letterboxing the whole shot
+     beats silently trimming its edges. */
+  object-fit: contain;
+  border-radius: 18px;
+  background: var(--brand-surface, #efefef);
+}
+/* No mobile capture yet: the phone shows the same "which page" line the main
+   placeholder does, so an uncaptured compare frame reads as two waiting frames
+   rather than one frame and an empty slab. */
+.url-shot .cmp-phone-shot:not([src]) {
+  display: none;
+}
+.url-shot .cmp-phone-ph {
+  position: absolute;
+  inset: 5px;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.2rem 0.9rem;
+  border-radius: 18px;
+  background: var(--brand-surface, #efefef);
+  color: var(--brand-text, #111);
+  font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  word-break: break-all;
+  overflow: hidden;
+}
+.url-shot .cmp-phone-notch {
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  transform: translateX(-50%);
+  width: 30%;
+  max-width: 74px;
+  height: 12px;
+  border-radius: 999px;
+  background: #101319;
+  z-index: 2;
+}
+.url-shot .cmp-phone[hidden] {
+  display: none;
+}
+
+/* Live-preview placeholder (capture only happens at export). */
+.url-shot .placeholder {
+  text-align: center;
+  color: var(--brand-primary, #30ba78);
+  font-family: SUSE, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding: 2rem;
+}
+.url-shot .placeholder .badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand-text, #111);
+  background: var(--brand-surface, #efefef);
+  border: 1px solid var(--brand-edge, #d6d6d6);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  margin-bottom: 1rem;
+}
+.url-shot .placeholder .hint {
+  margin: 0 0 0.5rem;
+  color: var(--brand-muted, #4a4a4a);
+  font-size: 0.95rem;
+}
+.url-shot .placeholder .target {
+  margin: 0 0 1.25rem;
+  color: var(--brand-text, #111);
+  font-size: 1.1rem;
+  font-weight: 600;
+  word-break: break-all;
+}
+.url-shot .placeholder .hint {
+  margin: 1rem 0 0;
+}
+
+/* Render-to-frame trigger. A preview is a real capture (slow - a headless page
+   load), so it's an explicit click, not a live update. The shell wires it via
+   [data-preview]; on success the capture replaces this whole placeholder. */
+.url-shot .preview-btn {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  color: var(--brand-on-primary, #fff);
+  background: var(--brand-primary, #30ba78);
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.4rem;
+  box-shadow: 0 1px 3px rgba(12, 50, 44, 0.25);
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+.url-shot .preview-btn:hover { background: color-mix(in oklab, var(--brand-primary, #30ba78), black 12%); }
+.url-shot .preview-btn:active { transform: translateY(1px); }
+
+/* Busy: page is loading/settling in the capture engine. */
+.url-shot .preview-btn.is-busy {
+  cursor: progress;
+  background: color-mix(in oklab, var(--brand-primary, #30ba78), white 30%);
+  padding-left: 2.4rem;
+  position: relative;
+}
+.url-shot .preview-btn.is-busy::before {
+  content: "";
+  position: absolute;
+  left: 1.2rem;
+  top: 50%;
+  width: 0.9em;
+  height: 0.9em;
+  margin-top: -0.45em;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: url-shot-spin 0.7s linear infinite;
+}
+@keyframes url-shot-spin { to { transform: rotate(360deg); } }
+
+/* Error: capture failed - the message lands in the button so the user can retry. */
+.url-shot .preview-btn.is-error {
+  background: #fff;
+  color: #b32d2d;
+  border: 1px solid #e5b4b4;
+  font-weight: 500;
+  white-space: normal;
+  max-width: 32ch;
+}
+
+/* Persistent re-capture affordance. Staging environments rotate, so once a shot is
+   on the canvas you can re-screenshot without touching an input: this floating
+   button (also [data-preview], so the shell's delegation re-captures) fades in when
+   you hover the captured canvas. Hidden before the first capture (the placeholder's
+   big button owns that state) - data-captured is set by the hook on first paint. */
+.url-shot .shot-refresh {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--brand-on-primary, #fff);
+  background: color-mix(in oklab, var(--brand-primary, #30ba78), black 6%);
+  box-shadow: 0 2px 8px rgba(12, 50, 44, 0.3);
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease, background 0.15s ease;
+}
+.url-shot[data-captured]:hover .shot-refresh,
+.url-shot .shot-refresh:focus-visible {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.url-shot .shot-refresh:hover { background: var(--brand-primary, #30ba78); }
+.url-shot .shot-refresh:active { transform: scale(0.94); }
+.url-shot .shot-refresh svg { width: 1.15rem; height: 1.15rem; display: block; }
+.url-shot .shot-refresh.is-busy { cursor: progress; pointer-events: none; opacity: 1; transform: none; }
+.url-shot .shot-refresh.is-busy svg { animation: url-shot-spin 0.7s linear infinite; }
+.url-shot .shot-refresh.is-error { background: #b32d2d; opacity: 1; transform: none; }
+
+/* ── Visual composer entry points (same-origin targets only; wired in the
+   template script). The overlay itself is body-level and styles itself via an
+   injected <style> - this tool CSS is auto-scoped to the canvas and can't reach
+   it. ── */
+.url-shot .ph-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 0.9rem 0;
+}
+.url-shot .compose-btn {
+  font: inherit;
+  font-weight: 600;
+  padding: 0.55rem 1.1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--brand-primary, #30ba78);
+  background: var(--brand-surface, #efefef);
+  border: 1px solid var(--brand-primary, #30ba78);
+}
+.url-shot .compose-btn:hover { background: color-mix(in oklab, var(--brand-primary, #30ba78), transparent 88%); }
+.url-shot .compose-btn:active { transform: translateY(1px); }
+/* Floating compose button - sits just left of the re-capture button, same reveal. */
+.url-shot .shot-compose {
+  position: absolute;
+  top: 0.6rem;
+  right: 3.2rem;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--brand-on-primary, #fff);
+  background: color-mix(in oklab, var(--brand-primary, #30ba78), black 6%);
+  box-shadow: 0 2px 8px rgba(12, 50, 44, 0.3);
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease, background 0.15s ease;
+}
+.url-shot[data-captured]:hover .shot-compose,
+.url-shot .shot-compose:focus-visible { opacity: 1; transform: none; pointer-events: auto; }
+.url-shot .shot-compose:hover { background: var(--brand-primary, #30ba78); }
+.url-shot .shot-compose:active { transform: scale(0.94); }
+.url-shot .shot-compose svg { width: 1.15rem; height: 1.15rem; display: block; }

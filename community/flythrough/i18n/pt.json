@@ -1,0 +1,4 @@
+{
+  "name": "Flythrough",
+  "description": "Sobrevoe uma captura de tela com uma câmera 3D real. A imagem se eleva em camadas com profundidade real; formas grandes se extrudam em objetos sólidos; uma linha do tempo de poses anima todo o movimento - profundidade, opacidade, perspectiva, extrusão, inclinação, rotação, escala e o voo da câmera - depois volta ao início em loop. Adicione, arraste e reordene poses. Exporte como vídeo."
+}

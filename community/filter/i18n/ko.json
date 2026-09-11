@@ -1,0 +1,5 @@
+{
+  "name": "필터",
+  "description": "사진 효과를 위한 하나의 도구: halftone, scanline, posterize, voronoi, dither, ASCII 아트(벡터) 또는 duotone, 픽셀 스트레치, imperfections, glitch(래스터) 중에서 선택하세요. 브랜드 오버레이, 라이브 카메라, 각 효과가 지원하는 다양한 포맷으로 내보내기까지.",
+  "featured.blurb": "벡터 또는 래스터, 열 가지 사진 효과를 하나의 도구에서"
+}

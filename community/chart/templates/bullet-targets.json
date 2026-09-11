@@ -1,0 +1,13 @@
+{
+  "id": "bullet-targets",
+  "name": "Performance against target",
+  "category": "Comparison",
+  "description": "Actual bars, explicit target ticks and optional target bands on a shared scale.",
+  "values": {
+    "chartIntent": "manual", "renderMode": "vector", "chartType": "bullet", "chartStyle": "editorial",
+    "heading": "Quarterly delivery against plan",
+    "subheading": "Actual / target · shared scale across all teams",
+    "data": "Team,Actual,Target,Maximum\nDesign,84,90,120\nEngineering,108,100,120\nSupport,76,80,120\nOperations,92,100,120",
+    "bulletBands": true, "numberFormat": "integer", "labelLayout": "wrap", "barPadding": 0.3, "transparentBg": false
+  }
+}

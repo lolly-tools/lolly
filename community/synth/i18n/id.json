@@ -1,0 +1,4 @@
+{
+  "name": "Synth",
+  "description": "Instrumen visual yang Anda mainkan. Empat adegan berjalan langsung di GPU: tinta cair, kawanan partikel yang terbang ke arah judul atau logo Anda, medan umpan balik, dan kamera Anda sendiri. Setiap warna berasal dari palet brand Anda, dan gambarnya bergerak mengikuti pointer Anda, sebuah trek musik, dan kontroler MIDI. Ekspor gambar diam atau loop yang mulus."
+}

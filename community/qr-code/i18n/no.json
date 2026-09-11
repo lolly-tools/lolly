@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "QR-koder for en lenke, et kontaktkort, et Wi-Fi-nettverk, en kalenderhendelse, et sted eller ren tekst.",
+  "featured.blurb": "QR-koder i valgfri merkefarge",
+  "a11yLabel": "QR-kode som lenker til {{default url \"(ingen URL angitt)\"}}",
+  "inputs.url.label": "URL",
+  "inputs.color.label": "Modulfarge",
+  "inputs.background.label": "Bakgrunn",
+  "inputs.ecl.label": "Feilkorrigering",
+  "inputs.ecl.options.L": "Lav (7%)",
+  "inputs.ecl.options.M": "Middels (15%)",
+  "inputs.ecl.options.Q": "Kvartil (25%)",
+  "inputs.ecl.options.H": "Høy (30%)",
+  "inputs.padding.label": "Stille sone",
+  "inputs.padding.help": "Moduler med hvit plass rundt koden. Minst 4 anbefales.",
+  "inputs.join.label": "Sammenslåtte moduler",
+  "inputs.join.help": "Slår sammen alle moduler til én enkelt SVG-bane. Skarpere ved små størrelser."
+}

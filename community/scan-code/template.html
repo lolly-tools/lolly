@@ -1,0 +1,123 @@
+<div class="sc" data-mode="{{mode}}">
+
+  {{#if (eq mode "camera")}}
+  <div class="sc-viewfinder" aria-label="Camera viewfinder">
+    {{#if scanFrameSrc}}
+    <svg class="sc-vf" data-live-preview viewBox="0 0 {{scanFrameW}} {{scanFrameH}}" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Live camera">
+      <image href="{{scanFrameSrc}}" x="0" y="0" width="{{scanFrameW}}" height="{{scanFrameH}}" preserveAspectRatio="xMidYMid slice"/>
+      <polygon points="{{scanCorners}}" class="sc-vf__quad"/>
+    </svg>
+    <div class="sc-vf__reticle" aria-hidden="true"></div>
+    {{else}}
+    <div class="sc-viewfinder__frame">
+      {{#if scanCameraReady}}
+      <span class="sc-viewfinder__hint">Point the camera at a code and hold it in the frame. If it doesn't start, tap here.</span>
+      {{else}}
+      <span class="sc-viewfinder__hint">This connection can't open the camera - a phone needs a secure (https) address. Switch Source to <strong>From image</strong> or <strong>Paste text</strong> to scan without it.</span>
+      {{/if}}
+    </div>
+    {{/if}}
+  </div>
+  {{/if}}
+
+  {{#if scanEmpty}}
+    <div class="sc-empty">
+      {{#if (eq mode "paste")}}Paste a code's text above to inspect it.{{/if}}
+      {{#if (eq mode "image")}}Choose an image containing a code.{{/if}}
+      {{#if (eq mode "camera")}}Nothing decoded yet - hold a code in view.{{/if}}
+    </div>
+  {{else}}
+    <div class="sc-result" data-kind="{{scanKind}}">
+      <div class="sc-result__head">
+        <span class="sc-badge">{{scanLabel}}</span>
+        {{#if scanFormat}}<span class="sc-fmt">{{scanFormat}}</span>{{/if}}
+      </div>
+
+      {{{scanValueHtml}}}
+
+      {{#if scanFieldsHtml}}<div class="sc-fields">{{{scanFieldsHtml}}}</div>{{/if}}
+
+      {{#if scanHasWarn}}
+      <div class="sc-warn" role="status">
+        <span class="sc-warn__h">Before you act</span>
+        <ul>{{{scanWarnHtml}}}</ul>
+      </div>
+      {{/if}}
+
+      <div class="sc-actions">
+        <button type="button" class="sc-btn sc-btn--primary" data-copy="{{scanCopy}}">Copy</button>
+        {{#if scanOpenUrl}}
+        <a class="sc-btn" href="{{scanOpenUrl}}" target="_blank" rel="noopener noreferrer nofollow" data-open>Open link…</a>
+        {{/if}}
+      </div>
+
+      <p class="sc-copy-status" role="status" aria-live="polite" data-export-hide></p>
+      <p class="sc-foot">Read on this device. Nothing was uploaded.</p>
+    </div>
+  {{/if}}
+
+  <script>
+  // Editor-runtime only (stripped on export): Copy the exact decoded value and
+  // toggle a masked secret's reveal. No network, no auto-actions.
+  (function () {
+    var root = document.currentScript && document.currentScript.parentElement;
+    if (!root) return;
+    function copyFallback(value) {
+      var active = document.activeElement;
+      var input = document.createElement('textarea');
+      input.value = value;
+      input.readOnly = true;
+      input.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px';
+      document.body.appendChild(input);
+      try {
+        input.focus({ preventScroll: true });
+        input.select();
+        input.setSelectionRange(0, value.length);
+        return !!(document.execCommand && document.execCommand('copy'));
+      } finally {
+        input.remove();
+        if (active && active.focus) active.focus({ preventScroll: true });
+      }
+    }
+    root.addEventListener('click', async function (e) {
+      var copyBtn = e.target.closest('[data-copy]');
+      if (copyBtn) {
+        e.stopPropagation();
+        var v = copyBtn.getAttribute('data-copy') || '';
+        if (copyBtn.disabled) return;
+        var hadFocus = document.activeElement === copyBtn;
+        var status = root.querySelector('.sc-copy-status');
+        if (status) status.textContent = '';
+        copyBtn.disabled = true; copyBtn.textContent = 'Copying…';
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            try { await navigator.clipboard.writeText(v); }
+            catch (err) { if (!copyFallback(v)) throw err; }
+          } else if (!copyFallback(v)) throw new Error('Clipboard unavailable');
+          if (status) status.textContent = 'Copied';
+        } catch (err) {
+          if (status) status.textContent = 'Could not copy. Select and copy the text above, or try again.';
+        } finally {
+          copyBtn.disabled = false; copyBtn.textContent = 'Copy';
+          if (hadFocus) copyBtn.focus({ preventScroll: true });
+        }
+        return;
+      }
+      // Keep the native link tap in this gesture; the canvas's Source annotation
+      // must not turn a result action into a settings picker on mobile.
+      if (e.target.closest('a[data-open]')) { e.stopPropagation(); return; }
+      var reveal = e.target.closest('[data-reveal]');
+      if (reveal) {
+        e.stopPropagation();
+        var span = reveal.parentElement.querySelector('[data-secret]');
+        if (span) {
+          var open = reveal.getAttribute('data-open') === '1';
+          span.textContent = open ? (span.getAttribute('data-mask') || '') : (span.getAttribute('data-secret') || '');
+          reveal.setAttribute('data-open', open ? '0' : '1');
+          reveal.textContent = open ? 'Reveal' : 'Hide';
+        }
+      }
+    });
+  })();
+  </script>
+</div>

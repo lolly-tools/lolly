@@ -1,0 +1,38 @@
+{
+  "id": "regression-story",
+  "name": "Regression story",
+  "category": "Statistical",
+  "description": "Show the observations, fitted relationship and uncertainty without surrendering brand styling.",
+  "values": {
+    "renderMode": "statistical",
+    "chartType": "scatter",
+    "plotType": "regression",
+    "chartStyle": "technical",
+    "data": "Investment,Qualified leads\n12,19\n16,25\n19,23\n23,34\n27,38\n31,41\n35,49\n39,47\n44,58\n48,64\n52,61\n57,72\n63,81\n68,84\n74,92",
+    "heading": "Investment and qualified demand move together",
+    "subheading": "Observed markets with a linear fit and 95% confidence band",
+    "xTitle": "Campaign investment",
+    "yTitle": "Qualified leads",
+    "plotShowRaw": true,
+    "plotConfidenceBand": true,
+    "showGrid": true
+  },
+  "presets": [
+    {
+      "id": "fit-only",
+      "name": "Fit only",
+      "description": "Hide observations and emphasise the estimated relationship.",
+      "values": {
+        "plotShowRaw": false
+      }
+    },
+    {
+      "id": "density",
+      "name": "Density",
+      "description": "Express the same two measures as density contours.",
+      "values": {
+        "plotType": "density-contour"
+      }
+    }
+  ]
+}

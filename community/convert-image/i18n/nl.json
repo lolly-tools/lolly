@@ -1,0 +1,18 @@
+{
+  "name": "Afbeelding converteren",
+  "description": "Zet HEIC, TIFF of elke foto om naar WebP, JPEG of PNG - op je eigen apparaat.",
+  "a11yLabel": "Afbeeldingsconversie voor {{fileName}}",
+  "inputs.source.label": "Afbeelding",
+  "inputs.source.help": "Een HEIC-, HEIF-, JPEG-, PNG-, WebP-, AVIF- of TIFF-afbeelding. Deze wordt in je browser gelezen en verlaat nooit je apparaat.",
+  "inputs.target.label": "Converteren naar",
+  "inputs.target.help": "Het uitvoerformaat. WebP is meestal het kleinst; PNG is verliesvrij.",
+  "inputs.target.options.webp": "WebP - kleinste, behoudt transparantie",
+  "inputs.target.options.jpeg": "JPEG - universeel, voor foto's",
+  "inputs.target.options.png": "PNG - verliesvrij, behoudt transparantie",
+  "inputs.quality.label": "Kwaliteit",
+  "inputs.quality.help": "Kwaliteit voor formaten met kwaliteitsverlies. Lager betekent een kleiner bestand en zachtere details. PNG negeert dit.",
+  "inputs.maxEdge.label": "Langste zijde (px)",
+  "inputs.maxEdge.help": "Verklein zodat de langste zijde maximaal dit aantal pixels is. 0 behoudt de originele grootte. Vergroot nooit.",
+  "inputs.keepLocation.label": "Locatie behouden",
+  "inputs.keepLocation.help": "Neemt de GPS-positie van de foto over in het geconverteerde bestand. Standaard uit - locatie is een persoonsgegeven. De overige gegevens van de foto (auteur, copyright, opnamedatum) worden altijd overgenomen, en de kaart toont precies wat er is gebeurd."
+}

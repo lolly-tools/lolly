@@ -1,0 +1,33 @@
+{
+  "id": "constellation-tour",
+  "name": "Constellation tour",
+  "category": "Cinematic",
+  "description": "Make every observation a spatial beacon connected by an exact data path.",
+  "values": {
+    "renderMode": "cinematic",
+    "cinematicType": "constellation3d",
+    "chartType": "scatter",
+    "sceneMaterial": "matte",
+    "data": "Milestone,Confidence,Effort\nBrief,38,62\nResearch,54,71\nPrototype,72,66\nTest,61,48\nRefine,83,57\nLaunch,92,74\nLearn,76,43\nNext,97,68",
+    "heading": "Every milestone is a beacon",
+    "subheading": "Confidence sets the camera altitude; effort forms the neighbouring route",
+    "flightSeries": "Confidence",
+    "flightHeight": 0.8,
+    "flightLookAhead": 1.1,
+    "flightBank": 16,
+    "flightFov": 62,
+    "animSpeed": 0.9,
+    "showLegend": true,
+    "showGrid": true
+  },
+  "presets": [
+    {
+      "id": "reverse",
+      "name": "Out and back",
+      "description": "Fly to the final observation and return without a cut.",
+      "values": {
+        "animDirection": "bounce"
+      }
+    }
+  ]
+}

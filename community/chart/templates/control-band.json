@@ -1,0 +1,29 @@
+{
+  "id": "control-band",
+  "name": "Process control band",
+  "category": "Statistical",
+  "description": "Separate ordinary variation from observations that deserve investigation.",
+  "values": {
+    "renderMode": "statistical",
+    "chartType": "line",
+    "plotType": "control-band",
+    "chartStyle": "technical",
+    "data": "Run,Cycle time\n01,42\n02,44\n03,41\n04,45\n05,43\n06,46\n07,42\n08,44\n09,43\n10,45\n11,57\n12,44\n13,42\n14,46\n15,43\n16,41",
+    "heading": "Run 11 deserves investigation",
+    "subheading": "Observed cycle time with mean and two-standard-deviation limits",
+    "yTitle": "Minutes",
+    "showGrid": true,
+    "showLegend": true
+  },
+  "presets": [
+    {
+      "id": "quiet",
+      "name": "Editorial",
+      "description": "Reduce grid emphasis for a report or article.",
+      "values": {
+        "chartStyle": "editorial",
+        "showGrid": false
+      }
+    }
+  ]
+}

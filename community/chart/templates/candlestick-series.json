@@ -1,0 +1,28 @@
+{
+  "id": "candlestick-series",
+  "name": "Candlestick series",
+  "category": "Financial",
+  "description": "An honest OHLC view with brand-derived up/down colours and exact source values in the accessible table.",
+  "values": {
+    "renderMode": "statistical",
+    "chartType": "line",
+    "plotType": "candlestick",
+    "chartStyle": "technical",
+    "data": "Day,Open,High,Low,Close\nMon,42,48,39,46\nTue,46,51,44,49\nWed,49,53,43,45\nThu,45,50,41,48\nFri,48,56,47,54\nMon +1,54,58,50,52\nTue +1,52,59,51,57\nWed +1,57,61,53,55\nThu +1,55,64,54,62\nFri +1,62,67,58,65",
+    "heading": "A stronger close after mid-period volatility",
+    "yTitle": "Index value",
+    "showGrid": true,
+    "showLegend": true
+  },
+  "presets": [
+    {
+      "id": "poster",
+      "name": "Poster",
+      "description": "Increase contrast and title scale for a presentation slide.",
+      "values": {
+        "chartStyle": "poster",
+        "showGrid": false
+      }
+    }
+  ]
+}

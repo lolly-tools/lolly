@@ -1,0 +1,19 @@
+{
+  "name": "Wordmark",
+  "description": "Taip satu perkataan, dapatkan tera kata vektor laluan-tulen dalam fon jenama anda - penerima tidak perlu memasang fon.",
+  "a11yLabel": "Wordmark berbunyi {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Teks",
+  "inputs.font.label": "Fon",
+  "inputs.font.options.brand": "Fon jenama",
+  "inputs.font.options.mono": "Fon mono",
+  "inputs.weight.label": "Berat",
+  "inputs.tracking.label": "Tracking",
+  "inputs.tracking.help": "Jarak huruf dalam px pada saiz yang ditetapkan.",
+  "inputs.size.label": "Saiz",
+  "inputs.size.help": "Saiz fon tempat garis luar dibentuk - tracking adalah relatif kepada ini.",
+  "inputs.color.label": "Warna",
+  "inputs.features.label": "Ciri OpenType",
+  "inputs.features.options.none": "Standard",
+  "inputs.features.options.liga-off": "Tiada ligatur",
+  "inputs.features.options.salt": "Alternatif stilistik"
+}

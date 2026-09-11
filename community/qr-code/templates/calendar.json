@@ -1,0 +1,31 @@
+{
+  "id": "calendar",
+  "name": "Calendar event",
+  "category": "Utility",
+  "description": "Scan to add the date to a calendar. The event travels in the code, so it works with no network.",
+  "values": {
+    "payload": "event",
+    "eventName": "Open Studio",
+    "eventStart": "2026-09-15T18:00",
+    "eventEnd": "2026-09-15T20:30",
+    "eventLocation": "12 Rundle Street, Adelaide",
+    "eventDetails": "Doors at six. Drinks, short talks, and the new work on the walls.",
+    "ecl": "Q",
+    "padding": 4,
+    "join": true
+  },
+  "presets": [
+    {
+      "id": "inperson",
+      "name": "In person",
+      "description": "Dark ink on warm white for a printed invite or poster.",
+      "values": { "color": "#1a1a2e", "background": "#faf7f2", "padding": 6 }
+    },
+    {
+      "id": "online",
+      "name": "Online",
+      "description": "The joining link as the location, light modules for a closing slide.",
+      "values": { "eventLocation": "https://example.com/join", "color": "#93c5fd", "background": "#0b1021" }
+    }
+  ]
+}

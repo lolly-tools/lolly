@@ -1,0 +1,4 @@
+{
+  "name": "Gjennomflyging",
+  "description": "Fly et ekte 3D-kamera gjennom et skjermbilde. Bildet løftes opp i lag med reell dybde; store former ekstruderes til solide objekter; en tidslinje med posisjoner animerer hele bevegelsen - dybde, gjennomsiktighet, perspektiv, ekstrudering, helning, rotasjon, skalering og kameraflyet - og løkker det deretter hjem. Legg til, dra og omorganiser posisjoner. Eksporter som video."
+}

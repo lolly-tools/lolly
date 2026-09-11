@@ -1,0 +1,4 @@
+{
+  "name": "Synt",
+  "description": "Ett visuellt instrument du spelar. Fyra scener körs live på GPU:n: flytande bläck, en partikelsvärm som flyger mot din rubrik eller din logotyp, ett återkopplingsfält och din egen kamera. Varje färg kommer från din varumärkespalett, och bilden rör sig efter din pekare, ett musikspår och en MIDI-styrenhet. Exportera en stillbild eller en sömlös loop."
+}

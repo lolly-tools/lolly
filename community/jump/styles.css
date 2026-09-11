@@ -1,0 +1,2097 @@
+/* Jump Page.
+   Every colour comes in as a custom property the template sets from the hook's
+   resolved palette, so a brand with no tokens still paints: the fallbacks below
+   are the same literals the hook falls back to. Brand-agnostic throughout.
+
+   Four styles share one markup: three plain lists (buttons/cards/minimal) and
+   `cinema`, the default, which turns the shared page into full-height scenes.
+   The cinema LAYOUT is unconditional - only its motion is gated (bottom of the
+   file), so the editor preview and every unsupported browser get the finished
+   page with nothing hidden.
+
+   The cinema reads as opening titles: a full-bleed accent title card, then one
+   scene per link cycling paper / accent tint / full accent / shaded paper, and
+   a dark end card. The palette never leaves the three colour inputs - every
+   wash is the accent, the ink or the paper, mixed or graded. */
+
+/* ── The two colour schemes ─────────────────────────────────────────────────
+   The template writes the hook's palette twice: --jp-*-l for the light reading
+   and --jp-*-d for the dark one, never the bare names. This is the ONLY place
+   that chooses between them, so every rule in the rest of the file goes on
+   reading the bare --jp-ink / --jp-paper / --jp-accent / ... and gains both
+   modes without knowing it.
+
+   No fallbacks needed here: where the template has not written a set (a
+   stylesheet-only preview), each bare name resolves to the guaranteed-invalid
+   value, and every var() below it falls through to the literal it already
+   carries - the same fallbacks that have always been there. */
+.jp-root {
+  --jp-ink: var(--jp-ink-l);
+  --jp-paper: var(--jp-paper-l);
+  --jp-accent: var(--jp-accent-l);
+  --jp-shade: var(--jp-shade-l);
+  --jp-on-accent: var(--jp-on-accent-l);
+  --jp-muted: var(--jp-muted-l);
+  --jp-edge: var(--jp-edge-l);
+  --jp-card: var(--jp-card-l);
+}
+
+@media (prefers-color-scheme: dark) {
+  .jp-root {
+    --jp-ink: var(--jp-ink-d);
+    --jp-paper: var(--jp-paper-d);
+    --jp-accent: var(--jp-accent-d);
+    --jp-shade: var(--jp-shade-d);
+    --jp-on-accent: var(--jp-on-accent-d);
+    --jp-muted: var(--jp-muted-d);
+    --jp-edge: var(--jp-edge-d);
+    --jp-card: var(--jp-card-d);
+  }
+}
+
+.jp-root {
+  width: 100%;
+  height: 100%;
+  padding: 96px 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 56px;
+  box-sizing: border-box;
+  background: var(--jp-paper, #f7f8fa);
+  color: var(--jp-ink, #17232b);
+  font-family: var(--font-brand, ui-sans-serif, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+.jp-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+  max-width: 560px;
+}
+
+.jp-heading {
+  margin: 0;
+  font-size: 54px;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+}
+
+.jp-word {
+  display: inline-block;
+}
+
+.jp-sub {
+  margin: 0;
+  font-size: 23px;
+  line-height: 1.4;
+  color: var(--jp-muted, rgba(0, 0, 0, 0.55));
+}
+
+.jp-cue {
+  display: none;
+}
+
+.jp-ghost {
+  display: none;
+}
+
+.jp-note {
+  margin: auto 0;
+  font-size: 22px;
+  color: var(--jp-muted, rgba(0, 0, 0, 0.55));
+}
+
+.jp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 560px;
+}
+
+.jp-link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 22px 32px;
+  border-radius: 999px;
+  text-decoration: none;
+  text-align: center;
+  color: inherit;
+}
+
+.jp-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.jp-label {
+  font-size: 25px;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.jp-host {
+  font-size: 16px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.jp-foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.jp-foot-echo,
+.jp-foot-made {
+  margin: 0;
+}
+
+.jp-foot-echo {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.jp-foot-made {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--jp-muted, rgba(0, 0, 0, 0.55));
+  text-decoration: none;
+}
+
+.jp-foot-made:hover {
+  text-decoration: underline;
+}
+
+/* Buttons: filled accent pills, the host folded into the pill. */
+
+.jp-buttons .jp-link {
+  background: var(--jp-accent, #2563eb);
+  color: var(--jp-on-accent, #ffffff);
+}
+
+.jp-buttons .jp-host {
+  opacity: 0.75;
+}
+
+/* Cards: quiet panels on the page colour, host as a second line. */
+
+.jp-cards .jp-link {
+  background: var(--jp-card, rgba(255, 255, 255, 0.72));
+  border: 1px solid var(--jp-edge, rgba(0, 0, 0, 0.12));
+  border-radius: 22px;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.jp-cards .jp-host {
+  color: var(--jp-muted, rgba(0, 0, 0, 0.55));
+}
+
+/* Minimal: a text list, the accent as the underline and the host tucked after. */
+
+.jp-minimal .jp-list {
+  gap: 30px;
+}
+
+.jp-minimal .jp-link {
+  padding: 0;
+  border-radius: 0;
+  gap: 6px;
+}
+
+.jp-minimal .jp-label {
+  font-size: 30px;
+  text-decoration: underline;
+  text-decoration-color: var(--jp-accent, #2563eb);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 8px;
+}
+
+.jp-minimal .jp-host {
+  color: var(--jp-muted, rgba(0, 0, 0, 0.55));
+}
+
+/* ── Cinema ─────────────────────────────────────────────────────────────────
+   The film arc: accent title card, scenes building paper - tint - full accent,
+   a dark close. Derived colours (mixes and grades) live in the feature queries
+   at the end of this section, because a declaration that contains a colour
+   function is valid at parse time and would win the cascade over a plain
+   colour above it, then compute to nothing where the function is unsupported;
+   every scene therefore has a plain-colour form that already carries the arc.
+   `overflow: clip` rather than `hidden`: clip does not make a scroll
+   container, so the scenes still resolve against the page's own scroller. */
+
+/* `container-type: inline-size` is what makes the `cqw` type below measure the
+   CANVAS rather than the window. On the visitor page the canvas is the full
+   viewport, so cqw and vw agree; in the editor the canvas is a fixed 900px
+   artboard inside a much wider window, and vw type rendered there at nearly
+   twice its true size. inline-size (not `size`) because the height is content
+   driven and a size container would need it fixed. */
+.jp-cinema {
+  container-type: inline-size;
+  height: auto;
+  min-height: 100%;
+  padding: 0;
+  gap: 0;
+  align-items: stretch;
+  text-align: left;
+  overflow: clip;
+}
+
+/* The title card: the heading set huge over a full-bleed accent field. The
+   ::before layer carries the grade - a highlight falling from one corner, a
+   shadow pooling in the other - in plain rgba so the frame has depth on any
+   engine; the relative-colour query below re-cuts it from the accent itself. */
+
+.jp-cinema .jp-head {
+  position: relative;
+  isolation: isolate;
+  justify-content: center;
+  align-items: flex-start;
+  gap: clamp(16px, 2.4vh, 34px);
+  min-height: 100svh;
+  max-width: none;
+  padding: 12svh clamp(28px, 7cqw, 132px) 10svh;
+  text-align: left;
+  overflow: clip;
+  background: var(--jp-accent, #2563eb);
+  color: var(--jp-on-accent, #ffffff);
+}
+
+.jp-cinema .jp-head::before {
+  content: "";
+  position: absolute;
+  inset: -22% -12%;
+  z-index: -1;
+  background:
+    radial-gradient(62% 56% at 16% 16%, rgba(255, 255, 255, 0.16), transparent 72%),
+    radial-gradient(56% 52% at 86% 88%, rgba(0, 0, 0, 0.24), transparent 74%);
+}
+
+.jp-cinema .jp-heading {
+  font-size: clamp(46px, 11.5cqw, 178px);
+  line-height: 0.94;
+
+  text-wrap: balance;
+  max-width: 14ch;
+}
+
+.jp-cinema .jp-sub {
+  color: inherit;
+  opacity: 0.85;
+  font-size: clamp(18px, 2.2cqw, 30px);
+  line-height: 1.35;
+  max-width: 26ch;
+  text-wrap: balance;
+}
+
+/* The scroll cue: a chevron under the opening, gone after the first screen. */
+
+.jp-cinema .jp-cue {
+  display: block;
+  width: 17px;
+  height: 17px;
+  margin-top: clamp(18px, 4svh, 52px);
+  border-right: 3px solid currentColor;
+  border-bottom: 3px solid currentColor;
+  transform: rotate(45deg);
+  opacity: 0.8;
+}
+
+.jp-cinema .jp-note {
+  margin: auto;
+  padding: 0 clamp(28px, 7cqw, 132px) 12svh;
+}
+
+.jp-cinema .jp-list {
+  display: block;
+  width: 100%;
+  max-width: none;
+  gap: 0;
+}
+
+/* One scene, one anchor. The glyph gets its own grid column and swaps sides
+   with the scene's parity, so consecutive scenes never read identically. */
+
+.jp-cinema .jp-link {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "label glyph"
+    "host  glyph";
+  align-items: center;
+  align-content: center;
+  gap: 0;
+  min-height: 70svh;
+  padding: 9svh clamp(28px, 7cqw, 132px);
+  border-radius: 0;
+  text-align: left;
+}
+
+.jp-cinema .jp-odd {
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "glyph label"
+    "glyph host";
+  justify-items: end;
+  text-align: right;
+}
+
+.jp-cinema .jp-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: var(--jp-paper, #f7f8fa);
+}
+
+/* The bloom sits opposite the glyph, so the pair reads as one composition. */
+
+.jp-cinema .jp-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: var(--jp-bloom, 0);
+  background: radial-gradient(46% 62% at 88% 14%, var(--jp-accent, #2563eb), transparent 68%);
+}
+
+.jp-cinema .jp-odd::after {
+  background: radial-gradient(46% 62% at 12% 86%, var(--jp-accent, #2563eb), transparent 68%);
+}
+
+/* The scene cycle. a: clean paper. b: the accent mixed into the paper (a plain
+   bloom stands in until the mix query below). c: the crescendo - the full
+   accent, graded like the title card. d: shaded paper. The cycle is dealt by
+   the hooks; three links land on the crescendo, longer lists breathe. */
+
+.jp-cinema .jp-wash-a { --jp-bloom: 0.2; }
+.jp-cinema .jp-wash-b { --jp-bloom: 0.18; }
+.jp-cinema .jp-wash-c { --jp-bloom: 0; }
+.jp-cinema .jp-wash-d { --jp-bloom: 0.22; }
+
+.jp-cinema .jp-link.jp-wash-c {
+  color: var(--jp-on-accent, #ffffff);
+}
+
+.jp-cinema .jp-link.jp-wash-c::before {
+  background: var(--jp-accent, #2563eb);
+}
+
+.jp-cinema .jp-link.jp-wash-c::after {
+  opacity: 1;
+  background:
+    radial-gradient(56% 60% at 84% 16%, rgba(255, 255, 255, 0.14), transparent 70%),
+    radial-gradient(52% 56% at 12% 88%, rgba(0, 0, 0, 0.2), transparent 72%);
+}
+
+.jp-cinema .jp-odd.jp-wash-c::after {
+  background:
+    radial-gradient(56% 60% at 16% 16%, rgba(255, 255, 255, 0.14), transparent 70%),
+    radial-gradient(52% 56% at 88% 88%, rgba(0, 0, 0, 0.2), transparent 72%);
+}
+
+.jp-cinema .jp-label {
+  grid-area: label;
+  align-self: end;
+  font-size: clamp(38px, 8cqw, 124px);
+  font-weight: 700;
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.jp-cinema .jp-host {
+  grid-area: host;
+  align-self: start;
+  margin-top: clamp(10px, 1.6vh, 22px);
+  font-size: clamp(13px, 1.3cqw, 18px);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--jp-muted, rgba(0, 0, 0, 0.55));
+}
+
+.jp-cinema .jp-link.jp-wash-c .jp-host {
+  color: inherit;
+  opacity: 0.75;
+}
+
+/* The chevron after the host is the "press me": borders, not a glyph, so no
+   font gets a vote. It travels on hover (below). */
+
+.jp-cinema .jp-host::after {
+  content: "";
+  display: inline-block;
+  width: 0.5em;
+  height: 0.5em;
+  margin-left: 0.9em;
+  border-top: 0.14em solid var(--jp-accent, #2563eb);
+  border-right: 0.14em solid var(--jp-accent, #2563eb);
+  transform: rotate(45deg);
+  vertical-align: 0.05em;
+}
+
+.jp-cinema .jp-link.jp-wash-c .jp-host::after {
+  border-color: currentColor;
+}
+
+/* The emoji glyph a link chose, or the ghost: the label's first letter cut
+   huge in the brand face. Either one is the scene's parallax layer. */
+
+.jp-cinema .jp-icon {
+  grid-area: glyph;
+  align-self: center;
+  padding-inline: clamp(16px, 3.5cqw, 64px);
+  font-size: clamp(56px, 15cqw, 232px);
+  line-height: 1;
+}
+
+.jp-cinema .jp-ghost {
+  display: block;
+  grid-area: glyph;
+  align-self: center;
+  padding-inline: clamp(8px, 2cqw, 40px);
+  font-size: clamp(96px, 26cqw, 400px);
+  line-height: 0.8;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--jp-accent, #2563eb);
+  opacity: 0.14;
+  user-select: none;
+}
+
+.jp-cinema .jp-link.jp-wash-c .jp-ghost {
+  color: var(--jp-on-accent, #ffffff);
+  opacity: 0.18;
+}
+
+/* Hover, only where hover is real, so touch never sticks a half-lit scene.
+   Colour and a few pixels of chevron travel - feedback, not choreography. */
+
+@media (hover: hover) {
+  .jp-cinema .jp-link::before {
+    transition: filter 0.45s ease;
+  }
+
+  .jp-cinema .jp-link:hover::before {
+    filter: brightness(0.96);
+  }
+
+  .jp-cinema .jp-label {
+    transition: color 0.3s ease;
+  }
+
+  .jp-cinema .jp-link:hover .jp-label {
+    color: var(--jp-accent, #2563eb);
+  }
+
+  .jp-cinema .jp-link.jp-wash-c:hover .jp-label {
+    color: inherit;
+  }
+
+  .jp-cinema .jp-host::after {
+    transition: translate 0.3s ease;
+  }
+
+  .jp-cinema .jp-link:hover .jp-host::after {
+    translate: 0.3em 0;
+  }
+}
+
+/* The close: an end card on the ink, the heading echoed large. */
+
+.jp-cinema .jp-foot {
+  align-items: flex-start;
+  justify-content: center;
+  gap: 14px;
+  min-height: 56svh;
+  padding: 10svh clamp(28px, 7cqw, 132px);
+  text-align: left;
+  background: var(--jp-ink, #17232b);
+  color: var(--jp-paper, #f7f8fa);
+}
+
+.jp-cinema .jp-foot-echo {
+  font-size: clamp(30px, 5cqw, 72px);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+.jp-cinema .jp-foot-made {
+  color: inherit;
+  opacity: 0.55;
+}
+
+/* Keyboard focus: the scenes are the page's only interactive content, and the
+   UA ring falls outside `overflow: clip` on a full-bleed anchor, so it is drawn
+   inside the scene instead. */
+
+.jp-cinema .jp-link:focus-visible {
+  outline: 3px solid var(--jp-accent, #2563eb);
+  outline-offset: -8px;
+}
+
+.jp-cinema .jp-link.jp-wash-c:focus-visible {
+  outline-color: var(--jp-on-accent, #ffffff);
+}
+
+/* Off the visitor page the scenes are laid out inside a fixed artboard, where
+   `svh` still measures the browser viewport - so a viewport-height hero would
+   push every link past the canvas edge, with no scroll to recover them. The
+   editor preview therefore runs the same scenes at content height. */
+
+.jp-cinema:not(.jp-live) .jp-head {
+  min-height: 0;
+  padding-block: 7%;
+}
+
+.jp-cinema:not(.jp-live) .jp-link {
+  min-height: 0;
+  padding-block: 5%;
+}
+
+.jp-cinema:not(.jp-live) .jp-foot {
+  min-height: 0;
+  padding-block: 5%;
+}
+
+/* The derived washes. Split by feature, so a browser with `color-mix()` but no
+   relative colours keeps the mixes. */
+
+@supports (background: color-mix(in oklch, red, blue)) {
+  .jp-cinema .jp-link.jp-wash-b::before {
+    background: color-mix(in oklch, var(--jp-accent, #2563eb) 12%, var(--jp-paper, #f7f8fa));
+  }
+
+  .jp-cinema .jp-link.jp-wash-d::before {
+    background: color-mix(in oklch, var(--jp-ink, #17232b) 7%, var(--jp-paper, #f7f8fa));
+  }
+
+  .jp-cinema .jp-foot {
+    background: color-mix(in oklch, var(--jp-ink, #17232b) 88%, black);
+  }
+}
+
+@supports (background: oklch(from red l c h)) {
+  .jp-cinema .jp-head::before {
+    background:
+      radial-gradient(64% 58% at 16% 16%, oklch(from var(--jp-accent, #2563eb) calc(l * 1.14) calc(c * 1.05) calc(h + 16)), transparent 72%),
+      radial-gradient(58% 54% at 86% 88%, oklch(from var(--jp-accent, #2563eb) calc(l * 0.6) c calc(h - 18)), transparent 74%);
+  }
+
+  .jp-cinema .jp-link::after {
+    background: radial-gradient(46% 62% at 88% 14%, oklch(from var(--jp-accent, #2563eb) calc(l * 0.92) c calc(h - 28)), transparent 68%);
+  }
+
+  .jp-cinema .jp-odd::after {
+    background: radial-gradient(46% 62% at 12% 86%, oklch(from var(--jp-accent, #2563eb) calc(l * 0.92) c calc(h - 28)), transparent 68%);
+  }
+}
+
+/* Forward mode: the page redirects on visit. Shown centred on the plain paper,
+   with an optional press-and-hold human check that fills the accent. */
+
+.jp-cinema.jp-is-forward {
+  padding: 96px 72px;
+  align-items: center;
+  gap: 56px;
+}
+
+.jp-cinema.jp-is-forward .jp-head {
+  min-height: 0;
+  padding: 0;
+  align-items: center;
+  text-align: center;
+  max-width: 560px;
+  background: none;
+  color: inherit;
+}
+
+.jp-cinema.jp-is-forward .jp-head::before {
+  content: none;
+}
+
+.jp-cinema.jp-is-forward .jp-heading {
+  font-size: 54px;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  max-width: none;
+}
+
+.jp-cinema.jp-is-forward .jp-sub {
+  color: var(--jp-muted, rgba(0, 0, 0, 0.55));
+  opacity: 1;
+}
+
+.jp-forward {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  margin: auto 0;
+  text-align: center;
+}
+
+.jp-forward-to,
+.jp-forward-note {
+  margin: 0;
+  font-size: 20px;
+  color: var(--jp-muted, rgba(0, 0, 0, 0.55));
+}
+
+.jp-forward-to strong {
+  color: var(--jp-ink, #17232b);
+  font-weight: 600;
+}
+
+.jp-hold {
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  cursor: pointer;
+  padding: 24px 52px;
+  border-radius: 999px;
+  background: var(--jp-card, rgba(0, 0, 0, 0.06));
+  color: var(--jp-ink, #17232b);
+  font: inherit;
+  font-size: 23px;
+  font-weight: 600;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none; /* a press-and-hold must not scroll or select on mobile */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.jp-hold-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: var(--jp-accent, #2563eb);
+  opacity: 0.92;
+  pointer-events: none;
+}
+
+.jp-hold-label {
+  position: relative;
+}
+
+.jp-hold.is-done .jp-hold-label {
+  color: var(--jp-on-accent, #ffffff);
+}
+
+/* ── Motion ─────────────────────────────────────────────────────────────────
+   Inert until all three gates open: `jp-live` (stamped by the template script
+   on the visitor page only), engine support, and a visitor who has not asked
+   for less motion. Nothing below is load-bearing for legibility - every
+   element's resting state is the finished one. `--jp-motion` is the one dial
+   the Mood input turns. */
+
+@keyframes jp-rise-in {
+  from { opacity: 0; transform: translateY(calc(var(--jp-motion, 1) * 0.55em)); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes jp-scene-in {
+  from { opacity: 0; transform: translateY(calc(var(--jp-motion, 1) * 46px)); clip-path: inset(0 0 100% 0); }
+  to { opacity: 1; transform: none; clip-path: inset(0 0 -20% 0); }
+}
+
+@keyframes jp-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes jp-glyph-drift {
+  from { transform: translateY(calc(var(--jp-motion, 1) * 12svh)) rotate(calc(var(--jp-motion, 1) * -5deg)); }
+  to { transform: translateY(calc(var(--jp-motion, 1) * -12svh)) rotate(calc(var(--jp-motion, 1) * 5deg)); }
+}
+
+@keyframes jp-wash-drift {
+  to { transform: translateY(calc(var(--jp-motion, 1) * -6%)) scale(1.1); }
+}
+
+/* The bob animates `translate`, the resting rotate stays on `transform` - the
+   two compose instead of fighting. */
+@keyframes jp-cue-bob {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 9px; }
+}
+
+@keyframes jp-cue-out {
+  to { opacity: 0; }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+
+    /* The opening is already on screen at load, so its words are timed, not
+       scrolled; the stagger step is the dial's. */
+    .jp-root.jp-live.jp-cinema .jp-word {
+      animation: jp-rise-in 0.85s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+      animation-delay: calc(var(--jp-w, 0) * 80ms * var(--jp-motion, 1));
+    }
+
+    .jp-root.jp-live.jp-cinema .jp-sub {
+      animation: jp-rise-in 0.95s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+      animation-delay: calc(260ms * var(--jp-motion, 1));
+    }
+
+    .jp-root.jp-live.jp-cinema .jp-head::before {
+      animation: jp-wash-drift linear both;
+      animation-timeline: scroll(root block);
+    }
+
+    /* Idle, the cue bobs; scrolled, it fades - two animations, two timelines. */
+    .jp-root.jp-live.jp-cinema .jp-cue {
+      animation: jp-cue-bob 1.7s ease-in-out infinite, jp-cue-out linear both;
+      animation-timeline: auto, scroll(root block);
+      animation-range: normal, 0 26svh;
+    }
+
+    .jp-root.jp-live.jp-cinema .jp-link::before {
+      animation: jp-fade-in linear both;
+      animation-timeline: view(block);
+      animation-range: entry 0% cover 22%;
+    }
+
+    .jp-root.jp-live.jp-cinema .jp-label {
+      animation: jp-scene-in linear both;
+      animation-timeline: view(block);
+      animation-range: entry 6% cover 34%;
+    }
+
+    /* A range that ends in `cover` cannot finish for a subject near the foot of
+       the document - there is no scroll left to reach it, and `both` fill would
+       strand the element mid-reveal. The two ranges that close a scene end in
+       `entry`, which every subject completes. */
+    .jp-root.jp-live.jp-cinema .jp-host {
+      animation: jp-rise-in linear both;
+      animation-timeline: view(block);
+      animation-range: entry 22% entry 100%;
+    }
+
+    /* The glyph travels the whole scene, so it never tracks the words. */
+    .jp-root.jp-live.jp-cinema .jp-icon,
+    .jp-root.jp-live.jp-cinema .jp-ghost {
+      animation: jp-glyph-drift linear both;
+      animation-timeline: view(block);
+      animation-range: cover 0% cover 100%;
+    }
+
+    .jp-root.jp-live.jp-cinema .jp-foot-echo {
+      animation: jp-scene-in linear both;
+      animation-timeline: view(block);
+      animation-range: entry 0% entry 100%;
+    }
+
+    /* Aurora: the whole light field eases upward as the visitor travels, one
+       layer deeper than the glass. Nearest-scroller timeline, so the editor's
+       scrolling document preview drives it exactly like the visitor page. */
+    .jp-root.jp-live.jp-aurora .jp-veil {
+      animation: jp-veil-rise linear both;
+      animation-timeline: scroll();
+    }
+
+    /* Progressive disclosure: each glass pill condenses out of the light as it
+       enters - rise, sharpen, land. The range completes well before the pill
+       reaches rest, so the last pills on a short page still finish. */
+    .jp-root.jp-live.jp-aurora .jp-link {
+      animation: jp-glass-in linear both;
+      animation-timeline: view(block);
+      animation-range: entry 5% entry 55%;
+    }
+
+    /* Front page, the kinetic masthead: the scroll thins and narrows the title
+       as it leaves. `font-variation-settings` reaches the axes of a variable
+       brand face directly; a static face ignores the axes and simply holds the
+       weight it already had. The keyframe STARTS at the resting weight, so a
+       page that never scrolls is the finished poster.
+
+       The Mood dial rides the RANGE here rather than the keyframe: the axis
+       numbers inside `font-variation-settings` are not a place calc() can be
+       relied on, so the dial instead decides how much scroll the thinning
+       takes - a calm page gives up its weight over nearly two screens, an
+       electric one inside half of one. */
+    .jp-root.jp-live.jp-editorial .jp-heading {
+      animation: jp-masthead-thin linear both;
+      animation-timeline: scroll();
+      animation-range: 0 calc(72svh / var(--jp-motion, 1));
+    }
+
+    /* Front page: each index row rises as it enters, and its label settles out
+       of wide tracking as it arrives - progressive disclosure, one row at a
+       time. Both ranges close on `entry`, which every row completes; a range
+       closing on `cover` would strand the last rows part-revealed, because a
+       subject near the foot of the document never gets the scroll to finish
+       one. */
+    .jp-root.jp-live.jp-editorial .jp-link {
+      animation: jp-rise-in linear both;
+      animation-timeline: view(block);
+      animation-range: entry 0% entry 100%;
+    }
+
+    .jp-root.jp-live.jp-editorial .jp-label {
+      animation: jp-track-in linear both;
+      animation-timeline: view(block);
+      animation-range: entry 10% entry 100%;
+    }
+
+    /* Cover story, three motions on one picture and one property each, so they
+       compose instead of overwriting: `scale` settles the push-in over the
+       first screen, `translate` holds the picture a beat behind the sheet that
+       rises over it (the parallax seam), and `transform` runs a slow Ken Burns
+       that never stops. Resting is scale 1, no offset, no zoom. */
+    .jp-root.jp-live.jp-mural .jp-backdrop-img {
+      animation:
+        jp-picture-settle linear both,
+        jp-picture-lag linear both,
+        jp-ken-burns calc(26s / var(--jp-motion, 1)) ease-in-out infinite alternate;
+      animation-timeline: scroll(), scroll(), auto;
+      animation-range: 0 84svh, 0 100svh, normal;
+    }
+
+    /* Playroom: the heading words bounce in on arrival. Timed rather than
+       scrolled, because the opening is already on screen at load - the same
+       home the cinema gives its own word intro. */
+    .jp-root.jp-live.jp-orbit .jp-word {
+      animation: jp-pop-in 0.72s cubic-bezier(0.2, 0.8, 0.25, 1.35) both;
+      animation-delay: calc(var(--jp-w, 0) * 70ms * var(--jp-motion, 1));
+    }
+
+    /* Playroom: the bubbles arrive one after another with an overshoot, then
+       hand `transform` over to the idle bob. Both animations want that one
+       property, so the bob waits out the entrance on a delay rather than
+       fighting it - and being last in the list, it wins once it starts. */
+    .jp-root.jp-live.jp-orbit .jp-link {
+      animation:
+        jp-bubble-in 0.62s cubic-bezier(0.22, 1.4, 0.4, 1) both,
+        jp-bob calc((6s + var(--jp-seed, 0) * 0.7s) / var(--jp-motion, 1)) ease-in-out infinite;
+      animation-delay:
+        calc(var(--jp-i, 0) * 70ms * var(--jp-motion, 1)),
+        calc(0.62s + var(--jp-i, 0) * 70ms * var(--jp-motion, 1));
+    }
+  }
+}
+
+@keyframes jp-veil-rise { to { transform: translateY(calc(-6% * var(--jp-motion, 1))); } }
+@keyframes jp-glass-in {
+  from { opacity: 0; translate: 0 calc(46px * var(--jp-motion, 1)); filter: blur(10px); }
+  to { opacity: 1; translate: none; filter: none; }
+}
+
+/* ── New shared parts (v1.2) ────────────────────────────────────────────────
+   The template now always prints an index numeral, a veil (the aurora's light
+   field + grain + pointer glow), an optional backdrop picture and an optional
+   portrait. Everything is opt-in per style: numeral, veil and backdrop stay
+   unpainted until a style asks, so the original styles render as before. */
+.jp-num { display: none; }
+.jp-veil { display: none; }
+.jp-backdrop { display: none; }
+
+.jp-avatar {
+  display: block;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 0 3px var(--jp-accent, #2563eb), 0 6px 24px rgba(0, 0, 0, 0.18);
+}
+.jp-avatar-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Aurora glass ───────────────────────────────────────────────────────────
+   An immersive light field: three huge blurred lobes of the accent drifting
+   over the paper, a grain film, and - where a pointer is real - a glow that
+   trails the cursor (the template script eases --jp-gx/--jp-gy). Links are
+   frosted glass pills. Sized in cqw against the root container (the cinema's
+   own trick) so the editor preview, the visitor page and a phone all set the
+   same composition.
+
+   Colour discipline, same as the washes above: the resting rules below use
+   only the input colours and the hook-derived rgba ramp (--jp-card/--jp-edge/
+   --jp-muted), with per-element opacity standing in for mixing. Everything
+   richer - hue-rotated lobes, accent glows - arrives from behind the feature
+   queries at the end of this section. */
+.jp-root.jp-aurora {
+  container-type: inline-size;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: 0;
+  gap: 0;
+  display: block;
+}
+
+.jp-aurora .jp-veil {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* The gradient-mesh shader canvas (booted by the template script). While it
+   runs, the blurred CSS lobes stand down - they are the no-WebGL fallback, so
+   the two never paint together. */
+.jp-aurora .jp-mesh {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.jp-aurora.jp-mesh-ok .jp-blob { display: none; }
+.jp-aurora .jp-blob {
+  position: absolute;
+  width: 72vmin;
+  height: 72vmin;
+  border-radius: 50%;
+  filter: blur(clamp(48px, 9vmin, 110px));
+  background: radial-gradient(circle at 40% 40%, var(--jp-accent, #2563eb), transparent 67%);
+  will-change: transform;
+}
+.jp-aurora .jp-blob-a { opacity: 0.5;  left: -12%; top: -8%; }
+.jp-aurora .jp-blob-b { opacity: 0.34; right: -16%; top: 14%; }
+.jp-aurora .jp-blob-c { opacity: 0.28; left: 8%; bottom: -18%; }
+@media (prefers-reduced-motion: no-preference) {
+  .jp-aurora .jp-blob-a { animation: jp-drift-a calc(30s / var(--jp-motion, 1)) ease-in-out infinite alternate; }
+  .jp-aurora .jp-blob-b { animation: jp-drift-b calc(38s / var(--jp-motion, 1)) ease-in-out infinite alternate; }
+  .jp-aurora .jp-blob-c { animation: jp-drift-c calc(46s / var(--jp-motion, 1)) ease-in-out infinite alternate; }
+}
+@keyframes jp-drift-a { to { transform: translate(9vmin, 12vmin) scale(1.15); } }
+@keyframes jp-drift-b { to { transform: translate(-11vmin, 7vmin) scale(0.9) rotate(20deg); } }
+@keyframes jp-drift-c { to { transform: translate(6vmin, -10vmin) scale(1.2); } }
+
+/* Grain: an inline SVG turbulence tile. Overlay blend, faint - it reads as
+   texture on the light, never as noise on the type. */
+.jp-aurora .jp-grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  mix-blend-mode: overlay;
+  opacity: 0.07;
+}
+
+/* The pointer glow. The gradient is the plain accent; the element's own
+   opacity keeps it a suggestion. Static centre until the script eases it. */
+.jp-aurora .jp-glow {
+  position: absolute;
+  inset: 0;
+  opacity: 0.2;
+  background: radial-gradient(38vmin circle at var(--jp-gx, 50%) var(--jp-gy, 30%),
+    var(--jp-accent, #2563eb), transparent 72%);
+}
+
+/* A chosen backdrop sits UNDER the veil, dimmed so the glass still reads -
+   the aurora treats a photo as weather, not as the subject. */
+.jp-aurora.jp-has-bg .jp-backdrop {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+.jp-aurora.jp-has-bg .jp-backdrop-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.28;
+  filter: saturate(0.7);
+}
+
+/* Composition: a full-height opening (portrait, heading, sub), then the pills.
+   Mobile-first single column; the same measure simply breathes wider on
+   desktop, and the opening's height is what makes it immersive there. */
+.jp-aurora .jp-head {
+  position: relative;
+  z-index: 1;
+  min-height: 78vh;
+  min-height: 78svh;
+  max-width: none;
+  justify-content: center;
+  padding: 10cqw 8cqw 6cqw;
+  gap: 18px;
+}
+.jp-aurora .jp-heading {
+  font-size: clamp(38px, 8.5cqw, 84px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.jp-aurora .jp-sub { font-size: clamp(17px, 2.6cqw, 24px); }
+.jp-aurora .jp-avatar {
+  width: clamp(88px, 14cqw, 128px);
+  height: clamp(88px, 14cqw, 128px);
+}
+
+/* The scroll cue, reused from the cinema: a quiet chevron at the opening's foot. */
+.jp-aurora .jp-cue {
+  display: block;
+  width: 14px;
+  height: 14px;
+  margin-top: 26px;
+  border-right: 2px solid var(--jp-muted, rgba(0, 0, 0, 0.55));
+  border-bottom: 2px solid var(--jp-muted, rgba(0, 0, 0, 0.55));
+  transform: rotate(45deg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .jp-aurora .jp-cue { animation: jp-cue-bob 1.8s ease-in-out infinite; }
+}
+@keyframes jp-cue-bob { 50% { translate: 0 8px; } }
+
+.jp-aurora .jp-list {
+  position: relative;
+  z-index: 1;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 6cqw 12cqw;
+  gap: 14px;
+  box-sizing: border-box;
+}
+
+/* Liquid glass pills. Row layout: glyph, label, the host breathing at the far
+   edge. Three optical layers build the glass:
+   1. the pill itself - the hook-derived card colour under a specular streak,
+      blurring the mesh that drifts beneath it (backdrop-filter);
+   2. a chromatic RING drawn as a border-box conic gradient behind a
+      transparent border - warm fringe on one shoulder, cool on the opposite,
+      the way refraction splits an edge. Plain multi-background, no masks, so
+      it degrades to nothing rather than to a wash;
+   3. an edge BAND (::before) whose own backdrop-filter bends harder than the
+      centre - the rim genuinely refracts differently, which is what reads as
+      liquid. Where masks are unsupported the band covers the pill and simply
+      adds a touch more shine. */
+.jp-aurora .jp-link {
+  position: relative;
+  isolation: isolate;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 24px;
+  border-radius: 24px;
+  text-align: left;
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.30) 0%, rgba(255, 255, 255, 0.04) 20%, rgba(255, 255, 255, 0) 34%) padding-box,
+    var(--jp-card, rgba(255, 255, 255, 0.72)) padding-box,
+    conic-gradient(from 215deg,
+      var(--jp-edge, rgba(0, 0, 0, 0.12)) 0deg,
+      rgba(255, 84, 110, 0.45) 42deg,
+      var(--jp-edge, rgba(0, 0, 0, 0.12)) 100deg,
+      var(--jp-edge, rgba(0, 0, 0, 0.12)) 180deg,
+      rgba(84, 170, 255, 0.5) 235deg,
+      var(--jp-edge, rgba(0, 0, 0, 0.12)) 300deg) border-box;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.16);
+  transition: transform 0.3s cubic-bezier(0.2, 1.1, 0.3, 1.15), box-shadow 0.3s ease;
+}
+@supports (backdrop-filter: blur(1px)) {
+  .jp-aurora .jp-link {
+    -webkit-backdrop-filter: blur(18px) saturate(1.5) brightness(1.05);
+    backdrop-filter: blur(18px) saturate(1.5) brightness(1.05);
+  }
+  .jp-aurora .jp-link::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    z-index: -1;
+    pointer-events: none;
+    -webkit-backdrop-filter: blur(3px) saturate(1.9) brightness(1.22);
+    backdrop-filter: blur(3px) saturate(1.9) brightness(1.22);
+    -webkit-mask-image: radial-gradient(115% 115% at 50% 50%, transparent 60%, #000 76%, #000 90%, transparent 100%);
+    mask-image: radial-gradient(115% 115% at 50% 50%, transparent 60%, #000 76%, #000 90%, transparent 100%);
+  }
+}
+.jp-aurora .jp-link .jp-icon { font-size: 26px; }
+.jp-aurora .jp-link .jp-ghost {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  font-size: 21px;
+  font-weight: 800;
+  color: var(--jp-on-accent, #fff);
+  background: var(--jp-accent, #2563eb);
+  flex: none;
+}
+.jp-aurora .jp-label { font-size: clamp(18px, 3cqw, 22px); }
+.jp-aurora .jp-host {
+  margin-left: auto;
+  font-size: 13px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--jp-muted, rgba(0, 0, 0, 0.55));
+}
+@media (hover: hover) {
+  .jp-aurora .jp-link:hover {
+    transform: translateY(-3px) scale(1.012);
+    box-shadow: 0 18px 48px rgba(0, 0, 0, 0.24),
+                inset 2px 0 0 rgba(255, 84, 110, 0.28),
+                inset -2px 0 0 rgba(84, 170, 255, 0.3);
+  }
+}
+.jp-aurora .jp-link:active { transform: scale(0.965); transition-duration: 0.09s; }
+
+/* When the liquid-glass ENGINE runs (jp-mesh-ok), the shader paints the slab -
+   refraction, bevel, aberration, specular - so the DOM pill strips down to
+   crisp type and the hit area. The CSS pill above is the no-WebGL fallback.
+   The hover lift stays: the engine re-reads each pill's rect every frame, so
+   the refraction follows the movement. */
+.jp-aurora.jp-mesh-ok .jp-glow { display: none; }
+.jp-aurora.jp-mesh-ok .jp-link,
+.jp-aurora.jp-mesh-ok .jp-link:hover {
+  background: none;
+  border-color: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.jp-aurora.jp-mesh-ok .jp-link::before { display: none; }
+
+.jp-aurora .jp-foot {
+  position: relative;
+  z-index: 1;
+  padding: 0 6cqw 10cqw;
+}
+
+/* The richer aurora, from behind the same feature queries the washes use: the
+   two supporting lobes leave the plain accent for its mixed neighbours, the
+   heading and portrait take an accent halo, and the hover ring glows. */
+@supports (background: color-mix(in oklab, red 50%, blue)) {
+  .jp-aurora .jp-blob-b { background: radial-gradient(circle at 60% 40%, color-mix(in oklab, var(--jp-accent, #2563eb) 65%, var(--jp-paper, #f7f8fa)), transparent 66%); }
+  .jp-aurora .jp-blob-c { background: radial-gradient(circle at 50% 55%, color-mix(in oklab, var(--jp-accent, #2563eb) 70%, var(--jp-ink, #17232b)), transparent 64%); }
+  .jp-aurora .jp-heading { text-shadow: 0 0 60px color-mix(in oklab, var(--jp-accent, #2563eb) 35%, transparent); }
+  .jp-aurora .jp-avatar {
+    box-shadow: 0 0 0 3px var(--jp-accent, #2563eb),
+                0 0 54px color-mix(in oklab, var(--jp-accent, #2563eb) 45%, transparent);
+  }
+  .jp-aurora .jp-glow {
+    opacity: 1;
+    background: radial-gradient(38vmin circle at var(--jp-gx, 50%) var(--jp-gy, 30%),
+      color-mix(in oklab, var(--jp-accent, #2563eb) 26%, transparent), transparent 72%);
+  }
+}
+@supports (background: color-mix(in oklab, red 50%, blue)) {
+  @media (hover: hover) {
+    .jp-aurora .jp-link:hover {
+      box-shadow: 0 16px 44px rgba(0, 0, 0, 0.22),
+                  0 0 0 1px color-mix(in oklab, var(--jp-accent, #2563eb) 40%, transparent),
+                  0 0 42px color-mix(in oklab, var(--jp-accent, #2563eb) 30%, transparent);
+    }
+  }
+}
+@supports (color: oklch(from red l c h)) {
+  .jp-aurora .jp-blob-b { background: radial-gradient(circle at 60% 40%, oklch(from var(--jp-accent, #2563eb) l c calc(h + 55)), transparent 66%); }
+  .jp-aurora .jp-blob-c { background: radial-gradient(circle at 50% 55%, oklch(from var(--jp-accent, #2563eb) calc(l * 0.8) c calc(h - 60)), transparent 64%); }
+}
+
+/* ── Front page ─────────────────────────────────────────────────────────────
+   A magazine cover built from type alone: an enormous masthead, a standfirst
+   hung under a newspaper double rule, then the links as a numbered index with
+   a hairline between rows and a giant cropped folio to close. No picture is
+   needed and none is used, so the style reads the same with or without one.
+
+   Same colour discipline as the sections above: the resting rules take only
+   the three colour inputs and the hook's rgba ramp, with per-element opacity
+   standing in for mixing. The one derived effect (the outlined folio) arrives
+   from behind a feature query at the end of the section.
+
+   Sized in cqw against the root container, so a phone, the editor preview and
+   a desktop window all set the same composition. */
+/* The root's own padding is in PERCENT, not cqw. A container query length used
+   on the container itself cannot measure that container - it falls back to the
+   next container out, or to the viewport, and a phone-width canvas inside a
+   desktop window then takes desktop padding. A percentage on the root resolves
+   against the parent's width, which is the same number, with no cycle. Every
+   cqw below is on a DESCENDANT, where it measures the canvas correctly. */
+.jp-root.jp-editorial {
+  container-type: inline-size;
+  position: relative;
+  display: block;
+  height: auto;
+  min-height: 100%;
+  overflow: clip;
+  padding: clamp(30px, 6%, 96px) clamp(18px, 5.5%, 88px) 0;
+  gap: 0;
+}
+
+/* One measure for the whole page, so masthead, index and folio share an edge. */
+.jp-editorial .jp-head,
+.jp-editorial .jp-list,
+.jp-editorial .jp-foot {
+  width: 100%;
+  max-width: 1080px;
+  margin-inline: auto;
+  box-sizing: border-box;
+}
+
+/* The opening reserves a screen and hangs the masthead from its foot. That is
+   the front-page composition (white space above, title on the rule), and it is
+   also what makes the kinetic type safe: when the scroll thins the title
+   enough to re-wrap onto fewer lines, the reserved box absorbs the change and
+   the standfirst rule below never moves. Only the title's top edge travels.
+
+   `svh` measures the browser viewport even inside the editor's fixed artboard,
+   so off the visitor page the opening falls back to content height, the same
+   way the cinema's scenes do. */
+.jp-editorial .jp-head {
+  align-items: flex-start;
+  justify-content: flex-end;
+  min-height: 76svh;
+  text-align: left;
+  gap: 0;
+  padding-bottom: clamp(24px, 5cqw, 54px);
+}
+
+.jp-editorial:not(.jp-live) .jp-head {
+  min-height: 0;
+}
+
+.jp-editorial .jp-avatar {
+  width: clamp(52px, 9cqw, 76px);
+  height: clamp(52px, 9cqw, 76px);
+  margin-bottom: clamp(14px, 2.6cqw, 24px);
+}
+
+/* The masthead is the whole opening: set as large as the measure allows, so
+   the jump from title to standfirst to index numeral is the loudest thing on
+   the page. Its resting weight is the heavy end of the axis; the scroll only
+   ever takes weight away (in the gated region above). */
+.jp-editorial .jp-heading {
+  font-size: clamp(52px, 16.5cqw, 200px);
+  font-weight: 800;
+  line-height: 0.86;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+
+/* A weight axis changes the advance width of every glyph, so this thinning can
+   re-wrap the title onto fewer lines part-way down the page. The reserved
+   opening above is what keeps that from moving anything else.
+   ponytail: the reserve is a screen height, so a very long heading on a short
+   viewport can still overflow it and shift the page once. Locking the line
+   count outright would need the height measured in JS. */
+@keyframes jp-masthead-thin {
+  from { font-variation-settings: "wght" 800, "wdth" 100; }
+  to { font-variation-settings: "wght" 420, "wdth" 92; }
+}
+
+/* How far out of wide tracking each index label settles. The Mood dial scales
+   the distance travelled; the resting end never moves. */
+@keyframes jp-track-in {
+  from { letter-spacing: calc(0.16em * var(--jp-motion, 1)); }
+  to { letter-spacing: -0.02em; }
+}
+
+/* The standfirst hangs under the double rule a newspaper puts below its
+   masthead. `border-style: double` draws both hairlines, so no extra element
+   is needed - and a page with no sub-heading still opens on a rule, because
+   the index carries one of its own. */
+.jp-editorial .jp-sub {
+  width: 100%;
+  margin-top: clamp(16px, 3cqw, 30px);
+  padding-top: clamp(12px, 2.2cqw, 22px);
+  border-top: 3px double var(--jp-edge, rgba(0, 0, 0, 0.12));
+  font-size: clamp(15px, 2.3cqw, 21px);
+  line-height: 1.35;
+}
+
+.jp-editorial .jp-note {
+  margin: 0;
+  padding: clamp(24px, 5cqw, 48px) 0;
+  border-top: 1px solid var(--jp-edge, rgba(0, 0, 0, 0.12));
+}
+
+/* The index. Rows wrap rather than squeeze: at 320px the host drops to its own
+   line, still set right, instead of crushing the label. */
+.jp-editorial .jp-list {
+  gap: 0;
+  border-top: 1px solid var(--jp-edge, rgba(0, 0, 0, 0.12));
+}
+
+.jp-editorial .jp-link {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: clamp(10px, 2.2cqw, 22px);
+  row-gap: 4px;
+  min-height: 44px;
+  padding: clamp(14px, 2.6cqw, 26px) 0;
+  border-bottom: 1px solid var(--jp-edge, rgba(0, 0, 0, 0.12));
+  border-radius: 0;
+  text-align: left;
+}
+
+/* The numeral leads the row. `order` rather than markup: the shared template
+   prints the glyph first, and a chosen emoji belongs beside the label. */
+.jp-editorial .jp-num {
+  display: block;
+  order: -1;
+  flex: none;
+  min-width: 2.4em;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: clamp(11px, 1.5cqw, 15px);
+  letter-spacing: 0.06em;
+  color: var(--jp-muted, rgba(0, 0, 0, 0.55));
+}
+
+.jp-editorial .jp-icon {
+  flex: none;
+  font-size: clamp(17px, 2.4cqw, 24px);
+}
+
+.jp-editorial .jp-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: clamp(24px, 5.6cqw, 62px);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+
+.jp-editorial .jp-host {
+  margin-left: auto;
+  flex: none;
+  text-align: right;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: clamp(11px, 1.5cqw, 14px);
+  letter-spacing: 0.04em;
+  color: var(--jp-muted, rgba(0, 0, 0, 0.55));
+}
+
+.jp-editorial .jp-link:focus-visible {
+  outline: 3px solid var(--jp-accent, #2563eb);
+  outline-offset: -4px;
+}
+
+/* Hover, only where hover is real. The row indents by translating its numeral
+   and label, so nothing reflows, and an accent underline draws across the
+   label from the left. Both live in here: on a touch screen the underline is
+   never even created. */
+@media (hover: hover) {
+  .jp-editorial .jp-num,
+  .jp-editorial .jp-label {
+    transition: translate 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.28s ease;
+  }
+
+  .jp-editorial .jp-label {
+    position: relative;
+  }
+
+  .jp-editorial .jp-label::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.12em;
+    height: 0.055em;
+    background: var(--jp-accent, #2563eb);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .jp-editorial .jp-link:hover .jp-num,
+  .jp-editorial .jp-link:hover .jp-label {
+    translate: clamp(5px, 1.2cqw, 14px) 0;
+  }
+
+  .jp-editorial .jp-link:hover .jp-num {
+    color: var(--jp-accent, #2563eb);
+  }
+
+  .jp-editorial .jp-link:hover .jp-label::after {
+    transform: scaleX(1);
+  }
+}
+
+/* The close: the attribution line over a masthead rule, then the heading cut
+   as a giant folio and cropped hard by the foot of the page, the way a folio
+   runs off the trim edge of a printed sheet. Column-reverse puts the small
+   line on top without reordering the markup. */
+.jp-editorial .jp-foot {
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: clamp(8px, 1.6cqw, 18px);
+  margin-top: clamp(40px, 9cqw, 112px);
+  padding-top: clamp(12px, 2.2cqw, 22px);
+  border-top: 3px double var(--jp-edge, rgba(0, 0, 0, 0.12));
+  overflow: clip;
+  text-align: left;
+}
+
+.jp-editorial .jp-foot-echo {
+  margin-bottom: -0.3em;
+  font-size: clamp(64px, 34cqw, 420px);
+  font-weight: 800;
+  line-height: 0.78;
+  letter-spacing: -0.06em;
+  overflow-wrap: anywhere;
+  color: var(--jp-muted, rgba(0, 0, 0, 0.55));
+  opacity: 0.16;
+}
+
+.jp-editorial .jp-foot-made {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: clamp(10px, 1.3cqw, 13px);
+}
+
+/* Outlined, where the engine can draw an outline. The plain fill above is the
+   fallback, which is why it is faded rather than solid: a 300px word at full
+   muted would read as the subject, not as the folio behind it. */
+@supports (-webkit-text-stroke: 1px currentColor) {
+  .jp-editorial .jp-foot-echo {
+    color: transparent;
+    opacity: 1;
+    -webkit-text-stroke: clamp(1px, 0.22cqw, 3px) var(--jp-accent, #2563eb);
+  }
+}
+
+/* ── Cover story ────────────────────────────────────────────────────────────
+   The backdrop is the opening: a full-bleed duotone picture with the heading
+   set over its foot, then the links as a paper sheet pulled up over the crop.
+
+   `--jp-open` is the height of that opening. It is a container width off the
+   visitor page, because `svh` measures the browser viewport even inside the
+   editor's fixed artboard - a viewport-height opening there would push every
+   link past the canvas edge with no scroll to recover them (the same trap the
+   cinema documents). */
+.jp-root.jp-mural {
+  --jp-open: 86svh;
+  container-type: inline-size;
+  position: relative;
+  display: block;
+  height: auto;
+  min-height: 100%;
+  padding: 0;
+  gap: 0;
+  overflow: clip;
+}
+
+.jp-mural:not(.jp-live) {
+  --jp-open: 78cqw;
+}
+
+/* Forward mode has no list under the opening, so the panel would sit below the
+   fold. The picture stays; the opening simply gives up most of its height. */
+.jp-mural.jp-is-forward {
+  --jp-open: 44cqw;
+}
+
+.jp-mural.jp-has-bg .jp-backdrop {
+  display: block;
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 0;
+  height: var(--jp-open);
+  overflow: clip;
+}
+
+/* A real two-tone, built the way a darkroom duotone is: strip the picture to
+   grey, drop the shade into the shadows with a multiply pass, then lift the
+   highlights toward the accent with a screen pass. Each layer degrades on its
+   own, and the plain colours here are already the two tones - the feature
+   query at the end of the section only deepens them.
+
+   The shadow tone is `--jp-shade` rather than the ink, because multiply needs a
+   genuinely dark colour and on the dark scheme the ink is the near-white half
+   of the pair. The hook hands each scheme its own dark end: the ink on a light
+   page, the paper on a dark one.
+
+   The picture is taller than its frame and starts pulled up, because the
+   parallax lag in the gated region slides it down as the sheet rises; the
+   spare height is what keeps the top edge covered while it travels. */
+.jp-mural.jp-has-bg .jp-backdrop-img {
+  display: block;
+  width: 100%;
+  height: 130%;
+  margin-top: -15%;
+  object-fit: cover;
+  transform-origin: 50% 42%;
+  filter: grayscale(1) contrast(1.16) brightness(0.92);
+}
+
+.jp-mural.jp-has-bg .jp-backdrop::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--jp-shade, #17232b);
+  mix-blend-mode: multiply;
+  opacity: 0.62;
+}
+
+.jp-mural.jp-has-bg .jp-backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--jp-accent, #2563eb);
+  mix-blend-mode: screen;
+  opacity: 0.34;
+}
+
+/* The opening and the sheet are the two chapters of the page. They offer a
+   snap point and nothing more: the alignment is declared here, but the
+   property that arms snapping on a scroller is never written in this file, so
+   the visitor keeps their scroll unless the template script opts the visitor
+   page in. */
+.jp-mural .jp-head {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  min-height: var(--jp-open);
+  max-width: none;
+  justify-content: flex-end;
+  align-items: flex-start;
+  text-align: left;
+  gap: clamp(10px, 2cqw, 18px);
+  padding: clamp(40px, 10cqw, 120px) clamp(20px, 6cqw, 72px) clamp(46px, 9cqw, 88px);
+  box-sizing: border-box;
+  scroll-snap-align: start;
+}
+
+.jp-mural.jp-has-bg .jp-head {
+  color: var(--jp-paper, #f7f8fa);
+}
+
+/* The scrim under the heading is the INK, not black: ink and paper are the
+   page's own text and background pair, so paper type over an ink scrim is
+   legible for any palette the visitor chose, dark ones included. It rides the
+   head rather than the picture, so it never travels with the parallax. */
+.jp-mural.jp-has-bg .jp-head::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to bottom, transparent 26%, var(--jp-ink, #17232b) 98%);
+}
+
+/* No picture chosen: the opening becomes a tall accent field, graded with the
+   same plain highlight-and-shadow pair the cinema title card uses, so the
+   style still composes from the colour inputs alone. */
+.jp-mural:not(.jp-has-bg) .jp-head {
+  isolation: isolate;
+  overflow: clip;
+  background: var(--jp-accent, #2563eb);
+  color: var(--jp-on-accent, #ffffff);
+}
+
+.jp-mural:not(.jp-has-bg) .jp-head::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(70% 62% at 18% 12%, rgba(255, 255, 255, 0.18), transparent 70%),
+    radial-gradient(62% 56% at 88% 92%, rgba(0, 0, 0, 0.26), transparent 72%);
+}
+
+.jp-mural .jp-avatar {
+  width: clamp(60px, 12cqw, 96px);
+  height: clamp(60px, 12cqw, 96px);
+}
+
+.jp-mural .jp-heading {
+  font-size: clamp(34px, 9.5cqw, 92px);
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.jp-mural .jp-sub {
+  color: inherit;
+  opacity: 0.82;
+  max-width: 34ch;
+  font-size: clamp(15px, 2.6cqw, 22px);
+  line-height: 1.35;
+}
+
+.jp-mural .jp-note {
+  margin: 0;
+  padding: clamp(26px, 6cqw, 56px) clamp(20px, 6cqw, 72px);
+}
+
+/* The sheet: paper, rounded at the top only, lifted over the picture's foot by
+   a negative margin and parted from it by a soft upward shadow. The sheet is
+   wide and the ROWS are the narrow column inside it, so what rises over the
+   picture reads as a page rather than a card, and everything below it is the
+   same paper the close sits on.
+
+   The lift is drawn as a band ABOVE the sheet rather than as a box-shadow,
+   because a box-shadow bleeds around all four sides and paints a second edge
+   halfway down a page whose paper is already the sheet's own colour. */
+.jp-mural .jp-list {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1040px;
+  margin: calc(-1 * clamp(20px, 4cqw, 44px)) auto 0;
+  padding: clamp(18px, 4cqw, 34px) clamp(12px, 4cqw, 40px) clamp(8px, 1.6cqw, 16px);
+  gap: 0;
+  box-sizing: border-box;
+  background: var(--jp-paper, #f7f8fa);
+  border-radius: clamp(18px, 4cqw, 32px) clamp(18px, 4cqw, 32px) 0 0;
+  scroll-snap-align: start;
+  scroll-margin-top: clamp(20px, 4cqw, 44px);
+}
+
+.jp-mural .jp-list::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: clamp(22px, 5cqw, 52px);
+  /* Elliptical, not a straight band: over a flat accent field a rectangle of
+     shadow shows its own left and right cuts. This pools under the sheet and
+     fades out at the ends. */
+  background: radial-gradient(125% 100% at 50% 100%, rgba(0, 0, 0, 0.34), transparent 74%);
+  pointer-events: none;
+}
+
+/* A tactile row: glyph, then the label over its host, then a chevron drawn
+   from borders like the cue. Two grid rows, so an absent glyph or host never
+   leaves a hole - the column collapses instead. */
+.jp-mural .jp-link {
+  display: grid;
+  width: 100%;
+  max-width: 720px;
+  margin-inline: auto;
+  box-sizing: border-box;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "glyph label cue"
+    "glyph host  cue";
+  align-items: center;
+  column-gap: 0;
+  row-gap: 2px;
+  min-height: 44px;
+  padding: clamp(13px, 2.6cqw, 20px) clamp(10px, 2.2cqw, 16px);
+  border-radius: clamp(10px, 2cqw, 14px);
+  text-align: left;
+}
+
+.jp-mural .jp-link + .jp-link {
+  border-top: 1px solid var(--jp-edge, rgba(0, 0, 0, 0.12));
+}
+
+.jp-mural .jp-icon {
+  grid-area: glyph;
+  padding-inline-end: clamp(12px, 2.4cqw, 18px);
+  font-size: clamp(20px, 3.6cqw, 26px);
+  line-height: 1;
+}
+
+.jp-mural .jp-label {
+  grid-area: label;
+  font-size: clamp(17px, 3.2cqw, 23px);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.jp-mural .jp-host {
+  grid-area: host;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: clamp(11px, 1.9cqw, 13px);
+  color: var(--jp-muted, rgba(0, 0, 0, 0.55));
+}
+
+.jp-mural .jp-link::after {
+  content: "";
+  grid-area: cue;
+  width: 0.42em;
+  height: 0.42em;
+  margin-inline-start: clamp(12px, 2.4cqw, 18px);
+  border-top: 0.11em solid currentColor;
+  border-right: 0.11em solid currentColor;
+  transform: rotate(45deg);
+  opacity: 0.45;
+  font-size: clamp(20px, 3.4cqw, 26px);
+}
+
+.jp-mural .jp-link:focus-visible {
+  outline: 3px solid var(--jp-accent, #2563eb);
+  outline-offset: -3px;
+}
+
+/* Hover paints an accent edge down the left of the row. An inset shadow, so
+   the row keeps its box and nothing shifts. */
+@media (hover: hover) {
+  .jp-mural .jp-link {
+    transition: box-shadow 0.24s ease, background-color 0.24s ease;
+  }
+
+  .jp-mural .jp-link:hover {
+    background-color: var(--jp-card, rgba(255, 255, 255, 0.72));
+    box-shadow: inset clamp(3px, 0.7cqw, 5px) 0 0 0 var(--jp-accent, #2563eb);
+  }
+
+  .jp-mural .jp-link::after {
+    transition: translate 0.24s ease, opacity 0.24s ease;
+  }
+
+  .jp-mural .jp-link:hover::after {
+    translate: 0.25em 0;
+    opacity: 0.9;
+  }
+}
+
+/* A quiet centred close on the paper the sheet is made of. */
+.jp-mural .jp-foot {
+  padding: clamp(26px, 6cqw, 52px) clamp(20px, 6cqw, 72px) clamp(40px, 9cqw, 84px);
+  background: var(--jp-paper, #f7f8fa);
+}
+
+.jp-mural .jp-foot-echo {
+  font-size: clamp(14px, 2.2cqw, 18px);
+  color: var(--jp-muted, rgba(0, 0, 0, 0.55));
+}
+
+.jp-mural .jp-foot-made {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: clamp(10px, 1.3cqw, 12px);
+}
+
+/* Three properties, three keyframes, so the gated rule can run all three at
+   once without any of them overwriting another. The push-in takes the Mood
+   dial the same way the lag and the Ken Burns already do: the dial scales how
+   far the picture comes in from, and the resting end stays scale 1. */
+@keyframes jp-picture-settle {
+  from { scale: calc(1 + 0.06 * var(--jp-motion, 1)); }
+  to { scale: 1; }
+}
+
+@keyframes jp-picture-lag {
+  to { translate: 0 calc(var(--jp-motion, 1) * 8%); }
+}
+
+@keyframes jp-ken-burns {
+  to { transform: scale(1.08); }
+}
+
+/* The deeper two-tone. The plain shade and accent above already give the page
+   its duotone, so a browser without colour mixing loses richness, never
+   legibility: the shadows still take the shade and the lights still take the
+   accent. Here the shadow tone goes deeper than the plain shade and the
+   highlight tone lifts toward the paper, which opens the midtones up. */
+@supports (background: color-mix(in oklab, red 50%, blue)) {
+  .jp-mural.jp-has-bg .jp-backdrop::before {
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--jp-shade, #17232b) 78%, black),
+      color-mix(in oklab, var(--jp-shade, #17232b) 96%, var(--jp-accent, #2563eb)));
+    opacity: 0.7;
+  }
+
+  .jp-mural.jp-has-bg .jp-backdrop::after {
+    background: linear-gradient(
+      to top,
+      transparent 12%,
+      color-mix(in oklab, var(--jp-accent, #2563eb) 76%, var(--jp-paper, #f7f8fa)));
+    opacity: 0.42;
+  }
+}
+
+/* Where relative colours exist the highlight tone leaves the accent for its
+   warmer neighbour, so the two tones sit apart on the wheel rather than being
+   one hue at two brightnesses. */
+@supports (color: oklch(from red l c h)) {
+  .jp-mural.jp-has-bg .jp-backdrop::after {
+    background: linear-gradient(
+      to top,
+      transparent 12%,
+      oklch(from var(--jp-accent, #2563eb) calc(l * 1.2) c calc(h + 38)));
+  }
+}
+
+/* ── Playroom ───────────────────────────────────────────────────────────────
+   Joy: a dotted paper, a heading whose words sit at cheerful angles over an
+   accent squiggle, and the links as buoyant bubbles that bob, lean toward a
+   near pointer and squash when pressed.
+
+   Three motion channels, three different properties, so none of them fights
+   the others: `translate` carries the pointer lean (the template script eases
+   --jp-mx/--jp-my), `scale` carries the press, and `transform` carries the
+   entrance and then the idle bob. The browser composes the three in that
+   order, so a bubble can be leaning, pressed and bobbing at once. */
+/* Percent padding on the root, cqw everywhere below it - see the note on the
+   Front page root for why a container cannot measure itself in cqw. The gap
+   moves onto the children for the same reason. */
+.jp-root.jp-orbit {
+  container-type: inline-size;
+  height: auto;
+  min-height: 100%;
+  gap: 0;
+  padding: clamp(28px, 5.5%, 72px) clamp(16px, 3.4%, 48px) clamp(40px, 6%, 80px);
+  background-color: var(--jp-paper, #f7f8fa);
+  background-image: radial-gradient(var(--jp-edge, rgba(0, 0, 0, 0.12)) 1.4px, transparent 1.5px);
+  background-size: 22px 22px;
+}
+
+/* A generous centred column, and the heading balanced inside it. A `ch` cap on
+   the header would be measured in the header's own 16px type, which is a much
+   narrower column than a display heading wants. */
+.jp-orbit .jp-head {
+  gap: clamp(10px, 2cqw, 16px);
+  max-width: 640px;
+}
+
+.jp-orbit .jp-avatar {
+  width: clamp(66px, 13cqw, 104px);
+  height: clamp(66px, 13cqw, 104px);
+}
+
+.jp-orbit .jp-heading {
+  font-size: clamp(34px, 9cqw, 76px);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+}
+
+/* The words tilt in alternation at rest, using the individual `rotate` and
+   `translate` properties so the timed bounce-in can own `transform`. */
+.jp-orbit .jp-word:nth-child(odd) {
+  rotate: -2.4deg;
+  translate: 0 -0.03em;
+}
+
+.jp-orbit .jp-word:nth-child(even) {
+  rotate: 2.6deg;
+  translate: 0 0.05em;
+}
+
+/* The squiggle. A mask rather than a background picture, because a data-URI
+   SVG is its own document and `currentColor` inside one resolves to black -
+   masking an accent-filled box is the way the brand colour actually reaches
+   the stroke. */
+.jp-orbit .jp-heading::after {
+  content: "";
+  display: block;
+  width: min(250px, 62%);
+  height: clamp(10px, 2cqw, 15px);
+  margin: clamp(12px, 2.4cqw, 20px) auto 0;
+  background: var(--jp-accent, #2563eb);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 14' preserveAspectRatio='none'%3E%3Cpath d='M3 9 Q 18 1 33 9 T 63 9 T 93 9 T 117 9' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 14' preserveAspectRatio='none'%3E%3Cpath d='M3 9 Q 18 1 33 9 T 63 9 T 93 9 T 117 9' fill='none' stroke='black' stroke-width='4.5' stroke-linecap='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+}
+
+.jp-orbit .jp-sub {
+  font-size: clamp(15px, 2.6cqw, 20px);
+}
+
+/* Two bubbles across by default; one on a narrow canvas, three when there is
+   room. The container query measures the tool canvas, so the editor preview
+   and a phone agree. */
+.jp-orbit .jp-list,
+.jp-orbit .jp-foot,
+.jp-orbit .jp-note {
+  margin-top: clamp(22px, 5cqw, 44px);
+}
+
+.jp-orbit .jp-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* `start`, not the default stretch: a stretched bubble absorbs the offset
+     below into its own height instead of moving, and the scatter never shows. */
+  align-items: start;
+  gap: clamp(10px, 2.4cqw, 20px);
+  max-width: 780px;
+}
+
+@container (min-width: 760px) {
+  .jp-orbit .jp-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* Odd bubbles ride lower, so the grid reads as a scatter rather than a
+     table. `mod()` off the link's own index; where it is unsupported the whole
+     declaration drops and the grid simply sits flat. */
+  .jp-orbit .jp-link {
+    margin-top: calc(mod(var(--jp-i, 0), 2) * clamp(12px, 2.6cqw, 30px));
+  }
+}
+
+.jp-orbit .jp-link {
+  align-items: flex-start;
+  gap: clamp(6px, 1.2cqw, 10px);
+  min-height: 44px;
+  padding: clamp(15px, 3.2cqw, 24px);
+  border-radius: clamp(18px, 3.6cqw, 28px);
+  text-align: left;
+  background: var(--jp-card, rgba(255, 255, 255, 0.72));
+  border: 1px solid var(--jp-edge, rgba(0, 0, 0, 0.12));
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.1);
+  translate: var(--jp-mx, 0) var(--jp-my, 0);
+  transition: scale 0.34s cubic-bezier(0.18, 1.6, 0.4, 1);
+}
+
+/* The press squashes wide and short, and the release rebounds past its resting
+   size before settling - that overshoot in the easing curve is the whole
+   difference between a button and a toy. */
+.jp-orbit .jp-link:active {
+  scale: 1.05 0.9;
+  transition-duration: 0.1s;
+  transition-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
+}
+
+.jp-orbit .jp-link:focus-visible {
+  outline: 3px solid var(--jp-accent, #2563eb);
+  outline-offset: 3px;
+}
+
+/* One bubble across on a narrow canvas. This block sits AFTER the rule it
+   overrides on purpose: a container query carries no extra specificity, so an
+   earlier one simply loses to whatever is declared later. */
+@container (max-width: 380px) {
+  .jp-orbit .jp-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.jp-orbit .jp-icon {
+  font-size: clamp(28px, 6.4cqw, 44px);
+  line-height: 1;
+}
+
+/* No emoji chosen: the label's first letter becomes a tile, so every bubble
+   still opens on a mark. */
+.jp-orbit .jp-ghost {
+  display: grid;
+  place-items: center;
+  width: clamp(38px, 8cqw, 54px);
+  height: clamp(38px, 8cqw, 54px);
+  border-radius: 32%;
+  background: var(--jp-accent, #2563eb);
+  color: var(--jp-on-accent, #ffffff);
+  font-size: clamp(19px, 4.2cqw, 27px);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.jp-orbit .jp-label {
+  font-size: clamp(16px, 3cqw, 21px);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.jp-orbit .jp-host {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: clamp(10px, 1.8cqw, 12px);
+  color: var(--jp-muted, rgba(0, 0, 0, 0.55));
+}
+
+.jp-orbit .jp-note {
+  margin-bottom: 0;
+}
+
+.jp-orbit .jp-foot {
+  gap: 4px;
+}
+
+.jp-orbit .jp-foot-echo {
+  font-size: clamp(14px, 2.2cqw, 18px);
+  color: var(--jp-muted, rgba(0, 0, 0, 0.55));
+}
+
+.jp-orbit .jp-foot-made {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: clamp(10px, 1.3cqw, 12px);
+}
+
+/* Hover also smooths the lean: a short transition on `translate` low-passes
+   the per-frame values the script writes, which is what turns a jump into a
+   pull. Nothing here touches `transform`, so the bob keeps running. */
+@media (hover: hover) {
+  .jp-orbit .jp-link {
+    transition:
+      scale 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.4),
+      translate 0.3s cubic-bezier(0.2, 0.9, 0.3, 1),
+      border-color 0.24s ease,
+      box-shadow 0.24s ease;
+  }
+
+  .jp-orbit .jp-link:hover {
+    border-color: var(--jp-accent, #2563eb);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16);
+  }
+}
+
+/* The idle bob. Phase and period come from the link's own seed, so no two
+   bubbles rise together and the same link always drifts the same way; the
+   Mood dial scales both the travel and the speed. */
+@keyframes jp-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(calc(var(--jp-motion, 1) * -6px)); }
+}
+
+@keyframes jp-pop-in {
+  0% { opacity: 0; transform: translateY(calc(var(--jp-motion, 1) * 0.5em)) scale(0.86); }
+  62% { opacity: 1; transform: translateY(calc(var(--jp-motion, 1) * -0.12em)) scale(1.04); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* The bubble entrance: up past its resting place, then back down onto it. */
+@keyframes jp-bubble-in {
+  0% { opacity: 0; transform: translateY(calc(var(--jp-motion, 1) * 34px)) scale(0.82); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* Off the visitor page there is no entrance to hand over from, so the bob runs
+   on its own and takes its phase offset from the seed instead. */
+@media (prefers-reduced-motion: no-preference) {
+  .jp-orbit .jp-link {
+    animation: jp-bob calc((6s + var(--jp-seed, 0) * 0.7s) / var(--jp-motion, 1)) ease-in-out infinite;
+    animation-delay: calc(var(--jp-seed, 0) * -0.45s);
+  }
+}
+
+/* The richer Playroom, from behind the same feature query the sections above
+   use: the paper picks up a faint accent tint and a pressed bubble glows. */
+@supports (background: color-mix(in oklab, red 50%, blue)) {
+  .jp-root.jp-orbit {
+    background-color: color-mix(in oklab, var(--jp-accent, #2563eb) 5%, var(--jp-paper, #f7f8fa));
+    background-image: radial-gradient(color-mix(in oklab, var(--jp-accent, #2563eb) 26%, transparent) 1.4px, transparent 1.5px);
+  }
+
+  .jp-orbit .jp-link:active {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12),
+                0 0 0 2px color-mix(in oklab, var(--jp-accent, #2563eb) 45%, transparent);
+  }
+}
+
+/* The tiles shimmer as a family: each letter tile leans its hue a few degrees
+   off the accent by the link's own seed, so a grid of them reads as one set of
+   related colours rather than the same swatch repeated. Relative colours only,
+   because there is no way to reach a hue angle without them - the plain accent
+   tile above is the finished fallback. */
+@supports (color: oklch(from red l c h)) {
+  .jp-orbit .jp-ghost {
+    background: oklch(from var(--jp-accent, #2563eb)
+      calc(l + var(--jp-seed, 0) * 0.012)
+      c
+      calc(h + var(--jp-seed, 0) * 7 - 30));
+  }
+}

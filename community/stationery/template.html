@@ -1,0 +1,67 @@
+<div class="st-piece st-{{pieceKind}}{{#if isBack}} st-back{{/if}}"
+     data-trim-w="{{trimW}}" data-trim-h="{{trimH}}" data-trim-unit="{{trimUnit}}"
+     style="--st-ink:{{inkColor}};--st-paper:{{paperColor}};--st-accent:{{accentColor}};--st-muted:{{mutedColor}};--st-rule:{{ruleColor}}">
+
+  {{#if error}}
+  <p class="st-error">{{error}}</p>
+  {{else}}
+
+  {{#if isBack}}
+  <div class="st-back-inner">
+    <div class="st-mark">
+      {{#if hasLogo}}<img class="st-logo" src="{{logoUrl}}" alt="{{companyName}}">{{else}}<span class="st-wordmark">{{wordmark}}</span>{{/if}}
+    </div>
+    {{#if taglineText}}<p class="st-tagline">{{taglineText}}</p>{{/if}}
+  </div>
+  {{/if}}
+
+  {{#if isCard}}{{#unless isBack}}
+  <div class="st-card-inner">
+    <div class="st-mark">
+      {{#if hasLogo}}<img class="st-logo" src="{{logoUrl}}" alt="{{companyName}}">{{else}}<span class="st-wordmark">{{wordmark}}</span>{{/if}}
+    </div>
+    <div class="st-foot">
+      <div class="st-who">
+        {{#if fullName}}<p class="st-name">{{fullName}}</p>{{/if}}
+        {{#if jobTitleText}}<p class="st-role">{{jobTitleText}}</p>{{/if}}
+      </div>
+      <ul class="st-contact">
+        {{#each contactLines}}<li>{{text}}</li>{{/each}}
+      </ul>
+    </div>
+  </div>
+  {{/unless}}{{/if}}
+
+  {{#if isLetterhead}}
+  <div class="st-sheet">
+    <header class="st-head">
+      <div class="st-mark">
+        {{#if hasLogo}}<img class="st-logo" src="{{logoUrl}}" alt="{{companyName}}">{{else}}<span class="st-wordmark">{{wordmark}}</span>{{/if}}
+      </div>
+      <div class="st-head-right">
+        {{#if fullName}}<p class="st-name">{{fullName}}</p>{{/if}}
+        {{#if jobTitleText}}<p class="st-role">{{jobTitleText}}</p>{{/if}}
+      </div>
+    </header>
+    <div class="st-body">{{{markdown letterBody}}}</div>
+    <footer class="st-footer">
+      {{#if footerLine}}<p class="st-footline">{{footerLine}}</p>{{/if}}
+    </footer>
+  </div>
+  {{/if}}
+
+  {{#if isSlip}}
+  <div class="st-sheet st-slip-inner">
+    <div class="st-mark">
+      {{#if hasLogo}}<img class="st-logo" src="{{logoUrl}}" alt="{{companyName}}">{{else}}<span class="st-wordmark">{{wordmark}}</span>{{/if}}
+    </div>
+    {{#if taglineText}}<p class="st-compliments">{{taglineText}}</p>{{/if}}
+    <footer class="st-footer">
+      {{#if footerLine}}<p class="st-footline">{{footerLine}}</p>{{/if}}
+    </footer>
+  </div>
+  {{/if}}
+
+  <div class="st-edge"></div>
+  {{/if}}
+</div>

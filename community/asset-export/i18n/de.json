@@ -1,0 +1,15 @@
+{
+  "name": "Asset-Export",
+  "description": "Rendert jedes Katalog-Asset - oder einen Lolly-Tool-Link - in jedes Format und jede Größe.",
+  "a11yLabel": "Exportiertes Asset",
+  "inputs.src.label": "Asset",
+  "inputs.src.help": "Das zu rendernde Asset - eine Katalog-ID (siehe `lolly assets`) oder ein eingefügter lolly.tools-Tool-Link. Vektor-Assets bleiben über SVG/PDF hinweg vektoriell; Raster-Assets werden als Bilder eingebettet.",
+  "inputs.fit.label": "Anpassung",
+  "inputs.fit.help": "„Contain“ zeigt das gesamte Asset innerhalb des Rahmens; „Cover“ füllt den Rahmen aus und kann die Ränder beschneiden.",
+  "inputs.fit.options.contain": "Contain (ganzes Asset, mit Rändern)",
+  "inputs.fit.options.cover": "Cover (füllt aus, ggf. mit Beschnitt)",
+  "inputs.background.label": "Hintergrund",
+  "inputs.background.help": "Die Farbe hinter dem Asset. Aktivieren Sie „Kein Hintergrund“ beim Export, um sie zu entfernen (transparent).",
+  "inputs.transparentBg.label": "Kein Hintergrund",
+  "inputs.transparentBg.help": "Entfernt die Hintergrundfarbe, sodass das Asset transparent exportiert wird (PNG/SVG/WebP)."
+}

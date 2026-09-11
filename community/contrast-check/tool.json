@@ -1,0 +1,161 @@
+{
+  "id": "contrast-check",
+  "name": "Contrast",
+  "description": "Check a text and background pair, or every pairing in your brand palette, against WCAG 2.1 and APCA, and see how it reads to colour-blind viewers.",
+  "version": "1.2.1",
+  "engineVersion": "^1.0.0",
+  "status": "community",
+  "category": "utility",
+  "tags": [
+    "contrast",
+    "accessibility",
+    "wcag",
+    "apca",
+    "colour-blind",
+    "a11y"
+  ],
+  "render": {
+    "width": 1600,
+    "height": 1000,
+    "formats": ["svg", "penpot", "png", "pdf", "csv", "json", "jpg", "webp", "avif"],
+    "actions": [
+      "copy",
+      "download",
+      "save"
+    ],
+    "filenameFrom": [
+      "color",
+      "background"
+    ]
+  },
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "color",
+      "label": "Text colour",
+      "type": "color",
+      "default": "{color.semantic.text}",
+      "help": "The foreground under test - defaults to your brand text colour."
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "type": "color",
+      "default": "{color.semantic.surface}",
+      "help": "The surface the text sits on - defaults to your brand surface."
+    },
+    {
+      "id": "mode",
+      "label": "Check",
+      "type": "select",
+      "display": "segmented",
+      "default": "pair",
+      "help": "One pair, or every combination of your brand palette colours.",
+      "options": [
+        {
+          "value": "pair",
+          "label": "One pair"
+        },
+        {
+          "value": "palette",
+          "label": "Whole palette"
+        }
+      ]
+    },
+    {
+      "id": "metric",
+      "label": "Scale",
+      "type": "select",
+      "display": "segmented",
+      "default": "wcag",
+      "help": "WCAG 2.1 ratios with AA/AAA verdicts, or APCA Lc. APCA trades contrast against text size, so it has no size-free pass or fail - the palette just reports each Lc, flagging only pairs below the usable floor.",
+      "showIf": {
+        "mode": "palette"
+      },
+      "options": [
+        {
+          "value": "wcag",
+          "label": "WCAG"
+        },
+        {
+          "value": "apca",
+          "label": "APCA"
+        }
+      ]
+    },
+    {
+      "id": "textSize",
+      "label": "Text size",
+      "type": "select",
+      "display": "segmented",
+      "default": "normal",
+      "help": "Large text is 18pt, or 14pt bold. It passes at a lower ratio: AA 3:1 and AAA 4.5:1, against 4.5:1 and 7:1 for normal text.",
+      "options": [
+        {
+          "value": "normal",
+          "label": "Normal"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        }
+      ]
+    },
+    {
+      "id": "sample",
+      "label": "Sample text",
+      "type": "text",
+      "default": "Readable at every size",
+      "help": "The sentence shown in the sample panel.",
+      "showIf": {
+        "mode": "pair"
+      }
+    }
+  ],
+  "examples": [
+    {
+      "label": "Mid grey on white fails",
+      "values": {
+        "color": "#9aa3ab",
+        "background": "#ffffff",
+        "mode": "pair",
+        "textSize": "normal",
+        "sample": "Light grey reads well until it does not"
+      }
+    },
+    {
+      "label": "Ink on paper, AAA",
+      "values": {
+        "color": "#14171a",
+        "background": "#f7f7f5",
+        "mode": "pair",
+        "textSize": "normal",
+        "sample": "Readable at every size"
+      }
+    },
+    {
+      "label": "Large text on sand",
+      "values": {
+        "color": "#7a5b3a",
+        "background": "#f4ece0",
+        "mode": "pair",
+        "textSize": "large",
+        "sample": "Headlines carry a lower bar"
+      }
+    },
+    {
+      "label": "Whole brand palette",
+      "values": {
+        "color": "#14171a",
+        "background": "#ffffff",
+        "mode": "palette",
+        "metric": "wcag",
+        "textSize": "normal"
+      }
+    }
+  ]
+}

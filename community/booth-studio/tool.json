@@ -1,0 +1,858 @@
+{
+  "id": "booth-studio",
+  "name": "Booth",
+  "version": "0.3.1",
+  "engineVersion": "^1.0.0",
+  "status": "experimental",
+  "singleInstance": true,
+  "category": "event",
+  "description": "Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design, and render a still or a turntable for a sponsor pitch.",
+  "a11yLabel": "3D mockup of {{default design \"a corner L\"}} event booth dressed with sponsor artwork",
+  "tags": [
+    "booth",
+    "event",
+    "sponsor",
+    "3d",
+    "mockup",
+    "stand",
+    "exhibition"
+  ],
+  "render": {
+    "width": 1600,
+    "height": 1000,
+    "formats": ["png", "jpg", "webp", "webm", "mp4", "gif", "avif", "tiff", "webp-anim"],
+    "actions": [
+      "copy",
+      "download",
+      "save"
+    ],
+    "convertPaths": false,
+    "video": {
+      "wait": 2,
+      "duration": 6
+    }
+  },
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "design",
+      "label": "Booth design",
+      "section": "Booth",
+      "type": "select",
+      "default": "corner",
+      "help": "The stand shape. Your panel artwork carries across designs - a back wall stays a back wall.",
+      "options": [
+        {
+          "value": "inline",
+          "label": "Inline 3×3 - back wall + counter"
+        },
+        {
+          "value": "corner",
+          "label": "Corner L - two open sides"
+        },
+        {
+          "value": "island",
+          "label": "Island - three walls, overhead header + tower"
+        },
+        {
+          "value": "kiosk",
+          "label": "Kiosk - totem + counter"
+        }
+      ]
+    },
+    {
+      "id": "structure",
+      "label": "Frame finish",
+      "section": "Booth",
+      "type": "color",
+      "default": "#7d858e",
+      "help": "The extrusion and counter body colour."
+    },
+    {
+      "id": "panelBase",
+      "label": "Empty panel colour",
+      "section": "Booth",
+      "type": "color",
+      "default": "{color.semantic.muted}",
+      "help": "Shown on panels with no artwork, and as the letterbox behind artwork set to Fit whole."
+    },
+    {
+      "id": "backWall",
+      "label": "Back wall",
+      "section": "Panels",
+      "type": "asset",
+      "assetType": "any",
+      "allowUpload": true,
+      "showIf": {
+        "design": [
+          "inline",
+          "corner",
+          "island"
+        ]
+      },
+      "help": "The hero graphic. Click the panel on the canvas to set it."
+    },
+    {
+      "id": "backWallFit",
+      "label": "Back wall fit",
+      "section": "Panels",
+      "type": "select",
+      "default": "cover",
+      "attachTo": "backWall",
+      "display": "icon-toggle",
+      "showIf": {
+        "design": [
+          "inline",
+          "corner",
+          "island"
+        ]
+      },
+      "options": [
+        {
+          "value": "cover",
+          "label": "Fill panel (crop)",
+          "icon": "fitCover"
+        },
+        {
+          "value": "contain",
+          "label": "Fit whole (letterbox)",
+          "icon": "fitContain"
+        }
+      ]
+    },
+    {
+      "id": "backWallFraming",
+      "label": "Back wall position",
+      "section": "Panels",
+      "framingFor": "backWall",
+      "showIf": {"design": ["inline", "corner", "island"]},
+      "help": "Move and zoom the artwork inside this panel. Same numbers, same ranges, as every other image slot.",
+      "type": "vector",
+      "fields": [
+        { "id": "zoom", "label": "Zoom", "symbol": "+", "min": 100, "max": 400, "step": 1, "default": 100 },
+        { "id": "x",    "label": "X",    "min": 0,   "max": 100, "step": 1, "default": 50  },
+        { "id": "y",    "label": "Y",    "min": 0,   "max": 100, "step": 1, "default": 50  }
+      ]
+    },
+    {
+      "id": "leftWing",
+      "label": "Left wing",
+      "section": "Panels",
+      "type": "asset",
+      "assetType": "any",
+      "allowUpload": true,
+      "showIf": {
+        "design": [
+          "corner",
+          "island"
+        ]
+      }
+    },
+    {
+      "id": "leftWingFit",
+      "label": "Left wing fit",
+      "section": "Panels",
+      "type": "select",
+      "default": "cover",
+      "attachTo": "leftWing",
+      "display": "icon-toggle",
+      "showIf": {
+        "design": [
+          "corner",
+          "island"
+        ]
+      },
+      "options": [
+        {
+          "value": "cover",
+          "label": "Fill panel (crop)",
+          "icon": "fitCover"
+        },
+        {
+          "value": "contain",
+          "label": "Fit whole (letterbox)",
+          "icon": "fitContain"
+        }
+      ]
+    },
+    {
+      "id": "leftWingFraming",
+      "label": "Left wing position",
+      "section": "Panels",
+      "framingFor": "leftWing",
+      "showIf": {"design": ["corner", "island"]},
+      "help": "Move and zoom the artwork inside this panel. Same numbers, same ranges, as every other image slot.",
+      "type": "vector",
+      "fields": [
+        { "id": "zoom", "label": "Zoom", "symbol": "+", "min": 100, "max": 400, "step": 1, "default": 100 },
+        { "id": "x",    "label": "X",    "min": 0,   "max": 100, "step": 1, "default": 50  },
+        { "id": "y",    "label": "Y",    "min": 0,   "max": 100, "step": 1, "default": 50  }
+      ]
+    },
+    {
+      "id": "rightWing",
+      "label": "Right wing",
+      "section": "Panels",
+      "type": "asset",
+      "assetType": "any",
+      "allowUpload": true,
+      "showIf": {
+        "design": [
+          "island"
+        ]
+      }
+    },
+    {
+      "id": "rightWingFit",
+      "label": "Right wing fit",
+      "section": "Panels",
+      "type": "select",
+      "default": "cover",
+      "attachTo": "rightWing",
+      "display": "icon-toggle",
+      "showIf": {
+        "design": [
+          "island"
+        ]
+      },
+      "options": [
+        {
+          "value": "cover",
+          "label": "Fill panel (crop)",
+          "icon": "fitCover"
+        },
+        {
+          "value": "contain",
+          "label": "Fit whole (letterbox)",
+          "icon": "fitContain"
+        }
+      ]
+    },
+    {
+      "id": "rightWingFraming",
+      "label": "Right wing position",
+      "section": "Panels",
+      "framingFor": "rightWing",
+      "showIf": {"design": ["island"]},
+      "help": "Move and zoom the artwork inside this panel. Same numbers, same ranges, as every other image slot.",
+      "type": "vector",
+      "fields": [
+        { "id": "zoom", "label": "Zoom", "symbol": "+", "min": 100, "max": 400, "step": 1, "default": 100 },
+        { "id": "x",    "label": "X",    "min": 0,   "max": 100, "step": 1, "default": 50  },
+        { "id": "y",    "label": "Y",    "min": 0,   "max": 100, "step": 1, "default": 50  }
+      ]
+    },
+    {
+      "id": "header",
+      "label": "Header / fascia",
+      "section": "Panels",
+      "type": "asset",
+      "assetType": "any",
+      "allowUpload": true,
+      "showIf": {
+        "design": [
+          "inline",
+          "corner",
+          "island"
+        ]
+      },
+      "help": "The overhead band. Usually a wordmark."
+    },
+    {
+      "id": "headerFit",
+      "label": "Header fit",
+      "section": "Panels",
+      "type": "select",
+      "default": "contain",
+      "attachTo": "header",
+      "display": "icon-toggle",
+      "showIf": {
+        "design": [
+          "inline",
+          "corner",
+          "island"
+        ]
+      },
+      "options": [
+        {
+          "value": "cover",
+          "label": "Fill panel (crop)",
+          "icon": "fitCover"
+        },
+        {
+          "value": "contain",
+          "label": "Fit whole (letterbox)",
+          "icon": "fitContain"
+        }
+      ]
+    },
+    {
+      "id": "headerFraming",
+      "label": "Header position",
+      "section": "Panels",
+      "framingFor": "header",
+      "showIf": {"design": ["inline", "corner", "island"]},
+      "help": "Move and zoom the artwork inside this panel. Same numbers, same ranges, as every other image slot.",
+      "type": "vector",
+      "fields": [
+        { "id": "zoom", "label": "Zoom", "symbol": "+", "min": 100, "max": 400, "step": 1, "default": 100 },
+        { "id": "x",    "label": "X",    "min": 0,   "max": 100, "step": 1, "default": 50  },
+        { "id": "y",    "label": "Y",    "min": 0,   "max": 100, "step": 1, "default": 50  }
+      ]
+    },
+    {
+      "id": "counter",
+      "label": "Counter front",
+      "section": "Panels",
+      "type": "asset",
+      "assetType": "any",
+      "allowUpload": true
+    },
+    {
+      "id": "counterFit",
+      "label": "Counter front fit",
+      "section": "Panels",
+      "type": "select",
+      "default": "contain",
+      "attachTo": "counter",
+      "display": "icon-toggle",
+      "options": [
+        {
+          "value": "cover",
+          "label": "Fill panel (crop)",
+          "icon": "fitCover"
+        },
+        {
+          "value": "contain",
+          "label": "Fit whole (letterbox)",
+          "icon": "fitContain"
+        }
+      ]
+    },
+    {
+      "id": "counterFraming",
+      "label": "Counter front position",
+      "section": "Panels",
+      "framingFor": "counter",
+      "help": "Move and zoom the artwork inside this panel. Same numbers, same ranges, as every other image slot.",
+      "type": "vector",
+      "fields": [
+        { "id": "zoom", "label": "Zoom", "symbol": "+", "min": 100, "max": 400, "step": 1, "default": 100 },
+        { "id": "x",    "label": "X",    "min": 0,   "max": 100, "step": 1, "default": 50  },
+        { "id": "y",    "label": "Y",    "min": 0,   "max": 100, "step": 1, "default": 50  }
+      ]
+    },
+    {
+      "id": "tower",
+      "label": "Tower / totem",
+      "section": "Panels",
+      "type": "asset",
+      "assetType": "any",
+      "allowUpload": true,
+      "showIf": {
+        "design": [
+          "island",
+          "kiosk"
+        ]
+      }
+    },
+    {
+      "id": "towerFit",
+      "label": "Tower fit",
+      "section": "Panels",
+      "type": "select",
+      "default": "contain",
+      "attachTo": "tower",
+      "display": "icon-toggle",
+      "showIf": {
+        "design": [
+          "island",
+          "kiosk"
+        ]
+      },
+      "options": [
+        {
+          "value": "cover",
+          "label": "Fill panel (crop)",
+          "icon": "fitCover"
+        },
+        {
+          "value": "contain",
+          "label": "Fit whole (letterbox)",
+          "icon": "fitContain"
+        }
+      ]
+    },
+    {
+      "id": "towerFraming",
+      "label": "Tower position",
+      "section": "Panels",
+      "framingFor": "tower",
+      "showIf": {"design": ["island", "kiosk"]},
+      "help": "Move and zoom the artwork inside this panel. Same numbers, same ranges, as every other image slot.",
+      "type": "vector",
+      "fields": [
+        { "id": "zoom", "label": "Zoom", "symbol": "+", "min": 100, "max": 400, "step": 1, "default": 100 },
+        { "id": "x",    "label": "X",    "min": 0,   "max": 100, "step": 1, "default": 50  },
+        { "id": "y",    "label": "Y",    "min": 0,   "max": 100, "step": 1, "default": 50  }
+      ]
+    },
+    {
+      "id": "screen",
+      "label": "Screen",
+      "section": "Panels",
+      "type": "asset",
+      "assetType": "any",
+      "allowUpload": true,
+      "showIf": {
+        "design": [
+          "inline",
+          "corner",
+          "island"
+        ]
+      },
+      "help": "Content on the wall-mounted monitor."
+    },
+    {
+      "id": "screenFit",
+      "label": "Screen fit",
+      "section": "Panels",
+      "type": "select",
+      "default": "cover",
+      "attachTo": "screen",
+      "display": "icon-toggle",
+      "showIf": {
+        "design": [
+          "inline",
+          "corner",
+          "island"
+        ]
+      },
+      "options": [
+        {
+          "value": "cover",
+          "label": "Fill panel (crop)",
+          "icon": "fitCover"
+        },
+        {
+          "value": "contain",
+          "label": "Fit whole (letterbox)",
+          "icon": "fitContain"
+        }
+      ]
+    },
+    {
+      "id": "screenFraming",
+      "label": "Screen position",
+      "section": "Panels",
+      "framingFor": "screen",
+      "showIf": {"design": ["inline", "corner", "island"]},
+      "help": "Move and zoom the artwork inside this panel. Same numbers, same ranges, as every other image slot.",
+      "type": "vector",
+      "fields": [
+        { "id": "zoom", "label": "Zoom", "symbol": "+", "min": 100, "max": 400, "step": 1, "default": 100 },
+        { "id": "x",    "label": "X",    "min": 0,   "max": 100, "step": 1, "default": 50  },
+        { "id": "y",    "label": "Y",    "min": 0,   "max": 100, "step": 1, "default": 50  }
+      ]
+    },
+    {
+      "id": "floor",
+      "label": "Floor decal",
+      "section": "Panels",
+      "type": "asset",
+      "assetType": "any",
+      "allowUpload": true,
+      "showIf": {
+        "design": [
+          "inline",
+          "corner",
+          "island"
+        ]
+      }
+    },
+    {
+      "id": "floorFit",
+      "label": "Floor decal fit",
+      "section": "Panels",
+      "type": "select",
+      "default": "cover",
+      "attachTo": "floor",
+      "display": "icon-toggle",
+      "showIf": {
+        "design": [
+          "inline",
+          "corner",
+          "island"
+        ]
+      },
+      "options": [
+        {
+          "value": "cover",
+          "label": "Fill panel (crop)",
+          "icon": "fitCover"
+        },
+        {
+          "value": "contain",
+          "label": "Fit whole (letterbox)",
+          "icon": "fitContain"
+        }
+      ]
+    },
+    {
+      "id": "floorFraming",
+      "label": "Floor decal position",
+      "section": "Panels",
+      "framingFor": "floor",
+      "showIf": {"design": ["inline", "corner", "island"]},
+      "help": "Move and zoom the artwork inside this panel. Same numbers, same ranges, as every other image slot.",
+      "type": "vector",
+      "fields": [
+        { "id": "zoom", "label": "Zoom", "symbol": "+", "min": 100, "max": 400, "step": 1, "default": 100 },
+        { "id": "x",    "label": "X",    "min": 0,   "max": 100, "step": 1, "default": 50  },
+        { "id": "y",    "label": "Y",    "min": 0,   "max": 100, "step": 1, "default": 50  }
+      ]
+    },
+    {
+      "id": "padding",
+      "label": "Letterbox padding",
+      "section": "Panels",
+      "type": "number",
+      "display": "slider",
+      "default": 6,
+      "min": 0,
+      "max": 25,
+      "step": 1,
+      "help": "Breathing room around any panel set to Fit whole, as a percent of the panel's short edge."
+    },
+    {
+      "id": "bgImage",
+      "label": "Background content",
+      "section": "Background",
+      "type": "asset",
+      "assetType": "any",
+      "allowUpload": true,
+      "help": "An image, a video, or a Lolly tool link (paste one in the picker) behind the stand - a hall photo, a stage shot, a keynote loop. Blend and blur it below so it sets a scene without competing with the artwork."
+    },
+    {
+      "id": "bgImageFit",
+      "label": "Background fit",
+      "section": "Background",
+      "type": "select",
+      "default": "cover",
+      "attachTo": "bgImage",
+      "display": "icon-toggle",
+      "options": [
+        {
+          "value": "cover",
+          "label": "Fill frame (crop)",
+          "icon": "fitCover"
+        },
+        {
+          "value": "contain",
+          "label": "Fit whole (letterbox)",
+          "icon": "fitContain"
+        }
+      ]
+    },
+    {
+      "id": "bgBlur",
+      "label": "Bokeh blur",
+      "section": "Background",
+      "type": "number",
+      "display": "slider",
+      "default": 12,
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "help": "Throws the background out of focus, like a long lens would. Defaults on: a sharp background fights the stand for attention."
+    },
+    {
+      "id": "bgOpacity",
+      "label": "Opacity",
+      "section": "Background",
+      "type": "number",
+      "display": "slider",
+      "default": 0.7,
+      "min": 0,
+      "max": 1,
+      "step": 0.01
+    },
+    {
+      "id": "bgBlend",
+      "label": "Blend mode",
+      "section": "Background",
+      "type": "select",
+      "default": "source-over",
+      "help": "How the content mixes with the backdrop colour below it.",
+      "options": [
+        {
+          "value": "source-over",
+          "label": "Normal"
+        },
+        {
+          "value": "multiply",
+          "label": "Multiply"
+        },
+        {
+          "value": "screen",
+          "label": "Screen"
+        },
+        {
+          "value": "overlay",
+          "label": "Overlay"
+        },
+        {
+          "value": "soft-light",
+          "label": "Soft light"
+        },
+        {
+          "value": "lighten",
+          "label": "Lighten"
+        },
+        {
+          "value": "darken",
+          "label": "Darken"
+        },
+        {
+          "value": "color-dodge",
+          "label": "Colour dodge"
+        },
+        {
+          "value": "difference",
+          "label": "Difference"
+        },
+        {
+          "value": "luminosity",
+          "label": "Luminosity"
+        }
+      ]
+    },
+    {
+      "id": "bgPosition",
+      "label": "Position",
+      "section": "Background",
+      "framingFor": "bgImage",
+      "help": "Which part of the backdrop stays in frame, how far in it is zoomed, and whether it is straightened. Drag it on the canvas, or set the numbers here.",
+      "type": "vector",
+      "fields": [
+        { "id": "x",      "label": "Horizontal", "symbol": "\u2194", "min": 0, "max": 100, "step": 1, "default": 50 },
+        { "id": "y",      "label": "Vertical",   "symbol": "\u2195", "min": 0, "max": 100, "step": 1, "default": 50 },
+        { "id": "zoom",   "label": "Zoom",       "symbol": "+", "min": 100,  "max": 400, "step": 1,   "default": 100 },
+        { "id": "rotate", "label": "Rotate",     "min": -180, "max": 180, "step": 0.5, "default": 0 }
+      ]
+    },
+    {
+      "id": "gradientBg",
+      "label": "Gradient background",
+      "section": "Background",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "id": "bgColor2",
+      "label": "Gradient top",
+      "section": "Background",
+      "type": "color",
+      "default": "#cfd6dc"
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "section": "Background",
+      "type": "color",
+      "default": "#eef1f4",
+      "help": "The bottom of the backdrop. Deliberately neutral - the brand colour belongs on the panels, and a brand-coloured hall behind brand-coloured panels reads as mud."
+    },
+    {
+      "id": "transparentBg",
+      "label": "Transparent background",
+      "section": "Background",
+      "type": "boolean",
+      "default": true,
+      "help": "Render on transparency (PNG/WebP keep the alpha). Overrides the background colour."
+    },
+    {
+      "id": "scene",
+      "label": "Hall lighting",
+      "section": "Look",
+      "type": "select",
+      "default": "expo",
+      "options": [
+        {
+          "value": "expo",
+          "label": "Expo hall"
+        },
+        {
+          "value": "bright",
+          "label": "Bright studio"
+        },
+        {
+          "value": "evening",
+          "label": "Evening reception"
+        },
+        {
+          "value": "keynote",
+          "label": "Keynote stage"
+        }
+      ]
+    },
+    {
+      "id": "exposure",
+      "label": "Exposure",
+      "section": "Look",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 0.1,
+      "max": 3,
+      "step": 0.05
+    },
+    {
+      "id": "shadows",
+      "label": "Contact shadow",
+      "section": "Look",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "id": "people",
+      "label": "Show a person for scale",
+      "section": "Look",
+      "type": "boolean",
+      "default": true,
+      "help": "A 1.76 m silhouette beside the stand - it sells how big the stand actually is."
+    },
+    {
+      "id": "camera",
+      "label": "Camera",
+      "section": "Camera",
+      "type": "vector",
+      "help": "The base shot. A camera move (below) animates from here.",
+      "fields": [
+        {
+          "id": "fov",
+          "label": "Field of view",
+          "symbol": "°",
+          "min": 20,
+          "max": 90,
+          "step": 1,
+          "default": 38
+        },
+        {
+          "id": "rotation",
+          "label": "Rotation",
+          "symbol": "°",
+          "min": 0,
+          "max": 360,
+          "step": 1,
+          "default": 32
+        },
+        {
+          "id": "tilt",
+          "label": "Tilt",
+          "symbol": "°",
+          "min": -5,
+          "max": 70,
+          "step": 1,
+          "default": 8
+        },
+        {
+          "id": "zoom",
+          "label": "Zoom",
+          "symbol": "×",
+          "min": 0.4,
+          "max": 2.5,
+          "step": 0.05,
+          "default": 1
+        },
+        {
+          "id": "pan",
+          "label": "Pan",
+          "symbol": "",
+          "min": -1,
+          "max": 1,
+          "step": 0.05,
+          "default": 0
+        }
+      ]
+    },
+    {
+      "id": "cameraMove",
+      "label": "Camera move",
+      "section": "Animation",
+      "type": "select",
+      "default": "static",
+      "help": "Applies to video and animated exports. Stills always render the base pose.",
+      "options": [
+        {
+          "value": "static",
+          "label": "Static (no move)"
+        },
+        {
+          "value": "orbit",
+          "label": "Orbit 360°"
+        },
+        {
+          "value": "arc",
+          "label": "Arc (sweep past the stand)"
+        },
+        {
+          "value": "push-in",
+          "label": "Push in"
+        },
+        {
+          "value": "reveal",
+          "label": "Reveal (rise + settle)"
+        }
+      ]
+    },
+    {
+      "id": "duration",
+      "label": "Loop seconds",
+      "section": "Animation",
+      "type": "number",
+      "display": "slider",
+      "default": 6,
+      "min": 1,
+      "max": 30,
+      "step": 0.5,
+      "help": "Seconds for one loop of the move. Match the export Duration for a clean loop.",
+      "showIf": {
+        "cameraMove": [
+          "orbit",
+          "arc",
+          "push-in",
+          "reveal"
+        ]
+      }
+    },
+    {
+      "id": "easing",
+      "label": "Easing",
+      "section": "Animation",
+      "type": "select",
+      "default": "ease-in-out",
+      "showIf": {
+        "cameraMove": [
+          "arc",
+          "push-in",
+          "reveal"
+        ]
+      },
+      "options": [
+        {
+          "value": "linear",
+          "label": "Linear"
+        },
+        {
+          "value": "ease-in-out",
+          "label": "Ease in-out"
+        }
+      ]
+    }
+  ]
+}

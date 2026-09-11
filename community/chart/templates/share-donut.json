@@ -1,0 +1,29 @@
+{
+  "id": "share-donut",
+  "name": "Share donut",
+  "category": "Share",
+  "description": "A donut splitting a total into five segments.",
+  "values": {
+    "chartType": "donut",
+    "data": "Segment,Share\nEnterprise,34\nMid-market,26\nSmall business,19\nPartner,12\nSelf-serve,9",
+    "donutRadius": 0.55,
+    "sliceGap": 1,
+    "heading": "Revenue by segment",
+    "showValues": true,
+    "legendPosition": "rc"
+  },
+  "presets": [
+    {
+      "id": "pie",
+      "name": "Pie",
+      "description": "Close the hole for a classic pie.",
+      "values": { "chartType": "pie" }
+    },
+    {
+      "id": "sorted",
+      "name": "Largest first",
+      "description": "Order the slices from largest to smallest.",
+      "values": { "sort": "desc" }
+    }
+  ]
+}

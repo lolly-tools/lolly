@@ -1,0 +1,46 @@
+{
+  "id": "og",
+  "name": "Open Graph card",
+  "category": "Social",
+  "description": "The 1200 x 630 image a link unfurls into on most platforms - title, description, site chip and a thumbnail panel.",
+  "values": {
+    "url": "https://atlasfield.io/notes/quiet-interfaces",
+    "heading": "Quiet interfaces do more with less",
+    "body": "A field note on restraint - fewer controls, clearer defaults, and what happens when a product stops shouting.",
+    "siteName": "Atlas Field",
+    "layout": "og-horizontal",
+    "color": "{color.semantic.text}",
+    "background": "{color.semantic.surface}",
+    "accent": "{color.semantic.primary}"
+  },
+  "presets": [
+    {
+      "id": "og-summary",
+      "name": "Summary card",
+      "description": "The shorter 1200 x 600 crop, with the thumbnail across the top.",
+      "values": {
+        "layout": "twitter-summary"
+      }
+    },
+    {
+      "id": "og-release",
+      "name": "Release note",
+      "description": "A version announcement rather than an article.",
+      "values": {
+        "heading": "Release 4.2 is out",
+        "body": "Faster exports, a calmer sidebar, and print sizes that are finally true to the millimetre.",
+        "url": "https://atlasfield.io/releases/4-2"
+      }
+    },
+    {
+      "id": "og-ink",
+      "name": "Ink card",
+      "description": "Pale type on a dark card, with a mint accent.",
+      "values": {
+        "color": "#f4f6f7",
+        "background": "#14181b",
+        "accent": "#7fd1b9"
+      }
+    }
+  ]
+}

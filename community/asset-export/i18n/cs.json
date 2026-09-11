@@ -1,0 +1,15 @@
+{
+  "name": "Export zdroje",
+  "description": "Vykresli libovolné aktivum z katalogu - nebo odkaz na nástroj Lolly - do libovolného formátu a velikosti.",
+  "a11yLabel": "Exportovaný zdroj",
+  "inputs.src.label": "Zdroj",
+  "inputs.src.help": "Zdroj, který se má vykreslit - ID z katalogu (viz `lolly assets`) nebo vložený odkaz na nástroj lolly.tools. Vektorové zdroje zůstávají vektorové ve formátech SVG a PDF, rastrové zdroje se vloží jako obrázky.",
+  "inputs.fit.label": "Přizpůsobení",
+  "inputs.fit.help": "Přizpůsobit zobrazí celý zdroj uvnitř rámečku; Vyplnit vyplní rámeček a může oříznout okraje.",
+  "inputs.fit.options.contain": "Přizpůsobit (celý zdroj, doplněný o okraje)",
+  "inputs.fit.options.cover": "Vyplnit (vyplní plochu, může oříznout)",
+  "inputs.background.label": "Pozadí",
+  "inputs.background.help": "Barva za zdrojem. Zapnutím možnosti „Bez pozadí“ v exportu ji odstraníš (průhledné).",
+  "inputs.transparentBg.label": "Bez pozadí",
+  "inputs.transparentBg.help": "Odstraní výplň pozadí, aby se zdroj exportoval s průhledností (PNG/SVG/WebP)."
+}

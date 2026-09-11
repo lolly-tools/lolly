@@ -1,0 +1,13 @@
+{
+  "name": "Compress",
+  "description": "Micșorează un PDF recomprimându-i imaginile - pe dispozitivul tău.",
+  "a11yLabel": "Compresor PDF pentru {{fileName}}",
+  "inputs.source.help": "Un fișier PDF. Este citit în browser și nu îți lasă niciodată dispozitivul.",
+  "inputs.level.label": "Compresie",
+  "inputs.level.help": "Cât de puternic sunt comprimate imaginile încorporate. Mai puternic înseamnă fișiere mai mici și imagini mai neclare.",
+  "inputs.level.options.light": "Ușoară - păstrează calitatea ridicată",
+  "inputs.level.options.balanced": "Echilibrată",
+  "inputs.level.options.strong": "Puternică - cel mai mic fișier",
+  "inputs.grayscale.label": "Convertește imaginile în tonuri de gri",
+  "inputs.grayscale.help": "Elimină culoarea din imagini pentru economii suplimentare - util pentru documente text scanate."
+}

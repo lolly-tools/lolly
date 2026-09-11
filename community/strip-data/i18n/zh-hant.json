@@ -1,0 +1,7 @@
+{
+  "name": "移除隱藏資料",
+  "description": "顯示並移除圖片與 PDF 中隱藏的中繼資料 - 在您的裝置上完成。",
+  "a11yLabel": "{{fileName}} 的隱藏資料報告",
+  "inputs.source.label": "圖片或 PDF",
+  "inputs.source.help": "JPEG、PNG、SVG 或 PDF 檔案。檔案會在你的瀏覽器中讀取，絕不會離開你的裝置。"
+}

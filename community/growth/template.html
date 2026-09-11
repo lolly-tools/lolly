@@ -1,0 +1,95 @@
+<div class="gr-root">
+  <svg class="gr-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200"
+       width="100%" height="100%" role="img" aria-label="Differential growth pattern">
+    <rect x="0" y="0" width="1200" height="1200" fill="{{bgColor}}"/>
+    <g class="gr-loops">{{{_paths}}}</g>
+  </svg>
+  {{#if note}}<p class="gr-note" data-export-hide>{{note}}</p>{{/if}}
+  {{!-- Export frame clock. The render is SVG DOM, not canvas, but the motion
+        pipeline seeks through a deterministic clock it looks for on a <canvas>
+        descendant (bridge/export.ts frameClockCanvas) - so this 0 x 0 one
+        carries __lollyFrameRender and paints nothing. --}}
+  <canvas class="gr-clock" width="0" height="0" aria-hidden="true"></canvas>
+  <script type="application/json" class="gr-state">{{{_state}}}</script>
+  <script>
+  (function () {
+    /* Idempotent per-paint IIFE with `var` - the template re-runs on every
+       paint, so top-level let/const would throw on the second render. An epoch
+       on THIS instance's root (never window) drops the previous paint's rAF and
+       keeps sibling instances in a multi-edit document independent. */
+    var cs = document.currentScript;
+    var ROOT = (cs && cs.parentNode) || document;
+    ROOT.__grEpoch = (ROOT.__grEpoch || 0) + 1;
+    var EP = ROOT.__grEpoch;
+    function alive() { return ROOT.__grEpoch === EP && document.contains(ROOT); }
+
+    var stateEl = ROOT.querySelector('.gr-state');
+    var clock = ROOT.querySelector('.gr-clock');
+    if (!stateEl) return;
+    var S;
+    try { S = JSON.parse(stateEl.textContent || '{}'); } catch (e) { return; }
+    if (!S || !S.P || !S.seed) return;
+
+    /* The sim itself lives in hooks.js (one source, one test suite) and is
+       handed over on the realm. Without it the still paths hooks already
+       rendered stay exactly as they are - no motion, never a blank canvas. */
+    var SIM = window.__lollyGrowthSim;
+    if (!SIM) return;
+
+    /* One nodelist per loop: every stamped copy of loop i moves together, and
+       the elements are stable for the whole paint, so growth is setAttribute on
+       existing <path>s - never an innerHTML rebuild. */
+    var paths = [], flips = [];
+    for (var i = 0; i < S.seed.length; i++) {
+      paths.push(ROOT.querySelectorAll('.gr-loops g:not([data-flip]) [data-l="' + i + '"]'));
+      flips.push(ROOT.querySelectorAll('.gr-loops g[data-flip] [data-l="' + i + '"]'));
+    }
+
+    var st = SIM.simState(S.seed, S.P);
+    function paint() {
+      for (var li = 0; li < paths.length && li < st.loops.length; li++) {
+        var d = SIM.pathD(st.loops[li]);
+        for (var k = 0; k < paths[li].length; k++) paths[li][k].setAttribute('d', d);
+        if (!flips[li].length) continue;
+        var df = SIM.pathD(SIM.flipX(st.loops[li], S.P.w));
+        for (var f = 0; f < flips[li].length; f++) flips[li][f].setAttribute('d', df);
+      }
+    }
+    function seekTo(step) {
+      if (step < st.step) st = SIM.simState(S.seed, S.P);
+      SIM.runTo(st, S.P, step);
+      paint();
+    }
+
+    /* Deterministic seek for the motion formats: t in [0,1) maps onto the step
+       count, and t = 0 is the seed. clipSec is ignored - growth has no timeline
+       of its own, the export's length just stretches the same span.
+
+       Only the growth-from-zero state may be export-driven: the STILL raster
+       path seeks every frame clock it finds to t = 0 before capturing, which on
+       a finished piece would rewind the live DOM to the bare seed. The delete
+       matters because this IIFE re-runs per paint, so a previous paint's hook
+       would otherwise survive switching back to grown. */
+    if (clock) {
+      if (S.grown) delete clock.__lollyFrameRender;
+      else clock.__lollyFrameRender = function (t) {
+        seekTo(Math.round(Math.max(0, Math.min(1, t)) * S.steps));
+      };
+    }
+
+    /* Grown renders are already finished in the markup; only the growth-from-
+       zero state animates. rAF is inherently gated when the tab is hidden. */
+    if (S.grown) return;
+    var raf = null;
+    function frame() {
+      if (!alive()) return;
+      if (clock && clock.__lollyFrameDriven) { raf = requestAnimationFrame(frame); return; }
+      if (st.step >= S.steps) { raf = null; return; }
+      SIM.stepOnce(st, S.P);
+      paint();
+      raf = requestAnimationFrame(frame);
+    }
+    raf = requestAnimationFrame(frame);
+  })();
+  </script>
+</div>

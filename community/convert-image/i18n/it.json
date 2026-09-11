@@ -1,0 +1,18 @@
+{
+  "name": "Converti immagine",
+  "description": "Trasforma HEIC, TIFF o qualsiasi foto in WebP, JPEG o PNG - sul tuo dispositivo.",
+  "a11yLabel": "Conversione immagine per {{fileName}}",
+  "inputs.source.label": "Immagine",
+  "inputs.source.help": "Un'immagine HEIC, HEIF, JPEG, PNG, WebP, AVIF o TIFF. Viene letta nel tuo browser e non lascia mai il tuo dispositivo.",
+  "inputs.target.label": "Converti in",
+  "inputs.target.help": "Il formato di output. WebP è di solito il più leggero; PNG è senza perdita di qualità.",
+  "inputs.target.options.webp": "WebP - il più piccolo, mantiene la trasparenza",
+  "inputs.target.options.jpeg": "JPEG - universale, per foto",
+  "inputs.target.options.png": "PNG - senza perdita, mantiene la trasparenza",
+  "inputs.quality.label": "Qualità",
+  "inputs.quality.help": "Qualità per i formati con perdita di dati. Un valore più basso significa un file più piccolo e dettagli più sfumati. PNG lo ignora.",
+  "inputs.maxEdge.label": "Lato più lungo (px)",
+  "inputs.maxEdge.help": "Riduci la risoluzione in modo che il lato più lungo non superi questo numero di pixel. 0 mantiene la dimensione originale. Non ingrandisce mai.",
+  "inputs.keepLocation.label": "Mantieni la posizione",
+  "inputs.keepLocation.help": "Riporta la posizione GPS della foto nel file convertito. Disattivato per impostazione predefinita - la posizione è un dato personale. Gli altri dati della foto (autore, copyright, data di scatto) vengono sempre riportati, e la scheda indica esattamente cosa è successo."
+}

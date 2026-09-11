@@ -1,0 +1,4 @@
+{
+  "name": "Synth",
+  "description": "Một nhạc cụ hình ảnh do bạn điều khiển. Bốn cảnh chạy trực tiếp trên GPU: mực lỏng, đàn hạt bay về phía tiêu đề hoặc logo của bạn, trường phản hồi (feedback field) và camera của chính bạn. Mọi màu sắc đều lấy từ bảng màu thương hiệu, hình ảnh chuyển động theo con trỏ, theo bản nhạc và theo bộ điều khiển MIDI. Xuất ra ảnh tĩnh hoặc vòng lặp liền mạch."
+}

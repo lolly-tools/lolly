@@ -1,0 +1,101 @@
+/* Org Chart - cards on an open canvas with connector lines that route between them.
+   Like Design, almost all per-box styling is computed in hooks.js and applied
+   inline (so the same output renders headless in CLI/URL mode). These classes carry
+   only the structural layout the inline styles build on. Auto-scoped to #tool-canvas. */
+
+.artboard {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+/* The connector layer: one artboard-sized inline <svg> whose paths are computed from
+   the current card geometry in hooks.js. It sits BEHIND the cards (first child) and
+   never steals the editor's drag/select pointer events. The <svg> is wrapped in a
+   plain <div> so the artboard's first child is NOT an <svg> - otherwise the SVG/PDF
+   exporter would treat the whole artboard as a single SVG and drop the HTML cards. */
+.oc-conn-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.oc-connectors {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.lolly-box {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  overflow: hidden;
+  /* transform-origin centre so hooks.js rotate() spins about the box middle -
+     this must match the free-canvas overlay's rotation model. */
+  transform-origin: 50% 50%;
+}
+
+/* Plain-layout image (and the fallback for any box kind): fills the box, behind text. */
+.lolly-box-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* A Lottie box reuses .lolly-box-img for position/size; the shell's lottie-mount fills
+   it with an <svg>. Keep it non-interactive so it never captures editor pointer events. */
+.lolly-box-lottie { pointer-events: none; }
+.lolly-box-lottie > svg { display: block; width: 100%; height: 100%; }
+
+/* ── card layouts (row / icon / stacked) ─────────────────────────────────────────
+   In card layouts the box is a flex container: the avatar is a real flex child (so it
+   sits beside/above the text, not absolutely over it) and the text takes the rest.
+   The flex direction / gap / padding / sizing are all set inline by hooks.js. */
+.oc-avatar {
+  flex: 0 0 auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.oc-avatar > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.oc-avatar > .lolly-box-lottie { width: 100%; height: 100%; }
+/* Initials placeholder shown when a card has no photo. Colour + size set inline. */
+.oc-initials {
+  font-family: "SUSE", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.lolly-box-text {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 8px;
+  box-sizing: border-box;
+  font-family: "SUSE", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.12;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+.lolly-box-text strong { font-weight: bolder; }
+.lolly-box-text em { font-style: italic; }

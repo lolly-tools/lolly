@@ -1,0 +1,203 @@
+<div class="sg-wrap" data-ink="{{inkColor}}" data-pen="{{penStroke}}" data-strokes="{{strokesValue}}"{{#if inkColor}} style="color:{{inkColor}}"{{/if}}>
+  <svg class="sg-svg" xmlns="http://www.w3.org/2000/svg" viewBox="{{viewBox}}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Handwritten signature, {{strokeCount}} strokes">
+    {{#each paths}}<path d="{{d}}" fill="none" stroke="currentColor" stroke-width="{{../penStroke}}" stroke-linecap="round" stroke-linejoin="round" />
+    {{/each}}
+  </svg>
+  {{#if isEmpty}}
+  <p class="sg-hint" data-export-hide>Sign here. Drag with a finger, a stylus or the mouse.</p>
+  {{/if}}
+  <div class="sg-bar" data-export-hide>
+    <button type="button" class="sg-act" data-sg-act="undo" title="Undo the last stroke" aria-label="Undo the last stroke">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6.4 2.6L3 13"/></svg>
+    </button>
+    <button type="button" class="sg-act" data-sg-act="clear" title="Clear the pad" aria-label="Clear the pad">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/></svg>
+    </button>
+  </div>
+  {{#if warning}}
+  <p class="sg-note" data-export-hide role="status">{{warning}}</p>
+  {{/if}}
+</div>
+<script>
+  (function () {
+    'use strict';
+    /* The signing pad. Pointer strokes are drawn live into the sheet's own
+       <svg>, and ONE committed stroke is written back to the `strokes` input on
+       release - so a stroke is an ordinary edit: it undoes, it saves, it rides
+       the share link. Nothing here keeps state between paints; the input is the
+       state. Drawing needs a pointer, so the sidebar's stroke field stays the
+       keyboard and screen-reader path (as on gradient's dots).
+
+       Own wrap = this script's previous sibling: offscreen compose/batch stages
+       mount extra copies after the app root, so a global last-match can grab the
+       wrong instance. currentScript is null when the shell executes detached -
+       fall back to newest-wrap then. */
+    var cs = document.currentScript;
+    var wrap = cs && cs.previousElementSibling && cs.previousElementSibling.classList
+      && cs.previousElementSibling.classList.contains('sg-wrap')
+      ? cs.previousElementSibling
+      : null;
+    if (!wrap) {
+      var wraps = document.querySelectorAll('.sg-wrap');
+      wrap = wraps[wraps.length - 1];
+    }
+    if (!wrap || wrap.dataset.sgWired) return;
+
+    var svg = wrap.querySelector('svg.sg-svg');
+    var bar = wrap.querySelector('.sg-bar');
+    if (!svg) return;
+
+    /* Per-canvas commit channel, bound by the shell to THIS session's runtime
+       (never fanned to sibling sessions in multi-edit). Without it there is no
+       way to record a stroke, so the pad is not a pad: strip its controls and
+       leave the rendered signature alone. That is the offscreen export stage,
+       the gallery preview and any older shell. */
+    var canvasRoot = wrap.closest('[data-lolly-canvas]');
+    var commitFn = canvasRoot && canvasRoot.__lollyCommit;
+    if (!commitFn) {
+      if (bar) bar.parentNode.removeChild(bar);
+      return;
+    }
+    wrap.dataset.sgWired = '1';
+
+    var SVG_NS = 'http://www.w3.org/2000/svg';
+    /* Points closer together than this (in the 1200 x 400 drawing frame) are
+       dropped. A pointer reports far more detail than a signature carries, and
+       every kept point is bytes in the share link. */
+    var MIN_STEP = 4;
+
+    function r1(n) { return Math.round(n * 10) / 10; }
+
+    function committed() {
+      var v = wrap.getAttribute('data-strokes') || '';
+      return v.split(' ').filter(function (s) { return s.length > 0; });
+    }
+
+    /* Commit, and write the same value onto the wrap. committed() reads that
+       attribute, and the repaint that replaces this subtree with the canonical
+       value is a frame or two behind the commit - so a second stroke drawn in
+       that gap (dotting an i) would otherwise be built on the pre-commit value
+       and take the stroke before it with it. */
+    function commit(value) {
+      wrap.setAttribute('data-strokes', value);
+      commitFn('strokes', value);
+    }
+
+    /* The pointer-to-drawing-frame map. Read once per stroke: the viewBox moves
+       when trim re-frames the ink, and 'xMidYMid meet' letterboxes whenever the
+       box and the element disagree on aspect - so both the fitted scale and the
+       centring offset are needed, or a trimmed signature records its next
+       stroke in the wrong place. The stage zoom is a uniform transform on the
+       canvas wrapper, so it cancels out of the live bounding rect. */
+    function frame() {
+      var vb = (svg.getAttribute('viewBox') || '').split(/[\s,]+/).map(parseFloat);
+      var rect = svg.getBoundingClientRect();
+      if (vb.length !== 4 || !isFinite(vb[2]) || !isFinite(vb[3]) || vb[2] <= 0 || vb[3] <= 0) return null;
+      if (!(rect.width > 0) || !(rect.height > 0)) return null;
+      var scale = Math.min(rect.width / vb[2], rect.height / vb[3]);
+      if (!(scale > 0)) return null;
+      return {
+        vb: vb,
+        scale: scale,
+        ox: rect.left + (rect.width - vb[2] * scale) / 2,
+        oy: rect.top + (rect.height - vb[3] * scale) / 2,
+      };
+    }
+
+    function toUser(f, ev) {
+      return [
+        r1(f.vb[0] + (ev.clientX - f.ox) / f.scale),
+        r1(f.vb[1] + (ev.clientY - f.oy) / f.scale),
+      ];
+    }
+
+    function token(pts) {
+      var s = 'M';
+      for (var i = 0; i < pts.length; i++) s += (i ? 'L' : '') + pts[i][0] + ',' + pts[i][1];
+      return s;
+    }
+
+    var live = null;
+
+    function paint() {
+      if (live) live.el.setAttribute('d', live.pts.length === 1
+        ? token([live.pts[0], live.pts[0]])
+        : token(live.pts));
+    }
+
+    function add(p) {
+      var last = live.pts[live.pts.length - 1];
+      var dx = p[0] - last[0];
+      var dy = p[1] - last[1];
+      if (dx * dx + dy * dy < MIN_STEP * MIN_STEP) return;
+      live.pts.push(p);
+    }
+
+    function finish(cancelled) {
+      if (!live) return;
+      var pts = live.pts;
+      var el = live.el;
+      live = null;
+      if (cancelled) {
+        if (el.parentNode) el.parentNode.removeChild(el);
+        return;
+      }
+      /* One commit for the whole stroke. The repaint that follows replaces this
+         subtree, taking the live path with it and drawing the committed one. */
+      commit(committed().concat([token(pts)]).join(' '));
+    }
+
+    svg.addEventListener('pointerdown', function (e) {
+      if (live || (e.button !== undefined && e.button > 0)) return;
+      var f = frame();
+      if (!f) return;
+      e.preventDefault();
+      try { svg.setPointerCapture(e.pointerId); } catch (err) { /* not capturable */ }
+      var el = document.createElementNS(SVG_NS, 'path');
+      el.setAttribute('fill', 'none');
+      el.setAttribute('stroke', wrap.getAttribute('data-ink') || 'currentColor');
+      el.setAttribute('stroke-width', wrap.getAttribute('data-pen') || '7');
+      el.setAttribute('stroke-linecap', 'round');
+      el.setAttribute('stroke-linejoin', 'round');
+      svg.appendChild(el);
+      live = { pts: [toUser(f, e)], el: el, id: e.pointerId, f: f };
+      paint();
+    });
+
+    svg.addEventListener('pointermove', function (e) {
+      if (!live || e.pointerId !== live.id) return;
+      /* Coalesced events where the browser offers them: one move event can
+         stand for several samples, and the dropped ones are the curve. Pressure
+         is deliberately ignored - the stroke is one width, so the same
+         signature comes out of a mouse, a finger and a stylus. */
+      var batch = typeof e.getCoalescedEvents === 'function' ? e.getCoalescedEvents() : null;
+      if (!batch || !batch.length) batch = [e];
+      for (var i = 0; i < batch.length; i++) add(toUser(live.f, batch[i]));
+      paint();
+    });
+
+    svg.addEventListener('pointerup', function (e) {
+      if (live && e.pointerId === live.id) finish(false);
+    });
+    svg.addEventListener('pointercancel', function (e) {
+      if (live && e.pointerId === live.id) finish(true);
+    });
+
+    if (bar) {
+      var strokes = committed();
+      var buttons = bar.querySelectorAll('[data-sg-act]');
+      for (var b = 0; b < buttons.length; b++) buttons[b].disabled = strokes.length === 0;
+      bar.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest ? e.target.closest('[data-sg-act]') : null;
+        if (!btn || !document.contains(wrap)) return;
+        var cur = committed();
+        if (!cur.length) return;
+        if (btn.getAttribute('data-sg-act') === 'undo') {
+          commit(cur.slice(0, -1).join(' '));
+        } else {
+          commit('');
+        }
+      });
+    }
+  })();
+</script>

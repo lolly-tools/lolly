@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "Bir PowerPoint destesi yükleyin ve renklerini ile yazı tiplerini markanıza uydurun - cihazınızda yeniden oluşturulur, hiçbir şey yüklenmez.",
+  "a11yLabel": "{{fileName}} için sunum yeniden markalayıcısı",
+  "inputs.source.label": "PowerPoint dosyası",
+  "inputs.source.help": "Bir .pptx dosyası. Cihazında okunur ve asla yüklenmez.",
+  "inputs.useTheme.label": "Marka temasını uygula",
+  "inputs.useTheme.help": "Sunumun tema paletini ve fontlarını markana uyarla - temaya bağlı her renk otomatik olarak takip eder.",
+  "inputs.colorMap.label": "Renk eşleme",
+  "inputs.colorMap.help": "Slaytlarda bulunan sabit kodlanmış renkler, her biri önerilen marka rengiyle birlikte. Bir satırı kaldırarak o rengi olduğu gibi bırak.",
+  "inputs.colorMap.fields.from.label": "Orijinal",
+  "inputs.colorMap.fields.to.label": "Marka",
+  "inputs.fontMap.label": "Yazı tipi eşleme",
+  "inputs.fontMap.help": "Sunumda adı geçen yazı tipleri, her biri marka karşılığıyla birlikte. O fontu korumak için bir satırı kaldır.",
+  "inputs.fontMap.fields.from.label": "Orijinal",
+  "inputs.fontMap.fields.to.label": "Marka",
+  "inputs.dropFonts.label": "Gömülü yazı tiplerini kaldır",
+  "inputs.dropFonts.help": "Dosyaya gömülü eski marka yazı tipleri, değişimden sonra güncelliğini yitirir ve lisans kısıtlamalı olabilir."
+}

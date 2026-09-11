@@ -1,0 +1,42 @@
+{
+  "id": "card",
+  "name": "Business card",
+  "category": "Identity",
+  "description": "An 85 x 55 mm card, front and back, with the brand lockup and an accent edge.",
+  "values": {
+    "piece": "business-card-front",
+    "firstname": "Nadia",
+    "lastname": "Okafor",
+    "jobTitle": "Head of Design",
+    "email": "nadia@example.com",
+    "phone": "+44 20 7946 0142",
+    "company": "Northline Studio",
+    "url": "northline.studio",
+    "address": "12 Barrow Lane, Bristol BS1 4QD",
+    "tagline": "Design that keeps its promises.",
+    "color": "{color.semantic.text}",
+    "background": "{color.semantic.surface}",
+    "accent": "{color.semantic.primary}"
+  },
+  "presets": [
+    {
+      "id": "card-back",
+      "name": "Card back",
+      "description": "The reverse: lockup and tagline on the accent field.",
+      "values": {
+        "piece": "business-card-back"
+      }
+    },
+    {
+      "id": "card-mono",
+      "name": "Mono card",
+      "description": "Ink on white, no colour - the cheapest card a printer will quote.",
+      "values": {
+        "piece": "business-card-front",
+        "color": "#14181b",
+        "background": "#ffffff",
+        "accent": "#14181b"
+      }
+    }
+  ]
+}

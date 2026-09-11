@@ -1,0 +1,26 @@
+/* Auto-scoped to #tool-canvas by the shell. The <canvas> fills the stage; its
+   backing-store size is set by the renderer (export resolution), CSS scales it. */
+.lolly3d-wrap {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.lolly3d-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  touch-action: none; /* let the renderer own drag/pinch instead of scrolling */
+}
+
+.lolly3d-msg {
+  font-family: 'SUSE', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  color: #9aa0a6;
+  padding: 16px;
+  text-align: center;
+}

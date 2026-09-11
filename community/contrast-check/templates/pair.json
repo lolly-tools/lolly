@@ -1,0 +1,27 @@
+{
+  "id": "pair",
+  "name": "One pair",
+  "category": "Utility",
+  "description": "Check one text colour on one background, with the colour-vision strip.",
+  "values": {
+    "color": "#14171a",
+    "background": "#f7f7f5",
+    "mode": "pair",
+    "textSize": "normal",
+    "sample": "Readable at every size"
+  },
+  "presets": [
+    {
+      "id": "body-copy",
+      "name": "Body copy",
+      "description": "Normal text, so the AA bar is 4.5:1.",
+      "values": { "textSize": "normal", "sample": "Body copy carries the highest bar" }
+    },
+    {
+      "id": "headline",
+      "name": "Headline",
+      "description": "Large text, judged at the 3:1 AA bar.",
+      "values": { "textSize": "large", "sample": "Headlines carry a lower bar" }
+    }
+  ]
+}

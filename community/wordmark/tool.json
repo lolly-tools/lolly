@@ -1,0 +1,96 @@
+{
+  "id": "wordmark",
+  "name": "Wordmark",
+  "description": "Type a word, get a pure-path vector wordmark in your brand font - recipients never need the font installed.",
+  "a11yLabel": "Wordmark reading {{default text \"Wordmark\"}}",
+  "version": "1.0.1",
+  "engineVersion": "^1.60.0",
+  "status": "community",
+  "category": "everyone",
+  "tags": ["wordmark", "logo", "type", "font", "lockup", "svg"],
+  "examples": [
+    { "label": "Brand semibold", "values": { "text": "Aurora", "weight": 600, "size": 160, "color": "#0c322c" }, "theme": "light" },
+    { "label": "Hairline, wide-tracked", "values": { "text": "ATELIER", "weight": 100, "tracking": 24, "size": 140, "color": "#1a1a2e" }, "theme": "light" },
+    { "label": "Black, tight", "values": { "text": "Bold&Co", "weight": 900, "tracking": -2, "size": 180, "color": "#111111" }, "theme": "light" },
+    { "label": "Mono reverse", "values": { "text": "lolly.tools", "font": "mono", "weight": 500, "tracking": 4, "size": 120, "color": "#ffffff" }, "theme": "dark" }
+  ],
+  "render": {
+    "width": 1200,
+    "height": 400,
+    "formats": ["svg", "penpot", "emf", "eps", "eps-cmyk", "dxf", "pdf", "pdf-cmyk", "cmyk-tiff", "tiff", "png", "jpeg", "webp", "avif"],
+    "actions": ["copy", "download", "save"],
+    "transparentBg": true
+  },
+  "inputs": [
+    {
+      "id": "text",
+      "label": "Text",
+      "type": "text",
+      "required": true,
+      "default": "Wordmark",
+      "maxLength": 120
+    },
+    {
+      "id": "font",
+      "label": "Font",
+      "type": "select",
+      "default": "brand",
+      "options": [
+        { "value": "brand", "label": "Brand font" },
+        { "value": "mono", "label": "Mono font" }
+      ]
+    },
+    {
+      "id": "weight",
+      "label": "Weight",
+      "type": "number",
+      "display": "slider",
+      "default": 600,
+      "min": 100,
+      "max": 900,
+      "step": 100
+    },
+    {
+      "id": "tracking",
+      "label": "Tracking",
+      "type": "number",
+      "default": 0,
+      "min": -20,
+      "max": 60,
+      "step": 1,
+      "help": "Letter-spacing in px at the set size."
+    },
+    {
+      "id": "size",
+      "label": "Size",
+      "type": "number",
+      "default": 160,
+      "min": 40,
+      "max": 400,
+      "step": 10,
+      "help": "Font size the outlines are shaped at - tracking is relative to this."
+    },
+    {
+      "id": "color",
+      "label": "Colour",
+      "type": "color",
+      "default": "{color.semantic.text}"
+    },
+    {
+      "id": "features",
+      "label": "OpenType features",
+      "type": "select",
+      "default": "none",
+      "options": [
+        { "value": "none", "label": "Standard" },
+        { "value": "liga-off", "label": "No ligatures" },
+        { "value": "salt", "label": "Stylistic alternates" }
+      ]
+    }
+  ],
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  }
+}

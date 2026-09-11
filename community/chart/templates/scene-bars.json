@@ -1,0 +1,36 @@
+{
+  "id": "scene-bars",
+  "name": "Studio 3-D bars",
+  "category": "3-D",
+  "description": "Real depth, lighting and camera motion for a multi-series comparison.",
+  "values": {
+    "renderMode": "scene",
+    "chartType": "bar",
+    "sceneType": "bar3d",
+    "chartStyle": "studio-3d",
+    "data": "Team,First wave,Second wave,Final wave\nDesign,42,51,63\nEngineering,58,66,74\nSales,33,47,59\nSupport,27,39,52",
+    "heading": "Responses by team and wave",
+    "motionPreset": "reveal-orbit",
+    "cameraProjection": "perspective",
+    "showLegend": true
+  },
+  "presets": [
+    {
+      "id": "glass",
+      "name": "Glass",
+      "description": "Use translucent brand-tinted materials.",
+      "values": {
+        "chartStyle": "glass-3d"
+      }
+    },
+    {
+      "id": "orthographic",
+      "name": "Orthographic",
+      "description": "Remove perspective distortion for direct comparison.",
+      "values": {
+        "cameraProjection": "orthographic",
+        "motionPreset": "reveal"
+      }
+    }
+  ]
+}

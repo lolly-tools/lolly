@@ -1,0 +1,7 @@
+{
+  "name": "숨겨진 데이터 제거",
+  "description": "이미지와 PDF에서 숨겨진 메타데이터를 확인하고 제거하세요 - 기기 내에서 처리됩니다.",
+  "a11yLabel": "{{fileName}}의 숨겨진 데이터 보고서",
+  "inputs.source.label": "이미지 또는 PDF",
+  "inputs.source.help": "JPEG, PNG, SVG 또는 PDF 파일이에요. 브라우저에서 읽히며 기기 밖으로 나가지 않아요."
+}

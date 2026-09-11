@@ -1,0 +1,4 @@
+{
+  "name": "Photo spatiale",
+  "description": "Dépose une photo et déplace une caméra à travers elle : la profondeur est analysée sur ton appareil, si bien qu'une image plate devient une scène avec une vraie parallaxe, de l'atmosphère et une vraie mise au point."
+}

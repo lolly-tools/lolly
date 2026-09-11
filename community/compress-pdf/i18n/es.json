@@ -1,0 +1,14 @@
+{
+  "name": "Compress",
+  "description": "Reduce el tamaño de un PDF recomprimiendo sus imágenes - en tu dispositivo.",
+  "a11yLabel": "Compresor de PDF para {{fileName}}",
+  "inputs.source.label": "PDF",
+  "inputs.source.help": "Un archivo PDF. Se lee en tu navegador y nunca sale de tu dispositivo.",
+  "inputs.level.label": "Compresión",
+  "inputs.level.help": "Cuánto comprimir las imágenes incrustadas. Cuanto más fuerte, más pequeños los archivos y más suaves las imágenes.",
+  "inputs.level.options.light": "Ligera - mantiene la calidad alta",
+  "inputs.level.options.balanced": "Equilibrada",
+  "inputs.level.options.strong": "Fuerte - el archivo más pequeño",
+  "inputs.grayscale.label": "Convertir imágenes a escala de grises",
+  "inputs.grayscale.help": "Elimina el color de las imágenes para un ahorro extra, útil para documentos de texto escaneados."
+}

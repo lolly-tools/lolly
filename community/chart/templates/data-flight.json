@@ -1,0 +1,46 @@
+{
+  "id": "data-flight",
+  "name": "Fly through the values",
+  "category": "Cinematic",
+  "description": "Turn an ordered series into a camera route: values drive altitude while category order drives the journey.",
+  "values": {
+    "renderMode": "cinematic",
+    "cinematicType": "flythrough3d",
+    "chartType": "line",
+    "sceneMaterial": "gloss",
+    "data": "Chapter,Demand,Capacity\nArrival,24,35\nDiscovery,39,42\nFirst peak,68,51\nCorrection,45,58\nAcceleration,81,64\nPlateau,73,70\nBreakthrough,96,78\nLanding,84,86",
+    "heading": "Fly through the demand story",
+    "subheading": "The camera altitude follows Demand; Capacity remains visible beside it",
+    "flightSeries": "Demand",
+    "flightHeight": 0.7,
+    "flightLookAhead": 1.35,
+    "flightBank": 12,
+    "flightFov": 58,
+    "animSpeed": 0.85,
+    "showLegend": true,
+    "showGrid": false
+  },
+  "presets": [
+    {
+      "id": "calm",
+      "name": "Calm overview",
+      "description": "Rise above the route, look further ahead and use a narrower editorial lens.",
+      "values": {
+        "flightHeight": 1.45,
+        "flightLookAhead": 2.8,
+        "flightBank": 4,
+        "flightFov": 40,
+        "animSpeed": 1.2
+      }
+    },
+    {
+      "id": "capacity",
+      "name": "Follow capacity",
+      "description": "Keep the scene but move the point of view onto the second series.",
+      "values": {
+        "flightSeries": "Capacity",
+        "heading": "Capacity catches the demand curve"
+      }
+    }
+  ]
+}

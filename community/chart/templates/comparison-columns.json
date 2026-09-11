@@ -1,0 +1,29 @@
+{
+  "id": "comparison-columns",
+  "name": "Comparison columns",
+  "category": "Bars",
+  "description": "Single series columns ranking five options side by side.",
+  "values": {
+    "chartType": "bar",
+    "data": "Option,Score\nProduct A,78\nProduct B,64\nProduct C,57\nProduct D,49\nProduct E,36",
+    "colorBy": "category",
+    "heading": "Evaluation scores",
+    "showValues": true,
+    "showLegend": false,
+    "cornerRadius": 4
+  },
+  "presets": [
+    {
+      "id": "ranked-horizontal",
+      "name": "Ranked horizontal",
+      "description": "Sideways bars sorted from highest to lowest.",
+      "values": { "chartType": "bar-horizontal", "sort": "desc" }
+    },
+    {
+      "id": "lollipop",
+      "name": "Lollipop",
+      "description": "A lighter lollipop look for the same ranking.",
+      "values": { "chartType": "lollipop" }
+    }
+  ]
+}

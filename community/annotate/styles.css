@@ -1,0 +1,306 @@
+/* Annotate - a workspace, not a poster. The chrome follows the app's core theme
+   switcher (light / dark / suse) exactly as redact's does: every hue is an app
+   design token on <html data-theme> (tokens.css), which inherits into the scoped
+   tool canvas, with a light-theme fallback so the sheet stays valid in a shell
+   that ships no tokens. The DRAWING takes none of its colour from here - the
+   marks are painted from the `accent` input, resolved in hooks.js with its own
+   literal fallback, so the preview and the downloaded file can never disagree
+   about a colour. */
+.an {
+  --an-bg:    var(--background, 0 0% 98%);
+  --an-fg:    var(--foreground, 224 71% 4%);
+  --an-muted: var(--muted-foreground, 215 20% 38%);
+  --an-card:  var(--card, 0 0% 100%);
+  --an-bd:    var(--border, 214 28% 84%);
+  --an-fill:  var(--muted, 210 40% 96%);
+  --an-brand: var(--primary, 171 62% 12%);
+  --an-brandfg: var(--primary-foreground, 0 0% 100%);
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  display: flex;
+  box-sizing: border-box;
+  padding: 16px;
+  font-family: var(--font-brand, "SUSE", ui-sans-serif, system-ui, sans-serif);
+  color: hsl(var(--an-fg));
+  background: hsl(var(--an-bg));
+}
+
+.an-stage {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  gap: 10px;
+}
+
+/* ── Docks ── */
+.an-dock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.an-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.an-file {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.an-size { color: hsl(var(--an-muted)); }
+
+.an-pick {
+  margin-left: auto;
+  flex: 0 0 auto;
+  padding: 5px 12px;
+  border: 1px solid hsl(var(--an-bd));
+  border-radius: 999px;
+  background: hsl(var(--an-card));
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.an-pick:hover { background: hsl(var(--an-fill)); }
+
+.an-rail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.an-rail-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid hsl(var(--an-bd));
+  border-radius: 10px;
+  background: hsl(var(--an-card));
+}
+.an-rail-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+.an-rail-btn svg { width: 16px; height: 16px; }
+.an-rail-btn:hover { background: hsl(var(--an-fill)); }
+.an-rail-btn[aria-pressed="true"] {
+  background: hsl(var(--an-brand));
+  color: hsl(var(--an-brandfg));
+}
+.an-rail-btn.is-busy { color: hsl(var(--an-muted)); }
+
+/* ── Viewport ── */
+.an-viewport {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The frame IS the picture's box: `aspect-ratio` comes from the loaded file's
+   own pixels (hooks.js), so the overlay, the handles and the exported file all
+   describe one rectangle.
+
+   That rectangle has to hold on BOTH axes, because the handles layer and the
+   pointer-to-percent maths both measure against this box while the picture
+   itself letterboxes inside it. `max-height` cannot do it: a clamped height
+   with the width still at 100% is exactly the case where CSS drops the ratio,
+   and every mark on a tall screenshot would then sit somewhere the person did
+   not put it. So the WIDTH is capped instead, to the height the viewport can
+   actually give times the picture's own ratio - both published by the tool
+   (--an-frameview from the canvas script, --an-ar from the hook), because CSS
+   cannot read a parent's height. With no script channel the fallback stands
+   and the frame is simply a little smaller. */
+.an-frame {
+  position: relative;
+  width: min(100%, calc(var(--an-frameview, 520px) * var(--an-ar, 1.6)));
+  max-width: 100%;
+  align-self: center;
+  border-radius: 6px;
+  overflow: hidden;
+  background: hsl(var(--an-fill));
+  box-shadow: 0 1px 3px hsl(var(--an-fg) / 0.14);
+  touch-action: none;
+  cursor: crosshair;
+}
+.an-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* The overlay the hook built. Never takes the pointer: the frame owns drawing
+   and the handles layer owns the controls. */
+.an-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+/* Type follows the ACTIVE BRAND: the chrome vars are derived from the brand's
+   font tokens (brand-vars.ts), so a callout renders in that brand's face. The
+   font-family attributes inside the SVG stay as the standalone fallback, which
+   is what the exported file is rasterised with. */
+.an-svg text {
+  font-family: var(--font-brand, "SUSE", ui-sans-serif, system-ui, sans-serif);
+}
+
+/* ── Handles: the workspace, never the drawing ── */
+.an-handles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.an-hit {
+  position: absolute;
+  pointer-events: auto;
+  cursor: move;
+  border-radius: 3px;
+}
+.an-hit:hover { box-shadow: 0 0 0 1px hsl(var(--an-brand) / 0.55); }
+
+.an-del,
+.an-grip {
+  position: absolute;
+  pointer-events: auto;
+  padding: 0;
+  border: 1px solid hsl(var(--an-card));
+  background: hsl(var(--an-fg));
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+.an-del {
+  top: -9px;
+  right: -9px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+.an-del::before,
+.an-del::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 7.5px;
+  width: 10px;
+  height: 2px;
+  background: hsl(var(--an-card));
+}
+.an-del::before { transform: rotate(45deg); }
+.an-del::after { transform: rotate(-45deg); }
+.an-grip {
+  right: -7px;
+  bottom: -7px;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  cursor: nwse-resize;
+}
+.an-hit:hover .an-del,
+.an-hit:hover .an-grip,
+.an-del:focus-visible,
+.an-grip:focus-visible { opacity: 1; }
+
+/* A suggested text line. Dotted, never dashed - this app reserves dashed
+   borders for drop areas - and visibly unlike a mark, because it is not one
+   until somebody clicks it. */
+.an-anchor {
+  position: absolute;
+  pointer-events: auto;
+  padding: 0;
+  border: 2px dotted hsl(var(--an-brand) / 0.85);
+  border-radius: 3px;
+  background: hsl(var(--an-brand) / 0.08);
+  cursor: copy;
+}
+.an-anchor:hover { background: hsl(var(--an-brand) / 0.2); }
+
+/* Live feedback during a drag. Removed on release; the committed mark is drawn
+   by the overlay. */
+.an-draft {
+  position: absolute;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+  pointer-events: none;
+}
+.an-draft-line {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* ── Bottom dock ── */
+.an-hint,
+.an-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: hsl(var(--an-muted));
+}
+.an-note { color: hsl(var(--an-fg)); }
+
+.an-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.an-download {
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: hsl(var(--an-brand));
+  color: hsl(var(--an-brandfg));
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.an-download:hover { filter: brightness(1.08); }
+.an-download[disabled] {
+  background: hsl(var(--an-fill));
+  color: hsl(var(--an-muted));
+  cursor: default;
+  filter: none;
+}
+.an-download.is-busy { opacity: 0.7; cursor: progress; }
+.an-download.is-error { background: hsl(var(--destructive, 0 72% 51%)); }
+.an-privacy {
+  font-size: 12px;
+  color: hsl(var(--an-muted));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .an-del,
+  .an-grip { transition: none; }
+}

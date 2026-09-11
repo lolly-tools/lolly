@@ -1,0 +1,206 @@
+/* Stationery.
+   One layout per piece, all of them sized in container units against the piece
+   itself - so an 85 x 55 mm card and an A4 letterhead keep the same proportions
+   whatever pixel size the canvas happens to be previewing at, and the print PDF
+   is the same drawing at its real trim.
+
+   Every colour arrives as a custom property the template sets from the hook's
+   resolved set, so a brand with no tokens still paints: the fallbacks below are
+   the literals the hook falls back to. Brand-agnostic throughout - the type
+   follows the active brand through --font-brand. */
+
+.st-piece {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  container-type: size;
+  box-sizing: border-box;
+  background: var(--st-paper, #ffffff);
+  color: var(--st-ink, #17232b);
+  font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
+}
+
+.st-piece *,
+.st-piece *::before,
+.st-piece *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.st-piece ul { list-style: none; }
+
+/* The accent bar along the bottom edge - the one piece of furniture every
+   item in the set shares, so a card and a letterhead read as one family. */
+.st-edge {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--st-accent, #1f5f52);
+}
+
+.st-logo {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: left center;
+}
+
+/* The stand-in when the brand ships no logo asset: the company set as a
+   wordmark in the brand face. */
+.st-wordmark {
+  display: block;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.015em;
+}
+
+.st-name { font-weight: 600; line-height: 1.15; }
+.st-role { color: var(--st-muted, #6b7780); line-height: 1.25; }
+.st-error {
+  padding: 8cqmin;
+  color: var(--st-muted, #6b7780);
+  font-size: 4cqmin;
+  line-height: 1.4;
+}
+
+/* ── Business card, front ─────────────────────────────────────────────────── */
+
+.st-card-inner {
+  position: absolute;
+  inset: 0;
+  padding: 10cqmin 10cqmin 14cqmin;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6cqmin;
+}
+
+.st-card .st-logo { max-height: 14.5cqmin; }
+.st-card .st-wordmark { font-size: 9cqmin; }
+
+.st-foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 6cqmin;
+}
+
+.st-card .st-name { font-size: 8cqmin; }
+.st-card .st-role { font-size: 5.3cqmin; margin-top: 1.4cqmin; }
+
+.st-contact {
+  text-align: right;
+  font-size: 4.9cqmin;
+  line-height: 1.45;
+  white-space: nowrap;
+}
+
+.st-card .st-edge { height: 4.4cqmin; }
+
+/* ── Business card, back ──────────────────────────────────────────────────── */
+
+.st-back-inner {
+  position: absolute;
+  inset: 0;
+  padding: 10cqmin 10cqmin 14cqmin;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5cqmin;
+  text-align: center;
+}
+
+.st-back .st-logo {
+  max-height: 18cqmin;
+  object-position: center;
+  margin: 0 auto;
+}
+
+.st-back .st-wordmark { font-size: 11cqmin; }
+
+/* The back IS the accent field, so the shared edge bar would only be a strip of
+   ink across it. */
+.st-back .st-edge { display: none; }
+
+.st-tagline {
+  font-size: 5cqmin;
+  line-height: 1.35;
+  max-width: 74%;
+  color: var(--st-muted, #6b7780);
+}
+
+/* ── Letterhead and compliments slip share the sheet frame ────────────────── */
+
+.st-sheet {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.st-footer { margin-top: auto; }
+
+.st-footline {
+  border-top: 0.12cqmin solid var(--st-rule, #dde2e5);
+  color: var(--st-muted, #6b7780);
+  line-height: 1.4;
+}
+
+/* ── Letterhead ───────────────────────────────────────────────────────────── */
+
+.st-letterhead .st-sheet { padding: 7.6cqmin 8.6cqmin 5.4cqmin; }
+
+.st-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 4cqmin;
+}
+
+.st-head-right { text-align: right; }
+
+.st-letterhead .st-logo { max-height: 6.2cqmin; }
+.st-letterhead .st-wordmark { font-size: 3.3cqmin; }
+.st-letterhead .st-name { font-size: 1.62cqmin; }
+.st-letterhead .st-role { font-size: 1.43cqmin; margin-top: 0.3cqmin; }
+
+.st-body {
+  margin-top: 9cqmin;
+  font-size: 1.76cqmin;
+  line-height: 1.62;
+  max-width: 62ch;
+}
+
+.st-body p { margin-bottom: 1.4em; }
+.st-body p:last-child { margin-bottom: 0; }
+.st-body ul { list-style: disc; padding-left: 1.4em; margin-bottom: 1.4em; }
+.st-body li { margin-bottom: 0.35em; }
+.st-body strong { font-weight: 600; }
+
+.st-letterhead .st-footline { padding-top: 1.6cqmin; font-size: 1.24cqmin; }
+.st-letterhead .st-edge { height: 0.86cqmin; }
+
+/* ── Compliments slip ─────────────────────────────────────────────────────── */
+
+.st-slip-inner { padding: 12.1cqmin 12.1cqmin 8cqmin; }
+
+.st-slip .st-logo { max-height: 11.1cqmin; }
+.st-slip .st-wordmark { font-size: 6.1cqmin; }
+
+.st-compliments {
+  margin-top: 6cqmin;
+  font-size: 7.6cqmin;
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  max-width: 70%;
+}
+
+.st-slip .st-footline { padding-top: 2.4cqmin; font-size: 2.7cqmin; }
+.st-slip .st-edge { height: 2.2cqmin; }

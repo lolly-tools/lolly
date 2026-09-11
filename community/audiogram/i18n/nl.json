@@ -1,0 +1,22 @@
+{
+  "name": "Audiogram",
+  "description": "Maak van een spraakclip of nummer een branded video die echt meebeweegt met het geluid - balken, spectrum, ring, ridgeline of scope, klaar voor social.",
+  "a11yLabel": "Audiogramkaart voor {{default title \"an audio clip\"}} met een geanimeerde golfvorm",
+  "inputs.audio.label": "Audio",
+  "inputs.audio.help": "Kies een track uit je bibliotheek of upload een clip. Deze wordt op je apparaat gedecodeerd om de golfvorm te tekenen - de audio verlaat de browser nooit. Laat leeg voor een tijdelijke golfvorm. Om het te horen in de export, kies \"Audio van deze tool\" als Audiotrack in de downloadopties.",
+  "inputs.title.label": "Titel",
+  "inputs.title.help": "De kop op de kaart - de naam van een aflevering of een pull-quote.",
+  "inputs.subtitle.label": "Ondertitel",
+  "inputs.subtitle.help": "Een kleinere regel onder de titel - naam van de show, gast of waar te luisteren.",
+  "inputs.style.label": "Golfvormstijl",
+  "inputs.style.options.bars": "Balken",
+  "inputs.style.options.wave": "Golf",
+  "inputs.style.options.ring": "Ring",
+  "inputs.size.label": "Grootte",
+  "inputs.size.options.square": "Vierkant (1:1)",
+  "inputs.size.options.wide": "Breed (16:9)",
+  "inputs.size.options.story": "Story (9:16)",
+  "inputs.accent.label": "Golfvormkleur",
+  "inputs.ink.label": "Tekstkleur",
+  "inputs.bg.label": "Achtergrond"
+}

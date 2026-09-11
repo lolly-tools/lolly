@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "リンク、連絡先カード、Wi-Fiネットワーク、カレンダーの予定、位置情報、プレーンテキストのQRコードを作成します。",
+  "a11yLabel": "{{default url \"(no URL set)\"}} にリンクするQRコード",
+  "featured.blurb": "ブランドカラーでQRコードを作成",
+  "inputs.url.label": "URL",
+  "inputs.color.label": "モジュールの色",
+  "inputs.background.label": "背景",
+  "inputs.ecl.label": "誤り訂正レベル",
+  "inputs.ecl.options.L": "低 (7%)",
+  "inputs.ecl.options.M": "中 (15%)",
+  "inputs.ecl.options.Q": "高 (25%)",
+  "inputs.ecl.options.H": "最高 (30%)",
+  "inputs.padding.label": "クワイエットゾーン",
+  "inputs.padding.help": "コードの周囲の余白のモジュール数です。最小4を推奨します。",
+  "inputs.join.label": "モジュールの結合",
+  "inputs.join.help": "すべてのモジュールを1つのSVGパスに統合します。小さいサイズでよりくっきり表示されます。"
+}

@@ -1,0 +1,66 @@
+{
+  "id": "global-webinar",
+  "name": "Global webinar",
+  "category": "Timezone",
+  "description": "An invitation with local times for a global audience.",
+  "values": {
+    "heading": "Ideas without borders.",
+    "eyebrow": "THE GLOBAL WEBINAR",
+    "annotation": "A conversation that travels with you.",
+    "footer": "Save your place \u2192",
+    "timeMode": "now",
+    "eventTime": "",
+    "referenceZone": "Europe/London",
+    "ambiguity": "earlier",
+    "eventMinutes": 60,
+    "clockStyle": "24",
+    "locations": [
+      {
+        "label": "London",
+        "place": "Europe/London",
+        "annotation": "EMEA \u00b7 Studio",
+        "color": "",
+        "spread": true
+      },
+      {
+        "label": "New York",
+        "place": "America/New_York",
+        "annotation": "Americas \u00b7 Live",
+        "color": "",
+        "spread": true
+      },
+      {
+        "label": "Singapore",
+        "place": "Asia/Singapore",
+        "annotation": "APAC \u00b7 Connect",
+        "color": "",
+        "spread": true
+      }
+    ],
+    "renderer": "webgl",
+    "projection": "globe",
+    "unfold": 1,
+    "view": "15,22,0,1",
+    "fov": 40,
+    "tilt": 0,
+    "showGrid": true,
+    "showBorders": true,
+    "showNight": true,
+    "showLabels": true,
+    "showConnections": true,
+    "regionOpacity": 0.45,
+    "theme": "midnight",
+    "accent": "{color.semantic.primary}",
+    "background": "",
+    "ink": "",
+    "titleSize": 68,
+    "titleWeight": 500,
+    "labelSize": 15,
+    "mapScale": 1,
+    "motion": "still",
+    "duration": 12,
+    "tourHold": 0.35,
+    "composition": "artwork",
+    "mapFit": "width"
+  }
+}

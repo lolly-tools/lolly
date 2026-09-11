@@ -1,0 +1,544 @@
+<div class="lolly3d-wrap" data-lolly-anno="{{scene}} {{background}} {{bgColor2}} {{cameraMove}} {{easing}} {{tint}}">
+  <canvas class="lolly3d-canvas" id="lolly3d-canvas" data-canvas-input="model" data-capture-stream></canvas>
+</div>
+<script type="application/json" id="lolly3d-state">{{{_state}}}</script>
+<script>
+(function () {
+  /* Idempotent per-paint IIFE - the template re-runs on EVERY paint (see the
+     'Template script IIFE required' invariant). An epoch guard drops stale async
+     callbacks from a prior paint; the previous renderer is disposed so we never
+     leak GPU devices or WebGL contexts (browsers cap ~16). Mirrors tools/chart/template.html. */
+  window.__lolly3dEpoch = (window.__lolly3dEpoch || 0) + 1;
+  var EP = window.__lolly3dEpoch;
+  function alive() { return window.__lolly3dEpoch === EP; }
+
+  var canvas = document.getElementById('lolly3d-canvas');
+  var stateEl = document.getElementById('lolly3d-state');
+  if (!canvas || !stateEl) return;
+  var cfg; try { cfg = JSON.parse(stateEl.textContent || '{}'); } catch (e) { return; }
+  if (!cfg || !cfg.modelUrl) return;
+
+  /* Async readiness handshake: tell the export path to WAIT until the model is
+     loaded and the first frame is drawn, else it snapshots a blank canvas. */
+  window.__toolHasReadySignal = true;
+  var readyFired = false;
+  function fireReady() {
+    if (readyFired) return; readyFired = true;
+    try { document.dispatchEvent(new CustomEvent('tool:ready')); } catch (e) {}
+  }
+
+  /* Tear down the renderer from the previous paint (its <canvas> was just
+     replaced by the innerHTML swap, so its GL context is orphaned). */
+  if (window.__lolly3d && typeof window.__lolly3d.dispose === 'function') {
+    try { window.__lolly3d.dispose(); } catch (e) {}
+    window.__lolly3d = null;
+  }
+
+  function message(txt) {
+    var w = canvas && canvas.parentNode;
+    if (w) { var d = document.createElement('div'); d.className = 'lolly3d-msg'; d.textContent = txt; w.appendChild(d); }
+  }
+
+  var LIB = '/tools/3d/lib/three.min.js';
+  function loadThree() {
+    if (window.LollyThree) return Promise.resolve(window.LollyThree);
+    window.__lolly3dLoading = window.__lolly3dLoading || new Promise(function (res, rej) {
+      var s = document.createElement('script');
+      s.src = LIB;
+      s.onload = function () { res(window.LollyThree); };
+      s.onerror = function () { s.remove(); window.__lolly3dLoading = null; rej(new Error('three load failed')); };
+      document.head.appendChild(s);
+    });
+    return window.__lolly3dLoading;
+  }
+
+  loadThree().then(function (THREE) {
+    if (!alive()) return;
+    if (!THREE || !THREE.WebGPURenderer) { message('3D library failed to load.'); fireReady(); return; }
+    start(THREE).catch(function (err) {
+      if (!alive()) return;
+      console.error('[3d] init error:', err); message(String(err && err.message || err)); fireReady();
+    });
+  }).catch(function (e) { console.error('[3d]', e); message('3D library failed to load.'); fireReady(); });
+
+  // ---- easing + progress helpers -------------------------------------------
+  function easeInOut(p) { return p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; }
+  function ease(p, kind) { return kind === 'linear' ? p : easeInOut(Math.max(0, Math.min(1, p))); }
+  function pingpong(p) { var t = (p % 1) * 2; return t > 1 ? 2 - t : t; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function d2r(d) { return d * Math.PI / 180; }
+
+  // ---- GPU backend ----------------------------------------------------------
+  // One renderer, two backends: WebGPU where the browser hands out an adapter,
+  // else the same renderer's WebGL 2 backend. The probe is a rung on the
+  // capability ladder - a browser that ships WebGPU later upgrades this tool with
+  // no change here, and nothing downstream can tell which backend painted.
+  function probeWebGPU() {
+    try {
+      if (!navigator.gpu || typeof navigator.gpu.requestAdapter !== 'function') return Promise.resolve(false);
+      return navigator.gpu.requestAdapter().then(function (a) { return !!a; }, function () { return false; });
+    } catch (e) { return Promise.resolve(false); }
+  }
+  function createRenderer(THREE, target, forceWebGL) {
+    var r = new THREE.WebGPURenderer({ canvas: target, antialias: true, alpha: true, forceWebGL: forceWebGL });
+    return r.init().then(function () { return r; });
+  }
+
+  function start(THREE) {
+    var W = cfg.width, H = cfg.height;
+
+    // The visible <canvas> is a plain 2D surface. The GPU renders into a detached
+    // scratch canvas and every frame is drawn onto this one (present() below), so
+    // each export reader - dom-to-image, the SVG walker, the frame-clock fast path,
+    // captureStream - reads a 2D canvas that always holds the last frame. That is
+    // what makes WebGPU exportable: a WebGPU canvas is cleared once its frame is
+    // presented and has no preserveDrawingBuffer, so reading it later gives blank
+    // pixels. A drawImage in the same task as the render reads the frame before
+    // that happens, and the WebGL 2 backend needs no preserveDrawingBuffer either.
+    canvas.width = W; canvas.height = H;
+    var ctx2d = canvas.getContext('2d');
+    if (!ctx2d) throw new Error('2D canvas unavailable');
+    var gpuCanvas = document.createElement('canvas');
+    gpuCanvas.width = W; gpuCanvas.height = H;
+
+    return probeWebGPU().then(function (hasWebGPU) {
+      if (!alive()) return null;
+      return createRenderer(THREE, gpuCanvas, !hasWebGPU).catch(function (err) {
+        if (!hasWebGPU) throw err;
+        // An adapter that exists but gives no device (lost, blocklisted, out of
+        // memory): fall back rather than fail. A fresh scratch canvas, since the
+        // failed attempt may have claimed the first one's context.
+        console.warn('[3d] WebGPU init failed, using WebGL 2:', err && err.message || err);
+        gpuCanvas = document.createElement('canvas'); gpuCanvas.width = W; gpuCanvas.height = H;
+        return createRenderer(THREE, gpuCanvas, true);
+      });
+    }).then(function (renderer) {
+      if (!renderer) return;
+      if (!alive()) { try { renderer.dispose(); } catch (e) {} return; }
+      scene3d(THREE, renderer, gpuCanvas, ctx2d, W, H);
+    });
+  }
+
+  function scene3d(THREE, renderer, gpuCanvas, ctx2d, W, H) {
+    // Inspectable and testable: which backend painted this paint.
+    canvas.setAttribute('data-backend', renderer.backend && renderer.backend.isWebGPUBackend ? 'webgpu' : 'webgl2');
+    renderer.setPixelRatio(1);            // backing store == export resolution, deterministic
+    renderer.setSize(W, H, false);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = cfg.exposure;
+    if ('outputColorSpace' in renderer) renderer.outputColorSpace = THREE.SRGBColorSpace;
+    if (cfg.shadows) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
+
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(cfg.camera.fov, W / H, 0.01, 1000);
+
+    // Environment (image-based lighting) - RoomEnvironment is a built-in neutral
+    // studio, so no external HDR file ships (offline + light). Rotatable + scaled.
+    var pmrem = new THREE.PMREMGenerator(renderer);
+    var envTex = pmrem.fromScene(new THREE.RoomEnvironment(), 0.04).texture;
+    scene.environment = envTex;
+    if ('environmentIntensity' in scene) scene.environmentIntensity = cfg.envIntensity;
+    if ('environmentRotation' in scene) scene.environmentRotation = new THREE.Euler(0, d2r(cfg.envRotation), 0);
+
+    applyScene(THREE, scene, cfg, renderer);
+
+    var mixer = null, raf = 0, disposed = false;
+    var clock = new THREE.Clock();
+    var frame = { size: 1, center: new THREE.Vector3(), fitDist: 4 };
+
+    // Free-form pose group + its live setter. The centred model hangs under this
+    // pivot (created on load); applyPose writes the current transform onto it so both
+    // the initial render and a canvas drag go through one place. Identity values
+    // (0/0/0, 0/0/0, ×1) leave the auto-framed placement byte-for-byte unchanged.
+    var poseGroup = null, dragFreezeT = null;
+    function applyPose(t) {
+      if (!poseGroup) return;
+      poseGroup.rotation.set(d2r(t.pitch || 0), d2r(t.yaw || 0), d2r(t.tilt || 0));
+      poseGroup.position.set(
+        frame.center.x + (t.tx || 0) * frame.size,
+        frame.center.y + (t.ty || 0) * frame.size,
+        frame.center.z + (t.tz || 0) * frame.size
+      );
+      poseGroup.scale.setScalar(Math.max(0.01, t.scale || 1));
+    }
+
+    var loader = new THREE.GLTFLoader();
+    loader.load(cfg.modelUrl, function (gltf) {
+      if (!alive() || disposed) return;
+      var model = gltf.scene || (gltf.scenes && gltf.scenes[0]);
+      if (!model) { message('Model has no scene.'); fireReady(); return; }
+
+      // Frame: centre horizontally, rest the base on y=0 (for the contact shadow).
+      var box = new THREE.Box3().setFromObject(model);
+      if (box.isEmpty()) { message('Model has no visible geometry.'); fireReady(); return; }
+      var size = new THREE.Vector3(); box.getSize(size);
+      var center = new THREE.Vector3(); box.getCenter(center);
+      model.position.x -= center.x;
+      model.position.z -= center.z;
+      model.position.y -= box.min.y;
+      frame.size = Math.max(size.x, size.y, size.z) || 1;
+      frame.center = new THREE.Vector3(0, size.y / 2, 0);
+      // Distance so the model fits the vertical FOV, with headroom.
+      frame.fitDist = (frame.size * 0.5) / Math.tan(d2r(cfg.camera.fov) / 2) * 1.6;
+
+      if (cfg.applyTint) tintModel(THREE, model, cfg.tint);
+      if (cfg.shadows) { model.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); }
+
+      // Re-parent the centred model under the pose pivot at its visual centre, so
+      // pitch/yaw/tilt + scale act about the middle (not the floor). applyPose then
+      // writes the current transform; a canvas drag re-drives it live (wired below).
+      var pivot = new THREE.Group();
+      pivot.rotation.order = 'YXZ';          // yaw, then pitch, then tilt(roll) - intuitive posing
+      model.position.y -= frame.center.y;    // model centre → pivot local origin (x/z already centred)
+      pivot.add(model);
+      scene.add(pivot);
+      poseGroup = pivot;
+      applyPose(cfg.transform || {});
+
+      if (cfg.shadows) {
+        addGround(THREE, scene, frame);
+        // Fit each shadow-casting light's ortho frustum to the model, so shadows
+        // don't clip/vanish for uploads whose world scale isn't ~O(1) (default is ±5).
+        scene.traverse(function (o) {
+          if (o.isDirectionalLight && o.castShadow) {
+            var s = o.shadow.camera, r = frame.size * 1.6;
+            s.left = -r; s.right = r; s.top = r; s.bottom = -r;
+            s.near = 0.01; s.far = frame.size * 24; s.updateProjectionMatrix();
+          }
+        });
+      }
+
+      // Model's own baked clip (independent of the camera move). Hidden gracefully
+      // when the model has none - the mixer just isn't created.
+      if (cfg.playClip && gltf.animations && gltf.animations.length) {
+        mixer = new THREE.AnimationMixer(model);
+        var clip = gltf.animations[cfg.clipIndex % gltf.animations.length];
+        if (clip) mixer.clipAction(clip).play();
+      }
+
+      // Build the pipelines first (WebGPU compiles one per material, and a sync
+      // compile inside the first frame stalls the page), then one SYNC frame -
+      // headless/hidden-tab rAF may never fire - and the ready signal.
+      renderer.compileAsync(scene, camera).catch(function (e) {
+        console.warn('[3d] pipeline compile:', e && e.message || e);
+      }).then(function () {
+        if (!alive() || disposed) return;
+        renderFrame(0);
+        fireReady();
+        if (!disposed) loop();
+      });
+    }, undefined, function (err) {
+      console.error('[3d] model load failed:', err);
+      message('Could not load the model.'); fireReady();
+    });
+
+    // Camera pose at elapsed time t (seconds) from the base pose + the chosen move.
+    function poseAt(t) {
+      var b = cfg.camera;
+      var azi = b.rotation, elev = b.tilt, zoom = b.zoom, pan = b.pan, fov = b.fov;
+      var dur = cfg.duration, p = dur > 0 ? t / dur : 0;
+      var mv = cfg.cameraMove;
+      if (mv === 'orbit') {
+        azi = b.rotation + (cfg.loop ? (t / dur) * 360 : ease(Math.min(1, p), cfg.easing) * 360);
+      } else if (mv === 'arc') {
+        var ph = cfg.loop ? pingpong(p) : ease(Math.min(1, p), cfg.easing);
+        azi = b.rotation + (ph - 0.5) * 90;
+      } else if (mv === 'dolly-in' || mv === 'push-in') {
+        var pin = cfg.loop ? pingpong(p) : ease(Math.min(1, p), cfg.easing);
+        zoom = lerp(b.zoom * 0.6, b.zoom * (mv === 'push-in' ? 1.35 : 1.2), pin);
+        if (mv === 'push-in') fov = lerp(b.fov * 1.15, b.fov * 0.9, pin);
+      } else if (mv === 'dolly-out') {
+        var pout = cfg.loop ? pingpong(p) : ease(Math.min(1, p), cfg.easing);
+        zoom = lerp(b.zoom * 1.2, b.zoom * 0.6, pout);
+      } else if (mv === 'custom' && cfg.keyframes.length) {
+        // Ping-pong when looping (play forward then back) so there is no snap at the
+        // seam; keyframes are pre-sorted by time in hooks.js so the span is >= 0.
+        var span = kfSpan(cfg.keyframes) || dur;
+        var local = cfg.loop ? pingpong(span > 0 ? t / span : 0) * span : t;
+        var kf = sampleKeyframes(cfg.keyframes, local);
+        azi = kf.rotation; elev = kf.tilt; zoom = kf.zoom; pan = kf.pan; fov = kf.fov;
+      }
+      return { azi: azi, elev: elev, zoom: Math.max(0.1, zoom), pan: pan, fov: fov };
+    }
+
+    // Blit the finished GPU frame onto the visible 2D canvas - same task as the
+    // render, before the GPU canvas presents and clears.
+    function present() { ctx2d.clearRect(0, 0, W, H); ctx2d.drawImage(gpuCanvas, 0, 0); }
+
+    function renderFrame(t) {
+      var q = poseAt(t);
+      var target = new THREE.Vector3(q.pan * frame.size * 0.5, frame.center.y, 0);
+      var dist = frame.fitDist / q.zoom;
+      var ar = d2r(q.azi), er = d2r(q.elev);
+      camera.position.set(
+        target.x + dist * Math.cos(er) * Math.sin(ar),
+        target.y + dist * Math.sin(er),
+        target.z + dist * Math.cos(er) * Math.cos(ar)
+      );
+      camera.lookAt(target);
+      if (camera.fov !== q.fov) { camera.fov = q.fov; camera.updateProjectionMatrix(); }
+      renderer.render(scene, camera);
+      present();
+    }
+
+    var resumeAfterDrive = false;
+    function loop() {
+      if (disposed || !alive()) return;
+      // While the exporter drives deterministic frames, stop advancing on wall-clock
+      // (that would clobber the exact phase between the sync paint and async capture);
+      // keep the loop alive so it resumes once the flag clears.
+      if (canvas.__lollyFrameDriven) { raf = requestAnimationFrame(loop); return; }
+      // First frame after a driven export: swallow the accumulated pause span so the
+      // preview doesn't snap forward by the whole export duration.
+      if (resumeAfterDrive) { clock.getDelta(); resumeAfterDrive = false; }
+      var dt = clock.getDelta();
+      // While the user drags to pose the model, hold the camera (and model clip) at a
+      // frozen time so only the pivot moves - the articulation reads as handling the
+      // object, not fighting the turntable.
+      if (mixer && dragFreezeT == null) mixer.update(dt);
+      renderFrame(dragFreezeT != null ? dragFreezeT : clock.getElapsedTime());
+      raf = requestAnimationFrame(loop);
+    }
+
+    // Opt into the deterministic export-frame clock (shells export bridge): render an
+    // exact frame at normalized loop time t∈[0,1) → seconds. Stored ON THE CANVAS
+    // (per-node) so it can't leak across tool navigation. Makes gif/apng + stills
+    // capture a clean, reproducible turntable instead of a random wall-clock frame.
+    var myFrameRender = function (t01) {
+      if (!alive()) return;
+      resumeAfterDrive = true;   // clock reset owed once wall-clock playback resumes
+      var secs = (t01 || 0) * cfg.duration;
+      if (mixer) { try { mixer.setTime(secs); } catch (e) {} }
+      renderFrame(secs);
+    };
+    canvas.__lollyFrameRender = myFrameRender;
+
+    // ── Drag to articulate (like /t/flythrough): drag the canvas to pose the model,
+    //    and BAKE the result into the sidebar Transform inputs on release so URL /
+    //    undo / save all come for free. Plain drag = orbit (pitch on Y, yaw on X);
+    //    ⌘/Ctrl-drag = roll (tilt); Shift-drag = move (translate X/Y); Alt-drag =
+    //    scale. Live feedback mutates the pivot directly (applyPose) with NO model
+    //    write - a mid-drag commit would re-hydrate the tool and kill the gesture - so
+    //    the commit is deferred to release, one input group per frame (each re-queries
+    //    the freshly-rebuilt sidebar). No wheel handler: scrolling stays the page's. ──
+    (function wireDrag() {
+      var SENS = 0.5;            // degrees / px (rotation)
+      var PAN = 0.004;          // model-widths / px (translation)
+      var SCALE_RATE = 1.0035;  // scale multiplier / px (drag up grows)
+      var cR = function (v) { return Math.max(-180, Math.min(180, v)); };
+      var cT = function (v) { return Math.max(-2, Math.min(2, v)); };
+      var cS = function (v) { return Math.max(0.1, Math.min(4, v)); };
+      var r2 = function (v) { return Math.round(v * 100) / 100; };
+      // Base values are read from the COMMITTED transform (cfg is fresh each hydration),
+      // so a drag always starts from where the sidebar currently sits.
+      var base0 = function () {
+        var t = cfg.transform || {};
+        return { pitch: +t.pitch || 0, yaw: +t.yaw || 0, tilt: +t.tilt || 0,
+                 tx: +t.tx || 0, ty: +t.ty || 0, tz: +t.tz || 0,
+                 scale: (t.scale != null ? +t.scale : 1) };
+      };
+      var modeOf = function (e) {
+        return e.shiftKey ? 'pan' : e.altKey ? 'scale' : (e.metaKey || e.ctrlKey) ? 'roll' : 'rot';
+      };
+      var dg = { on: false, sx: 0, sy: 0, mode: 'rot', pid: null, moved: false,
+                 base: null, cur: null, chR: false, chT: false, chS: false };
+      var anchor = function (e) { dg.sx = e.clientX; dg.sy = e.clientY; dg.base = {}; for (var k in dg.cur) dg.base[k] = dg.cur[k]; };
+      canvas.style.touchAction = 'none';   // touch drags articulate without scrolling the page
+      canvas.style.cursor = 'grab';
+      canvas.addEventListener('pointerdown', function (e) {
+        if (e.button !== 0 || !poseGroup) return;
+        dg.on = true; dg.moved = false; dg.chR = dg.chT = dg.chS = false;
+        dg.cur = base0(); dg.mode = modeOf(e); anchor(e);
+        dg.pid = e.pointerId;
+        dragFreezeT = clock.getElapsedTime();   // hold the camera while posing
+        canvas.style.cursor = 'grabbing';
+        try { canvas.setPointerCapture(e.pointerId); } catch (_) {}
+      });
+      canvas.addEventListener('pointermove', function (e) {
+        if (!dg.on || !poseGroup) return;
+        var mode = modeOf(e);
+        if (mode !== dg.mode) { anchor(e); dg.mode = mode; }   // seamless orbit ⇄ roll ⇄ pan ⇄ scale
+        var dx = e.clientX - dg.sx, dy = e.clientY - dg.sy;
+        if (Math.abs(dx) + Math.abs(dy) > 3) dg.moved = true;
+        if (mode === 'pan') {
+          dg.cur.tx = cT(dg.base.tx + dx * PAN);   // right = +X
+          dg.cur.ty = cT(dg.base.ty - dy * PAN);   // up = +Y
+          dg.chT = true;
+        } else if (mode === 'scale') {
+          dg.cur.scale = cS(dg.base.scale * Math.pow(SCALE_RATE, -dy));   // up = bigger
+          dg.chS = true;
+        } else if (mode === 'roll') {
+          dg.cur.tilt = cR(dg.base.tilt + dx * SENS);
+          dg.chR = true;
+        } else {
+          dg.cur.pitch = cR(dg.base.pitch + dy * SENS);   // vertical drag → pitch
+          dg.cur.yaw   = cR(dg.base.yaw   + dx * SENS);   // horizontal drag → yaw
+          dg.chR = true;
+        }
+        applyPose(dg.cur);
+        renderFrame(dragFreezeT != null ? dragFreezeT : 0);   // instant local feedback
+      });
+      // Write one vector input back through the supported DOM path: set the changed
+      // .vec-num values, then fire a single 'input' (the shell's vector commit reads
+      // every field of that input at once → runtime.setInput).
+      var commitVec = function (inputId, values) {
+        var panel = document.getElementById('tool-inputs'); if (!panel) return;
+        var vi = panel.querySelector('.vector-input[data-input-id="' + inputId + '"]'); if (!vi) return;
+        for (var fid in values) {
+          var el = vi.querySelector('.vec-num[data-vec-field="' + fid + '"]');
+          if (el) el.value = String(values[fid]);
+        }
+        var any = vi.querySelector('.vec-num');
+        if (any) any.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+      var end = function () {
+        if (!dg.on) return;
+        dg.on = false; dragFreezeT = null;
+        canvas.style.cursor = 'grab';
+        try { canvas.releasePointerCapture(dg.pid); } catch (_) {}
+        if (dg.moved) {
+          // Swallow the click that would otherwise re-open the model picker after a drag.
+          var kill = function (ev) { ev.stopPropagation(); ev.preventDefault(); };
+          canvas.addEventListener('click', kill, true);
+          setTimeout(function () { canvas.removeEventListener('click', kill, true); }, 350);
+          var pending = [];
+          if (dg.chR) pending.push(['modelRotate', { pitch: Math.round(dg.cur.pitch), yaw: Math.round(dg.cur.yaw), tilt: Math.round(dg.cur.tilt) }]);
+          if (dg.chT) pending.push(['modelTranslate', { x: r2(dg.cur.tx), y: r2(dg.cur.ty) }]);
+          if (dg.chS) pending.push(['modelScale', { scale: r2(dg.cur.scale) }]);
+          // One group per frame: the first commit re-hydrates the tool + rebuilds the
+          // sidebar, so each later commit must re-query the fresh DOM (commitVec does).
+          (function flush(i) {
+            if (i >= pending.length) return;
+            commitVec(pending[i][0], pending[i][1]);
+            requestAnimationFrame(function () { flush(i + 1); });
+          })(0);
+        }
+      };
+      canvas.addEventListener('pointerup', end);
+      canvas.addEventListener('pointercancel', end);
+    })();
+
+    window.__lolly3d = {
+      dispose: function () {
+        disposed = true;
+        if (raf) cancelAnimationFrame(raf);
+        try { if (mixer) mixer.stopAllAction(); } catch (e) {}
+        try { pmrem.dispose(); } catch (e) {}
+        // dispose() destroys the GPUDevice it requested (WebGPU) or loses the WebGL
+        // context, so repeated paints never accumulate devices or contexts.
+        try { renderer.dispose(); } catch (e) {}
+      }
+    };
+  }
+
+  // ---- scene / lighting presets --------------------------------------------
+  function applyScene(THREE, scene, cfg, renderer) {
+    // Background: transparent (alpha), a two-stop gradient, or a solid colour.
+    if (cfg.transparentBg) {
+      scene.background = null; renderer.setClearColor(0x000000, 0);
+    } else if (cfg.scene === 'fun-gradient') {
+      scene.background = gradientTexture(THREE, cfg.background, cfg.bgColor2);
+    } else {
+      scene.background = new THREE.Color(cfg.background);
+    }
+
+    var k = cfg.envIntensity;
+    function dir(color, intensity, x, y, z, shadow) {
+      var l = new THREE.DirectionalLight(color, intensity * k);
+      l.position.set(x, y, z);
+      if (shadow && cfg.shadows) { l.castShadow = true; l.shadow.mapSize.set(1024, 1024); l.shadow.bias = -0.0005; }
+      scene.add(l); return l;
+    }
+    function hemi(sky, ground, intensity) { scene.add(new THREE.HemisphereLight(sky, ground, intensity * k)); }
+
+    switch (cfg.scene) {
+      case 'soft-glow':
+        // Diffused, glowing "clay" light: the neutral RoomEnvironment IBL (applied
+        // in start()) does the soft wraparound base; a bright hemisphere lifts the
+        // whole form so nothing goes to hard shadow, a gentle top-front key gives
+        // shape + a soft contact shadow, and a dim cool rim from behind-above traces
+        // a glowing edge. Low contrast on purpose - reads luminous, not studio-sharp.
+        hemi(0xffffff, 0xc3ccd6, 0.85);
+        dir(0xffffff, 1.15, 2, 6, 4, true);      // soft key, top-front
+        dir(0xffffff, 0.45, -3, 4, 3, false);    // fill, opposite side
+        dir(0xdfeaff, 0.7, -1, 5, -5, false);    // cool back-top rim → glow edge
+        break;
+      case 'plain':
+        hemi(0xffffff, 0x777777, 0.5); dir(0xffffff, 1.1, 3, 6, 4, true); break;
+      case 'bright-studio':
+        hemi(0xffffff, 0xcccccc, 0.6); dir(0xffffff, 2.0, 3, 6, 4, true); dir(0xffffff, 0.8, -4, 3, -3, false); break;
+      case 'serious-studio':
+        scene.add(new THREE.AmbientLight(0x223044, 0.25 * k)); dir(0xffffff, 2.6, -3, 5, -4, true); dir(0x6688ff, 0.5, 4, 2, 3, false); break;
+      case 'fun-gradient':
+        hemi(0xffffff, 0x222222, 0.4);
+        (function () {
+          var m = new THREE.PointLight(0xff2fb0, 40 * k, 0, 2); m.position.set(-4, 3, 3); scene.add(m);
+          var c = new THREE.PointLight(0x2fd0ff, 40 * k, 0, 2); c.position.set(4, 2, -2); scene.add(c);
+          dir(0xffffff, 0.6, 0, 6, 4, true);
+        })(); break;
+      case 'suse-green':
+        hemi(0xd7fbe8, 0x14261c, 0.5); dir(0x8ff0c0, 1.7, 3, 6, 4, true); dir(0xffffff, 0.6, -4, 3, -3, false); break;
+      case 'natural':
+      default:
+        hemi(0xbcd3ff, 0x6b5a45, 0.5); dir(0xfff2e0, 1.7, 4, 7, 3, true); break;
+    }
+  }
+
+  function addGround(THREE, scene, frame) {
+    var g = new THREE.Mesh(
+      new THREE.PlaneGeometry(frame.size * 12, frame.size * 12),
+      new THREE.ShadowMaterial({ opacity: 0.28 })
+    );
+    g.rotation.x = -Math.PI / 2;
+    g.position.y = 0;
+    g.receiveShadow = true;
+    scene.add(g);
+  }
+
+  function gradientTexture(THREE, top, bottom) {
+    var c = document.createElement('canvas'); c.width = 4; c.height = 256;
+    var ctx = c.getContext('2d');
+    var grad = ctx.createLinearGradient(0, 0, 0, 256);
+    grad.addColorStop(0, top); grad.addColorStop(1, bottom);
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, 4, 256);
+    var tex = new THREE.CanvasTexture(c);
+    if ('colorSpace' in tex) tex.colorSpace = THREE.SRGBColorSpace;
+    return tex;
+  }
+
+  function tintModel(THREE, root, hex) {
+    var col = new THREE.Color(hex);
+    root.traverse(function (o) {
+      if (o.isMesh && o.material) {
+        var mats = Array.isArray(o.material) ? o.material : [o.material];
+        var cloned = mats.map(function (m) {
+          if (!m || !m.color) return m;
+          var c = m.clone(); c.color = col.clone(); return c;
+        });
+        o.material = Array.isArray(o.material) ? cloned : cloned[0];
+      }
+    });
+  }
+
+  // ---- custom keyframe sampling --------------------------------------------
+  function kfSpan(kf) { return kf.length ? kf[kf.length - 1].time - kf[0].time : 0; }
+  function sampleKeyframes(kf, t) {
+    if (kf.length === 1) return kf[0];
+    var tt = kf[0].time + t;
+    if (tt <= kf[0].time) return kf[0];
+    if (tt >= kf[kf.length - 1].time) return kf[kf.length - 1];
+    for (var i = 0; i < kf.length - 1; i++) {
+      var a = kf[i], b = kf[i + 1];
+      if (tt >= a.time && tt <= b.time) {
+        var span = (b.time - a.time) || 1;
+        var p = ease((tt - a.time) / span, b.easing);
+        return {
+          rotation: lerp(a.rotation, b.rotation, p), tilt: lerp(a.tilt, b.tilt, p),
+          zoom: lerp(a.zoom, b.zoom, p), pan: lerp(a.pan, b.pan, p), fov: lerp(a.fov, b.fov, p)
+        };
+      }
+    }
+    return kf[0];
+  }
+})();
+</script>

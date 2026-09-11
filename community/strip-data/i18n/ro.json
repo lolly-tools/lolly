@@ -1,0 +1,7 @@
+{
+  "name": "Elimină datele ascunse",
+  "description": "Dezvăluie și elimină metadatele ascunse din imagini și PDF-uri - pe dispozitivul tău.",
+  "a11yLabel": "Raport date ascunse pentru {{fileName}}",
+  "inputs.source.label": "Imagine sau PDF",
+  "inputs.source.help": "Un fișier JPEG, PNG, SVG sau PDF. Este citit în browser și nu îți părăsește niciodată dispozitivul."
+}

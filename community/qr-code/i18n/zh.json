@@ -1,0 +1,18 @@
+{
+  "name": "QR Code",
+  "description": "生成链接、联系人名片、Wi-Fi 网络、日历事件、位置或纯文本的二维码。",
+  "a11yLabel": "链接至 {{default url \"(未设置网址)\"}} 的二维码",
+  "featured.blurb": "任意品牌色都能生成二维码",
+  "inputs.url.label": "网址",
+  "inputs.color.label": "模块颜色",
+  "inputs.background.label": "背景",
+  "inputs.ecl.label": "纠错等级",
+  "inputs.ecl.options.L": "低 (7%)",
+  "inputs.ecl.options.M": "中 (15%)",
+  "inputs.ecl.options.Q": "四分之一 (25%)",
+  "inputs.ecl.options.H": "高 (30%)",
+  "inputs.padding.label": "静区",
+  "inputs.padding.help": "二维码周围的空白模块数。建议至少为 4。",
+  "inputs.join.label": "合并模块",
+  "inputs.join.help": "将所有模块合并为单个 SVG 路径，小尺寸下更清晰。"
+}

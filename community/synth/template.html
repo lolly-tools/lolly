@@ -1,0 +1,177 @@
+<div class="synth-wrap" data-lolly-anno="{{scene}} {{color1}} {{color2}} {{color3}} {{rampRotate}} {{intensity}} {{speed}} {{seed}} {{live}} {{text}} {{particles}} {{symmetry}}">
+  <!-- Deliberately NOT data-capture-stream: that opts video into the real-time
+       MediaRecorder path, which returns before the frame source is built and so
+       never calls the frame clock below. The picture would be recorded at
+       whatever phase the live loop happened to be at while the muxed soundtrack
+       started at 0:00. Frame-by-frame is slower and is the only path that keeps
+       the two in step. -->
+  <canvas class="synth-canvas" id="synth-canvas"></canvas>
+</div>
+<script type="application/json" id="synth-state">{{{_state}}}</script>
+<script>
+(function () {
+  /* Idempotent per-paint IIFE - the template re-runs on EVERY paint (the
+     'Template script IIFE required' invariant). An epoch guard drops stale async
+     callbacks from a prior paint; the previous instrument is disposed before a
+     new one is built, because WebGL contexts are capped around 16 per tab and
+     are not collected promptly. Mirrors tools/3d/template.html. */
+  window.__lollySynthEpoch = (window.__lollySynthEpoch || 0) + 1;
+  var EP = window.__lollySynthEpoch;
+  function alive() { return window.__lollySynthEpoch === EP; }
+
+  var canvas = document.getElementById('synth-canvas');
+  var stateEl = document.getElementById('synth-state');
+  if (!canvas || !stateEl) return;
+  var cfg; try { cfg = JSON.parse(stateEl.textContent || '{}'); } catch (e) { return; }
+  if (!cfg || !cfg.emitters) return;
+
+  /* Async readiness handshake: the export path must WAIT for the library and the
+     first painted frame, else it snapshots a blank canvas. */
+  window.__toolHasReadySignal = true;
+  var readyFired = false;
+  function fireReady() {
+    if (readyFired) return; readyFired = true;
+    try { document.dispatchEvent(new CustomEvent('tool:ready')); } catch (e) {}
+  }
+
+  if (window.__lollySynth && typeof window.__lollySynth.dispose === 'function') {
+    try { window.__lollySynth.dispose(); } catch (e) {}
+    window.__lollySynth = null;
+  }
+
+  function message(txt) {
+    var w = canvas && canvas.parentNode;
+    // data-export-hide: the message sits inside the node the exporter
+    // rasterises, and an error string is not part of the user's picture.
+    if (w) {
+      var d = document.createElement('div');
+      d.className = 'synth-msg';
+      d.setAttribute('data-export-hide', '');
+      d.textContent = txt;
+      w.appendChild(d);
+    }
+  }
+
+  var LIB = '/tools/synth/lib/synth.js';
+  function loadLib() {
+    if (window.LollySynth) return Promise.resolve(window.LollySynth);
+    window.__lollySynthLoading = window.__lollySynthLoading || new Promise(function (res, rej) {
+      var s = document.createElement('script');
+      s.src = LIB;
+      s.onload = function () { res(window.LollySynth); };
+      s.onerror = function () { s.remove(); window.__lollySynthLoading = null; rej(new Error('synth lib load failed')); };
+      document.head.appendChild(s);
+    });
+    return window.__lollySynthLoading;
+  }
+
+  loadLib().then(function (LollySynth) {
+    if (!alive()) return;
+    if (!LollySynth || !LollySynth.create) { message('The synth engine failed to load.'); fireReady(); return; }
+    var inst;
+    try { inst = LollySynth.create(canvas, cfg); }
+    catch (err) {
+      console.error('[synth] init error:', err);
+      message(String((err && err.message) || err));
+      fireReady();
+      return;
+    }
+
+    /* The deterministic export-frame clock. Registered ON THE CANVAS, never on
+       window: a window global survives SPA tool navigation and would let a
+       detached canvas drive an unrelated tool's export. `create` already painted
+       one frame synchronously (a headless or hidden-tab host may never fire a
+       rAF), so this only has to answer the exporter's own phases. */
+    canvas.__lollyFrameRender = function (t01, clipSec) {
+      if (!alive()) return;
+      // clipSec is the export's own decision about how long the clip is; the
+      // scene sizes its loop from it so any duration comes out seamless.
+      inst.renderLoopFrame(t01, clipSec);
+    };
+
+    window.__lollySynth = { dispose: inst.dispose, strike: inst.strike };
+    fireReady();
+  }).catch(function (e) {
+    console.error('[synth]', e);
+    message('The synth engine failed to load.');
+    fireReady();
+  });
+
+  /* MIDI: a physical knob on the SAME sidebar inputs, never a second state.
+     The map is fixed in v1 and documented in the `live` input's help text; a
+     learn mode is v2. Pairs rather than an object, so a byte off the wire is
+     never read as a key on Object.prototype. */
+  var MIDI_CC = [[1, 'intensity'], [2, 'speed'], [3, 'symmetry'], [74, 'rampRotate']];
+
+  function midiWrite(inputId, cc) {
+    // Scoped to the sidebar panel, and only while THIS tool is still mounted:
+    // a global [data-input-id] query hits another card's control on /multi, and
+    // a session-long MIDI listener outlives the paint it was registered in.
+    // A commit re-renders the tool, which disposes the instrument and loses its
+    // GL context, so a knob turned while the exporter owns the frame clock would
+    // leave every remaining frame of the clip capturing a dead canvas.
+    var cv = document.getElementById('synth-canvas');
+    if (!cv || cv.__lollyFrameDriven) return;
+    var panel = document.getElementById('tool-inputs');
+    if (!panel) return;
+    var sel = '.custom-slider[data-input-id="' + inputId + '"]';
+    var el = panel.querySelector(sel);
+    if (!el) return;                        // not shown in this scene - nothing to turn
+    var min = parseFloat(el.getAttribute('data-min'));
+    var max = parseFloat(el.getAttribute('data-max'));
+    var step = parseFloat(el.getAttribute('data-step')) || 1;
+    var now = parseFloat(el.getAttribute('aria-valuenow'));
+    if (!isFinite(min) || !isFinite(max) || !isFinite(now) || !(max > min)) return;
+    var steps = Math.round((min + (cc / 127) * (max - min) - now) / step);
+    var dir = steps < 0 ? -1 : 1;
+    steps = Math.abs(steps);
+    /* The shell wires a slider's own KEYBOARD handler straight to
+       runtime.setInput and gives it no value setter, so an arrow key is the one
+       write path this control has - the same commit an arrow-key press makes,
+       which is what puts a knob turn in undo, the URL and the share link. Coarse
+       page steps first so a full sweep is a dozen commits and not eighty; the
+       canvas rebuild is coalesced to one animation frame and the undo history
+       coalesces by input id, so a burst lands as one paint and one undo step.
+       The loop is bounded because a hand-written range could otherwise ask for
+       an unbounded number of them. */
+    for (var g = 0; g < 200 && steps > 0; g++) {
+      var page = steps >= 10;
+      var ctl = panel.querySelector(sel);   // a commit can rebuild the row under us
+      if (!ctl) return;
+      ctl.dispatchEvent(new KeyboardEvent('keydown', {
+        key: dir > 0 ? (page ? 'PageUp' : 'ArrowRight') : (page ? 'PageDown' : 'ArrowLeft'),
+        bubbles: true, cancelable: true
+      }));
+      steps -= page ? 10 : 1;
+    }
+  }
+
+  /* Progressive enhancement, and only once the instrument is being played:
+     Safari has no Web MIDI at all, and no device is asked for until `live` is
+     switched on. Registered once per session behind a window flag, because the
+     template re-runs on every paint. */
+  if (cfg.live && !window.__lollySynthMidi && navigator.requestMIDIAccess) {
+    window.__lollySynthMidi = true;
+    navigator.requestMIDIAccess().then(function (access) {
+      var onMsg = function (ev) {
+        var d = ev.data;
+        if (!d || d.length < 3) return;
+        var st = d[0] & 0xf0;                 // status, any channel
+        if (st === 0x90 && d[2] > 0) {        // note on (velocity 0 IS a note off) - a struck key blooms the picture
+          var s = window.__lollySynth;
+          if (s && s.strike) s.strike(d[1], d[2]);
+          return;
+        }
+        if (st !== 0xb0) return;              // otherwise only control change is mapped
+        for (var i = 0; i < MIDI_CC.length; i++) {
+          if (MIDI_CC[i][0] === d[1]) midiWrite(MIDI_CC[i][1], d[2]);
+        }
+      };
+      var listen = function () { access.inputs.forEach(function (p) { p.onmidimessage = onMsg; }); };
+      listen();
+      access.onstatechange = listen;        // a controller plugged in later
+      // A refusal keeps the flag: clearing it would re-prompt on every paint.
+    }).catch(function () {});
+  }
+})();
+</script>

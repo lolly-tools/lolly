@@ -1,0 +1,4 @@
+{
+  "name": "フォント変換",
+  "description": "TrueType、OpenType、WOFF間でフォントを変換 - デバイス上で処理します。"
+}

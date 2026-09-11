@@ -1,0 +1,15 @@
+{
+  "name": "Exportera tillgång",
+  "description": "Rendera valfri katalogtillgång - eller en Lolly-verktygslänk - till valfritt format och storlek.",
+  "a11yLabel": "Exporterad tillgång",
+  "inputs.src.label": "Tillgång",
+  "inputs.src.help": "Tillgången som ska renderas - ett katalog-id (se `lolly assets`) eller en inklistrad lolly.tools-verktygslänk. Vektortillgångar förblir vektorbaserade genom SVG/PDF; rastertillgångar bäddas in som bilder.",
+  "inputs.fit.label": "Anpassning",
+  "inputs.fit.help": "”Contain” visar hela tillgången inom ramen; ”Cover” fyller ramen och kan beskära kanterna.",
+  "inputs.fit.options.contain": "Contain (hela tillgången, med kantremsor)",
+  "inputs.fit.options.cover": "Cover (fyller ut, kan beskäras)",
+  "inputs.background.label": "Bakgrund",
+  "inputs.background.help": "Färgen bakom tillgången. Slå på ”Ingen bakgrund” vid export för att ta bort den (transparent).",
+  "inputs.transparentBg.label": "Ingen bakgrund",
+  "inputs.transparentBg.help": "Tar bort bakgrundsfärgen så att tillgången exporteras med transparens (PNG/SVG/WebP)."
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Logotype",
+  "description": "Tapez un mot, obtenez un logo-mot vectoriel en pur tracé dans la police de votre marque - les destinataires n'ont jamais besoin de la police installée.",
+  "a11yLabel": "Logotype affichant {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Texte",
+  "inputs.font.label": "Police",
+  "inputs.font.options.brand": "Police de la marque",
+  "inputs.font.options.mono": "Police mono",
+  "inputs.weight.label": "Graisse",
+  "inputs.tracking.label": "Approche",
+  "inputs.tracking.help": "Interlettrage en px à la taille définie.",
+  "inputs.size.label": "Taille",
+  "inputs.size.help": "Taille de police à laquelle les contours sont dessinés - l'approche est relative à cette valeur.",
+  "inputs.color.label": "Couleur",
+  "inputs.features.label": "Fonctionnalités OpenType",
+  "inputs.features.options.none": "Standard",
+  "inputs.features.options.liga-off": "Aucune ligature",
+  "inputs.features.options.salt": "Alternatives stylistiques"
+}

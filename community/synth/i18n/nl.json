@@ -1,0 +1,4 @@
+{
+  "name": "Synth",
+  "description": "Een visueel instrument waar je op speelt. Vier scènes draaien live op de GPU: vloeibare inkt, een zwerm deeltjes die op je titel of logo afvliegt, een feedbackveld en je eigen camera. Elke kleur komt uit je merkpalet, en het beeld reageert op je cursor, op een muzieknummer en op een MIDI-controller. Exporteer een still of een naadloze loop."
+}

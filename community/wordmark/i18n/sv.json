@@ -1,0 +1,19 @@
+{
+  "name": "Ordmärke",
+  "description": "Skriv ett ord, få ett vektormärke i rena banor med ditt varumärkes typsnitt - mottagare behöver aldrig ha typsnittet installerat.",
+  "a11yLabel": "Ordmärke som lyder {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Text",
+  "inputs.font.label": "Typsnitt",
+  "inputs.font.options.brand": "Varumärkestypsnitt",
+  "inputs.font.options.mono": "Mono-typsnitt",
+  "inputs.weight.label": "Vikt",
+  "inputs.tracking.label": "Spärrning",
+  "inputs.tracking.help": "Bokstavsavstånd i px vid angiven storlek.",
+  "inputs.size.label": "Storlek",
+  "inputs.size.help": "Typsnittsstorleken som konturerna formas vid - teckenavstånd är relativt till denna.",
+  "inputs.color.label": "Färg",
+  "inputs.features.label": "OpenType-funktioner",
+  "inputs.features.options.none": "Standard",
+  "inputs.features.options.liga-off": "Inga ligaturer",
+  "inputs.features.options.salt": "Stilistiska alternativ"
+}

@@ -1,0 +1,3 @@
+fg,bg,ratio,level,lc,band
+{{#each csvRows}}{{csvCell fg}},{{csvCell bg}},{{csvCell ratio}},{{csvCell level}},{{csvCell lc}},{{csvCell band}}
+{{/each}}

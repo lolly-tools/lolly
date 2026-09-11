@@ -1,0 +1,94 @@
+<div class="pl-wrap">
+  <svg class="pl-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000" role="img" aria-label="Palette Lab swatch sheet">
+    <rect x="0" y="0" width="1600" height="1000" fill="{{paperFill}}"/>
+    <text x="56" y="84" fill="{{ink}}" font-family="{{@root._fontBrand}}" font-size="42" font-weight="700">Palette Lab</text>
+    <text x="56" y="118" fill="{{ink}}" fill-opacity="0.66" class="pl-mono" font-family="{{@root._fontMono}}" font-size="19">{{subtitle}}</text>
+    <line x1="56" y1="134" x2="1544" y2="134" stroke="{{hairline}}" stroke-width="1.5"/>
+    {{#each swatches}}
+    <g>
+      <rect x="56" y="{{y}}" width="400" height="{{h}}" rx="12" fill="{{paint}}"/>
+      <text x="82" y="{{nameY}}" fill="{{on}}" font-family="{{@root._fontBrand}}" font-size="27" font-weight="600">{{name}}</text>
+      <text x="82" y="{{hexY}}" fill="{{on}}" fill-opacity="0.92" class="pl-mono" font-family="{{@root._fontMono}}" font-size="19">{{hex}}</text>
+      <text x="82" y="{{badgeY}}" fill="{{on}}" fill-opacity="0.85" font-family="{{@root._fontBrand}}" font-size="15" font-weight="500">{{badges}}</text>
+      {{#each ramp}}
+      <rect x="{{x}}" y="{{../y}}" width="{{w}}" height="{{../h}}" rx="8" fill="{{paint}}"/>
+      <text x="{{cx}}" y="{{../cellLabelY}}" fill="{{on}}" fill-opacity="0.9" class="pl-mono" font-family="{{@root._fontMono}}" font-size="13" text-anchor="middle">{{hex}}</text>
+      {{/each}}
+    </g>
+    {{/each}}
+    {{#if gridOn}}
+    <line x1="56" y1="632" x2="1544" y2="632" stroke="{{hairline}}" stroke-width="1.5"/>
+    <text x="56" y="660" fill="{{ink}}" fill-opacity="0.9" font-family="{{@root._fontBrand}}" font-size="21" font-weight="600">{{gridTitle}}</text>
+    {{#each gridColHeads}}
+    <rect x="{{x}}" y="{{y}}" width="24" height="24" rx="6" fill="{{paint}}"/>
+    <text x="{{textX}}" y="{{textY}}" fill="{{../ink}}" fill-opacity="0.8" font-family="{{@root._fontBrand}}" font-size="15">{{name}}</text>
+    {{/each}}
+    {{#each gridRowHeads}}
+    <rect x="56" y="{{y}}" width="26" height="26" rx="6" fill="{{paint}}"/>
+    <text x="92" y="{{textY}}" fill="{{../ink}}" fill-opacity="0.8" font-family="{{@root._fontBrand}}" font-size="15">{{name}}</text>
+    {{/each}}
+    {{#each gridCells}}
+    <rect x="{{x}}" y="{{y}}" width="{{w}}" height="{{h}}" rx="8" fill="{{bgPaint}}"/>
+    <path d="{{mark}}" transform="translate({{markX}} {{markY}})" fill="none" stroke="{{fgPaint}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="{{ratioX}}" y="{{textY}}" fill="{{fgPaint}}" class="pl-mono" font-family="{{@root._fontMono}}" font-size="{{rSize}}">{{ratioText}}</text>
+    <text x="{{levelX}}" y="{{textY}}" fill="{{fgPaint}}" fill-opacity="0.9" font-family="{{@root._fontBrand}}" font-size="{{lSize}}" font-weight="600" text-anchor="end">{{level}}</text>
+    {{/each}}
+    {{/if}}
+  </svg>
+
+  <!-- On-canvas DTCG panel - the same tokens fragment the JSON export downloads
+       (template.json = {{{tokensJson}}}), offered inline for a quick copy. The
+       palette also downloads as CSS/SCSS/GIMP/Adobe-swatch files via host.color.
+       data-export-hide keeps this panel out of every export. -->
+  <details class="pl-tokens" data-export-hide>
+    <summary class="pl-tokens-summary">DTCG tokens</summary>
+    <div class="pl-tokens-body">
+      <p class="pl-tokens-hint">W3C design-tokens fragment of this sheet. The CSV export carries the same palette with its contrast columns.</p>
+      <button type="button" class="pl-copy" data-pl-copy>Copy JSON</button>
+      <pre class="pl-pre">{{tokensJson}}</pre>
+    </div>
+  </details>
+</div>
+<script>
+(function () {
+  'use strict';
+  /* Template scripts re-execute on every canvas paint, so scope to OUR wrap
+     (the script's previous sibling - offscreen compose/batch stages can mount
+     extra copies) and wire once via a dataset flag. */
+  var cs = document.currentScript;
+  var wrap = cs && cs.previousElementSibling && cs.previousElementSibling.classList
+    && cs.previousElementSibling.classList.contains('pl-wrap')
+    ? cs.previousElementSibling : null;
+  if (!wrap) {
+    var all = document.querySelectorAll('.pl-wrap');
+    wrap = all[all.length - 1];
+  }
+  if (!wrap) return;
+  var panel = wrap.querySelector('.pl-tokens');
+  var btn = wrap.querySelector('[data-pl-copy]');
+  var pre = wrap.querySelector('.pl-pre');
+  if (!panel || !btn || !pre || panel.dataset.plWired) return;
+  panel.dataset.plWired = '1';
+
+  btn.addEventListener('click', function () {
+    if (!(navigator.clipboard && navigator.clipboard.writeText)) return;
+    navigator.clipboard.writeText(pre.textContent).then(function () {
+      var prev = btn.textContent;
+      btn.textContent = 'Copied';
+      btn.classList.add('is-copied');
+      setTimeout(function () {
+        btn.textContent = prev;
+        btn.classList.remove('is-copied');
+      }, 1400);
+    }, function () {});
+  });
+
+  /* Esc closes the open tokens panel; the listener self-removes once this
+     render's wrap has left the DOM, so repaints never stack handlers. */
+  function onKey(e) {
+    if (!document.contains(wrap)) { document.removeEventListener('keydown', onKey); return; }
+    if (e.key === 'Escape' && panel.open) panel.open = false;
+  }
+  document.addEventListener('keydown', onKey);
+})();
+</script>

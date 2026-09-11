@@ -1,0 +1,272 @@
+/* Colours follow the app's core theme switcher (light / dark / suse). Every hue
+   is sourced from the app design tokens on <html data-theme> (tokens.css) - they
+   inherit into the scoped tool canvas, so the tool restyles itself the instant
+   the theme changes. Fallbacks (light theme) keep the sheet valid in shells that
+   don't ship the tokens (CLI/headless - no visible canvas anyway). The `--ex-*`
+   aliases hold bare HSL triples so use-sites can alpha-composite: hsl(var(--x) / .1). */
+.exif {
+  --ex-bg:      var(--background, 0 0% 98%);
+  --ex-fg:      var(--foreground, 224 71% 4%);
+  --ex-muted:   var(--muted-foreground, 215 20% 38%);
+  --ex-card:    var(--card, 0 0% 100%);
+  --ex-bd:      var(--border, 214 28% 84%);
+  --ex-fill:    var(--muted, 210 40% 96%);
+  --ex-brand:   var(--primary, 171 62% 12%);
+  --ex-brandfg: var(--primary-foreground, 0 0% 100%);
+  --ex-warn:    var(--destructive, 0 72% 51%);
+  --ex-warnfg:  var(--destructive-foreground, 0 0% 100%);
+
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  box-sizing: border-box;
+  font-family: var(--font-brand, "SUSE", system-ui, sans-serif);
+  color: hsl(var(--ex-fg));
+  background: hsl(var(--ex-bg));
+}
+
+/* The empty state IS the click-to-pick drop zone (the shell wires the picker to
+   [data-file-pick] on the box; drag-drop covers the whole canvas), so it reads as
+   clickable. Clicks on the dead canvas around it do nothing. */
+.exif-empty { cursor: pointer; }
+
+/* ── Empty state ── */
+.exif-empty {
+  max-width: 440px;
+  text-align: center;
+}
+.exif-empty-icon {
+  display: inline-flex;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 14px;
+  color: hsl(var(--ex-brand));
+}
+.exif-empty-icon svg { width: 100%; height: 100%; }
+.exif-empty h2 {
+  margin: 0 0 10px;
+  font-size: 22px;
+  font-weight: 700;
+}
+.exif-empty p {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: hsl(var(--ex-muted));
+}
+.exif-empty-note {
+  font-weight: 600;
+  color: hsl(var(--ex-brand)) !important;
+}
+
+/* Secondary CTA in the empty state - the keyboard-reachable way to open the
+   native picker (drag-and-drop and click-anywhere are wired by the shell). */
+.exif-pick {
+  margin: 6px 0 14px;
+  padding: 10px 18px;
+  border: 1px solid hsl(var(--ex-brand));
+  border-radius: 10px;
+  background: hsl(var(--ex-card));
+  color: hsl(var(--ex-brand));
+  font: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.exif-pick:hover { background: hsl(var(--ex-brand)); color: hsl(var(--ex-brandfg)); }
+
+/* ── Result card ── */
+.exif-card {
+  width: 100%;
+  max-width: 480px;
+  background: hsl(var(--ex-card));
+  border: 1px solid hsl(var(--ex-bd));
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 1px 3px hsl(0 0% 0% / 0.06);
+}
+.exif-head {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid hsl(var(--ex-bd) / 0.6);
+  margin-bottom: 14px;
+}
+
+/* Swap the loaded file for another - opens the picker (shell-wired). */
+.exif-replace {
+  flex: none;
+  padding: 4px 10px;
+  border: 1px solid hsl(var(--ex-bd));
+  border-radius: 7px;
+  background: hsl(var(--ex-card));
+  color: hsl(var(--ex-muted));
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.exif-replace:hover { border-color: hsl(var(--ex-brand)); color: hsl(var(--ex-brand)); }
+.exif-file {
+  font-weight: 700;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.exif-kind {
+  flex: none;
+  font-family: var(--font-mono, "SUSE Mono", monospace);
+  font-size: 11px;
+  color: hsl(var(--ex-muted));
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.exif-summary {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+  color: hsl(var(--ex-fg) / 0.85);
+}
+
+/* ── Show-details toggle ── */
+/* The checkbox is visually hidden but kept in the tab order so it's keyboard-
+   reachable; the label is the visible control. Default unchecked → the actual
+   embedded values (.exif-finding-detail) stay hidden. */
+.exif-reveal-cb {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.exif-reveal-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 14px;
+  padding: 5px 11px;
+  border-radius: 8px;
+  background: hsl(var(--ex-brand) / 0.1);
+  color: hsl(var(--ex-brand));
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s;
+}
+.exif-reveal-toggle:hover { background: hsl(var(--ex-brand) / 0.16); }
+.exif-reveal-cb:focus-visible ~ .exif-reveal-toggle {
+  outline: 2px solid hsl(var(--ex-brand));
+  outline-offset: 2px;
+}
+/* A small caret that points right when collapsed, down when expanded. */
+.exif-reveal-icon {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  transform: rotate(-90deg);
+  transition: transform 0.12s;
+}
+.exif-reveal-cb:checked ~ .exif-reveal-toggle .exif-reveal-icon { transform: rotate(0deg); }
+.exif-reveal-hide { display: none; }
+.exif-reveal-cb:checked ~ .exif-reveal-toggle .exif-reveal-show { display: none; }
+.exif-reveal-cb:checked ~ .exif-reveal-toggle .exif-reveal-hide { display: inline; }
+
+.exif-findings {
+  list-style: none;
+  margin: 0 0 18px;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.exif-finding {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  background: hsl(var(--ex-fill));
+  border-radius: 8px;
+  border: 1px solid hsl(var(--ex-bd) / 0.6);
+}
+.exif-finding.warn {
+  background: hsl(var(--ex-warn) / 0.1);
+  border-color: hsl(var(--ex-warn) / 0.45);
+}
+.exif-finding-label {
+  font-weight: 600;
+  font-size: 13px;
+}
+/* Mix the destructive red toward the theme foreground so the warning label stays
+   legible in dark/suse, where --destructive is a fill hue (too dark for text). */
+.exif-finding.warn .exif-finding-label { color: color-mix(in oklab, hsl(var(--ex-warn)), hsl(var(--ex-fg)) 30%); }
+/* The actual embedded value - hidden until "Show details" is toggled on. */
+.exif-finding-detail {
+  display: none;
+  font-family: var(--font-mono, "SUSE Mono", monospace);
+  font-size: 12px;
+  color: hsl(var(--ex-muted));
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+}
+.exif-reveal-cb:checked ~ .exif-findings .exif-finding-detail { display: block; }
+
+.exif-download {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 10px;
+  background: hsl(var(--ex-brand));
+  color: hsl(var(--ex-brandfg));
+  font: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.12s, opacity 0.12s;
+}
+.exif-download:hover { background: hsl(var(--ex-brand) / 0.9); }
+.exif-download.is-busy { opacity: 0.7; cursor: progress; }
+.exif-download.is-error { background: hsl(var(--ex-warn)); color: hsl(var(--ex-warnfg)); }
+
+.exif-clean-state { text-align: center; }
+.exif-clean {
+  margin: 4px 0 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: hsl(var(--ex-brand));
+}
+
+.exif-note {
+  margin: 12px 0 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: hsl(var(--ex-muted) / 0.8);
+  text-align: center;
+}
+.exif-note code {
+  font-family: var(--font-mono, "SUSE Mono", monospace);
+  font-size: 11px;
+  background: hsl(var(--ex-fill));
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: hsl(var(--ex-muted));
+}

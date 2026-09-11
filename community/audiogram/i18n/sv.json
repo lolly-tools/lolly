@@ -1,0 +1,22 @@
+{
+  "name": "Audiogram",
+  "description": "Gör om ett röstklipp eller en låt till en varumärkesanpassad video som faktiskt rör sig med ljudet - staplar, spektrum, ring, ridgeline eller scope, redo för sociala medier.",
+  "a11yLabel": "Audiogramkort för {{default title \"an audio clip\"}} med en animerad ljudvågform",
+  "inputs.audio.label": "Ljud",
+  "inputs.audio.help": "Välj ett spår från ditt bibliotek eller ladda upp ett klipp. Det avkodas på din enhet för att rita vågformen - ljudet lämnar aldrig webbläsaren. Lämna tomt för en platshållar-vågform. För att höra det i exporten, välj \"Det här verktygets ljud\" som Ljudspår i nedladdningsalternativen.",
+  "inputs.title.label": "Titel",
+  "inputs.title.help": "Rubriken på kortet - ett avsnittsnamn eller ett pullcitat.",
+  "inputs.subtitle.label": "Underrubrik",
+  "inputs.subtitle.help": "En mindre rad under titeln - programnamn, gäst eller var man kan lyssna.",
+  "inputs.style.label": "Vågformsstil",
+  "inputs.style.options.bars": "Staplar",
+  "inputs.style.options.wave": "Våg",
+  "inputs.style.options.ring": "Ring",
+  "inputs.size.label": "Storlek",
+  "inputs.size.options.square": "Kvadrat (1:1)",
+  "inputs.size.options.wide": "Bred (16:9)",
+  "inputs.size.options.story": "Story (9:16)",
+  "inputs.accent.label": "Vågformsfärg",
+  "inputs.ink.label": "Textfärg",
+  "inputs.bg.label": "Bakgrund"
+}

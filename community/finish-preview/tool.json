@@ -1,0 +1,187 @@
+{
+  "id": "finish-preview",
+  "name": "Finishes",
+  "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork - then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+  "a11yLabel": "Artwork with a simulated print finish, or the printer-ready finish plate in plate view",
+  "version": "1.1.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "designer",
+  "tags": ["finish", "foil", "spot-uv", "emboss", "deboss", "soft-touch", "print", "plate", "spot-colour", "photo", "filter", "effect", "vector", "image"],
+  "featured": {
+    "order": 13,
+    "blurb": "Foil, spot UV and emboss - with the plate your printer needs"
+  },
+  "examples": [
+    { "label": "Gold foil highlights", "values": { "finish": "foil-gold", "maskSource": "light", "threshold": 62 } },
+    { "label": "Holographic shadows", "values": { "finish": "foil-holographic", "maskSource": "dark", "threshold": 45 } },
+    { "label": "Blind emboss", "values": { "finish": "emboss", "maskSource": "dark", "threshold": 50, "sheen": false } },
+    { "label": "The plate itself", "values": { "finish": "spot-uv-gloss", "maskSource": "light", "threshold": 62, "plateView": true } }
+  ],
+  "render": {
+    "width": 1000,
+    "height": 1000,
+    "formats": ["svg", "penpot", "pdf", "pdf-cmyk", "png", "jpg", "webp", "avif", "tiff", "cmyk-tiff", "gif", "apng", "webp-anim", "webm", "mp4"],
+    "actions": ["copy", "download", "save"],
+    "video": { "wait": 0, "duration": 5 },
+    "transparentBg": false
+  },
+  "inputs": [
+    {
+      "id": "image",
+      "label": "Artwork",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "help": "Pick your artwork or upload your own. It's processed on your device - the pixels never leave the browser."
+    },
+    {
+      "id": "finish",
+      "label": "Finish",
+      "section": "Finish",
+      "type": "select",
+      "default": "foil-gold",
+      "options": [
+        { "value": "foil-gold", "label": "Foil - gold" },
+        { "value": "foil-silver", "label": "Foil - silver" },
+        { "value": "foil-holographic", "label": "Foil - holographic" },
+        { "value": "spot-uv-gloss", "label": "Spot UV gloss" },
+        { "value": "emboss", "label": "Emboss" },
+        { "value": "deboss", "label": "Deboss" },
+        { "value": "soft-touch-matte", "label": "Soft-touch matte" }
+      ],
+      "help": "The physical finish to simulate. Foils and spot UV fill the mask; emboss and deboss raise or sink its edges; soft-touch mattes everything outside the mask."
+    },
+    {
+      "id": "strength",
+      "label": "Strength",
+      "section": "Finish",
+      "type": "number",
+      "display": "slider",
+      "default": 80,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "help": "How strongly the finish reads on screen. Preview only - the exported plate is always full-strength ink."
+    },
+    {
+      "id": "sheen",
+      "label": "Sheen animation",
+      "section": "Finish",
+      "type": "boolean",
+      "default": true,
+      "help": "Sweep a light band across foil and spot UV, like tilting the sheet. Automatically stilled when you prefer reduced motion; stills never bake a mid-sweep frame."
+    },
+    {
+      "id": "angle",
+      "label": "Sweep angle",
+      "section": "Finish",
+      "type": "number",
+      "display": "slider",
+      "default": 35,
+      "min": 0,
+      "max": 360,
+      "step": 5,
+      "help": "Direction of the foil grain and sheen sweep."
+    },
+    {
+      "id": "maskSource",
+      "label": "Mask from",
+      "section": "Mask",
+      "type": "select",
+      "default": "light",
+      "options": [
+        { "value": "whole", "label": "Whole image" },
+        { "value": "light", "label": "Light areas" },
+        { "value": "dark", "label": "Dark areas" },
+        { "value": "colour", "label": "By colour" }
+      ],
+      "help": "Where the finish goes. Light and dark areas threshold the artwork's perceptual (OKLab) lightness; By colour matches areas near a chosen colour."
+    },
+    {
+      "id": "maskColor",
+      "label": "Match colour",
+      "section": "Mask",
+      "type": "color",
+      "default": "{color.semantic.primary}",
+      "showIf": { "maskSource": "colour" },
+      "help": "Areas perceptually close to this colour join the mask."
+    },
+    {
+      "id": "threshold",
+      "label": "Threshold",
+      "section": "Mask",
+      "type": "number",
+      "display": "slider",
+      "default": 60,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "help": "Lightness cut-off (OKLab L) for light/dark masks, or match radius for By colour. Ignored for Whole image."
+    },
+    {
+      "id": "softness",
+      "label": "Edge softness",
+      "section": "Mask",
+      "type": "number",
+      "display": "slider",
+      "default": 4,
+      "min": 0,
+      "max": 20,
+      "step": 0.5,
+      "help": "Feathers the mask edge. 0 is a hard cut - the plate always exports hard-edged either way."
+    },
+    {
+      "id": "fit",
+      "label": "Artwork fit",
+      "section": "Output",
+      "type": "select",
+      "default": "contain",
+      "options": [
+        { "value": "contain", "label": "Contain (whole image)" },
+        { "value": "cover", "label": "Cover (fill, crop edges)" }
+      ]
+    },
+    {
+      "id": "width",
+      "label": "Width",
+      "type": "number",
+      "default": 1000,
+      "min": 1,
+      "max": 8000,
+      "group": "export"
+    },
+    {
+      "id": "height",
+      "label": "Height",
+      "type": "number",
+      "default": 1000,
+      "min": 1,
+      "max": 8000,
+      "group": "export"
+    },
+    {
+      "id": "bgColor",
+      "label": "Background",
+      "section": "Output",
+      "type": "color",
+      "default": "{color.semantic.surface}",
+      "help": "Fill behind the artwork when it doesn't cover the frame."
+    },
+    {
+      "id": "plateView",
+      "label": "Plate view (printer-ready)",
+      "section": "Plate",
+      "group": "export",
+      "type": "boolean",
+      "default": false,
+      "help": "Switch to the deliverable: the finish mask as pure black on white with an overprint label. Send THIS to your print house - the shiny preview is presentation only and must never be baked into artwork."
+    }
+  ],
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true,
+    "afterExport": true
+  }
+}

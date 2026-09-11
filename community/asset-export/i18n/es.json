@@ -1,0 +1,15 @@
+{
+  "name": "Exportar recurso",
+  "description": "Renderiza cualquier recurso del catálogo - o un enlace de herramienta Lolly - a cualquier formato y tamaño.",
+  "a11yLabel": "Recurso exportado",
+  "inputs.src.label": "Recurso",
+  "inputs.src.help": "El recurso que se va a renderizar: un id de catálogo (consulta `lolly assets`) o un enlace de herramienta lolly.tools pegado. Los recursos vectoriales se mantienen vectoriales en SVG/PDF; los recursos raster se incrustan como imágenes.",
+  "inputs.fit.label": "Ajuste",
+  "inputs.fit.help": "Contener muestra el recurso completo dentro del marco; Cubrir rellena el marco y puede recortar los bordes.",
+  "inputs.fit.options.contain": "Contener (recurso completo, con bandas)",
+  "inputs.fit.options.cover": "Cubrir (rellena, puede recortar)",
+  "inputs.background.label": "Fondo",
+  "inputs.background.help": "El color detrás del recurso. Activa \"Sin fondo\" en la exportación para eliminarlo (transparente).",
+  "inputs.transparentBg.label": "Sin fondo",
+  "inputs.transparentBg.help": "Elimina el relleno de fondo para que el recurso se exporte con transparencia (PNG/SVG/WebP)."
+}

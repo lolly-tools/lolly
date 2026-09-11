@@ -1,0 +1,7 @@
+{
+  "name": "Xóa Dữ Liệu Ẩn",
+  "description": "Hiển thị và xóa siêu dữ liệu ẩn khỏi hình ảnh và PDF - ngay trên thiết bị của bạn.",
+  "a11yLabel": "Báo cáo dữ liệu ẩn cho {{fileName}}",
+  "inputs.source.label": "Ảnh hoặc PDF",
+  "inputs.source.help": "Tệp JPEG, PNG, SVG hoặc PDF. Tệp được đọc ngay trên trình duyệt của bạn và không bao giờ rời khỏi thiết bị."
+}

@@ -1,0 +1,88 @@
+/* Work Avatar.
+   A square stage: the photo is a circle clipped by its own box, the ring and
+   its text are one inline <svg> laid over it in a 1000-unit viewBox, so the
+   two layers share one coordinate system whatever the export size. Every brand
+   var carries a comma fallback: an unbranded canvas leaves the slot UNSET, so a
+   bare var() would collapse the rule. */
+
+.wa-root {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--wa-bg, transparent);
+}
+
+/* The duotone / wash filter definition. Zero-sized and out of flow so it never
+   takes part in layout, but still in the document so url(#id) resolves for the
+   live canvas and for the export's canvas bake alike. */
+.wa-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* Geometry (left/top/width/height) comes from the hook, in percent of the
+   square, so the ring's inner edge and the photo's edge are the same number. */
+.wa-photo {
+  position: absolute;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #e9ecf0;
+}
+
+.wa-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  /* fit / position / transform / filter come from the {{framing}} helper inline
+     (plans/148) - one recipe shared with every other framed image. */
+}
+
+/* The stand-in when no photo is picked: a neutral silhouette, deliberately not
+   a brand colour - it is scaffolding, like the grey figure on a slide template. */
+.wa-ph {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+/* The stand-in sits on the chosen backdrop, so its own ground is clear. */
+.wa-ph-bg { fill: none; }
+.wa-ph-fg { fill: #c3c8cf; }
+
+/* The ring and the text are two layers over the photo in one shared viewBox. They
+   are separate <svg>s on purpose: an open ring's end fade is a gradient mask,
+   which the PDF walker rasterises, and the glyphs must not go down with it. */
+.wa-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Only the live-text fallback reads this (no host.text, or a glyph the face
+   lacks); the outlined path is the brand face by construction. Brand fonts
+   only, via the variable the shell derives from the brand's font token. */
+.wa-text text {
+  font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
+}
+.wa-text text.wa-mono {
+  font-family: var(--font-mono, 'SUSE Mono', ui-monospace, monospace);
+}
+
+.wa-warn {
+  position: absolute;
+  left: 4%;
+  right: 4%;
+  bottom: 3%;
+  margin: 0;
+  padding: 0.5em 0.8em;
+  border-radius: 0.6em;
+  background: rgba(20, 20, 20, 0.72);
+  color: #fff;
+  font: 500 14px/1.35 var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
+  text-align: center;
+}

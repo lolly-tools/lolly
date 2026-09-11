@@ -1,0 +1,85 @@
+{{{finishSvg}}}
+{{!-- PRODUCT RULE - preview vs plate: the shiny finish simulation above is
+      PRESENTATION ONLY and must never be baked into artwork sent to print.
+      The real deliverable for a print house is the finish plate: flip the
+      "Plate view (printer-ready)" input and the canvas becomes the plate -
+      pure black mask shapes on white plus an overprint label line - which is
+      what the user exports (SVG/PDF/PNG) for their printer. The plate branch
+      in hooks.js is deliberately filter-free (a pre-baked black-on-white
+      raster inside the SVG) so it survives every export path unchanged. --}}
+{{!-- EXPORT FIDELITY - why render.formats is what it is (measured 2026-07-31):
+      IN: svg (the whole thing: <image> artwork + <mask> + gradients + filters),
+      every raster format (png/jpg/webp/avif/tiff/cmyk-tiff and the animated
+      gif/apng/webp-anim/webm/mp4 - the browser paints the filters natively at
+      the raster chokepoint), and pdf/pdf-cmyk.
+      OUT: emf, eps, eps-cmyk, dxf. Those four share the SVG→IR walk in
+      shells/web/src/bridge/svg-ir.ts, which SKIPs <filter> and <mask> (line 31),
+      never reads mix-blend-mode, drops any url(#gradient) paint as unparseable
+      (parseColor → null → the shape is not emitted), and only recovers a filter
+      when it is a plain drop shadow (parseSvgDropShadow explicitly rejects
+      feTurbulence/feDisplacementMap/feComponentTransfer). engine/src/dxf.ts:138
+      additionally drops every image prim outright. The sibling tool
+      filter-imperfections measured 575–851 bytes of flat rectangles for those
+      formats against a 1.39 MB SVG - the artwork, the mask and the finish all
+      gone. A file that looks plausible and is empty is worse than a refusal.
+      CAVEAT to tell users, not a blocker: PDF cannot express an SVG filter, so
+      export.ts's drawSvgVectorsInRegion rasterises any SVG containing a
+      filter/gradient/pattern into ONE image at ~150 dpi (capped 2000 px) - the
+      PREVIEW pdf is therefore a raster page, and pdf-cmyk leaves that image
+      XObject in DeviceRGB (renderCmykPdf skips image XObjects by design), so
+      only the marks are true DeviceCMYK. The PLATE view has no filter or
+      gradient, so it takes the real vector path and its <image> plate is placed
+      as-is; for a true CMYK plate deliverable, cmyk-tiff converts every pixel. --}}
+{{!-- Single-root <svg> is preserved: hooks.js emits ONE root <svg> (the finish scene),
+      and the auto-fit anchor (data-img-key / data-img-w / data-img-h) is stamped ON that
+      root, not on a sibling - so the CLI's rootSvgOf vector path is unaffected. The
+      trailing <script> is exempt from its drawable-child count. --}}
+<script>
+/* Auto-fit the canvas to a newly chosen image (native pixel dimensions). hooks.js stamps
+   the user-picked image's URL as data-img-key on the root <svg> (empty for the demo
+   default). This <script> re-runs on every paint (runTemplateScripts); when the key
+   changes to a new image we snap the export Width/Height fields to the image's native size
+   (aspect preserved) so the canvas takes the photo's own aspect ratio. The finish then
+   re-fills whatever the user resizes to afterwards, and we don't re-snap until a different
+   image is chosen. Keyed on the #tool-canvas element (recreated per mount → auto-scoped,
+   and absent for the off-screen export canvas → never resizes the bar during an export).
+   Identical to the shared filter-tool auto-fit script. IIFE + var: re-run each render. */
+(function () {
+  var anchor = document.querySelector('[data-img-key]');
+  if (!anchor) return;
+  var canvas = anchor.closest('#tool-canvas');
+  if (!canvas) return;                        // off-screen export canvas → never touch the export bar
+  var key = anchor.getAttribute('data-img-key') || '';
+  if (!('__finishFitKey' in canvas)) {        // FIRST run for this freshly-mounted canvas: adopt whatever
+    canvas.__finishFitKey = key;              // image is already set as the baseline WITHOUT resizing, so a
+    return;                                   // saved/restored file keeps its export size. Only a LATER change
+  }                                           // to the image input triggers a snap.
+  if (canvas.__finishFitKey === key) return;  // image unchanged since mount / last snap → respect manual resize
+  if (!key) { canvas.__finishFitKey = ''; return; } // image cleared → adopt empty baseline, no resize
+  var uEl = document.querySelector('[data-action="export-unit"]');
+  if (uEl && uEl.value && uEl.value !== 'px') return; // a deliberate mm/in page - don't override it
+  var wEl = document.querySelector('[data-action="export-width"]');
+  var hEl = document.querySelector('[data-action="export-height"]');
+  if (!wEl || !hEl) return;
+
+  var MAX = 8000;                             // keep a huge original from blowing up the export
+  function apply(nw, nh) {
+    if (!(nw > 0 && nh > 0)) return;
+    canvas.__finishFitKey = key;              // record BEFORE dispatch so the re-render it triggers is a no-op
+    var s = Math.min(1, MAX / Math.max(nw, nh));
+    var W = Math.max(1, Math.round(nw * s));
+    var H = Math.max(1, Math.round(nh * s));
+    var changed = false;
+    if (parseFloat(wEl.value) !== W) { wEl.value = String(W); changed = true; }
+    if (parseFloat(hEl.value) !== H) { hEl.value = String(H); changed = true; }
+    if (changed) {
+      wEl.dispatchEvent(new Event('input', { bubbles: true }));
+      hEl.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+
+  var nw = parseFloat(anchor.getAttribute('data-img-w'));
+  var nh = parseFloat(anchor.getAttribute('data-img-h'));
+  if (nw > 0 && nh > 0) { apply(nw, nh); return; }  // fast path: the hook already decoded the image
+})();
+</script>

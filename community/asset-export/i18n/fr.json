@@ -1,0 +1,15 @@
+{
+  "name": "Export de ressource",
+  "description": "Rendez n'importe quel élément du catalogue - ou un lien d'outil Lolly - vers n'importe quel format et taille.",
+  "a11yLabel": "Ressource exportée",
+  "inputs.src.label": "Ressource",
+  "inputs.src.help": "La ressource à exporter - un identifiant de catalogue (voir `lolly assets`) ou un lien d'outil lolly.tools collé. Les ressources vectorielles restent vectorielles en SVG/PDF ; les ressources matricielles sont intégrées comme images.",
+  "inputs.fit.label": "Ajustement",
+  "inputs.fit.help": "Contenir affiche la ressource entière dans le cadre ; Remplir occupe tout le cadre et peut rogner les bords.",
+  "inputs.fit.options.contain": "Contenir (ressource entière, bandes noires)",
+  "inputs.fit.options.cover": "Remplir (plein cadre, peut rogner)",
+  "inputs.background.label": "Arrière-plan",
+  "inputs.background.help": "La couleur derrière la ressource. Active « Pas de fond » lors de l'export pour la supprimer (transparent).",
+  "inputs.transparentBg.label": "Pas de fond",
+  "inputs.transparentBg.help": "Supprime le remplissage d'arrière-plan pour exporter la ressource sur fond transparent (PNG/SVG/WebP)."
+}

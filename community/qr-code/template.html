@@ -1,0 +1,16 @@
+{{{svgContent}}}
+{{#if qrHasWarnings}}
+<div class="qr-scan-warn" data-export-hide role="status">
+  <span class="qr-scan-warn__h">⚠ Scannability</span>
+  <ul>{{#each qrWarnings}}<li>{{this}}</li>{{/each}}</ul>
+</div>
+{{/if}}
+{{#if qrLiveScanFail}}
+<div class="qr-scan-warn qr-scan-warn--live" data-export-hide role="status">
+  <span class="qr-scan-warn__h">⚠ This styling may not scan</span>
+  <p>A test decode of the rendered code came back empty. Reduce the logo, raise contrast, or simplify the module shape.</p>
+</div>
+{{/if}}
+{{#if qrEclRaised}}
+<p class="qr-scan-info" data-export-hide role="status">Error correction was raised to High automatically so the logo stays scannable.</p>
+{{/if}}

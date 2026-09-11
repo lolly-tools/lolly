@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "PowerPointデッキをアップロードして色とフォントをブランドに合わせます - デバイス上で再構築、何もアップロードされません。",
+  "a11yLabel": "{{fileName}} 用デッキリブランダー",
+  "inputs.source.label": "PowerPointファイル",
+  "inputs.source.help": ".pptx ファイルです。お使いの端末上で読み込まれ、アップロードされることはありません。",
+  "inputs.useTheme.label": "ブランドテーマを適用",
+  "inputs.useTheme.help": "デッキのテーマパレットとフォントをあなたのブランドに切り替えます - テーマに紐づくすべての色が自動的に追従します。",
+  "inputs.colorMap.label": "カラーマッピング",
+  "inputs.colorMap.help": "スライド内で見つかったハードコードされた色と、それぞれの推奨ブランドカラーです。行を削除すると、その色はそのまま残ります。",
+  "inputs.colorMap.fields.from.label": "オリジナル",
+  "inputs.colorMap.fields.to.label": "ブランド",
+  "inputs.fontMap.label": "フォントマッピング",
+  "inputs.fontMap.help": "デッキ内で指定されたタイプフェースと、それぞれのブランド置き換え候補です。行を削除すると、そのフォントを維持します。",
+  "inputs.fontMap.fields.from.label": "オリジナル",
+  "inputs.fontMap.fields.to.label": "ブランド",
+  "inputs.dropFonts.label": "埋め込みフォントを削除",
+  "inputs.dropFonts.help": "ファイルに埋め込まれた旧ブランドのフォントは、切り替え後は古くなっており、ライセンス上の制約がある場合があります。"
+}

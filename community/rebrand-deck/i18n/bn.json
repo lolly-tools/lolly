@@ -1,0 +1,19 @@
+{
+  "name": "Rebrand",
+  "description": "একটি PowerPoint ডেক আপলোড করুন এবং এর রঙ ও ফন্ট আপনার ব্র্যান্ডের সাথে মিলিয়ে নিন - আপনার ডিভাইসেই পুনর্নির্মিত, কিছুই আপলোড হয় না।",
+  "a11yLabel": "{{fileName}}-এর জন্য ডেক রিব্র্যান্ডার",
+  "inputs.source.label": "PowerPoint ফাইল",
+  "inputs.source.help": "একটি .pptx ফাইল। এটি আপনার ডিভাইসে পড়া হয় এবং কখনও আপলোড করা হয় না।",
+  "inputs.useTheme.label": "ব্র্যান্ড থিম প্রয়োগ করুন",
+  "inputs.useTheme.help": "ডেকের থিম প্যালেট ও ফন্ট আপনার ব্র্যান্ডে পরিবর্তন করুন - থিম-লিঙ্কড প্রতিটি রং স্বয়ংক্রিয়ভাবে অনুসরণ করে।",
+  "inputs.colorMap.label": "রঙ ম্যাপিং",
+  "inputs.colorMap.help": "স্লাইডে পাওয়া হার্ডকোড করা রং, প্রতিটির সাথে প্রস্তাবিত ব্র্যান্ড রং। সেই রং অপরিবর্তিত রাখতে একটি সারি সরান।",
+  "inputs.colorMap.fields.from.label": "মূল",
+  "inputs.colorMap.fields.to.label": "ব্র্যান্ড",
+  "inputs.fontMap.label": "ফন্ট ম্যাপিং",
+  "inputs.fontMap.help": "ডেকে উল্লেখিত টাইপফেস, প্রতিটির নিজস্ব ব্র্যান্ড রিপ্লেসমেন্ট সহ। সেই ফন্ট রাখতে একটি সারি সরিয়ে দিন।",
+  "inputs.fontMap.fields.from.label": "মূল",
+  "inputs.fontMap.fields.to.label": "ব্র্যান্ড",
+  "inputs.dropFonts.label": "এমবেডেড ফন্ট সরান",
+  "inputs.dropFonts.help": "ফাইলে এম্বেড করা পুরনো-ব্র্যান্ড ফন্টগুলো অদল-বদলের পর পুরনো হয়ে যায় এবং লাইসেন্স-জটিল হতে পারে।"
+}

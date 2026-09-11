@@ -1,0 +1,21 @@
+{
+  "id": "studio",
+  "name": "Studio",
+  "category": "Background",
+  "description": "Muted neutral tones that sit quietly behind anything.",
+  "values": {
+    "count": 2,
+    "color1": "#e7e5e4",
+    "color2": "#cbd5e1",
+    "blend": "normal",
+    "spread": 140,
+    "blur": 20,
+    "grain": 35,
+    "grainBlend": "soft-light"
+  },
+  "presets": [
+    { "id": "paper", "name": "Paper", "description": "Warm off-white with a heavy toothy grain.", "values": { "color1": "#f5efe6", "color2": "#e2e8f0", "grain": 100, "grainBlend": "overlay" } },
+    { "id": "slate", "name": "Slate", "description": "The same calm surface in dark charcoal.", "values": { "color1": "#334155", "color2": "#1e293b", "grain": 40 } },
+    { "id": "linen", "name": "Linen", "description": "Soft natural fabric tones with a light weave.", "values": { "color1": "#faf7f2", "color2": "#e7e0d5", "grain": 60 } }
+  ]
+}

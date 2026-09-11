@@ -1,0 +1,19 @@
+{
+  "name": "Chữ hiệu",
+  "description": "Gõ một từ, nhận ngay logo chữ dạng vector thuần túy theo font thương hiệu của bạn - người nhận không cần cài font.",
+  "a11yLabel": "Chữ hiệu ghi {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Văn bản",
+  "inputs.font.label": "Phông chữ",
+  "inputs.font.options.brand": "Phông chữ thương hiệu",
+  "inputs.font.options.mono": "Phông mono",
+  "inputs.weight.label": "Độ đậm",
+  "inputs.tracking.label": "Tracking",
+  "inputs.tracking.help": "Giãn cách chữ tính bằng px ở cỡ đã đặt.",
+  "inputs.size.label": "Kích thước",
+  "inputs.size.help": "Cỡ chữ mà đường viền được tạo hình theo - tracking tính tương đối theo cỡ này.",
+  "inputs.color.label": "Màu",
+  "inputs.features.label": "Tính năng OpenType",
+  "inputs.features.options.none": "Tiêu chuẩn",
+  "inputs.features.options.liga-off": "Không ligature",
+  "inputs.features.options.salt": "Biến thể kiểu chữ"
+}

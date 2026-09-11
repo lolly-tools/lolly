@@ -1,0 +1,983 @@
+<div class="tt" data-tt>
+  <button class="tt-hamburger" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="tt-tabs-menu" aria-label="Open operations menu" data-tt-hamburger>
+    <span></span><span></span><span></span>
+  </button>
+
+  <nav class="tt-tabs" id="tt-tabs-menu" role="tablist" aria-label="Operation">
+    <button class="tt-info-btn" type="button" aria-haspopup="dialog" aria-label="About Text Helper" data-tt-about-open>Tt</button>
+    <button class="tt-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="tt-result-panel" data-op="text">Text</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="json">JSON</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="yaml">YAML</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="helm">Helm</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="base64">Base64</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="url">URL</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="jwt">JWT</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="hash">Hash</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="deident">De-identify</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="novelty">Novelty</button>
+  </nav>
+
+  <div class="tt-about-overlay" data-tt-about hidden>
+    <div class="tt-about" role="dialog" aria-modal="true" aria-labelledby="tt-about-title" aria-describedby="tt-about-desc">
+      <button class="tt-about-close" type="button" data-tt-about-close aria-label="Close">&times;</button>
+      <div class="tt-about-icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1" /><path d="M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1" /></svg>
+      </div>
+      <h2 class="tt-about-title" id="tt-about-title">Text Helper</h2>
+      <p class="tt-about-desc" id="tt-about-desc">Format, decode and hash text right here. Nothing you paste leaves your device.</p>
+    </div>
+  </div>
+
+  <div class="tt-options" data-tt-options></div>
+
+  <div class="tt-deident" data-tt-deident hidden></div>
+
+  <div class="tt-panes" data-tt-panes id="tt-result-panel" role="tabpanel" aria-label="Result">
+    <section class="tt-pane">
+      <div class="tt-pane-head"><span class="tt-label" data-tt-inlabel>Input</span><button type="button" class="tt-prepare" data-prepare-sharing>Prepare for sharing</button></div>
+      <textarea class="tt-area" data-tt-in placeholder="Paste text here…" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+    </section>
+    <div class="tt-divider" data-tt-divider role="separator" aria-orientation="vertical" aria-label="Drag to resize the panes"></div>
+    <section class="tt-pane">
+      <div class="tt-pane-head"><span class="tt-label">Output</span></div>
+      <textarea class="tt-area tt-area-out" data-tt-out readonly placeholder="The result appears here" spellcheck="false"></textarea>
+    </section>
+  </div>
+
+  <div class="tt-status" data-tt-status role="status" aria-live="polite"></div>
+
+  <button class="tt-copy" type="button" data-tt-copy disabled>Copy</button>
+</div>
+
+<style>
+/* Colours follow the app's core theme switcher (light / dark / suse). Every hue is
+   sourced from the app design tokens on <html data-theme> (tokens.css), which
+   inherit into this tool, so the tool restyles the instant the theme changes.
+   Fallbacks (light theme) keep it valid where the tokens aren't loaded (CLI). The
+   `--tt-*` aliases hold bare HSL triples so use-sites can alpha-composite. The
+   category chips derive text with color-mix toward the theme foreground so a
+   translucent tint stays legible on a light OR dark surface. */
+.tt {
+  --tt-bg:      var(--background, 0 0% 98%);
+  --tt-fg:      var(--foreground, 224 71% 4%);
+  --tt-muted:   var(--muted-foreground, 215 20% 38%);
+  --tt-card:    var(--card, 0 0% 100%);
+  --tt-bd:      var(--border, 214 28% 84%);
+  --tt-fill:    var(--muted, 210 40% 96%);
+  --tt-brand:   var(--primary, 171 62% 12%);
+  --tt-brandfg: var(--primary-foreground, 0 0% 100%);
+  --tt-warn:    var(--destructive, 0 72% 51%);
+  --tt-person:  220 60% 52%;
+  --tt-org:     28 72% 46%;
+  --tt-loc:     151 55% 38%;
+
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100%;
+  padding: 56px clamp(16px, 4vw, 48px) 104px;
+  font-family: var(--font-brand, "SUSE", system-ui, sans-serif);
+  color: hsl(var(--tt-fg));
+  background: hsl(var(--tt-bg));
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.tt * { box-sizing: border-box; }
+
+/* One seamless pill: the CONTAINER owns the border/radius/clip, buttons sit flush
+   with no gap. Single row -> width:fit-content hugs the content exactly, so the
+   clip rounds only the true leftmost/rightmost buttons (a real pill). Once the
+   row is too wide to fit, the container is forced to 100% width and flex-wrap
+   drops extra tabs to new lines *inside* the same clipped, rounded box - i.e. the
+   whole group stays encapsulated as one pill/capsule instead of scattering into
+   many separate floating pills. */
+.tt-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  border: 1px solid hsl(var(--tt-bd));
+  border-radius: 999px;
+  overflow: hidden;
+  background: hsl(var(--tt-card));
+}
+.tt-info-btn {
+  appearance: none;
+  border: none;
+  border-right: 1px solid hsl(var(--tt-bd) / .6);
+  background: hsl(var(--tt-fill));
+  color: hsl(var(--tt-fg));
+  font: inherit;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: -0.02em;
+  padding: 8px 15px;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.tt-info-btn:hover { background: hsl(var(--tt-brand) / .16); color: hsl(var(--tt-brand)); }
+.tt-tab {
+  appearance: none;
+  border: none;
+  border-right: 1px solid hsl(var(--tt-bd) / .6);
+  background: transparent;
+  color: hsl(var(--tt-muted));
+  font: inherit;
+  font-weight: 600;
+  font-size: 13.5px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.tt-tab:last-child { border-right: none; }
+.tt-tab:hover { color: hsl(var(--tt-brand)); }
+.tt-tab.is-active { background: hsl(var(--tt-brand)); color: hsl(var(--tt-brandfg)); }
+.tt-info-btn:focus-visible, .tt-tab:focus-visible { outline: 2px solid hsl(var(--tt-brand)); outline-offset: -2px; }
+
+/* Mobile: the pill has nowhere good to wrap to, so it collapses behind a
+   hamburger instead - same tab buttons, no duplicate markup or click wiring,
+   just re-flowed into a top-right dropdown list toggled by .is-open (JS). */
+.tt-hamburger {
+  display: none;
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 130;
+  width: 40px;
+  height: 40px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid hsl(var(--tt-bd));
+  border-radius: 10px;
+  background: hsl(var(--tt-card));
+  cursor: pointer;
+  box-shadow: 0 4px 12px hsl(var(--tt-fg) / .12);
+}
+.tt-hamburger span { display: block; width: 18px; height: 2px; border-radius: 2px; background: hsl(var(--tt-fg)); transition: transform .16s, opacity .16s; }
+.tt-hamburger.is-open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.tt-hamburger.is-open span:nth-child(2) { opacity: 0; }
+.tt-hamburger.is-open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+@media (max-width: 760px) {
+  .tt-hamburger { display: flex; }
+  .tt-tabs {
+    position: fixed;
+    top: 64px;
+    right: 16px;
+    left: auto;
+    width: 220px;
+    max-width: calc(100vw - 32px);
+    margin: 0;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    border-radius: 14px;
+    box-shadow: 0 16px 40px hsl(var(--tt-fg) / .22);
+    z-index: 125;
+    max-height: calc(100vh - 84px);
+    overflow-y: auto;
+    transform-origin: top right;
+    transform: scale(.95) translateY(-4px);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .14s ease, transform .14s ease, visibility .14s;
+  }
+  .tt-tabs.is-open { opacity: 1; transform: scale(1) translateY(0); visibility: visible; pointer-events: auto; }
+  .tt-info-btn, .tt-tab {
+    width: 100%;
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 14px;
+    border-right: none;
+    border-bottom: 1px solid hsl(var(--tt-bd) / .5);
+  }
+  .tt-tab:last-child { border-bottom: none; }
+}
+
+.tt-about-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: hsl(var(--tt-fg) / .45);
+}
+.tt-about-overlay[hidden] { display: none; }
+.tt-about {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  background: hsl(var(--tt-card));
+  border: 1px solid hsl(var(--tt-bd));
+  border-radius: 16px;
+  padding: 28px 24px 24px;
+  text-align: center;
+  box-shadow: 0 20px 50px hsl(var(--tt-fg) / .25);
+}
+.tt-about-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: hsl(var(--tt-muted));
+  font-size: 20px;
+  line-height: 1;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.tt-about-close:hover { background: hsl(var(--tt-fill)); color: hsl(var(--tt-fg)); }
+.tt-about-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: hsl(var(--tt-brand) / .12);
+  color: hsl(var(--tt-brand));
+}
+.tt-about-icon svg { width: 26px; height: 26px; }
+.tt-about-title { margin: 0 0 6px; font-size: 18px; font-weight: 800; letter-spacing: -0.01em; }
+.tt-about-desc { margin: 0; font-size: 13.5px; line-height: 1.5; color: hsl(var(--tt-muted)); }
+
+.tt-options { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 18px; min-height: 20px; }
+.tt-options:empty { display: none; }
+.tt-seg { display: inline-flex; border: 1px solid hsl(var(--tt-bd)); border-radius: 8px; overflow: hidden; }
+.tt-seg button {
+  appearance: none; border: 0; background: hsl(var(--tt-card)); color: hsl(var(--tt-muted)); font: inherit; font-size: 12.5px; font-weight: 600;
+  padding: 6px 14px; cursor: pointer; border-right: 1px solid hsl(var(--tt-bd) / .7);
+}
+.tt-seg button:last-child { border-right: 0; }
+.tt-seg button.is-on { background: hsl(var(--tt-brand) / .14); color: hsl(var(--tt-brand)); }
+.tt-opt-label { font-size: 12.5px; color: hsl(var(--tt-muted)); display: inline-flex; align-items: center; gap: 7px; }
+.tt-opt-label input[type="checkbox"] { width: 15px; height: 15px; accent-color: hsl(var(--tt-brand)); }
+.tt-select {
+  font: inherit; font-size: 12.5px; padding: 6px 10px; border: 1px solid hsl(var(--tt-bd)); border-radius: 8px;
+  background: hsl(var(--tt-card)); color: hsl(var(--tt-fg));
+}
+
+.tt-panes { display: flex; flex: 1; min-height: 320px; align-items: stretch; }
+.tt-pane { display: flex; flex-direction: column; min-width: 0; }
+.tt-panes > .tt-pane:first-child { flex: 0 0 var(--tt-left, 50%); }
+.tt-panes > .tt-pane:last-child  { flex: 1 1 0; }
+.tt-divider {
+  flex: 0 0 18px; align-self: stretch; cursor: col-resize; touch-action: none;
+  display: flex; align-items: center; justify-content: center;
+}
+.tt-divider::before {
+  content: ''; width: 4px; height: 56px; max-height: 55%; border-radius: 4px;
+  background: hsl(var(--tt-bd)); transition: background .12s;
+}
+.tt-divider:hover::before, .tt-divider.is-drag::before { background: hsl(var(--tt-brand)); }
+.tt-pane-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; min-height: 28px; }
+@media (max-width: 760px) {
+  .tt-panes { flex-direction: column; gap: 14px; }
+  .tt-panes > .tt-pane:first-child, .tt-panes > .tt-pane:last-child { flex: 1 1 auto; }
+  .tt-divider { display: none; }
+}
+.tt-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: hsl(var(--tt-muted) / .85); }
+.tt-area {
+  flex: 1; width: 100%; min-height: 280px; resize: none;
+  font-family: var(--font-mono, "SUSE Mono", ui-monospace, monospace); font-size: 13px; line-height: 1.55;
+  padding: 14px; border: 1px solid hsl(var(--tt-bd)); border-radius: 12px; background: hsl(var(--tt-card)); color: hsl(var(--tt-fg));
+  white-space: pre; overflow: auto; tab-size: 2;
+}
+.tt-area:focus { outline: 2px solid hsl(var(--tt-brand)); outline-offset: -1px; border-color: hsl(var(--tt-brand)); }
+.tt-area-out { background: hsl(var(--tt-fill)); }
+.tt-area-out.is-error { background: hsl(var(--tt-warn) / .12); color: color-mix(in oklab, hsl(var(--tt-warn)), hsl(var(--tt-fg)) 30%); }
+
+.tt-prepare { display: none; align-items: center; border: 1px solid hsl(var(--tt-bd)); border-radius: 8px; padding: 6px 10px; color: hsl(var(--tt-fg)); background: hsl(var(--tt-card)); font: inherit; font-size: 13px; cursor: pointer; }
+.prepare-capable .tt-prepare { display: inline-flex; }
+.tt-prepare:focus-visible { outline: 3px solid hsl(var(--tt-brand)); outline-offset: 3px; }
+.tt-copy {
+  position: fixed; right: 24px; bottom: 24px; z-index: 50;
+  appearance: none; border: none; background: hsl(var(--tt-brand)); color: hsl(var(--tt-brandfg)); font: inherit;
+  font-size: 15px; font-weight: 700; padding: 14px 30px; border-radius: 14px; cursor: pointer;
+  box-shadow: 0 6px 18px hsl(var(--tt-brand) / 0.32);
+  transition: background .12s, transform .08s, opacity .12s, box-shadow .12s;
+}
+.tt-copy:hover:not(:disabled) { background: hsl(var(--tt-brand) / .9); box-shadow: 0 8px 22px hsl(var(--tt-brand) / 0.38); }
+.tt-copy:active:not(:disabled) { transform: translateY(1px); }
+.tt-copy:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
+.tt-copy.is-done { background: hsl(var(--tt-brand) / .8); }
+
+.tt-status { font-size: 12.5px; color: hsl(var(--tt-muted)); min-height: 18px; font-family: var(--font-mono, "SUSE Mono", ui-monospace, monospace); }
+.tt-status.ok { color: hsl(var(--tt-brand)); }
+.tt-status.warn { color: color-mix(in oklab, hsl(var(--tt-warn)), hsl(var(--tt-fg)) 30%); }
+.tt-status .tt-pill { display: inline-block; margin-right: 10px; }
+
+/* De-identity entity → alias editor */
+.tt-deident { background: hsl(var(--tt-card)); border: 1px solid hsl(var(--tt-bd)); border-radius: 12px; padding: 12px 14px; max-height: 232px; overflow: auto; }
+.tt-deident[hidden] { display: none; }
+.tt-di-empty { margin: 0; font-size: 13px; color: hsl(var(--tt-muted)); text-align: center; padding: 10px; }
+.tt-di-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; flex-wrap: wrap; }
+.tt-di-count { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: hsl(var(--tt-muted) / .85); }
+.tt-di-actions button { appearance: none; border: 1px solid hsl(var(--tt-bd)); background: hsl(var(--tt-card)); color: hsl(var(--tt-muted)); font: inherit; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; margin-left: 6px; }
+.tt-di-actions button:hover { border-color: hsl(var(--tt-brand)); color: hsl(var(--tt-brand)); }
+.tt-di-rows { display: flex; flex-direction: column; gap: 6px; }
+.tt-di-row { display: flex; align-items: center; gap: 8px; }
+.tt-di-on { display: inline-flex; }
+.tt-di-on input { width: 16px; height: 16px; accent-color: hsl(var(--tt-brand)); cursor: pointer; }
+.tt-di-type { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 8px; border-radius: 999px; flex: 0 0 auto; }
+.tt-di-person { background: hsl(var(--tt-person) / .15); color: color-mix(in oklab, hsl(var(--tt-person)), hsl(var(--tt-fg)) 24%); }
+.tt-di-org { background: hsl(var(--tt-org) / .15); color: color-mix(in oklab, hsl(var(--tt-org)), hsl(var(--tt-fg)) 24%); }
+.tt-di-location { background: hsl(var(--tt-loc) / .15); color: color-mix(in oklab, hsl(var(--tt-loc)), hsl(var(--tt-fg)) 24%); }
+.tt-di-orig { flex: 0 0 32%; min-width: 0; font-size: 13px; color: hsl(var(--tt-fg) / .85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tt-di-orig em { color: hsl(var(--tt-muted) / .7); font-style: normal; font-size: 11px; }
+.tt-di-arrow { color: hsl(var(--tt-muted) / .6); flex: 0 0 auto; }
+.tt-di-alias { flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 6px 10px; border: 1px solid hsl(var(--tt-bd)); border-radius: 8px; background: hsl(var(--tt-card)); color: hsl(var(--tt-fg)); }
+.tt-di-alias:focus { outline: 2px solid hsl(var(--tt-brand)); outline-offset: -1px; border-color: hsl(var(--tt-brand)); }
+@media (max-width: 760px) { .tt-di-orig { flex-basis: 40%; } }
+</style>
+
+<script>
+(function () {
+  var root = document.querySelector('[data-tt]');
+  if (!root || root.dataset.ttReady) return;
+  root.dataset.ttReady = '1';
+
+  var inEl = root.querySelector('[data-tt-in]');
+  var outEl = root.querySelector('[data-tt-out]');
+  var statusEl = root.querySelector('[data-tt-status]');
+  var optionsEl = root.querySelector('[data-tt-options]');
+  var copyBtn = root.querySelector('[data-tt-copy]');
+  var inLabel = root.querySelector('[data-tt-inlabel]');
+  var tabs = Array.prototype.slice.call(root.querySelectorAll('.tt-tab'));
+  var aboutBtn = root.querySelector('[data-tt-about-open]');
+  var aboutOverlay = root.querySelector('[data-tt-about]');
+  var aboutClose = root.querySelector('[data-tt-about-close]');
+  var hamburgerBtn = root.querySelector('[data-tt-hamburger]');
+
+  var activeOp = 'text';
+  var state = {
+    json: { mode: 'format' },
+    base64: { dir: 'encode', urlsafe: false },
+    url: { dir: 'encode' },
+    hash: { algo: 'SHA-256' },
+    text: { transform: 'none' },
+    novelty: { kind: 'rot13' },
+    yaml: { mode: 'format' },
+    helm: { mode: 'values' },
+    deident: { dir: 'deid', aliases: {}, types: {}, includes: {}, entities: [] }
+  };
+  var deidentEl = root.querySelector('[data-tt-deident]');
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+  // ── pure helpers ─────────────────────────────────────────────────────────
+  var enc = new TextEncoder();
+  var dec = new TextDecoder('utf-8', { fatal: false });
+
+  function toHex(buf) {
+    var b = new Uint8Array(buf), s = '';
+    for (var i = 0; i < b.length; i++) s += b[i].toString(16).padStart(2, '0');
+    return s;
+  }
+  function fmtBytes(n) {
+    if (n < 1024) return n + ' B';
+    if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+    return (n / 1048576).toFixed(2) + ' MB';
+  }
+  function b64FromBytes(bytes, urlsafe) {
+    var bin = '';
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    var s = btoa(bin);
+    if (urlsafe) s = s.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    return s;
+  }
+  function bytesFromB64(str) {
+    var s = str.trim().replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';
+    var bin = atob(s);
+    var out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function countMembers(v) {
+    if (Array.isArray(v)) return v.length + ' item' + (v.length === 1 ? '' : 's');
+    if (v && typeof v === 'object') {
+      var k = Object.keys(v).length;
+      return k + ' key' + (k === 1 ? '' : 's');
+    }
+    return typeof v;
+  }
+  function relTime(diff) {
+    var a = Math.abs(diff);
+    if (a < 1) return 'now';
+    var u = [['year', 31536000], ['month', 2592000], ['day', 86400], ['hour', 3600], ['minute', 60], ['second', 1]];
+    var label = '';
+    for (var i = 0; i < u.length; i++) {
+      if (a >= u[i][1]) { var nn = Math.floor(a / u[i][1]); label = nn + ' ' + u[i][0] + (nn > 1 ? 's' : ''); break; }
+    }
+    return diff >= 0 ? 'in ' + label : label + ' ago';
+  }
+  function decodeJwt(raw) {
+    var t = raw.trim().replace(/^Bearer\s+/i, '').replace(/^["']|["']$/g, '').trim();
+    var parts = t.split('.');
+    if (parts.length === 5) throw new Error('This is an encrypted token (JWE) - its contents need the decryption key.');
+    if (parts.length !== 3) throw new Error('A JWT has 3 dot-separated parts; this has ' + parts.length + '.');
+    var header, payload;
+    try { header = JSON.parse(dec.decode(bytesFromB64(parts[0]))); }
+    catch (e) { throw new Error('The header is not valid base64url-encoded JSON.'); }
+    try { payload = JSON.parse(dec.decode(bytesFromB64(parts[1]))); }
+    catch (e) { throw new Error('The payload is not valid base64url-encoded JSON.'); }
+    return { header: header, payload: payload };
+  }
+  function jwtStatus(header, payload) {
+    var now = Math.floor(Date.now() / 1000);
+    var alg = header && header.alg != null ? String(header.alg) : '?';
+    var bits = ['alg ' + alg];
+    var tone = 'ok';
+    if (typeof payload.exp === 'number') {
+      if (now >= payload.exp) { bits.push('expired ' + relTime(payload.exp - now)); tone = 'warn'; }
+      else bits.push('expires ' + relTime(payload.exp - now));
+    } else { bits.push('no expiry'); tone = 'warn'; }
+    if (typeof payload.nbf === 'number' && now < payload.nbf) { bits.push('not valid until ' + relTime(payload.nbf - now)); tone = 'warn'; }
+    if (/^none$/i.test(alg)) { bits.push('UNSIGNED - anyone can forge it'); tone = 'warn'; }
+    bits.push('signature not verified');
+    return { text: bits.join(' · '), tone: tone };
+  }
+  function applyCase(s, mode) {
+    var words = function () { return s.match(/[A-Za-z0-9]+/g) || []; };
+    switch (mode) {
+      case 'upper': return s.toUpperCase();
+      case 'lower': return s.toLowerCase();
+      case 'title': return s.replace(/\w\S*/g, function (w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); });
+      case 'kebab': return words().join('-').toLowerCase();
+      case 'snake': return words().join('_').toLowerCase();
+      default: return s;
+    }
+  }
+  // ── novelty transforms ─────────────────────────────────────────────────────
+  function rot13(s) {
+    return s.replace(/[a-zA-Z]/g, function (c) {
+      var base = c <= 'Z' ? 65 : 97;
+      return String.fromCharCode((c.charCodeAt(0) - base + 13) % 26 + base);
+    });
+  }
+  // Substitution by keyboard position: alphabetical order → QWERTY row order.
+  var QW_ALPHA = 'abcdefghijklmnopqrstuvwxyz';
+  var QW_KEYS  = 'qwertyuiopasdfghjklzxcvbnm';
+  function qwertyCipher(s) {
+    return s.replace(/[a-zA-Z]/g, function (c) {
+      var lower = c.toLowerCase();
+      var i = QW_ALPHA.indexOf(lower);
+      if (i < 0) return c;
+      return c === lower ? QW_KEYS[i] : QW_KEYS[i].toUpperCase();
+    });
+  }
+  // Emoji cipher: a fixed, reversible letter+digit → emoji map. Pure fun, zero protection.
+  // Case is not preserved (decodes to lowercase); anything unmapped passes through unchanged.
+  var EMOJI_MAP = {
+    a: '🍎', b: '🐝', c: '🐱', d: '🐬', e: '🥚', f: '🐸', g: '🍇', h: '🌻', i: '🍦',
+    j: '🤹', k: '🔑', l: '🦁', m: '🌙', n: '🎵', o: '🐙', p: '🍕', q: '👑', r: '🌈',
+    s: '🐍', t: '🌴', u: '☂️', v: '🎻', w: '🍉', x: '❌', y: '🪀', z: '⚡',
+    '0': '🌑', '1': '1️⃣', '2': '2️⃣', '3': '3️⃣', '4': '4️⃣', '5': '5️⃣', '6': '6️⃣', '7': '7️⃣', '8': '8️⃣', '9': '9️⃣'
+  };
+  var EMOJI_REV = {};
+  for (var ek in EMOJI_MAP) EMOJI_REV[EMOJI_MAP[ek]] = ek;
+  function graphemes(s) {
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+      return Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(s),
+        function (x) { return x.segment; });
+    }
+    return Array.from(s); // code-point aware fallback
+  }
+  function emojiCipher(s) {
+    var units = graphemes(s);
+    var hasCipher = units.some(function (g) { return EMOJI_REV[g] != null; });
+    if (hasCipher) {
+      // Decode: turn known cipher emoji back into characters.
+      return { out: units.map(function (g) { return EMOJI_REV[g] != null ? EMOJI_REV[g] : g; }).join(''), dir: 'Decoded' };
+    }
+    // Encode: lowercase letters + digits become emoji; everything else is left alone.
+    var out = s.replace(/[a-z0-9]/gi, function (c) {
+      var k = c.toLowerCase();
+      return EMOJI_MAP[k] != null ? EMOJI_MAP[k] : c;
+    });
+    return { out: out, dir: 'Encoded' };
+  }
+
+  // ── YAML: real parser via the vendored eemeli/yaml library ──────────────────
+  // Full YAML 1.1/1.2 - anchors & aliases, merge keys, explicit "? key / : value",
+  // block & folded scalars, flow collections, multi-document streams, octal/hex
+  // numbers: everything the old hand-rolled stand-in parser could not do.
+  // It ships as a classic-script global in the tool dir (loaded once, on demand),
+  // so it needs no bundler and is cached offline after first use - like the D3 tool.
+  var YAML_LIB = '/tools/text-helper/lib/yaml.min.js';
+  function loadYaml() {
+    if (window.YAML) return Promise.resolve(window.YAML);
+    window.__yamlLoading = window.__yamlLoading || new Promise(function (res, rej) {
+      var s = document.createElement('script');
+      s.src = YAML_LIB;
+      s.onload = function () { window.YAML ? res(window.YAML) : rej(new Error('YAML engine loaded but exposed no global.')); };
+      /* Remove the failed node so a re-paint doesn't accrete orphan <script>s. */
+      s.onerror = function () { s.remove(); window.__yamlLoading = null; rej(new Error('YAML engine failed to load - check your connection and retry.')); };
+      document.head.appendChild(s);
+    });
+    return window.__yamlLoading;
+  }
+  // eemeli parse errors carry a multi-line caret snippet; its first line
+  // ("… at line N, column C") is the concise summary we surface. Collapse the
+  // errors from every document in a stream into one thrown Error.
+  function yamlError(docs) {
+    var errs = docs.reduce(function (a, d) { return a.concat(d.errors); }, []);
+    if (!errs.length) return null;
+    var first = String(errs[0].message).split('\n')[0];
+    return new Error(errs.length > 1 ? first + '  (+' + (errs.length - 1) + ' more)' : first);
+  }
+  // Members summary for the status bar: "N documents" for a stream, else the
+  // key/item count of the single document's value.
+  function yamlSummary(docs) {
+    return docs.length > 1 ? docs.length + ' documents' : countMembers(docs.length ? docs[0].toJS() : null);
+  }
+
+  // ── Helm: Go-template-aware helpers; lint mode parses through eemeli/yaml ────
+  var HELM_DIR = /\{\{-?[\s\S]*?-?\}\}/g;
+  function helmValues(src) {
+    var refs = {}, m; HELM_DIR.lastIndex = 0;
+    while ((m = HELM_DIR.exec(src))) {
+      var r, re = /\.(Values|Release|Chart|Capabilities|Files|Template)((?:\.[A-Za-z0-9_]+)*)/g;
+      while ((r = re.exec(m[0]))) { var key = '.' + r[1] + r[2]; refs[key] = (refs[key] || 0) + 1; }
+    }
+    return Object.keys(refs).sort();
+  }
+  function helmNeutralise(src) {
+    // Blank directive-only lines (control flow), mask inline directives - preserving
+    // line numbers so a YAML error still points at the user's original line.
+    return src.split(/\r\n|\r|\n/).map(function (line) {
+      if (line.replace(HELM_DIR, '').trim() === '') return '';
+      return line.replace(HELM_DIR, '__helmval__');
+    }).join('\n');
+  }
+
+  // ── De-identity: best-effort on-device entity detection (no model) ──────────
+  var DI_SUFFIX = 'Inc|Incorporated|LLC|Ltd|Limited|GmbH|Corp|Corporation|Co|PLC|AG|SA|BV|NV|Group|Holdings|Technologies|Labs|Systems|Solutions|Partners|Ventures|Capital|Industries|Enterprises|Foundation|Institute|Bank|Software|Networks|Media|Studios|Consulting';
+  var DI_ORG = new RegExp('\\b([A-Z][\\w&.\'-]*(?:\\s+(?:[A-Z][\\w&.\'-]*|of|and|the|&))*)\\s+(' + DI_SUFFIX + ')\\b\\.?', 'g');
+  // A middle initial must carry its dot ("John A. Smith") so it can't eat the first
+  // letter of a following surname ("John Smith" → not "John S" + "mith").
+  var DI_PERSON = /\b(?:Mr|Mrs|Ms|Dr|Prof)\.?\s+[A-Z][a-z]+(?:\s+[A-Z]\.)?(?:\s+[A-Z][a-z]+)*|\b[A-Z][a-z]+(?:\s+[A-Z]\.)?(?:\s+[A-Z][a-z]+){1,2}\b/g;
+  // Capitalised function words that should never *start* a detected name (they're
+  // sentence-initial, not part of the entity).
+  var DI_STOP = { The: 1, A: 1, An: 1, This: 1, That: 1, These: 1, Those: 1, It: 1, He: 1, She: 1, We: 1, They: 1, In: 1, On: 1, At: 1, Of: 1, And: 1, But: 1, Or: 1, For: 1, To: 1, From: 1, With: 1, By: 1, As: 1, If: 1, When: 1, Then: 1, Here: 1, There: 1, Our: 1, Their: 1, His: 1, Her: 1, Its: 1, My: 1, Your: 1, Also: 1, Now: 1, Today: 1, Their: 1 };
+  var DI_LOCS = ['United States', 'United Kingdom', 'New York', 'San Francisco', 'Los Angeles', 'New Delhi', 'Hong Kong', 'Cape Town', 'Tel Aviv', 'Abu Dhabi', 'London', 'Paris', 'Berlin', 'Munich', 'Tokyo', 'Sydney', 'Melbourne', 'Toronto', 'Vancouver', 'Chicago', 'Boston', 'Seattle', 'Austin', 'Denver', 'Dublin', 'Amsterdam', 'Rotterdam', 'Singapore', 'Zurich', 'Geneva', 'Vienna', 'Madrid', 'Barcelona', 'Rome', 'Milan', 'Oslo', 'Stockholm', 'Copenhagen', 'Helsinki', 'Warsaw', 'Prague', 'Lisbon', 'Athens', 'Bangalore', 'Mumbai', 'Shanghai', 'Beijing', 'Seoul', 'Dubai', 'India', 'Germany', 'France', 'Spain', 'Italy', 'Canada', 'Australia', 'Brazil', 'Japan', 'China', 'Mexico', 'Norway', 'Sweden', 'Finland', 'Poland', 'Ireland', 'Portugal', 'Greece', 'Switzerland', 'Austria', 'Netherlands', 'Belgium', 'California', 'Texas', 'Florida', 'Washington', 'Oregon', 'Colorado', 'Bavaria', 'Catalonia'];
+  var DI_LOC = new RegExp('\\b(' + DI_LOCS.map(function (l) { return l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).sort(function (a, b) { return b.length - a.length; }).join('|') + ')\\b', 'g');
+  var DI_PRI = { org: 0, location: 1, person: 2 };
+  var DI_POOL = {
+    person: ['Jane Doe', 'John Smith', 'Alex Kim', 'Sam Lee', 'Maria Garcia', 'Chris Brown', 'Pat Taylor', 'Jordan Park', 'Riley Chen', 'Casey Ng', 'Drew Patel', 'Robin Diaz'],
+    org: ['Acme Corp', 'Globex', 'Initech', 'Umbrella Inc', 'Hooli', 'Soylent Corp', 'Vandelay Industries', 'Cyberdyne', 'Wonka Industries', 'Stark Co'],
+    location: ['Springfield', 'Gotham', 'Metropolis', 'Riverdale', 'Smallville', 'Hill Valley', 'Pawnee', 'Eagleton', 'Bedrock', 'Quahog']
+  };
+  function diDetect(text) {
+    var spans = [];
+    function collect(re, type) {
+      var m; re.lastIndex = 0;
+      while ((m = re.exec(text))) {
+        if (m[0].length === 0) { re.lastIndex++; continue; }
+        var txt = m[0].trim().replace(/\.$/, '');
+        if (type === 'person' && DI_STOP[txt.split(/\s+/)[0].replace(/\.$/, '')]) continue; // "The San Francisco" → not a person
+        spans.push({ start: m.index, end: m.index + m[0].length, text: txt, type: type });
+      }
+    }
+    collect(DI_ORG, 'org'); collect(DI_LOC, 'location'); collect(DI_PERSON, 'person');
+    // Claim spans by priority (org > location > person) so a stray name can't swallow
+    // an overlapping place/company, regardless of which starts first in the text.
+    var taken = [];
+    spans.slice().sort(function (a, b) { return DI_PRI[a.type] - DI_PRI[b.type] || a.start - b.start || (b.end - b.start) - (a.end - a.start); })
+      .forEach(function (sp) {
+        if (!sp.text) return;
+        if (taken.some(function (t) { return sp.start < t.end && sp.end > t.start; })) return;
+        taken.push(sp);
+      });
+    // Group identical surfaces, presented in first-appearance order.
+    taken.sort(function (a, b) { return a.start - b.start; });
+    var order = [], seen = {};
+    taken.forEach(function (sp) {
+      if (!seen[sp.text]) { seen[sp.text] = { text: sp.text, type: sp.type, count: 0 }; order.push(seen[sp.text]); }
+      seen[sp.text].count++;
+    });
+    return order;
+  }
+  function diSuggest(type, idx) { var pool = DI_POOL[type] || DI_POOL.person; return idx < pool.length ? pool[idx] : pool[pool.length - 1] + ' ' + (idx - pool.length + 2); }
+  function diApply(text, pairs) {
+    var active = pairs.filter(function (p) { return p.from && p.to; });
+    if (!active.length) return text;
+    active.sort(function (a, b) { return b.from.length - a.from.length; });
+    var lut = {}; active.forEach(function (p) { lut[p.from] = p.to; });
+    var re = new RegExp('\\b(?:' + active.map(function (p) { return p.from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|') + ')', 'g');
+    return text.replace(re, function (m) { return lut[m] != null ? lut[m] : m; });
+  }
+
+  // ── operations: each returns { out, status, tone, error } or a Promise ─────
+  var ops = {
+    json: function (input) {
+      var parsed = JSON.parse(input);
+      var out = JSON.stringify(parsed, null, state.json.mode === 'minify' ? 0 : 2);
+      return { out: out, status: 'Valid JSON · ' + countMembers(parsed) + ' · ' + fmtBytes(enc.encode(out).length), tone: 'ok' };
+    },
+    yaml: function (input) {
+      return loadYaml().then(function (Y) {
+        if (state.yaml.mode === 'toYaml') {
+          var obj = JSON.parse(input); // invalid JSON throws → surfaced by run()
+          return { out: Y.stringify(obj), status: 'JSON → YAML · ' + countMembers(obj), tone: 'ok' };
+        }
+        var docs = Y.parseAllDocuments(input);
+        var err = yamlError(docs); if (err) throw err;
+        if (!docs.length) return { out: '', status: 'Empty document', tone: 'ok' };
+        if (state.yaml.mode === 'toJson') {
+          var js = docs.length > 1 ? docs.map(function (d) { return d.toJS(); }) : docs[0].toJS();
+          return { out: JSON.stringify(js, null, 2), status: 'YAML → JSON · ' + yamlSummary(docs), tone: 'ok' };
+        }
+        // Format / validate: re-emit each document (anchors, merge keys & comments preserved).
+        return { out: docs.map(String).join(''), status: 'Valid YAML · ' + yamlSummary(docs), tone: 'ok' };
+      });
+    },
+    helm: function (input) {
+      if (state.helm.mode === 'values') {
+        var refs = helmValues(input);
+        if (!refs.length) return { out: '', status: 'No .Values / .Release / .Chart references found', tone: 'warn' };
+        return { out: refs.join('\n'), status: refs.length + ' unique reference' + (refs.length === 1 ? '' : 's'), tone: 'ok' };
+      }
+      return loadYaml().then(function (Y) {
+        var docs = Y.parseAllDocuments(helmNeutralise(input)); // errors point at the original line
+        var err = yamlError(docs); if (err) throw err;
+        return { out: input, status: 'Valid structure · ' + yamlSummary(docs) + ' · Helm directives neutralised', tone: 'ok' };
+      });
+    },
+    base64: function (input) {
+      if (state.base64.dir === 'encode') {
+        var out = b64FromBytes(enc.encode(input), state.base64.urlsafe);
+        return { out: out, status: 'Encoded ' + fmtBytes(enc.encode(input).length) + ' → ' + out.length + ' chars', tone: 'ok' };
+      }
+      var bytes = bytesFromB64(input);
+      var text = dec.decode(bytes);
+      return { out: text, status: 'Decoded ' + bytes.length + ' bytes', tone: 'ok' };
+    },
+    url: function (input) {
+      var out = state.url.dir === 'encode' ? encodeURIComponent(input) : decodeURIComponent(input.trim());
+      return { out: out, status: (state.url.dir === 'encode' ? 'Encoded' : 'Decoded') + ' · ' + out.length + ' chars', tone: 'ok' };
+    },
+    jwt: function (input) {
+      var d = decodeJwt(input);
+      var out = '// Header\n' + JSON.stringify(d.header, null, 2) + '\n\n// Payload\n' + JSON.stringify(d.payload, null, 2);
+      var st = jwtStatus(d.header, d.payload);
+      return { out: out, status: st.text, tone: st.tone };
+    },
+    hash: function (input) {
+      return crypto.subtle.digest(state.hash.algo, enc.encode(input)).then(function (buf) {
+        var hex = toHex(buf);
+        return { out: hex, status: state.hash.algo + ' · ' + (hex.length * 4) + '-bit · ' + hex.length + ' hex chars', tone: 'ok' };
+      });
+    },
+    text: function (input) {
+      var out = applyCase(input, state.text.transform);
+      var chars = Array.from(input).length;
+      var words = (input.match(/\S+/g) || []).length;
+      var lines = input.length ? input.split(/\r\n|\r|\n/).length : 0;
+      var bytes = enc.encode(input).length;
+      return { out: out, status: chars + ' chars · ' + words + ' words · ' + lines + ' lines · ' + fmtBytes(bytes), tone: '' };
+    },
+    novelty: function (input) {
+      var kind = state.novelty.kind;
+      if (kind === 'emoji') {
+        var r = emojiCipher(input);
+        return { out: r.out, status: 'Emoji Cipher · ' + r.dir + ' · ' + Array.from(input).length + ' chars in', tone: '' };
+      }
+      var out, label;
+      if (kind === 'qwerty') { out = qwertyCipher(input); label = 'Qwerty Cipher'; }
+      else { out = rot13(input); label = 'ROT13'; }
+      return { out: out, status: label + ' · ' + Array.from(input).length + ' chars', tone: '' };
+    }
+  };
+
+  // ── options bar per operation ──────────────────────────────────────────────
+  function seg(name, current, choices) {
+    var html = '<span class="tt-seg" data-seg="' + name + '">';
+    for (var i = 0; i < choices.length; i++) {
+      html += '<button type="button" data-val="' + choices[i][0] + '" class="' + (choices[i][0] === current ? 'is-on' : '') + '">' + choices[i][1] + '</button>';
+    }
+    return html + '</span>';
+  }
+  function renderOptions() {
+    var s = state[activeOp], html = '';
+    if (activeOp === 'json') html = seg('mode', s.mode, [['format', 'Pretty'], ['minify', 'Minify']]);
+    else if (activeOp === 'base64') html = seg('dir', s.dir, [['encode', 'Encode'], ['decode', 'Decode']]) +
+      '<label class="tt-opt-label"><input type="checkbox" data-chk="urlsafe"' + (s.urlsafe ? ' checked' : '') + '> URL-safe</label>';
+    else if (activeOp === 'url') html = seg('dir', s.dir, [['encode', 'Encode'], ['decode', 'Decode']]);
+    else if (activeOp === 'hash') html = '<label class="tt-opt-label">Algorithm <select class="tt-select" data-sel="algo">' +
+      ['SHA-256', 'SHA-1', 'SHA-384', 'SHA-512'].map(function (a) { return '<option' + (a === s.algo ? ' selected' : '') + '>' + a + '</option>'; }).join('') + '</select></label>';
+    else if (activeOp === 'text') html = '<label class="tt-opt-label">Transform <select class="tt-select" data-sel="transform">' +
+      [['none', 'None'], ['upper', 'UPPERCASE'], ['lower', 'lowercase'], ['title', 'Title Case'], ['kebab', 'kebab-case'], ['snake', 'snake_case']]
+        .map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === s.transform ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label>';
+    else if (activeOp === 'novelty') html = '<label class="tt-opt-label">Novelty <select class="tt-select" data-sel="kind">' +
+      [['rot13', 'ROT13'], ['qwerty', 'Qwerty Cipher'], ['emoji', 'Emoji Cipher']]
+        .map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === s.kind ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label>';
+    else if (activeOp === 'yaml') html = seg('mode', s.mode, [['format', 'Format / validate'], ['toJson', 'YAML → JSON'], ['toYaml', 'JSON → YAML']]);
+    else if (activeOp === 'helm') html = seg('mode', s.mode, [['values', 'Values inventory'], ['lint', 'Lint structure']]);
+    else if (activeOp === 'deident') html = seg('dir', s.dir, [['deid', 'De-identify'], ['reid', 'Re-identify']]);
+    optionsEl.innerHTML = html;
+
+    Array.prototype.forEach.call(optionsEl.querySelectorAll('.tt-seg'), function (segEl) {
+      segEl.addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (!b) return;
+        state[activeOp][segEl.dataset.seg] = b.dataset.val;
+        Array.prototype.forEach.call(segEl.querySelectorAll('button'), function (x) { x.classList.toggle('is-on', x === b); });
+        run();
+      });
+    });
+    Array.prototype.forEach.call(optionsEl.querySelectorAll('[data-chk]'), function (c) {
+      c.addEventListener('change', function () { state[activeOp][c.dataset.chk] = c.checked; run(); });
+    });
+    Array.prototype.forEach.call(optionsEl.querySelectorAll('[data-sel]'), function (sel) {
+      sel.addEventListener('change', function () { state[activeOp][sel.dataset.sel] = sel.value; run(); });
+    });
+  }
+
+  // ── run the active operation ───────────────────────────────────────────────
+  var runToken = 0;
+  function setOutput(text, status, tone, isError) {
+    outEl.value = text;
+    outEl.classList.toggle('is-error', !!isError);
+    statusEl.textContent = status || '';
+    statusEl.className = 'tt-status' + (tone ? ' ' + tone : '');
+    copyBtn.disabled = !text || isError;
+    copyBtn.classList.remove('is-done');
+    copyBtn.textContent = 'Copy';
+  }
+  // ── de-identity panel (its own UI: an editable entity → alias map) ──────────
+  function deidentMap() {
+    var d = state.deident, out = {};
+    (d.entities || []).forEach(function (e) { if (d.includes[e.text]) out[e.text] = { alias: d.aliases[e.text], type: e.type }; });
+    return out;
+  }
+  function computeDeident(text) {
+    var d = state.deident;
+    var pairs = (d.entities || []).filter(function (e) { return d.includes[e.text]; }).map(function (e) {
+      return d.dir === 'reid' ? { from: d.aliases[e.text], to: e.text } : { from: e.text, to: d.aliases[e.text] };
+    });
+    var out = diApply(text, pairs);
+    var n = pairs.filter(function (p) { return p.from && p.to; }).length;
+    var verb = d.dir === 'reid' ? 'Re-identified' : 'De-identified';
+    setOutput(out, text.trim() ? verb + ' · ' + n + ' alias' + (n === 1 ? '' : 'es') + ' applied · best-effort, edit as needed' : '', 'ok', false);
+  }
+  function renderDeidentPanel(text) {
+    var entities = text.trim() ? diDetect(text) : [];
+    var d = state.deident, counters = { person: 0, org: 0, location: 0 };
+    var nA = {}, nT = {}, nI = {};
+    // Aliases must be unique and never equal an original, so distinct entities never
+    // collapse to the same alias. Preserve any alias the user already set.
+    var origins = {}, used = {};
+    entities.forEach(function (e) { origins[e.text.toLowerCase()] = 1; });
+    entities.forEach(function (e) { if (d.aliases[e.text] != null) used[String(d.aliases[e.text]).toLowerCase()] = 1; });
+    entities.forEach(function (e) {
+      nT[e.text] = e.type;
+      var alias;
+      if (d.aliases[e.text] != null) {
+        alias = d.aliases[e.text];
+      } else {
+        var k = counters[e.type]++;
+        alias = diSuggest(e.type, k);
+        var guard = 0;
+        while ((used[alias.toLowerCase()] || origins[alias.toLowerCase()]) && guard < 60) { alias = diSuggest(e.type, ++k); guard++; }
+        counters[e.type] = k + 1;
+        used[alias.toLowerCase()] = 1;
+      }
+      nA[e.text] = alias;
+      nI[e.text] = d.includes[e.text] != null ? d.includes[e.text] : true;
+    });
+    d.aliases = nA; d.types = nT; d.includes = nI; d.entities = entities;
+    if (!entities.length) {
+      deidentEl.innerHTML = '<p class="tt-di-empty">Paste text on the left - detected names, companies and locations appear here for you to alias.</p>';
+      return;
+    }
+    var rows = entities.map(function (e) {
+      return '<div class="tt-di-row">' +
+        '<label class="tt-di-on"><input type="checkbox" data-di-inc="' + esc(e.text) + '"' + (d.includes[e.text] ? ' checked' : '') + ' aria-label="Replace ' + esc(e.text) + '"></label>' +
+        '<span class="tt-di-type tt-di-' + e.type + '">' + e.type + '</span>' +
+        '<span class="tt-di-orig" title="' + esc(e.text) + '">' + esc(e.text) + (e.count > 1 ? ' <em>×' + e.count + '</em>' : '') + '</span>' +
+        '<span class="tt-di-arrow">→</span>' +
+        '<input class="tt-di-alias" data-di-alias="' + esc(e.text) + '" value="' + esc(d.aliases[e.text]) + '" spellcheck="false" aria-label="Alias for ' + esc(e.text) + '">' +
+        '</div>';
+    }).join('');
+    deidentEl.innerHTML =
+      '<div class="tt-di-head"><span class="tt-di-count">' + entities.length + ' entit' + (entities.length === 1 ? 'y' : 'ies') + ' · best-effort</span>' +
+      '<span class="tt-di-actions"><button type="button" data-di-copy>Copy map</button><button type="button" data-di-export>Download map</button></span></div>' +
+      '<div class="tt-di-rows">' + rows + '</div>';
+    Array.prototype.forEach.call(deidentEl.querySelectorAll('[data-di-alias]'), function (inp) {
+      inp.addEventListener('input', function () { state.deident.aliases[inp.getAttribute('data-di-alias')] = inp.value; computeDeident(inEl.value); });
+    });
+    Array.prototype.forEach.call(deidentEl.querySelectorAll('[data-di-inc]'), function (chk) {
+      chk.addEventListener('change', function () { state.deident.includes[chk.getAttribute('data-di-inc')] = chk.checked; computeDeident(inEl.value); });
+    });
+    deidentEl.querySelector('[data-di-copy]').addEventListener('click', function () {
+      var b = this;
+      navigator.clipboard.writeText(JSON.stringify(deidentMap(), null, 2)).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy map'; }, 1200); }).catch(function () {});
+    });
+    deidentEl.querySelector('[data-di-export]').addEventListener('click', function () {
+      var blob = new Blob([JSON.stringify(deidentMap(), null, 2)], { type: 'application/json' });
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'alias-map.json';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 100);
+    });
+  }
+  function runDeident() {
+    if (state.deident.dir === 'deid') renderDeidentPanel(inEl.value); // re-detect only when de-identifying; reverse reuses the map
+    computeDeident(inEl.value);
+  }
+
+  function run() {
+    var input = inEl.value;
+    var my = ++runToken;
+    if (activeOp === 'deident') { runDeident(); return; }
+    if (!input.trim() && activeOp !== 'text') { setOutput('', '', '', false); return; }
+    var result;
+    try { result = ops[activeOp](input); }
+    catch (e) { setOutput(e.message, e.message, 'warn', true); return; }
+    if (result && typeof result.then === 'function') {
+      result.then(function (r) { if (my === runToken) setOutput(r.out, r.status, r.tone, false); })
+            .catch(function (e) { if (my === runToken) setOutput(e.message, e.message, 'warn', true); });
+    } else {
+      setOutput(result.out, result.status, result.tone, false);
+    }
+  }
+
+  // ── wiring ─────────────────────────────────────────────────────────────────
+  function activateTab(tab, focus) {
+    activeOp = tab.dataset.op;
+    tabs.forEach(function (t) {
+      var on = t === tab;
+      t.classList.toggle('is-active', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on ? 0 : -1; // roving tabindex - the whole tablist is one tab stop
+    });
+    inLabel.textContent = activeOp === 'jwt' ? 'Token' : activeOp === 'yaml' ? 'YAML' : activeOp === 'helm' ? 'Chart / template' : activeOp === 'deident' ? 'Text' : 'Input';
+    deidentEl.hidden = activeOp !== 'deident';
+    renderOptions();
+    run();
+    if (focus) tab.focus();
+  }
+  tabs.forEach(function (tab) {
+    tab.tabIndex = tab.classList.contains('is-active') ? 0 : -1; // initial roving state
+    tab.addEventListener('click', function () { activateTab(tab, false); closeMobileMenu(); });
+  });
+  // ARIA tabs keyboard pattern: ←/→ (and ↑/↓) move + activate, Home/End jump.
+  var tablistEl = root.querySelector('.tt-tabs');
+  if (tablistEl) tablistEl.addEventListener('keydown', function (e) {
+    var idx = Array.prototype.indexOf.call(tabs, document.activeElement);
+    if (idx === -1) return;
+    var next = -1;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (idx + 1) % tabs.length;
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (idx - 1 + tabs.length) % tabs.length;
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = tabs.length - 1;
+    else return;
+    e.preventDefault();
+    activateTab(tabs[next], true);
+  });
+
+  // ── mobile hamburger - the pill collapses into this toggled dropdown list ───
+  function closeMobileMenu() {
+    if (!tablistEl || !tablistEl.classList.contains('is-open')) return;
+    tablistEl.classList.remove('is-open');
+    if (hamburgerBtn) { hamburgerBtn.classList.remove('is-open'); hamburgerBtn.setAttribute('aria-expanded', 'false'); }
+    document.removeEventListener('click', onOutsideMenuClick, true);
+    document.removeEventListener('keydown', onMenuKeydown);
+  }
+  function openMobileMenu() {
+    if (!tablistEl) return;
+    tablistEl.classList.add('is-open');
+    if (hamburgerBtn) { hamburgerBtn.classList.add('is-open'); hamburgerBtn.setAttribute('aria-expanded', 'true'); }
+    document.addEventListener('click', onOutsideMenuClick, true);
+    document.addEventListener('keydown', onMenuKeydown);
+  }
+  function onOutsideMenuClick(e) {
+    if (tablistEl.contains(e.target) || (hamburgerBtn && hamburgerBtn.contains(e.target))) return;
+    closeMobileMenu();
+  }
+  function onMenuKeydown(e) {
+    if (e.key === 'Escape') { e.preventDefault(); closeMobileMenu(); if (hamburgerBtn) hamburgerBtn.focus(); }
+  }
+  if (hamburgerBtn) {
+    hamburgerBtn.addEventListener('click', function () {
+      if (tablistEl.classList.contains('is-open')) closeMobileMenu(); else openMobileMenu();
+    });
+  }
+
+  // ── about modal - click, backdrop click, or Esc all close it ────────────────
+  var aboutLastFocus = null;
+  function onAboutKeydown(e) {
+    if (e.key === 'Escape') { e.preventDefault(); closeAbout(); }
+  }
+  function openAbout() {
+    closeMobileMenu();
+    aboutLastFocus = document.activeElement;
+    aboutOverlay.hidden = false;
+    aboutClose.focus();
+    document.addEventListener('keydown', onAboutKeydown);
+  }
+  function closeAbout() {
+    aboutOverlay.hidden = true;
+    document.removeEventListener('keydown', onAboutKeydown);
+    if (aboutLastFocus && typeof aboutLastFocus.focus === 'function') aboutLastFocus.focus();
+  }
+  if (aboutBtn && aboutOverlay && aboutClose) {
+    aboutBtn.addEventListener('click', openAbout);
+    aboutClose.addEventListener('click', closeAbout);
+    aboutOverlay.addEventListener('click', function (e) { if (e.target === aboutOverlay) closeAbout(); });
+  }
+
+  inEl.addEventListener('input', run);
+  copyBtn.addEventListener('click', function () {
+    if (!outEl.value) return;
+    navigator.clipboard.writeText(outEl.value).then(function () {
+      copyBtn.classList.add('is-done');
+      copyBtn.textContent = 'Copied';
+      setTimeout(function () { copyBtn.classList.remove('is-done'); copyBtn.textContent = 'Copy'; }, 1400);
+    }).catch(function () {});
+  });
+
+  // ── draggable separator between input and output ───────────────────────────
+  var panesEl = root.querySelector('[data-tt-panes]');
+  var dividerEl = root.querySelector('[data-tt-divider]');
+  if (panesEl && dividerEl) {
+    var dragging = false;
+    var endDrag = function () {
+      if (!dragging) return;
+      dragging = false;
+      dividerEl.classList.remove('is-drag');
+      document.body.style.userSelect = '';
+    };
+    dividerEl.addEventListener('pointerdown', function (e) {
+      if (dividerEl.offsetParent === null) return; // hidden in the stacked layout
+      dragging = true;
+      dividerEl.classList.add('is-drag');
+      document.body.style.userSelect = 'none';
+      try { dividerEl.setPointerCapture(e.pointerId); } catch (err) {}
+      e.preventDefault();
+    });
+    dividerEl.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      var rect = panesEl.getBoundingClientRect();
+      if (rect.width <= 0) return;
+      var pct = ((e.clientX - rect.left) / rect.width) * 100;
+      pct = Math.max(20, Math.min(80, pct));
+      panesEl.style.setProperty('--tt-left', pct + '%');
+    });
+    dividerEl.addEventListener('pointerup', endDrag);
+    dividerEl.addEventListener('pointercancel', endDrag);
+  }
+
+  renderOptions();
+  run();
+})();
+</script>

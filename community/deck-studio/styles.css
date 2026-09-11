@@ -1,0 +1,89 @@
+/* Deck Studio - the canvas is a vertical stack of slides. Each slide is a
+   container-query context so every child (positioned in %, sized in cqw) scales with
+   the slide's rendered width. The pptx export never reads this CSS - it uses the
+   authored model in <script data-pptx-deck> - so these styles are for the on-screen
+   preview and the PDF/PNG DOM-walk export only. */
+
+#ds-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  padding: 4px;
+  box-sizing: border-box;
+  font-family: var(--font-brand, "SUSE", system-ui, -apple-system, sans-serif);
+}
+
+.ds-slide {
+  container-type: inline-size;
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--ds-ar, 16 / 9);
+  overflow: hidden;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  background: #fff;
+}
+
+/* A positioned element. left/top/width/height come inline (%). */
+.ds-el {
+  position: absolute;
+  box-sizing: border-box;
+}
+
+/* Text block: a flexbox so vertical anchor (t/ctr/b) works; paragraphs stack. */
+.ds-text {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.ds-text.ds-anchor-ctr { justify-content: center; }
+.ds-text.ds-anchor-b { justify-content: flex-end; }
+.ds-text p {
+  margin: 0;
+  line-height: 1.25;
+}
+.ds-text p + p { margin-top: 0.35em; }
+
+/* A bullet marker rendered as a leading glyph via ::before, indent by level. */
+.ds-bullet::before {
+  content: var(--ds-bul, "•");
+  display: inline-block;
+  width: 1.1em;
+  margin-left: -1.1em;
+  opacity: 0.9;
+  color: var(--ds-bulc, currentColor);
+}
+.ds-bullet { padding-left: 1.1em; }
+
+/* Numbered list - a per-text-block counter so the preview shows "1. 2. 3." to match
+   the .pptx (which renders real auto-numbering). */
+.ds-text { counter-reset: ds-num; }
+.ds-num { counter-increment: ds-num; padding-left: 1.6em; }
+.ds-num::before {
+  content: counter(ds-num) ".";
+  display: inline-block;
+  width: 1.6em;
+  margin-left: -1.6em;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+  color: var(--ds-bulc, currentColor);
+  font-weight: 600;
+}
+
+.ds-el img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.ds-el.ds-cover img { object-fit: cover; }
+
+/* Native-ish table preview (the pptx table is authored separately). */
+.ds-table {
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.ds-table td {
+  overflow: hidden;
+  vertical-align: middle;
+  word-break: break-word;
+}
+
+/* Speaker-notes node: never shown on the slide, read by the export walkers. */
+.ds-notes { display: none; }

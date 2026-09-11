@@ -1,0 +1,4 @@
+{
+  "name": "Flythrough",
+  "description": "Prolétni skutečnou 3D kamerou skrz snímek obrazovky. Obrázek se rozvrství do skutečné hloubky; velké tvary se vysunou do plných objektů; časová osa poloh animuje celý pohyb - hloubku, průhlednost, perspektivu, vysunutí, náklon, otočení, měřítko a let kamery - pak ho smyčkově vrátí zpět. Přidávej, přesouvej a přeuspořádej polohy. Exportuj jako video."
+}

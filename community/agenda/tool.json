@@ -1,0 +1,195 @@
+{
+  "id": "agenda",
+  "name": "Agenda",
+  "description": "A conference programme from one table - a chronological list, a multi-track timetable, or a now-and-next screen for the door - and a real .ics of every session.",
+  "a11yLabel": "{{default headingText \"Agenda\"}} - {{sessionCount}} sessions, {{trackCount}} tracks",
+  "version": "1.1.0",
+  "engineVersion": "^1.0.0",
+  "status": "community",
+  "category": "event",
+  "tags": ["agenda", "programme", "schedule", "timetable", "conference", "sessions", "tracks", "rooms", "ics"],
+  "examples": [
+    {
+      "label": "Programme list",
+      "values": { "layout": "list" }
+    },
+    {
+      "label": "Now and next",
+      "values": { "layout": "board", "now": "2026-10-14T10:05" }
+    }
+  ],
+  "render": {
+    "width": 794,
+    "height": 1123,
+    "formats": ["pdf", "pdf-cmyk", "svg", "penpot", "png", "jpg", "webp", "ics"],
+    "actions": ["download", "copy", "save"],
+    "filenameFrom": ["title"]
+  },
+  "isolate": true,
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "title",
+      "label": "Event",
+      "type": "text",
+      "default": "Northwind Summit 2026",
+      "maxLength": 90,
+      "placeholder": "e.g. Northwind Summit 2026",
+      "help": "Printed at the head of every layout, and it names the exported file."
+    },
+    {
+      "id": "subtitle",
+      "label": "Venue or strapline",
+      "type": "text",
+      "default": "Riverside Conference Centre",
+      "maxLength": 120,
+      "placeholder": "e.g. Riverside Conference Centre",
+      "help": "One line under the event name. A venue, a city, or the line the programme is sold on."
+    },
+    {
+      "id": "sessions",
+      "label": "Sessions",
+      "type": "table",
+      "urlKey": "ss",
+      "help": "One row per session. Date is YYYY-MM-DD and the times are 24-hour; leave Ends empty and the session runs an hour. Track is what splits the timetable into columns - leave it empty and the session spans every track. Kind takes session, keynote, workshop, break or social; anything else is treated as a session and printed as you typed it. Paste the whole grid from a spreadsheet to replace it.",
+      "default": {
+        "columns": ["Date", "Start", "End", "Title", "Speaker", "Track", "Room", "Kind", "Note"],
+        "rows": [
+          ["2026-10-14", "09:00", "09:45", "Building in the open", "Maya Lindqvist", "", "Auditorium", "keynote", "Doors open at 08:30"],
+          ["2026-10-14", "10:00", "10:45", "Design tokens that survive a rebrand", "Ana Kovač", "Design", "Hall A", "session", ""],
+          ["2026-10-14", "10:00", "10:45", "Containers without the drama", "Tomás Herrera", "Platform", "Hall B", "session", ""],
+          ["2026-10-14", "10:00", "11:30", "Your first accessible component", "Priya Nair", "Practice", "Studio 1", "workshop", "Bring a laptop"],
+          ["2026-10-14", "10:45", "11:15", "Coffee", "", "", "Foyer", "break", ""],
+          ["2026-10-14", "11:15", "12:00", "Type on screen, type in print", "Lena Fischer", "Design", "Hall A", "session", ""],
+          ["2026-10-14", "11:15", "12:00", "Observability on a budget", "Jonas Weber", "Platform", "Hall B", "session", ""],
+          ["2026-10-14", "12:00", "13:00", "Lunch", "", "", "Foyer", "break", ""],
+          ["2026-10-14", "13:00", "13:45", "Contrast and the people who need it", "Ingrid Sorensen", "Design", "Hall A", "session", ""],
+          ["2026-10-14", "14:00", "14:45", "Closing panel: what we ship next", "", "", "Auditorium", "keynote", ""],
+          ["2026-10-14", "17:00", "19:00", "Drinks at the riverside bar", "", "", "Foyer", "social", "Everyone welcome"]
+        ]
+      }
+    },
+    {
+      "id": "layout",
+      "label": "Layout",
+      "type": "select",
+      "urlKey": "ly",
+      "default": "grid",
+      "help": "All three read the same way: time down the page, tracks across it. The timetable gives every row the height of its real length, the list gives each row the height its words need, and the board is a screen for the door.",
+      "options": [
+        { "value": "grid", "label": "Timetable - rows are the clock" },
+        { "value": "list", "label": "List - rows are the sessions" },
+        { "value": "board", "label": "Board - what is on now" }
+      ]
+    },
+    {
+      "id": "style",
+      "label": "Programme style",
+      "type": "select",
+      "default": "editorial",
+      "options": [
+        { "value": "editorial", "label": "Editorial · tinted track cards" },
+        { "value": "minimal", "label": "Minimal · ink and rules" },
+        { "value": "night", "label": "Night · dark programme" }
+      ],
+      "help": "All styles keep the active design system’s type and track colours. Night gives foyer screens a dark background; Minimal uses less ink on paper."
+    },
+    {
+      "id": "now",
+      "label": "Pretend the time is",
+      "type": "datetime-local",
+      "default": "",
+      "showIf": { "layout": "board" },
+      "help": "Leave empty and the board follows the clock on the device showing it. Set a moment and the board is frozen there, so a saved link and an exported picture always show the same thing."
+    },
+    {
+      "id": "tz",
+      "label": "Time zone",
+      "type": "text",
+      "default": "",
+      "maxLength": 60,
+      "placeholder": "e.g. Europe/Berlin",
+      "section": "Calendar file",
+      "help": "An IANA name such as Europe/Berlin or Australia/Brisbane. It only affects the .ics: with a zone the calendar file carries real moments in time, and without one it carries floating times that read the same in every zone."
+    },
+    {
+      "id": "showSpeakers",
+      "label": "Show speakers",
+      "type": "boolean",
+      "default": true,
+      "section": "What to show"
+    },
+    {
+      "id": "showRooms",
+      "label": "Show rooms",
+      "type": "boolean",
+      "default": true,
+      "section": "What to show"
+    },
+    {
+      "id": "compact",
+      "label": "Tighter spacing",
+      "type": "boolean",
+      "default": false,
+      "section": "What to show",
+      "help": "Smaller type and less air between rows, for a programme too long for one sheet."
+    },
+    {
+      "id": "plenaryLabel",
+      "label": "Name for sessions with no track",
+      "type": "text",
+      "default": "",
+      "maxLength": 40,
+      "placeholder": "Plenary",
+      "section": "Wording",
+      "help": "A session with an empty Track cell belongs to everybody: it spans every column of the timetable and is listed under this name."
+    },
+    {
+      "id": "nowLabel",
+      "label": "Heading for what is on",
+      "type": "text",
+      "default": "",
+      "maxLength": 24,
+      "placeholder": "Now",
+      "section": "Wording",
+      "showIf": { "layout": "board" }
+    },
+    {
+      "id": "nextLabel",
+      "label": "Heading for what follows",
+      "type": "text",
+      "default": "",
+      "maxLength": 24,
+      "placeholder": "Next",
+      "section": "Wording",
+      "showIf": { "layout": "board" }
+    }
+  ],
+  "guide": {
+    "title": "From a spreadsheet to a programme",
+    "tracks": [
+      {
+        "id": "build",
+        "label": "Build the programme",
+        "steps": [
+          "Put your programme in a spreadsheet with the same nine columns, then copy the whole block and paste it into **Sessions**. The paste replaces the grid, headings and all.",
+          "**Track** is what makes the columns: every different word you use becomes its own column, in the order the words first appear, and each one takes a colour from your design system. Two sessions at the same time sit side by side, never one above the other.",
+          "Leave **Track** empty for anything that belongs to everybody - a keynote, a break, the party. Those span the whole width.",
+          "Switch **Layout** to **List** when the words matter more than the clock, or to **Board** for a screen by the door."
+        ]
+      },
+      {
+        "id": "share",
+        "label": "Hand it out",
+        "steps": [
+          "Export **PDF** for the printed programme - the page is A4 portrait, and the size fields in the export panel take any other paper.",
+          "Export **ICS** and every session becomes a calendar entry, one per row, with the room as the location and the track as its category.",
+          "Fill in **Time zone** before you export the .ics if the programme is being read from another country. Without it the times float, which is what you want for a printed handout and wrong for an invitation."
+        ]
+      }
+    ]
+  }
+}

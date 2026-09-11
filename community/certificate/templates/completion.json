@@ -1,0 +1,49 @@
+{
+  "id": "completion",
+  "name": "Course completion",
+  "category": "Training",
+  "description": "The classic training certificate: who, what they completed, and when.",
+  "values": {
+    "certKind": "completion",
+    "heading": "",
+    "firstname": "Ana",
+    "lastname": "Kovač",
+    "awardtopic": "Container Fundamentals",
+    "awarddate": "2026-06-18",
+    "presenter": "Maya Lindqvist",
+    "presenterTitle": "Programme Director",
+    "company": "Northwind Institute",
+    "brandLogo": true,
+    "serial": "",
+    "pageSize": "a4-landscape",
+    "color": "{color.semantic.text}",
+    "background": "{color.semantic.surface}",
+    "accent": "{color.semantic.primary}"
+  },
+  "presets": [
+    {
+      "id": "workshop",
+      "name": "Workshop attendance",
+      "description": "A one-day workshop, signed by the facilitator.",
+      "values": {
+        "awardtopic": "Accessible Design, one-day workshop",
+        "awarddate": "2026-09-11",
+        "presenter": "Jonas Weber",
+        "presenterTitle": "Facilitator"
+      }
+    },
+    {
+      "id": "certification",
+      "name": "Certification pass",
+      "description": "An exam pass, with the reference line switched on.",
+      "values": {
+        "certKind": "achievement",
+        "awardtopic": "Certified Platform Administrator",
+        "awarddate": "2026-04-30",
+        "presenter": "Ingrid Sorensen",
+        "presenterTitle": "Head of Certification",
+        "serial": "No. 2026-0413"
+      }
+    }
+  ]
+}

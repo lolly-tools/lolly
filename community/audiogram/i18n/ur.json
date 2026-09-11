@@ -1,0 +1,22 @@
+{
+  "name": "آڈیوگرام",
+  "description": "وائس کلپ یا گانے کو ایک برانڈڈ ویڈیو میں بدلیں جو واقعی آواز کے ساتھ حرکت کرے - بارز، اسپیکٹرم، رنگ، رِج لائن یا اسکوپ، سوشل کے لیے تیار۔",
+  "a11yLabel": "{{default title \"an audio clip\"}} کے لیے آڈیوگرام کارڈ، ایک اینیمیٹڈ ویو فارم کے ساتھ",
+  "inputs.audio.label": "آڈیو",
+  "inputs.audio.help": "اپنی لائبریری سے کوئی ٹریک منتخب کریں یا کوئی کلپ اپ لوڈ کریں۔ ویو فارم بنانے کے لیے یہ آپ کے ڈیوائس پر ڈی کوڈ ہوتا ہے - آڈیو کبھی براؤزر سے باہر نہیں جاتا۔ پلیس ہولڈر ویو فارم کے لیے خالی چھوڑ دیں۔ ایکسپورٹ میں اسے سننے کے لیے، ڈاؤن لوڈ آپشنز میں آڈیو ٹریک کے طور پر \"اس ٹول کا آڈیو\" منتخب کریں۔",
+  "inputs.title.label": "عنوان",
+  "inputs.title.help": "کارڈ پر ہیڈ لائن - ایک ایپیسوڈ کا نام یا پل کوٹ۔",
+  "inputs.subtitle.label": "ذیلی عنوان",
+  "inputs.subtitle.help": "عنوان کے نیچے ایک چھوٹی لائن - شو کا نام، مہمان، یا سننے کی جگہ۔",
+  "inputs.style.label": "ویو فارم کا انداز",
+  "inputs.style.options.bars": "بارز",
+  "inputs.style.options.wave": "ویو",
+  "inputs.style.options.ring": "حلقہ",
+  "inputs.size.label": "سائز",
+  "inputs.size.options.square": "مربع (1:1)",
+  "inputs.size.options.wide": "وائیڈ (16:9)",
+  "inputs.size.options.story": "اسٹوری (9:16)",
+  "inputs.accent.label": "ویو فارم کا رنگ",
+  "inputs.ink.label": "ٹیکسٹ کا رنگ",
+  "inputs.bg.label": "پس منظر"
+}

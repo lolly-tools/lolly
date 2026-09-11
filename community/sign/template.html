@@ -1,0 +1,81 @@
+<main class="utility"><div class="sign-root">
+  {{#unless hasFile}}<section class="empty"><div class="mark">✍</div><h1>Sign a PDF</h1><p>Draw your signature here or choose an existing signature image, then place it on any page.</p><button class="btn btn--primary" type="button" data-file-pick>Choose a PDF…</button><small>Your document stays on this device.</small></section>{{/unless}}
+  {{#if hasFile}}<section class="card">
+    <header><strong>{{fileName}}</strong><span>{{fileSize}}</span><button type="button" class="btn btn--ghost quiet" data-file-pick>Replace PDF</button></header>
+    {{#if error}}<div class="notice bad"><strong>Check the signing choices</strong><span>{{error}}</span></div>{{/if}}
+    {{#if available}}<div class="workspace">
+      <aside class="sign-controls" aria-label="Signature controls">
+        <section class="draw-box" data-ink="{{inkValue}}">
+          <div class="section-title"><strong>Sign here</strong><span>finger, stylus or mouse</span></div>
+          <svg class="ink-pad" viewBox="0 0 600 180" preserveAspectRatio="none" role="img" aria-label="Draw your signature">
+            <path class="guide" d="M28 145H572" />
+            {{#each inkPaths}}<path class="ink-stroke" d="{{d}}" />{{/each}}
+          </svg>
+          <div class="ink-actions"><button type="button" class="btn btn--ghost btn--sm small quiet" data-ink-action="undo">Undo</button><button type="button" class="btn btn--ghost btn--sm small quiet" data-ink-action="clear">Clear</button></div>
+        </section>
+        <div class="or"><span>or</span></div>
+        <button type="button" class="btn btn--primary asset-button" data-input-action="pick" data-input-id="signature" data-clear-input="signatureInk">Choose signature image…</button>
+        {{#if signatureUrl}}<button type="button" class="btn btn--ghost btn--sm small quiet" data-remove-image="signature">Remove signature image</button>{{/if}}
+        <button type="button" class="btn btn--ghost btn--sm small quiet initials-button" data-input-action="pick" data-input-id="initials">{{#if initialsUrl}}Replace initials image…{{else}}Add initials image…{{/if}}</button>
+        {{#if initialsUrl}}<button type="button" class="btn btn--ghost btn--sm small quiet" data-remove-image="initials">Remove initials</button>{{/if}}
+        <div class="placement-controls">
+          <label><span>Page</span><input class="field-input field-input--sm" type="number" min="1" max="{{totalPages}}" step="1" value="{{pageNo}}" data-input-id="page"></label>
+          <label><span>Width (pt)</span><input class="field-input field-input--sm" type="number" min="0.1" max="{{pageW}}" step="1" value="{{positionWidth}}" data-sign-width></label>
+        </div>
+        <label class="check"><input class="field-check" type="checkbox" data-input-id="date" {{#if date}}checked{{/if}}><span>Add today’s date</span></label>
+        <label class="check"><input class="field-check" type="checkbox" data-input-id="seal" {{#if seal}}checked{{/if}}><span>Add Content Credential</span></label>
+        <label class="check"><input class="field-check" type="checkbox" data-input-id="lock" {{#if lock}}checked{{/if}}><span>Lock with password</span></label>
+      </aside>
+
+      <div class="page-stage"><div class="page" data-page-w="{{pageW}}" data-page-h="{{pageH}}" data-position='{{posJson}}' data-group-width="{{groupWidth}}" data-group-height="{{groupHeight}}" style="width:{{pageDisplayW}}px;aspect-ratio:{{pageW}}/{{pageH}}">
+        {{#if pageSvg}}{{{pageSvg}}}{{else}}<div class="paper">Page {{pageNo}} preview unavailable</div>{{/if}}
+        {{#if hasInk}}<svg class="placed-signature" tabindex="0" viewBox="{{inkViewBox}}" preserveAspectRatio="none" style="left:{{xPct}}%;top:{{yPct}}%;width:{{wPct}}%;height:{{hPct}}%" aria-label="Drawn signature placement. Drag or use arrow keys to move.">{{#each inkPaths}}<path d="{{d}}" />{{/each}}</svg>
+        {{else}}{{#if signatureUrl}}<img class="placed-signature" tabindex="0" draggable="false" src="{{signatureUrl}}" style="left:{{xPct}}%;top:{{yPct}}%;width:{{wPct}}%;height:{{hPct}}%" alt="Signature placement. Drag or use arrow keys to move.">{{else}}<div class="placed-signature placeholder" style="left:{{xPct}}%;top:{{yPct}}%;width:{{wPct}}%;height:{{hPct}}%">Draw or choose a signature</div>{{/if}}{{/if}}
+        <svg class="extra-marks" viewBox="0 0 {{pageW}} {{pageH}}" aria-label="Initials and date preview"><g>
+          {{#if initialsMark}}<image href="{{initialsUrl}}" x="{{initialsMark.x}}" y="{{initialsMark.y}}" width="{{initialsMark.width}}" height="{{initialsMark.height}}" preserveAspectRatio="none" />{{/if}}
+          {{#if dateMark}}<text x="{{dateMark.x}}" y="{{dateMark.y}}" dy="{{dateMark.size}}" font-size="{{dateMark.size}}" font-family="Helvetica, Arial, sans-serif" fill="#141414">{{dateMark.text}}</text>{{/if}}
+        </g></svg>
+      </div></div>
+    </div>
+    {{#if pending}}<div class="notice" role="status">Preparing accurate placement…</div>{{/if}}
+    <div class="result"><strong>Page {{pageNo}} · {{signer}}</strong><span>{{positionText}}</span><span>{{sealText}} · {{lockText}}</span></div>
+    <div class="footer">{{#if lock}}<button type="button" class="btn btn--primary download" data-export-file data-export-password="true" data-busy-label="Signing…" {{#unless canDownload}}disabled{{/unless}}>Download signed PDF</button>{{else}}<button type="button" class="btn btn--primary download" data-export-file data-busy-label="Signing…" {{#unless canDownload}}disabled{{/unless}}>Download signed PDF</button>{{/if}}<p class="muted">The page keeps its original size. This is a visible signature, not a regulated identity-verification service.</p></div>
+    {{/if}}
+  </section>{{/if}}
+</div></main>
+<script>(function(){
+  var cs=document.currentScript,root=cs&&cs.previousElementSibling&&cs.previousElementSibling.querySelector('.sign-root');
+  if(!root){var roots=document.querySelectorAll('.sign-root');root=roots[roots.length-1];}
+  if(!root||root.dataset.wired)return;root.dataset.wired='1';
+  var canvas=root.closest('[data-lolly-canvas]'),commit=canvas&&canvas.__lollyCommit;if(!commit)return;
+
+  root.querySelectorAll('[data-remove-image]').forEach(function(b){b.addEventListener('click',function(){commit(b.dataset.removeImage,null);});});
+  var draw=root.querySelector('.draw-box'),pad=root.querySelector('.ink-pad');
+  function tokens(){return String(draw&&draw.dataset.ink||'').split(/\s+(?=M)/).filter(Boolean);}
+  function setInk(parts){var value=parts.join(' ');if(draw)draw.dataset.ink=value;commit('signatureInk',value);}
+  if(draw&&pad){
+    var live=null,NS='http://www.w3.org/2000/svg',MIN=2;
+    function point(e){var r=pad.getBoundingClientRect();return[Math.round((e.clientX-r.left)*600/r.width*10)/10,Math.round((e.clientY-r.top)*180/r.height*10)/10];}
+    function path(points){var d='M'+points[0][0]+','+points[0][1];for(var i=1;i<points.length;i++)d+='L'+points[i][0]+','+points[i][1];if(points.length===1)d+='L'+points[0][0]+','+points[0][1];return d;}
+    pad.addEventListener('pointerdown',function(e){e.preventDefault();pad.setPointerCapture(e.pointerId);var el=document.createElementNS(NS,'path'),p=point(e);el.setAttribute('class','ink-stroke live');el.setAttribute('d',path([p]));pad.appendChild(el);live={points:[p],el:el,id:e.pointerId};});
+    pad.addEventListener('pointermove',function(e){if(!live||live.id!==e.pointerId)return;var p=point(e),last=live.points[live.points.length-1],dx=p[0]-last[0],dy=p[1]-last[1];if(dx*dx+dy*dy<MIN*MIN)return;live.points.push(p);live.el.setAttribute('d',path(live.points));});
+    function finish(e,cancel){if(!live||live.id!==e.pointerId)return;var item=live;live=null;if(cancel){if(item.el.parentNode)item.el.parentNode.removeChild(item.el);return;}var parts=tokens();parts.push(path(item.points));setInk(parts);}
+    pad.addEventListener('pointerup',function(e){finish(e,false);});pad.addEventListener('pointercancel',function(e){finish(e,true);});
+    root.querySelectorAll('[data-ink-action]').forEach(function(button){button.addEventListener('click',function(){var parts=tokens();if(button.dataset.inkAction==='undo')parts.pop();else parts=[];setInk(parts);});});
+  }
+
+  var page=root.querySelector('.page'),sig=root.querySelector('.placed-signature'),widthInput=root.querySelector('[data-sign-width]');
+  function pos(){var p={};try{p=JSON.parse(page&&page.getAttribute('data-position')||'{}');}catch(e){}return{x:Number(p.x)||0,y:Number(p.y)||0,width:Math.max(12,Number(p.width)||144)};}
+  function bounds(x,y,width){var pw=Number(page.dataset.pageW)||612,ph=Number(page.dataset.pageH)||792,p=pos(),ratio=width/p.width,gw=(Number(page.dataset.groupWidth)||width)*ratio,gh=(Number(page.dataset.groupHeight)||12)*ratio,s=Math.min(1,pw/gw,ph/gh);return{x:Math.max(0,Math.min(pw-gw*s,x)),y:Math.max(0,Math.min(ph-gh*s,y)),width:width*s};}
+  function place(x,y,width){if(page)commit('position',bounds(x,y,Math.max(.1,Number(width)||144)));}
+  if(widthInput)widthInput.addEventListener('change',function(){var p=pos();place(p.x,p.y,Number(widthInput.value));});
+  if(page&&sig){var start=null,marks=page.querySelector('.extra-marks g');
+    function shifted(e){var r=page.getBoundingClientRect(),pw=Number(page.dataset.pageW)||612,ph=Number(page.dataset.pageH)||792;return bounds(start.p.x+(e.clientX-start.x)*pw/r.width,start.p.y+(e.clientY-start.y)*ph/r.height,start.p.width);}
+    function paint(p){sig.style.left=(p.x/Number(page.dataset.pageW)*100)+'%';sig.style.top=(p.y/Number(page.dataset.pageH)*100)+'%';if(marks)marks.setAttribute('transform','translate('+(p.x-pos().x)+' '+(p.y-pos().y)+')');}
+    sig.addEventListener('pointerdown',function(e){if(e.button!==0)return;e.preventDefault();sig.setPointerCapture(e.pointerId);start={x:e.clientX,y:e.clientY,p:pos()};});
+    sig.addEventListener('pointermove',function(e){if(start)paint(shifted(e));});
+    sig.addEventListener('pointerup',function(e){if(!start)return;var p=shifted(e);start=null;place(p.x,p.y,p.width);});
+    sig.addEventListener('pointercancel',function(){if(start)paint(start.p);start=null;});
+    sig.addEventListener('keydown',function(e){var d=e.shiftKey?10:1,p=pos(),x=p.x,y=p.y;if(e.key==='ArrowLeft')x-=d;else if(e.key==='ArrowRight')x+=d;else if(e.key==='ArrowUp')y-=d;else if(e.key==='ArrowDown')y+=d;else return;e.preventDefault();place(x,y,p.width);});
+  }
+})();</script>

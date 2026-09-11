@@ -1,0 +1,221 @@
+/* Captions - the stage, the cue plate and the review list.
+ *
+ * Every brand var carries a comma fallback: --brand-* is projected onto the tool
+ * canvas only when the active brand's tokens resolve, so a bare var() would
+ * collapse to nothing on an unbranded canvas (tests/brand-residue.test.ts).
+ *
+ * The two colour inputs drive --cp-ink and --cp-bg from the template's style
+ * attribute; the stage ground is the brand surface, so the cue plate stays
+ * legible whatever the brand's primary happens to be.
+ */
+
+.cp-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: var(--brand-surface, #0d1017);
+  color: var(--cp-ink, #f8fafc);
+  font-family: var(--font-brand, "SUSE", ui-sans-serif, system-ui, sans-serif);
+}
+
+/* --- stage ---------------------------------------------------------------- */
+
+.cp-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cp-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* The audio panel. There is no artwork inside an audio file, so the clip gets a
+   calm brand plate with its own name on it rather than a broken image. */
+.cp-art {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3%;
+  background:
+    radial-gradient(70% 70% at 50% 34%, var(--cp-bg, #111827) 0%, rgba(0, 0, 0, 0) 72%),
+    var(--brand-surface, #0d1017);
+}
+
+.cp-art-wave { width: 46%; height: 12%; opacity: 0.85; }
+
+.cp-art-name {
+  margin: 0;
+  font-size: calc(var(--cp-fs, 54px) * 0.42);
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+/* No clip picked. A plain frame mark, so the canvas reads as "waiting" rather
+   than as an export that came out empty. */
+.cp-blank {
+  position: absolute;
+  inset: 6%;
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cp-blank-mark {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.22);
+}
+
+/* --- the cue -------------------------------------------------------------- */
+
+.cp-cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4em;
+  padding: 0 4%;
+  font-size: var(--cp-fs, 54px);
+  line-height: 1.24;
+  text-align: center;
+}
+
+.cp-pos--bottom .cp-cap { bottom: 6%; }
+.cp-pos--top .cp-cap { top: 6%; }
+.cp-pos--centre .cp-cap { top: 50%; transform: translateY(-50%); }
+
+.cp-tc {
+  margin: 0;
+  font-family: var(--font-mono, "SUSE Mono", ui-monospace, monospace);
+  font-size: 0.42em;
+  letter-spacing: 0.06em;
+  opacity: 0.72;
+}
+
+.cp-plate { display: inline-block; }
+
+.cp-line {
+  margin: 0;
+  font-weight: 600;
+}
+
+.cp-w { white-space: pre-wrap; }
+
+/* Bar: one plate the full width of the frame. */
+.cp-style--bar .cp-cap { padding: 0; }
+.cp-style--bar .cp-plate {
+  display: block;
+  width: 100%;
+  background: var(--cp-bg, #111827);
+  padding: 0.36em 4%;
+}
+
+/* Box: the plate hugs the words. */
+.cp-style--box .cp-plate {
+  background: var(--cp-bg, #111827);
+  padding: 0.3em 0.66em;
+  border-radius: 0.22em;
+}
+
+/* Outline: no plate at all. The edge is a ring of shadows in the caption
+   background colour, which is what keeps the words readable over a bright
+   frame. Kept to eight offsets: past that it reads as a blur, not an edge. */
+.cp-style--outline .cp-line {
+  text-shadow:
+    0 0.035em 0 var(--cp-bg, #111827), 0 -0.035em 0 var(--cp-bg, #111827),
+    0.035em 0 0 var(--cp-bg, #111827), -0.035em 0 0 var(--cp-bg, #111827),
+    0.026em 0.026em 0 var(--cp-bg, #111827), -0.026em 0.026em 0 var(--cp-bg, #111827),
+    0.026em -0.026em 0 var(--cp-bg, #111827), -0.026em -0.026em 0 var(--cp-bg, #111827);
+}
+
+/* Karaoke: the plate stays, and each word carries its own state. Spoken words
+   are full strength, the word being said now is heavier, the rest wait at half
+   strength. Colour alone never carries the state, so it survives greyscale. */
+.cp-style--karaoke .cp-plate {
+  background: var(--cp-bg, #111827);
+  padding: 0.3em 0.66em;
+  border-radius: 0.22em;
+}
+
+.cp-style--karaoke .cp-w.is-done { opacity: 1; }
+.cp-style--karaoke .cp-w.is-next { opacity: 0.45; }
+.cp-style--karaoke .cp-w.is-on {
+  opacity: 1;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+  text-decoration-thickness: 0.06em;
+}
+
+/* --- review list (screen only, never exported) ---------------------------- */
+
+/* An OVERLAY, not a row in the column. [data-export-hide] detaches this node at
+   export time, so anything that took space on screen would let the stage grow
+   and move every cue: the preview would sit a caption at 6% of a short stage and
+   the PNG at 6% of the full frame. Floating it keeps the stage the full canvas in
+   both. Top left, because the cue defaults to the bottom. */
+.cp-review {
+  position: absolute;
+  top: 3%;
+  left: 3%;
+  width: 34%;
+  max-height: 46%;
+  overflow: auto;
+  padding: 14px 16px 16px;
+  border-radius: 12px;
+  background: rgba(8, 10, 14, 0.82);
+  color: #f8fafc;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.cp-review-head {
+  margin: 0 0 8px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.cp-review-head.is-empty { font-weight: 500; opacity: 0.75; }
+
+.cp-warn {
+  margin: 0 0 6px;
+  color: var(--brand-secondary, #f0b429);
+}
+
+.cp-cues { margin: 0; padding: 0; list-style: none; }
+
+.cp-cue {
+  display: flex;
+  gap: 12px;
+  padding: 5px 8px;
+  border-radius: 6px;
+}
+
+.cp-cue.is-current { background: rgba(255, 255, 255, 0.1); }
+
+.cp-cue-tc {
+  flex: 0 0 auto;
+  font-family: var(--font-mono, "SUSE Mono", ui-monospace, monospace);
+  font-size: 12px;
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+.cp-cue-text { flex: 1 1 auto; }

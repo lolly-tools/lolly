@@ -1,0 +1,146 @@
+{
+  "id": "calendar-ics",
+  "name": "Calendar",
+  "description": "Turn event details into a calendar (.ics) file for any calendar app.",
+  "version": "1.2.2",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "event",
+  "tags": ["calendar", "ics", "event", "ical", "invite", "meeting", "schedule", "month", "print"],
+  "render": {
+    "width": 760,
+    "height": 460,
+    "formats": ["ics", "png", "svg", "penpot", "pdf", "jpg", "webp"],
+    "actions": ["download", "copy", "save"]
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "view",
+      "label": "View",
+      "type": "select",
+      "default": "list",
+      "help": "The card is the shareable event summary. The month grid is the sheet you print and pin up - picking it sets the export size to A4 landscape.",
+      "options": [
+        { "value": "list", "label": "Event card" },
+        { "value": "month", "label": "Month grid · A4 landscape", "width": 297, "height": 210, "unit": "mm" }
+      ]
+    },
+    {
+      "id": "month",
+      "label": "Month",
+      "type": "text",
+      "default": "",
+      "placeholder": "2026-09",
+      "pattern": "^$|^[1-9][0-9]{3}-(0[1-9]|1[0-2])$",
+      "showIf": { "view": "month" },
+      "help": "Which month to draw, as YYYY-MM. Leave blank to use the month of the earliest date you have entered. There is no clock here, so with no month and no dates the grid asks you for one rather than guessing.",
+      "maxLength": 7
+    },
+    {
+      "id": "weekStart",
+      "label": "Week starts",
+      "type": "select",
+      "default": "monday",
+      "showIf": { "view": "month" },
+      "help": "First column of the grid.",
+      "options": [
+        { "value": "monday", "label": "Monday" },
+        { "value": "sunday", "label": "Sunday" }
+      ]
+    },
+    {
+      "id": "showWeekNumbers",
+      "label": "Week numbers",
+      "type": "boolean",
+      "default": false,
+      "showIf": { "view": "month" },
+      "help": "Add an ISO-8601 week number column. ISO weeks are Monday based, so on a Sunday-start grid each row shows the week of the Monday inside it."
+    },
+    {
+      "id": "eventName",
+      "label": "Event name",
+      "type": "text",
+      "default": "Team meeting",
+      "placeholder": "e.g. Quarterly review",
+      "help": "Shows as the calendar entry's title (SUMMARY)."
+    },
+    {
+      "id": "meetingTime",
+      "label": "Starts",
+      "type": "datetime-local",
+      "default": "",
+      "help": "Local start date and time. Leave blank to default to today. Shared with Meeting Planner so a batch sheet's date column drives both."
+    },
+    {
+      "id": "meetingEndTime",
+      "label": "Ends",
+      "type": "datetime-local",
+      "default": "",
+      "help": "Optional. Leave blank for a 1-hour event."
+    },
+    {
+      "id": "allDay",
+      "label": "All-day event",
+      "type": "boolean",
+      "default": false,
+      "help": "Ignore the time of day and book the whole date."
+    },
+    {
+      "id": "city",
+      "label": "Location",
+      "type": "text",
+      "default": "",
+      "placeholder": "e.g. Nuremberg, or a meeting link",
+      "help": "Where it happens - a place or a URL. Shared id with Meeting Planner (city)."
+    },
+    {
+      "id": "description",
+      "label": "Description",
+      "type": "longtext",
+      "default": "",
+      "placeholder": "Agenda, notes, dial-in details…",
+      "help": "Notes that ride along in the calendar entry."
+    },
+    {
+      "id": "url",
+      "label": "Event URL",
+      "type": "url",
+      "default": "",
+      "placeholder": "https://…",
+      "help": "Optional link attached to the event."
+    },
+    {
+      "id": "reminder",
+      "label": "Reminder",
+      "type": "select",
+      "default": "none",
+      "help": "Add a pop-up alarm before the event starts.",
+      "options": [
+        { "value": "none", "label": "No reminder" },
+        { "value": "5", "label": "5 minutes before" },
+        { "value": "10", "label": "10 minutes before" },
+        { "value": "15", "label": "15 minutes before" },
+        { "value": "30", "label": "30 minutes before" },
+        { "value": "60", "label": "1 hour before" },
+        { "value": "1440", "label": "1 day before" }
+      ]
+    },
+    {
+      "id": "events",
+      "label": "More dates",
+      "type": "blocks",
+      "default": [],
+      "labelledFields": true,
+      "help": "Extra entries. They fill the month grid, and each one with a date and a title also rides along in the .ics as its own calendar entry. A row missing either is counted under the grid, never dropped in silence.",
+      "fields": [
+        { "id": "date", "label": "Date", "placeholder": "2026-09-14", "help": "YYYY-MM-DD." },
+        { "id": "time", "label": "Time", "placeholder": "09:30", "help": "Optional, 24-hour. Blank means all day." },
+        { "id": "title", "label": "What", "placeholder": "e.g. Release review" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "Wordmark",
+  "description": "Digite uma palavra, obtenha uma marca-palavra vetorial em caminhos puros na fonte da sua marca - os destinatários nunca precisam ter a fonte instalada.",
+  "a11yLabel": "Wordmark exibindo {{default text \"Wordmark\"}}",
+  "inputs.text.label": "Texto",
+  "inputs.font.label": "Fonte",
+  "inputs.font.options.brand": "Fonte da marca",
+  "inputs.font.options.mono": "Fonte mono",
+  "inputs.weight.label": "Peso",
+  "inputs.tracking.label": "Espaçamento",
+  "inputs.tracking.help": "Espaçamento entre letras em px no tamanho definido.",
+  "inputs.size.label": "Tamanho",
+  "inputs.size.help": "Tamanho da fonte em que os contornos são moldados - o tracking é relativo a isso.",
+  "inputs.color.label": "Cor",
+  "inputs.features.label": "Recursos OpenType",
+  "inputs.features.options.none": "Padrão",
+  "inputs.features.options.liga-off": "Sem ligaduras",
+  "inputs.features.options.salt": "Alternativas estilísticas"
+}
