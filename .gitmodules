@@ -1,6 +1,3 @@
-[submodule "shells/cli"]
-	path = shells/cli
-	url = https://github.com/lolly-tools/lolly-cli.git
 [submodule "shells/tui"]
 	path = shells/tui
 	url = https://github.com/lolly-tools/lolly-tui.git
