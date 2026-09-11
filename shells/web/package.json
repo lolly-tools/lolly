@@ -52,6 +52,7 @@
     "@lolly-tools/audio-dock": "workspace:*"
   },
   "devDependencies": {
+    "@lolly-tools/node-shell": "workspace:*",
     "vite": "^8.0.13"
   }
 }

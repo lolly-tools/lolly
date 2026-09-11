@@ -14,6 +14,7 @@
     ".": "./src/index.ts",
     "./file-operations": "./src/file-operations.ts",
     "./repo-root": "./src/repo-root.ts",
+    "./content-roots": "./src/content-roots.ts",
     "./state-dir": "./src/state-dir.ts",
     "./session-store": "./src/session-store.ts",
     "./design-systems": "./src/design-systems.ts",
