@@ -36,29 +36,30 @@ Filnamnet och formatväljaren sitter högst upp i panelen som ett `name.format`-
 
 ![Filnamnsfältet sammanfogat med formatväljaren, så att exporten läses som ett name.format-par](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-| Du vill… | Använd | Varför |
+| Du vill ha… | Använd | Varför |
 |---|---|---|
-| Skarpa logotyper/illustrationer som skalar | **SVG** | Vektor - oändligt skalbar, liten, redigerbar |
-| Vektor för Office/Windows-appar | **EMF** | Klistras in som redigerbar vektor i PowerPoint/Word; texten förblir levande och redigerbar, och Google Drive öppnar den i Google Drawings för Slides |
-| Vektor för utskrift/designappar | **EPS**, eller **EPS (CMYK)** | PostScript-vektor för Illustrator/tryckeriflöden |
+| Skarpa logotyper/grafik som skalar | **SVG** | Vektor - oändligt skalbar, liten, redigerbar |
+| Vektor för Office/Windows-appar | **EMF** | Klistras in som redigerbar vektor i PowerPoint/Word; text förblir levande och redigerbar, och Google Drive öppnar den i Google Drawings för Slides |
+| Vektor för print/designappar | **EPS**, eller **EPS (CMYK)** | PostScript-vektor för Illustrator/tryckeriflöden |
 | Vektor för skärning/CAD-maskiner | **DXF** | Laserskärare, vinylplottrar, CNC - konturbanor i millimeter |
-| Ett redigerbart presentationsbildspel | **PowerPoint** (PPTX) | Nativ redigerbar text + former, med bilder och vektorer som förblir extraherbara |
+| Ett redigerbart presentationsbygge | **PowerPoint** (PPTX) | Inbyggd redigerbar text + former, med bilder och vektorer som förblir extraherbara |
+| En kurs som ett LMS kan importera | **SCORM** (LMS) | En zip med manifest, en startsida, bilderna och den berättade filmen med undertexter - från ett Design-bygge |
 | Ett redigerbart textdokument | **Word** (DOCX) eller **OpenDocument** (ODT) | Riktiga stycken och rubriker som ett ordbehandlingsprogram kan fortsätta redigera (Doc Studio) |
-| Ett foto eller en allmän bild | **PNG** (förlustfri) eller **JPG** (mindre) | Universell rasterbild |
-| Mindre moderna bilder | **WebP**/**AVIF** | Bättre komprimering, alfa |
-| Utskrift | **PDF**, eller **Print PDF** (CMYK) | Verklig sidstorlek; CMYK för tryck |
-| Utskriftsraster för ett tryckeri | **Print TIFF** (CMYK) | DeviceCMYK-pixlar för en RIP |
-| Animerat för webben | **GIF** | Fungerar överallt, större filer |
-| Animerat med fullfärg + riktig alfa | **APNG** | Animerad PNG - ingen palettbegränsning, äkta transparens |
-| Animerat, minsta fil | **Animated WebP** | Fullfärg + alfa, bättre komprimerad än GIF eller APNG |
-| Animerad vektor som skalar | **Animated SVG** | Självständig; loopar i en webbläsare eller `<img>`, ingen kodek, valfri storlek |
+| Ett foto eller en generell bild | **PNG** (förlustfri) eller **JPG** (mindre) | Universell rasterbild |
+| Mindre moderna bilder | **WebP** / **AVIF** | Bättre komprimering, alfa |
+| Print | **PDF**, eller **Print PDF** (CMYK) | Verklig sidstorlek; CMYK för tryckeri |
+| Rasterbild för tryckeri | **Print TIFF** (CMYK) | DeviceCMYK-pixlar för en RIP |
+| Animerad för webben | **GIF** | Fungerar överallt, större filer |
+| Animerad med fullfärg + riktig alfa | **APNG** | Animerad PNG - ingen paletbegränsning, äkta transparens |
+| Animerad, minsta filen | **Animerad WebP** | Fullfärg + alfa, bättre komprimerad än GIF eller APNG |
+| Animerad vektor som skalar | **Animerad SVG** | Fristående; loopar i en webbläsare eller `<img>`, ingen kodek, valfri storlek |
 | Video för sociala medier/delning | **MP4** eller **WebM** | Bäst kvalitet per byte (se nedan) |
-| Formaterad text/e-postsignatur | **HTML** | Klistras in formaterad i e-postklienter |
-| Vanligt innehåll | **MD**/**TXT** | Endast text |
-| En kalenderhändelse | **ICS** | Importeras i valfri kalenderapp |
+| Rik text/e-postsignatur | **HTML** | Klistras in formaterat i e-postklienter |
+| Vanligt innehåll | **MD** / **TXT** | Endast text |
+| En kalenderhändelse | **ICS** | Importeras i vilken kalenderapp som helst |
 | Ett kontaktkort | **VCF** | Importeras i Kontakter/adressböcker |
-| Strukturerad data att importera igen | **JSON**/**CSV** | Går fram och tillbaka utan förlust av verktygets innehåll |
-| En favikon | **ICO** | Flerstorleks webbplatsikon (**ZIP** buntar flera format) |
+| Strukturerad data att återimportera | **JSON** / **CSV** | Rundtrippar verktygets innehåll |
+| En favikon | **ICO** | Webbplatsikon i flera storlekar (**ZIP** samlar flera format) |
 
 Den första raden är det vanliga fallet. Ett ordmärke satt i ditt varumärkes typsnitt exporteras som SVG, där varje bokstav är en konturerad bana snarare än en pixel, så den förblir skarp i visitkortsstorlek och i byggnadsinslagningsstorlek från samma fil.
 
@@ -79,7 +80,7 @@ Exempel: bredd `210`, höjd `297`, enhet `mm` → en A4-sida.
 
 ## Stillbilder från en tidsbaserad komposition
 
-En **tidsbaserad komposition** - ett [Sequence Studio](/info/using.html#timeline-sequence-studio)-steg, eller vilken tidslinjestyrd arbetsyta som helst - är något rörligt, så en stillbildsexport måste besvara "vilket ögonblick?". Regeln är den du väntar dig: **bildrutan vid spelhuvudet**. Placera spelhuvudet där du vill ha bilden och exportera; det du ser är det som kommer ut.
+En **tidsstyrd komposition** - en [Sekvens](/info/using.html#timeline-sequence)-tidslinje i Design, eller vilken tidslinjestyrd rityta som helst - är något som rör sig, så en stillbildsexport måste besvara "vilket ögonblick?". Regeln är den du väntar dig: **bildrutan vid spelhuvudet**. Placera spelhuvudet där du vill ha bilden och exportera; det du ser är det som kommer ut.
 
 När du vill ha mer än ett ögonblick visas fältet **Frames** bredvid utdatastorleken (endast för en tidsbaserad komposition, och endast för ett stillbildsformat - PNG, JPG, WebP, SVG eller PDF). Lämna det på `1` för spelhuvudets bildruta. Höj det så får du så många stillbilder samplade med jämna mellanrum över hela sekvensen:
 
@@ -94,12 +95,12 @@ Fältet **Frames** är sättet att få ett blad idag. Motorn reserverar en match
 
 ## Flersidig PDF
 
-Vissa verktyg bygger ett **flersidigt PDF-dokument** i stället för ett enda konstverk - ett omslag, innehåll som flödar över så många sidor det behöver och en baksida, allt i en fil (se verktyget *Multi-Page PDF*). Varje sida är en **verklig PDF-sida** anpassad till den sidans box, så läsare och skrivare får riktiga sidor, inte en enda hög bild.
+Vissa verktyg bygger ett **flersidigt PDF-dokument** istället för ett enda konstverk - ett omslag, innehåll som flyter över så många sidor det behöver och en baksida, allt i en fil (se verktyget *Booklet*). Varje sida är en **äkta PDF-sida** anpassad till den sidans ruta, så läsare och skrivare får riktiga sidor, inte en enda lång bild.
 
 - **Sidor från innehåll.** Lägg till block med text och bilder; nya sidor skapas automatiskt när blocken fylls, och du kan tvinga vilket block som helst att starta en ny sida.
 - **Verkliga sidstorlekar.** Välj A4, US Letter eller A5 (stående - tvåkolumnslayouten är byggd för det) - varje sida, och den exporterade PDF:en, renderas i exakt den storleken.
 
-Flersidiga PDF:er är RGB-dokument och saknar skär-/utfallsmarkeringar - de hör till den ensidiga **Print PDF**-vägen ovan. De har samma **PDF/X-4-metadata** som varje PDF-export (sidboxar, XMP, dokument-ID, en sRGB-utdataavsikt med inbäddad profil), och de erbjuder **Content Credentials** (nedan) - på verktyget *Multi-Page PDF* är alternativet förvalt.
+Flersidiga PDF-filer är RGB-dokument och har inga skär-/utfallsmärken - de hör till den enkelsidiga **Print PDF**-vägen ovan. De har samma **PDF/X-4-metadata** som varje PDF-export (sidrutor, XMP, dokument-ID, en sRGB-utdataavsikt med inbäddad profil), och de erbjuder **Content Credentials** (nedan) - i verktyget *Booklet* är alternativet förvalt.
 
 ## Skapa många saker på en gång
 
@@ -113,22 +114,54 @@ Tumregel: rader av samma design som hör hemma i **ett dokument** → ett tabell
 
 ## PowerPoint (PPTX)
 
-![The export panel with PowerPoint chosen: one slide per page, text and shapes kept editable](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
-
-Flersides- och layoutverktyg (Carousel, Doc Studio, Multi-Page PDF, diagramverktygen och verktygen för enskild arbetsyta/kort/layout) kan exportera ett **PowerPoint-bildspel** - en bild per sida. Poängen är inte en pixelperfekt skärmdump; det är att ge en kollega ett bildspel de faktiskt kan **redigera och ta ut tillgångar från**. Så varje sida delas upp i nativa objekt:
+Design, Markdown Slides, Booklet, Doc Studio, Chart och Diagrams kan exportera ett **PowerPoint-bygge** - en bild per sida. Poängen är inte en pixelperfekt skärmbild; det är att ge en kollega ett bygge de faktiskt kan **redigera och ta tillgångar ur**. Så varje sida delas upp i inbyggda objekt:
 
 - <!--i:font--> **Text** blir riktiga, **redigerbara textrutor i PowerPoint** - med typsnittsstorlek, färg, vikt, kursiv stil och justering från layouten - så du kan rätta ett stavfel eller omstajla i PowerPoint.
 - <!--i:pentool--> **Vektorer** (loggor, ikoner, SUSE-märket) bäddas in som **riktiga SVG-bilder** - de förblir skarpa i alla storlekar, och PowerPoint kan till och med köra *Convert to Shape* på dem.
 - <!--i:photos--> **Bilder** kommer igenom i sin ursprungliga upplösning som egna extraherbara bilder (en `cover`-beskuren hero behåller hela bilden bakom beskärningen, så du kan ram-om den), med all bildbehandling (filter, blend) inbakad troget.
 - <!--i:layers--> **Bakgrunder, ramar och linjer** blir riktiga rektangel-/linjeformer.
 
+![Exportpanelen med PowerPoint valt: en bild per sida, text och former förblir redigerbara](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
+
 Layouten är avsiktligt approximativ - målet är troget, återanvändbart **innehåll**, inte en låst skärmdump. Allt som gångaren (walker) inte kan uttrycka nativt (ett komplext filtrerat eller maskerat område) bäddas in som en bild så att inget går förlorat. En presentation har en enda bildstorlek, hämtad från den första sidan.
 
-PowerPoint är också en väg **in** - formatet går att gå tur och retur. **Deck Builder** öppnar en befintlig `.pptx` som redigerbara bilder, anpassade till ditt varumärke, och verktyget **Rebrand a Deck** temar om en presentation på plats - temapalett, hårdkodade färger och typsnitt - utan att röra dess diagram, SmartArt eller animationer, och lämnar tillbaka en `.pptx`. Se [Importera en design → Presentationer och dokument](/info/design-import.html#decks-and-documents).
+PowerPoint är också en väg **in**. Släpp en `.pptx` på vilken uppladdningsyta som helst och välj bilderna du vill ha - var och en blir en tillgång att placera, justera eller bygga vidare på. **Markdown Slides** skriver ett nytt bygge från Markdown (och delar ut en märkesanpassad `.pptx`-mall), och verktyget **Rebrand** temar om ett befintligt bygge på plats - temapalett, hårdkodade färger och typsnitt - utan att röra dess diagram, SmartArt eller animationer, och lämnar tillbaka en `.pptx`. Se [Importera en design → Bygge och dokument](/info/design-import.html#decks-and-documents).
+
+## Penpot
+
+Alla verktyg som kan exportera SVG kan också exportera en **Penpot-fil** (`.penpot`) - dokumentet, klart att fortsätta redigera i Penpot i stället för att bara titta på.
+
+- <!--i:layout--> Från **Design** blir varje bildruta en Penpot-**board**, varje box på den förs över som sin egen redigerbara form - rektangel, ellips, text, bild eller bana - och resultatet ankommer som en återanvändbar **komponent** i panelen Assets, redo att dras ut igen.
+- <!--i:pentool--> Från ett verktyg vars rendering är **ren geometri** - vektorverktygen som QR Code, Street Map, Wordmark och Palette Lab - förs varje bana, rektangel, textrad och gradient över på samma sätt, som sin egen redigerbara form.
+- <!--i:font--> Från ett verktyg som lägger ut sin rendering i **HTML** förblir **texten text** - ett redigerbart Penpot-textobjekt per rad, inte en kontur och inte en platt bild. Ett konstverk som Penpot saknar konstruktion för - en komplex illustration, en levande canvas - följer med som sin egen bild, så texten och boxarna runt den plattas aldrig till. En hel layout som Penpot inte kan skilja åt troget kan ändå komma över som en enda bild i full trohet, så inget faller någonsin bort.
+- <!--i:palette--> En färg eller ett typsnitt som en form **ärver från en märkestoken** förblir **länkad** till den token i filen: ändra token i Penpots Tokens-panel så målas varje form som ärver den om tillsammans, medan en fristående literal färg förblir exakt där den är. Märkets färger och typografier hamnar också i panelen **Assets** och dess fullständiga uppsättning designtoken i panelen **Tokens** - samma DTCG-tokenuppsättning som Lollys egen palett använder. Penpot behåller sin egen kopia därifrån: en ändring gjord i dess Tokens-panel kommer tillbaka in i märket via [Brand Studios import](/info/design-import.html), inte av sig själv.
+
+| Vad du gjorde | I Penpot |
+|---|---|
+| Text | Redigerbara textobjekt - fixa ett stavfel eller omstila |
+| Former, banor, gradienter, bilder | Sina egna redigerbara vektorformer |
+| En färg eller ett typsnitt från en märkestoken | En levande tokenlänk - ändra token, varje form som ärver den följer med |
+| Hela designen | En återanvändbar komponent i panelen Assets |
+| En komplex illustration eller levande canvas | Inbäddad för sig som en bild, det redigerbara innehållet runt den orört |
+
+![Exportpanelen med Penpot valt: .penpot-filen, och Send to Penpot bredvid nedladdningen](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
+
+För att öppna den, starta Penpot, välj ett projekt och välj **Import**. Inloggad i Penpot från exportpanelen gör **Send to Penpot** det steget åt dig - välj ett projekt där så går filen direkt in i det.
+
+## SCORM (kurspaket)
+
+Ett Design-bygge kan lämna som ett **SCORM-paket** - zipen ett lärandehanteringssystem importerar, oavsett om det är Moodle, Canvas, Blackboard eller ett företags-LMS. Välj **SCORM (LMS)** i formatväljaren så skriver exporten:
+
+- <!--i:layout--> **Bilderna**, en bild per rityta, som vektor där rityta tillåter det och som pixlar endast där den inte gör det.
+- <!--i:play--> **Den berättade filmen** med sitt textningsspår - talarnoterna lästa av en röst på enheten, precis som [Presentation](/info/create/using.html#presenting) spelar upp dem.
+- <!--i:file--> **En startsida** som steppar igenom bilderna, spelar upp filmen och rapporterar färdigställande tillbaka till LMS:et via SCORM 1.2-runtimen, versionen alla LMS accepterar.
+- <!--i:font--> Typsnitten bygget använder, så att startsidan renderar likadant offline.
+
+![Exportpanelen på ett Design-bygge med SCORM (LMS) valt](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+
+Inget i paketet ringer hem: det är filer i en zip, och det körs inuti LMS:et utan bundlare, utan CDN och utan konto. Webb- och skrivbordsapparna bygger det; CLI:t gör det inte, eftersom att fotografera ritytorna och koda filmen kräver webbläsaren.
 
 ## DXF (skärfiler)
-
-![The export panel with Penpot chosen: the .penpot file, and Send to Penpot beside the download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
 Vektorverktyg (Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, logotyplåsningarna, Diagram Builder) kan exportera **DXF** - AutoCAD R12-utbytesformatet som laserskärare, vinylplottrar och CNC/CAD-program läser. Geometri skrivs som konturbanor **i millimeter** (kurvor plattas ut till en fin tolerans), text konturbanas till banor och färg mappas till närmaste AutoCAD Color Index (som vanligtvis styr verktyget/operationen på en skärmaskin). DXF är enbart linjekonst - ett fotografiskt eller filtrerat område har ingen skärbaneform och tas bort (Lolly varnar), så använd SVG/PDF när du behöver behålla rasterinnehåll.
 
@@ -141,8 +174,6 @@ Scrolla, och kameran dras tillbaka genom den faktiska geometrin: sju banor, inga
 :::
 
 ## Animerad SVG
-
-![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Rörelseverktyg (Animated Ad, Lottie Ad) kan exportera **Animerad SVG** - en fristående, *vektorbaserad* animation. Till skillnad från GIF/APNG/WebP (som samplar varje bildruta till pixlar) staplar en animerad SVG vektorögonblicksbilder med inbäddade CSS-nyckelbilder, så den **skalar till valfri storlek utan kodek och utan extern körtidsmiljö** - den loopar i en webbläsarflik eller en `<img>`. Text förblir konturad så att den renderas överallt. Den delar de animerade formatens **Duration**-/bildfrekvenskontroller, och (eftersom den är tyngre per bildruta än en bitmapp) använder en lägre standardbildfrekvens.
 
@@ -180,13 +211,14 @@ Vanliga exporter är sRGB: vitt är vitt, och en mättad varumärkesfärg är li
 
 ![HDR-kortet i exportpanelen, påslaget, med rattarna White / Reach / Dark lift / Focus synliga under det](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **Format.** Rasterformaten med en plats att bära signalen: **PNG**, **JPG**, **AVIF** och **TIFF**. (Inte WebP - den är 8-bitars utan fungerande HDR-avkodningsväg, så en PQ-WebP skulle bara se mörk ut. Vektorer och PDF har ingen HDR-modell alls.)
-- **Avstängt som standard**, till skillnad från färgtaggning - det ändrar pixlarna, så det är opt-in. Kryssa i kortet, eller skicka `hdr=1` i en delningslänk.
-- **Vad som faktiskt skrivs.** Pixlarna kodas om till **Rec.2100 PQ** - BT.2020-primärfärger med SMPTE ST 2084 (PQ)-överföringskurvan - och behållaren bär matchande signal så att en färghanterad app vet att läsa dem så: en genererad **ICC v4-profil med en `cicp`-tagg** (JPG, TIFF), ett **`cICP`-block** (PNG) eller en omskriven `colr`-box (AVIF). Boosten är styrd av **perceptuell (OKLab) ljushet**, så mellan- och ljusare färger slår till toppen och mörka lugnas i stället för att blåsas ut, och den är nyansbevarande - ett varumärkesgrönt blir ljusare, inte mintigt.
-- **Rattarna.** Fyra, synliga när kortet är på: **White** (toppljusstyrketaket, 400-2000 nits), **Reach** (hur långt ner i tonerna glöden sprids), **Dark lift** (hur mycket de mörka partierna ljusnar - `0` behåller dem mörka) och **Focus** (hur mycket färgrikedom boosten behåller). De åker med i samma parameter som ett kompakt inställt värde - `hdr=1600-60-0-50` är White 1600, Reach 60, Dark lift 0, Focus 50 - så ett inställt utseende är reproducerbart från länken.
-- **Var du ser det.** Färghanterade visare på en HDR-skärm: Preview/Quick Look/Safari på Apple-enheter, Chrome på en HDR-skärm. På en vanlig SDR-skärm visas filen fortfarande som en normal bild.
-- **Vet innan du släpper det.** Många plattformar **kodar om** det du laddar upp och tar bort HDR-signalen - sociala nätverk, meddelandeappar, vissa CMS - vilket kan lämna bilden mörk eller urblekt. Använd HDR där du kontrollerar destinationen (en sajt du bygger, en videovägg, en presentation på en ljusstark skärm), inte som standard för allt.
-- **Transparens.** PNG och AVIF behåller sin alfa; JPG är opak som alltid. **TIFF**-flödet plattas mot **svart**, inte SDR-flödets vitt - i PQ är vitt 10 000-nit-koden, så att platta mot det skulle rama in varje kant med en bländande halo.
+- **Format.** Rasterformaten med en plats att bära signalen: **PNG**, **JPG**, **AVIF** och **TIFF**. (Inte WebP - den är 8-bitars utan fungerande HDR-avkodningsväg, så en PQ-WebP skulle helt enkelt se mörk ut. Vektorer och PDF har ingen HDR-modell alls.)
+- **Avstängt som standard**, till skillnad från färgtaggning - det ändrar pixlarna, så det är valbart. Kryssa i kortet, eller skicka `hdr=1` i en delningslänk.
+- **Vad som faktiskt skrivs.** Pixlarna kodas om till **Rec.2100 PQ** - BT.2020-primärer med SMPTE ST 2084-överföringskurvan (PQ) - och behållaren bär den matchande signalen så en färghanterad app vet att läsa dem så: en genererad **ICC v4-profil med en `cicp`-tagg** (JPG, TIFF), en **`cICP`-chunk** (PNG) eller en omskriven `colr`-box (AVIF). Höjningen är styrd av **perceptuell (OKLab) ljushet**, så medel-och-uppåt-färger slår upp mot toppen och mörka dämpas snarare än blåses ut, och den är nyansbevarande - en märkesgrön blir ljusare, inte myntgrön.
+- **Reglagen.** Fyra, som visas när kortet är på: **White** (taket för toppljusstyrka, 400-2000 nits), **Reach** (hur långt ner i tonerna glöden sprids), **Dark lift** (hur mycket mörkret ljusnar - `0` håller det mörkt) och **Focus** (hur mycket färgrikedom höjningen behåller). De åker i samma parameter som ett kompakt inställt värde - `hdr=1600-60-0-50` är White 1600, Reach 60, Dark lift 0, Focus 50 - så ett inställt utseende är reproducerbart från länken.
+- **Var du kommer se det.** Färghanterade visare på en HDR-skärm: Preview/Quick Look/Safari på Apple-enheter, Chrome på en HDR-monitor. På en vanlig SDR-skärm visas filen fortfarande som en normal bild.
+- **Vet innan du skickar det.** Många plattformar **kodar om** det du laddar upp och strippar HDR-signalen - sociala nätverk, meddelandeappar, vissa CMS - vilket kan lämna bilden mörk eller urblekt. Använd HDR där du styr destinationen (en webbplats du bygger, en videovägg, ett bygge på en ljus skärm), inte som standard för allt.
+- **Transparens.** PNG och AVIF behåller sin alfa; JPG är ogenomskinlig som alltid. **TIFF**-vägen plattas mot **svart**, inte SDR-vägens vitt - i PQ är vitt 10 000-nit-koden, så att platta mot det skulle ringa varje kant med en bländande halo.
+- **Samma bytes från terminalen.** `--hdr=1` med `--export=png` eller `--export=jpg` skriver den 16-bitars Rec.2100 PQ-PNG:n och ISO 21496-1-gain-map-JPEG:en på [CLI:t](/info/cli.html) också, från samma motorkodare snarare än en webbläsare - så ett `<svg>`-native verktyg producerar en HDR-fil utan Chromium någonstans i vägen, och PNG:n är byte-identisk med webbskalets. AVIF och TIFF förblir webbskalsexporter tills vidare.
 
 ## Video
 
@@ -290,8 +322,8 @@ Varje id som värden kan rendera, grupperat. Dessa är också värdena för URL-
 |---|---|
 | Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
 | Vektor | `svg` · `svgz` (gzippad SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (skärfil) |
-| Sida och dokument | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) |
-| Rörlig bild | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` |
+| Sida och dokument | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `scorm` (SCORM-kurspaket, en zip) · `penpot` (Penpot-designfil) · `docx` (Word) · `odt` (OpenDocument Text) |
+| Rörelse | `gif` · `apng` (Animerad PNG) · `webp-anim` (Animerad WebP) · `svg-anim` (Animerad SVG) · `webm` · `mp4` |
 | Ljud | `wav` · `mp3` · `m4a` · `opus` |
 | Text och data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (GIMP-palett) |
 | Paket | `zip` |

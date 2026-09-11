@@ -36,29 +36,30 @@ Název souboru a picker formátu sedí navrchu panelu jako jedna dvojice `name.f
 
 ![Pole s názvem souboru srostlé s pickerem formátu, takže export čte jako jedna dvojice name.format](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-| Chceš… | Použij | Proč |
+| Co chceš… | Použij | Proč |
 |---|---|---|
-| Ostrá loga / artwork, které se škáluje | **SVG** | Vektor - nekonečně škálovatelný, malý, editovatelný |
-| Vektor pro Office / Windows aplikace | **EMF** | Vloží se jako editovatelný vektor do PowerPointu / Wordu; text zůstává živý a editovatelný a Google Drive ho otevře v Google Drawings pro Slides |
-| Vektor pro tisk / designové aplikace | **EPS**, nebo **EPS (CMYK)** | PostScript vektor pro Illustrator / tiskové workflow |
+| Ostrá loga / grafiku, která se škáluje | **SVG** | Vektor - nekonečně škálovatelný, malý, editovatelný |
+| Vektor pro Office / Windows aplikace | **EMF** | Vloží se jako editovatelný vektor do PowerPointu / Wordu; text zůstává živý a editovatelný a Google Disk ho otevře v Google Kresbách pro Prezentace |
+| Vektor pro tisk / návrhářské aplikace | **EPS**, nebo **EPS (CMYK)** | PostScriptový vektor pro Illustrator / tiskové workflow |
 | Vektor pro řezací / CAD stroje | **DXF** | Laserové řezačky, vinylové plotry, CNC - obrysové cesty v milimetrech |
-| Editovatelná prezentace | **PowerPoint** (PPTX) | Nativně editovatelný text + tvary, obrázky a vektory zůstávají extrahovatelné |
-| Editovatelný textový dokument | **Word** (DOCX) nebo **OpenDocument** (ODT) | Skutečné odstavce a nadpisy, které textový editor umí dál editovat (Doc Studio) |
-| Fotka nebo obecný obrázek | **PNG** (bezztrátové) nebo **JPG** (menší) | Univerzální rastr |
-| Menší moderní obrázky | **WebP** / **AVIF** | Lepší komprese, alfa |
-| Tisk | **PDF**, nebo **Print PDF** (CMYK) | Skutečná velikost stránky; CMYK pro tisk |
+| Editovatelnou prezentaci | **PowerPoint** (PPTX) | Nativní editovatelný text + tvary, obrázky a vektory zůstávají extrahovatelné |
+| Kurz, který dokáže importovat LMS | **SCORM** (LMS) | ZIP s manifestem, spouštěcí stránkou, snímky a namluveným filmem s titulky - z prezentace Design |
+| Editovatelný textový dokument | **Word** (DOCX) nebo **OpenDocument** (ODT) | Skutečné odstavce a nadpisy, které textový editor dokáže dál editovat (Doc Studio) |
+| Fotku nebo obecný obrázek | **PNG** (bezeztrátový) nebo **JPG** (menší) | Univerzální rastr |
+| Menší moderní obrázky | **WebP** / **AVIF** | Lepší komprese, alfa kanál |
+| Tisk | **PDF**, nebo **Print PDF** (CMYK) | Skutečná velikost stránky; CMYK pro tiskárnu |
 | Tiskový rastr pro tiskárnu | **Print TIFF** (CMYK) | Pixely DeviceCMYK pro RIP |
-| Animace pro web | **GIF** | Funguje všude, větší soubory |
-| Animace s plnou barvou + skutečnou alfou | **APNG** | Animovaný PNG - žádný limit palety, skutečná průhlednost |
-| Animace, nejmenší soubor | **Animated WebP** | Plná barva + alfa, lépe komprimovaný než GIF nebo APNG |
-| Animovaný vektor, který se škáluje | **Animated SVG** | Samostatný; smyčkuje v prohlížeči nebo v `<img>`, žádný kodek, jakákoli velikost |
+| Animaci pro web | **GIF** | Funguje všude, větší soubory |
+| Animaci s plnou barevností + skutečnou alfou | **APNG** | Animovaný PNG - bez omezení palety, skutečná průhlednost |
+| Animaci s nejmenším souborem | **Animated WebP** | Plná barevnost + alfa, lépe komprimovaný než GIF nebo APNG |
+| Animovaný vektor, který se škáluje | **Animated SVG** | Samostatný; smyčkuje v prohlížeči nebo `<img>`, bez kodeku, libovolná velikost |
 | Video pro sociální sítě / sdílení | **MP4** nebo **WebM** | Nejlepší poměr kvality k velikosti (viz níže) |
 | Formátovaný text / e-mailový podpis | **HTML** | Vloží se naformátovaný do e-mailových klientů |
 | Prostý obsah | **MD** / **TXT** | Pouze text |
-| Kalendářní událost | **ICS** | Naimportuje se do jakékoli kalendářové aplikace |
-| Kontaktní karta | **VCF** | Naimportuje se do Kontaktů / adresářů |
-| Strukturovaná data k opětovnému importu | **JSON** / **CSV** | Zachová obsah nástroje pro zpětný import |
-| Favicon | **ICO** | Vícevelikostní ikona webu (**ZIP** zabalí několik formátů) |
+| Událost do kalendáře | **ICS** | Importuje se do libovolné kalendářové aplikace |
+| Kontaktní kartu | **VCF** | Importuje se do Kontaktů / adresářů |
+| Strukturovaná data pro opětovný import | **JSON** / **CSV** | Zachová obsah nástroje beze změny při zpětném importu |
+| Favicon | **ICO** | Ikona webu ve více velikostech (**ZIP** sdružuje několik formátů) |
 
 První řádek je běžný případ. Wordmark sázený tvým brandovým písmem se exportuje jako SVG, kde je každé písmeno obrysovou cestou místo pixelu, takže zůstává ostrý ve velikosti vizitky i ve velikosti polepu na budově ze stejného souboru.
 
@@ -79,7 +80,7 @@ Příklad: šířka `210`, výška `297`, jednotka `mm` → stránka A4.
 
 ## Snímky z časované kompozice
 
-**Časovaná kompozice** - stage v [Sequence Studiu](/info/using.html#timeline-sequence-studio), nebo jakékoli plátno řízené časovou osou - je pohyblivá věc, takže statický export musí odpovědět na otázku „který okamžik?“. Pravidlo je takové, jaké bys čekal: **snímek na pozici hlavy přehrávání**. Zaparkuj hlavu přehrávání tam, kde chceš obrázek, a exportuj; co vidíš, to dostaneš.
+**Časovaná kompozice** - časová osa [Sequence](/info/using.html#timeline-sequence) v Designu, nebo jakýkoli artboard řízený časovou osou - je pohyblivá věc, takže statický export musí odpovědět na otázku „který okamžik?". Pravidlo je přesně takové, jaké bys čekal: **snímek na pozici přehrávací hlavy**. Umísti přehrávací hlavu tam, kde chceš mít obrázek, a exportuj; co vidíš, to dostaneš.
 
 Když chceš víc než jeden okamžik, objeví se vedle výstupní velikosti pole **Frames** (pouze pro časovanou kompozici a pouze pro statický formát - PNG, JPG, WebP, SVG nebo PDF). Nech ho na `1` pro snímek na hlavě přehrávání. Zvyš ho a dostaneš tolik statických snímků vzorkovaných v rovnoměrných intervalech napříč celou sekvencí:
 
@@ -94,12 +95,12 @@ Pole **Frames** je dnešní způsob, jak takový list získat. Engine si rezervu
 
 ## Vícestránkové PDF
 
-Některé nástroje vytvářejí **vícestránkový dokument PDF** místo jediné grafiky - obálku, obsah, který se rozlévá na tolik stran, kolik potřebuje, a zadní stranu, vše v jednom souboru (viz nástroj *Multi-Page PDF*). Každá stránka je **skutečná stránka PDF** velikosti odpovídajícího boxu, takže čtenáři a tiskárny dostanou opravdové stránky, ne jeden vysoký obrázek.
+Některé nástroje místo jednoho výtvoru vytvářejí **vícestránkový PDF dokument** - obálku, obsah, který se rozlije na tolik stránek, kolik potřebuje, a zadní stranu, to vše v jednom souboru (viz nástroj *Booklet*). Každá stránka je **skutečná stránka PDF** o velikosti podle boxu dané stránky, takže čtenáři a tiskárny dostanou skutečné stránky, ne jeden dlouhý obrázek.
 
 - **Stránky z obsahu.** Přidávej bloky textu a obrázků; nové stránky se vytvářejí automaticky, jakmile se bloky zaplní, a kterýkoli blok můžeš vynutit, aby začal novou stránku.
 - **Skutečné velikosti stránek.** Vyber A4, US Letter nebo A5 (na výšku - dvousloupcové rozvržení je pro to stavěné) - každá stránka a exportované PDF se vykreslí přesně v této velikosti.
 
-Vícestránková PDF jsou RGB dokumenty a nenesou ořezové/spadávkové značky - ty patří k jednostránkové cestě **Print PDF** výše. Nesou stejná **metadata PDF/X-4** jako každý export PDF (boxy stránky, XMP, ID dokumentu, výstupní záměr sRGB s vloženým profilem) a nabízejí **Content Credentials** (níže) - v nástroji *Multi-Page PDF* je tato možnost přednastavená.
+Vícestránkové PDF jsou RGB dokumenty a nenesou ořezové/spadávkové značky - ty patří k jednostránkové cestě **Print PDF** výše. Nesou ale stejná **metadata PDF/X-4** jako každý export PDF (boxy stránek, XMP, ID dokumentu, výstupní záměr sRGB s vloženým profilem) a nabízejí **Content Credentials** (níže) - u nástroje *Booklet* je tato volba předvybraná.
 
 ## Vytváření mnoha věcí najednou
 
@@ -113,22 +114,54 @@ Základní pravidlo: řádky stejného návrhu, které patří do **jednoho doku
 
 ## PowerPoint (PPTX)
 
-![The export panel with PowerPoint chosen: one slide per page, text and shapes kept editable](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
-
-Vícestránkové nástroje a nástroje pro rozvržení (Carousel, Doc Studio, Multi-Page PDF, nástroje pro grafy a nástroje pro kartu/rozvržení s jedním plátnem) dokážou exportovat **prezentaci PowerPoint** - jedna stránka jako jeden snímek. Smyslem není pixelově přesný snímek obrazovky; jde o to předat kolegovi prezentaci, kterou skutečně dokáže **upravovat a vytahovat z ní assety**. Proto se každá stránka rozloží na nativní objekty:
+Design, Markdown Slides, Booklet, Doc Studio, Chart a Diagrams dokážou exportovat **prezentaci PowerPoint** - jeden snímek na stránku. Cílem není pixel přesný screenshot, ale předat kolegovi prezentaci, kterou skutečně dokáže **editovat a vytahovat z ní prvky**. Proto se každá stránka rozloží na nativní objekty:
 
 - <!--i:font--> **Text** se stane skutečným, **editovatelným textovým polem PowerPointu** - s velikostí písma, barvou, řezem, kurzívou a zarovnáním z rozvržení - takže si můžeš opravit překlep nebo přestylovat přímo v PowerPointu.
 - <!--i:pentool--> **Vektory** (loga, ikony, značka SUSE) se vloží jako **skutečné obrázky SVG** - zůstanou ostré v jakékoli velikosti a PowerPoint na nich dokonce umí použít *Convert to Shape*.
 - <!--i:photos--> **Obrázky** projdou ve své nativní rozlišovací schopnosti jako vlastní extrahovatelné obrázky (hero oříznuté pomocí `cover` si za ořezem uchová celý obrázek, takže ho lze přerámovat), s jakoukoli úpravou nad obrázkem (filtry, prolnutí) věrně zapečenou.
 - <!--i:layers--> **Pozadí, ohraničení a linky** se stanou skutečnými obdélníkovými/čárovými tvary.
 
+![Panel exportu s vybraným PowerPointem: jeden snímek na stránku, text a tvary zůstávají editovatelné](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
+
 Rozvržení je záměrně přibližné - cílem je věrný, znovupoužitelný **obsah**, ne uzamčený snímek obrazovky. Cokoli, co walker nedokáže vyjádřit nativně (složitá filtrovaná nebo maskovaná oblast), se vloží jako obrázek, aby se nic neztratilo. Prezentace má jednu velikost snímku, převzatou z první stránky.
 
-PowerPoint je také cesta **dovnitř** - formát funguje obousměrně. **Deck Builder** otevře existující `.pptx` jako editovatelné snímky přichycené k tvé značce a nástroj **Rebrand a Deck** přeznačkuje prezentaci na místě - paletu motivu, napevno zadané barvy a fonty - aniž by se dotkl jejích grafů, SmartArtu nebo animací, a vrátí `.pptx`. Viz [Import návrhu → Prezentace a dokumenty](/info/design-import.html#decks-and-documents).
+PowerPoint je i cesta **dovnitř**. Přetáhni `.pptx` na libovolnou plochu pro nahrávání a vyber snímky, které chceš - každý se stane prvkem, který lze umístit, upravit nebo na něm stavět dál. **Markdown Slides** vytvoří novou prezentaci z Markdownu (a k tomu dá brandovanou šablonu `.pptx`) a nástroj **Rebrand** přeznačkuje existující prezentaci na místě - paletu motivu, napevno zadané barvy a fonty - aniž by se dotkl jejích grafů, SmartArtu nebo animací, a vrátí `.pptx`. Viz [Import designu → Prezentace a dokumenty](/info/design-import.html#decks-and-documents).
+
+## Penpot
+
+Každý nástroj, který dokáže exportovat SVG, dokáže exportovat i **soubor Penpot** (`.penpot`) - dokument připravený k dalšímu editování v Penpotu, ne jen k prohlížení.
+
+- <!--i:layout--> Z **Designu** se každý frame stane Penpot **boardem**, každý box na něm se přenese jako svůj vlastní editovatelný tvar - obdélník, elipsa, text, obrázek nebo cesta - a výsledek dorazí jako znovupoužitelná **komponenta** v panelu Assets, připravená znovu vytáhnout ven.
+- <!--i:pentool--> Z nástroje, jehož výstup je **čistá geometrie** - vektorové nástroje jako QR Code, Street Map, Wordmark a Palette Lab - se stejným způsobem přenese každá cesta, obdélník, textový řádek a přechod jako svůj vlastní editovatelný tvar.
+- <!--i:font--> Z nástroje, který svůj výstup skládá v **HTML**, **text zůstává textem** - jeden editovatelný textový objekt Penpotu na řádek, ne obrys a ne plochý obrázek. Kus grafiky, pro který Penpot nemá konstrukt - složitá ilustrace, živé plátno - se veze samostatně jako obrázek, takže nikdy nezploští text a boxy kolem něj. Celé rozvržení, které Penpot nedokáže věrně rozdělit, se přesto může přenést jako jeden obrázek v plné věrnosti, takže se nic nikdy neztratí.
+- <!--i:palette--> Barva nebo font, který tvar **dědí z brandového tokenu**, zůstane v souboru s tímto tokenem **propojený**: změň token v panelu Tokens Penpotu a každý tvar, který ho dědí, se přebarví spolu s ním, zatímco jednorázová doslovná barva zůstane přesně tam, kde je. Barvy a typografie brandu se dostanou i do panelu **Assets** a celá jeho sada designových tokenů do panelu **Tokens** - stejná sada tokenů DTCG, jakou používá vlastní paleta Lolly. Penpot si odtud vede vlastní kopii: úprava provedená v jeho panelu Tokens se do brandu vrátí přes [import Brand Studia](/info/design-import.html), ne sama od sebe.
+
+| Co jsi vytvořil | V Penpotu |
+|---|---|
+| Text | Editovatelné textové objekty - oprav překlep nebo přestyluj |
+| Tvary, cesty, přechody, obrázky | Vlastní editovatelné vektorové tvary |
+| Barva nebo font z brandového tokenu | Živé propojení s tokenem - uprav token a každý tvar, který ho dědí, se přizpůsobí |
+| Celý design | Znovupoužitelná komponenta v panelu Assets |
+| Složitá ilustrace nebo živé plátno | Vloženo samostatně jako obrázek, editovatelný obsah kolem něj nedotčen |
+
+![Panel exportu s vybraným Penpotem: soubor .penpot a Send to Penpot vedle stahování](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
+
+Chceš-li ho otevřít, spusť Penpot, vyber projekt a zvol **Import**. Když jsi v panelu exportu přihlášený k Penpotu, udělá tento krok za tebe **Send to Penpot** - vyber tam projekt a soubor půjde rovnou do něj.
+
+## SCORM (balíčky kurzů)
+
+Prezentace Design může odejít jako **balíček SCORM** - zip, který importuje systém pro řízení výuky (LMS), ať už je to Moodle, Canvas, Blackboard nebo firemní LMS. Zvol **SCORM (LMS)** ve výběru formátu a export zapíše:
+
+- <!--i:layout--> **Snímky**, jeden obrázek na artboard, jako vektor tam, kde to artboard umožňuje, a jako pixely jen tam, kde ne.
+- <!--i:play--> **Namluvený film** se stopou titulků - poznámky řečníka přečtené hlasem na zařízení, přesně tak, jak je přehrává [Prezentování](/info/create/using.html#presenting).
+- <!--i:file--> **Spouštěcí stránka**, která prochází snímky, přehrává film a hlásí dokončení zpět do LMS přes runtime SCORM 1.2, verzi, kterou přijímá každý LMS.
+- <!--i:font--> Fonty, které prezentace používá, aby se spouštěcí stránka vykreslila stejně i offline.
+
+![Panel exportu na prezentaci Design s vybraným SCORM (LMS)](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+
+Nic v balíčku nikam nevolá domů: jsou to soubory v zipu a běží uvnitř LMS bez bundleru, bez CDN a bez účtu. Vytváří ho webová a desktopová aplikace; CLI ne, protože fotografování artboardů a kódování filmu potřebuje prohlížeč.
 
 ## DXF (řezací soubory)
-
-![The export panel with Penpot chosen: the .penpot file, and Send to Penpot beside the download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
 Vektorové nástroje (Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, varianty loga, Diagram Builder) umí exportovat do **DXF** - výměnného formátu AutoCAD R12, který čtou laserové řezačky, vinylové plotry a software CNC/CAD. Geometrie se zapisuje jako obrysové **cesty v milimetrech** (křivky zploštěné s jemnou tolerancí), text se převádí na obrysové cesty a barva se mapuje na nejbližší AutoCAD Color Index (který obvykle řídí nástroj/operaci na řezačce). DXF je čistě liniová grafika - fotografická nebo filtrovaná oblast nemá formu řezací cesty a je vynechána (Lolly na to upozorní), takže pro zachování rastrového obsahu použij SVG/PDF.
 
@@ -141,8 +174,6 @@ Přejeď a kamera se vzdálí skrz skutečnou geometrii: sedm cest, nikde žádn
 :::
 
 ## Animované SVG
-
-![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Nástroje pro pohyb (Animated Ad, Lottie Ad) dokážou exportovat **Animované SVG** - samostatnou *vektorovou* animaci. Na rozdíl od GIF/APNG/WebP (které vzorkují každý snímek do pixelů) animované SVG skládá vektorové snímky s vloženými klíčovými snímky CSS, takže se **škáluje do jakékoli velikosti bez kodeku a bez externího runtime** - přehraje se na kartě prohlížeče nebo v `<img>`. Text zůstává obrysovaný, takže se vykreslí kdekoli. Sdílí ovládací prvky **Duration**/snímková frekvence s ostatními animovanými formáty a (protože je na snímek těžší než bitmapa) používá nižší výchozí snímkovou frekvenci.
 
@@ -180,13 +211,14 @@ Běžné exporty jsou sRGB: bílá je bílá a sytá značková barva je stejně
 
 ![Karta HDR v exportním panelu, zapnutá, s odhalenými ovladači White / Reach / Dark lift / Focus pod ní](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **Formáty.** Rastrové formáty, které mají kam nést signál: **PNG**, **JPG**, **AVIF** a **TIFF**. (Ne WebP - je 8bitový bez funkční cesty pro dekódování HDR, takže PQ WebP by prostě vypadal tmavě. Vektory a PDF nemají žádný model HDR.)
-- **Ve výchozím stavu vypnuto**, na rozdíl od barevného označování - mění pixely, takže je to volba k zapnutí. Zaškrtni kartu, nebo předej `hdr=1` v odkazu ke sdílení.
-- **Co se skutečně zapisuje.** Pixely se přepočítají na **Rec.2100 PQ** - primární barvy BT.2020 s převodní křivkou SMPTE ST 2084 (PQ) - a kontejner nese odpovídající signál, aby aplikace se správou barev věděla, že je má takto číst: vygenerovaný **profil ICC v4 se značkou `cicp`** (JPG, TIFF), **chunk `cICP`** (PNG) nebo přepsaný box `colr` (AVIF). Zesílení je řízeno **perceptuálním (OKLab) jasem**, takže střední a jasnější barvy vystřelí ke špičce a tmavé se uklidní, místo aby se přepálily, a zachovává odstín - značková zelená zesvětlá, nezmodrá do mátové.
-- **Ovladače.** Čtyři, odhalené při zapnuté kartě: **White** (strop špičkového jasu, 400-2000 nitů), **Reach** (jak hluboko do tónů se záře šíří), **Dark lift** (o kolik se tmavé barvy zesvětlí - `0` je nechá tmavé) a **Focus** (kolik sytosti barev zesílení zachová). Jezdí ve stejném parametru jako kompaktní vyladěná hodnota - `hdr=1600-60-0-50` znamená White 1600, Reach 60, Dark lift 0, Focus 50 - takže vyladěný vzhled je z odkazu reprodukovatelný.
-- **Kde to uvidíš.** Prohlížeče se správou barev na HDR displeji: Preview / Quick Look / Safari na zařízeních Apple, Chrome na HDR monitoru. Na běžné obrazovce SDR se soubor zobrazí jako normální obrázek.
-- **Než to nasadíš, věz.** Mnoho platforem tvůj nahraný soubor **překóduje** a signál HDR odstraní - sociální sítě, komunikátory, některé CMS - což může nechat obrázek vypadat tmavě nebo vyprané. Používej HDR tam, kde máš pod kontrolou cíl (web, který sám stavíš, video stěna, prezentace na jasném panelu), ne jako výchozí volbu pro všechno.
-- **Průhlednost.** PNG a AVIF si podrží alfu; JPG je jako vždy neprůhledný. Cesta **TIFF** se zploští na **černou**, ne na bílou jako cesta SDR - v PQ je bílá kód s hodnotou 10 000 nitů, takže zploštění na ni by orámovalo každou hranu oslepujícím halem.
+- **Formáty.** Rastrové formáty, které mají kam signál uložit: **PNG**, **JPG**, **AVIF** a **TIFF**. (Ne WebP - je 8bitový bez funkční cesty pro dekódování HDR, takže PQ WebP by prostě vypadal tmavě. Vektory a PDF nemají žádný model HDR vůbec.)
+- **Ve výchozím stavu vypnuto**, na rozdíl od barevného tagování - mění pixely, takže je to volitelné (opt-in). Zaškrtni kartu, nebo předej `hdr=1` v odkazu ke sdílení.
+- **Co se skutečně zapíše.** Pixely se překódují do **Rec.2100 PQ** - primární barvy BT.2020 s přenosovou křivkou SMPTE ST 2084 (PQ) - a kontejner nese odpovídající signál, aby aplikace se správou barev věděla, že je má takto číst: vygenerovaný **profil ICC v4 se značkou `cicp`** (JPG, TIFF), **chunk `cICP`** (PNG) nebo přepsaný box `colr` (AVIF). Zesílení je řízeno **percepční (OKLab) světlostí**, takže střední a světlejší barvy vystřelí na vrchol a tmavé se spíš zklidní, než aby se vypálily, a zachovává odstín - brandová zelená se rozjasní, ne zmátoví.
+- **Ovladače.** Čtyři, zobrazí se po zapnutí karty: **White** (strop špičkového jasu, 400–2000 nitů), **Reach** (jak hluboko do tónů se záře šíří), **Dark lift** (o kolik se rozjasní tmavé partie - `0` je ponechá tmavé) a **Focus** (kolik barevné sytosti zesílení zachová). Jezdí ve stejném parametru jako kompaktní vyladěná hodnota - `hdr=1600-60-0-50` znamená White 1600, Reach 60, Dark lift 0, Focus 50 - takže vyladěný vzhled je z odkazu reprodukovatelný.
+- **Kde to uvidíš.** Prohlížeče se správou barev na HDR displeji: Preview / Quick Look / Safari na zařízeních Apple, Chrome na HDR monitoru. Na běžné obrazovce SDR se soubor pořád zobrazí jako normální obrázek.
+- **Věz předem.** Řada platforem to, co nahraješ, **překóduje** a signál HDR odstraní - sociální sítě, messagingové aplikace, některé CMS - což může nechat obrázek vypadat tmavě nebo vymyté. Používej HDR tam, kde máš cíl pod kontrolou (web, který si sám stavíš, video stěna, prezentace na jasném panelu), ne jako výchozí volbu pro všechno.
+- **Průhlednost.** PNG a AVIF si podrží alfu; JPG je neprůhledný jako vždy. Cesta **TIFF** slučuje na **černou**, ne na bílou jako cesta SDR - v PQ je bílá kód pro 10 000 nitů, takže sloučení na ni by kolem každé hrany vytvořilo oslepující halo.
+- **Tytéž byty z terminálu.** `--hdr=1` spolu s `--export=png` nebo `--export=jpg` zapíše 16bitový Rec.2100 PQ PNG a JPEG s gain mapou podle ISO 21496-1 i v [CLI](/info/cli.html), a to ze stejných enkodérů enginu, ne z prohlížeče - takže nástroj nativní pro `<svg>` vyprodukuje soubor HDR, aniž by se na cestě objevil jakýkoli Chromium, a PNG je bajtově identický s tím z webového shellu. AVIF a TIFF zatím zůstávají exporty jen z webového shellu.
 
 ## Video
 
@@ -288,11 +320,11 @@ Každé id, které hostitel umí vykreslit, seskupené. Jsou to zároveň hodnot
 
 | Druh | Id |
 |---|---|
-| Rastr | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (tiskové TIFF) · `bmp` · `ico` |
-| Vektor | `svg` · `svgz` (gzipované SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (řezový soubor) |
-| Stránka a dokument | `pdf` · `pdf-cmyk` (tiskové PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) |
-| Pohyb | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` |
-| Zvuk | `wav` · `mp3` · `m4a` · `opus` |
+| Rastr | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
+| Vektor | `svg` · `svgz` (gzipovaný SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (soubor pro řezání) |
+| Stránka a dokument | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `scorm` (balíček kurzu SCORM, zip) · `penpot` (návrhový soubor Penpot) · `docx` (Word) · `odt` (OpenDocument Text) |
+| Pohyb | `gif` · `apng` (animovaný PNG) · `webp-anim` (animovaný WebP) · `svg-anim` (animovaný SVG) · `webm` · `mp4` |
+| Audio | `wav` · `mp3` · `m4a` · `opus` |
 | Text a data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (paleta GIMP) |
 | Balíček | `zip` |
 

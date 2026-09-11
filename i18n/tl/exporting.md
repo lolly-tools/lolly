@@ -38,27 +38,28 @@ Ang filename at ang format picker ay nasa itaas ng panel bilang isang `name.form
 
 | Gusto mo… | Gamitin | Bakit |
 |---|---|---|
-| Malilinaw na logo / artwork na sumusukat | **SVG** | Vector - walang katapusang sukat, maliit, na-e-edit |
-| Vector para sa Office / Windows apps | **EMF** | Nagpa-paste bilang na-e-editang vector sa PowerPoint / Word; nananatiling live at na-e-edit ang text, at binubuksan ito ng Google Drive sa Google Drawings para sa Slides |
+| Malinaw na logo / artwork na nag-iiba ang laki | **SVG** | Vector - walang limitasyong scale, maliit, at nae-edit |
+| Vector para sa Office / Windows apps | **EMF** | Naipapaste bilang nae-edit na vector sa PowerPoint / Word; nananatiling live at nae-edit ang text, at binubuksan ito ng Google Drive sa Google Drawings para sa Slides |
 | Vector para sa print / design apps | **EPS**, o **EPS (CMYK)** | PostScript vector para sa Illustrator / press workflows |
-| Vector para sa cutting / CAD machines | **DXF** | Laser cutters, vinyl plotters, CNC - mga outline path sa millimeters |
-| Isang na-e-editang slide deck | **PowerPoint** (PPTX) | Native na na-e-editang text + hugis, na ang mga larawan at vector ay nananatiling ma-extract |
-| Isang na-e-editang text document | **Word** (DOCX) o **OpenDocument** (ODT) | Tunay na mga talata at heading na patuloy na mae-edit ng word processor (Doc Studio) |
-| Isang larawan o pangkalahatang-layuning imahe | **PNG** (lossless) o **JPG** (mas maliit) | Universal na raster |
-| Mas maliliit na modernong larawan | **WebP** / **AVIF** | Mas mahusay na compression, alpha |
-| Print | **PDF**, o **Print PDF** (CMYK) | Tunay na sukat ng page; CMYK para sa press |
+| Vector para sa cutting / CAD machines | **DXF** | Laser cutters, vinyl plotters, CNC - outline paths sa millimeters |
+| Nae-edit na slide deck | **PowerPoint** (PPTX) | Native na nae-edit na text + shapes, kasama ang mga imahe at vector na mananatiling ma-extract |
+| Kursong maiimport ng isang LMS | **SCORM** (LMS) | Isang zip na may manifest, launch page, ang mga slide, at ang narrated na pelikula na may captions - mula sa isang Design deck |
+| Nae-edit na text document | **Word** (DOCX) o **OpenDocument** (ODT) | Tunay na mga paragraph at heading na patuloy na maaaring i-edit ng isang word processor (Doc Studio) |
+| Larawan o pangkalahatang imahe | **PNG** (lossless) o **JPG** (mas maliit) | Universal na raster |
+| Mas maliit na modernong imahe | **WebP** / **AVIF** | Mas magandang compression, may alpha |
+| Print | **PDF**, o **Print PDF** (CMYK) | Tunay na page size; CMYK para sa press |
 | Print raster para sa press | **Print TIFF** (CMYK) | DeviceCMYK pixels para sa RIP |
-| Naka-animate para sa web | **GIF** | Gumagana saanman, mas malalaking file |
-| Naka-animate na may buong kulay + tunay na alpha | **APNG** | Animated PNG - walang limitasyon sa palette, tunay na transparency |
-| Naka-animate, pinakamaliit na file | **Animated WebP** | Buong kulay + alpha, mas mahusay ang compression kaysa GIF o APNG |
-| Naka-animate na vector na sumusukat | **Animated SVG** | Self-contained; naglu-loop sa browser o `<img>`, walang codec, anumang sukat |
-| Video para sa social / pagbabahagi | **MP4** o **WebM** | Pinakamahusay na quality-per-byte (tingnan sa ibaba) |
-| Rich text / email signature | **HTML** | Nagpa-paste nang naka-format sa mga mail client |
-| Plain content | **MD** / **TXT** | Text lamang |
-| Isang calendar event | **ICS** | Nag-i-import sa anumang calendar app |
-| Isang contact card | **VCF** | Nag-i-import sa Contacts / address books |
-| Structured data para muling i-import | **JSON** / **CSV** | Round-trip ang nilalaman ng tool |
-| Isang favicon | **ICO** | Multi-size site icon (**ZIP** ay nagbu-bundle ng ilang format) |
+| Animated para sa web | **GIF** | Gumagana kahit saan, mas malalaking file |
+| Animated na may buong kulay + tunay na alpha | **APNG** | Animated PNG - walang limitasyon sa palette, tunay na transparency |
+| Animated, pinakamaliit na file | **Animated WebP** | Buong kulay + alpha, mas maganda ang compression kaysa GIF o APNG |
+| Animated na vector na nag-iiba ang laki | **Animated SVG** | Self-contained; nag-lo-loop sa browser o `<img>`, walang codec, kahit anong laki |
+| Video para sa social media / pagbabahagi | **MP4** o **WebM** | Pinakamahusay na quality-per-byte (tingnan sa ibaba) |
+| Rich text / email signature | **HTML** | Naipapaste nang naka-format sa mga mail client |
+| Plain na content | **MD** / **TXT** | Text lamang |
+| Kaganapan sa kalendaryo | **ICS** | Maiimport sa kahit anong calendar app |
+| Contact card | **VCF** | Maiimport sa Contacts / address books |
+| Structured data na muling maii-import | **JSON** / **CSV** | Round-trips ang content ng tool |
+| Favicon | **ICO** | Multi-size na icon ng site (nagbu-bundle ang **ZIP** ng ilang format) |
 
 Ang unang row ang karaniwang kaso. Ang isang wordmark na naka-set sa iyong brand face ay nag-e-export bilang SVG, kung saan ang bawat titik ay outlined path sa halip na pixel, kaya nananatili itong malinaw sa laki ng business-card at sa laki ng building-wrap mula sa parehong file.
 
@@ -79,7 +80,7 @@ Halimbawa: width `210`, height `297`, unit `mm` → isang A4 page.
 
 ## Mga Still Mula sa Naka-time na Komposisyon
 
-Ang isang **naka-time na komposisyon** - isang [Sequence Studio](/info/using.html#timeline-sequence-studio) stage, o anumang timeline-driven na artboard - ay isang gumagalaw na bagay, kaya ang isang still export ay kailangang sagutin ang "aling sandali?". Ang panuntunan ay ang inaasahan mo: **ang frame sa playhead**. I-park ang playhead kung saan mo gustong makuha ang larawan at mag-export; kung ano ang nakikita mo ang siyang lumalabas.
+Ang isang **naka-oras na komposisyon** - isang [Sequence](/info/using.html#timeline-sequence) na timeline sa Design, o kahit anong artboard na hinahatak ng timeline - ay isang bagay na gumagalaw, kaya kailangang sagutin ng still export ang tanong na "aling sandali?". Ang panuntunan ay ang inaasahan mo: **ang frame sa playhead**. Ilagay ang playhead sa gusto mong larawan at i-export; ang nakikita mo ang siyang lalabas.
 
 Kapag gusto mo ng higit sa isang sandali, lumilitaw ang **Frames** field sa tabi ng output size (para lamang sa naka-time na komposisyon, at para lamang sa still format - PNG, JPG, WebP, SVG o PDF). Iwanang `1` para sa playhead frame. Itaas ito at makakakuha ka ng ganoon karaming still na sampled sa pantay-pantay na agwat sa buong sequence:
 
@@ -94,12 +95,12 @@ Ang **Frames** field ang paraan para makakuha ng sheet ngayon. Nagre-reserve ang
 
 ## Multi-page PDF
 
-May mga tool na bumubuo ng **multi-page PDF document** sa halip na iisang artwork - isang cover, nilalamang dumadaloy sa kung gaano karaming page ang kailangan nito at isang back page, lahat sa isang file (tingnan ang tool na *Multi-Page PDF*). Bawat page ay isang **tunay na PDF page** na naka-size sa box ng page na iyon, kaya nakakakuha ang mga mambabasa at printer ng tunay na mga page, hindi isang mahabang larawan.
+May mga tool na bumubuo ng **multi-page na PDF document** sa halip na iisang artwork - isang cover, content na dumadaloy sa kung ilang pahina man ang kailangan nito, at isang back page, lahat sa iisang file (tingnan ang *Booklet* tool). Ang bawat pahina ay isang **tunay na PDF page** na may sukat na batay sa box ng pahinang iyon, kaya nakakakuha ang mga mambabasa at printer ng tunay na mga pahina, hindi isang mahabang larawan.
 
 - **Mga page mula sa nilalaman.** Magdagdag ng mga block ng text at larawan; awtomatikong nagagawa ang mga bagong page habang napupuno ang mga block, at maaari mong pilitin ang anumang block na magsimula ng bagong page.
 - **Tunay na sukat ng page.** Pumili ng A4, US Letter o A5 (portrait - ang two-column layout ay ginawa para dito) - bawat page, at ang na-export na PDF, ay nagre-render sa eksaktong sukat na iyon.
 
-Ang mga multi-page PDF ay mga RGB document at hindi may dalang crop/bleed marks - ang mga iyon ay pag-aari ng single-page **Print PDF** path sa itaas. May dala silang parehong **PDF/X-4 metadata** tulad ng bawat PDF export (page boxes, XMP, document ID, isang sRGB output intent na may embedded profile), at nag-aalok sila ng **Content Credentials** (sa ibaba) - sa tool na *Multi-Page PDF*, ang opsyon ay pre-selected na.
+Ang mga multi-page na PDF ay RGB documents at walang dalang crop/bleed marks - ang mga iyon ay para sa single-page na **Print PDF** path sa itaas. Dala nila ang parehong **PDF/X-4 metadata** tulad ng bawat PDF export (page boxes, XMP, document ID, isang sRGB output intent na may embedded profile), at nag-aalok sila ng **Content Credentials** (sa ibaba) - sa *Booklet* tool, naka-preselect na ang option na ito.
 
 ## Paggawa ng Maraming Bagay nang Sabay
 
@@ -113,22 +114,54 @@ Panuntunan: mga row ng parehong disenyo na dapat nasa **isang dokumento** → is
 
 ## PowerPoint (PPTX)
 
-![The export panel with PowerPoint chosen: one slide per page, text and shapes kept editable](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
-
-Ang mga multi-page at layout tool (Carousel, Doc Studio, Multi-Page PDF, ang mga chart tool at ang mga single-canvas na card/layout tool) ay maaaring mag-export ng **PowerPoint deck** - isang slide kada page. Ang punto ay hindi isang pixel-perfect na screenshot; ito ay para bigyan ang isang kasamahan ng deck na talagang kaya nilang **i-edit at kunan ng mga asset**. Kaya bawat page ay nadidekomposisyon sa native objects:
+Maaaring mag-export ng **PowerPoint deck** ang Design, Markdown Slides, Booklet, Doc Studio, Chart, at Diagrams - isang slide bawat pahina. Ang punto ay hindi isang pixel-perfect na screenshot; kundi ang pagbigay sa isang katrabaho ng deck na talagang kaya niyang **i-edit at kunan ng assets**. Kaya ang bawat pahina ay hinihiwalay sa mga native na object:
 
 - <!--i:font--> Ang **Text** ay nagiging tunay, **naeeditang PowerPoint text boxes** - kasama ang font size, kulay, weight, italics at alignment mula sa layout - kaya puwede kang mag-ayos ng typo o mag-restyle sa PowerPoint.
 - <!--i:pentool--> Ang **Vectors** (logos, icons, ang SUSE mark) ay naka-embed bilang **tunay na SVG na larawan** - nananatiling malinaw ang mga ito sa kahit anong laki, at kaya pa ng PowerPoint na *Convert to Shape* sa mga ito.
 - <!--i:photos--> Ang **Images** ay dumarating sa native resolution nito bilang sarili nitong extractable na larawan (ang isang `cover`-cropped hero ay pinananatili ang buong larawan sa likod ng crop, kaya puwede mong i-reframe ito), kasama ang anumang on-image treatment (filters, blends) na naka-bake nang tapat.
 - <!--i:layers--> Ang **Backgrounds, borders and rules** ay nagiging tunay na rectangle/line shapes.
 
+![Ang export panel na napili ang PowerPoint: isang slide bawat pahina, nananatiling nae-edit ang text at mga shape](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
+
 Ang layout ay approximate sa disenyo - ang layunin ay tapat, magagamit-muling **content**, hindi isang naka-lock na screenshot. Anumang hindi kayang i-express ng walker nang native (isang kumplikadong filtered o masked region) ay naka-embed bilang larawan para walang mawala. Iisang slide size lang ang mayroon ang isang deck, kinuha mula sa unang page.
 
-Ang PowerPoint ay isa ring paraan pasok - ang format ay round-trips. Binubuksan ng **Deck Builder** ang isang umiiral na `.pptx` bilang naeeditang slides, naka-snap sa iyong brand, at ang **Rebrand a Deck** utility ay muling nagte-theme ng deck sa lugar nito - theme palette, hardcoded colours at fonts - nang hindi ginagalaw ang mga chart, SmartArt o animations nito, at ibinabalik ang isang `.pptx`. Tingnan ang [Import a design → Decks and documents](/info/design-import.html#decks-and-documents).
+Ang PowerPoint ay isa ring paraan para **pumasok**. I-drop ang isang `.pptx` sa kahit anong upload surface at piliin ang mga slide na gusto mo - nagiging asset ang bawat isa na puwedeng ilagay, i-grade, o pagbatayan. Ang **Markdown Slides** ay sumusulat ng bagong deck mula sa Markdown (at nagbibigay ng branded na `.pptx` template), at ang **Rebrand** utility ay muling nagte-theme ng umiiral na deck sa kinaroroonan nito - theme palette, hardcoded na kulay at fonts - nang hindi ginagalaw ang mga chart, SmartArt, o animation nito, at ibinabalik ang isang `.pptx`. Tingnan ang [Mag-import ng disenyo → Mga deck at dokumento](/info/design-import.html#decks-and-documents).
+
+## Penpot
+
+Ang kahit anong tool na maaaring mag-export ng SVG ay maaari ring mag-export ng isang **Penpot file** (`.penpot`) - ang dokumento, handa nang patuloy na i-edit sa Penpot sa halip na tingnan lamang.
+
+- <!--i:layout--> Mula sa **Design**, ang bawat frame ay nagiging isang Penpot **board**, dinadala ang bawat box dito bilang sarili nitong nae-edit na shape - rectangle, ellipse, text, imahe, o path - at dumarating ang resulta bilang isang magagamit-ulit na **component** sa Assets panel, handa nang i-drag palabas muli.
+- <!--i:pentool--> Mula sa isang tool na ang render ay **payak na geometry** - ang mga vector tool tulad ng QR Code, Street Map, Wordmark, at Palette Lab - dinadala ang bawat path, rectangle, text run, at gradient sa parehong paraan, bilang sarili nitong nae-edit na shape.
+- <!--i:font--> Mula sa isang tool na nag-la-layout ng render nito sa **HTML**, **nananatiling text ang text** - isang nae-edit na Penpot text object bawat linya, hindi isang outline at hindi isang patag na larawan. Ang isang piraso ng artwork na walang construct si Penpot para dito - isang kumplikadong ilustrasyon, isang live canvas - ay sumasakay nang mag-isa bilang isang imahe, kaya hindi nito kailanman pinapatag ang text at mga box sa paligid nito. Ang isang buong layout na hindi kayang paghiwa-hiwalayin nang tapat ni Penpot ay maaari pa ring dumating bilang isang larawan na may buong fidelity, kaya walang kahit ano ang naiiwan.
+- <!--i:palette--> Ang isang kulay o font na **minamana ng isang shape mula sa isang brand token** ay nananatiling **naka-link** sa token na iyon sa file: baguhin ang token sa Tokens panel ng Penpot at muling magpi-paint nang sabay ang bawat shape na nagmana nito, habang ang isang literal na kulay na minsanan lang ginamit ay nananatili nang eksakto sa kinaroroonan nito. Ang mga kulay at typography ng brand ay dumarating din sa **Assets** panel, at ang kumpletong hanay ng design token nito sa **Tokens** panel - ang parehong DTCG token set na ginagamit ng sariling palette ng Lolly. Nagpapanatili si Penpot ng sarili nitong kopya mula roon: ang isang edit na ginawa sa Tokens panel nito ay bumabalik sa brand sa pamamagitan ng [pag-import ng Brand Studio](/info/design-import.html), hindi sa sarili nitong paraan.
+
+| Ang ginawa mo | Sa Penpot |
+|---|---|
+| Text | Nae-edit na text object - ayusin ang typo o baguhin ang istilo |
+| Mga shape, path, gradient, imahe | Sarili nilang nae-edit na vector shape |
+| Isang kulay o font mula sa isang brand token | Isang live na token link - i-edit ang token, susunod ang bawat shape na nagmana nito |
+| Ang buong disenyo | Isang magagamit-ulit na component sa Assets panel |
+| Isang kumplikadong ilustrasyon o live canvas | Naka-embed nang mag-isa bilang isang imahe, hindi nagagalaw ang nae-edit na content sa paligid nito |
+
+![Ang export panel na napili ang Penpot: ang .penpot file, at ang Send to Penpot sa tabi ng download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
+
+Para buksan ito, simulan ang Penpot, pumili ng project at piliin ang **Import**. Kapag naka-sign in sa Penpot mula sa export panel, ginagawa ng **Send to Penpot** ang hakbang na iyon para sa iyo - pumili ng project doon at direktang pumapasok ang file dito.
+
+## SCORM (mga course package)
+
+Maaaring umalis ang isang Design deck bilang isang **SCORM package** - ang zip na iniimport ng isang learning management system, maging ito man ay Moodle, Canvas, Blackboard, o isang corporate LMS. Piliin ang **SCORM (LMS)** sa format picker at isusulat ng export ang:
+
+- <!--i:layout--> **Ang mga slide**, isang imahe bawat artboard, bilang vector kung saan ito pinapayagan ng artboard, at bilang pixels lamang kung saan hindi.
+- <!--i:play--> **Ang narrated na pelikula** kasama ang caption track nito - ang mga speaker note na binabasa ng isang on-device na boses, eksakto kung paano ito pinapatugtog ng [Presenting](/info/create/using.html#presenting).
+- <!--i:file--> **Isang launch page** na dumadaan sa mga slide, nagpapatugtog ng pelikula, at nag-uulat ng pagkumpleto pabalik sa LMS sa pamamagitan ng SCORM 1.2 runtime, ang bersyong tinatanggap ng bawat LMS.
+- <!--i:font--> Ang mga font na ginagamit ng deck, para mag-render nang pareho ang launch page kahit offline.
+
+![Ang export panel sa isang Design deck na napili ang SCORM (LMS)](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+
+Walang anuman sa package ang tumatawag pabalik sa server: mga file lang ito sa isang zip, at tumatakbo ito sa loob ng LMS nang walang bundler, walang CDN, at walang account. Binubuo ito ng web at desktop apps; hindi ito ginagawa ng CLI, dahil ang pagkuha ng larawan ng mga artboard at pag-encode ng pelikula ay nangangailangan ng browser.
 
 ## DXF (cut files)
-
-![The export panel with Penpot chosen: the .penpot file, and Send to Penpot beside the download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
 Ang mga vector tool (Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, ang mga logo lockup, Diagram Builder) ay maaaring mag-export ng **DXF** - ang AutoCAD R12 interchange format na binabasa ng mga laser cutter, vinyl plotter, at CNC/CAD software. Ang geometry ay isinusulat bilang mga outline **path sa millimeters** (pinapatag ang mga curve hanggang sa isang pinong tolerance), ang text ay naka-outline sa mga path, at ang kulay ay mina-map sa pinakamalapit na AutoCAD Color Index (na karaniwang nagtatakda ng tool/operation sa isang cutter). Line-art lang ang DXF - ang isang photographic o na-filter na rehiyon ay walang cut-path na anyo at itinatapon (nagbabala ang Lolly), kaya gamitin ang SVG/PDF kapag kailangan mong itago ang raster na content.
 
@@ -141,8 +174,6 @@ Mag-scroll, at bumabalik ang camera papasok sa tunay na geometry: pitong paths, 
 :::
 
 ## Animated SVG
-
-![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Ang mga motion tool (Animated Ad, Lottie Ad) ay kayang mag-export ng **Animated SVG** - isang self-contained, *vector* na animation. Kaiba sa GIF/APNG/WebP (na nagsa-sample ng bawat frame sa pixels), ang isang animated SVG ay nagtatambak ng vector snapshots na may embedded CSS keyframes, kaya ito ay **sumusukat sa kahit anong laki na walang codec at walang external runtime** - umuulit ito sa isang browser tab o sa isang `<img>`. Nananatiling naka-outline ang text para mag-render ito kahit saan. Nagbabahagi ito ng **Duration** / frame-rate controls ng mga animated format, at (dahil mas mabigat kada frame kaysa sa isang bitmap) gumagamit ito ng mas mababang default na frame rate.
 
@@ -180,13 +211,14 @@ Ang mga ordinaryong export ay sRGB: ang white ay white, at ang isang saturated n
 
 ![Ang HDR card sa export panel, naka-on, na may White / Reach / Dark lift / Focus dials na nakalantad sa ilalim nito](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **Formats.** Ang mga raster format na may lugar para dalhin ang signal: **PNG**, **JPG**, **AVIF** at **TIFF**. (Hindi WebP - 8-bit ito na walang gumaganang HDR decode path, kaya ang isang PQ WebP ay magmumukha lang na madilim. Walang HDR model ang mga vector at PDF.)
-- **Naka-off bilang default**, di tulad ng colour tagging - binabago nito ang mga pixel, kaya opt-in ito. I-check ang card, o ipasa ang `hdr=1` sa isang share link.
-- **Ang talagang isinusulat.** Ang mga pixel ay muling na-encode papunta sa **Rec.2100 PQ** - BT.2020 primaries na may SMPTE ST 2084 (PQ) transfer curve - at ang container ay may dalang tumutugmang signal para malaman ng isang colour-managed app na basahin ang mga ito sa ganoong paraan: isang na-generate na **ICC v4 profile na may `cicp` tag** (JPG, TIFF), isang **`cICP` chunk** (PNG) o isang muling isinulat na `colr` box (AVIF). Ang boost ay naka-gate sa **perceptual (OKLab) lightness**, kaya ang mid-and-above na kulay ay pumupunta sa peak at ang madilim ay pinapakalma sa halip na masira, at ito ay hue-preserving - ang isang brand green ay nagiging mas maliwanag, hindi minty.
-- **Ang mga dial.** Apat, nakalantad kapag naka-on ang card: **White** (ang peak-brightness ceiling, 400-2000 nits), **Reach** (gaano kalayo pababa kumakalat ang glow sa mga tone), **Dark lift** (gaano kaliwanag ang darks - pinananatiling madilim ng `0`) at **Focus** (gaano karaming colour richness ang pinapanatili ng boost). Sumasakay ang mga ito sa parehong param bilang isang compact na tuned value - `hdr=1600-60-0-50` ay White 1600, Reach 60, Dark lift 0, Focus 50 - kaya ang isang tuned na tingin ay reproducible mula sa link.
-- **Saan mo ito makikita.** Mga colour-managed viewer sa isang HDR display: Preview / Quick Look / Safari sa Apple devices, Chrome sa isang HDR monitor. Sa isang ordinaryong SDR screen, ang file ay nagpapakita pa rin bilang normal na larawan.
-- **Alamin bago mo i-ship ito.** Maraming platform ang **muling nag-e-encode** ng ini-upload mo at nagtatanggal ng HDR signal - social networks, messaging apps, ilang CMS - na maaaring magpaiwan sa larawan na mukhang madilim o washed out. Gamitin ang HDR kung saan mo kontrolado ang destinasyon (isang site na binuo mo, isang video wall, isang deck sa isang maliwanag na panel), hindi bilang default para sa lahat.
-- **Transparency.** Pinananatili ng PNG at AVIF ang alpha nito; ang JPG ay opaque tulad ng dati. Ang **TIFF** path ay flina-flatten papunta sa **black**, hindi ang white ng SDR path - sa PQ, ang white ay ang 10,000-nit code, kaya ang pag-flatten dito ay magri-ring ng bawat edge ng isang blinding halo.
+- **Mga Format.** Ang mga raster na format na may paraan para dalhin ang signal: **PNG**, **JPG**, **AVIF**, at **TIFF**. (Hindi ang WebP - 8-bit ito at walang gumaganang HDR decode path, kaya ang isang PQ WebP ay basta na lang magmumukhang madilim. Walang anumang HDR model ang mga vector at PDF.)
+- **Naka-off bilang default**, hindi tulad ng colour tagging - binabago nito ang mga pixel, kaya opt-in ito. I-tick ang card, o ipasa ang `hdr=1` sa isang share link.
+- **Ang aktwal na naisusulat.** Muling ini-encode ang mga pixel sa **Rec.2100 PQ** - BT.2020 primaries na may SMPTE ST 2084 (PQ) transfer curve - at dinadala ng container ang katugmang signal para malaman ng isang colour-managed na app na basahin ito nang ganoon: isang binuong **ICC v4 profile na may `cicp` tag** (JPG, TIFF), isang **`cICP` chunk** (PNG), o isang muling isinulat na `colr` box (AVIF). Ang boost ay nakabatay sa **perceptual (OKLab) lightness**, kaya tumatama sa peak ang mid-and-above na mga kulay habang pinapakalma - hindi pinapasabog - ang mga madilim, at hue-preserving ito - nagiging mas maliwanag ang isang brand green, hindi minty.
+- **Ang mga dial.** Apat, ipinapakita kapag naka-on ang card: **White** (ang peak-brightness ceiling, 400–2000 nits), **Reach** (gaano kalayo pababa sa mga tono kumakalat ang glow), **Dark lift** (gaano kaliwanag magiging ang mga madilim - pinananatili silang madilim ng `0`), at **Focus** (gaano karaming yaman ng kulay ang pinapanatili ng boost). Sumasakay sila sa parehong param bilang isang compact na naka-tune na value - ang `hdr=1600-60-0-50` ay White 1600, Reach 60, Dark lift 0, Focus 50 - kaya ang isang naka-tune na hitsura ay mare-reproduce mula sa link.
+- **Saan mo ito makikita.** Sa mga colour-managed na viewer sa isang HDR display: Preview / Quick Look / Safari sa mga Apple device, Chrome sa isang HDR monitor. Sa isang ordinaryong SDR screen, lumalabas pa rin ang file bilang isang normal na imahe.
+- **Alamin bago mo ito ilabas.** Maraming platform ang **muling nag-e-encode** ng iniupload mo at tinatanggal ang HDR signal - social network, messaging app, ilang CMS - na maaaring magpamukha sa imahe na madilim o washed out. Gamitin ang HDR kung saan mo kontrolado ang destinasyon (isang site na binuo mo, isang video wall, isang deck sa isang maliwanag na panel), hindi bilang default para sa lahat.
+- **Transparency.** Pinapanatili ng PNG at AVIF ang alpha nila; opaque naman ang JPG gaya ng dati. Ang **TIFF** path ay pumapatag papunta sa **itim**, hindi sa puti ng SDR path - sa PQ, ang puti ay ang 10,000-nit code, kaya ang pagpapatag papunta dito ay magpapalibot sa bawat gilid ng isang nakakasilaw na halo.
+- **Parehong bytes mula sa terminal.** Isinusulat din ng `--hdr=1` kasama ang `--export=png` o `--export=jpg` ang 16-bit na Rec.2100 PQ PNG at ang ISO 21496-1 na gain-map JPEG sa [CLI](/info/cli.html), mula sa parehong engine encoders sa halip na isang browser - kaya ang isang `<svg>`-native na tool ay gumagawa ng HDR file na walang Chromium kahit saan sa landas, at ang PNG ay byte-identical sa sa web shell. Nananatiling web-shell exports muna ang AVIF at TIFF.
 
 ## Video
 
@@ -290,10 +322,10 @@ Bawat id na kayang i-render ng host, pinangkat. Ito rin ang mga value para sa UR
 |---|---|
 | Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
 | Vector | `svg` · `svgz` (naka-gzip na SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (cut file) |
-| Pahina at dokumento | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) |
+| Pahina at dokumento | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `scorm` (SCORM course package, isang zip) · `penpot` (Penpot design file) · `docx` (Word) · `odt` (OpenDocument Text) |
 | Motion | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` |
 | Audio | `wav` · `mp3` · `m4a` · `opus` |
-| Teksto at datos | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (GIMP palette) |
+| Text at data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (GIMP palette) |
 | Bundle | `zip` |
 
 May ilang karagdagang id na nanggagaling sa **sariling export hook ng isang tool** sa halip na sa shared render path: `ase` (Adobe Swatch Exchange, mula sa Palette Lab), `exr` at `hdr` (mga high-dynamic-range raster ng Darkroom) at `ttf` / `otf` / `woff` (Font Convert). Pumipili sila ng format sa parehong paraan - ang picker, `format=`, `--export=` - ginagawa lang ang mga byte ng tool. Ang Font Convert ang tanging eksepsiyon: binabago nito ang isang font file na ibinibigay *mo*, kaya walang mai-render ang isang plain na URL.

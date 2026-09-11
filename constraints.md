@@ -1,6 +1,6 @@
 # Constraints
 
-A constraint in Lolly is a rule the software enforces at load time and render time, rather than guidance a style guide offers an author: a tool exposes a fixed set of declared inputs, and the values its template can see are exactly those inputs plus whatever the tool's own code computed. Nothing else is reachable.
+A constraint in Lolly is a rule the software enforces at load time and render time, rather than guidance a style guide offers an author: a tool exposes a fixed set of declared inputs, and the values its template can see are exactly those inputs plus whatever the tool's own code computed. That describes the template data context; the hook execution boundary is separate, as explained below.
 
 That is what the landing page means by "[it comes out right](/info/index.html)" - a property of the mechanism, not a promise about care. This page is the mechanism, the tests that hold it and the places it stops.
 
@@ -17,7 +17,7 @@ The declaration also carries the bounds. A `number` input's `min`/`max` clamp on
 
 ## The template cannot compute
 
-Templates are Handlebars and logic-less on purpose (`engine/src/template.ts`). The helper set is registered once at module load and deliberately small: `default`, `upper`, `lower`, `eq`, `icsStamp`, `rfcText`, `csvCell`, `arrow`, `markdown`, `asset` and `media`. There is no way to write a loop with a side effect, call out to the page or invent a value. `{{x}}` HTML-escapes; `{{{x}}}` is the opt-in raw form.
+Templates use Handlebars expressions that are logic-less on purpose (`engine/src/template.ts`). The helpers are registered in that module, including text formatting, asset/media references and sibling data-format escaping. Those expressions cannot call arbitrary JavaScript or reach page globals; hooks and literal scripts are separate. `{{x}}` HTML-escapes; `{{{x}}}` is the opt-in raw form.
 
 The context a template is hydrated with is one assignment in `engine/src/runtime.ts` (search for `ctxCache`):
 
@@ -27,11 +27,11 @@ ctxCache = { ...modelToValues(model), ...extras };
 
 Declared input values, then hook-computed extras. A template that references a name in neither renders empty, because there is no outer scope for it to reach into.
 
-That bounds what a template can *compute*; it does not make every template safe to ship unread. `{{x}}` escapes, but `{{{x}}}` and the `markdown` helper emit whatever they are handed, and many templates use them for markup, JSON inside a `<script>` and style strings that a hook built. The escaping responsibility for that content sits with the hook that produced it (the community `_shared` `esc` helper is the convention), so a review of a tool still reads its raw interpolations and its hooks. What the logic-less template guarantees is narrower, and still worth having: no loop with a side effect, no call out to the page, and no value the template invented for itself.
+The data context bounds which values Handlebars can resolve. It does not make arbitrary template HTML safe: triple braces (`{{{x}}}`) insert raw content, and literal HTML or scripts in a template still need review. Hook-produced markup must escape user-controlled text for its destination. The `markdown` helper is different: it escapes input text, builds a limited set of tags and checks URL schemes before returning HTML. Its behavior is covered by the Markdown cases in [the engine contract suite](https://github.com/lolly-tools/lolly/blob/main/tests/engine.test.ts). Review both the template and its hooks when publishing a tool.
 
 ## Brand values resolve from tokens
 
-Colour, type and spacing come from the brand's design tokens rather than from numbers typed into a template. `engine/src/tokens.ts` is the engine's single source of truth for token semantics: it parses a W3C DTCG document (the format Penpot and Tokens Studio exchange), resolves `{dotted.path}` aliases including chains, applies `$themes` set layering and resolves every colour form to an sRGB hex string for the rest of the app. A wide-gamut `oklch()` token is gamut-mapped to reach that hex (an authored sRGB override wins where one is given), while the token itself keeps the notation its author typed.
+Colour, type and spacing can bind to the brand's design tokens. `engine/src/tokens.ts` is the engine's single source of truth for token semantics: it parses a W3C DTCG document (the format Penpot and Tokens Studio exchange), resolves `{dotted.path}` aliases including chains, applies `$themes` set layering and provides colour conversion for swatches and bound input values. Most converted colours become sRGB hex strings; safe named colours and `transparent` can remain CSS identifiers, and ordinary unbound input strings are preserved. A wide-gamut `oklch()` token is gamut-mapped to reach that hex (an authored sRGB override wins where one is given), while the token itself keeps the notation its author typed.
 
 A colour input can hold a token reference rather than a literal, as `{ ref, value }`. The reference is what travels in a share link; the template only ever sees the resolved string. So re-pointing a brand token updates every tool that referenced it, and no template has to be edited.
 
@@ -39,13 +39,13 @@ A colour input can hold a token reference rather than a literal, as `{ ref, valu
 
 `engine/src/inputs.ts` builds the runtime input model from the manifest: defaults resolved, profile bindings applied, control chosen. Its header states the rule the architecture depends on - this is the only place input semantics live, and shells render the model rather than interpreting manifest declarations themselves.
 
-That is why the same `number` input with a `min`, a `max` and a `step` becomes a slider in the browser, the same clamped number in the CLI and the same value in an MCP call. A shell cannot quietly widen a constraint, because a shell never reads the constraint.
+That is why the same `number` input with a `min`, a `max` and a `step` becomes a slider in the browser, the same clamped number in the CLI and the same value in an MCP call. The engine applies these bounds when values are updated; shells are expected to render its input model consistently.
 
 ## The same closed set in a URL
 
 A tool's URL is not a wider door than its sidebar. `engine/src/url-mode.ts` parses a query string against the tool's own declared inputs, and anything it does not recognise is ignored rather than guessed at. The one set of names that mean something without being inputs is closed and explicit - the exported `RESERVED` set in `engine/src/url-mode.ts`, covering output concerns such as `format`, `width`, `height`, `unit`, `dpi`, `profile`, `bleed`, `marks` and the provenance switches.
 
-So there is no undocumented parameter that changes what a tool will do. You can read the manifest, read `RESERVED` and know the complete vocabulary a link can speak. The CLI speaks the same one, because `--foo=bar` is converted by that module too.
+Those declarations define the vocabulary accepted by engine URL mode. They do not prevent trusted in-realm hooks or literal scripts from reading other query parameters directly. The CLI speaks the same one, because `--foo=bar` is converted by that module too.
 
 ## `host.net` reaches only the hosts its manifest names
 
@@ -53,8 +53,10 @@ So there is no undocumented parameter that changes what a tool will do. You can 
 
 That is a statement about the adapter, not about every line of code a tool can run. Whether a hook can reach *around* `host.net` depends on how it is executed, and there are two modes (`engine/src/runtime.ts` takes the executor as its `hookExecutor` option; `engine/src/loader.ts` names the trust levels):
 
-- **Trusted, in the shell's realm.** A first-party catalog tool's `hooks.js` runs through `new Function('host', …)` in the page's own realm. That is closure-scope injection for compatibility, not confinement: in a browser such a hook can reach `window`, `document` and `fetch`, and the Limits section below says so plainly. Review is the control for these tools.
-- **Strict, in a Worker.** A tool that opts in with `isolate: true`, and every sideloaded or remote tool (the `sideloaded-consented` and `remote-untrusted` trust levels), runs its hooks in a Worker whose `host` is a proxy and whose globals are omitted or seeded by policy - `engine/src/hook-worker-core.ts`, with the web executor in `shells/web/src/bridge/hook-worker.ts` and the Node one in `packages/node-shell/src/hook-worker.ts`; `shells/web/src/bridge/hook-worker.test.ts`, `tests/hook-worker-node.test.ts` and `tests/tool-isolation.test.ts` pin the policy. A Worker is a strong boundary for globals and the DOM, not the whole security story; the [Threat Model](/info/threat-model.html) states that boundary in full.
+- **Trusted compatibility execution.** First-party catalog hooks can run through `new Function('host', …)` in the shell's realm. In a browser they can reach `window`, `document` and `fetch`. A trusted tool with `isolate: true` prefers the Worker executor, but may fall back to in-realm execution if the Worker cannot start. Opting into that compatibility path does not imply strict confinement.
+- **Strict execution for sideloaded and remote tools.** The web mount path selects a Worker executor with in-realm fallback disabled for `sideloaded-consented` and `remote-untrusted` tools. Startup failure refuses the mount; unsupported in-realm export hooks are refused. The Worker host proxy and global lockdown apply the policy in [hook-worker-core.ts](https://github.com/lolly-tools/lolly/blob/main/engine/src/hook-worker-core.ts). A Worker supplies a separate realm and no page DOM; the proxy and lockdown are additional controls, so a Worker alone is not the entire boundary. See the [Threat Model](/info/threat-model.html) for residual risks.
+
+The selection and refusal paths are exercised by `shells/web/src/bridge/hook-worker.test.ts`, `tests/hook-worker-node.test.ts` and `tests/tool-isolation.test.ts`.
 
 ## The receipts
 
@@ -66,7 +68,7 @@ That is a statement about the adapter, not about every line of code a tool can r
 | A template escapes by default and cannot invent values | `tests/engine.test.ts` - `template: escapes HTML by default (XSS guard)`, `template: missing values render empty in if-blocks` |
 | A token reference resolves before the template sees it | `tests/tokens-value-path.test.ts` |
 | `host.net` is fail-closed without a capability and an allowlist | `tests/net-allowlist-conformance.test.ts` |
-| Isolated, sideloaded and remote tools run their hooks behind the Worker policy | `shells/web/src/bridge/hook-worker.test.ts`, `tests/hook-worker-node.test.ts`, `tests/tool-isolation.test.ts` |
+| Strict untrusted execution refuses in-realm fallback; trusted isolation retains compatibility fallback | `shells/web/src/bridge/hook-worker.test.ts`, `tests/hook-worker-node.test.ts`, `tests/tool-isolation.test.ts` |
 | The shipped catalog matches its manifests | `scripts/validate-catalog.ts`, run as a CI job in `.github/workflows/ci.yml` - duplicate ids, index drift, asset checksums, `bindToProfile` fields, palette references and `replacedBy` chains |
 | Every tool still renders at its declared defaults | the catalog-wide render gate in `.github/workflows/ci.yml`, which renders every tool in the active profile and exits non-zero on any failure |
 
@@ -88,8 +90,8 @@ The manifest you just read is the same file the browser fetches, the CLI loads a
 ## Limits
 
 - **Constraints bound the filler, not the author.** A tool author can write a badly proportioned layout, pick a poor default or expose an input that should have been locked. The engine has no opinion about whether a design is good, only about whether the person using the tool can leave its rules. Authoring quality is a review question, and [Authoring Tools](/info/authoring-tools.html) is where that review starts.
-- **Hooks are the escape hatch, and they are trusted code.** A tool declaring `hooks` gets its `hooks.js` loaded through `new Function` with the host bridge injected. `engine/src/runtime.ts` says so at the site: closure-scope injection, not isolation. In a browser shell a hook can reach `window`, `document` and `fetch`, and some shipping tools rely on it. Async hook results are time-boxed by `HOOK_BUDGET_MS`, a synchronous runaway hook cannot be preempted in-realm, and a manifest may opt into a Worker with `isolate: true` where its hooks touch no DOM globals. Run tools you have reviewed. The [Threat Model](/info/threat-model.html) states this boundary in full.
-- **Raw output is available on purpose.** `{{{x}}}` and the `markdown` helper emit unescaped HTML by design. An author who pipes an input through triple-stache has opted out of escaping, and tool review is the control that catches it.
+- **Trusted hooks are the escape hatch.** In-realm execution loads `hooks.js` through `new Function` with the host bridge injected; strict untrusted execution uses the Worker path described above. `engine/src/runtime.ts` says so at the site: closure-scope injection, not isolation. In a browser shell a hook can reach `window`, `document` and `fetch`, and some shipping tools rely on it. Async hook results are time-boxed by `HOOK_BUDGET_MS`, a synchronous runaway hook cannot be preempted in-realm, and a manifest may opt into a Worker with `isolate: true` where its hooks touch no DOM globals. Run tools you have reviewed. The [Threat Model](/info/threat-model.html) states this boundary in full.
+- **Raw output is available on purpose.** Triple braces (`{{{x}}}`) bypass Handlebars escaping. Review the producer and the destination of that content. The `markdown` helper escapes text and limits generated tags and URL schemes; it is not an arbitrary HTML passthrough.
 - **A constraint holds inside the tool.** Once a file is exported it is an ordinary PNG, SVG or PDF, and anyone can open it in another program and change it. Constraints govern how the file was made, which is also why the export carries a [Content Credential](/info/security.html) recording that.
 
 ## Related

@@ -38,27 +38,28 @@ Câmpul de nume de fișier și selectorul de format stau în partea de sus a pan
 
 | Vrei… | Folosește | De ce |
 |---|---|---|
-| Logo-uri / grafică clare care se scalează | **SVG** | Vector - infinit scalabil, mic, editabil |
+| Logo-uri / grafică clară care se scalează | **SVG** | Vector - se scalează la infinit, mic, editabil |
 | Vector pentru aplicații Office / Windows | **EMF** | Se lipește ca vector editabil în PowerPoint / Word; textul rămâne activ și editabil, iar Google Drive îl deschide în Google Drawings pentru Slides |
-| Vector pentru tipar / aplicații de design | **EPS**, sau **EPS (CMYK)** | Vector PostScript pentru fluxuri de lucru Illustrator / tipar |
-| Vector pentru mașini de tăiat / CAD | **DXF** | Tăietoare laser, plottere vinil, CNC - trasee de contur în milimetri |
-| Un deck de slide-uri editabil | **PowerPoint** (PPTX) | Text și forme editabile nativ, cu imagini și vectori păstrați extractibili |
-| Un document de text editabil | **Word** (DOCX) sau **OpenDocument** (ODT) | Paragrafe și titluri reale pe care un procesor de text le poate continua să le editeze (Doc Studio) |
+| Vector pentru tipar / aplicații de design | **EPS**, sau **EPS (CMYK)** | Vector PostScript pentru Illustrator / fluxuri de tipar |
+| Vector pentru mașini de tăiat / CAD | **DXF** | Aparate de tăiat cu laser, plottere de vinil, CNC - trasee de contur în milimetri |
+| Un set de diapozitive editabil | **PowerPoint** (PPTX) | Text nativ editabil + forme, cu imagini și vectori care rămân extractibili |
+| Un curs pe care un LMS îl poate importa | **SCORM** (LMS) | O arhivă zip cu manifestul, o pagină de lansare, diapozitivele și filmul narat cu subtitrări - dintr-un set de diapozitive Design |
+| Un document text editabil | **Word** (DOCX) sau **OpenDocument** (ODT) | Paragrafe și titluri reale pe care un procesor de texte le poate continua să le editeze (Doc Studio) |
 | O fotografie sau o imagine de uz general | **PNG** (fără pierderi) sau **JPG** (mai mic) | Raster universal |
-| Imagini moderne mai mici | **WebP** / **AVIF** | Compresie mai bună, alfa |
+| Imagini moderne mai mici | **WebP** / **AVIF** | Compresie mai bună, alpha |
 | Tipar | **PDF**, sau **Print PDF** (CMYK) | Dimensiune reală a paginii; CMYK pentru tipar |
-| Raster pentru tipar profesional | **Print TIFF** (CMYK) | Pixeli DeviceCMYK pentru un RIP |
+| Raster de tipar pentru o tipografie | **Print TIFF** (CMYK) | Pixeli DeviceCMYK pentru un RIP |
 | Animat pentru web | **GIF** | Funcționează peste tot, fișiere mai mari |
-| Animat cu culoare completă + alfa reală | **APNG** | PNG animat - fără limită de paletă, transparență reală |
-| Animat, cel mai mic fișier | **Animated WebP** | Culoare completă + alfa, comprimat mai bine decât GIF sau APNG |
-| Vector animat care se scalează | **Animated SVG** | Autonom; se rulează în buclă într-un browser sau `<img>`, fără codec, orice dimensiune |
+| Animat cu culoare completă + alpha real | **APNG** | PNG animat - fără limită de paletă, transparență reală |
+| Animat, cel mai mic fișier | **WebP animat** | Culoare completă + alpha, comprimat mai bine decât GIF sau APNG |
+| Vector animat care se scalează | **SVG animat** | Autonom; se repetă într-un browser sau `<img>`, fără codec, orice dimensiune |
 | Video pentru social / partajare | **MP4** sau **WebM** | Cel mai bun raport calitate-per-byte (vezi mai jos) |
-| Text bogat / semnătură de email | **HTML** | Se lipește formatat în clienți de email |
+| Text bogat / semnătură de email | **HTML** | Se lipește formatat în clienții de email |
 | Conținut simplu | **MD** / **TXT** | Doar text |
 | Un eveniment de calendar | **ICS** | Se importă în orice aplicație de calendar |
 | O carte de vizită | **VCF** | Se importă în Contacte / agende de adrese |
-| Date structurate de reimportat | **JSON** / **CSV** | Reciclează conținutul tool-ului |
-| Un favicon | **ICO** | Pictogramă de site multi-dimensiune (**ZIP** grupează mai multe formate) |
+| Date structurate de reimportat | **JSON** / **CSV** | Face un tur complet al conținutului instrumentului |
+| Un favicon | **ICO** | Iconiță de site cu mai multe dimensiuni (**ZIP** grupează mai multe formate) |
 
 Primul rând e cazul comun. Un wordmark scris în fontul brandului tău se exportă ca SVG, unde fiecare literă e un traseu conturat, nu un pixel, așa că rămâne clar la dimensiunea unei cărți de vizită și la dimensiunea unui wrap de clădire, din același fișier.
 
@@ -79,7 +80,7 @@ Exemplu: lățime `210`, înălțime `297`, unitate `mm` → o pagină A4.
 
 ## Cadre statice dintr-o compoziție cronometrată
 
-O **compoziție cronometrată** - un stage din [Sequence Studio](/info/using.html#timeline-sequence-studio), sau orice planșă condusă de o cronologie - este un lucru în mișcare, așa că un export static trebuie să răspundă la "care moment?". Regula e cea așteptată: **cadrul de la playhead**. Poziționează playhead-ul unde vrei imaginea și exportă; ce vezi e ce obții.
+O **compoziție cronometrată** - o cronologie [Sequence](/info/using.html#timeline-sequence) în Design, sau orice planșă condusă de o cronologie - este ceva în mișcare, așa că o exportare statică trebuie să răspundă la întrebarea „care moment?”. Regula este cea la care te-ai aștepta: **cadrul de la capul de redare**. Poziționează capul de redare unde vrei imaginea și exportă; ce vezi este ce iese.
 
 Când vrei mai mult de un moment, câmpul **Frames** apare lângă dimensiunea de ieșire (doar pentru o compoziție cronometrată, și doar pentru un format static - PNG, JPG, WebP, SVG sau PDF). Lasă-l la `1` pentru cadrul de la playhead. Ridică-l și obții atâtea cadre statice, eșantionate la intervale egale de-a lungul întregii secvențe:
 
@@ -94,12 +95,12 @@ Câmpul **Frames** este modul de a obține o foaie astăzi. Motorul rezervă un 
 
 ## PDF multi-pagină
 
-Unele tool-uri construiesc un **document PDF multi-pagină** în loc de o singură lucrare - o copertă, conținut care curge pe câte pagini are nevoie și o pagină de spate, toate într-un singur fișier (vezi tool-ul *Multi-Page PDF*). Fiecare pagină este o **pagină PDF reală** dimensionată la caseta acelei pagini, așa că cititorii și imprimantele primesc pagini reale, nu o singură imagine înaltă.
+Unele instrumente construiesc un **document PDF cu mai multe pagini** în loc de o singură lucrare grafică - o copertă, conținut care curge pe câte pagini are nevoie și o pagină din spate, toate într-un singur fișier (vezi instrumentul *Booklet*). Fiecare pagină este o **pagină PDF reală**, dimensionată la caseta acelei pagini, astfel încât cititorii și tipografiile primesc pagini reale, nu o singură imagine lungă.
 
 - **Pagini din conținut.** Adaugi blocuri de text și imagini; paginile noi se creează automat pe măsură ce blocurile se umplu, și poți forța orice bloc să înceapă o pagină nouă.
 - **Dimensiuni de pagină reale.** Alege A4, US Letter sau A5 (portret - layout-ul pe două coloane e construit pentru asta) - fiecare pagină, și PDF-ul exportat, se randează la exact acea dimensiune.
 
-PDF-urile multi-pagină sunt documente RGB și nu au marcaje de tăiere/sângerare - acelea aparțin căii de mai sus **Print PDF**, cu o singură pagină. Au însă aceleași **metadate PDF/X-4** ca orice export PDF (casete de pagină, XMP, ID de document, un output intent sRGB cu profil încorporat), și oferă **Content Credentials** (mai jos) - pe tool-ul *Multi-Page PDF* opțiunea vine preselectată.
+PDF-urile cu mai multe pagini sunt documente RGB și nu poartă marcaje de tăiere/sângerare - acestea aparțin traseului **Print PDF** de mai sus, cu o singură pagină. Ele poartă totuși aceleași **metadate PDF/X-4** ca orice export PDF (casete de pagină, XMP, ID de document, un intent de ieșire sRGB cu profil încorporat) și oferă **Content Credentials** (mai jos) - pe instrumentul *Booklet* opțiunea este preselectată.
 
 ## Realizarea mai multor lucruri deodată
 
@@ -113,22 +114,54 @@ Regulă practică: rânduri ale aceluiași design care aparțin într-**un docum
 
 ## PowerPoint (PPTX)
 
-![The export panel with PowerPoint chosen: one slide per page, text and shapes kept editable](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
-
-Tool-urile multi-pagină și de layout (Carousel, Doc Studio, Multi-Page PDF, tool-urile de grafice și tool-urile de card/layout pe un singur canvas) pot exporta un **deck PowerPoint** - un slide per pagină. Scopul nu e o captură pixel-perfectă; e să oferi unui coleg un deck pe care chiar poate să-l **editeze și să scoată active din el**. Așa că fiecare pagină e descompusă în obiecte native:
+Design, Markdown Slides, Booklet, Doc Studio, Chart și Diagrams pot exporta un **set de diapozitive PowerPoint** - un diapozitiv per pagină. Ideea nu este o captură de ecran perfectă pixel cu pixel; este să dai unui coleg un set de diapozitive pe care chiar poate **să îl editeze și să extragă resurse din el**. Așa că fiecare pagină este descompusă în obiecte native:
 
 - <!--i:font--> **Textul** devine casete de text PowerPoint reale, **editabile** - cu dimensiunea fontului, culoarea, grosimea, cursivele și alinierea din layout - ca să poți corecta o greșeală de tipar sau restiliza direct în PowerPoint.
 - <!--i:pentool--> **Vectorii** (logo-uri, iconițe, marca SUSE) sunt încorporați ca **imagini SVG reale** - rămân clare la orice dimensiune, iar PowerPoint poate chiar să aplice *Convert to Shape* pe ele.
 - <!--i:photos--> **Imaginile** vin la rezoluția lor nativă ca imagini proprii, extractibile (o imagine hero decupată cu `cover` păstrează imaginea completă din spatele decupajului, ca s-o poți reîncadra), cu orice tratament aplicat pe imagine (filtre, blend-uri) fixat fidel.
 - <!--i:layers--> **Fundalurile, chenarele și liniile** devin forme reale de dreptunghi/linie.
 
+![Panoul de export cu PowerPoint selectat: un diapozitiv per pagină, text și forme păstrate editabile](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
+
 Layout-ul este aproximativ prin design - obiectivul este **conținut** fidel și reutilizabil, nu o captură de ecran blocată. Tot ce walker-ul nu poate exprima nativ (o regiune complexă filtrată sau mascată) este încorporat ca imagine, ca să nu se piardă nimic. Un deck are o singură dimensiune de slide, preluată din prima pagină.
 
-PowerPoint este și o cale de **intrare** - formatul se poate parcurge în ambele sensuri. **Deck Builder** deschide un `.pptx` existent ca slide-uri editabile, aliniate la brandul tău, iar utilitarul **Rebrand a Deck** re-tematizează un deck pe loc - paleta temei, culorile și fonturile codate direct - fără să atingă graficele, SmartArt sau animațiile, și returnează un `.pptx`. Vezi [Import a design → Decks and documents](/info/design-import.html#decks-and-documents).
+PowerPoint este de asemenea o cale **de intrare**. Plasează un `.pptx` pe orice suprafață de încărcare și alege diapozitivele dorite - fiecare devine o resursă de plasat, tratat sau pe care poți construi mai departe. **Markdown Slides** scrie un set de diapozitive nou din Markdown (și oferă un șablon `.pptx` cu identitate de brand), iar utilitarul **Rebrand** rebranduiește un set de diapozitive existent pe loc - paleta temei, culorile și fonturile codificate direct - fără să atingă graficele, SmartArt sau animațiile, returnând un `.pptx`. Vezi [Import a design → Decks and documents](/info/design-import.html#decks-and-documents).
+
+## Penpot
+
+Orice instrument care poate exporta SVG poate exporta și un **fișier Penpot** (`.penpot`) - documentul, gata de continuat editarea în Penpot, nu doar de privit.
+
+- <!--i:layout--> Din **Design**, fiecare cadru devine un **board** Penpot, fiecare casetă de pe el se transferă ca formă proprie editabilă - dreptunghi, elipsă, text, imagine sau traseu - iar rezultatul ajunge ca o **componentă** reutilizabilă în panoul Assets, gata de tras din nou afară.
+- <!--i:pentool--> Dintr-un instrument al cărui randare este **geometrie simplă** - instrumentele vectoriale precum QR Code, Street Map, Wordmark și Palette Lab - fiecare traseu, dreptunghi, rând de text și gradient se transferă la fel, ca formă proprie editabilă.
+- <!--i:font--> Dintr-un instrument care își așază randarea în **HTML**, **textul rămâne text** - un obiect de text Penpot editabil per rând, nu un contur și nu o imagine plată. O lucrare grafică pentru care Penpot nu are un construct - o ilustrație complexă, un canvas live - se transportă pe cont propriu ca imagine, astfel încât textul și casetele din jurul ei nu sunt niciodată aplatizate. Un întreg layout pe care Penpot nu îl poate separa fidel poate totuși ajunge ca o singură imagine la fidelitate completă, așa că nimic nu se pierde vreodată.
+- <!--i:palette--> O culoare sau un font pe care o formă îl **moștenește dintr-un token de brand** rămâne **legat** de acel token în fișier: schimbă tokenul în panoul Tokens al Penpot și fiecare formă care îl moștenește se repictează împreună, în timp ce o culoare literală, unică, rămâne exact acolo unde este. Culorile și tipografiile brandului ajung și ele în panoul **Assets**, iar întregul set de tokenuri de design în panoul **Tokens** - același set de tokenuri DTCG pe care îl folosește paleta proprie a Lolly. De acolo Penpot își păstrează propria copie: o modificare făcută în panoul lui Tokens revine în brand prin [importul din Brand Studio](/info/design-import.html), nu de la sine.
+
+| Ce ai făcut | În Penpot |
+|---|---|
+| Text | Obiecte de text editabile - corectezi o greșeală sau restilizezi |
+| Forme, trasee, gradienturi, imagini | Propriile lor forme vectoriale editabile |
+| O culoare sau un font dintr-un token de brand | O legătură live la token - editezi tokenul, fiecare formă care îl moștenește urmează |
+| Întregul design | O componentă reutilizabilă în panoul Assets |
+| O ilustrație complexă sau un canvas live | Încorporată pe cont propriu ca imagine, conținutul editabil din jurul ei rămâne neatins |
+
+![Panoul de export cu Penpot selectat: fișierul .penpot, și Send to Penpot lângă butonul de descărcare](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
+
+Ca să îl deschizi, pornește Penpot, alege un proiect și selectează **Import**. Autentificat în Penpot din panoul de export, **Send to Penpot** face acest pas pentru tine - alegi un proiect acolo, iar fișierul ajunge direct în el.
+
+## SCORM (pachete de curs)
+
+Un set de diapozitive Design poate pleca ca **pachet SCORM** - arhiva zip pe care o importă un sistem de management al învățării, fie că este Moodle, Canvas, Blackboard sau un LMS corporativ. Alege **SCORM (LMS)** în selectorul de format, iar exportul scrie:
+
+- <!--i:layout--> **Diapozitivele**, o imagine per planșă, ca vector acolo unde planșa permite și ca pixeli doar unde nu permite.
+- <!--i:play--> **Filmul narat**, cu pista lui de subtitrări - notițele vorbitorului citite de o voce pe dispozitiv, exact așa cum le redă [Presenting](/info/create/using.html#presenting).
+- <!--i:file--> **O pagină de lansare** care parcurge diapozitivele, redă filmul și raportează finalizarea înapoi la LMS prin mediul de execuție SCORM 1.2, versiunea pe care o acceptă orice LMS.
+- <!--i:font--> Fonturile folosite de setul de diapozitive, astfel încât pagina de lansare se randează la fel offline.
+
+![Panoul de export pe un set de diapozitive Design cu SCORM (LMS) selectat](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+
+Nimic din pachet nu comunică spre exterior: sunt fișiere într-o arhivă zip, iar acesta rulează în interiorul LMS-ului fără bundler, fără CDN și fără cont. Aplicațiile web și desktop îl construiesc; CLI-ul nu, pentru că fotografierea planșelor și codarea filmului au nevoie de browser.
 
 ## DXF (fișiere de tăiere)
-
-![The export panel with Penpot chosen: the .penpot file, and Send to Penpot beside the download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
 Instrumentele vectoriale (Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, variantele de logo, Diagram Builder) pot exporta în **DXF** - formatul de schimb AutoCAD R12 pe care îl citesc mașinile de tăiat laser, plotterele de vinil și software-ul CNC/CAD. Geometria este scrisă ca **căi de contur în milimetri** (curbele sunt aplatizate cu o toleranță fină), textul este transformat în căi de contur, iar culoarea se mapează la cel mai apropiat AutoCAD Color Index (care de obicei controlează instrumentul/operația pe o mașină de tăiat). DXF este doar grafică de linie - o regiune fotografică sau filtrată nu are o formă de cale de tăiere și este eliminată (Lolly avertizează), așa că folosește SVG/PDF când trebuie să păstrezi conținut raster.
 
@@ -141,8 +174,6 @@ Derulează, iar camera se retrage prin geometria efectivă: șapte căi, fără 
 :::
 
 ## SVG animat
-
-![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Uneltele de mișcare (Animated Ad, Lottie Ad) pot exporta **SVG animat** - o animație *vectorială* de sine stătătoare. Spre deosebire de GIF/APNG/WebP (care eșantionează fiecare cadru în pixeli), un SVG animat stivuiește instantanee vectoriale cu keyframe-uri CSS încorporate, deci **se scalează la orice dimensiune fără codec și fără runtime extern** - rulează într-un tab de browser sau într-un `<img>`. Textul rămâne conturat, ca să se randeze oriunde. Împarte controalele de **Durată** / rată de cadre cu celelalte formate animate și (fiind mai greu per cadru decât un bitmap) folosește o rată de cadre implicită mai mică.
 
@@ -180,13 +211,14 @@ Exporturile obișnuite sunt sRGB: albul este alb, iar o culoare de brand saturat
 
 ![Cardul HDR din panoul de export, activat, cu discurile White / Reach / Dark lift / Focus dezvăluite sub el](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **Formate.** Formatele raster care au unde purta semnalul: **PNG**, **JPG**, **AVIF** și **TIFF**. (Nu WebP - e pe 8 biți, fără o cale funcțională de decodare HDR, deci un WebP PQ ar arăta pur și simplu întunecat. Vectorii și PDF nu au niciun model HDR.)
-- **Dezactivat implicit**, spre deosebire de etichetarea culorii - schimbă pixelii, deci e opt-in. Bifează cardul, sau pasează `hdr=1` într-un link partajat.
-- **Ce se scrie de fapt.** Pixelii sunt recodificați în **Rec.2100 PQ** - primare BT.2020 cu curba de transfer SMPTE ST 2084 (PQ) - iar containerul poartă semnalul potrivit ca o aplicație cu gestionare a culorii să știe să-i citească astfel: un profil **ICC v4 generat cu etichetă `cicp`** (JPG, TIFF), un **chunk `cICP`** (PNG) sau un `colr` box rescris (AVIF). Amplificarea este condiționată de **luminozitatea perceptuală (OKLab)**, deci culorile medii și de deasupra sunt împinse spre vârf, iar cele întunecate sunt calmate în loc să fie arse, și păstrează nuanța - un verde de brand devine mai luminos, nu mentolat.
-- **Discurile.** Patru, dezvăluite când cardul e activat: **White** (plafonul de luminozitate de vârf, 400-2000 nits), **Reach** (cât de jos se răspândește strălucirea în tonuri), **Dark lift** (cât de mult se luminează întunecatele - `0` le păstrează întunecate) și **Focus** (câtă bogăție de culoare păstrează amplificarea). Se transmit în același parametru ca o valoare reglată compactă - `hdr=1600-60-0-50` înseamnă White 1600, Reach 60, Dark lift 0, Focus 50 - deci un aspect reglat este reproductibil din link.
-- **Unde îl vei vedea.** Vizualizatoare cu gestionare a culorii pe un afișaj HDR: Preview / Quick Look / Safari pe dispozitive Apple, Chrome pe un monitor HDR. Pe un ecran SDR obișnuit fișierul se arată tot ca o imagine normală.
-- **De știut înainte să-l trimiți.** Multe platforme **recodifică** ce încarci și elimină semnalul HDR - rețele sociale, aplicații de mesagerie, unele CMS-uri - ceea ce poate lăsa imaginea să pară întunecată sau spălăcită. Folosește HDR unde controlezi destinația (un site pe care-l construiești, un panou video, un deck pe un ecran luminos), nu ca implicit pentru orice.
-- **Transparență.** PNG și AVIF își păstrează alfa; JPG este opac ca întotdeauna. Calea **TIFF** se aplatizează pe **negru**, nu pe alb ca pe calea SDR - în PQ, albul este codul de 10.000 nits, deci aplatizarea pe el ar înconjura fiecare margine cu un halo orbitor.
+- **Formate.** Formatele raster cu un loc unde să poarte semnalul: **PNG**, **JPG**, **AVIF** și **TIFF**. (Nu WebP - este pe 8 biți, fără o cale de decodare HDR funcțională, așa că un WebP PQ ar arăta pur și simplu întunecat. Vectorii și PDF nu au niciun model HDR.)
+- **Dezactivat implicit**, spre deosebire de etichetarea de culoare - modifică pixelii, deci este opțional. Bifează căsuța, sau adaugă `hdr=1` într-un link de partajare.
+- **Ce se scrie de fapt.** Pixelii sunt recodați în **Rec.2100 PQ** - primare BT.2020 cu curba de transfer SMPTE ST 2084 (PQ) - iar containerul poartă semnalul corespunzător, astfel încât o aplicație cu gestionare a culorii știe să îi citească așa: un **profil ICC v4 generat cu etichetă `cicp`** (JPG, TIFF), un **fragment `cICP`** (PNG) sau o casetă `colr` rescrisă (AVIF). Amplificarea este condiționată de **luminozitatea perceptuală (OKLab)**, așa că tonurile medii și peste ele urcă spre vârf, iar cele întunecate sunt calmate în loc să fie arse, și este păstrătoare de nuanță - un verde de brand devine mai luminos, nu mentolat.
+- **Cadranele.** Patru, dezvăluite când căsuța este activată: **White** (plafonul de luminozitate de vârf, 400-2000 nits), **Reach** (cât de jos se răspândește strălucirea printre tonuri), **Dark lift** (cât se luminează întunecimile - `0` le păstrează întunecate) și **Focus** (cât de multă bogăție de culoare păstrează amplificarea). Ele călătoresc în același parametru ca o valoare reglată compactă - `hdr=1600-60-0-50` înseamnă White 1600, Reach 60, Dark lift 0, Focus 50 - astfel încât un aspect reglat este reproductibil din link.
+- **Unde îl vei vedea.** Vizualizatoare cu gestionare a culorii pe un afișaj HDR: Preview / Quick Look / Safari pe dispozitive Apple, Chrome pe un monitor HDR. Pe un ecran SDR obișnuit fișierul tot arată ca o imagine normală.
+- **De știut înainte să îl livrezi.** Multe platforme **recodează** ce încarci și elimină semnalul HDR - rețele sociale, aplicații de mesagerie, unele CMS-uri - ceea ce poate lăsa imaginea arătând întunecată sau spălăcită. Folosește HDR acolo unde controlezi destinația (un site pe care îl construiești, un perete video, un set de diapozitive pe un panou luminos), nu ca implicit pentru orice.
+- **Transparență.** PNG și AVIF își păstrează canalul alpha; JPG este opac ca întotdeauna. Traseul **TIFF** se aplatizează pe **negru**, nu pe alb ca traseul SDR - în PQ, albul este codul de 10.000 de nits, așa că aplatizarea pe el ar înconjura fiecare margine cu un halou orbitor.
+- **Aceiași octeți din terminal.** `--hdr=1` cu `--export=png` sau `--export=jpg` scrie PNG-ul Rec.2100 PQ pe 16 biți și JPEG-ul cu gain-map ISO 21496-1 și pe [CLI](/info/cli.html), din aceleași motoare de codare ale engine-ului, nu dintr-un browser - astfel un instrument nativ `<svg>` produce un fișier HDR fără niciun Chromium pe traseu, iar PNG-ul este identic la nivel de octet cu cel al shell-ului web. AVIF și TIFF rămân deocamdată exporturi din shell-ul web.
 
 ## Video
 
@@ -286,12 +318,12 @@ Comenzile de export se află în spatele butonului flotant **Render**, care desc
 
 Fiecare id pe care gazda îl poate reda, grupat. Acestea sunt și valorile pentru parametrul URL `format=` și flag-ul CLI `--export=` - vezi [URL Mode](/info/url-mode.html) și [CLI](/info/cli.html). Un instrument oferă doar subsetul declarat de autorul său, astfel încât selectorul este întotdeauna mai scurt decât această listă.
 
-| Tip | Id-uri |
+| Tip | ID-uri |
 |---|---|
-| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (TIFF RGB) · `cmyk-tiff` (TIFF Print) · `bmp` · `ico` |
-| Vector | `svg` · `svgz` (SVG gzipat) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (fișier de tăiere) |
-| Pagină și document | `pdf` · `pdf-cmyk` (PDF Print) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) |
-| Animație | `gif` · `apng` (PNG animat) · `webp-anim` (WebP animat) · `svg-anim` (SVG animat) · `webm` · `mp4` |
+| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
+| Vector | `svg` · `svgz` (SVG gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (fișier de tăiere) |
+| Pagină și document | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `scorm` (pachet de curs SCORM, o arhivă zip) · `penpot` (fișier de design Penpot) · `docx` (Word) · `odt` (OpenDocument Text) |
+| Mișcare | `gif` · `apng` (PNG animat) · `webp-anim` (WebP animat) · `svg-anim` (SVG animat) · `webm` · `mp4` |
 | Audio | `wav` · `mp3` · `m4a` · `opus` |
 | Text și date | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (paletă GIMP) |
 | Pachet | `zip` |

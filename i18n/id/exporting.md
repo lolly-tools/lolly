@@ -36,28 +36,29 @@ Nama file dan pemilih format berada di bagian atas panel sebagai satu pasangan `
 
 ![Bidang nama file menyatu dengan pemilih format, sehingga ekspor terbaca sebagai satu pasangan name.format](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-| Yang Anda inginkan… | Gunakan | Alasan |
+| Anda menginginkan… | Gunakan | Alasan |
 |---|---|---|
-| Logo tajam / karya seni yang dapat diskalakan | **SVG** | Vektor - dapat diskalakan tanpa batas, kecil, dapat diedit |
-| Vektor untuk aplikasi Office / Windows | **EMF** | Ditempel sebagai vektor yang dapat diedit ke PowerPoint / Word; teks tetap live dan dapat diedit, dan Google Drive membukanya di Google Drawings untuk Slides |
-| Vektor untuk aplikasi cetak / desain | **EPS**, atau **EPS (CMYK)** | Vektor PostScript untuk Illustrator / alur kerja percetakan |
-| Vektor untuk mesin pemotong / CAD | **DXF** | Pemotong laser, plotter vinil, CNC - jalur garis luar dalam milimeter |
-| Deck slide yang dapat diedit | **PowerPoint** (PPTX) | Teks + bentuk native yang dapat diedit, dengan gambar dan vektor yang tetap dapat diekstrak |
-| Dokumen teks yang dapat diedit | **Word** (DOCX) atau **OpenDocument** (ODT) | Paragraf dan heading nyata yang dapat terus diedit oleh pengolah kata (Doc Studio) |
+| Logo / karya seni tajam yang dapat diskalakan | **SVG** | Vektor - dapat diskalakan tanpa batas, kecil, dapat diedit |
+| Vektor untuk aplikasi Office / Windows | **EMF** | Ditempel sebagai vektor yang dapat diedit ke PowerPoint / Word; teks tetap hidup dan dapat diedit, dan Google Drive membukanya di Google Drawings untuk Slides |
+| Vektor untuk cetak / aplikasi desain | **EPS**, atau **EPS (CMYK)** | Vektor PostScript untuk Illustrator / alur kerja percetakan |
+| Vektor untuk mesin potong / CAD | **DXF** | Pemotong laser, plotter vinil, CNC - jalur garis luar dalam milimeter |
+| Slide deck yang dapat diedit | **PowerPoint** (PPTX) | Teks + bentuk yang dapat diedit secara native, dengan gambar dan vektor tetap dapat diekstraksi |
+| Kursus yang dapat diimpor LMS | **SCORM** (LMS) | Zip berisi manifest, halaman peluncuran, slide dan film bernarasi dengan teks tertutup - dari deck Design |
+| Dokumen teks yang dapat diedit | **Word** (DOCX) atau **OpenDocument** (ODT) | Paragraf dan judul asli yang dapat terus diedit oleh pengolah kata (Doc Studio) |
 | Foto atau gambar serbaguna | **PNG** (lossless) atau **JPG** (lebih kecil) | Raster universal |
 | Gambar modern yang lebih kecil | **WebP** / **AVIF** | Kompresi lebih baik, alpha |
 | Cetak | **PDF**, atau **Print PDF** (CMYK) | Ukuran halaman sebenarnya; CMYK untuk percetakan |
 | Raster cetak untuk percetakan | **Print TIFF** (CMYK) | Piksel DeviceCMYK untuk RIP |
-| Animasi untuk web | **GIF** | Berfungsi di mana saja, file lebih besar |
+| Animasi untuk web | **GIF** | Bekerja di mana saja, file lebih besar |
 | Animasi dengan warna penuh + alpha nyata | **APNG** | PNG animasi - tanpa batas palet, transparansi sejati |
-| Animasi, file terkecil | **Animated WebP** | Warna penuh + alpha, kompresi lebih baik daripada GIF atau APNG |
+| Animasi, ukuran file terkecil | **Animated WebP** | Warna penuh + alpha, kompresi lebih baik daripada GIF atau APNG |
 | Vektor animasi yang dapat diskalakan | **Animated SVG** | Mandiri; berulang di browser atau `<img>`, tanpa codec, ukuran berapa pun |
-| Video untuk media sosial / berbagi | **MP4** atau **WebM** | Kualitas per-byte terbaik (lihat di bawah) |
-| Teks kaya / tanda tangan email | **HTML** | Ditempel dengan format ke klien email |
+| Video untuk sosial / berbagi | **MP4** atau **WebM** | Kualitas per-byte terbaik (lihat di bawah) |
+| Teks kaya / tanda tangan email | **HTML** | Ditempel terformat ke klien email |
 | Konten polos | **MD** / **TXT** | Teks saja |
 | Acara kalender | **ICS** | Diimpor ke aplikasi kalender mana pun |
 | Kartu kontak | **VCF** | Diimpor ke Contacts / buku alamat |
-| Data terstruktur untuk diimpor ulang | **JSON** / **CSV** | Round-trip konten alat |
+| Data terstruktur untuk diimpor ulang | **JSON** / **CSV** | Bolak-balik konten alat |
 | Favicon | **ICO** | Ikon situs multi-ukuran (**ZIP** menggabungkan beberapa format) |
 
 Baris pertama adalah kasus yang paling umum. Wordmark yang disusun dalam font brand Anda diekspor sebagai SVG, di mana setiap huruf adalah jalur bergaris luar, bukan piksel, sehingga tetap tajam pada ukuran kartu nama maupun pada ukuran pembungkus gedung dari file yang sama.
@@ -79,7 +80,7 @@ Contoh: lebar `210`, tinggi `297`, unit `mm` → halaman A4.
 
 ## Gambar diam dari komposisi berwaktu
 
-**Komposisi berwaktu** - sebuah stage [Sequence Studio](/info/using.html#timeline-sequence-studio), atau artboard apa pun yang digerakkan timeline - adalah sesuatu yang bergerak, jadi ekspor gambar diam harus menjawab "momen yang mana?". Aturannya seperti yang Anda duga: **frame pada playhead**. Tempatkan playhead di mana Anda ingin mengambil gambar lalu ekspor; apa yang Anda lihat itulah yang keluar.
+**Komposisi berwaktu** - timeline [Sequence](/info/using.html#timeline-sequence) di Design, atau artboard mana pun yang digerakkan timeline - adalah hal yang bergerak, sehingga ekspor diam harus menjawab "momen yang mana?". Aturannya seperti yang Anda duga: **bingkai pada playhead**. Tempatkan playhead di momen yang Anda inginkan lalu ekspor; apa yang Anda lihat itulah yang dihasilkan.
 
 Ketika Anda menginginkan lebih dari satu momen, bidang **Frames** muncul di samping ukuran output (hanya untuk komposisi berwaktu, dan hanya untuk format diam - PNG, JPG, WebP, SVG, atau PDF). Biarkan pada `1` untuk frame playhead. Naikkan nilainya dan Anda mendapatkan sejumlah gambar diam yang diambil sampel pada interval yang sama di seluruh sequence:
 
@@ -94,12 +95,12 @@ Bidang **Frames** adalah cara untuk mendapatkan lembar itu saat ini. Engine menc
 
 ## PDF multi-halaman
 
-Beberapa alat membuat **dokumen PDF multi-halaman** alih-alih satu karya seni tunggal - sampul, konten yang mengalir ke sebanyak apa pun halaman yang dibutuhkannya, dan halaman belakang, semuanya dalam satu file (lihat alat *Multi-Page PDF*). Setiap halaman adalah **halaman PDF sebenarnya** dengan ukuran sesuai boks halaman tersebut, sehingga pembaca dan printer mendapatkan halaman nyata, bukan satu gambar panjang.
+Beberapa alat membangun **dokumen PDF multi-halaman**, bukan satu karya tunggal - sampul, konten yang mengalir ke sebanyak mungkin halaman yang dibutuhkan, dan halaman belakang, semuanya dalam satu file (lihat alat *Booklet*). Setiap halaman adalah **halaman PDF sejati** yang berukuran sesuai kotak halaman tersebut, sehingga pembaca dan pencetak mendapat halaman nyata, bukan satu gambar panjang.
 
 - **Pages from content.** Tambahkan blok teks dan gambar; halaman baru dibuat secara otomatis seiring blok terisi, dan Anda dapat memaksa blok mana pun untuk memulai halaman baru.
 - **Real page sizes.** Pilih A4, US Letter, atau A5 (potret - tata letak dua kolom dibuat untuk ini) - setiap halaman, dan PDF yang diekspor, dirender pada ukuran itu persis.
 
-PDF multi-halaman adalah dokumen RGB dan tidak membawa tanda crop/bleed - itu adalah milik jalur **Print PDF** satu halaman di atas. Mereka tetap membawa **metadata PDF/X-4** yang sama seperti setiap ekspor PDF (page box, XMP, ID dokumen, output intent sRGB dengan profil tersemat), dan menawarkan **Content Credentials** (di bawah) - pada alat *Multi-Page PDF* opsi ini sudah terpilih sebelumnya.
+PDF multi-halaman adalah dokumen RGB dan tidak membawa tanda potong/bleed - itu milik jalur **Print PDF** satu halaman di atas. Namun mereka membawa **metadata PDF/X-4** yang sama seperti setiap ekspor PDF (kotak halaman, XMP, ID dokumen, output intent sRGB dengan profil tertanam), dan menawarkan **Content Credentials** (di bawah) - pada alat *Booklet* opsi ini sudah terpilih sejak awal.
 
 ## Membuat banyak hal sekaligus
 
@@ -113,22 +114,54 @@ Aturan praktis: baris dari desain yang sama yang termasuk dalam **satu dokumen**
 
 ## PowerPoint (PPTX)
 
-![The export panel with PowerPoint chosen: one slide per page, text and shapes kept editable](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
-
-Alat multi-halaman dan tata letak (Carousel, Doc Studio, Multi-Page PDF, alat-alat chart, dan alat kartu/tata letak kanvas tunggal) dapat mengekspor **deck PowerPoint** - satu slide per halaman. Intinya bukan screenshot yang pixel-perfect; melainkan memberikan kolega Anda deck yang benar-benar dapat mereka **edit dan ambil asetnya**. Jadi setiap halaman diuraikan menjadi objek native:
+Design, Markdown Slides, Booklet, Doc Studio, Chart dan Diagrams dapat mengekspor **deck PowerPoint** - satu slide per halaman. Intinya bukan tangkapan layar yang sempurna piksel; melainkan memberi rekan kerja deck yang benar-benar dapat **diedit dan diambil asetnya**. Jadi setiap halaman diurai menjadi objek native:
 
 - <!--i:font--> **Teks** menjadi **kotak teks PowerPoint yang benar-benar dapat diedit** - dengan ukuran font, warna, ketebalan, kemiringan dan perataan dari tata letak - sehingga Anda dapat memperbaiki typo atau mengubah gaya di PowerPoint.
 - <!--i:pentool--> **Vektor** (logo, ikon, tanda SUSE) disematkan sebagai **gambar SVG asli** - tetap tajam pada ukuran berapa pun, dan PowerPoint bahkan bisa *Convert to Shape* pada gambar tersebut.
 - <!--i:photos--> **Gambar** dibawa masuk pada resolusi aslinya sebagai gambar yang dapat diekstraksi sendiri (hero yang dipotong `cover` menyimpan gambar penuh di balik potongan tersebut, sehingga Anda dapat membingkai ulang), dengan setiap perlakuan pada gambar (filter, blend) dipanggang secara akurat.
 - <!--i:layers--> **Latar belakang, garis tepi dan garis** menjadi bentuk persegi/garis yang benar-benar ada.
 
+![Panel ekspor dengan PowerPoint dipilih: satu slide per halaman, teks dan bentuk tetap dapat diedit](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
+
 Tata letak memang dibuat perkiraan - tujuannya adalah **konten** yang setia dan dapat digunakan kembali, bukan tangkapan layar yang terkunci. Apa pun yang tidak dapat diekspresikan secara native oleh walker (area dengan filter atau mask kompleks) disematkan sebagai gambar sehingga tidak ada yang hilang. Satu dek memiliki satu ukuran slide, diambil dari halaman pertama.
 
-PowerPoint juga menjadi jalan **masuk** - format ini bersifat bolak-balik. **Deck Builder** membuka `.pptx` yang sudah ada sebagai slide yang dapat diedit, disesuaikan dengan brand Anda, dan utilitas **Rebrand a Deck** mengubah tema dek di tempat - palet tema, warna dan font yang di-hardcode - tanpa menyentuh chart, SmartArt atau animasinya, lalu mengembalikan `.pptx`. Lihat [Impor desain → Dek dan dokumen](/info/design-import.html#decks-and-documents).
+PowerPoint juga menjadi jalan **masuk**. Jatuhkan `.pptx` ke permukaan unggah mana pun dan pilih slide yang Anda inginkan - masing-masing menjadi aset untuk ditempatkan, digradasi, atau dikembangkan lebih lanjut. **Markdown Slides** menulis deck baru dari Markdown (dan menyediakan templat `.pptx` bermerek), dan utilitas **Rebrand** mengubah tema deck yang sudah ada di tempat - palet tema, warna dan font yang di-hardcode - tanpa menyentuh chart, SmartArt, atau animasinya, lalu mengembalikan `.pptx`. Lihat [Impor desain → Deck dan dokumen](/info/design-import.html#decks-and-documents).
+
+## Penpot
+
+Alat mana pun yang dapat mengekspor SVG juga dapat mengekspor **file Penpot** (`.penpot`) - dokumennya, siap untuk terus diedit di Penpot, bukan sekadar dilihat.
+
+- <!--i:layout--> Dari **Design**, setiap bingkai menjadi **board** Penpot, setiap kotak di dalamnya ikut terbawa sebagai bentuknya sendiri yang dapat diedit - persegi, elips, teks, gambar, atau jalur - dan hasilnya muncul sebagai **komponen** yang dapat digunakan kembali di panel Assets, siap diseret keluar lagi.
+- <!--i:pentool--> Dari alat yang hasil render-nya berupa **geometri murni** - alat vektor seperti QR Code, Street Map, Wordmark dan Palette Lab - setiap jalur, persegi, baris teks dan gradien ikut terbawa dengan cara yang sama, sebagai bentuknya sendiri yang dapat diedit.
+- <!--i:font--> Dari alat yang menyusun render-nya dalam **HTML**, **teks tetap menjadi teks** - satu objek teks Penpot yang dapat diedit per baris, bukan garis luar dan bukan gambar datar. Karya seni yang tidak memiliki konstruk di Penpot - ilustrasi kompleks, kanvas langsung - ikut serta sendiri sebagai gambar, sehingga teks dan kotak di sekitarnya tidak pernah diratakan. Keseluruhan tata letak yang tidak dapat dipisahkan Penpot secara setia tetap bisa muncul sebagai satu gambar dengan fidelitas penuh, sehingga tidak ada yang pernah hilang.
+- <!--i:palette--> Warna atau font yang oleh sebuah bentuk **diwarisi dari token merek** tetap **tertaut** ke token itu di dalam file: ubah token di panel Tokens Penpot dan setiap bentuk yang mewarisinya ikut dicat ulang bersama, sementara warna literal satu kali tetap persis di tempatnya. Warna dan tipografi merek juga masuk ke panel **Assets**, dan seluruh set token desainnya masuk ke panel **Tokens** - set token DTCG yang sama yang digunakan palet Lolly sendiri. Penpot menyimpan salinannya sendiri dari sana: perubahan yang dibuat di panel Tokens-nya kembali ke merek melalui [impor Brand Studio](/info/design-import.html), bukan dengan sendirinya.
+
+| Yang Anda buat | Di Penpot |
+|---|---|
+| Teks | Objek teks yang dapat diedit - perbaiki salah ketik atau gaya ulang |
+| Bentuk, jalur, gradien, gambar | Bentuk vektornya sendiri yang dapat diedit |
+| Warna atau font dari token merek | Tautan token langsung - edit tokennya, setiap bentuk yang mewarisinya ikut menyesuaikan |
+| Seluruh desain | Komponen yang dapat digunakan kembali di panel Assets |
+| Ilustrasi kompleks atau kanvas langsung | Disematkan sendiri sebagai gambar, konten yang dapat diedit di sekitarnya tidak tersentuh |
+
+![Panel ekspor dengan Penpot dipilih: file .penpot, dan Send to Penpot di samping unduhan](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
+
+Untuk membukanya, jalankan Penpot, pilih sebuah proyek dan pilih **Import**. Setelah masuk ke Penpot dari panel ekspor, **Send to Penpot** melakukan langkah itu untuk Anda - pilih proyek di sana dan file langsung masuk ke dalamnya.
+
+## SCORM (paket kursus)
+
+Deck Design dapat keluar sebagai **paket SCORM** - zip yang diimpor oleh learning management system, entah itu Moodle, Canvas, Blackboard, atau LMS korporat. Pilih **SCORM (LMS)** di pemilih format dan ekspor akan menulis:
+
+- <!--i:layout--> **Slide-slide**, satu gambar per artboard, sebagai vektor di mana artboard memungkinkannya dan sebagai piksel hanya di mana tidak memungkinkan.
+- <!--i:play--> **Film bernarasi** dengan trek teksnya - catatan pembicara yang dibacakan oleh suara di perangkat, persis seperti cara [Presenting](/info/create/using.html#presenting) memutarnya.
+- <!--i:file--> **Halaman peluncuran** yang melangkah melalui slide, memutar film dan melaporkan penyelesaian kembali ke LMS melalui runtime SCORM 1.2, versi yang diterima oleh semua LMS.
+- <!--i:font--> Font yang digunakan deck, sehingga halaman peluncuran tetap tampil sama secara luring.
+
+![Panel ekspor pada deck Design dengan SCORM (LMS) dipilih](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+
+Tidak ada apa pun dalam paket ini yang menghubungi rumah: hanya file dalam zip, dan berjalan di dalam LMS tanpa bundler, tanpa CDN dan tanpa akun. Aplikasi web dan desktop membangunnya; CLI tidak, karena memotret artboard dan mengkodekan film membutuhkan browser.
 
 ## DXF (file potong)
-
-![The export panel with Penpot chosen: the .penpot file, and Send to Penpot beside the download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
 Alat vektor (Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, logo lockup, Diagram Builder) dapat mengekspor **DXF** - format interchange AutoCAD R12 yang dibaca oleh laser cutter, vinyl plotter dan software CNC/CAD. Geometri ditulis sebagai outline **path dalam milimeter** (kurva diratakan hingga toleransi halus), teks di-outline menjadi path dan warna dipetakan ke AutoCAD Color Index terdekat (yang biasanya menentukan alat/operasi pada sebuah cutter). DXF hanya untuk line-art - sebuah area fotografis atau yang difilter tidak memiliki bentuk cut-path dan akan dihilangkan (Lolly memperingatkan), jadi gunakan SVG/PDF saat Anda perlu mempertahankan konten raster.
 
@@ -141,8 +174,6 @@ Gulir, dan kamera mundur menembus geometri sebenarnya: tujuh path, tidak ada pik
 :::
 
 ## SVG Animasi
-
-![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Alat gerak (Animated Ad, Lottie Ad) dapat mengekspor **SVG Animasi** - animasi *vektor* yang mandiri. Berbeda dengan GIF/APNG/WebP (yang mengambil sampel setiap frame menjadi piksel), SVG animasi menumpuk snapshot vektor dengan keyframe CSS yang disematkan, sehingga **berskala ke ukuran berapa pun tanpa codec dan tanpa runtime eksternal** - animasi ini berputar di tab browser atau `<img>`. Teks tetap di-outline sehingga dapat dirender di mana saja. Format ini berbagi kontrol **Durasi** / frame rate dengan format animasi lainnya, dan (karena lebih berat per frame dibanding bitmap) menggunakan frame rate default yang lebih rendah.
 
@@ -180,13 +211,14 @@ Ekspor biasa adalah sRGB: putih adalah putih, dan warna brand yang jenuh sama te
 
 ![Kartu HDR di panel ekspor, dinyalakan, dengan dial White / Reach / Dark lift / Focus terungkap di bawahnya](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **Format.** Format raster yang memiliki tempat untuk membawa sinyal: **PNG**, **JPG**, **AVIF** dan **TIFF**. (Bukan WebP - format ini 8-bit tanpa jalur dekode HDR yang berfungsi, sehingga WebP PQ hanya akan terlihat gelap. Vektor dan PDF sama sekali tidak memiliki model HDR.)
-- **Nonaktif secara default**, tidak seperti penandaan warna - ini mengubah piksel, sehingga bersifat opt-in. Centang kartunya, atau sertakan `hdr=1` pada tautan berbagi.
-- **Apa yang sebenarnya ditulis.** Piksel dikodekan ulang ke **Rec.2100 PQ** - primary BT.2020 dengan kurva transfer SMPTE ST 2084 (PQ) - dan kontainer membawa sinyal yang sesuai sehingga aplikasi yang mengelola warna tahu cara membacanya: profil **ICC v4 yang dihasilkan dengan tag `cicp`** (JPG, TIFF), sebuah **chunk `cICP`** (PNG) atau kotak `colr` yang ditulis ulang (AVIF). Peningkatan digerbangi pada **kecerahan perseptual (OKLab)**, sehingga warna menengah ke atas menuju puncak dan warna gelap diredam alih-alih terlalu terang, dan bersifat mempertahankan hue - hijau brand menjadi lebih cerah, bukan seperti mint.
-- **Dial-dialnya.** Empat, terungkap saat kartu diaktifkan: **White** (batas kecerahan puncak, 400-2000 nit), **Reach** (seberapa jauh ke bawah nada kilau menyebar), **Dark lift** (seberapa banyak area gelap dicerahkan - `0` mempertahankan kegelapan) dan **Focus** (seberapa banyak kekayaan warna yang dipertahankan peningkatan tersebut). Ini digabung dalam parameter yang sama sebagai nilai kompak yang disetel - `hdr=1600-60-0-50` berarti White 1600, Reach 60, Dark lift 0, Focus 50 - sehingga tampilan yang disetel dapat direproduksi dari tautan.
-- **Di mana Anda akan melihatnya.** Penampil yang mengelola warna pada tampilan HDR: Preview / Quick Look / Safari di perangkat Apple, Chrome pada monitor HDR. Pada layar SDR biasa, file tetap tampil sebagai gambar normal.
-- **Ketahui sebelum Anda mengirimkannya.** Banyak platform **mengodekan ulang** apa yang Anda unggah dan menghapus sinyal HDR - jejaring sosial, aplikasi pesan, beberapa CMS - yang dapat membuat gambar tampak gelap atau pudar. Gunakan HDR di tempat Anda mengendalikan tujuannya (situs yang Anda bangun, video wall, dek pada panel terang), bukan sebagai default untuk segala hal.
-- **Transparansi.** PNG dan AVIF mempertahankan alphanya; JPG selalu buram. Jalur **TIFF** diratakan ke **hitam**, bukan putih seperti jalur SDR - dalam PQ, putih adalah kode 10.000-nit, sehingga meratakan ke putih akan mengelilingi setiap tepi dengan halo yang menyilaukan.
+- **Format.** Format raster yang punya tempat untuk membawa sinyal: **PNG**, **JPG**, **AVIF** dan **TIFF**. (Bukan WebP - formatnya 8-bit tanpa jalur decode HDR yang berfungsi, jadi WebP PQ hanya akan terlihat gelap. Vektor dan PDF sama sekali tidak punya model HDR.)
+- **Mati secara default**, berbeda dari penandaan warna - ia mengubah piksel, jadi sifatnya opt-in. Centang kartu, atau sertakan `hdr=1` di tautan berbagi.
+- **Apa yang sebenarnya ditulis.** Piksel dikodekan ulang ke **Rec.2100 PQ** - primer BT.2020 dengan kurva transfer SMPTE ST 2084 (PQ) - dan kontainer membawa sinyal yang sesuai sehingga aplikasi yang mengelola warna tahu cara membacanya: profil **ICC v4 dengan tag `cicp`** yang dihasilkan (JPG, TIFF), sebuah **chunk `cICP`** (PNG), atau kotak `colr` yang ditulis ulang (AVIF). Peningkatan ini digerbangi oleh **kecerahan perseptual (OKLab)**, sehingga warna menengah ke atas dipacu ke puncak dan warna gelap ditenangkan alih-alih dibuat pecah, dan bersifat mempertahankan corak - hijau merek jadi lebih terang, bukan seperti mint.
+- **Kenop pengatur.** Empat, terungkap saat kartu diaktifkan: **White** (batas kecerahan puncak, 400-2000 nit), **Reach** (seberapa jauh cahaya menyebar ke nada bawah), **Dark lift** (seberapa banyak warna gelap dicerahkan - `0` mempertahankan kegelapannya) dan **Focus** (seberapa banyak kekayaan warna yang dipertahankan peningkatan ini). Semuanya dibawa dalam parameter yang sama sebagai nilai terkalibrasi ringkas - `hdr=1600-60-0-50` berarti White 1600, Reach 60, Dark lift 0, Focus 50 - sehingga tampilan yang dikalibrasi dapat direproduksi dari tautannya.
+- **Di mana Anda akan melihatnya.** Penampil yang mengelola warna di layar HDR: Preview / Quick Look / Safari di perangkat Apple, Chrome di monitor HDR. Di layar SDR biasa, file tetap tampil sebagai gambar normal.
+- **Ketahui sebelum Anda kirim.** Banyak platform **mengkodekan ulang** apa yang Anda unggah dan menghapus sinyal HDR - jejaring sosial, aplikasi pesan, beberapa CMS - yang dapat membuat gambar terlihat gelap atau pudar. Gunakan HDR di tempat Anda mengendalikan tujuannya (situs yang Anda bangun, video wall, deck di panel terang), bukan sebagai default untuk semuanya.
+- **Transparansi.** PNG dan AVIF mempertahankan alpha-nya; JPG selalu opak. Jalur **TIFF** diratakan ke atas **hitam**, bukan putih seperti jalur SDR - dalam PQ, putih adalah kode 10.000-nit, sehingga meratakan ke atasnya akan membuat setiap tepi berhalo menyilaukan.
+- **Byte yang sama dari terminal.** `--hdr=1` dengan `--export=png` atau `--export=jpg` menulis PNG Rec.2100 PQ 16-bit dan JPEG gain-map ISO 21496-1 di [CLI](/info/cli.html) juga, dari encoder engine yang sama, bukan dari browser - sehingga alat yang native `<svg>` menghasilkan file HDR tanpa Chromium sama sekali di jalurnya, dan PNG-nya identik byte demi byte dengan milik shell web. AVIF dan TIFF untuk saat ini tetap menjadi ekspor shell web.
 
 ## Video
 
@@ -288,10 +320,10 @@ Setiap id yang bisa dirender host, dikelompokkan. Ini juga menjadi nilai untuk p
 
 | Jenis | Id |
 |---|---|
-| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (TIFF RGB) · `cmyk-tiff` (TIFF Print) · `bmp` · `ico` |
-| Vektor | `svg` · `svgz` (SVG di-gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (file potong) |
-| Halaman & dokumen | `pdf` · `pdf-cmyk` (PDF Print) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) |
-| Gerak | `gif` · `apng` (PNG Animasi) · `webp-anim` (WebP Animasi) · `svg-anim` (SVG Animasi) · `webm` · `mp4` |
+| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
+| Vektor | `svg` · `svgz` (SVG ter-gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (file potong) |
+| Halaman & dokumen | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `scorm` (paket kursus SCORM, sebuah zip) · `penpot` (file desain Penpot) · `docx` (Word) · `odt` (OpenDocument Text) |
+| Gerak | `gif` · `apng` (PNG animasi) · `webp-anim` (WebP animasi) · `svg-anim` (SVG animasi) · `webm` · `mp4` |
 | Audio | `wav` · `mp3` · `m4a` · `opus` |
 | Teks & data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (palet GIMP) |
 | Bundel | `zip` |

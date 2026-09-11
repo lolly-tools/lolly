@@ -38,27 +38,28 @@ Trường tên tệp và bộ chọn định dạng nằm ở đầu bảng đi�
 
 | Bạn muốn… | Dùng | Vì sao |
 |---|---|---|
-| Logo/tác phẩm sắc nét có thể phóng to | **SVG** | Vector - phóng to vô hạn, nhẹ, chỉnh sửa được |
-| Vector cho ứng dụng Office / Windows | **EMF** | Dán vào PowerPoint / Word như vector chỉnh sửa được; văn bản vẫn sống động và chỉnh sửa được, và Google Drive mở nó trong Google Drawings cho Slides |
+| Logo / hình ảnh sắc nét, co giãn được | **SVG** | Vector - co giãn vô hạn, nhẹ, chỉnh sửa được |
+| Vector cho Office / ứng dụng Windows | **EMF** | Dán vào PowerPoint / Word thành vector chỉnh sửa được; văn bản vẫn sống và có thể sửa, và Google Drive mở nó bằng Google Drawings cho Slides |
 | Vector cho in ấn / ứng dụng thiết kế | **EPS**, hoặc **EPS (CMYK)** | Vector PostScript cho Illustrator / quy trình in ấn |
-| Vector cho máy cắt / CAD | **DXF** | Máy cắt laser, máy vẽ decal, CNC - đường viền tính bằng milimét |
-| Một bộ slide chỉnh sửa được | **PowerPoint** (PPTX) | Văn bản + hình dạng chỉnh sửa gốc, với hình ảnh và vector vẫn trích xuất được |
-| Một tài liệu văn bản chỉnh sửa được | **Word** (DOCX) hoặc **OpenDocument** (ODT) | Đoạn văn và tiêu đề thật mà một trình xử lý văn bản có thể tiếp tục chỉnh sửa (Doc Studio) |
-| Một ảnh chụp hoặc hình ảnh đa dụng | **PNG** (không mất dữ liệu) hoặc **JPG** (nhỏ hơn) | Raster đa dụng |
-| Hình ảnh hiện đại nhỏ hơn | **WebP** / **AVIF** | Nén tốt hơn, có kênh alpha |
+| Vector cho máy cắt / máy CAD | **DXF** | Máy cắt laser, máy cắt decal, CNC - đường viền tính bằng milimét |
+| Bản trình chiếu chỉnh sửa được | **PowerPoint** (PPTX) | Văn bản + hình dạng gốc chỉnh sửa được, hình ảnh và vector vẫn trích xuất được |
+| Khóa học mà LMS có thể nhập | **SCORM** (LMS) | Một tệp zip gồm manifest, trang khởi chạy, các slide và phim có thuyết minh kèm phụ đề - từ một bản trình chiếu Design |
+| Tài liệu văn bản chỉnh sửa được | **Word** (DOCX) hoặc **OpenDocument** (ODT) | Đoạn văn và tiêu đề thật mà trình xử lý văn bản có thể tiếp tục chỉnh sửa (Doc Studio) |
+| Ảnh chụp hoặc hình ảnh đa dụng | **PNG** (không mất dữ liệu) hoặc **JPG** (nhỏ hơn) | Raster phổ dụng |
+| Ảnh hiện đại, nhỏ hơn | **WebP** / **AVIF** | Nén tốt hơn, có kênh alpha |
 | In ấn | **PDF**, hoặc **Print PDF** (CMYK) | Kích thước trang thật; CMYK cho in ấn |
-| Raster in ấn cho nhà in | **Print TIFF** (CMYK) | Pixel DeviceCMYK cho RIP |
+| Raster in ấn cho nhà in | **Print TIFF** (CMYK) | Điểm ảnh DeviceCMYK cho RIP |
 | Hoạt hình cho web | **GIF** | Hoạt động ở mọi nơi, tệp lớn hơn |
-| Hoạt hình đầy đủ màu + alpha thật | **APNG** | PNG hoạt hình - không giới hạn bảng màu, độ trong suốt thật |
+| Hoạt hình đầy đủ màu + kênh alpha thật | **APNG** | PNG hoạt hình - không giới hạn bảng màu, trong suốt thật |
 | Hoạt hình, tệp nhỏ nhất | **Animated WebP** | Đầy đủ màu + alpha, nén tốt hơn GIF hoặc APNG |
-| Vector hoạt hình có thể phóng to | **Animated SVG** | Tự chứa; lặp trong trình duyệt hoặc `<img>`, không cần codec, kích thước bất kỳ |
-| Video để chia sẻ trên mạng xã hội | **MP4** hoặc **WebM** | Chất lượng trên mỗi byte tốt nhất (xem bên dưới) |
-| Văn bản định dạng phong phú / chữ ký email | **HTML** | Dán có định dạng vào ứng dụng thư |
+| Vector hoạt hình co giãn được | **Animated SVG** | Tự chứa; lặp trong trình duyệt hoặc `<img>`, không cần codec, mọi kích thước |
+| Video cho mạng xã hội / chia sẻ | **MP4** hoặc **WebM** | Chất lượng trên mỗi byte tốt nhất (xem bên dưới) |
+| Văn bản định dạng phong phú / chữ ký email | **HTML** | Dán định dạng sẵn vào ứng dụng email |
 | Nội dung thuần | **MD** / **TXT** | Chỉ văn bản |
-| Một sự kiện lịch | **ICS** | Nhập vào bất kỳ ứng dụng lịch nào |
-| Một danh thiếp | **VCF** | Nhập vào Contacts / sổ địa chỉ |
-| Dữ liệu có cấu trúc để nhập lại | **JSON** / **CSV** | Đưa nội dung công cụ đi và về |
-| Một favicon | **ICO** | Biểu tượng trang web nhiều kích thước (**ZIP** đóng gói nhiều định dạng) |
+| Sự kiện lịch | **ICS** | Nhập vào bất kỳ ứng dụng lịch nào |
+| Danh thiếp | **VCF** | Nhập vào Contacts / sổ địa chỉ |
+| Dữ liệu có cấu trúc để nhập lại | **JSON** / **CSV** | Khôi phục nội dung của công cụ nguyên vẹn |
+| Favicon | **ICO** | Biểu tượng trang web đa kích thước (**ZIP** gói nhiều định dạng) |
 
 Hàng đầu tiên là trường hợp phổ biến. Một wordmark được đặt bằng font thương hiệu của bạn xuất ra dưới dạng SVG, nơi mỗi chữ cái là một đường path đã được vạch viền chứ không phải pixel, nên nó vẫn sắc nét ở kích thước danh thiếp và ở kích thước bọc tòa nhà từ cùng một tệp.
 
@@ -79,7 +80,7 @@ Ví dụ: chiều rộng `210`, chiều cao `297`, đơn vị `mm` → một tra
 
 ## Ảnh tĩnh từ một bố cục có thời lượng
 
-Một **bố cục có thời lượng** - một giai đoạn [Sequence Studio](/info/using.html#timeline-sequence-studio), hay bất kỳ bảng vẽ nào điều khiển bằng dòng thời gian - là một thứ chuyển động, nên một bản xuất tĩnh phải trả lời câu hỏi "khoảnh khắc nào?". Quy tắc đúng như bạn nghĩ: **khung hình tại vị trí đầu phát**. Đặt đầu phát ở nơi bạn muốn lấy ảnh rồi xuất; những gì bạn thấy là những gì được xuất ra.
+Một **bản dựng có thời lượng** - dòng thời gian [Sequence](/info/using.html#timeline-sequence) trong Design, hoặc bất kỳ artboard nào chạy theo dòng thời gian - là một thứ đang chuyển động, nên khi xuất ảnh tĩnh phải trả lời câu hỏi "tại thời điểm nào?". Quy tắc đúng như bạn nghĩ: **khung hình tại vị trí con trỏ phát**. Đặt con trỏ phát ở đúng chỗ bạn muốn lấy ảnh rồi xuất; những gì bạn thấy chính là những gì được xuất ra.
 
 Khi bạn muốn nhiều hơn một khoảnh khắc, trường **Frames** xuất hiện bên cạnh kích thước đầu ra (chỉ với bố cục có thời lượng, và chỉ với định dạng tĩnh - PNG, JPG, WebP, SVG hoặc PDF). Để nguyên ở `1` cho khung hình tại đầu phát. Tăng lên và bạn sẽ có từng ấy ảnh tĩnh được lấy mẫu tại các khoảng cách đều nhau trên toàn bộ chuỗi cảnh:
 
@@ -94,12 +95,12 @@ Trường **Frames** là cách để có được một bảng ảnh ngay hôm n
 
 ## PDF nhiều trang
 
-Một số công cụ dựng ra **tài liệu PDF nhiều trang** thay vì một tác phẩm đơn - một trang bìa, nội dung chảy sang bao nhiêu trang cần thiết và một trang bìa sau, tất cả trong một tệp (xem công cụ *Multi-Page PDF*). Mỗi trang là một **trang PDF thật** có kích thước theo khung của trang đó, nên người đọc và máy in có được các trang thật, không phải một ảnh dài.
+Một số công cụ tạo ra **tài liệu PDF nhiều trang** thay vì một tác phẩm đơn lẻ - một trang bìa, nội dung tự chảy sang bao nhiêu trang cần thiết và một trang cuối, tất cả trong một tệp (xem công cụ *Booklet*). Mỗi trang là một **trang PDF thật sự**, có kích thước đúng theo khung của trang đó, nên người đọc và máy in nhận được các trang thật, không phải một ảnh dài.
 
 - **Trang tạo từ nội dung.** Thêm các khối văn bản và hình ảnh; các trang mới được tạo tự động khi các khối lấp đầy, và bạn có thể buộc bất kỳ khối nào bắt đầu một trang mới.
 - **Kích thước trang thật.** Chọn A4, US Letter hoặc A5 (dọc - bố cục hai cột được thiết kế cho nó) - mọi trang, và tệp PDF được xuất, kết xuất đúng ở kích thước đó.
 
-PDF nhiều trang là tài liệu RGB và không mang các dấu cắt/bleed - những thứ đó thuộc về đường xuất trang đơn **Print PDF** ở trên. Chúng mang cùng **siêu dữ liệu PDF/X-4** như mọi bản xuất PDF (hộp trang, XMP, ID tài liệu, một output intent sRGB kèm hồ sơ nhúng), và chúng cung cấp **Content Credentials** (bên dưới) - trên công cụ *Multi-Page PDF*, tùy chọn này được chọn sẵn.
+PDF nhiều trang là tài liệu RGB và không mang dấu cắt/dấu tràn lề - những thứ đó thuộc về đường dẫn **Print PDF** một trang ở trên. Chúng vẫn mang cùng **siêu dữ liệu PDF/X-4** như mọi bản xuất PDF (khung trang, XMP, ID tài liệu, ý định đầu ra sRGB kèm hồ sơ nhúng), và chúng có tùy chọn **Content Credentials** (bên dưới) - trên công cụ *Booklet* tùy chọn này được chọn sẵn.
 
 ## Tạo nhiều thứ cùng lúc
 
@@ -113,22 +114,54 @@ Quy tắc chung: các hàng cùng một thiết kế thuộc về **một tài l
 
 ## PowerPoint (PPTX)
 
-![The export panel with PowerPoint chosen: one slide per page, text and shapes kept editable](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
-
-Các công cụ nhiều trang và bố cục (Carousel, Doc Studio, Multi-Page PDF, các công cụ biểu đồ và các công cụ thẻ/bố cục canvas đơn) có thể xuất ra **bộ slide PowerPoint** - mỗi trang một slide. Mục đích không phải là ảnh chụp màn hình chính xác từng pixel; mà là để đưa cho đồng nghiệp một bộ slide họ thực sự có thể **chỉnh sửa và lấy tài sản ra**. Vì vậy mỗi trang được phân giải thành các đối tượng gốc:
+Design, Markdown Slides, Booklet, Doc Studio, Chart và Diagrams đều có thể xuất một **bản trình chiếu PowerPoint** - mỗi trang một slide. Mục đích không phải là chụp ảnh màn hình chính xác từng điểm ảnh; mà là để trao cho đồng nghiệp một bản trình chiếu mà họ thực sự có thể **chỉnh sửa và lấy tài sản ra**. Vì vậy mỗi trang được phân rã thành các đối tượng gốc:
 
 - <!--i:font--> **Văn bản** trở thành **hộp văn bản PowerPoint có thể chỉnh sửa** thực sự - với cỡ chữ, màu sắc, độ đậm, in nghiêng và căn chỉnh lấy từ bố cục - nên bạn có thể sửa lỗi gõ hoặc đổi kiểu ngay trong PowerPoint.
 - <!--i:pentool--> **Vector** (logo, biểu tượng, dấu hiệu SUSE) được nhúng dưới dạng **ảnh SVG thật** - chúng luôn sắc nét ở mọi kích cỡ, và PowerPoint thậm chí có thể *Convert to Shape* trên đó.
 - <!--i:photos--> **Hình ảnh** được đưa vào ở độ phân giải gốc dưới dạng ảnh riêng có thể trích xuất (một ảnh hero cắt kiểu `cover` vẫn giữ toàn bộ ảnh phía sau phần cắt, để bạn có thể đóng khung lại), với mọi xử lý trên ảnh (bộ lọc, hòa trộn) được thể hiện trung thực.
 - <!--i:layers--> **Nền, đường viền và các đường kẻ** trở thành hình chữ nhật/đường thẳng thật.
 
+![Bảng xuất với PowerPoint được chọn: mỗi trang một slide, văn bản và hình dạng vẫn chỉnh sửa được](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
+
 Bố cục chỉ mang tính tương đối theo chủ ý - mục tiêu là **nội dung** trung thực, có thể tái sử dụng, chứ không phải một ảnh chụp màn hình bị khóa cứng. Bất cứ thứ gì walker không thể thể hiện tự nhiên (một vùng có bộ lọc hoặc mặt nạ phức tạp) sẽ được nhúng dưới dạng ảnh để không mất gì. Một bản trình chiếu có một kích thước trang duy nhất, lấy từ trang đầu tiên.
 
-PowerPoint cũng là một lối **vào** - định dạng này hoạt động hai chiều. **Deck Builder** mở một tệp `.pptx` sẵn có thành các trang chiếu có thể chỉnh sửa, được gắn khớp theo thương hiệu của bạn, còn tiện ích **Rebrand a Deck** đổi lại chủ đề của một bản trình chiếu tại chỗ - bảng màu chủ đề, màu sắc và phông chữ được gán cứng - mà không đụng đến biểu đồ, SmartArt hay hiệu ứng chuyển động của nó, rồi trả về một tệp `.pptx`. Xem [Nhập một thiết kế → Bản trình chiếu và tài liệu](/info/design-import.html#decks-and-documents).
+PowerPoint cũng là một lối **vào**. Thả một tệp `.pptx` lên bất kỳ bề mặt tải lên nào và chọn các slide bạn muốn - mỗi slide trở thành một tài sản để đặt, chỉnh màu hoặc xây dựng tiếp. **Markdown Slides** viết một bản trình chiếu mới từ Markdown (và cung cấp một mẫu `.pptx` mang thương hiệu), còn tiện ích **Rebrand** thay đổi giao diện của một bản trình chiếu có sẵn ngay tại chỗ - bảng màu chủ đề, màu và phông chữ cố định - mà không đụng đến biểu đồ, SmartArt hay hiệu ứng động của nó, rồi trả lại một tệp `.pptx`. Xem [Nhập một thiết kế → Bản trình chiếu và tài liệu](/info/design-import.html#decks-and-documents).
+
+## Penpot
+
+Bất kỳ công cụ nào xuất được SVG cũng có thể xuất một **tệp Penpot** (`.penpot`) - tài liệu, sẵn sàng để tiếp tục chỉnh sửa trong Penpot chứ không chỉ để xem.
+
+- <!--i:layout--> Từ **Design**, mỗi khung hình trở thành một **board** Penpot, mọi hộp trên đó được giữ nguyên thành hình dạng chỉnh sửa được riêng - hình chữ nhật, hình elip, văn bản, hình ảnh hoặc đường path - và kết quả xuất hiện dưới dạng một **component** tái sử dụng được trong bảng Assets, sẵn sàng để kéo ra lại.
+- <!--i:pentool--> Từ một công cụ mà bản dựng của nó là **hình học thuần túy** - các công cụ vector như QR Code, Street Map, Wordmark và Palette Lab - mọi đường path, hình chữ nhật, dòng văn bản và gradient đều được giữ nguyên theo cách tương tự, thành hình dạng chỉnh sửa được riêng.
+- <!--i:font--> Từ một công cụ dàn bản dựng bằng **HTML**, **văn bản vẫn là văn bản** - mỗi dòng là một đối tượng văn bản Penpot chỉnh sửa được riêng, không phải đường viền và không phải ảnh phẳng. Một tác phẩm mà Penpot không có cấu trúc tương ứng - một minh họa phức tạp, một canvas sống - sẽ đi kèm riêng dưới dạng hình ảnh, nên nó không bao giờ làm phẳng văn bản và các hộp xung quanh. Toàn bộ bố cục mà Penpot không thể tách rời trung thực vẫn có thể hiện ra như một hình ảnh duy nhất với độ trung thực đầy đủ, nên không có gì bị bỏ sót.
+- <!--i:palette--> Một màu hoặc phông chữ mà một hình dạng **thừa hưởng từ token thương hiệu** vẫn giữ **liên kết** với token đó trong tệp: đổi token trong bảng Tokens của Penpot thì mọi hình dạng thừa hưởng nó sẽ tô lại màu cùng nhau, còn một màu cố định riêng lẻ vẫn giữ nguyên vị trí. Màu sắc và kiểu chữ của thương hiệu cũng xuất hiện trong bảng **Assets** và toàn bộ tập token thiết kế của nó trong bảng **Tokens** - cùng một tập token DTCG mà bảng màu của chính Lolly sử dụng. Từ đó Penpot giữ bản sao riêng: một chỉnh sửa thực hiện trong bảng Tokens của Penpot quay trở lại thương hiệu thông qua [nhập từ Brand Studio](/info/design-import.html), chứ không tự động.
+
+| Bạn đã tạo | Trong Penpot |
+|---|---|
+| Văn bản | Đối tượng văn bản chỉnh sửa được - sửa lỗi gõ hoặc đổi kiểu |
+| Hình dạng, đường path, gradient, hình ảnh | Hình dạng vector chỉnh sửa được riêng của chúng |
+| Một màu hoặc phông chữ từ token thương hiệu | Một liên kết token sống - sửa token, mọi hình dạng thừa hưởng nó sẽ theo |
+| Toàn bộ thiết kế | Một component tái sử dụng được trong bảng Assets |
+| Một minh họa phức tạp hoặc canvas sống | Nhúng riêng dưới dạng hình ảnh, nội dung chỉnh sửa được xung quanh nó không bị đụng đến |
+
+![Bảng xuất với Penpot được chọn: tệp .penpot, và Send to Penpot bên cạnh nút tải xuống](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
+
+Để mở tệp, khởi động Penpot, chọn một dự án rồi chọn **Import**. Khi đã đăng nhập vào Penpot từ bảng xuất, **Send to Penpot** thực hiện bước đó thay bạn - chọn một dự án ở đó và tệp sẽ đi thẳng vào dự án đó.
+
+## SCORM (gói khóa học)
+
+Một bản trình chiếu Design có thể xuất ra dưới dạng **gói SCORM** - tệp zip mà một hệ thống quản lý học tập (LMS) nhập vào, dù đó là Moodle, Canvas, Blackboard hay một LMS nội bộ doanh nghiệp. Chọn **SCORM (LMS)** trong bảng chọn định dạng và bản xuất sẽ ghi ra:
+
+- <!--i:layout--> **Các slide**, mỗi artboard một hình ảnh, dạng vector khi artboard cho phép và chỉ ở dạng điểm ảnh khi không thể.
+- <!--i:play--> **Phim thuyết minh** kèm rãnh phụ đề - ghi chú của người thuyết trình được đọc bởi một giọng nói trên thiết bị, đúng như [Presenting](/info/create/using.html#presenting) phát chúng.
+- <!--i:file--> **Một trang khởi chạy** dẫn qua từng slide, phát phim và báo cáo hoàn thành về LMS thông qua runtime SCORM 1.2, phiên bản mà mọi LMS đều chấp nhận.
+- <!--i:font--> Các phông chữ mà bản trình chiếu sử dụng, để trang khởi chạy hiển thị giống hệt khi ngoại tuyến.
+
+![Bảng xuất trên một bản trình chiếu Design với SCORM (LMS) được chọn](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+
+Không có gì trong gói này gọi về máy chủ nào cả: đó chỉ là các tệp trong một zip, và nó chạy bên trong LMS mà không cần bundler, không cần CDN và không cần tài khoản. Ứng dụng web và desktop tạo ra gói này; CLI thì không, vì việc chụp lại artboard và mã hóa phim cần đến trình duyệt.
 
 ## DXF (tệp cắt)
-
-![The export panel with Penpot chosen: the .penpot file, and Send to Penpot beside the download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
 Các công cụ vector (Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, các logo lockup, Diagram Builder) có thể xuất **DXF** - định dạng trao đổi AutoCAD R12 mà máy cắt laser, máy plot vinyl và phần mềm CNC/CAD đọc được. Hình học được ghi thành các **path viền theo milimét** (đường cong được làm phẳng đến một dung sai mịn), văn bản được viền thành path và màu sắc được ánh xạ tới AutoCAD Color Index gần nhất (thường quyết định công cụ/thao tác trên máy cắt). DXF chỉ là line-art - một vùng ảnh chụp hoặc đã lọc filter không có dạng đường cắt và sẽ bị loại bỏ (Lolly sẽ cảnh báo), vì vậy hãy dùng SVG/PDF khi bạn cần giữ lại nội dung raster.
 
@@ -141,8 +174,6 @@ Cuộn xuống, và góc nhìn kéo lùi xuyên qua chính hình học đó: b�
 :::
 
 ## SVG hoạt hình
-
-![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Các công cụ chuyển động (Animated Ad, Lottie Ad) có thể xuất ra **SVG hoạt hình** - một hoạt ảnh *vector* độc lập, tự chứa. Khác với GIF/APNG/WebP (lấy mẫu từng khung hình thành pixel), một SVG hoạt hình xếp chồng các ảnh chụp vector với keyframe CSS nhúng sẵn, nên nó **thu phóng ở mọi kích cỡ mà không cần codec hay runtime bên ngoài** - nó lặp trong một tab trình duyệt hoặc một thẻ `<img>`. Văn bản vẫn được vẽ đường viền nên hiển thị được ở mọi nơi. Nó dùng chung các tùy chỉnh **Thời lượng**/tốc độ khung hình của các định dạng hoạt hình khác, và (do nặng hơn trên mỗi khung so với bitmap) dùng tốc độ khung hình mặc định thấp hơn.
 
@@ -180,13 +211,14 @@ Các bản xuất thông thường là sRGB: trắng là trắng, và một màu
 
 ![Thẻ HDR trong bảng xuất, đã bật, với các núm White / Reach / Dark lift / Focus hiện ra phía dưới](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **Định dạng.** Các định dạng raster có chỗ để mang tín hiệu: **PNG**, **JPG**, **AVIF** và **TIFF**. (Không có WebP - nó là 8-bit và không có đường giải mã HDR hoạt động, nên một WebP PQ đơn giản sẽ trông tối. Vector và PDF hoàn toàn không có mô hình HDR.)
-- **Tắt theo mặc định**, khác với gắn nhãn màu - nó thay đổi pixel, nên là tùy chọn bật thêm. Tick vào thẻ, hoặc truyền `hdr=1` trong một liên kết chia sẻ.
-- **Thứ thực sự được ghi ra.** Các pixel được mã hóa lại thành **Rec.2100 PQ** - dải màu gốc BT.2020 với đường cong truyền SMPTE ST 2084 (PQ) - và vùng chứa mang theo tín hiệu tương ứng để một ứng dụng quản lý màu biết cách đọc: một hồ sơ **ICC v4 có gắn thẻ `cicp`** được tạo ra (JPG, TIFF), một **khối `cICP`** (PNG) hoặc một hộp `colr` được viết lại (AVIF). Mức tăng sáng được kiểm soát dựa trên **độ sáng cảm nhận (OKLab)**, nên các màu trung bình trở lên được đẩy lên đỉnh còn màu tối được làm dịu thay vì bị cháy sáng, và nó bảo toàn sắc độ - một màu xanh lá thương hiệu sẽ sáng hơn chứ không ngả sang màu bạc hà.
-- **Các núm điều chỉnh.** Bốn núm, hiện ra khi thẻ được bật: **White** (trần độ sáng đỉnh, 400-2000 nit), **Reach** (ánh sáng lan xuống các tông màu tối đến đâu), **Dark lift** (vùng tối được làm sáng lên bao nhiêu - `0` giữ chúng tối) và **Focus** (mức độ phong phú của màu được giữ lại khi tăng sáng). Chúng đi kèm trong cùng một tham số dưới dạng giá trị tinh chỉnh gọn - `hdr=1600-60-0-50` nghĩa là White 1600, Reach 60, Dark lift 0, Focus 50 - nên một tông đã tinh chỉnh có thể tái tạo lại được từ liên kết.
-- **Nơi bạn sẽ thấy nó.** Các trình xem quản lý màu trên màn hình HDR: Preview / Quick Look / Safari trên thiết bị Apple, Chrome trên màn hình HDR. Trên màn hình SDR thông thường, tệp vẫn hiển thị như một ảnh bình thường.
-- **Điều cần biết trước khi phát hành.** Nhiều nền tảng **mã hóa lại** những gì bạn tải lên và loại bỏ tín hiệu HDR - mạng xã hội, ứng dụng nhắn tin, một số CMS - có thể khiến ảnh trông tối hoặc nhạt màu. Chỉ dùng HDR ở nơi bạn kiểm soát được điểm đến (một trang web bạn xây dựng, một màn hình video, một bản trình chiếu trên màn hình sáng), không phải như một mặc định cho mọi thứ.
-- **Trong suốt.** PNG và AVIF giữ kênh alpha; JPG luôn không trong suốt như thường lệ. Đường dẫn **TIFF** làm phẳng trên nền **đen**, không phải nền trắng như đường dẫn SDR - trong PQ, trắng là mã 10.000 nit, nên làm phẳng trên đó sẽ tạo viền chói lóa quanh mọi cạnh.
+- **Định dạng.** Các định dạng raster có chỗ để mang tín hiệu: **PNG**, **JPG**, **AVIF** và **TIFF**. (Không phải WebP - nó là 8-bit và không có đường giải mã HDR hoạt động, nên một WebP PQ sẽ chỉ trông tối đi. Vector và PDF hoàn toàn không có mô hình HDR.)
+- **Tắt theo mặc định**, khác với gắn thẻ màu - nó thay đổi điểm ảnh, nên là tùy chọn tự bật. Tích vào thẻ, hoặc truyền `hdr=1` trong liên kết chia sẻ.
+- **Những gì thực sự được ghi.** Điểm ảnh được mã hóa lại thành **Rec.2100 PQ** - dải màu gốc BT.2020 với đường cong truyền SMPTE ST 2084 (PQ) - và vùng chứa mang theo tín hiệu tương ứng để một ứng dụng có quản lý màu biết cách đọc chúng: một **hồ sơ ICC v4 kèm thẻ `cicp`** được tạo ra (JPG, TIFF), một **khối `cICP`** (PNG) hoặc một hộp `colr` được viết lại (AVIF). Độ tăng cường được điều khiển dựa trên **độ sáng cảm quan (OKLab)**, nên các màu ở mức trung bình trở lên được đẩy lên đỉnh còn màu tối được làm dịu thay vì bị cháy sáng, và nó giữ nguyên sắc độ - một màu xanh lá thương hiệu sẽ sáng hơn, không ngả sang màu bạc hà.
+- **Các nút chỉnh.** Bốn nút, hiện ra khi thẻ được bật: **White** (trần độ sáng đỉnh, 400–2000 nit), **Reach** (độ tỏa xuống các sắc độ thấp hơn đến đâu), **Dark lift** (các vùng tối được làm sáng lên bao nhiêu - `0` giữ chúng tối) và **Focus** (độ phong phú màu sắc mà việc tăng cường giữ lại). Chúng đi cùng trong cùng một tham số như một giá trị đã tinh chỉnh ở dạng gọn - `hdr=1600-60-0-50` nghĩa là White 1600, Reach 60, Dark lift 0, Focus 50 - nên một hiệu ứng đã tinh chỉnh có thể tái lập được từ liên kết.
+- **Nơi bạn sẽ thấy nó.** Các trình xem có quản lý màu trên màn hình HDR: Preview / Quick Look / Safari trên thiết bị Apple, Chrome trên màn hình HDR. Trên một màn hình SDR thông thường, tệp vẫn hiển thị như một hình ảnh bình thường.
+- **Cần biết trước khi đăng tải.** Nhiều nền tảng **mã hóa lại** những gì bạn tải lên và loại bỏ tín hiệu HDR - mạng xã hội, ứng dụng nhắn tin, một số CMS - điều này có thể khiến hình ảnh trông tối hoặc nhạt màu. Hãy dùng HDR ở nơi bạn kiểm soát được điểm đến (một trang web bạn tự xây dựng, một màn hình video, một bản trình chiếu trên màn hình sáng), không phải như mặc định cho mọi thứ.
+- **Trong suốt.** PNG và AVIF giữ kênh alpha; JPG luôn không trong suốt như thường lệ. Đường dẫn **TIFF** làm phẳng nền thành **đen**, không phải nền trắng như đường dẫn SDR - trong PQ, trắng là mã 10.000 nit, nên làm phẳng nền thành trắng sẽ tạo vầng sáng chói lóa quanh mọi cạnh.
+- **Cùng những byte đó từ terminal.** `--hdr=1` cùng với `--export=png` hoặc `--export=jpg` ghi ra PNG Rec.2100 PQ 16-bit và JPEG gain-map ISO 21496-1 trên [CLI](/info/cli.html) cũng vậy, từ cùng bộ mã hóa của engine chứ không phải từ trình duyệt - nên một công cụ gốc `<svg>` tạo ra tệp HDR mà không có Chromium ở bất kỳ đâu trong đường dẫn, và tệp PNG giống hệt từng byte so với tệp của web shell. AVIF và TIFF hiện vẫn chỉ xuất được từ web shell.
 
 ## Video
 
@@ -289,9 +321,9 @@ Mọi id mà host có thể render, được nhóm lại. Đây cũng chính là
 | Loại | Id |
 |---|---|
 | Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
-| Vector | `svg` · `svgz` (SVG nén gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (file cắt) |
-| Trang & tài liệu | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) |
-| Chuyển động | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` |
+| Vector | `svg` · `svgz` (SVG nén gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (tệp cắt) |
+| Trang & tài liệu | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `scorm` (gói khóa học SCORM, một tệp zip) · `penpot` (tệp thiết kế Penpot) · `docx` (Word) · `odt` (OpenDocument Text) |
+| Chuyển động | `gif` · `apng` (PNG hoạt hình) · `webp-anim` (WebP hoạt hình) · `svg-anim` (SVG hoạt hình) · `webm` · `mp4` |
 | Âm thanh | `wav` · `mp3` · `m4a` · `opus` |
 | Văn bản & dữ liệu | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (bảng màu GIMP) |
 | Gói | `zip` |

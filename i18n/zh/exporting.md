@@ -38,27 +38,28 @@
 
 | 你想要… | 使用 | 原因 |
 |---|---|---|
-| 可缩放的清晰徽标／艺术作品 | **SVG** | 矢量 - 无限缩放、体积小、可编辑 |
-| 用于 Office / Windows 应用的矢量 | **EMF** | 以可编辑矢量的形式粘贴进 PowerPoint / Word；文字保持可实时编辑，Google Drive 会以 Google 绘图（供 Slides 使用）打开它 |
-| 用于印刷／设计应用的矢量 | **EPS** 或 **EPS（CMYK）** | 用于 Illustrator／印刷工作流的 PostScript 矢量 |
-| 用于切割／CAD 设备的矢量 | **DXF** | 激光切割机、乙烯基绘图仪、CNC - 以毫米为单位的轮廓路径 |
-| 可编辑的幻灯片演示文稿 | **PowerPoint**（PPTX） | 原生可编辑文本+形状，图像和矢量保持可提取 |
-| 可编辑的文本文档 | **Word**（DOCX）或 **OpenDocument**（ODT） | 真正的段落和标题，可供文字处理软件继续编辑（Doc Studio） |
-| 照片或通用图像 | **PNG**（无损）或 **JPG**（更小） | 通用栅格格式 |
-| 更小的现代图像 | **WebP** / **AVIF** | 更好的压缩率、支持透明通道 |
-| 印刷 | **PDF** 或 **Print PDF**（CMYK） | 真实页面尺寸；CMYK 用于印刷 |
-| 用于印刷机的印刷栅格 | **Print TIFF**（CMYK） | 供 RIP 使用的 DeviceCMYK 像素 |
-| 用于网页的动画 | **GIF** | 到处可用，文件较大 |
-| 全彩+真透明通道的动画 | **APNG** | 动态 PNG - 无调色板限制，真正的透明度 |
-| 文件最小的动画 | **Animated WebP** | 全彩+透明通道，压缩效果优于 GIF 或 APNG |
-| 可缩放的动画矢量 | **Animated SVG** | 自成一体；可在浏览器或 `<img>` 中循环播放，无需编解码器，任意尺寸 |
-| 用于社交／分享的视频 | **MP4** 或 **WebM** | 每字节质量最佳（见下文） |
-| 富文本／邮件签名 | **HTML** | 以带格式的形式粘贴进邮件客户端 |
-| 纯内容 | **MD** / **TXT** | 纯文本 |
-| 日历事件 | **ICS** | 可导入任意日历应用 |
-| 联系人名片 | **VCF** | 可导入通讯录／地址簿 |
-| 需再导入的结构化数据 | **JSON** / **CSV** | 可回传工具的内容 |
-| 网站图标 | **ICO** | 多尺寸网站图标（**ZIP** 打包多种格式） |
+| 可缩放的清晰标志/图形 | **SVG** | 矢量 - 无限缩放、体积小、可编辑 |
+| 用于 Office / Windows 应用的矢量图 | **EMF** | 以可编辑矢量粘贴到 PowerPoint / Word;文字保持可实时编辑,Google Drive 会用 Google 绘图为幻灯片打开它 |
+| 用于印刷 / 设计软件的矢量图 | **EPS**,或 **EPS (CMYK)** | 供 Illustrator / 印前工作流使用的 PostScript 矢量图 |
+| 用于切割 / CAD 设备的矢量图 | **DXF** | 激光切割机、乙烯基绘图仪、CNC - 以毫米为单位的轮廓路径 |
+| 可编辑的幻灯片文档 | **PowerPoint**(PPTX) | 原生可编辑文字与形状,图片和矢量图保持可提取 |
+| 可供 LMS 导入的课程 | **SCORM**(LMS) | 一个包含清单文件、启动页、幻灯片以及带字幕的配音影片的压缩包 - 来自 Design 幻灯片 |
+| 可编辑的文字文档 | **Word**(DOCX)或 **OpenDocument**(ODT) | 文字处理软件可继续编辑的真实段落与标题(Doc Studio) |
+| 照片或通用图片 | **PNG**(无损)或 **JPG**(更小) | 通用位图 |
+| 更小的现代图片格式 | **WebP** / **AVIF** | 压缩率更好,支持 alpha 通道 |
+| 印刷 | **PDF**,或 **Print PDF**(CMYK) | 真实页面尺寸;CMYK 供印刷使用 |
+| 供印刷厂使用的印刷位图 | **Print TIFF**(CMYK) | 供 RIP 使用的 DeviceCMYK 像素 |
+| 用于网页的动图 | **GIF** | 到处都能用,文件更大 |
+| 全彩且带真实 alpha 通道的动图 | **APNG** | 动态 PNG - 无调色板限制,真透明 |
+| 体积最小的动图 | **Animated WebP** | 全彩加 alpha 通道,压缩率优于 GIF 或 APNG |
+| 可缩放的动态矢量图 | **Animated SVG** | 自包含;可在浏览器或 `<img>` 中循环播放,无需编解码器,任意尺寸 |
+| 用于社交 / 分享的视频 | **MP4** 或 **WebM** | 每字节质量最佳(见下文) |
+| 富文本 / 邮件签名 | **HTML** | 以带格式的形式粘贴到邮件客户端 |
+| 纯内容 | **MD** / **TXT** | 仅文字 |
+| 日历事件 | **ICS** | 导入任意日历应用 |
+| 联系人名片 | **VCF** | 导入通讯录 / 联系人应用 |
+| 可重新导入的结构化数据 | **JSON** / **CSV** | 往返保留工具的内容 |
+| 网站图标 | **ICO** | 多尺寸站点图标(**ZIP** 捆绑多种格式) |
 
 第一行是最常见的情况。以你的品牌字体设置的文字标识导出为 SVG，其中每个字母都是轮廓路径而非像素，因此从同一个文件出发，无论是名片大小还是建筑外墙包裹广告大小，都能保持清晰。
 
@@ -79,7 +80,7 @@
 
 ## 从有时间线的作品中导出静帧
 
-一个**有时间线的作品** - [序列工作室](/info/using.html#timeline-sequence-studio)阶段，或任何由时间线驱动的画板 - 都是活动的，因此静帧导出必须回答“哪一刻？”。规则正如你所料：**播放头所在的那一帧**。将播放头停在你想要的画面处再导出；所见即所得。
+一段**定时合成**内容 - Design 中的 [Sequence](/info/using.html#timeline-sequence) 时间线,或任何由时间线驱动的画板 - 本质上是运动的,所以静态导出必须回答“哪一帧?”。规则正如你所料:**播放头所在的那一帧**。把播放头停在你想要的画面处再导出;所见即所得。
 
 当你需要多于一个瞬间时，**帧数**字段会出现在输出尺寸旁边（仅限有时间线的作品，且仅限静态格式 - PNG、JPG、WebP、SVG 或 PDF）。保持为 `1` 即为播放头所在帧。调高数值，你就会得到在整个序列中等间隔采样的相应数量静帧：
 
@@ -94,12 +95,12 @@
 
 ## 多页 PDF
 
-部分工具会生成**多页 PDF 文档**，而非单一作品 - 一份封面、按需自动分页的内容以及一个封底，全部在一个文件中（参见*多页 PDF*工具）。每一页都是尺寸符合该页面框的**真实 PDF 页面**，因此阅读器和打印机拿到的是真正的页面，而不是一张长图。
+有些工具生成的是**多页 PDF 文档**,而不是单一作品 - 封面、可按需自动流排的内容、以及封底,全部在一个文件中(参见 *Booklet* 工具)。每一页都是按该页版面尺寸设定的**真实 PDF 页面**,因此阅读器和打印机得到的是真正的页面,而不是一整张长图。
 
 - **由内容生成页面。** 添加文本和图像块；随着块的填充会自动创建新页面，你也可以强制任意块另起新页。
 - **真实的页面尺寸。** 选择 A4、US Letter 或 A5（纵向 - 双栏布局正是为此设计的） - 每一页以及导出的 PDF 都会以完全该尺寸渲染。
 
-多页 PDF 是 RGB 文档，不带裁切／出血标记 - 那些属于上文单页的**Print PDF**路径。它们确实带有与每次 PDF 导出相同的 **PDF/X-4 元数据**（页面框、XMP、文档 ID、带嵌入配置文件的 sRGB 输出意图），并提供 **Content Credentials**（见下文） - 在*多页 PDF*工具上该选项默认预先选中。
+多页 PDF 是 RGB 文档,不带裁切/出血标记 - 那些属于上文的单页 **Print PDF** 路径。它们确实带有与每个 PDF 导出相同的 **PDF/X-4 元数据**(页面框、XMP、文档 ID、带嵌入配置文件的 sRGB 输出意图),并提供 **Content Credentials**(见下文) - 在 *Booklet* 工具上该选项默认预选。
 
 ## 一次生成多个内容
 
@@ -113,22 +114,54 @@ Lolly 有三种不同的批量作业方式，分别解决不同的任务 - 批�
 
 ## PowerPoint（PPTX）
 
-![The export panel with PowerPoint chosen: one slide per page, text and shapes kept editable](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
-
-多页与布局类工具（Carousel、Doc Studio、多页 PDF、图表工具以及单画布卡片／布局工具）可以导出为一份 **PowerPoint 演示文稿** - 每页对应一张幻灯片。这样做的目的不是像素级完美的截图，而是交给同事一份他们真正能够**编辑并从中取出素材**的演示文稿。因此每一页都会被分解为原生对象：
+Design、Markdown Slides、Booklet、Doc Studio、Chart 和 Diagrams 都可以导出**PowerPoint 演示文稿** - 每页一张幻灯片。这样做的目的不是逐像素还原的截图,而是交给同事一份他们真正能够**编辑并从中取出素材**的演示文稿。因此每一页都会被拆解为原生对象:
 
 - <!--i:font--> **文本**会变成真正的、**可编辑的 PowerPoint 文本框** - 保留版式中的字号、颜色、字重、斜体和对齐方式 - 因此你可以在 PowerPoint 中修正拼写或重新设计样式。
 - <!--i:pentool--> **矢量图形**(徽标、图标、SUSE 标志)以**真正的 SVG 图片**形式嵌入 - 它们在任何尺寸下都保持清晰,PowerPoint 甚至可以对它们执行*转换为形状*。
 - <!--i:photos--> **图像**以原生分辨率呈现为可独立提取的图片(经 `cover` 裁切的主图会在裁切范围之外保留完整图像,方便你重新取景),图像上的任何处理效果(滤镜、混合模式)都会如实烘焙进去。
 - <!--i:layers--> **背景、边框和分隔线**会变成真正的矩形/线条形状。
 
+![选中 PowerPoint 的导出面板:每页一张幻灯片,文字和形状保持可编辑](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
+
 版式在设计上是近似的 - 目标是忠实、可复用的**内容**,而非锁定的截图。任何渲染器无法原生表达的部分(复杂的滤镜或蒙版区域)都会作为图片嵌入,以确保不丢失任何内容。一份演示文稿只有一个幻灯片尺寸,取自第一页。
 
-PowerPoint 同样是一种**导入**方式 - 该格式可双向转换。**Deck Builder** 会打开现有的 `.pptx` 文件,将其转为可编辑的幻灯片,并与你的品牌对齐;**Rebrand a Deck** 工具会原地为演示文稿重新换肤 - 主题调色板、写死的颜色和字体 - 而不触碰其图表、SmartArt 或动画,最终返回一份 `.pptx`。参见[导入设计 → 演示文稿与文档](/info/design-import.html#decks-and-documents)。
+PowerPoint 也是一条**导入**通道。把 `.pptx` 拖放到任意上传区域,挑选你想要的幻灯片 - 每张都会变成一个可放置、调色或继续搭建的素材。**Markdown Slides** 会用 Markdown 生成一份全新的演示文稿(并附带一份品牌化的 `.pptx` 模板),而 **Rebrand** 工具则原地为已有演示文稿重新套用主题 - 主题调色板、写死的颜色和字体 - 而不触碰其中的图表、SmartArt 或动画,最终交回一个 `.pptx`。参见 [导入设计 → 演示文稿与文档](/info/design-import.html#decks-and-documents)。
+
+## Penpot
+
+任何能导出 SVG 的工具也都能导出 **Penpot 文件**(`.penpot`) - 这是一份可以在 Penpot 中继续编辑的文档,而不只是用来查看的。
+
+- <!--i:layout--> 从**Design**导出时,每个画框都会变成一个 Penpot **画板**,其上的每个方框都会作为各自独立的可编辑形状带过来 - 矩形、椭圆、文字、图片或路径 - 最终结果会作为一个可复用的**组件**出现在 Assets 面板中,可随时再次拖出使用。
+- <!--i:pentool--> 从渲染为**纯几何图形**的工具导出时 - 例如 QR Code、Street Map、Wordmark 和 Palette Lab 这类矢量工具 - 每条路径、矩形、文字行和渐变都会以同样方式各自转为独立的可编辑形状。
+- <!--i:font--> 从以 **HTML** 布局渲染的工具导出时,**文字仍保持为文字** - 每行对应一个可编辑的 Penpot 文本对象,而不是轮廓,也不是扁平图片。对于 Penpot 没有对应构造的美术作品 - 复杂插图、实时画布 - 则会作为图片单独保留,因此它周围的文字和方框永远不会被压平。而一整个 Penpot 无法忠实拆分的版面,仍可作为一张完整保真度的图片整体带过来,所以不会丢失任何内容。
+- <!--i:palette--> 一个形状从**品牌 token 继承**而来的颜色或字体,会在文件中保持与该 token 的**链接**:在 Penpot 的 Tokens 面板中修改该 token,所有继承它的形状都会一起重新上色,而单独设定的字面颜色则原封不动。品牌的颜色与字体也会进入 **Assets** 面板,其完整的设计 token 集则进入 **Tokens** 面板 - 与 Lolly 自身调色板所用的是同一套 DTCG token 集。Penpot 从此处保留自己的一份副本:在其 Tokens 面板中所做的修改,需要通过 [Brand Studio 的导入](/info/design-import.html) 才能回到品牌中,而不会自动同步。
+
+| 你制作的内容 | 在 Penpot 中 |
+|---|---|
+| 文字 | 可编辑的文本对象 - 修正错字或重新设定样式 |
+| 形状、路径、渐变、图片 | 各自独立的可编辑矢量形状 |
+| 来自品牌 token 的颜色或字体 | 一个实时的 token 链接 - 修改 token,所有继承它的形状随之改变 |
+| 整个设计 | Assets 面板中一个可复用的组件 |
+| 复杂插图或实时画布 | 作为图片单独嵌入,周围可编辑内容不受影响 |
+
+![选中 Penpot 的导出面板:.penpot 文件,以及下载按钮旁的“发送到 Penpot”](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
+
+要打开它,启动 Penpot,选择一个项目,再选择**导入**。若已在导出面板中登录 Penpot,**发送到 Penpot** 会替你完成这一步 - 在那里选择一个项目,文件就会直接进入其中。
+
+## SCORM(课程包)
+
+一份 Design 演示文稿可以导出为 **SCORM 包** - 供学习管理系统导入的压缩包,无论是 Moodle、Canvas、Blackboard 还是企业自有的 LMS。在格式选择器中选择 **SCORM (LMS)**,导出会生成:
+
+- <!--i:layout--> **幻灯片**,每个画板一张图片,画板允许时采用矢量格式,仅在不允许时才使用位图。
+- <!--i:play--> **配音影片**及其字幕轨 - 由设备本地语音朗读的演讲者备注,与 [演示](/info/create/using.html#presenting) 播放的效果完全一致。
+- <!--i:file--> **一个启动页**,逐张播放幻灯片、播放影片,并通过每个 LMS 都支持的 SCORM 1.2 运行时,向 LMS 回报完成状态。
+- <!--i:font--> 演示文稿所用的字体,使启动页在离线状态下也能渲染一致。
+
+![Design 演示文稿的导出面板,已选中 SCORM (LMS)](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+
+这个包内没有任何东西会联网:它就是压缩包里的一堆文件,在 LMS 内运行,不需要打包器、不需要 CDN、也不需要账号。网页版和桌面版应用能生成它;CLI 不能,因为为画板拍照并编码影片都需要浏览器。
 
 ## DXF(切割文件)
-
-![The export panel with Penpot chosen: the .penpot file, and Send to Penpot beside the download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
 矢量工具(Brand Lockup、QR Code、Street Map、Wayfinding Signage、Pose Geeko、各种徽标组合、Diagram Builder)可以导出 **DXF**——这是激光切割机、乙烯基绘图仪和 CNC/CAD 软件都能读取的 AutoCAD R12 交换格式。几何图形以**毫米为单位的轮廓路径**写出(曲线被展平到很细的容差范围内),文字会被轮廓化为路径,颜色则映射到最接近的 AutoCAD 颜色索引(通常用来驱动切割机上对应的刀具/操作)。DXF 只是线稿格式——照片或经过滤镜处理的区域没有对应的切割路径形式,会被丢弃(Lolly 会给出警告),因此如果需要保留位图内容,请改用 SVG/PDF。
 
@@ -141,8 +174,6 @@ Street Map 是最典型的例子:整个设计本身已经是描边线条,因此�
 :::
 
 ## 动画 SVG
-
-![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 动效工具(Animated Ad、Lottie Ad)可以导出**动画 SVG** - 一种自包含的*矢量*动画。与逐帧采样为像素的 GIF/APNG/WebP 不同,动画 SVG 通过嵌入的 CSS 关键帧堆叠矢量快照,因此**可缩放到任意尺寸,无需编解码器,也无需外部运行时** - 它可以在浏览器标签页中循环播放,也可以放进 `<img>`。文本会保持轮廓化,因此可在任何地方渲染。它与其他动画格式共享**时长**/帧率控制项,并且(因为每帧比位图更重)默认使用较低的帧率。
 
@@ -180,13 +211,14 @@ Street Map 是最典型的例子:整个设计本身已经是描边线条,因此�
 
 ![导出面板中开启的 HDR 卡片,其下展开了 White / Reach / Dark lift / Focus 四个旋钮](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **格式。** 有信号承载位置的光栅格式:**PNG**、**JPG**、**AVIF** 和 **TIFF**。(不包括 WebP - 它是 8 位的,没有可用的 HDR 解码路径,因此 PQ 编码的 WebP 只会看起来偏暗。矢量格式和 PDF 完全没有 HDR 模型。)
-- **默认关闭**,与色彩标记不同 - 它会改变像素,因此是可选开启项。勾选卡片,或在分享链接中传入 `hdr=1`。
-- **实际写入的内容。** 像素会被重新编码为 **Rec.2100 PQ** - BT.2020 基色配合 SMPTE ST 2084(PQ)传递曲线 - 容器会携带匹配的信号,让支持色彩管理的应用知道应如何读取:一个生成的**带 `cicp` 标记的 ICC v4 配置文件**(JPG、TIFF)、一个 **`cICP` 数据块**(PNG),或一个重写的 `colr` box(AVIF)。提升幅度按**感知(OKLab)明度**分级,因此中间及以上的颜色会冲到峰值,而暗部颜色会被平抑而非过曝,并且保持色相不变 - 品牌绿会变得更亮,而不是变成薄荷色。
-- **旋钮。** 卡片开启后会显示四个旋钮:**White**(峰值亮度上限,400-2000 尼特)、**Reach**(发光效果向下延伸的范围)、**Dark lift**(暗部提亮多少 - `0` 表示保持深暗)和 **Focus**(提升过程中保留多少色彩浓郁度)。它们共用同一个参数,可以紧凑地表示一个已调好的数值 - `hdr=1600-60-0-50` 表示 White 1600、Reach 60、Dark lift 0、Focus 50 - 因此调好的效果可以通过链接复现。
-- **在哪里能看到效果。** 支持色彩管理的查看器,配合 HDR 显示器:苹果设备上的 Preview / 快速查看 / Safari,配备 HDR 显示器的 Chrome。在普通的 SDR 屏幕上,文件仍会显示为普通图像。
-- **发布前须知。** 许多平台在你上传内容后会**重新编码**并剥离 HDR 信号 - 社交网络、消息应用、部分 CMS 都是如此 - 这可能会让图像看起来发暗或褪色。请在你能掌控目标平台的场景中使用 HDR(你自建的网站、视频墙、明亮面板上的演示文稿),而不要将其作为所有场景的默认设置。
-- **透明度。** PNG 和 AVIF 保留 alpha 通道;JPG 一如既往不透明。**TIFF** 路径会拼合为**黑色**,而非 SDR 路径的白色 - 在 PQ 中,白色对应的是 10,000 尼特的编码值,拼合到该值上会给每条边缘镶上刺眼的光晕。
+- **格式。** 有承载该信号能力的位图格式:**PNG**、**JPG**、**AVIF** 和 **TIFF**。(不含 WebP - 它是 8 位色深,没有可用的 HDR 解码路径,所以 PQ 编码的 WebP 只会显得偏暗。矢量图和 PDF 则完全没有 HDR 模型。)
+- **默认关闭**,与色彩标注不同 - 它会改变像素本身,所以是选择性开启的。勾选该卡片,或在分享链接中传入 `hdr=1`。
+- **实际写入的内容。** 像素会被重新编码为 **Rec.2100 PQ** - BT.2020 基色配合 SMPTE ST 2084(PQ)传递曲线 - 容器中会带有匹配的信号,让支持色彩管理的应用知道该如何读取它们:一个带 `cicp` 标签的生成 **ICC v4 配置文件**(JPG、TIFF)、一个 **`cICP` 数据块**(PNG),或一个重写过的 `colr` box(AVIF)。增亮以**感知(OKLab)明度**为门控,因此中间调及以上的颜色会冲向峰值亮度,而暗部则被压抑而不是过曝,且过程保持色相不变 - 品牌绿会变得更亮,而不会变成薄荷色。
+- **可调参数。** 卡片开启后会显示四项:**White**(峰值亮度上限,400-2000 尼特)、**Reach**(光晕向暗部延伸的程度)、**Dark lift**(暗部提亮的程度 - `0` 保持暗部原样)以及 **Focus**(增亮过程保留的色彩浓郁程度)。它们同乘一个紧凑的调好数值参数一起传递 - `hdr=1600-60-0-50` 即 White 1600、Reach 60、Dark lift 0、Focus 50 - 因此一个调好的效果可以通过链接原样复现。
+- **在哪里能看到效果。** 在 HDR 显示器上、具备色彩管理的查看器中:苹果设备上的“预览” / 快速查看 / Safari,或 HDR 显示器上的 Chrome。在普通 SDR 屏幕上,该文件仍会显示为一张普通图片。
+- **发布前须知。** 许多平台会**重新编码**你上传的内容并剥离 HDR 信号 - 社交网络、即时通讯应用、部分 CMS 都是如此 - 这可能导致图片看起来偏暗或发灰。请在你能掌控最终展示环境的场合使用 HDR(自建网站、视频墙、明亮面板上的演示文稿),而不是作为所有场景的默认设置。
+- **透明度。** PNG 和 AVIF 会保留其 alpha 通道;JPG 一如既往不透明。**TIFF** 路径会以**黑色**为底压平,而不是 SDR 路径所用的白色 - 因为在 PQ 中,白色对应的是 10,000 尼特的编码值,若以此为底压平,每条边缘都会出现刺眼的光晕。
+- **来自终端的同一份字节。** 在 [CLI](/info/cli.html) 上,`--hdr=1` 搭配 `--export=png` 或 `--export=jpg` 同样会写出 16 位的 Rec.2100 PQ PNG 以及 ISO 21496-1 增益图 JPEG,且出自同一套引擎编码器,而非浏览器 - 因此一个原生 `<svg>` 工具能在整条路径中不经过任何 Chromium 就生成 HDR 文件,且该 PNG 与网页端生成的逐字节相同。AVIF 和 TIFF 目前仍仅限网页端导出。
 
 ## 视频
 
@@ -286,12 +318,12 @@ GIF 在任何地方都能用(适合聊天/邮件;比视频体积更大、色彩�
 
 宿主可渲染的每个 id,按类别分组。这些也是 URL `format=` 参数和 CLI `--export=` 标志的取值 - 参见 [URL 模式](/info/url-mode.html)和 [CLI](/info/cli.html)。每个工具只提供其作者所声明的子集,因此选择器列出的选项总是比这份列表短。
 
-| 类别 | Id |
+| 类别 | ID |
 |---|---|
-| 位图 | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff`(RGB TIFF)· `cmyk-tiff`(印刷 TIFF)· `bmp` · `ico` |
-| 矢量 | `svg` · `svgz`(gzip 压缩的 SVG)· `emf` · `wmf` · `eps` · `eps-cmyk`(EPS CMYK)· `dxf`(切割文件) |
-| 页面与文档 | `pdf` · `pdf-cmyk`(印刷 PDF)· `pptx`(PowerPoint)· `docx`(Word)· `odt`(OpenDocument 文本) |
-| 动态 | `gif` · `apng`(动态 PNG)· `webp-anim`(动态 WebP)· `svg-anim`(动态 SVG)· `webm` · `mp4` |
+| 位图 | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff`(RGB TIFF) · `cmyk-tiff`(Print TIFF) · `bmp` · `ico` |
+| 矢量 | `svg` · `svgz`(经 gzip 压缩的 SVG) · `emf` · `wmf` · `eps` · `eps-cmyk`(EPS CMYK) · `dxf`(切割文件) |
+| 页面与文档 | `pdf` · `pdf-cmyk`(Print PDF) · `pptx`(PowerPoint) · `scorm`(SCORM 课程包,一个压缩包) · `penpot`(Penpot 设计文件) · `docx`(Word) · `odt`(OpenDocument Text) |
+| 动态 | `gif` · `apng`(动态 PNG) · `webp-anim`(动态 WebP) · `svg-anim`(动态 SVG) · `webm` · `mp4` |
 | 音频 | `wav` · `mp3` · `m4a` · `opus` |
 | 文本与数据 | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl`(GIMP 调色板) |
 | 打包 | `zip` |

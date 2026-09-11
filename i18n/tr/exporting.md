@@ -38,27 +38,28 @@ Dosya adı ve format seçici, panelin üstünde tek bir `ad.format` çifti olara
 
 | İstediğin… | Kullan | Neden |
 |---|---|---|
-| Ölçeklenen keskin logolar / çizimler | **SVG** | Vektör - sonsuz ölçeklenebilir, küçük, düzenlenebilir |
-| Office / Windows uygulamaları için vektör | **EMF** | PowerPoint / Word'e düzenlenebilir vektör olarak yapıştırılır; metin canlı ve düzenlenebilir kalır, ve Google Drive onu Slaytlar için Google Çizimler'de açar |
-| Baskı / tasarım uygulamaları için vektör | **EPS** veya **EPS (CMYK)** | Illustrator / matbaa iş akışları için PostScript vektör |
-| Kesim / CAD makineleri için vektör | **DXF** | Lazer kesiciler, vinil plotterlar, CNC - milimetre cinsinden anahat yolları |
+| Ölçeklenen net logolar/görseller | **SVG** | Vektör - sonsuz ölçeklenebilir, küçük, düzenlenebilir |
+| Office/Windows uygulamaları için vektör | **EMF** | PowerPoint/Word'e düzenlenebilir vektör olarak yapıştırılır; metin canlı ve düzenlenebilir kalır, Google Drive ise Slaytlar için Google Çizimler'de açar |
+| Baskı/tasarım uygulamaları için vektör | **EPS** veya **EPS (CMYK)** | Illustrator/matbaa iş akışları için PostScript vektör |
+| Kesim/CAD makineleri için vektör | **DXF** | Lazer kesiciler, vinil plotterlar, CNC - milimetre cinsinden dış hat yolları |
 | Düzenlenebilir bir slayt destesi | **PowerPoint** (PPTX) | Yerel düzenlenebilir metin + şekiller, görseller ve vektörler çıkarılabilir kalır |
+| Bir LMS'in içe aktarabileceği bir kurs | **SCORM** (LMS) | Manifest, bir başlatma sayfası, slaytlar ve altyazılı seslendirilmiş film içeren bir zip dosyası - bir Design destesinden |
 | Düzenlenebilir bir metin belgesi | **Word** (DOCX) veya **OpenDocument** (ODT) | Bir kelime işlemcinin düzenlemeye devam edebileceği gerçek paragraflar ve başlıklar (Doc Studio) |
 | Bir fotoğraf veya genel amaçlı görsel | **PNG** (kayıpsız) veya **JPG** (daha küçük) | Evrensel raster |
 | Daha küçük modern görseller | **WebP** / **AVIF** | Daha iyi sıkıştırma, alfa |
-| Baskı | **PDF** veya **Baskı PDF** (CMYK) | Gerçek sayfa boyutu; matbaa için CMYK |
-| Matbaa için baskı rasteri | **Baskı TIFF** (CMYK) | Bir RIP için DeviceCMYK pikselleri |
-| Web için animasyonlu | **GIF** | Her yerde çalışır, daha büyük dosyalar |
-| Tam renk + gerçek alfa ile animasyonlu | **APNG** | Animasyonlu PNG - palet sınırı yok, gerçek saydamlık |
-| Animasyonlu, en küçük dosya | **Animasyonlu WebP** | Tam renk + alfa, GIF veya APNG'den daha iyi sıkıştırılmış |
-| Ölçeklenen animasyonlu vektör | **Animasyonlu SVG** | Kendi kendine yeterli; bir tarayıcıda veya `<img>` içinde döngü yapar, kodek yok, herhangi bir boyut |
-| Sosyal medya / paylaşım için video | **MP4** veya **WebM** | Bayt başına en iyi kalite (aşağıya bakın) |
-| Zengin metin / e-posta imzası | **HTML** | Posta istemcilerine biçimlendirilmiş olarak yapıştırılır |
-| Düz içerik | **MD** / **TXT** | Yalnızca metin |
+| Baskı | **PDF** veya **Print PDF** (CMYK) | Gerçek sayfa boyutu; matbaa için CMYK |
+| Matbaa için baskı rasteri | **Print TIFF** (CMYK) | Bir RIP için DeviceCMYK pikselleri |
+| Web için animasyon | **GIF** | Her yerde çalışır, daha büyük dosyalar |
+| Tam renk + gerçek alfa ile animasyon | **APNG** | Animasyonlu PNG - palet sınırı yok, gerçek saydamlık |
+| Animasyon, en küçük dosya | **Animated WebP** | Tam renk + alfa, GIF veya APNG'den daha iyi sıkıştırılmış |
+| Ölçeklenen animasyonlu vektör | **Animated SVG** | Kendi kendine yeterli; bir tarayıcıda veya `<img>` içinde döngüye girer, codec gerekmez, her boyutta |
+| Sosyal medya/paylaşım için video | **MP4** veya **WebM** | Bayt başına en iyi kalite (aşağıya bakın) |
+| Zengin metin/e-posta imzası | **HTML** | Posta istemcilerine biçimlendirilmiş şekilde yapıştırılır |
+| Düz içerik | **MD** / **TXT** | Sadece metin |
 | Bir takvim etkinliği | **ICS** | Herhangi bir takvim uygulamasına aktarılır |
-| Bir kartvizit | **VCF** | Kişiler / adres defterlerine aktarılır |
-| Yeniden içe aktarılacak yapılandırılmış veri | **JSON** / **CSV** | Aracın içeriğini gidiş dönüş yapar |
-| Bir favicon | **ICO** | Çok boyutlu site simgesi (**ZIP** birden çok formatı bir araya getirir) |
+| Bir kişi kartı | **VCF** | Kişiler/adres defterlerine aktarılır |
+| Yeniden içe aktarılacak yapılandırılmış veri | **JSON** / **CSV** | Aracın içeriğini karşılıklı olarak aktarır |
+| Bir favicon | **ICO** | Çok boyutlu site simgesi (**ZIP** birkaç formatı bir araya getirir) |
 
 İlk satır yaygın durumdur. Marka yazı tipinle oluşturulmuş bir kelime markası SVG olarak dışa aktarılır, burada her harf bir piksel değil çevresi çizilmiş bir yoldur, bu yüzden aynı dosyadan hem bir kartvizit boyutunda hem de bir bina cephesi boyutunda keskin kalır.
 
@@ -79,7 +80,7 @@ Daha yüksek çözünürlüklü bir raster elde etmek için daha büyük bir gen
 
 ## Zamanlı bir kompozisyondan durağan kareler
 
-**Zamanlı bir kompozisyon** - bir [Sequence Studio](/info/using.html#timeline-sequence-studio) sahnesi veya zaman çizelgesi tabanlı herhangi bir çalışma tahtası - hareket eden bir şeydir, bu yüzden durağan bir dışa aktarım "hangi an?" sorusunu yanıtlamak zorundadır. Kural beklediğin gibidir: **oynatma başlığındaki kare**. Oynatma başlığını istediğin resmin olduğu yere park et ve dışa aktar; gördüğün şey ortaya çıkan şeydir.
+**Zamanlanmış bir kompozisyon** - Design'daki bir [Sequence](/info/using.html#timeline-sequence) zaman çizelgesi ya da zaman çizelgesi tabanlı herhangi bir çalışma yüzeyi - hareketli bir şeydir, bu yüzden sabit bir dışa aktarma "hangi an?" sorusunu yanıtlamak zorundadır. Kural beklediğin gibidir: **oynatma başlığındaki kare**. Oynatma başlığını istediğin görüntünün olduğu yere getir ve dışa aktar; gördüğün şey çıkan şeydir.
 
 Birden fazla an istediğinde, çıktı boyutunun yanında **Kareler** alanı görünür (yalnızca zamanlı bir kompozisyon için, ve yalnızca durağan bir format için - PNG, JPG, WebP, SVG veya PDF). Oynatma başlığı karesi için `1`'de bırak. Yükselttiğinde, tüm dizi boyunca eşit aralıklarla örneklenmiş o kadar durağan kare elde edersin:
 
@@ -94,12 +95,12 @@ Bir hikaye tahtası, bir küçük resim sayfası, inceleme için bir kontak bask
 
 ## Çok sayfalı PDF
 
-Bazı araçlar tek bir çalışma yerine **çok sayfalı bir PDF belgesi** oluşturur - bir kapak, ihtiyaç duyduğu kadar sayfaya akan içerik ve bir arka sayfa, hepsi tek bir dosyada (bkz. *Çok Sayfalı PDF* aracı). Her sayfa o sayfanın kutusuna göre boyutlandırılmış **gerçek bir PDF sayfasıdır**, bu yüzden okuyucular ve yazıcılar tek bir uzun görsel değil gerçek sayfalar alır.
+Bazı araçlar tek bir çalışma yerine **çok sayfalı bir PDF belgesi** oluşturur - bir kapak, gerektiği kadar sayfaya yayılan içerik ve bir arka sayfa, hepsi tek bir dosyada (*Booklet* aracına bakın). Her sayfa, o sayfanın kutusuna göre boyutlandırılmış **gerçek bir PDF sayfasıdır**, böylece okuyucular ve yazıcılar tek bir uzun görsel değil, gerçek sayfalar alır.
 
 - **İçerikten sayfalar.** Metin ve görsel blokları ekle; bloklar doldukça yeni sayfalar otomatik olarak oluşturulur, ve herhangi bir bloğu yeni bir sayfa başlatmaya zorlayabilirsin.
 - **Gerçek sayfa boyutları.** A4, US Letter veya A5 (dikey - iki sütunlu düzen bunun için tasarlanmıştır) seç - her sayfa, ve dışa aktarılan PDF, tam olarak o boyutta işlenir.
 
-Çok sayfalı PDF'ler RGB belgelerdir ve kırpma/taşma işaretleri taşımazlar - bunlar yukarıdaki tek sayfalı **Baskı PDF** yoluna aittir. Her PDF dışa aktarımıyla aynı **PDF/X-4 meta verisini** (sayfa kutuları, XMP, belge kimliği, gömülü profille bir sRGB çıktı amacı) taşırlar, ve **Content Credentials** (aşağıda) sunarlar - *Çok Sayfalı PDF* aracında seçenek önceden seçilidir.
+Çok sayfalı PDF'ler RGB belgelerdir ve kesim/taşma işaretleri taşımaz - bunlar yukarıdaki tek sayfalı **Print PDF** yoluna aittir. Ancak her PDF dışa aktarımıyla aynı **PDF/X-4 meta verilerini** taşırlar (sayfa kutuları, XMP, belge kimliği, gömülü profille bir sRGB çıktı amacı) ve **Content Credentials** sunarlar (aşağıda) - *Booklet* aracında bu seçenek önceden seçilmiş olarak gelir.
 
 ## Aynı anda birçok şey üretme
 
@@ -113,22 +114,54 @@ Genel kural: **tek bir belgeye** ait aynı tasarımın satırları → tablo tab
 
 ## PowerPoint (PPTX)
 
-![The export panel with PowerPoint chosen: one slide per page, text and shapes kept editable](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
-
-Çok sayfalı ve düzen araçları (Carousel, Doc Studio, Çok Sayfalı PDF, grafik araçları ve tek tuvalli kart/düzen araçları) bir **PowerPoint destesi** dışa aktarabilir - sayfa başına bir slayt. Amaç piksel mükemmelliğinde bir ekran görüntüsü değildir; amaç bir meslektaşına gerçekten **düzenleyebileceği ve varlıklarını çıkarabileceği** bir deste vermektir. Bu yüzden her sayfa yerel nesnelere ayrıştırılır:
+Design, Markdown Slides, Booklet, Doc Studio, Chart ve Diagrams bir **PowerPoint destesi** dışa aktarabilir - sayfa başına bir slayt. Buradaki amaç piksel mükemmelliğinde bir ekran görüntüsü değil; bir meslektaşına gerçekten **düzenleyebileceği ve içinden varlık çıkarabileceği** bir deste vermektir. Bu yüzden her sayfa yerel nesnelere ayrıştırılır:
 
 - <!--i:font--> **Metin**, düzendeki yazı tipi boyutu, rengi, kalınlığı, italiği ve hizalamasıyla gerçek, **düzenlenebilir PowerPoint metin kutularına** dönüşür - böylece PowerPoint'te bir yazım hatasını düzeltebilir veya stili yeniden ayarlayabilirsin.
 - <!--i:pentool--> **Vektörler** (logolar, ikonlar, SUSE amblemi) **gerçek SVG resimleri** olarak gömülür - her boyutta net kalırlar ve PowerPoint bunlar üzerinde *Convert to Shape* bile yapabilir.
 - <!--i:photos--> **Görseller**, kendi çıkarılabilir resimleri olarak yerel çözünürlüklerinde gelir (`cover` ile kırpılmış bir kahraman görsel, kırpmanın arkasındaki tam görseli korur, böylece yeniden çerçeveleyebilirsin), görsel üzerindeki her işlem (filtreler, karışımlar) sadakatle pişirilmiş olarak.
 - <!--i:layers--> **Arka planlar, kenarlıklar ve çizgiler** gerçek dikdörtgen/çizgi şekillerine dönüşür.
 
+![PowerPoint seçiliyken dışa aktarma paneli: sayfa başına bir slayt, metin ve şekiller düzenlenebilir kalır](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
+
 Düzen tasarım gereği yaklaşıktır - amaç, kilitli bir ekran görüntüsü değil, sadık ve yeniden kullanılabilir **içerik**tir. Walker'ın yerel olarak ifade edemediği her şey (karmaşık filtrelenmiş veya maskelenmiş bir bölge) hiçbir şey kaybolmasın diye resim olarak gömülür. Bir sunumun tek bir slayt boyutu vardır, ilk sayfadan alınır.
 
-PowerPoint aynı zamanda içeri **giriş** yoludur - format gidiş-dönüş yapar. **Deck Builder**, mevcut bir `.pptx` dosyasını markana uydurulmuş, düzenlenebilir slaytlar olarak açar ve **Rebrand a Deck** aracı bir sunumu grafiklerine, SmartArt'ına veya animasyonlarına dokunmadan yerinde yeniden temalandırır - tema paleti, sabit kodlanmış renkler ve yazı tipleri - ve bir `.pptx` geri verir. Bkz. [Bir tasarım içe aktar → Sunumlar ve belgeler](/info/design-import.html#decks-and-documents).
+PowerPoint aynı zamanda **içeri** giren bir yoldur. Herhangi bir yükleme yüzeyine bir `.pptx` bırak ve istediğin slaytları seç - her biri yerleştirebileceğin, düzenleyebileceğin veya üzerine inşa edebileceğin bir varlık haline gelir. **Markdown Slides**, Markdown'dan yepyeni bir deste yazar (ve markalı bir `.pptx` şablonu verir), **Rebrand** yardımcı aracı ise var olan bir desteyi olduğu yerde yeniden temalandırır - tema paleti, sabit kodlanmış renkler ve yazı tipleri - grafiklerine, SmartArt'ına veya animasyonlarına dokunmadan, geri bir `.pptx` verir. Bkz. [Bir tasarımı içe aktar → Desteler ve belgeler](/info/design-import.html#decks-and-documents).
+
+## Penpot
+
+SVG dışa aktarabilen herhangi bir araç bir **Penpot dosyası** (`.penpot`) da dışa aktarabilir - sadece bakmak için değil, Penpot'ta düzenlemeye devam etmeye hazır bir belge.
+
+- <!--i:layout--> **Design**'dan, her çerçeve bir Penpot **board**'una (pano) dönüşür, üzerindeki her kutu kendi düzenlenebilir şekli olarak aktarılır - dikdörtgen, elips, metin, görsel veya yol - ve sonuç, Assets panelinde yeniden dışarı sürüklemeye hazır, yeniden kullanılabilir bir **component** (bileşen) olarak gelir.
+- <!--i:pentool--> Çıktısı **düz geometri** olan bir araçtan - QR Code, Street Map, Wordmark ve Palette Lab gibi vektör araçları - her yol, dikdörtgen, metin dizisi ve gradyan aynı şekilde, kendi düzenlenebilir şekli olarak aktarılır.
+- <!--i:font--> Çıktısını **HTML** olarak düzenleyen bir araçtan, **metin metin olarak kalır** - satır başına bir düzenlenebilir Penpot metin nesnesi, bir dış hat veya düz bir resim değil. Penpot'un karşılığı olmayan bir sanat eseri parçası - karmaşık bir illüstrasyon, canlı bir tuval - kendi başına bir görsel olarak yanında gelir, böylece etrafındaki metni ve kutuları asla düzleştirmez. Penpot'un sadakatle ayıramayacağı bütün bir düzen yine de tam sadakatte tek bir görsel olarak aktarılabilir, böylece hiçbir şey asla kaybolmaz.
+- <!--i:palette--> Bir şeklin **bir marka token'ından devraldığı** bir renk veya yazı tipi, dosyada o token'a **bağlı** kalır: token'ı Penpot'un Tokens panelinde değiştir, onu devralan her şekil birlikte yeniden boyanır; tek seferlik sabit bir renk ise tam olduğu yerde kalır. Markanın renkleri ve tipografileri de **Assets** paneline, tam tasarım-token setiyse **Tokens** paneline düşer - Lolly'nin kendi paletinin kullandığı aynı DTCG token setidir bu. Penpot buradan kendi kopyasını tutar: Tokens panelinde yapılan bir düzenleme, kendiliğinden değil, [Brand Studio'nun içe aktarımı](/info/design-import.html) üzerinden markaya geri döner.
+
+| Ne yaptın | Penpot'ta |
+|---|---|
+| Metin | Düzenlenebilir metin nesneleri - bir yazım hatasını düzelt veya yeniden biçimlendir |
+| Şekiller, yollar, gradyanlar, görseller | Kendi düzenlenebilir vektör şekilleri |
+| Bir marka token'ından gelen renk veya yazı tipi | Canlı bir token bağlantısı - token'ı düzenle, onu devralan her şekil izler |
+| Tüm tasarım | Assets panelinde yeniden kullanılabilir bir bileşen |
+| Karmaşık bir illüstrasyon veya canlı tuval | Kendi başına bir görsel olarak gömülür, etrafındaki düzenlenebilir içerik dokunulmamış kalır |
+
+![Penpot seçiliyken dışa aktarma paneli: .penpot dosyası ve indirmenin yanında Send to Penpot](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
+
+Açmak için Penpot'u başlat, bir proje seç ve **Import**'u (İçe Aktar) seç. Dışa aktarma panelinden Penpot'a giriş yapılmışsa, **Send to Penpot** bu adımı senin yerine yapar - orada bir proje seç, dosya doğrudan içine gider.
+
+## SCORM (kurs paketleri)
+
+Bir Design destesi bir **SCORM paketi** olarak dışarı çıkabilir - bir öğrenim yönetim sisteminin içe aktardığı zip dosyası, ister Moodle, Canvas, Blackboard ister kurumsal bir LMS olsun. Format seçicide **SCORM (LMS)**'i seç, dışa aktarma şunları yazar:
+
+- <!--i:layout--> **Slaytlar**, çalışma yüzeyi başına bir görsel, izin verdiği yerde vektör, izin vermediği yerde ise sadece piksel olarak.
+- <!--i:play--> **Seslendirilmiş film**, altyazı izlemesiyle birlikte - cihaz üzerinde çalışan bir sesle okunan konuşmacı notları, tam olarak [Presenting](/info/create/using.html#presenting)'in oynattığı şekilde.
+- <!--i:file--> Slaytlar arasında adım adım ilerleyen, filmi oynatan ve tamamlanma durumunu her LMS'in kabul ettiği sürüm olan SCORM 1.2 çalışma zamanı üzerinden LMS'e bildiren **bir başlatma sayfası**.
+- <!--i:font--> Destenin kullandığı yazı tipleri, böylece başlatma sayfası çevrimdışıyken de aynı şekilde görüntülenir.
+
+![SCORM (LMS) seçiliyken bir Design destesindeki dışa aktarma paneli](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+
+Paketin içindeki hiçbir şey eve telefon etmez: bir zip içindeki dosyalardır ve LMS içinde paketleyici, CDN veya hesap gerekmeden çalışır. Web ve masaüstü uygulamaları bunu oluşturur; CLI oluşturmaz, çünkü çalışma yüzeylerini fotoğraflamak ve filmi kodlamak tarayıcı gerektirir.
 
 ## DXF (kesim dosyaları)
-
-![The export panel with Penpot chosen: the .penpot file, and Send to Penpot beside the download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
 Vektör araçları (Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, logo varyantları, Diagram Builder) **DXF** olarak dışa aktarabilir - lazer kesicilerin, vinil plotterların ve CNC/CAD yazılımının okuduğu AutoCAD R12 değişim formatı. Geometri, **milimetre cinsinden kontur yolları** olarak yazılır (eğriler ince bir toleransla düzleştirilir), metin kontur yollarına dönüştürülür ve renk en yakın AutoCAD Color Index'e eşlenir (bu genellikle bir kesicideki aracı/işlemi yönlendirir). DXF yalnızca çizgi sanatıdır - fotoğrafik veya filtrelenmiş bir bölgenin kesim yolu formu yoktur ve atlanır (Lolly uyarır), bu yüzden raster içeriği korumak gerektiğinde SVG/PDF kullan.
 
@@ -141,8 +174,6 @@ Kaydır, ve kamera gerçek geometrinin içinden geri çekilir: yedi yol, hiçbir
 :::
 
 ## Animasyonlu SVG
-
-![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Hareket araçları (Animated Ad, Lottie Ad) **Animasyonlu SVG** dışa aktarabilir - kendi kendine yeten, *vektör* bir animasyon. Her kareyi piksellere örnekleyen GIF/APNG/WebP'nin aksine, animasyonlu bir SVG, gömülü CSS anahtar kareleriyle vektör anlık görüntülerini üst üste yığar, böylece **hiçbir kodek ve harici çalışma zamanı olmadan her boyuta ölçeklenir** - bir tarayıcı sekmesinde veya bir `<img>` içinde döngüye girer. Metin anahatlı kalır, böylece her yerde işlenir. Animasyonlu formatların **Süre** / kare hızı denetimlerini paylaşır ve (kare başına bir bitmap'ten daha ağır olduğu için) daha düşük bir varsayılan kare hızı kullanır.
 
@@ -180,13 +211,14 @@ Sıradan dışa aktarmalar sRGB'dir: beyaz beyazdır ve doygun bir marka rengi e
 
 ![Dışa aktarma panelindeki HDR kartı, açık, altında görünen White / Reach / Dark lift / Focus kadranlarıyla](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **Formatlar.** Sinyali taşıyacak bir yeri olan raster formatlar: **PNG**, **JPG**, **AVIF** ve **TIFF**. (WebP hariç - 8 bit ve çalışan bir HDR çözme yolu yok, bu yüzden bir PQ WebP basitçe koyu görünürdü. Vektörlerin ve PDF'nin hiç HDR modeli yok.)
-- Renk etiketlemenin aksine **varsayılan olarak kapalı** - pikselleri değiştirir, bu yüzden isteğe bağlıdır. Kartı işaretle veya bir paylaşım bağlantısında `hdr=1` geçir.
-- **Gerçekte ne yazılır.** Pikseller **Rec.2100 PQ**'ya yeniden kodlanır - SMPTE ST 2084 (PQ) aktarım eğrisine sahip BT.2020 birincil renkleri - ve kapsayıcı, renk yönetimli bir uygulamanın bunları o şekilde okuması gerektiğini bilmesi için eşleşen sinyali taşır: oluşturulmuş bir **`cicp` etiketli ICC v4 profili** (JPG, TIFF), bir **`cICP` yığını** (PNG) veya yeniden yazılmış bir `colr` kutusu (AVIF). Yükseltme **algısal (OKLab) parlaklığa** dayalı olarak kapılanır, böylece orta ve üstü renkler tepeye vurur, koyu olanlar patlatılmak yerine yatıştırılır, ve renk tonunu korur - bir marka yeşili daha parlak olur, nane rengi olmaz.
-- **Kadranlar.** Kart açıldığında görünen dört tane: **White** (tepe parlaklık tavanı, 400-2000 nit), **Reach** (parlamanın tonların ne kadar aşağısına yayıldığı), **Dark lift** (koyuların ne kadar aydınlatıldığı - `0` onları koyu tutar) ve **Focus** (yükseltmenin ne kadar renk zenginliği koruduğu). Kompakt, ayarlanmış bir değerle aynı parametrede taşınırlar - `hdr=1600-60-0-50`, White 1600, Reach 60, Dark lift 0, Focus 50 demektir - böylece ayarlanmış bir görünüm bağlantıdan yeniden üretilebilir.
-- **Nerede göreceksin.** HDR ekranlı renk yönetimli görüntüleyiciler: Apple cihazlarda Preview / Quick Look / Safari, HDR monitörde Chrome. Sıradan bir SDR ekranda dosya yine normal bir görsel olarak görünür.
-- **Göndermeden önce bil.** Birçok platform yüklediğini **yeniden kodlar** ve HDR sinyalini kaldırır - sosyal ağlar, mesajlaşma uygulamaları, bazı CMS'ler - bu da görselin koyu veya solgun görünmesine yol açabilir. HDR'yi hedefi kontrol ettiğin yerlerde kullan (kurduğun bir site, bir video duvarı, parlak bir panelde bir sunum), her şey için varsayılan olarak değil.
-- **Saydamlık.** PNG ve AVIF alfasını korur; JPG her zaman olduğu gibi opaktır. **TIFF** yolu SDR yolunun beyazı yerine **siyaha** düzleşir - PQ'da beyaz 10.000 nitlik koddur, bu yüzden ona düzleştirmek her kenarı kör edici bir hâleyle çevreler.
+- **Formatlar.** Sinyali taşıyacak bir yeri olan raster formatlar: **PNG**, **JPG**, **AVIF** ve **TIFF**. (WebP değil - 8 bit olduğu ve çalışan bir HDR çözme yolu olmadığı için, bir PQ WebP sadece karanlık görünürdü. Vektörlerin ve PDF'in ise hiç HDR modeli yok.)
+- Renk etiketlemenin aksine **varsayılan olarak kapalıdır** - pikselleri değiştirir, bu yüzden isteğe bağlıdır. Kartı işaretle veya bir paylaşım bağlantısında `hdr=1` geçir.
+- **Aslında ne yazılıyor.** Pikseller **Rec.2100 PQ**'ya yeniden kodlanır - SMPTE ST 2084 (PQ) aktarım eğrisiyle BT.2020 birincil renkleri - ve konteyner, renk yönetimli bir uygulamanın onları o şekilde okuması gerektiğini bilmesi için eşleşen sinyali taşır: oluşturulmuş bir **`cicp` etiketli ICC v4 profili** (JPG, TIFF), bir **`cICP` parçası** (PNG) veya yeniden yazılmış bir `colr` kutusu (AVIF). Artırım **algısal (OKLab) parlaklığa** göre kısılır, böylece orta ve üstü renkler tepe noktaya vurur, koyu renkler ise patlatılmak yerine yumuşatılır; ayrıca ton koruyucudur - marka yeşili daha parlak olur, naneli olmaz.
+- **Kadranlar.** Kart açıldığında ortaya çıkan dört tanesi: **White** (tepe parlaklık tavanı, 400–2000 nit), **Reach** (parıltının tonlar arasında ne kadar aşağı yayıldığı), **Dark lift** (koyu tonların ne kadar aydınlatıldığı - `0` onları koyu tutar) ve **Focus** (artırımın ne kadar renk zenginliği koruduğu). Bunlar kompakt ayarlı bir değerle aynı parametrede taşınır - `hdr=1600-60-0-50`, White 1600, Reach 60, Dark lift 0, Focus 50 demektir - böylece ayarlanmış bir görünüm bağlantıdan yeniden üretilebilir.
+- **Nerede göreceksin.** Bir HDR ekranda renk yönetimli görüntüleyiciler: Apple cihazlarında Preview / Quick Look / Safari, bir HDR monitörde Chrome. Sıradan bir SDR ekranda dosya yine de normal bir görsel olarak görünür.
+- **Yayınlamadan önce bilmen gerekenler.** Birçok platform yüklediğin şeyi **yeniden kodlar** ve HDR sinyalini kaldırır - sosyal ağlar, mesajlaşma uygulamaları, bazı CMS'ler - bu da görselin karanlık veya solgun görünmesine yol açabilir. HDR'yi hedefi kontrol ettiğin yerlerde kullan (kendi oluşturduğun bir site, bir video duvarı, parlak bir panelde bir deste), her şey için varsayılan olarak değil.
+- **Saydamlık.** PNG ve AVIF alfa kanallarını korur; JPG her zamanki gibi opaktır. **TIFF** yolu, SDR yolunun beyazı yerine **siyah** üzerine düzleştirir - PQ'da beyaz, 10.000 nit'lik koddur, bu yüzden onun üzerine düzleştirmek her kenarı kör edici bir hale ile çevrelerdi.
+- **Terminalden aynı baytlar.** `--export=png` veya `--export=jpg` ile birlikte `--hdr=1`, [CLI](/info/cli.html)'de de 16 bit Rec.2100 PQ PNG'yi ve ISO 21496-1 kazanç haritalı JPEG'i yazar, bir tarayıcı yerine aynı motor kodlayıcılarından - böylece `<svg>` tabanlı bir araç, yolda hiçbir Chromium olmadan bir HDR dosyası üretir ve PNG, web kabuğununkiyle bayt bayt aynıdır. AVIF ve TIFF şimdilik web kabuğu dışa aktarımları olarak kalır.
 
 ## Video
 
@@ -288,12 +320,12 @@ Ana bilgisayarın işleyebildiği her kimlik, gruplandırılmış. Bunlar aynı 
 
 | Tür | Kimlikler |
 |---|---|
-| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (Yazdır TIFF) · `bmp` · `ico` |
-| Vektör | `svg` · `svgz` (gzip'lenmiş SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (kesim dosyası) |
-| Sayfa ve belge | `pdf` · `pdf-cmyk` (Yazdır PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) |
-| Hareket | `gif` · `apng` (Animasyonlu PNG) · `webp-anim` (Animasyonlu WebP) · `svg-anim` (Animasyonlu SVG) · `webm` · `mp4` |
+| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
+| Vektör | `svg` · `svgz` (gzip'li SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (kesim dosyası) |
+| Sayfa ve belge | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `scorm` (SCORM kurs paketi, bir zip) · `penpot` (Penpot tasarım dosyası) · `docx` (Word) · `odt` (OpenDocument Text) |
+| Hareket | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` |
 | Ses | `wav` · `mp3` · `m4a` · `opus` |
 | Metin ve veri | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (GIMP paleti) |
-| Demet | `zip` |
+| Paket | `zip` |
 
 Birkaç kimlik daha ortak render yolu yerine **bir aracın kendi dışa aktarma kancasından** gelir: `ase` (Adobe Swatch Exchange, Palette Lab'dan), `exr` ve `hdr` (Darkroom'un yüksek dinamik aralık rasterları) ve `ttf` / `otf` / `woff` (Font Convert). Bir biçimi aynı şekilde seçerler - seçici, `format=`, `--export=` - baytlar sadece araç tarafından üretilir. Font Convert tek istisnadır: *senin* sağladığın bir yazı tipi dosyasını dönüştürür, dolayısıyla düz bir URL'nin render edecek hiçbir şeyi yoktur.

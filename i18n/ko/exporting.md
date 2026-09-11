@@ -36,29 +36,30 @@
 
 ![파일명 필드가 형식 선택기와 결합되어 내보내기가 하나의 name.format 쌍으로 읽혀요](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-| 원하는 것… | 사용할 형식 | 이유 |
+| 원하는 것… | 사용 | 이유 |
 |---|---|---|
-| 확대해도 선명한 로고/아트워크 | **SVG** | 벡터 - 무한히 확대 가능, 작은 용량, 편집 가능 |
-| Office / Windows 앱용 벡터 | **EMF** | PowerPoint / Word에 편집 가능한 벡터로 붙여넣기 가능. 텍스트는 계속 살아있고 편집 가능하며, Google Drive는 이를 Slides용 Google 드로잉으로 열어요 |
-| 인쇄 / 디자인 앱용 벡터 | **EPS**, 또는 **EPS (CMYK)** | Illustrator / 인쇄 워크플로용 PostScript 벡터 |
-| 커팅 / CAD 기기용 벡터 | **DXF** | 레이저 커터, 비닐 플로터, CNC - 밀리미터 단위 외곽선 경로 |
-| 편집 가능한 슬라이드 덱 | **PowerPoint** (PPTX) | 네이티브 편집 가능한 텍스트 + 도형, 이미지와 벡터는 추출 가능하게 유지 |
-| 편집 가능한 텍스트 문서 | **Word** (DOCX) 또는 **OpenDocument** (ODT) | 워드 프로세서가 계속 편집할 수 있는 실제 문단과 제목(Doc Studio) |
-| 사진 또는 범용 이미지 | **PNG** (무손실) 또는 **JPG** (더 작음) | 범용 래스터 |
-| 더 작은 최신 이미지 | **WebP** / **AVIF** | 더 나은 압축, 알파 지원 |
-| 인쇄 | **PDF**, 또는 **Print PDF** (CMYK) | 실제 페이지 크기. 인쇄용 CMYK |
-| 인쇄소용 래스터 | **Print TIFF** (CMYK) | RIP를 위한 DeviceCMYK 픽셀 |
-| 웹용 애니메이션 | **GIF** | 어디서나 작동, 파일이 더 큼 |
-| 풀 컬러 + 실제 알파의 애니메이션 | **APNG** | 애니메이션 PNG - 팔레트 제한 없음, 진짜 투명도 |
-| 애니메이션, 가장 작은 파일 | **Animated WebP** | 풀 컬러 + 알파, GIF나 APNG보다 압축률이 좋음 |
-| 확대해도 선명한 애니메이션 벡터 | **Animated SVG** | 독립 실행형. 브라우저나 `<img>`에서 반복 재생, 코덱 불필요, 크기 제한 없음 |
-| 소셜 / 공유용 비디오 | **MP4** 또는 **WebM** | 바이트당 최고 품질(아래 참고) |
-| 서식 있는 텍스트 / 이메일 서명 | **HTML** | 메일 클라이언트에 서식이 있는 상태로 붙여넣기 |
-| 일반 콘텐츠 | **MD** / **TXT** | 텍스트 전용 |
-| 캘린더 일정 | **ICS** | 모든 캘린더 앱에 가져오기 가능 |
-| 연락처 카드 | **VCF** | 연락처 / 주소록에 가져오기 가능 |
-| 다시 가져올 구조화된 데이터 | **JSON** / **CSV** | 도구의 콘텐츠를 왕복 |
-| 파비콘 | **ICO** | 다중 크기 사이트 아이콘(**ZIP**은 여러 형식을 묶어요) |
+| 선명하게 확대되는 로고/아트워크 | **SVG** | 벡터 - 무한히 확대 가능하고, 용량이 작고, 편집 가능 |
+| Office/Windows 앱용 벡터 | **EMF** | PowerPoint/Word에 편집 가능한 벡터로 붙여넣어지며, 텍스트는 그대로 살아 있어 편집 가능하고, Google 드라이브에서는 Slides용 Google 드로잉으로 열립니다 |
+| 인쇄/디자인 앱용 벡터 | **EPS**, or **EPS (CMYK)** | Illustrator/인쇄 워크플로용 PostScript 벡터 |
+| 커팅/CAD 기기용 벡터 | **DXF** | 레이저 커터, 비닐 플로터, CNC - 밀리미터 단위의 윤곽선 경로 |
+| 편집 가능한 슬라이드 덱 | **PowerPoint** (PPTX) | 네이티브로 편집 가능한 텍스트와 도형, 이미지와 벡터는 추출 가능하게 유지됩니다 |
+| LMS가 가져올 수 있는 강좌 | **SCORM** (LMS) | 매니페스트, 실행 페이지, 슬라이드, 자막이 포함된 내레이션 영상이 담긴 zip 파일 - Design 덱에서 생성 |
+| 편집 가능한 텍스트 문서 | **Word** (DOCX) or **OpenDocument** (ODT) | 워드 프로세서가 계속 편집할 수 있는 실제 단락과 제목 (Doc Studio) |
+| 사진 또는 범용 이미지 | **PNG** (lossless) or **JPG** (smaller) | 범용 래스터 |
+| 더 작은 최신 이미지 | **WebP** / **AVIF** | 더 나은 압축, 알파 채널 |
+| 인쇄 | **PDF**, or **Print PDF** (CMYK) | 실제 페이지 크기; 인쇄용 CMYK |
+| 인쇄기용 래스터 | **Print TIFF** (CMYK) | RIP용 DeviceCMYK 픽셀 |
+| 웹용 애니메이션 | **GIF** | 어디서나 작동하지만 파일 크기가 큼 |
+| 풀 컬러 + 실제 알파를 갖춘 애니메이션 | **APNG** | 애니메이션 PNG - 팔레트 제한 없음, 완전한 투명도 |
+| 애니메이션, 최소 파일 크기 | **Animated WebP** | 풀 컬러 + 알파, GIF나 APNG보다 압축률이 좋음 |
+| 확대되는 애니메이션 벡터 | **Animated SVG** | 독립적으로 완결됨; 브라우저나 `<img>`에서 반복 재생되며, 코덱이 필요 없고, 크기 제한 없음 |
+| 소셜/공유용 비디오 | **MP4** or **WebM** | 바이트당 최고 품질 (아래 참조) |
+| 서식 있는 텍스트/이메일 서명 | **HTML** | 메일 클라이언트에 서식이 유지된 채 붙여넣어짐 |
+| 일반 텍스트 콘텐츠 | **MD** / **TXT** | 텍스트만 |
+| 캘린더 일정 | **ICS** | 모든 캘린더 앱으로 가져오기 가능 |
+| 연락처 카드 | **VCF** | 연락처/주소록으로 가져오기 가능 |
+| 다시 가져올 구조화된 데이터 | **JSON** / **CSV** | 도구의 콘텐츠를 왕복 변환 |
+| 파비콘 | **ICO** | 여러 크기를 포함한 사이트 아이콘 (**ZIP**은 여러 형식을 묶어 제공) |
 
 첫 번째 행이 가장 흔한 경우예요. 브랜드 서체로 설정된 워드마크는 SVG로 내보내지며, 여기서는 모든 글자가 픽셀이 아니라 윤곽선 패스로 되어 있어서, 같은 파일로 명함 크기에서도 건물 외벽 크기에서도 선명함을 유지해요.
 
@@ -79,7 +80,7 @@
 
 ## 타임드 컴포지션의 스틸컷
 
-**타임드 컴포지션**(timed composition) - [Sequence Studio](/info/using.html#timeline-sequence-studio) 스테이지나 타임라인 기반 아트보드 - 은 움직이는 것이라서, 스틸 내보내기는 "어느 순간인가?"에 답해야 해요. 규칙은 예상하는 대로예요. **재생 헤드에 있는 프레임**이요. 원하는 그림에서 재생 헤드를 멈추고 내보내세요. 보이는 것이 곧 나오는 결과예요.
+**시간 기반 구성** - Design의 [Sequence](/info/using.html#timeline-sequence) 타임라인이나 타임라인 기반 아트보드 - 은 움직이는 대상이므로, 정지 이미지로 내보낼 때는 '어느 순간인가?'라는 질문에 답해야 합니다. 규칙은 예상하신 그대로입니다: **재생 헤드 위치의 프레임**. 원하는 그림이 나올 위치에 재생 헤드를 놓고 내보내세요. 보이는 그대로가 결과물입니다.
 
 한 순간 이상을 원할 때는 출력 크기 옆에 **프레임** 필드가 나타나요(타임드 컴포지션에서만, 그리고 스틸 형식 - PNG, JPG, WebP, SVG, PDF - 에서만). 재생 헤드 프레임만 원하면 `1`로 두세요. 값을 올리면 시퀀스 전체에 걸쳐 균등한 간격으로 샘플링된 그만큼의 스틸을 얻어요.
 
@@ -94,12 +95,12 @@
 
 ## 다중 페이지 PDF
 
-일부 도구는 단일 아트워크 대신 **다중 페이지 PDF 문서**를 만들어요 - 표지, 필요한 만큼 여러 페이지로 흘러가는 콘텐츠, 뒤표지가 모두 하나의 파일에 담겨요(*Multi-Page PDF* 도구 참고). 각 페이지는 해당 페이지의 박스 크기에 맞춘 **진짜 PDF 페이지**라서, 리더와 프린터는 하나의 긴 이미지가 아니라 실제 페이지를 받아요.
+일부 도구는 단일 아트워크 대신 **여러 페이지로 구성된 PDF 문서**를 만듭니다 - 표지, 필요한 만큼 여러 페이지에 걸쳐 흐르는 콘텐츠, 그리고 뒤표지가 하나의 파일에 모두 담깁니다(*Booklet* 도구 참조). 각 페이지는 해당 페이지의 박스 크기에 맞춘 **진짜 PDF 페이지**이므로, 리더와 프린터는 하나의 긴 이미지가 아니라 실제 페이지를 받습니다.
 
 - **콘텐츠에서 페이지 생성.** 텍스트와 이미지 블록을 추가하면 블록이 채워지면서 새 페이지가 자동으로 생성되고, 어떤 블록이든 강제로 새 페이지에서 시작하게 할 수 있어요.
 - **실제 페이지 크기.** A4, US Letter 또는 A5(세로 - 2단 레이아웃은 이에 맞춰 만들어졌어요) 중에서 선택하세요 - 모든 페이지와 내보낸 PDF는 정확히 그 크기로 렌더링돼요.
 
-다중 페이지 PDF는 RGB 문서이며 재단/여백 표시를 포함하지 않아요 - 그것들은 위의 단일 페이지 **Print PDF** 경로에 속해요. 모든 PDF 내보내기와 같은 **PDF/X-4 메타데이터**(페이지 박스, XMP, 문서 ID, 임베드된 프로필이 있는 sRGB 출력 인텐트)는 포함하며, **Content Credentials**(아래)도 제공해요 - *Multi-Page PDF* 도구에서는 이 옵션이 기본으로 선택되어 있어요.
+여러 페이지 PDF는 RGB 문서이며 재단선/도련 표시를 포함하지 않습니다 - 이는 위에서 설명한 단일 페이지 **Print PDF** 경로에 해당하는 항목입니다. 다만 모든 PDF 내보내기와 동일한 **PDF/X-4 메타데이터**(페이지 박스, XMP, 문서 ID, 프로필이 내장된 sRGB 출력 의도)는 그대로 담기며, **Content Credentials**(아래 참조)도 제공합니다 - *Booklet* 도구에서는 이 옵션이 기본으로 선택되어 있습니다.
 
 ## 여러 개를 한 번에 만들기
 
@@ -113,22 +114,54 @@ Lolly에는 대량으로 작업하는 세 가지 뚜렷한 방법이 있고, 각
 
 ## PowerPoint (PPTX)
 
-![The export panel with PowerPoint chosen: one slide per page, text and shapes kept editable](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
-
-다중 페이지 및 레이아웃 도구(Carousel, Doc Studio, Multi-Page PDF, 차트 도구들, 단일 캔버스 카드/레이아웃 도구)는 **PowerPoint 덱**으로 내보낼 수 있어요 - 페이지당 슬라이드 하나. 요점은 픽셀 단위로 완벽한 스크린샷이 아니라, 동료에게 실제로 **편집하고 에셋을 꺼내 쓸 수 있는** 덱을 건네주는 거예요. 그래서 각 페이지는 네이티브 객체로 분해돼요.
+Design, Markdown Slides, Booklet, Doc Studio, Chart, Diagrams는 **PowerPoint 덱**으로 내보낼 수 있습니다 - 페이지당 슬라이드 하나입니다. 목적은 픽셀 단위로 완벽한 스크린샷이 아니라, 동료에게 실제로 **편집하고 에셋을 추출할 수 있는** 덱을 건네는 것입니다. 그래서 각 페이지는 네이티브 객체로 분해됩니다:
 
 - <!--i:font--> **텍스트**는 실제 **편집 가능한 PowerPoint 텍스트 상자**가 됩니다 - 레이아웃의 글꼴 크기, 색상, 굵기, 기울임꼴, 정렬이 그대로 반영되어 PowerPoint에서 오타를 고치거나 스타일을 다시 지정할 수 있습니다.
 - <!--i:pentool--> **벡터**(로고, 아이콘, SUSE 마크)는 **실제 SVG 그림**으로 삽입됩니다 - 어떤 크기에서도 선명함을 유지하며, PowerPoint에서 *도형으로 변환*도 가능합니다.
 - <!--i:photos--> **이미지**는 원본 해상도 그대로 각각 추출 가능한 개별 그림으로 전달되며(`cover` 방식으로 잘린 히어로 이미지는 자른 영역 뒤에 전체 이미지를 그대로 유지하므로 다시 프레이밍할 수 있습니다), 이미지에 적용된 처리(필터, 블렌드)도 충실하게 반영됩니다.
 - <!--i:layers--> **배경, 테두리, 구분선**은 실제 사각형/선 도형이 됩니다.
 
+![PowerPoint를 선택한 내보내기 패널: 페이지당 슬라이드 하나, 텍스트와 도형은 편집 가능하게 유지됨](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
+
 레이아웃은 의도적으로 근사치입니다 - 목표는 고정된 스크린샷이 아니라 충실하고 재사용 가능한 **콘텐츠**입니다. 워커가 네이티브로 표현할 수 없는 것(복잡하게 필터링되거나 마스킹된 영역)은 그림으로 삽입되어 아무것도 손실되지 않습니다. 덱은 첫 페이지에서 가져온 단일 슬라이드 크기를 가집니다.
 
-PowerPoint는 **들어오는** 통로이기도 합니다 - 이 형식은 왕복 변환이 가능합니다. **Deck Builder**는 기존 `.pptx`를 브랜드에 맞춰진 편집 가능한 슬라이드로 엽니다. **Rebrand a Deck** 유틸리티는 차트, SmartArt, 애니메이션을 건드리지 않고 덱을 제자리에서 다시 테마 적용(테마 팔레트, 하드코딩된 색상과 글꼴)하여 `.pptx`로 돌려줍니다. [디자인 가져오기 → 덱과 문서](/info/design-import.html#decks-and-documents) 참조.
+PowerPoint는 가져오는 경로로도 쓰입니다. 업로드 가능한 위치 어디든 `.pptx` 파일을 놓고 원하는 슬라이드를 고르세요 - 각 슬라이드는 배치하거나, 보정하거나, 위에 작업을 쌓아갈 수 있는 에셋이 됩니다. **Markdown Slides**는 Markdown으로부터 새로운 덱을 작성하며(브랜드가 적용된 `.pptx` 템플릿도 함께 제공합니다), **Rebrand** 유틸리티는 기존 덱을 제자리에서 다시 테마 적용합니다 - 테마 팔레트, 하드코딩된 색상과 글꼴을 바꾸되 차트, SmartArt, 애니메이션은 건드리지 않고 `.pptx`로 돌려줍니다. [디자인 가져오기 → 덱과 문서](/info/design-import.html#decks-and-documents)를 참고하세요.
+
+## Penpot
+
+SVG를 내보낼 수 있는 도구라면 어떤 것이든 **Penpot 파일**(`.penpot`)도 내보낼 수 있습니다 - 단순히 보기만 하는 것이 아니라 Penpot에서 계속 편집할 수 있는 상태의 문서입니다.
+
+- <!--i:layout--> **Design**에서는 각 프레임이 Penpot **Board**가 되고, 그 안의 모든 박스는 사각형, 타원, 텍스트, 이미지, 패스 등 각자 편집 가능한 도형으로 그대로 옮겨지며, 결과물은 다시 드래그해서 꺼낼 수 있는 재사용 가능한 **Component**로 Assets 패널에 나타납니다.
+- <!--i:pentool--> 렌더링 결과가 **순수 기하 도형**인 도구 - QR Code, Street Map, Wordmark, Palette Lab 같은 벡터 도구 - 에서는 모든 패스, 사각형, 텍스트 런, 그라디언트가 같은 방식으로 각자 편집 가능한 도형으로 옮겨집니다.
+- <!--i:font--> 렌더링을 **HTML**로 구성하는 도구에서는 **텍스트가 텍스트로 유지됩니다** - 아웃라인도 평면 이미지도 아닌, 줄마다 편집 가능한 Penpot 텍스트 객체 하나가 됩니다. Penpot에 대응하는 구조가 없는 아트워크 - 복잡한 일러스트레이션, 라이브 캔버스 - 는 독립된 이미지로 그대로 실려 가므로, 그 주변의 텍스트와 박스를 평면화하는 일이 없습니다. Penpot이 충실하게 분리할 수 없는 레이아웃 전체라도 완전한 품질의 하나의 그림으로는 옮겨 갈 수 있으므로, 어떤 것도 누락되지 않습니다.
+- <!--i:palette--> 도형이 **브랜드 토큰에서 상속받은** 색상이나 글꼴은 파일 안에서 그 토큰에 **연결된 상태**로 유지됩니다: Penpot의 Tokens 패널에서 토큰을 바꾸면 이를 상속하는 모든 도형이 함께 다시 칠해지고, 일회성 리터럴 색상은 그대로 그 자리에 남습니다. 브랜드의 색상과 타이포그래피는 **Assets** 패널에도 실리고, 전체 디자인 토큰 세트는 **Tokens** 패널에 실립니다 - Lolly 자체 팔레트가 쓰는 것과 같은 DTCG 토큰 세트입니다. Penpot은 그로부터 자기 사본을 유지합니다: Tokens 패널에서 이루어진 편집은 저절로가 아니라 [Brand Studio의 가져오기](/info/design-import.html)를 통해 브랜드로 다시 반영됩니다.
+
+| 만든 것 | Penpot에서는 |
+|---|---|
+| 텍스트 | 편집 가능한 텍스트 객체 - 오타 수정이나 스타일 재적용 가능 |
+| 도형, 패스, 그라디언트, 이미지 | 각자 편집 가능한 벡터 도형 |
+| 브랜드 토큰에서 가져온 색상이나 글꼴 | 실시간 토큰 연결 - 토큰을 편집하면 이를 상속하는 모든 도형에 반영됨 |
+| 전체 디자인 | Assets 패널의 재사용 가능한 Component |
+| 복잡한 일러스트레이션이나 라이브 캔버스 | 독립된 이미지로 삽입되며, 주변의 편집 가능한 콘텐츠는 그대로 유지됨 |
+
+![Penpot을 선택한 내보내기 패널: .penpot 파일과, 다운로드 옆의 Send to Penpot](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
+
+파일을 열려면 Penpot을 실행해 프로젝트를 선택하고 **Import**를 고르세요. 내보내기 패널에서 Penpot에 로그인되어 있다면 **Send to Penpot**이 이 단계를 대신 처리해 줍니다 - 그 자리에서 프로젝트를 선택하면 파일이 곧바로 그 안으로 들어갑니다.
+
+## SCORM(강좌 패키지)
+
+Design 덱은 **SCORM 패키지**로 내보낼 수 있습니다 - Moodle, Canvas, Blackboard든 사내 LMS든, 학습 관리 시스템이 가져올 수 있는 zip 파일입니다. 형식 선택기에서 **SCORM (LMS)**을 고르면 내보내기는 다음을 기록합니다:
+
+- <!--i:layout--> **슬라이드** - 아트보드당 이미지 하나로, 아트보드가 허용하는 곳에서는 벡터로, 허용하지 않는 곳에서만 픽셀로 저장됩니다.
+- <!--i:play--> 자막 트랙이 딸린 **내레이션 영상** - 온디바이스 음성이 읽어 주는 발표자 노트로, [Presenting](/info/create/using.html#presenting)이 재생하는 것과 정확히 동일합니다.
+- <!--i:file--> 슬라이드를 순서대로 넘기고 영상을 재생하며, 모든 LMS가 지원하는 버전인 SCORM 1.2 런타임을 통해 완료 상태를 LMS에 보고하는 **실행 페이지**.
+- <!--i:font--> 덱이 사용하는 글꼴 - 오프라인에서도 실행 페이지가 동일하게 렌더링되도록 합니다.
+
+![SCORM (LMS)을 선택한 Design 덱의 내보내기 패널](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+
+패키지 안의 그 무엇도 외부와 통신하지 않습니다: 이것은 zip 안의 파일들일 뿐이며, 번들러도 CDN도 계정도 없이 LMS 내부에서 실행됩니다. 웹 앱과 데스크톱 앱은 이를 생성할 수 있지만 CLI는 그렇지 않은데, 아트보드를 촬영하고 영상을 인코딩하려면 브라우저가 필요하기 때문입니다.
 
 ## DXF (재단 파일)
-
-![The export panel with Penpot chosen: the .penpot file, and Send to Penpot beside the download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
 벡터 도구(Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, 로고 락업, Diagram Builder)는 **DXF**로 내보낼 수 있어요 - 레이저 커터, 비닐 플로터, CNC/CAD 소프트웨어가 읽는 AutoCAD R12 교환 형식이에요. 기하 정보는 **밀리미터 단위의 윤곽 패스**로 기록되고(곡선은 세밀한 허용 오차로 평탄화돼요), 텍스트는 패스로 윤곽선화되며, 색상은 가장 가까운 AutoCAD Color Index로 매핑돼요(이는 보통 커터의 도구/작업을 결정해요). DXF는 선화(line-art) 전용이에요 - 사진이나 필터가 적용된 영역은 절단 경로 형태가 없어서 제외되며(Lolly가 경고해요), 래스터 콘텐츠를 유지해야 한다면 SVG/PDF를 사용하세요.
 
@@ -141,8 +174,6 @@ Street Map은 가장 명확한 사례입니다: 전체 디자인이 이미 선(s
 :::
 
 ## 애니메이션 SVG
-
-![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 모션 도구(Animated Ad, Lottie Ad)는 **애니메이션 SVG**를 내보낼 수 있습니다 - 독립적인 *벡터* 애니메이션입니다. 각 프레임을 픽셀로 샘플링하는 GIF/APNG/WebP와 달리, 애니메이션 SVG는 벡터 스냅샷을 CSS 키프레임과 함께 쌓아 올리므로 **코덱이나 외부 런타임 없이 어떤 크기로도 확대**됩니다 - 브라우저 탭이나 `<img>`에서 재생됩니다. 텍스트는 윤곽선으로 유지되어 어디서나 렌더링됩니다. 애니메이션 형식과 동일한 **Duration**/프레임 속도 컨트롤을 공유하며, (프레임당 비트맵보다 무거우므로) 기본 프레임 속도가 더 낮습니다.
 
@@ -180,13 +211,14 @@ Street Map은 가장 명확한 사례입니다: 전체 디자인이 이미 선(s
 
 ![내보내기 패널에서 켜진 HDR 카드, 그 아래로 드러난 White / Reach / Dark lift / Focus 다이얼](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **형식.** 신호를 담을 자리가 있는 래스터 형식: **PNG**, **JPG**, **AVIF**, **TIFF**. (WebP는 제외 - 8비트이며 작동하는 HDR 디코드 경로가 없어서, PQ WebP는 그냥 어둡게 보일 뿐입니다. 벡터와 PDF에는 HDR 모델이 전혀 없습니다.)
-- 색상 태깅과 달리 **기본적으로 꺼져 있음** - 픽셀 자체를 바꾸므로 선택 사항입니다. 카드를 체크하거나 공유 링크에 `hdr=1`을 전달하세요.
-- **실제로 기록되는 것.** 픽셀은 **Rec.2100 PQ**로 다시 인코딩됩니다 - SMPTE ST 2084(PQ) 전달 곡선을 사용한 BT.2020 원색 - 컨테이너는 색상 관리 앱이 그 방식으로 읽어야 함을 알 수 있도록 일치하는 신호를 담습니다: 생성된 **`cicp` 태그가 있는 ICC v4 프로필**(JPG, TIFF), **`cICP` 청크**(PNG), 또는 다시 작성된 `colr` 박스(AVIF). 부스트는 **지각적(OKLab) 명도**를 기준으로 조정되므로, 중간 이상 밝기의 색상은 최고조로 도달하고 어두운 색상은 날아가지 않고 차분하게 유지되며, 색조를 보존합니다 - 브랜드 그린은 더 밝아지지 민트색으로 변하지 않습니다.
-- **다이얼.** 카드가 켜지면 네 개가 드러납니다: **White**(최대 밝기 상한, 400-2000니트), **Reach**(빛이 톤 아래로 얼마나 퍼지는지), **Dark lift**(어두운 부분이 얼마나 밝아지는지 - `0`은 어둡게 유지함), **Focus**(부스트가 유지하는 색상 풍부함의 정도). 이들은 압축된 조정 값과 동일한 매개변수로 전달됩니다 - `hdr=1600-60-0-50`은 White 1600, Reach 60, Dark lift 0, Focus 50을 의미하므로 조정된 룩을 링크에서 재현할 수 있습니다.
-- **어디서 볼 수 있는지.** HDR 디스플레이의 색상 관리 뷰어: Apple 기기의 Preview / Quick Look / Safari, HDR 모니터의 Chrome. 일반 SDR 화면에서는 파일이 여전히 일반 이미지로 표시됩니다.
-- **배포하기 전에 알아둘 것.** 많은 플랫폼이 업로드한 것을 **다시 인코딩**하며 HDR 신호를 제거합니다 - 소셜 네트워크, 메시징 앱, 일부 CMS - 이로 인해 이미지가 어둡거나 색이 바랜 것처럼 보일 수 있습니다. 대상을 직접 제어하는 곳(직접 만드는 사이트, 비디오 월, 밝은 패널의 덱)에서 HDR을 사용하고, 모든 것에 대한 기본값으로 사용하지 마세요.
-- **투명도.** PNG와 AVIF는 알파를 유지합니다. JPG는 항상 불투명합니다. **TIFF** 경로는 SDR 경로의 흰색이 아니라 **검정**으로 평탄화됩니다 - PQ에서 흰색은 10,000니트 코드이므로, 흰색으로 평탄화하면 모든 가장자리에 눈부신 후광이 생기기 때문입니다.
+- **형식.** 신호를 실을 수 있는 래스터 형식: **PNG**, **JPG**, **AVIF**, **TIFF**. (WebP는 제외 - 8비트이며 작동하는 HDR 디코드 경로가 없어서, PQ WebP는 그냥 어둡게 보일 뿐입니다. 벡터와 PDF에는 HDR 모델 자체가 없습니다.)
+- **기본값은 꺼짐**, 컬러 태깅과 달리 픽셀 자체를 바꾸는 작업이므로 선택 시에만 적용됩니다. 카드를 체크하거나, 공유 링크에 `hdr=1`을 전달하세요.
+- **실제로 기록되는 내용.** 픽셀은 **Rec.2100 PQ**로 다시 인코딩됩니다 - SMPTE ST 2084(PQ) 전달 곡선을 쓰는 BT.2020 원색이며 - 컨테이너에는 컬러 매니지드 앱이 이를 그렇게 읽어야 함을 알 수 있도록 일치하는 신호가 함께 실립니다: `cicp` 태그가 포함된 생성된 **ICC v4 프로필**(JPG, TIFF), **`cICP` 청크**(PNG), 또는 재작성된 `colr` 박스(AVIF)입니다. 부스트는 **지각적(OKLab) 명도**를 기준으로 적용되므로 중간 이상의 색상은 최고 밝기까지 끌어올려지고 어두운 색상은 뭉개지기보다 차분하게 유지되며, 색조를 보존합니다 - 브랜드 그린은 더 밝아질 뿐 민트색으로 변하지 않습니다.
+- **조절 항목.** 카드를 켜면 드러나는 네 가지: **White**(최고 밝기 상한, 400~2000니트), **Reach**(밝기 확산이 톤을 얼마나 깊이까지 내려가는지), **Dark lift**(어두운 영역을 얼마나 밝히는지 - `0`이면 어둡게 유지) 그리고 **Focus**(부스트가 유지하는 색상 풍부함의 정도). 이들은 압축된 튜닝 값과 같은 매개변수에 실립니다 - `hdr=1600-60-0-50`은 White 1600, Reach 60, Dark lift 0, Focus 50을 뜻하므로, 링크만으로 튜닝된 룩을 재현할 수 있습니다.
+- **어디에서 보이는가.** HDR 디스플레이의 컬러 매니지드 뷰어: Apple 기기의 Preview/Quick Look/Safari, HDR 모니터의 Chrome. 일반 SDR 화면에서는 파일이 그냥 평범한 이미지로 보입니다.
+- **배포 전에 알아둘 점.** 업로드한 것을 **재인코딩**하며 HDR 신호를 제거하는 플랫폼이 많습니다 - 소셜 네트워크, 메시징 앱, 일부 CMS - 이 경우 이미지가 어둡거나 흐릿하게 보일 수 있습니다. HDR은 대상 환경을 직접 제어할 수 있는 곳(직접 만드는 사이트, 비디오 월, 밝은 패널에서 보여줄 덱)에서 사용하고, 모든 것의 기본값으로 삼지 마세요.
+- **투명도.** PNG와 AVIF는 알파 채널을 유지하며, JPG는 언제나처럼 불투명합니다. **TIFF** 경로는 SDR 경로의 흰색이 아니라 **검은색**으로 평탄화됩니다 - PQ에서는 흰색이 10,000니트 코드이므로, 흰색으로 평탄화하면 모든 가장자리에 눈부신 후광이 둘러지게 됩니다.
+- **터미널에서도 같은 바이트.** `--export=png`나 `--export=jpg`와 함께 쓰는 `--hdr=1`은 [CLI](/info/cli.html)에서도 16비트 Rec.2100 PQ PNG와 ISO 21496-1 게인맵 JPEG를 브라우저가 아니라 동일한 엔진 인코더로 기록합니다 - 그래서 `<svg>` 네이티브 도구가 경로 어디에도 Chromium 없이 HDR 파일을 만들어내며, PNG는 웹 셸의 결과물과 바이트 단위로 동일합니다. AVIF와 TIFF는 당분간 웹 셸 전용 내보내기로 남습니다.
 
 ## 비디오
 
@@ -286,14 +318,14 @@ GIF는 어디서나 작동합니다(채팅/이메일에 적합하며, 비디오�
 
 호스트가 렌더링할 수 있는 모든 id를 그룹별로 정리했어요. 이 값들은 URL의 `format=` 매개변수와 CLI의 `--export=` 플래그 값이기도 해요 - [URL Mode](/info/url-mode.html)와 [CLI](/info/cli.html)를 참고하세요. 도구는 작성자가 선언한 부분집합만 제공하므로, 선택 목록은 항상 이 목록보다 짧아요.
 
-| 종류 | Id |
+| 종류 | ID |
 |---|---|
-| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff`(RGB TIFF) · `cmyk-tiff`(인쇄용 TIFF) · `bmp` · `ico` |
-| Vector | `svg` · `svgz`(gzip SVG) · `emf` · `wmf` · `eps` · `eps-cmyk`(EPS CMYK) · `dxf`(재단 파일) |
-| Page & document | `pdf` · `pdf-cmyk`(인쇄용 PDF) · `pptx`(PowerPoint) · `docx`(Word) · `odt`(OpenDocument Text) |
-| Motion | `gif` · `apng`(Animated PNG) · `webp-anim`(Animated WebP) · `svg-anim`(Animated SVG) · `webm` · `mp4` |
-| Audio | `wav` · `mp3` · `m4a` · `opus` |
-| Text & data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl`(GIMP 팔레트) |
-| Bundle | `zip` |
+| 래스터 | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff`(RGB TIFF) · `cmyk-tiff`(Print TIFF) · `bmp` · `ico` |
+| 벡터 | `svg` · `svgz`(gzip 압축 SVG) · `emf` · `wmf` · `eps` · `eps-cmyk`(EPS CMYK) · `dxf`(커팅 파일) |
+| 페이지 및 문서 | `pdf` · `pdf-cmyk`(Print PDF) · `pptx`(PowerPoint) · `scorm`(SCORM 강좌 패키지, zip) · `penpot`(Penpot 디자인 파일) · `docx`(Word) · `odt`(OpenDocument Text) |
+| 모션 | `gif` · `apng`(Animated PNG) · `webp-anim`(Animated WebP) · `svg-anim`(Animated SVG) · `webm` · `mp4` |
+| 오디오 | `wav` · `mp3` · `m4a` · `opus` |
+| 텍스트 및 데이터 | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl`(GIMP 팔레트) |
+| 번들 | `zip` |
 
 공유 렌더 경로가 아니라 **도구 자체의 내보내기 훅**에서 나오는 id가 몇 가지 더 있어요. `ase`(Adobe Swatch Exchange, Palette Lab에서), `exr`과 `hdr`(Darkroom의 하이 다이나믹 레인지 래스터), `ttf` / `otf` / `woff`(Font Convert)예요. 이들도 형식 선택 - 선택 목록, `format=`, `--export=` - 방식은 같지만, 바이트는 도구가 직접 만들어요. Font Convert는 유일한 예외예요. *사용자*가 제공한 폰트 파일을 변환하는 것이라, 단순 URL로 렌더링할 대상이 없어요.

@@ -38,26 +38,27 @@ De bestandsnaam en de formaatkiezer staan bovenaan het paneel als één paar `na
 
 | Je wilt… | Gebruik | Waarom |
 |---|---|---|
-| Scherpe logo's / illustraties die schalen | **SVG** | Vector - oneindig schaalbaar, klein, bewerkbaar |
+| Scherpe logo's / artwork dat schaalt | **SVG** | Vector - oneindig schaalbaar, klein, bewerkbaar |
 | Vector voor Office / Windows-apps | **EMF** | Plakt als bewerkbare vector in PowerPoint / Word; tekst blijft live en bewerkbaar, en Google Drive opent het in Google Tekeningen voor Slides |
-| Vector voor print / designapps | **EPS**, of **EPS (CMYK)** | PostScript-vector voor Illustrator / drukwerkflows |
-| Vector voor snij-/CAD-machines | **DXF** | Lasersnijders, vinylplotters, CNC - contourpaden in millimeters |
-| Een bewerkbare presentatie | **PowerPoint** (PPTX) | Native bewerkbare tekst + vormen, met afbeeldingen en vectoren die uitpakbaar blijven |
+| Vector voor print / ontwerpapps | **EPS**, of **EPS (CMYK)** | PostScript-vector voor Illustrator / drukwerkflows |
+| Vector voor snij- / CAD-machines | **DXF** | Lasersnijders, vinylplotters, CNC - contourpaden in millimeters |
+| Een bewerkbare presentatie | **PowerPoint** (PPTX) | Native bewerkbare tekst + vormen, met afbeeldingen en vectoren die extraheerbaar blijven |
+| Een cursus die een LMS kan importeren | **SCORM** (LMS) | Een zip met het manifest, een startpagina, de slides en de ingesproken film met ondertitels - van een Design-presentatie |
 | Een bewerkbaar tekstdocument | **Word** (DOCX) of **OpenDocument** (ODT) | Echte alinea's en koppen die een tekstverwerker kan blijven bewerken (Doc Studio) |
-| Een foto of algemeen bruikbare afbeelding | **PNG** (verliesloos) of **JPG** (kleiner) | Universele raster |
+| Een foto of algemene afbeelding | **PNG** (verliesvrij) of **JPG** (kleiner) | Universele raster |
 | Kleinere moderne afbeeldingen | **WebP** / **AVIF** | Betere compressie, alpha |
-| Print | **PDF**, of **Print PDF** (CMYK) | Ware paginagrootte; CMYK voor drukwerk |
+| Print | **PDF**, of **Print PDF** (CMYK) | Werkelijke paginagrootte; CMYK voor drukwerk |
 | Printraster voor een drukpers | **Print TIFF** (CMYK) | DeviceCMYK-pixels voor een RIP |
 | Geanimeerd voor het web | **GIF** | Werkt overal, grotere bestanden |
-| Geanimeerd met volledige kleur + echte alpha | **APNG** | Geanimeerde PNG - geen palletlimiet, echte transparantie |
+| Geanimeerd met volledige kleur + echte alpha | **APNG** | Geanimeerde PNG - geen paletbeperking, echte transparantie |
 | Geanimeerd, kleinste bestand | **Animated WebP** | Volledige kleur + alpha, beter gecomprimeerd dan GIF of APNG |
 | Geanimeerde vector die schaalt | **Animated SVG** | Zelfstandig; loopt in een browser of `<img>`, geen codec, elke grootte |
 | Video voor social / delen | **MP4** of **WebM** | Beste kwaliteit per byte (zie hieronder) |
-| Rich text / e-mailhandtekening | **HTML** | Plakt opgemaakt in mailclients |
+| Rijke tekst / e-mailhandtekening | **HTML** | Plakt opgemaakt in mailclients |
 | Platte inhoud | **MD** / **TXT** | Alleen tekst |
-| Een agenda-item | **ICS** | Importeert in elke agenda-app |
+| Een agenda-afspraak | **ICS** | Importeert in elke agenda-app |
 | Een contactkaart | **VCF** | Importeert in Contacten / adresboeken |
-| Gestructureerde data om opnieuw te importeren | **JSON** / **CSV** | Round-trip van de inhoud van de tool |
+| Gestructureerde data om opnieuw te importeren | **JSON** / **CSV** | Rondtript de inhoud van de tool |
 | Een favicon | **ICO** | Site-icoon in meerdere formaten (**ZIP** bundelt meerdere formaten) |
 
 De eerste rij is het gangbare geval. Een woordmerk gezet in je merklettertype exporteert als SVG, waarbij elke letter een omlijnd pad is in plaats van een pixel, zodat het scherp blijft op visitekaartjesformaat en op gevelgrootte vanuit hetzelfde bestand.
@@ -79,7 +80,7 @@ Voorbeeld: breedte `210`, hoogte `297`, eenheid `mm` → een A4-pagina.
 
 ## Stills uit een getimede compositie
 
-Een **getimede compositie** - een [Sequence Studio](/info/using.html#timeline-sequence-studio)-stage, of elk timeline-gestuurd artboard - is een bewegend ding, dus een still-export moet antwoord geven op "welk moment?". De regel is wat je zou verwachten: **het frame bij de playhead**. Zet de playhead waar je de afbeelding wilt en exporteer; wat je ziet is wat eruit komt.
+Een **getimede compositie** - een [Sequence](/info/using.html#timeline-sequence)-tijdlijn in Design, of elk tijdlijngestuurd artboard - is iets bewegends, dus een stilstaande export moet antwoord geven op "welk moment?". De regel is wat je zou verwachten: **het frame bij de afspeelkop**. Zet de afspeelkop waar je de afbeelding wilt en exporteer; wat je ziet is wat eruit komt.
 
 Wanneer je meer dan één moment wilt, verschijnt het veld **Frames** naast de uitvoergrootte (alleen bij een getimede compositie, en alleen bij een still-formaat - PNG, JPG, WebP, SVG of PDF). Laat het op `1` staan voor het playhead-frame. Verhoog het en je krijgt dat aantal stills, gesampled op gelijke intervallen over de hele sequentie:
 
@@ -94,12 +95,12 @@ Het veld **Frames** is de manier om vandaag een blad te krijgen. De engine reser
 
 ## PDF met meerdere pagina's
 
-Sommige tools bouwen een **PDF-document met meerdere pagina's** in plaats van één ontwerp - een omslag, inhoud die over zoveel pagina's stroomt als nodig is en een achterpagina, allemaal in één bestand (zie de tool *Multi-Page PDF*). Elke pagina is een **echte PDF-pagina** op het formaat van dat pagina's vak, zodat lezers en printers echte pagina's krijgen, geen één lange afbeelding.
+Sommige tools bouwen een **meerpagina-PDF-document** in plaats van één artwork - een omslag, inhoud die over zoveel pagina's stroomt als nodig is en een achterpagina, allemaal in één bestand (zie de tool *Booklet*). Elke pagina is een **echte PDF-pagina** op de grootte van het vak van die pagina, dus lezers en drukkers krijgen echte pagina's, geen ene lange afbeelding.
 
 - **Pagina's uit inhoud.** Voeg blokken tekst en afbeeldingen toe; nieuwe pagina's worden automatisch aangemaakt zodra de blokken vol raken, en je kunt elk blok dwingen om op een nieuwe pagina te beginnen.
 - **Echte paginaformaten.** Kies A4, US Letter of A5 (staand - de layout met twee kolommen is daarvoor gebouwd) - elke pagina, en de geëxporteerde PDF, wordt precies op dat formaat weergegeven.
 
-Meerpagina-PDF's zijn RGB-documenten en bevatten geen snij-/afloopmarkeringen - die horen bij het pad voor de **Print PDF** met één pagina hierboven. Ze bevatten wel dezelfde **PDF/X-4-metadata** als elke PDF-export (paginavakken, XMP, document-ID, een sRGB-outputintent met ingesloten profiel), en ze bieden **Content Credentials** (hieronder) - op de tool *Multi-Page PDF* is de optie vooraf geselecteerd.
+Meerpagina-PDF's zijn RGB-documenten en dragen geen snij-/afloopmarkeringen - die horen bij het single-page **Print PDF**-pad hierboven. Ze dragen wel dezelfde **PDF/X-4-metadata** als elke PDF-export (paginavakken, XMP, document-ID, een sRGB-output-intent met ingesloten profiel), en ze bieden **Content Credentials** (hieronder) - bij de tool *Booklet* staat de optie standaard aangevinkt.
 
 ## Veel dingen tegelijk maken
 
@@ -113,22 +114,54 @@ Vuistregel: rijen van hetzelfde ontwerp die in **één document** horen → een 
 
 ## PowerPoint (PPTX)
 
-![The export panel with PowerPoint chosen: one slide per page, text and shapes kept editable](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
-
-Tools voor meerdere pagina's en layouts (Carousel, Doc Studio, Multi-Page PDF, de charttools en de single-canvas kaart-/layouttools) kunnen een **PowerPoint-deck** exporteren - één slide per pagina. Het punt is geen pixelperfecte screenshot; het is om een collega een deck te geven dat ze echt kunnen **bewerken en waaruit ze assets kunnen halen**. Daarom wordt elke pagina ontleed in native objecten:
+Design, Markdown Slides, Booklet, Doc Studio, Chart en Diagrams kunnen een **PowerPoint-presentatie** exporteren - één slide per pagina. Het punt is geen pixelperfecte screenshot; het is om een collega een presentatie te geven die ze daadwerkelijk kunnen **bewerken en waar ze assets uit kunnen halen**. Elke pagina wordt dus ontleed in native objecten:
 
 - <!--i:font--> **Tekst** wordt echte, **bewerkbare PowerPoint-tekstvakken** - met de lettergrootte, kleur, gewicht, cursivering en uitlijning uit de layout - zodat je een typfout kunt herstellen of kunt herstijlen in PowerPoint.
 - <!--i:pentool--> **Vectoren** (logo's, iconen, het SUSE-merkteken) worden ingesloten als **echte SVG-afbeeldingen** - ze blijven scherp op elke grootte, en PowerPoint kan er zelfs *Convert to Shape* op toepassen.
 - <!--i:photos--> **Afbeeldingen** komen door op hun native resolutie als hun eigen extraheerbare afbeeldingen (een `cover`-bijgesneden hero houdt de volledige afbeelding achter de bijsnede, zodat je opnieuw kunt kadreren), met elke behandeling op de afbeelding (filters, blends) getrouw ingebakken.
 - <!--i:layers--> **Achtergronden, randen en lijnen** worden echte rechthoek-/lijnvormen.
 
+![Het exportpaneel met PowerPoint gekozen: één slide per pagina, tekst en vormen blijven bewerkbaar](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
+
 De layout is bij ontwerp benaderend - het doel is getrouwe, herbruikbare **inhoud**, geen vastgezette screenshot. Alles wat de walker niet native kan uitdrukken (een complex gefilterd of gemaskeerd gebied) wordt ingesloten als afbeelding, zodat niets verloren gaat. Een deck heeft één slideformaat, overgenomen van de eerste pagina.
 
-PowerPoint is ook een weg **naar binnen** - het formaat gaat beide kanten op. **Deck Builder** opent een bestaand `.pptx`-bestand als bewerkbare slides, uitgelijnd op je merk, en de utility **Rebrand a Deck** herthemeert een deck ter plekke - themapalet, hardgecodeerde kleuren en lettertypen - zonder de charts, SmartArt of animaties aan te raken, en levert een `.pptx` terug. Zie [Een ontwerp importeren → Decks en documenten](/info/design-import.html#decks-and-documents).
+PowerPoint is ook een weg **naar binnen**. Zet een `.pptx` op elk uploadoppervlak neer en kies de slides die je wilt - elke wordt een asset om te plaatsen, te bewerken of op voort te bouwen. **Markdown Slides** schrijft een nieuwe presentatie vanuit Markdown (en geeft een branded `.pptx`-sjabloon mee), en de **Rebrand**-utility geeft een bestaande presentatie ter plekke een nieuw thema - themapalet, hardgecodeerde kleuren en lettertypen - zonder de charts, SmartArt of animaties aan te raken, en levert een `.pptx` terug. Zie [Een ontwerp importeren → Presentaties en documenten](/info/design-import.html#decks-and-documents).
+
+## Penpot
+
+Elke tool die SVG kan exporteren, kan ook een **Penpot-bestand** (`.penpot`) exporteren - het document, klaar om in Penpot verder te bewerken in plaats van er alleen naar te kijken.
+
+- <!--i:layout--> Vanuit **Design** wordt elk frame een Penpot-**board**, elk vak erop komt over als zijn eigen bewerkbare vorm - rechthoek, ellips, tekst, afbeelding of pad - en het resultaat komt aan als een herbruikbaar **component** in het Assets-paneel, klaar om opnieuw uit te slepen.
+- <!--i:pentool--> Vanuit een tool waarvan de render **platte geometrie** is - de vectortools zoals QR Code, Street Map, Wordmark en Palette Lab - komt elk pad, elke rechthoek, tekstregel en gradiënt op dezelfde manier over, als zijn eigen bewerkbare vorm.
+- <!--i:font--> Vanuit een tool die zijn render opbouwt in **HTML**, **blijft de tekst tekst** - één bewerkbaar Penpot-tekstobject per regel, geen omtrek en geen platte afbeelding. Een stuk artwork waar Penpot geen construct voor heeft - een complexe illustratie, een live canvas - gaat op zichzelf mee als afbeelding, zodat het nooit de tekst en vakken eromheen plat maakt. Een hele lay-out die Penpot niet getrouw kan scheiden, kan alsnog als één afbeelding op volle getrouwheid overkomen, dus er gaat nooit iets verloren.
+- <!--i:palette--> Een kleur of lettertype dat een vorm **erft van een merktoken** blijft **gekoppeld** aan dat token in het bestand: verander het token in Penpots Tokens-paneel en elke vorm die het erft, schildert samen opnieuw, terwijl een eenmalige letterlijke kleur precies blijft waar hij is. De kleuren en typografieën van het merk komen ook in het **Assets**-paneel terecht, en de volledige set designtokens in het **Tokens**-paneel - dezelfde DTCG-tokenset die Lolly's eigen palet gebruikt. Penpot houdt vanaf daar zijn eigen kopie bij: een bewerking gemaakt in zijn Tokens-paneel komt terug in het merk via [Brand Studio's import](/info/design-import.html), niet vanzelf.
+
+| Wat je maakte | In Penpot |
+|---|---|
+| Tekst | Bewerkbare tekstobjecten - typfout herstellen of herstijlen |
+| Vormen, paden, gradiënten, afbeeldingen | Hun eigen bewerkbare vectorvormen |
+| Een kleur of lettertype uit een merktoken | Een live tokenkoppeling - bewerk het token, elke vorm die het erft volgt |
+| Het hele ontwerp | Een herbruikbaar component in het Assets-paneel |
+| Een complexe illustratie of live canvas | Op zichzelf ingesloten als afbeelding, de bewerkbare inhoud eromheen ongemoeid |
+
+![Het exportpaneel met Penpot gekozen: het .penpot-bestand, en Send to Penpot naast de download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
+
+Om het te openen, start je Penpot, kies je een project en kies je **Import**. Ingelogd bij Penpot vanuit het exportpaneel doet **Send to Penpot** die stap voor je - kies daar een project en het bestand gaat er direct in.
+
+## SCORM (cursuspakketten)
+
+Een Design-presentatie kan het pand verlaten als een **SCORM-pakket** - de zip die een learning management system importeert, of dat nu Moodle, Canvas, Blackboard of een bedrijfs-LMS is. Kies **SCORM (LMS)** in de formaatkiezer en de export schrijft:
+
+- <!--i:layout--> **De slides**, één afbeelding per artboard, als vector waar het artboard dat toelaat en als pixels alleen waar dat niet zo is.
+- <!--i:play--> **De ingesproken film** met zijn ondertitelspoor - de sprekersnotities voorgelezen door een on-device stem, precies zoals [Presenting](/info/create/using.html#presenting) ze afspeelt.
+- <!--i:file--> **Een startpagina** die door de slides stapt, de film afspeelt en de voltooiing terugmeldt aan het LMS via de SCORM 1.2-runtime, de versie die elk LMS accepteert.
+- <!--i:font--> De lettertypen die de presentatie gebruikt, zodat de startpagina offline hetzelfde weergeeft.
+
+![Het exportpaneel op een Design-presentatie met SCORM (LMS) gekozen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+
+Niets in het pakket belt naar huis: het zijn bestanden in een zip, en het draait binnen het LMS zonder bundler, zonder CDN en zonder account. De web- en desktopapps bouwen het; de CLI niet, omdat het fotograferen van de artboards en het coderen van de film de browser nodig hebben.
 
 ## DXF (snijbestanden)
-
-![The export panel with Penpot chosen: the .penpot file, and Send to Penpot beside the download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
 Vectortools (Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, de logo-lockups, Diagram Builder) kunnen exporteren naar **DXF** - het AutoCAD R12-uitwisselingsformaat dat lasersnijders, vinylplotters en CNC/CAD-software lezen. Geometrie wordt geschreven als **paden in millimeters** met omtrek (curven afgevlakt tot een fijne tolerantie), tekst wordt omgezet naar paden en kleur wordt gemapt naar de dichtstbijzijnde AutoCAD Color Index (die doorgaans de tool/bewerking op een snijmachine aanstuurt). DXF is alleen lijntekening - een fotografisch of gefilterd gebied heeft geen snijpadvorm en wordt weggelaten (Lolly waarschuwt), dus gebruik SVG/PDF wanneer je rastercontent moet behouden.
 
@@ -141,8 +174,6 @@ Scroll, en de camera zoomt terug door de daadwerkelijke geometrie: zeven paden, 
 :::
 
 ## Geanimeerde SVG
-
-![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Bewegingstools (Animated Ad, Lottie Ad) kunnen **Geanimeerde SVG** exporteren - een op zichzelf staande, *vectoriële* animatie. In tegenstelling tot GIF/APNG/WebP (die elk frame naar pixels bemonsteren), stapelt een geanimeerde SVG vectorsnapshots met ingesloten CSS-keyframes, zodat ze **op elke grootte schaalt zonder codec en zonder externe runtime** - ze loopt in een browsertab of een `<img>`. Tekst blijft omlijnd zodat het overal wordt weergegeven. Ze deelt de **Duration**/framerate-besturing van de geanimeerde formaten, en gebruikt (omdat ze per frame zwaarder is dan een bitmap) een lagere standaardframerate.
 
@@ -180,13 +211,14 @@ Gewone exports zijn sRGB: wit is wit, en een verzadigde merkkleur is net zo held
 
 ![De HDR-kaart in het exportpaneel, ingeschakeld, met de knoppen White / Reach / Dark lift / Focus eronder zichtbaar](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **Formaten.** De rasterformaten met een plek om het signaal te dragen: **PNG**, **JPG**, **AVIF** en **TIFF**. (Niet WebP - het is 8-bit zonder werkend HDR-decodepad, dus een PQ-WebP zou er simpelweg donker uitzien. Vectoren en PDF hebben helemaal geen HDR-model.)
-- **Standaard uit**, in tegenstelling tot kleurtagging - het verandert de pixels, dus het is opt-in. Vink de kaart aan, of geef `hdr=1` door in een deellink.
-- **Wat er daadwerkelijk wordt geschreven.** De pixels worden opnieuw gecodeerd naar **Rec.2100 PQ** - BT.2020-primairen met de SMPTE ST 2084 (PQ)-overdrachtscurve - en de container draagt het bijbehorende signaal zodat een kleurbeheerde app weet dat hij ze zo moet lezen: een gegenereerd **ICC v4-profiel met een `cicp`-tag** (JPG, TIFF), een **`cICP`-chunk** (PNG) of een herschreven `colr`-box (AVIF). De boost is gekoppeld aan **perceptuele (OKLab) helderheid**, zodat middelmatige en hogere kleuren naar piek gaan en donkere worden gekalmeerd in plaats van uitgeblazen, en het is tintbehoudend - een merkgroen wordt helderder, niet mintig.
-- **De knoppen.** Vier, zichtbaar wanneer de kaart aan staat: **White** (het plafond van de piekhelderheid, 400-2000 nits), **Reach** (hoe ver naar beneden de gloed zich verspreidt over de tonen), **Dark lift** (hoeveel de donkere tinten oplichten - `0` houdt ze donker) en **Focus** (hoeveel kleurrijkdom de boost behoudt). Ze reizen mee in dezelfde parameter als een compacte afgestelde waarde - `hdr=1600-60-0-50` is White 1600, Reach 60, Dark lift 0, Focus 50 - zodat een afgestelde look reproduceerbaar is vanuit de link.
+- **Formaten.** De rasterformaten met een plek om het signaal te dragen: **PNG**, **JPG**, **AVIF** en **TIFF**. (Geen WebP - dat is 8-bit zonder werkend HDR-decodepad, dus een PQ-WebP zou er gewoon donker uitzien. Vectoren en PDF hebben helemaal geen HDR-model.)
+- **Standaard uit**, anders dan kleurtagging - het verandert de pixels, dus het is opt-in. Vink de kaart aan, of geef `hdr=1` mee in een deellink.
+- **Wat er daadwerkelijk wordt geschreven.** De pixels worden opnieuw gecodeerd naar **Rec.2100 PQ** - BT.2020-primairen met de SMPTE ST 2084 (PQ) transfercurve - en de container draagt het bijpassende signaal zodat een kleurbeheerde app weet dat hij ze zo moet lezen: een gegenereerd **ICC v4-profiel met een `cicp`-tag** (JPG, TIFF), een **`cICP`-chunk** (PNG) of een herschreven `colr`-box (AVIF). De versterking is gekoppeld aan **perceptuele (OKLab-)helderheid**, dus middentonen en hoger schieten naar piek en donkere tonen worden getemperd in plaats van uitgebrand, en het is kleurtoonbehoudend - een merkgroen wordt helderder, niet mintig.
+- **De regelaars.** Vier, zichtbaar als de kaart aanstaat: **White** (het piekhelderheidsplafond, 400-2000 nits), **Reach** (hoe ver naar beneden in de tinten de gloed reikt), **Dark lift** (hoeveel de donkere tonen opgehelderd worden - `0` houdt ze donker) en **Focus** (hoeveel kleurrijkheid de versterking behoudt). Ze rijden mee in dezelfde parameter als een compacte afgestelde waarde - `hdr=1600-60-0-50` is White 1600, Reach 60, Dark lift 0, Focus 50 - zodat een afgestelde look reproduceerbaar is vanuit de link.
 - **Waar je het zult zien.** Kleurbeheerde viewers op een HDR-scherm: Preview / Quick Look / Safari op Apple-apparaten, Chrome op een HDR-monitor. Op een gewoon SDR-scherm toont het bestand nog steeds als een normale afbeelding.
-- **Weet dit voordat je het verzendt.** Veel platforms **coderen opnieuw** wat je uploadt en verwijderen het HDR-signaal - sociale netwerken, berichtenapps, sommige CMS'en - wat de afbeelding donker of vervaagd kan laten lijken. Gebruik HDR waar je de bestemming controleert (een site die je bouwt, een videowand, een deck op een helder scherm), niet als standaard voor alles.
-- **Transparantie.** PNG en AVIF behouden hun alfa; JPG is zoals altijd ondoorzichtig. Het **TIFF**-pad slaat plat op **zwart**, niet het wit van het SDR-pad - in PQ is wit de code van 10.000 nits, dus platslaan erop zou elke rand omringen met een verblindende halo.
+- **Weten voordat je het verstuurt.** Veel platforms **coderen opnieuw** wat je uploadt en strippen het HDR-signaal - sociale netwerken, berichten-apps, sommige CMS'en - wat de afbeelding donker of verwassen kan laten ogen. Gebruik HDR waar je de bestemming beheerst (een site die je zelf bouwt, een videowand, een presentatie op een helder paneel), niet als standaard voor alles.
+- **Transparantie.** PNG en AVIF behouden hun alpha; JPG is zoals altijd ondoorzichtig. Het **TIFF**-pad platteert op **zwart**, niet op het wit van het SDR-pad - in PQ is wit de 10.000-nits-code, dus platten op wit zou elke rand omringen met een verblindende halo.
+- **Dezelfde bytes vanaf de terminal.** `--hdr=1` met `--export=png` of `--export=jpg` schrijft de 16-bit Rec.2100 PQ-PNG en de ISO 21496-1 gain-map-JPEG ook op de [CLI](/info/cli.html), uit dezelfde engine-encoders in plaats van een browser - dus een `<svg>`-native tool produceert een HDR-bestand zonder ergens Chromium in het pad, en de PNG is byte-identiek aan die van de webshell. AVIF en TIFF blijven voorlopig webshell-exports.
 
 ## Video
 
@@ -289,9 +321,9 @@ Elk id dat de host kan renderen, gegroepeerd. Dit zijn ook de waarden voor de UR
 | Soort | Id's |
 |---|---|
 | Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
-| Vector | `svg` · `svgz` (gzipte SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (snijbestand) |
-| Pagina & document | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) |
-| Beweging | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` |
+| Vector | `svg` · `svgz` (gezipte SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (snijbestand) |
+| Pagina & document | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `scorm` (SCORM-cursuspakket, een zip) · `penpot` (Penpot-ontwerpbestand) · `docx` (Word) · `odt` (OpenDocument Text) |
+| Beweging | `gif` · `apng` (Geanimeerde PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` |
 | Audio | `wav` · `mp3` · `m4a` · `opus` |
 | Tekst & data | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (GIMP-palet) |
 | Bundel | `zip` |

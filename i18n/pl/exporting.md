@@ -39,26 +39,27 @@ Nazwa pliku i selektor formatu znajdują się na górze panelu jako jedna para `
 | Chcesz… | Użyj | Dlaczego |
 |---|---|---|
 | Ostre logo / grafikę, która się skaluje | **SVG** | Wektor - nieskończenie skalowalny, mały, edytowalny |
-| Wektor dla aplikacji Office / Windows | **EMF** | Wkleja się jako edytowalny wektor do PowerPoint / Word; tekst pozostaje żywy i edytowalny, a Google Drive otwiera go w Google Drawings dla Slides |
-| Wektor dla druku / aplikacji projektowych | **EPS** lub **EPS (CMYK)** | Wektor PostScript dla Illustratora / procesów drukarskich |
-| Wektor dla urządzeń tnących / CAD | **DXF** | Ploterów laserowych, ploterów winylowych, CNC - ścieżki konturowe w milimetrach |
-| Edytowalną prezentację | **PowerPoint** (PPTX) | Natywnie edytowalny tekst i kształty, z obrazami i wektorami pozostającymi możliwymi do wyodrębnienia |
+| Wektor dla aplikacji Office / Windows | **EMF** | Wkleja się jako edytowalny wektor do PowerPointa / Worda; tekst pozostaje aktywny i edytowalny, a Dysk Google otwiera go w Google Rysunki dla Prezentacji |
+| Wektor do druku / aplikacji projektowych | **EPS** lub **EPS (CMYK)** | Wektor PostScript dla Illustratora / procesów przygotowania do druku |
+| Wektor do maszyn tnących / CAD | **DXF** | Plotery laserowe, plotery winylowe, CNC - ścieżki konturowe w milimetrach |
+| Edytowalna prezentacja | **PowerPoint** (PPTX) | Natywny edytowalny tekst i kształty, z obrazami i wektorami, które można wyodrębnić |
+| Kurs, który zaimportuje LMS | **SCORM** (LMS) | Plik zip z manifestem, stroną startową, slajdami i filmem z narracją oraz napisami - z prezentacji Design |
 | Edytowalny dokument tekstowy | **Word** (DOCX) lub **OpenDocument** (ODT) | Prawdziwe akapity i nagłówki, które edytor tekstu może dalej edytować (Doc Studio) |
 | Zdjęcie lub obraz ogólnego przeznaczenia | **PNG** (bezstratny) lub **JPG** (mniejszy) | Uniwersalny raster |
-| Mniejsze, nowoczesne obrazy | **WebP** / **AVIF** | Lepsza kompresja, kanał alfa |
-| Druk | **PDF** lub **Print PDF** (CMYK) | Prawdziwy rozmiar strony; CMYK dla druku offsetowego |
-| Raster drukarski dla maszyny drukarskiej | **Print TIFF** (CMYK) | Piksele DeviceCMYK dla RIP-a |
-| Animację do internetu | **GIF** | Działa wszędzie, większe pliki |
-| Animację z pełnym kolorem i prawdziwą przezroczystością | **APNG** | Animowany PNG - bez limitu palety, prawdziwa przezroczystość |
-| Animację, najmniejszy plik | **Animated WebP** | Pełny kolor i alfa, lepiej skompresowany niż GIF czy APNG |
-| Animowany wektor, który się skaluje | **Animated SVG** | Samowystarczalny; zapętla się w przeglądarce lub `<img>`, bez kodeka, w dowolnym rozmiarze |
-| Wideo do mediów społecznościowych / udostępniania | **MP4** lub **WebM** | Najlepsza jakość na bajt (zobacz niżej) |
+| Mniejsze nowoczesne obrazy | **WebP** / **AVIF** | Lepsza kompresja, kanał alfa |
+| Druk | **PDF** lub **Print PDF** (CMYK) | Rzeczywisty rozmiar strony; CMYK do druku offsetowego |
+| Raster do druku offsetowego | **Print TIFF** (CMYK) | Piksele DeviceCMYK dla RIP-a |
+| Animacja do sieci | **GIF** | Działa wszędzie, większe pliki |
+| Animacja w pełnym kolorze + prawdziwa przezroczystość | **APNG** | Animowany PNG - bez ograniczenia palety, prawdziwa przezroczystość |
+| Animacja, najmniejszy plik | **Animowany WebP** | Pełny kolor + alfa, lepiej skompresowany niż GIF czy APNG |
+| Skalowalna animacja wektorowa | **Animowany SVG** | Samodzielny; zapętla się w przeglądarce lub `<img>`, bez kodeka, w dowolnym rozmiarze |
+| Wideo do social mediów / udostępniania | **MP4** lub **WebM** | Najlepsza jakość na bajt (patrz niżej) |
 | Tekst sformatowany / podpis e-mail | **HTML** | Wkleja się sformatowany do klientów poczty |
-| Zwykłą treść | **MD** / **TXT** | Tylko tekst |
+| Zwykła treść | **MD** / **TXT** | Tylko tekst |
 | Wydarzenie w kalendarzu | **ICS** | Importuje się do dowolnej aplikacji kalendarza |
-| Wizytówkę kontaktu | **VCF** | Importuje się do Kontaktów / książek adresowych |
-| Dane strukturalne do ponownego zaimportowania | **JSON** / **CSV** | Umożliwia pełny obieg treści narzędzia |
-| Favicon | **ICO** | Ikona witryny w wielu rozmiarach (**ZIP** łączy kilka formatów) |
+| Wizytówka kontaktu | **VCF** | Importuje się do Kontaktów / książek adresowych |
+| Dane strukturalne do ponownego zaimportowania | **JSON** / **CSV** | Odtwarza zawartość narzędzia w pełnym cyklu |
+| Favikona | **ICO** | Ikona strony w wielu rozmiarach (**ZIP** łączy kilka formatów) |
 
 Pierwszy wiersz to najczęstszy przypadek. Wordmark złożony krojem twojej marki eksportuje się jako SVG, gdzie każda litera jest konturową ścieżką, a nie pikselem, więc pozostaje ostry zarówno w rozmiarze wizytówki, jak i oklejenia budynku - z tego samego pliku.
 
@@ -79,7 +80,7 @@ Przykład: szerokość `210`, wysokość `297`, jednostka `mm` → strona A4.
 
 ## Klatki nieruchome z kompozycji czasowej
 
-**Kompozycja czasowa** - etap [Sequence Studio](/info/using.html#timeline-sequence-studio) albo dowolny obszar roboczy sterowany osią czasu - jest rzeczą ruchomą, więc eksport statyczny musi odpowiedzieć na pytanie „który moment?”. Zasada jest taka, jakiej można się spodziewać: **klatka w miejscu głowicy odtwarzania**. Ustaw głowicę odtwarzania tam, gdzie chcesz mieć obraz, i eksportuj; to, co widzisz, jest tym, co otrzymasz.
+**Kompozycja czasowa** - oś czasu [Sequence](/info/using.html#timeline-sequence) w Design lub dowolny artboard sterowany osią czasu - jest rzeczą ruchomą, więc eksport statyczny musi odpowiedzieć na pytanie „który moment?". Zasada jest taka, jakiej można się spodziewać: **klatka w miejscu głowicy odtwarzania**. Ustaw głowicę odtwarzania w miejscu, które ma się znaleźć na obrazie, i eksportuj; to, co widzisz, jest tym, co otrzymasz.
 
 Gdy chcesz więcej niż jeden moment, obok rozmiaru wyjściowego pojawia się pole **Frames** (tylko dla kompozycji czasowej i tylko dla formatu statycznego - PNG, JPG, WebP, SVG lub PDF). Zostaw je na `1`, aby otrzymać klatkę z głowicy odtwarzania. Zwiększ je, a otrzymasz tyle klatek nieruchomych, próbkowanych w równych odstępach na przestrzeni całej sekwencji:
 
@@ -94,12 +95,12 @@ Pole **Frames** to dziś sposób na uzyskanie arkusza. Silnik rezerwuje odpowiad
 
 ## Wielostronicowy PDF
 
-Niektóre narzędzia budują **wielostronicowy dokument PDF** zamiast pojedynczej grafiki - okładkę, treść, która płynie na tyle stron, ile potrzebuje, i tylną stronę, wszystko w jednym pliku (zobacz narzędzie *Multi-Page PDF*). Każda strona jest **prawdziwą stroną PDF** o rozmiarze dopasowanym do jej ramki, więc czytniki i drukarki otrzymują prawdziwe strony, a nie jeden wysoki obraz.
+Niektóre narzędzia tworzą **wielostronicowy dokument PDF** zamiast pojedynczej grafiki - okładkę, treść, która przepływa na tyle stron, ile potrzebuje, oraz tylną stronę, wszystko w jednym pliku (zobacz narzędzie *Booklet*). Każda strona jest **prawdziwą stroną PDF** o rozmiarze dopasowanym do jej ramki, dzięki czemu czytelnicy i drukarki otrzymują prawdziwe strony, a nie jeden długi obraz.
 
 - **Strony z treści.** Dodawaj bloki tekstu i obrazów; nowe strony powstają automatycznie w miarę zapełniania bloków, a każdy blok możesz wymusić na rozpoczęciu nowej strony.
 - **Prawdziwe rozmiary stron.** Wybierz A4, US Letter lub A5 (pionowo - układ dwukolumnowy jest do niego zaprojektowany) - każda strona i wyeksportowany PDF renderują się dokładnie w tym rozmiarze.
 
-Wielostronicowe PDF-y są dokumentami RGB i nie zawierają znaczników cięcia/spadu - te należą do jednostronicowej ścieżki **Print PDF** opisanej wyżej. Zawierają jednak te same **metadane PDF/X-4** co każdy eksport PDF (ramki stron, XMP, identyfikator dokumentu, intencję wyjścia sRGB z osadzonym profilem) i oferują **Content Credentials** (poniżej) - w narzędziu *Multi-Page PDF* opcja jest domyślnie zaznaczona.
+Wielostronicowe PDF-y to dokumenty RGB i nie zawierają znaczników cięcia/spadu - te należą do opisanej wyżej ścieżki jednostronicowego **Print PDF**. Zawierają jednak te same **metadane PDF/X-4** co każdy eksport PDF (ramki stron, XMP, identyfikator dokumentu, intencja wyjściowa sRGB z osadzonym profilem), a także oferują **Content Credentials** (poniżej) - w narzędziu *Booklet* ta opcja jest domyślnie zaznaczona.
 
 ## Tworzenie wielu rzeczy naraz
 
@@ -113,22 +114,54 @@ Zasada praktyczna: wiersze tego samego projektu, które powinny trafić do **jed
 
 ## PowerPoint (PPTX)
 
-![The export panel with PowerPoint chosen: one slide per page, text and shapes kept editable](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
-
-Narzędzia wielostronicowe i do układów (Carousel, Doc Studio, Multi-Page PDF, narzędzia do wykresów oraz jednopłócienne narzędzia kart/układów) mogą eksportować **prezentację PowerPoint** - jeden slajd na stronę. Nie chodzi o zrzut ekranu piksel w piksel; chodzi o przekazanie współpracownikowi prezentacji, którą naprawdę może **edytować i z której może wyodrębniać zasoby**. Dlatego każda strona jest rozkładana na natywne obiekty:
+Design, Markdown Slides, Booklet, Doc Studio, Chart i Diagrams potrafią wyeksportować **prezentację PowerPoint** - jeden slajd na stronę. Nie chodzi o zrzut ekranu piksel w piksel; chodzi o to, by przekazać koledze prezentację, którą naprawdę można **edytować i z której można wyciągać zasoby**. Dlatego każda strona jest rozkładana na natywne obiekty:
 
 - <!--i:font--> **Tekst** staje się prawdziwymi, **edytowalnymi polami tekstowymi PowerPoint** - z rozmiarem czcionki, kolorem, grubością, kursywą i wyrównaniem z układu - dzięki czemu możesz poprawić literówkę lub zmienić styl w PowerPoincie.
 - <!--i:pentool--> **Wektory** (logotypy, ikony, znak SUSE) są osadzane jako **prawdziwe obrazy SVG** - pozostają ostre w każdym rozmiarze, a PowerPoint może na nich nawet wykonać *Convert to Shape*.
 - <!--i:photos--> **Obrazy** trafiają w natywnej rozdzielczości jako własne, wyodrębnialne obrazki (baner przycięty w trybie `cover` zachowuje pełny obraz pod przycięciem, więc możesz go przekadrować), z wiernie zapieczonym każdym efektem na obrazie (filtry, tryby mieszania).
 - <!--i:layers--> **Tła, obramowania i linie** stają się prawdziwymi kształtami prostokąt/linia.
 
+![Panel eksportu z wybranym PowerPointem: jeden slajd na stronę, tekst i kształty pozostają edytowalne](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
+
 Układ jest celowo przybliżony - celem jest wierna, wielokrotnego użytku **treść**, a nie zablokowany zrzut ekranu. Wszystko, czego walker nie potrafi wyrazić natywnie (złożony obszar z filtrem lub maską), jest osadzane jako obraz, żeby nic nie zostało utracone. Prezentacja ma jeden rozmiar slajdu, pobrany z pierwszej strony.
 
-PowerPoint to także sposób na **wejście** - format działa w obie strony. **Deck Builder** otwiera istniejący plik `.pptx` jako edytowalne slajdy, dopasowane do Twojej marki, a narzędzie **Rebrand a Deck** przestylowuje prezentację w miejscu - paletę motywu, zakodowane na sztywno kolory i czcionki - nie dotykając wykresów, SmartArt ani animacji, i zwraca plik `.pptx`. Zobacz [Importowanie projektu → Talie i dokumenty](/info/design-import.html#decks-and-documents).
+PowerPoint to też sposób na **import**. Upuść plik `.pptx` na dowolnej powierzchni wczytywania i wybierz slajdy, które chcesz - każdy z nich staje się zasobem, który można umieścić, poprawić kolorystycznie lub rozbudować. **Markdown Slides** tworzy nową prezentację z Markdown (i udostępnia markowy szablon `.pptx`), a narzędzie **Rebrand** przestylizowuje istniejącą prezentację na miejscu - paletę motywu, twardo zakodowane kolory i czcionki - nie dotykając jej wykresów, SmartArt ani animacji, i zwraca plik `.pptx`. Zobacz [Importowanie projektu → Prezentacje i dokumenty](/info/design-import.html#decks-and-documents).
+
+## Penpot
+
+Każde narzędzie, które potrafi wyeksportować SVG, może też wyeksportować **plik Penpot** (`.penpot`) - dokument gotowy do dalszej edycji w Penpot, a nie tylko do oglądania.
+
+- <!--i:layout--> Z **Design** każda ramka staje się w Penpot **planszą** (board), a każdy znajdujący się na niej box przechodzi jako własny edytowalny kształt - prostokąt, elipsa, tekst, obraz lub ścieżka - a całość trafia jako gotowy do ponownego użycia **komponent** w panelu Assets, gotowy do przeciągnięcia w dowolne miejsce.
+- <!--i:pentool--> Z narzędzia, którego renderowanie to **czysta geometria** - narzędzia wektorowe takie jak QR Code, Street Map, Wordmark i Palette Lab - każda ścieżka, prostokąt, fragment tekstu i gradient przechodzi tak samo, jako własny edytowalny kształt.
+- <!--i:font--> Z narzędzia, które układa swoje renderowanie w **HTML**, **tekst pozostaje tekstem** - jeden edytowalny obiekt tekstowy Penpot na wiersz, a nie kontur ani płaski obraz. Element grafiki, dla którego Penpot nie ma odpowiedniej konstrukcji - złożona ilustracja, żywe płótno (canvas) - jedzie osobno jako obraz, dzięki czemu nigdy nie spłaszcza wokół siebie tekstu i boxów. Cały układ, którego Penpot nie potrafi wiernie rozdzielić, i tak może zostać przekazany jako jeden obraz w pełnej wierności, więc nic nigdy nie ginie.
+- <!--i:palette--> Kolor lub czcionka, które kształt **dziedziczy z tokenu marki**, pozostają **powiązane** z tym tokenem w pliku: zmień token w panelu Tokens w Penpot, a każdy kształt, który go dziedziczy, przemaluje się razem z nim, podczas gdy jednorazowy, dosłowny kolor pozostaje dokładnie taki, jaki był. Kolory i typografie marki trafiają też do panelu **Assets**, a jej pełny zestaw tokenów projektowych - do panelu **Tokens** - jest to ten sam zestaw tokenów DTCG, którego używa własna paleta Lolly. Penpot trzyma od tego momentu własną kopię: edycja wykonana w jego panelu Tokens wraca do marki przez [import Brand Studio](/info/design-import.html), a nie sama z siebie.
+
+| Co stworzono | W Penpot |
+|---|---|
+| Tekst | Edytowalne obiekty tekstowe - popraw literówkę lub zmień styl |
+| Kształty, ścieżki, gradienty, obrazy | Własne edytowalne kształty wektorowe |
+| Kolor lub czcionka z tokenu marki | Żywe powiązanie z tokenem - edytuj token, a podąży za nim każdy dziedziczący go kształt |
+| Cały projekt | Gotowy do ponownego użycia komponent w panelu Assets |
+| Złożona ilustracja lub żywe płótno | Osadzone osobno jako obraz, edytowalna zawartość wokół pozostaje nietknięta |
+
+![Panel eksportu z wybranym Penpot: plik .penpot oraz Send to Penpot obok pobierania](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
+
+Aby go otworzyć, uruchom Penpot, wybierz projekt i kliknij **Import**. Po zalogowaniu do Penpot z poziomu panelu eksportu opcja **Send to Penpot** robi to za ciebie - wybierz tam projekt, a plik trafi od razu do niego.
+
+## SCORM (pakiety kursów)
+
+Prezentacja Design może zostać wyeksportowana jako **pakiet SCORM** - plik zip, który zaimportuje system LMS, niezależnie od tego, czy jest to Moodle, Canvas, Blackboard czy firmowy LMS. Wybierz **SCORM (LMS)** w selektorze formatu, a eksport zapisze:
+
+- <!--i:layout--> **Slajdy**, jeden obraz na artboard, jako wektor tam, gdzie artboard na to pozwala, i jako piksele tylko tam, gdzie nie pozwala.
+- <!--i:play--> **Film z narracją** wraz ze ścieżką napisów - notatki prelegenta odczytane głosem generowanym na urządzeniu, dokładnie tak, jak odtwarza je [Presenting](/info/create/using.html#presenting).
+- <!--i:file--> **Stronę startową**, która przechodzi przez slajdy, odtwarza film i zgłasza ukończenie z powrotem do LMS przez środowisko SCORM 1.2 - wersję akceptowaną przez każdy LMS.
+- <!--i:font--> Czcionki używane w prezentacji, dzięki czemu strona startowa renderuje się tak samo offline.
+
+![Panel eksportu na prezentacji Design z wybranym SCORM (LMS)](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+
+Nic w tym pakiecie nie łączy się z żadnym serwerem: to pliki w zipie, które działają wewnątrz LMS bez bundlera, bez CDN i bez konta. Buduje go aplikacja webowa i desktopowa; CLI tego nie robi, ponieważ sfotografowanie artboardów i zakodowanie filmu wymaga przeglądarki.
 
 ## DXF (pliki do cięcia)
-
-![The export panel with Penpot chosen: the .penpot file, and Send to Penpot beside the download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
 Narzędzia wektorowe (Brand Lockup, QR Code, Street Map, Wayfinding Signage, Pose Geeko, warianty logo, Diagram Builder) mogą eksportować do **DXF** - formatu wymiany AutoCAD R12, który odczytują plotery laserowe, plotery winylowe i oprogramowanie CNC/CAD. Geometria jest zapisywana jako **ścieżki konturu w milimetrach** (krzywe spłaszczone z dużą dokładnością), tekst jest zamieniany na ścieżki konturowe, a kolor jest mapowany na najbliższy indeks kolorów AutoCAD (który zwykle steruje narzędziem/operacją na ploterze tnącym). DXF to wyłącznie grafika liniowa - obszar fotograficzny lub filtrowany nie ma formy ścieżki cięcia i zostaje pominięty (Lolly ostrzega), więc gdy trzeba zachować treść rastrową, użyj SVG/PDF.
 
@@ -141,8 +174,6 @@ Przewiń, a kamera oddala się przez rzeczywistą geometrię: siedem ścieżek, 
 :::
 
 ## Animowany SVG
-
-![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Narzędzia animacji (Animated Ad, Lottie Ad) mogą eksportować **Animowany SVG** - samodzielną animację *wektorową*. W przeciwieństwie do GIF/APNG/WebP (które próbkują każdą klatkę do pikseli), animowany SVG układa migawki wektorowe z osadzonymi klatkami kluczowymi CSS, dzięki czemu **skaluje się do dowolnego rozmiaru bez kodeka i bez zewnętrznego środowiska uruchomieniowego** - zapętla się w karcie przeglądarki lub w `<img>`. Tekst pozostaje zamieniony na ścieżki konturowe, więc renderuje się wszędzie. Współdzieli z formatami animowanymi ustawienia **Duration** / liczby klatek na sekundę, i (będąc cięższy na klatkę niż bitmapa) używa niższej domyślnej liczby klatek.
 
@@ -180,13 +211,14 @@ Zwykłe eksporty są w sRGB: biel jest bielą, a nasycony kolor marki jest tak j
 
 ![Włączona karta HDR w panelu eksportu, z odsłoniętymi pod nią pokrętłami White / Reach / Dark lift / Focus](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **Formaty.** Formaty rastrowe mające miejsce na przeniesienie sygnału: **PNG**, **JPG**, **AVIF** i **TIFF**. (Nie WebP - jest 8-bitowy, bez działającej ścieżki dekodowania HDR, więc PQ w WebP po prostu wyglądałby na ciemny. Wektory i PDF w ogóle nie mają modelu HDR.)
-- **Domyślnie wyłączone**, w przeciwieństwie do oznaczania kolorem - zmienia piksele, więc jest opt-in. Zaznacz kartę albo przekaż `hdr=1` w linku udostępniania.
-- **Co jest faktycznie zapisywane.** Piksele są ponownie kodowane do **Rec.2100 PQ** - podstawowe barwy BT.2020 z krzywą transferu SMPTE ST 2084 (PQ) - a kontener niesie odpowiedni sygnał, żeby aplikacja zarządzająca kolorem wiedziała, jak je odczytać: wygenerowany **profil ICC v4 z tagiem `cicp`** (JPG, TIFF), fragment **`cICP`** (PNG) lub przepisany box `colr` (AVIF). Podbicie jest bramkowane **jasnością percepcyjną (OKLab)**, więc kolory od średnich w górę biją w szczyt, a ciemne są łagodzone, a nie prześwietlane, i zachowuje odcień - zielony marki staje się jaśniejszy, a nie mięsny.
-- **Pokrętła.** Cztery, odsłaniane po włączeniu karty: **White** (sufit szczytowej jasności, 400-2000 nitów), **Reach** (jak daleko w dół tonów sięga blask), **Dark lift** (o ile rozjaśniają się cienie - `0` zachowuje je ciemnymi) i **Focus** (ile bogactwa koloru zachowuje podbicie). Jadą w tym samym parametrze co zwarta, dostrojona wartość - `hdr=1600-60-0-50` to White 1600, Reach 60, Dark lift 0, Focus 50 - więc dostrojony wygląd da się odtworzyć z linku.
-- **Gdzie to zobaczysz.** W przeglądarkach zarządzających kolorem na ekranie HDR: Preview / Quick Look / Safari na urządzeniach Apple, Chrome na monitorze HDR. Na zwykłym ekranie SDR plik nadal wygląda jak zwykły obraz.
-- **Zanim to opublikujesz.** Wiele platform **przekodowuje** to, co przesyłasz, i usuwa sygnał HDR - sieci społecznościowe, komunikatory, niektóre CMS-y - co może sprawić, że obraz wygląda na ciemny lub wyblakły. Używaj HDR tam, gdzie kontrolujesz miejsce docelowe (strona, którą budujesz, ściana wideo, prezentacja na jasnym panelu), a nie jako domyślnej opcji do wszystkiego.
-- **Przezroczystość.** PNG i AVIF zachowują kanał alfa; JPG jest zawsze nieprzezroczysty. Ścieżka **TIFF** spłaszcza na **czarno**, a nie na biało jak ścieżka SDR - w PQ biel to kod 10 000 nitów, więc spłaszczenie na nią otoczyłoby każdą krawędź oślepiającą poświatą.
+- **Formaty.** Formaty rastrowe z miejscem na przeniesienie sygnału: **PNG**, **JPG**, **AVIF** i **TIFF**. (Nie WebP - jest 8-bitowy i nie ma działającej ścieżki dekodowania HDR, więc PQ WebP po prostu wyglądałby ciemno. Wektory i PDF w ogóle nie mają modelu HDR.)
+- **Domyślnie wyłączone**, w przeciwieństwie do tagowania kolorów - zmienia piksele, więc jest opcją opt-in. Zaznacz kartę albo przekaż `hdr=1` w linku udostępniania.
+- **Co naprawdę jest zapisywane.** Piksele są przekodowywane do **Rec.2100 PQ** - podstawowe kolory BT.2020 z krzywą przejścia SMPTE ST 2084 (PQ) - a kontener niesie odpowiedni sygnał, dzięki czemu aplikacja z zarządzaniem kolorem wie, jak je odczytać: wygenerowany **profil ICC v4 z tagiem `cicp`** (JPG, TIFF), fragment **`cICP`** (PNG) lub przepisany box `colr` (AVIF). Wzmocnienie jest sterowane **percepcyjną jasnością (OKLab)**, więc kolory od średnich w górę osiągają szczyt, a ciemne są łagodzone, a nie prześwietlane, i zachowuje odcień - zielony marki staje się jaśniejszy, a nie miętowy.
+- **Suwaki.** Cztery, odsłaniane po włączeniu karty: **White** (sufit szczytowej jasności, 400–2000 nitów), **Reach** (jak daleko w dół tonów sięga poświata), **Dark lift** (o ile rozjaśniają się ciemne partie - `0` zachowuje je ciemnymi) oraz **Focus** (ile bogactwa koloru zachowuje wzmocnienie). Jadą w tym samym parametrze co zwarta, dostrojona wartość - `hdr=1600-60-0-50` to White 1600, Reach 60, Dark lift 0, Focus 50 - dzięki czemu dostrojony wygląd da się odtworzyć z linku.
+- **Gdzie to zobaczysz.** W przeglądarkach z zarządzaniem kolorem na wyświetlaczu HDR: Preview / Quick Look / Safari na urządzeniach Apple, Chrome na monitorze HDR. Na zwykłym ekranie SDR plik nadal wygląda jak zwykły obraz.
+- **Co warto wiedzieć przed wysyłką.** Wiele platform **przekodowuje** to, co przesyłasz, i usuwa sygnał HDR - sieci społecznościowe, komunikatory, niektóre CMS-y - co może sprawić, że obraz będzie wyglądał na ciemny lub wypłowiały. Używaj HDR tam, gdzie kontrolujesz miejsce docelowe (własna strona, ściana wideo, prezentacja na jasnym panelu), a nie jako domyślnej opcji dla wszystkiego.
+- **Przezroczystość.** PNG i AVIF zachowują swój kanał alfa; JPG jak zawsze jest nieprzezroczysty. Ścieżka **TIFF** spłaszcza się do **czerni**, a nie do bieli jak ścieżka SDR - w PQ biel to kod 10 000 nitów, więc spłaszczenie do niej otoczyłoby każdą krawędź oślepiającą poświatą.
+- **Te same bajty z terminala.** `--hdr=1` razem z `--export=png` lub `--export=jpg` zapisuje 16-bitowy PNG Rec.2100 PQ i JPEG z mapą wzmocnienia ISO 21496-1 także w [CLI](/info/cli.html), z tych samych koderów silnika, a nie z przeglądarki - dzięki czemu natywne narzędzie `<svg>` tworzy plik HDR bez udziału Chromium na żadnym etapie, a PNG jest identyczny co do bajtu z wersją z powłoki webowej. AVIF i TIFF na razie pozostają eksportami tylko z powłoki webowej.
 
 ## Wideo
 
@@ -288,12 +320,12 @@ Każdy identyfikator, jaki potrafi wyrenderować host, pogrupowany. To także wa
 
 | Rodzaj | Identyfikatory |
 |---|---|
-| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (TIFF RGB) · `cmyk-tiff` (TIFF Print) · `bmp` · `ico` |
+| Raster | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (Print TIFF) · `bmp` · `ico` |
 | Wektor | `svg` · `svgz` (SVG spakowany gzip) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (plik do cięcia) |
-| Strona i dokument | `pdf` · `pdf-cmyk` (PDF Print) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) |
-| Ruch | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` |
+| Strona i dokument | `pdf` · `pdf-cmyk` (Print PDF) · `pptx` (PowerPoint) · `scorm` (pakiet kursu SCORM, zip) · `penpot` (plik projektu Penpot) · `docx` (Word) · `odt` (OpenDocument Text) |
+| Ruch | `gif` · `apng` (Animowany PNG) · `webp-anim` (Animowany WebP) · `svg-anim` (Animowany SVG) · `webm` · `mp4` |
 | Audio | `wav` · `mp3` · `m4a` · `opus` |
 | Tekst i dane | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (paleta GIMP) |
-| Paczka | `zip` |
+| Pakiet | `zip` |
 
 Kilka kolejnych identyfikatorów pochodzi z **własnego haka eksportu narzędzia**, a nie ze wspólnej ścieżki renderowania: `ase` (Adobe Swatch Exchange, z Palette Lab), `exr` i `hdr` (rastry HDR z Darkroom) oraz `ttf` / `otf` / `woff` (Font Convert). Format wybiera się tak samo - selektor, `format=`, `--export=` - po prostu bajty buduje narzędzie. Font Convert jest jedynym wyjątkiem: przekształca plik czcionki, który dostarczasz *ty*, więc dla samego adresu URL nie ma nic do wyrenderowania.

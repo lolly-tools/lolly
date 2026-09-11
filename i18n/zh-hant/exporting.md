@@ -38,27 +38,28 @@ Share（分享）會在工具上方開啟，連結已經建立完成，造訪時
 
 | 你想要… | 使用 | 原因 |
 |---|---|---|
-| 清晰、可縮放的標誌／美術稿 | **SVG** | 向量 - 可無限縮放、檔案小、可編輯 |
-| 適用於 Office / Windows 應用程式的向量 | **EMF** | 貼到 PowerPoint / Word 中會成為可編輯的向量；文字保持即時可編輯，Google Drive 則會以 Google 繪圖開啟供 Slides 使用 |
-| 適用於印刷／設計應用程式的向量 | **EPS**，或 **EPS (CMYK)** | 用於 Illustrator／印刷工作流程的 PostScript 向量 |
-| 適用於裁切／CAD 機器的向量 | **DXF** | 雷射切割機、割字機、CNC - 以毫米為單位的輪廓路徑 |
-| 可編輯的投影片簡報 | **PowerPoint**（PPTX） | 原生可編輯文字＋形狀，圖片與向量都保持可擷取 |
-| 可編輯的文字文件 | **Word**（DOCX）或 **OpenDocument**（ODT） | 文書處理軟體可持續編輯的真實段落與標題（Doc Studio） |
-| 照片或一般用途圖片 | **PNG**（無損）或 **JPG**（較小） | 通用點陣圖 |
-| 較小的現代圖片格式 | **WebP** / **AVIF** | 壓縮率更佳，支援 alpha |
-| 印刷 | **PDF**，或 **Print PDF**（CMYK） | 真實頁面尺寸；印刷用 CMYK |
-| 印刷用點陣圖 | **Print TIFF**（CMYK） | 供 RIP 使用的 DeviceCMYK 像素 |
-| 適用於網頁的動畫 | **GIF** | 到處都能使用，檔案較大 |
-| 全彩＋真實透明度的動畫 | **APNG** | 動畫 PNG - 沒有調色盤限制，真正的透明度 |
-| 檔案最小的動畫 | **Animated WebP** | 全彩＋alpha，壓縮效果優於 GIF 或 APNG |
-| 可縮放的動畫向量 | **Animated SVG** | 自成一體；可在瀏覽器或 `<img>` 中循環播放，無需編解碼器，任何尺寸皆可 |
-| 用於社群／分享的影片 | **MP4** 或 **WebM** | 每位元組品質最佳（見下文） |
-| 富文字／電子郵件簽名 | **HTML** | 貼入郵件用戶端時會保留格式 |
-| 純內容 | **MD** / **TXT** | 僅純文字 |
+| 清晰、可縮放的標誌／美術作品 | **SVG** | 向量 - 可無限縮放、檔案小、可編輯 |
+| 適用於 Office／Windows 應用程式的向量 | **EMF** | 貼入 PowerPoint／Word 後仍是可編輯的向量;文字保持即時可編輯,Google 雲端硬碟則會用 Google 繪圖開啟供 Slides 使用 |
+| 適用於印刷／設計應用程式的向量 | **EPS**,或 **EPS (CMYK)** | 供 Illustrator／印刷工作流程使用的 PostScript 向量 |
+| 適用於切割／CAD 機器的向量 | **DXF** | 雷射切割機、割字機、CNC - 以毫米為單位的輪廓路徑 |
+| 可編輯的投影片簡報 | **PowerPoint**(PPTX) | 原生可編輯文字與圖形,圖片與向量皆可取出使用 |
+| 可供 LMS 匯入的課程 | **SCORM**(LMS) | 一個 zip 檔,內含清單檔、啟動頁面、投影片,以及附字幕的旁白影片 - 來自 Design 簡報 |
+| 可編輯的文字文件 | **Word**(DOCX)或 **OpenDocument**(ODT) | 真正的段落與標題,文書處理軟體可繼續編輯(Doc Studio) |
+| 相片或一般用途影像 | **PNG**(無損)或 **JPG**(較小) | 通用點陣圖 |
+| 更小的現代影像格式 | **WebP** / **AVIF** | 壓縮效果更佳,支援透明度 |
+| 印刷 | **PDF**,或 **Print PDF**(CMYK) | 真實頁面尺寸;CMYK 供印刷使用 |
+| 供印刷廠使用的點陣圖 | **Print TIFF**(CMYK) | 供 RIP 使用的 DeviceCMYK 像素 |
+| 網頁用動畫 | **GIF** | 各處皆可使用,檔案較大 |
+| 全彩且具真實透明度的動畫 | **APNG** | Animated PNG - 無調色盤限制,真正透明 |
+| 檔案最小的動畫 | **Animated WebP** | 全彩加透明度,壓縮效果優於 GIF 或 APNG |
+| 可縮放的向量動畫 | **Animated SVG** | 自成一體;可在瀏覽器或 `<img>` 中循環播放,無需編解碼器,任何尺寸皆可 |
+| 社群／分享用影片 | **MP4** 或 **WebM** | 每位元組畫質最佳(見下文) |
+| 富文字／電子郵件簽名 | **HTML** | 貼入郵件用戶端時保留格式 |
+| 純內容 | **MD** / **TXT** | 純文字 |
 | 行事曆活動 | **ICS** | 可匯入任何行事曆應用程式 |
-| 聯絡人名片 | **VCF** | 可匯入通訊錄／聯絡人應用程式 |
-| 可重新匯入的結構化資料 | **JSON** / **CSV** | 可將工具內容原樣往返 |
-| 網站圖示 | **ICO** | 多尺寸網站圖示（**ZIP** 可打包多種格式） |
+| 聯絡人名片 | **VCF** | 可匯入聯絡人／通訊錄 |
+| 可重新匯入的結構化資料 | **JSON** / **CSV** | 可完整往返該工具的內容 |
+| 網站圖示 | **ICO** | 多尺寸的網站圖示(**ZIP** 內含多種格式) |
 
 第一列是最常見的情況。以你的品牌字體排版的品牌字標，會匯出成 SVG，其中每個字母都是輪廓路徑而非像素，因此同一個檔案在名片尺寸與建築外牆尺寸下都能保持清晰。
 
@@ -79,7 +80,7 @@ Share（分享）會在工具上方開啟，連結已經建立完成，造訪時
 
 ## 從計時合成中擷取靜態畫面
 
-**計時合成** - 一個 [Sequence Studio](/info/using.html#timeline-sequence-studio) 階段，或任何由時間軸驅動的畫板 - 是會動的東西，因此靜態匯出必須回答「是哪一個時刻？」這個問題。規則正如你所預期：**播放頭所在的畫格**。把播放頭停在你想要的畫面位置再匯出；你看到的就是輸出的結果。
+**具時間軸的合成內容** - 也就是 Design 中的 [Sequence](/info/using.html#timeline-sequence) 時間軸,或任何以時間軸驅動的畫板 - 本身是會變動的,因此匯出靜態影像時必須回答「哪一刻?」。規則正如你所預期:**播放頭所在的畫格**。將播放頭移到你想要的畫面位置再匯出;你看到的就是匯出的結果。
 
 當你想要不只一個時刻時，**Frames**（畫格數）欄位會出現在輸出尺寸旁邊（僅適用於計時合成，且僅適用於靜態格式 - PNG、JPG、WebP、SVG 或 PDF）。將其保留為 `1` 即為播放頭所在畫格。調高數值，你就會得到該數量的靜態畫面，以等間隔取樣自整段序列：
 
@@ -94,12 +95,12 @@ Share（分享）會在工具上方開啟，連結已經建立完成，造訪時
 
 ## 多頁 PDF
 
-有些工具會建立**多頁 PDF 文件**，而非單一美術稿 - 封面、依需要流動分頁的內容，以及封底，全部在同一個檔案裡（參見 *Multi-Page PDF* 工具）。每一頁都是依該頁面框尺寸設定的**真實 PDF 頁面**，因此讀者與印表機拿到的是真正的頁面，而不是一張很長的圖片。
+有些工具產生的是**多頁 PDF 文件**,而非單一美術作品 - 封面、依內容需要延展至多頁的內文,以及封底,全部收在同一個檔案中(參見 *Booklet* 工具)。每一頁都是依該頁面框尺寸產生的**真正 PDF 頁面**,因此讀者與印刷廠拿到的是真實的多頁,而非一張長條圖片。
 
 - **由內容產生頁面。** 加入文字與圖片區塊；當區塊填滿時會自動建立新頁面，你也可以強制任何區塊另起新頁。
 - **真實頁面尺寸。** 選擇 A4、US Letter 或 A5（直向 - 雙欄版面就是為此而設計）- 每一頁，以及匯出的 PDF，都會依該尺寸精確轉譯。
 
-多頁 PDF 是 RGB 文件，不帶裁切／出血標記 - 那屬於上文提到的單頁 **Print PDF** 路徑。它們確實帶有與每個 PDF 匯出相同的 **PDF/X-4 中繼資料**（頁面框、XMP、文件 ID、內嵌描述檔的 sRGB 輸出意圖），也提供 **Content Credentials**（如下）- 在 *Multi-Page PDF* 工具中，此選項預設已勾選。
+多頁 PDF 是 RGB 文件,不含裁切線／出血線標記 - 這些屬於上方單頁的 **Print PDF** 路徑。它們確實帶有與每個 PDF 匯出相同的 **PDF/X-4 中繼資料**(頁面框、XMP、文件 ID、內嵌描述檔的 sRGB 輸出意圖),並提供 **Content Credentials**(見下文) - 在 *Booklet* 工具中此選項預設已勾選。
 
 ## 一次製作多個項目
 
@@ -113,22 +114,54 @@ Lolly 有三種不同的方式可用來大量處理，各自解決不同的工�
 
 ## PowerPoint（PPTX）
 
-![The export panel with PowerPoint chosen: one slide per page, text and shapes kept editable](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
-
-多頁與版面配置工具（Carousel、Doc Studio、Multi-Page PDF、圖表工具，以及單一畫布的卡片／版面工具）可以匯出成 **PowerPoint 簡報** - 每頁一張投影片。重點不在於像素完美的截圖，而是要交給同事一份他們能夠真正**編輯並取出資產**的簡報。因此每一頁都會被拆解成原生物件：
+Design、Markdown Slides、Booklet、Doc Studio、Chart 與 Diagrams 都能匯出**PowerPoint 簡報** - 每頁一張投影片。重點不在於像素級精準的截圖,而是要交給同事一份他們真的能夠**編輯、並從中取出素材**的簡報。因此每一頁都會拆解為原生物件:
 
 - <!--i:font--> **文字**會變成真正、**可編輯的 PowerPoint 文字方塊** - 保留版面配置的字型大小、顏色、粗細、斜體與對齊方式 - 讓你能在 PowerPoint 中修正錯字或重新調整樣式。
 - <!--i:pentool--> **向量圖**(標誌、圖示、SUSE 標記)會以**真正的 SVG 圖片**內嵌 - 在任何尺寸下都保持清晰銳利,PowerPoint 甚至能對其執行*轉換成圖形*。
 - <!--i:photos--> **圖片**會以原生解析度、作為可獨立擷取的圖片呈現(以 `cover` 裁切的主圖會保留裁切範圍外的完整影像,方便你重新取景),圖片上的任何處理效果(濾鏡、混合)都會忠實烘焙進去。
 - <!--i:layers--> **背景、邊框與分隔線**會變成真正的矩形/線條圖形。
 
+![已選擇 PowerPoint 的匯出面板:每頁一張投影片,文字與圖形保持可編輯](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
+
 版面配置是刻意近似的 - 目標是忠實、可重複使用的**內容**,而不是鎖死的螢幕截圖。任何走查器無法原生表達的內容(複雜的濾鏡或遮罩區域)都會以圖片形式內嵌,以免流失內容。一份簡報只有單一投影片尺寸,取自第一頁。
 
-PowerPoint 也是一種**匯入**方式 - 這個格式可雙向轉換。**Deck Builder** 可開啟現有的 `.pptx` 作為可編輯投影片,並貼合你的品牌;**Rebrand a Deck** 工具則會就地為簡報套用新主題 - 主題調色盤、寫死的顏色與字型 - 不動到其中的圖表、SmartArt 或動畫,最後交回一份 `.pptx`。參見 [匯入設計 → 簡報與文件](/info/design-import.html#decks-and-documents)。
+PowerPoint 也是一個**匯入**管道。將 `.pptx` 拖放到任何上傳區域,選取想要的投影片 - 每一張都會成為可放置、調色或延伸製作的素材。**Markdown Slides** 會依 Markdown 內容產生全新簡報(並附上具品牌樣式的 `.pptx` 範本),而 **Rebrand** 工具則會原地為既有簡報換上新主題 - 主題色盤、寫死的顏色與字型 - 但不動其圖表、SmartArt 或動畫,並以 `.pptx` 交回成果。詳見 [匯入設計 → 簡報與文件](/info/design-import.html#decks-and-documents)。
+
+## Penpot
+
+任何能匯出 SVG 的工具,也都能匯出 **Penpot 檔案**(`.penpot`) - 這是可以在 Penpot 中繼續編輯的文件,而不只是用來檢視。
+
+- <!--i:layout--> 從**Design**匯出時,每個畫框都會變成 Penpot 的**board**,其上每個方框都會各自轉換為可編輯的形狀 - 矩形、橢圓、文字、圖片或路徑 - 結果會以可重複使用的**component**形式出現在 Assets 面板中,隨時可以再次拖出使用。
+- <!--i:pentool--> 對於算繪結果是**單純幾何圖形**的工具 - 例如 QR Code、Street Map、Wordmark 與 Palette Lab 等向量工具 - 每個路徑、矩形、文字段落與漸層都會以相同方式轉換為各自可編輯的形狀。
+- <!--i:font--> 對於以**HTML**排版算繪的工具,**文字仍然是文字** - 每一行都是一個可編輯的 Penpot 文字物件,而非外框路徑,也不是扁平圖片。Penpot 沒有對應結構可承載的美術內容 - 複雜的插畫、即時畫布 - 會單獨以圖片形式保留,因此絕不會把它周圍的文字與方框一併壓平。若整個版面 Penpot 無法忠實拆解,仍會以一張完整保真的圖片呈現,絕不會遺漏任何內容。
+- <!--i:palette--> 形狀若**繼承自品牌 token** 的顏色或字型,在檔案中會保持與該 token 的**連結**:在 Penpot 的 Tokens 面板中修改 token,所有繼承它的形狀都會一起重新上色,而一次性寫死的顏色則會維持原樣不變。品牌的顏色與字體排印也會出現在 **Assets** 面板中,完整的設計 token 組則會出現在 **Tokens** 面板中 - 與 Lolly 自身色盤使用的是同一套 DTCG token 組。Penpot 從此保有自己的一份副本:在其 Tokens 面板中所做的編輯,需透過 [Brand Studio 的匯入功能](/info/design-import.html) 才會回到品牌中,不會自動同步。
+
+| 你製作的內容 | 在 Penpot 中 |
+|---|---|
+| 文字 | 可編輯的文字物件 - 可修正錯字或重新設定樣式 |
+| 形狀、路徑、漸層、圖片 | 各自可編輯的向量形狀 |
+| 來自品牌 token 的顏色或字型 | 即時的 token 連結 - 編輯 token,所有繼承它的形狀都會隨之更新 |
+| 整個設計 | Assets 面板中可重複使用的 component |
+| 複雜插畫或即時畫布 | 單獨以圖片形式內嵌,周圍的可編輯內容則不受影響 |
+
+![已選擇 Penpot 的匯出面板:.penpot 檔案,以及下載按鈕旁的 Send to Penpot](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
+
+要開啟它,啟動 Penpot、選擇一個專案,然後選擇 **Import**。若已在匯出面板中登入 Penpot,**Send to Penpot** 會替你完成這個步驟 - 在那裡選擇專案,檔案就會直接進入該專案。
+
+## SCORM(課程套件)
+
+Design 簡報可以匯出為**SCORM package** - 也就是學習管理系統(LMS)可匯入的 zip 檔,無論是 Moodle、Canvas、Blackboard 或企業自有的 LMS 皆可。在格式選擇器中選取 **SCORM (LMS)**,匯出就會產生:
+
+- <!--i:layout--> **投影片**,每個畫板一張圖片,畫板允許的話以向量呈現,只有在無法向量化時才使用點陣圖。
+- <!--i:play--> **旁白影片**及其字幕軌 - 由裝置端語音朗讀的講者備忘稿,與 [Presenting](/info/create/using.html#presenting) 播放的內容完全一致。
+- <!--i:file--> **一個啟動頁面**,會依序播放投影片、播放影片,並透過每個 LMS 都接受的 SCORM 1.2 執行環境,將完成狀態回報給 LMS。
+- <!--i:font--> 簡報所使用的字型,讓啟動頁面離線時也能呈現相同效果。
+
+![Design 簡報上已選擇 SCORM (LMS) 的匯出面板](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+
+套件中沒有任何內容會對外連線回報:它只是 zip 中的檔案,在 LMS 內執行時不需要打包工具、CDN 或帳號。網頁版與桌面版應用程式可以產生它;CLI 則不行,因為拍攝畫板與編碼影片都需要瀏覽器。
 
 ## DXF(切割檔)
-
-![The export panel with Penpot chosen: the .penpot file, and Send to Penpot beside the download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
 向量工具(Brand Lockup、QR Code、Street Map、Wayfinding Signage、Pose Geeko、標誌組合、Diagram Builder)可以匯出 **DXF**——雷射切割機、貼紙繪圖機與 CNC/CAD 軟體都能讀取的 AutoCAD R12 交換格式。幾何圖形會以**毫米為單位的外框路徑**寫入(曲線會以精細的容許誤差攤平),文字會轉換為外框路徑,色彩則對應到最接近的 AutoCAD 色彩索引(通常用來驅動切割機上的工具/作業)。DXF 僅支援線稿——照片或套用濾鏡的區域沒有可供切割的路徑形式,會被捨棄(Lolly 會提出警告),因此若需要保留點陣內容,請改用 SVG/PDF。
 
@@ -141,8 +174,6 @@ Street Map 是最清楚的例子:整個設計本來就都是線條,因此每一�
 :::
 
 ## 動態 SVG
-
-![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 動態工具(Animated Ad、Lottie Ad)可匯出**動態 SVG** - 一種自成一體的*向量*動畫。與 GIF/APNG/WebP(逐格取樣為像素)不同,動態 SVG 是以內嵌 CSS 關鍵影格堆疊向量快照,因此**可縮放至任意尺寸,不需要編解碼器,也不需要外部執行環境** - 在瀏覽器分頁或 `<img>` 中即可循環播放。文字仍保持輪廓化,因此在任何地方都能正常呈現。它沿用動態格式共通的**時長**/影格率控制項,且(因每格比點陣圖更重)預設影格率較低。
 
@@ -180,13 +211,14 @@ Street Map 是最清楚的例子:整個設計本來就都是線條,因此每一�
 
 ![匯出面板中已開啟的 HDR 卡片,底下展開了白點/延伸範圍/暗部提升/聚焦這幾個轉盤](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **格式。**具備承載此訊號能力的點陣格式:**PNG**、**JPG**、**AVIF** 與 **TIFF**。(不含 WebP - 它是 8 位元格式,沒有可運作的 HDR 解碼路徑,PQ 版 WebP 只會顯得偏暗。向量與 PDF 完全沒有 HDR 模型。)
-- **預設關閉**,與色彩標記不同 - 因為它會改變像素,所以是選擇性加入。勾選卡片,或在分享連結中傳入 `hdr=1`。
-- **實際寫入的內容。**像素會重新編碼為 **Rec.2100 PQ** - BT.2020 原色搭配 SMPTE ST 2084(PQ)轉換曲線 - 容器則會攜帶對應訊號,讓具色彩管理的應用程式知道應如何解讀:產生一份帶 `cicp` 標籤的 **ICC v4 設定檔**(JPG、TIFF)、一個 **`cICP` 區塊**(PNG),或改寫過的 `colr` 區塊(AVIF)。提升幅度依**知覺(OKLab)明度**分級,因此中至高亮度的顏色會衝向峰值,暗色則被壓抑而不致過曝,並且保持色相不變 - 品牌綠色只會變亮,不會變成薄荷色。
-- **轉盤。**卡片開啟時會顯示四個轉盤:**White**(峰值亮度上限,400-2000 尼特)、**Reach**(光暈向下延伸的範圍)、**Dark lift**(暗部提亮程度 - `0` 則保持暗部深沉)與 **Focus**(提升過程保留多少色彩豐富度)。它們可透過同一個參數以緊湊的調校值傳遞 - `hdr=1600-60-0-50` 表示 White 1600、Reach 60、Dark lift 0、Focus 50 - 因此一個調校好的效果可透過連結重現。
-- **在哪裡看得到效果。**支援 HDR 螢幕的色彩管理檢視程式:Apple 裝置上的 Preview / 快速預覽 / Safari,或 HDR 螢幕上的 Chrome。在一般 SDR 螢幕上,檔案仍會顯示為一般影像。
-- **上線前該知道的事。**許多平台會**重新編碼**你上傳的內容並剝除 HDR 訊號 - 社群網路、通訊軟體、部分 CMS 都是如此 - 這可能讓影像看起來偏暗或褪色。請只在你能掌控目的地的情況下使用 HDR(自建網站、視訊牆、明亮面板上的簡報),不要把它當成所有場合的預設值。
-- **透明度。**PNG 與 AVIF 會保留 alpha;JPG 一律不透明。**TIFF** 路徑會壓平為**黑底**,而非 SDR 路徑的白底 - 在 PQ 中,白色對應到 10,000 尼特的編碼值,若壓平至白底,每個邊緣都會出現刺眼的光暈。
+- **格式。** 具備承載訊號能力的點陣格式:**PNG**、**JPG**、**AVIF** 與 **TIFF**。(不含 WebP - 它是 8 位元格式,沒有可用的 HDR 解碼路徑,PQ WebP 只會顯得偏暗。向量與 PDF 則完全沒有 HDR 模型。)
+- **預設關閉**,與色彩標記不同 - 它會改變像素本身,因此屬於選擇性加入。勾選該卡片,或在分享連結中加上 `hdr=1`。
+- **實際寫入的內容。** 像素會重新編碼為 **Rec.2100 PQ** - 採用 BT.2020 原色與 SMPTE ST 2084(PQ)轉換曲線 - 容器同時帶有相符的訊號,讓具色彩管理能力的應用程式知道該以此方式讀取:產生一份**內含 `cicp` 標籤的 ICC v4 描述檔**(JPG、TIFF)、一個 **`cICP` 區塊**(PNG),或改寫過的 `colr` box(AVIF)。此增強效果以**感知(OKLab)明度**為閘門,因此中間至偏亮的顏色會被推向峰值,暗部則是被緩和而非過曝,並且會保留色相 - 品牌綠色只會變得更亮,不會偏向薄荷色。
+- **可調參數。** 卡片開啟後會顯示四個:**White**(峰值亮度上限,400–2000 nits)、**Reach**(光暈向暗部延伸的程度)、**Dark lift**(暗部提亮的幅度 - `0` 表示維持暗部不變)與 **Focus**(增強效果保留的色彩豐富度)。這些會併入同一個參數,以精簡的調校值表示 - `hdr=1600-60-0-50` 即 White 1600、Reach 60、Dark lift 0、Focus 50 - 因此調校好的效果可直接從連結重現。
+- **可以看到效果的地方。** HDR 顯示器上具色彩管理能力的檢視器:Apple 裝置上的 Preview／Quick Look／Safari,或 HDR 螢幕上的 Chrome。在一般 SDR 螢幕上,檔案仍會顯示為普通影像。
+- **上線前應了解的事。** 許多平台會**重新編碼**你上傳的內容並剝除 HDR 訊號 - 社群網路、通訊應用程式、部分 CMS - 這可能讓影像看起來偏暗或褪色。請在你能掌控輸出端的情境下使用 HDR(自建網站、影音牆、明亮面板上的簡報),而非當作所有情況的預設值。
+- **透明度。** PNG 與 AVIF 會保留 alpha;JPG 則一如既往不透明。**TIFF** 路徑會以**黑色**做為平面化背景,而非 SDR 路徑所用的白色 - 在 PQ 中,白色對應的是 10,000 nit 的編碼值,若以此平面化,每個邊緣都會出現刺眼的暈光。
+- **從終端機輸出相同的位元組。** 在 [CLI](/info/cli.html) 中搭配 `--export=png` 或 `--export=jpg` 使用 `--hdr=1`,同樣會寫出 16 位元的 Rec.2100 PQ PNG,以及符合 ISO 21496-1 的增益圖(gain-map)JPEG,兩者都出自同一套引擎編碼器而非瀏覽器 - 因此一個原生 `<svg>` 工具能在完全不經過 Chromium 的情況下產生 HDR 檔案,且此 PNG 與網頁版輸出的位元組完全相同。AVIF 與 TIFF 目前仍僅限網頁版匯出。
 
 ## 影片
 
@@ -286,14 +318,14 @@ GIF 在任何地方都能運作(很適合聊天/電子郵件用途;檔案較大�
 
 依類別列出主機可以轉譯的每一個 id。這些同時也是 URL `format=` 參數以及 CLI `--export=` 旗標的可用值 - 詳見 [URL Mode](/info/url-mode.html) 與 [CLI](/info/cli.html)。每個工具只會提供其作者所宣告的子集，因此選單一定會比這份清單短。
 
-| 類別 | Id |
+| 類型 | 識別碼 |
 |---|---|
-| 點陣圖 | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff`（RGB TIFF） · `cmyk-tiff`（印刷用 TIFF） · `bmp` · `ico` |
-| 向量圖 | `svg` · `svgz`（經 gzip 壓縮的 SVG） · `emf` · `wmf` · `eps` · `eps-cmyk`（EPS CMYK） · `dxf`（裁切檔） |
-| 頁面與文件 | `pdf` · `pdf-cmyk`（印刷用 PDF） · `pptx`（PowerPoint） · `docx`（Word） · `odt`（OpenDocument Text） |
-| 動態影像 | `gif` · `apng`（動態 PNG） · `webp-anim`（動態 WebP） · `svg-anim`（動態 SVG） · `webm` · `mp4` |
+| 點陣圖 | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff`(RGB TIFF)· `cmyk-tiff`(Print TIFF)· `bmp` · `ico` |
+| 向量 | `svg` · `svgz`(gzipped SVG)· `emf` · `wmf` · `eps` · `eps-cmyk`(EPS CMYK)· `dxf`(切割檔) |
+| 頁面與文件 | `pdf` · `pdf-cmyk`(Print PDF)· `pptx`(PowerPoint)· `scorm`(SCORM 課程套件,為 zip 檔)· `penpot`(Penpot 設計檔)· `docx`(Word)· `odt`(OpenDocument Text) |
+| 動態 | `gif` · `apng`(Animated PNG)· `webp-anim`(Animated WebP)· `svg-anim`(Animated SVG)· `webm` · `mp4` |
 | 音訊 | `wav` · `mp3` · `m4a` · `opus` |
-| 文字與資料 | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl`（GIMP 調色盤） |
-| 打包檔 | `zip` |
+| 文字與資料 | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl`(GIMP 色盤) |
+| 套件包 | `zip` |
 
 還有少數幾個 id 是來自**工具自身的匯出掛鉤**，而非共用的轉譯路徑：`ase`（Adobe Swatch Exchange，來自 Palette Lab）、`exr` 與 `hdr`（Darkroom 的高動態範圍點陣圖），以及 `ttf` / `otf` / `woff`（Font Convert）。它們選取格式的方式相同 - 選單、`format=`、`--export=` - 只是其位元組由該工具自行建立。Font Convert 是唯一的例外：它轉換的是*你*提供的字型檔案，因此單純的 URL 沒有任何內容可供轉譯。

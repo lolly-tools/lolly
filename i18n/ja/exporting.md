@@ -36,29 +36,30 @@ Shareはツールの上に開き、すでに構築されたリンクとその下
 
 ![The filename field fused to the format picker, so the export reads as one name.format pair](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-| したいこと… | 使うもの | 理由 |
+| 用途 | 使用する形式 | 理由 |
 |---|---|---|
-| 拡大縮小できるくっきりしたロゴ/アートワーク | **SVG** | ベクター - 無限にスケール可能、軽量、編集可能 |
-| Office / Windowsアプリ向けのベクター | **EMF** | PowerPoint / Wordに編集可能なベクターとして貼り付けられます。テキストはそのまま編集可能で、Google DriveはこれをGoogle Drawings for Slidesで開きます |
-| 印刷 / デザインアプリ向けのベクター | **EPS**、または**EPS (CMYK)** | Illustrator / 印刷ワークフロー向けのPostScriptベクター |
-| カッティング / CAD機器向けのベクター | **DXF** | レーザーカッター、ビニールプロッター、CNC - ミリメートル単位のアウトラインパス |
-| 編集可能なスライドデッキ | **PowerPoint** (PPTX) | ネイティブに編集可能なテキストと図形。画像とベクターは抽出可能なまま |
-| 編集可能なテキストドキュメント | **Word** (DOCX) または**OpenDocument** (ODT) | ワープロが編集を続けられる本物の段落と見出し(Doc Studio) |
-| 写真や汎用画像 | **PNG** (ロスレス) または**JPG** (より小さい) | 汎用ラスター |
-| より小さいモダンな画像 | **WebP** / **AVIF** | より良い圧縮、アルファ対応 |
-| 印刷 | **PDF**、または**Print PDF** (CMYK) | 正確なページサイズ、印刷用CMYK |
-| 印刷所向けの印刷用ラスター | **Print TIFF** (CMYK) | RIP向けのDeviceCMYKピクセル |
-| Web用アニメーション | **GIF** | どこでも動作、ファイルサイズは大きい |
-| フルカラー+本物のアルファのアニメーション | **APNG** | Animated PNG - パレット制限なし、真の透明度 |
-| アニメーション、最小ファイルサイズ | **Animated WebP** | フルカラー+アルファ、GIFやAPNGより圧縮率が良い |
-| 拡大縮小できるアニメーションベクター | **Animated SVG** | 自己完結型。ブラウザや`<img>`内でループ、コーデック不要、任意のサイズ |
-| SNS / 共有用の動画 | **MP4** または**WebM** | バイトあたりの品質が最良(下記参照) |
-| リッチテキスト / メール署名 | **HTML** | メールクライアントに書式付きで貼り付けられます |
-| プレーンコンテンツ | **MD** / **TXT** | テキストのみ |
-| カレンダーイベント | **ICS** | どのカレンダーアプリにもインポート可能 |
-| 連絡先カード | **VCF** | 連絡先 / アドレス帳にインポート可能 |
-| 再インポート用の構造化データ | **JSON** / **CSV** | ツールのコンテンツをラウンドトリップ |
-| ファビコン | **ICO** | 複数サイズのサイトアイコン(**ZIP**は複数フォーマットをまとめます) |
+| 拡大縮小してもシャープなロゴ・アートワーク | **SVG** | ベクター - 無限に拡大縮小可能、軽量、編集可能 |
+| Office / Windowsアプリ向けのベクター | **EMF** | PowerPoint / Wordに編集可能なベクターとして貼り付けられる。テキストは編集可能なまま保たれ、Google DriveではGoogle 図形描画（スライド用）で開ける |
+| 印刷 / デザインアプリ向けのベクター | **EPS**、または**EPS（CMYK）** | Illustrator / 印刷ワークフロー向けのPostScriptベクター |
+| カッティング / CAD機械向けのベクター | **DXF** | レーザーカッター、カッティングプロッター、CNC向け - ミリメートル単位の輪郭パス |
+| 編集可能なスライドデッキ | **PowerPoint**（PPTX） | ネイティブに編集可能なテキストと図形。画像とベクターも抽出可能なまま保持 |
+| LMSが取り込めるコース | **SCORM**（LMS） | マニフェスト、起動ページ、スライド、字幕付きのナレーション動画を含むzip - Designデッキから生成 |
+| 編集可能なテキスト文書 | **Word**（DOCX）または**OpenDocument**（ODT） | ワープロソフトで編集を続けられる本物の段落・見出し（Doc Studio） |
+| 写真や汎用画像 | **PNG**（ロスレス）または**JPG**（軽量） | 汎用ラスター |
+| より小さい最新の画像形式 | **WebP** / **AVIF** | 高い圧縮率、アルファ対応 |
+| 印刷 | **PDF**、または**Print PDF**（CMYK） | 正確なページサイズ。印刷用はCMYK |
+| 印刷所向けのラスター | **Print TIFF**（CMYK） | RIP向けのDeviceCMYKピクセル |
+| Web用のアニメーション | **GIF** | どこでも動作するが、ファイルサイズは大きい |
+| フルカラー・真のアルファ対応アニメーション | **APNG** | アニメーションPNG - パレット制限なし、真の透明度 |
+| 最小ファイルサイズのアニメーション | **Animated WebP** | フルカラー・アルファ対応で、GIFやAPNGより高圧縮 |
+| 拡大縮小できるアニメーションベクター | **Animated SVG** | 自己完結型。ブラウザや`<img>`内でループ再生、コーデック不要、任意のサイズ |
+| SNS/共有用の動画 | **MP4**または**WebM** | バイトあたりの画質が最も良い（下記参照） |
+| リッチテキスト / メール署名 | **HTML** | メールクライアントに書式付きで貼り付け可能 |
+| プレーンなコンテンツ | **MD** / **TXT** | テキストのみ |
+| カレンダーイベント | **ICS** | 任意のカレンダーアプリに取り込み可能 |
+| 連絡先カード | **VCF** | 連絡先 / アドレス帳アプリに取り込み可能 |
+| 再取り込み用の構造化データ | **JSON** / **CSV** | ツールのコンテンツをラウンドトリップ |
+| ファビコン | **ICO** | 複数サイズ対応のサイトアイコン（**ZIP**は複数形式をまとめる） |
 
 最初の行が一般的なケースです。あなたのブランド書体で組んだワードマークはSVGとして書き出され、すべての文字がピクセルではなくアウトライン化されたパスになるので、名刺サイズでもビル一面のラッピングサイズでも、同じファイルからくっきりと表示されます。
 
@@ -79,7 +80,7 @@ Shareはツールの上に開き、すでに構築されたリンクとその下
 
 ## タイムド・コンポジションからの静止画
 
-**タイムド・コンポジション** - [Sequence Studio](/info/using.html#timeline-sequence-studio)のステージや、タイムライン駆動のアートボード全般 - は動くものなので、静止画の書き出しは「どの瞬間か?」に答える必要があります。ルールは想像どおりです。**プレイヘッドのあるフレーム**です。欲しい画像のところにプレイヘッドを止めて書き出せば、見えているものがそのまま出力されます。
+**タイムド・コンポジション**（Designの[シーケンス](/info/using.html#timeline-sequence)タイムライン、またはタイムライン駆動のアートボード全般）は動きのあるものなので、静止画としてエクスポートする際には「どの瞬間か」に答える必要があります。ルールは予想どおりです。**再生ヘッド位置のフレーム**です。画像として欲しい位置に再生ヘッドを置いてエクスポートしてください。見えているものがそのまま出力されます。
 
 1つ以上の瞬間が欲しい場合、**Frames**フィールドが出力サイズの隣に表示されます(タイムド・コンポジションの場合のみ、かつ静止画フォーマット - PNG、JPG、WebP、SVG、PDF - の場合のみ)。プレイヘッドのフレームだけなら`1`のままにします。数値を上げると、シーケンス全体にわたって等間隔でサンプリングされたその数だけの静止画が得られます。
 
@@ -94,12 +95,12 @@ Shareはツールの上に開き、すでに構築されたリンクとその下
 
 ## 複数ページPDF
 
-一部のツールは、単一のアートワークではなく**複数ページのPDFドキュメント**を構築します - 表紙、必要な数だけページに流し込まれるコンテンツ、裏表紙がすべて1つのファイルに収まります(*Multi-Page PDF*ツールを参照)。各ページはそのページのボックスに合わせたサイズの**本物のPDFページ**なので、読者やプリンターは1枚の縦長画像ではなく実際のページを受け取ります。
+一部のツールは、単一のアートワークではなく**複数ページのPDF文書**を作成します - 表紙、必要なだけページにわたって流し込まれるコンテンツ、裏表紙が1つのファイルにまとまります（*Booklet*ツールを参照）。各ページはそのページのボックスに合わせたサイズの**本物のPDFページ**であり、リーダーや印刷業者は1枚の縦長画像ではなく、本物のページを受け取ります。
 
 - **コンテンツからページを生成。** テキストと画像のブロックを追加すると、ブロックが埋まるにつれて新しいページが自動的に作成され、任意のブロックを強制的に新しいページから始めることもできます。
 - **本物のページサイズ。** A4、US Letter、A5(縦向き - 2カラムレイアウトはこれ向けに作られています)を選択でき、すべてのページと書き出されたPDFは正確にそのサイズでレンダリングされます。
 
-複数ページPDFはRGBドキュメントで、トンボ/塗り足しは含まれません - それらは上記の単一ページ**Print PDF**の経路に属します。他のすべてのPDF書き出しと同じ**PDF/X-4メタデータ**(ページボックス、XMP、ドキュメントID、埋め込みプロファイル付きのsRGB出力インテント)は含まれ、**Content Credentials**(下記)も提供されます - *Multi-Page PDF*ツールではこのオプションはあらかじめ選択されています。
+複数ページPDFはRGB文書であり、トンボ / 塗り足しマークは含まれません - これらは上記の単一ページ**Print PDF**の方に属するものです。ただし、すべてのPDFエクスポートと同じ**PDF/X-4メタデータ**（ページボックス、XMP、文書ID、プロファイル埋め込みのsRGB出力インテント）は含まれ、**Content Credentials**（下記）も利用できます - *Booklet*ツールではこのオプションがあらかじめ選択されています。
 
 ## 大量のものを一度に作る
 
@@ -113,22 +114,54 @@ Lollyには大量作業のための3つの異なる方法があり、それぞ�
 
 ## PowerPoint (PPTX)
 
-![The export panel with PowerPoint chosen: one slide per page, text and shapes kept editable](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
-
-複数ページ・レイアウトツール(Carousel、Doc Studio、Multi-Page PDF、チャートツール、単一キャンバスのカード/レイアウトツール)は**PowerPointデッキ**を書き出せます - 1ページにつき1スライド。ポイントはピクセル完璧なスクリーンショットではなく、同僚に実際に**編集してアセットを取り出せる**デッキを渡すことです。そのため、各ページはネイティブなオブジェクトに分解されます。
+Design、Markdown Slides、Booklet、Doc Studio、Chart、Diagramsは**PowerPointデッキ**としてエクスポートできます - 1ページにつき1スライドです。目的はピクセル単位で正確なスクリーンショットを作ることではなく、同僚に実際に**編集してアセットを取り出せる**デッキを渡すことです。そのため各ページはネイティブなオブジェクトへと分解されます。
 
 - <!--i:font--> **テキスト**は実際に**編集可能なPowerPointのテキストボックス**になります - フォントサイズ、色、太さ、斜体、配置はレイアウトのものがそのまま反映されるため、PowerPoint上で誤字を直したりスタイルを変更したりできます。
 - <!--i:pentool--> **ベクター**(ロゴ、アイコン、SUSEマークなど)は**実際のSVG画像**として埋め込まれます - どのサイズでも鮮明さを保ち、PowerPointでは*図形に変換*することもできます。
 - <!--i:photos--> **画像**は元の解像度のまま、それぞれ独立した抽出可能な画像として渡されます(`cover`でクロップされたヒーロー画像は、クロップの背後に画像全体を保持しているため、再フレーミングが可能です)。画像への加工(フィルター、ブレンド)も忠実に焼き込まれます。
 - <!--i:layers--> **背景、罫線、ルール**は実際の長方形/線の図形になります。
 
+![PowerPointを選択したエクスポートパネル：1ページにつき1スライド、テキストと図形は編集可能なまま保持される](/t/url-shot?url=%2F%23%2Ftool%2Fdeck-studio%3Foptions&width=1440&height=900&dpi=192&waitMs=2500&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22pptx%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-pptx)
+
 レイアウトは意図的に概算になっています - 目的は固定されたスクリーンショットではなく、忠実で再利用可能な**コンテンツ**にすることです。ウォーカーがネイティブに表現できないもの(複雑なフィルターやマスクをかけた領域)は画像として埋め込まれるため、何も失われません。デッキのスライドサイズは1つで、最初のページから取得されます。
 
-PowerPointは**取り込み**の手段でもあります - このフォーマットは往復変換に対応しています。**Deck Builder**は既存の`.pptx`を編集可能なスライドとして開き、あなたのブランドに合わせて調整します。また**Rebrand a Deck**ユーティリティは、チャートやSmartArt、アニメーションには手を加えずに、テーマパレット・ハードコードされた色・フォントを差し替えてデッキをその場でリブランドし、`.pptx`として返します。[デザインのインポート → デッキとドキュメント](/info/design-import.html#decks-and-documents)を参照してください。
+PowerPointは**取り込み**の手段としても使えます。`.pptx`をどのアップロード面にドロップしても、必要なスライドを選択できます - それぞれがアセットとして配置・加工・作り込みの土台になります。**Markdown Slides**はMarkdownから新しいデッキを書き出し（ブランド化された`.pptx`テンプレートも配布します）、**Rebrand**ユーティリティは既存のデッキをそのままの場所で再テーマ化します - テーマパレット、ハードコードされた色とフォントを - チャートやSmartArt、アニメーションには手を加えずに、`.pptx`として返します。[デザインのインポート → デッキと文書](/info/design-import.html#decks-and-documents)を参照してください。
+
+## Penpot
+
+SVGをエクスポートできるツールはすべて、**Penpotファイル**（`.penpot`）としてもエクスポートできます - 単に見るためだけでなく、Penpotで編集を続けられる状態の文書です。
+
+- <!--i:layout--> **Design**からは、各フレームがPenpotの**ボード**になり、その上のすべてのボックスは矩形・楕円・テキスト・画像・パスとしてそれぞれ独立した編集可能な図形のまま引き継がれ、結果はAssetsパネル内の再利用可能な**コンポーネント**として届き、いつでもドラッグして取り出せます。
+- <!--i:pentool--> レンダリングが**単純な図形**であるツール - QR Code、Street Map、Wordmark、Palette Labなどのベクターツール - からは、すべてのパス・矩形・テキスト行・グラデーションが同じように、それぞれ独立した編集可能な図形として引き継がれます。
+- <!--i:font--> レンダリングを**HTML**でレイアウトするツールからは、**テキストはテキストのまま**残ります - 行ごとに1つの編集可能なPenpotテキストオブジェクトであり、アウトラインでも平坦な画像でもありません。Penpotに対応する構成要素がないアートワーク - 複雑なイラストやライブキャンバスなど - は画像としてそのまま単独で運ばれるため、周囲のテキストやボックスが平坦化されることはありません。Penpotが忠実に分離できないレイアウト全体であっても、1枚の画像として完全な忠実度のまま渡せるため、何も失われません。
+- <!--i:palette--> 図形が**ブランドトークンから継承する**色やフォントは、ファイル内でそのトークンに**リンクされた**ままになります。Penpotの Tokensパネルでトークンを変更すると、それを継承するすべての図形が一緒に再描画される一方、一回限りのリテラルな色はそのままの位置にとどまります。ブランドの色とタイポグラフィは**Assets**パネルにも反映され、その完全なデザイントークンセットは**Tokens**パネルに反映されます - これはLolly自身のパレットが使うものと同じDTCGトークンセットです。Penpotはそこから自分専用のコピーを保持します。Tokensパネルで行った編集は自動的にではなく、[Brand Studioのインポート](/info/design-import.html)を通じてブランドに戻されます。
+
+| 作成したもの | Penpotでは |
+|---|---|
+| テキスト | 編集可能なテキストオブジェクト - 誤字修正やスタイル変更が可能 |
+| 図形、パス、グラデーション、画像 | それぞれ独立した編集可能なベクター図形 |
+| ブランドトークンに由来する色やフォント | ライブなトークンリンク - トークンを編集すると、それを継承するすべての図形が追従する |
+| デザイン全体 | Assetsパネル内の再利用可能なコンポーネント |
+| 複雑なイラストやライブキャンバス | 周囲の編集可能なコンテンツには手を加えず、単独で画像として埋め込まれる |
+
+![Penpotを選択したエクスポートパネル：.penpotファイルと、ダウンロードの隣にあるSend to Penpot](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
+
+開くには、Penpotを起動し、プロジェクトを選んで**Import**を選択します。エクスポートパネルからPenpotにサインインしている場合は、**Send to Penpot**がこの手順を代行します - そこでプロジェクトを選ぶだけで、ファイルが直接そこに入ります。
+
+## SCORM（コースパッケージ）
+
+Designデッキは**SCORMパッケージ**として書き出せます - Moodle、Canvas、Blackboard、あるいは企業向けLMSなど、学習管理システムが取り込むzipファイルです。フォーマットピッカーで**SCORM（LMS）**を選ぶと、エクスポートは以下を書き出します。
+
+- <!--i:layout--> **スライド**（アートボード1枚につき1画像。アートボードが許す限りベクターで、それができない場合のみピクセルで）。
+- <!--i:play--> **ナレーション付き動画**と字幕トラック - スピーカーノートをオンデバイス音声で読み上げたもので、[プレゼンテーション](/info/create/using.html#presenting)での再生とまったく同じです。
+- <!--i:file--> スライドを順に進め、動画を再生し、SCORM 1.2ランタイム（すべてのLMSが対応するバージョン）を通じてLMSに完了状況を報告する**起動ページ**。
+- <!--i:font--> デッキが使用するフォント。これにより起動ページはオフラインでも同じように表示されます。
+
+![SCORM（LMS）を選択したDesignデッキのエクスポートパネル](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+
+パッケージ内のものは何も外部と通信しません。zip内のファイルであり、バンドラーもCDNもアカウントも使わずにLMS内で動作します。ウェブ版とデスクトップ版のアプリがこれを作成します。CLIでは作成できません。アートボードの撮影と動画のエンコードにブラウザが必要なためです。
 
 ## DXF(カットファイル)
-
-![The export panel with Penpot chosen: the .penpot file, and Send to Penpot beside the download](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&drive=click%3A%5Bdata-fmt-trigger%5D%3Bwait%3A400%3Bclick%3A%5Bdata-fmt%3D%22penpot%22%5D%3Bwait%3A800&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-penpot)
 
 ベクターツール(Brand Lockup、QR Code、Street Map、Wayfinding Signage、Pose Geeko、ロゴロックアップ各種、Diagram Builder)は**DXF**を書き出せます - これはレーザーカッター、ビニールプロッター、CNC/CADソフトウェアが読み取れるAutoCAD R12交換形式です。ジオメトリはアウトラインの**パス(ミリメートル単位)**として書き出され(曲線は精細な許容誤差でフラット化されます)、テキストはパスにアウトライン化され、色は最も近いAutoCAD Color Indexへマッピングされます(これは通常、カッター上のツール/操作を決定します)。DXFはラインアートのみに対応しており、写真やフィルター処理された領域にはカットパス形式が存在しないため除外されます(Lollyが警告します)。ラスターコンテンツを保持する必要がある場合はSVG/PDFを使用してください。
 
@@ -141,8 +174,6 @@ Street Mapは最も分かりやすい例です。デザイン全体がすでに�
 :::
 
 ## アニメーションSVG
-
-![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 モーションツール(Animated Ad、Lottie Ad)は**アニメーションSVG**を書き出せます - 自己完結型の*ベクター*アニメーションです。各フレームをピクセルにサンプリングするGIF/APNG/WebPとは異なり、アニメーションSVGは埋め込みCSSキーフレームでベクタースナップショットを積み重ねるため、**コーデックも外部ランタイムも不要でどんなサイズにも拡大できます** - ブラウザのタブや`<img>`内でループ再生されます。テキストはアウトライン化されたままなので、どこでもレンダリングされます。アニメーションフォーマットと同じ**Duration**/フレームレートのコントロールを共有し、(フレームあたりビットマップより重いため)デフォルトのフレームレートは低めです。
 
@@ -180,13 +211,14 @@ Street Mapは最も分かりやすい例です。デザイン全体がすでに�
 
 ![エクスポートパネルのHDRカード(オンの状態)。White / Reach / Dark lift / Focusのダイヤルが下に展開されている](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26hdr%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.export-hdr&walker=1&dark=1&filename=exp-hdr-card)
 
-- **フォーマット。** 信号を運ぶ場所を持つラスターフォーマット、**PNG**、**JPG**、**AVIF**、**TIFF**です。(WebPは対象外です - 8ビットで実用的なHDRデコード経路がないため、PQのWebPは単に暗く見えてしまいます。ベクターとPDFにはHDRモデルがまったくありません。)
-- カラータグ付けとは異なり**デフォルトでオフ**です - ピクセル自体を変更するため、オプトインになっています。カードにチェックを入れるか、共有リンクで`hdr=1`を渡してください。
-- **実際に書き込まれるもの。** ピクセルは**Rec.2100 PQ**に再エンコードされます - BT.2020の原色とSMPTE ST 2084(PQ)の伝達カーブです。コンテナには対応する信号が付与され、カラーマネジメント対応アプリがそのように読むべきだと分かります。生成された**`cicp`タグ付きICC v4プロファイル**(JPG、TIFF)、**`cICP`チャンク**(PNG)、または書き換えられた`colr`ボックス(AVIF)です。ブーストは**知覚的(OKLab)輝度**によってゲートされているため、中間から上の色はピークに向かい、暗い色は白飛びさせず抑えられます。また色相を保持します - ブランドグリーンはより明るくなりますが、ミント色にはなりません。
-- **ダイヤル。** カードがオンのときに現れる4つ、**White**(ピーク輝度の上限、400~2000ニト)、**Reach**(グローがどれだけ下のトーンまで広がるか)、**Dark lift**(暗部をどれだけ明るくするか - `0`は暗いまま保ちます)、**Focus**(ブーストがどれだけ色の豊かさを保つか)です。これらはコンパクトな調整済み値として同じパラメータで渡せます - `hdr=1600-60-0-50`はWhite 1600、Reach 60、Dark lift 0、Focus 50を意味し、調整済みの見た目がリンクから再現可能です。
-- **どこで見えるか。** HDRディスプレイ上のカラーマネジメント対応ビューア、Appleデバイス上のPreview / Quick Look / Safari、HDRモニター上のChromeなどです。通常のSDR画面では、ファイルは普通の画像として表示されます。
-- **公開前に知っておくべきこと。** 多くのプラットフォームはアップロードされたものを**再エンコード**し、HDR信号を除去します - SNS、メッセージアプリ、一部のCMSなど。これにより画像が暗く、または色あせて見えることがあります。送信先を自分で制御できる場合(自分で構築したサイト、映像ウォール、明るいパネル上のデッキなど)にHDRを使い、すべてのデフォルトにはしないでください。
-- **透過。** PNGとAVIFはアルファを保持します。JPGは常に不透明です。**TIFF**パスはSDRパスの白ではなく**黒**背景に統合されます - PQでは白は10,000ニトのコードなので、白背景に統合するとすべてのエッジに目のくらむようなハローが発生してしまいます。
+- **形式。** 信号を保持できるラスター形式：**PNG**、**JPG**、**AVIF**、**TIFF**。（WebPは対象外です - 8ビットでHDRデコード経路が機能しないため、PQのWebPは単に暗く見えてしまいます。ベクターとPDFにはそもそもHDRのモデルがありません。）
+- カラータギングとは異なり**デフォルトでオフ**です - ピクセル自体を変更するためオプトインです。カードにチェックを入れるか、共有リンクに`hdr=1`を渡します。
+- **実際に書き込まれる内容。** ピクセルは**Rec.2100 PQ**に再エンコードされます - BT.2020の原色とSMPTE ST 2084（PQ）伝達曲線です - コンテナには対応する信号が含まれ、カラーマネジメント対応のアプリがそのように読み取るべきだと分かるようになっています：生成される**`cicp`タグ付きのICC v4プロファイル**（JPG、TIFF）、**`cICP`チャンク**（PNG）、または書き換えられた`colr`ボックス（AVIF）。ブーストは**知覚的（OKLab）な明度**によってゲートされるため、中間以上の色はピークまで押し上げられ、暗い色は白飛びせずに落ち着いた状態に保たれ、色相は保持されます - ブランドグリーンはミント色にならず、明るくなるだけです。
+- **調整項目。** カードをオンにすると現れる4つの項目：**White**（ピーク輝度の上限、400〜2000ニト）、**Reach**（グローが階調のどこまで広がるか）、**Dark lift**（暗部をどれだけ明るくするか - `0`なら暗いまま）、**Focus**（ブーストがどれだけ色の豊かさを保つか）。これらはコンパクトな調整値と同じパラメータに乗ります - `hdr=1600-60-0-50`はWhite 1600、Reach 60、Dark lift 0、Focus 50を意味するため、調整済みの見た目をリンクから再現できます。
+- **表示される場所。** HDRディスプレイ上のカラーマネジメント対応ビューア：Appleデバイスのプレビュー / クイックルック / Safari、HDRモニター上のChrome。通常のSDR画面では、ファイルは普通の画像として表示されます。
+- **公開前に知っておくこと。** 多くのプラットフォーム - SNS、メッセージングアプリ、一部のCMS - はアップロードした内容を**再エンコード**してHDR信号を取り除くため、画像が暗く、または色あせて見えることがあります。HDRは配信先を自分で管理できる場合（自作サイト、ビデオウォール、明るいパネル上のデッキ）に使い、すべてのデフォルトにはしないでください。
+- **透明度。** PNGとAVIFはアルファを保持します。JPGは常に不透明です。**TIFF**の経路はSDR経路の白ではなく**黒**にフラット化されます - PQでは白は10,000ニトのコードにあたるため、白にフラット化するとすべてのエッジに目もくらむようなハローがつきます。
+- **ターミナルからも同じバイト列。** `--hdr=1`を`--export=png`または`--export=jpg`と組み合わせると、[CLI](/info/cli.html)でも16ビットのRec.2100 PQ PNGとISO 21496-1のゲインマップJPEGが、ブラウザではなく同じエンジンのエンコーダーから書き出されます - つまり`<svg>`ネイティブなツールでも、経路のどこにもChromiumを介さずにHDRファイルを生成でき、そのPNGはウェブシェルのものとバイト単位で同一です。AVIFとTIFFは今のところウェブシェルのエクスポートのままです。
 
 ## 動画
 
@@ -286,14 +318,14 @@ GIFはどこでも動作します(チャットやメールに最適で、動画�
 
 ホストがレンダリングできるすべてのidをグループ分けしたものです。これらはURLの `format=` パラメータおよびCLIの `--export=` フラグの値でもあります - [URL Mode](/info/url-mode.html) と [CLI](/info/cli.html) を参照してください。各ツールは作者が宣言したサブセットのみを提供するため、ピッカーには常にこのリストより少ない項目しか表示されません。
 
-| 種類 | Ids |
+| 種類 | ID |
 |---|---|
-| ラスター | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff` (RGB TIFF) · `cmyk-tiff` (印刷用TIFF) · `bmp` · `ico` |
-| ベクター | `svg` · `svgz` (gzip圧縮SVG) · `emf` · `wmf` · `eps` · `eps-cmyk` (EPS CMYK) · `dxf` (カットファイル) |
-| ページ・ドキュメント | `pdf` · `pdf-cmyk` (印刷用PDF) · `pptx` (PowerPoint) · `docx` (Word) · `odt` (OpenDocument Text) |
-| モーション | `gif` · `apng` (Animated PNG) · `webp-anim` (Animated WebP) · `svg-anim` (Animated SVG) · `webm` · `mp4` |
+| ラスター | `png` · `jpg`/`jpeg` · `webp` · `avif` · `tiff`（RGB TIFF） · `cmyk-tiff`（Print TIFF） · `bmp` · `ico` |
+| ベクター | `svg` · `svgz`（gzip圧縮SVG） · `emf` · `wmf` · `eps` · `eps-cmyk`（EPS CMYK） · `dxf`（カットファイル） |
+| ページ・文書 | `pdf` · `pdf-cmyk`（Print PDF） · `pptx`（PowerPoint） · `scorm`（SCORMコースパッケージ、zip） · `penpot`（Penpotデザインファイル） · `docx`（Word） · `odt`（OpenDocument Text） |
+| モーション | `gif` · `apng`（アニメーションPNG） · `webp-anim`（アニメーションWebP） · `svg-anim`（アニメーションSVG） · `webm` · `mp4` |
 | オーディオ | `wav` · `mp3` · `m4a` · `opus` |
-| テキスト・データ | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl` (GIMPパレット) |
+| テキスト・データ | `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `css` · `scss` · `gpl`（GIMPパレット） |
 | バンドル | `zip` |
 
 共有レンダリングパスではなく**ツール自身のエクスポートフック**から生成されるidがいくつかあります： `ase`（Adobe Swatch Exchange、Palette Labから）、`exr` と `hdr`（Darkroomのハイダイナミックレンジラスター）、`ttf` / `otf` / `woff`（Font Convert）。フォーマットの選び方は同じです - ピッカー、`format=`、`--export=` - バイト列を組み立てるのがそのツール自身というだけです。Font Convertだけは例外で、*あなたが*用意したフォントファイルを変換するため、素のURLでレンダリングできるものは何もありません。
