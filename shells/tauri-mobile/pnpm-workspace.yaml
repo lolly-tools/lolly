@@ -1,0 +1,7 @@
+packages: []
+nodeLinker: hoisted
+engineStrict: true
+enablePrePostScripts: true
+strictDepBuilds: true
+allowBuilds:
+  fsevents: true

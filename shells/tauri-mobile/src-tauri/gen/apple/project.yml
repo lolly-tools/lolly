@@ -1,0 +1,164 @@
+name: lolly-mobile
+options:
+  # Two SEPARATE App Store listings (Andy, 2026-08-25): the Mac (tauri-desktop) app
+  # ships as tools.lolly.desktop, and this iOS/iPadOS app as tools.lolly.mobile - NOT
+  # one shared universal-purchase id. Two listings buy the desktop app room to carry
+  # features iOS can't. tauri.conf.json's identifier (tools.lolly.mobile) is the source
+  # of truth tauri applies at build; this prefix + the explicit PRODUCT_BUNDLE_IDENTIFIER
+  # below are kept in step so the regenerated project matches what actually ships.
+  bundleIdPrefix: tools.lolly.mobile
+  deploymentTarget:
+    iOS: "15.0"
+fileGroups: [../../src]
+configs:
+  debug: debug
+  release: release
+settingGroups:
+  app:
+    base:
+      PRODUCT_NAME: Lolly
+      PRODUCT_BUNDLE_IDENTIFIER: tools.lolly.mobile
+targetTemplates:
+  app:
+    type: application
+    sources:
+      - path: Sources
+    scheme:
+      environmentVariables:
+        RUST_BACKTRACE: full
+        RUST_LOG: info
+    settings:
+      groups: [app]
+targets:
+  lolly-mobile_iOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+      - path: Assets.xcassets
+      # The static libs are LINKED (dependencies: libapp.a + LIBRARY_SEARCH_PATHS),
+      # never bundle resources - without the exclude, xcodegen snapshots every
+      # Externals/<arch>/<config>/libapp.a as a resource copy and two configs
+      # collide on one destination ("Multiple commands produce ... libapp.a").
+      - path: Externals
+        excludes:
+          - "**/*.a"
+      - path: lolly-mobile_iOS
+      - path: assets
+        buildPhase: resources
+        type: folder
+      - path: LaunchScreen.storyboard
+      # plans/132 wave 4: the privacy manifest must ship as a bundle RESOURCE
+      # (App Store validation reads it from the app root).
+      - path: lolly-mobile_iOS/PrivacyInfo.xcprivacy
+        buildPhase: resources
+    info:
+      path: lolly-mobile_iOS/Info.plist
+      properties:
+        LSRequiresIPhoneOS: true
+        UILaunchStoryboardName: LaunchScreen
+        UIRequiredDeviceCapabilities: [arm64, metal]
+        # plans/132 wave 1. THIS block is the durable source - xcodegen
+        # regenerates Info.plist from these properties, so keys edited into the
+        # plist directly do not survive. iOS terminates the app on first
+        # camera/mic access without the usage strings.
+        NSCameraUsageDescription: "Lolly uses the camera for its photo, filter and recording tools. Everything stays on your device."
+        NSMicrophoneUsageDescription: "Lolly uses the microphone for its voice and video recording tools. Everything stays on your device."
+        NSPhotoLibraryAddUsageDescription: "Lolly saves finished exports to your photo library only when you choose to."
+        # DEV BUILDS ONLY reach a dev server over the LAN (`tauri ios dev` loads the
+        # frontend from the Mac at http://<lan-ip>:5174). iOS gates any local-network
+        # access behind this permission, and on iOS 14+ the prompt never appears -
+        # and the app never shows in Settings > Privacy & Security > Local Network -
+        # UNLESS this usage string is declared. A shipped (TestFlight/App Store) build
+        # embeds the frontend and never touches the LAN, so the permission is never
+        # triggered there; the key is inert in production.
+        NSLocalNetworkUsageDescription: "Development builds of Lolly load their interface from a local development server on your network. Shipped builds never use your local network."
+        # plans/146: the Neurospicy player keeps streaming web radio while the app is
+        # backgrounded/locked (podcast-style). iOS only lets the WKWebView's <audio>
+        # element sound in the background when this mode is declared AND the app's audio
+        # session is the .playback category (set in Sources/lolly-mobile/main.mm).
+        UIBackgroundModes: [audio]
+        # The binary bundles standard-algorithm crypto beyond the OS's (rustls/ring,
+        # engine zip AES + ZipCrypto), so the app USES non-exempt encryption - mass
+        # market, self-classified ECCN 5D992.c. See appstore/encryption-compliance.html.
+        ITSAppUsesNonExemptEncryption: true
+        # The in-app locale catalogs (shells/web/src/locales) - declares the language
+        # list to the App Store so the listing shows every supported language.
+        CFBundleLocalizations: [en, ar, bg, bn, cs, de, es, fr, hi, id, it, ja, ko, ms, nl, "no", pl, pt, ro, sv, tl, tr, uk, ur, vi, zh-Hans, zh-Hant]
+        # Exports save to the app Documents folder; these expose it in the
+        # Files app (On My iPhone -> Lolly) so a saved export is findable.
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
+        # .lolly is Lolly's owned pack/share type. The second entry is a lower-
+        # priority Open With safety net for formats the on-device router really
+        # imports; no Lolly icon is assigned to those foreign formats.
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: Lolly bundle
+            CFBundleTypeExtensions: [lolly]
+            CFBundleTypeRole: Editor
+            LSHandlerRank: Owner
+            LSItemContentTypes: [tools.lolly.pack]
+          - CFBundleTypeName: Document Lolly can open
+            CFBundleTypeExtensions: [penpot, fig, idml, ai, svg, pdf, xlsx, csv, tsv, pptx, docx, psd, psb, xcf]
+            CFBundleTypeRole: Editor
+            LSHandlerRank: Alternate
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: tools.lolly.pack
+            UTTypeDescription: Lolly bundle (session share or brand pack)
+            UTTypeConformsTo: [public.data, public.archive]
+            UTTypeTagSpecification:
+              public.filename-extension: [lolly]
+              public.mime-type: [application/vnd.lolly+zip]
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        CFBundleShortVersionString: 0.1.2
+        CFBundleVersion: "0.1.2"
+    entitlements:
+      path: lolly-mobile_iOS/lolly-mobile_iOS.entitlements
+    scheme:
+      environmentVariables:
+        RUST_BACKTRACE: full
+        RUST_LOG: info
+    settings:
+      base:
+        # Signing (plans/132 wave 4): Andy's Apple Developer team, automatic
+        # provisioning. Mirrored in tauri.conf.json bundle>iOS>developmentTeam;
+        # this is the durable copy xcodegen writes into the project.
+        DEVELOPMENT_TEAM: 2FCG2XLK6Y
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_BITCODE: false
+        ARCHS: [arm64]
+        VALID_ARCHS: arm64 
+        LIBRARY_SEARCH_PATHS[arch=x86_64]: $(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)
+        LIBRARY_SEARCH_PATHS[arch=arm64]: $(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/$(PLATFORM_NAME) $(DEVELOPER_DIR)/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-5.0/$(PLATFORM_NAME)
+        ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES: true
+        EXCLUDED_ARCHS[sdk=iphoneos*]: x86_64
+      groups: [app]
+    dependencies:
+      - framework: libapp.a
+        embed: false
+      - sdk: CoreGraphics.framework
+      - sdk: Metal.framework
+      - sdk: MetalKit.framework
+      - sdk: QuartzCore.framework
+      - sdk: Security.framework
+      - sdk: UIKit.framework
+      - sdk: WebKit.framework
+      # plans/146: main.mm sets the .playback audio session for background radio. This
+      # setup links frameworks explicitly (auto-linking is off), so AVAudioSession needs
+      # AVFoundation named here or the link fails with undefined _AVAudioSession symbols.
+      - sdk: AVFoundation.framework
+    preBuildScripts:
+      - script: pnpm run tauri ios xcode-script -v --platform ${PLATFORM_DISPLAY_NAME:?} --sdk-root ${SDKROOT:?} --framework-search-paths "${FRAMEWORK_SEARCH_PATHS:?}" --header-search-paths "${HEADER_SEARCH_PATHS:?}" --gcc-preprocessor-definitions "${GCC_PREPROCESSOR_DEFINITIONS:-}" --configuration ${CONFIGURATION:?} ${FORCE_COLOR} ${ARCHS:?}
+        name: Build Rust Code
+        basedOnDependencyAnalysis: false
+        outputFiles:
+          - $(SRCROOT)/Externals/x86_64/${CONFIGURATION}/libapp.a
+          - $(SRCROOT)/Externals/arm64/${CONFIGURATION}/libapp.a

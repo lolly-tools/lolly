@@ -1,0 +1,28 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+key.properties
+keystore.properties
+
+/.tauri
+/tauri.settings.gradle
+
+# Kotlin compiler session scratch, written by the Gradle build.
+buildSrc/.kotlin/
+
+# Signed build outputs dropped at the project root by the debug-sign flow - build
+# artifacts, never content (the .apk alone is ~180MB, over GitHub's limit).
+/Lolly-*.apk
+/Lolly-*.apk.idsig

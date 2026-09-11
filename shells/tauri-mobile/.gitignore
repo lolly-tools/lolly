@@ -1,0 +1,15 @@
+.DS_Store
+node_modules/
+dist/
+.vercel
+src-tauri/target/
+# NOT src-tauri/gen/ wholesale: gen/android is a real native Android Studio project
+# with hand-maintained source (MainActivity.kt's share-target ingest + ShareBridge,
+# AndroidManifest.xml's SEND intent-filter + FileProvider, res/xml/file_paths.xml) -
+# Tauri's own convention is to commit gen/android (see its OWN nested .gitignore at
+# src-tauri/gen/android/.gitignore, which already excludes just the Gradle/IDE build
+# noise: build/, .gradle, .idea/*, local.properties, keystores). Blanket-ignoring the
+# parent dir here shadowed that and left the hand-edits untracked with no way to
+# survive a fresh clone. gen/schemas/ (ACL/capability schemas) stays ignored - pure
+# regenerated output, never hand-edited.
+src-tauri/gen/schemas/

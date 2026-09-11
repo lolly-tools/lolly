@@ -1,0 +1,14 @@
+{
+  "//": "Typechecks bridge-overrides/ - the entire application-specific surface of this shell. It was .js and outside every tsconfig until 2026-07-30. Needs THIS shell's node_modules for the @tauri-apps types (the Tauri shells are not npm workspaces), so the root `typecheck` script reaches it through scripts/typecheck-tauri.ts, which skips with a logged reason when they are absent rather than failing a clone that never ran `npm --prefix shells/tauri-mobile ci`. lib/types mirror ../web: this code runs in a webview.",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": [],
+    "resolveJsonModule": true,
+    "paths": {
+      "@lolly/engine": ["../../engine/src/index.ts"]
+    }
+  },
+  "//include": "The web shell's ambient shims (vendor.d.ts etc.) are inside its own include and would otherwise be invisible here, so the untyped vendor imports the overrides pull in transitively would each raise TS7016.",
+  "include": ["bridge-overrides/**/*.ts", "../web/src/*.d.ts"]
+}

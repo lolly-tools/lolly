@@ -1,0 +1,11 @@
+[
+  {
+    "_comment": "Android App Links verification file (plan 171). Fill in the SHA256 signing-cert fingerprint(s) - `keytool -list -v -keystore <keystore> | grep SHA256` - then copy this file to shells/web/public/.well-known/assetlinks.json so it serves at https://lolly.tools/.well-known/assetlinks.json. Until it is published, the manifest's autoVerify filter degrades to the manual 'Open supported links' toggle instead of auto-opening. Add one fingerprint per signing cert (debug + release both work side by side).",
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "tools.lolly.mobile",
+      "sha256_cert_fingerprints": ["REPLACE:WITH:SIGNING:CERT:SHA256:FINGERPRINT"]
+    }
+  }
+]

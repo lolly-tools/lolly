@@ -1,0 +1,26 @@
+{
+  "name": "@lolly/mobile",
+  "version": "1.0.7",
+  "license": "MPL-2.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:android": "tauri android dev",
+    "dev:ios": "tauri ios dev",
+    "dev:frontend": "vite",
+    "build:frontend": "pnpm -C ../.. run build:ort && pnpm -C ../.. run build:info && VITE_MODELS_BASE=https://lolli.li vite build && node -e \"const fs=require('node:fs');for(const f of fs.readdirSync('../web/src/locales'))if(f.endsWith('.json'))fs.rmSync('dist/info/'+f.slice(0,-5),{recursive:true,force:true})\"",
+    "build:frontend:release": "pnpm -C ../.. run build:mobile:frontend:release",
+    "build:android": "pnpm run build:frontend && tauri android build",
+    "build:ios": "pnpm run build:frontend && tauri ios build",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-fs": "^2"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "vite": "^8.2.2"
+  },
+  "packageManager": "pnpm@11.1.2"
+}

@@ -1,0 +1,23 @@
+[package]
+name = "lolly-mobile"
+version = "1.0.7"
+edition = "2021"
+
+[lib]
+name = "lolly_mobile_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["devtools"] }
+tauri-plugin-fs = "2"
+# Native HTTPS is exposed only through the bounded `remote_fetch` and
+# `site_fetch` commands; there is deliberately no raw HTTP plugin/ACL surface.
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "http2", "charset"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[target.'cfg(target_os = "ios")'.dependencies]
+objc2-foundation = { version = "0.3.2", features = ["NSString", "NSURL"] }

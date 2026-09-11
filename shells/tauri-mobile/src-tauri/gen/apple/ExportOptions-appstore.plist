@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- TestFlight/App Store export (plans/132 wave 4). The sibling
+	     ExportOptions.plist stays the development/debugging export; tauri's own
+	     build uses that one. This one is passed explicitly:
+	     xcodebuild -exportArchive -exportOptionsPlist ExportOptions-appstore.plist -->
+	<key>method</key>
+	<string>app-store-connect</string>
+	<key>teamID</key>
+	<string>2FCG2XLK6Y</string>
+	<key>signingStyle</key>
+	<string>automatic</string>
+	<key>uploadSymbols</key>
+	<true/>
+</dict>
+</plist>
