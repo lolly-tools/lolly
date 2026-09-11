@@ -43,6 +43,8 @@ WORKDIR /src
 # Which brand/profile to bake into the static build (see header). Neutral by
 # default; a public image must not ship the private SUSE pack.
 ARG LOLLY_PROFILE=lolly-start
+ARG VITE_REQUIRE_AI_POLICY=false
+ENV VITE_REQUIRE_AI_POLICY=${VITE_REQUIRE_AI_POLICY}
 ENV LOLLY_PROFILE=${LOLLY_PROFILE}
 ENV NODE_ENV=production
 # Native optional deps (sharp/onnxruntime/resvg/playwright) need dev tooling
@@ -59,7 +61,7 @@ COPY . .
 # (scripts/use-profile.ts --auto), which materialises the tools/ + catalog/ views
 # for LOLLY_PROFILE; its allowBuilds list approves the native build scripts
 # (esbuild, onnxruntime-node, fsevents).
-RUN npm install --global pnpm@11.1.2
+RUN npm install --global pnpm@11.26.0
 RUN pnpm install --frozen-lockfile --prod=false
 
 # Sign the active catalog, validate the public pin, and build verified-only
@@ -83,5 +85,8 @@ COPY deploy/docker/security-headers.conf /etc/nginx/security-headers.conf
 COPY --from=build /src/shells/web/dist /usr/share/nginx/html
 
 # nginx-unprivileged already sets USER 101 and a RuntimeDefault-friendly layout.
+USER 101
 EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -q --spider http://127.0.0.1:8080/healthz || exit 1
 # The base image's entrypoint launches nginx in the foreground.

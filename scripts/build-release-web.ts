@@ -27,6 +27,9 @@ const TAURI_DIR: Record<Exclude<ReleaseFrontend, 'web'>, string> = {
 };
 
 export function validateReleaseEnvironment(env: NodeJS.ProcessEnv): void {
+  if (env.VITE_REQUIRE_AI_POLICY !== undefined && !['true', 'false'].includes(env.VITE_REQUIRE_AI_POLICY)) {
+    throw new Error('VITE_REQUIRE_AI_POLICY must be true or false');
+  }
   if (!env.LOLLY_CATALOG_SIGNING_KEY?.trim()) {
     throw new Error('LOLLY_CATALOG_SIGNING_KEY is required for a release web build');
   }
@@ -80,6 +83,7 @@ export function main(): void {
   if (target === 'web') {
     sign(env);
     run(packageManager, ['run', 'build:web'], env);
+    run(process.execPath, ['scripts/verify-release-catalog.ts', '--root', 'shells/web/dist'], env);
     return;
   }
 

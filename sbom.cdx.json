@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:b1234b4a-bce0-487d-8266-545cd239e6f7",
+  "serialNumber": "urn:uuid:30e797e4-8eee-4c71-829e-e4291785de7b",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-10T14:41:48.546Z",
+    "timestamp": "2026-09-11T00:46:09.006Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -18949,10 +18949,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40anthropic-ai/sdk@0.122.0",
+      "bom-ref": "pkg:npm/%40anthropic-ai/sdk@0.124.0",
       "name": "@anthropic-ai/sdk",
-      "version": "0.122.0",
-      "purl": "pkg:npm/%40anthropic-ai/sdk@0.122.0",
+      "version": "0.124.0",
+      "purl": "pkg:npm/%40anthropic-ai/sdk@0.124.0",
       "scope": "excluded",
       "licenses": [
         {
@@ -18964,7 +18964,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "1863cd7edb7471a6b3f4c0e598d4061d7f3ce793a369dbb2cb9a66f529b587b1da9429f471635be7f6f079a74917ee32cdb6a5f902faced05ad3d58000eccb99"
+          "content": "70de4ef22f545711de3900338ff5e3b215971bc2a289b243c3d386a47d99fde4779ff441c5da0bc4324e71fa80256be368c0c57c74c1003534e21591255903c8"
         }
       ],
       "properties": [
@@ -24587,10 +24587,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40types/d3-geo@3.1.0",
+      "bom-ref": "pkg:npm/%40types/d3-geo@3.1.1",
       "name": "@types/d3-geo",
-      "version": "3.1.0",
-      "purl": "pkg:npm/%40types/d3-geo@3.1.0",
+      "version": "3.1.1",
+      "purl": "pkg:npm/%40types/d3-geo@3.1.1",
       "scope": "excluded",
       "licenses": [
         {
@@ -24602,7 +24602,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "f39eac724174a0ffdd897b52e2336c890c3f52e2b97d01bc97f6bd5552de4a8b9fd7f3cf6c11358b55bce76cd5c0ac1808190524907b9c21536e4e943045c139"
+          "content": "eb9126bfd7d089042aa612e5464b90e72a4fb0e9963e1b4118232feb52433c43ccbecc7e8338467fbe32c356bbf3114a3e3eb3c38020408089a10bf4bcaf4cdb"
         }
       ],
       "properties": [
@@ -24699,48 +24699,6 @@
         {
           "name": "cdx:npm:package:development",
           "value": "true"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/%40types/node@26.4.0",
-      "name": "@types/node",
-      "version": "26.4.0",
-      "purl": "pkg:npm/%40types/node@26.4.0",
-      "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "7da8869e822b2c7fd5f1c89b38c10067ca4cc3aa17a92ba4976f6b6b898df0675a07665ec3379a2e3f8836957937e67578a5b363e233688647d84211e9865135"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/%40types/node@26.4.1",
-      "name": "@types/node",
-      "version": "26.4.1",
-      "purl": "pkg:npm/%40types/node@26.4.1",
-      "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "93dec436f656b6f03acaacf9fc54ba6bb76e0e038f11e39039cda2292fe763a997eaa2542ad2e75b3412f978fab57c1eca3e9971300ad9079c7ad9ef8bd9c22c"
         }
       ]
     },
@@ -24878,10 +24836,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40types/three@0.185.0",
+      "bom-ref": "pkg:npm/%40types/three@0.185.4",
       "name": "@types/three",
-      "version": "0.185.0",
-      "purl": "pkg:npm/%40types/three@0.185.0",
+      "version": "0.185.4",
+      "purl": "pkg:npm/%40types/three@0.185.4",
       "scope": "excluded",
       "licenses": [
         {
@@ -24893,7 +24851,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "3b6532f028f83689ebf1d59451b89f31d3def01d0cabb11d3876fcf52e3e923530fca85b8d366b52e625ad0d5ba54286f843fd4099cdeea3716c71a51a82c730"
+          "content": "800b01202d3b34816bc636dfeed1f6b7bd5cdfcbae9457e4fd11680bb14d0528cc44043c275c7f441beeb17d0de4f268b9a60525ac1742a7c243444a531ff59c"
         }
       ],
       "properties": [
@@ -29028,33 +28986,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/fsevents@2.3.2",
-      "name": "fsevents",
-      "version": "2.3.2",
-      "purl": "pkg:npm/fsevents@2.3.2",
-      "scope": "excluded",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "c62a8c411e3101e1d3b81f6e5a6f9f1517083a02813223813fe7978b24fb8ec8150aad5b915ca0b74d28012a3007b11db6938769a3e02adf35d8ff5a6fe0c328"
-        }
-      ],
-      "properties": [
-        {
-          "name": "cdx:npm:package:development",
-          "value": "true"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/fsevents@2.3.3",
       "name": "fsevents",
       "version": "2.3.3",
@@ -32490,10 +32421,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/playwright@1.62.1",
-      "name": "playwright",
-      "version": "1.62.1",
-      "purl": "pkg:npm/playwright@1.62.1",
+      "bom-ref": "pkg:npm/playwright-core@1.63.0",
+      "name": "playwright-core",
+      "version": "1.63.0",
+      "purl": "pkg:npm/playwright-core@1.63.0",
       "scope": "excluded",
       "licenses": [
         {
@@ -32505,7 +32436,34 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "d0cf8bdcb003f3f9e6e79e0b3a56bd032c748f4b66159d0505ca10ec5d55b951e933f5e9882f11703cc1401f16e7e840f0bdb64c7c442f3785fb659c533bdc2e"
+          "content": "ad80ac045fcce478d4721e766dbb5538d1058efe97bbcb26f21ef674d951e5bcc81357ef0bf6f182ca7392349f53e3307843263ccf0a25e6c6ea79f2c68e660a"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/playwright@1.63.0",
+      "name": "playwright",
+      "version": "1.63.0",
+      "purl": "pkg:npm/playwright@1.63.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "fbbce204b89d4b835a34276de7b4940d3fb062699de5f9a241e8d489cfe46fe62c61208fc8e384f6c79bccc8cd990aec9cda4326a778587bd5ffc95f29f50352"
         }
       ],
       "properties": [
@@ -35198,27 +35156,6 @@
         {
           "alg": "SHA-512",
           "content": "bf75eefb2bb00578aca7a4184dc1f851b1fec58257aa7ab69bf2ed41558a5b361cd627a16272e2c6840337d147ebf8fdfe8c9b7dde96f46870925f3e50c29329"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/undici-types@8.3.0",
-      "name": "undici-types",
-      "version": "8.3.0",
-      "purl": "pkg:npm/undici-types@8.3.0",
-      "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "8f7ef949c57ad1da26f9890f1487d32dc3a23f190dfdbb87cf91a86e32e18b116e00d68db370bd9781a6ad6a9e8e05d627b05b25c158a53114912d467bc6e965"
         }
       ]
     },

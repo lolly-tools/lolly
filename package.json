@@ -164,5 +164,5 @@
     "@lolly-tools/node-shell": "workspace:*",
     "@lolly/engine": "workspace:*"
   },
-  "packageManager": "pnpm@11.1.2"
+  "packageManager": "pnpm@11.26.0"
 }

@@ -92,7 +92,15 @@ const FORBIDDEN_BOOT_CHUNK = /(engine-render|engine-c2pa|handlebars|ajv|html2can
 // carousel + featured-render (~9 KB), the consolidated icon registry, the lolly-mark
 // specimen, and the gallery-preview/preview-context glue. None is lazy-able without
 // deferring the landing strip itself. Next growth needs its own argument, not this note.
-const MAX_PRELOAD_JS_GZ = 146 * 1024;
+// Moved 146 -> 156 on 2026-09-11: the 1.0.7 in-flight wave added ~8 KB diffusely to the
+// boot path - user templates (plan 226) and their template-source glue, recoverable
+// downloads (plan 236), the pinned asset-version readers (design-version +
+// engine-asset-version + offline-pins), the one-manifest .lolly intake (tool-file-guard +
+// pack-store + instance seed). Rule 1 still passes (no engine/handlebars/ajv on boot);
+// the growth is many ~1 KB first-paint slices, no single leak. The template and
+// asset-version readers may be lazy-able with feature-owner knowledge - a deliberate
+// boot-diet pass, not a release edit. Next growth needs its own argument, not this note.
+const MAX_PRELOAD_JS_GZ = 156 * 1024;
 // -----------------------------------------------------------------------------
 
 function fail(msg: string): never {

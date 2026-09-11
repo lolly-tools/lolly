@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import { parseTemplateMotion } from '../shells/web/src/lib/template-motion.ts';
+import { parseKitDefinition, createKitRows, kitIssues } from '../shells/web/src/pro/kit-model.ts';
+import type { ToolManifest } from '../engine/src/loader.ts';
 // SPDX-License-Identifier: MPL-2.0
 /**
  * Catalog validator.
@@ -296,6 +298,18 @@ for (const dir of toolDirs) {
         errors.push(`[${dir}] template ${file}: "values" must be a plain object (the input-id → value seed)`);
       }
       if (t.motion !== undefined && !parseTemplateMotion(t.motion)) errors.push(`[${dir}] template ${file}: invalid motion recipe metadata`);
+      if (t.kit !== undefined) {
+        try {
+          const definition = parseKitDefinition(t.kit);
+          const manifests = new Map<string, ToolManifest>();
+          for (const id of new Set(definition.outputs.map(output => output.toolId))) {
+            manifests.set(id, JSON.parse(readFileSync(join(ROOT, 'tools', id, 'tool.json'), 'utf8')));
+          }
+          const { kit } = createKitRows(definition, manifests);
+          const issues = kitIssues(kit);
+          if (issues.length) throw new Error(issues.join(' '));
+        } catch (e) { errors.push(`[${dir}] template ${file}: invalid kit recipe (${(e as Error).message})`); }
+      }
       const base = file.replace(/\.json$/, '');
       if (t.id !== base) errors.push(`[${dir}] template ${file}: id "${t.id}" must match the file basename "${base}" (${rel})`);
       if (seenTemplateIds.has(t.id)) errors.push(`[${dir}] template ${file}: duplicate template id "${t.id}"`);

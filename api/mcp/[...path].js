@@ -67991,7 +67991,7 @@ function urlAssetKind(mime2, id) {
   if (["mp3", "wav", "ogg", "m4a"].includes(ext)) return { type: "audio", format: ext };
   return null;
 }
-async function createCliBridge({ profile = {}, dom, networkAllowlist, designVersion, capturePublicOnly = false } = {}) {
+async function createCliBridge({ profile = {}, dom, networkAllowlist, designVersion, capturePublicOnly = false, aiEnabled = true } = {}) {
   const w = dom.window;
   const assetCatalogPath = join14(REPO_ROOT2, "catalog", "assets", "index.json");
   const assetIndex = JSON.parse(await readFile12(assetCatalogPath, "utf8"));
@@ -68134,15 +68134,15 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
   host.connectors = makeConnectorsApi();
   host.text = createNodeTextAPI({ repoRoot: REPO_ROOT2 });
   host.audio = createNodeAudioAPI({ repoRoot: REPO_ROOT2 });
-  const speech = createNodeSpeechAPI({});
+  const speech = aiEnabled ? createNodeSpeechAPI({}) : void 0;
   if (speech) host.speech = speech;
   const images = createNodeImagesAPI();
   if (images) host.images = images;
-  const upscale = createNodeUpscaleAPI();
+  const upscale = aiEnabled ? createNodeUpscaleAPI() : void 0;
   if (upscale) host.upscale = upscale;
-  const matte = createNodeMatteAPI();
+  const matte = aiEnabled ? createNodeMatteAPI() : void 0;
   if (matte) host.matte = matte;
-  const ocr = createNodeOcrAPI();
+  const ocr = aiEnabled ? createNodeOcrAPI() : void 0;
   if (ocr) host.ocr = ocr;
   host.scan = createNodeScanAPI();
   host.prepare = (await Promise.resolve().then(() => (init_src2(), src_exports))).createPrepareAPI();
@@ -68824,7 +68824,7 @@ function withHost(profile, fn) {
     g2["document"] = dom.window.document;
     g2["Element"] = dom.window.Element;
     try {
-      const host = await createCliBridge({ dom, profile, capturePublicOnly: true });
+      const host = await createCliBridge({ dom, profile, capturePublicOnly: true, aiEnabled: false });
       host.log = (level, msg2, ctx) => {
         process.stderr.write(`[mcp:${level}] ${msg2}${ctx ? " " + safeJson(ctx) : ""}
 `);
@@ -68918,6 +68918,7 @@ async function assertBrowserRequestAllowed(raw, base, env, resolver = resolveHos
   const url = new URL(raw);
   if (url.protocol === "blob:" || url.protocol === "data:" || url.protocol === "about:") return;
   if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error(`browser egress rejects ${url.protocol}`);
+  if (/\/models\/|\.(onnx|gguf|safetensors)$/i.test(url.pathname)) throw new Error("MCP model execution is disabled");
   if (!browserAllowedOrigins(base, env).has(url.origin)) throw new Error(`browser egress rejects off-list origin ${url.origin}`);
   const baseUrl = checkedBase(base);
   if (baseUrl.protocol === "http:" && isLoopbackName(baseUrl.hostname) && url.origin === baseUrl.origin) return;
@@ -69403,6 +69404,9 @@ async function renderTierB(toolId, query, fmt3, o) {
     let clearPassword = () => {
     };
     try {
+      await ctx.addInitScript(() => {
+        Object.defineProperty(globalThis, "__LOLLY_AI_DISABLED__", { value: true, writable: false, configurable: false });
+      });
       clearPassword = await exposeExportPassword(ctx, fmt3 === "pdf" ? o.password : void 0);
       const page2 = await ctx.newPage();
       await installBrowserEgressPolicy(page2, base);
@@ -69534,6 +69538,9 @@ async function transformTierB(toolId, fileInputId2, file, query) {
     }
     const ctx = await browser.newContext({ serviceWorkers: "block", acceptDownloads: true });
     try {
+      await ctx.addInitScript(() => {
+        Object.defineProperty(globalThis, "__LOLLY_AI_DISABLED__", { value: true, writable: false, configurable: false });
+      });
       const page2 = await ctx.newPage();
       await installBrowserEgressPolicy(page2, base);
       await page2.goto(url, { waitUntil: "load", timeout: 3e4 });

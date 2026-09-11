@@ -1,7 +1,13 @@
 // SPDX-License-Identifier: MPL-2.0
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import test from 'node:test';
+
+import { verifyCatalogEnvelope } from '../engine/src/catalog-integrity.ts';
 
 import {
   parseReleaseFrontend,
@@ -50,6 +56,14 @@ test('release frontend selection is explicit and closed', () => {
   assert.throws(() => parseReleaseFrontend('other'), /unknown release frontend/);
 });
 
+test('managed AI release setting refuses ambiguous build values', () => {
+  const env = { LOLLY_CATALOG_SIGNING_KEY: 'private', VITE_CATALOG_PUBLIC_KEY_JWK: PUBLIC_JWK };
+  assert.doesNotThrow(() => validateReleaseEnvironment({ ...env, VITE_REQUIRE_AI_POLICY: 'true' }));
+  for (const value of ['', 'TRUE', 'yes', '0']) {
+    assert.throws(() => validateReleaseEnvironment({ ...env, VITE_REQUIRE_AI_POLICY: value }), /VITE_REQUIRE_AI_POLICY/);
+  }
+});
+
 test('normal Tauri package builds use the signed release frontend hook', () => {
   for (const shell of ['tauri-desktop', 'tauri-mobile']) {
     const conf = JSON.parse(readFileSync(new URL(`../shells/${shell}/src-tauri/tauri.conf.json`, import.meta.url), 'utf8')) as {
@@ -77,4 +91,38 @@ test('web container requires signed release inputs without baking keys into imag
     assert.doesNotMatch(instructions, new RegExp(`^(?:ARG|ENV)\\s+${key}\\b`, 'm'));
   }
   assert.doesNotMatch(instructions, /^RUN\b.*pnpm run build:web\s*$/m);
+});
+
+test('release signing accepts the matching public pin and refuses a different deployment key', async t => {
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-release-test-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const tools = join(dir, 'tools');
+  mkdirSync(join(tools, 'demo'), { recursive: true });
+  writeFileSync(join(tools, 'demo', 'tool.json'), JSON.stringify({ id: 'demo' }));
+  writeFileSync(join(tools, 'demo', 'template.html'), '<svg></svg>');
+  const index = join(dir, 'index.json');
+  writeFileSync(index, JSON.stringify({ tools: [{ id: 'demo' }] }));
+  const pair = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+  const other = await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+  const privateMaterial = JSON.stringify(await crypto.subtle.exportKey('jwk', pair.privateKey));
+  const sign = async (publicKey: CryptoKey, out: string) => spawnSync(process.execPath, [
+    fileURLToPath(new URL('../scripts/sign-catalog.ts', import.meta.url)),
+    '--tools', tools, '--index', index, '--out', out,
+  ], {
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      LOLLY_CATALOG_SIGNING_KEY: privateMaterial,
+      VITE_CATALOG_PUBLIC_KEY_JWK: JSON.stringify(await crypto.subtle.exportKey('jwk', publicKey)),
+    },
+  });
+  const accepted = join(dir, 'accepted.sig.json');
+  const good = await sign(pair.publicKey, accepted);
+  assert.equal(good.status, 0, good.stderr);
+  assert.equal((await verifyCatalogEnvelope(JSON.parse(readFileSync(accepted, 'utf8')), readFileSync(index), pair.publicKey)).ok, true);
+  const rejected = join(dir, 'rejected.sig.json');
+  const bad = await sign(other.publicKey, rejected);
+  assert.notEqual(bad.status, 0);
+  assert.match(bad.stderr, /does not match VITE_CATALOG_PUBLIC_KEY_JWK/);
+  assert.equal(existsSync(rejected), false, 'a mismatched deployment pin must produce no release envelope');
 });

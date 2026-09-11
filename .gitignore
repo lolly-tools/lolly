@@ -62,6 +62,7 @@ plans/secrets.md
 
 # local scratch working files (untracked going forward; history retained)
 scratch/
+.scratch/
 
 # TypeScript cache
 *.tsbuildinfo

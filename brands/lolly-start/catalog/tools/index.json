@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-10T08:49:18.442Z",
+  "generatedAt": "2026-09-11T01:09:02.033Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -3748,7 +3748,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your brand.",
-      "version": "1.26.0",
+      "version": "1.27.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -3940,6 +3940,12 @@
           "name": "Carousel",
           "category": "Social",
           "description": "Three portrait frames as a swipe-through carousel: cover, point, closing. Exports one image per page."
+        },
+        {
+          "id": "event-kit",
+          "name": "Event kit",
+          "category": "Events",
+          "description": "A poster and square invitation. In Batch, Event kit links the details and adds a QR code."
         },
         {
           "id": "feature-tour",

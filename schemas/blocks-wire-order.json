@@ -134,7 +134,8 @@
       "stackOf",
       "hidden",
       "locked",
-      "slideTransition"
+      "slideTransition",
+      "plainText"
     ],
     "diagram-builder:nodes": [
       "shape",

@@ -17,6 +17,7 @@ With those environment variables supplied by the build runner:
 docker buildx build --load --no-cache-filter build \
   -f deploy/docker/web.Dockerfile \
   --build-arg LOLLY_PROFILE=suse \
+  --build-arg VITE_REQUIRE_AI_POLICY=true \
   --secret id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_KEY \
   --secret id=VITE_CATALOG_PUBLIC_KEY_JWK,env=VITE_CATALOG_PUBLIC_KEY_JWK \
   -t <registry>/lolly-web:<release> .
@@ -27,6 +28,13 @@ on the corresponding `--secret` argument. Never pass the private key as a build
 argument, add it with `COPY`, or commit it. The Docker context excludes `keys/`,
 PEM/key files and dotenv files. The public key is deliberately present in the
 served JavaScript; the private key must remain confined to the trusted builder.
+
+The internal example requires a fresh Work AI policy before supported AI paths
+can run, including the first boot without a reachable control plane. Keep Work's
+`policy.ai.enabled=false` for the proposed first production release. This Vite
+setting is compiled into the shell; setting an environment variable on running
+nginx does not retrofit it. Public standalone builds may leave it false. Promote
+the matching updated shell and Work together and retire old client artifacts.
 
 Both inputs are required on an uncached build. Malformed/private public pins and
 mismatched key pairs are rejected by the release builder/signer. BuildKit secrets
@@ -44,3 +52,14 @@ intended public pin and the actual index/tool bytes, and exercise a signed tool 
 the served client. A signed catalog protects tool integrity; SUSE application
 access still needs the approved Work/identity/ingress configuration. When a new
 image replaces the staging candidate, refresh the relevant test evidence before CAB.
+
+The release command verifies the built catalog before succeeding. To repeat the
+check on `catalog/tools` and `tools` extracted from the final runtime image:
+
+```sh
+node scripts/verify-release-catalog.ts --root /path/to/extracted-dist \
+  --public-key /path/to/expected-public.jwk.json
+```
+
+This checks every signed tool file and refuses paths or symlinks escaping the
+extracted root. It does not verify application access or the image's provenance.

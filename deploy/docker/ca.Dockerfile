@@ -28,7 +28,7 @@ COPY . .
 # CA itself is zero-dependency, but it lives in the workspace and imports the
 # engine sibling, so install the workspace graph (runtime deps only).
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-RUN npm install --global pnpm@11.1.2
+RUN npm install --global pnpm@11.26.0
 RUN pnpm install --frozen-lockfile --prod
 
 # ── runtime stage ───────────────────────────────────────────────────────────
@@ -41,5 +41,7 @@ COPY --from=build /src /app
 
 USER node
 EXPOSE 8787
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD ["node", "-e", "fetch('http://127.0.0.1:'+(process.env.PORT||8787)+'/api/ca/health',{signal:AbortSignal.timeout(3000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
 
 CMD ["node", "services/ca/server.mjs"]

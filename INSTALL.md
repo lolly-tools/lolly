@@ -92,7 +92,7 @@ git submodule update --init --checkout brands/suse
 
 # 3. dependencies + profile views (postinstall picks a profile automatically)
 # Install the pinned package manager once (or use Corepack).
-npm install --global pnpm@11.1.2
+npm install --global pnpm@11.26.0
 pnpm install
 
 # 4. optional - pick a content profile explicitly

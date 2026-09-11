@@ -41,7 +41,7 @@ COPY . .
 # views for LOLLY_PROFILE. PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD keeps the optional
 # playwright-core from fetching a browser we don't ship.
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
-RUN npm install --global pnpm@11.1.2
+RUN npm install --global pnpm@11.26.0
 RUN pnpm install --frozen-lockfile --prod
 
 # ── runtime stage ───────────────────────────────────────────────────────────
@@ -58,6 +58,9 @@ COPY --from=build /src /app
 # node:*-slim ships a non-root `node` user (uid 1000).
 USER node
 EXPOSE 8790
+# Match the chart's TCP liveness probe; this is not an OAuth/readiness test.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD ["node", "-e", "const s=require('node:net').connect(Number(process.env.PORT||8790),'127.0.0.1');s.setTimeout(3000);s.on('connect',()=>{s.destroy();process.exit(0)});s.on('error',()=>process.exit(1));s.on('timeout',()=>{s.destroy();process.exit(1)})"]
 
 # `pnpm run mcp:http` → node services/mcp/src/http.ts (startHttpServer()).
 CMD ["node", "services/mcp/src/http.ts"]

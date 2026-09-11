@@ -123,7 +123,7 @@ cd lolly
 # already cloned non-recursively? → git submodule update --init --recursive
 
 # Install the pinned package manager once (or use Corepack).
-npm install --global pnpm@11.1.2
+npm install --global pnpm@11.26.0
 pnpm install                    # workspaces need every submodule's package.json, so init submodules FIRST
                                # (postinstall picks a content profile automatically; see below)
 

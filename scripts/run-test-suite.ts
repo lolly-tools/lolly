@@ -106,6 +106,15 @@ export function main(argv = process.argv.slice(2)): number {
   const started = Date.now();
   const args = ['--import', './tests/css-stub.mjs', '--test'];
   if (process.env.LOLLY_SKIP_REPORT) args.push('--test-reporter=./tests/reporters/skip-identities.ts');
+  // Optional cap on the runner's file-level parallelism. node:test defaults to one worker
+  // per CPU, and the native ORT model loads (ml/speech), the TUI terminal waits and the
+  // encode tiers lose their timing budgets when every core is busy at once - a different
+  // one flakes on each full-suite run. LOLLY_TEST_CONCURRENCY=<n> passes --test-concurrency
+  // straight to node (it is refused via NODE_OPTIONS but accepted as a direct flag), trading
+  // some wall time for a run that does not depend on scheduling luck. Unset - CI and a plain
+  // `pnpm test` - keeps the default, so this is byte-for-byte inert until someone opts in.
+  const testConcurrency = process.env.LOLLY_TEST_CONCURRENCY;
+  if (testConcurrency && /^\d+$/.test(testConcurrency)) args.push(`--test-concurrency=${testConcurrency}`);
   args.push(...files);
   const result = spawnSync(process.execPath, args, {
     cwd: REPO,
