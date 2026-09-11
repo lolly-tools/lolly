@@ -1,6 +1,3 @@
-[submodule "services/ca"]
-	path = services/ca
-	url = https://github.com/lolly-tools/lolly-ca.git
 [submodule "shells/web"]
 	path = shells/web
 	url = https://github.com/lolly-tools/lolly-web.git
