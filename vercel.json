@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pnpm install --frozen-lockfile",
   "git": { "deploymentEnabled": true },
-  "buildCommand": "pnpm run build:web:release && pnpm run build:mcp-fn && pnpm run build:ca-fn && pnpm run build:penpot-fn",
+  "buildCommand": "node scripts/use-profile.ts --auto && pnpm run build:web:release && pnpm run build:mcp-fn && pnpm run build:ca-fn && pnpm run build:penpot-fn",
   "outputDirectory": "shells/web/dist",
   "functions": {
     "api/mcp/**": {
@@ -91,13 +91,7 @@
     },
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "www\\.lolly\\.art" }],
-      "destination": "https://lolly.art/:path*",
-      "permanent": true
-    },
-    {
-      "source": "/:path*",
-      "has": [{ "type": "host", "value": ".*lolly\\.(ad|bot|codes|design|free|gallery|graphics|ing|ink|is|media|sh|style|to|work)" }],
+      "has": [{ "type": "host", "value": ".*lolly\\.(ad|art|bot|codes|design|free|gallery|graphics|ing|ink|is|media|sh|style|to|work)" }],
       "destination": "https://lolly.tools/:path*",
       "permanent": true
     }
