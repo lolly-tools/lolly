@@ -2,8 +2,8 @@
 /**
  * DOM-free helpers for the vector PDF/SVG export walkers, extracted verbatim
  * from bridge/export.ts (stage 1 of the export.ts split - same precedent as
- * export-css.ts): SVG-path → jsPDF operator emission (drawSvgPathToPdf /
- * svgArcToBeziers), jsPDF graphics-state wrappers (clip / alpha / rotation - 
+ * export-css.ts): SVG-path → PDF operator emission (drawSvgPathToPdf /
+ * svgArcToBeziers), graphics-state wrappers (clip / alpha / rotation - 
  * the `pdf` handle is a plain object, no DOM), SVG colour parsing, and the
  * brand-palette CMYK / spot-colour machinery behind the CMYK PDF
  * content-stream rewrite. The DOM walkers themselves (drawHtmlVectors /
@@ -85,7 +85,7 @@ export function sampleGradientMidpoint(bgImage: string): Rgb | null {
   ];
 }
 
-// A CSS linear/radial gradient resolved into a jsPDF ShadingPattern spec - true VECTOR
+// A CSS linear/radial gradient resolved into a PDF shading-pattern spec - true VECTOR
 // output for the PDF walker (preferred over rasterising). Coords are in the box's own pt
 // space (top-left, matching the walker); `matrix` carries a radial ellipse's y-scale, else
 // null. `hasAlpha` flags any transparent stop: PDF axial/radial shading has NO per-stop
@@ -185,12 +185,12 @@ function gradientStopList(
 
 let gradKeySeq = 0;
 
-// Fill the current box with a true-vector jsPDF ShadingPattern (axial/radial). `pathOps`
-// adds the box outline (rounded/sharp) as a path - no paint - inside the advanced-API
-// block; the pattern then fills it. jsPDF requires advancedAPI() for shading patterns
-// (its coordinate space stays top-left in practice, verified), so the whole fill is wrapped
-// there. Returns false (caller rasterises) when the shading API is unavailable or throws - 
-// so a fill is never silently dropped.
+// Fill the current box with a true-vector PDF shading pattern (axial/radial). `pathOps`
+// adds the box outline (rounded/sharp) as a path - no paint - inside the advancedAPI
+// block; the pattern then fills it. The block is kept because the shading API used to be
+// gated behind it, and coordinates are top-left inside it either way. Returns false
+// (caller rasterises) when the shading API is unavailable or throws - so a fill is never
+// silently dropped.
 export function fillPdfShading(pdf: any, spec: PdfGradientSpec, pathOps: (doc: any) => void): boolean {
   if (typeof pdf.advancedAPI !== 'function' || typeof pdf.ShadingPattern !== 'function' || typeof pdf.Matrix !== 'function') return false;
   const colors = spec.stops.map((s) => ({ offset: s.offset, color: [s.color[0], s.color[1], s.color[2]] }));
@@ -256,7 +256,7 @@ export function brandSwatchPalette(palette: BrandPaletteEntry[] | undefined): { 
   return out;
 }
 
-// Approximate SVG opacity by blending with white, used since jsPDF lacks per-element opacity.
+// Approximate SVG opacity by blending with white, used where there is no per-element opacity.
 export function blendSvgWithWhite(rgb: Rgb, opacity: number): Rgb {
   return [
     Math.round(rgb[0] * opacity + 255 * (1 - opacity)),
@@ -272,7 +272,7 @@ export function parseSvgPathArgs(str: string): number[] {
 }
 
 // Fill ('F') or stroke ('S') a rounded rect into the PDF using the fast
-// jsPDF.roundedRect when corners are uniform (or sharp), else a four-corner path
+// roundedRect when corners are uniform (or sharp), else a four-corner path
 // (so e.g. top-only rounding keeps square bottom corners). Coords are already in
 // pt; the caller sets fill/draw colour, line width and any GState first.
 export function pdfRoundedRect(pdf: any, x: number, y: number, w: number, h: number, radii: CornerRadii, uniform: CornerPair | null, op: string): void {
@@ -285,7 +285,7 @@ export function pdfRoundedRect(pdf: any, x: number, y: number, w: number, h: num
   }
 }
 
-// Run `draw` with a uniform fill+stroke alpha applied via jsPDF GState, then
+// Run `draw` with a uniform fill+stroke alpha applied via a PDF graphics state, then
 // reset to opaque (GState is sticky and would otherwise leak onto every later
 // element). No-op when alpha is 1 or GState is unavailable.
 export function withPdfAlpha(pdf: any, a: number, draw: () => void): void {
@@ -309,7 +309,7 @@ export async function withPdfClipRect(pdf: any, x: number, y: number, w: number,
 }
 
 // Run `draw` with drawing clipped to a rounded rect (pt). Mirrors the SVG walker's
-// overflow:hidden + border-radius content clip: uniform corners use jsPDF's fast
+// overflow:hidden + border-radius content clip: uniform corners use the fast
 // roundedRect path, differing corners a four-corner path (both added with a null style
 // = path-only, then clip). Used to crop a rounded box's children/text to the corner
 // curve. `draw` may be async.
@@ -324,7 +324,7 @@ export async function withPdfRoundedClip(pdf: any, x: number, y: number, w: numb
   finally { pdf.restoreGraphicsState(); }
 }
 
-// Set the current jsPDF clip region to a CSS basic-shape / polygon clip-path. `shape`
+// Set the current PDF clip region to a CSS basic-shape / polygon clip-path. `shape`
 // geometry is box-local CSS px; (ox,oy) is the box's top-left in pt and (sx,sy) the
 // px→pt scale (per axis - a CSS circle under a non-uniform scale becomes an ellipse).
 // Must be called inside a saveGraphicsState()/restoreGraphicsState() pair. Mirrors the
@@ -356,15 +356,15 @@ export function pdfApplyClip(pdf: any, shape: ClipShape, ox: number, oy: number,
 }
 
 // Run `draw` with a CSS-clockwise rotation of `deg` about the point (cx, cy) in the
-// jsPDF drawing space (pt, top-left origin). Used so free-canvas boxes with a CSS
-// rotate() export rotated (not flattened to their bounding box). Applied via jsPDF's
+// PDF drawing space (pt, top-left origin). Used so free-canvas boxes with a CSS
+// rotate() export rotated (not flattened to their bounding box). Applied via the
 // transformation matrix; if that API is missing or throws we degrade gracefully to
 // an unrotated draw inside the saved/restored graphics state (never a broken PDF).
 export async function withPdfRotation(pdf: any, deg: number, cx: number, cy: number, draw: () => unknown): Promise<void> {
   const canMatrix = deg && typeof pdf.setCurrentTransformationMatrix === 'function' && typeof pdf.Matrix === 'function';
   if (!canMatrix) { await draw(); return; }
   const r = deg * Math.PI / 180, cos = Math.cos(r), sin = Math.sin(r);
-  // Rotate about (cx,cy): M = T(cx,cy)·R·T(-cx,-cy). jsPDF's Matrix is (a,b,c,d,e,f).
+  // Rotate about (cx,cy): M = T(cx,cy)·R·T(-cx,-cy). The Matrix is (a,b,c,d,e,f).
   const a = cos, b = sin, c = -sin, d = cos;
   const e = cx - (a * cx + c * cy);
   const f = cy - (b * cx + d * cy);
@@ -380,7 +380,7 @@ export async function withPdfRotation(pdf: any, deg: number, cx: number, cy: num
 // matrix branch. `m` is the CSS transform matrix: a,b,c,d are unitless; e,f are the
 // translation ALREADY scaled to pt by the caller (rotate about (cx,cy):
 // M' = T(cx,cy)·m·T(-cx,-cy)). Degrades to an untransformed draw inside the saved state
-// if the jsPDF CTM API is missing/throws (never a broken PDF).
+// if the CTM API is missing/throws (never a broken PDF).
 export async function withPdfMatrix(
   pdf: any, m: { a: number; b: number; c: number; d: number; e: number; f: number },
   cx: number, cy: number, draw: () => unknown,
@@ -397,8 +397,8 @@ export async function withPdfMatrix(
   finally { pdf.restoreGraphicsState(); }
 }
 
-// Emits jsPDF path operations (moveTo/lineTo/curveTo/close) for an SVG `d` string.
-// tx/ty are coordinate-transform functions: SVG user units → jsPDF pt (top-left origin).
+// Emits PDF path operations (moveTo/lineTo/curveTo/close) for an SVG `d` string.
+// tx/ty are coordinate-transform functions: SVG user units → pt (top-left origin).
 // Caller must call fill()/stroke()/fillStroke() after this returns.
 export function drawSvgPathToPdf(pdf: any, d: string, tx: (v: number) => number, ty: (v: number) => number): void {
   const cmdRe = /([MLHVCSQTAZmlhvcsqtaz])([^MLHVCSQTAZmlhvcsqtaz]*)/g;

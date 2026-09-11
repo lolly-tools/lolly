@@ -619,10 +619,11 @@ export default defineConfig({
   resolve: {
     alias: {
       '@lolly/engine': resolve(repoRoot, 'engine/src/index.ts'),
-      // jspdf lazy-imports html2canvas (199 KB / 46 KB gz, + its own dompurify)
-      // ONLY inside its `.html()`/`addHTML()` method, which lolly never calls.
-      // Alias it to an empty stub so it's never built or shipped. (dompurify is
-      // NOT stubbed - picker.ts uses the standalone copy directly.)
+      // html2canvas is no longer in the dependency graph at all (it arrived with
+      // the previous PDF library, which lazy-imported it inside a method Lolly
+      // never called). The stub alias stays as a backstop so nothing can pull the
+      // 199 KB package back into the bundle unnoticed - html2canvas-stub.js is an
+      // empty module. (dompurify is NOT stubbed - picker.ts uses it directly.)
       'html2canvas': resolve(webDir, 'html2canvas-stub.js'),
     },
   },
@@ -781,6 +782,13 @@ export default defineConfig({
             // pins. Keep this pure identity codec out of the render chunk.
             { name: 'engine-asset-version', test: /engine\/src\/asset-version\.ts$/, minSize: 0, minShareCount: 1 },
             { name: 'engine-render', test: /engine\/src\/(runtime|template|loader|validate)\.ts$/, minSize: 0, minShareCount: 1 },
+            // src/utils.ts and the escaper leaf it re-exports (lib/util/escape.ts).
+            // Both are shared between the entry and the lazy views, so rolldown gave
+            // each one its own shared chunk: two preload links and two chunk preambles
+            // for ~600 B of source. One group, one chunk on the boot path. Measured
+            // 2026-09-11: -0.2 KB gz off the preload set, and the escaper keeps its
+            // own file (primitive-guards.test.ts pins the implementation there).
+            { name: 'web-utils', test: /shells\/web\/src\/(utils\.ts|lib\/util\/escape\.ts)$/, minSize: 0, minShareCount: 1 },
           ],
         },
       },

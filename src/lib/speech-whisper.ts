@@ -18,6 +18,6 @@ export {
   WHISPER_SAMPLE_RATE, WHISPER_MODEL_ID, WHISPER_MODEL_BYTES,
   SILENCE_RMS, SILENCE_PEAK, CHUNK_TARGET_S, CHUNK_MAX_S,
   isSilentPcm, planChunks, cleanWordTimings, stitchChunks, joinChunkTexts, whisperLang,
-} from '../../../../packages/node-shell/src/speech-whisper.ts';
+} from '@lolly-tools/node-shell/speech-whisper';
 
-export type { ChunkSpan, RawWord } from '../../../../packages/node-shell/src/speech-whisper.ts';
+export type { ChunkSpan, RawWord } from '@lolly-tools/node-shell/speech-whisper';

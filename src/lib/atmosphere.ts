@@ -80,6 +80,8 @@ let state: AtmosphereState = readInitial();
  *  persisted levels at boot. */
 const lastAudible = new Map<AmbienceKind, number>();
 
+// Not lib/util/number.ts's clamp01: this takes an unknown value (a persisted level
+// of whatever shape) and reads a non-numeric one as 0 - silence rather than NaN gain.
 function clamp01(v: unknown): number {
   const n = typeof v === 'number' && Number.isFinite(v) ? v : 0;
   return n < 0 ? 0 : n > 1 ? 1 : n;

@@ -26,6 +26,7 @@
 import { strFromU8 } from 'fflate';
 import type { Unzipped } from 'fflate';
 import { unzipAsync } from './zip.ts';
+import { bytesToBase64 } from './util/bytes.ts';
 
 /** An fflate entry: raw bytes, or the `[bytes, opts]` tuple used to skip
  *  re-deflating already-compressed payloads (images, woff2). */
@@ -44,16 +45,6 @@ export const BUNDLE_HEADER = '📐 Lolly  •  ❤️ Give Fitzy an Ovation  •
  *  headless round-trip tests exercise integrity too). Absent ⇒ integrity is a
  *  no-op on both sides. */
 const SUBTLE = globalThis.crypto?.subtle ?? null;
-
-// Chunked so a multi-MB image blob doesn't blow the call stack via spread/apply.
-function bytesToBase64(bytes: Uint8Array): string {
-  let bin = '';
-  const CHUNK = 0x8000;
-  for (let i = 0; i < bytes.length; i += CHUNK) {
-    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK) as unknown as number[]);
-  }
-  return btoa(bin);
-}
 
 /** SRI-style `sha256-<base64>` digest of one part's bytes. Exported so anything that
  *  records a digest ALONGSIDE a bundle (the `.lolly` font receipt, whose faces travel as

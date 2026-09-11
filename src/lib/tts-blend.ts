@@ -13,4 +13,4 @@
  * tts-blend.test.ts keep working unchanged.
  */
 
-export { blendStyleRow, phonemesForWord } from '../../../../packages/node-shell/src/tts-blend.ts';
+export { blendStyleRow, phonemesForWord } from '@lolly-tools/node-shell/tts-blend';

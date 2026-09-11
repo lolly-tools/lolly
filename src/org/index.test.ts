@@ -535,5 +535,6 @@ test('feature-flag governance: dormant (no control plane) keeps historic behavio
   assert.equal(orgFlagGovernance(JELLY_FLAG.id), null);
   assert.equal(flagHidden(JELLY_FLAG.id), false);
   assert.equal(isFlagOn({ featureFlags: {} } as unknown as Parameters<typeof isFlagOn>[0], STRIP_UPLOAD_META_FLAG), false); // built-in OFF
-  assert.equal(isFlagOn({ featureFlags: {} } as unknown as Parameters<typeof isFlagOn>[0], JELLY_FLAG), true); // built-in ON
+  assert.equal(isFlagOn({ featureFlags: {} } as unknown as Parameters<typeof isFlagOn>[0], JELLY_FLAG), false); // built-in OFF since 2026-09-11 (opt-in)
+  assert.equal(isFlagOn({ featureFlags: {} } as unknown as Parameters<typeof isFlagOn>[0], NEUROSPICY_FLAG), true); // built-in ON
 });

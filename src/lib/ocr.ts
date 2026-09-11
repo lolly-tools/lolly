@@ -19,13 +19,14 @@ import type {
   OcrBox, OcrFeasibility, OcrFrame, OcrLine, OcrModelId, OcrOpts, OcrProgress, OcrResult,
 } from '@lolly-tools/core/host-v1';
 import { createDebugLogger, createModelFetcher, loadOrt, makeCanvas, serializeSessionCreate } from './ort.ts';
+import { abortError as makeAbortError } from './util/abort.ts';
 import {
   OCR_DEFAULT_MODEL, OCR_MODEL_CACHE_VERSION, OCR_MODEL_DIR, OCR_MODEL_FILES, OCR_MODEL_SPEC,
   OCR_MODEL_STORE, type OcrModelSpec, stagedOcrModels,
 } from './ocr-models.ts';
 import {
   connectedComponentBoxes, ctcGreedyDecode, detSize, orderBoxesReadingOrder, packNchw, recWidthFor, unclipBox,
-} from '../../../../packages/node-shell/src/ml/ocr-math.ts';
+} from '@lolly-tools/node-shell/ml/ocr-math';
 
 const dbg = createDebugLogger({ tag: 'ocr', storageKey: 'lolly:ocr:debug', globalFlag: '__OCR_DEBUG__' });
 
@@ -59,11 +60,8 @@ export async function probeBackend(): Promise<'wasm' | null> {
   return backend;
 }
 
-export function abortError(message = 'The text read was aborted.'): Error {
-  return typeof DOMException !== 'undefined'
-    ? new DOMException(message, 'AbortError')
-    : Object.assign(new Error(message), { name: 'AbortError' });
-}
+/** This path's AbortError - the shared constructor with the text-read message. */
+export const abortError = (message = 'The text read was aborted.'): Error => makeAbortError(message);
 
 // ─── Pure maths (unit-tested; no ORT, no DOM) ─────────────────────────────────
 //
@@ -75,8 +73,8 @@ export function abortError(message = 'The text read was aborted.'): Error {
 // still import them from this module.
 export {
   connectedComponentBoxes, ctcGreedyDecode, detSize, orderBoxesReadingOrder, packNchw, unclipBox,
-} from '../../../../packages/node-shell/src/ml/ocr-math.ts';
-export type { DetBox } from '../../../../packages/node-shell/src/ml/ocr-math.ts';
+} from '@lolly-tools/node-shell/ml/ocr-math';
+export type { DetBox } from '@lolly-tools/node-shell/ml/ocr-math';
 
 // ─── ORT sessions + pixel work (impure) ───────────────────────────────────────
 

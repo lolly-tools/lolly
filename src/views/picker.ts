@@ -77,7 +77,7 @@ const PICKER_TYPE_FILTERS: ReadonlyArray<{ key: PickerTypeFilter; label: string 
   { key: 'text', label: 'Text' },
 ];
 import { VISUAL_TYPES, isPlaceableAsset } from '../lib/asset-kinds.ts';
-import { typeMatches } from '../bridge/assets.ts';
+import { pickerAcceptsType, queryPickerAssets } from './picker-query.ts';
 import { autoplayLottieThumbs } from './lottie-mount.ts';
 import { previewMedia, motionVideoThumb, armMotionPreviews } from '../lib/preview-media.ts';
 import { escapeHtml } from '../lib/html.ts';
@@ -100,7 +100,7 @@ import type { VideoJobHost } from '../lib/video-jobs.ts';
  *  itself: callers route them to pdf-import.ts's ingestPdfAsSvgAssets /
  *  pptx-import.ts's ingestPptxAsSvgAssets (page(s)/slide(s) → stored SVG) via
  *  isPdfUpload / isPptxUpload. */
-export const UPLOAD_ACCEPT = 'image/svg+xml,image/png,image/apng,image/jpeg,image/webp,image/gif,image/avif,image/heic,image/heif,image/bmp,.bmp,image/x-icon,image/vnd.microsoft.icon,.ico,.cur,.svgz,video/mp4,video/webm,video/x-matroska,.mp4,.webm,.mov,.mkv,audio/*,.mp3,.wav,.ogg,.oga,.opus,.m4a,.aac,.flac,.mid,.midi,.mod,.xm,.it,.s3m,.stm,.mtm,application/json,.json,.lottie,application/pdf,.pdf,application/illustrator,.ai,application/vnd.openxmlformats-officedocument.presentationml.presentation,.pptx,.xlsx,.csv,.tsv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/*,.txt,.md,.markdown,.text,.js,.jsx,.mjs,.cjs,.ts,.tsx,.py,.rb,.go,.rs,.java,.c,.h,.hpp,.cc,.cpp,.cs,.swift,.kt,.kts,.php,.pl,.lua,.sql,.scala,.sh,.bash,.zsh,.fish,.yaml,.yml,.toml,.ini,.cfg,.conf,.css,.scss,.less,.html,.htm,.xml,.vue,.svelte,.astro';
+export const UPLOAD_ACCEPT = 'image/svg+xml,image/png,image/apng,image/jpeg,image/webp,image/gif,image/avif,image/heic,image/heif,image/bmp,.bmp,image/x-icon,image/vnd.microsoft.icon,.ico,.cur,.svgz,video/mp4,video/webm,video/x-matroska,.mp4,.webm,.mov,.mkv,audio/*,.mp3,.wav,.ogg,.oga,.opus,.m4a,.aac,.flac,.mid,.midi,.mod,.xm,.it,.s3m,.stm,.mtm,application/json,.json,.lottie,application/pdf,.pdf,application/illustrator,.ai,application/vnd.openxmlformats-officedocument.presentationml.presentation,.pptx,.xlsx,.csv,.tsv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/*,.txt,.md,.markdown,.text,.js,.jsx,.mjs,.cjs,.ts,.tsx,.py,.rb,.go,.rs,.java,.c,.h,.hpp,.cc,.cpp,.cs,.swift,.kt,.kts,.php,.pl,.lua,.sql,.scala,.sh,.bash,.zsh,.fish,.yaml,.yml,.toml,.ini,.cfg,.conf,.css,.scss,.less,.html,.htm,.xml,.vue,.svelte,.astro,.log,.jsonl,.ndjson';
 
 /** A PDF - or an Illustrator .ai, which saved PDF-compatible IS a PDF - that upload
  *  surfaces must hand to the page→SVG converter instead of storeUserUpload. Sync and
@@ -213,7 +213,7 @@ export interface CollectOpts {
 /** The picker's option bag: AssetPickerOpts (title/allowUpload/current/type/…)
  *  widened with the web-only `type: 'image'` slot value and the editTool /
  *  current-tool banner hooks the caller (views/tool.js's openEmbedEditor) wires in. */
-interface PickerOpts {
+interface PickerOpts extends Omit<AssetPickerOpts, 'type'> {
   type?:
     | 'vector'
     | 'raster'
@@ -486,7 +486,7 @@ async function render(
   // untyped `any` keep their existing set (nothing comparable to fade).
   const VISUAL_SLOT_TYPES = new Set(['vector', 'raster', 'image', 'video', 'lottie']);
   const visualSlot = opts.type != null && VISUAL_SLOT_TYPES.has(opts.type);
-  const isAcceptable = (assetType: string): boolean => typeMatches(assetType, opts.type, opts.motion === true);
+  const isAcceptable = (assetType: string): boolean => pickerAcceptsType(opts, assetType);
 
   // The slot's current image may itself be a Lolly render (meta.toolUrl on the
   // AssetRef). Offer an edit path back into that tool's own inputs - pre-filled
@@ -2459,35 +2459,7 @@ async function render(
   }
 
   try {
-    // Only visual assets are pickable images - palette / tokens / font entries are
-    // engine data (JSON), never something a user places in a slot, so keep them out
-    // of the library (a `type`-scoped pick already excludes them; this covers `any`).
-    // Lottie counts as visual: it thumbnails as a static poster and plays live once
-    // placed. It only surfaces for untyped/`any`/`lottie` picks - an `image` slot is
-    // already narrowed to raster/vector upstream by query()'s typeMatches().
-    // …with ONE exception: an explicit `type: 'audio'` pick (Sequence Studio's music
-    // bed) is asking for the catalog's audio assets by name, so widen the set for
-    // exactly that request. query()'s typeMatches has already narrowed the result to
-    // `audio`, and this stays keyed on opts.type - an untyped / `any` / `image` pick
-    // is unchanged, so audio never leaks into a slot that didn't ask for it. (The
-    // user-uploads path filters too - see its own typeOk, which for an untyped
-    // pick asks the same lib/asset-kinds.ts question.)
-    // opts widens AssetPickerOpts with a web-only `type: 'image'` value; query only
-    // reads the catalog-facing AssetQuery fields, so narrow at the boundary.
-    // For a TYPED slot, TRUST query() - its typeMatches already narrowed to exactly
-    // the acceptable types (incl. image→+video when opts.motion, and audio/text/data
-    // for those slots). Re-filtering through VISUAL_TYPES here is what used to drop
-    // catalog video from motion slots and empty out text/data picks (plans/162). The
-    // VISUAL_TYPES guard stays only for an UNTYPED / `any` pick, to keep engine-data
-    // (fonts/ICC/tokens) and audio out of a "pick anything with a picture" slot -
-    // a documented behaviour (unchanged).
-    // Fade-not-hide (plans/162): a VISUAL-family slot fetches the WHOLE visual
-    // catalog (drop the type narrowing) so incompatible items are present to dim;
-    // a non-visual TYPED slot (audio/text/data) still trusts query()'s narrowing;
-    // an untyped `any` pick keeps the VISUAL_TYPES guard as before.
-    const queryOpts = visualSlot ? ({ ...opts, type: undefined } as AssetPickerOpts) : (opts as AssetPickerOpts);
-    const raw = await host.assets.query(queryOpts);
-    const queried = (visualSlot || !opts.type) ? raw.filter(a => VISUAL_TYPES.has(a.type)) : raw;
+    const queried = await queryPickerAssets(host.assets, opts, visualSlot);
     // Drop the user's hidden assets before anything renders (profileReady populates
     // hiddenSet; it's fast and usually already resolved by the time the query lands).
     await profileReady;
@@ -3265,7 +3237,7 @@ const MAX_AI_SIGNAL_CHARS = 256 * 1024;
 // isText comment in storeUserUpload. .json (Lottie), .csv/.tsv (data) and .svg/.svgz
 // (vector) are claimed earlier in the chain and stay off this list; '.ts' is here but
 // yields to a real MPEG transport stream (the byte probe in storeUserUpload).
-const TEXT_EXT_RE = /\.(txt|md|markdown|text|js|jsx|mjs|cjs|ts|tsx|py|rb|go|rs|java|c|h|hpp|cc|cpp|cs|swift|kt|kts|php|pl|lua|sql|r|scala|sh|bash|zsh|fish|yaml|yml|toml|ini|cfg|conf|css|scss|less|html|htm|xml|vue|svelte|astro)$/i;
+const TEXT_EXT_RE = /\.(txt|md|markdown|text|js|jsx|mjs|cjs|ts|tsx|py|rb|go|rs|java|c|h|hpp|cc|cpp|cs|swift|kt|kts|php|pl|lua|sql|r|scala|sh|bash|zsh|fish|yaml|yml|toml|ini|cfg|conf|css|scss|less|html|htm|xml|vue|svelte|astro|log|jsonl|ndjson)$/i;
 // Credential preservation reads the ORIGINAL bytes whole (the only branch that
 // does - rasters otherwise stream through createImageBitmap without a JS-heap
 // copy). Skip the scan for outsized originals rather than buffer them: a real

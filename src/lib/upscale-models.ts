@@ -12,4 +12,4 @@
  * This file stays as the import path bridge/upscale.ts, lib/upscaler.ts and
  * lib/upscale-worker.ts have always used, so nothing in the web shell changes.
  */
-export * from '../../../../packages/node-shell/src/ml/upscale-models.ts';
+export * from '@lolly-tools/node-shell/ml/upscale-models';

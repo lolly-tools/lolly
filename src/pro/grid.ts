@@ -14,6 +14,7 @@
 import { cellInput, isCellEditable } from './model.ts';
 import { controlHtml } from './controls.ts';
 import { colorFieldHtml } from '../components/color-field.ts';
+import { escapeHtml } from '../lib/util/escape.ts';
 import { t } from '../i18n.ts';
 import { toUnit, UNITS } from '@lolly/engine';
 import type { Unit } from '../../../../engine/src/units.ts';
@@ -82,8 +83,7 @@ interface ExportCol {
   label: string;
 }
 
-const esc = (s: unknown): string => String(s ?? '')
-  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const esc = escapeHtml;
 
 const EYE_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>`;
 const BUCKET_SVG = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 11-8-8-8.5 8.5a1.5 1.5 0 0 0 0 2L8 19a1.5 1.5 0 0 0 2 0z"/><path d="m5 2 5 5"/><path d="M2 13h15"/><path d="M22 20a2 2 0 1 1-4 0c0-1.5 2-3.5 2-3.5s2 2 2 3.5z"/></svg>`;

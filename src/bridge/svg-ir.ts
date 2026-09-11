@@ -16,17 +16,17 @@
  * behaviour, and a caller that wants a different resolver can still pass one.
  */
 
-import { svgDomToIr as walkSvgToIr } from '../../../../packages/node-shell/src/svg-ir.ts';
-import type { SvgIrContext, VectorIrResult } from '../../../../packages/node-shell/src/svg-ir.ts';
+import { svgDomToIr as walkSvgToIr } from '@lolly-tools/node-shell/svg-ir';
+import type { SvgIrContext, VectorIrResult } from '@lolly-tools/node-shell/svg-ir';
 import { resolveVectorFont } from './font-registry.ts';
 
 export {
   parseColor, parseTransformList, decomposeAffine, parseSvgDropShadow,
-} from '../../../../packages/node-shell/src/svg-ir.ts';
+} from '@lolly-tools/node-shell/svg-ir';
 
 export type {
   Mat, SvgIrContext, SvgIrFont, SvgDropShadow, VectorIrResult,
-} from '../../../../packages/node-shell/src/svg-ir.ts';
+} from '@lolly-tools/node-shell/svg-ir';
 
 /**
  * Walk a rendered SVG into the vector IR, outlining text through the web

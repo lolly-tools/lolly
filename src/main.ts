@@ -23,7 +23,7 @@ import { hydrateChromeFollow } from './lib/chrome-follow.ts';
 import { computeViewportInsets } from './lib/viewport-insets.ts';
 import { initI18n, loadedLang } from './i18n.ts';
 import { hydrateSfxMuted, hydrateSfxVolume, installGlobalSfx, playSfx } from './lib/sfx.ts';
-import { hydrateFeatureFlags, flagEnabledSync, isFlagOnSync, setJellyDefault, setFlagMirror, applyPerfUi, JELLY_FLAG, PERFORMANCE_UI_FLAG } from './feature-flags.ts';
+import { hydrateFeatureFlags, flagEnabledSync, isFlagOnSync, applyPerfUi, PERFORMANCE_UI_FLAG } from './feature-flags.ts';
 // The collab + nearby WIRING is installed after first paint (see installCollabWiring
 // below the import block): five registration modules whose bodies do nothing until a
 // human opens a Share dialog or arrives on #/join, but whose static graph - the private
@@ -52,7 +52,6 @@ import { initInstanceBase } from './lib/instance.ts';
 // the 47 KB of gate/policy/injectable code behind it (plans/155 WP-3). Governance
 // comes from its own registry leaf for the same reason.
 import { initOrgProbeFirst } from './org/probe.ts';
-import { orgFlagGovernance } from './org/governance.ts';
 import { initSyncAutoPush, maybeApplyNewerAtBoot } from './lib/sync-service.ts';
 import type { BackupDeps } from './lib/sync-engine.ts';
 import { initSelectPreview } from './select-preview.ts';
@@ -1130,26 +1129,9 @@ async function boot(): Promise<void> {
   hydrateSfxVolume((profile as { sfxVolume?: number }).sfxVolume);
   installGlobalSfx();
   installGlobalReveal();
-  // Jelly effects default is brand-aware: OFF on a locked brand build (SUSE keeps
-  // its stock chrome), ON for the customisable start profile (lolly-start). A user
-  // who has toggled the flag keeps their choice either way. Resolved BEFORE the
-  // flag mirror below so jellyEnabled()/flagEnabledSync agree from first paint.
-  //
-  // Boot does NOT await isLocked() any more (plans/155 Task 3.2): it is memoised
-  // catalog metadata only once the catalog is in IDB - on a COLD load it fetches
-  // /catalog/assets/index.json itself, serially, in front of the catalog sync that
-  // then fetches the very same file again. So take the answer the PREVIOUS boot
-  // resolved, which is what its flag mirror holds, and reconcile off catalogReady
-  // below (where the read is free). setJellyDefault(false) first is what makes the
-  // read below the mirror alone: with a false built-in default, isFlagOnSync has no
-  // ON fallback to fall through to, so an unknown brand starts jelly OFF rather
-  // than paying for a 52 KB chunk (and non-stock chrome) it may have to take back.
-  // The reconcile writes its answer to the mirror, so this is self-correcting from
-  // the second load on; the cost is that the first EVER load of an unlocked brand
-  // arms jelly late - the same late arrival the ensureJelly() race below tolerates.
-  const jellyHost = host as { tokens?: { isLocked?(): Promise<boolean> } };
-  setJellyDefault(false);
-  setJellyDefault(isFlagOnSync(JELLY_FLAG));
+  // Jelly effects are opt-in (JELLY_FLAG.default is false, feature-flags.ts), so
+  // the mirror below bakes the OFF default and a user's toggle is the only thing
+  // that arms the bundle. There is no brand-lock reconcile any more.
   // Mirror the profile's feature flags to localStorage so surfaces that render before
   // (or without) the profile - the Sound control's Neurospicy player in popovers - can
   // gate synchronously.
@@ -1347,24 +1329,6 @@ async function boot(): Promise<void> {
   };
   catalogReady.then(() => afterLoadIdle(checkHosted));
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkHosted(); });
-  // Brand-lock reconcile for the Jelly default (see the provisional far above): the
-  // assets are in IDB by now, so isLocked() is the memoised read its comment always
-  // described, with no fetch of its own. Write the resolved answer into the flag
-  // mirror - that is what the NEXT boot reads as its provisional - and arm jelly if
-  // this just turned it on. Skipped entirely under a neutral capture pin, whose whole
-  // job is to hold these flags off (lib/capture-neutral.ts).
-  catalogReady.then(async () => {
-    if (captureNeutral) return;
-    const locked = !!(await jellyHost.tokens?.isLocked?.().catch(() => false));
-    setJellyDefault(!locked);
-    // …but only where the brand signal is what decides. An explicit user choice and
-    // control-plane governance both outrank it and are already in the mirror (that is
-    // hydrateFeatureFlags' precedence, and overwriting either with a default would
-    // break it); everyone else gets the resolved answer written down.
-    const chosen = (profile as { featureFlags?: Record<string, boolean> }).featureFlags?.[JELLY_FLAG.id];
-    if (chosen === undefined && !orgFlagGovernance(JELLY_FLAG.id)) setFlagMirror(JELLY_FLAG.id, !locked);
-    armJelly();
-  }).catch(() => { /* unreachable tokens ⇒ leave the provisional standing for this session */ });
   // The Neurospicy dock mounts ABOVE, before this sync starts - on a cold install its
   // track list would be built from a not-yet-synced catalog. Rebuild it once assets land.
   // Same `neuroState` gate as that mount (Task 3.3): with the module never loaded there

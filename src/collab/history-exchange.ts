@@ -18,6 +18,7 @@
  */
 
 import { HISTORY_PROTOCOL_VERSION } from '../lib/collab-history.ts';
+import { base64ToBytes as strictBase64ToBytes, bytesToBase64 } from '../lib/util/bytes.ts';
 import type { CollabHistoryCapability, CollabHistoryEntry } from '../lib/collab-history.ts';
 import { sriSha256 } from './beam-protocol.ts';
 import type { SavedStateData } from '../bridge/state.ts';
@@ -57,6 +58,8 @@ const MAX_B64_CHUNK = 24 * 1024;
 const REASONS = new Set<CollabHistoryEntry['reason']>(['checkpoint', 'save', 'recovery']);
 const CODES = new Set<HistoryErrorCode>(['not-shared', 'forbidden', 'unsupported', 'malformed']);
 
+// Not `lib/util/guards.ts`'s isRecord: this one admits an array, which the entry
+// decode below relies on.
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
@@ -67,19 +70,10 @@ function intInRange(value: unknown, min: number, max: number): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max;
 }
 
-function bytesToBase64(bytes: Uint8Array): string {
-  let bin = '';
-  const step = 0x8000;
-  for (let i = 0; i < bytes.length; i += step) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + step) as unknown as number[]);
-  return btoa(bin);
-}
+/** The strict decode, softened: a peer's malformed base64 is a `null` entry to
+ *  skip, never a throw inside the exchange. */
 function base64ToBytes(b64: string): Uint8Array | null {
-  try {
-    const bin = atob(b64);
-    const out = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-    return out;
-  } catch { return null; }
+  try { return strictBase64ToBytes(b64); } catch { return null; }
 }
 
 /** A stable, non-crypto content hash (FNV-1a, 32-bit hex) over the entries. Detects

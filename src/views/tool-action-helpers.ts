@@ -4,6 +4,7 @@ import type { ToolManifest } from '../../../../engine/src/loader.ts';
 import type { Runtime } from '../../../../engine/src/runtime.ts';
 import { showScrubReadout, hideScrubReadout } from '../components/scrub-readout.ts';
 import { playScrubTick } from '../lib/sfx.ts';
+import { cssEscape } from '../lib/util/escape.ts';
 
 /** Strip-scale → export → reapply wrapper shared by the tool mount and action helpers. */
 export type ExportUnscaled = <T>(
@@ -29,9 +30,8 @@ export const flatExportNode = (c: HTMLElement | null): HTMLElement | null => {
   const root = c?.querySelector<HTMLElement>('[data-export-root]');
   if (root) return root;
   const fid = c?.dataset.fcActiveFrame;
-  const esc = (s: string): string => (typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(s) : s);
   return (
-    (fid ? c!.querySelector<HTMLElement>(`[data-pdf-page][data-frame-id="${esc(fid)}"]`) : null) ??
+    (fid ? c!.querySelector<HTMLElement>(`[data-pdf-page][data-frame-id="${cssEscape(fid)}"]`) : null) ??
     c
   );
 };
@@ -65,6 +65,7 @@ export function addScrubBehavior(
     const out = (Math.round(v / s) * s).toFixed(dec);
     return dec ? out.replace(/\.?0+$/, '') : out;
   };
+  // Not the numeric engine clamp: the bounds are read live off the field on every call.
   const clamp = (v: number): number => Math.min(getMax(), Math.max(getMin(), v));
 
   inputEl.addEventListener(

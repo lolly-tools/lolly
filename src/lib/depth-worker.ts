@@ -27,6 +27,7 @@
  */
 
 import { createDebugLogger, createModelFetcher, loadOrt, serializeSessionCreate, type FetchProgress } from './ort.ts';
+import { abortError as makeAbortError } from './util/abort.ts';
 import {
   DEPTH_DEFAULT_MODEL, DEPTH_MODEL_CACHE_VERSION, DEPTH_MODEL_DIR, DEPTH_MODEL_FILES,
   DEPTH_MODEL_SPEC, DEPTH_MODEL_STORE,
@@ -34,7 +35,7 @@ import {
 } from './depth-models.ts';
 import {
   postprocessDepth, preprocessDepth,
-} from '../../../../packages/node-shell/src/ml/depth-math.ts';
+} from '@lolly-tools/node-shell/ml/depth-math';
 
 type OrtModule = typeof import('onnxruntime-web');
 type InferenceSession = Awaited<ReturnType<OrtModule['InferenceSession']['create']>>;
@@ -64,11 +65,8 @@ export function currentBackend(): 'webgpu' | 'wasm' | null {
   return backendProbed ?? null;
 }
 
-/** A DOMException-shaped AbortError (with a plain-Error fallback for old runtimes). */
-export function abortError(msg = 'The depth run was aborted.'): Error {
-  try { return new DOMException(msg, 'AbortError'); }
-  catch { return Object.assign(new Error(msg), { name: 'AbortError' }); }
-}
+/** A DOMException-shaped AbortError (with a plain-Error fallback for old runtimes), carrying this path's message. */
+export const abortError = (msg = 'The depth run was aborted.'): Error => makeAbortError(msg);
 
 /** Raised when a run is requested but the model's weights aren't on device -
  *  which is EVERY run until the weights are published. A clean, classifiable
@@ -92,8 +90,8 @@ export class ModelNotInstalledError extends Error {
 // module.
 export {
   normaliseDepth, packNchwNormalized, postprocessDepth, preprocessDepth, resampleFloat, resampleRgba,
-} from '../../../../packages/node-shell/src/ml/depth-math.ts';
-export type { DepthPre } from '../../../../packages/node-shell/src/ml/depth-math.ts';
+} from '@lolly-tools/node-shell/ml/depth-math';
+export type { DepthPre } from '@lolly-tools/node-shell/ml/depth-math';
 
 // ─── session ─────────────────────────────────────────────────────────────────
 

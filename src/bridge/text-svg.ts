@@ -17,9 +17,9 @@ export {
   textStrokeAttrs,
   suseWeightName, SUSE_FONT_DIR, suseFontFile, resolveSuseFontUrl,
   canVectoriseText, featureSettingsToHb, letterSpacingPx, textBaselineY,
-} from '../../../../packages/node-shell/src/text-svg.ts';
+} from '@lolly-tools/node-shell/text-svg';
 
-export type { TextStrokeSlice, FontStyleSlice } from '../../../../packages/node-shell/src/text-svg.ts';
+export type { TextStrokeSlice, FontStyleSlice } from '@lolly-tools/node-shell/text-svg';
 
 // Apply CSS text-transform to a display string. CSS transforms text only at paint
 // time (textContent is unchanged), so the vector walkers - which read textContent

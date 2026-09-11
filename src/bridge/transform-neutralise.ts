@@ -6,7 +6,7 @@
  * Both walkers in `export.ts` (SVG here, PDF further down the same file) handle a
  * rotated / skewed / non-uniformly-scaled element the same way: set
  * `el.style.transform = 'none'`, walk the now axis-aligned subtree, and wrap what
- * comes out in ONE SVG `rotate()`/`matrix()` group (or one jsPDF CTM). That
+ * comes out in ONE SVG `rotate()`/`matrix()` group (or one PDF CTM). That
  * neutralise step is a plain inline declaration, and there is exactly one thing in
  * CSS that outranks every declaration in every origin: an ANIMATION or TRANSITION
  * currently running on that property (CSS Cascade 5 section 6.1 - animations sit above the

@@ -186,3 +186,14 @@ function arm(pop: HTMLElement, anchor: HTMLElement, close: () => void): () => vo
     window.removeEventListener('scroll', onScroll, true);
   };
 }
+
+/** The same picker as a persistent browsing surface. Picking does not dismiss it. */
+export async function mountEmojiBrowser(container: HTMLElement, onPick: (emoji: string) => void): Promise<() => void> {
+  await defineEmojiPicker();
+  const picker = document.createElement('unicode-emoji-picker'); picker.setAttribute('version', EMOJI_VERSION);
+  const pick = (event: Event): void => { const emoji = (event as CustomEvent<{ emoji?: unknown }>).detail?.emoji; if (typeof emoji === 'string') onPick(emoji); };
+  picker.classList.add('emoji-browser');
+  picker.addEventListener('emoji-pick', pick); container.replaceChildren(picker);
+  picker.selectTab('search');
+  return () => { picker.removeEventListener('emoji-pick', pick); picker.remove(); };
+}

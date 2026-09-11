@@ -484,6 +484,8 @@ export function backoffDelay(attempt: number, random: () => number): number {
   return Math.min(RECONNECT_MAX_MS, Math.max(RECONNECT_MIN_MS, jittered));
 }
 
+// Not lib/util/number.ts's clamp01: a non-finite input reads as 0 here rather than
+// passing NaN on into a stored outbox record.
 function clamp01(v: number): number {
   return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0;
 }

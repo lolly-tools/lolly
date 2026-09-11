@@ -34,6 +34,7 @@
  */
 
 import { tauriInvoke, type TauriInvoke } from '../lib/nearby-boot.ts';
+import { base64ToBytes, bytesToBase64 } from '../lib/util/bytes.ts';
 
 export type NativeLane = 'ops' | 'presence' | 'beam';
 const LANES: readonly NativeLane[] = ['ops', 'presence', 'beam'];
@@ -58,19 +59,7 @@ export const NATIVE_POLL_MS = 30;
 const MAX_FRAMES_PER_POLL = 4096;
 
 // ── byte <-> string helpers for the command boundary ──────────────────────────────
-
-function bytesToBase64(bytes: Uint8Array): string {
-  let s = '';
-  for (let i = 0; i < bytes.length; i++) s += String.fromCharCode(bytes[i]!);
-  return btoa(s);
-}
-
-function base64ToBytes(b64: string): Uint8Array {
-  const bin = atob(b64);
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
-}
+// base64 both ways is `lib/util/bytes.ts`; the hex read below is this boundary's own.
 
 /** Hex `h` (as Rust returns it) to bytes, for derivePlateFromTranscript. Odd/invalid → null. */
 export function hexToBytes(hex: string): Uint8Array | null {

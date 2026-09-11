@@ -21,6 +21,6 @@ export {
   analyzePdf, stripPdf, compressPdf, organizePdf, stampPdf, lockPdf, parsePdfPageExpression,
   hasImageCodec, makeCanvas, canvasToJpeg,
   createPdfAPI,
-} from '../../../../packages/node-shell/src/pdf.ts';
+} from '@lolly-tools/node-shell/pdf';
 
-export type { Canvas2D } from '../../../../packages/node-shell/src/pdf.ts';
+export type { Canvas2D } from '@lolly-tools/node-shell/pdf';

@@ -217,6 +217,7 @@ export async function createBridge(): Promise<WebHost> {
     preload: async (fontUrl) => (await loadText()).preload(fontUrl),
     axisDefaults: async (fontUrl) => (await loadText()).axisDefaults!(fontUrl),
     fontUrl: async (family, opts) => (await loadText()).fontUrl!(family, opts),
+    characters: async (url) => (await loadText()).characters!(url),
   } as WebHost['text'];
 
   // on-device PDF metadata inspect + strip/compress (pdf-lib, itself lazy inside).
@@ -224,6 +225,12 @@ export async function createBridge(): Promise<WebHost> {
   // the node CLI, and pdf-redact.ts reaches the views/pdf-import renderer and a
   // real canvas that the CLI does not have. The host is passed for the text
   // outliner (host.text, itself a lazy facade above).
+  const loadTextTools = memo(async () => (await import('./text-tools.ts')).createWebTextTools());
+  host.textTools = {
+    operations: async () => (await loadTextTools()).operations(),
+    run: async (request) => (await loadTextTools()).run(request),
+    highlight: async (text, language, options) => (await loadTextTools()).highlight(text, language, options),
+  };
   host.compare = {
     run: async (request, options) => (await import('../lib/compare-client.ts')).runComparison(request, options),
     visual: async (request, options) => (await import('../lib/compare-client.ts')).runVisualComparison(request, options),

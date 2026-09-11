@@ -17,9 +17,10 @@ test('the app document preserves its semantic references over the foundation sca
 
 test('the Start studio can show every UI role without adding any of them to a brand', () => {
   const tokens = listLollyUiTokens();
-  assert.equal(tokens.length, 52);
+  assert.equal(tokens.length, 59);
   assert.equal(tokens.find(t => t.path.join('.') === 'color.text.default')?.type, 'color');
   assert.equal(tokens.find(t => t.path.join('.') === 'color.selection.surface')?.type, 'color');
+  for (const role of ['keyword', 'string', 'comment', 'number', 'function', 'type', 'operator']) assert.equal(tokens.find(token => token.path.join('.') === `color.syntax.${role}`)?.type, 'color');
   assert.equal(tokens.find(t => t.path.join('.') === 'elevation.overlay')?.type, 'shadow');
   const brand: Record<string, unknown> = { brand: { accent: { $type: 'color', $value: '#123456' } } };
   assert.equal(lollyUiOverride(brand, ['radius', 'control']), null);

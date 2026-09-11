@@ -25,6 +25,7 @@
  * link to its tool, so the whole feature degrades to "a scrollable row of links".
  */
 
+import { CoverflowGesture, CoverflowMotion, COVERFLOW_WHEEL_REST_MS } from '../lib/coverflow-motion.ts';
 import { mountCoverflow, type CoverflowHandle } from './coverflow.ts';
 import { featuredStartIndex, recordFeaturedActivity, type FeaturedCollection } from '../lib/featured-activity.ts';
 import type { PreviewQueue } from '../lib/preview-queue.ts';
@@ -327,7 +328,7 @@ export function mountFeaturedRow(
       // looks via the ambient rotation + the seeded link.
       dots.innerHTML = imgs.map((_, i) => `<span class="ftile-dot" data-dot="${i}"></span>`).join('');
     }
-    [...dots.children].forEach((d, i) => d.classList.toggle('is-on', i === activeIdx));
+    [...dots.children].forEach((d, i) => { d.classList.toggle('is-on', i === activeIdx); });
   }
 
   // The looks a stage rotates through: decoded variant layers if any have arrived, else
@@ -400,7 +401,7 @@ export function mountFeaturedRow(
       // it - a cross-fade firing mid-swipe animates two drop-shadowed images at once and
       // janks the scroll (mobile especially). `touching` covers the whole swipe;
       // hovering/manualUntil cover the mouse + post-gesture rest.
-      if (destroyed || !visible || !onScreen || document.hidden || hovering || touching || performance.now() < manualUntil) return;
+      if (destroyed || !visible || !onScreen || document.hidden || hovering || touching || (coverflow && cfMotion.active) || performance.now() < manualUntil) return;
       track.querySelectorAll('.ftile-stage').forEach((s) => advanceStage(s));
     }, FADE_INTERVAL_MS);
   }
@@ -420,7 +421,8 @@ export function mountFeaturedRow(
   let looping = false;
   let halfWidth = 0;
   let velocity = 0;   // px/s, for flick / wheel inertia
-  let snap: { from: number; to: number; start: number; duration: number } | null = null;
+  const cfMotion = new CoverflowMotion();
+  const cfGesture = new CoverflowGesture();
   let cfWheelUntil = 0;
 
   // Drag state - mouse/pen "grab and shift" (horizontal carousel pan).
@@ -430,8 +432,6 @@ export function mountFeaturedRow(
   let dragStartX = 0;   // where the press began - the click-vs-drag slop is measured from here
   let dragStartY = 0;
   let dragAxis: 'pending' | 'horizontal' | 'vertical' = 'horizontal';
-  let dragPosition = 0; // retain fractional pixels rather than round every pointer delta
-  let dragSamples: Array<{ x: number; ts: number }> = [];
   let lastPointerX = 0;
   let lastMoveTs = 0;
   let pressLink: HTMLAnchorElement | null = null; // the tile link a mouse/pen press landed on
@@ -484,50 +484,33 @@ export function mountFeaturedRow(
     if (!flow) return;
     const shift = flow.normalize();
     if (shift) {
-      dragPosition += shift;
-      if (snap) { snap.from += shift; snap.to += shift; }
+      cfMotion.shift(shift);
     }
     flow.paint();
-    section.classList.toggle('is-moving', dragging || snap !== null || performance.now() < cfWheelUntil);
+    section.classList.toggle('is-moving', dragging || cfMotion.active || performance.now() < cfWheelUntil);
   }
   const coverScrollLeft = (el: HTMLElement): number => flow?.target(el) ?? 0;
   const coverAtClientX = (x: number): HTMLElement | null => flow?.atClientX(x) ?? null;
   const nearestCoverScrollLeft = (position = viewport.scrollLeft): number => flow?.nearest(position) ?? 0;
-  function flushDrag(): void {
-    if (!pendingDx) return;
-    dragPosition -= pendingDx;
-    pendingDx = 0;
-    viewport.scrollLeft = dragPosition;
-    // Keep the browser's bounds for a single item, plus its fractional position.
-    if (Math.abs(viewport.scrollLeft - dragPosition) > 1) dragPosition = viewport.scrollLeft;
+  function writeCoverflow(): void {
+    viewport.scrollLeft = cfMotion.position;
+    cfMotion.reconcile(viewport.scrollLeft);
     layoutCoverflow();
   }
-
-  // Choose the landing cover at release, then travel there in ONE deceleration.
-  // Coasting to a stop before choosing a snap caused a pause and sometimes a
-  // backwards correction. A short flick must advance; a long swipe can cross
-  // several covers. Velocity comes from recent event timestamps, not delivery
-  // intervals (which bunch up when the mobile main thread is busy).
-  function settleCoverflow(releaseVelocity = 0): void {
-    const from = viewport.scrollLeft;
-    let to = nearestCoverScrollLeft(from + releaseVelocity * 0.18);
-    if (Math.abs(releaseVelocity) >= 250 && (to - from) * releaseVelocity <= 0) {
-      to = flow?.step(Math.sign(releaseVelocity)) ?? to;
-    }
-    snapToCover(to, releaseVelocity);
+  function flushDrag(): void {
+    if (!pendingDx) return;
+    cfMotion.position -= pendingDx;
+    pendingDx = 0;
+    writeCoverflow();
   }
 
-  function snapToCover(to: number, releaseVelocity = 0): void {
-    const from = viewport.scrollLeft;
-    velocity = 0;
-    if (reduced || Math.abs(to - from) < 0.5) {
-      viewport.scrollLeft = to;
-      snap = null;
-      layoutCoverflow();
-      return;
+  function snapToCover(to: number): void {
+    cfMotion.reconcile(viewport.scrollLeft);
+    cfMotion.select(to);
+    if (reduced) {
+      cfMotion.advance(0, nearestCoverScrollLeft, true);
+      writeCoverflow();
     }
-    const duration = Math.max(180, Math.min(480, 3000 * Math.abs(to - from) / Math.max(1000, Math.abs(releaseVelocity))));
-    snap = { from, to, start: performance.now(), duration };
   }
 
   function tick(ts: number): void {
@@ -540,13 +523,9 @@ export function mountFeaturedRow(
     if (dragging) { if (coverflow) { flushDrag(); layoutCoverflow(); } return; }   // (1) pointer owns scrollLeft
 
     if (coverflow) {
-      if (!snap && ts >= cfWheelUntil && Math.abs(nearestCoverScrollLeft() - viewport.scrollLeft) > 0.5) settleCoverflow();
-      if (snap) {
-        const progress = Math.min(1, Math.max(0, (ts - snap.start) / snap.duration));
-        viewport.scrollLeft = snap.from + (snap.to - snap.from) * (1 - (1 - progress) ** 3);
-        if (progress === 1) snap = null;
-      }
-      layoutCoverflow();
+      cfMotion.reconcile(viewport.scrollLeft);
+      if (!reduced || ts >= cfWheelUntil) cfMotion.advance(dt, nearestCoverScrollLeft, reduced);
+      writeCoverflow();
       return;
     }
 
@@ -566,7 +545,7 @@ export function mountFeaturedRow(
   function setupLoop(): void {
     if (coverflow) {
       section.classList.remove('featured--overflow');
-      if (flow) { if (flow.refresh()) { snap = null; pendingDx = 0; dragPosition = viewport.scrollLeft; } }
+      if (flow) { if (flow.refresh()) { cfMotion.reset(viewport.scrollLeft); pendingDx = 0; } }
       else {
         track.querySelectorAll('.ftile--clone').forEach(node => node.remove());
         looping = false;
@@ -576,6 +555,7 @@ export function mountFeaturedRow(
           const button = section.querySelector('.featured-go');
           button?.setAttribute('aria-label', `Open ${entries[index]?.name ?? ''}`);
         } });
+        cfMotion.reset(viewport.scrollLeft);
       }
       layoutCoverflow();
       return;
@@ -661,12 +641,10 @@ export function mountFeaturedRow(
     manualUntil = performance.now() + RESUME_DELAY_MS;
     e.preventDefault();
     if (coverflow) {
-      // Trackpads already supply momentum deltas. Follow them directly, then
-      // settle after their stream ends instead of multiplying their inertia.
-      viewport.scrollLeft += e.deltaX;
-      snap = null;
-      cfWheelUntil = performance.now() + 100;
-      layoutCoverflow();
+      cfMotion.reconcile(viewport.scrollLeft);
+      cfMotion.wheel(e.deltaX, reduced);
+      cfWheelUntil = performance.now() + COVERFLOW_WHEEL_REST_MS;
+      if (reduced) writeCoverflow();
       return;
     }
     velocity = clampV(velocity + e.deltaX * WHEEL_TO_VELOCITY);
@@ -691,15 +669,14 @@ export function mountFeaturedRow(
     // DnD, so it keeps its native scroll gestures.)
     if (tileDragOut && e.pointerType !== 'touch' && e.button === 0 && (e.target as Element | null)?.closest?.('.ftile-link')) return;
     velocity = 0;                                            // a grab cancels any coast
-    snap = null;
+    cfMotion.reset(viewport.scrollLeft);
     pendingDx = 0;
     dragMoved = false;                                       // fresh press - never inherit a prior drag's "moved"
     suppressNextClick = false;                               // fresh press - never inherit a stale suppress flag
     dragStartX = e.clientX;                                  // anchor for the click-vs-drag slop test
     dragStartY = e.clientY;
     dragAxis = e.pointerType === 'touch' ? 'pending' : 'horizontal';
-    dragPosition = viewport.scrollLeft;
-    dragSamples = [{ x: e.clientX, ts: e.timeStamp }];
+    cfGesture.start(e.clientX, e.timeStamp);
     pressLink = (e.target as Element | null)?.closest?.<HTMLAnchorElement>('.ftile-link') ?? null;
     section.classList.add('is-grabbing');
     // Gallery touch: no JS gesture - the native scroller owns both axes. (Cover Flow
@@ -738,12 +715,11 @@ export function mountFeaturedRow(
     if (Math.abs(e.clientX - dragStartX) > DRAG_SLOP) dragMoved = true;
     if (coverflow) {
       pendingDx += dx; // coalesced with every pointer sample into the next frame
-      dragSamples.push({ x: e.clientX, ts: e.timeStamp });
-      while (dragSamples.length > 2 && dragSamples[0]!.ts < e.timeStamp - 100) dragSamples.shift();
+      cfGesture.move(e.clientX, e.timeStamp);
     } else viewport.scrollLeft -= dx;                        // content follows the pointer
     normalizeWrap();
     const dtm = now - lastMoveTs;
-    if (dtm > 0) {
+    if (!coverflow && dtm > 0) {
       // -dx: dragging content right (dx>0) DECREASES scrollLeft, so the coast that
       // continues that motion is negative. Exponential-smoothed so a jittery final
       // sample doesn't dominate the throw.
@@ -768,11 +744,9 @@ export function mountFeaturedRow(
     manualUntil = performance.now() + RESUME_DELAY_MS;       // let the coast finish before drift
     const cancelled = e.type !== 'pointerup';
     if (coverflow) {
-      const first = dragSamples[0]!, last = dragSamples.at(-1)!;
-      const elapsed = last.ts - first.ts;
-      const releaseVelocity = !cancelled && dragMoved && !reduced && elapsed > 0 && e.timeStamp - last.ts <= 80
-        ? clampV((first.x - last.x) * 1000 / elapsed) : 0;
-      settleCoverflow(releaseVelocity);
+      cfMotion.release(cfGesture.release(e.timeStamp, cancelled || !dragMoved, reduced));
+      lastTs = e.timeStamp;
+      if (reduced) { cfMotion.advance(0, nearestCoverScrollLeft, true); writeCoverflow(); }
     } else if (cancelled || reduced || performance.now() - lastMoveTs > 80) velocity = 0;
     if (cancelled) { pressLink = null; suppressNextClick = true; return; }
     // As on Docs, take focus on release so a mouse/trackpad grab can be
@@ -849,8 +823,8 @@ export function mountFeaturedRow(
     const targetEl = event.target as Element;
     if (targetEl.closest('input,select,textarea,[contenteditable="true"],.ftile-menu,.ftile-dot')) return;
     let target: number | undefined;
-    if (event.key === 'ArrowLeft') target = flow.step(-1, snap?.to);
-    if (event.key === 'ArrowRight') target = flow.step(1, snap?.to);
+    if (event.key === 'ArrowLeft') target = flow.step(-1, cfMotion.target ?? undefined);
+    if (event.key === 'ArrowRight') target = flow.step(1, cfMotion.target ?? undefined);
     if (event.key === 'Home') target = flow.first();
     if (event.key === 'End') target = flow.last();
     if (target !== undefined) { event.preventDefault(); snapToCover(target); }
@@ -1098,7 +1072,7 @@ export function mountFeaturedRow(
       if (next === coverflow) return;
       coverflow = next;
       velocity = 0;
-      snap = null;
+      cfMotion.reset(viewport.scrollLeft);
       flickIndex = -1;   // the two modes index differently - don't flick on the switchover
       section.classList.toggle('featured--coverflow', coverflow);
       pendingDx = 0;

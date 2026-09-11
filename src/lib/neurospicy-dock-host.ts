@@ -14,7 +14,7 @@
  * the visualiser SECTION UI; this adapter is the `DockViz` renderer it drives: `mount`/
  * `unmount` wrap lib/butterchurn-viz.ts's `mountViz`, and `presets`/`themes`/`select*`
  * wrap the same viz-presets / viz-stock / viz-schemes system the old components/
- * viz-overlay.ts panel used. The shell package stays butterchurn-free - the dependency
+ * former viz-overlay.ts panel used (removed 2026-09-11, superseded by this host). The shell package stays butterchurn-free - the dependency
  * enters only here, on the app side, so the static /info build never pulls it in.
  *
  * The one real piece of transport logic is `onChange`: the engine has no single
@@ -390,7 +390,7 @@ class NeuroDockViz implements DockViz {
   }
 
   /** Fetch an artist preset, brand-blend it, and hand it to the renderer (mirrors the
-   *  old viz-overlay applyStockPreset). Falls back to a brand-native default when the
+   *  old viz-overlay panel's applyStockPreset, removed 2026-09-11). Falls back to a brand-native default when the
    *  pack isn't staged or the file is missing, rather than a black frame. */
   private async applyStock(id: string): Promise<void> {
     const handle = this.handle;

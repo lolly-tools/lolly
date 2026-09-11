@@ -16,6 +16,7 @@
  * of user text is escaped and link schemes are vetted at parse time.
  */
 import { zipAsync } from './zip.ts';
+import { escapeHtml } from './util/escape.ts';
 
 // ── block + run model ─────────────────────────────────────────────────────────
 
@@ -239,9 +240,10 @@ function orderedNumbers(blocks: MdBlock[]): number[] {
   return nums;
 }
 
-const HTML_ESC: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
-const escHtml = (s: string): string => s.replace(/[&<>"]/g, (c) => HTML_ESC[c]!);
+const escHtml = escapeHtml;
 
+// XML, not HTML: the DOCX/ODT parts want the named `&apos;` entity, which HTML
+// only gained in HTML5 - so this one stays separate from the shared escaper.
 const XML_ESC: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' };
 const escXml = (s: string): string => s.replace(/[&<>"']/g, (c) => XML_ESC[c]!);
 

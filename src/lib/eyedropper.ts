@@ -20,6 +20,7 @@
  * and picks the pixel").
  */
 
+import { clamp } from '@lolly/engine';
 import { getHostRef } from './host-ref.ts';
 
 /** A sampleable frame: a flat RGBA byte array plus its dimensions. */
@@ -29,7 +30,6 @@ export interface SampleFrame {
   height: number;
 }
 
-const clamp = (n: number, lo: number, hi: number): number => (n < lo ? lo : n > hi ? hi : n);
 const hex2 = (n: number): string => clamp(Math.round(n), 0, 255).toString(16).padStart(2, '0');
 
 /** One RGB triple as `#rrggbb` (lowercase), the shape parseColor / EyeDropper return. */

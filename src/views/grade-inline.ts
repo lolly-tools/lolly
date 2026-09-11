@@ -14,7 +14,7 @@
  * rides above this very modal), and `deliver` receives the finished bytes to
  * sign + save. The preview canvas grades a downscaled copy live.
  */
-import { applyGrainVignette, applyLutFrame, GRAIN_REF_LONG_EDGE, parseLutText, type GradeLut } from '@lolly/engine';
+import { applyGrainVignette, applyLutFrame, clamp, GRAIN_REF_LONG_EDGE, parseLutText, type GradeLut } from '@lolly/engine';
 import { GRAIN_SEED, PRESET_LUT_BASE, PRESET_LUTS } from './video-edit-inline.ts';
 import type { LutCredit } from '../lib/video-jobs.ts';
 import { startJob } from '../lib/jobs.ts';
@@ -120,7 +120,6 @@ export async function mountInlineGrade(env: GradeInlineEnv): Promise<GradeInline
   const lutFileEl = q<HTMLInputElement>('[data-lutfile]');
   const errEl = q<HTMLElement>('[data-error]');
 
-  const clamp = (n: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, n));
   const num = (id: string): number => parseFloat(q<HTMLInputElement>(`[data-${id}]`).value) || 0;
   const fmt = (): string => work.querySelector<HTMLInputElement>('input[name="cat-grade-fmt"]:checked')?.value ?? env.formats[0]![0];
 

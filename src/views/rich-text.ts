@@ -31,6 +31,8 @@
 // a mono block), null inherits the block/document font. rich-text.ts stays brand-neutral
 // - it only emits the semantic token + a `fc-ff-*` class; the real family lives in CSS
 // (the editable) and the tool's hooks FONTS map (the render/export).
+import { escapeHtml } from '../lib/util/escape.ts';
+
 export type FontId = 'mono' | 'suse' | null;
 
 // One character in the flat model: the glyph plus its inline formatting axes.
@@ -152,7 +154,7 @@ export function charsFromDom(root: DomNodeLike): Char[] {
   return out;
 }
 
-const escHtml = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const escHtml = escapeHtml;
 
 // An element's own text colour, as a #hex. htmlFromChars stamps a canonical `data-fc-color`
 // so our own re-renders round-trip exactly; anything else (pasted markup) falls back to

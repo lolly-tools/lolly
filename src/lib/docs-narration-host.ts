@@ -34,6 +34,7 @@
  */
 import type { DockHost, DockNarration, DockNarrationPlayer, DockNowPlaying, DockViz, DockVolume } from '@lolly-tools/audio-dock';
 import { prefersReducedMotion } from './a11y-prefs.ts';
+import { escapeRegex } from './util/escape.ts';
 
 // ── ported spoken-text extraction (see file header) ──────────────────────────
 
@@ -48,7 +49,7 @@ interface SpokenBlock {
 function isMetaTitle(spoken: string, pageTitle: string): boolean {
   const title = pageTitle.trim().replace(/\s+/g, ' ');
   if (!title) return false;
-  const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const escaped = escapeRegex(title);
   return new RegExp(`^${escaped}(\\s*[-–-:]\\s+.+)?$`, 'i').test(spoken);
 }
 

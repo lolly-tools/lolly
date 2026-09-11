@@ -2,7 +2,7 @@
 /**
  * Shell-side enhancer for `[data-anim-src]` markers: fetch an SVG, sanitise it,
  * and INLINE it as a live `<svg>` so its animation actually plays AND is
- * frame-addressable (seekable via dom-frame's scrubAnimations). This is the
+ * frame-addressable (seekable via export.ts's scrubAnimations). This is the
  * animated-SVG analogue of lottie-mount.ts - a first-class media citizen so any
  * CSS/SMIL-animated SVG (catalog OR a user upload) behaves like a Lottie: it
  * plays in the preview, samples through `onFrame` (filter's live source), and

@@ -304,7 +304,7 @@ export function readPassword(ta: ActionsCtx): void {
   // this is set. Cleared as soon as the user types (they then own the value).
   ta.pwFromUrl = Boolean(exportDefaults.password);
 
-  // Encryption-tier control for the password card. Standard = jsPDF's 40-bit RC4,
+  // Encryption-tier control for the password card. Standard = 40-bit RC4,
   // built into an unfinished document - so it works only on a plain RGB `pdf` with
   // no print finishing. Strong = AES-256 encrypt-last, which composes with CMYK /
   // marks / pdf-cmyk. When Standard can't apply we disable it and fall to Strong.
@@ -974,7 +974,7 @@ export function wireApprovalAndActions(ta: ActionsCtx): void {
               el!.querySelector<HTMLSelectElement>('[data-action="pdf-lock-tier"]')?.value ===
               'strong';
             // Strong (AES-256, encrypt-last) composes with RGB pdf AND print pdf-cmyk;
-            // the 40-bit standard lock is jsPDF-native and RGB-pdf only.
+            // the 40-bit standard lock is applied by the writer and RGB-pdf only.
             if (strong && (fmt === 'pdf' || fmt === 'pdf-cmyk')) return { strongPassword: pw };
             if (fmt === 'pdf') return { password: pw };
             return {};

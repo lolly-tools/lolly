@@ -235,6 +235,8 @@ export function readRecord(rec: unknown, want = ''): PeaksResult | null {
   return { peaks: decodePeaks(bytes), durationMs };
 }
 
+// A stored value of unknown shape, not an AudioSource - number arrays come back from
+// JSON, and anything unreadable is null rather than a throw.
 function toBytes(v: unknown): Uint8Array | null {
   if (v instanceof Uint8Array) return v;
   if (v instanceof ArrayBuffer) return new Uint8Array(v);

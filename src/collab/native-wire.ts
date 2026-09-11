@@ -20,6 +20,7 @@
  */
 
 import { parsePresenceFrame, type RtcInboundMessage, type RtcPresenceOutbound } from './rtc-transport.ts';
+import { isRecord } from '../lib/util/guards.ts';
 import type { NativeLane } from './native-transport.ts';
 
 const enc = new TextEncoder();
@@ -62,10 +63,6 @@ export function encodeBeam(payload: BeamOutbound): Uint8Array {
 }
 
 // ── decode (lane bytes → RtcInboundMessage | null) ────────────────────────────────
-
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === 'object' && v !== null && !Array.isArray(v);
-}
 
 function decodeOps(bytes: Uint8Array): RtcInboundMessage | null {
   let parsed: unknown;

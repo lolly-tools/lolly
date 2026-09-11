@@ -323,9 +323,8 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
   // the flag rows render their final control with no post-mount swap. `jellyOn`
   // and `liveProfile` are mutable - the flag list re-renders in place when the
   // jelly flag itself is toggled (see the change listener below).
-  // isFlagOn (not flagEnabled): the Jelly flag's built-in default is brand-aware
-  // (OFF on a locked brand - see setJellyDefault in main.ts), and only the
-  // default-aware read honours it. The capture-neutral pin must be consulted
+  // isFlagOn (not flagEnabled): the Jelly flag is opt-in (built-in default OFF),
+  // and only the default-aware read honours that. The capture-neutral pin must be consulted
   // here too: it only rewrites the flag MIRROR, which this canonical-profile
   // read bypasses - without the check, every docs baseline of this view carried
   // jelly controls despite the pin.

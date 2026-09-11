@@ -20,6 +20,7 @@
  * Lives in lib/ (not bridge/) precisely so tests/svg-anim.test.ts can import it
  * without pulling in dom-to-image or the rest of the rasteriser.
  */
+import { escapeHtml } from './util/escape.ts';
 
 /** Prefix every generated id and its internal references so `frame`-local ids
  *  become globally unique when frames are stacked in one document. */
@@ -123,10 +124,22 @@ function buildMetaBlock(meta: AnimatedSvgParts['meta']): { comment: string | nul
   if (!meta) return { comment: null, metadata: '' };
   const bits = [meta.description, meta.contact, meta.source].filter(Boolean) as string[];
   if (!bits.length) return { comment: null, metadata: '' };
-  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const credit = esc(bits.join(' · '));
+  const text = bits.join(' · ');
+  // Two sinks, two escapers. `<dc:description>` is XML character data, so the
+  // shared five-character escape belongs there. An XML COMMENT expands no
+  // character reference, so `&#39;` inside one reads back as those six literal
+  // characters - a description of "Andy's studio" would ship as "Andy&#39;s
+  // studio". The comment therefore keeps the three-character escape this file
+  // has always used (which is what stops a `>` closing it early) and leaves the
+  // quotes alone, plus a guard on `--`, which no XML comment may carry.
+  const credit = escapeHtml(text);
+  const commentCredit = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/-{2,}/g, '-');
   return {
-    comment: `<!-- ${credit} -->\n`,
+    comment: `<!-- ${commentCredit} -->\n`,
     metadata:
       `<metadata><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/">` +
       `<rdf:Description><dc:description>${credit}</dc:description></rdf:Description></rdf:RDF></metadata>`,

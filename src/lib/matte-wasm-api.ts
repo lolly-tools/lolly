@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { aiAllowed, assertAiAllowed, guardAiWorker } from './ai-policy.ts';
+import { abortError as makeAbortError } from './util/abort.ts';
 /**
  * The WASM implementation of `host.matte` (v1.103) - worker plumbing only: an
  * id-keyed pending map, progress fan-out, abort translation. The onnxruntime-web
@@ -64,11 +65,8 @@ function serializeOpts(opts: MatteOpts = {}): Omit<MatteOpts, 'signal' | 'onProg
   return rest;
 }
 
-function abortError(message = 'matte aborted'): Error {
-  return typeof DOMException !== 'undefined'
-    ? new DOMException(message, 'AbortError')
-    : Object.assign(new Error(message), { name: 'AbortError' });
-}
+/** This path's AbortError - the shared constructor with the matte message. */
+const abortError = (message = 'matte aborted'): Error => makeAbortError(message);
 
 export function createWasmMatteAPI(): MatteAPI {
   return {

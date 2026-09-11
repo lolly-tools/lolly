@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { textAssistChunks, textAssistExcerpts, textAssistMessages, finishTextAssist, type TextAssistTask } from '../../../../engine/src/text-assist.ts';
 /**
  * Reword worker (plans/127) - runs SmolLM2-360M-Instruct off-thread to propose
  * shorter, plainer rewrites of ONE sentence at a time. Everything heavy
@@ -43,7 +44,9 @@ import { MODELS_BASE } from './models-base.ts';
 
 export interface RewordWorkerRequest {
   id: number;
-  type: 'reword' | 'abort' | 'wm-detect';
+  type: 'reword' | 'abort' | 'wm-detect' | 'text-task';
+  task?: TextAssistTask;
+  firstLine?: number;
   sentence?: string;
   /** Candidates to sample (default REWORD_SAMPLES). */
   count?: number;
@@ -210,6 +213,43 @@ function ensureRuntime(id: number): Promise<RewordRuntime> {
   return runtime;
 }
 
+async function assist(id: number, text: string, task: TextAssistTask, firstLine = 1): Promise<void> {
+  const chunks = textAssistChunks(text, firstLine), result: string[] = [];
+  const { model, tokenizer, wm } = await ensureRuntime(id);
+  for (const [index, chunk] of chunks.entries()) {
+    if (aborted.has(id)) throw new Error('Cancelled.');
+    if (!chunk.text.trim()) continue;
+    const inputs = tokenizer.apply_chat_template(textAssistMessages(chunk, task), { add_generation_prompt: true, return_dict: true });
+    const inputLen = inputs.input_ids.dims[1] ?? 0;
+    if (inputLen > 1500) throw new Error('This passage exceeds the model context. Select a smaller excerpt.');
+    let processors = wm;
+    if (task !== 'rewrite') {
+      const mod = await tf(), Processor = mod.LogitsProcessor as new () => object;
+      const allowed = new Set(textAssistExcerpts(chunk).map((_, i) => {
+        const ids = tokenizer.encode(String(i + 1), { add_special_tokens: false });
+        if (ids.length !== 1) throw new Error('This model cannot select numbered excerpts.');
+        return ids[0]!;
+      }));
+      class ExcerptChoice extends Processor {
+        _call(_input: unknown, logits: LogitsLike): LogitsLike {
+          const vocab = logits.dims.at(-1) ?? logits.data.length;
+          for (let i = 0; i < logits.data.length; i++) if (!allowed.has(i % vocab)) logits.data[i] = -Infinity;
+          return logits;
+        }
+      }
+      const list = new (mod.LogitsProcessorList as new () => { push(p: object): void })();
+      list.push(new ExcerptChoice()); processors = list;
+    }
+    const output = await model.generate({ ...inputs, max_new_tokens: task === 'rewrite' ? 500 : 1, do_sample: false, repetition_penalty: 1.15, no_repeat_ngram_size: 3, logits_processor: processors });
+    if (aborted.has(id)) throw new Error('Cancelled.');
+    const answer = tokenizer.batch_decode(output.slice(null, [inputLen, null]), { skip_special_tokens: true })[0]?.trim();
+    if (!answer) throw new Error('The model returned no text.');
+    result.push(finishTextAssist(chunk, task, task === 'rewrite' ? answer : `[${answer}]`));
+    post({ id, progress: { phase: 'generate', fraction: (index + 1) / chunks.length } } satisfies RewordWorkerReply);
+  }
+  post({ id, result } satisfies RewordWorkerReply);
+}
+
 async function reword(id: number, sentence: string, count: number): Promise<void> {
   const { model, tokenizer, wm } = await ensureRuntime(id);
   const inputs = tokenizer.apply_chat_template(buildRewordMessages(sentence), {
@@ -248,6 +288,10 @@ async function detectWatermark(id: number, text: string): Promise<void> {
 onmessage = (e: MessageEvent<RewordWorkerRequest>): void => {
   const { id, type, sentence, count, text } = e.data;
   if (type === 'abort') { aborted.add(id); return; }
+  if (type === 'text-task') {
+    assist(id, text ?? '', e.data.task ?? 'synopsis', e.data.firstLine).catch(error => post({ id, error: error instanceof Error ? error.message : String(error) })).finally(() => aborted.delete(id));
+    return;
+  }
   if (type === 'wm-detect') {
     if (typeof text !== 'string' || !text.trim()) {
       post({ id, error: 'nothing to score' } satisfies RewordWorkerReply);

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { aiAllowed, assertAiAllowed, guardAiWorker } from './ai-policy.ts';
+import { abortError as makeAbortError } from './util/abort.ts';
 /**
  * The WASM implementation of `host.ocr` (plans/125) - worker plumbing only: an
  * id-keyed pending map, progress fan-out, abort translation. The onnxruntime-web
@@ -55,11 +56,8 @@ function serializeOpts(opts: OcrOpts = {}): Omit<OcrOpts, 'signal' | 'onProgress
   return rest;
 }
 
-function abortError(message = 'The text read was aborted.'): Error {
-  return typeof DOMException !== 'undefined'
-    ? new DOMException(message, 'AbortError')
-    : Object.assign(new Error(message), { name: 'AbortError' });
-}
+/** This path's AbortError - the shared constructor with the text-read message. */
+const abortError = (message = 'The text read was aborted.'): Error => makeAbortError(message);
 
 export function createWasmOcrAPI(): OcrAPI {
   return {

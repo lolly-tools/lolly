@@ -104,6 +104,9 @@
  */
 
 import { ulid } from '../lib/row-id.ts';
+import { errText } from '../lib/util/errors.ts';
+import { isRecord } from '../lib/util/guards.ts';
+import { bytesToBase64 } from '../lib/util/bytes.ts';
 
 // ── Version & caps ────────────────────────────────────────────────────────────
 
@@ -271,10 +274,6 @@ export type BeamParseResult =
   | { readonly ok: false; readonly reason: BeamCancelReason; readonly detail: string };
 
 // ── Parsing ───────────────────────────────────────────────────────────────────
-
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === 'object' && v !== null && !Array.isArray(v);
-}
 
 function isSafeCount(v: unknown, max: number): v is number {
   return typeof v === 'number' && Number.isSafeInteger(v) && v >= 0 && v <= max;
@@ -447,17 +446,6 @@ export interface BeamHash {
 
 export type BeamHasher = () => BeamHash;
 
-// Chunked so a multi-MB digest input can't blow the call stack via spread/apply - 
-// the same guard lib/bundle.ts uses for the identical conversion.
-function bytesToBase64(bytes: Uint8Array): string {
-  let bin = '';
-  const CHUNK = 0x8000;
-  for (let i = 0; i < bytes.length; i += CHUNK) {
-    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK) as unknown as number[]);
-  }
-  return btoa(bin);
-}
-
 /**
  * SRI SHA-256 over a complete buffer - byte-for-byte the catalog's form
  * (`scripts/checksum-assets.ts` writes `createHash('sha256').digest('base64')`;
@@ -566,10 +554,6 @@ export interface BeamProgress {
 
 function progressFor(itemIndex: number, itemBytes: number, itemTotal: number, bytes: number, totalBytes: number, itemsDone: number): BeamProgress {
   return { itemIndex, itemBytes, itemTotal, bytes, totalBytes, itemsDone };
-}
-
-function errText(err: unknown): string {
-  return err instanceof Error ? err.message : String(err);
 }
 
 /** Subscriber fan-out that a throwing subscriber cannot break (ceremony's rule). */

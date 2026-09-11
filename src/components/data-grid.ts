@@ -15,6 +15,7 @@
 
 import type { TableValue } from '@lolly/engine';
 import '../styles/parts/data-grid.css';
+import { escapeHtml } from '../lib/util/escape.ts';
 
 /** The slice of rows to render for a given scroll position, plus the offset + total
  *  height that place that slice inside a full-height scroll canvas. Pure. */
@@ -50,6 +51,10 @@ export interface DataGridOptions {
   rowHeight?: number;
   /** Rows above/below the viewport to keep rendered (default 4). */
   overscan?: number;
+  /** Open details for a row by click, Enter or Space, including read-only grids. */
+  onRowActivate?: (row: number) => void;
+  /** Let one column use spare horizontal space without shrinking other columns. */
+  growColumn?: number;
 }
 
 export interface DataGridHandle {
@@ -88,6 +93,7 @@ export function mountDataGrid(container: HTMLElement, opts: DataGridOptions): Da
 
   container.classList.add('data-grid');
   container.setAttribute('role', 'grid');
+  container.setAttribute('aria-readonly', String(!editable));
   container.innerHTML = `
     <div class="dg-viewport" tabindex="0">
       <div class="dg-inner">
@@ -97,9 +103,11 @@ export function mountDataGrid(container: HTMLElement, opts: DataGridOptions): Da
     </div>`;
   const viewport = container.querySelector<HTMLElement>('.dg-viewport')!;
   const inner = container.querySelector<HTMLElement>('.dg-inner')!;
+  if (opts.growColumn !== undefined) inner.style.minWidth = '100%';
   const header = container.querySelector<HTMLElement>('.dg-header')!;
   const canvas = container.querySelector<HTMLElement>('.dg-canvas')!;
   const rowsEl = container.querySelector<HTMLElement>('.dg-rows')!;
+  let activeRow = 0;
 
   const totalWidth = () => widths.reduce((a, b) => a + b, 0) + actionW;
 
@@ -109,7 +117,7 @@ export function mountDataGrid(container: HTMLElement, opts: DataGridOptions): Da
     // Each header carries a hover-revealed × to delete its column (skipped for a
     // read-only column); a trailing empty corner closes the row-delete gutter.
     header.innerHTML = value.columns
-      .map((c, i) => `<div class="dg-cell dg-head-cell${readOnly.has(i) ? ' dg-ro' : ''}" role="columnheader" style="width:${widths[i]}px" data-col="${i}"><span class="dg-head-label">${esc(c)}</span>${editable && !opts.fixedColumns && !readOnly.has(i) ? `<button type="button" class="dg-del-col" data-del-col="${i}" title="Delete column" aria-label="Delete column">×</button>` : ''}</div>`)
+      .map((c, i) => `<div class="dg-cell dg-head-cell${readOnly.has(i) ? ' dg-ro' : ''}" role="columnheader" style="width:${widths[i]}px${opts.growColumn === i ? ';flex-grow:1' : ''}" data-col="${i}"><span class="dg-head-label">${esc(c)}</span>${editable && !opts.fixedColumns && !readOnly.has(i) ? `<button type="button" class="dg-del-col" data-del-col="${i}" title="Delete column" aria-label="Delete column">×</button>` : ''}</div>`)
       .join('')
       + (editable ? `<div class="dg-rowctl dg-rowctl-head" style="width:${actionW}px" aria-hidden="true"></div>` : '');
   }
@@ -127,10 +135,10 @@ export function mountDataGrid(container: HTMLElement, opts: DataGridOptions): Da
     let html = '';
     for (let r = first; r < last; r++) {
       const row = value.rows[r] ?? [];
-      html += `<div class="dg-row" role="row" aria-rowindex="${r + 2}" style="height:${rowHeight}px" data-row="${r}">`;
+      html += `<div class="dg-row" role="row" aria-rowindex="${r + 2}" style="height:${rowHeight}px" data-row="${r}"${opts.onRowActivate ? ` tabindex="${r === activeRow ? 0 : -1}" aria-selected="${r === activeRow}"` : ''}>`;
       for (let c = 0; c < value.columns.length; c++) {
         const ro = !editable || readOnly.has(c);
-        html += `<div class="dg-cell${ro ? ' dg-ro' : ''}" role="gridcell" style="width:${widths[c]}px" data-row="${r}" data-col="${c}"${ro ? '' : ' tabindex="-1"'}>${esc(row[c] ?? '')}</div>`;
+        html += `<div class="dg-cell${ro ? ' dg-ro' : ''}" role="gridcell" style="width:${widths[c]}px${opts.growColumn === c ? ';flex-grow:1' : ''}" data-row="${r}" data-col="${c}"${ro ? '' : ' tabindex="-1"'}>${esc(row[c] ?? '')}</div>`;
       }
       // Trailing row-delete × (gutter column). Not a .dg-cell, so it never starts
       // a cell edit; the delegated click handler below removes the row.
@@ -227,10 +235,31 @@ export function mountDataGrid(container: HTMLElement, opts: DataGridOptions): Da
     if (delRow) { e.preventDefault(); deleteRow(Number(delRow.dataset.delRow)); return; }
     const delCol = t.closest<HTMLElement>('[data-del-col]');
     if (delCol) { e.preventDefault(); deleteCol(Number(delCol.dataset.delCol)); }
+    const row = t.closest<HTMLElement>('.dg-row');
+    if (row && opts.onRowActivate) {
+      activeRow = Number(row.dataset.row);
+      renderRows(true);
+      rowsEl.querySelector<HTMLElement>(`.dg-row[data-row="${activeRow}"]`)?.focus({ preventScroll: true });
+      opts.onRowActivate(activeRow);
+    }
+  };
+  const onKey = (event: KeyboardEvent): void => {
+    if (!opts.onRowActivate || editor || !value.rows.length) return;
+    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); opts.onRowActivate(activeRow); return; }
+    const moves: Record<string, number> = { ArrowDown: 1, ArrowUp: -1, Home: -activeRow, End: value.rows.length - activeRow - 1 };
+    if (moves[event.key] === undefined) return;
+    event.preventDefault();
+    activeRow = Math.max(0, Math.min(value.rows.length - 1, activeRow + moves[event.key]!));
+    const top = activeRow * rowHeight;
+    if (top < viewport.scrollTop) viewport.scrollTop = top;
+    else if (top + rowHeight * 2 > viewport.scrollTop + viewport.clientHeight) viewport.scrollTop = top + rowHeight * 2 - viewport.clientHeight;
+    renderRows(true);
+    rowsEl.querySelector<HTMLElement>(`.dg-row[data-row="${activeRow}"]`)?.focus({ preventScroll: true });
   };
   viewport.addEventListener('scroll', onScroll, { passive: true });
   rowsEl.addEventListener('dblclick', onDblClick);
   container.addEventListener('click', onClick);
+  viewport.addEventListener('keydown', onKey);
 
   // A resize observer keeps the window correct when the viewport grows/shrinks.
   const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => renderRows(true)) : null;
@@ -240,17 +269,18 @@ export function mountDataGrid(container: HTMLElement, opts: DataGridOptions): Da
   full();
 
   return {
-    setValue(next) { value = clone(next); widths = value.columns.map((_, c) => colWidth(value, c)); full(); },
+    setValue(next) { value = clone(next); activeRow = Math.max(0, Math.min(activeRow, value.rows.length - 1)); widths = value.columns.map((_, c) => colWidth(value, c)); full(); },
     getValue() { return clone(value); },
     destroy() {
       viewport.removeEventListener('scroll', onScroll);
       rowsEl.removeEventListener('dblclick', onDblClick);
       container.removeEventListener('click', onClick);
+      viewport.removeEventListener('keydown', onKey);
       ro?.disconnect();
       const disposedEditor = editor; editor = null; disposedEditor?.remove();
       container.replaceChildren();
       container.classList.remove('data-grid');
-      for (const a of ['role', 'aria-rowcount', 'aria-colcount']) container.removeAttribute(a);
+      for (const a of ['role', 'aria-rowcount', 'aria-colcount', 'aria-readonly']) container.removeAttribute(a);
     },
   };
 }
@@ -259,6 +289,4 @@ function clone(t: TableValue): TableValue {
   return { columns: [...t.columns], rows: t.rows.map((r) => [...r]) };
 }
 
-function esc(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
+const esc = escapeHtml;

@@ -69,7 +69,8 @@ function scaffold(): string {
     </div>`;
 }
 
-/** Keep the HUD fully inside the viewport, given a proposed top-left. */
+/** Keep the HUD fully inside the viewport, given a proposed top-left. Not the numeric
+ *  engine clamp: it measures an element and bounds a two-axis point against it. */
 function clamp(el: HTMLElement, left: number, top: number): { left: number; top: number } {
   const r = el.getBoundingClientRect();
   const maxLeft = Math.max(0, window.innerWidth - r.width);

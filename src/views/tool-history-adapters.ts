@@ -4,7 +4,7 @@ import type { ToolManifest } from '../../../../engine/src/loader.ts';
 /** Audited durable-input tools. This is an adapter rollout, not a promise that
  * arbitrary file/camera/provider tools can reconstruct their original bytes. */
 export const AUTOMATIC_HISTORY_TOOLS: readonly string[] = Object.freeze([
-  'design', 'gradient', 'chart', 'snippet', 'qr-code', 'org-chart', 'pricing-table', 'wordmark',
+  'text-helper', 'design', 'gradient', 'chart', 'snippet', 'qr-code', 'org-chart', 'pricing-table', 'wordmark',
 ]);
 const durableTypes = new Set(['text', 'longtext', 'number', 'boolean', 'color', 'select', 'asset', 'date', 'time', 'datetime-local', 'url', 'vector', 'table', 'blocks']);
 

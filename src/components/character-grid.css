@@ -1,0 +1,8 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+.character-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(3.5rem,1fr)); gap: var(--ui-space-control-block); margin-block: var(--ui-space-panel); }
+.character-grid > button { font-family: inherit; font-size: 1.75rem; min-height: var(--ui-size-target); padding: var(--ui-space-control-block); }
+.character-grid > .character-grid-invisible { font: var(--ui-type-caption)/1.5 var(--font-mono,monospace); }
+.character-grid-nav { display: flex; align-items: center; flex-wrap: wrap; gap: var(--ui-space-control-inline); }
+.character-grid :focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.character-grid > .character-grid-cell { border: 1px solid var(--ui-color-border-default); border-radius: var(--ui-radius-control); box-shadow: none; min-height: calc(var(--ui-size-target) + var(--ui-space-control-inline)); background: var(--ui-color-surface-canvas); }
+.character-grid > .character-grid-cell:hover, .character-grid > .character-grid-cell[aria-pressed="true"] { background: var(--ui-color-selection-surface); border-color: var(--ui-color-selection-border); }

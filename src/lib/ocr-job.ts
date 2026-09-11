@@ -32,6 +32,7 @@
  */
 
 import { startJob, type JobHandle } from './jobs.ts';
+import { clamp01 } from './util/number.ts';
 import { t } from '../i18n.ts';
 import type { HostV1, OcrFrame, OcrOpts, OcrProgress, OcrResult } from '@lolly-tools/core/host-v1';
 
@@ -53,8 +54,6 @@ export interface OcrJobCtx {
   /** `total <= 0` means indeterminate, exactly as lib/jobs.ts defines it. */
   onProgress?: (done: number, total: number, note?: string) => void;
 }
-
-const clamp01 = (n: number): number => Math.min(1, Math.max(0, n));
 
 /**
  * OcrProgress → the job's (done, total, note).

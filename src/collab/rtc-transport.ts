@@ -218,6 +218,8 @@
  */
 
 import { CANVAS_OP_VERSION } from '@lolly-tools/core/canvas-op-v1';
+import { errText } from '../lib/util/errors.ts';
+import { isRecord } from '../lib/util/guards.ts';
 import { HISTORY_PROTOCOL_VERSION } from '../lib/collab-history.ts';
 import type { CeremonyEffects, CeremonyEvent, CeremonyIceState, CeremonyRole, CeremonyTimers } from './ceremony.ts';
 import type { CollabAnswer, CollabInvite } from './ceremony.ts';
@@ -705,10 +707,6 @@ export function exceedsFrameLimit(text: string): boolean {
   return frameEncoder.encode(text).length > MAX_FRAME_BYTES;
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 /**
  * Shape-check an inbound presence frame (section 11.21, every remote byte is untrusted).
  *
@@ -763,10 +761,6 @@ function mapIceState(value: string): CeremonyIceState | null {
 
 function isCandidatePairReport(report: unknown): boolean {
   return isRecord(report) && report.type === 'candidate-pair';
-}
-
-function errText(err: unknown): string {
-  return err instanceof Error ? err.message : String(err);
 }
 
 // ── The transport ─────────────────────────────────────────────────────────────────
@@ -1469,6 +1463,8 @@ export function createRtcTransport(opts: RtcTransportOptions): RtcTransport {
     log('rtc-transport: unknown ops envelope', parsed.t);
   }
 
+  // A DataChannel payload, not an AudioSource: every ArrayBufferView is viewed
+  // in place (no copy), and everything else is null rather than a throw.
   function toBytes(data: unknown): Uint8Array | null {
     if (data instanceof Uint8Array) return data;
     if (data instanceof ArrayBuffer) return new Uint8Array(data);

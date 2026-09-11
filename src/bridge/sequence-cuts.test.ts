@@ -15,7 +15,7 @@
  *   • that pdf takes the ONE-document-N-pages route and raster/svg the zip route.
  *
  * WHAT IT CANNOT, stated plainly rather than mocked into a false green: no pixel in
- * this file is real. jsdom has no layout, no rasteriser, no jsPDF canvas - so
+ * this file is real. jsdom has no layout, no rasteriser, no canvas - so
  * "cut 4 actually SHOWS the boxes that are live at 4.5s" is a browser assertion and
  * lives in `tests/sequence-render.browser.test.ts` (case 10), gated on a real
  * Chromium exactly like the rest of that suite. The renderers here are injected

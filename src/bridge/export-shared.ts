@@ -242,7 +242,7 @@ export interface ExportOpts {
   password?: string;
   /** Strong tier: AES-256 (R6) applied as a final encrypt-last pass over the
    *  finished PDF bytes. Composes with PDF/X + CMYK + marks (unlike `password`,
-   *  the jsPDF-native 40-bit RC4 lock). Never serialized to a URL. */
+   *  the standard-tier 40-bit RC4 lock). Never serialized to a URL. */
   strongPassword?: string;
   fullPage?: boolean;
   wait?: number;

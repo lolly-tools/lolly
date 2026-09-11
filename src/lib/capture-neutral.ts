@@ -34,7 +34,7 @@ import { JELLY_FLAG, NEUROSPICY_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, setFlagMirr
 /** localStorage key an automated capture sets (to `'1'`) before the app boots. */
 export const CAPTURE_NEUTRAL_KEY = 'lolly-capture-neutral';
 
-/** The effect flags a capture forces OFF, whatever their brand-aware default. */
+/** The effect flags a capture forces OFF, whatever their default or the user's toggle. */
 export const NEUTRALISED_FLAGS: readonly string[] = [JELLY_FLAG.id, NEUROSPICY_FLAG.id, WOBBLY_FLAG.id, WOBBLY_MESH_FLAG.id];
 
 /** Is this browser context pinned to neutral capture state? */

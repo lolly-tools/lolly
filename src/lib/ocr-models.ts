@@ -12,4 +12,4 @@
  * This file stays as the import path lib/ocr-wasm-api.ts, lib/ocr.ts and
  * lib/ocr-worker.ts have always used, so nothing in the web shell changes.
  */
-export * from '../../../../packages/node-shell/src/ml/ocr-models.ts';
+export * from '@lolly-tools/node-shell/ml/ocr-models';

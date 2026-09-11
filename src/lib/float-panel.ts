@@ -3,7 +3,7 @@
  * Pop an in-flow element out into a floating panel you can move, resize from any
  * edge or corner, and take fullscreen - then put it back exactly where it was.
  *
- * The visualizer's panel (components/viz-overlay.ts) does something similar with
+ * The visualiser's former floating panel (viz-overlay.ts, removed 2026-09-11) did something similar with
  * the native CSS `resize` corner, which is one corner and gives no events. This
  * gives eight grips and reports every change, because the things it carries are
  * canvases that must repaint at their new size.

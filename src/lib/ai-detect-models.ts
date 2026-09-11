@@ -14,9 +14,9 @@
  */
 
 import { MODELS_BASE } from './models-base.ts';
-import type { AiDetectModel } from '../../../../packages/node-shell/src/ml/ai-detect-models.ts';
+import type { AiDetectModel } from '@lolly-tools/node-shell/ml/ai-detect-models';
 
-export * from '../../../../packages/node-shell/src/ml/ai-detect-models.ts';
+export * from '@lolly-tools/node-shell/ml/ai-detect-models';
 
 /** The cache probe URL: the big file's local path, as transformers.js keys its
  *  Cache API entries ('transformers-cache', keyed by fetched path). */

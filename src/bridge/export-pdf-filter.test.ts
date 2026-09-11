@@ -128,13 +128,22 @@ async function renderBoth(filtered: boolean): Promise<{ pdf: string; svg: string
 /**
  * The COLOUR image XObjects, in the order they were written.
  *
- * Scoped to /DeviceRGB on purpose: jsPDF writes a second, DeviceGray image object as the
- * /SMask alpha companion of every RGBA PNG, so a bare `/Subtype /Image` count reads
- * double. The dictionaries are uncompressed, so this is exact rather than a heuristic.
+ * Scoped to /DeviceRGB on purpose: an RGBA PNG is embedded as a colour image plus a
+ * second, DeviceGray one carrying its /SMask alpha, so a bare `/Subtype /Image` count
+ * reads double. The dictionaries are uncompressed, so this is exact rather than a
+ * heuristic; the entries are read by name because dictionary key order is the
+ * writer's business, not this test's.
  */
 function embeddedImages(pdf: string): { width: number; height: number }[] {
-  const re = /\/Subtype\s*\/Image\s*\/Width\s+(\d+)\s*\/Height\s+(\d+)\s*\/ColorSpace\s*\/DeviceRGB/g;
-  return [...pdf.matchAll(re)].map((m) => ({ width: Number(m[1]), height: Number(m[2]) }));
+  const out: { width: number; height: number }[] = [];
+  for (const m of pdf.matchAll(/\/Subtype\s*\/Image([\s\S]{0,400}?)>>/g)) {
+    const dict = m[1]!;
+    const width = /\/Width\s+(\d+)/.exec(dict);
+    const height = /\/Height\s+(\d+)/.exec(dict);
+    if (!width || !height || !/\/ColorSpace\s*\/DeviceRGB/.test(dict)) continue;
+    out.push({ width: Number(width[1]), height: Number(height[1]) });
+  }
+  return out;
 }
 const count = (s: string, needle: string) => s.split(needle).length - 1;
 

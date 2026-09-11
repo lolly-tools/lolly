@@ -36,7 +36,7 @@ test('the default model is a real catalogue entry', () => {
 });
 
 test('the offered depth model has verified pins and a deployment manifest entry', async () => {
-  const { ML_MODEL_FILES } = await import('../../../../packages/node-shell/src/ml/model-pins.ts');
+  const { ML_MODEL_FILES } = await import('@lolly-tools/node-shell/ml/model-pins');
   const { readFileSync } = await import('node:fs');
   const manifest = JSON.parse(readFileSync(new URL('../../models-manifest.json', import.meta.url), 'utf8'));
   assert.deepEqual(stagedDepthModels().map(m => m.id), ['depth-anything-v2-small']);

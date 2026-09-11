@@ -99,6 +99,7 @@ import type {
   BeamWire,
 } from './beam-protocol.ts';
 import { createBeamSink } from '../lib/beam-sink.ts';
+import { errText } from '../lib/util/errors.ts';
 import {
   BeamPackError,
   MANIFEST_ITEM_ID,
@@ -377,10 +378,6 @@ export interface BeamSession {
 /** The slot a live, unsaved state is packed under. Never written to any store: it
  *  exists only inside the shadow host below, for the length of one `buildBeamOffer`. */
 export const LIVE_SESSION_SLOT = 'lolly/beam-live-session';
-
-function errText(err: unknown): string {
-  return err instanceof Error ? err.message : String(err);
-}
 
 function isSendSettled(phase: BeamSendPhase): boolean {
   return phase === 'complete' || phase === 'declined' || phase === 'cancelled';

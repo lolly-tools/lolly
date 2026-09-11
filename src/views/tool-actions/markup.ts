@@ -145,7 +145,7 @@ export function buildFormatOptions(ta: ActionsCtx): void {
     : ''; ta.cmykRow = cmykRow;
 
   // Tier 2.6 - PDF password (standard "PDF" only). A non-empty value locks the
-  // exported PDF on open (jsPDF standard security handler, copy/modify restricted).
+  // exported PDF on open (the standard security handler, copy/modify restricted).
   // Revealed only when "PDF" is chosen - the print-PDF path (pdf-cmyk) re-saves
   // through pdf-lib, which can't write encrypted PDFs.
   //

@@ -25,6 +25,7 @@ import { EMU_PER_PX, finalizeBoxes, isPptx, readPptx } from '@lolly/engine';
 import type { PageText, TextBlock } from '@lolly/engine';
 import type { DesignMapOptions } from '../../../../engine/src/design-map.ts';
 import { inflatePptx } from '../bridge/pptx.ts';
+import { bytesToBase64 } from '../lib/util/bytes.ts';
 import { rasterSize } from './svg-unpack.ts';
 import { parseFontMetadata, detectFontFormat, readFontEmbedding } from '../lib/font-utils.ts';
 import type {
@@ -63,14 +64,6 @@ function xmlEsc(s: string): string {
 /** `#RRGGBB` when the colour carries a hex (literal OR theme-resolved scheme), else null. */
 function hexAttr(c: PptxReadColor | undefined): string | null {
   return c?.hex ? `#${c.hex}` : null;
-}
-
-// Base64 in chunks - String.fromCharCode(...bigArray) overflows the call stack.
-function bytesToBase64(u8: Uint8Array): string {
-  let bin = '';
-  const CHUNK = 0x8000;
-  for (let i = 0; i < u8.length; i += CHUNK) bin += String.fromCharCode(...u8.subarray(i, i + CHUNK));
-  return btoa(bin);
 }
 
 // ── the pure slide renderer ────────────────────────────────────────────────────

@@ -28,6 +28,7 @@
  */
 
 import { unzlibSync } from 'fflate';
+import { bytesToBase64 } from '../lib/util/bytes.ts';
 import { t, tRaw } from '../i18n.ts';
 import { choiceDialog } from '../components/confirm-dialog.ts';
 import type {
@@ -76,14 +77,6 @@ const scrub = (s: string): string => s.replace(/[,~]/g, ' ').trim();
 // ── Unpack reader (PSD/XCF → PdfHandle) ─────────────────────────────────────────
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
-
-/** Base64 in chunks - String.fromCharCode(...bigArray) overflows the call stack. */
-function bytesToBase64(u8: Uint8Array): string {
-  let bin = '';
-  const CHUNK = 0x8000;
-  for (let i = 0; i < u8.length; i += CHUNK) bin += String.fromCharCode(...u8.subarray(i, i + CHUNK));
-  return btoa(bin);
-}
 
 /**
  * Open a layered bitmap for Unpack - each layer comes out as its own named PNG, and

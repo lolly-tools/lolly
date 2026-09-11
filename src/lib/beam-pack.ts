@@ -808,7 +808,8 @@ export interface BuiltBeamOffer {
   dispose(): void;
 }
 
-function clamp(text: string, max: number): string {
+/** Cut a string to `max` characters. Not the numeric clamp - this one takes text. */
+function truncate(text: string, max: number): string {
   const s = String(text ?? '');
   return s.length <= max ? s : s.slice(0, max);
 }
@@ -817,12 +818,12 @@ function clamp(text: string, max: number): string {
  *  refuses duplicate ids) even when two source ids truncate to the same string. */
 function itemIdFor(index: number, sourceId: string): string {
   const head = `${index}/`;
-  return head + clamp(sourceId, PACK_MAX_ID_CHARS - head.length);
+  return head + truncate(sourceId, PACK_MAX_ID_CHARS - head.length);
 }
 
 function assetLabel(record: BeamAssetRecord): string {
   const name = record.meta?.name;
-  return clamp(typeof name === 'string' && name ? name : (record.id.split('/').pop() || tRaw(STRINGS.untitledAsset)), PACK_MAX_LABEL_CHARS);
+  return truncate(typeof name === 'string' && name ? name : (record.id.split('/').pop() || tRaw(STRINGS.untitledAsset)), PACK_MAX_LABEL_CHARS);
 }
 
 function sessionLabel(row: BeamSessionRow | undefined, data: Record<string, unknown>): string {
@@ -830,7 +831,7 @@ function sessionLabel(row: BeamSessionRow | undefined, data: Record<string, unkn
   const label = (typeof fromData === 'string' && fromData) ? fromData
     : (typeof row?.label === 'string' && row.label) ? row.label
     : tRaw(STRINGS.untitledSession);
-  return clamp(label, PACK_MAX_LABEL_CHARS);
+  return truncate(label, PACK_MAX_LABEL_CHARS);
 }
 
 function tagsOf(record: BeamAssetRecord): string[] {
@@ -956,7 +957,7 @@ export async function buildBeamOffer(source: BeamPackSource): Promise<BuiltBeamO
   // The by-reference entries: catalog assets the session uses. No payload, a marker,
   // and the receiver's own catalog does the rest (section 11.16).
   for (const id of libraryIds) {
-    entries.push({ kind: 'asset-ref', sourceId: id, label: clamp(id, PACK_MAX_LABEL_CHARS), resolve: 'local' });
+    entries.push({ kind: 'asset-ref', sourceId: id, label: truncate(id, PACK_MAX_LABEL_CHARS), resolve: 'local' });
   }
 
   // Sessions LAST - every asset they reference has landed and been re-keyed by the
@@ -981,7 +982,7 @@ export async function buildBeamOffer(source: BeamPackSource): Promise<BuiltBeamO
     payloads.push(sessionBytes);
   }
 
-  const name = clamp(
+  const name = truncate(
     source.name
       ?? (source.from === 'session' ? sessionLabel(sessionRow, sessionData ?? {})
         : source.from === 'tag' ? tRaw(STRINGS.tagPack, { tag: source.tag })
@@ -996,7 +997,7 @@ export async function buildBeamOffer(source: BeamPackSource): Promise<BuiltBeamO
     minReader: BEAM_PACK_MIN_READER,
     kind,
     name,
-    ...(source.fromName ? { fromName: clamp(source.fromName, PACK_MAX_LABEL_CHARS) } : {}),
+    ...(source.fromName ? { fromName: truncate(source.fromName, PACK_MAX_LABEL_CHARS) } : {}),
     entries,
   };
 

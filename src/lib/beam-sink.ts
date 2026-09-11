@@ -90,6 +90,7 @@ import type { BeamHash, BeamHasher, BeamSink } from '../collab/beam-protocol.ts'
 // The failure copy's catalog lookup. Import-time inert (see the Copy section below),
 // so this module stays DOM-free and Worker-safe.
 import { tRaw } from '../i18n.ts';
+import { errText } from './util/errors.ts';
 
 /** The object store in the shell's central `lolly` database (bridge/db.ts, v13). */
 export const BEAM_STAGING_STORE = 'beam-staging';
@@ -218,10 +219,6 @@ function asSinkError(err: unknown, fallback: BeamSinkErrorCode, detail: string):
   if (err instanceof BeamSinkError) return err;
   const code = isQuotaError(err) ? 'quota' : fallback;
   return new BeamSinkError(code, `${detail}: ${errText(err)}`, { cause: err });
-}
-
-function errText(err: unknown): string {
-  return err instanceof Error ? err.message : String(err);
 }
 
 // ── The sink ──────────────────────────────────────────────────────────────────

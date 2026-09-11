@@ -118,3 +118,28 @@ test('mountDataGrid: row/column delete removes the right cells and commits', asy
     g.document = prevDoc; g.ResizeObserver = prevRO;
   }
 });
+
+test('read-only activation keeps keyboard focus and can grow the message column', async () => {
+  const { JSDOM } = await import('jsdom');
+  const dom = new JSDOM('<div id="host"></div>');
+  const previous = globalThis.document;
+  globalThis.document = dom.window.document;
+  try {
+    const host = dom.window.document.getElementById('host')!;
+    const value = { columns: ['Level', 'Message'], rows: [['info', 'Ready'], ['error', 'Failed']] };
+    let active = -1;
+    const grid = mountDataGrid(host, { value, editable: false, growColumn: 1, onRowActivate: (row) => { active = row; } });
+    Object.defineProperty(host.querySelector('.dg-viewport'), 'clientHeight', { value: 280 });
+    grid.setValue(value);
+    host.querySelector<HTMLElement>('.dg-row[data-row="1"]')!.click();
+    assert.equal(active, 1);
+    assert.equal(host.getAttribute('aria-readonly'), 'true');
+    assert.equal(dom.window.document.activeElement?.getAttribute('data-row'), '1');
+    assert.equal(dom.window.document.activeElement?.getAttribute('aria-selected'), 'true');
+    assert.equal(host.querySelector<HTMLElement>('.dg-head-cell[data-col="1"]')!.style.flexGrow, '1');
+    grid.setValue({ columns: value.columns, rows: [value.rows[0]!] });
+    assert.equal(host.querySelector('[aria-selected="true"]')?.getAttribute('data-row'), '0');
+    grid.destroy();
+    assert.equal(host.getAttribute('aria-readonly'), null);
+  } finally { globalThis.document = previous; dom.window.close(); }
+});

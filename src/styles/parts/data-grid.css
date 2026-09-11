@@ -118,3 +118,7 @@
   font: inherit;
   outline: none;
 }
+
+.data-grid[aria-readonly="true"] .dg-cell.dg-ro { color: var(--ui-color-text-default); font-style: normal; }
+.data-grid .dg-row[aria-selected="true"] { background: var(--ui-color-selection-surface); }
+.data-grid .dg-row[aria-selected] .dg-cell { cursor: pointer; }

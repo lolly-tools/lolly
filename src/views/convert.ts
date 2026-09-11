@@ -5,7 +5,7 @@
  * the work directly (a view CAN import the engine, unlike a tool hook): fonts via
  * sfntToWoff/woffToSfnt, SVG⇄SVGZ via gzip/gunzip, and any image → the whole raster
  * matrix by rasterising to a canvas and encoding it (png/jpeg/webp/avif via the
- * browser; bmp/tiff via the engine writers; pdf via jsPDF; ico wraps a PNG).
+ * browser; bmp/tiff via the engine writers; pdf wraps the image; ico wraps a PNG).
  *
  * Deliberately NOT via host.export.render: that path DOM-serialises an on-screen tool
  * canvas and stalls on a detached node - and we already hold the pixels, so encoding

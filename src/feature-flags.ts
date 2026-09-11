@@ -85,23 +85,17 @@ export function connectorEnabled(kind: string): boolean {
 export const NEUROSPICY_FLAG: FeatureFlag = { id: 'neurospicy', label: 'Neurospicy Mode', pill: 'focus music' };
 
 // Jelly effects - flag-gated soft-body chrome controls (the vendored Jelly UI web
-// components, see lib/jelly.ts). The default is BRAND-AWARE, resolved at boot by
-// setJellyDefault (main.ts): OFF on a locked brand build (SUSE - its chrome stays
-// stock), ON for the customisable start profile (lolly-start). A user's explicit
-// toggle always wins over the default. Turning it off reverts the upgraded
-// controls to the plain CSS primitives and skips loading the bundle.
+// components, see lib/jelly.ts). Opt-IN (default OFF) for every brand since
+// 2026-09-11; it used to default ON for an unlocked brand, resolved at boot from
+// the brand-lock signal. A user's explicit toggle is what turns it on. Off means
+// the plain CSS primitives and no bundle load.
 export const JELLY_FLAG: FeatureFlag = {
   id: 'jelly-effects',
   label: 'Jelly effects',
   pill: 'squishy',
   info: 'Gives some controls a soft, springy feel, starting with the switches on this page. Follows your theme and brand colours, respects reduced-motion, and never touches tool output.',
+  default: false,
 };
-
-/** Set the Jelly flag's built-in default from the brand signal (main.ts, before
- *  hydrateFeatureFlags so the sync mirror bakes it in). Locked brand ⇒ false. */
-export function setJellyDefault(on: boolean): void {
-  JELLY_FLAG.default = on;
-}
 
 // Wobbly windows - the opt-in compiz-style wobble on the shell's draggable floating
 // panels (lib/wobble.ts). Heritage: Compiz shipped the effect, much of it built at
@@ -343,8 +337,8 @@ export function hydrateFeatureFlags(profile: Profile | null | undefined): void {
     else if (eff[id] === undefined && gov.default !== undefined) eff[id] = gov.default;
   }
   // Bake non-ON built-in defaults for flags still unset after governance, so the
-  // sync reads agree with isFlagOn: opt-in flags, and the brand-aware Jelly
-  // default (setJellyDefault runs before this at boot). flagEnabledSync's own
+  // sync reads agree with isFlagOn: the opt-in flags (Jelly included since
+  // 2026-09-11). flagEnabledSync's own
   // fallback for a missing key stays ON, matching the historic flags. The guard is
   // `default === false`, so a default-ON flag is deliberately left with NO mirror
   // entry - which is what makes a fresh device read it as on (PRIVATE_COLLAB_FLAG

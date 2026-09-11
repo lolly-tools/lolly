@@ -297,6 +297,8 @@ export async function runJob<T>(opts: StartJobOpts, work: (handle: JobHandle) =>
 }
 
 /** Flatten any thrown value to a short message (worker errors arrive as strings). */
+// Not `lib/util/errors.ts`'s errText: a job with no error still needs a label, and a
+// thrown string is its own message.
 function errText(err: unknown): string {
   if (err == null) return 'Failed';
   if (typeof err === 'string') return err;

@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
+import { escapeHtml } from './lib/util/escape.ts';
+
+/** The shell's HTML escape, under the name most of the tree already imports.
+ *  The implementation lives in lib/util/escape.ts beside the CSS and regex
+ *  escapers, so the three semantics sit together and none of them can drift. */
 export function escape(s: unknown): string {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' } as Record<string, string>)[c]!);
+  return escapeHtml(s);
 }
 
 /** Only http(s)/mailto or a relative path/hash reach the DOM as a link - a

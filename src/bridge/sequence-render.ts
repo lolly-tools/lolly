@@ -163,6 +163,7 @@ import { bedDuckEnvelope, MIX_RAMP_SEC, type DuckSpan } from './audio-envelope.t
 // Separate line on purpose: sequence-render.test.ts pins the line above verbatim
 // (the one-envelope contract), and the clip-gain names are a different concern.
 import { clipGainEvents, isTrivialGain } from './audio-envelope.ts';
+import { clamp01 } from '../lib/util/number.ts';
 // plans/156 Phase B: the analytic mix-window evaluator. B2/B3 route BOTH the whole
 // buffer (sequenceAudioPcm, the worker handover) AND the on-demand streaming windows
 // through this one PURE function, so "whole" and "windowed" are literally the same
@@ -425,8 +426,6 @@ const CSS_DPI = 96;
  *  the whole bound: the executor asks, then blocks, so a slow main thread can
  *  never queue frames up in worker memory. */
 export const LIVE_RASTER_QUEUE = 1;
-
-const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v);
 
 // ── small helpers reproduced from export.ts (see the header) ────────────────
 

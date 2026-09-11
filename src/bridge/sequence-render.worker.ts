@@ -80,11 +80,10 @@ import {
 } from '../lib/canvas-blur.ts';
 // Pure arithmetic (no DOM, no canvas), so the executor keeps its DOM-free contract.
 import { fxCacheBudgetBytes } from './plate-budget.ts';
+import { clamp01 } from '../lib/util/number.ts';
 
 export type AnyCanvas = HTMLCanvasElement | OffscreenCanvas;
 export type AnyCtx = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
-
-const clamp01 = (v: number): number => (v < 0 ? 0 : v > 1 ? 1 : v);
 
 // ── streaming-mux target gate (plans/156 WP-A part 3) ────────────────────────
 //

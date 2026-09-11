@@ -669,7 +669,7 @@ export function edgeDockPreview(on: boolean): void {
   }
 }
 
-// ── Width grip (inline-start edge) - the sidebar/studio-split shape ─────────────
+// ── Width grip (inline-start edge) - the sidebar shape (the former studio-split.ts, removed 2026-09-11) ─────────────
 
 /**
  * One width, from a drag or a key. Inside COLLAPSE_AT the column puts itself away to the
@@ -738,7 +738,7 @@ function wireWidthGrip(grip: HTMLElement): void {
   });
 }
 
-// ── Divider (between the two stacked panels) - studio-split forked to the Y axis ─
+// ── Divider (between the two stacked panels) - the former studio-split forked to the Y axis ─
 function wireDivider(div: HTMLElement): void {
   let dragging = false;
   div.addEventListener('pointerdown', (e: PointerEvent) => {

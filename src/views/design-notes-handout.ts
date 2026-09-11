@@ -161,7 +161,7 @@ function makePage(
     overflow: 'hidden',
     background: '#ffffff',
     color: '#172033',
-    // jsPDF's HTML walker can reject a variable webfont before falling back. The
+    // A PDF HTML walker can reject a variable webfont before falling back. The
     // presenter copy uses a PDF-safe family; the authored slide image keeps its fonts.
     fontFamily: 'Helvetica, Arial, sans-serif',
   });
@@ -274,7 +274,7 @@ function makePage(
     overflow: 'hidden',
     // A no-op in the browser, but an explicit fidelity boundary for the PDF walker:
     // its unsupported-filter fallback photographs only this text region. That avoids
-    // jsPDF's live-text positioning state drifting across later pages while the rest
+    // live-text positioning state drifting across later pages while the rest
     // of the handout (page, rules, headings and slide preview) keeps its normal path.
     filter: 'brightness(1)',
   });

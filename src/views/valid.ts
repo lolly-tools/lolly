@@ -32,6 +32,8 @@ import { looksLikeDocxFile, DOCX_MIME } from '../lib/office-text.ts';
 import { WORLD_VIEWBOX, WORLD_LAND_PATH, projectLatLon } from './world-map.ts';
 import { CA_ROOT_PEM } from '../ca-root.ts';
 import { escape } from '../utils.ts';
+import { textSignalLabels } from './valid-text-labels.ts';
+import { wireTextHandoffs } from '../lib/text-handoff.ts';
 // Aliased (not `icon`) - this file has function parameters named `icon` (fact(),
 // the change-history `section` builder) that would otherwise shadow the import.
 import { icon as glyph, type IconName } from '../lib/icons.ts';
@@ -824,47 +826,10 @@ function buildOverlaySvg(lines: OcrLineBox[], marks: TextSignalMark[], w: number
 
 function textSignalsHtml(panel: TextSignalPanel | undefined): string {
   if (!panel) return '';
-  // Static t() so the extractor sees every key; selected by band/kind at render.
-  const heading: Record<TextSignalPanel['band'], string> = {
-    none: t('No signals that this text was AI-generated'),
-    weak: t('A few weak signals that this text may be AI-generated'),
-    notable: t('Signals that this text may be AI-generated'),
-    strong: t('Strong signals that this text may be AI-generated'),
-  };
-  const bandLabel: Record<TextSignalPanel['band'], string> = {
-    none: t('None'), weak: t('Weak'), notable: t('Notable'), strong: t('Strong'),
-  };
-  const title: Record<string, string> = {
-    'model-fingerprint': t('Model fingerprint'),
-    'invisible-char': t('Invisible characters'),
-    'tag-chars': t('Hidden tag characters'),
-    'variation-selectors': t('Unusual variation selectors'),
-    'bidi-override': t('Bidirectional override characters'),
-    'mixed-script': t('Mixed-script words'),
-    'anomalous-space': t('Unusual spacing'),
-    'ai-vocabulary': t('AI-favoured vocabulary'),
-    'ai-phrasing': t('AI stock phrasing'),
-    'ai-structure': t('AI sentence structure'),
-    'claude-tell': t('Claude-associated phrasing'),
-    'smart-punctuation': t('Curly quotes / smart punctuation'),
-    'em-dash-density': t('Heavy em-dash use'),
-    'list-heavy': t('List-heavy structure'),
-    'uniform-burstiness': t('Unusually uniform sentences'),
-    'chatbot-leftover': t('Chatbot boilerplate'),
-    'template-placeholder': t('Unfilled template placeholders'),
-    'uniform-paragraphs': t('Unusually uniform paragraphs'),
-    'ai-span': t('Concentrated AI-like section'),
-    'family-tell': t('Model-associated phrasing'),
-    'spelling-variant-mix': t('Mixed US/British spelling'),
-    'model-estimate': t('On-device model estimate'),
-  };
-  const rows = panel.rows.map((r) => `
-        <li class="valid-aidecl-row">
-          <span class="valid-aidecl-model">${escape(title[r.kind] ?? r.kind)}</span>
-          ${r.detail ? `<span class="valid-aidecl-fact">${escape(r.detail)}</span>` : ''}
-        </li>`).join('');
+  const { heading, bandLabel, rows } = textSignalLabels(panel);
   // The extracted text itself, highlighted - present whenever analyzeVerifyText ran
   // (the paste path, the text-file path, and the image→OCR path all attach it).
+  const openText = panel.text != null ? `<button class="btn" type="button" data-open-text="${escape(panel.text)}">${t('Open in Text')}</button>` : '';
   const extract = panel.text != null ? highlightExtractHtml(panel.text, panel.marks) : '';
   // The heat-bar minimap: one cell per rolling window, start of the text to its
   // end. `cell.heat` is a plain 0-1 number the engine already rounded - the ONLY
@@ -903,7 +868,7 @@ function textSignalsHtml(panel: TextSignalPanel | undefined): string {
     <div class="valid-aidecl valid-tsig" role="note" data-tsig-band="${escape(panel.band)}" data-tsig-root>
       <span class="valid-aidecl-ic" aria-hidden="true">${svgIcon('aiSpark')}</span>
       <div class="valid-aidecl-text">
-        <strong>${escape(heading[panel.band])} <span class="valid-tsig-band" data-band="${escape(panel.band)}">${escape(bandLabel[panel.band])}</span></strong>
+        <strong>${escape(heading)} <span class="valid-tsig-band" data-band="${escape(panel.band)}">${escape(bandLabel)}</span></strong>
         ${wm}
         ${tsigGaugeSvg(panel.score, panel.band)}
         ${modelSlot}
@@ -915,7 +880,7 @@ function textSignalsHtml(panel: TextSignalPanel | undefined): string {
           </summary>
           <div class="valid-tsig-details-body">
             ${heatbar}
-            ${extract}
+            ${openText}${extract}
             ${rows ? `<ul class="valid-aidecl-list">${rows}</ul>` : ''}
             ${guess}
             ${cands}
@@ -2187,7 +2152,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
   {
     const el = viewEl as HTMLElement & { _cleanup?: () => void };
     const prev = el._cleanup;
-    el._cleanup = () => { prev?.(); viewAlive = false; };
+    el._cleanup = wireTextHandoffs(viewEl, () => { prev?.(); viewAlive = false; });
   }
 
   // Verify one file's bytes, returning its C2PA report, its embedded metadata
@@ -2441,7 +2406,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
 
   // PDF → decode the DCTDecode (JPEG) + non-predictor Flate RGB/Gray image
   // XObjects at native resolution (extractPdfImageBytes, pdf-lib), detect.
-  // GAP (logged, not faked): jsPDF's own FlateDecode-with-PNG-predictor rasters
+  // GAP (logged, not faked): FlateDecode-with-PNG-predictor rasters
   // - what a future imprint-on-embed would write into a PDF - and JPX/CCITT/JBIG2
   // images are NOT decodable by this path yet, so a mark inside one is invisible
   // here. A pure-VECTOR Lolly PDF (QR, lockup) carries no raster XObject at all,
