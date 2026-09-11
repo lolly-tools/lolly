@@ -212,7 +212,11 @@ interface FakeRes { status: number; headers: Record<string, string>; body: Buffe
 
 function drive(url: string, method = 'GET'): Promise<FakeRes> {
   // No MCP secrets in env: proves the render route works OUTSIDE the mcpEnabled gate.
-  const handler = createGateway({} as NodeJS.ProcessEnv);
+  return driveWith({} as NodeJS.ProcessEnv, url, method);
+}
+
+function driveWith(env: NodeJS.ProcessEnv, url: string, method = 'GET'): Promise<FakeRes> {
+  const handler = createGateway(env);
   const req = {
     method, url,
     headers: { host: 'lolly.tools', 'x-forwarded-for': `172.16.0.${++ipSeq}, 10.0.0.1` },
@@ -265,4 +269,21 @@ test('a hosted gateway with no durable limiter still boots: renders 503, the res
   assert.equal(render.headers['retry-after'], '5');
   const rpc = await call('/api/mcp', 'POST');
   assert.equal(rpc.status, 404, 'no MCP secrets: the endpoint cleanly does not exist, and nothing threw');
+});
+
+test('MCP secrets without LOLLY_MCP_PUBLIC_ORIGIN: the MCP surface answers 503, the function still boots and routes', async () => {
+  _resetRenderGetCaches();
+  // lolly.tools on 2026-09-10: LOLLY_MCP_TOKEN set, no public origin, no limiter store.
+  const hosted = { VERCEL: '1', LOLLY_MCP_TOKEN: 'test-token' } as NodeJS.ProcessEnv;
+  const meta = await driveWith(hosted, '/.well-known/oauth-authorization-server');
+  assert.equal(meta.status, 503);
+  assert.equal(meta.headers['retry-after'], '60');
+  assert.match(meta.body!.toString('utf8'), /not configured/);
+  const rpc = await driveWith(hosted, '/api/mcp', 'POST');
+  assert.equal(rpc.status, 503);
+  // The render route is reached and answers for itself (its limiter is the
+  // unconfigured one, so 503 with the limiter's shorter Retry-After).
+  const render = await driveWith(hosted, '/tool/qr-code.svg?url=https%3A%2F%2Fsuse.com%2Fhosted-origin');
+  assert.equal(render.status, 503);
+  assert.equal(render.headers['retry-after'], '5');
 });

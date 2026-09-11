@@ -183,7 +183,20 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env): (req: Incom
   // surface that can only dead-end. Return 404 for every route so the endpoint
   // cleanly doesn't exist.
   const mcpEnabled = !!signingSecret(env) || env.LOLLY_MCP_ALLOW_ANONYMOUS === '1';
-  const base = mcpEnabled ? publicOrigin(env) : null;
+  // The canonical origin is resolved once, here, never from request headers. A
+  // hosted deployment that carries MCP secrets but no LOLLY_MCP_PUBLIC_ORIGIN
+  // gets an MCP surface that answers 503 with the reason logged - not a function
+  // that fails to boot and takes the public render route down with it (that is
+  // what every lolly.tools function did on 2026-09-10).
+  let base: string | null = null;
+  let mcpUnavailable: string | null = null;
+  if (mcpEnabled) {
+    try { base = publicOrigin(env); }
+    catch (error) {
+      mcpUnavailable = (error as Error).message;
+      console.error(`[mcp] ${mcpUnavailable} - the MCP surface answers 503 until it is set; the public render route is unaffected`);
+    }
+  }
   const limiter = createRateLimiter(env);
   return async (req, res) => {
     const method = req.method || 'GET';
@@ -215,10 +228,15 @@ export function createGateway(env: NodeJS.ProcessEnv = process.env): (req: Incom
       res.end(JSON.stringify({ error: 'not_found' }));
       return;
     }
+    if (mcpUnavailable || base === null) {
+      res.writeHead(503, { ...CORS, 'content-type': 'application/json', 'retry-after': '60' });
+      res.end(JSON.stringify({ error: 'temporarily_unavailable', error_description: 'The MCP surface is not configured on this deployment.' }));
+      return;
+    }
 
     // `base` was parsed once when the gateway was constructed. It never depends
     // on attacker-controlled Host/Forwarded request headers.
-    const publicBase = base!;
+    const publicBase = base;
 
     // ── discovery (GET) ──────────────────────────────────────────────────────
     if (method === 'GET' && path.includes('oauth-authorization-server')) return send(res, authorizationServerMetadata(publicBase));
