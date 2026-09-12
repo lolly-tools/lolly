@@ -69,6 +69,14 @@ export function applyCaptureNeutral(): boolean {
 /** Attribute a settled view carries, as a `waitSelector=` recipe would name it. */
 export const CAPTURE_SETTLED_ATTR = 'data-shots-settled';
 
+/** Attribute a surface carries while it is still filling itself in - a gallery strip's
+ *  dot whose look has not rendered yet (views/gallery-carousel.ts). A capture waits for
+ *  these to clear, so a baseline frames a filled grid rather than a race. */
+export const PENDING_ATTR = 'data-pending';
+
+/** Rounds a pending count may sit UNCHANGED before the settle gives up waiting on it. */
+export const PENDING_STALL = 3;
+
 /**
  * Stamp `data-shots-settled` on `root` once every image under it has finished loading,
  * so a capture recipe can block on the frame being FINAL rather than guess with `waitMs`.
@@ -85,6 +93,14 @@ export const CAPTURE_SETTLED_ATTR = 'data-shots-settled';
  * and `waitSelector` would time out. Forcing them makes the wait terminate AND makes the
  * set of decoded images the same every run. Errors resolve like loads - a broken preview
  * must not stall a capture, and it is equally broken in every run.
+ *
+ * The second half of "final" is content that has not been REQUESTED yet. A gallery
+ * strip's looks render one at a time (views/gallery-carousel.ts), and an `<img>` with no
+ * `src` reports `complete` - so a round can look quiet while a look is still rendering
+ * into it. Anything still filling itself in says so with `data-pending`, and a round
+ * that sees one is not quiet. That is bounded twice over: the round cap below still
+ * ends the wait, and a pending count that stops MOVING for PENDING_STALL rounds is
+ * treated as done (a strip whose render will never arrive must not hold a capture).
  */
 export function settleForCapture(root: ParentNode & { setAttribute(n: string, v: string): void }): void {
   if (!captureNeutralPinned()) return;
@@ -99,6 +115,8 @@ export function settleForCapture(root: ParentNode & { setAttribute(n: string, v:
     // roughly 4 with a whole extra strip and a +26% baseline.
     let stable = 0;
     let prev = -1;
+    let prevPending = -1;
+    let stalled = 0;
     for (let round = 0; round < 40 && stable < 2; round++) {
       const imgs = Array.from(root.querySelectorAll('img'));
       for (const im of imgs) im.loading = 'eager';
@@ -112,8 +130,12 @@ export function settleForCapture(root: ParentNode & { setAttribute(n: string, v:
       // Let any observer fire against the now-settled layout, then re-count.
       await new Promise<void>((res) => setTimeout(res, 150));
       const now = root.querySelectorAll('*').length;
-      stable = now === prev ? stable + 1 : 0;
+      const pending = root.querySelectorAll(`[${PENDING_ATTR}]`).length;
+      stalled = pending > 0 && pending === prevPending ? stalled + 1 : 0;
+      const quiet = now === prev && (pending === 0 || stalled >= PENDING_STALL);
+      stable = quiet ? stable + 1 : 0;
       prev = now;
+      prevPending = pending;
     }
     root.setAttribute(CAPTURE_SETTLED_ATTR, 'true');
   })();

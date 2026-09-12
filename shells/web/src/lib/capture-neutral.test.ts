@@ -34,8 +34,10 @@ globalThis.window = dom.window as unknown as typeof globalThis.window;
 globalThis.document = dom.window.document;
 globalThis.localStorage = dom.window.localStorage;
 
-const { CAPTURE_NEUTRAL_KEY, NEUTRALISED_FLAGS, applyCaptureNeutral, captureNeutralPinned } =
-  await import('./capture-neutral.ts');
+const {
+  CAPTURE_NEUTRAL_KEY, CAPTURE_SETTLED_ATTR, NEUTRALISED_FLAGS, PENDING_ATTR, PENDING_STALL,
+  applyCaptureNeutral, captureNeutralPinned, settleForCapture,
+} = await import('./capture-neutral.ts');
 const { flagEnabledSync, overrideFlagInMemory, JELLY_FLAG, NEUROSPICY_FLAG } = await import('../feature-flags.ts');
 const { applyA11yPrefs, A11Y_STORE_KEY } = await import('./a11y-prefs.ts');
 
@@ -122,6 +124,61 @@ test('pinned: only the literal "1" counts', () => {
   reset();
   localStorage.setItem(CAPTURE_NEUTRAL_KEY, 'true');
   assert.equal(captureNeutralPinned(), false, 'a truthy-looking value must not pin');
+});
+
+/** Poll until `ready()` or the budget runs out, so a settle assertion never hangs. */
+async function waitFor(ready: () => boolean, budgetMs = 6000): Promise<boolean> {
+  for (let waited = 0; waited < budgetMs; waited += 50) {
+    if (ready()) return true;
+    await new Promise((res) => setTimeout(res, 50));
+  }
+  return ready();
+}
+
+/** A detached root holding `n` surfaces that say they are still filling in. */
+function pendingRoot(n: number): HTMLElement {
+  const root = document.createElement('div');
+  root.innerHTML = Array.from({ length: n }, () => `<button ${PENDING_ATTR}></button>`).join('');
+  document.body.append(root);
+  return root;
+}
+
+test('pinned: the settle waits for a pending surface before stamping the frame final', async () => {
+  reset();
+  localStorage.setItem(CAPTURE_NEUTRAL_KEY, '1');
+  const root = pendingRoot(2);
+  settleForCapture(root);
+  // A gallery strip renders its looks one at a time and an <img> with no src reports
+  // `complete`, so waiting on images alone would call this frame final with two looks
+  // still to come. The pending attribute is what closes that race.
+  await new Promise((res) => setTimeout(res, 400));
+  assert.equal(root.hasAttribute(CAPTURE_SETTLED_ATTR), false, 'a pending surface holds the capture');
+  for (const el of root.querySelectorAll(`[${PENDING_ATTR}]`)) el.removeAttribute(PENDING_ATTR);
+  assert.ok(await waitFor(() => root.hasAttribute(CAPTURE_SETTLED_ATTR)),
+    'once nothing is pending the frame settles');
+  root.remove();
+});
+
+test('pinned: a pending surface that never resolves cannot hold the capture open', async () => {
+  reset();
+  localStorage.setItem(CAPTURE_NEUTRAL_KEY, '1');
+  // A parked render (or a tool that will never produce a look) must not turn a capture
+  // into a timeout: a pending count that stops MOVING is treated as done.
+  const root = pendingRoot(1);
+  settleForCapture(root);
+  assert.ok(await waitFor(() => root.hasAttribute(CAPTURE_SETTLED_ATTR)), 'the wait is bounded');
+  assert.ok(root.querySelector(`[${PENDING_ATTR}]`), 'and it settled WITH the surface still pending');
+  assert.ok(PENDING_STALL >= 2 && PENDING_STALL <= 6,
+    'the stall budget is a few rounds: long enough to let a slow render land, short enough not to stall a run');
+  root.remove();
+});
+
+test('unpinned: the settle never runs, so no visitor pays for it', () => {
+  reset();
+  const root = pendingRoot(1);
+  settleForCapture(root);
+  assert.equal(root.hasAttribute(CAPTURE_SETTLED_ATTR), false);
+  root.remove();
 });
 
 // ── Contract: the capture pipeline sets what this module reads ────────────────

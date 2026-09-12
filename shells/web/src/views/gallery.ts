@@ -32,6 +32,7 @@ import { syncCatalog, prefetchAssetsById, defaultHiddenToolIds } from '../catalo
 import { shippedTemplateRef, userTemplateRef } from '../lib/template-ref.ts';
 import { createUserTemplateStore, type UserTemplate } from '../lib/user-templates.ts';
 import { galleryTemplates, templateLine, templateSearchTerms, templateMotionPreviews, infoTemplates, NO_INFO_TEMPLATES, type InfoTemplates } from './gallery-templates.ts';
+import { activeExampleIndex, carouselDotsMarkup, carouselNavMarkup, markLookFailed, markLookReady, stripCarouselNav, wireCarousel } from './gallery-carousel.ts';
 import { pinTool, unpinTool, pinnedToolIds, pinnedRenderLayouts } from '../lib/offline-pins.ts';
 import { getInjectedTools } from '../lib/injected-tools.ts';
 import { LEAD_TOOL_ORDER } from '../lib/lead-tools.ts';
@@ -315,11 +316,6 @@ const SORT_DIR_ICON = icon('sortDir');
 // single render to show (they resume into #/pro). Deduped against projects.ts's
 // and folder-tiles.ts's identical PACKAGE_ICON.
 const PACKAGE_ICON = icon('package');
-
-// Lucide "chevron-left/right" - the preview-strip's prev/next affordances (fine-pointer
-// only; touch just swipes). Decorative buttons, so aria-hidden.
-const CHEVRON_LEFT = icon('chevronLeft', { strokeWidth: 2.4 });
-const CHEVRON_RIGHT = icon('chevronRight', { strokeWidth: 2.4 });
 
 // Always-present backup art for a tile: the tool's own icon. The icon is INLINED into
 // the catalog index (never a network fetch), so unlike a committed preview PNG/SVG - a
@@ -1294,7 +1290,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       else img.addEventListener('load', fit, { once: true });
     });
     // The deck is a static preview - it has no per-page nav/dots (unlike the old carousel).
-    gcar.querySelectorAll('.gcar-nav, .gcar-dots').forEach(el => el.remove());
+    stripCarouselNav(gcar);
   }
 
   function queueCarousel(gcar: HTMLElement): void {
@@ -1306,29 +1302,33 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     // perf-ui: skip the live grid-tile preview render (renderFeaturedVariant / renderFeaturedPages
     // rasterise on the main thread) - settle the tile on its static icon instead. Adding has-art
     // stops the waiting tracer so it reads as done, not stuck. Off by default ⇒ byte-identical.
-    if (perfUiOn()) { gcar.classList.add('has-art'); return; }
+    // No look will ever render here, so the strip's nav and dots would point at panes
+    // that are not coming - drop them rather than leave every dot pending forever.
+    if (perfUiOn()) { gcar.classList.add('has-art'); stripCarouselNav(gcar); return; }
     const looks = resolveExamples(tool);
     const slides = [...gcar.querySelectorAll<HTMLElement>('.gcar-slide--ex')];
     const renderSlide = async (slide: HTMLElement): Promise<void> => {
       const img = slide.querySelector<HTMLImageElement>('.gcar-img');
       const i = Number(slide.dataset.exIndex);
       const look = looks[i];
-      if (!gcar.isConnected || !img || img.getAttribute('src') || !look) return;
+      if (!gcar.isConnected || !img || img.getAttribute('src')) return;
+      // A dot with no look behind it must not sit pending for the life of the page.
+      if (!look) { markLookFailed(gcar, slide); return; }
       try {
         const [thumb, href] = await Promise.all([
           renderGalleryLook(host, tool, i, look), galleryLookHref(tool.id, look),
         ]);
         if (!gcar.isConnected) return;
-        img.addEventListener('load', () => {
-          slide.classList.add('is-loaded');
-          gcar.classList.add('has-art');
-        }, { once: true });
+        // The look's dot leaves its pending state in exactly these two handlers: the
+        // strip's state is only ever read off the slides (gallery-carousel.ts).
+        img.addEventListener('load', () => markLookReady(gcar, slide), { once: true });
+        img.addEventListener('error', () => markLookFailed(gcar, slide), { once: true });
         img.src = thumb;
         slide.querySelector('a')?.setAttribute('href', href);
         await img.decode();
       } catch (e) {
         // Keep the brand-coloured icon when the tool cannot render a preview.
-        gcar.classList.add('has-art');
+        markLookFailed(gcar, slide);
         host.log?.('warn', `Gallery preview failed for ${toolId}`, { error: String(e) });
       }
     };
@@ -1375,80 +1375,6 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     motionPreviews = masonry ? armMotionPreviews(masonry, { hover: false }) : null;
   }
   cleanups.push(() => { motionPreviews?.destroy(); tplMotion.destroy(); });
-
-  // Move to a given slide (by index) and by ±1 (with wrap for the auto-advance loop),
-  // then reflect it in the dots. Uses smooth native scroll so touch, trackpad and this
-  // code all land on the same scroll-snap points.
-  function setCarDot(gcar: HTMLElement, idx: number): void {
-    gcar.querySelectorAll<HTMLElement>('.gcar-dot').forEach((d, k) => d.classList.toggle('is-active', k === idx));
-  }
-  // The strip's box is a FIXED SQUARE (parts/gallery.css .gcar) and every slide is
-  // object-fit:contain, so differently-shaped example looks fit within one unchanging
-  // frame - no per-look reflow as the carousel advances (which used to jitter the whole
-  // masonry). Nothing here resizes the box any more.
-  function scrollCarTo(gcar: HTMLElement, idx: number): void {
-    const track = gcar.querySelector<HTMLElement>('.gcar-track');
-    if (!track || !track.clientWidth) return;
-    track.scrollTo({ left: idx * track.clientWidth, behavior: 'smooth' });
-    setCarDot(gcar, idx);
-  }
-  // Child indices of the slides that are actually READY to show - a lead frame (a real
-  // src from the start) or an example/page slide whose art has decoded (.is-loaded).
-  // Auto-advance and prev/next cycle ONLY these, so a strip with several previews still
-  // pending never rotates onto a not-yet-loaded slide's flat skeleton; the set grows as
-  // each preview decodes and the preview job adds .is-loaded.
-  function readyCarIndices(track: HTMLElement): number[] {
-    const out: number[] = [];
-    const kids = track.children;
-    for (let i = 0; i < kids.length; i++) {
-      const s = kids[i] as HTMLElement;
-      if (s.classList.contains('gcar-slide--lead') || s.classList.contains('is-loaded')) out.push(i);
-    }
-    return out;
-  }
-  function advanceCarousel(gcar: HTMLElement, dir: number, wrap: boolean): void {
-    const track = gcar.querySelector<HTMLElement>('.gcar-track');
-    if (!track || !track.clientWidth) return;
-    const ready = readyCarIndices(track);
-    if (ready.length < 2) return;   // 0–1 loaded → nothing to rotate through yet
-    const cur = Math.round(track.scrollLeft / track.clientWidth);
-    // Where the centred slide sits within the ready set. If the strip is parked on a
-    // slide that hasn't loaded (e.g. a manual dot jump), fall back to the last ready
-    // slide at or before it, so the next step still lands on a decoded frame.
-    let pos = ready.indexOf(cur);
-    if (pos === -1) { pos = 0; for (let k = 0; k < ready.length; k++) if (ready[k]! <= cur) pos = k; }
-    let next = pos + dir;
-    if (next >= ready.length) next = wrap ? 0 : ready.length - 1;
-    if (next < 0) next = wrap ? ready.length - 1 : 0;
-    scrollCarTo(gcar, ready[next]!);
-  }
-  function wireCarousel(gcar: HTMLElement): void {
-    const track = gcar.querySelector<HTMLElement>('.gcar-track');
-    if (!track) return;
-    // Delegated nav/dot clicks off the .gcar root, so the paged path can rebuild the
-    // dots/arrows (unknown page count) with no re-wiring. A click on a slide link (not a
-    // nav/dot) falls through untouched, so it still opens the tool.
-    gcar.addEventListener('click', (e) => {
-      const t = e.target as HTMLElement;
-      if (t.closest('.gcar-prev')) { e.preventDefault(); advanceCarousel(gcar, -1, true); }
-      else if (t.closest('.gcar-next')) { e.preventDefault(); advanceCarousel(gcar, 1, true); }
-      else { const dot = t.closest<HTMLElement>('.gcar-dot'); if (dot) { e.preventDefault(); scrollCarTo(gcar, Number(dot.dataset.i)); } }
-    });
-    // pointer/wheel/touch = the user; NOT the programmatic scrollTo above (which emits no
-    // such event), so auto-advance can't pause itself. Sync the dots on any scroll.
-    track.addEventListener('scroll', () => { if (track.clientWidth) setCarDot(gcar, Math.round(track.scrollLeft / track.clientWidth)); }, { passive: true });
-  }
-
-  // The example index of the slide currently centred in a carousel, or null when that
-  // slide isn't an example (the resume/lead frame, a document page, or an empty strip).
-  // Lets a click anywhere on the card open the SAME look the strip is showing right now.
-  function activeExampleIndex(gcar: HTMLElement): number | null {
-    const track = gcar.querySelector<HTMLElement>('.gcar-track');
-    if (!track) return null;
-    const centred = track.querySelectorAll<HTMLElement>('.gcar-slide')[Math.round(track.scrollLeft / (track.clientWidth || 1))];
-    const raw = centred?.dataset.exIndex;
-    return raw === undefined ? null : Number(raw);
-  }
 
   // Open a tool seeded with one of its manifest example looks - the first-visit path where
   // the preview the user clicked (or is watching) becomes the tool's opening configuration.
@@ -2572,15 +2498,13 @@ function cardMarkup(
          </a>
          ${tool.templates?.[i]?.motion ? `<button type="button" class="btn btn--sm gcar-motion-play" data-motion-play aria-pressed="false">${escape(t('Preview animation'))}</button><span class="gcar-motion-label">${escape(tool.templates[i]!.name)}</span>` : ''}
        </li>`).join('');
+    // Nav + dots come from the look COUNT, which the manifest knows before the first
+    // render starts - so a cold tile says how many looks are coming and which one it is
+    // on, instead of reading as empty until the art lands (plans/246). Each dot starts
+    // pending and clears as its look loads or gives up; see views/gallery-carousel.ts.
     const slideCount = exampleLooks.length;
-    const dots = slideCount >= 2
-      ? `<div class="gcar-dots" aria-hidden="true">${Array.from({ length: slideCount }, (_, k) =>
-          `<button class="gcar-dot${k === 0 ? ' is-active' : ''}" type="button" data-i="${k}" tabindex="-1" aria-hidden="true"></button>`).join('')}</div>`
-      : '';
-    const nav = slideCount >= 2
-      ? `<button class="gcar-nav gcar-prev" type="button" tabindex="-1" aria-hidden="true" title="${escape(t('Previous example'))}">${CHEVRON_LEFT}</button>
-         <button class="gcar-nav gcar-next" type="button" tabindex="-1" aria-hidden="true" title="${escape(t('Next example'))}">${CHEVRON_RIGHT}</button>`
-      : '';
+    const dots = carouselDotsMarkup(slideCount);
+    const nav = carouselNavMarkup(slideCount);
     visual = `
       <div class="gcar" data-tool="${escape(tool.id)}">
         ${iconBackdrop(tool.icon)}

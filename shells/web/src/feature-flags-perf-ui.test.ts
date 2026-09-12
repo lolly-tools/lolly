@@ -129,8 +129,9 @@ test('item 1: decorative rAF loops fold perf-ui into their reduce-motion guard',
 });
 
 test('item 2: the gallery skips live grid-tile rasterisation and settles on the static icon', () => {
-  assert.match(GALLERY, /if \(perfUiOn\(\)\) \{ gcar\.classList\.add\('has-art'\); return; \}/,
-    'no renderFeaturedVariant/Pages on the main thread; has-art stops the waiting tracer');
+  assert.match(GALLERY, /if \(perfUiOn\(\)\) \{ gcar\.classList\.add\('has-art'\); stripCarouselNav\(gcar\); return; \}/,
+    'no renderFeaturedVariant/Pages on the main thread; has-art stops the waiting tracer, and the '
+    + 'strip loses the nav + dots it would otherwise show for looks that are never coming (plans/246)');
 });
 
 test('item 3: perf-ui forces the flat filmstrip (no Cover Flow fan)', () => {
