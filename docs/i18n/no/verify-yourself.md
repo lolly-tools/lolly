@@ -39,14 +39,14 @@ De ærlige unntakene - alle er opt-in, brukerinitiert og synlige i samme Network
 
 ## Fra en terminal
 
-**6. Rendringsendepunktet svarer bare med offentlige data.** Den ene serverfunksjonen som legger brukerinntastede data inn i en URL - hot-link-rendringer - er aktiv her, og [personvernerklæringen](/info/privacy.html) forklarer hva det betyr for inndataene du legger i en lenke:
+**6. Rendringsendepunktet svarer bare med offentlige data.** Den ene serverfunksjonen som legger brukerskrevne inndata inn i en URL - hot-link-rendringer - er live her, og [personvernerklæringen](/info/privacy.html) sier hva det betyr for inndataene du legger i en lenke:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Bryteren er per utrulling (`LOLLY_DISABLE_RENDER_GET=1`): på en instans som setter den, returnerer den samme testen `404` - denne forskjellen er flagget som virker, ikke en inkonsistens.
+Bryteren er per utrulling (`LOLLY_DISABLE_RENDER_GET=1`): på en instans som setter den, returnerer den samme proben `404` - denne forskjellen er flagget som fungerer, ikke en inkonsistens.
 
 **7. Serveroverflaten kan telles opp.** [Server Surface](/info/server-surface.html) lister hver serverside-rute som finnes, med den faste regelen at et endepunkt som ikke står på den siden, ikke er en del av Lolly. `curl` dem; det finnes ikke noe annet å finne.
 
@@ -55,7 +55,7 @@ Bryteren er per utrulling (`LOLLY_DISABLE_RENDER_GET=1`): på en instans som set
 Alt ovenfor kunne fortsatt vært skuespill hvis den utrullede koden var forskjellig fra den offentlige koden. Så sjekk koden - utrullingen bygges fra [det offentlige repositoriet](https://github.com/lolly-tools/lolly):
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ De tre kildekodesjekkene ovenfor er ikke en engangsrevisjon - de er festet i tes
 - CA-utstedelsesloggen kommer tilbake - i kildekoden **eller** den genererte serverbunten,
 - personvernerklæringen mister sine lovpålagte utsagn (navngitt behandlingsansvarlig, rettslig grunnlag, klagerett).
 
-Kjør dem selv i klonen (Node 22.18+; ingen `npm install` nødvendig for denne filen):
+Kjør dem selv i klonen (Node 22.18+; ingen `pnpm install` nødvendig for denne filen):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-Den fullstendige suiten (`npm install && npm test`) kjører flere tusen til, inkludert de adversarielle kryptografitestene beskrevet i [Sikkerhet og verifisering](/info/security.html).
+Hele testsuiten (`pnpm install && pnpm test`) kjører flere tusen til, inkludert de adversarielle kryptografitestene beskrevet i [Sikkerhet og verifisering](/info/security.html).
 
 ## Det du ikke kan verifisere utenfra - sagt rett ut
 

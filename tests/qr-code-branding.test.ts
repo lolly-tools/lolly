@@ -25,7 +25,7 @@ import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
 
 const COMMUNITY = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
-const SKIP = !existsSync(COMMUNITY) && 'community pack not mounted (clone without submodules)';
+const SKIP = !existsSync(COMMUNITY) && 'community pack not mounted';
 const tool: any = SKIP ? null : await loadTool('qr-code',
   (path: string) => readFile(join(COMMUNITY, path), 'utf8'));
 

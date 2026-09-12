@@ -31,9 +31,8 @@
  * Worker) and the Node shells (onnxruntime-node, packages/node-shell/src/ml/).
  * A roster that existed twice would let `models()` and `modelBytes()` answer
  * differently on the two shells, which is exactly the drift the contract
- * forbids. The parent repo is the only place both can import from (shells/web
- * and shells/cli are separately versioned submodules), so the constants live
- * here and shells/web/src/lib/matte-models.ts re-exports them unchanged - the
+ * forbids. This shared package is the only place both can import from (no shell
+ * may import from another), so the constants live here and shells/web/src/lib/matte-models.ts re-exports them unchanged - the
  * same move net.ts and pptx.ts made.
  */
 

@@ -39,14 +39,14 @@ Die ehrlichen Ausnahmen - jede davon opt-in, vom Nutzer ausgelöst und im selben
 
 ## Vom Terminal aus
 
-**6. Der Render-Endpunkt antwortet nur mit öffentlichen Daten.** Das eine Server-Feature, das von Nutzern eingegebene Eingaben in eine URL setzt - Hot-Link-Renders -, ist hier live, und die [Datenschutzerklärung](/info/privacy.html) erklärt, was das für die Eingaben bedeutet, die Sie in einen Link stellen:
+**6. Der Render-Endpunkt antwortet ausschließlich mit öffentlichen Daten.** Die eine Serverfunktion, die von Nutzern eingegebene Eingaben in eine URL überträgt - Hot-Link-Renders - ist hier live, und die [Datenschutzerklärung](/info/privacy.html) beschreibt, was das für die Eingaben bedeutet, die Sie in einen Link einfügen:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Der Schalter gilt pro Deployment (`LOLLY_DISABLE_RENDER_GET=1`): Auf einer Instanz, die diese Variable setzt, liefert derselbe Test `404` zurück - dieser Unterschied ist das Kennzeichen dafür, dass der Schalter funktioniert, keine Inkonsistenz.
+Der Schalter gilt pro Deployment (`LOLLY_DISABLE_RENDER_GET=1`): Auf einer Instanz, die ihn setzt, liefert derselbe Test `404` zurück - dieser Unterschied zeigt, dass das Flag funktioniert, und ist keine Inkonsistenz.
 
 **7. Die Server-Oberfläche ist vollständig aufzählbar.** [Server Surface](/info/server-surface.html) listet jede serverseitige Route auf, die existiert, mit der festen Regel, dass ein Endpunkt, der nicht auf dieser Seite steht, nicht Teil von Lolly ist. Rufen Sie sie mit `curl` ab; es gibt nichts weiter zu finden.
 
@@ -55,7 +55,7 @@ Der Schalter gilt pro Deployment (`LOLLY_DISABLE_RENDER_GET=1`): Auf einer Insta
 All das oben könnte trotzdem Theater sein, wenn der ausgelieferte Code vom öffentlichen Code abwiche. Prüfen Sie also den Code - das Deployment wird aus [dem öffentlichen Repository](https://github.com/lolly-tools/lolly) gebaut:
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ Die drei Quellcode-Prüfungen oben sind kein einmaliges Audit - sie sind in der 
 - das CA-Ausstellungsprotokoll wieder auftaucht - im Quellcode **oder** im generierten Server-Bundle,
 - die Datenschutzerklärung ihre gesetzlich erforderlichen Angaben verliert (benannter Verantwortlicher, Rechtsgrundlage, Beschwerderecht).
 
-Führen Sie sie selbst im Klon aus (Node 22.18+; für diese Datei ist kein `npm install` nötig):
+Führen Sie sie selbst im Klon aus (Node 22.18+; für diese Datei ist kein `pnpm install` nötig):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-Die vollständige Suite (`npm install && npm test`) führt mehrere Tausend weitere aus, einschließlich der in [Security & Verification](/info/security.html) beschriebenen adversariellen Kryptografie-Tests.
+Die vollständige Suite (`pnpm install && pnpm test`) führt mehrere Tausend weitere aus, einschließlich der adversariellen Kryptografietests, die unter [Security & Verification](/info/security.html) beschrieben sind.
 
 ## Was Sie von außen nicht überprüfen können - klar ausgesprochen
 

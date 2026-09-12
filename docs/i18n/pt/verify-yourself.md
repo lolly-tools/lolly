@@ -39,14 +39,14 @@ As exceções honestas - todas opt-in, iniciadas pelo usuário e visíveis na me
 
 ## Em um terminal
 
-**6. O endpoint de renderização responde apenas com dados públicos.** O único recurso de servidor que coloca entradas digitadas pelo usuário em uma URL - renderizações via hot-link - está ativo aqui, e a [política de privacidade](/info/privacy.html) explica o que isso significa para as entradas que você coloca em um link:
+**6. O endpoint de renderização responde apenas com dados públicos.** O único recurso do servidor que coloca entradas digitadas pelo usuário em uma URL - renderizações por hot-link - está ativo aqui, e a [política de privacidade](/info/privacy.html) explica o que isso significa para as entradas que você coloca em um link:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-O interruptor é por implantação (`LOLLY_DISABLE_RENDER_GET=1`): numa instância que define essa variável, o mesmo teste retorna `404` - essa diferença é a flag funcionando, não uma inconsistência.
+A opção é por implantação (`LOLLY_DISABLE_RENDER_GET=1`): em uma instância que a define, a mesma sondagem retorna `404` - essa diferença é a flag funcionando, não uma inconsistência.
 
 **7. A superfície do servidor é enumerável.** [Server Surface](/info/server-surface.html) lista cada rota do lado do servidor que existe, com a regra permanente de que um endpoint fora dessa página não faz parte do Lolly. Faça `curl` nelas; não há mais nada a encontrar.
 
@@ -55,7 +55,7 @@ O interruptor é por implantação (`LOLLY_DISABLE_RENDER_GET=1`): numa instânc
 Tudo acima ainda poderia ser encenação se o código implantado fosse diferente do código público. Então verifique o código - a implantação é construída a partir do [repositório público](https://github.com/lolly-tools/lolly):
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ As três verificações de código-fonte acima não são uma auditoria única - 
 - o log de emissão da CA reaparecer - no código-fonte **ou** no bundle de servidor gerado,
 - a política de privacidade perder suas declarações legalmente exigidas (controlador nomeado, base legal, direito de reclamação).
 
-Execute-os você mesmo no clone (Node 22.18+; não é necessário `npm install` para este arquivo):
+Execute-os você mesmo no clone (Node 22.18+; não é necessário `pnpm install` para este arquivo):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-A suíte completa (`npm install && npm test`) executa mais alguns milhares, incluindo os testes adversariais de criptografia descritos em [Security & Verification](/info/security.html).
+O conjunto completo (`pnpm install && pnpm test`) executa mais alguns milhares, incluindo os testes adversariais de criptografia descritos em [Segurança e Verificação](/info/security.html).
 
 ## O que você não consegue verificar de fora - dito claramente
 

@@ -29,7 +29,7 @@ import { glyphSvgMarkup } from '../shells/web/src/views/glyph-split-mount.ts';
 const REPO_ROOT = fileURLToPath(new URL('..', import.meta.url));
 const OUTFIT_URL = '/fonts/Outfit[wght].ttf';
 const SKIP = existsSync(join(REPO_ROOT, 'shells/web/public/fonts/Outfit[wght].ttf'))
-  ? false : 'Outfit platform face not on disk (shells/web submodule not checked out?)';
+  ? false : 'Outfit platform face not on disk at shells/web/public/fonts/';
 
 const api = createNodeTextAPI({ repoRoot: REPO_ROOT });
 const base = { fontUrl: OUTFIT_URL, fontSize: 48 };

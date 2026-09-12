@@ -132,7 +132,7 @@ implementerer én kontrakt, og katalogene leverer innholdet.
 
 ### Repository-oppsett
 
-Innhold monteres som pakker: `community/`, `docs/`, hver `shells/*`, både `services/*` og `brands/suse` er hver sitt eget repository, sjekket ut som git-submoduler av dette. Foreldrerepositoryet eier `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `brands/lolly-start/` og `profiles.json`. Se [Build Guide » Getting the source](/info/build-guide.html) for utsjekkingskommandoen og arbeidsflyten på tvers av repositorier.
+Lolly er ett repository. `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `docs/`, `community/`, `brands/lolly-start/`, alle `shells/*` og begge `services/*` er vanlige mapper i det. Det ene unntaket er `brands/suse`, en **privat** git-submodul som inneholder SUSE-verktøypakken og katalogen, valgfri og fraværende i en offentlig klone. Hvilke pakker en gitt bygg leser er en innholdsprofil (`profiles.json`), løst per prosess i stedet for byttet globalt. Se [Byggeguiden » Hente kildekoden](/info/build-guide.html) for klonekommandoen og hvordan en endring inne i den private pakken committes.
 
 ```
 lolly/
@@ -190,45 +190,38 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # profile VIEW (gitignored) - data, not code. Merged from packs:
-│                     #   community/ (public, brand-agnostic, MPL) + brands/<active>/tools (brand-owned).
-│                     #   A SELECTION follows - the mounted set depends on the profile.
+├── community/        # the brand-agnostic tool pack - data, not code. Public (MPL-2.0).
+│                     #   A SELECTION follows; a profile mounts these plus whatever
+│                     #   tools the active brand pack carries of its own.
 │   ├── qr-code/
-│   ├── quotes/
-│   ├── email-signature/
 │   ├── snippet/
 │   ├── countdown-timer/
 │   ├── color-palette/
-│   ├── color-block/           # typed/heterogeneous blocks (addMenu discriminator)
-│   ├── dynamic-layout/
-│   ├── tool-logo/         # "Logo" - auto-switching brand logo
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
 │   ├── strip-data/        # on-device metadata strip - JPEG/PNG/SVG/PDF (file in → clean file out)
 │   ├── compress-pdf/      # on-device PDF compressor - recompresses images (file in → smaller file out)
-│   ├── brand-lockup/      # "Brand Lockup" - SUSE logo lockups; HarfBuzz text-to-path (wasm)
-│   ├── chart-creator/     # SVG charts from structured data
+│   ├── chart/             # SVG charts from structured data
 │   ├── filter/            # photo effects in one tool - halftone/scanline/posterize/voronoi (vector), duotone/pixel-stretch/imperfections (raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
-│   ├── digi-ad/           # "Animated Ad" - looping banner from scenes
-│   ├── event-name-badge/  # conference badges - composes qr-code as an SVG
 │   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
 │   ├── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
 │   ├── design/     # "Design" - freeform WYSIWYG editor canvas (render.layout: editor)
 │   ├── multi-page-pdf/    # multi-page PDF document - cover, flowing content blocks, back page
 │   ├── diagram-builder/   # org / layercake / process / cycle / pyramid diagrams
 │   ├── logo-wall/         # many logos → auto-packed grid
-│   ├── logo-lockup-partner/ # SUSE + partner co-brand lockup
-│   ├── icon/          # favicon .ico / png / svg from text + colours
-│   ├── lottie-digi-ad/    # animated Lottie ad banners
-│   └── pose-geeko/        # pose the SUSE Geeko mascot - print-ready stills
+│   ├── icon/              # favicon .ico / png / svg from text + colours
+│   └── lottie-digi-ad/    # animated Lottie ad banners
 │
-├── catalog/
-│   ├── tools/index.json        # tool registry
-│   └── assets/
-│       ├── index.json          # asset registry
-│       └── suse/...            # logo, palette, etc.
+├── brands/            # brand packs - a catalog each, and optionally tools of their own
+│   ├── lolly-start/   # the blank starter brand, owned here
+│   │   └── catalog/
+│   │       ├── tools/index.json    # tool registry, generated per brand
+│   │       └── assets/
+│   │           ├── index.json      # asset registry
+│   │           └── lolly/...       # logo, palette, tokens
+│   └── suse/          # PRIVATE submodule - the SUSE tools and the SUSE catalog
 │
 ├── schemas/          # JSON Schema for tool.json, asset entries, AssetRef
 ├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
@@ -271,7 +264,7 @@ lolly qr-code                # lists inputs for that tool
 ```
 
 ### TUI
-`npm run tui`
+`pnpm run tui`
 
 Det interaktive motstykket til CLI: en fullskjerms, tastaturstyrt terminal-app (bygget på Ink) for å bla i verktøy, fylle ut inndata, lagre prosjekter og eksportere - alt uten en GUI. Vertsbroen dens **gjenbruker CLI-ens implementasjon** for de DOM-frie formatene (SVG/EMF/EPS/HTML + tekst/data), og legger til tilstand på disk under `~/.lolly` pluss en valgfri innebygd forhåndsvisning. Utover det har den et **nettleser-rendringsnivå**: en avgrenset, hodeløs Chromium (den samme som MCP-serveren installerer) som produserer raster/PDF/video og fanging av levende URL-er på forespørsel - ved å drive en bygget kopi av web-skallet slik at utdata blir identisk, og som først starter når du eksporterer et slikt format for første gang. Dermed kjører `url-shot` (med beskjæring + omfarging + vektor-PDF/SVG) og hvert raster/pdf-verktøy også i terminalen. Se [TUI-guiden](/info/tui.html).
 
@@ -287,11 +280,11 @@ Radene listes i galleriets seksjonsrekkefølge. `utility`-seksjonen rendres allt
 
 | Kategori | Eksempler | Planlagt |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence Studio, Record | Employee Image Stationery |
-| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Multi-Page PDF | Font Outliner |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence, Record | Employee Image Stationery |
+| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Booklet | Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS, Booth Studio | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | - | CVE Alert, Product Release Announcement, Blog OG Image |
-| `utility` | Strip Hidden Data, Text Helper, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Enhets-/formatkonvertere, flere personvernverktøy på enheten |
+| `utility` | Strip Hidden Data, Text, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
 
 Disse cellene er **eksempler, ikke inventarlister**. Hvilke verktøy som finnes, er en egenskap ved profilen du har montert, ikke ved denne siden: en merkevarepakke legger til sine egne, og kan utelate et fellesverktøy den heller ikke vil levere. `catalog/tools/index.json` - generert fra manifestene, og registeret galleriet faktisk leser - er den autoritative listen; for å telle hva en profil monterer, tell manifestene (`ls community/*/tool.json brands/*/tools/*/tool.json`) i stedet for å stole på et tall skrevet ned her. (En verktøy-id som finnes i to pakker, monteres kun én gang, fra den vinnende pakken.)
 
@@ -299,11 +292,11 @@ Verktøy klassifiseres også etter status: `official` (godkjent av merkevaren, i
 
 **Design** er det første verktøyet bygget på det frie lerret-modusen `render.layout: "editor"` - en kromfri, direktemanipulasjonsflate der du drar, endrer størrelse på, roterer og fester bokser med tekst, former og bilder, og deretter eksporterer gjennom samme render-sti som alle andre verktøy.
 
-**Strip Hidden Data** er det første **verktøyet på enheten** (`privacy: "on-device"`): et innholdstransformasjonsverktøy som tar en fil *du* selv oppgir, behandler den helt i nettleseren og leverer tilbake en ren kopi - aldri lastet opp, aldri vannmerket, ingen proveniens stemplet. **Text Helper** er det andre - en on-device-arbeidsbenk for hverdagslige lim-inn-i-en-nettside-jobber (JSON-formatering, JWT-dekoding, Base64, URL-koding/dekoding, SHA-hashing). **Compress PDF** er det tredje - det krymper en PDF ved å rekomprimere bildene, igjen helt på enheten. Markøren og merketeksten "Kjøres på din enhet - ingenting lastes opp" dekker nå hele transformasjonssettet: Strip Hidden Data, Text Helper, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (ødelegg områder i et bilde, SVG eller PDF), **Prompt to Image** og **Rebrand a Deck** (omtem et `.pptx`-dokument på stedet) der profilen monterer det. Dette er en personvern-verktøykategori som erstatter det å overlevere konfidensielle filer til enkeltformåls-nettsteder.
+**Strip Hidden Data** er det første **verktøyet som kjører på enheten** (`privacy: "on-device"`): et innholdstransformeringsverktøy som tar en fil *du* oppgir, behandler den helt i nettleseren og gir tilbake en ren kopi - aldri lastet opp, aldri vannmerket, ingen opprinnelse stemplet. **Text** er det andre - en arbeidsbenk på enheten for hverdagslige lim-inn-på-et-nettsted-oppgaver (JSON-formatering, JWT-dekoding, Base64, URL-koding/dekoding, SHA-hashing). **Compress PDF** er det tredje - den krymper en PDF ved å komprimere bildene på nytt, også helt på enheten. Markøren og merketeksten "Kjører på enheten din - ingenting lastes opp" dekker nå hele transformeringssettet: Strip Hidden Data, Text, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (ødelegg områder av et bilde, en SVG eller en PDF), **Prompt Card** og **Rebrand** (omtem en `.pptx` på stedet) der profilen monterer det. Dette er en personvern-verktøykategori som erstatter det å gi konfidensielle filer til nettsteder med ett enkelt formål.
 
 ![Verktøyskuffen, der hvert kort er et verktøy som transformerer en fil du allerede har](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
 
-> Merk: `category` og `status` denormaliseres inn i `catalog/tools/index.json` (registeret galleriet leser) fra hver `tool.json`. Manifestet er sannhetskilden - indeksen er **generert** av `npm run build:catalog`, og `npm run validate:catalog` feiler i CI hvis den innsjekkede indeksen avviker fra manifestene.
+> Merk: `category` og `status` er denormalisert inn i `catalog/tools/index.json` (registeret galleriet leser) fra hver `tool.json`. Manifestet er den autoritative kilden - indeksen er **generert** av `pnpm run build:catalog`, og `pnpm run validate:catalog` feiler i CI hvis den committede indeksen avviker fra manifestene.
 
 ---
 
@@ -445,14 +438,14 @@ Komponer renderingen av et hvilket som helst verktøy: et **SVG**-barn forblir e
 
 En bruker åpner `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 
-1. **Oppstart.** Web-shell åpner IndexedDB, konstruerer egenskapsbroen, synkroniserer verktøy- og ressurskatalogene (eller laster fra buffer ved frakobling).
+1. **Oppstart.** Nettleserskallet åpner IndexedDB, konstruerer funksjonsbroen, synkroniserer verktøy- og ressurskatalogene (eller laster fra hurtigbuffer når det er uten nett).
 2. **Rute.** URL-hash → `tool`-visning, med `qr-code` og URL-parametere hentet ut.
-3. **Last.** `loadTool('qr-code', fetchFile)` henter `tool.json`, validerer mot JSON Schema, henter `template.html`, `styles.css` og `hooks.js`-kildekode.
-4. **Tolk URL-tilstand.** `parseUrlState` oversetter URL-parametere til initielle inndataverdier. Ressursreferanser (`?logo=suse/logo/primary`) tolkes som lettvekts `{ id, _unresolved: true }`-objekter.
-5. **Kjøretid.** `createRuntime(tool, host, initialValues)` bygger inndatamodellen (slår sammen profildata, standardverdier og initielle verdier), løser ressursreferanser via `host.assets.get()`, laster hooks (closure-scopet `host`, ikke sandkassert), kaller `hooks.onInit`.
-6. **Rendring.** Skallet abonnerer på kjøretiden; ved hver tilstandsendring mottar det `{ model, hydrated }`. Det rendrer inndatakontroller fra modellen og skriver den hydrerte mal-HTML-en inn i `#tool-canvas`.
-7. **Interaksjon.** Brukeren skriver i en inndata → `runtime.setInput(id, value)` → begrensninger anvendes → `hooks.onInput` kalles → re-hydrering → re-rendring. Lerretet oppdateres live.
-8. **Eksport.** Brukeren klikker Download(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (rastrerer via dom-to-image-more; SVG/PDF går gjennom dedikerte DOM-vandrende vektoriserere) → blob → `host.export.download`. Formatspekteret et verktøy kan velge inn i er bredt, og `render.formats`-enumen i `schemas/tool.schema.json` er autoriteten på det - rastere og flytende rastere, vektorer og kuttfiler, trykk/CMYK, bevegelse, redigerbare dokumenter (`pptx`, `docx`, `odt`), palett- og data-/tekstutdata, lyd- og skriftfiler. [URL Mode](/info/url-mode.html) navngir hver id og hva den produserer. Lyd er i den enumen som alt annet (`wav`, `mp3`, `m4a`, `opus`, erklært av audiogrammet og opptaksverktøyene); separat driver et opptaksverktøys `render.capture`-modus `host.recorder`, hvis opptak ankommer som en ferdig Blob i hva enn beholder nettleseren tok opp i. (Verktøy som setter `render.export: false` - f.eks. Color Palette, Countdown Timer, Strip Hidden Data, Text Helper, Compress PDF - skjuler kontrollene for nedlasting/format/dimensjon.) Fysiske enheter konverteres per format her (PDF → ekte sidepunkter, raster → piksler ved DPI med en `pHYs`-blokk). Forfatterskaps-/proveniens-metadata (forfatter, verktøy, kilde - bygget av `engine/src/metadata.ts`) bygges inn per format: PNG iTXt, JPEG EXIF, PDF info-dict, SVG `<metadata>`, GIF-kommentar. Eksperimentelle verktøy får et vannmerke satt inn av verten, ikke av verktøyet.
+3. **Last.** `loadTool('qr-code', fetchFile)` henter `tool.json`, validerer mot JSON-skjemaet, henter kildekoden til `template.html`, `styles.css` og `hooks.js`.
+4. **Analyser URL-tilstand.** `parseUrlState` oversetter URL-parametere til initielle inndataverdier. Ressursreferanser (`?logo=suse/logo/primary`) tolkes som lettvekts `{ id, _unresolved: true }`-objekter.
+5. **Kjøretid.** `createRuntime(tool, host, initialValues)` bygger inndatamodellen (slår sammen profildata, standardverdier og initielle verdier), løser ressursreferanser via `host.assets.get()`, laster hooks (`host` i lukkingsomfang, ikke sandkassebasert), kaller `hooks.onInit`.
+6. **Rendring.** Skallet abonnerer på kjøretiden; ved hver tilstandsendring mottar det `{ model, hydrated }`. Det rendrer inndatakontroller fra modellen og skriver den hydrerte malen (HTML) inn i `#tool-canvas`.
+7. **Samhandling.** Brukeren skriver i et inndatafelt → `runtime.setInput(id, value)` → begrensninger anvendes → `hooks.onInput` kalles → rehydrering → ny rendring. Lerretet oppdateres i sanntid.
+8. **Eksport.** Brukeren klikker Last ned (PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (rasteriserer via dom-to-image-more; SVG/PDF går gjennom dedikerte DOM-vandrende vektoriserere) → blob → `host.export.download`. Formatområdet et verktøy kan velge inn i er bredt, og `render.formats`-enumen i `schemas/tool.schema.json` er den autoritative kilden - rastere og flyttallsrastere, vektorer og kuttfiler, trykk/CMYK, bevegelse, redigerbare dokumenter (`pptx`, `docx`, `odt`), palett- og data-/tekstutdata, lyd- og fontfiler. [URL Mode](/info/url-mode.html) navngir hver id og hva den produserer. Lyd er i den enumen som alt annet (`wav`, `mp3`, `m4a`, `opus`, deklarert av audiogram- og opptaksverktøyene); separat driver et opptaksverktøys `render.capture`-modus `host.recorder`, hvis opptak ankommer som en ferdig Blob i uansett hvilken beholder nettleseren tok opp i. (Verktøy som setter `render.export: false` - f.eks. Color Palette, Countdown Timer, Strip Hidden Data, Text, Compress PDF - skjuler kontrollene for nedlasting, format og dimensjon.) Fysiske enheter konverteres per format her (PDF → ekte sidepunkter, raster → piksler ved DPI med en `pHYs`-chunk). Forfatter-/opprinnelsesmetadata (forfatter, verktøy, kilde - bygget av `engine/src/metadata.ts`) bygges inn per format: PNG iTXt, JPEG EXIF, PDF info-ordbok, SVG `<metadata>`, GIF-kommentar. Eksperimentelle verktøy får et vannmerke satt inn av verten, ikke av verktøyet.
 
 ![Eksportpanelet som `?options` åpner: filnavn- og formatparet, utdatastørrelsen og kontrollene som skriver filen](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
@@ -462,11 +455,11 @@ Samme livssyklus i Tauri. Samme livssyklus i CLI - jsdom leverer den hodeløse D
 
 ## Status for åpen kildekode
 
-**Kode er MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` og `docs/` er åpen kildekode under **MPL-2.0** - en leverandørnøytral stillasplattform for merkevareverktøy, hvor hver leverbare enhet ligger i sitt eget repositorium under [github.com/lolly-tools](https://github.com/lolly-tools).
+**Koden er MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` og `docs/` er åpen kildekode under **MPL-2.0** - en leverandørnøytral stillasplattform for merkevareverktøy, alt sammen i ett offentlig repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
-**Verktøyinnhold leveres som merkevarepakker**, hver med sine egne vilkår (se pakkens `NOTICE.md`). `community/` er det offentlige [`lolly-tools`](https://github.com/lolly-tools/lolly-tools)-repositoriet, og de merkevareuavhengige verktøyene der er også MPL-2.0. `brands/suse/` er den private `suse-lolly`-pakken: SUSE-verktøyene og SUSE-katalogen, **proprietær for SUSE**, inkludert dens lisensierte PremiumBeat-musikk. `brands/lolly-start/` er den blanke startmerkevaren dette repositoriet eier. Skrifter leveres inne i en pakke under **SIL Open Font License 1.1** - SUSE-pakken bærer skrifttypene SUSE og SUSE Mono.
+**Verktøyinnhold leveres som merkevarepakker**, hver med sine egne vilkår (se pakkens `NOTICE.md`). `community/` er en mappe i dette repositoryet, og de merkevarenøytrale verktøyene der er også MPL-2.0. `brands/suse/` er den private `suse-lolly`-pakken, den ene submodulen: SUSE-verktøyene og SUSE-katalogen, **proprietær for SUSE**, inkludert dens lisensierte PremiumBeat-musikk. `brands/lolly-start/` er den blanke startmerkevaren dette repositoryet eier. Skrifter leveres inne i en pakke under **SIL Open Font License 1.1** - SUSE-pakken inneholder skrifttypene SUSE og SUSE Mono.
 
-`tools/` og `catalog/` i repositoriets rot er gitignorerte *visninger*: en profil setter dem sammen fra `community/` pluss den aktive merkevarepakken, og det er derfor hvert skript og skall leser disse to stiene og aldri en pakke direkte.
+Det finnes ingen `tools/`- eller `catalog/`-mappe i repository-roten. `packages/node-shell/src/content-roots.ts` svarer på "hvor bor verktøy `<id>`" og "hvor er katalogen" fra `profiles.json` ved lesetidspunktet, så en profil er et svar per prosess, og ingen katalogstruktur må settes sammen først. Et ekte `tools/` + `catalog/`-par skrives bare til et byggeresultat - `dist/`, en RPM-nyttelast, et container-bilde - fordi en nettleser henter disse to stiene over HTTP.
 
 Delingen håndheves - det finnes ingen kryssimporter fra `engine/` inn i verktøyinnhold - slik at grensen mellom plattform og innhold forblir ren.
 

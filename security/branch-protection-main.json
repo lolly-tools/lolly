@@ -1,0 +1,30 @@
+{
+  "required_status_checks": {
+    "strict": false,
+    "contexts": [
+      "secret history scan",
+      "typecheck",
+      "validate catalog",
+      "smoke (render every tool)",
+      "build + bundle budget",
+      "api bundle drift",
+      "render-action self-test",
+      "npm audit (high+critical)",
+      "opengrep (custom rules + new findings)",
+      "test (unit:engine)",
+      "test (unit:web)",
+      "test (contracts)",
+      "test (security)",
+      "test (tools)",
+      "test (conformance)",
+      "test (fuzz:regression)",
+      "test (tauri)",
+      "test (browser)"
+    ]
+  },
+  "enforce_admins": false,
+  "required_pull_request_reviews": null,
+  "restrictions": null,
+  "allow_force_pushes": false,
+  "allow_deletions": false
+}

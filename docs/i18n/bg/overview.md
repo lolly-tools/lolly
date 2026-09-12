@@ -132,7 +132,7 @@ Lolly прокарва същата линия. Изследвай вероят�
 
 ### Оформление на хранилището
 
-Съдържанието е монтирано като пакети: `community/`, `docs/`, всеки `shells/*`, двата `services/*` и `brands/suse` са всеки свое собствено хранилище, изтеглени като git подмодули на това. Родителят притежава `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `brands/lolly-start/` и `profiles.json`. Виж [Ръководство за build » Получаване на кода](/info/build-guide.html) за командата за изтегляне и работния процес между хранилищата.
+Lolly е едно хранилище. `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `docs/`, `community/`, `brands/lolly-start/`, всеки `shells/*` и двата `services/*` са обикновени директории в него. Едно изключение е `brands/suse` - **частен** git подмодул, съдържащ пакета с инструменти на SUSE и каталога, по избор и отсъстващ от публичен клонинг. Кои пакети чете дадена версия (build) е въпрос на съдържателен профил (`profiles.json`), определян за всеки процес поотделно, а не превключван глобално. Виж [Build Guide » Getting the source](/info/build-guide.html) за командата за клониране и как се комитва промяна в частния пакет.
 
 ```
 lolly/
@@ -190,45 +190,38 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # profile VIEW (gitignored) - data, not code. Merged from packs:
-│                     #   community/ (public, brand-agnostic, MPL) + brands/<active>/tools (brand-owned).
-│                     #   A SELECTION follows - the mounted set depends on the profile.
+├── community/        # the brand-agnostic tool pack - data, not code. Public (MPL-2.0).
+│                     #   A SELECTION follows; a profile mounts these plus whatever
+│                     #   tools the active brand pack carries of its own.
 │   ├── qr-code/
-│   ├── quotes/
-│   ├── email-signature/
 │   ├── snippet/
 │   ├── countdown-timer/
 │   ├── color-palette/
-│   ├── color-block/           # typed/heterogeneous blocks (addMenu discriminator)
-│   ├── dynamic-layout/
-│   ├── tool-logo/         # "Logo" - auto-switching brand logo
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
 │   ├── strip-data/        # on-device metadata strip - JPEG/PNG/SVG/PDF (file in → clean file out)
 │   ├── compress-pdf/      # on-device PDF compressor - recompresses images (file in → smaller file out)
-│   ├── brand-lockup/      # "Brand Lockup" - SUSE logo lockups; HarfBuzz text-to-path (wasm)
-│   ├── chart-creator/     # SVG charts from structured data
+│   ├── chart/             # SVG charts from structured data
 │   ├── filter/            # photo effects in one tool - halftone/scanline/posterize/voronoi (vector), duotone/pixel-stretch/imperfections (raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
-│   ├── digi-ad/           # "Animated Ad" - looping banner from scenes
-│   ├── event-name-badge/  # conference badges - composes qr-code as an SVG
 │   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
 │   ├── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
 │   ├── design/     # "Design" - freeform WYSIWYG editor canvas (render.layout: editor)
 │   ├── multi-page-pdf/    # multi-page PDF document - cover, flowing content blocks, back page
 │   ├── diagram-builder/   # org / layercake / process / cycle / pyramid diagrams
 │   ├── logo-wall/         # many logos → auto-packed grid
-│   ├── logo-lockup-partner/ # SUSE + partner co-brand lockup
-│   ├── icon/          # favicon .ico / png / svg from text + colours
-│   ├── lottie-digi-ad/    # animated Lottie ad banners
-│   └── pose-geeko/        # pose the SUSE Geeko mascot - print-ready stills
+│   ├── icon/              # favicon .ico / png / svg from text + colours
+│   └── lottie-digi-ad/    # animated Lottie ad banners
 │
-├── catalog/
-│   ├── tools/index.json        # tool registry
-│   └── assets/
-│       ├── index.json          # asset registry
-│       └── suse/...            # logo, palette, etc.
+├── brands/            # brand packs - a catalog each, and optionally tools of their own
+│   ├── lolly-start/   # the blank starter brand, owned here
+│   │   └── catalog/
+│   │       ├── tools/index.json    # tool registry, generated per brand
+│   │       └── assets/
+│   │           ├── index.json      # asset registry
+│   │           └── lolly/...       # logo, palette, tokens
+│   └── suse/          # PRIVATE submodule - the SUSE tools and the SUSE catalog
 │
 ├── schemas/          # JSON Schema for tool.json, asset entries, AssetRef
 ├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
@@ -271,7 +264,7 @@ lolly qr-code                # lists inputs for that tool
 ```
 
 ### TUI
-`npm run tui`
+`pnpm run tui`
 
 Интерактивният аналог на CLI: терминален app на цял екран, ориентиран към клавиатурата (изграден върху Ink), за преглед на инструменти, попълване на входове, запазване на проекти и експортиране - всичко без GUI. Неговият host bridge **преизползва реализацията на CLI** за форматите без DOM (SVG/EMF/EPS/HTML + текст/данни) и добавя състояние на диска под `~/.lolly` плюс изричен вграден преглед. Освен това има **ниво за рендиране в браузър**: обхванат headless Chromium (същият, който MCP сървърът инсталира), който произвежда растер/PDF/видео и заснемане на живи URL адреси при поискване - задвижвайки изградено копие на уеб обвивката, така че изходът е идентичен, и стартиращ само при първия ви експорт в такъв формат. Така `url-shot` (с изрязване + прецветяване + векторен PDF/SVG) и всеки растер/pdf инструмент работят и в терминала. Вижте [ръководството за TUI](/info/tui.html).
 
@@ -287,11 +280,11 @@ lolly qr-code                # lists inputs for that tool
 
 | Категория | Примери | Планирано |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence Studio, Record | Employee Image Stationery |
-| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Multi-Page PDF | Font Outliner |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence, Record | Employee Image Stationery |
+| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Booklet | Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS, Booth Studio | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | - | CVE Alert, Product Release Announcement, Blog OG Image |
-| `utility` | Strip Hidden Data, Text Helper, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
+| `utility` | Strip Hidden Data, Text, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
 
 Тези клетки са **примери, не пълен опис**. Кои инструменти съществуват е свойство на профила, който сте монтирали, не на тази страница: пакет с марка добавя свои собствени и може да изключи инструмент от общността, който не желае да разпространява. `catalog/tools/index.json` - генериран от манифестите и регистърът, който галерията реално чете - е авторитетният списък; за да преброите какво монтира даден профил, преброете манифестите (`ls community/*/tool.json brands/*/tools/*/tool.json`), вместо да се доверявате на число, записано тук. (Идентификатор на инструмент, присъстващ в два пакета, се монтира само веднъж, от печелившия пакет.)
 
@@ -299,11 +292,11 @@ lolly qr-code                # lists inputs for that tool
 
 **Design** е първият инструмент, изграден върху режима на свободно платно `render.layout: "editor"` - повърхност без chrome, с директна манипулация, където плъзгате, преоразмерявате, завъртате и подравнявате чрез snap кутии с текст, форми и изображения, след което експортирате през същия render път като всеки друг инструмент.
 
-**Strip Hidden Data** е първата **локална (on-device) утилита** (`privacy: "on-device"`): инструмент за трансформация на съдържание, който взима файл, предоставен от *вас*, обработва го изцяло в браузъра и връща чисто копие - никога не се качва, никога не се маркира с воден знак, не се подпечатва произход. **Text Helper** е вторият - работно място на устройството за ежедневни задачи от типа „постави в сайт“ (форматиране на JSON, декодиране на JWT, Base64, URL кодиране/декодиране, SHA хеширане). **Compress PDF** е третият - той свива PDF, като прекомпресира изображенията в него, отново изцяло на устройството. Маркерът и текстът на баджа му "Runs on your device - nothing is uploaded" вече покриват целия набор от трансформации: Strip Hidden Data, Text Helper, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (унищожава области от изображение, SVG или PDF), **Prompt to Image** и **Rebrand a Deck** (променя темата на `.pptx` на място), където профилът я монтира. Това е категория утилити за поверителност, която заменя предаването на поверителни файлове на сайтове с единствено предназначение.
+**Strip Hidden Data** е първата **услуга, изпълнявана на устройството** (`privacy: "on-device"`): инструмент за трансформация на съдържание, който взема файл, предоставен от *теб*, обработва го изцяло в браузъра и връща чисто копие - никога не се качва, никога не се добавя воден знак, не се вгражда произход. **Text** е втората - работно пространство на устройството за ежедневни задачи от типа „постави в уебсайт" (форматиране на JSON, декодиране на JWT, Base64, URL кодиране/декодиране, SHA хеширане). **Compress PDF** е третата - тя намалява размера на PDF чрез прекомпресиране на изображенията в него, отново изцяло на устройството. Маркерът и текстът на неговия бадж „Работи на твоето устройство - нищо не се качва" вече покриват целия набор от трансформации: Strip Hidden Data, Text, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (унищожава области от изображение, SVG или PDF), **Prompt Card** и **Rebrand** (преоформя `.pptx` файл на място), където профилът го включва. Това е категория помощни инструменти за поверителност, която заменя предаването на поверителни файлове на сайтове с еднократно предназначение.
 
 ![Чекмеджето Utilities, където всяка карта е инструмент, който трансформира файл, който вече имате](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
 
-> Забележка: `category` и `status` се денормализират в `catalog/tools/index.json` (регистърът, който галерията чете) от всеки `tool.json`. Манифестът е източникът на истина - индексът е **генериран** от `npm run build:catalog`, а `npm run validate:catalog` проваля CI, ако включеният индекс се разминава с манифестите.
+> Забележка: `category` и `status` са денормализирани в `catalog/tools/index.json` (регистърът, който галерията чете) от всеки `tool.json`. Манифестът е първоизточникът на истината - индексът се **генерира** от `pnpm run build:catalog`, а `pnpm run validate:catalog` проваля CI, ако комитнатият индекс се разминава с манифестите.
 
 ---
 
@@ -445,14 +438,14 @@ Handlebars е избран пред EJS съзнателно:
 
 Потребител отваря `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 
-1. **Зареждане.** Уеб обвивката отваря IndexedDB, конструира моста от способности, синхронизира каталозите на инструменти и активи (или зарежда от кеш при офлайн).
-2. **Маршрутизация.** URL хеш → изглед `tool`, с извлечени `qr-code` и URL параметри.
-3. **Зареждане.** `loadTool('qr-code', fetchFile)` извлича `tool.json`, валидира спрямо JSON схема, извлича `template.html`, `styles.css` и изходния код на `hooks.js`.
-4. **Разбор на URL състоянието.** `parseUrlState` превръща URL параметрите в начални стойности на входовете. Референции към активи (`?logo=suse/logo/primary`) се разбират като леки обекти `{ id, _unresolved: true }`.
-5. **Изпълнение.** `createRuntime(tool, host, initialValues)` изгражда модела на входовете (сливайки данни от профила, стойности по подразбиране и начални стойности), разрешава референции към активи чрез `host.assets.get()`, зарежда хуковете (с `host` в затворен обхват, не в пясъчник), извиква `hooks.onInit`.
-6. **Рендиране.** Обвивката се абонира за изпълнението; при всяка промяна на състоянието получава `{ model, hydrated }`. Тя рендира контролите за входовете от модела и записва хидратирания HTML на шаблона в `#tool-canvas`.
-7. **Взаимодействие.** Потребителят пише в поле за вход → `runtime.setInput(id, value)` → прилагат се ограничения → извиква се `hooks.onInput` → повторна хидратация → повторно рендиране. Канвасът се обновява на живо.
-8. **Изнасяне.** Потребителят кликва Download(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (растеризира чрез dom-to-image-more; SVG/PDF минават през специализирани векторизатори, обхождащи DOM) → blob → `host.export.download`. Диапазонът от формати, които инструмент може да избере, е широк, а изброяването `render.formats` в `schemas/tool.schema.json` е авторитетният източник за него - растери и плаващи растери, вектори и файлове за рязане, печат/CMYK, движение, редактируеми документи (`pptx`, `docx`, `odt`), палитра и изходи за данни/текст, аудио и файлове с шрифтове. [URL режим](/info/url-mode.html) назовава всеки идентификатор и какво произвежда. Аудиото е в това изброяване както всичко останало (`wav`, `mp3`, `m4a`, `opus`, декларирани от аудиограмата и инструментите за запис); отделно, режим `render.capture` на инструмент за запис задвижва `host.recorder`, чийто запис пристига като завършен Blob в контейнера, в който браузърът е записал. (Инструменти, които задават `render.export: false` - напр. Color Palette, Countdown Timer, Strip Hidden Data, Text Helper, Compress PDF - скриват контролите за изтегляне/формат/размери.) Физическите единици се преобразуват за всеки формат тук (PDF → истински пунктове на страницата, растер → пиксели при DPI с блок `pHYs`). Метаданните за авторство/произход (автор, инструмент, източник - изградени от `engine/src/metadata.ts`) се вграждат за всеки формат: PNG iTXt, JPEG EXIF, PDF info dict, SVG `<metadata>`, GIF коментар. Експерименталните инструменти получават воден знак, поставен от хоста, не от инструмента.
+1. **Стартиране (Boot).** Уеб обвивката отваря IndexedDB, изгражда моста на възможностите (capability bridge), синхронизира каталозите с инструменти и активи (или зарежда от кеша, когато няма връзка).
+2. **Маршрутизиране (Route).** URL хеш → изглед `tool`, с извлечени `qr-code` и URL параметри.
+3. **Зареждане (Load).** `loadTool('qr-code', fetchFile)` извлича `tool.json`, валидира го спрямо JSON схемата, извлича `template.html`, `styles.css` и изходния код на `hooks.js`.
+4. **Разбор на URL състоянието (Parse URL state).** `parseUrlState` превръща URL параметрите в начални стойности на входовете. Референциите към активи (`?logo=suse/logo/primary`) се разбират като леки обекти `{ id, _unresolved: true }`.
+5. **Runtime.** `createRuntime(tool, host, initialValues)` изгражда модела на входовете (обединявайки данните от профила, стойностите по подразбиране и началните стойности), разрешава референциите към активи чрез `host.assets.get()`, зарежда хуковете (`host` в обхват на затваряне, не в пясъчник), извиква `hooks.onInit`.
+6. **Рендиране (Render).** Обвивката се абонира за runtime-а; при всяка промяна на състоянието получава `{ model, hydrated }`. Тя рендира контролите за въвеждане от модела и записва хидратирания HTML на шаблона в `#tool-canvas`.
+7. **Взаимодействие (Interact).** Потребителят въвежда в поле → `runtime.setInput(id, value)` → прилагат се ограничения → извиква се `hooks.onInput` → повторна хидратация → повторно рендиране. Платното се обновява на живо.
+8. **Експортиране (Export).** Потребителят натиска Download(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (растеризира чрез dom-to-image-more; SVG/PDF минават през специализирани векторизатори, обхождащи DOM-а) → blob → `host.export.download`. Диапазонът от формати, за които даден инструмент може да се включи, е широк, а изброяването `render.formats` в `schemas/tool.schema.json` е меродавно по въпроса - растери и растери с плаваща запетая, вектори и файлове за рязане, печат/CMYK, движение, редактируеми документи (`pptx`, `docx`, `odt`), палитра и изходи с данни/текст, аудио и файлове с шрифтове. [URL Mode](/info/url-mode.html) назовава всеки идентификатор и какво произвежда той. Аудиото е в това изброяване като всичко останало (`wav`, `mp3`, `m4a`, `opus`, декларирани от audiogram и инструментите за запис); отделно, режимът `render.capture` на инструмент за запис задвижва `host.recorder`, чийто резултат пристига като завършен Blob в контейнера, в който браузърът е записал. (Инструменти, които задават `render.export: false` - напр. Color Palette, Countdown Timer, Strip Hidden Data, Text, Compress PDF - скриват контролите за изтегляне/формат/размери.) Физическите единици се преобразуват тук според формата (PDF → истински точки на страницата, растер → пиксели при DPI с чънк `pHYs`). Метаданните за авторство/произход (автор, инструмент, източник - изградени от `engine/src/metadata.ts`) се вграждат според формата: PNG iTXt, JPEG EXIF, PDF info dict, SVG `<metadata>`, GIF коментар. Експерименталните инструменти получават воден знак, вмъкнат от хоста, не от инструмента.
 
 ![Панелът за изнасяне, който отваря `?options`: двойката файлово име и формат, изходният размер и контролите, които записват файла](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
@@ -462,11 +455,11 @@ Handlebars е избран пред EJS съзнателно:
 
 ## Статус на отворения код
 
-**Кодът е MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` и `docs/` са с отворен код под **MPL-2.0** - платформа за скелетна структура (scaffolding), неутрална към доставчици, за брандови инструменти, като всяка доставяна единица е в собствено хранилище под [github.com/lolly-tools](https://github.com/lolly-tools).
+**Кодът е MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` и `docs/` са с отворен код под **MPL-2.0** - вендор-неутрална платформа за скеле за брандирани инструменти, всичко в едно публично хранилище, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
-**Съдържанието на инструментите се доставя като пакети за бранд**, всеки със собствени условия (виж `NOTICE.md` на пакета). `community/` е публичното хранилище [`lolly-tools`](https://github.com/lolly-tools/lolly-tools) и неговите брандово-независими инструменти също са MPL-2.0. `brands/suse/` е частният пакет `suse-lolly`: инструментите на SUSE и каталогът на SUSE, **собственост на SUSE**, включително лицензираната му музика PremiumBeat. `brands/lolly-start/` е празният стартов бранд, притежаван от това хранилище. Шрифтовете се доставят вътре в пакет под **SIL Open Font License 1.1** - пакетът на SUSE носи шрифтовете SUSE и SUSE Mono.
+**Съдържанието на инструментите се доставя като бранд пакети**, всеки със собствени условия (виж `NOTICE.md` на пакета). `community/` е директория в това хранилище и нейните брандово-неутрални инструменти също са MPL-2.0. `brands/suse/` е частният пакет `suse-lolly`, единственият подмодул: инструментите на SUSE и каталогът на SUSE, **собственост на SUSE**, включително лицензираната музика PremiumBeat. `brands/lolly-start/` е празният начален бранд, притежаван от това хранилище. Шрифтовете се доставят вътре в пакет под **SIL Open Font License 1.1** - пакетът на SUSE носи шрифтовете SUSE и SUSE Mono.
 
-`tools/` и `catalog/` в корена на хранилището са игнорирани от git *изгледи*: профил ги събира от `community/` плюс активния пакет за бранд, затова всеки скрипт и обвивка четат тези два пътя, а никога пакет директно.
+Няма директория `tools/` или `catalog/` в корена на хранилището. `packages/node-shell/src/content-roots.ts` отговаря на въпросите „къде живее инструментът `<id>`" и „къде е каталогът" от `profiles.json` по време на четене, така че профилът е отговор за всеки отделен процес, и не се налага дърво да бъде сглобявано предварително. Реална двойка `tools/` + `catalog/` се записва само в изходен резултат от компилация - `dist/`, RPM пакет, контейнерен образ - защото браузърът извлича тези два пътя през HTTP.
 
 Разделянето е наложено - няма кръстосани импорти от `engine/` в съдържанието на инструментите - така границата между платформа и съдържание остава чиста.
 

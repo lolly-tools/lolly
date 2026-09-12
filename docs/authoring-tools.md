@@ -998,7 +998,7 @@ and keep **only the files that differ** in the overlay dir. The content resolver
 - The `extends` field is **stripped from the composed `tool.json`**, so the engine, shells and catalog scripts always see a plain tool. Anything that reads manifest *bytes* goes through `readToolManifestText(id)` for exactly that reason, so the signed, served and shipped manifests are one set of bytes. Edit the pack source; there is no composed copy on disk to edit.
 - Overlay and base **share the same tool id** (ids are permanent contracts; the URL `tools/<id>/` never changes), so the overlay's `tool.json` doubles as the marker carrier even when it's otherwise identical to the base's.
 
-**Fail-closed:** a declared overlay whose base is missing (`community/<id>/tool.json` doesn't exist), an `extends` value other than `"community"` (the only base pack in v1) or an `extends` declared on a community tool itself fails the profile build loudly - even in `postinstall --auto` - and is also rejected by `pnpm run validate:catalog`. You never get a silent partial tool. The composed result is validated like any other tool, since the validator runs against the `tools/` view.
+**Fail-closed:** a declared overlay whose base is missing (`community/<id>/tool.json` doesn't exist), an `extends` value other than `"community"` (the only base pack in v1) or an `extends` declared on a community tool itself fails loudly the first time anything resolves that profile, and is also rejected by `pnpm run validate:catalog`. You never get a silent partial tool. The composed result is validated like any other tool, because the validator asks the same resolver every shell asks.
 
 ## Publishing
 
@@ -1027,7 +1027,7 @@ You do not need the full clone to run a tool you wrote. Zip the tool folder and 
 
 Your `hooks.js` is code that runs in the page, so the install asks the same **Trust this tool?** consent a `.lolly` asks, and you should read a stranger's tool before you accept it. Drop an edited zip again and Lolly offers to replace your copy, which is the loop to use while you iterate. An id the catalogue already lists is refused rather than installed, because an installed tool never shadows a catalogue one, so give yours its own id.
 
-When it works, open a pull request against [`lolly-tools`](https://github.com/lolly-tools/lolly-tools), the small public repo of community tools. To test hooks without a browser, install the tool-author SDK from npm:
+When it works, open a pull request against [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly), adding your tool directory under `community/<tool-id>/`. To test hooks without a browser, install the tool-author SDK from npm:
 
 ```bash
 npm i -D @lolly-tools/core

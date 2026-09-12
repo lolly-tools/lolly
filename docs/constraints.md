@@ -77,7 +77,7 @@ The selection and refusal paths are exercised by `shells/web/src/bridge/hook-wor
 The whole claim is readable in a few minutes:
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 cat community/qr-code/tool.json          # the complete input surface of one tool
 

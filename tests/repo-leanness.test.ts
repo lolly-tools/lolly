@@ -24,7 +24,7 @@ import test from 'node:test';
 // unless ALLOW (below) rescues it. Globs: `**` matches any chars incl. `/`,
 // `*` matches any chars except `/`. Patterns are matched against repo-relative,
 // forward-slash paths and are intentionally depth-agnostic (`**/…`) so they
-// hold whether this suite runs from the monorepo root or a submodule root.
+// hold from whichever root this suite runs in.
 const BUILD_REPRODUCIBLE = [
   '**/catalog/og/**', // per-tool/per-view OG cards - rendered from titles at build time
   '**/catalog/previews/**', // catalog preview SVGs - generated from assets

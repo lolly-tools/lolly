@@ -39,14 +39,14 @@ Las excepciones honestas - todas opcionales, iniciadas por el usuario y visibles
 
 ## Desde una terminal
 
-**6. El endpoint de renderizado responde solo con datos públicos.** La única función del servidor que pone entradas escritas por el usuario en una URL - los renderizados por hot-link - está activa aquí, y la [política de privacidad](/info/privacy.html) explica qué significa eso para las entradas que pones en un enlace:
+**6. El endpoint de renderizado responde solo con datos públicos.** La única función del servidor que introduce entradas escritas por el usuario en una URL - los renderizados por enlace directo - está activa aquí, y la [política de privacidad](/info/privacy.html) indica qué significa eso para las entradas que pones en un enlace:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-El interruptor es por despliegue (`LOLLY_DISABLE_RENDER_GET=1`): en una instancia que define esa variable, la misma sonda devuelve `404` - esa diferencia es el flag funcionando, no una inconsistencia.
+El interruptor es por despliegue (`LOLLY_DISABLE_RENDER_GET=1`): en una instancia que lo activa, la misma prueba devuelve `404` - esa diferencia es el indicador funcionando, no una incoherencia.
 
 **7. La superficie del servidor es enumerable.** [Server Surface](/info/server-surface.html) enumera cada ruta del lado del servidor que existe, con la regla vigente de que un endpoint que no esté en esa página no forma parte de Lolly. Pruébalas con `curl`; no hay nada más que encontrar.
 
@@ -55,7 +55,7 @@ El interruptor es por despliegue (`LOLLY_DISABLE_RENDER_GET=1`): en una instanci
 Todo lo anterior podría seguir siendo teatro si el código desplegado difiriera del código público. Así que revisa el código - el despliegue se construye a partir de [el repositorio público](https://github.com/lolly-tools/lolly):
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ Las tres comprobaciones de código de arriba no son una auditoría puntual - est
 - reaparece el registro de emisión de la CA - en el código fuente **o** en el bundle generado del servidor,
 - la política de privacidad pierde sus declaraciones legalmente requeridas (responsable nombrado, base legal, derecho a reclamar).
 
-Ejecútalas tú mismo en el clon (Node 22.18+; no hace falta `npm install` para este archivo):
+Ejecútalos tú mismo en la copia local (Node 22.18+; no hace falta `pnpm install` para este archivo):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-La suite completa (`npm install && npm test`) ejecuta varios miles más, incluidas las pruebas criptográficas adversariales descritas en [Security & Verification](/info/security.html).
+La suite completa (`pnpm install && pnpm test`) ejecuta varios miles más, incluidas las pruebas de criptografía adversarial descritas en [Seguridad y verificación](/info/security.html).
 
 ## Lo que no puedes verificar desde fuera - dicho sin rodeos
 

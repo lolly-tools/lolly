@@ -75,9 +75,9 @@ app and in the terminal, and let a mask or a tile seam drift; one copy cannot.
 `ml/*-math` pairs are shared with the WEB shell as well, not just the terminal ones.
 Each is DOM-free or DOM-optional, and each web file is a thin re-export. They lived in
 `shells/web` - `net` and `pptx` until 2026-07-29, the rest until plans/202 WP1.1 -
-which meant `shells/cli` and `shells/tui` could not typecheck without that separately
-versioned submodule checked out. Nothing under `shells/cli`, `shells/tui` or here
-imports from `shells/web` any more.
+which meant `shells/cli` and `shells/tui` could not typecheck without the web shell's
+own dependency tree installed. Nothing under `shells/cli`, `shells/tui` or here imports
+from `shells/web` any more.
 
 The line a web import must not cross is `node:*`, `playwright-core`, `@resvg/resvg-js`,
 `sharp`, `@napi-rs/canvas` and `onnxruntime-node`. Every module in the list above is

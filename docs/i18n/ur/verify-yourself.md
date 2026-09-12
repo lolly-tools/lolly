@@ -39,14 +39,14 @@ Lolly کے privacy اور security صفحات دعوے کرتے ہیں: کوئی
 
 ## ٹرمینل سے
 
-**6. رینڈر اینڈ پوائنٹ صرف عوامی ڈیٹا کے ساتھ جواب دیتا ہے۔** سرور کی وہ واحد خصوصیت جو صارف کے ٹائپ کردہ ان پٹس کو URL میں شامل کر دیتی ہے - hot-link renders - یہاں فعال ہے، اور [privacy policy](/info/privacy.html) بتاتی ہے کہ اس کا اُن ان پٹس کے لیے کیا مطلب ہے جو آپ کسی لنک میں ڈالتے ہیں:
+**6. رینڈر اینڈ پوائنٹ صرف پبلک ڈیٹا کے ساتھ جواب دیتا ہے۔** وہ واحد سرور فیچر جو صارف کے ٹائپ کردہ ان پٹس کو URL میں شامل کرتا ہے - ہاٹ لنک رینڈرز - یہاں لائیو ہے، اور [privacy policy](/info/privacy.html) بتاتی ہے کہ کسی لنک میں شامل کردہ ان پٹس کے لیے اس کا کیا مطلب ہے:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-یہ سوئچ فی تعیناتی (per-deployment) ہے (`LOLLY_DISABLE_RENDER_GET=1`): جس انسٹنس پر یہ سیٹ کیا گیا ہو، وہاں وہی جانچ `404` لوٹاتی ہے - یہ فرق فلیگ کے کام کرنے کی علامت ہے، نہ کہ کوئی تضاد۔
+یہ سوئچ ہر ڈیپلائے منٹ کے لیے علیحدہ ہے (`LOLLY_DISABLE_RENDER_GET=1`): جس انسٹینس پر یہ سیٹ ہو، وہاں وہی پروب `404` واپس کرتا ہے - یہ فرق فلیگ کے کام کرنے کی علامت ہے، کسی خرابی کی نہیں۔
 
 **7. سرور کی سطح شمار کی جا سکتی ہے۔** [Server Surface](/info/server-surface.html) موجود ہر سرور سائیڈ روٹ کی فہرست دیتا ہے، اس مستقل اصول کے ساتھ کہ جو اینڈ پوائنٹ اس صفحے پر نہیں وہ Lolly کا حصہ نہیں۔ انہیں `curl` کریں؛ اس کے سوا کچھ اور ملنے کو نہیں۔
 
@@ -55,7 +55,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 اوپر بیان کردہ سب کچھ پھر بھی محض دکھاوا ہو سکتا ہے اگر تعینات کردہ کوڈ عوامی کوڈ سے مختلف ہو۔ تو کوڈ چیک کریں - تعیناتی [عوامی ریپوزٹری](https://github.com/lolly-tools/lolly) سے بلڈ ہوتی ہے:
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ grep -rn logIssuance services/ca api/ca
 - CA اجرائی لاگ واپس آ جائے - سورس میں **یا** جنریٹ شدہ سرور بنڈل میں،
 - پرائیویسی پالیسی اپنے قانونی طور پر لازمی بیانات (نامزد کنٹرولر، قانونی بنیاد، شکایت کا حق) کھو دے۔
 
-انہیں اپنے کلون میں خود چلائیں (Node 22.18+؛ اس فائل کے لیے `npm install` کی ضرورت نہیں):
+انہیں کلون میں خود چلائیں (Node 22.18+؛ اس فائل کے لیے `pnpm install` کی ضرورت نہیں):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-مکمل سویٹ (`npm install && npm test`) مزید کئی ہزار ٹیسٹ چلاتی ہے، بشمول وہ مخالفانہ کرپٹوگرافی ٹیسٹس جو [Security & Verification](/info/security.html) میں بیان کیے گئے ہیں۔
+مکمل سوٹ (`pnpm install && pnpm test`) مزید کئی ہزار ٹیسٹس چلاتا ہے، بشمول [Security & Verification](/info/security.html) میں بیان کردہ ایڈورسیریل کرپٹوگرافی ٹیسٹس۔
 
 ## جو آپ باہر سے تصدیق نہیں کر سکتے - صاف الفاظ میں
 

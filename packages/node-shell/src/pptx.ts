@@ -12,9 +12,9 @@
  * via `opts.parseXml`).
  *
  * This lives in the shared node-shell package, not in shells/web, because both
- * the web bridge and the CLI bridge build host.pptx from it, and those are two
- * separately versioned submodules. shells/web/src/bridge/pptx.ts re-exports it,
- * so web import sites are unchanged.
+ * the web bridge and the CLI bridge build host.pptx from it, and no shell may
+ * import from another. shells/web/src/bridge/pptx.ts re-exports it, so web
+ * import sites are unchanged.
  *
  * inspect() never throws: a picker feeds arbitrary files here, so "not a deck"
  * resolves as { ok:false }. rebrand() throws instead: by the time it runs, the

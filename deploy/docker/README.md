@@ -4,9 +4,11 @@ The web image uses `pnpm run build:web:release`: it signs the selected profile's
 catalog and embeds the matching public verification key and verified trust mode
 in the client. Unsigned `build:web` output is for development and previews.
 
-Use a checkout with the required content submodules populated. For SUSE, include
-the private `brands/suse` submodule and select `LOLLY_PROFILE=suse`. Build a reviewed
-release from a clean checkout and record its source/submodule commits and image digest.
+Use a checkout that carries the content the profile needs. The community tools and
+the `lolly-start` brand are directories in this repository; for SUSE, mount the private
+`brands/suse` submodule and select `LOLLY_PROFILE=suse`. Build a reviewed release from a
+clean checkout and record its source commit, the `brands/suse` pointer if one was used,
+and the image digest.
 
 Provision the deployment's P-256 signing key through the approved secret store.
 `LOLLY_CATALOG_SIGNING_KEY` holds PKCS8 PEM or private JWK JSON;

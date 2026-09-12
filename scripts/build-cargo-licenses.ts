@@ -117,7 +117,7 @@ for (const rel of CRATE_DIRS) {
 }
 
 if (!ran) {
-  console.error('✗ No Tauri shell crate graphs found (are the submodules checked out?)');
+  console.error('✗ No Tauri shell crate graphs found (is shells/tauri-*/src-tauri present?)');
   process.exit(1);
 }
 

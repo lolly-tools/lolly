@@ -39,14 +39,14 @@ Lolly 的隐私和安全页面做出了一些声明:没有分析统计、没有�
 
 ## 在终端中
 
-**6. 渲染端点只会返回公开数据。** 唯一一个可能把用户输入的内容放进 URL 的服务端功能 - 热链渲染 - 在这里是启用的,[隐私政策](/info/privacy.html)说明了这对你放进链接里的输入内容意味着什么:
+**6. 渲染端点只返回公开数据。** 唯一一个会把用户输入内容放入 URL 的服务器功能 - 热链接渲染(hot-link render) - 在这里是启用的,[隐私政策](/info/privacy.html)说明了这对你放入链接中的输入内容意味着什么:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-这个开关是按部署实例配置的(`LOLLY_DISABLE_RENDER_GET=1`):在设置了该开关的实例上,同样的探测会返回 `404` - 这个差异正是该开关在正常工作的体现,而不是不一致。
+该开关按部署实例配置(`LOLLY_DISABLE_RENDER_GET=1`):在设置了该变量的实例上,同样的探测会返回 `404` - 这个差异正是该标志生效的表现,而不是不一致。
 
 **7. 服务器暴露面是可枚举的。** [Server Surface](/info/server-surface.html) 列出了所有存在的服务端路由,并以此为一贯规则:不在该页面上的端点就不属于 Lolly。用 `curl` 去逐一验证;不会再有别的东西可找。
 
@@ -55,7 +55,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 如果部署的代码与公开代码不一致,以上所有内容都可能只是表演。所以要检查代码 - 该部署构建自[公开仓库](https://github.com/lolly-tools/lolly):
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ grep -rn logIssuance services/ca api/ca
 - CA 签发日志重新出现 - 无论是在源代码中**还是**在生成的服务器打包产物中,
 - 隐私政策丢失了其法律要求必须包含的声明(指定的数据控制者、法律依据、投诉权)。
 
-你可以在克隆下来的仓库中自行运行(Node 22.18+;这个文件不需要 `npm install`):
+你可以在自己的克隆仓库中运行它们(Node 22.18+;运行此文件无需 `pnpm install`):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-完整套件(`npm install && npm test`)还会再运行数千项测试,其中包括 [Security & Verification](/info/security.html) 中描述的对抗性密码学测试。
+完整测试套件(`pnpm install && pnpm test`)会额外运行数千个测试,包括[安全与验证](/info/security.html)中描述的对抗性密码学测试。
 
 ## 你在外部无法验证的部分 - 直说了
 

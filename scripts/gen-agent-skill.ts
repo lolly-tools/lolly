@@ -6,9 +6,9 @@
  * any checkout.
  *
  * The tables are built from the PUBLIC catalog and the public tool manifests, on
- * purpose: `brands/lolly-start/catalog/tools/index.json` (not the `catalog/`
- * symlink, which follows whatever profile is active) and `community/<id>/tool.json`
- * (not the gitignored `tools/` view). A maintainer with the SUSE profile mounted
+ * purpose: `brands/lolly-start/catalog/tools/index.json` (not `catalogFile()`,
+ * which answers for whatever profile is active) and `community/<id>/tool.json`
+ * (not `toolFile()`). A maintainer with the SUSE profile mounted
  * therefore still generates the same public skill, and the skill stays true on a
  * clone that has no private pack.
  *

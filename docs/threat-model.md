@@ -129,7 +129,7 @@ These read like gaps and are not. Escalating them is a false positive.
 Nothing here needs to be taken on trust. Everything runs from a clone.
 
 ```bash
-git submodule update --init --recursive   # BEFORE pnpm install; workspaces need every package.json
+git clone https://github.com/lolly-tools/lolly.git && cd lolly   # one repository; no submodule step
 pnpm install
 
 pnpm test                       # the whole suite: tests/, packages/core/test/, shells/web/src/**, services/mcp/test/

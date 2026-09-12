@@ -28,9 +28,9 @@
  *   recordsHash = sha256(JSON.stringify(index.map(r => [r.p, r.a])))
  *
  * The resolveSectionTexts walk below is a deliberate copy of the one in
- * scripts/build-ask-vectors.ts. It cannot import it: this file lives inside the
- * shells/web submodule, which has to typecheck and run without the parent repo's
- * scripts/ directory present. Change one, change the other.
+ * scripts/build-ask-vectors.ts. It cannot import it: this file lives under
+ * shells/web, whose tsconfig project does not include scripts/. Change one,
+ * change the other.
  *
  * Run directly:  node --test shells/web/src/lib/ask/vectors-staleness.test.ts
  */

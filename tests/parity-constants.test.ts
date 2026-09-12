@@ -32,10 +32,10 @@ import { existsSync, readFileSync } from 'node:fs';
 
 const core = readFileSync(new URL('../shells/web/src/lib/audio-coach-core.ts', import.meta.url), 'utf8');
 
-// voice-recorder ships ONCE, in community/ (it was a copy in both brand packs
-// until 2026-09-06; the two had already drifted by a version and a font weight).
-// Gate on the SOURCE dir, not the gitignored tools/ profile view (which silently
-// vanishes if the tool is renamed): a missing hook FAILS, it never skips.
+// voice-recorder ships ONCE, in community/ (it was a copy in both brand packs until
+// 2026-09-06; the two had already drifted by a version and a font weight). Gate on the
+// SOURCE dir, not through the content resolver (which silently vanishes if the tool is
+// renamed): a missing hook FAILS, it never skips.
 const hookUrl = new URL('../community/voice-recorder/hooks.js', import.meta.url);
 assert.ok(existsSync(hookUrl),
   'community/voice-recorder/hooks.js is missing - the tool was renamed or deleted');

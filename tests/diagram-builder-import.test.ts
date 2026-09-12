@@ -30,10 +30,9 @@ import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
 
-// diagram-builder is a community tool - always present in a full checkout. Load it
-// from the SOURCE pack (community/), not the gitignored tools/ profile view, so the
-// suite never silently skips: a missing dir means the tool was renamed or deleted,
-// which must FAIL here.
+// diagram-builder is a community tool - always present in a full checkout. Load it from the
+// SOURCE pack (community/), not through the content resolver, so the suite never silently
+// skips: a missing dir means the tool was renamed or deleted, which must FAIL here.
 const COMMUNITY_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const TOOL_DIR = join(COMMUNITY_DIR, 'diagram-builder');
 assert.ok(existsSync(join(TOOL_DIR, 'tool.json')),

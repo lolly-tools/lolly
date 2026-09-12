@@ -19,7 +19,7 @@ See [Lolly for Operators](/info/operators.html) for the security rationale behin
 The web shell is a static PWA built by Vite, with two *optional* serverless API functions alongside it.
 
 ```bash
-pnpm install --frozen-lockfile                 # preinstall checks the submodules are present; postinstall builds the profile views
+pnpm install --frozen-lockfile                 # preinstall checks at least one content profile is complete on disk
 pnpm run build:web      # ONNX runtime copy, /info, per-tool + per-view OG images, then the Vite bundle
 # output: shells/web/dist/
 ```
@@ -47,13 +47,13 @@ The CSP is the one that matters most, and not for the reason you might expect. T
 
 ### With the optional services
 
-To add the AI-agent (MCP) or verified-identity (CA) endpoints, deploy the two functions under `api/` (`api/mcp/**`, `api/ca/**`) to any serverless platform, or self-host the `services/mcp` / `services/ca` submodules as long-running processes. Route the app's `/api/mcp` and `/api/ca` paths to them, and keep the SPA catch-all for everything else - written to **exclude the API prefix** and listed last (`/((?!api/).*)` → `/index.html` in `vercel.json`), so it can't swallow the function routes. MCP also serves the two `/.well-known/oauth-*` discovery paths and a public `GET /tool/<id>.<ext>` render route; route those to the same function.
+To add the AI-agent (MCP) or verified-identity (CA) endpoints, deploy the two functions under `api/` (`api/mcp/**`, `api/ca/**`) to any serverless platform, or self-host `services/mcp` / `services/ca` as long-running processes. Route the app's `/api/mcp` and `/api/ca` paths to them, and keep the SPA catch-all for everything else - written to **exclude the API prefix** and listed last (`/((?!api/).*)` → `/index.html` in `vercel.json`), so it can't swallow the function routes. MCP also serves the two `/.well-known/oauth-*` discovery paths and a public `GET /tool/<id>.<ext>` render route; route those to the same function.
 
 ### Container & Kubernetes
 
 The container images and the Helm chart ship in this repo, so running Lolly on your own cluster is a supported delivery model rather than a recipe to reconstruct.
 
-`deploy/docker/` holds three Dockerfiles - `web.Dockerfile`, `mcp.Dockerfile`, `ca.Dockerfile` - each built with the **repo root** as context. The web image is multi-stage: a Node stage runs the real `pnpm run build:web`, then an `nginx-unprivileged` runtime stage (non-root, listening on 8080) serves the resulting `dist/` with the `nginx.conf` and `security-headers.conf` described above. One brand profile is baked in at build time (`--build-arg LOLLY_PROFILE=suse|lolly-start`), so the running container reads nothing at serve time - no pack to mount, no runtime config, no secret. The default is `suse`, which needs the private brand pack; a public self-hoster without it should build with `--build-arg LOLLY_PROFILE=lolly-start` (or their own pack) or the image ships an empty catalogue. The two service images install the workspace and run their entry point on Node directly. All three need the content submodules checked out in the build context, or you get a shell with an empty catalogue.
+`deploy/docker/` holds three Dockerfiles - `web.Dockerfile`, `mcp.Dockerfile`, `ca.Dockerfile` - each built with the **repo root** as context. The web image is multi-stage: a Node stage runs the real `pnpm run build:web`, then an `nginx-unprivileged` runtime stage (non-root, listening on 8080) serves the resulting `dist/` with the `nginx.conf` and `security-headers.conf` described above. One brand profile is baked in at build time (`--build-arg LOLLY_PROFILE=suse|lolly-start`), so the running container reads nothing at serve time - no pack to mount, no runtime config, no secret. The default is `suse`, which needs the private brand pack; a public self-hoster without it should build with `--build-arg LOLLY_PROFILE=lolly-start` (or their own pack) or the image ships an empty catalogue. The two service images install the workspace and run their entry point on Node directly. A plain clone already carries `community/` and `brands/lolly-start/`, so nothing extra is needed for those; a `suse`-profile build needs the private pack mounted in the build context first, or you get a shell with an empty catalogue.
 
 `deploy/helm/` is the chart, and one values file covers all three components. `web` is on by default: 2 stateless replicas for HA behind a ClusterIP service, a TLS-ready ingress you enable with a hostname and `/healthz` liveness/readiness probes. `mcp` and `ca` are opt-in and disabled by default. The defaults are the secure ones - every pod runs non-root under `RuntimeDefault` seccomp with all capabilities dropped, no privilege escalation and a read-only root filesystem (writable `emptyDir`s exactly where nginx needs them), soft pod anti-affinity to spread replicas, an optional NetworkPolicy and no ServiceAccount token mounted since none of the components talk to the Kubernetes API. The CA's root key, certificate and service secret come either from a chart-managed Secret or, for production, from one you manage yourself (`ca.existingSecret`). A minimal install is one flag:
 
@@ -89,7 +89,7 @@ Two small services back optional features. Neither is required to render or expo
 
 | Service | What it powers | Build | Hosting |
 |---|---|---|---|
-| **MCP server** (`services/mcp`, `api/mcp`) | The AI-agent endpoint - lets a model discover and run tools over MCP | `pnpm run build:mcp-fn` | A serverless function on any platform, or self-host the `services/mcp` submodule |
+| **MCP server** (`services/mcp`, `api/mcp`) | The AI-agent endpoint - lets a model discover and run tools over MCP | `pnpm run build:mcp-fn` | A serverless function on any platform, or self-host `services/mcp` |
 | **CA service** (`services/ca`, `api/ca`) | Content-Credentials **identity** - issues short-lived signing certificates for verified C2PA | `pnpm run build:ca-fn` | A serverless function on any platform, or self-host; needs `services/ca/.env` |
 
 The CA service holds policy server-side (certificate-day limits, allowed providers) and never sees a signing key - those are generated and kept on the user's device. See [Content Credentials Identity](/info/content-credentials-identity.html) for the operator runbook (root of trust, provider setup) and [MCP Server](/info/mcp.html) for the endpoint and auth model.

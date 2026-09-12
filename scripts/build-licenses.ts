@@ -28,9 +28,10 @@
  *     Only the version moves - text and SPDX still come from the install, which
  *     is what keeps the notice honest about the bytes we ship.
  *   - The non-npm half (vendored d3 / topojson, the Lucide icons, the upstream
- *     HarfBuzz WASM, the SUSE OFL fonts, and the bundled map data) cannot be
- *     discovered from node_modules, so it lives in a small hand-maintained
- *     MANIFEST below with fixed, canonical license texts.
+ *     HarfBuzz WASM, the SUSE OFL fonts, the bundled map data, and the vendored
+ *     Flathub shared-modules build recipes) cannot be discovered from
+ *     node_modules, so it lives in a small hand-maintained MANIFEST below with
+ *     fixed, canonical license texts.
  *   - DETERMINISTIC + idempotent: ordering is fixed by the arrays below and no
  *     timestamp is emitted, so re-running with an unchanged dependency set
  *     produces byte-identical files (an empty `git diff` is the drift signal).
@@ -382,6 +383,22 @@ domain (Natural Earth Terms of Use).
 
 ${ISC_BODY}`;
 
+// Flathub's shared-modules, vendored at shells/tauri-desktop/flatpak/shared-modules/
+// (a nested git submodule until the 2026-09-11 fold). The upstream repository ships NO
+// license file and declares no license in its README or metadata, so there is no notice
+// to reproduce; this entry records the source and the exact commit instead, which is
+// what an auditor needs to check the bytes. Re-check on the next update and replace this
+// text with the real terms if upstream ever states them.
+const SHARED_MODULES_TEXT = `Source: https://github.com/flathub/shared-modules
+Commit: 6eed6448215ff322f3567f2fba53ea444f5861df
+
+Flatpak build recipes (JSON module manifests plus a few build patches) maintained by
+the Flathub project. The upstream repository states no license: it carries no LICENSE
+file, and neither its README nor its module manifests declare one. Nothing is
+reproduced here because there is no notice text to reproduce. Copyright remains with
+the Flathub contributors; the per-module owners are recorded in the vendored tree's
+CODEOWNERS file.`;
+
 // The vendored libopenmpt WASM tracker-module decoder (src/vendor/libopenmpt/). Built
 // with libopenmpt's DEFAULT internal codecs, so the whole artifact is permissive - no
 // LGPL (libmpg123/libvorbis are opt-in only, behind ALLOW_LGPL=1, which we never set).
@@ -420,8 +437,8 @@ The Emscripten runtime glue in libopenmpt.mjs is MIT (© Emscripten authors).`;
 
 // Each manifest entry sets `where`: 'web' means it ships in the web build, so it
 // appears in BOTH the full notices and the web-scoped THIRD-PARTY-LICENSES.txt.
-// (Anything web-only-excluded would use another value; today every entry ships
-// in the web build, so all are 'web'.)
+// Any other value appears only in THIRD-PARTY-NOTICES.md - 'desktop' is used by
+// the vendored Flatpak build recipes, which no web bundle carries.
 const MANIFEST: {
   vendored: Entry[];
   icons: Entry[];
@@ -519,6 +536,17 @@ const MANIFEST: {
       text: LIBOPENMPT_TEXT,
       note: 'Tracker-module (.mod/.xm/.s3m/.it/…) decoder. Built from source with permissive internal codecs only - see scripts/build-libopenmpt-wasm.sh.',
       where: 'web',
+    },
+    {
+      name: 'Flathub shared-modules (Flatpak build recipes)',
+      version: 'git 6eed6448215ff322f3567f2fba53ea444f5861df',
+      spdx: 'NOASSERTION',
+      copyright: 'Copyright the Flathub contributors (per-module owners are listed in the tree\'s CODEOWNERS)',
+      files:
+        'shells/tauri-desktop/flatpak/shared-modules/ (124 files, one real copy; flatpak/flathub/shared-modules is a symlink to it)',
+      text: SHARED_MODULES_TEXT,
+      note: 'Build-time recipes only, and only one of them is referenced: libayatana-appindicator/libayatana-appindicator-gtk3.json, which supplies the tray library the desktop app links against inside flatpak-builder. No file from this tree is compiled into or shipped with the web build, which is why it is absent from THIRD-PARTY-LICENSES.txt. Vendored at the 2026-09-11 fold because it had been a nested git submodule.',
+      where: 'desktop',
     },
   ],
   icons: [

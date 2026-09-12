@@ -14,8 +14,8 @@
  *      workstream. So the two are run side by side on the same fixture and
  *      compared SAMPLE FOR SAMPLE. If either copy moves, this fails - which is
  *      the whole reason the mirror is allowed to exist. The comparison is
- *      skipped only if the web shell submodule is not checked out, and the
- *      rest of the file still runs.
+ *      skipped only if shells/web/src/bridge/mix-window.ts is not on disk, and
+ *      the rest of the file still runs.
  *   2. THE MASTER PASS IS REAL. A mix hot enough to clip comes back at or under
  *      the limiter's -1 dBTP ceiling, and a normalize target moves the measured
  *      loudness to it.

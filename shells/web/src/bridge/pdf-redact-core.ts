@@ -7,8 +7,8 @@
  * The implementation MOVED to packages/node-shell/src/pdf-redact-core.ts: the
  * terminal shells grew their own canvas half (resvg + @napi-rs/canvas), and the
  * two halves must burn bars at exactly the same pixels, so the maths and the
- * pdf-lib rebuild belong in the package both can import. A shell must not reach
- * across a submodule boundary to typecheck - the same rule pptx.ts follows.
+ * pdf-lib rebuild belong in the package both can import. A shell must not import
+ * from another shell to typecheck - the same rule pptx.ts follows.
  *
  * This file stays as a stable re-export so every web import site (and
  * tests/redact.test.ts) keeps working unchanged.

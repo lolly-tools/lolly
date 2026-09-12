@@ -3488,6 +3488,25 @@ Bundled internal codecs, statically linked into the same WASM (all permissive):
 The Emscripten runtime glue in libopenmpt.mjs is MIT (© Emscripten authors).
 ```
 
+### Flathub shared-modules (Flatpak build recipes) git 6eed6448215ff322f3567f2fba53ea444f5861df
+
+- SPDX-License-Identifier: `NOASSERTION`
+- Files: `shells/tauri-desktop/flatpak/shared-modules/ (124 files, one real copy; flatpak/flathub/shared-modules is a symlink to it)`
+- Copyright: Copyright the Flathub contributors (per-module owners are listed in the tree's CODEOWNERS)
+- Build-time recipes only, and only one of them is referenced: libayatana-appindicator/libayatana-appindicator-gtk3.json, which supplies the tray library the desktop app links against inside flatpak-builder. No file from this tree is compiled into or shipped with the web build, which is why it is absent from THIRD-PARTY-LICENSES.txt. Vendored at the 2026-09-11 fold because it had been a nested git submodule.
+
+```text
+Source: https://github.com/flathub/shared-modules
+Commit: 6eed6448215ff322f3567f2fba53ea444f5861df
+
+Flatpak build recipes (JSON module manifests plus a few build patches) maintained by
+the Flathub project. The upstream repository states no license: it carries no LICENSE
+file, and neither its README nor its module manifests declare one. Nothing is
+reproduced here because there is no notice text to reproduce. Copyright remains with
+the Flathub contributors; the per-module owners are recorded in the vendored tree's
+CODEOWNERS file.
+```
+
 ## Icons
 
 ### Lucide (icon path data)
