@@ -6,7 +6,7 @@
  * DOM-light by design - attribute reads plus an optional computed style - and
  * `shells/cli` has driven EMF, EPS, DXF and WMF through it for as long as those
  * formats have existed, so it belongs in the package both shells can import
- * rather than behind a submodule boundary.
+ * rather than inside one of them.
  *
  * One thing could not follow it: `font-registry.ts`, which reads IndexedDB and
  * `document.fonts` to find the sfnt an outlined run needs. The walk now takes a

@@ -40,13 +40,13 @@ import { createRuntime } from '../engine/src/runtime.ts';
 import { cuesToSrt, cuesToVtt } from '../engine/src/captions.ts';
 import { baseHost } from './helpers/host.ts';
 
-// Load from the SOURCE pack, not the gitignored tools/ profile view, so the
-// suite is profile-independent: skip only when community/ is not checked out.
+// Load from the SOURCE pack, not through the content resolver, so the suite is
+// profile-independent: skip only when community/ is not checked out.
 const COMMUNITY = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const fetchFile = (path: string) => readFile(join(COMMUNITY, path), 'utf8');
 
 const PACK_MOUNTED = existsSync(COMMUNITY);
-const SKIP = !PACK_MOUNTED && 'community pack not mounted (clone without submodules)';
+const SKIP = !PACK_MOUNTED && 'community pack not mounted';
 if (PACK_MOUNTED) {
   assert.ok(existsSync(join(COMMUNITY, 'captions', 'tool.json')),
     'community/captions/tool.json is missing - pack is mounted, so the tool was renamed or deleted');

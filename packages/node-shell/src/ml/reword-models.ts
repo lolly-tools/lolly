@@ -21,9 +21,9 @@
  * now runs on the Node shells too (onnxruntime-node through transformers.js,
  * packages/node-shell/src/ml/reword.ts). The model directory, the sampling
  * parameters and the decode budget must be the SAME on both, or a candidate the
- * terminal proposes is not one the app would have proposed. The parent repo is
- * the only place both can import from (shells/web and shells/cli are separately
- * versioned submodules), so the constants live here and
+ * terminal proposes is not one the app would have proposed. This shared package
+ * is the only place both can import from (no shell may import from another), so
+ * the constants live here and
  * shells/web/src/lib/reword-models.ts re-exports them unchanged. The one thing
  * that stays behind is REWORD_MODEL_CACHE_URL, a browser Cache API probe built
  * from the web build's MODELS_BASE.

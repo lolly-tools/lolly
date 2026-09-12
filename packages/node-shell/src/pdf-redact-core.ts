@@ -16,8 +16,8 @@
  * It lives in the shared node-shell package, not in shells/web, because BOTH
  * canvas halves need it byte-for-byte: shells/web/src/bridge/pdf-redact.ts over
  * a browser canvas, and packages/node-shell/src/pdf-redact.ts over resvg +
- * @napi-rs/canvas. Same rule as pptx.ts - the terminal shells must not reach
- * across a submodule boundary to typecheck. shells/web/src/bridge/pdf-redact-core.ts
+ * @napi-rs/canvas. Same rule as pptx.ts - no shell may import from another
+ * shell to typecheck. shells/web/src/bridge/pdf-redact-core.ts
  * stays as a re-export so every web import site is unchanged.
  */
 

@@ -131,7 +131,7 @@ Lolly 划的是同一条线。以概率的方式探索:一个模型、一位设�
 
 ### 仓库结构
 
-内容以内容包的形式挂载:`community/`、`docs/`、每一个 `shells/*`、两个 `services/*` 以及 `brands/suse`,各自都是独立的仓库,以 git 子模块的形式检出到这个仓库中。父仓库拥有 `engine/`、`schemas/`、`scripts/`、`tests/`、`api/`、`brands/lolly-start/` 和 `profiles.json`。检出命令和跨仓库工作流程参见[构建指南 » 获取源码](/info/build-guide.html)。
+Lolly 是一个仓库。`engine/`、`schemas/`、`scripts/`、`tests/`、`api/`、`docs/`、`community/`、`brands/lolly-start/`、每个 `shells/*` 以及两个 `services/*` 都是其中的普通目录。唯一的例外是 `brands/suse`,一个**私有**的 git 子模块,存放 SUSE 工具包和目录,是可选加入的,在公开克隆中不存在。给定构建读取哪些工具包由内容配置文件(`profiles.json`)决定,按进程解析,而不是全局切换。克隆命令以及私有工具包内的更改如何提交,请参见[构建指南 » 获取源代码](/info/build-guide.html)。
 
 ```
 lolly/
@@ -189,45 +189,38 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # profile VIEW (gitignored) - data, not code. Merged from packs:
-│                     #   community/ (public, brand-agnostic, MPL) + brands/<active>/tools (brand-owned).
-│                     #   A SELECTION follows - the mounted set depends on the profile.
+├── community/        # the brand-agnostic tool pack - data, not code. Public (MPL-2.0).
+│                     #   A SELECTION follows; a profile mounts these plus whatever
+│                     #   tools the active brand pack carries of its own.
 │   ├── qr-code/
-│   ├── quotes/
-│   ├── email-signature/
 │   ├── snippet/
 │   ├── countdown-timer/
 │   ├── color-palette/
-│   ├── color-block/           # typed/heterogeneous blocks (addMenu discriminator)
-│   ├── dynamic-layout/
-│   ├── tool-logo/         # "Logo" - auto-switching brand logo
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
 │   ├── strip-data/        # on-device metadata strip - JPEG/PNG/SVG/PDF (file in → clean file out)
 │   ├── compress-pdf/      # on-device PDF compressor - recompresses images (file in → smaller file out)
-│   ├── brand-lockup/      # "Brand Lockup" - SUSE logo lockups; HarfBuzz text-to-path (wasm)
-│   ├── chart-creator/     # SVG charts from structured data
+│   ├── chart/             # SVG charts from structured data
 │   ├── filter/            # photo effects in one tool - halftone/scanline/posterize/voronoi (vector), duotone/pixel-stretch/imperfections (raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
-│   ├── digi-ad/           # "Animated Ad" - looping banner from scenes
-│   ├── event-name-badge/  # conference badges - composes qr-code as an SVG
 │   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
 │   ├── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
 │   ├── design/     # "Design" - freeform WYSIWYG editor canvas (render.layout: editor)
 │   ├── multi-page-pdf/    # multi-page PDF document - cover, flowing content blocks, back page
 │   ├── diagram-builder/   # org / layercake / process / cycle / pyramid diagrams
 │   ├── logo-wall/         # many logos → auto-packed grid
-│   ├── logo-lockup-partner/ # SUSE + partner co-brand lockup
-│   ├── icon/          # favicon .ico / png / svg from text + colours
-│   ├── lottie-digi-ad/    # animated Lottie ad banners
-│   └── pose-geeko/        # pose the SUSE Geeko mascot - print-ready stills
+│   ├── icon/              # favicon .ico / png / svg from text + colours
+│   └── lottie-digi-ad/    # animated Lottie ad banners
 │
-├── catalog/
-│   ├── tools/index.json        # tool registry
-│   └── assets/
-│       ├── index.json          # asset registry
-│       └── suse/...            # logo, palette, etc.
+├── brands/            # brand packs - a catalog each, and optionally tools of their own
+│   ├── lolly-start/   # the blank starter brand, owned here
+│   │   └── catalog/
+│   │       ├── tools/index.json    # tool registry, generated per brand
+│   │       └── assets/
+│   │           ├── index.json      # asset registry
+│   │           └── lolly/...       # logo, palette, tokens
+│   └── suse/          # PRIVATE submodule - the SUSE tools and the SUSE catalog
 │
 ├── schemas/          # JSON Schema for tool.json, asset entries, AssetRef
 ├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
@@ -270,7 +263,7 @@ lolly qr-code                # lists inputs for that tool
 ```
 
 ### TUI
-`npm run tui`
+`pnpm run tui`
 
 CLI 的交互式对应物:一个全屏、以键盘为先的终端应用(基于 Ink 构建),用于浏览工具、填写输入、保存项目和导出 - 全程无需 GUI。它的宿主桥接层对无 DOM 的格式(SVG/EMF/EPS/HTML + 文本/数据)**复用了 CLI 的实现**,并在 `~/.lolly` 下增加了磁盘状态存储,以及一个可选的行内预览。除此之外,它还有一个**浏览器渲染层**:一个受限的无头 Chromium(与 MCP 服务器安装的是同一个),按需生成光栅图/PDF/视频以及实时 URL 抓取 - 驱动一份构建好的 Web 端副本,使输出保持一致,并且只在你首次导出此类格式时才启动。因此 `url-shot`(带裁剪 + 重新配色 + 矢量 PDF/SVG)以及每一个光栅/pdf 工具也都能在终端中运行。参见 [TUI 指南](/info/tui.html)。
 
@@ -286,11 +279,11 @@ CLI 的交互式对应物:一个全屏、以键盘为先的终端应用(基于 I
 
 | 类别 | 示例 | 计划中 |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence Studio, Record | Employee Image Stationery |
-| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Multi-Page PDF | Font Outliner |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence, Record | Employee Image Stationery |
+| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Booklet | Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS, Booth Studio | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | - | CVE Alert, Product Release Announcement, Blog OG Image |
-| `utility` | Strip Hidden Data, Text Helper, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
+| `utility` | Strip Hidden Data, Text, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | 单位/格式转换器,更多本机隐私实用工具 |
 
 这些单元格是**示例,而非清单**。存在哪些工具取决于你挂载的 profile,而不取决于本页面:品牌包可以添加自己的工具,也可以排除某个它不想发布的社区工具。`catalog/tools/index.json` - 由清单生成,也是画廊实际读取的注册表 - 才是权威列表;要统计某个 profile 挂载了多少工具,应统计清单文件本身(`ls community/*/tool.json brands/*/tools/*/tool.json`),而不要相信写在这里的数字。(同一个工具 id 若出现在两个包中,只会挂载一次,以胜出的包为准。)
 
@@ -298,11 +291,11 @@ CLI 的交互式对应物:一个全屏、以键盘为先的终端应用(基于 I
 
 **Design** 是第一个基于 `render.layout: "editor"` 自由画布模式构建的工具 - 一个无外壳、直接操作的界面,你可以拖动、缩放、旋转和吸附文本、形状和图片方框,然后通过与其他工具相同的渲染路径导出。
 
-**Strip Hidden Data** 是第一个**本地设备工具**(`privacy: "on-device"`):这是一个内容转换工具,接收*你*提供的文件,完全在浏览器内处理,并返回一份干净的副本 - 从不上传、从不加水印、不打任何来源标记。**Text Helper** 是第二个 - 一个用于日常"粘贴到网站"类工作(JSON 格式化、JWT 解码、Base64、URL 编码/解码、SHA 哈希)的本地设备工作台。**Compress PDF** 是第三个 - 它通过重新压缩其中的图片来缩小 PDF 体积,同样完全在本地设备上完成。这个标记及其徽章文字"Runs on your device - nothing is uploaded(在你的设备上运行 - 不上传任何内容)"现在覆盖了整套转换工具:Strip Hidden Data、Text Helper、Compress PDF、**Convert Image**(HEIC/TIFF/AVIF → WebP/JPG/PNG)、**Convert Font**、**Redact**(销毁图片、SVG 或 PDF 中的某些区域)、**Prompt to Image**,以及在 profile 挂载了它的情况下的 **Rebrand a Deck**(原地重新主题化一个 `.pptx`)。这是一个隐私工具类别,用来取代把机密文件交给单一用途的网站处理。
+**Strip Hidden Data** 是第一个**本机实用工具**(`privacy: "on-device"`):一个内容转换工具,接收 *你* 提供的文件,完全在浏览器中处理,并返回一份干净的副本 - 从不上传,从不加水印,不附加溯源信息。**Text** 是第二个 - 一个用于日常粘贴到网站类工作的本机工作台(JSON 格式化、JWT 解码、Base64、URL 编码/解码、SHA 哈希)。**Compress PDF** 是第三个 - 它通过重新压缩 PDF 中的图像来缩小体积,同样完全在本机完成。这个标记及其徽章文字 "Runs on your device - nothing is uploaded"(在你的设备上运行 - 不会上传任何内容)现在涵盖了整个转换工具集:Strip Hidden Data、Text、Compress PDF、**Convert Image**(HEIC/TIFF/AVIF → WebP/JPG/PNG)、**Convert Font**、**Redact**(销毁图像、SVG 或 PDF 中的区域)、**Prompt Card** 以及 **Rebrand**(在配置文件挂载该工具时原地重新设定 `.pptx` 的主题)。这是一个隐私实用工具类别,用来替代将机密文件交给单一用途的网站处理。
 
 !["工具"抽屉,其中每张卡片都是一个用来转换你已有文件的工具](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
 
-> 注:`category` 和 `status` 是从每个 `tool.json` 反规范化写入 `catalog/tools/index.json`(画廊读取的注册表)的。清单才是唯一真实来源 - 该索引由 `npm run build:catalog` **生成**,如果已提交的索引与清单发生偏差,`npm run validate:catalog` 会使 CI 失败。
+> 注意:`category` 和 `status` 会从每个 `tool.json` 反规范化到 `catalog/tools/index.json`(画廊读取的注册表)中。清单文件是唯一真实来源 - 该索引由 `pnpm run build:catalog` **生成**,如果已提交的索引与清单文件不一致,`pnpm run validate:catalog` 会使 CI 失败。
 
 ---
 
@@ -444,14 +437,14 @@ Web 端：IndexedDB。Tauri：文件系统。CLI：内存中。工具只能看�
 
 用户打开 `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`：
 
-1. **启动。** Web 端打开 IndexedDB，构建能力桥接层，同步工具与资产目录（离线时则从缓存加载）。
-2. **路由。** URL 哈希 → `tool` 视图，提取出 `qr-code` 及 URL 参数。
-3. **加载。** `loadTool('qr-code', fetchFile)` 获取 `tool.json`，按 JSON Schema 校验，再获取 `template.html`、`styles.css` 和 `hooks.js` 源码。
-4. **解析 URL 状态。** `parseUrlState` 把 URL 参数转换为初始输入值。资产引用（`?logo=suse/logo/primary`）被解析为轻量的 `{ id, _unresolved: true }` 对象。
-5. **运行时。** `createRuntime(tool, host, initialValues)` 构建输入模型（合并资料数据、默认值和初始值），通过 `host.assets.get()` 解析资产引用，加载钩子（`host` 以闭包作用域注入，并非沙箱隔离），调用 `hooks.onInit`。
-6. **渲染。** 宿主环境订阅运行时；每次状态变化都会收到 `{ model, hydrated }`。它据此渲染输入控件，并把注水后的模板 HTML 写入 `#tool-canvas`。
-7. **交互。** 用户在某个输入中输入内容 → `runtime.setInput(id, value)` → 应用约束 → 调用 `hooks.onInput` → 重新注水 → 重新渲染。画布实时更新。
-8. **导出。** 用户点击下载（PNG）→ `runtime.export(canvasNode, 'png')` → `host.export.render`（通过 dom-to-image-more 栅格化；SVG/PDF 则经过专门的 DOM 遍历矢量化器）→ blob → `host.export.download`。工具可选用的格式范围很广，具体以 `schemas/tool.schema.json` 中的 `render.formats` 枚举为准 - 位图与浮点位图、矢量与裁切文件、印刷/CMYK、动态影像、可编辑文档（`pptx`、`docx`、`odt`）、调色板与数据/文本输出、音频与字体文件。[URL 模式](/info/url-mode.html) 列出了每个 id 及其产出内容。音频与其他格式一样也在该枚举中（`wav`、`mp3`、`m4a`、`opus`，由音频图和录制类工具声明）；此外，录制类工具的 `render.capture` 模式会驱动 `host.recorder`，其录制结果以浏览器实际录制所用的容器格式，作为一个完成态的 Blob 送达。（设置了 `render.export: false` 的工具 - 例如 Color Palette、Countdown Timer、Strip Hidden Data、Text Helper、Compress PDF - 会隐藏下载/格式/尺寸控件。）物理单位在此按格式转换（PDF → 真实的页面点数，位图 → 按 DPI 转换为像素并带上 `pHYs` 数据块）。作者/溯源元数据（作者、工具、来源 - 由 `engine/src/metadata.ts` 构建）按格式嵌入：PNG iTXt、JPEG EXIF、PDF info 字典、SVG `<metadata>`、GIF 注释。实验性工具的水印由宿主环境插入，而非工具本身。
+1. **启动(Boot)。** Web 端打开 IndexedDB,构建能力桥接(capability bridge),同步工具和资源目录(离线时从缓存加载)。
+2. **路由(Route)。** URL 哈希 → `tool` 视图,并提取 `qr-code` 和 URL 参数。
+3. **加载(Load)。** `loadTool('qr-code', fetchFile)` 获取 `tool.json`,依据 JSON Schema 进行校验,并获取 `template.html`、`styles.css` 和 `hooks.js` 源码。
+4. **解析 URL 状态。** `parseUrlState` 将 URL 参数转换为初始输入值。资源引用(`?logo=suse/logo/primary`)被解析为轻量级的 `{ id, _unresolved: true }` 对象。
+5. **运行时(Runtime)。** `createRuntime(tool, host, initialValues)` 构建输入模型(合并资料数据、默认值和初始值),通过 `host.assets.get()` 解析资源引用,加载 hooks(闭包作用域内的 `host`,并非沙箱),调用 `hooks.onInit`。
+6. **渲染(Render)。** Shell 订阅运行时;每次状态变化都会收到 `{ model, hydrated }`。它根据模型渲染输入控件,并将水合后的模板 HTML 写入 `#tool-canvas`。
+7. **交互(Interact)。** 用户在输入框中输入 → `runtime.setInput(id, value)` → 应用约束 → 调用 `hooks.onInput` → 重新水合 → 重新渲染。画布实时更新。
+8. **导出(Export)。** 用户点击“下载(PNG)” → `runtime.export(canvasNode, 'png')` → `host.export.render`(通过 dom-to-image-more 光栅化;SVG/PDF 则通过专用的 DOM 遍历矢量化器)→ blob → `host.export.download`。工具可以选择加入的格式范围很广,`schemas/tool.schema.json` 中的 `render.formats` 枚举是这方面的权威定义 - 光栅图和浮点光栅图、矢量图和裁切文件、印刷/CMYK、动态、可编辑文档(`pptx`、`docx`、`odt`)、调色板以及数据/文本输出、音频和字体文件。[URL Mode](/info/url-mode.html) 列出了每个 id 及其产出内容。音频和其他类型一样也在该枚举中(`wav`、`mp3`、`m4a`、`opus`,由 audiogram 和录制类工具声明);此外,录制工具的 `render.capture` 模式会驱动 `host.recorder`,其录制结果以浏览器所录制的任意容器格式的完整 Blob 形式返回。(设置了 `render.export: false` 的工具 - 例如 Color Palette、Countdown Timer、Strip Hidden Data、Text、Compress PDF - 会隐藏下载/格式/尺寸控件。)物理单位在此处按格式转换(PDF → 真实页面点数,光栅图 → 按 DPI 转换为像素并带有 `pHYs` 数据块)。作者/溯源元数据(作者、工具、来源 - 由 `engine/src/metadata.ts` 构建)按格式嵌入:PNG iTXt、JPEG EXIF、PDF 信息字典、SVG `<metadata>`、GIF 注释。实验性工具会由宿主(host)而非工具本身插入水印。
 
 ![`?options` 打开的导出面板：文件名与格式配对、输出尺寸，以及写入文件的控件](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
@@ -461,11 +454,11 @@ Web 端：IndexedDB。Tauri：文件系统。CLI：内存中。工具只能看�
 
 ## 开源状态
 
-**代码采用 MPL-2.0 许可。** `engine/`、`shells/*`、`services/*`、`schemas/` 和 `docs/` 均以 **MPL-2.0** 许可开源——这是一套面向品牌工具的、与厂商无关的脚手架平台,每个可交付单元都在 [github.com/lolly-tools](https://github.com/lolly-tools) 下拥有自己的仓库。
+**代码采用 MPL-2.0 许可。** `engine/`、`shells/*`、`services/*`、`schemas/` 和 `docs/` 均以 **MPL-2.0** 开源 - 这是一个面向品牌工具的、厂商中立的脚手架平台,全部内容都在同一个公开仓库中,[`lolly-tools/lolly`](https://github.com/lolly-tools/lolly)。
 
-**工具内容以品牌包的形式发布**,每个品牌包都有自己的条款(见该包的 `NOTICE.md`)。`community/` 是公开的 [`lolly-tools`](https://github.com/lolly-tools/lolly-tools) 仓库,其中与品牌无关的工具同样以 MPL-2.0 许可。`brands/suse/` 是私有的 `suse-lolly` 包:SUSE 的工具与 SUSE 目录,**为 SUSE 专有**,包括其已获授权的 PremiumBeat 音乐。`brands/lolly-start/` 是本仓库自有的空白入门品牌。字体以 **SIL Open Font License 1.1** 许可随品牌包发布——SUSE 包携带 SUSE 和 SUSE Mono 两款字体。
+**工具内容以品牌包(brand pack)形式分发**,每个品牌包都有各自的条款(参见该包的 `NOTICE.md`)。`community/` 是本仓库中的一个目录,其品牌无关的工具同样采用 MPL-2.0。`brands/suse/` 是私有的 `suse-lolly` 包,也是唯一的子模块:包含 SUSE 工具和 SUSE 目录,**归 SUSE 专有**,包括其授权的 PremiumBeat 音乐。`brands/lolly-start/` 是本仓库拥有的空白起始品牌。字体以 **SIL 开放字体许可证 1.1**(SIL Open Font License 1.1)的形式包含在品牌包中 - SUSE 包中含有 SUSE 和 SUSE Mono 字体。
 
-仓库根目录下的 `tools/` 和 `catalog/` 是被 Git 忽略的*视图*:某个配置文件会把它们从 `community/` 加上当前激活的品牌包组装而成,这也是为什么每个脚本和外壳读取的都是这两个路径,而从不直接读取某个品牌包。
+仓库根目录下并不存在 `tools/` 或 `catalog/` 目录。`packages/node-shell/src/content-roots.ts` 会在读取时根据 `profiles.json` 回答“工具 `<id>` 位于何处”以及“目录在哪里”,因此配置文件(profile)是按进程给出答案的,不需要预先组装出一整棵目录树。只有在构建输出中 - `dist/`、RPM 包、容器镜像 - 才会写入真正的 `tools/` + `catalog/` 目录对,因为浏览器需要通过 HTTP 获取这两个路径。
 
 这种拆分被强制执行——`engine/` 不会反向导入工具内容——因此平台与内容之间的边界始终保持整洁。
 

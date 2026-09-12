@@ -33,11 +33,11 @@ import { createRuntime } from '../engine/src/runtime.ts';
 import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.ts';
 import { baseHost } from './helpers/host.ts';
 
-// color-block ships in the (private) SUSE brand pack. Load it from the SOURCE
-// pack, not the gitignored tools/ profile view, so this suite is profile-
-// independent: skip ONLY when the pack itself isn't mounted (public CI /
-// lolly-start checkouts); with the pack mounted, a missing tool dir means the
-// tool was renamed or deleted - that must FAIL loudly, never silently skip.
+// color-block ships in the (private) SUSE brand pack. Load it from the SOURCE pack, not
+// through the content resolver, so this suite is profile-independent: skip ONLY when the
+// pack itself isn't mounted (public CI / lolly-start checkouts); with the pack mounted, a
+// missing tool dir means the tool was renamed or deleted - that must FAIL loudly, never
+// silently skip.
 const SUSE_TOOLS = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'suse', 'tools');
 const fetchFile = (path: string) => readFile(join(SUSE_TOOLS, path), 'utf8');
 

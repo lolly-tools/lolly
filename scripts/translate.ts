@@ -20,11 +20,10 @@
  *           (input labels/help/options) engine/src/loader.ts's
  *           applyManifestI18n also supports; those stay English until a tool
  *           author (or a future pass) opts in. Scans community/ and
- *           brands/{suse,lolly-start}/tools/ directly (not the gitignored
- *           tools/ profile view - that symlink farm only contains whichever
- *           ONE profile is currently active, and this corpus must cover every
- *           pack regardless of what's active locally) and writes sidecars
- *           straight into each tool's own source directory. Unlike the spa
+ *           brands/{suse,lolly-start}/tools/ directly - not through the content
+ *           resolver, which answers for whichever ONE profile is active, while
+ *           this corpus must cover every pack - and writes sidecars straight
+ *           into each tool's own source directory. Unlike the spa
  *           corpus's one-file-per-language output, this is many small files;
  *           see runToolsCorpus() below rather than the generic runCorpus().
  *
@@ -538,10 +537,9 @@ const CORPORA: Record<string, CorpusDef> = { spa: SPA_CORPUS, caps: CAPS_CORPUS,
 // ─── tools corpus: gallery-card fields (name/description/featured.blurb) ───
 // Every tool pack this corpus covers - community (public, shared across every
 // brand profile) plus the two brand packs that ship their own exclusive
-// tools. Deliberately NOT the gitignored tools/ profile view (scripts/use-
-// profile.ts's symlink farm): that only contains whichever ONE profile is
-// active on this machine, and a translation run must cover every pack a
-// developer might have checked out, regardless of what's active locally.
+// tools. Deliberately NOT the content resolver: that answers for whichever ONE
+// profile is active on this machine, and a translation run must cover every
+// pack a developer might have checked out, regardless of what's active.
 const TOOL_PACK_DIRS = ['community', join('brands', 'suse', 'tools'), join('brands', 'lolly-start', 'tools')];
 
 interface ToolManifestSlice {

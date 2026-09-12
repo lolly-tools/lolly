@@ -39,14 +39,14 @@ Excepțiile oneste - fiecare opțională, inițiată de utilizator și vizibilă
 
 ## Dintr-un terminal
 
-**6. Endpoint-ul de randare răspunde doar cu date publice.** Singura funcție de server care pune datele introduse de utilizator într-un URL - randările prin hot-link - este activă aici, iar [politica de confidențialitate](/info/privacy.html) explică ce înseamnă asta pentru intrările pe care le pui într-un link:
+**6. Endpoint-ul de randare răspunde doar cu date publice.** Singura funcționalitate de server care pune inputuri tastate de utilizator într-un URL - randările hot-link - este activă aici, iar [politica de confidențialitate](/info/privacy.html) precizează ce înseamnă asta pentru inputurile pe care le pui într-un link:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Comutatorul este per implementare (`LOLLY_DISABLE_RENDER_GET=1`): pe o instanță care setează acest flag, aceeași sondă returnează `404` - această diferență arată că flag-ul funcționează, nu o inconsecvență.
+Comutatorul este per-implementare (`LOLLY_DISABLE_RENDER_GET=1`): pe o instanță care îl setează, aceeași sondă returnează `404` - această diferență reprezintă funcționarea flag-ului, nu o inconsistență.
 
 **7. Suprafața serverului este enumerabilă.** [Server Surface](/info/server-surface.html) listează fiecare rută existentă pe server, cu regula permanentă că un endpoint care nu apare pe acea pagină nu face parte din Lolly. Rulează `curl` pe ele; nu mai e nimic altceva de găsit.
 
@@ -55,7 +55,7 @@ Comutatorul este per implementare (`LOLLY_DISABLE_RENDER_GET=1`): pe o instanț�
 Tot ce e mai sus ar putea fi totuși teatru dacă codul implementat ar diferi de codul public. Așa că verifică codul - implementarea se construiește din [repository-ul public](https://github.com/lolly-tools/lolly):
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ Cele trei verificări de sursă de mai sus nu sunt un audit unic - sunt fixate �
 - jurnalul de emitere al CA-ului reapare - în sursă **sau** în pachetul de server generat,
 - politica de confidențialitate pierde declarațiile impuse legal (operatorul numit, temeiul legal, dreptul de a depune plângere).
 
-Rulează-le tu însuți în clonă (Node 22.18+; nu e nevoie de `npm install` pentru acest fișier):
+Rulează-le tu însuți în clone (Node 22.18+; nu este nevoie de `pnpm install` pentru acest fișier):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-Suita completă (`npm install && npm test`) rulează încă alte câteva mii, inclusiv testele de criptografie adversarială descrise în [Security & Verification](/info/security.html).
+Suita completă (`pnpm install && pnpm test`) rulează câteva mii în plus, inclusiv testele criptografice adversariale descrise în [Security & Verification](/info/security.html).
 
 ## Ce nu poți verifica din exterior - spus pe șleau
 

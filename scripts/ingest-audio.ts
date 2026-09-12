@@ -32,8 +32,8 @@
  * ── DRY RUN ─────────────────────────────────────────────────────────────────
  * Without `--write` nothing is created, copied or modified: the script prints the
  * exact JSON entries it WOULD append and the file copies it WOULD make. `--write`
- * must be explicit, and it writes to the brand pack directly (never to the
- * gitignored tools/ + catalog/ profile VIEWS).
+ * must be explicit, and it writes to the brand pack directly (never through the
+ * content resolver, and never into a materialized tools/ + catalog/ tree).
  *
  * ── PROVENANCE OF THE FIELDS ────────────────────────────────────────────────
  * name        the module's OWN embedded title, read out of its header (MOD: 20 bytes
@@ -55,7 +55,7 @@
  * durationMs  measured, not guessed: the vendored libopenmpt WASM
  *             (shells/web/src/vendor/libopenmpt) loads under Node too, so the exact
  *             `openmpt_module_get_duration_seconds` is used when the web shell is
- *             mounted. When it is not (public clone without the shell submodule) the
+ *             mounted. When it is not present (a checkout without its vendored WASM) the
  *             field falls back to a sidecar `durationMs` and is otherwise OMITTED - 
  *             the schema allows that, and an invented number would be a lie the
  *             player would visibly contradict.
@@ -319,7 +319,7 @@ export function catalogDirForBrand(brand: string, profiles: { profiles: Record<s
     fail(`--brand "${brand}" is not in profiles.json (known: ${Object.keys(profiles.profiles).join(', ')})`);
   }
   if (/^(catalog|tools)(\/|$)/.test(p.catalog)) {
-    fail(`profile "${brand}" points at the ${p.catalog} profile VIEW - refusing to write through a symlink farm`);
+    fail(`profile "${brand}" points at the ${p.catalog} path, which is a build output, not a pack - refusing to write there`);
   }
   return p.catalog;
 }
@@ -338,7 +338,7 @@ let mptPromise: Promise<Openmpt | null> | null = null;
  * The vendored libopenmpt WASM, if the web shell is mounted. It is an
  * `ENVIRONMENT=web,worker` SINGLE_FILE build, but it loads under Node all the same,
  * which is what lets durationMs be MEASURED here instead of guessed. Returns null
- * when the submodule is absent - the caller then omits durationMs.
+ * when the vendored WASM is absent - the caller then omits durationMs.
  */
 async function openmpt(): Promise<Openmpt | null> {
   if (!mptPromise) {

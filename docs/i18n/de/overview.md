@@ -132,7 +132,7 @@ implementieren einen einzigen Vertrag, und die Kataloge liefern den Inhalt.
 
 ### Repository-Layout
 
-Inhalte werden als Packs eingebunden: `community/`, `docs/`, jedes `shells/*`, beide `services/*` und `brands/suse` sind jeweils ein eigenes Repository, als Git-Submodule dieses Repositorys ausgecheckt. Das übergeordnete Repository besitzt `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `brands/lolly-start/` und `profiles.json`. Den Checkout-Befehl und den repositoryübergreifenden Workflow finden Sie unter [Build-Guide » Quellcode beziehen](/info/build-guide.html).
+Lolly ist ein einziges Repository. `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `docs/`, `community/`, `brands/lolly-start/`, jedes `shells/*` und beide `services/*` sind darin einfache Verzeichnisse. Die einzige Ausnahme ist `brands/suse`, ein **privates** Git-Submodul mit dem SUSE-Tool-Pack und -Katalog, optional und in einem öffentlichen Klon nicht vorhanden. Welche Packs ein bestimmter Build liest, bestimmt ein Content-Profil (`profiles.json`), das pro Prozess aufgelöst wird statt global umgeschaltet zu werden. Den Klon-Befehl und wie eine Änderung innerhalb des privaten Packs committet wird, finden Sie unter [Build Guide » Getting the source](/info/build-guide.html).
 
 ```
 lolly/
@@ -190,45 +190,38 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # profile VIEW (gitignored) - data, not code. Merged from packs:
-│                     #   community/ (public, brand-agnostic, MPL) + brands/<active>/tools (brand-owned).
-│                     #   A SELECTION follows - the mounted set depends on the profile.
+├── community/        # the brand-agnostic tool pack - data, not code. Public (MPL-2.0).
+│                     #   A SELECTION follows; a profile mounts these plus whatever
+│                     #   tools the active brand pack carries of its own.
 │   ├── qr-code/
-│   ├── quotes/
-│   ├── email-signature/
 │   ├── snippet/
 │   ├── countdown-timer/
 │   ├── color-palette/
-│   ├── color-block/           # typed/heterogeneous blocks (addMenu discriminator)
-│   ├── dynamic-layout/
-│   ├── tool-logo/         # "Logo" - auto-switching brand logo
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
 │   ├── strip-data/        # on-device metadata strip - JPEG/PNG/SVG/PDF (file in → clean file out)
 │   ├── compress-pdf/      # on-device PDF compressor - recompresses images (file in → smaller file out)
-│   ├── brand-lockup/      # "Brand Lockup" - SUSE logo lockups; HarfBuzz text-to-path (wasm)
-│   ├── chart-creator/     # SVG charts from structured data
+│   ├── chart/             # SVG charts from structured data
 │   ├── filter/            # photo effects in one tool - halftone/scanline/posterize/voronoi (vector), duotone/pixel-stretch/imperfections (raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
-│   ├── digi-ad/           # "Animated Ad" - looping banner from scenes
-│   ├── event-name-badge/  # conference badges - composes qr-code as an SVG
 │   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
 │   ├── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
 │   ├── design/     # "Design" - freeform WYSIWYG editor canvas (render.layout: editor)
 │   ├── multi-page-pdf/    # multi-page PDF document - cover, flowing content blocks, back page
 │   ├── diagram-builder/   # org / layercake / process / cycle / pyramid diagrams
 │   ├── logo-wall/         # many logos → auto-packed grid
-│   ├── logo-lockup-partner/ # SUSE + partner co-brand lockup
-│   ├── icon/          # favicon .ico / png / svg from text + colours
-│   ├── lottie-digi-ad/    # animated Lottie ad banners
-│   └── pose-geeko/        # pose the SUSE Geeko mascot - print-ready stills
+│   ├── icon/              # favicon .ico / png / svg from text + colours
+│   └── lottie-digi-ad/    # animated Lottie ad banners
 │
-├── catalog/
-│   ├── tools/index.json        # tool registry
-│   └── assets/
-│       ├── index.json          # asset registry
-│       └── suse/...            # logo, palette, etc.
+├── brands/            # brand packs - a catalog each, and optionally tools of their own
+│   ├── lolly-start/   # the blank starter brand, owned here
+│   │   └── catalog/
+│   │       ├── tools/index.json    # tool registry, generated per brand
+│   │       └── assets/
+│   │           ├── index.json      # asset registry
+│   │           └── lolly/...       # logo, palette, tokens
+│   └── suse/          # PRIVATE submodule - the SUSE tools and the SUSE catalog
 │
 ├── schemas/          # JSON Schema for tool.json, asset entries, AssetRef
 ├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
@@ -271,7 +264,7 @@ lolly qr-code                # lists inputs for that tool
 ```
 
 ### TUI
-`npm run tui`
+`pnpm run tui`
 
 Das interaktive Gegenstück zur CLI: eine bildschirmfüllende, tastaturzentrierte Terminal-App (auf Basis von Ink) zum Durchsuchen von Tools, Ausfüllen von Eingaben, Speichern von Projekten und Exportieren - alles ohne GUI. Ihre Host-Bridge **nutzt die Implementierung der CLI wieder** für die DOM-freien Formate (SVG/EMF/EPS/HTML + Text/Daten) und ergänzt sie um einen Zustand auf der Festplatte unter `~/.lolly` sowie eine optionale Inline-Vorschau. Darüber hinaus verfügt sie über eine **Browser-Render-Ebene**: ein abgegrenztes, headless Chromium (dasselbe, das der MCP-Server installiert), das auf Anfrage Raster/PDF/Video sowie Live-URL-Erfassung erzeugt - es steuert eine gebaute Kopie der Web-Shell an, sodass die Ausgabe identisch ist, und startet erst, wenn ein solches Format zum ersten Mal exportiert wird. So laufen auch `url-shot` (mit Zuschnitt + Neueinfärbung + vektoriellem PDF/SVG) und jedes Raster-/PDF-Tool im Terminal. Siehe den [TUI-Guide](/info/tui.html).
 
@@ -287,11 +280,11 @@ Die Zeilen erscheinen in der Reihenfolge der Galerie-Abschnitte. Der Abschnitt `
 
 | Kategorie | Beispiele | Geplant |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence Studio, Record | Employee Image Stationery |
-| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Multi-Page PDF | Font Outliner |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence, Record | Employee Image Stationery |
+| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Booklet | Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS, Booth Studio | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | - | CVE Alert, Product Release Announcement, Blog OG Image |
-| `utility` | Strip Hidden Data, Text Helper, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
+| `utility` | Strip Hidden Data, Text, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Einheiten-/Formatkonverter, weitere Datenschutz-Utilities auf dem Gerät |
 
 Diese Zellen sind **Beispiele, keine Inventarlisten**. Welche Tools existieren, ist eine Eigenschaft des von Ihnen eingebundenen Profils, nicht dieser Seite: Ein Brand Pack fügt eigene hinzu und kann ein Community-Tool ausschließen, das es lieber nicht ausliefert. `catalog/tools/index.json` - aus den Manifesten generiert und das Register, das die Galerie tatsächlich liest - ist die maßgebliche Liste; um zu zählen, was ein Profil einbindet, zählen Sie die Manifeste (`ls community/*/tool.json brands/*/tools/*/tool.json`), statt sich auf eine hier notierte Zahl zu verlassen. (Eine Tool-ID, die in zwei Packs vorkommt, wird einmal eingebunden, aus dem gewinnenden Pack.)
 
@@ -299,11 +292,11 @@ Tools werden außerdem nach Status klassifiziert: `official` (von der Marke frei
 
 **Design** ist das erste Tool, das auf dem freien Canvas-Modus `render.layout: "editor"` aufbaut - eine chromlose Oberfläche zur direkten Bearbeitung, auf der Sie Boxen mit Text, Formen und Bildern ziehen, skalieren, drehen und einrasten lassen, und die dann über denselben Render-Pfad exportieren wie jedes andere Tool.
 
-**Strip Hidden Data** ist das erste **geräteinterne Tool** (`privacy: "on-device"`): ein Content-Transform-Tool, das eine von *Ihnen* bereitgestellte Datei komplett im Browser verarbeitet und eine saubere Kopie zurückgibt - niemals hochgeladen, niemals mit Wasserzeichen versehen, keine Herkunftsangabe eingebettet. **Text Helper** ist das zweite - eine geräteinterne Werkbank für alltägliche Copy-Paste-Aufgaben (JSON-Formatierung, JWT-Dekodierung, Base64, URL-Encode/Decode, SHA-Hashing). **Compress PDF** ist das dritte - es verkleinert ein PDF durch Neukomprimierung seiner Bilder, ebenfalls vollständig geräteintern. Die Markierung und ihr Badge-Text "Runs on your device - nothing is uploaded" decken nun das gesamte Transform-Set ab: Strip Hidden Data, Text Helper, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (Bereiche eines Bilds, SVG oder PDF unkenntlich machen), **Prompt to Image** und **Rebrand a Deck** (ein `.pptx` an Ort und Stelle neu einfärben), sofern das Profil es einbindet. Dies ist eine Datenschutz-Utility-Kategorie, die das Weitergeben vertraulicher Dateien an Einzweck-Websites ersetzt.
+**Strip Hidden Data** ist das erste **On-Device-Utility** (`privacy: "on-device"`): ein Content-Transform-Tool, das eine von *Ihnen* bereitgestellte Datei entgegennimmt, sie vollständig im Browser verarbeitet und eine saubere Kopie zurückgibt - nie hochgeladen, nie mit Wasserzeichen versehen, keine Herkunftsangabe eingebettet. **Text** ist das zweite - eine On-Device-Werkbank für alltägliche Paste-in-eine-Website-Aufgaben (JSON-Formatierung, JWT-Dekodierung, Base64, URL-Encode/Decode, SHA-Hashing). **Compress PDF** ist das dritte - es verkleinert ein PDF, indem es dessen Bilder neu komprimiert, ebenfalls vollständig auf dem Gerät. Die Markierung und ihr Badge-Text "Runs on your device - nothing is uploaded" decken jetzt das gesamte Transform-Set ab: Strip Hidden Data, Text, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (Bereiche eines Bildes, SVG oder PDF unkenntlich machen), **Prompt Card** und **Rebrand** (ein `.pptx` direkt neu einfärben), sofern das Profil es einbindet. Dies ist eine Datenschutz-Utility-Kategorie, die das Weitergeben vertraulicher Dateien an Einzelzweck-Websites überflüssig macht.
 
 ![Die Utilities-Schublade, in der jede Karte ein Tool ist, das eine bereits vorhandene Datei transformiert](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
 
-> Hinweis: `category` und `status` werden aus jedem `tool.json` in `catalog/tools/index.json` (das Register, das die Galerie liest) denormalisiert. Das Manifest ist die Quelle der Wahrheit - der Index wird von `npm run build:catalog` **generiert**, und `npm run validate:catalog` lässt CI fehlschlagen, wenn der eingecheckte Index von den Manifesten abweicht.
+> Hinweis: `category` und `status` werden aus jedem `tool.json` in `catalog/tools/index.json` (das Register, das die Galerie liest) denormalisiert. Das Manifest ist die Quelle der Wahrheit - der Index wird von `pnpm run build:catalog` **generiert**, und `pnpm run validate:catalog` lässt die CI fehlschlagen, wenn der committete Index von den Manifesten abweicht.
 
 ---
 
@@ -445,14 +438,14 @@ Das Rendering jedes beliebigen Tools lässt sich zusammensetzen: Ein **SVG**-Kin
 
 Ein Nutzer öffnet `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 
-1. **Boot.** Die Web-Shell öffnet IndexedDB, baut die Fähigkeiten-Bridge auf, synchronisiert die Tool- und Asset-Kataloge (oder lädt sie offline aus dem Cache).
-2. **Route.** URL-Hash → `tool`-Ansicht, mit extrahierten `qr-code`- und URL-Parametern.
-3. **Laden.** `loadTool('qr-code', fetchFile)` ruft `tool.json` ab, validiert gegen das JSON Schema, ruft `template.html`, `styles.css` und den `hooks.js`-Quellcode ab.
-4. **URL-Zustand parsen.** `parseUrlState` übersetzt URL-Parameter in initiale Eingabewerte. Asset-Referenzen (`?logo=suse/logo/primary`) werden als leichtgewichtige `{ id, _unresolved: true }`-Objekte geparst.
-5. **Laufzeit.** `createRuntime(tool, host, initialValues)` baut das Eingabemodell auf (führt Profildaten, Standardwerte und Initialwerte zusammen), löst Asset-Referenzen über `host.assets.get()` auf, lädt Hooks (mit `host` im Closure-Scope, nicht sandboxed), ruft `hooks.onInit` auf.
-6. **Rendern.** Die Shell abonniert die Laufzeit; bei jeder Zustandsänderung erhält sie `{ model, hydrated }`. Sie rendert Eingabesteuerelemente aus dem Modell und schreibt das hydrierte Template-HTML in `#tool-canvas`.
-7. **Interagieren.** Der Nutzer tippt in eine Eingabe → `runtime.setInput(id, value)` → Beschränkungen angewendet → `hooks.onInput` aufgerufen → erneut hydrieren → erneut rendern. Die Canvas aktualisiert sich live.
-8. **Export.** Der Nutzer klickt auf Download (PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (rastert über dom-to-image-more; SVG/PDF durchlaufen dedizierte DOM-durchlaufende Vektorisierer) → Blob → `host.export.download`. Der Formatumfang, für den sich ein Tool entscheiden kann, ist breit, und das `render.formats`-Enum in `schemas/tool.schema.json` ist die Autorität dafür - Raster und Fließkomma-Raster, Vektoren und Schneidedateien, Druck/CMYK, Bewegtbild, editierbare Dokumente (`pptx`, `docx`, `odt`), Palette sowie Daten-/Textausgaben, Audio- und Schriftdateien. [URL-Modus](/info/url-mode.html) benennt jede ID und was sie erzeugt. Audio steht in diesem Enum wie alles andere (`wav`, `mp3`, `m4a`, `opus`, deklariert vom Audiogramm und den Aufnahme-Tools); getrennt davon steuert der `render.capture`-Modus eines Aufnahme-Tools `host.recorder`, dessen Aufnahme als fertiger Blob in dem Container ankommt, in dem der Browser aufgezeichnet hat. (Tools, die `render.export: false` setzen - z. B. Color Palette, Countdown Timer, Strip Hidden Data, Text Helper, Compress PDF - blenden die Steuerelemente für Download/Format/Abmessung aus.) Physikalische Einheiten werden hier pro Format umgerechnet (PDF → echte Seitenpunkte, Raster → Pixel bei DPI mit einem `pHYs`-Chunk). Autorschafts-/Provenienz-Metadaten (Autor, Tool, Quelle - erzeugt von `engine/src/metadata.ts`) werden pro Format eingebettet: PNG iTXt, JPEG EXIF, PDF-Info-Dict, SVG `<metadata>`, GIF-Kommentar. Experimentelle Tools erhalten ein vom Host eingefügtes Wasserzeichen, nicht vom Tool.
+1. **Boot.** Die Web-Shell öffnet IndexedDB, erstellt die Capability-Bridge und synchronisiert die Tool- und Asset-Kataloge (oder lädt sie offline aus dem Cache).
+2. **Route.** URL-Hash → `tool`-View, mit extrahiertem `qr-code` und URL-Parametern.
+3. **Load.** `loadTool('qr-code', fetchFile)` lädt `tool.json`, validiert gegen das JSON Schema und lädt `template.html`, `styles.css` und den `hooks.js`-Quelltext.
+4. **Parse URL state.** `parseUrlState` übersetzt URL-Parameter in anfängliche Eingabewerte. Asset-Referenzen (`?logo=suse/logo/primary`) werden als leichtgewichtige `{ id, _unresolved: true }`-Objekte geparst.
+5. **Runtime.** `createRuntime(tool, host, initialValues)` baut das Input-Modell auf (durch Zusammenführen von Profildaten, Standardwerten und Anfangswerten), löst Asset-Referenzen über `host.assets.get()` auf, lädt Hooks (Closure-gebundener `host`, nicht sandboxed) und ruft `hooks.onInit` auf.
+6. **Render.** Die Shell abonniert die Runtime; bei jeder Zustandsänderung erhält sie `{ model, hydrated }`. Sie rendert die Eingabesteuerungen aus dem Modell und schreibt das hydrierte Template-HTML in `#tool-canvas`.
+7. **Interact.** Der Nutzer tippt in ein Eingabefeld → `runtime.setInput(id, value)` → Constraints werden angewendet → `hooks.onInput` wird aufgerufen → erneute Hydrierung → erneutes Rendern. Die Canvas aktualisiert sich live.
+8. **Export.** Der Nutzer klickt auf Download(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (rastert über dom-to-image-more; SVG/PDF durchlaufen dedizierte DOM-durchlaufende Vektorisierer) → Blob → `host.export.download`. Der Formatumfang, den ein Tool nutzen kann, ist breit gefächert, und das `render.formats`-Enum in `schemas/tool.schema.json` ist dafür die maßgebliche Quelle - Raster und Float-Raster, Vektoren und Schnittdateien, Druck/CMYK, Bewegtbild, editierbare Dokumente (`pptx`, `docx`, `odt`), Paletten- sowie Daten-/Textausgaben, Audio- und Schriftdateien. [URL Mode](/info/url-mode.html) nennt jede Kennung und was sie erzeugt. Audio steht in diesem Enum wie alles andere (`wav`, `mp3`, `m4a`, `opus`, deklariert vom Audiogram und den Aufnahme-Tools); getrennt davon steuert der `render.capture`-Modus eines Aufnahme-Tools `host.recorder`, dessen Aufnahme als fertiger Blob in dem Container ankommt, den der Browser aufgezeichnet hat. (Tools, die `render.export: false` setzen - z. B. Color Palette, Countdown Timer, Strip Hidden Data, Text, Compress PDF - blenden die Download-/Format-/Dimensionssteuerungen aus.) Physikalische Einheiten werden hier pro Format umgerechnet (PDF → echte Seitenpunkte, Raster → Pixel bei DPI mit einem `pHYs`-Chunk). Autorschafts-/Herkunftsmetadaten (Autor, Tool, Quelle - erzeugt von `engine/src/metadata.ts`) werden pro Format eingebettet: PNG iTXt, JPEG EXIF, PDF-Info-Dictionary, SVG `<metadata>`, GIF-Kommentar. Experimentelle Tools erhalten ein Wasserzeichen, das vom Host eingefügt wird, nicht vom Tool.
 
 ![Das Export-Panel, das `?options` öffnet: das Paar aus Dateiname und Format, die Ausgabegröße und die Steuerelemente, die die Datei schreiben](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
@@ -462,11 +455,11 @@ Derselbe Lebenszyklus in Tauri. Derselbe Lebenszyklus in der CLI - jsdom stellt 
 
 ## Open-Source-Status
 
-**Code steht unter MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` und `docs/` sind Open Source unter **MPL-2.0** - eine anbieterneutrale Scaffolding-Plattform für Markentooling, wobei jede eigenständig auslieferbare Einheit in ihrem eigenen Repository unter [github.com/lolly-tools](https://github.com/lolly-tools) liegt.
+**Code steht unter MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` und `docs/` sind Open Source unter **MPL-2.0** - eine anbieterneutrale Scaffolding-Plattform für Brand-Tooling, alles in einem einzigen öffentlichen Repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
-**Tool-Inhalte werden als Brand-Packs ausgeliefert**, jeder mit eigenen Bedingungen (siehe die `NOTICE.md` des jeweiligen Packs). `community/` ist das öffentliche Repository [`lolly-tools`](https://github.com/lolly-tools/lolly-tools), und auch seine markenneutralen Tools stehen unter MPL-2.0. `brands/suse/` ist das private Pack `suse-lolly`: die SUSE-Tools und der SUSE-Katalog, **proprietär für SUSE**, einschließlich seiner lizenzierten PremiumBeat-Musik. `brands/lolly-start/` ist die leere Starter-Marke, die dieses Repository besitzt. Schriften werden innerhalb eines Packs unter der **SIL Open Font License 1.1** ausgeliefert - das SUSE-Pack trägt die Schriftfamilien SUSE und SUSE Mono.
+**Tool-Inhalte werden als Brand-Packs ausgeliefert**, jedes mit eigenen Bedingungen (siehe die `NOTICE.md` des jeweiligen Packs). `community/` ist ein Verzeichnis dieses Repositorys, und seine markenunabhängigen Tools stehen ebenfalls unter MPL-2.0. `brands/suse/` ist das private Pack `suse-lolly`, das einzige Submodul: die SUSE-Tools und der SUSE-Katalog, **proprietär für SUSE**, einschließlich der lizenzierten PremiumBeat-Musik. `brands/lolly-start/` ist die leere Starter-Marke, die diesem Repository gehört. Schriften werden innerhalb eines Packs unter der **SIL Open Font License 1.1** ausgeliefert - das SUSE-Pack enthält die Schriftschnitte SUSE und SUSE Mono.
 
-Die `tools/`- und `catalog/`-Verzeichnisse im Repo-Root sind von Git ignorierte *Ansichten*: Ein Profil setzt sie aus `community/` plus dem aktiven Brand-Pack zusammen, weshalb jedes Skript und jede Shell diese beiden Pfade liest und niemals ein Pack direkt.
+Es gibt kein `tools/`- oder `catalog/`-Verzeichnis im Repository-Root. `packages/node-shell/src/content-roots.ts` beantwortet zur Lesezeit aus `profiles.json`, wo Tool `<id>` liegt und wo sich der Katalog befindet - ein Profil ist also eine Antwort pro Prozess, und es muss vorher kein Baum zusammengestellt werden. Ein echtes Paar aus `tools/` und `catalog/` wird nur in ein Build-Ergebnis geschrieben - `dist/`, eine RPM-Payload, ein Container-Image - weil ein Browser diese beiden Pfade über HTTP abruft.
 
 Die Trennung wird erzwungen - es gibt keine Cross-Imports von `engine/` in Tool-Inhalte -, sodass die Grenze zwischen Plattform und Inhalt sauber bleibt.
 

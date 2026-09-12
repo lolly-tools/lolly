@@ -132,7 +132,7 @@ platform, shells di bawahnya melaksanakan satu kontrak, dan catalogs membekalkan
 
 ### Susun atur repositori
 
-Kandungan dilekapkan sebagai pek: `community/`, `docs/`, setiap `shells/*`, kedua-dua `services/*` dan `brands/suse` masing-masing repositori tersendiri, dikeluarkan sebagai git submodules bagi repositori ini. Repositori induk memiliki `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `brands/lolly-start/` dan `profiles.json`. Lihat [Panduan Binaan » Mendapatkan sumber](/info/build-guide.html) untuk arahan checkout dan aliran kerja rentas-repositori.
+Lolly ialah satu repositori. `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `docs/`, `community/`, `brands/lolly-start/`, setiap `shells/*` dan kedua-dua `services/*` adalah direktori biasa di dalamnya. Satu pengecualian ialah `brands/suse`, satu submodul git **peribadi** yang menyimpan pek alat dan katalog SUSE, bersifat opt-in dan tiada dalam klon awam. Pek mana yang dibaca oleh sesuatu binaan ditentukan oleh profil kandungan (`profiles.json`), yang diselesaikan bagi setiap proses dan bukan ditukar secara global. Lihat [Build Guide » Getting the source](/info/build-guide.html) untuk arahan klon dan cara perubahan dalam pek peribadi itu dikomit.
 
 ```
 lolly/
@@ -190,45 +190,38 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # profile VIEW (gitignored) - data, not code. Merged from packs:
-│                     #   community/ (public, brand-agnostic, MPL) + brands/<active>/tools (brand-owned).
-│                     #   A SELECTION follows - the mounted set depends on the profile.
+├── community/        # the brand-agnostic tool pack - data, not code. Public (MPL-2.0).
+│                     #   A SELECTION follows; a profile mounts these plus whatever
+│                     #   tools the active brand pack carries of its own.
 │   ├── qr-code/
-│   ├── quotes/
-│   ├── email-signature/
 │   ├── snippet/
 │   ├── countdown-timer/
 │   ├── color-palette/
-│   ├── color-block/           # typed/heterogeneous blocks (addMenu discriminator)
-│   ├── dynamic-layout/
-│   ├── tool-logo/         # "Logo" - auto-switching brand logo
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
 │   ├── strip-data/        # on-device metadata strip - JPEG/PNG/SVG/PDF (file in → clean file out)
 │   ├── compress-pdf/      # on-device PDF compressor - recompresses images (file in → smaller file out)
-│   ├── brand-lockup/      # "Brand Lockup" - SUSE logo lockups; HarfBuzz text-to-path (wasm)
-│   ├── chart-creator/     # SVG charts from structured data
+│   ├── chart/             # SVG charts from structured data
 │   ├── filter/            # photo effects in one tool - halftone/scanline/posterize/voronoi (vector), duotone/pixel-stretch/imperfections (raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
-│   ├── digi-ad/           # "Animated Ad" - looping banner from scenes
-│   ├── event-name-badge/  # conference badges - composes qr-code as an SVG
 │   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
 │   ├── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
 │   ├── design/     # "Design" - freeform WYSIWYG editor canvas (render.layout: editor)
 │   ├── multi-page-pdf/    # multi-page PDF document - cover, flowing content blocks, back page
 │   ├── diagram-builder/   # org / layercake / process / cycle / pyramid diagrams
 │   ├── logo-wall/         # many logos → auto-packed grid
-│   ├── logo-lockup-partner/ # SUSE + partner co-brand lockup
-│   ├── icon/          # favicon .ico / png / svg from text + colours
-│   ├── lottie-digi-ad/    # animated Lottie ad banners
-│   └── pose-geeko/        # pose the SUSE Geeko mascot - print-ready stills
+│   ├── icon/              # favicon .ico / png / svg from text + colours
+│   └── lottie-digi-ad/    # animated Lottie ad banners
 │
-├── catalog/
-│   ├── tools/index.json        # tool registry
-│   └── assets/
-│       ├── index.json          # asset registry
-│       └── suse/...            # logo, palette, etc.
+├── brands/            # brand packs - a catalog each, and optionally tools of their own
+│   ├── lolly-start/   # the blank starter brand, owned here
+│   │   └── catalog/
+│   │       ├── tools/index.json    # tool registry, generated per brand
+│   │       └── assets/
+│   │           ├── index.json      # asset registry
+│   │           └── lolly/...       # logo, palette, tokens
+│   └── suse/          # PRIVATE submodule - the SUSE tools and the SUSE catalog
 │
 ├── schemas/          # JSON Schema for tool.json, asset entries, AssetRef
 ├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
@@ -271,7 +264,7 @@ lolly qr-code                # lists inputs for that tool
 ```
 
 ### TUI
-`npm run tui`
+`pnpm run tui`
 
 Rakan interaktif kepada CLI: apl terminal skrin penuh yang mengutamakan papan kekunci (dibina atas Ink) untuk meneroka alat, mengisi input, menyimpan projek dan mengeksport - semuanya tanpa GUI. Jambatan hosnya **menggunakan semula pelaksanaan CLI** untuk format bebas DOM (SVG/EMF/EPS/HTML + teks/data), dan menambah keadaan atas cakera di bawah `~/.lolly` serta pratonton dalam baris pilihan-masuk. Selain itu ia mempunyai **peringkat render pelayar**: Chromium tanpa kepala terhad (yang sama dipasang oleh pelayan MCP) yang menghasilkan raster/PDF/video dan tangkapan URL langsung mengikut permintaan - memacu salinan terbina cangkerang web supaya output adalah sama, dan hanya dilancarkan apabila anda mula-mula mengeksport format sedemikian. Jadi `url-shot` (dengan potong + tukar warna + PDF/SVG vektor) dan setiap alat raster/pdf turut berjalan dalam terminal. Lihat [panduan TUI](/info/tui.html).
 
@@ -287,11 +280,11 @@ Baris disenaraikan mengikut susunan bahagian galeri. Bahagian `utility` sentiasa
 
 | Kategori | Contoh | Dirancang |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence Studio, Record | Employee Image Stationery |
-| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Multi-Page PDF | Font Outliner |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence, Record | Employee Image Stationery |
+| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Booklet | Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS, Booth Studio | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | - | CVE Alert, Product Release Announcement, Blog OG Image |
-| `utility` | Strip Hidden Data, Text Helper, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
+| `utility` | Strip Hidden Data, Text, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Penukar unit/format, lebih banyak utiliti privasi pada peranti |
 
 Sel-sel itu adalah **contoh, bukan inventori**. Alat mana yang wujud adalah ciri profil yang anda pasang, bukan ciri halaman ini: pek jenama menambah miliknya sendiri, dan boleh mengecualikan alat komuniti yang tidak mahu dibawakannya. `catalog/tools/index.json` - dijana daripada manifes, dan daftar yang sebenarnya dibaca oleh galeri - adalah senarai yang berwibawa; untuk mengira apa yang dipasang oleh sesuatu profil, kira manifesnya (`ls community/*/tool.json brands/*/tools/*/tool.json`) dan bukan mempercayai nombor yang ditulis di sini. (Id alat yang hadir dalam dua pek dipasang sekali sahaja, daripada pek yang menang.)
 
@@ -299,11 +292,11 @@ Alat juga dikelaskan mengikut status: `official` (diluluskan jenama, tiada tera 
 
 **Design** adalah alat pertama yang dibina atas mod kanvas bebas `render.layout: "editor"` - permukaan tanpa chrome, manipulasi langsung di mana anda seret, saiz semula, putar dan lekat kotak teks, bentuk dan imej, kemudian eksport melalui laluan render yang sama seperti setiap alat lain.
 
-**Strip Hidden Data** adalah **utiliti pada peranti** yang pertama (`privacy: "on-device"`): alat transformasi kandungan yang mengambil fail yang *anda* bekalkan, memprosesnya sepenuhnya dalam pelayar dan memulangkan salinan bersih - tidak pernah dimuat naik, tidak pernah bertera air, tiada asal usul dicap. **Text Helper** adalah yang kedua - bengkel pada peranti untuk kerja tampal-ke-laman-web harian (format JSON, nyahkod JWT, Base64, kod/nyahkod URL, cincangan SHA). **Compress PDF** adalah yang ketiga - ia mengecilkan PDF dengan memampat semula imejnya, sekali lagi sepenuhnya pada peranti. Penanda dan teks lencananya "Berjalan pada peranti anda - tiada apa dimuat naik" kini merangkumi keseluruhan set transformasi: Strip Hidden Data, Text Helper, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (musnahkan kawasan imej, SVG atau PDF), **Prompt to Image** dan **Rebrand a Deck** (tema semula `.pptx` di tempatnya) di mana profil memasangnya. Ini adalah kategori utiliti privasi yang menggantikan penyerahan fail sulit kepada laman web tujuan tunggal.
+**Strip Hidden Data** ialah **utiliti pada peranti (on-device)** pertama (`privacy: "on-device"`): alat transformasi kandungan yang mengambil fail yang *anda* bekalkan, memprosesnya sepenuhnya dalam pelayar dan memulangkan salinan bersih - tidak pernah dimuat naik, tidak pernah ditera air, tiada cap asal usul (provenance) disematkan. **Text** ialah yang kedua - ruang kerja pada peranti untuk tugas harian tampal-ke-laman-web (format JSON, nyahkod JWT, Base64, kod/nyahkod URL, cincangan SHA). **Compress PDF** ialah yang ketiga - ia mengecilkan PDF dengan memampatkan semula imej di dalamnya, sekali lagi sepenuhnya pada peranti. Penanda dan teks lencana "Runs on your device - nothing is uploaded" ("Berjalan pada peranti anda - tiada apa dimuat naik") kini merangkumi keseluruhan set transformasi: Strip Hidden Data, Text, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (memusnahkan kawasan dalam imej, SVG atau PDF), **Prompt Card** dan **Rebrand** (menukar tema `.pptx` di tempatnya) apabila profil memasangnya. Ini ialah kategori utiliti privasi yang menggantikan penyerahan fail sulit kepada laman web tujuan tunggal.
 
 ![Laci Utilities, di mana setiap kad adalah alat yang mentransformasikan fail yang sudah anda ada](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
 
-> Nota: `category` dan `status` dinyahnormalkan ke dalam `catalog/tools/index.json` (daftar yang dibaca oleh galeri) daripada setiap `tool.json`. Manifes adalah sumber kebenaran - indeks **dijana** oleh `npm run build:catalog` dan `npm run validate:catalog` gagal CI jika indeks yang dikomit terkeluar daripada manifes.
+> Nota: `category` dan `status` dinyahnormalisasi ke dalam `catalog/tools/index.json` (daftar yang dibaca oleh galeri) daripada setiap `tool.json`. Manifest adalah sumber kebenaran - indeks itu **dijana** oleh `pnpm run build:catalog` dan `pnpm run validate:catalog` akan gagal CI jika indeks yang dikomit menyimpang daripada manifest.
 
 ---
 
@@ -445,14 +438,14 @@ Gubah render mana-mana alat: anak **SVG** kekal sebagai vektor sebenar apabila i
 
 Seorang pengguna membuka `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 
-1. **Boot.** Kelongsong web membuka IndexedDB, membina titi keupayaan, menyegerakkan katalog alat dan aset (atau memuatkan daripada cache apabila luar talian).
-2. **Laluan.** Hash URL → paparan `tool`, dengan `qr-code` dan parameter URL diekstrak.
-3. **Muat.** `loadTool('qr-code', fetchFile)` mengambil `tool.json`, mengesahkan terhadap Skema JSON, mengambil sumber `template.html`, `styles.css` dan `hooks.js`.
-4. **Huraikan keadaan URL.** `parseUrlState` menterjemah parameter URL kepada nilai input awal. Rujukan aset (`?logo=suse/logo/primary`) dihuraikan sebagai objek `{ id, _unresolved: true }` yang ringan.
-5. **Masa jalan.** `createRuntime(tool, host, initialValues)` membina model input (menggabungkan data profil, lalai dan nilai awal), menyelesaikan rujukan aset melalui `host.assets.get()`, memuatkan hook (`host` bersfera-tutupan, tidak dikotakpasir), memanggil `hooks.onInit`.
-6. **Render.** Kelongsong melanggan kepada masa jalan; pada setiap perubahan keadaan ia menerima `{ model, hydrated }`. Ia merender kawalan input daripada model dan menulis HTML templat terhidrat ke dalam `#tool-canvas`.
-7. **Berinteraksi.** Pengguna menaip dalam input → `runtime.setInput(id, value)` → kekangan dikenakan → `hooks.onInput` dipanggil → hidrat semula → render semula. Kanvas dikemas kini secara langsung.
-8. **Eksport.** Pengguna klik Muat Turun(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (merasterkan melalui dom-to-image-more; SVG/PDF melalui pemvektor berjalan-DOM khusus) → blob → `host.export.download`. Julat format yang boleh dipilih oleh alat adalah luas, dan enum `render.formats` dalam `schemas/tool.schema.json` ialah kuasa muktamad mengenainya - raster dan raster apung, vektor dan fail potong, cetak/CMYK, gerakan, dokumen boleh sunting (`pptx`, `docx`, `odt`), palet dan output data/teks, fail audio dan fon. [Mod URL](/info/url-mode.html) menamakan setiap id dan apa yang dihasilkannya. Audio berada dalam enum itu seperti mana-mana yang lain (`wav`, `mp3`, `m4a`, `opus`, diisytiharkan oleh audiogram dan alat rakaman); secara berasingan, mod `render.capture` alat rakaman menggerakkan `host.recorder`, yang mana rakamannya tiba sebagai Blob siap dalam apa jua bekas yang dirakam oleh pelayar. (Alat yang menetapkan `render.export: false` - contohnya Palet Warna, Pemasa Detik Kira, Buang Data Tersembunyi, Pembantu Teks, Mampat PDF - menyembunyikan kawalan muat turun/format/dimensi.) Unit fizikal ditukar mengikut format di sini (PDF → titik halaman sebenar, raster → piksel pada DPI dengan cebisan `pHYs`). Metadata pengarangan/provenans (pengarang, alat, sumber - dibina oleh `engine/src/metadata.ts`) dibenamkan mengikut format: PNG iTXt, JPEG EXIF, kamus maklumat PDF, SVG `<metadata>`, komen GIF. Alat eksperimen mendapat tanda air dimasukkan oleh hos, bukan alat.
+1. **Boot.** Cangkang web membuka IndexedDB, membina jambatan keupayaan, menyegerakkan katalog alat dan aset (atau memuatkan daripada cache apabila luar talian).
+2. **Route.** Hash URL → paparan `tool`, dengan `qr-code` dan parameter URL diekstrak.
+3. **Load.** `loadTool('qr-code', fetchFile)` mengambil `tool.json`, mengesahkannya terhadap Skema JSON, mengambil sumber `template.html`, `styles.css` dan `hooks.js`.
+4. **Parse URL state.** `parseUrlState` menterjemah parameter URL kepada nilai input awal. Rujukan aset (`?logo=suse/logo/primary`) dihurai sebagai objek ringan `{ id, _unresolved: true }`.
+5. **Runtime.** `createRuntime(tool, host, initialValues)` membina model input (menggabungkan data profil, nilai lalai dan nilai awal), menyelesaikan rujukan aset melalui `host.assets.get()`, memuatkan hook (`host` bersfera penutupan, bukan disandkotak), memanggil `hooks.onInit`.
+6. **Render.** Cangkang melanggan runtime; pada setiap perubahan keadaan ia menerima `{ model, hydrated }`. Ia merender kawalan input daripada model dan menulis HTML templat yang telah dihidrat ke dalam `#tool-canvas`.
+7. **Interact.** Pengguna menaip dalam satu input → `runtime.setInput(id, value)` → kekangan dikenakan → `hooks.onInput` dipanggil → hidrat semula → render semula. Kanvas dikemas kini secara langsung.
+8. **Export.** Pengguna klik Muat Turun(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (merasterkan melalui dom-to-image-more; SVG/PDF melalui vektorisasi khusus yang melintasi DOM) → blob → `host.export.download`. Julat format yang boleh dipilih oleh sesuatu alat adalah luas, dan enum `render.formats` dalam `schemas/tool.schema.json` adalah rujukan muktamad baginya - raster dan raster apung, vektor dan fail potong, cetak/CMYK, pergerakan, dokumen boleh sunting (`pptx`, `docx`, `odt`), palet dan output data/teks, fail audio dan fon. [URL Mode](/info/url-mode.html) menamakan setiap id dan apa yang dihasilkannya. Audio berada dalam enum itu seperti yang lain (`wav`, `mp3`, `m4a`, `opus`, diisytiharkan oleh audiogram dan alat rakaman); secara berasingan, mod `render.capture` sesuatu alat rakaman memacu `host.recorder`, yang hasil rakamannya tiba sebagai Blob siap dalam bekas apa jua yang dirakam oleh pelayar. (Alat yang menetapkan `render.export: false` - contohnya Color Palette, Countdown Timer, Strip Hidden Data, Text, Compress PDF - menyembunyikan kawalan muat turun/format/dimensi.) Unit fizikal ditukar mengikut format di sini (PDF → titik halaman sebenar, raster → piksel pada DPI dengan cebisan `pHYs`). Metadata pengarangan/asal usul (pengarang, alat, sumber - dibina oleh `engine/src/metadata.ts`) disematkan mengikut format: PNG iTXt, JPEG EXIF, kamus info PDF, `<metadata>` SVG, komen GIF. Alat eksperimen mendapat tera air yang disisipkan oleh host, bukan oleh alat itu sendiri.
 
 ![Panel eksport yang dibuka oleh `?options`: pasangan nama fail dan format, saiz output dan kawalan yang menulis fail](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
@@ -462,11 +455,11 @@ Kitaran hayat sama dalam Tauri. Kitaran hayat sama dalam CLI - jsdom menyediakan
 
 ## Status sumber terbuka
 
-**Kod adalah MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` dan `docs/` bersumber terbuka di bawah **MPL-2.0** - platform perancah neutral vendor untuk alat jenama, dengan setiap unit boleh hantar dalam repositori tersendiri di bawah [github.com/lolly-tools](https://github.com/lolly-tools).
+**Kod adalah MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` dan `docs/` adalah sumber terbuka di bawah **MPL-2.0** - platform perancah neutral-vendor untuk perkakas jenama, semuanya dalam satu repositori awam, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
-**Kandungan alat dihantar sebagai pek jenama**, masing-masing dengan terma tersendiri (lihat `NOTICE.md` pek itu). `community/` ialah repositori awam [`lolly-tools`](https://github.com/lolly-tools/lolly-tools) dan alat tanpa jenamanya juga MPL-2.0. `brands/suse/` ialah pek `suse-lolly` yang persendirian: alat SUSE dan katalog SUSE, **hak milik SUSE**, termasuk muzik PremiumBeat berlesennya. `brands/lolly-start/` ialah jenama permulaan kosong yang dimiliki oleh repositori ini. Fon dihantar di dalam pek di bawah **SIL Open Font License 1.1** - pek SUSE membawa taip aksara SUSE dan SUSE Mono.
+**Kandungan alat dihantar sebagai pek jenama**, setiap satu dengan terma tersendiri (lihat `NOTICE.md` pek berkenaan). `community/` ialah direktori repositori ini dan alatnya yang neutral-jenama juga MPL-2.0. `brands/suse/` ialah pek `suse-lolly` yang peribadi, satu-satunya submodul: alat SUSE dan katalog SUSE, **hak milik SUSE**, termasuk muzik PremiumBeat berlesennya. `brands/lolly-start/` ialah jenama permulaan kosong yang dimiliki oleh repositori ini. Fon dihantar di dalam pek di bawah **SIL Open Font License 1.1** - pek SUSE membawa taip aksara SUSE dan SUSE Mono.
 
-`tools/` dan `catalog/` pada root repo ialah *paparan* yang gitignored: satu profil menyusunnya daripada `community/` ditambah pek jenama aktif, itulah sebabnya setiap skrip dan shell membaca kedua-dua laluan itu dan tidak sekali-kali satu pek secara langsung.
+Tiada direktori `tools/` atau `catalog/` pada akar repositori. `packages/node-shell/src/content-roots.ts` menjawab "di mana alat `<id>` berada" dan "di mana katalog berada" daripada `profiles.json` pada masa bacaan, jadi profil adalah jawapan bagi setiap proses dan tiada pepohon perlu disusun terlebih dahulu. Pasangan `tools/` + `catalog/` sebenar hanya ditulis ke dalam output binaan - `dist/`, muatan RPM, imej bekas - kerana pelayar mengambil kedua-dua laluan itu melalui HTTP.
 
 Pemisahan itu dikuatkuasakan - tiada import silang daripada `engine/` ke dalam kandungan alat - supaya sempadan platform/kandungan kekal bersih.
 

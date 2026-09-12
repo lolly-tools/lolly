@@ -1,6 +1,6 @@
 # Glossary
 
-Lolly uses a small set of words with exact meanings, and a few of them (profile, template, view, pack) also have everyday meanings that get in the way. This page is the list to read before the [architecture page](/info/build/overview.html) or the repository's `CLAUDE.md`. Each entry says what the word means here, where it lives in the code, and what it is not.
+Lolly uses a small set of words with exact meanings, and a few of them (profile, template, root, pack) also have everyday meanings that get in the way. This page is the list to read before the [architecture page](/info/build/overview.html) or the repository's `CLAUDE.md`. Each entry says what the word means here, where it lives in the code, and what it is not.
 
 ## The platform
 
@@ -10,7 +10,7 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **Capability bridge, or host.** The versioned API a shell hands to the engine and to tools, typed as `HostV1`. A tool calls `host.export`, `host.state`, `host.text` and so on, never the platform directly. Required parts are always present; optional parts are added in minor versions and never removed. Not a sandbox: it is the supported way in, not an enforced wall.
 
-**Tool.** A directory under `tools/<id>/` holding a manifest, a template and optional hooks, styles, a thumbnail and local assets. Tools are data, not bundled code: they sync to clients, so a new tool ships without an app update. A tool's `id` is permanent.
+**Tool.** A directory in a content pack - `community/<id>/`, or `brands/<name>/tools/<id>/` - holding a manifest, a template and optional hooks, styles, a thumbnail and local assets. Tools are data, not bundled code: they sync to clients, so a new tool ships without an app update. A tool's `id` is permanent.
 
 **Manifest.** The tool's `tool.json`, validated against `schemas/tool.schema.json`. It declares the inputs, the engine version range, status, capabilities and export options. Inputs are declared here, never inferred from the template.
 
@@ -32,13 +32,13 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 ## Content
 
-**Community tools.** The brand-agnostic tools in `community/`, a public repository. They inherit whatever design system is active.
+**Community tools.** The brand-agnostic tools in `community/`, a directory of this public repository. They inherit whatever design system is active.
 
 **Brand pack.** A directory under `brands/` carrying one brand's own tools and its catalog. `brands/suse/` is private; `brands/lolly-start/` is the blank, neutral pack a public clone uses. In user-facing copy the preferred word is *design system*; "brand" is used only where a brand is the subject.
 
-**Content profile, or profile.** An entry in `profiles.json` naming which tool roots and which catalog to mount, for example `suse` or `lolly-start`. Switching profiles rebuilds the views below. Not the user profile (name, theme, accessibility preferences), which is the `Profile` record a shell stores on the device.
+**Content profile, or profile.** An entry in `profiles.json` naming which tool roots and which catalog to mount, for example `suse` or `lolly-start`. A profile is resolved per process - `LOLLY_PROFILE=<name>`, or `--profile=<name>` on a catalog script - and nothing switches it globally. Not the user profile (name, theme, accessibility preferences), which is the `Profile` record a shell stores on the device.
 
-**View.** The two gitignored directories at the repository root, `tools/` and `catalog/`, assembled from the community tools plus the active brand pack. Every script and shell reads these two paths and never a pack directly. Never commit them. Not a UI view, which is a route in the web shell such as the gallery or a tool page.
+**Materialized root.** A real `tools/` + `catalog/` pair written out of the packs by `materializeInto`, for the places that serve those two paths over HTTP: a `dist/` build, an RPM payload, a container image, the desktop app's exported content root. A checkout has neither directory; every script and shell asks `packages/node-shell/src/content-roots.ts` where a tool and the catalog are instead. Not a UI view, which is a route in the web shell such as the gallery or a tool page.
 
 **Catalog.** The registry of assets and tools a profile mounts: `catalog/assets/` with checksums, tokens and fonts, and the generated `catalog/tools/index.json`. The gallery reads the generated index, and the validator fails the build if it drifts from the manifests.
 

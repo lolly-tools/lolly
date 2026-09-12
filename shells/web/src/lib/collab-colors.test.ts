@@ -10,8 +10,8 @@
  * every colour the module can produce - every hue on the circle for the band
  * floor, every anchor for the count, and both shipped packs end to end.
  *
- * The packs are read from `brands/` rather than the `catalog/` view because the
- * view is whichever profile happens to be active; reading both directly is what
+ * The packs are read from `brands/` rather than through the content resolver,
+ * which answers for whichever profile is active; reading both directly is what
  * makes "and the OTHER pack still works" testable on one checkout. `brands/suse`
  * is a private submodule (`update = none`), so a public clone has no such
  * directory - those tests skip with a reason rather than failing, which is the

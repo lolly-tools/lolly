@@ -30,12 +30,11 @@ import {
 } from '../engine/src/connectors.ts';
 import { cornerFitDashArray } from '../engine/src/dash-fit.ts';
 
-// org-chart ships in the (private) SUSE brand pack; the hook↔shell parity
-// tests can only run when the pack is mounted (see profiles.json). Gate on the
-// SOURCE pack, not the gitignored tools/ profile view: with the pack mounted, a
-// missing hooks.js means the tool was renamed or deleted - FAIL, don't skip.
-// org-chart moved to community/ on 2026-09-06 (no brand asset inside), so it is
-// present in every full checkout and this suite never skips.
+// org-chart ships in the (private) SUSE brand pack; the hook↔shell parity tests can only
+// run when the pack is mounted (see profiles.json). Gate on the SOURCE pack, not through
+// the content resolver: with the pack mounted, a missing hooks.js means the tool was
+// renamed or deleted - FAIL, don't skip. org-chart moved to community/ on 2026-09-06 (no
+// brand asset inside), so it is present in every full checkout and this suite never skips.
 const SUSE_PACK = new URL('../community/', import.meta.url);
 const HOOK_URL = new URL('org-chart/hooks.js', SUSE_PACK);
 const SKIP_SUSE = false as const;

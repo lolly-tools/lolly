@@ -374,8 +374,8 @@ function weightFromName(name: string): number {
  *
  * What this half does NOT carry, and says so rather than pretending: shadings,
  * tiling patterns and graphics-state soft masks. Their decoders live in
- * shells/web/src/lib/pdf-objects.ts, on the far side of a submodule boundary this
- * package must not import across. A gradient therefore paints the flat back-stop
+ * shells/web/src/lib/pdf-objects.ts, inside a shell this package must not import
+ * from. A gradient therefore paints the flat back-stop
  * the engine already emits for it, and every warning is reported to the caller.
  * Text and vector geometry - the content a redaction is about - are complete.
  */

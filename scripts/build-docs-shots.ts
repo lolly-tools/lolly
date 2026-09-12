@@ -401,9 +401,8 @@ function scanDocs(): Array<ShotDef & { file: string }> {
  * The top-level docs/*.md pages that differ from origin/main - the union of
  * committed changes (`git diff --name-only origin/main...HEAD`) and uncommitted
  * working-tree edits (`git status --porcelain`), filtered to `*.md` files at the
- * docs root. `docs/` is its own submodule, so both git invocations run with
- * `-C DOCS_DIR` and report paths relative to that submodule's root - the same bare
- * basenames scanDocs keys `ShotDef.file` on (it only reads top-level *.md, never
+ * docs root. Both git invocations run with `-C DOCS_DIR` and report paths relative
+ * to that directory - the same bare basenames scanDocs keys `ShotDef.file` on (it only reads top-level *.md, never
  * the i18n/ translations, so nested paths are irrelevant to recipe mapping).
  *
  * Returns `null`, NOT an empty set, when the docs dir is absent or either git

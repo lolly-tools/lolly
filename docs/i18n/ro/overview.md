@@ -132,7 +132,7 @@ implementează un singur contract, iar catalogurile furnizează conținutul.
 
 ### Structura repository-ului
 
-Conținutul este montat ca pachete: `community/`, `docs/`, fiecare `shells/*`, ambele `services/*` și `brands/suse` sunt fiecare propriul repository, extrase ca submodule git ale acestuia. Repository-ul părinte deține `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `brands/lolly-start/` și `profiles.json`. Vezi [Ghidul de build » Obținerea sursei](/info/build-guide.html) pentru comanda de checkout și fluxul de lucru între repository-uri.
+Lolly este un singur repository. `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `docs/`, `community/`, `brands/lolly-start/`, fiecare `shells/*` și ambele `services/*` sunt directoare simple în el. Singura excepție este `brands/suse`, un submodul git **privat** care conține pachetul de unelte și catalogul SUSE, opțional și absent dintr-un clone public. Ce pachete citește un anumit build este un profil de conținut (`profiles.json`), rezolvat per proces și nu comutat global. Vezi [Ghidul de build » Obținerea sursei](/info/build-guide.html) pentru comanda de clonare și modul în care o modificare din pachetul privat este comisă.
 
 ```
 lolly/
@@ -190,45 +190,38 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # profile VIEW (gitignored) - data, not code. Merged from packs:
-│                     #   community/ (public, brand-agnostic, MPL) + brands/<active>/tools (brand-owned).
-│                     #   A SELECTION follows - the mounted set depends on the profile.
+├── community/        # the brand-agnostic tool pack - data, not code. Public (MPL-2.0).
+│                     #   A SELECTION follows; a profile mounts these plus whatever
+│                     #   tools the active brand pack carries of its own.
 │   ├── qr-code/
-│   ├── quotes/
-│   ├── email-signature/
 │   ├── snippet/
 │   ├── countdown-timer/
 │   ├── color-palette/
-│   ├── color-block/           # typed/heterogeneous blocks (addMenu discriminator)
-│   ├── dynamic-layout/
-│   ├── tool-logo/         # "Logo" - auto-switching brand logo
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
 │   ├── strip-data/        # on-device metadata strip - JPEG/PNG/SVG/PDF (file in → clean file out)
 │   ├── compress-pdf/      # on-device PDF compressor - recompresses images (file in → smaller file out)
-│   ├── brand-lockup/      # "Brand Lockup" - SUSE logo lockups; HarfBuzz text-to-path (wasm)
-│   ├── chart-creator/     # SVG charts from structured data
+│   ├── chart/             # SVG charts from structured data
 │   ├── filter/            # photo effects in one tool - halftone/scanline/posterize/voronoi (vector), duotone/pixel-stretch/imperfections (raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
-│   ├── digi-ad/           # "Animated Ad" - looping banner from scenes
-│   ├── event-name-badge/  # conference badges - composes qr-code as an SVG
 │   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
 │   ├── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
 │   ├── design/     # "Design" - freeform WYSIWYG editor canvas (render.layout: editor)
 │   ├── multi-page-pdf/    # multi-page PDF document - cover, flowing content blocks, back page
 │   ├── diagram-builder/   # org / layercake / process / cycle / pyramid diagrams
 │   ├── logo-wall/         # many logos → auto-packed grid
-│   ├── logo-lockup-partner/ # SUSE + partner co-brand lockup
-│   ├── icon/          # favicon .ico / png / svg from text + colours
-│   ├── lottie-digi-ad/    # animated Lottie ad banners
-│   └── pose-geeko/        # pose the SUSE Geeko mascot - print-ready stills
+│   ├── icon/              # favicon .ico / png / svg from text + colours
+│   └── lottie-digi-ad/    # animated Lottie ad banners
 │
-├── catalog/
-│   ├── tools/index.json        # tool registry
-│   └── assets/
-│       ├── index.json          # asset registry
-│       └── suse/...            # logo, palette, etc.
+├── brands/            # brand packs - a catalog each, and optionally tools of their own
+│   ├── lolly-start/   # the blank starter brand, owned here
+│   │   └── catalog/
+│   │       ├── tools/index.json    # tool registry, generated per brand
+│   │       └── assets/
+│   │           ├── index.json      # asset registry
+│   │           └── lolly/...       # logo, palette, tokens
+│   └── suse/          # PRIVATE submodule - the SUSE tools and the SUSE catalog
 │
 ├── schemas/          # JSON Schema for tool.json, asset entries, AssetRef
 ├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
@@ -271,7 +264,7 @@ lolly qr-code                # lists inputs for that tool
 ```
 
 ### TUI
-`npm run tui`
+`pnpm run tui`
 
 Contrapartea interactivă a CLI-ului: o aplicație de terminal pe tot ecranul, orientată pe tastatură (construită pe Ink) pentru a răsfoi instrumente, a completa intrări, a salva proiecte și a exporta - totul fără GUI. Bridge-ul său de host **reutilizează implementarea CLI-ului** pentru formatele fără DOM (SVG/EMF/EPS/HTML + text/date) și adaugă stare pe disc sub `~/.lolly` plus o previzualizare inline opțională. Dincolo de asta, are un **nivel de randare în browser**: un Chromium headless delimitat (același pe care îl instalează serverul MCP) care produce raster/PDF/video și captură de URL live la cerere - conducând o copie construită a shell-ului web, astfel încât ieșirea este identică, și pornind doar când exporți pentru prima dată un astfel de format. Așadar `url-shot` (cu decupare + recolorare + PDF/SVG vectorial) și fiecare instrument raster/pdf rulează și în terminal. Vezi [ghidul TUI](/info/tui.html).
 
@@ -287,11 +280,11 @@ Rândurile sunt listate în ordinea secțiunilor din galerie. Secțiunea `utilit
 
 | Categorie | Exemple | Planificat |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence Studio, Record | Employee Image Stationery |
-| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Multi-Page PDF | Font Outliner |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence, Record | Employee Image Stationery |
+| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Booklet | Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS, Booth Studio | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | - | CVE Alert, Product Release Announcement, Blog OG Image |
-| `utility` | Strip Hidden Data, Text Helper, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Convertoare de unități/formate, mai multe utilitare de confidențialitate pe dispozitiv |
+| `utility` | Strip Hidden Data, Text, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
 
 Acele celule sunt **exemple, nu inventare**. Ce instrumente există este o proprietate a profilului pe care l-ai montat, nu a acestei pagini: un pachet de brand își adaugă propriile instrumente și poate exclude un instrument din community pe care preferă să nu-l livreze. `catalog/tools/index.json` - generat din manifeste, și registrul pe care galeria îl citește efectiv - este lista autoritară; pentru a număra ce montează un profil, numără manifestele (`ls community/*/tool.json brands/*/tools/*/tool.json`) în loc să te bazezi pe un număr scris aici. (Un id de instrument prezent în două pachete se montează o singură dată, din pachetul câștigător.)
 
@@ -299,11 +292,11 @@ Instrumentele sunt clasificate și după status: `official` (aprobat de brand, f
 
 **Design** este primul instrument construit pe modul de canvas liber `render.layout: "editor"` - o suprafață fără chrome, de manipulare directă, unde tragi, redimensionezi, rotești și aliniezi cutii de text, forme și imagini, apoi exporți prin aceeași cale de randare ca orice alt instrument.
 
-**Strip Hidden Data** este primul **utilitar on-device** (`privacy: "on-device"`): un instrument de transformare a conținutului care preia un fișier furnizat de *tine*, îl procesează integral în browser și returnează o copie curată - niciodată încărcat, niciodată cu watermark, fără ștampilă de proveniență. **Text Helper** este al doilea - un banc de lucru on-device pentru sarcinile obișnuite de tip "lipește-în-un-site" (formatare JSON, decodare JWT, Base64, encode/decode URL, hashing SHA). **Compress PDF** este al treilea - micșorează un PDF recomprimându-i imaginile, tot integral on-device. Marcajul și textul insignei sale "Runs on your device - nothing is uploaded" acoperă acum întregul set de transformare: Strip Hidden Data, Text Helper, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (distruge regiuni dintr-o imagine, SVG sau PDF), **Prompt to Image** și **Rebrand a Deck** (retematizează un `.pptx` pe loc) unde profilul îl montează. Aceasta este o categorie de utilitare pentru confidențialitate care înlocuiește predarea fișierelor confidențiale către site-uri cu scop unic.
+**Strip Hidden Data** este primul **utilitar on-device** (`privacy: "on-device"`): un instrument de transformare a conținutului care preia un fișier furnizat de *tine*, îl procesează integral în browser și returnează o copie curată - niciodată încărcat, niciodată filigranat, fără marcaj de proveniență. **Text** este al doilea - un spațiu de lucru on-device pentru sarcinile obișnuite de tip paste-into-a-website (formatare JSON, decodare JWT, Base64, encodare/decodare URL, hashing SHA). **Compress PDF** este al treilea - reduce dimensiunea unui PDF recomprimându-i imaginile, tot integral on-device. Marcajul și textul insignei sale "Rulează pe dispozitivul tău - nimic nu este încărcat" acoperă acum întregul set de transformare: Strip Hidden Data, Text, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (distruge regiuni dintr-o imagine, un SVG sau un PDF), **Prompt Card** și **Rebrand** (retematizează un `.pptx` pe loc) acolo unde profilul îl montează. Aceasta este o categorie de utilitare pentru confidențialitate care înlocuiește predarea fișierelor confidențiale unor site-uri cu scop unic.
 
 ![Sertarul Utilities, unde fiecare card este un instrument care transformă un fișier pe care îl ai deja](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
 
-> Notă: `category` și `status` sunt denormalizate în `catalog/tools/index.json` (registrul pe care galeria îl citește) din fiecare `tool.json`. Manifestul este sursa de adevăr - indexul este **generat** de `npm run build:catalog`, iar `npm run validate:catalog` face CI să eșueze dacă indexul din commit se abate de la manifeste.
+> Notă: `category` și `status` sunt denormalizate în `catalog/tools/index.json` (registrul citit de galerie) din fiecare `tool.json`. Manifestul este sursa adevărului - indexul este **generat** de `pnpm run build:catalog`, iar `pnpm run validate:catalog` eșuează CI dacă indexul comis diferă de manifeste.
 
 ---
 
@@ -445,14 +438,14 @@ Compune randarea oricărei unelte: un copil **SVG** rămâne un vector adevărat
 
 Un utilizator deschide `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 
-1. **Pornire.** Shell-ul web deschide IndexedDB, construiește bridge-ul de capabilități, sincronizează cataloagele de unelte și active (sau încarcă din cache atunci când e offline).
+1. **Boot.** Shell-ul web deschide IndexedDB, construiește puntea de capabilități (capability bridge) și sincronizează catalogul de unelte și active (sau încarcă din cache atunci când este offline).
 2. **Rutare.** Hash-ul URL → vizualizarea `tool`, cu `qr-code` și parametrii URL extrași.
-3. **Încărcare.** `loadTool('qr-code', fetchFile)` preia `tool.json`, validează față de JSON Schema, preia `template.html`, `styles.css` și sursa `hooks.js`.
-4. **Analiza stării din URL.** `parseUrlState` traduce parametrii URL în valori inițiale de intrare. Referințele de active (`?logo=suse/logo/primary`) sunt analizate ca obiecte ușoare `{ id, _unresolved: true }`.
-5. **Runtime.** `createRuntime(tool, host, initialValues)` construiește modelul de intrări (îmbinând datele de profil, valorile implicite și valorile inițiale), rezolvă referințele de active prin `host.assets.get()`, încarcă hook-urile (`host` cu scop de closure, nu izolat în sandbox), apelează `hooks.onInit`.
-6. **Randare.** Shell-ul se abonează la runtime; la fiecare schimbare de stare primește `{ model, hydrated }`. Randează controalele de intrare din model și scrie HTML-ul șablonului hidratat în `#tool-canvas`.
-7. **Interacțiune.** Utilizatorul tastează într-o intrare → `runtime.setInput(id, value)` → se aplică constrângerile → se apelează `hooks.onInput` → rehidratare → rerandare. Canvasul se actualizează live.
-8. **Export.** Utilizatorul dă clic pe Download(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (rasterizează via dom-to-image-more; SVG/PDF trec prin vectorizatoare dedicate care parcurg DOM-ul) → blob → `host.export.download`. Gama de formate în care o unealtă se poate înscrie este largă, iar enumerarea `render.formats` din `schemas/tool.schema.json` este autoritatea în materie - rastere și rastere în virgulă mobilă, vectori și fișiere de decupaj, print/CMYK, mișcare, documente editabile (`pptx`, `docx`, `odt`), paletă și ieșiri de date/text, fișiere audio și de fonturi. [URL Mode](/info/url-mode.html) numește fiecare id și ce produce. Audio se află în acea enumerare ca oricare altceva (`wav`, `mp3`, `m4a`, `opus`, declarate de audiogramă și de uneltele de înregistrare); separat, modul `render.capture` al unei unelte de înregistrare conduce `host.recorder`, a cărui înregistrare sosește ca un Blob finalizat în orice container a înregistrat browserul. (Uneltele care setează `render.export: false` - de ex. Color Palette, Countdown Timer, Strip Hidden Data, Text Helper, Compress PDF - ascund controalele de descărcare/format/dimensiune.) Unitățile fizice sunt convertite per format aici (PDF → puncte de pagină reale, raster → pixeli la DPI cu un chunk `pHYs`). Metadatele de autor/proveniență (autor, unealtă, sursă - construite de `engine/src/metadata.ts`) sunt încorporate per format: PNG iTXt, JPEG EXIF, dicționar de informații PDF, SVG `<metadata>`, comentariu GIF. Uneltele experimentale primesc un filigran inserat de host, nu de unealtă.
+3. **Încărcare.** `loadTool('qr-code', fetchFile)` preia `tool.json`, îl validează față de JSON Schema, preia `template.html`, `styles.css` și sursa `hooks.js`.
+4. **Parsarea stării din URL.** `parseUrlState` traduce parametrii URL în valori inițiale pentru inputuri. Referințele de active (`?logo=suse/logo/primary`) sunt parsate ca obiecte ușoare `{ id, _unresolved: true }`.
+5. **Runtime.** `createRuntime(tool, host, initialValues)` construiește modelul de input (îmbinând datele de profil, valorile implicite și valorile inițiale), rezolvă referințele de active prin `host.assets.get()`, încarcă hook-urile (`host` injectat în closure, nu izolat într-un sandbox) și apelează `hooks.onInit`.
+6. **Randare.** Shell-ul se abonează la runtime; la fiecare schimbare de stare primește `{ model, hydrated }`. Randează controalele de input din model și scrie HTML-ul șablonului hidratat în `#tool-canvas`.
+7. **Interacțiune.** Utilizatorul tastează într-un input → `runtime.setInput(id, value)` → se aplică constrângerile → se apelează `hooks.onInput` → re-hidratare → re-randare. Canvas-ul se actualizează în timp real.
+8. **Export.** Utilizatorul apasă Download(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (rasterizează prin dom-to-image-more; SVG/PDF trec prin vectorizatoare dedicate care parcurg DOM-ul) → blob → `host.export.download`. Gama de formate în care o unealtă se poate înscrie este largă, iar enumerarea `render.formats` din `schemas/tool.schema.json` este autoritatea în materie - rastere și rastere flotante, vectori și fișiere de tăiere, print/CMYK, animație, documente editabile (`pptx`, `docx`, `odt`), paletă și ieșiri de date/text, fișiere audio și de font. [URL Mode](/info/url-mode.html) numește fiecare id și ce produce. Audio se află în această enumerare ca orice altceva (`wav`, `mp3`, `m4a`, `opus`, declarate de audiogram și de uneltele de înregistrare); separat, modul `render.capture` al unei unelte de înregistrare pilotează `host.recorder`, a cărui înregistrare sosește ca un Blob finalizat în orice container a înregistrat browserul. (Uneltele care setează `render.export: false` - de ex. Color Palette, Countdown Timer, Strip Hidden Data, Text, Compress PDF - ascund controalele de descărcare/format/dimensiune.) Unitățile fizice sunt convertite per format aici (PDF → puncte reale de pagină, raster → pixeli la DPI cu un chunk `pHYs`). Metadatele de autor/proveniență (autor, unealtă, sursă - construite de `engine/src/metadata.ts`) sunt încorporate per format: PNG iTXt, JPEG EXIF, dicționarul de info PDF, `<metadata>` SVG, comentariu GIF. Uneltele experimentale primesc un filigran inserat de host, nu de unealtă.
 
 ![Panoul de export pe care `?options` îl deschide: perechea nume fișier și format, dimensiunea de ieșire și controalele care scriu fișierul](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
@@ -462,11 +455,11 @@ Același ciclu de viață în Tauri. Același ciclu de viață în CLI - jsdom o
 
 ## Statutul open-source
 
-**Codul este MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` și `docs/` sunt open source sub **MPL-2.0** - o platformă de schelărie (scaffolding) neutră din punct de vedere al furnizorului pentru instrumentele de brand, fiecare unitate livrabilă având propriul repository sub [github.com/lolly-tools](https://github.com/lolly-tools).
+**Codul este MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` și `docs/` sunt open source sub licența **MPL-2.0** - o platformă de scaffolding neutră din punct de vedere al furnizorului pentru unelte de brand, totul într-un singur repository public, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
-**Conținutul instrumentelor este livrat ca pachete de brand**, fiecare cu propriii termeni (vezi `NOTICE.md` al pachetului). `community/` este repository-ul public [`lolly-tools`](https://github.com/lolly-tools/lolly-tools), iar instrumentele sale agnostice de brand sunt tot MPL-2.0. `brands/suse/` este pachetul privat `suse-lolly`: instrumentele SUSE și catalogul SUSE, **proprietate SUSE**, inclusiv muzica sa licențiată PremiumBeat. `brands/lolly-start/` este brandul de pornire gol, deținut de acest repository. Fonturile sunt livrate în interiorul unui pachet sub **SIL Open Font License 1.1** - pachetul SUSE poartă fonturile SUSE și SUSE Mono.
+**Conținutul uneltelor este livrat ca pachete de brand**, fiecare cu propriii termeni (vezi `NOTICE.md` al pachetului). `community/` este un director al acestui repository, iar uneltele sale agnostice de brand sunt tot MPL-2.0. `brands/suse/` este pachetul privat `suse-lolly`, singurul submodul: uneltele SUSE și catalogul SUSE, **proprietate exclusivă SUSE**, inclusiv muzica sa licențiată PremiumBeat. `brands/lolly-start/` este brandul de pornire necompletat, deținut de acest repository. Fonturile sunt livrate în cadrul unui pachet sub **SIL Open Font License 1.1** - pachetul SUSE conține fonturile SUSE și SUSE Mono.
 
-`tools/` și `catalog/` din rădăcina repository-ului sunt *vizualizări* ignorate de git: un profil le asamblează din `community/` plus pachetul de brand activ, motiv pentru care fiecare script și shell citește aceste două căi și niciodată un pachet direct.
+Nu există director `tools/` sau `catalog/` la rădăcina repository-ului. `packages/node-shell/src/content-roots.ts` răspunde la "unde locuiește unealta `<id>`" și "unde este catalogul" pornind de la `profiles.json` la momentul citirii, astfel încât un profil este un răspuns per proces, fără a fi nevoie ca un arbore să fie asamblat în prealabil. O pereche reală `tools/` + `catalog/` este scrisă doar într-un output de build - `dist/`, un payload RPM, o imagine de container - deoarece un browser preia aceste două căi prin HTTP.
 
 Separarea este impusă - nu există importuri încrucișate din `engine/` în conținutul instrumentelor - astfel încât granița dintre platformă și conținut rămâne curată.
 

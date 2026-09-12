@@ -39,14 +39,14 @@ Dürüst istisnalar - her biri isteğe bağlı, kullanıcı tarafından başlat�
 
 ## Bir terminalden
 
-**6. Render uç noktası yalnızca genel verilerle yanıt verir.** Kullanıcının yazdığı girdileri bir URL'ye koyan tek sunucu özelliği - doğrudan bağlantı render'ları - burada aktiftir, ve [gizlilik politikası](/info/privacy.html) bir bağlantıya koyduğun girdiler için bunun ne anlama geldiğini açıklar:
+**6. Render uç noktası yalnızca herkese açık verilerle yanıt verir.** Kullanıcının yazdığı girdileri bir URL'ye koyan tek sunucu özelliği - hot-link render'lar - burada canlıdır ve [gizlilik politikası](/info/privacy.html) bir bağlantıya koyduğun girdiler için bunun ne anlama geldiğini açıklar:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Bu anahtar dağıtım başınadır (`LOLLY_DISABLE_RENDER_GET=1`): bu değişkeni ayarlayan bir örnekte aynı sınama `404` döndürür - bu fark bayrağın çalıştığını gösterir, bir tutarsızlık değildir.
+Anahtar dağıtım başınadır (`LOLLY_DISABLE_RENDER_GET=1`): bunu ayarlayan bir örnekte aynı sorgu `404` döndürür - bu fark, bir tutarsızlık değil bayrağın çalıştığının göstergesidir.
 
 **7. Sunucu yüzeyi listelenebilirdir.** [Server Surface](/info/server-surface.html) var olan her sunucu tarafı rotasını listeler; yerleşik kural, o sayfada olmayan bir uç noktanın Lolly'nin parçası olmadığıdır. Onları `curl` ile dene; bulunacak başka bir şey yok.
 
@@ -55,7 +55,7 @@ Bu anahtar dağıtım başınadır (`LOLLY_DISABLE_RENDER_GET=1`): bu değişken
 Dağıtılan kod genel koddan farklı olsaydı, yukarıdakilerin tümü yine de bir gösteri olabilirdi. O yüzden kodu kontrol et - dağıtım [genel depodan](https://github.com/lolly-tools/lolly) derlenir:
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ Yukarıdaki üç kaynak kontrolü tek seferlik bir denetim değildir - test pake
 - CA düzenleme günlüğü geri gelirse - kaynakta **veya** üretilen sunucu paketinde,
 - gizlilik politikası yasal olarak gerekli ifadelerini kaybederse (adlandırılmış veri sorumlusu, hukuki dayanak, şikayet hakkı).
 
-Klonda kendin çalıştır (Node 22.18+; bu dosya için `npm install` gerekmez):
+Bunları klonda kendin çalıştır (Node 22.18+; bu dosya için `pnpm install` gerekmez):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-Tam paket (`npm install && npm test`), [Security & Verification](/info/security.html) sayfasında anlatılan çekişmeli kriptografi testleri dahil, birkaç bin test daha çalıştırır.
+Tam paket (`pnpm install && pnpm test`), [Güvenlik ve Doğrulama](/info/security.html) sayfasında açıklanan çekişmeli kriptografi testleri de dahil olmak üzere birkaç bin test daha çalıştırır.
 
 ## Dışarıdan doğrulayamayacakların - açıkça söylenmiş
 

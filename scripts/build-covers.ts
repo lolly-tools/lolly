@@ -19,7 +19,7 @@
  * Stills are a 1200×900 CSS viewport at 2× shrunk to 1040×780 WebP (the card is
  * 520×390 CSS on the landing - 4:3, Andy 2026-09-03 - so 2× device pixels); loops
  * are a 1200×900 screen recording cut to ~6 s of VP9 WebM at the same size, with a
- * WebP poster from the same run. Output goes to docs/shots/covers/ (the docs submodule) - `covers.json`
+ * WebP poster from the same run. Output goes to docs/shots/covers/ - `covers.json`
  * is hand-edited to point at it; this script never touches the copy.
  *
  * Needs a running web shell (dev:web at :5173 by default) on the lolly-start

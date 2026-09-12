@@ -20,10 +20,11 @@ OBS builds are **offline and hermetic**, and this app cannot be built that way f
 a plain checkout. Three independent reasons:
 
 1. **The frontend is the web shell.** `vite.config.js` roots the build at
-   `shells/web`, substitutes four bridge modules, and copies the repo-root `tools/`
-   and `catalog/` profile views in. `tauri-build` then embeds the whole `dist/` into
-   the Rust binary via `generate_context!()`. Reproducing that inside OBS would mean
-   node, npm, the umbrella repo's workspaces and every submodule.
+   `shells/web`, substitutes four bridge modules, and calls `materializeInto()`
+   (`packages/node-shell/src/content-roots.ts`) to write a real `tools/` + `catalog/`
+   tree into `dist/` out of the active profile's content packs. `tauri-build` then
+   embeds the whole `dist/` into the Rust binary via `generate_context!()`.
+   Reproducing that inside OBS would mean node, npm and the repository's workspaces.
 2. **~600 cargo crates**, which offline cargo cannot fetch.
 3. **`ort-sys` downloads ONNX Runtime from its own `build.rs`** using `ureq`. This is
    the one that bites hardest, because it fails *during* the build rather than at

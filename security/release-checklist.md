@@ -52,7 +52,7 @@ For signed targets, provide `LOLLY_CATALOG_SIGNING_PRIVATE_JWK` and `LOLLY_CATAL
 
 ## Publication
 
-- [ ] Catalogue/profile views were rebuilt for every mounted profile after community manifest changes.
+- [ ] Every mounted profile's generated catalogue index was rebuilt after community manifest changes (`pnpm run build:catalog:all`).
 - [ ] Release artifacts have recorded SHA-256 digests and their source commit/submodule pointers are recoverable.
 - [ ] SBOM, third-party notices, release notes, privacy/security docs, and vulnerability-reporting links match the shipped target.
 - [ ] Credentials used by the release came from managed secret storage and no plaintext deployment file is included.
