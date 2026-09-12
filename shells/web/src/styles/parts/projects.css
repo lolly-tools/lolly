@@ -2,11 +2,15 @@
 .projects-view { display: block; }
 
 /* "Batch" button - moved off the shared bottom bar (Andy, 2026-08-26) into the
-   Projects content header of BOTH the root (.projects-roothead, right-aligned above
-   the grid) and folder (.projects-head, beside Render folder) views. In-flow content,
+   Projects content header of BOTH the root (.projects-roothead, above the grid)
+   and folder (.projects-head, beside Render folder) views. In-flow content,
    so it never fights the fixed centred view-toggle the way the top-right cluster did.
-   A neutral pill - "Render folder" keeps the primary accent. */
-.projects-roothead { display: flex; justify-content: flex-end; margin: 0 0 .75rem; }
+   A neutral pill - "Render folder" keeps the primary accent.
+   The root header is the root's TOOLBAR too (plans/245): the create buttons lead,
+   the spacer holds Batch out on the right, and the row wraps on a narrow screen. */
+.projects-roothead {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0 0 .75rem;
+}
 .projects-batch-btn {
   display: inline-flex; align-items: center; gap: 6px;
   height: 40px; padding: 0 14px;
@@ -232,12 +236,11 @@
 .projects-list .tile-check { top: 50%; left: auto; right: 42px; transform: translateY(-50%); }
 /* Cut items (WP-7) read as "on the clipboard, leaving" until pasted - both views. */
 .folder-tile.is-cut { opacity: 0.5; }
-/* List mode's create actions: compact buttons up top (Andy, 2026-08-22) - at the
-   root an actions row above the table (holding the grid's old 3.6rem clearance so
-   the table tucks up beneath it), in a folder view inline in the header. The
-   create TILES render only in grid mode. */
-.projects-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 3.4rem 0 0; }
-.projects-actions + .projects-grid.projects-list { padding-top: 0.8rem; }
+/* The create actions: compact buttons up top (Andy, 2026-08-22) in the root's own
+   header row and inline in a folder view's header, both view modes (plans/245).
+   The create TILES render only in grid mode. The list table tucks up under that
+   header row rather than keeping the grid's 3.6rem tile clearance. */
+.projects-roothead + .projects-grid.projects-list { padding-top: 0.8rem; }
 .projects-create-btn { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
 .projects-create-btn svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
 
@@ -631,14 +634,12 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
 }
 
 /* ─── Templates collection (#/p/__templates__, plans/226 section 4.3) ────────
-   The collection reads as a CONTAINER wherever it is a door: the root grid tile
-   wears the folder tile's short cover (never the sessions' 4/3 document card),
-   and the rail chip is navigation only - no data-drop-folder, so nothing can be
-   dropped into it. The tiles INSIDE it are the chooser's card: a rounded card
-   with a neutral hairline border, a live preview, name, description and tool. */
-.folder-tile--templates .tile-cover { height: 90px; aspect-ratio: auto; }
-.folder-tile--templates .tile-cover svg { opacity: 0.5; }
-.projects-list .folder-tile--templates .tile-cover { height: calc(40px * var(--a11y-fs)); }
+   Both doors into the collection are navigation only: the root grid tile is built
+   by the shared actionTile (folder-tiles.ts), so it wears the same icon-plus-caption
+   treatment as New folder and New asset and needs no styles of its own (plans/245),
+   and the rail chip carries no data-drop-folder, so nothing can be dropped into it.
+   The tiles INSIDE the collection are the chooser's card: a rounded card with a
+   neutral hairline border, a live preview, name, description and tool. */
 /* A navigation chip sits apart from the "Move to" drop targets, and must NOT light
    up as one mid-drag (the drag rules above key on .projects-chip, so opt back out). */
 .projects-chip--nav { margin-left: auto; }

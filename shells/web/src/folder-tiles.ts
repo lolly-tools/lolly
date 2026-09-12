@@ -430,6 +430,39 @@ interface TileShellOpts {
   href?: string;
 }
 
+/** The extras the action tiles that are not a plain create action need. */
+export interface ActionTileOpts {
+  /** Navigate to this Projects route on click, instead of a [data-create] action. */
+  nav?: string;
+  /** The primary button's aria-label, when the visible title is not enough. */
+  openLabel?: string;
+  /** The list view's aligned columns, for a tile that also shows as a table row. */
+  cols?: TileCols;
+}
+
+/**
+ * One builder for every action tile on the Projects root grid: New folder, New asset,
+ * New project from a blueprint, Team projects, Templates (plans/245). An icon over a
+ * title and a one-line caption, no cover art, so the row reads as one set of actions.
+ * A tile with `nav` is a door into a route rather than a create action, so it carries
+ * [data-open-folder-nav] and no [data-create]; the view's delegated click handling
+ * reads both hooks already.
+ */
+export function actionTile(kind: string, glyph: string, title: string, sub: string, opts: ActionTileOpts = {}): string {
+  const { nav, openLabel = title, cols } = opts;
+  return `
+    <div class="folder-tile folder-tile--create"${nav ? '' : ` data-create="${escape(kind)}"`}>
+      <button type="button" class="tile-primary"${nav ? ` data-open-folder-nav="${escape(nav)}"` : ''} aria-label="${escape(openLabel)}">
+        <span class="tile-cover tile-cover--create" aria-hidden="true">${glyph}</span>
+        <span class="tile-meta">
+          <span class="tile-title">${escape(title)}</span>
+          <span class="tile-sub">${escape(sub)}</span>
+        </span>
+        ${cols ? tileColsHtml(cols) : ''}
+      </button>
+    </div>`;
+}
+
 /** The list view's aligned columns (Kind · Items/Size · Modified, plans/133
  *  WP-2); grid mode hides them in CSS, so every tile can carry them. */
 export function tileColsHtml(cols: TileCols): string {

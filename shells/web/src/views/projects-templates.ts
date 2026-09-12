@@ -325,6 +325,9 @@ export interface TemplatesCollection {
   bulkKinds(refs: readonly string[]): { hide: boolean; restore: boolean; delete: boolean };
   /** Refs the collection would render for this query (the view prunes selection with it). */
   visibleRefs(query: string): string[];
+  /** Every template a person can start from, yours first, hidden ones left out - the
+   *  one list the collection and the new-asset picker's Templates tab both read. */
+  pickable(): TemplateItem[];
   /** Can this tool carry a template at all? Optimistic until its manifest is known. */
   canTemplate(toolId: string): boolean;
   saveSessions(sources: readonly SessionSaveSource[], opts: { ask: boolean }): Promise<void>;
@@ -368,6 +371,13 @@ export function createTemplatesCollection(ctx: TemplatesCtx): TemplatesCollectio
   function visibleRefs(query: string): string[] {
     const { own, shipped, hidden } = selectTemplates(model, state.tool, query);
     return [...own, ...shipped, ...(state.hiddenOpen ? hidden : [])].map(i => i.ref);
+  }
+
+  /** Yours first, then what shipped, with the hidden ones and the tool filter left out:
+   *  what a person can START from, which is what the new-asset picker offers. */
+  function pickable(): TemplateItem[] {
+    const { own, shipped } = selectTemplates(model, '', '');
+    return [...own, ...shipped];
   }
 
   /**
@@ -620,6 +630,7 @@ export function createTemplatesCollection(ctx: TemplatesCtx): TemplatesCollectio
     bulk,
     bulkKinds,
     visibleRefs,
+    pickable,
     canTemplate,
     saveSessions,
     addSeedChoices,

@@ -11,16 +11,6 @@ packages:
   - services/mcp
 
 # Keep the module layout used by the renderer, native sidecar and packaging scripts.
-#
-# One flat tree means exactly one copy of each package wins the top of node_modules, and
-# a dependency that resolves `react` by walking up the tree gets whichever copy that is.
-# `ink-testing-library`, which the TUI tests render through, declares no react dependency
-# at all and does precisely that walk. So the root package.json pins react to the 18 line
-# that `ink` needs: without it, a dev dependency wanting react 19 (the MCP inspector does)
-# puts 19 at the top, the test library renders with one react while ink runs another, and
-# every TUI frame comes back empty. The pin is the root importer's own dependency rather
-# than an `overrides` entry on purpose, so a package that genuinely wants react 19 still
-# gets it nested.
 nodeLinker: hoisted
 engineStrict: true
 linkWorkspacePackages: true
@@ -45,6 +35,16 @@ overrides:
   'shell-quote': '^1.9.0'
   'ip-address': '^10.3.1'
   'nanoid': '^3.3.17'
+  # One React for the whole repo. `nodeLinker: hoisted` hoists a single copy of a package
+  # to the root and nests every other version, and React breaks with "Invalid hook call" the
+  # moment a renderer and the components it renders resolve two different copies. The TUI is
+  # on React 19 (ink 7 needs it); the only other React in the tree is the dev-only MCP
+  # inspector, which asks for react ^19 as well. Pinning one version keeps that agreement
+  # from resting on what each range happens to allow, and `ink-testing-library`, which the
+  # TUI tests render through, declares no react dependency at all: it takes whichever copy
+  # sits at the root, so a second React anywhere in the tree renders every frame empty.
+  'react': '^19.2.8'
+  'react-dom': '^19.2.8'
   '@huggingface/transformers>sharp': '$sharp'
   '@huggingface/transformers>onnxruntime-node': '$onnxruntime-node'
   # One Chromium revision for the whole repo. `playwright` pins its own

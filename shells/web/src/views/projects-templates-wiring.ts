@@ -16,11 +16,12 @@ import { announce } from '../a11y.ts';
 import { choiceDialog, promptDialog } from '../components/confirm-dialog.ts';
 import { showUndoToast } from '../lib/undo-toast.ts';
 import { getTool } from '../bridge/tool-loader.ts';
-import { tileColsHtml } from '../folder-tiles.ts';
+import { actionTile } from '../folder-tiles.ts';
 import {
   ADD_SEED_BLANK, TEMPLATES, createTemplatesCollection,
-  type SessionSaveSource, type TemplatesCollection, type TemplatesToolInfo,
+  type SessionSaveSource, type TemplateItem, type TemplatesCollection, type TemplatesToolInfo,
 } from './projects-templates.ts';
+import type { CollectTemplates } from './picker-templates.ts';
 import type { BulkBarConfig } from '../lib/bulk-bar.ts';
 import type { TemplateActionHost } from '../lib/template-actions.ts';
 import type { Profile } from '@lolly-tools/core/host-v1';
@@ -70,16 +71,17 @@ export function templatesCollectionFor(host: TemplateActionHost, view: Templates
 }
 
 /**
- * The root grid's door into the collection. Templates is a CONTAINER, so it wears the
- * folder tile's silhouette (short cover, no 4/3 document card) beside Trash: never a drop
+ * The root grid's door into the collection, built by the SAME builder as New folder and
+ * New asset (plans/245), so the three read as one row of actions instead of one cover
+ * tile beside two icon tiles. It navigates rather than creating, so it is never a drop
  * target, and it holds no items of its own to count.
  */
 export function templatesRootTile(): string {
-  return `<div class="folder-tile folder-tile--templates"><button type="button" class="tile-primary" data-open-folder-nav="${escapeHtml(TEMPLATES)}" aria-label="${escapeHtml(t('Open Templates'))}">
-           <span class="tile-cover tile-cover--batch" aria-hidden="true">${TEMPLATE_ICON}</span>
-           <span class="tile-meta"><span class="tile-title">${t('Templates')}</span><span class="tile-sub">${t('Starting points')}</span></span>
-           ${tileColsHtml({ kind: t('Templates'), count: '', when: '' })}
-         </button></div>`;
+  return actionTile('templates', TEMPLATE_ICON, t('Templates'), t('Starting points'), {
+    nav: TEMPLATES,
+    openLabel: t('Open Templates'),
+    cols: { kind: t('Templates'), count: '', when: '' },
+  });
 }
 
 /**
@@ -116,6 +118,40 @@ export function templateSessionSource(
   toolName: (id: string) => string,
 ): SessionSaveSource {
   return { slot, toolId: entry?.toolId || '', label: entry?.label || entry?.filename || toolName(entry?.toolId || '') };
+}
+
+/**
+ * The new-asset picker's Templates tab source (plans/245 scope 3). One template-picking
+ * surface: the list is the collection's own `pickable()`, so the tab shows exactly what
+ * `#/p/__templates__` shows, and a pick reuses the collection's two actions - open the
+ * tool seeded from the template, or file a project from it without opening the editor.
+ * The collection is loaded by `list()`, which the tab calls once when the picker mounts,
+ * so opening the tab is instant on every visit and the Projects root itself never pays
+ * for a collection nobody has asked for.
+ */
+export function templatePickerSource(
+  tpl: TemplatesCollection,
+  profile: Profile | null,
+  view: { open(item: TemplateItem): void; add(item: TemplateItem): Promise<boolean> },
+): CollectTemplates {
+  const byRef = new Map<string, TemplateItem>();
+  return {
+    list: async () => {
+      await tpl.load(profile);
+      const items = tpl.pickable();
+      byRef.clear();
+      for (const item of items) byRef.set(item.ref, item);
+      return items.map(item => ({
+        ref: item.ref, name: item.name, toolId: item.toolId,
+        toolName: item.toolName, own: item.own, description: item.description,
+      }));
+    },
+    onOpen: (ref) => { const item = byRef.get(ref); if (item) view.open(item); },
+    onQuickAdd: async (ref) => {
+      const item = byRef.get(ref);
+      return item ? { ok: await view.add(item) } : { ok: false };
+    },
+  };
 }
 
 /** The add-picker's answer: the seed values to open with, or a silent cancel. */

@@ -8,6 +8,7 @@
  * glyphs (█/░) and the log status prefixes are width-1 (✓/⚠/✗) - NO width-2 emoji here.
  */
 import { useEffect, useState } from 'react';
+import type { JSX } from 'react';
 import { Box, Text } from 'ink';
 import { Panel } from './Panel.tsx';
 import { theme } from '../theme.ts';

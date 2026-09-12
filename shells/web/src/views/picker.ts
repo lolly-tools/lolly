@@ -38,9 +38,8 @@ import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
 // Format + embeddability rules - pure and unit-tested in ./picker-formats.test.ts.
 import {
   extFromMime, audioFormatOf, formatsForType, isEmbeddable, imageFormatSeed,
-  relTime as relTimeAt, 
 } from './picker-formats.ts';
-import { fmtBytes } from '../lib/format.ts';
+import { fmtBytes, svgDataUrl } from '../lib/format.ts';
 import { fold, tokenize, scoreHaystack, SEARCH_DEBOUNCE_MS } from '../lib/search/match.ts';
 import { getTool } from '../bridge/tool-loader.ts';
 import { wireTabs } from '../lib/tabs.ts';
@@ -79,8 +78,12 @@ const PICKER_TYPE_FILTERS: ReadonlyArray<{ key: PickerTypeFilter; label: string 
 import { VISUAL_TYPES, isPlaceableAsset } from '../lib/asset-kinds.ts';
 import { pickerAcceptsType, queryPickerAssets } from './picker-query.ts';
 import { autoplayLottieThumbs } from './lottie-mount.ts';
-import { previewMedia, motionVideoThumb, armMotionPreviews } from '../lib/preview-media.ts';
+import { motionVideoThumb, armMotionPreviews } from '../lib/preview-media.ts';
 import { escapeHtml } from '../lib/html.ts';
+// The cards that START something (a tool, a saved creation, a template) and the tab
+// that lists templates - moved out so this file keeps to the dialog's wiring.
+import { paneSearchPlaceholder, sessionCard, tabButtonHtml, toolsPaneHtml, type PickerSession, type PickerTool } from './picker-cards.ts';
+import { mountTemplatesTab, type CollectTemplates, type TemplatesTab } from './picker-templates.ts';
 import { t, tRaw, docsAppHref } from '../i18n.ts';
 import { genAiPill, assetAiKind, aiSignalsChip } from '../lib/genai-pill.ts';
 import { isFlagOn, STRIP_UPLOAD_META_FLAG } from '../feature-flags.ts';
@@ -114,37 +117,7 @@ export const isPdfUpload = (file: File): boolean =>
 export const isPptxUpload = (file: File): boolean =>
   /\.pptx$/i.test(file.name) || file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
 
-/** The window.__toolIndex tool slice the picker reads (a denormalised catalog/sync
- *  projection, not an engine domain type). */
-export interface PickerTool {
-  id: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  preview?: string;
-  /** The tool's motion preview, when its content genuinely animates (catalog index `anim`).
-   *  `preview` stays the still poster - see lib/preview-media.ts. */
-  anim?: string;
-  formats?: readonly string[];
-  exportable?: boolean;
-  // Canvas dimensions (from the catalog index) - used to fit an animated card.html banner
-  // to the fixed-height preview slot at the right aspect. See toolCard / previewMedia.
-  width?: number;
-  height?: number;
-}
-
-/** A saved single-tool session, projected for the "Saved creations" tab. */
-interface PickerSession {
-  slot: string;
-  toolId: string;
-  label?: string;
-  toolName: string;
-  toolIcon: string | null;
-  thumb: string | null;
-  updatedAt: string;
-}
-
-type TabId = 'library' | 'uploads' | 'sessions' | 'projects' | 'tools';
+type TabId = 'library' | 'uploads' | 'sessions' | 'projects' | 'tools' | 'templates';
 interface Tab {
   id: TabId;
   label: string;
@@ -208,6 +181,10 @@ export interface CollectOpts {
   onSession(slot: string): Promise<CollectResult | boolean>;
   onOpenTool(toolId: string): void;
   onQuickAddTool(toolId: string): Promise<CollectResult | boolean>;
+  /** Present → a Templates tab listing the caller's starting points (plans/245).
+   *  One template-picking surface: the source is the Projects Templates collection,
+   *  so the tab shows exactly what `#/p/__templates__` shows. */
+  templates?: CollectTemplates;
 }
 
 /** The picker's option bag: AssetPickerOpts (title/allowUpload/current/type/…)
@@ -542,6 +519,7 @@ async function render(
   tabs.push({ id: 'library', label: 'Catalogue' });
   if (showProjects) tabs.push({ id: 'projects', label: 'Projects' });
   if (embedTools.length) tabs.push({ id: 'tools', label: 'Tools' });
+  if (collect?.templates) tabs.push({ id: 'templates', label: 'Templates' });
   // Which pane opens first. The caller's `initialTab` wins when this pick actually
   // offers that tab (so "add a tool" opens on Tools and "add audio" opens on the
   // type-filtered library); it's only a default - the strip below stays live, so the
@@ -574,14 +552,6 @@ async function render(
   // hoisted and runs during setup, so this must already be initialised).
   let tabMemoryArmed = false;
 
-  const placeholderFor = (id: TabId): string =>
-    id === 'tools'    ? t('Search tools…')
-    : id === 'sessions' ? t('Search your saved creations…')
-    : id === 'projects' ? t('Search your projects…')
-    : id === 'uploads'  ? t('Search your private assets…')
-    : allowToolUrl    ? t('Search, or paste a Lolly link…')
-    : t('Search…');
-
   // A real ARIA tab widget only when there's an actual tab strip (>1 source): each
   // source pane becomes its tab's panel, wired back to the tab that labels it. With a
   // single source there's no tablist, so the lone pane stays a plain section.
@@ -594,10 +564,10 @@ async function render(
     <div class="asset-picker-panel">
       <header class="asset-picker-header">
         <h2 id="asset-picker-title">${escapeHtml(opts.title ?? (collect ? tRaw('Add to {name}', { name: collect.folderName }) : t('Choose an asset')))}</h2>
-        <input type="search" class="asset-picker-search" placeholder="${escapeHtml(placeholderFor('library'))}" autocomplete="off" spellcheck="false" aria-label="${escapeHtml(t('Search assets'))}">
+        <input type="search" class="asset-picker-search" placeholder="${escapeHtml(paneSearchPlaceholder('library', allowToolUrl))}" autocomplete="off" spellcheck="false" aria-label="${escapeHtml(t('Search assets'))}">
         <button type="button" class="asset-picker-close" aria-label="${escapeHtml(t('Close'))}">×</button>
       </header>
-      ${tabs.length > 1 ? `<div class="asset-picker-tabs" role="tablist" aria-label="${escapeHtml(t('Asset sources'))}">${tabs.map(tabBtn).join('')}</div>` : ''}
+      ${tabs.length > 1 ? `<div class="asset-picker-tabs" role="tablist" aria-label="${escapeHtml(t('Asset sources'))}">${tabs.map(tb => tabButtonHtml(tb, activeTab)).join('')}</div>` : ''}
       ${currentToolUrl ? `<div class="asset-picker-current">
         <span class="asset-picker-current-label"><span class="asset-picker-current-spark" aria-hidden="true">✦</span> ${t('Current image is from <strong>{name}</strong> - tweak it, or pick a different image below', { name: opts.currentToolName ?? t('a Lolly tool') })}</span>
         <button type="button" class="asset-picker-current-edit">${t('Edit inputs…')}</button>
@@ -619,6 +589,7 @@ async function render(
         ${allowToolUrl ? `<section class="asset-picker-pane"${paneAria('sessions')} data-pane="sessions" hidden></section>` : ''}
         ${showProjects ? `<section class="asset-picker-pane"${paneAria('projects')} data-pane="projects" hidden></section>` : ''}
         ${embedTools.length ? `<section class="asset-picker-pane"${paneAria('tools')} data-pane="tools" hidden></section>` : ''}
+        ${collect?.templates ? `<section class="asset-picker-pane"${paneAria('templates')} data-pane="templates" hidden></section>` : ''}
         <div class="asset-picker-toolcard-host" hidden></div>
       </div>
       ${opts.allowUpload ? `
@@ -654,6 +625,7 @@ async function render(
       // list renderProjects filters from.
       if (showProjects && foldersLoaded) counts.set('projects', folders.filter(f => searchMatches(q, f.name)).length);
       counts.set('tools', embedTools.filter(t2 => searchMatches(q, t2.name, t2.description ?? '', t2.id)).length);
+      if (templatesTab) counts.set('templates', templatesTab.count(q));
     }
     for (const btn of root.querySelectorAll<HTMLElement>('.asset-picker-tab')) {
       btn.querySelector('.asset-picker-tabcount')?.remove();
@@ -666,13 +638,6 @@ async function render(
         btn.appendChild(badge);
       }
     }
-  }
-
-  function tabBtn(tab: Tab): string {
-    const on = tab.id === activeTab;
-    // Roving tabindex: only the selected tab is in the page Tab sequence; the rest
-    // are reached with Arrow keys (see the tablist keydown handler below).
-    return `<button type="button" id="asset-picker-tab-${tab.id}" class="asset-picker-tab${on ? ' is-active' : ''}" role="tab" data-tab="${tab.id}" aria-selected="${on}" aria-controls="asset-picker-pane-${tab.id}" tabindex="${on ? '0' : '-1'}">${escapeHtml(t(tab.label))}</button>`;
   }
 
   // Return focus to whatever opened the picker (the asset-picker trigger button)
@@ -790,6 +755,7 @@ async function render(
   const sessionsPane = root.querySelector<HTMLElement>('.asset-picker-pane[data-pane="sessions"]');
   const projectsPane = root.querySelector<HTMLElement>('.asset-picker-pane[data-pane="projects"]');
   const toolsPane    = root.querySelector<HTMLElement>('.asset-picker-pane[data-pane="tools"]');
+  const templatesPane = root.querySelector<HTMLElement>('.asset-picker-pane[data-pane="templates"]');
   const catbarEl     = root.querySelector<HTMLElement>('.asset-picker-catbar');
 
   // ── collect-mode feedback ────────────────────────────────────────────────────
@@ -829,6 +795,15 @@ async function render(
     toastTimer = setTimeout(() => toast?.classList.remove('is-shown'), 1600);
   }
 
+  // The Templates tab (plans/245) borrows three picker pieces - its pane, the per-card
+  // flash, the teardown an opening pick needs - and owns everything else itself.
+  const templatesTab: TemplatesTab | null = collect?.templates && templatesPane
+    ? mountTemplatesTab(collect.templates, {
+      pane: templatesPane, flash: flashCard, close: () => close(null),
+      onLoaded: () => { const q = searchInput.value.trim().toLowerCase(); if (activeTab === 'templates') templatesTab?.render(q); syncTabCounts(q); },
+    })
+    : null;
+
   // "Edit the tool you're already using": re-open the source tool's inputs seeded
   // from the slot's current embed URL (mode 'edit' → "Re-apply to slot"). A commit
   // resolves the picker with the fresh render; cancelling stays here so the user
@@ -850,7 +825,7 @@ async function render(
     // Skip cards inside a collapsed section (offsetParent is null when display:none)
     // and fade-not-hide tiles this slot can't accept (aria-disabled) - keyboard
     // roving passes over them; a mouse click still hits them and is rejected.
-    return pane ? [...pane.querySelectorAll<HTMLElement>('[data-asset-id],[data-tool-id],[data-session-slot]')]
+    return pane ? [...pane.querySelectorAll<HTMLElement>('[data-asset-id],[data-tool-id],[data-session-slot],[data-template-ref]')]
       .filter(el => el.offsetParent !== null && el.getAttribute('aria-disabled') !== 'true') : [];
   };
   function focusCard(el: HTMLElement | null | undefined): void { if (el) { el.focus({ preventScroll: true }); el.scrollIntoView({ block: 'nearest' }); } }
@@ -897,7 +872,7 @@ async function render(
       if (e.key === 'ArrowDown') { e.preventDefault(); focusCard(navCards()[0]); }
       return;
     }
-    const cur = (e.target as HTMLElement).closest?.('[data-asset-id],[data-tool-id],[data-session-slot]') as HTMLElement | null | undefined;
+    const cur = (e.target as HTMLElement).closest?.('[data-asset-id],[data-tool-id],[data-session-slot],[data-template-ref]') as HTMLElement | null | undefined;
     if (cur && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
       e.preventDefault();
       moveSelection(cur, e.key);
@@ -1130,6 +1105,8 @@ async function render(
       }
       return;
     }
+    // A template card: the tab module says when it handled one, inside this dispatch.
+    if (templatesTab?.handle(e.target as HTMLElement)) return;
     // Collect mode: a tool tile's "+ Add" quick-adds a default session (no editor). Must
     // beat the [data-tool-id] primary it sits inside.
     const quick = (e.target as HTMLElement).closest<HTMLElement>('[data-quickadd-tool]');
@@ -1266,7 +1243,7 @@ async function render(
     if (currentEl) currentEl.hidden = false;
     root.querySelectorAll<HTMLElement>('.asset-picker-pane').forEach(p => { p.hidden = p.dataset.pane !== id; });
     setFooter(true);   // plans/134 P6: upload/webcam are never wrong, whatever the pane
-    searchInput.placeholder = placeholderFor(id);
+    searchInput.placeholder = paneSearchPlaceholder(id, allowToolUrl);
     const raw = searchInput.value.trim();
     const q = raw.toLowerCase();
     // A URL in the box is a paste-to-render intent, handled by the search listener - 
@@ -1277,6 +1254,7 @@ async function render(
       else if (id === 'sessions') renderSessions(q);
       else if (id === 'projects') renderProjects(q);
       else if (id === 'tools') renderTools(q);
+      else if (id === 'templates') templatesTab?.render(q);
     }
     if (!focusFirstCard) return;
     const first = navCards()[0];
@@ -2056,11 +2034,7 @@ async function render(
   function renderTools(q: string): void {
     if (!toolsPane) return;
     const list = q ? embedTools.filter(t => searchMatches(q, t.name, t.description, t.id)) : embedTools;
-    if (list.length === 0) { toolsPane.innerHTML = `<p class="asset-picker-empty">${t('No tools match.')}</p>`; return; }
-    const head = collect ? t('Start a new creation from a tool') : t('Make an image from a tool');
-    toolsPane.innerHTML =
-      `<div class="asset-picker-section-head">${head} <span class="asset-picker-count">${embedTools.length}</span></div>` +
-      `<div class="asset-picker-grid asset-picker-toolgrid">${list.map(t => toolCard(t, !!collect)).join('')}</div>`;
+    toolsPane.innerHTML = toolsPaneHtml(list, embedTools.length, !!collect);
   }
 
   // Take over the body with the tool-render card / a status message (back returns
@@ -2545,6 +2519,7 @@ async function render(
         else if (activeTab === 'sessions') renderSessions(q);
         else if (activeTab === 'projects') renderProjects(q);
         else if (activeTab === 'tools') renderTools(q);
+        else if (activeTab === 'templates') templatesTab?.render(q);
         syncTabCounts(q);
       }, SEARCH_DEBOUNCE_MS);
     });
@@ -2932,66 +2907,6 @@ function card(ref: AssetRef): string {
       ${formatBadge(ref)}
     </div>
   `;
-}
-
-// A tool the user can render to an image. Preview-forward like the gallery: show the
-// tool's rendered preview thumbnail, falling back to its inline icon. The `preview` is
-// a build artifact (catalog/previews/ - committed, but absent on a fresh checkout or
-// after index drift) that can still 404 - so the icon is always rendered too, revealed
-// by a capture-phase error handler (see render). The index ships the icon as trusted
-// inline SVG (built from tools/<id>/icon.svg) - inlined so it themes via currentColor.
-function toolCard(t: PickerTool, quickAdd = false): string {
-  const hasPreview = Boolean(t.preview);
-  // The preview slot is a fixed 84px-tall box (picker.css). A card.html banner renders in
-  // a sandboxed iframe fitted to that height at the tool's aspect (so a square ad isn't
-  // stretched to the tile width); svg/png stay <img> with the slot's object-fit.
-  // Keep the slot's fixed 84px height (from the class) and derive width from the tool's
-  // aspect, so an animated banner tile is the same height as its <img> neighbours.
-  const iframeSize = (t.width && t.height)
-    ? `aspect-ratio:${t.width} / ${t.height};width:auto;margin-inline:auto`
-    : 'width:100%;height:100%';
-  // A `<div>` wrapper (not a bare <button>) when the quick-add affordance is present:
-  // the "+ Add" control is a SIBLING of the open-primary, never nested (nested buttons
-  // are invalid HTML and break the delegated handler - same reasoning as userCard).
-  const openBtn = `<button type="button" class="asset-picker-card asset-picker-toolitem${hasPreview ? '' : ' no-preview'}${quickAdd ? ' asset-picker-toolitem--collect' : ''}" data-tool-id="${escapeHtml(t.id)}" title="${escapeHtml(t.description ?? t.name)}">
-      ${hasPreview ? previewMedia(t.preview!, 'asset-picker-toolitem-preview', iframeSize, false, t.anim) : ''}
-      <span class="asset-picker-toolitem-icon" aria-hidden="true">${t.icon ?? ''}</span>
-      <span class="asset-picker-name">${escapeHtml(t.name)}</span>
-    </button>`;
-  if (!quickAdd) return openBtn;
-  return `<div class="asset-picker-toolcell">${openBtn}<button type="button" class="asset-picker-toolquick" data-quickadd-tool="${escapeHtml(t.id)}" title="${escapeHtml('Add to this folder with default settings - without opening the editor')}" aria-label="${escapeHtml(`Add ${t.name} to this folder without opening`)}">+ Add</button></div>`;
-}
-
-// A previous saved creation. Its thumbnail is a PNG data-URL (raster tools) or raw SVG
-// markup (vector tools); SVG is rendered via a data-URL <img> so any embedded script in
-// an imported session can't execute. No thumb → the tool's icon as a stub.
-function sessionCard(s: PickerSession): string {
-  const name = s.toolName ?? s.toolId;
-  return `
-    <button type="button" class="asset-picker-card asset-picker-sessitem" data-session-slot="${escapeHtml(s.slot)}" title="${escapeHtml(name)}">
-      ${sessionThumb(s.thumb, s.toolIcon)}
-      <span class="asset-picker-name" title="${escapeHtml(name)}">${escapeHtml(name)}</span>
-      <span class="asset-picker-sessitem-when">${escapeHtml(relTimeAt(s.updatedAt, Date.now(), t))}</span>
-    </button>
-  `;
-}
-
-// One encoding for every SVG-text-as-<img> use (session thumbs, themed icon
-// thumbnails) so quirks fixes land in one place.
-function svgDataUrl(svgText: string): string {
-  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svgText);
-}
-
-function sessionThumb(thumb: string | null, iconSvg: string | null): string {
-  if (typeof thumb === 'string' && thumb) {
-    if (thumb.startsWith('data:')) {
-      return `<img class="asset-picker-thumb" src="${escapeHtml(thumb)}" alt="" loading="lazy" decoding="async">`;
-    }
-    if (/^\s*<(\?xml|svg)/i.test(thumb)) {
-      return `<img class="asset-picker-thumb" src="${escapeHtml(svgDataUrl(thumb))}" alt="" loading="lazy" decoding="async">`;
-    }
-  }
-  return `<span class="asset-picker-thumb asset-picker-thumb-stub asset-picker-thumb-icon" aria-hidden="true">${iconSvg ?? ''}</span>`;
 }
 
 // m:ss for a clip length in milliseconds, rolling over to h:mm:ss past an hour (the

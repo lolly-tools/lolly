@@ -36,7 +36,7 @@ import { livePalette } from '../lib/live-palette.ts';
 import { MULTI_EDIT_MIN, MULTI_EDIT_MAX } from '../lib/multi-edit-limits.ts';
 import { svgDataUrl } from '../lib/format.ts';
 import {
-  folderTile, sessionTile, imageTile, tileColsHtml, FOLDER_ICON, MENU_ICON,
+  actionTile, folderTile, sessionTile, imageTile, tileColsHtml, FOLDER_ICON, MENU_ICON,
   isBatchSlot, BATCH_SLOT_PREFIX, fmtBytes,
   type MemberPreview,
 } from '../folder-tiles.ts';
@@ -71,8 +71,8 @@ import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
 import { getTool } from '../bridge/tool-loader.ts';
 import type { ProjectedUserTool } from '../lib/user-tools.ts';   // type-only (erased) - the store is lazy-imported
 import { setPendingToolSeed } from '../lib/drop-router.ts';
-import { TEMPLATES, templateBulkMenuHtml, type SessionSaveSource, type TemplatesCollection } from './projects-templates.ts';
-import { chooseAddSeed, templateBulkRows, templateSessionSource, templatesCollectionFor, templatesRailChip, templatesRootTile } from './projects-templates-wiring.ts';
+import { TEMPLATES, templateBulkMenuHtml, templateUseHref, type SessionSaveSource, type TemplatesCollection } from './projects-templates.ts';
+import { chooseAddSeed, templateBulkRows, templatePickerSource, templateSessionSource, templatesCollectionFor, templatesRailChip, templatesRootTile } from './projects-templates-wiring.ts';
 import type { TemplateActionHost } from '../lib/template-actions.ts';
 import { getSessionSource } from '../lib/session-source.ts';
 // A leaf with no imports of its own (module state, no network/DOM), so this costs the
@@ -600,8 +600,8 @@ export async function mountProjects(
     const loose = sortSessions(uncategorised());
     // Card copy says "project" for the thing the user made (plans/163 F14) - the
     // stored record stays a session everywhere in the code.
-    const createFolder = createTile('folder', FOLDER_PLUS_ICON, t('New folder'), t('Group related projects'));
-    const createTool = createTile('tool', FILE_PLUS_ICON, t('New asset'), t('Start a new project'));
+    const createFolder = actionTile('folder', FOLDER_PLUS_ICON, t('New folder'), t('Group related projects'));
+    const createTool = actionTile('tool', FILE_PLUS_ICON, t('New asset'), t('Start a new project'));
     // Only TOP-LEVEL folders at the root; nested folders show inside their parent.
     const topFolders = sortFolders(childFolders(folders, null));
     const folderTiles = topFolders.map(f => folderTile(f, folderTileOpts(f))).join('');
@@ -624,7 +624,7 @@ export async function mountProjects(
     // registered a session source (lib/session-source.ts); dormant otherwise, so
     // the grid is byte-identical on the public shell.
     const teamTile = getSessionSource()
-      ? createTile('team', TEAM_ICON, t('Team projects'), t('Shared with you on this instance'))
+      ? actionTile('team', TEAM_ICON, t('Team projects'), t('Shared with you on this instance'))
       : '';
     // Trash (plans/133 WP-4): a muted system tile, only while it holds anything.
     const trashCount = trashEntries.length === 1 ? t('1 item') : tRaw('{n} items', { n: trashEntries.length });
@@ -637,17 +637,15 @@ export async function mountProjects(
       : '';
     // The favourites hero is a grid-mode thing: above a table it would push the
     // rows below the fold for a carousel of two covers (Part C, C2h). Starred
-    // folders still pin first in the sort either way. List mode also swaps the
-    // create tiles for the compact actions row above the table.
+    // folders still pin first in the sort either way. List mode carries no create
+    // tiles on the grid - the toolbar above it is where its actions are.
     const list = viewMode === 'list';
     return shell(t('Projects'), 'projects', `
-      ${/* Batch needs something to batch (plans/163 F14): with nothing saved yet the
-            pill is an offer the view cannot honour, so the whole row waits for the
-            first project. */ ''}
-      ${nothingSaved ? '' : `<div class="projects-roothead">${batchButtonHtml()}</div>`}
+      ${/* The root toolbar (plans/245): the same create buttons a folder header carries,
+            both view modes. Batch waits for the first project (plans/163 F14). */ ''}
+      <div class="projects-roothead">${listCreateBtns()}<span class="projects-head-spacer"></span>${nothingSaved ? '' : batchButtonHtml()}</div>
       ${favourites.size && !list ? `<div class="projects-featured" data-fav-strip></div>` : ''}
       ${invite}
-      ${list ? `<div class="projects-actions">${listCreateBtns()}</div>` : ''}
       <div class="folder-grid projects-grid${list ? ' projects-list' : ''}">
         ${list ? listHeadHtml() : ''}
         ${folderTiles}${/* "My library" names the loose block when folders sit above
@@ -719,13 +717,13 @@ export async function mountProjects(
    *  tool. The stored field stays `profile.projectTemplates` - this is the word, not the
    *  data (plans/226 D3). */
   const blueprintTile = (): string => templates.length
-    ? createTile('template', TEMPLATE_ICON, t('New project from a blueprint'), t('Start from a saved blueprint'))
+    ? actionTile('template', TEMPLATE_ICON, t('New project from a blueprint'), t('Start from a saved blueprint'))
     : '';
 
-  /** The compact create buttons UP TOP (Andy, 2026-08-22): at the root, list
-   *  mode shows them as an actions row above the table (the root grid keeps its
-   *  create tiles); in a folder view they sit in the header before "Render
-   *  folder" in BOTH view modes, and the folder grid carries no create tiles. */
+  /** The compact create buttons UP TOP (Andy, 2026-08-22): one toolbar, in the
+   *  root's own header row and in a folder view's header before "Render folder",
+   *  in BOTH view modes (plans/245). The root grid keeps its create tiles in grid
+   *  mode; a folder grid carries none. */
   function listCreateBtns(isUncat = false): string {
     const btn = (kind: string, glyph: string, label: string): string =>
       `<button type="button" class="btn projects-create-btn" data-create-btn="${kind}">${glyph}<span>${escape(label)}</span></button>`;
@@ -919,19 +917,6 @@ export async function mountProjects(
     return targetId
       ? `<button type="button" class="projects-result-path" data-open-folder-nav="${escape(targetId)}" title="${escape(tRaw('Open {name}', { name: text }))}">${inner}</button>`
       : `<span class="projects-result-path projects-result-path--static">${inner}</span>`;
-  }
-
-  function createTile(kind: string, icon: string, title: string, sub: string): string {
-    return `
-      <div class="folder-tile folder-tile--create" data-create="${kind}">
-        <button type="button" class="tile-primary" aria-label="${escape(title)}">
-          <span class="tile-cover tile-cover--create" aria-hidden="true">${icon}</span>
-          <span class="tile-meta">
-            <span class="tile-title">${escape(title)}</span>
-            <span class="tile-sub">${escape(sub)}</span>
-          </span>
-        </button>
-      </div>`;
   }
 
   /** The "Batch" button that leads to the grid (moved off the shared bottom bar,
@@ -2296,6 +2281,13 @@ export async function mountProjects(
     // Lazy chunk - the shared picker (DOMPurify, engine, its own CSS) stays out of the
     // Projects boot chunk, loaded only when the add flow actually opens (matches how the
     // bridge's host.assets.pick and this view's other heavy actions import on demand).
+    // Both doors that LEAVE for an editor file what comes back into this folder and
+    // return here on Save, so the tool door and the template door cannot drift.
+    const openInEditor = (hash: string): void => {
+      try { sessionStorage.setItem(FILE_INTO_KEY, target ?? ''); } catch { /* private mode */ }
+      armReturn();
+      window.location.hash = hash;
+    };
     const { openPicker } = await import('./picker.ts');
     await openPicker(host as unknown as PickerHost, {
       allowUpload: true,
@@ -2330,10 +2322,17 @@ export async function mountProjects(
             if (choice.cancelled) return;   // stay in the picker
             if (choice.values) setPendingToolSeed(openId, choice.values);
           }
-          try { sessionStorage.setItem(FILE_INTO_KEY, target ?? ''); } catch { /* private mode */ }
-          armReturn();
-          window.location.hash = '#/tool/' + openId;
+          openInEditor('#/tool/' + openId);
         },
+        // The Templates tab (plans/245): the same list the collection shows, with its
+        // two actions - open the tool seeded from it, or file a project from it.
+        templates: templatePickerSource(tpl, profile, {
+          open: (item) => { openInEditor(templateUseHref(item)); },
+          add: async (item) => {
+            try { await addDefaultSession(item.toolId, await tpl.seedForRef(item.ref, item.toolId)); return true; }
+            catch (err) { host.log?.('warn', 'projects: template add failed', { ref: item.ref, error: String(err) }); return false; }
+          },
+        }),
         onQuickAddTool: async (toolId) => {
           try {
             // A user tool IS a specific seed, so it quick-adds its base tool + saved values
