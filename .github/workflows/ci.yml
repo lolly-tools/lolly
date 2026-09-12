@@ -138,6 +138,12 @@ jobs:
       # scoped Chromium into the same `.browsers` the shells' resolver
       # (packages/node-shell/src/browsers.ts) and `playwright`'s executablePath()
       # both read via PLAYWRIGHT_BROWSERS_PATH, so the shard tests what its name says.
+      # It only works while `playwright-core` (what the installer drives) and `playwright`
+      # (what the gates call executablePath() on) are the same release - they want
+      # different chromium-<revision> directories otherwise, and the shard skips its whole
+      # tier on a runner that has a browser. pnpm-workspace.yaml holds them together and
+      # tests/browser-tier-install.test.ts asserts it; the cache key below is that same
+      # resolved version, so a bump re-downloads instead of serving the wrong revision.
       - name: Cache Chromium (browser shard)
         if: matrix.shard == 'browser'
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6

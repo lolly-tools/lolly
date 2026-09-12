@@ -3019,7 +3019,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 ```
 
-### playwright-core 1.62.1
+### playwright-core 1.63.0
 
 - SPDX-License-Identifier: `Apache-2.0`
 - Copyright: copyright notice that is included in or attached to the work; copyright license to reproduce, prepare Derivative Works of,; (c) You must retain, in the Source form of any Derivative Works
