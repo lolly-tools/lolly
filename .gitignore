@@ -295,3 +295,7 @@ artifacts/
 # Codex session scratch and its bytecode
 .codex-*
 __pycache__/
+
+# scripts/migrate-checkout.sh parks and exports here while moving an old checkout
+/.migrate-patches
+/.migrate-park

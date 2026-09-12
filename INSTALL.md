@@ -32,6 +32,22 @@ pnpm run dev:web           # web shell at http://localhost:5173
 `./setup.sh` is **idempotent** - safe to re-run any time (after a `git pull`, to repair a
 half-finished checkout, etc.). `./setup.sh --help` lists every flag.
 
+
+## Upgrading a checkout from before the fold (2026-09-11)
+
+If you cloned before 2026-09-11, ten directories in your tree are git submodules with their own repositories, and `git pull` stops with "directory not empty" because they now live in this repository as plain directories. One script moves the checkout across without losing downloaded models, build output or local commits:
+
+```bash
+git fetch origin main
+git show origin/main:scripts/migrate-checkout.sh > /tmp/migrate-checkout.sh
+bash /tmp/migrate-checkout.sh        # dry run: prints every step it would take
+bash /tmp/migrate-checkout.sh --yes  # apply
+```
+
+The script is fetched first because an old checkout cannot pull the branch that carries it; run it from anywhere inside the checkout.
+
+It refuses to run while the parent or any old submodule has uncommitted changes, exports any local commits that never reached the old repositories as patches under `.migrate-patches/` (re-apply with `git am --directory=<path>`), stops a dev server that holds a submodule directory open, parks `shells/web/public/models`, `shells/web/dist`, `shells/web/public/info` and `services/mcp/.browsers` across the switch, then fast-forwards `main`, removes the retired `tools/` and `catalog/` views and runs `pnpm install`. `brands/suse` stays a submodule either way.
+
 ## Prerequisites
 
 The script installs these for you when it can; here's what it needs and how to get it by hand.
