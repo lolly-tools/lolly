@@ -226,6 +226,51 @@ export function instancePath(p: string): string {
   return p.startsWith('/') ? base + p : `${base}/${p}`;
 }
 
+declare global {
+  interface Window {
+    /** Fetches index.html's pre-paint script started, keyed by root-relative
+     *  path - see adoptBootFetch. Optional, and every entry is optional: the
+     *  script is gated (and a release build strips it entirely), so the usual
+     *  state is that this object does not exist. */
+    __lollyBootFetch?: Record<string, Promise<Response> | undefined>;
+  }
+}
+
+/**
+ * A fetch index.html's pre-paint script already started for this path, or null.
+ *
+ * The boot script (see the slim-index note in index.html) begins one request at
+ * HTML parse time - well before the boot chunks execute - and parks the promise
+ * on `window.__lollyBootFetch` keyed by root-relative path. This is the only way
+ * to ADOPT it: a `<link rel="preload" as="fetch">` hint cannot be, because the
+ * preload key it creates never matches the request instanceFetch makes (mode,
+ * credentials and the x-lolly-client header all differ - the full trace is in
+ * that same index.html note), so the body came down twice.
+ *
+ * Declines when this device points at a remote instance or has a pack loaded:
+ * both answer the SAME path with a different body, and the boot script - which
+ * cannot read IndexedDB - fetched this origin's copy. The caller then fetches
+ * normally and that one early request is wasted, which is exactly what the
+ * preload hint did for those visitors too.
+ *
+ * The adopted request carries no x-lolly-client - markup has no way to set a
+ * header - and that costs nothing here: the value is shell kind plus engine
+ * version, plus an install tag only a signed-in member session holds, and by the
+ * time org/index.ts turns that tag on this fetch is long finished. The one case
+ * where the header routes anything is a remote instance, which is exactly the
+ * case adoption declines.
+ *
+ * One-shot: the entry is dropped on the way out, so a retry re-fetches rather
+ * than replaying a failed response.
+ */
+export function adoptBootFetch(path: string): Promise<Response> | null {
+  const pending = window.__lollyBootFetch?.[path];
+  if (!pending) return null;
+  delete window.__lollyBootFetch?.[path];
+  if (base || packActive()) return null;
+  return pending;
+}
+
 /**
  * fetch() for instance-base traffic: a bounded native command for cross-origin
  * URLs under Tauri (CORS-free, HTTPS/public-address checked in Rust),

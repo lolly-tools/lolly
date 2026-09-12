@@ -32,9 +32,17 @@
  * toPath goldens. The same applies ACROSS OSes at the same Chromium version:
  * text layout goes through the platform font backend (CoreText on macOS,
  * FreeType on Linux), so glyph advances in the text-bearing fixtures can
- * differ per-OS. These goldens were generated on macOS; if a Linux dev
- * machine ever runs them (CI has no Chromium, so not there) a text-fixture
- * mismatch with plausible-looking coordinates is that, not a regression.
+ * differ per-OS. These goldens were generated on macOS, so a mismatch on
+ * another OS with plausible-looking coordinates is that, not a regression.
+ *
+ * Which now matters in CI. This header used to add "CI has no Chromium, so not
+ * there", and that was true only because the browser shard's install wrote a
+ * different chromium revision than the gate above looks for - it skipped its
+ * whole tier. That is fixed, so the Linux runner really does render these four
+ * formats. If the two text fixtures (html-card, svg-native) mismatch there while
+ * linear-gradient passes, the font backend is the reason: generate a Linux set
+ * with UPDATE_GOLDENS=1 on a runner and review the diff, rather than relaxing
+ * the byte comparison, which is the only thing this file is for.
  *
  * Run directly:            node --test shells/web/src/bridge/export-format-golden.test.ts
  * Regenerate the goldens:  UPDATE_GOLDENS=1 node --test shells/web/src/bridge/export-format-golden.test.ts

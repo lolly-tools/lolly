@@ -1576,35 +1576,73 @@ async function boot(): Promise<void> {
   // import() promises are cached, so the later route reuses these.
   const warmTool = (): void => { void import('./views/tool.ts').catch(() => {}); };
 
-  // The TOOL view is special: it statically pulls the render engine (createRuntime +
+  // The TOOL path is special: it statically pulls the render engine (createRuntime +
   // Handlebars + Ajv + export, ~170 KB gz). That used to sit on the boot preload - moving
-  // it off made the gallery boot lean, but a cold first tool-open now shows a "Loading…"
-  // state while those chunks arrive. So warm it PROMPTLY (tight idle timeout wins the slot
-  // even while the featured row is rendering), not on deep idle - the cold window shrinks
-  // from ~1.6s to <0.6s. Lolly is a tool app; the tool engine being warm matters most.
-  if (typeof requestIdleCallback === 'function') requestIdleCallback(warmTool, { timeout: 600 });
-  else setTimeout(warmTool, 200);
+  // it off made the gallery boot lean, but a cold first tool-open then showed a "Loading…"
+  // state while those chunks arrived. So something is warmed PROMPTLY (tight idle timeout
+  // wins the slot even while the featured row is rendering), not on deep idle - the cold
+  // window shrinks from ~1.6s to <0.6s. Lolly is a tool app; the tool engine being warm
+  // matters most.
+  //
+  // What gets warmed unconditionally is the ENGINE, not the whole view. Those 170 KB are
+  // lib/mount-runtime.ts's static graph - the chokepoint every runtime in this shell goes
+  // through. views/tool.ts pulls that AND ~145 more chunks of view code, a few hundred
+  // bytes each: nothing in bytes, but 145 connections opened on every cold visit before
+  // the visitor has touched anything, which is what scripts/check-first-load.ts counts and
+  // what no byte budget can see. The view itself warms on intent below instead, where a
+  // pointerdown still puts it in flight ahead of the click that navigates.
+  const warmEngine = (): void => { void import('./lib/mount-runtime.ts').catch(() => {}); };
+  if (typeof requestIdleCallback === 'function') requestIdleCallback(warmEngine, { timeout: 600 });
+  else setTimeout(warmEngine, 200);
 
-  // Belt-and-suspenders: warm the engine the instant a tool link is hovered or pressed, so
-  // even a tap inside that <0.6s window opens warm. Capture-phase, one-shot (import() caches),
-  // and it fires ahead of the click that navigates. Covers gallery tiles, the featured row,
-  // catalog, search results - anything linking to a tool - with one delegated listener.
+  // Warm a view the instant a link to it is hovered or pressed. Capture-phase, one-shot
+  // per target (import() caches), and it fires ahead of the click that navigates. Covers
+  // gallery tiles, the featured row, catalog, search results - anything linking to a tool -
+  // plus the three secondary routes, which used to be three unconditional deep-idle
+  // imports. Those read as free and are, in bytes; in connections they were another ~32 on
+  // every cold visit for views most visitors never open.
+  //
+  // A Map, not an object literal: the key comes off a link in the page, and an object
+  // would answer `constructor` and friends from its prototype.
+  const warmSecondary = new Map<string, () => void>();
+  {
+    const dashboard = (): void => { void import('./views/dashboard.ts').catch(() => {}); };
+    const projects = (): void => { void import('./views/projects.ts').catch(() => {}); };
+    const catalog = (): void => { void import('./views/catalog.ts').catch(() => {}); };
+    // Every hash spelling parseRoute() below accepts for these three, including the
+    // ones that land via a redirect (#/b and #/brand → the dashboard's brand tab).
+    for (const k of ['d', 'dashboard', 'b', 'brand', 'platform', 'capabilities']) warmSecondary.set(k, dashboard);
+    warmSecondary.set('p', projects);
+    for (const k of ['c', 'catalog']) warmSecondary.set(k, catalog);
+  }
+  /** The route a hover/press is aimed at: the first path segment of the nearest
+   *  link's hash (an `<a href>` or a jelly-button's `data-href`), else a
+   *  `[data-route]` control's own value. Null when the target is neither. */
+  const intentRoute = (el: Element): string | null => {
+    const link = el.closest<HTMLElement>('a[href], [data-href]');
+    const href = link?.getAttribute('href') ?? link?.getAttribute('data-href') ?? '';
+    const hash = href.slice(href.indexOf('#') + 1);
+    const seg = href.includes('#') ? hash.split('?')[0]?.split('/').filter(Boolean)[0] : undefined;
+    return seg ?? el.closest<HTMLElement>('[data-route]')?.dataset.route ?? null;
+  };
+  const views = new Set(warmSecondary.values()).size;
+  const warmedViews = new Set<() => void>();
   let toolWarmed = false;
   const warmOnIntent = (e: Event): void => {
-    if (toolWarmed) return;
-    if ((e.target as HTMLElement | null)?.closest?.('a[href*="tool/"]')) { toolWarmed = true; warmTool(); }
+    const el = e.target instanceof Element ? e.target : null;
+    if (!el) return;
+    if (!toolWarmed && el.closest?.('a[href*="tool/"]')) { toolWarmed = true; warmTool(); }
+    const route = intentRoute(el);
+    const warm = route ? warmSecondary.get(route) : undefined;
+    if (warm && !warmedViews.has(warm)) { warmedViews.add(warm); warm(); }
+    // Once there is nothing left to warm, stop walking ancestors on every pointer
+    // move: these fire for the life of the page and the work is finished.
+    if (!toolWarmed || warmedViews.size < views) return;
+    document.removeEventListener('pointerover', warmOnIntent, { capture: true });
+    document.removeEventListener('pointerdown', warmOnIntent, { capture: true });
   };
   document.addEventListener('pointerover', warmOnIntent, { capture: true, passive: true });
   document.addEventListener('pointerdown', warmOnIntent, { capture: true, passive: true });
-
-  // The other route chunks are light - deep idle is fine.
-  if (typeof requestIdleCallback === 'function') {
-    requestIdleCallback(() => {
-      import('./views/dashboard.ts').catch(() => {});
-      import('./views/projects.ts').catch(() => {});
-      import('./views/catalog.ts').catch(() => {});
-    });
-  }
 
   // Re-render on any route change. hashchange covers legacy #/… links and external
   // deep links; popstate covers History-API back/forward across /t/<id> tool entries;

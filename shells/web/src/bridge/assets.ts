@@ -271,6 +271,22 @@ export interface AssetsApiOptions {
 }
 
 export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
+  // In-flight fetch-and-cache work, keyed by blob key. Two callers wanting the
+  // same asset format at the same moment share ONE network request: on a cold
+  // load the tokens bridge reads brand.json while catalog/sync.ts's core prefetch
+  // is walking the same tier, and each checking "is it cached yet?" before the
+  // other had written anything downloaded the file twice (measured by
+  // scripts/check-first-load.ts, 2026-09-12). Cleared when the work settles, so a failed fetch is retried
+  // rather than a rejected promise being replayed for the life of the page.
+  const inFlight = new Map<string, Promise<Blob>>();
+  const fetchAndCacheOnce = (meta: AssetMetaRecord, format: AssetFormat, blobKey: string): Promise<Blob> => {
+    const pending = inFlight.get(blobKey);
+    if (pending) return pending;
+    const started = fetchAndCache(meta, format, blobKey, db)
+      .finally(() => { inFlight.delete(blobKey); });
+    inFlight.set(blobKey, started);
+    return started;
+  };
   const api = {
     async resolveProvider(ref: { provider: string; scope: string; path: string }): Promise<AssetRef | null> {
       if (ref.provider === 'catalog' || ref.provider === 'library') {
@@ -368,7 +384,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         if (!blob) {
           if (historical) throw new Error(`Asset version unavailable: ${id} (${version})`);
           if (meta.tier === 'on-demand') {
-            blob = await fetchAndCache(meta, format, blobKey, db);
+            blob = await fetchAndCacheOnce(meta, format, blobKey);
           } else {
             throw new Error(`Asset not cached: ${id} (tier: ${meta.tier})`);
           }
@@ -907,12 +923,46 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     },
 
     /**
+     * Internal: make sure ONE format's bytes are on device, sharing any fetch
+     * already in flight for them. The single fetch-and-cache path: catalog/sync.ts's
+     * core prefetch walks the index and calls this per format, and _getBlob's
+     * `fetchIfMissing` reaches the same work for a reader that needs the bytes now.
+     * Both used to fetch independently, which downloaded a file twice whenever the
+     * two overlapped (see the inFlight note above).
+     *
+     * Resolves null when the bytes are already cached - nothing was fetched. Throws
+     * AssetChecksumError on tampered bytes, and whatever the transport threw on an
+     * unreachable file; the caller decides which of those is worth saying out loud.
+     */
+    async _ensureBlob(meta: AssetMetaRecord, format: AssetFormat): Promise<Blob | null> {
+      const blobKey = `${meta.id}:${format.format}:${meta.version}`;
+      if ((await db.get('asset-blob', blobKey)) !== undefined) return null;
+      return await fetchAndCacheOnce(meta, format, blobKey);
+    },
+
+    /**
      * Internal: the raw cached Blob for an asset, without minting an object URL.
      * Used by callers that just want the bytes (e.g. tokens.loadDoc reading a
      * JSON document) so they don't pin an unused URL in OBJECT_URL_CACHE.
      * Resolves on-demand tiers the same way get() does. Returns null if absent.
+     *
+     * `fetchIfMissing` extends that fetch-and-cache fallback to any tier - for a
+     * caller that needs the bytes NOW and would otherwise fetch the file itself.
+     * Opt-in rather than the default: a core-tier asset is normally already on
+     * device (catalog/sync.ts prefetches the whole tier on idle), and a caller that
+     * is happy to wait for that must keep answering null rather than pulling bytes
+     * onto the first-paint path. The one caller is bridge/tokens.ts, whose read
+     * happens BEFORE that idle prefetch on a cold load: without this it fetched
+     * brand.json itself, cached nothing, and the prefetch then downloaded the same
+     * file a second time (measured by scripts/check-first-load.ts, 2026-09-12).
+     * Going through fetchAndCache means those bytes are checksum-verified and
+     * stored under the same id:format:version key the prefetch checks, so the
+     * second download is skipped instead of deduplicated after the fact.
      */
-    async _getBlob(id: string, opts: { format?: string; version?: string } = {}): Promise<Blob | null> {
+    async _getBlob(
+      id: string,
+      opts: { format?: string; version?: string; fetchIfMissing?: boolean } = {},
+    ): Promise<Blob | null> {
       // `user/...` ids live in the user-assets store as one already-resolved
       // blob (no format/version keying). Mirror get()'s resolution order so
       // callers like the tokens bridge can read a user-installed document by id.
@@ -926,8 +976,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       const version = opts.version ?? meta.version;
       const blobKey = `${id}:${format.format}:${version}`;
       let blob = await db.get('asset-blob', blobKey);
-      if (!blob && version === meta.version && meta.tier === 'on-demand') {
-        blob = await fetchAndCache(meta, format, blobKey, db);
+      if (!blob && version === meta.version && (meta.tier === 'on-demand' || opts.fetchIfMissing)) {
+        blob = await fetchAndCacheOnce(meta, format, blobKey);
       }
       return blob ?? null;
     },
@@ -1422,6 +1472,12 @@ async function sriForBlob(blob: Blob): Promise<string> {
   return `sha256-${btoa(bin)}`;
 }
 
+/** Tampered or corrupt bytes, as distinct from an unreachable file. Its own class
+ *  so a caller can tell the two apart without matching on a message: catalog/sync.ts's
+ *  prefetch warns about this one and stays quiet about a fetch that simply failed,
+ *  which on an offline boot is every asset in the tier. */
+export class AssetChecksumError extends Error {}
+
 /**
  * Verify freshly-fetched bytes against the catalog checksum, throwing on a real
  * mismatch (tampered/corrupt download). No-ops when the format carries no
@@ -1434,7 +1490,7 @@ export async function verifyAssetChecksum(blob: Blob, format: AssetFormat | unde
   if (!format?.checksum || !globalThis.crypto?.subtle) return;
   const actual = await sriForBlob(blob);
   if (actual !== format.checksum) {
-    throw new Error(
+    throw new AssetChecksumError(
       `Asset checksum mismatch for ${format.url}: expected ${format.checksum}, got ${actual}`,
     );
   }
