@@ -88,7 +88,7 @@
     "playwright-core": "^1.49.0"
   },
   "optionalDependencies": {
-    "@huggingface/transformers": "^3.8.1",
+    "@huggingface/transformers": "^4.2.0",
     "@napi-rs/canvas": "^1.0.8",
     "onnxruntime-node": "^1.29.0",
     "phonemizer": "^1.2.1",

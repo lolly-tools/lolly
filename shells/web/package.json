@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@breezystack/lamejs": "^1.2.7",
-    "@huggingface/transformers": "^3.8.1",
+    "@huggingface/transformers": "^4.2.0",
     "@lolly-tools/audio-dock": "workspace:*",
     "@lolly-tools/core": "workspace:*",
     "@lolly-tools/node-shell": "workspace:*",
