@@ -5,12 +5,12 @@ This file exists so you can find the code for a feature without reading all of i
 The counts below are GENERATED - `pnpm run build:web-src-readme`, checked in CI by `pnpm run check:web-src-readme`, so they cannot rot the way the hand-measured ones did. They convey proportion; don't cite them as an API.
 
 <!-- web-src-dirs:start -->
-Roughly 530,000 lines of TypeScript, tests included, and 46,000 lines of CSS.
+Roughly 531,000 lines of TypeScript, tests included, and 46,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 271 files, 145,442 lines | 137 files, 52,661 lines | 3 files, 193 lines |
-| `lib/` | 489 files, 112,146 lines | 296 files, 58,721 lines | 10 files, 1,256 lines |
+| `views/` | 272 files, 145,599 lines | 138 files, 52,945 lines | 3 files, 193 lines |
+| `lib/` | 489 files, 112,193 lines | 296 files, 58,822 lines | 10 files, 1,256 lines |
 | `bridge/` | 129 files, 45,466 lines | 85 files, 20,082 lines | none |
 | `components/` | 64 files, 20,928 lines | 28 files, 9,514 lines | 8 files, 611 lines |
 | `collab/` | 20 files, 13,525 lines | 22 files, 14,131 lines | none |
@@ -18,9 +18,9 @@ Roughly 530,000 lines of TypeScript, tests included, and 46,000 lines of CSS.
 | `org/` | 19 files, 6,020 lines | 15 files, 4,008 lines | none |
 | `catalog/` | 2 files, 859 lines | 1 file, 86 lines | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 4 files, 857 lines | 81 files, 42,759 lines |
+| `styles/` | none | 4 files, 857 lines | 81 files, 42,794 lines |
 
-Plus 45 `.ts`/`.js` files at the top level of `src/`, 15,119 lines all told, of which 20 are tests and 3 are ambient declarations. `main.ts` is 2,051 of that.
+Plus 45 `.ts`/`.js` files at the top level of `src/`, 15,120 lines all told, of which 20 are tests and 3 are ambient declarations. `main.ts` is 2,051 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature
@@ -66,7 +66,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | 3,659 | `views/color-lab.ts` | yes |
 | 3,260 | `views/projects.ts` | none |
 | 3,143 | `bridge/sequence-render.ts` | yes |
-| 3,133 | `views/gallery.ts` | none |
+| 3,062 | `views/gallery.ts` | none |
 | 3,020 | `bridge/export-svg-walker.ts` | **none** |
 | 2,674 | `views/deck-editor.ts` | yes |
 | 2,504 | `views/design-import.ts` | **none** |

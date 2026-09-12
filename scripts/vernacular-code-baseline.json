@@ -375,7 +375,7 @@
   "shells/web/src/views/free-canvas-timeline-add.test.ts": 1,
   "shells/web/src/views/free-canvas-tools.test.ts": 1,
   "shells/web/src/views/free-canvas.ts": 5,
-  "shells/web/src/views/gallery.ts": 6,
+  "shells/web/src/views/gallery.ts": 5,
   "shells/web/src/views/grade-inline.ts": 1,
   "shells/web/src/views/inputs-sync.test.ts": 1,
   "shells/web/src/views/inputs-sync.ts": 2,
