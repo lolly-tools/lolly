@@ -125,8 +125,9 @@ export function templateSessionSource(
  * surface: the list is the collection's own `pickable()`, so the tab shows exactly what
  * `#/p/__templates__` shows, and a pick reuses the collection's two actions - open the
  * tool seeded from the template, or file a project from it without opening the editor.
- * The collection is loaded here on demand, because the Projects root never needs it
- * until this tab asks.
+ * The collection is loaded by `list()`, which the tab calls once when the picker mounts,
+ * so opening the tab is instant on every visit and the Projects root itself never pays
+ * for a collection nobody has asked for.
  */
 export function templatePickerSource(
   tpl: TemplatesCollection,

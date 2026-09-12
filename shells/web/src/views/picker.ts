@@ -1105,8 +1105,8 @@ async function render(
       }
       return;
     }
-    // A template card: the tab module owns both its controls and says when it handled one.
-    if (templatesTab && await templatesTab.handle(e.target as HTMLElement)) return;
+    // A template card: the tab module says when it handled one, inside this dispatch.
+    if (templatesTab?.handle(e.target as HTMLElement)) return;
     // Collect mode: a tool tile's "+ Add" quick-adds a default session (no editor). Must
     // beat the [data-tool-id] primary it sits inside.
     const quick = (e.target as HTMLElement).closest<HTMLElement>('[data-quickadd-tool]');

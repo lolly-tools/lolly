@@ -37,8 +37,14 @@ export interface TemplatesTab {
   render(query: string): void;
   /** Matches for the tab's search badge (0 until the list has arrived). */
   count(query: string): number;
-  /** True when the click was a template card, so the picker stops handling it. */
-  handle(target: HTMLElement): Promise<boolean>;
+  /**
+   * True when the click was a template card, so the picker stops handling it.
+   * Answers synchronously: the picker's click handler calls preventDefault and
+   * stopPropagation on the branches below this one, and neither counts for anything
+   * once the event has finished dispatching. So a quick-add's own work runs in the
+   * background and the answer comes back inside the same dispatch.
+   */
+  handle(target: HTMLElement): boolean;
 }
 
 /** Fold for matching: lowercase, diacritics stripped (the Projects search rule). */
@@ -83,14 +89,18 @@ export function mountTemplatesTab(source: CollectTemplates, deps: TemplatesTabDe
     return (list ?? []).filter(template => matchesPickerTemplate(template, query)).length;
   }
 
-  async function handle(target: HTMLElement): Promise<boolean> {
+  function handle(target: HTMLElement): boolean {
     // The "+ Add" control sits INSIDE the card cell, so it is tested first.
     const quick = target.closest<HTMLElement>('[data-quickadd-template]');
     if (quick) {
-      const result = await source.onQuickAdd(quick.dataset.quickaddTemplate ?? '');
-      // A silent result means the person dismissed a step, so nothing was added and
-      // there is nothing to report.
-      if (!(typeof result === 'object' && result.silent)) deps.flash(quick, result);
+      // Claiming the click is the synchronous part; filing the project is not, so it
+      // runs on its own and flashes the card once it finishes.
+      void (async () => {
+        const result = await source.onQuickAdd(quick.dataset.quickaddTemplate ?? '');
+        // A silent result means the person dismissed a step, so nothing was added and
+        // there is nothing to report.
+        if (!(typeof result === 'object' && result.silent)) deps.flash(quick, result);
+      })();
       return true;
     }
     const open = target.closest<HTMLElement>('[data-template-ref]');
