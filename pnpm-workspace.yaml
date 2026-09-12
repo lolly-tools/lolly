@@ -29,3 +29,14 @@ overrides:
   'nanoid': '^3.3.17'
   '@huggingface/transformers>sharp': '$sharp'
   '@huggingface/transformers>onnxruntime-node': '$onnxruntime-node'
+  # One Chromium revision for the whole repo. `playwright` pins its own
+  # `playwright-core` to an exact version, and each release expects a different
+  # `chromium-<revision>` directory. The browser is downloaded by the CLI installer
+  # through playwright-core (shells/cli/src/install-browser.ts), while the browser-tier
+  # tests and the capture scripts launch it through the full `playwright`. Let those two
+  # drift a minor apart and the installer writes chromium-1234 while the tests look for
+  # chromium-1243, so every one of them skips with "no Chromium" on a machine that has
+  # one. Pinning core to whatever `playwright` asks for keeps the download and the
+  # lookup on the same revision, including for the workspace packages that ask for a
+  # much older floor (shells/cli, shells/tui, packages/node-shell, services/mcp).
+  'playwright-core': '$playwright'
