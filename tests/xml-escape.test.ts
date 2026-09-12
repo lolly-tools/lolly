@@ -19,9 +19,12 @@ test('leaves ordinary text untouched', () => {
   assert.equal(escapeXml('Hello, world!'), 'Hello, world!');
 });
 
-test('escapes ampersand first so entities are not double-escaped', () => {
-  // If '<' were escaped before '&', "&lt;" would become "&amp;lt;" - wrong.
-  assert.equal(escapeXml('<'), '&lt;');
+test('escapes ampersand before the other four entities, so a literal < is not double-escaped', () => {
+  // If '<' were escaped before '&', the '&lt;' it produces would then have its own
+  // '&' escaped too, corrupting the output to '&amp;lt;&amp;' instead of '&lt;&amp;'.
+  assert.equal(escapeXml('<&'), '&lt;&amp;');
+  // Literal text that merely looks like an entity is not treated as already escaped -
+  // its '&' still becomes '&amp;' regardless of ordering.
   assert.equal(escapeXml('&lt;'), '&amp;lt;');
 });
 

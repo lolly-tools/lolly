@@ -89,18 +89,28 @@ test('comparisonValue marks a cyclic object as truncated instead of recursing fo
   assert.ok(text.includes('[repeated reference]'));
 });
 
-test('comparisonValue caps a wide object at 20 keys and a deep one past 8 levels', () => {
-  const wide: Record<string, number> = {};
-  for (let i = 0; i < 30; i++) wide[`k${i}`] = i;
-  const { truncated: wideTruncated } = comparisonValue(wide);
-  assert.equal(wideTruncated, true);
+test('comparisonValue keeps a 20-key object whole and truncates only past the cap', () => {
+  const atCap: Record<string, number> = {};
+  for (let i = 0; i < 20; i++) atCap[`k${i}`] = i;
+  const { truncated: atCapTruncated } = comparisonValue(atCap);
+  assert.equal(atCapTruncated, false);
 
-  let deep: unknown = 'leaf';
-  for (let i = 0; i < 12; i++) deep = { next: deep };
-  const { truncated: deepTruncated } = comparisonValue(deep);
-  assert.equal(deepTruncated, true);
+  const overCap: Record<string, number> = { ...atCap, k20: 20 };
+  const { truncated: overCapTruncated } = comparisonValue(overCap);
+  assert.equal(overCapTruncated, true);
 });
 
-test('COMPARE_MAX_TEXT is a positive 2MB byte budget shared by comparison callers', () => {
-  assert.equal(COMPARE_MAX_TEXT, 2 * 1024 * 1024);
+test('comparisonValue walks 8 levels of nesting whole and truncates only past the cap', () => {
+  let atCap: unknown = 'leaf';
+  for (let i = 0; i < 8; i++) atCap = { next: atCap };
+  const { truncated: atCapTruncated } = comparisonValue(atCap);
+  assert.equal(atCapTruncated, false);
+
+  const overCap = { next: atCap };
+  const { truncated: overCapTruncated } = comparisonValue(overCap);
+  assert.equal(overCapTruncated, true);
+});
+
+test('COMPARE_MAX_TEXT pins the documented 2 MiB byte budget shared by comparison callers', () => {
+  assert.equal(COMPARE_MAX_TEXT, 2097152);
 });

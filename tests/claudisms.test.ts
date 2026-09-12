@@ -56,16 +56,18 @@ test('every Tell and fingerprint regex carries the global flag', () => {
 
 test('known leaked-artifact strings actually match their documented fingerprint', () => {
   const cases: Array<[string, string]> = [
-    ['oaicite', 'here is a claim oaicite text'],
-    ['contentReference[oaicite', ':contentReference[oaicite:1]{index=1}'],
-    ['turn tool-call token', 'a claim turn0search3 more text'],
-    ['ChatML tag', 'before <|im_start|> after'],
+    ['OpenAI citation token (oaicite)', 'here is a claim oaicite text'],
+    ['OpenAI contentReference token', ':contentReference[oaicite:1]{index=1}'],
+    ['OpenAI tool-call token', 'a claim turn0search3 more text'],
+    ['ChatML scaffolding tag', 'before <|im_start|> after'],
     ['Gemini span token', 'a fact [span_12] noted'],
     ['Claude tool-scaffolding tag', 'raw output <antml:invoke>'],
   ];
   for (const [label, sample] of cases) {
-    const hit = MODEL_FINGERPRINTS.some(fp => new RegExp(fp.re.source, fp.re.flags).test(sample));
-    assert.ok(hit, `expected some fingerprint to match sample for "${label}": ${sample}`);
+    const fingerprint = MODEL_FINGERPRINTS.find(fp => fp.label === label);
+    assert.ok(fingerprint, `expected a fingerprint labelled "${label}"`);
+    const re = new RegExp(fingerprint!.re.source, fingerprint!.re.flags);
+    assert.ok(re.test(sample), `expected "${label}" to match sample: ${sample}`);
   }
 });
 
