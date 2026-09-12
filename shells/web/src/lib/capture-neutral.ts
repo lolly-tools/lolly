@@ -69,13 +69,41 @@ export function applyCaptureNeutral(): boolean {
 /** Attribute a settled view carries, as a `waitSelector=` recipe would name it. */
 export const CAPTURE_SETTLED_ATTR = 'data-shots-settled';
 
-/** Attribute a surface carries while it is still filling itself in - a gallery strip's
- *  dot whose look has not rendered yet (views/gallery-carousel.ts). A capture waits for
- *  these to clear, so a baseline frames a filled grid rather than a race. */
-export const PENDING_ATTR = 'data-pending';
+/** Attribute a look carries while it is still rendering - a gallery strip's dot whose
+ *  look has not arrived yet (views/gallery-carousel.ts). Gallery-specific on purpose:
+ *  a bare `data-pending` is a name a tool template already uses for its own business,
+ *  and the settle below must only ever wait for looks. */
+export const LOOK_PENDING_ATTR = 'data-look-pending';
 
-/** Rounds a pending count may sit UNCHANGED before the settle gives up waiting on it. */
-export const PENDING_STALL = 3;
+/** What the settle stamps onto, and what it needs from it. */
+type SettleRoot = ParentNode & Node & { setAttribute(name: string, value: string): void };
+
+/**
+ * Resolve once no look under `root` is still rendering.
+ *
+ * The stop point is the looks themselves, never a duration: a look clears its attribute
+ * in the very `load`/`error` handler its image fires (views/gallery.ts's renderSlide),
+ * and the render's own catch clears it when no image ever arrives - so every look ends
+ * in a state, and a MutationObserver over that attribute sees each one land. The count
+ * reaching zero is the signal. A guessed budget would be back where this started: a
+ * frame called final while half the grid was still blank.
+ *
+ * Resolves immediately when nothing is pending, which is every page but the gallery.
+ * `childList` is watched as well as the attribute, because the last pending dot can
+ * also leave by being removed (a strip rebuilt as a static deck).
+ */
+function looksFinished(root: SettleRoot): Promise<void> {
+  const pending = (): number => root.querySelectorAll(`[${LOOK_PENDING_ATTR}]`).length;
+  if (!pending()) return Promise.resolve();
+  return new Promise<void>((resolve) => {
+    const observer = new MutationObserver(() => {
+      if (pending()) return;
+      observer.disconnect();
+      resolve();
+    });
+    observer.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: [LOOK_PENDING_ATTR] });
+  });
+}
 
 /**
  * Stamp `data-shots-settled` on `root` once every image under it has finished loading,
@@ -95,14 +123,13 @@ export const PENDING_STALL = 3;
  * must not stall a capture, and it is equally broken in every run.
  *
  * The second half of "final" is content that has not been REQUESTED yet. A gallery
- * strip's looks render one at a time (views/gallery-carousel.ts), and an `<img>` with no
- * `src` reports `complete` - so a round can look quiet while a look is still rendering
- * into it. Anything still filling itself in says so with `data-pending`, and a round
- * that sees one is not quiet. That is bounded twice over: the round cap below still
- * ends the wait, and a pending count that stops MOVING for PENDING_STALL rounds is
- * treated as done (a strip whose render will never arrive must not hold a capture).
+ * strip's looks render one at a time (views/gallery.ts's preview queue), and an `<img>`
+ * with no `src` reports `complete` - so the image wait above passes straight over a look
+ * whose render has not started. `looksFinished` is the other half: no frame is final
+ * while a look is still coming. Under the pin nothing parks, so every look reaches a
+ * state (views/gallery.ts's previewPriority).
  */
-export function settleForCapture(root: ParentNode & { setAttribute(n: string, v: string): void }): void {
+export function settleForCapture(root: SettleRoot): void {
   if (!captureNeutralPinned()) return;
   void (async () => {
     // Repeat until the image set STOPS GROWING. One pass is not enough: the gallery
@@ -115,8 +142,6 @@ export function settleForCapture(root: ParentNode & { setAttribute(n: string, v:
     // roughly 4 with a whole extra strip and a +26% baseline.
     let stable = 0;
     let prev = -1;
-    let prevPending = -1;
-    let stalled = 0;
     for (let round = 0; round < 40 && stable < 2; round++) {
       const imgs = Array.from(root.querySelectorAll('img'));
       for (const im of imgs) im.loading = 'eager';
@@ -127,16 +152,16 @@ export function settleForCapture(root: ParentNode & { setAttribute(n: string, v:
       // decode() turns "bytes arrived" into "pixels ready"; a rejection (a broken
       // image) is as final as a success, so it settles rather than throws.
       await Promise.all(imgs.map((im) => im.decode?.().catch(() => undefined)));
+      await looksFinished(root);
       // Let any observer fire against the now-settled layout, then re-count.
       await new Promise<void>((res) => setTimeout(res, 150));
       const now = root.querySelectorAll('*').length;
-      const pending = root.querySelectorAll(`[${PENDING_ATTR}]`).length;
-      stalled = pending > 0 && pending === prevPending ? stalled + 1 : 0;
-      const quiet = now === prev && (pending === 0 || stalled >= PENDING_STALL);
-      stable = quiet ? stable + 1 : 0;
+      stable = now === prev ? stable + 1 : 0;
       prev = now;
-      prevPending = pending;
     }
+    // The stamp says FINAL, so the looks get the last word: a strip that hydrated in
+    // the final round has to finish before the frame is handed to the walker.
+    await looksFinished(root);
     root.setAttribute(CAPTURE_SETTLED_ATTR, 'true');
   })();
 }

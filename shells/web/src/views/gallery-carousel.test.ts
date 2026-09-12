@@ -23,10 +23,10 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { JSDOM } from 'jsdom';
 import {
-  CAR_FAILED_ATTR, CAR_PENDING_ATTR, advanceCarousel, carouselDotsMarkup, carouselNavMarkup,
+  CAR_FAILED_ATTR, CAR_INERT_ATTR, CAR_PENDING_ATTR, advanceCarousel, carouselDotsMarkup, carouselNavMarkup,
   markLookFailed, markLookReady, readyCarIndices, setCarDot, stripCarouselNav, syncCarState, wireCarousel,
 } from './gallery-carousel.ts';
-import { PENDING_ATTR } from '../lib/capture-neutral.ts';
+import { LOOK_PENDING_ATTR } from '../lib/capture-neutral.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CSS = readFileSync(join(HERE, '..', 'styles', 'parts', 'gallery.css'), 'utf8');
@@ -83,7 +83,7 @@ test('the nav and the dot row come from the look COUNT, before a single look ren
   // Nothing has rendered: every dot says so, and the arrows advertise that there is
   // nowhere to step yet rather than appearing later out of nowhere.
   assert.equal(s.pending(), 3);
-  assert.deepEqual(s.nav().map((b) => b.getAttribute('aria-disabled')), ['true', 'true']);
+  assert.deepEqual(s.nav().map((b) => b.hasAttribute(CAR_INERT_ATTR)), [true, true]);
   assert.deepEqual(s.slides().map((sl) => sl.classList.contains('is-loaded')), [false, false, false]);
   assert.ok(s.dots()[0]!.classList.contains('is-active'), 'the first dot is the position indicator from the start');
 });
@@ -150,17 +150,17 @@ test('advance steps only READY looks, skipping the panes still rendering', (t) =
   assert.equal(s.at(), 3);
 });
 
-test('with only the cover ready the arrows are inert: aria-disabled, and no hop', (t) => {
+test('with only the cover ready the arrows are inert: marked, and no hop', (t) => {
   const s = strip(t, 3);
   markLookReady(s.gcar, s.slides()[0]!);
-  assert.deepEqual(s.nav().map((b) => b.getAttribute('aria-disabled')), ['true', 'true']);
+  assert.deepEqual(s.nav().map((b) => b.hasAttribute(CAR_INERT_ATTR)), [true, true]);
   s.click('.gcar-next');
   assert.equal(s.at(), 0, 'a click on a disabled arrow moves nothing');
   s.click('.gcar-prev');
   assert.equal(s.at(), 0);
   // A second look decodes and the same arrows become live controls.
   markLookReady(s.gcar, s.slides()[2]!);
-  assert.deepEqual(s.nav().map((b) => b.getAttribute('aria-disabled')), ['false', 'false']);
+  assert.deepEqual(s.nav().map((b) => b.hasAttribute(CAR_INERT_ATTR)), [false, false]);
   s.click('.gcar-next');
   assert.equal(s.at(), 2);
 });
@@ -218,6 +218,10 @@ test('the view builds its nav and dots from the count, and clears pending where 
   assert.match(VIEW, /catch \(e\) \{[\s\S]{0,200}markLookFailed\(gcar, slide\);/);
   // A strip with no renders coming loses its nav rather than sitting pending forever.
   assert.match(VIEW, /if \(perfUiOn\(\)\) \{ gcar\.classList\.add\('has-art'\); stripCarouselNav\(gcar\); return; \}/);
+  // The other way a look could sit pending for good: a tile with no box (filtered out
+  // by a search, or the whole grid in hide-previews mode) parks its render. A capture
+  // waits for every look, so under the pin it renders last instead of never.
+  assert.match(VIEW, /if \(!rect\.width \|\| !rect\.height\) return captureNeutralPinned\(\) \? 3 : null;/);
 });
 
 test('the dots live INSIDE .gcar, which is what hide-previews mode already hides', (t) => {
@@ -235,7 +239,7 @@ test('the dots live INSIDE .gcar, which is what hide-previews mode already hides
 
 test('the pending and failed dot states are styled, and only the pulse is motion', () => {
   // Both states share one appearance rule, and both are out of the hit test.
-  const block = /\.gcar-dot\[data-pending\],\s*\.gcar-dot\[data-failed\] \{([^}]*)\}/.exec(CSS);
+  const block = /\.gcar-dot\[data-look-pending\],\s*\.gcar-dot\[data-failed\] \{([^}]*)\}/.exec(CSS);
   assert.ok(block, 'gallery.css carries no pending/failed dot rule');
   assert.match(block![1]!, /pointer-events: none/);
   assert.match(block![1]!, /background:/);
@@ -245,17 +249,35 @@ test('the pending and failed dot states are styled, and only the pulse is motion
   // Nothing in the STATIC state animates; the pulse is its own rule, so base.css's
   // reduced-motion blocks (OS query and app pref alike) leave a legible dot behind.
   assert.equal(/animation/.test(block![1]!), false);
-  assert.match(CSS, /\.gcar-dot\[data-pending\] \{ animation: gcar-dot-wait [^}]*\}/);
+  assert.match(CSS, /\.gcar-dot\[data-look-pending\] \{ animation: gcar-dot-wait [^}]*\}/);
   assert.match(CSS, /@keyframes gcar-dot-wait/);
-  // A disabled arrow is visibly disabled and does not light up under the pointer.
-  assert.match(CSS, /\.gcar-nav\[aria-disabled="true"\] \{ cursor: default; \}/);
-  assert.match(CSS, /\.gcar-nav\[aria-disabled="true"\]:hover \{ background: rgba\(0, 0, 0, \.42\); \}/);
+  // An inert arrow is visibly inert and does not light up under the pointer.
+  assert.match(CSS, /\.gcar-nav\[data-nav-inert\] \{ cursor: default; \}/);
+  assert.match(CSS, /\.gcar-nav\[data-nav-inert\]:hover \{ background: rgba\(0, 0, 0, \.42\); \}/);
 });
 
-test('the strip and the capture pin share ONE name for pending', () => {
-  assert.equal(CAR_PENDING_ATTR, PENDING_ATTR);
-  assert.equal(CAR_PENDING_ATTR, 'data-pending');
+test('the inert arrow is a DATA attribute, because the arrows are aria-hidden', () => {
+  // These arrows carry aria-hidden and tabindex="-1" by design: the card's own link is
+  // what assistive tech is offered, and the strip is decorative beside it. An
+  // aria-disabled on a node no accessibility tree contains would be an ARIA name worn
+  // by a CSS hook - so the inert state says what it is instead.
+  assert.equal(CAR_INERT_ATTR, 'data-nav-inert');
+  assert.match(carouselNavMarkup(2), /tabindex="-1" aria-hidden="true" data-nav-inert /);
+  assert.equal(/aria-disabled/.test(carouselNavMarkup(2)), false, 'no ARIA state on an aria-hidden control');
+  assert.equal(
+    /\.gcar-nav\[aria-disabled/.test(CSS), false,
+    'and the sheet paints the data attribute, so the two cannot drift',
+  );
+});
+
+test('the strip and the capture pin share ONE name for pending, and it is look-specific', () => {
+  assert.equal(CAR_PENDING_ATTR, LOOK_PENDING_ATTR);
+  // Named for looks, not for pending-in-general: a bare `data-pending` is already the
+  // annotate tool's own template attribute, and the capture settle waits on every
+  // element carrying this name - so an unnamespaced one would make a tool's private
+  // state hold a docs capture open.
+  assert.equal(CAR_PENDING_ATTR, 'data-look-pending');
   // A capture that stamped the frame final while a look was still rendering is exactly
   // the race the attribute exists to close, so the two must never drift.
-  assert.match(carouselDotsMarkup(2), new RegExp(`<button class="gcar-dot is-active" type="button" data-i="0" ${PENDING_ATTR} `));
+  assert.match(carouselDotsMarkup(2), new RegExp(`<button class="gcar-dot is-active" type="button" data-i="0" ${LOOK_PENDING_ATTR} `));
 });

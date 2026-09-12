@@ -33,9 +33,12 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https
 globalThis.window = dom.window as unknown as typeof globalThis.window;
 globalThis.document = dom.window.document;
 globalThis.localStorage = dom.window.localStorage;
+// The settle watches the pending looks with a MutationObserver, so the run needs the
+// real one rather than a quietly absent global that would let every wait resolve.
+globalThis.MutationObserver = dom.window.MutationObserver;
 
 const {
-  CAPTURE_NEUTRAL_KEY, CAPTURE_SETTLED_ATTR, NEUTRALISED_FLAGS, PENDING_ATTR, PENDING_STALL,
+  CAPTURE_NEUTRAL_KEY, CAPTURE_SETTLED_ATTR, LOOK_PENDING_ATTR, NEUTRALISED_FLAGS,
   applyCaptureNeutral, captureNeutralPinned, settleForCapture,
 } = await import('./capture-neutral.ts');
 const { flagEnabledSync, overrideFlagInMemory, JELLY_FLAG, NEUROSPICY_FLAG } = await import('../feature-flags.ts');
@@ -135,50 +138,91 @@ async function waitFor(ready: () => boolean, budgetMs = 6000): Promise<boolean> 
   return ready();
 }
 
-/** A detached root holding `n` surfaces that say they are still filling in. */
-function pendingRoot(n: number): HTMLElement {
+/**
+ * A detached strip of `n` looks, wired the way views/gallery.ts wires a real one: an
+ * `<img>` per look with no `src` yet, and a dot that leaves its pending state in the
+ * image's OWN `load`/`error` handler. Dispatching the event is therefore the same
+ * signal the gallery gets, which is the point - the settle has to stop on the looks
+ * landing, not on a duration.
+ */
+function lookStrip(n: number) {
   const root = document.createElement('div');
-  root.innerHTML = Array.from({ length: n }, () => `<button ${PENDING_ATTR}></button>`).join('');
+  root.innerHTML = Array.from({ length: n }, (_, i) =>
+    `<li><img data-i="${i}" alt=""></li><button class="dot" data-i="${i}" ${LOOK_PENDING_ATTR}></button>`).join('');
   document.body.append(root);
-  return root;
+  const imgs = [...root.querySelectorAll<HTMLImageElement>('img')];
+  imgs.forEach((img, i) => {
+    const dot = root.querySelector<HTMLElement>(`.dot[data-i="${i}"]`)!;
+    img.addEventListener('load', () => dot.removeAttribute(LOOK_PENDING_ATTR), { once: true });
+    img.addEventListener('error', () => dot.removeAttribute(LOOK_PENDING_ATTR), { once: true });
+  });
+  return {
+    root,
+    pending: () => root.querySelectorAll(`[${LOOK_PENDING_ATTR}]`).length,
+    settled: () => root.hasAttribute(CAPTURE_SETTLED_ATTR),
+    /** The look arrives, or gives up. Both clear its dot; nothing else does. */
+    land: (i: number, how: 'load' | 'error') => { imgs[i]!.dispatchEvent(new dom.window.Event(how)); },
+  };
 }
 
-test('pinned: the settle waits for a pending surface before stamping the frame final', async () => {
+test('pinned: the settle waits for every look, and a look that ERRORS still ends the wait', async () => {
   reset();
   localStorage.setItem(CAPTURE_NEUTRAL_KEY, '1');
-  const root = pendingRoot(2);
-  settleForCapture(root);
-  // A gallery strip renders its looks one at a time and an <img> with no src reports
-  // `complete`, so waiting on images alone would call this frame final with two looks
-  // still to come. The pending attribute is what closes that race.
-  await new Promise((res) => setTimeout(res, 400));
-  assert.equal(root.hasAttribute(CAPTURE_SETTLED_ATTR), false, 'a pending surface holds the capture');
-  for (const el of root.querySelectorAll(`[${PENDING_ATTR}]`)) el.removeAttribute(PENDING_ATTR);
-  assert.ok(await waitFor(() => root.hasAttribute(CAPTURE_SETTLED_ATTR)),
-    'once nothing is pending the frame settles');
-  root.remove();
+  const s = lookStrip(2);
+  settleForCapture(s.root);
+  // An <img> with no src reports `complete`, so the image wait passes over both looks
+  // on its first pass. Without the pending attribute the frame would be called final
+  // here, with the whole strip still blank - the race this exists to close.
+  await new Promise((res) => setTimeout(res, 500));
+  assert.equal(s.settled(), false, 'two looks still rendering, so the frame is not final');
+  assert.equal(s.pending(), 2);
+
+  s.land(0, 'load');
+  await new Promise((res) => setTimeout(res, 500));
+  assert.equal(s.settled(), false, 'one look down, one to go: still not final');
+
+  // A look that fails is as FINISHED as one that decodes - the dot leaves pending
+  // either way, so a dead look can neither breathe forever nor hold a capture.
+  s.land(1, 'error');
+  assert.ok(await waitFor(() => s.settled()), 'the last look arriving is what stamps the frame');
+  assert.equal(s.pending(), 0, 'and the stamp means it: nothing under the root is still coming');
+  s.root.remove();
 });
 
-test('pinned: a pending surface that never resolves cannot hold the capture open', async () => {
+test('pinned: the settle never stamps over a look that has not arrived', async () => {
   reset();
   localStorage.setItem(CAPTURE_NEUTRAL_KEY, '1');
-  // A parked render (or a tool that will never produce a look) must not turn a capture
-  // into a timeout: a pending count that stops MOVING is treated as done.
-  const root = pendingRoot(1);
+  // No round budget, no stalled-count escape, no timer: the ONLY thing that ends the
+  // wait is the look reaching a state. A capture whose look is genuinely stuck fails
+  // loudly at the recipe's own timeout, which beats a baseline of a half-empty grid.
+  const s = lookStrip(1);
+  settleForCapture(s.root);
+  await new Promise((res) => setTimeout(res, 1200));
+  assert.equal(s.settled(), false, 'well past any round budget, and still honest about it');
+  s.land(0, 'load');
+  assert.ok(await waitFor(() => s.settled()), 'and it settles the moment the look arrives');
+  s.root.remove();
+});
+
+test('pinned: a page with no looks at all settles on its images alone', async () => {
+  reset();
+  localStorage.setItem(CAPTURE_NEUTRAL_KEY, '1');
+  // Every page but the gallery. The pending wait must be a no-op there, not a new
+  // reason for a tool or docs shot to sit waiting.
+  const root = document.createElement('div');
+  root.innerHTML = '<p>no strip here</p>';
+  document.body.append(root);
   settleForCapture(root);
-  assert.ok(await waitFor(() => root.hasAttribute(CAPTURE_SETTLED_ATTR)), 'the wait is bounded');
-  assert.ok(root.querySelector(`[${PENDING_ATTR}]`), 'and it settled WITH the surface still pending');
-  assert.ok(PENDING_STALL >= 2 && PENDING_STALL <= 6,
-    'the stall budget is a few rounds: long enough to let a slow render land, short enough not to stall a run');
+  assert.ok(await waitFor(() => root.hasAttribute(CAPTURE_SETTLED_ATTR)), 'settles as it always did');
   root.remove();
 });
 
 test('unpinned: the settle never runs, so no visitor pays for it', () => {
   reset();
-  const root = pendingRoot(1);
-  settleForCapture(root);
-  assert.equal(root.hasAttribute(CAPTURE_SETTLED_ATTR), false);
-  root.remove();
+  const s = lookStrip(1);
+  settleForCapture(s.root);
+  assert.equal(s.settled(), false);
+  s.root.remove();
 });
 
 // ── Contract: the capture pipeline sets what this module reads ────────────────

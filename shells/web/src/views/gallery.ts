@@ -1238,7 +1238,12 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   function previewPriority(gcar: HTMLElement, cover: boolean): number | null {
     // Measure the tile: content-visibility may skip its off-screen descendants.
     const rect = (gcar.closest('.gtile') ?? gcar).getBoundingClientRect();
-    if (!rect.width || !rect.height) return null;
+    // A tile with no box is display:none - filtered out by a search, or a whole grid
+    // in hide-previews mode. Park its render; nothing is waiting to see it.
+    // Except under a capture: the settle holds the frame until every look has loaded
+    // or failed (lib/capture-neutral.ts), so a parked look would hold it open for
+    // good. Render it last instead - off-screen work, but work that ENDS.
+    if (!rect.width || !rect.height) return captureNeutralPinned() ? 3 : null;
     const near = rect.bottom >= -250 && rect.top <= window.innerHeight + 250;
     return cover ? (near ? 0 : 1) : (near || captureNeutralPinned() || typeof IntersectionObserver === 'undefined' ? 2 : null);
   }
