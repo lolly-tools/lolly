@@ -25,7 +25,8 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 
@@ -35,7 +36,15 @@ globalThis.document = dom.window.document;
 globalThis.localStorage = dom.window.localStorage;
 
 const { NAV_SECTIONS } = await import('./profile.ts');
-const SRC = readFileSync(fileURLToPath(new URL('./profile.ts', import.meta.url)), 'utf8');
+// The profile view is an orchestrator plus feature modules under views/profile/ (2026-09-12
+// split), so a source pin reads all of it rather than guessing which module a line moved to.
+const profileSrc = (): string => {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const read = (p: string): string => readFileSync(p, 'utf8');
+  return [read(join(here, 'profile.ts')),
+    ...readdirSync(join(here, 'profile')).filter((n) => n.endsWith('.ts')).sort().map((n) => read(join(here, 'profile', n)))].join('\n');
+};
+const SRC = profileSrc();
 
 test('every section is a <details> card wired to startOpen - no always-open sections left', () => {
   for (const s of NAV_SECTIONS) {
@@ -44,7 +53,7 @@ test('every section is a <details> card wired to startOpen - no always-open sect
       'the collapsible card shape is the only card shape',
     );
     assert.ok(
-      SRC.includes(`id="${s.id}"\${startOpen('${s.id}')}`),
+      SRC.includes(`id="${s.id}"\${pv.rows.startOpen('${s.id}')}`),
       `${s.id} takes its open state from startOpen()`,
     );
   }
@@ -53,7 +62,7 @@ test('every section is a <details> card wired to startOpen - no always-open sect
 
 test('the default is CLOSED, with a stored open state or a ?focus= target as the only openers', () => {
   assert.ok(
-    SRC.includes("const startOpen = (id: string) => (openState[id] || focusSectionId === id ? ' open' : '');"),
+    SRC.includes("export const startOpen = (pv: ProfileViewCtx, id: string) => { const { focusSectionId } = pv; return (pv.openState[id] || focusSectionId === id ? ' open' : ''); };"),
     'no entry and no focus target ⇒ no open attribute',
   );
   // The two legacy aliases name a section, so a deep link never arrives at a folded card
@@ -90,7 +99,7 @@ test('Sync across devices is a sub-block of Connected services, not a card of it
   assert.ok(card.indexOf('id="connections-body"') < card.indexOf('id="sync-body"'), 'in that order');
   // One toggle, two lazy bodies.
   assert.ok(
-    SRC.includes('const loadConnectionsCard = (): void => { void loadConnections(); void loadSync(); };'),
+    SRC.includes('export const loadConnectionsCard = (pv: ProfileViewCtx): void => { void loadConnections(pv); void loadSync(pv); };'),
     'both bodies mount when the card opens',
   );
   const conn = NAV_SECTIONS.find((s) => s.id === 'connections-section')!;
@@ -107,8 +116,8 @@ test('old ?focus=sync-section links resolve to the merged card', () => {
 });
 
 test('the Feature flags list renders the connectors as one named cluster', () => {
-  assert.ok(SRC.includes('CONNECTOR_FLAGS.map(flagRow)'), 'the cluster is the registry, not a hand-kept copy');
+  assert.ok(SRC.includes('CONNECTOR_FLAGS.map(pv.rows.flagRow)'), 'the cluster is the registry, not a hand-kept copy');
   assert.ok(SRC.includes('class="feature-flag-group"'), 'with a heading row of its own');
   // A flip re-mounts the connections card in place; the send surfaces need nothing.
-  assert.ok(SRC.includes("flagId.startsWith('conn-') && connectionsLoaded"), 'a flip re-renders the open card');
+  assert.ok(SRC.includes("flagId.startsWith('conn-') && pv.connectionsLoaded"), 'a flip re-renders the open card');
 });

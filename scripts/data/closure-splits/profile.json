@@ -1,0 +1,47 @@
+{
+  "file": "shells/web/src/views/profile.ts",
+  "fn": "mountProfile",
+  "tsconfig": "shells/web/tsconfig.json",
+  "outDir": "shells/web/src/views/profile",
+  "ctxName": "pv",
+  "ctxType": "ProfileViewCtx",
+  "header": "The profile (settings) view: your details, the preference cards, storage and the offline manager.",
+  "renameImports": { "escape": "escapeText" },
+  "modules": [
+    { "name": "rows", "start": "startOpen", "doc": "profile: which sections start open, the details field controls, the save button and the feature-flag rows." },
+    { "name": "prefs", "start": "a11yRow", "doc": "profile: the accessibility, chrome-follow and render-save preference rows, and the theme picker." },
+    { "name": "summaries", "start": "themeLabel", "doc": "profile: the one-line value each collapsed card shows in its summary." },
+    { "name": "shell", "doc": "profile: the page markup, the settings nav rail and the ?focus= deep-link target." },
+    { "name": "chrome", "doc": "profile: the design-systems and instance cards, the app-chrome wiring, the updates row, the hot folder and the teardown." },
+    { "name": "headshot", "start": "paintHeadshot", "doc": "profile: your details - the opt-in pill, the headshot slot and the form submit." },
+    { "name": "storage", "start": "toolNameOf", "doc": "profile: the Storage card - measuring every slice, the session and image lists, export, import and clear." },
+    { "name": "offline", "start": "loadOffline", "doc": "profile: the Available-offline download manager - per-tool pins, the model parts and the sweep." },
+    { "name": "connections", "start": "loadConnections", "doc": "profile: the Connected services card and the sync-across-devices sub-block." },
+    { "name": "identity", "start": "identityBody", "doc": "profile: the Content Credentials card - enrolment, status and forgetting the identity." }
+  ],
+  "overrides": {
+    "refreshCounter": "storage"
+  },
+  "blocks": [
+    { "name": "renderShell", "module": "shell", "from": 659, "to": 893, "doc": "The whole page markup in one write: the nav rail and every settings card." },
+    { "name": "wireNav", "module": "shell", "from": 905, "to": 1004, "doc": "The settings nav rail: jump, scroll-spy and the search filter." },
+    { "name": "wireFlagRows", "module": "rows", "from": 1009, "to": 1078, "doc": "Feature-flag toggles: auto-save each flip and apply the ones with live effects." },
+    { "name": "wireA11yRows", "module": "prefs", "from": 1084, "to": 1092, "doc": "The four accessibility prefs auto-save on change." },
+    { "name": "wireAppearanceRows", "module": "prefs", "from": 1098, "to": 1106, "doc": "The \"interface follows the design system\" row." },
+    { "name": "wireRenderSaveRows", "module": "prefs", "from": 1110, "to": 1119, "doc": "The \"save my renders\" row." },
+    { "name": "wireFocusTarget", "module": "shell", "from": 1136, "to": 1155, "doc": "The #/profile?focus=<id> deep-link target: open, scroll, highlight." },
+    { "name": "wireThemePick", "module": "prefs", "from": 1161, "to": 1175, "doc": "The Appearance card's theme preview cards." },
+    { "name": "wireInstanceCard", "module": "chrome", "from": 1186, "to": 1214, "doc": "The design-systems card plus the instance Change and Leave buttons." },
+    { "name": "wireChrome", "module": "chrome", "from": 1219, "to": 1235, "doc": "Language FAB, back pill, home FAB, the sound switch and the help tips." },
+    { "name": "wireDetailsOptIn", "module": "headshot", "from": 1238, "to": 1248, "doc": "The opt-in pill follows its checkbox." },
+    { "name": "wireHeadshot", "module": "headshot", "from": 1271, "to": 1313, "doc": "Headshot upload, crop, save and remove." },
+    { "name": "wireDetailsForm", "module": "headshot", "from": 1322, "to": 1347, "doc": "The personal-details form submit." },
+    { "name": "wireOpenState", "module": "rows", "from": 1352, "to": 1358, "doc": "Persist each section's open state across visits." },
+    { "name": "wireStorageToggle", "module": "storage", "from": 2288, "to": 2291, "doc": "Load the Storage card when it is first expanded." },
+    { "name": "wireOfflineToggle", "module": "offline", "from": 3026, "to": 3027, "doc": "Load the offline manager when its card is first expanded." },
+    { "name": "wireUpdatesAndHotFolder", "module": "chrome", "from": 3031, "to": 3062, "doc": "The app-updates row and the desktop-only hot folder form." },
+    { "name": "wireConnectionsToggle", "module": "connections", "from": 3090, "to": 3091, "doc": "Load the connected-services card when it is first expanded." },
+    { "name": "wireIdentityToggle", "module": "identity", "from": 3265, "to": 3266, "doc": "Load the credentials card when it is first expanded." },
+    { "name": "wireCleanup", "module": "chrome", "from": 3272, "to": 3289, "doc": "View teardown: close body-level dialogs and toasts, detach from the offline run." }
+  ]
+}

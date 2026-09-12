@@ -76,13 +76,6 @@
       "importFanOut": 47,
       "typeEscapes": 33
     },
-    "shells/web/src/views/profile.ts": {
-      "lines": 2448,
-      "largestFunctionLines": 2975,
-      "importFanIn": 2,
-      "importFanOut": 61,
-      "typeEscapes": 36
-    },
     "shells/web/src/views/projects.ts": {
       "lines": 2327,
       "largestFunctionLines": 3004,
@@ -705,7 +698,16 @@
     "shells/web/src/views/privacy-notice.ts": 1,
     "shells/web/src/views/profile-connections.ts": 3,
     "shells/web/src/views/profile-sync.ts": 1,
-    "shells/web/src/views/profile.ts": 36,
+    "shells/web/src/views/profile.ts": 4,
+    "shells/web/src/views/profile/chrome.ts": 6,
+    "shells/web/src/views/profile/connections.ts": 1,
+    "shells/web/src/views/profile/headshot.ts": 1,
+    "shells/web/src/views/profile/offline.ts": 4,
+    "shells/web/src/views/profile/prefs.ts": 2,
+    "shells/web/src/views/profile/rows.ts": 4,
+    "shells/web/src/views/profile/shared.ts": 2,
+    "shells/web/src/views/profile/shell.ts": 2,
+    "shells/web/src/views/profile/storage.ts": 10,
     "shells/web/src/views/projects.ts": 25,
     "shells/web/src/views/record-control.ts": 6,
     "shells/web/src/views/retouch-inline.ts": 3,

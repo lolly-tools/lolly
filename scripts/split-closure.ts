@@ -955,7 +955,7 @@ for (const m of plan.modules) {
     return `    ${f.name}: <${tpText}>(${params})${ret} => ${f.name}<${tpNames}>(${ctx}${args ? `, ${args}` : ''}),`;
   };
   const ops = `\nexport function ${m.name}Ops(${ctx}: ${CTX}) {\n  return {\n${[...mod.fns.map(opLine), ...blocksHere.map((b) => `    ${b.name}: bindOp(${ctx}, ${b.name}),`)].join('\n')}\n  };\n}\n`;
-  const doc = `${m.doc ?? `${viewBase}: ${m.name}.`}\n\nEvery function takes the shared \`${ctx}: ${CTX}\` first (see context.ts). Sibling\ncalls in this file are direct; anything in another module, and any function used as\na value (an event listener), goes through \`${ctx}.<module>.<fn>\`. Extracted verbatim\nfrom ${plan.fn}() by scripts/split-closure.ts.`;
+  const doc = `${m.doc ?? `${viewBase}: ${m.name}.`}\n\nEvery function takes the shared \`${ctx}: ${CTX}\` first (see context.ts). Sibling\ncalls in this file are direct; a call into another module, and every use of a\nfunction as a value (an event listener), goes through \`${ctx}.<module>.<fn>\`. Extracted verbatim\nfrom ${plan.fn}() by scripts/split-closure.ts.`;
   writeFileSync(path.join(outDir, `${PFX}${fileOf(m.name)}.ts`), `${header(doc)}${imports.join('\n')}\n${mod.bodies.join('')}${blockBodies}${ops}`);
 }
 
