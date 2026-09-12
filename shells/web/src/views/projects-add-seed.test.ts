@@ -130,7 +130,12 @@ test('opening a user tool seeds its base tool via the in-memory pending seed', (
   assert.match(body, /const ut = userToolById\.get\(toolId\);/, 'recognises a user-tool id');
   assert.match(body, /const openId = ut \? ut\.userTool\.baseToolId : toolId;/, 'routes to the base tool');
   assert.match(body, /setPendingToolSeed\(openId, ut\.userTool\.values\)/, 'stashes the saved values as the mount seed');
-  assert.match(body, /window\.location\.hash = '#\/tool\/' \+ openId;/, 'navigates to the base tool, not the synthetic id');
+  assert.match(body, /openInEditor\('#\/tool\/' \+ openId\);/, 'navigates to the base tool, not the synthetic id');
+  // One exit for every door that leaves for an editor (plans/245), so the tool door and
+  // the Templates tab cannot drift on filing the result back into this folder.
+  assert.match(bodyAfter(CODE, 'const openInEditor = (hash: string): void =>'),
+    /sessionStorage\.setItem\(FILE_INTO_KEY[\s\S]*?armReturn\(\);[\s\S]*?window\.location\.hash = hash;/,
+    'and that exit files what comes back into this folder, then returns here on Save');
 });
 
 test('quick-adding a user tool seeds its base tool without the variation chooser', () => {

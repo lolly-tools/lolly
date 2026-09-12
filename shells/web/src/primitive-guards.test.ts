@@ -1233,8 +1233,16 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // (escapeHtml()d), the t('Ungrouped') heading, and userCard() output, the same card
   // builder the flat list already used.
   // Camera markup moved unchanged to picker-webcam; labels are translated literals.
-  'views/picker.ts': 29,
+  // 29 → 28 2026-09-12 (plans/245): the Tools pane's two sinks (the "no tools match"
+  // state and the card grid) became one, when the pane's markup moved to the shared
+  // builder in views/picker-cards.ts.
+  'views/picker.ts': 28,
   'views/picker-webcam.ts': 1,
+  // The Templates tab's pane (plans/245): ONE sink for the whole pane - loading, the
+  // empty state, or the grid. Reviewed: the only dynamic values are template names,
+  // descriptions and tool names, every one escapeHtml()d by templateCard, and the rest
+  // is t() output.
+  'views/picker-templates.ts': 1,
   // Personal send targets (plans/129): the connections section body. One sink; every
   // dynamic value (labels, provider kind, account names, scopes notes, field values)
   // goes through escape() in oauthRowHtml/credentialRowsHtml, the rest is t() output.

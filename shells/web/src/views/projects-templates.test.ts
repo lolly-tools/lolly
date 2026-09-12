@@ -27,6 +27,8 @@ import {
   type TemplateItem, type TemplatesCtx, type TemplatesToolInfo,
 } from './projects-templates.ts';
 import type { UserTemplate } from '../lib/user-templates.ts';
+import { actionTile } from '../folder-tiles.ts';
+import { templatesRootTile } from './projects-templates-wiring.ts';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -307,6 +309,15 @@ test('hide, restore and delete all go through the shared template actions', asyn
   assert.deepEqual(read().templateStart, undefined, 'and a "Start with" pointing at it is cleared');
 });
 
+test('pickable() is what a person can start from: yours first, hidden left out', async () => {
+  const { host, read } = memoryHost({ userTemplates: OWN, hiddenTemplates: ['chart:flyer'] });
+  const tpl = collection({ host: host as unknown as TemplatesCtx['host'] });
+  await tpl.load(read() as unknown as Parameters<typeof tpl.load>[0]);
+  assert.deepEqual(tpl.pickable().map(i => i.ref), ['user:u1', 'chart:poster'],
+    'the new-asset picker offers exactly this, in this order');
+  assert.equal(tpl.pickable().every(i => !i.hidden), true, 'a hidden starter is not on offer');
+});
+
 test('bulkKinds answers what the current selection can actually do', async () => {
   const { host, read } = memoryHost({ userTemplates: OWN, hiddenTemplates: ['chart:flyer'] });
   const tpl = collection({ host: host as unknown as TemplatesCtx['host'] });
@@ -332,19 +343,55 @@ test('the route mounts the collection like the other synthetic folder', () => {
     'the stale-folder fallback does not bounce the collection to the root');
 });
 
-test('the Templates doors are containers, and neither accepts a drop', () => {
+test('the Templates doors are navigation, and neither accepts a drop', () => {
   assert.match(CODE, /class="projects-chip projects-chip--nav" data-open-folder-nav="\$\{escapeHtml\(TEMPLATES\)\}"/,
     'the rail chip navigates');
   const chip = bodyAfter(WIRING, 'export function templatesRailChip(): string');
   assert.doesNotMatch(chip, /data-drop-folder/, 'the rail chip is NOT a drop target');
   assert.match(VIEW, /\.join\(''\)\}\$\{templatesRailChip\(\)\}/, 'and it always ends the folder rail');
-  const tile = bodyAfter(WIRING, 'export function templatesRootTile(): string');
   assert.match(VIEW, /\$\{teamTile\}\$\{templatesRootTile\(\)\}\$\{trashTile\}/, 'the root grid carries the tile beside Trash');
-  assert.match(tile, /folder-tile--templates/, 'the root tile wears the container silhouette');
-  assert.doesNotMatch(tile, /data-drop-folder|data-ref=/, 'it is neither a drop target nor a selectable item');
+  const rendered = templatesRootTile();
+  assert.doesNotMatch(rendered, /data-drop-folder|data-ref=/, 'it is neither a drop target nor a selectable item');
+  assert.match(rendered, /data-open-folder-nav="__templates__"/, 'it opens the collection');
+  assert.doesNotMatch(rendered, /data-create=/, 'and it never reads as a create action');
+});
+
+test('the three root tiles come out of ONE builder (plans/245)', () => {
+  assert.match(VIEW, /actionTile\('folder', FOLDER_PLUS_ICON, t\('New folder'\)/, 'New folder');
+  assert.match(VIEW, /actionTile\('tool', FILE_PLUS_ICON, t\('New asset'\)/, 'New asset');
+  const tile = bodyAfter(WIRING, 'export function templatesRootTile(): string');
+  assert.match(tile, /actionTile\('templates', TEMPLATE_ICON, t\('Templates'\)/, 'and Templates, same builder');
+  assert.doesNotMatch(tile, /folder-tile|tile-cover|tile-meta|tile-title/, 'no bespoke markup is left behind');
+  const folder = actionTile('folder', '<svg class="glyph"></svg>', 'New folder', 'Group related projects');
+  for (const cls of ['folder-tile--create', 'tile-cover--create', 'tile-title', 'tile-sub']) {
+    assert.ok(folder.includes(cls) && templatesRootTile().includes(cls), `both carry .${cls}`);
+  }
+  assert.match(folder, /data-create="folder"/, 'a create tile carries its kind for the view handler');
   const css = readFileSync(join(HERE, '..', 'styles', 'parts', 'projects.css'), 'utf8');
-  assert.match(css, /\.folder-tile--templates \.tile-cover \{[^}]*aspect-ratio: auto/,
-    'and it reads as a container, not a 4/3 document card');
+  assert.doesNotMatch(css, /folder-tile--templates/, 'and the styles only that tile used are gone');
+});
+
+test('the root shows the same create toolbar a folder header does (plans/245)', () => {
+  assert.match(VIEW, /<div class="projects-roothead">\$\{listCreateBtns\(\)\}/,
+    'the root header row leads with the create buttons, in BOTH view modes');
+  assert.match(VIEW, /\$\{nothingSaved \? '' : batchButtonHtml\(\)\}/,
+    'Batch still waits for the first project - the create buttons do not');
+  const btns = bodyAfter(VIEW, 'function listCreateBtns(isUncat = false): string');
+  assert.match(btns, /btn\('folder', FOLDER_PLUS_ICON, t\('New folder'\)\)/);
+  assert.match(btns, /btn\('tool', FILE_PLUS_ICON, t\('New asset'\)\)/);
+  assert.match(VIEW, /\$\{searching \? '' : listCreateBtns\(isUncat\)\}/, 'a folder header keeps the same call');
+  assert.doesNotMatch(VIEW, /projects-actions/, 'and list mode had its separate actions row removed - one toolbar');
+});
+
+test('the new-asset picker gets its Templates tab from the SAME list (plans/245)', () => {
+  assert.match(CODE, /templates: templatePickerSource\(tpl, profile, \{/, 'the picker is handed a source, not a list');
+  const source = bodyAfter(WIRING, '): CollectTemplates');
+  assert.match(source, /await tpl\.load\(profile\);/, 'the collection fills itself on demand');
+  assert.match(source, /tpl\.pickable\(\)/, 'and owns what a person can start from');
+  assert.match(CODE, /open: \(item\) => \{ openInEditor\(templateUseHref\(item\)\); \}/,
+    'a pick follows the Use link the collection itself uses, filed into this folder');
+  assert.match(CODE, /await addDefaultSession\(item\.toolId, await tpl\.seedForRef\(item\.ref, item\.toolId\)\)/,
+    'and "+ Add" seeds a session from the same resolver the quick-add step uses');
 });
 
 test('the session tile and the selection bar both offer "Save as a template..."', () => {
