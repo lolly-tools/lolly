@@ -9,7 +9,7 @@ Roughly 529,000 lines of TypeScript, tests included, and 46,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 257 files, 144,643 lines | 136 files, 52,360 lines | 3 files, 193 lines |
+| `views/` | 269 files, 145,192 lines | 136 files, 52,389 lines | 3 files, 193 lines |
 | `lib/` | 489 files, 112,101 lines | 296 files, 58,721 lines | 10 files, 1,256 lines |
 | `bridge/` | 129 files, 45,399 lines | 85 files, 20,074 lines | none |
 | `components/` | 64 files, 20,928 lines | 28 files, 9,514 lines | 8 files, 611 lines |
@@ -20,7 +20,7 @@ Roughly 529,000 lines of TypeScript, tests included, and 46,000 lines of CSS.
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
 | `styles/` | none | 4 files, 857 lines | 81 files, 42,758 lines |
 
-Plus 44 `.ts`/`.js` files at the top level of `src/`, 14,967 lines all told, of which 19 are tests and 3 are ambient declarations. `main.ts` is 2,013 of that.
+Plus 44 `.ts`/`.js` files at the top level of `src/`, 14,988 lines all told, of which 19 are tests and 3 are ambient declarations. `main.ts` is 2,013 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature
@@ -64,7 +64,6 @@ Do not be ambushed by these. The largest source files, by line count:
 | 3,933 | `views/tool-inputs.ts` | none |
 | 3,680 | `views/start.ts` | yes |
 | 3,659 | `views/color-lab.ts` | yes |
-| 3,371 | `views/profile.ts` | none |
 | 3,261 | `views/projects.ts` | none |
 | 3,143 | `bridge/sequence-render.ts` | yes |
 | 3,133 | `views/gallery.ts` | none |
@@ -78,6 +77,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,103 | `lib/clip-thumbs.ts` | yes |
 | 2,072 | `pro/index.ts` | yes |
 | 2,062 | `components/collab-ceremony.ts` | yes |
+| 2,013 | `main.ts` | yes |
 <!-- web-src-largest:end -->
 
 The pattern is consistent and worth internalising: the **pure helpers** extracted out of a big view are well covered (`free-canvas-math.ts`, `timeline-math.ts`, `valid-verdict.ts`, `export-css.ts`, `text-svg.ts`, `svg-ir.ts`, `catalog-filter.ts`, `tool-history.ts`, `picker-formats.ts`), while the DOM-mounting bodies of the big views mostly are not. When you change one of the uncovered files, the cheapest way to get coverage is to extract the logic into a sibling pure module and test that, which is how the covered ones came to exist.

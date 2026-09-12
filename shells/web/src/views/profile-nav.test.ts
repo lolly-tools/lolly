@@ -28,7 +28,8 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 
@@ -40,7 +41,15 @@ globalThis.document = dom.window.document;
 globalThis.localStorage = dom.window.localStorage;
 
 const { NAV_SECTIONS } = await import('./profile.ts');
-const PROFILE_SRC = readFileSync(fileURLToPath(new URL('./profile.ts', import.meta.url)), 'utf8');
+// The profile view is an orchestrator plus feature modules under views/profile/ (2026-09-12
+// split), so a source pin reads all of it rather than guessing which module a line moved to.
+const profileSrc = (): string => {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const read = (p: string): string => readFileSync(p, 'utf8');
+  return [read(join(here, 'profile.ts')),
+    ...readdirSync(join(here, 'profile')).filter((n) => n.endsWith('.ts')).sort().map((n) => read(join(here, 'profile', n)))].join('\n');
+};
+const PROFILE_SRC = profileSrc();
 const CSS_SRC = readFileSync(fileURLToPath(new URL('../styles/parts/profile.css', import.meta.url)), 'utf8');
 
 test('NAV_SECTIONS is exported, well-formed and unique', () => {
@@ -108,7 +117,9 @@ test('?focus= honours ANY NAV_SECTIONS id, not a hard-coded list', () => {
 });
 
 test('the rail search runs on lib/search, with no private matcher left', () => {
-  assert.ok(PROFILE_SRC.includes("from '../lib/search/match.ts'"), 'imports the shared matcher');
+  // The rail lives in views/profile/shell.ts since the split, one directory deeper than
+  // the orchestrator, so the specifier is matched at either depth.
+  assert.match(PROFILE_SRC, /from '\.\.\/(?:\.\.\/)?lib\/search\/match\.ts'/, 'imports the shared matcher');
   assert.ok(PROFILE_SRC.includes('scoreHaystack(['), 'scores via scoreHaystack');
   assert.ok(!PROFILE_SRC.includes('hay.includes('), 'the old .includes() copy is gone');
 });
