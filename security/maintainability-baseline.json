@@ -70,11 +70,11 @@
       "typeEscapes": 34
     },
     "shells/web/src/views/picker.ts": {
-      "lines": 2689,
-      "largestFunctionLines": 2206,
+      "lines": 2631,
+      "largestFunctionLines": 2204,
       "importFanIn": 24,
-      "importFanOut": 47,
-      "typeEscapes": 33
+      "importFanOut": 49,
+      "typeEscapes": 32
     },
     "shells/web/src/views/profile.ts": {
       "lines": 2448,
@@ -84,8 +84,8 @@
       "typeEscapes": 36
     },
     "shells/web/src/views/projects.ts": {
-      "lines": 2327,
-      "largestFunctionLines": 3004,
+      "lines": 2323,
+      "largestFunctionLines": 3003,
       "importFanIn": 1,
       "importFanOut": 47,
       "typeEscapes": 25
@@ -698,7 +698,7 @@
     "shells/web/src/views/pdf-extract.ts": 9,
     "shells/web/src/views/pdf-import.ts": 18,
     "shells/web/src/views/penpot-import.ts": 8,
-    "shells/web/src/views/picker.ts": 33,
+    "shells/web/src/views/picker.ts": 32,
     "shells/web/src/views/pptx-import.ts": 6,
     "shells/web/src/views/present-math.ts": 2,
     "shells/web/src/views/present-mode.ts": 5,
