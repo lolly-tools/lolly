@@ -6,29 +6,37 @@
 # What it does: when Dependabot opens a PR and CI goes green, this approves it and
 # enables GitHub auto-merge for the LOW-RISK update types only. Auto-merge then
 # completes the merge itself once every required check passes - so a red PR (e.g.
-# one that still needs its api-bundle/SBOM regenerated) is never merged here; it
-# simply waits, and the weekly routine picks it up.
+# one that still needs its api-bundle regenerated) is never merged here; it
+# simply waits, and the weekly routine picks it up. The one artifact a bump PR is
+# forgiven for is the SBOM, which no Dependabot branch can carry: ci.yml warns
+# instead of failing there, and sbom-refresh.yml regenerates it on main after the
+# merge. See those two files for the reasoning.
 #
 # ── PREREQUISITES (both required for this to do anything) ─────────────────────
 #   1. Repo setting "Allow auto-merge" = ON.        (already enabled 2026-08-14)
 #   2. Branch protection on `main` with >= 1 required status check.
 #      Without it GitHub REFUSES to enable auto-merge (the branch has no green-gate
-#      to wait on), so `gh pr merge --auto` errors and nothing merges. Suggested,
-#      with admins still able to push directly (keeps the direct-to-main workflow):
+#      to wait on), so `gh pr merge --auto` errors - and worse, with protection off
+#      the merge it did manage was IMMEDIATE, landing bumps that no job had passed.
+#      Applied 2026-09-12: every CI job is a required context, by the exact name
+#      GitHub reports it under (the test matrix appears once per shard, e.g.
+#      "test (unit:web)"), with `strict: false` so a bump branch is not forced to
+#      rebase onto every main commit, and `enforce_admins: false` so the
+#      maintainer keeps pushing to main directly. The applied payload is committed
+#      at security/branch-protection-main.json so it is reproducible rather than
+#      living only in one account's API history:
 #
+#        gh api repos/lolly-tools/lolly/branches/main/protection            # read
 #        gh api -X PUT repos/lolly-tools/lolly/branches/main/protection \
-#          --input - <<'JSON'
-#        { "required_status_checks": { "strict": true,
-#            "contexts": ["test","typecheck","validate catalog","build + bundle budget",
-#                         "api bundle drift","npm audit (high+critical)"] },
-#          "enforce_admins": false,
-#          "required_pull_request_reviews": null,
-#          "restrictions": null }
-#        JSON
+#          --input security/branch-protection-main.json                     # apply
 #
-#      NB: turning this on blocks ALL PRs (not just Dependabot's) until CI is green,
-#      and `main`'s CI is currently red on pre-existing generated-artifact drift
-#      (engine/README table + lolly-start catalog previews). Land that fix first.
+#      Its `contexts` list must track the job names in ci.yml. Add a job there and
+#      it is NOT required until it is added here and re-applied; rename one and the
+#      old name blocks every PR forever, because a context that never reports is
+#      simply pending.
+#
+#      NB: this gates ALL PRs, not just Dependabot's, so a shard that is red on
+#      main parks the whole queue until it is fixed.
 #
 # What it will NOT auto-merge: major bumps, and anything Dependabot is configured to
 # hold (e.g. onnxruntime-node majors, per .github/dependabot.yml). Those wait for a
@@ -69,9 +77,14 @@ jobs:
           steps.meta.outputs.update-type == 'version-update:semver-minor' ||
           steps.meta.outputs.package-ecosystem == 'docker' ||
           steps.meta.outputs.package-ecosystem == 'github_actions' )
+        # --delete-branch removes dependabot/* once the squash lands. Without it
+        # every merged bump left its branch on origin (15 had piled up by
+        # 2026-09-12), which makes the branch list useless for seeing what is
+        # actually in flight. Deletion happens at merge time, not now, so a PR
+        # left waiting on a red check keeps its branch.
         run: |
           gh pr review --approve "$PR_URL"
-          gh pr merge --auto --squash "$PR_URL"
+          gh pr merge --auto --squash --delete-branch "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
