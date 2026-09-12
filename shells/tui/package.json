@@ -15,16 +15,16 @@
     "@lolly/engine": "workspace:*",
     "@resvg/resvg-js": "^2.6.2",
     "fflate": "^0.8.3",
-    "ink": "^5.0.1",
+    "ink": "^7.1.1",
     "ink-text-input": "^6.0.0",
     "jsdom": "^25.0.0",
     "pdf-lib": "^1.17.1",
     "playwright-core": "^1.49.0",
-    "react": "^18.3.1",
+    "react": "^19.2.8",
     "@lolly-tools/core": "workspace:*"
   },
   "devDependencies": {
-    "@types/react": "^18.3.12",
+    "@types/react": "^19.2.8",
     "ink-testing-library": "^4.0.0",
     "tsx": "^4.19.2"
   }
