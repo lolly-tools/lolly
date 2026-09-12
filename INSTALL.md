@@ -40,7 +40,7 @@ The script installs these for you when it can; here's what it needs and how to g
 |---|---|---|
 | **Package manager** | [Homebrew](https://brew.sh) | `zypper` (built in) |
 | **git** | `brew install git` (or Xcode CLT) | `sudo zypper install git` |
-| **Node** ≥ 22.18 (or ≥ 24) | `brew install node@22` | `sudo zypper install nodejs22 npm22` |
+| **Node** ≥ 22.22 (or ≥ 24.15) | `brew install node@22` | `sudo zypper install nodejs22 npm22` |
 
 **Why Node 22.18+?** The repo's scripts run TypeScript sources directly (`node scripts/foo.ts`),
 which relies on Node's unflagged type-stripping - added in Node **22.18** (the 22 LTS line)
@@ -83,7 +83,7 @@ nvm install                # reads .nvmrc → installs + selects Node 22
 If you'd rather not run the script, or you're on a distro it doesn't cover:
 
 ```bash
-# 1. prerequisites - git + Node 22.18+ (see the table above)
+# 1. prerequisites - git + Node 22.22+ (see the table above)
 
 # 2. SUSE devs with access to the private brand pack, opt in (skip otherwise):
 git submodule update --init --checkout brands/suse
@@ -130,7 +130,7 @@ pnpm test                                                          # engine + sh
 ## Troubleshooting
 
 - **`pnpm install` fails with a syntax error in a `.ts` file** → your Node is too old for
-  type-stripping. Need ≥ 22.18 or ≥ 24 (`node -v`); use nvm (above).
+  type-stripping. Need ≥ 22.22 or ≥ 24.15 (`node -v`; jsdom 30 raised the floor past the 22.18 type-stripping release); use nvm (above).
 - **`brands/suse` won't clone** → it's private (github.com/lolly-tools/suse-lolly). Without
   access, drop `--suse`; you'll build on lolly-start and everything still works.
 - **Homebrew's `node@22` isn't on PATH** → it's keg-only.
