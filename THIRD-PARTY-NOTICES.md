@@ -35,7 +35,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ```
 
-### ajv 6.15.0
+### ajv 8.20.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2015-2021 Evgeny Poberezkin

@@ -11,6 +11,16 @@ packages:
   - services/mcp
 
 # Keep the module layout used by the renderer, native sidecar and packaging scripts.
+#
+# One flat tree means exactly one copy of each package wins the top of node_modules, and
+# a dependency that resolves `react` by walking up the tree gets whichever copy that is.
+# `ink-testing-library`, which the TUI tests render through, declares no react dependency
+# at all and does precisely that walk. So the root package.json pins react to the 18 line
+# that `ink` needs: without it, a dev dependency wanting react 19 (the MCP inspector does)
+# puts 19 at the top, the test library renders with one react while ink runs another, and
+# every TUI frame comes back empty. The pin is the root importer's own dependency rather
+# than an `overrides` entry on purpose, so a package that genuinely wants react 19 still
+# gets it nested.
 nodeLinker: hoisted
 engineStrict: true
 linkWorkspacePackages: true
@@ -22,6 +32,14 @@ allowBuilds:
   fsevents: true
   core-js: false
   protobufjs: false
+  # The inspector's postinstall (scripts/install-clients.mjs) cascades `npm install`
+  # into its own clients/* directories, which only exist in a from-source checkout of
+  # that repo. As a dependency it is a guaranteed no-op twice over: it exits early when
+  # its own path contains node_modules, and the published tarball ships each client's
+  # build output without a package.json for the loop to find. So there is nothing to
+  # run, and denying it keeps a postinstall that shells out to npm from ever being
+  # authorised here if a later release loses one of those guards.
+  '@modelcontextprotocol/inspector': false
 overrides:
   'adm-zip': '^0.6.0'
   'shell-quote': '^1.9.0'

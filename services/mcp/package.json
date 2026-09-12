@@ -31,6 +31,6 @@
     "playwright-core": "^1.49.0"
   },
   "devDependencies": {
-    "@modelcontextprotocol/inspector": "^0.22.0"
+    "@modelcontextprotocol/inspector": "^2.5.0"
   }
 }

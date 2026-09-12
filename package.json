@@ -155,6 +155,7 @@
     "esbuild": "^0.28.2",
     "onnxruntime-node": "^1.29.0",
     "playwright": "^1.63.0",
+    "react": "^18.3.1",
     "sharp": "^0.35.4",
     "svgo": "^4.1.0",
     "three": "0.185.1",
