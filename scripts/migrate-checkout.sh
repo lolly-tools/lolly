@@ -122,7 +122,15 @@ say "== 8. restore, install, resolve"
 for d in "${PARK[@]}"; do
   [ -e "$PARKDIR/$d" ] || continue
   do_or_show mkdir -p "$(dirname "$d")"
-  do_or_show mv "$PARKDIR/$d" "$d"
+  if [ -d "$d" ]; then
+    # The folded tree tracks some files under this directory (public/info carries
+    # the Ask vectors), so it exists after the checkout: merge the parked contents
+    # into it rather than nesting the whole directory one level down.
+    do_or_show rsync -a "$PARKDIR/$d/" "$d/"
+    do_or_show rm -rf "$PARKDIR/$d"
+  else
+    do_or_show mv "$PARKDIR/$d" "$d"
+  fi
 done
 [ "$YES" = 1 ] && rmdir "$PARKDIR" 2>/dev/null || true
 do_or_show pnpm install --frozen-lockfile
