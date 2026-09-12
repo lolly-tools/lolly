@@ -6,7 +6,7 @@
  * The roster, the calibrated threshold and the eligibility gate MOVED to
  * packages/node-shell/src/ml/ai-detect-models.ts (plans/183 WS2): the detector
  * now runs on the Node shells too, and a reading from `lolly detect-ai` has to
- * be the reading the app gives. One copy, in the parent repo both submodules can
+ * be the reading the app gives. One copy, in the shared package both shells can
  * import from - the move net.ts and pptx.ts already made.
  *
  * What stays here is the one browser-only piece: the Cache API probe URL, which

@@ -1,6 +1,7 @@
 <!--
-Lolly is an umbrella repo of git submodules, so the first question below is the
-one that most often goes wrong. See CONTRIBUTING.md for the full routing table.
+Lolly is one repository, with the private SUSE brand pack as its only submodule.
+The first question below is the one that still goes wrong when a change touches
+that pack. See CONTRIBUTING.md for the full routing table.
 -->
 
 ## What this changes
@@ -10,14 +11,14 @@ one that most often goes wrong. See CONTRIBUTING.md for the full routing table.
 ## Which repo owns each changed file?
 
 <!--
-Committing from the umbrella root does NOT capture edits made inside a
-submodule: git only sees the pointer. List the repos this PR spans.
-CONTRIBUTING.md section 4 has the path-to-repo table.
+Almost everything lives in this repository. The exception is `brands/suse/`: a
+commit from the root does NOT capture an edit made inside it, because git only
+sees the pointer. CONTRIBUTING.md section 4 has the path-to-repo table.
 -->
 
-- [ ] Umbrella (`lolly`): `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `brands/lolly-start/`, root files
-- [ ] A submodule (name it): …
-- [ ] Submodule pointer bumps are included where needed
+- [ ] This repository (`lolly`): everything except `brands/suse/`
+- [ ] `brands/suse/` (private submodule) - committed there first
+- [ ] The `brands/suse` pointer bump is included where needed
 
 ## Checks
 

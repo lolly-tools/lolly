@@ -7,7 +7,7 @@
  * The implementation MOVED to packages/node-shell/src/tts-blend.ts (plans/202
  * WP1.1). Both functions are pure arithmetic over the engine's Kokoro
  * constants, and packages/node-shell/src/speech.ts reads them for the Node TTS
- * path, so they belong in the package rather than behind a submodule boundary.
+ * path, so they belong in the shared package rather than inside one shell.
  *
  * This file stays as a stable re-export, so lib/speech-kokoro-worker.ts and
  * tts-blend.test.ts keep working unchanged.

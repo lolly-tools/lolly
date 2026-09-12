@@ -20,10 +20,10 @@ import { exportSizeDriver, aspectWarning } from '../shells/web/src/views/export-
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-// The real-manifest tests read tools that ship in the (private) SUSE brand
-// pack; under a checkout without it (public CI) they can't run. Gate on the
-// SOURCE pack, not the gitignored tools/ profile view: with the pack mounted,
-// a missing tool means it was renamed or deleted - FAIL, don't skip.
+// The real-manifest tests read tools that ship in the (private) SUSE brand pack; under a
+// checkout without it (public CI) they can't run. Gate on the SOURCE pack, not through the
+// content resolver: with the pack mounted, a missing tool means it was renamed or deleted -
+// FAIL, don't skip.
 const SUSE_TOOLS = join(ROOT, 'brands', 'suse', 'tools');
 const PACK_MOUNTED = existsSync(SUSE_TOOLS);
 const SKIP_SUSE = !PACK_MOUNTED && 'SUSE brand pack not mounted (see profiles.json)';

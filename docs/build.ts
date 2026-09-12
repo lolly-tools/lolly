@@ -55,7 +55,7 @@ import { parseShotRecipes, type ShotDef } from '../scripts/lib/shot-compare.ts';
 // rules that minted them, and the player already bundles this exact module.
 import { extractSpokenText } from '../scripts/lib/docs-spoken-text.ts';
 // The shared, DOM-free docs render layer (@lolly-tools/docs-render). Imported by
-// RELATIVE path because docs/ is a submodule, not an npm-workspace member (same as
+// RELATIVE path because docs/ is not an npm-workspace member (same as
 // engine/src and scripts/lib above); the web shell imports the same code via the
 // bare specifier through the workspace symlink. The renderer lives here so the
 // static site and the in-app live docs view can never drift. `esc` here is the

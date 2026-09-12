@@ -29,11 +29,10 @@ import { createRuntime } from '../engine/src/runtime.ts';
 import { apcaContrast } from '../engine/src/color-tools.ts';
 import { baseHost } from './helpers/host.ts';
 
-// pricing-table ships in the (private) SUSE brand pack. Load from the SOURCE pack,
-// not the gitignored tools/ profile view, so the suite is profile-independent:
-// skip only when the pack itself is not mounted (public CI / lolly-start
-// checkouts); with it mounted, a missing tool dir means a rename or delete and
-// must fail loudly, never silently skip.
+// pricing-table ships in the (private) SUSE brand pack. Load from the SOURCE pack, not
+// through the content resolver, so the suite is profile-independent: skip only when the
+// pack itself is not mounted (public CI / lolly-start checkouts); with it mounted, a
+// missing tool dir means a rename or delete and must fail loudly, never silently skip.
 // pricing-table moved to community/ on 2026-09-06 (no brand asset inside).
 const SUSE_TOOLS = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const fetchFile = (path: string) => readFile(join(SUSE_TOOLS, path), 'utf8');

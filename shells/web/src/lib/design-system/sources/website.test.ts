@@ -472,15 +472,15 @@ test('the extension protocol is stated once, in the bridge, and not restated her
 });
 
 test('the bridge and the extension agree on the wire, when the extension is mounted', () => {
-  // shells/chrome-extension is a sibling submodule: present in the umbrella
-  // (where this gate runs), absent in a bare clone of the web shell. Absent is a
-  // skip with a reason, never a silent pass - and the pinned EXT_WIRE above
+  // shells/chrome-extension is a sibling directory in this repository, so it is
+  // normally present; a partial checkout without it is a skip with a reason,
+  // never a silent pass - and the pinned EXT_WIRE above
   // still guards the web side either way.
   const extDir = join(HERE, '../../../../../chrome-extension');
   const relay = join(extDir, 'content.js');
   const worker = join(extDir, 'background.js');
   if (!existsSync(relay) || !existsSync(worker)) {
-    console.log('skipped: shells/chrome-extension is not mounted (submodule not initialised)');
+    console.log('skipped: shells/chrome-extension is not present in this checkout');
     return;
   }
   const relayText = readFileSync(relay, 'utf8');

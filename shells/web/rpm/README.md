@@ -39,9 +39,9 @@ runs behind.
 ## Why the dist is prebuilt (Source0)
 
 The site is **not** compiled inside the RPM build. The release build
-(`scripts/build-release-web.ts`) needs the whole umbrella repo (submodules,
-workspaces, the generated `tools/`+`catalog/` profile views), a network, and the
-catalog signing material (`LOLLY_CATALOG_SIGNING_KEY` + `VITE_CATALOG_PUBLIC_KEY_JWK`,
+(`scripts/build-release-web.ts`) needs the whole repository (its workspaces and its
+content packs, out of which `materializeInto()` writes the `tools/` + `catalog/` tree
+the built site serves), a network, and the catalog signing material (`LOLLY_CATALOG_SIGNING_KEY` + `VITE_CATALOG_PUBLIC_KEY_JWK`,
 which bake a verified-only trust mode into the client). None of that exists in an
 offline OBS worker, and the signing secret must never reach one. So `make-sources.sh`
 builds `shells/web/dist` here and stages it as `Source0`. This mirrors the

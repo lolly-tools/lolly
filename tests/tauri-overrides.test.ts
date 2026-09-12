@@ -41,7 +41,7 @@ function dirFiles(rel: string): string[] {
   try {
     if (!statSync(dir).isDirectory()) return [];
   } catch {
-    return []; // shell submodule not checked out - the per-dir tests skip below
+    return []; // shell directory absent - the per-dir tests skip below
   }
   return readdirSync(dir);
 }
@@ -71,7 +71,7 @@ test('each override directory is covered by a tsconfig that includes it', () => 
   let checked = 0;
   for (const rel of TSCONFIGS) {
     const cfgPath = join(ROOT, rel, 'tsconfig.json');
-    if (!existsSync(join(ROOT, rel, 'bridge-overrides'))) continue; // submodule absent
+    if (!existsSync(join(ROOT, rel, 'bridge-overrides'))) continue; // shell absent
     checked++;
     assert.ok(
       existsSync(cfgPath),

@@ -128,8 +128,8 @@ export function loadSharedRegions(): Map<string, SharedRegion> {
 
 /**
  * Every file the sync manages: community/<tool>/{hooks.js,template.html} plus
- * brands/<brand>/tools/<tool>/{hooks.js,template.html}. Enumerates the real pack sources, never
- * the gitignored tools/ profile view (which symlinks/copies these same files).
+ * brands/<brand>/tools/<tool>/{hooks.js,template.html}. Enumerates the real pack sources,
+ * never the content resolver, which answers for one profile at a time.
  * A missing pack (e.g. the private brands/suse on a public clone) is skipped.
  */
 export function listConsumerHookFiles(): string[] {

@@ -36,9 +36,9 @@
  * detector now runs on the Node shells too (onnxruntime-node through
  * transformers.js, packages/node-shell/src/ml/ai-detect.ts). The roster, the
  * calibrated threshold and the eligibility gate must be the SAME on both, or a
- * `lolly detect-ai` reading would not be the reading the app gives. The parent
- * repo is the only place both can import from (shells/web and shells/cli are
- * separately versioned submodules), so the constants live here and
+ * `lolly detect-ai` reading would not be the reading the app gives. This shared
+ * package is the only place both can import from (no shell may import from
+ * another), so the constants live here and
  * shells/web/src/lib/ai-detect-models.ts re-exports them unchanged. The one
  * thing that stays behind is `aiDetectCacheUrl`, which is a browser Cache API
  * probe built from the web build's MODELS_BASE.

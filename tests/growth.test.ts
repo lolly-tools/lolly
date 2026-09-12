@@ -29,7 +29,7 @@ import { baseHost } from './helpers/host.ts';
 const COMMUNITY = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const PKG = join(COMMUNITY, 'growth');
 const PACK_MOUNTED = existsSync(COMMUNITY);
-const SKIP = !PACK_MOUNTED && 'community pack not mounted (clone without submodules)';
+const SKIP = !PACK_MOUNTED && 'community pack not mounted';
 if (PACK_MOUNTED) {
   assert.ok(existsSync(join(PKG, 'tool.json')),
     'community/growth/tool.json is missing - pack is mounted, so the tool was renamed or deleted');

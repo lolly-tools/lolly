@@ -7,7 +7,7 @@
  * decode budget MOVED to packages/node-shell/src/ml/reword-models.ts
  * (plans/183 WS2): reword now runs on the Node shells too, and a candidate the
  * terminal proposes has to be one the app would have proposed. One copy, in the
- * parent repo both submodules can import from - the move net.ts and pptx.ts
+ * shared package both shells can import from - the move net.ts and pptx.ts
  * already made.
  *
  * What stays here is the one browser-only piece: the Cache API probe URL, built

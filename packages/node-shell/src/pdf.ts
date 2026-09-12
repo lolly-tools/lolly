@@ -20,7 +20,7 @@
  * feature-detects a canvas (`hasImageCodec`) and does the structural re-save only
  * when there is none, which is exactly what the node CLI gets. The CLI has always
  * imported this factory, so it lives in the package both shells can import rather
- * than behind a submodule boundary. The web file stays as a re-export shim, and
+ * than inside one of them. The web file stays as a re-export shim, and
  * `pdf-redact.ts` (the canvas half) keeps taking PDF_LOAD_OPTS, hasImageCodec,
  * makeCanvas and canvasToJpeg through it unchanged.
  */

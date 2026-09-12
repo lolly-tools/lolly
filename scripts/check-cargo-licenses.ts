@@ -82,12 +82,12 @@ if (!existsSync(mapPath)) {
 const doc = JSON.parse(readFileSync(mapPath, 'utf8'));
 const licenses: Record<string, string> = doc?.licenses ?? {};
 
-// Only check lockfiles that are actually present. The Tauri shells are
-// submodules, so a shallow clone legitimately has neither; with no lockfile
-// there is no graph to be stale against and the gate is a no-op by design.
+// Only check lockfiles that are actually present. Both live in this repository,
+// but a sparse or partial checkout can legitimately have neither; with no
+// lockfile there is no graph to be stale against and the gate is a no-op.
 const present = LOCKFILES.filter((rel) => existsSync(join(ROOT, rel)));
 if (!present.length) {
-  console.log('• No Tauri Cargo.lock present (submodules not checked out) - nothing to verify');
+  console.log('• No Tauri Cargo.lock present in this checkout - nothing to verify');
   process.exit(0);
 }
 
