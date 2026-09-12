@@ -4,7 +4,7 @@
   "serialNumber": "urn:uuid:a7785a5b-a1db-489a-8344-ce8f1cb232fb",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-12T09:57:16.277Z",
+    "timestamp": "2026-09-12T10:08:47.088Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -22526,6 +22526,13 @@
       "version": "1.2.8",
       "purl": "pkg:npm/%40rolldown/binding-android-arm-eabi@1.2.8",
       "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -22573,6 +22580,13 @@
       "version": "1.2.8",
       "purl": "pkg:npm/%40rolldown/binding-android-arm64@1.2.8",
       "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -22674,6 +22688,13 @@
       "version": "1.2.8",
       "purl": "pkg:npm/%40rolldown/binding-darwin-x64@1.2.8",
       "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -22721,6 +22742,13 @@
       "version": "1.2.8",
       "purl": "pkg:npm/%40rolldown/binding-freebsd-x64@1.2.8",
       "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -22768,6 +22796,13 @@
       "version": "1.2.8",
       "purl": "pkg:npm/%40rolldown/binding-linux-arm-gnueabihf@1.2.8",
       "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -22815,6 +22850,13 @@
       "version": "1.2.8",
       "purl": "pkg:npm/%40rolldown/binding-linux-arm64-gnu@1.2.8",
       "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -22862,6 +22904,13 @@
       "version": "1.2.8",
       "purl": "pkg:npm/%40rolldown/binding-linux-arm64-musl@1.2.8",
       "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -22909,6 +22958,13 @@
       "version": "1.2.8",
       "purl": "pkg:npm/%40rolldown/binding-linux-ppc64-gnu@1.2.8",
       "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -22956,6 +23012,13 @@
       "version": "1.2.8",
       "purl": "pkg:npm/%40rolldown/binding-linux-s390x-gnu@1.2.8",
       "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -23003,6 +23066,13 @@
       "version": "1.2.8",
       "purl": "pkg:npm/%40rolldown/binding-linux-x64-gnu@1.2.8",
       "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -23050,6 +23120,13 @@
       "version": "1.2.8",
       "purl": "pkg:npm/%40rolldown/binding-linux-x64-musl@1.2.8",
       "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -23097,6 +23174,13 @@
       "version": "1.2.8",
       "purl": "pkg:npm/%40rolldown/binding-openharmony-arm64@1.2.8",
       "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -23171,6 +23255,13 @@
       "version": "1.2.8",
       "purl": "pkg:npm/%40rolldown/binding-win32-arm64-msvc@1.2.8",
       "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -23218,6 +23309,13 @@
       "version": "1.2.8",
       "purl": "pkg:npm/%40rolldown/binding-win32-x64-msvc@1.2.8",
       "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
