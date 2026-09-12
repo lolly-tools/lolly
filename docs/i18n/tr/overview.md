@@ -132,7 +132,7 @@ sözleşmeyi uygulayan kabuklar ve içeriği sağlayan kataloglar.
 
 ### Depo düzeni
 
-İçerik paketler olarak bağlanır: `community/`, `docs/`, her `shells/*`, her ikisi de `services/*` ve `brands/suse` her biri kendi deposudur, bu deponun git alt modülleri olarak checkout edilir. Üst depo `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `brands/lolly-start/` ve `profiles.json`'a sahiptir. Checkout komutu ve depolar arası iş akışı için bkz. [Build Guide » Kaynağı Alma](/info/build-guide.html).
+Lolly tek bir depodur. `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `docs/`, `community/`, `brands/lolly-start/`, her `shells/*` ve her iki `services/*` bu depoda sıradan dizinlerdir. Tek istisna, SUSE araç paketini ve kataloğunu barındıran **özel** bir git alt modülü olan `brands/suse`dır; bu isteğe bağlıdır (opt-in) ve herkese açık bir klonda bulunmaz. Belirli bir derlemenin hangi paketleri okuduğu, genel olarak değil süreç başına çözümlenen bir içerik profilidir (`profiles.json`). Klonlama komutu ve özel paket içindeki bir değişikliğin nasıl commit edildiği için bkz. [Derleme Rehberi » Kaynağı Edinme](/info/build-guide.html).
 
 ```
 lolly/
@@ -190,45 +190,38 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # profile VIEW (gitignored) - data, not code. Merged from packs:
-│                     #   community/ (public, brand-agnostic, MPL) + brands/<active>/tools (brand-owned).
-│                     #   A SELECTION follows - the mounted set depends on the profile.
+├── community/        # the brand-agnostic tool pack - data, not code. Public (MPL-2.0).
+│                     #   A SELECTION follows; a profile mounts these plus whatever
+│                     #   tools the active brand pack carries of its own.
 │   ├── qr-code/
-│   ├── quotes/
-│   ├── email-signature/
 │   ├── snippet/
 │   ├── countdown-timer/
 │   ├── color-palette/
-│   ├── color-block/           # typed/heterogeneous blocks (addMenu discriminator)
-│   ├── dynamic-layout/
-│   ├── tool-logo/         # "Logo" - auto-switching brand logo
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
 │   ├── strip-data/        # on-device metadata strip - JPEG/PNG/SVG/PDF (file in → clean file out)
 │   ├── compress-pdf/      # on-device PDF compressor - recompresses images (file in → smaller file out)
-│   ├── brand-lockup/      # "Brand Lockup" - SUSE logo lockups; HarfBuzz text-to-path (wasm)
-│   ├── chart-creator/     # SVG charts from structured data
+│   ├── chart/             # SVG charts from structured data
 │   ├── filter/            # photo effects in one tool - halftone/scanline/posterize/voronoi (vector), duotone/pixel-stretch/imperfections (raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
-│   ├── digi-ad/           # "Animated Ad" - looping banner from scenes
-│   ├── event-name-badge/  # conference badges - composes qr-code as an SVG
 │   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
 │   ├── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
 │   ├── design/     # "Design" - freeform WYSIWYG editor canvas (render.layout: editor)
 │   ├── multi-page-pdf/    # multi-page PDF document - cover, flowing content blocks, back page
 │   ├── diagram-builder/   # org / layercake / process / cycle / pyramid diagrams
 │   ├── logo-wall/         # many logos → auto-packed grid
-│   ├── logo-lockup-partner/ # SUSE + partner co-brand lockup
-│   ├── icon/          # favicon .ico / png / svg from text + colours
-│   ├── lottie-digi-ad/    # animated Lottie ad banners
-│   └── pose-geeko/        # pose the SUSE Geeko mascot - print-ready stills
+│   ├── icon/              # favicon .ico / png / svg from text + colours
+│   └── lottie-digi-ad/    # animated Lottie ad banners
 │
-├── catalog/
-│   ├── tools/index.json        # tool registry
-│   └── assets/
-│       ├── index.json          # asset registry
-│       └── suse/...            # logo, palette, etc.
+├── brands/            # brand packs - a catalog each, and optionally tools of their own
+│   ├── lolly-start/   # the blank starter brand, owned here
+│   │   └── catalog/
+│   │       ├── tools/index.json    # tool registry, generated per brand
+│   │       └── assets/
+│   │           ├── index.json      # asset registry
+│   │           └── lolly/...       # logo, palette, tokens
+│   └── suse/          # PRIVATE submodule - the SUSE tools and the SUSE catalog
 │
 ├── schemas/          # JSON Schema for tool.json, asset entries, AssetRef
 ├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
@@ -271,7 +264,7 @@ lolly qr-code                # lists inputs for that tool
 ```
 
 ### TUI
-`npm run tui`
+`pnpm run tui`
 
 CLI'nin etkileşimli karşılığı: araçlara göz atmak, girdileri doldurmak, projeleri kaydetmek ve dışa aktarmak için - hepsi bir GUI olmadan - tam ekran, klavye öncelikli bir terminal uygulaması (Ink üzerine kurulu). Host köprüsü, DOM'suz formatlar (SVG/EMF/EPS/HTML + metin/veri) için **CLI'nin uygulamasını yeniden kullanır** ve `~/.lolly` altında disk üzerinde durum ile isteğe bağlı satır içi önizleme ekler. Bunun ötesinde bir **tarayıcı render katmanı**na sahiptir: talep üzerine raster/PDF/video ve canlı-URL yakalama üreten, kapsamlandırılmış bir başsız Chromium (MCP sunucusunun kurduğuyla aynısı) - çıktının aynı olması için web kabuğunun derlenmiş bir kopyasını çalıştırır ve yalnızca böyle bir formatı ilk dışa aktardığında başlar. Böylece `url-shot` (kırpma + yeniden renklendirme + vektör PDF/SVG ile) ve her raster/pdf aracı terminalde de çalışır. Bkz. [TUI kılavuzu](/info/tui.html).
 
@@ -287,11 +280,11 @@ Satırlar galeri bölüm sırasına göre listelenir. `utility` bölümü her za
 
 | Kategori | Örnekler | Planlanan |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence Studio, Record | Employee Image Stationery |
-| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Multi-Page PDF | Font Outliner |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence, Record | Employee Image Stationery |
+| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Booklet | Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS, Booth Studio | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | - | CVE Alert, Product Release Announcement, Blog OG Image |
-| `utility` | Strip Hidden Data, Text Helper, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Birim/format dönüştürücüleri, cihaz üzerinde daha fazla gizlilik aracı |
+| `utility` | Strip Hidden Data, Text, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
 
 Bu hücreler **örneklerdir, envanter değil**. Hangi araçların var olduğu bu sayfanın değil, mount ettiğin profilin bir özelliğidir: bir marka paketi kendi araçlarını ekler ve göndermek istemediği bir topluluk aracını hariç tutabilir. `catalog/tools/index.json` - manifestlerden üretilen ve galerinin fiilen okuduğu kayıt defteri - yetkili listedir; bir profilin ne mount ettiğini saymak için, burada yazılı bir sayıya güvenmek yerine manifestleri say (`ls community/*/tool.json brands/*/tools/*/tool.json`). (İki pakette bulunan bir araç id'si, kazanan paketten bir kez mount edilir.)
 
@@ -299,11 +292,11 @@ Araçlar ayrıca duruma göre sınıflandırılır: `official` (marka onaylı, f
 
 **Design**, `render.layout: "editor"` serbest tuval modu üzerine kurulan ilk araçtır - metin, şekil ve görsel kutularını sürükleyip boyutlandırdığın, döndürdüğün ve hizaladığın çerçevesiz, doğrudan-manipülasyonlu bir yüzey; ardından diğer her araçla aynı render yolundan dışa aktarır.
 
-**Strip Hidden Data**, ilk **cihaz üzerinde çalışan yardımcı program**dır (`privacy: "on-device"`): *senin* sağladığın bir dosyayı tamamen tarayıcıda işleyip temiz bir kopyasını geri veren bir içerik dönüştürme aracı - asla yüklenmez, asla filigranlanmaz, hiçbir köken damgalanmaz. **Text Helper** ikincisidir - günlük siteye-yapıştır işleri için cihaz üzerinde bir çalışma tezgahı (JSON format, JWT çözme, Base64, URL kodlama/çözme, SHA hashleme). **Compress PDF** üçüncüsüdür - bir PDF'i görsellerini yeniden sıkıştırarak küçültür, yine tamamen cihaz üzerinde. İşaretçi ve rozet metni "Cihazında çalışır - hiçbir şey yüklenmez" artık tüm dönüştürme setini kapsıyor: Strip Hidden Data, Text Helper, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (bir görselin, SVG'nin veya PDF'in bölgelerini yok et), **Prompt to Image** ve profilin mount ettiği yerde **Rebrand a Deck** (bir `.pptx`'i yerinde yeniden temalandır). Bu, gizli dosyaları tek amaçlı sitelere teslim etmenin yerini alan bir gizlilik-yardımcı-program kategorisidir.
+**Strip Hidden Data**, ilk **cihaz üzerinde çalışan araçtır** (`privacy: "on-device"`): *senin* sağladığın bir dosyayı tamamen tarayıcıda işleyip temiz bir kopya olarak geri veren bir içerik dönüştürme aracı - hiçbir zaman yüklenmez, hiçbir zaman filigranlanmaz, hiçbir köken (provenance) damgası eklenmez. **Text** ikincisidir - JSON biçimlendirme, JWT çözme, Base64, URL kodlama/çözme, SHA özetleme gibi günlük "bir web sitesine yapıştır" işleri için cihaz üzerinde çalışan bir çalışma tezgahıdır. **Compress PDF** üçüncüsüdür - görsellerini yeniden sıkıştırarak bir PDF'i küçültür, yine tamamen cihaz üzerinde. "Runs on your device - nothing is uploaded" ("Cihazında çalışır - hiçbir şey yüklenmez") işaretçisi ve rozet metni artık tüm dönüştürme grubunu kapsar: Strip Hidden Data, Text, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (bir görselin, SVG'nin veya PDF'in bölgelerini yok eder), **Prompt Card** ve profilin bunu barındırdığı yerlerde **Rebrand** (bir `.pptx` dosyasını yerinde yeniden temalandırır). Bu, gizli dosyaları tek amaçlı web sitelerine teslim etmenin yerini alan bir gizlilik aracı kategorisidir.
 
 ![Utilities çekmecesi, her kartın zaten sahip olduğun bir dosyayı dönüştüren bir araç olduğu yer](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
 
-> Not: `category` ve `status`, her `tool.json`dan `catalog/tools/index.json`a (galerinin okuduğu kayıt defteri) denormalize edilir. Manifest tek doğru kaynaktır - dizin `npm run build:catalog` ile **üretilir** ve commit edilmiş dizin manifestlerden saparsa `npm run validate:catalog` CI'yi başarısız kılar.
+> Not: `category` ve `status`, her bir `tool.json`'dan `catalog/tools/index.json`'a (galerinin okuduğu kayıt defteri) denormalize edilir. Asıl kaynak manifesttir - dizin, `pnpm run build:catalog` tarafından **oluşturulur** ve commit edilmiş dizin manifestlerden saparsa `pnpm run validate:catalog` CI'ı başarısız kılar.
 
 ---
 
@@ -445,14 +438,14 @@ Herhangi bir aracın çıktısını bileştir: bir **SVG** alt öğe, üst öğe
 
 Bir kullanıcı `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H` adresini açar:
 
-1. **Başlatma.** Web kabuğu IndexedDB'yi açar, yetenek köprüsünü oluşturur, araç ve varlık kataloglarını senkronize eder (veya çevrimdışıyken önbellekten yükler).
-2. **Yönlendirme.** URL hash'i → `tool` görünümü, `qr-code` ve URL parametreleri ayıklanarak.
-3. **Yükleme.** `loadTool('qr-code', fetchFile)`, `tool.json`'u getirir, JSON Schema'ya karşı doğrular, `template.html`, `styles.css` ve `hooks.js` kaynağını getirir.
-4. **URL durumunu ayrıştırma.** `parseUrlState`, URL parametrelerini başlangıç girdi değerlerine çevirir. Varlık referansları (`?logo=suse/logo/primary`), hafif `{ id, _unresolved: true }` nesneleri olarak ayrıştırılır.
-5. **Çalışma zamanı.** `createRuntime(tool, host, initialValues)`, girdi modelini oluşturur (profil verisini, varsayılanları ve başlangıç değerlerini birleştirerek), `host.assets.get()` üzerinden varlık referanslarını çözer, kancaları yükler (kapsamı belirlenmiş `host`, izole edilmemiş), `hooks.onInit`'i çağırır.
-6. **Oluşturma.** Kabuk, çalışma zamanına abone olur; her durum değişikliğinde `{ model, hydrated }` alır. Modelden girdi kontrollerini oluşturur ve hidratlanmış şablon HTML'sini `#tool-canvas`'a yazar.
-7. **Etkileşim.** Kullanıcı bir girdiye yazar → `runtime.setInput(id, value)` → kısıtlamalar uygulanır → `hooks.onInput` çağrılır → yeniden hidrat → yeniden oluşturma. Tuval canlı olarak güncellenir.
-8. **Dışa aktarma.** Kullanıcı İndir (PNG) düğmesine tıklar → `runtime.export(canvasNode, 'png')` → `host.export.render` (dom-to-image-more üzerinden rasterleştirir; SVG/PDF özel DOM dolaşan vektörleştiricilerden geçer) → blob → `host.export.download`. Bir aracın seçebileceği biçim aralığı geniştir ve `schemas/tool.schema.json` içindeki `render.formats` numaralandırması bu konuda yetkilidir - rasterler ve kayan noktalı rasterler, vektörler ve kesim dosyaları, baskı/CMYK, hareket, düzenlenebilir belgeler (`pptx`, `docx`, `odt`), palet ve veri/metin çıktıları, ses ve font dosyaları. [URL Modu](/info/url-mode.html) her kimliği ve ne ürettiğini adlandırır. Ses, diğer her şey gibi bu numaralandırmadadır (`wav`, `mp3`, `m4a`, `opus`, audiogram ve kayıt araçları tarafından beyan edilir); ayrı olarak, bir kayıt aracının `render.capture` modu `host.recorder`'ı yönlendirir ve alınan kayıt, tarayıcının kaydettiği hangi konteynerdeyse o şekilde bitmiş bir Blob olarak gelir. (`render.export: false` ayarlayan araçlar - ör. Color Palette, Countdown Timer, Strip Hidden Data, Text Helper, Compress PDF - indirme/biçim/boyut kontrollerini gizler.) Fiziksel birimler burada biçim başına dönüştürülür (PDF → gerçek sayfa puntoları, raster → DPI'de piksel, bir `pHYs` yığınıyla). Yazarlık/provenans meta verisi (yazar, araç, kaynak - `engine/src/metadata.ts` tarafından oluşturulur) biçim başına gömülür: PNG iTXt, JPEG EXIF, PDF bilgi sözlüğü, SVG `<metadata>`, GIF yorumu. Deneysel araçlara, araç tarafından değil host tarafından eklenen bir filigran uygulanır.
+1. **Önyükleme (Boot).** Web kabuğu IndexedDB'yi açar, yetenek köprüsünü (capability bridge) oluşturur, araç ve varlık kataloglarını eşitler (ya da çevrimdışıyken önbellekten yükler).
+2. **Yönlendirme (Route).** URL hash → `tool` görünümü, `qr-code` ve URL parametreleri ile birlikte çıkarılır.
+3. **Yükleme (Load).** `loadTool('qr-code', fetchFile)`, `tool.json`'ı getirir, JSON Schema'ya karşı doğrular, `template.html`, `styles.css` ve `hooks.js` kaynağını getirir.
+4. **URL durumunu ayrıştırma.** `parseUrlState`, URL parametrelerini başlangıç girdi değerlerine çevirir. Varlık referansları (`?logo=suse/logo/primary`) hafif `{ id, _unresolved: true }` nesneleri olarak ayrıştırılır.
+5. **Çalışma zamanı (Runtime).** `createRuntime(tool, host, initialValues)`, girdi modelini oluşturur (profil verisini, varsayılanları ve başlangıç değerlerini birleştirerek), `host.assets.get()` üzerinden varlık referanslarını çözer, hook'ları yükler (kapsam içine (closure) alınmış `host`, korumalı alana (sandbox) alınmamıştır), `hooks.onInit`'i çağırır.
+6. **Render.** Kabuk, çalışma zamanına abone olur; her durum değişikliğinde `{ model, hydrated }` alır. Modelden girdi kontrollerini render eder ve hidratlanmış şablon HTML'ini `#tool-canvas`'a yazar.
+7. **Etkileşim.** Kullanıcı bir girdiye yazar → `runtime.setInput(id, value)` → kısıtlar uygulanır → `hooks.onInput` çağrılır → yeniden hidratlama → yeniden render. Tuval anlık olarak güncellenir.
+8. **Dışa aktarma (Export).** Kullanıcı İndir (PNG) düğmesine tıklar → `runtime.export(canvasNode, 'png')` → `host.export.render` (dom-to-image-more ile rasterleştirir; SVG/PDF özel DOM tarayan vektörleştiricilerden geçer) → blob → `host.export.download`. Bir aracın seçebileceği format aralığı geniştir ve bunun otoritesi `schemas/tool.schema.json` içindeki `render.formats` numaralandırmasıdır - rasterler ve kayan noktalı rasterler, vektörler ve kesim dosyaları, baskı/CMYK, hareket, düzenlenebilir belgeler (`pptx`, `docx`, `odt`), palet ve veri/metin çıktıları, ses ve font dosyaları. [URL Modu](/info/url-mode.html) her bir kimliği ve ne ürettiğini adlandırır. Ses de bu numaralandırmada diğer her şey gibi yer alır (`wav`, `mp3`, `m4a`, `opus`, audiogram ve kayıt araçları tarafından tanımlanır); ayrıca bir kayıt aracının `render.capture` modu `host.recorder`'ı yönetir, ve alınan kayıt tarayıcının kaydettiği hangi konteynerdeyse o biçimde tamamlanmış bir Blob olarak gelir. (`render.export: false` ayarlayan araçlar - örn. Color Palette, Countdown Timer, Strip Hidden Data, Text, Compress PDF - indirme/format/boyut kontrollerini gizler.) Fiziksel birimler burada format başına dönüştürülür (PDF → gerçek sayfa noktaları, raster → DPI'da pikseller, bir `pHYs` parçasıyla). Yazarlık/köken (provenance) meta verisi (yazar, araç, kaynak - `engine/src/metadata.ts` tarafından oluşturulur) format başına gömülür: PNG iTXt, JPEG EXIF, PDF bilgi sözlüğü, SVG `<metadata>`, GIF yorumu. Deneysel araçlara filigran, araç tarafından değil host tarafından eklenir.
 
 ![`?options`'ın açtığı dışa aktarma paneli: dosya adı ve biçim çifti, çıktı boyutu ve dosyayı yazan kontroller](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
@@ -462,11 +455,11 @@ Tauri'de aynı yaşam döngüsü. CLI'de aynı yaşam döngüsü - jsdom başsı
 
 ## Açık kaynak durumu
 
-**Kod MPL-2.0'dır.** `engine/`, `shells/*`, `services/*`, `schemas/` ve `docs/`, marka araçları için satıcıdan bağımsız bir iskele platformu olarak **MPL-2.0** altında açık kaynaktır; her dağıtılabilir birim [github.com/lolly-tools](https://github.com/lolly-tools) altında kendi deposundadır.
+**Kod MPL-2.0 lisanslıdır.** `engine/`, `shells/*`, `services/*`, `schemas/` ve `docs/`, **MPL-2.0** altında açık kaynaktır - marka araçları için satıcıdan bağımsız (vendor-neutral) bir iskelet platformu, hepsi tek bir herkese açık depoda, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
-**Araç içeriği marka paketleri olarak dağıtılır**, her biri kendi koşullarıyla (paketin `NOTICE.md` dosyasına bak). `community/`, herkese açık [`lolly-tools`](https://github.com/lolly-tools/lolly-tools) deposudur ve markadan bağımsız araçları da MPL-2.0'dır. `brands/suse/`, özel `suse-lolly` paketidir: SUSE araçları ve SUSE kataloğu, lisanslı PremiumBeat müziği dahil, **SUSE'ye özeldir**. `brands/lolly-start/`, bu deponun sahip olduğu boş başlangıç markasıdır. Yazı tipleri bir paket içinde **SIL Open Font License 1.1** altında dağıtılır - SUSE paketi SUSE ve SUSE Mono yazı tiplerini taşır.
+**Araç içeriği marka paketleri (brand packs) olarak dağıtılır**, her birinin kendi koşulları vardır (bkz. paketin `NOTICE.md`'si). `community/` bu deponun bir dizinidir ve markadan bağımsız araçları da MPL-2.0'dır. `brands/suse/` özel `suse-lolly` paketidir, tek alt modül: SUSE araçları ve SUSE kataloğu, lisanslı PremiumBeat müziği dahil, **SUSE'ye özel mülkiyettedir**. `brands/lolly-start/` bu deponun sahip olduğu boş başlangıç markasıdır. Fontlar bir paketin içinde **SIL Open Font License 1.1** altında dağıtılır - SUSE paketi SUSE ve SUSE Mono yazı tiplerini taşır.
 
-Depo kökündeki `tools/` ve `catalog/`, gitignore'lanmış *görünümlerdir*: bir profil bunları `community/` ve etkin marka paketinden bir araya getirir; bu yüzden her betik ve kabuk bu iki yolu okur, hiçbir zaman bir paketi doğrudan okumaz.
+Depo kökünde bir `tools/` veya `catalog/` dizini yoktur. `packages/node-shell/src/content-roots.ts`, okuma anında `profiles.json`'dan "`<id>` aracı nerede yaşıyor" ve "katalog nerede" sorularını yanıtlar, böylece bir profil süreç başına verilen bir yanıttır ve önceden bir ağacın oluşturulması gerekmez. Gerçek bir `tools/` + `catalog/` çifti yalnızca bir derleme çıktısına yazılır - `dist/`, bir RPM paketi, bir konteyner imajı - çünkü bir tarayıcı bu iki yolu HTTP üzerinden getirir.
 
 Bu ayrım zorlanır - `engine/`'den araç içeriğine çapraz içe aktarma yoktur - böylece platform/içerik sınırı temiz kalır.
 

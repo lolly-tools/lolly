@@ -130,7 +130,7 @@ Lolly আসলে কী তা দেখার সবচেয়ে স্প
 
 ### রিপোজিটরি লেআউট
 
-কনটেন্ট প্যাক হিসেবে মাউন্ট করা হয়: `community/`, `docs/`, প্রতিটি `shells/*`, উভয় `services/*` এবং `brands/suse` প্রতিটি নিজস্ব রিপোজিটরি, এই রিপোজিটরির git সাবমডিউল হিসেবে চেকআউট করা। পেরেন্ট `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `brands/lolly-start/` ও `profiles.json`-এর মালিক। চেকআউট কমান্ড ও ক্রস-রিপো ওয়ার্কফ্লোর জন্য দেখুন [Build Guide » Getting the source](/info/build-guide.html)।
+Lolly একটি একক রিপোজিটরি। `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `docs/`, `community/`, `brands/lolly-start/`, প্রতিটি `shells/*` এবং উভয় `services/*` এতে সাধারণ ডিরেক্টরি হিসেবে আছে। একমাত্র ব্যতিক্রম হল `brands/suse`, একটি **প্রাইভেট** git সাবমডিউল যা SUSE টুল প্যাক এবং ক্যাটালগ ধারণ করে, যা ঐচ্ছিক এবং একটি পাবলিক ক্লোনে অনুপস্থিত থাকে। একটি নির্দিষ্ট বিল্ড কোন কোন প্যাক পড়বে তা একটি কনটেন্ট প্রোফাইল (`profiles.json`) দ্বারা নির্ধারিত হয়, যা গ্লোবালি সুইচ করার পরিবর্তে প্রতি প্রসেসে রেজলভ করা হয়। ক্লোন করার কমান্ড এবং প্রাইভেট প্যাকের ভেতরে একটি পরিবর্তন কীভাবে কমিট করা হয় তা জানতে দেখুন [Build Guide » Getting the source](/info/build-guide.html)।
 
 ```
 lolly/
@@ -188,45 +188,38 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # profile VIEW (gitignored) - data, not code. Merged from packs:
-│                     #   community/ (public, brand-agnostic, MPL) + brands/<active>/tools (brand-owned).
-│                     #   A SELECTION follows - the mounted set depends on the profile.
+├── community/        # the brand-agnostic tool pack - data, not code. Public (MPL-2.0).
+│                     #   A SELECTION follows; a profile mounts these plus whatever
+│                     #   tools the active brand pack carries of its own.
 │   ├── qr-code/
-│   ├── quotes/
-│   ├── email-signature/
 │   ├── snippet/
 │   ├── countdown-timer/
 │   ├── color-palette/
-│   ├── color-block/           # typed/heterogeneous blocks (addMenu discriminator)
-│   ├── dynamic-layout/
-│   ├── tool-logo/         # "Logo" - auto-switching brand logo
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
 │   ├── strip-data/        # on-device metadata strip - JPEG/PNG/SVG/PDF (file in → clean file out)
 │   ├── compress-pdf/      # on-device PDF compressor - recompresses images (file in → smaller file out)
-│   ├── brand-lockup/      # "Brand Lockup" - SUSE logo lockups; HarfBuzz text-to-path (wasm)
-│   ├── chart-creator/     # SVG charts from structured data
+│   ├── chart/             # SVG charts from structured data
 │   ├── filter/            # photo effects in one tool - halftone/scanline/posterize/voronoi (vector), duotone/pixel-stretch/imperfections (raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
-│   ├── digi-ad/           # "Animated Ad" - looping banner from scenes
-│   ├── event-name-badge/  # conference badges - composes qr-code as an SVG
 │   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
 │   ├── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
 │   ├── design/     # "Design" - freeform WYSIWYG editor canvas (render.layout: editor)
 │   ├── multi-page-pdf/    # multi-page PDF document - cover, flowing content blocks, back page
 │   ├── diagram-builder/   # org / layercake / process / cycle / pyramid diagrams
 │   ├── logo-wall/         # many logos → auto-packed grid
-│   ├── logo-lockup-partner/ # SUSE + partner co-brand lockup
-│   ├── icon/          # favicon .ico / png / svg from text + colours
-│   ├── lottie-digi-ad/    # animated Lottie ad banners
-│   └── pose-geeko/        # pose the SUSE Geeko mascot - print-ready stills
+│   ├── icon/              # favicon .ico / png / svg from text + colours
+│   └── lottie-digi-ad/    # animated Lottie ad banners
 │
-├── catalog/
-│   ├── tools/index.json        # tool registry
-│   └── assets/
-│       ├── index.json          # asset registry
-│       └── suse/...            # logo, palette, etc.
+├── brands/            # brand packs - a catalog each, and optionally tools of their own
+│   ├── lolly-start/   # the blank starter brand, owned here
+│   │   └── catalog/
+│   │       ├── tools/index.json    # tool registry, generated per brand
+│   │       └── assets/
+│   │           ├── index.json      # asset registry
+│   │           └── lolly/...       # logo, palette, tokens
+│   └── suse/          # PRIVATE submodule - the SUSE tools and the SUSE catalog
 │
 ├── schemas/          # JSON Schema for tool.json, asset entries, AssetRef
 ├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
@@ -269,7 +262,7 @@ lolly qr-code                # lists inputs for that tool
 ```
 
 ### TUI
-`npm run tui`
+`pnpm run tui`
 
 CLI-র ইন্টারঅ্যাক্টিভ প্রতিরূপ: একটি ফুল-স্ক্রিন, কীবোর্ড-ফার্স্ট টার্মিনাল অ্যাপ (Ink-এর উপর নির্মিত) যা টুল ব্রাউজ করা, ইনপুট পূরণ করা, প্রজেক্ট সংরক্ষণ করা এবং এক্সপোর্ট করার জন্য ব্যবহৃত হয় - কোনো GUI ছাড়াই। এর হোস্ট ব্রিজ DOM-মুক্ত ফরম্যাটগুলির (SVG/EMF/EPS/HTML + text/data) জন্য **CLI-র ইমপ্লিমেন্টেশন পুনর্ব্যবহার করে**, এবং `~/.lolly`-এর অধীনে ডিস্কে-অবস্থিত স্টেট প্লাস একটি অপ্ট-ইন ইনলাইন প্রিভিউ যোগ করে। এর বাইরে এর একটি **ব্রাউজার রেন্ডার টিয়ার** রয়েছে: একটি স্কোপড হেডলেস Chromium (MCP সার্ভার যেটি ইনস্টল করে সেটিই) যা চাহিদামাফিক রাস্টার/PDF/ভিডিও এবং লাইভ-URL ক্যাপচার তৈরি করে - ওয়েব শেলের একটি নির্মিত কপি চালিয়ে যাতে আউটপুট অভিন্ন থাকে, এবং কেবল আপনি প্রথমবার এমন কোনো ফরম্যাট এক্সপোর্ট করলেই চালু হয়। তাই `url-shot` (ক্রপ + রিকালার + ভেক্টর PDF/SVG সহ) এবং প্রতিটি রাস্টার/pdf টুল টার্মিনালেও চলে। দেখুন [TUI গাইড](/info/tui.html)।
 
@@ -283,13 +276,13 @@ CLI-র ইন্টারঅ্যাক্টিভ প্রতিরূপ: 
 
 সারিগুলি গ্যালারি সেকশনের ক্রম অনুযায়ী তালিকাভুক্ত। `utility` সেকশন সর্বদা গ্যালারিতে **সবার শেষে** রেন্ডার হয় (অন্য প্রতিটি ক্যাটাগরির পরে, ভবিষ্যতেরগুলি সহ) - এটি অন-ডিভাইস "Offline Utilities" ড্রয়ার।
 
-| শ্রেণী | উদাহরণ | পরিকল্পিত |
+| বিভাগ | উদাহরণ | পরিকল্পিত |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence Studio, Record | Employee Image Stationery |
-| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Multi-Page PDF | Font Outliner |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence, Record | Employee Image Stationery |
+| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Booklet | Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS, Booth Studio | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | - | CVE Alert, Product Release Announcement, Blog OG Image |
-| `utility` | Strip Hidden Data, Text Helper, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
+| `utility` | Strip Hidden Data, Text, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
 
 সেই সেলগুলি **উদাহরণ, তালিকা নয়**। কোন টুল বিদ্যমান তা আপনার মাউন্ট করা প্রোফাইলের একটি বৈশিষ্ট্য, এই পাতার নয়: একটি ব্র্যান্ড প্যাক নিজের টুল যোগ করে, এবং এমন একটি কমিউনিটি টুল বাদও দিতে পারে যেটি সে শিপ করতে চায় না। `catalog/tools/index.json` - যা ম্যানিফেস্ট থেকে তৈরি হয় এবং গ্যালারি প্রকৃতপক্ষে যা পড়ে সেই রেজিস্ট্রি - হলো কর্তৃত্বপূর্ণ তালিকা; একটি প্রোফাইল কী মাউন্ট করে তা গুনতে, এখানে লেখা কোনো সংখ্যা বিশ্বাস করার বদলে ম্যানিফেস্টগুলি গুনুন (`ls community/*/tool.json brands/*/tools/*/tool.json`)। (দুটি প্যাকে উপস্থিত একটি টুল id একবারই মাউন্ট হয়, বিজয়ী প্যাক থেকে।)
 
@@ -297,11 +290,11 @@ CLI-র ইন্টারঅ্যাক্টিভ প্রতিরূপ: 
 
 **Design** হলো `render.layout: "editor"` ফ্রি-ক্যানভাস মোডে তৈরি প্রথম টুল - একটি ক্রোমহীন, প্রত্যক্ষ-ম্যানিপুলেশন সারফেস যেখানে আপনি টেক্সট, শেপ এবং ইমেজের বক্স টেনে, রিসাইজ করে, ঘুরিয়ে এবং স্ন্যাপ করে বসাতে পারেন, তারপর অন্য প্রতিটি টুলের মতো একই রেন্ডার পাথের মাধ্যমে এক্সপোর্ট করতে পারেন।
 
-**Strip Hidden Data** হলো প্রথম **অন-ডিভাইস ইউটিলিটি** (`privacy: "on-device"`): একটি কনটেন্ট-ট্রান্সফর্ম টুল যা *আপনার* সরবরাহ করা একটি ফাইল নেয়, সম্পূর্ণভাবে ব্রাউজারে প্রসেস করে এবং একটি পরিষ্কার কপি ফেরত দেয় - কখনো আপলোড হয় না, কখনো ওয়াটারমার্ক হয় না, কোনো প্রোভেন্যান্স স্ট্যাম্প হয় না। **Text Helper** হলো দ্বিতীয়টি - প্রতিদিনের পেস্ট-ইনটু-এ-ওয়েবসাইট কাজের (JSON ফরম্যাট, JWT ডিকোড, Base64, URL এনকোড/ডিকোড, SHA হ্যাশিং) জন্য একটি অন-ডিভাইস ওয়ার্কবেঞ্চ। **Compress PDF** হলো তৃতীয়টি - এটি PDF-এর ইমেজগুলি পুনরায় কমপ্রেস করে এর আকার ছোট করে, আবারও সম্পূর্ণভাবে অন-ডিভাইসে। মার্কার এবং এর ব্যাজ টেক্সট "Runs on your device - nothing is uploaded" এখন পুরো ট্রান্সফর্ম সেটকে কভার করে: Strip Hidden Data, Text Helper, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (একটি ইমেজ, SVG বা PDF-এর অংশ ধ্বংস করুন), **Prompt to Image** এবং **Rebrand a Deck** (একটি `.pptx` স্বস্থানে রি-থিম করুন) যেখানে প্রোফাইল এটি মাউন্ট করে। এটি একটি প্রাইভেসি-ইউটিলিটি ক্যাটাগরি যা একক-উদ্দেশ্যের ওয়েবসাইটে গোপনীয় ফাইল হস্তান্তর করার বিকল্প।
+**Strip Hidden Data** হল প্রথম **অন-ডিভাইস ইউটিলিটি** (`privacy: "on-device"`): এটি এমন একটি কনটেন্ট-ট্রান্সফর্ম টুল যা *আপনার* দেওয়া একটি ফাইল নেয়, সম্পূর্ণভাবে ব্রাউজারের মধ্যে প্রসেস করে এবং একটি পরিষ্কার কপি ফেরত দেয় - কখনো আপলোড করা হয় না, কখনো ওয়াটারমার্ক করা হয় না, কোনো প্রোভেন্যান্স স্ট্যাম্প করা হয় না। **Text** হল দ্বিতীয়টি - প্রতিদিনের পেস্ট-ইনটু-এ-ওয়েবসাইট কাজের জন্য একটি অন-ডিভাইস ওয়ার্কবেঞ্চ (JSON ফরম্যাট, JWT ডিকোড, Base64, URL এনকোড/ডিকোড, SHA হ্যাশিং)। **Compress PDF** হল তৃতীয়টি - এটি একটি PDF-এর ছবিগুলো পুনরায় কম্প্রেস করে এর আকার ছোট করে, আবারও সম্পূর্ণভাবে অন-ডিভাইসে। মার্কার এবং এর ব্যাজ টেক্সট "আপনার ডিভাইসে চলে - কিছুই আপলোড করা হয় না" এখন পুরো ট্রান্সফর্ম সেট কভার করে: Strip Hidden Data, Text, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (একটি ছবি, SVG বা PDF-এর অংশ ধ্বংস করে), **Prompt Card** এবং **Rebrand** (একটি `.pptx`-কে যথাস্থানে রি-থিম করে) যেখানে প্রোফাইল এটি মাউন্ট করে। এটি একটি প্রাইভেসি-ইউটিলিটি বিভাগ যা গোপনীয় ফাইল একক-উদ্দেশ্য ওয়েবসাইটে হস্তান্তর করার প্রয়োজনীয়তা প্রতিস্থাপন করে।
 
 ![Utilities ড্রয়ার, যেখানে প্রতিটি কার্ড এমন একটি টুল যা আপনার কাছে থাকা একটি ফাইল রূপান্তর করে](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
 
-> নোট: `category` এবং `status` প্রতিটি `tool.json` থেকে `catalog/tools/index.json`-এ (যে রেজিস্ট্রি গ্যালারি পড়ে) ডিনরমালাইজড করা হয়। ম্যানিফেস্ট হলো সত্যের উৎস - ইনডেক্সটি `npm run build:catalog` দ্বারা **জেনারেট** করা হয় এবং কমিটেড ইনডেক্স ম্যানিফেস্টগুলি থেকে বিচ্যুত হলে `npm run validate:catalog` CI ফেইল করায়।
+> নোট: `category` এবং `status` প্রতিটি `tool.json` থেকে `catalog/tools/index.json`-এ (গ্যালারি যে রেজিস্ট্রি পড়ে) ডিনরমালাইজড করা হয়। ম্যানিফেস্টই একমাত্র সোর্স অফ ট্রুথ - ইনডেক্সটি `pnpm run build:catalog` দ্বারা **জেনারেট** করা হয় এবং কমিট করা ইনডেক্স ম্যানিফেস্ট থেকে ড্রিফট করলে `pnpm run validate:catalog` CI ফেইল করে।
 
 ---
 
@@ -443,14 +436,14 @@ EJS-এর বদলে Handlebars ইচ্ছাকৃতভাবে বে�
 
 একজন ব্যবহারকারী `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H` খোলেন:
 
-1. **বুট।** ওয়েব শেল IndexedDB খোলে, ক্যাপাবিলিটি ব্রিজ তৈরি করে, টুল এবং অ্যাসেট ক্যাটালগ সিঙ্ক করে (বা অফলাইন থাকলে ক্যাশ থেকে লোড করে)।
-2. **রুট।** URL হ্যাশ → `tool` ভিউ, `qr-code` এবং URL প্যারামিটার নিষ্কাশন সহ।
-3. **লোড।** `loadTool('qr-code', fetchFile)` `tool.json` ফেচ করে, JSON স্কিমার বিরুদ্ধে যাচাই করে, `template.html`, `styles.css` এবং `hooks.js` সোর্স ফেচ করে।
-4. **URL স্টেট পার্স।** `parseUrlState` URL প্যারামিটারগুলোকে প্রাথমিক ইনপুট মানে রূপান্তর করে। অ্যাসেট রেফ (`?logo=suse/logo/primary`) হালকা `{ id, _unresolved: true }` অবজেক্ট হিসেবে পার্স হয়।
-5. **রানটাইম।** `createRuntime(tool, host, initialValues)` ইনপুট মডেল তৈরি করে (প্রোফাইল ডেটা, ডিফল্ট এবং প্রাথমিক মান মার্জ করে), `host.assets.get()` দিয়ে অ্যাসেট রেফ রিজলভ করে, হুক লোড করে (ক্লোজার-স্কোপড `host`, স্যান্ডবক্সড নয়), `hooks.onInit` কল করে।
+1. **বুট।** ওয়েব শেল IndexedDB খোলে, ক্যাপাবিলিটি ব্রিজ তৈরি করে, টুল এবং অ্যাসেট ক্যাটালগ সিঙ্ক করে (অথবা অফলাইন থাকলে ক্যাশ থেকে লোড করে)।
+2. **রুট।** URL হ্যাশ → `tool` ভিউ, `qr-code` এবং URL প্যারামিটার এক্সট্র্যাক্ট করা সহ।
+3. **লোড।** `loadTool('qr-code', fetchFile)` `tool.json` ফেচ করে, JSON স্কিমার বিপরীতে ভ্যালিডেট করে, `template.html`, `styles.css` এবং `hooks.js` সোর্স ফেচ করে।
+4. **URL স্টেট পার্স করুন।** `parseUrlState` URL প্যারামিটারগুলোকে ইনিশিয়াল ইনপুট ভ্যালুতে রূপান্তর করে। অ্যাসেট রেফারেন্স (`?logo=suse/logo/primary`) হালকা `{ id, _unresolved: true }` অবজেক্ট হিসেবে পার্স করা হয়।
+5. **রানটাইম।** `createRuntime(tool, host, initialValues)` ইনপুট মডেল তৈরি করে (প্রোফাইল ডেটা, ডিফল্ট এবং ইনিশিয়াল ভ্যালু মার্জ করে), `host.assets.get()`-এর মাধ্যমে অ্যাসেট রেফারেন্স রেজলভ করে, হুক লোড করে (ক্লোজার-স্কোপড `host`, স্যান্ডবক্সড নয়), `hooks.onInit` কল করে।
 6. **রেন্ডার।** শেল রানটাইমে সাবস্ক্রাইব করে; প্রতিটি স্টেট পরিবর্তনে এটি `{ model, hydrated }` পায়। এটি মডেল থেকে ইনপুট কন্ট্রোল রেন্ডার করে এবং হাইড্রেটেড টেমপ্লেট HTML `#tool-canvas`-এ লেখে।
 7. **ইন্টারঅ্যাক্ট।** ব্যবহারকারী একটি ইনপুটে টাইপ করেন → `runtime.setInput(id, value)` → কনস্ট্রেইন্ট প্রয়োগ হয় → `hooks.onInput` কল হয় → পুনরায় হাইড্রেট → পুনরায় রেন্ডার। ক্যানভাস লাইভ আপডেট হয়।
-8. **এক্সপোর্ট।** ব্যবহারকারী Download(PNG)-এ ক্লিক করেন → `runtime.export(canvasNode, 'png')` → `host.export.render` (dom-to-image-more দিয়ে র‍্যাস্টারাইজ করে; SVG/PDF নিবেদিত DOM-ওয়াকিং ভেক্টরাইজারের মধ্য দিয়ে যায়) → ব্লব → `host.export.download`। একটি টুল যে ফরম্যাট রেঞ্জ বেছে নিতে পারে তা বিস্তৃত, আর `schemas/tool.schema.json`-এর `render.formats` এনাম এর উপর কর্তৃত্বকারী - র‍্যাস্টার ও ফ্লোট র‍্যাস্টার, ভেক্টর ও কাট ফাইল, প্রিন্ট/CMYK, মোশন, এডিটেবল ডকুমেন্ট (`pptx`, `docx`, `odt`), প্যালেট এবং ডেটা/টেক্সট আউটপুট, অডিও এবং ফন্ট ফাইল। [URL Mode](/info/url-mode.html) প্রতিটি id এবং তা কী তৈরি করে তা নামকরণ করে। অডিও সেই এনামে অন্য যেকোনো কিছুর মতোই আছে (`wav`, `mp3`, `m4a`, `opus`, অডিওগ্রাম ও রেকর্ডিং টুল দ্বারা ঘোষিত); আলাদাভাবে, একটি রেকর্ডিং টুলের `render.capture` মোড `host.recorder` চালায়, যার টেক ব্রাউজার যে কন্টেইনারে রেকর্ড করেছে তাতে একটি সম্পূর্ণ Blob হিসেবে আসে। (যেসব টুল `render.export: false` সেট করে - যেমন Color Palette, Countdown Timer, Strip Hidden Data, Text Helper, Compress PDF - ডাউনলোড/ফরম্যাট/ডাইমেনশন কন্ট্রোল লুকায়।) ফিজিক্যাল ইউনিট এখানে প্রতি-ফরম্যাট রূপান্তরিত হয় (PDF → প্রকৃত পেজ পয়েন্ট, র‍্যাস্টার → DPI-তে পিক্সেল একটি `pHYs` চাংক সহ)। অথরশিপ/প্রোভেন্যান্স মেটাডেটা (লেখক, টুল, উৎস - `engine/src/metadata.ts` দ্বারা নির্মিত) প্রতি-ফরম্যাট এমবেড হয়: PNG iTXt, JPEG EXIF, PDF ইনফো ডিক্ট, SVG `<metadata>`, GIF কমেন্ট। এক্সপেরিমেন্টাল টুল হোস্ট দ্বারা সন্নিবেশিত ওয়াটারমার্ক পায়, টুল দ্বারা নয়।
+8. **এক্সপোর্ট।** ব্যবহারকারী Download(PNG)-এ ক্লিক করেন → `runtime.export(canvasNode, 'png')` → `host.export.render` (dom-to-image-more দিয়ে র‍্যাস্টারাইজ করে; SVG/PDF ডেডিকেটেড DOM-ওয়াকিং ভেক্টরাইজারের মধ্য দিয়ে যায়) → ব্লব → `host.export.download`। একটি টুল যে ফরম্যাট রেঞ্জ বেছে নিতে পারে তা বিস্তৃত, এবং `schemas/tool.schema.json`-এর `render.formats` enum হল তার একমাত্র কর্তৃপক্ষ - র‍্যাস্টার এবং ফ্লোট র‍্যাস্টার, ভেক্টর এবং কাট ফাইল, প্রিন্ট/CMYK, মোশন, এডিটেবল ডকুমেন্ট (`pptx`, `docx`, `odt`), প্যালেট এবং ডেটা/টেক্সট আউটপুট, অডিও এবং ফন্ট ফাইল। [URL Mode](/info/url-mode.html) প্রতিটি id এবং তা কী প্রোডিউস করে তার নাম দেয়। অডিও সেই enum-এ অন্য যেকোনো কিছুর মতোই আছে (`wav`, `mp3`, `m4a`, `opus`, অডিওগ্রাম এবং রেকর্ডিং টুলগুলো দ্বারা ঘোষিত); আলাদাভাবে, একটি রেকর্ডিং টুলের `render.capture` মোড `host.recorder` চালায়, যার টেক ব্রাউজার যে কন্টেইনারে রেকর্ড করেছে তাতে একটি সমাপ্ত Blob হিসেবে আসে। (যেসব টুল `render.export: false` সেট করে - যেমন Color Palette, Countdown Timer, Strip Hidden Data, Text, Compress PDF - ডাউনলোড/ফরম্যাট/ডাইমেনশন কন্ট্রোল লুকায়।) ফিজিক্যাল ইউনিট এখানে প্রতি ফরম্যাটে রূপান্তরিত হয় (PDF → প্রকৃত পেজ পয়েন্ট, র‍্যাস্টার → DPI-তে পিক্সেল একটি `pHYs` চাংক সহ)। অথরশিপ/প্রোভেন্যান্স মেটাডেটা (অথর, টুল, সোর্স - `engine/src/metadata.ts` দ্বারা নির্মিত) প্রতি ফরম্যাটে এমবেড করা হয়: PNG iTXt, JPEG EXIF, PDF info dict, SVG `<metadata>`, GIF কমেন্ট। এক্সপেরিমেন্টাল টুলে হোস্ট দ্বারা একটি ওয়াটারমার্ক ঢোকানো হয়, টুল দ্বারা নয়।
 
 ![এক্সপোর্ট প্যানেল যা `?options` খোলে: ফাইলনেম ও ফরম্যাট জোড়া, আউটপুট সাইজ এবং যে কন্ট্রোলগুলো ফাইল লেখে](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
@@ -460,11 +453,11 @@ EJS-এর বদলে Handlebars ইচ্ছাকৃতভাবে বে�
 
 ## ওপেন-সোর্স অবস্থা
 
-**কোড হলো MPL-2.0।** `engine/`, `shells/*`, `services/*`, `schemas/` এবং `docs/` **MPL-2.0**-এর অধীনে ওপেন সোর্স - ব্র্যান্ড টুলিংয়ের জন্য একটি ভেন্ডর-নিরপেক্ষ স্ক্যাফোল্ডিং প্ল্যাটফর্ম, যেখানে প্রতিটি বিতরণযোগ্য ইউনিট [github.com/lolly-tools](https://github.com/lolly-tools)-এর অধীনে নিজস্ব রিপোজিটরিতে থাকে।
+**কোড MPL-2.0।** `engine/`, `shells/*`, `services/*`, `schemas/` এবং `docs/` **MPL-2.0**-এর অধীনে ওপেন সোর্স - ব্র্যান্ড টুলিংয়ের জন্য একটি ভেন্ডর-নিউট্রাল স্ক্যাফোল্ডিং প্ল্যাটফর্ম, সবকিছু একটি পাবলিক রিপোজিটরিতে, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly)।
 
-**টুল কন্টেন্ট ব্র্যান্ড প্যাক হিসেবে শিপ করে**, প্রতিটির নিজস্ব শর্ত থাকে (প্যাকের `NOTICE.md` দেখুন)। `community/` হলো পাবলিক [`lolly-tools`](https://github.com/lolly-tools/lolly-tools) রিপোজিটরি এবং এর ব্র্যান্ড-অ্যাগনস্টিক টুলগুলোও MPL-2.0। `brands/suse/` হলো প্রাইভেট `suse-lolly` প্যাক: SUSE টুল এবং SUSE ক্যাটালগ, **SUSE-এর মালিকানাধীন**, এর লাইসেন্সপ্রাপ্ত PremiumBeat মিউজিকসহ। `brands/lolly-start/` হলো এই রিপোজিটরির মালিকানাধীন ফাঁকা স্টার্টার ব্র্যান্ড। ফন্ট একটি প্যাকের ভেতরে **SIL Open Font License 1.1**-এর অধীনে শিপ করে - SUSE প্যাকে SUSE এবং SUSE Mono টাইপফেস থাকে।
+**টুল কনটেন্ট ব্র্যান্ড প্যাক হিসেবে শিপ করা হয়**, প্রতিটির নিজস্ব শর্তাবলী সহ (প্যাকের `NOTICE.md` দেখুন)। `community/` এই রিপোজিটরির একটি ডিরেক্টরি এবং এর ব্র্যান্ড-অ্যাগনস্টিক টুলগুলোও MPL-2.0। `brands/suse/` হল প্রাইভেট `suse-lolly` প্যাক, একমাত্র সাবমডিউল: SUSE টুল এবং SUSE ক্যাটালগ, **SUSE-এর মালিকানাধীন**, এর লাইসেন্সপ্রাপ্ত PremiumBeat মিউজিক সহ। `brands/lolly-start/` হল খালি স্টার্টার ব্র্যান্ড যার মালিক এই রিপোজিটরি। ফন্ট একটি প্যাকের ভেতরে **SIL Open Font License 1.1**-এর অধীনে শিপ করা হয় - SUSE প্যাকে SUSE এবং SUSE Mono টাইপফেস রয়েছে।
 
-repo-root-এর `tools/` এবং `catalog/` হলো gitignore করা *views*: একটি প্রোফাইল সেগুলোকে `community/` এবং সক্রিয় ব্র্যান্ড প্যাক থেকে একত্র করে, যে কারণে প্রতিটি স্ক্রিপ্ট এবং শেল সেই দুটি পাথই পড়ে এবং কখনো সরাসরি কোনো প্যাক পড়ে না।
+কোনো রিপো-রুট `tools/` বা `catalog/` ডিরেক্টরি নেই। `packages/node-shell/src/content-roots.ts` রিড টাইমে `profiles.json` থেকে "টুল `<id>` কোথায় থাকে" এবং "ক্যাটালগ কোথায়" এর উত্তর দেয়, তাই একটি প্রোফাইল হল প্রতি-প্রসেস উত্তর এবং আগে থেকে কোনো ট্রি অ্যাসেম্বল করার প্রয়োজন হয় না। একটি প্রকৃত `tools/` + `catalog/` জোড়া কেবল একটি বিল্ড আউটপুটে লেখা হয় - `dist/`, একটি RPM পেলোড, একটি কন্টেইনার ইমেজ - কারণ একটি ব্রাউজার সেই দুটি পাথ HTTP-এর মাধ্যমে ফেচ করে।
 
 বিভাজনটি প্রয়োগ করা হয় - `engine/` থেকে টুল কন্টেন্টে কোনো cross-import নেই - যাতে প্ল্যাটফর্ম/কন্টেন্ট সীমানা পরিষ্কার থাকে।
 

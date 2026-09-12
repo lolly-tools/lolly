@@ -39,14 +39,14 @@ Poctivé výjimky - každá je opt-in, spouští ji uživatel a je vidět ve ste
 
 ## Z terminálu
 
-**6. Vykreslovací endpoint odpovídá jen veřejnými daty.** Jediná serverová funkce, která vkládá uživatelem zadané vstupy do URL - vykreslování přes hot-link - je tady naostro, a [zásady ochrany osobních údajů](/info/privacy.html) vysvětlují, co to znamená pro vstupy, které vložíš do odkazu:
+**6. Koncový bod pro vykreslování odpovídá pouze veřejnými daty.** Jediná serverová funkce, která vkládá uživatelem zadané vstupy do URL - hot-link renderování - je zde živá a [zásady ochrany soukromí](/info/privacy.html) popisují, co to znamená pro vstupy, které vložíš do odkazu:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Přepínač je nastaven na úrovni jednotlivého nasazení (`LOLLY_DISABLE_RENDER_GET=1`): na instanci, která tuto proměnnou nastaví, stejná zkouška vrátí `404` - ten rozdíl je funkčnost přepínače, ne nekonzistence.
+Přepínač je nastavený pro každé nasazení zvlášť (`LOLLY_DISABLE_RENDER_GET=1`): na instanci, která ho nastaví, stejná sonda vrátí `404` - tento rozdíl znamená, že příznak funguje, nejde o nesrovnalost.
 
 **7. Serverová plocha je vyčíslitelná.** [Server Surface](/info/server-surface.html) vypisuje každou existující serverovou trasu s trvalým pravidlem, že endpoint, který na této stránce není, není součástí Lolly. Vyzkoušej si je přes `curl`; nic dalšího tam nenajdeš.
 
@@ -55,7 +55,7 @@ Přepínač je nastaven na úrovni jednotlivého nasazení (`LOLLY_DISABLE_RENDE
 Všechno výše uvedené by pořád mohlo být jen divadlo, kdyby se nasazený kód lišil od veřejného kódu. Zkontroluj si tedy kód - nasazení se sestavuje z [veřejného repozitáře](https://github.com/lolly-tools/lolly):
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ Výše uvedené tři kontroly zdrojového kódu nejsou jednorázový audit - jso
 - se vrátí záznam o vydávání certifikační autority - ve zdrojovém kódu **nebo** ve vygenerovaném serverovém balíčku,
 - zásady ochrany osobních údajů ztratí kterékoli ze svých zákonem vyžadovaných tvrzení (jmenovaný správce, právní základ, právo si stěžovat).
 
-Spusť si je sám/sama v klonu (Node 22.18+; pro tento soubor není potřeba `npm install`):
+Spusť si je sám v klonu (Node 22.18+; pro tento soubor není potřeba `pnpm install`):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-Celá sada testů (`npm install && npm test`) spouští ještě několik tisíc dalších, včetně adversariálních kryptografických testů popsaných v [Bezpečnost a ověřování](/info/security.html).
+Celá sada (`pnpm install && pnpm test`) spustí ještě několik tisíc dalších, včetně adversariálních kryptografických testů popsaných v [Security & Verification](/info/security.html).
 
 ## Co zvenčí ověřit nejde - řečeno na rovinu
 

@@ -39,14 +39,14 @@ Lolly의 개인정보 보호 및 보안 페이지는 여러 가지를 주장합�
 
 ## 터미널에서
 
-**6. 렌더링 엔드포인트는 공개 데이터로만 응답합니다.** 사용자가 입력한 값을 URL에 담는 유일한 서버 기능인 핫링크 렌더링은 여기서 라이브로 운영되고 있으며, 링크에 입력한 값이 어떻게 다뤄지는지는 [개인정보 처리방침](/info/privacy.html)에 설명되어 있습니다:
+**6. 렌더 엔드포인트는 공개 데이터로만 응답합니다.** 사용자가 입력한 값을 URL에 담는 유일한 서버 기능인 핫링크 렌더(hot-link render)가 여기서 동작하고 있으며, 링크에 넣은 입력값이 어떤 의미를 갖는지는 [privacy policy](/info/privacy.html)에 설명되어 있습니다:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-이 스위치는 배포별로 설정됩니다(`LOLLY_DISABLE_RENDER_GET=1`): 이를 설정한 인스턴스에서는 같은 검사를 해도 `404`가 반환됩니다 - 이 차이는 불일치가 아니라 플래그가 제대로 작동하고 있다는 증거입니다.
+이 스위치는 배포 단위로 설정됩니다(`LOLLY_DISABLE_RENDER_GET=1`): 이 값을 설정한 인스턴스에서는 동일한 프로브가 `404`를 반환합니다 - 이 차이는 플래그가 정상 작동한다는 뜻이지 불일치가 아닙니다.
 
 **7. 서버 표면은 모두 나열되어 있습니다.** [Server Surface](/info/server-surface.html)는 존재하는 모든 서버 측 라우트를 나열하며, 그 페이지에 없는 엔드포인트는 Lolly의 일부가 아니라는 원칙을 따릅니다. `curl`로 확인해보세요; 그 외에는 아무것도 없습니다.
 
@@ -55,7 +55,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 위의 모든 것도 배포된 코드가 공개 코드와 다르다면 여전히 연출에 불과할 수 있습니다. 그러니 코드를 직접 확인해보세요 - 이 배포는 [공개 저장소](https://github.com/lolly-tools/lolly)로부터 빌드됩니다:
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ grep -rn logIssuance services/ca api/ca
 - CA 발급 로그가 다시 나타나는 경우 - 소스에서든 **또는** 생성된 서버 번들에서든,
 - 개인정보 처리방침이 법적으로 요구되는 진술(지정된 관리자, 법적 근거, 이의제기 권리)을 잃는 경우.
 
-클론에서 직접 실행해보세요(Node 22.18+; 이 파일에는 `npm install`이 필요하지 않습니다):
+클론한 저장소에서 직접 실행해 보세요(Node 22.18+ 필요; 이 파일에는 `pnpm install`이 필요하지 않습니다):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-전체 스위트(`npm install && npm test`)는 [보안 및 검증](/info/security.html)에 설명된 적대적 암호화 테스트를 포함해 수천 개를 더 실행합니다.
+전체 테스트 스위트(`pnpm install && pnpm test`)는 [Security & Verification](/info/security.html)에서 설명하는 적대적(adversarial) 암호화 테스트를 포함해 수천 건을 추가로 실행합니다.
 
 ## 외부에서 검증할 수 없는 것 - 솔직하게 말하자면
 

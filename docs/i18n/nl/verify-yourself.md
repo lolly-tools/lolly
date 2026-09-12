@@ -39,14 +39,14 @@ De eerlijke uitzonderingen - elk opt-in, door de gebruiker geïnitieerd en zicht
 
 ## Vanuit een terminal
 
-**6. Het render-endpoint antwoordt alleen met publieke data.** De ene serverfunctie die door de gebruiker getypte invoer in een URL zet - hotlink-renders - is hier live, en het [privacybeleid](/info/privacy.html) legt uit wat dat betekent voor de invoer die je in een link zet:
+**6. Het render-endpoint antwoordt uitsluitend met publieke data.** De ene serverfunctie die door de gebruiker getypte invoer in een URL plaatst - hot-link renders - is hier live, en het [privacybeleid](/info/privacy.html) beschrijft wat dat betekent voor de invoer die je in een link zet:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-De schakelaar geldt per implementatie (`LOLLY_DISABLE_RENDER_GET=1`): op een instantie die dit instelt, levert dezelfde test `404` op - dat verschil is de vlag die werkt, geen inconsistentie.
+De schakelaar is per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): op een instance die deze instelt, geeft dezelfde probe `404` terug - dat verschil is de vlag die werkt, geen inconsistentie.
 
 **7. Het serveroppervlak is opsombaar.** [Server Surface](/info/server-surface.html) somt elke serverzijdige route op die bestaat, met de vaste regel dat een endpoint dat niet op die pagina staat geen deel uitmaakt van Lolly. `curl` ze; er valt verder niets te vinden.
 
@@ -55,7 +55,7 @@ De schakelaar geldt per implementatie (`LOLLY_DISABLE_RENDER_GET=1`): op een ins
 Alles hierboven zou nog steeds toneel kunnen zijn als de uitgerolde code zou afwijken van de publieke code. Controleer dus de code - de implementatie bouwt vanuit [de publieke repository](https://github.com/lolly-tools/lolly):
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ De drie broncodecontroles hierboven zijn geen eenmalige audit - ze zijn vastgepi
 - het uitgiftelog van de CA terugkeert - in de broncode **of** in de gegenereerde serverbundel,
 - het privacybeleid zijn wettelijk verplichte verklaringen verliest (aangewezen verwerkingsverantwoordelijke, rechtsgrond, recht om te klagen).
 
-Voer ze zelf uit in de kloon (Node 22.18+; geen `npm install` nodig voor dit bestand):
+Voer ze zelf uit in de kloon (Node 22.18+; geen `pnpm install` nodig voor dit bestand):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-De volledige suite (`npm install && npm test`) draait er nog enkele duizenden meer, inclusief de adversariële cryptografietests beschreven in [Security & Verification](/info/security.html).
+De volledige suite (`pnpm install && pnpm test`) voert er nog enkele duizenden meer uit, waaronder de adversarial cryptografietests beschreven in [Security & Verification](/info/security.html).
 
 ## Wat je van buitenaf niet kunt verifiëren - ronduit gezegd
 

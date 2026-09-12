@@ -127,7 +127,7 @@ Lollyが何であるかを理解する最も明快な方法は、機能一覧を
 
 ### リポジトリのレイアウト
 
-コンテンツはパックとしてマウントされます。`community/`、`docs/`、すべての`shells/*`、`services/*`の両方、そして`brands/suse`は、それぞれ独立したリポジトリであり、このリポジトリのgitサブモジュールとしてチェックアウトされます。親リポジトリが所有するのは`engine/`、`schemas/`、`scripts/`、`tests/`、`api/`、`brands/lolly-start/`、`profiles.json`です。チェックアウトコマンドとリポジトリ横断のワークフローについては[Build Guide » Getting the source](/info/build-guide.html)を参照してください。
+Lollyは単一のリポジトリです。`engine/`、`schemas/`、`scripts/`、`tests/`、`api/`、`docs/`、`community/`、`brands/lolly-start/`、すべての`shells/*`、および両方の`services/*`は、その中の通常のディレクトリです。唯一の例外は`brands/suse`で、SUSEのツールパックとカタログを保持する**プライベート**なgitサブモジュールであり、オプトインであり、公開クローンには含まれません。特定のビルドがどのパックを読み込むかはコンテンツプロファイル(`profiles.json`)によって決まり、グローバルに切り替えるのではなくプロセスごとに解決されます。クローンのコマンドと、プライベートパック内の変更をどのようにコミットするかについては、[Build Guide » Getting the source](/info/build-guide.html)を参照してください。
 
 ```
 lolly/
@@ -185,45 +185,38 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # profile VIEW (gitignored) - data, not code. Merged from packs:
-│                     #   community/ (public, brand-agnostic, MPL) + brands/<active>/tools (brand-owned).
-│                     #   A SELECTION follows - the mounted set depends on the profile.
+├── community/        # the brand-agnostic tool pack - data, not code. Public (MPL-2.0).
+│                     #   A SELECTION follows; a profile mounts these plus whatever
+│                     #   tools the active brand pack carries of its own.
 │   ├── qr-code/
-│   ├── quotes/
-│   ├── email-signature/
 │   ├── snippet/
 │   ├── countdown-timer/
 │   ├── color-palette/
-│   ├── color-block/           # typed/heterogeneous blocks (addMenu discriminator)
-│   ├── dynamic-layout/
-│   ├── tool-logo/         # "Logo" - auto-switching brand logo
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
 │   ├── strip-data/        # on-device metadata strip - JPEG/PNG/SVG/PDF (file in → clean file out)
 │   ├── compress-pdf/      # on-device PDF compressor - recompresses images (file in → smaller file out)
-│   ├── brand-lockup/      # "Brand Lockup" - SUSE logo lockups; HarfBuzz text-to-path (wasm)
-│   ├── chart-creator/     # SVG charts from structured data
+│   ├── chart/             # SVG charts from structured data
 │   ├── filter/            # photo effects in one tool - halftone/scanline/posterize/voronoi (vector), duotone/pixel-stretch/imperfections (raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
-│   ├── digi-ad/           # "Animated Ad" - looping banner from scenes
-│   ├── event-name-badge/  # conference badges - composes qr-code as an SVG
 │   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
 │   ├── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
 │   ├── design/     # "Design" - freeform WYSIWYG editor canvas (render.layout: editor)
 │   ├── multi-page-pdf/    # multi-page PDF document - cover, flowing content blocks, back page
 │   ├── diagram-builder/   # org / layercake / process / cycle / pyramid diagrams
 │   ├── logo-wall/         # many logos → auto-packed grid
-│   ├── logo-lockup-partner/ # SUSE + partner co-brand lockup
-│   ├── icon/          # favicon .ico / png / svg from text + colours
-│   ├── lottie-digi-ad/    # animated Lottie ad banners
-│   └── pose-geeko/        # pose the SUSE Geeko mascot - print-ready stills
+│   ├── icon/              # favicon .ico / png / svg from text + colours
+│   └── lottie-digi-ad/    # animated Lottie ad banners
 │
-├── catalog/
-│   ├── tools/index.json        # tool registry
-│   └── assets/
-│       ├── index.json          # asset registry
-│       └── suse/...            # logo, palette, etc.
+├── brands/            # brand packs - a catalog each, and optionally tools of their own
+│   ├── lolly-start/   # the blank starter brand, owned here
+│   │   └── catalog/
+│   │       ├── tools/index.json    # tool registry, generated per brand
+│   │       └── assets/
+│   │           ├── index.json      # asset registry
+│   │           └── lolly/...       # logo, palette, tokens
+│   └── suse/          # PRIVATE submodule - the SUSE tools and the SUSE catalog
 │
 ├── schemas/          # JSON Schema for tool.json, asset entries, AssetRef
 ├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
@@ -266,7 +259,7 @@ lolly qr-code                # lists inputs for that tool
 ```
 
 ### TUI
-`npm run tui`
+`pnpm run tui`
 
 CLIに対応するインタラクティブな存在です。ツールの閲覧、入力の記入、プロジェクトの保存、エクスポートをGUIなしで行える、フルスクリーンでキーボード操作を前提としたターミナルアプリ（Ink製）です。そのホストブリッジは、DOMを使わないフォーマット（SVG/EMF/EPS/HTML + テキスト/データ）については**CLIの実装を再利用**し、さらに`~/.lolly`配下のオンディスク状態と、オプトインのインラインプレビューを追加します。それに加えて**ブラウザレンダー層**を備えています。これは、必要になったときにラスター/PDF/動画とライブURLキャプチャを生成する、スコープ限定のヘッドレスChromium（MCPサーバーがインストールするものと同一）で、Webシェルのビルド済みコピーを動かすことで出力を同一に保ち、そのフォーマットを最初にエクスポートするときにのみ起動します。そのため、`url-shot`（クロップ + 色の再設定 + ベクターPDF/SVG付き）をはじめ、あらゆるラスター/PDFツールもターミナル上で動作します。詳しくは[TUIガイド](/info/tui.html)を参照してください。
 
@@ -280,13 +273,13 @@ CLIに対応するインタラクティブな存在です。ツールの閲覧�
 
 行はギャラリーのセクション順に並んでいます。`utility`セクションは、（将来追加されるものも含め）他のすべてのカテゴリの後、ギャラリー内で常に**最後**に表示されます - これはオンデバイスの「Offline Utilities」ドロワーです。
 
-| カテゴリ | 例 | 計画中 |
+| カテゴリ | 例 | 予定 |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence Studio, Record | Employee Image Stationery |
-| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Multi-Page PDF | Font Outliner |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence, Record | Employee Image Stationery |
+| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Booklet | Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS, Booth Studio | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | - | CVE Alert, Product Release Announcement, Blog OG Image |
-| `utility` | Strip Hidden Data, Text Helper, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
+| `utility` | Strip Hidden Data, Text, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
 
 これらのセルは**在庫一覧ではなく例**です。どのツールが存在するかは、このページではなく、マウントしたプロファイルのプロパティです。ブランドパックは独自のツールを追加でき、出荷したくないコミュニティツールを除外することもできます。`catalog/tools/index.json` - マニフェストから生成され、ギャラリーが実際に読み込むレジストリ - が正式なリストです。あるプロファイルが何をマウントしているかを数えるには、ここに書かれた数を信用するのではなく、マニフェスト（`ls community/*/tool.json brands/*/tools/*/tool.json`）を数えてください。（2つのパックに存在するツールidは、勝ったパックから1回だけマウントされます。）
 
@@ -294,11 +287,11 @@ CLIに対応するインタラクティブな存在です。ツールの閲覧�
 
 **Design**は、`render.layout: "editor"`のフリーキャンバスモードで構築された最初のツールです - テキスト、図形、画像のボックスをドラッグ、リサイズ、回転、スナップできる、UI装飾を排した直接操作サーフェスであり、他のすべてのツールと同じレンダーパスでエクスポートされます。
 
-**Strip Hidden Data**は、最初の**オンデバイスユーティリティ**（`privacy: "on-device"`）です。*あなた*が提供したファイルを受け取り、完全にブラウザ内で処理してクリーンなコピーを返すコンテンツ変換ツールで、アップロードされることも、透かしが入ることも、来歴（プロビナンス）が刻まれることもありません。**Text Helper**が2つ目です - JSON整形、JWTデコード、Base64、URLエンコード/デコード、SHAハッシュ化など、日常的にウェブサイトへ貼り付ける作業のためのオンデバイスワークベンチです。**Compress PDF**が3つ目で、画像を再圧縮することでPDFを縮小します。これも完全にオンデバイスです。このマーカーとバッジテキスト「Runs on your device - nothing is uploaded」は、現在、変換系ツール全体をカバーしています: Strip Hidden Data、Text Helper、Compress PDF、**Convert Image**（HEIC/TIFF/AVIF → WebP/JPG/PNG）、**Convert Font**、**Redact**（画像、SVG、PDFの特定領域を破壊）、**Prompt to Image**、そしてプロファイルがマウントしている場合は**Rebrand a Deck**（`.pptx`をその場でリテーマ）です。これは、機密ファイルを単機能のウェブサイトに渡す代わりとなる、プライバシーユーティリティのカテゴリです。
+**Strip Hidden Data**は最初の**オンデバイスユーティリティ**(`privacy: "on-device"`)です。これは*あなたが*指定したファイルを受け取り、完全にブラウザ内で処理し、クリーンなコピーを返すコンテンツ変換ツールです - アップロードされることも、透かしが入れられることも、来歴が刻印されることもありません。**Text**は2番目のツールで、日常的にウェブサイトに貼り付けて行う作業(JSON整形、JWTデコード、Base64、URLエンコード/デコード、SHAハッシュ化)のためのオンデバイスワークベンチです。**Compress PDF**は3番目のツールで、画像を再圧縮することでPDFを縮小します。これも完全にオンデバイスで行われます。このマーカーとそのバッジテキスト「Runs on your device - nothing is uploaded」は、変換ツール群全体をカバーするようになりました: Strip Hidden Data、Text、Compress PDF、**Convert Image**(HEIC/TIFF/AVIF → WebP/JPG/PNG)、**Convert Font**、**Redact**(画像、SVG、PDFの領域を破棄)、**Prompt Card**、そしてプロファイルがマウントしている場合の**Rebrand**(`.pptx`をその場で再テーマ化)です。これは、機密ファイルを単一目的のウェブサイトに渡す行為に代わるプライバシーユーティリティのカテゴリです。
 
 ![Utilitiesドロワー - すべてのカードが、すでに持っているファイルを変換するツールです](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
 
-> 注: `category`と`status`は、各`tool.json`から`catalog/tools/index.json`（ギャラリーが読み込むレジストリ）に非正規化されています。マニフェストが唯一の正となる情報源であり、インデックスは`npm run build:catalog`によって**生成**され、コミット済みのインデックスがマニフェストとずれている場合、`npm run validate:catalog`はCIを失敗させます。
+> 注: `category`と`status`は各`tool.json`から`catalog/tools/index.json`(ギャラリーが読み込むレジストリ)に非正規化されています。マニフェストが正しい情報源であり、インデックスは`pnpm run build:catalog`によって**生成**され、コミットされたインデックスがマニフェストと乖離している場合は`pnpm run validate:catalog`がCIを失敗させます。
 
 ---
 
@@ -440,14 +433,14 @@ HandlebarsはEJSよりも意図的に選ばれました:
 
 ユーザーが `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H` を開きます:
 
-1. **起動。** WebシェルがIndexedDBを開き、ケーパビリティブリッジを構築し、ツールとアセットのカタログを同期します(オフライン時はキャッシュから読み込みます)。
-2. **ルーティング。** URLハッシュ → `tool` ビュー、`qr-code` とURLパラメータが抽出されます。
-3. **読み込み。** `loadTool('qr-code', fetchFile)` が `tool.json` をフェッチし、JSON Schemaに対して検証し、`template.html`、`styles.css`、`hooks.js` のソースをフェッチします。
-4. **URL状態のパース。** `parseUrlState` がURLパラメータを初期入力値に変換します。アセット参照(`?logo=suse/logo/primary`)は軽量な `{ id, _unresolved: true }` オブジェクトとしてパースされます。
-5. **ランタイム。** `createRuntime(tool, host, initialValues)` が入力モデルを構築し(プロフィールデータ、デフォルト値、初期値をマージ)、`host.assets.get()` 経由でアセット参照を解決し、フック(クロージャスコープの `host`、サンドボックス化はされていません)を読み込み、`hooks.onInit` を呼び出します。
-6. **レンダリング。** シェルはランタイムを購読し、状態が変化するたびに `{ model, hydrated }` を受け取ります。モデルから入力コントロールをレンダリングし、ハイドレートされたテンプレートHTMLを `#tool-canvas` に書き込みます。
-7. **操作。** ユーザーが入力欄に入力する → `runtime.setInput(id, value)` → 制約が適用される → `hooks.onInput` が呼ばれる → 再ハイドレート → 再レンダリング。キャンバスはライブで更新されます。
-8. **エクスポート。** ユーザーがダウンロード(PNG)をクリック → `runtime.export(canvasNode, 'png')` → `host.export.render`(dom-to-image-more経由でラスタライズ。SVG/PDFは専用のDOMウォーキング・ベクタライザーを通ります) → blob → `host.export.download`。ツールがオプトインできるフォーマットの範囲は広く、`schemas/tool.schema.json` の `render.formats` enumがその権威です - ラスター画像とfloatラスター、ベクターとカットファイル、印刷/CMYK、モーション、編集可能なドキュメント(`pptx`、`docx`、`odt`)、パレットとデータ/テキスト出力、音声とフォントファイル。[URL Mode](/info/url-mode.html) がすべてのidと生成物を列挙しています。音声もこのenumに他と同様に含まれます(`wav`、`mp3`、`m4a`、`opus`。オーディオグラムとレコーディング系ツールが宣言します)。別途、レコーディングツールの `render.capture` モードは `host.recorder` を駆動し、その録画結果はブラウザが録画したコンテナ形式のまま完成したBlobとして届きます。(`render.export: false` を設定したツール - 例えばColor Palette、Countdown Timer、Strip Hidden Data、Text Helper、Compress PDF - はダウンロード/フォーマット/寸法コントロールを非表示にします。)物理単位はここでフォーマットごとに変換されます(PDF → 真のページポイント、ラスター → DPIに応じたピクセル、`pHYs` チャンク付き)。作者/プロベナンスのメタデータ(作者、ツール、ソース - `engine/src/metadata.ts` によって構築)はフォーマットごとに埋め込まれます: PNG iTXt、JPEG EXIF、PDF情報辞書、SVG `<metadata>`、GIFコメント。実験的なツールにはツール自身ではなくホストによって透かしが挿入されます。
+1. **起動。** WebシェルがIndexedDBを開き、ケイパビリティブリッジを構築し、ツールとアセットのカタログを同期します(オフライン時はキャッシュから読み込みます)。
+2. **ルーティング。** URLハッシュ → `tool`ビュー。`qr-code`とURLパラメータが抽出されます。
+3. **読み込み。** `loadTool('qr-code', fetchFile)`が`tool.json`を取得し、JSON Schemaに対して検証し、`template.html`、`styles.css`、`hooks.js`のソースを取得します。
+4. **URL状態の解析。** `parseUrlState`がURLパラメータを初期入力値に変換します。アセット参照(`?logo=suse/logo/primary`)は軽量な`{ id, _unresolved: true }`オブジェクトとして解析されます。
+5. **ランタイム。** `createRuntime(tool, host, initialValues)`が入力モデルを構築し(プロファイルデータ、デフォルト値、初期値をマージ)、`host.assets.get()`経由でアセット参照を解決し、フック(クロージャスコープの`host`、サンドボックス化されていない)を読み込み、`hooks.onInit`を呼び出します。
+6. **レンダリング。** シェルはランタイムを購読し、状態が変化するたびに`{ model, hydrated }`を受け取ります。モデルから入力コントロールをレンダリングし、ハイドレートされたテンプレートHTMLを`#tool-canvas`に書き込みます。
+7. **操作。** ユーザーが入力欄に入力する → `runtime.setInput(id, value)` → 制約が適用される → `hooks.onInput`が呼び出される → 再ハイドレート → 再レンダリング。キャンバスはライブで更新されます。
+8. **エクスポート。** ユーザーがDownload(PNG)をクリックする → `runtime.export(canvasNode, 'png')` → `host.export.render`(dom-to-image-more経由でラスタライズ、SVG/PDFは専用のDOM走査ベクタライザーを通ります) → blob → `host.export.download`。ツールが選択できるフォーマットの範囲は広く、`schemas/tool.schema.json`内の`render.formats`列挙型がその正式な情報源です - ラスターと浮動小数点ラスター、ベクターとカットファイル、印刷/CMYK、モーション、編集可能なドキュメント(`pptx`、`docx`、`odt`)、パレットとデータ/テキスト出力、音声とフォントファイルです。[URL Mode](/info/url-mode.html)がすべてのidとその出力内容を記載しています。音声もこの列挙型の中に他と同様に含まれています(`wav`、`mp3`、`m4a`、`opus`。audiogramと録音ツールによって宣言されます)。別途、録音ツールの`render.capture`モードは`host.recorder`を駆動し、そのテイクはブラウザが録音したコンテナのまま完成したBlobとして届きます。(`render.export: false`を設定するツール - 例: Color Palette、Countdown Timer、Strip Hidden Data、Text、Compress PDF - はダウンロード/フォーマット/寸法のコントロールを非表示にします。)物理単位はここでフォーマットごとに変換されます(PDF → 実ページポイント、ラスター → DPIでのピクセル、`pHYs`チャンク付き)。作者情報/来歴メタデータ(作者、ツール、ソース - `engine/src/metadata.ts`によって構築)はフォーマットごとに埋め込まれます: PNG iTXt、JPEG EXIF、PDF infoディクショナリ、SVG `<metadata>`、GIFコメント。実験的なツールには、ツール自身ではなくホストによって透かしが挿入されます。
 
 ![`?options` が開くエクスポートパネル: ファイル名とフォーマットの組み合わせ、出力サイズ、ファイルを書き出すコントロール](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
@@ -457,11 +450,11 @@ Tauriでも同じライフサイクル。CLIでも同じライフサイクル - 
 
 ## オープンソースのステータス
 
-**コードはMPL-2.0です。** `engine/`、`shells/*`、`services/*`、`schemas/`、`docs/`は**MPL-2.0**のもとでオープンソース化されています - ブランドツーリングのためのベンダー非依存なスキャフォールディングプラットフォームであり、出荷可能な各ユニットは[github.com/lolly-tools](https://github.com/lolly-tools)配下の独自のリポジトリに置かれています。
+**コードはMPL-2.0です。** `engine/`、`shells/*`、`services/*`、`schemas/`、`docs/`は**MPL-2.0**の下でオープンソース化されています - ブランドツーリングのためのベンダーニュートラルなスキャフォールディングプラットフォームであり、そのすべてが単一の公開リポジトリ[`lolly-tools/lolly`](https://github.com/lolly-tools/lolly)にあります。
 
-**ツールのコンテンツはブランドパックとして提供され**、それぞれ独自の条件を持ちます(パックの`NOTICE.md`を参照)。`community/`は公開の[`lolly-tools`](https://github.com/lolly-tools/lolly-tools)リポジトリであり、そのブランド非依存のツールもMPL-2.0です。`brands/suse/`は非公開の`suse-lolly`パックです: SUSEのツールとSUSEカタログで、ライセンス供与されたPremiumBeatの音楽を含め**SUSEの専有物**です。`brands/lolly-start/`は、このリポジトリが所有する白紙のスターターブランドです。フォントはパック内に**SIL Open Font License 1.1**のもとで同梱され、SUSEパックにはSUSEおよびSUSE Monoの書体が含まれます。
+**ツールコンテンツはブランドパックとして配布され**、それぞれ独自の利用条件を持ちます(パックの`NOTICE.md`を参照)。`community/`はこのリポジトリ内のディレクトリであり、そのブランドに依存しないツールもMPL-2.0です。`brands/suse/`は唯一のサブモジュールであるプライベートな`suse-lolly`パックで、SUSEのツールとSUSEカタログを含み、ライセンスされたPremiumBeatの音楽も含めて**SUSEの専有物**です。`brands/lolly-start/`は、このリポジトリが所有する空のスターターブランドです。フォントはパック内に**SIL Open Font License 1.1**の下で同梱されます - SUSEパックにはSUSEおよびSUSE Monoの書体が含まれます。
 
-リポジトリルートの`tools/`と`catalog/`はgitignoreされた*ビュー*です: プロファイルがこれらを`community/`と有効なブランドパックから組み立てるため、すべてのスクリプトとシェルはこの2つのパスを読み取り、パックを直接読み取ることは決してありません。
+リポジトリルートに`tools/`や`catalog/`ディレクトリは存在しません。`packages/node-shell/src/content-roots.ts`が読み取り時に`profiles.json`から「ツール`<id>`はどこにあるか」と「カタログはどこにあるか」を回答するため、プロファイルはプロセスごとの回答であり、事前にツリーを組み立てる必要はありません。実際の`tools/`と`catalog/`のペアは、ビルド出力 - `dist/`、RPMペイロード、コンテナイメージ - にのみ書き出されます。これはブラウザがこの2つのパスをHTTP経由で取得するためです。
 
 この分割は強制されており - `engine/`からツールコンテンツへのクロスインポートは存在しません - プラットフォームとコンテンツの境界はクリーンに保たれます。
 

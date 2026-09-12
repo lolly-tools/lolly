@@ -132,7 +132,7 @@ triển khai một hợp đồng duy nhất, và các catalog cung cấp nội d
 
 ### Bố cục kho mã
 
-Nội dung được gắn vào dưới dạng các gói: `community/`, `docs/`, mọi `shells/*`, cả hai `services/*` và `brands/suse` mỗi cái là một kho mã riêng, được checkout như các git submodule của kho này. Kho mẹ sở hữu `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `brands/lolly-start/` và `profiles.json`. Xem [Hướng dẫn Build » Lấy mã nguồn](/info/build-guide.html) để biết lệnh checkout và quy trình làm việc đa kho.
+Lolly là một kho lưu trữ (repository) duy nhất. `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `docs/`, `community/`, `brands/lolly-start/`, mọi `shells/*` và cả hai `services/*` đều là các thư mục thông thường trong đó. Ngoại lệ duy nhất là `brands/suse`, một submodule git **riêng tư** chứa gói công cụ và catalog của SUSE, cần đăng ký tham gia và không có trong bản sao công khai. Bộ gói mà một bản build cụ thể đọc là một hồ sơ nội dung (content profile, `profiles.json`), được xác định theo từng tiến trình chứ không chuyển đổi toàn cục. Xem [Build Guide » Getting the source](/info/build-guide.html) để biết lệnh clone và cách một thay đổi bên trong gói riêng tư được commit.
 
 ```
 lolly/
@@ -190,45 +190,38 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # profile VIEW (gitignored) - data, not code. Merged from packs:
-│                     #   community/ (public, brand-agnostic, MPL) + brands/<active>/tools (brand-owned).
-│                     #   A SELECTION follows - the mounted set depends on the profile.
+├── community/        # the brand-agnostic tool pack - data, not code. Public (MPL-2.0).
+│                     #   A SELECTION follows; a profile mounts these plus whatever
+│                     #   tools the active brand pack carries of its own.
 │   ├── qr-code/
-│   ├── quotes/
-│   ├── email-signature/
 │   ├── snippet/
 │   ├── countdown-timer/
 │   ├── color-palette/
-│   ├── color-block/           # typed/heterogeneous blocks (addMenu discriminator)
-│   ├── dynamic-layout/
-│   ├── tool-logo/         # "Logo" - auto-switching brand logo
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
 │   ├── strip-data/        # on-device metadata strip - JPEG/PNG/SVG/PDF (file in → clean file out)
 │   ├── compress-pdf/      # on-device PDF compressor - recompresses images (file in → smaller file out)
-│   ├── brand-lockup/      # "Brand Lockup" - SUSE logo lockups; HarfBuzz text-to-path (wasm)
-│   ├── chart-creator/     # SVG charts from structured data
+│   ├── chart/             # SVG charts from structured data
 │   ├── filter/            # photo effects in one tool - halftone/scanline/posterize/voronoi (vector), duotone/pixel-stretch/imperfections (raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
-│   ├── digi-ad/           # "Animated Ad" - looping banner from scenes
-│   ├── event-name-badge/  # conference badges - composes qr-code as an SVG
 │   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
 │   ├── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
 │   ├── design/     # "Design" - freeform WYSIWYG editor canvas (render.layout: editor)
 │   ├── multi-page-pdf/    # multi-page PDF document - cover, flowing content blocks, back page
 │   ├── diagram-builder/   # org / layercake / process / cycle / pyramid diagrams
 │   ├── logo-wall/         # many logos → auto-packed grid
-│   ├── logo-lockup-partner/ # SUSE + partner co-brand lockup
-│   ├── icon/          # favicon .ico / png / svg from text + colours
-│   ├── lottie-digi-ad/    # animated Lottie ad banners
-│   └── pose-geeko/        # pose the SUSE Geeko mascot - print-ready stills
+│   ├── icon/              # favicon .ico / png / svg from text + colours
+│   └── lottie-digi-ad/    # animated Lottie ad banners
 │
-├── catalog/
-│   ├── tools/index.json        # tool registry
-│   └── assets/
-│       ├── index.json          # asset registry
-│       └── suse/...            # logo, palette, etc.
+├── brands/            # brand packs - a catalog each, and optionally tools of their own
+│   ├── lolly-start/   # the blank starter brand, owned here
+│   │   └── catalog/
+│   │       ├── tools/index.json    # tool registry, generated per brand
+│   │       └── assets/
+│   │           ├── index.json      # asset registry
+│   │           └── lolly/...       # logo, palette, tokens
+│   └── suse/          # PRIVATE submodule - the SUSE tools and the SUSE catalog
 │
 ├── schemas/          # JSON Schema for tool.json, asset entries, AssetRef
 ├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
@@ -271,7 +264,7 @@ lolly qr-code                # lists inputs for that tool
 ```
 
 ### TUI
-`npm run tui`
+`pnpm run tui`
 
 Phiên bản tương tác song hành với CLI: một ứng dụng terminal toàn màn hình, ưu tiên bàn phím (xây trên Ink) để duyệt công cụ, điền input, lưu dự án và export - tất cả không cần GUI. Host bridge của nó **tái sử dụng cài đặt của CLI** cho các định dạng không cần DOM (SVG/EMF/EPS/HTML + text/data), và bổ sung state trên đĩa dưới `~/.lolly` cùng bản xem trước nội tuyến tùy chọn. Ngoài ra nó còn có một **lớp render trình duyệt**: một Chromium headless phạm vi hẹp (cùng bản mà MCP server cài đặt) tạo ra raster/PDF/video và chụp URL trực tiếp theo yêu cầu - vận hành một bản build của web shell nên đầu ra giống hệt nhau, và chỉ khởi chạy khi bạn export định dạng đó lần đầu. Vì vậy `url-shot` (kèm crop + đổi màu + PDF/SVG vector) và mọi công cụ raster/pdf đều chạy được trong terminal. Xem [hướng dẫn TUI](/info/tui.html).
 
@@ -287,11 +280,11 @@ Các hàng được liệt kê theo thứ tự phần trong gallery. Phần `uti
 
 | Danh mục | Ví dụ | Dự kiến |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence Studio, Record | Employee Image Stationery |
-| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Multi-Page PDF | Font Outliner |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence, Record | Employee Image Stationery |
+| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Booklet | Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS, Booth Studio | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | - | CVE Alert, Product Release Announcement, Blog OG Image |
-| `utility` | Strip Hidden Data, Text Helper, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
+| `utility` | Strip Hidden Data, Text, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
 
 Các ô đó là **ví dụ, không phải danh mục đầy đủ**. Những công cụ nào tồn tại là thuộc tính của profile bạn đã mount, không phải của trang này: một brand pack thêm công cụ riêng của nó, và có thể loại trừ một công cụ cộng đồng mà nó không muốn phân phối. `catalog/tools/index.json` - được tạo ra từ các manifest, và là registry mà gallery thực sự đọc - là danh sách chính thức; để đếm những gì một profile mount, hãy đếm các manifest (`ls community/*/tool.json brands/*/tools/*/tool.json`) thay vì tin vào một con số ghi ở đây. (Một tool id xuất hiện trong hai pack chỉ mount một lần, từ pack thắng.)
 
@@ -299,11 +292,11 @@ Các công cụ cũng được phân loại theo status: `official` (được br
 
 **Design** là công cụ đầu tiên xây trên chế độ canvas tự do `render.layout: "editor"` - một bề mặt thao tác trực tiếp, không khung viền, nơi bạn kéo, thay đổi kích thước, xoay và snap các hộp văn bản, hình dạng và hình ảnh, rồi export qua cùng render path như mọi công cụ khác.
 
-**Strip Hidden Data** là **tiện ích chạy trên thiết bị** đầu tiên (`privacy: "on-device"`): một công cụ chuyển đổi nội dung nhận một tệp *bạn* cung cấp, xử lý hoàn toàn trong trình duyệt và trả lại một bản sạch - không bao giờ được tải lên, không bao giờ có watermark, không đóng dấu nguồn gốc. **Text Helper** là công cụ thứ hai - một không gian làm việc trên thiết bị cho các tác vụ dán-vào-website hàng ngày (định dạng JSON, giải mã JWT, Base64, mã hóa/giải mã URL, băm SHA). **Compress PDF** là công cụ thứ ba - nó thu nhỏ một PDF bằng cách nén lại hình ảnh bên trong, cũng hoàn toàn trên thiết bị. Dấu hiệu này và văn bản badge của nó "Chạy trên thiết bị của bạn - không có gì được tải lên" giờ đây bao phủ toàn bộ tập hợp công cụ chuyển đổi: Strip Hidden Data, Text Helper, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (xóa bỏ các vùng của một hình ảnh, SVG hoặc PDF), **Prompt to Image** và **Rebrand a Deck** (đổi theme cho một `.pptx` tại chỗ) ở những profile có mount nó. Đây là một danh mục tiện ích riêng tư thay thế việc giao tệp mật cho các website đơn chức năng.
+**Strip Hidden Data** là **tiện ích chạy trên thiết bị (on-device)** đầu tiên (`privacy: "on-device"`): một công cụ biến đổi nội dung nhận một tệp do *bạn* cung cấp, xử lý toàn bộ ngay trong trình duyệt và trả lại một bản sao sạch - không bao giờ được tải lên, không bao giờ bị đóng watermark, không đóng dấu nguồn gốc (provenance). **Text** là tiện ích thứ hai - một không gian làm việc trên thiết bị cho các tác vụ dán-vào-một-trang-web hàng ngày (định dạng JSON, giải mã JWT, Base64, mã hóa/giải mã URL, băm SHA). **Compress PDF** là tiện ích thứ ba - nó thu nhỏ một tệp PDF bằng cách nén lại hình ảnh bên trong, cũng hoàn toàn trên thiết bị. Điểm đánh dấu và văn bản trên huy hiệu của nó "Chạy trên thiết bị của bạn - không có gì được tải lên" giờ đây bao phủ toàn bộ nhóm biến đổi: Strip Hidden Data, Text, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (xóa bỏ các vùng của một hình ảnh, SVG hoặc PDF), **Prompt Card** và **Rebrand** (đổi giao diện thương hiệu của một tệp `.pptx` tại chỗ) ở những hồ sơ (profile) có tích hợp nó. Đây là một danh mục tiện ích bảo mật thay thế cho việc giao các tệp bảo mật cho các trang web chuyên biệt đơn lẻ.
 
 ![Ngăn kéo Utilities, nơi mỗi thẻ là một công cụ chuyển đổi một tệp bạn đã có sẵn](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
 
-> Lưu ý: `category` và `status` được phi chuẩn hóa (denormalised) vào `catalog/tools/index.json` (registry mà gallery đọc) từ mỗi `tool.json`. Manifest là nguồn sự thật - index được **tạo ra** bởi `npm run build:catalog` và `npm run validate:catalog` sẽ khiến CI thất bại nếu index đã commit lệch khỏi các manifest.
+> Lưu ý: `category` và `status` được phi chuẩn hóa (denormalised) vào `catalog/tools/index.json` (registry mà gallery đọc) từ mỗi `tool.json`. Manifest là nguồn thông tin gốc (source of truth) - chỉ mục (index) được **tạo ra** bởi `pnpm run build:catalog` và `pnpm run validate:catalog` sẽ khiến CI thất bại nếu chỉ mục đã commit lệch khỏi các manifest.
 
 ---
 
@@ -445,14 +438,14 @@ Ghép bản kết xuất của bất kỳ công cụ nào: một công cụ con 
 
 Một người dùng mở `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 
-1. **Khởi động.** Web shell mở IndexedDB, xây dựng cầu nối khả năng, đồng bộ catalog công cụ và tài sản (hoặc tải từ bộ nhớ đệm khi ngoại tuyến).
-2. **Định tuyến.** URL hash → khung nhìn `tool`, với `qr-code` và các tham số URL được trích xuất.
-3. **Tải.** `loadTool('qr-code', fetchFile)` lấy `tool.json`, xác thực theo JSON Schema, lấy mã nguồn `template.html`, `styles.css` và `hooks.js`.
-4. **Phân tích trạng thái URL.** `parseUrlState` dịch các tham số URL thành giá trị đầu vào ban đầu. Tham chiếu tài sản (`?logo=suse/logo/primary`) được phân tích thành các đối tượng nhẹ `{ id, _unresolved: true }`.
-5. **Runtime.** `createRuntime(tool, host, initialValues)` xây dựng mô hình đầu vào (gộp dữ liệu hồ sơ, giá trị mặc định và giá trị ban đầu), giải quyết tham chiếu tài sản qua `host.assets.get()`, tải hooks (`host` trong phạm vi closure, không sandbox), gọi `hooks.onInit`.
-6. **Kết xuất.** Shell đăng ký nhận runtime; ở mỗi thay đổi trạng thái nó nhận `{ model, hydrated }`. Nó kết xuất các control đầu vào từ mô hình và ghi HTML template đã hydrate vào `#tool-canvas`.
-7. **Tương tác.** Người dùng gõ vào một đầu vào → `runtime.setInput(id, value)` → áp dụng ràng buộc → gọi `hooks.onInput` → hydrate lại → kết xuất lại. Canvas cập nhật trực tiếp.
-8. **Xuất.** Người dùng nhấp Tải xuống (PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (rasterize qua dom-to-image-more; SVG/PDF đi qua các bộ vector hóa duyệt DOM chuyên biệt) → blob → `host.export.download`. Phạm vi định dạng mà một công cụ có thể chọn dùng khá rộng, và enum `render.formats` trong `schemas/tool.schema.json` là nguồn thẩm quyền cho việc đó - raster và float raster, vector và tệp cắt, in/CMYK, chuyển động, tài liệu có thể chỉnh sửa (`pptx`, `docx`, `odt`), bảng màu và đầu ra dữ liệu/văn bản, tệp âm thanh và font. [URL Mode](/info/url-mode.html) nêu tên từng id và nó tạo ra gì. Âm thanh nằm trong enum đó như bất kỳ thứ gì khác (`wav`, `mp3`, `m4a`, `opus`, được khai báo bởi audiogram và các công cụ ghi âm); riêng biệt, chế độ `render.capture` của một công cụ ghi âm điều khiển `host.recorder`, mà bản ghi đến dưới dạng một Blob hoàn chỉnh trong bất kỳ container nào mà trình duyệt đã ghi. (Các công cụ đặt `render.export: false` - ví dụ Color Palette, Countdown Timer, Strip Hidden Data, Text Helper, Compress PDF - ẩn các control tải xuống/định dạng/kích thước.) Các đơn vị vật lý được chuyển đổi theo từng định dạng ở đây (PDF → điểm trang thật, raster → pixel theo DPI với chunk `pHYs`). Metadata tác giả/nguồn gốc (tác giả, công cụ, nguồn - được xây dựng bởi `engine/src/metadata.ts`) được nhúng theo từng định dạng: PNG iTXt, JPEG EXIF, PDF info dict, SVG `<metadata>`, GIF comment. Các công cụ thử nghiệm được host chèn watermark, không phải công cụ.
+1. **Khởi động (Boot).** Web shell mở IndexedDB, khởi tạo capability bridge, đồng bộ catalog công cụ và tài sản (asset) (hoặc tải từ cache khi ngoại tuyến).
+2. **Định tuyến (Route).** URL hash → view `tool`, với `qr-code` và các tham số URL được trích xuất.
+3. **Tải (Load).** `loadTool('qr-code', fetchFile)` lấy `tool.json`, xác thực theo JSON Schema, lấy `template.html`, `styles.css` và mã nguồn `hooks.js`.
+4. **Phân tích trạng thái URL.** `parseUrlState` chuyển các tham số URL thành giá trị đầu vào ban đầu. Các tham chiếu tài sản (asset ref, `?logo=suse/logo/primary`) được phân tích thành các đối tượng nhẹ `{ id, _unresolved: true }`.
+5. **Runtime.** `createRuntime(tool, host, initialValues)` xây dựng mô hình đầu vào (input model) (hợp nhất dữ liệu hồ sơ, giá trị mặc định và giá trị ban đầu), phân giải các tham chiếu tài sản qua `host.assets.get()`, tải các hook (`host` nằm trong closure-scope, không phải sandbox), gọi `hooks.onInit`.
+6. **Kết xuất (Render).** Shell đăng ký (subscribe) với runtime; mỗi khi trạng thái thay đổi, nó nhận `{ model, hydrated }`. Nó kết xuất các điều khiển đầu vào từ model và ghi HTML của template đã được hydrate vào `#tool-canvas`.
+7. **Tương tác.** Người dùng gõ vào một trường đầu vào → `runtime.setInput(id, value)` → áp dụng các ràng buộc → gọi `hooks.onInput` → hydrate lại → kết xuất lại. Canvas cập nhật theo thời gian thực.
+8. **Xuất (Export).** Người dùng nhấp Download(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (raster hóa qua dom-to-image-more; SVG/PDF đi qua các bộ vector hóa (vectoriser) chuyên dụng duyệt DOM) → blob → `host.export.download`. Phạm vi định dạng mà một công cụ có thể chọn tham gia rất rộng, và enum `render.formats` trong `schemas/tool.schema.json` là nguồn thẩm quyền cho việc này - ảnh raster và raster dấu phẩy động, vector và tệp cắt (cut file), in ấn/CMYK, chuyển động (motion), tài liệu có thể chỉnh sửa (`pptx`, `docx`, `odt`), bảng màu (palette) và đầu ra dữ liệu/văn bản, âm thanh và tệp phông chữ. [URL Mode](/info/url-mode.html) nêu tên từng id và những gì nó tạo ra. Âm thanh nằm trong enum đó như mọi thứ khác (`wav`, `mp3`, `m4a`, `opus`, được khai báo bởi audiogram và các công cụ ghi âm); riêng biệt, chế độ `render.capture` của một công cụ ghi âm điều khiển `host.recorder`, có bản ghi đến dưới dạng một Blob hoàn chỉnh trong bất kỳ container nào mà trình duyệt đã ghi. (Các công cụ đặt `render.export: false` - ví dụ Color Palette, Countdown Timer, Strip Hidden Data, Text, Compress PDF - ẩn các điều khiển tải xuống/định dạng/kích thước.) Đơn vị vật lý được chuyển đổi theo từng định dạng ở đây (PDF → điểm trang thực, raster → pixel theo DPI kèm khối `pHYs`). Siêu dữ liệu tác giả/nguồn gốc (author, tool, source - được xây dựng bởi `engine/src/metadata.ts`) được nhúng theo từng định dạng: PNG iTXt, JPEG EXIF, PDF info dict, SVG `<metadata>`, GIF comment. Các công cụ thử nghiệm (experimental) sẽ được host chèn watermark, không phải do công cụ tự làm.
 
 ![Bảng xuất mà `?options` mở ra: cặp tên tệp và định dạng, kích thước đầu ra và các control ghi tệp](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
@@ -462,11 +455,11 @@ Cùng vòng đời trong Tauri. Cùng vòng đời trong CLI - jsdom cung cấp 
 
 ## Trạng thái mã nguồn mở
 
-**Mã nguồn theo giấy phép MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` và `docs/` là mã nguồn mở theo **MPL-2.0** - một nền tảng khung dựng trung lập về nhà cung cấp dành cho công cụ thương hiệu, với mỗi đơn vị có thể phát hành nằm trong repository riêng của nó dưới [github.com/lolly-tools](https://github.com/lolly-tools).
+**Mã nguồn theo giấy phép MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` và `docs/` là mã nguồn mở theo **MPL-2.0** - một nền tảng khung sườn (scaffolding) trung lập với nhà cung cấp cho công cụ thương hiệu, tất cả nằm trong một kho lưu trữ công khai duy nhất, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
-**Nội dung công cụ được phát hành dưới dạng các gói thương hiệu**, mỗi gói có điều khoản riêng (xem `NOTICE.md` của gói đó). `community/` là repository công khai [`lolly-tools`](https://github.com/lolly-tools/lolly-tools) và các công cụ trung lập về thương hiệu của nó cũng theo MPL-2.0. `brands/suse/` là gói riêng tư `suse-lolly`: các công cụ SUSE và danh mục SUSE, **thuộc sở hữu độc quyền của SUSE**, bao gồm cả nhạc PremiumBeat được cấp phép của nó. `brands/lolly-start/` là thương hiệu khởi đầu trống mà repository này sở hữu. Phông chữ được phát hành bên trong một gói theo **SIL Open Font License 1.1** - gói SUSE mang theo các kiểu chữ SUSE và SUSE Mono.
+**Nội dung công cụ được phân phối dưới dạng các gói thương hiệu (brand pack)**, mỗi gói có điều khoản riêng (xem `NOTICE.md` của gói). `community/` là một thư mục của kho lưu trữ này và các công cụ trung lập về thương hiệu (brand-agnostic) của nó cũng theo MPL-2.0. `brands/suse/` là gói riêng tư `suse-lolly`, submodule duy nhất: các công cụ SUSE và catalog SUSE, **thuộc sở hữu độc quyền của SUSE**, bao gồm cả nhạc nền PremiumBeat đã được cấp phép. `brands/lolly-start/` là thương hiệu khởi đầu trống mà kho lưu trữ này sở hữu. Phông chữ được phân phối bên trong một gói theo **SIL Open Font License 1.1** - gói SUSE mang theo các kiểu chữ SUSE và SUSE Mono.
 
-`tools/` và `catalog/` ở gốc repo là các *view* bị gitignore: một profile lắp ráp chúng từ `community/` cộng với gói thương hiệu đang hoạt động, đó là lý do mọi script và shell đều đọc hai đường dẫn đó chứ không bao giờ đọc trực tiếp một gói.
+Không có thư mục `tools/` hay `catalog/` ở gốc kho lưu trữ. `packages/node-shell/src/content-roots.ts` trả lời câu hỏi "công cụ `<id>` nằm ở đâu" và "catalog ở đâu" từ `profiles.json` tại thời điểm đọc, vì vậy một hồ sơ (profile) là một câu trả lời theo từng tiến trình và không cần phải dựng sẵn cây thư mục trước. Một cặp `tools/` + `catalog/` thực sự chỉ được ghi ra trong một sản phẩm build - `dist/`, một payload RPM, một image container - vì trình duyệt lấy hai đường dẫn đó qua HTTP.
 
 Sự tách biệt này được thực thi - không có import chéo nào từ `engine/` vào nội dung công cụ - nên ranh giới giữa nền tảng và nội dung luôn gọn gàng.
 

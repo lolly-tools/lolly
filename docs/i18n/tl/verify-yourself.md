@@ -39,14 +39,14 @@ Ang mga tapat na eksepsiyon - bawat isa ay opt-in, sinimulan ng user, at nakikit
 
 ## Mula sa terminal
 
-**6. Sumasagot lang ang render endpoint gamit ang pampublikong data.** Ang tanging server feature na naglalagay ng mga input na itina-type ng user sa isang URL - hot-link renders - ay live dito, at ipinapaliwanag ng [privacy policy](/info/privacy.html) kung ano ang ibig sabihin nito para sa mga input na inilalagay mo sa isang link:
+**6. Ang render endpoint ay sumasagot gamit lamang ang pampublikong data.** Ang tanging feature ng server na naglalagay ng mga input na na-type ng user sa isang URL - ang hot-link render - ay live dito, at sinasabi ng [privacy policy](/info/privacy.html) kung ano ang ibig sabihin nito para sa mga input na inilalagay mo sa isang link:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Per-deployment ang switch (`LOLLY_DISABLE_RENDER_GET=1`): sa isang instance na naka-set ito, nagbabalik ng `404` ang parehong probe - ang pagkakaibang iyon ay ang flag na gumagana, hindi isang hindi pagkakapare-pareho.
+Ang switch ay per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): sa isang instance na nagtatakda nito, ang parehong probe ay nagbabalik ng `404` - ang pagkakaibang iyon ay ang flag na gumagana, hindi isang hindi pagkakapare-pareho.
 
 **7. Mabibilang ang server surface.** Nakalista sa [Server Surface](/info/server-surface.html) ang bawat server-side route na umiiral, kasama ang standing rule na ang endpoint na wala sa pahinang iyon ay hindi bahagi ng Lolly. I-`curl` ang mga ito; wala nang iba pang matutuklasan.
 
@@ -55,7 +55,7 @@ Per-deployment ang switch (`LOLLY_DISABLE_RENDER_GET=1`): sa isang instance na n
 Maaari pa ring maging teatro ang lahat sa itaas kung magkaiba ang na-deploy na code sa pampublikong code. Kaya suriin ang code - bumubuo ang deployment mula sa [pampublikong repository](https://github.com/lolly-tools/lolly):
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ Ang tatlong source check sa itaas ay hindi isang one-time audit lamang - naka-pi
 - bumalik ang CA issuance log - sa source **o** sa generated server bundle,
 - nawala sa privacy policy ang mga legal na kinakailangang pahayag nito (named controller, legal basis, karapatang magreklamo).
 
-Patakbuhin mo mismo ang mga ito sa clone (Node 22.18+; hindi kailangan ng `npm install` para sa file na ito):
+Patakbuhin mo ang mga ito sa clone (Node 22.18+; hindi kailangan ang `pnpm install` para sa file na ito):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-Ang buong suite (`npm install && npm test`) ay nagpapatakbo ng ilang libo pang test, kasama ang adversarial cryptography tests na inilalarawan sa [Security & Verification](/info/security.html).
+Ang buong suite (`pnpm install && pnpm test`) ay nagpapatakbo ng ilang libo pa, kabilang ang mga adversarial cryptography test na inilarawan sa [Security & Verification](/info/security.html).
 
 ## Ang hindi mo ma-veripika mula sa labas - sinabi nang tapat
 
