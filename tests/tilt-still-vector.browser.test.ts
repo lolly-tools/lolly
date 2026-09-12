@@ -73,6 +73,46 @@ function analyticTaper(kf: string, box: { x: number; y: number; w: number; h: nu
   return Math.abs(bot) / Math.abs(top);
 }
 
+/**
+ * The image XObjects a finished PDF carries, split into the pictures and their soft
+ * masks (a mask is the DeviceGray sibling an embed with alpha gets).
+ *
+ * WHY THIS IS MEASURED AND NOT WEIGHED. This case used to assert
+ * `tiltedBytes > untiltedBytes * 1.5`, a weight proxy calibrated against the jsPDF
+ * writer this shell carried until 2026-09-11, under which the ratio had room to spare.
+ * It has none under the pdf-lib writer (export-pdf-doc.ts), which Flate-compresses each
+ * embed - the two cards here come to 989 B and 1315 B - against an untilted baseline of
+ * 6.5 KB that is 5.4 KB content-independent boilerplate (a 2336 B sRGB profile and a
+ * 3058 B XMP packet, both written by the PDF/X pass for every export). What is left of
+ * the ratio only asks how well a solid-colour card's antialiased edges happen to deflate
+ * on the host, which is a property of the rasteriser and not of the export path: 1.78
+ * measured on macOS, 1.48 on the Linux CI runner, so the shard failed there and only
+ * there.
+ *
+ * Counting the XObjects asks the file the question the ratio was standing in for, and
+ * asks it exactly: an embed is present, or it is not.
+ *
+ * A regex over the raw bytes is sound here. pdf-lib saves with object streams, but an
+ * object carrying a stream can never live inside one, so every image dictionary is
+ * plain text in the file.
+ */
+function countImageXObjects(pdf: Buffer): { colour: number; gray: number; total: number } {
+  const text = pdf.toString('latin1');
+  let colour = 0;
+  let gray = 0;
+  const key = /\/Subtype\s*\/Image/g;
+  for (let m = key.exec(text); m; m = key.exec(text)) {
+    // The dictionary this key belongs to, read between its object header and the
+    // stream data it introduces, so a nested entry cannot truncate the window.
+    const from = text.lastIndexOf('obj', m.index);
+    const to = text.indexOf('stream', m.index);
+    const dict = text.slice(from < 0 ? 0 : from, to < 0 ? m.index + 512 : to);
+    if (/\/ColorSpace\s*\/DeviceGray/.test(dict)) gray++;
+    else colour++;
+  }
+  return { colour, gray, total: colour + gray };
+}
+
 const measured: string[] = [];
 
 describe('plans/104 section 12 Q2 - a tilted still keeps the untilted layers vector', { skip: gate ?? false, concurrency: 1 }, () => {
@@ -239,17 +279,34 @@ describe('plans/104 section 12 Q2 - a tilted still keeps the untilted layers vec
       } }).SEQ;
       const a = await S.vectorStillAt(tilt, t, 'pdf');
       const b = await S.vectorStillAt(flat, t, 'pdf');
-      return { tiltSize: a.size, flatSize: b.size, head: (await S.blobBytes(a.key)).slice(0, 24) };
+      return {
+        tiltSize: a.size, flatSize: b.size,
+        tilt: await S.blobBytes(a.key), flat: await S.blobBytes(b.key),
+      };
     }, { tilt: scene(TILT_KF), flat: scene(FLAT_KF), t: AT });
 
-    assert.match(atob(r.head).slice(0, 5), /^%PDF-/, 'it is a PDF');
-    // Two embedded PNGs against two vector rects: the file has to be substantially
-    // larger. This is a coarse instrument on purpose - the fine one is the SVG taper
-    // above, and the point here is only that PDF took the same branch rather than
-    // silently keeping the AABB path.
-    assert.ok(r.tiltSize > r.flatSize * 1.5,
-      `a tilted PDF (${r.tiltSize}B) should carry rasters the untilted one (${r.flatSize}B) does not`);
-    measured.push(`pdf: tilted ${r.tiltSize} B vs untilted ${r.flatSize} B`);
+    const tiltBytes = Buffer.from(r.tilt, 'base64');
+    const flatBytes = Buffer.from(r.flat, 'base64');
+    assert.equal(tiltBytes.subarray(0, 5).toString('latin1'), '%PDF-', 'it is a PDF');
+    const tilted = countImageXObjects(tiltBytes);
+    const flat = countImageXObjects(flatBytes);
+
+    // The branch, read off the file rather than guessed from its weight: one colour
+    // image XObject per tilted box, and NONE at all when nothing is tilted. An
+    // implementation that kept the AABB vector path emits rects and no image at all,
+    // which is the wrong picture this test exists to refuse - the same discriminator
+    // the SVG cases above use, and the fine instrument for the form of the picture is
+    // still the taper measured there.
+    assert.equal(tilted.colour, 2,
+      `one embed per tilted box, got ${tilted.colour} colour + ${tilted.gray} mask images`);
+    assert.equal(flat.total, 0,
+      `an untilted PDF must carry no raster at all, got ${flat.total} image XObjects`);
+    // Those embeds are bytes the untilted file does not carry. A strict inequality,
+    // not a ratio: see the note on countImageXObjects for why a ratio cannot work here.
+    assert.ok(r.tiltSize > r.flatSize,
+      `a tilted PDF (${r.tiltSize}B) carries rasters the untilted one (${r.flatSize}B) does not`);
+    measured.push(`pdf: tilted ${r.tiltSize} B (${tilted.colour} embeds + ${tilted.gray} masks) `
+      + `vs untilted ${r.flatSize} B (${flat.total} embeds)`);
   });
 
   // ── 5: S2's own discriminator, kept as a test (S2 section 9.1) ────────────────────
