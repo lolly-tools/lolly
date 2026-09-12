@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:ca0b82bb-547f-49e5-8fc7-21190bbb9f11",
+  "serialNumber": "urn:uuid:a7785a5b-a1db-489a-8344-ce8f1cb232fb",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-12T05:01:40.226Z",
+    "timestamp": "2026-09-12T10:08:47.088Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -21069,10 +21069,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40mediabunny/flac-encoder@1.55.3",
+      "bom-ref": "pkg:npm/%40mediabunny/flac-encoder@1.56.1",
       "name": "@mediabunny/flac-encoder",
-      "version": "1.55.3",
-      "purl": "pkg:npm/%40mediabunny/flac-encoder@1.55.3",
+      "version": "1.56.1",
+      "purl": "pkg:npm/%40mediabunny/flac-encoder@1.56.1",
       "scope": "required",
       "licenses": [
         {
@@ -21084,7 +21084,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "338c54d7e8494eab4bb1c69395a4aac8aa017def9495239f6d2d74ed34f8eafad49165315bbe3b7832545fc58149f5f933f572cb595fee358bf8ddb776d7a8be"
+          "content": "cdb9a8acc5651758b3c2d973e665a7bbb035ac92ccf95dba234a4416bf537751034f0139b80191496fbf5199678f08f5b74d16a1edd9a277e1f646fb951441aa"
         }
       ]
     },
@@ -21963,6 +21963,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40oxc-project/types@0.149.0",
+      "name": "@oxc-project/types",
+      "version": "0.149.0",
+      "purl": "pkg:npm/%40oxc-project/types@0.149.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "11f71cfa21748f705febb62312a22a5976d7e5775d5e82bf330e0ad7f26e5f044267c375e9547b893db79e509cf57aef785561fc4e51aacd92b53d15f2ff4b74"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40pdf-lib/standard-fonts@1.0.0",
       "name": "@pdf-lib/standard-fonts",
       "version": "1.0.0",
@@ -22494,6 +22521,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40rolldown/binding-android-arm-eabi@1.2.8",
+      "name": "@rolldown/binding-android-arm-eabi",
+      "version": "1.2.8",
+      "purl": "pkg:npm/%40rolldown/binding-android-arm-eabi@1.2.8",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "b4de5aced624282b5ee22e5222baf3e722bf1cc8c4b82a8248225ae35f23395f2d675701637605da8b7107592d3f1cec2c0d41793ab06a92b46df8f136f1c957"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40rolldown/binding-android-arm64@1.1.5",
       "name": "@rolldown/binding-android-arm64",
       "version": "1.1.5",
@@ -22510,6 +22564,33 @@
         {
           "alg": "SHA-512",
           "content": "95983c7ea22fdafec5176dfb6f0320cc664426f18befdfece649c9fe2e859ac185e175e5cdc719e236fe4eb148c6d492c45b48a5db20acf65e324d48f4015cc9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40rolldown/binding-android-arm64@1.2.8",
+      "name": "@rolldown/binding-android-arm64",
+      "version": "1.2.8",
+      "purl": "pkg:npm/%40rolldown/binding-android-arm64@1.2.8",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "7486135a5f57a6b314890168739e4a53293fa12f122981f7cc59742d347b453d178f8860495cae25cae81fc254bbc45ca45f1f4c1e84d1a3b00a466860f70349"
         }
       ],
       "properties": [
@@ -22548,6 +22629,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40rolldown/binding-darwin-arm64@1.2.8",
+      "name": "@rolldown/binding-darwin-arm64",
+      "version": "1.2.8",
+      "purl": "pkg:npm/%40rolldown/binding-darwin-arm64@1.2.8",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "3c24834065c3d88c93105adc80fc8133c8c9b869ab6c232ea0839775b10655e9abb8a0025e82d026b6fe038e59d0be6dd5142475f269ac060f92291b87b77374"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40rolldown/binding-darwin-x64@1.1.5",
       "name": "@rolldown/binding-darwin-x64",
       "version": "1.1.5",
@@ -22564,6 +22672,33 @@
         {
           "alg": "SHA-512",
           "content": "4e6fa06df0b4687bb5b4103f26f290877d92d0ae988021e4880178fd6eb15f42b446636e73de1578ae35f5d26813ae51e5a4719a8fa7a194125ab00c17ac9bea"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40rolldown/binding-darwin-x64@1.2.8",
+      "name": "@rolldown/binding-darwin-x64",
+      "version": "1.2.8",
+      "purl": "pkg:npm/%40rolldown/binding-darwin-x64@1.2.8",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "524ee546c1a13c51d55ffb00502e83e47f4e977d1d14777a8aaba8925976b61dcba5d2771790b3401fbb0c79f4462da61be53b936cd788f1c3af065e9d787048"
         }
       ],
       "properties": [
@@ -22602,6 +22737,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40rolldown/binding-freebsd-x64@1.2.8",
+      "name": "@rolldown/binding-freebsd-x64",
+      "version": "1.2.8",
+      "purl": "pkg:npm/%40rolldown/binding-freebsd-x64@1.2.8",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "0e3b33693115a203ea0396d8cec11ea83090c5b729d9f7b143029c46ca588e2db2cd1ebc7c27fe7b87f1ea4052443c17e7f6eb65a1f0fe1592f7e03ffbfc3db1"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40rolldown/binding-linux-arm-gnueabihf@1.1.5",
       "name": "@rolldown/binding-linux-arm-gnueabihf",
       "version": "1.1.5",
@@ -22618,6 +22780,33 @@
         {
           "alg": "SHA-512",
           "content": "b8c2f6d63d8ae537cf1aeb4ac6e6fe33e9cb8d922b5a35d0e46af1e2509efe78a64e3f41e0beb7cc7a635cb978cb42f799c9b686d11021bd3aa021bfb337ab37"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40rolldown/binding-linux-arm-gnueabihf@1.2.8",
+      "name": "@rolldown/binding-linux-arm-gnueabihf",
+      "version": "1.2.8",
+      "purl": "pkg:npm/%40rolldown/binding-linux-arm-gnueabihf@1.2.8",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "ce6c1aec54e677307a69a104bae96cd7c1fa029e499893d2a0f4ee5e2c5e25957ab46e344b22e402942dcf583ca6d66d8842aa8fd38cd2834b3e1d4082f137d5"
         }
       ],
       "properties": [
@@ -22656,6 +22845,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40rolldown/binding-linux-arm64-gnu@1.2.8",
+      "name": "@rolldown/binding-linux-arm64-gnu",
+      "version": "1.2.8",
+      "purl": "pkg:npm/%40rolldown/binding-linux-arm64-gnu@1.2.8",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "29d6100cf1f02559db17075318c831b08f52a9b941973e924c633ec3559efdde41f0e59689d607d0cc2453fb80d703397c8a4ed8c90e5715eb373cee661c3d7b"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40rolldown/binding-linux-arm64-musl@1.1.5",
       "name": "@rolldown/binding-linux-arm64-musl",
       "version": "1.1.5",
@@ -22672,6 +22888,33 @@
         {
           "alg": "SHA-512",
           "content": "940af2a87ec8b5eced9825d05e4d1eb4a8f8c0143b1b1e52e8b8ca86c829f736fc2396ecbaf53fda5947d610d0723b057aa22ca2f315377dfdffca540c3057c4"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40rolldown/binding-linux-arm64-musl@1.2.8",
+      "name": "@rolldown/binding-linux-arm64-musl",
+      "version": "1.2.8",
+      "purl": "pkg:npm/%40rolldown/binding-linux-arm64-musl@1.2.8",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "8c525389f1e734f63ecb33a835941f488cacad5c97cc440f84f9ce523983d5b7101871fab3b73c71588a59aafc62995022613937d251a8c08baccd827713ab64"
         }
       ],
       "properties": [
@@ -22710,6 +22953,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40rolldown/binding-linux-ppc64-gnu@1.2.8",
+      "name": "@rolldown/binding-linux-ppc64-gnu",
+      "version": "1.2.8",
+      "purl": "pkg:npm/%40rolldown/binding-linux-ppc64-gnu@1.2.8",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "16188ece204358f0636dc991cdf2f22099da3fb0153055d3ed80973e35f18fbc0a537bf1db8463ac234dff38ef55af8ddaf5681c9c02a1406fb2b37f0c6df320"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40rolldown/binding-linux-s390x-gnu@1.1.5",
       "name": "@rolldown/binding-linux-s390x-gnu",
       "version": "1.1.5",
@@ -22726,6 +22996,33 @@
         {
           "alg": "SHA-512",
           "content": "80b61be0121a7657d33984f980ee74de7f334235df960ce90f415cc8a874333c77aea0992a71e825657dc5ed4a5d4279971d897dc487aff9a1cd2d0f0bf31c00"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40rolldown/binding-linux-s390x-gnu@1.2.8",
+      "name": "@rolldown/binding-linux-s390x-gnu",
+      "version": "1.2.8",
+      "purl": "pkg:npm/%40rolldown/binding-linux-s390x-gnu@1.2.8",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "5a71df003333395d98e79c25c75873cd09daaffc03b7f55dbd6483f7daf5f0ccfdca536278818e911c77515db587b9bf789be3c9260990edba56f18d164c2c21"
         }
       ],
       "properties": [
@@ -22764,6 +23061,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40rolldown/binding-linux-x64-gnu@1.2.8",
+      "name": "@rolldown/binding-linux-x64-gnu",
+      "version": "1.2.8",
+      "purl": "pkg:npm/%40rolldown/binding-linux-x64-gnu@1.2.8",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "1fdb51af989b7d71552f16cf3ac7957b07b0169976f33704763443b7615351953ba1dc4fd2012fd648b8fe41a67063a1efca11c19bae4259462d9f734c9a7ce2"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40rolldown/binding-linux-x64-musl@1.1.5",
       "name": "@rolldown/binding-linux-x64-musl",
       "version": "1.1.5",
@@ -22791,6 +23115,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40rolldown/binding-linux-x64-musl@1.2.8",
+      "name": "@rolldown/binding-linux-x64-musl",
+      "version": "1.2.8",
+      "purl": "pkg:npm/%40rolldown/binding-linux-x64-musl@1.2.8",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "51e7e2a9f3370fa21536567cb521acf7e1238ee7764fea313b4207003538e58fa5c848c3d9d545c991db91f5f42d46f966e828fe822fd5e08efca55886060960"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40rolldown/binding-openharmony-arm64@1.1.5",
       "name": "@rolldown/binding-openharmony-arm64",
       "version": "1.1.5",
@@ -22807,6 +23158,33 @@
         {
           "alg": "SHA-512",
           "content": "c9ce56acbcd792ceb30907e7f4ec6bf293912b297fa45f908c7996fd0c77aaed28cabacd0becb624b4d4d44dab7166009b3967aa78165c7423cb9d55cd6ef457"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40rolldown/binding-openharmony-arm64@1.2.8",
+      "name": "@rolldown/binding-openharmony-arm64",
+      "version": "1.2.8",
+      "purl": "pkg:npm/%40rolldown/binding-openharmony-arm64@1.2.8",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "eb7eca7b89164b2eaba7d73143d80c3979713e0230fdcd5b780495e0cfffdfef48e2ec0154e3a5ef81be7b7cf2537bb5f54ed191197f1ee7b08b167f67af918e"
         }
       ],
       "properties": [
@@ -22872,6 +23250,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40rolldown/binding-win32-arm64-msvc@1.2.8",
+      "name": "@rolldown/binding-win32-arm64-msvc",
+      "version": "1.2.8",
+      "purl": "pkg:npm/%40rolldown/binding-win32-arm64-msvc@1.2.8",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "c560643ce17543d93f1afd674179d574bc4abbbe235e9a6e38ce19de69f2a55509249c0bb0c97b84d246440509a06f00e4c80e23500228cfb0045c522732b2e0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40rolldown/binding-win32-x64-msvc@1.1.5",
       "name": "@rolldown/binding-win32-x64-msvc",
       "version": "1.1.5",
@@ -22888,6 +23293,33 @@
         {
           "alg": "SHA-512",
           "content": "b5366e0c13f0f39b443793d08b5a67101cc3cb4678f47b5270b01b0f9b7a872794f7603de69456692330d466598bf470812814225d31ad2957213ffd433bd848"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40rolldown/binding-win32-x64-msvc@1.2.8",
+      "name": "@rolldown/binding-win32-x64-msvc",
+      "version": "1.2.8",
+      "purl": "pkg:npm/%40rolldown/binding-win32-x64-msvc@1.2.8",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "bb3d99bdf8176f1a8dc228e38dbc6b9ef00bc29c8e0c37207354f537c377adffc35ca426685c260782d7e32ca3820a70376a1b7502dbdab822ad7e5f7c25989e"
         }
       ],
       "properties": [
@@ -26599,10 +27031,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/dom-to-image-more@3.7.2",
+      "bom-ref": "pkg:npm/dom-to-image-more@3.10.2",
       "name": "dom-to-image-more",
-      "version": "3.7.2",
-      "purl": "pkg:npm/dom-to-image-more@3.7.2",
+      "version": "3.10.2",
+      "purl": "pkg:npm/dom-to-image-more@3.10.2",
       "scope": "required",
       "licenses": [
         {
@@ -26614,7 +27046,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "b907fea47bfa7908607c8f2dd9b16e8a75742ac3f24fc4d98022f071253cb8156037dbfa95e6f498ca6fa7a1d002501ca653f73427068f16dda9e7faa53cef9b"
+          "content": "f9935b89107b169b1fce7f1648298020a505497a7cb9a86523e2ec63cb7ca16b40013aa891e292dde0f7a108a485ea2e6a9e9a54c86df32d1be280286d646bf7"
         }
       ]
     },
@@ -26674,10 +27106,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/dompurify@3.4.13",
+      "bom-ref": "pkg:npm/dompurify@3.4.15",
       "name": "dompurify",
-      "version": "3.4.13",
-      "purl": "pkg:npm/dompurify@3.4.13",
+      "version": "3.4.15",
+      "purl": "pkg:npm/dompurify@3.4.15",
       "scope": "required",
       "licenses": [
         {
@@ -26687,7 +27119,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "daf998228aa3cded9dfa46a43fc4bf9d2e6c85fb25e7cee4cf012370695376292c5158051e7142b0b603563fc936a2553906464980539aec9cbf43e87709a731"
+          "content": "11406333e07e9640c4e35884f360c34827e4a0f19f5f1f08c45c4f3233739bf524e310deb7beeb4cdf70aa5c65560ef590aed71ae50cbfac14c49530c2ff97cb"
         }
       ]
     },
@@ -27782,10 +28214,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/harfbuzzjs@1.4.0",
+      "bom-ref": "pkg:npm/harfbuzzjs@1.6.1",
       "name": "harfbuzzjs",
-      "version": "1.4.0",
-      "purl": "pkg:npm/harfbuzzjs@1.4.0",
+      "version": "1.6.1",
+      "purl": "pkg:npm/harfbuzzjs@1.6.1",
       "scope": "required",
       "licenses": [
         {
@@ -27797,7 +28229,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "dcaaf28272dbe044ac9edc6fc5903b461272d828b8ec6757582f1f97d1f03c73443940d750dbf933ec7f4e20645ca8d4cfa8f3fc244938bd8ab20abc57751d2b"
+          "content": "f8978998ef87cd78c3c297c239d192c8cd9b34ff16cc93452a5ffc4ca8af6c89cc603b5f448b8f2032ed9c1366433709c3a1a9b5b84763aa3981a1fa75e08c13"
         }
       ]
     },
@@ -28745,6 +29177,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/lightningcss-android-arm64@1.33.0",
+      "name": "lightningcss-android-arm64",
+      "version": "1.33.0",
+      "purl": "pkg:npm/lightningcss-android-arm64@1.33.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "804a514da94a768b29e016fca96b5cda23a013949e2079694b5ba9f5b16adb003262197551d4ce6d88877bdf3310cf5242f4a8a906752100f424da60dcc979a6"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/lightningcss-darwin-arm64@1.32.0",
       "name": "lightningcss-darwin-arm64",
       "version": "1.32.0",
@@ -28761,6 +29220,33 @@
         {
           "alg": "SHA-512",
           "content": "473786f49bb96da83606fd7f97095526f044deae93b57b247592cb0b27e0e69b7e1cbcfd06a94808eecb64ced51cd4d39ffe4f4611c50528e4e65738726b1c3d"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/lightningcss-darwin-arm64@1.33.0",
+      "name": "lightningcss-darwin-arm64",
+      "version": "1.33.0",
+      "purl": "pkg:npm/lightningcss-darwin-arm64@1.33.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "49c89acfc79e9cd4ca9fd6f7b7bfb1af48a94e9f58c4a418e27a704379ab46e2f404054704bc99c687e168a04056dce6b5167fcd3ca8d3fb68e01d6e586fc38e"
         }
       ],
       "properties": [
@@ -28799,6 +29285,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/lightningcss-darwin-x64@1.33.0",
+      "name": "lightningcss-darwin-x64",
+      "version": "1.33.0",
+      "purl": "pkg:npm/lightningcss-darwin-x64@1.33.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "67950f031ceb8e558d3721b2ea2eb9709cf3be02790f74fac0cbecfa05a963d77ba9184036bc6a029e8b871220661584c35f117c94c6711c63b8b201afe9bc5d"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/lightningcss-freebsd-x64@1.32.0",
       "name": "lightningcss-freebsd-x64",
       "version": "1.32.0",
@@ -28815,6 +29328,33 @@
         {
           "alg": "SHA-512",
           "content": "2424e281e74492c664ded1d34ed86731d55f19feb5164cbc262d84e188d44c4417d78c62cbf953cd79eed6fc2265eddb61ed2af92a6c487fc24de0d72ba5878a"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/lightningcss-freebsd-x64@1.33.0",
+      "name": "lightningcss-freebsd-x64",
+      "version": "1.33.0",
+      "purl": "pkg:npm/lightningcss-freebsd-x64@1.33.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "41033f4e2fe141a8c9c0263e4625ae099f6c76d23f5d093b9c32b9bc2f2491dc22c5ecce94382f0f1efe453f908cae857054f8329b2ea019c7228fcedd2b5146"
         }
       ],
       "properties": [
@@ -28853,6 +29393,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/lightningcss-linux-arm-gnueabihf@1.33.0",
+      "name": "lightningcss-linux-arm-gnueabihf",
+      "version": "1.33.0",
+      "purl": "pkg:npm/lightningcss-linux-arm-gnueabihf@1.33.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "37b15505eea24b6e0c94ce91ff84414f11a14217991aceed890f54df652d17be4dccfe50ef158f46a2c108ac65450464deb6358c220f2f3c7b5b33a1b942112d"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/lightningcss-linux-arm64-gnu@1.32.0",
       "name": "lightningcss-linux-arm64-gnu",
       "version": "1.32.0",
@@ -28869,6 +29436,33 @@
         {
           "alg": "SHA-512",
           "content": "d279ccca8c8e2d12577db30e8a569245c2c7dc9c39cfd1c33467d3fe0c023e06838e7c748bcc3bbc1cc52c54757fa08c2ca17c8156de6e69143777dafe4409a5"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/lightningcss-linux-arm64-gnu@1.33.0",
+      "name": "lightningcss-linux-arm64-gnu",
+      "version": "1.33.0",
+      "purl": "pkg:npm/lightningcss-linux-arm64-gnu@1.33.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "8f6bff8ad9b2e0794dc6573abe829762006a362d0d8362d2860e33ec6b9fa4482cd393fedacb815728bd23a607ab9ba8545c7d1138a7dde08484b5725c64272a"
         }
       ],
       "properties": [
@@ -28907,6 +29501,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/lightningcss-linux-arm64-musl@1.33.0",
+      "name": "lightningcss-linux-arm64-musl",
+      "version": "1.33.0",
+      "purl": "pkg:npm/lightningcss-linux-arm64-musl@1.33.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "ca23b944e32e6108176c2eb4ca3654e4261215918a5cbd071404d7b7d987267d7ecd6e79a02b4c23d35f7158582cc1432fb815ee804fa27fc498c3068363afb5"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/lightningcss-linux-x64-gnu@1.32.0",
       "name": "lightningcss-linux-x64-gnu",
       "version": "1.32.0",
@@ -28923,6 +29544,33 @@
         {
           "alg": "SHA-512",
           "content": "57b42be7622166674a3d5afe56dc3ca3e58bb1025809377c96821fa4368c45619465f04e60425ec89224a862033193f03f1db8a5431fc12c7123ca61aff31b38"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/lightningcss-linux-x64-gnu@1.33.0",
+      "name": "lightningcss-linux-x64-gnu",
+      "version": "1.33.0",
+      "purl": "pkg:npm/lightningcss-linux-x64-gnu@1.33.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "6abf89bbb2e670dd09a381692f88691726f0346f7fdc0fc1af9296da7da3c8e0e0dcc1195da0d800375e9a8352f810cd7cc80abf29492e3e12e6dc9101cb6e02"
         }
       ],
       "properties": [
@@ -28961,6 +29609,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/lightningcss-linux-x64-musl@1.33.0",
+      "name": "lightningcss-linux-x64-musl",
+      "version": "1.33.0",
+      "purl": "pkg:npm/lightningcss-linux-x64-musl@1.33.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "4588986e4a24c34b6b7caaaacdf179e658229f010fac3dce2437d3b89cc5b3530aea21670de9dacf57ea2cbb57e084c6dce92d2505ce7936b0d5ac2b0409593f"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/lightningcss-win32-arm64-msvc@1.32.0",
       "name": "lightningcss-win32-arm64-msvc",
       "version": "1.32.0",
@@ -28977,6 +29652,33 @@
         {
           "alg": "SHA-512",
           "content": "f126c2f01478d294ba6da08cf2c6ed6034b011541de099454ce95a0f78161877d385370006734305d6ba79365ea9ba1f6a5209845c74a8ace01c999c3d39c677"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/lightningcss-win32-arm64-msvc@1.33.0",
+      "name": "lightningcss-win32-arm64-msvc",
+      "version": "1.33.0",
+      "purl": "pkg:npm/lightningcss-win32-arm64-msvc@1.33.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "d4af8c3df2d2155a69873a5d6df92195693ac01ad339b0734b64fa75bd743cd399811f46a15b005b3c0dcae8546186d3a76de3fb846b9dc7ee8d9e2e0335efc0"
         }
       ],
       "properties": [
@@ -29015,6 +29717,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/lightningcss-win32-x64-msvc@1.33.0",
+      "name": "lightningcss-win32-x64-msvc",
+      "version": "1.33.0",
+      "purl": "pkg:npm/lightningcss-win32-x64-msvc@1.33.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "3a5108083c7f5e5d05a92a786ebcbccc59c2bc6a628371a5e200aabaf6301eea892840b5fa7f4d8039e216fa871a632fd5992a0c9ac3a8a292ca44c35fe7a1b8"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/lightningcss@1.32.0",
       "name": "lightningcss",
       "version": "1.32.0",
@@ -29031,6 +29760,33 @@
         {
           "alg": "SHA-512",
           "content": "357601ce29cdadb95fada3c6cab6cfa03d7d0b587d95f23fd66ce0598bd75137b8d781b3fd7d450f65c165264ceeb453acc03c24bdceb4068689fac82a1439c9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/lightningcss@1.33.0",
+      "name": "lightningcss",
+      "version": "1.33.0",
+      "purl": "pkg:npm/lightningcss@1.33.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "5a4503ae88ee26cd3192019fdae756c5adf21814713edc54901efd8ba68264b46073b3ccf1f65ef53a2c7cf0dcbc4a5065bb850129c762644b04b51b98b38820"
         }
       ],
       "properties": [
@@ -29270,10 +30026,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/mediabunny@1.55.3",
+      "bom-ref": "pkg:npm/mediabunny@1.56.1",
       "name": "mediabunny",
-      "version": "1.55.3",
-      "purl": "pkg:npm/mediabunny@1.55.3",
+      "version": "1.56.1",
+      "purl": "pkg:npm/mediabunny@1.56.1",
       "scope": "required",
       "licenses": [
         {
@@ -29285,7 +30041,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "9290613222471a67ab8b3cce6c04f55cb643c8898ee1910a5dac638dfc46564c9c434539a1fff194b7a99b5233a773fede395a79d152448e5f267bf7439c55e8"
+          "content": "0cd3a6d1b44199e3b126008afe0dcbc4d59bc58e66a2b4dab8d765c9c86e8c6989f4bdfb7b355ece43682355ad3b65dd6f85a559626561f20a9ce133779a6147"
         }
       ]
     },
@@ -29810,27 +30566,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/onnxruntime-common@1.27.0",
-      "name": "onnxruntime-common",
-      "version": "1.27.0",
-      "purl": "pkg:npm/onnxruntime-common@1.27.0",
-      "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "dcac4be70215a9af04c74f23c52ce7726f42320c3c0a3385c8e43b4b1bc6f68d1c54b9614cd297c8842e4dbb57e2d18f2447fbdce111db1ae3b781c94812f8a3"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/onnxruntime-common@1.29.0",
       "name": "onnxruntime-common",
       "version": "1.29.0",
@@ -29894,10 +30629,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/onnxruntime-web@1.27.0",
+      "bom-ref": "pkg:npm/onnxruntime-web@1.29.0",
       "name": "onnxruntime-web",
-      "version": "1.27.0",
-      "purl": "pkg:npm/onnxruntime-web@1.27.0",
+      "version": "1.29.0",
+      "purl": "pkg:npm/onnxruntime-web@1.29.0",
       "scope": "required",
       "licenses": [
         {
@@ -29909,7 +30644,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "a200cbb2a228cc767089f3ee377ecea6ba00a346f25fab78dff6cff06cde6560560fa30e184c6cc05031deea78352fefbd604e836bb63d7a260eddeb3267504a"
+          "content": "2ee425a57e8c14b259bbbe7a7abc1479bd6635fa0919bb359330f02463657f946f7d831daa1718def3690cf2b8d02515d87a164e4223fae4b4a37e861478de63"
         }
       ]
     },
@@ -30201,6 +30936,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/picomatch@4.0.7",
+      "name": "picomatch",
+      "version": "4.0.7",
+      "purl": "pkg:npm/picomatch@4.0.7",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "a9c26ef3c436216a89b030f9dbd24a31dc069bf76f2275b81ef427470887f49b62849bf318eb1c0ed1c4df1d6904a794393cac43c91598b9c9da426eef285c18"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/pino-abstract-transport@2.0.0",
       "name": "pino-abstract-transport",
       "version": "2.0.0",
@@ -30394,6 +31156,33 @@
         {
           "alg": "SHA-512",
           "content": "bbcd8def82c5cc6f1c6be743f29b8f9e99535e8187e1f4cfa551ae21bb77e86deabcd964bdf0f49440194b16a5cb7297f134bf2f503582c0849af2a605c55b91"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/postcss@8.5.28",
+      "name": "postcss",
+      "version": "8.5.28",
+      "purl": "pkg:npm/postcss@8.5.28",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "451bb3a83b6de58f61deabb3e615a12be4cf9ec995b3a5b0494e8b90931e6381ecb54103b984c6f1425275ac0c4739b302d57e284a06f0ddd0836a8bcb9bccfc"
         }
       ],
       "properties": [
@@ -31276,6 +32065,33 @@
         {
           "alg": "SHA-512",
           "content": "b7dcf6f5c2635dffefc50f1dca1092a6de87e9a4b01d393c713e48de2cba48c5ee169939981e8f2fa5df0bc3c2c2b3d3c7ddee7702949bd1d1b5e0254c604b88"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/rolldown@1.2.8",
+      "name": "rolldown",
+      "version": "1.2.8",
+      "purl": "pkg:npm/rolldown@1.2.8",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "67aee74e68597bb6a7aa733f123237f76c398bf00d5229e38a9ed062c3b2377ee86b276ec6dde4b1d5f485fe4e39a9a401de770622077db7d2cdf526cca150a9"
         }
       ],
       "properties": [
@@ -32457,10 +33273,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/three@0.185.1",
+      "bom-ref": "pkg:npm/three@0.186.0",
       "name": "three",
-      "version": "0.185.1",
-      "purl": "pkg:npm/three@0.185.1",
+      "version": "0.186.0",
+      "purl": "pkg:npm/three@0.186.0",
       "scope": "excluded",
       "licenses": [
         {
@@ -32472,7 +33288,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "e5aa231425cac278c1459bd49eddd615f11cbd426090de4b9628d114df7984ccbc595906e08d1035c244f8eb96bee2746ce752b6b6df5e7d2991debf43288096"
+          "content": "72bfdf20cd9d74c4956d856091f0f88cb26fec587ff194e3be8fbb8107925465191f1a71f450f0a0be620bb854cff2e2440f3031ba9f9dbf74c4a7e6d7f1c791"
         }
       ],
       "properties": [
@@ -32718,10 +33534,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/tsx@4.23.0",
+      "bom-ref": "pkg:npm/tsx@4.23.13",
       "name": "tsx",
-      "version": "4.23.0",
-      "purl": "pkg:npm/tsx@4.23.0",
+      "version": "4.23.13",
+      "purl": "pkg:npm/tsx@4.23.13",
       "scope": "excluded",
       "licenses": [
         {
@@ -32733,7 +33549,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "79475421a0abf7adeada1e6edfe430bd8a74f9ea8fbe7f9e81ea99526d21c04442aaac7513790ae5e85b182bea484e4c40050bafaef0c34700de329cdd890cd7"
+          "content": "04be4c1a44659fa6836216f4c5b4251001b0ef8dc169961675b5ad749381ae26096e82a051460269d169dbf16904166ab810bf7b33419fbc0c30fc7b1436540f"
         }
       ],
       "properties": [
@@ -33058,6 +33874,33 @@
         {
           "alg": "SHA-512",
           "content": "70528b57f3d18005252119b95a332327cea3adfb73a6a7201fe52cf834bc988dc20cd887df45a1af3f2e1cbdfe30e2cf020a9b30102a59d00702984e00cfb3fd"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/vite@8.3.0",
+      "name": "vite",
+      "version": "8.3.0",
+      "purl": "pkg:npm/vite@8.3.0",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "96164156f10779f804f874190bd3bb101260094fe757314d97bbe44b8444d003ed58b3f4dbff10548910b730713eaba1ee5ab9ffbf0d1e2a538fb38343a5eec9"
         }
       ],
       "properties": [
