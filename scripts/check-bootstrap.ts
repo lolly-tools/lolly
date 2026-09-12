@@ -13,8 +13,8 @@
  *
  * What is left to check is the CONTENT. profiles.json names, per profile, the
  * tool roots and the brand catalog the catalog and profile scripts read right
- * after the install. At least one profile has to be complete on disk, or the
- * postinstall and every `build:catalog` after it have nothing to work with.
+ * after the install. At least one profile has to be complete on disk, or every
+ * `build:catalog` after the install has nothing to work with.
  * brands/suse is private and expected to be absent, which is why one complete
  * profile is the bar and not all of them: a public checkout has lolly-start.
  *

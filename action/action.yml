@@ -98,8 +98,8 @@ runs:
   using: 'composite'
   steps:
     # The private brands/suse pack is `update = none` in .gitmodules, so a public
-    # checkout gets the community tools only and the npm postinstall builds the
-    # lolly-start fallback profile - exactly what the parent repo's own CI renders.
+    # checkout gets the community tools only and resolves the lolly-start fallback
+    # profile - exactly what the repository's own CI renders.
     - name: 'Checkout lolly (${{ inputs.lolly-ref }})'
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       with:
@@ -124,7 +124,7 @@ runs:
         cache: 'pnpm'
         cache-dependency-path: .lolly-render-action/pnpm-lock.yaml
 
-    - name: 'Install workspaces (postinstall builds the profile views)'
+    - name: 'Install workspaces'
       shell: bash
       working-directory: .lolly-render-action
       run: pnpm install --frozen-lockfile

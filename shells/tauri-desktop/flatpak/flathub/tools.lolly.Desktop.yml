@@ -90,8 +90,9 @@ modules:
   # `conditional "HAVE_VALGRIND" was never defined`, which is precisely where a
   # hand-written chain got stuck here. Maintained upstream, so it keeps working.
   #
-  # shared-modules is a git submodule of this directory (standard Flathub practice):
-  #   git submodule add https://github.com/flathub/shared-modules.git
+  # shared-modules is vendored into this directory (it was a git submodule, the
+  # standard Flathub practice, until plan 244's fold):
+  #   https://github.com/flathub/shared-modules.git
   - shared-modules/libayatana-appindicator/libayatana-appindicator-gtk3.json
 
   - name: lolly

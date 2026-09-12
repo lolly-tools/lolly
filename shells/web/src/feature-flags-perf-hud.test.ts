@@ -15,7 +15,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
@@ -45,7 +45,10 @@ const { PERF_HUD_FLAG, perfHudOn, isFlagOnSync, setFlagMirror } = await import('
 const { mountPerfHud, unmountPerfHud, isPerfHudMounted } = await import('./lib/perf-hud.ts');
 
 const read = (rel: string) => readFileSync(join(HERE, rel), 'utf8');
-const PROFILE = read('views/profile.ts');
+// The profile view is an orchestrator plus feature modules under views/profile/ (2026-09-12
+// split), so a source pin reads all of it rather than guessing which module a line moved to.
+const PROFILE = [read('views/profile.ts'),
+  ...readdirSync(join(HERE, 'views', 'profile')).filter((n) => n.endsWith('.ts')).sort().map((n) => read(`views/profile/${n}`))].join('\n');
 const JOB_TOAST = read('lib/job-toast.ts');
 const HUD = read('lib/perf-hud.ts');
 const CSS = read('styles/parts/job-toast.css');
@@ -145,10 +148,10 @@ test('the job-toast boot hook mounts the HUD in the same floating cluster', () =
 });
 
 test('the profile view offers the toggle and mounts/unmounts it live', () => {
-  assert.match(PROFILE, /flagRow\(PERF_HUD_FLAG\)/, 'a toggle row in the standalone flags list');
+  assert.match(PROFILE, /flagRow\(pv, PERF_HUD_FLAG\)/, 'a toggle row in the standalone flags list');
   assert.match(PROFILE, /if \(input\.checked\) mountPerfHud\(\); else unmountPerfHud\(\)/,
     'flipping it mounts/unmounts on the spot (no reload)');
-  assert.match(PROFILE, /import \{ mountPerfHud, unmountPerfHud \} from '\.\.\/lib\/perf-hud\.ts'/,
+  assert.match(PROFILE, /import \{ mountPerfHud, unmountPerfHud \} from '\.\.\/(?:\.\.\/)?lib\/perf-hud\.ts'/,
     'profile imports the mount helpers');
 });
 

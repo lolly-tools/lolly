@@ -168,7 +168,7 @@ const OBJECT_URL_CACHE = new Map<string, string>(); // key → blob URL, kept al
 // small (no pixels); nulls dominate, so the map stays tiny.
 const CREDENTIAL_CACHE = new Map<string, { store: Uint8Array; format: string } | null>();
 // Skip credential-scanning anything enormous - same cap as upload ingest.
-// Exported because it is a POLICY, not a local detail: any other caller that
+// Exported because it is a POLICY, not a local detail: whatever other caller that
 // fetches a whole asset just to look for a manifest (the sequence export's
 // ingredient gather) has to stop at the same size, or a timeline of four
 // half-gigabyte clips pays a cost this cap exists to refuse.
@@ -238,7 +238,7 @@ function nextCopyName(srcName: string, taken: Set<string>): string {
  * instead orders by <kind> first (matte < upload < upscaled, alphabetically),
  * which sinks a brand-new cutout below every older upload and upscale, so
  * "newest" never reaches the top. Parsing the ms out fixes that. Falls back
- * to 0 for any id whose third segment isn't leading-numeric, so a
+ * to 0 for whatever id whose third segment isn't leading-numeric, so a
  * non-timestamped kind stays put (ordered by the id tiebreak) instead of
  * jumping to the front.
  */
@@ -419,7 +419,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         const def = (await api._photoTreatments()).find(t => t.id === treatment);
         // The wrapper is a fixed-size SVG, so it needs the photo's pixel
         // dimensions. The primary (jpg) format entry frequently omits them,
-        // so fall back to any sibling format that carries a pair (e.g. the
+        // so fall back to whatever sibling format that carries a pair (e.g. the
         // thumb): all share the source aspect, which is all the viewBox
         // needs. Without this fallback the bake silently no-ops and the
         // plain (untreated) photo is served, so a picked treatment wouldn't
@@ -633,7 +633,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * fresh id and a "... copy" name. Everything else rides along unchanged
      * (the same blob, format, dimensions, preserved Content Credential and
      * AI flag), so the copy verifies exactly like its source. The write goes
-     * through _uploadUserAsset, so a duplicate is quota-checked like any
+     * through _uploadUserAsset, so a duplicate is quota-checked like whatever
      * other addition: a copy is real bytes on the device, not a free alias.
      * Returns the new id, or null if the source is already gone.
      */
@@ -770,7 +770,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       // listeners can react without re-querying a store the record just left.
       const rec = await db.get('user-assets', id).catch(() => undefined) as { type?: string } | undefined;
       await (await assetHistory()).deleteUserAsset(db, id);
-      // toAssetRef keys user URLs as `user:<id>:<format>:<version>` - evict any.
+      // toAssetRef keys user URLs as `user:<id>:<format>:<version>` - evict whatever.
       evictObjectUrlsByPrefix(`user:${id}:`);
       // The AI-kind memo is keyed by id; the bytes are gone, so its verdict must not linger to
       // be re-applied should this id ever be reused.
@@ -851,7 +851,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * credential to change). The regenerate path for a speech clip writes
      * through here: new audio, a fresh Content Credential over it, and the
      * `meta` keys the new take changed (plans/181 section 5.2). The id never
-     * moves, so no box in any document is re-pointed and every `#/c?asset=`
+     * moves, so no box in whatever document is re-pointed and every `#/c?asset=`
      * link keeps resolving.
      *
      * Like _restampUserAsset before it: preservePinned FIRST, because the
@@ -923,7 +923,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     },
 
     /**
-     * Internal: make sure ONE format's bytes are on device, sharing any fetch
+     * Internal: make sure ONE format's bytes are on device, sharing whatever fetch
      * already in flight for them. The single fetch-and-cache path: catalog/sync.ts's
      * core prefetch walks the index and calls this per format, and _getBlob's
      * `fetchIfMissing` reaches the same work for a reader that needs the bytes now.
@@ -946,7 +946,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * JSON document) so they don't pin an unused URL in OBJECT_URL_CACHE.
      * Resolves on-demand tiers the same way get() does. Returns null if absent.
      *
-     * `fetchIfMissing` extends that fetch-and-cache fallback to any tier - for a
+     * `fetchIfMissing` extends that fetch-and-cache fallback to whatever tier - for a
      * caller that needs the bytes NOW and would otherwise fetch the file itself.
      * Opt-in rather than the default: a core-tier asset is normally already on
      * device (catalog/sync.ts prefetches the whole tier on idle), and a caller that
@@ -993,7 +993,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * section 6a): a published version is a sibling asset one segment DEEPER than
      * the system it belongs to (`user/tokens/brand/jupiter`), and it must
      * never be picked as the design system. pickHeadAssetId (the engine
-     * predicate the MCP server and the CLI apply too) drops any id that is a
+     * predicate the MCP server and the CLI apply too) drops whatever id that is a
      * proper descendant of another id of the same type, and is otherwise
      * order-preserving: with zero or one asset of a type it returns exactly
      * what a bare `.find(...)` did.
@@ -1110,7 +1110,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
         const tx = db.transaction('asset-blob', 'readwrite');
         await Promise.all(staleBlobs.map(k => tx.store.delete(k)));
         await tx.done;
-        // Revoke any live object URLs minted for these now-deleted blobs.
+        // Revoke whatever live object URLs minted for these now-deleted blobs.
         // toAssetRef keys library URLs as `library:<blobKey>` and themed
         // icon bakes as `library:<blobKey>:t:<theme>:<colours>`. Evict both
         // forms, or the OBJECT_URL_CACHE leaks one entry per pruned blob per
@@ -1159,7 +1159,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       return cached.some(Boolean);
     },
 
-    // The Content Credentials a placed asset carries, if any: the raw C2PA
+    // The Content Credentials a placed asset carries, if whatever: the raw C2PA
     // manifest store plus its original container format. The runtime uses
     // this to preserve a placed credentialed asset's provenance as an export
     // ingredient. User uploads serve the store captured at ingest (their
@@ -1410,8 +1410,8 @@ function detectAiGenerated(
   return kind;
 }
 
-// An `image` slot accepts any still image - raster OR vector (SVG). It's the
-// superset an image input wants (not `any`, which would also surface video/lottie).
+// An `image` slot accepts whatever still image - raster OR vector (SVG). It's the
+// superset an image input wants (not `whatever`, which would also surface video/lottie).
 // `motion` widens an `image` slot to also admit video: a frame-hook tool (its
 // input carries motion:true) consumes catalog VIDEO the same way it consumes the
 // user's own video uploads - without this the catalog rail hid every catalog

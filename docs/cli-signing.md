@@ -15,7 +15,7 @@ Every example here that shows output is a command that was run, with its real ou
 You need **Node 22.18+ or 24+** (the repo runs TypeScript directly via Node's type-stripping; this page was produced on v24.18.1) and a checkout of the repo. From the repo, the CLI runs as an npm script; the `--` passes arguments through:
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly
+git clone https://github.com/lolly-tools/lolly
 cd lolly
 pnpm install
 pnpm --silent run cli --version

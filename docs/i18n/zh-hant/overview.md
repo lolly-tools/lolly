@@ -131,7 +131,7 @@ Lolly 也劃出同樣的界線。以機率性的方式探索：一個模型、�
 
 ### 儲存庫配置
 
-內容以套件形式掛載：`community/`、`docs/`、每個 `shells/*`、兩個 `services/*` 以及 `brands/suse`，各自都是獨立的儲存庫，以 git submodule 的形式簽出到這個主儲存庫中。主儲存庫本身擁有 `engine/`、`schemas/`、`scripts/`、`tests/`、`api/`、`brands/lolly-start/` 與 `profiles.json`。取得原始碼的簽出指令與跨儲存庫工作流程，詳見[建置指南 » 取得原始碼](/info/build-guide.html)。
+Lolly 是單一儲存庫。`engine/`、`schemas/`、`scripts/`、`tests/`、`api/`、`docs/`、`community/`、`brands/lolly-start/`、每個 `shells/*` 以及兩個 `services/*` 在其中都只是一般目錄。唯一的例外是 `brands/suse`,一個**私有**的 git 子模組,存放 SUSE 工具包與目錄,採選擇加入方式,且不會出現在公開複製版本中。特定建置會讀取哪些內容包,是由內容設定檔(`profiles.json`)決定,並依處理程序個別解析,而非全域切換。子模組內變更的提交方式與複製指令請參見[建置指南 » 取得原始碼](/info/build-guide.html)。
 
 ```
 lolly/
@@ -189,45 +189,38 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # profile VIEW (gitignored) - data, not code. Merged from packs:
-│                     #   community/ (public, brand-agnostic, MPL) + brands/<active>/tools (brand-owned).
-│                     #   A SELECTION follows - the mounted set depends on the profile.
+├── community/        # the brand-agnostic tool pack - data, not code. Public (MPL-2.0).
+│                     #   A SELECTION follows; a profile mounts these plus whatever
+│                     #   tools the active brand pack carries of its own.
 │   ├── qr-code/
-│   ├── quotes/
-│   ├── email-signature/
 │   ├── snippet/
 │   ├── countdown-timer/
 │   ├── color-palette/
-│   ├── color-block/           # typed/heterogeneous blocks (addMenu discriminator)
-│   ├── dynamic-layout/
-│   ├── tool-logo/         # "Logo" - auto-switching brand logo
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
 │   ├── strip-data/        # on-device metadata strip - JPEG/PNG/SVG/PDF (file in → clean file out)
 │   ├── compress-pdf/      # on-device PDF compressor - recompresses images (file in → smaller file out)
-│   ├── brand-lockup/      # "Brand Lockup" - SUSE logo lockups; HarfBuzz text-to-path (wasm)
-│   ├── chart-creator/     # SVG charts from structured data
+│   ├── chart/             # SVG charts from structured data
 │   ├── filter/            # photo effects in one tool - halftone/scanline/posterize/voronoi (vector), duotone/pixel-stretch/imperfections (raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
-│   ├── digi-ad/           # "Animated Ad" - looping banner from scenes
-│   ├── event-name-badge/  # conference badges - composes qr-code as an SVG
 │   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
 │   ├── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
 │   ├── design/     # "Design" - freeform WYSIWYG editor canvas (render.layout: editor)
 │   ├── multi-page-pdf/    # multi-page PDF document - cover, flowing content blocks, back page
 │   ├── diagram-builder/   # org / layercake / process / cycle / pyramid diagrams
 │   ├── logo-wall/         # many logos → auto-packed grid
-│   ├── logo-lockup-partner/ # SUSE + partner co-brand lockup
-│   ├── icon/          # favicon .ico / png / svg from text + colours
-│   ├── lottie-digi-ad/    # animated Lottie ad banners
-│   └── pose-geeko/        # pose the SUSE Geeko mascot - print-ready stills
+│   ├── icon/              # favicon .ico / png / svg from text + colours
+│   └── lottie-digi-ad/    # animated Lottie ad banners
 │
-├── catalog/
-│   ├── tools/index.json        # tool registry
-│   └── assets/
-│       ├── index.json          # asset registry
-│       └── suse/...            # logo, palette, etc.
+├── brands/            # brand packs - a catalog each, and optionally tools of their own
+│   ├── lolly-start/   # the blank starter brand, owned here
+│   │   └── catalog/
+│   │       ├── tools/index.json    # tool registry, generated per brand
+│   │       └── assets/
+│   │           ├── index.json      # asset registry
+│   │           └── lolly/...       # logo, palette, tokens
+│   └── suse/          # PRIVATE submodule - the SUSE tools and the SUSE catalog
 │
 ├── schemas/          # JSON Schema for tool.json, asset entries, AssetRef
 ├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
@@ -270,7 +263,7 @@ lolly qr-code                # lists inputs for that tool
 ```
 
 ### TUI
-`npm run tui`
+`pnpm run tui`
 
 CLI 的互動版對應物：一個以鍵盤操作為主的全螢幕終端機應用程式（以 Ink 打造），可瀏覽工具、填寫輸入、儲存專案並輸出 - 全程不需要 GUI。其 host bridge 針對無 DOM 的格式（SVG/EMF/EPS/HTML + 文字/資料）**重用 CLI 的實作**，並加上 `~/.lolly` 底下的磁碟狀態，以及可選擇啟用的行內預覽。除此之外，它還有一個**瀏覽器算繪層**：一個範圍受限的無頭 Chromium（與 MCP 伺服器安裝的是同一套），可依需求產生點陣圖／PDF／影片與即時 URL 擷取 - 驅動一份已建置好的 web shell 副本，因此輸出完全一致，並且只在你首次輸出這類格式時才啟動。因此 `url-shot`（含裁切、重新上色與向量 PDF/SVG）以及每個點陣圖／pdf 工具，也都能在終端機中執行。詳見 [TUI 指南](/info/tui.html)。
 
@@ -284,13 +277,13 @@ CLI 的互動版對應物：一個以鍵盤操作為主的全螢幕終端機應�
 
 各列依藝廊區塊順序列出。`utility` 區塊在藝廊中永遠**最後**呈現（排在所有其他分類之後，包括未來新增的分類）- 它是裝置端的「離線工具」抽屜。
 
-| 分類 | 範例 | 規劃中 |
+| 類別 | 範例 | 規劃中 |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence Studio, Record | 員工形象套版素材 |
-| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Multi-Page PDF | 字型外框工具 |
-| `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS, Booth Studio | 活動文具、批次姓名識別證、會議室議程卡 |
-| `product` | - | CVE 警示、產品發布公告、部落格 OG 圖片 |
-| `utility` | Strip Hidden Data, Text Helper, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | 單位/格式轉換工具、更多裝置端隱私公用程式 |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence, Record | Employee Image Stationery |
+| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Booklet | Font Outliner |
+| `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS, Booth Studio | Event Stationery, Bulk Name Badges, Room Agenda Cards |
+| `product` | - | CVE Alert, Product Release Announcement, Blog OG Image |
+| `utility` | Strip Hidden Data, Text, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | 單位/格式轉換器,更多裝置端隱私公用工具 |
 
 這些欄位是**範例，不是完整清單**。哪些工具存在，取決於你所掛載的 profile，而不是這個頁面 - 品牌套件會加入自己的工具，也可以排除某個它不想提供的社群工具。`catalog/tools/index.json` - 由 manifest 產生，也是藝廊實際讀取的登錄檔 - 才是權威清單；要計算某個 profile 掛載了多少工具，應清點 manifest（`ls community/*/tool.json brands/*/tools/*/tool.json`），而不是信任這裡寫下的數字。（同一個工具 id 若出現在兩個套件中，只會掛載一次，以優先的套件為準。）
 
@@ -298,11 +291,11 @@ CLI 的互動版對應物：一個以鍵盤操作為主的全螢幕終端機應�
 
 **Design** 是第一個建立在 `render.layout: "editor"` 自由畫布模式上的工具 - 一個無外框、直接操作的介面，你可以拖曳、縮放、旋轉並吸附文字、形狀與圖片方塊，再透過與其他所有工具相同的算繪路徑輸出。
 
-**Strip Hidden Data** 是第一個**裝置端工具**（`privacy: "on-device"`）：這是一個內容轉換工具，接收*你*提供的檔案、完全在瀏覽器內處理，再交還一份乾淨的副本 - 從不上傳、從不加浮水印、不蓋任何來源標記。**Text Helper** 是第二個 - 一個處理日常「貼上網站」工作的裝置端工具台（JSON 格式化、JWT 解碼、Base64、URL 編碼／解碼、SHA 雜湊）。**Compress PDF** 是第三個 - 它透過重新壓縮 PDF 中的圖片來縮小檔案，同樣完全在裝置端進行。這個標記與其徽章文字「在你的裝置上執行 - 不會上傳任何內容」，如今涵蓋整個轉換工具集：Strip Hidden Data、Text Helper、Compress PDF、**Convert Image**（HEIC/TIFF/AVIF → WebP/JPG/PNG）、**Convert Font**、**Redact**（銷毀圖片、SVG 或 PDF 中的區域）、**Prompt to Image**，以及在該 profile 有掛載的情況下的 **Rebrand a Deck**（就地重新套用 `.pptx` 的主題）。這是一個隱私工具分類，用來取代把機密檔案交給單一用途的網站處理。
+**Strip Hidden Data** 是第一個**裝置端公用工具**(`privacy: "on-device"`):一個內容轉換工具,會接收*你*提供的檔案,完全在瀏覽器中處理後傳回乾淨的副本,不會上傳、不會加浮水印,也不會蓋上來源標記。**Text** 是第二個,一個裝置端工作台,用於日常貼上網站的作業(JSON 格式化、JWT 解碼、Base64、URL 編碼/解碼、SHA 雜湊)。**Compress PDF** 是第三個,它透過重新壓縮圖片來縮小 PDF 檔案,同樣完全在裝置端進行。標記及其徽章文字「在你的裝置上執行,沒有任何內容會被上傳」現在涵蓋整組轉換工具:Strip Hidden Data、Text、Compress PDF、**Convert Image**(HEIC/TIFF/AVIF → WebP/JPG/PNG)、**Convert Font**、**Redact**(在圖片、SVG 或 PDF 中銷毀指定區域)、**Prompt Card**,以及在設定檔掛載時的 **Rebrand**(就地重新套用 `.pptx` 的主題)。這是一個隱私公用工具類別,取代了將機密檔案交給單一用途網站處理的做法。
 
 ![工具抽屜，其中每張卡片都是可轉換你既有檔案的工具](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
 
-> 注意：`category` 與 `status` 是從各自的 `tool.json` 反正規化寫入 `catalog/tools/index.json`（藝廊實際讀取的登錄檔）。manifest 才是唯一真實來源 - 索引由 `npm run build:catalog` **產生**，若已提交的索引與 manifest 出現偏差，`npm run validate:catalog` 會讓 CI 失敗。
+> 附註:`category` 與 `status` 會從每個 `tool.json` 反正規化寫入 `catalog/tools/index.json`(圖庫讀取的登錄檔)。清單檔案(manifest)才是真實來源 - 該索引是由 `pnpm run build:catalog` **產生**的,若已提交的索引與清單檔案不一致,`pnpm run validate:catalog` 會讓 CI 失敗。
 
 ---
 
@@ -444,14 +437,14 @@ Web shell:IndexedDB。Tauri:檔案系統。CLI:記憶體內。工具只能看到
 
 使用者開啟 `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 
-1. **啟動。** Web shell 開啟 IndexedDB,建構能力橋接層,同步工具與資產目錄(離線時則從快取載入)。
-2. **路由。** URL 雜湊 → `tool` 檢視畫面,並取出 `qr-code` 與 URL 參數。
-3. **載入。** `loadTool('qr-code', fetchFile)` 取得 `tool.json`,依 JSON Schema 驗證,並取得 `template.html`、`styles.css` 和 `hooks.js` 原始碼。
-4. **解析 URL 狀態。** `parseUrlState` 將 URL 參數轉譯為初始輸入值。資產參照(`?logo=suse/logo/primary`)會被解析為輕量的 `{ id, _unresolved: true }` 物件。
-5. **執行環境。** `createRuntime(tool, host, initialValues)` 建構輸入模型(合併個人檔案資料、預設值和初始值)、透過 `host.assets.get()` 解析資產參照、載入 hooks(以閉包範圍存取 `host`,而非沙盒),呼叫 `hooks.onInit`。
-6. **渲染。** Shell 訂閱執行環境;每次狀態變更都會收到 `{ model, hydrated }`。它依模型渲染輸入控制項,並將水合後的模板 HTML 寫入 `#tool-canvas`。
-7. **互動。** 使用者在輸入欄輸入內容 → `runtime.setInput(id, value)` → 套用限制條件 → 呼叫 `hooks.onInput` → 重新水合 → 重新渲染。畫布即時更新。
-8. **匯出。** 使用者點擊下載(PNG)→ `runtime.export(canvasNode, 'png')` → `host.export.render`(透過 dom-to-image-more 點陣化;SVG/PDF 則透過專用的 DOM 走訪向量化器)→ blob → `host.export.download`。工具可選用的格式範圍相當廣泛,`schemas/tool.schema.json` 中的 `render.formats` 列舉是這方面的權威定義 - 點陣圖與浮點點陣圖、向量與裁切檔案、印刷/CMYK、動態影像、可編輯文件(`pptx`、`docx`、`odt`)、調色盤與資料/文字輸出,以及音訊和字型檔案。[URL 模式](/info/url-mode.html)列出了每個 ID 及其產出的內容。音訊也和其他項目一樣屬於這個列舉(`wav`、`mp3`、`m4a`、`opus`,由 audiogram 和錄製工具所宣告);另外,錄製工具的 `render.capture` 模式會驅動 `host.recorder`,其成品會以瀏覽器錄製時所用的容器格式,以完成的 Blob 形式送達。(設定 `render.export: false` 的工具 - 例如 Color Palette、Countdown Timer、Strip Hidden Data、Text Helper、Compress PDF - 會隱藏下載/格式/尺寸控制項。)實體單位會在這個階段依格式進行轉換(PDF → 真實頁面點數,點陣圖 → 依 DPI 換算的像素,並帶有 `pHYs` 區塊)。作者/來源元資料(作者、工具、來源 - 由 `engine/src/metadata.ts` 建構)會依格式內嵌:PNG iTXt、JPEG EXIF、PDF info 字典、SVG `<metadata>`、GIF 註解。實驗性工具的浮水印是由主機插入,而非由工具本身插入。
+1. **啟動。** Web shell 開啟 IndexedDB,建立能力橋接器(capability bridge),同步工具與素材目錄(離線時則從快取載入)。
+2. **路由。** URL hash → `tool` 檢視畫面,並擷取 `qr-code` 與 URL 參數。
+3. **載入。** `loadTool('qr-code', fetchFile)` 擷取 `tool.json`,依 JSON Schema 驗證,再擷取 `template.html`、`styles.css` 與 `hooks.js` 原始碼。
+4. **解析 URL 狀態。** `parseUrlState` 會將 URL 參數轉換為初始輸入值。素材參照(`?logo=suse/logo/primary`)會被解析為輕量的 `{ id, _unresolved: true }` 物件。
+5. **執行環境(Runtime)。** `createRuntime(tool, host, initialValues)` 建立輸入模型(合併設定檔資料、預設值與初始值),透過 `host.assets.get()` 解析素材參照,載入 hooks(閉包範圍內的 `host`,並非沙箱化),並呼叫 `hooks.onInit`。
+6. **渲染。** Shell 訂閱執行環境;每次狀態變更都會收到 `{ model, hydrated }`。它會依模型渲染輸入控制項,並將已注入資料的範本 HTML 寫入 `#tool-canvas`。
+7. **互動。** 使用者在輸入欄位中輸入 → `runtime.setInput(id, value)` → 套用限制條件 → 呼叫 `hooks.onInput` → 重新注入資料 → 重新渲染。畫布即時更新。
+8. **匯出。** 使用者按一下下載(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render`(透過 dom-to-image-more 點陣化;SVG/PDF 則經由專用的 DOM 走訪向量化器)→ blob → `host.export.download`。工具可選用的格式範圍很廣,`schemas/tool.schema.json` 中的 `render.formats` 列舉是唯一權威來源 - 點陣圖與浮點點陣圖、向量與裁切檔、印刷/CMYK、動態影像、可編輯文件(`pptx`、`docx`、`odt`)、色票與資料/文字輸出、音訊與字型檔案。[URL Mode](/info/url-mode.html) 列出了每一個 id 及其產出內容。音訊與其他格式一樣屬於該列舉(`wav`、`mp3`、`m4a`、`opus`,由 audiogram 與錄製工具宣告);另外,錄製工具的 `render.capture` 模式會驅動 `host.recorder`,其擷取結果會以瀏覽器所錄製的容器格式,做為完成的 Blob 傳回。(設定 `render.export: false` 的工具 - 例如 Color Palette、Countdown Timer、Strip Hidden Data、Text、Compress PDF - 會隱藏下載/格式/尺寸控制項。)實體單位會在此依格式轉換(PDF → 實際頁面點數,點陣圖 → 依 DPI 換算的像素,並附上 `pHYs` 區塊)。著作權/來源後設資料(作者、工具、來源 - 由 `engine/src/metadata.ts` 建立)會依格式內嵌:PNG iTXt、JPEG EXIF、PDF 資訊字典、SVG `<metadata>`、GIF 註解。實驗性工具的浮水印由主機(host)插入,而非工具本身。
 
 ![`?options` 開啟的匯出面板:檔名與格式配對、輸出尺寸,以及寫入檔案的控制項](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
@@ -461,11 +454,11 @@ Tauri 中的生命週期相同。CLI 中的生命週期也相同 - jsdom 提供�
 
 ## 開放原始碼狀態
 
-**程式碼採用 MPL-2.0 授權。** `engine/`、`shells/*`、`services/*`、`schemas/` 與 `docs/` 皆以 **MPL-2.0** 授權開放原始碼 - 這是一個廠商中立的品牌工具腳手架平台,每個可發行的單元都各自置於 [github.com/lolly-tools](https://github.com/lolly-tools) 下的獨立版本庫中。
+**程式碼採用 MPL-2.0 授權。** `engine/`、`shells/*`、`services/*`、`schemas/` 與 `docs/` 皆以 **MPL-2.0** 授權開放原始碼 - 這是一個廠商中立的品牌工具腳手架平台,全部集中在單一公開儲存庫 [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly) 中。
 
-**工具內容以品牌包的形式發行**,各自附有自己的條款(詳見該包的 `NOTICE.md`)。`community/` 是公開的 [`lolly-tools`](https://github.com/lolly-tools/lolly-tools) 版本庫,其中與品牌無關的工具同樣採用 MPL-2.0 授權。`brands/suse/` 是私有的 `suse-lolly` 包:SUSE 的工具與 SUSE 的目錄,**為 SUSE 所專有**,包括其已授權使用的 PremiumBeat 音樂。`brands/lolly-start/` 是本版本庫所擁有的空白入門品牌。字體則以 **SIL Open Font License 1.1** 授權隨包發行 - SUSE 包附帶 SUSE 與 SUSE Mono 字體。
+**工具內容以品牌包(brand pack)形式發行**,各自附有其授權條款(詳見該包的 `NOTICE.md`)。`community/` 是本儲存庫中的一個目錄,其品牌中立工具同樣採用 MPL-2.0 授權。`brands/suse/` 是私有的 `suse-lolly` 包,也是唯一的子模組:包含 SUSE 工具與 SUSE 目錄,**為 SUSE 專有**,並含有其授權的 PremiumBeat 音樂。`brands/lolly-start/` 是本儲存庫所擁有的空白入門品牌。字型隨品牌包一併發行,採用 **SIL Open Font License 1.1** 授權 - SUSE 品牌包內含 SUSE 與 SUSE Mono 字體。
 
-版本庫根目錄下的 `tools/` 與 `catalog/` 是 Git 忽略的*檢視畫面*:設定檔會從 `community/` 加上目前啟用的品牌包組合出這兩者,因此每個指令碼與殼層讀取的都是這兩條路徑,而絕不會直接讀取某個品牌包。
+儲存庫根目錄並沒有 `tools/` 或 `catalog/` 目錄。`packages/node-shell/src/content-roots.ts` 會在讀取時依據 `profiles.json` 回答「工具 `<id>` 位於何處」與「目錄位於何處」,因此設定檔(profile)是逐一處理程序(per-process)決定的答案,不需要事先組出一整棵目錄樹。真正的 `tools/` 與 `catalog/` 目錄組合只會寫入建置輸出中 - 例如 `dist/`、RPM 套件內容,或容器映像 - 因為瀏覽器是透過 HTTP 擷取這兩個路徑。
 
 此區隔是強制執行的 - `engine/` 絕不會反向匯入工具內容 - 因此平台與內容之間的界線始終維持乾淨。
 

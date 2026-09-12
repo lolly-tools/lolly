@@ -28,7 +28,7 @@ const COMMUNITY = join(dirname(fileURLToPath(import.meta.url)), '..', 'community
 const fetchFile = (path: string) => readFile(join(COMMUNITY, path), 'utf8');
 
 const PACK_MOUNTED = existsSync(COMMUNITY);
-const SKIP = !PACK_MOUNTED && 'community pack not mounted (clone without submodules)';
+const SKIP = !PACK_MOUNTED && 'community pack not mounted';
 const tool: any = SKIP ? null : await loadTool('qr-code', fetchFile);
 
 async function mount(values: Record<string, any>) {

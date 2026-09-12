@@ -258,8 +258,8 @@ test('determinism: emitting the same fixture twice is byte-identical', () => {
 
 // ─── (b) data/text format goldens through the engine's buildDataPayload ──────
 
-// Loads a REAL community tool (public submodule, always mounted) straight from
-// its source pack - never the gitignored tools/ profile view.
+// Loads a REAL community tool (community/ is in this repository, so always present)
+// straight from its source pack - never through the content resolver.
 function loadCommunityTool(id: string, textExts: string[]): LoadedTool {
   const dir = `community/${id}/`;
   const read = (rel: string): string => readFileSync(repoPath(dir + rel), 'utf8');

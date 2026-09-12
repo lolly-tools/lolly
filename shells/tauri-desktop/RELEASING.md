@@ -86,7 +86,8 @@ must never reach a public artifact.** `pnpm run profile` shows which one this ch
 resolves to; `LOLLY_PROFILE=lolly-start` selects the public blank brand for one command.
 `rpm/make-sources.sh` and `release/common.sh` both ask the resolver and refuse to run on
 the `suse` profile for this reason; the Flathub manifest gets it right
-structurally, by pinning only public submodules and never fetching `brands/suse`.
+structurally, by pinning this repository as its one source with
+`disable-submodules: true`, so `brands/suse` is never fetched.
 
 ## Flatpak / Flathub
 

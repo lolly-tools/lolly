@@ -29,11 +29,11 @@ import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
 import type { AudioAnalyseOpts } from '../packages/core/src/host-v1.ts';
 
-// audiogram ships in the PUBLIC community pack. Load from the SOURCE pack, not the
-// gitignored tools/ profile view, so the suite is profile-independent.
+// audiogram ships in the PUBLIC community pack. Load from the SOURCE pack, not through the
+// content resolver, so the suite is profile-independent.
 const COMMUNITY = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const PACK_MOUNTED = existsSync(COMMUNITY);
-const SKIP = !PACK_MOUNTED && 'community pack not mounted (clone without submodules)';
+const SKIP = !PACK_MOUNTED && 'community pack not mounted';
 if (PACK_MOUNTED) {
   assert.ok(existsSync(join(COMMUNITY, 'audiogram', 'tool.json')),
     'community/audiogram/tool.json is missing - pack is mounted, so the tool was renamed or deleted');

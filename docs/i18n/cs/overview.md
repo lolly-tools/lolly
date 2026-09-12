@@ -132,7 +132,7 @@ implementují jednu smlouvu a katalogy dodávají obsah.
 
 ### Struktura repozitáře
 
-Obsah je připojen jako balíčky: `community/`, `docs/`, každý `shells/*`, oba `services/*` i `brands/suse` jsou každý svým vlastním repozitářem, checkoutnutým jako git submoduly tohoto. Rodič vlastní `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `brands/lolly-start/` a `profiles.json`. Viz [Průvodce sestavením » Získání zdrojového kódu](/info/build-guide.html) pro příkaz checkoutu a workflow napříč repozitáři.
+Lolly je jeden repozitář. `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `docs/`, `community/`, `brands/lolly-start/`, každý `shells/*` a oba `services/*` jsou v něm obyčejné adresáře. Jedinou výjimkou je `brands/suse`, **soukromý** git submodul obsahující sadu nástrojů a katalog SUSE, volitelný a chybějící ve veřejném klonu. Které balíčky daný build čte, určuje obsahový profil (`profiles.json`), řešený pro každý proces zvlášť, nikoli přepínaný globálně. Příkaz pro klonování a postup, jak se commituje změna uvnitř soukromého balíčku, najdeš v [Build Guide » Získání zdrojového kódu](/info/build-guide.html).
 
 ```
 lolly/
@@ -190,45 +190,38 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # profile VIEW (gitignored) - data, not code. Merged from packs:
-│                     #   community/ (public, brand-agnostic, MPL) + brands/<active>/tools (brand-owned).
-│                     #   A SELECTION follows - the mounted set depends on the profile.
+├── community/        # the brand-agnostic tool pack - data, not code. Public (MPL-2.0).
+│                     #   A SELECTION follows; a profile mounts these plus whatever
+│                     #   tools the active brand pack carries of its own.
 │   ├── qr-code/
-│   ├── quotes/
-│   ├── email-signature/
 │   ├── snippet/
 │   ├── countdown-timer/
 │   ├── color-palette/
-│   ├── color-block/           # typed/heterogeneous blocks (addMenu discriminator)
-│   ├── dynamic-layout/
-│   ├── tool-logo/         # "Logo" - auto-switching brand logo
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
 │   ├── strip-data/        # on-device metadata strip - JPEG/PNG/SVG/PDF (file in → clean file out)
 │   ├── compress-pdf/      # on-device PDF compressor - recompresses images (file in → smaller file out)
-│   ├── brand-lockup/      # "Brand Lockup" - SUSE logo lockups; HarfBuzz text-to-path (wasm)
-│   ├── chart-creator/     # SVG charts from structured data
+│   ├── chart/             # SVG charts from structured data
 │   ├── filter/            # photo effects in one tool - halftone/scanline/posterize/voronoi (vector), duotone/pixel-stretch/imperfections (raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
-│   ├── digi-ad/           # "Animated Ad" - looping banner from scenes
-│   ├── event-name-badge/  # conference badges - composes qr-code as an SVG
 │   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
 │   ├── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
 │   ├── design/     # "Design" - freeform WYSIWYG editor canvas (render.layout: editor)
 │   ├── multi-page-pdf/    # multi-page PDF document - cover, flowing content blocks, back page
 │   ├── diagram-builder/   # org / layercake / process / cycle / pyramid diagrams
 │   ├── logo-wall/         # many logos → auto-packed grid
-│   ├── logo-lockup-partner/ # SUSE + partner co-brand lockup
-│   ├── icon/          # favicon .ico / png / svg from text + colours
-│   ├── lottie-digi-ad/    # animated Lottie ad banners
-│   └── pose-geeko/        # pose the SUSE Geeko mascot - print-ready stills
+│   ├── icon/              # favicon .ico / png / svg from text + colours
+│   └── lottie-digi-ad/    # animated Lottie ad banners
 │
-├── catalog/
-│   ├── tools/index.json        # tool registry
-│   └── assets/
-│       ├── index.json          # asset registry
-│       └── suse/...            # logo, palette, etc.
+├── brands/            # brand packs - a catalog each, and optionally tools of their own
+│   ├── lolly-start/   # the blank starter brand, owned here
+│   │   └── catalog/
+│   │       ├── tools/index.json    # tool registry, generated per brand
+│   │       └── assets/
+│   │           ├── index.json      # asset registry
+│   │           └── lolly/...       # logo, palette, tokens
+│   └── suse/          # PRIVATE submodule - the SUSE tools and the SUSE catalog
 │
 ├── schemas/          # JSON Schema for tool.json, asset entries, AssetRef
 ├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
@@ -271,7 +264,7 @@ lolly qr-code                # lists inputs for that tool
 ```
 
 ### TUI
-`npm run tui`
+`pnpm run tui`
 
 Interaktivní protějšek CLI: celoobrazovková, na klávesnici založená terminálová aplikace (postavená na Ink) pro procházení nástrojů, vyplňování vstupů, ukládání projektů a export - to vše bez GUI. Její bridge k hostiteli **znovu používá implementaci CLI** pro formáty bez DOM (SVG/EMF/EPS/HTML + text/data) a přidává stav na disku pod `~/.lolly` plus volitelný inline náhled. Kromě toho má **vrstvu prohlížečového renderu**: omezený headless Chromium (stejný, jaký instaluje MCP server), který na vyžádání vytváří rastr/PDF/video a zachytávání živých URL - řídí sestavenou kopii webového shellu, takže je výstup identický, a spouští se jen při prvním exportu takového formátu. Takže `url-shot` (s ořezem + přebarvením + vektorovým PDF/SVG) a každý rastrový/pdf nástroj běží i v terminálu. Viz [průvodce TUI](/info/tui.html).
 
@@ -287,11 +280,11 @@ Nástroje jsou ve svém manifestu označeny `category` pro seskupení v galerii.
 
 | Kategorie | Příklady | Plánováno |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence Studio, Record | Employee Image Stationery |
-| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Multi-Page PDF | Font Outliner |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence, Record | Employee Image Stationery |
+| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Booklet | Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS, Booth Studio | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | - | CVE Alert, Product Release Announcement, Blog OG Image |
-| `utility` | Strip Hidden Data, Text Helper, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Převodníky jednotek/formátů, další nástroje pro soukromí fungující na zařízení |
+| `utility` | Strip Hidden Data, Text, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Převodníky jednotek/formátů, další soukromí respektující nástroje na zařízení |
 
 Tyto buňky jsou **příklady, ne úplný výčet**. Které nástroje existují, je vlastnost namontovaného profilu, ne této stránky: brand pack přidává vlastní nástroje a může vyloučit komunitní nástroj, který dodávat nechce. `catalog/tools/index.json` - generovaný z manifestů, a registr, který galerie skutečně čte - je autoritativní seznam; chceš-li spočítat, co profil namontuje, spočítej manifesty (`ls community/*/tool.json brands/*/tools/*/tool.json`), místo abys věřil číslu zapsanému zde. (Id nástroje přítomné ve dvou packech se namontuje jednou, z vítězného packu.)
 
@@ -299,11 +292,11 @@ Nástroje jsou také klasifikovány podle stavu: `official` (schváleno brandem,
 
 **Design** je první nástroj postavený na režimu volného plátna `render.layout: "editor"` - plocha bez chromu s přímou manipulací, kde přetahuješ, měníš velikost, otáčíš a přichytáváš boxy textu, tvarů a obrázků a pak exportuješ stejnou renderovací cestou jako každý jiný nástroj.
 
-**Strip Hidden Data** je první **nástroj na zařízení** (`privacy: "on-device"`): nástroj transformující obsah, který vezme soubor dodaný *tebou*, celý ho zpracuje v prohlížeči a vrátí čistou kopii - nikdy se nikam nenahrává, nikdy se neopatří vodoznakem, nerazí se do něj žádná provenience. **Text Helper** je druhý - pracovní stůl na zařízení pro každodenní úlohy typu vlož-do-webu (formátování JSON, dekódování JWT, Base64, kódování/dekódování URL, hashování SHA). **Compress PDF** je třetí - zmenšuje PDF rekompresí jeho obrázků, opět celé na zařízení. Značka a text jejího odznaku „Runs on your device - nothing is uploaded“ nyní pokrývají celou sadu transformací: Strip Hidden Data, Text Helper, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (zničit oblasti obrázku, SVG nebo PDF), **Prompt to Image** a **Rebrand a Deck** (přeznačkovat `.pptx` na místě), pokud ho profil namontuje. Jde o kategorii nástrojů pro soukromí, která nahrazuje předávání důvěrných souborů jednoúčelovým webům.
+**Strip Hidden Data** je prvním **nástrojem na zařízení** (`privacy: "on-device"`): nástroj na transformaci obsahu, který vezme soubor dodaný *tebou*, zpracuje ho celý v prohlížeči a vrátí čistou kopii - nikdy se nikam nenahrává, nikdy se neopatřuje vodoznakem, neotiskuje se do něj žádný původ. **Text** je druhý - pracovní plocha na zařízení pro běžné úkoly typu vlož-do-webu (formátování JSON, dekódování JWT, Base64, kódování/dekódování URL, hashování SHA). **Compress PDF** je třetí - zmenšuje PDF rekompresí jeho obrázků, opět celé na zařízení. Značka a text jejího odznaku "Runs on your device - nothing is uploaded" nyní pokrývají celou sadu transformací: Strip Hidden Data, Text, Compress PDF, **Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact** (zničí oblasti obrázku, SVG nebo PDF), **Prompt Card** a **Rebrand** (přeznačkuje `.pptx` na místě) tam, kde ho profil obsahuje. Jde o kategorii nástrojů na ochranu soukromí, která nahrazuje předávání důvěrných souborů jednoúčelovým webům.
 
 ![Zásuvka Utilities, kde je každá karta nástroj transformující soubor, který už máš](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
 
-> Poznámka: `category` a `status` jsou denormalizovány do `catalog/tools/index.json` (registru, který galerie čte) z jednotlivých `tool.json`. Manifest je zdroj pravdy - index je **generovaný** příkazem `npm run build:catalog` a `npm run validate:catalog` shodí CI, pokud committovaný index odchyluje od manifestů.
+> Poznámka: `category` a `status` jsou denormalizovány do `catalog/tools/index.json` (registr, který čte galerie) z každého `tool.json`. Zdrojem pravdy je manifest - index je **generovaný** příkazem `pnpm run build:catalog` a `pnpm run validate:catalog` selže v CI, pokud se commitnutý index rozejde s manifesty.
 
 ---
 
@@ -445,14 +438,14 @@ Skládat lze vykreslení jakéhokoli nástroje: potomek **SVG** zůstane skuteč
 
 Uživatel otevře `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 
-1. **Boot.** Web shell otevře IndexedDB, sestaví bridge schopností, synchronizuje katalogy nástrojů a assetů (nebo je offline načte z cache).
-2. **Route.** URL hash → pohled `tool`, s extrahovanými parametry `qr-code` a URL.
-3. **Load.** `loadTool('qr-code', fetchFile)` stáhne `tool.json`, validuje ho proti JSON Schema, stáhne `template.html`, `styles.css` a zdroj `hooks.js`.
-4. **Parse URL state.** `parseUrlState` převádí parametry URL na počáteční hodnoty vstupů. Odkazy na assety (`?logo=suse/logo/primary`) se parsují jako odlehčené objekty `{ id, _unresolved: true }`.
-5. **Runtime.** `createRuntime(tool, host, initialValues)` sestaví model vstupů (sloučí data profilu, výchozí hodnoty a počáteční hodnoty), rozřeší odkazy na assety přes `host.assets.get()`, načte hooky (`host` v uzávěru, ne v sandboxu), zavolá `hooks.onInit`.
-6. **Render.** Shell se odebírá na runtime; při každé změně stavu dostane `{ model, hydrated }`. Vykreslí ovládací prvky vstupů z modelu a zapíše hydratovaný HTML šablony do `#tool-canvas`.
-7. **Interact.** Uživatel napíše do vstupu → `runtime.setInput(id, value)` → aplikují se omezení → zavolá se `hooks.onInput` → re-hydratace → re-render. Plátno se aktualizuje živě.
-8. **Export.** Uživatel klikne na Download (PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (rasterizuje přes dom-to-image-more; SVG/PDF jdou přes vyhrazené vektorizéry procházející DOM) → blob → `host.export.download`. Rozsah formátů, do kterých se nástroj může zapojit, je široký a autoritou je enum `render.formats` ve `schemas/tool.schema.json` - rastery a plovoucí rastery, vektory a řezací soubory, tisk/CMYK, pohyb, editovatelné dokumenty (`pptx`, `docx`, `odt`), paletové a datové/textové výstupy, audio a fontové soubory. [Režim URL](/info/url-mode.html) pojmenovává každé id a to, co produkuje. Audio je v tomto enumu jako cokoli jiného (`wav`, `mp3`, `m4a`, `opus`, deklarované audiogramem a nahrávacími nástroji); odděleně, režim `render.capture` u nahrávacího nástroje řídí `host.recorder`, jehož záznam přichází jako hotový Blob v jakémkoli kontejneru, který prohlížeč nahrál. (Nástroje, které nastaví `render.export: false` - např. Color Palette, Countdown Timer, Strip Hidden Data, Text Helper, Compress PDF - skrývají ovládací prvky pro stažení/formát/rozměry.) Fyzické jednotky se převádí podle formátu přímo tady (PDF → skutečné body stránky, raster → pixely při DPI s chunkem `pHYs`). Metadata o autorství/původu (autor, nástroj, zdroj - sestavuje `engine/src/metadata.ts`) se vkládají podle formátu: PNG iTXt, JPEG EXIF, PDF info dict, SVG `<metadata>`, komentář GIF. Experimentální nástroje dostávají vodoznak vložený hostem, ne nástrojem.
+1. **Spuštění.** Webová schránka otevře IndexedDB, sestaví most schopností, synchronizuje katalogy nástrojů a assetů (nebo je při offline stavu načte z mezipaměti).
+2. **Směrování.** Hash URL → zobrazení `tool`, s extrakcí `qr-code` a parametrů URL.
+3. **Načtení.** `loadTool('qr-code', fetchFile)` načte `tool.json`, ověří ho proti JSON Schema, načte zdroje `template.html`, `styles.css` a `hooks.js`.
+4. **Rozbor stavu z URL.** `parseUrlState` převádí parametry URL na počáteční hodnoty vstupů. Odkazy na assety (`?logo=suse/logo/primary`) se parsují jako odlehčené objekty `{ id, _unresolved: true }`.
+5. **Runtime.** `createRuntime(tool, host, initialValues)` sestaví model vstupů (sloučením dat profilu, výchozích hodnot a počátečních hodnot), rozřeší odkazy na assety přes `host.assets.get()`, načte hooky (`host` v uzávěru, nikoli v sandboxu) a zavolá `hooks.onInit`.
+6. **Vykreslení.** Schránka se přihlásí k odběru runtime; při každé změně stavu obdrží `{ model, hydrated }`. Z modelu vykreslí ovládací prvky vstupů a hydratované HTML šablony zapíše do `#tool-canvas`.
+7. **Interakce.** Uživatel píše do vstupu → `runtime.setInput(id, value)` → uplatní se omezení → zavolá se `hooks.onInput` → re-hydratace → nové vykreslení. Plátno se aktualizuje živě.
+8. **Export.** Uživatel klikne na Download(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (rastruje přes dom-to-image-more; SVG/PDF prochází vyhrazenými vektorizéry procházejícími DOM) → blob → `host.export.download`. Rozsah formátů, které nástroj může nabídnout, je široký a autoritou je výčet `render.formats` ve `schemas/tool.schema.json` - rastry i plovoucí rastry, vektory a řezové soubory, tisk/CMYK, pohyb, editovatelné dokumenty (`pptx`, `docx`, `odt`), paleta a datové/textové výstupy, zvukové a fontové soubory. [URL Mode](/info/url-mode.html) uvádí každé id a co produkuje. Zvuk je v tomto výčtu jako cokoli jiného (`wav`, `mp3`, `m4a`, `opus`, deklarované audiogramem a nahrávacími nástroji); odděleně od toho řídí režim `render.capture` nahrávacího nástroje `host.recorder`, jehož záznam přijde jako hotový Blob v tom kontejneru, ve kterém ho prohlížeč nahrál. (Nástroje, které nastaví `render.export: false` - např. Color Palette, Countdown Timer, Strip Hidden Data, Text, Compress PDF - skryjí ovládací prvky pro stažení, formát a rozměry.) Fyzické jednotky se zde převádí podle formátu (PDF → skutečné body stránky, rastr → pixely při DPI s blokem `pHYs`). Metadata autorství/původu (autor, nástroj, zdroj - sestavená `engine/src/metadata.ts`) se vkládají podle formátu: PNG iTXt, JPEG EXIF, PDF info dict, SVG `<metadata>`, komentář GIF. Experimentální nástroje dostávají vodoznak vložený hostitelem, ne nástrojem.
 
 ![Panel exportu, který otevírá `?options`: dvojice název souboru a formát, výstupní rozměry a ovládací prvky, které zapisují soubor](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
@@ -462,11 +455,11 @@ Stejný životní cyklus v Tauri. Stejný životní cyklus v CLI - jsdom poskytu
 
 ## Stav open source
 
-**Kód je pod MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` a `docs/` jsou open source pod **MPL-2.0** - platforma pro scaffolding nezávislá na dodavateli pro nástroje značky, kde každá dodávaná jednotka má vlastní repozitář pod [github.com/lolly-tools](https://github.com/lolly-tools).
+**Kód je pod licencí MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` a `docs/` jsou open source pod licencí **MPL-2.0** - platforma pro nástroje značek nezávislá na dodavateli, celá v jednom veřejném repozitáři, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
-**Obsah nástrojů se dodává jako brand packy**, každý s vlastními podmínkami (viz `NOTICE.md` daného packu). `community/` je veřejný repozitář [`lolly-tools`](https://github.com/lolly-tools/lolly-tools) a jeho nástroje nezávislé na značce jsou také pod MPL-2.0. `brands/suse/` je privátní pack `suse-lolly`: nástroje SUSE a katalog SUSE, **proprietární pro SUSE**, včetně licencované hudby PremiumBeat. `brands/lolly-start/` je prázdná startovní značka, kterou vlastní tento repozitář. Písma se dodávají uvnitř packu pod licencí **SIL Open Font License 1.1** - pack SUSE nese písma SUSE a SUSE Mono.
+**Obsah nástrojů se dodává jako balíčky značek**, každý s vlastními podmínkami (viz `NOTICE.md` daného balíčku). `community/` je adresář tohoto repozitáře a jeho nástroje nezávislé na značce jsou také pod MPL-2.0. `brands/suse/` je soukromý balíček `suse-lolly`, jediný submodul: nástroje SUSE a katalog SUSE, **v majetku SUSE**, včetně licencované hudby PremiumBeat. `brands/lolly-start/` je prázdná výchozí značka, kterou vlastní tento repozitář. Fonty se dodávají uvnitř balíčku pod licencí **SIL Open Font License 1.1** - balíček SUSE obsahuje řezy písma SUSE a SUSE Mono.
 
-`tools/` a `catalog/` v kořeni repozitáře jsou *pohledy* ignorované gitem: profil je sestaví z `community/` plus aktivního brand packu, a proto každý skript a shell čte tyto dvě cesty a nikdy pack přímo.
+V kořeni repozitáře neexistuje adresář `tools/` ani `catalog/`. `packages/node-shell/src/content-roots.ts` v okamžiku čtení zodpoví otázky "kde žije nástroj `<id>`" a "kde je katalog" z `profiles.json`, takže profil je odpověď pro každý proces zvlášť a žádný strom se nejprve nemusí sestavovat. Skutečná dvojice `tools/` + `catalog/` se zapisuje pouze do výstupu buildu - `dist/`, payloadu RPM, obrazu kontejneru - protože prohlížeč tyto dvě cesty načítá přes HTTP.
 
 Toto oddělení je vynucené - neexistují cross-importy z `engine/` do obsahu nástrojů - takže hranice mezi platformou a obsahem zůstává čistá.
 

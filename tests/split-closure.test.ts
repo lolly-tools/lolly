@@ -39,11 +39,12 @@ export function mount(value: number) {
   }
 });
 
-test('lazy tool, timeline, catalog and brand entries retain their required stylesheets', () => {
+test('lazy tool, timeline, catalog, profile and brand entries retain their required stylesheets', () => {
   const entries: Record<string, string[]> = {
     'views/tool.ts': ['tool', 'editor', 'design-topbar', 'design-navigator', 'design-inspector', 'design-guides', 'document', 'deck-editor', 'tool-chrome'].map(name => `../styles/parts/${name}.css`).concat('../styles/vendor-flatpickr.css'),
     'views/timeline-panel.ts': ['../styles/parts/timeline.css'],
     'views/catalog.ts': ['../styles/parts/platform.css'],
+    'views/profile.ts': ['../styles/parts/profile.css', '../styles/parts/tool.css', '../styles/parts/storage.css', '../styles/parts/offline-manager.css'],
     'lib/brand-editor.ts': ['../styles/parts/brand-studio.css', '../styles/parts/tool.css', './oklch-slice.css'],
   };
   for (const [entry, sheets] of Object.entries(entries)) {

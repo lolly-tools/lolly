@@ -31,15 +31,15 @@ import { contrastRatio } from '../engine/src/brand-derive.ts';
 import { simulateCvdHex, toGrayscaleHex } from '../engine/src/color-vision.ts';
 import { baseHost } from './helpers/host.ts';
 
-// color-palette ships in the PUBLIC community pack. Load from the SOURCE pack, not
-// the gitignored tools/ profile view, so the suite is profile-independent: skip
-// only when community/ isn't checked out (a clone without submodules); with it
-// present, a missing tool dir means a rename/delete and must FAIL loudly.
+// color-palette ships in the PUBLIC community pack. Load from the SOURCE pack, not through
+// the content resolver, so the suite is profile-independent: skip only when community/
+// isn't checked out; with it present, a missing tool dir means a rename/delete and must
+// FAIL loudly.
 const COMMUNITY = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const fetchFile = (path: string) => readFile(join(COMMUNITY, path), 'utf8');
 
 const PACK_MOUNTED = existsSync(COMMUNITY);
-const SKIP = !PACK_MOUNTED && 'community pack not mounted (clone without submodules)';
+const SKIP = !PACK_MOUNTED && 'community pack not mounted';
 if (PACK_MOUNTED) {
   assert.ok(existsSync(join(COMMUNITY, 'color-palette', 'tool.json')),
     'community/color-palette/tool.json is missing - pack is mounted, so the tool was renamed or deleted');

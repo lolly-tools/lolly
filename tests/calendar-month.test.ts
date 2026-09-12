@@ -5,7 +5,7 @@
  * Run with: node --test tests/calendar-month.test.ts
  * No test framework - node:test only.
  *
- * The tool loads from the SOURCE pack (not the gitignored tools/ view) and runs
+ * The tool loads from the SOURCE pack (not through the content resolver) and runs
  * through the real engine with the shared stub host, so these guard shipped
  * behaviour rather than a fixture.
  *
@@ -35,10 +35,9 @@ import { createRuntime } from '../engine/src/runtime.ts';
 import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.ts';
 import { baseHost } from './helpers/host.ts';
 
-// calendar-ics is a community tool - always present in a full checkout. Load it
-// from the SOURCE pack (community/), not the gitignored tools/ profile view, so the
-// suite never silently skips: a missing dir means the tool was renamed or deleted,
-// which must FAIL here.
+// calendar-ics is a community tool - always present in a full checkout. Load it from the
+// SOURCE pack (community/), not through the content resolver, so the suite never silently
+// skips: a missing dir means the tool was renamed or deleted, which must FAIL here.
 const COMMUNITY_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const fetchFile = (path: string) => readFile(join(COMMUNITY_DIR, path), 'utf8');
 

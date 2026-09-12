@@ -39,14 +39,14 @@ Le eccezioni oneste - ognuna opt-in, avviata dall'utente e visibile nella stessa
 
 ## Da un terminale
 
-**6. L'endpoint di rendering risponde solo con dati pubblici.** L'unica funzionalità server che mette input digitati dall'utente in un URL - i render hot-link - è attiva qui, e la [informativa sulla privacy](/info/privacy.html) spiega cosa significa questo per gli input che metti in un link:
+**6. L'endpoint di rendering risponde solo con dati pubblici.** L'unica funzionalità del server che inserisce input digitati dall'utente in un URL - i render con hot-link - è attiva qui, e la [privacy policy](/info/privacy.html) spiega cosa questo significhi per gli input che inserisci in un link:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-L'interruttore è per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): su un'istanza che lo imposta, la stessa verifica restituisce `404` - quella differenza è il flag che funziona, non un'incoerenza.
+L'interruttore è per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): su un'istanza che lo imposta, la stessa sonda restituisce `404` - questa differenza indica che il flag funziona, non un'incoerenza.
 
 **7. La superficie server è enumerabile.** [Server Surface](/info/server-surface.html) elenca ogni rotta lato server esistente, con la regola di base che un endpoint non presente in quella pagina non fa parte di Lolly. Provale con `curl`; non c'è nient'altro da trovare.
 
@@ -55,7 +55,7 @@ L'interruttore è per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): su un'istanza c
 Tutto quanto sopra potrebbe comunque essere teatro se il codice distribuito differisse da quello pubblico. Quindi controlla il codice - il deployment viene compilato da [il repository pubblico](https://github.com/lolly-tools/lolly):
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ I tre controlli sul sorgente sopra non sono un audit una tantum - sono fissati n
 - il registro di emissione della CA ricompare - nel sorgente **o** nel bundle server generato,
 - l'informativa sulla privacy perde le sue dichiarazioni legalmente richieste (titolare nominato, base giuridica, diritto di reclamo).
 
-Eseguili tu stesso nel clone (Node 22.18+; non serve `npm install` per questo file):
+Eseguili tu stesso nel clone (Node 22.18+; per questo file non serve `pnpm install`):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-La suite completa (`npm install && npm test`) ne esegue diverse migliaia in più, inclusi i test crittografici avversariali descritti in [Sicurezza e verifica](/info/security.html).
+La suite completa (`pnpm install && pnpm test`) ne esegue diverse migliaia in più, inclusi i test crittografici avversariali descritti in [Security & Verification](/info/security.html).
 
 ## Cosa non puoi verificare dall'esterno - detto chiaramente
 

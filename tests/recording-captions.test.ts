@@ -42,9 +42,9 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const COMMUNITY = join(ROOT, 'community');
 const SUSE = join(ROOT, 'brands', 'suse', 'tools');
 
-// Load from the SOURCE packs, never the gitignored tools/ profile view, so the
-// suite is profile-independent. A pack that is not checked out skips; a pack
-// that IS checked out but missing the tool fails loudly (a rename or a delete).
+// Load from the SOURCE packs, never through the content resolver, so the suite is
+// profile-independent. A pack that is not checked out skips; a pack that IS checked out but
+// missing the tool fails loudly (a rename or a delete).
 const communityFile = (path: string) => readFile(join(COMMUNITY, path), 'utf8');
 const suseFile = (path: string) => readFile(join(SUSE, path), 'utf8');
 
@@ -105,6 +105,9 @@ const WIRED: { id: string; root: string; fetch: (p: string) => Promise<string>; 
 ];
 
 for (const pack of WIRED) {
+  // The reason text is pinned by tests/expected-skips.json, and the row that
+  // actually skips in public CI is the private brands/suse pack, which is the
+  // one remaining submodule - so the wording is true where it fires.
   test(`${pack.id}: render.transcribe names inputs that exist and are the right types`, {
     skip: pack.mounted ? false : 'pack not mounted (clone without submodules)',
   }, async () => {

@@ -27,7 +27,7 @@ The manifest is always the source of truth; `catalog/tools/index.json` and the a
 
 | Script | npm alias | Purpose | Flags |
 |---|---|---|---|
-| `build-catalog-index.ts` | part of `build:catalog` | Regenerates `catalog/tools/index.json` from every `tool.json` in the active profile's `tools/` view. | DESTRUCTIVE, submodule |
+| `build-catalog-index.ts` | part of `build:catalog` | Regenerates `catalog/tools/index.json` from every `tool.json` in the active profile's tool packs. | DESTRUCTIVE, submodule |
 | `checksum-assets.ts` | part of `build:catalog` | Recomputes the content checksums in `catalog/assets/index.json`. | DESTRUCTIVE, submodule |
 | `build-preview-bundle.ts` | part of `build:catalog`, `previews` | Builds the preview-look bundle the gallery's featured hero row and example carousels render from. | DESTRUCTIVE, submodule |
 | `validate-catalog.ts` | `validate:catalog` | Validates every `tool.json` and asset entry against the schemas, then checks the invariants schemas cannot express: checksums, file existence, `bindToProfile` fields, palette references, `replacedBy` chains, and canonical-input divergence (a warning, never an error). | |
@@ -90,7 +90,7 @@ These drive tools in a real browser and export through the app's own render path
 
 | Script | npm alias | Purpose | Flags |
 |---|---|---|---|
-| `translate.ts` | `translate` | Bulk machine translation via the Claude API, with a shared glossary, content-hash incremental caching, placeholder and structure validation, and a human-overrides layer that always wins. Two corpora: `spa` (the web shell's `src/locales/<lang>.json`) and `tools` (per-tool `i18n/<lang>.json` sidecars, written straight into each pack's source directory rather than through the `tools/` view, so every pack is covered regardless of the active profile). `--check` exits non-zero on stale or missing strings without calling the API. | DESTRUCTIVE, submodule, network, API key (`ANTHROPIC_API_KEY`) |
+| `translate.ts` | `translate` | Bulk machine translation via the Claude API, with a shared glossary, content-hash incremental caching, placeholder and structure validation, and a human-overrides layer that always wins. Two corpora: `spa` (the web shell's `src/locales/<lang>.json`) and `tools` (per-tool `i18n/<lang>.json` sidecars, written straight into each pack's source directory rather than through the resolver, so every pack is covered regardless of the active profile). `--check` exits non-zero on stale or missing strings without calling the API. | DESTRUCTIVE, submodule, network, API key (`ANTHROPIC_API_KEY`) |
 | `i18n/glossary.json` | | Shared translation glossary. | |
 | `i18n/cache.json` | | The content-hash translation cache. | |
 | `i18n/extra-keys.spa.json` | | The hand-listed dynamically-keyed `t()` call sites the source scan cannot find. | |
@@ -160,7 +160,7 @@ All four write into `brands/lolly-start/catalog/`, which this repository owns, s
 | `ingest-lofi.ts` | none | Converts a curated set of public-domain lo-fi tracks to opus and registers them under `lolly/loops/`. | DESTRUCTIVE, network |
 | `ingest-audio.ts` | none | Tracker-module and general audio catalog ingest. Dry run by default. | DESTRUCTIVE |
 | `build-voice-clips.ts` | `voice` | Synthesises a robot voice speaking each UI filter, treatment and theme name at build time. One-shot: run locally, commit the output. | DESTRUCTIVE, submodule |
-| `build-street-clips.ts` | none | Offline road and water geometry prep for the `street-map` tool, fetched from OpenStreetMap via the public Overpass API. Writes into the tool's `lib/` directory through the `tools/` view, so it lands in `community/street-map/lib/`. | DESTRUCTIVE, submodule, network |
+| `build-street-clips.ts` | none | Offline road and water geometry prep for the `street-map` tool, fetched from OpenStreetMap via the public Overpass API. Writes into the tool's own `lib/` directory in its pack, `community/street-map/lib/`. | DESTRUCTIVE, submodule, network |
 | `lib/zzfx-music.ts` | none | A re-export shim. The ZzFX preset bank and ZzFXM composition helpers now live in `engine/src/zzfx-compose.ts`. | |
 
 ## Profile resolution

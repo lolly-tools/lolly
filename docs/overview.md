@@ -132,7 +132,7 @@ implement one contract, and the catalogs supply the content.
 
 ### Repository layout
 
-Content is mounted as packs: `community/`, `docs/`, every `shells/*`, both `services/*` and `brands/suse` are each their own repository, checked out as git submodules of this one. The parent owns `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `brands/lolly-start/` and `profiles.json`. See [Build Guide » Getting the source](/info/build-guide.html) for the checkout command and the cross-repo workflow.
+Lolly is one repository. `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `docs/`, `community/`, `brands/lolly-start/`, every `shells/*` and both `services/*` are plain directories in it. The one exception is `brands/suse`, a **private** git submodule holding the SUSE tool pack and catalog, opt-in and absent from a public clone. Which packs a given build reads is a content profile (`profiles.json`), resolved per process rather than switched globally. See [Build Guide » Getting the source](/info/build-guide.html) for the clone command and how a change inside the private pack is committed.
 
 ```
 lolly/
@@ -190,45 +190,38 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # profile VIEW (gitignored) - data, not code. Merged from packs:
-│                     #   community/ (public, brand-agnostic, MPL) + brands/<active>/tools (brand-owned).
-│                     #   A SELECTION follows - the mounted set depends on the profile.
+├── community/        # the brand-agnostic tool pack - data, not code. Public (MPL-2.0).
+│                     #   A SELECTION follows; a profile mounts these plus whatever
+│                     #   tools the active brand pack carries of its own.
 │   ├── qr-code/
-│   ├── quotes/
-│   ├── email-signature/
 │   ├── snippet/
 │   ├── countdown-timer/
 │   ├── color-palette/
-│   ├── color-block/           # typed/heterogeneous blocks (addMenu discriminator)
-│   ├── dynamic-layout/
-│   ├── tool-logo/         # "Logo" - auto-switching brand logo
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
 │   ├── strip-data/        # on-device metadata strip - JPEG/PNG/SVG/PDF (file in → clean file out)
 │   ├── compress-pdf/      # on-device PDF compressor - recompresses images (file in → smaller file out)
-│   ├── brand-lockup/      # "Brand Lockup" - SUSE logo lockups; HarfBuzz text-to-path (wasm)
-│   ├── chart-creator/     # SVG charts from structured data
+│   ├── chart/             # SVG charts from structured data
 │   ├── filter/            # photo effects in one tool - halftone/scanline/posterize/voronoi (vector), duotone/pixel-stretch/imperfections (raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
-│   ├── digi-ad/           # "Animated Ad" - looping banner from scenes
-│   ├── event-name-badge/  # conference badges - composes qr-code as an SVG
 │   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
 │   ├── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
 │   ├── design/     # "Design" - freeform WYSIWYG editor canvas (render.layout: editor)
 │   ├── multi-page-pdf/    # multi-page PDF document - cover, flowing content blocks, back page
 │   ├── diagram-builder/   # org / layercake / process / cycle / pyramid diagrams
 │   ├── logo-wall/         # many logos → auto-packed grid
-│   ├── logo-lockup-partner/ # SUSE + partner co-brand lockup
-│   ├── icon/          # favicon .ico / png / svg from text + colours
-│   ├── lottie-digi-ad/    # animated Lottie ad banners
-│   └── pose-geeko/        # pose the SUSE Geeko mascot - print-ready stills
+│   ├── icon/              # favicon .ico / png / svg from text + colours
+│   └── lottie-digi-ad/    # animated Lottie ad banners
 │
-├── catalog/
-│   ├── tools/index.json        # tool registry
-│   └── assets/
-│       ├── index.json          # asset registry
-│       └── suse/...            # logo, palette, etc.
+├── brands/            # brand packs - a catalog each, and optionally tools of their own
+│   ├── lolly-start/   # the blank starter brand, owned here
+│   │   └── catalog/
+│   │       ├── tools/index.json    # tool registry, generated per brand
+│   │       └── assets/
+│   │           ├── index.json      # asset registry
+│   │           └── lolly/...       # logo, palette, tokens
+│   └── suse/          # PRIVATE submodule - the SUSE tools and the SUSE catalog
 │
 ├── schemas/          # JSON Schema for tool.json, asset entries, AssetRef
 ├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
@@ -462,11 +455,11 @@ Same lifecycle in Tauri. Same lifecycle in CLI - jsdom provides the headless DOM
 
 ## Open-source status
 
-**Code is MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` and `docs/` are open source under **MPL-2.0** - a vendor-neutral scaffolding platform for brand tooling, with each shippable unit in its own repository under [github.com/lolly-tools](https://github.com/lolly-tools).
+**Code is MPL-2.0.** `engine/`, `shells/*`, `services/*`, `schemas/` and `docs/` are open source under **MPL-2.0** - a vendor-neutral scaffolding platform for brand tooling, all of it in one public repository, [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
-**Tool content ships as brand packs**, each with its own terms (see the pack's `NOTICE.md`). `community/` is the public [`lolly-tools`](https://github.com/lolly-tools/lolly-tools) repository and its brand-agnostic tools are MPL-2.0 too. `brands/suse/` is the private `suse-lolly` pack: the SUSE tools and the SUSE catalog, **proprietary to SUSE**, including its licensed PremiumBeat music. `brands/lolly-start/` is the blank starter brand this repository owns. Fonts ship inside a pack under the **SIL Open Font License 1.1** - the SUSE pack carries the SUSE and SUSE Mono typefaces.
+**Tool content ships as brand packs**, each with its own terms (see the pack's `NOTICE.md`). `community/` is a directory of this repository and its brand-agnostic tools are MPL-2.0 too. `brands/suse/` is the private `suse-lolly` pack, the one submodule: the SUSE tools and the SUSE catalog, **proprietary to SUSE**, including its licensed PremiumBeat music. `brands/lolly-start/` is the blank starter brand this repository owns. Fonts ship inside a pack under the **SIL Open Font License 1.1** - the SUSE pack carries the SUSE and SUSE Mono typefaces.
 
-The repo-root `tools/` and `catalog/` are gitignored *views*: a profile assembles them from `community/` plus the active brand pack, which is why every script and shell reads those two paths and never a pack directly.
+There is no repo-root `tools/` or `catalog/` directory. `packages/node-shell/src/content-roots.ts` answers "where does tool `<id>` live" and "where is the catalog" from `profiles.json` at read time, so a profile is a per-process answer and no tree has to be assembled first. A real `tools/` + `catalog/` pair is written only into a build output - `dist/`, an RPM payload, a container image - because a browser fetches those two paths over HTTP.
 
 The split is enforced - there are no cross-imports from `engine/` into tool content - so the platform/content boundary stays clean.
 

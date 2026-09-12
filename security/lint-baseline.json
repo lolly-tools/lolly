@@ -1388,10 +1388,19 @@
       "warning/lint/style/useImportType": 1,
       "error/lint/suspicious/noShadowRestrictedNames": 1
     },
-    "shells/web/src/views/profile.ts": {
-      "warning/lint/complexity/useOptionalChain": 1,
-      "error/lint/suspicious/useIterableCallbackReturn": 10,
+    "shells/web/src/views/profile/chrome.ts": {
+      "error/lint/suspicious/useIterableCallbackReturn": 2
+    },
+    "shells/web/src/views/profile/offline.ts": {
+      "error/lint/suspicious/useIterableCallbackReturn": 1
+    },
+    "shells/web/src/views/profile/shared.ts": {
+      "error/lint/suspicious/useIterableCallbackReturn": 2,
       "error/lint/suspicious/noShadowRestrictedNames": 1
+    },
+    "shells/web/src/views/profile/storage.ts": {
+      "warning/lint/complexity/useOptionalChain": 1,
+      "error/lint/suspicious/useIterableCallbackReturn": 5
     },
     "shells/web/src/views/rich-text.ts": {
       "warning/lint/complexity/useOptionalChain": 6,

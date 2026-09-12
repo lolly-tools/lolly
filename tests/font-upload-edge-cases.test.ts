@@ -485,7 +485,7 @@ test('Edge Case #6c: Concurrent deletes and uploads should not corrupt state', a
 
 /**
  * The platform Outfit face, shipped in the web shell and always present (the
- * imports above already require the shells/web submodule to be mounted). Read
+ * imports above already read from shells/web). Read
  * lazily INSIDE each test on purpose: the deleted font-upload.integration.test.ts
  * did this at module scope against a /tmp path that was never committed, so the
  * throw took the whole file down instead of one test.

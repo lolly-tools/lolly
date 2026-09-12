@@ -12,7 +12,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 deb="${1:-$OUT/lolly-desktop-${VERSION}_amd64.deb}"
 [ -f "$deb" ] || die "no .deb at $deb - run release/build-deb.sh first"
 [ -e "$DESKTOP/flatpak/shared-modules/libayatana-appindicator/libayatana-appindicator-gtk3.json" ] \
-  || die "flatpak/shared-modules is empty - run: git submodule update --init --recursive"
+  || die "flatpak/shared-modules is incomplete - it is vendored in this repository, so restore it"
 
 cd "$DESKTOP/flatpak"
 cp "$deb" lolly.deb

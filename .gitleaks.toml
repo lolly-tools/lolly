@@ -37,6 +37,15 @@ commits = [
 ]
 
 [[allowlists]]
+description = "Prepare-text redaction test uses an inert AWS-key-shaped fixture to exercise credential-shape matching"
+condition = "AND"
+targetRules = ["aws-access-token"]
+paths = ['''^tests/prepare-text\.test\.ts$''']
+commits = [
+  "02a16b8ba7aed1b4c8c112d1b95d54d7d675f4b0",
+]
+
+[[allowlists]]
 description = "PDF cryptography test uses a deterministic, non-operational password fixture"
 condition = "AND"
 targetRules = ["generic-api-key"]
