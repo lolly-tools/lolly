@@ -39,14 +39,14 @@ Pengecualian yang jujur - masing-masing bersifat opt-in, diinisiasi pengguna, da
 
 ## Dari terminal
 
-**6. Endpoint render hanya menjawab dengan data publik.** Satu-satunya fitur server yang memasukkan input ketikan pengguna ke dalam URL - render hot-link - aktif di sini, dan [kebijakan privasi](/info/privacy.html) menjelaskan apa artinya itu bagi input yang Anda masukkan ke dalam sebuah link:
+**6. Titik akhir render hanya menjawab dengan data publik.** Satu-satunya fitur server yang memasukkan input yang diketik pengguna ke dalam URL - render hot-link - aktif di sini, dan [kebijakan privasi](/info/privacy.html) menjelaskan apa artinya itu bagi input yang Anda masukkan ke dalam sebuah tautan:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Sakelar ini bersifat per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): di instance yang mengesetnya, probe yang sama di sana mengembalikan `404` - perbedaan itu adalah flag yang bekerja, bukan inkonsistensi.
+Sakelar ini bersifat per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): pada instance yang menyetelnya, probe yang sama mengembalikan `404` - perbedaan itu adalah tanda flag ini bekerja, bukan sebuah inkonsistensi.
 
 **7. Permukaan server dapat dienumerasi.** [Server Surface](/info/server-surface.html) mencantumkan setiap rute sisi server yang ada, dengan aturan baku bahwa endpoint yang tidak ada di halaman itu bukan bagian dari Lolly. `curl` semuanya; tidak ada yang lain untuk ditemukan.
 
@@ -55,7 +55,7 @@ Sakelar ini bersifat per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): di instance 
 Semua di atas masih bisa jadi sandiwara jika kode yang di-deploy berbeda dari kode publik. Jadi periksa kodenya - deployment dibangun dari [repositori publik](https://github.com/lolly-tools/lolly):
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ Ketiga pemeriksaan sumber di atas bukan audit sekali jalan - keduanya dipatok da
 - log penerbitan CA muncul kembali - baik di kode sumber **maupun** di bundle server yang dihasilkan,
 - kebijakan privasi kehilangan pernyataan yang diwajibkan secara hukum (pengendali yang disebutkan, dasar hukum, hak untuk mengadu).
 
-Jalankan sendiri di clone Anda (Node 22.18+; tidak perlu `npm install` untuk berkas ini):
+Jalankan sendiri di clone (Node 22.18+; `pnpm install` tidak diperlukan untuk berkas ini):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-Suite lengkap (`npm install && npm test`) menjalankan beberapa ribu lagi, termasuk pengujian kriptografi adversarial yang dijelaskan di [Security & Verification](/info/security.html).
+Rangkaian lengkap (`pnpm install && pnpm test`) menjalankan beberapa ribu lagi, termasuk uji kriptografi adversarial yang dijelaskan di [Security & Verification](/info/security.html).
 
 ## Apa yang tidak bisa Anda verifikasi dari luar - dikatakan secara terus terang
 

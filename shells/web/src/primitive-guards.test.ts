@@ -1252,8 +1252,23 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // passphrase) or t() output; the rest is static markup. The section is a sub-block
   // of Connected services since 2026-08-23, but it kept its own module and sinks.
   'views/profile-sync.ts': 2,
-  'views/profile.ts': 19,  // +1 2026-07-31: the Offline-tools download manager list (loadOffline) - ids/names escape()d, sizes via fmtBytes, glyphs via icon(); +1 2026-08-17: the "Save my renders" auto-save toggle (jelly-switch) - label + id escape()d; 23 → 18 2026-08-19: "Export everything" became a background job (lib/batch-job.ts), so its five progress-toast writes are gone - the global job toast reports it now; +1 2026-09-03: the Appearance card's "Interface follows the design system" row (plans/182 SS5.6) re-rendered when the Jelly flag flips, exactly as the a11y and render-save lists beside it are - the row is a t() label and an escape()d id, no user data
-                           // +1 2026-08-01: the offline persistence line (syncPersistLine) - both t() strings escape()d, the button markup is static
+  // The profile view's 19 sinks, unchanged in content but spread over the feature modules by the
+  // 2026-09-12 closure split (scripts/split-closure.ts): the same writes, each in the module that
+  // owns its card. History of the count, which the split preserved exactly: +1 2026-07-31 the
+  // Offline-tools download manager list (loadOffline) - ids/names escape()d, sizes via fmtBytes,
+  // glyphs via icon(); +1 2026-08-17 the "Save my renders" auto-save toggle (jelly-switch) - label
+  // + id escape()d; 23 → 18 2026-08-19 "Export everything" became a background job
+  // (lib/batch-job.ts), so its five progress-toast writes are gone - the global job toast reports
+  // it now; +1 2026-09-03 the Appearance card's "Interface follows the design system" row
+  // (plans/182 SS5.6) re-rendered when the Jelly flag flips, exactly as the a11y and render-save
+  // lists beside it are - the row is a t() label and an escape()d id, no user data; +1 2026-08-01
+  // the offline persistence line (syncPersistLine) - both t() strings escape()d, the button markup
+  // is static.
+  'views/profile/shell.ts': 1,        // the one page write: every card's markup, values escape()d or t()
+  'views/profile/rows.ts': 6,         // the feature-flag, a11y, chrome-follow and render-save lists
+  'views/profile/storage.ts': 6,      // the storage meter, session and image lists, the dialogs
+  'views/profile/offline.ts': 2,      // the download-manager list and the persistence line
+  'views/profile/identity.ts': 4,     // the credentials card: status, enrol form and its errors
   'views/projects.ts': 8,   // View-options markup moved to its shared-popover adapter.
   'views/projects-view-options.ts': 1, // Static enums + escaped t() labels and the existing theme/sound generators.
   'lib/live-preview.ts': 2, // Inert templates parse the same hydrated source already mounted by render.ts; only local raster-frame attributes are patched after complete structural comparison.

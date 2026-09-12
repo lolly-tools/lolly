@@ -39,14 +39,14 @@ Les exceptions honnêtes - chacune opt-in, initiée par l'utilisateur et visible
 
 ## Depuis un terminal
 
-**6. Le point de terminaison de rendu répond uniquement avec des données publiques.** La seule fonctionnalité serveur qui met des entrées saisies par l'utilisateur dans une URL - les rendus en hot-link - est active ici, et la [politique de confidentialité](/info/privacy.html) explique ce que cela signifie pour les entrées que tu mets dans un lien :
+**6. Le point de terminaison de rendu ne répond qu'avec des données publiques.** L'unique fonctionnalité serveur qui place des saisies utilisateur dans une URL - les rendus par lien direct - est active ici, et la [politique de confidentialité](/info/privacy.html) précise ce que cela signifie pour les entrées que tu places dans un lien :
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Le commutateur est propre à chaque déploiement (`LOLLY_DISABLE_RENDER_GET=1`) : sur une instance qui définit cette variable, la même vérification renvoie `404` - cette différence est le drapeau qui fonctionne, pas une incohérence.
+Le commutateur est propre à chaque déploiement (`LOLLY_DISABLE_RENDER_GET=1`) : sur une instance qui le définit, la même sonde renvoie `404` - cette différence montre que le drapeau fonctionne, ce n'est pas une incohérence.
 
 **7. La surface serveur est énumérable.** [Server Surface](/info/server-surface.html) liste chaque route côté serveur qui existe, avec la règle constante qu'un point de terminaison absent de cette page ne fait pas partie de Lolly. Fais un `curl` dessus ; il n'y a rien d'autre à trouver.
 
@@ -55,7 +55,7 @@ Le commutateur est propre à chaque déploiement (`LOLLY_DISABLE_RENDER_GET=1`) 
 Tout ce qui précède pourrait encore être du théâtre si le code déployé différait du code public. Alors vérifie le code - le déploiement se construit à partir du [dépôt public](https://github.com/lolly-tools/lolly) :
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ Les trois vérifications de code ci-dessus ne sont pas un audit ponctuel - elles
 - le journal d'émission de l'AC réapparaît - dans le code source **ou** dans le bundle serveur généré,
 - la politique de confidentialité perd ses mentions légales obligatoires (responsable nommé, base juridique, droit de réclamation).
 
-Lance-les toi-même dans le clone (Node 22.18+ ; pas besoin de `npm install` pour ce fichier) :
+Exécute-les toi-même dans le clone (Node 22.18+ ; `pnpm install` n'est pas nécessaire pour ce fichier) :
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-La suite complète (`npm install && npm test`) en lance plusieurs milliers de plus, y compris les tests cryptographiques adverses décrits dans [Sécurité & vérification](/info/security.html).
+La suite complète (`pnpm install && pnpm test`) en exécute plusieurs milliers de plus, y compris les tests cryptographiques adverses décrits dans [Sécurité et vérification](/info/security.html).
 
 ## Ce que tu ne peux pas vérifier de l'extérieur - dit sans détour
 

@@ -150,7 +150,7 @@ test('buildShareParams returns the parts array alongside the fidelity report', (
 
 const PALETTE_JSON = join(HERE, '../../../../community/color-palette/tool.json');
 const PALETTE_MOUNTED = existsSync(PALETTE_JSON);
-const SKIP_PALETTE = !PALETTE_MOUNTED && 'community/color-palette not mounted (clone without submodules)';
+const SKIP_PALETTE = !PALETTE_MOUNTED && 'community/color-palette not mounted';
 const paletteManifest: InputManifest = PALETTE_MOUNTED
   ? (JSON.parse(readFileSync(PALETTE_JSON, 'utf8')) as InputManifest)
   : { inputs: [] };

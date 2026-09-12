@@ -132,7 +132,7 @@ function parseArgs(argv: string[]) {
 function main(argv: string[]): void {
   const { file, brand, ns } = parseArgs(argv);
   const packRoot = join(ROOT, 'brands', brand);
-  if (!existsSync(packRoot)) throw new Error(`brand pack not found: brands/${brand} (is the submodule mounted?)`);
+  if (!existsSync(packRoot)) throw new Error(`brand pack not found: brands/${brand} (is the pack mounted?)`);
 
   const doc = readEpub(new Uint8Array(readFileSync(resolve(file))));
   const outputs = buildBoilerplate(doc, ns);

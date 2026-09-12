@@ -4,8 +4,8 @@
  * before two renders of it can be compared byte for byte.
  *
  * WHY A SECOND READER. `shells/web/src/lib/lolly-pack.ts` owns the format and reads it in
- * the browser, but the web shell is its own submodule and its own dependency tree: the
- * terminal shells cannot import it. This is the reader half only - manifest, session, and
+ * the browser, but the web shell is its own workspace package with its own dependency
+ * tree, and no shell may import from another: the terminal shells cannot use it. This is the reader half only - manifest, session, and
  * the integrity check that has to pass before either is believed - built on the engine's
  * own `readZip` (which already refuses ZIP64, refuses unknown compression methods and
  * CRC-checks every member) so there is no second zip implementation either.

@@ -24,7 +24,7 @@
  * `chromiumOrSkip` dance below looks familiar.
  *
  * THIS TIER IS BRAND-INDEPENDENT ON PURPOSE. The existing golden suite needs SUSE
- * font files under `catalog/fonts/`, a gitignored profile view, so it skips on the
+ * font files, which live in the private `brands/suse` pack, so it skips on the
  * `lolly-start` profile and in public CI - the second gap the audit called out.
  * This file instead uses `Outfit[wght].ttf`, which is committed in the WEB SHELL's
  * own `public/fonts/` and is therefore present on every clone regardless of

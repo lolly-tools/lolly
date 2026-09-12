@@ -29,15 +29,15 @@ import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
 
-// street-map ships in the PUBLIC community pack and is EXCLUDED from the SUSE
-// profile, so the gitignored tools/ view may not hold it at all. Load from the
-// SOURCE pack: skip only when community/ isn't checked out.
+// street-map ships in the PUBLIC community pack and is EXCLUDED from the SUSE profile, so
+// the content resolver may not answer for it at all. Load from the SOURCE pack: skip only
+// when community/ isn't checked out.
 const COMMUNITY = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const TOOL_DIR = join(COMMUNITY, 'street-map');
 const fetchFile = (path: string) => readFile(join(COMMUNITY, path), 'utf8');
 
 const PACK_MOUNTED = existsSync(COMMUNITY);
-const SKIP = !PACK_MOUNTED && 'community pack not mounted (clone without submodules)';
+const SKIP = !PACK_MOUNTED && 'community pack not mounted';
 if (PACK_MOUNTED) {
   assert.ok(existsSync(join(TOOL_DIR, 'tool.json')),
     'community/street-map/tool.json is missing - pack is mounted, so the tool was renamed or deleted');

@@ -1,0 +1,133 @@
+# SBOM refresh - keeps the committed CycloneDX SBOM in step with main.
+#
+# WHY THIS EXISTS
+# sbom.cdx.json is a GENERATED artifact (scripts/build-sbom.ts) that describes the
+# whole dependency graph: the root pnpm lockfile, both Tauri shells' sibling
+# lockfiles and their Cargo.lock crate graphs, the vendored browser bundles and the
+# OFL fonts. CI's audit job regenerates it and fails on drift, exactly like the
+# api/ bundle gate, so a stale SBOM cannot ship.
+#
+# That gate has one blind spot, and Dependabot lives in it. A bump PR changes a
+# lockfile, so the SBOM moves - but Dependabot only ever commits the lockfile and
+# manifest, never a regenerated artifact, and the auto-merge workflow
+# (dependabot-auto-merge.yml) approves and merges patch/minor bumps as soon as the
+# required checks pass. The result was a queue of bumps each landing a lockfile
+# whose SBOM was never regenerated, and the next unrelated PR inheriting the
+# failure with no idea why. Rather than ask every contributor to carry someone
+# else's drift, the drift is repaired at the source: on main, right after the bump
+# lands, by the job below. The matching half of the deal is in ci.yml, where the
+# drift check is advisory (a warning) for dependabot[bot] and still fatal for
+# everyone else - a human who edits a lockfile still commits the SBOM with it.
+#
+# WHAT IT DOES
+# Regenerates sbom.cdx.json on main and, if it changed, commits just that file
+# back to main with GITHUB_TOKEN. A commit pushed with GITHUB_TOKEN does NOT
+# trigger workflows, which is what we want here: no CI run, and no chance of this
+# job retriggering itself. The trade is that the refresh commit is not itself
+# gated by CI - acceptable because the commit is machine-generated, one path wide,
+# and reproducible by anyone running `pnpm run build:sbom`.
+#
+# TRIGGERS
+# Path-filtered to the generator's actual inputs, so an ordinary docs or source
+# push to main does not pay for a pnpm install. If an input is ever missed, the
+# only symptom is the old behaviour (drift caught by the audit job), and
+# workflow_dispatch runs the refresh by hand.
+name: SBOM refresh
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'pnpm-lock.yaml'
+      - 'package.json'
+      - 'packages/*/package.json'
+      - 'engine/package.json'
+      - 'shells/*/package.json'
+      - 'shells/*/pnpm-lock.yaml'
+      - 'shells/*/src-tauri/Cargo.lock'
+      - 'services/*/package.json'
+      - 'security/npm-licenses.json'
+      - 'security/cargo-licenses.json'
+      - 'community/*/lib/*.min.js'
+      - 'scripts/build-sbom.ts'
+      - 'scripts/lib/pnpm-lock.ts'
+      - '.github/workflows/sbom-refresh.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Never cancel a run that may be mid-commit, and never run two at once: a second
+# push queues behind the first, then regenerates on top of its result.
+concurrency:
+  group: sbom-refresh
+  cancel-in-progress: false
+
+env:
+  # Same reason as ci.yml: onnxruntime-node's postinstall tries a CUDA download on
+  # Linux runners and dies on an unhandled rejection. Nothing here needs CUDA.
+  ONNXRUNTIME_NODE_INSTALL_CUDA: skip
+
+jobs:
+  refresh:
+    name: regenerate sbom.cdx.json
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          # brands/suse is `update = none` and private, so recursive is a no-op here.
+          # The generator is existence-guarded for exactly that case.
+          submodules: recursive
+
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+        with:
+          version: 11.26.0
+          run_install: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      # build-sbom reads lockfiles off disk rather than a resolved node_modules
+      # tree, but it imports the `yaml` package, so the workspace install is real.
+      - name: Install (workspaces)
+        run: pnpm install --frozen-lockfile
+
+      # Regenerate, and commit only if the file actually moved. A direct push to
+      # main can land between the checkout and our push, so a rejected push
+      # resets to the new main and regenerates there rather than force-pushing
+      # over it. Three attempts, then fail loudly - a persistent rejection is a
+      # real signal, not something to loop on.
+      - name: Regenerate the SBOM and commit it if it moved
+        run: |
+          set -uo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          for attempt in 1 2 3; do
+            pnpm run build:sbom || exit 1
+            if git diff --quiet -- sbom.cdx.json; then
+              echo "sbom.cdx.json already matches the dependency graph - nothing to commit."
+              exit 0
+            fi
+            git --no-pager diff --stat -- sbom.cdx.json
+            git add sbom.cdx.json
+            git commit --file=- <<'MSG' || exit 1
+          SBOM: regenerate after a dependency change landed on main
+
+          Generated by .github/workflows/sbom-refresh.yml (pnpm run build:sbom).
+          The committed CycloneDX SBOM is derived from the lockfiles, so a bump
+          that only touches a lockfile leaves it stale. This restores it, which
+          keeps the audit job's drift gate meaningful for the next PR.
+          MSG
+            if git push origin HEAD:main; then
+              echo "Committed a refreshed sbom.cdx.json to main (attempt ${attempt})."
+              exit 0
+            fi
+            echo "::notice::main moved under us; rebuilding on the new tip (attempt ${attempt})."
+            git fetch origin main
+            git reset --hard origin/main
+          done
+          echo "::error title=SBOM refresh could not push::main kept moving; run pnpm run build:sbom and commit sbom.cdx.json by hand."
+          exit 1

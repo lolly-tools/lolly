@@ -1,6 +1,6 @@
 // Banked-art composition primitives, moved out of docs/docs-art.ts so the shared
 // renderer (render.ts's mdToHtml/buildFigure) can compose figures without depending on
-// the docs submodule. The FILESYSTEM parts (resolveDocsArt/inlineDocsArt/stripArtForInline)
+// anything under docs/. The FILESYSTEM parts (resolveDocsArt/inlineDocsArt/stripArtForInline)
 // stay in docs/docs-art.ts and reach the renderer through DocsRenderContext.art(); these
 // two are pure string builders. See plan this-is-a-very-sparkling-eich, M0b.
 

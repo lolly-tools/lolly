@@ -58,7 +58,7 @@ const FIRST_PARTY = [
 ] as const;
 
 /** The published README. Written here rather than copied from shells/cli/README.md,
- *  which documents the CHECKOUT (pnpm run cli, the profile views); a package reader has
+ *  which documents the CHECKOUT (pnpm run cli, the content packs); a package reader has
  *  none of that and needs the install and the content root first. */
 const README = `# @lolly-tools/cli
 
@@ -77,13 +77,14 @@ lolly --help
 Tools and brand assets are content, not code, and a full set is well over 100 MB. This
 package carries none of it. Point it at a root, three ways:
 
-1. **A directory holding \`tools/\` and \`catalog/\`.**
+1. **A content root.** Either a real \`tools/\` + \`catalog/\` tree - what a \`dist/\`
+   build, an RPM payload, a container image or the desktop app's exported content root
+   carries - or a Lolly checkout, which keeps the same content as packs
+   (\`community/\`, \`brands/<name>/\`) and a \`profiles.json\` naming them.
 
    \`\`\`bash
    LOLLY_ROOT=/path/to/lolly lolly list
    \`\`\`
-
-   A Lolly checkout has both once \`pnpm install\` has built its profile views.
 
 2. **The desktop app.** Lolly for macOS, Windows and Linux carries its own tools,
    catalog and this same command.

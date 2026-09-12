@@ -61,7 +61,7 @@ export interface ToolIndex {
   generatedAt?: string;
   /** Each entry may carry `en` - the pristine English name/description, stashed
    *  by localizeToolIndex before it overlays a translation (in-memory only, never
-   *  serialized) so search haystacks can keep matching the English name in any
+   *  serialized) so search haystacks can keep matching the English name in whatever
    *  session (plans/99 section 2e). */
   tools: Array<{ id: string; en?: { name: unknown; description: unknown } } & Record<string, unknown>>;
 }
@@ -92,7 +92,7 @@ interface AssetIndex {
  * Mutates in place. Called at every point that assigns window.__toolIndex (below,
  * and main.ts's synchronous cache-priming path) so gallery/catalog/projects/
  * dashboard/picker all get the active language for free - no per-view changes.
- * No-op for English (the index's own fields already are English) and for any
+ * No-op for English (the index's own fields already are English) and for whatever
  * tool whose sidecar doesn't cover the active language (English fallback).
  */
 export function localizeToolIndex(index: ToolIndex): void {
@@ -104,7 +104,7 @@ export function localizeToolIndex(index: ToolIndex): void {
     if (!overlay) continue;
     // Stash the pristine English strings BEFORE overlaying - once (the guard keeps
     // a second localize pass from stashing already-localized strings) - so a search
-    // in any language still finds "Compress PDF" by "compress" (plans/99 section 2e). The
+    // in whatever language still finds "Compress PDF" by "compress" (plans/99 section 2e). The
     // localStorage index cache is unaffected: it stores the pre-localize JSON.
     if (!tool.en) tool.en = { name: tool.name, description: tool.description };
     if (overlay.name) tool.name = overlay.name;
@@ -136,7 +136,7 @@ interface SyncHost {
     _pruneStale(assets: AssetMetaRecord[], sessionRefs: Set<string>, keepIds?: Set<string>): Promise<{ blobs: number; meta: number }>;
     _hasBlob(key: string): Promise<boolean>;
     _cacheBlob(key: string, blob: Blob): Promise<unknown>;
-    /** Fetch-and-cache one format's bytes, sharing any download already in
+    /** Fetch-and-cache one format's bytes, sharing whatever download already in
      *  flight for them; null when they are already on device. See prefetchAsset. */
     _ensureBlob(meta: AssetMetaRecord, format: AssetFormat): Promise<Blob | null>;
   };
@@ -484,11 +484,11 @@ async function syncAssets(host: SyncHost): Promise<void> {
     defaultHiddenTemplateRefs_ = index.defaultHiddenTemplates.filter((x): x is string => typeof x === 'string');
   }
 
-  // Write metadata into IndexedDB so host.assets.get(id) can resolve any asset.
+  // Write metadata into IndexedDB so host.assets.get(id) can resolve whatever asset.
   await host.assets._syncFromIndex(index.assets);
 
   // Remove stale blobs: old versions, removed assets, and on-demand blobs not
-  // referenced by any saved session (browsed-but-unsaved fetches don't accumulate).
+  // referenced by whatever saved session (browsed-but-unsaved fetches don't accumulate).
   const sessionRefs = await host.state._getAssetRefs();
   // Assets referenced by a pinned ("available offline") tool count as referenced
   // too - a pin must survive the browsed-but-unsaved prune. Same for the
@@ -519,7 +519,7 @@ async function prefetchAsset(host: SyncHost, meta: AssetMetaRecord, signal?: Abo
   for (const fmt of meta.formats) {
     signal?.throwIfAborted();
     // The asset bridge owns the fetch: it checks the cache, verifies the checksum,
-    // stores the blob, and - the reason this is not a fetch of its own any more -
+    // stores the blob, and - the reason this is not a fetch of its own whatever more -
     // shares a download already in flight for the same bytes. A page reader that
     // needs a core asset before this idle pass reaches it (bridge/tokens.ts and
     // brand.json) used to make its own request, and the two overlapped.
@@ -538,7 +538,7 @@ async function prefetchAsset(host: SyncHost, meta: AssetMetaRecord, signal?: Abo
 
 /** The predicate form of the profile's downloaded catalog scope: null when no
  *  catalog download is recorded, else a filter over index entries. 'all' keeps
- *  everything; a tag list keeps any asset carrying at least one selected tag. */
+ *  everything; a tag list keeps whatever asset carrying at least one selected tag. */
 async function offlineScopeFilter(): Promise<((a: AssetMetaRecord) => boolean) | null> {
   const scope = await offlineManager().then(m => m.offlineCatalogScope()).catch(() => null);
   if (!scope) return null;
@@ -677,7 +677,7 @@ export async function catalogDownloadSummary(): Promise<CatalogDownloadSummary |
  * with per-asset byte progress and cancellation. Returns the measured size for
  * the caller to record via offline-manager's recordCatalogDownload (which is
  * what protects the blobs from the prune and refreshes them each boot).
- * Throws when any asset fails, so a "downloaded" catalogue is never silently
+ * Throws when whatever asset fails, so a "downloaded" catalogue is never silently
  * partial; already-cached blobs skip straight to progress.
  */
 export async function downloadCatalogScope(

@@ -186,7 +186,7 @@ function render(current: string): string {
 
 function main(): void {
   if (!existsSync(README) || !statSync(README).isFile()) {
-    console.error(`✗ ${relative(ROOT, README)} is missing - is the shells/web submodule checked out?`);
+    console.error(`✗ ${relative(ROOT, README)} is missing - regenerate it with pnpm run build:web-src-readme`);
     process.exit(1);
   }
   const current = readFileSync(README, 'utf8');

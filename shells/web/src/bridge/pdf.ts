@@ -8,8 +8,8 @@
  * compress pass feature-detects a canvas and falls back to the structural
  * re-save when there is none. `shells/cli` has imported this factory since it
  * gained host.pdf, so the implementation belongs in the package both shells can
- * import - a shell must not reach across a submodule boundary to typecheck,
- * the rule pdf-redact-core.ts and pptx.ts already follow.
+ * import - a shell must not import from another shell to typecheck, the rule
+ * pdf-redact-core.ts and pptx.ts already follow.
  *
  * This file stays as a stable re-export, so pdf-redact.ts, raster.ts, the
  * bridge index and tests/{compress-pdf,file-input,redact}.test.ts keep working

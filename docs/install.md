@@ -37,7 +37,7 @@ is needed - the app carries its own engine and tool catalogue.
 Build it yourself:
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly && pnpm install
 pnpm run build:desktop
 # → shells/tauri-desktop/src-tauri/target/release/bundle/macos/
@@ -139,8 +139,8 @@ registration reopens; the recipe is maintained in
 `shells/tauri-desktop/linux/arch/`, and you can build it by hand today:
 
 ```bash
-git clone https://github.com/lolly-tools/lolly-desktop.git
-cd lolly-desktop/linux/arch && makepkg -si
+git clone https://github.com/lolly-tools/lolly.git
+cd lolly/shells/tauri-desktop/linux/arch && makepkg -si
 ```
 
 The package repacks the official 1.0.7 desktop build and installs the whole

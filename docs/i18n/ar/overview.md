@@ -132,7 +132,7 @@
 
 ### تخطيط المستودع
 
-يُركَّب المحتوى كحزم: `community/`، و`docs/`، وكل `shells/*`، وكل من `services/*` و`brands/suse` مستودعه الخاص به، ويُستنسخ كوحدات فرعية (git submodules) لهذا المستودع. يملك المستودع الأب `engine/` و`schemas/` و`scripts/` و`tests/` و`api/` و`brands/lolly-start/` و`profiles.json`. راجع [دليل البناء » الحصول على المصدر](/info/build-guide.html) لأمر الاستنساخ وسير العمل عبر المستودعات.
+Lolly مستودع واحد. `engine/`، و`schemas/`، و`scripts/`، و`tests/`، و`api/`، و`docs/`، و`community/`، و`brands/lolly-start/`، وكل `shells/*`، وكلا `services/*` هي مجرد أدلة عادية فيه. الاستثناء الوحيد هو `brands/suse`، وهو وحدة فرعية **خاصة** في git تضم حزمة أدوات SUSE وفهرسها، اختيارية وغير موجودة في أي نسخة عامة. الحزم التي تقرأها نسخة بناء معينة يحددها ملف تعريف محتوى (`profiles.json`)، يُحسم لكل عملية على حدة بدلاً من التبديل عالمياً. راجع [دليل البناء » الحصول على المصدر](/info/build-guide.html) لمعرفة أمر الاستنساخ وكيفية تسجيل تغيير داخل الحزمة الخاصة.
 
 ```
 lolly/
@@ -190,45 +190,38 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # profile VIEW (gitignored) - data, not code. Merged from packs:
-│                     #   community/ (public, brand-agnostic, MPL) + brands/<active>/tools (brand-owned).
-│                     #   A SELECTION follows - the mounted set depends on the profile.
+├── community/        # the brand-agnostic tool pack - data, not code. Public (MPL-2.0).
+│                     #   A SELECTION follows; a profile mounts these plus whatever
+│                     #   tools the active brand pack carries of its own.
 │   ├── qr-code/
-│   ├── quotes/
-│   ├── email-signature/
 │   ├── snippet/
 │   ├── countdown-timer/
 │   ├── color-palette/
-│   ├── color-block/           # typed/heterogeneous blocks (addMenu discriminator)
-│   ├── dynamic-layout/
-│   ├── tool-logo/         # "Logo" - auto-switching brand logo
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
 │   ├── strip-data/        # on-device metadata strip - JPEG/PNG/SVG/PDF (file in → clean file out)
 │   ├── compress-pdf/      # on-device PDF compressor - recompresses images (file in → smaller file out)
-│   ├── brand-lockup/      # "Brand Lockup" - SUSE logo lockups; HarfBuzz text-to-path (wasm)
-│   ├── chart-creator/     # SVG charts from structured data
+│   ├── chart/             # SVG charts from structured data
 │   ├── filter/            # photo effects in one tool - halftone/scanline/posterize/voronoi (vector), duotone/pixel-stretch/imperfections (raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
-│   ├── digi-ad/           # "Animated Ad" - looping banner from scenes
-│   ├── event-name-badge/  # conference badges - composes qr-code as an SVG
 │   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
 │   ├── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
 │   ├── design/     # "Design" - freeform WYSIWYG editor canvas (render.layout: editor)
 │   ├── multi-page-pdf/    # multi-page PDF document - cover, flowing content blocks, back page
 │   ├── diagram-builder/   # org / layercake / process / cycle / pyramid diagrams
 │   ├── logo-wall/         # many logos → auto-packed grid
-│   ├── logo-lockup-partner/ # SUSE + partner co-brand lockup
-│   ├── icon/          # favicon .ico / png / svg from text + colours
-│   ├── lottie-digi-ad/    # animated Lottie ad banners
-│   └── pose-geeko/        # pose the SUSE Geeko mascot - print-ready stills
+│   ├── icon/              # favicon .ico / png / svg from text + colours
+│   └── lottie-digi-ad/    # animated Lottie ad banners
 │
-├── catalog/
-│   ├── tools/index.json        # tool registry
-│   └── assets/
-│       ├── index.json          # asset registry
-│       └── suse/...            # logo, palette, etc.
+├── brands/            # brand packs - a catalog each, and optionally tools of their own
+│   ├── lolly-start/   # the blank starter brand, owned here
+│   │   └── catalog/
+│   │       ├── tools/index.json    # tool registry, generated per brand
+│   │       └── assets/
+│   │           ├── index.json      # asset registry
+│   │           └── lolly/...       # logo, palette, tokens
+│   └── suse/          # PRIVATE submodule - the SUSE tools and the SUSE catalog
 │
 ├── schemas/          # JSON Schema for tool.json, asset entries, AssetRef
 ├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
@@ -271,7 +264,7 @@ lolly qr-code                # lists inputs for that tool
 ```
 
 ### TUI
-`npm run tui`
+`pnpm run tui`
 
 النظير التفاعلي لـ CLI: تطبيق طرفية بملء الشاشة يعتمد أولًا على لوحة المفاتيح (مبني على Ink) لتصفح الأدوات، وملء المدخلات، وحفظ المشاريع، والتصدير - كل ذلك دون واجهة مستخدم رسومية. تُعيد جسرة المضيف الخاصة به **استخدام تطبيق CLI** لصيغ خالية من DOM (SVG/EMF/EPS/HTML + نص/بيانات)، وتضيف حالة على القرص ضمن `~/.lolly` بالإضافة إلى معاينة مضمّنة اختيارية. وإلى جانب ذلك لديها **طبقة تصيير بالمتصفح**: كروميوم بلا واجهة رسومية ومحدود النطاق (نفسه الذي يثبّته خادم MCP) ينتج صورًا نقطية/PDF/فيديو والتقاطًا حيًا لعناوين URL عند الطلب - يشغّل نسخة مبنية من غلاف الويب بحيث تتطابق المخرجات، ولا يُطلق إلا عند أول تصدير لصيغة كهذه. لذا فإن `url-shot` (مع القص وإعادة التلوين وPDF/SVG المتجهي) وكل أداة raster/pdf تعمل في الطرفية أيضًا. راجع [دليل TUI](/info/tui.html).
 
@@ -285,13 +278,13 @@ lolly qr-code                # lists inputs for that tool
 
 تُدرج الصفوف بترتيب أقسام المعرض. يُعرض قسم `utility` دائمًا **أخيرًا** في المعرض (بعد كل فئة أخرى، بما في ذلك الفئات المستقبلية) - إنه درج "الأدوات المساعدة دون اتصال" العامل على الجهاز.
 
-| الفئة | أمثلة | مخطط له |
+| التصنيف | أمثلة | المخطط له |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence Studio, Record | Employee Image Stationery |
-| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Multi-Page PDF | Font Outliner |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence, Record | Employee Image Stationery |
+| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Booklet | Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS, Booth Studio | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | - | CVE Alert, Product Release Announcement, Blog OG Image |
-| `utility` | Strip Hidden Data, Text Helper, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | محوّلات الوحدات/الصيغ، والمزيد من أدوات الخصوصية العاملة على الجهاز |
+| `utility` | Strip Hidden Data, Text, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | محولات الوحدات/الصيغ، والمزيد من أدوات الخصوصية العاملة على الجهاز |
 
 هذه الخلايا **أمثلة، لا قوائم جرد**. الأدوات الموجودة فعليًا خاصية للملف الشخصي (profile) الذي ركّبته، لا لهذه الصفحة: تضيف حزمة العلامة التجارية أدواتها الخاصة، ويمكنها استبعاد أداة مجتمعية تفضّل عدم شحنها. `catalog/tools/index.json` - المُولَّد من البيانات، والسجل الذي يقرؤه المعرض فعليًا - هو القائمة الموثوقة؛ لعدّ ما يُركّبه ملف شخصي ما، عُدّ البيانات (`ls community/*/tool.json brands/*/tools/*/tool.json`) بدلًا من الثقة برقم مكتوب هنا. (معرّف أداة موجود في حزمتين يُركَّب مرة واحدة، من الحزمة الفائزة.)
 
@@ -299,11 +292,11 @@ lolly qr-code                # lists inputs for that tool
 
 **Design** هي أول أداة مبنية على وضع اللوحة الحرة `render.layout: "editor"` - سطح تلاعب مباشر بلا إطار واجهة، تسحب فيه وتُغيّر حجم وتُدوّر وتُلصق مربعات من نص وأشكال وصور، ثم تُصدّر عبر مسار التصيير نفسه المستخدم في كل أداة أخرى.
 
-**Strip Hidden Data** هي أول **أداة مساعدة تعمل على الجهاز** (`privacy: "on-device"`): أداة تحويل محتوى تأخذ ملفًا تُوفّره *أنت*، وتعالجه بالكامل في المتصفح وتُعيد نسخة نظيفة - لا تُرفع أبدًا، ولا تُوسم بعلامة مائية، ولا يُختم عليها أي مصدر (provenance). **Text Helper** هي الثانية - منضدة عمل تعمل على الجهاز لمهام اللصق اليومية في المواقع (تنسيق JSON، فك ترميز JWT، Base64، ترميز/فك ترميز URL، تجزئة SHA). **Compress PDF** هي الثالثة - تُصغّر ملف PDF بإعادة ضغط صوره، وذلك أيضًا بالكامل على الجهاز. تُغطّي العلامة ونص شارتها "يعمل على جهازك - لا شيء يُرفع" الآن مجموعة التحويل بأكملها: Strip Hidden Data وText Helper وCompress PDF و**Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG) و**Convert Font** و**Redact** (إتلاف مناطق من صورة أو SVG أو PDF) و**Prompt to Image** و**Rebrand a Deck** (إعادة تصميم `.pptx` في مكانه) حيثما يُركّبها الملف الشخصي. هذه فئة أدوات خصوصية تحل محل تسليم ملفات سرية لمواقع أحادية الغرض.
+**Strip Hidden Data** هي أول **أداة تعمل على الجهاز** (`privacy: "on-device"`): أداة تحويل محتوى تأخذ ملفاً *توفره أنت*، وتعالجه بالكامل داخل المتصفح، وتعيد نسخة نظيفة منه - لا تُرفع أبداً، ولا تُوسم بعلامة مائية، ولا يُطبع عليها أي إثبات منشأ. **Text** هي الثانية - مساحة عمل تعمل على الجهاز للمهام اليومية التي تُلصق في موقع ويب (تنسيق JSON، وفك ترميز JWT، وBase64، وترميز/فك ترميز عناوين URL، وتجزئة SHA). **Compress PDF** هي الثالثة - تُصغّر ملف PDF عبر إعادة ضغط صوره، وهي أيضاً تعمل بالكامل على الجهاز. أصبحت العلامة ونص شارتها "يعمل على جهازك - لا شيء يُرفع" تغطي الآن مجموعة التحويل بأكملها: Strip Hidden Data، وText، وCompress PDF، و**Convert Image** (HEIC/TIFF/AVIF → WebP/JPG/PNG)، و**Convert Font**، و**Redact** (لإتلاف مناطق من صورة أو SVG أو PDF)، و**Prompt Card** و**Rebrand** (لإعادة تنسيق ملف `.pptx` في مكانه) حيثما ثبّتها ملف التعريف. هذه فئة أدوات خصوصية تحل محل تسليم ملفات سرية إلى مواقع ويب أحادية الغرض.
 
 ![درج الأدوات المساعدة، حيث كل بطاقة أداة تُحوّل ملفًا تملكه بالفعل](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
 
-> ملاحظة: يُنقل `category` و`status` بشكل غير طبيعي (denormalised) إلى `catalog/tools/index.json` (السجل الذي يقرؤه المعرض) من كل `tool.json`. البيان هو مصدر الحقيقة - الفهرس **مُولَّد** بواسطة `npm run build:catalog`، ويفشل `npm run validate:catalog` في CI إذا انحرف الفهرس المُلتزم به عن البيانات.
+> ملاحظة: يتم إلغاء تسوية `category` و`status` داخل `catalog/tools/index.json` (السجل الذي تقرأه المعرض) من كل `tool.json`. البيان (manifest) هو مصدر الحقيقة - الفهرس **يُولَّد** بواسطة `pnpm run build:catalog`، ويفشل `pnpm run validate:catalog` في CI إذا انحرف الفهرس المُثبَّت عن البيانات.
 
 ---
 
@@ -445,14 +438,14 @@ lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H
 
 يفتح المستخدم `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 
-1. **الإقلاع.** يفتح غلاف الويب IndexedDB، يبني جسر القدرات، يزامن كتالوجات الأدوات والأصول (أو يحمّل من ذاكرة التخزين المؤقت عند عدم الاتصال).
-2. **التوجيه.** تجزئة الرابط ← عرض `tool`، مع استخراج `qr-code` ومعاملات الرابط.
-3. **التحميل.** `loadTool('qr-code', fetchFile)` يجلب `tool.json`، يتحقق منه مقابل JSON Schema، يجلب `template.html` و`styles.css` ومصدر `hooks.js`.
-4. **تحليل حالة الرابط.** `parseUrlState` يترجم معاملات الرابط إلى قيم مدخلات أولية. مراجع الأصول (`?logo=suse/logo/primary`) تُحلَّل ككائنات خفيفة `{ id, _unresolved: true }`.
-5. **وقت التشغيل.** `createRuntime(tool, host, initialValues)` يبني نموذج المدخلات (بدمج بيانات الملف الشخصي، القيم الافتراضية والقيم الأولية)، يحل مراجع الأصول عبر `host.assets.get()`، يحمّل الخطافات (`host` محدد النطاق الإغلاقي، غير معزول)، يستدعي `hooks.onInit`.
-6. **العرض.** يشترك الغلاف في وقت التشغيل؛ عند كل تغيير حالة يستقبل `{ model, hydrated }`. يعرض عناصر تحكم المدخلات من النموذج ويكتب HTML القالب المُروى في `#tool-canvas`.
-7. **التفاعل.** يكتب المستخدم في مدخل ← `runtime.setInput(id, value)` ← تُطبَّق القيود ← يُستدعى `hooks.onInput` ← إعادة الري ← إعادة العرض. اللوحة تتحدث حيا.
-8. **التصدير.** ينقر المستخدم تنزيل (PNG) ← `runtime.export(canvasNode, 'png')` ← `host.export.render` (يرسم عبر dom-to-image-more؛ SVG/PDF تمر عبر مُتجهات مخصصة تمشي عبر DOM) ← كائن ثنائي ← `host.export.download`. نطاق الصيغ التي يمكن لأداة الاشتراك فيه واسع، وتعداد `render.formats` في `schemas/tool.schema.json` هو المرجع بشأنه - نقاط نقطية وأخرى عائمة، متجهات وملفات قص، طباعة/CMYK، حركة، مستندات قابلة للتحرير (`pptx`، `docx`، `odt`)، لوحات ألوان ومخرجات بيانات/نصوص، ملفات صوت وخطوط. [وضع الرابط](/info/url-mode.html) يسمي كل معرف وما ينتجه. الصوت في ذلك التعداد كأي شيء آخر (`wav`، `mp3`، `m4a`، `opus`، معلن عنها من قبل مخطط الصوت وأدوات التسجيل)؛ بشكل منفصل، وضع `render.capture` لأداة تسجيل يقود `host.recorder`، الذي تصل لقطته ككائن ثنائي مكتمل في أي حاوية سجلها المتصفح. (الأدوات التي تضبط `render.export: false` - مثل لوحة الألوان، مؤقت العد التنازلي، إزالة البيانات المخفية، مساعد النص، ضغط PDF - تخفي عناصر تحكم التنزيل/الصيغة/الأبعاد.) تُحوَّل الوحدات الفيزيائية لكل صيغة هنا (PDF ← نقاط صفحة حقيقية، نقطي ← بكسلات بدقة DPI مع كتلة `pHYs`). بيانات التأليف/المنشأ الوصفية (المؤلف، الأداة، المصدر - يبنيها `engine/src/metadata.ts`) تُضمَّن لكل صيغة: PNG iTXt، JPEG EXIF، قاموس معلومات PDF، `<metadata>` في SVG، تعليق GIF. الأدوات التجريبية تحصل على علامة مائية يدرجها المضيف، وليس الأداة.
+1. **الإقلاع (Boot).** يفتح غلاف الويب IndexedDB، وينشئ جسر القدرات (capability bridge)، ويزامن فهارس الأدوات والأصول (أو يحمّلها من ذاكرة التخزين المؤقت عند عدم الاتصال).
+2. **التوجيه (Route).** جزء التجزئة (hash) في عنوان URL → عرض `tool`، مع استخراج `qr-code` ومعاملات URL.
+3. **التحميل (Load).** يجلب `loadTool('qr-code', fetchFile)` ملف `tool.json`، ويتحقق منه مقابل JSON Schema، ويجلب مصدر `template.html` و`styles.css` و`hooks.js`.
+4. **تحليل حالة URL.** تُترجم `parseUrlState` معاملات URL إلى قيم إدخال أولية. تُحلَّل مراجع الأصول (`?logo=suse/logo/primary`) ككائنات خفيفة من الشكل `{ id, _unresolved: true }`.
+5. **وقت التشغيل (Runtime).** تبني `createRuntime(tool, host, initialValues)` نموذج الإدخال (بدمج بيانات الملف الشخصي، والقيم الافتراضية، والقيم الأولية)، وتحل مراجع الأصول عبر `host.assets.get()`، وتحمّل الخطافات (hooks) (بنطاق إغلاق `host`، وليس بيئة معزولة)، وتستدعي `hooks.onInit`.
+6. **العرض (Render).** يشترك الغلاف في وقت التشغيل؛ وعند كل تغيير في الحالة يتلقى `{ model, hydrated }`. يعرض عناصر تحكم الإدخال من النموذج ويكتب HTML القالب المُرطَّب (hydrated) داخل `#tool-canvas`.
+7. **التفاعل (Interact).** يكتب المستخدم في حقل إدخال → `runtime.setInput(id, value)` → تُطبَّق القيود → يُستدعى `hooks.onInput` → إعادة ترطيب → إعادة عرض. تتحدث اللوحة (canvas) مباشرة.
+8. **التصدير (Export).** ينقر المستخدم على تنزيل (PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (يُرستر عبر dom-to-image-more؛ أما SVG/PDF فتمر عبر أدوات تحويل متجهي مخصصة تمشي عبر DOM) → blob → `host.export.download`. نطاق الصيغ التي يمكن لأداة ما أن تختارها واسع، وتعداد `render.formats` في `schemas/tool.schema.json` هو المرجع الحاكم له - صور نقطية وصور نقطية عائمة، ومتجهات وملفات قص، وطباعة/CMYK، وحركة، ومستندات قابلة للتحرير (`pptx`، `docx`، `odt`)، ونواتج لوحة ألوان وبيانات/نص، وملفات صوت وخطوط. تُسمّي [وضع URL](/info/url-mode.html) كل معرّف وما ينتجه. الصوت جزء من ذلك التعداد كأي شيء آخر (`wav`، `mp3`، `m4a`، `opus`، تُعلَن من قبل أداة Audiogram وأدوات التسجيل)؛ وبشكل منفصل، يشغّل وضع `render.capture` في أداة تسجيل ما `host.recorder`، الذي تصل لقطته ككائن Blob مكتمل في أي حاوية سجّلها المتصفح. (الأدوات التي تضبط `render.export: false` - مثل Color Palette، وCountdown Timer، وStrip Hidden Data، وText، وCompress PDF - تُخفي عناصر التحكم في التنزيل/الصيغة/الأبعاد.) تُحوَّل الوحدات الفيزيائية هنا حسب كل صيغة (PDF → نقاط الصفحة الحقيقية، والصور النقطية → بكسلات بدقة DPI مع جزء `pHYs`). تُضمَّن البيانات الوصفية للتأليف/إثبات المنشأ (المؤلف، والأداة، والمصدر - التي يبنيها `engine/src/metadata.ts`) حسب كل صيغة: PNG iTXt، وJPEG EXIF، وقاموس معلومات PDF، وSVG `<metadata>`، وتعليق GIF. تحصل الأدوات التجريبية على علامة مائية يُدرجها المضيف (host)، لا الأداة.
 
 ![لوحة التصدير التي تفتحها `?options`: زوج اسم الملف والصيغة، وحجم المخرجات وعناصر التحكم التي تكتب الملف](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
@@ -462,11 +455,11 @@ lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H
 
 ## حالة المصدر المفتوح
 
-**الكود مرخّص بـ MPL-2.0.** `engine/` و`shells/*` و`services/*` و`schemas/` و`docs/` مفتوحة المصدر بموجب **MPL-2.0** - منصة سقالات محايدة تجاه المورّد لأدوات العلامة التجارية، مع كل وحدة قابلة للشحن في مستودعها الخاص تحت [github.com/lolly-tools](https://github.com/lolly-tools).
+**الكود مرخّص بموجب MPL-2.0.** `engine/`، و`shells/*`، و`services/*`، و`schemas/`، و`docs/` مفتوحة المصدر بموجب **MPL-2.0** - منصة سقالات (scaffolding) محايدة تجاه المزودين لأدوات العلامة التجارية، كلها في مستودع عام واحد، [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly).
 
-**يُشحن محتوى الأدوات كحزم علامة تجارية**، لكل منها شروطها الخاصة (انظر ملف `NOTICE.md` الخاص بالحزمة). `community/` هو مستودع [`lolly-tools`](https://github.com/lolly-tools/lolly-tools) العام، وأدواته المحايدة تجاه العلامة التجارية مرخّصة بـ MPL-2.0 أيضًا. `brands/suse/` هو حزمة `suse-lolly` الخاصة: أدوات SUSE وفهرس SUSE، **ملكية خاصة لـ SUSE**، بما في ذلك موسيقى PremiumBeat المرخّصة. `brands/lolly-start/` هو العلامة التجارية الفارغة الأولية التي يملكها هذا المستودع. تُشحن الخطوط داخل حزمة بموجب **SIL Open Font License 1.1** - تحمل حزمة SUSE خطي SUSE وSUSE Mono.
+**يُشحَن محتوى الأدوات كحزم علامة تجارية (brand packs)**، لكل منها شروطها الخاصة (راجع ملف `NOTICE.md` الخاص بالحزمة). `community/` دليل ضمن هذا المستودع، وأدواته المحايدة تجاه العلامة التجارية مرخّصة بموجب MPL-2.0 أيضاً. `brands/suse/` هي حزمة `suse-lolly` الخاصة، الوحدة الفرعية الوحيدة: أدوات SUSE وفهرس SUSE، **مملوكة حصرياً لـ SUSE**، بما في ذلك موسيقى PremiumBeat المرخّصة لها. `brands/lolly-start/` هي العلامة التجارية الفارغة للبدء التي يملكها هذا المستودع. تُشحَن الخطوط داخل حزمة بموجب **رخصة SIL Open Font License 1.1** - وتحمل حزمة SUSE خطي SUSE وSUSE Mono.
 
-جذر المستودع `tools/` و`catalog/` هما *عرضان* مُستبعدان من git: يُجمّعهما ملف تعريف من `community/` إضافة إلى حزمة العلامة التجارية النشطة، ولهذا يقرأ كل سكربت وغلاف هذين المسارين ولا يقرآن حزمة مباشرة أبدًا.
+لا يوجد دليل `tools/` أو `catalog/` في جذر المستودع. تجيب `packages/node-shell/src/content-roots.ts` عن سؤالي "أين تقيم الأداة `<id>`" و"أين يقع الفهرس" من `profiles.json` وقت القراءة، بحيث يكون ملف التعريف (profile) إجابة لكل عملية على حدة دون الحاجة لتجميع شجرة مسبقاً. لا يُكتب زوج `tools/` + `catalog/` حقيقي إلا داخل ناتج بناء - `dist/`، أو حمولة RPM، أو صورة حاوية - لأن المتصفح يجلب هذين المسارين عبر HTTP.
 
 الانقسام مفروض - لا استيرادات متقاطعة من `engine/` إلى محتوى الأدوات - بحيث تبقى الحدود بين المنصة والمحتوى نظيفة.
 

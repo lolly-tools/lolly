@@ -39,14 +39,14 @@ Những ngoại lệ trung thực - mỗi ngoại lệ đều là tùy chọn th
 
 ## Từ một terminal
 
-**6. Điểm cuối kết xuất chỉ trả về dữ liệu công khai.** Tính năng duy nhất của máy chủ có thể đưa dữ liệu người dùng gõ vào một URL - kết xuất qua liên kết trực tiếp (hot-link) - đang hoạt động ở đây, và [chính sách quyền riêng tư](/info/privacy.html) giải thích điều đó có ý nghĩa gì với những dữ liệu bạn đưa vào một liên kết:
+**6. Điểm cuối render chỉ trả về dữ liệu công khai.** Tính năng máy chủ duy nhất đưa dữ liệu do người dùng gõ vào một URL - render qua hot-link - đang hoạt động ở đây, và [chính sách quyền riêng tư](/info/privacy.html) nêu rõ điều đó có ý nghĩa gì đối với dữ liệu bạn đưa vào một liên kết:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Công tắc này áp dụng theo từng lần triển khai (`LOLLY_DISABLE_RENDER_GET=1`): trên một instance có đặt biến này, cùng một phép thử đó trả về `404` - sự khác biệt này là do cờ đang hoạt động đúng, không phải là sự thiếu nhất quán.
+Công tắc này được đặt theo từng lần triển khai (`LOLLY_DISABLE_RENDER_GET=1`): trên một instance có đặt cờ này, cùng một phép kiểm tra (probe) sẽ trả về `404` - sự khác biệt đó là do cờ đang hoạt động, không phải là một sự không nhất quán.
 
 **7. Bề mặt máy chủ có thể liệt kê được.** [Server Surface](/info/server-surface.html) liệt kê mọi tuyến phía máy chủ đang tồn tại, với quy tắc cố định là một điểm cuối không có trên trang đó thì không thuộc về Lolly. Hãy `curl` chúng; không còn gì khác để tìm thấy.
 
@@ -55,7 +55,7 @@ Công tắc này áp dụng theo từng lần triển khai (`LOLLY_DISABLE_RENDE
 Tất cả những điều trên vẫn có thể chỉ là màn kịch nếu mã đã triển khai khác với mã công khai. Vì vậy hãy kiểm tra mã nguồn - bản triển khai được xây dựng từ [kho lưu trữ công khai](https://github.com/lolly-tools/lolly):
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ Ba phép kiểm tra mã nguồn ở trên không phải là một cuộc kiểm 
 - nhật ký cấp phát của CA quay trở lại - trong mã nguồn **hoặc** trong gói máy chủ đã tạo ra,
 - chính sách quyền riêng tư mất đi các tuyên bố bắt buộc theo luật (bên kiểm soát được nêu tên, cơ sở pháp lý, quyền khiếu nại).
 
-Tự bạn chạy chúng trong bản sao (Node 22.18+; không cần `npm install` cho tệp này):
+Tự bạn chạy chúng trong bản clone (Node 22.18+; không cần `pnpm install` cho tệp này):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-Bộ kiểm thử đầy đủ (`npm install && npm test`) chạy thêm vài nghìn bài kiểm thử nữa, bao gồm các bài kiểm thử mật mã học đối kháng được mô tả trong [Security & Verification](/info/security.html).
+Bộ kiểm thử đầy đủ (`pnpm install && pnpm test`) chạy thêm vài nghìn kiểm thử nữa, bao gồm các kiểm thử mật mã học đối kháng (adversarial) được mô tả trong [Security & Verification](/info/security.html).
 
 ## Những gì bạn không thể xác minh từ bên ngoài - nói thẳng
 

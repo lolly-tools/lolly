@@ -74,10 +74,10 @@ const shots: Shot[] = SHOTS.map((name) => {
 });
 
 // The shots are committed; a missing one is a broken checkout, not a reason to
-// pass. (`docs/` is a submodule - say which, so the message is actionable.)
+// pass. Name the path in the message, so it is actionable.
 test('the six acceptance shots are on disk and every one of them lifts', () => {
   for (const s of shots) {
-    assert.ok(s.src, `${s.name}.svg is missing - run \`git submodule update --init docs\``);
+    assert.ok(s.src, `${s.name}.svg is missing from docs/shots/ - it is committed, so restore it`);
     assert.ok(s.layers.length >= 2, `${s.name} must lift into a stack, got ${s.layers.length}`);
     assert.ok(s.viewBox, `${s.name} must report its viewBox - the crop map's denominator`);
   }

@@ -130,7 +130,7 @@ Lolly가 무엇인지 가장 분명하게 보는 방법은 기능 목록이 아�
 
 ### 저장소 구조
 
-콘텐츠는 팩 형태로 마운트됩니다: `community/`, `docs/`, 모든 `shells/*`, 두 `services/*`, `brands/suse`는 각각 별도의 저장소이며 이 저장소의 git 서브모듈로 체크아웃됩니다. 상위 저장소는 `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `brands/lolly-start/`, `profiles.json`을 소유합니다. 체크아웃 명령과 여러 저장소를 넘나드는 작업 흐름은 [빌드 가이드 » 소스 코드 받기](/info/build-guide.html)를 참고하세요.
+Lolly는 하나의 저장소입니다. `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, `docs/`, `community/`, `brands/lolly-start/`, 모든 `shells/*`와 두 `services/*`는 이 저장소 안의 일반 디렉터리입니다. 유일한 예외는 `brands/suse`로, SUSE 도구 팩과 카탈로그를 담은 **비공개(private)** git 서브모듈이며, 옵트인 방식이고 공개 클론에는 존재하지 않습니다. 특정 빌드가 어떤 팩을 읽는지는 콘텐츠 프로필(`profiles.json`)로 결정되며, 전역적으로 전환되는 것이 아니라 프로세스별로 해석됩니다. 클론 명령과 비공개 팩 내부의 변경 사항을 커밋하는 방법은 [Build Guide » Getting the source](/info/build-guide.html)를 참고하세요.
 
 ```
 lolly/
@@ -188,45 +188,38 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # profile VIEW (gitignored) - data, not code. Merged from packs:
-│                     #   community/ (public, brand-agnostic, MPL) + brands/<active>/tools (brand-owned).
-│                     #   A SELECTION follows - the mounted set depends on the profile.
+├── community/        # the brand-agnostic tool pack - data, not code. Public (MPL-2.0).
+│                     #   A SELECTION follows; a profile mounts these plus whatever
+│                     #   tools the active brand pack carries of its own.
 │   ├── qr-code/
-│   ├── quotes/
-│   ├── email-signature/
 │   ├── snippet/
 │   ├── countdown-timer/
 │   ├── color-palette/
-│   ├── color-block/           # typed/heterogeneous blocks (addMenu discriminator)
-│   ├── dynamic-layout/
-│   ├── tool-logo/         # "Logo" - auto-switching brand logo
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
 │   ├── strip-data/        # on-device metadata strip - JPEG/PNG/SVG/PDF (file in → clean file out)
 │   ├── compress-pdf/      # on-device PDF compressor - recompresses images (file in → smaller file out)
-│   ├── brand-lockup/      # "Brand Lockup" - SUSE logo lockups; HarfBuzz text-to-path (wasm)
-│   ├── chart-creator/     # SVG charts from structured data
+│   ├── chart/             # SVG charts from structured data
 │   ├── filter/            # photo effects in one tool - halftone/scanline/posterize/voronoi (vector), duotone/pixel-stretch/imperfections (raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
-│   ├── digi-ad/           # "Animated Ad" - looping banner from scenes
-│   ├── event-name-badge/  # conference badges - composes qr-code as an SVG
 │   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
 │   ├── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
 │   ├── design/     # "Design" - freeform WYSIWYG editor canvas (render.layout: editor)
 │   ├── multi-page-pdf/    # multi-page PDF document - cover, flowing content blocks, back page
 │   ├── diagram-builder/   # org / layercake / process / cycle / pyramid diagrams
 │   ├── logo-wall/         # many logos → auto-packed grid
-│   ├── logo-lockup-partner/ # SUSE + partner co-brand lockup
-│   ├── icon/          # favicon .ico / png / svg from text + colours
-│   ├── lottie-digi-ad/    # animated Lottie ad banners
-│   └── pose-geeko/        # pose the SUSE Geeko mascot - print-ready stills
+│   ├── icon/              # favicon .ico / png / svg from text + colours
+│   └── lottie-digi-ad/    # animated Lottie ad banners
 │
-├── catalog/
-│   ├── tools/index.json        # tool registry
-│   └── assets/
-│       ├── index.json          # asset registry
-│       └── suse/...            # logo, palette, etc.
+├── brands/            # brand packs - a catalog each, and optionally tools of their own
+│   ├── lolly-start/   # the blank starter brand, owned here
+│   │   └── catalog/
+│   │       ├── tools/index.json    # tool registry, generated per brand
+│   │       └── assets/
+│   │           ├── index.json      # asset registry
+│   │           └── lolly/...       # logo, palette, tokens
+│   └── suse/          # PRIVATE submodule - the SUSE tools and the SUSE catalog
 │
 ├── schemas/          # JSON Schema for tool.json, asset entries, AssetRef
 ├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
@@ -269,7 +262,7 @@ lolly qr-code                # lists inputs for that tool
 ```
 
 ### TUI
-`npm run tui`
+`pnpm run tui`
 
 CLI의 대화형 짝입니다: 도구를 탐색하고, 입력을 채우고, 프로젝트를 저장하고, 내보내는 것을 GUI 없이 전부 처리하는 전체 화면 키보드 우선 터미널 앱(Ink 기반)입니다. 호스트 브리지는 DOM이 필요 없는 포맷(SVG/EMF/EPS/HTML + 텍스트/데이터)에 대해 **CLI의 구현을 재사용**하며, `~/.lolly` 아래의 디스크 상태와 옵트인 인라인 프리뷰를 추가로 제공합니다. 그 외에 **브라우저 렌더 티어**도 있습니다: 필요할 때 래스터/PDF/비디오와 실시간 URL 캡처를 생성하는 범위가 제한된 헤드리스 Chromium(MCP 서버가 설치하는 것과 동일)으로, 웹 셸의 빌드된 사본을 구동해 출력이 동일하며 그런 포맷을 처음 내보낼 때만 실행됩니다. 그래서 `url-shot`(크롭 + 리컬러 + 벡터 PDF/SVG 포함)과 모든 래스터/pdf 도구가 터미널에서도 실행됩니다. [TUI 가이드](/info/tui.html)를 참조하세요.
 
@@ -283,13 +276,13 @@ CLI의 대화형 짝입니다: 도구를 탐색하고, 입력을 채우고, 프�
 
 행은 갤러리 섹션 순서로 나열됩니다. `utility` 섹션은 (향후 추가될 카테고리를 포함한) 다른 모든 카테고리 뒤, 갤러리에서 항상 **마지막**에 렌더링됩니다 - 이는 온디바이스 "오프라인 유틸리티" 서랍입니다.
 
-| 카테고리 | 예시 | 계획 중 |
+| 카테고리 | 예시 | 계획됨 |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence Studio, Record | Employee Image Stationery |
-| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Multi-Page PDF | Font Outliner |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Logo, Wordmark, Audiogram, Battlecards, Sequence, Record | Employee Image Stationery |
+| `designer` | Brand Lockup, Design, Chart, Darkroom, Filter, Pose Geeko, Booklet | Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS, Booth Studio | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | - | CVE Alert, Product Release Announcement, Blog OG Image |
-| `utility` | Strip Hidden Data, Text Helper, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
+| `utility` | Strip Hidden Data, Text, Compress PDF, Convert Image, Convert Font, Redact, Run Web Code, Screen Capture, URL Screenshot | Unit/format converters, more on-device privacy utilities |
 
 이 셀들은 **예시일 뿐 전체 목록이 아닙니다**. 어떤 도구가 존재하는지는 이 페이지가 아니라 마운트한 프로필의 속성입니다: 브랜드 팩은 자체 도구를 추가할 수 있고, 배포하고 싶지 않은 커뮤니티 도구를 제외할 수도 있습니다. 매니페스트에서 생성되고 갤러리가 실제로 읽는 레지스트리인 `catalog/tools/index.json`이 공인 목록입니다. 프로필이 마운트하는 것을 세려면, 여기 적힌 숫자를 믿기보다 매니페스트(`ls community/*/tool.json brands/*/tools/*/tool.json`)를 세십시오. (두 팩에 존재하는 도구 id는 이긴 팩에서 한 번만 마운트됩니다.)
 
@@ -297,11 +290,11 @@ CLI의 대화형 짝입니다: 도구를 탐색하고, 입력을 채우고, 프�
 
 **Design**은 `render.layout: "editor"` 자유 캔버스 모드로 만들어진 첫 번째 도구입니다 - 텍스트, 도형, 이미지 박스를 드래그, 크기 조절, 회전, 스냅한 뒤 다른 모든 도구와 동일한 렌더 경로로 내보내는, 크롬이 없는 직접 조작 화면입니다.
 
-**Strip Hidden Data**는 첫 번째 **온디바이스 유틸리티**(`privacy: "on-device"`)입니다: *사용자*가 제공한 파일을 받아 브라우저 안에서 전부 처리하고 깨끗한 사본을 돌려주는 콘텐츠 변환 도구로, 업로드되지 않고, 워터마크도 찍히지 않고, 출처 정보도 찍히지 않습니다. **Text Helper**가 두 번째입니다 - JSON 포맷, JWT 디코드, Base64, URL 인코딩/디코딩, SHA 해싱 등 일상적으로 웹사이트에 붙여넣는 작업을 위한 온디바이스 작업대입니다. **Compress PDF**가 세 번째입니다 - 이미지를 다시 압축해 PDF 용량을 줄이며, 이 역시 전부 온디바이스로 처리됩니다. 마커와 그 배지 문구 "Runs on your device - nothing is uploaded"는 이제 전체 변환 세트를 아우릅니다: Strip Hidden Data, Text Helper, Compress PDF, **Convert Image**(HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact**(이미지, SVG, PDF의 영역 파기), **Prompt to Image**, 그리고 프로필이 마운트하는 경우 **Rebrand a Deck**(`.pptx`를 그 자리에서 리테마)입니다. 이는 기밀 파일을 단일 목적 웹사이트에 넘기는 방식을 대체하는 프라이버시 유틸리티 카테고리입니다.
+**Strip Hidden Data**는 최초의 **온디바이스(on-device) 유틸리티**(`privacy: "on-device"`)입니다. 이 콘텐츠 변환 도구는 *사용자*가 제공한 파일을 받아 전적으로 브라우저 안에서 처리한 뒤 깨끗한 사본을 돌려줍니다 - 업로드되지 않고, 워터마크가 찍히지 않으며, 출처(provenance) 정보도 찍히지 않습니다. **Text**는 두 번째로, JSON 포맷팅, JWT 디코딩, Base64, URL 인코딩/디코딩, SHA 해싱 등 웹사이트에 붙여넣어 하는 일상적인 작업을 위한 온디바이스 작업대입니다. **Compress PDF**는 세 번째로, 이미지를 다시 압축해 PDF를 축소하며 이 역시 전적으로 온디바이스에서 이루어집니다. 이 표시와 배지 문구 "당신의 기기에서 실행됩니다 - 아무것도 업로드되지 않습니다"는 이제 전체 변환 도구 집합을 아우릅니다: Strip Hidden Data, Text, Compress PDF, **Convert Image**(HEIC/TIFF/AVIF → WebP/JPG/PNG), **Convert Font**, **Redact**(이미지, SVG 또는 PDF의 영역을 파기), **Prompt Card**, 그리고 프로필이 마운트하는 경우의 **Rebrand**(`.pptx`를 그 자리에서 재테마 처리)까지입니다. 이는 기밀 파일을 단일 목적 웹사이트에 넘기는 방식을 대체하는 개인정보 보호 유틸리티 카테고리입니다.
 
 ![이미 가지고 있는 파일을 변환하는 도구인 카드들이 모여 있는 유틸리티 서랍](/t/url-shot?url=%2F%23%2Fu&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&tolerance=0.03&format=svg&walker=1&dark=1&filename=aud-utilities)
 
-> 참고: `category`와 `status`는 각 `tool.json`에서 (갤러리가 읽는 레지스트리인) `catalog/tools/index.json`으로 비정규화됩니다. 매니페스트가 단일 진실 공급원이며 - 인덱스는 `npm run build:catalog`로 **생성**되고, 커밋된 인덱스가 매니페스트에서 어긋나면 `npm run validate:catalog`가 CI를 실패시킵니다.
+> 참고: `category`와 `status`는 각 `tool.json`으로부터 `catalog/tools/index.json`(갤러리가 읽는 레지스트리)으로 비정규화(denormalise)되어 저장됩니다. 매니페스트가 신뢰할 수 있는 원본(source of truth)이며 - 인덱스는 `pnpm run build:catalog`로 **생성**되고, 커밋된 인덱스가 매니페스트와 어긋나면 `pnpm run validate:catalog`가 CI를 실패시킵니다.
 
 ---
 
@@ -443,14 +436,14 @@ Handlebars는 EJS 대신 의도적으로 선택되었습니다:
 
 사용자가 `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`를 엽니다:
 
-1. **부팅.** 웹 쉘이 IndexedDB를 열고, 기능 브리지를 구성하며, 도구와 자산 카탈로그를 동기화합니다(오프라인일 때는 캐시에서 불러옵니다).
-2. **라우팅.** URL 해시 → `tool` 뷰, `qr-code`와 URL 파라미터가 추출됩니다.
-3. **로드.** `loadTool('qr-code', fetchFile)`이 `tool.json`을 가져와 JSON 스키마에 대해 검증하고, `template.html`, `styles.css`, `hooks.js` 소스를 가져옵니다.
-4. **URL 상태 파싱.** `parseUrlState`가 URL 파라미터를 초기 입력 값으로 변환합니다. 자산 참조(`?logo=suse/logo/primary`)는 가벼운 `{ id, _unresolved: true }` 객체로 파싱됩니다.
-5. **런타임.** `createRuntime(tool, host, initialValues)`가 입력 모델을 구성하고(프로필 데이터, 기본값, 초기 값을 병합), `host.assets.get()`을 통해 자산 참조를 해석하며, 훅을 로드하고(클로저 범위의 `host`이며 샌드박스는 아닙니다), `hooks.onInit`을 호출합니다.
-6. **렌더링.** 쉘이 런타임을 구독합니다. 상태가 바뀔 때마다 `{ model, hydrated }`를 받습니다. 모델로부터 입력 컨트롤을 렌더링하고, 하이드레이션된 템플릿 HTML을 `#tool-canvas`에 씁니다.
-7. **상호작용.** 사용자가 입력란에 입력 → `runtime.setInput(id, value)` → 제약 적용 → `hooks.onInput` 호출 → 재하이드레이션 → 재렌더링. 캔버스가 실시간으로 업데이트됩니다.
-8. **내보내기.** 사용자가 Download(PNG)를 클릭 → `runtime.export(canvasNode, 'png')` → `host.export.render`(dom-to-image-more를 통해 래스터화하며, SVG/PDF는 전용 DOM 순회 벡터화기를 거칩니다) → blob → `host.export.download`. 도구가 선택할 수 있는 포맷 범위는 넓으며, `schemas/tool.schema.json`의 `render.formats` 열거형이 이에 대한 최종 근거입니다 - 래스터와 부동소수점 래스터, 벡터와 재단 파일, 인쇄/CMYK, 모션, 편집 가능한 문서(`pptx`, `docx`, `odt`), 팔레트와 데이터/텍스트 출력, 오디오와 폰트 파일까지 포함합니다. [URL Mode](/info/url-mode.html)가 모든 id와 그것이 만드는 결과물을 정리해 둡니다. 오디오도 다른 항목과 마찬가지로 이 열거형에 포함됩니다(`wav`, `mp3`, `m4a`, `opus` - 오디오그램과 녹음 도구가 선언합니다). 별도로, 녹음 도구의 `render.capture` 모드는 `host.recorder`를 구동하며, 그 결과물은 브라우저가 녹음한 컨테이너 형식 그대로 완성된 Blob으로 도착합니다. (`render.export: false`를 설정한 도구 - 예: Color Palette, Countdown Timer, Strip Hidden Data, Text Helper, Compress PDF - 는 다운로드/포맷/크기 컨트롤을 숨깁니다.) 물리적 단위는 여기서 포맷별로 변환됩니다(PDF → 실제 페이지 포인트, 래스터 → `pHYs` 청크를 포함한 DPI 기준 픽셀). 저작/출처 메타데이터(작성자, 도구, 소스 - `engine/src/metadata.ts`가 생성)는 포맷별로 삽입됩니다: PNG iTXt, JPEG EXIF, PDF info dict, SVG `<metadata>`, GIF comment. 실험적 도구는 도구가 아니라 호스트가 워터마크를 삽입합니다.
+1. **부팅(Boot).** 웹 셸이 IndexedDB를 열고, 기능 브리지(capability bridge)를 구성하며, 도구 카탈로그와 에셋 카탈로그를 동기화합니다(오프라인일 때는 캐시에서 로드).
+2. **라우팅(Route).** URL 해시 → `tool` 뷰로 이동하며, `qr-code`와 URL 파라미터가 추출됩니다.
+3. **로드(Load).** `loadTool('qr-code', fetchFile)`가 `tool.json`을 가져와 JSON Schema에 대해 검증하고, `template.html`, `styles.css`, `hooks.js` 소스를 가져옵니다.
+4. **URL 상태 파싱(Parse URL state).** `parseUrlState`가 URL 파라미터를 초기 입력 값으로 변환합니다. 에셋 참조(`?logo=suse/logo/primary`)는 경량 `{ id, _unresolved: true }` 객체로 파싱됩니다.
+5. **런타임(Runtime).** `createRuntime(tool, host, initialValues)`가 입력 모델을 구성하고(프로필 데이터, 기본값, 초기값을 병합), `host.assets.get()`을 통해 에셋 참조를 해석하며, 훅을 로드하고(`host`는 클로저 범위이며 샌드박스 처리되지 않음), `hooks.onInit`을 호출합니다.
+6. **렌더링(Render).** 셸이 런타임을 구독하며, 상태가 변경될 때마다 `{ model, hydrated }`를 전달받습니다. 모델로부터 입력 컨트롤을 렌더링하고, 하이드레이션된 템플릿 HTML을 `#tool-canvas`에 씁니다.
+7. **상호작용(Interact).** 사용자가 입력란에 타이핑하면 → `runtime.setInput(id, value)` → 제약 조건이 적용됨 → `hooks.onInput` 호출 → 재하이드레이션 → 재렌더링. 캔버스가 실시간으로 업데이트됩니다.
+8. **내보내기(Export).** 사용자가 다운로드(PNG)를 클릭하면 → `runtime.export(canvasNode, 'png')` → `host.export.render`(dom-to-image-more를 통해 래스터화하며, SVG/PDF는 전용 DOM 순회 벡터화기를 거칩니다) → blob → `host.export.download`. 도구가 선택할 수 있는 포맷 범위는 넓으며, `schemas/tool.schema.json`의 `render.formats` 열거형이 그 권위 있는 기준입니다 - 래스터와 부동소수점 래스터, 벡터와 재단 파일(cut file), 인쇄/CMYK, 모션, 편집 가능한 문서(`pptx`, `docx`, `odt`), 팔레트와 데이터/텍스트 출력, 오디오와 폰트 파일까지 포함됩니다. [URL Mode](/info/url-mode.html)에서 모든 id와 그것이 생성하는 결과물을 확인할 수 있습니다. 오디오는 다른 무엇과 마찬가지로 이 열거형에 포함되어 있습니다(`wav`, `mp3`, `m4a`, `opus`, 오디오그램과 녹음 도구가 선언). 이와 별도로, 녹음 도구의 `render.capture` 모드는 `host.recorder`를 구동하며, 그 결과물은 브라우저가 녹음한 컨테이너 형식 그대로 완성된 Blob으로 도착합니다. (`render.export: false`를 설정한 도구 - 예: Color Palette, Countdown Timer, Strip Hidden Data, Text, Compress PDF - 는 다운로드/포맷/크기 컨트롤을 숨깁니다.) 물리적 단위는 여기서 포맷별로 변환됩니다(PDF → 실제 페이지 포인트, 래스터 → DPI 기준 픽셀에 `pHYs` 청크 포함). 저작자/출처 메타데이터(작성자, 도구, 소스 - `engine/src/metadata.ts`가 생성)는 포맷별로 삽입됩니다: PNG iTXt, JPEG EXIF, PDF info dict, SVG `<metadata>`, GIF comment. 실험적(Experimental) 도구는 도구가 아니라 호스트가 워터마크를 삽입합니다.
 
 ![`?options`가 여는 내보내기 패널: 파일명과 포맷 쌍, 출력 크기, 파일을 기록하는 컨트롤들](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 
@@ -460,11 +453,11 @@ Tauri에서도 동일한 라이프사이클입니다. CLI에서도 동일한 라
 
 ## 오픈소스 상태
 
-**코드는 MPL-2.0이에요.** `engine/`, `shells/*`, `services/*`, `schemas/`, `docs/`는 **MPL-2.0** 아래 오픈소스로 공개돼요 - 브랜드 툴링을 위한 벤더 중립적 스캐폴딩 플랫폼이며, 배포 가능한 각 단위는 [github.com/lolly-tools](https://github.com/lolly-tools) 아래 자체 저장소로 존재해요.
+**코드는 MPL-2.0입니다.** `engine/`, `shells/*`, `services/*`, `schemas/`, `docs/`는 **MPL-2.0** 라이선스로 공개된 오픈소스입니다 - 브랜드 도구를 위한 벤더 중립적 스캐폴딩 플랫폼이며, 모두 하나의 공개 저장소인 [`lolly-tools/lolly`](https://github.com/lolly-tools/lolly)에 있습니다.
 
-**도구 콘텐츠는 브랜드 팩 형태로 제공되며**, 각 팩은 자체 조건을 가져요(팩의 `NOTICE.md` 참고). `community/`는 공개 [`lolly-tools`](https://github.com/lolly-tools/lolly-tools) 저장소이고, 여기 담긴 브랜드 무관 도구들도 MPL-2.0이에요. `brands/suse/`는 비공개 `suse-lolly` 팩이에요: SUSE 도구와 SUSE 카탈로그로, 라이선스가 있는 PremiumBeat 음악을 포함해 **SUSE 소유의 독점 자산**이에요. `brands/lolly-start/`는 이 저장소가 소유한 빈 스타터 브랜드예요. 폰트는 **SIL Open Font License 1.1** 아래 팩 안에 포함되어 제공돼요 - SUSE 팩에는 SUSE와 SUSE Mono 서체가 들어 있어요.
+**도구 콘텐츠는 브랜드 팩 형태로 제공되며**, 각 팩은 고유한 이용 조건을 가집니다(팩의 `NOTICE.md` 참고). `community/`는 이 저장소의 한 디렉터리이며, 그 안의 브랜드 중립적 도구들 역시 MPL-2.0입니다. `brands/suse/`는 비공개 `suse-lolly` 팩으로, 유일한 서브모듈입니다: SUSE 도구와 SUSE 카탈로그로 구성되며, 라이선스가 부여된 PremiumBeat 음악을 포함해 **SUSE의 독점 자산**입니다. `brands/lolly-start/`는 이 저장소가 소유한 빈 스타터 브랜드입니다. 폰트는 팩 안에 **SIL Open Font License 1.1** 하에 제공되며 - SUSE 팩은 SUSE 및 SUSE Mono 서체를 담고 있습니다.
 
-저장소 루트의 `tools/`와 `catalog/`는 git에서 무시되는 *뷰*예요: 프로필이 `community/`와 활성 브랜드 팩을 조합해 이를 만들어내며, 그래서 모든 스크립트와 셸은 팩을 직접 읽지 않고 항상 이 두 경로만 읽어요.
+저장소 루트에는 `tools/`나 `catalog/` 디렉터리가 존재하지 않습니다. `packages/node-shell/src/content-roots.ts`는 읽는 시점에 `profiles.json`을 기준으로 "도구 `<id>`는 어디에 있는가"와 "카탈로그는 어디에 있는가"에 답하므로, 프로필은 프로세스별 답이며 사전에 트리를 조립할 필요가 없습니다. 실제 `tools/` + `catalog/` 쌍은 빌드 출력물 - `dist/`, RPM 페이로드, 컨테이너 이미지 - 안에만 작성되는데, 이는 브라우저가 그 두 경로를 HTTP로 가져오기 때문입니다.
 
 이 분리는 강제돼요 - `engine/`에서 도구 콘텐츠로의 교차 임포트는 없어요 - 그래서 플랫폼과 콘텐츠 사이의 경계는 깔끔하게 유지돼요.
 

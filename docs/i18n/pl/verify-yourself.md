@@ -39,14 +39,14 @@ Uczciwe wyjątki - każdy opt-in, inicjowany przez użytkownika i widoczny w tej
 
 ## Z terminala
 
-**6. Endpoint renderowania odpowiada wyłącznie danymi publicznymi.** Jedyna funkcja serwerowa, która umieszcza dane wpisane przez użytkownika w adresie URL - renderowanie przez hot-link - jest tu aktywna, a [polityka prywatności](/info/privacy.html) wyjaśnia, co to oznacza dla danych, które umieszczasz w linku:
+**6. Punkt końcowy renderowania odpowiada wyłącznie danymi publicznymi.** Jedyna funkcja serwera, która umieszcza wpisane przez użytkownika dane wejściowe w adresie URL - renderowanie przez hot-link - jest tu aktywna, a [polityka prywatności](/info/privacy.html) opisuje, co to oznacza dla danych wejściowych umieszczanych w linku:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Przełącznik jest ustawiany per wdrożenie (`LOLLY_DISABLE_RENDER_GET=1`): w instancji, w której ta flaga jest ustawiona, ta sama sonda zwraca `404` - ta różnica to działanie flagi, a nie niespójność.
+Przełącznik działa per wdrożenie (`LOLLY_DISABLE_RENDER_GET=1`): w instancji, która go ustawia, ta sama sonda zwraca `404` - ta różnica oznacza, że flaga działa, a nie że występuje niespójność.
 
 **7. Powierzchnia serwera jest wyliczalna.** [Server Surface](/info/server-surface.html) wymienia każdą istniejącą trasę po stronie serwera, ze stałą zasadą, że endpoint spoza tej strony nie jest częścią Lolly. Wywołaj je przez `curl`; nie ma tam nic więcej do znalezienia.
 
@@ -55,7 +55,7 @@ Przełącznik jest ustawiany per wdrożenie (`LOLLY_DISABLE_RENDER_GET=1`): w in
 Wszystko powyższe wciąż mogłoby być teatrem, gdyby wdrożony kod różnił się od kodu publicznego. Sprawdź więc kod - wdrożenie buduje się z [publicznego repozytorium](https://github.com/lolly-tools/lolly):
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ Trzy powyższe kontrole źródła to nie jednorazowy audyt - są przypięte w ze
 - dziennik wydawania CA powróci - w kodzie źródłowym **lub** w wygenerowanym pakiecie serwera,
 - polityka prywatności utraci swoje wymagane prawnie stwierdzenia (nazwany administrator, podstawa prawna, prawo do złożenia skargi).
 
-Uruchom je samodzielnie w sklonowanym repozytorium (Node 22.18+; do tego pliku `npm install` nie jest potrzebne):
+Uruchom je samodzielnie w swoim klonie (Node 22.18+; dla tego pliku `pnpm install` nie jest potrzebne):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-Pełny zestaw (`npm install && npm test`) uruchamia kilka tysięcy kolejnych testów, w tym testy kryptografii typu adversarial opisane w [Security & Verification](/info/security.html).
+Pełny zestaw testów (`pnpm install && pnpm test`) uruchamia kilka tysięcy kolejnych, w tym testy kryptograficzne o charakterze adwersarialnym opisane w [Bezpieczeństwo i weryfikacja](/info/security.html).
 
 ## Czego nie da się zweryfikować z zewnątrz - powiedziane wprost
 

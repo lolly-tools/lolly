@@ -76,12 +76,12 @@ const api = createTextAPI();
 // ── font files under test ────────────────────────────────────────────────────
 // Statics: brand-critical weights/styles actually shipped for outline export.
 //
-// Named in the PACK that owns them, not through a repo-root `catalog/` path. That
-// path was the gitignored profile view, and the subrepo collapse removed it, so
-// these three cases had gone from skipping on a non-SUSE profile to skipping on
-// every checkout there is. Naming the pack also drops the profile coupling the
-// VARIABLE note below complains about: the bytes are here whenever the private
-// pack is mounted, whichever brand happens to be active.
+// Named in the PACK that owns them, not through a repo-root `catalog/` path. No such
+// directory exists in a checkout - the subrepo collapse removed it - so these three
+// cases had gone from skipping on a non-SUSE profile to skipping on every checkout
+// there is. Naming the pack also drops the profile coupling the VARIABLE note below
+// complains about: the bytes are here whenever the private pack is mounted,
+// whichever brand happens to be active.
 const REGULAR      = 'brands/suse/catalog/fonts/ttf/SUSE-Regular.ttf';
 const BOLD         = 'brands/suse/catalog/fonts/ttf/SUSE-Bold.ttf';
 const BOLD_ITALIC  = 'brands/suse/catalog/fonts/ttf/SUSE-BoldItalic.ttf';

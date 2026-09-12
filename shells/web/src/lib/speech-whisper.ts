@@ -7,7 +7,7 @@
  * (plans/202 WP1.1). Nothing in it touches the DOM, and
  * packages/node-shell/src/speech.ts reads the constants and every helper for
  * the Node transcription path, so they belong in the package both shells can
- * import rather than behind a submodule boundary.
+ * import rather than inside one of them.
  *
  * This file stays as a stable re-export, so lib/speech-whisper-worker.ts,
  * bridge/speech.ts, bridge/index.ts and speech-whisper.test.ts keep working

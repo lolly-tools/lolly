@@ -39,7 +39,7 @@ const skeraBin = findSkera();
 const SKIP = skeraBin
   ? existsSync(OUTFIT_DISK)
     ? null
-    : 'Outfit platform face not on disk (shells/web submodule not checked out?)'
+    : 'Outfit platform face not on disk at shells/web/public/fonts/'
   : 'skera not installed (cargo install skera --features cli, or SKERA_BIN=…)';
 
 test('skera subset shapes identically through the current outline pipeline', { skip: SKIP ?? false }, async () => {
