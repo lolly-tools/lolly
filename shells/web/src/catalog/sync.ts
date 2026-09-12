@@ -17,7 +17,7 @@
  * indicator).
  */
 
-import { verifyAssetChecksum } from '../bridge/assets.ts';
+import { AssetChecksumError } from '../bridge/assets.ts';
 import { assertToolIndexIntegrity, getToolIntegrity } from './integrity.ts';
 import { currentLang, t } from '../i18n.ts';
 import { pinnedAssetIds, refreshPinnedToolFiles } from '../lib/offline-pins.ts';
@@ -27,11 +27,11 @@ import { pinnedAssetIds, refreshPinnedToolFiles } from '../lib/offline-pins.ts';
 // they are the only two edges to a ~7.9 KB module that also drags the upscale/matte
 // model tables along. Both call sites are async, so the import is invisible.
 const offlineManager = () => import('../lib/offline-manager.ts');
-import { initInstanceBase, instanceFetch, instancePath, usesBrowserCors } from '../lib/instance.ts';
+import { adoptBootFetch, initInstanceBase, instanceFetch, instancePath, usesBrowserCors } from '../lib/instance.ts';
 
 /** One resolvable file for a catalog asset (an entry in an asset's `formats`).
  *  Structurally matches the bridge's AssetFormat so it flows into
- *  verifyAssetChecksum unchanged. */
+ *  _ensureBlob unchanged. */
 interface AssetFormat {
   format: string;
   url: string;
@@ -136,6 +136,9 @@ interface SyncHost {
     _pruneStale(assets: AssetMetaRecord[], sessionRefs: Set<string>, keepIds?: Set<string>): Promise<{ blobs: number; meta: number }>;
     _hasBlob(key: string): Promise<boolean>;
     _cacheBlob(key: string, blob: Blob): Promise<unknown>;
+    /** Fetch-and-cache one format's bytes, sharing any download already in
+     *  flight for them; null when they are already on device. See prefetchAsset. */
+    _ensureBlob(meta: AssetMetaRecord, format: AssetFormat): Promise<Blob | null>;
   };
   state: { _getAssetRefs(): Promise<Set<string>> };
 }
@@ -323,16 +326,17 @@ let slimPromise: Promise<ToolIndex | null> | null = null;
  * cache. The file is served must-revalidate (vercel.json) and is small enough that
  * a revalidation round-trip is the whole cost.
  *
- * That is also the one reason index.html may preload THIS url and not the two
+ * That is also the one reason index.html may start THIS url early and not the two
  * conditional ones above: with no validator in play there is no 304 for an
- * unconditional hint to defeat. The preloaded response is still never ADOPTED by
- * this fetch (conditionalFetch's note has the mechanism) - what the hint buys is
- * a warm HTTP-cache entry, so the boot-time request below is answered by a
- * must-revalidate 304 off disk instead of an 18.9 KB gz download. It is worth
- * the round-trip only because the hint starts at HTML parse and this call starts
- * after the boot chunks execute; in the window where boot outruns the hint the
- * two requests are independent and the body is fetched twice, which is why the
- * inline script gates it to visitors with no cached index at all.
+ * unconditional early request to defeat. It starts the real fetch and parks the
+ * promise for adoptBootFetch (lib/instance.ts) to hand back here, so the request
+ * begins at HTML parse instead of after the boot chunks execute and the body is
+ * used rather than downloaded twice. It was a `<link rel="preload" as="fetch">`
+ * until 2026-09-12, and a preloaded response is never ADOPTED by this fetch
+ * (conditionalFetch's note has the mechanism) - all that hint bought was a warm
+ * HTTP-cache entry, and where the boot fetch outran the revalidation the whole
+ * 22.7 KB came down a second time. The gate is unchanged: only visitors with no
+ * cached index at all, since nobody else asks for this file.
  *
  * Resolves null - never throws - on anything unusual: an offline/failed fetch, a
  * deployment that predates the file, an empty index, or a build that pins a catalog
@@ -347,7 +351,12 @@ export function loadSlimToolIndex(): Promise<ToolIndex | null> {
       // same memoised promise, so this costs one shared IndexedDB read, not two.
       await initInstanceBase();
       if (await getToolIntegrity()) return null;
-      const resp = await instanceFetch(instancePath(`${CATALOG_BASE}/tools/index.slim.json`));
+      // index.html's pre-paint script already started this exact request on a cold
+      // visit (see its slim-index note): adopt that response rather than making a
+      // second one. Null when there is nothing to adopt - a repeat visitor, a
+      // release build with the script stripped, a remote instance or a loaded pack.
+      const slimPath = `${CATALOG_BASE}/tools/index.slim.json`;
+      const resp = await (adoptBootFetch(slimPath) ?? instanceFetch(instancePath(slimPath)));
       if (!resp.ok) return null;
       const index = await resp.json() as ToolIndex;
       if (!Array.isArray(index?.tools) || !index.tools.length) return null;
@@ -509,19 +518,21 @@ async function syncAssets(host: SyncHost): Promise<void> {
 async function prefetchAsset(host: SyncHost, meta: AssetMetaRecord, signal?: AbortSignal): Promise<void> {
   for (const fmt of meta.formats) {
     signal?.throwIfAborted();
-    const key = `${meta.id}:${fmt.format}:${meta.version}`;
-    if (await host.assets._hasBlob(key)) continue;
-    const resp = await instanceFetch(fmt.url, signal ? { signal } : undefined);
-    if (!resp.ok) continue;
-    const blob = await resp.blob();
+    // The asset bridge owns the fetch: it checks the cache, verifies the checksum,
+    // stores the blob, and - the reason this is not a fetch of its own any more -
+    // shares a download already in flight for the same bytes. A page reader that
+    // needs a core asset before this idle pass reaches it (bridge/tokens.ts and
+    // brand.json) used to make its own request, and the two overlapped.
     try {
-      await verifyAssetChecksum(blob, fmt);
+      await host.assets._ensureBlob(meta, fmt);
     } catch (e) {
-      // Corrupt/tampered bytes - skip caching rather than storing a bad blob.
+      // Corrupt/tampered bytes are worth saying out loud; skip caching rather than
+      // storing a bad blob. Anything else is a file we could not reach - on an
+      // offline boot that is every asset in the tier, so it rethrows to the
+      // allSettled above and stays out of the console, exactly as it did before.
+      if (!(e instanceof AssetChecksumError)) throw e;
       host.log('warn', `Skipping prefetch (checksum mismatch): ${fmt.url}`, { error: String(e) });
-      continue;
     }
-    await host.assets._cacheBlob(key, blob);
   }
 }
 

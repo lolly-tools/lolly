@@ -115,25 +115,34 @@
        those hints were aimed at is fixed by the slim index below, not by a hint that
        cannot speak this protocol.
 
-       The TOOLS index IS preloaded in its slim form (task 3.8), because that one url
-       is fetched unconditionally - no validator, so no 304 for the hint to defeat -
-       and served must-revalidate, so the warmed cache entry turns the boot fetch into
-       a 304 instead of an 18.9 KB gz download. Only for the visitors who will read it:
-       a repeat visitor paints from their cached copy and main.ts never fetches slim, so
-       a static preload would download a file they never use and log "preload not used"
-       for it. `in` rather than getItem: it answers from the key list without
-       materialising the half-megabyte value. (The one url this can still waste is the
-       first load after a switch to a remote instance - setInstanceBase clears
-       sbt-tool-index, and the base lives in IndexedDB where this script cannot read it,
-       so the hint fetches THIS origin's copy while the app fetches the instance's.) -->
+       The TOOLS index is started early in its slim form (task 3.8), because that one
+       url is fetched unconditionally - no validator, so no 304 for a hint to defeat.
+       It used to be a `<link rel="preload" as="fetch">`, and that hint hit the SAME
+       wall the two above do: the preload key never matched instanceFetch's request,
+       so the warmed HTTP-cache entry was the whole benefit and the body came down
+       twice whenever the app's fetch outran the revalidation (a plain unsigned build
+       served without must-revalidate re-downloaded all 22.7 KB of it; measured by
+       scripts/check-first-load.ts, 2026-09-12). So this starts the REAL fetch instead
+       and parks the promise where catalog/sync.ts's loadSlimToolIndex can adopt it:
+       one request, begun at HTML parse rather than after the boot chunks execute,
+       and its body actually used. Only for the visitors who will read it: a repeat
+       visitor paints from their cached copy and main.ts never asks for slim. `in`
+       rather than getItem: it answers from the key list without materialising the
+       half-megabyte value. Adoption is declined for a remote instance or a loaded
+       pack (the base lives in IndexedDB, which this script cannot read) - that
+       visitor pays this one request and sync.ts fetches the instance's own copy,
+       exactly as the old hint behaved. A key-pinned release never reaches slim at
+       all (catalog/integrity.ts), so vite.config.js's slimIndexWarm() strips this
+       whole script from such a build rather than fetching a file nothing reads. -->
   <script>
     (() => {
       try {
         if ('sbt-tool-index' in localStorage) return;   // cached index → main.ts never fetches slim
-        var l = document.createElement('link');
-        l.rel = 'preload'; l.as = 'fetch'; l.href = '/catalog/tools/index.slim.json';
-        document.head.appendChild(l);
-      } catch (e) { /* storage blocked - the fetch just starts at boot instead */ }
+        var u = '/catalog/tools/index.slim.json';
+        var p = fetch(u, { credentials: 'same-origin' });
+        p.catch(function () { /* offline - loadSlimToolIndex falls back to the full index */ });
+        (window.__lollyBootFetch = window.__lollyBootFetch || {})[u] = p;
+      } catch (e) { /* storage or fetch blocked - the fetch just starts at boot instead */ }
     })();
   </script>
   <link rel="stylesheet" href="/src/styles/app.css" />
