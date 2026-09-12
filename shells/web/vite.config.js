@@ -513,6 +513,39 @@ export function stripModelCandidates() {
   };
 }
 
+// Strip index.html's slim-index warm fetch from a build that pins a catalog signing
+// key. That script starts the /catalog/tools/index.slim.json request at HTML parse so
+// catalog/sync.ts can adopt it (see the note beside it in index.html) - but a key-pinned
+// release never reads the slim index at all: loadSlimToolIndex returns null the moment
+// getToolIntegrity() answers, because a slim index carries no signature of its own and a
+// verified build must not paint from unverified bytes. Left in, the script downloaded
+// 19 KB gz on every cold production load for a file nothing would read. Reads the env var
+// rather than VITE_CATALOG_TRUST_MODE because the var IS the pin catalog/integrity.ts
+// keys off; the two are cross-checked at the top of this file.
+//
+// Throws when it matches nothing, on the rule the brandChrome font strip learned the hard
+// way: a strip that silently no-ops ships the thing it was meant to remove.
+
+/** The warm script in index.html. Exported so src/boot-warm-fetch.test.ts can assert it
+ *  still matches the real file - the throw above is the wrong place to learn it does not. */
+export const SLIM_WARM_SCRIPT = /\n\s*<script>\s*\(\(\) => \{[\s\S]*?index\.slim\.json[\s\S]*?<\/script>/;
+
+function slimIndexWarm() {
+  const pinned = !!process.env.VITE_CATALOG_PUBLIC_KEY_JWK?.trim();
+  return {
+    name: 'lolly-slim-index-warm',
+    apply: 'build',
+    transformIndexHtml(html, ctx) {
+      if (!pinned || !(ctx?.path ?? '').endsWith('index.html')) return html;
+      const stripped = html.replace(SLIM_WARM_SCRIPT, '');
+      if (stripped === html) {
+        throw new Error('vite.config: slimIndexWarm found no warm script in index.html - has it been renamed or removed?');
+      }
+      return stripped;
+    },
+  };
+}
+
 // The `new URL('<name>.wasm', import.meta.url)` sites inside onnxruntime-web's
 // emscripten glue. Anchored on the `ort-wasm-` prefix, NOT on `.wasm`: the same
 // pattern in harfbuzzjs is what emits /assets/harfbuzz-*.wasm (390 KB, the shaper
@@ -627,7 +660,7 @@ export default defineConfig({
   // deterministic either way). fontPreloadUrls' position here is cosmetic - it
   // declares order:'post', so it runs after brandChrome() wherever it sits, and
   // ortWasmFromPublic's is too - it declares enforce:'pre'.
-  plugins: [serveRepoStatic(), brandChrome(), fontPreloadUrls(), ortWasmFromPublic(), stripModelCandidates(), precacheManifest()],
+  plugins: [serveRepoStatic(), brandChrome(), fontPreloadUrls(), slimIndexWarm(), ortWasmFromPublic(), stripModelCandidates(), precacheManifest()],
   // The Neurospicy player + video music-bed exporter render ZzFXM songs in a
   // module worker (src/lib/zzfxm-worker.ts, which ESM-imports the engine). Emit
   // it as an ES module so the import graph survives the build unchanged.
@@ -826,6 +859,21 @@ export default defineConfig({
             // 2026-09-11: -0.2 KB gz off the preload set, and the escaper keeps its
             // own file (primitive-guards.test.ts pins the implementation there).
             { name: 'web-utils', test: /shells\/web\/src\/(utils\.ts|lib\/util\/escape\.ts)$/, minSize: 0, minShareCount: 1 },
+            // EVERYTHING ELSE ON THE BOOT PATH, in one chunk. `$initial` is rolldown's
+            // built-in tag for "statically imported by an entry, or on its static
+            // dependency chain" - exactly the set dist/index.html modulepreloads. Left
+            // to default chunking that set came out as 96 files, ~50 of them under
+            // 600 B gz: one request, one preload link and one chunk preamble each, for
+            // a boot payload whose bytes are dominated by four chunks. The byte total
+            // is unchanged (the same modules, the same graph) but the browser opens two
+            // connections before first paint instead of 97, which is what
+            // scripts/check-first-load.ts counts and what no byte budget can see.
+            // LAST among the groups so every deliberate split above still wins: an
+            // engine leaf isolated up there stays isolated, and a chunk that is NOT on
+            // the boot path (engine-render, handlebars, ajv, the lazy views) is not
+            // `$initial`, so it can never be merged in here - the check-bundle-budget
+            // assertion that those never boot holds by construction.
+            { name: 'web-boot', tags: ['$initial'], minSize: 0, minShareCount: 1 },
           ],
         },
       },

@@ -89,7 +89,11 @@ interface TokensAssetMeta {
  *  read the SHIPPED brand's lock flag, which a user asset must not shadow. */
 interface TokensHost {
   assets: {
-    _getBlob(id: string): Promise<Blob | null>;
+    /** `fetchIfMissing` asks the asset bridge to fetch-and-cache a synced asset
+     *  whose blob is not on device yet, instead of answering null - see
+     *  readAssetDoc. Declared optional in shape (a stub may take one argument);
+     *  every real caller passes it. */
+    _getBlob(id: string, opts?: { fetchIfMissing?: boolean }): Promise<Blob | null>;
     _findMetaByType(type: string, opts?: { catalogOnly?: boolean }): Promise<TokensAssetMeta | null>;
   };
   /** Optional: the host log, used once per unreadable version (see forVersion).
@@ -608,10 +612,17 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
     // 1) The core-prefetched blob - present and offline-safe once boot sync ran.
     //    Read the bytes directly; minting/fetching an object URL just to re-parse
     //    in-memory JSON would pin an unused URL in the asset bridge's cache.
+    //    `fetchIfMissing`: on a COLD load this read runs before the idle core
+    //    prefetch, so the blob is not there yet. Letting the asset bridge fetch it
+    //    means the bytes are checksum-verified and stored under the key that
+    //    prefetch checks, so the prefetch skips the file instead of downloading it
+    //    again - the duplicate brand.json fetch scripts/check-first-load.ts caught
+    //    on 2026-09-12. Step 2 below stays for the case this cannot serve: an asset
+    //    whose metadata has not synced yet (nothing to fetch BY), or no IndexedDB.
     try {
-      const blob = await host.assets._getBlob(asset.id);
+      const blob = await host.assets._getBlob(asset.id, { fetchIfMissing: true });
       if (blob) return JSON.parse(await blob.text());
-    } catch { /* not cached yet - fall through to a direct fetch */ }
+    } catch { /* not cached, or the fetch/checksum failed - fall through */ }
     // 2) Direct fetch of the asset's file - first load, before the blob is cached.
     try {
       const url = asset.formats[0]?.url;

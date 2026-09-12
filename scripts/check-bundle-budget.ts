@@ -11,7 +11,7 @@
  * engine + handlebars + ajv back onto the critical path, and nothing would fail.
  *
  * This script re-derives the boot payload straight from the built
- * `dist/index.html` (the entry <script> + every <link rel="modulepreload">) and
+ * `dist/index.html` (every module <script> + every <link rel="modulepreload">) and
  * asserts two things:
  *   1. None of the deliberately-lazied heavy chunks appear on the boot path.
  *   2. The total GZIPPED size of the boot JS stays under a budget.
@@ -140,8 +140,13 @@ try {
   fail(`cannot read ${path.relative(root, indexHtml)} - run \`pnpm run build:web\` first`);
 }
 
-// Collect boot JS: the entry <script type="module" src> and every
+// Collect boot JS: every <script type="module" src> and every
 // <link rel="modulepreload" href>. Only same-origin /assets JS counts.
+//
+// EVERY script, plural, and a build may legitimately carry no preloads at all: since the
+// `web-boot` chunk group (shells/web/vite.config.js) put the whole boot graph in one chunk,
+// vite emits the handful of chunks that graph spans as ordered module scripts rather than
+// one entry plus 96 preload links. The sum below is the same set of bytes either way.
 const bootHrefs = new Set<string>();
 for (const m of html.matchAll(/<script[^>]*\bsrc=["']([^"']+)["']/gi)) {
   const src = m[1];
