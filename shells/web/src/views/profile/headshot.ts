@@ -36,9 +36,9 @@ export const paintHeadshot = (pv: ProfileViewCtx, url: string) => {
 export function wireDetailsOptIn(pv: ProfileViewCtx): void {
   const { viewEl } = pv;
   // Opt-in pill reflects the checkbox state (saved on form submit).
-  const useDetailsInput = viewEl.querySelector<HTMLInputElement>('[name="useDetails"]'); pv.useDetailsInput = useDetailsInput;
-  const optInTag = viewEl.querySelector('.profile-check-tag'); pv.optInTag = optInTag;
-  const optInText = viewEl.querySelector('.profile-check-text'); pv.optInText = optInText;
+  const useDetailsInput = viewEl.querySelector<HTMLInputElement>('[name="useDetails"]');
+  const optInTag = viewEl.querySelector('.profile-check-tag');
+  const optInText = viewEl.querySelector('.profile-check-text');
   useDetailsInput?.addEventListener('change', () => {
     const on = useDetailsInput!.checked;
     if (optInTag) optInTag.textContent = on ? t('Opted-in') : t('opt-in');

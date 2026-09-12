@@ -121,9 +121,9 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
   const hasShellUpdater = !!shellUpdater; pv.hasShellUpdater = hasShellUpdater;
   // The headshot is a user asset; re-resolve it (the stored object URL goes stale
   // across reloads).
-  const headshotRef = profile.headshot?.id ? await host.assets.get(profile.headshot!.id).catch(() => null) : null; pv.headshotRef = headshotRef;
+  const headshotRef = profile.headshot?.id ? await host.assets.get(profile.headshot!.id).catch(() => null) : null;
   pv.headshotUrl = headshotRef?.url || '';
-  const rawFocus = new URLSearchParams(params).get('focus'); pv.rawFocus = rawFocus;
+  const rawFocus = new URLSearchParams(params).get('focus');
   // 'sync-section' is kept as an alias: Sync across devices moved inside Connected
   // services, and links written before that (share links, docs, the sync-service
   // passphrase nudge, screenshot recipes) still name it.
@@ -281,7 +281,7 @@ export async function mountProfile(viewEl: HTMLElement, host: ProfileHost, param
   // 'image' glyph - deduped against catalog-summary.ts's "raster" and valid.ts's
   // ICONS.image (near-identical circle-radius/path-endpoint roundings of the same
   // Lucide "image" icon; component-audit rec 5).
-  const SESS_PLACEHOLDER_ICON = icon('image', { strokeWidth: 1.8 }); pv.SESS_PLACEHOLDER_ICON = SESS_PLACEHOLDER_ICON;
+  const SESS_PLACEHOLDER_ICON = icon('image', { strokeWidth: 1.8 });
   // What profile-storage-model.ts's row renderers read out of this mount.
   const sessRowCtx: SessionRowContext = { toolNameOf: pv.storage.toolNameOf, placeholderIcon: SESS_PLACEHOLDER_ICON }; pv.sessRowCtx = sessRowCtx;
 

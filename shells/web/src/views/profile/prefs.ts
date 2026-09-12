@@ -151,7 +151,7 @@ export function wireThemePick(pv: ProfileViewCtx): void {
   // applies the theme app-wide immediately (applyTheme mirrors to localStorage +
   // updates the PWA chrome colour) and persists it to the profile (canonical). The
   // active preview is flagged; a soft theme cue plays on switch.
-  const themePick = viewEl.querySelector<HTMLElement>('[data-theme-pick]'); pv.themePick = themePick;
+  const themePick = viewEl.querySelector<HTMLElement>('[data-theme-pick]');
   themePick?.addEventListener('click', async e => {
     const btn = (e.target as Element).closest<HTMLButtonElement>('[data-theme-set]');
     if (!btn) return;

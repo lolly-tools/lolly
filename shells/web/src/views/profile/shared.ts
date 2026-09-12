@@ -2,7 +2,9 @@
 /**
  * Module-level declarations of profile.ts that its feature modules use: the types,
  * constants and pure helpers that used to sit above mountProfile(). Moved here verbatim so
- * no feature module has to import the orchestrator file. The profile (settings) view: your details, the preference cards, storage and the offline manager.
+ * no feature module has to import the orchestrator file.
+ *
+ * The profile (settings) view: your details, the preference cards, storage and the offline manager.
  */
 import type { AssetRef, AssetsAPI, HostV1, Profile, ProfileAPI } from '@lolly-tools/core/host-v1';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';

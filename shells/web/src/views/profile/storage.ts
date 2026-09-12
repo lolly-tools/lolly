@@ -927,7 +927,7 @@ export async function loadStorage(pv: ProfileViewCtx) {
     importInput!.value = ''; // let the same file be re-picked later
     if (!file) return;
     showImportDialog(async () => {
-    const { fontsHost } = pv;
+      const { fontsHost } = pv;
       playSfx('vacuum');   // the data gets sucked in - the mirror of export's whoosh
       const bytes = await file.arrayBuffer();
       const summary = await importBackup({ host: host as unknown as Parameters<typeof importBackup>[0]['host'], storage: localStorage }, bytes);

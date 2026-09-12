@@ -403,7 +403,7 @@ export function wireFocusTarget(pv: ProfileViewCtx): void {
     ? viewEl.querySelector<HTMLElement>('.profile-check')
     : focusParam && NAV_SECTIONS.some(s => s.id === focusParam)
     ? viewEl.querySelector<HTMLElement>('#' + CSS.escape(focusParam))
-    : null; pv.sec = sec;
+    : null;
   if (sec) {
     if (sec instanceof HTMLDetailsElement) sec.open = true;
     requestAnimationFrame(() => {
