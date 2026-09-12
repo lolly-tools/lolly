@@ -27,9 +27,10 @@ pnpm install                  # install workspace deps
 # resolved at runtime by packages/node-shell/src/content-roots.ts (contentRoots(),
 # toolFile(), catalogFile()). No view is written to disk for dev/build/test; the
 # resolver answers "where does tool <id> live" and "where is the catalog" directly.
-# LOLLY_PROFILE picks a profile explicitly; otherwise it resolves the same way
-# `use-profile --auto` used to (default profile, else the first profile whose
-# packs are complete - lolly-start on a public clone).
+# LOLLY_PROFILE picks a profile explicitly (or --profile=<name> on a catalog
+# script); otherwise the resolver takes profiles.json's `default`, else the first
+# profile whose packs are all on disk - lolly-start on a public clone. There is
+# no global switch: a profile is a per-process answer.
 pnpm run profile              # print the resolved profile and its roots
 pnpm run ingest:brand <src> --name <brand> [--register|--activate]  # hydrate a brand pack from DTCG/Tokens-Studio/Penpot tokens (scripts/ingest-brand.ts)
 

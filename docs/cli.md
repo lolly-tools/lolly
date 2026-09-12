@@ -36,7 +36,7 @@ Tools and brand assets are content, not code, and a full set runs well past 100 
 LOLLY_ROOT=/path/to/lolly lolly list
 ```
 
-Any directory holding `tools/` and `catalog/` works; a checkout has both once `pnpm install` has built its profile views. The desktop app brings its own, so nothing needs pointing there. `lolly system import <pack.lolly>` is the third route, and it is a different thing: it imports **your design system** (colours, fonts, logos), which every render then uses, and it adds no tools, so it wants one of the other two beside it.
+Two kinds of directory work: a **checkout** of this repository, where the resolver reads `profiles.json` and the packs under `community/` and `brands/`, and a **materialized** root - a real `tools/` + `catalog/` pair, which is what a `dist/` build, an RPM payload or a container image carries. The desktop app brings its own, so nothing needs pointing there. `lolly system import <pack.lolly>` is the third route, and it is a different thing: it imports **your design system** (colours, fonts, logos), which every render then uses, and it adds no tools, so it wants one of the other two beside it.
 
 Run a command that needs content without any and the CLI prints those three routes and exits **3** (`UNAVAILABLE_HERE`), the retry-somewhere-else code. It never downloads anything on its own.
 
