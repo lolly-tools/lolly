@@ -18,8 +18,9 @@
 #   1. refuses if the parent has uncommitted tracked changes (park them first);
 #   2. for each old submodule, exports any commits you made locally that are not on
 #      its origin/main as patches under .migrate-patches/<path>/ (apply them later
-#      with `git am --directory=<path> .migrate-patches/<path>/*.patch`), and
-#      refuses if a submodule has uncommitted changes (commit or discard them first);
+#      with `git am --directory=<path> .migrate-patches/<path>/*.patch`), parks its
+#      untracked files, and refuses if it has modified tracked files (commit or
+#      discard them first);
 #   3. stops any process whose working directory is inside a submodule (a dev
 #      server keeps the directory busy; the deinit then fails half way);
 #   4. parks the gitignored heavy directories that live inside submodules so they
@@ -46,6 +47,7 @@ OLD_SUBMODULES=(community docs services/mcp services/ca shells/web shells/cli sh
 PARK=(shells/web/public/models shells/web/dist shells/web/public/info services/mcp/.browsers)
 PATCHES="$ROOT/.migrate-patches"
 PARKDIR="$ROOT/.migrate-park"
+mkdir -p "$PARKDIR"
 
 say() { printf '%s\n' "$*"; }
 do_or_show() { if [ "$YES" = 1 ]; then "$@"; else say "  would run: $*"; fi; }
@@ -72,8 +74,20 @@ say "== 2. local work inside the old submodules"
 mkdir -p "$PATCHES"
 for p in "${OLD_SUBMODULES[@]}"; do
   [ -f "$p/.git" ] || [ -d "$p/.git" ] || { say "  $p: not checked out, skip"; continue; }
-  if [ -n "$(git -C "$p" status --porcelain)" ]; then
-    say "  $p has UNCOMMITTED changes; commit them (git -C $p commit) or discard them, then rerun."; exit 1
+  if [ -n "$(git -C "$p" status --porcelain --untracked-files=no)" ]; then
+    say "  $p has MODIFIED tracked files; commit them (git -C $p commit) or discard them, then rerun."; exit 1
+  fi
+  # Untracked files (scratch notes, local build output the old .gitignore missed)
+  # would vanish with the submodule's working tree: park them, and say so.
+  untracked="$(git -C "$p" status --porcelain --untracked-files=all | awk '/^\?\? / { sub(/^\?\? /, ""); print }')"
+  if [ -n "$untracked" ]; then
+    say "  $p: untracked files parked under .migrate-park/untracked/$p/ (restored after the switch):"
+    printf '%s\n' "$untracked" | sed 's/^/      /' | head -20
+    while IFS= read -r f; do
+      [ -n "$f" ] || continue
+      do_or_show mkdir -p "$PARKDIR/untracked/$p/$(dirname "$f")"
+      do_or_show cp -a "$p/$f" "$PARKDIR/untracked/$p/$f"
+    done <<< "$untracked"
   fi
   git -C "$p" fetch -q origin main 2>/dev/null || true
   n=$(git -C "$p" rev-list --count origin/main..HEAD 2>/dev/null || echo 0)
@@ -132,6 +146,11 @@ for d in "${PARK[@]}"; do
     do_or_show mv "$PARKDIR/$d" "$d"
   fi
 done
+if [ -d "$PARKDIR/untracked" ]; then
+  say "  restoring parked untracked files"
+  do_or_show rsync -a "$PARKDIR/untracked/" "$ROOT/"
+  do_or_show rm -rf "$PARKDIR/untracked"
+fi
 [ "$YES" = 1 ] && rmdir "$PARKDIR" 2>/dev/null || true
 do_or_show pnpm install --frozen-lockfile
 do_or_show pnpm run --silent profile
