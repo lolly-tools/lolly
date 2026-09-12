@@ -1292,6 +1292,15 @@ html[data-a11y-previews="hidden"] .gallery .ftile-iconfill svg { max-width: 52px
 .gcar-next { right: 6px; }
 .gcar:hover .gcar-nav, .gcar:focus-within .gcar-nav { opacity: .92; }
 .gcar-nav:hover { background: rgba(0, 0, 0, .62); }
+/* Fewer than two looks have landed, so there is nowhere to step: the arrow is still
+   THERE (the affordance a cold tile needs) but dimmed, unlit on hover and inert - the
+   click handler refuses to move too (views/gallery-carousel.ts). It becomes a live
+   control the moment a second look decodes. `data-nav-inert` rather than
+   `aria-disabled`, because these arrows are aria-hidden: the state is a paint, and a
+   screen reader is never offered the control in the first place. */
+.gcar:hover .gcar-nav[data-nav-inert], .gcar:focus-within .gcar-nav[data-nav-inert] { opacity: .42; }
+.gcar-nav[data-nav-inert] { cursor: default; }
+.gcar-nav[data-nav-inert]:hover { background: rgba(0, 0, 0, .42); }
 @media (hover: none) { .gcar-nav { display: none; } }
 
 /* Dot position indicator - bottom-centre, above the art. */
@@ -1319,6 +1328,32 @@ html[data-a11y-previews="hidden"] .gallery .ftile-iconfill svg { max-width: 52px
   transition: background var(--dur-1), transform var(--dur-1);
 }
 .gcar-dot.is-active { background: #fff; transform: scale(1.25); }
+/* A look that has no art yet (data-look-pending) or never got any (data-failed).
+   Smaller and dimmed, with a foreground hairline so the dot reads against the skeleton
+   pane a pending look sits on - white-on-near-white was why a cold strip looked like it
+   had no dots at all. Not a spinner: the row filling in IS the progress (plans/246).
+   Listed after .is-active so the pending look wins on the first dot, which is active
+   from the first paint; the active dot keeps its full size below so "you are here"
+   survives. Both states are out of the hit test - a jump there would park the strip on
+   an empty pane. */
+.gcar-dot[data-look-pending],
+.gcar-dot[data-failed] {
+  background: rgba(255, 255, 255, .3);
+  /* The hairline is an outline rather than a second shadow layer - the dot's existing
+     shadow is a chrome literal the R12 ratchet holds at its current count, and an
+     outline follows the pill radius just the same. */
+  outline: 1px solid hsl(var(--foreground) / .28);
+  transform: scale(.72);
+  pointer-events: none;
+}
+.gcar-dot.is-active[data-look-pending],
+.gcar-dot.is-active[data-failed] { transform: scale(1); }
+/* The one bit of motion: a pending dot breathes, so a filling strip reads as working
+   rather than broken. base.css's reduced-motion blocks (OS query and the app pref
+   alike) stop it dead, leaving the static dim dot above - and a docs capture pins
+   reduced motion, so a baseline is never mid-pulse. */
+.gcar-dot[data-look-pending] { animation: gcar-dot-wait 1.6s ease-in-out infinite; }
+@keyframes gcar-dot-wait { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 /* Touch: a 6px dot is too small to reliably tap. Grow the TAP AREA only, via a
    ::after - the dot itself never changes size (padding here would also drag its
    box-shadow out to the bigger box and read as a bigger dot). */

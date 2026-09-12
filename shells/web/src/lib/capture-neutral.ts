@@ -69,6 +69,42 @@ export function applyCaptureNeutral(): boolean {
 /** Attribute a settled view carries, as a `waitSelector=` recipe would name it. */
 export const CAPTURE_SETTLED_ATTR = 'data-shots-settled';
 
+/** Attribute a look carries while it is still rendering - a gallery strip's dot whose
+ *  look has not arrived yet (views/gallery-carousel.ts). Gallery-specific on purpose:
+ *  a bare `data-pending` is a name a tool template already uses for its own business,
+ *  and the settle below must only ever wait for looks. */
+export const LOOK_PENDING_ATTR = 'data-look-pending';
+
+/** What the settle stamps onto, and what it needs from it. */
+type SettleRoot = ParentNode & Node & { setAttribute(name: string, value: string): void };
+
+/**
+ * Resolve once no look under `root` is still rendering.
+ *
+ * The stop point is the looks themselves, never a duration: a look clears its attribute
+ * in the very `load`/`error` handler its image fires (views/gallery.ts's renderSlide),
+ * and the render's own catch clears it when no image ever arrives - so every look ends
+ * in a state, and a MutationObserver over that attribute sees each one land. The count
+ * reaching zero is the signal. A guessed budget would be back where this started: a
+ * frame called final while half the grid was still blank.
+ *
+ * Resolves immediately when nothing is pending, which is every page but the gallery.
+ * `childList` is watched as well as the attribute, because the last pending dot can
+ * also leave by being removed (a strip rebuilt as a static deck).
+ */
+function looksFinished(root: SettleRoot): Promise<void> {
+  const pending = (): number => root.querySelectorAll(`[${LOOK_PENDING_ATTR}]`).length;
+  if (!pending()) return Promise.resolve();
+  return new Promise<void>((resolve) => {
+    const observer = new MutationObserver(() => {
+      if (pending()) return;
+      observer.disconnect();
+      resolve();
+    });
+    observer.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: [LOOK_PENDING_ATTR] });
+  });
+}
+
 /**
  * Stamp `data-shots-settled` on `root` once every image under it has finished loading,
  * so a capture recipe can block on the frame being FINAL rather than guess with `waitMs`.
@@ -85,8 +121,15 @@ export const CAPTURE_SETTLED_ATTR = 'data-shots-settled';
  * and `waitSelector` would time out. Forcing them makes the wait terminate AND makes the
  * set of decoded images the same every run. Errors resolve like loads - a broken preview
  * must not stall a capture, and it is equally broken in every run.
+ *
+ * The second half of "final" is content that has not been REQUESTED yet. A gallery
+ * strip's looks render one at a time (views/gallery.ts's preview queue), and an `<img>`
+ * with no `src` reports `complete` - so the image wait above passes straight over a look
+ * whose render has not started. `looksFinished` is the other half: no frame is final
+ * while a look is still coming. Under the pin nothing parks, so every look reaches a
+ * state (views/gallery.ts's previewPriority).
  */
-export function settleForCapture(root: ParentNode & { setAttribute(n: string, v: string): void }): void {
+export function settleForCapture(root: SettleRoot): void {
   if (!captureNeutralPinned()) return;
   void (async () => {
     // Repeat until the image set STOPS GROWING. One pass is not enough: the gallery
@@ -109,12 +152,16 @@ export function settleForCapture(root: ParentNode & { setAttribute(n: string, v:
       // decode() turns "bytes arrived" into "pixels ready"; a rejection (a broken
       // image) is as final as a success, so it settles rather than throws.
       await Promise.all(imgs.map((im) => im.decode?.().catch(() => undefined)));
+      await looksFinished(root);
       // Let any observer fire against the now-settled layout, then re-count.
       await new Promise<void>((res) => setTimeout(res, 150));
       const now = root.querySelectorAll('*').length;
       stable = now === prev ? stable + 1 : 0;
       prev = now;
     }
+    // The stamp says FINAL, so the looks get the last word: a strip that hydrated in
+    // the final round has to finish before the frame is handed to the walker.
+    await looksFinished(root);
     root.setAttribute(CAPTURE_SETTLED_ATTR, 'true');
   })();
 }

@@ -63,11 +63,11 @@
       "typeEscapes": 89
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 1965,
-      "largestFunctionLines": 1880,
+      "lines": 1908,
+      "largestFunctionLines": 1815,
       "importFanIn": 1,
-      "importFanOut": 55,
-      "typeEscapes": 34
+      "importFanOut": 56,
+      "typeEscapes": 32
     },
     "shells/web/src/views/picker.ts": {
       "lines": 2631,
@@ -677,7 +677,7 @@
     "shells/web/src/views/free-canvas/text-edit.ts": 16,
     "shells/web/src/views/free-canvas/timeline.ts": 1,
     "shells/web/src/views/free-canvas/toolbox.ts": 2,
-    "shells/web/src/views/gallery.ts": 34,
+    "shells/web/src/views/gallery.ts": 32,
     "shells/web/src/views/inputs-sync.ts": 3,
     "shells/web/src/views/lottie-mount.ts": 6,
     "shells/web/src/views/matte-dialog.ts": 1,
