@@ -55,3 +55,12 @@ commits = [
   "f9638ec6a3ba1c0d8170307db871544cb36c6a65",
   "6d7aa4a393321fb35c78312f2e0dd17bb7360e87",
 ]
+
+[[allowlists]]
+description = "The prepare/redact text test carries an inert token-shaped fixture so the redactor has something to find"
+condition = "AND"
+targetRules = ["aws-access-token"]
+paths = ['''^tests/prepare-text\.test\.ts$''']
+commits = [
+  "02a16b8ba7aed1b4c8c112d1b95d54d7d675f4b0",
+]
