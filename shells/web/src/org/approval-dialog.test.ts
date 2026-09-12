@@ -5,7 +5,7 @@
  * Pure helpers (filterApprovers / buildApprovalBody / subjectRefFor) are exercised
  * DOM-free. The dialog itself is driven under jsdom the way index.test.ts drives the
  * gate: a reassignable fetch router backs GET approvers + POST approvals, and the
- * open → fetch → render → filter → submit path is asserted end to end. jsdom 25 has
+ * open → fetch → render → filter → submit path is asserted end to end. jsdom has
  * no <dialog>.showModal, so the native-dialog primitive is shimmed minimally (open
  * flag + close), exactly the surface components/modal.ts touches.
  *
@@ -56,7 +56,7 @@ globalThis.document = dom.window.document;
 globalThis.location = dom.window.location as unknown as Location;
 globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => { setTimeout(() => cb(0), 0); return 0; }) as unknown as typeof requestAnimationFrame;
 
-// jsdom 25 has no dialog showModal/close - shim the surface mountModal uses.
+// jsdom has no dialog showModal/close - shim the surface mountModal uses.
 const Dlg = dom.window.HTMLDialogElement.prototype as unknown as { showModal(): void; close(): void };
 Dlg.showModal = function (this: HTMLDialogElement) { this.setAttribute('open', ''); };
 Dlg.close = function (this: HTMLDialogElement) { this.removeAttribute('open'); };

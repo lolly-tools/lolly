@@ -82,9 +82,15 @@ function clampN(v: unknown, dflt: number, lo: number, hi: number): number {
   return n < lo ? lo : (n > hi ? hi : n);
 }
 
-/** `CSS.escape` where the browser has it, else a minimal attribute-selector escape. */
+/**
+ * `CSS.escape` where the host has it, else a minimal attribute-selector escape.
+ * Read off `window`, never the bare global: a test that injects a jsdom window
+ * copies a named list of globals over, and `CSS` is rarely on it, so testing
+ * `window.CSS` and then calling bare `CSS.escape` throws a ReferenceError.
+ */
 function cssEscape(s: unknown): string {
-  return (typeof window !== 'undefined' && window.CSS && CSS.escape) ? CSS.escape(String(s)) : String(s).replace(/["\\]/g, '\\$&');
+  const css = typeof window !== 'undefined' ? window.CSS : undefined;
+  return typeof css?.escape === 'function' ? css.escape(String(s)) : String(s).replace(/["\\]/g, '\\$&');
 }
 
 // ── segmented controls ────────────────────────────────────────────────────────

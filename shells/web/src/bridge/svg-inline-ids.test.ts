@@ -14,6 +14,8 @@ import { JSDOM } from 'jsdom';
 
 import { namespaceInlinedSvgIds } from './svg-inline-ids.ts';
 
+const XLINK = 'http://www.w3.org/1999/xlink';
+
 const parse = (xml: string): Element => {
   const dom = new JSDOM(xml, { contentType: 'image/svg+xml' });
   return dom.window.document.documentElement;
@@ -33,8 +35,16 @@ test('ids and url()/href references are rewritten together', () => {
   const p = clip.getAttribute('id')!.slice(0, clip.getAttribute('id')!.indexOf('-') + 1);
   assert.equal(svg.querySelector('g')!.getAttribute('clip-path'), `url(#${p}fcovclip-1)`);
   assert.equal(svg.querySelector('rect[fill]')!.getAttribute('fill'), `url('#${p}grad')`);
-  assert.equal(svg.querySelector('use[href]')!.getAttribute('href'), `#${p}fcovclip-1`);
-  assert.equal(svg.querySelector('use[*|href]:not([href])')!.getAttribute('xlink:href'), `#${p}grad`);
+  // Pick the two <use> elements by the attribute NAMESPACE rather than by a
+  // selector: jsdom's selector engine (nwsapi up to 26, @asamuzakjp/dom-selector
+  // from 27) disagrees about whether a prefix-less `[href]` may match an
+  // `xlink:href`, so `use[*|href]:not([href])` picks out a different element on
+  // each. hasAttributeNS/getAttributeNS say exactly what is meant.
+  const uses = [...svg.querySelectorAll('use')];
+  const plain = uses.find((u) => u.hasAttribute('href') && !u.hasAttributeNS(XLINK, 'href'))!;
+  const prefixed = uses.find((u) => u.hasAttributeNS(XLINK, 'href'))!;
+  assert.equal(plain.getAttribute('href'), `#${p}fcovclip-1`);
+  assert.equal(prefixed.getAttributeNS(XLINK, 'href'), `#${p}grad`);
 });
 
 test('two different sources get different prefixes; the same source is stable', () => {

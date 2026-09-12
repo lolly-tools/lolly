@@ -15,7 +15,7 @@ const dom = new JSDOM('<!doctype html><html><body></body></html>', { pretendToBe
 globalThis.window = dom.window as unknown as typeof globalThis.window;
 globalThis.document = dom.window.document;
 globalThis.HTMLElement = dom.window.HTMLElement;
-// jsdom 25 ships no showModal/close on <dialog> - stub them to the minimum mountModal needs
+// jsdom ships no showModal/close on <dialog> - stub them to the minimum mountModal needs
 // (an `open` attribute it toggles, then removes the node on close).
 const Dlg = dom.window.HTMLDialogElement.prototype as unknown as { showModal(): void; close(): void };
 Dlg.showModal = function (this: HTMLElement) { this.setAttribute('open', ''); };
