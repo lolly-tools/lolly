@@ -481,7 +481,7 @@ test('openTemplateChooser: the tile itself still picks the template BASE when ch
 globalThis.Element = dom.window.Element;
 globalThis.Node = dom.window.Node;
 
-// jsdom 25 has no <dialog> showModal/close, and Rename / Delete go through the app's
+// jsdom has no <dialog> showModal/close, and Rename / Delete go through the app's
 // shared modal (components/modal.ts). Shim the two methods so the real dialog code
 // runs here rather than being mocked away.
 const dialogProto = dom.window.HTMLDialogElement.prototype as unknown as {
