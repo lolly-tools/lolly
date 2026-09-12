@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:edb68cc7-374c-49ee-80a1-ec29cff7d969",
+  "serialNumber": "urn:uuid:81675b25-a0a0-41c6-854b-6d93944e992f",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-12T01:32:23.554Z",
+    "timestamp": "2026-09-12T03:14:17.949Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -11451,10 +11451,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/serde_core@1.0.228",
+      "bom-ref": "pkg:cargo/serde_core@1.0.229",
       "name": "serde_core",
-      "version": "1.0.228",
-      "purl": "pkg:cargo/serde_core@1.0.228",
+      "version": "1.0.229",
+      "purl": "pkg:cargo/serde_core@1.0.229",
       "scope": "required",
       "licenses": [
         {
@@ -11464,7 +11464,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "41d385c7d4ca58e59fc732af25c3983b67ac852c1a25000afe1175de458b67ad"
+          "content": "67dca2c9c51e58a4791a4b1ed58308b39c64224d349a935ab5039aa360942a48"
         }
       ],
       "properties": [
@@ -11501,10 +11501,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/serde_derive@1.0.228",
+      "bom-ref": "pkg:cargo/serde_derive@1.0.229",
       "name": "serde_derive",
-      "version": "1.0.228",
-      "purl": "pkg:cargo/serde_derive@1.0.228",
+      "version": "1.0.229",
+      "purl": "pkg:cargo/serde_derive@1.0.229",
       "scope": "required",
       "licenses": [
         {
@@ -11514,7 +11514,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "d540f220d3187173da220f885ab66608367b6574e925011a9353e4badda91d79"
+          "content": "e7a5d71263a5a7d47b41f6b3f06ba276f10cc18b0931f1799f710578e2309348"
         }
       ],
       "properties": [
@@ -11526,10 +11526,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/serde_json@1.0.150",
+      "bom-ref": "pkg:cargo/serde_json@1.0.151",
       "name": "serde_json",
-      "version": "1.0.150",
-      "purl": "pkg:cargo/serde_json@1.0.150",
+      "version": "1.0.151",
+      "purl": "pkg:cargo/serde_json@1.0.151",
       "scope": "required",
       "licenses": [
         {
@@ -11539,7 +11539,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e8014e44b4736ed0538adeecded0fce2a272f22dc9578a7eb6b2d9993c74cfb9"
+          "content": "c841b55ecdae098c80dcae9cf767f6f8a0c2cdb3416bbef72181df4d0fe73f14"
         }
       ],
       "properties": [
@@ -11726,10 +11726,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/serde@1.0.228",
+      "bom-ref": "pkg:cargo/serde@1.0.229",
       "name": "serde",
-      "version": "1.0.228",
-      "purl": "pkg:cargo/serde@1.0.228",
+      "version": "1.0.229",
+      "purl": "pkg:cargo/serde@1.0.229",
       "scope": "required",
       "licenses": [
         {
@@ -11739,7 +11739,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9a8e94ea7f378bd32cbbd37198a4a91436180c5bb472411e48b5ec2e2124ae9e"
+          "content": "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba"
         }
       ],
       "properties": [
@@ -12642,6 +12642,31 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/syn@3.0.5",
+      "name": "syn",
+      "version": "3.0.5",
+      "purl": "pkg:cargo/syn@3.0.5",
+      "scope": "required",
+      "licenses": [
+        {
+          "expression": "MIT OR Apache-2.0"
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "12df2e0110f65b775f769bb17ef989067a1d931b2eb822bd4346631eeada89f9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/sync_wrapper@1.0.2",
       "name": "sync_wrapper",
       "version": "1.0.2",
@@ -13073,10 +13098,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/tauri-plugin-fs@2.5.1",
+      "bom-ref": "pkg:cargo/tauri-plugin-fs@2.5.2",
       "name": "tauri-plugin-fs",
-      "version": "2.5.1",
-      "purl": "pkg:cargo/tauri-plugin-fs@2.5.1",
+      "version": "2.5.2",
+      "purl": "pkg:cargo/tauri-plugin-fs@2.5.2",
       "scope": "required",
       "licenses": [
         {
@@ -13086,7 +13111,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b7ecc274121aca0c036a2b42d1cbe83d368d348f54e0bb8a735c2b1548e8f371"
+          "content": "de22eef34fd78c0da050e748710edd50bf127e651d02ea1b2bfada1523cc5c51"
         }
       ],
       "properties": [
