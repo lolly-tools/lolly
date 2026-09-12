@@ -22,6 +22,14 @@ allowBuilds:
   fsevents: true
   core-js: false
   protobufjs: false
+  # The inspector's postinstall (scripts/install-clients.mjs) cascades `npm install`
+  # into its own clients/* directories, which only exist in a from-source checkout of
+  # that repo. As a dependency it is a guaranteed no-op twice over: it exits early when
+  # its own path contains node_modules, and the published tarball ships each client's
+  # build output without a package.json for the loop to find. So there is nothing to
+  # run, and denying it keeps a postinstall that shells out to npm from ever being
+  # authorised here if a later release loses one of those guards.
+  '@modelcontextprotocol/inspector': false
 overrides:
   'adm-zip': '^0.6.0'
   'shell-quote': '^1.9.0'
@@ -31,8 +39,10 @@ overrides:
   # to the root and nests every other version, and React breaks with "Invalid hook call" the
   # moment a renderer and the components it renders resolve two different copies. The TUI is
   # on React 19 (ink 7 needs it); the only other React in the tree is the dev-only MCP
-  # inspector, whose UI packages all declare react ^18 || ^19. Without this, the inspector's
-  # React 18 wins the root slot and both ink and shells/tui get their own nested React 19.
+  # inspector, which asks for react ^19 as well. Pinning one version keeps that agreement
+  # from resting on what each range happens to allow, and `ink-testing-library`, which the
+  # TUI tests render through, declares no react dependency at all: it takes whichever copy
+  # sits at the root, so a second React anywhere in the tree renders every frame empty.
   'react': '^19.2.8'
   'react-dom': '^19.2.8'
   '@huggingface/transformers>sharp': '$sharp'

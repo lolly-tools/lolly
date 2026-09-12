@@ -23,7 +23,7 @@
   "dependencies": {
     "@lolly/engine": "workspace:*",
     "@resvg/resvg-js": "^2.6.2",
-    "jsdom": "^25.0.1",
+    "jsdom": "^30.0.1",
     "@lolly-tools/core": "workspace:*",
     "@lolly-tools/node-shell": "workspace:*"
   },
@@ -31,6 +31,6 @@
     "playwright-core": "^1.49.0"
   },
   "devDependencies": {
-    "@modelcontextprotocol/inspector": "^0.22.0"
+    "@modelcontextprotocol/inspector": "^2.5.0"
   }
 }

@@ -44,7 +44,7 @@ registerHooks({
 } as Parameters<typeof registerHooks>[0]);
 
 const dom = new JSDOM('<!DOCTYPE html><body></body>', { url: 'https://example.test/' });
-// jsdom 25 has no matchMedia, and the shutter asks two questions through it.
+// jsdom has no matchMedia, and the shutter asks two questions through it.
 // Reduced motion is answered YES: the iris then jumps to its end state instead of
 // tweening, which keeps every close deterministic (and is a real user config).
 // `narrow` is the <=640px / fullscreen switch, flipped by the mobile test below.

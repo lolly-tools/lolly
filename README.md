@@ -115,7 +115,7 @@ git clone https://github.com/lolly-tools/lolly.git && cd lolly && ./setup.sh
 Prefer to do it by hand? It's a plain clone:
 
 ```bash
-# Prerequisite: Node >=22.18 or >=24 (see .nvmrc). Older Node fails pnpm install -
+# Prerequisite: Node >=22.22 or >=24.15 (see .nvmrc; jsdom 30 sets the floor). Older Node fails pnpm install -
 # the scripts run TypeScript directly via native type-stripping. INSTALL.md has the table.
 git clone https://github.com/lolly-tools/lolly.git
 cd lolly

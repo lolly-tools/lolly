@@ -46,7 +46,7 @@ globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
   return 0;
 }) as unknown as typeof requestAnimationFrame;
 
-// jsdom 25 has no <dialog> showModal/close - shim exactly the surface mountModal uses.
+// jsdom has no <dialog> showModal/close - shim exactly the surface mountModal uses.
 const DialogProto = dom.window.HTMLDialogElement.prototype as unknown as { showModal(): void; close(): void };
 DialogProto.showModal = function (this: HTMLDialogElement) { this.setAttribute('open', ''); };
 DialogProto.close = function (this: HTMLDialogElement) { this.removeAttribute('open'); };

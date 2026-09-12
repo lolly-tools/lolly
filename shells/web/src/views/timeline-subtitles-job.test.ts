@@ -45,7 +45,7 @@ for (const k of ['window', 'document', 'HTMLElement', 'HTMLVideoElement', 'Eleme
 }
 globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => dom.window.requestAnimationFrame(cb)) as typeof requestAnimationFrame;
 globalThis.cancelAnimationFrame = ((h: number) => dom.window.cancelAnimationFrame(h)) as typeof cancelAnimationFrame;
-// jsdom 25 ships no showModal/close on <dialog> - the minimum mountModal needs.
+// jsdom ships no showModal/close on <dialog> - the minimum mountModal needs.
 const Dlg = dom.window.HTMLDialogElement.prototype as unknown as { showModal(): void; close(): void };
 Dlg.showModal = function (this: HTMLElement) { this.setAttribute('open', ''); };
 Dlg.close = function (this: HTMLElement) { this.removeAttribute('open'); };

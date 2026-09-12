@@ -180,8 +180,11 @@ test('a wide-gamut seed is described unclamped, and the clamp is disclosed', asy
   const altCodes = [...view.querySelectorAll('[data-lab-sw-alts] code')].map(c => (c.textContent ?? '').trim());
   assert.ok(altCodes.some(c => c === 'color(display-p3 1 0 0)'), `authored form listed: ${altCodes}`);
   // The swatch asks the browser for the REAL colour, with the hex only as the
-  // CSS fallback underneath it.
-  assert.equal($('[data-lab-swatch]')!.style.background, 'color(display-p3 1 0 0)');
+  // CSS fallback underneath it. Read the longhand, not the `background`
+  // shorthand: paintSwatchHdr clears `background-image` right afterwards, and a
+  // shorthand whose longhands are no longer all present serialises to the empty
+  // string (jsdom 30 does this, as browsers do; jsdom 25 kept echoing the value).
+  assert.equal($('[data-lab-swatch]')!.style.backgroundColor, 'color(display-p3 1 0 0)');
 });
 
 test('the picker is handed the authored colour, not its sRGB restatement', async () => {

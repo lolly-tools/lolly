@@ -86,13 +86,13 @@ for (const k of [
 }
 globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) =>
   dom.window.requestAnimationFrame(cb)) as typeof requestAnimationFrame;
-// jsdom 25's Blob has no arrayBuffer(), and the line above puts that Blob on the
-// global. Any export path that reads bytes back out of a finished blob therefore
-// threw, and the download handler's catch swallowed it: the multi-page fan-out
-// zipped nothing, printed "Export failed: f.blob.arrayBuffer is not a function",
-// and the tests around it still passed. Give the jsdom Blob the reader the
-// platform has (through jsdom's own FileReader) so the fan-out is exercised
-// rather than silently failing inside a green suite.
+// jsdom ships Blob.arrayBuffer() from 26 on, but did not before, and the line
+// above puts the jsdom Blob on the global. Without it any export path that reads
+// bytes back out of a finished blob threw, and the download handler's catch
+// swallowed it: the multi-page fan-out zipped nothing, printed "Export failed:
+// f.blob.arrayBuffer is not a function", and the tests around it still passed.
+// The fill-in below is conditional, so on a jsdom that has the reader it is a
+// no-op and the fan-out runs against the platform's own.
 {
   const proto = dom.window.Blob.prototype as unknown as {
     arrayBuffer?: () => Promise<ArrayBuffer>;

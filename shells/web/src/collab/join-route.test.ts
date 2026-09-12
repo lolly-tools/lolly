@@ -47,7 +47,7 @@ globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
 // is either the real thing or absent - and every test that wants one injects a fake.
 delete (globalThis as { BroadcastChannel?: unknown }).BroadcastChannel;
 
-// jsdom 25 has no <dialog> showModal/close - shim exactly the surface mountModal uses.
+// jsdom has no <dialog> showModal/close - shim exactly the surface mountModal uses.
 const DialogProto = dom.window.HTMLDialogElement.prototype as unknown as { showModal(): void; close(): void };
 DialogProto.showModal = function (this: HTMLDialogElement) { this.setAttribute('open', ''); };
 DialogProto.close = function (this: HTMLDialogElement) { this.removeAttribute('open'); };

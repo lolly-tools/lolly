@@ -35,7 +35,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ```
 
-### ajv 6.15.0
+### ajv 8.20.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2015-2021 Evgeny Poberezkin
@@ -2608,7 +2608,7 @@ way to do this is to:
 
 ## CLI
 
-### jsdom 25.0.1
+### jsdom 30.0.1
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) 2010 Elijah Insua
