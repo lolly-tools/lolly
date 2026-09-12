@@ -9,8 +9,10 @@
 # submodule. A plain `git pull` on an old checkout stops with "directory not empty"
 # because the old submodule working trees sit where the new directories go.
 #
-#   scripts/migrate-checkout.sh          # dry run: prints what it would do
-#   scripts/migrate-checkout.sh --yes    # do it
+#   git fetch origin main
+#   git show origin/main:scripts/migrate-checkout.sh > /tmp/migrate-checkout.sh
+#   bash /tmp/migrate-checkout.sh          # dry run: prints what it would do
+#   bash /tmp/migrate-checkout.sh --yes    # do it
 #
 # What it does, in order:
 #   1. refuses if the parent has uncommitted tracked changes (park them first);
@@ -32,7 +34,10 @@
 # brands/suse is untouched: it stays a submodule, mounted or not, exactly as before.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# Run from anywhere inside the checkout: an old checkout cannot pull this file yet,
+# so INSTALL.md has you fetch it from origin/main into /tmp and run it from there.
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+[ -n "$ROOT" ] && [ -f "$ROOT/profiles.json" ] || { echo "Run this from inside your lolly checkout."; exit 1; }
 cd "$ROOT"
 YES=0
 [ "${1:-}" = "--yes" ] && YES=1
