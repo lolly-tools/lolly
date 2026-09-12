@@ -50,6 +50,7 @@ on:
       - 'security/cargo-licenses.json'
       - 'community/*/lib/*.min.js'
       - 'scripts/build-sbom.ts'
+      - 'scripts/build-licenses.ts'
       - 'scripts/lib/pnpm-lock.ts'
       - '.github/workflows/sbom-refresh.yml'
   workflow_dispatch:
@@ -70,7 +71,7 @@ env:
 
 jobs:
   refresh:
-    name: regenerate sbom.cdx.json
+    name: regenerate sbom.cdx.json and the third-party notices
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -107,12 +108,13 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           for attempt in 1 2 3; do
             pnpm run build:sbom || exit 1
-            if git diff --quiet -- sbom.cdx.json; then
-              echo "sbom.cdx.json already matches the dependency graph - nothing to commit."
+            pnpm run build:licenses || exit 1
+            if git diff --quiet -- sbom.cdx.json THIRD-PARTY-NOTICES.md shells/web/public/THIRD-PARTY-LICENSES.txt; then
+              echo "sbom.cdx.json and the third-party notices already match the dependency graph - nothing to commit."
               exit 0
             fi
-            git --no-pager diff --stat -- sbom.cdx.json
-            git add sbom.cdx.json
+            git --no-pager diff --stat -- sbom.cdx.json THIRD-PARTY-NOTICES.md shells/web/public/THIRD-PARTY-LICENSES.txt
+            git add sbom.cdx.json THIRD-PARTY-NOTICES.md shells/web/public/THIRD-PARTY-LICENSES.txt
             git commit --file=- <<'MSG' || exit 1
           SBOM: regenerate after a dependency change landed on main
 
@@ -122,12 +124,12 @@ jobs:
           keeps the audit job's drift gate meaningful for the next PR.
           MSG
             if git push origin HEAD:main; then
-              echo "Committed a refreshed sbom.cdx.json to main (attempt ${attempt})."
+              echo "Committed refreshed SBOM and notices to main (attempt ${attempt})."
               exit 0
             fi
             echo "::notice::main moved under us; rebuilding on the new tip (attempt ${attempt})."
             git fetch origin main
             git reset --hard origin/main
           done
-          echo "::error title=SBOM refresh could not push::main kept moving; run pnpm run build:sbom and commit sbom.cdx.json by hand."
+          echo "::error title=SBOM refresh could not push::main kept moving; run pnpm run build:sbom and pnpm run build:licenses and commit the results by hand."
           exit 1
