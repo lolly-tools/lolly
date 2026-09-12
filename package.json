@@ -142,7 +142,7 @@
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
-    "playwright-core": "^1.62.1"
+    "playwright-core": "^1.63.0"
   },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.124.0",
