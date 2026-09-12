@@ -45,8 +45,14 @@ PARKDIR="$ROOT/.migrate-park"
 say() { printf '%s\n' "$*"; }
 do_or_show() { if [ "$YES" = 1 ]; then "$@"; else say "  would run: $*"; fi; }
 
-# Already folded? Then there is nothing to migrate.
-if ! git ls-files --stage | grep -qE '^160000 .* (community|docs|shells/web)$' && [ ! -e .git/modules/shells/web ]; then
+# Already folded? A gitlink (mode 160000) at one of the old paths, or an old
+# submodule working tree still on disk, means there is work to do.
+gitlinks="$(git ls-files --stage | awk '$1 == "160000" { print $4 }')"
+old_present=0
+for p in "${OLD_SUBMODULES[@]}"; do
+  if printf '%s\n' "$gitlinks" | grep -qx "$p" || [ -f "$p/.git" ]; then old_present=1; fi
+done
+if [ "$old_present" = 0 ]; then
   say "This checkout already has the folded layout. Nothing to do."
   exit 0
 fi
