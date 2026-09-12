@@ -108,7 +108,7 @@
    per-breakpoint and stays in the two blocks. */
 .export-popup-title {
   font-size: var(--fs-md); font-weight: 700; text-transform: uppercase;
-  letter-spacing: 0.06em; color: var(--ui-color-text-muted);
+  letter-spacing: var(--ui-type-tracking-label); color: var(--ui-color-text-muted);
 }
 .export-popup-close {
   border: none; background: none; cursor: pointer; padding: var(--sp-2) var(--sp-4);
@@ -927,7 +927,7 @@
   font-size: var(--fs-xs);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--ui-type-tracking-label);
   color: hsl(var(--muted-foreground));
 }
 
@@ -943,6 +943,9 @@
   font-weight: 400;
   text-transform: none;
   letter-spacing: 0;
+  /* Fixed-width digits: the readout rewrites on every slider step, and proportional
+     figures made it change width and nudge the label as the value crossed a 1. */
+  font-variant-numeric: tabular-nums;
   color: hsl(var(--muted-foreground));
   margin-left: 0.4em;
 }
@@ -1043,7 +1046,7 @@
   font-size: var(--fs-2xs);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--ui-type-tracking-label);
       color: hsl(var(--muted-foreground));
 }
 
@@ -1281,7 +1284,7 @@
   font-size: var(--fs-2xs);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--ui-type-tracking-label);
   padding: 2px 7px;
   border-radius: var(--radius-pill);
   background: hsl(var(--foreground) / 0.08);
@@ -1369,7 +1372,7 @@ html[data-a11y-text="large"] .badge-select--compact {
   font-size: var(--fs-xs);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--ui-type-tracking-label);
   color: hsl(var(--muted-foreground));
   pointer-events: auto;
   white-space: normal;
@@ -1560,8 +1563,8 @@ span.flatpickr-weekday {
   min-height: 32px;
   font-size: var(--fs-xs);
   font-weight: 600;
-  text-transform: uppercase; 
-  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  letter-spacing: var(--ui-type-tracking-label);
   color: hsl(var(--muted-foreground));
   cursor: pointer;
   user-select: none;
@@ -1942,7 +1945,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 .block-type-label {
   flex: 1; min-width: 0;
   font-size: var(--fs-xs); font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.06em; color: hsl(var(--muted-foreground));
+  letter-spacing: var(--ui-type-tracking-label); color: hsl(var(--muted-foreground));
 }
 /* Drag-reorder feedback */
 .block-item.is-dragging { opacity: 0.4; }
@@ -1975,7 +1978,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 .block-remove.is-confirming {
   width: auto; height: 22px; padding: 0 9px;
   background: hsl(var(--destructive, 0 72% 51%)); color: #fff;
-  font-size: var(--fs-2xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  font-size: var(--fs-2xs); font-weight: 700; text-transform: uppercase; letter-spacing: var(--ui-type-tracking-label);
 }
 .block-remove.is-confirming:hover { background: hsl(var(--destructive, 0 72% 51%)); color: #fff; }
 .block-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 8px; align-items: end; }
@@ -2048,7 +2051,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
    sliders read as separate (the default 8px is too tight once each has an icon). */
 .block-fields:has(> .block-control--ico) { column-gap: 18px; }
 .block-control-label {
-  font-size: var(--fs-2xs); font-weight: 600; letter-spacing: 0.04em;
+  font-size: var(--fs-2xs); font-weight: 600; letter-spacing: var(--ui-type-tracking-label);
   text-transform: uppercase; color: hsl(var(--muted-foreground));
 }
 .block-fields .block-field--full { grid-column: 1 / -1; }
@@ -3345,7 +3348,7 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   border-top-color: #30ba78;
   animation: canvas-proc-spin 0.9s linear infinite;
 }
-.canvas-processing-text { font-size: calc(18px * var(--a11y-fs)); font-weight: 700; letter-spacing: -0.01em; }
+.canvas-processing-text { font-size: calc(18px * var(--a11y-fs)); font-weight: 700; letter-spacing: var(--ui-type-tracking-tight); }
 .canvas-processing-sub { font-size: var(--fs-md); opacity: 0.82; }
 @keyframes canvas-proc-spin { to { transform: rotate(360deg); } }
 @keyframes canvas-proc-fade { from { opacity: 0; } to { opacity: 1; } }

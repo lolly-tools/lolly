@@ -578,7 +578,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
 .dim-dpi > span {                   /* the micro "DPI" caption, under the number */
   font-size: calc(7px * var(--a11y-fs));
   line-height: 1;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--ui-type-tracking-label);
   color: hsl(var(--muted-foreground));
   pointer-events: none;
 }
@@ -835,7 +835,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   padding: 0 2px 6px;
   font-size: var(--fs-xs);
   font-weight: 600;
-  letter-spacing: .05em;
+  letter-spacing: var(--ui-type-tracking-label);
   text-transform: uppercase;
   color: hsl(var(--muted-foreground));
 }
@@ -1245,7 +1245,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   border-bottom: 1px solid hsl(var(--border));
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--ui-type-tracking-label);
   font-size: var(--fs-sm);
   color: hsl(var(--muted-foreground));
 }
@@ -1766,7 +1766,7 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
   cursor: pointer;
   font-size: var(--fs-xs);
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--ui-type-tracking-label);
   text-transform: uppercase;
   color: hsl(var(--muted-foreground));
 }

@@ -6,8 +6,9 @@ Two facts on this page are separate and must not be merged into one sentence.
 A shipped template is a file in the tool's own folder that re-syncs from the
 catalogue, so the only thing a device can keep is a per-profile cover over it -
 which is what "Hidden" means here. Never describe hiding as deleting.
-Templates ride the profile record, not a separate store, so "travels with a
-profile backup and by no other route" is the accurate storage sentence.
+User templates and choices about shipped templates ride the profile record.
+A profile backup carries those records; individual templates also have the
+export and sharing routes described below.
 -->
 
 # Templates
@@ -19,7 +20,7 @@ Two things a template is not:
 - **Not a saved session.** A session, in [Projects](/info/using.html#projects), is one document you come back to: reopen it, change the date, save it again. A template starts *new* documents instead, as many as you want, and stays as it was while each of those goes its own way.
 - **Not a `.lolly` file.** A `.lolly` is a file you hand to someone else ([Sharing your work](/info/using.html#sharing-your-work)). A template stays on this device and appears inside the app, in the tool it belongs to. You can turn one into the other, but they do different jobs.
 
-Templates are kept on your [profile](/info/profile.html), the same on-device record as your name and your starred tools. They travel with a profile backup and by no other route.
+Your saved templates and your choices about shipped templates are kept on your [profile](/info/profile.html), the same on-device record as your name and your starred tools. A profile backup carries them to another device. You can also export or share an individual template as described under [Passing one on](#passing-one-on).
 
 ## Save one from a tool
 
@@ -78,11 +79,20 @@ Every tile carries a menu, on right-click, long-press, or the **…** that appea
 
 ### The Templates collection
 
-**Projects** has a **Templates** chip in its rail, next to Uncategorised. It lists every template you have, across every tool, in three groups: **Yours**, **Shipped with** each tool, and **Hidden**. There is a chip per tool to narrow it down, the search box works here as it does everywhere else in Projects, and every tile has the same menu as in the chooser.
+Open **Projects** and choose the **Templates** tile. Inside a folder, the **Templates** chip in the rail opens the same collection. It lists templates across every tool in three groups: **Yours**, **Shipped with** each tool, and **Hidden**. There is a chip per tool to narrow it down, the search box works here as it does everywhere else in Projects, and every tile has the same menu as in the chooser.
 
 It is a view, not a folder: nothing can be dragged into it, and it has no rename or delete of its own.
 
 <!-- shot: templates-collection (plans/226, pending) -->
+
+### Start from New asset
+
+**New asset** in the Projects header opens the shared picker, at the root or inside a folder. Choose its **Templates** tab to browse your starting points first, followed by those shipped with tools. Hidden templates stay out of this picker. Search by template name, description or tool.
+
+- **Open a template** to edit a new creation. Its first save files it in the folder you came from and returns you there. Starting from the Projects root saves it directly at the root.
+- **+ Add** saves a new creation with the template's settings immediately and keeps the picker open, so you can add another.
+
+Both actions leave the template unchanged. To rename, hide or delete a template, open the Templates collection instead. Images need a real folder when added through this picker; tool and template creations can also be saved at the root.
 
 ### Hide or delete, by who made it
 

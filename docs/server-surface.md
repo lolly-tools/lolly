@@ -13,9 +13,10 @@ is not part of Lolly.
 
 A Lolly deployment is a **static web application** (the PWA the browser loads
 and then runs locally, offline-capable) plus **three optional server components**.
-Neither is in the path of normal use: opening a tool, editing, previewing,
-exporting and verifying a file all complete with no request to either. A
-deployment that omits both is a fully working Lolly.
+The server components are the MCP endpoint, the Content Credentials CA and
+the Penpot pass-through. Ordinary on-device editing, rendering, exporting and
+verification do not require these services. A deployment can omit all three;
+the table below names the optional features each service adds.
 
 | Component | Route | Purpose | Optional? |
 |---|---|---|---|

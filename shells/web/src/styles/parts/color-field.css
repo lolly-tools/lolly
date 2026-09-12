@@ -35,7 +35,9 @@
   cursor: pointer;
   text-align: left;
   box-shadow: 0 .2rem .3rem #0001;
-  transition: all var(--dur-1);
+  /* No transition here: the named-property transition shared with the asset-picker
+     trigger and the block add/remove buttons lives in notfound.css and wins on
+     source order within the chrome layer, so a declaration here never applied. */
   justify-content: end;
   /* Query container: the trigger collapses to just the swatch circle when squeezed
      next to other controls, and shows the colour name (+ hex) when there's room. Named
@@ -221,7 +223,7 @@
 .color-mode-fam-label {
   flex: 0 0 100%;
   font-family: var(--font-mono); font-size: calc(9.5px * var(--a11y-fs)); line-height: 1;
-  letter-spacing: .06em; text-transform: uppercase;
+  letter-spacing: var(--ui-type-tracking-label); text-transform: uppercase;
   color: hsl(var(--muted-foreground));
 }
 /* A family with no tabs collapses to nothing - heading, gap and any scroll well
@@ -404,7 +406,7 @@
 @container (max-width: 460px) {
   .color-input--long {
     font-size: var(--fs-md);
-    letter-spacing: -.01em;
+    letter-spacing: var(--ui-type-tracking-tight);
   }
 }
 /* Text that did not parse: the field keeps the characters - mid-edit text is the

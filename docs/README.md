@@ -37,7 +37,7 @@ security posture).
 |---|---|---|
 | [site.md](site.md) | end user | Copy for the `/info` landing page. Registered as the `index` page with `isLanding: true`, so it renders as the front door rather than an article. |
 | [quickstart.md](quickstart.md) | end user | The one page to read first: make Lolly wear your brand, bring in the design files and tokens you already have, then pick a pathway. Its own pathway hub. |
-| [make-something.md](make-something.md) | end user | Make something in 60 seconds: three short walkthroughs (a QR code, a wordmark, a filtered photo) that need no account, no setup and no design skill. The first click for a brand-new visitor. |
+| [make-something.md](make-something.md) | end user | Three first creations: a QR code, an audiogram and a filtered photo, with no account, brand setup or design skill required. The first click for a brand-new visitor. |
 | [install.md](install.md) | end user | Every packaged build in one list: the macOS disk image, the openSUSE Tumbleweed and Leap 16 RPMs, the Flatpak, the Android APK, plus Windows, iOS, the CLI and the TUI. The destination of the landing hero's download rail. |
 
 ## For Creators
@@ -84,7 +84,7 @@ security posture).
 | [tui.md](tui.md) | tool author | The interactive terminal shell: browse, fill inputs, save projects and export without a browser. |
 | [mcp.md](mcp.md) | tool author | The native MCP server, its two hosted tiers, and the callable tools it exposes. |
 | [ai-agents.md](ai-agents.md) | tool author | Driving Lolly from an agent by building a URL or CLI command instead of generating pixels. |
-| [contributing-setup.md](contributing-setup.md) | contributor | Getting a development checkout sized to what you're here to do: slim clone personas for tool authors and engine developers, and how to upgrade to the full thing later. |
+| [contributing-setup.md](contributing-setup.md) | contributor | Full and partial clones of the single repository, optional private brand content and model downloads, and which shell dependencies a contributor needs to install. |
 | [ios-build.md](ios-build.md) | contributor | The full iOS walkthrough for `shells/tauri-mobile`: prerequisites, one-time init, the simulator dev loop, code signing, camera permissions. Sits next to the Build Guide under Builders, which links to it. |
 | [data-transfer.md](data-transfer.md) | contributor | The `lolly-backup` bundle format spec: what a bundle carries, what it deliberately does not, and the round-trip contract. Its own pathway is Builders; the Trust sidebar carries it too. |
 

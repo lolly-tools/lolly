@@ -378,6 +378,26 @@
             }
           }
         },
+        "tracking-label": {
+          "$type": "letterSpacing",
+          "$value": "0.06em",
+          "$description": "Tracking for the uppercase eyebrow label (input labels, section heads, card titles). One value for every tracked label so the sheets stop restating it.",
+          "$extensions": {
+            "tools.lolly": {
+              "css": ".06em"
+            }
+          }
+        },
+        "tracking-tight": {
+          "$type": "letterSpacing",
+          "$value": "-0.01em",
+          "$description": "Tracking for large text; tightens as type grows.",
+          "$extensions": {
+            "tools.lolly": {
+              "css": "-.01em"
+            }
+          }
+        },
         "body": {
           "$type": "fontSize",
           "$value": "{lolly.foundation.type.size.md}"

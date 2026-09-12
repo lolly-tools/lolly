@@ -388,6 +388,8 @@
   --ui-type-heading: calc(28px * var(--a11y-fs));
   --ui-type-lead: calc(18px * var(--a11y-fs));
   --ui-type-caption: calc(12px * var(--a11y-fs));
+  --ui-type-tracking-label: .06em;
+  --ui-type-tracking-tight: -.01em;
   --ui-type-body: var(--fs-md);
   --ui-type-label: var(--fs-sm);
   --ui-type-title: var(--fs-lg);
