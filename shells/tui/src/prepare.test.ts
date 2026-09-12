@@ -17,10 +17,16 @@ async function component(): Promise<ComponentType<{ bridge: TuiBridge; onBack: (
   try { await writeFile(fixture, code); return (await import(fixture.href)).Prepare; }
   finally { await rm(fixture, { force: true }); }
 }
-const tick = (): Promise<void> => new Promise(resolve => setTimeout(resolve, 30));
+const tick = (): Promise<void> => new Promise(resolve => setTimeout(resolve, 25));
+// A deadline, not a tick count: the first render of a cold CI runner (esbuild
+// transform, ink mount, jsdom) has taken over 3 s, which is where the old
+// 100 x 30 ms budget failed on an otherwise green run. Fifteen seconds is the
+// budget; a healthy run still returns in well under one.
+const WAIT_BUDGET_MS = 15_000;
 async function until(check: () => boolean): Promise<void> {
-  for (let i = 0; i < 100; i++) { if (check()) return; await tick(); }
-  assert.fail('The expected terminal state did not appear.');
+  const deadline = Date.now() + WAIT_BUDGET_MS;
+  while (Date.now() < deadline) { if (check()) return; await tick(); }
+  assert.fail(`The expected terminal state did not appear within ${WAIT_BUDGET_MS} ms.`);
 }
 test('terminal keyboard flow keeps findings optional and writes reviewed copies on a narrow terminal', async () => {
   const Prepare = await component();
