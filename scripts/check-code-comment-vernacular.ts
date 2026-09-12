@@ -46,7 +46,7 @@ function isExcluded(rel: string): boolean {
   );
 }
 
-/** Walk owned .ts, never following a symlink (the profile views are symlinks). */
+/** Walk owned .ts, never following a symlink, so no file is scanned twice. */
 export function ownedTsFiles(): string[] {
   const out: string[] = [];
   const visit = (absDir: string): void => {
@@ -210,8 +210,8 @@ export function drift(current = scanCode(), baseline = loadBaseline()): CodeVern
   }
   for (const [file, was] of Object.entries(baseline)) {
     // Cleared: lock it - but only when the file is still on disk. A baseline file
-    // that is absent (a shell submodule this clone did not mount) was not scanned,
-    // and must not read as an improvement.
+    // that is absent (a partial checkout, or a pack this clone did not mount) was
+    // not scanned, and must not read as an improvement.
     if (current[file] === undefined && existsSync(join(ROOT, file))) under.push({ file, was, now: 0 });
   }
   return { over, fresh, under };

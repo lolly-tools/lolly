@@ -97,8 +97,9 @@ function stickyProfile(root: string): string | null {
  * are all on disk.
  *
  * With LOLLY_STRICT_PROFILE set an incomplete profile throws instead of falling
- * back. vercel.json's buildCommand sets it, because a git build clones submodules
- * anonymously and skips the private brands/suse pack (update = none), and a silent
+ * back. vercel.json's buildCommand sets it, because a git build clones the
+ * submodule anonymously and skips the private brands/suse pack (update = none),
+ * and a silent
  * fallback once shipped the blank brand to production. The flag names a BUILD, not
  * the platform: a deployed function only ever received the packs one build chose for
  * it, so refusing to serve them would turn a build-time question into a 500 on every

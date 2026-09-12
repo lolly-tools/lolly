@@ -31,7 +31,7 @@ const PKG = join(COMMUNITY, 'signature');
 const fetchFile = (path: string) => readFile(join(COMMUNITY, path), 'utf8');
 
 const PACK_MOUNTED = existsSync(COMMUNITY);
-const SKIP = !PACK_MOUNTED && 'community pack not mounted (clone without submodules)';
+const SKIP = !PACK_MOUNTED && 'community pack not mounted';
 if (PACK_MOUNTED) {
   assert.ok(existsSync(join(PKG, 'tool.json')),
     'community/signature/tool.json is missing - pack is mounted, so the tool was renamed or deleted');

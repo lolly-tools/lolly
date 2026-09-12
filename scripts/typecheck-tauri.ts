@@ -60,7 +60,7 @@ export interface ShellResult {
 function typecheckShell(shell: string): ShellResult {
   const dir = join(ROOT, shell);
   if (!existsSync(join(dir, 'tsconfig.json'))) {
-    return { shell, status: 'skipped', reason: 'no tsconfig.json - shell submodule not checked out' };
+    return { shell, status: 'skipped', reason: 'no tsconfig.json in this shell directory' };
   }
   if (!existsSync(join(dir, 'node_modules', PROBE))) {
     return {

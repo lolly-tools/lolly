@@ -12,8 +12,8 @@
  *
  * The `shot` slug becomes /info/shots/<slug>.svg at runtime, but that directory
  * is gitignored build output (empty in a fresh checkout). The committed source
- * of truth is the docs submodule at repo-root docs/shots/<slug>.svg, so the
- * existence check resolves slugs there and SKIPS when the submodule is absent.
+ * of truth is repo-root docs/shots/<slug>.svg, so the existence check resolves
+ * slugs there and SKIPS when that directory is absent.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -113,15 +113,15 @@ test('every card carries search keywords', () => {
 });
 
 // The `shot` slug becomes /info/shots/<slug>.svg in the detail dialog, but that
-// directory is gitignored build output. The committed baselines live in the
-// docs submodule at repo-root docs/shots/ - four levels up from src/lib/.
+// directory is gitignored build output. The committed baselines live at
+// repo-root docs/shots/ - four levels up from src/lib/.
 const shotsDir = new URL('../../../../docs/shots/', import.meta.url);
 
 test('every card screenshot resolves to a committed file', () => {
   // A `shot` typo or a retired slug is a broken image inside a dialog - 
   // invisible until someone opens that one card. Assert every slug resolves to a
-  // committed docs baseline. When the docs submodule is not checked out (a bare
-  // parent clone), the source of truth is absent, so skip rather than fail.
+  // committed docs baseline. When docs/shots/ is absent (a partial checkout),
+  // the source of truth is missing, so skip rather than fail.
   if (!existsSync(shotsDir)) return;
   const missing = allCards
     .filter((c) => c.shot && !existsSync(new URL(`${c.shot}.${c.shotExt ?? 'svg'}`, shotsDir)))

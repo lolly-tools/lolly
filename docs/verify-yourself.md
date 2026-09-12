@@ -55,7 +55,7 @@ The switch is per-deployment (`LOLLY_DISABLE_RENDER_GET=1`): on an instance that
 Everything above could still be theatre if the deployed code differed from the public code. So check the code - the deployment builds from [the public repository](https://github.com/lolly-tools/lolly):
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 

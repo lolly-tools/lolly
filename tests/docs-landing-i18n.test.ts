@@ -6,9 +6,9 @@
  * keys named in LANDING_I18N_SKIP are routes, slugs, file names and code that
  * must never reach a translator.
  *
- * Two halves have to agree and live in different repos: build.ts (the docs
- * submodule) applies the skip list when it RENDERS; scripts/translate.ts (the
- * parent) applies its own copy when it EXTRACTS the site corpus. A key added
+ * Two halves have to agree, and each keeps its own copy: docs/build.ts applies
+ * the skip list when it RENDERS; scripts/translate.ts applies its copy when it
+ * EXTRACTS the site corpus. A key added
  * to one list but not the other fails silently in one of two ways - a route
  * sent to a translator, or a sentence that never becomes a pending key and
  * ships English in 26 locales without anyone noticing. So this pins the two

@@ -27,7 +27,8 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
@@ -36,7 +37,15 @@ import {
 } from '../lib/offline-run.ts';
 import { startJob, jobsSnapshot, cancelJob, __resetJobsForTest, type Job } from '../lib/jobs.ts';
 
-const PROFILE_SRC = readFileSync(fileURLToPath(new URL('./profile.ts', import.meta.url)), 'utf8');
+// The profile view is an orchestrator plus feature modules under views/profile/ (2026-09-12
+// split), so a source pin reads all of it rather than guessing which module a line moved to.
+const profileSrc = (): string => {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const read = (p: string): string => readFileSync(p, 'utf8');
+  return [read(join(here, 'profile.ts')),
+    ...readdirSync(join(here, 'profile')).filter((n) => n.endsWith('.ts')).sort().map((n) => read(join(here, 'profile', n)))].join('\n');
+};
+const PROFILE_SRC = profileSrc();
 const RUN_SRC = readFileSync(fileURLToPath(new URL('../lib/offline-run.ts', import.meta.url)), 'utf8');
 
 function reset(): void {

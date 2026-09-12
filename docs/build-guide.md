@@ -51,7 +51,7 @@ pnpm install
 
 `url.insteadOf` rewrites the HTTPS URL to SSH, which is safe for everyone since this is a public repo, and means the moment you get push access nothing else needs to change. Drop both `git config` lines if you'd rather authenticate over HTTPS.
 
-`pnpm install`'s postinstall check confirms the checkout is complete; a content-pack resolver (`packages/node-shell/src/content-roots.ts`) then picks a profile from `profiles.json` the first time anything reads tool or catalog content - see [Configuration](/info/configuration.html).
+`pnpm install`'s preinstall check confirms at least one content profile is complete on disk; a content-pack resolver (`packages/node-shell/src/content-roots.ts`) then picks a profile from `profiles.json` the first time anything reads tool or catalog content - see [Configuration](/info/configuration.html).
 
 Verify the result with `pnpm run profile` (shows the resolved profile) and `pnpm run cli` (lists the tools it can see).
 

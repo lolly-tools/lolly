@@ -14,7 +14,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
@@ -34,7 +34,10 @@ const read = (rel: string) => readFileSync(join(HERE, rel), 'utf8');
 const CSS = read('styles/parts/perf-ui.css');
 const CSS_NO_COMMENTS = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
 const APP_CSS = read('styles/app.css');
-const PROFILE = read('views/profile.ts');
+// The profile view is an orchestrator plus feature modules under views/profile/ (2026-09-12
+// split), so a source pin reads all of it rather than guessing which module a line moved to.
+const PROFILE = [read('views/profile.ts'),
+  ...readdirSync(join(HERE, 'views', 'profile')).filter((n) => n.endsWith('.ts')).sort().map((n) => read(`views/profile/${n}`))].join('\n');
 const MAIN = read('main.ts');
 const HTML = readFileSync(join(HERE, '..', 'index.html'), 'utf8');
 // JS gate sites (items 1-3): the decorative loops / live-render / Cover Flow.
@@ -110,7 +113,7 @@ test('app.css imports perf-ui.css UNLAYERED so its !important outranks every lay
 });
 
 test('the profile view offers the toggle and applies it live', () => {
-  assert.match(PROFILE, /flagRow\(PERFORMANCE_UI_FLAG\)/, 'a toggle row in the standalone flags list');
+  assert.match(PROFILE, /flagRow\(pv, PERFORMANCE_UI_FLAG\)/, 'a toggle row in the standalone flags list');
   assert.match(PROFILE, /flagId === PERFORMANCE_UI_FLAG\.id\) applyPerfUi\(input\.checked\)/,
     'flipping it reflects onto <html> on the spot (no reload)');
 });

@@ -131,8 +131,8 @@ export function recordsHashOf(index: readonly { p: string; a: string }[]): strin
  * It exists only for this script's progress line and is safe to omit.
  *
  * shells/web/src/lib/ask/vectors-staleness.test.ts carries a copy of this walk.
- * It cannot import this module: the test lives inside the shells/web submodule,
- * which has to typecheck and run on its own without the parent repo's scripts/.
+ * It cannot import this module: the test lives under shells/web, whose tsconfig
+ * project does not include scripts/, so it has to typecheck on its own.
  * Change one, change the other.
  */
 export function resolveSectionTexts(

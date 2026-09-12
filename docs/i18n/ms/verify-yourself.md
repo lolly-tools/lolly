@@ -39,14 +39,14 @@ Pengecualian yang jujur - setiap satu adalah opt-in, dimulakan oleh pengguna dan
 
 ## Daripada terminal
 
-**6. Titik akhir pemaparan hanya menjawab dengan data awam.** Satu-satunya ciri pelayan yang meletakkan input yang ditaip pengguna ke dalam URL - pemaparan pautan-terus (hot-link) - aktif di sini, dan [dasar privasi](/info/privacy.html) menerangkan apa maknanya ini untuk input yang anda letakkan dalam sesuatu pautan:
+**6. Titik akhir (endpoint) render menjawab hanya dengan data awam.** Satu-satunya ciri pelayan yang meletakkan input yang ditaip pengguna ke dalam URL - render pautan panas (hot-link) - aktif di sini, dan [dasar privasi](/info/privacy.html) menyatakan apa maksudnya bagi input yang anda letakkan dalam pautan:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Suis ini adalah mengikut penggunaan setiap penerapan (`LOLLY_DISABLE_RENDER_GET=1`): pada instans yang menetapkannya, ujian yang sama di sana mengembalikan `404` - perbezaan itu adalah bendera itu berfungsi, bukan ketidakkonsistenan.
+Suis ini adalah bagi setiap penggunaan (`LOLLY_DISABLE_RENDER_GET=1`): pada tika (instance) yang menetapkannya, ujian yang sama memulangkan `404` - perbezaan itu adalah bendera berfungsi, bukan ketidakkonsistenan.
 
 **7. Permukaan pelayan boleh disenaraikan.** [Server Surface](/info/server-surface.html) menyenaraikan setiap laluan sisi pelayan yang wujud, dengan peraturan tetap bahawa titik akhir yang tiada pada halaman itu bukan sebahagian daripada Lolly. `curl` kesemuanya; tiada apa-apa lagi untuk ditemui.
 
@@ -55,7 +55,7 @@ Suis ini adalah mengikut penggunaan setiap penerapan (`LOLLY_DISABLE_RENDER_GET=
 Semua di atas masih boleh menjadi teater jika kod yang diterapkan berbeza daripada kod awam. Jadi semak kod itu - penerapan ini dibina daripada [repositori awam](https://github.com/lolly-tools/lolly):
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ Tiga semakan sumber di atas bukan audit sekali sahaja - ia disematkan dalam set 
 - log pengeluaran CA muncul semula - dalam sumber **atau** bundel pelayan yang dijana,
 - dasar privasi kehilangan pernyataan yang diwajibkan secara undang-undang (pengawal yang dinamakan, asas undang-undang, hak untuk mengadu).
 
-Jalankan sendiri dalam klon (Node 22.18+; `npm install` tidak diperlukan untuk fail ini):
+Jalankannya sendiri dalam klon (Node 22.18+; `pnpm install` tidak diperlukan untuk fail ini):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-Set penuh (`npm install && npm test`) menjalankan beberapa ribu lagi, termasuk ujian kriptografi adversarial yang diterangkan dalam [Security & Verification](/info/security.html).
+Suit penuh (`pnpm install && pnpm test`) menjalankan beberapa ribu lagi, termasuk ujian kriptografi bersifat adversarial yang diterangkan dalam [Security & Verification](/info/security.html).
 
 ## Apa yang tidak dapat anda sahkan dari luar - dinyatakan dengan jelas
 

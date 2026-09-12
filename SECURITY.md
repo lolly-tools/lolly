@@ -5,8 +5,8 @@
 Please report suspected vulnerabilities privately - do not open a public issue.
 
 - **Email:** [fitzy+security@suse.com](mailto:fitzy+security@suse.com)
-- **GitHub:** private vulnerability reporting on the relevant
-  [lolly-tools](https://github.com/lolly-tools) repository
+- **GitHub:** private vulnerability reporting on
+  [lolly-tools/lolly](https://github.com/lolly-tools/lolly)
   (Security → "Report a vulnerability")
 
 Include what you can: affected component (web shell, engine, CLI, an `api/`
@@ -34,25 +34,26 @@ already a documented, accepted design choice.
 
 ### Component to directory
 
-The component names used in the prose above map to these paths. Each of the
-lettered submodules also has its own repository under
-[github.com/lolly-tools](https://github.com/lolly-tools), so a report can be
-routed to the right one.
+The component names used in the prose above map to these paths. Every one of
+them lives in this repository, so one report reaches all of it. The single
+exception is the private SUSE brand pack, a submodule with its own repository.
 
 | Component | Directory | Repository |
 |---|---|---|
 | Engine (the platform-agnostic render core, all crypto and every format parser) | `engine/`, plus `schemas/` and `packages/core/` | this repository (`lolly`) |
-| Web shell (the PWA, its capability bridge and its service worker) | `shells/web/` | `lolly-web` |
-| Other shells | `shells/cli/`, `shells/tui/`, `shells/tauri-desktop/`, `shells/tauri-mobile/`, `shells/chrome-extension/` | `lolly-cli`, `lolly-tui`, `lolly-desktop`, `lolly-mobile`, `lolly-chrome-extension` |
-| Community tools (tool data: manifest, template, `hooks.js`) | `community/` | `lolly-tools` |
-| Brand packs (tool and asset content) | `brands/lolly-start/` (this repository), `brands/suse/` (private) | `suse-lolly` (private) |
-| MCP endpoint, including its OAuth server and the public render route | `services/mcp/`, deployed via the generated `api/mcp/` bundle | `lolly-mcp-server` |
-| Content Credentials certificate authority | `services/ca/`, deployed via the generated `api/ca/` bundle | `lolly-ca` |
-| Documentation and the `/info` site | `docs/` | `lolly-docs` |
+| Web shell (the PWA, its capability bridge and its service worker) | `shells/web/` | this repository |
+| Other shells | `shells/cli/`, `shells/tui/`, `shells/tauri-desktop/`, `shells/tauri-mobile/`, `shells/chrome-extension/` | this repository |
+| Community tools (tool data: manifest, template, `hooks.js`) | `community/` | this repository |
+| Brand packs (tool and asset content) | `brands/lolly-start/` (this repository), `brands/suse/` (private) | `suse-lolly` (private submodule) |
+| MCP endpoint, including its OAuth server and the public render route | `services/mcp/`, deployed via the generated `api/mcp/` bundle | this repository |
+| Content Credentials certificate authority | `services/ca/`, deployed via the generated `api/ca/` bundle | this repository |
+| Documentation and the `/info` site | `docs/` | this repository |
 
-The repo-root `tools/` and `catalog/` directories are gitignored views
-assembled from the packs above, not sources in their own right. A finding in a
-tool belongs to the pack that owns it.
+A checkout has no repo-root `tools/` or `catalog/` directory: those two paths
+are resolved out of the packs above by
+`packages/node-shell/src/content-roots.ts`, and only a build that serves them
+over HTTP writes them out. A finding in a tool belongs to the pack that owns
+it.
 
 ## Safe harbour
 
@@ -64,8 +65,8 @@ or accounts.
 
 ## Scope
 
-- This repository and the `lolly-tools` organisation repositories (engine,
-  shells, services, community tools).
+- This repository (engine, shells, services, community tools) and the private
+  `suse-lolly` brand pack.
 - The reference deployment at `lolly.tools`, including the
   optional server components (`/api/mcp`, `/api/ca`, the public
   `/tool/<id>.<ext>` render route).

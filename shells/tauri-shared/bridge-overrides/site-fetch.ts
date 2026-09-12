@@ -19,8 +19,8 @@
  *
  * WHY THIS FILE LIVES IN THE PARENT REPO, AND WHY IT TAKES AN `invoke` ADAPTER
  * Same reason as its neighbour state-fs.ts, which set the pattern. Desktop and
- * mobile are separate submodule repos and neither may import from the other, so
- * shared logic belongs in the parent repo - but the parent cannot resolve
+ * mobile are separate pnpm projects and neither may import from the other, so
+ * shared logic belongs in tauri-shared - but the repo root cannot resolve
  * `@tauri-apps/api` (the Tauri shells are deliberately not npm workspaces, so
  * that package exists only inside each shell's own node_modules). The dependency
  * is inverted: each shell imports `invoke` itself and passes it in, and its
@@ -39,10 +39,8 @@
  * `detectSiteTransport` in shells/web/src/lib/design-system/sources/website.ts
  * reads the same `__TAURI_INTERNALS__.invoke` global `tauriInvoke()` reads below
  * and invokes the same `site_fetch` command. It has to own its own copy rather
- * than import this one, because shells/web is a separate submodule repository
- * and may not import from the parent repo's tauri-shared - an import that
- * resolves in the umbrella and not in a clone of the web shell is not a
- * dependency, it is a trap.
+ * than import this one: the web shell must not depend on Tauri-shell code, which
+ * resolves `@tauri-apps/*` out of a node_modules tree a web build never installs.
  *
  * So this module is the BUILD-TIME seam, and it is currently unwired:
  *   • Each shell's vite.config.js maps the bridge module basename `site-fetch`
@@ -222,8 +220,8 @@ export function tauriInvoke(): InvokeFn | null {
  * this change.
  *
  * NOT CALLED BY THE WEB SHELL - see the header. The equivalent probe lives in
- * `sources/website.ts`, because a submodule cannot import across the repo
- * boundary. This one stays for a caller inside the Tauri shells themselves.
+ * `sources/website.ts`, because the web shell must not depend on Tauri-shell
+ * code. This one stays for a caller inside the Tauri shells themselves.
  */
 export function nativeSiteTransport(): SiteTransport | null {
   const invoke = tauriInvoke();

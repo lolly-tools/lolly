@@ -19,10 +19,10 @@
  * WHY THIS FILE LIVES IN THE PARENT REPO, AND WHY IT TAKES AN `fs` ADAPTER
  * Desktop and mobile previously carried byte-identical copies of this logic, so a
  * bug fix had to be applied twice with nothing enforcing it. The two Tauri shells
- * are separate submodule repos, so neither may import from the other; the parent
- * repo is the composition root they both already reach into (each vite.config.js
- * roots the build at ../web and serves ../../{tools,catalog}), so shared code
- * belongs here.
+ * are separate pnpm projects, so neither may import from the other; tauri-shared
+ * is the composition root they both already reach into (each vite.config.js roots
+ * the build at ../web and answers /tools/ and /catalog/ through the content
+ * resolver), so shared code belongs here.
  *
  * The directory is named `bridge-overrides/` like the per-shell ones so that tooling
  * keyed on the `shells/<shell>/bridge-overrides` wildcard keeps covering this file:

@@ -39,14 +39,14 @@ De ärliga undantagen - vart och ett opt-in, användarinitierat och synligt i sa
 
 ## Från en terminal
 
-**6. Renderingsändpunkten svarar bara med publik data.** Den enda serverfunktion som lägger användarinskrivna indata i en URL - hotlink-renderingar - är aktiv här, och [integritetspolicyn](/info/privacy.html) förklarar vad det betyder för de indata du lägger i en länk:
+**6. Renderingsslutpunkten svarar bara med offentliga data.** Den enda serverfunktion som lägger användarinmatade värden i en URL - hot-link-renderingar - är aktiv här, och [integritetspolicyn](/info/privacy.html) beskriver vad det innebär för de värden du lägger i en länk:
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-Brytaren är per driftsättning (`LOLLY_DISABLE_RENDER_GET=1`): på en instans som sätter den, returnerar samma test `404` - den skillnaden är flaggan som fungerar, inte en inkonsekvens.
+Omkopplaren är per driftsättning (`LOLLY_DISABLE_RENDER_GET=1`): på en instans som sätter den returnerar samma sondering `404` - den skillnaden är flaggan som fungerar, inte en inkonsekvens.
 
 **7. Serverytan går att räkna upp.** [Server Surface](/info/server-surface.html) listar varje serversidig rutt som finns, med den stående regeln att en endpoint som inte står på den sidan inte är en del av Lolly. `curl`:a dem; det finns inget annat att hitta.
 
@@ -55,7 +55,7 @@ Brytaren är per driftsättning (`LOLLY_DISABLE_RENDER_GET=1`): på en instans s
 Allt ovan skulle fortfarande kunna vara teater om den driftsatta koden skilde sig från den publika koden. Så kontrollera koden - driftsättningen byggs från [det publika repositoriet](https://github.com/lolly-tools/lolly):
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ De tre källkontrollerna ovan är inte en engångsgranskning - de är fastnaglad
 - CA-utfärdandeloggen dyker upp igen - i källkoden **eller** i det genererade serverbundlet,
 - integritetspolicyn förlorar sina lagstadgade uppgifter (namngiven personuppgiftsansvarig, rättslig grund, rätt att klaga).
 
-Kör dem själv i klonen (Node 22.18+; ingen `npm install` behövs för den här filen):
+Kör dem själv i klonen (Node 22.18+; ingen `pnpm install` behövs för den här filen):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-Den fullständiga sviten (`npm install && npm test`) kör flera tusen till, inklusive de adversariella kryptografitesterna som beskrivs i [Security & Verification](/info/security.html).
+Den fullständiga svitan (`pnpm install && pnpm test`) kör flera tusen till, inklusive de kontradiktoriska kryptografitesterna som beskrivs i [Säkerhet och verifiering](/info/security.html).
 
 ## Vad du inte kan verifiera utifrån - sagt rent ut
 

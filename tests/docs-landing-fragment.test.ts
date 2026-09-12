@@ -3,8 +3,8 @@
  * The landing fragment contract (plans/123): the /info front door renders inside the app
  * at #/docs/index, through the same fragment rehost every other docs page uses.
  *
- * Two halves have to agree, and they live in different repos - docs/build.ts writes the
- * built pages (a submodule), shells/web reads them - so nothing but a test can hold them
+ * Two halves have to agree, and neither can see the other - docs/build.ts writes the
+ * built pages, shells/web reads them - so nothing but a test can hold them
  * together:
  *
  *  1. THE MARKER. Every built index.html wraps its body in `<main class="docs-landing

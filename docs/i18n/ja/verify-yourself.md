@@ -39,14 +39,14 @@ Lolly のプライバシーとセキュリティのページには主張があ�
 
 ## ターミナルから
 
-**6. レンダーエンドポイントは公開データのみで応答します。** ユーザー入力をURLに載せる唯一のサーバー機能 - ホットリンクレンダー - は、ここでは稼働しており、リンクに入力した内容がどう扱われるかは[プライバシーポリシー](/info/privacy.html)で説明しています。
+**6. レンダーエンドポイントは公開データのみで応答します。** ユーザーが入力した内容をURLに含める唯一のサーバー機能であるホットリンクレンダリングはここで稼働しており、リンクに入力した内容が何を意味するかは[プライバシーポリシー](/info/privacy.html)に記載されています。
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?url=test'
 # 200
 ```
 
-このスイッチはデプロイごとの設定です（`LOLLY_DISABLE_RENDER_GET=1`）。それを設定しているインスタンスでは、同じプローブを行うと`404`が返ってきます - この違いはフラグが機能している証拠であり、矛盾ではありません。
+このスイッチはデプロイごとに設定されます(`LOLLY_DISABLE_RENDER_GET=1`): これを設定したインスタンスでは、同じプローブが`404`を返します - この違いはフラグが機能している証拠であり、不整合ではありません。
 
 **7. サーバー表面は列挙可能です。** [Server Surface](/info/server-surface.html) には存在するすべてのサーバー側ルートが列挙されており、そのページにないエンドポイントはLollyの一部ではないという原則があります。`curl`で試してみてください。他には何も見つかりません。
 
@@ -55,7 +55,7 @@ curl -s -o /dev/null -w '%{http_code}\n' 'https://lolly.tools/tool/qr-code.svg?u
 デプロイされたコードが公開コードと異なっていれば、上記のすべてはやはり芝居になってしまいます。だからコードを確認してください - このデプロイは[公開リポジトリ](https://github.com/lolly-tools/lolly)からビルドされています。
 
 ```bash
-git clone --recurse-submodules https://github.com/lolly-tools/lolly.git
+git clone https://github.com/lolly-tools/lolly.git
 cd lolly
 ```
 
@@ -98,7 +98,7 @@ grep -rn logIssuance services/ca api/ca
 - CAの発行ログが復活する - ソース内、または生成されたサーバーバンドル内のどちらでも
 - プライバシーポリシーが法的に必須の記載事項（管理者名、法的根拠、苦情申し立ての権利）を失う
 
-クローンで自分自身で実行してみてください（Node 22.18以上、このファイルには`npm install`は不要です）。
+クローン内で自分自身で実行してください(Node 22.18+、このファイルには`pnpm install`は不要です):
 
 ```bash
 node --test tests/no-trackers.test.ts
@@ -108,7 +108,7 @@ node --test tests/no-trackers.test.ts
 # ✔ privacy policy states a controller, a legal basis and a right to complain
 ```
 
-フルスイート（`npm install && npm test`）はさらに数千のテストを実行し、[Security & Verification](/info/security.html)で説明されている敵対的な暗号テストも含まれます。
+フルスイート(`pnpm install && pnpm test`)は、[Security & Verification](/info/security.html)に記載されている敵対的暗号テストを含め、さらに数千件のテストを実行します。
 
 ## 外部から検証できないこと - 率直に言うと
 
