@@ -90,7 +90,7 @@
   },
   "optionalDependencies": {
     "@huggingface/transformers": "^3.8.1",
-    "@napi-rs/canvas": "^1.0.8",
+    "@napi-rs/canvas": "^1.0.9",
     "onnxruntime-node": "^1.29.0",
     "phonemizer": "^1.2.1",
     "sharp": "^0.35.4"
