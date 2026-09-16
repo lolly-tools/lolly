@@ -68,7 +68,7 @@ ort = "=2.0.0-rc.10"
 # (reads the staged tokenizer.json verbatim) + temperature/top-p sampling. The
 # fancy-regex feature keeps the pretokenizer pure Rust (no oniguruma C dep) -
 # the same no-C rule that picked snow's default-resolver.
-tokenizers = { version = "0.21", default-features = false, features = ["fancy-regex"] }
+tokenizers = { version = "0.23", default-features = false, features = ["fancy-regex"] }
 rand = "0.8"
 # Nearby discovery (src/nearby.rs, plans/110 section 3): pure-Rust mDNS/DNS-SD, no Bonjour
 # daemon and no C dependency, so it builds the same on macOS/Linux/Windows. Runs its
