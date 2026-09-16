@@ -74,7 +74,7 @@ RUN --mount=type=secret,id=LOLLY_CATALOG_SIGNING_KEY,env=LOLLY_CATALOG_SIGNING_K
 
 # ── runtime stage ───────────────────────────────────────────────────────────
 # nginx-unprivileged runs as uid 101 (non-root) and listens on 8080 by default.
-FROM nginxinc/nginx-unprivileged:1.31-alpine@sha256:2ddec616f1cb58bcac057aa388f28cb81e35137641ef4226d321714499329bd1 AS runtime
+FROM nginxinc/nginx-unprivileged:1.31-alpine@sha256:b54ac358b83fc6c965793fd271839b4ea4cdb6e99895bb19618cbc2ca152d972 AS runtime
 
 # Our server config replaces the stock default.conf.
 COPY deploy/docker/nginx.conf /etc/nginx/conf.d/default.conf
