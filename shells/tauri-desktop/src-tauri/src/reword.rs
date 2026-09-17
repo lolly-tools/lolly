@@ -96,13 +96,13 @@ fn engine_for(root: &Path) -> Result<Arc<Engine>, String> {
     let mut layers = 0usize;
     let mut kv_heads = 5usize;
     let mut head_dim = 64usize;
-    for input in &session.inputs {
-        if !input.name.starts_with("past_key_values.") {
+    for input in session.inputs() {
+        if !input.name().starts_with("past_key_values.") {
             continue;
         }
-        if input.name.ends_with(".key") {
+        if input.name().ends_with(".key") {
             layers += 1;
-            if let ort::value::ValueType::Tensor { shape, .. } = &input.input_type {
+            if let ort::value::ValueType::Tensor { shape, .. } = input.dtype() {
                 if shape.len() == 4 {
                     if shape[1] > 0 { kv_heads = shape[1] as usize; }
                     if shape[3] > 0 { head_dim = shape[3] as usize; }

@@ -63,7 +63,7 @@ headless_chrome = "1"
 # onnxruntime at build time and LINKS it (~+30 MB to the .app). That linked dylib
 # is not a frontendDist asset, so the ~2 GB `ar` archive-offset trap the README
 # documents for embedded models does not apply.
-ort = "=2.0.0-rc.10"
+ort = "=2.0.0-rc.13"
 # Native reword generation (src/reword.rs, plans/127): SmolLM2 tokenizer loading
 # (reads the staged tokenizer.json verbatim) + temperature/top-p sampling. The
 # fancy-regex feature keeps the pretokenizer pure Rust (no oniguruma C dep) -

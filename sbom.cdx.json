@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:d5a0c452-a758-45eb-8235-4a80427913d2",
+  "serialNumber": "urn:uuid:c31ee063-a50c-4649-80c2-dd650c54c586",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-17T10:05:37.974Z",
+    "timestamp": "2026-09-17T10:40:06.458Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -5718,6 +5718,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/hmac-sha256@1.1.14",
+      "name": "hmac-sha256",
+      "version": "1.1.14",
+      "purl": "pkg:cargo/hmac-sha256@1.1.14",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "ec9d92d097f4749b64e8cc33d924d9f40a2d4eb91402b458014b781f5733d60f"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/html5ever@0.38.0",
       "name": "html5ever",
       "version": "0.38.0",
@@ -7402,6 +7429,33 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:cargo/lzma-rust2@0.15.8",
+      "name": "lzma-rust2",
+      "version": "0.15.8",
+      "purl": "pkg:cargo/lzma-rust2@0.15.8",
+      "scope": "required",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e20f57f9918e5bd7bc58c22cdd70a6afc7375d4dd9683af5f2b34bd3d2bba619"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:source",
+          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:cargo/mac-notification-sys@0.6.15",
       "name": "mac-notification-sys",
       "version": "0.6.15",
@@ -7908,10 +7962,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/ndarray@0.16.1",
+      "bom-ref": "pkg:cargo/ndarray@0.17.2",
       "name": "ndarray",
-      "version": "0.16.1",
-      "purl": "pkg:cargo/ndarray@0.16.1",
+      "version": "0.17.2",
+      "purl": "pkg:cargo/ndarray@0.17.2",
       "scope": "required",
       "licenses": [
         {
@@ -7921,7 +7975,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "882ed72dce9365842bf196bdeedf5055305f11fc8c03dee7bb0194a6cad34841"
+          "content": "520080814a7a6b4a6e9070823bb24b4531daac8c4627e08ba5de8c5ef2f2752d"
         }
       ],
       "properties": [
@@ -8953,10 +9007,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/ort-sys@2.0.0-rc.10",
+      "bom-ref": "pkg:cargo/ort-sys@2.0.0-rc.13",
       "name": "ort-sys",
-      "version": "2.0.0-rc.10",
-      "purl": "pkg:cargo/ort-sys@2.0.0-rc.10",
+      "version": "2.0.0-rc.13",
+      "purl": "pkg:cargo/ort-sys@2.0.0-rc.13",
       "scope": "required",
       "licenses": [
         {
@@ -8966,7 +9020,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "e2aba9f5c7c479925205799216e7e5d07cc1d4fa76ea8058c60a9a30f6a4e890"
+          "content": "cf211e3776eea6aec988552fa118dd746d70e1b1e5e244058d1c98015f3e5872"
         }
       ],
       "properties": [
@@ -8978,10 +9032,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:cargo/ort@2.0.0-rc.10",
+      "bom-ref": "pkg:cargo/ort@2.0.0-rc.13",
       "name": "ort",
-      "version": "2.0.0-rc.10",
-      "purl": "pkg:cargo/ort@2.0.0-rc.10",
+      "version": "2.0.0-rc.13",
+      "purl": "pkg:cargo/ort@2.0.0-rc.13",
       "scope": "required",
       "licenses": [
         {
@@ -8991,7 +9045,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "1fa7e49bd669d32d7bc2a15ec540a527e7764aec722a45467814005725bcd721"
+          "content": "4336a1e2b38848325241c72889086886004e589b7c74f335e60a8e8db5138a0b"
         }
       ],
       "properties": [
@@ -12346,31 +12400,6 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-mobile/src-tauri/Cargo.lock"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:cargo/smallvec@2.0.0-alpha.10",
-      "name": "smallvec",
-      "version": "2.0.0-alpha.10",
-      "purl": "pkg:cargo/smallvec@2.0.0-alpha.10",
-      "scope": "required",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-256",
-          "content": "51d44cfb396c3caf6fbfd0ab422af02631b69ddd96d2eff0b0f0724f9024051b"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:source",
-          "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
         }
       ]
     },
@@ -19293,10 +19322,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40anthropic-ai/sdk@0.124.0",
+      "bom-ref": "pkg:npm/%40anthropic-ai/sdk@0.125.0",
       "name": "@anthropic-ai/sdk",
-      "version": "0.124.0",
-      "purl": "pkg:npm/%40anthropic-ai/sdk@0.124.0",
+      "version": "0.125.0",
+      "purl": "pkg:npm/%40anthropic-ai/sdk@0.125.0",
       "scope": "excluded",
       "licenses": [
         {
@@ -19308,7 +19337,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "70de4ef22f545711de3900338ff5e3b215971bc2a289b243c3d386a47d99fde4779ff441c5da0bc4324e71fa80256be368c0c57c74c1003534e21591255903c8"
+          "content": "1eae706255eea7327d335173aa3a9ade139b72e8a011755926a4980e079918cdf0178aab34444ce59d4e3807a84fdae5a1df1ac09dee6322636d05e9d5c9081a"
         }
       ],
       "properties": [
@@ -19362,10 +19391,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/biome@2.5.12",
+      "bom-ref": "pkg:npm/%40biomejs/biome@2.5.13",
       "name": "@biomejs/biome",
-      "version": "2.5.12",
-      "purl": "pkg:npm/%40biomejs/biome@2.5.12",
+      "version": "2.5.13",
+      "purl": "pkg:npm/%40biomejs/biome@2.5.13",
       "scope": "excluded",
       "licenses": [
         {
@@ -19375,7 +19404,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "2f0e151d945e6eb45e0419e51dad762508e72019b7249000e793c307d2db055045d2ae11629866e8a7e6223aad3e17fad4cc59e50f4aa0af11f31fbba5eaf903"
+          "content": "f92102fe6164d5afb99af50035981b6536a2657b359e3e223212ff3c78aa0d3e533d410f148965884b6428a641e0df3adb2ca51c2dd423efd28f62341c912a84"
         }
       ],
       "properties": [
@@ -19387,10 +19416,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/cli-darwin-arm64@2.5.12",
+      "bom-ref": "pkg:npm/%40biomejs/cli-darwin-arm64@2.5.13",
       "name": "@biomejs/cli-darwin-arm64",
-      "version": "2.5.12",
-      "purl": "pkg:npm/%40biomejs/cli-darwin-arm64@2.5.12",
+      "version": "2.5.13",
+      "purl": "pkg:npm/%40biomejs/cli-darwin-arm64@2.5.13",
       "scope": "excluded",
       "licenses": [
         {
@@ -19400,7 +19429,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "942458d6bc2035e58d813af80c8feee99c174d1c112c702f6da8a8d582cb192fb8af59e1bc1dacb323ea2297d44a646f78d7efd1f9ff379f02ec201d2b65d5ae"
+          "content": "9d84ae0c9eb3815a99524024264be15f1b05d8f608ad493f83adfc2b8be8097cfb7e823d7fb6fa0b6ffbfa802286c1d0962bd934c52b9bfcbccb095c1d0b593b"
         }
       ],
       "properties": [
@@ -19412,20 +19441,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/cli-darwin-x64@2.5.12",
+      "bom-ref": "pkg:npm/%40biomejs/cli-darwin-x64@2.5.13",
       "name": "@biomejs/cli-darwin-x64",
-      "version": "2.5.12",
-      "purl": "pkg:npm/%40biomejs/cli-darwin-x64@2.5.12",
+      "version": "2.5.13",
+      "purl": "pkg:npm/%40biomejs/cli-darwin-x64@2.5.13",
       "scope": "excluded",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "be13e0c2787eead37702b7405ee113f7dc5a35b16dec21bcd81aa7fa898754b0b9c5d571e3926c62318f9942063738c37a4e5774d08fd472a4b0aedf9fcfb76d"
+          "content": "295cb571e103b89dc0cc5c634fd924c5b572f9400dc35a6310c512ea5bca7f18c9f9f9a446f73bb109f55e8e844e0b1e108ef0510a15d3729281add77c4f1845"
         }
       ],
       "properties": [
@@ -19437,20 +19461,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/cli-linux-arm64-musl@2.5.12",
+      "bom-ref": "pkg:npm/%40biomejs/cli-linux-arm64-musl@2.5.13",
       "name": "@biomejs/cli-linux-arm64-musl",
-      "version": "2.5.12",
-      "purl": "pkg:npm/%40biomejs/cli-linux-arm64-musl@2.5.12",
+      "version": "2.5.13",
+      "purl": "pkg:npm/%40biomejs/cli-linux-arm64-musl@2.5.13",
       "scope": "excluded",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "728b8762314b2f9bae23c9deeb3853ecac04b17a3960feebcbfdb1984a9a87ba9a9eed1899f0e2de6c09838ed85d2baffcda598f6d826737111ffe5ce208cf49"
+          "content": "087df6c697a9ddd352e44549a401e561c864058ce7c7255942bc746fa6186253cbf6ef59783d8db6a88affab3ae3e1c54b66bb8469ebc8b96aa9900e87c6b1e6"
         }
       ],
       "properties": [
@@ -19462,20 +19481,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/cli-linux-arm64@2.5.12",
+      "bom-ref": "pkg:npm/%40biomejs/cli-linux-arm64@2.5.13",
       "name": "@biomejs/cli-linux-arm64",
-      "version": "2.5.12",
-      "purl": "pkg:npm/%40biomejs/cli-linux-arm64@2.5.12",
+      "version": "2.5.13",
+      "purl": "pkg:npm/%40biomejs/cli-linux-arm64@2.5.13",
       "scope": "excluded",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "da0a7c695c1760a740b6605f445094bb20cc71f3756a11ea52419f2d8ad994d4459abc8c0132d5bc98162afc80f30bb84709f9392c4cd5471498eb8e14d19e05"
+          "content": "56534cb68c4eaacd1d511e9daf1c47af5f12354bc8ef1c40b876651f8b3f76cb5849fde0e916aa560a3c2519e170e84acfd69f5abbed2536e8346d49b989480d"
         }
       ],
       "properties": [
@@ -19487,20 +19501,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/cli-linux-x64-musl@2.5.12",
+      "bom-ref": "pkg:npm/%40biomejs/cli-linux-x64-musl@2.5.13",
       "name": "@biomejs/cli-linux-x64-musl",
-      "version": "2.5.12",
-      "purl": "pkg:npm/%40biomejs/cli-linux-x64-musl@2.5.12",
+      "version": "2.5.13",
+      "purl": "pkg:npm/%40biomejs/cli-linux-x64-musl@2.5.13",
       "scope": "excluded",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "f00d280d6e7cff0f5ffcf40d62eab4b06519b46b46ae4345e19ea7d0f5285e92c2b218bce6fb4a4efd574b39d06b085d13831727cb9fa731d7c8b15ef3b33ffb"
+          "content": "177a66c25f951e852e54937fb5b34b29e2edd1254adc42323758d794c70dc9019845041356a5c5f868243f4fc28c65c537cedefe6bf4b017d49d6a96cdae4f29"
         }
       ],
       "properties": [
@@ -19512,20 +19521,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/cli-linux-x64@2.5.12",
+      "bom-ref": "pkg:npm/%40biomejs/cli-linux-x64@2.5.13",
       "name": "@biomejs/cli-linux-x64",
-      "version": "2.5.12",
-      "purl": "pkg:npm/%40biomejs/cli-linux-x64@2.5.12",
+      "version": "2.5.13",
+      "purl": "pkg:npm/%40biomejs/cli-linux-x64@2.5.13",
       "scope": "excluded",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "4a7bceb374d24e2ba26b849039435ed5a582f514f8f9892370a9ce84bfe7b0a395d24e727200640f3174954c4a9f557b43c08b4d1aba895db76408af1e8991a0"
+          "content": "162ea02316d4689dd90885de1b78202013c5efa3b60e30cdebb5ab3d7fce0d1bf9e067973e6da06c43c2f7a61bd32ac9a221f411ac7524bc753e2d176ec34565"
         }
       ],
       "properties": [
@@ -19537,20 +19541,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/cli-win32-arm64@2.5.12",
+      "bom-ref": "pkg:npm/%40biomejs/cli-win32-arm64@2.5.13",
       "name": "@biomejs/cli-win32-arm64",
-      "version": "2.5.12",
-      "purl": "pkg:npm/%40biomejs/cli-win32-arm64@2.5.12",
+      "version": "2.5.13",
+      "purl": "pkg:npm/%40biomejs/cli-win32-arm64@2.5.13",
       "scope": "excluded",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "6fdbeda1916cb99b75a5d8cdc09bd79747fe0696b2473574d3cb92dbe2699b020a752136a9dbb803f974e05112c0ba28bb983613f42579cd31c09c9d669947f8"
+          "content": "f960f5deab215ebaf421cbf805fb007739bc16cdd32fe9d9e7dcc4431b1835df25720649d00e7e3ab970b0bd4f8a9542996791a718083c3e8301c11deec9a409"
         }
       ],
       "properties": [
@@ -19562,20 +19561,15 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40biomejs/cli-win32-x64@2.5.12",
+      "bom-ref": "pkg:npm/%40biomejs/cli-win32-x64@2.5.13",
       "name": "@biomejs/cli-win32-x64",
-      "version": "2.5.12",
-      "purl": "pkg:npm/%40biomejs/cli-win32-x64@2.5.12",
+      "version": "2.5.13",
+      "purl": "pkg:npm/%40biomejs/cli-win32-x64@2.5.13",
       "scope": "excluded",
-      "licenses": [
-        {
-          "expression": "MIT OR Apache-2.0"
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "07547f97e0b01292854aeaa2c1e3f33cd464d4488937c91cd1485d69f373e8c64df6fe4e14ff4760fd62ae9b6f5b31ebc152386e554d18c6f1739cedef49b720"
+          "content": "54ea1f53f9d6efad575b351e50d13ccf360dc8faf1b8cb8d14c8b32f4ab3ec9ef9c9e57c37b58585e525935fcae9d3a4685a47f7027e9432a5c2301bc34df8eb"
         }
       ],
       "properties": [
@@ -21277,10 +21271,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40mediabunny/flac-encoder@1.56.1",
+      "bom-ref": "pkg:npm/%40mediabunny/flac-encoder@1.56.2",
       "name": "@mediabunny/flac-encoder",
-      "version": "1.56.1",
-      "purl": "pkg:npm/%40mediabunny/flac-encoder@1.56.1",
+      "version": "1.56.2",
+      "purl": "pkg:npm/%40mediabunny/flac-encoder@1.56.2",
       "scope": "required",
       "licenses": [
         {
@@ -21292,7 +21286,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "cdb9a8acc5651758b3c2d973e665a7bbb035ac92ccf95dba234a4416bf537751034f0139b80191496fbf5199678f08f5b74d16a1edd9a277e1f646fb951441aa"
+          "content": "d2f315ec4c408d03dd1ca7c21d07d7671ce0a81f447fd98faa83b6c52479468c2a9dbbdc2e8b0c1334f4b38f27a04c4f18e29ecaa66038d6f98d6eef52478872"
         }
       ]
     },
@@ -21487,31 +21481,24 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40napi-rs/canvas-android-arm64@1.0.8",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-android-arm64@1.0.9",
       "name": "@napi-rs/canvas-android-arm64",
-      "version": "1.0.8",
-      "purl": "pkg:npm/%40napi-rs/canvas-android-arm64@1.0.8",
+      "version": "1.0.9",
+      "purl": "pkg:npm/%40napi-rs/canvas-android-arm64@1.0.9",
       "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "e7e9e487c8b782dea5a92fddda34d9d71027ead760b41e0b7f5996e93d109b9feb5cdc01b95d6c004c8b1166a7e68f6024f53f1aebc7477aef49e67e15a1ab6f"
+          "content": "e0b197936ff41d5cc4dbd2bc4b330be56b9b802a7ef81d451f7aa0977e57992644fa52ddafa3fd5514049d9d0c08b64c4d2b893f8d72ca1b68895344bafad320"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40napi-rs/canvas-darwin-arm64@1.0.8",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-darwin-arm64@1.0.9",
       "name": "@napi-rs/canvas-darwin-arm64",
-      "version": "1.0.8",
-      "purl": "pkg:npm/%40napi-rs/canvas-darwin-arm64@1.0.8",
+      "version": "1.0.9",
+      "purl": "pkg:npm/%40napi-rs/canvas-darwin-arm64@1.0.9",
       "scope": "required",
       "licenses": [
         {
@@ -21523,205 +21510,142 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "ee3438ee08be7d9eca2667dcff9acdcb2d42630fdcbb8919d0a3c861ba3d514812756d1b290269b7e5a2844a2beace0bca9efec5cddafb71dec9798011b6e73e"
+          "content": "60d75f2c1cd8d16fcf7a9f5fa362fa466a0d94d92c9e7d392d19d7eba5badd1de28f9f12db940e4dc8ddb44b76bfcf8f9c2112cea66c633528f903de211e3834"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40napi-rs/canvas-darwin-x64@1.0.8",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-darwin-x64@1.0.9",
       "name": "@napi-rs/canvas-darwin-x64",
-      "version": "1.0.8",
-      "purl": "pkg:npm/%40napi-rs/canvas-darwin-x64@1.0.8",
+      "version": "1.0.9",
+      "purl": "pkg:npm/%40napi-rs/canvas-darwin-x64@1.0.9",
       "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "ad18c3319b3da4844a1b18228f07b3a6529cd519c9b2a52892b03d87cf1b6d392a43eede3e3d19378667643cbc56ed2d5ececa465236b502da2b89b1f509711e"
+          "content": "71e6504a49d311ccb774e5e87a4bf9f4b4c29178ef9cbb2af955b93de34d0c710f41b452e44aef926d446836bb58b02389858c2ee4904d14c76a8d5d117e29ae"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-arm-gnueabihf@1.0.8",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-arm-gnueabihf@1.0.9",
       "name": "@napi-rs/canvas-linux-arm-gnueabihf",
-      "version": "1.0.8",
-      "purl": "pkg:npm/%40napi-rs/canvas-linux-arm-gnueabihf@1.0.8",
+      "version": "1.0.9",
+      "purl": "pkg:npm/%40napi-rs/canvas-linux-arm-gnueabihf@1.0.9",
       "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "8c670277ef2b6ba43ad712aa65e888b6e8d3a69f5af5e44b710d235baa98364bbe5a9ba9a8e3c53d8d12aecb929d716f889c24a4a613f69ed0ac1e25b1fdcb35"
+          "content": "5e17c8d16c2fe2596177a9e7583b58de440a8ead2bfb2d62f753e5265248db86a0d94f56ae7c1b1b5a92dfe7c32c4ca8bb011515c8622a44c41e8ccafb989434"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-arm64-gnu@1.0.8",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-arm64-gnu@1.0.9",
       "name": "@napi-rs/canvas-linux-arm64-gnu",
-      "version": "1.0.8",
-      "purl": "pkg:npm/%40napi-rs/canvas-linux-arm64-gnu@1.0.8",
+      "version": "1.0.9",
+      "purl": "pkg:npm/%40napi-rs/canvas-linux-arm64-gnu@1.0.9",
       "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "a1de88d98ee453b8b54b06581b610a5bcad6cfa26279db4fa64a385847b50c3b228a4adf6a8b5504245a513339ff279929a67dd846ada004bee711beeae26560"
+          "content": "d35da8898b4a684ee2f68c5cf2aee7ada4fb9033a92dc6829852f355ef53cb7e111c37680f36d62eb561f36ec2371621fc40035f57928a4037ca62e3a3f9cdbb"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-arm64-musl@1.0.8",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-arm64-musl@1.0.9",
       "name": "@napi-rs/canvas-linux-arm64-musl",
-      "version": "1.0.8",
-      "purl": "pkg:npm/%40napi-rs/canvas-linux-arm64-musl@1.0.8",
+      "version": "1.0.9",
+      "purl": "pkg:npm/%40napi-rs/canvas-linux-arm64-musl@1.0.9",
       "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "c9890f6c90c98968fa374800480dc202f472a59995a499f15340d083768186778b0d075ef533cb2800ec424a1b368254b534ff963e3a696a734f8f0f0dbdd072"
+          "content": "2ece545981459faddc6ac4d911ccdb7b2120def443464bfd96c72e1b07dc86d639c8b2d0860381f12378606c667c9e6f4da070676614c414b736d9a326615774"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-riscv64-gnu@1.0.8",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-riscv64-gnu@1.0.9",
       "name": "@napi-rs/canvas-linux-riscv64-gnu",
-      "version": "1.0.8",
-      "purl": "pkg:npm/%40napi-rs/canvas-linux-riscv64-gnu@1.0.8",
+      "version": "1.0.9",
+      "purl": "pkg:npm/%40napi-rs/canvas-linux-riscv64-gnu@1.0.9",
       "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "3c1d34312280a785702bfc707ba76e2b144a987f141f8188975a6a1d26f19e0d239d4f43afb170683ca90e2ab034567bef837ef06ee624b1ae2ed83d353710b2"
+          "content": "84b2841b157b662447aa775e3d3a2480331d065a3fac37f383b3f8a78408bfda5486e6286e7bb747634814b0918211b49f07e8facdacc3e735c5915e0a6100b3"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-x64-gnu@1.0.8",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-x64-gnu@1.0.9",
       "name": "@napi-rs/canvas-linux-x64-gnu",
-      "version": "1.0.8",
-      "purl": "pkg:npm/%40napi-rs/canvas-linux-x64-gnu@1.0.8",
+      "version": "1.0.9",
+      "purl": "pkg:npm/%40napi-rs/canvas-linux-x64-gnu@1.0.9",
       "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "4d63365d62688ad2e220f0af80987b4ab882f8bfd3f6a918095cc2eba02276c672d103f58642b3073570b2109d700deae9f227df21342126eae253094b2f2317"
+          "content": "ea46b3df0d10332efb3c35a4eab27592c22285d69ddeacc4c97da8da8193f06c026b2a5f4f99a18ebf1bb8e3b986cb722f17165c349cbb3e7a46c20d2ed04f21"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-x64-musl@1.0.8",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-linux-x64-musl@1.0.9",
       "name": "@napi-rs/canvas-linux-x64-musl",
-      "version": "1.0.8",
-      "purl": "pkg:npm/%40napi-rs/canvas-linux-x64-musl@1.0.8",
+      "version": "1.0.9",
+      "purl": "pkg:npm/%40napi-rs/canvas-linux-x64-musl@1.0.9",
       "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "85bdb43312975dbe4807b000c0df141f3f5646c6b61e67597e3b030b38c4970268795d5aa2d544c0553816b150718415cec2502de68273fd9076dff443bda632"
+          "content": "c6b1af992defe7986667cea5b3f9012d534c513622a377fa224d038ab79e986f7de157cf030880dd95c0d147f56c1c9cb64077350d527dbf87e5b91d5279f37d"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40napi-rs/canvas-win32-arm64-msvc@1.0.8",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-win32-arm64-msvc@1.0.9",
       "name": "@napi-rs/canvas-win32-arm64-msvc",
-      "version": "1.0.8",
-      "purl": "pkg:npm/%40napi-rs/canvas-win32-arm64-msvc@1.0.8",
+      "version": "1.0.9",
+      "purl": "pkg:npm/%40napi-rs/canvas-win32-arm64-msvc@1.0.9",
       "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "5b03cdd3c2171384a42fe1612723f3fe2167c9c3005246e9845213e1c98a2e5bdb494d197e7d51ec1189dc7aa4cb54bcf5051873443820e49c5dbff8d917bdc1"
+          "content": "ca39954b702b65e45508fee3a9b3eae2ba596bf0614de23b10b1365ea260dec9c80900437af2d9c80af1b301e48939d3df829189cdf7ff87cb8abac723e498f0"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40napi-rs/canvas-win32-x64-msvc@1.0.8",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas-win32-x64-msvc@1.0.9",
       "name": "@napi-rs/canvas-win32-x64-msvc",
-      "version": "1.0.8",
-      "purl": "pkg:npm/%40napi-rs/canvas-win32-x64-msvc@1.0.8",
+      "version": "1.0.9",
+      "purl": "pkg:npm/%40napi-rs/canvas-win32-x64-msvc@1.0.9",
       "scope": "required",
-      "licenses": [
-        {
-          "license": {
-            "id": "MIT"
-          }
-        }
-      ],
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "5e4ad5a8a6fea71c9b6bb923cb62c9bc00455414c4d03369125eccac6e0e61499a59aaeb5c7fade78cff0b38f663108ab62cd84d5e2683aa61366df1db8aa385"
+          "content": "42549841d310b2507cd67940068f7035f43a9e916113bfcefac68265da951ae7866a7c919388c2a200f913041e9df3f7908abd7be9a6e86ade4018d7e4cac0f2"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40napi-rs/canvas@1.0.8",
+      "bom-ref": "pkg:npm/%40napi-rs/canvas@1.0.9",
       "name": "@napi-rs/canvas",
-      "version": "1.0.8",
-      "purl": "pkg:npm/%40napi-rs/canvas@1.0.8",
+      "version": "1.0.9",
+      "purl": "pkg:npm/%40napi-rs/canvas@1.0.9",
       "scope": "required",
       "licenses": [
         {
@@ -21733,7 +21657,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "fd268b72f96a196766d0748258c807bbb7232624177cff3f98e63ee9d53257d7e5433eec3c1059f9e776cd8b68ba4a233e6c4e68bedb9be77f1b819e596a0dee"
+          "content": "42f88f7492260e2fe3300bc17ea6b0fb5f419dd31dfec8b35d55b7367a4c7775491b3fbe41790e1dc3fd91647fb261c6d213631decae1c5cabc7fe650f4a0d71"
         }
       ]
     },
@@ -24650,10 +24574,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40types/node@26.5.0",
+      "bom-ref": "pkg:npm/%40types/node@26.5.1",
       "name": "@types/node",
-      "version": "26.5.0",
-      "purl": "pkg:npm/%40types/node@26.5.0",
+      "version": "26.5.1",
+      "purl": "pkg:npm/%40types/node@26.5.1",
       "scope": "required",
       "licenses": [
         {
@@ -24665,7 +24589,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "755486a6b892a02833f169c3353b924ae4afd4f0bf00b5e284ee2e95166decc77c93d9a56dd8a7de518e70313c4a758e81fe75dc1c9695777b04ae1ace6ca0fc"
+          "content": "0b3366d857b35b8551fcb8c6eb251d88480b13fac043d4a58f9802bbf0b656b75c5bb2346a1359f0345b1d3ef3399eabdce36077f6ec4087926a80c6addd42ea"
         }
       ]
     },
@@ -24719,10 +24643,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40types/three@0.185.4",
+      "bom-ref": "pkg:npm/%40types/three@0.186.0",
       "name": "@types/three",
-      "version": "0.185.4",
-      "purl": "pkg:npm/%40types/three@0.185.4",
+      "version": "0.186.0",
+      "purl": "pkg:npm/%40types/three@0.186.0",
       "scope": "excluded",
       "licenses": [
         {
@@ -24734,7 +24658,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "800b01202d3b34816bc636dfeed1f6b7bd5cdfcbae9457e4fd11680bb14d0528cc44043c275c7f441beeb17d0de4f268b9a60525ac1742a7c243444a531ff59c"
+          "content": "9b16120690c2f83d292df48feac5b85994dc4fe9ebb6665c8a632a9d59b2dfa1ed7b75e97984abbe08384d175a33519e986a20d405b3239a8bd95a087cc5db25"
         }
       ],
       "properties": [
@@ -30279,10 +30203,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/mediabunny@1.56.1",
+      "bom-ref": "pkg:npm/mediabunny@1.56.2",
       "name": "mediabunny",
-      "version": "1.56.1",
-      "purl": "pkg:npm/mediabunny@1.56.1",
+      "version": "1.56.2",
+      "purl": "pkg:npm/mediabunny@1.56.2",
       "scope": "required",
       "licenses": [
         {
@@ -30294,7 +30218,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "0cd3a6d1b44199e3b126008afe0dcbc4d59bc58e66a2b4dab8d765c9c86e8c6989f4bdfb7b355ece43682355ad3b65dd6f85a559626561f20a9ce133779a6147"
+          "content": "2abacbd87af8eeaf885d2d7d055589c98330d566fc833f0591e28fffeba2eeaf2d3edd257da8a8d9df42686904585821683d36c0d69efc78180594dc83947266"
         }
       ]
     },
@@ -33895,6 +33819,20 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/type-fest@5.9.0",
+      "name": "type-fest",
+      "version": "5.9.0",
+      "purl": "pkg:npm/type-fest@5.9.0",
+      "scope": "required",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "c80366dc9af71a2275aa0265c46015c533887043a4d6b8501da9a55ed9eb08aec41cfe0778cf4e1b1b4c83f5bb1c576b573c3f65624a195209bac547f39b0bb7"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/type-is@2.1.0",
       "name": "type-is",
       "version": "2.1.0",
@@ -34576,10 +34514,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/yaml@2.9.0",
+      "bom-ref": "pkg:npm/yaml@2.9.1",
       "name": "yaml",
-      "version": "2.9.0",
-      "purl": "pkg:npm/yaml@2.9.0",
+      "version": "2.9.1",
+      "purl": "pkg:npm/yaml@2.9.1",
       "scope": "required",
       "licenses": [
         {
@@ -34591,7 +34529,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "d80be1357de66fccdde99cbb20d4ed4a9975175e475ba5a7aa3d2cad696428b729625fe03083098b2b86ab629e236605c543e376507edcb735d2c78c2ed2f870"
+          "content": "dcdc4df3eefc39dcdb4fb0bf5a31acc9f3c0b4968ddc5343b16c6fed8ee6703b13fe83a6816f01a72410145067bd91378fd63649dcf550b14b7b32fb11bdb217"
         }
       ]
     },
@@ -34672,10 +34610,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/zxing-wasm@3.1.3",
+      "bom-ref": "pkg:npm/zxing-wasm@3.1.4",
       "name": "zxing-wasm",
-      "version": "3.1.3",
-      "purl": "pkg:npm/zxing-wasm@3.1.3",
+      "version": "3.1.4",
+      "purl": "pkg:npm/zxing-wasm@3.1.4",
       "scope": "required",
       "licenses": [
         {
@@ -34687,7 +34625,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "de50bd0499387d1e592717068dbd215670c5396ecaa4b5c721e6e206655de050d141955e39bceda132b14543f1956c12831acc44e34ad2ee748410f56936042a"
+          "content": "d7ebfca7bb1ab9d772495346fb27bb183ff44d2f79046db271d92b0be12706b1411641de22087352ddb2563b71dcdb9c25e36b427853f32180233eb4571f68d3"
         }
       ]
     }
