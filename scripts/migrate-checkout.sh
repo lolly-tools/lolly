@@ -140,7 +140,9 @@ for d in "${PARK[@]}"; do
     # The folded tree tracks some files under this directory (public/info carries
     # the Ask vectors), so it exists after the checkout: merge the parked contents
     # into it rather than nesting the whole directory one level down.
-    do_or_show rsync -a "$PARKDIR/$d/" "$d/"
+    # --ignore-existing: a file the folded tree tracks here (the Ask vectors under
+    # public/info) must win over the parked, older build output.
+    do_or_show rsync -a --ignore-existing "$PARKDIR/$d/" "$d/"
     do_or_show rm -rf "$PARKDIR/$d"
   else
     do_or_show mv "$PARKDIR/$d" "$d"
@@ -148,10 +150,10 @@ for d in "${PARK[@]}"; do
 done
 if [ -d "$PARKDIR/untracked" ]; then
   say "  restoring parked untracked files"
-  do_or_show rsync -a "$PARKDIR/untracked/" "$ROOT/"
+  do_or_show rsync -a --ignore-existing "$PARKDIR/untracked/" "$ROOT/"
   do_or_show rm -rf "$PARKDIR/untracked"
 fi
-[ "$YES" = 1 ] && rmdir "$PARKDIR" 2>/dev/null || true
+[ "$YES" = 1 ] && rm -rf "$PARKDIR"
 do_or_show pnpm install --frozen-lockfile
 do_or_show pnpm run --silent profile
 
