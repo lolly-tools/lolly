@@ -152,6 +152,12 @@ Two rules that fall out of the mount. A shared root is ADDITIVE, so a root that 
 
 What that means on a device, stated plainly. Every profile - `suse` and `lolly-start` alike - serves the same sets from the same files, so there is a set to choose everywhere and a chooser appears wherever a render carries emoji. A profile that mounted no pack would still have nothing to choose and the pass would leave its text alone; that is now a configuration nobody ships rather than the default state.
 
+## The catalog set browser
+
+Catalog tiles keep their five baked specimen glyphs. Opening an emoji set's item modal loads its exact manifest and offers every admitted glyph, including skin-tone variants and custom symbols. Search accepts names, pasted emoji, Unicode codes and symbol IDs. The glyph-type filter, size slider and arrow-key navigation work inside the modal; selecting a glyph shows larger artwork and a copy action. Custom symbols copy their ID because they have no Unicode character.
+
+The browser prepares visible artwork through `prepareEmojiSvg`, preserving the set's original colours and using separate image documents for local SVG IDs. Closing or paging away stops pending paints and revokes its object URLs. A failed download offers a retry. The browser does not change an emoji preference; the existing **Use this set** action does that.
+
 ## The picker grid
 
 The insertion button beside a sidebar text or block field, a table's `emoji` column, and the Emoji tab of the text workspace's character browser all use the same picker. New work opens its grid with Fluent High Contrast, unless a more specific choice applies. When no set is selected, the picker asks for one before showing its grid. Continue applies that choice to the document; the checked 'Use this set for new work' option also saves a profile seed. Change emoji set offers the same control again. Cancelling a draft leaves the current style and text alone. Text fields insert at the caret or replace the selection; emoji table cells replace the whole cell. The input's existing edit handlers still own validation, state and history.

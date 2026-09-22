@@ -25,6 +25,7 @@ export interface DetailsCtx {
   PASSPORT_CRED_CACHE: CatCtx['PASSPORT_CRED_CACHE'];
   TREATMENT_FILTER_PREFIX: string;
   host: CatCtx['host'];
+  emojiBrowser?: { destroy(): void };
   nav: { prev: AssetRef | null; next: AssetRef | null; };
   base: string;
   isUser: boolean;

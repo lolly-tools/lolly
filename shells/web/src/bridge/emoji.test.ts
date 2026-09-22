@@ -130,6 +130,20 @@ test('artwork() returns bytes that hash to the glyph checksum the manifest pins'
   assert.equal(await api.artwork(pin, { url: 'not-a-glyph.svg' } as never), null, 'an unknown url is not invented');
 });
 
+test('a failed bundle download can be retried without reloading the catalog', async () => {
+  let attempts = 0;
+  const assets = fakeAssets({ bytes: async () => {
+    if (++attempts === 1) throw new Error('Offline');
+    return new Uint8Array(bundleBytes);
+  } });
+  const api = createEmojiAPI(assets);
+  assert.equal(await api.manifest(pin), null);
+  assert.equal(sha256((await api.manifest(pin))!), pin.checksum);
+  assert.equal(attempts, 2);
+  await api.manifest(pin);
+  assert.equal(attempts, 2, 'the successful retry stays cached');
+});
+
 test('a tampered manifest text is refused, so a rewritten bundle cannot be served', async () => {
   const tampered = JSON.stringify({ ...bundle, manifest: `${bundle.manifest} ` });
   const api = createEmojiAPI(fakeAssets({ bytes: async () => new TextEncoder().encode(tampered) }));

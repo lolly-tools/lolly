@@ -113,7 +113,12 @@ export function createEmojiAPI(assets: EmojiAssets): EmojiAPI {
     const key = pinKey(pin);
     let hit = bundles.get(key);
     if (!hit) {
-      hit = fetchBundle(pin).catch(() => null);
+      hit = fetchBundle(pin).catch(() => {
+        // A failed download can be retried from the set browser. Admission
+        // refusals still resolve to null and stay cached for this exact pin.
+        if (bundles.get(key) === hit) bundles.delete(key);
+        return null;
+      });
       bundles.set(key, hit);
     }
     return hit;

@@ -40,9 +40,8 @@ import type { RewordCandidate, } from '@lolly/engine';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { assetLicenceDeclaration, readAssetRightsRecord, type AssetRightsMeta } from '../../lib/asset-rights.ts';
 import { lollyBadge } from '../../lib/lolly-badge.ts';
-import { CHEVRON_LEFT, CHEVRON_RIGHT, CROP_ICON, DOWNLOAD_ICON, EYE_ICON, EYE_OFF_ICON, PAUSE_ICON, PENCIL_ICON, PLAY_ICON, REPLACE_ICON, SHARE_ICON, SHIELD_ICON, STAR_ICON, TAG_ICON, TRASH_ICON, attachZoom, catalogAddedText, emojiPackMeta, emojiPackPin, emojiPackSource, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, svgTextToDataUrl } from './shared.ts';
+import { CHEVRON_LEFT, CHEVRON_RIGHT, CROP_ICON, DOWNLOAD_ICON, EYE_ICON, EYE_OFF_ICON, PAUSE_ICON, PENCIL_ICON, PLAY_ICON, REPLACE_ICON, SHARE_ICON, SHIELD_ICON, STAR_ICON, TAG_ICON, TRASH_ICON, attachZoom, catalogAddedText, emojiPackMeta, emojiPackPin, isCanonicalGlyphKey, isThemable, isVector, isVerifiableAsset, setCropModeActive, svgTextToDataUrl } from './shared.ts';
 import type { EmojiPackAbsence, EmojiPackTileMeta } from './shared.ts';
-import { emojiSpecimenArtwork, paintEmojiSpecimen } from '../../lib/emoji-specimen.ts';
 import type { EmojiPrefsHost } from '../../lib/emoji-prefs.ts';
 import { audioCardArt, wireAudioViz } from './details-shared.ts';
 import { bindOp, type DetailsCtx } from './details-context.ts';
@@ -202,23 +201,19 @@ function markUsingEmojiSet(dlg: HTMLElement): void {
   if (label) label.textContent = t('Your emoji set');
 }
 
-/**
- * The two reads an emoji pack's sheet needs after it is up: draw the specimen from
- * the set's own artwork, and mark the button where this set is already the one.
- *
- * The specimen goes through the shared helper, so this sheet and a grid tile draw
- * the same five glyphs: the ones the catalog entry carries, or, for an entry with
- * no bake, one pack load shared by every surface that asks.
- */
+/** Load the full set browser and mark the current preference after the sheet opens. */
 export function paintEmojiPack(dt: DetailsCtx): void {
   const { cat, dlg, host, ref } = dt;
   const pack = emojiPackMeta(ref);
   if (!pack) return;
-  void emojiSpecimenArtwork(host, emojiPackSource(pack)).then((artwork) => {
-    if (cat.detailsDialog !== dlg) return;   // closed or paged away while the pack loaded
-    const stub = dlg.querySelector<HTMLElement>('.cat-thumb-emoji');
-    if (stub) paintEmojiSpecimen(stub, artwork);
-  }).catch(() => { /* the family and style line stands on its own */ });
+  void import('../../components/emoji-set-browser.ts').then(({ mountEmojiSetBrowser }) => {
+    if (cat.detailsDialog !== dlg) return;
+    const slot = dlg.querySelector<HTMLElement>('[data-emoji-browser]');
+    if (slot) dt.emojiBrowser = mountEmojiSetBrowser(slot, host, emojiPackPin(pack));
+  }).catch(() => {
+    const slot = dlg.querySelector<HTMLElement>('[data-emoji-browser]');
+    if (slot) slot.textContent = tRaw('The emoji browser could not be loaded. Close this item and try again.');
+  });
   void (async () => {
     const { currentEmojiPreference } = await import('../../lib/emoji-prefs.ts');
     const saved = await currentEmojiPreference(host as unknown as EmojiPrefsHost);
@@ -414,7 +409,7 @@ export function buildSheet(dt: DetailsCtx): void {
                ${isMotionLottie ? `<button type="button" class="cat-motion-toggle is-playing" data-act="motion-toggle" aria-label="${escapeText(t('Pause'))}" title="${escapeText(t('Pause'))}">${PAUSE_ICON}</button>` : ''}
                <div class="cat-zoom-hud"></div>
              </div>`
-          : cat.thumbs.thumbHtml(ref, false, true)}
+          : emojiPackMeta(ref) ? `<div data-emoji-browser><p role="status">${t('Loading the full emoji set…')}</p></div>` : cat.thumbs.thumbHtml(ref, false, true)}
       </div>
       <div class="cat-details-body">
         <!-- Toolbar FIRST: the meta/tech/credential sections below are variable
@@ -542,6 +537,7 @@ export function buildSheet(dt: DetailsCtx): void {
     className: 'cat-details',
     initialFocus: (el) => el.querySelector<HTMLElement>('.cat-details-close'),
     onClose: () => {
+      dt.emojiBrowser?.destroy();
       cat.detailsMeterDispose?.();
       cat.detailsMeterDispose = null;
       cat.detailsTransport?.destroy();
