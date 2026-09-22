@@ -217,6 +217,17 @@
       "signing": "Package build; npm publication not performed",
       "buildRun": "https://github.com/lolly-tools/lolly/actions/runs/35535255369",
       "assetName": "lolly-tools-cli-0.1.0.tgz"
+    },
+    {
+      "path": "web/lolly-web-1.0.9.tar.gz",
+      "assetName": "lolly-web-1.0.9.tar.gz",
+      "platform": "web",
+      "version": "1.0.9",
+      "engineVersion": "1.217.0",
+      "sourceCommit": "886d0c390a82b6796f35a4c9725936e2e4c25473",
+      "bytes": 254972824,
+      "sha256": "f35c3bc8ac2ba1a4a6223acec984f3c22e606bc39a21cbba159ab414fb0ae976",
+      "signing": "Signed catalog and tool-file hashes verified after the release build"
     }
   ]
 }
