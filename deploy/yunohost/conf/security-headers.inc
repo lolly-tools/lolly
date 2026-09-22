@@ -6,9 +6,9 @@
 # while the baseline headers Lolly does not set (HSTS, X-Frame-Options) stay.
 # Verified against nginx 1.22 + headers-more on Debian 12 (YunoHost 12).
 #
-# The set is byte-identical to the hosted deployment's vercel.json and
-# deploy/docker/security-headers.conf - tests/security-headers.test.ts and
-# tests/yunohost-package.test.ts fail the build if the copies disagree.
+# With no extra storage origins, the set is byte-identical to the hosted
+# deployment. tests/yunohost-package.test.ts checks the rendered default against
+# vercel.json. The saved csp_extra_connect_src setting extends only connect-src.
 #
 # Every nginx location that sets a header of its own includes this file again.
 # That is not strictly required with this module (unlike nginx's own header
@@ -21,7 +21,7 @@
 # The two Google Fonts hosts serve the opt-in brand-editor font picker and
 # lolli.li serves the on-device ML models; an instance that wants neither can
 # drop those hosts and the features fail closed.
-more_set_headers "Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' blob: data: https://lolli.li https://www.googleapis.com https://fonts.googleapis.com https://fonts.gstatic.com https://api.somafm.com https://registry.color.org https://www.color.org https://geocoding-api.open-meteo.com https://api.dropboxapi.com https://content.dropboxapi.com https://login.microsoftonline.com https://graph.microsoft.com https://api.onedrive.com https://*.up.1drv.com https://*.files.1drv.com https://my.microsoftpersonalcontent.com https://*.sharepoint.com; img-src 'self' data: blob:; media-src 'self' blob: data: https://*.somafm.com; font-src 'self' data: blob:; worker-src 'self' blob:; child-src 'self' blob:; frame-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'";
+more_set_headers "Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' blob: data: https://lolli.li https://www.googleapis.com https://fonts.googleapis.com https://fonts.gstatic.com https://api.somafm.com https://registry.color.org https://www.color.org https://geocoding-api.open-meteo.com https://api.dropboxapi.com https://content.dropboxapi.com https://login.microsoftonline.com https://graph.microsoft.com https://api.onedrive.com https://*.up.1drv.com https://*.files.1drv.com https://my.microsoftpersonalcontent.com https://*.sharepoint.com__LOLLY_CSP_EXTRA_CONNECT_SRC__; img-src 'self' data: blob:; media-src 'self' blob: data: https://*.somafm.com; font-src 'self' data: blob:; worker-src 'self' blob:; child-src 'self' blob:; frame-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self'";
 more_set_headers "Referrer-Policy: no-referrer";
 more_set_headers "X-Content-Type-Options: nosniff";
 more_set_headers "Cross-Origin-Opener-Policy: same-origin";

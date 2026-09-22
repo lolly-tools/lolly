@@ -1,0 +1,30 @@
+#!/bin/bash
+
+source _common.sh
+source /usr/share/yunohost/helpers
+
+validate__csp_extra_connect_src() {
+    if ! lolly_normalize_connect_src "${csp_extra_connect_src:-}" >/dev/null; then
+        echo "Use space-separated HTTPS origins without paths or wildcards (at most 4096 characters)."
+    fi
+}
+
+set__csp_extra_connect_src() {
+    csp_extra_connect_src=$(lolly_normalize_connect_src "${csp_extra_connect_src:-}") \
+        || ynh_die "Invalid extra CSP origins."
+
+    local previous_headers
+    previous_headers=$(mktemp)
+    cp -p "$headers_inc" "$previous_headers"
+    lolly_add_headers_inc
+    if ! nginx -t || ! ynh_systemctl --service=nginx --action=reload; then
+        cp -p "$previous_headers" "$headers_inc"
+        rm -f "$previous_headers"
+        ynh_store_file_checksum "$headers_inc"
+        ynh_die "nginx could not apply the storage origins; the previous configuration was restored."
+    fi
+    rm -f "$previous_headers"
+    ynh_app_setting_set --key=csp_extra_connect_src --value="$csp_extra_connect_src"
+}
+
+ynh_app_config_run "$1"

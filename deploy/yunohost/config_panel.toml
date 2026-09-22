@@ -1,0 +1,14 @@
+version = "1.0"
+
+[main]
+name.en = "Lolly"
+
+    [main.storage]
+    name.en = "Browser storage connections"
+
+        [main.storage.csp_extra_connect_src]
+        ask.en = "Additional storage origins"
+        help.en = "HTTPS origins separated by spaces, for example https://cloud.example.org https://storage.example.org:8443. Use hostnames with an optional port, without paths or wildcards. Leave empty to use the default policy. Your storage server must also allow this Lolly site through CORS."
+        type = "string"
+        default = ""
+        optional = true

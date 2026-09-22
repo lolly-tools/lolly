@@ -15,7 +15,7 @@
  *     every location that sets a header of its own re-includes the header file,
  *     so the policy travels with every Cache-Control the way it does in the
  *     Docker config (tests/security-headers.test.ts);
- *   - the CSP in the header include is byte-identical to the hosted policy.
+ *   - the default CSP in the header include is byte-identical to the hosted policy.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -82,7 +82,7 @@ test('release script: argument parsing', () => {
   assert.throws(() => parseArgs(['--bogus']), /unknown argument/);
 });
 
-const SCRIPTS = ['install', 'upgrade', 'remove', 'backup', 'restore', 'change_url'];
+const SCRIPTS = ['install', 'upgrade', 'remove', 'backup', 'restore', 'change_url', 'config'];
 
 test('scripts: present, executable, valid bash', () => {
   for (const name of [...SCRIPTS, '_common.sh']) {
@@ -162,22 +162,23 @@ test('nginx: every location that sets a header re-includes the header file', () 
   assert.doesNotMatch(headers, /add_header/);
 });
 
-test('headers: the CSP and the literal headers are the hosted policy, byte for byte', () => {
+test('headers: without extra origins, the headers are the hosted policy, byte for byte', () => {
   const hosted = JSON.parse(readFileSync(join(ROOT, 'vercel.json'), 'utf8')) as { headers: Array<{ headers: Array<{ key: string; value: string }> }> };
   const want = Object.fromEntries(hosted.headers[0]!.headers.map((h) => [h.key, h.value]));
   const got: Record<string, string> = {};
-  for (const m of headers.matchAll(/^more_set_headers "([A-Za-z-]+): ([^\n]*)";$/gm)) got[m[1]!] = m[2]!;
+  const defaultHeaders = headers.replace('__LOLLY_CSP_EXTRA_CONNECT_SRC__', '');
+  for (const m of defaultHeaders.matchAll(/^more_set_headers "([A-Za-z-]+): ([^\n]*)";$/gm)) got[m[1]!] = m[2]!;
   assert.deepEqual(got, want, 'the YunoHost header set must be exactly the hosted one - YunoHost adds its own baseline (HSTS, X-Frame-Options) at server level, so nothing else belongs here');
 });
 
 test('package: the files YunoHost and its catalog expect', () => {
-  for (const f of ['LICENSE', 'README.md', 'tests.toml', 'doc/DESCRIPTION.md', 'doc/ADMIN.md', 'doc/PRE_INSTALL.md']) {
+  for (const f of ['LICENSE', 'README.md', 'tests.toml', 'config_panel.toml', 'doc/DESCRIPTION.md', 'doc/ADMIN.md', 'doc/PRE_INSTALL.md']) {
     assert.ok(existsSync(join(PKG, f)), `${f} missing`);
   }
   assert.equal(read('LICENSE'), readFileSync(join(ROOT, 'LICENSE'), 'utf8'), 'the package licence is the project licence');
   assert.match(read('tests.toml'), /^test_format = 1\.0$/m);
   assert.match(read('tests.toml'), /install\.subdir/, 'full_domain apps exclude the sub-path install test');
   // Nothing stray in the package root: it is mirrored whole into the app repo.
-  const allowed = new Set(['LICENSE', 'README.md', 'conf', 'doc', 'manifest.toml', 'scripts', 'tests.toml']);
+  const allowed = new Set(['LICENSE', 'README.md', 'conf', 'doc', 'manifest.toml', 'config_panel.toml', 'scripts', 'tests.toml']);
   for (const entry of readdirSync(PKG)) assert.ok(allowed.has(entry), `unexpected ${entry} in deploy/yunohost/`);
 });
