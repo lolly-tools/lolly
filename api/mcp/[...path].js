@@ -104777,7 +104777,7 @@ function loadToolCached(id2) {
 async function listTools(filter = {}) {
   const { tools } = await loadIndex();
   const q = filter.q?.trim().toLowerCase();
-  return tools.filter((t) => {
+  const matches3 = tools.filter((t) => {
     if (filter.status && t.status !== filter.status) return false;
     if (filter.category && t.category !== filter.category) return false;
     if (filter.format && !(t.formats ?? []).map((f) => f.toLowerCase()).includes(filter.format.toLowerCase())) return false;
@@ -104788,6 +104788,9 @@ async function listTools(filter = {}) {
     }
     return true;
   });
+  if (filter.limit === void 0) return matches3;
+  const limit = Math.min(100, Math.max(1, Math.floor(filter.limit)));
+  return matches3.slice(0, limit);
 }
 var TEMPLATE_ID_RE = /^[a-z0-9-]+$/;
 async function listToolTemplates(toolId) {
@@ -111969,7 +111972,8 @@ var TOOL_DEFS = [
         status: { type: "string", enum: ["official", "community", "experimental"] },
         category: { type: "string" },
         format: { type: "string", description: "Only tools that can output this format." },
-        capability: { type: "string", description: "Only tools requiring this capability." }
+        capability: { type: "string", description: "Only tools requiring this capability." },
+        limit: { type: "integer", minimum: 1, maximum: 100, description: "Maximum matching tools to return. Omit for all matches." }
       },
       additionalProperties: false
     }
@@ -112747,7 +112751,7 @@ Rights: ${result.rights.status}` + result.rights.issues.map((issue2) => `
 }
 async function serverInstructions() {
   const { tools } = await loadIndex();
-  return `Lolly MCP server (engine ${ENGINE_VERSION}) - generate on-brand SUSE creative assets. ${tools.length} tools available. Workflow: lolly_list_tools \u2192 lolly_describe_tool \u2192 lolly_validate \u2192 lolly_render. Use lolly_build_url for a shareable/editable link without rendering, lolly_transform for on-device file utilities, lolly_redact to destroy regions of an image/SVG/PDF from one reusable instruction string, and lolly_verify to check a file's Content Credentials (C2PA). Brand assets, tokens, and tool docs are available as resources (lolly://catalog, lolly://assets, lolly://tool/{id}, lolly://tool/{id}/preview, lolly://asset/{id}, lolly://tokens, lolly://design-context).`;
+  return `Lolly MCP server (engine ${ENGINE_VERSION}) - generate structured, on-brand creative assets for this instance. ${tools.length} tools available. Start with a focused lolly_list_tools query and optional limit; then use lolly_describe_tool \u2192 lolly_validate when needed \u2192 lolly_render. For a known recipe, skip redundant discovery and validation when the render call can validate it. A successful render is complete when its requested checks pass; review is only needed for a named requirement this instance cannot measure. Use lolly_build_url for a shareable/editable link without rendering, lolly_transform for on-device file utilities, lolly_redact to destroy regions of an image/SVG/PDF from one reusable instruction string, and lolly_verify to check a file's Content Credentials (C2PA). Brand assets, tokens, and tool docs are available as resources (lolly://catalog, lolly://assets, lolly://tool/{id}, lolly://tool/{id}/preview, lolly://asset/{id}, lolly://tokens, lolly://design-context).`;
 }
 var GENERIC_PROMPT = "create-branded-asset";
 var GENERIC_PROMPT_DEF = {

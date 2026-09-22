@@ -30,7 +30,7 @@ test('initialize advertises the server', async () => {
   const init = await rpc('initialize', { protocolVersion: '2025-06-18' });
   assert.equal((init['serverInfo'] as { name: string }).name, 'lolly-mcp');
   assert.ok(init['capabilities']);
-  const instructions = init['instructions'] as string;
+  const instructions = init.instructions as string;
   assert.match(instructions, /focused lolly_list_tools query/);
   assert.match(instructions, /review is only needed/);
   assert.doesNotMatch(instructions, /SUSE creative assets/);
