@@ -1,6 +1,6 @@
-# Lolly 1.0.8
+# Lolly 1.0.9: the DTP one
 
-_Release notes: **1.0.8** (2026-09-16). First public release was 1.0.1 (2026-08-30). Free
+_Release notes: **1.0.9** (2026-09-22). First public release was 1.0.1 (2026-08-30). Free
 software under the **Mozilla Public License 2.0**; the content below is brand-agnostic and
 reflects the current platform._
 
@@ -34,9 +34,9 @@ Lolly is completely free and open source. It is licensed under the **Mozilla Pub
   catalog and render path to AI agents (list, describe, build a link, render, transform,
   redact, verify) under the same rules as the app.
 
-### New in 1.0.9 (unreleased)
+### New in 1.0.9
 
-The proposed release is **the pre-pressive one**. See the [draft 1.0.9 release notes](releases/1.0.9-draft.md) for the publishing tools, Agenda, inspector, sharing and export changes, together with the support limits. This remains a draft until the release is published.
+**The DTP one** brings publishing tools, Agenda, inspector, sharing and export changes. Read the [1.0.9 release notes](releases/1.0.9.md) for the highlights, downloads and support limits.
 
 - **3D Studio motion presets.** The subject can do more than turn. Beside
   **Still image** and **Turntable**, Motion now offers **Hover**, **Pulse**,
