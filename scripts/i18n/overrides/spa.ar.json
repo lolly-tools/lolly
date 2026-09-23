@@ -691,5 +691,8 @@
   "“{name}”: this image is outside the design system’s declared asset IDs. It may be intentional.": "«{name}»: هذه الصورة خارج معرّفات الموارد المعلنة في نظام التصميم. قد يكون ذلك مقصودًا.",
   "“{name}”: {field} {value} is outside this design system. Suggested: {suggestion}.": "«{name}»: {field} {value} خارج نظام التصميم هذا. المقترح: {suggestion}.",
   "“{name}”: {value} does not resolve to a colour in this design system.": "«{name}»: لا تشير {value} إلى لون في نظام التصميم هذا.",
-  "Restore brand settings": "استعادة إعدادات العلامة التجارية"
+  "Restore brand settings": "استعادة إعدادات العلامة التجارية",
+  "Edit on the canvas": "تحرير على اللوحة",
+  "Position & size": "الموضع والحجم",
+  "Presence": "الظهور"
 }

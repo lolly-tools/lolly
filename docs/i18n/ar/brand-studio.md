@@ -99,7 +99,7 @@
 
 في الجناح نفسه، تُنشئ **ابنِ نطاقك اللوني** ألوانًا مكمّلة مطابقة من لونك الأساسي. اختر **تناغمًا** - **متكامل**، **متجاور**، **ثلاثي**، **رباعي** أو **متشابه** (الذي يجلب عدد **لهجات** خاصًا به، من 2 إلى 5، و**زاوية** تدرّج لوني من 10° إلى 45°) - ويصل كل مرشح باسم مقروء يُولَّد تلقائيًا وزر **+ إضافة**. إضافة أحدها تضع ذلك اللون في نطاقك اللوني فورًا، ضغطة واحدة لرمز واحد. *"نطاقك اللوني، مطبَّقًا"* يعرض المجموعة كاملة على رسومات حقيقية.
 
-![لهجات مولَّدة، لكل منها عيّنة واسم مولَّد تلقائيًا وقيمته السداسية عشرية وزر إضافة](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
+![لهجات مولَّدة، لكل منها عيّنة واسم مولَّد تلقائيًا وقيمته السداسية عشرية وزر إضافة](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
 
 ### اعتماد نطاق لوني مولَّد
 
@@ -111,9 +111,9 @@
 
 تسرد اللوحة اليمنى كل لون يحمله علامتك التجارية، مجمّعًا (أساسي، محايد، ثانوي، طيف، مخصص، أدوار)، وكل مجموعة قابلة للطي ولها زر **+ إضافة** خاص بها. تحتها، تُفتح **مخطط الألوان** على عرضين للعيّنات نفسها: **العجلة** (عجلة OKLCH - اسحب نقطة لإعادة تلوينها، انقر نقطة لتحريرها أو انقر مساحة فارغة لإسقاط عيّنة جديدة) و**مخطط النطاق اللوني**، الذي يُظهر أين ينتهي النطاق القابل للعرض فعليًا. `#/start?area=color&focus=chart` يفتح البطاقة مباشرة، كما تفعل `?wheel` دائمًا.
 
-![لوحة النطاق اللوني، كل مجموعة قابلة للطي، مع حبة التنزيل متمركزة عند حافتها السفلية](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![لوحة النطاق اللوني، كل مجموعة قابلة للطي، مع حبة التنزيل متمركزة عند حافتها السفلية](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
-![عجلة OKLCH - الزاوية هي التدرّج اللوني، والمسافة للخارج هي الإشباع، والرماديات تسير على مسار سطوع على الجانب](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
+![عجلة OKLCH - الزاوية هي التدرّج اللوني، والمسافة للخارج هي الإشباع، والرماديات تسير على مسار سطوع على الجانب](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
 انقر أي عيّنة لفتح محررها:
 

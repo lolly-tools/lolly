@@ -28,7 +28,7 @@ import { fold, scoreHaystack } from '../match.ts';
 import type { SearchField } from '../match.ts';
 import { t } from '../../../i18n.ts';
 import { icon } from '../../icons.ts';
-import { NAV_SECTIONS } from '../../../views/profile.ts';
+import { visibleProfileSections } from '../../../views/profile/shared.ts';
 import { DASH_SECTIONS, dashHref } from '../../dashboard-registry.ts';
 import {
   CATEGORY_FLAGS, JELLY_FLAG, WOBBLY_FLAG, WOBBLY_MESH_FLAG, STRIP_UPLOAD_META_FLAG, PREFLIGHT_FLAG,
@@ -79,7 +79,7 @@ function buildItems(): SettingsItem[] {
   const items: SettingsItem[] = [];
 
   // 1. Profile sections - reuse each rail entry's own icon.
-  for (const s of NAV_SECTIONS) {
+  for (const s of visibleProfileSections()) {
     items.push({
       icon: icon(s.icon, { size: 16 }),
       title: t(s.label),

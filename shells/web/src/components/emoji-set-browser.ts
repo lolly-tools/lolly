@@ -76,7 +76,7 @@ class EmojiSetBrowser {
     this.filter.addEventListener('change', () => this.render());
     const sizeLabel = element('label', 'emoji-set-size', t('Size'));
     const size = element('input');
-    size.type = 'range'; size.min = '44'; size.max = '88'; size.value = '56';
+    size.type = 'range'; size.min = '44'; size.max = '88'; size.value = '556';
     size.addEventListener('input', () => this.root.style.setProperty('--emoji-set-cell', `${size.value}px`));
     sizeLabel.append(size);
     const controls = element('div', 'emoji-set-controls');

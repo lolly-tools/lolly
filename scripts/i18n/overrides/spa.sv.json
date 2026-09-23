@@ -548,5 +548,8 @@
   "Export visible text only": "Exportera endast synlig text",
   "Allow an intentionally clipped export. Text beyond fixed frames and unplaced stories is omitted; the full source stays in your document.": "Tillåt en avsiktligt beskuren export. Text utanför fasta ramar och oplacerade textartiklar utelämnas; hela källtexten finns kvar i dokumentet.",
   "Text in Design": "Text i Design",
-  "Authored text composition": "Skapad textsättning"
+  "Authored text composition": "Skapad textsättning",
+  "Edit on the canvas": "Redigera på duken",
+  "Position & size": "Position och storlek",
+  "Presence": "Närvaro"
 }

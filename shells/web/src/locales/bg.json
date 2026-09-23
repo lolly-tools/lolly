@@ -6734,5 +6734,8 @@
   "↳ follows {role}": "↳ следва {role}",
   "✓ Added": "✓ Добавено",
   "✓ Found {n} tools at {base}.": "✓ Намерени {n} инструмента на {base}.",
-  "＋ New project…": "＋ Нов проект…"
+  "＋ New project…": "＋ Нов проект…",
+  "Edit on the canvas": "Редактирай в платното",
+  "Position & size": "Позиция и размер",
+  "Presence": "Присъствие"
 }

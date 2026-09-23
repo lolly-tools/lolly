@@ -6734,5 +6734,8 @@
   "↳ follows {role}": "↳ følger {role}",
   "✓ Added": "✓ Lagt til",
   "✓ Found {n} tools at {base}.": "✓ Fant {n} verktøy på {base}.",
-  "＋ New project…": "＋ Nytt prosjekt…"
+  "＋ New project…": "＋ Nytt prosjekt…",
+  "Edit on the canvas": "Rediger på lerretet",
+  "Position & size": "Posisjon og størrelse",
+  "Presence": "Presentasjon"
 }

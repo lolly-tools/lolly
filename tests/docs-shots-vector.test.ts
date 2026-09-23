@@ -32,18 +32,17 @@ const DOCS = join(ROOT, 'docs');
  * See plans/69-svg-snapshot-without-print.md section 16.3 for the full diagnosis of each.
  */
 const RASTER_ALLOWED: Record<string, string> = {
-  'publishing-columns':
-    'The selected two-column frame and its Inspector are editor chrome marked '
-    + '[data-export-hide]. A vector export omits their selection bounds and controls. '
-    + 'Re-check with the Design shot when docs capture can retain export-hidden chrome.',
-  'publishing-linked-frames':
-    'The reading-order connectors and Continue text ports are export-hidden editor '
-    + 'chrome. They demonstrate the link between frames and disappear in a vector '
-    + 'walk. Re-check when the docs-capture root can retain that chrome.',
-  'publishing-text-path':
-    'The Start, End and Offset handles are export-hidden editor chrome around '
-    + 'editable path text. The vector artwork alone cannot show those controls. '
-    + 'Re-check when docs capture can opt into the editor overlay.',
+  // publishing-columns, publishing-linked-frames, publishing-text-path, design,
+  // anim-choreograph-picker and seq-onion-ghosts ALL left this list 2026-09-23. Every
+  // one of them was allowlisted for the same reason, and every one of those reasons
+  // ended with the same sentence: "re-check when docs capture can opt INTO
+  // export-hidden chrome". That opt-in now exists. `ExportOpts.keepEditorChrome`
+  // makes the export funnel skip `detachExportHidden`, the recipe param is `chrome=1`,
+  // and it is reachable ONLY through main.ts's `__lollyWalkerShot` loopback - no tool
+  // export, share link or user-facing path can set it, which is what keeps the detach
+  // honest for everything that is not a screenshot of a control.
+  //
+  // The three publishing shots were the last `format=jpg` baselines in the docs.
   'seq-sound-strip':
     'The subject is the timeline panel with a selected AUDIO clip, whose bar is a '
     + 'canvas-painted waveform (clip-thumbs) carrying the clip-warning amber/red '
@@ -62,33 +61,12 @@ const RASTER_ALLOWED: Record<string, string> = {
   // snapshots the <canvas> (export.ts, tag === 'canvas') and downscales it to its rendered
   // box via the rasterDpi recipe param - walker=1&format=svg&rasterDpi=110 - so the audiogram
   // ships as vector chrome with the canvas embedded as a smaller bitmap, under the budget.
-  design:
-    'The subject includes the floating tool rail, and .fc-toolbar-dock is [data-export-hide] '
-    + 'editor chrome - deliberately unreachable from every export/walker render, so a vector '
-    + 'walk can only ever show a bare artboard (which is exactly the complaint that retired '
-    + 'the old blank shot). The walker also mis-inlines the lolly/logo/primary gradient swirl '
-    + '(defs survive but the green spiral paints drop). Re-check when the walker gains a '
-    + 'docs-capture root that can opt INTO export-hidden chrome, same as seq-onion-ghosts.',
   'anim-timeline-choreographed':
     'The subject is the keyframe DIAMONDS on nine clip bars - the 10px `.tl-kf-dot` markers '
     + 'in each bar\'s `.tl-kf-strip` - and the walker does not carry them through: measured '
     + '2026-09-01, the walked `.tl-panel` came out with zero `tl-kf` nodes (bars, ruler, chips '
     + 'and transport all faithful). A vector timeline with no diamonds says the opposite of '
     + 'what the caption says. Re-check when the walker traces the dot markers.',
-  'anim-choreograph-picker':
-    'The subject IS the Choreograph picker (an .fc-panel over the selected grid), and the '
-    + 'floating panels are [data-export-hide] editor chrome the walker detaches from every '
-    + 'render by design - a vector walk would show the bare artboard with nothing to point at. '
-    + 'The same reason as `design` above; re-check with it when the walker gains a docs-capture '
-    + 'root that can opt INTO export-hidden chrome.',
-  'seq-onion-ghosts':
-    'Onion ghosts over the scene they ghost. Neither vector path can hold both at once: '
-    + 'the ghost layer is [data-export-hide] (editor chrome is deliberately unreachable '
-    + 'from every export, which is what guarantees an export carries none of it), so a '
-    + 'walker walk rooted above it drops the ghosts and one rooted at it drops the scene; '
-    + 'and Chromium print flattens the ghost group opacity to opaque, hiding the live '
-    + 'scene underneath. Re-check when the walker gains a docs-capture root that can opt '
-    + 'INTO export-hidden chrome.',
   // use-synth-field left this list 2026-09-02: its only recipe lived on the creators hub,
   // which became a router (plans/177) and dropped the shot; the baseline was retired with it.
   // cc-verify-masthead left this list 2026-08-05: same fix as cc-verify-mobile - the masthead

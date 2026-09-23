@@ -46,6 +46,7 @@ import {
 } from '../components/custom-slider.ts';
 import { canSkipInputsRebuild, staticInputControl } from './inputs-sync.ts';
 import { jellyActive, jellyEnabled } from '../lib/jelly.ts';
+import { BANDS, bandMeta, resolveBands, sectionGlyph, type Band } from '../lib/section-bands.ts';
 import { installTablePaste } from '../lib/table-paste.ts';
 import { splitMarkdownIntoBlocks } from '../lib/markdown.ts';
 import { playSliderTick, playScrubTick } from '../lib/sfx.ts';
@@ -647,7 +648,7 @@ export function renderInputs(
     if (!target) continue;
     attachments.set(target, [...(attachments.get(target) ?? []), i]);
   }
-  const rowModel = panelModel.filter((i) => !attachedTo(i));
+  let rowModel = panelModel.filter((i) => !attachedTo(i));
 
   const active = document.activeElement as HTMLElement | null;
   const focusId = active?.dataset?.inputId;
@@ -849,6 +850,7 @@ export function renderInputs(
   let openSection: string | null = null;
   let sectionIndex = -1;
   let prevInput: InputModelItem | null = null;
+  let openBand: Band | null = null;
   // Tool-scoped density hint (chrome-only): sections named here render their short
   // controls in a 2-column grid. Never touches the model, URL, or determinism.
   const denseSections = new Set(
@@ -863,6 +865,44 @@ export function renderInputs(
   // sections (chart, filter, darkroom) scans by shape as well as by word.
   const sectionIcons: Record<string, string> =
     (runtime.manifest?.render as { sectionIcons?: Record<string, string> } | undefined)?.sectionIcons ?? {};
+
+  // ── bands (plans/273) ──────────────────────────────────────────────────────
+  // The sidebar is ordered by the same five questions in every tool: content,
+  // style, layout, presence, then the precise controls. The band of a section is
+  // resolved from its NAME (lib/section-bands.ts over schemas/section-vocabulary.json),
+  // not from a new manifest field, so all 81 tools gain the ladder with no churn
+  // and an author's own order inside a band is untouched.
+  //
+  // Runs, not names: a manifest whose inputs interleave two sections declares the
+  // same name twice, and each run keeps its own fold exactly as it does today. The
+  // sort is stable, so two runs of one name end up adjacent rather than merged.
+  const sectionOrder: string[] = [];
+  for (const input of rowModel) {
+    const sec = input.section;
+    if (sec && !sectionOrder.includes(sec)) sectionOrder.push(sec);
+  }
+  const bandOfSection = resolveBands(sectionOrder);
+  // Unsectioned rows are the tool's own opening run. They lead, under the Content
+  // label, and they stay loose rather than being wrapped in a section nobody named:
+  // they were the only part of the panel with no heading, and folding them would
+  // hide the rows most tools are actually operated through.
+  const bandOf = (sec: string | null): Band => (sec ? bandOfSection.get(sec) ?? 'content' : 'content');
+  {
+    const runs: Array<{ sec: string | null; items: InputModelItem[] }> = [];
+    for (const input of rowModel) {
+      const last = runs[runs.length - 1];
+      if (last && last.sec === (input.section ?? null)) last.items.push(input);
+      else runs.push({ sec: input.section ?? null, items: [input] });
+    }
+    runs.sort((a, b) => {
+      const band = BANDS.indexOf(bandOf(a.sec)) - BANDS.indexOf(bandOf(b.sec));
+      if (band !== 0) return band;
+      // Within one band the unsectioned run leads, then declared order.
+      if ((a.sec === null) !== (b.sec === null)) return a.sec === null ? -1 : 1;
+      return 0;
+    });
+    rowModel = runs.flatMap((r) => r.items);
+  }
   let pillbarOpen = false; // a run of consecutive `display:'pill'` booleans, wrapped
   const isPillInput = (i: InputModelItem): boolean =>
     i.control === 'checkbox' && i.display === 'pill';
@@ -874,6 +914,17 @@ export function renderInputs(
   };
   for (const input of rowModel) {
     const sec = input.section ?? null;
+    // The band divider. A band is NOT a fold: its label is a rule across the
+    // column, so the ladder stays readable with every section under it shut. A
+    // band with nothing in it is never drawn, so a three-input tool still looks
+    // like a short list rather than a scaffold.
+    const band = bandOf(sec);
+    if (band !== openBand) {
+      closePillbar();
+      if (openSection !== null) { parts.push('</div></details>'); openSection = null; }
+      parts.push(`<p class="lp-band-label">${escape(bandMeta(band).title)}</p>`);
+      openBand = band;
+    }
     if (sec !== openSection) {
       closePillbar(); // a chip bar never spans a section boundary
       if (openSection !== null) parts.push('</div></details>');
@@ -887,7 +938,12 @@ export function renderInputs(
           allFolded,
         });
         const dense = denseSections.has(sec) ? ' input-section--dense' : '';
-        const glyph = sectionIcons[sec];
+        // The VOCABULARY decides the glyph for a name it knows, and the manifest
+        // fills in the rest. "Look" was `paintbrush` in one tool and `sparkle` in
+        // the next, "Motion" was `animate` or `play`, and eight tools drew naked
+        // heads beside forty-four that did not. One word, one picture, catalogue
+        // wide; a tool-specific name still wears whatever its author chose.
+        const glyph = sectionGlyph(sec) ?? sectionIcons[sec];
         const head = glyph && hasIcon(glyph)
           ? `<span class="input-section-title"><span class="input-section-icon" aria-hidden="true">${icon(glyph as IconName, { size: 14 })}</span>${escape(sec)}</span>`
           : escape(sec);
@@ -2818,6 +2874,10 @@ function controlHtml(
           value: String(o.value),
           label: String(o.label ?? o.value),
           badge: (o as { badge?: string }).badge ? String((o as { badge?: string }).badge) : '',
+          // The option's own glyph. This projection used to drop it, so the
+          // manifest field existed, the schema described it, and only the
+          // `icon-toggle` path (which reads the raw option) could ever see it.
+          icon: (o as { icon?: string }).icon ? String((o as { icon?: string }).icon) : '',
           na: !matchesShowIf(o.showIf, modelValues),
         }))
         .filter((o) => !o.na || o.value === curValue);
@@ -2825,7 +2885,7 @@ function controlHtml(
         const seen = new Set(selOpts.map((o) => o.value));
         for (const fam of brandFontFamilies())
           if (!seen.has(fam)) {
-            selOpts.push({ value: fam, label: fam, badge: '', na: false });
+            selOpts.push({ value: fam, label: fam, badge: '', icon: '', na: false });
             seen.add(fam);
           }
       }
@@ -2866,10 +2926,21 @@ function controlHtml(
               : glyph
                 ? `<span class="badge-select-pill badge-select-pill--icon" data-badge="${escape(o.badge)}" role="img" aria-label="${escape(o.badge)}" title="${escape(o.badge)}">${icon(glyph, { size: 12 })}</span>`
                 : `<span class="badge-select-pill" data-badge="${escape(o.badge)}">${escape(o.badge)}</span>`;
+            // The option's OWN glyph (schema: options[].icon). It has been in the
+            // schema all along and only `display: 'icon-toggle'` ever drew it, so a
+            // sixteen-option picker had nothing but sixteen words and a family pill
+            // repeated twice each. A picture per option is what makes a long list
+            // scannable; the badge stays for what the word cannot say (which output
+            // kind an effect produces), and `aria-hidden` because the label already
+            // names the option.
+            const mark = o.icon && hasIcon(o.icon)
+              ? `<span class="badge-select-mark" aria-hidden="true">${icon(o.icon as IconName)}</span>`
+              : '';
             return (
               `<button type="button" role="radio" class="badge-select-opt${on ? ' is-on' : ''}${o.na ? ' is-na' : ''}"` +
               ` data-badge-value="${escape(o.value)}" aria-checked="${on ? 'true' : 'false'}"` +
               ` tabindex="${on ? '0' : '-1'}"${on ? ` data-input-id="${id}"` : ''}${o.na ? ` title="${escape(t('Not applicable in this mode'))}"` : ''}>` +
+              mark +
               `<span class="badge-select-label">${escape(o.label)}${o.na ? ` <span class="badge-select-na">(${escape(t('not applicable'))})</span>` : ''}</span>` +
               pill +
               `</button>`
@@ -2879,11 +2950,12 @@ function controlHtml(
         // A long list of short labels lays out two-up (compactOptionGrid). The
         // segmented variant is already a single row, so it never takes it.
         const compact = !segmented && compactOptionGrid(selOpts.map((o) => o.label));
-        const variant = segmented
+        const marked = selOpts.some((o) => o.icon && hasIcon(o.icon));
+        const variant = (segmented
           ? ' badge-select--segmented'
           : compact
             ? ' badge-select--compact'
-            : '';
+            : '') + (marked && !segmented ? ' badge-select--marked' : '');
         return `<div class="badge-select${variant}" role="radiogroup" data-badge-select="${id}" aria-label="${escape(input.label ?? id)}">${btns}</div>`;
       }
       return `<select class="field-select" data-input-id="${id}">${selOpts

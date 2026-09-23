@@ -157,7 +157,7 @@ PowerPoint 也是一個**匯入**管道。將 `.pptx` 拖放到任何上傳區�
 - <!--i:file--> 選擇網站、SCORM 1.2、SCORM 2004 第 4 版，或實驗性的 xAPI 目標。檢查實際內容與 ZIP 大小，然後儲存並下載已檢查過的版本。
 - <!--i:check--> 要完成課程，需要確認每一課必修內容並選擇「完成」。網站播放器會把進度儲存在瀏覽器中；LMS 包則會連線到接收它的 LMS。
 
-![Design 簡報上已選擇 SCORM (LMS) 的匯出面板](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+![Design 簡報上已選擇 SCORM (LMS) 的匯出面板](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 這個包包含它的成品內容，不需要 Lolly 帳號。把網站版 ZIP 解壓到某個 HTTP(S) 主機上；匯入 LMS 版 ZIP 時不要改動其中的內容。在正式分發課程之前，請先測試預定的投放目的地。
 

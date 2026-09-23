@@ -254,6 +254,25 @@ export interface ExportOpts {
    *  Lets a walker SVG stay crisp-vector while its heavy continuous-tone assets shrink
    *  to what a reader can actually see (e.g. a Verify shot of a 0.8 MB storm photo). */
   rasterDpi?: number;
+  /**
+   * Keep `[data-export-hide]` editor chrome in the render instead of detaching it.
+   * DOCS CAPTURE ONLY (plans/273 follow-up); default false, and no tool export, share
+   * link, or user-facing path sets it.
+   *
+   * Every export detaches that chrome, because a poster must not carry the selection
+   * bounds and handles the author was working through. But a DOCUMENTATION screenshot
+   * is the opposite case: the thing being documented IS the control. Five docs shots
+   * were stuck as bitmaps for exactly this - the two-column frame's Inspector, the
+   * reading-order connectors between linked frames, the Start/End/Offset handles on
+   * path text, the design tool's floating rail, the Choreograph picker - each one
+   * allowlisted in tests/docs-shots-vector.test.ts with the note "re-check when docs
+   * capture can opt INTO export-hidden chrome". This is that opt-in.
+   *
+   * Reached only through main.ts's `__lollyWalkerShot` loopback, which the docs
+   * pipeline drives with the recipe's `chrome=1`. Nothing else may set it: an export
+   * that leaked editor chrome into a user's artwork is the bug the detach exists for.
+   */
+  keepEditorChrome?: boolean;
   password?: string;
   /** Strong tier: AES-256 (R6) applied as a final encrypt-last pass over the
    *  finished PDF bytes. Composes with PDF/X + CMYK + marks (unlike `password`,

@@ -52,6 +52,7 @@ import '../styles/parts/editor.css'; // .stage-nav (the tool canvas's zoom HUD) 
 // route), so without these three imports its four specimens rendered with no
 // styles at all - bare buttons, an unframed navigator, an empty export sheet.
 import '../styles/parts/design-navigator.css';
+import '../styles/parts/panel.css';
 import '../styles/parts/design-inspector.css';
 import '../styles/parts/timeline.css';
 import '../pro/pro.css';
@@ -291,10 +292,14 @@ const LIVE: Record<string, { render: () => string | HTMLElement; wire?: (stage: 
           <div class="fc-nav-row" role="option" aria-selected="false"><span class="fc-nav-thumb" aria-hidden="true"></span><span class="fc-nav-idx">2</span><span class="fc-nav-main"><span class="fc-nav-name">${t('Agenda')}</span></span></div>
         </div>
       </aside>
-      <aside class="fc-insp" aria-label="${escape(t('Inspector'))}">
-        <section class="fc-insp-sec"><button type="button" class="fc-insp-head" aria-expanded="true">${icon('box', { size: 16 })}<span>${t('Object')}</span><i class="fc-insp-caret" aria-hidden="true"></i></button>
-          <div class="fc-insp-rows"><div class="fc-insp-chips"><span class="fc-insp-chip"><i>W</i>1080</span><span class="fc-insp-chip"><i>H</i>1080</span><span class="fc-insp-chip"><i>X</i>0</span><span class="fc-insp-chip"><i>Y</i>0</span></div></div></section>
-        <section class="fc-insp-sec"><button type="button" class="fc-insp-head" aria-expanded="false">${icon('sliders', { size: 16 })}<span>${t('Appearance')}</span><i class="fc-insp-caret" aria-hidden="true"></i></button></section>
+      <aside class="lp fc-insp" aria-label="${escape(t('Inspector'))}">
+        <div class="lp-band"><p class="lp-band-label">${t('Layout')}</p>
+          <section class="lp-sec fc-insp-sec"><button type="button" class="lp-sec-head fc-insp-head" aria-expanded="true">${icon('move', { size: 16 })}<span class="lp-sec-name">${t('Position & size')}</span><i></i><i class="lp-caret" aria-hidden="true"></i></button>
+            <div class="lp-rows fc-insp-rows"><div class="fc-insp-chips"><span class="fc-insp-chip"><i>W</i>1080</span><span class="fc-insp-chip"><i>H</i>1080</span><span class="fc-insp-chip"><i>X</i>0</span><span class="fc-insp-chip"><i>Y</i>0</span></div></div></section>
+        </div>
+        <div class="lp-band"><p class="lp-band-label">${t('Style')}</p>
+          <section class="lp-sec fc-insp-sec"><button type="button" class="lp-sec-head fc-insp-head" aria-expanded="false">${icon('opacity', { size: 16 })}<span class="lp-sec-name">${t('Appearance')}</span><em class="lp-sec-flag">${t('In use')}</em><i class="lp-caret" aria-hidden="true"></i></button></section>
+        </div>
       </aside>
     </div>`,
   },

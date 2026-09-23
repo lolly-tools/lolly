@@ -157,7 +157,7 @@ SVGをエクスポートできるツールはすべて、**Penpotファイル**�
 - <!--i:file--> Website、SCORM 1.2、SCORM 2004 4th Edition、または実験的なxAPIターゲットのいずれかを選びます。実際のコンテンツとZIPのサイズを確認し、確認済みのバージョンを保存・ダウンロードします。
 - <!--i:check--> 完了には、必須のすべてのレッスンを確認済みにし、Finishを選択する必要があります。Webサイト版プレーヤーは進捗をブラウザに保存し、LMSパッケージは受け入れ先のLMSに接続します。
 
-![SCORM（LMS）を選択したDesignデッキのエクスポートパネル](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+![SCORM（LMS）を選択したDesignデッキのエクスポートパネル](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 パッケージには完成したコンテンツが含まれており、Lollyアカウントを必要としません。Website ZIPはHTTP(S)ホスト上に展開し、LMS ZIPは中身を変更せずに取り込みます。コースを配布する前に、実際の配信先でテストしてください。
 

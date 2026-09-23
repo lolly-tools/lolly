@@ -6,6 +6,8 @@ Agenda turns one session table into screens, an interactive programme, printable
 
 Arrow keys select cells. Enter or F2 starts editing; arrows then move the text cursor. Enter commits and moves down, Shift+Enter moves up, Escape cancels, and Alt+Enter adds a line. Shift+arrows select a rectangle. Copy, paste and Delete act on that selection. Tab leaves the cell so keyboard users can reach the rest of the editor.
 
+![The Agenda sidebar, grouping its controls by what they change: content first, then style, then layout](/t/url-shot?url=%2F%23%2Ftool%2Fagenda&width=1440&height=900&waitMs=2600&format=svg&walker=1&cropSelector=.sidebar&filename=agenda-editor)
+
 Paste into a selected cell to fill a rectangle without changing the other sessions. Open **Edit programme** for a wide grid and a session form. **Import programme** accepts spreadsheet paste, including HTML tables, or CSV/TSV files. Review the column mapping and sample rows before choosing **Add sessions** or **Replace programme**. Unknown columns stay in the source. Undo and redo restore whole table edits. The same virtual grid handles short programmes and 500-row schedules.
 
 The form includes date/time pickers, room/track suggestions, descriptions, links, status and optional image URLs. Insert, duplicate, delete or move sessions without rebuilding the table. **Shift times** changes the active session or all rows by whole minutes and days, recording end dates when midnight is crossed. **Preview this time** sets the screen reference without changing the programme.

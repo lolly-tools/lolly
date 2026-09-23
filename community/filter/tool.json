@@ -29,7 +29,20 @@
     "blurb": "Ten photo effects, vector or raster, in one tool"
   },
   "render": {
-    "sectionIcons": {"Pattern": "grid", "Ink": "droplet", "Position": "move", "Treatment": "paintbrush", "Fine-tune": "sliders", "Paper": "document", "Pixel sort": "sortDir", "Channel offset": "layersStack", "Block corruption": "noise", "Colour": "palette", "Overlay": "layers", "Output": "download"},
+    "sectionIcons": {
+      "Pattern": "grid",
+      "Ink": "droplet",
+      "Position": "move",
+      "Treatment": "paintbrush",
+      "Fine-tune": "sliders",
+      "Paper": "document",
+      "Pixel sort": "sortDir",
+      "Channel offset": "layersStack",
+      "Block corruption": "noise",
+      "Colour": "palette",
+      "Overlay": "layers",
+      "Output": "download"
+    },
     "width": 1080,
     "height": 1080,
     "formats": [
@@ -90,7 +103,8 @@
             "apng",
             "webm",
             "mp4"
-          ]
+          ],
+          "icon": "grid"
         },
         {
           "value": "scanline",
@@ -106,7 +120,8 @@
             "apng",
             "webm",
             "mp4"
-          ]
+          ],
+          "icon": "menu"
         },
         {
           "value": "posterize",
@@ -122,7 +137,8 @@
             "apng",
             "webm",
             "mp4"
-          ]
+          ],
+          "icon": "layers"
         },
         {
           "value": "voronoi",
@@ -138,7 +154,8 @@
             "apng",
             "webm",
             "mp4"
-          ]
+          ],
+          "icon": "hexagon"
         },
         {
           "value": "duotone",
@@ -154,7 +171,8 @@
             "apng",
             "webm",
             "mp4"
-          ]
+          ],
+          "icon": "opacity"
         },
         {
           "value": "pixel-stretch",
@@ -170,7 +188,8 @@
             "apng",
             "webm",
             "mp4"
-          ]
+          ],
+          "icon": "arrowsH"
         },
         {
           "value": "imperfections",
@@ -191,7 +210,8 @@
             "webp-anim",
             "webm",
             "mp4"
-          ]
+          ],
+          "icon": "stamp"
         },
         {
           "value": "dither",
@@ -209,7 +229,8 @@
             "apng",
             "webm",
             "mp4"
-          ]
+          ],
+          "icon": "hash"
         },
         {
           "value": "ascii",
@@ -229,7 +250,8 @@
             "mp4",
             "txt",
             "md"
-          ]
+          ],
+          "icon": "code"
         },
         {
           "value": "glitch",
@@ -245,7 +267,8 @@
             "apng",
             "webm",
             "mp4"
-          ]
+          ],
+          "icon": "zap"
         }
       ]
     },
@@ -926,11 +949,26 @@
       "type": "select",
       "default": "duotone",
       "options": [
-        { "value": "none", "label": "None" },
-        { "value": "tint", "label": "Colour wash" },
-        { "value": "duotone", "label": "Duotone" },
-        { "value": "gradient", "label": "Gradient map (3 stops)" },
-        { "value": "split", "label": "Split tone" }
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "tint",
+          "label": "Colour wash"
+        },
+        {
+          "value": "duotone",
+          "label": "Duotone"
+        },
+        {
+          "value": "gradient",
+          "label": "Gradient map (3 stops)"
+        },
+        {
+          "value": "split",
+          "label": "Split tone"
+        }
       ],
       "help": "Recolour the photo through the design system palette in OKLab. Leave the colours below empty to auto-pick from its tokens; set them to override.",
       "showIf": {
@@ -950,7 +988,12 @@
       "help": "Blend between the untreated photo (0) and the full treatment (100).",
       "showIf": {
         "effect": "duotone",
-        "du_treatment": ["tint", "duotone", "gradient", "split"]
+        "du_treatment": [
+          "tint",
+          "duotone",
+          "gradient",
+          "split"
+        ]
       }
     },
     {
@@ -962,7 +1005,12 @@
       "help": "Empty = auto: the darkest colour in the design system palette.",
       "showIf": {
         "effect": "duotone",
-        "du_treatment": ["tint", "duotone", "gradient", "split"]
+        "du_treatment": [
+          "tint",
+          "duotone",
+          "gradient",
+          "split"
+        ]
       }
     },
     {
@@ -974,7 +1022,9 @@
       "help": "Empty = auto: the most colourful swatch in the design system palette.",
       "showIf": {
         "effect": "duotone",
-        "du_treatment": ["gradient"]
+        "du_treatment": [
+          "gradient"
+        ]
       }
     },
     {
@@ -986,7 +1036,11 @@
       "help": "Empty = auto: the lightest colour in the design system palette.",
       "showIf": {
         "effect": "duotone",
-        "du_treatment": ["duotone", "gradient", "split"]
+        "du_treatment": [
+          "duotone",
+          "gradient",
+          "split"
+        ]
       }
     },
     {
@@ -1413,9 +1467,18 @@
       "type": "select",
       "default": "floyd",
       "options": [
-        { "value": "floyd", "label": "Diffused (Floyd–Steinberg)" },
-        { "value": "ordered", "label": "Patterned (ordered)" },
-        { "value": "noise", "label": "Grainy (noise)" }
+        {
+          "value": "floyd",
+          "label": "Diffused (Floyd–Steinberg)"
+        },
+        {
+          "value": "ordered",
+          "label": "Patterned (ordered)"
+        },
+        {
+          "value": "noise",
+          "label": "Grainy (noise)"
+        }
       ],
       "help": "How each pixel's colour error is spread to its neighbours before the next match.",
       "showIf": {
@@ -1446,13 +1509,34 @@
       "type": "select",
       "default": "mono",
       "options": [
-        { "value": "mono", "label": "1-bit (black & white)" },
-        { "value": "handheld4", "label": "Handheld 4-tone" },
-        { "value": "retro16", "label": "16-colour retro" },
-        { "value": "retro54", "label": "54-colour retro console" },
-        { "value": "gray4", "label": "Greyscale (4)" },
-        { "value": "gray8", "label": "Greyscale (8)" },
-        { "value": "brand", "label": "Design system palette" }
+        {
+          "value": "mono",
+          "label": "1-bit (black & white)"
+        },
+        {
+          "value": "handheld4",
+          "label": "Handheld 4-tone"
+        },
+        {
+          "value": "retro16",
+          "label": "16-colour retro"
+        },
+        {
+          "value": "retro54",
+          "label": "54-colour retro console"
+        },
+        {
+          "value": "gray4",
+          "label": "Greyscale (4)"
+        },
+        {
+          "value": "gray8",
+          "label": "Greyscale (8)"
+        },
+        {
+          "value": "brand",
+          "label": "Design system palette"
+        }
       ],
       "help": "The fixed set of colours every pixel snaps to. Design system palette uses the colour tokens of the active design system.",
       "showIf": {
@@ -1484,8 +1568,14 @@
       "type": "select",
       "default": "cover",
       "options": [
-        { "value": "contain", "label": "Contain (whole image)" },
-        { "value": "cover", "label": "Cover (fill, crop edges)" }
+        {
+          "value": "contain",
+          "label": "Contain (whole image)"
+        },
+        {
+          "value": "cover",
+          "label": "Cover (fill, crop edges)"
+        }
       ],
       "showIf": {
         "effect": "dither"
@@ -1499,9 +1589,18 @@
       "type": "select",
       "default": "classic",
       "options": [
-        { "value": "classic", "label": "Classic (10 characters)" },
-        { "value": "blocks", "label": "Blocks" },
-        { "value": "minimal", "label": "Minimal" }
+        {
+          "value": "classic",
+          "label": "Classic (10 characters)"
+        },
+        {
+          "value": "blocks",
+          "label": "Blocks"
+        },
+        {
+          "value": "minimal",
+          "label": "Minimal"
+        }
       ],
       "help": "The characters used from lightest to darkest.",
       "showIf": {
@@ -1532,10 +1631,22 @@
       "type": "select",
       "default": "400",
       "options": [
-        { "value": "300", "label": "Light" },
-        { "value": "400", "label": "Regular" },
-        { "value": "500", "label": "Medium" },
-        { "value": "700", "label": "Bold" }
+        {
+          "value": "300",
+          "label": "Light"
+        },
+        {
+          "value": "400",
+          "label": "Regular"
+        },
+        {
+          "value": "500",
+          "label": "Medium"
+        },
+        {
+          "value": "700",
+          "label": "Bold"
+        }
       ],
       "help": "Stroke weight of every character. Bolder fills the cell more; lighter opens it up.",
       "showIf": {
@@ -1566,9 +1677,18 @@
       "type": "select",
       "default": "per-cell",
       "options": [
-        { "value": "mono", "label": "Mono" },
-        { "value": "fg-bg", "label": "Foreground on background" },
-        { "value": "per-cell", "label": "Per-cell colour" }
+        {
+          "value": "mono",
+          "label": "Mono"
+        },
+        {
+          "value": "fg-bg",
+          "label": "Foreground on background"
+        },
+        {
+          "value": "per-cell",
+          "label": "Per-cell colour"
+        }
       ],
       "help": "Mono draws every character in one ink; per-cell colours each character from the photo underneath.",
       "showIf": {
@@ -1585,7 +1705,10 @@
       "help": "Ink colour when Colour mode is Mono or Foreground on background.",
       "showIf": {
         "effect": "ascii",
-        "as_colorMode": ["mono", "fg-bg"]
+        "as_colorMode": [
+          "mono",
+          "fg-bg"
+        ]
       }
     },
     {
@@ -1620,8 +1743,14 @@
       "type": "select",
       "default": "cover",
       "options": [
-        { "value": "contain", "label": "Contain (whole image)" },
-        { "value": "cover", "label": "Cover (fill, crop edges)" }
+        {
+          "value": "contain",
+          "label": "Contain (whole image)"
+        },
+        {
+          "value": "cover",
+          "label": "Cover (fill, crop edges)"
+        }
       ],
       "showIf": {
         "effect": "ascii"
@@ -1651,8 +1780,14 @@
       "type": "select",
       "default": "horizontal",
       "options": [
-        { "value": "horizontal", "label": "Horizontal" },
-        { "value": "vertical", "label": "Vertical" }
+        {
+          "value": "horizontal",
+          "label": "Horizontal"
+        },
+        {
+          "value": "vertical",
+          "label": "Vertical"
+        }
       ],
       "showIf": {
         "effect": "glitch"
@@ -1682,8 +1817,22 @@
       "help": "Shifts the red channel. Drag a label or type a value.",
       "type": "vector",
       "fields": [
-        { "id": "dx", "label": "X", "min": -60, "max": 60, "step": 1, "default": 5 },
-        { "id": "dy", "label": "Y", "min": -60, "max": 60, "step": 1, "default": -10 }
+        {
+          "id": "dx",
+          "label": "X",
+          "min": -60,
+          "max": 60,
+          "step": 1,
+          "default": 5
+        },
+        {
+          "id": "dy",
+          "label": "Y",
+          "min": -60,
+          "max": 60,
+          "step": 1,
+          "default": -10
+        }
       ],
       "showIf": {
         "effect": "glitch"
@@ -1697,8 +1846,22 @@
       "help": "Shifts the green channel.",
       "type": "vector",
       "fields": [
-        { "id": "dx", "label": "X", "min": -60, "max": 60, "step": 1, "default": 7 },
-        { "id": "dy", "label": "Y", "min": -60, "max": 60, "step": 1, "default": 5 }
+        {
+          "id": "dx",
+          "label": "X",
+          "min": -60,
+          "max": 60,
+          "step": 1,
+          "default": 7
+        },
+        {
+          "id": "dy",
+          "label": "Y",
+          "min": -60,
+          "max": 60,
+          "step": 1,
+          "default": 5
+        }
       ],
       "showIf": {
         "effect": "glitch"
@@ -1712,8 +1875,22 @@
       "help": "Shifts the blue channel.",
       "type": "vector",
       "fields": [
-        { "id": "dx", "label": "X", "min": -60, "max": 60, "step": 1, "default": 10 },
-        { "id": "dy", "label": "Y", "min": -60, "max": 60, "step": 1, "default": 18 }
+        {
+          "id": "dx",
+          "label": "X",
+          "min": -60,
+          "max": 60,
+          "step": 1,
+          "default": 10
+        },
+        {
+          "id": "dy",
+          "label": "Y",
+          "min": -60,
+          "max": 60,
+          "step": 1,
+          "default": 18
+        }
       ],
       "showIf": {
         "effect": "glitch"
@@ -1774,8 +1951,14 @@
       "type": "select",
       "default": "cover",
       "options": [
-        { "value": "contain", "label": "Contain (whole image)" },
-        { "value": "cover", "label": "Cover (fill, crop edges)" }
+        {
+          "value": "contain",
+          "label": "Contain (whole image)"
+        },
+        {
+          "value": "cover",
+          "label": "Cover (fill, crop edges)"
+        }
       ],
       "showIf": {
         "effect": "glitch"

@@ -170,7 +170,11 @@ export function createExportAPI(host: WebHost) {
       // WebGL canvas being in the right state at capture time; that module hands back one
       // restore covering both halves. It is reached with an import() gated on the marker, so
       // a tool with no scene box loads neither it nor three.js and pays one selector.
-      const restoreHidden = node.querySelector('[data-lolly-scene]') ? await (await import('./export-design-scenes.ts')).prepareDesignScenePosters(node, format, opts, detachExportHidden) : detachExportHidden(node);
+      // `keepEditorChrome` is the docs-capture opt-in (ExportOpts): a screenshot whose
+      // SUBJECT is a control has to keep the control. It is false everywhere else, so
+      // every real export still detaches the chrome exactly as before.
+      const hideChrome = opts.keepEditorChrome ? (_n: Element): (() => void) => (): void => {} : detachExportHidden;
+      const restoreHidden = node.querySelector('[data-lolly-scene]') ? await (await import('./export-design-scenes.ts')).prepareDesignScenePosters(node, format, opts, hideChrome) : hideChrome(node);
       // The timeline panel photographs its own clip boxes with the same dom-to-image
       // instance. Its options, url cache, and sandbox iframe are module-global and
       // get cleared by whichever call finishes first. detachExportHidden removes the

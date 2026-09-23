@@ -12,6 +12,8 @@ Under the quoted section sit the places in the app the same question matches: a 
 
 Type into the composer at the foot of the view and press Enter. Anything shorter than two characters is ignored. Answers build up in the transcript above, newest last, and you can keep asking.
 
+![Ask Lolly, open and empty: the composer at the foot of the view, with the note that answers come from the docs](/t/url-shot?url=%2F%23%2Fask&width=1200&height=820&waitMs=2200&format=svg&walker=1&filename=ask-view)
+
 Follow-ups are answered on their own. The transcript is a record of what you asked, not a conversation that carries context forward, so "what about PDF?" after a question about exporting will be read as a question about PDF and nothing else. Ask the whole question each time.
 
 The first word of your question decides what leads the answer:

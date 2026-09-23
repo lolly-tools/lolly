@@ -6734,5 +6734,8 @@
   "↳ follows {role}": "↳ sumusunod sa {role}",
   "✓ Added": "✓ Naidagdag",
   "✓ Found {n} tools at {base}.": "✓ Nakahanap ng {n} tool sa {base}.",
-  "＋ New project…": "＋ Bagong project…"
+  "＋ New project…": "＋ Bagong project…",
+  "Edit on the canvas": "I-edit sa canvas",
+  "Position & size": "Posisyon at sukat",
+  "Presence": "Presence"
 }

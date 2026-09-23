@@ -194,6 +194,38 @@
             },
             "$description": "Syntax operator role; may be supplied by the loaded design system."
           }
+        },
+        "status": {
+          "danger": {
+            "$type": "color",
+            "$value": "#b4232a",
+            "$description": "Something is wrong and the user must act.",
+            "$extensions": {
+              "tools.lolly": {
+                "css": "hsl(var(--destructive))"
+              }
+            }
+          },
+          "danger-surface": {
+            "$type": "color",
+            "$value": "#b4232a12",
+            "$description": "The wash behind a danger message.",
+            "$extensions": {
+              "tools.lolly": {
+                "css": "hsl(var(--destructive) / .07)"
+              }
+            }
+          },
+          "notice-surface": {
+            "$type": "color",
+            "$value": "#0c322c12",
+            "$description": "The wash behind a neutral notice, such as a pre-export check.",
+            "$extensions": {
+              "tools.lolly": {
+                "css": "hsl(var(--primary) / .07)"
+              }
+            }
+          }
         }
       },
       "size": {
@@ -204,6 +236,46 @@
           "$extensions": {
             "tools.lolly": {
               "css": "44px"
+            }
+          }
+        },
+        "icon-sm": {
+          "$type": "sizing",
+          "$value": "14px",
+          "$description": "Row glyph inside a panel. The smaller of the panel primitive's two icon sizes.",
+          "$extensions": {
+            "tools.lolly": {
+              "css": "calc(14px * var(--a11y-fs))"
+            }
+          }
+        },
+        "icon-md": {
+          "$type": "sizing",
+          "$value": "16px",
+          "$description": "Section head glyph and panel head action glyph. The default chrome icon.",
+          "$extensions": {
+            "tools.lolly": {
+              "css": "calc(16px * var(--a11y-fs))"
+            }
+          }
+        },
+        "icon-lg": {
+          "$type": "sizing",
+          "$value": "20px",
+          "$description": "The largest glyph a panel draws: a colour chip, a prominent head mark.",
+          "$extensions": {
+            "tools.lolly": {
+              "css": "calc(20px * var(--a11y-fs))"
+            }
+          }
+        },
+        "control": {
+          "$type": "sizing",
+          "$value": "30px",
+          "$description": "One height for every control on a panel row: text, number, select, segmented, swatch, door. What gives a column of mixed inputs a single vertical rhythm.",
+          "$extensions": {
+            "tools.lolly": {
+              "css": "calc(30px * var(--a11y-fs))"
             }
           }
         }
@@ -433,6 +505,46 @@
         "mono-family": {
           "$type": "fontFamilies",
           "$value": "{lolly.foundation.font.mono}"
+        },
+        "band": {
+          "$type": "fontSize",
+          "$value": "{lolly.foundation.type.size.xs}",
+          "$description": "The band divider word (Content, Style, Layout, Presence, More). Uppercase and tracked, above the section heads it groups."
+        },
+        "section": {
+          "$type": "fontSize",
+          "$value": "{lolly.foundation.type.size.md}",
+          "$description": "A section head. Sentence case and the largest tier in a panel, so a group name is never mistaken for the eyebrow over a control."
+        },
+        "field": {
+          "$type": "fontSize",
+          "$value": "{lolly.foundation.type.size.2xs}",
+          "$description": "The eyebrow over one control. Uppercase and tracked, and deliberately SMALLER than the section head above it."
+        },
+        "help": {
+          "$type": "fontSize",
+          "$value": "{lolly.foundation.type.size.xs}",
+          "$description": "A line of help or a hint under a control. Sentence case, muted."
+        },
+        "weight-section": {
+          "$type": "fontWeights",
+          "$value": "600",
+          "$description": "Weight of a section head.",
+          "$extensions": {
+            "tools.lolly": {
+              "css": "600"
+            }
+          }
+        },
+        "weight-label": {
+          "$type": "fontWeights",
+          "$value": "600",
+          "$description": "Weight of an uppercase eyebrow, band or field.",
+          "$extensions": {
+            "tools.lolly": {
+              "css": "600"
+            }
+          }
         }
       },
       "motion": {

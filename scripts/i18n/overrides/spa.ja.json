@@ -556,5 +556,8 @@
   "Export visible text only": "表示中のテキストのみをエクスポート",
   "Allow an intentionally clipped export. Text beyond fixed frames and unplaced stories is omitted; the full source stays in your document.": "意図的に切り取った書き出しを許可します。固定フレームの外のテキストと未配置のストーリーは省略され、完全なソースはドキュメントに残ります。",
   "Text in Design": "Designのテキスト",
-  "Authored text composition": "作成したテキストの組版"
+  "Authored text composition": "作成したテキストの組版",
+  "Edit on the canvas": "キャンバスで編集",
+  "Position & size": "位置とサイズ",
+  "Presence": "演出"
 }

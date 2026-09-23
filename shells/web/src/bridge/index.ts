@@ -9,6 +9,7 @@ import { aiAllowed, callAiApi } from '../lib/ai-policy.ts';
  */
 
 import { setHostRef } from '../lib/host-ref.ts';
+import { pendingAssetSync } from '../lib/asset-sync.ts';
 import type { HostV1, AssetRef, AssetPickerOpts, RecorderAPI } from '@lolly-tools/core/host-v1';
 // Deep engine imports, NOT the `@lolly/engine` barrel: this module is on the
 // boot path, and engine/src/index.ts is one shared facade whose retained export
@@ -167,8 +168,13 @@ export async function createBridge(): Promise<WebHost> {
   // one-shot migration (the shipped catalog asset's name, the legacy head's).
   host.designSystems = createDesignSystemRegistry(db as unknown as RegistryDb, {
     catalogTokens: async () => {
-      const meta = await (host.assets as unknown as { _findMetaByType(t: string, o?: { catalogOnly?: boolean }): Promise<{ id: string; name?: string; brandLock?: boolean } | null> })
-        ._findMetaByType('tokens', { catalogOnly: true }).catch(() => null);
+      const assets = host.assets as unknown as { _findMetaByType(t: string, o?: { catalogOnly?: boolean }): Promise<{ id: string; name?: string; brandLock?: boolean } | null> };
+      let meta = await assets._findMetaByType('tokens', { catalogOnly: true }).catch(() => null);
+      const syncing = pendingAssetSync();
+      if (!meta && syncing) {
+        await syncing;
+        meta = await assets._findMetaByType('tokens', { catalogOnly: true }).catch(() => null);
+      }
       return meta ? { id: meta.id, name: meta.name, brandLock: meta.brandLock } : null;
     },
     legacyHead: async () => (host.assets as unknown as { _getUserRecord?(id: string): Promise<{ meta?: Record<string, unknown> } | null> })

@@ -141,6 +141,34 @@ export type InspectorSection =
   | 'fill' | 'appearance' | 'shadow' | 'tilt' | 'arrange' | 'guide';
 
 /**
+ * The five bands every section belongs to, in the order they are laid out
+ * (plans/273). A band is NOT a fold: it is a labelled run of sections, so the
+ * ladder stays readable with every section under it shut.
+ *
+ * The order is the order the questions get asked. What does this say (content),
+ * what does it look like (style), where does it sit (layout), how does it arrive
+ * (presence), and then the precise controls most selections never need (more).
+ * Before this the order was whatever `gate()` happened to push, so a user could
+ * not form a habit about where anything was.
+ *
+ * `presence` holds motion AND delivery on purpose. Arriving and being delivered
+ * are the same question asked of a slide and of a file, and a sixth band would
+ * cost the ladder the thing that makes it worth having, which is that five words
+ * fit in a head.
+ */
+export const BANDS = ['content', 'style', 'layout', 'presence', 'more'] as const;
+export type Band = (typeof BANDS)[number];
+
+/** A band's word and its chip glyph. Thunks, for the same reason SECTION_META's are. */
+const BAND_META: Record<Band, { title: () => string; glyph: IconName }> = {
+  content: { title: () => t('Content'), glyph: 'document' },
+  style: { title: () => t('Style'), glyph: 'palette' },
+  layout: { title: () => t('Layout'), glyph: 'grid' },
+  presence: { title: () => t('Presence'), glyph: 'play' },
+  more: { title: () => t('More'), glyph: 'sliders' },
+};
+
+/**
  * The arrange verbs the Object section offers, in the overlay's OWN op names
  * (`applyAlign` edges, `applyDistribute` axes, `applyZ` ops, plus group/ungroup) so
  * the host's `actions.arrange` is a switch, not a translation table. Exported so
@@ -363,24 +391,35 @@ const WATCHED: Record<InspectorSection, (c: Cfg, m: FlagFields) => Array<string 
  * so a bare string here would never reach a locale file; and the call runs at
  * render time, so a language switch repaints in the new language.
  */
-const SECTION_META: Record<InspectorSection, { title: () => string; glyph: IconName }> = {
-  document: { title: () => t('Document'), glyph: 'document' },
-  guide: { title: () => t('Guide'), glyph: 'grid' },
-  artboard: { title: () => t('Artboard'), glyph: 'crop' },
-  object: { title: () => t('Object'), glyph: 'shapes' },
-  fill: { title: () => t('Fill & Stroke'), glyph: 'palette' },
-  appearance: { title: () => t('Appearance'), glyph: 'sliders' },
-  shadow: { title: () => t('Shadow'), glyph: 'duplicate' },
-  tilt: { title: () => t('Perspective tilt'), glyph: 'rotateCw' },
-  arrange: { title: () => t('Arrange'), glyph: 'layers' },
-  text: { title: () => t('Text'), glyph: 'font' },
-  image: { title: () => t('Image'), glyph: 'image' },
+const SECTION_META: Record<InspectorSection, { title: () => string; glyph: IconName; band: Band }> = {
+  document: { title: () => t('Document'), glyph: 'document', band: 'content' },
+  guide: { title: () => t('Guide'), glyph: 'grid', band: 'layout' },
+  artboard: { title: () => t('Artboard'), glyph: 'crop', band: 'layout' },
+  // "Position & size" says what the rows under it do. "Object" named the thing the
+  // rows belong to, which every other section in the column also belongs to.
+  object: { title: () => t('Position & size'), glyph: 'move', band: 'layout' },
+  // "Colour" is the word for what this group changes. "Fill & Stroke" is the
+  // implementation, and it is what made the commonest edit in the tool - recolour
+  // this text - live behind a name that does not contain the word colour.
+  fill: { title: () => t('Colour'), glyph: 'palette', band: 'style' },
+  appearance: { title: () => t('Appearance'), glyph: 'opacity', band: 'style' },
+  // Was `duplicate`, the copy glyph: two equal overlapping rectangles, which say
+  // "make another one of these" in every other place the app draws them.
+  shadow: { title: () => t('Shadow'), glyph: 'shadow', band: 'style' },
+  tilt: { title: () => t('Perspective tilt'), glyph: 'rotateCw', band: 'more' },
+  // `layers` is the Layers panel's own glyph. Arrange is about order, so it takes
+  // the order glyph and the two stop meaning each other.
+  arrange: { title: () => t('Arrange'), glyph: 'orderFront', band: 'layout' },
+  text: { title: () => t('Text'), glyph: 'font', band: 'content' },
+  image: { title: () => t('Image'), glyph: 'image', band: 'content' },
   // `box` is the registry's isometric cube, and it is already the 3D Studio's own
   // section glyph for Start, Collection, Lighting and Arrangement, so the studio and
   // the door onto it wear one picture.
-  scene: { title: () => t('3D scene'), glyph: 'box' },
-  motion: { title: () => t('Motion'), glyph: 'animate' },
-  present: { title: () => t('Present'), glyph: 'play' },
+  scene: { title: () => t('3D scene'), glyph: 'box', band: 'content' },
+  motion: { title: () => t('Motion'), glyph: 'animate', band: 'presence' },
+  // `play` now means playback and nothing else. A slide's build, notes and
+  // transition are what it is like to BE presented, which is the speech glyph.
+  present: { title: () => t('Present'), glyph: 'speech', band: 'presence' },
 };
 
 /** Where the collapse state is remembered, per device. */
@@ -389,15 +428,21 @@ export const SECTIONS_KEY = 'lolly-design-inspector-sections';
 /**
  * Which sections stand open before the user has said anything.
  *
- * The ones that start shut are the ones most selections have nothing to say about
- * (no shadow, no tilt, nothing to align against) plus the two that are a door onto
- * another surface rather than a set of values (Motion opens the timeline, Present is
- * three per-slide fields). Every one of them opens on its own for a selection that
- * DOES carry a value - see `autoOpens` - so nothing is ever hidden that the canvas is
- * already showing.
+ * Two open by default, and they are the two bands a user reaches for first: what
+ * this thing SAYS (Content: Text, Image, 3D scene, or Document when nothing is
+ * selected) and what COLOUR it is (the head of Style). Everything else starts
+ * shut and opens on its own for a selection that carries a value in it - see
+ * `autoOpens` - so nothing the canvas is already showing is ever hidden.
+ *
+ * Appearance and Position & size used to start open too. Between them that put
+ * five open groups over a text box, which is a scroll rather than a panel; the
+ * band labels now carry the structure those open groups were carrying, so they
+ * can close. `isExpanded` opens the first section of the first band whatever
+ * this table says, so a selection whose Content band is empty still opens on a
+ * real control rather than on a header.
  */
 const DEFAULT_OPEN: Record<InspectorSection, boolean> = {
-  document: true, guide: true, artboard: true, object: true, fill: true, appearance: true,
+  document: true, guide: true, artboard: true, object: false, fill: true, appearance: false,
   shadow: false, tilt: false, arrange: false,
   text: true, image: true, scene: true, motion: false, present: false,
 };
@@ -528,7 +573,10 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
 
   // ── the column ──────────────────────────────────────────────────────────────
   const el = document.createElement('aside');
-  el.className = 'fc-insp';
+  // `lp` is the shared panel primitive (styles/parts/panel.css, plans/273); the
+  // `fc-insp` name stays beside it because the float controller, the host dock
+  // and the tests all address the column by it.
+  el.className = 'lp fc-insp';
   el.setAttribute('data-export-hide', '');
   el.setAttribute('data-live-hide', '');
   el.setAttribute('aria-label', t('Inspector'));
@@ -541,31 +589,36 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   // width for good and a phone got a sheet over most of the screen with no way back.
   // Closing means UNDOCKING, which is the host's call: `onClose` hands it over.
   const headBar = document.createElement('div');
-  headBar.className = 'fc-insp-headbar';
+  headBar.className = 'lp-head fc-insp-headbar';
+  // What KIND of thing is selected, as one glyph, so the head answers "what am I
+  // editing" before the name does. Set from SECTION_META on every render.
+  const kindMark = document.createElement('span');
+  kindMark.className = 'lp-head-kind';
+  kindMark.setAttribute('aria-hidden', 'true');
   const colTitle = document.createElement('h2');
-  colTitle.className = 'fc-insp-coltitle';
+  colTitle.className = 'lp-head-name fc-insp-coltitle';
   colTitle.textContent = t('Inspector');
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
-  closeBtn.className = 'fc-insp-close';
+  closeBtn.className = 'lp-iconbtn fc-insp-close';
   closeBtn.setAttribute('data-act-col', 'close');
   closeBtn.setAttribute('aria-label', t('Hide inspector'));
   closeBtn.title = t('Hide inspector');
   closeBtn.innerHTML = icon('close');
   closeBtn.addEventListener('click', () => { setOpen(false); opts.onClose?.(); });
   const layerName = document.createElement('input');
-  layerName.className = 'fc-insp-name';
+  layerName.className = 'lp-head-name fc-insp-name';
   layerName.type = 'text';
   layerName.setAttribute('aria-label', t('Layer name'));
   layerName.hidden = true;
   layerName.addEventListener('change', () => write(F_NAME, layerName.value));
-  headBar.append(colTitle, layerName, closeBtn);
+  headBar.append(kindMark, colTitle, layerName, closeBtn);
   el.appendChild(headBar);
 
   let documentView = false;
   let advancedTextOpen = false;
   const tabs = document.createElement('nav');
-  tabs.className = 'fc-insp-tabs';
+  tabs.className = 'lp-rail fc-insp-tabs';
   tabs.setAttribute('aria-label', t('Inspector settings'));
   const selectionTab = document.createElement('button');
   const documentTab = document.createElement('button');
@@ -577,7 +630,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   el.appendChild(tabs);
 
   const scroll = document.createElement('div');
-  scroll.className = 'fc-insp-scroll';
+  scroll.className = 'lp-scroll fc-insp-scroll';
   scroll.tabIndex = -1;
   el.appendChild(scroll);
   // DETACHED on purpose: the host docks this element into the one right sidebar. Nothing
@@ -642,6 +695,26 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     return secs;
   }
 
+  /**
+   * The sections a selection offers, in BAND order (plans/273), stable within a
+   * band so an author's own ordering inside one band survives.
+   *
+   * A video workspace is the one exception, and it is expressed as a band swap
+   * rather than as a list of favoured sections: when the document is a clip,
+   * when a thing arrives matters more than what colour it is, so `presence`
+   * moves ahead of `style`. The ladder is still a ladder; only two rungs trade.
+   */
+  function orderByBand(secs: InspectorSection[]): InspectorSection[] {
+    const order: readonly Band[] = opts.videoWorkspace?.()
+      ? ['content', 'presence', 'style', 'layout', 'more']
+      : BANDS;
+    return secs
+      .map((sec, i) => [sec, i] as const)
+      .sort(([a, ai], [b, bi]) =>
+        (order.indexOf(SECTION_META[a].band) - order.indexOf(SECTION_META[b].band)) || (ai - bi))
+      .map(([sec]) => sec);
+  }
+
   /** What the selection IS, and therefore which sections may show. */
   function gate(): Gate {
     if (documentView) return { kind: 'empty', ids: [], box: null, rows: [], secs: ['document'] };
@@ -656,8 +729,8 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // for more than one box, only the paint groups that mean the same thing across them.
     // The groups that DO stay read every row, so a value the rows disagree about shows
     // as mixed instead of as the first box's.
-    if (ids.length > 1) return { kind: 'multi', ids, box, rows, secs: [...(rows.length === ids.length && rows.every(row => kindOf(row) === 'text') ? ['text' as const] : []), ...paintSecs(false)] };
-    if (frame && kindOf(box) === frame.frameKind) return { kind: 'frame', ids, box, rows, secs: ['artboard', 'present', 'motion'] };
+    if (ids.length > 1) return { kind: 'multi', ids, box, rows, secs: orderByBand([...(rows.length === ids.length && rows.every(row => kindOf(row) === 'text') ? ['text' as const] : []), ...paintSecs(false)]) };
+    if (frame && kindOf(box) === frame.frameKind) return { kind: 'frame', ids, box, rows, secs: orderByBand(['artboard', 'present', 'motion']) };
     const secs: InspectorSection[] = [];
     const hasText = kindOf(box) === 'text' || (!!cfg.textField && String(box[cfg.textField] ?? '') !== '');
     if (hasText) secs.push('text');
@@ -676,14 +749,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // and stamping one box's build step across a multi-selection is not an edit anyone
     // asked for. Collapsed away by the section head for a document that never presents.
     secs.push('present');
-    if (opts.videoWorkspace?.()) {
-      const first: InspectorSection[] = ['text', 'image', 'scene', 'motion'];
-      secs.sort((a, b) => {
-        const rank = (s: InspectorSection) => first.includes(s) ? first.indexOf(s) : first.length;
-        return rank(a) - rank(b);
-      });
-    }
-    return { kind: 'object', ids, box, rows, secs };
+    return { kind: 'object', ids, box, rows, secs: orderByBand(secs) };
   }
 
   /**
@@ -744,7 +810,12 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
   function isExpanded(sec: InspectorSection, g: Gate): boolean {
     const said = sectionPrefs[sec];
     if (typeof said === 'boolean') return said;
-    if ((opts.videoWorkspace?.() || g.secs.includes('text')) && ['object', 'fill', 'appearance'].includes(sec)) return false;
+    // The first section of the FIRST band is always open, so the column never
+    // opens on nothing but headers. That replaces the old rule, which shut
+    // Object, Fill and Appearance for any selection that had a Text section:
+    // recolouring a text box, one of the commonest edits in the tool, then cost
+    // a click on a closed group whose name did not contain the word colour.
+    if (sec === g.secs[0]) return true;
     return DEFAULT_OPEN[sec] || autoOpens(sec, g.box);
   }
 
@@ -770,7 +841,17 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // accessible name. The column can show four colour fields on one box (Fill, Stroke,
     // shadow Colour, Text colour) and its rows are `<div><span>` pairs, which associate
     // nothing - so without this every one of them announced the same "Colour: #000000".
-    return colorFieldHtml(id, resolveColorVar(s, colorScope()), { float: true, name: colorVarLabel(s), label });
+    //
+    // A colour with no brand token behind it has no name, and `.color-trigger-name:empty`
+    // then hides the name cell, which is what collapsed this control to a bare 20px
+    // circle floating off the row's control column (plans/273 R5). The VALUE is the
+    // honest name for an unnamed colour, so the trigger keeps a word to show and the
+    // control keeps the width and height of the select above it.
+    const resolved = resolveColorVar(s, colorScope());
+    // An unset colour is "None", not an empty cell. `colorVarLabel` answers only
+    // for a brand token, and the value answers for a hand-picked colour; with
+    // neither, the honest word is the one the picker itself would show.
+    return colorFieldHtml(id, resolved, { float: true, name: colorVarLabel(s) || resolved || t('None'), label });
   }
 
   /** The manifest's own options for a field, `[value, label]`, already translated. */
@@ -905,8 +986,24 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     + `<textarea class="field-input" rows="4" data-fld="${escape(field)}" data-kind="str"`
     + ` placeholder="${escape(placeholder)}">${escape(String(value ?? ''))}</textarea></label>`;
 
+  /**
+   * A row that opens another surface. FRAMED, with a trailing chevron, because
+   * the unframed bold line it used to be was indistinguishable from a heading
+   * (plans/273 R6) - "Canvas size: 1920 x 1080 px" read as a title rather than
+   * as the control that opens the size dialog.
+   */
   const doorBtn = (label: string, act: string, glyph: IconName): string =>
-    `<div class="fc-row fc-insp-door"><button type="button" class="fc-cbtn" data-act="${escape(act)}">${icon(glyph)}<span>${label}</span></button></div>`;
+    `<div class="lp-row lp-row--wide fc-row fc-insp-door"><span class="lp-row-icon"></span>`
+    + `<span class="lp-control"><button type="button" class="lp-door fc-cbtn" data-act="${escape(act)}">`
+    + `${icon(glyph)}<span>${label}</span>${icon('chevronRight')}</button></span></div>`;
+
+  /** A door with its own eyebrow, so the label reads as a label and the value as
+   *  the thing the door will change. */
+  const doorRow = (label: string, value: string, act: string, glyph: IconName): string =>
+    `<div class="lp-row fc-row fc-insp-door"><span class="lp-row-icon"></span>`
+    + `<span class="lp-label">${label}</span>`
+    + `<span class="lp-control"><button type="button" class="lp-door fc-cbtn" data-act="${escape(act)}">`
+    + `${icon(glyph)}<span>${escape(value)}</span>${icon('chevronRight')}</button></span></div>`;
 
   const chip = (label: string, value: string): string =>
     `<span class="chip fc-insp-chip"><i>${label}</i>${escape(value)}</span>`;
@@ -1084,12 +1181,12 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
           canvasEl.dispatchEvent(new CustomEvent('fc-document-dpi', { detail: next }));
         },
       }) + narrationDocRows();
-    return (actions.openDocumentSize ? doorBtn(`${t('Canvas size')}: ${fmt(size.w)} x ${fmt(size.h)} ${unit}`, 'documentsize', 'resize') : readRow(t('Canvas size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`))
+    return (actions.openDocumentSize ? doorRow(t('Canvas size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`, 'documentsize', 'resize') : readRow(t('Canvas size'), `${fmt(size.w)} x ${fmt(size.h)} ${unit}`))
       + `<div class="fc-row"><span>${t('Background')}</span><span class="fc-cfield">${colorField('fc-insp-bg', model.getInput('background'), t('Background'))}</span></div>`
       + (model.getInput('editingRange') == null ? '' : docSelectRow(t('Editing range'), 'editingRange', [['sdr', t('SDR')], ['hdr', t('HDR / wide gamut')]]) + `<p class="fc-insp-hint">${t('Preview depends on your display. Export HDR is chosen separately.')}</p>`)
       + emojiDocRows()
       + (opts.videoWorkspace?.()
-        ? `<details class="fc-insp-document-options" data-document-options${documentOptionsOpen ? ' open' : ''}><summary>${t('More document settings')}</summary>${options}</details>`
+        ? `<details class="lp-details fc-insp-document-options" data-document-options${documentOptionsOpen ? ' open' : ''}><summary>${icon('sliders')}<span>${t('More document settings')}</span><i class="lp-caret" aria-hidden="true"></i></summary>${options}</details>`
         : options)
       + designHealthHtml(size);
   }
@@ -1105,7 +1202,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    */
   function emojiDocRows(): string {
     if (!opts.emoji) return '';
-    return `<p class="fc-insp-hint">${t('Emoji')}</p><div data-emoji-slot></div>`;
+    return `<p class="lp-subhead">${t('Emoji')}</p><div data-emoji-slot></div>`;
   }
 
   /** Put the shared control in the slot the Document section left for it. */
@@ -1143,7 +1240,7 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    */
   function narrationDocRows(): string {
     if (!narration || opts.narrationEnabled?.() === false) return '';
-    return `<p class="fc-insp-hint">${t('Narration')}</p>`
+    return `<p class="lp-subhead">${t('Narration')}</p>`
       + docVoiceRows()
       + `<p class="fc-insp-hint">${t('English voices only.')}</p>`
       + docNumRow(t('Speed'), 'narrationSpeed', 1, { min: 0.5, max: 2, step: 0.05, precision: 2 })
@@ -1317,22 +1414,37 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     const align = cfg.alignField ? segRow(FIELD_GLYPH.textL, mixed(cfg.alignField) ? t('Align (Mixed)') : t('Align'),
       segHtml(cfg.alignField, mixed(cfg.alignField) ? '' : String(fv(b, cfg.alignField) ?? 'center'), [
         ['left', t('Align left'), FIELD_GLYPH.textL], ['center', t('Align centre'), FIELD_GLYPH.textC], ['right', t('Align right'), FIELD_GLYPH.textR]], t('Align'))) : '';
-    return choice(t('Font'), cfg.fontField, fonts?.options() ?? [])
+    // The door onto the canvas, FIRST, because editing the words is what the
+    // Text section is mostly opened for. It used to hang off the section head as
+    // a nested <button>, which is invalid markup: the parser closed the head
+    // button early and carried the caret out with it.
+    return (rows.length === 1 && actions.editText ? doorBtn(t('Edit on the canvas'), 'edittext', 'pen') : '')
+      + choice(t('Font'), cfg.fontField, fonts?.options() ?? [])
       + (cfg.fontSizeField ? `<div class="fc-row"><span>${t('Size')}</span><div class="fc-stepper">`
         + `<button type="button" class="fc-cbtn" data-act="smaller" aria-label="${escape(t('Smaller text'))}">A-</button>`
         + numCell('', cfg.fontSizeField, num(cfg.fontSizeField, 48, 1, 2000), { name: t('Size'), min: 4, max: 2000, unit: 'px' })
         + `<button type="button" class="fc-cbtn" data-act="bigger" aria-label="${escape(t('Bigger text'))}">A+</button></div></div>` : '')
       + (cfg.textColorField ? colorRow(t('Text colour'), 'fc-insp-fg', fv(b, cfg.textColorField), '', mixed(cfg.textColorField)) : '')
       + align
-      + `<details data-advanced-text${advancedTextOpen ? ' open' : ''}><summary>${t('Advanced typography')}</summary>`
+      // Vertical align sits WITH horizontal align, because that is the pair
+      // people look for (Andy, 2026-09-23). It used to be four rows further
+      // down, inside Advanced typography, so the two halves of one decision
+      // were on opposite sides of a fold.
+      //
+      // Both stay in Text rather than moving to Position & size: "Align" in the
+      // Arrange section already means aligning objects TO EACH OTHER, and one
+      // band holding two different Aligns is the collision this column is being
+      // rebuilt to remove. These two align a run of text inside its own box,
+      // which is a typographic property, next to Font and Size.
+      + (cfg.valignField ? segRow(FIELD_GLYPH.textM, mixed(cfg.valignField) ? t('Vertical (Mixed)') : t('Vertical'), segHtml(cfg.valignField, mixed(cfg.valignField) ? '' : String(fv(b, cfg.valignField) ?? 'middle'), [
+        ['top', t('Align top'), FIELD_GLYPH.textT], ['middle', t('Centre vertically'), FIELD_GLYPH.textM], ['bottom', t('Align bottom'), FIELD_GLYPH.textB]], t('Vertical'))) : '')
+      + `<details class="lp-details" data-advanced-text${advancedTextOpen ? ' open' : ''}><summary>${icon('sliders')}<span>${t('Advanced typography')}</span><i class="lp-caret" aria-hidden="true"></i></summary>`
       + choice(t('Weight'), cfg.weightField, weights, '700')
       + (cfg.lineHeightField ? ctrlRow(FIELD_GLYPH.textM, t('Line height'), numCell('', cfg.lineHeightField, num(cfg.lineHeightField, 1.12, 0.7, 3), { name: t('Line height'), min: 0.7, max: 3, step: 0.01 })) : '')
       + (cfg.trackingField ? ctrlRow(FIELD_GLYPH.textC, t('Letter spacing'), numCell('', cfg.trackingField, num(cfg.trackingField, 0, -20, 100), { name: t('Letter spacing'), min: -20, max: 100, step: 0.5, precision: 2, unit: 'px' })) : '')
       + (cfg.ligaturesField ? toggleRow(t('Ligatures'), cfg.ligaturesField, boolOf(fv(b, cfg.ligaturesField), true)) : '')
       + (cfg.alternatesField ? toggleRow(t('Alternates'), cfg.alternatesField, boolOf(fv(b, cfg.alternatesField), false)) : '')
       + (cfg.fitTextField ? toggleRow(t('Shrink text to fit'), cfg.fitTextField, boolOf(fv(b, cfg.fitTextField), false)) : '')
-      + (cfg.valignField ? segRow(FIELD_GLYPH.textM, mixed(cfg.valignField) ? t('Vertical (Mixed)') : t('Vertical'), segHtml(cfg.valignField, mixed(cfg.valignField) ? '' : String(fv(b, cfg.valignField) ?? 'middle'), [
-        ['top', t('Align top'), FIELD_GLYPH.textT], ['middle', t('Centre vertically'), FIELD_GLYPH.textM], ['bottom', t('Align bottom'), FIELD_GLYPH.textB]], t('Vertical'))) : '')
       + (cfg.padField ? ctrlRow(FIELD_GLYPH.size, t('Padding'), numCell('', cfg.padField, num(cfg.padField, 8, 0, 200), { name: t('Padding'), min: 0, max: 200, unit: 'px' })) : '')
       + '</details>';
   }
@@ -1629,18 +1741,46 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     if (document.activeElement !== layerName) layerName.value = String(fv(g.box ?? {}, F_NAME) ?? '');
     layerName.placeholder = colTitle.textContent || t('Layer name');
     layerName.title = colTitle.textContent || t('Layer name');
-    scroll.innerHTML = g.secs.map((sec) => {
+    // The head's kind glyph is the FIRST section's glyph, which is the first
+    // Content section for anything with content and the first section otherwise.
+    // Nothing selected shows the document mark rather than an empty cell.
+    kindMark.innerHTML = icon(SECTION_META[g.secs[0] ?? 'document'].glyph);
+    // One section. The head is a GRID whose last column is the caret, so a
+    // section action (Edit text) goes in the `auto` column before it and the
+    // fold control keeps one x for every section in the column. It used to be a
+    // flex row, and the one section carrying an action pushed its caret 72px
+    // left of all the others.
+    const sectionHtml = (sec: InspectorSection): string => {
       const openSec = isExpanded(sec, g);
       const deferred = opts.videoWorkspace?.() && !openSec;
-      return `<section class="fc-insp-sec" data-sec="${sec}">`
-        + `<div class="fc-insp-heading"><button type="button" class="fc-insp-head" data-head="${sec}" aria-expanded="${openSec}">`
-        + `${icon(SECTION_META[sec].glyph)}<span>${escape(SECTION_META[sec].title())}</span>`
-        + (!openSec && autoOpens(sec, g.box) ? `<small>${t('In use')}</small>` : '')
-        + `<i class="fc-insp-caret" aria-hidden="true"></i></button>`
-        + (sec === 'text' && g.rows.length === 1 && actions.editText ? `<button type="button" class="fc-insp-edit-text" data-act="edittext">${t('Edit text')}</button>` : '') + '</div>'
-        + `<div class="fc-insp-rows" data-rows="${sec}"${deferred ? ' data-deferred' : ''}${openSec ? '' : ' hidden'}>${deferred ? '' : bodyFor(sec, g)}</div>`
+      // The flag column holds a FLAG and nothing else. A section action cannot go
+      // here: the head is a <button>, and a nested <button> is invalid HTML that
+      // the parser hoists straight back out, taking the caret with it. "Edit text"
+      // is the first row of the Text body instead, where it reads as the door it
+      // is rather than as a second heading on the head's line.
+      const flag = !openSec && autoOpens(sec, g.box) ? `<em class="lp-sec-flag">${t('In use')}</em>` : '<i></i>';
+      return `<section class="lp-sec fc-insp-sec" data-sec="${sec}">`
+        + `<button type="button" class="lp-sec-head fc-insp-head" data-head="${sec}" aria-expanded="${openSec}">`
+        + `${icon(SECTION_META[sec].glyph)}<span class="lp-sec-name">${escape(SECTION_META[sec].title())}</span>`
+        + `${flag}<i class="lp-caret" aria-hidden="true"></i></button>`
+        + `<div class="lp-rows fc-insp-rows" data-rows="${sec}"${deferred ? ' data-deferred' : ''}${openSec ? '' : ' hidden'}>${deferred ? '' : bodyFor(sec, g)}</div>`
         + '</section>';
-    }).join('') || `<p class="fc-insp-hint">${t('Nothing selected')}</p>`;
+    };
+
+    // Bands, in ladder order, each drawn only when it has a section. A band is
+    // not a fold: its label is a rule across the column, so the ladder stays
+    // readable with every section under it shut.
+    const shownBands = BANDS.filter((band) => g.secs.some((sec) => SECTION_META[sec].band === band));
+    scroll.innerHTML = shownBands.map((band) => {
+      const secs = g.secs.filter((sec) => SECTION_META[sec].band === band);
+      // A band holding one section whose name IS the band word ("Document" under
+      // Content, on the Document route) would say it twice in two type sizes.
+      const bare = shownBands.length === 1 && secs.length === 1;
+      return `<div class="lp-band" data-band="${band}">`
+        + (bare ? '' : `<p class="lp-band-label">${escape(BAND_META[band].title())}</p>`)
+        + secs.map(sectionHtml).join('')
+        + '</div>';
+    }).join('') || `<p class="lp-empty">${t('Nothing selected')}</p>`;
     mountNums();
     mountEmojiControl();
     const textSlot = scroll.querySelector<HTMLElement>('[data-composed-inspector]');

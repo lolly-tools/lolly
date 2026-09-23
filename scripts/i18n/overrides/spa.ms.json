@@ -556,5 +556,8 @@
   "Export visible text only": "Eksport teks yang kelihatan sahaja",
   "Allow an intentionally clipped export. Text beyond fixed frames and unplaced stories is omitted; the full source stays in your document.": "Benarkan eksport yang sengaja dipotong. Teks di luar bingkai tetap dan rangkaian teks yang belum diletakkan diabaikan; sumber penuh kekal dalam dokumen anda.",
   "Text in Design": "Teks dalam Design",
-  "Authored text composition": "Gubahan teks yang ditulis"
+  "Authored text composition": "Gubahan teks yang ditulis",
+  "Edit on the canvas": "Edit pada kanvas",
+  "Position & size": "Kedudukan & saiz",
+  "Presence": "Penyampaian"
 }

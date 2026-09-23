@@ -14,6 +14,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createTokensAPI, installUserTokens, USER_TOKENS_ID } from './tokens.ts';
 import { createAssetsAPI } from './assets.ts';
+import { createDesignSystem } from '../lib/design-system/manage.ts';
 import {
   ACTIVE_DESIGN_SYSTEM_KEY, DESIGN_SYSTEMS_STORE, createDesignSystemRegistry,
   type DesignSystemRecord, type DesignSystemRegistry, type RegistryDb,
@@ -168,7 +169,7 @@ test('a namespaced system writes and resolves under its own head id', async () =
   assert.equal(await r.tokens.resolve('{color.brand.jungle}'), '#123456');
 });
 
-test('a material-locked record refuses head writes, while the build lock stays a catalog fact', async () => {
+test('a material-locked record refuses edits and still accepts its own sync writes', async () => {
   const r = await rig({ legacyHead: DOC });
   const rec: DesignSystemRecord = {
     id: 'suse', label: 'SUSE', ns: 'user/ds/suse/', headId: 'user/ds/suse/tokens/brand',
@@ -183,18 +184,50 @@ test('a material-locked record refuses head writes, while the build lock stays a
   await r.registry.setActive('suse');
   r.tokens.bust();
   await assert.rejects(() => installUserTokens(r.host as unknown as Parameters<typeof installUserTokens>[0], DOC), /fixed/);
-  assert.equal(await r.tokens.isLocked(), false);   // the BUILD is not locked
+  assert.equal(await r.tokens.isLocked(), true);
+  await installUserTokens(r.host, DOC, { system: 'suse' });
+  assert.equal(await r.tokens.resolve('{color.brand.jungle}'), '#30ba78');
   await r.registry.setActive('default');
   r.tokens.bust();
   await installUserTokens(r.host as unknown as Parameters<typeof installUserTokens>[0], DOC2);   // the default still writes
   assert.equal(await r.tokens.resolve('{color.brand.jungle}'), '#123456');
 });
 
-test('the build lock wins over any record: the catalog doc is served and writes are refused', async () => {
+test('a locked shipped system leaves a migrated local system editable', async () => {
   const r = await rig({ legacyHead: DOC, brandLock: true });
+  assert.equal(await r.tokens.isLocked(), false);
+  assert.equal(await r.tokens.resolve('{color.brand.jungle}'), '#30ba78');
+  await installUserTokens(r.host, DOC2);
+  assert.equal(await r.tokens.resolve('{color.brand.jungle}'), '#123456');
+  await r.registry.setActive('shipped');
+  r.tokens.bust();
   assert.equal(await r.tokens.isLocked(), true);
   assert.equal(await r.tokens.resolve('{color.brand.jungle}'), '#0c322c');
-  await assert.rejects(() => installUserTokens(r.host as unknown as Parameters<typeof installUserTokens>[0], DOC2), /fixed/);
+  await assert.rejects(() => installUserTokens(r.host, DOC2), /fixed/);
+});
+
+test('creating and editing local systems works when the first active system is locked', async () => {
+  const r = await rig({ brandLock: true });
+  assert.equal((await r.tokens.active())?.id, 'shipped');
+  assert.equal(await r.tokens.isLocked(), true);
+  await assert.rejects(() => installUserTokens(r.host, DOC), /fixed/);
+  const local = await createDesignSystem(r.host, { label: 'My colours' });
+  assert.equal(local.locked, false);
+  assert.equal((await r.tokens.active())?.id, 'shipped', 'creation leaves the pointer alone');
+  assert.equal(await r.tokens.isLocked(), true);
+  await installUserTokens(r.host, DOC, { system: local.id });
+  await r.registry.setActive(local.id);
+  r.tokens.bust();
+  assert.equal(await r.tokens.isLocked(), false);
+  assert.equal(await r.tokens.headId(), local.headId);
+  assert.equal(await r.tokens.resolve('{color.brand.jungle}'), '#30ba78');
+  await installUserTokens(r.host, DOC2);
+  assert.equal(await r.tokens.resolve('{color.brand.jungle}'), '#123456');
+  await r.registry.setActive('shipped');
+  r.tokens.bust();
+  assert.equal(await r.tokens.isLocked(), true);
+  assert.deepEqual(await r.tokens.raw(), CATALOG_DOC, 'the inherited material stays unchanged');
+  await assert.rejects(() => installUserTokens(r.host, DOC, { system: 'shipped' }), /read-only/);
 });
 
 test('bust({ lock: true }) drops the memoised lock verdict; a plain bust keeps it', async () => {

@@ -556,5 +556,8 @@
   "Export visible text only": "仅导出可见文本",
   "Allow an intentionally clipped export. Text beyond fixed frames and unplaced stories is omitted; the full source stays in your document.": "允许有意裁剪的导出。固定文本框外的文本和未放置的文本流会被省略；完整源内容仍保留在文档中。",
   "Text in Design": "Design 中的文本",
-  "Authored text composition": "创作文本排版"
+  "Authored text composition": "创作文本排版",
+  "Edit on the canvas": "在画布上编辑",
+  "Position & size": "位置和大小",
+  "Presence": "动效"
 }

@@ -23,7 +23,7 @@ globalThis.localStorage = dom.window.localStorage;
 
 const { createSettingsProvider } = await import('./settings.ts');
 const { tokenize } = await import('../match.ts');
-const { NAV_SECTIONS } = await import('../../../views/profile.ts');
+const { visibleProfileSections } = await import('../../../views/profile/shared.ts');
 const { DASH_SECTIONS } = await import('../../dashboard-registry.ts');
 
 const provider = createSettingsProvider();
@@ -76,13 +76,24 @@ test("'dark mode' reaches Appearance via its keywords (multi-word AND)", async (
   assert.ok(hits.some((h) => h.href === '#/settings?focus=appearance-section'));
 });
 
-test('every NAV_SECTIONS entry round-trips its own label into its focus href', async () => {
-  for (const s of NAV_SECTIONS) {
+test('every available section round-trips its own label into its focus href', async () => {
+  for (const s of visibleProfileSections()) {
     const hits = await search(s.label);
     assert.ok(
       hits.some((h) => h.href === `#/settings?focus=${s.id}`),
       `searching '${s.label}' finds #/settings?focus=${s.id}`,
     );
+  }
+});
+
+test('Hot folder is searchable only in a Tauri shell', async () => {
+  const href = '#/settings?focus=hotfolder-section';
+  assert.equal((await search('hot folder')).some(h => h.href === href), false);
+  Object.assign(window, { __TAURI_INTERNALS__: { invoke() {} } });
+  try {
+    assert.equal((await search('hot folder')).some(h => h.href === href), true);
+  } finally {
+    Reflect.deleteProperty(window, '__TAURI_INTERNALS__');
   }
 });
 

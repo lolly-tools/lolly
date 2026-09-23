@@ -6734,5 +6734,8 @@
   "↳ follows {role}": "↳ theo {role}",
   "✓ Added": "✓ Đã thêm",
   "✓ Found {n} tools at {base}.": "✓ Đã tìm thấy {n} công cụ tại {base}.",
-  "＋ New project…": "＋ Dự án mới…"
+  "＋ New project…": "＋ Dự án mới…",
+  "Edit on the canvas": "Chỉnh sửa trên khung vẽ",
+  "Position & size": "Vị trí & kích thước",
+  "Presence": "Chuyển động"
 }

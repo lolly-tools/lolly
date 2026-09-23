@@ -6734,5 +6734,8 @@
   "↳ follows {role}": "↳ {role} 따름",
   "✓ Added": "✓ 추가됨",
   "✓ Found {n} tools at {base}.": "✓ {base}에서 도구 {n}개를 찾았어요.",
-  "＋ New project…": "＋ 새 프로젝트…"
+  "＋ New project…": "＋ 새 프로젝트…",
+  "Edit on the canvas": "캔버스에서 편집",
+  "Position & size": "위치 및 크기",
+  "Presence": "연출"
 }

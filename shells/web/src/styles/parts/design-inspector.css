@@ -133,77 +133,35 @@
    lands, so it must not paint a ring for that - only for a real keyboard focus. */
 .fc-insp-scroll:focus { outline: none; }
 
-/* ── sections ───────────────────────────────────────────────────────────────── */
+/* ── sections ───────────────────────────────────────────────────────────────
+   The section anatomy moved to styles/parts/panel.css (plans/273): `.lp-sec`,
+   `.lp-sec-head`, `.lp-caret`, `.lp-rows`, shared with the tool input sidebar.
+   What used to be here - a flex head with a 15px glyph, an uppercase 12px title
+   and a 7px caret that did NOT take the type multiplier - is gone rather than
+   restated, because restating it is how the two panels drifted apart in the
+   first place. The rules below are the column's remaining local deltas. */
 
-.fc-insp-sec { border-bottom: 1px solid color-mix(in srgb, var(--ui-color-border-default) 70%, transparent); }
-.fc-insp-sec:last-child { border-bottom: 0; }
+/* The last section in a band needs no rule under it; the band label below draws
+   its own. */
+.fc-insp .lp-band > .lp-sec:last-child { border-bottom: 0; }
 
-/* The header is a real <button>: keyboard reachable, `aria-expanded` carries the
-   state, and the whole strip is the hit area (a caret-sized target is a miss). */
-.fc-insp-head {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  padding: var(--sp-3) var(--sp-4);
-  border: 0;
-  background: transparent;
-  color: var(--ui-color-text-default);
-  font: inherit;
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  letter-spacing: var(--ui-type-tracking-label);
-  text-transform: uppercase;
-  text-align: start;
-  cursor: pointer;
-}
-.fc-insp-head:hover { background: color-mix(in srgb, var(--ui-color-surface-muted) 60%, transparent); }
-.fc-insp-head:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
-.fc-insp-head svg {
+/* ── rows ───────────────────────────────────────────────────────────────── */
+
+/* The label cell is DERIVED from the panel's own label column (panel.css's
+   `--lp-label`) plus the glyph cell a `.lp-row` reserves, so a `.fc-row` and a
+   `.lp-row` put their controls on the same x. It used to be an independent
+   96px, which is why the two row kinds never quite lined up. Still a text cell,
+   so it still rides the type multiplier - that is inside `--lp-label`. */
+.fc-insp .fc-row > span:first-child,
+.fc-insp .fc-row-lbl {
   flex: none;
-  width: calc(15px * var(--a11y-fs));
-  height: calc(15px * var(--a11y-fs));
+  flex-basis: calc(var(--lp-label) + var(--ui-size-icon-sm) + var(--sp-2));
+  font-size: var(--ui-type-field);
+  font-weight: var(--ui-type-weight-label);
+  text-transform: uppercase;
+  letter-spacing: var(--ui-type-tracking-label);
   color: var(--ui-color-text-muted);
 }
-.fc-insp-head > span { flex: 1 1 auto; min-width: 0; }
-
-/* Caret: a chevron drawn from two borders, rotated. Pure CSS so the header needs
-   no second glyph, and it follows `aria-expanded` rather than a class. */
-.fc-insp-caret {
-  flex: none;
-  width: 7px;
-  height: 7px;
-  margin-inline-end: 2px;
-  border-right: 1.6px solid currentColor;
-  border-bottom: 1.6px solid currentColor;
-  transform: rotate(45deg);
-  transform-origin: center;
-  opacity: 0.55;
-  transition: transform var(--ui-motion-feedback) var(--ui-motion-standard);
-}
-.fc-insp-head[aria-expanded="false"] .fc-insp-caret { transform: rotate(-45deg); }
-@media (prefers-reduced-motion: reduce) { .fc-insp-caret { transition: none; } }
-html[data-a11y-motion="reduce"] .fc-insp-caret { transition: none; }
-
-.fc-insp-rows {
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
-  padding: 0 var(--sp-4) var(--sp-4);
-}
-
-/* Nothing here for a sub-heading any more (2026-09-03): Shadow, Perspective tilt
-   and Arrange were `.fc-insp-sub` divs inside one long Object list, unreachable by
-   keyboard and impossible to put away. They are sections with their own header
-   buttons now, so they use the same rules as every other section above. */
-
-/* ── rows ───────────────────────────────────────────────────────────────────── */
-
-/* The column is narrower than the floating panels were, so the label cell is
-   tighter than editor.css's 86px - and, like that one, it is a TEXT cell, so it
-   follows the accessibility type multiplier instead of a fixed px. */
-.fc-insp .fc-row > span:first-child,
-.fc-insp .fc-row-lbl { flex-basis: calc(96px * var(--a11y-fs)); }
 
 .fc-insp .fc-row input[type="text"],
 .fc-insp .fc-row select { flex: 1 1 auto; min-width: 0; }
@@ -241,7 +199,11 @@ html[data-a11y-motion="reduce"] .fc-insp-caret { transition: none; }
   display: inline-flex;
   color: var(--ui-color-text-muted);
 }
-.fc-insp .fc-dims-ic svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+.fc-insp .fc-dims-ic svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+/* A dims row spends the glyph cell on its axis mark, so its numbers start where
+   a labelled row's control does rather than where its label does. */
+.fc-insp .fc-dims-row { padding-inline-start: calc(var(--lp-label) + var(--sp-2)); }
+.fc-insp .fc-dims-row > .fc-dims-ic { margin-inline-start: calc((var(--lp-label) + var(--sp-2)) * -1); width: var(--ui-size-icon-sm); justify-content: center; }
 
 .fc-insp-area { display: flex; flex-direction: column; gap: var(--sp-1); }
 .fc-insp-area > span { color: var(--ui-color-text-muted); }
@@ -408,7 +370,6 @@ html[data-a11y-motion="reduce"] .fc-insp-caret { transition: none; }
   color: var(--ui-color-text-default);
 }
 .fc-insp .fc-pos-btn { min-height: 0; border-radius: var(--ui-radius-control); }
-.fc-insp-head { min-height: var(--ui-size-target); }
 @media (any-pointer: coarse) {
   .fc-insp .color-trigger,
   .fc-insp .fc-seg-btn,
@@ -421,13 +382,19 @@ html[data-a11y-motion="reduce"] .fc-insp-caret { transition: none; }
   .fc-insp :is(input:not([type="checkbox"]):not([type="range"]), select, .num-field, .color-trigger, .emoji-style-control button) { min-height: 44px; }
 }
 
-.fc-insp-tabs { display: flex; flex: 0 0 auto; gap: 4px; padding: 4px 12px; }
-.fc-insp-tabs button { flex: 1; min-height: 36px; border: 0; border-radius: var(--ui-radius-control); color: inherit; background: transparent; font: inherit; cursor: pointer; }
-.fc-insp-tabs button[aria-pressed="true"] { background: var(--ui-color-selection-surface); font-weight: 650; }
+/* The Selection / Document route switch rides the panel rail's chip anatomy
+   (panel.css `.lp-rail`). Two differences, and only two: these two share the
+   width because there are exactly two of them and neither is the default, and
+   they carry aria-pressed rather than aria-current because they are a toggle
+   pair rather than a scroll position. */
+.fc-insp-tabs button { flex: 1 1 0; justify-content: center; }
+.fc-insp-tabs button[aria-pressed="true"] {
+  background: var(--ui-color-selection-surface);
+  color: var(--ui-color-text-default);
+}
 .fc-insp-scroll > .fc-row { padding: 8px 12px; }
 .fc-insp details > summary { cursor: pointer; padding-block: 8px; }
 .fc-insp-coltitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.fc-insp-head small { margin-inline-start: auto; color: var(--ui-color-text-muted); }
 @media (any-pointer: coarse) {
   .fc-insp-tabs button, .fc-insp details > summary { min-height: 44px; }
   .fc-insp .emoji-style-control button, .fc-insp .badge-select-opt { min-height: 44px; min-width: 44px; }
@@ -453,10 +420,6 @@ html[data-a11y-motion="reduce"] .fc-insp-caret { transition: none; }
 .tool-stage[data-design-layout="compact"] .fc-nav.is-collapsed { display: none; }
 .tool-stage[data-design-layout="compact"] .tl-panel { bottom: calc(var(--design-actions-h) + var(--design-viewport-inset, 0px)); }
 .tool-stage[data-design-layout="compact"].is-text-editing .design-compact-actions button:not(.design-text-done) { display: none; }
-.fc-insp-name { flex: 1; min-width: 0; width: 0; border: 0; background: transparent; color: inherit; font: inherit; padding: 6px; }
+.fc-insp-name { width: 0; }
 .fc-insp-name[hidden] { display: none; }
-.fc-insp-name:focus-visible { outline: 2px solid var(--ui-color-focus-ring); }
-.fc-insp-heading { display: flex; align-items: center; }
-.fc-insp-heading .fc-insp-head { flex: 1; min-width: 0; }
-.fc-insp-edit-text { flex: none; min-height: 44px; margin-inline-end: 12px; border: 0; background: transparent; color: var(--ui-color-action-primary); font: inherit; cursor: pointer; }
 @media (any-pointer: coarse) { .fc-insp-name { min-height: 44px; box-sizing: border-box; } }

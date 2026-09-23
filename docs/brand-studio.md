@@ -298,7 +298,7 @@ You can **Publish only**, or **Publish and make active** - the difference being 
 
 ## When the brand is fixed
 
-Some builds ship a **locked brand** - its colours, fonts and tokens are what every tool and export use, and there's nothing to change. In that case the studio is replaced with a short note explaining that this build ships with a fixed brand and editing is turned off. This is deliberate: it's how an organisation guarantees everything stays on-brand.
+Some builds ship a **locked design system**, such as the SUSE Brand. Opening it shows a read-only note with **Make an editable copy** and **Switch**. Its original colours, fonts and tokens stay intact. Your own local systems remain editable, even when the locked system was the first one on the device. In Profile, **Open** selects a system and opens its studio; **Make a new one** creates a local system and opens it at `#/start` with its name field focused.
 
 ## Where to go next
 

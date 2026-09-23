@@ -558,5 +558,8 @@
   "Export visible text only": "I-export lang ang nakikitang text",
   "Allow an intentionally clipped export. Text beyond fixed frames and unplaced stories is omitted; the full source stays in your document.": "Payagan ang sadyang pinutol na export. Hindi isasama ang text sa labas ng mga nakapirming frame at ang mga magkakaugnay na text na hindi pa nailalagay; mananatili sa dokumento ang buong orihinal na nilalaman.",
   "Text in Design": "Text sa Design",
-  "Authored text composition": "Komposisyon ng nilikhang text"
+  "Authored text composition": "Komposisyon ng nilikhang text",
+  "Edit on the canvas": "I-edit sa canvas",
+  "Position & size": "Posisyon at sukat",
+  "Presence": "Presence"
 }

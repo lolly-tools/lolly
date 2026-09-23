@@ -1,0 +1,722 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* ── The panel primitive (plans/273) ─────────────────────────────────────────
+   ONE anatomy for both control columns: the Design inspector's right dock and
+   every tool's input sidebar. They do the same job - a scrollable column of
+   folding groups of controls, beside the thing being edited - and before this
+   file they agreed on nothing. Measured on one page, their group heads differed
+   on font size, weight, ink, padding, min-height, glyph size, body gap and
+   container treatment: eight properties, eight disagreements.
+
+   THE ANATOMY
+
+     .lp                 the column (container-type: inline-size)
+     ├─ .lp-head         what this is, and the way out of it
+     ├─ .lp-rail         the band chips (optional)
+     └─ .lp-scroll
+        └─ .lp-band
+           ├─ .lp-band-label   the divider word, on a rule
+           └─ .lp-sec
+              ├─ .lp-sec-head  grid: glyph | name | flag | caret
+              └─ .lp-rows
+                 └─ .lp-row    grid: glyph | label | control
+
+   THREE RULES CARRY THE VALUE
+
+   1. THE CARET IS A GRID COLUMN, not a flex sibling. The dock's caret used to
+      move 72px sideways on whichever section carried an action button, because
+      the head was a flex row and the action pushed the caret along. Here the
+      head is a grid whose last column is the caret, so a section action goes
+      in the `auto` column before it and the fold control cannot move.
+
+   2. DENSITY IS A CONTAINER QUERY, not a panel identity. The dock is 328px and
+      laid its rows out inline; the sidebar is 272px and stacked them, giving
+      the narrower panel the wider controls. Which way a row lays out is a
+      question about available width, so a container query answers it: one
+      markup, one class set, and a floated or resized panel changes with it.
+
+   3. ONE CONTROL HEIGHT. Every control on a row - text, number, select,
+      segmented, swatch, door - is var(--ui-size-control) tall. A group used to
+      stack a 24px segmented control under a 30px number field under a 34px
+      colour ellipse, which is what stopped the column reading as a column.
+
+   TYPE: the uppercase eyebrow is SMALLER than the section name above it.
+   --ui-type-section (13px, sentence case, full ink) for a group name;
+   --ui-type-field (10px, uppercase, tracked, muted) for the eyebrow over one
+   control. Before this the two were 11px and 12px, both uppercase, both
+   tracked, separated by one weight step - which is why a folded sidebar read
+   as one flat ladder.
+
+   TOKENS ONLY, and the EXISTING ones: --sp-* for spacing, --ui-radius-* for
+   corners, the --ui-edge and --ui-elevation roles for surfaces, --ui-motion-*
+   for time. (Never write a star followed by a slash in a CSS comment: it ends
+   the comment there, and the rule that follows is eaten silently.)
+   The only new axes are the ones that genuinely had no token: the icon scale,
+   the control height and the four type tiers. There is no parallel geometry
+   scale here and there must not be one.
+
+   Loaded unlayered from views/tool.ts beside tool.css and design-inspector.css,
+   so it sits in the same cascade band as the sheets that consume it. */
+
+.lp {
+  container-type: inline-size;
+  container-name: lp;
+  /* The label column is one number, in one place, and it follows the type
+     multiplier because it holds words. Anything that needs the label edge
+     reads this rather than restating a width. */
+  --lp-label: calc(86px * var(--a11y-fs));
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  font-family: var(--ui-type-ui-family);
+  font-size: var(--ui-type-body);
+  overscroll-behavior: contain;
+}
+.lp *, .lp *::before, .lp *::after { box-sizing: border-box; }
+
+/* ── head ──────────────────────────────────────────────────────────────────
+   The kind glyph says what is selected, the name says which one, and the
+   actions are the way out. Three parts, in that order, on one row. */
+
+.lp-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--ui-color-border-default);
+}
+.lp-head-kind {
+  flex: none;
+  display: inline-flex;
+  color: var(--ui-color-text-muted);
+}
+.lp-head-kind svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+/* The name is an <input> when it is editable and a <strong> when it is not.
+   Both read as the same thing, so both take this rule. */
+.lp-head-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  padding: var(--sp-1) var(--sp-2);
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: none;
+  color: var(--ui-color-text-default);
+  font: inherit;
+  font-size: var(--ui-type-title);
+  font-weight: var(--ui-type-weight-section);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+input.lp-head-name:hover { background: var(--ui-color-surface-muted); }
+input.lp-head-name:focus {
+  outline: none;
+  background: var(--ui-color-surface-muted);
+  box-shadow: var(--ui-effect-focus-halo);
+}
+.lp-iconbtn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ui-size-control);
+  height: var(--ui-size-control);
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-control);
+  background: none;
+  color: var(--ui-color-text-muted);
+  cursor: pointer;
+}
+.lp-iconbtn svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+.lp-iconbtn:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
+.lp-iconbtn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+/* ── band rail ─────────────────────────────────────────────────────────────
+   Five chips that jump to a band and say which band the scroll is in. A
+   navigation aid, never the only way to reach a section: every band is in the
+   scroll below whether or not its chip was pressed. */
+
+.lp-rail {
+  flex: none;
+  display: flex;
+  gap: var(--sp-1);
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--ui-color-border-default);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.lp-rail::-webkit-scrollbar { display: none; }
+.lp-rail button {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-height: var(--ui-size-control);
+  padding: 0 var(--sp-3);
+  border: 0;
+  border-radius: var(--ui-radius-pill);
+  background: none;
+  color: var(--ui-color-text-muted);
+  font: inherit;
+  font-size: var(--ui-type-help);
+  font-weight: var(--ui-type-weight-label);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.lp-rail button svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+.lp-rail button:hover { color: var(--ui-color-text-default); background: var(--ui-color-surface-muted); }
+.lp-rail button[aria-current="true"] {
+  background: var(--ui-color-selection-surface);
+  color: var(--ui-color-text-default);
+}
+.lp-rail button:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+.lp-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: calc(var(--sp-6) + var(--safe-bottom, 0px));
+}
+/* The scroll container takes focus programmatically when a reveal lands, so it
+   must not paint a ring for that - only for a real keyboard focus. */
+.lp-scroll:focus { outline: none; }
+
+/* ── band ──────────────────────────────────────────────────────────────────
+   A band is NOT a fold. It is a labelled run of sections, so the ladder stays
+   readable with every section under it shut. Sections fold; bands do not. */
+
+.lp-band-label {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: var(--sp-5) var(--sp-3) var(--sp-2);
+  font-size: var(--ui-type-band);
+  font-weight: var(--ui-type-weight-label);
+  text-transform: uppercase;
+  letter-spacing: var(--ui-type-tracking-label);
+  color: var(--ui-color-text-muted);
+}
+.lp-band-label::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--ui-color-border-default);
+}
+.lp-band:first-child > .lp-band-label { padding-top: var(--sp-3); }
+
+/* ── section ───────────────────────────────────────────────────────────────── */
+
+.lp-sec { border-top: 1px solid color-mix(in srgb, var(--ui-color-border-default) 55%, transparent); }
+.lp-band > .lp-sec:first-of-type { border-top: 0; }
+
+/* A real <button>: keyboard reachable, aria-expanded carries the state, and the
+   whole strip is the hit area. The grid is what pins the caret. */
+.lp-sec-head {
+  width: 100%;
+  display: grid;
+  grid-template-columns: var(--ui-size-icon-md) minmax(0, 1fr) auto var(--ui-size-icon-sm);
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--ui-size-target);
+  padding: var(--sp-2) var(--sp-3);
+  border: 0;
+  background: transparent;
+  color: var(--ui-color-text-default);
+  font: inherit;
+  font-size: var(--ui-type-section);
+  font-weight: var(--ui-type-weight-section);
+  text-align: start;
+  cursor: pointer;
+}
+.lp-sec-head:hover { background: color-mix(in srgb, var(--ui-color-surface-muted) 55%, transparent); }
+.lp-sec-head:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+.lp-sec-head > svg {
+  width: var(--ui-size-icon-md);
+  height: var(--ui-size-icon-md);
+  color: var(--ui-color-text-muted);
+}
+.lp-sec-head > .lp-sec-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* The `auto` column. A flag, or a section action, and never the caret. */
+.lp-sec-flag {
+  justify-self: end;
+  padding: 1px var(--sp-2);
+  border-radius: var(--ui-radius-pill);
+  background: var(--ui-color-selection-surface);
+  color: var(--ui-color-text-default);
+  font-size: var(--ui-type-field);
+  font-weight: var(--ui-type-weight-label);
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: var(--ui-type-tracking-label);
+}
+.lp-sec-act {
+  justify-self: end;
+  padding: 0 var(--sp-2);
+  min-height: calc(var(--ui-size-control) - var(--sp-2));
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-canvas);
+  color: var(--ui-color-text-default);
+  font: inherit;
+  font-size: var(--ui-type-help);
+  cursor: pointer;
+}
+.lp-sec-act:hover { background: var(--ui-color-surface-muted); }
+.lp-sec-act:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+/* A chevron from two borders. It takes the type multiplier because it is the
+   only cue that a section folds, so it must grow with the words beside it. */
+.lp-caret {
+  justify-self: end;
+  position: relative;
+  width: var(--ui-size-icon-sm);
+  height: var(--ui-size-icon-sm);
+  opacity: .55;
+}
+.lp-caret::before {
+  content: '';
+  position: absolute;
+  inset: 26%;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--ui-motion-feedback) var(--ui-motion-standard);
+}
+.lp-sec-head[aria-expanded="false"] .lp-caret::before { transform: rotate(-45deg); }
+@media (prefers-reduced-motion: reduce) { .lp-caret::before { transition: none; } }
+html[data-a11y-motion="reduce"] .lp-caret::before { transition: none; }
+
+.lp-rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-1) var(--sp-3) var(--sp-4);
+}
+.lp-rows[hidden] { display: none; }
+
+/* ── row ───────────────────────────────────────────────────────────────────
+   The glyph cell is ALWAYS reserved, whether or not a row has a glyph, so
+   every label word starts on one left edge. Before this, a row that spent its
+   leading space on a glyph pushed its word about 20px right of its neighbours
+   and the label column had two left edges. */
+
+.lp-row {
+  display: grid;
+  grid-template-columns: var(--ui-size-icon-sm) minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--sp-2);
+  row-gap: var(--sp-1);
+  min-width: 0;
+}
+.lp-row-icon {
+  grid-column: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-color-text-muted);
+}
+.lp-row-icon svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+
+/* The eyebrow. Deliberately SMALLER than the section name above it. */
+.lp-label {
+  grid-column: 2;
+  min-width: 0;
+  font-size: var(--ui-type-field);
+  font-weight: var(--ui-type-weight-label);
+  text-transform: uppercase;
+  letter-spacing: var(--ui-type-tracking-label);
+  color: var(--ui-color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lp-control {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.lp-help {
+  grid-column: 2;
+  margin: 0;
+  font-size: var(--ui-type-help);
+  line-height: 1.45;
+  color: var(--ui-color-text-muted);
+}
+/* A row whose control wants the full width at every density (a textarea, a
+   blocks editor, a door, a table). */
+.lp-row--wide > .lp-control { grid-column: 1 / -1; }
+
+/* Past 320px of panel the row turns inline: eyebrow on the left in a fixed
+   cell, control on the right. Same markup, same classes. */
+@container lp (min-width: 320px) {
+  .lp-row { grid-template-columns: var(--ui-size-icon-sm) var(--lp-label) minmax(0, 1fr); }
+  .lp-control { grid-column: 3; }
+  .lp-help { grid-column: 2 / -1; }
+  .lp-row--wide { grid-template-columns: var(--ui-size-icon-sm) minmax(0, 1fr); }
+  .lp-row--wide > .lp-control { grid-column: 1 / -1; }
+}
+/* Under the large-text preference the fixed label cell would squeeze the
+   control, so the row stacks whatever the panel's width. */
+html[data-a11y-text="large"] .lp-row,
+html[data-a11y-text="large"] .lp-row--wide {
+  grid-template-columns: var(--ui-size-icon-sm) minmax(0, 1fr);
+}
+html[data-a11y-text="large"] .lp-control { grid-column: 2; }
+html[data-a11y-text="large"] .lp-row--wide > .lp-control { grid-column: 1 / -1; }
+
+/* ── one control height ────────────────────────────────────────────────────
+   Every control a row can hold, at one height, so a column of mixed inputs has
+   a single vertical rhythm. Stated on the panel's own controls and on the
+   field primitive INSIDE a panel only - fields.css keeps its own sizing
+   everywhere else. */
+
+.lp-control > .field-input,
+.lp-control > .field-select,
+.lp-control > .lp-num,
+.lp-control > .lp-swatch,
+.lp-control > .lp-door,
+.lp-control > .lp-seg,
+.lp-control > .num-field {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--ui-size-control);
+}
+.lp-control > .field-input,
+.lp-control > .field-select {
+  padding-block: 0;
+  font-size: var(--ui-type-body);
+}
+/* A textarea is the one control that cannot take a fixed height. It gets the
+   rhythm's step as its minimum instead and grows from there. */
+.lp-control > textarea.field-input {
+  height: auto;
+  min-height: calc(var(--ui-size-control) * 2.5);
+  padding-block: var(--sp-2);
+  resize: vertical;
+}
+
+.lp-num {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-width: 0;
+  padding-inline: var(--sp-2);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-canvas);
+  font-variant-numeric: tabular-nums;
+}
+.lp-num > input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--ui-type-body);
+  font-variant-numeric: tabular-nums;
+}
+.lp-num > input:focus { outline: none; }
+.lp-num:focus-within { box-shadow: var(--ui-effect-focus-halo); }
+/* The unit suffix. Muted and small, so the number is what reads. */
+.lp-num > .lp-unit { flex: none; color: var(--ui-color-text-muted); font-size: var(--ui-type-help); }
+/* Two number cells side by side (x/y, w/h) share the row evenly. */
+.lp-pair { display: flex; gap: var(--sp-2); flex: 1 1 auto; min-width: 0; }
+.lp-pair > * { flex: 1 1 0; min-width: 0; height: var(--ui-size-control); }
+
+/* A colour row is a FRAMED control with its value beside the chip, on the same
+   left edge and at the same height as the select above it. A bare swatch has
+   no left edge to line up and no value to read. */
+.lp-swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+  padding-inline: var(--sp-1) var(--sp-2);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-canvas);
+  color: var(--ui-color-text-default);
+  font: inherit;
+  font-size: var(--ui-type-body);
+  text-align: start;
+  cursor: pointer;
+}
+.lp-swatch > i {
+  flex: none;
+  width: var(--ui-size-icon-lg);
+  height: var(--ui-size-icon-lg);
+  border-radius: var(--ui-radius-choice);
+  box-shadow: var(--ui-edge-default);
+  /* A transparent colour has to look transparent rather than white. */
+  background-image: linear-gradient(45deg, var(--ui-color-surface-muted) 25%, transparent 25%, transparent 75%, var(--ui-color-surface-muted) 75%),
+                    linear-gradient(45deg, var(--ui-color-surface-muted) 25%, transparent 25%, transparent 75%, var(--ui-color-surface-muted) 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 4px 4px;
+}
+.lp-swatch > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lp-swatch:hover { background: var(--ui-color-surface-muted); }
+.lp-swatch:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+/* A door opens another surface. It is framed and carries a trailing chevron,
+   so it cannot be mistaken for a heading the way an unframed bold line was. */
+.lp-door {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  min-width: 0;
+  padding-inline: var(--sp-3);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-canvas);
+  color: var(--ui-color-text-default);
+  font: inherit;
+  font-size: var(--ui-type-body);
+  text-align: start;
+  cursor: pointer;
+}
+.lp-door > svg { flex: none; width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); color: var(--ui-color-text-muted); }
+.lp-door > span { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lp-door > svg:last-child { margin-inline-start: auto; }
+.lp-door:hover { background: var(--ui-color-surface-muted); }
+.lp-door:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+.lp-seg {
+  display: inline-flex;
+  min-width: 0;
+  gap: 2px;
+  padding: 2px;
+  background: var(--ui-color-surface-muted);
+  border-radius: var(--ui-radius-control);
+}
+.lp-seg > button {
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--sp-2);
+  border: 0;
+  border-radius: var(--ui-radius-choice);
+  background: none;
+  color: var(--ui-color-text-muted);
+  font: inherit;
+  font-size: var(--ui-type-help);
+  cursor: pointer;
+}
+.lp-seg > button > svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+.lp-seg > button:hover { color: var(--ui-color-text-default); }
+.lp-seg > button[aria-pressed="true"] {
+  background: var(--ui-color-surface-raised);
+  color: var(--ui-color-text-default);
+  box-shadow: var(--ui-elevation-control);
+}
+.lp-seg > button:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+
+/* A read-only value row: same geometry as an editable one, visibly not a
+   control. Tabular figures because these numbers change. */
+.lp-read {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: end;
+  color: var(--ui-color-text-muted);
+  font-weight: var(--ui-type-weight-label);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── status ────────────────────────────────────────────────────────────────
+   The pre-export check and anything like it. Semantic status roles, so a view
+   sheet never reaches past the contract for --destructive again. */
+
+.lp-status {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  margin: var(--sp-3) var(--sp-3) var(--sp-4);
+  padding: var(--sp-3);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-color-status-notice-surface);
+  color: var(--ui-color-text-default);
+  font-size: var(--ui-type-help);
+}
+.lp-status > .lp-status-icon { flex: none; display: inline-flex; color: var(--ui-color-action-primary); }
+.lp-status > .lp-status-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+.lp-status-copy { min-width: 0; display: flex; flex-direction: column; gap: var(--sp-1); }
+.lp-status-copy > strong { font-size: var(--ui-type-field); text-transform: uppercase; letter-spacing: var(--ui-type-tracking-label); }
+.lp-status-copy > span { color: var(--ui-color-text-muted); }
+.lp-status-copy ul { margin: var(--sp-1) 0 0; padding-inline-start: var(--sp-5); }
+.lp-status[data-status="danger"] { background: var(--ui-color-status-danger-surface); }
+.lp-status[data-status="danger"] > .lp-status-icon { color: var(--ui-color-status-danger); }
+
+/* Nothing to show. A sentence, not an empty column. */
+.lp-empty {
+  margin: 0;
+  padding: var(--sp-5) var(--sp-3);
+  color: var(--ui-color-text-muted);
+  font-size: var(--ui-type-help);
+}
+
+/* ── the one nested disclosure ─────────────────────────────────────────────
+   A fold INSIDE a section, for the rows most selections never open (Advanced
+   typography, More document settings, Manage emoji sets). It is a real
+   <details> because it is genuinely a one-off fold rather than part of the
+   band ladder, but it wears the section head's anatomy rather than the native
+   triangle marker: before this the Design column carried three different fold
+   idioms at once, and two of them were this one drawn by the browser. */
+
+.lp-details { display: block; }
+.lp-details > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--ui-size-control);
+  padding-block: var(--sp-1);
+  list-style: none;
+  cursor: pointer;
+  color: var(--ui-color-text-default);
+  font-size: var(--ui-type-help);
+  font-weight: var(--ui-type-weight-label);
+}
+.lp-details > summary::-webkit-details-marker { display: none; }
+.lp-details > summary > svg {
+  flex: none;
+  width: var(--ui-size-icon-sm);
+  height: var(--ui-size-icon-sm);
+  color: var(--ui-color-text-muted);
+}
+.lp-details > summary > span { flex: 1 1 auto; min-width: 0; }
+.lp-details > summary:hover { color: var(--ui-color-action-primary); }
+.lp-details > summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+/* Closed is the resting state, so the caret points along rather than down. The
+   section head spells this with aria-expanded; a <details> has `open`. */
+.lp-details:not([open]) > summary .lp-caret::before { transform: rotate(-45deg); }
+.lp-details[open] > summary { margin-bottom: var(--sp-2); }
+
+/* A heading INSIDE a section, for a group of rows that is not worth its own
+   fold (Emoji, Narration). A heading, never the caption rule beside it: those
+   two shared one class and so read as one thing in adjacent rows. */
+.lp-subhead {
+  margin: var(--sp-2) 0 0;
+  font-size: var(--ui-type-field);
+  font-weight: var(--ui-type-weight-label);
+  text-transform: uppercase;
+  letter-spacing: var(--ui-type-tracking-label);
+  color: var(--ui-color-text-default);
+}
+
+/* ── the .fc-row bridge ────────────────────────────────────────────────────
+   The Design inspector's rows are the EDITOR's row markup (`.fc-row`,
+   `.fc-seg`, `.fc-dims-row`, `.fc-stepper`), shared with the canvas context
+   bar, which is out of this pass's scope: rewriting them would reach inside
+   `.tool-canvas` chrome. So they are not converted, they are ALIGNED - the
+   label cell's width is derived from `--lp-label` in design-inspector.css, and
+   the rules below give every control in them the panel's one height.
+
+   This is a bridge, not a second row system. When the context bar takes
+   `.lp-row` these rules go with it. */
+
+.lp-rows > .fc-row,
+.lp-rows > .fc-dims-row { min-height: var(--ui-size-control); }
+
+.lp-rows :is(.field-input, .field-select, .num-field, .color-trigger, .fc-stepper) {
+  height: var(--ui-size-control);
+  min-height: var(--ui-size-control);
+}
+.lp-rows :is(.field-input, .field-select) { padding-block: 0; }
+.lp-rows textarea.field-input { height: auto; min-height: calc(var(--ui-size-control) * 2.5); padding-block: var(--sp-2); }
+/* A colour row is a control like any other: full width of the control column,
+   at the column's height, with its value beside the chip. It used to shrink to
+   the chip alone, 34px tall in a row of 24 and 30px controls. */
+.lp-rows .fc-cfield { flex: 1 1 auto; min-width: 0; }
+/* `.color-picker-field` is the element carrying `container-name: colortrig`, and
+   colour-field.css hides the trigger's NAME under 120px of it. In this column it
+   had no width of its own, so it shrink-wrapped to the chip and hid the name at
+   every width - which is what left a bare circle where a labelled control
+   belongs. Filling the control cell is what lets the name back. */
+.lp-rows .color-picker-field { width: 100%; height: auto; display: block; }
+.lp-rows .color-trigger {
+  width: 100%;
+  padding-block: 0;
+  padding-inline: var(--sp-2) var(--sp-3);
+  gap: var(--sp-2);
+  justify-content: flex-start;
+}
+/* The chip LEADS and the value follows, which is the reading order of every
+   other control in the column. The markup puts the name first (colour-field.ts),
+   so `order` reverses the pair rather than the markup being changed under the
+   twenty-odd other places that mount this control. */
+.lp-rows .color-trigger .color-trigger-preview,
+.lp-rows .color-trigger:has(.color-trigger-name:empty) .color-trigger-preview {
+  order: -1;
+  position: static;
+  left: auto;
+  transform: none;
+  margin: 0;
+}
+.lp-rows .color-trigger .color-trigger-name {
+  display: inline;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* A second control on a colour row (Gradient) is a control, not a word. */
+.lp-rows .fc-insp-mini {
+  flex: none;
+  min-height: var(--ui-size-control);
+  padding-inline: var(--sp-3);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-canvas);
+  color: var(--ui-color-text-default);
+  font-size: var(--ui-type-help);
+  font-weight: 400;
+}
+.lp-rows .fc-insp-mini:hover { background: var(--ui-color-surface-muted); }
+
+/* ONE left edge for the label WORD. A `.fc-row-lbl` carries a leading glyph
+   inside the label cell and a plain `.fc-row > span` does not, so the two put
+   their first letter 20px apart. The glyph gets a fixed cell and the plain
+   label gets that cell as padding, and both words start on the same x. */
+.lp-rows .fc-row-lbl {
+  display: grid;
+  grid-template-columns: var(--ui-size-icon-sm) minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--sp-2);
+}
+.lp-rows .fc-row-lbl > svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+.lp-rows .fc-row-lbl > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lp-rows > .fc-row > span:first-child:not(.fc-row-lbl) {
+  padding-inline-start: calc(var(--ui-size-icon-sm) + var(--sp-2));
+}
+/* A segmented control is one of the row's controls, so it takes the row's
+   height rather than the 24px it sized itself to. */
+.lp-rows .fc-seg { min-height: var(--ui-size-control); }
+.lp-rows .fc-seg-btn { min-height: calc(var(--ui-size-control) - 4px); }
+/* Under a coarse pointer every control grows to the touch target instead. The
+   rhythm holds because they all grow to the same number. */
+@media (any-pointer: coarse) {
+  .lp-rows :is(.field-input, .field-select, .num-field, .color-trigger, .fc-stepper, .fc-seg),
+  .lp-control > :is(.field-input, .field-select, .lp-num, .lp-swatch, .lp-door, .lp-seg, .num-field) {
+    height: auto;
+    min-height: var(--ui-size-target);
+  }
+}

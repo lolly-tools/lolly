@@ -213,6 +213,11 @@ const PATHS = {
   // Lucide "blend" - two overlapping circles. Reads as opacity / overlay, unlike the
   // droplet, which looks like a colour/tint control.
   opacity: '<circle cx="9" cy="9" r="7"/><circle cx="15" cy="15" r="7"/>',
+  // A square with its cast shadow offset behind it. The Design inspector's Shadow
+  // section used `duplicate` (the copy glyph, two equal overlapping rectangles),
+  // which says "make another one of these" everywhere else in the app. Two equal
+  // shapes cannot say shadow; a filled offset behind a stroked front face can.
+  shadow: '<path d="M9 9h11a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2z" fill="currentColor" stroke="none" opacity=".28"/><rect x="2" y="2" width="13" height="13" rx="2"/>',
   convert: '<path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>',
   resize: '<path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="m21 3-7 7"/><path d="m3 21 7-7"/>',
   // A vertical double-headed arrow. Drawn upright so it can be ROTATED by whoever uses it

@@ -157,7 +157,7 @@ SVG를 내보낼 수 있는 도구라면 어떤 것이든 **Penpot 파일**(`.pe
 - <!--i:file--> Website, SCORM 1.2, SCORM 2004 4th Edition, 또는 실험적인 xAPI 대상 중에서 선택하세요. 실제 콘텐츠와 ZIP 크기를 확인한 다음, 확인된 버전을 저장하고 다운로드하세요.
 - <!--i:check--> 완료하려면 필수 레슨을 모두 확인 처리하고 Finish를 선택해야 해요. 웹사이트 플레이어는 진행 상황을 브라우저에 저장하고, LMS 패키지는 이를 받는 LMS에 연결돼요.
 
-![SCORM (LMS)을 선택한 Design 덱의 내보내기 패널](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+![SCORM (LMS)을 선택한 Design 덱의 내보내기 패널](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 패키지에는 완성된 콘텐츠가 포함되어 있고, Lolly 계정이 필요하지 않아요. Website ZIP은 HTTP(S) 호스트에 압축을 풀고, LMS ZIP은 내용을 바꾸지 않은 채로 가져오세요. 강좌를 배포하기 전에 실제 대상 환경에서 테스트해 보세요.
 

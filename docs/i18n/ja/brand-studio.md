@@ -99,7 +99,7 @@ Overviewは最初に到達するルームで、2つの顔を持っています�
 
 同じウイングの中で、**パレットを作成する**は、プライマリカラーから調和するアクセントカラーを生成します。**ハーモニー**を選びます - **補色**、**近似色**、**トライアド**、**テトラード**、**アナロガス**（これは独自の**アクセント**数、2から5、そして10°から45°の色相**角度**を伴います）- そして各候補には自動生成された分かりやすい名前と**+ 追加**ボタンが付いてきます。1つ追加すると、その色は即座にパレットに入ります。1回の操作で1つのトークンです。*「あなたのパレット、適用済み」*は、実際のグラフィック上でセット全体をプレビューします。
 
-![生成されたアクセント。それぞれにスウォッチ、自動生成された名前、16進値、追加ボタンが付いている](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
+![生成されたアクセント。それぞれにスウォッチ、自動生成された名前、16進値、追加ボタンが付いている](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
 
 ### 生成したパレットを確定する
 
@@ -111,9 +111,9 @@ Overviewは最初に到達するルームで、2つの顔を持っています�
 
 右ペインには、ブランドが持つすべての色がグループ（プライマリ、ニュートラル、セカンダリ、スペクトラム、カスタム、ロール）ごとにリストされ、各グループは独自の**+ 追加**を持ち折りたたみ可能です。その下の**カラーチャート**は、同じスウォッチの2つのビューに折りたたまれています - **ホイール**（OKLCHホイール - ドットをドラッグして色を変え、ドットをクリックして編集するか、空いている場所をクリックして新しいスウォッチを追加）と**ガマット**チャート、表示可能な範囲が実際にどこで終わるかを示します。`#/start?area=color&focus=chart`は、`?wheel`が常にそうしているように、直接カードを開きます。
 
-![パレットペイン。すべてのグループが折りたたみ可能で、ダウンロードピルが下端に配置されている](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![パレットペイン。すべてのグループが折りたたみ可能で、ダウンロードピルが下端に配置されている](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
-![OKLCHホイール - 角度が色相、外側への距離が彩度、グレーは側面のライトネスレールに沿って並ぶ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
+![OKLCHホイール - 角度が色相、外側への距離が彩度、グレーは側面のライトネスレールに沿って並ぶ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
 任意のスウォッチをクリックすると、そのエディタが開きます。
 

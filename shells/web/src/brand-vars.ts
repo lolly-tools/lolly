@@ -81,6 +81,14 @@ const UI_SLOTS: ReadonlyArray<readonly [path: string, css: string, kind: UiToken
   ['color.selection.border', '--ui-color-selection-border', 'color'],
   ['color.border.default', '--ui-color-border-default', 'color'],
   ['color.focus.ring', '--ui-color-focus-ring', 'color'],
+  // The status roles (plans/273). Every other colour role is overridable here, so
+  // these are too: an organisation whose danger red is not ours must be able to
+  // set its own. The SIZE and TYPE roles added in the same pass are deliberately
+  // NOT here, matching size.target and the type scale, which have never been
+  // per-role overridable.
+  ['color.status.danger', '--ui-color-status-danger', 'color'],
+  ['color.status.danger-surface', '--ui-color-status-danger-surface', 'color'],
+  ['color.status.notice-surface', '--ui-color-status-notice-surface', 'color'],
   ['color.syntax.keyword', '--ui-color-syntax-keyword', 'color'],
   ['color.syntax.string', '--ui-color-syntax-string', 'color'],
   ['color.syntax.comment', '--ui-color-syntax-comment', 'color'],

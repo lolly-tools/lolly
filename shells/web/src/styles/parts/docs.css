@@ -146,6 +146,12 @@
   border-top: 1px solid var(--border); padding-top: 2rem;
   margin-top: 2.5rem; margin-bottom: 0.75rem;
 }
+/* The page title the reader lifts out of the built page's masthead band (see
+   views/docs.ts). It is the article's first child, so it carries no top margin;
+   the h1 rule above already gives it its size and its closing rule. The static
+   page shows this heading in a full-width band above the article - in the reader
+   it opens the article itself, which is where a title belongs in one column. */
+.docs-content > .docs-page-title:first-child { margin-top: 0; }
 .docs-content h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
 .docs-content h3 { font-size: calc(1.15rem * var(--a11y-fs, 1)); color: var(--dark); margin-top: 1.75rem; margin-bottom: 0.5rem; }
 .docs-content h4 { font-size: calc(1rem * var(--a11y-fs, 1)); color: var(--muted); margin-top: 1.25rem; margin-bottom: 0.35rem; }

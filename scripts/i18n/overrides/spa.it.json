@@ -686,5 +686,8 @@
   "“{name}”: this image is outside the design system’s declared asset IDs. It may be intentional.": "“{name}”: questa immagine è fuori dagli ID degli asset dichiarati dal sistema di design. Potrebbe essere intenzionale.",
   "“{name}”: {field} {value} is outside this design system. Suggested: {suggestion}.": "“{name}”: {field} {value} è fuori da questo sistema di design. Suggerimento: {suggestion}.",
   "“{name}”: {value} does not resolve to a colour in this design system.": "“{name}”: {value} non corrisponde a un colore di questo sistema di design.",
-  "Restore brand settings": "Ripristina impostazioni del brand"
+  "Restore brand settings": "Ripristina impostazioni del brand",
+  "Edit on the canvas": "Modifica sulla tela",
+  "Position & size": "Posizione e dimensione",
+  "Presence": "Presenza"
 }

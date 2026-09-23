@@ -684,5 +684,8 @@
   "“{name}”: {field} {value} is outside this design system. Suggested: {suggestion}.": "«{name}»: {field} {value} не належить до цієї системи дизайну. Пропозиція: {suggestion}.",
   "“{name}”: {value} does not resolve to a colour in this design system.": "«{name}»: {value} не відповідає кольору в цій системі дизайну.",
   "Use {colour}": "Використати {colour}",
-  "Restore brand settings": "Відновити налаштування бренду"
+  "Restore brand settings": "Відновити налаштування бренду",
+  "Edit on the canvas": "Редагувати на полотні",
+  "Position & size": "Позиція та розмір",
+  "Presence": "Рух"
 }

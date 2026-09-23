@@ -959,7 +959,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
       // audit is pure string/DOM inspection of what the walker already returned - 
       // it needs no change to renderSvgFromHtml or to the shipping loopback hook.
       const out = await page.evaluate(
-        async ({ s, win, rDpi }: { s: string; win: { w: number; h: number } | null; rDpi?: number }) => {
+        async ({ s, win, rDpi, keepChrome }: { s: string; win: { w: number; h: number } | null; rDpi?: number; keepChrome?: boolean }) => {
           const hook = (window as unknown as {
             __lollyWalkerShot?: (sel?: string, o?: Record<string, unknown>) => Promise<{ svg: string; ms: number }>;
           }).__lollyWalkerShot;
@@ -989,7 +989,12 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
           }
           // rasterDpi (recipe opt-in): downscale inlined <img> assets to their box at
           // this DPI, so a heavy photo does not blow the vector budget (ExportOpts.rasterDpi).
-          const r = await hook(s, (rDpi as number) > 0 ? { rasterDpi: rDpi } : {});
+          // `chrome=1` (recipe): keep [data-export-hide] editor chrome, for a shot
+          // whose subject IS a control rather than the artwork under it.
+          const r = await hook(s, {
+            ...((rDpi as number) > 0 ? { rasterDpi: rDpi } : {}),
+            ...(keepChrome ? { keepEditorChrome: true } : {}),
+          });
           if (target && painted !== '') target.style.backgroundColor = painted;
           else if (target) target.style.removeProperty('background-color');
           if (!r?.svg) return null;
@@ -1193,7 +1198,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
             anchored,
           };
         },
-        { s: sel, win, rDpi: shot.rasterDpi },
+        { s: sel, win, rDpi: shot.rasterDpi, keepChrome: shot.chrome },
       );
       if (!out) throw new Error('the served shell has no __lollyWalkerShot hook - rebuild the dist (main.ts exposes it on loopback)');
       if (out.parseErr) throw new Error(`walker produced invalid XML for ${sel}: ${out.parseErr}`);

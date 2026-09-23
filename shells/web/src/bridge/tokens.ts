@@ -119,8 +119,8 @@ export interface WebTokensAPI extends TokensAPI {
   bust(): void;
   /**
    * The raw effective DTCG document of the EDIT HEAD - the user install if
-   * present, else the shipped catalog brand (a locked build always yields the
-   * catalog doc). Handed back unresolved so the brand editor can mutate a colour
+   * selected in the registry, else the shipped catalog brand. Handed back
+   * unresolved so the brand editor can mutate a colour
    * leaf's `$value` and re-install it. Null when no tokens are reachable yet.
    * Memoised alongside the token sets, so a bust() (after installUserTokens)
    * makes the next call re-load the new doc.
@@ -138,10 +138,9 @@ export interface WebTokensAPI extends TokensAPI {
    */
   headId(): Promise<string | null>;
   /**
-   * True when the SHIPPED catalog brand declares itself authoritative
-   * (`brandLock` on its tokens asset): the app resolves ITS colours/fonts and
-   * ignores any user-installed brand, and the brand-customisation UI is
-   * disabled. False for a customisable brand (e.g. lolly-start). Cached.
+   * True when the active design system is read-only. The shipped system reads
+   * `brandLock` from its catalog asset; other systems use their own record's
+   * lock. Without a registry, retains the shipped catalog's lock verdict.
    */
   isLocked(): Promise<boolean>;
   /**
@@ -228,7 +227,7 @@ interface InstallTokensHost {
  *  backstop rather than a path users reach. */
 export class BrandLockedError extends Error {
   constructor() {
-    super('This build’s brand is fixed and can’t be changed.');
+    super('This design system is fixed and can’t be changed.');
     this.name = 'BrandLockedError';
   }
 }
@@ -255,11 +254,10 @@ export class VersionExistsError extends Error {
  * asset, then bust the tokens caches so the very next get()/resolve() re-runs
  * discovery - which now returns the user asset ahead of the shipped brand.
  *
- * Refuses when the shipped brand is LOCKED (brandLock): a locked catalog eats
- * what it is given, so user brand tokens are never installed. This is the single
- * write chokepoint every override path funnels through (the #/start wizard,
- * brand-file import, and every set/add/remove-font action), so one guard here
- * covers them all.
+ * Refuses edits to the active system when it is locked. An explicit `system`
+ * targets a separate record for creation, import or sync, even while a locked
+ * system is active. The shipped catalog's material is never written here.
+ * Every studio, import and font edit goes through this write path.
  *
  * `versionSlug` switches to the VERSION path (plans/97 section 6a): the document is
  * written as the immutable sibling `user/tokens/brand/<slug>` instead of the
@@ -285,7 +283,6 @@ export async function installUserTokens(
     skipQuota?: boolean;
   } = {},
 ): Promise<void> {
-  if (await host.tokens?.isLocked?.()) throw new BrandLockedError();
   if (typeof doc !== 'object' || doc === null || Array.isArray(doc)) {
     throw new Error('installUserTokens: expected a DTCG token document (a plain object)');
   }
@@ -379,11 +376,15 @@ async function writeTarget(
   host: InstallTokensHost, system: string | undefined, label: string | undefined,
 ): Promise<{ headId: string; label?: string; record: DesignSystemRecord | null }> {
   const reg = host.designSystems;
-  if (!reg) return { headId: USER_TOKENS_ID, record: null };
+  if (!reg) {
+    if (await host.tokens?.isLocked?.()) throw new BrandLockedError();
+    return { headId: USER_TOKENS_ID, record: null };
+  }
   let record = system ? await reg.get(system) : await reg.active();
   if (system && !record) throw new Error(`installUserTokens: no design system “${system}” on this device`);
   if (!record || record.source.kind === 'shipped') {
     if (system) throw new Error('installUserTokens: the shipped design system is read-only');
+    if (record?.locked || await host.tokens?.isLocked?.()) throw new BrandLockedError();
     const existing = await reg.get(DEFAULT_DESIGN_SYSTEM_ID);
     const now = Date.now();
     record = existing ?? {
@@ -647,12 +648,7 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
    *  Split out of the document load because a version asset is addressed
    *  relative to it (`<headId>/<slug>`), so both readers need the same answer. */
   async function headAsset(): Promise<TokensAssetMeta | null> {
-    // A LOCKED brand is authoritative: resolve the shipped catalog doc and
-    // ignore any user install (which the guard in installUserTokens also
-    // prevents from ever being written - but a leftover from an earlier,
-    // unlocked profile must still be shadowed here).
     const catalog = await catalogTokensAsset();
-    if (catalog?.brandLock) return catalog;
     // With a registry (plans/186) the head is the ACTIVE record's, no scan: the
     // shipped record means the catalog, any other record means its own head id.
     // A record whose head bytes are gone (a half-finished remove) falls back to
@@ -666,6 +662,9 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
       }
       return catalog;
     }
+    // Older hosts have no system selector, so their shipped lock still keeps
+    // a legacy user override from replacing the catalog document.
+    if (catalog?.brandLock) return catalog;
     // Unlocked: a USER install wins. _findMetaByType is user-first AND IDB-only
     // (the index fallback lives here in the bridge, not in it), so consult it for
     // a user asset and otherwise reuse the catalog asset already resolved above - 
@@ -777,8 +776,12 @@ export function createTokensAPI(host: TokensHost): WebTokensAPI {
     raw: () => head.raw(),
     /** The id the head was discovered at (see WebTokensAPI.headId). */
     async headId() { return (await headAsset())?.id ?? null; },
-    /** True when the shipped brand is locked (see WebTokensAPI.isLocked). */
-    async isLocked() { return !!(await catalogTokensAsset())?.brandLock; },
+    /** Whether the selected system can be edited (see WebTokensAPI.isLocked). */
+    async isLocked() {
+      const record = await host.designSystems?.active().catch(() => null);
+      if (record && record.source.kind !== 'shipped') return record.locked;
+      return !!(await catalogTokensAsset())?.brandLock;
+    },
     /** The version this page resolves against (see WebTokensAPI.activeSlug). */
     async activeSlug() {
       syncOverride();

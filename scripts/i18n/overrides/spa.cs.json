@@ -549,5 +549,8 @@
   "Export visible text only": "Exportovat pouze viditelný text",
   "Allow an intentionally clipped export. Text beyond fixed frames and unplaced stories is omitted; the full source stays in your document.": "Povolit záměrně oříznutý export. Text mimo pevné rámečky a neumístěné textové řetězce se vynechá; celý zdroj zůstane v dokumentu.",
   "Text in Design": "Text v Design",
-  "Authored text composition": "Sazba vytvořeného textu"
+  "Authored text composition": "Sazba vytvořeného textu",
+  "Edit on the canvas": "Upravit na plátně",
+  "Position & size": "Poloha a velikost",
+  "Presence": "Přítomnost"
 }

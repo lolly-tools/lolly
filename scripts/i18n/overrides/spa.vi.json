@@ -556,5 +556,8 @@
   "Export visible text only": "Chỉ xuất văn bản hiển thị",
   "Allow an intentionally clipped export. Text beyond fixed frames and unplaced stories is omitted; the full source stays in your document.": "Cho phép xuất được cắt có chủ đích. Văn bản vượt quá khung cố định và luồng chưa đặt sẽ bị bỏ qua; toàn bộ nguồn vẫn còn trong tài liệu của bạn.",
   "Text in Design": "Văn bản trong Design",
-  "Authored text composition": "Dàn văn bản được soạn"
+  "Authored text composition": "Dàn văn bản được soạn",
+  "Edit on the canvas": "Chỉnh sửa trên khung vẽ",
+  "Position & size": "Vị trí & kích thước",
+  "Presence": "Chuyển động"
 }

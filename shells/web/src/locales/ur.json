@@ -6734,5 +6734,8 @@
   "↳ follows {role}": "↳ {role} کے تابع",
   "✓ Added": "✓ شامل ہو گیا",
   "✓ Found {n} tools at {base}.": "✓ {base} پر {n} ٹولز ملے۔",
-  "＋ New project…": "＋ نیا پروجیکٹ…"
+  "＋ New project…": "＋ نیا پروجیکٹ…",
+  "Edit on the canvas": "کینوس پر ترمیم کریں",
+  "Position & size": "پوزیشن اور سائز",
+  "Presence": "حرکت"
 }

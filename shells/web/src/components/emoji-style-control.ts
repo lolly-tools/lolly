@@ -307,11 +307,20 @@ export function mountEmojiStyleControl(container: HTMLElement, opts: EmojiStyleC
     if (opts.credits) mountEmojiCredits(el,opts.host,opts.credits);
     if (opts.compactManagement) {
       const details = document.createElement('details');
+      // The panel primitive's own disclosure (styles/parts/panel.css). A compact
+      // mount sits inside a panel column, and a bare <details> with the native
+      // triangle marker was a third fold idiom in a column that already has two.
+      details.className = 'lp-details';
       details.open = managementOpen;
       details.dataset.emojiManage = '';
       details.addEventListener('toggle', () => { managementOpen = details.open; });
       const summary = document.createElement('summary');
-      summary.textContent = t('Manage emoji sets');
+      const word = document.createElement('span');
+      word.textContent = t('Manage emoji sets');
+      const caret = document.createElement('i');
+      caret.className = 'lp-caret';
+      caret.setAttribute('aria-hidden', 'true');
+      summary.append(word, caret);
       details.append(summary);
       const specimen = el.querySelector('[data-emoji-specimen]');
       specimen?.remove();

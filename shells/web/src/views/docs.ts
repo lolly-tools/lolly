@@ -278,6 +278,29 @@ export async function mountDocs(
   const node = document.createElement('article');
   node.className = imported.className;
   node.replaceChildren(...Array.from(imported.childNodes));
+
+  // THE PAGE TITLE. `docsMasthead` (docs/build.ts) lifts each page's <h1> out of the
+  // article and into a full-width band that is a SIBLING of `.docs-wrap` - so it sits
+  // outside `.docs-content`, and this reader, which extracts `.docs-content` and
+  // nothing else, opened every page on its first paragraph with no title on it. The
+  // static page has one; the in-app page should read the same.
+  //
+  // Taken from the built band rather than from <title>, so it is the same words, the
+  // same markup and the same locale the static page shows. `.docs-masthead` is the
+  // default chip-canvas band and a banked masthead uses its own wrapper, so the h1 is
+  // found by walking the page for one OUTSIDE the fragment. The landing and immersive
+  // pages keep their own designed opening and are skipped.
+  if (!isLanding && !isImmersive && !node.querySelector('h1')) {
+    const bandTitle = [...doc.querySelectorAll('h1')].find((h) => !fragment.contains(h));
+    if (bandTitle) {
+      const h1 = document.importNode(bandTitle, true) as HTMLElement;
+      // The band's own decoration (canvas, credential line) stays behind; this is the
+      // heading alone, styled by docs.css like any other h1 in the article.
+      h1.classList.add('docs-page-title');
+      node.prepend(h1);
+    }
+  }
+
   contentEl.replaceChildren(node);
 
   // Scroll a heading (by fragment id) into view within #view. Returns whether the

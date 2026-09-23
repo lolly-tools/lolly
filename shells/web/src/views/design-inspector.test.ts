@@ -307,9 +307,14 @@ test('a plain box shows Object and its paint groups, then Motion + Present; no T
   h.select(['b1']);
   // The five groups that used to be sub-headings inside one flat Object list are
   // sections of their own now, each one collapsible on its own (Andy, 2026-09-03).
-  // Present is LAST and carries only the three fields a BOX owns - `build`, `matchOf`
-  // and `presentAudio`, which the hook reads off child boxes and nowhere else.
-  assert.deepEqual(secs(h), ['object', 'fill', 'appearance', 'shadow', 'tilt', 'arrange', 'motion', 'present']);
+  // Present carries only the three fields a BOX owns - `build`, `matchOf` and
+  // `presentAudio`, which the hook reads off child boxes and nowhere else.
+  //
+  // The ORDER is the band ladder (plans/273): style, then layout, then presence,
+  // then the precise controls. A plain box has nothing in Content, so Colour
+  // leads. Perspective tilt is in More and therefore last, where it used to sit
+  // in the middle of the paint groups.
+  assert.deepEqual(secs(h), ['fill', 'appearance', 'shadow', 'object', 'arrange', 'motion', 'present', 'tilt']);
   assert.ok(num(h, 'build'), 'the build step is editable where it works');
   assert.ok(h.el.querySelector('[data-fld="matchOf"]'), 'and so is the morph match');
   assert.equal(h.el.querySelector('[data-fld="state"]'), null, 'Slide style is a FRAME field - not here');
@@ -319,10 +324,11 @@ test('a plain box shows Object and its paint groups, then Motion + Present; no T
 test('a text box adds Text; an image box adds Image, with the 3x3 position grid', () => {
   const h = mount();
   h.select(['t1']);
-  assert.deepEqual(secs(h), ['text', 'object', 'fill', 'appearance', 'shadow', 'tilt', 'arrange', 'motion', 'present']);
+  // Text is the Content band, so it leads whatever else the box carries.
+  assert.deepEqual(secs(h), ['text', 'fill', 'appearance', 'shadow', 'object', 'arrange', 'motion', 'present', 'tilt']);
   assert.ok(h.el.querySelector('select[data-fld="font"]'), 'font select');
   h.select(['i1']);
-  assert.deepEqual(secs(h), ['image', 'object', 'fill', 'appearance', 'shadow', 'tilt', 'arrange', 'motion', 'present']);
+  assert.deepEqual(secs(h), ['image', 'fill', 'appearance', 'shadow', 'object', 'arrange', 'motion', 'present', 'tilt']);
   assert.equal(h.el.querySelectorAll('.fc-posgrid .fc-pos-btn').length, 9);
   h.handle.destroy();
 });
@@ -423,7 +429,7 @@ test('a text commit lands on the row it was TYPED INTO, not on whatever is selec
   // And once the caret leaves, the column catches up with the selection it missed.
   notes.blur();
   await new Promise((r) => setTimeout(r, 1));
-  assert.deepEqual(secs(h), ['object', 'fill', 'appearance', 'shadow', 'tilt', 'arrange', 'motion', 'present']);
+  assert.deepEqual(secs(h), ['fill', 'appearance', 'shadow', 'object', 'arrange', 'motion', 'present', 'tilt']);
   h.handle.destroy();
 });
 
@@ -875,10 +881,16 @@ test('EVERY group is a section with a real header button, and the header toggles
 test('the groups that start open are the ones every selection has something in', () => {
   const h = mount();
   h.select(['b1']);
-  assert.deepEqual(openSecs(h), ['object', 'fill', 'appearance'],
-    'Shadow, Perspective tilt, Arrange, Motion and Present start shut - most boxes have nothing in them');
+  // Two, not five (plans/273). The band labels carry the structure that Object
+  // and Appearance used to carry by standing open, so a plain box opens on the
+  // one group it always has something in: Colour.
+  assert.deepEqual(openSecs(h), ['fill'],
+    'Appearance, Position & size, Arrange, Shadow, Motion, Present and tilt all start shut');
   h.select(['t1']);
-  assert.ok(openSecs(h).includes('text'), 'Text is one you always want');
+  const onText = openSecs(h);
+  assert.ok(onText.includes('text'), 'Text is one you always want');
+  assert.ok(onText.includes('fill'),
+    'and so is Colour: recolouring text was the edit the old rule hid behind a closed "Fill & Stroke"');
   h.select(['f1']);
   assert.ok(openSecs(h).includes('artboard'));
   h.select([]);
@@ -941,7 +953,7 @@ test('a rotten or hostile remembered state is ignored, not obeyed', () => {
   store.set(SECTIONS_KEY, 'not json at all');
   const broken = mount(BOXES, {}, true);
   broken.select(['b1']);
-  assert.deepEqual(openSecs(broken), ['object', 'fill', 'appearance'], 'straight back to the defaults');
+  assert.deepEqual(openSecs(broken), ['fill'], 'straight back to the defaults');
   broken.handle.destroy();
 });
 
@@ -1234,7 +1246,7 @@ test('a CLOSED column pays nothing: no rebuild behind `hidden`, one paint on ope
   assert.equal(h.el.querySelector('.fc-insp-sec'), null, 'nothing was built');
   assert.equal(h.el.querySelectorAll('[data-color-field]').length, 0, 'and the real colour picker was never mounted');
   h.handle.setOpen(true);
-  assert.deepEqual(secs(h), ['object', 'fill', 'appearance', 'shadow', 'tilt', 'arrange', 'motion', 'present']);
+  assert.deepEqual(secs(h), ['fill', 'appearance', 'shadow', 'object', 'arrange', 'motion', 'present', 'tilt']);
   assert.equal(num(h, 'x').value, '119', 'it opens on the CURRENT model');
   h.handle.destroy();
 });

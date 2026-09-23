@@ -556,5 +556,8 @@
   "Export visible text only": "صرف نظر آنے والا متن برآمد کریں",
   "Allow an intentionally clipped export. Text beyond fixed frames and unplaced stories is omitted; the full source stays in your document.": "جان بوجھ کر تراشی گئی برآمد کی اجازت دیں۔ مقررہ فریموں سے باہر کا متن اور ابھی نہ رکھا گیا مربوط متن شامل نہیں ہوتا؛ پورا اصل مواد آپ کی دستاویز میں رہتا ہے۔",
   "Text in Design": "Design میں متن",
-  "Authored text composition": "تخلیق کردہ متن کی ترتیب"
+  "Authored text composition": "تخلیق کردہ متن کی ترتیب",
+  "Edit on the canvas": "کینوس پر ترمیم کریں",
+  "Position & size": "پوزیشن اور سائز",
+  "Presence": "حرکت"
 }

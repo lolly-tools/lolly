@@ -361,7 +361,14 @@
   --ui-color-syntax-function: var(--ui-color-text-default);
   --ui-color-syntax-type: hsl(var(--primary));
   --ui-color-syntax-operator: var(--ui-color-text-muted);
+  --ui-color-status-danger: hsl(var(--destructive));
+  --ui-color-status-danger-surface: hsl(var(--destructive) / .07);
+  --ui-color-status-notice-surface: hsl(var(--primary) / .07);
   --ui-size-target: 44px;
+  --ui-size-icon-sm: calc(14px * var(--a11y-fs));
+  --ui-size-icon-md: calc(16px * var(--a11y-fs));
+  --ui-size-icon-lg: calc(20px * var(--a11y-fs));
+  --ui-size-control: calc(30px * var(--a11y-fs));
   --ui-space-section: 64px;
   --ui-space-control-inline: var(--sp-4);
   --ui-space-control-block: var(--sp-3);
@@ -397,6 +404,12 @@
   --ui-type-title: var(--fs-lg);
   --ui-type-ui-family: var(--font-brand);
   --ui-type-mono-family: var(--font-mono);
+  --ui-type-band: var(--fs-xs);
+  --ui-type-section: var(--fs-md);
+  --ui-type-field: var(--fs-2xs);
+  --ui-type-help: var(--fs-xs);
+  --ui-type-weight-section: 600;
+  --ui-type-weight-label: 600;
   --ui-motion-feedback: var(--dur-1);
   --ui-motion-overlay: var(--dur-2);
   --ui-motion-navigation: var(--dur-3);

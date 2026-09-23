@@ -17,7 +17,13 @@ test('the app document preserves its semantic references over the foundation sca
 
 test('the Start studio can show every UI role without adding any of them to a brand', () => {
   const tokens = listLollyUiTokens();
-  assert.equal(tokens.length, 62);
+  // 62 to 75 on 2026-09-23 (plans/273): the panel primitive needed four size
+  // roles (the icon scale and one control height), six type roles (the band,
+  // section, field and help tiers plus their two weights) and three status
+  // colours. The sizes and type tiers stay out of brand-vars.ts's UI_SLOTS, as
+  // size.target and the rest of the type scale always have; the three colours
+  // are in it, because every other colour role is.
+  assert.equal(tokens.length, 75);
   assert.equal(tokens.find(t => t.path.join('.') === 'type.tracking-label')?.type, 'letterSpacing');
   assert.equal(tokens.find(t => t.path.join('.') === 'color.text.default')?.type, 'color');
   assert.equal(tokens.find(t => t.path.join('.') === 'color.selection.surface')?.type, 'color');

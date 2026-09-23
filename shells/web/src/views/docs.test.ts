@@ -518,3 +518,59 @@ test('the hero primary button takes the ink that reads on its painted fill', () 
     root.remove();
   }
 });
+
+/**
+ * The page as `docs/build.ts` actually emits it: `docsMasthead` lifts the <h1> OUT of
+ * the article and into a full-width band that is a SIBLING of `.docs-wrap`, so the
+ * heading sits outside `.docs-content`. PAGE_HTML above keeps its h1 inside the
+ * fragment, which is the one shape the real build never produces - and is why the
+ * reader could open every page on its first paragraph with no title for so long
+ * without a test noticing.
+ */
+const MASTHEAD_PAGE_HTML = `<!doctype html><html><head><title>Quickstart - Lolly</title></head>
+<body>
+  <div class="docs-masthead">
+    <canvas class="docs-mast-canvas" aria-hidden="true"></canvas>
+    <div class="docs-mast-inner"><h1 id="top">Quickstart</h1></div>
+  </div>
+  <div class="docs-wrap">
+    <aside class="docs-sidebar"><a href="/info/quickstart.html">Quickstart</a></aside>
+    <main class="docs-content page-quickstart">
+      <p>Intro paragraph.</p>
+      <h2 id="one">One</h2>
+      <p>Body one.</p>
+    </main>
+  </div>
+</body></html>`;
+
+test('the page title comes across from the masthead band, which sits outside .docs-content', async () => {
+  stubOkFetch(MASTHEAD_PAGE_HTML);
+  const view = freshView();
+
+  await mountDocs(view, host, 'quickstart', 'de', '');
+
+  const article = view.querySelector('[data-content] article.docs-content')!;
+  const h1 = article.querySelector('h1');
+  assert.ok(h1, 'the reader opens on the page title, as the static page does');
+  assert.equal(h1!.textContent, 'Quickstart');
+  assert.equal(article.firstElementChild, h1, 'and it is the first thing in the article');
+  assert.ok(h1!.classList.contains('docs-page-title'), 'marked so docs.css can place it');
+  // The band's decoration stays behind: only the heading is lifted.
+  assert.equal(article.querySelector('canvas'), null, 'the masthead canvas is not carried across');
+
+  view.remove();
+});
+
+test('a page whose h1 is already inside the fragment is left alone', async () => {
+  // PAGE_HTML's h1 lives in `.docs-content`. Prepending a second one would give the
+  // reader two titles, so the lift is conditional on the article having none.
+  stubOkFetch();
+  const view = freshView();
+
+  await mountDocs(view, host, 'quickstart', 'de', '');
+
+  const article = view.querySelector('[data-content] article.docs-content')!;
+  assert.equal(article.querySelectorAll('h1').length, 1, 'exactly one title');
+
+  view.remove();
+});

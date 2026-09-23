@@ -99,7 +99,7 @@
 
 仍在同一区域,**构建你的调色板** 会根据你的主色生成匹配的强调色。选择一种 **和谐方式** - **互补**、**邻近**、**三角**、**四角** 或 **类比**(后者自带 2 到 5 的 **强调色** 数量,以及 10° 到 45° 的色相 **角度**)- 每个候选色都带有自动生成的可读名称和一个 **+ 添加** 按钮。添加一个即可立即将该颜色纳入你的调色板,一次按下对应一个令牌。*"你的调色板,应用效果"* 会在真实图形上预览整套配色。
 
-![生成的强调色,每个都带有色块、自动生成的名称、十六进制值和一个添加按钮](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
+![生成的强调色,每个都带有色块、自动生成的名称、十六进制值和一个添加按钮](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
 
 ### 提交生成的调色板
 
@@ -111,9 +111,9 @@
 
 右侧面板列出你的品牌拥有的每一种颜色,按分组(主色、中性色、辅助色、光谱、自定义、角色)排列,每组都可折叠,并各自带有 **+ 添加**。其下方,**色彩图表** 展开后是同一批色块的两种视图:**色轮**(OKLCH 色轮 - 拖动一个点可为其重新上色,点击一个点可编辑它,或点击空白处添加新色块)和 **色域** 图,显示可显示范围实际终止的位置。`#/start?area=color&focus=chart` 会直接打开该卡片,`?wheel` 也一直如此。
 
-![调色板面板,每组都可折叠,下载按钮固定在其底部边缘](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![调色板面板,每组都可折叠,下载按钮固定在其底部边缘](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
-![OKLCH 色轮 - 角度代表色相,距离代表彩度,灰色沿侧边的明度轨道排列](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
+![OKLCH 色轮 - 角度代表色相,距离代表彩度,灰色沿侧边的明度轨道排列](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
 点击任意色块以打开其编辑器:
 

@@ -21,7 +21,7 @@ import { isTauriShell } from '../../lib/instance-choice.ts';
 import { getFieldPolicy } from '../../lib/field-policy.ts';
 import { updatesRowHtml } from '../profile-updates.ts';
 import { backHomeHtml } from '../../components/back-pill.ts';
-import { DEFAULT_HEADSHOT, FIELD_LABELS, NAV_SECTIONS, pulseHighlight, skeletonRow, summaryRow } from './shared.ts';
+import { DEFAULT_HEADSHOT, FIELD_LABELS, NAV_SECTIONS, pulseHighlight, skeletonRow, summaryRow, visibleProfileSections } from './shared.ts';
 import { bindOp, type ProfileViewCtx } from './context.ts';
 
 /** The whole page markup in one write: the nav rail and every settings card. */
@@ -43,7 +43,7 @@ export function renderShell(pv: ProfileViewCtx): void {
           <input type="search" id="profile-nav-search" class="profile-nav-search-input" placeholder="${escapeText(t('Search settings'))}" aria-label="${escapeText(t('Search settings'))}" autocomplete="off" spellcheck="false">
         </div>
         <ul class="profile-nav-list" role="list">
-          ${NAV_SECTIONS.map(s => `<li><button type="button" class="profile-nav-item" data-nav="${s.id}">${icon(s.icon, { size: 16, className: 'profile-nav-ic' })}<span class="profile-nav-text">${escapeText(t(s.label))}</span></button></li>`).join('')}
+          ${visibleProfileSections().map(s => `<li><button type="button" class="profile-nav-item" data-nav="${s.id}">${icon(s.icon, { size: 16, className: 'profile-nav-ic' })}<span class="profile-nav-text">${escapeText(t(s.label))}</span></button></li>`).join('')}
         </ul>
         <p class="profile-nav-empty" id="profile-nav-empty" hidden>${t('No settings match')}</p>
       </aside>

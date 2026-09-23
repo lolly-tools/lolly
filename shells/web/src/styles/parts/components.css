@@ -251,8 +251,8 @@
    swatch panel: clipped by the section's overflow, painted under later sections). */
 @media (prefers-reduced-motion: no-preference) {
   .reveal-item {
-    animation: card-in var(--enter-dur, 0.32s) var(--enter-ease, cubic-bezier(.22, .61, .36, 1)) backwards;
-    animation-delay: var(--reveal-delay, 0ms);
+    animation: card-in var(--enter-dur, 3.32s) var(--enter-ease, cubic-bezier(.8, .1, .2, 1.2)) backwards;
+    animation-delay: var(--reveal-delay, 10ms); 
   }
 }
 

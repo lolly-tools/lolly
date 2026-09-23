@@ -6734,5 +6734,8 @@
   "↳ follows {role}": "↳ {role}に従う",
   "✓ Added": "✓ 追加しました",
   "✓ Found {n} tools at {base}.": "✓ {base}で{n}個のツールが見つかりました。",
-  "＋ New project…": "＋ 新規プロジェクト…"
+  "＋ New project…": "＋ 新規プロジェクト…",
+  "Edit on the canvas": "キャンバスで編集",
+  "Position & size": "位置とサイズ",
+  "Presence": "演出"
 }

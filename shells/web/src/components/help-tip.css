@@ -40,13 +40,15 @@
     position: absolute;
     left: 0;
     right: 0;
-    top: 100%;
-    margin-top: var(--sp-2);
+    top: -100%;
+    margin:0 -1rem ;
+    margin-top: -2rem;
     z-index: var(--ui-layer-overlay);
-    padding: var(--sp-4) var(--sp-5);
+    padding: var(--sp-6) var(--sp-8);
     border-radius: var(--radius);
-    background: hsl(var(--popover));
-    color: hsl(var(--popover-foreground));
+    background: hsl(var(--popover-foreground) / 1);
+    animation: fade-out var(--dur-3) ease 2s forwards;
+    color: hsl(var(--popover));
     border: 1px solid hsl(var(--border));
     box-shadow: var(--ui-elevation-floating);
     font-size: var(--fs-xs);
@@ -56,6 +58,12 @@
     text-transform: none;
     white-space: normal;
   }
+  @keyframes fade-out {
+    0% { opacity: 1; }
+
+    100% { opacity: 0; transform: translateY(.5rem)}
+  }
+  .help-tip-pop:hover{opacity:1;animation:none }
   .help-tip-pop[hidden] {
     display: none;
   }

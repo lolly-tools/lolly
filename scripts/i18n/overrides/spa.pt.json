@@ -556,5 +556,8 @@
   "Export visible text only": "Exportar apenas texto visível",
   "Allow an intentionally clipped export. Text beyond fixed frames and unplaced stories is omitted; the full source stays in your document.": "Permitir uma exportação recortada de propósito. O texto além dos quadros fixos e as matérias não posicionadas são omitidos; o texto-fonte completo permanece no documento.",
   "Text in Design": "Texto no Design",
-  "Authored text composition": "Composição do texto criado"
+  "Authored text composition": "Composição do texto criado",
+  "Edit on the canvas": "Editar na tela",
+  "Position & size": "Posição e tamanho",
+  "Presence": "Presença"
 }

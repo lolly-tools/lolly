@@ -6734,5 +6734,8 @@
   "↳ follows {role}": "↳ řídí se podle {role}",
   "✓ Added": "✓ Přidáno",
   "✓ Found {n} tools at {base}.": "✓ Nalezeno {n} nástrojů na {base}.",
-  "＋ New project…": "＋ Nový projekt…"
+  "＋ New project…": "＋ Nový projekt…",
+  "Edit on the canvas": "Upravit na plátně",
+  "Position & size": "Poloha a velikost",
+  "Presence": "Přítomnost"
 }

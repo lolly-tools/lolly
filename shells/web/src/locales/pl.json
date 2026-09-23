@@ -6734,5 +6734,8 @@
   "↳ follows {role}": "↳ podąża za {role}",
   "✓ Added": "✓ Dodano",
   "✓ Found {n} tools at {base}.": "✓ Znaleziono {n} narzędzi w {base}.",
-  "＋ New project…": "＋ Nowy projekt…"
+  "＋ New project…": "＋ Nowy projekt…",
+  "Edit on the canvas": "Edytuj na płótnie",
+  "Position & size": "Pozycja i rozmiar",
+  "Presence": "Obecność"
 }

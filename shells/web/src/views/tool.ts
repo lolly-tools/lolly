@@ -13,6 +13,7 @@
 
 // View-scoped stylesheets - Vite emits these as async CSS chunks loaded WITH this
 // lazy view, instead of render-blocking the gallery/catalog landing (see app.css).
+import '../styles/parts/panel.css';
 import '../styles/parts/tool.css';
 import '../styles/parts/editor.css';
 import '../styles/parts/design-topbar.css';

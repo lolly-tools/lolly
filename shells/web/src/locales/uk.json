@@ -6734,5 +6734,8 @@
   "↳ follows {role}": "↳ слідує за {role}",
   "✓ Added": "✓ Додано",
   "✓ Found {n} tools at {base}.": "✓ Знайдено {n} інструментів на {base}.",
-  "＋ New project…": "＋ Новий проєкт…"
+  "＋ New project…": "＋ Новий проєкт…",
+  "Edit on the canvas": "Редагувати на полотні",
+  "Position & size": "Позиція та розмір",
+  "Presence": "Рух"
 }

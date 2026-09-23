@@ -556,5 +556,8 @@
   "Export visible text only": "केवल दिखाई देने वाला पाठ निर्यात करें",
   "Allow an intentionally clipped export. Text beyond fixed frames and unplaced stories is omitted; the full source stays in your document.": "जानबूझकर काटे गए निर्यात की अनुमति दें। स्थिर फ़्रेमों से बाहर का पाठ और अभी न रखे गए जुड़े हुए पाठ छोड़ दिए जाते हैं; पूरा स्रोत आपके दस्तावेज़ में रहता है।",
   "Text in Design": "Design में पाठ",
-  "Authored text composition": "रचित पाठ का संयोजन"
+  "Authored text composition": "रचित पाठ का संयोजन",
+  "Edit on the canvas": "कैनवस पर संपादित करें",
+  "Position & size": "स्थिति और आकार",
+  "Presence": "मौजूदगी"
 }

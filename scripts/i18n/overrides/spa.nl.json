@@ -548,5 +548,8 @@
   "Export visible text only": "Alleen zichtbare tekst exporteren",
   "Allow an intentionally clipped export. Text beyond fixed frames and unplaced stories is omitted; the full source stays in your document.": "Sta bewust een afgesneden export toe. Tekst buiten vaste kaders en niet-geplaatste tekststromen worden weggelaten; de volledige bron blijft in je document.",
   "Text in Design": "Tekst in Design",
-  "Authored text composition": "Opgemaakte brontekst"
+  "Authored text composition": "Opgemaakte brontekst",
+  "Edit on the canvas": "Bewerken op canvas",
+  "Position & size": "Positie & grootte",
+  "Presence": "Presentatie"
 }

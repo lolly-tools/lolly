@@ -7,6 +7,81 @@ import { chromium } from 'playwright';
 
 const origin = process.env.LOLLY_IMPORT_TEST_URL;
 const options = { skip: origin ? false : 'set LOLLY_IMPORT_TEST_URL to a local Vite shell', timeout: 120_000 };
+
+test('Profile creates and reopens editable systems beside a locked deployment brand', options, async () => {
+  assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
+  const browser = await chromium.launch({ headless: true, channel: process.env.LOLLY_BROWSER_CHANNEL });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
+    await page.addInitScript(() => {
+      for (const key of ['lolly-welcome-dismissed', 'lolly-tips-dismissed', 'lolly-privacy-ack']) localStorage.setItem(key, '1');
+    });
+    await page.route('**/catalog/assets/index.json', async route => {
+      const response = await route.fetch();
+      if (response.status() === 304) { await route.fulfill({ response }); return; }
+      const index = await response.json();
+      for (const asset of index.assets) if (asset.type === 'tokens') asset.brandLock = true;
+      await route.fulfill({ response, json: index });
+    });
+    const errors: string[] = [];
+    page.on('pageerror', error => errors.push(error.message));
+    const read = () => page.evaluate(async () => {
+      const path = '/src/bridge/index.ts';
+      const host = await (await import(path)).createBridge();
+      return { record: await host.designSystems.active(), doc: await host.tokens.raw(), locked: await host.tokens.isLocked() };
+    });
+    const profile = async () => {
+      await page.goto(`${origin}/#/profile?focus=design-systems-section`, { waitUntil: 'networkidle' });
+      await page.locator('[data-ds-act="new"]').waitFor();
+    };
+    await profile();
+    assert.equal(await page.locator('[data-nav="hotfolder-section"]').count(), 0);
+    assert.equal(await page.locator('#hotfolder-section').count(), 0);
+    const shipped = await read();
+    assert.equal(shipped.record.id, 'shipped');
+    assert.equal(shipped.locked, true);
+    await page.locator('[data-ds-row="shipped"] .ds-row-lock').waitFor();
+
+    await page.getByRole('button', { name: 'Make a new one', exact: true }).click();
+    await page.waitForURL('**/#/start?rename=1');
+    const name = page.getByRole('textbox', { name: 'Design system name', exact: true });
+    await name.waitFor();
+    assert.equal(await name.evaluate(el => el === document.activeElement), true);
+    const created = await read();
+    assert.notEqual(created.record.id, 'shipped');
+    assert.equal(created.record.source.kind, 'local');
+    assert.equal(created.locked, false);
+    await name.fill('My local system');
+    await name.blur();
+    await page.getByText('Design system name saved.', { exact: true }).waitFor();
+    await page.locator('[data-ds-room="color"]').click();
+    await page.locator('[data-be-tile="0"]').click();
+    await page.locator('[data-be-editor-name]').fill('My edited colour');
+    await page.locator('[data-be-editor-name]').press('Enter');
+    await page.getByRole('checkbox', { name: 'Select My edited colour', exact: true }).waitFor();
+    await page.locator('[data-be-save-state]').filter({ hasText: /^Saved$/ }).waitFor();
+    const edited = await read();
+    assert.notDeepEqual(edited.doc, created.doc);
+
+    await profile();
+    await page.locator('[data-ds-row="shipped"] [data-ds-act="studio"]').click();
+    await page.waitForURL('**/#/start');
+    await page.locator('[data-ds-fork]').waitFor();
+    assert.equal(await name.count(), 0, 'the inherited system has no editor');
+    assert.deepEqual((await read()).doc, shipped.doc);
+    await profile();
+    await page.locator(`[data-ds-row="${created.record.id}"] [data-ds-act="studio"]`).click();
+    await name.waitFor();
+    assert.equal(await name.inputValue(), 'My local system');
+    assert.deepEqual((await read()).doc, edited.doc);
+    await page.reload({ waitUntil: 'networkidle' });
+    await name.waitFor();
+    assert.equal((await read()).locked, false);
+    assert.deepEqual((await read()).doc, edited.doc, 'local edits survive a reload on the locked deployment');
+    assert.deepEqual(errors, []);
+  } finally { await browser.close(); }
+});
+
 test('cold catalog and welcome progress while the local profile read is pending', options, async () => {
   assert.ok(['localhost', '127.0.0.1', '[::1]'].includes(new URL(origin!).hostname));
   const browser = await chromium.launch({ headless: true, channel: process.env.LOLLY_BROWSER_CHANNEL });

@@ -144,10 +144,10 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
   const pillIsHome = backPill.includes(' data-back-home>'); start.pillIsHome = pillIsHome;
   const homeFab = pillIsHome ? '' : homeFabHtml(); start.homeFab = homeFab;
 
-  // A locked catalog is authoritative - its brand (colours, fonts, radius) can't
-  // be adjusted; every write funnels through installUserTokens, which refuses. So
-  // skip the whole studio and say why, rather than dead-ending on an error.
-  if (await host.tokens?.isLocked?.().catch(() => false)) {
+  const active = await activeDesignSystemRecord(host);
+  const locked = await host.tokens?.isLocked?.().catch(() => false);
+  // Older hosts without a registry can only report the shipped catalog lock.
+  if (!active && locked) {
     document.title = 'Brand · Lolly';
     // Nothing here can accept a file the front door handed over (lib/drop-router.ts),
     // so the stash is spent rather than left holding a document's bytes for the
@@ -169,49 +169,44 @@ export async function mountStart(viewEl: HTMLElement, host: StartHost, params = 
     return;
   }
 
-  // A READ-ONLY design system (plans/186 section 3.5, the material lock): a hosted
-  // or packaged system whose material is the host's. The rooms would refuse every
-  // write, so report it once, and offer the two honest moves - an editable copy, or
-  // a switch. The BUILD lock above is the other lock and keeps its own page.
-  {
-    const active = await activeDesignSystemRecord(host);
-    if (active?.locked) {
-      document.title = `${active.label} · Lolly`;
-      takePendingDesignSystemFile();
-      viewEl.innerHTML = `
-        <div class="start">
-          <div class="start-back-row">${backPill}${homeFab}</div>
-          <div class="gallery-topright">${langFabHtml()}</div>
-          <header class="start-head">
-            <p class="start-eyebrow">${t('Design system')}</p>
-            <h1 class="start-title">${escapeText(active.label)}</h1>
-            <p class="start-sub">${t('This design system is read-only: its colours, type and logos are kept current from where it came. Make an editable copy to change them, or switch to another design system.')}</p>
-            <p class="start-sub">
-              <button type="button" class="be-btn" data-ds-fork>${t('Make an editable copy')}</button>
-              <a class="be-btn" href="#/profile?focus=design-systems-section">${t('Switch')}</a>
-            </p>
-          </header>
-        </div>`;
-      attachLangMenu(viewEl.querySelector<HTMLElement>('.lang-fab'), host);
-      start.navigation.wireBackPill();
-      start.navigation.wireHomeFab();
-      viewEl.querySelector('[data-ds-fork]')?.addEventListener('click', async () => {
-        const [{ createDesignSystem }, { switchDesignSystem }] = await Promise.all([
-          import('../lib/design-system/manage.ts'),
-          import('../lib/design-system/switch.ts'),
-        ]);
-        const copy = await createDesignSystem(
-          host as unknown as Parameters<typeof createDesignSystem>[0],
-          { label: `${active.label} copy`, seedFrom: active.id }
-        );
-        await switchDesignSystem(
-          host as unknown as Parameters<typeof switchDesignSystem>[0],
-          copy.id,
-          { route: 'start' }
-        );
-      });
-      return;
-    }
+  // Read-only systems keep their own material intact. Copies and other local
+  // systems remain editable, including on a deployment with a locked brand.
+  if (active && (active.locked || locked)) {
+    document.title = `${active.label} · Lolly`;
+    takePendingDesignSystemFile();
+    viewEl.innerHTML = `
+      <div class="start">
+        <div class="start-back-row">${backPill}${homeFab}</div>
+        <div class="gallery-topright">${langFabHtml()}</div>
+        <header class="start-head">
+          <p class="start-eyebrow">${t('Design system')}</p>
+          <h1 class="start-title">${escapeText(active.label)}</h1>
+          <p class="start-sub">${t('This design system is read-only: its colours, type and logos are kept current from where it came. Make an editable copy to change them, or switch to another design system.')}</p>
+          <p class="start-sub">
+            <button type="button" class="be-btn" data-ds-fork>${t('Make an editable copy')}</button>
+            <a class="be-btn" href="#/profile?focus=design-systems-section">${t('Switch')}</a>
+          </p>
+        </header>
+      </div>`;
+    attachLangMenu(viewEl.querySelector<HTMLElement>('.lang-fab'), host);
+    start.navigation.wireBackPill();
+    start.navigation.wireHomeFab();
+    viewEl.querySelector('[data-ds-fork]')?.addEventListener('click', async () => {
+      const [{ createDesignSystem }, { switchDesignSystem }] = await Promise.all([
+        import('../lib/design-system/manage.ts'),
+        import('../lib/design-system/switch.ts'),
+      ]);
+      const copy = await createDesignSystem(
+        host as unknown as Parameters<typeof createDesignSystem>[0],
+        { label: `${active.label} copy`, seedFrom: active.id }
+      );
+      await switchDesignSystem(
+        host as unknown as Parameters<typeof switchDesignSystem>[0],
+        copy.id,
+        { route: 'start' }
+      );
+    });
+    return;
   }
 
   // Read-only deep-link flags, consumed on mount and never propagated into a

@@ -78,7 +78,7 @@ export const persist = (bedit: BrandEditorCtx, immediate = false): void => {
     const snapshot = structuredClone(bedit.doc);
     bedit.saveQueue = bedit.saveQueue.then(async () => {
     try {
-      await installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], snapshot, { label: 'My brand' });
+      await installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], snapshot);
       if (status && revision === bedit.saveRevision) { status.textContent = t('Saved'); }
       void applyChromeBrandVars(host);
       // Reflect the new palette in every picker without a tool remount.

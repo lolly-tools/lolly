@@ -99,7 +99,7 @@ Bên dưới màu chính, bạn sẽ thấy các ramp **Primary / Neutral / Seco
 
 Vẫn trong cùng khu vực, **Build your palette** tạo ra các màu nhấn phù hợp từ màu chính của bạn. Chọn một kiểu **Harmony** - **Complementary**, **Adjacent**, **Triad**, **Tetrad** hoặc **Analogous** (kiểu này có thêm số lượng **Accents** từ 2 đến 5, và **Angle** góc từ 10° đến 45°) - và mỗi màu ứng viên xuất hiện kèm tên tự sinh dễ đọc và một nút **+ Add**. Thêm một màu sẽ đưa màu đó vào bảng màu của bạn ngay lập tức, một lần nhấn cho một token. *"Your palette, applied"* xem trước toàn bộ bộ màu trên các đồ họa thực.
 
-![Các màu nhấn được tạo ra, mỗi màu có mẫu màu, tên tự sinh, mã hex và một nút Add](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
+![Các màu nhấn được tạo ra, mỗi màu có mẫu màu, tên tự sinh, mã hex và một nút Add](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
 
 ### Chốt một bảng màu đã tạo
 
@@ -111,9 +111,9 @@ Vẫn trong cùng khu vực, **Build your palette** tạo ra các màu nhấn ph
 
 Bảng bên phải liệt kê mọi màu mà thương hiệu của bạn có, được nhóm lại (Primary, Neutral, Secondary, Spectrum, Custom, Roles), mỗi nhóm có thể gấp lại với nút **+ Add** riêng. Bên dưới, **Colour chart** mở ra hai chế độ xem trên cùng một bộ mẫu màu: **Wheel** (bánh xe OKLCH - kéo một điểm để đổi màu, nhấp vào một điểm để chỉnh sửa hoặc nhấp vào chỗ trống để thả thêm một mẫu màu mới) và biểu đồ **Gamut**, cho thấy dải hiển thị thực sự kết thúc ở đâu. `#/start?area=color&focus=chart` mở thẻ này trực tiếp, giống như `?wheel` luôn làm.
 
-![Bảng bảng màu, mọi nhóm có thể gấp lại, với nút tải xuống đặt ở mép dưới cùng](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![Bảng bảng màu, mọi nhóm có thể gấp lại, với nút tải xuống đặt ở mép dưới cùng](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
-![Bánh xe OKLCH - góc là sắc độ (hue), khoảng cách ra ngoài là độ bão hòa (chroma) và các màu xám chạy theo một dải độ sáng dọc theo cạnh bên](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
+![Bánh xe OKLCH - góc là sắc độ (hue), khoảng cách ra ngoài là độ bão hòa (chroma) và các màu xám chạy theo một dải độ sáng dọc theo cạnh bên](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
 Nhấp vào bất kỳ mẫu màu nào để mở trình chỉnh sửa của nó:
 

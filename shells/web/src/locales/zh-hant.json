@@ -6734,5 +6734,8 @@
   "↳ follows {role}": "↳ 沿用 {role}",
   "✓ Added": "✓ 已新增",
   "✓ Found {n} tools at {base}.": "✓ 在 {base} 找到 {n} 個工具。",
-  "＋ New project…": "＋ 新增專案…"
+  "＋ New project…": "＋ 新增專案…",
+  "Edit on the canvas": "在畫布上編輯",
+  "Position & size": "位置與大小",
+  "Presence": "動效"
 }

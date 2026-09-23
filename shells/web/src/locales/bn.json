@@ -6734,5 +6734,8 @@
   "↳ follows {role}": "↳ {role} অনুসরণ করে",
   "✓ Added": "✓ যোগ হয়েছে",
   "✓ Found {n} tools at {base}.": "✓ {base}-এ {n}টি টুল পাওয়া গেছে।",
-  "＋ New project…": "＋ নতুন প্রজেক্ট…"
+  "＋ New project…": "＋ নতুন প্রজেক্ট…",
+  "Edit on the canvas": "ক্যানভাসে সম্পাদনা করুন",
+  "Position & size": "অবস্থান ও আকার",
+  "Presence": "উপস্থিতি"
 }

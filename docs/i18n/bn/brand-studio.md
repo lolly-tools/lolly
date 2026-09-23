@@ -99,7 +99,7 @@ Primary-র নিচে আপনি লাইভ **Primary / Neutral / Seconda
 
 এখনও একই উইংয়ে, **Build your palette** আপনার প্রাইমারি রঙ থেকে মিলিয়ে অ্যাকসেন্ট রঙ তৈরি করে। একটি **Harmony** বেছে নিন - **Complementary**, **Adjacent**, **Triad**, **Tetrad** বা **Analogous** (যেখানে নিজস্ব **Accents** সংখ্যা থাকে, 2 থেকে 5, এবং একটি hue **Angle** 10° থেকে 45° পর্যন্ত) - এবং প্রতিটি প্রার্থী রঙ আসে একটি স্বয়ংক্রিয়ভাবে তৈরি মানুষ-পঠনযোগ্য নাম এবং একটি **+ Add** বাটন সহ। একটি যোগ করলে সেই রঙ তৎক্ষণাৎ আপনার প্যালেটে যুক্ত হয়ে যায়, এক চাপে এক টোকেন। *"Your palette, applied"* পুরো সেটটিকে আসল গ্রাফিক্সে প্রিভিউ করে।
 
-![জেনারেট করা অ্যাকসেন্ট, প্রতিটির সাথে একটি সোয়াচ, স্বয়ংক্রিয়ভাবে তৈরি নাম, এর হেক্স এবং একটি Add বাটন](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
+![জেনারেট করা অ্যাকসেন্ট, প্রতিটির সাথে একটি সোয়াচ, স্বয়ংক্রিয়ভাবে তৈরি নাম, এর হেক্স এবং একটি Add বাটন](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
 
 ### একটি জেনারেট করা প্যালেট কমিট করা
 
@@ -111,9 +111,9 @@ Primary-র নিচে আপনি লাইভ **Primary / Neutral / Seconda
 
 ডান প্যানেলে আপনার ব্র্যান্ডের প্রতিটি রঙ তালিকাভুক্ত থাকে, গ্রুপ করা (Primary, Neutral, Secondary, Spectrum, Custom, Roles), প্রতিটি গ্রুপ ভাঁজযোগ্য এবং নিজস্ব **+ Add** সহ। এর নিচে, **Colour chart** একই সোয়াচগুলোর দুটি ভিউ-এ খোলে: **Wheel** (OKLCH চাকা - একটি ডট টেনে তার রঙ বদলান, একটি ডট ক্লিক করে সম্পাদনা করুন বা খালি জায়গায় ক্লিক করে নতুন সোয়াচ ফেলুন) এবং **Gamut** চার্ট, যা দেখায় প্রদর্শনযোগ্য রেঞ্জ আসলে কোথায় শেষ হয়। `#/start?area=color&focus=chart` কার্ডটি সরাসরি খোলে, যেমন `?wheel` সবসময় করে এসেছে।
 
-![প্যালেট প্যানেল, প্রতিটি গ্রুপ ভাঁজযোগ্য, ডাউনলোড পিলটি নিচের প্রান্তে পার্ক করা](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![প্যালেট প্যানেল, প্রতিটি গ্রুপ ভাঁজযোগ্য, ডাউনলোড পিলটি নিচের প্রান্তে পার্ক করা](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
-![OKLCH চাকা - কোণ হলো hue, বাইরের দূরত্ব হলো chroma এবং ধূসরগুলো পাশের একটি lightness রেল বরাবর চলে](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
+![OKLCH চাকা - কোণ হলো hue, বাইরের দূরত্ব হলো chroma এবং ধূসরগুলো পাশের একটি lightness রেল বরাবর চলে](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
 যেকোনো সোয়াচে ক্লিক করে এর এডিটর খুলুন:
 

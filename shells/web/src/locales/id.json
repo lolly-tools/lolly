@@ -6734,5 +6734,8 @@
   "↳ follows {role}": "↳ mengikuti {role}",
   "✓ Added": "✓ Ditambahkan",
   "✓ Found {n} tools at {base}.": "✓ Ditemukan {n} alat di {base}.",
-  "＋ New project…": "＋ Proyek baru…"
+  "＋ New project…": "＋ Proyek baru…",
+  "Edit on the canvas": "Edit di kanvas",
+  "Position & size": "Posisi dan ukuran",
+  "Presence": "Keberadaan"
 }

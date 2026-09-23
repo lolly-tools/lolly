@@ -6734,5 +6734,8 @@
   "↳ follows {role}": "↳ {role} rolünü takip ediyor",
   "✓ Added": "✓ Eklendi",
   "✓ Found {n} tools at {base}.": "✓ {base} adresinde {n} araç bulundu.",
-  "＋ New project…": "＋ Yeni proje…"
+  "＋ New project…": "＋ Yeni proje…",
+  "Edit on the canvas": "Tuvalde düzenle",
+  "Position & size": "Konum ve boyut",
+  "Presence": "Hareket"
 }

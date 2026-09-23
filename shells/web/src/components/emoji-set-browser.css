@@ -30,7 +30,7 @@
   aspect-ratio: 1; width: 100%; min-width: 0; padding: 8px;
   border: 2px solid transparent; border-radius: var(--radius);
   /* Original black artwork remains visible in either application theme. */
-  background: #fff; box-shadow: 0 0 0 1px hsl(var(--border)); cursor: pointer;
+  background: #fff; box-shadow: none; cursor: pointer;
 }
 .emoji-set-cell.btn:hover { background: #f1f5f9; border-color: hsl(var(--muted-foreground)); }
 .emoji-set-cell.btn[aria-pressed="true"] { border-color: hsl(var(--primary)); box-shadow: 0 0 0 1px hsl(var(--primary)); }

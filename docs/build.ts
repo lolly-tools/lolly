@@ -2708,7 +2708,14 @@ ${LANDING_CSS}
 .sidedoor-foot-links{display:flex;flex-wrap:wrap;gap:.5rem 1.5rem}
 .sidedoor-foot-link{font-weight:700;text-decoration:none;color:var(--green)}
 .sidedoor-foot-link:hover{text-decoration:underline}
-.sidebar-label{font-size:.6875rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin:1.5rem 0 .5rem}
+/* The rail has three tiers and they have to be told apart at a glance: the
+   PATHWAY is a name (17px, bold, full ink, on a rule), a GROUP LABEL is an
+   eyebrow over a run of links (11px, uppercase, tracked, muted, one weight step
+   lighter so it never competes with the name), and a LINK is the thing you click
+   (14px, regular). The pathway used to be 15px against 14px links, which is not
+   a tier, and the eyebrow shared the name's 700. See buildSidebar for the other
+   half of this: a first group whose label only repeats the pathway is dropped. */
+.sidebar-label{font-size:.6875rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;margin:2rem 0 .5rem}
 .sidebar-label:first-child{margin-top:0}
 .sidebar-home{display:block;font-size:.8125rem;color:var(--muted)!important;margin-bottom:1rem;padding:0!important}
 .sidebar-home:hover{color:var(--green)!important;background:none!important}
@@ -2766,7 +2773,7 @@ ${LANDING_CSS}
    /--pale only), so every var(--dark) foreground is near-black on the dark panel.
    The docs headings solve it the same way one block up: repoint to --text. */
 [data-theme="dark"] .docs-search-hit .hit-h{color:var(--text)}
-.sidebar-pathway{font-size:.9375rem;font-weight:700;color:var(--dark);margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+.sidebar-pathway{font-size:1.0625rem;font-weight:700;letter-spacing:-.01em;color:var(--dark);margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
 .docs-sidebar a{display:flex;align-items:flex-start;gap:.5rem;padding:.3rem .5rem;font-size:.875rem;color:var(--text);border-radius:5px}
 .docs-sidebar a:hover{color:var(--green);background:var(--pale);text-decoration:none}
 .docs-sidebar a.active{color:var(--green);font-weight:600;background:var(--pale)}
@@ -5021,11 +5028,35 @@ function sidebarLinkHtml(lang: Lang, it: SideItem, activeHref: string, icon: boo
   return `<a href="${localeHref(lang, it.slug)}"${href === activeHref ? ' class="active"' : ''}>${ic}<span>${esc(t(it.label))}</span></a>`;
 }
 
+/**
+ * Does this group's heading just say the pathway's name again?
+ *
+ * Four of the five rails open with a group named after the rail: "For Creators"
+ * over "CREATORS", "Trust" over "TRUST". The reader gets the same word twice in
+ * two type sizes before a single link, which reads as a stutter and costs the
+ * eyebrow tier its meaning - an eyebrow that repeats the heading above it is not
+ * naming a group, it is decoration.
+ *
+ * Compared on the SOURCE strings, not on `t()` output: the "For " prefix is a
+ * fact about the English data, and whether a translation preserves it is not
+ * something this rule should depend on. The mobile rail used to compare the
+ * translated pair with `===`, which caught Trust and missed the three "For X"
+ * rails in every language.
+ */
+function repeatsPathwayTitle(groupLabel: string, pathwayTitle: string): boolean {
+  const bare = (v: string): string => v.replace(/^For\s+/i, '').trim().toLowerCase();
+  return bare(groupLabel) === bare(pathwayTitle);
+}
+
 function buildSidebar(lang: Lang, page: Page, activeHref: string) {
   const pathway: Pathway = page.pathway ?? 'builders';
   const sb = SIDEBARS[pathway];
-  const groups = sb.groups.map(g => {
+  const groups = sb.groups.map((g, i) => {
     const links = g.items.map(it => sidebarLinkHtml(lang, it, activeHref, true)).join('\n    ');
+    // The first group's links hang straight off the pathway heading when its own
+    // label would only say that heading again. Every later group keeps its
+    // eyebrow: those are the real divisions in the rail.
+    if (i === 0 && repeatsPathwayTitle(g.label, sb.title)) return links;
     return `<div class="sidebar-label">${esc(t(g.label))}</div>\n    ${links}`;
   }).join('\n    ');
   return `<aside class="docs-sidebar">
@@ -5046,16 +5077,19 @@ function buildSidebar(lang: Lang, page: Page, activeHref: string) {
  */
 function mobilePageNavHtml(lang: Lang, pathway: Pathway, activeHref: string) {
   const sb = SIDEBARS[pathway];
-  const groups = sb.groups.map(g =>
-    `<div class="nav-mobile-label">${esc(t(g.label))}</div>${
-      g.items.map(it => sidebarLinkHtml(lang, it, activeHref, false)).join('')}`,
+  const groups = sb.groups.map((g, i) =>
+    (i === 0 && repeatsPathwayTitle(g.label, sb.title)
+      ? ''
+      : `<div class="nav-mobile-label">${esc(t(g.label))}</div>`)
+    + g.items.map(it => sidebarLinkHtml(lang, it, activeHref, false)).join(''),
   ).join('');
-  // Drop the pathway title when the first group repeats it - the Trust pathway
-  // opens with a group also called "Trust", which rendered as "Trust" then
-  // "TRUST" and read as a stutter. The active link in the site nav directly above
-  // already names the pathway, so losing the heading costs nothing.
+  // Here the PATHWAY TITLE is the one that goes, not the group label: the site nav
+  // directly above already names the pathway with its active link, so the heading
+  // was the redundant half on this surface. `repeatsPathwayTitle` decides it, so
+  // the desktop rail and this one answer the same question the same way - the old
+  // `t(first) === t(sb.title)` caught Trust and missed the three "For X" rails.
   const first = sb.groups[0]?.label;
-  const title = first && t(first) === t(sb.title)
+  const title = first && repeatsPathwayTitle(first, sb.title)
     ? ''
     : `<div class="nav-mobile-title">${esc(t(sb.title))}</div>`;
   return `<div class="nav-mobile-page">${title}${groups}</div>`;

@@ -45,7 +45,7 @@ pnpm run ingest:brand <source> --name <brand> [--label "Label"] [--register|--ac
 
 ### Brand lock
 
-A brand's tokens asset can be marked authoritative (`brandLock` on its index entry). When locked, user-supplied tokens can't override the brand - `installUserTokens` is the single chokepoint and `isLocked()` the gate. The SUSE pack ships locked (its brand is non-overridable); `lolly-start` stays open so the blank-brand onboarding can write to it. Lock a pack when the brand must not drift; leave it open when you *want* end users to bring their own.
+A brand's tokens asset can be marked read-only (`brandLock` on its index entry). The SUSE pack ships locked; `lolly-start` stays open. The lock protects that design system's material. People can still create, select and edit their own local systems, or make an editable copy of a locked system. `isLocked()` follows the selected system, and `installUserTokens` refuses edits to locked material while allowing creation and sync writes to a separate record. Tools and exports use the selected design system.
 
 ## Capability gating (per tool)
 

@@ -6734,5 +6734,8 @@
   "↳ follows {role}": "↳ urmează {role}",
   "✓ Added": "✓ Adăugat",
   "✓ Found {n} tools at {base}.": "✓ S-au găsit {n} unelte la {base}.",
-  "＋ New project…": "＋ Proiect nou…"
+  "＋ New project…": "＋ Proiect nou…",
+  "Edit on the canvas": "Editează pe pânză",
+  "Position & size": "Poziție și dimensiune",
+  "Presence": "Prezență"
 }

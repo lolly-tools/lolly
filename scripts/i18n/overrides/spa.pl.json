@@ -684,5 +684,8 @@
   "“{name}”: this image is outside the design system’s declared asset IDs. It may be intentional.": "„{name}”: ten obraz nie należy do zadeklarowanych identyfikatorów zasobów systemu projektowego. Może to być zamierzone.",
   "“{name}”: {field} {value} is outside this design system. Suggested: {suggestion}.": "„{name}”: {field} {value} nie należy do tego systemu projektowego. Sugestia: {suggestion}.",
   "“{name}”: {value} does not resolve to a colour in this design system.": "„{name}”: {value} nie wskazuje koloru w tym systemie projektowym.",
-  "Restore brand settings": "Przywróć ustawienia marki"
+  "Restore brand settings": "Przywróć ustawienia marki",
+  "Edit on the canvas": "Edytuj na płótnie",
+  "Position & size": "Pozycja i rozmiar",
+  "Presence": "Obecność"
 }

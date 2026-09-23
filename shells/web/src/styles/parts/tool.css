@@ -905,15 +905,10 @@
    server is the hard gate. */
 .input-locked { display: block; opacity: .6; pointer-events: none; }
 
-/* The focus ring sits a few px outside the 16px button. The floating-label rule
-   clips .input-label (overflow:hidden, for long-label ellipsis), which crops that
-   ring top/bottom - so un-clip the label when it hosts a help button (selectors
-   mirror the floating-label rule's so this wins specificity) and move the
-   truncation onto the text span, which keeps long labels ellipsised. */
-.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"])):has(.help-tip-btn) .input-label,
-.input-row:not(.input-row--static-label):has(textarea):has(.help-tip-btn) .input-label {
-  overflow: visible;
-}
+/* Long labels ellipsise on the TEXT SPAN rather than on the label box, so a help
+   button sitting in the same label keeps its focus ring uncropped. The label box
+   itself no longer clips (the floating-label rule that clipped it is gone), but
+   the truncation stays on the span because that is where it belongs. */
 .input-label:has(.help-tip-btn) > .input-label-text {
   display: inline-block; max-width: 100%; vertical-align: middle;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -955,13 +950,15 @@
   .help-tip-host:has(.help-tip-btn:focus-visible) > .help-tip-pop { display: block; }
 }
 
-/* Base label - used for selects, checkboxes, asset-pickers, etc. */
+/* Base label - used for selects, checkboxes, asset-pickers, etc.
+   SMALLER than the section head above it (plans/273): an eyebrow is subordinate
+   to the group name, and at 11px against a 11px head it was not. */
 .input-label {
-  font-size: var(--fs-xs);
-  font-weight: 600;
+  font-size: var(--ui-type-field);
+  font-weight: var(--ui-type-weight-label);
   text-transform: uppercase;
   letter-spacing: var(--ui-type-tracking-label);
-  color: hsl(var(--muted-foreground));
+  color: var(--ui-color-text-muted);
 }
 
 /* A slider row's caption is one short line with its live value already sitting
@@ -999,108 +996,27 @@
   margin: 2px 0 6px;
 }
 
-/* ── Floating labels for text inputs and textareas ─────────────── */
+/* ── The label is ALWAYS above the control (plans/273, Andy 2026-09-23) ─────
+   There used to be a second idiom here: a floating label that sat inside a text
+   field at rest, looking like placeholder text, and lifted out on focus. It was
+   chosen by the input's TYPE, so 61 rows across the catalogue labelled
+   themselves one way and the other 882 the other, and 18 tools showed both in
+   one column. A reader could not predict which a row would use, and a floating
+   row read as having no label at all until it was focused - with its real
+   placeholder hidden (`color: transparent`) behind the label pretending to be
+   one. Both are gone; a single-line field now shows its placeholder, which is
+   the hint it was written to give.
 
-/* Resting state: label sits inside the field like placeholder text.
-   Rows tagged .input-row--static-label (e.g. the flatpickr datetime) opt out and
-   keep the plain static label above the field. */
-.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"])) .input-label,
-.input-row:not(.input-row--static-label):has(textarea) .input-label {
-  position: absolute;
-  left: 10px;
-  /* The vertical offset FOLLOWS THE TYPE instead of being a frozen number.
-     The field below is `1px border + 16px padding + one line box` and its line
-     box is `line-height 1.5 × var(--fs-md)` - the very same
-     font-size this label carries - so as the type grows the box grows with it
-     and a hardcoded `top` slides out of position (it drifted from 3.75px above
-     the field's centre to 5.7px at the large-text factor, and kept going).
+   The decision was "keep it for longtext", and that turned out to be a no-op:
+   `staticInputControl()` (views/inputs-sync.ts) has listed `textarea` since it
+   was written, so every textarea row already carried `.input-row--static-label`
+   and the 91 lines of `:has(textarea)` offset arithmetic could never match. It
+   is deleted rather than left standing, because unreachable CSS with tuned
+   magic numbers in it reads as a live constraint to whoever edits next.
 
-     Written as "today's value + a delta that is exactly 0 at --a11y-fs:1", not
-     as a fresh centring formula: 0.75em is HALF the field's line box, and
-     9.75px is that same half with no preference set, so the bracket cancels and
-     nothing moves for a user who never opted in.
-        --a11y-fs 1    →  23px + (9.75px − 9.75px) = 23px      (field centre 26.75px)
-        --a11y-fs 1.2  →  23px + (11.7px − 9.75px) = 24.95px   (field centre 28.7px)
-     The 3.75px the resting label already sits ABOVE the field's centre is
-     therefore preserved, not silently corrected - that offset predates this
-     work, it is what every text field in the product looks like today, and
-     changing it is a design decision, not an accessibility fix. A <textarea>
-     takes the same rule and wants exactly this behaviour: its label is pinned
-     near the top of a tall box, so tracking the FIRST line box is right there
-     too, where centring the box would not be.
-
-     line-height is restated rather than left to inherit (it is the same 1.5
-     that parts/base.css puts on <body>, so this changes nothing today) because
-     the em arithmetic above is only true while it holds. */
-  line-height: 1.5;
-  top: calc(23px + (0.75em - 9.75px));
-  transform: translateY(-50%);
-  font-size: var(--fs-md);
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-  color: hsl(var(--muted-foreground) / 0.9);
-  pointer-events: none;
-  transition:
-    top 0.15s ease,
-    transform 0.15s ease,
-    font-size 0.15s ease,
-    color 0.15s ease,
-    font-weight 0.15s ease,
-    letter-spacing 0.15s ease;
-  z-index: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: calc(100% - 20px);
-}
-
-/* Floating state - focused or has content */
-.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"]):focus) .input-label,
-.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"]):not(:placeholder-shown)) .input-label,
-.input-row:not(.input-row--static-label):has(textarea:focus) .input-label,
-.input-row:not(.input-row--static-label):has(textarea:not(:placeholder-shown)) .input-label {
-  /* BOTTOM-anchored, because what has to be protected here is the gap between
-     the micro-label and the value glyphs underneath it. The label's box hangs
-     DOWNWARD from `top` (1.5em tall, off its own 10px type), while the field's
-     value starts at a fixed 17px - 1px border + 16px padding - that does not
-     move. So a fixed `top` means every increase in the label's type is spent
-     eating into the value: the two ran ~0.75px clear at rest and overlapped by
-     ~1.1px at the large-text factor. Subtracting the line box's GROWTH holds
-     the label's lower edge where it is and lets it grow up into the padding.
-        --a11y-fs 1    →  max(2px, 7px − (15px − 15px)) = 7px
-        --a11y-fs 1.2  →  max(2px, 7px − (18px − 15px)) = 4px
-     Byte-identical with no preference set, and the clearance is preserved (in
-     fact recovered) with one. The max() floor is not reachable at either
-     factor; it is there so retuning the multiplier upward can never push the
-     label out through the field's top border. */
-  top: max(2px, 7px - (1.5em - 15px));
-  transform: translateY(0);
-  font-size: var(--fs-2xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: var(--ui-type-tracking-label);
-      color: hsl(var(--muted-foreground));
-}
-
-/* Highlight label on focus */
-.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"]):focus) .input-label,
-.input-row:not(.input-row--static-label):has(textarea:focus) .input-label {
-  color: hsl(var(--ring));
-}
-
-/* Hide placeholder in resting state - label acts as the visual placeholder.
-   Only reveal hint text once the label has floated up (on focus). */
-.input-row:not(.input-row--static-label) input:not([type="checkbox"]):not([type="color"]):not([type="range"])::placeholder,
-.input-row:not(.input-row--static-label) textarea::placeholder {
-  color: transparent;
-  transition: color var(--dur-1);
-}
-
-.input-row:not(.input-row--static-label) input:not([type="checkbox"]):not([type="color"]):not([type="range"]):focus::placeholder,
-.input-row:not(.input-row--static-label) textarea:focus::placeholder {
-  color: hsl(var(--muted-foreground) / 0.4);
-}
+   What stays is the taller line box below (`padding: 16px 14px`): the floating
+   offsets were derived FROM it, not the other way round, and every select in
+   the column is sized to match it. */
 
 /* Shared control appearance: the box itself is fields.css's `.field-input` /
    `.field-select`, which tool-inputs.ts puts on every text, textarea, date and
@@ -1331,6 +1247,61 @@
   white-space: normal;
   overflow-wrap: anywhere;
 }
+/* ── Option glyphs (plans/273) ─────────────────────────────────────────────
+   `options[].icon` has been in the manifest schema all along and only the
+   one-button `icon-toggle` ever drew it. A sixteen-option effect picker was
+   sixteen words and a family pill repeated twice each, which is a list to read
+   rather than a set to recognise. With a glyph per option the picker becomes
+   the large, scannable select the sidebar wanted: mark, then name, then the
+   badge for what the name cannot say (which output kind the effect produces).
+
+   The mark is decoration in the accessibility tree (`aria-hidden`) because the
+   label already names the option and the button already carries `role=radio`. */
+
+.badge-select-mark {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ui-color-text-muted);
+}
+.badge-select-mark svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+.badge-select-opt.is-on .badge-select-mark { color: var(--ui-color-action-primary); }
+
+/* A marked picker is a grid of CARDS rather than a stack of rows: the glyph
+   leads, the name sits under it, and the badge closes. Two-up is the same bet
+   the compact grid makes, so the two variants share a breakpoint. */
+.badge-select--marked {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-3);
+}
+.badge-select--marked .badge-select-opt {
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+}
+.badge-select--marked .badge-select-label {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+/* The card's own rhythm: mark, name, badge, each on its own line, and the name
+   takes the slack so a two-line name does not shove the badge out of line with
+   its neighbours. */
+.badge-select--marked .badge-select-opt > .badge-select-label { flex: 1 1 auto; }
+@media (max-width: 380px) {
+  .badge-select--marked { grid-template-columns: 1fr; }
+}
+html[data-a11y-text="large"] .badge-select--marked { grid-template-columns: 1fr; }
+/* A marked picker laid out one-up goes back to a row: glyph, name, badge. */
+@media (max-width: 380px) {
+  .badge-select--marked .badge-select-opt { flex-direction: row; align-items: center; }
+}
+
 /* Back to one column where two readable cells no longer fit - the same breakpoint
    and the same large-text opt-out the dense section grid below uses, since both
    are the same bet about how narrow a sidebar column can get. */
@@ -1397,9 +1368,10 @@ html[data-a11y-text="large"] .badge-select--compact {
 
 /* The datetime control renders a flatpickr-enhanced `.fp-datetime` text input
    (see controlHtml in tool.js) - it picks up the shared input-box styling above.
-   Its row carries .input-row--static-label so the label stays static rather than
-   floating: the panel re-renders on every keystroke and flatpickr re-populates
-   the value, which would otherwise make a floating label wobble each time. */
+   Its row carried .input-row--static-label to opt out of the retired floating
+   label, because the panel re-renders on every keystroke and flatpickr
+   re-populates the value, which made a floating label wobble each time. Every
+   label is static now, so the class is inert and the wobble cannot return. */
 
 /* ─── Flatpickr datetime picker ─────────────────────────────────────────── */
 /* These override flatpickr's base sheet (flatpickr.min.css, imported lazily in
@@ -1535,6 +1507,12 @@ span.flatpickr-weekday {
    this dense a context never asked for, so `.input-section` keeps its own
    rules rather than taking the literal `section-card` class. */
 
+/* The band divider inside the tool sidebar (panel.css owns its type; this is the
+   sidebar's own gutter and the negative first-child margin that keeps the first
+   label tight against the top of the column). */
+.tool-inputs > .lp-band-label { padding-inline: var(--sp-2); }
+.tool-inputs > .lp-band-label:first-child { padding-top: 0; }
+
 .input-section {
   /* A container, not a control: the hairline ring alone draws its edge (the
      section owns no border) and the corner is one step larger than the fields
@@ -1563,15 +1541,19 @@ span.flatpickr-weekday {
   padding: var(--sp-5) var(--sp-6);
   /* Match a sidebar <select>'s height (39.5px) so a collapsed section lines up
      with the dropdowns in the input list - minus the section's 2px border. */
-  min-height: 32px;
-  font-size: var(--fs-xs);
-  /* The section head is its own tier: same size as the field eyebrow, told apart
-     by weight and ink rather than size, so ten folded heads and five field labels
-     no longer read as one ladder (the Chart audit's first-time finding). */
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--ui-type-tracking-label);
-  color: hsl(var(--foreground) / .82);
+  min-height: var(--ui-size-target);
+  /* The section head is its own tier, and it is told apart from the eyebrow by
+     SIZE and CASE, not by a weight step (plans/273). The previous attempt kept
+     both at 11px uppercase and tracked and separated them by 700 against 600 and
+     .82 ink against muted; measured on the page, Chart's WHAT TO SHOW and its
+     COLOUR & STYLE read at one tier, and the only thing telling them apart was
+     the card ring. A group name is a NAME - sentence case, larger, full ink. The
+     eyebrow over one control stays the house uppercase mark, one size smaller
+     than the name above it. */
+  font-size: var(--ui-type-section);
+  font-weight: var(--ui-type-weight-section);
+  letter-spacing: normal;
+  color: var(--ui-color-text-default);
   cursor: pointer;
   user-select: none;
   list-style: none;
@@ -1580,7 +1562,7 @@ span.flatpickr-weekday {
    icon scale like every other mark, muted like the word beside it. */
 .input-section-title { display: inline-flex; align-items: center; gap: var(--sp-3); min-width: 0; }
 .input-section-icon { display: inline-flex; flex: none; opacity: .8; }
-.input-section-icon svg { width: var(--fs-lg); height: var(--fs-lg); }
+.input-section-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
 
 .input-section-summary:hover {
   color: hsl(var(--primary));
@@ -2222,7 +2204,8 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
    the segments read as a single pill. */
 
 /* The row's label is a static caption above the strip (isStaticLabel in
-   tool-inputs.ts adds .input-row--static-label for a vector), never the
+   tool-inputs.ts still adds the now-inert .input-row--static-label for a
+   vector), never the
    floating treatment: the fields are <input type=number> and a floating label
    would sit on the scrubbers. It used to be hidden outright, which left a row
    of bare numbers with nothing saying what they were. */

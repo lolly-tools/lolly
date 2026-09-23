@@ -99,7 +99,7 @@
 
 同樣在這個區塊裡,**建立你的調色盤**會根據主色產生相配的強調色。選擇一種**調和方式** - **互補色**、**鄰近色**、**三角色**、**四角色**或**類比色**(此選項會另外帶出 2 到 5 個的**強調色**數量,以及 10° 到 45° 的色相**角度**)- 每個候選色都會附上自動產生的易讀名稱與一個**+ 加入**按鈕。按下加入就會立即把該顏色放進你的調色盤,一按對應一個色彩權杖。*「你的調色盤,實際套用」*會在真實圖形上預覽整組配色。
 
-![產生的強調色,每個都有色塊、自動產生的名稱、十六進位色碼與一個加入按鈕](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
+![產生的強調色,每個都有色塊、自動產生的名稱、十六進位色碼與一個加入按鈕](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
 
 ### 套用已產生的調色盤
 
@@ -111,9 +111,9 @@
 
 右側面板會列出你品牌擁有的每個顏色,依群組排列(主色、中性色、次要色、光譜色、自訂、角色),每個群組都可摺疊,並各自有一個**+ 加入**。下方的**色表**可展開為同一組色塊的兩種檢視:**色輪**(OKLCH 色輪 - 拖曳圓點可重新上色,點按圓點可編輯,點按空白處可新增色塊)以及**色域**圖,顯示可顯示範圍實際的邊界所在。`#/start?area=color&focus=chart` 會直接開啟該卡片,`?wheel` 一直以來也是如此。
 
-![調色盤面板,每個群組都可摺疊,下載小圓鈕停靠在底部邊緣](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![調色盤面板,每個群組都可摺疊,下載小圓鈕停靠在底部邊緣](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
-![OKLCH 色輪 - 角度代表色相,離中心的距離代表彩度,灰階則沿側邊的明度軌道排列](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
+![OKLCH 色輪 - 角度代表色相,離中心的距離代表彩度,灰階則沿側邊的明度軌道排列](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
 點按任一色塊即可開啟其編輯器:
 

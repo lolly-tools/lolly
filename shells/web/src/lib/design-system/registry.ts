@@ -77,8 +77,7 @@ export interface DesignSystemRecord {
    *  is `${ns}tokens/brand`. */
   headId: string;
   source: DesignSystemSource;
-  /** Read-only material (plans/186 section 3.5, the material lock). The BUILD lock
-   *  is a different thing and stays on the catalog asset. */
+  /** Read-only material. The shipped record reflects its catalog's brandLock. */
   locked: boolean;
   /** A pack's `prefs.theme`, applied on switch when set. */
   appearance?: { theme?: 'light' | 'dark' | 'brand' };
@@ -159,7 +158,7 @@ export function createDesignSystemRegistry(db: RegistryDb, probe: RegistryProbe)
       ns: '',
       headId: catalog?.id ?? '',
       source: { kind: 'shipped' },
-      locked: false,
+      locked: catalog?.brandLock === true,
       createdAt: now,
       lastUsedAt: now,
     };
@@ -203,9 +202,15 @@ export function createDesignSystemRegistry(db: RegistryDb, probe: RegistryProbe)
       })().catch(() => { ensured = null; });
       return ensured;
     },
-    list() {
+    async list() {
       listMemo ??= api.ensure().then(readAll);
-      return listMemo;
+      const rows = await listMemo;
+      const catalog = await probe.catalogTokens().catch(() => null);
+      // A fresh registry can precede catalog sync. Read the shipped identity
+      // and lock from current metadata, including for records made before sync.
+      return rows.map(record => record.source.kind === 'shipped' && catalog
+        ? { ...record, headId: catalog.id, label: catalog.name ? stripTokensSuffix(catalog.name) : record.label, locked: catalog.brandLock === true }
+        : record);
     },
     async get(id) {
       return (await api.list()).find(r => r.id === id) ?? null;

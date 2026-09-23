@@ -686,5 +686,8 @@
   "“{name}”: this image is outside the design system’s declared asset IDs. It may be intentional.": "“{name}”: 이 이미지는 디자인 시스템에 선언된 에셋 ID에 속하지 않습니다. 의도적일 수 있습니다.",
   "“{name}”: {field} {value} is outside this design system. Suggested: {suggestion}.": "“{name}”: {field} {value}은(는) 이 디자인 시스템에 속하지 않습니다. 제안: {suggestion}.",
   "“{name}”: {value} does not resolve to a colour in this design system.": "“{name}”: {value}이(가) 이 디자인 시스템의 색상으로 확인되지 않습니다.",
-  "Restore brand settings": "브랜드 설정 복원"
+  "Restore brand settings": "브랜드 설정 복원",
+  "Edit on the canvas": "캔버스에서 편집",
+  "Position & size": "위치 및 크기",
+  "Presence": "연출"
 }

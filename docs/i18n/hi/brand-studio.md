@@ -99,7 +99,7 @@ primary के नीचे आपको लाइव **Primary / Neutral / Seco
 
 उसी विंग में, **Build your palette** आपके प्राइमरी रंग से मेल खाते एक्सेंट रंग जनरेट करता है। एक **Harmony** चुनें - **Complementary**, **Adjacent**, **Triad**, **Tetrad** या **Analogous** (जो अपनी खुद की **Accents** संख्या, 2 से 5, और 10° से 45° तक की हू **Angle** लाता है) - और हर उम्मीदवार के साथ ऑटो-जनरेटेड, पढ़ने योग्य नाम और एक **+ Add** बटन आता है। एक को जोड़ने से वह रंग तुरंत आपके पैलेट में आ जाता है, एक टोकन के लिए एक प्रेस। *"Your palette, applied"* पूरे सेट को असली ग्राफ़िक्स पर प्रीव्यू करता है।
 
-![जनरेट किए गए एक्सेंट, हर एक के साथ एक स्वैच, ऑटो-जनरेटेड नाम, उसका हेक्स और एक Add बटन](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
+![जनरेट किए गए एक्सेंट, हर एक के साथ एक स्वैच, ऑटो-जनरेटेड नाम, उसका हेक्स और एक Add बटन](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
 
 ### जनरेट किया गया पैलेट कमिट करना
 
@@ -111,9 +111,9 @@ primary के नीचे आपको लाइव **Primary / Neutral / Seco
 
 दायाँ पैनल आपके ब्रांड के हर रंग को सूचीबद्ध करता है, समूहों में (Primary, Neutral, Secondary, Spectrum, Custom, Roles), हर समूह अपने **+ Add** के साथ फोल्ड होने योग्य। इसके नीचे, **Colour chart** उन्हीं स्वैच के दो व्यू पर खुलता है: **Wheel** (OKLCH व्हील - किसी बिंदु को घसीटकर उसका रंग बदलें, बिंदु पर क्लिक करके उसे संपादित करें, या खाली जगह पर क्लिक करके नया स्वैच जोड़ें) और **Gamut** चार्ट, जो दिखाता है कि प्रदर्शन योग्य सीमा वास्तव में कहाँ खत्म होती है। `#/start?area=color&focus=chart` कार्ड को सीधे खोलता है, जैसे `?wheel` हमेशा से करता आया है।
 
-![पैलेट पैनल, हर समूह फोल्ड होने योग्य, डाउनलोड पिल इसके निचले किनारे पर टिका हुआ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![पैलेट पैनल, हर समूह फोल्ड होने योग्य, डाउनलोड पिल इसके निचले किनारे पर टिका हुआ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
-![OKLCH व्हील - कोण ह्यू है, बाहर की दूरी क्रोमा है और ग्रे साइड में एक लाइटनेस रेल पर सवार हैं](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
+![OKLCH व्हील - कोण ह्यू है, बाहर की दूरी क्रोमा है और ग्रे साइड में एक लाइटनेस रेल पर सवार हैं](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
 किसी भी स्वैच पर क्लिक करके उसका एडिटर खोलें:
 

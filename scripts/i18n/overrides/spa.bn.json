@@ -556,5 +556,8 @@
   "Export visible text only": "শুধু দৃশ্যমান টেক্সট এক্সপোর্ট করুন",
   "Allow an intentionally clipped export. Text beyond fixed frames and unplaced stories is omitted; the full source stays in your document.": "ইচ্ছাকৃতভাবে ছাঁটা এক্সপোর্টের অনুমতি দিন। নির্দিষ্ট ফ্রেমের বাইরের লেখা ও এখনও স্থাপন না করা সংযুক্ত লেখা বাদ যায়; পুরো উৎস আপনার ডকুমেন্টে থাকে।",
   "Text in Design": "Design-এ টেক্সট",
-  "Authored text composition": "রচিত লেখার বিন্যাস"
+  "Authored text composition": "রচিত লেখার বিন্যাস",
+  "Edit on the canvas": "ক্যানভাসে সম্পাদনা করুন",
+  "Position & size": "অবস্থান ও আকার",
+  "Presence": "উপস্থিতি"
 }

@@ -99,7 +99,7 @@ Overview وہ کمرہ ہے جہاں آپ پہنچتے ہیں، اور اس کے
 
 اسی ونگ میں، **Build your palette** آپ کے پرائمری رنگ سے ملتے جلتے ایکسنٹ رنگ تیار کرتا ہے۔ ایک **Harmony** منتخب کریں - **Complementary**، **Adjacent**، **Triad**، **Tetrad** یا **Analogous** (جو اپنا **Accents** شمار لاتا ہے، 2 سے 5 تک، اور 10° سے 45° تک کا ہیو **Angle**) - اور ہر امیدوار کے ساتھ ایک خودکار طور پر تیار کردہ انسانی پڑھنے کے قابل نام اور ایک **+ Add** بٹن آتا ہے۔ کسی کو شامل کرنے سے وہ رنگ فوراً آپ کے پیلیٹ میں شامل ہو جاتا ہے، ایک پریس ایک ٹوکن کے برابر۔ *"Your palette, applied"* پورے سیٹ کو حقیقی گرافکس پر پیش کرتا ہے۔
 
-![تیار کردہ ایکسنٹس، ہر ایک سویچ، ایک خودکار طور پر تیار کردہ نام، اس کا ہیکس اور ایک Add بٹن کے ساتھ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
+![تیار کردہ ایکسنٹس، ہر ایک سویچ، ایک خودکار طور پر تیار کردہ نام، اس کا ہیکس اور ایک Add بٹن کے ساتھ](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
 
 ### تیار شدہ پیلیٹ کو کمٹ کرنا
 
@@ -111,9 +111,9 @@ Overview وہ کمرہ ہے جہاں آپ پہنچتے ہیں، اور اس کے
 
 دائیں پین آپ کے برانڈ کے ہر رنگ کی فہرست دیتا ہے، گروپس میں (Primary، Neutral، Secondary، Spectrum، Custom، Roles)، ہر گروپ اپنے **+ Add** کے ساتھ فولڈ ایبل ہے۔ اس کے نیچے، **Colour chart** انہی سویچز کے دو ویوز پر فولڈ کھلتا ہے: **Wheel** (OKLCH وہیل - کسی ڈاٹ کو گھسیٹ کر اس کا رنگ بدلیں، کسی ڈاٹ پر کلک کر کے اسے ایڈٹ کریں یا خالی جگہ پر کلک کر کے نیا سویچ ڈراپ کریں) اور **Gamut** چارٹ، جو دکھاتا ہے کہ ڈسپلے کے قابل رینج اصل میں کہاں ختم ہوتی ہے۔ `#/start?area=color&focus=chart` کارڈ کو براہ راست کھولتا ہے، جیسا کہ `?wheel` ہمیشہ سے کرتا ہے۔
 
-![پیلیٹ پین، ہر گروپ فولڈ ایبل، ڈاؤن لوڈ پِل اس کے نیچے کنارے پر رکھا ہوا](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![پیلیٹ پین، ہر گروپ فولڈ ایبل، ڈاؤن لوڈ پِل اس کے نیچے کنارے پر رکھا ہوا](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
-![OKLCH وہیل - زاویہ ہیو ہے، باہر کا فاصلہ کروما ہے اور گرے رنگ سائیڈ پر ایک لائٹنس ریل کے ساتھ چلتے ہیں](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
+![OKLCH وہیل - زاویہ ہیو ہے، باہر کا فاصلہ کروما ہے اور گرے رنگ سائیڈ پر ایک لائٹنس ریل کے ساتھ چلتے ہیں](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
 کسی بھی سویچ پر کلک کر کے اس کا ایڈیٹر کھولیں:
 

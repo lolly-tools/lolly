@@ -686,5 +686,8 @@
   "“{name}”: the {field} could not be compared with the selected design system.": "«{name}»: {field} kunne ikke sammenlignes med det valgte designsystemet.",
   "“{name}”: this image is outside the design system’s declared asset IDs. It may be intentional.": "«{name}»: dette bildet er utenfor designsystemets erklærte ressurs-ID-er. Det kan være tilsiktet.",
   "“{name}”: {field} {value} is outside this design system. Suggested: {suggestion}.": "«{name}»: {field} {value} er utenfor dette designsystemet. Forslag: {suggestion}.",
-  "Restore brand settings": "Gjenopprett merkevareinnstillinger"
+  "Restore brand settings": "Gjenopprett merkevareinnstillinger",
+  "Edit on the canvas": "Rediger på lerretet",
+  "Position & size": "Posisjon og størrelse",
+  "Presence": "Presentasjon"
 }

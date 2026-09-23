@@ -364,6 +364,18 @@ export interface ShotDef {
    * Forwarded to renderSvgFromHtml via ExportOpts.rasterDpi; ignored on raster/print paths.
    */
   rasterDpi?: number;
+  /**
+   * Walker-SVG only: keep `[data-export-hide]` editor chrome in the walk
+   * (`chrome=1`). Forwarded to renderSvgFromHtml via ExportOpts.keepEditorChrome.
+   *
+   * Every export strips that chrome, so a shot whose SUBJECT is a control - an
+   * Inspector over a selected frame, the handles on path text, the reading-order
+   * connectors between linked frames - could only ever be a bitmap. Five recipes
+   * were allowlisted in tests/docs-shots-vector.test.ts for exactly that, each with
+   * the note "re-check when docs capture can opt INTO export-hidden chrome".
+   * Ignored on raster and print paths.
+   */
+  chrome?: boolean;
   waitMs?: number;
   /**
    * Block the capture until this selector matches (after waitMs, before scroll or
@@ -620,6 +632,7 @@ export function parseShotRecipes(md: string): { recipes: ShotDef[]; problems: st
       localize: q.get('localize') === '1' || q.get('localize') === 'true',
       dark: q.get('dark') === '1' || q.get('dark') === 'true',
       walker: q.get('walker') === '1' || q.get('walker') === 'true',
+      chrome: q.get('chrome') === '1' || q.get('chrome') === 'true',
     });
   }
   return { recipes, problems };

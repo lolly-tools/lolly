@@ -64,6 +64,33 @@ test('a device with a legacy user head migrates to a default record under user/ 
   assert.equal(await reg.activeId(), 'default');
 });
 
+test('shipped lock metadata updates existing records without locking local systems', async () => {
+  const db = memDb();
+  const catalog = { id: 'lolly/tokens/brand', brandLock: true };
+  const reg = createDesignSystemRegistry(db, probe({ catalog, legacy: { meta: { name: 'Mine' } } }));
+  assert.equal((await reg.get('shipped'))?.locked, true);
+  assert.equal((await reg.active()).locked, false);
+  const shipped = (await reg.get('shipped'))!;
+  await db.put(DESIGN_SYSTEMS_STORE, { ...shipped, locked: false });
+  reg.bust();
+  assert.equal((await reg.get('shipped'))?.locked, true, 'older records inherit the current catalog lock');
+  catalog.brandLock = false;
+  reg.bust();
+  assert.equal((await reg.get('shipped'))?.locked, false);
+  assert.equal((await reg.active()).id, 'default');
+});
+
+test('a catalog arriving after migration supplies the shipped identity and lock', async () => {
+  let catalog: { id: string; name: string; brandLock: boolean } | null = null;
+  const reg = createDesignSystemRegistry(memDb(), { catalogTokens: async () => catalog, legacyHead: async () => null });
+  assert.equal((await reg.active()).headId, '');
+  catalog = { id: 'suse/tokens/brand', name: 'SUSE Brand Tokens', brandLock: true };
+  const shipped = await reg.active();
+  assert.equal(shipped.headId, catalog.id);
+  assert.equal(shipped.label, 'SUSE');
+  assert.equal(shipped.locked, true);
+});
+
 test('the placeholder name "Brand tokens" is not carried as a label', async () => {
   const reg = createDesignSystemRegistry(memDb(), probe({ legacy: { meta: { name: 'Brand tokens' } } }));
   assert.equal((await reg.get('default'))!.label, 'My design system');

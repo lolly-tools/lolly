@@ -6734,5 +6734,8 @@
   "↳ follows {role}": "↳ يتبع {role}",
   "✓ Added": "✓ تمت الإضافة",
   "✓ Found {n} tools at {base}.": "✓ تم العثور على {n} أداة في {base}.",
-  "＋ New project…": "＋ مشروع جديد…"
+  "＋ New project…": "＋ مشروع جديد…",
+  "Edit on the canvas": "تحرير على اللوحة",
+  "Position & size": "الموضع والحجم",
+  "Presence": "الظهور"
 }

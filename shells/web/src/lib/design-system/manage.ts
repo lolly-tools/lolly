@@ -83,8 +83,8 @@ export async function createDesignSystem(
     lastUsedAt: now,
   };
   await registry.put(record);
-  // The head write goes through the chokepoint so the build lock, the quota and
-  // the record label all apply exactly as for any other install.
+  // Target the new record so the outgoing system's lock cannot block creation.
+  // The quota and record label apply as for any other install.
   await installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], doc, { system: id, label });
   return record;
 }

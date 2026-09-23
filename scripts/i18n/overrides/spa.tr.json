@@ -684,5 +684,8 @@
   "Preview a suggested palette before applying it. Font names and marks remain yours to review.": "Önerilen paleti uygulamadan önce önizleyin. Yazı tipi adlarını ve marka işaretlerini sizin incelemeniz gerekir.",
   "Preview contrast: text {text}:1, action {action}:1.": "Önizleme kontrastı: metin {text}:1, işlem {action}:1.",
   "Reorder colours": "Renkleri yeniden sırala",
-  "Restore brand settings": "Marka ayarlarını geri yükle"
+  "Restore brand settings": "Marka ayarlarını geri yükle",
+  "Edit on the canvas": "Tuvalde düzenle",
+  "Position & size": "Konum ve boyut",
+  "Presence": "Hareket"
 }

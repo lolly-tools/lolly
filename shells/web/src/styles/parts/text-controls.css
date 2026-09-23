@@ -22,7 +22,7 @@
 .text-controls .text-control-action > svg { flex-shrink: 0; }
 .text-controls .text-control-icon { min-width: var(--ui-size-target); padding-inline: calc(var(--ui-space-control-inline) / 2); }
 .text-controls button[aria-pressed="true"] { background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); box-shadow: var(--ui-effect-selected); }
-.text-controls button[aria-pressed="mixed"] { background: var(--ui-color-selection-surface); outline: 1px dashed var(--ui-color-border-default); }
+.text-controls button[aria-pressed="mixed"] { background: color-mix(in srgb, var(--ui-color-selection-surface) 55%, transparent); box-shadow: var(--ui-effect-accent-ring); }
 .text-controls .text-control-toolbar { display: flex; align-items: center; gap: var(--ui-space-control-inline); flex-wrap: wrap; }
 .text-controls .text-control-toolbar > .text-control-choices { flex: 1; }
 .text-controls [data-text-format="weight"] { font-weight: 800; }
@@ -57,3 +57,70 @@
 
 .text-color-control { flex: 0 0 var(--ui-size-target); width: var(--ui-size-target); }
 .text-color-control .color-trigger { min-width: var(--ui-size-target); min-height: var(--ui-size-target); }
+
+/* ── Inside a panel, these rows are PANEL rows (plans/273) ──────────────────
+   `mountTextInspector` is the Inspector's Text section for a composed story, and
+   it brought its own row shape with it: a proportional 1fr/1.3fr split and a
+   sentence-case label at --ui-type-label. Beside the `.fc-row` rows in the same
+   column that was a fourth label idiom and a second control column, so a reader
+   scrolling one panel crossed two grids.
+
+   Scoped to `.lp-rows` on purpose: the same controls also mount in the canvas
+   text bar, which is a different surface with its own density and is out of this
+   pass's scope. Inside a panel they take the panel's label column (derived from
+   `--lp-label`, exactly as design-inspector.css derives it for `.fc-row`), the
+   panel's eyebrow tier, and the panel's one control height. */
+
+.lp-rows .text-controls :is(.text-control-row, .fc-row) {
+  grid-template-columns: calc(var(--lp-label) + var(--ui-size-icon-sm) + var(--sp-2)) minmax(0, 1fr);
+  gap: var(--sp-2);
+  margin-block: 0;
+  min-height: var(--ui-size-control);
+}
+.lp-rows .text-controls > * + * { margin-block-start: var(--sp-3); }
+.lp-rows .text-controls :is(.text-control-row, .fc-row) > span:first-child {
+  font-size: var(--ui-type-field);
+  font-weight: var(--ui-type-weight-label);
+  text-transform: uppercase;
+  letter-spacing: var(--ui-type-tracking-label);
+  color: var(--ui-color-text-muted);
+  overflow-wrap: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* The two-up cell (Size / Weight) stacks its own label, so it keeps the eyebrow
+   but drops the fixed label column. */
+.lp-rows .text-controls .text-control-grid { gap: var(--sp-2); }
+.lp-rows .text-controls .text-control-grid > .text-control-row {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--sp-1);
+  min-height: 0;
+}
+.lp-rows .text-controls .text-control-grid > .text-control-row > span {
+  font-size: var(--ui-type-field);
+  font-weight: var(--ui-type-weight-label);
+  text-transform: uppercase;
+  letter-spacing: var(--ui-type-tracking-label);
+  color: var(--ui-color-text-muted);
+}
+.lp-rows .text-controls :is(.field-input, .field-select, .num-field) {
+  height: var(--ui-size-control);
+  min-height: var(--ui-size-control);
+  padding-block: 0;
+}
+/* A checkbox row keeps its label on the left and the tick on the right, at the
+   row height the rest of the column uses rather than the 44px touch target. */
+.lp-rows .text-controls :is(.text-control-row, .fc-row):has(> input[type="checkbox"]) {
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: var(--ui-size-control);
+}
+/* The caption above the fields ("Entire selected stories") is help, not a heading. */
+.lp-rows .text-controls > p { font-size: var(--ui-type-help); }
+@media (any-pointer: coarse) {
+  .lp-rows .text-controls :is(.field-input, .field-select, .num-field),
+  .lp-rows .text-controls :is(.text-control-row, .fc-row):has(> input[type="checkbox"]) {
+    height: auto;
+    min-height: var(--ui-size-target);
+  }
+}

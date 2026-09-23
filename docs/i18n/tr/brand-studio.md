@@ -99,7 +99,7 @@ Birincilin altında canlı **Primary / Neutral / Secondary / Blend** tonlarını
 
 Aynı kanatta, **Paletini oluştur** birincil renginden eşleşen vurgu renkleri üretir. Bir **Uyum** seç - **Tümleyici**, **Komşu**, **Üçlü**, **Dörtlü** ya da **Analog** (kendi **Vurgular** sayısını, 2 ila 5 arası, ve 10°-45° arasında bir ton **Açısı** getirir) - ve her aday, otomatik oluşturulmuş okunabilir bir adla ve bir **+ Ekle** düğmesiyle gelir. Birini eklemek o rengi paletine anında koyar, bir basış bir token'a karşılık gelir. *"Paletin, uygulanmış hali"* bütün seti gerçek grafikler üzerinde önizler.
 
-![Üretilen vurgular, her biri bir renk örneği, otomatik oluşturulmuş bir ad, hex kodu ve bir Ekle düğmesiyle](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
+![Üretilen vurgular, her biri bir renk örneği, otomatik oluşturulmuş bir ad, hex kodu ve bir Ekle düğmesiyle](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
 
 ### Üretilen bir paleti onaylamak
 
@@ -111,9 +111,9 @@ O kart üzerindeki **Paleti değiştir** işlemi onaylar; **İptal** vazgeçer v
 
 Sağ bölme markanın taşıdığı her rengi listeler, gruplanmış halde (Birincil, Nötr, İkincil, Spektrum, Özel, Roller), her grup kendi **+ Ekle** düğmesiyle katlanabilir. Altında, **Renk çizelgesi** aynı renk örneklerinin iki görünümüyle açılır: **Çark** (OKLCH çarkı - yeniden renklendirmek için bir noktayı sürükle, düzenlemek için bir noktaya tıkla ya da yeni bir renk örneği koymak için boş alana tıkla) ve **Gamut** çizelgesi, görüntülenebilir aralığın gerçekte nerede bittiğini gösterir. `#/start?area=color&focus=chart`, kartı `?wheel`'in her zaman yaptığı gibi doğrudan açar.
 
-![Palet bölmesi, her grup katlanabilir, indirme hapı alt kenarda park etmiş](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![Palet bölmesi, her grup katlanabilir, indirme hapı alt kenarda park etmiş](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
-![OKLCH çarkı - açı ton, dıştaki mesafe doygunluk ve griler yan tarafta bir açıklık rayında ilerliyor](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
+![OKLCH çarkı - açı ton, dıştaki mesafe doygunluk ve griler yan tarafta bir açıklık rayında ilerliyor](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
 Düzenleyicisini açmak için herhangi bir renk örneğine tıkla:
 

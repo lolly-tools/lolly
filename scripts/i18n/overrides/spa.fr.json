@@ -556,5 +556,8 @@
   "Export visible text only": "Exporter uniquement le texte visible",
   "Allow an intentionally clipped export. Text beyond fixed frames and unplaced stories is omitted; the full source stays in your document.": "Autoriser une exportation intentionnellement tronquée. Le texte au-delà des cadres fixes et des articles non placés est omis ; la source complète reste dans ton document.",
   "Text in Design": "Texte dans Design",
-  "Authored text composition": "Composition du texte créé"
+  "Authored text composition": "Composition du texte créé",
+  "Edit on the canvas": "Modifier sur le canevas",
+  "Position & size": "Position et taille",
+  "Presence": "Présence"
 }

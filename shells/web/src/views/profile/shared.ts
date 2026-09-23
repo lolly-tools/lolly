@@ -8,6 +8,7 @@
  */
 import type { AssetRef, AssetsAPI, HostV1, Profile, ProfileAPI } from '@lolly-tools/core/host-v1';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
+import { isTauriShell } from '../../lib/instance-choice.ts';
 import { t } from '../../i18n.ts';
 import { mountModal } from '../../components/modal.ts';
 import type { ModalHandle } from '../../components/modal.ts';
@@ -180,13 +181,17 @@ export const NAV_SECTIONS: ReadonlyArray<ProfileNavSection> = [
   { id: 'renders-section', icon: 'image', label: 'Your renders', keywords: 'renders downloads library save copy export tag auto-save' },
   { id: 'storage-section', icon: 'package', label: 'Storage', keywords: 'storage data space sessions images clear export delete' },
   { id: 'offline-section', icon: 'download', label: 'Available offline', keywords: 'offline download pwa install cache' },
-  // Desktop shells only (plans/174) - the row hides itself elsewhere, but the
-  // search keywords stay registered so a "hot folder" query still finds it.
+  // The rail and search omit this alongside its form outside Tauri.
   { id: 'hotfolder-section', icon: 'download', label: 'Hot folder', keywords: 'hot folder watch auto import ingest desktop drop directory' },
   { id: 'activity-section', icon: 'history', label: 'Your activity', keywords: 'activity usage metrics stats history recent' },
   { id: 'feature-flags-section', icon: 'flask', label: 'Feature flags', keywords: 'features experimental beta jelly neurospicy flags toggles' },
   { id: 'instance-section', icon: 'globe', label: 'Lolly instance', keywords: 'instance server source tools catalogue connect disconnect' },
 ];
+
+/** Match navigation and search to the sections available in this shell. */
+export function visibleProfileSections(): ReadonlyArray<ProfileNavSection> {
+  return NAV_SECTIONS.filter(s => s.id !== 'hotfolder-section' || isTauriShell());
+}
 
 // One collapsed card header: the section title, a short right-aligned value
 // preview, then the chevron (plans/163 section 4.1). The value is what turns a

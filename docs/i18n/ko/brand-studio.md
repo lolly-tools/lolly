@@ -99,7 +99,7 @@ Overview는 처음 도착하는 룸이며, 두 가지 얼굴을 갖고 있습니
 
 같은 구역에서, **팔레트 만들기**는 기본 색상에서 어울리는 강조 색상을 생성합니다. **하모니**를 선택하세요 - **보색**, **인접색**, **삼색조**, **사색조** 또는 **유사색**(각각 2~5개의 **강조색** 수와 10°에서 45°까지의 색상 **각도**를 갖습니다) - 각 후보는 자동 생성된 읽기 쉬운 이름과 **+ 추가** 버튼과 함께 제공됩니다. 하나를 추가하면 그 색상이 즉시 팔레트에 들어갑니다, 한 번의 누름이 하나의 토큰이 됩니다. *"적용된 내 팔레트"*는 전체 세트를 실제 그래픽에 미리 보여줍니다.
 
-![생성된 강조 색상들, 각각 견본, 자동 생성된 이름, 헥스 값과 추가 버튼을 갖춤](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
+![생성된 강조 색상들, 각각 견본, 자동 생성된 이름, 헥스 값과 추가 버튼을 갖춤](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
 
 ### 생성된 팔레트 적용하기
 
@@ -111,9 +111,9 @@ Overview는 처음 도착하는 룸이며, 두 가지 얼굴을 갖고 있습니
 
 오른쪽 패널에는 브랜드가 가진 모든 색상이 그룹별(기본, 중립, 보조, 스펙트럼, 사용자 지정, 역할)로 나열되며, 각 그룹은 자체 **+ 추가** 버튼과 함께 접고 펼 수 있습니다. 그 아래 **색상 차트**는 같은 견본들을 두 가지 보기로 펼쳐 보여줍니다: **휠**(OKLCH 휠 - 점을 드래그해 색을 바꾸거나, 점을 클릭해 편집하거나, 빈 공간을 클릭해 새 견본을 추가할 수 있습니다)과 표시 가능한 범위가 실제로 어디서 끝나는지 보여주는 **색역** 차트입니다. `#/start?area=color&focus=chart`는 이 카드를 바로 열며, `?wheel`도 늘 그래왔습니다.
 
-![팔레트 패널, 모든 그룹을 접고 펼 수 있으며, 하단 가장자리에 다운로드 필이 고정되어 있음](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
+![팔레트 패널, 모든 그룹을 접고 펼 수 있으며, 하단 가장자리에 다운로드 필이 고정되어 있음](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
-![OKLCH 휠 - 각도는 색상, 바깥쪽 거리는 채도이며 회색은 옆쪽의 명도 레일을 따라 배치됨](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A500%3Bclick%3A%5Bdata-be-generate-cta-go%5D%3Bwait%3A900%3Bclick%3A%5Bdata-be-replace-palette%5D%3Bwait%3A800%3Bclick%3A%5Bdata-be-review-go%5D%3Bwait%3A1400%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
+![OKLCH 휠 - 각도는 색상, 바깥쪽 거리는 채도이며 회색은 옆쪽의 명도 레일을 따라 배치됨](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=2400&css=.start-head%2C.be-pal%2C.be-gradients%7Bdisplay%3Anone%7D&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200%3Bclick%3A%5Bdata-be-chart%5D%20summary%3Bwait%3A900&cropSelector=.be-pal-wheel&walker=1&format=svg&dark=1&filename=bs-colour-wheel)
 
 견본을 클릭하면 편집기가 열립니다:
 

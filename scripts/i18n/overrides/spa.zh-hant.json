@@ -556,5 +556,8 @@
   "Export visible text only": "僅匯出可見文字",
   "Allow an intentionally clipped export. Text beyond fixed frames and unplaced stories is omitted; the full source stays in your document.": "允許有意裁切的匯出。固定文字框外的文字和未放置的文字流會被省略；完整原始內容仍保留在文件中。",
   "Text in Design": "Design 中的文字",
-  "Authored text composition": "創作文字排版"
+  "Authored text composition": "創作文字排版",
+  "Edit on the canvas": "在畫布上編輯",
+  "Position & size": "位置與大小",
+  "Presence": "動效"
 }

@@ -549,5 +549,8 @@
   "Export visible text only": "Exportă doar textul vizibil",
   "Allow an intentionally clipped export. Text beyond fixed frames and unplaced stories is omitted; the full source stays in your document.": "Permite un export decupat intenționat. Textul din afara cadrelor fixe și fluxurile neplasate sunt omise; sursa completă rămâne în document.",
   "Text in Design": "Text în Design",
-  "Authored text composition": "Compunerea textului creat"
+  "Authored text composition": "Compunerea textului creat",
+  "Edit on the canvas": "Editează pe pânză",
+  "Position & size": "Poziție și dimensiune",
+  "Presence": "Prezență"
 }

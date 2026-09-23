@@ -686,5 +686,8 @@
   "“{name}”: {field} {value} is outside this design system. Suggested: {suggestion}.": "„{name}“: {field} {value} е извън тази дизайн система. Предложение: {suggestion}.",
   "“{name}”: {value} does not resolve to a colour in this design system.": "„{name}“: {value} не съответства на цвят в тази дизайн система.",
   "Use {colour}": "Използвай {colour}",
-  "Restore brand settings": "Възстанови настройките на марката"
+  "Restore brand settings": "Възстанови настройките на марката",
+  "Edit on the canvas": "Редактирай в платното",
+  "Position & size": "Позиция и размер",
+  "Presence": "Присъствие"
 }

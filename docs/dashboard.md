@@ -22,7 +22,7 @@ Each section has its own address. Existing `#/profile` and `#/d` links still wor
 
 The brand as it is actually loaded, rendered wearing its own variables: the name, the horizontal logo, the primary colour as a copyable value and the faces currently loaded on the device. Below the hero sit the palette on a hue/chroma wheel (greys have no hue, so they ride a lightness rail beside it), a live type specimen, the full colour palette, the brand token primitives - radius, spacing, effects, gradients - and a print and CMYK reference panel.
 
-**Nothing on this tab writes brand state.** It is a mirror: the editing happens in the [Brand Studio](/info/brand-studio.html) at `#/start`, and the tab links there from the hero and from the tokens section. On a brand-locked build there is nothing to edit at all, and a **Brand locked** panel says so - the brand ships with the build, comes from the catalogue and is authoritative on that install.
+**Nothing on this tab writes brand state.** It is a mirror: the editing happens in the [Brand Studio](/info/brand-studio.html) at `#/start`, and the tab links there from the hero and from the tokens section. A **Brand locked** panel identifies a read-only design system. The lock applies to the selected system; local systems you create remain editable.
 
 Theme and sound are in [Preferences](/info/profile.html), within the same Settings section.
 
