@@ -24,15 +24,22 @@
 .emoji-set-size { display: flex; align-items: center; gap: 8px; }
 .emoji-set-size input { width: 90px; accent-color: hsl(var(--primary)); }
 .emoji-set-count { color: hsl(var(--muted-foreground)); margin: 10px 0 0; }
-.emoji-set-scroll { min-height: 0; flex: 1; overflow: auto; overscroll-behavior: contain; padding: 6px 18px 18px; }
-.emoji-set-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--emoji-set-cell), 1fr)); gap: 8px; }
+.emoji-set-scroll { min-height: 0; flex: 1; overflow: auto; overscroll-behavior: contain; padding:  var(--sp-2); }
+.emoji-set-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--emoji-set-cell)*1.5), 1fr)); gap: 8px; }
 .emoji-set-cell.btn {
-  aspect-ratio: 1; width: 100%; min-width: 0; padding: 8px;
+  aspect-ratio: 1; width: 100%; min-width: 0; padding: var(--sp-1);
   border: 2px solid transparent; border-radius: var(--radius);
-  /* Original black artwork remains visible in either application theme. */
-  background: #fff; box-shadow: none; cursor: pointer;
+  box-shadow: none; cursor: pointer;
 }
-.emoji-set-cell.btn:hover { background: #f1f5f9; border-color: hsl(var(--muted-foreground)); }
+/* A single-ink glyph is drawn INLINE and its paints are bound to `currentColor`
+   (lib/emoji-set.ts), so the one thing it needs from CSS is a text colour. Monochrome
+   sets then read in both themes on the page's own surface, which is what retires the
+   white plate that used to sit behind every cell to keep black artwork visible. */
+.emoji-set-cell.is-ink, .emoji-set-large.is-ink { color: hsl(var(--foreground)); }
+.emoji-set-cell.is-ink > svg, .emoji-set-large.is-ink > svg {
+  display: block; width: 100%; height: 100%;
+}
+.emoji-set-cell.btn:hover {  border-color: hsl(var(--muted-foreground)); }
 .emoji-set-cell.btn[aria-pressed="true"] { border-color: hsl(var(--primary)); box-shadow: 0 0 0 1px hsl(var(--primary)); }
 .emoji-set-browser :focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 .emoji-set-cell img, .emoji-set-large img { display: block; width: 100%; height: 100%; object-fit: contain; }
@@ -48,6 +55,10 @@
   flex: 0 0 96px; width: 96px; height: 96px; padding: 10px;
   display: grid; place-items: center; background: #fff; border-radius: var(--radius);
 }
+/* Colour artwork keeps its white plate - it was drawn for one - but ink artwork
+   takes the panel's own surface so it follows the theme rather than being pinned
+   to black-on-white in the middle of a dark sheet. */
+.emoji-set-large.is-ink { background: transparent; }
 .emoji-set-info { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
 .emoji-set-info strong, .emoji-set-info code { flex-basis: 100%; overflow-wrap: anywhere; }
 .emoji-set-info code { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }

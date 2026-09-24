@@ -48,6 +48,7 @@
     "onnxruntime-web": "^1.29.0",
     "pdf-lib": "^1.17.1",
     "phonemizer": "^1.2.1",
+    "unicode-emoji": "^2.8.0",
     "unicode-emoji-picker": "^2.0.1",
     "woff2-encoder": "^2.0.0",
     "zxing-wasm": "3.1.4"

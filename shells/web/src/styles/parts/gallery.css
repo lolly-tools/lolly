@@ -475,7 +475,12 @@
    popover ever mounts inside a tile). */
 @keyframes card-in {
   from { opacity: 0; translate: 0 -3px; }
-  to   {  translate: 0 0;   }
+  /* `opacity: 1` is NOT decoration and must not be dropped again: the armed masonry
+     below sets `.gtile { opacity: 0 }` as the tile's own style, and an implicit `to`
+     keyframe is built from exactly that underlying value - so a `to` without opacity
+     animates 0 → 0 and every revealed tile stays invisible for good (the gallery and
+     Utilities rendered empty on any cold paint between 2026-09-23 and 2026-09-24). */
+  to   { opacity: 1; translate: 0 0; }
 }
 
 /* Suppress entrance animation when returning from a tool - cards are already known. */

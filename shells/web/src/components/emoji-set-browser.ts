@@ -2,8 +2,9 @@
 /** A catalog preview of every glyph in one set, including custom symbols. */
 import type { ClipboardAPI, EmojiAPI } from '@lolly-tools/core/host-v1';
 import type { EmojiPackPinV1 } from '@lolly-tools/core/emoji-v1';
-import { filterEmojiSet, loadEmojiSet } from '../lib/emoji-set.ts';
-import type { EmojiSetArtwork, EmojiSetEntry } from '../lib/emoji-set.ts';
+import { applyEmojiCategories, filterEmojiSet, loadEmojiSet } from '../lib/emoji-set.ts';
+import type { EmojiSetArt, EmojiSetArtwork, EmojiSetEntry } from '../lib/emoji-set.ts';
+import { EMOJI_CATEGORY_IDS, EMOJI_CATEGORY_LABELS, emojiCategoryIndex, emojiCategoryValue } from '../lib/emoji-categories.ts';
 import { tRaw as t } from '../i18n.ts';
 import './emoji-set-browser.css';
 
@@ -19,6 +20,20 @@ function element<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', 
   return el;
 }
 
+/** Parse one admitted emoji SVG into a node this document can hold, or null if the
+ *  parser refuses it. Never HTML: an XML document cannot carry markup of its own. */
+function parseInlineSvg(markup: string): SVGElement | null {
+  try {
+    const parsed = new DOMParser().parseFromString(markup, 'image/svg+xml');
+    const root = parsed.documentElement;
+    if (root?.nodeName !== 'svg' || parsed.querySelector('parsererror')) return null;
+    const node = document.importNode(root, true) as unknown as SVGElement;
+    node.setAttribute('aria-hidden', 'true');
+    node.setAttribute('focusable', 'false');
+    return node;
+  } catch { return null; }
+}
+
 function button(text: string): HTMLButtonElement {
   const el = element('button', 'btn', text);
   el.type = 'button';
@@ -29,6 +44,7 @@ class EmojiSetBrowser {
   readonly root = element('section', 'emoji-set-browser');
   readonly search = element('input');
   readonly filter = element('select');
+  readonly categories = element('optgroup');
   readonly count = element('p', 'emoji-set-count');
   readonly grid = element('div', 'emoji-set-grid');
   readonly empty = element('p', 'emoji-set-empty');
@@ -67,12 +83,27 @@ class EmojiSetBrowser {
     this.search.setAttribute('aria-label', t('Search emoji set'));
     this.search.autocomplete = 'off';
     this.search.addEventListener('input', () => this.render());
-    this.filter.setAttribute('aria-label', t('Glyph type'));
+    this.filter.setAttribute('aria-label', t('Show'));
+    // Two ways to narrow the same list, so one control with two labelled groups
+    // rather than two: what KIND of glyph, and which Unicode CATEGORY - the same
+    // nine the text selector wears as tabs. The category group is built here and
+    // stays disabled until its dataset has loaded (loadCategories below), so the
+    // control never offers a filter it cannot yet answer.
+    const kinds = element('optgroup');
+    kinds.label = t('Glyph type');
     for (const [value, label] of [['all', t('All glyphs')], ['emoji', t('Emoji without skin tones')], ['tones', t('Skin tones')], ['custom', t('Custom symbols')]]) {
       const option = element('option', '', label);
       option.value = value!;
-      this.filter.append(option);
+      kinds.append(option);
     }
+    this.categories.label = t('Category');
+    this.categories.disabled = true;
+    for (const id of EMOJI_CATEGORY_IDS) {
+      const option = element('option', '', t(EMOJI_CATEGORY_LABELS[id]));
+      option.value = emojiCategoryValue(id);
+      this.categories.append(option);
+    }
+    this.filter.append(kinds, this.categories);
     this.filter.addEventListener('change', () => this.render());
     const sizeLabel = element('label', 'emoji-set-size', t('Size'));
     const size = element('input');
@@ -130,10 +161,11 @@ class EmojiSetBrowser {
       if (this.stopped) { set.destroy(); return; }
       this.set = set;
       this.search.disabled = this.filter.disabled = false;
-      for (const option of this.filter.options) {
+      for (const option of [...this.filter.options].filter(o => o.parentElement !== this.categories)) {
         option.hidden = option.value !== 'all' && !set.entries.some(entry => entry.kind === option.value);
       }
       this.render();
+      void this.loadCategories(set);
     } catch {
       if (this.stopped) return;
       const retry = button(t('Try again'));
@@ -142,6 +174,24 @@ class EmojiSetBrowser {
     } finally {
       if (!this.stopped) this.root.setAttribute('aria-busy', 'false');
     }
+  }
+
+  /**
+   * Bring the category filter in once its dataset resolves. Deliberately AFTER the
+   * first render and never awaited by it: the list is complete and searchable
+   * without categories, and half a megabyte of emoji data must not stand between a
+   * person and the set they opened. Each category is offered only where the set
+   * actually has glyphs in it, and the current selection is left alone.
+   */
+  private async loadCategories(set: EmojiSetArtwork): Promise<void> {
+    const lookup = await emojiCategoryIndex();
+    if (this.stopped || this.set !== set || !lookup.size) return;
+    applyEmojiCategories(set.entries, lookup);
+    const present = new Set(set.entries.map(entry => entry.category));
+    for (const option of [...this.categories.children] as HTMLOptionElement[]) {
+      option.hidden = !present.has(option.value.slice(6) as never);
+    }
+    this.categories.disabled = [...this.categories.children].every(o => (o as HTMLOptionElement).hidden);
   }
 
   private render(): void {
@@ -199,9 +249,9 @@ class EmojiSetBrowser {
           this.pending.delete(cell);
           const entry = this.cells.get(cell);
           if (!entry) return;
-          const url = await this.set!.url(entry);
+          const art = await this.set!.art(entry);
           if (this.stopped || !this.cells.has(cell)) return;
-          this.paint(cell, url);
+          this.paint(cell, art);
           cell.dataset.drawn = 'true';
         }));
         // Give scrolling and typing a turn between artwork batches.
@@ -210,10 +260,29 @@ class EmojiSetBrowser {
     } finally { this.drawing = false; }
   }
 
-  private paint(target: HTMLElement, url: string | null): void {
-    if (url) {
+  /**
+   * Draw one prepared glyph.
+   *
+   * Single-ink artwork goes in INLINE, because that is the only way its
+   * `currentColor` paints can see the surrounding text colour - an `<svg>` behind
+   * an `<img>` is its own document and inherits nothing, so a monochrome set drew
+   * black on black in a dark theme and needed a filled plate to be visible at all.
+   * Inline, the glyph simply follows the theme and stays legible on either side of
+   * a switch. Everything else stays an `<img>`: colour artwork has its own palette,
+   * and the separate document is worth keeping where it buys something.
+   *
+   * The markup is parsed as XML, never assigned as HTML: it comes from the engine's
+   * admitted subset, and going through the XML parser keeps that the only thing
+   * this can ever build.
+   */
+  private paint(target: HTMLElement, art: EmojiSetArt | null): void {
+    const inline = art?.ink ? parseInlineSvg(art.ink) : null;
+    target.classList.toggle('is-ink', !!inline);
+    if (inline) {
+      target.replaceChildren(inline);
+    } else if (art) {
       const img = element('img');
-      img.alt = ''; img.src = url; img.draggable = false;
+      img.alt = ''; img.src = art.url; img.draggable = false;
       target.replaceChildren(img);
     } else {
       const missing = element('span', 'emoji-set-missing', t('Preview unavailable'));
@@ -237,8 +306,8 @@ class EmojiSetBrowser {
     this.large.setAttribute('role', 'img');
     this.large.setAttribute('aria-label', entry.glyph.label);
     this.queue(cell);
-    void this.set.url(entry).then(url => {
-      if (!this.stopped && this.selected === entry) this.paint(this.large, url);
+    void this.set.art(entry).then(art => {
+      if (!this.stopped && this.selected === entry) this.paint(this.large, art);
     });
   }
 

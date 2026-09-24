@@ -6,7 +6,8 @@ import { createHash } from 'node:crypto';
 import { JSDOM } from 'jsdom';
 import type { EmojiAPI } from '@lolly-tools/core/host-v1';
 import type { EmojiPackManifestV1, EmojiPackPinV1 } from '@lolly-tools/core/emoji-v1';
-import { filterEmojiSet, loadEmojiSet } from '../lib/emoji-set.ts';
+import { applyEmojiCategories, filterEmojiSet, loadEmojiSet } from '../lib/emoji-set.ts';
+import { emojiCategoryValue } from '../lib/emoji-categories.ts';
 
 const dom = new JSDOM('<!doctype html><body></body>', { url: 'https://lolly.tools/' });
 for (const key of ['window', 'document', 'DOMParser', 'HTMLElement', 'Element', 'Event', 'KeyboardEvent', 'localStorage']) {
@@ -48,6 +49,32 @@ function pack() {
     parseXml: source => new DOMParser().parseFromString(source, 'image/svg+xml'),
   };
   return { api, pin, bytes, reads: () => reads };
+}
+
+/**
+ * The same fixture pack, carrying ONE single-ink glyph: black line art on nothing,
+ * which is the shape OpenMoji Black and Fluent High Contrast ship in. Written here
+ * rather than added to tests/fixtures because it is two paths and the manifest has
+ * to be re-checksummed around it anyway.
+ */
+const MONO_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">'
+  + '<circle cx="18" cy="18" r="15" fill="none" stroke="#000000" stroke-width="2"/>'
+  + '<path d="M12 22 h12" stroke="#000" fill="none"/></svg>';
+
+function monoPack() {
+  const manifest = JSON.parse(fixture('manifest.json').toString()) as EmojiPackManifestV1;
+  const art = new TextEncoder().encode(MONO_SVG);
+  const checksum = `sha256:${createHash('sha256').update(art).digest('hex')}`;
+  const glyph = manifest.glyphs[0]!;
+  manifest.glyphs = [{ ...glyph, asset: { ...glyph.asset, checksum }, sourceChecksum: checksum }];
+  const bytes = new TextEncoder().encode(JSON.stringify(manifest));
+  const pin: EmojiPackPinV1 = { id: manifest.id, pin: { version: manifest.version }, checksum: `sha256:${createHash('sha256').update(bytes).digest('hex')}` };
+  const api: EmojiAPI = {
+    sets: async () => [], manifest: async () => bytes,
+    artwork: async () => new Uint8Array(art),
+    parseXml: source => new DOMParser().parseFromString(source, 'image/svg+xml'),
+  };
+  return { api, pin };
 }
 
 async function until(check: () => boolean): Promise<void> {
@@ -169,4 +196,57 @@ test('an unavailable pack shows a recoverable state without substituting system 
     container.querySelector<HTMLButtonElement>('.emoji-set-empty button')!.click();
     await until(() => container.querySelectorAll('.emoji-set-cell').length === 3);
   } finally { browser.destroy(); }
+});
+
+test('single-ink artwork is bound to the text colour and drawn inline, so a theme switch keeps it legible', async () => {
+  const { api, pin } = monoPack();
+  const set = await loadEmojiSet(api, pin);
+  try {
+    const art = (await set.art(set.entries[0]!))!;
+    assert.ok(art.ink, 'a monochrome glyph comes back with inline markup');
+    assert.match(art.ink!, /currentColor/, 'its black paints follow the surrounding text');
+    assert.doesNotMatch(art.ink!, /#000/, 'no black paint is left pinned to the artwork');
+    assert.equal(await set.url(set.entries[0]!), art.url, 'the blob URL is still there and still memoised');
+  } finally { set.destroy(); }
+
+  // Colour artwork keeps the <img> path: it carries its own palette and has nothing
+  // to inherit, so nothing about it changes.
+  const colour = await loadEmojiSet(pack().api, pack().pin);
+  try {
+    assert.equal((await colour.art(colour.entries[0]!))!.ink, null);
+  } finally { colour.destroy(); }
+});
+
+test('the ink glyph reaches the grid as an inline svg, not an img', async () => {
+  const { api, pin } = monoPack();
+  const container = document.createElement('div');
+  document.body.append(container);
+  const browser = mountEmojiSetBrowser(container, { emoji: api, clipboard: { writeText: async () => {} } }, pin);
+  try {
+    await browser.ready;
+    const cell = container.querySelector<HTMLButtonElement>('.emoji-set-cell')!;
+    await until(() => !!cell.querySelector('svg'));
+    assert.equal(cell.querySelector('img'), null, 'an <img> would render in its own document and inherit no colour');
+    assert.ok(cell.classList.contains('is-ink'), 'the cell says so, which is what drops the filled plate');
+    assert.equal(cell.querySelector('svg')!.getAttribute('aria-hidden'), 'true');
+    const large = container.querySelector<HTMLElement>('.emoji-set-large')!;
+    await until(() => !!large.querySelector('svg'));
+    assert.ok(large.classList.contains('is-ink'));
+  } finally { browser.destroy(); container.remove(); }
+});
+
+test('a category narrows the same list the glyph kinds do, and a custom symbol is in none of them', () => {
+  const entries = [
+    { key: '1f600', kind: 'emoji', search: 'grinning face', glyph: {}, text: '\u{1f600}' },
+    { key: '1f355', kind: 'emoji', search: 'pizza', glyph: {}, text: '\u{1f355}' },
+    { key: 'test/logo', kind: 'custom', search: 'logo', glyph: {}, text: '' },
+  ] as unknown as Parameters<typeof applyEmojiCategories>[0];
+  applyEmojiCategories(entries, new Map([['1f600', 'face-emotion'], ['1f355', 'food-drink']] as const));
+  assert.deepEqual(filterEmojiSet(entries, '', emojiCategoryValue('food-drink')).map(e => e.key), ['1f355']);
+  assert.deepEqual(filterEmojiSet(entries, '', emojiCategoryValue('flags')).map(e => e.key), []);
+  assert.deepEqual(filterEmojiSet(entries, 'pizza', emojiCategoryValue('food-drink')).map(e => e.key), ['1f355']);
+  assert.deepEqual(filterEmojiSet(entries, 'grinning', emojiCategoryValue('food-drink')).map(e => e.key), []);
+  // The kind axis is untouched by any of that, and every glyph is still in 'all'.
+  assert.equal(filterEmojiSet(entries, '', 'all').length, 3);
+  assert.deepEqual(filterEmojiSet(entries, '', 'custom').map(e => e.key), ['test/logo']);
 });

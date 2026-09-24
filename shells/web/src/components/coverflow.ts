@@ -14,7 +14,20 @@ export interface CoverflowHandle {
   step(direction: number, position?: number): number;
   first(): number;
   last(): number;
-  destroy(): void;
+  /**
+   * Give the track back. `restore` (the default) removes the decorative copies and
+   * clears every pose this component wrote, which is what the host needs when the
+   * SAME tiles carry on as a flat strip - the Gallery/Cover Flow switch.
+   *
+   * Pass false when the markup is on its way out. The router's cross-view fade
+   * (view-fade.ts) MOVES the outgoing view's live nodes into a pinned overlay and
+   * fades them, and the view's own teardown has already run by then - so a restore
+   * on that path un-fans the very pixels the fade is about to show, and every
+   * navigation off the gallery flicked the covers into a flat row for the whole
+   * 480ms. Nothing here owns a listener, a timer or an observer, so skipping the
+   * DOM work releases exactly as much as doing it.
+   */
+  destroy(restore?: boolean): void;
 }
 
 /** A circular fan for the shared glass tile renderer. One period of real
@@ -153,7 +166,8 @@ export function mountCoverflow(
       });
       return best;
     },
-    destroy() {
+    destroy(restore = true) {
+      if (!restore) return;   // the markup is going away (or is a frozen snapshot) - leave the fan alone
       track.querySelectorAll('.ftile--clone').forEach(el => el.remove());
       originals.forEach(el => {
         el.style.transform = el.style.zIndex = el.style.visibility = '';

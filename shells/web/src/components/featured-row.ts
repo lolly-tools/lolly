@@ -1104,7 +1104,14 @@ export function mountFeaturedRow(
       unsubscribePerf();
       ac.abort();
       vizObserver?.disconnect();
-      flow?.destroy();
+      // `false`: give the covers back POSED. Every caller of this destroy is about to
+      // throw the row's markup away - a re-mount that rewrites it, or a view teardown -
+      // and on the teardown path the router then MOVES these same nodes into the
+      // cross-view fade overlay (view-fade.ts) and fades them out. Un-fanning them
+      // first is what made Cover Flow collapse into a flat row of cards for the whole
+      // fade on every navigation off the gallery. The mode switch in setupLoop keeps
+      // the restoring form, because there the tiles live on as the flat strip.
+      flow?.destroy(false);
       sizeObserver?.disconnect();
       cancelAnimationFrame(raf);
       cancelAnimationFrame(resizeRaf);

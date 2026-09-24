@@ -408,6 +408,9 @@ importers:
       phonemizer:
         specifier: ^1.2.1
         version: 1.2.1
+      unicode-emoji:
+        specifier: ^2.8.0
+        version: 2.8.0
       unicode-emoji-picker:
         specifier: ^2.0.1
         version: 2.0.1

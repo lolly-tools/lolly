@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-20T16:51:46.191Z",
+  "generatedAt": "2026-09-23T23:36:09.441Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -1463,9 +1463,9 @@
       "id": "voice-recorder",
       "name": "Voice Recorder",
       "description": "Record a voice note with a live level meter and gentle coaching, then save it as MP3.",
-      "version": "1.1.2",
+      "version": "1.1.3",
       "status": "experimental",
-      "category": "everyone",
+      "category": "utility",
       "capabilities": [
         "microphone"
       ],

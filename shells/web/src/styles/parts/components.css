@@ -21,6 +21,13 @@
   height: 100%;
   min-height: 100vh;
   text-align: center;
+  /* Span whatever track layout the surrounding view imposes. The router puts a
+     route's scoping class on #view BEFORE that view's markup replaces the boot
+     screen, and .gallery-view is `display: grid; grid-template-columns: 1.5fr 4fr`
+     above 756px - so for those few frames this <p> was a grid item in the narrow
+     first column and the mark centred about a sixth of the way across the page
+     before snapping to the middle. Inert outside a grid. */
+  grid-column: 1 / -1;
 }
 
 .loading {
