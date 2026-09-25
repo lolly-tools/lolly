@@ -1,6 +1,6 @@
 # Creative rights, credits and what stays yours
 
-You should be able to use good work made by other people without becoming an expert in licensing, and without quietly dropping the people who made it. So Lolly keeps the source of every work it draws, reads the licence that was recorded for it, works out what that licence asks of the use you are actually making, does the part a program can do and names the part only you can do.
+You should be able to use good work made by other people without becoming an expert in licensing, and without quietly dropping the people who made it. So Lolly keeps the source of every work it draws, reads the licence that was recorded for it, works out what that licence asks of the use you are actually making, does the part a program can do and tells you the part only you can do.
 
 None of this is legal advice and none of it is a ruling about your project. Lolly records facts, applies a small set of rules that were read from the licences' own legal texts and shows its working. A licence with conditions is a normal, permitted choice. It is never presented as a broken asset.
 
@@ -14,7 +14,7 @@ None of this is legal advice and none of it is a ruling about your project. Loll
 
 ## Where you meet this first
 
-The emoji sets are the everyday case. Twemoji is CC BY 4.0, so a heading with an emoji in it exports with the artwork credited and nothing left for you to do. Both OpenMoji sets are CC BY-SA 4.0, so recolouring one of their glyphs with a brand treatment is an adaptation, and sharing that adaptation asks you to pick a compatible licence once. Choosing the set is never blocked, and the set control names the licence where you choose it. The same rules answer for a catalog illustration, a LUT, a font and any other recorded work.
+The emoji sets are the everyday case. Twemoji is CC BY 4.0, so a heading with an emoji in it exports with the artwork credited and nothing left for you to do. Both OpenMoji sets are CC BY-SA 4.0, so recolouring one of their glyphs with a brand treatment is an adaptation, and sharing that adaptation asks you to pick a compatible licence once. Choosing the set is never blocked, and the set control shows the licence where you choose it. The same rules answer for a catalog illustration, a LUT, a font and any other recorded work.
 
 ## The words Lolly uses
 
@@ -64,7 +64,7 @@ Missing licence information is never read as evidence that a work is free to pas
 ## What Lolly does for you
 
 - **In the catalog.** A work's sheet shows its source and creator, the canonical licence name with the original label kept underneath, a copyable credit where one is recorded and one line saying what using it asks for. A tile states the requirement; it never claims an export was completed.
-- **In the export panel.** A Source credits card appears once a render uses recorded work. It shows the state, the credit text behind Details, a Copy credit button and an inline card when a decision is owed. A decision is never a blocking dialog: a download that has an action left proceeds, and private work stays usable.
+- **In the export panel.** A Source credits card appears inside Content protection once a render uses recorded work, beside the Licence you choose for your own export. It shows the state, the credit text behind Details, a Copy credit button and an inline card when a decision is owed. A decision is never a blocking dialog: a download that has an action left proceeds, and private work stays usable.
 - **In the file.** An export that placed recorded work writes one Content Credentials source ingredient per distinct work, bound to the original bytes at their public address, carrying the creator, the licence and its link, the source, the revision and the changes. Lolly signs what it observed. It never signs a claim on the upstream artist's behalf, and Verify says which of the two happened.
 - **After writing.** The delivered bytes are read back before anything says credits are included. A credential that did not verify does not count as a credit delivered.
 - **In an editable `.lolly` file.** Bytes travel only when a reviewed licence records permission to pass the source on, and the pack's `CREDITS.txt` lists what travelled, under which licence and what was held back with the reason. An unrecorded licence is held back. You can still include held-back content deliberately, and the credits file records that it was your choice.

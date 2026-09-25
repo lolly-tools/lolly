@@ -10,11 +10,12 @@
  * "get the on-device AI models" sheet. Larger than the other dialogs on
  * purpose (Andy: a big, almost-full-page hello with one prominent button).
  * Reuses `.job-bar`/`.job-bar-fill` (job-toast.css) for the candy-striped
- * progress, so it declares the same --candy-a/--candy-b the toast does.
+ * progress, so it aliases the same shared --job-candy-a/--job-candy-b tokens
+ * (tokens.css) the toast does.
  */
 .models-welcome {
-  --candy-a: var(--brand-primary, hsl(var(--primary)));
-  --candy-b: var(--brand-secondary, hsl(var(--accent)));
+  --candy-a: var(--job-candy-a);
+  --candy-b: var(--job-candy-b);
   border: 0;
   padding: clamp(32px, 6vw, 64px);
   width: min(900px, 94vw);

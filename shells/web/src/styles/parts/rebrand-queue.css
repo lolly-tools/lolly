@@ -1,0 +1,368 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* #/rebrand queue (.rb-queue, plans/274 section 4, plan 275 close-out section 3.3):
+   the tabs, the cards, the chip row the queue becomes on a narrow or medium screen
+   (views/rebrand/queue.ts). The grid that places it is rebrand.css.
+   The tabs are the panel primitive's tab form (.lp-seg in panel.css); this sheet only
+   sizes them. A card is one 52 px row: a 56 px picture, a title, and an optional
+   second line. The title is never cut: it wraps to a second line, and the second line
+   then gives way (the words hold two title lines, and the second line sits below them).
+   A card is a tile (close-out principle 3): flat at rest, a faint ring on hover, the
+   ring and the selection tint when current.
+   Tokens only; chrome sizes as calc(Npx * var(--a11y-fs)). A slide preview is content,
+   not chrome: its page tone never follows the app theme, so every drawing paints its
+   own ground and nothing here sets a background under a drawn slide.
+   Controls grow to the touch target under a coarse pointer, the rule panel.css states
+   for its own.
+   Never write a star followed by a slash inside a CSS comment. */
+@layer views {
+  .rb-q {
+    --rb-q-row: calc(52px * var(--a11y-fs));
+    --rb-q-slide-w: calc(40px * var(--a11y-fs));
+    --rb-q-chip-pic: calc(24px * var(--a11y-fs));
+    --rb-q-chip-h: calc(36px * var(--a11y-fs));
+    --rb-q-tabs-h: calc(32px * var(--a11y-fs));
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+    background: var(--ui-color-surface-raised);
+  }
+
+  /* ── the tabs: .lp-seg in its tab form, full width ── */
+  .rb-q-tabs {
+    flex: none;
+    display: flex;
+    /* 32 px tabs: the track is the tabs plus its own 2 px padding. */
+    min-height: calc(var(--rb-q-tabs-h) + 4px);
+    margin: var(--sp-4) var(--sp-4) 0;
+  }
+  .rb-q-tabs > button {
+    font-size: var(--ui-type-label);
+    white-space: nowrap;
+  }
+  .rb-q-count { color: var(--ui-color-text-default); }
+
+  /* A list with no group head over it starts a step below the tabs. */
+  .rb-q:not([data-narrow="true"]) .rb-q-scroll > :first-child:not(.rb-q-group) { margin-top: var(--sp-3); }
+  .rb-q-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0 var(--sp-2) var(--sp-4);
+  }
+  .rb-q-list, .rb-q-chips {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .rb-q-list { display: flex; flex-direction: column; gap: 2px; }
+  /* The eyebrow over a group: the panel's band type. */
+  .rb-q-group {
+    margin: var(--sp-7) var(--sp-2) var(--sp-2);
+    font-size: var(--ui-type-band);
+    font-weight: var(--ui-type-weight-label);
+    text-transform: uppercase;
+    letter-spacing: var(--ui-type-tracking-label);
+    color: var(--ui-color-text-muted);
+  }
+  .rb-q-empty {
+    margin: 0;
+    padding: var(--sp-4) var(--sp-2);
+    color: var(--ui-color-text-muted);
+    font-size: var(--ui-type-help);
+  }
+
+  /* ── a card ── */
+  .rb-q-item {
+    display: grid;
+    grid-template-columns: var(--rb-crop-w) minmax(0, 1fr);
+    gap: var(--sp-3);
+    align-items: center;
+    width: 100%;
+    min-height: var(--rb-q-row);
+    padding: var(--sp-2);
+    border: 0;
+    border-radius: var(--ui-radius-control);
+    background: none;
+    color: var(--ui-color-text-default);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    transition: box-shadow var(--ui-motion-feedback) var(--ui-motion-standard);
+  }
+  /* The words always take the second column, so a card whose picture is missing keeps
+     the width of every other card instead of wrapping one word per line in the first. */
+  .rb-q-item:not(.rb-q-item--slide) > .rb-q-text { grid-column: 2; }
+  @media (hover: hover) {
+    .rb-q-item:hover { box-shadow: var(--ui-effect-selection-ring-hover); }
+  }
+  .rb-q-item:active { filter: brightness(.96); }
+  .rb-q-item:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .rb-q-item[aria-current="true"] { box-shadow: var(--ui-effect-selection-ring); background: var(--ui-color-selection-surface); }
+  [data-theme="dark"] .rb-q-item[aria-current="true"],
+  [data-theme="brand"] .rb-q-item[aria-current="true"] {
+    background: color-mix(in oklab, var(--ui-color-selection-surface), var(--ui-color-selection-border) 20%);
+  }
+
+  /* The picture cell: 16:9, the slide's own shape. */
+  .rb-q-thumb {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--ui-radius-choice);
+    box-shadow: var(--ui-edge-faint);
+    overflow: hidden;
+  }
+  .rb-q-thumb > svg { display: block; width: 100%; height: 100%; }
+  /* A picture that has not drawn yet reads as a placeholder, not as an empty box. */
+  .rb-q-thumb:empty { background: var(--ui-color-surface-muted); }
+  /* A layout group: the wireframe on the column's surface, a little in from the edge. */
+  .rb-q-thumb--wire {
+    padding: 3px;
+    background: var(--ui-color-surface-raised);
+  }
+  .rb-q-thumb--wire > svg { border-radius: var(--ui-radius-choice); }
+  /* A region: its slide with the box outlined. The outline keeps its width at any size. */
+  /* A halo in the surface's own tone keeps it visible on a slide of any ground. */
+  :is(.rb-q-thumb, .rb-q-chip-pic) .rb-crop-mark {
+    stroke: var(--ui-color-selection-border);
+    stroke-width: 1.5px;
+    filter: drop-shadow(0 0 1px var(--ui-color-surface-raised)) drop-shadow(0 0 1px var(--ui-color-surface-raised));
+  }
+  /* The object's own crop, raised in the corner, when its box is small on its slide. */
+  .rb-q-inset {
+    position: absolute;
+    inset-inline-end: 3px;
+    inset-block-end: 3px;
+    width: calc(24px * var(--a11y-fs));
+    aspect-ratio: 4 / 3;
+    border-radius: var(--ui-radius-choice);
+    overflow: hidden;
+    box-shadow: var(--ui-edge-default), var(--ui-elevation-control);
+  }
+  .rb-q-inset > svg { display: block; width: 100%; height: 100%; }
+  /* Calm previews only (data-a11y-previews="hidden"): a glyph stands in for the picture. */
+  .rb-q-thumb--glyph {
+    display: grid;
+    place-items: center;
+    background: var(--ui-color-surface-muted);
+    color: var(--ui-color-text-muted);
+  }
+  .rb-q-thumb--glyph > svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+
+  /* The words hold two title lines. A title that fits one line leaves room for the
+     second line under it; a title that wraps fills both, and the second line, below
+     them, is out of the box (still read by a screen reader, since it stays in the tree). */
+  .rb-q-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    max-height: 2lh;
+    overflow: hidden;
+    font-size: var(--ui-type-body);
+    line-height: 1.3;
+  }
+  .rb-q-title {
+    flex: none;
+    font-weight: 500;
+    overflow-wrap: break-word;
+  }
+  /* The optional second line. Each part ends in an ellipsis of its own. */
+  .rb-q-meta {
+    display: flex;
+    gap: var(--sp-2);
+    min-width: 0;
+    overflow: hidden;
+    font-size: var(--ui-type-help);
+    line-height: 1.35;
+    color: var(--ui-color-text-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .rb-q-part {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rb-q-part:has(> .rb-q-state) { flex: none; }
+  .rb-q-state {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-weight: var(--ui-type-weight-label);
+    color: var(--ui-color-text-default);
+  }
+  .rb-q-state > svg { flex: none; width: calc(12px * var(--a11y-fs)); height: calc(12px * var(--a11y-fs)); }
+  /* Needs attention outside its own group (the Removed list): the glyph and the word on
+     the danger surface, in the default ink, since the danger hue itself is too dark to
+     read as text on a dark theme. */
+  [data-review="needs-attention"] .rb-q-state {
+    padding: 0 var(--sp-2);
+    border-radius: var(--ui-radius-pill);
+    background: var(--ui-color-status-danger-surface);
+  }
+
+  /* A slide-level card with its action under it: the action lines up with the words,
+     past the picture column, not with the edge of the list. */
+  .rb-q-slide-card { display: flex; flex-direction: column; }
+  .rb-q-slide-act {
+    align-self: flex-start;
+    margin-inline-start: calc(var(--rb-crop-w) + var(--sp-3) + var(--sp-2));
+    margin-block-end: var(--sp-2);
+    min-height: var(--ui-size-control);
+  }
+
+  /* ── All slides: a 40 px picture, the slide's number, a state only when it asks ── */
+  .rb-q-item--slide {
+    grid-template-columns: var(--rb-q-slide-w) minmax(0, 1fr);
+    min-height: calc(36px * var(--a11y-fs));
+    padding-block: var(--sp-1);
+  }
+  .rb-q-item--slide > .rb-q-thumb { aspect-ratio: 40 / 22; }
+  /* A long deck: rows off screen are not laid out or painted, and their pictures are
+     released by queue.ts, so a 100-slide list costs what the window shows. */
+  .rb-q-list--slides > li {
+    --rb-q-slide-row: calc(36px * var(--a11y-fs));
+    content-visibility: auto;
+    contain-intrinsic-size: auto var(--rb-q-slide-row);
+  }
+  .rb-q-item--slide .rb-q-title { display: flex; align-items: baseline; gap: var(--sp-2); white-space: nowrap; }
+  .rb-q-slide-state {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: var(--ui-type-help);
+    font-weight: 400;
+    color: var(--ui-color-text-muted);
+  }
+  .rb-q-item--slide[data-include="false"] > .rb-q-thumb { opacity: .5; filter: grayscale(1); }
+
+  /* ── the Match card: its title with the count, and one button ── */
+  .rb-q-match {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--sp-3);
+    align-items: center;
+    padding: var(--sp-2) var(--sp-2) var(--sp-3);
+  }
+  .rb-q-match-text {
+    font-size: var(--ui-type-body);
+    font-weight: 500;
+    line-height: 1.3;
+  }
+  .rb-q-match[data-retired="true"] .rb-q-match-text { color: var(--ui-color-text-muted); font-weight: 400; }
+  .rb-q-match-btn { min-height: var(--ui-size-control); }
+  .rb-q-match-btn[aria-disabled="true"] { opacity: .6; cursor: default; }
+  /* Retired: one quiet line with its check, focusable for the reason it describes. */
+  .rb-q-match[data-retired="true"] { grid-template-columns: minmax(0, 1fr); padding-block: var(--sp-1) var(--sp-2); }
+  .rb-q-match-done {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    justify-self: start;
+    min-height: var(--ui-size-control);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ui-color-text-muted);
+    font: inherit;
+    font-size: var(--ui-type-body);
+    cursor: default;
+  }
+  .rb-q-match-done > svg { flex: none; width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+  .rb-q-match-done:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; border-radius: var(--ui-radius-control); }
+
+  /* A line under the list, for what needs no card (decisions carried from the last version). */
+  .rb-q-note {
+    margin: var(--sp-3) 0 0;
+    padding: 0 var(--sp-2);
+    color: var(--ui-color-text-muted);
+    font-size: var(--ui-type-help);
+  }
+
+  /* ── narrow and medium: the tabs full width in their own row, then the chip row,
+     which scrolls on its own ── */
+  .rb-q[data-narrow="true"] { height: auto; }
+  .rb-q[data-narrow="true"] .rb-q-tabs {
+    min-height: var(--rb-q-chip-h);
+    margin: var(--sp-3) var(--sp-4) 0;
+  }
+  .rb-q[data-narrow="true"] .rb-q-scroll { flex: none; overflow: visible; padding: 0; }
+  .rb-q[data-narrow="true"] .rb-q-empty { padding: var(--sp-3) var(--sp-4); }
+  .rb-q-chips {
+    display: flex;
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-4) var(--sp-3);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+  .rb-q-chips::-webkit-scrollbar { display: none; }
+  .rb-q-chips > li { flex: none; display: flex; }
+  .rb-q-chip {
+    /* The containing block for its visually hidden words, so they stay inside the scroll row. */
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-3);
+    max-width: var(--rb-line-min);
+    min-height: var(--rb-q-chip-h);
+    padding: 0 var(--sp-4) 0 var(--sp-2);
+    border: 0;
+    border-radius: var(--ui-radius-pill);
+    background: var(--ui-color-surface-muted);
+    color: var(--ui-color-text-default);
+    font: inherit;
+    font-size: var(--ui-type-label);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  /* A chip with no picture (calm previews) keeps even padding. */
+  .rb-q-chip:not(:has(> .rb-q-chip-pic)) { padding-inline-start: var(--sp-4); }
+  .rb-q-chip:active { filter: brightness(.96); }
+  .rb-q-chip:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .rb-q-chip > .rb-q-title { min-width: 0; font-size: inherit; white-space: nowrap; }
+  .rb-q-chip > svg { flex: none; width: calc(12px * var(--a11y-fs)); height: calc(12px * var(--a11y-fs)); }
+  .rb-q-chip-pic {
+    flex: none;
+    display: block;
+    width: var(--rb-q-chip-pic);
+    height: var(--rb-q-chip-pic);
+    border-radius: var(--ui-radius-choice-round);
+    overflow: hidden;
+    box-shadow: var(--ui-edge-faint);
+  }
+  .rb-q-chip-pic > svg { display: block; width: 100%; height: 100%; }
+  .rb-q-chip-pic:empty { background: var(--ui-color-surface-raised); }
+  .rb-q-chip-pic--wire { background: var(--ui-color-surface-raised); }
+  /* The tile's current state: the ring and the tint, drawn as a shadow so it changes no size. */
+  .rb-q-chip[aria-current="true"] {
+    box-shadow: var(--ui-effect-selection-ring);
+    background: var(--ui-color-selection-surface);
+  }
+  /* Not placed asks for a look before Design: the glyph and the danger surface, so
+     the signal is not colour alone. */
+  .rb-q-chip[data-unplaced-item] { background: var(--ui-color-status-danger-surface); }
+  .rb-q-chip[data-unplaced-item][aria-current="true"] { background: var(--ui-color-selection-surface); }
+  /* The line between the chips that need attention and the suggestions after them. */
+  .rb-q-chip-sep {
+    flex: none;
+    align-self: stretch;
+    width: 1px;
+    margin-block: var(--sp-2);
+    background: var(--ui-color-border-default);
+  }
+
+  @media (any-pointer: coarse) {
+    .rb-q-tabs > button, .rb-q-chip, .rb-q-slide-act, .rb-q-match-btn { min-height: var(--ui-size-target); }
+    .rb-q-item--slide { min-height: var(--ui-size-target); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rb-q-chips { scroll-behavior: auto; }
+    .rb-q-item { transition: none; }
+  }
+  html[data-a11y-motion="reduce"] .rb-q-item { transition: none; }
+}

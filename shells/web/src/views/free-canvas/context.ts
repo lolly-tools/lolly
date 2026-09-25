@@ -56,6 +56,7 @@ import type { edgesOps } from './edges.ts';
 import type { chromeSyncOps } from './chrome-sync.ts';
 import type { keysOps } from './keys.ts';
 import type { editorStateOps } from './editor-state.ts';
+import type { LoadedMaster, MasterStatus, slideMastersOps } from './slide-masters.ts';
 
 export interface FcCtx {
   rules?: import('../design-rules.ts').DesignRulesHandle;
@@ -150,6 +151,12 @@ export interface FcCtx {
   lollyMenuItems: (() => PopItem[]) | null;
   shortcutsModal: ReturnType<typeof openDesignShortcuts> | null;
   hasIdField: boolean;
+  /** The active design system's slide master, once one load answered (plan 274 section 3.4). */
+  slideMaster: LoadedMaster | null;
+  /** The load in flight, so two menus opened at once share one read of the catalog. */
+  slideMasterLoad: Promise<LoadedMaster | null> | null;
+  /** What a menu may state without waiting: ready, none, or not looked yet. */
+  slideMasterStatus: MasterStatus;
   timelinePanel: TimelinePanel | null;
   timelineLoading: boolean;
   timelineLoad: Promise<void> | null;
@@ -343,6 +350,7 @@ export interface FcCtx {
   chromeSync: ReturnType<typeof chromeSyncOps>;
   keys: ReturnType<typeof keysOps>;
   editorState: ReturnType<typeof editorStateOps>;
+  slideMasters: ReturnType<typeof slideMastersOps>;
 }
 
 /** A module function minus its leading context parameter. */

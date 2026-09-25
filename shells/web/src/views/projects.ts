@@ -24,8 +24,6 @@ import { moveSessionSlot } from './tool-revision-history.ts';
  * Folders live on the profile via the pro-free folder store; rendering a folder gates a
  * dynamic import of ./pro so the Projects chunk stays light and /pro stays removable.
  */
-import { captureNeutralPinned } from '../lib/capture-neutral.ts';
-import { perfUiOn } from '../feature-flags.ts';
 import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
@@ -65,7 +63,7 @@ import type { ModalHandle } from '../components/modal.ts';
 import { startBatchExport } from '../lib/batch-job.ts';
 import { announce } from '../a11y.ts';
 import { listCreateBtns as createButtonsHtml, emptyFolderHtml } from './projects-create.ts';
-import { mountProjectsViewOptions } from './projects-view-options.ts';
+import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
 import { shareProjectSession } from './projects-sharing.ts';
 import { downloadOriginals, downloadProject, type ProjectDownloadHost, type ProjectDownloadView } from './projects-download.ts';
@@ -178,8 +176,6 @@ const FILE_INTO_KEY = 'lolly:fileInto';
 // (drift · Cover Flow · mobile grip) as a browsable ribbon of loose-session previews above
 // the "Move to" rail. It honours the SAME view-mode preference the gallery persists, so
 // switching to Cover Flow in the gallery carries over here.
-const FEATURED_VIEW_STORAGE = 'lolly-featured-view';
-const FEATURED_VIEWS: readonly FeaturedViewMode[] = ['gallery', 'coverflow'];
 
 const FOLDER_PLUS_ICON = icon('folderPlus', { strokeWidth: 1.8 });
 const FILE_PLUS_ICON = icon('filePlus', { strokeWidth: 1.8 });
@@ -2046,19 +2042,28 @@ export async function mountProjects(
     });
   }
 
-  // The gallery-style filter button → a popover to switch view mode (Preview/List) and
-  // sort (Name / Date added / Last modified / By tool). Preference persists in localStorage.
+  // The shared view-options panel (components/view-options.ts). A change applies at once
+  // and the panel stays open: render() closes it, so a change made FROM it parks the
+  // handle across that render, and the anchor follows the button render() replaces.
   function openViewOpts(btn: HTMLElement): void {
     if (viewPopover?.isOpen()) { viewPopover.close(true); return; }
     closeMenu();
+    const current = (): HTMLElement => viewEl.querySelector<HTMLElement>('.projects-viewopts') ?? btn;
     const repaint = (): void => {
+      const open = viewPopover;
+      viewPopover = null;
       saveViewPrefs(); render();
-      viewEl.querySelector<HTMLElement>('.projects-viewopts')?.focus({ preventScroll: true });
+      viewPopover = open;
+      current().setAttribute('aria-expanded', 'true');
     };
-    viewPopover = mountProjectsViewOptions(btn, host as ProjectsHost, {
-      view: viewMode, sort: sortBy, atRoot: folderId == null,
-      onView: value => { viewMode = value; try { localStorage.setItem('lolly:projectsView', value); } catch { /* storage off */ } repaint(); },
-      onSort: value => { sortBy = value; sortRev = false; try { localStorage.setItem('lolly:projectsSort', value); } catch { /* storage off */ } repaint(); },
+    const remember = (key: string, value: string): void => { try { localStorage.setItem(key, value); } catch { /* storage off */ } };
+    viewPopover = mountProjectsViewOptions(liveAnchor(current), {
+      view: viewMode, sort: sortBy, reversed: sortRev, atRoot: folderId == null,
+      favView: featuredHandle ? readFeaturedView() : null,
+      onView: value => { viewMode = value; remember('lolly:projectsView', value); repaint(); },
+      onSort: value => { sortBy = value; remember('lolly:projectsSort', value); repaint(); },
+      onReverse: value => { sortRev = value; repaint(); },
+      onFavView: value => switchFavouritesView(value, featuredHandle),
     });
     viewPopover.open();
   }
@@ -2398,16 +2403,6 @@ export async function mountProjects(
   // middle-click / no-JS open still lands right (the click handler routes clean taps
   // through resumeSession so Save returns here, but the anchor is the accessible fallback).
   const resumeHref = (e: Entry): string => sessionOpenHref(e, isBatchSlot(e.slot));
-
-  // The gallery persists the Featured strip's view mode (Gallery drift | Cover Flow); the
-  // Uncategorised ribbon reads the same key so a mode chosen there carries over.
-  function readFeaturedView(): FeaturedViewMode {
-    try {
-      const v = localStorage.getItem(FEATURED_VIEW_STORAGE);
-      if (v && (FEATURED_VIEWS as readonly string[]).includes(v)) return v as FeaturedViewMode;
-    } catch { /* storage off */ }
-    return captureNeutralPinned() || perfUiOn() ? 'gallery' : 'coverflow';
-  }
 
   // The favourites strip at the top of the Projects ROOT view: a browsable ribbon of the
   // user's starred folders / sessions / images, like the gallery + catalog favourites strips.

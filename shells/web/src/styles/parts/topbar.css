@@ -40,7 +40,7 @@
      the fixed top-right cluster (labels are too wide - "Catalog" pushed under them). */
   .gallery-topbar .view-toggle-label { display: none; }
   /* Label hidden → the glyph is the whole tab: drop its label gap so it centres. */
-  .gallery-topbar .view-toggle-ic { display: inline-flex; align-items: center; justify-content: center; margin-inline-end: 0; }
+  .gallery-topbar .view-toggle-ic {display: inline-flex; align-items: center; justify-content: center; margin-inline-end: 0; }
   .gallery-topbar .view-toggle-opt { padding: 8px 8px 8px 12px ; }
   .gallery-topbar .gallery-topright {
     position: static; top: auto; right: auto;

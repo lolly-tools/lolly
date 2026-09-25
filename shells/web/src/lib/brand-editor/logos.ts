@@ -87,7 +87,7 @@ export const paintLogos = async (bedit: BrandEditorCtx): Promise<void> => {
     const customTiles = customs.map(s => logoTile(bedit, s.variant, identity, s)).join('');
     const customGroup = logoGroupHtml({
       name: t('Custom marks'),
-      hint: t('Marks the design system names its own way - an icon, a crest, a favicon.'),
+      hint: t('Marks the design system calls by its own name - an icon, a crest, a favicon.'),
       cls: ' be-logo-group--custom',
       filled: customs.length > 0,
       body: `${customTiles}

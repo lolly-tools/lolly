@@ -41,9 +41,11 @@ interface Mounted {
   /** Fire the host's "the sheet just opened" signal (views/tool.ts's openExport). */
   open(): void;
   dockBtn: HTMLElement;
+  /** Whether the host has the sheet open (only tracked with `quiet`). */
+  isOpen(): boolean;
 }
 
-function mount(o: { freeLayout?: boolean; editorLayout?: boolean; preferEdge?: boolean } = {}): Mounted {
+function mount(o: { freeLayout?: boolean; editorLayout?: boolean; preferEdge?: boolean; quiet?: boolean } = {}): Mounted {
   const overlay = document.createElement('div');
   overlay.id = 'export-overlay';
   const popup = document.createElement('div');
@@ -57,14 +59,17 @@ function mount(o: { freeLayout?: boolean; editorLayout?: boolean; preferEdge?: b
   overlay.appendChild(popup);
   document.body.appendChild(overlay);
   const hooks = new Set<() => void>();
+  let opened = false;
+  const open = (): void => { opened = true; for (const cb of [...hooks]) cb(); };
   const off = wireExportPanelFloat({
     overlay, popup, head, isMobile: () => false,
     freeLayout: !!o.freeLayout, editorLayout: !!o.editorLayout, preferEdge: !!o.preferEdge,
     onOpen: (cb) => { hooks.add(cb); return () => { hooks.delete(cb); }; },
+    ...(o.quiet ? { isOpen: () => opened, openQuietly: open } : {}),
   });
   return {
-    popup, head, off,
-    open: () => { for (const cb of [...hooks]) cb(); },
+    popup, head, off, open,
+    isOpen: () => opened,
     dockBtn: popup.querySelector<HTMLElement>('.export-popup-dock')!,
   };
 }
@@ -291,6 +296,78 @@ test('preferEdge: an ordinary canvas tool WITH a sidebar opens the sheet in the 
     assert.ok(h.popup.closest('.edge-dock-slot'));
   } finally {
     h.off();
+    document.getElementById('export-overlay')?.remove();
+    forget();
+  }
+});
+
+// ── Always a tab while the right sidebar is on (Andy, 2026-09-24) ────────────────
+
+const tick = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
+const shownSlots = (): string[] =>
+  [...document.querySelectorAll<HTMLElement>('.edge-dock-slot')].filter((sl) => !sl.hidden).map((sl) => sl.dataset.slot!);
+
+test('an open right sidebar opens the export sheet in it as a background tab', async () => {
+  forget();
+  const inspector = document.createElement('div');
+  ED.requestDock('inspector', inspector, { label: 'Inspector' });
+  const h = mount({ freeLayout: true, quiet: true });
+  try {
+    await tick();
+    assert.equal(h.isOpen(), true, 'the sheet opened itself');
+    assert.equal(ED.isDocked('export'), true, 'as a panel in the column');
+    assert.ok(document.querySelector('.edge-dock-tab[data-tab="export"]'), 'with a tab of its own');
+    assert.deepEqual(shownSlots(), ['inspector'], 'without taking the tab the user was on');
+    assert.ok(h.popup.classList.contains('is-dock-tab'), 'and no close button while it shares the column');
+    h.open();   // the top bar's Export button, with the sheet already a background tab
+    assert.deepEqual(shownSlots(), ['export'], 'opening Export brings its tab to the front');
+  } finally {
+    h.off();
+    ED.releaseDock('inspector');
+    document.getElementById('export-overlay')?.remove();
+    forget();
+  }
+});
+
+test('a panel docking later brings the export tab with it', async () => {
+  forget();
+  const h = mount({ freeLayout: true, quiet: true });
+  const player = document.createElement('div');
+  try {
+    await tick();
+    assert.equal(ED.isDocked('export'), false, 'no sidebar, no sheet nobody asked for');
+    ED.requestDock('neuro', player, { label: 'Player' });
+    assert.equal(ED.isDocked('export'), true);
+    assert.deepEqual(shownSlots(), ['neuro'], 'the player the user just docked stays in front');
+  } finally {
+    h.off();
+    ED.releaseDock('neuro');
+    document.getElementById('export-overlay')?.remove();
+    forget();
+  }
+});
+
+test('dragging the tab out keeps it out until the sidebar next empties', async () => {
+  forget();
+  const inspector = document.createElement('div');
+  ED.requestDock('inspector', inspector, { label: 'Inspector' });
+  const h = mount({ freeLayout: true, quiet: true });
+  const player = document.createElement('div');
+  try {
+    await tick();
+    assert.equal(ED.isDocked('export'), true);
+    dragOff(h.head);
+    assert.equal(ED.isDocked('export'), false, 'the user pulled it out');
+    ED.requestDock('neuro', player);
+    assert.equal(ED.isDocked('export'), false, 'another panel docking does not snap it back');
+    ED.releaseDock('neuro');
+    ED.releaseDock('inspector');
+    ED.requestDock('inspector', inspector);
+    assert.equal(ED.isDocked('export'), true, 'a fresh sidebar brings it back as a tab');
+  } finally {
+    h.off();
+    ED.releaseDock('inspector');
+    ED.releaseDock('neuro');
     document.getElementById('export-overlay')?.remove();
     forget();
   }

@@ -16,7 +16,7 @@ pnpm --silent run cli batch --template=qr-code,chart-creator > rows.csv
 pnpm run cli batch rows.csv --out-dir=./out [--keep-going]
 ```
 
-The header row names the columns: a **`toolId`** column is required; **`format` · `width` · `height` · `unit` · `dpi` · `filename`** are per-row output settings; every other column is a **tool input id** whose cell is a value (any URL-mode form - plain text, JSON/tilde blocks, `id.field` vectors). Rows can mix tools freely. Example:
+The header row lists the columns: a **`toolId`** column is required; **`format` · `width` · `height` · `unit` · `dpi` · `filename`** are per-row output settings; every other column is a **tool input id** whose cell is a value (any URL-mode form - plain text, JSON/tilde blocks, `id.field` vectors). Rows can mix tools freely. Example:
 
 ```csv
 toolId,format,url,color,src
@@ -31,6 +31,8 @@ The header *is* the namespace here - a batch has no `--input.<id>=` escape - so 
 
 `--template=` writes the input columns plus those six output columns. It is not the whole set: **any reserved URL param works as a column**, because a row's cells are read exactly as a URL's query is. `bleed`/`marks`/`press-profile` ride that way; add them to the header by hand.
 
+**A transform tool (`hooks.exportFile`: a file in, bytes out) runs from a batch too.** A row puts its input file in the tool's own file-input column, the path resolving against the working directory exactly as it does on `lolly run`. Leave that row's `format`, `width`, `height`, `unit` and `dpi` cells blank - a transform's output follows its input file's container, so it takes no export format, and `--template=` warns which columns to leave blank for the tools you named. The output is written `<seq>-<name>.<ext>`, the name from the row's `filename` column or the input file and the extension from the bytes the tool actually produced.
+
 **`batch` renders bare.** Unlike a single `lolly run`, a batch row carries no Content Credentials and no Imprint unless it asks - a batch is a build step, and a regenerated folder should not differ from its predecessor in every file. A `c2pa` column (or `imprint`, or `durable`) opts a row back in and is read exactly as `?c2pa=` is. `smoke` renders bare for the same reason.
 
 `--keep-going` renders past a failing row (otherwise the batch stops with a non-zero exit). Either way the batch's exit code is the **worst row's** code, not a flat 1, and `--json` gives one document with a per-row `exit` so a pipeline can retry just the exit-3 rows on a runner that has a browser. `--output` is refused: a batch has many outputs and one path cannot name them - use `--out-dir=`.
@@ -43,7 +45,9 @@ pnpm run cli smoke --only=qr-code,chart-creator # just these ids
 pnpm run cli smoke --format=svg                 # force one Node-native format
 ```
 
-`lolly smoke` is the catalog-wide render gate: every tool in the active profile renders at its manifest defaults to its first Node-native format - browser-free; a tool whose declared formats are all browser-only falls back to an `html` render, which still exercises load → hydrate → hooks. Every output is checked for blank or empty results, each tool prints a ✓/✗ row and the exit code is non-zero if anything fails - so wired into CI, a `hooks.js` regression can never ship a tool that renders blank. Tools that legitimately can't render headlessly are skipped with a reason, never failed: transform tools (file in → bytes out; nothing to render at defaults) and tools gated on a live capture capability (camera / microphone / screen / capture).
+`lolly smoke` is the catalog-wide render gate: every tool in the active profile renders at its manifest defaults to its first Node-native format - browser-free; a tool whose declared formats are all browser-only falls back to an `html` render, which still exercises load → hydrate → hooks. Every output is checked for blank or empty results, each tool prints a ✓/✗ row and the exit code is non-zero if anything fails - so wired into CI, a `hooks.js` regression can never ship a tool that renders blank.
+
+A transform tool (`hooks.exportFile`: a file in, bytes out - `strip-data`, `compress-pdf`, and the rest of the on-device utilities) has nothing to render at manifest defaults, so smoke runs it once over a small committed fixture instead, chosen by the file type its input accepts, through the same transform path `lolly <tool> --source=<file>` takes. It passes when the output is non-empty and its bytes are one of the formats the tool declares, and a hook error is a real failure. A tool is skipped, with a reason, rather than run for any of these: it is gated on a live-capture capability (camera, microphone, screen, capture); its file input accepts no fixture type; its hook needs the browser tier or a model this host does not have staged; its file input is hidden at manifest defaults (`showIf`); or a forced `--format` differs from the fixture's container. The fixtures live in the source checkout's `tests/fixtures`, so an installed CLI with no checkout skips every transform and reports why.
 
 ## Preflight an export (`lolly preflight`)
 
@@ -164,9 +168,9 @@ Messages go to stderr (`--verbose`, or `DEBUG=1`, adds stack traces). Input vali
 
 ### Machine interface (`--json`)
 
-`--json` is valid on `list`, `describe`, `assets`, `validate`, `smoke`, `batch`, `preflight`, `models`, `speak`, `transcribe`, `ocr`, `detect-ai` and `reword`. It puts **one JSON document on stdout and nothing else**; every human line moves to stderr. It is deliberately **not** available on a render, because a render's stdout is the exported file - asking for both is a usage error rather than a silently ignored flag. `lolly speak --out=- --json` is refused for the same reason: the WAV and the document cannot both be stdout.
+`--json` is valid on `list`, `describe`, `assets`, `validate`, `smoke`, `batch`, `preflight`, `models`, `speak`, `transcribe`, `ocr`, `detect-ai`, `reword` and `rebrand`. It puts **one JSON document on stdout and nothing else**; every human line moves to stderr. It is deliberately **not** available on a render, because a render's stdout is the exported file - asking for both is a usage error rather than a silently ignored flag. `lolly speak --out=- --json` is refused for the same reason: the WAV and the document cannot both be stdout.
 
-Every one of those but the last three answers in the shared envelope below. `ocr`, `detect-ai` and `reword` currently emit their own smaller `{ "ok": true, "command": …, … }` document instead - one JSON document on stdout either way, but do not expect `schemaVersion` or `warnings` from those three yet.
+Every one of those except `ocr`, `detect-ai` and `reword` answers in the shared envelope below. Those three currently emit their own smaller `{ "ok": true, "command": …, … }` document instead - one JSON document on stdout either way, but do not expect `schemaVersion` or `warnings` from those three yet.
 
 Every command answers in the same envelope:
 

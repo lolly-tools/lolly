@@ -24,21 +24,21 @@ Tài liệu này ghi lại mục đích, cấu trúc và các quyết định ki
 
 ## Vì sao điều này tồn tại
 
-Các đội nhóm gặp phải một vấn đề lặp lại: công việc sáng tạo và nội dung lặp đi lặp lại quá dễ đoán để cần bàn tay chuyên nghiệp mỗi lần, nhưng lại quá nhạy về chất lượng để giao phó mà không có rào chắn. Kết quả là hoặc thông lượng chậm (nút thắt chuyên gia), thiếu nhất quán (mỗi người dùng công cụ mình có sẵn), hoặc lệ thuộc nhà cung cấp (một DAM SaaS kiểm soát template của bạn).
+Công việc sáng tạo lặp đi lặp lại quá dễ đoán để cần đến bàn tay chuyên nghiệp mỗi lần, và quá nhạy về chất lượng để giao phó mà không có rào chắn. Nếu cứ để vậy, nó sẽ đi theo một trong ba hướng: chậm, thiếu nhất quán, hoặc bị khóa vào template của một nhà cung cấp.
 
 Nền tảng này là câu trả lời trực tiếp:
 
-> **Sáng tạo và nội dung theo chương trình ở quy mô lớn** - tạo tài sản không tốn nhân lực, với các quy tắc được kiểm soát tập trung, dành cho nhân viên, nhà cung cấp và đối tác.
+> **Sáng tạo và nội dung theo chương trình ở quy mô lớn** - tài sản được tạo ra từ đầu vào, với các quy tắc chỉ cần thiết lập một lần, dành cho bất kỳ ai cần đến chúng.
 
 Lolly không phải nơi một hệ thống thiết kế được phát minh ra - đó là nơi nó được sản xuất ra. Hãy hình dung nó như một máy bán hàng tự động cho thiết kế: chọn một lựa chọn, nhận về một kết quả. Mọi lần đều vậy. Engine luôn hướng tới chất lượng cao nhất mà mỗi định dạng có thể tạo ra trên phần cứng trước mặt bạn, và cùng một engine đó tạo ra cùng một tệp trên mọi nền tảng nó chạy trên.
 
-Kết quả là **sự dồi dào**: mọi sự kiện có bảng hiệu đúng chuẩn, mọi cảnh báo CVE khớp phong cách công ty, mọi nhãn in sạch, mọi chữ ký email luôn cập nhật - tất cả không cần một phiếu yêu cầu thiết kế. Nền tảng xử lý công việc sáng tạo mang tính vận hành lặp lại. Nó cố tình không phải là một công cụ sáng tạo tùy biến - các nhà thiết kế vẫn giữ quyền sở hữu các công việc chủ lực.
+Kết quả là **sự dồi dào**: mọi sự kiện có bảng hiệu đúng chuẩn, mọi cảnh báo CVE khớp phong cách công ty, mọi nhãn in sạch, mọi chữ ký email luôn cập nhật - tất cả đều đến từ các công cụ vốn đã mang sẵn quy tắc. Nền tảng xử lý công việc sáng tạo mang tính vận hành lặp lại. Nó cố tình không phải là một công cụ sáng tạo tùy biến - các nhà thiết kế vẫn giữ quyền sở hữu các công việc chủ lực.
 
 ### Đổi mới theo xác suất, mở rộng theo tất định
 
 Mọi cuộc tranh luận về AI trong một pipeline sáng tạo đều mắc kẹt ở cùng một câu hỏi: phần nào trong việc này là việc của máy móc? Đây là một câu hỏi cũ đã có đáp án ổn định. Các thầy chép sách và họa sĩ minh họa từ xưa đã làm việc giữa hai công cụ - bản phác thảo tự do, nơi không gì cố định và mọi thứ đều có thể thử, và máy in, đáng gờm chính vì nó cam kết. Các bản phác thảo là nơi nghệ thuật diễn ra. Máy in là cách nó đến được với mọi người. Không ai nhầm lẫn hai thứ đó, và cả hai đều tiếp tục tiến bộ - mực mới, kiểu chữ mới, máy in mới - mỗi thứ cải tiến hài hòa với tay nghề và mục đích nó phục vụ.
 
-Lolly kẻ cùng một ranh giới đó. Khám phá theo xác suất: một mô hình, một nhà thiết kế, một ý tưởng thô, một câu lệnh dẫn tới nơi không ai định trước. Rồi mở rộng theo tất định - thứ chạm tới mười nghìn kết quả là một *công cụ*, và một công cụ kết xuất giống hệt nhau mỗi lần từ các đầu vào mà bạn có thể đọc được. Việc khám phá vẫn tự do vì không có gì ở phía sau phụ thuộc vào việc nó ra kết quả giống nhau hai lần. Đầu ra giành được lòng tin vì nó không phải một phỏng đoán. Đưa việc thử nghiệm AI vào những kết quả có thể dự đoán, tái lập được không phải một ngành mới; đó chính là sự phân công lao động đã từng khiến bản in đáng tin cậy ngay từ đầu.
+Lolly kẻ cùng một ranh giới đó. Khám phá theo xác suất: một mô hình, một nhà thiết kế, một ý tưởng thô, một câu lệnh dẫn tới nơi không ai định trước. Rồi mở rộng theo tất định - thứ trở thành nhiều kết quả là một *công cụ*, và một công cụ kết xuất giống hệt nhau mỗi lần từ các đầu vào mà bạn có thể đọc được. Việc khám phá vẫn tự do vì không có gì ở phía sau phụ thuộc vào việc nó ra kết quả giống nhau hai lần. Đầu ra giành được lòng tin vì nó không phải một phỏng đoán. Đưa việc thử nghiệm AI vào những kết quả có thể dự đoán, tái lập được không phải một ngành mới; đó chính là sự phân công lao động đã từng khiến bản in đáng tin cậy ngay từ đầu.
 
 > Tin tưởng quá trình sáng tạo, mở rộng bằng sự nghiêm ngặt.
 
@@ -76,19 +76,19 @@ Cách rõ ràng nhất để thấy Lolly là gì không phải là một danh s
 
 ---
 
-## Một lần phê duyệt, mười nghìn tài sản
+## Một công cụ, nhiều kết quả
 
-Vì sự phê duyệt nằm trong công cụ chứ không phải trong file (xem [Lolly so sánh thế nào](/info/positioning.html)), quy mô không còn là một vấn đề rà soát. Phê duyệt một công cụ thẻ mạng xã hội đã bản địa hóa một lần, rồi tạo ra **10.000 tài sản trên 12 ngôn ngữ** từ một bảng tính - và không tài sản nào trong số đó cần kiểm tra tuân thủ mới từ pháp lý hay thương hiệu, vì template mà tất cả chúng bắt nguồn đã được phê duyệt sẵn.
+Các quy tắc thương hiệu nằm trong công cụ, chứ không phải trong từng file mà nó tạo ra (xem [Lolly so sánh thế nào](/info/positioning.html)). Làm đúng công cụ một lần và mọi đầu ra đều thừa hưởng cùng kiểu chữ, màu sắc và khoảng cách, cho dù đó là một thẻ hay một bảng tính gồm nhiều hàng bằng hàng chục ngôn ngữ. Cách bạn kiểm tra công việc của mình, và ai làm việc đó, vẫn là việc của bạn; Lolly chỉ làm cho thứ cần kiểm tra nhỏ hơn và việc tạo ra đầu ra nhanh hơn.
 
-Cùng một công cụ tất định đạt tới quy mô đó theo ba cách, tất cả đều cho ra đầu ra giống hệt nhau, đã được phê duyệt trước:
+Cùng một công cụ tất định đạt tới quy mô đó theo ba cách, tất cả đều cho ra đầu ra giống hệt nhau:
 
-- <!--i:people--> **Một người, trong ứng dụng.** Lưới hàng loạt `/pro`: dán hoặc nhập các hàng, nhận một tài sản hoàn thiện cho mỗi hàng, tải xuống file zip. Không cần kỹ năng thiết kế, không phiếu yêu cầu, không chờ đợi.
-- <!--i:code--> **Một nhà phát triển, từ dòng lệnh.** CLI chạy *cùng* engine và *cùng* đường kết xuất không giao diện, nên công cụ có thể được xếp chuỗi chạy qua toàn bộ 10.000 hàng trong một script hay một pipeline chạy đêm. Một lệnh gọi `lolly <tool> --field=…` trong một vòng lặp là toàn bộ tích hợp.
-- <!--i:cpu--> **Một hệ thống hoặc một tác nhân AI, qua MCP.** Cùng công cụ được vận hành theo chương trình, với cùng độ trung thực và ở quy mô còn lớn hơn - vì một cỗ máy sẽ không thấy chán khi hàng nghìn file lần lượt đổ về.
+- <!--i:people--> **Một người, trong ứng dụng.** Lưới hàng loạt `/pro`: dán hoặc nhập các hàng, nhận một tài sản hoàn thiện cho mỗi hàng, tải xuống file zip. Không cần kỹ năng thiết kế, không chờ đợi.
+- <!--i:code--> **Một nhà phát triển, từ dòng lệnh.** CLI chạy *cùng* engine và *cùng* đường kết xuất không giao diện, nên công cụ có thể được xếp chuỗi chạy qua mọi hàng trong một script hay một pipeline chạy đêm. Một lệnh gọi `lolly <tool> --field=…` trong một vòng lặp là toàn bộ tích hợp.
+- <!--i:cpu--> **Một hệ thống hoặc một tác nhân AI, qua MCP.** Cùng công cụ được vận hành theo chương trình, với cùng độ trung thực, cho bao nhiêu hàng mà công việc cần.
 
 ![Chế độ Batch trên một bản cài đặt mới: một hàng trống đang chờ một công cụ, với toàn bộ bề mặt bảng tính và nút Render đã sẵn sàng trước khi có bất kỳ dữ liệu nào](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-Một bộ ràng buộc thương hiệu duy nhất, được một nhà thiết kế ấn định một lần; ba con đường dẫn tới cùng một đầu ra đã được phê duyệt trước - và con đường máy móc mở rộng xa nhất trong tất cả, vì nó không bao giờ mệt mỏi khi các file lần lượt đổ về.
+Một bộ ràng buộc thương hiệu duy nhất, được một nhà thiết kế ấn định một lần; ba con đường dẫn tới cùng một đầu ra.
 
 ---
 
@@ -390,11 +390,11 @@ Web shell: IndexedDB. Tauri: hệ thống tệp. CLI: trong bộ nhớ. Các cô
 
 Người dùng có thể lưu nhiều slot chỉnh sửa có tên cho mỗi công cụ và quay lại từng phiên sau đó. Không cần tạo tài khoản; trạng thái là theo từng thiết bị. Vì cầu nối là mối nối duy nhất, trạng thái theo thiết bị đó cũng có thể *di chuyển được*: `shells/web/src/data-transfer.ts` đọc lại mọi thứ qua `host.profile`/`host.state`/`host.assets` thành một tệp zip `lolly-backup` duy nhất có thể nhập vào bất kỳ bản cài đặt nào khác - câu trả lời ngoại tuyến cho việc "chuyển sang thiết bị mới" mà không cần máy chủ (đặc tả đầy đủ: `docs/data-transfer.md`). Tích hợp SUSE ID (đồng bộ đa thiết bị) là một cột mốc tương lai xây trên nền này.
 
-### 7. Nhãn độ trưởng thành trả lời rủi ro "được thương hiệu phê duyệt" ngay từ thiết kế
+### 7. Nhãn độ trưởng thành cho biết một công cụ là gì, ngay từ thiết kế
 
 Mỗi công cụ khai báo `status: official | community | experimental` trong manifest của nó. Gallery sắp xếp theo status. Các công cụ thử nghiệm tự động đóng dấu bản quyền (watermark) khi xuất - watermark được áp dụng bởi `host.export.render`, không phải bởi công cụ, nên tác giả của một công cụ không chính thức không thể tắt nó.
 
-Đây là câu trả lời mang tính cấu trúc cho rủi ro nhận thức rằng việc dùng bất kỳ công cụ nào cũng đồng nghĩa với việc thương hiệu phê duyệt. Các câu trả lời về quy trình (hàng đợi duyệt, giới hạn qua SUSE ID) được xếp chồng lên trên.
+Đây là câu trả lời mang tính cấu trúc cho rủi ro nhận thức rằng mọi công cụ trong gallery đều mang trọng lượng như nhau. Bất kỳ quy trình nào một đội nhóm đặt quanh danh mục đều xếp chồng lên trên đó.
 
 ### 8. Đầu vào của công cụ được định kiểu qua manifest, kể cả tài sản
 
@@ -445,7 +445,7 @@ Một người dùng mở `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H
 5. **Runtime.** `createRuntime(tool, host, initialValues)` xây dựng mô hình đầu vào (input model) (hợp nhất dữ liệu hồ sơ, giá trị mặc định và giá trị ban đầu), phân giải các tham chiếu tài sản qua `host.assets.get()`, tải các hook (`host` nằm trong closure-scope, không phải sandbox), gọi `hooks.onInit`.
 6. **Kết xuất (Render).** Shell đăng ký (subscribe) với runtime; mỗi khi trạng thái thay đổi, nó nhận `{ model, hydrated }`. Nó kết xuất các điều khiển đầu vào từ model và ghi HTML của template đã được hydrate vào `#tool-canvas`.
 7. **Tương tác.** Người dùng gõ vào một trường đầu vào → `runtime.setInput(id, value)` → áp dụng các ràng buộc → gọi `hooks.onInput` → hydrate lại → kết xuất lại. Canvas cập nhật theo thời gian thực.
-8. **Xuất (Export).** Người dùng nhấp Download(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (raster hóa qua dom-to-image-more; SVG/PDF đi qua các bộ vector hóa (vectoriser) chuyên dụng duyệt DOM) → blob → `host.export.download`. Phạm vi định dạng mà một công cụ có thể chọn tham gia rất rộng, và enum `render.formats` trong `schemas/tool.schema.json` là nguồn thẩm quyền cho việc này - ảnh raster và raster dấu phẩy động, vector và tệp cắt (cut file), in ấn/CMYK, chuyển động (motion), tài liệu có thể chỉnh sửa (`pptx`, `docx`, `odt`), bảng màu (palette) và đầu ra dữ liệu/văn bản, âm thanh và tệp phông chữ. [URL Mode](/info/url-mode.html) nêu tên từng id và những gì nó tạo ra. Âm thanh nằm trong enum đó như mọi thứ khác (`wav`, `mp3`, `m4a`, `opus`, được khai báo bởi audiogram và các công cụ ghi âm); riêng biệt, chế độ `render.capture` của một công cụ ghi âm điều khiển `host.recorder`, có bản ghi đến dưới dạng một Blob hoàn chỉnh trong bất kỳ container nào mà trình duyệt đã ghi. (Các công cụ đặt `render.export: false` - ví dụ Color Palette, Countdown Timer, Strip Hidden Data, Text, Compress PDF - ẩn các điều khiển tải xuống/định dạng/kích thước.) Đơn vị vật lý được chuyển đổi theo từng định dạng ở đây (PDF → điểm trang thực, raster → pixel theo DPI kèm khối `pHYs`). Siêu dữ liệu tác giả/nguồn gốc (author, tool, source - được xây dựng bởi `engine/src/metadata.ts`) được nhúng theo từng định dạng: PNG iTXt, JPEG EXIF, PDF info dict, SVG `<metadata>`, GIF comment. Các công cụ thử nghiệm (experimental) sẽ được host chèn watermark, không phải do công cụ tự làm.
+8. **Xuất (Export).** Người dùng nhấp Download(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (raster hóa qua dom-to-image-more; SVG/PDF đi qua các bộ vector hóa (vectoriser) chuyên dụng duyệt DOM) → blob → `host.export.download`. Phạm vi định dạng mà một công cụ có thể chọn tham gia rất rộng, và enum `render.formats` trong `schemas/tool.schema.json` là nguồn thẩm quyền cho việc này - ảnh raster và raster dấu phẩy động, vector và tệp cắt (cut file), in ấn/CMYK, chuyển động (motion), tài liệu có thể chỉnh sửa (`pptx`, `docx`, `odt`), bảng màu (palette) và đầu ra dữ liệu/văn bản, âm thanh và tệp phông chữ. [URL Mode](/info/url-mode.html) liệt kê từng id và những gì nó tạo ra. Âm thanh nằm trong enum đó như mọi thứ khác (`wav`, `mp3`, `m4a`, `opus`, được khai báo bởi audiogram và các công cụ ghi âm); riêng biệt, chế độ `render.capture` của một công cụ ghi âm điều khiển `host.recorder`, có bản ghi đến dưới dạng một Blob hoàn chỉnh trong bất kỳ container nào mà trình duyệt đã ghi. (Các công cụ đặt `render.export: false` - ví dụ Color Palette, Countdown Timer, Strip Hidden Data, Text, Compress PDF - ẩn các điều khiển tải xuống/định dạng/kích thước.) Đơn vị vật lý được chuyển đổi theo từng định dạng ở đây (PDF → điểm trang thực, raster → pixel theo DPI kèm khối `pHYs`). Siêu dữ liệu tác giả/nguồn gốc (author, tool, source - được xây dựng bởi `engine/src/metadata.ts`) được nhúng theo từng định dạng: PNG iTXt, JPEG EXIF, PDF info dict, SVG `<metadata>`, GIF comment. Các công cụ thử nghiệm (experimental) sẽ được host chèn watermark, không phải do công cụ tự làm.
 
 ![Bảng xuất mà `?options` mở ra: cặp tên tệp và định dạng, kích thước đầu ra và các control ghi tệp](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 

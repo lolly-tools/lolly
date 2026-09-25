@@ -1,0 +1,1356 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/rebrand-source-v1.schema.json",
+  "title": "rebrand-source-v1",
+  "description": "A source deck read as faithfully as the reader could manage, with a fidelity fact per object. Stage 1 of plan 274. Positions are px at a 96 dpi reference.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "source",
+    "slides",
+    "fonts",
+    "warnings",
+    "reader"
+  ],
+  "$defs": {
+    "assetRef": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!.*\\.\\.)[A-Za-z0-9][A-Za-z0-9._-]*(/[A-Za-z0-9._-]+)*$",
+      "description": "A stable asset ref: a namespaced catalog id or a host-generated user asset id. Never a data: or blob: URL, never a file path, never base64, so the document stays portable across a reload, a device and a shell."
+    },
+    "box": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "w",
+        "h",
+        "rot"
+      ],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "w": {
+          "type": "number"
+        },
+        "h": {
+          "type": "number"
+        },
+        "rot": {
+          "type": "number"
+        }
+      },
+      "description": "An axis-aligned box in reference px (96 dpi) with a clockwise rotation in degrees."
+    },
+    "fidelity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/fidelityState"
+        },
+        "reason": {
+          "$ref": "#/$defs/fidelityReason"
+        },
+        "fallbackAssetRef": {
+          "$ref": "#/$defs/assetRef"
+        },
+        "fallbackSource": {
+          "enum": [
+            "embedded",
+            "supplied-pdf",
+            "local-renderer"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "unavailable"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "fallbackAssetRef"
+                  ]
+                },
+                {
+                  "required": [
+                    "fallbackSource"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "fallbackSource"
+            ]
+          },
+          "then": {
+            "required": [
+              "fallbackAssetRef"
+            ]
+          }
+        }
+      ],
+      "description": "How faithfully the object can be shown and carried. A state of unavailable has nothing to show, so it carries no fallback; a fallbackSource names where fallbackAssetRef came from and never stands alone."
+    },
+    "fidelityReason": {
+      "enum": [
+        "native-chart-no-fallback",
+        "smartart-no-fallback",
+        "ole-no-fallback",
+        "unsupported-media-format",
+        "media-too-large",
+        "media-missing",
+        "reader-approximation",
+        "geometry-approximation",
+        "cap-reached",
+        "ocr-estimate"
+      ]
+    },
+    "fidelityState": {
+      "enum": [
+        "editable",
+        "raster-preserved",
+        "approximate",
+        "unavailable"
+      ]
+    },
+    "fontProvenance": {
+      "enum": [
+        "theme",
+        "literal"
+      ]
+    },
+    "hex": {
+      "type": "string",
+      "pattern": "^#[0-9a-fA-F]{6}$"
+    },
+    "ocrEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/ocrState"
+        },
+        "lines": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {
+            "$ref": "#/$defs/ocrLineEvidence"
+          }
+        },
+        "textDensity": {
+          "type": "number",
+          "minimum": 0
+        },
+        "model": {
+          "type": "string",
+          "maxLength": 256
+        }
+      },
+      "description": "OCR evidence for a picture or a raster region. not-run and unavailable are not evidence of anything.",
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "not-run",
+                  "unavailable"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "lines"
+                  ]
+                },
+                {
+                  "required": [
+                    "textDensity"
+                  ]
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "ocrLineEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text",
+        "confidence",
+        "box"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "box": {
+          "$ref": "#/$defs/box"
+        }
+      }
+    },
+    "ocrState": {
+      "enum": [
+        "not-run",
+        "unavailable",
+        "no-text-found",
+        "text-found"
+      ]
+    },
+    "placeholderType": {
+      "enum": [
+        "title",
+        "ctrTitle",
+        "subTitle",
+        "body",
+        "ftr",
+        "sldNum",
+        "dt",
+        "pic"
+      ]
+    },
+    "rasterStats": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "dhash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$"
+        },
+        "distinctColors": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "axisAlignedEdgeShare": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "edgeDensity": {
+          "type": "number",
+          "minimum": 0
+        },
+        "transparentShare": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "slideOcr": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "$ref": "#/$defs/ocrState"
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "not-run",
+                  "unavailable"
+                ]
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "model"
+              ]
+            }
+          }
+        }
+      ],
+      "description": "Text recognition over a flattened slide as a whole. text-found means some object on the slide carries a reading that found text (a recogniser's, or the document's own text layer), and model names that reading. no-text-found means a recogniser read every region that could hold text and found none; a reading of only part of the slide that found nothing stays not-run. not-run and unavailable name no model, because nothing ran. No time is recorded: the contract holds no clock readings."
+    },
+    "slideRecovery": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "assetRef"
+      ],
+      "properties": {
+        "assetRef": {
+          "$ref": "#/$defs/assetRef"
+        },
+        "fromObjectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      },
+      "description": "The whole-slide picture of a flattened slide, kept as a recovery option after the picture was split into regions. Written exactly when no object on the slide still holds that picture: after the regions replaced its picture object, or when the picture came from outside the slide (a page render). A flattened slide kept as one picture has none. fromObjectId names the picture object the regions replaced, when the slide had one."
+    },
+    "slideSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "index",
+        "width",
+        "height",
+        "background",
+        "objects",
+        "readingOrder",
+        "warnings",
+        "origin"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "index": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "width": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "height": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "background": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [],
+          "properties": {
+            "color": {
+              "$ref": "#/$defs/sourceColor"
+            },
+            "media": {
+              "$ref": "#/$defs/assetRef"
+            }
+          }
+        },
+        "objects": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "$ref": "#/$defs/sourceObject"
+          },
+          "description": "Every object on the slide, in z-order. A whole deck carries at most 200000 objects across all its slides, which is what the census, the lineage and the report hold; a reader that reaches the ceiling emits a nodes-truncated or slides-truncated warning rather than writing a deck a later stage refuses."
+        },
+        "notes": {
+          "type": "string",
+          "maxLength": 1048576
+        },
+        "transition": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "durationMs": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "readingOrder": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {
+            "$ref": "#/$defs/sourceWarning"
+          }
+        },
+        "origin": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "$ref": "#/$defs/sourceKind"
+            },
+            "layout": {
+              "type": "string",
+              "maxLength": 512
+            },
+            "layoutName": {
+              "type": "string",
+              "maxLength": 512,
+              "description": "The layout name the slide was built from (pptx p:cSld name), the layout matcher prior. layout is the part path."
+            },
+            "master": {
+              "type": "string",
+              "maxLength": 512
+            },
+            "flattened": {
+              "type": "boolean"
+            }
+          }
+        },
+        "preview": {
+          "type": "object",
+          "description": "A rendering of the whole slide for display, with its own fidelity. On a flattened slide the whole-slide picture is not put here: it stays in its picture object, or in recovery once that object is replaced.",
+          "additionalProperties": false,
+          "required": [
+            "assetRef",
+            "fidelity"
+          ],
+          "properties": {
+            "assetRef": {
+              "$ref": "#/$defs/assetRef"
+            },
+            "fidelity": {
+              "$ref": "#/$defs/fidelityState"
+            }
+          }
+        },
+        "recovery": {
+          "$ref": "#/$defs/slideRecovery"
+        },
+        "ocr": {
+          "$ref": "#/$defs/slideOcr"
+        }
+      }
+    },
+    "sourceColor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "hex": {
+          "$ref": "#/$defs/hex"
+        },
+        "scheme": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "alpha": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "description": "A colour with provenance: a theme slot reference keeps its slot name beside the resolved hex."
+    },
+    "sourceKind": {
+      "enum": [
+        "pptx",
+        "pdf",
+        "image",
+        "docx"
+      ]
+    },
+    "sourceMeta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "hash",
+        "lineageId",
+        "instanceId",
+        "pageCount"
+      ],
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/sourceKind"
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "lineageId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "pageCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 4096
+        }
+      }
+    },
+    "sourceObject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "fingerprint",
+        "kind",
+        "box",
+        "origin",
+        "fidelity"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "fingerprint": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "kind": {
+          "$ref": "#/$defs/sourceObjectKind"
+        },
+        "box": {
+          "$ref": "#/$defs/box"
+        },
+        "transform": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": {
+            "type": "number"
+          }
+        },
+        "groupPath": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "clip": {
+          "$ref": "#/$defs/box"
+        },
+        "origin": {
+          "$ref": "#/$defs/sourceOrigin"
+        },
+        "fidelity": {
+          "$ref": "#/$defs/fidelity"
+        },
+        "placeholder": {
+          "$ref": "#/$defs/placeholderType"
+        },
+        "readingIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "text": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "paras"
+          ],
+          "properties": {
+            "paras": {
+              "type": "array",
+              "maxItems": 4096,
+              "items": {
+                "$ref": "#/$defs/sourcePara"
+              }
+            }
+          }
+        },
+        "alt": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "fill": {
+          "$ref": "#/$defs/sourceColor"
+        },
+        "line": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [],
+          "properties": {
+            "color": {
+              "$ref": "#/$defs/sourceColor"
+            },
+            "widthPt": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "geom": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "media": {
+          "$ref": "#/$defs/assetRef"
+        },
+        "mediaMime": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "vector": {
+          "type": "string",
+          "maxLength": 4194304
+        },
+        "table": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {
+            "type": "array",
+            "maxItems": 512,
+            "items": {
+              "type": "string",
+              "maxLength": 65536
+            }
+          }
+        },
+        "tag": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "chartData": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [],
+          "properties": {
+            "type": {
+              "type": "string",
+              "maxLength": 128
+            },
+            "categories": {
+              "type": "array",
+              "maxItems": 4096,
+              "items": {
+                "type": "string",
+                "maxLength": 4096
+              }
+            },
+            "series": {
+              "type": "array",
+              "maxItems": 512,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "values"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "maxLength": 4096
+                  },
+                  "values": {
+                    "type": "array",
+                    "maxItems": 4096,
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "ocr": {
+          "$ref": "#/$defs/ocrEvidence"
+        },
+        "raster": {
+          "$ref": "#/$defs/rasterStats"
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "roleEstimate": {
+          "$ref": "#/$defs/sourceRoleEstimate",
+          "description": "Title or body, estimated from reconstructed text on a flattened slide. An estimate, never a placeholder binding."
+        },
+        "vectorItems": {
+          "$ref": "#/$defs/vectorItems",
+          "description": "The drawing as bounded, paint-ordered items for a compile to emit as editable rows (plan 275 decision 32). `vector` stays the archive copy."
+        }
+      }
+    },
+    "sourceObjectKind": {
+      "enum": [
+        "text",
+        "shape",
+        "pic",
+        "vector",
+        "table",
+        "chart",
+        "unknown"
+      ]
+    },
+    "sourceOrigin": {
+      "enum": [
+        "slide",
+        "layout",
+        "master",
+        "pdf-artifact",
+        "raster-region"
+      ]
+    },
+    "sourcePara": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "runs"
+      ],
+      "properties": {
+        "runs": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": {
+            "$ref": "#/$defs/sourceRun"
+          }
+        },
+        "lvl": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 32
+        },
+        "bullet": {
+          "enum": [
+            "none",
+            "bullet",
+            "number"
+          ]
+        },
+        "align": {
+          "enum": [
+            "left",
+            "center",
+            "right",
+            "justify"
+          ]
+        },
+        "bulletChar": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8,
+          "description": "The glyph a bullet paragraph draws (pptx a:buChar)."
+        },
+        "numberStyle": {
+          "type": "string",
+          "pattern": "^[A-Za-z]{1,40}$",
+          "description": "The numbering scheme of a number paragraph (pptx a:buAutoNum type)."
+        },
+        "numberStart": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 32767
+        },
+        "spaceBeforePt": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 4096
+        },
+        "spaceAfterPt": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 4096
+        },
+        "lineSpacingPct": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 10000,
+          "description": "Line spacing as a percentage of single spacing."
+        },
+        "indentPx": {
+          "type": "number",
+          "minimum": -20000,
+          "maximum": 20000,
+          "description": "Left indent in reference px (pptx marL)."
+        },
+        "firstIndentPx": {
+          "type": "number",
+          "minimum": -20000,
+          "maximum": 20000,
+          "description": "First-line offset against indentPx in reference px, negative for a hanging bullet (pptx indent)."
+        }
+      }
+    },
+    "sourceRoleEstimate": {
+      "enum": [
+        "title",
+        "body"
+      ]
+    },
+    "sourceRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "text"
+      ],
+      "properties": {
+        "text": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "bold": {
+          "type": "boolean"
+        },
+        "italic": {
+          "type": "boolean"
+        },
+        "underline": {
+          "type": "boolean"
+        },
+        "underlineStyle": {
+          "type": "string",
+          "pattern": "^[A-Za-z]{1,32}$",
+          "description": "The named underline style when it is not a single line (pptx u=\"dbl\", u=\"wavy\"). Evidence only."
+        },
+        "strike": {
+          "type": "boolean"
+        },
+        "baseline": {
+          "enum": [
+            "super",
+            "sub"
+          ]
+        },
+        "case": {
+          "enum": [
+            "upper",
+            "small-caps"
+          ]
+        },
+        "sizePt": {
+          "type": "number",
+          "minimum": 0
+        },
+        "font": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "fontProvenance": {
+          "$ref": "#/$defs/fontProvenance"
+        },
+        "color": {
+          "$ref": "#/$defs/sourceColor"
+        },
+        "href": {
+          "type": "string",
+          "maxLength": 8192
+        }
+      }
+    },
+    "sourceWarning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/sourceWarningCode"
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "objectIds": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "sourceWarningCode": {
+      "enum": [
+        "nodes-truncated",
+        "slides-truncated",
+        "media-skipped",
+        "part-too-large",
+        "group-transform-approximated",
+        "gradient-flattened",
+        "links-dropped",
+        "video-dropped",
+        "notes-dropped",
+        "metafile-not-converted",
+        "vector-budget-reached"
+      ]
+    },
+    "vectorBox": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "w",
+        "h"
+      ],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "w": {
+          "type": "number",
+          "minimum": 0
+        },
+        "h": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "vectorItem": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "d",
+            "box"
+          ],
+          "properties": {
+            "kind": {
+              "const": "path"
+            },
+            "d": {
+              "type": "string",
+              "maxLength": 400000
+            },
+            "box": {
+              "$ref": "#/$defs/vectorBox"
+            },
+            "shape": {
+              "enum": [
+                "rect",
+                "ellipse",
+                "line"
+              ]
+            },
+            "rx": {
+              "type": "number",
+              "minimum": 0
+            },
+            "fill": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/sourceColor"
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "none"
+                  ],
+                  "properties": {
+                    "none": {
+                      "const": true
+                    }
+                  }
+                }
+              ]
+            },
+            "fillOpacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "fillRule": {
+              "enum": [
+                "nonzero",
+                "evenodd"
+              ]
+            },
+            "stroke": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "color",
+                "width"
+              ],
+              "properties": {
+                "color": {
+                  "$ref": "#/$defs/sourceColor"
+                },
+                "width": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "opacity": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "cap": {
+                  "enum": [
+                    "butt",
+                    "round",
+                    "square"
+                  ]
+                },
+                "join": {
+                  "enum": [
+                    "miter",
+                    "round",
+                    "bevel"
+                  ]
+                },
+                "dash": {
+                  "type": "array",
+                  "maxItems": 16,
+                  "items": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                }
+              }
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "series": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "groups": {
+              "type": "array",
+              "maxItems": 8,
+              "items": {
+                "type": "string",
+                "maxLength": 128
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "text",
+            "x",
+            "y",
+            "size"
+          ],
+          "properties": {
+            "kind": {
+              "const": "text"
+            },
+            "text": {
+              "type": "string",
+              "maxLength": 2000
+            },
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "anchor": {
+              "enum": [
+                "start",
+                "middle",
+                "end"
+              ]
+            },
+            "size": {
+              "type": "number",
+              "minimum": 0
+            },
+            "font": {
+              "type": "string",
+              "maxLength": 256
+            },
+            "bold": {
+              "type": "boolean"
+            },
+            "italic": {
+              "type": "boolean"
+            },
+            "fill": {
+              "$ref": "#/$defs/sourceColor"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "series": {
+              "type": "string",
+              "maxLength": 64
+            },
+            "groups": {
+              "type": "array",
+              "maxItems": 8,
+              "items": {
+                "type": "string",
+                "maxLength": 128
+              }
+            }
+          }
+        }
+      ],
+      "description": "One paint-ordered item in the drawing's user space."
+    },
+    "vectorItems": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "viewBox",
+        "items"
+      ],
+      "properties": {
+        "version": {
+          "const": 1
+        },
+        "viewBox": {
+          "$ref": "#/$defs/vectorBox"
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 2000,
+          "items": {
+            "$ref": "#/$defs/vectorItem"
+          }
+        },
+        "omitted": {
+          "type": "array",
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "reason",
+              "count"
+            ],
+            "properties": {
+              "reason": {
+                "$ref": "#/$defs/vectorOmitReason"
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 120
+        },
+        "desc": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "vectorOmitReason": {
+      "enum": [
+        "cap-reached",
+        "unsupported-element",
+        "unsupported-paint",
+        "unsupported-text"
+      ]
+    }
+  },
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "source": {
+      "$ref": "#/$defs/sourceMeta"
+    },
+    "slides": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/$defs/slideSource"
+      },
+      "description": "The slides, in source order. At most 200000 objects in total across them, the same ceiling the census, the lineage and the report carry."
+    },
+    "fonts": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "family",
+          "provenance",
+          "runs"
+        ],
+        "properties": {
+          "family": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "provenance": {
+            "$ref": "#/$defs/fontProvenance"
+          },
+          "runs": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "available": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "theme": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "colors": {
+          "type": "object",
+          "maxProperties": 256,
+          "propertyNames": {
+            "maxLength": 256,
+            "pattern": "^(?!__proto__$|constructor$|prototype$)[A-Za-z0-9][A-Za-z0-9 ._:+/-]*$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/hex"
+          },
+          "description": "The theme colour table by slot name (dk1, lt1, accent1 and the rest). Values are normalised to #RRGGBB by the adapter, the same form every other colour in this document takes."
+        },
+        "majorFont": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "minorFont": {
+          "type": "string",
+          "maxLength": 256
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "$ref": "#/$defs/sourceWarning"
+      }
+    },
+    "reader": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "version": {
+          "type": "string",
+          "maxLength": 64
+        }
+      }
+    }
+  }
+}

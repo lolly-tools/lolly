@@ -23,21 +23,21 @@ Nakukuha ng dokumentong ito ang layunin, istruktura at mga desisyon sa arkitektu
 
 ## Bakit ito umiiral
 
-Kinakaharap ng mga team ang isang paulit-ulit na problema: paulit-ulit na gawaing creative at content na masyadong predictable para bigyang-katwiran ang paggamit ng bihasang kamay sa bawat pagkakataon, ngunit masyadong sensitibo sa kalidad para ipaubaya nang walang guardrails. Ang resulta ay maaaring mabagal na throughput (specialist bottleneck), kawalan ng pagkakapare-pareho (mga taong gumagamit ng kahit anong tool na meron sila) o vendor lock-in (isang SaaS DAM na kumokontrol sa iyong mga template).
+Masyadong predictable ang paulit-ulit na creative work para bigyang-katwiran ang bihasang kamay sa bawat pagkakataon, at masyadong sensitibo sa kalidad para ipaubaya nang walang guardrails. Kapag pinabayaan, mapupunta ito sa isa sa tatlong direksyon: mabagal, hindi pare-pareho o naka-lock sa mga template ng isang vendor.
 
 Ang platform na ito ang direktang sagot:
 
-> **Programmatic na creative at content sa malaking sukat** - zero-labor na paglikha ng asset, may mga panuntunang nasa ilalim ng sentral na kontrol, para sa mga empleyado, vendor at partner.
+> **Programmatic na creative at content sa malaking sukat** - mga asset na ginawa mula sa mga input, may mga panuntunang itinakda nang minsan, para sa sinumang nangangailangan nila.
 
 Hindi sa Lolly nililikha ang isang design system - dito ito ginagawa. Isipin mo itong parang vending machine para sa disenyo: pumili, kumuha ng resulta. Sa tuwina. Ginagawa ng engine ang pinakamataas na kalidad na kayang gawin ng bawat format sa hardware na nasa harap mo, at ang parehong engine ang gumagawa ng parehong file sa bawat surface na pinagpapadalhan nito.
 
-Ang resulta ay **kasaganaan**: may tamang signage ang bawat event, tumutugma sa house style ang bawat CVE alert, malinis na naka-print ang bawat label, napapanahon ang bawat email signature - lahat nang walang design ticket. Hinahawakan ng platform ang paulit-ulit at operationalized na creative work. Sadyang hindi ito isang bespoke creative tool - pag-aari pa rin ng mga designer ang flagship work.
+Ang resulta ay **kasaganaan**: may tamang signage ang bawat event, tumutugma sa house style ang bawat CVE alert, malinis na naka-print ang bawat label, napapanahon ang bawat email signature - lahat mula sa mga tool na dala na ang mga alituntunin. Hinahawakan ng platform ang paulit-ulit at operationalized na creative work. Sadyang hindi ito isang bespoke creative tool - pag-aari pa rin ng mga designer ang flagship work.
 
 ### Mag-innovate nang probabilistically, mag-scale nang deterministically
 
 Ang bawat argumento tungkol sa AI sa isang creative pipeline ay natitigil sa parehong tanong: aling bahagi nito ang trabaho ng makina? Ito ay isang lumang tanong na may nasagot nang sagot. Matagal nang gumagawa ang mga scribe at illuminator sa pagitan ng dalawang instrumento - ang maluwag na sketch, kung saan wala pang naayos at kahit ano ay puwedeng subukan, at ang printing press, nakakatakot mismo dahil ito ay nagko-commit. Sa mga sketch nangyari ang sining. Sa press ito umabot sa sinuman. Walang nagkalito sa dalawa, at pareho pa ring umunlad ang mga ito - bagong tinta, bagong uri ng titik, bagong press - bawat isa ay umuunlad nang naaayon sa craft at sa hangaring pinaglingkuran nito.
 
-Iginuguhit ng Lolly ang parehong linya. Mag-explore nang probabilistically: isang model, isang designer, isang magaspang na ideya, isang prompt na pupunta sa isang lugar na walang nagplano. Pagkatapos mag-scale nang deterministically - ang bagay na umaabot sa sampung libong output ay isang *tool*, at ang isang tool ay nagre-render sa parehong paraan sa bawat pagkakataon mula sa mga input na mababasa mo. Nananatiling malaya ang exploration dahil walang downstream na umaasa na dumapo ito sa parehong paraan nang dalawang beses. Nakakakuha ng tiwala ang output dahil hindi ito hula. Ang pagdadala sa AI experimentation tungo sa predictable at reproducible na mga resulta ay hindi bagong disiplina; ito ang parehong dibisyon ng trabaho na nagpahalaga sa printed work na pagkakatiwalaan sa unang lugar.
+Iginuguhit ng Lolly ang parehong linya. Mag-explore nang probabilistically: isang model, isang designer, isang magaspang na ideya, isang prompt na pupunta sa isang lugar na walang nagplano. Pagkatapos mag-scale nang deterministically - ang bagay na nagiging maraming output ay isang *tool*, at ang isang tool ay nagre-render sa parehong paraan sa bawat pagkakataon mula sa mga input na mababasa mo. Nananatiling malaya ang exploration dahil walang downstream na umaasa na dumapo ito sa parehong paraan nang dalawang beses. Nakakakuha ng tiwala ang output dahil hindi ito hula. Ang pagdadala sa AI experimentation tungo sa predictable at reproducible na mga resulta ay hindi bagong disiplina; ito ang parehong dibisyon ng trabaho na nagpahalaga sa printed work na pagkakatiwalaan sa unang lugar.
 
 > Pagkatiwalaan ang creative process, mag-scale nang may rigor.
 
@@ -75,19 +75,19 @@ Iyan ang force multiplier. Hindi ang Lolly ay isang drawer ng magkakahiwalay na 
 
 ---
 
-## Isang approval, sampung libong asset
+## Isang tool, maraming output
 
-Dahil naninirahan ang approval sa tool at hindi sa file (tingnan ang [How Lolly compares](/info/positioning.html)), hindi na naging problema sa review ang scale. I-approve nang minsan ang isang localized na social-card tool, pagkatapos bumuo ng **10,000 asset sa 12 wika** mula sa isang spreadsheet - at wala isa man sa mga ito ang nangangailangan ng sariwang compliance check mula sa legal o brand, dahil naaprubahan na ang template na pinagmulan nilang lahat.
+Ang brand rules ay nakatira sa tool, hindi sa bawat file na ginagawa nito (tingnan ang [Paano Ihahambing ang Lolly](/info/positioning.html)). Kapag tama na ang tool, minana ng bawat output ang parehong type, kulay at spacing, maging isang card man ito o isang spreadsheet ng mga row sa isang dosenang wika. Ikaw pa rin ang bahala kung paano mo susuriin ang iyong trabaho, at kung sino ang gagawa nito; pinaliit ni Lolly ang bagay na dapat suriin at pinabilis ang paggawa ng output.
 
-Naaabot ng parehong deterministic na tool ang sukat na iyon sa tatlong paraan, na lahat ay gumagawa ng magkatulad, pre-approved na output:
+Naaabot ng parehong deterministic na tool ang sukat na iyon sa tatlong paraan, na lahat ay gumagawa ng magkatulad na output:
 
-- <!--i:people--> **Isang tao, sa loob ng app.** Ang `/pro` batch grid: i-paste o i-import ang mga row, kumuha ng isang natapos na asset kada row, i-download ang zip. Walang design skill, walang ticket, walang hintayan.
-- <!--i:code--> **Isang developer, mula sa command line.** Pinapatakbo ng CLI ang *parehong* engine at *parehong* render path nang headless, kaya puwedeng i-sequence ang tool sa lahat ng 10,000 row sa isang script o isang nightly pipeline. Ang isang `lolly <tool> --field=…` na tawag sa isang loop ang buong integration.
-- <!--i:cpu--> **Isang system o isang AI agent, sa MCP.** Ang parehong tool na pinapatakbo nang programmatic, sa parehong fidelity at mas malaking sukat pa - dahil hindi mababagot ang isang makina habang dumaraan ang libu-libong file.
+- <!--i:people--> **Isang tao, sa loob ng app.** Ang `/pro` batch grid: i-paste o i-import ang mga row, kumuha ng isang natapos na asset kada row, i-download ang zip. Walang design skill, walang hintayan.
+- <!--i:code--> **Isang developer, mula sa command line.** Pinapatakbo ng CLI ang *parehong* engine at *parehong* render path nang headless, kaya puwedeng i-sequence ang tool sa bawat row sa isang script o isang nightly pipeline. Ang isang `lolly <tool> --field=…` na tawag sa isang loop ang buong integration.
+- <!--i:cpu--> **Isang system o isang AI agent, sa MCP.** Ang parehong tool na pinapatakbo nang programmatic, sa parehong fidelity, para sa kasing dami ng row na kailangan ng trabaho.
 
 ![Batch mode sa isang bagong install: isang walang laman na row na naghihintay ng isang tool, kasama ang buong spreadsheet surface at ang Render button nito na nasa lugar na bago pa man may dumating na data](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-Isang set ng brand constraints, itinakda nang minsan ng isang designer; tatlong ruta patungo sa magkatulad na pre-approved na output - at ang ruta ng makina ang pinaka-umaabot sa sukat, dahil hindi ito napapagod habang dumaraan ang mga file.
+Isang set ng brand constraints, itinakda nang minsan ng isang designer; tatlong ruta patungo sa magkatulad na output.
 
 ---
 
@@ -389,11 +389,11 @@ Web shell: IndexedDB. Tauri: filesystem. CLI: in-memory. Ang tanging nakikita ng
 
 Maaaring mag-save ang mga user ng maramihang pinangalanang edit slot bawat tool at bumalik sa bawat session sa ibang pagkakataon. Hindi kailangan ng paggawa ng account; per-device ang state. Dahil ang bridge lang ang tanging seam, ang per-device state na iyon ay *portable* din: binabasa ng `shells/web/src/data-transfer.ts` ang lahat pabalik sa pamamagitan ng `host.profile`/`host.state`/`host.assets` papunta sa iisang `lolly-backup` zip na nag-i-import sa kahit anong ibang install - ang offline na sagot sa "lumipat sa bagong device" na hindi nangangailangan ng server (buong spec: `docs/data-transfer.md`). Ang SUSE ID integration (multi-device sync) ay isang milestone sa hinaharap sa ibabaw nito.
 
-### 7. Sinasagot ng maturity tags ang panganib na "naaprubahan ng brand" sa pamamagitan ng disenyo
+### 7. Sinasabi ng maturity tags kung ano ang isang tool, ayon sa disenyo
 
 Idinideklara ng bawat tool ang `status: official | community | experimental` sa manifest nito. Inaayos ng gallery ayon sa status. Awtomatikong nilalagyan ng watermark ang mga export ng experimental na tool - inilalapat ang watermark ng `host.export.render`, hindi ng tool, kaya hindi ito maaaring i-opt out ng isang non-official na tool author.
 
-Isa itong structural na sagot sa panganib ng perception na ang paggamit ng kahit anong tool ay nangangahulugan ng aprubasyon ng brand. Nagdaragdag sa ibabaw nito ang mga process na sagot (review queue, SUSE ID gating).
+Isa itong structural na sagot sa perception risk na magkapareho ang bigat ng bawat tool sa gallery. Kahit anong proseso ang ilagay ng isang team sa paligid ng catalog, nakapatong lang ito sa ibabaw nito.
 
 ### 8. Naka-type ang mga input ng tool sa pamamagitan ng manifest, kasama ang mga asset
 

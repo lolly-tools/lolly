@@ -20,6 +20,11 @@ function element<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', 
   return el;
 }
 
+/** An element in the SVG namespace, checked by namespace so a node from another window still counts. */
+function isSvgElement(node: Element): node is SVGElement {
+  return node.namespaceURI === 'http://www.w3.org/2000/svg';
+}
+
 /** Parse one admitted emoji SVG into a node this document can hold, or null if the
  *  parser refuses it. Never HTML: an XML document cannot carry markup of its own. */
 function parseInlineSvg(markup: string): SVGElement | null {
@@ -27,7 +32,8 @@ function parseInlineSvg(markup: string): SVGElement | null {
     const parsed = new DOMParser().parseFromString(markup, 'image/svg+xml');
     const root = parsed.documentElement;
     if (root?.nodeName !== 'svg' || parsed.querySelector('parsererror')) return null;
-    const node = document.importNode(root, true) as unknown as SVGElement;
+    const node = document.importNode(root, true);
+    if (!isSvgElement(node)) return null;
     node.setAttribute('aria-hidden', 'true');
     node.setAttribute('focusable', 'false');
     return node;

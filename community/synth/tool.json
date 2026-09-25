@@ -114,7 +114,7 @@
     { "id": "color1", "label": "Colour 1", "section": "Colour", "type": "color", "default": "{color.semantic.primary}", "help": "The ramp runs Colour 1 to Colour 3 through OKLab, so the blend stays perceptual." },
     { "id": "color2", "label": "Colour 2", "section": "Colour", "type": "color", "default": "{color.semantic.secondary}" },
     { "id": "color3", "label": "Colour 3", "section": "Colour", "type": "color", "default": "{color.semantic.surface}" },
-    { "id": "rampRotate", "label": "Colour rotation", "section": "Colour", "type": "number", "display": "slider", "default": 0, "min": 0, "max": 360, "step": 5, "unit": "deg", "help": "Turns the whole ramp around the OKLab hue circle, so a piece can be re-tinted without picking three new colours. Lightness is untouched, so the picture keeps its contrast. MIDI CC74 turns this one." },
+    { "id": "rampRotate", "label": "Colour rotation", "section": "Colour", "type": "number", "display": "slider", "default": 0, "min": 0, "max": 360, "step": 5, "unit": "deg", "help": "Turns the whole ramp around the OKLab hue circle, so a piece can be re-tinted without picking three new colours. Lightness is untouched, and the contrast stays the same. MIDI CC74 turns this one." },
 
     { "id": "intensity", "label": "Intensity", "section": "Motion", "type": "number", "display": "slider", "default": 1.35, "min": 0, "max": 2, "step": 0.05, "help": "How much ink is injected and how hard it is pushed." },
     { "id": "speed", "label": "Speed", "section": "Motion", "type": "number", "display": "slider", "default": 1, "min": 0.1, "max": 4, "step": 0.05, "help": "How fast the field evolves. The loop stays the same length." },

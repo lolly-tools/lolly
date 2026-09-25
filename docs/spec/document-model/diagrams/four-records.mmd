@@ -1,0 +1,17 @@
+graph TD
+  subgraph records[Records]
+    def([Definition])
+    inst([Instance])
+    evl([Evaluation])
+    art([Artifact])
+  end
+  subgraph held[Held today by]
+    defc[Tool bundle]
+    instc[Session record]
+    evlc[C2PA and receipts]
+    artc[Exported bytes]
+  end
+  def --> defc
+  inst --> instc
+  evl --> evlc
+  art --> artc

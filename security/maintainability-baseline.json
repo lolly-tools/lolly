@@ -28,7 +28,7 @@
       "typeEscapes": 19
     },
     "shells/web/src/bridge/export.ts": {
-      "lines": 4545,
+      "lines": 4546,
       "largestFunctionLines": 647,
       "importFanIn": 26,
       "importFanOut": 58,
@@ -40,6 +40,13 @@
       "importFanIn": 4,
       "importFanOut": 28,
       "typeEscapes": 13
+    },
+    "shells/web/src/lib/rebrand/controller.ts": {
+      "lines": 2292,
+      "largestFunctionLines": 2424,
+      "importFanIn": 8,
+      "importFanOut": 8,
+      "typeEscapes": 0
     },
     "shells/web/src/views/color-lab.ts": {
       "lines": 2168,
@@ -63,43 +70,43 @@
       "typeEscapes": 68
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 1938,
-      "largestFunctionLines": 1778,
+      "lines": 1932,
+      "largestFunctionLines": 1771,
       "importFanIn": 1,
-      "importFanOut": 58,
+      "importFanOut": 59,
       "typeEscapes": 8
     },
     "shells/web/src/views/picker.ts": {
       "lines": 2525,
       "largestFunctionLines": 2169,
-      "importFanIn": 27,
+      "importFanIn": 28,
       "importFanOut": 56,
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {
-      "lines": 2262,
-      "largestFunctionLines": 2920,
+      "lines": 2259,
+      "largestFunctionLines": 2919,
       "importFanIn": 1,
-      "importFanOut": 47,
+      "importFanOut": 45,
       "typeEscapes": 8
     },
     "shells/web/src/views/tool-inputs.ts": {
-      "lines": 2893,
-      "largestFunctionLines": 2060,
+      "lines": 2922,
+      "largestFunctionLines": 2115,
       "importFanIn": 7,
-      "importFanOut": 34,
+      "importFanOut": 36,
       "typeEscapes": 5
     },
     "shells/web/src/views/tool/session.ts": {
-      "lines": 1509,
+      "lines": 1515,
       "largestFunctionLines": 1505,
       "importFanIn": 1,
       "importFanOut": 51,
       "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {
-      "lines": 2764,
-      "largestFunctionLines": 1980,
+      "lines": 2762,
+      "largestFunctionLines": 1979,
       "importFanIn": 3,
       "importFanOut": 50,
       "typeEscapes": 1
@@ -199,7 +206,7 @@
     "lib/pdf-thumbs.ts -> views/pdf-import.ts",
     "lib/pdf-vector-shot.ts -> views/pdf-import.ts",
     "lib/search/providers/catalog.ts -> views/catalog-filter.ts",
-    "lib/search/providers/settings.ts -> views/profile.ts",
+    "lib/search/providers/settings.ts -> views/profile/shared.ts",
     "lib/stt-job.ts -> views/timeline-captions.ts",
     "lib/tts-regenerate.ts -> views/script-audio.ts",
     "lib/upload-dropzone.ts -> views/pdf-import.ts",

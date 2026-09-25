@@ -51,7 +51,7 @@ The route's parameters, refusals and headers are described in OpenAPI 3.1 at [`/
 
 Every tool input and every export control an agent can set is a URL query parameter, and the one table that defines them is [URL mode](/info/url-mode.html): inputs by id (or `urlKey`), and the reserved export names - `format`, `width`/`height`/`unit`/`dpi`, `profile`, `password`, `bleed`/`marks`, `c2pa`/`imprint`/`durable`/`meta`, `hdr`/`depth`, `cuts`, `s`, `lang`, `emoji`/`emojifx`, and for the motion formats `fps`, `seconds`, `wait`, `codec` and `vq`. The MCP `query` argument, a share link, the CLI's `--flag=value` pairs and the hot-linkable render URL are that one contract under four transports, so an agent that has learnt the table has learnt all four; `lolly_list_tools` and `lolly_describe_tool` return each tool's inputs in the same vocabulary. Nothing here is a second API to memorise.
 
-## The thirteen tools
+## The fourteen tools
 
 **Discover and describe:**
 
@@ -85,6 +85,7 @@ Every tool input and every export control an agent can set is a URL query parame
 | `lolly_transform` | Run an on-device file utility (`strip-data`, `compress-pdf`) on a file you supply. |
 | `lolly_redact` | Destroy regions of an image, SVG or PDF you supply. Takes the same instruction string a share link carries (`bars=1,40,60,200,24~…`), so one string can be applied to every file of an identical layout. The tool rebuilds the file and re-checks its own output; a failed check returns an error with no file attached. |
 | `lolly_verify` | Verify a file's Content Credentials (C2PA): was it genuinely made with Lolly, who signed it and has it changed since export. Returns the verdict, signer identity, edit history and embedded metadata (including any AI-generated declaration and appended-data flags) - the same C2PA verifier as the CLI's `lolly validate`. (The web verify page's pixel-level reads - the Lolly Imprint, SEAL, the opt-in deep scan - are interactive, web-only.) The file is checked in-process and never stored. |
+| `lolly_rebrand` | Renovate a PowerPoint deck you supply into this server's design system, in four stages: `capabilities`, `plan`, `compile` and `inspect`. On a hosted server, calling this tool uploads your deck; call `{stage: 'capabilities'}` first to see where it goes and the size limit. |
 
 The intended flow is `lolly_list_tools` (usually with a focused `q` and small `limit`) → `lolly_describe_tool` (read the exact input schema) → `lolly_validate` when needed → `lolly_render`, which is exactly what the server's own prompts walk you through; `lolly_verify` closes the loop when an agent needs to prove a file it holds is an untouched Lolly export. On an authenticated connection with a file scope, five more `files_*` tools appear for importing a private file once and operating on its handle: `files_import`, `files_list`, `files_convert`, `files_report` and `files_delete`.
 
@@ -97,6 +98,14 @@ The same rule governs when a call escalates to the browser tier: one predicate, 
 ### Redaction needs the full endpoint
 
 `lolly_redact` rebuilds real pixels (a canvas for images, a page render for PDFs), which the browser-free tier cannot do. On the **full** endpoint it runs in the same browser path a person clicks in the app, including the tool's own export gate. On the **lightweight** endpoint it returns an error saying the browser tier is not available there rather than handing back a file that was never redacted. `lolly_transform` behaves the same way for any utility that rebuilds pixels; the metadata-only utilities (`strip-data`, `compress-pdf`) still run browser-free.
+
+### Rebrand: renovate a deck, in stages
+
+`lolly_rebrand` reads a `.pptx` you supply and turns it into this server's design system - colours, fonts and logo snapped to the system, decoration and page furniture pulled out - through the same node pipeline `lolly rebrand` runs on the CLI, so a plan made on one compiles on the other, as long as both read the same design system; otherwise compile refuses it with `plan.design-system-mismatch`. It runs no browser and needs neither endpoint's browser tier; it is available wherever the MCP server itself runs.
+
+**On `mcp.lolly.tools` and `lolly.tools/api/mcp`, calling `lolly_rebrand` uploads your deck to Lolly's server.** It is processed in memory for that call only and not kept. On `lolly.tools/api/mcp`, which runs on Vercel, a deck over about 3.4 MB cannot be sent as base64 at all; run `lolly rebrand` on the CLI instead for a larger deck, or point an agent at a local MCP server.
+
+Call `{stage: 'capabilities'}` first on a server you have not used. It states, in a plain sentence, where the file goes: a local server (stdio, or an HTTP server on a developer's own machine) keeps it in that process; a hosted server says calling the tool sends the file there, processed in memory for that call and nothing kept, with its byte and slide limits named, and, on Vercel, the platform's own request-size ceiling. `ocr` is `false` on every server - this pipeline reads no text out of pictures. Then `{stage: 'plan', file}` returns the review queue, the counts and the plan itself (as a JSON resource when it is too large to inline); an agent edits that plan - never regenerates it - before `{stage: 'compile', file, plan}` turns it into a Design document (`.lolly`) and, with `export: 'pptx'`, a native PowerPoint file; `{stage: 'inspect', plan}` pages through a large plan's queue and slides without pulling the whole thing back. A plan compiled against different bytes than it was made from is refused (`plan.hash-mismatch`), not silently reconciled.
 
 ## Any format, transparently
 
@@ -125,7 +134,7 @@ Call `lolly_describe_tool` first and read **`emojiSets`** - one row per register
 Three things follow from how the drawing works:
 
 - **With no `emoji` argument, every emoji draws as a neutral placeholder.** Nothing falls back to the operating system's emoji font, on any surface.
-- **Simple SVG text uses shaped outlines and pack artwork.** Unsupported positioning, bidi or missing fonts produces a neutral placeholder with a layout diagnostic. `emojifx` with no `emoji` names a treatment with no artwork to treat, and is reported as a warning.
+- **Simple SVG text uses shaped outlines and pack artwork.** Unsupported positioning, bidi or missing fonts produces a neutral placeholder with a layout diagnostic. `emojifx` with no `emoji` picks a treatment with no artwork to treat, and is reported as a warning.
 - **The sources are recorded.** A render that placed pack artwork reports the pack's credit and licence in its `Rights:` line, and writes one Content Credential source per distinct glyph where the format can carry one. A browser-tier render establishes the same census server-side, so a PDF or an MP4 records its sources too.
 
 ## Resources - brand context without a render
@@ -180,7 +189,7 @@ The endpoint also accepts the raw token directly, so scripted clients skip the O
 }
 ```
 
-A quick check with `curl` (expect a JSON list of the thirteen tools, plus the `files_*` tools when the connection is scoped; no token returns `401`):
+A quick check with `curl` (expect a JSON list of the fourteen tools, plus the `files_*` tools when the connection is scoped; no token returns `401`):
 
 ```bash
 curl -s -X POST https://mcp.lolly.tools/mcp \

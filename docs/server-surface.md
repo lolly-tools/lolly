@@ -16,7 +16,7 @@ and then runs locally, offline-capable) plus **three optional server components*
 The server components are the MCP endpoint, the Content Credentials CA and
 the Penpot pass-through. Ordinary on-device editing, rendering, exporting and
 verification do not require these services. A deployment can omit all three;
-the table below names the optional features each service adds.
+the table below lists the optional features each service adds.
 
 | Component | Route | Purpose | Optional? |
 |---|---|---|---|
@@ -31,9 +31,10 @@ the table below names the optional features each service adds.
 
 **What it does.** Exposes the catalogue and render path as MCP tools
 (`lolly_list_tools`, `lolly_describe_tool`, `lolly_build_url`, `lolly_render`,
-`lolly_transform`, `lolly_redact`, `lolly_verify`, `lolly_validate`,
-`lolly_compile`, `lolly_diff`, `lolly_inspect`, `lolly_measure`,
-`lolly_package`) so an AI agent can produce finished, rule-bound assets. The serverless tier renders browser-free formats.
+`lolly_transform`, `lolly_redact`, `lolly_verify`, `lolly_rebrand`,
+`lolly_validate`, `lolly_compile`, `lolly_diff`, `lolly_inspect`,
+`lolly_measure`, `lolly_package`) so an AI agent can produce finished,
+rule-bound assets. The serverless tier renders browser-free formats.
 The full endpoint at `mcp.lolly.tools` drives a headless browser for
 raster/PDF/animation/video.
 
@@ -50,11 +51,16 @@ returns the rendered bytes. There is no user database and no stored render
 history. Operational logging is the platform's function logging, covered by
 the [Privacy Policy](/info/privacy.html).
 
-**Three tools take a file.** `lolly_transform` (run an on-device utility on the
-caller's behalf), `lolly_redact` (destroy regions of an image, SVG or PDF) and
-`lolly_verify` (check a file's Content Credentials) each operate on bytes
-supplied in the call, in memory, for that call only. Nothing is written
-server-side. Every other tool works from parameters alone.
+**Four tools take a file.** `lolly_transform` (run an on-device utility on the
+caller's behalf), `lolly_redact` (destroy regions of an image, SVG or PDF),
+`lolly_verify` (check a file's Content Credentials) and `lolly_rebrand`
+(renovate a slide deck onto a design system, across its `plan`, `compile` and
+`inspect` stages) each operate on bytes supplied in the call, in memory, for
+that call only. Nothing is written server-side. `lolly_rebrand`'s
+`capabilities` stage states where the deck goes before any is sent: it never
+leaves a self-hosted local server, and a hosted server necessarily receives it
+for the call, up to that stage's stated size and slide limits. Every other
+tool works from parameters alone.
 
 Full reference: [MCP Server](/info/mcp.html).
 

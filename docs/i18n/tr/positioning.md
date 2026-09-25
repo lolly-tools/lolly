@@ -53,27 +53,19 @@ Deck Studio, buradaki tavanın iyi bir ölçüsüdür: veri olarak tanımlanmı�
 
 Çoğu "AI yaratıcılık" sunumu, modeli eski bir çizginin yanlış tarafına koyar. Yazıcılar ve tezhipçiler bu çizginin nereye düştüğünü çoktan belirlemişti: her şeyin denenebildiği ve hiçbir şeyin taahhüt edilmediği eskizde gevşek çalışırsın, sonra tam da taahhüt ettiği için ürkütücü olan matbaaya geçersin. Sanat eskizlerdeydi. Matbaa ise onun yayılma yoluydu. İki araç, iki iş, her biri kendi yolunda yaratıcı, ve basılı iş güvenilirdi çünkü matbaa her baskıda verdiği sözü tuttu.
 
-Lolly, eskiz değil matbaadır. Fikir üretimine istediğini getir - bir model, bir tasarımcı, bir peçete - ama bir fikrin on bin varlığa dönüşmesi gerektiği anda, herkesin geri okuyabileceği girdilerden her seferinde aynı şekilde render eden bir şeyden geçer. Yukarıdaki karşılaştırmanın gerçek konusu da budur: kimin daha iyi bir üreticisi olduğu değil, kimin taahhüt edilen adımı yeniden üretilebilir kıldığı.
+Lolly, eskiz değil matbaadır. Fikir üretimine istediğini getir - bir model, bir tasarımcı, bir peçete - ama bir fikrin birçok varlığa dönüşmesi gerektiği anda, herkesin geri okuyabileceği girdilerden her seferinde aynı şekilde render eden bir şeyden geçer. Yukarıdaki karşılaştırmanın gerçek konusu da budur: kimin daha iyi bir üreticisi olduğu değil, kimin taahhüt edilen adımı yeniden üretilebilir kıldığı.
 
 > Yaratıcı sürece güven, titizlikle ölçeklendir.
 
-## Dosyayı değil, aracı onayla
+## Kurallar dosyada değil, araçta yaşar
 
-Piyasadaki diğer her araç, sonradan kontrol edilmesi gereken bir *dosya* üretir - bir Slack konusunda marka yöneticisi, feragatname için hukuk ekibi, bir değişiklik turu, bir inceleme daha. Lolly onayı **bir adım yukarı** taşır. Marka kuralları - tam hex kodları, lisanslı yazı tipi dosyaları, taşma payları, boşluklar - aracın HTML ve CSS'ine sabit kodlanmıştır, bu yüzden şablon marka dışı bir çıktı *üretemez*. Uygulamayı zorlayan, düzenin kendisidir.
+Piyasadaki diğer her araç bir *dosya* üretir ve bir dosyaya ancak iş bittikten sonra, her seferinde tek bir çıktı olarak bakılabilir. Lolly marka kurallarını **bir adım yukarı** taşır. Tam hex kodları, lisanslı yazı tipi dosyaları, taşma payları, boşluklar - hepsi aracın HTML ve CSS'ine sabit kodlanmıştır, bu yüzden şablon marka dışı bir çıktı *üretemez*. Uygulamayı zorlayan, düzenin kendisidir.
 
-Böylece çıktıları onaylamayı bırakır, onları üreten **aracı** onaylamaya başlarsın. Bir kez onayla, ürettiği her varlık yapısı gereği önceden onaylanmış olur - hiçbir hacimde insan müdahalesi veya inceleme döngüsü gerekmez.
+Bu yüzden bakmaya değer olan şey, her seferinde ürettiği dosya değil **araçtır**. Aracı doğru kur, ürettiği her varlık yapısı gereği markaya uygun olur. İşini nasıl kontrol ettiğin ve bunu kimin yaptığı sana kalır; Lolly kontrol edilen şeyi küçültür, çıktıyı ise daha çabuk üretir.
 
-Belirlenimci motorun asıl getirdiği değişiklik budur: eski onay sürecinin daha hızlı bir sürümü değil, sürecin kendisinin ortadan kalkmasıdır. Yaratıcı ekip için bu bir yerine geçme değil, bir koruma bariyeridir - topu (veriyi, metni, görseli) yine sen atarsın, kod ise her atışı oyun dışına düşmekten alıkoyan bumper şeridi olur.
+Belirlenimci motorun asıl getirdiği değişiklik budur. Yaratıcı ekip için bu bir yerine geçme değil, bir koruma bariyeridir - topu (veriyi, metni, görseli) yine sen atarsın, kod ise her atışı oyun dışına düşmekten alıkoyan bumper şeridi olur.
 
-![Prodüktörün tüm işi: kelimeleri yazmak. Yazı tipi, renk ve boşluklar araç onaylandığında belirlenmişti](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DApproved&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-approve-the-tool)
-
-| Varlıkları eski yöntemle onaylamak | Aracı Lolly usulü onaylamak |
-|---|---|
-| Her bitmiş dosya tek tek kontrol edilir | Araç bir kez kontrol edilir |
-| Talep → tasarımcı oluşturur → marka incelemesi → hukuk kontrolü → değişiklikler → yeniden inceleme | Bir parametre değişikliği → bitmiş varlık |
-| Tasarımcı, marka yöneticisi, hukuk ve talep sahibi sürecin içinde | Prodüktör tek başına |
-| Varlık başına günler | Varlık başına saniyeler |
-| 10.000 varlık = 10.000 inceleme döngüsü | 10.000 varlık = sıfır (şablon zaten onaylanmıştı) |
+![Prodüktörün tüm işi: kelimeleri yazmak. Yazı tipi, renk ve boşluklar araç yapıldığında belirlenmişti](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
 
 ## Bunun eşsiz olarak sağladığı
 

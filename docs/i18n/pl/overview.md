@@ -24,21 +24,21 @@ Ten dokument opisuje cel, strukturę i decyzje architektoniczne platformy Lolly.
 
 ## Dlaczego to istnieje
 
-Zespoły mierzą się z powtarzającym się problemem: praca kreatywna i związana z treścią, która jest zbyt przewidywalna, by za każdym razem angażować wykwalifikowane ręce, ale zbyt wrażliwa na jakość, by oddać ją bez zabezpieczeń. Efektem jest albo wolna przepustowość (wąskie gardło specjalisty), albo niespójność (ludzie używający dowolnego dostępnego narzędzia), albo uzależnienie od dostawcy (SaaS-owy DAM kontrolujący twoje szablony).
+Powtarzalna praca kreatywna jest zbyt przewidywalna, by za każdym razem angażować wykwalifikowane ręce, i zbyt wrażliwa na jakość, by oddać ją bez zabezpieczeń. Pozostawiona samej sobie, przybiera jedną z trzech postaci: staje się powolna, niespójna lub zamknięta w szablonach dostawcy.
 
 Ta platforma jest bezpośrednią odpowiedzią:
 
-> **Programistyczna kreacja i treści na skalę** - generowanie zasobów bez pracy ręcznej, z regułami pod centralną kontrolą, dla pracowników, dostawców i partnerów.
+> **Programistyczna kreacja i treści na skalę** - zasoby generowane z danych wejściowych, z regułami ustalonymi raz, dla każdego, kto ich potrzebuje.
 
 Lolly to nie miejsce, w którym powstaje system projektowy - to miejsce, w którym jest on produkowany. Pomyśl o tym jak o automacie do projektowania: dokonujesz wyboru, dostajesz wynik. Za każdym razem. Silnik dąży do najwyższej jakości, jaką dany format może uzyskać na sprzęcie, który masz przed sobą, a ten sam silnik tworzy ten sam plik na każdej platformie, na jaką trafia.
 
-Efektem jest **obfitość**: każde wydarzenie ma poprawne oznakowanie, każdy alert CVE pasuje do stylu firmowego, każda etykieta drukuje się czysto, każda stopka e-mail jest aktualna - wszystko bez zgłoszenia do działu projektowego. Platforma obsługuje powtarzalną, zoperacjonalizowaną kreację. Celowo nie jest to narzędzie do twórczości na zamówienie - projektanci nadal odpowiadają za flagowe prace.
+Efektem jest **obfitość**: każde wydarzenie ma poprawne oznakowanie, każdy alert CVE pasuje do stylu firmowego, każda etykieta drukuje się czysto, każda stopka e-mail jest aktualna - wszystko dzięki narzędziom, które już niosą w sobie te reguły. Platforma obsługuje powtarzalną, zoperacjonalizowaną kreację. Celowo nie jest to narzędzie do twórczości na zamówienie - projektanci nadal odpowiadają za flagowe prace.
 
 ### Innowacja probabilistyczna, skalowanie deterministyczne
 
 Każda dyskusja o AI w procesie kreatywnym utyka na tym samym pytaniu: która część jest zadaniem maszyny? To stare pytanie z ustaloną odpowiedzią. Skrybowie i iluminatorzy pracowali już między dwoma narzędziami - luźnym szkicem, gdzie nic nie było ustalone i wszystko można było wypróbować, oraz prasą drukarską, onieśmielającą właśnie dlatego, że się zobowiązywała. Szkice były miejscem, gdzie działa się sztuka. Prasa była sposobem, by dotarła do kogokolwiek. Nikt nie mylił tych dwóch rzeczy, a obie wciąż się rozwijały - nowe atramenty, nowe kroje, nowe prasy - każda ulepszana w harmonii z rzemiosłem i intencją, której służyła.
 
-Lolly wyznacza tę samą granicę. Eksploruj probabilistycznie: model, projektant, luźny pomysł, prompt, który prowadzi tam, gdzie nikt nie planował. Potem skaluj deterministycznie - rzeczą, która dociera do dziesięciu tysięcy wyników, jest *narzędzie*, a narzędzie renderuje się za każdym razem tak samo, na podstawie danych wejściowych, które można odczytać. Eksploracja pozostaje swobodna, bo nic dalej w łańcuchu nie zależy od tego, czy wypadnie tak samo dwa razy. Wynik zdobywa zaufanie, bo nie jest zgadywanką. Przełożenie eksperymentów z AI na przewidywalne, powtarzalne rezultaty nie jest nową dyscypliną; to ten sam podział pracy, który sprawił, że druk w ogóle zasługiwał na zaufanie.
+Lolly wyznacza tę samą granicę. Eksploruj probabilistycznie: model, projektant, luźny pomysł, prompt, który prowadzi tam, gdzie nikt nie planował. Potem skaluj deterministycznie - rzeczą, która staje się wieloma wynikami, jest *narzędzie*, a narzędzie renderuje się za każdym razem tak samo, na podstawie danych wejściowych, które można odczytać. Eksploracja pozostaje swobodna, bo nic dalej w łańcuchu nie zależy od tego, czy wypadnie tak samo dwa razy. Wynik zdobywa zaufanie, bo nie jest zgadywanką. Przełożenie eksperymentów z AI na przewidywalne, powtarzalne rezultaty nie jest nową dyscypliną; to ten sam podział pracy, który sprawił, że druk w ogóle zasługiwał na zaufanie.
 
 > Ufaj procesowi twórczemu, skaluj z rygorem.
 
@@ -76,19 +76,19 @@ To jest mnożnik siły. Lolly nie jest szufladą osobnych narzędzi dla osobnych
 
 ---
 
-## Jedna akceptacja, dziesięć tysięcy zasobów
+## Jedno narzędzie, wiele wyników
 
-Ponieważ akceptacja znajduje się w narzędziu, a nie w pliku (zobacz [Jak Lolly wypada na tle innych](/info/positioning.html)), skala przestaje być problemem przeglądu. Zaakceptuj raz zlokalizowane narzędzie do kart społecznościowych, a potem wygeneruj **10 000 zasobów w 12 językach** z arkusza kalkulacyjnego - i żaden z nich nie potrzebuje nowej kontroli zgodności od działu prawnego czy marki, bo szablon, z którego wszystkie powstają, był już zaakceptowany.
+Reguły marki znajdują się w narzędziu, a nie w każdym pliku, który ono tworzy (zobacz [Jak Lolly wypada na tle innych](/info/positioning.html)). Ustaw narzędzie poprawnie raz, a każdy wynik dziedziczy ten sam krój, kolor i odstępy, niezależnie od tego, czy to jedna karta, czy arkusz kalkulacyjny z wierszami w kilkunastu językach. To, jak sprawdzasz swoją pracę i kto to robi, pozostaje twoją sprawą; Lolly sprawia, że rzecz warta sprawdzenia jest mniejsza, a wynik szybszy do wykonania.
 
-To samo deterministyczne narzędzie osiąga tę skalę na trzy sposoby, z których każdy daje identyczny, wcześniej zaakceptowany wynik:
+To samo deterministyczne narzędzie osiąga tę skalę na trzy sposoby, z których każdy daje identyczny wynik:
 
-- <!--i:people--> **Osoba, w aplikacji.** Siatka wsadowa `/pro`: wklej lub zaimportuj wiersze, otrzymaj jeden gotowy zasób na wiersz, pobierz archiwum zip. Bez umiejętności projektowych, bez zgłoszenia, bez czekania.
-- <!--i:code--> **Deweloper, z linii poleceń.** CLI uruchamia *ten sam* silnik i *tę samą* ścieżkę renderowania bez interfejsu, więc narzędzie można wywołać sekwencyjnie dla wszystkich 10 000 wierszy w skrypcie lub nocnym pipeline'ie. Wywołanie `lolly <tool> --field=…` w pętli to cała integracja.
-- <!--i:cpu--> **System lub agent AI, przez MCP.** To samo narzędzie obsługiwane programistycznie, z tą samą wiernością i jeszcze większą skalą - bo maszyna się nie znudzi, gdy napływają tysiące plików.
+- <!--i:people--> **Osoba, w aplikacji.** Siatka wsadowa `/pro`: wklej lub zaimportuj wiersze, otrzymaj jeden gotowy zasób na wiersz, pobierz archiwum zip. Bez umiejętności projektowych, bez czekania.
+- <!--i:code--> **Deweloper, z linii poleceń.** CLI uruchamia *ten sam* silnik i *tę samą* ścieżkę renderowania bez interfejsu, więc narzędzie można wywołać sekwencyjnie dla każdego wiersza w skrypcie lub nocnym pipeline'ie. Wywołanie `lolly <tool> --field=…` w pętli to cała integracja.
+- <!--i:cpu--> **System lub agent AI, przez MCP.** To samo narzędzie obsługiwane programistycznie, z tą samą wiernością, dla tylu wierszy, ile ma zadanie.
 
 ![Tryb wsadowy przy świeżej instalacji: jeden pusty wiersz czekający na narzędzie, z całą powierzchnią arkusza i przyciskiem Render już na miejscu, zanim pojawią się jakiekolwiek dane](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-Jeden zestaw ograniczeń marki, ustalony raz przez projektanta; trzy drogi do identycznego, wcześniej zaakceptowanego wyniku - a droga maszynowa skaluje się najdalej ze wszystkich, bo nigdy się nie męczy, gdy napływają pliki.
+Jeden zestaw ograniczeń marki, ustalony raz przez projektanta; trzy drogi do identycznego wyniku.
 
 ---
 
@@ -390,11 +390,11 @@ Web shell: IndexedDB. Tauri: system plików. CLI: pamięć tymczasowa. Narzędzi
 
 Użytkownicy mogą zapisać wiele nazwanych slotów edycji dla każdego narzędzia i wrócić do każdej sesji później. Nie jest wymagane zakładanie konta; stan jest przechowywany lokalnie na urządzeniu. Ponieważ mostek jest jedynym punktem styku, ten lokalny stan jest też *przenośny*: `shells/web/src/data-transfer.ts` odczytuje wszystko z powrotem przez `host.profile`/`host.state`/`host.assets` do jednego pliku zip `lolly-backup`, który można zaimportować w dowolnej innej instalacji - offline'owa odpowiedź na "przeniesienie na nowe urządzenie", niewymagająca serwera (pełna specyfikacja: `docs/data-transfer.md`). Integracja z SUSE ID (synchronizacja wielourządzeniowa) to przyszły etap budowany na tej podstawie.
 
-### 7. Znaczniki dojrzałości z założenia odpowiadają na ryzyko "zatwierdzenia przez markę"
+### 7. Znaczniki dojrzałości celowo mówią, czym jest narzędzie
 
 Każde narzędzie deklaruje `status: official | community | experimental` w swoim manifeście. Galeria sortuje według statusu. Narzędzia eksperymentalne automatycznie znakują swoje eksporty znakiem wodnym - znak wodny jest nakładany przez `host.export.render`, a nie przez narzędzie, więc autor narzędzia niebędącego oficjalnym nie może z niego zrezygnować.
 
-To strukturalna odpowiedź na ryzyko odbioru, że użycie dowolnego narzędzia sugeruje zatwierdzenie przez markę. Odpowiedzi procesowe (kolejka recenzji, bramkowanie przez SUSE ID) nakładają się na to dodatkowo.
+To strukturalna odpowiedź na ryzyko odbioru, że każde narzędzie w galerii waży tyle samo. Jakikolwiek proces zespół nałoży na katalog, nakłada się on na to rozwiązanie.
 
 ### 8. Dane wejściowe narzędzia są typowane poprzez manifest, w tym zasoby
 

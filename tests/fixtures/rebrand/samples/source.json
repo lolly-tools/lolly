@@ -1,0 +1,247 @@
+{
+  "version": 1,
+  "source": {
+    "kind": "pptx",
+    "hash": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "lineageId": "core-props:8f2c1d44-0f2b-4a9a-9d30-6d0f7b1f2ab1",
+    "instanceId": "import-2",
+    "name": "quarterly-review.pptx",
+    "bytes": 4184312,
+    "pageCount": 2,
+    "title": "Quarterly review"
+  },
+  "slides": [
+    {
+      "id": "ppt/slides/slide1.xml",
+      "index": 0,
+      "width": 1280,
+      "height": 720,
+      "background": {
+        "color": {
+          "hex": "#FFFFFF"
+        }
+      },
+      "objects": [
+        {
+          "id": "ppt/slides/slide1.xml.4",
+          "fingerprint": "text:0d9a2f61c4",
+          "kind": "text",
+          "box": {
+            "x": 96,
+            "y": 120,
+            "w": 1088,
+            "h": 148,
+            "rot": 0
+          },
+          "origin": "slide",
+          "fidelity": {
+            "state": "editable"
+          },
+          "placeholder": "ctrTitle",
+          "readingIndex": 0,
+          "text": {
+            "paras": [
+              {
+                "runs": [
+                  {
+                    "text": "Quarterly review",
+                    "bold": true,
+                    "sizePt": 40,
+                    "font": "+mj-lt",
+                    "fontProvenance": "theme",
+                    "color": {
+                      "scheme": "tx1",
+                      "hex": "#1A1A1A"
+                    }
+                  }
+                ],
+                "align": "left"
+              }
+            ]
+          }
+        },
+        {
+          "id": "ppt/slides/slide1.xml.7",
+          "fingerprint": "media:3c81ba07f9",
+          "kind": "pic",
+          "box": {
+            "x": 1040,
+            "y": 40,
+            "w": 180,
+            "h": 48,
+            "rot": 0
+          },
+          "origin": "master",
+          "fidelity": {
+            "state": "raster-preserved"
+          },
+          "alt": "Partner mark",
+          "media": "user/media/3c81ba07f9",
+          "mediaMime": "image/png",
+          "ocr": {
+            "state": "no-text-found",
+            "model": "none"
+          },
+          "raster": {
+            "width": 360,
+            "height": 96,
+            "dhash": "f0e1d2c3b4a59687",
+            "distinctColors": 14,
+            "axisAlignedEdgeShare": 0.72,
+            "transparentShare": 0.41
+          }
+        }
+      ],
+      "readingOrder": [
+        "ppt/slides/slide1.xml.4",
+        "ppt/slides/slide1.xml.7"
+      ],
+      "warnings": [],
+      "origin": {
+        "kind": "pptx",
+        "layout": "slideLayout2.xml",
+        "master": "slideMaster1.xml"
+      },
+      "preview": {
+        "assetRef": "user/preview/slide1",
+        "fidelity": "approximate"
+      }
+    },
+    {
+      "id": "ppt/slides/slide2.xml",
+      "index": 1,
+      "width": 1280,
+      "height": 720,
+      "background": {
+        "color": {
+          "scheme": "bg1",
+          "hex": "#FFFFFF"
+        }
+      },
+      "objects": [
+        {
+          "id": "ppt/slides/slide2.xml.3",
+          "fingerprint": "chart:6b2e90aa11",
+          "kind": "chart",
+          "box": {
+            "x": 160,
+            "y": 180,
+            "w": 960,
+            "h": 420,
+            "rot": 0
+          },
+          "transform": [
+            1,
+            0,
+            0,
+            1,
+            160,
+            180
+          ],
+          "groupPath": [
+            "ppt/slides/slide2.xml.2"
+          ],
+          "origin": "slide",
+          "fidelity": {
+            "state": "unavailable",
+            "reason": "native-chart-no-fallback"
+          },
+          "tag": "http://schemas.openxmlformats.org/drawingml/2006/chart",
+          "chartData": {
+            "type": "bar",
+            "categories": [
+              "Q1",
+              "Q2",
+              "Q3"
+            ],
+            "series": [
+              {
+                "name": "Renewals",
+                "values": [
+                  41,
+                  55,
+                  62
+                ]
+              }
+            ]
+          },
+          "readingIndex": 0
+        },
+        {
+          "id": "ppt/slides/slide2.xml.5",
+          "fingerprint": "chart:9d44f1c206",
+          "kind": "chart",
+          "box": {
+            "x": 160,
+            "y": 616,
+            "w": 960,
+            "h": 72,
+            "rot": 0
+          },
+          "origin": "slide",
+          "fidelity": {
+            "state": "raster-preserved",
+            "fallbackAssetRef": "user/media/9d44f1c206",
+            "fallbackSource": "embedded"
+          },
+          "readingIndex": 1,
+          "alt": "Renewals by region",
+          "tag": "http://schemas.openxmlformats.org/drawingml/2006/chart"
+        }
+      ],
+      "readingOrder": [
+        "ppt/slides/slide2.xml.3",
+        "ppt/slides/slide2.xml.5"
+      ],
+      "warnings": [
+        {
+          "code": "group-transform-approximated",
+          "message": "A nested group transform was composed to a box and a rotation.",
+          "objectIds": [
+            "ppt/slides/slide2.xml.3"
+          ],
+          "count": 1
+        }
+      ],
+      "origin": {
+        "kind": "pptx",
+        "layout": "slideLayout5.xml",
+        "master": "slideMaster1.xml"
+      }
+    }
+  ],
+  "fonts": [
+    {
+      "family": "Calibri",
+      "provenance": "theme",
+      "runs": 34,
+      "available": false
+    },
+    {
+      "family": "Arial",
+      "provenance": "literal",
+      "runs": 6,
+      "available": true
+    }
+  ],
+  "theme": {
+    "colors": {
+      "dk1": "#1A1A1A",
+      "lt1": "#FFFFFF",
+      "accent1": "#0C322C"
+    },
+    "majorFont": "Calibri Light",
+    "minorFont": "Calibri"
+  },
+  "warnings": [
+    {
+      "code": "notes-dropped",
+      "message": "Speaker notes were not read for two slides.",
+      "count": 2
+    }
+  ],
+  "reader": {
+    "name": "lolly-pptx-read",
+    "version": "1.0.0"
+  }
+}

@@ -315,11 +315,12 @@ export function assetModifiedAt(ref: Pick<AssetRef, 'id' | 'meta'>): number | nu
  * Sort a section's assets. 'default' preserves the curated manifest order
  * (uploads: newest-first from the bridge). Date sorts are newest-first with
  * dateless (catalog) assets keeping their relative order after the dated ones;
- * name/type are A→Z; size is largest-first.
+ * name/type are A→Z; size is largest-first. `reversed` (the view-options direction
+ * toggle) flips the finished order, dateless assets included.
  */
-export function sortAssets(list: readonly AssetRef[], sortBy: CatSort): AssetRef[] {
-  if (sortBy === 'default') return [...list];
+export function sortAssets(list: readonly AssetRef[], sortBy: CatSort, reversed = false): AssetRef[] {
   const arr = [...list];
+  if (sortBy === 'default') return reversed ? arr.reverse() : arr;
   const name = (a: AssetRef): string => String(a.meta?.name ?? a.id).toLowerCase();
   switch (sortBy) {
     case 'name': arr.sort((a, b) => name(a).localeCompare(name(b))); break;
@@ -328,5 +329,5 @@ export function sortAssets(list: readonly AssetRef[], sortBy: CatSort): AssetRef
     case 'size': arr.sort((a, b) => (Number(b.meta?.bytes) || 0) - (Number(a.meta?.bytes) || 0)); break;
     case 'type': arr.sort((a, b) => String(a.format ?? a.type).localeCompare(String(b.format ?? b.type))); break;
   }
-  return arr;
+  return reversed ? arr.reverse() : arr;
 }

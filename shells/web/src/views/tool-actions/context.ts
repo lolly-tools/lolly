@@ -130,6 +130,12 @@ export interface ActionsCtx {
   pim: { provenance: boolean; crop: boolean; registration: boolean; bleed: boolean; colorBars: boolean; };
   printRow: string;
   hasProtection: boolean;
+  /** The export panel offers a Licence dropdown (markup.ts buildPrintAndRows). */
+  hasLicence: boolean;
+  licenceRow: string;
+  /** Debounce state for syncCaptionsAvailable. */
+  captionsCheckTimer?: ReturnType<typeof setTimeout> | null;
+  captionsCheckSeq?: number;
   protectionOpen: boolean;
   protectionVisibleInitial: boolean;
   protectionRow: string;

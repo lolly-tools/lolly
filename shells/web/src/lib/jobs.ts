@@ -128,6 +128,8 @@ interface JobEntry {
   ownsSlot: boolean;
   retainSlotOnCancel: boolean;
   pruneTimer?: ReturnType<typeof setTimeout>;
+  /** Set by `dismissJob` on a job still running: it leaves the list as soon as it ends. */
+  dismissed?: boolean;
 }
 
 const entries: JobEntry[] = [];
@@ -199,6 +201,7 @@ function settle(e: JobEntry): void {
 /** Drop a terminal job from the list after the retention window. */
 function scheduleprune(e: JobEntry): void {
   if (e.pruneTimer) clearTimeout(e.pruneTimer);
+  if (e.dismissed) { drop(e); return; }
   const ms = Math.max(0, RETENTION.ms);
   e.pruneTimer = setTimeout(() => {
     const i = entries.indexOf(e);
@@ -206,6 +209,14 @@ function scheduleprune(e: JobEntry): void {
   }, ms);
   // Don't keep a headless process alive just to prune a finished job.
   (e.pruneTimer as { unref?: () => void }).unref?.();
+}
+
+/** Take a job off the list now. */
+function drop(e: JobEntry): void {
+  if (e.pruneTimer) clearTimeout(e.pruneTimer);
+  e.pruneTimer = undefined;
+  const i = entries.indexOf(e);
+  if (i >= 0) { entries.splice(i, 1); emit(); }
 }
 
 // ── Public API ───────────────────────────────────────────────────────────────
@@ -285,6 +296,19 @@ export function cancelJob(id: string): void {
     e.cancel = undefined;   // once only
     try { cb(); } catch { /* a cancel callback must not strand the registry */ }
   }
+}
+
+/**
+ * Take a finished job off the list before its retention window ends: the view said
+ * the outcome itself, so the toast need not say it again. A job still running, or a
+ * cancelled one still releasing its slot, leaves as soon as it has finished instead.
+ * A no-op on an unknown id. It never cancels: use {@link cancelJob} for that.
+ */
+export function dismissJob(id: string): void {
+  const e = entries.find(x => x.job.id === id);
+  if (!e) return;
+  e.dismissed = true;
+  if (isTerminal(e.job.status) && !e.ownsSlot) drop(e);
 }
 
 /**

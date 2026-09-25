@@ -16,14 +16,24 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { zipSync, strToU8 } from 'fflate';
+import { readFileSync } from 'node:fs';
 import {
   assembleShareChunks,
   looksLikeTokenDoc,
   zipListsDesignSystemParts,
   dropChooserChoices,
   dropChooserMessage,
+  lollyIntakeChoices,
+  setPendingRebrandFile,
+  setPendingRebrandFiles,
+  takePendingRebrandFile,
+  takePendingRebrandFiles,
+  deckKindOf,
 } from './drop-router.ts';
 import type { Sniff, ChooserContext } from './drop-router.ts';
+import { classifyLollyManifest, describeRenovation } from './lolly-intake.ts';
+import { LOLLY_RENOVATION_TOOL_ID } from './lolly-pack.ts';
+import { PROJECT_STAGES } from '@lolly-tools/core';
 
 const b64 = (s: string): string => Buffer.from(s, 'latin1').toString('base64');
 
@@ -195,7 +205,7 @@ test('a PDF offers the studio beside its own routes, and never leads with it', (
   // above the transform utility.
   const s = sniff({ pdf: true });
   const list = dropChooserChoices(s, ctx());
-  assert.deepEqual(list.map((c) => c.id), ['design', 'design-rules', 'sequence', 'library', 'design-system', 'compress']);
+  assert.deepEqual(list.map((c) => c.id), ['design', 'design-rules', 'sequence', 'rebrand', 'library', 'design-system', 'compress']);
   assert.equal(leader(list), 'design');
   // …and the sentence still names the file for what it is.
   assert.equal(dropChooserMessage(s, 'guidelines.pdf', ctx()), '“guidelines.pdf” is a PDF or Illustrator document.');
@@ -203,7 +213,7 @@ test('a PDF offers the studio beside its own routes, and never leads with it', (
 
 test('a PDF in a build with no other PDF tools still reaches the studio', () => {
   const list = dropChooserChoices(sniff({ pdf: true }), ctx({ has: () => false }));
-  assert.deepEqual(list.map((c) => c.id), ['library', 'design-system']);
+  assert.deepEqual(list.map((c) => c.id), ['rebrand', 'library', 'design-system']);
 });
 
 test('the studio door is offered once even if a file sniffs as both PDF and tokens', () => {
@@ -252,8 +262,8 @@ test('isBrandPackParts: routes by manifest format, exactly', async () => {
 // they do for a PDF, and the pictures + content routes follow.
 test('a deck offers Design first, then its slides AND content extraction, in the same sheet', () => {
   const list = dropChooserChoices(sniff({ pptx: true }), ctx());
-  assert.deepEqual(list.map((c) => c.id).slice(0, 3), ['design', 'design-rules', 'sequence']);
-  assert.deepEqual(list.map((c) => c.id).slice(3, 5), ['library', 'extract']);
+  assert.deepEqual(list.map((c) => c.id).slice(0, 4), ['design', 'design-rules', 'sequence', 'rebrand']);
+  assert.deepEqual(list.map((c) => c.id).slice(4, 6), ['library', 'extract']);
   assert.equal(leader(list), 'design', 'a deck edits like a PDF does');
 });
 
@@ -375,6 +385,119 @@ test('without Design in the build, a deck’s library route leads as it always d
 });
 
 
+// ── the Rebrand door (plan 274 section 2.1) ───────────────────────────────────
+
+test('a .pptx offers the Rebrand door beside Design, sequence and library, and it never leads', () => {
+  const choices = dropChooserChoices(deckSniff({ pptx: true }), deckCtx(['design']));
+  const rebrand = choices.find((c) => c.id === 'rebrand');
+  assert.ok(rebrand, 'the door is on offer');
+  assert.equal(rebrand.label, 'Rebrand');
+  assert.equal(rebrand.primary, undefined, 'a dropped deck is first a document, so Design keeps the lead');
+  const ids = choices.map((c) => c.id);
+  assert.ok(ids.indexOf('rebrand') > ids.indexOf('sequence') && ids.indexOf('rebrand') < ids.indexOf('library'),
+    'it sits between the Design doors and the library');
+  assert.match(dropChooserMessage(deckSniff({ pptx: true }), 'deck.pptx', deckCtx(['design'])),
+    /Rebrand moves its slides onto the design system\./, 'the sheet says in one line what the door does');
+});
+
+test('the Rebrand door needs no tool in the build, because #/rebrand is a view', () => {
+  const choices = dropChooserChoices(deckSniff({ pptx: true }), deckCtx([]));
+  assert.ok(choices.some((c) => c.id === 'rebrand'));
+  assert.deepEqual(choices.filter((c) => c.primary).map((c) => c.id), ['library'], 'library still leads without Design');
+});
+
+test('the Rebrand door is for decks, and never for other files', () => {
+  assert.equal(dropChooserChoices(deckSniff({ pptx: true }), { ...deckCtx(['design']), single: false, count: 2 })
+    .some((c) => c.id === 'rebrand'), false, 'a mixed multi-file drop keeps only the batch routes');
+  for (const kind of ['docx', 'design', 'media'] as const) {
+    assert.equal(dropChooserChoices(deckSniff({ [kind]: true }), deckCtx(['design'])).some((c) => c.id === 'rebrand'), false, kind);
+  }
+});
+
+test('a dropped renovation opens where it lives, now that #/rebrand exists', () => {
+  // openRenovationDrop runs the whole pack reader and the store, which need a browser;
+  // what it does at the end is the part this pins: it navigates to the route
+  // openRenovationFile returned instead of only saying where the project went.
+  const src = readFileSync(new URL('./drop-router.ts', import.meta.url), 'utf8');
+  const body = src.slice(src.indexOf('async function openRenovationDrop('), src.indexOf('async function openRenovationDrop(') + 4000);
+  assert.match(body, /routeToConsumer\(opened\.route, onRebrandRoute\(\)\)/);
+  assert.ok(body.indexOf('noticeDialog') < body.indexOf('routeToConsumer(opened.route'),
+    'what did not travel is said before the view changes');
+});
+
+test('several decks dropped together go to Rebrand as one read, and the library keeps the lead', () => {
+  const ctx: ChooserContext = { ...deckCtx(['design']), single: false, count: 3, allDecks: true };
+  const choices = dropChooserChoices(deckSniff({ pptx: true }), ctx);
+  const rebrand = choices.find((c) => c.id === 'rebrand');
+  assert.ok(rebrand, 'the door is on offer for a drop of decks alone');
+  assert.equal(rebrand.label, 'Rebrand 3 decks');
+  assert.equal(rebrand.primary, undefined);
+  assert.deepEqual(choices.filter((c) => c.primary).map((c) => c.id), ['library'], 'exactly one primary');
+  assert.match(dropChooserMessage(deckSniff({ pptx: true }), 'a.pptx', ctx), /3 PowerPoint decks\. Add them to your library, or rebrand them onto the design system, one project each\./);
+  // The router reads every file, not just the first, before it offers the door.
+  const src = readFileSync(new URL('./drop-router.ts', import.meta.url), 'utf8');
+  assert.match(src, /deckKindOf\(files, picker\.isPptxUpload, picker\.isPdfUpload\)/);
+  assert.match(src, /setPendingRebrandFiles\(files\.filter\(\(f\) => picker\.isPptxUpload\(f\) \|\| picker\.isPdfUpload\(f\)\)\)/);
+});
+
+test('a PDF deck gets the Rebrand door too, beside the Design doors, and it never leads', () => {
+  const choices = dropChooserChoices(deckSniff({ pdf: true }), deckCtx(['design']));
+  const rebrand = choices.find((c) => c.id === 'rebrand');
+  assert.ok(rebrand, 'the door is on offer for a PDF');
+  assert.equal(rebrand.primary, undefined, 'Design keeps the lead');
+  const ids = choices.map((c) => c.id);
+  assert.ok(ids.indexOf('rebrand') > ids.indexOf('sequence') && ids.indexOf('rebrand') < ids.indexOf('library'),
+    'it sits between the Design doors and the library, as it does for a pptx');
+});
+
+test('several PDF decks go to Rebrand together, and a mixed drop of pptx and PDF does not', () => {
+  const pptx = new File([new Uint8Array([0x50, 0x4b])], 'a.pptx');
+  const pdf = new File([new TextEncoder().encode('%PDF-1.7')], 'b.pdf', { type: 'application/pdf' });
+  const isPptx = (f: File): boolean => /\.pptx$/i.test(f.name);
+  const isPdf = (f: File): boolean => /\.pdf$/i.test(f.name);
+  assert.equal(deckKindOf([pptx, pptx], isPptx, isPdf), 'pptx');
+  assert.equal(deckKindOf([pdf, pdf], isPptx, isPdf), 'pdf');
+  assert.equal(deckKindOf([pptx, pdf], isPptx, isPdf), null, 'decks of two kinds are not one read');
+  assert.equal(deckKindOf([], isPptx, isPdf), null);
+
+  const ctx: ChooserContext = { ...deckCtx(['design']), single: false, count: 2, allDecks: true, deckKind: 'pdf' };
+  const choices = dropChooserChoices(deckSniff({ pdf: true }), ctx);
+  assert.equal(choices.find((c) => c.id === 'rebrand')?.label, 'Rebrand 2 decks');
+  assert.match(dropChooserMessage(deckSniff({ pdf: true }), 'b.pdf', ctx), /^2 PDF decks\. Add them to your library, or rebrand them onto the design system, one project each\.$/);
+});
+
+test('several decks wait for #/rebrand together, taken once', () => {
+  const a = new File([new Uint8Array([0x50, 0x4b])], 'a.pptx');
+  const b = new File([new Uint8Array([0x50, 0x4b])], 'b.pptx');
+  setPendingRebrandFiles([a, b]);
+  assert.deepEqual(takePendingRebrandFiles(), [a, b]);
+  assert.deepEqual(takePendingRebrandFiles(), [], 'a second mount finds nothing');
+  setPendingRebrandFile(a);
+  assert.deepEqual(takePendingRebrandFiles(), [a], 'one deck handed over the old way reads the same');
+});
+
+test('no model download sheet opens over an import the router runs', () => {
+  const src = readFileSync(new URL('./drop-router.ts', import.meta.url), 'utf8');
+  const chooser = src.slice(src.indexOf('export async function openDropChooser('));
+  const hold = chooser.indexOf('const releaseOffers = await holdOffers();');
+  assert.ok(hold > 0 && hold < chooser.indexOf('switch (chosen)'), 'the hold is taken before the chosen import runs');
+  assert.ok(chooser.indexOf('releaseOffers();') > chooser.indexOf('switch (chosen)'), 'and released once it is over');
+  const lolly = src.slice(src.indexOf('export async function openLollyFile('), src.indexOf('const importLollyDrop'));
+  assert.match(lolly, /const releaseOffers = await holdOffers\(\);[\s\S]*finally \{\s*releaseOffers\(\);/);
+  assert.match(src, /import\('\.\/model-offer\.ts'\)\)\.holdModelOffers\(\)/);
+  const intake = readFileSync(new URL('./lolly-intake.ts', import.meta.url), 'utf8');
+  const load = intake.slice(intake.indexOf('export async function loadLollyFile('));
+  assert.match(load, /const release = await holdOffers\(\);[\s\S]*finally \{\s*release\(\);/);
+});
+
+test('the Rebrand handoff is one-shot: taken once, then empty', () => {
+  assert.equal(takePendingRebrandFile(), null, 'nothing is waiting before a door is chosen');
+  const deck = new File([new Uint8Array([0x50, 0x4b])], 'deck.pptx');
+  setPendingRebrandFile(deck);
+  assert.equal(takePendingRebrandFile(), deck);
+  assert.equal(takePendingRebrandFile(), null, 'a second mount finds nothing');
+});
+
 // ── the data route (plans/87): a table of data charts itself ──────────────────
 const NO_SNIFF: Sniff = {
   design: false, pdf: false, pptx: false, media: false, c2pa: false, layers: false,
@@ -399,4 +522,145 @@ test('a multi-file drop keeps the batch routes only - the chart route is a singl
   const choices = dropChooserChoices({ ...NO_SNIFF, data: true }, { single: false, count: 2, allIngestable: false, has: () => true });
   assert.ok(!choices.some((c) => c.id === 'spreadsheet'));
   assert.ok(!choices.some((c) => c.id === 'chart'));
+});
+
+// ── a renovation inside a .lolly (plan 274 sections 2.1 and 3.5) ──────────────
+
+/** The manifest a renovation file declares. `tool.id` is the renovation's own when no
+ *  document travelled with it, because there is no document for a tool to own. */
+const renovationManifest = (over: Record<string, unknown> = {}): Record<string, unknown> => ({
+  format: 'lolly-share',
+  kind: 'session',
+  counts: { assets: 3, byReference: 1, bytes: 4096 },
+  tool: { id: LOLLY_RENOVATION_TOOL_ID },
+  renovation: {
+    id: 'ren-1',
+    name: 'Why SUSE Summary',
+    project: 'renovation/project.json',
+    parts: { sourceDeck: 'renovation/sourceDeck.json', plan: 'renovation/plan.json' },
+    assets: ['user/a', 'user/b', 'user/c'],
+  },
+  ...over,
+});
+
+const renovationPreview = (over: Record<string, unknown> = {}) =>
+  classifyLollyManifest(renovationManifest(over), 'why-suse.lolly', 240_000);
+
+const doorIds = (choices: ReturnType<typeof lollyIntakeChoices>): string[] => choices.map(c => c.id);
+
+test('a renovation on its own leads with the Rebrand door and offers no session door', () => {
+  const preview = renovationPreview();
+  assert.equal(preview.kind, 'session');
+  if (preview.format !== 'lolly-share') return;
+  assert.equal(preview.renovation?.name, 'Why SUSE Summary');
+  assert.deepEqual(preview.renovation?.parts, ['sourceDeck', 'plan']);
+  assert.equal(preview.renovation?.media, 3);
+  assert.equal(preview.renovation?.withDocument, false, 'the renovation tool id means no document travelled');
+
+  const doors = lollyIntakeChoices(preview);
+  assert.deepEqual(doorIds(doors), ['open-renovation']);
+  assert.equal(doors[0]!.primary, true);
+});
+
+test('a renovation carrying a design system still offers to add it', () => {
+  const preview = renovationPreview({ designSystem: { label: 'Acme' } });
+  assert.deepEqual(doorIds(lollyIntakeChoices(preview)), ['open-renovation', 'use-design-system']);
+  assert.equal(lollyIntakeChoices(preview, { preferred: 'design-system' })[1]!.primary, false,
+    'the renovation is still what the file is, whatever the surface preferred');
+});
+
+test('a file with a renovation and a document offers both doors, the renovation first', () => {
+  const preview = renovationPreview({ tool: { id: 'chart' } });
+  if (preview.format !== 'lolly-share') return;
+  assert.equal(preview.renovation?.withDocument, true);
+  const doors = lollyIntakeChoices(preview);
+  assert.deepEqual(doorIds(doors), ['open-renovation', 'open-session']);
+  assert.equal(doors[0]!.primary, true);
+  assert.equal(doors[1]!.primary, false);
+});
+
+test('a .lolly with no renovation keeps exactly the doors it always had', () => {
+  const session = classifyLollyManifest(
+    { format: 'lolly-share', kind: 'session', tool: { id: 'poster' }, designSystem: { label: 'Acme' } },
+    'shared.lolly', 2048,
+  );
+  assert.deepEqual(doorIds(lollyIntakeChoices(session)), ['open-session', 'use-design-system']);
+  assert.equal(lollyIntakeChoices(session, { preferred: 'design-system' })[1]!.primary, true);
+  const project = classifyLollyManifest(
+    { format: 'lolly-share', kind: 'project', project: { name: 'Pitch', sessions: [{}], folders: [{}] } },
+    'pitch.lolly', 2048,
+  );
+  assert.deepEqual(doorIds(lollyIntakeChoices(project)), ['open-project']);
+  const brand = classifyLollyManifest({ format: 'lolly-brand', label: 'Acme' }, 'acme.lolly', 2048);
+  assert.deepEqual(doorIds(lollyIntakeChoices(brand)), ['use-brand']);
+});
+
+test('a project file that also carries a renovation offers both', () => {
+  const preview = classifyLollyManifest(
+    renovationManifest({ kind: 'project', project: { name: 'Pitch', sessions: [{}, {}], folders: [] }, tool: { id: 'chart' } }),
+    'pitch.lolly', 4096,
+  );
+  assert.deepEqual(doorIds(lollyIntakeChoices(preview)), ['open-renovation', 'open-project']);
+});
+
+test('a renovation file is described by its project, its source and where the work picks up', () => {
+  const preview = renovationPreview();
+  if (preview.format !== 'lolly-share' || !preview.renovation) throw new Error('no renovation on the preview');
+  const renovation = preview.renovation;
+  // Before the file is inflated, only the manifest is in hand.
+  assert.equal(
+    describeRenovation(renovation),
+    'A Rebrand project: 2 stages of work, 3 pictures.',
+  );
+  // With the project record read, it says what it is a renovation OF, and where it picks
+  // up. A checkpoint carrying a time is a stage that FINISHED, so the stage named is the
+  // one after it - the same reading `resumePoint` applies in rebrand/lifecycle.ts.
+  assert.equal(
+    describeRenovation(renovation, {
+      name: 'Why SUSE Summary',
+      source: { name: 'Why SUSE Summary.pptx' },
+      checkpoint: { stage: 'plan', at: '2026-09-23T10:00:00.000Z' },
+    }),
+    'A Rebrand project for Why SUSE Summary.pptx, ready to review.',
+    'never as an empty saved session, and never back at work the file says is done',
+  );
+  // A checkpoint with no time committed nothing, so its own stage is the one to run.
+  assert.equal(
+    describeRenovation(renovation, { source: { name: 'deck.pptx' }, checkpoint: { stage: 'plan' } }),
+    'A Rebrand project for deck.pptx, being prepared.',
+  );
+  // A stage this build does not know is left out rather than guessed at.
+  assert.equal(
+    describeRenovation(renovation, { source: { name: 'deck.pptx' }, checkpoint: { stage: 'polish' } }),
+    'A Rebrand project for deck.pptx.',
+  );
+  // Past the last stage there is nothing to pick up, and saying otherwise would send a
+  // person back into a renovation that is finished.
+  assert.equal(
+    describeRenovation(renovation, { source: { name: 'deck.pptx' }, checkpoint: { stage: 'compile', at: '2026-09-23T12:00:00.000Z' } }),
+    'A Rebrand project for deck.pptx, opened in Design.',
+  );
+  assert.equal(
+    describeRenovation(renovation, { checkpoint: { stage: 'done', at: '2026-09-23T12:00:00.000Z' } }),
+    'A Rebrand project, opened in Design.',
+  );
+});
+
+test('the stage order the preview spells out is the store\u2019s own', () => {
+  const preview = renovationPreview();
+  if (preview.format !== 'lolly-share' || !preview.renovation) throw new Error('no renovation on the preview');
+  const renovation = preview.renovation;
+  // The preview spells the stage list again rather than importing the renovation
+  // modules into the cold path, so a describe of stage N has to name stage N+1.
+  for (let i = 0; i < PROJECT_STAGES.length - 2; i += 1) {
+    const said = describeRenovation(renovation, {
+      source: { name: 'deck.pptx' },
+      checkpoint: { stage: PROJECT_STAGES[i], at: '2026-09-23T10:00:00.000Z' },
+    });
+    const next = describeRenovation(renovation, {
+      source: { name: 'deck.pptx' },
+      checkpoint: { stage: PROJECT_STAGES[i + 1] },
+    });
+    assert.equal(said, next, `a finished ${PROJECT_STAGES[i]} reads as a pending ${PROJECT_STAGES[i + 1]}`);
+  }
 });

@@ -65,6 +65,7 @@ import type { TimeCfg } from './timeline-math.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { InputValue } from '../../../../engine/src/inputs.ts';
 import { takePendingDesignImport } from '../lib/drop-router.ts';
+import { takePendingRebrandDesign } from '../lib/rebrand/design-open.ts';
 import { brandFontFamilies } from '../lib/register-user-fonts.ts';
 import { announce } from '../a11y.ts';
 import { attachWobble } from '../lib/wobble.ts';
@@ -110,6 +111,7 @@ import { edgesOps } from './free-canvas/edges.ts';
 import { chromeSyncOps } from './free-canvas/chrome-sync.ts';
 import { keysOps } from './free-canvas/keys.ts';
 import { editorStateOps } from './free-canvas/editor-state.ts';
+import { slideMastersOps } from './free-canvas/slide-masters.ts';
 export { clampRailPos, stageBlockers, ctxTopBand, centreCtxBar, FC_TILT } from './free-canvas/shared.ts';
 export type { DeepLinkState, CtxTopBand } from './free-canvas/shared.ts';
 
@@ -228,6 +230,7 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   fc.chromeSync = chromeSyncOps(fc);
   fc.keys = keysOps(fc);
   fc.editorState = editorStateOps(fc);
+  fc.slideMasters = slideMastersOps(fc);
   fc.opts = opts;
 
   const {
@@ -1840,6 +1843,10 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
 
   fc.chromeSync.renderChrome();
 
+  // Slide masters (plan 274 section 3.4): start the catalog read now, so a menu opened
+  // later can say whether this design system offers archetypes instead of guessing.
+  fc.slideMasters.wireSlideMasters();
+
   // A composition that already has timing opens with its timeline showing; an empty
   // (or untimed) one leaves the stage whole until the user asks for it from the rail.
   if (timeCfg && fc.timeline.anyTimed(fc.select.getBoxes())) {
@@ -1915,6 +1922,29 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
           announce((err as Error)?.message || t('Import failed.'), { assertive: true });
       }
     })();
+  }
+
+  // A compiled deck from #/rebrand (plan 274 section 2.1 step 5): Rebrand opened this
+  // document and waits for it to mount, then lays its pages down as artboards through
+  // the same import the Import panel runs, with the compiled ids kept. One-shot, like
+  // the pending design import above; only a canvas with artboards can take it.
+  const pendingRebrand = importArtboardCapable ? takePendingRebrandDesign(info?.id) : null;
+  if (pendingRebrand) {
+    if (pendingRebrand.name) info?.setFilename?.(pendingRebrand.name);
+    pendingRebrand.attach({
+      owner: runtime,
+      lay: async (frames, o) => {
+        let keptIds = false;
+        const landed = await fc.menus.importAsArtboards(null, (m: string) => announce(m), {
+          frames,
+          keepIds: o.keepIds,
+          onWarning: o.onWarning,
+          onIdsKept: (kept: boolean) => { keptIds = kept; },
+        });
+        if (!fc.disposed) announce(landed === 1 ? t('Added 1 artboard.') : t('Added {n} artboards.', { n: landed }));
+        return { landed, keptIds: o.keepIds && keptIds };
+      },
+    });
   }
 
   /** `model.cfg`, plus the two tilt field names that live on the CANVAS block rather than

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-23T23:36:09.441Z",
+  "generatedAt": "2026-09-24T16:28:48.787Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -2185,12 +2185,14 @@
     },
     {
       "id": "rebrand-deck",
-      "name": "Rebrand",
-      "description": "Upload a PowerPoint deck and snap its colours and fonts to your brand - rebuilt on your device, nothing uploaded.",
-      "version": "1.1.0",
+      "name": "Theme swap",
+      "description": "Swaps the theme, colours and fonts in a PowerPoint deck on this device. Rebrand does this and more.",
+      "version": "1.2.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
+      "listed": false,
+      "deprecated": true,
       "tags": [
         "pptx",
         "powerpoint",
@@ -3815,7 +3817,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-      "version": "1.35.0",
+      "version": "1.37.0",
       "status": "community",
       "category": "designer",
       "tags": [

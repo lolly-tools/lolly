@@ -25,7 +25,7 @@ import { createProfileControl } from '../../components/profile-menu.ts';
 import { mountScopedStyle } from '../../lib/scope-css.ts';
 import { flickDirection, setupMobileSheet } from '../../lib/mobile-sheet.ts';
 import { wireExportPanelFloat } from '../../lib/export-panel-float.ts';
-import { isDocked, releaseDock } from '../../lib/edge-dock.ts';
+import { dockedFullCount, isDocked, releaseDock } from '../../lib/edge-dock.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { attachCanvasCommit } from '../../lib/canvas-commit.ts';
 import { mountUndoControls } from '../tool-history-controls.ts';
@@ -993,6 +993,9 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     };
     const closeExport = (): void => {
       const { actionsApi } = tview;
+      // A tab beside other panels in the right sidebar stays open while that sidebar is
+      // on (lib/export-panel-float.ts); closing it there would only bring it straight back.
+      if (isDocked('export') && dockedFullCount() > 1) return;
       const wasOpen = layout.classList.contains('export-open');
       // If edge-docked, undock first so the popup returns to its overlay and the
       // export-open removal actually hides it (docked, it lives outside the overlay).
@@ -1160,6 +1163,8 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
           // right side matches the Design editor (Andy, 2026-09-07). editorLayout already
           // does this for Design, so only the non-editor canvas tools need the extra nudge.
           preferEdge: canvasStage && !editorLayout,
+          isOpen: () => layout.classList.contains('export-open'),
+          openQuietly: () => openExport({ focus: false }),
           onOpen: (cb) => {
             exportOpenHooks.add(cb);
             return () => {

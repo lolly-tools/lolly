@@ -61,7 +61,7 @@ Export preflight identifies empty questions, missing or duplicate answer text an
 
 ## Add designs, slides and media
 
-Choose **Add content** inside the selected lesson. The picker names the receiving lesson and opens its course project when available. Browse projects, saved creations, library or uploads. Each successful addition updates the item count; choose **Done** when you have gathered the material. **Create or edit** holds the photo, capture and processing shortcuts available on your device.
+Choose **Add content** inside the selected lesson. The picker shows the receiving lesson and opens its course project when available. Browse projects, saved creations, library or uploads. Each successful addition updates the item count; choose **Done** when you have gathered the material. **Create or edit** holds the photo, capture and processing shortcuts available on your device.
 
 Content shows source names, available images, saved thumbnails and media controls directly on the canvas. Cached thumbnails are shown only when they predate the course capture; use **Preview course** to check the captured result of a saved tool session. Accessibility explanations stay separate from the source name.
 

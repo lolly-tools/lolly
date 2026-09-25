@@ -39,7 +39,7 @@ Cara biasa kerja kreatif rutin dilaksanakan ialah satu permukaan liabiliti: fail
 - **[Sahkan Sendiri](/info/verify-yourself.html)** - semak dakwaan itu terhadap satu eksport sebenar, langkah demi langkah, tanpa apa-apa yang anda tidak boleh jalankan sendiri.
 - **[Dasar Privasi](/info/privacy.html)** - kenyataan formal tentang apa yang dikumpul dan tidak dikumpul, disimpan dan dihantar.
 - **[Pengeluaran kreatif berdaulat](/info/sovereign-production.html)** - penggunaan bersifat air-gapped, rangkaian berpintukan persetujuan dan penandatanganan atas peranti.
-- **[Penerimaan & Tadbir Urus](/info/adoption-governance.html)** - siapa yang meluluskan satu alat, bagaimana peraturan jenama menjadi boleh dikuatkuasakan dan apa yang diperoleh oleh pilihan katalog-sebagai-repositori.
+- **[Penerimaan & Tadbir Urus](/info/adoption-governance.html)** - bagaimana peraturan jenama menjadi boleh dikuatkuasakan, apa yang ditambah oleh katalog dikongsi dan apa yang diperoleh oleh pilihan katalog-sebagai-repositori.
 
 ## Perundangan
 

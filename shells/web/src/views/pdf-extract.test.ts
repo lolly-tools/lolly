@@ -78,6 +78,21 @@ test('Unpack ignores obsolete reads and exposes working keyboard tabs', async (s
       assert.equal(view.querySelector('.pdfx-error'), null);
     });
 
+    await suite.test('a deck lists its charts as drawings apart from its marks, with no Logos hand-off on a drawing', async () => {
+      const { readFileSync } = await import('node:fs');
+      const bytes = readFileSync(new URL('../../../../tests/fixtures/rebrand/vector.pptx', import.meta.url));
+      open(new File([bytes], 'vector.pptx'));
+      for (let i = 0; i < 200 && !/vector\.pptx/.test(view.querySelector('.pdfx-file')?.textContent ?? ''); i++) await tick();
+      const tab = (id: string): HTMLButtonElement | null => view.querySelector<HTMLButtonElement>(`[role="tab"][data-tab="${id}"]`);
+      assert.equal(tab('vectors')?.querySelector('.pdfx-tab-n')?.textContent, '1', 'the layout mark is the one logo');
+      assert.equal(tab('drawings')?.querySelector('.pdfx-tab-n')?.textContent, '4', 'two charts and two freeform parts');
+      const drawings = view.querySelector('[data-panel="drawings"]')!;
+      assert.equal(drawings.querySelectorAll('[data-logos-vector]').length, 0, 'a chart is never sent to Logos');
+      assert.equal(drawings.querySelectorAll('[data-save-vector]').length, 4);
+      assert.match(drawings.textContent ?? '', /bar chart/, 'a drawing is named by its own title');
+      assert.equal(view.querySelector('[data-panel="vectors"]')!.querySelectorAll('[data-logos-vector]').length, 1);
+    });
+
     await suite.test('unmount invalidates pending work and releases the result', async () => {
       const old = deferred('after-unmount.svg'); open(old.file); await old.started;
       view._cleanup?.(); old.release(); await tick(); await tick();

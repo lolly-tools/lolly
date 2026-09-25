@@ -298,6 +298,13 @@ export function syncUrl(tview: ToolViewCtx, dirtyId?: string): void {
     // and come out together when the choice is cleared.
     writeEmojiParams(params, toolEmojiParams());
   }
+  if (dirtyParams.has('licence')) {
+    // The declared licence belongs to the document, so it travels like the emoji
+    // set: written while one is chosen, dropped when it goes back to none.
+    const id = runtime.outputLicence?.();
+    if (id) params.set('licence', id);
+    else params.delete('licence');
+  }
   if (dirtyParams.has('imprint')) {
     // Pixel watermark - on by default like c2pa (see url-mode serializeUrlState):
     // unchecking the popup toggle writes the explicit `imprint=0` opt-out;

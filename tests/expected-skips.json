@@ -633,6 +633,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/cli-rebrand.test.ts",
+      "fullName": "--ocr reads the scanned pages when the model is on this machine, and compile --plan reads them again",
+      "reason": "the ocr model family is not on this machine",
+      "capability": "model",
+      "owner": "tests"
+    },
+    {
       "file": "tests/cli-tierb-video.test.ts",
       "fullName": "--seconds and --fps shape the clip: the URL-mode video params reach the browser tier",
       "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
@@ -2411,6 +2418,20 @@
       "owner": "tests"
     },
     {
+      "file": "tests/pdf-columns.test.ts",
+      "fullName": "no page of a private PDF interleaves lines from two columns",
+      "reason": "the private rebrand deck fixture corpus is not on this machine (set LOLLY_REBRAND_FIXTURES)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/pdf-word-spacing.test.ts",
+      "fullName": "no page of a private PDF reads with words run together",
+      "reason": "the private rebrand deck fixture corpus is not on this machine (set LOLLY_REBRAND_FIXTURES)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
       "file": "tests/penpot-keynote-replay.test.ts",
       "fullName": "keynote: PERSON INTRO’s master hydrates through the real design",
       "reason": "UXDays keynote .penpot not on this machine",
@@ -2751,6 +2772,90 @@
       "fullName": "external oracle: we read a file ImageMagick wrote (its RLE, its header)",
       "reason": "ImageMagick (`magick`) is not installed (optional external-codec oracle)",
       "capability": "external-tool",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-census.test.ts",
+      "fullName": "the census completes on every private deck and gives every object a class",
+      "reason": "the private rebrand deck fixture corpus is not on this machine (set LOLLY_REBRAND_FIXTURES)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-census.test.ts",
+      "fullName": "per-class precision and recall on the labelled private decks hold their recorded floors",
+      "reason": "the private rebrand deck fixture corpus is not on this machine (set LOLLY_REBRAND_FIXTURES)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-fixtures.test.ts",
+      "fullName": "the private deck corpus lists the decks the census is tuned on",
+      "reason": "the private rebrand deck fixture corpus is not on this machine (set LOLLY_REBRAND_FIXTURES)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-node-pdf.test.ts",
+      "fullName": "the private corpus PDFs and Lolly_Strategic_Vision.pptx rebuild with every object accounted for",
+      "reason": "the private rebrand deck fixture corpus is not on this machine (set LOLLY_REBRAND_FIXTURES)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-node-pipeline.test.ts",
+      "fullName": "the suse design system resolves to the same snapshot here and on the web",
+      "reason": "brands/suse is not checked out, so the suse profile cannot be resolved here",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-picture-deck.test.ts",
+      "fullName": "the private picture deck: titles, body, marks, crops and the two structures (LOLLY_REBRAND_FIXTURES)",
+      "reason": "the private rebrand deck fixture corpus is not on this machine (set LOLLY_REBRAND_FIXTURES)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-pipeline.test.ts",
+      "fullName": "the whole pipeline completes on every private deck",
+      "reason": "the private rebrand deck fixture corpus is not on this machine (set LOLLY_REBRAND_FIXTURES)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-plan.test.ts",
+      "fullName": "nothing a private deck label marks mustKeep is proposed for removal, unless a person is asked",
+      "reason": "the private rebrand deck fixture corpus is not on this machine (set LOLLY_REBRAND_FIXTURES)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-plan.test.ts",
+      "fullName": "MEDDPICC slide 3 reads as numbered rows and keeps its eight letters",
+      "reason": "the private rebrand deck fixture corpus is not on this machine (set LOLLY_REBRAND_FIXTURES)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-review.test.ts",
+      "fullName": "the queue for MEDDPICC opens with at most eight cards",
+      "reason": "the private rebrand deck fixture corpus is not on this machine (set LOLLY_REBRAND_FIXTURES)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-source-pdf.test.ts",
+      "fullName": "every private PDF reads into a deck that validates",
+      "reason": "the private rebrand deck fixture corpus is not on this machine (set LOLLY_REBRAND_FIXTURES)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-structure.test.ts",
+      "fullName": "the private corpus: no wrong read and no read over its slot capacity in the apply band, against the structure labels",
+      "reason": "the private rebrand deck fixture corpus is not on this machine (set LOLLY_REBRAND_FIXTURES)",
+      "capability": "fixture",
       "owner": "tests"
     },
     {

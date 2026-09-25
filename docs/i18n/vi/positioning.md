@@ -53,27 +53,19 @@ Deck Studio là một thước đo tốt cho giới hạn trần ở đây: toà
 
 Hầu hết các lời chào hàng "sáng tạo AI" đặt mô hình vào sai phía của một ranh giới đã có từ lâu. Các nhà chép kinh và họa sĩ minh họa thời xưa đã xác định rõ ranh giới đó nằm ở đâu: bạn làm việc phóng khoáng trên bản phác thảo, nơi bất cứ điều gì cũng có thể thử và không gì bị chốt lại, rồi sau đó bạn đưa nó đến máy in, thứ đáng gờm chính vì nó chốt lại mọi thứ. Các bản phác thảo là nơi nghệ thuật tồn tại. Máy in là cách nó lan tỏa. Hai công cụ, hai công việc, mỗi công cụ sáng tạo theo cách riêng của mình, và tác phẩm được in ra có thể được tin cậy vì máy in giữ đúng lời hứa của nó ở mỗi lần in.
 
-Lolly là máy in, không phải bản phác thảo. Hãy mang bất cứ thứ gì bạn thích vào giai đoạn lên ý tưởng - một mô hình, một nhà thiết kế, một tờ giấy ăn - nhưng khoảnh khắc một ý tưởng phải trở thành mười nghìn tài sản, nó phải đi qua thứ gì đó kết xuất theo cùng một cách mỗi lần, từ những dữ liệu đầu vào mà bất kỳ ai cũng có thể đọc lại. Đó mới thực sự là điều mà phần so sánh ở trên nói đến: không phải ai có bộ tạo tốt hơn, mà là ai làm cho bước chốt lại có thể tái tạo được.
+Lolly là máy in, không phải bản phác thảo. Hãy mang bất cứ thứ gì bạn thích vào giai đoạn lên ý tưởng - một mô hình, một nhà thiết kế, một tờ giấy ăn - nhưng khoảnh khắc một ý tưởng phải trở thành nhiều tài sản, nó phải đi qua thứ gì đó kết xuất theo cùng một cách mỗi lần, từ những dữ liệu đầu vào mà bất kỳ ai cũng có thể đọc lại. Đó mới thực sự là điều mà phần so sánh ở trên nói đến: không phải ai có bộ tạo tốt hơn, mà là ai làm cho bước chốt lại có thể tái tạo được.
 
 > Tin tưởng quá trình sáng tạo, mở rộng bằng sự nghiêm ngặt.
 
-## Phê duyệt công cụ, không phải tệp
+## Quy tắc nằm trong công cụ, không phải trong tệp
 
-Mọi công cụ khác trên thị trường đều tạo ra một *tệp* rồi sau đó phải được kiểm tra - một quản lý thương hiệu trong luồng Slack, bộ phận pháp lý xem xét tuyên bố miễn trừ, một vòng chỉnh sửa, thêm một lượt xét duyệt nữa. Lolly đưa việc phê duyệt **lùi lên một bước**. Các quy tắc thương hiệu - mã hex chính xác, tệp phông chữ có bản quyền, lề tràn (bleed), khoảng cách - được mã hóa cứng vào HTML và CSS của công cụ, vì vậy mẫu *không thể* tạo ra một tài sản sai thương hiệu. Chính bố cục thực hiện việc thực thi đó.
+Mọi công cụ khác trên thị trường đều tạo ra một *tệp*, và một tệp chỉ có thể được xem lại sau khi việc đã xong, từng đầu ra một. Lolly đưa các quy tắc thương hiệu **lùi lên một bước**. Mã hex chính xác, tệp phông chữ có bản quyền, lề tràn (bleed), khoảng cách - tất cả đều được mã hóa cứng vào HTML và CSS của công cụ, vì vậy mẫu *không thể* tạo ra một tài sản sai thương hiệu. Chính bố cục thực hiện việc thực thi đó.
 
-Vì vậy bạn ngừng phê duyệt đầu ra và bắt đầu phê duyệt **công cụ** tạo ra chúng. Phê duyệt một lần, và mọi tài sản mà nó từng tạo ra đều đã được phê duyệt sẵn theo cấu trúc - không cần con người trong quy trình, không cần chu kỳ xét duyệt, ở bất kỳ quy mô nào.
+Vì vậy thứ đáng xem xét chính là **công cụ**, không phải từng tệp mà nó tạo ra. Làm đúng công cụ, và mọi tài sản mà nó từng tạo ra đều đúng thương hiệu theo cấu trúc. Cách bạn kiểm tra công việc của mình, và ai làm việc đó, vẫn là việc của bạn; Lolly làm cho thứ đã kiểm tra nhỏ hơn và việc tạo ra đầu ra nhanh hơn.
 
-Đây là thay đổi mà bộ máy tất định thực sự mang lại: đó không phải là phiên bản nhanh hơn của quy trình phê duyệt cũ, mà là loại bỏ hẳn quy trình đó. Đối với đội ngũ sáng tạo, đây là một rào chắn bảo vệ, không phải một sự thay thế - bạn vẫn ném quả bóng (dữ liệu, nội dung, hình ảnh) và mã nguồn là làn đường có thanh chắn giữ cho mọi cú ném không bao giờ rơi xuống rãnh.
+Đây là thay đổi mà bộ máy tất định thực sự mang lại. Đối với đội ngũ sáng tạo, đây là một rào chắn bảo vệ, không phải một sự thay thế - bạn vẫn ném quả bóng (dữ liệu, nội dung, hình ảnh) và mã nguồn là làn đường có thanh chắn giữ cho mọi cú ném không bao giờ rơi xuống rãnh.
 
-![Toàn bộ công việc của người sản xuất: gõ chữ. Kiểu chữ, màu sắc và khoảng cách đã được ấn định khi công cụ được phê duyệt](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DApproved&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-approve-the-tool)
-
-| Phê duyệt tài sản theo cách cũ | Phê duyệt công cụ, theo cách của Lolly |
-|---|---|
-| Mọi tệp hoàn thiện đều được kiểm tra, từng cái một | Công cụ chỉ được kiểm tra một lần |
-| Yêu cầu → nhà thiết kế xây dựng → xét duyệt thương hiệu → kiểm tra pháp lý → chỉnh sửa → xét duyệt lại | Thay đổi một tham số → tài sản hoàn thiện |
-| Nhà thiết kế, quản lý thương hiệu, pháp lý và người yêu cầu đều tham gia | Chỉ một mình người sản xuất |
-| Nhiều ngày cho mỗi tài sản | Vài giây cho mỗi tài sản |
-| 10.000 tài sản = 10.000 chu kỳ xét duyệt | 10.000 tài sản = không có (mẫu đã được phê duyệt từ trước) |
+![Toàn bộ công việc của người sản xuất: gõ chữ. Kiểu chữ, màu sắc và khoảng cách đã được ấn định khi công cụ được tạo ra](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
 
 ## Điều chỉ riêng Lolly mang lại
 

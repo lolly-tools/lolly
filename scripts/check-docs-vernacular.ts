@@ -11,9 +11,9 @@
  *
  *   node scripts/check-docs-vernacular.ts
  *
- * Scope: the ENGLISH sources only (docs/*.md, docs/site/*, the figure HTML,
- * README.md). Locale twins are generated from these by the translate pipeline,
- * which carries its own punctuation rules.
+ * Scope: the ENGLISH sources only (docs/*.md, docs/spec/**\/*.md, docs/site/*,
+ * the figure HTML, README.md). Locale twins are generated from these by the
+ * translate pipeline, which carries its own punctuation rules.
  *
  * Two ban layers, both deterministic:
  *  - UNICODE: no exemptions for PROSE. Em-dash, zero-width characters,
@@ -118,6 +118,23 @@ export const BANNED_PHRASES: { what: string; re: RegExp }[] = [
   { what: '"admissible" (any variation)', re: /\badmissib\w*/i },
   { what: 'the bar metaphor ("bar is high", "raises the bar")', re: /\b(?:bar is (?:high|low|higher|lower)|rais\w+ the bar)\b/i },
   { what: '"transcribe" family as prose (say quote/copy; the speech feature and API names carry ALLOW entries)', re: /\btranscri\w*/i },
+  // Two shapes Andy banned on 2026-09-25.
+  //
+  // "so the X Y its Z" is a consequence clause bolted onto a fact, with a
+  // possessive doing nothing: "so the document declares its operations" is the
+  // same sentence as "the document declares operations", one clause shorter.
+  // Write the fact.
+  { what: '"so the X Y its Z" framing (drop the clause and the possessive)', re: /\bso (?:the|a|an|this|that|each|every|one|its|their) \S+ \S+ its\b/i },
+  // "names" as a verb - "the row names its input", "one names it". A person
+  // names a child; a document does not name anything. Say what it actually
+  // does: gives, lists, points at, says which. The NOUN is untouched
+  // ("attendee names"), which is why the object words are part of the match.
+  // One noun use does still trip it: a plural followed by a relative clause,
+  // as in "the names that mean something without being inputs". Three such lines
+  // existed when the rule went in (docs/constraints.md, docs/reproducibility.md,
+  // engine/src/url-mode.ts) and were reworded because the plain form read better.
+  // Give the next one an ALLOW entry rather than a worse sentence.
+  { what: '"names" as a verb (say what it does: gives, lists, points at, says which)', re: /\bnames\s+(?:the|its|a|an|what|which|who|whom|where|when|how|every|each|both|all|one|two|three|this|that|these|those|it|them|him|her|us|no|nothing|only|exactly)\b/i },
   { what: '"worth knowing"', re: /\bworth knowing\b/i },
   { what: '"worth naming"', re: /\bworth naming\b/i },
   { what: '"now says so"', re: /\bnow says so\b/i },
@@ -282,10 +299,24 @@ const ALLOW: Record<string, string[]> = {
  */
 const VERBATIM: Record<string, string[]> = {};
 
-function targets(): string[] {
+/** The scanned English sources, repo-relative. Exported so a test can assert what
+ *  is in scope rather than trusting that a directory is still reached. */
+export function targets(): string[] {
   const out: string[] = ['README.md'];
   for (const f of readdirSync(join(ROOT, 'docs'))) {
     if (f.endsWith('.md')) out.push(`docs/${f}`);
+  }
+  // The specifications published as their own web documents (docs/spec/<name>/*.md,
+  // built by docs/spec-pages.ts). Same prose, same reader, same rules; nested, so
+  // this walks rather than listing one directory.
+  if (existsSync(join(ROOT, 'docs/spec'))) {
+    const walk = (dir: string, rel: string): void => {
+      for (const e of readdirSync(dir, { withFileTypes: true })) {
+        if (e.isDirectory()) walk(join(dir, e.name), `${rel}/${e.name}`);
+        else if (e.name.endsWith('.md')) out.push(`${rel}/${e.name}`);
+      }
+    };
+    walk(join(ROOT, 'docs/spec'), 'docs/spec');
   }
   if (existsSync(join(ROOT, 'docs/site'))) {
     for (const f of readdirSync(join(ROOT, 'docs/site'))) {

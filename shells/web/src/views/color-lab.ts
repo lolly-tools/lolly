@@ -3430,7 +3430,7 @@ function shellHtml(): string {
       <h2 class="lab-h2 lab-step-h">
         <span class="lab-step-n" aria-hidden="true">3</span>${escape(t('Every notation'))}
       </h2>
-      <p class="lab-section-note">${escape(t('The same colour, written for each space. A row marked “clamped” names a space too narrow to hold it - CSS would round those numbers into range.'))}</p>
+      <p class="lab-section-note">${escape(t('The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.'))}</p>
       <table class="lab-notations">
         <thead><tr>
           <th scope="col">${escape(t('Space'))}</th>
@@ -3613,7 +3613,7 @@ function shellHtml(): string {
           <span class="lab-diag-hint">${escape(t('An APCA grid, and how it reads for colour-vision deficiency'))}</span>
         </summary>
         <div class="lab-diag-body">
-          <p class="lab-section-note">${escape(t('Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent, so a cell and its mirror differ and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.'))}</p>
+          <p class="lab-section-note">${escape(t('Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.'))}</p>
           <div class="lab-cvd">
             <div class="view-seg lab-seg" role="group" aria-label="${escape(t('Vision preview'))}" data-lab-cvd>
               <button type="button" class="view-seg-btn" data-val="normal" aria-pressed="true">${escape(t('Normal'))}</button>

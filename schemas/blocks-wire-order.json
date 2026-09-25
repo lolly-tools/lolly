@@ -143,7 +143,11 @@
       "textFrame",
       "pathPaint",
       "vectorSource",
-      "textWrap"
+      "textWrap",
+      "master",
+      "role",
+      "furniture",
+      "archetype"
     ],
     "diagram-builder:nodes": [
       "shape",

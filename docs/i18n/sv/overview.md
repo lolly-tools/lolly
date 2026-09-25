@@ -24,21 +24,21 @@ Det här dokumentet beskriver syftet, strukturen och de arkitektoniska besluten 
 
 ## Varför det här finns
 
-Team stöter på ett återkommande problem: repeterbart kreativt arbete och innehållsarbete som är för förutsägbart för att motivera skickliga händer varje gång, men för kvalitetskänsligt för att lämna ifrån sig utan skyddsräcken. Resultatet blir antingen låg genomströmning (specialistflaskhals), inkonsekvens (folk som använder vad de nu råkar ha) eller leverantörsinlåsning (en SaaS-DAM som kontrollerar dina mallar).
+Repeterbart kreativt arbete är för förutsägbart för att motivera skickliga händer varje gång, och för kvalitetskänsligt för att lämna ifrån sig utan skyddsräcken. Lämnat åt sig själv går det åt ett av tre håll: långsamt, inkonsekvent eller inlåst i en leverantörs mallar.
 
 Den här plattformen är det direkta svaret:
 
-> **Programmatiskt kreativt innehåll i stor skala** - tillgångsgenerering utan arbetsinsats, med reglerna under central kontroll, för anställda, leverantörer och partners.
+> **Programmatiskt kreativt innehåll i stor skala** - tillgångar genererade från indata, med reglerna satta en gång, för den som behöver dem.
 
 Lolly är inte platsen där ett designsystem uppfinns - det är platsen där det produceras. Tänk på det som en varuautomat för design: gör ett val, få ett resultat. Varje gång. Motorn strävar efter den högsta kvalitet varje format kan producera på hårdvaran framför dig, och samma motor skapar samma fil på varje yta den levereras till.
 
-Resultatet är **överflöd**: varje event har korrekt skyltning, varje CVE-varning matchar husstilen, varje etikett skrivs ut rent, varje e-postsignatur är aktuell - allt utan en designbeställning. Plattformen hanterar återkommande operationaliserat kreativt arbete. Den är medvetet inte ett skräddarsytt kreativt verktyg - designers äger fortfarande flaggskeppsarbetet.
+Resultatet är **överflöd**: varje event har korrekt skyltning, varje CVE-varning matchar husstilen, varje etikett skrivs ut rent, varje e-postsignatur är aktuell - allt från verktyg som redan bär reglerna. Plattformen hanterar återkommande operationaliserat kreativt arbete. Den är medvetet inte ett skräddarsytt kreativt verktyg - designers äger fortfarande flaggskeppsarbetet.
 
 ### Innovera probabilistiskt, skala deterministiskt
 
 Varje diskussion om AI i en kreativ pipeline fastnar på samma fråga: vilken del av det här är maskinens jobb? Det är en gammal fråga med ett avgjort svar. Skrivare och illuminatörer arbetade redan mellan två instrument - den lösa skissen, där inget var fastlagt och allt kunde prövas, och tryckpressen, skrämmande just för att den band fast. Skisserna var där konsten skedde. Pressen var hur den nådde vem som helst. Ingen blandade ihop de två, och båda fortsatte att utvecklas - nya bläck, nya typsnitt, nya pressar - var och en som förbättrades i samklang med hantverket och avsikten den tjänade.
 
-Lolly drar samma gräns. Utforska probabilistiskt: en modell, en designer, en lös idé, en prompt som hamnar någonstans ingen planerade. Skala sedan deterministiskt - det som når tio tusen utdata är ett *verktyg*, och ett verktyg renderar likadant varje gång från indata du kan läsa. Utforskandet förblir fritt eftersom inget nedströms beror på att det landar likadant två gånger. Utdatan förtjänar tillit eftersom den inte är en gissning. Att få AI-experimenterande in i förutsägbara, reproducerbara resultat är ingen ny disciplin; det är samma arbetsdelning som gjorde tryckt arbete värt att lita på från första början.
+Lolly drar samma gräns. Utforska probabilistiskt: en modell, en designer, en lös idé, en prompt som hamnar någonstans ingen planerade. Skala sedan deterministiskt - det som blir till många utdata är ett *verktyg*, och ett verktyg renderar likadant varje gång från indata du kan läsa. Utforskandet förblir fritt eftersom inget nedströms beror på att det landar likadant två gånger. Utdatan förtjänar tillit eftersom den inte är en gissning. Att få AI-experimenterande in i förutsägbara, reproducerbara resultat är ingen ny disciplin; det är samma arbetsdelning som gjorde tryckt arbete värt att lita på från första början.
 
 > Lita på den kreativa processen, skala med noggrannhet.
 
@@ -76,19 +76,19 @@ Det är hävstångseffekten. Lolly är inte en låda med separata verktyg för s
 
 ---
 
-## Ett godkännande, tio tusen tillgångar
+## Ett verktyg, många utdata
 
-Eftersom godkännandet ligger i verktyget och inte i filen (se [Hur Lolly jämför sig](/info/positioning.html)) slutar skala vara ett granskningsproblem. Godkänn ett lokaliserat socialt-kort-verktyg en gång och generera sedan **10 000 tillgångar på 12 språk** från ett kalkylark - och inte en enda av dem behöver en ny efterlevnadskontroll från juridik eller varumärke, eftersom mallen de alla kommer från redan var godkänd.
+Varumärkesreglerna lever i verktyget, inte i varje fil det skapar (se [Så jämför sig Lolly](/info/positioning.html)). Få verktyget rätt en gång, så ärver varje utdata samma typsnitt, färg och avstånd, oavsett om det är ett kort eller ett kalkylblad med rader på ett dussin språk. Hur du kontrollerar ditt arbete, och vem som gör det, är fortfarande upp till dig; Lolly gör det som är värt att kontrollera mindre och utdatan snabbare att skapa.
 
-Samma deterministiska verktyg når den skalan på tre sätt, alla med identisk, förgodkänd utdata:
+Samma deterministiska verktyg når den skalan på tre sätt, alla med identisk utdata:
 
-- <!--i:people--> **En person, i appen.** `/pro`-batchrutnätet: klistra in eller importera raderna, få en färdig tillgång per rad, ladda ner zip-filen. Ingen designkompetens, ingen beställning, ingen väntan.
-- <!--i:code--> **En utvecklare, från kommandoraden.** CLI:n kör *samma* motor och *samma* renderväg headless, så verktyget kan köras i sekvens över alla 10 000 rader i ett skript eller en nattlig pipeline. Ett `lolly <tool> --field=…`-anrop i en loop är hela integrationen.
-- <!--i:cpu--> **Ett system eller en AI-agent, via MCP.** Samma verktyg drivet programmatiskt, med samma fidelitet och ännu större skala - eftersom en maskin inte tröttnar medan tusentals filer rullar in.
+- <!--i:people--> **En person, i appen.** `/pro`-batchrutnätet: klistra in eller importera raderna, få en färdig tillgång per rad, ladda ner zip-filen. Ingen designkompetens, ingen väntan.
+- <!--i:code--> **En utvecklare, från kommandoraden.** CLI:n kör *samma* motor och *samma* renderväg headless, så verktyget kan köras i sekvens över varje rad i ett skript eller en nattlig pipeline. Ett `lolly <tool> --field=…`-anrop i en loop är hela integrationen.
+- <!--i:cpu--> **Ett system eller en AI-agent, via MCP.** Samma verktyg drivet programmatiskt, med samma fidelitet, för så många rader som jobbet kräver.
 
 ![Satsläge på en ny installation: en tom rad som väntar på ett verktyg, med hela kalkylbladsytan och dess Rendera-knapp på plats innan någon data kommit in](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-En uppsättning varumärkesbegränsningar, fastställd en gång av en designer; tre vägar till identisk förgodkänd utdata - och maskinvägen skalar längst av alla, eftersom den aldrig tröttnar medan filerna rullar in.
+En uppsättning varumärkesbegränsningar, fastställd en gång av en designer; tre vägar till identisk utdata.
 
 ---
 
@@ -390,11 +390,11 @@ Webbskal: IndexedDB. Tauri: filsystem. CLI: i minnet. Verktyg ser bara `host.sta
 
 Användare kan spara flera namngivna redigeringsplatser per verktyg och återgå till varje session senare. Inget konto krävs; tillståndet är per enhet. Eftersom bryggan är den enda sömmen är det tillståndet per enhet också *portabelt*: `shells/web/src/data-transfer.ts` läser tillbaka allt via `host.profile`/`host.state`/`host.assets` till en enda `lolly-backup`-zip som importeras på vilken annan installation som helst - offlinesvaret på att "flytta till en ny enhet" som inte kräver någon server (fullständig spec: `docs/data-transfer.md`). SUSE ID-integration (synk mellan flera enheter) är en framtida milstolpe ovanpå detta.
 
-### 7. Mognadstaggar besvarar risken för "varumärkesgodkänt" genom design
+### 7. Mognadstaggar säger vad ett verktyg är, genom design
 
 Varje verktyg deklarerar `status: official | community | experimental` i sitt manifest. Galleriet sorterar efter status. Experimentella verktyg vattenmärker sina exporter automatiskt - vattenmärket appliceras av `host.export.render`, inte av verktyget, så det kan inte väljas bort av en icke-officiell verktygsförfattare.
 
-Detta är ett strukturellt svar på riskuppfattningen att användning av ett verktyg innebär varumärkesgodkännande. Processlösningar (en granskningskö, SUSE ID-gate) lägger sig ovanpå.
+Det här är ett strukturellt svar på riskuppfattningen att varje verktyg i galleriet väger lika tungt. Vilken process ett team än lägger runt katalogen ligger ovanpå det.
 
 ### 8. Verktygsindata typas via manifestet, inklusive tillgångar
 

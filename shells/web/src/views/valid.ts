@@ -93,7 +93,7 @@ import { wmNoteSlot } from '../lib/wm-note.ts';
 import { aiModelSlot } from './tsig-model-note.ts';
 // The Document facts census section (shared with the catalog panel).
 import { tsigFactsHtml } from './tsig-facts.ts';
-import type { DocReadNotes } from './doc-read.ts';
+import { scannedUnreadNote, type DocReadNotes } from './doc-read.ts';
 // The illumination strip + the completeness receipt (pure models; the strip
 // renders through this view's existing reviewed sinks).
 import { verifyLampCues } from './valid-text.ts';
@@ -3483,11 +3483,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
     const bits: string[] = [];
     if (notes.pagesRead < notes.pageCount) bits.push(tRaw('The first {n} of {total} pages were read.', { n: notes.pagesRead, total: notes.pageCount }));
     if (notes.ocrPages > 0) bits.push(tRaw('{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.', { n: notes.ocrPages }));
-    if (notes.scannedUnread > 0) {
-      bits.push(notes.ocrUnavailable
-        ? tRaw('{n} pages are pictures of text and the text-recognition model is not installed, so they were not read.', { n: notes.scannedUnread })
-        : tRaw('{n} scanned pages were left unread to keep this quick.', { n: notes.scannedUnread }));
-    }
+    if (notes.scannedUnread > 0) bits.push(scannedUnreadNote(notes));
     return bits.map((b) => `<p class="valid-tsig-cands">${escape(b)}</p>`).join('');
   }
 
@@ -3501,24 +3497,27 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
     const file = activeFiles[Number(btn.dataset.fileIndex ?? '0')];
     if (!resultEl || !file) return;
     const span = btn.querySelector('span');
-    const orig = span?.textContent ?? '';
+    let orig = span?.textContent ?? '';
     btn.disabled = true;
     if (span) span.textContent = t('Reading…');
     try {
-      const { extractDocumentText } = await import('./doc-read.ts');
+      const { extractDocumentText, offerTextRecognition, canOfferOcrAgain } = await import('./doc-read.ts');
       const result = await extractDocumentText(file, ocrReady ? (host.ocr ?? null) : null, (done, total) => {
         if (span) span.textContent = tRaw('Reading page {i} of {n}…', { i: done, n: total });
-      });
+      }, { ensureOcr: offerTextRecognition });
+      // Pages left unread after Not now: the button stays, and a press offers the model again.
+      const retry = canOfferOcrAgain(result.notes, ocrReady);
+      if (retry) orig = t('Read scanned pages');
       if (result.text == null) {
         resultEl.textContent = result.notes.ocrUnavailable
-          ? t('The pages of this document are pictures of text, and the text-recognition model that could read them is not installed.')
+          ? t('These pages are pictures of text. Text recognition is not on this device, so they were not read.')
           : t('No readable text was found in this document.');
         resultEl.hidden = false;
         return;
       }
       resultEl.innerHTML = textSignalsHtml(analyzeVerifyText(result.text, result.source)) + docReadNotesHtml(result.notes);
       resultEl.hidden = false;
-      btn.hidden = true; // one read is enough - the result now shows the analysis
+      if (!retry) btn.hidden = true; // one read is enough - the result now shows the analysis
     } catch {
       resultEl.textContent = t('The text in this document could not be read.');
       resultEl.hidden = false;

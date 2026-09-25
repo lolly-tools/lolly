@@ -1,0 +1,7 @@
+Fuzz: box rad 8px wid 1.7 ht 0.56 "Fuzz band"
+Region: box rad 8px wid 1.7 ht 0.56 "Region checks" at Fuzz + (0, -0.8)
+Semantic: box rad 8px wid 1.7 ht 0.56 "Semantic checks" at Region + (0, -0.8)
+Verdict: box rad 8px wid 1.7 ht 0.56 "One verdict" at Region + (4.8, 0)
+arrow from Fuzz.e to Verdict.w "whole image"
+arrow from Region.e to Verdict.w "ink and SSIM"
+arrow from Semantic.e to Verdict.w "text and pages"

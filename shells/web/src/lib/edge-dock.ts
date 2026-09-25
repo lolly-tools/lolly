@@ -29,8 +29,9 @@
  * ONE RIGHT SIDEBAR. Every full-height panel the app can dock lives in THIS column -
  * the Neurospicy player, the Design inspector, the export sheet, the transcript - so a
  * view never grows a second right-hand column beside it. Unrelated pairs can share a
- * vertical split, but Inspector + Export are tabs even by themselves: they are competing
- * full-workflow surfaces, and half-height makes both harder to use. Three or more panels
+ * vertical split, but Export is a tab beside any other panel, and it is always in the
+ * column while the column is on: it is a full workflow of its own, and half-height makes
+ * it and its neighbour harder to use. Three or more panels
  * also use a TAB STRIP. The compact zoom bar is not a full panel: it is a fixed-height
  * bar that always sits at the top, above the strip.
  *
@@ -102,6 +103,10 @@ export interface DockHooks {
   onActivate?: () => void;
   /** Dock as a fixed-height compact bar rather than a full-height panel. */
   compact?: boolean;
+  /** Join the column without taking the active tab or opening a collapsed column: the
+   *  app placed this panel there, nobody asked to look at it (the export sheet, which
+   *  is always a tab while the column is on). */
+  background?: boolean;
   icon?: string;
   label?: string;
 }
@@ -300,7 +305,9 @@ function relayout(): void {
   // needs room for its format/options form. Keep the established split for other pairs
   // (for example the player and transcript), but name this pair with the same tabs a
   // crowded dock already uses.
-  const tabbed = fulls.length > 2 || (fulls.some(id => id === 'history' || id === 'share') && fulls.length > 1) || (fulls.includes('inspector') && fulls.includes('export'));
+  // The export sheet is always a tab beside anything else: it is a full workflow of its
+  // own, and it is in the column whenever the column is on (lib/export-panel-float.ts).
+  const tabbed = fulls.length > 2 || (fulls.some(id => id === 'history' || id === 'share' || id === 'export') && fulls.length > 1);
 
   body.textContent = '';
   const slots = new Map<PanelId, HTMLElement>();
@@ -552,14 +559,14 @@ export function requestDock(id: PanelId, el: HTMLElement, hooks: DockHooks = {})
   // The panel someone just docked is the one they want to see, so it takes the strip's
   // active tab. (Inert while one or two panels stack - it is remembered for the moment a
   // third arrives, and for the next session.)
-  if (!hooks.compact) geom.tab = id;
+  if (!hooks.compact && !hooks.background) geom.tab = id;
   relayout();
   // A collapsed column would swallow it: the body is display:none, so the panel would be
   // mounted and invisible while its owner (and the bar's aria-pressed) said it was open.
   // Docking a PANEL is someone asking to see it, so the column opens for it. The compact
   // zoom bar is the exception - it follows the column automatically, and a bar the user
   // put away must not spring open because the HUD came along behind it.
-  if (!hooks.compact) setCollapsed(false);
+  if (!hooks.compact && !hooks.background) setCollapsed(false);
   if (geom.collapsed) hooks.onCollapse?.(true);
   save();
   notifyDock();

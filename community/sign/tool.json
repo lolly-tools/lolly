@@ -23,7 +23,7 @@
     ], "help": "Drag the signature on the page preview or enter exact PDF-point coordinates." },
     { "id": "initials", "label": "Initials (optional)", "type": "asset", "assetType": "image", "allowUpload": true },
     { "id": "date", "label": "Add today's date", "type": "boolean", "default": true },
-    { "id": "seal", "label": "Add a Content Credential", "type": "boolean", "default": true, "help": "Names the signer from the profile when Use my details is on. This is optional provenance, not a regulated e-signature service." },
+    { "id": "seal", "label": "Add a Content Credential", "type": "boolean", "default": true, "help": "Records the signer from the profile when Use my details is on. This is optional provenance, not a regulated e-signature service." },
     { "id": "lock", "label": "Lock with an open password", "type": "boolean", "default": false, "help": "The password is requested only when downloading and is never stored in tool state. Locking and Content Credentials cannot be combined because encryption would invalidate the credential." }
   ]
 }

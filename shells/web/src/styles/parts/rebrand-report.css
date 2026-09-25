@@ -1,0 +1,295 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* #/rebrand report drawer (.rb-report, plans/274 section 4, plan 275 close-out 3.9): the
+   drawer, its sheet and the rows inside it (views/rebrand/report.ts), with the job toast
+   rules that step past it. It comes after rebrand-foot.css, whose toast rule it
+   overrides while open. Tokens only; chrome sizes as calc(Npx * var(--a11y-fs)).
+   Never write a star followed by a slash inside a CSS comment. */
+@layer views {
+  /* The drawer starts under the top bar (--rb-top-h, measured by the orchestrator), so
+     the mode control and Undo stay in view. The element itself is the dimmer: a press
+     on it, outside the sheet, closes the drawer. */
+  .rb-report {
+    position: fixed;
+    inset: var(--rb-top-h, 0px) 0 0 0;
+    /* Over the narrow decision sheet too, which sits one step above its own dimmer. */
+    z-index: calc(var(--ui-layer-overlay) + 2);
+    display: flex;
+    justify-content: flex-end;
+    background: var(--rb-veil);
+  }
+  .rb-report-sheet {
+    width: min(var(--rb-report-w), 100%);
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--ui-color-surface-raised);
+    box-shadow: var(--ui-elevation-sheet);
+  }
+  /* ── report drawer ── the .lp panel fills the sheet; .lp-scroll is its one scroller,
+     so the head and its close button stay put. */
+  .rb-report-panel { height: 100%; }
+  .rb-report-scroll {
+    /* One row of an object list, and the picture sizes the rows carry. */
+    --rb-report-row-h: calc(36px * var(--a11y-fs));
+    --rb-report-crop-w: calc(32px * var(--a11y-fs));
+    --rb-report-thumb-w: calc(96px * var(--a11y-fs));
+    --rb-report-pair-w: calc(64px * var(--a11y-fs));
+  }
+  .rb-report-sec:first-child { border-top: 0; }
+
+  /* A count is a number beside the name, not a pill: the same plain word the band
+     head's flag is (panel.css .lp-band-head > .lp-sec-flag). */
+  .rb-report-flag {
+    justify-self: end;
+    color: var(--ui-color-text-muted);
+    font-size: var(--ui-type-help);
+    font-weight: var(--ui-type-weight-label);
+    font-style: normal;
+    font-variant-numeric: tabular-nums;
+  }
+  .rb-report-body { gap: var(--sp-2); }
+
+  /* ── counts ── words at reading size, the number at the end of the row. */
+  .rb-report-count {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    margin: 0;
+    font-size: var(--ui-type-body);
+    color: var(--ui-color-text-default);
+  }
+  .rb-report-name { min-width: 0; }
+  .rb-report-num {
+    flex: none;
+    font-weight: var(--ui-type-weight-label);
+    font-variant-numeric: tabular-nums;
+  }
+  .rb-report-text {
+    margin: 0;
+    font-size: var(--ui-type-help);
+    line-height: 1.45;
+    color: var(--ui-color-text-muted);
+  }
+  .rb-report-help { grid-column: auto; }
+
+  /* ── blocks ── a group of rows that mounts near the scroll window. While it waits, its
+     list keeps the height its rows will take, so the scroll bar never jumps. */
+  .rb-report-rows {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .rb-report-block[data-mount="off"] > .rb-report-rows {
+    min-height: calc(var(--rb-report-rows, 0) * var(--rb-report-row-h));
+  }
+  .rb-report-block[hidden] { display: none; }
+  .rb-report-block--group + .rb-report-block--group { margin-top: var(--sp-3); }
+
+  /* Every picture here is a cached drawing sized where it is mounted. */
+  .rb-report-pic {
+    flex: none;
+    display: block;
+    overflow: hidden;
+    border-radius: var(--ui-radius-choice);
+    background: var(--ui-color-surface-muted);
+    box-shadow: var(--ui-edge-faint);
+  }
+  .rb-report-pic > svg { display: block; width: 100%; height: 100%; }
+
+  /* ── a removed group's head ── the proposed slide and one sentence; it selects the slide. */
+  .rb-report-group {
+    display: grid;
+    grid-template-columns: var(--rb-report-thumb-w) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--sp-3);
+    width: 100%;
+    padding: var(--sp-2);
+    border: 0;
+    border-radius: var(--ui-radius-control);
+    background: none;
+    color: var(--ui-color-text-default);
+    font: inherit;
+    font-size: var(--ui-type-label);
+    line-height: 1.35;
+    text-align: start;
+    cursor: pointer;
+  }
+  /* The group's sentence, then who removed them as a muted second line. */
+  .rb-report-group-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .rb-report-group-who { font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+  /* The removed groups past the first few, folded behind one row. */
+  .rb-report-more {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    align-self: start;
+    min-height: var(--ui-size-control);
+    margin-top: var(--sp-2);
+    padding: 0 var(--sp-2);
+    border: 0;
+    border-radius: var(--ui-radius-control);
+    background: none;
+    color: var(--ui-color-text-default);
+    font: inherit;
+    font-size: var(--ui-type-label);
+    font-weight: var(--ui-type-weight-label);
+    cursor: pointer;
+  }
+  .rb-report-more:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  /* A section with nothing under it: its head and count, with no fold. */
+  .rb-report-still { cursor: default; }
+  .rb-report-thumb {
+    width: var(--rb-report-thumb-w);
+    aspect-ratio: var(--rb-report-ratio, 16 / 9);
+    background: var(--ui-color-surface-canvas);
+  }
+
+  /* ── object rows ── a crop, the words, a muted snippet and a muted note. */
+  .rb-report-obj {
+    display: grid;
+    grid-template-columns: var(--rb-report-crop-w) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--sp-3);
+    width: 100%;
+    min-height: var(--rb-report-row-h);
+    padding: 0 var(--sp-2);
+    border: 0;
+    border-radius: var(--ui-radius-control);
+    background: none;
+    color: var(--ui-color-text-default);
+    font: inherit;
+    font-size: var(--ui-type-body);
+    text-align: start;
+    cursor: pointer;
+  }
+  .rb-report-obj[data-plain] { grid-template-columns: minmax(0, 1fr) auto; cursor: default; }
+  .rb-report-obj:disabled { color: var(--ui-color-text-default); }
+  .rb-report-crop {
+    width: var(--rb-report-crop-w);
+    aspect-ratio: 4 / 3;
+  }
+  .rb-report-words {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .rb-report-snip,
+  .rb-report-note {
+    color: var(--ui-color-text-muted);
+  }
+  .rb-report-note {
+    font-size: var(--ui-type-help);
+    white-space: nowrap;
+  }
+
+  /* ── compiled codes ── one count sentence, folding its objects under it. */
+  .rb-report-code-group + .rb-report-code-group { margin-top: var(--sp-1); }
+  .rb-report-code {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--ui-size-icon-sm);
+    align-items: center;
+    gap: var(--sp-2);
+    width: 100%;
+    min-height: var(--ui-size-control);
+    margin: 0;
+    padding: var(--sp-1) var(--sp-2);
+    border: 0;
+    border-radius: var(--ui-radius-control);
+    background: none;
+    color: var(--ui-color-text-default);
+    font: inherit;
+    font-size: var(--ui-type-body);
+    line-height: 1.4;
+    text-align: start;
+  }
+  button.rb-report-code { cursor: pointer; }
+
+  /* ── layouts ── a sub-head per layout, then each slide as an Original and Proposed pair. */
+  .rb-report-sub {
+    margin: 0;
+    padding: var(--sp-2) var(--sp-2) var(--sp-1);
+    font-size: var(--ui-type-help);
+    font-weight: var(--ui-type-weight-label);
+    color: var(--ui-color-text-muted);
+  }
+  .rb-report-block--pairs {
+    --rb-report-row-h: calc(52px * var(--a11y-fs));
+  }
+  .rb-report-pair {
+    display: grid;
+    grid-template-columns: var(--rb-report-pair-w) var(--ui-size-icon-sm) var(--rb-report-pair-w) minmax(0, 1fr);
+    align-items: center;
+    gap: var(--sp-2);
+    width: 100%;
+    min-height: var(--rb-report-row-h);
+    padding: var(--sp-1) var(--sp-2);
+    border: 0;
+    border-radius: var(--ui-radius-control);
+    background: none;
+    color: var(--ui-color-text-default);
+    font: inherit;
+    font-size: var(--ui-type-body);
+    text-align: start;
+    cursor: pointer;
+  }
+  .rb-report-pair > svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); color: var(--ui-color-text-muted); }
+  .rb-report-pair-pic {
+    width: var(--rb-report-pair-w);
+    aspect-ratio: var(--rb-report-ratio, 16 / 9);
+    background: var(--ui-color-surface-canvas);
+  }
+
+  /* Pressable rows are tiles (close-out principle 3): flat at rest, a faint ring on
+     hover, the ring and the selection tint when current. A fold (a compiled code, More
+     slides) keeps the grey hover of a head. */
+  @media (hover: hover) {
+    :is(.rb-report-group, .rb-report-obj:not([data-plain]), .rb-report-pair):hover { box-shadow: var(--ui-effect-selection-ring-hover); }
+    :is(button.rb-report-code, .rb-report-more):hover { background: var(--ui-color-surface-muted); }
+  }
+  :is(.rb-report-group, .rb-report-obj, .rb-report-code, .rb-report-pair):focus-visible {
+    outline: 2px solid var(--ui-color-focus-ring);
+    outline-offset: 2px;
+  }
+  :is(.rb-report-group, .rb-report-obj, .rb-report-pair)[aria-current="true"] {
+    box-shadow: var(--ui-effect-selection-ring);
+    background: var(--ui-color-selection-surface);
+  }
+  @media (any-pointer: coarse) {
+    .rb-report-scroll { --rb-report-row-h: var(--ui-size-target); }
+    .rb-report-code, .rb-report-door { min-height: var(--ui-size-target); }
+  }
+  /* A row that leaves the view: the panel's door, its words at the report's size. */
+  .rb-report-door { font-size: var(--ui-type-body); }
+
+  /* While the report drawer is open the toast steps past the drawer instead, which is
+     wider than the decision column. The width is the drawer's own, --rb-report-w. */
+  html:has(.rb-report:not([hidden])) {
+    /* The drawer's width (--rb-report-w on .rb), declared again here for the toast, which lives outside .rb. */
+    --rb-report-inset: calc(420px * var(--a11y-fs));
+  }
+  html:has(.rb-report:not([hidden])) .job-toast {
+    margin-inline-end: calc(var(--dock-w, 0px) + var(--rb-report-inset, 0px));
+  }
+  /* On a phone the report is a bottom sheet the full width of the screen, so the toast
+     goes to the top instead, as it does over the decision sheet. */
+  html:has(.rb[data-narrow="true"] .rb-report:not([hidden])) .job-toast {
+    top: calc(var(--safe-top, 0px) + var(--sp-3));
+    bottom: auto;
+    margin-inline-end: var(--dock-w, 0px);
+  }
+
+  .rb[data-narrow="true"] .rb-report { align-items: flex-end; }
+  .rb[data-narrow="true"] .rb-report-sheet {
+    width: 100%;
+    height: min(80dvh, 100%);
+    border-radius: var(--ui-radius-surface) var(--ui-radius-surface) 0 0;
+  }
+}
+
+/* A shut fold's caret points right, as the panel's section heads do. Outside the layer,
+   since the caret's own rule in panel.css is unlayered. */
+:is(.rb-report-code, .rb-report-more)[aria-expanded="false"] .lp-caret::before { transform: rotate(-45deg); }

@@ -39,7 +39,7 @@ Rutin yaratıcı işlerin genellikle yapılış biçimi bir sorumluluk yüzeyidi
 - **[Kendin Doğrula](/info/verify-yourself.html)** - iddiaları, kendin çalıştıramayacağın hiçbir şey olmadan, adım adım gerçek bir dışa aktarıma karşı kontrol et.
 - **[Gizlilik Politikası](/info/privacy.html)** - neyin toplandığının, saklandığının ve gönderildiğinin, neyin toplanmadığının resmi beyanı.
 - **[Egemen yaratıcı üretim](/info/sovereign-production.html)** - hava boşluklu dağıtım, onay kapılı ağ iletişimi ve cihaz üstü imzalama.
-- **[Benimseme ve Yönetişim](/info/adoption-governance.html)** - bir aracı kimin onayladığı, marka kurallarının nasıl uygulanabilir hale geldiği ve depo-olarak-katalog seçeneğinin sana ne kazandırdığı.
+- **[Benimseme ve Yönetişim](/info/adoption-governance.html)** - marka kurallarının nasıl uygulanabilir hale geldiği, paylaşılan bir kataloğun ne eklediği ve depo-olarak-katalog seçeneğinin sana ne kazandırdığı.
 
 ## Hukuki
 

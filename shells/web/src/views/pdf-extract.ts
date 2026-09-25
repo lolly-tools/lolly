@@ -107,6 +107,31 @@ function download(host: HostV1, text: string, filename: string, mime: string): v
   void host.export.download(new Blob([text], { type: `${mime};charset=utf-8` }), filename);
 }
 
+/**
+ * What one extracted vector is (plan 275 decision 32). A deck lists its charts and
+ * illustrations as `drawing`s beside the template's own `mark`s; a PDF's artwork
+ * finder names none, so everything it finds stays a mark, as before. Only a mark is
+ * offered to the Logos room: a chart sent there would be classified as a logo.
+ */
+function vectorKind(v: ExtractedVector): 'mark' | 'drawing' {
+  return 'kind' in v && v.kind === 'drawing' ? 'drawing' : 'mark';
+}
+
+/** The drawing's own name for itself, when its SVG states a title. */
+function vectorTitle(v: ExtractedVector): string | undefined {
+  return 'title' in v && typeof v.title === 'string' && v.title.trim() ? v.title.trim() : undefined;
+}
+
+/**
+ * A download name for one extracted vector: the drawing's own title when it states one
+ * ("bar horizontal chart"), else "vector", with its place in the list so two charts of
+ * one title never share a file name. One helper for every place a vector leaves as a file.
+ */
+function vectorFileName(v: ExtractedVector, base: string, index: number): string {
+  const title = (vectorTitle(v) ?? '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
+  return `${base}-${title || 'vector'}-${index + 1}.svg`;
+}
+
 /** Words in a page's reconstructed prose - the honest measure of what came out. */
 const wordCount = (p: PageText): number => (p.text.match(/\S+/g) ?? []).length;
 
@@ -131,16 +156,31 @@ const nPlaces = (n: number): string => (n === 1 ? t('1 place') : t('{n} places',
 const pageArtMarkup = (index: number): string =>
   `<figure class="pdfx-page-art" data-page-art="${index}" aria-hidden="true"></figure>`;
 
-function pageMarkup(p: PageText, index: number): string {
+/**
+ * A scanned page's line. Where the shell can run the on-device reader
+ * (`canRead`), the line may carry a Read the text button (`perPage`): the click
+ * offers the Text recognition download in place when it is missing
+ * (views/pdf-extract-ocr.ts) and the page fills in with the words once read. A
+ * document that is all scans leaves it to the bar's Read scanned pages.
+ */
+function scanLineMarkup(index: number, canRead: boolean, perPage: boolean): string {
+  return `
+          <div class="pdfx-scan" data-scan-line="${index}">
+            <span class="pdfx-scan-icon" aria-hidden="true">${icon('camera', { size: 20 })}</span>
+            <span data-scan-msg>${canRead
+    ? t('This page is a picture of text, so there are no words to copy yet.')
+    : t('This page is a picture of text, and text recognition is not available here.')}</span>
+            ${canRead && perPage ? `<button type="button" class="btn pdfx-scan-read" data-read-scan="${index}" aria-label="${escape(tRaw('Read the text on page {n}', { n: index + 1 }))}">${t('Read the text')}</button>` : ''}
+          </div>`;
+}
+
+function pageMarkup(p: PageText, index: number, canRead = false, perPage = true): string {
   if (p.scanned) {
     return `
       <section class="pdfx-page pdfx-page--scan" data-page="${index}">
         <h3 class="pdfx-page-n">${t('Page {n}', { n: index + 1 })}</h3>
         <div class="pdfx-page-cols">
-          <p class="pdfx-scan">
-            <span class="pdfx-scan-icon" aria-hidden="true">${icon('camera', { size: 20 })}</span>
-            ${t('This page is a scanned image. It holds a picture of text, not text, so there is nothing to extract without OCR.')}
-          </p>
+          ${scanLineMarkup(index, canRead, perPage)}
           ${pageArtMarkup(index)}
         </div>
       </section>`;
@@ -300,7 +340,11 @@ function imagesMarkup(x: Extracted): string {
 }
 
 /**
- * The Vectors panel - the logos.
+ * The Vectors panels - the logos, and a deck's drawings beside them.
+ *
+ * `kind` picks the panel: `mark` is the Logos panel, `drawing` the Drawings panel a
+ * deck's charts and illustrations list in (plan 275 decision 32), whose tiles offer
+ * no Logos hand-off.
  *
  * Most logos in a PDF are vector, so this is usually the most valuable tab:
  * what comes out stays sharp at any size, unlike the raster in the Images tab.
@@ -313,31 +357,36 @@ function imagesMarkup(x: Extracted): string {
  * the mark in a slot: the heuristic above says this was probably artwork, not
  * which artwork it is, and a silent placement would spend that guess twice.
  */
-function vectorsMarkup(x: Extracted): string {
-  if (!x.vectors.length) return '';
-  const tiles = x.vectors.map((v, i) => {
+function vectorsMarkup(x: Extracted, kind: 'mark' | 'drawing'): string {
+  // Each tile keeps its place in the whole list, so every action finds its vector by it.
+  const shown = x.vectors.map((v, i) => ({ v, i })).filter(({ v }) => vectorKind(v) === kind);
+  if (!shown.length) return '';
+  const tiles = shown.map(({ v, i }) => {
     const url = URL.createObjectURL(new Blob([v.svg], { type: 'image/svg+xml' }));
     previewUrls.push(url);
     const swatches = v.fills.slice(0, 6).map((f) =>
       `<span class="pdfx-swatch" style="background:${escape(f)}" title="${escape(f)}"></span>`).join('');
+    // A deck states its drawings in px, a PDF its marks in points.
+    const size = 'kind' in v ? `${v.width}×${v.height} px` : `${v.width}×${v.height} pt`;
+    const title = vectorTitle(v);
     return `
       <figure class="pdfx-asset" data-vector="${i}">
-        <div class="pdfx-asset-art"><img src="${escape(url)}" alt="" loading="lazy" decoding="async"></div>
+        <div class="pdfx-asset-art"><img src="${escape(url)}" alt="${escape(title ?? '')}" loading="lazy" decoding="async"></div>
         <figcaption class="pdfx-asset-meta">
-          <span class="pdfx-asset-name">${escape(`${v.width}×${v.height} pt`)}</span>
-          <span class="pdfx-asset-sub">${escape(t('{n} shapes · page {p}', { n: v.shapes, p: v.page + 1 }))}</span>
+          <span class="pdfx-asset-name">${escape(title ?? size)}</span>
+          <span class="pdfx-asset-sub">${escape(v.shapes === 1 ? t('1 shape · page {p}', { p: v.page + 1 }) : t('{n} shapes · page {p}', { n: v.shapes, p: v.page + 1 }))}</span>
           <span class="pdfx-swatches">${swatches}</span>
           <span class="pdfx-asset-why">${escape(tRaw('Detected by {reason}', { reason: v.reason }))}</span>
         </figcaption>
         <div class="pdfx-asset-actions">
           <button type="button" class="btn btn--ghost" data-save-vector="${i}">${t('Download SVG')}</button>
           <button type="button" class="btn btn--ghost" data-catalog-vector="${i}">${t('Add to catalogue')}</button>
-          <button type="button" class="btn btn--ghost" data-logos-vector="${i}">${t('Send to Logos')}</button>
+          ${kind === 'mark' ? `<button type="button" class="btn btn--ghost" data-logos-vector="${i}">${t('Send to Logos')}</button>` : ''}
         </div>
       </figure>`;
   }).join('');
 
-  return `<div class="pdfx-panel" data-panel="vectors" hidden><div class="pdfx-assets">${tiles}</div></div>`;
+  return `<div class="pdfx-panel" data-panel="${kind === 'mark' ? 'vectors' : 'drawings'}" hidden><div class="pdfx-assets">${tiles}</div></div>`;
 }
 
 /**
@@ -467,25 +516,33 @@ function artOnlyPagesMarkup(count: number): string {
   return note + secs;
 }
 
-function resultMarkup(x: Extracted): string {
+/** The bar's one-line summary. Page count comes from `pageCount` (== pages.length
+ *  on the text path, so a PDF is unchanged), so a no-text file still reports its
+ *  slides. Words only when there was a text pass - a deck with no reader for its
+ *  words must not say "0". Recomputed after scanned pages are read. */
+function summaryText(x: Extracted): string {
   const words = x.pages.reduce((a, p) => a + wordCount(p), 0);
   const scans = x.pages.filter((p) => p.scanned).length;
-
-  // Page count comes from `pageCount` (== pages.length on the text path, so a PDF
-  // is unchanged), so a no-text file still reports its slides. Words only when
-  // there was a text pass - a deck with no reader for its words must not say "0".
   const summary: string[] = [nPages(x.pageCount)];
   if (x.textSupported) summary.push(nWords(words));
   if (scans) summary.push(t('{n} scanned', { n: scans }));
+  return summary.join(' · ');
+}
+
+function resultMarkup(x: Extracted, canRead = false): string {
+  const scans = x.pages.filter((p) => p.scanned).length;
 
   // An all-scan document deserves the headline, not a footnote: the user's next
-  // move (find an OCR tool) is completely different from "read the text".
+  // move (read the pictures, or find an OCR tool where this shell cannot) is
+  // completely different from "read the text".
   const allScans = scans > 0 && scans === x.pages.length;
 
   // The studio hand-off is offered only when this document has design material
   // in it. A text-only PDF would send an empty census and land the reader in a
   // studio with nothing new in it, which is a worse answer than not asking.
-  const studio = x.vectors.length > 0 || x.fonts.length > 0;
+  const marks = x.vectors.filter((v) => vectorKind(v) === 'mark').length;
+  const drawings = x.vectors.length - marks;
+  const studio = marks > 0 || x.fonts.length > 0;
 
   // Only passes that FOUND something get a tab, so the strip describes this
   // document rather than what a PDF could theoretically hold. The count rides in
@@ -495,7 +552,8 @@ function resultMarkup(x: Extracted): string {
   const tabs = [
     { id: 'text', label: t('Text'), icon: 'document' as IconName, n: 0 },
     ...(x.palette.length ? [{ id: 'palette', label: t('Palette'), icon: 'palette' as IconName, n: x.palette.length }] : []),
-    ...(x.vectors.length ? [{ id: 'vectors', label: t('Logos'), icon: 'shapes' as IconName, n: x.vectors.length }] : []),
+    ...(marks ? [{ id: 'vectors', label: t('Logos'), icon: 'shapes' as IconName, n: marks }] : []),
+    ...(drawings ? [{ id: 'drawings', label: t('Drawings'), icon: 'shapes' as IconName, n: drawings }] : []),
     // The Images tab appears when a raster was decoded OR when some were only
     // referenced/undecodable - so the honest "not here" note is reachable, never
     // orphaned behind a tab that never shows.
@@ -509,9 +567,10 @@ function resultMarkup(x: Extracted): string {
       <div class="pdfx-bar">
         <div class="pdfx-bar-meta">
           <strong class="pdfx-file">${escape(x.fileName)}</strong>
-          <span class="pdfx-sum">${escape(summary.join(' · '))}</span>
+          <span class="pdfx-sum">${escape(summaryText(x))}</span>
         </div>
         <div class="pdfx-bar-actions">
+          ${canRead && scans ? `<button type="button" class="btn" data-act="read-scans">${t('Read scanned pages')}</button>` : ''}
           ${studio ? `<button type="button" class="btn" data-act="studio">${t('Send to the design system studio')}</button>` : ''}
           ${x.textSupported ? `<button type="button" class="btn" data-act="copy">${t('Copy all')}</button>` : ''}
           ${x.textSupported ? `<button type="button" class="btn" data-act="md">${t('Download .md')}</button>` : ''}
@@ -523,7 +582,9 @@ function resultMarkup(x: Extracted): string {
       ${hiddenMarkup(x.hidden)}
 
       ${x.truncated ? `<p class="pdfx-note">${t('Only the first {n} pages were read. The rest of this document is too long to take apart here.', { n: x.pages.length })}</p>` : ''}
-      ${allScans ? `<p class="pdfx-note pdfx-note--warn">${t('Every page in this document is a scanned image. There is no text layer to extract, and reading it would need OCR, which does not run on-device.')}</p>` : ''}
+      ${allScans ? `<p class="pdfx-note pdfx-note--warn" data-scan-note>${canRead
+    ? t('Every page is a picture of text. Read scanned pages finds the words on this device.')
+    : t('Every page is a picture of text, and text recognition is not available here.')}</p>` : ''}
 
       <div class="pdfx-tabs" role="tablist" aria-label="${t('Extracted content')}">
         ${tabs.length > 1 ? `<span class="pdfx-tabs-lead" aria-hidden="true">${t('In this file')}</span>` : ''}
@@ -535,10 +596,11 @@ function resultMarkup(x: Extracted): string {
       </div>
 
       <div class="pdfx-pages pdfx-panel" data-panel="text">
-        ${x.textSupported ? x.pages.map(pageMarkup).join('') : artOnlyPagesMarkup(x.pageCount)}
+        ${x.textSupported ? x.pages.map((p, i) => pageMarkup(p, i, canRead, !allScans)).join('') : artOnlyPagesMarkup(x.pageCount)}
       </div>
       ${paletteMarkup(x)}
-      ${vectorsMarkup(x)}
+      ${vectorsMarkup(x, 'mark')}
+      ${vectorsMarkup(x, 'drawing')}
       ${imagesMarkup(x)}
       ${fontsMarkup(x)}
       ${attachmentsMarkup(x)}
@@ -591,6 +653,15 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
     active = false;
     reset();
   };
+  /** Can this shell read a scanned page? The AI policy and a wasm-capable
+   *  browser decide; the model itself is offered in place on the first read. */
+  const canReadScans = (): boolean => {
+    try { return host.ocr?.isAvailable() === true; } catch { return false; }
+  };
+  /** The document a scanned-page read is running for, so a second press on it
+   *  waits; a newly loaded document starts clear. */
+  let scanReadingFor: Extracted | null = null;
+
   /** Memoised page → object-URL renders, so page art and its thumb share one. */
   let artPromises = new Map<number, Promise<string | null>>();
   let observers: Array<{ disconnect(): void }> = [];
@@ -898,7 +969,7 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
     curHandle = handle;
     artPromises = new Map();
     drop.hidden = true;
-    out.innerHTML = resultMarkup(current);
+    out.innerHTML = resultMarkup(current, canReadScans());
     wirePages();
     const tablist = out.querySelector<HTMLElement>('[role="tablist"]')!;
     for (const panel of out.querySelectorAll<HTMLElement>('.pdfx-panel')) {
@@ -920,11 +991,113 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
     unwire();
     current = null;
     curHandle = null;
+    scanReadingFor = null;
     artPromises = new Map();
     out.hidden = true;
     out.innerHTML = '';
     drop.hidden = false;
     input.value = '';
+  }
+
+  /**
+   * Read scanned pages with on-device text recognition (views/pdf-extract-ocr.ts).
+   * The model is offered in place when it is missing; Not now leaves the pages as
+   * they were. Each page fills in as it is read, so Copy all and the downloads
+   * carry it, and the summary and the bar follow.
+   */
+  async function readScans(indices: number[], btn: HTMLButtonElement): Promise<void> {
+    const x = current;
+    const h = curHandle;
+    if (!x || !h || scanReadingFor === x || busy(btn)) return;
+    const todo = new Map<number, PageText>();
+    for (const i of indices) {
+      const p = x.pages[i];
+      if (p?.scanned) todo.set(i, p);
+    }
+    if (!todo.size) return;
+    scanReadingFor = x;
+    const buttons = [...out.querySelectorAll<HTMLButtonElement>('[data-read-scan], [data-act="read-scans"]')];
+    const labels = new Map(buttons.map((b) => [b, b.textContent ?? '']));
+    for (const b of buttons) setBusy(b, true);
+    const live = (): boolean => current === x && curHandle === h;
+    try {
+      const [{ readScannedPages, scanReadSummary }, { startJob }] = await Promise.all([
+        import('./pdf-extract-ocr.ts'),
+        import('../lib/jobs.ts'),
+      ]);
+      const outcome = await readScannedPages(todo, {
+        ensure: async (reason) => (await import('../lib/model-offer.ts')).ensureModel('ocr', { reason }),
+        frame: async (i) => {
+          const page = await h.pageToSvg(i);
+          if (page.elementCount === 0) return null;
+          const { svgToOcrFrame } = await import('./doc-read.ts');
+          return svgToOcrFrame(page.svg, page.width, page.height);
+        },
+        read: (frame, signal) => {
+          if (!host.ocr) return Promise.reject(new Error('ocr is not available on this shell'));
+          return host.ocr.run(frame, { signal });
+        },
+        startJob,
+      }, {
+        onPage: (i, page) => { if (live()) showReadPage(x, i, page); },
+        // The label says Reading only once the model is here and reading starts,
+        // not while the download offer is still waiting for an answer.
+        onStart: () => { if (live()) btn.textContent = t('Reading…'); },
+        wanted: live,
+      });
+      if (outcome.status !== 'declined' && live()) announce(scanReadSummary(outcome));
+    } catch (err) {
+      host.log('warn', 'pdf-extract: scanned page read failed', { error: (err as Error)?.message });
+      if (live()) announce(t('The scanned pages could not be read.'), { assertive: true });
+    } finally {
+      if (scanReadingFor === x) scanReadingFor = null;
+      for (const b of buttons) {
+        if (!b.isConnected) continue;
+        setBusy(b, false);
+        b.textContent = labels.get(b) ?? '';
+      }
+    }
+  }
+
+  /** Paint one read page into the report, keeping its already-rendered picture. */
+  function showReadPage(x: Extracted, i: number, page: PageText | null): void {
+    const section = out.querySelector<HTMLElement>(`.pdfx-page[data-page="${i}"]`);
+    if (!page) {
+      const msg = section?.querySelector<HTMLElement>('[data-scan-msg]');
+      if (msg) msg.textContent = t('No readable text was found in this picture.');
+      section?.querySelector('[data-read-scan]')?.remove();
+      return;
+    }
+    x.pages[i] = page;
+    if (section) {
+      // Built with DOM calls, not markup: the words are the reader's output. The
+      // picture beside them is already drawn, so it stays where it is.
+      section.classList.remove('pdfx-page--scan');
+      const meta = document.createElement('span');
+      meta.className = 'pdfx-page-meta';
+      meta.textContent = `${nWords(wordCount(page))} · ${t('read with text recognition')}`;
+      const copyBtn = document.createElement('button');
+      copyBtn.type = 'button';
+      copyBtn.className = 'btn btn--ghost pdfx-page-copy';
+      copyBtn.dataset.copyPage = String(i);
+      copyBtn.textContent = t('Copy');
+      section.querySelector('.pdfx-page-n')?.append(' ', meta, copyBtn);
+      const body = document.createElement('div');
+      body.className = 'pdfx-page-body';
+      for (const b of page.blocks) {
+        const para = document.createElement('p');
+        para.className = 'pdfx-b';
+        para.textContent = b.text;
+        body.append(para);
+      }
+      section.querySelector('[data-scan-line]')?.replaceWith(body);
+    }
+    const sum = out.querySelector<HTMLElement>('.pdfx-sum');
+    if (sum) sum.textContent = summaryText(x);
+    if (!x.pages.some((p) => p.scanned)) {
+      out.querySelector('[data-act="read-scans"]')?.remove();
+      out.querySelector('[data-scan-note]')?.remove();
+    }
   }
 
   /**
@@ -965,7 +1138,7 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
     btn.textContent = t('Adding…');
     try {
       const { storeUserUpload } = await import('./picker.ts');
-      const name = `${stem(current!.fileName)}-logo-${index + 1}.svg`;
+      const name = vectorFileName(v, stem(current!.fileName), index);
       const file = new File([v.svg], name, { type: 'image/svg+xml' });
       await storeUserUpload(host as unknown as Parameters<typeof storeUserUpload>[0], file);
       btn.textContent = t('Added');
@@ -995,7 +1168,7 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
 
   /** A mark as the File the studio's own drop zone would have received. */
   function vectorFile(v: ExtractedVector, index: number): File {
-    return new File([v.svg], `${stem(current!.fileName)}-logo-${index + 1}.svg`, { type: 'image/svg+xml' });
+    return new File([v.svg], vectorFileName(v, stem(current!.fileName), index), { type: 'image/svg+xml' });
   }
 
   /**
@@ -1128,7 +1301,9 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
       // The label is the provenance chip every candidate then wears ("from
       // guidelines"), so it is the file's STEM - the same thing the source
       // picker's own door passes, or the two doors chip one document two ways.
-      const census = pdfScanToCensus({ vectors: x.vectors, fonts: x.fonts }, stem(x.fileName));
+      // Only the marks: a chart's colours are its data's, not the design system's.
+      const markList = x.vectors.map((v, index) => ({ v, index })).filter(({ v }) => vectorKind(v) === 'mark');
+      const census = pdfScanToCensus({ vectors: markList.map(({ v }) => v), fonts: x.fonts }, stem(x.fileName));
       const candidates = candidatesFromCensus(census);
       const tray = createTray(host);
       await tray.load();
@@ -1146,8 +1321,12 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
       // in the Logos room is traceable back to the row it was sent from - off
       // the pick's own `index`, because two pages can carry the same mark
       // verbatim and matching the SVG text back would name both after the first.
-      const marks = pdfLogoPicks(x.vectors, { max: pending.PENDING_LOGO_MAX_FILES })
-        .map((pick) => new File([pick.svg], `${stem(x.fileName)}-logo-${pick.index + 1}.svg`, { type: 'image/svg+xml' }));
+      const marks = pdfLogoPicks(markList.map(({ v }) => v), { max: pending.PENDING_LOGO_MAX_FILES })
+        .map((pick) => {
+          const found = markList[pick.index];
+          const name = found ? vectorFileName(found.v, stem(x.fileName), found.index) : `${stem(x.fileName)}-vector-${pick.index + 1}.svg`;
+          return new File([pick.svg], name, { type: 'image/svg+xml' });
+        });
       const sent = marks.length ? pending.stashPendingLogoFiles(marks).sent : 0;
 
       // Two facts, each said only when it is true, and each counted at the sink
@@ -1235,6 +1414,12 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
       return;
     }
 
+    const readOne = el.closest<HTMLButtonElement>('[data-read-scan]');
+    if (readOne) {
+      void readScans([Number(readOne.dataset.readScan)], readOne);
+      return;
+    }
+
     const pageBtn = el.closest<HTMLElement>('[data-copy-page]');
     if (pageBtn) {
       const p = current.pages[Number(pageBtn.dataset.copyPage)];
@@ -1270,7 +1455,7 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
     if (saveVec) {
       const i = Number(saveVec.dataset.saveVector);
       const v = current.vectors[i];
-      if (v) saveBytes(new TextEncoder().encode(v.svg), `${base}-logo-${i + 1}.svg`, 'image/svg+xml');
+      if (v) saveBytes(new TextEncoder().encode(v.svg), vectorFileName(v, base, i), 'image/svg+xml');
       return;
     }
 
@@ -1286,7 +1471,7 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
     if (logoVec) {
       const i = Number(logoVec.dataset.logosVector);
       const v = current.vectors[i];
-      if (v) void sendVectorToLogos(v, i, logoVec);
+      if (v && vectorKind(v) === 'mark') void sendVectorToLogos(v, i, logoVec);
       return;
     }
 
@@ -1317,6 +1502,7 @@ export async function mountPdfExtract(viewEl: HTMLElement, host: HostV1, _params
     const act = actEl?.dataset.act;
     if (!act) return;
     if (act === 'studio') void sendToStudio(actEl as HTMLButtonElement);
+    else if (act === 'read-scans') void readScans(current.pages.map((_, i) => i), actEl as HTMLButtonElement);
     else if (act === 'copy') void copy(joinPageText(current.pages, { markdown: false }), actEl);
     else if (act === 'md') download(host, joinPageText(current.pages), `${base}.md`, 'text/markdown');
     else if (act === 'txt') download(host, joinPageText(current.pages, { markdown: false }), `${base}.txt`, 'text/plain');

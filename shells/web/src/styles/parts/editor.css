@@ -739,7 +739,7 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
    receiving child of the otherwise pointer-transparent overlay (its buttons are its whole
    point). Same frosted chip as the off-playhead reconciliation, above the frame scrim. */
 .fc-frameseq {
-  position: absolute; left: 50%; top:calc(var(--sp-6) * 4.4); z-index: 24;
+  position: absolute; left: 50%; top:calc(var(--sp-8) * 3.5); z-index: 24;
   pointer-events: auto; display: flex; align-items: center; gap: var(--sp-5);
   max-width: min(460px, 92%);
   padding: 8px 10px 8px 14px; border-radius: var(--radius-pill);
@@ -917,7 +917,10 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
    the cut and out of reach. The cap keeps the whole dialog inside the stage; the card grid
    below is what gives way, exactly as `.fc-lift-list` does in the dialog above. */
 .fc-choreo-quick { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-block: var(--space-2); }
-.fc-choreo-panel { min-width: 300px; max-width: 360px; max-height: calc(100% - 12px); }
+/* The gap a floating panel leaves under the stage foot, named once for the two panels
+   that cap their height against the stage. */
+.fc-choreo-panel, .fc-arch-panel { --fc-panel-stage-inset: 12px; }
+.fc-choreo-panel { min-width: 300px; max-width: 360px; max-height: calc(100% - var(--fc-panel-stage-inset)); }
 /* Pinned for exactly the reason .fc-lift-panel pins it above: `aria-busy` here is a STATE
    for assistive tech while the chunk loads and the commit runs, and parts/multi-edit.css
    declares an UNSCOPED `[aria-busy="true"] { opacity: .6; pointer-events: none }` whose
@@ -1922,3 +1925,41 @@ button.fc-readout:empty { display: none; }
 .text-sync-status { position:fixed; bottom:calc(72px + var(--safe-bottom) + var(--vv-bottom, 0px)); inset-inline-start:var(--ui-space-panel); z-index:48; display:flex; gap:var(--ui-space-control-inline); align-items:center; max-width:min(540px,calc(100vw - 2 * var(--ui-space-panel))); box-sizing:border-box; padding:var(--ui-space-control-inline) var(--ui-space-panel); border:1px solid var(--ui-color-border-default); border-radius:var(--ui-radius-control); background:var(--ui-color-surface-raised); color:var(--ui-color-text-default); font-size:var(--ui-type-caption); }
 .text-sync-status[hidden] { display:none; }
 .text-sync-status button { flex:none; min-height:var(--ui-size-target); }
+
+/* ── Archetype chooser (plan 274 WP 5a) ───────────────────────────────────────
+   A grid of slide wireframes, one per archetype the design system's slide master
+   offers. The card recipe is the canvas-size presets' and Choreograph's, so the
+   three grids of choices in this editor match. The picture is the label: the tile
+   shows where the words and the master furniture sit, the name under it says
+   which archetype that is, and the marked tile is the one the slide follows.
+   The height cap is the Choreograph panel's: `.tool-stage` is `overflow: hidden`
+   at 100dvh, so a long list of tiles on a short window would be cut.
+
+   The bottom clearance is the phone dock's. `.design-compact-actions` is the Add /
+   Layers-Pages / Inspect / More bar, fixed to the foot of the stage under the compact
+   layout; `--design-actions-h` is its measured height with the safe-area inset already
+   in it, and `--design-viewport-inset` is what the on-screen keyboard takes. Both are
+   set on `.tool-stage` by views/design-panels.ts and inherit into the panel, and both
+   read 0 on a wide window. `openArchetypePanel` reserves the same two values when it
+   clamps the panel's top, so the cap and the placement agree. */
+.fc-arch-panel {
+  width: min(420px, 92vw);
+  --fc-arch-dock: calc(var(--design-actions-h, 0px) + var(--design-viewport-inset, 0px));
+  max-height: calc(100% - var(--fc-panel-stage-inset) - var(--fc-arch-dock) - var(--stage-reserve-top, 0px));
+}
+.fc-arch-body { display: flex; flex-direction: column; min-height: 0; }
+/* The chooser's heading reads the way Rebrand's does ("Apply layout" over the same grid,
+   parts/rebrand-chooser.css .rb-lc-pop-title): a section name in sentence case, not the
+   uppercase eyebrow the smaller Design panels use. */
+.fc-arch-panel > .fc-panel-head {
+  font-size: var(--ui-type-section);
+  font-weight: var(--ui-type-weight-section);
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--ui-color-text-default);
+}
+/* The chooser inside the panel (search, bands, tiles) is lib/slide-structures-ui.ts,
+   which Rebrand's decision column shows too, so its `.arch-*` rules live in
+   parts/rebrand-chooser.css, beside the Rebrand placements of the same grid. The
+   chooser's group list is the one child that gives way, which is why it alone scrolls. */
+.fc-arch-body > .arch-chooser { flex: 1 1 auto; min-height: 0; }

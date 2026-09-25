@@ -53,27 +53,19 @@ Deck Studio dobrze pokazuje tu sufit możliwości: cała prezentacja slajdów za
 
 Większość pitchów „AI creative” stawia model po niewłaściwej stronie starej granicy. Skrybowie i iluminatorzy już dawno ustalili, gdzie ona przebiega: pracujesz swobodnie na szkicu, gdzie można spróbować wszystkiego i nic nie jest jeszcze przesądzone, a potem idziesz do prasy drukarskiej, która budzi respekt właśnie dlatego, że przesądza. To w szkicach była sztuka. Prasa była tym, jak ta sztuka trafiała dalej. Dwa narzędzia, dwa zadania, każde twórcze na swój sposób, a drukowanemu dziełu można było zaufać, ponieważ prasa dotrzymywała obietnicy przy każdym odbiciu.
 
-Lolly jest prasą, nie szkicem. Przynieś do ideacji, co chcesz - model, projektanta, serwetkę - ale w chwili, gdy pomysł musi stać się dziesięcioma tysiącami zasobów, przechodzi przez coś, co renderuje się tak samo za każdym razem, z danych wejściowych, które każdy może odczytać wstecz. O to naprawdę chodzi w powyższym porównaniu: nie o to, kto ma lepszy generator, lecz o to, kto czyni ten przesądzający krok odtwarzalnym.
+Lolly jest prasą, nie szkicem. Przynieś do ideacji, co chcesz - model, projektanta, serwetkę - ale w chwili, gdy pomysł musi stać się wieloma zasobami, przechodzi przez coś, co renderuje się tak samo za każdym razem, z danych wejściowych, które każdy może odczytać wstecz. O to naprawdę chodzi w powyższym porównaniu: nie o to, kto ma lepszy generator, lecz o to, kto czyni ten przesądzający krok odtwarzalnym.
 
 > Ufaj procesowi twórczemu, skaluj z rygorem.
 
-## Zatwierdzaj narzędzie, nie plik
+## Reguły znajdują się w narzędziu, nie w pliku
 
-Każde inne narzędzie na rynku produkuje *plik*, który potem trzeba sprawdzić - menedżer marki na wątku Slacka, dział prawny sprawdza zastrzeżenia, runda poprawek, kolejna weryfikacja. Lolly przesuwa zatwierdzenie **o krok wcześniej**. Zasady marki - dokładne kody hex, licencjonowane pliki czcionek, marginesy na spad, odstępy - są zakodowane na sztywno w HTML i CSS narzędzia, więc szablon *nie może* wygenerować zasobu niezgodnego z marką. Sam układ egzekwuje te zasady.
+Każde inne narzędzie na rynku produkuje *plik*, a plik można obejrzeć dopiero po fakcie, jeden wynik na raz. Lolly przesuwa reguły marki **o krok wcześniej**. Dokładne kody hex, licencjonowane pliki czcionek, marginesy na spad, odstępy - to wszystko jest zakodowane na sztywno w HTML i CSS narzędzia, więc szablon *nie może* wygenerować zasobu niezgodnego z marką. Sam układ egzekwuje te reguły.
 
-Dzięki temu przestajesz zatwierdzać wyniki, a zaczynasz zatwierdzać **narzędzie**, które je tworzy. Zatwierdzasz je raz, a każdy zasób, który kiedykolwiek wyprodukuje, jest z góry zatwierdzony z definicji - bez człowieka w pętli, bez cyklu recenzji, przy dowolnej skali.
+Więc rzeczą wartą uwagi jest **narzędzie**, a nie każdy plik, który ono tworzy. Ustaw narzędzie poprawnie, a każdy zasób, jaki kiedykolwiek wyprodukuje, jest zgodny z marką z definicji. To, jak sprawdzasz swoją pracę i kto to robi, pozostaje twoją sprawą; Lolly sprawia, że rzecz do sprawdzenia jest mniejsza, a wynik szybszy do wykonania.
 
-To jest zmiana, którą faktycznie wprowadza deterministyczny silnik: to nie szybsza wersja starego procesu zatwierdzania, tylko usunięcie tego procesu. Dla zespołu kreatywnego to bariera ochronna, nie zamiennik - nadal rzucasz piłkę (dane, tekst, obraz), a kod jest torem odbojowym, który nie pozwala żadnemu rzutowi wypaść poza rynnę.
+To jest zmiana, którą faktycznie wprowadza deterministyczny silnik. Dla zespołu kreatywnego to bariera ochronna, nie zamiennik - nadal rzucasz piłkę (dane, tekst, obraz), a kod jest torem odbojowym, który nie pozwala żadnemu rzutowi wypaść poza rynnę.
 
-![Cała praca producenta: wpisać słowa. Krój, kolor i odstępy zostały ustalone w momencie zatwierdzenia narzędzia](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DApproved&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-approve-the-tool)
-
-| Zatwierdzanie zasobów po staremu | Zatwierdzanie narzędzia, po lollowemu |
-|---|---|
-| Każdy gotowy plik jest sprawdzany, jeden po drugim | Narzędzie jest sprawdzane raz |
-| Prośba → projektant tworzy → weryfikacja marki → sprawdzenie prawne → poprawki → ponowna weryfikacja | Jedna zmiana parametru → gotowy zasób |
-| Projektant, menedżer marki, dział prawny i zleceniodawca w jednej pętli | Producent, samodzielnie |
-| Dni na jeden zasób | Sekundy na jeden zasób |
-| 10 000 zasobów = 10 000 cykli recenzji | 10 000 zasobów = zero (szablon był już zatwierdzony) |
+![Cała praca producenta: wpisać słowa. Krój, kolor i odstępy zostały ustalone, gdy powstało narzędzie](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
 
 ## Co to daje wyjątkowo
 

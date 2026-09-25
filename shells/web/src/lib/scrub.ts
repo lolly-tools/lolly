@@ -27,7 +27,12 @@
  * and the handler never sees a move.
  *
  * Modifiers while dragging: Shift = ×10 (coarse), Alt = ×0.1 (fine).
+ *
+ * A drag that reaches the screen edge keeps going (lib/pointer-wrap.ts): the pointer
+ * is locked and the stand-in cursor laps round the window, so a value is never capped
+ * by how much screen is left beside the field.
  */
+import { dragTravel, type DragTravel } from './pointer-wrap.ts';
 
 const THRESHOLD = 3;     // px of travel before a press becomes a scrub
 const UNIT_PER_PX = 1;   // base sensitivity
@@ -65,11 +70,11 @@ export interface ScrubOptions {
 interface ScrubDrag {
   el: HTMLInputElement;
   pointerId: number;
-  startX: number;
   base: number;
   max: number;
   moved: boolean;
   value: number | null;
+  travel: DragTravel;
 }
 
 export function attachScrub(
@@ -101,11 +106,11 @@ export function attachScrub(
     drag = {
       el,
       pointerId: e.pointerId,
-      startX: e.clientX,
       base: Number.isFinite(base) ? base : 0,
       max: Number.isFinite(maxAttr) ? maxAttr : max,
       moved: false,
       value: null,
+      travel: dragTravel(el, e, { onLost: () => onPointerUp() }),
     };
     // No capture / preventDefault yet: a click below threshold must still focus
     // the field natively. We listen on the element itself; once moved, capture
@@ -117,7 +122,7 @@ export function attachScrub(
 
   function onPointerMove(e: PointerEvent): void {
     if (!drag) return;
-    const dx = e.clientX - drag.startX;
+    const dx = drag.travel.move(e);
     if (!drag.moved) {
       if (Math.abs(dx) < THRESHOLD) return;
       drag.moved = true;
@@ -149,7 +154,8 @@ export function attachScrub(
 
   function onPointerUp(): void {
     if (!drag) return;
-    const { el, moved, value, pointerId } = drag;
+    const { el, moved, value, pointerId, travel } = drag;
+    travel.end();
     el.removeEventListener('pointermove', onPointerMove);
     el.removeEventListener('pointerup', onPointerUp);
     el.removeEventListener('pointercancel', onPointerUp);
@@ -174,6 +180,7 @@ export function attachScrub(
 
   return () => {
     container.removeEventListener('pointerdown', onPointerDown);
+    drag?.travel.end();
     if (raf) cancelAnimationFrame(raf);
     document.body.classList.remove('is-scrubbing');
   };

@@ -1,0 +1,322 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* The layout chooser (plans/275 section 4), in both tools. lib/slide-structures-ui.ts
+   builds it and imports this sheet, so Design's Apply and New slide panel
+   (views/free-canvas/slide-masters.ts) and Rebrand's decision column and popover
+   (views/rebrand/layout-chooser.ts) draw one grid with one look. The `.arch-*` rules
+   are that shared grid; the `.rb-lc-*` rules are Rebrand's popover and its preview.
+   Tokens only; chrome sizes as calc(Npx * var(--a11y-fs)). A wireframe tile is
+   content, not chrome: its page tones are written into the SVG by
+   views/free-canvas/archetype-thumb.ts and never follow the app theme.
+   Never write a star followed by a slash inside a CSS comment. */
+@layer views {
+  /* ── the shared grid ─────────────────────────────────────────────────────── */
+  .arch-chooser {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-control-block);
+    min-height: 0;
+  }
+  /* The search glyph sits inside the field, at its start, wherever a placement moves the
+     row's own inset (--arch-row-pad). */
+  .arch-search-row { --arch-row-pad: var(--ui-space-control-block); position: relative; padding: 0 var(--arch-row-pad); }
+  .arch-search { width: 100%; padding-inline-start: calc(var(--ui-size-icon-sm) + var(--sp-4)); }
+  .arch-search-glyph {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: calc(var(--arch-row-pad) + var(--sp-3));
+    display: inline-flex;
+    align-items: center;
+    color: var(--ui-color-text-muted);
+    pointer-events: none;
+  }
+  .arch-search-glyph > svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+  /* The group list is the one part that gives way when the chooser is capped, so it
+     alone scrolls. The scroll cue is four layers in pairs: the two `local` covers
+     scroll with the content, so each covers its shadow while there is nothing that
+     way and slides off it as soon as there is; the two `scroll` shadows stay put
+     against the frame. A list that fits shows neither. */
+  .arch-groups {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-control-block);
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background:
+      linear-gradient(var(--arch-surface, var(--ui-color-surface-raised)) 40%, transparent) top / 100% 14px no-repeat local,
+      linear-gradient(transparent, var(--arch-surface, var(--ui-color-surface-raised)) 60%) bottom / 100% 14px no-repeat local,
+      linear-gradient(color-mix(in srgb, var(--ui-color-border-default) 85%, transparent), transparent) top / 100% 7px no-repeat scroll,
+      linear-gradient(transparent, color-mix(in srgb, var(--ui-color-border-default) 85%, transparent)) bottom / 100% 7px no-repeat scroll;
+  }
+  .arch-band { display: flex; flex-direction: column; gap: var(--sp-1); min-width: 0; }
+  .arch-band-name {
+    margin: 0;
+    padding: 0 var(--ui-space-control-block);
+    font-size: var(--ui-type-label);
+    font-weight: var(--ui-type-weight-label);
+    color: var(--ui-color-text-muted);
+  }
+  .arch-note {
+    margin: 0;
+    padding: 0 var(--ui-space-control-block);
+    font-size: var(--ui-type-help);
+    color: var(--ui-color-text-muted);
+  }
+  /* The track grows with the type: a name set at --ui-type-label is 1.2x wider under
+     largeText, and a cell that stayed at 84px would wrap it another line. The padding
+     is the focus ring's room: the list scrolls, so a ring drawn outside a tile on an
+     edge would be clipped by it. */
+  .arch-grid {
+    --arch-col: calc(84px * var(--a11y-fs));
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--arch-col), 1fr));
+    gap: var(--ui-space-control-block);
+    padding: var(--ui-space-control-block);
+  }
+  .arch-cell { --arch-flip-size: calc(24px * var(--a11y-fs)); position: relative; display: flex; min-width: 0; }
+  /* The one tile rule (plans/275 closeout principle 3), in both tools: a tile is flat on
+     the surface it sits on, with no border and no card. Hover draws a ring at 40% of the
+     selection colour; the current tile draws the full 2px ring on the selection tint, and
+     its caption line carries a check. The focus ring sits outside the selection ring, so
+     the two differ in shape when they meet. */
+  .arch-tile {
+    position: relative;
+    flex: 1 1 auto;
+    display: flex; flex-direction: column; gap: var(--sp-1); align-items: stretch;
+    min-width: 0;
+    /* 44px is the hit-target floor; the tiles are wider than that on every panel
+       width, so this only ever holds at the narrowest phone sheet. */
+    min-height: var(--ui-size-target);
+    padding: var(--sp-1); cursor: pointer;
+    border: 0; border-radius: var(--ui-radius-control);
+    background: transparent; color: var(--ui-color-text-default);
+    font: inherit; text-align: start;
+    transition: box-shadow var(--ui-motion-feedback) var(--ui-motion-standard);
+  }
+  .arch-tile:hover { box-shadow: var(--ui-effect-selection-ring-hover); }
+  .arch-tile:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
+  .arch-tile[aria-current="true"] {
+    box-shadow: var(--ui-effect-selection-ring);
+    background: var(--ui-color-selection-surface);
+  }
+  /* A tile that cannot be chosen yet names that in its caption; the lower contrast
+     only repeats what the word says. */
+  .arch-tile[aria-disabled="true"] { cursor: not-allowed; }
+  .arch-tile[aria-disabled="true"] .arch-art { opacity: .6; }
+  /* The picture's box: the wireframe or the slide, with the faint edge drawn over it so
+     a light page reads on a light surface and a dark one on a dark surface. */
+  .arch-art { position: relative; display: block; border-radius: calc( var(--radius) * .666); overflow: hidden; }
+  .arch-art::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: var(--ui-edge-faint);
+    pointer-events: none;
+  }
+  .arch-art > svg { display: block; width: 100%; height: auto; }
+  /* The corner badge on the tile that keeps the slide as one picture: the one thing that
+     tells it from Original arrangement, which draws the same picture. */
+  .arch-badge {
+    position: absolute;
+    inset-block-start: var(--sp-1);
+    inset-inline-end: var(--sp-1);
+    display: inline-grid;
+    place-items: center;
+    width: calc(18px * var(--a11y-fs));
+    height: calc(18px * var(--a11y-fs));
+    border-radius: var(--ui-radius-choice);
+    background: color-mix(in srgb, var(--ui-color-surface-raised) 92%, transparent);
+    box-shadow: var(--ui-edge-faint);
+    color: var(--ui-color-text-muted);
+  }
+  .arch-badge > svg { width: calc(12px * var(--a11y-fs)); height: calc(12px * var(--a11y-fs)); }
+  /* The name holds one line and ends in an ellipsis; the tile's hover text has it whole.
+     The count suffix ("+2") keeps its place after it. */
+  .arch-line { display: flex; align-items: baseline; gap: var(--sp-1); min-width: 0; }
+  .arch-name {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: var(--ui-type-label); font-weight: var(--ui-type-weight-label);
+    line-height: 1.25;
+  }
+  .arch-count {
+    flex: none;
+    font-size: var(--ui-type-label);
+    line-height: 1.25;
+    color: var(--ui-color-text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .arch-count[hidden] { display: none; }
+  .arch-cap {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    min-width: 0;
+    font-size: var(--ui-type-caption);
+    line-height: 1.25;
+    color: var(--ui-color-text-muted);
+  }
+  /* A caption that wraps keeps its glyph on the first line. */
+  .arch-cap:has(> svg) { align-items: flex-start; }
+  .arch-cap > svg { flex: none; width: calc(12px * var(--a11y-fs)); height: calc(12px * var(--a11y-fs)); margin-block-start: .1em; }
+  .arch-tile[aria-current="true"] .arch-cap,
+  .arch-tile[data-suggested="true"] .arch-cap { color: var(--ui-color-text-default); }
+  .arch-tile[aria-current="true"] .arch-cap > svg { color: var(--ui-color-selection-border); }
+  /* The flip of a mirrored pair: a 24px target in the tile's lower corner, over the name row. */
+  .arch-flip {
+    position: absolute;
+    inset-block-end: var(--sp-1);
+    inset-inline-end: var(--sp-1);
+    display: inline-grid;
+    place-items: center;
+    width: var(--arch-flip-size);
+    height: var(--arch-flip-size);
+    padding: 0;
+    border: 1px solid var(--ui-color-border-default);
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-color-surface-raised);
+    color: var(--ui-color-text-default);
+    cursor: pointer;
+  }
+  .arch-flip > svg { width: calc(14px * var(--a11y-fs)); height: calc(14px * var(--a11y-fs)); }
+  .arch-flip:hover { background: var(--ui-color-surface-muted); }
+  .arch-flip[aria-pressed="true"] { border-color: var(--ui-color-selection-border); }
+  .arch-flip:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .arch-cell:has(> .arch-flip) .arch-line { padding-inline-end: calc(var(--arch-flip-size) + var(--sp-1)); }
+  .arch-none { display: flex; flex-direction: column; gap: var(--sp-2); padding: 0 var(--ui-space-control-block); }
+  .arch-none[hidden] { display: none; }
+  .arch-none-text { margin: 0; font-size: var(--ui-type-body); }
+  .arch-none-acts { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+  .arch-empty { margin: 0; font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+  /* The wireframe is a picture of a slide, content and not chrome: its tones are fixed
+     neutrals in the SVG, in both themes. Only its sizing belongs here. */
+  .arch-thumb { display: block; width: 100%; height: auto; }
+
+  /* ── Rebrand: the popover ────────────────────────────────────────────────── */
+  /* The one way the chooser shows in Rebrand (close-out 3.6): docked over the decision
+     column, on the overlay surface the theme popover uses, with no border of its own. */
+  .rb-lc-pop {
+    position: fixed;
+    z-index: var(--ui-layer-overlay);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    width: min(calc(600px * var(--a11y-fs)), calc(100vw - 16px));
+    --rb-lc-pop-h: calc(720px * var(--a11y-fs));
+    --arch-surface: var(--ui-color-surface-overlay);
+    max-height: min(80vh, var(--rb-lc-pop-h));
+    /* The sides are narrower than the top: the grid keeps its own inset as room for the
+       rings, which the scrolling list would otherwise clip, and the rows line up with it. */
+    padding: var(--ui-space-panel) var(--sp-4) 0;
+    border-radius: var(--ui-radius-panel);
+    background: var(--ui-color-surface-overlay);
+    color: var(--ui-color-text-default);
+    box-shadow: var(--ui-elevation-floating), var(--ui-edge-faint);
+  }
+  .rb-lc-pop > .arch-chooser { flex: 1 1 auto; }
+  .rb-lc-pop .arch-search-row { --arch-row-pad: var(--sp-3); }
+  .rb-lc-pop .arch-band-name,
+  .rb-lc-pop .arch-none,
+  .rb-lc-pop-head,
+  .rb-lc-pop .rb-lc-similar { padding-inline: var(--sp-3); }
+  .rb-lc-pop .arch-grid { padding: var(--sp-3); }
+  .rb-lc-pop .arch-groups { padding-block-end: var(--ui-space-panel); }
+  /* The title, what it is for, and Close at the far end. */
+  .rb-lc-pop-head { display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
+  .rb-lc-pop-title {
+    margin: 0;
+    font-size: var(--ui-type-section);
+    font-weight: var(--ui-type-weight-section);
+    line-height: 1.3;
+  }
+  .rb-lc-pop-subject {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: var(--ui-type-help);
+    color: var(--ui-color-text-muted);
+  }
+  .rb-lc-pop-close { align-self: center; flex: none; }
+  .rb-lc-pop .rb-choice {
+    display: flex; align-items: center; gap: var(--sp-2);
+    min-height: var(--ui-size-control); font-size: var(--ui-type-body); cursor: pointer;
+  }
+  .rb-lc-pop .rb-choice > input {
+    flex: none; width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); margin: 0;
+    accent-color: var(--ui-color-action-primary);
+  }
+  .rb-lc-pop .lp-help { margin: 0; font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+
+  /* The Auto-match row: what it would set, as small wireframes with their counts, then
+     the button. A muted block, so it reads as one action apart from the tiles. */
+  .rb-lc-auto-row {
+    margin-inline: var(--sp-3);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-2) var(--sp-3);
+    padding: var(--sp-2) var(--sp-3);
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-color-surface-muted);
+  }
+  .rb-lc-auto-row > .rb-lc-auto-btn { margin-inline-start: auto; }
+  .rb-lc-auto-row > .rb-lc-auto-btn[aria-disabled="true"] { cursor: not-allowed; color: var(--ui-color-text-muted); }
+  .rb-lc-tally { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-1) var(--sp-3); min-width: 0; }
+  .rb-lc-tally-item { display: inline-flex; align-items: center; gap: var(--sp-1); }
+  .rb-lc-tally-wire {
+    display: block;
+    flex: none;
+    width: calc(40px * var(--a11y-fs));
+    border-radius: var(--ui-radius-choice);
+    overflow: hidden;
+    box-shadow: var(--ui-edge-faint);
+  }
+  .rb-lc-tally-wire > svg { display: block; width: 100%; height: auto; }
+  .rb-lc-tally-count { font-size: var(--ui-type-help); color: var(--ui-color-text-muted); white-space: nowrap; }
+  .rb-lc-tally-count > b { font-weight: var(--ui-type-weight-label); color: var(--ui-color-text-default); }
+
+  /* ── Rebrand: the preview in the Proposed pane ───────────────────────────── */
+  /* While the chooser draws into the pane, the caption row names what it draws: the
+     "Preview: Three boxes" pill (the selection tint alone, never a tint with a border)
+     in place of the layout name, and the preview's own continuation. The caption's
+     other parts speak for the committed slide, so they step aside meanwhile. */
+  .rb-pane-cap[data-chooser-previewing] > :not(strong):not([data-chooser-part]) { display: none; }
+  .rb-lc-preview-label {
+    display: inline-flex;
+    flex: 0 1 auto;
+    align-items: center;
+    gap: var(--sp-1);
+    min-width: 0;
+    margin: 0;
+    padding: 0 var(--sp-2);
+    border-radius: var(--ui-radius-pill);
+    background: var(--ui-color-selection-surface);
+    color: var(--ui-color-text-default);
+    font-size: var(--ui-type-caption);
+    line-height: 1.75;
+  }
+  .rb-lc-preview-label > svg { flex: none; width: calc(14px * var(--a11y-fs)); height: calc(14px * var(--a11y-fs)); }
+  .rb-lc-preview-label > span,
+  .rb-lc-preview-name,
+  .rb-lc-preview-more { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .rb-lc-preview-name { flex: 0 1 auto; }
+  .rb-lc-preview-more { flex: 0 1 auto; }
+
+  /* ── Rebrand: the text correction field in the Object section ────────────── */
+  .rb-text-fix { width: 100%; min-height: calc(72px * var(--a11y-fs)); resize: vertical; font: inherit; }
+  .rb-text-low { display: inline-flex; align-items: center; gap: var(--sp-1); }
+  .rb-text-low > svg { flex: none; width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); color: var(--ui-color-status-danger); }
+
+  /* Reduced motion, from the system or the app's own preference: the tile's ring comes
+     and goes at once. */
+  @media (prefers-reduced-motion: reduce) {
+    .arch-tile { transition: none; }
+  }
+  html[data-a11y-motion="reduce"] .arch-tile { transition: none; }
+}

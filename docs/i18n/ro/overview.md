@@ -24,21 +24,21 @@ Acest document surprinde scopul, structura și deciziile arhitecturale pentru pl
 
 ## De ce există
 
-Echipele se confruntă cu o problemă recurentă: muncă creativă și de conținut repetabilă, prea predictibilă pentru a justifica mâini specializate de fiecare dată, dar prea sensibilă la calitate pentru a fi delegată fără garanții. Rezultatul este fie un flux lent (blocaj cauzat de specialist), fie inconsecvență (oamenii folosesc orice unealtă au la îndemână), fie dependență de furnizor (un DAM SaaS care îți controlează șabloanele).
+Munca creativă repetabilă este prea predictibilă pentru a justifica mâini specializate de fiecare dată și prea sensibilă la calitate pentru a fi delegată fără garanții. Lăsată de capul ei, urmează una dintre trei căi: lentă, inconsecventă sau blocată în șabloanele unui furnizor.
 
 Această platformă este răspunsul direct:
 
-> **Creativitate și conținut programatice la scară** - generare de active fără muncă manuală, cu regulile sub control central, pentru angajați, furnizori și parteneri.
+> **Creativitate și conținut programatice la scară** - active generate din intrări, cu regulile stabilite o singură dată, pentru oricine are nevoie de ele.
 
 Lolly nu este locul unde se inventează un sistem de design - este locul unde acesta se produce. Gândește-te la el ca la un automat de vending pentru design: faci o alegere, obții un rezultat. De fiecare dată. Motorul (engine) urmărește cea mai bună calitate pe care fiecare format o poate produce pe hardware-ul din fața ta, iar același motor produce același fișier pe fiecare platformă către care este livrat.
 
-Rezultatul este **abundența**: fiecare eveniment are semnalistica corectă, fiecare alertă CVE se potrivește cu stilul casei, fiecare etichetă se tipărește curat, fiecare semnătură de e-mail este actuală - totul fără un tichet de design. Platforma se ocupă de creativitatea operaționalizată recurentă. Deliberat nu este o unealtă creativă la comandă - designerii continuă să dețină munca de vârf.
+Rezultatul este **abundența**: fiecare eveniment are semnalistica corectă, fiecare alertă CVE se potrivește cu stilul casei, fiecare etichetă se tipărește curat, fiecare semnătură de e-mail este actuală - totul din instrumente care poartă deja regulile. Platforma se ocupă de creativitatea operaționalizată recurentă. Deliberat nu este o unealtă creativă la comandă - designerii continuă să dețină munca de vârf.
 
 ### Inovează probabilistic, scalează determinist
 
 Fiecare dezbatere despre AI într-un flux creativ se blochează la aceeași întrebare: care parte din asta e treaba mașinii? E o întrebare veche, cu un răspuns stabilit deja. Copiștii și miniaturiștii lucrau deja între două instrumente - schița liberă, unde nimic nu era fix și totul putea fi încercat, și tiparul, intimidant tocmai pentru că se angaja definitiv. Schițele erau locul unde se întâmpla arta. Tiparul era felul în care ajungea la oricine. Nimeni nu confunda cele două, și amândouă au continuat să avanseze - cerneluri noi, fonturi noi, prese noi - fiecare evoluând în armonie cu meșteșugul și intenția pe care o slujea.
 
-Lolly trasează aceeași linie. Explorează probabilistic: un model, un designer, o idee brută, un prompt care merge undeva neplanificat de nimeni. Apoi scalează determinist - lucrul care ajunge la zece mii de rezultate este o *unealtă*, iar o unealtă se randează la fel de fiecare dată din intrări pe care le poți citi. Explorarea rămâne liberă pentru că nimic din aval nu depinde ca ea să iasă identic de două ori. Rezultatul câștigă încredere pentru că nu e o presupunere. A aduce experimentarea AI la rezultate predictibile și reproductibile nu e o disciplină nouă; e aceeași diviziune a muncii care a făcut ca lucrarea tipărită să merite încredere de la bun început.
+Lolly trasează aceeași linie. Explorează probabilistic: un model, un designer, o idee brută, un prompt care merge undeva neplanificat de nimeni. Apoi scalează determinist - lucrul care ajunge la multe rezultate este o *unealtă*, iar o unealtă se randează la fel de fiecare dată din intrări pe care le poți citi. Explorarea rămâne liberă pentru că nimic din aval nu depinde ca ea să iasă identic de două ori. Rezultatul câștigă încredere pentru că nu e o presupunere. A aduce experimentarea AI la rezultate predictibile și reproductibile nu e o disciplină nouă; e aceeași diviziune a muncii care a făcut ca lucrarea tipărită să merite încredere de la bun început.
 
 > Ai încredere în procesul creativ, scalează cu rigoare.
 
@@ -76,19 +76,19 @@ Acesta este multiplicatorul de forță. Lolly nu e un sertar de unelte separate 
 
 ---
 
-## O aprobare, zece mii de active
+## Un instrument, multe rezultate
 
-Pentru că aprobarea trăiește în unealtă, nu în fișier (vezi [Cum se compară Lolly](/info/positioning.html)), scara încetează să mai fie o problemă de revizuire. Aprobă o dată o unealtă de card social localizat, apoi generează **10.000 de active în 12 limbi** dintr-un tabel - și niciunul nu are nevoie de o verificare nouă de conformitate din partea juridicului sau a brandului, pentru că șablonul din care provin toate era deja aprobat.
+Regulile de brand trăiesc în instrument, nu în fiecare fișier pe care acesta îl produce (vezi [Cum se compară Lolly](/info/positioning.html)). Pune instrumentul la punct o dată și fiecare rezultat moștenește același tip de literă, aceeași culoare și spațiere, fie că e vorba de un singur card sau de o foaie de calcul cu rânduri într-o duzină de limbi. Cum îți verifici munca, și cine o face, rămâne alegerea ta; Lolly face lucrul de verificat mai mic și rezultatul mai rapid de produs.
 
-Aceeași unealtă determinist atinge acea scară în trei moduri, toate producând un rezultat identic, pre-aprobat:
+Același instrument determinist atinge acea scară în trei moduri, toate producând un rezultat identic:
 
-- <!--i:people--> **O persoană, în aplicație.** Grila batch `/pro`: lipește sau importă rândurile, obții câte un activ finit per rând, descarcă arhiva zip. Fără abilități de design, fără tichet, fără așteptare.
-- <!--i:code--> **Un dezvoltator, din linia de comandă.** CLI rulează *același* motor și *aceeași* cale de randare fără interfață grafică, astfel încât unealta poate fi secvențiată peste toate cele 10.000 de rânduri într-un script sau un pipeline nocturn. Un apel `lolly <tool> --field=…` într-o buclă e toată integrarea.
-- <!--i:cpu--> **Un sistem sau un agent AI, prin MCP.** Aceeași unealtă operată programatic, la aceeași fidelitate și la o scară chiar mai mare - pentru că o mașină nu se plictisește în timp ce mii de fișiere continuă să sosească.
+- <!--i:people--> **O persoană, în aplicație.** Grila batch `/pro`: lipește sau importă rândurile, obții câte un activ finit per rând, descarcă arhiva zip. Fără abilități de design, fără așteptare.
+- <!--i:code--> **Un dezvoltator, din linia de comandă.** CLI rulează *același* motor și *aceeași* cale de randare fără interfață grafică, astfel încât instrumentul poate fi secvențiat peste fiecare rând într-un script sau un pipeline nocturn. Un apel `lolly <tool> --field=…` într-o buclă e toată integrarea.
+- <!--i:cpu--> **Un sistem sau un agent AI, prin MCP.** Același instrument operat programatic, la aceeași fidelitate, pentru câte rânduri are treaba.
 
 ![Modul Batch la o instalare nouă: un rând gol care așteaptă un instrument, cu întreaga suprafață a foii de calcul și butonul ei Render deja la locul lor, înainte de sosirea oricăror date](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-Un singur set de constrângeri de brand, fixat o dată de un designer; trei rute către rezultatul identic pre-aprobat - iar ruta automată scalează cel mai departe dintre toate, pentru că nu obosește niciodată cât timp fișierele continuă să sosească.
+Un singur set de constrângeri de brand, fixat o dată de un designer; trei rute către același rezultat.
 
 ---
 
@@ -390,11 +390,11 @@ Web shell: IndexedDB. Tauri: sistem de fișiere. CLI: în memorie. Uneltele văd
 
 Utilizatorii pot salva mai multe sloturi de editare denumite per unealtă și pot reveni la fiecare sesiune ulterior. Nu este necesară crearea unui cont; starea este per dispozitiv. Deoarece bridge-ul este singura cusătură, această stare per dispozitiv este și *portabilă*: `shells/web/src/data-transfer.ts` citește totul înapoi prin `host.profile`/`host.state`/`host.assets` într-un singur zip `lolly-backup` care se importă pe orice altă instalare - răspunsul offline la "mutare pe un dispozitiv nou" care nu necesită server (specificație completă: `docs/data-transfer.md`). Integrarea SUSE ID (sincronizare multi-dispozitiv) este un obiectiv viitor peste această bază.
 
-### 7. Etichetele de maturitate răspund prin design riscului de "aprobare de brand"
+### 7. Etichetele de maturitate spun ce este un instrument, prin design
 
 Fiecare unealtă declară `status: official | community | experimental` în manifestul ei. Galeria sortează după status. Uneltele experimentale filigranează automat exporturile - filigranul este aplicat de `host.export.render`, nu de unealtă, deci nu poate fi dezactivat de un autor de unelte neoficial.
 
-Acesta este un răspuns structural la riscul de percepție conform căruia folosirea oricărei unelte implică aprobarea brandului. Răspunsurile de proces (o coadă de revizuire, restricționarea prin SUSE ID) se adaugă deasupra.
+Acesta este un răspuns structural la riscul de percepție conform căruia fiecare instrument din galerie are aceeași greutate. Orice proces pe care o echipă îl construiește în jurul catalogului vine deasupra acestuia.
 
 ### 8. Intrările uneltei sunt tipizate prin manifest, inclusiv activele
 

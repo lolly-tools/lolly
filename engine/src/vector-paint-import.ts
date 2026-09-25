@@ -17,12 +17,13 @@ export function vectorContourNodes(contour:Contour,width:number,height:number):A
   return {kind:'cubic',closed:contour.closed,nodes};
 }
 const geometry:Record<string,string[]>={path:['d'],rect:['x','y','width','height','rx','ry'],circle:['cx','cy','r'],ellipse:['cx','cy','rx','ry'],line:['x1','y1','x2','y2'],polygon:['points'],polyline:['points']};
-function shapePath(element:Element):string{
+/** One SVG shape element (path, rect with rx/ry, circle, ellipse, line, polygon, polyline) as path data in its own user space. */
+export function shapePath(element:Element):string{
   const n=(name:string,fallback=0)=>element.hasAttribute(name)?Number(element.getAttribute(name)):fallback;
   switch(element.localName){
     case 'path':return element.getAttribute('d')??'';
     case 'line':return `M${n('x1')} ${n('y1')}L${n('x2')} ${n('y2')}`;
-    case 'polygon':case 'polyline':{const points=element.getAttribute('points')!.trim().split(/[\s,]+/).map(Number);return points.reduce((d,value,index)=>index%2?d:`${d}${index?'L':'M'}${value} ${points[index+1]}`,'')+(element.localName==='polygon'?'Z':'');}
+    case 'polygon':case 'polyline':{const points=(element.getAttribute('points')??'').trim().split(/[\s,]+/).map(Number);return points.reduce((d,value,index)=>index%2?d:`${d}${index?'L':'M'}${value} ${points[index+1]}`,'')+(element.localName==='polygon'?'Z':'');}
     case 'circle':case 'ellipse':{const x=n('cx'),y=n('cy'),rx=n(element.localName==='circle'?'r':'rx'),ry=n(element.localName==='circle'?'r':'ry');if(!rx||!ry)return '';return `M${x-rx} ${y}A${rx} ${ry} 0 1 1 ${x+rx} ${y}A${rx} ${ry} 0 1 1 ${x-rx} ${y}Z`;}
     case 'rect':{const x=n('x'),y=n('y'),w=n('width'),h=n('height'),rx=Math.min(w/2,n('rx',n('ry'))),ry=Math.min(h/2,n('ry',n('rx')));if(!w||!h)return '';if(!rx||!ry)return `M${x} ${y}H${x+w}V${y+h}H${x}Z`;return `M${x+rx} ${y}H${x+w-rx}A${rx} ${ry} 0 0 1 ${x+w} ${y+ry}V${y+h-ry}A${rx} ${ry} 0 0 1 ${x+w-rx} ${y+h}H${x+rx}A${rx} ${ry} 0 0 1 ${x} ${y+h-ry}V${y+ry}A${rx} ${ry} 0 0 1 ${x+rx} ${y}Z`;}
     default:throw new Error('Unsupported vector shape.');

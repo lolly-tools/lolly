@@ -270,6 +270,7 @@ export function wireFormatChange(ta: ActionsCtx): void {
       ta.refresh.refreshDepthFact();
       ta.preflight.refreshPreflight(); // the format is the single biggest input to every check
       ta.rights.refreshRights(); // the format decides the route, and the route decides what can carry a credit
+      ta.audio.syncCaptionsAvailable(); // caption text is looked up only for moving formats
       onUrlSync?.('format');
       onUrlSync?.('marks'); // bars may have flipped with the format
     });
@@ -506,6 +507,14 @@ export function wireC2pa(ta: ActionsCtx): void {
   // promising an ingredient nothing is going to write.
   ta.rights.wireRights();
   c2paEl?.addEventListener('change', () => ta.rights.refreshRights());
+  // The declared licence: held on the runtime, which writes it into the export's
+  // metadata and records it as the output licence in the source-credit
+  // evaluation. The address bar and the saved record read it back from there.
+  el.querySelector<HTMLSelectElement>('[data-action="export-licence"]')?.addEventListener('change', (event) => {
+    ta.runtime.setOutputLicence((event.currentTarget as HTMLSelectElement).value || null);
+    ta.rights.refreshRights();
+    ta.onUrlSync?.('licence');
+  });
 
   // Credential lifetime: the 7/30/90/365 select only makes sense for the
   // ephemeral per-export cert. With an enrolled identity (host.identity) the

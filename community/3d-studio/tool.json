@@ -694,7 +694,7 @@
           "showFor": [
             "text"
           ],
-          "help": "Set in the shared font under Start unless this item names its own. Up to 200 characters."
+          "help": "Set in the shared font under Start unless this item sets its own. Up to 200 characters."
         },
         {
           "id": "font",
@@ -3110,7 +3110,7 @@
           "label": "Crane"
         }
       ],
-      "help": "Orbit to a view and choose Add camera key on the preview; two keys make a move, more make a path. Hold the view to compose the next key. The moves below are made from the current view instead. Orbit sweep turns a little each way and comes back. Push in comes closer over the loop. Dolly zoom narrows the lens while the camera pulls back, so the subject keeps its size and the background slides; an orthographic camera ignores the lens, so it does nothing there. Reveal turn swings in from the side and settles on the current view. Crane comes down onto the current view. Convert to keys on the preview hands you the rows to edit."
+      "help": "Orbit to a view and choose Add camera key on the preview; two keys make a move, more make a path. Hold the view to compose the next key. The moves below are made from the current view instead. Orbit sweep turns a little each way and comes back. Push in comes closer over the loop. Dolly zoom narrows the lens while the camera pulls back: the subject stays the same size and the background slides; an orthographic camera ignores the lens, so it does nothing there. Reveal turn swings in from the side and settles on the current view. Crane comes down onto the current view. Convert to keys on the preview hands you the rows to edit."
     },
     {
       "id": "cameraAmount",

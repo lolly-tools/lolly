@@ -53,27 +53,19 @@ Deck Studio er et godt mål på taket her: en hel lysbildepresentasjon deklarert
 
 De fleste «AI-kreativ»-pitchene plasserer modellen på feil side av en gammel linje. Skrivere og illuminatorer avgjorde allerede hvor den grensen går: du jobber løst på skissen, der alt kan prøves og ingenting er forpliktende, og så går du til trykkpressen, som er skremmende nettopp fordi den forplikter. Skissene var der kunsten lå. Pressen var hvordan den reiste. To redskaper, to jobber, hver oppfinnsom på sin egen måte, og det trykte verket kunne stoles på fordi pressen holdt sitt løfte ved hvert trykk.
 
-Lolly er pressen, ikke skissen. Ta med hva du vil til idéutviklingen - en modell, en designer, en serviett - men i det øyeblikket en idé må bli ti tusen ressurser, går den gjennom noe som rendrer på samme måte hver gang, fra inndata hvem som helst kan lese tilbake. Det er det sammenligningen ovenfor egentlig handler om: ikke hvem som har den beste generatoren, men hvem som gjør det forpliktende steget reproduserbart.
+Lolly er pressen, ikke skissen. Ta med hva du vil til idéutviklingen - en modell, en designer, en serviett - men i det øyeblikket en idé må bli mange ressurser, går den gjennom noe som rendrer på samme måte hver gang, fra inndata hvem som helst kan lese tilbake. Det er det sammenligningen ovenfor egentlig handler om: ikke hvem som har den beste generatoren, men hvem som gjør det forpliktende steget reproduserbart.
 
 > Stol på den kreative prosessen, skaler med presisjon.
 
-## Godkjenn verktøyet, ikke filen
+## Reglene ligger i verktøyet, ikke i filen
 
-Alle andre verktøy på markedet produserer en *fil* som deretter må sjekkes - en merkevareansvarlig i en Slack-tråd, jus på ansvarsfraskrivelsen, en runde med endringer, nok en gjennomgang. Lolly flytter godkjenningen **ett steg oppstrøms**. Merkevarereglene - eksakte heksfarger, lisensierte skriftfiler, utfallsmarginer, avstander - er hardkodet inn i verktøyets HTML og CSS, slik at malen *ikke kan* levere en ressurs som bryter med merkevaren. Selve oppsettet håndhever reglene.
+Alle andre verktøy på markedet produserer en *fil*, og en fil kan bare ses i etterkant, én output om gangen. Lolly flytter merkevarereglene **ett steg oppstrøms**. Eksakte heksfarger, lisensierte skriftfiler, utfallsmarginer, avstander - alt sammen er hardkodet inn i verktøyets HTML og CSS, slik at malen *ikke kan* levere en ressurs som bryter med merkevaren. Selve oppsettet håndhever reglene.
 
-Så du slutter å godkjenne resultater og begynner å godkjenne **verktøyet** som lager dem. Godkjenn det én gang, og hver eneste ressurs det noensinne produserer er forhåndsgodkjent av konstruksjon - ingen menneske i løkken, ingen gjennomgangssyklus, uansett volum.
+Så det som er verdt å se på, er **verktøyet**, ikke hver fil det lager. Få verktøyet riktig, og hver ressurs det noensinne produserer, er merkevaretro av konstruksjon. Hvordan du sjekker arbeidet ditt, og hvem som gjør det, er fortsatt opp til deg; Lolly gjør det som sjekkes mindre og outputen raskere å lage.
 
-Dette er endringen den deterministiske motoren faktisk gir: det er ikke en raskere versjon av den gamle godkjenningsprosessen, den fjerner prosessen. For det kreative teamet er det et vern, ikke en erstatning - du kaster fortsatt ballen (dataene, teksten, bildet), og koden er kanten i bowlingbanen som holder hvert kast unna rennen.
+Dette er endringen den deterministiske motoren faktisk gir. For det kreative teamet er det et vern, ikke en erstatning - du kaster fortsatt ballen (dataene, teksten, bildet), og koden er kanten i bowlingbanen som holder hvert kast unna rennen.
 
-![Produsentens hele jobb: skriv ordene. Skrift, farge og avstand var avgjort da verktøyet ble godkjent](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DApproved&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-approve-the-tool)
-
-| Godkjenne ressurser på den gamle måten | Godkjenne verktøyet, Lolly-måten |
-|---|---|
-| Hver ferdige fil sjekkes, én om gangen | Verktøyet sjekkes én gang |
-| Forespørsel → designer bygger → merkevaregjennomgang → juridisk sjekk → endringer → ny gjennomgang | Én parameterendring → ferdig ressurs |
-| Designer, merkevareansvarlig, jus og forespørrer er alle involvert | Produsenten, på egen hånd |
-| Dager per ressurs | Sekunder per ressurs |
-| 10 000 ressurser = 10 000 gjennomgangssykluser | 10 000 ressurser = null (malen var allerede godkjent) |
+![Produsentens hele jobb: skriv ordene. Skrift, farge og avstand var avgjort da verktøyet ble laget](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
 
 ## Hva dette gir på en unik måte
 

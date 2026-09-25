@@ -49,6 +49,7 @@
  */
 import { t } from '../i18n.ts';
 import { isUnit, toUnit } from '@lolly/engine';
+import { dragTravel, type DragTravel } from '../lib/pointer-wrap.ts';
 
 /** How long an arrow-key burst stays open before it commits as one gesture. */
 export const KEY_COALESCE_MS = 300;
@@ -425,7 +426,9 @@ export function numField(opts: NumFieldOpts): NumFieldHandle {
   // ── scrub ─────────────────────────────────────────────────────────────────
 
   let dragId: number | null = null;
-  let dragX = 0;
+  // Travel past the screen edge keeps counting: lib/pointer-wrap.ts locks the pointer
+  // there and laps a stand-in cursor round the window.
+  let travel: DragTravel | null = null;
   let dragBase = 0;
   let dragValue: number | null = null;
   let moved = false;
@@ -434,7 +437,7 @@ export function numField(opts: NumFieldOpts): NumFieldHandle {
     if (input.disabled || input.readOnly) return;
     if (ev.button != null && ev.button !== 0) return;
     dragId = ev.pointerId;
-    dragX = ev.clientX;
+    travel = dragTravel(lbl, ev, { onLost: onUp });
     dragBase = base ?? 0;
     dragValue = null;
     moved = false;
@@ -447,7 +450,7 @@ export function numField(opts: NumFieldOpts): NumFieldHandle {
 
   function onMove(ev: PointerEvent): void {
     if (dragId == null) return;
-    const dx = ev.clientX - dragX;
+    const dx = travel ? travel.move(ev) : 0;
     if (!moved) {
       if (Math.abs(dx) < SCRUB_SLOP) return;
       moved = true;
@@ -467,6 +470,8 @@ export function numField(opts: NumFieldOpts): NumFieldHandle {
 
   function onUp(): void {
     if (dragId == null) return;
+    travel?.end();
+    travel = null;
     try { lbl.releasePointerCapture?.(dragId); } catch { /* never captured */ }
     lbl.removeEventListener('pointermove', onMove);
     lbl.removeEventListener('pointerup', onUp);
@@ -511,6 +516,8 @@ export function numField(opts: NumFieldOpts): NumFieldHandle {
       // A torn-down field is not mid-gesture, whatever the pointer was doing: a host
       // asking `scrubbing()` about a handle it has already dropped gets the truth.
       dragId = null;
+      travel?.end();
+      travel = null;
       input.removeEventListener('keydown', onKey);
       input.removeEventListener('input', onInput);
       input.removeEventListener('blur', onBlur);

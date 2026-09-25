@@ -1,0 +1,19 @@
+digraph source_rows {
+  rankdir=LR
+  node [shape=box]
+
+  doc    [label="One instance\ntwo lanes"]
+  boxes  [label="Boxes lane\nrows by id"]
+  params [label="Params lane\nvalues by input"]
+  row    [label="Source row\nid, frame, order"]
+  owner  [label="Owner row\nnamed by frame"]
+  text   [label="Text document\npayload, by id", shape=note]
+  chart  [label="Chart spec\npayload, next", shape=note]
+
+  doc -> boxes
+  doc -> params
+  boxes -> row
+  row -> owner
+  row -> text
+  row -> chart
+}

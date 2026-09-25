@@ -24,21 +24,21 @@ Dokumen ini mencatat tujuan, struktur dan keputusan arsitektur untuk platform Lo
 
 ## Mengapa ini ada
 
-Tim menghadapi masalah yang berulang: pekerjaan kreatif dan konten yang bisa diulang, terlalu dapat diprediksi untuk membenarkan tangan terampil setiap kali, tetapi terlalu sensitif terhadap kualitas untuk diserahkan tanpa pengaman. Hasilnya adalah salah satu dari: throughput lambat (bottleneck spesialis), inkonsistensi (orang memakai alat apa pun yang mereka punya) atau vendor lock-in (DAM SaaS yang mengendalikan template Anda).
+Pekerjaan kreatif yang bisa diulang terlalu dapat diprediksi untuk membenarkan tangan terampil setiap kali, dan terlalu sensitif terhadap kualitas untuk diserahkan tanpa pengaman. Jika dibiarkan, hasilnya salah satu dari tiga: lambat, tidak konsisten atau terkunci pada template vendor.
 
 Platform ini adalah jawaban langsungnya:
 
-> **Kreatif dan konten programatik dalam skala besar** - pembuatan aset tanpa tenaga kerja, dengan aturan di bawah kendali terpusat, untuk karyawan, vendor dan mitra.
+> **Kreatif dan konten programatik dalam skala besar** - aset yang dihasilkan dari input, dengan aturan yang ditetapkan sekali, untuk siapa pun yang membutuhkannya.
 
 Lolly bukan tempat sebuah design system diciptakan - melainkan tempat design system itu diproduksi. Anggap seperti sebuah vending machine untuk desain: buat pilihan, dapatkan hasil. Setiap saat. Engine ini bekerja untuk kualitas tertinggi yang bisa dihasilkan setiap format pada perangkat keras di hadapan Anda, dan engine yang sama membuat berkas yang sama pada setiap platform tempatnya dirilis.
 
-Hasilnya adalah **kelimpahan**: setiap acara memiliki signage yang benar, setiap peringatan CVE cocok dengan gaya perusahaan, setiap label tercetak bersih, setiap tanda tangan email selalu terkini - semua tanpa tiket desain. Platform ini menangani kreatif operasional yang berulang. Ini sengaja bukan alat kreatif custom - desainer tetap memegang kendali atas karya unggulan.
+Hasilnya adalah **kelimpahan**: setiap acara memiliki signage yang benar, setiap peringatan CVE cocok dengan gaya perusahaan, setiap label tercetak bersih, setiap tanda tangan email selalu terkini - semua dari alat yang sudah membawa aturannya sendiri. Platform ini menangani kreatif operasional yang berulang. Ini sengaja bukan alat kreatif custom - desainer tetap memegang kendali atas karya unggulan.
 
 ### Berinovasi secara probabilistik, berskala secara deterministik
 
 Setiap perdebatan tentang AI dalam alur kerja kreatif terhenti pada pertanyaan yang sama: bagian mana dari ini yang menjadi tugas mesin? Ini pertanyaan lama dengan jawaban yang sudah mapan. Juru tulis dan pelukis manuskrip sudah bekerja di antara dua instrumen - sketsa bebas, di mana tidak ada yang tetap dan segalanya bisa dicoba, dan mesin cetak, yang menakutkan justru karena ia mengikat komitmen. Sketsa adalah tempat seni terjadi. Mesin cetak adalah cara seni itu menjangkau siapa pun. Tak seorang pun mencampuradukkan keduanya, dan keduanya terus maju - tinta baru, huruf baru, mesin cetak baru - masing-masing berkembang selaras dengan kerajinan dan maksud yang dilayaninya.
 
-Lolly menarik garis yang sama. Jelajahi secara probabilistik: sebuah model, seorang desainer, ide kasar, sebuah prompt yang menuju ke arah yang tidak direncanakan siapa pun. Lalu berskalalah secara deterministik - hal yang menjangkau sepuluh ribu output adalah sebuah *alat*, dan alat merender dengan cara yang sama setiap kali dari input yang bisa Anda baca. Eksplorasi tetap bebas karena tidak ada apa pun di hilir yang bergantung pada hasil yang sama dua kali. Outputnya mendapatkan kepercayaan karena bukan tebakan. Membawa eksperimen AI ke hasil yang dapat diprediksi dan direproduksi bukanlah disiplin baru; itu adalah pembagian kerja yang sama yang membuat karya cetak layak dipercaya sejak awal.
+Lolly menarik garis yang sama. Jelajahi secara probabilistik: sebuah model, seorang desainer, ide kasar, sebuah prompt yang menuju ke arah yang tidak direncanakan siapa pun. Lalu berskalalah secara deterministik - hal yang menjadi banyak output adalah sebuah *alat*, dan alat merender dengan cara yang sama setiap kali dari input yang bisa Anda baca. Eksplorasi tetap bebas karena tidak ada apa pun di hilir yang bergantung pada hasil yang sama dua kali. Outputnya mendapatkan kepercayaan karena bukan tebakan. Membawa eksperimen AI ke hasil yang dapat diprediksi dan direproduksi bukanlah disiplin baru; itu adalah pembagian kerja yang sama yang membuat karya cetak layak dipercaya sejak awal.
 
 > Percayai proses kreatif, berskala dengan kedisiplinan.
 
@@ -76,19 +76,19 @@ Itulah pengganda kekuatannya. Lolly bukan laci berisi alat-alat terpisah untuk p
 
 ---
 
-## Satu persetujuan, sepuluh ribu aset
+## Satu alat, banyak output
 
-Karena persetujuan berada di alat, bukan di file (lihat [Bagaimana Lolly dibandingkan](/info/positioning.html)), skala berhenti menjadi masalah peninjauan. Setujui alat kartu sosial yang dilokalkan sekali, lalu hasilkan **10.000 aset dalam 12 bahasa** dari sebuah spreadsheet - dan tidak satu pun dari aset itu memerlukan pemeriksaan kepatuhan baru dari legal atau brand, karena template asal semuanya sudah disetujui.
+Aturan brand ada di dalam alat, bukan di setiap file yang dibuatnya (lihat [Bagaimana Lolly dibandingkan](/info/positioning.html)). Buat alatnya benar sekali, dan setiap output mewarisi jenis huruf, warna dan spasi yang sama, baik itu satu kartu atau spreadsheet berisi banyak baris dalam belasan bahasa. Bagaimana Anda memeriksa pekerjaan Anda, dan siapa yang melakukannya, tetap urusan Anda; Lolly membuat hal yang layak diperiksa menjadi lebih kecil dan outputnya lebih cepat dibuat.
 
-Alat deterministik yang sama mencapai skala itu dengan tiga cara, semuanya menghasilkan output identik yang sudah disetujui sebelumnya:
+Alat deterministik yang sama mencapai skala itu dengan tiga cara, semuanya menghasilkan output yang identik:
 
-- <!--i:people--> **Seseorang, di dalam aplikasi.** Grid batch `/pro`: tempel atau impor barisnya, dapatkan satu aset jadi per baris, unduh zip-nya. Tanpa keterampilan desain, tanpa tiket, tanpa menunggu.
-- <!--i:code--> **Seorang developer, dari baris perintah.** CLI menjalankan engine yang *sama* dan jalur render yang *sama* secara headless, sehingga alat itu bisa dijalankan berurutan di seluruh 10.000 baris dalam sebuah skrip atau pipeline malam hari. Panggilan `lolly <tool> --field=…` dalam sebuah loop adalah keseluruhan integrasinya.
-- <!--i:cpu--> **Sebuah sistem atau agen AI, lewat MCP.** Alat yang sama dijalankan secara programatik, dengan fidelitas yang sama dan skala yang bahkan lebih besar - karena mesin tidak akan bosan sementara ribuan file terus masuk.
+- <!--i:people--> **Seseorang, di dalam aplikasi.** Grid batch `/pro`: tempel atau impor barisnya, dapatkan satu aset jadi per baris, unduh zip-nya. Tanpa keterampilan desain, tanpa menunggu.
+- <!--i:code--> **Seorang developer, dari baris perintah.** CLI menjalankan engine yang *sama* dan jalur render yang *sama* secara headless, sehingga alat itu bisa dijalankan berurutan di setiap baris dalam sebuah skrip atau pipeline malam hari. Panggilan `lolly <tool> --field=…` dalam sebuah loop adalah keseluruhan integrasinya.
+- <!--i:cpu--> **Sebuah sistem atau agen AI, lewat MCP.** Alat yang sama dijalankan secara programatik, dengan fidelitas yang sama, untuk sebanyak apa pun baris yang dimiliki pekerjaan tersebut.
 
 ![Mode Batch pada instalasi baru: satu baris kosong menunggu sebuah alat, dengan seluruh permukaan spreadsheet dan tombol Render-nya sudah siap sebelum data apa pun tiba](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-Satu set batasan brand, ditetapkan sekali oleh seorang desainer; tiga rute menuju output identik yang sudah disetujui sebelumnya - dan rute mesin berskala paling jauh dari semuanya, karena ia tidak pernah lelah selagi file terus mengalir masuk.
+Satu set batasan brand, ditetapkan sekali oleh seorang desainer; tiga rute menuju output yang identik.
 
 ---
 
@@ -390,11 +390,11 @@ Web shell: IndexedDB. Tauri: filesystem. CLI: in-memory. Tools hanya melihat `ho
 
 Pengguna dapat menyimpan beberapa slot edit bernama per tool dan kembali ke tiap sesi nanti. Tidak perlu membuat akun; state bersifat per perangkat. Karena bridge adalah satu-satunya titik sambung, state per perangkat itu juga *portabel*: `shells/web/src/data-transfer.ts` membaca kembali semuanya lewat `host.profile`/`host.state`/`host.assets` menjadi satu zip `lolly-backup` yang bisa diimpor di instalasi lain - jawaban offline untuk "pindah ke perangkat baru" yang tidak butuh server (spesifikasi lengkap: `docs/data-transfer.md`). Integrasi SUSE ID (sinkronisasi multi-perangkat) adalah milestone masa depan di atas mekanisme ini.
 
-### 7. Tag kematangan menjawab risiko "disetujui brand" secara desain
+### 7. Tag kematangan menyatakan apa itu sebuah tool, secara desain
 
 Setiap tool mendeklarasikan `status: official | community | experimental` dalam manifesnya. Galeri diurutkan berdasarkan status. Tool experimental otomatis membubuhkan watermark pada ekspornya - watermark diterapkan oleh `host.export.render`, bukan oleh tool, sehingga tidak bisa dinonaktifkan oleh penulis tool non-official.
 
-Ini adalah jawaban struktural atas risiko persepsi bahwa memakai tool apa pun berarti disetujui brand. Jawaban proses (antrean review, gating SUSE ID) melapis di atasnya.
+Ini adalah jawaban struktural atas risiko persepsi bahwa setiap tool di galeri membawa bobot yang sama. Proses apa pun yang diterapkan sebuah tim di sekitar katalog melapis di atasnya.
 
 ### 8. Input tool ditipekan lewat manifes, termasuk aset
 

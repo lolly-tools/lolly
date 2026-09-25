@@ -181,6 +181,10 @@ export function resolveExportFormat(tview: ToolViewCtx): void {
     rememberedExport,
     tview.tool.manifest.render?.formats ?? []
   ); tview.exportDefaults = exportDefaults;
+  // The licence declared for this document: the link's, else the saved session's.
+  // Held on the runtime so the source credits, the export's metadata, the saved
+  // record and the address bar all read one value. An unknown id clears it.
+  tview.runtime.setOutputLicence?.(tview.urlLicence || (tview.initialValues.__export_licence as string | undefined) || null);
   // Rewrite the URL hash query string to reflect the current tool state so the
   // page is shareable and bookmarkable. Uses replaceState - no history entry.
   // Params the user has explicitly touched - only these are written to the URL.

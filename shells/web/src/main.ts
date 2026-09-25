@@ -95,7 +95,7 @@ installDepthSeam();
 type WebHost = Awaited<ReturnType<typeof createBridge>>;
 
 /** Route names the shell can be in. */
-type RouteName = 'learning' | 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'prepare' | 'compare' | 'start' | 'multi' | 'components' | 'lab' | 'pdf' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply';
+type RouteName = 'learning' | 'gallery' | 'utilities' | 'tool' | 'profile' | 'dashboard' | 'pro' | 'projects' | 'history' | 'catalog' | 'verify' | 'convert' | 'data' | 'prepare' | 'rebrand' | 'compare' | 'start' | 'multi' | 'components' | 'document-model' | 'lab' | 'pdf' | 'script' | 'ask' | 'docs' | 'join' | 'join-reply';
 
 /** A parsed route: a discriminated union on `name`. */
 type Route =
@@ -105,6 +105,7 @@ type Route =
   | { name: 'verify'; params?: string }
   | { name: 'convert'; params?: string }
   | { name: 'prepare' }
+  | { name: 'rebrand'; params?: string }
   | { name: 'compare' }
   | { name: 'data'; params?: string }
   | { name: 'pro'; params?: string }
@@ -115,6 +116,7 @@ type Route =
   | { name: 'start'; params?: string }
   | { name: 'multi'; params?: string }
   | { name: 'components'; params?: string }
+  | { name: 'document-model'; slug: string | null; params?: string }
   | { name: 'utilities'; params?: string }
   | { name: 'lab'; params?: string }
   | { name: 'pdf'; params?: string }
@@ -217,6 +219,9 @@ const ROUTES: Record<RouteName, RouteSpec> = {
   convert: { label: 'Convert', viewClasses: ['convert-view'], sigKey: 'params', footer: 'none' },
   compare: { label: 'Compare', viewClasses: ['compare-view'], footer: 'none' },
   prepare: { label: 'Prepare for sharing', viewClasses: ['prepare-view'], footer: 'none' },
+  // Rebrand (plan 274): keyed on params, so a dropped .lolly that names a different
+  // project (`?project=<id>`) re-mounts rather than deduping onto the open one.
+  rebrand: { label: 'Rebrand', viewClasses: ['rebrand-view'], sigKey: 'params', footer: 'none' },
   data: { label: 'Spreadsheet', viewClasses: ['data-view'], footer: 'none' },
   // The studio keys on ?tab= for the same reason - "Manage fonts" (#/start?tab=type)
   // clicked while already on #/start must switch steps, not dedupe to a no-op.
@@ -227,6 +232,11 @@ const ROUTES: Record<RouteName, RouteSpec> = {
   // Components keeps its footerNav SPECIMEN (in-flow, neutralised in components.css)
   // rather than the live bar.
   components: { label: 'Component library', footer: 'none' },
+  // The specification browser (#/document-model, plan 276). Hash routes only -
+  // no pretty path and no APP_PATH_WORDS entry, because a path word is permanent
+  // and this is a draft. Keys on the SLUG, like the docs reader, so moving
+  // between chapters re-mounts instead of deduping onto the open one.
+  'document-model': { label: 'Document model', viewClasses: ['dm-view'], sigKey: 'slug', footer: 'none' },
   // The Lab gets NO tab. It's a utility you open and come back from, like any tool
   // page - so it gets the back pill and no tab bar. Lighting the Utilities tab
   // here would suggest the pill is where you are rather than where you'd go,
@@ -494,6 +504,13 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
       mountPrepare(view, host);
       break;
     }
+    // /rebrand - renovate an old deck for the design system and open it in Design
+    // (plan 274). Lazy like the other utility views.
+    case 'rebrand': {
+      const { mountRebrand } = await import('./views/rebrand.ts');
+      await mountRebrand(view, host, route.params ?? '', () => { mountedRouteSig = routeSignature(parseRoute()); });
+      break;
+    }
     case 'data': {
       const { mountDataView } = await import('./views/data.ts');
       await mountDataView(view, host, route.params);
@@ -679,6 +696,14 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
       // and returns to the view you came from, or the gallery on a cold deep link.
       const { mountComponents } = await import('./views/components.ts');
       await mountComponents(view, host as unknown as Parameters<typeof mountComponents>[1], route.params);
+      break;
+    }
+    case 'document-model': {
+      // The document model specification, read in-app (plan 276 section 1D). Lazy for
+      // the same reason as the library above: it is a reading surface nobody passes
+      // through on the way to a tool.
+      const { mountDocumentModel } = await import('./views/document-model.ts');
+      await mountDocumentModel(view, host, route.slug, route.params ?? '');
       break;
     }
     case 'utilities':
@@ -1792,6 +1817,20 @@ const RETIRED_TOOL_TEMPLATES: Record<string, string> = { 'carousel-maker': 'caro
 const retiredToolParams = (id: string, params: string): string =>
   params === '' && RETIRED_TOOL_TEMPLATES[id] ? `template=${RETIRED_TOOL_TEMPLATES[id]}` : params;
 
+/**
+ * The rebrand-deck tool retired into #/rebrand (plan 274 section 4): a BARE open of it
+ * (no query) is a person looking for the tool, so it opens Keep the design, which is
+ * what the tool did. Anything with a query still opens the tool, because a share link
+ * and the CLI transform contract carry their values there and must keep working.
+ */
+const isBareRebrandDeck = (id: string, query: string | undefined): boolean => id === 'rebrand-deck' && !query;
+
+/** Replace the address, not push it, so Back does not return to the retired address. */
+function rebrandDeckRedirect(url: string): Route {
+  history.replaceState(history.state, '', url);
+  return { name: 'rebrand', params: 'mode=keep' };
+}
+
 function parseRoute(): Route {
   const hash = window.location.hash.slice(1);
 
@@ -1799,6 +1838,7 @@ function parseRoute(): Route {
     const [path, query] = hash.split('?');
     const parts = (path ?? '').split('/').filter(Boolean);
     if (parts[0] === 'tool' && parts[1]) {
+      if (isBareRebrandDeck(parts[1], query)) return rebrandDeckRedirect('#/rebrand?mode=keep');
       return { name: 'tool', toolId: canonToolId(parts[1]), params: retiredToolParams(parts[1], query || '') };
     }
     // #/design mirrors the /design vanity path (plan 171): before this, the hash
@@ -1829,6 +1869,7 @@ function parseRoute(): Route {
     if (parts[0] === 'convert') return { name: 'convert', params: query || '' }; // on-device file converter
     if (parts[0] === 'compare') return { name: 'compare' };
     if (parts[0] === 'prepare') return { name: 'prepare' };
+    if (parts[0] === 'rebrand') return { name: 'rebrand', params: query || '' }; // renovate a deck (plan 274)
     if (parts[0] === 'data') return { name: 'data', params: query || '' }; // on-device spreadsheet viewer/editor
     if (parts[0] === 'start') return { name: 'start', params: query || '' }; // brand wizard
     if (parts[0] === 'multi') return { name: 'multi', params: query || '' }; // multi-edit (?s=slot,slot…)
@@ -1866,6 +1907,13 @@ function parseRoute(): Route {
         : { name: 'docs', lang: null, slug: parts[1], params: query || '' };
     }
     if (parts[0] === 'components') return { name: 'components', params: query || '' }; // the browsable component library
+    // The specification browser. #/document-model is the contents, #/document-model/<slug>
+    // one chapter, and the heading a link asked for rides as ?h= (a second '#' cannot ride
+    // a hash route). An unknown slug is passed through, and the view names it.
+    if (parts[0] === 'document-model') {
+      const chapter = parts[1] && /^[a-z0-9-]+$/.test(parts[1]) ? parts[1] : null;
+      return { name: 'document-model', slug: chapter, params: query || '' };
+    }
     // The two halves of a private collab's ceremony (plan 100 section 6.1, section 11.25). These
     // paths are minted by components/collab-ceremony.ts's JOIN_ROUTE / REPLY_ROUTE - 
     // an invite link carries ?inv=<token>, a reply link ?ans=<token>. A test pins the
@@ -1887,6 +1935,7 @@ function parseRoute(): Route {
   // bounces a human into #/tool/<id>, which mounts and then syncUrl rewrites the bar
   // back to /t/<id>; this branch is what re-mounts on client-side popstate to it.
   if (pathParts.length === 2 && pathParts[0] === 't') {
+    if (isBareRebrandDeck(pathParts[1]!, window.location.search.slice(1))) return rebrandDeckRedirect('/#/rebrand?mode=keep');
     return { name: 'tool', toolId: canonToolId(pathParts[1]!), params: retiredToolParams(pathParts[1]!, window.location.search.slice(1)) };
   }
   // /p (Projects root) and /p/<folderId> deep links → redirect into the canonical
@@ -1956,6 +2005,8 @@ function parseRoute(): Route {
       // Unpack: /unpack is canonical, /pdf a kept alias (old shared links).
       compare:   { hash: '#/compare', route: { name: 'compare' } },
       prepare:   { hash: '#/prepare', route: { name: 'prepare' } },
+      // Rebrand (plan 274): a hand-typed /rebrand opens the view, never /#/tool/rebrand.
+      rebrand:   { hash: '#/rebrand', route: { name: 'rebrand', params: '' } },
       unpack:    { hash: '#/unpack', route: { name: 'pdf' } },
       pdf:       { hash: '#/unpack', route: { name: 'pdf' } },
       profile:   { hash: '#/profile', route: { name: 'profile', params: '' } },
@@ -1976,7 +2027,9 @@ function parseRoute(): Route {
     if (view) {
       const q = window.location.search;
       window.location.replace(`/${view.hash}${q}`);
-      return view.route.name === 'profile' ? { name: 'profile', params: q.slice(1) } : view.route;
+      if (view.route.name === 'profile') return { name: 'profile', params: q.slice(1) };
+      if (view.route.name === 'rebrand') return { name: 'rebrand', params: q.slice(1) };
+      return view.route;
     }
     // /b and /brand → the Dashboard's Design System tab (shortlinks, not tools).
     if (pathParts[0] === 'b' || pathParts[0] === 'brand') {

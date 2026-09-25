@@ -1,0 +1,1002 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/rebrand-plan-v1.schema.json",
+  "title": "rebrand-plan-v1",
+  "description": "Proposals and decisions kept apart, with review state, author, scope, the design-system snapshot and the algorithm versions the plan was made under. Stages 3 and 4 of plan 274.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "source",
+    "revision",
+    "designSystem",
+    "algorithms",
+    "mode",
+    "slides",
+    "colors",
+    "fonts",
+    "logo",
+    "decisions"
+  ],
+  "$defs": {
+    "algorithmVersions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reader",
+        "census",
+        "plan"
+      ],
+      "properties": {
+        "reader": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "census": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "plan": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "compile": {
+          "type": "string",
+          "maxLength": 64
+        }
+      }
+    },
+    "archetypeId": {
+      "enum": [
+        "title",
+        "section",
+        "content",
+        "two-column",
+        "split",
+        "visual",
+        "full-image",
+        "quote",
+        "big-number",
+        "main-point",
+        "agenda",
+        "table"
+      ]
+    },
+    "archetypeRef": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,40}$",
+      "description": "An archetype id: one of $defs/archetypeId, the twelve every master before the layout library carries, or from plan 275 on an archetype a master generated from the layout library under the library id (StructureIdV1). A reader meets an id its master does not carry by falling back and saying so. A build from before plan 275 refuses a file holding a library id with its own message."
+    },
+    "archetypeRole": {
+      "enum": [
+        "title",
+        "subtitle",
+        "body",
+        "visual",
+        "data",
+        "caption",
+        "number",
+        "label",
+        "quote",
+        "attribution"
+      ]
+    },
+    "assetRef": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!.*\\.\\.)[A-Za-z0-9][A-Za-z0-9._-]*(/[A-Za-z0-9._-]+)*$",
+      "description": "A stable asset ref: a namespaced catalog id or a host-generated user asset id. Never a data: or blob: URL, never a file path, never base64, so the document stays portable across a reload, a device and a shell."
+    },
+    "colorMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "useId",
+        "from",
+        "role",
+        "affects"
+      ],
+      "properties": {
+        "useId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "from": {
+          "$ref": "#/$defs/hex"
+        },
+        "scheme": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "role": {
+          "$ref": "#/$defs/colorRole"
+        },
+        "to": {
+          "$ref": "#/$defs/hex"
+        },
+        "toPath": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "unresolved": {
+          "$ref": "#/$defs/colorUnresolvedReason"
+        },
+        "affects": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "description": "Object ids the mapping affects. A raster is never in this list. A slide's own page colour is named as <slide-id>#background, the same reserved form the census uses."
+        },
+        "byGround": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "The target on slides whose ground differs from the deck theme: the solver runs once per ground group.",
+          "properties": {
+            "dark": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "to": {
+                  "$ref": "#/$defs/hex"
+                },
+                "toPath": {
+                  "type": "string",
+                  "maxLength": 512
+                }
+              }
+            },
+            "brand": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "to": {
+                  "$ref": "#/$defs/hex"
+                },
+                "toPath": {
+                  "type": "string",
+                  "maxLength": 512
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "colorRole": {
+      "enum": [
+        "bg",
+        "ink",
+        "accent",
+        "neutral",
+        "series",
+        "stroke"
+      ]
+    },
+    "colorUnresolvedReason": {
+      "enum": [
+        "palette-too-small",
+        "contrast-unreachable",
+        "locked-conflict",
+        "no-candidate-in-role"
+      ]
+    },
+    "decisionAuthor": {
+      "enum": [
+        "rule",
+        "preset",
+        "user",
+        "agent"
+      ]
+    },
+    "decisionMemory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fingerprint",
+        "slideLineage",
+        "action",
+        "author",
+        "planRevision"
+      ],
+      "properties": {
+        "fingerprint": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "slideLineage": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "action": {
+          "$ref": "#/$defs/planAction"
+        },
+        "replacement": {
+          "$ref": "#/$defs/replacement"
+        },
+        "author": {
+          "$ref": "#/$defs/decisionAuthor"
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "planRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "carriedBy": {
+          "enum": [
+            "exact",
+            "fingerprint",
+            "group"
+          ]
+        }
+      }
+    },
+    "deckTheme": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "remap"
+      ],
+      "description": "A deck theme (plan 275 section 6.2): a small token remap over the resolved design system for one project. The token hash beside it is taken before the theme.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/deckThemeId"
+        },
+        "mode": {
+          "enum": [
+            "light",
+            "dark"
+          ]
+        },
+        "remap": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "from",
+              "to"
+            ],
+            "properties": {
+              "from": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              },
+              "to": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              }
+            }
+          }
+        },
+        "lookId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "flipDark": {
+          "type": "boolean"
+        }
+      }
+    },
+    "deckThemeId": {
+      "enum": [
+        "light",
+        "dark",
+        "brand",
+        "look"
+      ]
+    },
+    "designSystemSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "tokenHash",
+        "fontHashes",
+        "assetHashes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "masterId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "masterVersion": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "tokenHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "fontHashes": {
+          "type": "object",
+          "maxProperties": 512,
+          "propertyNames": {
+            "maxLength": 256,
+            "pattern": "^(?!__proto__$|constructor$|prototype$)[A-Za-z0-9][A-Za-z0-9 ._:+/-]*$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 512
+          }
+        },
+        "assetHashes": {
+          "type": "object",
+          "maxProperties": 4096,
+          "propertyNames": {
+            "maxLength": 256,
+            "pattern": "^(?!__proto__$|constructor$|prototype$)[A-Za-z0-9][A-Za-z0-9 ._:+/-]*$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 512
+          }
+        },
+        "presetId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "presetVersion": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "theme": {
+          "$ref": "#/$defs/deckTheme"
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "signal",
+        "value",
+        "weight"
+      ],
+      "properties": {
+        "signal": {
+          "$ref": "#/$defs/evidenceSignal"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "maxLength": 4096
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "weight": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "sentence": {
+          "type": "string",
+          "maxLength": 4096
+        }
+      }
+    },
+    "evidenceSignal": {
+      "enum": [
+        "origin",
+        "placeholder",
+        "repeat-count",
+        "repeat-share",
+        "position-jitter",
+        "margin-zone",
+        "area-share",
+        "aspect",
+        "text-length",
+        "text-size",
+        "size-rank",
+        "digit-normalised-repeat",
+        "native-tag",
+        "chart-data",
+        "ocr-state",
+        "ocr-density",
+        "edge-stats",
+        "colour-discreteness",
+        "dhash-group",
+        "path-hash-group",
+        "known-identity",
+        "column-alignment",
+        "fill-count"
+      ]
+    },
+    "fontMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "to",
+        "source"
+      ],
+      "properties": {
+        "from": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "to": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "toPath": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "source": {
+          "enum": [
+            "alias",
+            "class",
+            "user"
+          ]
+        }
+      }
+    },
+    "hex": {
+      "type": "string",
+      "pattern": "^#[0-9a-fA-F]{6}$"
+    },
+    "layoutMatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "structure",
+        "confidence",
+        "coverage",
+        "band",
+        "signature"
+      ],
+      "description": "What the structure matcher found on the slide. The confidence is a similarity score, never shown to a person.",
+      "properties": {
+        "structure": {
+          "$ref": "#/$defs/structureId"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "coverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "band": {
+          "$ref": "#/$defs/layoutMatchBand"
+        },
+        "signature": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      }
+    },
+    "layoutMatchBand": {
+      "enum": [
+        "clear",
+        "likely",
+        "none"
+      ]
+    },
+    "objectClass": {
+      "enum": [
+        "template-furniture",
+        "decoration",
+        "logo-candidate",
+        "known-logo",
+        "recurring-text",
+        "page-number",
+        "footer",
+        "date",
+        "title",
+        "subtitle",
+        "body",
+        "chart",
+        "screenshot",
+        "photo",
+        "table",
+        "diagram",
+        "unknown"
+      ]
+    },
+    "objectPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "class",
+        "evidence",
+        "proposal",
+        "review"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "class": {
+          "$ref": "#/$defs/objectClass"
+        },
+        "evidence": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        },
+        "proposal": {
+          "$ref": "#/$defs/planAction"
+        },
+        "proposalReplacement": {
+          "$ref": "#/$defs/replacement"
+        },
+        "decision": {
+          "$ref": "#/$defs/planAction"
+        },
+        "decisionReplacement": {
+          "$ref": "#/$defs/replacement"
+        },
+        "review": {
+          "$ref": "#/$defs/reviewState"
+        },
+        "author": {
+          "$ref": "#/$defs/decisionAuthor"
+        },
+        "scope": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "role": {
+          "$ref": "#/$defs/archetypeRole"
+        },
+        "surplus": {
+          "enum": [
+            "continuation",
+            "tray"
+          ]
+        },
+        "textOverride": {
+          "type": "string",
+          "maxLength": 20000
+        }
+      },
+      "description": "The effective action is decision when present, proposal otherwise; proposal is always required."
+    },
+    "planAction": {
+      "enum": [
+        "keep",
+        "replace",
+        "remove"
+      ]
+    },
+    "replacement": {
+      "description": "What a keep-or-replace decision puts in an object place. One branch per replacement kind.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "variant"
+          ],
+          "properties": {
+            "kind": {
+              "const": "brand-logo"
+            },
+            "variant": {
+              "enum": [
+                "on-light",
+                "on-dark",
+                "mono",
+                "auto"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "label"
+          ],
+          "properties": {
+            "kind": {
+              "const": "placeholder"
+            },
+            "label": {
+              "type": "string",
+              "maxLength": 4096
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "id"
+          ],
+          "properties": {
+            "kind": {
+              "const": "asset"
+            },
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "assetRef"
+          ],
+          "properties": {
+            "kind": {
+              "const": "supplied-picture"
+            },
+            "assetRef": {
+              "$ref": "#/$defs/assetRef"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "url"
+          ],
+          "properties": {
+            "kind": {
+              "const": "tool"
+            },
+            "url": {
+              "type": "string",
+              "maxLength": 8192
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "toolId"
+          ],
+          "properties": {
+            "kind": {
+              "const": "filter"
+            },
+            "toolId": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            },
+            "params": {
+              "type": "object",
+              "maxProperties": 64,
+              "propertyNames": {
+                "maxLength": 256,
+                "pattern": "^(?!__proto__$|constructor$|prototype$)[A-Za-z0-9][A-Za-z0-9 ._:+/-]*$"
+              },
+              "additionalProperties": {
+                "type": "string",
+                "maxLength": 512
+              }
+            }
+          }
+        }
+      ]
+    },
+    "reviewMessage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "params",
+        "text"
+      ],
+      "description": "One sentence a person reads: a stable code, its numbers and names, and the English text. The text is plain words; the measured numbers live in params.",
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "params": {
+          "type": "object",
+          "maxProperties": 64,
+          "propertyNames": {
+            "maxLength": 256,
+            "pattern": "^(?!__proto__$|constructor$|prototype$)[A-Za-z0-9][A-Za-z0-9 ._:+/-]*$"
+          },
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4096
+              },
+              {
+                "type": "number"
+              }
+            ]
+          }
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 4096
+        }
+      }
+    },
+    "reviewState": {
+      "enum": [
+        "unreviewed",
+        "accepted",
+        "needs-attention"
+      ]
+    },
+    "slideGround": {
+      "enum": [
+        "light",
+        "dark",
+        "brand"
+      ]
+    },
+    "slidePlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "include",
+        "layout",
+        "layoutSource",
+        "objects"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "include": {
+          "type": "boolean"
+        },
+        "layout": {
+          "$ref": "#/$defs/archetypeRef"
+        },
+        "layoutSource": {
+          "enum": [
+            "proposed",
+            "user",
+            "preset",
+            "auto"
+          ]
+        },
+        "layoutAlternative": {
+          "$ref": "#/$defs/archetypeRef"
+        },
+        "objects": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "$ref": "#/$defs/objectPlan"
+          }
+        },
+        "order": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "layoutReasons": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "$ref": "#/$defs/reviewMessage"
+          }
+        },
+        "layoutMatch": {
+          "$ref": "#/$defs/layoutMatch"
+        },
+        "ground": {
+          "$ref": "#/$defs/slideGround"
+        },
+        "arrangement": {
+          "$ref": "#/$defs/slideArrangement",
+          "description": "How the slide is built. Absent means layout."
+        }
+      }
+    },
+    "sourceRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lineageId",
+        "hash",
+        "instanceId"
+      ],
+      "properties": {
+        "lineageId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    },
+    "structureId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,40}$",
+      "description": "A layout library entry id (StructureIdV1): lower case letters, digits and dashes, starting with a letter. Permanent, never reused."
+    },
+    "slideArrangement": {
+      "enum": [
+        "layout",
+        "original",
+        "picture"
+      ]
+    }
+  },
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "source": {
+      "$ref": "#/$defs/sourceRef"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "presetId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "designSystem": {
+      "$ref": "#/$defs/designSystemSnapshot"
+    },
+    "algorithms": {
+      "$ref": "#/$defs/algorithmVersions"
+    },
+    "mode": {
+      "enum": [
+        "renovate",
+        "keep-design"
+      ]
+    },
+    "slides": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/$defs/slidePlan"
+      }
+    },
+    "colors": {
+      "type": "array",
+      "maxItems": 20000,
+      "items": {
+        "$ref": "#/$defs/colorMapping"
+      }
+    },
+    "fonts": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "$ref": "#/$defs/fontMapping"
+      }
+    },
+    "logo": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "policy",
+        "variantByBackground"
+      ],
+      "properties": {
+        "policy": {
+          "enum": [
+            "brand",
+            "keep",
+            "drop"
+          ]
+        },
+        "variantByBackground": {
+          "type": "boolean"
+        }
+      }
+    },
+    "shuffleSeed": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "description": "Seed for the deterministic re-solve behind Shuffle. A non-negative integer, so a wall-clock reading or a counter both fit."
+    },
+    "decisions": {
+      "type": "array",
+      "maxItems": 200000,
+      "items": {
+        "$ref": "#/$defs/decisionMemory"
+      }
+    },
+    "carryForward": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "carried",
+        "needsReview"
+      ],
+      "properties": {
+        "carried": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "needsReview": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        }
+      }
+    }
+  }
+}

@@ -10,7 +10,7 @@ It is what the landing page means by "[same inputs, same file, every time](/info
 
 `engine/src/url-mode.ts` owns the round-trip in both directions: `parseUrlState` turns a query string into input values, `serializeUrlState` turns the current state back into a query string. Being expressible as a URL param is a hard requirement on every input type rather than a convenience some tools happen to implement, which is also why the CLI works: it is that same conversion under a different transport.
 
-The names that mean something without being inputs are a closed set, `RESERVED` at `engine/src/url-mode.ts:327`: `format`, `export`, `copy`, `full`, `options`, `slot`, `output`, `filename`, `_v`, `width`/`w`, `height`/`h`, `unit`, `dpi`, `bleed`, `marks`, `cuts`, `c2pa`, `imprint`, `durable`, `hdr`, `depth`, `password`, `profile`, `lang`, `z`, `zx` and a handful more. Everything else in a link is the design.
+The parameters that mean something without being inputs are a closed set, `RESERVED` at `engine/src/url-mode.ts:327`: `format`, `export`, `copy`, `full`, `options`, `slot`, `output`, `filename`, `_v`, `width`/`w`, `height`/`h`, `unit`, `dpi`, `bleed`, `marks`, `cuts`, `c2pa`, `imprint`, `durable`, `hdr`, `depth`, `password`, `profile`, `lang`, `z`, `zx` and a handful more. Everything else in a link is the design.
 
 Tools can opt into compact encoding - `urlKey` aliases, `#`-less colours, tilde-delimited block arrays - so a long design stays a manageable link. Where that is still not enough, `engine/src/url-pack.ts` packs the whole query into one token, and `packEncrypted` does the same under a password that is never in the link.
 
@@ -67,11 +67,11 @@ Reading a link is one kind of proof. Rebuilding the file is the other. Give the 
 lolly validate ./poster.svg --rebuild ./poster.lolly
 ```
 
-`IDENTICAL` (exit 0) means the session you kept still produces those exact bytes. `DIFFERENT` (exit 1) names every reason it could check, and only the ones it could check:
+`IDENTICAL` (exit 0) means the session you kept still produces those exact bytes. `DIFFERENT` (exit 1) lists every reason it could check, and only the ones it could check:
 
 | Reason | What it means |
 |---|---|
-| `engine-version` | The artifact's credential names an engine version, and this machine runs a different one. |
+| `engine-version` | The artifact's credential records an engine version, and this machine runs a different one. |
 | `tool-version` | The tool version recorded in the artifact, in the `.lolly` and in this catalog do not all agree. |
 | `font` | A face the `.lolly` names is missing here, or resolves to a file with a different sha256. The `.lolly` records each face the render used as family, weight, style and the digest of the whole source font file. No font bytes travel in the file, so this is a name check against your own copy. |
 | `content` | The bytes differ and none of the above explains it, reported with the offset where they first diverge. |

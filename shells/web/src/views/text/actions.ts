@@ -13,6 +13,31 @@ import {
   suggestedActions,
 } from './shared.ts';
 import { query, selectionForAction, type TextContext } from './context.ts';
+import { t } from '../../i18n.ts';
+
+/** What the AI actions reach outside this view, injectable for tests: the local
+ *  model's module and the in-place model offer (lib/model-offer.ts). */
+interface AiActionDeps {
+  reworder: () => Promise<typeof import('../../lib/reworder.ts')>;
+  ensureReword: (reason: string) => Promise<boolean>;
+}
+const DEFAULT_AI_DEPS: AiActionDeps = {
+  reworder: () => import('../../lib/reworder.ts'),
+  ensureReword: async (reason) => (await import('../../lib/model-offer.ts')).ensureModel('reword', { reason }),
+};
+let aiDeps: AiActionDeps = DEFAULT_AI_DEPS;
+
+/** Test hook: replace one or more dependencies; call with no argument to restore them. */
+export function __setAiActionDepsForTest(next?: Partial<AiActionDeps>): void {
+  aiDeps = next ? { ...DEFAULT_AI_DEPS, ...next } : DEFAULT_AI_DEPS;
+}
+
+/** The feature the Rewriter model offer names for each action. */
+function aiReason(task: 'synopsis' | 'rewrite' | 'explain-logs'): string {
+  if (task === 'rewrite') return t('Rewriting text');
+  if (task === 'synopsis') return t('Summarising text');
+  return t('Explaining a log');
+}
 export async function runAction(
   ctx: TextContext,
   operation: TextOperation,
@@ -236,7 +261,7 @@ export async function runAiAction(
     return;
   }
   try {
-    const model = await import('../../lib/reworder.ts');
+    const model = await aiDeps.reworder();
     if (!model.rewordAvailable()) {
       ctx.status(
         'Local AI is not available with the current settings. Text actions still work on device.'
@@ -310,17 +335,11 @@ export async function runAiAction(
         }
       }
     };
-    if (state === 'need-download') {
-      const dialog = mountModal(
-        `<h2>Local text assistance</h2><p>Download the ${Math.round(model.rewordModelBytes() / 1024 / 1024)} MiB model once. Your text is processed on this device.</p><div class="text-row"><button class="btn btn--primary" data-run>Download and run</button><button class="btn" data-close>Cancel</button></div>`,
-        { className: 'modal text-action-dialog', ariaLabel: 'Local text assistance' }
-      );
-      dialog.el.querySelector('[data-close]')!.addEventListener('click', () => dialog.close());
-      dialog.el.querySelector('[data-run]')!.addEventListener('click', () => {
-        dialog.close();
-        void start();
-      });
-    } else await start();
+    // The model is offered in place (the shared Rewriter model sheet, which runs
+    // the download as a job and records it for Profile). Not now leaves the text
+    // as it was; the non-AI text actions keep working either way.
+    if (state === 'need-download' && !(await aiDeps.ensureReword(aiReason(task)))) return;
+    await start();
   } catch (error) {
     ctx.status(error instanceof Error ? error.message : String(error));
   }

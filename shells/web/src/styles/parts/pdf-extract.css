@@ -474,6 +474,12 @@
   font-size: calc(0.92rem * var(--a11y-fs)); opacity: 0.85;
 }
 .pdfx-scan-icon { flex: none; opacity: 0.7; }
+/* A scanned page that can be read: the line wraps under its button on a narrow
+   column, and the button keeps full strength while the line stays quiet. */
+.pdfx-scan { flex-wrap: wrap; }
+.pdfx-scan:has(.pdfx-scan-read) { opacity: 1; }
+.pdfx-scan [data-scan-msg] { flex: 1 1 14em; }
+.pdfx-scan-read { flex: none; }
 
 @media (prefers-reduced-motion: reduce) {
   .pdfx-drop, .pdfx-page-copy { transition: none; }

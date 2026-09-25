@@ -257,14 +257,14 @@
       "Text outlined to paths",
       "Embeds bitmap images",
       "Export-only",
-      "Names its source (%%Creator)"
+      "Records its source (%%Creator)"
     ],
     "CMYK EPS": [
       "DeviceCMYK ink values",
       "Naive conversion, not profiled",
       "Text outlined to paths",
       "Export-only for print vendors",
-      "Names its source (%%Creator)"
+      "Records its source (%%Creator)"
     ],
     "EMF": [
       "Windows-native vector",
@@ -278,7 +278,7 @@
       "Text outlined to paths",
       "Nearest AutoCAD Color Index (ACI)",
       "Line-art only, rasters dropped",
-      "Names its source (999 comment)"
+      "Records its source (999 comment)"
     ],
     "CMYK TIFF": [
       "DeviceCMYK pixels at chosen DPI",
@@ -292,14 +292,14 @@
       "Unbounded HDR values, no clipping",
       "ZIP/ZIPS/none compression",
       "Un-premultiplied RGBA",
-      "Names its source (software attr)"
+      "Records its source (software attr)"
     ],
     "Radiance HDR": [
       "RGBE-encoded linear light",
       "Unbounded high dynamic range",
       "Written from float pixels",
       "For lighting & environment maps",
-      "Names its source (SOFTWARE=)"
+      "Records its source (SOFTWARE=)"
     ],
     "ICO": [
       "Bundles 16, 32, 48 px",

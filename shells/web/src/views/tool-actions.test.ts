@@ -141,6 +141,7 @@ const { renderActions, extFor } = await import('./tool-actions.ts');
 // ── harness ──────────────────────────────────────────────────────────────────
 
 interface Harness {
+  licence: () => string | null;
   panel: HTMLElement;
   canvas: HTMLElement;
   stage: HTMLElement | null;
@@ -192,6 +193,7 @@ function mount({
   toolId = 'sequence-studio',
   exportDefaults = {},
   portable = false,
+  licence,
 }: {
   seqMs: number | null /** A bed's own length stamped as data-clip-ms (the audiogram). */;
   clipMs?: number | null;
@@ -206,6 +208,8 @@ function mount({
   model?: Array<Record<string, unknown>>;
   toolId?: string;
   portable?: boolean;
+  /** Give the runtime the declared-licence pair, holding this initial value. */
+  licence?: string | null;
 }): Harness {
   const doc = dom.window.document;
   doc.body.innerHTML = '';
@@ -236,7 +240,12 @@ function mount({
   const live = model.map((i) => ({ ...i }));
   const subscribers: Array<() => void> = [];
   const inputWrites: Array<{ id: string; value: unknown }> = [];
+  let held: string | null = licence ?? null;
   const runtime = {
+    ...(licence !== undefined ? {
+      setOutputLicence: (id: string | null) => { held = id; },
+      outputLicence: () => held,
+    } : {}),
     getModel: () => live,
     setInput: async (id: string, value: unknown) => {
       inputWrites.push({ id, value });
@@ -328,6 +337,7 @@ function mount({
         new dom.window.MouseEvent('click', { bubbles: true })
       ),
     ask: () => panel.querySelector('.export-details-ask') as HTMLElement | null,
+    licence: () => held,
     saved: () => saved,
     profileWrites: () => profileWrites,
     inputWrites: () => inputWrites,
@@ -2131,17 +2141,29 @@ const CAPTIONED = (seqMs = 8000): Harness => {
   return h;
 };
 
-test('captions: the row is video-only, and the MP4 note appears only for MP4', async () => {
+test('captions: live in the video Pro settings and stay hidden with nothing to caption', async () => {
   const h = mount({ seqMs: null, formats: ['mp4', 'webm', 'png'] });
-  const row = h.panel.querySelector('.export-captions') as HTMLElement;
-  assert.ok(row, 'a tool that can export video gets the Captions row');
-  assert.ok(row.textContent?.includes('Burned in'), 'the always-on layer is stated, not hidden');
+  const block = h.panel.querySelector('[data-captions-block]') as HTMLElement;
+  assert.ok(block, 'a tool that can export video gets the captions settings');
+  assert.ok(block.closest('[data-prosettings-body]'), 'they sit inside the Pro settings fold');
+  assert.ok(!block.textContent?.includes('Burned in'), 'no disabled tick for the layer nobody can switch off');
+  await new Promise((r) => setTimeout(r, 300));
+  assert.equal(block.hidden, true, 'no caption boxes and no spoken-word text, so nothing to choose');
   const note = h.panel.querySelector('[data-captions-mp4-note]') as HTMLElement;
   assert.equal(note.style.display, 'block', 'the note is up, MP4 being the first format offered');
   h.setFormat('webm');
   assert.equal(note.style.display, 'none', 'WebM carries the track properly - no warning');
   h.setFormat('png');
-  assert.equal(row.style.display, 'none', 'a still has nothing to embed captions in');
+  const quality = block.closest('[data-video-only]') as HTMLElement;
+  assert.equal(quality.style.display, 'none', 'a still has nothing to embed captions in');
+});
+
+test('captions: the settings appear once the film has caption text', async () => {
+  const h = CAPTIONED();
+  (h.panel.querySelector('[data-action="format"]') as HTMLSelectElement)?.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  const block = h.panel.querySelector('[data-captions-block]') as HTMLElement;
+  for (let i = 0; i < 60 && block.hidden; i++) await new Promise((r) => setTimeout(r, 20));
+  assert.equal(block.hidden, false, 'caption boxes on the timeline are text the export can carry');
 });
 
 test('captions: the embedded track follows the container until the user touches it', () => {
@@ -2322,4 +2344,27 @@ test('sequence export timing shows the project range and observes marker changes
   assert.equal(h.panel.querySelector('[data-seq-range]')?.textContent, 'Range: 2.00–6.00 s · 25 fps');
   assert.equal((h.panel.querySelector('[data-seq-wait]') as HTMLElement).hidden, true);
   assert.equal((h.panel.querySelector('[data-seq-duration]') as HTMLElement).hidden, true);
+});
+
+test('licence: the dropdown sits in Content protection and sets the runtime declaration', () => {
+  const h = mount({ seqMs: null, formats: ['png', 'mp4'], licence: null });
+  const select = h.panel.querySelector('[data-action="export-licence"]') as HTMLSelectElement;
+  assert.ok(select, 'a stamping tool offers the licence');
+  assert.ok(select.closest('[data-protection-body]'), 'inside Content protection');
+  assert.ok(h.panel.querySelector('[data-protection-body] [data-rights-section]'), 'the source credits live there too');
+  assert.equal(select.value, '', 'none by default');
+  assert.equal(select.options[0]!.textContent, 'None (all rights reserved)');
+  select.value = 'CC-BY-NC-4.0';
+  select.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  assert.equal(h.licence(), 'CC-BY-NC-4.0');
+  select.value = '';
+  select.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+  assert.equal(h.licence(), null, 'going back to none clears it');
+});
+
+test('licence: a declared licence opens Content protection so it is visible', () => {
+  const h = mount({ seqMs: null, formats: ['png'], licence: 'CC0-1.0' });
+  const select = h.panel.querySelector('[data-action="export-licence"]') as HTMLSelectElement;
+  assert.equal(select.value, 'CC0-1.0');
+  assert.equal((h.panel.querySelector('[data-protection-body]') as HTMLElement).style.display, 'flex');
 });

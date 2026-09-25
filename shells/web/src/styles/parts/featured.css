@@ -301,7 +301,7 @@
   z-index: auto;
   padding: 0;
   flex: none;
-  color: hsl(var(--primary) / .6);
+  color: hsl(var(--primary) / 1);
 }
 .ftile--icon .ftile-iconfill svg {
   width: var(--fic-size);
@@ -644,11 +644,11 @@
   font-weight: 600;
   color: #fff;
   background: #000a;
-  border: 1px solid #ffffff2e;
+  border: 0;
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   padding: 0 14px;
-  border-radius: var(--radius);
+  border-radius: calc(var(--radius) * 1.5);
   box-shadow: 0 2px 8px #0005;
   cursor: pointer;
   transform: translateX(-50%);

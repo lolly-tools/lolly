@@ -39,7 +39,7 @@ Det vanliga sättet rutinmässigt kreativt arbete utförs på är en ansvarsyta:
 - **[Verifiera själv](/info/verify-yourself.html)** - kontrollera påståendena mot en verklig export, steg för steg, utan något du inte kan köra själv.
 - **[Integritetspolicy](/info/privacy.html)** - det formella uttalandet om vad som samlas in, lagras och skickas - och vad som inte gör det.
 - **[Suverän kreativ produktion](/info/sovereign-production.html)** - luftgapad driftsättning, samtyckesstyrd nätverksåtkomst och signering på enheten.
-- **[Införande och styrning](/info/adoption-governance.html)** - vem som godkänner ett verktyg, hur varumärkesregler blir verkställbara och vad alternativet katalog-som-repository ger dig.
+- **[Införande och styrning](/info/adoption-governance.html)** - hur varumärkesregler blir verkställbara, vad en delad katalog tillför och vad alternativet katalog-som-repository ger dig.
 
 ## Juridik
 

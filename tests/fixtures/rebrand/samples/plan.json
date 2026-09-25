@@ -1,0 +1,197 @@
+{
+  "version": 1,
+  "source": {
+    "lineageId": "core-props:8f2c1d44-0f2b-4a9a-9d30-6d0f7b1f2ab1",
+    "hash": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "instanceId": "import-2"
+  },
+  "revision": 3,
+  "presetId": "preset/house-renovation",
+  "designSystem": {
+    "id": "lolly-start",
+    "masterId": "master/neutral",
+    "masterVersion": "1.0.0",
+    "tokenHash": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "fontHashes": {
+      "Outfit": "sha256:c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+    },
+    "assetHashes": {
+      "lolly/logo/primary": "sha256:d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4"
+    }
+  },
+  "algorithms": {
+    "reader": "1.0.0",
+    "census": "1.0.0",
+    "plan": "1.0.0",
+    "compile": "1.0.0"
+  },
+  "mode": "renovate",
+  "slides": [
+    {
+      "id": "ppt/slides/slide1.xml",
+      "include": true,
+      "layout": "title",
+      "layoutSource": "proposed",
+      "layoutAlternative": "section",
+      "objects": [
+        {
+          "id": "ppt/slides/slide1.xml.4",
+          "class": "title",
+          "evidence": [
+            {
+              "signal": "placeholder",
+              "value": "ctrTitle",
+              "weight": 0.6,
+              "sentence": "The source declares this box as the centred title placeholder."
+            }
+          ],
+          "proposal": "keep",
+          "review": "accepted",
+          "author": "user",
+          "role": "title"
+        },
+        {
+          "id": "ppt/slides/slide1.xml.7",
+          "class": "logo-candidate",
+          "evidence": [
+            {
+              "signal": "origin",
+              "value": "master",
+              "weight": 0.35,
+              "sentence": "It is declared on the master, so it repeats by inheritance."
+            }
+          ],
+          "proposal": "replace",
+          "proposalReplacement": {
+            "kind": "brand-logo",
+            "variant": "auto"
+          },
+          "decision": "keep",
+          "review": "needs-attention",
+          "author": "user",
+          "scope": "group/partner-mark",
+          "locked": true,
+          "surplus": "tray"
+        }
+      ],
+      "order": 0
+    },
+    {
+      "id": "ppt/slides/slide2.xml",
+      "include": true,
+      "layout": "visual",
+      "layoutSource": "user",
+      "objects": [
+        {
+          "id": "ppt/slides/slide2.xml.3",
+          "class": "chart",
+          "evidence": [
+            {
+              "signal": "native-tag",
+              "value": "c:chart",
+              "weight": 0.8,
+              "sentence": "The object carries the native chart graphic data uri."
+            }
+          ],
+          "proposal": "replace",
+          "proposalReplacement": {
+            "kind": "placeholder",
+            "label": "Chart could not be read from this file"
+          },
+          "review": "needs-attention",
+          "author": "rule",
+          "role": "data"
+        },
+        {
+          "id": "ppt/slides/slide2.xml.5",
+          "class": "chart",
+          "evidence": [
+            {
+              "signal": "native-tag",
+              "value": "c:chart",
+              "weight": 0.8,
+              "sentence": "The object carries the native chart graphic data uri."
+            }
+          ],
+          "proposal": "keep",
+          "review": "accepted",
+          "author": "rule",
+          "surplus": "continuation"
+        }
+      ],
+      "order": 1
+    }
+  ],
+  "colors": [
+    {
+      "useId": "use/ink/1a1a1a",
+      "from": "#1A1A1A",
+      "scheme": "tx1",
+      "role": "ink",
+      "to": "#11201C",
+      "toPath": "color.ink.default",
+      "affects": [
+        "ppt/slides/slide1.xml.4"
+      ]
+    },
+    {
+      "useId": "use/bg/ffffff",
+      "from": "#FFFFFF",
+      "scheme": "bg1",
+      "role": "bg",
+      "to": "#FFFFFF",
+      "toPath": "color.surface.page",
+      "locked": true,
+      "affects": [
+        "ppt/slides/slide1.xml#background",
+        "ppt/slides/slide2.xml#background"
+      ]
+    },
+    {
+      "useId": "use/series/0c322c",
+      "from": "#0C322C",
+      "role": "series",
+      "unresolved": "palette-too-small",
+      "affects": [
+        "ppt/slides/slide2.xml.3"
+      ]
+    }
+  ],
+  "fonts": [
+    {
+      "from": "Calibri",
+      "to": "Outfit",
+      "toPath": "font.body.family",
+      "source": "alias"
+    },
+    {
+      "from": "Arial",
+      "to": "Outfit",
+      "source": "class"
+    }
+  ],
+  "logo": {
+    "policy": "brand",
+    "variantByBackground": true
+  },
+  "shuffleSeed": 20260923,
+  "decisions": [
+    {
+      "fingerprint": "media:3c81ba07f9",
+      "slideLineage": "ppt/slides/slide1.xml",
+      "action": "keep",
+      "author": "user",
+      "scope": "group/partner-mark",
+      "planRevision": 2,
+      "carriedBy": "fingerprint"
+    }
+  ],
+  "carryForward": {
+    "carried": [
+      "ppt/slides/slide1.xml.7"
+    ],
+    "needsReview": [
+      "ppt/slides/slide2.xml.3"
+    ]
+  }
+}

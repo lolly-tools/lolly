@@ -46,7 +46,7 @@ Supported values:
 | `mp4` | MP4 video (animated tools only; Safari/iOS and recent Chrome) |
 | `wav` / `mp3` / `m4a` / `opus` | Audio only - the sound with no picture |
 
-Not all tools support all formats - only the formats listed in the tool's manifest `render.formats` are valid. The authority on the whole set is the `render.formats` enum in `schemas/tool.schema.json`; this table names what each value produces. Requesting an unsupported format falls back gracefully.
+Not all tools support all formats - only the formats listed in the tool's manifest `render.formats` are valid. The authority on the whole set is the `render.formats` enum in `schemas/tool.schema.json`; this table shows what each value produces. Requesting an unsupported format falls back gracefully.
 
 ---
 

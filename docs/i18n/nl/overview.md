@@ -24,21 +24,21 @@ Dit document legt het doel, de structuur en de architectuurbeslissingen voor het
 
 ## Waarom dit bestaat
 
-Teams staan voor een terugkerend probleem: herhaalbaar creatief en content-werk dat te voorspelbaar is om steeds vaardige handen in te zetten, maar te kwaliteitsgevoelig om zonder vangrails uit te besteden. Het resultaat is óf trage doorvoer (specialistenknelpunt), óf inconsistentie (mensen die gebruiken wat ze bij de hand hebben), óf vendor lock-in (een SaaS-DAM die je templates beheerst).
+Herhaalbaar creatief werk is te voorspelbaar om steeds vaardige handen in te zetten, en te kwaliteitsgevoelig om zonder vangrails uit te besteden. Aan zijn lot overgelaten gaat het een van drie kanten op: traag, inconsistent of vastzittend aan de templates van een vendor.
 
 Dit platform is het directe antwoord:
 
-> **Programmatisch creatief en content op schaal** - asset-generatie zonder arbeid, met de regels centraal onder controle, voor medewerkers, leveranciers en partners.
+> **Programmatisch creatief en content op schaal** - assets gegenereerd uit invoer, met de regels eenmalig vastgelegd, voor wie ze nodig heeft.
 
 Lolly is niet waar een design system wordt bedacht - het is waar het wordt geproduceerd. Zie het als een verkoopautomaat voor ontwerp: maak een keuze, krijg een resultaat. Elke keer. De engine streeft naar de hoogste kwaliteit die elk formaat kan leveren op de hardware die voor je staat, en dezelfde engine maakt hetzelfde bestand op elk platform waarop hij wordt uitgebracht.
 
-Het resultaat is **overvloed**: elk evenement heeft correcte bewegwijzering, elke CVE-melding past bij de huisstijl, elk label print schoon, elke e-mailhandtekening is actueel - allemaal zonder ontwerpticket. Het platform behandelt terugkerend, geoperationaliseerd creatief werk. Het is bewust geen tool voor maatwerkcreativiteit - ontwerpers blijven eigenaar van het vlaggenschipwerk.
+Het resultaat is **overvloed**: elk evenement heeft correcte bewegwijzering, elke CVE-melding past bij de huisstijl, elk label print schoon, elke e-mailhandtekening is actueel - allemaal vanuit tools die de regels al dragen. Het platform behandelt terugkerend, geoperationaliseerd creatief werk. Het is bewust geen tool voor maatwerkcreativiteit - ontwerpers blijven eigenaar van het vlaggenschipwerk.
 
 ### Innoveer probabilistisch, schaal deterministisch
 
 Elke discussie over AI in een creatieve pipeline loopt vast op dezelfde vraag: welk deel is het werk van de machine? Het is een oude vraag met een uitgemaakt antwoord. Schrijvers en verluchters werkten al met twee instrumenten - de losse schets, waarin niets vaststond en alles geprobeerd kon worden, en de drukpers, intimiderend juist omdat ze zich vastlegde. De schetsen waren waar de kunst gebeurde. De pers was hoe die bij iedereen terechtkwam. Niemand verwarde de twee, en beide bleven zich ontwikkelen - nieuwe inkten, nieuwe lettertypen, nieuwe persen - elk verbeterend in harmonie met het vakmanschap en de intentie die het diende.
 
-Lolly trekt dezelfde lijn. Verken probabilistisch: een model, een ontwerper, een ruw idee, een prompt die ergens uitkomt dat niemand gepland had. Schaal daarna deterministisch - het ding dat tienduizend outputs bereikt is een *tool*, en een tool rendert elke keer op dezelfde manier vanuit inputs die je kunt lezen. De verkenning blijft vrij omdat niets stroomafwaarts ervan afhangt dat het twee keer hetzelfde uitpakt. De output verdient vertrouwen omdat het geen gok is. AI-experimenten omzetten in voorspelbare, reproduceerbare resultaten is geen nieuwe discipline; het is dezelfde arbeidsverdeling die gedrukt werk in de eerste plaats betrouwbaar maakte.
+Lolly trekt dezelfde lijn. Verken probabilistisch: een model, een ontwerper, een ruw idee, een prompt die ergens uitkomt dat niemand gepland had. Schaal daarna deterministisch - het ding dat veel outputs wordt is een *tool*, en een tool rendert elke keer op dezelfde manier vanuit inputs die je kunt lezen. De verkenning blijft vrij omdat niets stroomafwaarts ervan afhangt dat het twee keer hetzelfde uitpakt. De output verdient vertrouwen omdat het geen gok is. AI-experimenten omzetten in voorspelbare, reproduceerbare resultaten is geen nieuwe discipline; het is dezelfde arbeidsverdeling die gedrukt werk in de eerste plaats betrouwbaar maakte.
 
 > Vertrouw het creatieve proces, schaal met precisie.
 
@@ -76,19 +76,19 @@ Dat is de krachtvermenigvuldiger. Lolly is geen lade met losse tools voor losse 
 
 ---
 
-## Eén goedkeuring, tienduizend assets
+## Eén tool, veel outputs
 
-Omdat de goedkeuring in de tool zit en niet in het bestand (zie [Hoe Lolly zich verhoudt](/info/positioning.html)), stopt schaal een reviewprobleem te zijn. Keur een gelokaliseerde socialcard-tool één keer goed, genereer daarna **10.000 assets in 12 talen** vanuit een spreadsheet - en niet één ervan heeft een nieuwe compliancecheck van juridische zaken of merk nodig, omdat de sjabloon waar ze allemaal uit komen al was goedgekeurd.
+De merkregels leven in de tool, niet in elk bestand dat hij maakt (zie [Hoe Lolly zich verhoudt](/info/positioning.html)). Zet de tool één keer goed neer en elke output erft hetzelfde lettertype, dezelfde kleur en spatiëring, of dat nu één kaart is of een spreadsheet met rijen in een tiental talen. Hoe je je werk controleert, en wie dat doet, blijft aan jou; Lolly maakt het ding dat de moeite waard is om te controleren kleiner en de output sneller om te maken.
 
-Dezelfde deterministische tool bereikt die schaal op drie manieren, allemaal met identieke, vooraf goedgekeurde output:
+Dezelfde deterministische tool bereikt die schaal op drie manieren, die allemaal identieke output produceren:
 
-- <!--i:people--> **Een persoon, in de app.** Het `/pro`-batchraster: plak of importeer de rijen, krijg één afgeronde asset per rij, download de zip. Geen ontwerpvaardigheid, geen ticket, geen wachttijd.
-- <!--i:code--> **Een developer, vanaf de command line.** De CLI draait *dezelfde* engine en *hetzelfde* renderpad headless, zodat de tool over alle 10.000 rijen kan worden doorlopen in een script of een nachtelijke pipeline. Een `lolly <tool> --field=…`-aanroep in een lus is de hele integratie.
-- <!--i:cpu--> **Een systeem of een AI-agent, via MCP.** Dezelfde tool programmatisch bediend, met dezelfde nauwkeurigheid en zelfs grotere schaal - omdat een machine zich niet verveelt terwijl duizenden bestanden binnenkomen.
+- <!--i:people--> **Een persoon, in de app.** Het `/pro`-batchraster: plak of importeer de rijen, krijg één afgeronde asset per rij, download de zip. Geen ontwerpvaardigheid, geen wachttijd.
+- <!--i:code--> **Een developer, vanaf de command line.** De CLI draait *dezelfde* engine en *hetzelfde* renderpad headless, zodat de tool over elke rij kan worden doorlopen in een script of een nachtelijke pipeline. Een `lolly <tool> --field=…`-aanroep in een lus is de hele integratie.
+- <!--i:cpu--> **Een systeem of een AI-agent, via MCP.** Dezelfde tool programmatisch bediend, met dezelfde nauwkeurigheid, voor zoveel rijen als de taak heeft.
 
 ![Batch-modus bij een verse installatie: één lege rij die op een tool wacht, met het volledige spreadsheetoppervlak en de Render-knop al aanwezig voordat er data binnenkomt](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-Eén set merkregels, eenmalig vastgelegd door een ontwerper; drie routes naar dezelfde vooraf goedgekeurde output - en de machineroute schaalt het verst van alle drie, omdat ze nooit moe wordt terwijl de bestanden binnenkomen.
+Eén set merkregels, eenmalig vastgelegd door een ontwerper; drie routes naar identieke output.
 
 ---
 
@@ -390,11 +390,11 @@ Web shell: IndexedDB. Tauri: bestandssysteem. CLI: in-memory. Tools zien alleen 
 
 Gebruikers kunnen meerdere benoemde bewerkingsslots per tool opslaan en later terugkeren naar elke sessie. Een account aanmaken is niet nodig; de status is per apparaat. Omdat de bridge de enige naad is, is die per-apparaat status ook *overdraagbaar*: `shells/web/src/data-transfer.ts` leest alles terug via `host.profile`/`host.state`/`host.assets` in één `lolly-backup`-zip die op elke andere installatie te importeren is - het offline antwoord op "verhuis naar een nieuw apparaat" zonder server (volledige specificatie: `docs/data-transfer.md`). SUSE ID-integratie (synchronisatie tussen meerdere apparaten) is een toekomstige mijlpaal hierbovenop.
 
-### 7. Volwassenheidslabels beantwoorden het "door het merk goedgekeurd"-risico structureel
+### 7. Volwassenheidslabels tonen wat een tool is, bij ontwerp
 
 Elke tool declareert `status: official | community | experimental` in zijn manifest. De galerij sorteert op status. Experimentele tools voorzien hun exports automatisch van een watermerk - het watermerk wordt toegepast door `host.export.render`, niet door de tool, dus een niet-officiële tool-auteur kan er niet voor uitschakelen.
 
-Dit is een structureel antwoord op het perceptierisico dat het gebruik van welke tool dan ook merkgoedkeuring impliceert. Procesantwoorden (een reviewwachtrij, SUSE ID-gating) komen daar bovenop.
+Dit is een structureel antwoord op het perceptierisico dat elke tool in de gallery evenveel gewicht draagt. Welk proces een team ook rond de catalogus legt, dat zit er bovenop.
 
 ### 8. Tool-invoer is getypeerd via het manifest, inclusief assets
 

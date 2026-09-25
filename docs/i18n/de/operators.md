@@ -39,7 +39,7 @@ Die übliche Art, wie Routine-Kreativarbeit erledigt wird, ist eine Haftungsflä
 - **[Selbst nachprüfen](/info/verify-yourself.html)** - prüfen Sie die Behauptungen Schritt für Schritt an einem echten Export nach, mit nichts, was Sie nicht selbst ausführen können.
 - **[Datenschutzerklärung](/info/privacy.html)** - die formale Erklärung dessen, was gesammelt, gespeichert und gesendet wird und was nicht.
 - **[Souveräne Kreativproduktion](/info/sovereign-production.html)** - Air-Gap-Deployment, zustimmungsgebundene Netzwerknutzung und geräteseitige Signierung.
-- **[Einführung & Governance](/info/adoption-governance.html)** - wer ein Tool freigibt, wie Markenregeln durchsetzbar werden und was die Option, den Katalog als Repository zu führen, bringt.
+- **[Einführung & Governance](/info/adoption-governance.html)** - wie Markenregeln durchsetzbar werden, was ein gemeinsam genutzter Katalog ergänzt und was die Option, den Katalog als Repository zu führen, bringt.
 
 ## Rechtliches
 

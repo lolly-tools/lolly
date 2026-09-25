@@ -369,12 +369,6 @@ button.cat-download { font: inherit; cursor: pointer; }
    full-bleed it past the .catalog side gutters. Keep -top in step with .catalog padding-top. */
 .cat-fav-strip { margin: -52px -20px 1.2rem; }
 
-/* ── View-options popover (favourites view mode + strip toggle) ── */
-.cat-viewopts {
-  position: absolute; top: calc(100% + 8px); right: 0;
-  min-width: 210px; z-index: var(--z-top);
-}
-.cat-viewopts .view-seg { margin-bottom: 8px; }
 
 /* ── Asset details modal ──
    Mobile: a stacked card (preview on top, meta/actions below). Desktop: a big two-column
@@ -505,9 +499,11 @@ button.cat-download { font: inherit; cursor: pointer; }
   line-height: 1.45;
   white-space: normal;
   text-align: start;
-  /* The candy hues the shared .job-bar fill reads (job-toast.css). */
-  --candy-a: var(--brand-primary, hsl(var(--primary)));
-  --candy-b: var(--brand-secondary, hsl(var(--accent)));
+  /* The candy hues the shared .job-bar fill reads (job-toast.css), aliased from
+     the shared tokens (tokens.css) so this card, the toast and the
+     models-welcome hero bar never disagree about the stripe. */
+  --candy-a: var(--job-candy-a);
+  --candy-b: var(--job-candy-b);
 }
 .cat-edit-card .cat-card-line { margin: 0 0 6px; }
 .cat-edit-card .cat-reword-quote {
@@ -1500,7 +1496,6 @@ button.cat-download { font: inherit; cursor: pointer; }
   .cat-star { opacity: 1; }
   /* Match the mobile .catalog padding-top so the featured hero still bleeds to the top. */
   .cat-fav-strip { margin: calc(-4.2rem - var(--safe-top)) -12px 1.2rem; }
-  .cat-viewopts { position: fixed; top: auto; bottom: calc(12px + var(--safe-bottom, 0px) + var(--vv-bottom, 0px)); left: 12px; right: 12px; }
 }
 
 /* Confidence-graded highlights on OCR'd text (plans/125): amber for a stylistic
@@ -1632,9 +1627,6 @@ mark.cat-hl--t5 { background: hsl(0 92% 55% / 0.48); }
 .catalog.cat-layout-list .cat-tile-name { flex: 0 1 auto; }
 .catalog.cat-layout-list .cat-check { top: 50%; left: auto; right: 10px; transform: translateY(-50%); }
 
-/* The view-options segments (Layout / Density / Sort) wrap inside the popover -
-   six sort options otherwise run past its edge. */
-.cat-viewopts .view-seg { flex-wrap: wrap; }
 
 /* ── Straighten transforms in the inline crop (2026-08-20) ───────────────────
    A second bar under the mode bar: rotate / 90° / skew X / skew Y / flips /

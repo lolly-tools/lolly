@@ -10,9 +10,10 @@
  *
  * The bar is a CANDY STRIPE built from brand tokens, never colour literals (the
  * box-colour rule): it re-themes with the active brand and stays visually tied
- * to the brand-hued icon.svg mark. `--brand-primary`/`--brand-secondary` are set
- * by brand-vars.ts only when the brand declares those slots, so every use falls
- * back to the shell's own accent triples and always resolves.
+ * to the brand-hued icon.svg mark. The two hues are the shared
+ * `--job-candy-a`/`--job-candy-b` tokens (tokens.css), which already fall back
+ * to the shell's own theme triples when the active brand declares neither
+ * slot, so every use always resolves.
  *
  * Chrome-only: every font size rides `var(--fs-md)` and every
  * icon box the same multiplier, exactly like the rest of the shell chrome. The
@@ -32,10 +33,10 @@
   width: min(360px, calc(100vw - 2rem));
   color: hsl(var(--foreground));
   font-family: inherit;
-  /* Two brand hues drive the stripe; declared once here so the pill mini-bar and
+  /* The shared candy hues (tokens.css); aliased locally so the pill mini-bar and
      the per-row bars read as one component. */
-  --candy-a: var(--brand-primary, hsl(var(--primary)));
-  --candy-b: var(--brand-secondary, hsl(var(--accent)));
+  --candy-a: var(--job-candy-a);
+  --candy-b: var(--job-candy-b);
 }
 .job-toast[hidden] { display: none; }
 

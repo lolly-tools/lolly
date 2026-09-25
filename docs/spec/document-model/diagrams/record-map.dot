@@ -1,0 +1,27 @@
+digraph record_map {
+  rankdir=LR
+  node [shape=box]
+
+  manifest    [label="Tool manifest\ntool.json, template, hooks"]
+  designtool  [label="Design tool\nDesignToolDefinitionV1"]
+  session     [label="Session record\nformat 4"]
+  packurl     [label="Pack and URL\n.lolly session, url-mode"]
+  credentials [label="Content credentials\nC2PA manifest"]
+  receipts    [label="Receipts and reports\nrights, file operations"]
+  bytes       [label="Exported bytes\nand project renders"]
+  carried     [label="Carried assets\n.lolly, with an SRI map"]
+
+  definition [label="Definition"]
+  instance   [label="Instance"]
+  evaluation [label="Evaluation"]
+  artifact   [label="Artifact"]
+
+  manifest -> definition
+  designtool -> definition
+  session -> instance
+  packurl -> instance
+  credentials -> evaluation
+  receipts -> evaluation
+  bytes -> artifact
+  carried -> artifact
+}

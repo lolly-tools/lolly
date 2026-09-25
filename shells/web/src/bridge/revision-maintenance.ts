@@ -77,7 +77,7 @@ export function revisionMaintenance(db: IDBPDatabase, recovery: RecoveryStore): 
         const usage = await tx.objectStore('revision-usage').get('total') ?? { bytes: 0, previews: 0 };
         for (const row of await tx.objectStore('revisions').index('documentId').getAll(doc.documentId) as RevisionEntry[]) {
           const preview = await tx.objectStore('revision-previews').get(row.id) as string | undefined;
-          usage.bytes -= row.bytes;
+          usage.bytes -= row.stored ?? row.bytes;
           usage.previews -= preview ? new TextEncoder().encode(preview).byteLength : 0;
           await tx.objectStore('revisions').delete(row.id);
           await tx.objectStore('revision-payloads').delete(row.id);

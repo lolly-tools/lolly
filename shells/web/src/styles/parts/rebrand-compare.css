@@ -1,0 +1,667 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* #/rebrand comparison (.rb-compare, plans/274 section 4, plan 275 close-out section
+   3.4): the stage (views/rebrand/compare.ts). Three rows: the Original inset with its
+   caption and the side segment, the hero, and the hero's caption with the part pager;
+   the tray of objects not placed under it. The grid that places the region is
+   rebrand.css.
+
+   The hero is sized to its pane, never to fixed pixels: each pane is a size container,
+   and --rb-hero-w is the largest width at the slide's own proportions (--rb-ratio,
+   set on the pane by compare.ts) that leaves room under it for the caption row and,
+   when there is one, the tray. The caption and the tray take the same width, so all
+   three line up at every column width, with a 4:3 deck, and under the large-text
+   multiplier (the caption and tray heights follow it).
+
+   The slide is the one elevated object in the body: the hero carries
+   --ui-elevation-control, everything else here an edge at most. A slide preview is
+   content, not chrome: its page tone never follows the app theme, so every drawing
+   paints its own ground.
+
+   The literal sizes are the WCAG 2.2 target floor (24px, and 12px for half of it),
+   which has no token, and the picture sizes the spec names (the 176px inset, the 48px
+   part thumbnail, the 48 by 36 tray crop), declared once as custom properties below.
+   Never write a star followed by a slash inside a CSS comment. */
+@layer views {
+  .rb-compare {
+    --rb-inset-w: 176px;
+    --rb-part-w: 48px;
+    --rb-crop-tray-w: 48px;
+    --rb-crop-tray-h: 36px;
+    --rb-cap-h: calc(32px * var(--a11y-fs));
+    --rb-tray-row-h: calc(40px * var(--a11y-fs));
+    --rb-tray-h: 0px;
+    --rb-hatch: color-mix(in srgb, var(--ui-color-text-muted) 22%, transparent);
+  }
+  /* The slide sits on the table, the columns are the furniture (decision 6). Keep the
+     design draws its own work area into this region and keeps its own ground. */
+  .rb:not([data-mode="keep-design"]) .rb-compare { background: var(--ui-color-surface-muted); }
+
+  .rb-cmp {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: var(--ui-space-panel);
+    height: 100%;
+    min-height: 0;
+    padding: var(--ui-space-panel);
+  }
+
+  /* ── row one: the inset, its caption, the side segment ── */
+  .rb-cmp-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-6);
+    min-width: 0;
+  }
+  .rb-inset {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-6);
+    min-width: 0;
+  }
+  .rb-inset[hidden] { display: none; }
+  .rb-inset-art {
+    position: relative;
+    flex: none;
+    width: var(--rb-inset-w);
+    aspect-ratio: var(--rb-ratio, 16 / 9);
+    padding: 0;
+    border: 0;
+    border-radius: var(--ui-radius-choice);
+    overflow: hidden;
+    background: var(--ui-color-surface-raised);
+    cursor: pointer;
+    transition: box-shadow var(--ui-motion-feedback) var(--ui-motion-standard);
+  }
+  /* The edge is drawn over the art, since an inset shadow paints under a child. */
+  .rb-inset-art::after,
+  .rb-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    border-radius: inherit;
+    box-shadow: var(--ui-edge-default);
+    pointer-events: none;
+  }
+  .rb-inset-art > :is(svg, img) { display: block; width: 100%; height: 100%; object-fit: contain; }
+  @media (hover: hover) {
+    .rb-inset-art:hover { box-shadow: var(--ui-effect-selection-ring-hover), var(--ui-edge-faint); }
+  }
+  .rb-inset-art:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .rb-inset-cap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    min-width: 0;
+    margin: 0;
+    padding-top: var(--sp-1);
+    font-size: var(--ui-type-help);
+    color: var(--ui-color-text-muted);
+  }
+  .rb-inset-cap > strong {
+    font-size: var(--ui-type-label);
+    font-weight: var(--ui-type-weight-label);
+    color: var(--ui-color-text-default);
+  }
+  .rb-inset-cap > [hidden] { display: none; }
+  /* 28 px halves (close-out 2.2): the track is the halves plus its own 2 px padding. */
+  .rb-cmp-seg {
+    flex: none;
+    height: calc(32px * var(--a11y-fs));
+    margin-inline-start: auto;
+    /* The track is the stage's own colour, so an edge draws it. */
+    box-shadow: var(--ui-edge-faint);
+  }
+
+  /* ── the panes ── one at a time they share one cell, so the swap between Original
+     and Proposed is a crossfade of two mounted drawings, never a reflow. */
+  .rb-cmp-panes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    column-gap: var(--sp-8);
+    min-height: 0;
+  }
+  /* One slide at a time: when the width holds the hero, the height left over is shared
+     above and below it rather than left as one band under the caption. */
+  .rb-cmp:not([data-show="both"]) .rb-pane { grid-area: 1 / 1; justify-content: center; }
+  .rb-cmp[data-show="both"] .rb-cmp-panes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Two slides side by side, right under the segment, their tops in line (an Original
+     of other proportions than its Proposed stays level with it). Each is held by its
+     width and its height, like the one hero. The pager keeps its words without the
+     thumbnail, and a caption wraps before it cuts the layout name. */
+  .rb-cmp[data-show="both"] .rb-part-art { display: none; }
+  .rb-cmp[data-show="both"] .rb-pane-cap { flex-wrap: wrap; align-content: flex-start; row-gap: var(--sp-1); white-space: normal; }
+  .rb-cmp[data-show="both"] .rb-pane-layout { overflow: visible; }
+  .rb-cmp[data-show="both"] .rb-pane { --rb-cap-h: calc(52px * var(--a11y-fs)); }
+  .rb-cmp-panes:has(.rb-tray:not([hidden])) > .rb-pane { --rb-tray-h: calc(var(--rb-tray-row-h) + var(--sp-4)); }
+  .rb-pane {
+    container: rb-pane / size;
+    --rb-hero-w: min(100cqw, (100cqh - var(--rb-cap-h) - var(--sp-4) - var(--rb-tray-h)) * var(--rb-ratio, 1.7778));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-4);
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+    transition: opacity var(--ui-motion-overlay) var(--ui-motion-standard);
+  }
+  /* The pane going away stays whole under the one coming in until the fade ends. */
+  .rb-pane:not([data-on]) {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0s linear var(--ui-motion-overlay), visibility 0s linear var(--ui-motion-overlay);
+  }
+  .rb-pane[data-on] { z-index: 1; }
+  .rb-cell { position: relative; flex: none; width: var(--rb-hero-w); }
+  .rb-frames { display: flex; flex-direction: column; gap: var(--sp-4); }
+  .rb-frames[hidden] { display: none; }
+  /* Nothing drawn yet: a frame of the slide's size, so the caption does not jump. */
+  .rb-frames:empty {
+    aspect-ratio: var(--rb-ratio, 16 / 9);
+    border-radius: var(--ui-radius-choice);
+    background: var(--ui-color-surface-raised);
+    box-shadow: var(--ui-edge-faint);
+  }
+
+  /* ── the hero ── */
+  .rb-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: var(--rb-ratio, 16 / 9);
+    border-radius: var(--ui-radius-choice);
+    overflow: hidden;
+    background: var(--ui-color-surface-raised);
+  }
+  .rb-hero,
+  .rb-lc-preview .rb-frame:not(.rb-frame--more) > .rb-stage {
+    box-shadow: var(--ui-elevation-control);
+    /* A long press is a hold, never the system's picture menu or a text selection. */
+    -webkit-touch-callout: none;
+    user-select: none;
+  }
+  /* The chooser's preview stands in for the hero at the hero's width. */
+  .rb-lc-preview { width: var(--rb-hero-w); }
+  [data-theme="dark"] .rb-hero::after,
+  [data-theme="brand"] .rb-hero::after { box-shadow: var(--ui-edge-strong); }
+  .rb-art, .rb-ov-layer, .rb-outlines, .rb-cuts { position: absolute; inset: 0; }
+  .rb-art svg { display: block; width: 100%; height: 100%; }
+  .rb-art:empty { background: var(--ui-color-surface-raised); }
+  .rb-frame[data-left-out] .rb-art { opacity: .5; }
+  /* A slide rebuilt from its picture shows that picture as Original, at its own
+     proportions; the rebuilt objects are the invisible overlay over it. Until the
+     picture is here the pane is a neutral placeholder that says so. */
+  .rb-stage[data-original="picture"] { background: var(--ui-color-surface-raised); }
+  .rb-art-pic { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .rb-art[data-wait] {
+    display: grid;
+    place-items: center;
+    padding: var(--sp-3);
+    background: var(--ui-color-surface-muted);
+  }
+  .rb-art-wait {
+    font-size: var(--ui-type-help);
+    color: var(--ui-color-text-muted);
+    text-align: center;
+  }
+
+  /* A slide whose objects were all removed says so inside its frame. */
+  .rb-empty {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: var(--sp-4);
+    padding: var(--sp-7);
+    pointer-events: none;
+  }
+  .rb-empty > p {
+    margin: 0;
+    padding: var(--sp-3) var(--sp-6);
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-color-surface-raised);
+    box-shadow: var(--ui-edge-default);
+    font-size: var(--ui-type-help);
+    color: var(--ui-color-text-default);
+    text-align: center;
+  }
+  .rb-empty > .btn { pointer-events: auto; background: var(--ui-color-surface-raised); }
+
+  /* ── the caption row ── */
+  .rb-pane-cap {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--sp-6);
+    width: var(--rb-hero-w);
+    min-height: var(--rb-cap-h);
+    min-width: 0;
+    font-size: var(--ui-type-help);
+    color: var(--ui-color-text-muted);
+    white-space: nowrap;
+  }
+  .rb-pane-cap > strong {
+    flex: none;
+    font-size: var(--ui-type-label);
+    font-weight: var(--ui-type-weight-label);
+    color: var(--ui-color-text-default);
+  }
+  .rb-pane-layout, .rb-pane-note, .rb-pane-hint {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  /* The layout name gives way first: a problem in the note is never the words cut short. */
+  .rb-pane-layout { flex: 0 1 auto; }
+  .rb-pane-note { flex: 0 1 auto; }
+  .rb-pane-note[data-tone] { flex: none; }
+  .rb-pane-layout:empty, .rb-pane-note:empty { display: none; }
+  .rb-pane-note[data-tone="danger"] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    /* The dark themes' danger is a fill colour, too dark to read as words on the page, so
+       the words take it mixed toward the ink; the glyph keeps the pure colour. */
+    color: color-mix(in oklab, var(--ui-color-status-danger) 70%, var(--ui-color-text-default));
+    font-weight: var(--ui-type-weight-label);
+  }
+  /* On a dark theme the mix above measures under 4.5:1 at this size; less of the fill
+     colour brings the words to text contrast, and the glyph beside them keeps the hue. */
+  [data-theme="dark"] .rb-pane-note[data-tone="danger"],
+  [data-theme="brand"] .rb-pane-note[data-tone="danger"] {
+    color: color-mix(in oklab, var(--ui-color-status-danger) 40%, var(--ui-color-text-default));
+  }
+  .rb-pane-note > svg { flex: none; width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+  .rb-pane-note[data-tone="danger"] > svg { color: var(--ui-color-status-danger); }
+  .rb-pane-hint { flex: 0 1 auto; }
+  .rb-pane-busy {
+    flex: none;
+    padding: 0 var(--sp-3);
+    border-radius: var(--ui-radius-pill);
+    background: var(--ui-color-status-notice-surface);
+    color: var(--ui-color-text-default);
+    font-weight: var(--ui-type-weight-label);
+  }
+  :is(.rb-pane-busy, .rb-pane-hint, .rb-part)[hidden] { display: none; }
+
+  /* The part pager: the next part of a slide that continues, at the end of the row. */
+  .rb-part {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: var(--sp-3);
+    margin-inline-start: auto;
+    padding: var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-1);
+    border: 0;
+    border-radius: var(--ui-radius-choice);
+    background: var(--ui-color-surface-raised);
+    box-shadow: var(--ui-edge-default);
+    color: var(--ui-color-text-default);
+    font: inherit;
+    font-size: var(--ui-type-help);
+    cursor: pointer;
+  }
+  .rb-part-art {
+    position: relative;
+    display: block;
+    width: var(--rb-part-w);
+    aspect-ratio: var(--rb-ratio, 16 / 9);
+    border-radius: var(--ui-radius-choice);
+    overflow: hidden;
+  }
+  .rb-part-art > svg { display: block; width: 100%; height: 100%; }
+  .rb-part > svg:last-child { flex: none; width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+  .rb-part:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+  /* ── the tray: objects the compile could place on no slide ── */
+  .rb-tray {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--sp-6);
+    width: var(--rb-hero-w);
+    height: var(--rb-tray-row-h);
+    min-width: 0;
+  }
+  .rb-tray[hidden] { display: none; }
+  .rb-tray-head {
+    flex: none;
+    margin: 0;
+    font-size: var(--ui-type-help);
+    font-weight: var(--ui-type-weight-label);
+    color: var(--ui-color-text-default);
+  }
+  .rb-tray-rows {
+    display: flex;
+    gap: var(--sp-4);
+    min-width: 0;
+    margin: 0;
+    padding: var(--sp-1);
+    overflow-x: auto;
+    list-style: none;
+    scrollbar-width: thin;
+  }
+  .rb-tray-row {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-1) var(--sp-4) var(--sp-1) var(--sp-1);
+    border: 0;
+    border-radius: var(--ui-radius-choice);
+    background: var(--ui-color-surface-raised);
+    box-shadow: var(--ui-edge-default);
+    color: var(--ui-color-text-default);
+    font: inherit;
+    font-size: var(--ui-type-help);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  @media (hover: hover) {
+    .rb-tray-row:hover { box-shadow: var(--ui-effect-selection-ring-hover), var(--ui-edge-default); }
+  }
+  .rb-tray-row[aria-current="true"] { box-shadow: var(--ui-effect-selection-ring), var(--ui-edge-default); background: var(--ui-color-selection-surface); }
+  .rb-tray-row:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .rb-tray-crop {
+    display: block;
+    flex: none;
+    width: var(--rb-crop-tray-w);
+    height: var(--rb-crop-tray-h);
+    border-radius: var(--ui-radius-choice);
+    overflow: hidden;
+    background: var(--ui-color-surface-muted);
+  }
+  .rb-tray-row[data-wide] .rb-tray-crop { width: calc(var(--rb-crop-tray-w) * 2); }
+  .rb-tray-crop > svg { display: block; width: 100%; height: 100%; }
+  .rb-tray-snip { max-width: 24ch; overflow: hidden; text-overflow: ellipsis; color: var(--ui-color-text-muted); }
+  /* A crop's outline, when a caller asks for the slide with the object's box marked. */
+  .rb-crop-mark { stroke: var(--ui-color-selection-border); stroke-width: 1.5px; }
+
+  /* The chooser's continuation frames under its preview. */
+  .rb-more {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--rb-more-min), 1fr));
+    gap: var(--sp-3);
+  }
+  .rb-frame--more .rb-stage { width: 100%; box-shadow: var(--ui-edge-default); }
+  .rb-frame-note {
+    margin: 0;
+    font-size: var(--ui-type-help);
+    color: var(--ui-color-text-muted);
+  }
+
+  /* ── the overlay ── one button per source object, and one per empty box, centred on
+     its box and never below the 24px floor. The centre is held 12px inside the slide,
+     so the floor is not clipped by the stage's edge for a small mark at the edge. At
+     rest nothing shows; a pointer over it rings it faintly, selection rings it fully,
+     a press fills it, and keyboard focus draws its ring 5px outside the selection ring
+     so the two differ in shape where they coincide. */
+  .rb-ov,
+  .rb-ph {
+    position: absolute;
+    left: clamp(12px, var(--x), 100% - 12px);
+    top: clamp(12px, var(--y), 100% - 12px);
+    width: var(--w);
+    height: var(--h);
+    min-width: 24px;
+    min-height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ui-radius-choice);
+    background: none;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    transform: translate(-50%, -50%) rotate(var(--r));
+    cursor: pointer;
+    transition: outline-color var(--ui-motion-feedback) var(--ui-motion-standard);
+  }
+  /* A placeholder the compile authored is hatched by the drawing itself. A title or
+     subtitle slot the layout left empty is hatched here at rest, so the hero never has
+     a hole where its heading goes. Other empty slots show the hatch and edge when a
+     pointer is over them or they are selected, since a layout can leave several (a
+     list's row labels) and hatching them all at rest would cover the slide's words. */
+  .rb-ph:is([data-slot="title"], [data-slot="subtitle"]),
+  .rb-ph[data-slot]:is([aria-current="true"], :focus-visible) {
+    background: repeating-linear-gradient(135deg, transparent 0 6px, var(--rb-hatch) 6px 7px);
+    box-shadow: var(--ui-edge-default);
+  }
+  @media (hover: hover) {
+    .rb-ph[data-slot]:hover {
+      background: repeating-linear-gradient(135deg, transparent 0 6px, var(--rb-hatch) 6px 7px);
+      box-shadow: var(--ui-edge-default);
+    }
+  }
+  .rb-ov[data-hint] { outline-color: color-mix(in srgb, var(--ui-color-selection-border) 45%, transparent); }
+  @media (hover: hover) {
+    .rb-ov:hover,
+    .rb-ph:hover { outline-color: color-mix(in srgb, var(--ui-color-selection-border) 45%, transparent); }
+  }
+  /* The full ring. A 1 px halo in the surface colour sits just outside it, never inside,
+     so the ring reads over dark slide art in the light theme (where the selection colour
+     is itself a dark green) and is still one line with the art showing inside it. */
+  .rb-ov[aria-current="true"],
+  .rb-ph[aria-current="true"] { outline-color: var(--ui-color-selection-border); }
+  .rb-ov[aria-current="true"]::after,
+  .rb-ph[aria-current="true"]::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: var(--ui-radius-control);
+    outline: 1px solid var(--ui-color-surface-raised);
+    pointer-events: none;
+  }
+  .rb-ov:active,
+  .rb-ph:active {
+    outline-color: var(--ui-color-action-primary);
+    background: color-mix(in srgb, var(--ui-color-action-primary) 14%, transparent);
+  }
+  .rb-ov:focus-visible::before,
+  .rb-ph:focus-visible::before {
+    content: '';
+    position: absolute;
+    inset: -7px;
+    border: 2px solid var(--ui-color-focus-ring);
+    border-radius: var(--ui-radius-control);
+    pointer-events: none;
+  }
+  /* The selected object's place on the Proposed pane, through its lineage. */
+  .rb-outline {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: var(--w);
+    height: var(--h);
+    min-width: 4px;
+    min-height: 4px;
+    border-radius: var(--ui-radius-choice);
+    outline: 2px solid var(--ui-color-selection-border);
+    outline-offset: 2px;
+    transform: translate(-50%, -50%) rotate(var(--r));
+    pointer-events: none;
+  }
+  .rb-outline[data-hint] { outline-color: color-mix(in srgb, var(--ui-color-selection-border) 45%, transparent); }
+
+  /* ── cut off ── a thin band in the danger colour on the clipped edge of each box
+     whose text runs past it, and its count hung under that edge, outside the box, so
+     neither covers a word the box draws. A different shape from the selection ring, so
+     the two can coincide. Both scale with the slide (the pane's width, --rb-hero-w),
+     so on a small frame they stay small beside the words. */
+  .rb-cuts { pointer-events: none; }
+  .rb-cut {
+    --rb-cut-band: clamp(2px, calc(var(--rb-hero-w, 800px) * .004), 3px);
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: var(--w);
+    height: var(--h);
+    transform: translate(-50%, -50%) rotate(var(--r));
+  }
+  .rb-cut::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    height: var(--rb-cut-band);
+    border-radius: var(--ui-radius-pill);
+    background: var(--ui-color-status-danger);
+  }
+  .rb-cut-count {
+    position: absolute;
+    inset-inline-end: 0;
+    top: calc(100% + var(--rb-cut-band));
+    padding: 0 .5em;
+    border-radius: 0 0 var(--ui-radius-choice) var(--ui-radius-choice);
+    background: var(--ui-color-status-danger);
+    color: hsl(var(--destructive-foreground));
+    font-size: clamp(9px, calc(var(--rb-hero-w, 800px) * .014), var(--ui-type-help));
+    font-weight: var(--ui-type-weight-label);
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+  /* The edge Design clips at follows the box's vertical alignment: a bottom-aligned
+     box loses its first lines, so the band and its count hang over its head; a
+     centred one loses both ends, so a second band marks the head too. */
+  .rb-cut[data-edge="top"]::after { top: auto; bottom: 100%; }
+  .rb-cut[data-edge="top"] .rb-cut-count {
+    top: auto;
+    bottom: calc(100% + var(--rb-cut-band));
+    border-radius: var(--ui-radius-choice) var(--ui-radius-choice) 0 0;
+  }
+  .rb-cut[data-edge="both"]::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: 100%;
+    height: var(--rb-cut-band);
+    border-radius: var(--ui-radius-pill);
+    background: var(--ui-color-status-danger);
+  }
+
+  /* The layout chooser draws a slide still being compiled as a stand-in rect: chrome,
+     in the theme's muted surface. */
+  .rb-lc-wait { fill: var(--ui-color-surface-muted); }
+
+  /* ── narrow ── The segment the phone's full width, and a caption that wraps rather
+     than cutting each part short. */
+  .rb[data-narrow="true"] .rb-cmp-row { gap: var(--sp-4); }
+  .rb[data-narrow="true"] .rb-cmp-seg { flex: 1 1 auto; margin-inline-start: 0; height: calc(36px * var(--a11y-fs)); }
+  .rb[data-narrow="true"] .rb-tray { height: auto; flex-wrap: wrap; }
+  .rb[data-narrow="true"] .rb-pane-cap { flex-wrap: wrap; row-gap: var(--sp-2); white-space: normal; }
+
+  /* A phone held upright: one column the height of what it holds (rebrand.css lets the
+     docked sheet take the rest). The panes size by their width alone, and Both is
+     Original, its caption, Proposed, its caption, one under the other. */
+  @media (min-height: 480px) {
+    .rb[data-narrow="true"] .rb-cmp {
+      display: flex;
+      flex-direction: column;
+      height: auto;
+      gap: var(--sp-6);
+      padding: var(--ui-space-panel);
+    }
+    .rb[data-narrow="true"] .rb-cmp-panes { grid-template-rows: auto; row-gap: var(--sp-6); }
+    .rb[data-narrow="true"] .rb-cmp[data-show="both"] .rb-cmp-panes { grid-template-columns: minmax(0, 1fr); }
+    .rb[data-narrow="true"] .rb-pane { container-type: normal; --rb-hero-w: 100%; }
+    /* Stacked, a caption holds its own lines, so it keeps no room for a second one. */
+    .rb[data-narrow="true"] .rb-cmp[data-show="both"] .rb-pane { --rb-cap-h: calc(32px * var(--a11y-fs)); }
+    .rb[data-narrow="true"] .rb-pane:not([data-on]) { display: none; }
+    .rb[data-narrow="true"] .rb-cmp-layout { margin-top: calc(var(--sp-4) - var(--sp-6)); }
+    /* The layout row under the caption says which layout it is, so the caption does not. */
+    .rb[data-narrow="true"] .rb-cmp:has(.rb-cmp-layout:not([hidden])) .rb-pane-layout { display: none; }
+  }
+
+  /* A phone on its side: the slide takes the whole region, sized by its width and its
+     height as on a wide screen. Proposed alone has no segment (holding the slide shows
+     the Original); a side chosen while upright keeps the segment so it can be changed
+     back. The layout row steps aside for the slide; a tap on the slide opens the sheet. */
+  @media (max-height: 479px) {
+    .rb[data-narrow="true"] .rb-cmp { gap: var(--sp-4); padding: var(--sp-4) var(--ui-space-panel); }
+    .rb[data-narrow="true"] .rb-cmp[data-side="proposed"] { grid-template-rows: minmax(0, 1fr); }
+    .rb[data-narrow="true"] .rb-cmp[data-side="proposed"] > .rb-cmp-row { display: none; }
+    .rb[data-narrow="true"] .rb-cmp-seg { flex: 0 1 auto; margin-inline-start: auto; }
+    .rb[data-narrow="true"] .rb-cmp-layout { display: none; }
+    /* The caption takes the pane's width, centred under the slide, so its words are
+       never cut short beside a slide this small. */
+    .rb[data-narrow="true"] .rb-pane-cap { flex-wrap: nowrap; justify-content: center; width: 100cqw; white-space: nowrap; }
+  }
+
+  /* The phone's layout row under the slide: the wireframe, the name and who set it,
+     which open the slide's sheet, and Change, which opens the layout chooser. */
+  .rb-cmp-layout {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    min-height: var(--ui-size-target);
+  }
+  .rb-cmp-layout[hidden] { display: none; }
+  .rb-cmp-layout-open {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: var(--sp-4);
+    min-width: 0;
+    min-height: var(--ui-size-target);
+    padding: 0 var(--sp-2) 0 0;
+    border: 0;
+    border-radius: var(--ui-radius-control);
+    background: none;
+    color: var(--ui-color-text-default);
+    font: inherit;
+    font-size: var(--ui-type-body);
+    text-align: start;
+    cursor: pointer;
+  }
+  .rb-cmp-layout-open:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .rb-cmp-layout-wire {
+    flex: none;
+    display: block;
+    width: calc(40px * var(--a11y-fs));
+    padding: 2px;
+    border-radius: var(--ui-radius-choice);
+    background: var(--ui-color-surface-raised);
+    box-shadow: var(--ui-edge-faint);
+  }
+  .rb-cmp-layout-wire:empty { display: none; }
+  .rb-cmp-layout-wire > svg { display: block; width: 100%; height: auto; }
+  .rb-cmp-layout-name {
+    min-width: 0;
+    overflow: hidden;
+    font-weight: var(--ui-type-weight-label);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .rb-cmp-layout-flag {
+    flex: none;
+    font-size: var(--ui-type-help);
+    color: var(--ui-color-text-muted);
+  }
+  .rb-cmp-layout-change { flex: none; display: inline-flex; align-items: center; gap: var(--sp-2); min-height: var(--ui-size-target); }
+  .rb-cmp-layout-change > svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+
+  @media (any-pointer: coarse) {
+    /* The halves reach the touch target; the track adds its own padding round them. */
+    .rb-cmp-seg, .rb[data-narrow="true"] .rb-cmp-seg { height: calc(var(--ui-size-target) + 4px); }
+    .rb-part, .rb-tray-row { min-height: var(--ui-size-target); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rb-pane, .rb-pane:not([data-on]), .rb-ov, .rb-ph, .rb-inset-art { transition: none; }
+  }
+  html[data-a11y-motion="reduce"] :is(.rb-pane, .rb-pane:not([data-on]), .rb-ov, .rb-ph, .rb-inset-art) { transition: none; }
+}
+
+/* Outside the layer: the panel primitive is unlayered, and the side segment's halves
+   need more room than a segment in a narrow column. */
+.lp-seg.rb-cmp-seg > button { padding-inline: var(--sp-6); }
+.rb[data-narrow="true"] .lp-seg.rb-cmp-seg > button { padding-inline: var(--sp-2); }
+
+/* Principle 1: in the body the hero is the one raised object, so a ghost button there
+   (Match, Change layout, Move earlier) is drawn by its edge, not the control's shadow.
+   Outside the layer, since the button sheet is unlayered. */
+.rb-body .btn.btn--ghost { box-shadow: var(--ui-edge-default); }
+
+/* High contrast: the hero's edge and the inset's at the strong step, since the stage
+   and the slide's ground may converge. */
+html[data-a11y-contrast="high"] .rb-hero::after,
+html[data-a11y-contrast="high"] .rb-inset-art::after { box-shadow: var(--ui-edge-strong); }

@@ -445,6 +445,10 @@ export function mountRightsRow(opts: RightsRowMount): RightsRowHandle {
       if (announced.has(item.key)) continue;
       announced.add(item.key);
       opts.announce(item.text);
+      // The row sits inside the collapsed Content protection group, so a new
+      // decision would otherwise be announced about a card nobody can see.
+      const toggle = root.querySelector<HTMLElement>('[data-action="protection-toggle"]');
+      if (view.tone === 'action' && toggle?.getAttribute('aria-expanded') === 'false') toggle.click();
     }
   };
 

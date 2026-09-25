@@ -272,10 +272,11 @@ test('reduced motion snaps immediately without throwing across extra covers', t 
 
 test('Gallery touch keeps native scrolling; both strip modes omit descriptions and retain names', t => {
   const f = fixture(t, 'gallery');
+  const start = f.scroll.position;
   f.pointer('pointerdown', 300);
   f.pointer('pointermove', 100, 20);
   f.pointer('pointerup', 100, 10);
-  assert.equal(f.scroll.position, 0, 'JS does not take over Gallery touch scrolling');
+  assert.equal(f.scroll.position, start, 'JS does not take over Gallery touch scrolling');
   for (const mode of ['gallery', 'coverflow'] as const) {
     f.handle.setViewMode(mode);
     assert.equal(f.mount.querySelector('.ftile-blurb'), null);
@@ -424,3 +425,21 @@ for (const fps of [30, 60, 120]) {
     assert.deepEqual(f.opened, []);
   });
 }
+
+test('the still Gallery strip wraps both ways, with a clone set on each side of the originals', t => {
+  const f = fixture(t, 'gallery');
+  const tiles = [...f.mount.querySelectorAll<HTMLElement>('.ftile')];
+  assert.equal(tiles.length, 21, 'originals plus one clone set before and one after');
+  assert.ok(tiles.slice(0, 7).every(tile => tile.classList.contains('ftile--clone')));
+  assert.ok(tiles.slice(7, 14).every(tile => !tile.classList.contains('ftile--clone')));
+  const period = 7 * 260;
+  assert.equal(f.viewport.scrollLeft, period, 'opens on the originals, so there is room to scroll left');
+  // A native scroll past the first original reaches the left clones and is moved one
+  // period right, onto the same picture among the originals.
+  f.viewport.scrollLeft = period - 100;
+  f.viewport.dispatchEvent(new window.Event('scroll'));
+  assert.equal(f.viewport.scrollLeft, 2 * period - 100);
+  f.viewport.scrollLeft = 2 * period + 40;
+  f.viewport.dispatchEvent(new window.Event('scroll'));
+  assert.equal(f.viewport.scrollLeft, period + 40);
+});

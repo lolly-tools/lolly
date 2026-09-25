@@ -24,21 +24,21 @@ Este documento registra o propósito, a estrutura e as decisões arquiteturais d
 
 ## Por que isso existe
 
-Equipes enfrentam um problema recorrente: trabalho criativo e de conteúdo repetível que é previsível demais para justificar mãos especializadas toda vez, mas sensível demais em qualidade para ser delegado sem parâmetros de proteção. O resultado é vazão lenta (gargalo do especialista), inconsistência (pessoas usando qualquer ferramenta que tiverem) ou dependência de fornecedor (um DAM SaaS que controla seus templates).
+Trabalho criativo repetível é previsível demais para justificar mãos especializadas toda vez e sensível demais em qualidade para ser delegado sem parâmetros de proteção. Deixado à própria sorte, ele segue um de três caminhos: lento, inconsistente ou preso aos templates de um fornecedor.
 
 Esta plataforma é a resposta direta:
 
-> **Criação e conteúdo programáticos em escala** - geração de assets sem esforço manual, com as regras sob controle central, para funcionários, fornecedores e parceiros.
+> **Criação e conteúdo programáticos em escala** - assets gerados a partir de entradas, com as regras definidas uma vez, para quem precisar deles.
 
 A Lolly não é onde um sistema de design é inventado - é onde ele é produzido. Pense nela como uma máquina de vendas automática para design: faça uma seleção, receba um resultado. Toda vez. O engine busca a maior qualidade que cada formato consegue produzir no hardware à sua frente, e o mesmo engine gera o mesmo arquivo em cada superfície para a qual ele é distribuído.
 
-O resultado é **abundância**: todo evento tem a sinalização correta, todo alerta de CVE segue o estilo da casa, toda etiqueta imprime limpa, toda assinatura de e-mail está atualizada - tudo sem um chamado de design. A plataforma trata do criativo operacionalizado e recorrente. Deliberadamente não é uma ferramenta criativa sob medida - os designers continuam donos do trabalho de destaque.
+O resultado é **abundância**: todo evento tem a sinalização correta, todo alerta de CVE segue o estilo da casa, toda etiqueta imprime limpa, toda assinatura de e-mail está atualizada - tudo a partir de ferramentas que já carregam as regras. A plataforma trata do criativo operacionalizado e recorrente. Deliberadamente não é uma ferramenta criativa sob medida - os designers continuam donos do trabalho de destaque.
 
 ### Inove probabilisticamente, escale deterministicamente
 
 Todo debate sobre IA em um pipeline criativo empaca na mesma pergunta: qual parte disso é trabalho da máquina? É uma pergunta antiga com resposta consolidada. Escribas e iluminadores já trabalhavam entre dois instrumentos - o esboço livre, onde nada estava fixo e tudo podia ser tentado, e a prensa de impressão, intimidante justamente por se comprometer. Os esboços eram onde a arte acontecia. A prensa era como ela chegava a alguém. Ninguém confundia os dois, e ambos continuavam avançando - novas tintas, novos tipos, novas prensas - cada um evoluindo em harmonia com o ofício e a intenção que servia.
 
-O Lolly traça a mesma linha. Explore probabilisticamente: um modelo, um designer, uma ideia solta, um prompt que vai para onde ninguém planejou. Depois escale deterministicamente - o que alcança dez mil resultados é uma *ferramenta*, e uma ferramenta renderiza da mesma forma todas as vezes a partir de entradas que você consegue ler. A exploração continua livre porque nada depois dela depende de acontecer igual duas vezes. O resultado ganha confiança porque não é um palpite. Levar a experimentação com IA a resultados previsíveis e reprodutíveis não é uma disciplina nova; é a mesma divisão de trabalho que tornou o material impresso confiável desde o início.
+O Lolly traça a mesma linha. Explore probabilisticamente: um modelo, um designer, uma ideia solta, um prompt que vai para onde ninguém planejou. Depois escale deterministicamente - o que alcança muitos resultados é uma *ferramenta*, e uma ferramenta renderiza da mesma forma todas as vezes a partir de entradas que você consegue ler. A exploração continua livre porque nada depois dela depende de acontecer igual duas vezes. O resultado ganha confiança porque não é um palpite. Levar a experimentação com IA a resultados previsíveis e reprodutíveis não é uma disciplina nova; é a mesma divisão de trabalho que tornou o material impresso confiável desde o início.
 
 > Confie no processo criativo, escale com rigor.
 
@@ -76,19 +76,19 @@ Esse é o multiplicador de força. O Lolly não é uma gaveta de ferramentas sep
 
 ---
 
-## Uma aprovação, dez mil assets
+## Uma ferramenta, muitas saídas
 
-Como a aprovação vive na ferramenta e não no arquivo (veja [Como o Lolly se compara](/info/positioning.html)), escalar deixa de ser um problema de revisão. Aprove uma ferramenta de card social localizado uma vez, depois gere **10.000 assets em 12 idiomas** a partir de uma planilha - e nenhum deles precisa de uma nova verificação de conformidade do jurídico ou da marca, porque o template do qual todos vêm já foi aprovado.
+As regras de marca vivem na ferramenta, não em cada arquivo que ela produz (veja [Como o Lolly se compara](/info/positioning.html)). Acerte a ferramenta uma vez e toda saída herda o mesmo tipo, cor e espaçamento, seja um único card ou uma planilha de linhas em uma dúzia de idiomas. Como você confere seu trabalho, e quem faz isso, continua sendo escolha sua; o Lolly torna a coisa a ser conferida menor e a saída mais rápida de produzir.
 
-A mesma ferramenta determinística alcança essa escala de três formas, todas produzindo saída idêntica e pré-aprovada:
+A mesma ferramenta determinística alcança essa escala de três formas, todas produzindo saída idêntica:
 
-- <!--i:people--> **Uma pessoa, no app.** A grade em lote `/pro`: cole ou importe as linhas, receba um asset finalizado por linha, baixe o zip. Sem habilidade de design, sem chamado, sem espera.
-- <!--i:code--> **Um desenvolvedor, pela linha de comando.** A CLI roda o *mesmo* engine e o *mesmo* caminho de renderização sem interface, então a ferramenta pode ser sequenciada por todas as 10.000 linhas em um script ou pipeline noturno. Uma chamada `lolly <tool> --field=…` em um loop é toda a integração.
-- <!--i:cpu--> **Um sistema ou agente de IA, via MCP.** A mesma ferramenta operada programaticamente, com a mesma fidelidade e escala ainda maior - porque uma máquina não fica entediada enquanto milhares de arquivos vão chegando.
+- <!--i:people--> **Uma pessoa, no app.** A grade de lote `/pro`: cole ou importe as linhas, receba um asset finalizado por linha, baixe o zip. Sem habilidade de design, sem espera.
+- <!--i:code--> **Um desenvolvedor, pela linha de comando.** A CLI roda o *mesmo* engine e o *mesmo* caminho de renderização sem interface, então a ferramenta pode ser sequenciada por todas as linhas em um script ou pipeline noturno. Uma chamada `lolly <tool> --field=…` em um loop é toda a integração.
+- <!--i:cpu--> **Um sistema ou agente de IA, via MCP.** A mesma ferramenta operada programaticamente, com a mesma fidelidade, para quantas linhas o trabalho tiver.
 
 ![O modo Batch em uma instalação nova: uma linha vazia esperando por uma ferramenta, com toda a superfície de planilha e seu botão Render já no lugar antes de qualquer dado chegar](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-Um conjunto de restrições de marca, fixado uma vez por um designer; três caminhos para a mesma saída pré-aprovada - e o caminho da máquina escala mais longe de todos, porque nunca se cansa enquanto os arquivos vão chegando.
+Um conjunto de restrições de marca, fixado uma vez por um designer; três caminhos para a mesma saída.
 
 ---
 
@@ -390,11 +390,11 @@ Web shell: IndexedDB. Tauri: sistema de arquivos. CLI: em memória. As ferrament
 
 Os usuários podem salvar múltiplos slots de edição nomeados por ferramenta e retomar cada sessão depois. Não é necessário criar conta; o estado é por dispositivo. Como a bridge é o único ponto de passagem, esse estado por dispositivo também é *portátil*: `shells/web/src/data-transfer.ts` lê tudo de volta via `host.profile`/`host.state`/`host.assets` para um único zip `lolly-backup` que pode ser importado em qualquer outra instalação - a resposta offline para "mudar de dispositivo" que não precisa de servidor (especificação completa: `docs/data-transfer.md`). A integração com o SUSE ID (sincronização multidispositivo) é um marco futuro construído em cima disso.
 
-### 7. As tags de maturidade respondem ao risco de "aprovação de marca" por design
+### 7. As tags de maturidade dizem o que uma ferramenta é, por design
 
 Toda ferramenta declara `status: official | community | experimental` no seu manifesto. A galeria ordena por status. Ferramentas experimentais aplicam marca d'água nas exportações automaticamente - a marca d'água é aplicada por `host.export.render`, não pela ferramenta, então não pode ser desativada por um autor de ferramenta não oficial.
 
-Esta é uma resposta estrutural ao risco de percepção de que usar qualquer ferramenta implica aprovação de marca. Respostas de processo (uma fila de revisão, controle de acesso via SUSE ID) se somam a isso.
+Esta é uma resposta estrutural ao risco de percepção de que toda ferramenta na galeria carrega o mesmo peso. Qualquer processo que uma equipe monte em torno do catálogo vem por cima disso.
 
 ### 8. As entradas de ferramenta são tipadas via o manifesto, incluindo assets
 

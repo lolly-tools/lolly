@@ -24,21 +24,21 @@ Tento dokument zachycuje účel, strukturu a architektonická rozhodnutí platfo
 
 ## Proč tohle existuje
 
-Týmy narážejí na opakující se problém: opakovatelná kreativní a obsahová práce, která je příliš predikovatelná na to, aby ospravedlnila zapojení odborníků pokaždé znovu, ale příliš citlivá na kvalitu na to, aby se předala bez mantinelů. Výsledkem je buď pomalá propustnost (úzké hrdlo specialisty), nekonzistence (lidé používají, co zrovna mají po ruce) nebo uzamčení u dodavatele (SaaS DAM, který ovládá tvé šablony).
+Opakovatelná kreativní práce je příliš předvídatelná, než aby ospravedlnila nasazení odborníků pokaždé, a zároveň příliš citlivá na kvalitu, než aby se dala předat bez mantinelů. Ponechána bez zásahu skončí jedním ze tří způsobů: pomalá, nekonzistentní, nebo uvězněná v šablonách dodavatele.
 
 Tahle platforma je přímá odpověď:
 
-> **Programová tvorba kreativy a obsahu ve velkém měřítku** - generování assetů bez lidské práce, s pravidly pod centrální kontrolou, pro zaměstnance, dodavatele a partnery.
+> **Programová tvorba kreativy a obsahu ve velkém měřítku** - assety generované ze vstupů, s pravidly nastavenými jednou, pro každého, kdo je potřebuje.
 
 Lolly není místo, kde design systém vzniká - je to místo, kde se vyrábí. Představ si to jako prodejní automat na design: vyber si, dostaneš výsledek. Pokaždé. Engine usiluje o nejvyšší kvalitu, jakou daný formát dokáže na hardwaru před tebou vyprodukovat, a stejný engine vytvoří stejný soubor na každé platformě, na kterou se dodává.
 
-Výsledkem je **hojnost**: každá akce má správnou signage, každé upozornění na CVE odpovídá firemnímu stylu, každý štítek se vytiskne čistě, každý e-mailový podpis je aktuální - to vše bez designového ticketu. Platforma zvládá opakující se operacionalizovanou kreativu. Záměrně to není nástroj pro zakázkovou kreativu - vlajkovou práci si stále vlastní designéři.
+Výsledkem je **hojnost**: každá akce má správnou signage, každé upozornění na CVE odpovídá firemnímu stylu, každý štítek se vytiskne čistě, každý e-mailový podpis je aktuální - to vše z nástrojů, které pravidla už nesou. Platforma zvládá opakující se operacionalizovanou kreativu. Záměrně to není nástroj pro zakázkovou kreativu - vlajkovou práci si stále vlastní designéři.
 
 ### Inovuj pravděpodobnostně, škáluj deterministicky
 
 Každá debata o AI v kreativním procesu uvízne na stejné otázce: která část je práce stroje? Je to stará otázka s dávno danou odpovědí. Písaři a iluminátoři už pracovali mezi dvěma nástroji - volnou skicou, kde nic nebylo pevně dané a všechno se dalo zkoušet, a tiskařským lisem, děsivým právě proto, že se zavazoval. Skici byly tam, kde vznikalo umění. Lis byl způsob, jak se dostat ke komukoli. Nikdo ty dva nezaměňoval a oba se dál vyvíjely - nové inkousty, nová písma, nové lisy - každý se zdokonaloval v souladu s řemeslem a záměrem, kterému sloužil.
 
-Lolly vede stejnou hranici. Zkoumej pravděpodobnostně: model, designér, hrubý nápad, prompt, který se vydá tam, kam nikdo neplánoval. Pak škáluj deterministicky - to, co se dostane k deseti tisícům výstupů, je *nástroj*, a nástroj se vykresluje pokaždé stejně ze vstupů, které si můžeš přečíst. Zkoumání zůstává svobodné, protože na tom, aby dopadlo pokaždé stejně, nic dalšího nezávisí. Výstup si získává důvěru, protože není odhadem. Dostat AI experimentování do předvídatelných, reprodukovatelných výsledků není nová disciplína; je to stejná dělba práce, díky které stálo za to důvěřovat tištěné práci už od začátku.
+Lolly vede stejnou hranici. Zkoumej pravděpodobnostně: model, designér, hrubý nápad, prompt, který se vydá tam, kam nikdo neplánoval. Pak škáluj deterministicky - to, co se stává mnoha výstupy, je *nástroj*, a nástroj se vykresluje pokaždé stejně ze vstupů, které si můžeš přečíst. Zkoumání zůstává svobodné, protože na tom, aby dopadlo pokaždé stejně, nic dalšího nezávisí. Výstup si získává důvěru, protože není odhadem. Dostat AI experimentování do předvídatelných, reprodukovatelných výsledků není nová disciplína; je to stejná dělba práce, díky které stálo za to důvěřovat tištěné práci už od začátku.
 
 > Důvěřuj kreativnímu procesu, škáluj s rigorózností.
 
@@ -76,19 +76,19 @@ To je ten násobitel síly. Lolly není zásuvka samostatných nástrojů pro sa
 
 ---
 
-## Jedno schválení, deset tisíc assetů
+## Jeden nástroj, mnoho výstupů
 
-Protože schválení žije v nástroji, ne v souboru (viz [Jak si Lolly stojí ve srovnání](/info/positioning.html)), škálování přestává být problém revizí. Schval lokalizovaný nástroj na sociální karty jednou, pak vygeneruj **10 000 assetů ve 12 jazycích** z tabulky - a ani jeden z nich nepotřebuje novou kontrolu shody od právního nebo brand oddělení, protože šablona, ze které všechny vznikly, už byla schválená.
+Pravidla značky žijí v nástroji, ne v každém souboru, který vytvoří (viz [Jak si Lolly stojí ve srovnání](/info/positioning.html)). Nastav nástroj správně jednou a každý výstup zdědí stejný typ, barvu a rozestupy, ať už jde o jednu kartu, nebo tabulku řádků v tuctu jazyků. Jak kontroluješ svou práci a kdo to dělá, zůstává na tobě; Lolly zmenšuje to, co stojí za kontrolu, a zrychluje výrobu výstupu.
 
-Stejný deterministický nástroj dosahuje toho škálování třemi způsoby, všechny produkují identický, předem schválený výstup:
+Stejný deterministický nástroj dosahuje tohoto škálování třemi způsoby, všechny produkují identický výstup:
 
-- <!--i:people--> **Člověk, v aplikaci.** Dávková mřížka `/pro`: vlož nebo importuj řádky, dostaneš jeden hotový asset na řádek, stáhni zip. Žádná designová dovednost, žádný tiket, žádné čekání.
-- <!--i:code--> **Vývojář, z příkazové řádky.** CLI spouští *stejný* engine a *stejnou* renderovací cestu bez hlavičky, takže nástroj lze provést sekvenčně přes všech 10 000 řádků ve skriptu nebo nočním pipeline. Volání `lolly <tool> --field=…` ve smyčce je celá integrace.
-- <!--i:cpu--> **Systém nebo AI agent, přes MCP.** Stejný nástroj ovládaný programaticky, se stejnou věrností a ještě větším měřítkem - protože stroj se nenudí, zatímco přicházejí tisíce souborů.
+- <!--i:people--> **Člověk, v aplikaci.** Dávková mřížka `/pro`: vlož nebo importuj řádky, dostaneš jeden hotový asset na řádek, stáhni zip. Žádná designová dovednost, žádné čekání.
+- <!--i:code--> **Vývojář, z příkazové řádky.** CLI spouští *stejný* engine a *stejnou* renderovací cestu bez hlavičky, takže nástroj lze provést sekvenčně přes každý řádek ve skriptu nebo nočním pipeline. Volání `lolly <tool> --field=…` ve smyčce je celá integrace.
+- <!--i:cpu--> **Systém nebo AI agent, přes MCP.** Stejný nástroj ovládaný programaticky, se stejnou věrností, pro tolik řádků, kolik jich úloha má.
 
 ![Dávkový režim při čerstvé instalaci: jeden prázdný řádek čekající na nástroj, s celou plochou tabulky a tlačítkem Render už na místě, než dorazí jakákoli data](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-Jedna sada brand omezení, jednou pevně stanovená designérem; tři cesty ke stejnému předem schválenému výstupu - a strojová cesta škáluje nejdál ze všech, protože se nikdy neunaví, zatímco soubory přicházejí.
+Jedna sada brand omezení, jednou pevně stanovená designérem; tři cesty k identickému výstupu.
 
 ---
 
@@ -390,11 +390,11 @@ Web shell: IndexedDB. Tauri: souborový systém. CLI: v paměti. Nástroje vidí
 
 Uživatelé si mohou uložit více pojmenovaných edit slotů na nástroj a vrátit se ke každé relaci později. Vytváření účtu není potřeba, stav je per-device. Protože bridge je jediný švík, tento per-device stav je zároveň *přenositelný*: `shells/web/src/data-transfer.ts` čte vše zpět přes `host.profile`/`host.state`/`host.assets` do jednoho `lolly-backup` zipu, který se dá naimportovat na jakékoli jiné instalaci - offline odpověď na "přesun na nové zařízení", která nepotřebuje server (celá specifikace: `docs/data-transfer.md`). Integrace SUSE ID (synchronizace napříč zařízeními) je budoucí milník nad tímto základem.
 
-### 7. Značky zralosti řeší riziko "schváleno značkou" už v návrhu
+### 7. Značky zralosti už v návrhu říkají, co nástroj je
 
 Každý nástroj deklaruje `status: official | community | experimental` ve svém manifestu. Galerie řadí podle statusu. Experimentální nástroje automaticky vodoznakují své exporty - vodoznak vkládá `host.export.render`, ne nástroj sám, takže ho autor neoficiálního nástroje nemůže vypnout.
 
-Toto je strukturální odpověď na riziko vnímání, že použití jakéhokoli nástroje znamená schválení značkou. Procesní odpovědi (schvalovací fronta, gating přes SUSE ID) se vrství navrch.
+Toto je strukturální odpověď na riziko vnímání, že každý nástroj v galerii nese stejnou váhu. Jakýkoli proces, který tým postaví kolem katalogu, se vrství navrch.
 
 ### 8. Vstupy nástrojů jsou typované přes manifest, včetně assetů
 

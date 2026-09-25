@@ -90,6 +90,8 @@ export interface CatCtx {
   catDensity: 'comfortable' | 'compact';
   CAT_SORTS: readonly CatSort[];
   catSort: CatSort;
+  /** The view-options direction toggle: true shows the sort's last results first. */
+  catSortRev: boolean;
   COLLAPSE_KEY: "lolly-catalog-collapsed";
   ALL_SECTION_KEYS: string[];
   FIRST_VISIT_COLLAPSED: string[];

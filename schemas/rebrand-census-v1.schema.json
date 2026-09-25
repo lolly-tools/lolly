@@ -1,0 +1,693 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/rebrand-census-v1.schema.json",
+  "title": "rebrand-census-v1",
+  "description": "Where each source object came from and what it probably is, with evidence, plus the colour, font and layout censuses. Stage 2 of plan 274. Origin is evidence, never a verdict.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "sourceHash",
+    "rules",
+    "objects",
+    "groups",
+    "colors",
+    "fonts",
+    "layouts",
+    "flattenedSlideIds",
+    "warnings"
+  ],
+  "$defs": {
+    "classHypothesis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "class",
+        "confidence",
+        "evidence"
+      ],
+      "properties": {
+        "class": {
+          "$ref": "#/$defs/objectClass"
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "evidence": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        },
+        "alternative": {
+          "$ref": "#/$defs/objectClass"
+        }
+      }
+    },
+    "colorRole": {
+      "enum": [
+        "bg",
+        "ink",
+        "accent",
+        "neutral",
+        "series",
+        "stroke"
+      ]
+    },
+    "colorUse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "useId",
+        "hex",
+        "role",
+        "weight",
+        "objectIds"
+      ],
+      "properties": {
+        "useId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "hex": {
+          "$ref": "#/$defs/hex"
+        },
+        "scheme": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "role": {
+          "$ref": "#/$defs/colorRole"
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0
+        },
+        "objectIds": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "description": "Object ids the colour is used by. A slide's own page colour belongs to no object, so it is named as <slide-id>#background, the one reserved form here."
+        },
+        "distinctionSet": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      }
+    },
+    "contrastPair": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "foreground",
+        "background",
+        "minimum",
+        "objectId"
+      ],
+      "properties": {
+        "foreground": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "background": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "minimum": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "signal",
+        "value",
+        "weight"
+      ],
+      "properties": {
+        "signal": {
+          "$ref": "#/$defs/evidenceSignal"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "string",
+              "maxLength": 4096
+            },
+            {
+              "type": "boolean"
+            }
+          ]
+        },
+        "weight": {
+          "type": "number",
+          "minimum": -1,
+          "maximum": 1
+        },
+        "sentence": {
+          "type": "string",
+          "maxLength": 4096
+        }
+      }
+    },
+    "evidenceSignal": {
+      "enum": [
+        "origin",
+        "placeholder",
+        "repeat-count",
+        "repeat-share",
+        "position-jitter",
+        "margin-zone",
+        "area-share",
+        "aspect",
+        "text-length",
+        "text-size",
+        "size-rank",
+        "digit-normalised-repeat",
+        "native-tag",
+        "chart-data",
+        "ocr-state",
+        "ocr-density",
+        "edge-stats",
+        "colour-discreteness",
+        "dhash-group",
+        "path-hash-group",
+        "known-identity",
+        "column-alignment",
+        "fill-count"
+      ]
+    },
+    "fontProvenance": {
+      "enum": [
+        "theme",
+        "literal"
+      ]
+    },
+    "fontUse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "family",
+        "provenance",
+        "runs",
+        "roles"
+      ],
+      "properties": {
+        "family": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "provenance": {
+          "$ref": "#/$defs/fontProvenance"
+        },
+        "runs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "roles": {
+          "type": "object",
+          "propertyNames": {
+            "enum": [
+              "title",
+              "subtitle",
+              "body",
+              "other"
+            ]
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "available": {
+          "type": "boolean"
+        }
+      }
+    },
+    "fractionBox": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "w",
+        "h"
+      ],
+      "description": "A box as fractions of the slide, origin top left, clipped to the slide.",
+      "properties": {
+        "x": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "w": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "h": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "hex": {
+      "type": "string",
+      "pattern": "^#[0-9a-fA-F]{6}$"
+    },
+    "layoutFeatures": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "slideId",
+        "counts",
+        "imageAreaShare",
+        "chartPresent",
+        "tablePresent",
+        "distinctLeftEdges",
+        "equalSiblingBoxes",
+        "textParagraphs",
+        "textWords"
+      ],
+      "properties": {
+        "slideId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "counts": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/objectClass"
+          },
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "largestTextPt": {
+          "type": "number",
+          "minimum": 0
+        },
+        "imageAreaShare": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "chartPresent": {
+          "type": "boolean"
+        },
+        "tablePresent": {
+          "type": "boolean"
+        },
+        "distinctLeftEdges": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "equalSiblingBoxes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "textParagraphs": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "textWords": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "sourceLayout": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "units": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "$ref": "#/$defs/layoutUnit"
+          }
+        },
+        "containers": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "$ref": "#/$defs/layoutUnit"
+          },
+          "description": "Filled shapes, vectors and panels holding text boxes, removed ones included: for the layout read a removed shape is a container, never content."
+        }
+      }
+    },
+    "layoutUnit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "box",
+        "words",
+        "maxPt"
+      ],
+      "description": "One piece of kept content as the layout read sees it (plan 275 section 3.1).",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "kind": {
+          "$ref": "#/$defs/layoutUnitKind"
+        },
+        "box": {
+          "$ref": "#/$defs/fractionBox"
+        },
+        "words": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxPt": {
+          "type": "number",
+          "minimum": 0
+        },
+        "members": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        }
+      }
+    },
+    "layoutUnitKind": {
+      "enum": [
+        "text",
+        "pic",
+        "chart",
+        "table",
+        "card",
+        "shape",
+        "icon"
+      ]
+    },
+    "objectClass": {
+      "enum": [
+        "template-furniture",
+        "decoration",
+        "logo-candidate",
+        "known-logo",
+        "recurring-text",
+        "page-number",
+        "footer",
+        "date",
+        "title",
+        "subtitle",
+        "body",
+        "chart",
+        "screenshot",
+        "photo",
+        "table",
+        "diagram",
+        "unknown"
+      ]
+    },
+    "objectGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "members",
+        "slideIds",
+        "exemplar",
+        "class"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "kind": {
+          "enum": [
+            "media",
+            "vector",
+            "text",
+            "shape"
+          ]
+        },
+        "members": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "unverified": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "slideIds": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "exemplar": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "class": {
+          "$ref": "#/$defs/objectClass"
+        }
+      }
+    },
+    "sourceOrigin": {
+      "enum": [
+        "slide",
+        "layout",
+        "master",
+        "pdf-artifact",
+        "raster-region"
+      ]
+    },
+    "sourceWarning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/sourceWarningCode"
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "objectIds": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "sourceWarningCode": {
+      "enum": [
+        "nodes-truncated",
+        "slides-truncated",
+        "media-skipped",
+        "part-too-large",
+        "group-transform-approximated",
+        "gradient-flattened",
+        "links-dropped",
+        "video-dropped",
+        "notes-dropped",
+        "metafile-not-converted",
+        "vector-budget-reached"
+      ]
+    }
+  },
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "sourceHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "version": {
+          "type": "string",
+          "maxLength": 64
+        }
+      }
+    },
+    "objects": {
+      "type": "array",
+      "maxItems": 200000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "slideId",
+          "origin",
+          "hypothesis"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "slideId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "origin": {
+            "$ref": "#/$defs/sourceOrigin"
+          },
+          "hypothesis": {
+            "$ref": "#/$defs/classHypothesis"
+          },
+          "groupId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        }
+      },
+      "description": "One entry per source object. The ceiling of 200000 objects is the whole journey's, shared with the lineage and the report."
+    },
+    "groups": {
+      "type": "array",
+      "maxItems": 20000,
+      "items": {
+        "$ref": "#/$defs/objectGroup"
+      }
+    },
+    "colors": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "uses",
+        "contrastPairs"
+      ],
+      "properties": {
+        "uses": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "$ref": "#/$defs/colorUse"
+          }
+        },
+        "contrastPairs": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "$ref": "#/$defs/contrastPair"
+          }
+        }
+      }
+    },
+    "fonts": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "$ref": "#/$defs/fontUse"
+      }
+    },
+    "layouts": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "$ref": "#/$defs/layoutFeatures"
+      }
+    },
+    "flattenedSlideIds": {
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "$ref": "#/$defs/sourceWarning"
+      }
+    }
+  }
+}

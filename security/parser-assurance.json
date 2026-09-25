@@ -122,6 +122,18 @@
         "notes": "The exemplar. See \"The standard to follow\". Entity expansion is explicitly delegated to the injected parser, and the module compensates with a visited-node counter."
       }
     },
+    "engine/src/svg-items.ts": {
+      "fuzzTargets": [
+        "svg-items"
+      ],
+      "details": {
+        "inputSource": "SVG markup from a slide picture (`asvg:svgBlip`) plus an injected XML parser, and `a:custGeom` path lists already read by `pptx-read.ts`",
+        "bounds": "`VECTOR_ITEM_MAX_NODES = 20_000`, `VECTOR_ITEM_MAX_ENCODED = 400_000` characters per Design path value, `MAX_DEPTH = 64`, `MAX_USE_DEPTH = 8` with a `<use>` cycle check, `VECTOR_ITEMS_MAX = 2000` items and `VECTOR_ITEMS_MAX_CHARS = 1_048_576` characters of path data per object, `VECTOR_DECK_ITEMS_MAX = 20_000` per deck, `MAX_VECTOR_ROWS_PER_OBJECT = 400`, `MAX_VECTOR_ROWS_PER_FRAME = 1200`",
+        "directTests": "`tests/svg-items.test.ts`",
+        "fuzzCoverage": "`svg-items` (`svgItemsOf` then `vectorItemsToRows` and `vectorItemsSvg`)",
+        "notes": "DOM-free. Foreign namespaces are ignored, an invisible part is dropped, and an unsupported part is left out with its reason in `omitted`. Reaching a cap stops the read with `cap-reached` and the caller keeps the picture."
+      }
+    },
     "engine/src/pptx-patch.ts": {
       "fuzzTargets": [
         "pptx-patch"

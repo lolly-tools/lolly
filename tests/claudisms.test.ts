@@ -109,3 +109,24 @@ test('LEXICON_VERSION is a positive integer consumers can key persisted analyses
   assert.equal(Number.isInteger(LEXICON_VERSION), true);
   assert.ok(LEXICON_VERSION > 0);
 });
+
+test('the "…here," aside catches the pointer use and leaves the place senses alone', () => {
+  const aside = CLAUDE_TELLS.find(t => t.label === 'the "…here," aside');
+  assert.ok(aside, 'expected the "…here," aside tell');
+  const hits = (s: string) => [...s.matchAll(new RegExp(aside!.re.source, aside!.re.flags))].length;
+  for (const s of [
+    'The risk here, though, is the export path.',
+    'What matters here, then, is the fallback.',
+    'The trick here, of course, is timing.',
+  ]) assert.equal(hits(s), 1, `expected a hit: ${s}`);
+  for (const s of [
+    'Put the box over here, next to the logo.',
+    'Click here, then choose Export.',
+    'Come here, quickly.',
+    'We have lived here, on and off, for years.',
+    'Here, the layout changes.',
+    'The layout is fine here.',
+    // The copula flourish already scores this span; it must not count twice.
+    'The export is the weak point here, clearly.',
+  ]) assert.equal(hits(s), 0, `expected no hit: ${s}`);
+});

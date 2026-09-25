@@ -23,7 +23,10 @@ test('the Start studio can show every UI role without adding any of them to a br
   // colours. The sizes and type tiers stay out of brand-vars.ts's UI_SLOTS, as
   // size.target and the rest of the type scale always have; the three colours
   // are in it, because every other colour role is.
-  assert.equal(tokens.length, 75);
+  // 75 to 77 on 2026-09-24 (plan 275 close-out): effect.selection-ring and its hover
+  // form, the 2px ring a chooser tile wears. Effects stay out of UI_SLOTS, as
+  // effect.selected and effect.accent-ring do.
+  assert.equal(tokens.length, 77);
   assert.equal(tokens.find(t => t.path.join('.') === 'type.tracking-label')?.type, 'letterSpacing');
   assert.equal(tokens.find(t => t.path.join('.') === 'color.text.default')?.type, 'color');
   assert.equal(tokens.find(t => t.path.join('.') === 'color.selection.surface')?.type, 'color');

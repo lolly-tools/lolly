@@ -7,29 +7,39 @@ import { tRaw } from '../i18n.ts';
 
 export function mountEmojiPackImport(root: HTMLElement, api: EmojiAPI, installed: (info: EmojiSetInfoV1) => void): void {
   if (!api.install) return;
-  const label = document.createElement('label');
-  label.className = 'field-row';
-  const title = document.createElement('span'); title.className = 'field-label'; title.textContent = tRaw('Import emoji set');
+  const row = document.createElement('div');
+  row.className = 'field-row';
+  const titleId = `emoji-import-${Math.random().toString(36).slice(2, 8)}`;
+  const title = document.createElement('span'); title.className = 'field-label'; title.id = titleId; title.textContent = tRaw('Import emoji set');
+  // The native file control never shows ("No file chosen"): the input is visually
+  // hidden and kept out of the tab order and the accessibility tree, and a
+  // standard button, named by the row label and its own text, opens it.
   const input = document.createElement('input'); input.type = 'file'; input.accept = '.json,application/json';
+  input.className = 'visually-hidden'; input.tabIndex = -1; input.setAttribute('aria-hidden', 'true');
+  const choose = document.createElement('button'); choose.type = 'button'; choose.className = 'btn';
+  choose.id = `${titleId}-choose`;
+  choose.textContent = tRaw('Choose an emoji set…');
+  choose.setAttribute('aria-labelledby', `${titleId} ${choose.id}`);
+  choose.addEventListener('click', () => input.click());
   const status = document.createElement('p'); status.className = 'emoji-style-note'; status.setAttribute('role', 'status');
-  status.textContent = tRaw('Import a Lolly emoji pack with its artwork, version and source credits. Earlier versions stay available to saved documents.');
+  status.textContent = tRaw('Import a Lolly emoji set with its artwork, version and source credits. Earlier versions stay available to saved documents.');
   input.addEventListener('change', () => {
     const file = input.files?.[0]; if (!file) return;
-    input.disabled = true; status.textContent = tRaw('Checking emoji artwork…');
+    input.disabled = true; choose.disabled = true; status.textContent = tRaw('Checking emoji artwork…');
     void (async () => {
       if (file.size > EMOJI_BUNDLE_MAX_BYTES) throw new Error(tRaw('Emoji pack exceeds the 64 MiB limit.'));
       const info = await api.install!(new Uint8Array(await file.arrayBuffer()));
       installed(info);
     })().catch(error => { status.textContent = String(error instanceof Error ? error.message : error); })
-      .finally(() => { input.disabled = false; input.value = ''; });
+      .finally(() => { input.disabled = false; choose.disabled = false; input.value = ''; });
   });
-  label.append(title, input); root.append(label, status);
+  row.append(title, choose, input); root.append(row, status);
 }
 
 /** An editable pack export retains original artwork and all source notices. */
 export function mountEmojiPackExport(root: HTMLElement, host: HostV1, style: EmojiStyleV1 | null): void {
   if (!style || !host.emoji) return;
-  const button = document.createElement('button'); button.type = 'button'; button.textContent = tRaw('Export emoji set');
+  const button = document.createElement('button'); button.type = 'button'; button.className = 'btn'; button.textContent = tRaw('Export emoji set');
   const status = document.createElement('p'); status.setAttribute('role', 'status'); root.append(button, status);
   button.addEventListener('click', () => {
     button.disabled = true;

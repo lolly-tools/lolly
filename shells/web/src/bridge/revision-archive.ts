@@ -52,7 +52,7 @@ export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
         const usage = await tx.objectStore('revision-usage').get('total') ?? { bytes: 0, previews: 0 };
         for (const row of archive.revisions) {
           const existing = await tx.objectStore('revisions').get(row.entry.id) as RevisionEntry | undefined;
-          if (existing && (!same({ ...existing, assetRefs: row.entry.assetRefs, reason: 'save' }, { ...row.entry, reason: 'save' }) || !same(await tx.objectStore('revision-payloads').get(row.entry.id), row.data))) conflict(row.entry.label);
+          if (existing && (!same({ ...existing, stored: undefined, assetRefs: row.entry.assetRefs, reason: 'save' }, { ...row.entry, reason: 'save' }) || !same(await tx.objectStore('revision-payloads').get(row.entry.id), row.data))) conflict(row.entry.label);
           if (!existing) {
             usage.bytes += row.entry.bytes;
             await tx.objectStore('revisions').add(row.entry);

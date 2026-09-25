@@ -17,8 +17,27 @@ import { positionEditorPopover } from '../free-canvas-popover.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { SVG, icon } from '../free-canvas-icons.ts';
+import { slideMasterMenuCopy } from './slide-masters.ts';
 import type { ImportMode, PopGridItem, PopItem } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
+
+/** The `data-pop` keys the two chooser rows carry, so `run` can find its own row. */
+const NEW_SLIDE_KEY = 'slide-archetype-new';
+const APPLY_ARCHETYPE_KEY = 'slide-archetype-apply';
+
+/**
+ * The rendered menu row for one `key`, which is what the archetype chooser opens beside.
+ *
+ * `key` is already the way a row is found again after it is drawn (`fillPopover` writes
+ * it as `data-pop`), and a row's `run` is called while the menu is still up, so this
+ * hands the chooser the row that was pressed instead of the whole canvas. The canvas was
+ * the old anchor, and it put the panel in the bottom-left corner of the stage however far
+ * away the right-click had been. A menu that somehow is not there falls back to the
+ * caller's own element, which is the behaviour this replaces.
+ */
+function menuRow(fc: FcCtx, key: string): HTMLElement | null {
+  return fc.popover?.querySelector<HTMLElement>(`[data-pop="${key}"]`) ?? null;
+}
 
 export function spawnPopover(fc: FcCtx, anchor: HTMLElement, items: PopItem[]): void {
   const { stageEl } = fc;
@@ -160,28 +179,50 @@ export async function importAsScenes(fc: FcCtx, f: File | Blob, setStatus: (m: s
  * deck-or-animation stays the user's call after the import as well as before it.
  * Returns the number of artboards laid down.
  */
-export async function importAsArtboards(fc: FcCtx, 
-  f: File | Blob,
-  setStatus: (m: string) => void
+export async function importAsArtboards(fc: FcCtx,
+  f: File | Blob | null,
+  setStatus: (m: string) => void,
+  opts: ArtboardImportOpts = {}
 ): Promise<number> {
   const { FRAME_NOTES_FIELD, addKinds, cfg, frameCfg, host, importMap, setCanvasSize } = fc;
   if (!frameCfg) throw new Error(t('This tool has no artboards.'));
-  const { parseDesignArtboards } = await import('../design-import.ts');
-  const pages = fc.pendingImport?.rules ? await (await import('../design-rules-pages.ts')).chooseRulesPages(f) : undefined;
-  const res = await parseDesignArtboards(f, {
-    host: host as any,
-    log: setStatus,
-    interactive: !fc.pendingImport?.rules,
-    pages,
-    map: fc.pendingImport?.rules ? { ...importMap, fonts: { ...importMap?.fonts, preserveSource: true } } : importMap,
-  });
-  if (!res.frames.length) throw new Error(t('Nothing importable was found in that file.'));
+  let frames: ArtboardFrameInput[];
+  let background: string | undefined;
+  if (opts.frames) {
+    // Pages a caller already holds as authored rows (the renovation handoff). No file
+    // is read and no picker opens: everything below is the same layout the file path runs.
+    frames = opts.frames;
+    background = opts.background;
+  } else {
+    if (!f) throw new Error(t('Nothing importable was found in that file.'));
+    const { parseDesignArtboards } = await import('../design-import.ts');
+    const pages = fc.pendingImport?.rules ? await (await import('../design-rules-pages.ts')).chooseRulesPages(f) : undefined;
+    const res = await parseDesignArtboards(f, {
+      host: host as any,
+      log: setStatus,
+      interactive: !fc.pendingImport?.rules,
+      pages,
+      map: fc.pendingImport?.rules ? { ...importMap, fonts: { ...importMap?.fonts, preserveSource: true } } : importMap,
+    });
+    frames = res.frames;
+    background = res.background;
+  }
+  // A caller that handed over its own pages did not choose a file, so it is not told
+  // about one.
+  if (!frames.length)
+    throw new Error(opts.frames ? t('This file has no pages to add.') : t('Nothing importable was found in that file.'));
   const fk = frameCfg.frameKind;
   const frameAddKind = addKinds.find(
     (k) => k.id === 'frame' || (k.seed != null && String(k.seed[cfg.kindField]) === fk)
   );
+  // The pages the layout keeps, in its own order, so a kept-id queue and the per-page
+  // extra fields line up with the rows that come back.
+  const laid = frames.filter((p) => p && p.width > 0 && p.height > 0);
+  // The geometry config carries no name field; the tool's `canvas.labelField` is
+  // `fc.nameField`, and without it every page arrives as "Artboard N".
+  const layoutCfg = fc.nameField ? { ...cfg, labelField: fc.nameField } : cfg;
   const rows = layoutArtboards(
-    res.frames.map((fr) => ({
+    frames.map((fr) => ({
       name: fr.name,
       width: fr.width,
       height: fr.height,
@@ -194,23 +235,193 @@ export async function importAsArtboards(fc: FcCtx,
       ...(fr.notes ? { notes: fr.notes } : {}),
     })),
     {
-      cfg,
+      cfg: layoutCfg,
       frameField: frameCfg.frameField,
       frameKind: fk,
       orderField: frameCfg.orderField,
       frameSeed: (frameAddKind?.seed || {}) as Box,
-      mintId: (used) => fc.select.freshId(used),
-      background: res.background,
+      mintId: artboardMinter(fc, laid, cfg.idField, opts),
+      background,
       notesField: FRAME_NOTES_FIELD,
     }
   );
+  applyFrameExtras(rows, laid, layoutCfg, frameCfg.frameField, frameCfg.orderField, FRAME_NOTES_FIELD);
   if (fc.disposed) return 0;
   fc.selection = new Set<string>();
   fc.select.commit(rows);
-  const first = res.frames[0]!;
+  focusLaidPage(fc, rows, laid, opts.focusFrameId ?? laid.find((p) => p.focus)?.id, frameCfg.frameKind);
+  const first = frames[0]!;
   if (setCanvasSize && first.width > 0 && first.height > 0)
     setCanvasSize(first.width, first.height, 'px');
-  return res.frames.length;
+  // What the layout kept, not what it was handed: a page with no size is left out, so
+  // counting the pages would tell the caller about an artboard that is not there.
+  const missing = frames.length - laid.length;
+  if (missing > 0)
+    opts.onWarning?.(
+      missing === 1
+        ? t('1 page had no size, so it was left out.')
+        : t('{n} pages had no size, so they were left out.', { n: missing })
+    );
+  return laid.length;
+}
+/**
+ * Pan the stage onto the artboard laid for the page `pageId` names, once the canvas has
+ * drawn it (the frame rows are laid in the pages' order, so the nth frame row is the
+ * nth page even when the ids were minted fresh). Nothing happens for an unknown page.
+ */
+function focusLaidPage(fc: FcCtx, rows: Box[], laid: ArtboardFrameInput[], pageId: string | undefined, frameKind: string): void {
+  if (!pageId) return;
+  const at = laid.findIndex((page) => page.id === pageId);
+  if (at < 0) return;
+  const frameRows = rows.filter((row) => row && String(row[fc.cfg.kindField]) === frameKind);
+  const row = frameRows[at];
+  if (!row) return;
+  const id = String(row[fc.cfg.idField] ?? '');
+  if (!id) return;
+  const pan = (): void => {
+    if (!fc.disposed) fc.document.focusArtboard(id);
+  };
+  // The artboard is in the DOM only after the next paint.
+  if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => requestAnimationFrame(pan));
+  else setTimeout(pan, 0);
+}
+/**
+ * One page ready to become an artboard, handed over by a caller rather than read out
+ * of a file. The fields `parseDesignArtboards` produces, plus the two a caller holding
+ * authored rows needs: the frame's own id, and extra fields for the frame row (a
+ * compiled deck's archetype, its master, the transition the slide carries).
+ */
+export interface ArtboardFrameInput {
+  id?: string;
+  name: string;
+  width: number;
+  height: number;
+  boxes: unknown[];
+  background?: string;
+  notes?: string;
+  extra?: Record<string, string | number | boolean | null>;
+  /**
+   * The page the view opens on once the pages are laid (a renovated deck opened on one
+   * slide, plan 275 section 5.1). Read by the import, never written to the frame row.
+   */
+  focus?: boolean;
+}
+/** What `importAsArtboards` will do differently. With none of it, the file path is unchanged. */
+export interface ArtboardImportOpts {
+  /** Pages to lay down instead of reading the file. */
+  frames?: ArtboardFrameInput[];
+  /** The ground under every frame that has none of its own, for supplied pages. */
+  background?: string;
+  /** Keep the ids the pages and their boxes carry (see `artboardMinter`). */
+  keepIds?: boolean;
+  /** Told about anything that could not be honoured. */
+  onWarning?: (message: string) => void;
+  /**
+   * Told once, when `keepIds` was asked for, whether the rows kept their own ids. A
+   * caller whose records name those ids needs that as a fact, not as a message it has
+   * to read: with false, every id on the canvas is a fresh one.
+   */
+  onIdsKept?: (kept: boolean) => void;
+  /**
+   * The id of the page to open the view on, among `frames` (plan 275 section 5.1). A
+   * page with `focus: true` names it too. The stage pans to that artboard once it has
+   * drawn, the way a filmstrip cell's click does; nothing is selected.
+   */
+  focusFrameId?: string;
+}
+/**
+ * Which id each row gets. Without `keepIds` this is the shell's own minter, which is
+ * what every file import has always used. With it, and when every supplied id is
+ * there and used once, the rows keep the ids the caller gave them: `layoutArtboards`
+ * asks for one id per page and then one per box of that page, in order, so the queue
+ * answers in that order and the clip and group references are rewritten through it as
+ * usual. An id that repeats or is missing falls back to minting for the WHOLE import
+ * and says so - a half-kept set of ids is worse than none, because the lineage that
+ * names them would then be right about some rows and wrong about others.
+ */
+function artboardMinter(
+  fc: FcCtx,
+  laid: ArtboardFrameInput[],
+  idField: string,
+  opts: ArtboardImportOpts
+): (used: Box[]) => string {
+  const mint = (used: Box[]): string => fc.select.freshId(used);
+  if (!opts.keepIds) return mint;
+  const queue: string[] = [];
+  const seen = new Set<string>();
+  let usable = true;
+  let repeated = false;
+  for (const page of laid) {
+    const boxes = (Array.isArray(page.boxes) ? page.boxes : []).filter(
+      (b): b is Box => !!b && typeof b === 'object'
+    );
+    for (const id of [page.id ?? '', ...boxes.map((b) => (b[idField] == null ? '' : String(b[idField])))]) {
+      if (!id || seen.has(id)) {
+        usable = false;
+        repeated = !!id;
+        break;
+      }
+      seen.add(id);
+      queue.push(id);
+    }
+    if (!usable) break;
+  }
+  opts.onIdsKept?.(usable);
+  if (!usable) {
+    // Two different things to fix, so two different sentences: a collision means two
+    // rows claim one id, a missing id means a row brought none at all.
+    opts.onWarning?.(
+      repeated
+        ? t('Some layers in this document share an id, so every layer was given a fresh one.')
+        : t('Some layers in this document have no id, so every layer was given a fresh one.')
+    );
+    return mint;
+  }
+  let at = 0;
+  return (used: Box[]) => queue[at++] ?? mint(used);
+}
+/**
+ * Write each page's extra fields onto its frame row. The layout owns identity,
+ * position, size, rotation, kind, order, the frame link, and everything it takes off
+ * the page itself - the name, the ground and the speaker notes - so a key naming one
+ * of those is skipped: a caller adds what the layout has no opinion about, never a
+ * field it has just set. Frame rows are the ones with an empty frame field - a frame
+ * never nests.
+ */
+function applyFrameExtras(
+  rows: Box[],
+  laid: ArtboardFrameInput[],
+  // The same view of the fields `layoutArtboards` takes: a tool that names its rows
+  // declares a label field, and one that does not simply has none.
+  cfg: FcCtx['cfg'] & { labelField?: string },
+  frameField: string,
+  orderField?: string,
+  notesField?: string
+): void {
+  if (!laid.some((p) => p.extra)) return;
+  const owned = new Set(
+    [
+      cfg.idField,
+      cfg.xField,
+      cfg.yField,
+      cfg.wField,
+      cfg.hField,
+      cfg.kindField,
+      cfg.labelField,
+      cfg.fillField,
+      cfg.rotationField,
+      frameField,
+      orderField,
+      notesField,
+    ].filter((k): k is string => !!k)
+  );
+  let at = 0;
+  for (const row of rows) {
+    if (row[frameField] !== '') continue;
+    const extra = laid[at++]?.extra;
+    if (!extra) continue;
+    for (const [key, value] of Object.entries(extra)) if (!owned.has(key)) row[key] = value;
+  }
 }
 // Import a design file (Figma SVG / Penpot). The heavy DOM parser is lazy-loaded so it
 // only ships to sessions that actually import. On success we REPLACE the whole boxes
@@ -761,6 +972,29 @@ export function openContextMenu(fc: FcCtx, clientX: number, clientY: number): vo
         icon: icon(SVG.notes),
         run: () => fc.fieldPanels.openSpeakerNotesPanel(viewEl, si[0]!),
       });
+      // Slide masters (plan 274 section 3.4): a frame seeded from a slide master can be
+      // re-laid into a different archetype, or put back the way the master states it,
+      // both keeping what the placeholders hold. A frame nobody seeded gets neither row.
+      if (fc.slideMasters.frameIsSeeded(String(one[cfg.idField] ?? ''))) {
+        const frameId = String(one[cfg.idField] ?? '');
+        const copy = slideMasterMenuCopy();
+        slideItems.push({
+          key: APPLY_ARCHETYPE_KEY,
+          label: copy.applyLayout,
+          icon: icon(SVG.templates),
+          run: () =>
+            fc.slideMasters.openArchetypePanel(
+              menuRow(fc, APPLY_ARCHETYPE_KEY) ?? viewEl,
+              'apply',
+              frameId
+            ),
+        });
+        slideItems.push({
+          label: copy.resetSlide,
+          icon: icon(SVG.undo),
+          run: () => fc.slideMasters.resetSlide(frameId),
+        });
+      }
       // Sub-slide stacks (plan 112 M5): structure disposes. Stacking writes the
       // previous COLUMN HEAD's id into stackOf; unstacking clears it. Present
       // order is the hook's own (order asc, x asc), so "previous" here is
@@ -814,6 +1048,22 @@ export function openContextMenu(fc: FcCtx, clientX: number, clientY: number): vo
         run: () => fc.fieldPanels.openBoxClassPanel(viewEl, si[0]!),
       });
     }
+  }
+  // Slide masters (plan 274 section 3.4): a new slide seeded from one of the design
+  // system's archetypes, on every frame-capable canvas whatever is selected. The words
+  // are slide-masters.ts's own, so the module that does the thing names it. A design
+  // system with no master leaves the row disabled and silent: `slideMasterMenuCopy`
+  // holds the one sentence it would say, and `PopAction` has nowhere to put it.
+  if (frameCfg) {
+    const hasMaster = fc.slideMasters.masterStatus() !== 'none';
+    items.push({ sep: true });
+    items.push({
+      key: NEW_SLIDE_KEY,
+      label: slideMasterMenuCopy().newSlide,
+      icon: icon(SVG.pages),
+      run: () => fc.slideMasters.openArchetypePanel(menuRow(fc, NEW_SLIDE_KEY) ?? viewEl, 'new'),
+      disabled: !hasMaster,
+    });
   }
   // ── vector operations ──────────────────────────────────────────────────────
   // Present only for tools whose manifest declares `canvas.pathField` (there is

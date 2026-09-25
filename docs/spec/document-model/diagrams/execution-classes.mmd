@@ -1,0 +1,6 @@
+graph LR
+  hooks[Hook code] --> trusted[trusted-realm, no enforcement]
+  hooks --> isolated[isolated-worker, in-realm fallback]
+  hooks --> strict[strict-worker, fails closed]
+  hooks --> nodew[node-worker, worker threads]
+  hooks --> vm[vm, reserved]

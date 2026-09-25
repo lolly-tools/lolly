@@ -6,7 +6,7 @@ import type { RevisionEntry, RevisionOptions } from './revision-history.ts';
 import type { RecoveryStore } from './revision-recovery.ts';
 import type { StateRecord } from './state.ts';
 import { MAX_REVISION_BYTES as MAX_BYTES } from './revision-limits.ts';
-import { revisionSnapshot } from './revision-snapshot.ts';
+import { packedRevisionSnapshot } from './revision-snapshot.ts';
 import { pinRevisionAssets } from './revision-asset-pins.ts';
 import { collectAssetRefs } from './asset-ref-collector.ts';
 import { REVISION_STORES as STORES, type DocumentHead, documentVersion, writeCurrentState } from './revision-records.ts';
@@ -28,7 +28,7 @@ export function expiredAutomatic(entries: RevisionEntry[], now: number): Revisio
 
 export async function commitRevision(db: IDBPDatabase, recovery: RecoveryStore, record: StateRecord, options: RevisionOptions): Promise<RevisionEntry & { currentVersion?: string }> {
   // Hash before opening IDB: awaiting crypto inside a transaction closes it.
-  const snapshot = await revisionSnapshot(pinRevisionAssets(record.data));
+  const snapshot = await packedRevisionSnapshot(pinRevisionAssets(record.data));
   const assetRefs = new Set<string>();
   collectAssetRefs(snapshot.data, assetRefs);
   const tx = db.transaction(STORES, 'readwrite');
@@ -56,7 +56,7 @@ export async function commitRevision(db: IDBPDatabase, recovery: RecoveryStore, 
     const entry: RevisionEntry = {
       id: crypto.randomUUID(), documentId, slot: record.slot, parentId: prior?.head ?? null,
       toolId: record.toolId ?? '', label: record.label || record.toolId || 'Untitled',
-      at: record.updatedAt, reason: options.reason, hash: snapshot.hash, bytes: snapshot.bytes, assetRefs: [...assetRefs],
+      at: record.updatedAt, reason: options.reason, hash: snapshot.hash, bytes: snapshot.bytes, stored: snapshot.stored, assetRefs: [...assetRefs],
       toolVersion: record.toolVersion, formatVersion: record.formatVersion,
       engineVersion: record.engineVersion, designSystem: record.designSystem,
     };
@@ -68,17 +68,17 @@ export async function commitRevision(db: IDBPDatabase, recovery: RecoveryStore, 
     for (const expired of expiredAutomatic([...old, entry], Date.parse(entry.at))) {
       if (expired.id === entry.id) continue;
       const preview = await tx.objectStore('revision-previews').get(expired.id) as string | undefined;
-      usage.bytes -= expired.bytes;
+      usage.bytes -= expired.stored ?? expired.bytes;
       usage.previews -= preview ? new TextEncoder().encode(preview).byteLength : 0;
       await revisions.delete(expired.id);
       await tx.objectStore('revision-payloads').delete(expired.id);
       await tx.objectStore('revision-previews').delete(expired.id);
     }
-    if (usage.bytes + snapshot.bytes > MAX_BYTES) throw new Error('History storage is full. Your previous checkpoints are safe; export an editable .lolly file.');
-    usage.bytes += snapshot.bytes;
+    if (usage.bytes + snapshot.stored > MAX_BYTES) throw new Error('History storage is full. Your previous checkpoints are safe; export an editable .lolly file.');
+    usage.bytes += snapshot.stored;
     await tx.objectStore('revision-usage').put(usage, 'total');
     await revisions.add(entry);
-    await tx.objectStore('revision-payloads').add(snapshot.data, entry.id);
+    await tx.objectStore('revision-payloads').add(snapshot.payload, entry.id);
     await docs.put({ slot: record.slot, documentId, head: entry.id, hash: entry.hash, workingHash: entry.hash, version: entry.id });
     await writeCurrentState(tx, record, snapshot.data, documentId);
     await recovery.clearCommitted(tx, record.slot);

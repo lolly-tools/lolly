@@ -72,7 +72,7 @@ export function refreshPrintUi(ta: ActionsCtx): void {
     // Print marks live in their own section now (data-printmarks-only), so the
     // protection wrapper's visibility does NOT include isPrintFmt.
     const anyValid =
-      fmt === 'pdf' || fmt === 'pdf-cmyk' || fmt === 'zip' || isC2paFmt(fmt) || isImprintFmt(fmt);
+      fmt === 'pdf' || fmt === 'pdf-cmyk' || fmt === 'zip' || isC2paFmt(fmt) || isImprintFmt(fmt) || ta.hasLicence;
     protectionEl.style.display = anyValid ? 'flex' : 'none';
   }
   refreshNotesHandoutUi(ta);

@@ -12,7 +12,7 @@ Three absences on that page are the ones an operator asks about first. There is 
 
 ## Every network crossing is a user act
 
-The complete list of what the app can fetch or send lives in the [privacy policy's network table](/info/privacy.html#when-the-app-talks-to-a-network-in-full). It is a table because each row carries four facts: what it is, what actually leaves the device, the act that triggers it and what happens when an operator blocks it. The rows cover catalogue sync, a tool that needs live data, Google Fonts, ICC press profiles, internet radio, a URL you ask a tool to capture, the SEAL signature check, deep-scan detector models and a remote instance you point the shell at. Read the table rather than a summary of it - the specifics are the point, and each row names its host.
+The complete list of what the app can fetch or send lives in the [privacy policy's network table](/info/privacy.html#when-the-app-talks-to-a-network-in-full). It is a table because each row carries four facts: what it is, what actually leaves the device, the act that triggers it and what happens when an operator blocks it. The rows cover catalogue sync, a tool that needs live data, Google Fonts, ICC press profiles, internet radio, a URL you ask a tool to capture, the SEAL signature check, deep-scan detector models and a remote instance you point the shell at. Read the table rather than a summary of it - the specifics are the point, and each row gives its host.
 
 Two properties of that table matter more than any single row. Every fixed host in it is also the app's Content-Security-Policy allowlist, which the browser enforces, so the list is the boundary the app is held to rather than a description of current behaviour. And `tests/security-headers.test.ts` pins that policy across both places it is expressed in the repo - `vercel.json` and `deploy/docker/nginx.conf` - so one copy cannot silently lose a directive. There were three until 2026-08; the third, `shells/web/vercel.json`, was a config nothing deployed from, which is how it managed to ship a stale CSP for months, and the test now pins it deleted rather than trusting the next reader to know it was dead.
 
@@ -84,7 +84,7 @@ Lolly is built inside SUSE, a European infrastructure company with more than thr
 
 ## Related
 
-- [Constraints](/info/constraints.html) - the brand rules living in the tool rather than in a review queue.
+- [Constraints](/info/constraints.html) - the brand rules living in the tool rather than in each file.
 - [Determinism](/info/determinism.html) - the same render on your own hardware as in anyone else's browser.
 - [Reproducibility](/info/reproducibility.html) - the inputs travelling as text you keep.
 - [Server Surface](/info/server-surface.html), [Deployment](/info/deployment.html) and [Verify It Yourself](/info/verify-yourself.html) - the inventory, the runbook and the procedures to check all of it.

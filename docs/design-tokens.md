@@ -85,7 +85,7 @@ Two foundation values are especially useful when starting with a token library:
 
 Choose **Export Lolly UI to Penpot** in [Components](/#/components) to get the
 stock library as editable frames plus both token layers and the active brand.
-The archive names every declared app component/pattern and uses sample data by
+The archive holds every declared app component/pattern and uses sample data by
 default. Token records are present in `tokens.json`; a property that Penpot
 cannot bind natively remains an editable resolved value rather than a misleading
 claim of a live binding. Lolly does not export personal sessions or current
@@ -122,7 +122,7 @@ How it moves through the engine:
 
 - **Editing past a token** (typing a hex, dragging alpha) emits a plain string - deliberately de-linking from the token, because the user just overrode it.
 
-Nothing in the link below names a colour. Its three colour params are token paths (`{color.spectrum.violet}`, `{color.spectrum.teal}`, `{color.spectrum.amber}`), resolved at render time against whatever brand the device is carrying.
+The link below holds no colour value. Its three colour params are token paths (`{color.spectrum.violet}`, `{color.spectrum.teal}`, `{color.spectrum.amber}`), resolved at render time against whatever brand the device is carrying.
 
 ![A mesh gradient whose violet, teal and amber all arrived as token references in the link rather than as hex values](/t/url-shot?url=%2F%23%2Ftool%2Fgradient%3Fcount%3D3%26color1%3D%257Bcolor.spectrum.violet%257D%26color2%3D%257Bcolor.spectrum.teal%257D%26color3%3D%257Bcolor.spectrum.amber%257D%26full&width=880&height=560&dpi=96&waitMs=2400&walker=1&format=svg&dark=1&filename=at2-token-refs-in-url)
 

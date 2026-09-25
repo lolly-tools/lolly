@@ -24,21 +24,21 @@ Bu belge, Lolly platformunun amacını, yapısını ve mimari kararlarını kay�
 
 ## Bunun neden var olduğu
 
-Ekipler tekrar eden bir sorunla karşılaşır: her seferinde yetenekli ellere ihtiyaç duyulmayacak kadar öngörülebilir, ama korkuluklar olmadan devredilemeyecek kadar kalite hassasiyeti yüksek, tekrarlanabilir yaratıcı ve içerik işleri. Sonuç ya yavaş verimdir (uzman darboğazı), ya tutarsızlıktır (insanların ellerindeki her aracı kullanması) ya da satıcı bağımlılığıdır (şablonlarını kontrol eden bir SaaS DAM).
+Tekrarlanabilir yaratıcı iş, her seferinde yetenekli ellere ihtiyaç duyulmayacak kadar öngörülebilir ve korkuluklar olmadan devredilemeyecek kadar kalite hassasiyeti yüksek. Kendi haline bırakıldığında üç yoldan birine gider: yavaş, tutarsız ya da bir satıcının şablonlarına kilitlenmiş.
 
 Bu platform bunun doğrudan cevabıdır:
 
-> **Ölçekte programatik yaratıcılık ve içerik** - kuralların merkezi kontrol altında olduğu, çalışanlar, tedarikçiler ve iş ortakları için sıfır emekle varlık üretimi.
+> **Ölçekte programatik yaratıcılık ve içerik** - girdilerden varlık üretimi, kuralların bir kez belirlendiği, ihtiyacı olan herkes için.
 
 Lolly bir tasarım sisteminin icat edildiği yer değil - üretildiği yerdir. Onu tasarım için bir otomat gibi düşün: bir seçim yap, bir sonuç al. Her seferinde. Motor, önündeki donanımın her biçimde üretebileceği en yüksek kaliteyi hedefler ve aynı motor, dağıtıldığı her yüzeyde aynı dosyayı üretir.
 
-Sonuç **bolluktur**: her etkinliğin doğru tabelası vardır, her CVE uyarısı kurumsal stille eşleşir, her etiket temiz basılır, her e-posta imzası günceldir - hepsi bir tasarım talebi olmadan. Platform, tekrar eden, operasyonelleştirilmiş yaratıcı işleri yönetir. Bilinçli olarak özel bir yaratıcı araç değildir - tasarımcılar amiral gemisi işleri hâlâ kendi ellerinde tutar.
+Sonuç **bolluktur**: her etkinliğin doğru tabelası vardır, her CVE uyarısı kurumsal stille eşleşir, her etiket temiz basılır, her e-posta imzası günceldir - hepsi kuralları zaten taşıyan araçlardan gelir. Platform, tekrar eden, operasyonelleştirilmiş yaratıcı işleri yönetir. Bilinçli olarak özel bir yaratıcı araç değildir - tasarımcılar amiral gemisi işleri hâlâ kendi ellerinde tutar.
 
 ### Olasılıksal olarak yenilik yap, deterministik olarak ölçeklendir
 
 Yaratıcı bir iş akışında yapay zeka hakkındaki her tartışma aynı soruda tıkanır: bunun hangi kısmı makinenin işi? Bu, cevabı çoktan verilmiş eski bir sorudur. Yazıcılar ve tezhipçiler zaten iki araç arasında çalışıyordu - hiçbir şeyin sabit olmadığı, her şeyin denenebildiği gevşek eskiz ve tam da bir taahhütte bulunduğu için ürkütücü olan baskı makinesi. Sanat, eskizlerde gerçekleşiyordu. Baskı ise onu herkese ulaştıran araçtı. Kimse ikisini birbirine karıştırmadı ve ikisi de ilerlemeye devam etti - yeni mürekkepler, yeni yazı karakterleri, yeni baskı makineleri - her biri, hizmet ettiği zanaat ve niyetle uyum içinde gelişerek.
 
-Lolly aynı çizgiyi çizer. Olasılıksal olarak keşfet: bir model, bir tasarımcı, kaba bir fikir, kimsenin planlamadığı bir yere giden bir prompt. Sonra deterministik olarak ölçeklendir - on bin çıktıya ulaşan şey bir *araçtır* ve bir araç, okuyabildiğin girdilerden her seferinde aynı şekilde render edilir. Keşif özgür kalır, çünkü aşağı akıştaki hiçbir şey onun iki kez aynı şekilde sonuçlanmasına bağlı değildir. Çıktı güven kazanır, çünkü bir tahmin değildir. Yapay zeka deneyselliğini öngörülebilir, yeniden üretilebilir sonuçlara dönüştürmek yeni bir disiplin değildir; basılı işi baştan güvenilir kılan iş bölümünün ta kendisidir.
+Lolly aynı çizgiyi çizer. Olasılıksal olarak keşfet: bir model, bir tasarımcı, kaba bir fikir, kimsenin planlamadığı bir yere giden bir prompt. Sonra deterministik olarak ölçeklendir - birçok çıktıya dönüşen şey bir *araçtır* ve bir araç, okuyabildiğin girdilerden her seferinde aynı şekilde render edilir. Keşif özgür kalır, çünkü aşağı akıştaki hiçbir şey onun iki kez aynı şekilde sonuçlanmasına bağlı değildir. Çıktı güven kazanır, çünkü bir tahmin değildir. Yapay zeka deneyselliğini öngörülebilir, yeniden üretilebilir sonuçlara dönüştürmek yeni bir disiplin değildir; basılı işi baştan güvenilir kılan iş bölümünün ta kendisidir.
 
 > Yaratıcı sürece güven, titizlikle ölçeklendir.
 
@@ -76,19 +76,19 @@ Mesele Lolly'nin tasarımcılar için iyi *ve* geliştiriciler için iyi *ve* sa
 
 ---
 
-## Bir onay, on bin varlık
+## Tek araç, çok çıktı
 
-Onay dosyada değil araçta yaşadığı için (bkz. [Lolly nasıl karşılaştırılır](/info/positioning.html)), ölçek bir inceleme sorunu olmaktan çıkar. Yerelleştirilmiş bir sosyal medya kartı aracını bir kez onayla, ardından bir e-tablodan **12 dilde 10.000 varlık** üret - ve hiçbiri hukuk veya markadan yeni bir uyum kontrolü gerektirmez, çünkü hepsinin geldiği şablon zaten onaylanmıştı.
+Marka kuralları, aracın ürettiği her dosyada değil, aracın kendisinde yaşar (bkz. [Lolly nasıl karşılaştırılır](/info/positioning.html)). Aracı bir kez doğru kur, böylece her çıktı aynı yazı tipini, rengi ve boşluğu miras alır - bu ister tek bir kart olsun ister bir düzine dilde satırlardan oluşan bir e-tablo. İşini nasıl kontrol ettiğin ve bunu kimin yaptığı sana kalır; Lolly kontrol etmeye değer şeyi küçültür, çıktıyı ise daha hızlı üretir.
 
-Aynı deterministik araç bu ölçeğe üç yoldan ulaşır, hepsi aynı, önceden onaylanmış çıktıyı üretir:
+Aynı deterministik araç bu ölçeğe üç yoldan ulaşır, hepsi aynı çıktıyı üretir:
 
-- <!--i:people--> **Uygulamada bir kişi.** `/pro` toplu ızgarası: satırları yapıştır veya içe aktar, satır başına bir bitmiş varlık al, zip'i indir. Tasarım becerisi yok, talep yok, bekleme yok.
-- <!--i:code--> **Komut satırından bir geliştirici.** CLI, *aynı* motoru ve *aynı* render yolunu başsız çalıştırır, böylece araç bir betikte veya gece çalışan bir hatta 10.000 satırın tamamı üzerinde sıralanabilir. Bir döngüde bir `lolly <tool> --field=…` çağrısı bütün entegrasyondur.
-- <!--i:cpu--> **MCP üzerinden bir sistem veya bir yapay zeka ajanı.** Aynı araç, aynı doğrulukla ve daha da büyük ölçekte programatik olarak çalıştırılır - çünkü binlerce dosya gelirken bir makine sıkılmaz.
+- <!--i:people--> **Uygulamada bir kişi.** `/pro` toplu ızgarası: satırları yapıştır veya içe aktar, satır başına bir bitmiş varlık al, zip'i indir. Tasarım becerisi yok, bekleme yok.
+- <!--i:code--> **Komut satırından bir geliştirici.** CLI, *aynı* motoru ve *aynı* render yolunu başsız çalıştırır, böylece araç bir betikte veya gece çalışan bir hatta her satır üzerinde sıralanabilir. Bir döngüde bir `lolly <tool> --field=…` çağrısı bütün entegrasyondur.
+- <!--i:cpu--> **MCP üzerinden bir sistem veya bir yapay zeka ajanı.** Aynı araç, aynı doğrulukla ve işin sahip olduğu kadar satır için programatik olarak çalıştırılır.
 
 ![Yeni bir kurulumda toplu mod: bir araç bekleyen boş bir satır, henüz hiçbir veri gelmeden yerinde duran tüm hesap tablosu yüzeyi ve Render düğmesiyle birlikte](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-Bir tasarımcı tarafından bir kez sabitlenmiş tek bir marka kısıtları kümesi; aynı önceden onaylanmış çıktıya giden üç yol - ve makine yolu hepsinden daha uzağa ölçeklenir, çünkü dosyalar gelirken hiç yorulmaz.
+Bir tasarımcı tarafından bir kez sabitlenmiş tek bir marka kısıtları kümesi; aynı çıktıya giden üç yol.
 
 ---
 
@@ -390,11 +390,11 @@ Web kabuğu: IndexedDB. Tauri: dosya sistemi. CLI: bellek içi. Araçlar yalnız
 
 Kullanıcılar araç başına birden çok adlandırılmış düzenleme yuvası kaydedebilir ve her oturuma sonradan dönebilir. Hesap oluşturmaya gerek yoktur; durum cihaz başınadır. Köprü tek dikiş noktası olduğundan, bu cihaz başına durum aynı zamanda *taşınabilir*: `shells/web/src/data-transfer.ts`, `host.profile`/`host.state`/`host.assets` üzerinden her şeyi geri okuyarak tek bir `lolly-backup` zip dosyasına aktarır ve bu dosya başka herhangi bir kuruluma sunucu gerektirmeden içe aktarılabilir - "yeni bir cihaza geçme" sorusunun çevrimdışı yanıtı budur (tam özellik: `docs/data-transfer.md`). SUSE ID entegrasyonu (çoklu cihaz senkronizasyonu) bunun üzerine kurulacak gelecekteki bir kilometre taşıdır.
 
-### 7. Olgunluk etiketleri "marka onaylı" riskini tasarım yoluyla yanıtlar
+### 7. Olgunluk etiketleri, tasarım gereği bir aracın ne olduğunu söyler
 
 Her araç, manifestosunda `status: official | community | experimental` beyan eder. Galeri, duruma göre sıralanır. Deneysel araçlar dışa aktarımlarını otomatik olarak filigranlar - filigran, araç tarafından değil `host.export.render` tarafından uygulanır, bu yüzden resmi olmayan bir araç yazarı bunu devre dışı bırakamaz.
 
-Bu, herhangi bir aracın kullanılmasının marka onayı anlamına geldiği algı riskine yönelik yapısal bir yanıttır. Süreç yanıtları (bir inceleme kuyruğu, SUSE ID sınırlaması) bunun üzerine eklenir.
+Bu, galerideki her aracın aynı ağırlığı taşıdığı algısına karşı yapısal bir yanıttır. Bir ekibin kataloğun etrafına koyduğu her türlü süreç bunun üzerine eklenir.
 
 ### 8. Araç girdileri, varlıklar dahil, manifesto üzerinden tiplenir
 
@@ -445,7 +445,7 @@ Bir kullanıcı `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H` adresini
 5. **Çalışma zamanı (Runtime).** `createRuntime(tool, host, initialValues)`, girdi modelini oluşturur (profil verisini, varsayılanları ve başlangıç değerlerini birleştirerek), `host.assets.get()` üzerinden varlık referanslarını çözer, hook'ları yükler (kapsam içine (closure) alınmış `host`, korumalı alana (sandbox) alınmamıştır), `hooks.onInit`'i çağırır.
 6. **Render.** Kabuk, çalışma zamanına abone olur; her durum değişikliğinde `{ model, hydrated }` alır. Modelden girdi kontrollerini render eder ve hidratlanmış şablon HTML'ini `#tool-canvas`'a yazar.
 7. **Etkileşim.** Kullanıcı bir girdiye yazar → `runtime.setInput(id, value)` → kısıtlar uygulanır → `hooks.onInput` çağrılır → yeniden hidratlama → yeniden render. Tuval anlık olarak güncellenir.
-8. **Dışa aktarma (Export).** Kullanıcı İndir (PNG) düğmesine tıklar → `runtime.export(canvasNode, 'png')` → `host.export.render` (dom-to-image-more ile rasterleştirir; SVG/PDF özel DOM tarayan vektörleştiricilerden geçer) → blob → `host.export.download`. Bir aracın seçebileceği format aralığı geniştir ve bunun otoritesi `schemas/tool.schema.json` içindeki `render.formats` numaralandırmasıdır - rasterler ve kayan noktalı rasterler, vektörler ve kesim dosyaları, baskı/CMYK, hareket, düzenlenebilir belgeler (`pptx`, `docx`, `odt`), palet ve veri/metin çıktıları, ses ve font dosyaları. [URL Modu](/info/url-mode.html) her bir kimliği ve ne ürettiğini adlandırır. Ses de bu numaralandırmada diğer her şey gibi yer alır (`wav`, `mp3`, `m4a`, `opus`, audiogram ve kayıt araçları tarafından tanımlanır); ayrıca bir kayıt aracının `render.capture` modu `host.recorder`'ı yönetir, ve alınan kayıt tarayıcının kaydettiği hangi konteynerdeyse o biçimde tamamlanmış bir Blob olarak gelir. (`render.export: false` ayarlayan araçlar - örn. Color Palette, Countdown Timer, Strip Hidden Data, Text, Compress PDF - indirme/format/boyut kontrollerini gizler.) Fiziksel birimler burada format başına dönüştürülür (PDF → gerçek sayfa noktaları, raster → DPI'da pikseller, bir `pHYs` parçasıyla). Yazarlık/köken (provenance) meta verisi (yazar, araç, kaynak - `engine/src/metadata.ts` tarafından oluşturulur) format başına gömülür: PNG iTXt, JPEG EXIF, PDF bilgi sözlüğü, SVG `<metadata>`, GIF yorumu. Deneysel araçlara filigran, araç tarafından değil host tarafından eklenir.
+8. **Dışa aktarma (Export).** Kullanıcı İndir (PNG) düğmesine tıklar → `runtime.export(canvasNode, 'png')` → `host.export.render` (dom-to-image-more ile rasterleştirir; SVG/PDF özel DOM tarayan vektörleştiricilerden geçer) → blob → `host.export.download`. Bir aracın seçebileceği format aralığı geniştir ve bunun otoritesi `schemas/tool.schema.json` içindeki `render.formats` numaralandırmasıdır - rasterler ve kayan noktalı rasterler, vektörler ve kesim dosyaları, baskı/CMYK, hareket, düzenlenebilir belgeler (`pptx`, `docx`, `odt`), palet ve veri/metin çıktıları, ses ve font dosyaları. [URL Modu](/info/url-mode.html) her bir kimliği ve ne ürettiğini listeler. Ses de bu numaralandırmada diğer her şey gibi yer alır (`wav`, `mp3`, `m4a`, `opus`, audiogram ve kayıt araçları tarafından tanımlanır); ayrıca bir kayıt aracının `render.capture` modu `host.recorder`'ı yönetir, ve alınan kayıt tarayıcının kaydettiği hangi konteynerdeyse o biçimde tamamlanmış bir Blob olarak gelir. (`render.export: false` ayarlayan araçlar - örn. Color Palette, Countdown Timer, Strip Hidden Data, Text, Compress PDF - indirme/format/boyut kontrollerini gizler.) Fiziksel birimler burada format başına dönüştürülür (PDF → gerçek sayfa noktaları, raster → DPI'da pikseller, bir `pHYs` parçasıyla). Yazarlık/köken (provenance) meta verisi (yazar, araç, kaynak - `engine/src/metadata.ts` tarafından oluşturulur) format başına gömülür: PNG iTXt, JPEG EXIF, PDF bilgi sözlüğü, SVG `<metadata>`, GIF yorumu. Deneysel araçlara filigran, araç tarafından değil host tarafından eklenir.
 
 ![`?options`'ın açtığı dışa aktarma paneli: dosya adı ve biçim çifti, çıktı boyutu ve dosyayı yazan kontroller](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 

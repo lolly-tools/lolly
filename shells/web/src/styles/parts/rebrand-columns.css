@@ -1,0 +1,109 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* #/rebrand column grips (plans/275 close-out section 9.1): the two grips between the
+   queue, the comparison and the decision column (.rb-grip, placed in .rb-body by
+   views/rebrand.ts, driven by views/rebrand/columns.ts over lib/splitter.ts).
+
+   The grid. While a grip shows, columns.ts sets data-columns on .rb-body ("wide":
+   both columns, "medium": the decision column alone, the queue being the chip row
+   there) and writes the widths as --rb-col-queue and --rb-col-decide. The grids below
+   replace the ones in rebrand.css for those two states only; with no data-columns
+   (narrow, the medium layout under a coarse pointer, Keep the design) rebrand.css
+   lays the body out as before. Each grip has a track of its own, 0 wide, so it never
+   takes room from a column, and its hit strip reaches over the line.
+
+   The look is the shared resize grip (styles/parts/tool.css .resize-grip, which the
+   inputs sidebar, Design's navigator and the right dock use): an invisible strip, a
+   centred pill in the primary colour that shows on hover, on focus and while
+   dragging, and the column-resize cursor. It is stated here in full because tool.css
+   only loads with the tool view; columns.ts also gives the grips the resize-grip class,
+   and the pill rule below outweighs that class's centring.
+
+   The last sheet in the cascade order rebrand.css states. The 4 by 44 px pill is the
+   shared grip's own size; the strip is wider than the shared grip's 16 px, since 24 px
+   is the target floor the view keeps (principle 7), which has no token, and under a
+   coarse pointer it is --ui-size-target.
+   Never write a star followed by a slash inside a CSS comment. */
+@layer views {
+  .rb:not([data-mode="keep-design"]):not([data-narrow="true"]) > .rb-body[data-columns="wide"] {
+    grid-template-columns:
+      var(--rb-col-queue, var(--rb-queue-min))
+      0
+      minmax(0, 1fr)
+      0
+      var(--rb-col-decide, var(--rb-decide-min));
+  }
+  .rb:not([data-mode="keep-design"]):not([data-narrow="true"]) > .rb-body[data-columns="wide"] > .rb-queue { grid-column: 1; }
+  .rb:not([data-mode="keep-design"]):not([data-narrow="true"]) > .rb-body[data-columns="wide"] > .rb-grip[data-grip="queue"] { grid-column: 2; grid-row: 1 / -1; }
+  .rb:not([data-mode="keep-design"]):not([data-narrow="true"]) > .rb-body[data-columns="wide"] > .rb-work { grid-column: 3; }
+  .rb:not([data-mode="keep-design"]):not([data-narrow="true"]) > .rb-body[data-columns="wide"] > .rb-grip[data-grip="decide"] { grid-column: 4; grid-row: 1 / -1; }
+  .rb:not([data-mode="keep-design"]):not([data-narrow="true"]) > .rb-body[data-columns="wide"] > .rb-decide { grid-column: 5; }
+
+  .rb:not([data-mode="keep-design"]):not([data-narrow="true"]) > .rb-body[data-columns="medium"] {
+    grid-template-columns: minmax(0, 1fr) 0 var(--rb-col-decide, var(--rb-decide-min));
+  }
+  .rb:not([data-mode="keep-design"]):not([data-narrow="true"]) > .rb-body[data-columns="medium"] > .rb-grip[data-grip="decide"] { grid-column: 2; grid-row: 1 / -1; }
+  .rb:not([data-mode="keep-design"]):not([data-narrow="true"]) > .rb-body[data-columns="medium"] > .rb-decide { grid-column: 3; }
+
+  /* ── the grip ── */
+  /* The hit strip is 24px (the target floor in principle 7), and it leans away from the
+     column it resizes: 4px of it over the column, the rest over the stage, so it never
+     covers the column's own scrollbar at that edge. The pill stays on the column line
+     (--rb-grip-line, from the strip's start). Under a coarse pointer the strip is the
+     44px touch target, centred on the line, where scrollbars do not take a tap. */
+  .rb-grip {
+    --rb-grip-w: calc(24px * var(--a11y-fs));
+    --rb-grip-into: 4px;
+    position: relative;
+    z-index: 2;
+    width: var(--rb-grip-w);
+    min-height: 0;
+    cursor: col-resize;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .rb-grip[data-grip="queue"] { --rb-grip-line: var(--rb-grip-into); margin-inline-start: calc(-1 * var(--rb-grip-into)); }
+  .rb-grip[data-grip="decide"] { --rb-grip-line: calc(var(--rb-grip-w) - var(--rb-grip-into)); margin-inline-start: calc(var(--rb-grip-into) - var(--rb-grip-w)); }
+  .rb-grip[hidden],
+  .rb[data-mode="keep-design"] .rb-grip,
+  .rb[data-narrow="true"] .rb-grip { display: none; }
+  /* Stated over .rb-body so it outweighs tool.css .resize-grip::before (the class the
+     grips also carry) once that sheet is loaded: its pill is centred with a transform,
+     this one sits on the line. */
+  .rb-body > .rb-grip::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: var(--rb-grip-line);
+    width: 4px;
+    height: 44px;
+    margin-block: auto;
+    margin-inline-start: -2px;
+    transform: none;
+    border-radius: var(--ui-radius-pill);
+    background: var(--ui-color-selection-border);
+    opacity: 0;
+    transition: opacity var(--ui-motion-feedback) var(--ui-motion-standard), box-shadow var(--ui-motion-feedback) var(--ui-motion-standard);
+  }
+  .rb-body > .rb-grip:hover::before,
+  .rb-body > .rb-grip:focus-visible::before,
+  .rb-body > .rb-grip[data-dragging]::before {
+    opacity: 1;
+    box-shadow: var(--ring-focus-strong), 0 0 10px hsl(var(--primary) / 0.55);
+  }
+  /* The grip takes the keyboard, so focus draws the ring around the strip as well as
+     the pill, the way the right dock's grip does. */
+  .rb-grip:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+
+  /* While a column is dragged, the cursor stays the resize cursor over the whole grid
+     and no text is selected under the pointer. */
+  .rb-body[data-resizing] { cursor: col-resize; user-select: none; -webkit-user-select: none; }
+
+  @media (any-pointer: coarse) {
+    .rb-grip { --rb-grip-w: var(--ui-size-target); --rb-grip-into: calc(var(--rb-grip-w) / 2); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rb-body > .rb-grip::before { transition: none; }
+  }
+  html[data-a11y-motion="reduce"] .rb-body > .rb-grip::before { transition: none; }
+}

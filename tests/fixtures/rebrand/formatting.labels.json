@@ -1,0 +1,603 @@
+{
+  "fixture": "formatting.pptx",
+  "version": 1,
+  "builder": "scripts/build-rebrand-fixtures.ts",
+  "objectIdForm": "<slide part base name>.<p:cNvPr id>",
+  "slides": [
+    {
+      "id": "slide1",
+      "index": 0,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide1.2",
+          "name": "rect2",
+          "authored": "band",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 0,
+            "y": 40,
+            "w": 1280,
+            "h": 56
+          },
+          "note": "the same full-width band near the top of every slide"
+        },
+        {
+          "id": "slide1.3",
+          "name": "text3",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 120,
+            "w": 1120,
+            "h": 110
+          },
+          "mustKeep": true,
+          "paras": [
+            {
+              "runs": [
+                {
+                  "text": "Quarterly review",
+                  "sizePt": 36
+                }
+              ],
+              "align": "left",
+              "bullet": "none",
+              "bulletSource": "layout"
+            }
+          ]
+        },
+        {
+          "id": "slide1.4",
+          "name": "text4",
+          "authored": "body",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 260,
+            "w": 1120,
+            "h": 340
+          },
+          "mustKeep": true,
+          "paras": [
+            {
+              "runs": [
+                {
+                  "text": "Inherits its bullet from the master",
+                  "sizePt": 20
+                }
+              ],
+              "bullet": "bullet",
+              "bulletChar": "•",
+              "bulletSource": "master",
+              "indentPx": 36,
+              "firstIndentPx": -36
+            },
+            {
+              "runs": [
+                {
+                  "text": "So does this line",
+                  "sizePt": 20
+                }
+              ],
+              "bullet": "bullet",
+              "bulletChar": "•",
+              "bulletSource": "master",
+              "indentPx": 36,
+              "firstIndentPx": -36
+            }
+          ],
+          "note": "no a:pPr on either paragraph: the bullet glyph and the hanging indent come from the master body style alone"
+        },
+        {
+          "id": "slide1.5",
+          "name": "text5",
+          "authored": "page-number",
+          "origin": "slide",
+          "kind": "text",
+          "class": "page-number",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 1150,
+            "y": 660,
+            "w": 60,
+            "h": 30
+          }
+        }
+      ]
+    },
+    {
+      "id": "slide2",
+      "index": 1,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide2.2",
+          "name": "rect2",
+          "authored": "band",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 0,
+            "y": 40,
+            "w": 1280,
+            "h": 56
+          },
+          "note": "the same full-width band near the top of every slide"
+        },
+        {
+          "id": "slide2.3",
+          "name": "text3",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 120,
+            "w": 1120,
+            "h": 110
+          },
+          "mustKeep": true,
+          "paras": [
+            {
+              "runs": [
+                {
+                  "text": "Plain ",
+                  "sizePt": 36
+                },
+                {
+                  "text": "Bold",
+                  "sizePt": 36,
+                  "bold": true
+                },
+                {
+                  "text": " Italic",
+                  "sizePt": 36,
+                  "italic": true
+                },
+                {
+                  "text": " Under",
+                  "sizePt": 36,
+                  "underline": true
+                },
+                {
+                  "text": " Strike",
+                  "sizePt": 36,
+                  "strike": true
+                },
+                {
+                  "text": " Red",
+                  "sizePt": 36,
+                  "color": {
+                    "hex": "#C00000"
+                  }
+                },
+                {
+                  "text": " Small",
+                  "sizePt": 20
+                }
+              ],
+              "align": "center",
+              "bullet": "none",
+              "bulletSource": "layout"
+            }
+          ],
+          "note": "seven runs, one property each; the last is smaller than the line around it"
+        },
+        {
+          "id": "slide2.4",
+          "name": "text4",
+          "authored": "body",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 260,
+            "w": 1120,
+            "h": 340
+          },
+          "mustKeep": true,
+          "paras": [
+            {
+              "runs": [
+                {
+                  "text": "First bullet with ",
+                  "sizePt": 20
+                },
+                {
+                  "text": "bold",
+                  "sizePt": 20,
+                  "bold": true
+                },
+                {
+                  "text": " inside",
+                  "sizePt": 20
+                }
+              ],
+              "bullet": "bullet",
+              "bulletChar": "•",
+              "bulletSource": "slide",
+              "lineSpacingPct": 150,
+              "spaceBeforePt": 12,
+              "indentPx": 36,
+              "firstIndentPx": -36
+            },
+            {
+              "runs": [
+                {
+                  "text": "Nested second level",
+                  "sizePt": 18
+                }
+              ],
+              "lvl": 1,
+              "bullet": "bullet",
+              "bulletChar": "–",
+              "bulletSource": "slide",
+              "indentPx": 78,
+              "firstIndentPx": -30
+            },
+            {
+              "runs": [
+                {
+                  "text": "Numbered one",
+                  "sizePt": 20
+                }
+              ],
+              "bullet": "number",
+              "numberStyle": "arabicPeriod",
+              "number": 1,
+              "bulletSource": "slide",
+              "indentPx": 36,
+              "firstIndentPx": -36
+            },
+            {
+              "runs": [
+                {
+                  "text": "Numbered two",
+                  "sizePt": 20
+                }
+              ],
+              "bullet": "number",
+              "numberStyle": "arabicPeriod",
+              "number": 2,
+              "bulletSource": "slide",
+              "indentPx": 36,
+              "firstIndentPx": -36
+            },
+            {
+              "runs": [
+                {
+                  "text": "Right aligned no bullet ",
+                  "sizePt": 20
+                },
+                {
+                  "text": "E=mc",
+                  "sizePt": 20
+                },
+                {
+                  "text": "2",
+                  "sizePt": 20,
+                  "baseline": "super"
+                },
+                {
+                  "text": " H",
+                  "sizePt": 20
+                },
+                {
+                  "text": "2",
+                  "sizePt": 20,
+                  "baseline": "sub"
+                },
+                {
+                  "text": "O ",
+                  "sizePt": 20
+                },
+                {
+                  "text": "caps",
+                  "sizePt": 20,
+                  "case": "upper"
+                }
+              ],
+              "align": "right",
+              "bullet": "none",
+              "bulletSource": "slide",
+              "indentPx": 36,
+              "firstIndentPx": -36
+            },
+            {
+              "runs": [
+                {
+                  "text": "Visit ",
+                  "sizePt": 20
+                },
+                {
+                  "text": "lolly.tools",
+                  "sizePt": 20,
+                  "underline": true,
+                  "href": "https://lolly.tools/"
+                },
+                {
+                  "text": " for more, in ",
+                  "sizePt": 20
+                },
+                {
+                  "text": "Georgia",
+                  "sizePt": 20,
+                  "font": "Georgia",
+                  "fontProvenance": "literal"
+                }
+              ],
+              "align": "justify",
+              "bullet": "none",
+              "bulletSource": "slide",
+              "indentPx": 36,
+              "firstIndentPx": -36
+            }
+          ],
+          "note": "every paragraph property the slide states itself; the two buNone lines stop the bullet the master would otherwise give them and keep its level-one indent, which they do not override"
+        },
+        {
+          "id": "slide2.5",
+          "name": "text5",
+          "authored": "page-number",
+          "origin": "slide",
+          "kind": "text",
+          "class": "page-number",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 1150,
+            "y": 660,
+            "w": 60,
+            "h": 30
+          }
+        }
+      ]
+    },
+    {
+      "id": "slide3",
+      "index": 2,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide3.2",
+          "name": "rect2",
+          "authored": "band",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 0,
+            "y": 40,
+            "w": 1280,
+            "h": 56
+          },
+          "note": "the same full-width band near the top of every slide"
+        },
+        {
+          "id": "slide3.3",
+          "name": "text3",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 120,
+            "w": 1120,
+            "h": 110
+          },
+          "mustKeep": true,
+          "paras": [
+            {
+              "runs": [
+                {
+                  "text": "Lists through the cascade",
+                  "sizePt": 36
+                }
+              ],
+              "align": "left",
+              "bullet": "none",
+              "bulletSource": "layout"
+            }
+          ]
+        },
+        {
+          "id": "slide3.4",
+          "name": "text4",
+          "authored": "body",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 260,
+            "w": 1120,
+            "h": 340
+          },
+          "mustKeep": true,
+          "paras": [
+            {
+              "runs": [
+                {
+                  "text": "Scope:",
+                  "sizePt": 20,
+                  "bold": true
+                },
+                {
+                  "text": " what the renovation changes",
+                  "sizePt": 20
+                }
+              ],
+              "bullet": "bullet",
+              "bulletChar": "•",
+              "bulletSource": "master",
+              "indentPx": 36,
+              "firstIndentPx": -36
+            },
+            {
+              "runs": [
+                {
+                  "text": "Owner:",
+                  "sizePt": 20,
+                  "bold": true
+                },
+                {
+                  "text": " the team that holds the design system",
+                  "sizePt": 20
+                }
+              ],
+              "bullet": "bullet",
+              "bulletChar": "•",
+              "bulletSource": "master",
+              "indentPx": 36,
+              "firstIndentPx": -36
+            },
+            {
+              "runs": [
+                {
+                  "text": "Second level from the master",
+                  "sizePt": 18
+                }
+              ],
+              "lvl": 1,
+              "bullet": "bullet",
+              "bulletChar": "–",
+              "bulletSource": "master",
+              "indentPx": 78,
+              "firstIndentPx": -30
+            },
+            {
+              "runs": [
+                {
+                  "text": "Third level from the master",
+                  "sizePt": 16
+                }
+              ],
+              "lvl": 2,
+              "bullet": "bullet",
+              "bulletChar": "›",
+              "bulletSource": "master",
+              "indentPx": 120,
+              "firstIndentPx": -24
+            },
+            {
+              "runs": [
+                {
+                  "text": "Source: annual survey, page 12",
+                  "sizePt": 14,
+                  "italic": true
+                }
+              ],
+              "bullet": "none",
+              "bulletSource": "slide",
+              "indentPx": 36,
+              "firstIndentPx": -36
+            },
+            {
+              "runs": [
+                {
+                  "text": "Agree the scope",
+                  "sizePt": 20
+                }
+              ],
+              "bullet": "number",
+              "numberStyle": "arabicPeriod",
+              "number": 1,
+              "bulletSource": "slide",
+              "indentPx": 36,
+              "firstIndentPx": -36
+            },
+            {
+              "runs": [
+                {
+                  "text": "Review every slide",
+                  "sizePt": 20
+                }
+              ],
+              "bullet": "number",
+              "numberStyle": "arabicPeriod",
+              "number": 2,
+              "bulletSource": "slide",
+              "indentPx": 36,
+              "firstIndentPx": -36
+            }
+          ],
+          "note": "bold lead-ins, three levels whose glyphs and indents all come from the master, an italic citation whose explicit buNone keeps the indent but stops the bullet, and a numbered list"
+        },
+        {
+          "id": "slide3.5",
+          "name": "text5",
+          "authored": "page-number",
+          "origin": "slide",
+          "kind": "text",
+          "class": "page-number",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 1150,
+            "y": 660,
+            "w": 60,
+            "h": 30
+          }
+        }
+      ]
+    }
+  ],
+  "inherited": [],
+  "mustKeep": [
+    "slide1.3",
+    "slide1.4",
+    "slide2.3",
+    "slide2.4",
+    "slide3.3",
+    "slide3.4"
+  ]
+}

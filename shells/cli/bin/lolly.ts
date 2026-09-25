@@ -22,7 +22,7 @@ import { argv } from 'node:process';
 import { readFile } from 'node:fs/promises';
 import { parseToolUrl, normalizeLang } from '@lolly/engine';
 import { runToolCli, listToolsCli, showToolInputsCli, listAssetsCli, readStdin } from '../src/run.ts';
-import { parseArgs, globalFlags, isOn, textMode, resolvePassword, RESERVED_SUBCOMMANDS, isMlSubcommand } from '../src/args.ts';
+import { parseArgs, globalFlags, isOn, textMode, resolvePassword, RESERVED_SUBCOMMANDS, isMlSubcommand, REBRAND_VALUE_FLAGS } from '../src/args.ts';
 import { EXIT, exitCodeFor, usageError } from '../src/exit-codes.ts';
 import { configureOutput, strictExitCode, note, writeOut, keepConsoleOffStdout } from '../src/output.ts';
 import { beginCommand, emitError, jsonRequested, envelopeEmitted } from '../src/envelope.ts';
@@ -54,6 +54,61 @@ Usage:
   lolly package <document.json> [--output]  write a portable .lolly package
   lolly validate <document.json> --document validate a compiled document (or a
                            tool id with --inputs=x.json) through the document API
+  lolly rebrand plan <deck|dir>…           read, census and first-pass a deck (.pptx or
+                                           .pdf): writes
+                                           <name>.plan.json and <name>.plan.report.json
+                        [--plan-out=<file|dir>]
+                                           where the plan goes (a directory for several)
+                        [--preset=<id|preset.json>]
+                                           a renovation preset that shapes the first pass
+  lolly rebrand compile <deck|dir>…        compile into a Design document: <name>.lolly
+                                           and <name>.report.json in --out-dir (needed
+                                           for several decks; default beside the deck)
+                        [--out-dir=<dir>]  where the outputs go
+                        [--plan=<file|dir>]
+                                           the plan to compile; refused when it was made
+                                           for other bytes or another design system
+                        [--export=pptx]    also write <name>.rebranded.pptx
+                        [--preset=<id|preset.json>]
+                                           a renovation preset for the first pass
+                        [--accept-suggestions]
+                                           answer the unreviewed rows (=all also answers
+                                           the rows that need attention); the report names
+                                           them and <name>.answered.plan.json holds the plan
+                                           Exit 5: every deck compiled, some need review
+                        plan and compile:
+                        [--auto-match[=clear|likely|all]]
+                                           set each slide's layout from the structure
+                                           it reads as (a bare flag means all); never a
+                                           slide set by a person or a preset. Each file
+                                           in the envelope counts autoMatched per band
+                        [--dry-run]        run every stage and write nothing
+                        [--force]          replace outputs (never the source deck)
+                        [--keep-going]     record a failed deck and go on to the next
+                        [--ocr]            read the text in slides that are pictures of
+                                           slides, when the text recognition model is
+                                           already on this machine (never downloads);
+                                           also on inspect. A PDF beside a .pptx of the
+                                           same name is left out of a folder run
+                        [--recursive]      a folder's subfolders too, mirrored in the output
+                        [--jobs=<n>]       run n decks at once (default 1, at most 8)
+                        [--resume]         run only the decks the run record in the output
+                                           folder says still need work
+                                           A folder or several decks keep that record,
+                                           .lolly-rebrand-run.json, beside the outputs
+  lolly rebrand inspect <plan.json|deck>
+                                           summary, review queue and slide states
+                        [--slide=<n>]      one slide's objects (--page=<n> --limit=<n>)
+                        [--source=<deck>]
+                                           the deck a plan was made from
+                        [--preset=<id|preset.json>]
+                                           shapes the first pass of a deck
+  lolly rebrand presets                    list the renovation presets that resolve: the
+                                           design system's, then rebrand-presets.json in
+                                           the state directory (LOLLY_STATE_DIR)
+                                           Every stage reads the content profile's design
+                                           system (LOLLY_PROFILE) and never the network;
+                                           --offline is accepted and changes nothing
   lolly <tool-id> [--flags]                sugar for run (or describe, with no flags)
   lolly <https://lolly.tools/#/tool/…>     run a pasted link; later --flags override it
 
@@ -119,8 +174,8 @@ Subcommands:
 Global flags (valid on every command):
   --json                   one JSON envelope on stdout instead of human text, on list,
                            describe, assets, validate, smoke, batch, preflight, models,
-                           speak, transcribe, ocr, detect-ai and reword. NOT on a render:
-                           there, stdout carries the exported bytes.
+                           speak, transcribe, ocr, detect-ai, reword and rebrand. NOT
+                           on a render: there, stdout carries the exported bytes.
   --quiet                  suppress non-error stderr (progress, notes, warnings)
   --verbose                diagnostics + stack traces (DEBUG=1 is an alias)
   --strict                 promote warnings to failures (exit 2 usage, 4 gate)
@@ -199,7 +254,8 @@ Exit codes:
                        the retry-on-another-runner code
   4  REFUSED           a protective check said no (--verify, format mismatch, forged
                        credential)
-  5  NOT_FOUND         a legitimate negative answer (validate: no credential present)
+  5  NOT_FOUND         a legitimate negative answer (validate: no credential present;
+                       rebrand compile: every deck compiled, some need review)
   6  AUTH              missing or wrong password
   70 INTERNAL          unclassified exception: a bug in Lolly
 
@@ -231,7 +287,7 @@ process.stdout.on('error', (err: NodeJS.ErrnoException) => {
 // A raw argv scan is enough: `--json` has one spelling and no bare-value trap. The
 // command name is re-set accurately by main() once the parse succeeds; this pre-set is
 // only the fallback for a failure that happens before that.
-const RAW_VERBS = new Set(['prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'tui']);
+const RAW_VERBS = new Set(['prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'tui', 'rebrand']);
 const rawFirst = args.find(a => !a.startsWith('-'));
 beginCommand(
   RAW_VERBS.has(rawFirst ?? '') ? rawFirst! : 'lolly',
@@ -305,7 +361,7 @@ async function main(): Promise<void> {
   // before any work, so the top-level catch can name the command in a failure envelope
   // even when the throw happened before the command function was reached. A bare tool
   // id reports as `describe`/`run` - the verb it is sugar for - not as its own name.
-  const VERBS = new Set(['learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'tui']);
+  const VERBS = new Set(['learning', 'prepare', 'files', 'start', 'system', 'list', 'describe', 'run', 'compile', 'schema', 'inspect', 'diff', 'measure', 'optimize', 'package', 'validate', 'preflight', 'install-browser', 'assets', 'batch', 'smoke', 'models', 'speak', 'transcribe', 'mix', 'upscale', 'matte', 'ocr', 'detect-ai', 'reword', 'depth', 'icons', 'pack', 'completion', 'tui', 'rebrand']);
   beginCommand(VERBS.has(cmd ?? '') ? cmd! : 'run', g.json);
 
   // Content-free binary (plans/131): the published CLI ships no tools and no catalog.
@@ -326,6 +382,19 @@ async function main(): Promise<void> {
     if (args.some(arg => /^--(?:to|max-edge|quality|target-bytes|background)$/.test(arg))) throw usageError('File operation options need explicit values: --to=jpeg --quality=0.92 --max-edge=1920.');
     const { filesCli } = await import('../src/files.ts');
     await filesCli(positionals.slice(1), flags, g.json);
+    return;
+  }
+
+  // `rebrand`: renovate a deck in three explicit stages (plan 274 section 2.3). Every
+  // flag in REBRAND_VALUE_FLAGS is checked for a bare form here, the way `files` checks
+  // its own, because a bare `--plan` parsing to "1" would read a plan file literally
+  // named "1" and a bare `--out-dir` would write into a folder called "1".
+  if (cmd === 'rebrand') {
+    const valueFlags = new Set<string>(REBRAND_VALUE_FLAGS.map(flag => `--${flag}`));
+    const bare = args.find(arg => valueFlags.has(arg));
+    if (bare) throw usageError(`${bare} needs a value: write ${bare}=<value>.`, 'MISSING_FLAG_VALUE');
+    const { rebrandCli } = await import('../src/rebrand.ts');
+    process.exitCode = await rebrandCli(positionals.slice(1), flags, g.json);
     return;
   }
 

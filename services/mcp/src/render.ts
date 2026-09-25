@@ -468,7 +468,7 @@ async function svgToPng(svg: string, width: number | undefined, background: stri
 let browserPromise: Promise<import('playwright-core').Browser> | null = null;
 const browserJobs = new BrowserJobQueue(browserQueueOptions());
 const MAX_BROWSER_OUTPUT_BYTES = 256 * 1024 * 1024;
-const MAX_TRANSFORM_INPUT_BYTES = 24 * 1024 * 1024;
+export const MAX_TRANSFORM_INPUT_BYTES = 24 * 1024 * 1024;
 
 async function withBrowserJob<T>(job: () => Promise<T>): Promise<T> {
   try {

@@ -1,0 +1,225 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* #/rebrand - renovate an old deck (plans/274 section 4).
+
+   THE LAYOUT, and only the layout, lives here: the view's grid, the notice band and
+   the scrim. Each region's own look lives in the sheet of the module that fills it,
+   together with that region's [data-narrow], [data-medium] and (any-pointer: coarse)
+   rules, so the module that owns a region owns its narrow rules too.
+
+   Cascade order: this sheet first, then the region sheets in region order. Every
+   sheet is in the views layer, so for two rules of equal specificity the later sheet
+   wins; views/rebrand.ts imports them in this order and nowhere else:
+     rebrand.css          the grid, the notice band, the scrim
+     rebrand-top.css      the top bar
+     rebrand-intake.css   the intake, its rows in the notice band, the preset dialog
+     rebrand-queue.css    the queue
+     rebrand-compare.css  the comparison
+     rebrand-decide.css   the decision column and its narrow sheet
+     rebrand-strip.css    the filmstrip
+     rebrand-foot.css     the footer
+     rebrand-report.css   the report drawer
+     rebrand-keep.css     Keep the design
+     rebrand-chooser.css  the layout chooser
+     rebrand-theme.css    the deck theme
+     rebrand-columns.css  the column grips
+
+     .rb                 top bar, the notice band, the phase's content, the strip, the footer
+     ├─ .rb-top          title, design system, mode control (.rb-mode-slot), undo, save
+     ├─ .rb-alert        a problem or a readiness row once the intake is hidden
+     ├─ .rb-intake       no plan yet: choose or drop a deck, recent projects, progress
+     ├─ .rb-body         the review grid
+     │  ├─ .rb-queue     left column
+     │  ├─ .rb-grip      the queue's grip (hidden until the columns module shows it)
+     │  ├─ .rb-work      centre: .rb-compare, which Keep the design fills too
+     │  ├─ .rb-grip      the decision column's grip
+     │  └─ .rb-decide    right column, the plan 273 panel primitive
+     ├─ .rb-strip        the filmstrip, a row of its own under the body
+     ├─ .rb-foot         counts, report link, the one primary action
+     ├─ .rb-scrim        the dimmer behind the narrow decision sheet
+     └─ .rb-report       the drawer: itself the dimmer, .rb-report-sheet the panel
+
+   Tokens only: --sp-* spacing, --ui-radius-*, --ui-color-*, --ui-edge-*,
+   --ui-elevation-*, --ui-type-*, --ui-size-*. Type and icon sizes read those
+   tokens, which carry the large-text multiplier inside them; a width that has to
+   follow the type is a custom property on .rb, the one place it is multiplied.
+   Never write a star followed by a slash inside a CSS comment. */
+@layer views {
+  .rb {
+    /* The two side columns hold words, so their floors follow the type multiplier.
+       Declared here as custom properties, the one place the multiplier may size
+       geometry; the grid below only reads them. */
+    --rb-queue-min: calc(232px * var(--a11y-fs));
+    --rb-decide-min: calc(272px * var(--a11y-fs));
+    --rb-intake-max: calc(640px * var(--a11y-fs));
+    --rb-line-min: calc(240px * var(--a11y-fs));
+    --rb-text-min: calc(200px * var(--a11y-fs));
+    --rb-crop-w: calc(56px * var(--a11y-fs));
+    --rb-report-w: calc(420px * var(--a11y-fs));
+    --rb-more-min: calc(120px * var(--a11y-fs));
+    /* A veil in the page's own tone: it darkens a dark theme and lightens a light one. */
+    --rb-veil: color-mix(in srgb, var(--ui-color-surface-canvas) 62%, transparent);
+    /* On a phone, the least room the docked decision sheet keeps under the comparison:
+       its head and the first section head. */
+    --rb-peek-min: calc(120px * var(--a11y-fs));
+    display: grid;
+    /* One track that never grows past the view, so a long title or a row of chips can
+       never make the page wider than the screen. */
+    grid-template-columns: minmax(0, 1fr);
+    /* Rows by name, so a hidden region never shifts the one after it into its track. */
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+    height: 100dvh;
+    min-height: 0;
+    color: var(--ui-color-text-default);
+    background: var(--ui-color-surface-canvas);
+  }
+
+  .rb-top { grid-row: 1; }
+  .rb-alert { grid-row: 2; }
+  .rb-intake, .rb-body { grid-row: 3; }
+  .rb-strip { grid-row: 4; }
+  .rb-foot { grid-row: 5; }
+
+  /* Every button in the top bar, the intake, the footer and the report drawer is a
+     full target, not the bare .btn padding box. */
+  .rb-top .btn, .rb-intake .btn, .rb-foot .btn, .rb-report .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-2);
+    min-height: var(--ui-size-target);
+  }
+  .rb-top .btn svg, .rb-intake .btn svg, .rb-foot .btn svg, .rb-report .btn svg {
+    flex: none;
+    width: var(--ui-size-icon-md);
+    height: var(--ui-size-icon-md);
+  }
+  .rb-top .btn[hidden], .rb-intake .btn[hidden], .rb-foot .btn[hidden], .rb-report .btn[hidden] { display: none; }
+  .rb-alert .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-2);
+    min-height: var(--ui-size-target);
+  }
+  /* A bare .btn has no hover of its own (buttons.css), and none of the view's buttons
+     had a pressed state, so both are stated once for the whole view. */
+  .rb .btn:not(.btn--primary):not(.btn--ghost):hover:not(:disabled) { background: var(--ui-color-surface-muted); }
+  .rb .btn:active:not(:disabled) { filter: brightness(.96); }
+
+  /* ── notice band ── the intake's error and readiness rows, moved here once the
+     intake is hidden, so a problem after the review appears is always on screen. */
+  .rb-alert {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-4);
+    border-bottom: 1px solid var(--ui-color-border-default);
+  }
+  .rb-alert[hidden] { display: none; }
+  .rb-alert .rb-progress, .rb-alert .rb-error { padding: var(--sp-2) var(--sp-3); }
+  .rb-alert .rb-intake-subtitle { margin: 0; font-size: var(--ui-type-body); }
+  .rb-alert [hidden] { display: none; }
+
+  /* The comparison is the work surface, so the side columns stay near their floors and
+     the centre track takes the rest. Between 761 and 1100px (data-medium) the queue is
+     the chip row above the comparison, the way it is on a phone. */
+  .rb-body {
+    display: grid;
+    grid-template-columns:
+      minmax(var(--rb-queue-min), min(288px, 20vw))
+      minmax(0, 1fr)
+      minmax(var(--rb-decide-min), min(320px, 22vw));
+    min-height: 0;
+  }
+  .rb[data-medium="true"] .rb-body {
+    grid-template-columns: minmax(0, 1fr) minmax(var(--rb-decide-min), min(320px, 28vw));
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .rb[data-medium="true"] .rb-queue {
+    grid-column: 1;
+    grid-row: 1;
+    overflow: visible;
+  }
+  .rb[data-medium="true"] .rb-work { grid-column: 1; grid-row: 2; }
+  .rb[data-medium="true"] .rb-decide { grid-column: 2; grid-row: 1 / -1; }
+  .rb-body[hidden], .rb-strip[hidden], .rb-keep[hidden], .rb-foot[hidden], .rb-intake[hidden], .rb-report[hidden], .rb-scrim[hidden] { display: none; }
+  /* min-width 0 so a row of buttons inside a column can never widen the grid track. */
+  /* No hairline between the columns (decision 6): the queue and the decision column
+     sit on the raised surface and the comparison on the muted one, and that step is the
+     edge. High contrast draws the line again, after this layer. */
+  .rb-queue, .rb-decide { min-width: 0; min-height: 0; overflow: auto; }
+  .rb-work {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr);
+    min-width: 0;
+    min-height: 0;
+  }
+  .rb-compare { min-width: 0; min-height: 0; overflow: auto; }
+  .rb-strip { min-width: 0; border-top: 1px solid var(--ui-color-border-default); }
+
+  .rb-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: var(--ui-layer-overlay);
+    background: var(--rb-veil);
+  }
+
+  /* Narrow: one column. The queue becomes the tabs and the chip row above the
+     comparison, and the decision column a sheet docked under it (rebrand-decide.css):
+     the comparison takes the height it needs, up to what leaves the docked sheet its
+     least room, and the sheet takes the rest, so no band under the slide is left empty.
+     The comparison scrolls inside its own row when it needs more (Both). The sheet
+     opened from the slide or a chip leaves this row for a fixed place over the page,
+     and the row keeps its height, so nothing moves under it. */
+  .rb[data-narrow="true"] .rb-body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, auto) minmax(var(--rb-peek-min), 1fr);
+  }
+  .rb[data-narrow="true"] .rb-queue { grid-row: 1; overflow: visible; }
+  .rb[data-narrow="true"] .rb-work { grid-row: 2; }
+  .rb[data-narrow="true"] .rb-decide { grid-row: 3; }
+  /* A phone on its side (under 480 px tall, which isNarrow() counts as narrow): the
+     top bar, the Proposed slide, the strip and the footer. The queue and the docked
+     sheet step aside; a tap on the slide still opens the sheet over the page. */
+  @media (max-height: 479px) {
+    .rb[data-narrow="true"] .rb-body { grid-template-rows: minmax(0, 1fr); }
+    .rb[data-narrow="true"] .rb-queue { display: none; }
+    .rb[data-narrow="true"] .rb-work { grid-row: 1; }
+    /* The notice band keeps to a line or two, its heading left to screen readers. */
+    .rb[data-narrow="true"] .rb-alert { padding-block: var(--sp-2); }
+    .rb[data-narrow="true"] .rb-alert .rb-intake-subtitle {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+    /* When a notice still leaves the slide too little room, the view grows past the
+       screen and scrolls down to the strip and the footer, rather than shrinking the
+       slide under a readable size (the slide row keeps --rb-land-min). */
+    .rb[data-narrow="true"] {
+      --rb-land-min: calc(150px * var(--a11y-fs));
+      grid-template-rows: auto auto minmax(var(--rb-land-min), 1fr) auto auto;
+      height: auto;
+      min-height: 100dvh;
+    }
+  }
+
+  /* Keep the design draws into the comparison region: its work area (.rb-keep,
+     keep.ts) takes the region while the review's own comparison and the two
+     columns step aside. After the medium and narrow rules, which it overrides. */
+  .rb-keep { height: 100%; min-height: 0; overflow: auto; }
+  .rb[data-mode="keep-design"] .rb-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .rb[data-mode="keep-design"] .rb-work { grid-column: 1; grid-row: 1; }
+  /* The stage is named through its parent so the rule outranks the phone layout of
+     rebrand-compare.css, which shows `.rb-cmp` later in the cascade. */
+  .rb[data-mode="keep-design"] :is(.rb-queue, .rb-decide, .rb-compare > .rb-cmp) { display: none; }
+}
+
+/* High contrast: the surfaces may converge, so the column hairlines come back (decision
+   6), and the chip row the queue becomes on a narrower screen is ruled off from the
+   comparison under it. Unlayered and led by html, as the other a11y gates are. */
+html[data-a11y-contrast="high"] .rb:not([data-medium="true"]):not([data-narrow="true"]) .rb-queue { border-inline-end: 1px solid var(--ui-color-border-default); }
+html[data-a11y-contrast="high"] .rb:not([data-narrow="true"]) .rb-decide { border-inline-start: 1px solid var(--ui-color-border-default); }
+html[data-a11y-contrast="high"] .rb:is([data-medium="true"], [data-narrow="true"]) .rb-queue { border-bottom: 1px solid var(--ui-color-border-default); }

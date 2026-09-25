@@ -143,6 +143,35 @@ export type {
   AttributionNoticeV1, AttributionChannelV1, AttributionPlanV1, CreativeUseResultV1, RightsDecisionV1,
   RightsEvaluationV1, ReceiptStateV1, AttributionReceiptV1, RightsReportSourceV1, RightsReportV1,
 } from './rights-v1.ts';
+// rebrand-v1 - plan 274: the renovation contracts (source deck with per-object fidelity,
+// census, renovation plan, compiled deck, report, project). Shared by #/rebrand, the
+// CLI stages and the MCP tool. Pure data; the engine modules that fill them are pure too.
+export {
+  REBRAND_CONTRACT_VERSION, REBRAND_REFERENCE_DPI, SOURCE_KINDS, SOURCE_OBJECT_KINDS, SOURCE_ORIGINS,
+  FIDELITY_STATES, FIDELITY_REASONS, PLACEHOLDER_TYPES, OCR_STATES, SOURCE_WARNING_CODES, OBJECT_CLASSES,
+  EVIDENCE_SIGNALS, PLAN_ACTIONS, REVIEW_STATES, DECISION_AUTHORS, ARCHETYPE_ROLES, ARCHETYPE_IDS,
+  COLOR_UNRESOLVED_REASONS, DISPOSITIONS, REPORT_CODES, PROJECT_STAGES, FILE_OUTCOMES, REBRAND_ERROR_CODES,
+  PROJECT_PART_KINDS, PROJECT_WRITE_REFUSALS, SOURCE_ROLE_ESTIMATES,
+} from './rebrand-v1.ts';
+// Plan 275: open archetype ids (the twelve kept as KNOWN_ARCHETYPE_IDS), the layout read's units and match, deck themes and grounds.
+export { KNOWN_ARCHETYPE_IDS, STRUCTURE_ID_PATTERN, isArchetypeRef, isKnownArchetypeId, LAYOUT_UNIT_KINDS, LAYOUT_MATCH_BANDS, SLIDE_GROUNDS, DECK_THEME_IDS } from './rebrand-v1.ts';
+// Plan 275 decision 32 and section 4: vectors read as items, and how a slide is built (layout, original arrangement, picture).
+export { VECTOR_OMIT_REASONS, VECTOR_ITEMS_MAX, VECTOR_ITEMS_MAX_CHARS, VECTOR_DECK_ITEMS_MAX, SLIDE_ARRANGEMENTS } from './rebrand-v1.ts';
+export type { VectorOmitReasonV1, VectorItemsV1, VectorPathItemV1, VectorTextItemV1, VectorItemV1, SlideArrangementV1 } from './rebrand-v1.ts';
+export type { StructureIdV1, ArchetypeRefV1, ReviewMessageV1, LayoutMatchBandV1, LayoutMatchV1, SlideGroundV1, LayoutUnitKindV1, LayoutUnitV1, FractionBoxV1, DeckThemeIdV1, DeckThemeV1, PresetLockedColorV1, RenovationPresetV1 } from './rebrand-v1.ts';
+export type {
+  SourceKindV1, SourceObjectKindV1, SourceOriginV1, FidelityStateV1, FidelityReasonV1, FidelityV1, PlaceholderTypeV1,
+  BoxV1, SourceColorV1, SourceRunV1, SourceParaV1, OcrStateV1, OcrLineEvidenceV1, OcrEvidenceV1, RasterStatsV1,
+  SourceWarningCodeV1, SourceWarningV1, SourceObjectV1, SlideSourceV1, SourceDeckV1, ObjectClassV1, EvidenceSignalV1,
+  SourceRoleEstimateV1, SlideRecoveryV1, SlideOcrV1,
+  EvidenceV1, ClassHypothesisV1, ObjectGroupV1, ColorUseV1, ContrastPairV1, FontUseV1, LayoutFeaturesV1, DeckCensusV1,
+  PlanActionV1, ReviewStateV1, DecisionAuthorV1, ReplacementV1, ObjectPlanV1, ArchetypeRoleV1, ArchetypeIdV1, SlidePlanV1,
+  ColorUnresolvedReasonV1, ColorMappingV1, FontMappingV1, DecisionMemoryV1, DesignSystemSnapshotV1, AlgorithmVersionsV1,
+  RenovationPlanV1, DesignBoxRowV1, CompiledFrameV1, LineageV1, CompiledDeckV1, DispositionV1, ReportCodeV1, ReportEntryV1,
+  RebrandReportV1, ProjectStageV1, RenovationProjectV1, FileOutcomeV1, RebrandErrorCodeV1, RebrandCapabilitiesV1,
+  ProjectPartKindV1, ProjectWriteRefusalV1, ProjectWriteResultV1, RenovationProjectStoreV1, StageProgressV1, StageEnvelopeV1, DecodeBudgetV1,
+} from './rebrand-v1.ts';
+
 export type {
   EmojiPackPinV1, EmojiSourceRecordV1, EmojiSourceV1, EmojiMeaningV1, EmojiMetricsV1, EmojiGlyphV1,
   EmojiPackManifestV1, EmojiStyleV1, EmojiRequestV1, EmojiIssueCodeV1,
@@ -153,3 +182,17 @@ export type { LearningRichNode, LearningQuiz, LearningProgressEventV1, LearningT
 export type { StudioSceneV1, StudioSourceV1, StudioObjectV1, StudioCameraKeyV1, StudioMaterialV1, StudioLightV1, StudioSurfaceInfo, StudioSourceInfo, StudioVector3, StudioProjection, StudioFinish, StudioFinishSpec, StudioLookScopeV1, StudioLinkV1, StudioMotionKind, StudioPoseV1 } from './studio3d-v1.ts';
 
 export * from './text-v1.ts';
+
+// slide-master-v1 - plan 274 section 3.4: slide masters as design-system data. A brand
+// pack ships one file of these; the engine seeds Design frames from them and Design's
+// Reset slide and Apply archetype re-lay role-bound layers through them.
+export {
+  SLIDE_MASTER_CONTRACT_VERSION, PLACEHOLDER_KINDS, FURNITURE_KINDS, MASTER_ALIGNMENTS,
+  MASTER_VALIGNMENTS, MASTER_FONT_SLOTS, findArchetype, findFurniture, roleFontSize,
+} from './slide-master-v1.ts';
+export type {
+  PlaceholderKindV1, FurnitureKindV1, MasterAlignV1, MasterValignV1, MasterFontSlotV1,
+  MasterBoxV1, MasterTextStyleV1, PlaceholderLayerV1, FurnitureLayerV1, ArchetypeBackgroundV1,
+  ArchetypeV1, MasterTypeScaleV1, MasterLogoV1, SlideMasterV1, SlideMasterFileV1,
+} from './slide-master-v1.ts';
+export type { GridSpanV1, ArchetypeRepeatV1 } from './slide-master-v1.ts';

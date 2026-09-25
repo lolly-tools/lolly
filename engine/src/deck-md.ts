@@ -51,6 +51,7 @@
  * every field is treated as optional and every count is capped.
  */
 
+import { escapeMarkup, hugMarkers } from './design-text.ts';
 import { readingOrder } from './pptx-read.ts';
 import type {
   PptxDeckRead,
@@ -102,20 +103,17 @@ function flatten(s: string): string {
  * Escape the two characters that change parsing in BOTH GFM and deck-studio's
  * `parseRuns`: the escape character itself and `*`. A lone `_` or `~` is inert
  * in both (deck-studio needs them doubled, CommonMark bars intra-word `_`), so
- * escaping them would only show backslashes on the slide.
+ * escaping them would only show backslashes on the slide. The helper is shared
+ * with Design's emitter (`design-text.ts`), which escapes for its own renderer.
  */
 function escapeInline(s: string): string {
-  return s.replace(/\\/g, '\\\\').replace(/\*/g, '\\*');
+  return escapeMarkup(s, 'gfm');
 }
 
 /** Wrap a run in emphasis without breaking GFM's no-space-inside rule. */
 function emphasise(text: string, bold: boolean, italic: boolean): string {
   if (!bold && !italic) return text;
-  const m = /^(\s*)([\s\S]*?)(\s*)$/.exec(text);
-  const core = m ? m[2] ?? '' : text;
-  if (!core) return text;
-  const mark = bold ? '**' : '*';
-  return `${m?.[1] ?? ''}${mark}${core}${mark}${m?.[3] ?? ''}`;
+  return hugMarkers(text, bold ? '**' : '*');
 }
 
 /** One pptx paragraph to one line of inline markdown. `plain` drops the

@@ -1,0 +1,226 @@
+{
+  "version": 1,
+  "sourceHash": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+  "rules": {
+    "name": "deck-census",
+    "version": "1.0.0"
+  },
+  "objects": [
+    {
+      "id": "ppt/slides/slide1.xml.4",
+      "slideId": "ppt/slides/slide1.xml",
+      "origin": "slide",
+      "hypothesis": {
+        "class": "title",
+        "confidence": 0.91,
+        "evidence": [
+          {
+            "signal": "placeholder",
+            "value": "ctrTitle",
+            "weight": 0.6,
+            "sentence": "The source declares this box as the centred title placeholder."
+          },
+          {
+            "signal": "size-rank",
+            "value": 1,
+            "weight": 0.3,
+            "sentence": "It is the largest text on the slide at 40 pt."
+          }
+        ],
+        "alternative": "subtitle"
+      }
+    },
+    {
+      "id": "ppt/slides/slide1.xml.7",
+      "slideId": "ppt/slides/slide1.xml",
+      "origin": "master",
+      "groupId": "group/partner-mark",
+      "hypothesis": {
+        "class": "logo-candidate",
+        "confidence": 0.64,
+        "evidence": [
+          {
+            "signal": "origin",
+            "value": "master",
+            "weight": 0.35,
+            "sentence": "It is declared on the master, so it repeats by inheritance."
+          },
+          {
+            "signal": "margin-zone",
+            "value": true,
+            "weight": 0.2,
+            "sentence": "It sits in the top right margin zone."
+          },
+          {
+            "signal": "colour-discreteness",
+            "value": 14,
+            "weight": 0.25,
+            "sentence": "Fourteen distinct colours after quantisation reads as a graphic, not a photo."
+          }
+        ],
+        "alternative": "decoration"
+      }
+    },
+    {
+      "id": "ppt/slides/slide2.xml.3",
+      "slideId": "ppt/slides/slide2.xml",
+      "origin": "slide",
+      "hypothesis": {
+        "class": "chart",
+        "confidence": 0.95,
+        "evidence": [
+          {
+            "signal": "native-tag",
+            "value": "c:chart",
+            "weight": 0.8,
+            "sentence": "The object carries the native chart graphic data uri."
+          },
+          {
+            "signal": "chart-data",
+            "value": true,
+            "weight": 0.15,
+            "sentence": "Three categories and one series were read from the chart workbook."
+          }
+        ]
+      }
+    },
+    {
+      "id": "ppt/slides/slide2.xml.5",
+      "slideId": "ppt/slides/slide2.xml",
+      "origin": "slide",
+      "hypothesis": {
+        "class": "chart",
+        "confidence": 0.82,
+        "evidence": [
+          {
+            "signal": "native-tag",
+            "value": "c:chart",
+            "weight": 0.8,
+            "sentence": "The object carries the native chart graphic data uri."
+          },
+          {
+            "signal": "area-share",
+            "value": 0.075,
+            "weight": 0.05,
+            "sentence": "It covers under a tenth of the slide, along the bottom edge."
+          }
+        ]
+      }
+    }
+  ],
+  "groups": [
+    {
+      "id": "group/partner-mark",
+      "kind": "media",
+      "members": [
+        "ppt/slides/slide1.xml.7"
+      ],
+      "unverified": [
+        "ppt/slides/slide2.xml.9"
+      ],
+      "slideIds": [
+        "ppt/slides/slide1.xml"
+      ],
+      "exemplar": "ppt/slides/slide1.xml.7",
+      "class": "logo-candidate"
+    }
+  ],
+  "colors": {
+    "uses": [
+      {
+        "useId": "use/ink/1a1a1a",
+        "hex": "#1A1A1A",
+        "scheme": "tx1",
+        "role": "ink",
+        "weight": 18420,
+        "objectIds": [
+          "ppt/slides/slide1.xml.4"
+        ]
+      },
+      {
+        "useId": "use/bg/ffffff",
+        "hex": "#FFFFFF",
+        "scheme": "bg1",
+        "role": "bg",
+        "weight": 1843200,
+        "objectIds": [
+          "ppt/slides/slide1.xml#background",
+          "ppt/slides/slide2.xml#background"
+        ]
+      },
+      {
+        "useId": "use/series/0c322c",
+        "hex": "#0C322C",
+        "role": "series",
+        "weight": 4200,
+        "objectIds": [
+          "ppt/slides/slide2.xml.3"
+        ],
+        "distinctionSet": "ppt/slides/slide2.xml.3"
+      }
+    ],
+    "contrastPairs": [
+      {
+        "foreground": "use/ink/1a1a1a",
+        "background": "use/bg/ffffff",
+        "minimum": 4.5,
+        "objectId": "ppt/slides/slide1.xml.4"
+      }
+    ]
+  },
+  "fonts": [
+    {
+      "family": "Calibri",
+      "provenance": "theme",
+      "runs": 34,
+      "roles": {
+        "title": 2,
+        "body": 32
+      },
+      "available": false
+    },
+    {
+      "family": "Arial",
+      "provenance": "literal",
+      "runs": 6,
+      "roles": {
+        "other": 6
+      },
+      "available": true
+    }
+  ],
+  "layouts": [
+    {
+      "slideId": "ppt/slides/slide1.xml",
+      "counts": {
+        "title": 1,
+        "logo-candidate": 1
+      },
+      "largestTextPt": 40,
+      "imageAreaShare": 0.01,
+      "chartPresent": false,
+      "tablePresent": false,
+      "distinctLeftEdges": 2,
+      "equalSiblingBoxes": 0,
+      "textParagraphs": 1,
+      "textWords": 2,
+      "sourceLayout": "slideLayout2.xml"
+    },
+    {
+      "slideId": "ppt/slides/slide2.xml",
+      "counts": {
+        "chart": 2
+      },
+      "imageAreaShare": 0,
+      "chartPresent": true,
+      "tablePresent": false,
+      "distinctLeftEdges": 1,
+      "equalSiblingBoxes": 0,
+      "textParagraphs": 0,
+      "textWords": 0,
+      "sourceLayout": "slideLayout5.xml"
+    }
+  ],
+  "flattenedSlideIds": [],
+  "warnings": []
+}

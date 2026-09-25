@@ -60,6 +60,9 @@ import {
   extractPathways,
   buildToc,
 } from '../lib/docs-nav.ts';
+// The fetch, stub-follow, fragment lookup, rehost and heading scroll are shared
+// with the specification browser (#/document-model) - see lib/docs-rehost.ts.
+import { fetchDocHtml, findDocFragment, rehostFragment, scrollToHeading } from '../lib/docs-rehost.ts';
 import { analyzeTextSignals } from '../../../../engine/src/text-signals.ts';
 import { extractHtmlText } from './doc-read.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
@@ -183,51 +186,38 @@ export async function mountDocs(
   // nosemgrep: lolly-href-escape-is-not-scheme-validation - safeHref()-gated in the guard above
   const openDocsLink = safeHref(url) ? ` <a href="${escape(url)}" target="_blank" rel="noopener">${t('Open the docs')}</a>` : '';
 
-  let html: string;
-  try {
-    let res = await fetch(url, { credentials: 'same-origin' });
-    if (!viewEl.isConnected) return;
-    if (!res.ok && url !== docsInfoHref(slug, 'en')) {
-      // A build may ship English-only docs - the mobile app prunes the locale
-      // page trees from its embed for size (shells/tauri-mobile build:frontend).
-      // Fall back to the English page rather than a dead end; the reader chrome
-      // stays localized, matching the shots pipeline's English-fallback rule.
-      res = await fetch(docsInfoHref(slug, 'en'), { credentials: 'same-origin' });
-      if (!viewEl.isConnected) return;
-    }
-    if (!res.ok) {
-      // 404 etc. - a real message, plus the static page as an escape hatch.
-      showStatus(
-        t('That documentation page could not be found.'),
-        openDocsLink,
-      );
-      return;
-    }
-    html = await res.text();
-    // A flat pre-177 URL now serves a tiny meta-refresh stub pointing at the
-    // page's doored home (/info/<door>/<slug>.html). Follow it once, in place,
-    // so old in-app links and bookmarked #/docs routes keep resolving.
-    const stub = /<meta http-equiv="refresh" content="0; url=(\/info\/[\w/-]+\.html)">/.exec(html);
-    if (stub) {
-      const res2 = await fetch(stub[1]!, { credentials: 'same-origin' });
-      if (!viewEl.isConnected) return;
-      if (res2.ok) html = await res2.text();
-    }
-  } catch {
-    if (!viewEl.isConnected) return;
+  // A build may ship English-only docs - the mobile app prunes the locale page
+  // trees from its embed for size (shells/tauri-mobile build:frontend). The
+  // English page is the fallback rather than a dead end; the reader chrome stays
+  // localized, matching the shots pipeline's English-fallback rule. A flat
+  // pre-177 URL serves a meta-refresh stub pointing at the page's doored home,
+  // which fetchDocHtml follows once, in place, so old in-app links and bookmarked
+  // #/docs routes keep resolving.
+  const fetched = await fetchDocHtml({
+    urls: [url, docsInfoHref(slug, 'en')],
+    fetch: (input, init) => fetch(input, init),
+    alive: () => viewEl.isConnected,
+  });
+  if (!fetched.ok) {
+    // An unmounted view says nothing; a 404 and a dead connection each get their
+    // own message, plus the static page as an escape hatch.
+    if (fetched.reason === 'abandoned') return;
     showStatus(
-      t('Could not load the documentation. Check your connection and try again.'),
+      fetched.reason === 'missing'
+        ? t('That documentation page could not be found.')
+        : t('Could not load the documentation. Check your connection and try again.'),
       openDocsLink,
     );
     return;
   }
+  const html = fetched.html;
   if (!viewEl.isConnected) return;
 
   const doc = new DOMParser().parseFromString(html, 'text/html');
   // Two extraction markers: `.docs-content` on every doc page, `.docs-landing` on the
   // front door. The landing is kept out of `.docs-content` on purpose (see
   // lib/docs-landing.ts); everything below treats the two the same way.
-  const fragment = doc.querySelector('.docs-content, .docs-landing');
+  const fragment = findDocFragment(doc);
   // An immersive page (What we stand for) is built in the landing's shape - full-bleed
   // bands, no rail - and marks its <main> `.docs-landing.docs-immersive`. It is not the
   // front door, so it keeps its own title and link handling, but it takes the landing
@@ -253,7 +243,7 @@ export async function mountDocs(
   if (pageTitle && !isLanding) document.title = tRaw('{name} - Lolly', { name: pageTitle });
 
   // The formats page's detail-dialog data rides in an inert `<script type=
-  // "application/json">`, which the strip below removes with every other script -
+  // "application/json">`, which the rehost below strips with every other script -
   // so read it out FIRST and hand it to the enhancer after mount (the reader's
   // "no fetched scripts survive" invariant stays intact). Null on any other page.
   const fmtCatalogRaw = fragment.querySelector('#fmt-catalog-data')?.textContent ?? null;
@@ -264,20 +254,14 @@ export async function mountDocs(
   // in <head>, which we never extract. Those blocks also DEFINE the figure's local tokens
   // (`--cmp-*`), so stripping them left figures unstyled and their headings mashed. This is
   // our own trusted, brand-scoped build output, not arbitrary fetched markup.
-  fragment.querySelectorAll('script, .listen-bar').forEach((el) => el.remove());
-
-  // Rewrite internal doc links to the in-app reader so navigation stays in the SPA.
-  rewriteDocLinks(fragment);
-
-  // Adopt the fragment into this document and mount it. `.docs-content` is a <main> in the
-  // built page, but #view is ALREADY <main id="view"> - a nested/second <main> is an
-  // invalid, duplicate landmark - so rehost its guts in an <article> (valid inside <main>,
-  // and the right role for a doc page), keeping the `docs-content page-<slug>` classes so
-  // docs.css applies. importNode(true) deep-clones across the parsed document.
-  const imported = document.importNode(fragment, true) as HTMLElement;
-  const node = document.createElement('article');
-  node.className = imported.className;
-  node.replaceChildren(...Array.from(imported.childNodes));
+  //
+  // Then adopt the fragment into this document and mount it. `.docs-content` is a <main>
+  // in the built page, but #view is ALREADY <main id="view"> - a nested/second <main> is
+  // an invalid, duplicate landmark - so rehostFragment puts its guts in an <article>
+  // (valid inside <main>, and the right role for a doc page), keeping the
+  // `docs-content page-<slug>` classes so docs.css applies. Internal doc links are
+  // rewritten to the in-app reader first, so navigation stays in the SPA.
+  const node = rehostFragment(fragment, { strip: 'script, .listen-bar', rewriteLinks: rewriteDocLinks });
 
   // THE PAGE TITLE. `docsMasthead` (docs/build.ts) lifts each page's <h1> out of the
   // article and into a full-width band that is a SIBLING of `.docs-wrap` - so it sits
@@ -303,26 +287,12 @@ export async function mountDocs(
 
   contentEl.replaceChildren(node);
 
-  // Scroll a heading (by fragment id) into view within #view. Returns whether the
-  // heading exists, so a click handler can preventDefault only when it will act.
-  // A target inside a closed <details> is opened first, all the way up the chain: the
-  // landing's FAQ is a list of `details.faq-item` (the static page runs its own opener
-  // script for the same reason), and any doc page's disclosure block gets the same
-  // treatment. Scrolling to a hidden answer would land on the summary and look broken.
-  const scrollToHeading = (id: string, behavior: ScrollBehavior): boolean => {
-    const target = id ? node.querySelector(`#${CSS.escape(id)}`) : null;
-    if (!target) return false;
-    for (
-      let d = target.closest('details');
-      d && node.contains(d);
-      d = d.parentElement?.closest('details') ?? null
-    ) {
-      d.open = true;
-    }
-    try { target.scrollIntoView({ behavior, block: 'start' }); } catch { /* jsdom has no layout */ }
-    return true;
-  };
-
+  // Scrolling a heading into view within #view is lib/docs-rehost.ts's
+  // scrollToHeading: it opens every closed <details> above the target first (the
+  // landing's FAQ is a list of `details.faq-item`, and the static page runs its own
+  // opener script for the same reason) and answers whether the heading is there, so a
+  // click handler can preventDefault only when it will act.
+  //
   // In-page anchors (`#heading-id`) must NOT set location.hash - that IS the SPA route,
   // so a bare `#foo` would navigate away. Intercept plain clicks and scroll within #view.
   const onAnchorClick = (e: MouseEvent): void => {
@@ -331,7 +301,7 @@ export async function mountDocs(
     const raw = a.getAttribute('href') || '';
     if (!raw.startsWith('#') || raw.startsWith('#/')) return; // leave real routes alone
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
-    if (!scrollToHeading(decodeURIComponent(raw.slice(1)), 'smooth')) return;
+    if (!scrollToHeading(node, decodeURIComponent(raw.slice(1)), 'smooth')) return;
     e.preventDefault();
   };
   node.addEventListener('click', onAnchorClick as EventListener);
@@ -403,7 +373,7 @@ export async function mountDocs(
       toc.el.addEventListener('click', (e) => {
         const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[data-toc-target]');
         if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
-        if (scrollToHeading(a.dataset.tocTarget || '', 'smooth')) e.preventDefault();
+        if (scrollToHeading(node, a.dataset.tocTarget || '', 'smooth')) e.preventDefault();
       });
       // Scroll-spy (Andy, 2026-08-17): the sticky rail alone just parks the list - the
       // TOC should FOLLOW the reading position. The current section is the last heading
@@ -457,7 +427,7 @@ export async function mountDocs(
   // (the section heading rides a ?h= query param, since a second '#' can't ride the
   // hash route). Scroll that heading into view now that the fragment is in the DOM -
   // a no-op when absent or the id isn't on the page.
-  if (deepLink) scrollToHeading(deepLink, 'auto');
+  if (deepLink) scrollToHeading(node, deepLink, 'auto');
 
   // ── Narration "Listen" dock (unified audio-dock migration, Phase 2a) ──────────
   // ADDITIVE: the reader had no player. Content-gated - mounted ONLY when this slug

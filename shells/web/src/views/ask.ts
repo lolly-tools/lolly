@@ -170,7 +170,7 @@ export async function mountAsk(viewEl: HTMLElement, host: AskHost, params: strin
 
   // ── M1 consent chip - "better matching" is a ~23 MB opt-in, never implicit ──
   // Offered under the transcript once at least one answer exists, when the
-  // build stages the embed model and it is not on-device yet. All three facts
+  // model host serves the embed model and it is not on-device yet. All three facts
   // are probed lazily so Tier 0 pays nothing.
   const consentEl = document.createElement('div');
   consentEl.className = 'ask-consent';
@@ -182,16 +182,24 @@ export async function mountAsk(viewEl: HTMLElement, host: AskHost, params: strin
   const offerConsent = async (): Promise<void> => {
     if (embedConsentDismissed || consentBusy || !askSession().length) return;
     try {
-      const { cachedEmbedModel, EMBED_MODEL_BYTES } = await import('../lib/ask/embed.ts');
+      const { cachedEmbedModel } = await import('../lib/ask/embed.ts');
       const { downloadEmbedModel, embedDownloadActive } = await import('../lib/ask/embed-download.ts');
-      const { fetchPrecacheManifest } = await import('../lib/offline-manager.ts');
-      const precache = await fetchPrecacheManifest();
-      if (!viewEl.isConnected || !precache?.groups.embed?.length || (await cachedEmbedModel())) return;
+      const { embedModelOffer } = await import('../lib/ask/embed-offer.ts');
+      const { fmtBytes } = await import('../lib/format.ts');
+      // Allowed, served by the model host and not here yet: the same facts the
+      // Profile row reads, with or without a precache.json.
+      const offer = await embedModelOffer();
+      if (!viewEl.isConnected || !offer || (await cachedEmbedModel())) return;
+      const precache = offer.manifest;
       if (consentEl.dataset.wired) { consentEl.hidden = false; return; }
       consentEl.dataset.wired = '1';
-      const mb = Math.round(EMBED_MODEL_BYTES / 1024 / 1024);
+      // The size Profile's Ask matching model row states (model plus runtime), or
+      // none when it is unknown.
+      const chipText = offer.bytes
+        ? tRaw('Better matching: a small model ({size}) helps match your question to the right guide. It stays on this device.', { size: fmtBytes(offer.bytes) })
+        : t('Better matching: a small model helps match your question to the right guide. It stays on this device.');
       consentEl.innerHTML = `
-        <span class="ask-consent-text">${tRaw('Better matching: a small on-device model ({n} MB) helps pair questions with the right section. It stays on this device.', { n: mb })}</span>
+        <span class="ask-consent-text">${escape(chipText)}</span>
         <button type="button" class="btn ask-consent-get" data-consent-get>${t('Download')}</button>
         <button type="button" class="btn-link ask-consent-no" data-consent-no>${t('Not now')}</button>`;
       consentEl.hidden = false;

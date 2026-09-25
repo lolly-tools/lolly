@@ -22,6 +22,7 @@ import { toolInputSchema, fileInputId } from './schema.ts';
 import { render, transform, isTextFormat, normFormat, emojiSets, emojiSetName, resolveEmojiSetName } from './render.ts';
 import { withHost } from './host.ts';
 import type { RenderOpts } from './render.ts';
+import { REBRAND_TOOL_DEF, callRebrand } from './rebrand.ts';
 
 const WEB_BASE = (process.env.LOLLY_WEB_BASE || 'https://lolly.tools').replace(/\/$/, '');
 
@@ -29,6 +30,8 @@ export interface McpToolDef {
   name: string;
   description: string;
   inputSchema: Record<string, unknown>;
+  /** The JSON Schema `structuredContent` follows, for a tool that returns one (protocol 2025-06-18). */
+  outputSchema?: Record<string, unknown>;
 }
 
 const FILE_ARG = {
@@ -366,6 +369,7 @@ export const TOOL_DEFS: McpToolDef[] = [
       additionalProperties: false,
     },
   },
+  REBRAND_TOOL_DEF,
   {
     name: 'lolly_redact',
     description:
@@ -1182,6 +1186,9 @@ export async function callTool(name: string, args: Record<string, unknown>): Pro
         };
       }
 
+      case 'lolly_rebrand':
+        return await callRebrand(args);
+
       case 'lolly_redact': {
         const file = args.file as { base64?: string; name?: string; mime?: string } | undefined;
         if (!file?.base64) return errorResult('file.base64 is required.');
@@ -1265,6 +1272,7 @@ export async function serverInstructions(): Promise<string> {
     `For a known recipe, skip redundant discovery and validation when the render call can validate it. ` +
     `A successful render is complete when its requested checks pass; review is only needed for a named requirement this instance cannot measure. ` +
     `Use lolly_build_url for a shareable/editable link without rendering, lolly_transform for on-device file utilities, ` +
+    `lolly_rebrand to renovate a .pptx deck into this design system in stages (capabilities, plan, compile, inspect), ` +
     `lolly_redact to destroy regions of an image/SVG/PDF from one reusable instruction string, ` +
     `and lolly_verify to check a file's Content Credentials (C2PA). ` +
     `Brand assets, tokens, and tool docs are available as resources (lolly://catalog, lolly://assets, lolly://tool/{id}, ` +

@@ -252,7 +252,9 @@ test('a text node maps to a text box in slide px: size, face, ink and the shape�
   assert.equal(n!.text, '**Title**');
   assert.equal(n!.fontSize, 48, '36pt × 96/72');
   assert.equal(n!.fontFamily, 'SUSE');
-  assert.equal(n!.fontWeight, 700);
+  // The box is regular and the bold run carries its own marker (plan 275 section 7.2),
+  // so a regular run beside it is never drawn bold.
+  assert.equal(n!.fontWeight, 400);
   assert.equal(n!.fg, '#112233');
   assert.equal(n!.fill, '#30BA78', 'a coloured title bar keeps its colour on the box');
 });
@@ -365,3 +367,118 @@ test('pptxSlideToSvg paints inherited furniture behind the slide and the slide�
   assert.ok(out.svg.indexOf('#30BA78') < out.svg.indexOf('<text'), 'the bar is painted before the text');
 });
 
+
+// ─── plan 275 decision 32: drawings stay drawings in Design's import and Unpack ─
+
+test('275: an SVG picture previews as a nested drawing, never its raster, and a freeform as its outline', async () => {
+  const { svgItemsOf } = await import('../engine/src/svg-items.ts');
+  const { JSDOM } = await import('jsdom');
+  const parser = new (new JSDOM('').window.DOMParser)();
+  const items = svgItemsOf('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50"><rect width="60" height="20" fill="#1f4e79"/><script>alert(1)</script></svg>', (xml) => parser.parseFromString(xml, 'image/svg+xml'));
+  const out = render([
+    { type: 'pic', ...box(10, 10, 200, 100), media: 'ppt/media/image1.png', svg: 'ppt/media/image1.svg' },
+    { type: 'shape', ...box(300, 10, 100, 100), fill: { hex: '30BA78' }, custGeom: { paths: [{ d: 'M0 0L100 0L50 100Z', w: 100, h: 100 }] } },
+  ], {
+    getMedia: () => ({ dataUrl: 'data:image/png;base64,AAAA' }),
+    getVector: (path) => (path === 'ppt/media/image1.svg' ? items : null),
+  });
+  assert.match(out.svg, /<svg x="10" y="10" width="200" height="100" viewBox="0 0 100 50" preserveAspectRatio="none"><path d="M0 0L60 0L60 20L0 20Z" fill="#1f4e79"\/><\/svg>/);
+  assert.equal(out.svg.includes('data:image/png'), false, 'the raster stand-in is not drawn');
+  assert.equal(out.svg.includes('script'), false, 'the preview is built from the items, never the source markup');
+  assert.match(out.svg, /<svg x="300" y="10" width="100" height="100" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0 0L100 0L50 100Z" fill="#30ba78"\/><\/svg>/);
+});
+
+test('275: Design\'s import makes a drawing one group of editable rows, and the rows survive the box mapper', async () => {
+  const { svgItemsOf } = await import('../engine/src/svg-items.ts');
+  const { finalizeBoxes } = await import('../engine/src/design-map.ts');
+  const { withVectorRows } = await import('../shells/web/src/views/pptx-import.ts');
+  const { JSDOM } = await import('jsdom');
+  const parser = new (new JSDOM('').window.DOMParser)();
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50"><rect width="60" height="20" rx="3" fill="#1f4e79" data-recolor="A"/>'
+    + '<line x1="80" y1="0" x2="80" y2="50" stroke="#999999" opacity="0.3"/></svg>';
+  const items = svgItemsOf(svg, (xml) => parser.parseFromString(xml, 'image/svg+xml'));
+  const slide: PptxReadSlide = { index: 2, nodes: [{ type: 'pic', ...box(10, 20, 200, 100), media: 'ppt/media/image1.png', svg: 'ppt/media/image1.svg' }] };
+  const opts: PptxNodeMapOpts = { widthEmu: 960 * EMU_PER_PX, heightEmu: 540 * EMU_PER_PX, theme: THEME, resolveMedia: () => null, getVector: () => items };
+  const nodes = pptxSlideToNodes(slide, opts);
+  assert.equal(nodes.length, 2);
+  const boxes = withVectorRows(finalizeBoxes(nodes as never, { prefix: 's' }), nodes);
+  assert.equal(boxes.length, 2);
+  const [bar, line] = boxes.map((one) => Object.fromEntries(Object.entries(one)));
+  assert.equal(bar!.kind, 'box');
+  assert.equal(bar!.shape, 'rounded');
+  assert.equal(bar!.bg, '#1f4e79');
+  assert.equal(bar!.name, 'Shape: A');
+  assert.equal(line!.kind, 'path', 'a line is a path row, which the mapper alone would have made a box');
+  assert.equal(line!.opacity, 30);
+  assert.equal(line!.strokeCap, 'butt');
+  assert.ok(typeof line!.path === 'string' && line!.path.length > 0);
+  assert.equal(bar!.group, 'vector:slide3.0');
+  assert.equal(line!.group, bar!.group, 'one group, so one Ungroup takes the chart apart');
+  assert.deepEqual([bar!.id, line!.id], ['s0', 's1'], 'the mapper still mints the ids');
+  // Without a reader the picture stays the raster it always was.
+  const plain = pptxSlideToNodes(slide, { ...opts, getVector: undefined, resolveMedia: () => ({ source: 'user', id: 'a', type: 'raster', format: 'png', url: 'blob:a' }) });
+  assert.deepEqual(plain.map((n) => n.kind), ['image']);
+});
+
+test('275: text keeps its paragraph formatting on the way into Design', () => {
+  const [n] = pptxSlideToNodes({ index: 0, nodes: [{ type: 'text', ...box(0, 0, 400, 200), paras: [
+    { runs: [{ text: 'First point' }], bullet: 'bullet' },
+    { runs: [{ text: 'Second, ' }, { text: 'struck', strike: true }], bullet: 'bullet' },
+    { runs: [{ text: 'Step one' }], bullet: 'number' },
+  ] }] }, { widthEmu: 960 * EMU_PER_PX, heightEmu: 540 * EMU_PER_PX, theme: THEME, resolveMedia: () => null });
+  assert.equal(n!.text, '- First point\n- Second, {s|struck}\n1. Step one', 'bullets, numbers and a strike in Design\'s own subset');
+});
+
+test('275: Unpack lists a deck\'s drawings apart from its marks, one entry per distinct drawing', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { unzipSync } = await import('fflate');
+  const { JSDOM } = await import('jsdom');
+  const { readPptx } = await import('../engine/src/pptx-read.ts');
+  const { deckVectors, vectorReader } = await import('../shells/web/src/views/pptx-import.ts');
+  const parser = new (new JSDOM('').window.DOMParser)();
+  const parts = unzipSync(new Uint8Array(readFileSync(new URL('./fixtures/rebrand/vector.pptx', import.meta.url))));
+  const deck = readPptx(parts, (xml) => parser.parseFromString(xml, 'application/xml'));
+  const list = deckVectors(deck, parts, vectorReader(parts, (xml) => parser.parseFromString(xml, 'image/svg+xml')));
+  assert.deepEqual(list.map((v) => [v.kind, v.reason, v.page]), [
+    ['mark', 'an embedded SVG picture', 0],
+    ['drawing', 'an embedded SVG picture', 0],
+    ['drawing', 'a custom-geometry shape', 0],
+    ['drawing', 'a custom-geometry shape', 0],
+    ['drawing', 'an embedded SVG picture', 1],
+  ], 'the layout mark once, the two charts, the two lockup parts; the refused crowd has no items to list');
+  assert.equal(list[1]!.title, 'bar chart');
+  assert.equal(list[1]!.shapes, 14);
+  assert.deepEqual([list[1]!.width, list[1]!.height], [400, 200]);
+  assert.ok(list[1]!.fills.includes('#1f4e79'));
+  assert.match(list[1]!.svg, /<desc>Source: rebrand fixture data/, 'the drawing is offered as the deck stored it, credits and all');
+});
+
+test('275: Design\'s import spends one budget of drawn path data across a deck, crops a drawing as its picture, and names rows through a namer', async () => {
+  const { svgItemsOf, MAX_VECTOR_PATH_CHARS_PER_DOCUMENT } = await import('../engine/src/svg-items.ts');
+  const { finalizeBoxes } = await import('../engine/src/design-map.ts');
+  const { withVectorRows } = await import('../shells/web/src/views/pptx-import.ts');
+  const { JSDOM } = await import('jsdom');
+  const parser = new (new JSDOM('').window.DOMParser)();
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M10 10L30 10L30 30Z" fill="#1f4e79" data-recolor="A"/>'
+    + '<text x="80" y="90" font-size="8" font-family="Fixture Sans" fill="#333333">Yes</text></svg>';
+  const items = svgItemsOf(svg, (xml) => parser.parseFromString(xml, 'image/svg+xml'));
+  const pic = { type: 'pic' as const, ...box(10, 20, 200, 200), media: 'ppt/media/image1.png', svg: 'ppt/media/image1.svg' };
+  const opts: PptxNodeMapOpts = { widthEmu: 960 * EMU_PER_PX, heightEmu: 540 * EMU_PER_PX, theme: THEME, resolveMedia: () => null, getVector: () => items };
+  const nodes = pptxSlideToNodes({ index: 0, nodes: [pic] }, opts);
+  const boxes = withVectorRows(finalizeBoxes(nodes as never, { prefix: 's' }), nodes, (row) => `named ${String(row.name)}`);
+  const [shape, label] = boxes.map((one) => Object.fromEntries(Object.entries(one)));
+  assert.equal(shape!.name, 'named Drawing: A', 'the namer says the name');
+  assert.equal(label!.font, 'Fixture Sans', 'a text part keeps its face');
+  // A crop that hides the label and keeps the shape whole.
+  const cropped = pptxSlideToNodes({ index: 0, nodes: [{ ...pic, srcRect: { r: 0.5, b: 0.5 } }] }, opts);
+  assert.equal(cropped.length, 1, 'the part the crop hides is not a row');
+  // A crop through the shape keeps the picture.
+  const through = pptxSlideToNodes({ index: 0, nodes: [{ ...pic, srcRect: { l: 0.2 } }] }, { ...opts, resolveMedia: () => ({ source: 'user', id: 'a', type: 'raster', format: 'png', url: 'blob:a' }) });
+  assert.deepEqual(through.map((n) => n.kind), ['image']);
+  // A budget already spent keeps the next drawing a picture.
+  const spent = pptxSlideToNodes({ index: 1, nodes: [pic] }, { ...opts, vectorBudget: { chars: MAX_VECTOR_PATH_CHARS_PER_DOCUMENT }, resolveMedia: () => ({ source: 'user', id: 'a', type: 'raster', format: 'png', url: 'blob:a' }) });
+  assert.deepEqual(spent.map((n) => n.kind), ['image']);
+  const budget = { chars: 0 };
+  pptxSlideToNodes({ index: 0, nodes: [pic] }, { ...opts, vectorBudget: budget });
+  assert.ok(budget.chars > 0, 'a placed drawing spends the shared budget');
+});

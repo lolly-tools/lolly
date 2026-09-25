@@ -170,6 +170,25 @@ export const syncCaptionsUi = (ta: ActionsCtx, fmt: string): void => {
   const note = el.querySelector<HTMLElement>('[data-captions-mp4-note]');
   if (note) note.style.display = fmt === 'mp4' ? 'block' : 'none';
 };
+/**
+ * Show the captions settings only when this export has caption text to carry:
+ * caption boxes on a timed composition, or the tool audio's spoken-word text.
+ * Debounced, because it runs on every input change and the lookup can read an
+ * asset. A pending check that loses to a newer one does nothing.
+ */
+export const syncCaptionsAvailable = (ta: ActionsCtx): void => {
+  const block = ta.el?.querySelector<HTMLElement>('[data-captions-block]');
+  if (!block) return;
+  if (ta.captionsCheckTimer) clearTimeout(ta.captionsCheckTimer);
+  const seq = (ta.captionsCheckSeq ?? 0) + 1;
+  ta.captionsCheckSeq = seq;
+  ta.captionsCheckTimer = setTimeout(() => {
+    ta.captionsCheckTimer = null;
+    void captionText(ta).catch(() => null).then((text) => {
+      if (seq === ta.captionsCheckSeq) block.hidden = !text;
+    });
+  }, 250);
+};
 export function wireAudio(ta: ActionsCtx): void {
   const { audioPreviewBtn, audioRegenBtn, audioSel, exportDefaults, host } = ta;
   audioSel?.addEventListener('change', () => {
@@ -254,6 +273,7 @@ export function audioOps(ta: ActionsCtx) {
     syncBarsDefault: bindOp(ta, syncBarsDefault),
     syncPrintDefault: bindOp(ta, syncPrintDefault),
     syncCaptionsUi: bindOp(ta, syncCaptionsUi),
+    syncCaptionsAvailable: bindOp(ta, syncCaptionsAvailable),
     wireAudio: bindOp(ta, wireAudio),
   };
 }

@@ -1,5 +1,6 @@
 import { swatchFace } from '../../../../../engine/src/color-face.ts';
 import { getDesignPublication, restoreDesignPublication } from '../../lib/design-tool-publication.ts';
+import { getRebrandHandoff, restoreRebrandHandoff, REBRAND_HANDOFF_MARKER } from '../../lib/rebrand/design-handoff.ts';
 import { getDesignToolSource, restoreDesignToolSource } from '../../lib/design-tool-source.ts';
 import { mountLockedTool } from '../locked-tool.ts';
 import { getDesignToolDraft, restoreDesignToolDraft } from '../../lib/design-tool-draft.ts';
@@ -162,6 +163,7 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
     depth: urlDepth,
     video: urlVideo,
     designSystem: urlDesignSystem,
+    licence: urlLicence,
   } = openedSession.url;
   tview.values = values;
   tview.urlFormat = urlFormat;
@@ -169,6 +171,7 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   tview.autoCopy = autoCopy;
   tview.routeSlot = routeSlot;
   tview.urlFilename = urlFilename;
+  tview.urlLicence = urlLicence ?? null;
   tview.urlWidth = urlWidth;
   tview.urlHeight = urlHeight;
   tview.urlUnit = urlUnit;
@@ -800,6 +803,7 @@ export function mountActions(tview: ToolViewCtx): void {
   restoreDesignToolDraft(runtime, tview.initialValues.__designTool);
   restoreDesignToolSource(runtime, tview.initialValues.__designToolSource);
   restoreDesignPublication(runtime, tview.initialValues.__designPublication);
+  restoreRebrandHandoff(runtime, tview.initialValues[REBRAND_HANDOFF_MARKER]);
   if (tview.initialValues.__presentation) tview.presentationScene = readScene(tview.initialValues.__presentation);
   const actionsApi = renderActions(
     actionsEl,
@@ -821,7 +825,7 @@ export function mountActions(tview: ToolViewCtx): void {
       // A thunk: session wiring assigns tview.openSaveAs after this mount runs.
       openSaveAs: () => { void tview.openSaveAs?.(); },
       current: toolId === 'design' ? () => tview.session.currentDesignOutcome() : undefined,
-      sessionMeta: () => ({ ...(getDesignPublication(runtime) ? {__designPublication:getDesignPublication(runtime)} : {}), ...(getDesignToolSource(runtime) ? { __designToolSource: getDesignToolSource(runtime) } : {}), ...(tview.tool.artifactDigest ? { __toolArtifact: tview.tool.artifactDigest } : {}), ...(getDesignToolDraft(runtime) ? { __designTool: getDesignToolDraft(runtime) } : {}), ...(toolId === 'design' ? { __workspace_intent: tview.designIntent } : {}),
+      sessionMeta: () => ({ ...(getDesignPublication(runtime) ? {__designPublication:getDesignPublication(runtime)} : {}), ...(getRebrandHandoff(runtime) ? { [REBRAND_HANDOFF_MARKER]: getRebrandHandoff(runtime) } : {}), ...(getDesignToolSource(runtime) ? { __designToolSource: getDesignToolSource(runtime) } : {}), ...(tview.tool.artifactDigest ? { __toolArtifact: tview.tool.artifactDigest } : {}), ...(getDesignToolDraft(runtime) ? { __designTool: getDesignToolDraft(runtime) } : {}), ...(toolId === 'design' ? { __workspace_intent: tview.designIntent } : {}),
         ...(tview.presentationScene ? { __presentation: tview.presentationScene } : {}) }),
       ...historyParticipation(tview.tool.manifest, !!collabHandle || !!ephemeralState || !!getCollabSessionSource()),
     }

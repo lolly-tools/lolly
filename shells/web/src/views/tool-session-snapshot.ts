@@ -42,6 +42,7 @@ export function snapshotSession(el: HTMLElement | null, manifest: ToolManifest, 
         el?.querySelector<HTMLSelectElement>('[data-action="cmyk-profile"]')?.value ?? '',
       __export_bleed: readBleed(el),
       __export_marks: readMarks(el),
+      __export_licence: runtime.outputLicence?.() ?? '',
     };
   }
 

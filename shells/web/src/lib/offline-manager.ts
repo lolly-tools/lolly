@@ -251,8 +251,22 @@ const SIZE_HEADER = 'x-lolly-manifest-size';
  *  and comparing it to the on-disk manifest size would re-download every file
  *  on every resume). A stale or unstamped entry is treated as absent. */
 async function cachedMatches(cache: Cache, file: ManifestFile): Promise<boolean> {
-  const held = await cache.match(file.url);
-  if (!held) return false;
+  const key = modelFetchUrl(file.url);
+  const held = await cache.match(key);
+  if (held) return entryMatches(held, file);
+  if (key === file.url) return false;
+  // A desktop download from before model files were keyed by their fetch URL sits
+  // under the path. Move a current copy to the new key rather than fetch it again,
+  // and drop a stale one, so the bucket never holds the same file twice.
+  const old = await cache.match(file.url);
+  if (!old) return false;
+  const current = entryMatches(old, file);
+  if (current) await cache.put(key, old);
+  await cache.delete(file.url);
+  return current;
+}
+
+function entryMatches(held: Response, file: ManifestFile): boolean {
   if (/^\/assets\//.test(file.url)) return true;
   if (file.hash) return held.headers.get(HASH_HEADER) === file.hash;
   const stamped = held.headers.get(SIZE_HEADER);
@@ -276,7 +290,7 @@ async function putFile(cache: Cache, file: ManifestFile, resp: Response, signal?
   headers.set('content-length', String(blob.size));
   headers.set(SIZE_HEADER, String(blob.size));
   if (file.hash) headers.set(HASH_HEADER, file.hash);
-  await cache.put(file.url, new Response(blob, { status: resp.status, statusText: resp.statusText, headers }));
+  await cache.put(modelFetchUrl(file.url), new Response(blob, { status: resp.status, statusText: resp.statusText, headers }));
 }
 
 const DOWNLOAD_CONCURRENCY = 4;
@@ -285,11 +299,16 @@ const DOWNLOAD_CONCURRENCY = 4;
  *  under same-origin `/models/…`, which is correct for the web deploy (it self-serves
  *  them) but 404s in the desktop shell, whose build prunes `dist/models/` to stay
  *  under the binary-embed limit. There, VITE_MODELS_BASE points at the model host
- *  (https://lolly.tools) so ONLY the pruned `/models/` bytes are pulled from there;
- *  `/ort/`, `/ort-hf/`, `/assets/` etc. stay in the bundle and same-origin. The CACHE
- *  KEY stays `file.url` (relative) so cachedMatches/pruneList are unchanged, and on
- *  the web build MODELS_BASE is '' so this is a no-op (byte-identical). */
-const modelFetchUrl = (url: string): string =>
+ *  so ONLY the pruned `/models/` bytes are pulled from there; `/ort/`, `/ort-hf/`,
+ *  `/assets/` etc. stay in the bundle and same-origin. On the web build MODELS_BASE
+ *  is '' so this is a no-op (byte-identical).
+ *
+ *  It is also the CACHE KEY a model file is stored under: the speech, rewriter,
+ *  detector and Ask workers look their files up as `${MODELS_BASE}/models/...`, so
+ *  an entry stored under the relative path would be invisible to them on the
+ *  desktop shells and fetched again on first use. pruneList and the directory
+ *  sweeps compare pathnames, which are the same under either spelling. */
+export const modelFetchUrl = (url: string): string =>
   MODELS_BASE && url.startsWith('/models/') ? MODELS_BASE + url : url;
 
 /**
@@ -447,7 +466,9 @@ export async function downloadVerify(
     signal,
     onProgress: p => { ortLoaded = p.loaded; ortDone = p.done; report(); },
   });
-  await pruneList(ORT_CACHE, manifest.groups.ort);
+  // A listing with no runtime (the model files came from the committed listing,
+  // lib/model-parts.ts) must not prune the runtime bucket down to nothing.
+  if (manifest.groups.ort.length) await pruneList(ORT_CACHE, manifest.groups.ort);
 
   // Model downloads are the same fetch-once-into-IDB path the /verify header's
   // own "enable deep scan" button uses - one copy, shared consent.

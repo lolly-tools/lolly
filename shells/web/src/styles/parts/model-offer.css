@@ -1,0 +1,29 @@
+/* Cascade layer: the `views` layer, like models-welcome.css. It is imported by
+   lib/model-offer.ts rather than app.css's static list, so the wrap pins its
+   priority whenever Vite injects the chunk. */
+@layer views {
+
+/*
+ * The in-context model offer (lib/model-offer.ts): the shared `.modal` sheet with
+ * a note line and an error line. The download itself shows in the job toast, so
+ * the sheet carries no progress bar of its own. Tokens only.
+ */
+.model-offer .modal-msg { margin-bottom: var(--sp-2); }
+.mo-note {
+  margin: 0 0 var(--ui-space-control-inline);
+  font-size: var(--ui-type-label);
+  line-height: 1.5;
+  color: var(--ui-color-text-muted);
+}
+.mo-error {
+  margin: 0 0 var(--ui-space-control-inline);
+  font-size: var(--ui-type-label);
+  line-height: 1.5;
+  color: hsl(var(--destructive));
+}
+.mo-error[hidden] { display: none; }
+/* A finger needs a 44px target; the shared modal buttons are sized for a pointer. */
+@media (pointer: coarse) {
+  .model-offer .modal-actions .btn { min-height: 44px; }
+}
+}

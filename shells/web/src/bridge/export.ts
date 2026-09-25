@@ -2143,8 +2143,9 @@ function c2paAuthor(meta: ExportMeta | null | undefined): { name: string; email?
 
 // User-asserted IP → the signed manifest's dc:rights (engine c2pa.ts). Combines the
 // © notice + any licence into one line. Empty on ordinary exports - only tools that
-// declare bindToMeta copyright/license (claim) populate meta.copyright/
-// meta.license, so a normal render never asserts rights it can't stand behind.
+// declare bindToMeta copyright/license (claim) and the licence a person picks in the
+// export panel populate meta.copyright/meta.license, so a normal render never
+// asserts rights nobody chose.
 function c2paRights(meta: ExportMeta | null | undefined): string | undefined {
   const r = [meta?.copyright, meta?.license].filter(Boolean).join(' · ');
   return r || undefined;

@@ -7,4 +7,4 @@ You need a quote card, an event tile and a localised signature today, not next s
 - **No agency bottleneck for routine files.** Email signatures, event countdowns, quote cards and QR codes - everything the team needs on a Tuesday at 4pm, self-serve.
 - **No procurement round for a picture.** No new subscription to approve, no licence to audit, no seat to buy for the person who needed one tile.
 
-The rules themselves are set once in the [Brand Studio](/info/brand-studio.html) by whoever owns the design system, and every file above follows them without anyone checking.
+The rules themselves are set once in the [Brand Studio](/info/brand-studio.html) by whoever owns the design system, and every file above follows them.

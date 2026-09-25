@@ -1,0 +1,532 @@
+{
+  "fixture": "editable.pdf",
+  "version": 1,
+  "builder": "scripts/build-rebrand-pdf-fixtures.ts",
+  "objectIdForm": "<page id>.<position in paint order>",
+  "slides": [
+    {
+      "id": "page1",
+      "index": 0,
+      "widthPx": 960,
+      "heightPx": 540,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "page1.0",
+          "authored": "header-text",
+          "origin": "pdf-artifact",
+          "kind": "text",
+          "class": "recurring-text",
+          "fidelity": {
+            "state": "editable"
+          },
+          "text": "ACME QUARTERLY REVIEW",
+          "note": "inside the Header artifact span, so the document itself says this is running furniture"
+        },
+        {
+          "id": "page1.1",
+          "authored": "header-rule",
+          "origin": "pdf-artifact",
+          "kind": "vector",
+          "class": "decoration",
+          "fidelity": {
+            "state": "approximate",
+            "reason": "reader-approximation"
+          },
+          "note": "a stroked path inside the same Header span: a non-text node the span has to reach too"
+        },
+        {
+          "id": "page1.2",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "mustKeep": true,
+          "text": "Revenue growth"
+        },
+        {
+          "id": "page1.3",
+          "authored": "body-1",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "mustKeep": true,
+          "text": "Body line one at sixteen points"
+        },
+        {
+          "id": "page1.4",
+          "authored": "body-2",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "mustKeep": true,
+          "text": "Second line holds a coloured run inside it",
+          "note": "three runs in one line: black, #d65a28, black; the colour changes inside one BT block"
+        },
+        {
+          "id": "page1.5",
+          "authored": "note",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "mustKeep": true,
+          "text": "A smaller note at eleven points"
+        },
+        {
+          "id": "page1.6",
+          "authored": "mark",
+          "origin": "slide",
+          "kind": "vector",
+          "class": "logo-candidate",
+          "fidelity": {
+            "state": "approximate",
+            "reason": "reader-approximation"
+          },
+          "boxPx": {
+            "x": 845.33,
+            "y": 58.67,
+            "w": 77.33,
+            "h": 42.67
+          },
+          "note": "a curved circle and a triangle, clustered into one mark; the same on every page. The box is the SVG frame: the mark with a 2 pt margin"
+        },
+        {
+          "id": "page1.7",
+          "authored": "picture-copy",
+          "origin": "slide",
+          "kind": "pic",
+          "class": "photo",
+          "fidelity": {
+            "state": "raster-preserved"
+          },
+          "mustKeep": true,
+          "boxPx": {
+            "x": 666.67,
+            "y": 220,
+            "w": 213.33,
+            "h": 120
+          },
+          "note": "a second image object holding the same bytes as the one pages 2 and 3 draw: one stored picture"
+        },
+        {
+          "id": "page1.8",
+          "authored": "bar",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 48,
+            "y": 489.33,
+            "w": 864,
+            "h": 5.33
+          }
+        },
+        {
+          "id": "page1.9",
+          "authored": "footer",
+          "origin": "pdf-artifact",
+          "kind": "text",
+          "class": "footer",
+          "fidelity": {
+            "state": "editable"
+          },
+          "mustKeep": true,
+          "text": "Confidential - ACME Corp",
+          "note": "inside the Footer artifact span; a confidentiality line a default plan must not remove"
+        },
+        {
+          "id": "page1.10",
+          "authored": "page-number",
+          "origin": "slide",
+          "kind": "text",
+          "class": "page-number",
+          "fidelity": {
+            "state": "editable"
+          },
+          "text": "1"
+        }
+      ]
+    },
+    {
+      "id": "page2",
+      "index": 1,
+      "widthPx": 960,
+      "heightPx": 540,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "page2.0",
+          "authored": "header-text",
+          "origin": "pdf-artifact",
+          "kind": "text",
+          "class": "recurring-text",
+          "fidelity": {
+            "state": "editable"
+          },
+          "text": "ACME QUARTERLY REVIEW",
+          "note": "inside the Header artifact span, so the document itself says this is running furniture"
+        },
+        {
+          "id": "page2.1",
+          "authored": "header-rule",
+          "origin": "pdf-artifact",
+          "kind": "vector",
+          "class": "decoration",
+          "fidelity": {
+            "state": "approximate",
+            "reason": "reader-approximation"
+          },
+          "note": "a stroked path inside the same Header span: a non-text node the span has to reach too"
+        },
+        {
+          "id": "page2.2",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "mustKeep": true,
+          "text": "Market share"
+        },
+        {
+          "id": "page2.3",
+          "authored": "body-1",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "mustKeep": true,
+          "text": "Body line one at sixteen points"
+        },
+        {
+          "id": "page2.4",
+          "authored": "body-2",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "mustKeep": true,
+          "text": "Second line holds a coloured run inside it",
+          "note": "three runs in one line: black, #d65a28, black; the colour changes inside one BT block"
+        },
+        {
+          "id": "page2.5",
+          "authored": "note",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "mustKeep": true,
+          "text": "A smaller note at eleven points"
+        },
+        {
+          "id": "page2.6",
+          "authored": "mark",
+          "origin": "slide",
+          "kind": "vector",
+          "class": "logo-candidate",
+          "fidelity": {
+            "state": "approximate",
+            "reason": "reader-approximation"
+          },
+          "boxPx": {
+            "x": 845.33,
+            "y": 58.67,
+            "w": 77.33,
+            "h": 42.67
+          },
+          "note": "a curved circle and a triangle, clustered into one mark; the same on every page. The box is the SVG frame: the mark with a 2 pt margin"
+        },
+        {
+          "id": "page2.7",
+          "authored": "picture",
+          "origin": "slide",
+          "kind": "pic",
+          "class": "photo",
+          "fidelity": {
+            "state": "raster-preserved"
+          },
+          "mustKeep": true,
+          "boxPx": {
+            "x": 586.67,
+            "y": 200,
+            "w": 320,
+            "h": 180
+          },
+          "note": "one image object drawn on pages 2 and 3"
+        },
+        {
+          "id": "page2.8",
+          "authored": "bar",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 48,
+            "y": 489.33,
+            "w": 864,
+            "h": 5.33
+          }
+        },
+        {
+          "id": "page2.9",
+          "authored": "footer",
+          "origin": "pdf-artifact",
+          "kind": "text",
+          "class": "footer",
+          "fidelity": {
+            "state": "editable"
+          },
+          "mustKeep": true,
+          "text": "Confidential - ACME Corp",
+          "note": "inside the Footer artifact span; a confidentiality line a default plan must not remove"
+        },
+        {
+          "id": "page2.10",
+          "authored": "page-number",
+          "origin": "slide",
+          "kind": "text",
+          "class": "page-number",
+          "fidelity": {
+            "state": "editable"
+          },
+          "text": "2"
+        }
+      ]
+    },
+    {
+      "id": "page3",
+      "index": 2,
+      "widthPx": 960,
+      "heightPx": 540,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "page3.0",
+          "authored": "header-text",
+          "origin": "pdf-artifact",
+          "kind": "text",
+          "class": "recurring-text",
+          "fidelity": {
+            "state": "editable"
+          },
+          "text": "ACME QUARTERLY REVIEW",
+          "note": "inside the Header artifact span, so the document itself says this is running furniture"
+        },
+        {
+          "id": "page3.1",
+          "authored": "header-rule",
+          "origin": "pdf-artifact",
+          "kind": "vector",
+          "class": "decoration",
+          "fidelity": {
+            "state": "approximate",
+            "reason": "reader-approximation"
+          },
+          "note": "a stroked path inside the same Header span: a non-text node the span has to reach too"
+        },
+        {
+          "id": "page3.2",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "mustKeep": true,
+          "text": "Next steps"
+        },
+        {
+          "id": "page3.3",
+          "authored": "body-1",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "mustKeep": true,
+          "text": "Body line one at sixteen points"
+        },
+        {
+          "id": "page3.4",
+          "authored": "body-2",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "mustKeep": true,
+          "text": "Second line holds a coloured run inside it",
+          "note": "three runs in one line: black, #d65a28, black; the colour changes inside one BT block"
+        },
+        {
+          "id": "page3.5",
+          "authored": "note",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "mustKeep": true,
+          "text": "A smaller note at eleven points"
+        },
+        {
+          "id": "page3.6",
+          "authored": "mark",
+          "origin": "slide",
+          "kind": "vector",
+          "class": "logo-candidate",
+          "fidelity": {
+            "state": "approximate",
+            "reason": "reader-approximation"
+          },
+          "boxPx": {
+            "x": 845.33,
+            "y": 58.67,
+            "w": 77.33,
+            "h": 42.67
+          },
+          "note": "a curved circle and a triangle, clustered into one mark; the same on every page. The box is the SVG frame: the mark with a 2 pt margin"
+        },
+        {
+          "id": "page3.7",
+          "authored": "picture",
+          "origin": "slide",
+          "kind": "pic",
+          "class": "photo",
+          "fidelity": {
+            "state": "raster-preserved"
+          },
+          "mustKeep": true,
+          "boxPx": {
+            "x": 586.67,
+            "y": 200,
+            "w": 320,
+            "h": 180
+          },
+          "note": "one image object drawn on pages 2 and 3"
+        },
+        {
+          "id": "page3.8",
+          "authored": "bar",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 48,
+            "y": 489.33,
+            "w": 864,
+            "h": 5.33
+          }
+        },
+        {
+          "id": "page3.9",
+          "authored": "footer",
+          "origin": "pdf-artifact",
+          "kind": "text",
+          "class": "footer",
+          "fidelity": {
+            "state": "editable"
+          },
+          "mustKeep": true,
+          "text": "Confidential - ACME Corp",
+          "note": "inside the Footer artifact span; a confidentiality line a default plan must not remove"
+        },
+        {
+          "id": "page3.10",
+          "authored": "page-number",
+          "origin": "slide",
+          "kind": "text",
+          "class": "page-number",
+          "fidelity": {
+            "state": "editable"
+          },
+          "text": "3"
+        }
+      ]
+    }
+  ],
+  "inherited": [],
+  "mustKeep": [
+    "page1.2",
+    "page1.3",
+    "page1.4",
+    "page1.5",
+    "page1.7",
+    "page1.9",
+    "page2.2",
+    "page2.3",
+    "page2.4",
+    "page2.5",
+    "page2.7",
+    "page2.9",
+    "page3.2",
+    "page3.3",
+    "page3.4",
+    "page3.5",
+    "page3.7",
+    "page3.9"
+  ],
+  "colors": [
+    {
+      "hex": "#1f4e79",
+      "role": "ink",
+      "objectIds": [
+        "page1.2",
+        "page2.2",
+        "page3.2"
+      ],
+      "note": "the title ink on every page"
+    },
+    {
+      "hex": "#d65a28",
+      "role": "ink",
+      "objectIds": [
+        "page1.4",
+        "page2.4",
+        "page3.4"
+      ],
+      "note": "the coloured run inside the second body line"
+    },
+    {
+      "hex": "#ffffff",
+      "role": "bg",
+      "objectIds": [],
+      "slideId": "page1",
+      "note": "the ground every page paints first, read as the background"
+    }
+  ]
+}

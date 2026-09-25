@@ -2221,17 +2221,22 @@ html[data-a11y-motion="reduce"] .be-ramp-curve { transition: none; }
    --primary in every theme (light: near-white on dark teal; dark and both
    high-contrast blocks: near-black on Pine Green), so the glyph reads either
    way. */
-[data-be-tile].is-multi::after {
-  content: '✓';
-  position: absolute; top: -5px; right: -5px;
-  /* Glyph AND badge ride --a11y-fs: a tick frozen at 10px in a 15px disc is the
-     one control in this sheet that would stay put while everything around it
-     grows under Large text, and growing the type alone would clip it. */
-  width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); border-radius: var(--radius-pill);
-  display: grid; place-items: center;
-  font-size: var(--fs-2xs); line-height: 1; font-weight: 700;
-  background: hsl(var(--primary)); color: hsl(var(--background));
-  pointer-events: none;
+[data-be-tile].is-multi::after {    content: '✓';
+    position: absolute;
+    z-index: 1;
+    top: var(--sp-2);
+    right: var(--sp-4);
+    width: calc(var(--sp-8) * var(--a11y-fs));
+    height: calc(var(--sp-8) * var(--a11y-fs));
+    border-radius: var(--radius-pill);
+    display: grid;
+    place-items: center;
+    font-size: var(--sp-7);
+    line-height: 1;
+    font-weight: 700;
+    background: hsl(var(--primary));
+    color: hsl(var(--background));
+    pointer-events: none;
 }
 /* The INK pill (plan 182 section 5.5's mockup). The palette under it is the
    subject, so the bar is the one surface in this room that does not follow the

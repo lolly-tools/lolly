@@ -1,0 +1,98 @@
+{
+  "fixture": "flattened.pdf",
+  "version": 1,
+  "builder": "scripts/build-rebrand-fixtures.ts",
+  "objectIdForm": "<page id>.<object name>",
+  "slides": [
+    {
+      "id": "page1",
+      "index": 0,
+      "widthPx": 960,
+      "heightPx": 540,
+      "flattened": true,
+      "objects": [
+        {
+          "id": "page1.Im0",
+          "authored": "page-image-1",
+          "origin": "pdf-artifact",
+          "kind": "pic",
+          "class": "screenshot",
+          "fidelity": {
+            "state": "raster-preserved"
+          },
+          "boxPx": {
+            "x": 0,
+            "y": 0,
+            "w": 960,
+            "h": 540
+          },
+          "mustKeep": true,
+          "text": "REVENUE GROWTH",
+          "note": "one image covering the whole page; `text` is the title painted into it, which is what a recovery pass has to read back"
+        }
+      ]
+    },
+    {
+      "id": "page2",
+      "index": 1,
+      "widthPx": 960,
+      "heightPx": 540,
+      "flattened": true,
+      "objects": [
+        {
+          "id": "page2.Im0",
+          "authored": "page-image-2",
+          "origin": "pdf-artifact",
+          "kind": "pic",
+          "class": "screenshot",
+          "fidelity": {
+            "state": "raster-preserved"
+          },
+          "boxPx": {
+            "x": 0,
+            "y": 0,
+            "w": 960,
+            "h": 540
+          },
+          "mustKeep": true,
+          "text": "MARKET SHARE",
+          "note": "one image covering the whole page; `text` is the title painted into it, which is what a recovery pass has to read back"
+        }
+      ]
+    },
+    {
+      "id": "page3",
+      "index": 2,
+      "widthPx": 960,
+      "heightPx": 540,
+      "flattened": true,
+      "objects": [
+        {
+          "id": "page3.Im0",
+          "authored": "page-image-3",
+          "origin": "pdf-artifact",
+          "kind": "pic",
+          "class": "screenshot",
+          "fidelity": {
+            "state": "raster-preserved"
+          },
+          "boxPx": {
+            "x": 0,
+            "y": 0,
+            "w": 960,
+            "h": 540
+          },
+          "mustKeep": true,
+          "text": "NEXT STEPS",
+          "note": "one image covering the whole page; `text` is the title painted into it, which is what a recovery pass has to read back"
+        }
+      ]
+    }
+  ],
+  "inherited": [],
+  "mustKeep": [
+    "page1.Im0",
+    "page2.Im0",
+    "page3.Im0"
+  ]
+}

@@ -2,7 +2,7 @@
   "id": "design",
   "name": "Design",
   "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-  "version": "1.35.0",
+  "version": "1.37.0",
   "engineVersion": "^1.217.0",
   "status": "community",
   "category": "designer",
@@ -2185,6 +2185,85 @@
           "label": "Text wrap settings",
           "default": "",
           "showFor": []
+        },
+        {
+          "id": "master",
+          "showFor": [],
+          "type": "text",
+          "label": "Slide master",
+          "default": "",
+          "help": "Slide master binding (plan 274 section 3.4): the id of the slide master this layer was seeded from, as the design system's slides/masters asset states it. Written by 'New slide from archetype' in Design and read by 'Apply archetype' and 'Reset slide', which re-lay the layers this field names. Empty on every layer a person drew by hand, and those layers are never moved by either action. showFor:[] keeps it out of the sidebar. APPENDED after textWrap - the compact-blocks URL wire format is append-only."
+        },
+        {
+          "id": "role",
+          "showFor": [],
+          "type": "select",
+          "label": "Archetype role",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Not bound to a role"
+            },
+            {
+              "value": "title",
+              "label": "Title"
+            },
+            {
+              "value": "subtitle",
+              "label": "Subtitle"
+            },
+            {
+              "value": "body",
+              "label": "Body"
+            },
+            {
+              "value": "visual",
+              "label": "Visual"
+            },
+            {
+              "value": "data",
+              "label": "Data"
+            },
+            {
+              "value": "caption",
+              "label": "Caption"
+            },
+            {
+              "value": "number",
+              "label": "Number"
+            },
+            {
+              "value": "label",
+              "label": "Label"
+            },
+            {
+              "value": "quote",
+              "label": "Quote"
+            },
+            {
+              "value": "attribution",
+              "label": "Attribution"
+            }
+          ],
+          "help": "Archetype role (plan 274 section 3.4): which named content slot of the archetype this layer fills, so a different archetype can re-lay it without losing what it holds. Set when the layer is seeded from a slide master; empty otherwise. showFor:[] keeps it out of the sidebar. APPENDED after master - the compact-blocks URL wire format is append-only."
+        },
+        {
+          "id": "furniture",
+          "showFor": [],
+          "type": "text",
+          "label": "Master furniture",
+          "default": "",
+          "help": "Master furniture id (plan 274 section 3.4): which piece of master furniture this layer IS - a logo, a page number, a footer, a colour bar. Furniture geometry belongs to the master, so 'Reset slide' puts it back where the master states it. Seeded furniture is locked, so a stray drag cannot move it. showFor:[] keeps it out of the sidebar. APPENDED after role - the compact-blocks URL wire format is append-only."
+        },
+        {
+          "id": "archetype",
+          "showFor": [],
+          "type": "text",
+          "label": "Slide archetype",
+          "default": "",
+          "pattern": "^$|^[a-z][a-z0-9-]{1,40}$",
+          "help": "Archetype (plans 274 and 275): for a FRAME, the id of the slide master layout this slide was seeded from, or empty on a frame that was not seeded from a master. The value is open: one of the twelve original layouts (title, section, content, two-column, split, visual, full-image, quote, big-number, main-point, agenda, table) or a layout library id its master declares, in lower case letters, digits and hyphens, 2 to 41 characters, starting with a letter (for example columns-3 or numbered-rows). It is a text field with that pattern rather than a list, so the document API, the MCP validator and the published schema accept every id the master may carry. 'Apply archetype' rewrites it and pours the frame's content into the new layout's boxes; 'Reset slide' re-reads it. showFor:[] keeps it out of the sidebar. APPENDED after furniture - the compact-blocks URL wire format is append-only."
         }
       ],
       "default": [

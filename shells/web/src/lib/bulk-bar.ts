@@ -120,11 +120,11 @@ export function setBulkBarBusy(host: HTMLElement, cfg: BulkBarConfig, label: str
  * it works wherever focus sits, with two yields:
  *  - any open overlay owns Escape first: native dialogs; body-mounted popover
  *    menus, which exist in the DOM only while open (.folder-menu covers every
- *    context/view-options menu including the hand-rolled projects one that
- *    carries no role; role="menu"/"listbox" covers lang/profile menus); and the
- *    in-place filter popovers, which toggle [hidden] instead - hence the
- *    :not([hidden]) check (both the gallery's and the catalog's carry
- *    .filter-popover);
+ *    context menu, .view-options the Projects view-options panel;
+ *    role="menu"/"listbox" covers lang/profile menus); and the in-place
+ *    view-options panels, which toggle [hidden] instead - hence the
+ *    :not([hidden]) check (the gallery's and the catalog's carry both
+ *    .filter-popover and .view-options);
  *  - a focused text field keeps its own Escape (clearing a search box must not
  *    also drop the selection).
  * Returns the unbind - register it in the view's `_cleanup`.
@@ -132,7 +132,7 @@ export function setBulkBarBusy(host: HTMLElement, cfg: BulkBarConfig, label: str
 export function wireEscapeClearsSelection(opts: { active: () => boolean; clear: () => void }): () => void {
   const onKey = (e: KeyboardEvent): void => {
     if (e.key !== 'Escape' || !opts.active()) return;
-    if (document.querySelector('dialog[open], .folder-menu, [role="menu"], [role="listbox"], .filter-popover:not([hidden])')) return;
+    if (document.querySelector('dialog[open], .folder-menu, [role="menu"], [role="listbox"], .filter-popover:not([hidden]), .view-options:not([hidden])')) return;
     const a = document.activeElement;
     if (a instanceof HTMLElement && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT' || a.isContentEditable)) return;
     opts.clear();

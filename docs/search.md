@@ -26,7 +26,7 @@ same bar that carries the Dashboard and Verify links.
 SHOT NOTE (srch-footer-closed): the bar `footerNav()` writes is
 `[Pro?] [Dashboard] <search> [Verify] [What?]`, and the Pro link renders unless
 the `pro-batch` flag is explicitly off - flags default ON and the capture
-context seeds nothing for it, so Pro WILL be in frame. The alt text below names
+context seeds nothing for it, so Pro WILL be in frame. The alt text below includes
 it for that reason; drop the word if a future capture profile turns Pro off.
 -->
  It's one field for the
@@ -117,7 +117,7 @@ send it to a colleague, and several take you further in than the front door:
 `#/lab?c=<any css colour>` opens the Colour Lab already reporting on that
 colour, `#/ask?q=<question>` opens Ask Lolly with the question already asked
 and `#/d?tab=<device|brand|caps|activity>` opens the Dashboard on that tab. A
-hit in **Projects** is a link too, but it names a saved slot on this device
+hit in **Projects** is a link too, but it points at a saved slot on this device
 (`#/tool/<tool>?slot=…`), so that one travels no further than the device does.
 
 ## Keyboard

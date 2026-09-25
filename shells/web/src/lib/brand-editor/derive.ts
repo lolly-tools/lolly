@@ -245,7 +245,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
   // single mark (plan 137 C4). The whole of it is still here, one tap away in
   // the shared help tip, and the room opens on the one sentence that says what
   // to do. Plain text, no markup: helpTip escapes what it is given.
-  const logoTaxonomyTip = helpTip(t('Each orientation (horizontal, vertical) can carry each treatment: primary and mono, each with a reverse form for dark backgrounds. Marks the design system names its own way - an icon, a crest - go under Custom marks. A design system with more than one logo can carry each as its own set. Every slot is optional. PNG, SVG, JPEG or WebP; they stay on this device and travel in the design system file.')); bedit.logoTaxonomyTip = logoTaxonomyTip;
+  const logoTaxonomyTip = helpTip(t('Each orientation (horizontal, vertical) can carry each treatment: primary and mono, each with a reverse form for dark backgrounds. Marks the design system calls by its own name - an icon, a crest - go under Custom marks. A design system with more than one logo can carry each as its own set. Every slot is optional. PNG, SVG, JPEG or WebP; they stay on this device and travel in the design system file.')); bedit.logoTaxonomyTip = logoTaxonomyTip;
 
   root.innerHTML = `
     <div class="be" data-brand-editor>

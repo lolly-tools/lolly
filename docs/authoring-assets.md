@@ -56,7 +56,7 @@ Each entry becomes one tile in the Catalogue, grouped by what its tags say it is
 - **`id` is forever.** Once published, never rename, never reuse. If you need a different logo, give it a different ID.
 - **Bump `version` on every byte change.** Tools cache by id+version. Forgetting to bump means stale bytes everywhere.
 - **Always include a `checksum`.** SRI-format SHA-256. End-to-end integrity check, prevents CDN poisoning.
-- **Deprecate, don't delete.** Set `"deprecated": true` and optionally `"replacedBy": "new/asset/id"`. Existing references continue to resolve - a deprecated asset's own bytes keep loading forever, and `replacedBy` is curation metadata for people and catalog UI, **never a runtime redirect**: `get(id)` always returns the original asset, so a link or saved session that names it renders exactly what it always did. (The chain is validated at build time - it must point at a real, non-deprecated asset - but nothing follows it on resolve.)
+- **Deprecate, don't delete.** Set `"deprecated": true` and optionally `"replacedBy": "new/asset/id"`. Existing references continue to resolve - a deprecated asset's own bytes keep loading forever, and `replacedBy` is curation metadata for people and catalog UI, **never a runtime redirect**: `get(id)` always returns the original asset, so a link or saved session that points at it renders exactly what it always did. (The chain is validated at build time - it must point at a real, non-deprecated asset - but nothing follows it on resolve.)
 
 ## Tiers
 

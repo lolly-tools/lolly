@@ -4,7 +4,7 @@ Most software asks you to trust it. This section is the opposite: every claim Lo
 
 > **The internet is optional with Lolly: use it when it helps, never surrender control.** A font you pick, a place you look up, a link you share - things happen online only because you asked. Nothing you make ever leaves your device without your control and informed consent, Nobody is listening in. Go offline and everything you have works. **Freedom is sweet.**
 >
-> The receipts: the [Privacy Policy](/info/privacy.html) names every request the app can ever make, and [Verify It Yourself](/info/verify-yourself.html) shows you how to check each one.
+> The receipts: the [Privacy Policy](/info/privacy.html) lists every request the app can ever make, and [Verify It Yourself](/info/verify-yourself.html) shows you how to check each one.
 
 
 ## Where did this content come from?

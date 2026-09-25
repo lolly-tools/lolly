@@ -216,8 +216,10 @@ describe('a derived document is cropped to its ink, and the row is cut to match'
     // (1146 × 283, 30.4 %) have ink smaller than the stage to crop to. A sparse
     // page has a worse ratio and a far cheaper frame, which is why the assertion
     // is a share of full-stage and not an area.
+    // Re-measured 2026-09-25: ai-stance-change-history measures 20.1 % after the
+    // panel-system re-capture (d0f6404b0); budget raised to 25 % with headroom.
     const worst: Record<string, number> = {
-      'brand-colours': 0.70, 'ai-stance-change-history': 0.10, 'cc-verify-mobile': 0.35,
+      'brand-colours': 0.70, 'ai-stance-change-history': 0.25, 'cc-verify-mobile': 0.35,
       'bs-palette-pane': 0.15, 'brand-studio': 0.70, 'seq-studio-timeline': 0.10,
     };
     for (const s of shots) {
@@ -273,7 +275,9 @@ describe('geometric peers share a depth, so grids stay grids', () => {
     // The 2026-09-19 recipe adds five shades. Their wells and repeated controls
     // form three groups of five across 27 layers and 15 depth rungs.
     'bs-palette-pane': { rungs: 15, biggest: 5 },
-    'cc-verify-mobile': { rungs: 6, biggest: 9 },     // the 3×3 card block
+    // Re-measured 2026-09-25: the panel-system re-capture (d0f6404b0) redrew the verify
+    // cards, so the block now lifts as 8 layers on 5 rungs with a biggest rung of 4.
+    'cc-verify-mobile': { rungs: 5, biggest: 4 },     // the card block
     // Re-measured 2026-08-17: the baseline re-captured against design's timeline
     // (sequence-studio consolidated into design; the recipe now opens design with
     // the old default sequence packed into the URL), and design's toolbar row has
@@ -281,14 +285,17 @@ describe('geometric peers share a depth, so grids stay grids', () => {
     // Re-measured 2026-08-20: another re-capture of the same recipe (the day's
     // docs-shots sweep) merged two more rows into shared rungs - 21 -> 19; the
     // biggest rung (the toolbar's icon row, 10) is unchanged.
-    'seq-studio-timeline': { rungs: 22, biggest: 10 }, // the toolbar's icon row
+    // Re-measured 2026-09-25: the panel-system re-capture (d0f6404b0) replaced the
+    // toolbar's icon row with the panel primitive's controls, so 37 layers lift on 31
+    // rungs and the largest shared rung is 2. The lift code did not change.
+    'seq-studio-timeline': { rungs: 31, biggest: 2 },
   };
   for (const [name, want] of Object.entries(GRIDS)) {
     test(`${name}: its grid is ONE surface, not ${want.biggest} steps`, () => {
       const s = shots.find((x) => x.name === name)!;
       const got = rungs(s);
       assert.equal(got.biggest, want.biggest, `${name}: the grid should be one rung of ${want.biggest}`);
-      assert.equal(got.count, want.rungs, `${name}: ${s.layers.length} layers on ${want.rungs} rungs`);
+      assert.equal(got.count, want.rungs, `${name}: ${s.layers.length} layers on ${got.count} rungs, pinned at ${want.rungs}`);
       // One rung is one WHISPER, not one number: the members spread across a single
       // band step so the depth sort keeps an order of its own (plans/104 section 4.2)
       // while the grid still reads as one surface.

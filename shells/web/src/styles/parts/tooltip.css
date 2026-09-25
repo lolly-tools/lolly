@@ -36,7 +36,7 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--dur-1) ease, transform var(--dur-1) ease;
-  z-index: 6;
+  z-index: 9;
 }
 [data-tip]::before {
   content: "";

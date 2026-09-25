@@ -145,12 +145,12 @@ export function assetsSectionHtml(cat: CatCtx): string {
   // The user's OWN uploads lead the grid (right after the favourites strip): pulled out
   // of the category groups into one "Your uploads" section they manage in one place.
   // Catalog assets keep their category bucketing below.
-  const userItems = sortAssets(visible.filter(a => a.source === 'user'), cat.catSort);
+  const userItems = sortAssets(visible.filter(a => a.source === 'user'), cat.catSort, cat.catSortRev);
   // The emoji sets get their own section rather than a category bucket: a set is
   // chosen on its licence, its coverage and how its artwork looks, which is a
   // different question from where a picture belongs in the library.
   const isPack = (a: AssetRef): boolean => a.source !== 'user' && !!emojiPackMeta(a);
-  const packItems = sortAssets(visible.filter(isPack), cat.catSort);
+  const packItems = sortAssets(visible.filter(isPack), cat.catSort, cat.catSortRev);
   const catalogItems = visible.filter(a => a.source !== 'user' && !isPack(a));
 
   // Bucket the catalog assets by (override-aware) category, in LIB_GROUPS order.
@@ -167,7 +167,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
   const showUploads = userItems.length > 0 || !cat.query;
   if (showUploads) parts.push(uploadsSectionHtml(cat, userItems));
   for (const g of LIB_GROUPS) {
-    const items = buckets.get(g.key) && sortAssets(buckets.get(g.key)!, cat.catSort);
+    const items = buckets.get(g.key) && sortAssets(buckets.get(g.key)!, cat.catSort, cat.catSortRev);
     if (!items?.length) continue;
     // A category of themable icons gets the same colour swatches as the download/details
     // views - pick one and the whole grid recolours (see the .cat-dl-theme handler in wire).
@@ -188,7 +188,7 @@ export function assetsSectionHtml(cat: CatCtx): string {
   // Hidden assets never match a search (they're not in `visible`); keep them under a
   // dedicated group only in the normal (non-search) view.
   if (cat.showHidden && !cat.query && hiddenItems.length) {
-    parts.push(cat.tiles.sectionHtml('hidden', 'Hidden', hiddenItems.length, sortAssets(hiddenItems, cat.catSort).map(cat.thumbs.assetTile).join('')));
+    parts.push(cat.tiles.sectionHtml('hidden', 'Hidden', hiddenItems.length, sortAssets(hiddenItems, cat.catSort, cat.catSortRev).map(cat.thumbs.assetTile).join('')));
   }
 
   // No asset matched the active filters → a clear empty line instead of a bare toolbar.

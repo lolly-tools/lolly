@@ -177,6 +177,71 @@
   letter-spacing: 0.04em; color: var(--ui-color-text-muted);
 }
 
+/* A row that cannot run now (menuItemHtml's `reason`): it stays focusable, reads as
+   muted, and says why on a second line, since a title never shows on touch. */
+.folder-menu-item--off { color: var(--ui-color-text-muted); cursor: default; }
+.folder-menu-item--off:hover { background: none; }
+.folder-menu-item--off svg { opacity: 0.5; }
+.folder-menu-text { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; }
+.folder-menu-reason { font-size: var(--ui-type-help); line-height: 1.35; color: var(--ui-color-text-muted); }
+
+/* The tile menu as a bottom sheet (lib/context-menu.ts, `presentation: 'sheet'`, opened
+   under a coarse pointer). The mounted container covers the viewport and draws its own
+   scrim; the panel is pinned to the bottom edge, full width on a phone and capped on a
+   tablet, with a head (the tile's picture and name), rows at 48 px and a Cancel row.
+   The row recipe is the .folder-menu-item one above, only taller and flush. */
+.ctx-sheet-host {
+  position: fixed; inset: 0; z-index: 100001;
+  display: flex; flex-direction: column; justify-content: flex-end;
+}
+.ctx-sheet-host:focus { outline: none; }
+.ctx-sheet-scrim {
+  position: absolute; inset: 0; background: hsl(0 0% 0% / 0.42);
+  animation: ctx-sheet-fade var(--ui-motion-overlay) var(--ui-motion-standard);
+}
+.ctx-sheet {
+  position: relative; display: flex; flex-direction: column;
+  inline-size: min(100%, 560px); max-block-size: 85%; margin-inline: auto;
+  padding-block: var(--sp-2) max(var(--sp-4), env(safe-area-inset-bottom));
+  border-radius: var(--ui-radius-surface) var(--ui-radius-surface) 0 0;
+  background: var(--ui-color-surface-overlay); color: var(--ui-color-text-default);
+  box-shadow: var(--ui-elevation-sheet);
+  animation: ctx-sheet-rise var(--ui-motion-overlay) var(--ui-motion-standard);
+}
+.ctx-sheet-head {
+  display: flex; align-items: center; gap: var(--sp-3); min-width: 0;
+  padding: var(--sp-3) var(--sp-5) var(--sp-2);
+  font-size: var(--ui-type-title); font-weight: 600;
+}
+.ctx-sheet-thumb {
+  flex: none; display: block; width: calc(56px * var(--a11y-fs)); aspect-ratio: 16 / 9; overflow: hidden;
+  border-radius: var(--ui-radius-choice); background: var(--ui-color-surface-canvas); box-shadow: var(--ui-edge-default);
+}
+.ctx-sheet-thumb > :is(svg, img) { display: block; width: 100%; height: 100%; object-fit: contain; }
+.ctx-sheet-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctx-sheet-body { flex: 1 1 auto; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; }
+.ctx-sheet-body [role="menu"] { display: flex; flex-direction: column; }
+/* A bulk menu with no head of its own: its count line becomes the head. */
+.ctx-sheet-body > .folder-menu-head {
+  padding: var(--sp-3) var(--sp-5) var(--sp-2);
+  font-size: var(--ui-type-title); font-weight: 600; text-transform: none; letter-spacing: 0;
+  color: var(--ui-color-text-default);
+}
+.ctx-sheet .folder-menu-item {
+  gap: var(--sp-4); min-height: calc(48px * var(--a11y-fs)); padding: var(--sp-2) var(--sp-5);
+  border-radius: 0; text-align: start; font-size: var(--ui-type-body);
+}
+.ctx-sheet .folder-menu-item svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+.ctx-sheet .folder-menu-item:active:not([aria-disabled="true"]) { background: var(--ui-color-surface-muted); }
+/* A finger leaves :hover on the last row it lifted from, which would read as pressed. */
+@media (hover: none) { .ctx-sheet .folder-menu-item:hover:not(:active) { background: none; } }
+.ctx-sheet .folder-menu-item:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+.ctx-sheet .folder-menu-sep { padding-inline: var(--sp-5); }
+.ctx-sheet-foot { padding: var(--sp-2) var(--sp-4) 0; }
+.ctx-sheet-cancel { inline-size: 100%; min-height: var(--ui-size-target); justify-content: center; }
+@keyframes ctx-sheet-rise { from { transform: translateY(100%); } }
+@keyframes ctx-sheet-fade { from { opacity: 0; } }
+
 /* Inline name prompt (create / rename), centered over the dialog. */
 .folder-ask {
   position: absolute; inset: 0; z-index: 8; display: flex; align-items: center; justify-content: center;

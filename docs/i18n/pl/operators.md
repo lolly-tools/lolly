@@ -39,7 +39,7 @@ Zwykły sposób wykonywania rutynowej pracy kreatywnej to powierzchnia odpowiedz
 - **[Zweryfikuj to sam](/info/verify-yourself.html)** - sprawdź twierdzenia na realnym eksporcie, krok po kroku, bez niczego, czego nie mógłbyś uruchomić samodzielnie.
 - **[Polityka prywatności](/info/privacy.html)** - formalne oświadczenie o tym, co jest, a co nie jest zbierane, przechowywane i wysyłane.
 - **[Suwerenna produkcja kreatywna](/info/sovereign-production.html)** - wdrożenie odizolowane od sieci (air-gapped), sieciowanie bramkowane zgodą i podpisywanie na urządzeniu.
-- **[Przyjęcie i zarządzanie](/info/adoption-governance.html)** - kto zatwierdza narzędzie, jak reguły marki stają się egzekwowalne i co daje opcja katalogu jako repozytorium.
+- **[Przyjęcie i zarządzanie](/info/adoption-governance.html)** - jak reguły marki stają się egzekwowalne, co wnosi współdzielony katalog i co daje opcja katalogu jako repozytorium.
 
 ## Prawne
 

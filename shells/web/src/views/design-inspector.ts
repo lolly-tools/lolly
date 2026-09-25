@@ -830,13 +830,28 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
    * in the box until the user picks something else.
    */
   function colorField(id: string, raw: unknown, label = '', mixed = false): string {
-    const s = raw == null ? '' : String(raw);
+    // A colour whose value is a design-token alias reaches this row as the runtime's
+    // unresolved ref OBJECT, not a string: the engine parses `{color.semantic.surface}`
+    // (the design tool's own background default) into `{ ref, _unresolved }`. Stringifying
+    // that blindly produced "[object Object]", which stayed invisible while an unnamed
+    // colour hid its name cell and became READABLE once the value started standing in for
+    // a missing name (plans/273 R5). Read the alias back out, so the token resolves to its
+    // own swatch and its own label.
+    const s = raw == null ? '' : typeof raw === 'object' ? String((raw as { ref?: unknown }).ref ?? '') : String(raw);
+    // A `{color.semantic.<slot>}` alias names the same colour as the `--brand-<slot>`
+    // custom property the shell paints (brand-vars.ts writes the pair, export-pptx.ts
+    // reads it back the same way), so the row is handed the var form. The swatch then
+    // paints the live brand colour and the trigger names the slot, instead of printing
+    // a token path at the reader. Other token families have no such property and keep
+    // showing what is stored.
+    const semantic = /^\{color\.semantic\.([a-z-]+)\}$/.exec(s.trim());
+    const val = semantic ? `var(--brand-${semantic[1]})` : s;
     // Rows that disagree get the first one's swatch with the NAME "Mixed" on it, rather
     // than a name that claims the whole selection is that colour. The swatch itself is
     // still a real colour because the trigger has to paint something, and picking any
     // colour in the popover writes it to every selected row - which is what a swatch on
     // a multi-selection is for.
-    if (mixed) return colorFieldHtml(id, resolveColorVar(s, colorScope()), { float: true, name: t('Mixed'), label });
+    if (mixed) return colorFieldHtml(id, resolveColorVar(val, colorScope()), { float: true, name: t('Mixed'), label });
     // `label` is the ROW's own label, handed to the trigger as the first half of its
     // accessible name. The column can show four colour fields on one box (Fill, Stroke,
     // shadow Colour, Text colour) and its rows are `<div><span>` pairs, which associate
@@ -847,11 +862,11 @@ export function initDesignInspector(opts: DesignInspectorOpts): DesignInspectorH
     // circle floating off the row's control column (plans/273 R5). The VALUE is the
     // honest name for an unnamed colour, so the trigger keeps a word to show and the
     // control keeps the width and height of the select above it.
-    const resolved = resolveColorVar(s, colorScope());
+    const resolved = resolveColorVar(val, colorScope());
     // An unset colour is "None", not an empty cell. `colorVarLabel` answers only
     // for a brand token, and the value answers for a hand-picked colour; with
     // neither, the honest word is the one the picker itself would show.
-    return colorFieldHtml(id, resolved, { float: true, name: colorVarLabel(s) || resolved || t('None'), label });
+    return colorFieldHtml(id, resolved, { float: true, name: colorVarLabel(val) || resolved || t('None'), label });
   }
 
   /** The manifest's own options for a field, `[value, label]`, already translated. */

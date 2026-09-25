@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "sourceHash": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+  "planRevision": 3,
+  "counts": {
+    "slides": {
+      "source": 2,
+      "included": 2,
+      "excluded": 0,
+      "continuation": 1
+    },
+    "objects": {
+      "retained": 3,
+      "transformed": 0,
+      "removed": 0,
+      "unresolved": 1
+    },
+    "byClass": {
+      "title": {
+        "retained": 1,
+        "transformed": 0,
+        "removed": 0,
+        "unresolved": 0
+      },
+      "logo-candidate": {
+        "retained": 1,
+        "transformed": 0,
+        "removed": 0,
+        "unresolved": 0
+      },
+      "chart": {
+        "retained": 1,
+        "transformed": 0,
+        "removed": 0,
+        "unresolved": 1
+      }
+    },
+    "logosReplaced": 0,
+    "coloursAssigned": 2,
+    "coloursUnresolved": 1,
+    "fontsSubstituted": 2,
+    "appliedUnreviewed": 0
+  },
+  "entries": [
+    {
+      "code": "object.retained",
+      "message": "The title was kept and bound to the title role.",
+      "slideId": "ppt/slides/slide1.xml",
+      "objectId": "ppt/slides/slide1.xml.4",
+      "layerId": "frame-1/title",
+      "disposition": "retained",
+      "class": "title",
+      "action": "keep",
+      "author": "user",
+      "review": "accepted",
+      "fidelity": "editable"
+    },
+    {
+      "code": "object.surplus-tray",
+      "message": "The partner mark was kept, fits no role in the title archetype, and waits in the tray.",
+      "slideId": "ppt/slides/slide1.xml",
+      "objectId": "ppt/slides/slide1.xml.7",
+      "layerId": "tray/partner-mark",
+      "disposition": "retained",
+      "class": "logo-candidate",
+      "action": "keep",
+      "author": "user",
+      "review": "needs-attention",
+      "fidelity": "raster-preserved"
+    },
+    {
+      "code": "object.unresolved",
+      "message": "The native chart carried no fallback image, so a labelled placeholder stands in its place.",
+      "slideId": "ppt/slides/slide2.xml",
+      "objectId": "ppt/slides/slide2.xml.3",
+      "layerId": "frame-2/placeholder-1",
+      "disposition": "unresolved",
+      "class": "chart",
+      "action": "replace",
+      "author": "rule",
+      "review": "needs-attention",
+      "fidelity": "unavailable",
+      "reason": "native-chart-no-fallback"
+    },
+    {
+      "code": "object.surplus-continuation",
+      "message": "The second chart came with the image its file carried, and went to a continuation slide.",
+      "slideId": "ppt/slides/slide2.xml",
+      "objectId": "ppt/slides/slide2.xml.5",
+      "layerId": "frame-3/chart-fallback",
+      "disposition": "retained",
+      "class": "chart",
+      "action": "keep",
+      "author": "rule",
+      "review": "accepted",
+      "fidelity": "raster-preserved"
+    },
+    {
+      "code": "slide.continuation-added",
+      "message": "A continuation slide was added after slide 2, so the numbering past it moves by one.",
+      "slideId": "ppt/slides/slide2.xml",
+      "layerId": "frame-3/chart-fallback"
+    },
+    {
+      "code": "colour.unresolved",
+      "message": "The chart needs more distinct series colours than the neutral master offers.",
+      "objectId": "ppt/slides/slide2.xml.3",
+      "reason": "palette-too-small"
+    },
+    {
+      "code": "export.not-verified",
+      "message": "No readback of the produced bytes has run yet."
+    }
+  ]
+}

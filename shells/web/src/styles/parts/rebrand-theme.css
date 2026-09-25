@@ -1,0 +1,224 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* #/rebrand deck theme (plan 275 close-out section 3.10): the Deck theme control in the
+   top bar, the theme popover it and the column's door open, and the Background section
+   of the decision column (views/rebrand/theme.ts).
+   Tokens only; chrome sizes as calc(Npx * var(--a11y-fs)). A tile's wireframe is
+   content, not chrome: its page, panels and marks take the theme's own colours, written
+   into the SVG, and never follow the app theme. Its drawn width (THEME_THUMB_WIDTH in
+   theme.ts, --rb-thumb-w here) is that content's size, not a chrome size, so it does not
+   grow with the type. The tile around it, its name and its caption are chrome.
+   One tile rule, the same as the layout chooser's (principle 3): flat on the popover's
+   surface, a 40% ring on hover, and when current a 2 px ring, the selection tint and a
+   check in the caption line. The ring is a border, so the focus ring can sit outside it.
+   The Background section's segment and door are the panel primitive's own .lp-seg and
+   .lp-door (panel.css); this sheet only places them.
+   Never write a star followed by a slash inside a CSS comment. */
+@layer views {
+  /* ── the top bar: the control beside the design system name ─────────────── */
+  .rb-top-line {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-width: 0;
+  }
+  .rb-top-line > .rb-top-system { flex: 0 1 auto; min-width: 0; }
+  .rb-top-theme { flex: none; display: flex; align-items: center; }
+  .rb-top-theme[hidden] { display: none; }
+  .rb-top .rb-theme-btn {
+    gap: var(--sp-2);
+    min-height: calc(24px * var(--a11y-fs));
+    padding-block: 0;
+    padding-inline: var(--sp-3) var(--sp-2);
+    border-radius: var(--radius-pill);
+    background: var(--ui-color-surface-muted);
+    font-size: var(--ui-type-help);
+    font-weight: var(--ui-type-weight-label);
+  }
+  .rb-top .rb-theme-btn:hover { background: color-mix(in oklab, var(--ui-color-surface-muted), var(--ui-color-text-default) 6%); }
+  .rb-top .rb-theme-btn > svg {
+    width: calc(12px * var(--a11y-fs));
+    height: calc(12px * var(--a11y-fs));
+    color: var(--ui-color-text-muted);
+  }
+  .rb-top .rb-theme-btn .rb-theme-sws { gap: 2px; }
+  .rb-top .rb-theme-btn .rb-theme-sw { width: calc(10px * var(--a11y-fs)); height: calc(10px * var(--a11y-fs)); }
+
+  /* Three colours: ground, ink, accent. Each carries the strong hairline, so a dot the
+     colour of the surface behind it (a white ground on a white popover, a pine ink on a
+     dark one) still reads as the third of three. */
+  .rb-theme-sws { flex: none; display: inline-flex; gap: var(--sp-1); }
+  .rb-theme-sw {
+    display: block;
+    flex: none;
+    width: calc(16px * var(--a11y-fs));
+    height: calc(16px * var(--a11y-fs));
+    border-radius: var(--radius-round);
+    background: var(--sw);
+    box-shadow: var(--ui-edge-strong);
+  }
+
+  /* ── the popover ────────────────────────────────────────────────────────── */
+  .rb-theme-pop {
+    position: fixed;
+    z-index: var(--ui-layer-overlay);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    width: min(calc(360px * var(--a11y-fs)), calc(100vw - 32px));
+    --rb-theme-pop-h: calc(560px * var(--a11y-fs));
+    max-height: min(80vh, var(--rb-theme-pop-h));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--ui-space-panel);
+    border-radius: var(--ui-radius-panel);
+    background: var(--ui-color-surface-overlay);
+    color: var(--ui-color-text-default);
+    box-shadow: var(--ui-elevation-floating), var(--ui-edge-faint);
+  }
+  .rb-theme-body { display: flex; flex-direction: column; gap: var(--sp-3); min-width: 0; }
+  /* Three to a row in the popover; the track grows with the type, the way the layout
+     chooser's grid does, so a large-text row wraps rather than squeezing a tile. */
+  .rb-theme-grid {
+    --rb-theme-col: calc(96px * var(--a11y-fs));
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(var(--rb-theme-col), 1fr));
+    gap: var(--sp-2);
+  }
+  .rb-theme-tile {
+    position: relative;
+    display: flex; flex-direction: column; gap: var(--sp-2); align-items: flex-start;
+    min-width: 0;
+    min-height: var(--ui-size-target);
+    padding: var(--sp-1);
+    border: 2px solid transparent;
+    border-radius: var(--ui-radius-control);
+    background: none;
+    color: var(--ui-color-text-default);
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    transition: border-color var(--ui-motion-feedback) var(--ui-motion-standard);
+  }
+  .rb-theme-tile:hover { border-color: color-mix(in srgb, var(--ui-color-selection-border) 40%, transparent); }
+  .rb-theme-tile:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
+  .rb-theme-tile[aria-pressed="true"],
+  .rb-theme-tile[aria-pressed="true"]:hover {
+    border-color: var(--ui-color-selection-border);
+    background: var(--ui-color-selection-surface);
+  }
+  .rb-theme-tile .rb-theme-thumb { display: block; width: 100%; line-height: 0; --rb-thumb-w: 96px; }
+  .rb-theme-tile .rb-theme-thumb > svg {
+    display: block;
+    width: 100%;
+    max-width: var(--rb-thumb-w);
+    height: auto;
+    border-radius: var(--ui-radius-choice);
+    box-shadow: var(--ui-edge-faint);
+  }
+  .rb-theme-name {
+    min-width: 0;
+    max-width: 100%;
+    font-size: var(--ui-type-label);
+    font-weight: var(--ui-type-weight-section);
+    line-height: 1.25;
+    overflow-wrap: break-word;
+  }
+  /* The check in the caption line says which theme is applied; words, not colour alone. */
+  .rb-theme-cap {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    margin-top: calc(var(--sp-1) * -1);
+    font-size: var(--ui-type-caption);
+    line-height: 1.25;
+    color: var(--ui-color-text-default);
+  }
+  .rb-theme-cap > svg { flex: none; width: calc(12px * var(--a11y-fs)); height: calc(12px * var(--a11y-fs)); }
+  .rb-theme-tile[aria-pressed="true"] .rb-theme-cap > svg { color: var(--ui-color-selection-border); }
+  /* Not available yet: the tiles stop answering the pointer, the names go quiet, and
+     the line under the tiles says why. */
+  .rb-theme-tile[aria-disabled="true"], .rb-theme-hue[aria-disabled="true"] { cursor: not-allowed; }
+  .rb-theme-tile[aria-disabled="true"]:not([aria-pressed="true"]):hover,
+  .rb-theme-hue[aria-disabled="true"]:not([aria-pressed="true"]):hover { border-color: transparent; }
+  .rb-theme-tile[aria-disabled="true"] .rb-theme-name { color: var(--ui-color-text-muted); }
+
+  /* Brand colour's hues: a row of swatches under the tiles, each one a theme. */
+  .rb-theme-hues {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    padding-inline: var(--sp-1);
+  }
+  .rb-theme-hues-name { font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+  .rb-theme-hue-row { display: inline-flex; flex-wrap: wrap; gap: var(--sp-1); }
+  .rb-theme-hue {
+    display: inline-grid;
+    place-items: center;
+    width: calc(28px * var(--a11y-fs));
+    height: calc(28px * var(--a11y-fs));
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: var(--radius-round);
+    background: none;
+    cursor: pointer;
+    transition: border-color var(--ui-motion-feedback) var(--ui-motion-standard);
+  }
+  .rb-theme-hue > .rb-theme-sw { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
+  .rb-theme-hue:hover { border-color: color-mix(in srgb, var(--ui-color-selection-border) 40%, transparent); }
+  .rb-theme-hue[aria-pressed="true"] { border-color: var(--ui-color-selection-border); }
+  .rb-theme-hue:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+  .rb-theme-line, .rb-theme-off {
+    margin: 0;
+    padding-inline: var(--sp-1);
+    font-size: var(--ui-type-help);
+    line-height: 1.45;
+    color: var(--ui-color-text-muted);
+  }
+  .rb-theme-off { color: var(--ui-color-text-default); }
+  .rb-theme-line { margin-top: calc(var(--sp-2) * -1); }
+  /* The note states a problem only, with the alert glyph so it is not colour alone. */
+  .rb-theme-note {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-2);
+    margin: 0;
+    padding-inline: var(--sp-1);
+    font-size: var(--ui-type-help);
+    line-height: 1.45;
+    color: var(--ui-color-text-default);
+  }
+  .rb-theme-note[hidden] { display: none; }
+  .rb-theme-note > svg {
+    flex: none;
+    width: calc(14px * var(--a11y-fs));
+    height: calc(14px * var(--a11y-fs));
+    margin-top: 1px;
+  }
+
+  /* ── the Background section in the decision column ──────────────────────── */
+  .rb-ground .lp-control > .rb-ground-seg { flex: 1 1 auto; }
+  .rb-ground-help { grid-column: 2 / -1; }
+
+  /* ── pointers and widths ────────────────────────────────────────────────── */
+  @media (any-pointer: coarse) {
+    .rb-theme-hue { width: calc(44px * var(--a11y-fs)); height: calc(44px * var(--a11y-fs)); }
+  }
+}
+
+/* Unlayered, so it outranks the unscoped `[aria-busy="true"]` rule in multi-edit.css,
+   which would dim the whole popover and stop it taking the pointer. Applying: the
+   choices stay focusable and clickable (a second press is ignored in the code), and
+   dim with the progress cursor, as the panel primitive's segment does. */
+.rb-theme-body[aria-busy="true"] { opacity: 1; pointer-events: auto; }
+.rb-theme-body[aria-busy="true"] :is(.rb-theme-tile, .rb-theme-hue) { opacity: .6; cursor: progress; }
+
+/* The tile's ring moves in a cut when motion is reduced. */
+@media (prefers-reduced-motion: reduce) {
+  .rb-theme-tile, .rb-theme-hue { transition: none; }
+}
+html[data-a11y-motion="reduce"] :is(.rb-theme-tile, .rb-theme-hue) { transition: none; }
+
+/* Hide colourful previews: the wireframe goes, the three colours and the name stay. */
+html[data-a11y-previews="hidden"] .rb-theme-tile .rb-theme-thumb { display: none; }

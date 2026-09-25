@@ -30,6 +30,7 @@ import {
 import type { PDFContext, PDFObject } from 'pdf-lib';
 import { interpretPdfPage, parseToUnicode, toUnicodeDecoder, pdfNodesToSvg, unfilterPng } from '@lolly/engine';
 import type { PdfNode, PdfFontInfo, PdfXObject } from '@lolly/engine';
+import { pdfLatin1 } from './pdf-read.ts';
 
 export interface PdfPageScan {
   /** 0-based page index in the document. */
@@ -239,7 +240,8 @@ function dictEntries(ctx: PDFContext, o: Ref): [string, PDFObject][] {
 function decodedText(ctx: PDFContext, o: Ref): string | null {
   o = ctx.lookup(o as PDFObject | undefined);
   if (o instanceof PDFRawStream) {
-    try { return new TextDecoder('latin1').decode(decodePDFRawStream(o).decode()); } catch { return null; }
+    // True Latin-1, one character a byte: `TextDecoder('latin1')` is windows-1252 (see pdf-read.ts).
+    try { return pdfLatin1(decodePDFRawStream(o).decode()); } catch { return null; }
   }
   return null;
 }

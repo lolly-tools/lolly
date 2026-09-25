@@ -1,0 +1,5 @@
+graph LR
+  suite([Conformance suite]) --> measured[Measured run]
+  measured --> report[Conformance report]
+  authority([Acceptance authority]) --> named[Named exceptions]
+  named --> acceptance[Acceptance record]

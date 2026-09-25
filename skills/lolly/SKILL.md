@@ -25,6 +25,9 @@ This skill is enough on its own. The reference files carry the exhaustive detail
 - `reference/tools.md`: every catalogue tool with its formats and purpose.
 - `reference/chart.md`, `reference/design.md`, `reference/deck.md`: the three tools
   whose input is a structured document, each with a worked example.
+- `reference/rebrand.md`: renovating someone else's PowerPoint deck into the
+  active design system - the plan/compile/inspect stages, the object classes
+  and their evidence, and the MCP tool.
 
 ## Which surface
 
@@ -37,6 +40,7 @@ This skill is enough on its own. The reference files carry the exhaustive detail
 | Renders inside a GitHub workflow | The render action (`args-json`, `rows`) |
 | Durable async jobs, batching, idempotent retries | The lolly-work API |
 | A file transform (strip metadata, compress, redact) | `lolly_transform` / `lolly_redact` (MCP) or the utility on the CLI |
+| Renovating an old deck into the design system | `lolly_rebrand` (MCP) or `lolly rebrand plan\|compile\|inspect` (CLI) - see `reference/rebrand.md` |
 
 ## The workflow
 

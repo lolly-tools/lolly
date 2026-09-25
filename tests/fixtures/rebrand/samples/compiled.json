@@ -1,0 +1,313 @@
+{
+  "version": 1,
+  "source": {
+    "lineageId": "core-props:8f2c1d44-0f2b-4a9a-9d30-6d0f7b1f2ab1",
+    "hash": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "instanceId": "import-2"
+  },
+  "planRevision": 3,
+  "designSystem": {
+    "id": "lolly-start",
+    "masterId": "master/neutral",
+    "masterVersion": "1.0.0",
+    "tokenHash": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "fontHashes": {
+      "Outfit": "sha256:c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+    },
+    "assetHashes": {
+      "lolly/logo/primary": "sha256:d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4"
+    }
+  },
+  "algorithms": {
+    "reader": "1.0.0",
+    "census": "1.0.0",
+    "plan": "1.0.0",
+    "compile": "1.0.0"
+  },
+  "frames": [
+    {
+      "id": "frame-1",
+      "sourceSlideId": "ppt/slides/slide1.xml",
+      "name": "Quarterly review",
+      "width": 1280,
+      "height": 720,
+      "archetype": "title",
+      "masterId": "master/neutral",
+      "layers": [
+        {
+          "id": "frame-1/band",
+          "frame": "frame-1",
+          "kind": "box",
+          "x": 0,
+          "y": 0,
+          "w": 1280,
+          "h": 12,
+          "bg": "#11201C",
+          "locked": true,
+          "master": "master/neutral",
+          "furniture": "colour-bar"
+        },
+        {
+          "id": "frame-1/title",
+          "frame": "frame-1",
+          "kind": "text",
+          "x": 96,
+          "y": 120,
+          "w": 1088,
+          "h": 148,
+          "text": "Quarterly review",
+          "fontSize": 40,
+          "fg": "#11201C",
+          "master": "master/neutral",
+          "role": "title"
+        }
+      ],
+      "furnitureLayerIds": [
+        "frame-1/band"
+      ],
+      "placeholderLayerIds": []
+    },
+    {
+      "id": "frame-2",
+      "sourceSlideId": "ppt/slides/slide2.xml",
+      "name": "Renewals",
+      "width": 1280,
+      "height": 720,
+      "archetype": "visual",
+      "masterId": "master/neutral",
+      "notes": "The chart could not be read from the source file.",
+      "layers": [
+        {
+          "id": "frame-2/placeholder-1",
+          "frame": "frame-2",
+          "kind": "box",
+          "x": 160,
+          "y": 180,
+          "w": 960,
+          "h": 420,
+          "bg": "",
+          "stroke": "#9AA5A1",
+          "text": "Chart could not be read from this file",
+          "master": "master/neutral",
+          "role": "data"
+        }
+      ],
+      "furnitureLayerIds": [],
+      "placeholderLayerIds": [
+        "frame-2/placeholder-1"
+      ]
+    },
+    {
+      "id": "frame-3",
+      "sourceSlideId": "ppt/slides/slide2.xml",
+      "name": "Renewals, continued",
+      "width": 1280,
+      "height": 720,
+      "archetype": "content",
+      "masterId": "master/neutral",
+      "layers": [
+        {
+          "id": "frame-3/chart-fallback",
+          "frame": "frame-3",
+          "kind": "image",
+          "x": 160,
+          "y": 180,
+          "w": 960,
+          "h": 72,
+          "image": "user/media/9d44f1c206"
+        }
+      ],
+      "furnitureLayerIds": [],
+      "placeholderLayerIds": [],
+      "continuation": true
+    }
+  ],
+  "tray": [
+    {
+      "sourceObjectId": "ppt/slides/slide1.xml.7",
+      "layer": {
+        "id": "tray/partner-mark",
+        "kind": "image",
+        "image": "user/media/3c81ba07f9",
+        "w": 180,
+        "h": 48
+      }
+    }
+  ],
+  "lineage": {
+    "forward": [
+      {
+        "sourceObjectId": "ppt/slides/slide1.xml.4",
+        "layerIds": [
+          "frame-1/title"
+        ]
+      },
+      {
+        "sourceObjectId": "ppt/slides/slide1.xml.7",
+        "layerIds": [
+          "tray/partner-mark"
+        ]
+      },
+      {
+        "sourceObjectId": "ppt/slides/slide2.xml.3",
+        "layerIds": [
+          "frame-2/placeholder-1"
+        ]
+      },
+      {
+        "sourceObjectId": "ppt/slides/slide2.xml.5",
+        "layerIds": [
+          "frame-3/chart-fallback"
+        ]
+      }
+    ],
+    "backward": [
+      {
+        "layerId": "frame-1/band",
+        "sourceObjectIds": [],
+        "derived": "furniture"
+      },
+      {
+        "layerId": "frame-1/title",
+        "sourceObjectIds": [
+          "ppt/slides/slide1.xml.4"
+        ]
+      },
+      {
+        "layerId": "frame-2/placeholder-1",
+        "sourceObjectIds": [
+          "ppt/slides/slide2.xml.3"
+        ],
+        "derived": "placeholder"
+      },
+      {
+        "layerId": "tray/partner-mark",
+        "sourceObjectIds": [
+          "ppt/slides/slide1.xml.7"
+        ]
+      },
+      {
+        "layerId": "frame-3/chart-fallback",
+        "sourceObjectIds": [
+          "ppt/slides/slide2.xml.5"
+        ],
+        "derived": "continuation"
+      }
+    ]
+  },
+  "report": {
+    "version": 1,
+    "sourceHash": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "planRevision": 3,
+    "counts": {
+      "slides": {
+        "source": 2,
+        "included": 2,
+        "excluded": 0,
+        "continuation": 1
+      },
+      "objects": {
+        "retained": 3,
+        "transformed": 0,
+        "removed": 0,
+        "unresolved": 1
+      },
+      "byClass": {
+        "title": {
+          "retained": 1,
+          "transformed": 0,
+          "removed": 0,
+          "unresolved": 0
+        },
+        "logo-candidate": {
+          "retained": 1,
+          "transformed": 0,
+          "removed": 0,
+          "unresolved": 0
+        },
+        "chart": {
+          "retained": 1,
+          "transformed": 0,
+          "removed": 0,
+          "unresolved": 1
+        }
+      },
+      "logosReplaced": 0,
+      "coloursAssigned": 2,
+      "coloursUnresolved": 1,
+      "fontsSubstituted": 2,
+      "appliedUnreviewed": 0
+    },
+    "entries": [
+      {
+        "code": "object.retained",
+        "message": "The title was kept and bound to the title role.",
+        "slideId": "ppt/slides/slide1.xml",
+        "objectId": "ppt/slides/slide1.xml.4",
+        "layerId": "frame-1/title",
+        "disposition": "retained",
+        "class": "title",
+        "action": "keep",
+        "author": "user",
+        "review": "accepted",
+        "fidelity": "editable"
+      },
+      {
+        "code": "object.surplus-tray",
+        "message": "The partner mark was kept, fits no role in the title archetype, and waits in the tray.",
+        "slideId": "ppt/slides/slide1.xml",
+        "objectId": "ppt/slides/slide1.xml.7",
+        "layerId": "tray/partner-mark",
+        "disposition": "retained",
+        "class": "logo-candidate",
+        "action": "keep",
+        "author": "user",
+        "review": "needs-attention",
+        "fidelity": "raster-preserved"
+      },
+      {
+        "code": "object.unresolved",
+        "message": "The native chart carried no fallback image, so a labelled placeholder stands in its place.",
+        "slideId": "ppt/slides/slide2.xml",
+        "objectId": "ppt/slides/slide2.xml.3",
+        "layerId": "frame-2/placeholder-1",
+        "disposition": "unresolved",
+        "class": "chart",
+        "action": "replace",
+        "author": "rule",
+        "review": "needs-attention",
+        "fidelity": "unavailable",
+        "reason": "native-chart-no-fallback"
+      },
+      {
+        "code": "object.surplus-continuation",
+        "message": "The second chart came with the image its file carried, and went to a continuation slide.",
+        "slideId": "ppt/slides/slide2.xml",
+        "objectId": "ppt/slides/slide2.xml.5",
+        "layerId": "frame-3/chart-fallback",
+        "disposition": "retained",
+        "class": "chart",
+        "action": "keep",
+        "author": "rule",
+        "review": "accepted",
+        "fidelity": "raster-preserved"
+      },
+      {
+        "code": "slide.continuation-added",
+        "message": "A continuation slide was added after slide 2, so the numbering past it moves by one.",
+        "slideId": "ppt/slides/slide2.xml",
+        "layerId": "frame-3/chart-fallback"
+      },
+      {
+        "code": "colour.unresolved",
+        "message": "The chart needs more distinct series colours than the neutral master offers.",
+        "objectId": "ppt/slides/slide2.xml.3",
+        "reason": "palette-too-small"
+      },
+      {
+        "code": "export.not-verified",
+        "message": "No readback of the produced bytes has run yet."
+      }
+    ]
+  }
+}

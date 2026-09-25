@@ -39,7 +39,7 @@ Den vanlige måten rutinemessig kreativt arbeid blir gjort på, er en ansvarsfla
 - **[Verifiser det selv](/info/verify-yourself.html)** - sjekk påstandene mot en ekte eksport, steg for steg, uten noe du ikke kan kjøre selv.
 - **[Personvernerklæring](/info/privacy.html)** - den formelle erklæringen om hva som samles inn, lagres og sendes, og hva som ikke gjør det.
 - **[Suveren kreativ produksjon](/info/sovereign-production.html)** - utrulling med luftgap, samtykkestyrt nettverksbruk og signering på enheten.
-- **[Innføring og styring](/info/adoption-governance.html)** - hvem som godkjenner et verktøy, hvordan merkevareregler blir håndhevbare, og hva katalog-som-repositorium-alternativet gir deg.
+- **[Innføring og styring](/info/adoption-governance.html)** - hvordan merkevarereglene blir håndhevbare, hva en delt katalog tilfører og hva katalog-som-repositorium-alternativet gir deg.
 
 ## Juridisk
 

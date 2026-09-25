@@ -1,0 +1,339 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/rebrand-project-v1.schema.json",
+  "title": "rebrand-project-v1",
+  "description": "The durable local unit of work: the source, the checkpoint, the design-system snapshot and references to the stored stage records. Plan 274 section 3.5. The projectPartKind and projectWriteRefusal definitions are published contracts for the project store; no property of this document uses them.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "id",
+    "name",
+    "source",
+    "checkpoint",
+    "revision",
+    "designSystem",
+    "parts",
+    "designSessionIds"
+  ],
+  "$defs": {
+    "assetRef": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!.*\\.\\.)[A-Za-z0-9][A-Za-z0-9._-]*(/[A-Za-z0-9._-]+)*$",
+      "description": "A stable asset ref: a namespaced catalog id or a host-generated user asset id. Never a data: or blob: URL, never a file path, never base64, so the document stays portable across a reload, a device and a shell."
+    },
+    "deckTheme": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "remap"
+      ],
+      "description": "A deck theme (plan 275 section 6.2): a small token remap over the resolved design system for one project. The token hash beside it is taken before the theme.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/deckThemeId"
+        },
+        "mode": {
+          "enum": [
+            "light",
+            "dark"
+          ]
+        },
+        "remap": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "from",
+              "to"
+            ],
+            "properties": {
+              "from": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              },
+              "to": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              }
+            }
+          }
+        },
+        "lookId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "flipDark": {
+          "type": "boolean"
+        }
+      }
+    },
+    "deckThemeId": {
+      "enum": [
+        "light",
+        "dark",
+        "brand",
+        "look"
+      ]
+    },
+    "designSystemSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "tokenHash",
+        "fontHashes",
+        "assetHashes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "masterId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "masterVersion": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "tokenHash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "fontHashes": {
+          "type": "object",
+          "maxProperties": 512,
+          "propertyNames": {
+            "maxLength": 256,
+            "pattern": "^(?!__proto__$|constructor$|prototype$)[A-Za-z0-9][A-Za-z0-9 ._:+/-]*$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 512
+          }
+        },
+        "assetHashes": {
+          "type": "object",
+          "maxProperties": 4096,
+          "propertyNames": {
+            "maxLength": 256,
+            "pattern": "^(?!__proto__$|constructor$|prototype$)[A-Za-z0-9][A-Za-z0-9 ._:+/-]*$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 512
+          }
+        },
+        "presetId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "presetVersion": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "theme": {
+          "$ref": "#/$defs/deckTheme"
+        }
+      }
+    },
+    "projectPartKind": {
+      "enum": [
+        "sourceDeck",
+        "census",
+        "plan",
+        "compiled"
+      ]
+    },
+    "projectSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "hash",
+        "lineageId",
+        "instanceId",
+        "pageCount"
+      ],
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/sourceKind"
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "lineageId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "instanceId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "pageCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "bytesAssetRef": {
+          "$ref": "#/$defs/assetRef"
+        }
+      }
+    },
+    "projectStage": {
+      "enum": [
+        "ingest",
+        "census",
+        "plan",
+        "review",
+        "compile",
+        "done"
+      ]
+    },
+    "projectWriteRefusal": {
+      "enum": [
+        "stale-revision",
+        "quota",
+        "missing-project",
+        "invalid-part"
+      ]
+    },
+    "sourceKind": {
+      "enum": [
+        "pptx",
+        "pdf",
+        "image",
+        "docx"
+      ]
+    }
+  },
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 1024
+    },
+    "source": {
+      "$ref": "#/$defs/projectSource"
+    },
+    "checkpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage"
+      ],
+      "properties": {
+        "stage": {
+          "$ref": "#/$defs/projectStage"
+        },
+        "at": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+        },
+        "planRevision": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "designSystem": {
+      "$ref": "#/$defs/designSystemSnapshot"
+    },
+    "parts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "sourceDeck": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "census": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "plan": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "compiled": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    },
+    "designSessionIds": {
+      "type": "array",
+      "maxItems": 4096,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 512
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "updatedAt": {
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$"
+    },
+    "thumbSvg": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 16384,
+      "pattern": "^<svg[\\s>]",
+      "description": "The first proposed slide drawn small as a standalone SVG string, for the lists that name the project. Written once after the first compile; absent when the drawing would be over 16 KB. Names no external resource."
+    }
+  }
+}

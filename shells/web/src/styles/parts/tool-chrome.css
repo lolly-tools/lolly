@@ -2056,3 +2056,27 @@ html[data-a11y-motion="reduce"] .url-budget-toast { animation: none; }
 .export-experimental-note { margin: .2rem 0 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
 
 .preflight-fix { display: block; min-height: 44px; margin-block-start: var(--sp-3); white-space: normal; }
+
+/* Licence picker (tool-actions markup.ts licenceRow), inside Content protection. */
+.export-licence-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.export-licence-pick .field-select { margin-inline-start: auto; min-width: 0; }
+
+/* Captions, inside the video Pro settings fold (markup.ts captionsRow). Hidden until
+   the export has caption text to carry (audio.ts syncCaptionsAvailable). */
+.prosettings-captions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-4);
+  flex: 1 1 100%;
+  font-size: var(--fs-sm);
+  color: hsl(var(--muted-foreground));
+}
+.prosettings-captions[hidden] { display: none; }
+.prosettings-captions-head { font-weight: 600; }
+.prosettings-captions .section-card__hint { flex: 1 1 100%; margin: 0; }

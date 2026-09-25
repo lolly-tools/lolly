@@ -145,18 +145,27 @@ test('releasing the last panel restores it and tears down to byte-identical idle
   assert.equal(document.documentElement.hasAttribute('data-edge-dock'), false);
 });
 
-test('two panels stack player-over-export with one divider between', () => {
+test('two panels stack player-over-transcript with one divider between', () => {
   reset();
   const n = panel('pn'); const x = panel('px');
-  ED.requestDock('export', x);   // request order should not decide stacking order
+  ED.requestDock('transcript', x);   // request order should not decide stacking order
   ED.requestDock('neuro', n);
   assert.equal(ED.dockedCount(), 2);
   const slots = [...document.querySelectorAll('.edge-dock-slot')];
   assert.equal(slots.length, 2);
-  assert.equal(slots[0]!.getAttribute('data-slot'), 'neuro');    // player on top
-  assert.equal(slots[1]!.getAttribute('data-slot'), 'export');   // export below
+  assert.equal(slots[0]!.getAttribute('data-slot'), 'neuro');        // player on top
+  assert.equal(slots[1]!.getAttribute('data-slot'), 'transcript');   // transcript below
   assert.equal(document.querySelectorAll('.edge-dock-divider').length, 1);
   assert.ok(slots[1]!.classList.contains('edge-dock-slot--fill'), 'bottom panel fills the remainder');
+});
+
+test('Export is a tab beside any other panel, never half of a split', () => {
+  reset();
+  ED.requestDock('neuro', panel('pn'), { label: 'Player' });
+  ED.requestDock('export', panel('px'), { label: 'Export', background: true });
+  assert.ok(document.querySelector('.edge-dock-tabs'), 'player + export is a tab strip');
+  assert.equal(document.querySelectorAll('.edge-dock-divider').length, 0);
+  assert.deepEqual(visibleSlots(), ['neuro'], 'a background dock leaves the tab the user was on in front');
 });
 
 test('Inspector and Export use tabs even as the only two full panels', () => {
@@ -175,7 +184,7 @@ test('Inspector and Export use tabs even as the only two full panels', () => {
 
 test('a compact bar docks on TOP of the panels, fixed-height, with no divider above it', () => {
   reset();
-  ED.requestDock('export', panel('px'));
+  ED.requestDock('transcript', panel('px'));
   ED.requestDock('neuro', panel('pn'));
   ED.requestDock('zoom', panel('pz'), { compact: true });
   const slots = [...document.querySelectorAll('.edge-dock-slot')];
@@ -227,7 +236,7 @@ test('dropping below the breakpoint undocks everything on resize', () => {
 
 test('divider drag resizes via the existing handle (regression: it kept losing focus)', () => {
   reset();
-  ED.requestDock('export', panel('px'));
+  ED.requestDock('transcript', panel('px'));
   ED.requestDock('neuro', panel('pn'));
   const divider = document.querySelector('.edge-dock-divider')!;
   const top = document.querySelector<HTMLElement>('.edge-dock-slot')!;   // first slot = player
@@ -326,7 +335,7 @@ test('clicking a tab swaps the visible panel without rebuilding the strip', () =
 test('dropping back to two full panels restores the stacked split', () => {
   reset();
   ED.requestDock('neuro', panel('pn'));
-  ED.requestDock('export', panel('px'));
+  ED.requestDock('transcript', panel('px'));
   ED.requestDock('inspector', panel('pi'));
   assert.ok(document.querySelector('.edge-dock-tabs'));
   ED.releaseDock('inspector');

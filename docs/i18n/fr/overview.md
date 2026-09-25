@@ -24,21 +24,21 @@ Ce document décrit l'objectif, la structure et les décisions architecturales d
 
 ## Pourquoi cela existe
 
-Les équipes font face à un problème récurrent : un travail créatif et éditorial répétitif, trop prévisible pour justifier des mains expertes à chaque fois, mais trop sensible à la qualité pour être délégué sans garde-fous. Le résultat est soit un débit lent (goulot d'étranglement du spécialiste), soit une incohérence (chacun utilise l'outil qu'il a sous la main), soit un enfermement propriétaire (un DAM SaaS qui contrôle tes modèles).
+Le travail créatif répétitif est trop prévisible pour justifier des mains expertes à chaque fois, et trop sensible à la qualité pour être délégué sans garde-fous. Livré à lui-même, il prend l'une de ces trois voies : lent, incohérent ou enfermé dans les modèles d'un fournisseur.
 
 Cette plateforme est la réponse directe :
 
-> **Du créatif et du contenu programmatiques à grande échelle** - une génération de ressources sans main-d'œuvre, avec les règles sous contrôle central, pour les employés, les fournisseurs et les partenaires.
+> **Du créatif et du contenu programmatiques à grande échelle** - des ressources générées à partir d'entrées, avec les règles fixées une fois, pour qui en a besoin.
 
 Lolly n'est pas l'endroit où un système de marque s'invente - c'est l'endroit où il se produit. Pense à un distributeur automatique pour le design : tu fais un choix, tu obtiens un résultat. À chaque fois. Le moteur vise la plus haute qualité que chaque format puisse produire sur le matériel que tu as sous la main, et le même moteur produit le même fichier sur chaque surface où il est livré.
 
-Le résultat est l'**abondance** : chaque événement a une signalétique correcte, chaque alerte CVE respecte la charte, chaque étiquette s'imprime proprement, chaque signature e-mail est à jour - tout cela sans ticket de design. La plateforme gère le créatif opérationnalisé récurrent. Ce n'est délibérément pas un outil créatif sur mesure - les designers continuent de posséder le travail phare.
+Le résultat est l'**abondance** : chaque événement a une signalétique correcte, chaque alerte CVE respecte la charte, chaque étiquette s'imprime proprement, chaque signature e-mail est à jour - tout cela à partir d'outils qui portent déjà les règles. La plateforme gère le créatif opérationnalisé récurrent. Ce n'est délibérément pas un outil créatif sur mesure - les designers continuent de posséder le travail phare.
 
 ### Innover de façon probabiliste, passer à l'échelle de façon déterministe
 
 Tout débat sur l'IA dans un pipeline créatif bute sur la même question : quelle part revient à la machine ? C'est une vieille question dont la réponse est établie. Les scribes et les enlumineurs travaillaient déjà entre deux instruments - l'esquisse libre, où rien n'était fixé et tout pouvait être tenté, et la presse à imprimer, intimidante justement parce qu'elle engageait. Les esquisses étaient là où l'art se produisait. La presse était le moyen de l'atteindre. Personne ne confondait les deux, et les deux ont continué à progresser - nouvelles encres, nouveaux caractères, nouvelles presses - chacune s'améliorant en harmonie avec l'artisanat et l'intention qu'elle servait.
 
-Lolly trace la même ligne. Explore de façon probabiliste : un modèle, un designer, une idée brute, une invite qui mène quelque part que personne n'avait prévu. Puis passe à l'échelle de façon déterministe - ce qui atteint dix mille sorties est un *outil*, et un outil se restitue de la même manière à chaque fois à partir d'entrées que tu peux lire. L'exploration reste libre parce que rien en aval ne dépend qu'elle aboutisse de la même façon deux fois. Le résultat gagne la confiance parce que ce n'est pas une supposition. Faire passer l'expérimentation par IA à des résultats prévisibles et reproductibles n'est pas une discipline nouvelle ; c'est la même division du travail qui a rendu l'imprimé digne de confiance à l'origine.
+Lolly trace la même ligne. Explore de façon probabiliste : un modèle, un designer, une idée brute, une invite qui mène quelque part que personne n'avait prévu. Puis passe à l'échelle de façon déterministe - ce qui devient de nombreuses sorties est un *outil*, et un outil se restitue de la même manière à chaque fois à partir d'entrées que tu peux lire. L'exploration reste libre parce que rien en aval ne dépend qu'elle aboutisse de la même façon deux fois. Le résultat gagne la confiance parce que ce n'est pas une supposition. Faire passer l'expérimentation par IA à des résultats prévisibles et reproductibles n'est pas une discipline nouvelle ; c'est la même division du travail qui a rendu l'imprimé digne de confiance à l'origine.
 
 > Fais confiance au processus créatif, passe à l'échelle avec rigueur.
 
@@ -76,19 +76,19 @@ C'est le multiplicateur de force. Lolly n'est pas un tiroir d'outils séparés p
 
 ---
 
-## Une approbation, dix mille ressources
+## Un outil, de nombreuses sorties
 
-Parce que l'approbation réside dans l'outil et non dans le fichier (voir [Comment Lolly se compare](/info/positioning.html)), passer à l'échelle cesse d'être un problème de révision. Approuve un outil de carte sociale localisée une fois, puis génère **10 000 ressources dans 12 langues** à partir d'un tableur - et aucune d'elles n'a besoin d'un nouveau contrôle de conformité du service juridique ou de la marque, parce que le modèle dont elles proviennent toutes a déjà été approuvé.
+Les règles de marque vivent dans l'outil, pas dans chaque fichier qu'il produit (voir [Comment Lolly se compare](/info/positioning.html)). Mets l'outil au point une fois, et chaque sortie hérite de la même typo, de la même couleur et du même espacement, qu'il s'agisse d'une carte ou d'un tableur de lignes en une douzaine de langues. Comment tu vérifies ton travail, et qui le fait, ça reste à toi ; Lolly rend la chose à vérifier plus petite et la sortie plus rapide à produire.
 
-Le même outil déterministe atteint cette échelle de trois façons, toutes produisant une sortie identique et pré-approuvée :
+Le même outil déterministe atteint cette échelle de trois façons, toutes produisant une sortie identique :
 
-- <!--i:people--> **Une personne, dans l'app.** La grille de lot `/pro` : colle ou importe les lignes, obtiens une ressource finie par ligne, télécharge le zip. Aucune compétence en design, aucun ticket, aucune attente.
-- <!--i:code--> **Un développeur, depuis la ligne de commande.** La CLI exécute le *même* moteur et le *même* chemin de restitution en mode headless, si bien que l'outil peut être enchaîné sur les 10 000 lignes dans un script ou un pipeline nocturne. Un appel `lolly <tool> --field=…` dans une boucle constitue toute l'intégration.
-- <!--i:cpu--> **Un système ou un agent IA, via MCP.** Le même outil piloté de façon programmatique, avec la même fidélité et une échelle encore plus grande - car une machine ne s'ennuiera pas pendant que des milliers de fichiers défilent.
+- <!--i:people--> **Une personne, dans l'app.** La grille de lot `/pro` : colle ou importe les lignes, obtiens une ressource finie par ligne, télécharge le zip. Aucune compétence en design, aucune attente.
+- <!--i:code--> **Un développeur, depuis la ligne de commande.** La CLI exécute le *même* moteur et le *même* chemin de restitution en mode headless, si bien que l'outil peut être enchaîné sur chaque ligne dans un script ou un pipeline nocturne. Un appel `lolly <tool> --field=…` dans une boucle constitue toute l'intégration.
+- <!--i:cpu--> **Un système ou un agent IA, via MCP.** Le même outil piloté de façon programmatique, avec la même fidélité, pour autant de lignes que le travail en comporte.
 
 ![Le mode Batch sur une installation fraîche : une ligne vide attend un outil, avec toute la surface façon tableur et son bouton Rendre déjà en place avant l'arrivée de données](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-Un seul jeu de contraintes de marque, fixé une fois par un designer ; trois voies vers la même sortie pré-approuvée - et la voie machine passe à l'échelle plus loin que toutes les autres, car elle ne se fatigue jamais pendant que les fichiers défilent.
+Un seul jeu de contraintes de marque, fixé une fois par un designer ; trois voies vers la sortie identique.
 
 ---
 
@@ -390,11 +390,11 @@ Web shell : IndexedDB. Tauri : système de fichiers. CLI : en mémoire. Les outi
 
 Les utilisateurs peuvent enregistrer plusieurs emplacements d'édition nommés par outil et retrouver chaque session plus tard. Aucune création de compte n'est requise ; l'état est propre à l'appareil. Comme le pont est le seul point de passage, cet état par appareil est aussi *portable* : `shells/web/src/data-transfer.ts` relit tout via `host.profile`/`host.state`/`host.assets` dans un unique zip `lolly-backup` qui s'importe sur n'importe quelle autre installation - la réponse hors ligne à "passer à un nouvel appareil" qui ne nécessite aucun serveur (spécification complète : `docs/data-transfer.md`). L'intégration SUSE ID (synchronisation multi-appareils) est une étape future construite par-dessus.
 
-### 7. Les étiquettes de maturité répondent par conception au risque "validé par la marque"
+### 7. Les étiquettes de maturité disent ce qu'est un outil, par conception
 
 Chaque outil déclare `status: official | community | experimental` dans son manifeste. La galerie trie par statut. Les outils expérimentaux filigranent automatiquement leurs exports - le filigrane est appliqué par `host.export.render`, pas par l'outil, si bien qu'un auteur d'outil non officiel ne peut pas le désactiver.
 
-C'est une réponse structurelle au risque de perception selon lequel l'usage d'un outil implique une validation de la marque. Des réponses de processus (une file de revue, un contrôle SUSE ID) viennent s'ajouter par-dessus.
+C'est une réponse structurelle au risque de perception selon lequel chaque outil de la galerie porte le même poids. Quel que soit le processus qu'une équipe ajoute autour du catalogue, il vient s'ajouter par-dessus.
 
 ### 8. Les entrées d'outil sont typées via le manifeste, y compris les assets
 

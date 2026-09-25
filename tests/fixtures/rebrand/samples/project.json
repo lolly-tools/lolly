@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "id": "project/quarterly-review-2",
+  "name": "Quarterly review",
+  "source": {
+    "kind": "pptx",
+    "hash": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "lineageId": "core-props:8f2c1d44-0f2b-4a9a-9d30-6d0f7b1f2ab1",
+    "instanceId": "import-2",
+    "name": "quarterly-review.pptx",
+    "bytes": 4184312,
+    "pageCount": 2,
+    "title": "Quarterly review",
+    "bytesAssetRef": "user/source/quarterly-review-2"
+  },
+  "checkpoint": {
+    "stage": "review",
+    "at": "2026-09-23T10:14:05.000Z",
+    "planRevision": 3
+  },
+  "revision": 11,
+  "designSystem": {
+    "id": "lolly-start",
+    "masterId": "master/neutral",
+    "masterVersion": "1.0.0",
+    "tokenHash": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "fontHashes": {
+      "Outfit": "sha256:c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3"
+    },
+    "assetHashes": {
+      "lolly/logo/primary": "sha256:d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4"
+    }
+  },
+  "parts": {
+    "sourceDeck": "record/source/quarterly-review-2",
+    "census": "record/census/quarterly-review-2",
+    "plan": "record/plan/quarterly-review-2"
+  },
+  "designSessionIds": [
+    "session/design/quarterly-review-2"
+  ],
+  "createdAt": "2026-09-23T09:52:41.000Z",
+  "updatedAt": "2026-09-23T10:14:05.000Z"
+}

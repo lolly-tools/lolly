@@ -234,4 +234,8 @@ are timing. Generated from the `boxes` block.
 | `pathPaint` | - | text | `""` | Vector paint |
 | `vectorSource` | - | text | `""` | Vector source and credits |
 | `textWrap` | - | text | `""` | Text wrap settings |
+| `master` | - | text | `""` | Slide master |
+| `role` | - | select | `""` | Archetype role |
+| `furniture` | - | text | `""` | Master furniture |
+| `archetype` | - | text | `""` | Slide archetype |
 <!-- /GEN:design-boxes -->

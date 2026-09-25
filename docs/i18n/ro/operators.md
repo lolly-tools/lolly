@@ -39,7 +39,7 @@ Modul obișnuit în care se face munca creativă de rutină este o suprafață d
 - **[Verifică singur](/info/verify-yourself.html)** - verifică afirmațiile față de un export real, pas cu pas, fără nimic ce nu poți rula tu însuți.
 - **[Politica de confidențialitate](/info/privacy.html)** - declarația formală despre ce se colectează, stochează și trimite, și ce nu.
 - **[Producție creativă suverană](/info/sovereign-production.html)** - deployment izolat de rețea (air-gapped), rețea condiționată de consimțământ și semnare pe dispozitiv.
-- **[Adopție și guvernanță](/info/adoption-governance.html)** - cine aprobă un instrument, cum devin regulile de brand impuse și ce îți aduce opțiunea de catalog-ca-repository.
+- **[Adopție și guvernanță](/info/adoption-governance.html)** - cum devin regulile de brand impuse, ce adaugă un catalog partajat și ce îți aduce opțiunea de catalog-ca-repository.
 
 ## Juridic
 

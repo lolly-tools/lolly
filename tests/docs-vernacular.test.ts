@@ -10,10 +10,10 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { scan, scanBuilt, staleAllows } from '../scripts/check-docs-vernacular.ts';
+import { scan, scanBuilt, staleAllows, targets } from '../scripts/check-docs-vernacular.ts';
 import { VERNACULAR_WHY } from '../scripts/lib/vernacular-why.ts';
 
 const BUILT = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'shells/web/public/info');
@@ -36,6 +36,30 @@ test('built pages carry no fingerprint unicode in visible text or spoken attribu
     v.map(x => `${x.file} [${x.what}] ${x.excerpt}`),
     [],
     'A build-time generator introduced a banned character - fix the generator (docs/build.ts or packages/docs-render), then pnpm run build:info.',
+  );
+});
+
+test('the specification chapters are in the scan set', () => {
+  // docs/spec/<name>/*.md is prose published to /info the same way docs/*.md is
+  // (docs/spec-pages.ts builds it), and it is nested, so it is reached by a walk
+  // rather than by one readdir. A walk that stops working would leave a whole
+  // document unscanned and every check above would still pass.
+  const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+  const dir = resolve(root, 'docs/spec');
+  if (!existsSync(dir)) return;
+  const onDisk: string[] = [];
+  const walk = (d: string, rel: string): void => {
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      if (e.isDirectory()) walk(resolve(d, e.name), `${rel}/${e.name}`);
+      else if (e.name.endsWith('.md')) onDisk.push(`${rel}/${e.name}`);
+    }
+  };
+  walk(dir, 'docs/spec');
+  const scanned = new Set(targets());
+  assert.deepStrictEqual(
+    onDisk.filter(f => !scanned.has(f)),
+    [],
+    'a specification chapter is on disk but outside the vernacular scan set',
   );
 });
 

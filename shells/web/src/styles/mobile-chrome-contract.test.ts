@@ -191,7 +191,8 @@ const BOTTOM_SURFACES: Array<{
   { cls: 'render-pill',      file: 'styles/parts/tool-chrome.css',  keyboard: true },
   { cls: 'projects-bulkbar', file: 'styles/parts/projects.css',     keyboard: true },
   { cls: 'cat-bulkbar',      file: 'styles/parts/catalog.css',      keyboard: true },
-  { cls: 'cat-viewopts',     file: 'styles/parts/catalog.css',      keyboard: true },
+  // The view-options sheet (Tools, Utilities, Catalogue). No text field inside it, so no keyboard lift.
+  { cls: 'filter-popover',   file: 'styles/parts/gallery.css',      keyboard: false, safeVia: 'padding-bottom' },
   { cls: 'store-selbar',     file: 'styles/parts/profile.css',      keyboard: true },
   { cls: 'be-bulkbar',       file: 'styles/parts/brand-studio.css', keyboard: true, safeVia: '--stu-sheet-h' },
   { cls: 'gallery-footer',   file: 'styles/parts/gallery.css',      keyboard: true, safeVia: 'padding-bottom' },

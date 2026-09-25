@@ -1672,7 +1672,7 @@ async function render(
       + `<span class="asset-picker-themes-label">${t('Colours')}</span>`
       + iconThemes.map((t, i) => {
           const on = activeTheme ? t.id === activeTheme : i === 0;
-          return `<button type="button" class="asset-picker-theme${on ? ' is-active' : ''}" data-theme-id="${escapeHtml(t.id)}" data-sfx="shimmer" data-voice="${escapeHtml(t.label ?? t.id)}" aria-pressed="${on}">
+          return `<button type="button" class="asset-picker-theme${on ? ' is-active' : ''}" data-theme-id="${escapeHtml(t.id)}" data-sfx="shimmer" aria-pressed="${on}">
             <span class="asset-picker-theme-duo" style="background:${escapeHtml(t.previewBg ?? '#ffffff')}"><i style="background:${escapeHtml(t.c2)}"></i><i style="background:${escapeHtml(t.c1)}"></i></span>
             <span>${escapeHtml(t.label ?? t.id)}</span>
           </button>`;

@@ -50,5 +50,11 @@ export const isDesignSystemSlot = (slot: unknown): boolean =>
   typeof slot === 'string' && slot.startsWith('design-system.');
 
 /** A slot no user-facing session list should show. */
+/** A renovation project or one of its parts (plan 274 section 3.5), kept under
+ *  `__rebrand__:` by lib/rebrand/project-store.ts. Never a saved tool session. */
+export const REBRAND_SLOT_PREFIX = '__rebrand__:';
+export const isRebrandSlot = (slot: unknown): boolean =>
+  typeof slot === 'string' && slot.startsWith(REBRAND_SLOT_PREFIX);
+
 export const isHiddenSlot = (slot: unknown): boolean =>
-  isTrashedSlot(slot) || isTemplateSlot(slot) || isExportPrefsSlot(slot) || isDesignSystemSlot(slot);
+  isTrashedSlot(slot) || isTemplateSlot(slot) || isExportPrefsSlot(slot) || isDesignSystemSlot(slot) || isRebrandSlot(slot);

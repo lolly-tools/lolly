@@ -40,14 +40,16 @@
     position: absolute;
     left: 0;
     right: 0;
-    top: -100%;
-    margin:0 -1rem ;
+  
+    margin:0 -.8rem ;
     margin-top: -2rem;
     z-index: var(--ui-layer-overlay);
-    padding: var(--sp-6) var(--sp-8);
+    padding: var(--sp-6);
+    /* Room for the close button in the corner, so a long first line never runs under it. */
+    padding-inline-end: calc(var(--sp-6) + var(--sp-7));
     border-radius: var(--radius);
     background: hsl(var(--popover-foreground) / 1);
-    animation: fade-out var(--dur-3) ease 2s forwards;
+    animation: slide-up var(--dur-3) ease forwards;
     color: hsl(var(--popover));
     border: 1px solid hsl(var(--border));
     box-shadow: var(--ui-elevation-floating);
@@ -58,12 +60,12 @@
     text-transform: none;
     white-space: normal;
   }
-  @keyframes fade-out {
-    0% { opacity: 1; }
+  @keyframes slide-up {
+    0% { opacity: 0; transform: translateY(.5rem)}
 
-    100% { opacity: 0; transform: translateY(.5rem)}
+    100% { opacity: 1; }
   }
-  .help-tip-pop:hover{opacity:1;animation:none }
+
   .help-tip-pop[hidden] {
     display: none;
   }
@@ -78,6 +80,44 @@
   .help-tip-link:hover,
   .help-tip-link:focus-visible {
     text-decoration: underline;
+  }
+
+  /* The X in the corner. Inherits the pop's (inverted) text colour rather than the
+     chrome's, because the bubble paints popover-foreground as its background. */
+  .help-tip-close {
+    position: absolute;
+    top: var(--sp-2);
+    inset-inline-end: var(--sp-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--sp-7);
+    height: var(--sp-7);
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-round);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.6;
+    transition:
+      opacity var(--dur-1) ease,
+      background var(--dur-1) ease;
+  }
+  .help-tip-close:hover {
+    opacity: 1;
+    background: hsl(var(--popover) / 0.15);
+  }
+  .help-tip-close svg {
+    display: block;
+    width: var(--fs-sm);
+    height: var(--fs-sm);
+  }
+  /* A hover-revealed tip still carries [hidden]: leaving the info button takes the pop
+     with it, so the X could never be reached. Draw it only on a pop a click or tap left
+     open, which is the one state that needs dismissing. */
+  .help-tip-pop[hidden] .help-tip-close {
+    display: none;
   }
 
   @media (pointer: coarse) {

@@ -39,7 +39,7 @@ De gebruikelijke manier waarop routinematig creatief werk wordt gedaan, is een a
 - **[Verifieer het zelf](/info/verify-yourself.html)** - controleer de claims tegen een echte export, stap voor stap, met niets dat je niet zelf kunt uitvoeren.
 - **[Privacybeleid](/info/privacy.html)** - de formele verklaring van wat wel en niet wordt verzameld, opgeslagen en verzonden.
 - **[Soevereine creatieve productie](/info/sovereign-production.html)** - air-gapped implementatie, consent-gated netwerkverkeer en ondertekening op het apparaat.
-- **[Adoptie & governance](/info/adoption-governance.html)** - wie een tool goedkeurt, hoe merkregels afdwingbaar worden en wat de optie catalogus-als-repository je oplevert.
+- **[Adoptie & governance](/info/adoption-governance.html)** - hoe merkregels afdwingbaar worden, wat een gedeelde catalogus toevoegt en wat de optie catalogus-als-repository je oplevert.
 
 ## Juridisch
 

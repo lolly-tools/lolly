@@ -63,6 +63,14 @@ import { isMaterializedRoot, repoRoot } from './repo-root.ts';
 /** The only base pack `extends` may name in v1 (brand overlays of community tools). */
 const BASE_PACK = 'community';
 
+/**
+ * Directories of the base pack that hold data the build reads, not a tool. The
+ * slide layout library (plan 275) lives in community/ beside the tools it serves,
+ * and scripts/build-slide-masters.ts turns it into engine data and pack masters;
+ * it has no tool.json and is never listed as a tool.
+ */
+const BASE_PACK_DATA_DIRS: ReadonlySet<string> = new Set(['slide-structures']);
+
 /** The profile name reported for a materialized root (a real tools/ + catalog/ tree,
  *  with no profiles.json to name a profile). See materializedRoots. */
 const MATERIALIZED = 'materialized';
@@ -364,6 +372,7 @@ function buildPlan(roots: ContentRoots): Map<string, { dir: string; base?: strin
       // community/_shared/, the canonical helper corpus that sync-shared-hooks.ts
       // copies into tool hooks.js.
       if (entry.startsWith('_')) continue;
+      if (isBasePack && BASE_PACK_DATA_DIRS.has(entry)) continue;
       const dir = join(rootAbs, entry);
       if (sharedDirs.has(dir)) continue;
       if (!statSync(dir).isDirectory()) continue; // NOTICE.md, README.md, ...

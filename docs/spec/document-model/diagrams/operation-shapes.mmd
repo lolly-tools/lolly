@@ -1,0 +1,20 @@
+graph TD
+  subgraph shapes[Six shapes]
+    render([Render])
+    transform([Transform])
+    extract([Extract])
+    inspect([Inspect])
+    present([Present])
+    act([Act])
+  end
+  subgraph outcome[One outcome]
+    result[Result]
+    artifacts[Artifacts]
+    termination[Termination]
+  end
+  subgraph lifecycle[Run lifecycle]
+    pending([Pending])
+    running([Running])
+    review([Needs review])
+    ready([Ready])
+  end

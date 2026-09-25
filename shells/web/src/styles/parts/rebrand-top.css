@@ -1,0 +1,153 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* #/rebrand top bar (.rb-top, plan 275 close-out section 3.1): back and home, the
+   project and its design system, the mode control slot, the save state, Undo, Redo and
+   the project menu (views/rebrand/top.ts). The grid that places it and the full-target
+   rule every button in the bar shares are rebrand.css; the deck theme control beside
+   the design system name is rebrand-theme.css.
+   One row, one control height: every control in the bar is 32 px tall (44 under a
+   coarse pointer), and the bar is 52 px (56 on a phone).
+   Tokens only; chrome sizes as calc(Npx * var(--a11y-fs)).
+   Never write a star followed by a slash inside a CSS comment. */
+@layer views {
+  .rb-top {
+    --rb-top-control: calc(32px * var(--a11y-fs));
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    min-height: calc(52px * var(--a11y-fs));
+    padding: var(--sp-1) var(--sp-4);
+    border-bottom: 1px solid var(--ui-color-border-default);
+  }
+  .rb-mode-slot:empty { display: none; }
+  /* The mode control (keep.ts): the panel primitive's segment at the bar's height, its
+     halves the primitive's own, 2 px inside the track. The save state that follows it
+     keeps a gap. */
+  .rb-top .rb-mode-seg {
+    height: var(--rb-top-control);
+    margin-inline-end: var(--sp-2);
+    white-space: nowrap;
+  }
+
+  /* ── back and home, the project and its design system ── */
+  .rb-top-nav {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+  }
+  /* Home is the shell's pill, at the bar's one control height rather than the shell's
+     chrome row height. */
+  .rb-top-nav > :is(.tools-home, .home-fab) {
+    min-height: var(--rb-top-control);
+    height: var(--rb-top-control);
+    padding-inline: var(--sp-4);
+  }
+  /* The title gives way first: with its inline size contained, a long deck name never
+     pushes the actions off the bar, it shortens with an ellipsis. */
+  .rb-top-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    contain: inline-size;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .rb-top-name {
+    margin: 0;
+    font-size: var(--ui-type-title);
+    font-weight: var(--ui-type-weight-section);
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rb-top-system {
+    margin: 0;
+    font-size: var(--ui-type-help);
+    color: var(--ui-color-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rb-top-system[hidden] { display: none; }
+
+  /* ── the save state, Undo, Redo and the project menu ── */
+  .rb-top-actions {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+  }
+  .rb-top .btn { min-height: var(--rb-top-control); }
+  .rb-top-history, .rb-top-menu { display: flex; align-items: center; gap: var(--sp-1); }
+  .rb-top-history[hidden], .rb-top-menu[hidden] { display: none; }
+  /* Undo, Redo and More are the panel primitive's icon buttons at the bar's height. The
+     primitive sizes them with width and height, so the bar raises the minimums. */
+  .rb-top .lp-iconbtn {
+    min-width: var(--rb-top-control);
+    min-height: var(--rb-top-control);
+  }
+  .rb-top .lp-iconbtn:disabled {
+    opacity: .4;
+    pointer-events: none;
+  }
+  .rb-top .lp-iconbtn[aria-expanded="true"] {
+    background: var(--ui-color-surface-muted);
+    color: var(--ui-color-text-default);
+  }
+  /* The save state is words only, and only when it needs saying (the module hides it
+     visually while it is fine): muted, with its one action beside it. */
+  .rb-save {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    margin: 0 var(--sp-2) 0 0;
+    font-size: var(--ui-type-help);
+    color: var(--ui-color-text-muted);
+    white-space: nowrap;
+  }
+  .rb-save[hidden] { display: none; }
+
+  @media (any-pointer: coarse) {
+    .rb-top { --rb-top-control: var(--ui-size-target); }
+  }
+
+  /* One row of top bar on a phone: the mode control moves to the project menu, and the
+     title gives way. The save state's words stay for a screen reader, and its action
+     stays on screen. */
+  .rb[data-narrow="true"] .rb-mode-slot { display: none; }
+  .rb[data-narrow="true"] .rb-top {
+    flex-wrap: nowrap;
+    gap: var(--sp-2);
+    min-height: calc(56px * var(--a11y-fs));
+    padding-inline: var(--sp-3);
+  }
+  .rb[data-narrow="true"] .rb-top-system { display: none; }
+  /* Home as its glyph alone, so the title keeps the room; the word stays its name. */
+  .rb[data-narrow="true"] .rb-top .back-pill-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  /* The glyph alone is a square target like Undo, Redo and More beside it. */
+  .rb[data-narrow="true"] .rb-top-nav > :is(.tools-home, .home-fab) {
+    justify-content: center;
+    min-width: var(--rb-top-control);
+    padding-inline: 0;
+  }
+  .rb[data-narrow="true"] .rb-top-actions { gap: 0; }
+  .rb[data-narrow="true"] .rb-save-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* The overflow menu's items are full targets here, like every other button. */
+  .rb-menu .folder-menu-item { min-height: var(--ui-size-target); }
+}

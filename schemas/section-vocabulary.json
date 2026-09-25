@@ -1,6 +1,6 @@
 {
   "$description": "The band a sidebar section belongs to, and the glyph it wears (plans/273). `input.section` in a tool manifest is a free string and 144 distinct ones are in use across the catalogue, 114 of them exactly once. This file does not rename any of them: it says which BAND each one sits in, so every tool's sidebar is ordered by the same five questions, and which glyph it takes, so one word cannot be two pictures in two tools. Read by shells/web/src/lib/section-bands.ts (the renderer), scripts/validate-catalog.ts (the gate) and docs/authoring-tools.md.",
-  "$version": "section-vocabulary-2026-09-23.1",
+  "$version": "section-vocabulary-2026-09-24.1",
   "bands": [
     { "id": "content", "title": "Content", "glyph": "document", "asks": "What does this say or show" },
     { "id": "style", "title": "Style", "glyph": "palette", "asks": "What does it look like" },
@@ -67,10 +67,13 @@
     "Capture": { "band": "content", "glyph": "camera" },
     "Growth": { "band": "content", "glyph": "sortDir" },
     "Sessions": { "band": "content", "glyph": "calendar" },
+    "Objects": { "band": "content", "glyph": "layers" },
+    "Decision": { "band": "content", "glyph": "layers" },
 
     "Style": { "band": "style", "glyph": "palette" },
     "Look": { "band": "style", "glyph": "palette" },
     "Colour": { "band": "style", "glyph": "palette" },
+    "Colours": { "band": "style", "glyph": "palette" },
     "Colour & style": { "band": "style", "glyph": "palette" },
     "Colour treatment": { "band": "style", "glyph": "palette" },
     "Treatment": { "band": "style", "glyph": "palette" },
@@ -105,6 +108,7 @@
     "Atmosphere": { "band": "style", "glyph": "cloudRain" },
     "Emoji": { "band": "style", "glyph": "smile" },
     "Typography": { "band": "style", "glyph": "font" },
+    "Fonts": { "band": "style", "glyph": "font" },
     "Type and size": { "band": "style", "glyph": "font" },
     "Body type": { "band": "style", "glyph": "font" },
     "Heading type": { "band": "style", "glyph": "font" },

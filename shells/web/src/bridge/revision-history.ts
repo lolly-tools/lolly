@@ -23,7 +23,12 @@ export interface RevisionEntry {
   at: string;
   reason: 'automatic' | 'save';
   hash: string;
+  /** Canonical JSON length; with `hash`, what a read verifies. */
   bytes: number;
+  /** Deflated length in storage, which history usage counts. Absent on
+   * checkpoints written before compression and on restored backups, whose
+   * payload is the JSON itself. */
+  stored?: number;
   assetRefs: string[];
   toolVersion?: string;
   formatVersion?: number;

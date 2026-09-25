@@ -53,27 +53,19 @@ Deck Studio est une bonne mesure du plafond ici : tout un diaporama déclaré co
 
 La plupart des discours « créatif IA » placent le modèle du mauvais côté d'une vieille ligne. Les scribes et les enlumineurs avaient déjà réglé la question de savoir où elle tombe : tu travailles librement sur l'esquisse, où tout peut être tenté et rien n'est engagé, puis tu passes à la presse d'imprimerie, qui intimide justement parce qu'elle engage. Les esquisses, c'était là qu'était l'art. La presse, c'était comment il voyageait. Deux instruments, deux rôles, chacun inventif à sa façon, et l'œuvre imprimée pouvait être digne de confiance parce que la presse tenait sa promesse à chaque tirage.
 
-Lolly est la presse, pas l'esquisse. Apporte ce que tu veux à l'idéation - un modèle, un designer, un coin de nappe - mais dès qu'une idée doit devenir dix mille actifs, elle passe par quelque chose qui rend le même résultat à chaque fois, à partir d'entrées que n'importe qui peut relire. C'est de cela que parle vraiment la comparaison ci-dessus : pas qui a le meilleur générateur, mais qui rend reproductible l'étape engagée.
+Lolly est la presse, pas l'esquisse. Apporte ce que tu veux à l'idéation - un modèle, un designer, un coin de nappe - mais dès qu'une idée doit devenir de nombreux actifs, elle passe par quelque chose qui rend le même résultat à chaque fois, à partir d'entrées que n'importe qui peut relire. C'est de cela que parle vraiment la comparaison ci-dessus : pas qui a le meilleur générateur, mais qui rend reproductible l'étape engagée.
 
 > Fais confiance au processus créatif, passe à l'échelle avec rigueur.
 
-## Approuve l'outil, pas le fichier
+## Les règles vivent dans l'outil, pas dans le fichier
 
-Tout autre outil sur le marché produit un *fichier* qui doit ensuite être vérifié - un responsable de marque dans un fil Slack, le service juridique pour la clause de non-responsabilité, une série de retouches, une nouvelle relecture. Lolly déplace l'approbation **une étape en amont**. Les règles de marque - codes hexadécimaux exacts, polices sous licence, marges de fond perdu, espacement - sont codées en dur dans le HTML et le CSS de l'outil, si bien que le gabarit *ne peut pas* produire un rendu hors marque. C'est la mise en page elle-même qui fait respecter les règles.
+Tout autre outil du tableau produit un *fichier*, et un fichier ne peut être regardé qu'après coup, une sortie à la fois. Lolly déplace les règles de marque **une étape en amont**. Codes hexadécimaux exacts, polices sous licence, marges de fond perdu, espacement - tout cela est codé en dur dans le HTML et le CSS de l'outil, si bien que le gabarit *ne peut pas* produire un rendu hors marque. C'est la mise en page elle-même qui fait respecter les règles.
 
-Tu arrêtes donc d'approuver des rendus et tu commences à approuver l'**outil** qui les produit. Approuve-le une fois, et chaque rendu qu'il produira sera pré-approuvé par construction - aucun humain dans la boucle, aucun cycle de relecture, quel que soit le volume.
+Ce qui vaut donc la peine d'être regardé, c'est l'**outil**, pas chaque fichier qu'il produit. Mets l'outil au point, et chaque actif qu'il produira est conforme à la marque par construction. Comment tu vérifies ton travail, et qui le fait, ça reste à toi ; Lolly rend la chose vérifiée plus petite et la sortie plus rapide à produire.
 
-C'est le changement que le moteur déterministe apporte réellement : ce n'est pas une version plus rapide de l'ancien processus d'approbation, c'est la suppression du processus. Pour l'équipe créative, c'est un garde-fou, pas un remplacement - tu lances toujours la balle (les données, le texte, l'image) et le code est la rambarde qui empêche chaque lancer de finir dans la gouttière.
+C'est le changement que le moteur déterministe apporte réellement. Pour l'équipe créative, c'est un garde-fou, pas un remplacement - tu lances toujours la balle (les données, le texte, l'image) et le code est la rambarde qui empêche chaque lancer de finir dans la gouttière.
 
-![Tout le travail du producteur : taper les mots. La typo, la couleur et l'espacement ont été fixés au moment où l'outil a été approuvé](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DApproved&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-approve-the-tool)
-
-| Approuver les rendus à l'ancienne | Approuver l'outil, à la façon Lolly |
-|---|---|
-| Chaque fichier fini est vérifié, un par un | L'outil est vérifié une seule fois |
-| Demande → le designer construit → relecture de marque → vérification juridique → retouches → nouvelle relecture | Un paramètre change → rendu fini |
-| Designer, responsable de marque, juridique et demandeur tous dans la boucle | Le producteur, seul |
-| Des jours par rendu | Des secondes par rendu |
-| 10 000 rendus = 10 000 cycles de relecture | 10 000 rendus = zéro (le gabarit était déjà approuvé) |
+![Tout le travail du producteur : taper les mots. La typo, la couleur et l'espacement ont été fixés au moment où l'outil a été créé](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
 
 ## Ce que cela apporte, et rien d'autre
 

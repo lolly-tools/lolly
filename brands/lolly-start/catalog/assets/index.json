@@ -1249,6 +1249,50 @@
         }
       ],
       "attribution": "SUSE · Peter Chamalian"
+    },
+    {
+      "id": "lolly/slides/masters",
+      "name": "Neutral slide master",
+      "description": "The starter slide master: twelve hand-tuned archetypes (title, section, content, two columns, split, visual, full-bleed picture, quote, big number, main point, agenda, table) and the layout library structures expanded in the same margins, with a dark variant for each light content slide, each with named placeholder roles and the master furniture it shows. Geometry is stated as fractions of 1280 by 720 and colours as design-system token paths, so Design seeds a frame from it and a brand imported over the blank starter takes the whole master with it.",
+      "type": "data",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "slides",
+        "slide-master",
+        "deck",
+        "design-system"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/lolly/slides/masters.json",
+          "checksum": "sha256-AkJy6uy9JiGvwR09CIttSq138vQ5pVlejouCXPxZmk4=",
+          "size": 118882
+        }
+      ]
+    },
+    {
+      "id": "lolly/slides/presets",
+      "name": "Renovation presets",
+      "description": "The starter renovation presets for Rebrand. Tidy removes decoration, page numbers and dates without asking, keeps every photo and asks a person about each one, and takes the content layout when two layouts score the same. A preset changes the first pass only; every proposal stays reversible in the review.",
+      "type": "data",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "slides",
+        "rebrand-preset",
+        "deck",
+        "design-system"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/lolly/slides/presets.json",
+          "checksum": "sha256-We0KyhBg8zu+tYFjRLYjqCQV9fIdpbFajPsT7PWXdEY=",
+          "size": 712
+        }
+      ]
     }
   ]
 }

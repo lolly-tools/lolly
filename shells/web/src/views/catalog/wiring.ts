@@ -13,8 +13,7 @@ import { announce } from '../../a11y.ts';
 import type { FeaturedViewMode } from '../../components/featured-row.ts';
 import { mountViewTopbar } from '../../components/view-topbar.ts';
 import { clearSearchBar } from '../../components/search-bar.ts';
-import { wireThemeSegment } from '../../components/theme-toggle.ts';
-import { wireSoundSegment } from '../../components/sound-toggle.ts';
+import { syncSortDir } from '../../components/view-options.ts';
 import { wireDisclosure } from '../../components/body-popover.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { saveFavouriteAssets } from '../../lib/asset-favourites.ts';
@@ -295,8 +294,6 @@ export function wire(cat: CatCtx): void {
   // ── View-options popover (favourites view mode + strip on/off) ──────────────
   const voBtn = viewEl.querySelector<HTMLElement>('.cat-viewopts-btn');
   const voPop = viewEl.querySelector<HTMLElement>('.cat-viewopts');
-  if (voPop) wireThemeSegment(voPop, host);   // Theme picker in the view-options popover
-  if (voPop) wireSoundSegment(voPop, host);   // Sound on/off segment in the view-options popover
   // Same lifecycle as the gallery's filter popover (toggle `hidden`, aria-expanded,
   // outside-pointerdown dismissal, Escape, focus restore) - shared in
   // components/body-popover.ts. `onToggle` keeps the render-time `viewOptsOpen` flag
@@ -305,7 +302,7 @@ export function wire(cat: CatCtx): void {
   cat.closeViewOpts = () => voDisclosure.close();
   // Gallery ↔ Cover Flow: switch the live strip in place (no full re-render).
   voPop?.addEventListener('click', (e) => {
-  const { CAT_SORTS, DENSITY_PREF_KEY, FAV_VIEW_KEY, LAYOUT_PREF_KEY, SORT_PREF_KEY } = cat;
+  const { DENSITY_PREF_KEY, FAV_VIEW_KEY, LAYOUT_PREF_KEY, SORT_PREF_KEY } = cat;
     const layoutSeg = (e.target as HTMLElement).closest<HTMLElement>('[data-catlayout]');
     if (layoutSeg) {
       const next = layoutSeg.dataset.catlayout === 'list' ? 'list' : 'grid';
@@ -324,28 +321,36 @@ export function wire(cat: CatCtx): void {
       cat.sections.rerender();
       return;
     }
-    // Sort segment (plans/132 WP-A): re-orders every section in place.
-    const sortSeg = (e.target as HTMLElement).closest<HTMLElement>('[data-catsort]');
-    if (sortSeg) {
-      const next = sortSeg.dataset.catsort as CatSort;
-      if (!CAT_SORTS.includes(next) || next === cat.catSort) return;
-      cat.catSort = next;
-      try { localStorage.setItem(SORT_PREF_KEY, cat.catSort); } catch { /* storage off */ }
-      voPop.querySelectorAll<HTMLElement>('[data-catsort]').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.catsort === cat.catSort)); });
+    // Direction toggle: reverses whichever sort is active, every section in place.
+    if ((e.target as HTMLElement).closest('.view-options-dir')) {
+      cat.catSortRev = !cat.catSortRev;
+      try { localStorage.setItem(`${SORT_PREF_KEY}-rev`, cat.catSortRev ? '1' : '0'); } catch { /* storage off */ }
+      syncSortDir(voPop.querySelector<HTMLElement>('.view-options-dir'), cat.catSortRev);
       cat.sections.rerender();
       return;
     }
-    const seg = (e.target as HTMLElement).closest<HTMLElement>('[data-favview]');
+    const seg = (e.target as HTMLElement).closest<HTMLElement>('[data-be-seg="featured-view"] [data-view]');
     if (!seg) return;
-    const next: FeaturedViewMode = seg.dataset.favview === 'coverflow' ? 'coverflow' : 'gallery';
+    const next: FeaturedViewMode = seg.dataset.view === 'coverflow' ? 'coverflow' : 'gallery';
     const changed = next !== cat.favView;
     cat.favView = next;
     try { localStorage.setItem(FAV_VIEW_KEY, cat.favView); } catch { /* storage off */ }
-    voPop.querySelectorAll<HTMLElement>('[data-favview]').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.favview === cat.favView)); });
+    voPop.querySelectorAll<HTMLElement>('[data-be-seg="featured-view"] [data-view]').forEach(b => { b.setAttribute('aria-pressed', String(b.dataset.view === cat.favView)); });
     cat.featuredHandle?.setViewMode(cat.favView);
     // Same cue as the main gallery's Gallery|Cover Flow switch (gallery.ts) - Cover Flow is
     // cool & futuristic, Gallery is refined.
     if (changed) playSfx(cat.favView === 'coverflow' ? 'coverflow' : 'gallery');
+  });
+  // Sort key (plans/132 WP-A): re-orders every section in place.
+  const sortSelect = voPop?.querySelector<HTMLSelectElement>('#catalog-sort');
+  syncSortDir(voPop?.querySelector<HTMLElement>('.view-options-dir') ?? null, cat.catSortRev);
+  sortSelect?.addEventListener('change', () => {
+    const { CAT_SORTS, SORT_PREF_KEY } = cat;
+    const next = sortSelect.value as CatSort;
+    if (!CAT_SORTS.includes(next) || next === cat.catSort) return;
+    cat.catSort = next;
+    try { localStorage.setItem(SORT_PREF_KEY, cat.catSort); } catch { /* storage off */ }
+    cat.sections.rerender();
   });
   // Show / hide the favourites strip - mount or tear down in place (no full re-render,
   // so the open popover isn't disturbed).

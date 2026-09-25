@@ -24,21 +24,21 @@ Dieses Dokument hält den Zweck, die Struktur und die architektonischen Entschei
 
 ## Warum es das gibt
 
-Teams stehen vor einem wiederkehrenden Problem: wiederholbare Kreativ- und Content-Arbeit, die zu vorhersehbar ist, um jedes Mal geschulte Hände zu rechtfertigen, aber zu qualitätssensibel, um sie ohne Leitplanken abzugeben. Das Ergebnis ist entweder langsamer Durchsatz (Spezialisten-Engpass), Uneinheitlichkeit (Menschen nutzen, was gerade zur Hand ist) oder Anbieterbindung (ein SaaS-DAM, das Ihre Templates kontrolliert).
+Wiederholbare Kreativarbeit ist zu vorhersehbar, um jedes Mal geschulte Hände zu rechtfertigen, und zu qualitätssensibel, um sie ohne Leitplanken abzugeben. Sich selbst überlassen geht sie einen von drei Wegen: langsam, uneinheitlich oder gefangen in den Vorlagen eines Anbieters.
 
 Diese Plattform ist die direkte Antwort darauf:
 
-> **Programmatische Kreativ- und Content-Erstellung im großen Maßstab** - Asset-Erzeugung ohne manuellen Aufwand, mit den Regeln unter zentraler Kontrolle, für Mitarbeitende, Lieferanten und Partner.
+> **Programmatische Kreativ- und Content-Erstellung im großen Maßstab** - Assets, erzeugt aus Eingaben, mit einmal festgelegten Regeln, für alle, die sie brauchen.
 
 Lolly ist nicht der Ort, an dem ein Designsystem erfunden wird - es ist der Ort, an dem es produziert wird. Denken Sie an einen Verkaufsautomaten für Design: Sie treffen eine Auswahl, Sie erhalten ein Ergebnis. Jedes Mal. Die Engine arbeitet auf die höchste Qualität hin, die jedes Format auf der Hardware vor Ihnen erzeugen kann, und dieselbe Engine erzeugt dieselbe Datei auf jeder Oberfläche, auf der sie ausgeliefert wird.
 
-Das Ergebnis ist **Fülle**: jede Veranstaltung hat korrekte Beschilderung, jeder CVE-Alert entspricht dem Hausstil, jedes Etikett druckt sauber, jede E-Mail-Signatur ist aktuell - alles ohne Design-Ticket. Die Plattform übernimmt wiederkehrende, operationalisierte Kreativarbeit. Sie ist bewusst kein Tool für maßgeschneiderte Kreativarbeit - Designer verantworten weiterhin die Flaggschiff-Arbeit.
+Das Ergebnis ist **Fülle**: jede Veranstaltung hat korrekte Beschilderung, jeder CVE-Alert entspricht dem Hausstil, jedes Etikett druckt sauber, jede E-Mail-Signatur ist aktuell - alles aus Tools, die die Regeln bereits mitbringen. Die Plattform übernimmt wiederkehrende, operationalisierte Kreativarbeit. Sie ist bewusst kein Tool für maßgeschneiderte Kreativarbeit - Designer verantworten weiterhin die Flaggschiff-Arbeit.
 
 ### Probabilistisch innovieren, deterministisch skalieren
 
 Jede Diskussion über KI in einer kreativen Pipeline bleibt an derselben Frage hängen: Welcher Teil davon ist Aufgabe der Maschine? Es ist eine alte Frage mit einer längst gefundenen Antwort. Schreiber und Buchmaler arbeiteten schon immer mit zwei Werkzeugen - der losen Skizze, in der nichts festgelegt war und alles ausprobiert werden konnte, und der Druckerpresse, gerade deshalb einschüchternd, weil sie sich festlegte. In den Skizzen entstand die Kunst. Die Presse war der Weg, auf dem sie jeden erreichte. Niemand verwechselte die beiden, und beide entwickelten sich weiter - neue Tinten, neue Schriften, neue Pressen - jede im Einklang mit dem Handwerk und der Absicht, der sie diente, verbessert.
 
-Lolly zieht dieselbe Grenze. Probabilistisch erkunden: ein Modell, ein Designer, eine grobe Idee, ein Prompt, der irgendwohin führt, das niemand geplant hat. Dann deterministisch skalieren - das, was zehntausend Ausgaben erreicht, ist ein *Tool*, und ein Tool rendert aus lesbaren Eingaben jedes Mal auf dieselbe Weise. Das Erkunden bleibt frei, weil nichts Nachgelagertes davon abhängt, dass es zweimal gleich ausfällt. Die Ausgabe verdient Vertrauen, weil sie kein Ratespiel ist. KI-Experimente in vorhersagbare, reproduzierbare Ergebnisse zu überführen ist keine neue Disziplin; es ist dieselbe Arbeitsteilung, die gedrucktes Werk überhaupt erst vertrauenswürdig gemacht hat.
+Lolly zieht dieselbe Grenze. Probabilistisch erkunden: ein Modell, ein Designer, eine grobe Idee, ein Prompt, der irgendwohin führt, das niemand geplant hat. Dann deterministisch skalieren - das, was zu vielen Ausgaben wird, ist ein *Tool*, und ein Tool rendert aus lesbaren Eingaben jedes Mal auf dieselbe Weise. Das Erkunden bleibt frei, weil nichts Nachgelagertes davon abhängt, dass es zweimal gleich ausfällt. Die Ausgabe verdient Vertrauen, weil sie kein Ratespiel ist. KI-Experimente in vorhersagbare, reproduzierbare Ergebnisse zu überführen ist keine neue Disziplin; es ist dieselbe Arbeitsteilung, die gedrucktes Werk überhaupt erst vertrauenswürdig gemacht hat.
 
 > Dem kreativen Prozess vertrauen, mit Präzision skalieren.
 
@@ -76,19 +76,19 @@ Das ist der Kraftmultiplikator. Lolly ist keine Schublade getrennter Tools für 
 
 ---
 
-## Eine Freigabe, zehntausend Assets
+## Ein Tool, viele Ausgaben
 
-Da die Freigabe im Tool liegt und nicht in der Datei (siehe [Wie Lolly sich einordnet](/info/positioning.html)), wird Skalierung nicht mehr zum Review-Problem. Geben Sie ein lokalisiertes Social-Card-Tool einmal frei und erzeugen Sie daraus **10.000 Assets in 12 Sprachen** aus einer Tabelle - und keines davon braucht eine erneute Compliance-Prüfung durch Recht oder Marke, weil die Vorlage, aus der sie alle stammen, bereits freigegeben wurde.
+Die Markenregeln liegen im Tool, nicht in jeder Datei, die es erzeugt (siehe [Wie Lolly sich einordnet](/info/positioning.html)). Richten Sie das Tool richtig ein, und jede Ausgabe erbt dieselbe Schrift, Farbe und denselben Abstand, ob das eine einzelne Karte ist oder eine Tabelle mit Zeilen in einem Dutzend Sprachen. Wie Sie Ihre Arbeit prüfen und wer das übernimmt, bleibt Ihre Sache; Lolly macht das, was es zu prüfen gibt, kleiner und die Ausgabe schneller machbar.
 
-Dasselbe deterministische Tool erreicht diese Größenordnung auf drei Wegen, die alle identische, vorab freigegebene Ausgaben erzeugen:
+Dasselbe deterministische Tool erreicht diese Größenordnung auf drei Wegen, die alle identische Ausgaben erzeugen:
 
-- <!--i:people--> **Eine Person, in der App.** Das `/pro`-Batch-Raster: Zeilen einfügen oder importieren, pro Zeile ein fertiges Asset erhalten, das Zip herunterladen. Kein Design-Know-how, kein Ticket, keine Wartezeit.
-- <!--i:code--> **Ein Entwickler, über die Kommandozeile.** Die CLI führt dieselbe Engine und denselben Render-Pfad headless aus, sodass das Tool über alle 10.000 Zeilen in einem Skript oder einer nächtlichen Pipeline durchlaufen werden kann. Ein `lolly <tool> --field=…`-Aufruf in einer Schleife ist die gesamte Integration.
-- <!--i:cpu--> **Ein System oder ein KI-Agent, über MCP.** Dasselbe Tool programmgesteuert bedient, mit derselben Genauigkeit und sogar größerem Umfang - weil eine Maschine nicht gelangweilt wird, während Tausende Dateien eintreffen.
+- <!--i:people--> **Eine Person, in der App.** Das `/pro`-Batch-Raster: Zeilen einfügen oder importieren, pro Zeile ein fertiges Asset erhalten, das Zip herunterladen. Kein Design-Know-how, keine Wartezeit.
+- <!--i:code--> **Ein Entwickler, über die Kommandozeile.** Die CLI führt *dieselbe* Engine und *denselben* Render-Pfad headless aus, sodass das Tool über jede Zeile in einem Skript oder einer nächtlichen Pipeline durchlaufen werden kann. Ein `lolly <tool> --field=…`-Aufruf in einer Schleife ist die gesamte Integration.
+- <!--i:cpu--> **Ein System oder ein KI-Agent, über MCP.** Dasselbe Tool programmgesteuert bedient, mit derselben Genauigkeit, für so viele Zeilen, wie der Auftrag hat.
 
 ![Batch-Modus bei einer frischen Installation: eine leere Zeile wartet auf ein Tool, mit der ganzen Tabellenoberfläche und ihrer Rendern-Schaltfläche schon vorhanden, bevor Daten eintreffen](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-Ein Satz Markenvorgaben, einmal von einem Designer festgelegt; drei Wege zur identischen, vorab freigegebenen Ausgabe - und der maschinelle Weg skaliert am weitesten von allen, weil er nie ermüdet, während die Dateien eintreffen.
+Ein Satz Markenvorgaben, einmal von einem Designer festgelegt; drei Wege zur identischen Ausgabe.
 
 ---
 
@@ -390,11 +390,11 @@ Web-Shell: IndexedDB. Tauri: Dateisystem. CLI: im Arbeitsspeicher. Tools sehen n
 
 Nutzer können mehrere benannte Bearbeitungsstände pro Tool speichern und später zu jeder Sitzung zurückkehren. Es ist keine Kontoerstellung nötig; der Zustand ist gerätebezogen. Weil die Bridge die einzige Schnittstelle ist, ist dieser gerätebezogene Zustand auch *portabel*: `shells/web/src/data-transfer.ts` liest alles über `host.profile`/`host.state`/`host.assets` wieder aus in ein einziges `lolly-backup`-Zip, das sich auf jeder anderen Installation importieren lässt - die Offline-Antwort auf "auf ein neues Gerät umziehen", die keinen Server braucht (vollständige Spezifikation: `docs/data-transfer.md`). Die SUSE-ID-Integration (Mehrgeräte-Synchronisierung) ist ein zukünftiger Meilenstein darauf aufbauend.
 
-### 7. Reifegrad-Tags beantworten das Risiko der "Markenfreigabe" von Grund auf
+### 7. Reifegrad-Tags sagen von Grund auf, was ein Tool ist
 
 Jedes Tool gibt in seinem Manifest `status: official | community | experimental` an. Die Galerie sortiert nach Status. Experimentelle Tools versehen ihre Exporte automatisch mit einem Wasserzeichen - das Wasserzeichen wird von `host.export.render` angewendet, nicht vom Tool, sodass es von keinem nicht-offiziellen Tool-Autor abgeschaltet werden kann.
 
-Das ist eine strukturelle Antwort auf das Wahrnehmungsrisiko, dass die Nutzung eines beliebigen Tools eine Markenfreigabe suggeriert. Prozessantworten (eine Prüfwarteschlange, SUSE-ID-Gating) kommen zusätzlich obendrauf.
+Das ist eine strukturelle Antwort auf das Wahrnehmungsrisiko, dass jedes Tool in der Galerie gleich viel Gewicht trägt. Welchen Prozess ein Team auch immer um den Katalog legt, er kommt obendrauf.
 
 ### 8. Tool-Eingaben sind über das Manifest typisiert, einschließlich Assets
 

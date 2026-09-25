@@ -445,6 +445,7 @@
 .docs-content-col { min-width: 0; }
 
 /* docs sidebar rail (extracted .docs-sidebar) */
+.sidebar-pathway,.sidebar-label{margin-top:2em; margin-bottom: .5rem; font-weight:500;}
 .docs-sidebar-slot { position: sticky; top: var(--docs-chrome-clear, 4.75rem); align-self: start; max-height: calc(100vh - var(--docs-chrome-clear, 4.75rem) - 1.75rem); overflow-y: auto; font-size: calc(.9rem * var(--a11y-fs, 1)); }
 .docs-sidebar-slot :is(ul, ol) { list-style: none; margin: 0; padding: 0; }
 .docs-sidebar-slot a { display: flex; align-items: center; gap: .55rem; color: hsl(var(--muted-foreground)); text-decoration: none; padding: .32rem .55rem; border-radius: 7px; line-height: 1.35; }

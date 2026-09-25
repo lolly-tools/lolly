@@ -24,21 +24,21 @@ Dokumen ini merakamkan tujuan, struktur dan keputusan seni bina bagi platform Lo
 
 ## Sebab ini wujud
 
-Pasukan menghadapi masalah berulang: kerja kreatif dan kandungan yang boleh diulang yang terlalu boleh diramal untuk mewajarkan tangan mahir setiap kali, tetapi terlalu sensitif kualiti untuk diserahkan tanpa garis panduan. Hasilnya ialah sama ada throughput yang perlahan (kesesakan pakar), ketidakkonsistenan (orang menggunakan apa sahaja alat yang ada) atau vendor lock-in (SaaS DAM yang mengawal templat anda).
+Kerja kreatif yang boleh diulang terlalu boleh diramal untuk mewajarkan tangan mahir setiap kali, dan terlalu sensitif kualiti untuk diserahkan tanpa garis panduan. Jika dibiarkan, ia akan berakhir dengan salah satu daripada tiga cara: perlahan, tidak konsisten atau terkunci dalam templat vendor.
 
 Platform ini ialah jawapan langsung:
 
-> **Kreatif dan kandungan berprogram pada skala** - penjanaan aset sifar-tenaga kerja, dengan peraturan di bawah kawalan pusat, untuk pekerja, vendor dan rakan kongsi.
+> **Kreatif dan kandungan berprogram pada skala** - aset yang dijana daripada input, dengan peraturan ditetapkan sekali, untuk sesiapa sahaja yang memerlukannya.
 
 Lolly bukan tempat sistem jenama dicipta - ia tempat sistem itu dihasilkan. Anggap ia seperti mesin layan diri untuk reka bentuk: buat pilihan, dapatkan hasil. Setiap kali. Enjin itu berusaha untuk kualiti tertinggi yang boleh dihasilkan oleh setiap format pada perkakasan yang ada di hadapan anda, dan enjin yang sama menghasilkan fail yang sama pada setiap permukaan yang menerimanya.
 
-Hasilnya ialah **kelimpahan**: setiap acara mempunyai papan tanda yang betul, setiap amaran CVE sepadan dengan gaya rumah, setiap label dicetak bersih, setiap tandatangan e-mel terkini - semuanya tanpa tiket reka bentuk. Platform ini mengendalikan kerja kreatif berulang yang telah dioperasikan. Ia sengaja bukan alat kreatif tersuai - pereka masih memiliki kerja unggulan (flagship).
+Hasilnya ialah **kelimpahan**: setiap acara mempunyai papan tanda yang betul, setiap amaran CVE sepadan dengan gaya rumah, setiap label dicetak bersih, setiap tandatangan e-mel terkini - semuanya daripada alat yang sudah membawa peraturan itu. Platform ini mengendalikan kerja kreatif berulang yang telah dioperasikan. Ia sengaja bukan alat kreatif tersuai - pereka masih memiliki kerja unggulan.
 
 ### Berinovasi secara kebarangkalian, berskala secara deterministik
 
 Setiap hujah tentang AI dalam saluran kreatif tersekat pada soalan yang sama: bahagian manakah ini kerja mesin? Ia soalan lama dengan jawapan yang sudah selesai. Jurutulis dan pengilum sudah pun bekerja antara dua instrumen - lakaran longgar, di mana tiada apa yang tetap dan segalanya boleh dicuba, dan mesin cetak, yang menggerunkan tepat kerana ia mengikat. Lakaran itulah tempat seni berlaku. Mesin cetak itulah cara ia sampai kepada sesiapa sahaja. Tiada siapa mengelirukan kedua-duanya, dan kedua-duanya terus maju - dakwat baharu, muka taip baharu, mesin cetak baharu - setiap satu bertambah baik selaras dengan kraf dan niat yang dikhidmatinya.
 
-Lolly melukis garis yang sama. Terokai secara kebarangkalian: model, pereka, idea kasar, prom yang pergi ke tempat yang tiada siapa rancang. Kemudian skala secara deterministik - benda yang mencapai sepuluh ribu output ialah *alat*, dan alat merender dengan cara yang sama setiap kali daripada input yang boleh anda baca. Penerokaan itu kekal bebas kerana tiada apa di hiliran bergantung pada ia mendarat dengan cara yang sama dua kali. Output itu memperoleh kepercayaan kerana ia bukan tekaan. Membawa eksperimentasi AI kepada hasil yang boleh diramal dan boleh dihasilkan semula bukanlah disiplin baharu; ia pembahagian kerja yang sama yang menjadikan kerja bercetak layak dipercayai sejak awal lagi.
+Lolly melukis garis yang sama. Terokai secara kebarangkalian: model, pereka, idea kasar, prompt yang pergi ke tempat yang tiada siapa rancang. Kemudian skala secara deterministik - benda yang menjadi banyak output ialah *alat*, dan alat merender dengan cara yang sama setiap kali daripada input yang boleh anda baca. Penerokaan itu kekal bebas kerana tiada apa di hiliran bergantung pada ia mendarat dengan cara yang sama dua kali. Output itu memperoleh kepercayaan kerana ia bukan tekaan. Membawa eksperimentasi AI kepada hasil yang boleh diramal dan boleh dihasilkan semula bukanlah disiplin baharu; ia pembahagian kerja yang sama yang menjadikan kerja bercetak layak dipercayai sejak awal lagi.
 
 > Percayai proses kreatif, skala dengan ketelitian.
 
@@ -76,19 +76,19 @@ Itulah pengganda kuasa. Lolly bukan laci alat berasingan untuk peranan berasinga
 
 ---
 
-## Satu kelulusan, sepuluh ribu aset
+## Satu alat, banyak output
 
-Kerana kelulusan berada dalam alat dan bukan fail (lihat [Bagaimana Lolly berbanding](/info/positioning.html)), skala berhenti menjadi masalah semakan. Luluskan alat kad sosial dilokalkan sekali, kemudian jana **10,000 aset merentasi 12 bahasa** daripada hamparan - dan tiada satu pun daripadanya memerlukan semakan pematuhan baharu daripada undang-undang atau jenama, kerana templat yang menjadi sumber semuanya sudah diluluskan.
+Peraturan jenama berada dalam alat, bukan dalam setiap fail yang dihasilkannya (lihat [Bagaimana Lolly berbanding](/info/positioning.html)). Betulkan alat itu sekali dan setiap output mewarisi jenis huruf, warna dan jarak yang sama, sama ada itu satu kad atau satu hamparan baris dalam sedozen bahasa. Cara anda menyemak kerja anda, dan siapa yang melakukannya, kekal terpulang kepada anda; Lolly menjadikan perkara yang patut disemak lebih kecil dan output lebih pantas dihasilkan.
 
-Alat deterministik yang sama mencapai skala itu dengan tiga cara, semuanya menghasilkan output yang serupa dan telah diluluskan terlebih dahulu:
+Alat deterministik yang sama itu mencapai skala tersebut dengan tiga cara, semuanya menghasilkan output yang serupa:
 
-- <!--i:people--> **Seorang manusia, dalam apl.** Grid kelompok `/pro`: tampal atau import baris, dapatkan satu aset siap bagi setiap baris, muat turun zip. Tiada kemahiran reka bentuk, tiada tiket, tiada menunggu.
-- <!--i:code--> **Seorang pembangun, daripada baris arahan.** CLI menjalankan engine yang *sama* dan laluan render yang *sama* tanpa antara muka, supaya alat boleh dijujukkan merentasi kesemua 10,000 baris dalam skrip atau saluran paip harian. Panggilan `lolly <tool> --field=…` dalam gelung ialah keseluruhan integrasi.
-- <!--i:cpu--> **Sistem atau ejen AI, melalui MCP.** Alat yang sama dikendalikan secara berprogram, pada kesetiaan yang sama dan skala yang lebih besar lagi - kerana mesin tidak akan bosan semasa beribu-ribu fail masuk.
+- <!--i:people--> **Seorang manusia, dalam apl.** Grid kelompok `/pro`: tampal atau import baris, dapatkan satu aset siap bagi setiap baris, muat turun zip. Tiada kemahiran reka bentuk, tiada menunggu.
+- <!--i:code--> **Seorang pembangun, daripada baris arahan.** CLI menjalankan engine yang *sama* dan laluan render yang *sama* tanpa antara muka, supaya alat boleh dijujukkan merentasi setiap baris dalam skrip atau saluran paip harian. Panggilan `lolly <tool> --field=…` dalam gelung ialah keseluruhan integrasi.
+- <!--i:cpu--> **Sistem atau ejen AI, melalui MCP.** Alat yang sama dikendalikan secara berprogram, pada kesetiaan yang sama, untuk sebanyak mana baris yang diperlukan oleh kerja itu.
 
 ![Mod Batch pada pemasangan baharu: satu baris kosong menunggu sesuatu alat, dengan keseluruhan permukaan hamparan dan butang Render-nya sudah tersedia sebelum sebarang data tiba](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-Satu set kekangan jenama, ditetapkan sekali oleh pereka; tiga laluan kepada output yang serupa dan telah diluluskan - dan laluan mesin berskala paling jauh sekali, kerana ia tidak pernah penat semasa fail masuk.
+Satu set kekangan jenama, ditetapkan sekali oleh pereka; tiga laluan kepada output yang serupa.
 
 ---
 
@@ -390,11 +390,11 @@ Kelongsong web: IndexedDB. Tauri: sistem fail. CLI: dalam-memori. Alat hanya nam
 
 Pengguna boleh menyimpan pelbagai slot suntingan bernama bagi setiap alat dan kembali ke setiap sesi kemudian. Tiada penciptaan akaun diperlukan; keadaan adalah setiap peranti. Oleh kerana titi adalah satu-satunya sempadan, keadaan setiap peranti itu juga *mudah alih*: `shells/web/src/data-transfer.ts` membaca semula segala-galanya melalui `host.profile`/`host.state`/`host.assets` ke dalam satu zip `lolly-backup` yang diimport pada mana-mana pemasangan lain - jawapan luar talian kepada "pindah ke peranti baharu" yang tidak memerlukan pelayan (spesifikasi penuh: `docs/data-transfer.md`). Integrasi SUSE ID (penyegerakan pelbagai peranti) ialah pencapaian masa depan di atas ini.
 
-### 7. Tag kematangan menjawab risiko "diluluskan jenama" mengikut reka bentuk
+### 7. Tag kematangan menyatakan apa sesuatu alat itu, mengikut reka bentuk
 
 Setiap alat mengisytiharkan `status: official | community | experimental` dalam manifesnya. Galeri diisih mengikut status. Alat eksperimen menandatera eksport mereka secara automatik - tanda air dikenakan oleh `host.export.render`, bukan oleh alat, jadi ia tidak boleh dipilih keluar oleh pengarang alat bukan-rasmi.
 
-Ini ialah jawapan struktural kepada risiko persepsi bahawa penggunaan mana-mana alat membayangkan kelulusan jenama. Jawapan proses (barisan semakan, gerbang SUSE ID) berlapis di atasnya.
+Ini ialah jawapan struktural kepada risiko persepsi bahawa setiap alat dalam galeri membawa bobot yang sama. Apa-apa proses yang diletakkan oleh sesebuah pasukan di sekeliling katalog terletak di atasnya.
 
 ### 8. Input alat ditaip melalui manifes, termasuk aset
 

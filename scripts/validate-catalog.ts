@@ -110,6 +110,10 @@ import { RESERVED_SUBCOMMANDS } from '../shells/cli/src/args.ts';
 // the reserved-id guard below.
 import { RESERVED } from '../engine/src/url-mode.ts';
 import { APP_PATH_WORDS } from '../engine/src/tool-url.ts';
+// The slide master rules beyond the schema (plans/275 section 2.7), pure so a test runs them too.
+import { libraryStructureIds, slideMasterProblems } from './lib/slide-master-rules.ts';
+// The masters build, so a library edit that was not rebuilt fails here and not only in a test.
+import { LIBRARY_FILE as SLIDE_LIBRARY_FILE, planWrites as planSlideMasterWrites } from './build-slide-masters.ts';
 // `canvas.*Field` → sub-field-id existence. The schema closes the canvas key SET;
 // this closes the reference side, which no JSON Schema can (it has to look at a
 // SIBLING array). Pure module so tests can drive it without running the script.
@@ -147,12 +151,14 @@ const CANONICAL_ALIASES = JSON.parse(readFileSync(join(ROOT, 'schemas/canonical-
 const assetSchema = readJson('schemas/asset.schema.json');
 const tokensSchema = readJson('schemas/tokens.schema.json');
 const rateCardSchema = readJson('schemas/ratecard.schema.json');
+const slideMasterSchema = readJson('schemas/slide-master-v1.schema.json');
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 const validateTool = ajv.compile<any>(toolSchema);
 const validateAsset = ajv.compile<any>(assetSchema);
 const validateTokens = ajv.compile<any>(tokensSchema);
 const validateRateCard = ajv.compile<any>(rateCardSchema);
+const validateSlideMasters = ajv.compile<any>(slideMasterSchema);
 
 // ─── Collect everything ─────────────────────────────────────────────────────
 
@@ -1489,6 +1495,60 @@ for (const asset of assetsIndex.assets) {
         if (/style="/.test(body)) errors.push(`[asset ${asset.id}] themable icon has an inline style attribute`);
         if (/\bstroke[-\w]*\s*[:=]/.test(body)) errors.push(`[asset ${asset.id}] themable icon has stroke styling (fills only)`);
       }
+    }
+  }
+}
+
+// ─── Slide masters (plans/274 section 3.4, plans/275 section 2.7) ────────────
+//
+// A pack's `slide-master` asset is a SlideMasterFileV1: the schema first, then the
+// rules the schema cannot state (lib/slide-master-rules.ts). The layout library is
+// read when it is on disk, so a structure it does not hold is caught; without it the
+// structure rule checks only what the schema pins.
+{
+  const libraryPath = join(ROOT, 'community/slide-structures/library.json');
+  let libraryIds: Set<string> | null = null;
+  if (existsSync(libraryPath)) {
+    try {
+      libraryIds = libraryStructureIds(JSON.parse(readFileSync(libraryPath, 'utf8')));
+      if (!libraryIds) errors.push('[community/slide-structures/library.json] holds no structures[] list');
+    } catch (e) {
+      errors.push(`[community/slide-structures/library.json] not valid JSON: ${(e as Error).message}`);
+    }
+  }
+  for (const asset of assetsIndex.assets) {
+    if (!asset.tags?.includes('slide-master')) continue;
+    for (const fmt of asset.formats ?? []) {
+      if (fmt.format !== 'json') continue;
+      const absPath = catalogUrlPath(fmt.url);
+      if (!existsSync(absPath)) continue; // the asset loop above already names a missing file
+      const where = `[asset ${asset.id}] slide masters "${fmt.url}"`;
+      let doc: unknown;
+      try { doc = JSON.parse(readFileSync(absPath, 'utf8')); } catch (e) {
+        errors.push(`${where} not valid JSON: ${(e as Error).message}`);
+        continue;
+      }
+      if (!validateSlideMasters(doc)) {
+        for (const err of validateSlideMasters.errors ?? []) errors.push(`${where} schema: ${err.instancePath || '/'} ${err.message}`);
+        continue;
+      }
+      const found = slideMasterProblems(doc, where, libraryIds);
+      errors.push(...found.errors);
+      warnings.push(...found.warnings);
+    }
+  }
+  // Every file the masters build writes (the engine's copy of the library, each
+  // pack's masters.json on disk, NEUTRAL_MASTER) matches what it would write today.
+  if (existsSync(libraryPath)) {
+    try {
+      for (const { file, content } of planSlideMasterWrites(ROOT)) {
+        const abs = join(ROOT, file);
+        if (!existsSync(abs) || readFileSync(abs, 'utf8') !== content) {
+          errors.push(`[${file}] is behind ${SLIDE_LIBRARY_FILE}; run node scripts/build-slide-masters.ts, then build:catalog for the checksums`);
+        }
+      }
+    } catch (e) {
+      errors.push(`[${SLIDE_LIBRARY_FILE}] the slide masters build refused it: ${(e as Error).message}`);
     }
   }
 }

@@ -55,7 +55,7 @@ That's eight optional slots. Click a slot to add a PNG, SVG, JPEG or WebP; click
 
 ![The logo matrix - each orientation across the top, each treatment as its own dashed slot, all of them optional](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dlogos&width=1440&height=1600&dpi=192&waitMs=1600&cropSelector=.be-logo-grid&format=svg&walker=1&dark=1&filename=bs-logo-slots)
 
-- **Custom marks** - add marks your brand names its own way (an icon, a crest, a favicon) under **Custom marks**; name it and choose a file.
+- **Custom marks** - add marks your brand calls by its own name (an icon, a crest, a favicon) under **Custom marks**; name it and choose a file.
 - **More identities** - a sub-brand, product or event can have its own full set of logos. Use **+ Add another logo** and name it; your main set is simply "Your logo".
 - **Upload an SVG and Lolly reads its colours.** On a brand-new install it quietly sets your primary colour from the logo and says so. On an existing brand it offers the colour as a suggestion instead - *"Found in the logo: #…"* with a **Use as primary** button beside it - over in the Colours room, where you can take it or dismiss it.
 
@@ -215,7 +215,7 @@ Choosing a face is three presses:
 2. Type a family name and press **Preview** - or press one of the six **Pinned** families under the field, one press each. The card appears already loading, with a skeleton bar where the specimen will be instead of the interface face standing in for a face you have not seen yet.
 3. **Use this face**.
 
-**Consent is asked once, on the press you made.** The first time a preview reaches Google Fonts, a dialog says what happens: *Google learns the family name and your IP address. The file is then kept on this device and used offline. This is the one step in the studio that reaches a third party.* **Fetch from Google** goes ahead and is remembered. **Cancel** leaves the card saying *"Not fetched. Nothing was sent to Google."* with its own live **Fetch from Google**, so changing your mind is one press on the card itself. No card ever shows a dead button: whatever state it is in, its one primary names the next step.
+**Consent is asked once, on the press you made.** The first time a preview reaches Google Fonts, a dialog says what happens: *Google learns the family name and your IP address. The file is then kept on this device and used offline. This is the one step in the studio that reaches a third party.* **Fetch from Google** goes ahead and is remembered. **Cancel** leaves the card saying *"Not fetched. Nothing was sent to Google."* with its own live **Fetch from Google**, so changing your mind is one press on the card itself. No card ever shows a dead button: whatever state it is in, its one primary says what the next step is.
 
 **Drop a font file on the stage** and it previews at once - **TTF**, **OTF** or **WOFF** off your own machine, which is the path for a licensed corporate typeface you already own. That drop zone is the only file door in the room.
 
@@ -250,7 +250,7 @@ Drop the files your brand keeps - logos aside - here: **vector**, **image**, **a
 - **Logo or screenshot** - an image becomes a suggested palette, read on this device. Nothing is uploaded. This reads colours, not the typeface or layout in the picture.
 - **Saved web page** - choose one HTML file and its CSS files, or paste HTML or CSS. Up to 20 files and 2 MB in total. Only supplied text is read; linked resources are not fetched and scripts do not run. This path also works without the extension or desktop app.
 - **Font file** - TTF, OTF or WOFF. Opens the Type room, where the face installs.
-- **Website** - one page, read for its colours and type. This tile only appears on a device that can actually read a page, because a disabled tile advertising something nobody can press is worse than no tile at all. Where it does appear it names its reader plainly: fetched by the app on this device, or read through the browser extension in a background tab, signed in as you. Naming a URL only *prefills* the field - the fetch button is the consent, so a link somebody sends you can never start a read.
+- **Website** - one page, read for its colours and type. This tile only appears on a device that can actually read a page, because a disabled tile advertising something nobody can press is worse than no tile at all. Where it does appear it says plainly which reader is used: fetched by the app on this device, or read through the browser extension in a background tab, signed in as you. Naming a URL only *prefills* the field - the fetch button is the consent, so a link somebody sends you can never start a read.
 
 Pick the design-file source and the second stage is the card below: the accepted formats lead as icon tiles in preference order, and the whole card is one drop target - click anywhere on it or drag a file onto it. You can also drop a file straight onto the studio.
 

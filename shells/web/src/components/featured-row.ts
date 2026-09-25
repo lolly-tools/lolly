@@ -37,6 +37,7 @@ import { renderFeaturedVariant, renderMissingLook, isManifestLook, displayFormat
 import { toolSeedHref } from '../lib/seed-url.ts';
 import { galleryLookHref, renderGalleryLook } from '../lib/gallery-preview.ts';
 import { playSfx } from '../lib/sfx.ts';
+import { dragTravel, type DragTravel } from '../lib/pointer-wrap.ts';
 import { currentTheme } from '../theme.ts';
 import { icon } from '../lib/icons.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
@@ -115,6 +116,10 @@ export interface FeaturedRowHandle {
   setVisible(visible: boolean): void;
   /** Switch between the Gallery strip and the Cover Flow player-select. */
   setViewMode(mode: FeaturedViewMode): void;
+  /** The cover under a viewport point in Cover Flow, where the browser's own hit test
+   *  only ever finds the track (see the Open button's note). Null in the Gallery strip,
+   *  whose tiles hit-test normally, and for a point outside the strip. */
+  tileAt(x: number, y: number): HTMLElement | null;
   /** Tear down timers, the drift loop, listeners and the pending render queue. */
   destroy(): void;
 }
@@ -257,7 +262,7 @@ export function mountFeaturedRow(
   const onActivate = opts.onActivate;
 
   mount.innerHTML = `
-    <section class="featured${reduced ? ' featured--static' : ''}${coverflow ? ' featured--coverflow' : ''}" aria-label="${escape(opts.ariaLabel || opts.label || 'Featured tools')}" aria-roledescription="carousel">
+    <section class="featured featured--intro${reduced ? ' featured--static' : ''}${coverflow ? ' featured--coverflow' : ''}" aria-label="${escape(opts.ariaLabel || opts.label || 'Featured tools')}" aria-roledescription="carousel">
       ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - opts.labelHref is a call-site literal doc route, never remote data */ ''}
       ${opts.label ? `<span class="featured-label">${escape(opts.label)}${opts.labelHref ? `<a class="featured-label-help" href="${escape(opts.labelHref)}" aria-label="${escape(opts.labelHelp || 'Learn more')}" title="${escape(opts.labelHelp || 'Learn more')}">${HELP_ICON}</a>` : ''}</span>` : ''}
       <div class="featured-viewport" tabindex="0" aria-label="${escape(opts.ariaLabel || opts.label || 'Featured tools')}">
@@ -279,6 +284,12 @@ export function mountFeaturedRow(
 
   const ac = new AbortController();
   const { signal } = ac;
+  // The tiles' first-load intro (gallery.css, .featured--intro) belongs to this mount
+  // only. Every tile starts it together, so the first one to finish ends it for all; a
+  // tile added after that (the copies a window resize rebuilds) then appears without it.
+  section.addEventListener('animationend', (e) => {
+    if (e.animationName === 'ftile-fade') section.classList.remove('featured--intro');
+  }, { signal });
   let destroyed = false;
   let visible = true; // the gallery pauses the row while a search / filter is active
   // Scrolled-into-view gate: when the strip is fully scrolled off-screen (user is down in
@@ -438,9 +449,18 @@ export function mountFeaturedRow(
   let lastPointerX = 0;
   let lastMoveTs = 0;
   let pressLink: HTMLAnchorElement | null = null; // the tile link a mouse/pen press landed on
+  // A grab that reaches the screen edge keeps going (lib/pointer-wrap.ts): the pointer is
+  // locked there and a stand-in cursor laps round the window, so the endless strip can be
+  // dragged endlessly. `dragX` is where the pointer would be, laps included.
+  let travel: DragTravel | null = null;
+  let dragX = 0;
   let suppressNextClick = false;                  // we opened on pointerup; cancel the native click
 
   const DRAG_SLOP = 8;      // px a mouse/pen press may travel and still count as a click, not a drag
+  // A finger held this long is asking for the tile's menu (lib/context-menu.ts HOLD_MS,
+  // repeated here so the menu module stays off the boot path), so its release opens nothing.
+  const MENU_HOLD_MS = 420;
+  let pressTs = 0;
 
   // The current UI theme decides which transparent-background looks are legible (a
   // reverse/white look on a light tile - or a dark look on a dark tile - would vanish).
@@ -474,11 +494,15 @@ export function mountFeaturedRow(
 
   function normalizeWrap(): void {
     if (!looping || halfWidth <= 0) return;
-    // Keep scrollLeft within [0, halfWidth): the second copy is identical, so
-    // subtracting one copy's width has no visible seam. Handles drift, inertia
-    // coast, and a hand-drag/scroll that runs off either end.
-    if (viewport.scrollLeft >= halfWidth) viewport.scrollLeft -= halfWidth;
-    else if (viewport.scrollLeft < 0) viewport.scrollLeft += halfWidth;
+    // Keep scrollLeft within [halfWidth, 2 * halfWidth), the span of the original
+    // tiles. A clone set sits on each side of them and is identical, so moving by one
+    // set's width has no visible seam. The set on the LEFT is what lets a native
+    // scroller (trackpad, touch, a drag) keep going left: scrollLeft never goes below
+    // 0, so with nothing to its left the strip would stop dead at its first tile.
+    // The lower bound allows a pixel of slack: at a fractional device pixel ratio a
+    // written halfWidth reads back half a pixel short, which must not count as "past it".
+    if (viewport.scrollLeft >= 2 * halfWidth) viewport.scrollLeft -= halfWidth;
+    else if (viewport.scrollLeft < halfWidth - 1) viewport.scrollLeft += halfWidth;
   }
 
   // The shared fan owns geometry, clone identity and seamless rebasing. Input
@@ -565,15 +589,24 @@ export function mountFeaturedRow(
     }
     flow?.destroy();
     flow = null;
+    // Where the strip is within one set of tiles, so a re-measure keeps the view put.
+    const offset = looping && halfWidth > 0 ? viewport.scrollLeft - halfWidth : viewport.scrollLeft;
     track.querySelectorAll('.ftile--clone').forEach(node => node.remove());
     looping = false;
     halfWidth = 0;
     // A tile is ~fixed width; overflow means the single set is wider than the viewport.
     const overflow = track.scrollWidth - viewport.clientWidth > 4;
-    if (reduced || !overflow) { section.classList.toggle('featured--overflow', overflow); return; }
+    // The loop wraps in every mode, including the still Gallery strip and reduced motion:
+    // wrapping is where the strip goes when you scroll it, not motion of its own. Only a
+    // docs capture keeps the plain strip, so its frame holds no duplicate tiles.
+    if (captureNeutralPinned() || !overflow) {
+      section.classList.toggle('featured--overflow', overflow);
+      viewport.scrollLeft = Math.max(0, offset);
+      return;
+    }
     section.classList.add('featured--overflow');
     const originals = [...track.children] as HTMLElement[];
-    const clones = originals.map((tile) => {
+    const cloneSet = (): HTMLElement[] => originals.map((tile) => {
       const c = tile.cloneNode(true) as HTMLElement;
       c.classList.add('ftile--clone');
       c.setAttribute('aria-hidden', 'true');
@@ -582,12 +615,19 @@ export function mountFeaturedRow(
       c.querySelectorAll<HTMLElement>('a,button,[tabindex]').forEach((el) => el.setAttribute('tabindex', '-1'));
       return c;
     });
-    clones.forEach((c) => track.appendChild(c));
-    // The wrap period is the exact on-screen distance from the first original to
-    // its clone - measured from layout, so track padding + the flex gap are all
-    // accounted for (a computed width would be off by a gutter and the wrap would jump).
-    halfWidth = clones[0]!.offsetLeft - originals[0]!.offsetLeft;
+    const before = cloneSet();
+    track.prepend(...before);
+    cloneSet().forEach((c) => track.appendChild(c));
+    // The wrap period is the exact on-screen distance from a clone to its original - 
+    // measured from layout, so track padding + the flex gap are all accounted for (a
+    // computed width would be off by a gutter and the wrap would jump).
+    halfWidth = originals[0]!.offsetLeft - before[0]!.offsetLeft;
     looping = halfWidth > 0;
+    if (looping) {
+      // Rounded for the same half-pixel readback, or -0.5 would wrap a whole period on.
+      const into = ((Math.round(offset) % halfWidth) + halfWidth) % halfWidth;
+      viewport.scrollLeft = halfWidth + (halfWidth - into < 1 ? 0 : into);
+    }
   }
 
   // ── Pause wiring (ambient drift) ─────────────────────────────────────────────
@@ -680,6 +720,7 @@ export function mountFeaturedRow(
     dragStartY = e.clientY;
     dragAxis = e.pointerType === 'touch' ? 'pending' : 'horizontal';
     cfGesture.start(e.clientX, e.timeStamp);
+    pressTs = e.timeStamp;
     pressLink = (e.target as Element | null)?.closest?.<HTMLAnchorElement>('.ftile-link') ?? null;
     section.classList.add('is-grabbing');
     // Gallery touch: no JS gesture - the native scroller owns both axes. (Cover Flow
@@ -689,6 +730,10 @@ export function mountFeaturedRow(
     dragging = true;
     dragPointerId = e.pointerId;
     lastPointerX = e.clientX;
+    dragX = e.clientX;
+    travel = dragTravel(viewport, e, {
+      onLost: () => endDrag(new PointerEvent('pointercancel', { pointerId: dragPointerId, pointerType: e.pointerType })),
+    });
     lastMoveTs = performance.now();
     try { viewport.setPointerCapture(e.pointerId); } catch { /* capture is best-effort */ }
     // Stop the browser turning the drag into a text selection / native image-drag.
@@ -704,21 +749,22 @@ export function mountFeaturedRow(
     // Gallery touch never drags via JS (native scroller owns it), so `dragging` is
     // false and this returns. Mouse/pen (and Cover Flow touch): horizontal drag.
     if (!dragging || e.pointerId !== dragPointerId) return;
+    dragX = dragStartX + (travel ? travel.move(e) : e.clientX - dragStartX);
     if (dragAxis === 'pending') {
-      const x = Math.abs(e.clientX - dragStartX), y = Math.abs(e.clientY - dragStartY);
+      const x = Math.abs(dragX - dragStartX), y = Math.abs(e.clientY - dragStartY);
       if (Math.max(x, y) <= DRAG_SLOP) return;
       dragAxis = x >= y ? 'horizontal' : 'vertical';
     }
     if (dragAxis === 'vertical') return; // native pan-y owns this gesture until pointercancel
     const now = performance.now();
-    const dx = e.clientX - lastPointerX;
+    const dx = dragX - lastPointerX;
     // Click-vs-drag: it's a drag (which cancels the tile's click) only once the press has
     // travelled past the slop from where it began. A pixel or three of hand-jitter during
     // a plain click must still open the tool. Panning tracks every move regardless.
-    if (Math.abs(e.clientX - dragStartX) > DRAG_SLOP) dragMoved = true;
+    if (Math.abs(dragX - dragStartX) > DRAG_SLOP) dragMoved = true;
     if (coverflow) {
       pendingDx += dx; // coalesced with every pointer sample into the next frame
-      cfGesture.move(e.clientX, e.timeStamp);
+      cfGesture.move(dragX, e.timeStamp);
     } else viewport.scrollLeft -= dx;                        // content follows the pointer
     normalizeWrap();
     const dtm = now - lastMoveTs;
@@ -728,7 +774,7 @@ export function mountFeaturedRow(
       // sample doesn't dominate the throw.
       velocity = clampV(velocity * 0.7 + ((-dx / dtm) * 1000) * 0.3);
     }
-    lastPointerX = e.clientX;
+    lastPointerX = dragX;
     lastMoveTs = now;
     e.preventDefault();
   }, { signal });
@@ -740,6 +786,10 @@ export function mountFeaturedRow(
       return;
     }
     if (!dragging || (e.pointerId !== undefined && e.pointerId !== dragPointerId)) return;
+    // Taking the pointer lock releases capture; that release is the drag carrying on.
+    if (e.type === 'lostpointercapture' && travel?.engaged()) return;
+    travel?.end();
+    travel = null;
     if (coverflow) flushDrag();
     dragging = false;
     dragPointerId = -1;
@@ -765,7 +815,8 @@ export function mountFeaturedRow(
     // anchor so cmd/ctrl/middle-click still open a new tab; keyboard Enter is unaffected.
     // In Cover Flow, only the centred cover opens - a side cover's click centres it (the
     // capture-phase handler below), so leave that to the native click path.
-    const plainTap = !dragMoved && e.button === 0 && !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey);
+    const held = e.pointerType !== 'mouse' && e.timeStamp - pressTs >= MENU_HOLD_MS;
+    const plainTap = !dragMoved && !held && e.button === 0 && !(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey);
     const centredOrGallery = !coverflow || (pressLink?.closest('.ftile')?.classList.contains('is-centred') ?? false);
     if (plainTap && pressLink && centredOrGallery) {
       suppressNextClick = true;                              // cancel the native click so we don't double-navigate
@@ -1099,10 +1150,17 @@ export function mountFeaturedRow(
       setupLoop();
       startRaf();                            // Cover Flow needs the loop even under reduced motion
     },
+    tileAt(x: number, y: number) {
+      if (!coverflow || !flow) return null;
+      const r = viewport.getBoundingClientRect();
+      if (x < r.left || x > r.right || y < r.top || y > r.bottom) return null;
+      return coverAtClientX(x);
+    },
     destroy() {
       destroyed = true;
       unsubscribePerf();
       ac.abort();
+      travel?.end();
       vizObserver?.disconnect();
       // `false`: give the covers back POSED. Every caller of this destroy is about to
       // throw the row's markup away - a re-mount that rewrites it, or a view teardown -

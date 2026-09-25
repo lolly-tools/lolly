@@ -1,0 +1,451 @@
+{
+  "fixture": "pictures.pptx",
+  "version": 1,
+  "width": 1280,
+  "height": 720,
+  "mark": {
+    "text": "MADE WITH GEN",
+    "box": [
+      0.8438,
+      0.9514,
+      0.1375,
+      0.0194
+    ]
+  },
+  "slides": [
+    {
+      "slide": 1,
+      "structure": "title-and-image",
+      "title": "OWN YOUR FILES",
+      "body": [
+        "KEEP EVERY FILE ON YOUR DEVICE. NOTHING LEAVES THE MACHINE."
+      ],
+      "items": [],
+      "callouts": [],
+      "pictures": [
+        {
+          "what": "photograph on the right",
+          "box": [
+            0.5938,
+            0.1667,
+            0.3563,
+            0.6667
+          ]
+        }
+      ],
+      "drawn": [
+        {
+          "text": "OWN YOUR FILES",
+          "x": 64,
+          "y": 150,
+          "scale": 7,
+          "box": {
+            "x": 64,
+            "y": 150,
+            "w": 581,
+            "h": 49
+          }
+        },
+        {
+          "text": "KEEP EVERY FILE ON YOUR DEVICE.",
+          "x": 64,
+          "y": 300,
+          "scale": 3,
+          "box": {
+            "x": 64,
+            "y": 300,
+            "w": 549,
+            "h": 21
+          }
+        },
+        {
+          "text": "NOTHING LEAVES THE MACHINE.",
+          "x": 64,
+          "y": 336,
+          "scale": 3,
+          "box": {
+            "x": 64,
+            "y": 336,
+            "w": 477,
+            "h": 21
+          }
+        },
+        {
+          "text": "MADE WITH GEN",
+          "x": 1100,
+          "y": 685,
+          "scale": 2,
+          "box": {
+            "x": 1100,
+            "y": 685,
+            "w": 154,
+            "h": 14
+          }
+        }
+      ]
+    },
+    {
+      "slide": 2,
+      "structure": "cards-3",
+      "title": "CHOOSE YOUR JOB",
+      "body": [],
+      "items": [
+        "EVERYDAY FOR FAMILIES",
+        "STORIES FOR WRITERS",
+        "EXPERTS FOR BRANDS"
+      ],
+      "callouts": [],
+      "pictures": [
+        {
+          "what": "ring icon on card 1",
+          "box": [
+            0.1492,
+            0.3556,
+            0.0695,
+            0.1236
+          ]
+        },
+        {
+          "what": "ring icon on card 2",
+          "box": [
+            0.4656,
+            0.3556,
+            0.0695,
+            0.1236
+          ]
+        },
+        {
+          "what": "ring icon on card 3",
+          "box": [
+            0.782,
+            0.3556,
+            0.0695,
+            0.1236
+          ]
+        }
+      ],
+      "drawn": [
+        {
+          "text": "CHOOSE YOUR JOB",
+          "x": 64,
+          "y": 64,
+          "scale": 6,
+          "box": {
+            "x": 64,
+            "y": 64,
+            "w": 534,
+            "h": 42
+          }
+        },
+        {
+          "text": "EVERYDAY",
+          "x": 141,
+          "y": 420,
+          "scale": 4,
+          "box": {
+            "x": 141,
+            "y": 420,
+            "w": 188,
+            "h": 28
+          }
+        },
+        {
+          "text": "FOR FAMILIES",
+          "x": 129,
+          "y": 470,
+          "scale": 3,
+          "box": {
+            "x": 129,
+            "y": 470,
+            "w": 213,
+            "h": 21
+          }
+        },
+        {
+          "text": "STORIES",
+          "x": 558,
+          "y": 420,
+          "scale": 4,
+          "box": {
+            "x": 558,
+            "y": 420,
+            "w": 164,
+            "h": 28
+          }
+        },
+        {
+          "text": "FOR WRITERS",
+          "x": 543,
+          "y": 470,
+          "scale": 3,
+          "box": {
+            "x": 543,
+            "y": 470,
+            "w": 195,
+            "h": 21
+          }
+        },
+        {
+          "text": "EXPERTS",
+          "x": 963,
+          "y": 420,
+          "scale": 4,
+          "box": {
+            "x": 963,
+            "y": 420,
+            "w": 164,
+            "h": 28
+          }
+        },
+        {
+          "text": "FOR BRANDS",
+          "x": 957,
+          "y": 470,
+          "scale": 3,
+          "box": {
+            "x": 957,
+            "y": 470,
+            "w": 177,
+            "h": 21
+          }
+        },
+        {
+          "text": "MADE WITH GEN",
+          "x": 1100,
+          "y": 685,
+          "scale": 2,
+          "box": {
+            "x": 1100,
+            "y": 685,
+            "w": 154,
+            "h": 14
+          }
+        }
+      ]
+    },
+    {
+      "slide": 3,
+      "structure": "rows-and-callout",
+      "title": "THE HIDDEN COST",
+      "body": [],
+      "items": [
+        "UPLOAD A CONTRACT TO A STRANGER.",
+        "HAND OVER SCREENSHOTS FOR TRAINING.",
+        "MERGE TWO PRIVATE DOCUMENTS ONLINE."
+      ],
+      "callouts": [
+        "WE DID THIS EASILY."
+      ],
+      "pictures": [
+        {
+          "what": "round icon on row 1",
+          "box": [
+            0.0563,
+            0.3292,
+            0.0289,
+            0.0514
+          ]
+        },
+        {
+          "what": "round icon on row 2",
+          "box": [
+            0.0563,
+            0.5375,
+            0.0289,
+            0.0514
+          ]
+        },
+        {
+          "what": "round icon on row 3",
+          "box": [
+            0.0563,
+            0.7458,
+            0.0289,
+            0.0514
+          ]
+        }
+      ],
+      "drawn": [
+        {
+          "text": "THE HIDDEN COST",
+          "x": 64,
+          "y": 56,
+          "scale": 6,
+          "box": {
+            "x": 64,
+            "y": 56,
+            "w": 534,
+            "h": 42
+          }
+        },
+        {
+          "text": "UPLOAD A CONTRACT",
+          "x": 150,
+          "y": 224,
+          "scale": 3,
+          "box": {
+            "x": 150,
+            "y": 224,
+            "w": 303,
+            "h": 21
+          }
+        },
+        {
+          "text": "TO A STRANGER.",
+          "x": 150,
+          "y": 260,
+          "scale": 3,
+          "box": {
+            "x": 150,
+            "y": 260,
+            "w": 243,
+            "h": 21
+          }
+        },
+        {
+          "text": "HAND OVER SCREENSHOTS",
+          "x": 150,
+          "y": 374,
+          "scale": 3,
+          "box": {
+            "x": 150,
+            "y": 374,
+            "w": 375,
+            "h": 21
+          }
+        },
+        {
+          "text": "FOR TRAINING.",
+          "x": 150,
+          "y": 410,
+          "scale": 3,
+          "box": {
+            "x": 150,
+            "y": 410,
+            "w": 225,
+            "h": 21
+          }
+        },
+        {
+          "text": "MERGE TWO PRIVATE",
+          "x": 150,
+          "y": 524,
+          "scale": 3,
+          "box": {
+            "x": 150,
+            "y": 524,
+            "w": 303,
+            "h": 21
+          }
+        },
+        {
+          "text": "DOCUMENTS ONLINE.",
+          "x": 150,
+          "y": 560,
+          "scale": 3,
+          "box": {
+            "x": 150,
+            "y": 560,
+            "w": 297,
+            "h": 21
+          }
+        },
+        {
+          "text": "WE DID THIS",
+          "x": 720,
+          "y": 280,
+          "scale": 5,
+          "box": {
+            "x": 720,
+            "y": 280,
+            "w": 325,
+            "h": 35
+          }
+        },
+        {
+          "text": "EASILY.",
+          "x": 720,
+          "y": 340,
+          "scale": 5,
+          "box": {
+            "x": 720,
+            "y": 340,
+            "w": 195,
+            "h": 35
+          }
+        },
+        {
+          "text": "MADE WITH GEN",
+          "x": 1100,
+          "y": 685,
+          "scale": 2,
+          "box": {
+            "x": 1100,
+            "y": 685,
+            "w": 154,
+            "h": 14
+          }
+        }
+      ]
+    },
+    {
+      "slide": 4,
+      "structure": "full-image-with-text",
+      "title": "FREEDOM IS SWEET",
+      "body": [
+        "IT RUNS ON YOUR DEVICE."
+      ],
+      "items": [],
+      "callouts": [],
+      "pictures": [
+        {
+          "what": "photograph across the slide",
+          "box": [
+            0,
+            0,
+            1,
+            1
+          ]
+        }
+      ],
+      "drawn": [
+        {
+          "text": "FREEDOM IS SWEET",
+          "x": 64,
+          "y": 200,
+          "scale": 7,
+          "box": {
+            "x": 64,
+            "y": 200,
+            "w": 665,
+            "h": 49
+          }
+        },
+        {
+          "text": "IT RUNS ON YOUR DEVICE.",
+          "x": 64,
+          "y": 320,
+          "scale": 3,
+          "box": {
+            "x": 64,
+            "y": 320,
+            "w": 405,
+            "h": 21
+          }
+        },
+        {
+          "text": "MADE WITH GEN",
+          "x": 1100,
+          "y": 685,
+          "scale": 2,
+          "box": {
+            "x": 1100,
+            "y": 685,
+            "w": 154,
+            "h": 14
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -53,27 +53,19 @@ Deck Studio je dobrým měřítkem toho, kam až to sahá: celá prezentace dekl
 
 Většina pitchů na téma "AI kreativa" staví model na špatnou stranu staré hranice. Písaři a iluminátoři už dávno určili, kde ta hranice leží: volně pracuješ na skice, kde lze zkusit cokoliv a nic není závazné, a pak jdeš k tiskařskému lisu, který je zastrašující právě proto, že je závazný. Skici byly místem, kde vznikalo umění. Lis byl způsob, jak se šířilo. Dva nástroje, dva úkoly, každý invenční svým vlastním způsobem, a tištěnému dílu se dalo věřit, protože lis dodržel svůj slib při každém otisku.
 
-Lolly je ten lis, ne skica. K ideaci si přines cokoliv chceš - model, designéra, papírový ubrousek - ale ve chvíli, kdy se má nápad stát deseti tisíci assety, projde něčím, co vykresluje pokaždé stejně, ze vstupů, které si kdokoliv může zpětně přečíst. O tom to srovnání výše skutečně je: ne o tom, kdo má lepší generátor, ale o tom, kdo dokáže ten závazný krok učinit reprodukovatelným.
+Lolly je ten lis, ne skica. K ideaci si přines cokoliv chceš - model, designéra, papírový ubrousek - ale ve chvíli, kdy se má nápad stát mnoha assety, projde něčím, co vykresluje pokaždé stejně, ze vstupů, které si kdokoliv může zpětně přečíst. O tom to srovnání výše skutečně je: ne o tom, kdo má lepší generátor, ale o tom, kdo dokáže ten závazný krok učinit reprodukovatelným.
 
 > Důvěřuj kreativnímu procesu, škáluj s rigorózností.
 
-## Schvaluj nástroj, ne soubor
+## Pravidla žijí v nástroji, ne v souboru
 
-Každý jiný nástroj na trhu produkuje *soubor*, který se pak musí zkontrolovat - brand manažer ve vlákně na Slacku, právní oddělení kvůli disclaimeru, kolo úprav, další revize. Lolly posouvá schvalování **o krok výš proti proudu**. Pravidla značky - přesné hex kódy, licencované soubory fontů, spadávky, rozestupy - jsou napevno zakódovaná v HTML a CSS nástroje, takže šablona *nemůže* vyprodukovat asset mimo značku. Enforcement provádí samotný layout.
+Každý jiný nástroj na trhu produkuje *soubor*, a soubor lze zkontrolovat až zpětně, jeden výstup po druhém. Lolly posouvá pravidla značky **o krok výš proti proudu**. Přesné hex kódy, licencované soubory fontů, spadávky, rozestupy - to vše je napevno zakódované v HTML a CSS nástroje, takže šablona *nemůže* vyprodukovat asset mimo značku. Enforcement provádí samotný layout.
 
-Takže přestaneš schvalovat výstupy a začneš schvalovat **nástroj**, který je vytváří. Schválíš ho jednou a každý asset, který kdy vyprodukuje, je předschválený už svou konstrukcí - žádný člověk v procesu, žádný cyklus revizí, bez ohledu na objem.
+Takže to, co stojí za pohled, je **nástroj**, ne každý soubor, který vytvoří. Nastav nástroj správně a každý asset, který kdy vyprodukuje, je on-brand už svou konstrukcí. Jak kontroluješ svou práci a kdo to dělá, zůstává na tobě; Lolly zmenšuje to, co se kontroluje, a dělá výrobu výstupu rychlejší.
 
-Toto je změna, kterou deterministický engine skutečně přináší: není to rychlejší verze starého schvalovacího procesu, ten proces odstraňuje. Pro kreativní tým je to mantinel, ne náhrada - hod pořád provádíš ty (data, text, obrázek) a kód je bowlingový mantinel, který udrží každý hod mimo žlab.
+Toto je změna, kterou deterministický engine skutečně přináší. Pro kreativní tým je to mantinel, ne náhrada - hod pořád provádíš ty (data, text, obrázek) a kód je bowlingový mantinel, který udrží každý hod mimo žlab.
 
-![Celá práce producenta: napsat text. Typografie, barva a rozestupy byly stanoveny při schválení nástroje](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DApproved&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-approve-the-tool)
-
-| Schvalování assetů po staru | Schvalování nástroje po lolly |
-|---|---|
-| Každý hotový soubor se kontroluje jednotlivě | Nástroj se kontroluje jednou |
-| Požadavek → designér vytvoří → revize značky → právní kontrola → úpravy → nová revize | Jedna změna parametru → hotový asset |
-| V procesu designér, brand manažer, právní oddělení i zadavatel | Jen producent sám |
-| Dny na asset | Sekundy na asset |
-| 10 000 assetů = 10 000 revizních cyklů | 10 000 assetů = nula (šablona už byla schválená) |
+![Celá práce producenta: napsat text. Typografie, barva a rozestupy byly stanoveny, když byl nástroj vytvořen](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
 
 ## Co to jedinečně přináší
 

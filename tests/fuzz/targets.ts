@@ -46,6 +46,7 @@ import { contextTokens } from '../../engine/src/brand-context.ts';
  *   - depth-hint    : depthHint(bytes) - the ingest bit-depth header sniff (web shell lib)
  *   - lut-parse     : parseCubeLut / parse3dlLut - the .cube/.3dl colour-grade LUT readers
  *   - docx-read     : readDocx(parts, parseXml) + isDocx, then both doc-md serialisers
+ *   - svg-items     : svgItemsOf(svg, parseXml) then vectorItemsToRows and vectorItemsSvg - a drawing read as bounded items (plan 275 decision 32)
  */
 
 import { storeZip } from '../../engine/src/zip.ts';
@@ -799,11 +800,27 @@ const PPTX_READ_SLOTS = [
   'ppt/slides/slide1.xml', 'ppt/slides/_rels/slide1.xml.rels',
 ] as const;
 
+/** A slide with a freeform (moveTo, lnTo, cubicBezTo, quadBezTo, a full-turn arcTo, close) and an SVG picture (plan 275 decision 32). */
+const READ_VECTOR_SLIDE = `${XML_DECL}<p:sld xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}"><p:cSld><p:spTree>` +
+  `<p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/>` +
+  `<p:sp><p:nvSpPr><p:cNvPr id="2" name="Freeform"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr>` +
+  `<a:xfrm><a:off x="0" y="0"/><a:ext cx="914400" cy="457200"/></a:xfrm>` +
+  `<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/><a:rect l="0" t="0" r="r" b="b"/><a:pathLst>` +
+  `<a:path w="100" h="100"><a:moveTo><a:pt x="0" y="0"/></a:moveTo><a:lnTo><a:pt x="100" y="0"/></a:lnTo>` +
+  `<a:cubicBezTo><a:pt x="100" y="50"/><a:pt x="50" y="100"/><a:pt x="0" y="100"/></a:cubicBezTo>` +
+  `<a:quadBezTo><a:pt x="0" y="50"/><a:pt x="10" y="10"/></a:quadBezTo><a:arcTo wR="20" hR="10" stAng="0" swAng="21600000"/><a:close/></a:path>` +
+  `<a:path fill="none" stroke="0"><a:moveTo><a:pt x="5" y="5"/></a:moveTo><a:lnTo><a:pt x="95" y="95"/></a:lnTo></a:path>` +
+  `</a:pathLst></a:custGeom><a:solidFill><a:srgbClr val="30BA78"><a:alpha val="40000"/></a:srgbClr></a:solidFill></p:spPr></p:sp>` +
+  `<p:pic><p:nvPicPr><p:cNvPr id="3" name="vector"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed="rId2"><a:extLst>` +
+  `<a:ext uri="{96DAC541-7B7A-43D3-8B79-37D633B846F1}"><asvg:svgBlip xmlns:asvg="http://schemas.microsoft.com/office/drawing/2016/SVG/main" r:embed="rId2"/></a:ext>` +
+  `</a:extLst></a:blip></p:blipFill><p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="914400" cy="914400"/></a:xfrm></p:spPr></p:pic>` +
+  `</p:spTree></p:cSld></p:sld>`;
+
 export const pptxReadTarget: FuzzTarget = {
   name: 'pptx-read',
   async seeds() {
     const enc = new TextEncoder();
-    return [READ_PRESENTATION, READ_PRESENTATION_RELS, READ_THEME, READ_SLIDE, READ_SLIDE_RELS, READ_NOTES].map((s) => enc.encode(s));
+    return [READ_PRESENTATION, READ_PRESENTATION_RELS, READ_THEME, READ_SLIDE, READ_SLIDE_RELS, READ_NOTES, READ_VECTOR_SLIDE].map((s) => enc.encode(s));
   },
   // Contract (file-metadata precedent): never throws - a hostile part degrades
   // to defaults/no nodes, so the only findings are hang/alloc/stack-overflow.
@@ -1744,6 +1761,38 @@ export const vectorPaintTarget: FuzzTarget = {
   },
 };
 
+/** A chart the way the chart tool writes one, and a drawing with every part the reading leaves out. */
+const SVG_ITEMS_SEEDS = [
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 200"><title>bar chart</title><desc>Source: seed.</desc><defs><style>#c text { font-family: x; }</style></defs>'
+  + '<rect width="400" height="200" fill="none"/><g id="plot"><g class="value-axis"><line x1="100" y1="20" x2="100" y2="170" stroke="#999" opacity="0.3" stroke-dasharray="4 2"/></g>'
+  + '<path transform="translate(20,52)" d="M0 0h40v10h-40z" fill="rgb(20, 20, 20)" opacity="0.8"/>'
+  + '<rect x="100" y="40" width="220" height="30" rx="4" fill="#1f4e79" data-recolor="A"/><text x="200" y="195" font-size="12" text-anchor="middle">Revenue</text>'
+  + '<g transform="rotate(45 360 40) skewX(10)"><circle cx="360" cy="40" r="10" fill="currentColor"/><polygon points="1,2 3,4 5,1"/></g></g></svg>',
+  '<svg xmlns="http://www.w3.org/2000/svg" xmlns:x="urn:x" viewBox="0 0 20 20"><defs><linearGradient id="g"/><path id="m" d="M0 0h2v2z"/></defs><metadata><x:y/></metadata>'
+  + '<use href="#m" x="3"/><g id="loop"><use href="#loop"/></g><rect width="5" height="5" fill="url(#g)" clip-path="url(#g)"/><image href="x"/><text x="1 2">a<tspan dy="2">b</tspan></text>'
+  + '<svg x="5" y="5" width="10" height="10" viewBox="0 0 1 1"><ellipse cx=".5" cy=".5" rx=".5" ry=".25" style="fill:#f00;stroke:#000;stroke-width:.1"/></svg></svg>',
+  // A class sheet the way Illustrator exports one, with a child combinator, an important
+  // rule, percentage geometry and a non-scaling stroke.
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50"><defs><style>/* x */.cls-1{fill:#30ba78}.cls-2{fill:none;stroke:#0c322c;stroke-width:2px}'
+  + 'g.a > .cls-1{fill:#111 !important}@font-face{font-family:x}</style></defs><g class="a"><rect class="cls-1" x="10%" width="50%" height="20"/></g>'
+  + '<path class="cls-2" d="M0 40L100 40" vector-effect="non-scaling-stroke"/><circle class="cls-1" cx="90" cy="10" r="5%"/></svg>',
+];
+
+export const svgItemsTarget: FuzzTarget = {
+  name: 'svg-items',
+  async seeds() {
+    return SVG_ITEMS_SEEDS.map((value) => new TextEncoder().encode(value));
+  },
+  // Contract: never throws on hostile markup; a refusal is items [] with its reason.
+  async invoke(bytes) {
+    const { cropVectorItems, svgItemsOf, vectorItemsToRows, vectorItemsSvg } = await import('../../engine/src/svg-items.ts');
+    const items = svgItemsOf(new TextDecoder().decode(bytes), parseXml);
+    vectorItemsSvg(items);
+    cropVectorItems(items, { l: 0.1, t: -0.2, r: 0.3 });
+    vectorItemsToRows(items, { x: 0, y: 0, w: 200, h: 100, rot: 30, flipH: true }, { idPrefix: 'f', group: 'vector:f', fit: 'contain' });
+  },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
   textSourceTarget, textDocumentTarget, textFrameTarget, vectorPaintTarget,
   deepImageTarget, emojiBundleTarget, jxlTarget,
@@ -1759,6 +1808,6 @@ export const ALL_TARGETS: FuzzTarget[] = [
   depthHintTarget, lutParseTarget, psdTarget, xcfTarget, docxReadTarget,
   svgReadersTarget, keyframesTarget, midiTarget, zzfxmTarget,
   radianceTarget, sealTarget, pngUnfilterTarget, watermarkAnalysisTarget,
-  geomTarget,
+  geomTarget, svgItemsTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

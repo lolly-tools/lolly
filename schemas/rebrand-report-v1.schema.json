@@ -1,0 +1,417 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/rebrand-report-v1.schema.json",
+  "title": "rebrand-report-v1",
+  "description": "Every source object accounted for as retained, transformed, removed or unresolved, with stable machine codes beside localisable messages. Plan 274. The fileOutcome, rebrandErrorCode and rebrandCapabilities definitions are published contracts for the CLI and MCP surfaces; no property of this document uses them.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "sourceHash",
+    "planRevision",
+    "counts",
+    "entries"
+  ],
+  "$defs": {
+    "decisionAuthor": {
+      "enum": [
+        "rule",
+        "preset",
+        "user",
+        "agent"
+      ]
+    },
+    "disposition": {
+      "enum": [
+        "retained",
+        "transformed",
+        "removed",
+        "unresolved"
+      ]
+    },
+    "dispositionCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "retained",
+        "transformed",
+        "removed",
+        "unresolved"
+      ],
+      "properties": {
+        "retained": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "transformed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "removed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "unresolved": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "fidelityState": {
+      "enum": [
+        "editable",
+        "raster-preserved",
+        "approximate",
+        "unavailable"
+      ]
+    },
+    "fileOutcome": {
+      "enum": [
+        "ready",
+        "needs-review",
+        "failed"
+      ]
+    },
+    "objectClass": {
+      "enum": [
+        "template-furniture",
+        "decoration",
+        "logo-candidate",
+        "known-logo",
+        "recurring-text",
+        "page-number",
+        "footer",
+        "date",
+        "title",
+        "subtitle",
+        "body",
+        "chart",
+        "screenshot",
+        "photo",
+        "table",
+        "diagram",
+        "unknown"
+      ]
+    },
+    "planAction": {
+      "enum": [
+        "keep",
+        "replace",
+        "remove"
+      ]
+    },
+    "rebrandCapabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "surface",
+        "bytes",
+        "ocr",
+        "rasterFallback",
+        "nativePptx",
+        "designDocument",
+        "limits"
+      ],
+      "properties": {
+        "surface": {
+          "enum": [
+            "web",
+            "tauri",
+            "cli",
+            "tui",
+            "mcp-local",
+            "mcp-hosted"
+          ]
+        },
+        "bytes": {
+          "enum": [
+            "device",
+            "local-process",
+            "configured-server"
+          ]
+        },
+        "ocr": {
+          "type": "boolean"
+        },
+        "rasterFallback": {
+          "type": "boolean"
+        },
+        "nativePptx": {
+          "type": "boolean"
+        },
+        "designDocument": {
+          "type": "boolean"
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [],
+          "properties": {
+            "maxBytes": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "maxSlides": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "maxDecodedPixels": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "retention": {
+          "type": "string",
+          "maxLength": 4096
+        }
+      },
+      "description": "What a surface can do for this journey. Read before promising anything. device and local-process keep the bytes; configured-server transfers them."
+    },
+    "rebrandErrorCode": {
+      "enum": [
+        "source.unreadable",
+        "source.too-large",
+        "source.encrypted",
+        "plan.hash-mismatch",
+        "plan.revision-stale",
+        "plan.invalid",
+        "design-system.master-missing",
+        "design-system.logo-missing",
+        "ocr.unavailable",
+        "compile.unresolved-objects",
+        "export.failed",
+        "storage.quota"
+      ]
+    },
+    "reportCode": {
+      "enum": [
+        "object.retained",
+        "object.transformed",
+        "object.removed",
+        "object.unresolved",
+        "object.replaced-logo",
+        "object.placeholder-authored",
+        "object.surplus-continuation",
+        "object.surplus-tray",
+        "text.overflow",
+        "text.font-substituted",
+        "colour.assigned",
+        "colour.unresolved",
+        "colour.contrast-below-minimum",
+        "layout.overlap-with-furniture",
+        "layout.below-readable-size",
+        "source.cap-reached",
+        "source.media-skipped",
+        "slide.excluded",
+        "slide.continuation-added",
+        "review.applied-unreviewed",
+        "export.verified",
+        "export.not-verified",
+        "text.formatting-not-carried",
+        "layout.poured-to-continuation",
+        "layout.auto-matched",
+        "text.corrected",
+        "vector.items-omitted",
+        "vector.kept-as-picture",
+        "vector.metafile-not-converted",
+        "slide.original-arrangement",
+        "slide.kept-as-picture"
+      ]
+    },
+    "reportEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message"
+      ],
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/reportCode"
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "slideId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "objectId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "layerId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "disposition": {
+          "$ref": "#/$defs/disposition"
+        },
+        "class": {
+          "$ref": "#/$defs/objectClass"
+        },
+        "action": {
+          "$ref": "#/$defs/planAction"
+        },
+        "author": {
+          "$ref": "#/$defs/decisionAuthor"
+        },
+        "review": {
+          "$ref": "#/$defs/reviewState"
+        },
+        "fidelity": {
+          "$ref": "#/$defs/fidelityState"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 4096
+        }
+      }
+    },
+    "reviewState": {
+      "enum": [
+        "unreviewed",
+        "accepted",
+        "needs-attention"
+      ]
+    }
+  },
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "sourceHash": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "planRevision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "slides",
+        "objects",
+        "byClass",
+        "logosReplaced",
+        "coloursAssigned",
+        "coloursUnresolved",
+        "fontsSubstituted",
+        "appliedUnreviewed"
+      ],
+      "properties": {
+        "slides": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source",
+            "included",
+            "excluded",
+            "continuation"
+          ],
+          "properties": {
+            "source": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "included": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "excluded": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            },
+            "continuation": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "objects": {
+          "$ref": "#/$defs/dispositionCounts"
+        },
+        "byClass": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/objectClass"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/dispositionCounts"
+          }
+        },
+        "logosReplaced": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "coloursAssigned": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "coloursUnresolved": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "fontsSubstituted": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "appliedUnreviewed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "maxItems": 200000,
+      "items": {
+        "$ref": "#/$defs/reportEntry"
+      },
+      "description": "One entry per thing worth saying, with every source object accounted for. The ceiling of 200000 is the whole journey's, shared with the census and the lineage."
+    },
+    "exportVerified": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "check"
+      ],
+      "properties": {
+        "format": {
+          "type": "string",
+          "maxLength": 64
+        },
+        "check": {
+          "type": "string",
+          "maxLength": 1024
+        }
+      },
+      "description": "Set only after a readback of the produced bytes. Absent means not verified, never verified."
+    }
+  }
+}

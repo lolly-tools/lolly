@@ -13,15 +13,15 @@ Most of this platform's documentation describes what Lolly *can do*. This page d
 - **The maths is settled; the adoption data is not.** The engine is deterministic and a render reproduces byte for byte. Real-world adoption evidence is a few months old, most of it SUSE's own. That is by design: we collect stories from people voluntarily, never data invisibly.
 - **If you're using it, we need your story.** The architecture is done; the evidence is not. What actually improves Lolly from here is real usage - what worked, what didn't and what you managed to make. See [We need your story](#we-need-your-story).
 
-The framing matters: judged as a finished marvel, Lolly could disappoint you at the fringes. Judged as a platform proving a specific behavioural change - routine asset creation, done safely and professionally, without a designer in the loop - its job and its measure of success are clear.
+The framing matters: judged as a finished marvel, Lolly could disappoint you at the fringes. Judged as a platform proving a specific behavioural change - routine asset creation, done safely and professionally, by the person who needs the file - its job and its measure of success are clear.
 
 ## Who Lolly is for
 
-Adoption succeeds or fails on the **producer** - the non-designer who has to make something on-brand and, today, either waits for a designer or does it off-brand in whatever tool they have. Everyone else in this table exists to make that person's path frictionless.
+Adoption succeeds or fails on the **producer** - the non-designer who has to make something on-brand. Everyone else in this table exists to make that person's path frictionless.
 
 | User | Who they are | The friction Lolly removes | What they adopt |
 |---|---|---|---|
-| **The producer** | Marketers, sales, events, ops, comms - non-designers who need finished, on-brand files | "I need this now, I don't want to break the brand and I don't want to wait for design" | The app: pick a tool, fill in fields, get the asset |
+| **The producer** | Marketers, sales, events, ops, comms - non-designers who need finished, on-brand files | "I need this now and I don't want to break the brand" | The app: pick a tool, fill in fields, get the asset |
 | **The brand creative owner / designer** | The people who own how the brand is expressed | Re-typing the same layout, policing off-brand output after the fact | Authoring tools & the asset catalog - encoding the rules once |
 | **The developer / platform team** | Engineers who automate and deploy | Storing binaries in Git, custom renderers, cloud image bills | The CLI, URL mode, MCP endpoints, self-hosting |
 | **The AI agent** | Automated workflows that produce assets | Token-expensive, drifting, un-auditable image generation | The MCP tools - deterministic renders from parameters |
@@ -39,7 +39,7 @@ One producer case is easy to miss because it is not marketing at all: **critical
 2. **Pick a tool** that matches what you need (an event tile, a quote card, a signature).
 3. **Fill in the fields.** No fonts, colours or spacing to decide - the tool already holds the brand rules.
 4. **Get the file.** Download it, copy a share link or export a batch. Done.
-5. **Save your work** - reopen it later as a session, file it into a project or turn it into your own template to start from next time. No git, no ticket.
+5. **Save your work** - reopen it later as a session, file it into a project or turn it into your own template to start from next time. No git, no waiting.
 
 Step 3 is the one that carries the pilot. A tool opens with the brand already on it, so the only thing left to decide is the words.
 
@@ -76,19 +76,19 @@ The Dashboard's capability map is the inventory to scope that decision against: 
 
 ## Measuring adoption
 
-We measure a behavioural change, not feature usage. The north-star is **design-ticket deflection**: routine creative requests that are now self-served and never reach the design queue at all.
+We measure a behavioural change, not feature usage. The north-star is **self-served requests**: routine creative requests that people now serve themselves.
 
 | Signal | What it tells us | Type |
 |---|---|---|
 | **Activation** | Share of invited pilot users who render at least one *real* asset | Leading |
-| **Self-serve rate** | Assets produced without a design ticket | Leading |
+| **Self-serve rate** | Assets people made themselves | Leading |
 | **Time-to-asset** | Brief → finished file, in minutes not days | Leading |
 | **Tool coverage** | Share of routine asset types that have a matching tool | Leading |
 | **Repeat use** | Users who come back within a 30-day window | Leading |
-| **Design-ticket deflection** | Routine requests that never reach the design queue | **Lagging / north-star** |
+| **Self-served requests** | Routine requests people now serve themselves | **Lagging / north-star** |
 | **Story capture** | Concrete before/after cases collected from real users | Qualitative |
 
-A leading signal moving without deflection following is a warning: people are trying Lolly but the work is still landing on a designer's desk. Deflection is the number that says the behaviour actually changed.
+A leading signal moving without the self-served number following is a warning: people are trying Lolly but are not yet making their own files with it. That number is the one that says the behaviour actually changed.
 
 ### The 90-day pilot cycle
 
@@ -96,42 +96,27 @@ Adoption runs on a **90-day** feedback loop. Each cycle:
 
 1. **Weeks 1–2 - Onboard a cohort.** Bring in one team, author the tools they most need, remove the obvious blockers.
 2. **Weeks 3–10 - Use and observe.** Watch the leading signals; collect stories; fix what's in the way.
-3. **Weeks 11–12 - Review and re-aim.** Read the deflection number, decide which tools and which next cohort come next.
+3. **Weeks 11–12 - Look back and re-aim.** Read the self-served number, decide which tools and which next cohort come next.
 
 The 90-day cycle is the *cadence*. It is not the goal - it's how often we re-check whether the goal is moving.
 
-### From cycle to deflection target
-
-The goal the cycle serves is deflection, and it should ramp. The pilot targets **30% design-ticket deflection by month 6** - roughly one in three routine requests self-served away from the design queue.
-
-| Month | Focus | Target deflection |
-|---|---|---|
-| Month 1 | Onboard first cohort; author first tools | baseline (~0%) |
-| Month 2 | First self-serve wins | ~5% |
-| Month 3 | End of first 90-day cycle; review | ~10% |
-| Month 4 | Expand the tool catalog | ~18% |
-| Month 5 | Onboard second cohort | ~25% |
-| Month 6 | **Target** | **30%** |
-
-30% is deliberately a *pilot* target, not an end state. It's the threshold that says the behaviour change is real and worth scaling - not a ceiling on what deflection could eventually reach.
-
 ## Governance (when you want it)
 
-Most people just make things - work in the app, save what they make as a **session** and pass it on as a share link, a backup or a live collaboration, with no git and no approval step.
+Most people just make things - work in the app, save what they make as a **session** and pass it on as a share link, a backup or a live collaboration, with no git and nothing to wait for.
 
 They can go further without touching git at all. From any tool, **Save** offers *save as a template* and *save as a variation*: the current doc becomes a named starting point that appears in that tool's "New from template" chooser the next time it opens, kept with your profile. No deployment owner, no commit, no pull request. To hand one to a colleague, share it as a **`.lolly` file** - a self-contained bundle anyone can import - or submit it for catalog inclusion. A marketing team can build, name and circulate its own variations of a tool entirely inside the app.
 
-This is the answer to a claim you will hear often: that *governance by git* is an impossible roadblock for creative and marketing teams. Here it never was the only path, and it is no longer the default one. Brand governance lives **inside the tool itself** - the rules are part of the instrument, not a review gate laid over it (see the guard-rails bullet below), so staying on-brand costs a producer nothing to learn and nothing to wait for.
+This is the answer to a claim you will hear often: that *governance by git* is a roadblock for anyone who does not live in git. Here it never was the only path, and it is no longer the default one. Brand governance lives **inside the tool itself** - the rules are part of the instrument, not a gate laid over it (see the guard-rails bullet below), so staying on-brand costs a producer nothing to learn and nothing to wait for.
 
 Git enters only when an organisation wants a single **canonical** catalog everyone shares - the reviewable source of truth. Then whoever runs the deployment records a template's values into the brand pack and commits it - after which it appears in the tool's "New from template" chooser and is deep-linkable as `?template=<id>`. That commit is the locking step, and it belongs to the deployment owner, not the creator. It runs the rules the way engineering runs code - **the rules are data, and changing them is a reviewable change** - and it is entirely optional. Teams that don't want a shared canonical catalog never meet git.
 
 And git is not the only way to govern live. Everything above is self-owned governance-as-data; the other shape is a **control plane**. [lolly.work](https://lolly.work) is a separate open-source service you host that governs the running shell without a code change: SSO-gated sign-in, feature-flag / export / watermark policy, tool-input overlays, catalog federation, approvals and a hash-chained audit log. It is optional and additive - Lolly still runs fully standalone and still renders on-device - so the choice is per deployment: nothing hosted (individual freedom), or a control plane for org-wide governance (organizational freedom).
 
-- **A shared catalog can be the source of truth.** Tools and assets are git-tracked content - a manifest, a template, optional hooks. What ships is exactly what was approved to ship.
-- **Review can be the moderation - for the canonical catalog only.** Promoting a template into the shared source of truth is a change to git-tracked content, so it can be a pull request: elegant for engineers, unfamiliar to most brand and marketing teams. The gap is now narrow, because this is the *only* place git appears - creators make and share templates without it, and reach the canonical catalog by **submitting** a `.lolly`, not by opening a PR. Where brand owners want the final say without living in git, bridge that step with a light review, or let IT own the merge (which some long-running production environments actually prefer). Teams that don't want a canonical catalog skip all of it.
+- **A shared catalog can be the source of truth.** Tools and assets are git-tracked content - a manifest, a template, optional hooks. What ships is exactly what was committed.
+- **A pull request can be the gate - for the canonical catalog only.** Promoting a template into the shared source of truth is a change to git-tracked content, so it can be a pull request. This is the *only* place git appears - creators make and share templates without it, and reach the canonical catalog by **submitting** a `.lolly`, not by opening a PR. Who looks at a submission, and how, is the deployment's own choice. Teams that don't want a canonical catalog skip all of it.
 - **Guard-rails are structural, not advisory.** Brand constraints are hard-coded in the tool; even the open canvas (the **Design** tool) conforms colours, type and assets to the brand globals. Off-brand output isn't policed after the fact - it's prevented at authoring time.
-- **Feature flags put control local.** Parts of Lolly can be turned on or off per deployment. Usually an administrator owns those; with Lolly, whoever runs the deployment does.
-- **Configuration is yours.** A deployment can overlay its own authentication, telemetry or Certificate Authority to meet corporate compliance - none of it is on by default.
+- **Feature flags put control local.** Parts of Lolly can be turned on or off per deployment. Whoever runs the deployment owns those.
+- **Configuration is yours.** A deployment can overlay its own authentication, telemetry or Certificate Authority to meet its own requirements - none of it is on by default.
 
 ![Every part of Lolly as its own switch, so turning a whole category of tools off is one click, not a support ticket](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2000&cropSelector=%23feature-flags-section&format=svg&walker=1&dark=1&filename=aud-feature-switches)
 

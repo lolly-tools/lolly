@@ -43,7 +43,7 @@ Read an app URI in three pieces; there is no second parameter vocabulary hiding 
 
 So `lolly://t/qr-code?url=https%3A%2F%2Fsuse.com&full` launches Lolly, opens QR Code with its `url` input filled, and uses the reserved `full` behaviour. `z=` and `zx=` are just compact or encrypted versions of the same query state; every readable flag that follows them still wins in the usual way.
 
-A link that names no route the app owns is refused, not guessed at: the OS hands the app an untrusted string, so the mapper only ever opens a tool id that parses or a word from the app's frozen route vocabulary. Pasting a `lolly://` link anywhere the app already accepts a Lolly link (the asset picker, the pasted-link paths, the CLI's `Lolly <link>` form) works the same way.
+A link for a route the app does not own is refused, not guessed at: the OS hands the app an untrusted string, so the mapper only ever opens a tool id that parses or a word from the app's frozen route vocabulary. Pasting a `lolly://` link anywhere the app already accepts a Lolly link (the asset picker, the pasted-link paths, the CLI's `Lolly <link>` form) works the same way.
 
 Where it is registered: the macOS and Windows installers and the Linux `.desktop` entries all declare the scheme, as do the Android and iOS apps. A `tauri dev` build registers itself on Windows and Linux at launch; on macOS only the installed `.app` can receive the scheme. Spotlight itself opens web addresses, not custom schemes - on a Mac, reach the scheme through `open`, a Shortcut or a launcher. The MCP server's resource URIs (`lolly://catalog`, `lolly://tool/{id}`) share the prefix but are a different namespace: resources an agent reads, not routes the app opens.
 

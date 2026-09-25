@@ -10,7 +10,18 @@ import assert from 'node:assert/strict';
 import { deckAnim, deckAudioExt, deckColor, deckFill, deckNarrationMark, deckNotes, deckPara, deckPh, deckPlaceholder, deckSyncShape, deckTheme, parseDeckModel, resolveDeckColorValue, emuOf, asStr } from './pptx-deck.ts';
 import type { DeckColorResolver } from './pptx-deck.ts';
 import { buildPptxParts, EMU_PER_PX } from '../../../../engine/src/pptx.ts';
-import type { PptxTable, PptxText, PptxRect, PptxSlide } from '../../../../engine/src/pptx.ts';
+import type { PptxTable, PptxText, PptxRect, PptxSlide, PptxPath } from '../../../../engine/src/pptx.ts';
+
+test('deckSyncShape lowers a path element to custom geometry in EMU, keeping fill and line alpha', () => {
+  const path = deckSyncShape({ t: 'path', x: 10, y: 20, w: 100, h: 50, d: 'M0 0 L100 0 L100 50 Z', fill: 'rgba(48,186,120,0.5)', line: { color: '#000000', w: 2 } }) as PptxPath;
+  assert.equal(path.kind, 'path');
+  assert.equal(path.x, emuOf(10)); assert.equal(path.cx, emuOf(100));
+  assert.equal(path.paths[0]!.d, `M0 0L${emuOf(100)} 0L${emuOf(100)} ${emuOf(50)}Z`);
+  assert.ok(path.fill && 'solid' in path.fill && path.fill.solid === '30BA78' && Math.abs(path.fill.alpha! - 0.5) < 1e-6);
+  assert.deepEqual(path.line, { color: '000000', w: Math.round(2 * EMU_PER_PX) });
+  assert.equal(deckSyncShape({ t: 'path', x: 0, y: 0, w: 10, h: 10, d: '' }), null);
+  assert.equal(deckSyncShape({ t: 'path', x: 0, y: 0, w: 10, h: 10, d: 'M0 0 '.repeat(80_001) }), null);
+});
 
 test('deckColor parses hex (3/4/6/8), rgb, rgba; rejects junk', () => {
   assert.deepEqual(deckColor('#30BA78'), { hex: '30BA78', alpha: undefined });

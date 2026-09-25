@@ -1,0 +1,12 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+
+/* The "Create emoji set" form (components/emoji-pack-create.ts). Everything
+   else in the form borrows the house field primitives (.field-row,
+   .field-input, .field-select, parts/fields.css) and the modal primitive
+   (.modal-title, .modal-actions, parts/dialogs.css); this is only the one
+   thing the form needs of its own - room for a taller field list than the
+   default modal width gives a form. */
+.emoji-pack-create-form {
+  max-width: 36rem;
+  padding: 1rem;
+}

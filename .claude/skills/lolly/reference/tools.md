@@ -72,7 +72,6 @@ document rather than a handful of fields: **chart** (`chart.md`), **design**
 | `street-map` | Street Map | designer | svg, penpot, emf, dxf, pdf, pdf-cmyk, png, jpg, webp, avif, tiff, eps | - | - | Clean vector street-block maps of any city. |
 | `synth` | Synth | designer | png, jpg, webp, webm, mp4, gif, apng, avif, tiff, webp-anim | - | - | A visual instrument you play. |
 | `timezone` | Timezone | event | svg, png, pdf, webp, jpeg, webm, mp4, gif, json, csv, md, ics | - | - | Turn places and timezones into artwork that follows the design system. |
-| `voice-recorder` | Voice Recorder | everyone | png, svg, penpot, mp3, wav, m4a, opus | - | microphone | Record a voice note with a live level meter and gentle coaching, then save it as MP3. |
 | `wayfinding-signage` | Wayfinding | event | pdf, pdf-cmyk, svg, penpot, dxf, png, jpg, webp, avif, tiff, cmyk-tiff, emf | - | - | Directional event signs - destinations, each with an arrow. |
 | `wordmark` | Wordmark | everyone | svg, penpot, emf, eps, eps-cmyk, dxf, pdf, pdf-cmyk, cmyk-tiff, tiff, png, jpeg, webp, avif | - | - | Type a word, get a pure-path vector wordmark in the design system font - recipients never need the font installed. |
 | `work-avatar` | Work Avatar | everyone | png, jpg, webp, avif, svg, pdf | - | - | A round profile photo with a treatment and a ring of text - the campaign badge for LinkedIn and every other place you… |
@@ -99,7 +98,7 @@ On-device file utilities: bytes in, bytes out. Most take the user's own file
 | `jump` | Jump | utility | html | - | - | A one-link landing page: your links, heading, portrait and colours on an expressive page - and the whole page lives i… |
 | `pages` | Pages | utility | pdf, zip | - | - | Reorder, rotate, extract, delete, merge or split PDF pages on your device. |
 | `prompt-card` | Prompt Card | utility | png, webp, jpg, avif, svg, penpot, pdf | - | - | Typeset a long prompt into one compact, legible image for a multimodal model - image input is often cheaper than the… |
-| `rebrand-deck` | Rebrand | utility | pptx | - | - | Upload a PowerPoint deck and snap its colours and fonts to your brand - rebuilt on your device, nothing uploaded. |
+| `rebrand-deck` | Theme swap | utility | pptx | - | - | Swaps the theme, colours and fonts in a PowerPoint deck on this device. |
 | `redact` | Redact | utility | png, jpg, webp, svg, penpot, pdf | - | - | Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device. |
 | `sandbox` | Sandbox | utility | png, svg, penpot, pdf, jpg, webp | - | - | Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. |
 | `scan-code` | Scan | utility | png | - | - | Read QR codes and barcodes on-device, with nothing sent to any cloud. |
@@ -109,4 +108,5 @@ On-device file utilities: bytes in, bytes out. Most take the user's own file
 | `text-helper` | Text | utility | html | textTools | - | Find, edit, understand and transform text. |
 | `trim` | Trim | utility | mp4, webm, gif, m4a, opus, wav | - | - | Cut an audio or video clip, change its container, mute it or extract its audio on your device. |
 | `url-shot` | URL Screenshot | utility | png, jpg, webp, svg, penpot, pdf, webm, mp4, avif, tiff, gif | - | capture | Any web page, at any scroll depth, with custom CSS. |
+| `voice-recorder` | Voice Recorder | utility | png, svg, penpot, mp3, wav, m4a, opus | - | microphone | Record a voice note with a live level meter and gentle coaching, then save it as MP3. |
 <!-- /GEN:tools-utilities -->

@@ -53,27 +53,19 @@ Deck Studio is een goede maatstaf voor het plafond hier: een hele slidedeck gede
 
 De meeste "AI creative"-pitches plaatsen het model aan de verkeerde kant van een oude grens. Schrijvers en verluchters hebben al vastgesteld waar die ligt: je werkt losjes aan de schets, waar alles geprobeerd kan worden en niets vastligt, en dan ga je naar de drukpers, die intimiderend is juist omdat die zich vastlegt. De schetsen waren waar de kunst zat. De pers was hoe die reisde. Twee instrumenten, twee taken, elk vindingrijk op zijn eigen manier, en het gedrukte werk kon vertrouwd worden omdat de pers zijn belofte hield bij elke afdruk.
 
-Lolly is de pers, niet de schets. Breng wat je wilt naar de ideevorming - een model, een designer, een servet - maar het moment dat een idee tienduizend assets moet worden, gaat het door iets dat elke keer hetzelfde rendert, vanuit input die iedereen kan terugleren. Daar gaat de vergelijking hierboven eigenlijk over: niet wie de betere generator heeft, maar wie de vastgelegde stap reproduceerbaar maakt.
+Lolly is de pers, niet de schets. Breng wat je wilt naar de ideevorming - een model, een designer, een servet - maar het moment dat een idee veel assets moet worden, gaat het door iets dat elke keer hetzelfde rendert, vanuit input die iedereen kan terugleren. Daar gaat de vergelijking hierboven eigenlijk over: niet wie de betere generator heeft, maar wie de vastgelegde stap reproduceerbaar maakt.
 
 > Vertrouw het creatieve proces, schaal met precisie.
 
-## Keur de tool goed, niet het bestand
+## De regels leven in de tool, niet in het bestand
 
-Elke andere tool op het bord produceert een *bestand* dat vervolgens gecontroleerd moet worden - een brand manager in een Slack-thread, legal over de disclaimer, een ronde wijzigingen, nog een review. Lolly verplaatst de goedkeuring **een stap stroomopwaarts**. De merkregels - exacte hexcodes, gelicentieerde lettertypebestanden, afloopmarges, spatiëring - zijn hardgecodeerd in de HTML en CSS van de tool, zodat het template *geen* off-brand asset kan uitvoeren. De opmaak zelf handhaaft het.
+Elke andere tool op het bord produceert een *bestand*, en een bestand kan pas achteraf bekeken worden, één output tegelijk. Lolly verplaatst de merkregels **een stap stroomopwaarts**. Exacte hexcodes, gelicentieerde lettertypebestanden, afloopmarges, spatiëring - dat alles is hardgecodeerd in de HTML en CSS van de tool, zodat het template *geen* off-brand asset kan uitvoeren. De opmaak zelf handhaaft het.
 
-Dus stop je met het goedkeuren van outputs en begin je met het goedkeuren van de **tool** die ze maakt. Keur die eenmaal goed, en elk asset dat hij ooit produceert is vooraf goedgekeurd door constructie - geen mens in de loop, geen reviewcyclus, bij welk volume dan ook.
+Dus het ding dat de moeite waard is om naar te kijken, is de **tool**, niet elk bestand dat hij maakt. Zet de tool goed neer, en elk asset dat hij ooit produceert is on-brand door constructie. Hoe je je werk controleert, en wie dat doet, blijft aan jou; Lolly maakt het gecontroleerde ding kleiner en de output sneller om te maken.
 
-Dit is de verandering die de deterministische engine daadwerkelijk levert: het is geen snellere versie van het oude goedkeuringsproces, het verwijdert het proces. Voor het creatieve team is het een guard-rail, geen vervanging - je gooit nog steeds de bal (de data, de tekst, de afbeelding) en de code is de bumperlane die elke worp uit de goot houdt.
+Dit is de verandering die de deterministische engine daadwerkelijk levert. Voor het creatieve team is het een guard-rail, geen vervanging - je gooit nog steeds de bal (de data, de tekst, de afbeelding) en de code is de bumperlane die elke worp uit de goot houdt.
 
-![De hele taak van de producer: type de woorden. Type, kleur en spatiëring waren vastgelegd toen de tool werd goedgekeurd](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DApproved&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-approve-the-tool)
-
-| Assets goedkeuren op de oude manier | De tool goedkeuren, de Lolly-manier |
-|---|---|
-| Elk afgerond bestand wordt één voor één gecontroleerd | De tool wordt eenmaal gecontroleerd |
-| Aanvraag → designer bouwt → merkreview → juridische controle → wijzigingen → herreview | Eén parameterwijziging → afgerond asset |
-| Designer, brand manager, legal en aanvrager allemaal in de loop | Alleen de producer |
-| Dagen per asset | Seconden per asset |
-| 10.000 assets = 10.000 reviewcycli | 10.000 assets = nul (het template was al goedgekeurd) |
+![De hele taak van de producer: type de woorden. Type, kleur en spatiëring waren vastgelegd toen de tool werd gemaakt](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
 
 ## Wat dit uniek biedt
 

@@ -30,7 +30,7 @@ import { t } from '../i18n.ts';
 import { panelGripsHtml, wirePanelGrips } from './panel-grips.ts';
 import { icon } from './icons.ts';
 import { attachWobble } from './wobble.ts';
-import { requestDock, releaseDock, isDocked, edgeDockHitTest, edgeDockPreview, edgeDockWidth, onDockChange } from './edge-dock.ts';
+import { requestDock, releaseDock, showPanel, isDocked, dockedFullCount, edgeDockHitTest, edgeDockPreview, edgeDockWidth, onDockChange } from './edge-dock.ts';
 
 interface Box { x: number; y: number; w: number; h: number }
 // 'edge' = docked into the full-height inline-end column (lib/edge-dock.ts). Distinct
@@ -60,6 +60,10 @@ export interface ExportFloatOpts {
    *  side is honoured HERE rather than at mount: this wiring runs while the sheet is
    *  still closed, and docking then would put a panel on screen nobody asked for. */
   onOpen?(cb: () => void): () => void;
+  /** Is the sheet open, and open it without moving focus. With both, the sheet joins the
+   *  right sidebar as a tab whenever another panel is in it (Andy, 2026-09-24). */
+  isOpen?(): boolean;
+  openQuietly?(): void;
 }
 
 export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
@@ -80,6 +84,12 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
   let edgePref = false;
   /** Set for the length of one releaseDock call to mark that release as the user's own. */
   let userUndock = false;
+  /** The sheet is going into the column because the column is on, not because anyone
+   *  asked: it docks as a background tab. */
+  let autoDocking = false;
+  /** The user pulled the sheet out while other panels were docked. It stays out until
+   *  the column next empties, rather than snapping back on the next dock change. */
+  let declined = false;
 
   // ── persistence ──────────────────────────────────────────────────────────
   const save = (): void => {
@@ -181,7 +191,7 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
     const returnBox = clampFully(box ?? currentRect());
     // The label is VISIBLE text, not a tooltip: past two docked panels the column names
     // each one in its tab strip, so it goes through t() like every other word on screen.
-    if (!requestDock('export', popup, { onRelease: exitEdgeToFloat, icon: icon('download'), label: t('Export') })) return;  // not desktop
+    if (!requestDock('export', popup, { onRelease: exitEdgeToFloat, icon: icon('download'), label: t('Export'), background: autoDocking })) return;  // not desktop
     box = returnBox;   // remembered so undock re-floats where it was
     mode = 'edge';
     edgePref = true;
@@ -192,6 +202,7 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
   const exitEdgeToFloat = (): void => {
     mode = 'floating';
     if (userUndock) edgePref = false;   // the user left; a host close or a breakpoint bounce did not
+    if (userUndock && dockedFullCount() > 0) declined = true;
     userUndock = false;
     render(); save();
     wobble.impulse(-towardEdge(), 0);
@@ -208,7 +219,10 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
   };
   /** The host opened the sheet: put it back on the side the user keeps it on. */
   const restoreEdge = (): void => {
-    if (isMobile() || mode === 'edge' || !edgePref) return;
+    if (isMobile()) return;
+    // Already a tab in the column: a person opening Export wants to see it, so front it.
+    if (mode === 'edge') { if (!autoDocking) showPanel('export'); return; }
+    if (!edgePref && !autoDocking) return;
     enterEdge();
   };
   const enterFloating = (from?: Box): void => {
@@ -340,10 +354,35 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
   // move on its own. Without this, opening the Design inspector left the sheet sitting
   // behind it. Guarded so the notification our OWN dock fires cannot re-enter.
   const offDockChange = onDockChange(() => {
+    syncTabState();
+    if (autoDock()) return;
     if (mode === 'edge' || isDocked('export') || drag || !box || isMobile()) return;
     box = clampFully(box);
     render();
   });
+
+  // ── always a tab while the right sidebar is on ───────────────────────────
+  // Whenever the column holds another full panel (the inspector, the player, the
+  // transcript), the export sheet is open in it as a tab beside them. It joins in the
+  // background: the tab the user was on stays in front. While it shares the column it
+  // has no close button, since closing would only bring it straight back; dragging it
+  // out still works, and is remembered until the column empties.
+  const syncTabState = (): void => {
+    if (dockedFullCount() === 0) declined = false;
+    popup.classList.toggle('is-dock-tab', isDocked('export') && dockedFullCount() > 1);
+  };
+  const autoDock = (): boolean => {
+    if (!opts.openQuietly || !opts.isOpen || isMobile() || drag || declined) return false;
+    if (isDocked('export') || dockedFullCount() === 0) return false;
+    autoDocking = true;
+    try {
+      if (!opts.isOpen()) opts.openQuietly();   // the open hook docks it (restoreEdge)
+      if (!isDocked('export')) enterEdge();
+    } finally {
+      autoDocking = false;
+    }
+    return true;
+  };
 
   // ── init: restore saved state, or start floated in a free layout ─────────
   const saved = loadSaved();
@@ -376,8 +415,13 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
   // remembered placement (handled by `if (saved)` above) already spoke for the user.
   if (preferEdge && !saved) edgePref = true;
   const offOpen = opts.onOpen?.(restoreEdge) ?? null;
+  // The column may already be on when this view mounts (the player, a restored inspector).
+  // Deferred so the host has placed the sheet's content before it opens.
+  let disposed = false;
+  queueMicrotask(() => { if (!disposed) { syncTabState(); autoDock(); } });
 
   return () => {
+    disposed = true;
     offOpen?.();
     offDockChange();   // before the release below, so it cannot answer our own undock
     // If still edge-docked, put the popup back in its overlay BEFORE the view clears,

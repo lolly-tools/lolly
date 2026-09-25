@@ -34,6 +34,7 @@ import { emojiSourceIngredients, emojiWorksAndUses, emojiCreditsText } from './e
 import { sourceIngredientsFor } from './rights-attribution.ts';
 import type { SourceDetailV1 } from './rights-attribution.ts';
 import { evaluateCreativeUses } from './rights-evaluate.ts';
+import { outputLicenceId, outputLicenceNotice } from './rights-profiles.ts';
 import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputs, normalizeTableValue, tokenBindingsOf } from './inputs.ts';
 import { hydrate, resolvePaintBindings } from './template.ts';
 import { buildExportMeta } from './metadata.ts';
@@ -338,6 +339,15 @@ export interface Runtime {
   rightsDecisions(): RightsDecisionV1[];
   /** Restore decisions from a saved session. Replaces whatever is held. */
   setRightsDecisions(decisions: readonly RightsDecisionV1[]): void;
+  /**
+   * The licence the person declared for their own export (an id from
+   * `OUTPUT_LICENCE_CHOICES`), or null for no declaration. Every later
+   * evaluation reads it as `outputLicence` unless a context names its own, and
+   * an export writes its notice into the file's licence field when the tool's
+   * own inputs did not already supply one. An unknown id clears it.
+   */
+  setOutputLicence(id: string | null): void;
+  outputLicence(): string | null;
   /**
    * What the last export actually delivered, as the host measured it by reading
    * the written bytes back. Null until a host reports one: an unread export is
@@ -1075,6 +1085,7 @@ export async function createRuntime(
   // reads no clock and no file, and the decisions a person made live here for
   // the life of the mount so a session can save them.
   let rightsChoices: RightsDecisionV1[] = [];
+  let declaredLicence: string | null = null;
   let lastRightsReceipt: AttributionReceiptV1 | null = null;
 
   /** The delivery a context describes, with this tool's own defaults underneath. */
@@ -1099,7 +1110,8 @@ export async function createRuntime(
       },
       audience: context?.audience ?? 'unknown',
       ...(context?.commercial !== undefined ? { commercial: context.commercial } : {}),
-      ...(context?.outputLicence !== undefined ? { outputLicence: context.outputLicence } : {}),
+      ...(context?.outputLicence !== undefined ? { outputLicence: context.outputLicence }
+        : declaredLicence ? { outputLicence: declaredLicence } : {}),
       ...(context?.evaluatedAt !== undefined ? { evaluatedAt: context.evaluatedAt } : {}),
     };
   }
@@ -1169,6 +1181,8 @@ export async function createRuntime(
       ];
     },
     rightsDecisions: () => rightsChoices.map((decision) => ({ ...decision })),
+    setOutputLicence(id) { declaredLicence = outputLicenceId(id); },
+    outputLicence: () => declaredLicence,
     setRightsDecisions(decisions) {
       // Deduped by work and kind, keeping the last, exactly as setRightsDecision
       // does. A restored list that named one work twice would otherwise let the
@@ -1720,6 +1734,10 @@ export async function createRuntime(
         // Pass the input model so bindToMeta inputs (the artist's author/copyright/
         // licence declaration) merge over the profile-derived provenance.
         meta = await buildExportMeta(host, tool.manifest, profile, model);
+        // The licence the person picked in the export panel. A tool input bound to
+        // the licence field is the more specific declaration, so it wins.
+        const notice = outputLicenceNotice(declaredLicence);
+        if (meta && notice && !meta.license) meta = { ...meta, license: notice };
       }
       // Data/text formats are produced from the input model (and optional sibling
       // text templates), not the rendered DOM. The engine hydrates the text here

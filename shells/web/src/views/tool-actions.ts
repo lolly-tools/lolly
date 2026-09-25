@@ -322,8 +322,9 @@ function renderActions(
   // change what preflight sees (a paginate source table gaining a row), so re-run
   // on every input change as well as on every format/size/print-setting change.
   // Cheap: one pure synchronous pass over a plain object.
-  runtime.subscribe(() => ta.preflight.refreshPreflight());
+  runtime.subscribe(() => { ta.preflight.refreshPreflight(); ta.audio.syncCaptionsAvailable(); });
   ta.preflight.refreshPreflight();
+  ta.audio.syncCaptionsAvailable();
 
   // ── Artboards are the size truth; the bar mirrors the ACTIVE artboard ────────
   // (plans/142 WP-B). free-canvas fires `fc-artboard` (bubbling from the canvas)

@@ -155,10 +155,13 @@ test('the add menu offers a 3D scene whose seed is a scene box', () => {
 test('scene is field 101 of design:boxes and the wire-order pin ratcheted with it', () => {
   const current: string[] = boxesField.fields.map((f: { id: string }) => f.id);
   const pinned = wireOrder.inputs['design:boxes']!;
-  assert.equal(current.length, 108, 'text ownership, paint, credits and wrap append fields');
+  assert.equal(current.length, 112, 'text ownership, paint, credits, wrap and the slide-master binding append fields');
   assert.equal(current[103], 'textStory');
   assert.equal(current[104], 'textFrame');
-  assert.deepEqual(current.slice(105), ['pathPaint', 'vectorSource', 'textWrap']);
+  assert.deepEqual(current.slice(105, 108), ['pathPaint', 'vectorSource', 'textWrap']);
+  // Plan 274: a box bound to a slide master's placeholder carries the master, its role,
+  // whether it is furniture, and the archetype it was laid out from.
+  assert.deepEqual(current.slice(108), ['master', 'role', 'furniture', 'archetype']);
   assert.equal(current[101], 'animationId');
   assert.equal(current[102], 'animationEdits');
   assert.equal(current[100], 'scene', 'scene is the 101st field, appended after plainText');

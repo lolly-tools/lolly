@@ -1,0 +1,453 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* ── The specification browser (#/document-model, plan 276 section 1D) ────────
+   Two columns: the chapter rail on the left, one chapter on the right.
+
+   The rail IS the panel primitive (plans/273, styles/parts/panel.css): .lp, its
+   head, its scroll, its bands, its sections and its caret. Three things are said
+   again here because each is a real difference from a control column:
+
+     · the section head is a DIV holding a link and a fold button, not one
+       button, because picking a chapter and peeking at its headings are two
+       different acts. So .dm-head restates the grid with its own columns;
+     · a chapter number takes the glyph cell, which is narrower than a glyph;
+     · the rail sticks to the viewport while the page scrolls, so .lp's own
+       full-height box is replaced by a sticky one.
+
+   A fourth, .dm-search, is NOT a difference: it is the fifth private copy of the
+   shell's search field, and it is here only because the panel primitive has no
+   search field yet. When one is added to panel.css, .dm-search, .dm-search-icon,
+   .dm-search-input and .dm-search-clear should be deleted for it.
+
+   The chapter's prose is styled by styles/parts/docs.css: the rehosted fragment
+   keeps its `docs-content` class, so headings, paragraphs, tables and code read
+   exactly as they do in the documentation reader. Everything below is placement.
+
+   UNLAYERED, like panel.css and docs.css beside it, so the three sit in one
+   cascade band and .dm-head can out-specify .lp-sec-head.
+
+   Tokens only: --sp-* for spacing, --fs-* and --ui-type-* for size, --ui-color-*
+   for ink and surface, --ui-radius-* for corners, --ui-edge-* and
+   --ui-elevation-* for any paint. There is no second scale here and there must
+   not be one. (Never write a star followed by a slash in a CSS comment: it ends
+   the comment there, and the rules that follow are eaten silently.) */
+
+.dm-view {
+  min-height: 100%;
+  color: var(--ui-color-text-default);
+}
+/* An author `display` beats the UA's `[hidden] { display: none }`, and several
+   rows below set one. Scoped to the layout, not to the route class, so the rule
+   holds wherever the view is mounted. */
+.dm-layout [hidden] { display: none !important; }
+
+.dm-layout {
+  /* Clearance for the FIXED chrome row (back-pill island left, home/theme cluster
+     right), derived exactly as the documentation reader derives it (docs.css):
+     --chrome-top carries --safe-top on a notched phone and --chrome-h grows with
+     Dynamic Type and largeText, so a static top padding under-clears on the
+     devices that need it most. Declared here as well as there, because this view
+     is mounted on its own, outside .docs-reader. */
+  --docs-chrome-clear: calc(var(--chrome-top, 0.75rem) + var(--chrome-h, 2.6rem) + 1.5rem);
+  display: grid;
+  grid-template-columns: minmax(0, 17rem) minmax(0, 1fr);
+  gap: var(--sp-8);
+  align-items: start;
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: var(--docs-chrome-clear) var(--sp-5) var(--ui-space-section);
+}
+
+/* The docs token bridge declares `--border: hsl(var(--border))` on .docs-content,
+   and a custom property that refers to itself is invalid at computed-value time,
+   so every `1px solid var(--border)` in the prose sheet resolves to nothing: no
+   rule under a chapter title, no rule over an h2. Read the composed app token
+   instead, at a specificity the bridge cannot beat. */
+.dm-layout .docs-content { --border: var(--ui-color-border-default); }
+
+/* ── The rail ─────────────────────────────────────────────────────────────── */
+
+.dm-nav {
+  position: sticky;
+  top: var(--sp-7);
+  height: auto;
+  max-height: calc(100dvh - var(--sp-8) * 2);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-panel);
+  overflow: hidden;
+}
+.dm-nav .lp-head { gap: var(--sp-3); }
+
+.dm-search {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: var(--sp-3);
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-control);
+  background: var(--ui-color-surface-canvas);
+}
+.dm-search:focus-within { box-shadow: var(--ui-effect-focus-halo); }
+.dm-search-icon {
+  flex: none;
+  display: inline-flex;
+  color: var(--ui-color-text-muted);
+}
+.dm-search-icon svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+.dm-search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--ui-size-control);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--ui-color-text-default);
+  font: inherit;
+  font-size: var(--ui-type-label);
+}
+.dm-search-input:focus { outline: none; }
+/* The styled focus is the wrapper's halo, which is a 15% wash: enough as a hint
+   beside a caret, not enough on its own for a keyboard user. The keyboard-only
+   state gets the same real ring every other field in the shell restates. */
+.dm-search-input:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.dm-search-input::placeholder { color: var(--ui-color-text-muted); }
+/* A way back to the full list, in place of the browser's own cancel control the
+   field no longer carries (the input is type=text, like the shared search box). */
+.dm-search-clear {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--ui-size-control);
+  height: var(--ui-size-control);
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-choice);
+  background: none;
+  color: var(--ui-color-text-muted);
+  cursor: pointer;
+}
+.dm-search-clear:hover {
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-default);
+}
+.dm-search-clear:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.dm-search-clear svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+
+/* A chapter row: number, name, fold. The name is a link and the caret is a
+   button, so the whole strip is not one hit area - hence the plain cursor, and
+   no hover wash on the row itself: the two real targets light on their own. */
+.lp-sec-head.dm-head {
+  grid-template-columns: auto minmax(0, 1fr) var(--ui-size-target);
+  gap: var(--sp-2);
+  align-items: start;
+  cursor: default;
+}
+.lp-sec-head.dm-head:hover { background: none; }
+.dm-num {
+  font-size: var(--ui-type-field);
+  font-weight: var(--ui-type-weight-label);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ui-type-tracking-label);
+  color: var(--ui-color-text-muted);
+}
+a.dm-chapter {
+  color: inherit;
+  text-decoration: none;
+}
+a.dm-chapter:hover { text-decoration: underline; }
+/* Twelve chapter names are the only thing telling one row from another, so a
+   long one wraps rather than being cut, which the panel primitive does by
+   default for a control column's section name. */
+.dm-head > a.dm-chapter {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.35;
+}
+a.dm-chapter[aria-current="page"] { color: var(--ui-color-action-primary); }
+.lp-sec-head.dm-head--current { background: var(--ui-color-selection-surface); }
+
+/* The house target size, not the glyph size: the row is already this tall, so a
+   16px button was a small island in the middle of it. */
+.dm-fold {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  width: var(--ui-size-target);
+  min-height: var(--ui-size-target);
+  margin-block: calc(var(--sp-2) * -1);
+  padding: 0;
+  border: 0;
+  border-radius: var(--ui-radius-choice);
+  background: none;
+  color: var(--ui-color-text-muted);
+  cursor: pointer;
+}
+.dm-fold .lp-caret { opacity: 1; }
+.dm-fold:hover {
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-default);
+}
+.dm-fold:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.dm-fold[disabled] { visibility: hidden; }
+.dm-fold[aria-expanded="false"] .lp-caret::before { transform: rotate(-45deg); }
+
+.dm-headings {
+  gap: 0;
+  padding-block: 0 var(--sp-2);
+}
+a.dm-heading {
+  display: block;
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--ui-radius-choice);
+  color: var(--ui-color-text-muted);
+  font-size: var(--ui-type-help);
+  line-height: 1.5;
+  text-decoration: none;
+}
+a.dm-heading[data-dm-level="3"] { padding-inline-start: var(--sp-5); }
+a.dm-heading:hover {
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-default);
+}
+a.dm-heading.dm-heading--current {
+  background: var(--ui-color-selection-surface);
+  color: var(--ui-color-text-default);
+}
+
+.dm-none {
+  margin: 0;
+  padding: var(--sp-4) var(--sp-3);
+  color: var(--ui-color-text-muted);
+  font-size: var(--ui-type-help);
+}
+
+.dm-passages { gap: var(--sp-2); }
+.dm-passage {
+  display: block;
+  width: 100%;
+  padding: var(--sp-2);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-choice);
+  background: none;
+  color: var(--ui-color-text-muted);
+  font: inherit;
+  font-size: var(--ui-type-help);
+  line-height: 1.5;
+  text-align: start;
+  cursor: pointer;
+}
+.dm-passage:hover {
+  background: var(--ui-color-surface-muted);
+  color: var(--ui-color-text-default);
+}
+/* The matched term, so a row says why it is in the list. */
+.dm-passage mark {
+  background: var(--ui-color-selection-surface);
+  color: var(--ui-color-text-default);
+}
+.dm-passage:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+
+/* ── The chapter ──────────────────────────────────────────────────────────── */
+
+.dm-content { min-width: 0; }
+.dm-content .docs-content { max-width: 46rem; }
+
+.dm-status {
+  margin: 0;
+  padding: var(--sp-7) 0;
+  color: var(--ui-color-text-muted);
+  font-size: var(--ui-type-body);
+}
+
+/* The draft notice. A tinted panel with one edge all the way round, never a
+   single-sided bar: a one-sided border reads as a quote, and this is a claim
+   about the whole chapter. */
+.dm-draft {
+  margin: var(--sp-4) 0 var(--sp-6);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-color-status-notice-surface);
+}
+/* Two lines of ONE note. docs.css gives every `.docs-content p` a 1.5rem bottom
+   margin at the same specificity and from the same unlayered band, so this
+   selector carries the class the notice is on to win the tie. */
+.dm-draft .dm-draft-line {
+  margin: 0;
+  color: var(--ui-color-text-default);
+  font-size: var(--ui-type-label);
+  line-height: 1.6;
+}
+.dm-draft-line + .dm-draft-line { color: var(--ui-color-text-muted); }
+
+/* The heading a ?h= link asked for, and the passage the rail scrolled to. The
+   tint alone is the same wash the rail uses for two other current states, and
+   after a jump down a long chapter it is not enough to find the spot, so the
+   marker carries the selection ring as well. A shadow rather than a border,
+   because a shadow paints outside the box and moves no text. */
+.dm-target,
+.dm-hit {
+  border-radius: var(--ui-radius-control);
+  padding-inline-start: var(--sp-3);
+  background: var(--ui-color-selection-surface);
+  box-shadow: var(--ui-effect-selection-ring);
+  transition: background var(--ui-motion-navigation) var(--ui-motion-standard),
+              box-shadow var(--ui-motion-navigation) var(--ui-motion-standard);
+}
+@media (prefers-reduced-motion: reduce) {
+  .dm-target, .dm-hit { transition: none; }
+}
+html[data-a11y-motion="reduce"] .dm-target,
+html[data-a11y-motion="reduce"] .dm-hit { transition: none; }
+
+/* ── Contents, pager and the source link ──────────────────────────────────── */
+
+.dm-toc {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: dm-chapter;
+}
+.dm-toc-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  padding: var(--sp-3) 0;
+  border-top: 1px solid var(--ui-color-border-default);
+  counter-increment: dm-chapter;
+}
+/* A divider run needs a line at both ends, or the list trails off. */
+.dm-toc-row:last-child { border-bottom: 1px solid var(--ui-color-border-default); }
+.dm-toc-row::before {
+  content: counter(dm-chapter, decimal-leading-zero);
+  flex: none;
+  min-width: 2ch;
+  color: var(--ui-color-text-muted);
+  font-size: var(--ui-type-field);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: var(--ui-type-tracking-label);
+}
+/* The contents is the one page whose own content is set SMALLER than the prose
+   around it everywhere else, under a 48px title. The two reading sizes on the
+   --ui-type scale sit between the title and the count. */
+.dm-toc-link {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--ui-type-lead);
+}
+.dm-toc-count {
+  flex: none;
+  color: var(--ui-color-text-muted);
+  font-size: var(--ui-type-body);
+  font-variant-numeric: tabular-nums;
+}
+
+.dm-pager {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-4);
+  max-width: 46rem;
+  margin-top: var(--ui-space-panel);
+}
+/* Navigation, not an action: no border and no raised fill, and each step
+   carries the direction it goes in the glyph cell this surface reserves. */
+.dm-step {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--ui-size-target);
+  padding: var(--sp-3) var(--sp-4);
+  border: 0;
+  border-radius: var(--ui-radius-panel);
+  background: none;
+  color: var(--ui-color-text-default);
+  text-decoration: none;
+}
+.dm-step-words {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+.dm-step-glyph {
+  flex: none;
+  display: inline-flex;
+  color: var(--ui-color-action-primary);
+}
+.dm-step-glyph svg { width: var(--ui-size-icon-md); height: var(--ui-size-icon-md); }
+.dm-step:hover { background: var(--ui-color-surface-muted); }
+.dm-step:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.dm-step--next {
+  justify-content: flex-end;
+  text-align: end;
+}
+.dm-step--empty { background: none; }
+.dm-step-kind {
+  color: var(--ui-color-text-muted);
+  font-size: var(--ui-type-field);
+  font-weight: var(--ui-type-weight-label);
+  text-transform: uppercase;
+  letter-spacing: var(--ui-type-tracking-label);
+}
+.dm-step-name { font-size: var(--ui-type-label); }
+
+.dm-source {
+  max-width: 46rem;
+  margin: var(--sp-5) 0 0;
+  font-size: var(--ui-type-help);
+}
+.dm-source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--ui-color-action-primary);
+}
+.dm-source-glyph { display: inline-flex; }
+.dm-source-glyph svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+.dm-status-link { color: var(--ui-color-action-primary); }
+
+/* ── Narrow ───────────────────────────────────────────────────────────────── */
+
+@media (max-width: 60rem) {
+  .dm-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sp-6);
+    padding-inline: var(--sp-7);
+  }
+  /* Stacked, the rail is a list UNDER the chapter rather than a wall in front of
+     it: source order puts the rail first, which costs a phone reader a full
+     screen of contents before the first sentence of every chapter they open. It
+     neither sticks nor holds its own scroll down here either. */
+  .dm-content { order: 1; }
+  .dm-nav {
+    order: 2;
+    position: static;
+    max-height: none;
+  }
+  .dm-nav .lp-scroll { overflow-y: visible; }
+  .dm-pager { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* The Draft pill in a page title: one word in the notice tone, the sentence in its
+   title and label. Sized from the label type so it sits on the title's line. */
+.dm-pill {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  margin-inline-start: var(--sp-2);
+  padding: 2px var(--sp-2);
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--radius-pill);
+  background: var(--ui-color-status-notice-surface);
+  color: var(--ui-color-text-default);
+  font-size: var(--ui-type-label);
+  font-weight: var(--ui-type-weight-label);
+  line-height: 1.4;
+  letter-spacing: 0;
+  white-space: nowrap;
+}

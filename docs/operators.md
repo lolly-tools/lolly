@@ -39,7 +39,7 @@ The usual way routine creative work gets done is a liability surface: files emai
 - **[Verify It Yourself](/info/verify-yourself.html)** - check the claims against a real export, step by step, with nothing you cannot run yourself.
 - **[Privacy Policy](/info/privacy.html)** - the formal statement of what is and is not collected, stored and sent.
 - **[Sovereign creative production](/info/sovereign-production.html)** - air-gapped deployment, consent-gated networking and on-device signing.
-- **[Adoption & Governance](/info/adoption-governance.html)** - who approves a tool, how brand rules become enforceable and what the catalog-as-a-repository option buys you.
+- **[Adoption & Governance](/info/adoption-governance.html)** - how brand rules become enforceable, what a shared catalog adds and what the catalog-as-a-repository option buys you.
 
 ## Legal
 

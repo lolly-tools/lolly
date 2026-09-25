@@ -141,7 +141,7 @@
       "label": "Trim margins",
       "type": "boolean",
       "default": true,
-      "help": "Crop each logo to its artwork - transparent or flat-colour margins are measured away (SVGs included, still fully vector) so every logo fits its cell by its real content. Turn off if a logo's clear-space padding is deliberate."
+      "help": "Crop each logo to its artwork - transparent or flat-colour margins are measured away (SVGs included, still fully vector), and each logo then fits its cell by real content. Turn off if a logo's clear-space padding is deliberate."
     },
     {
       "id": "knockout",

@@ -39,7 +39,7 @@ Ang karaniwang paraan ng paggawa ng routine na creative work ay isang liability 
 - **[I-verify Mo Mismo](/info/verify-yourself.html)** - suriin ang mga claim laban sa isang tunay na export, hakbang-hakbang, walang bagay na hindi mo mismo kayang patakbuhin.
 - **[Patakaran sa Privacy](/info/privacy.html)** - ang pormal na pahayag kung ano ang kinokolekta at hindi kinokolekta, iniimbak at ipinapadala.
 - **[Soberanong Paggawa ng Creative](/info/sovereign-production.html)** - air-gapped na deployment, consent-gated na networking at on-device signing.
-- **[Pag-ampon at Pamamahala](/info/adoption-governance.html)** - sino ang nag-a-approve ng isang tool, paano nagiging enforceable ang mga alituntunin ng brand at ano ang naidudulot sa iyo ng opsyong catalog-as-a-repository.
+- **[Pag-ampon at Pamamahala](/info/adoption-governance.html)** - paano nagiging enforceable ang mga alituntunin ng brand, ano ang idinaragdag ng isang shared catalog at ano ang naidudulot sa iyo ng opsyong catalog-as-a-repository.
 
 ## Legal
 

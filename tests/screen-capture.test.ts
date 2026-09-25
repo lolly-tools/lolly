@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.217.0', () => {
+test('ENGINE_VERSION is 1.225.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) - this catches an errant bump.
@@ -502,8 +502,19 @@ test('ENGINE_VERSION is 1.217.0', () => {
   // 1.213.0 adds still JPEG XL export; capture is unchanged.
   // 1.214.0 adds float editing and runtime emoji artwork; capture is unchanged.
   // 1.216.0 adds semantic table editing and presentation kits; capture is unchanged.
-  // 1.217.0 adds authored text composition and vector paint; capture is unchanged.
-  assert.equal(ENGINE_VERSION, '1.217.0');
+  // 1.219.0 adds the deck census, the renovation first pass and the renovate compile;
+  // capture is unchanged.
+  // 1.220.0 adds the rebrand review model, plan edits and design-system resolution;
+  // capture is unchanged.
+  // 1.221.0 tunes the rebrand census, compile and masters; 1.222.0 fixes PDF word
+  // breaks and column order and adds flattened-slide regions; capture is unchanged.
+  // 1.223.0 adds the slide layout library, formatted text into Design and picture-deck
+  // reading; capture is unchanged.
+  // 1.224.0 adds the layout matcher and Auto-match, vectors as items, slide arrangements and
+  // deck themes; capture is unchanged.
+  // 1.225.0 fits text before calling it cut, sets renovated text in the design system
+  // face, reads chart labels as text and finishes deck themes; capture is unchanged.
+  assert.equal(ENGINE_VERSION, '1.225.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

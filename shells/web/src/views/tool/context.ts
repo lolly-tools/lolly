@@ -78,6 +78,8 @@ export interface ToolViewCtx {
   autoCopy: boolean;
   routeSlot: UrlState['slot'];
   urlFilename: UrlState['filename'];
+  /** The `licence` param this mount was routed with, verbatim (null when absent). */
+  urlLicence: string | null;
   urlWidth: UrlState['width'];
   urlHeight: UrlState['height'];
   urlUnit: string | null;

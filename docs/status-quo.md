@@ -2,7 +2,7 @@
 
 Nobody sat us down and offered us the deal. It arrived one tool at a time, each step reasonable on its own, until the normal way to resize an image was to send it to a company none of us have met.
 
-This page is about that accumulation. Not about villains, because most of it was built by people making sensible decisions inside incentives that pointed one way. The incentives are the problem, and this page names them.
+This page is about that accumulation. Not about villains, because most of it was built by people making sensible decisions inside incentives that pointed one way. The incentives are the problem, and this page lists them.
 
 ::: cols
 ## We did this easily

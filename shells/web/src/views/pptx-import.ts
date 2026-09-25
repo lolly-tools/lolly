@@ -21,20 +21,25 @@
  * both are imported lazily inside ingestPptxAsSvgAssets.
  */
 
-import { EMU_PER_PX, finalizeBoxes, isPptx, readPptx } from '@lolly/engine';
+import {
+  EMU_PER_PX, MAX_VECTOR_PATH_CHARS_PER_DOCUMENT, cropVectorItems, cropViewBox, custGeomItems, designTextOf,
+  extractSvgColors, finalizeBoxes, isPptx, readPptx, svgItemsOf, vectorItemsDocument, vectorItemsSvg,
+  vectorItemsToRows, vectorRowNameParts, vectorRowsPathChars,
+} from '@lolly/engine';
 import type { PageText, TextBlock } from '@lolly/engine';
+import type { DesignBoxRowV1, SourceParaV1, SourceRunV1, VectorItemsV1 } from '@lolly-tools/core';
 import type { DesignMapOptions } from '../../../../engine/src/design-map.ts';
 import { inflatePptx } from '../bridge/pptx.ts';
 import { bytesToBase64 } from '../lib/util/bytes.ts';
 import { rasterSize } from './svg-unpack.ts';
 import { parseFontMetadata, detectFontFormat, readFontEmbedding } from '../lib/font-utils.ts';
 import type {
-  PptxDeckRead, PptxParts, PptxReadColor, PptxReadPara, PptxReadSlide, PptxReadTheme,
+  PptxDeckRead, PptxParts, PptxReadColor, PptxReadNode, PptxReadPara, PptxReadSlide, PptxReadTheme,
   PptxPicNode, PptxShapeNode, PptxTableNode, PptxTextNode,
 } from '../../../../engine/src/pptx-read.ts';
 import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
 // Type-only - erased at runtime, so this does NOT load the pdf-lib chunk.
-import type { PdfHandle, PdfPageSvg, PdfPageFrame, PickPagesIntent, EmbeddedImage, EmbeddedImageScan, EmbeddedFont } from './pdf-import.ts';
+import type { PdfHandle, PdfPageSvg, PdfPageFrame, PickPagesIntent, EmbeddedImage, EmbeddedImageScan, EmbeddedFont, ExtractedVector } from './pdf-import.ts';
 
 // ── rendering constants ────────────────────────────────────────────────────────
 
@@ -50,6 +55,10 @@ const MAX_TABLE_COLS = 12;
 const TABLE_TEXT_PT = 11;
 const PLACEHOLDER_FILL = '#e8e8e8';
 const PLACEHOLDER_INK = '#8a8a8a';
+/** Drawings Unpack lists from one deck at most: the PDF handle's own ceiling (`PDF_MAX_VECTORS`). */
+const MAX_DECK_VECTORS = 40;
+/** An SVG part larger than this is not read into items; the picture stands. */
+const MAX_SVG_PART_BYTES = 4 * 1024 * 1024;
 
 // ── small helpers (mirror pdf-import.ts) ───────────────────────────────────────
 
@@ -75,6 +84,12 @@ export interface PptxSlideRenderOpts {
   /** Resolve a media part path (e.g. "ppt/media/image1.png") to an inlineable
    *  data: URI - null when missing, oversized, or not png/jpeg. */
   getMedia: (path: string) => { dataUrl: string } | null;
+  /**
+   * A picture's SVG part read as items (plan 275 decision 32), or null when it cannot
+   * be. With it, a picture that carries an SVG is drawn as that drawing, crisp at every
+   * size, instead of its raster stand-in.
+   */
+  getVector?: (path: string) => VectorItemsV1 | null;
 }
 
 interface RenderCtx {
@@ -83,6 +98,7 @@ interface RenderCtx {
   /** Body typeface fallback: theme minorFont, else sans-serif. */
   bodyFont: string;
   getMedia: PptxSlideRenderOpts['getMedia'];
+  getVector?: PptxSlideRenderOpts['getVector'];
 }
 
 /**
@@ -101,6 +117,7 @@ export function pptxSlideToSvg(slide: PptxReadSlide, opts: PptxSlideRenderOpts):
     ink: opts.theme.colors.dk1 ? `#${opts.theme.colors.dk1}` : '#000000',
     bodyFont: opts.theme.minorFont || 'sans-serif',
     getMedia: opts.getMedia,
+    ...(opts.getVector ? { getVector: opts.getVector } : {}),
   };
 
   let elementCount = 0;
@@ -138,10 +155,41 @@ export function pptxSlideToSvg(slide: PptxReadSlide, opts: PptxSlideRenderOpts):
   return { svg, width, height, elementCount };
 }
 
+/**
+ * A drawing's items as a nested `<svg>` over the node's box. The items are the
+ * drawing's own shapes in its own space; the nested viewport stretches that space
+ * onto the box the way PowerPoint stretches a picture onto its frame. The markup is
+ * rebuilt from the items, so nothing the source file held reaches the page unread.
+ */
+function nestedVector(items: VectorItemsV1, x: number, y: number, w: number, h: number): string {
+  const vb = items.viewBox;
+  if ((!(vb.w > 0) && !(vb.h > 0)) || !items.items.length) return '';
+  // A straight freeform line has no size on one axis: that axis is drawn 1 unit wide,
+  // and the viewport lets its stroke show past it.
+  if (!(vb.w > 0) || !(vb.h > 0)) {
+    return `<svg x="${r(x)}" y="${r(y)}" width="${r(Math.max(1, w))}" height="${r(Math.max(1, h))}" viewBox="${r(vb.x)} ${r(vb.y)} ${r(vb.w > 0 ? vb.w : 1)} ${r(vb.h > 0 ? vb.h : 1)}" preserveAspectRatio="none" overflow="visible">${vectorItemsSvg(items)}</svg>`;
+  }
+  return `<svg x="${r(x)}" y="${r(y)}" width="${r(w)}" height="${r(h)}" viewBox="${r(vb.x)} ${r(vb.y)} ${r(vb.w)} ${r(vb.h)}" preserveAspectRatio="none">${vectorItemsSvg(items)}</svg>`;
+}
+
+/** A shape's custom geometry as items in its own box, with its fill and outline. */
+function custGeomOf(node: PptxShapeNode | PptxTextNode, w: number, h: number): VectorItemsV1 | null {
+  if (!node.custGeom) return null;
+  const fill = node.fill?.hex ? { hex: `#${node.fill.hex}`, ...(node.fill.alpha !== undefined ? { alpha: node.fill.alpha } : {}) } : undefined;
+  const lineNode = node.type === 'shape' ? node : undefined;
+  const line = lineNode?.line?.hex
+    ? { color: { hex: `#${lineNode.line.hex}`, ...(lineNode.line.alpha !== undefined ? { alpha: lineNode.line.alpha } : {}) }, widthPx: (lineNode.lineWidthPt ?? 0.75) * PX_PER_PT }
+    : undefined;
+  const items = custGeomItems(node.custGeom, { w, h }, { ...(fill ? { fill } : {}), ...(line ? { line } : {}) });
+  return items.items.length ? items : null;
+}
+
 function renderShape(node: PptxShapeNode, x: number, y: number, w: number, h: number): string {
   const fill = hexAttr(node.fill);
   const line = hexAttr(node.line);
   if (!fill && !line) return ''; // nothing visible - skip the node entirely
+  const drawn = custGeomOf(node, w, h);
+  if (drawn) return nestedVector(drawn, x, y, w, h);
   const paint = ` fill="${fill ?? 'none'}"${line ? ` stroke="${line}" stroke-width="1.5"` : ''}`;
   if (node.geom === 'ellipse') {
     return `<ellipse cx="${r(x + w / 2)}" cy="${r(y + h / 2)}" rx="${r(w / 2)}" ry="${r(h / 2)}"${paint}/>`;
@@ -183,6 +231,13 @@ function renderText(node: PptxTextNode, x: number, y: number, ctx: RenderCtx): s
 }
 
 function renderPic(node: PptxPicNode, x: number, y: number, w: number, h: number, ctx: RenderCtx): string {
+  const read = node.svg && ctx.getVector ? ctx.getVector(node.svg) : null;
+  // A cropped picture shows the part of the drawing its crop leaves; the nested
+  // viewport clips the rest, as PowerPoint does.
+  const shown = read && node.srcRect ? cropViewBox(read.viewBox, node.srcRect) : read?.viewBox;
+  const items = read && shown ? { ...read, viewBox: shown } : null;
+  const drawn = items ? nestedVector(items, x, y, w, h) : '';
+  if (drawn) return drawn;
   const media = node.media ? ctx.getMedia(node.media) : null;
   if (media) {
     return `<image x="${r(x)}" y="${r(y)}" width="${r(w)}" height="${r(h)}" preserveAspectRatio="none" href="${xmlEsc(media.dataUrl)}"/>`;
@@ -255,6 +310,8 @@ export async function openPptxFile(file: File | Blob, inflated?: PptxParts): Pro
     return out;
   };
 
+  const getVector = vectorReader(parts, (xml) => new DOMParser().parseFromString(xml, 'image/svg+xml'));
+
   const cache = new Map<number, PdfPageSvg>();
   return {
     pageCount: deck.slides.length,
@@ -264,7 +321,7 @@ export async function openPptxFile(file: File | Blob, inflated?: PptxParts): Pro
       const slide = deck.slides[index];
       if (!slide) throw new Error(`No slide ${index + 1} in this deck.`);
       const out = pptxSlideToSvg(slide, {
-        widthEmu: deck.widthEmu, heightEmu: deck.heightEmu, theme: deck.theme, getMedia,
+        widthEmu: deck.widthEmu, heightEmu: deck.heightEmu, theme: deck.theme, getMedia, getVector,
       });
       cache.set(index, out);
       return out;
@@ -278,10 +335,50 @@ export async function openPptxFile(file: File | Blob, inflated?: PptxParts): Pro
     listImages(): Promise<EmbeddedImageScan> {
       return Promise.resolve(deckImages(deck, parts));
     },
+    listVectors({ maxPages }: { maxPages?: number } = {}): Promise<ExtractedVector[]> {
+      return Promise.resolve(deckVectors(deck, parts, getVector, maxPages));
+    },
     listFonts(): EmbeddedFont[] {
       return deckFonts(deck, parts);
     },
   };
+}
+
+/**
+ * Reads a picture's SVG part into items, once per part (plan 275 decision 32). Null for
+ * a part that is missing, larger than `MAX_SVG_PART_BYTES`, or holds nothing the items
+ * can carry, so the caller falls back to the raster.
+ */
+export function vectorReader(
+  parts: Record<string, Uint8Array | string>,
+  parseXml: (xml: string) => Document,
+): (path: string) => VectorItemsV1 | null {
+  const cache = new Map<string, VectorItemsV1 | null>();
+  return (path: string): VectorItemsV1 | null => {
+    const hit = cache.get(path);
+    if (hit !== undefined) return hit;
+    const text = svgPartText(parts, path);
+    let items: VectorItemsV1 | null = null;
+    if (text) {
+      try {
+        const read = svgItemsOf(text, parseXml);
+        items = read.items.length ? read : null;
+      } catch {
+        items = null;
+      }
+    }
+    cache.set(path, items);
+    return items;
+  };
+}
+
+/** An SVG part as text, or null when it is missing or too large to read. */
+function svgPartText(parts: Record<string, Uint8Array | string>, path: string): string | null {
+  const raw = parts[path];
+  if (raw === undefined) return null;
+  if (typeof raw === 'string') return raw.length <= MAX_SVG_PART_BYTES ? raw : null;
+  if (!raw.length || raw.length > MAX_SVG_PART_BYTES) return null;
+  return new TextDecoder().decode(raw);
 }
 
 // ── Unpack extraction passes (over the same read model) ──────────────────────────
@@ -357,6 +454,122 @@ export function deckImages(deck: { slides: PptxReadSlide[] }, parts: Record<stri
     }
   });
   return { images, skipped: 0, skippedFilters: [] };
+}
+
+/**
+ * One drawing Unpack lists from a deck (plan 275 decision 32): the PDF handle's
+ * `ExtractedVector`, with what the drawing is. A `mark` is the template's own (a
+ * picture the layout or master places, or one repeated on most slides), which the
+ * Logos room takes; a `drawing` is slide content, a chart or an illustration.
+ */
+export interface PptxExtractedVector extends ExtractedVector {
+  kind: 'mark' | 'drawing';
+  /** The drawing's own name for itself, its SVG `<title>`, when it states one. */
+  title?: string;
+}
+
+/**
+ * A freeform's outline as fractions of its own path space, to two decimals, so the same
+ * mark written at a slightly different size on another slide keys the same. The path
+ * data holds coordinate pairs only (M, L, C and Z), so every pair scales by w and h.
+ */
+function outlineKey(paths: ReadonlyArray<{ d: string; w: number; h: number }>): string {
+  return paths.map((path) => {
+    let i = 0;
+    return path.d.replace(/-?\d+(?:\.\d+)?/g, (raw) => {
+      const scaled = Number(raw) / (i++ % 2 === 0 ? path.w : path.h);
+      return Number.isFinite(scaled) ? scaled.toFixed(2) : raw;
+    });
+  }).join('|');
+}
+
+/** Source markup that could act when shown: a script, an embedded document, a handler or a script URL. */
+const ACTIVE_SVG = /<script\b|<foreignObject\b|\son[a-z]+\s*=|javascript:/i;
+
+/**
+ * Every drawing in a deck as a vector to download: each picture that carries an SVG
+ * beside its raster, and each shape drawn with custom geometry, the slide's own and the
+ * furniture it inherits. One entry per distinct drawing (the same mark on every slide is
+ * listed once, on the first slide it appears on), at most `MAX_DECK_VECTORS`. A picture
+ * offers its SVG as the deck stored it, which keeps its title, its credits and its
+ * provenance, unless that markup could act when shown; then, like a freeform, it offers
+ * the drawing rebuilt from its items.
+ */
+export function deckVectors(
+  deck: { slides: PptxReadSlide[] },
+  parts: Record<string, Uint8Array | string>,
+  getVector: (path: string) => VectorItemsV1 | null,
+  maxPages?: number,
+): PptxExtractedVector[] {
+  const slides = deck.slides.slice(0, Math.max(0, Math.min(deck.slides.length, maxPages ?? deck.slides.length)));
+  interface Found { key: string; slides: Set<number>; first: number; inherited: boolean; make: () => PptxExtractedVector | null }
+  const found = new Map<string, Found>();
+  const note = (key: string, page: number, inherited: boolean, make: Found['make']): void => {
+    const hit = found.get(key);
+    if (hit) {
+      hit.slides.add(page);
+      hit.inherited ||= inherited;
+      return;
+    }
+    found.set(key, { key, slides: new Set([page]), first: page, inherited, make });
+  };
+  slides.forEach((slide, page) => {
+    const inherited = new Set<PptxReadNode>(slide.inherited ?? []);
+    for (const node of [...(slide.inherited ?? []), ...slide.nodes]) {
+      if (node.type === 'pic' && node.svg) {
+        const svgPath = node.svg;
+        const text = svgPartText(parts, svgPath);
+        if (!text) continue;
+        note(`svg:${text}`, page, inherited.has(node), () => {
+          const items = getVector(svgPath);
+          if (!items) return null;
+          const svg = ACTIVE_SVG.test(text) ? vectorItemsDocument(items) : text;
+          const vector: PptxExtractedVector = {
+            svg,
+            width: Math.round(items.viewBox.w),
+            height: Math.round(items.viewBox.h),
+            page,
+            fills: extractSvgColors(vectorItemsDocument(items)),
+            shapes: items.items.length,
+            reason: 'an embedded SVG picture',
+            kind: 'drawing',
+          };
+          if (items.title) vector.title = items.title;
+          return vector;
+        });
+      } else if ((node.type === 'shape' || node.type === 'text') && node.custGeom) {
+        const w = Math.max(1, px(node.cxEmu));
+        const h = Math.max(1, px(node.cyEmu));
+        const items = custGeomOf(node, w, h);
+        if (!items) continue;
+        const svg = vectorItemsDocument(items);
+        // Keyed by the outline in its own path space and its paint, so the same mark a
+        // hair larger on one slide is still the same mark.
+        const paint = `${node.fill?.hex ?? ''}|${node.type === 'shape' ? node.line?.hex ?? '' : ''}`;
+        note(`geom:${outlineKey(node.custGeom.paths)}|${paint}`, page, inherited.has(node), () => ({
+          svg,
+          width: Math.round(w),
+          height: Math.round(h),
+          page,
+          fills: extractSvgColors(svg),
+          shapes: items.items.length,
+          reason: 'a custom-geometry shape',
+          kind: 'drawing',
+        }));
+      }
+    }
+  });
+  const out: PptxExtractedVector[] = [];
+  const mostSlides = Math.max(2, Math.ceil(slides.length / 2));
+  for (const entry of [...found.values()].sort((a, b) => a.first - b.first)) {
+    if (out.length >= MAX_DECK_VECTORS) break;
+    const vector = entry.make();
+    if (!vector) continue;
+    // The template's own picture, or one repeated on most slides, is a mark.
+    if (entry.inherited || (slides.length >= 3 && entry.slides.size >= mostSlides)) vector.kind = 'mark';
+    out.push(vector);
+  }
+  return out;
 }
 
 /** Fonts the deck names. An embedded `ppt/fonts/*.fntdata` whose bytes are a readable
@@ -524,6 +737,19 @@ export interface PptxNodeMapOpts {
   theme: PptxReadTheme;
   /** A media part path → an already-STORED asset ref (the caller owns the store). */
   resolveMedia: PptxMediaResolver;
+  /**
+   * A picture's SVG part read as items (see `vectorReader`). With it, a picture that
+   * carries an SVG becomes the drawing's own shapes, one editable box per part in one
+   * group (plan 275 decision 32), instead of its raster stand-in.
+   */
+  getVector?: (path: string) => VectorItemsV1 | null;
+  /**
+   * Characters of path data the document has taken from drawings so far, shared by
+   * every slide of one import. Past `MAX_VECTOR_PATH_CHARS_PER_DOCUMENT` a drawing
+   * keeps its picture, so the document stays small enough for Design to keep its
+   * history. A slide mapped on its own starts from 0.
+   */
+  vectorBudget?: { chars: number };
 }
 
 /** A design node as this module builds it - the engine's DesignNode, loosely. */
@@ -532,6 +758,48 @@ export type PptxDesignNode = Record<string, unknown>;
 /** Boxes a slide may map to before the tail is dropped - a text-heavy table alone
  *  can want hundreds, and Design is an editor, not a spreadsheet. */
 export const MAX_SLIDE_NODES = 160;
+
+/** A style token the source model carries (an underline kind, a numbering scheme): letters only. */
+const STYLE_TOKEN = /^[A-Za-z]{1,32}$/;
+
+/**
+ * The reader's paragraphs in the source model's shape, which `designTextOf` writes
+ * Design's text subset from: the same conversion the rebrand source adapter makes, so
+ * a deck imported here and one renovated there carry their formatting alike.
+ */
+export function pptxParasToSource(paras: PptxReadPara[]): SourceParaV1[] {
+  return paras.map((para) => {
+    const out: SourceParaV1 = {
+      runs: para.runs.map((run) => {
+        const item: SourceRunV1 = { text: run.text };
+        if (run.bold) item.bold = true;
+        if (run.italic) item.italic = true;
+        if (run.underline) {
+          item.underline = true;
+          if (run.underlineStyle && STYLE_TOKEN.test(run.underlineStyle)) item.underlineStyle = run.underlineStyle;
+        }
+        if (run.strike) item.strike = true;
+        if (run.baseline) item.baseline = run.baseline;
+        if (run.cap === 'all') item.case = 'upper';
+        else if (run.cap === 'small') item.case = 'small-caps';
+        if (typeof run.sizePt === 'number') item.sizePt = run.sizePt;
+        if (run.font) item.font = run.font;
+        if (run.color?.hex && /^[0-9a-fA-F]{6}$/.test(run.color.hex)) item.color = { hex: `#${run.color.hex}` };
+        if (run.href) item.href = run.href;
+        return item;
+      }),
+    };
+    if (typeof para.lvl === 'number' && para.lvl > 0) out.lvl = para.lvl;
+    if (para.bullet) out.bullet = para.bullet;
+    if (para.bullet === 'bullet' && para.bulletChar) out.bulletChar = para.bulletChar;
+    if (para.bullet === 'number') {
+      if (para.numberStyle && STYLE_TOKEN.test(para.numberStyle)) out.numberStyle = para.numberStyle;
+      if (typeof para.numberStart === 'number') out.numberStart = para.numberStart;
+    }
+    if (para.align) out.align = para.align;
+    return out;
+  });
+}
 
 /** Paragraph runs → the box's markdown-subset text: `**bold**`, `*italic*`, one
  *  line per paragraph (an empty paragraph keeps its blank line, as on the slide). */
@@ -566,6 +834,36 @@ export function pptxSlideToNodes(slide: PptxReadSlide, opts: PptxNodeMapOpts): P
   const ink = opts.theme.colors.dk1 ? `#${opts.theme.colors.dk1}` : '#000000';
   const bodyFont = opts.theme.minorFont || '';
   const out: PptxDesignNode[] = [];
+  let drawings = 0;
+  const budget = opts.vectorBudget ?? { chars: 0 };
+  /**
+   * A drawing's items as one group of rows at the node's own place and pose, stretched
+   * onto its box the way PowerPoint draws a picture. Each row travels on its node as
+   * `vectorRow`, and `withVectorRows` writes it over the box the mapper makes. False
+   * when the drawing has no rows to give, so the caller keeps its picture.
+   */
+  const pushDrawing = (items: VectorItemsV1, g: ReturnType<typeof geo>, node: PptxReadNode): boolean => {
+    const group = `vector:slide${slide.index + 1}.${drawings}`;
+    const made = vectorItemsToRows(items, {
+      x: g.x, y: g.y, w: g.w, h: g.h,
+      ...(g.rot ? { rot: g.rot } : {}),
+      ...(node.flipH ? { flipH: true } : {}),
+      ...(node.flipV ? { flipV: true } : {}),
+    }, { idPrefix: group, group, fit: 'fill' });
+    if (!('rows' in made) || out.length + made.rows.length > MAX_SLIDE_NODES) return false;
+    const chars = vectorRowsPathChars(made.rows);
+    if (budget.chars + chars > MAX_VECTOR_PATH_CHARS_PER_DOCUMENT) return false;
+    budget.chars += chars;
+    drawings += 1;
+    for (const row of made.rows) {
+      out.push({
+        kind: row.kind === 'text' ? 'text' : 'box',
+        x: row.x, y: row.y, w: Math.max(1, Number(row.w) || 1), h: Math.max(1, Number(row.h) || 1),
+        vectorRow: row,
+      });
+    }
+    return true;
+  };
   const geo = (n: { xEmu: number; yEmu: number; cxEmu: number; cyEmu: number; rot?: number }) => ({
     x: r(px(n.xEmu)), y: r(px(n.yEmu)), w: r(Math.max(1, px(n.cxEmu))), h: r(Math.max(1, px(n.cyEmu))),
     ...(n.rot ? { rot: r(n.rot) } : {}),
@@ -598,23 +896,37 @@ export function pptxSlideToNodes(slide: PptxReadSlide, opts: PptxNodeMapOpts): P
         const first = runs[0];
         const sized = runs.find((run) => typeof run.sizePt === 'number' && run.sizePt > 0);
         const pt = sized?.sizePt ?? DEFAULT_SIZE_PT;
+        // The runs travel in Design's text subset (plan 275 section 7.2), the same one a
+        // renovated deck carries: bold, italic, underline, strike and colour per run,
+        // bullets and numbers per paragraph. The box states weight 400 so a regular run
+        // is never drawn bold; a bold run carries its own marker.
+        const rich = designTextOf(pptxParasToSource(node.paras), { carryColour: true, rowWeight: 400 });
         // A slide-number field arrives as its `‹#›` token; on a board the number itself
         // is what was on the page.
-        const text = node.ph?.type === 'sldNum'
-          ? pptxParasToText(node.paras).replace(/‹#›/g, String(slide.index + 1))
-          : pptxParasToText(node.paras);
+        const text = node.ph?.type === 'sldNum' ? rich.text.replace(/‹#›/g, String(slide.index + 1)) : rich.text;
         const fill = hexAttr(node.fill);
         // Nothing to read AND nothing to see: skip. A filled but empty text shape is
         // still a shape (a colour bar drawn with the text tool), so it stays as a box.
         if (!text.trim() && !fill) break;
+        // A freeform behind the words draws its own outline first, then the words over it.
+        const outline = !text.trim() || !fill ? null : custGeomOf(node, g.w, g.h);
+        if (outline && pushDrawing(outline, g, node)) {
+          out.push({
+            kind: 'text', ...g, text, fontSize: r(pt * PX_PER_PT), fontFamily: first?.font || bodyFont, fontWeight: 400,
+            fg: rich.baseColour ?? hexAttr(first?.color) ?? ink, lineHeight: LINE_HEIGHT, fill: '',
+            ...(rich.align && rich.align !== 'justify' ? { textAlign: rich.align } : {}),
+          });
+          break;
+        }
         out.push({
           kind: text.trim() ? 'text' : 'box', ...g,
           text,
           fontSize: r(pt * PX_PER_PT),
           fontFamily: first?.font || bodyFont,
-          fontWeight: first?.bold ? 700 : 400,
-          fg: hexAttr(first?.color) ?? ink,
+          fontWeight: 400,
+          fg: rich.baseColour ?? hexAttr(first?.color) ?? ink,
           lineHeight: LINE_HEIGHT,
+          ...(rich.align && rich.align !== 'justify' ? { textAlign: rich.align } : {}),
           ...(fill ? { fill } : { fill: '' }),
           shape: node.geom === 'ellipse' ? 'ellipse' : node.geom === 'roundRect' ? 'rounded' : 'rect',
         });
@@ -641,6 +953,9 @@ export function pptxSlideToNodes(slide: PptxReadSlide, opts: PptxNodeMapOpts): P
           }
           break;
         }
+        // A freeform arrives as its own outline, one editable path per part.
+        const outline = custGeomOf(node, g.w, g.h);
+        if (outline && pushDrawing(outline, g, node)) break;
         out.push({
           kind: 'box', ...g,
           fill: fill ?? '',
@@ -650,6 +965,11 @@ export function pptxSlideToNodes(slide: PptxReadSlide, opts: PptxNodeMapOpts): P
         break;
       }
       case 'pic': {
+        // A picture that carries an SVG is the drawing itself: its shapes, grouped, as
+        // its crop shows them. A crop that cuts through a part keeps the picture.
+        const read = node.svg && opts.getVector ? opts.getVector(node.svg) : null;
+        const items = read && node.srcRect ? cropVectorItems(read, node.srcRect) : read;
+        if (items && pushDrawing(items, g, node)) break;
         const ref = node.media ? opts.resolveMedia(node.media) : null;
         if (ref) out.push({ kind: 'image', ...g, image: ref, fit: 'fill', fill: '' });
         else placeholder(g, 'Image');
@@ -703,6 +1023,68 @@ export function pptxSlideToNodes(slide: PptxReadSlide, opts: PptxNodeMapOpts): P
     });
   }
   return out;
+}
+
+/** The Design fields a drawing row states, written over the box the mapper made for its node. */
+const VECTOR_ROW_FIELDS = [
+  'kind', 'x', 'y', 'w', 'h', 'rot', 'flipH', 'flipV', 'shape', 'radius', 'bg', 'opacity', 'path', 'fillRule',
+  'stroke', 'strokeW', 'strokeCap', 'strokeJoin', 'strokeDash', 'strokeDashLen', 'strokeGapLen', 'group', 'name',
+  'text', 'fg', 'font', 'fontSize', 'align', 'valign', 'weight', 'pad',
+] as const;
+
+/** A node's drawing row, when it carries one. */
+function vectorRowOf(node: PptxDesignNode): DesignBoxRowV1 | undefined {
+  const row = node.vectorRow;
+  return row && typeof row === 'object' && !Array.isArray(row) ? Object.fromEntries(Object.entries(row).filter((entry): entry is [string, string | number | boolean | null] => {
+    const v = entry[1];
+    return v === null || typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean';
+  })) : undefined;
+}
+
+/**
+ * The boxes `finalizeBoxes` made, with every drawing row written over the box made for
+ * its node: the mapper knows box, text and image, and a drawing's rows are paths, boxes
+ * and text with fields it does not carry. The mapper skips a non-text node of no size,
+ * and so does this walk, so the two stay in step.
+ */
+export function withVectorRows<B extends object>(
+  boxes: readonly B[],
+  nodes: readonly PptxDesignNode[],
+  nameRow?: (row: DesignBoxRowV1) => string | undefined,
+): B[] {
+  const out: B[] = [];
+  let j = 0;
+  for (const node of nodes) {
+    const kind = node.kind === 'text' ? 'text' : 'other';
+    if (kind !== 'text' && (Number(node.w) || 0) < 1 && (Number(node.h) || 0) < 1) continue;
+    const box = boxes[j++];
+    if (!box) break;
+    const row = vectorRowOf(node);
+    if (!row) {
+      out.push(box);
+      continue;
+    }
+    const patch: Record<string, unknown> = {};
+    for (const field of VECTOR_ROW_FIELDS) if (row[field] !== undefined) patch[field] = row[field];
+    const named = nameRow?.(row);
+    if (named) patch.name = named;
+    out.push(Object.assign({}, box, patch));
+  }
+  return out;
+}
+
+/**
+ * The layer name a drawing row takes in Design, in the person's language: the kind
+ * word the compile wrote, said through the same helper the rebrand handoff uses, then
+ * the drawing's own label for the part. Loaded lazily, as i18n is, so this module's
+ * scope stays node-importable.
+ */
+async function vectorRowNamer(): Promise<(row: DesignBoxRowV1) => string | undefined> {
+  const { vectorLayerName } = await import('../lib/rebrand/design-handoff.ts');
+  return (row) => {
+    const parts = vectorRowNameParts(typeof row.name === 'string' ? row.name : '');
+    return parts ? vectorLayerName(parts, false) : undefined;
+  };
 }
 
 /** `title`/`ctrTitle` are one slot; an absent type is `body` (ECMA-376's untyped `ph`). */
@@ -854,7 +1236,10 @@ export async function parsePptxFile(
   const slide = deck.slides[index]!;
   const resolveMedia = await primeMedia(host, parts, [slide], warn);
   const { width, height } = pptxDeckPage(deck);
-  const boxes = finalizeBoxes(pptxSlideToNodes(slide, { widthEmu: deck.widthEmu, heightEmu: deck.heightEmu, theme: deck.theme, resolveMedia }) as never, { prefix: 's', ...map });
+  const getVector = vectorReader(parts, (xml) => new DOMParser().parseFromString(xml, 'image/svg+xml'));
+  const nodes = pptxSlideToNodes(slide, { widthEmu: deck.widthEmu, heightEmu: deck.heightEmu, theme: deck.theme, resolveMedia, getVector });
+  const nameRow = await vectorRowNamer();
+  const boxes = withVectorRows(finalizeBoxes(nodes as never, { prefix: 's', ...map }), nodes, nameRow);
   if (!boxes.length) throw new Error('Couldn’t find any importable content on that slide.');
   return { boxes, width, height, background: pptxSlideBackground(slide, deck) };
 }
@@ -892,11 +1277,16 @@ export async function parsePptxPages(
   const slides = picked.map((i) => deck.slides[i]!).filter(Boolean);
   const resolveMedia = await primeMedia(host, parts, slides, warn);
   const { width, height, background } = pptxDeckPage(deck);
+  const getVector = vectorReader(parts, (xml) => new DOMParser().parseFromString(xml, 'image/svg+xml'));
+  const nameRow = await vectorRowNamer();
+  // One budget of drawn path data for the whole import, which becomes one document.
+  const vectorBudget = { chars: 0 };
   const frames: PptxPageFrame[] = [];
   for (const i of picked) {
     const slide = deck.slides[i];
     if (!slide) continue;
-    const boxes = finalizeBoxes(pptxSlideToNodes(slide, { widthEmu: deck.widthEmu, heightEmu: deck.heightEmu, theme: deck.theme, resolveMedia }) as never, { prefix: 's', ...map });
+    const nodes = pptxSlideToNodes(slide, { widthEmu: deck.widthEmu, heightEmu: deck.heightEmu, theme: deck.theme, resolveMedia, getVector, vectorBudget });
+    const boxes = withVectorRows(finalizeBoxes(nodes as never, { prefix: 's', ...map }), nodes, nameRow);
     if (!boxes.length) { warn(`Slide ${i + 1} has no importable content - skipped.`); continue; }
     frames.push(pptxSlideFrame(slide, deck, boxes, i, { width, height }));
   }

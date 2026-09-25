@@ -1,0 +1,374 @@
+{
+  "fixture": "palette.pptx",
+  "version": 1,
+  "builder": "scripts/build-rebrand-fixtures.ts",
+  "objectIdForm": "<slide part base name>.<p:cNvPr id>",
+  "slides": [
+    {
+      "id": "slide1",
+      "index": 0,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide1.2",
+          "name": "text2",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 120,
+            "w": 1120,
+            "h": 110
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide1.3",
+          "name": "text3",
+          "authored": "body-ink",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 260,
+            "w": 1120,
+            "h": 200
+          },
+          "mustKeep": true,
+          "note": "ink at #1F4E79, the same hex as the slide ground"
+        },
+        {
+          "id": "slide1.60",
+          "name": "swatch-accent1",
+          "authored": "swatch-accent1",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 520,
+            "w": 150,
+            "h": 90
+          },
+          "note": "filled by the theme slot accent1, not by a literal"
+        },
+        {
+          "id": "slide1.61",
+          "name": "swatch-accent2",
+          "authored": "swatch-accent2",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 260,
+            "y": 520,
+            "w": 150,
+            "h": 90
+          },
+          "note": "filled by the theme slot accent2, not by a literal"
+        },
+        {
+          "id": "slide1.62",
+          "name": "swatch-accent3",
+          "authored": "swatch-accent3",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 440,
+            "y": 520,
+            "w": 150,
+            "h": 90
+          },
+          "note": "filled by the theme slot accent3, not by a literal"
+        },
+        {
+          "id": "slide1.63",
+          "name": "swatch-accent4",
+          "authored": "swatch-accent4",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 620,
+            "y": 520,
+            "w": 150,
+            "h": 90
+          },
+          "note": "filled by the theme slot accent4, not by a literal"
+        },
+        {
+          "id": "slide1.64",
+          "name": "swatch-accent5",
+          "authored": "swatch-accent5",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 800,
+            "y": 520,
+            "w": 150,
+            "h": 90
+          },
+          "note": "filled by the theme slot accent5, not by a literal"
+        },
+        {
+          "id": "slide1.65",
+          "name": "swatch-accent6",
+          "authored": "swatch-accent6",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 980,
+            "y": 520,
+            "w": 150,
+            "h": 90
+          },
+          "note": "filled by the theme slot accent6, not by a literal"
+        }
+      ]
+    },
+    {
+      "id": "slide2",
+      "index": 1,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide2.2",
+          "name": "text2",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 120,
+            "w": 1120,
+            "h": 110
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide2.66",
+          "name": "eight-series-chart",
+          "authored": "eight-series-chart",
+          "origin": "slide",
+          "kind": "chart",
+          "class": "chart",
+          "fidelity": {
+            "state": "unavailable",
+            "reason": "native-chart-no-fallback"
+          },
+          "boxPx": {
+            "x": 120,
+            "y": 260,
+            "w": 1040,
+            "h": 380
+          },
+          "mustKeep": true,
+          "note": "eight series in eight literal colours, more than a neutral master has usable swatches. Nothing draws it, so its fidelity is unavailable, but the caches are complete and the reader returns every series name, value and colour: this is the object the \"more series than usable swatches\" bar is measured on, and none of it may be thrown away"
+        }
+      ]
+    }
+  ],
+  "inherited": [],
+  "mustKeep": [
+    "slide1.2",
+    "slide1.3",
+    "slide2.2",
+    "slide2.66"
+  ],
+  "colors": [
+    {
+      "hex": "#1F4E79",
+      "role": "ink",
+      "objectIds": [
+        "slide1.3"
+      ],
+      "slideId": "slide1",
+      "note": "body ink"
+    },
+    {
+      "hex": "#1F4E79",
+      "role": "bg",
+      "objectIds": [],
+      "slideId": "slide1",
+      "note": "the ground of slide 1, which is a use with no object of its own"
+    },
+    {
+      "hex": "#1F4E79",
+      "role": "series",
+      "objectIds": [
+        "slide2.66"
+      ],
+      "slideId": "slide2",
+      "distinctionSet": "slide2.66",
+      "note": "series 1 of the chart"
+    },
+    {
+      "hex": "#1F4E79",
+      "role": "accent",
+      "objectIds": [
+        "slide1.60"
+      ],
+      "scheme": "accent1",
+      "slideId": "slide1",
+      "note": "named by the theme slot accent1 rather than by a literal, so a plan can map slot to slot before it reaches a hex"
+    },
+    {
+      "hex": "#D65A28",
+      "role": "accent",
+      "objectIds": [
+        "slide1.61"
+      ],
+      "scheme": "accent2",
+      "slideId": "slide1",
+      "note": "named by the theme slot accent2 rather than by a literal, so a plan can map slot to slot before it reaches a hex"
+    },
+    {
+      "hex": "#106E60",
+      "role": "accent",
+      "objectIds": [
+        "slide1.62"
+      ],
+      "scheme": "accent3",
+      "slideId": "slide1",
+      "note": "named by the theme slot accent3 rather than by a literal, so a plan can map slot to slot before it reaches a hex"
+    },
+    {
+      "hex": "#7A4FBF",
+      "role": "accent",
+      "objectIds": [
+        "slide1.63"
+      ],
+      "scheme": "accent4",
+      "slideId": "slide1",
+      "note": "named by the theme slot accent4 rather than by a literal, so a plan can map slot to slot before it reaches a hex"
+    },
+    {
+      "hex": "#B8860B",
+      "role": "accent",
+      "objectIds": [
+        "slide1.64"
+      ],
+      "scheme": "accent5",
+      "slideId": "slide1",
+      "note": "named by the theme slot accent5 rather than by a literal, so a plan can map slot to slot before it reaches a hex"
+    },
+    {
+      "hex": "#2E7D32",
+      "role": "accent",
+      "objectIds": [
+        "slide1.65"
+      ],
+      "scheme": "accent6",
+      "slideId": "slide1",
+      "note": "named by the theme slot accent6 rather than by a literal, so a plan can map slot to slot before it reaches a hex"
+    },
+    {
+      "hex": "#D65A28",
+      "role": "series",
+      "objectIds": [
+        "slide2.66"
+      ],
+      "slideId": "slide2",
+      "distinctionSet": "slide2.66",
+      "note": "series 2 of the chart"
+    },
+    {
+      "hex": "#106E60",
+      "role": "series",
+      "objectIds": [
+        "slide2.66"
+      ],
+      "slideId": "slide2",
+      "distinctionSet": "slide2.66",
+      "note": "series 3 of the chart"
+    },
+    {
+      "hex": "#7A4FBF",
+      "role": "series",
+      "objectIds": [
+        "slide2.66"
+      ],
+      "slideId": "slide2",
+      "distinctionSet": "slide2.66",
+      "note": "series 4 of the chart"
+    },
+    {
+      "hex": "#B8860B",
+      "role": "series",
+      "objectIds": [
+        "slide2.66"
+      ],
+      "slideId": "slide2",
+      "distinctionSet": "slide2.66",
+      "note": "series 5 of the chart"
+    },
+    {
+      "hex": "#2E7D32",
+      "role": "series",
+      "objectIds": [
+        "slide2.66"
+      ],
+      "slideId": "slide2",
+      "distinctionSet": "slide2.66",
+      "note": "series 6 of the chart"
+    },
+    {
+      "hex": "#8E244A",
+      "role": "series",
+      "objectIds": [
+        "slide2.66"
+      ],
+      "slideId": "slide2",
+      "distinctionSet": "slide2.66",
+      "note": "series 7 of the chart"
+    },
+    {
+      "hex": "#3F51B5",
+      "role": "series",
+      "objectIds": [
+        "slide2.66"
+      ],
+      "slideId": "slide2",
+      "distinctionSet": "slide2.66",
+      "note": "series 8 of the chart"
+    }
+  ]
+}

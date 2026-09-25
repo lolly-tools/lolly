@@ -1,6 +1,6 @@
 # Lolly for sales teams
 
-You sell. The deck, the one-pager, the case study and the leave-behind are how the story travels, and the story changes faster than any design queue can follow. Lolly turns whatever device you carry into the studio that keeps up.
+You sell. The deck, the one-pager, the case study and the leave-behind are how the story travels, and the story changes faster than a finished file can follow. Lolly turns whatever device you carry into the studio that keeps up.
 
 ## Walk in with exactly what you need
 

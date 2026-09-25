@@ -13,6 +13,7 @@ import { Profile } from './views/Profile.tsx';
 import { Catalog } from './views/Catalog.tsx';
 import { ToolView } from './views/ToolView.tsx';
 import { Prepare } from './views/Prepare.tsx';
+import { Rebrand } from './views/Rebrand.tsx';
 import { Start } from './views/Start.tsx';
 import { System } from './views/System.tsx';
 import type { SystemAction } from './views/System.tsx';
@@ -22,6 +23,7 @@ import type { TuiBridge } from './bridge.ts';
 
 type Route =
   | { name: 'prepare' }
+  | { name: 'rebrand' }
   | { name: 'start' }
   | { name: 'gallery' }
   | { name: 'projects'; folderId: string | null }   // folderId === null → the top level
@@ -70,6 +72,8 @@ export function App({ tools, bridge, firstRun = false }: { tools: ToolEntry[]; b
   switch (route.name) {
     case 'prepare':
       return <Prepare bridge={bridge} onBack={() => setRoute({ name: 'gallery' })} />;
+    case 'rebrand':
+      return <Rebrand onBack={() => setRoute({ name: 'gallery' })} />;
     case 'start':
       return <Start
         onSystem={action => setRoute({ name: 'system', action })}
@@ -98,6 +102,6 @@ export function App({ tools, bridge, firstRun = false }: { tools: ToolEntry[]; b
     case 'tool':
       return <ToolView toolId={route.toolId} query={route.query} values={route.values} bridge={bridge} onBack={() => setRoute({ name: 'gallery' })} />;
     default:
-      return <Gallery onPrepare={() => setRoute({ name: 'prepare' })} tools={tools} onOpen={id => setRoute({ name: 'tool', toolId: id })} onOpenUrl={openToolUrl} onImportFile={importFile} onNav={goNav} onQuit={quit} />;
+      return <Gallery onPrepare={() => setRoute({ name: 'prepare' })} onRebrand={() => setRoute({ name: 'rebrand' })} tools={tools} onOpen={id => setRoute({ name: 'tool', toolId: id })} onOpenUrl={openToolUrl} onImportFile={importFile} onNav={goNav} onQuit={quit} />;
   }
 }

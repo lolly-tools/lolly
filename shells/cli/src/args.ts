@@ -99,6 +99,8 @@ export const RESERVED_SUBCOMMANDS = [
   // `tui` starts the interactive terminal shell (plans/202 WP1.4). One install, five
   // doors: nobody should have to learn that the interactive one is a second binary.
   'tui',
+  // `rebrand` renovates a deck in three stages, plan, compile and inspect (plan 274).
+  'rebrand',
 ] as const;
 
 /** The six on-device ML subcommands, named here rather than in src/ml-cli.ts so
@@ -110,6 +112,18 @@ export type MlSubcommand = (typeof ML_SUBCOMMANDS)[number];
 export function isMlSubcommand(cmd: string | undefined): cmd is MlSubcommand {
   return (ML_SUBCOMMANDS as readonly string[]).includes(cmd ?? '');
 }
+
+/** `lolly rebrand`'s three stages, in the order a person runs them, then `presets`,
+ *  which lists the renovation presets that resolve here. Named here rather than in
+ *  src/rebrand.ts so shell completion can read them without importing that module
+ *  and the renovation pipeline behind it. */
+export const REBRAND_STAGES = ['plan', 'compile', 'inspect', 'presets'] as const;
+/** Rebrand flags that take a value. A bare form of one of them is refused in bin/lolly.ts. */
+export const REBRAND_VALUE_FLAGS = ['plan-out', 'plan', 'preset', 'out-dir', 'export', 'slide', 'page', 'limit', 'source', 'jobs'] as const;
+/** Rebrand flags whose value is a path, for completion. */
+export const REBRAND_PATH_FLAGS = ['plan-out', 'plan', 'preset', 'out-dir', 'source'] as const;
+/** Rebrand's on/off flags. `accept-suggestions` also takes `=all`, `auto-match` also takes a band; `ocr` reads the text in slides that are pictures. */
+export const REBRAND_BOOL_FLAGS = ['accept-suggestions', 'auto-match', 'dry-run', 'keep-going', 'offline', 'force', 'resume', 'recursive', 'ocr'] as const;
 
 /** Global flags valid on every command (contract section 1.2). */
 export interface GlobalFlags {

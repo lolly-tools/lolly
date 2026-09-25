@@ -36,7 +36,7 @@ Most utilities run entirely in the headless DOM. A few **rebuild real pixels** -
 
 One gap in the terminal's page render, stated because a redacted page is a picture of the original: text, vector geometry and embedded rasters all come through, but shadings, tiling patterns and graphics-state soft masks do not - their decoders are web-shell modules. A gradient paints the flat back-stop the engine emits for it. Text and geometry, which is what a redaction covers, are complete.
 
-If that canvas is not installed (a lean install), or a tool needs something only a browser engine can do, the CLI re-runs the same export in the scoped Chromium driving the built web shell (the [Tier B rendering path](/info/cli-rendering.html#what-the-cli-can-render)). It says so on stderr when it switches. If the browser or the built shell is missing it stops and names what to install (`lolly install-browser`, `pnpm run build:web`); it never writes a file that was not actually redacted.
+If that canvas is not installed (a lean install), or a tool needs something only a browser engine can do, the CLI re-runs the same export in the scoped Chromium driving the built web shell (the [Tier B rendering path](/info/cli-rendering.html#what-the-cli-can-render)). It says so on stderr when it switches. If the browser or the built shell is missing it stops and says what to install (`lolly install-browser`, `pnpm run build:web`); it never writes a file that was not actually redacted.
 
 ### Redaction instructions: one string, many files
 
@@ -72,9 +72,9 @@ pnpm run cli speak "…" --voice=af_heart --speed=0.95 --out=./clip.wav --json
 pnpm run cli transcribe ./clip.wav --lang=en --json
 ```
 
-**`lolly speak`** writes a 24 kHz mono WAV. `--out=<file>` names it (`--out=-` streams it to stdout, `speech.wav` is the default name), `--speed=<n>` is a rate multiplier where `1` is the natural pace and `--voice=<id>` picks one of the 28 Kokoro voices - 20 en-US and 8 en-GB, `bf_lily` by default because "lolly" is a British word and Lolly's own voice should sound like one. A voice can be a **blend**: `--voice=af_heart+bf_lily:0.3` mixes two with the weights normalised, the same setting the app's voice controls write. Progress goes to stderr, per sentence.
+**`lolly speak`** writes a 24 kHz mono WAV. `--out=<file>` sets the name (`--out=-` streams it to stdout, `speech.wav` is the default name), `--speed=<n>` is a rate multiplier where `1` is the natural pace and `--voice=<id>` picks one of the 28 Kokoro voices - 20 en-US and 8 en-GB, `bf_lily` by default because "lolly" is a British word and Lolly's own voice should sound like one. A voice can be a **blend**: `--voice=af_heart+bf_lily:0.3` mixes two with the weights normalised, the same setting the app's voice controls write. Progress goes to stderr, per sentence.
 
-**`lolly transcribe <clip.wav>`** reads a clip back as text. The text is stdout and nothing else is, so `lolly transcribe take.wav > take.txt` is a whole workflow; `--lang=<code>` names the spoken language, and `--json` adds the word timings.
+**`lolly transcribe <clip.wav>`** reads a clip back as text. The text is stdout and nothing else is, so `lolly transcribe take.wav > take.txt` is a whole workflow; `--lang=<code>` sets the spoken language, and `--json` adds the word timings.
 
 **WAV in, and it says so when it cannot.** Node has no MP3, AAC or Opus decoder, and shelling out to whatever `ffmpeg` happens to sit on `PATH` would make a headless run depend on a binary nobody declared. So an `mp3`, `m4a`, `aac`, `ogg`, `oga`, `opus`, `flac`, `weba`, `webm`, `mp4` or `mov` file is refused **by name** rather than read as noise, and a generated ZzFXM song is refused too (it carries no speech to quote back):
 
@@ -94,7 +94,7 @@ Nothing here fetches anything on its own. Every family is read from a models dir
 
 That directory is `$LOLLY_MODELS_DIR` when you set one, then the repo's own `shells/web/public/models` when it exists (so a dev checkout shares one copy with the web shell), then `~/.cache/lolly/models`.
 
-`lolly models ls` names every family these shells can run - `kokoro` and `whisper` for speech, plus `upscale`, `matte`, `ocr`, `ai-detect`, `reword` and `depth` - with what is present, what is missing and the fetch command for anything incomplete. On a machine that has staged them all:
+`lolly models ls` lists every family these shells can run - `kokoro` and `whisper` for speech, plus `upscale`, `matte`, `ocr`, `ai-detect`, `reword` and `depth` - with what is present, what is missing and the fetch command for anything incomplete. On a machine that has staged them all:
 
 ```
 $ lolly models ls

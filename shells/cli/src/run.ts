@@ -12,7 +12,7 @@ import { readFile, writeFile, stat } from 'node:fs/promises';
 import { resolve, basename, extname } from 'node:path';
 
 import { createNodeHookExecutor } from '@lolly-tools/node-shell/hook-worker';
-import { loadTool, createRuntime, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
+import { buildExportMeta, loadTool, createRuntime, annotateTemplate, parseUrlState, serializeUrlState, serializeHdr, expandQuery, frameFilterApplies, embedC2pa, C2PA_FORMATS, c2paDefaultOn, imprintDefaultOn, isImprintFormat, IMPRINT_FORMATS, normalizeLang, parseDataRows, parseTableText, hasEncryptedState, unpackEncrypted, ENC_PARAM, RESERVED, parseRateCard, isRateCardError, validateRateCard, sfntKind, storeZip, readXlsx, listXlsxSheets, rowsToCsv } from '@lolly/engine';
 import { createHash } from 'node:crypto';
 import type { Lang } from '@lolly/engine';
 import type { InputValue } from '../../../engine/src/inputs.ts';
@@ -92,6 +92,10 @@ interface RunToolCliArgs {
    *  `validate --rebuild` overrides it so a `.lolly` that carries its own tool renders
    *  against THAT copy rather than whatever this checkout happens to hold. */
   fetchFile?: (path: string) => Promise<string>;
+  /** false: a transform whose hook asks for the browser tier fails with that error
+   *  instead of launching one. `lolly smoke` passes it, since smoke never starts a
+   *  browser and reports such a tool as skipped. Defaults to true. */
+  browserTier?: boolean;
 }
 
 /**
@@ -121,6 +125,33 @@ export function assertCapabilities(manifest: { id: string; capabilities?: readon
     'nothing was rendered, because a render here would be the tool\'s empty placeholder under the name you asked for.',
     'CAPABILITY_UNAVAILABLE',
   );
+}
+
+/**
+ * The docProps a native deck carries: title, author, contact and the tool's own page.
+ *
+ * `runtime.export()` assembles exactly this for every other format (engine
+ * buildExportMeta), and the Tier-A pptx branch does not call it, so the same assembly
+ * is done here and handed over. Personal details still ride only on the profile's
+ * "Use my details" opt-in, because that decision lives inside buildExportMeta.
+ */
+async function deckDocProps(
+  host: HostV1,
+  manifest: Parameters<typeof buildExportMeta>[1],
+  model: Parameters<typeof buildExportMeta>[3],
+): Promise<{ title?: string; description?: string; source?: string; contact?: string; author?: string } | null> {
+  try {
+    const meta = await buildExportMeta(host, manifest, null, model);
+    return {
+      ...(meta.tool ? { title: meta.tool } : {}),
+      ...(meta.description ? { description: meta.description } : {}),
+      ...(meta.source ? { source: meta.source } : {}),
+      ...(meta.contact ? { contact: meta.contact } : {}),
+      ...(meta.author ? { author: meta.author } : {}),
+    };
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -196,7 +227,7 @@ export function quietVirtualConsole(jsdom: typeof import('jsdom')): InstanceType
   return vc;
 }
 
-export async function runToolCli({ toolId, params, repeated = {}, outputPath, format, share, verify, htmlFallback, text, rejectUnknown = false, toleratedUnknown, fetchFile: fetchFileOverride }: RunToolCliArgs): Promise<void> {
+export async function runToolCli({ toolId, params, repeated = {}, outputPath, format, share, verify, htmlFallback, text, rejectUnknown = false, toleratedUnknown, fetchFile: fetchFileOverride, browserTier = true }: RunToolCliArgs): Promise<void> {
   // Lazy import - jsdom is heavy and we only need it when actually rendering.
   const jsdom = await import('jsdom');
   const dom = new jsdom.JSDOM('<!DOCTYPE html><html><body><div id="canvas"></div></body></html>', {
@@ -294,7 +325,7 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
   // different transport, so a packed share link must run identically here
   // (`lolly design --z=1eJ…`). A no-op for ordinary readable params.
   const query = await expandQuery(rawQuery);
-  const { values, format: paramFormat, width, height, unit, dpi, password, c2pa, bleed, imprint, durable, depth, hdr, filename, cuts, profile: pressProfileParam, designVersion: designvParam, slide, video, emoji: emojiParam, emojiFx: emojiFxParam, emojiStyle: emojiStyleParam } = parseUrlState(
+  const { values, format: paramFormat, width, height, unit, dpi, password, c2pa, bleed, imprint, durable, depth, hdr, filename, cuts, profile: pressProfileParam, designVersion: designvParam, slide, video, emoji: emojiParam, emojiFx: emojiFxParam, emojiStyle: emojiStyleParam, licence: licenceParam } = parseUrlState(
     query,
     tool.manifest,
   );
@@ -578,7 +609,7 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
     } catch (e) {
       const msg = (e as Error).message;
       const ref = fileIn ? (values[fileIn.id] as { name?: string; mime?: string; bytes?: Uint8Array } | undefined) : undefined;
-      if (!needsBrowserTier(e) || !fileIn || !ref?.bytes) throw e;
+      if (!browserTier || !needsBrowserTier(e) || !fileIn || !ref?.bytes) throw e;
       // The utility rebuilds real pixels (canvas / PDF page render), which the Node
       // host cannot do. Re-run the SAME hook in the scoped browser driving the built
       // web shell - the tool's export gate runs there, on these bytes. When no browser
@@ -665,6 +696,8 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
   // treatment applied to that artwork. Set before anything hydrates, so the first
   // pass over the canvas already has the packs it needs.
   await applyEmojiParams(runtime, host, { emoji: emojiParam, emojiFx: emojiFxParam, emojiStyle: emojiStyleParam });
+  // `--licence=` declares the export's own licence; an unknown id is dropped by the runtime.
+  if (licenceParam) runtime.setOutputLicence(licenceParam);
   // `--rights=private`: this render is not being delivered to anyone, so the
   // conditions that apply on sharing do not apply to it. Parsed here, beside the
   // other render params, and never anything but an explicit statement of the use.
@@ -1070,7 +1103,30 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
         // web shell). `usedBrowser` tells us to tear the browser + server down before exit.
         const portableVisual = targetFormat.toLowerCase() !== 'ics' && tool.manifest.render.portable;
         const domFree = NODE_FORMATS.includes(targetFormat.toLowerCase()) && !portableVisual && !needsFloatScene(tool.manifest.id, values.editingRange, targetFormat, exportOpts.hdr);
-        if (domFree) {
+        // TIER A FOR `pptx`, on a Design document (plan 274 work package 6). Design
+        // carries its authored rows in the render, so the deck is lowered straight from
+        // them - real slides, placeholder-bound text where a frame names a slide master -
+        // with no browser at all. Null means this document is not one this tier can
+        // write, and the existing Tier-B path below takes it unchanged.
+        //
+        // THE ROWS IN THE RENDER ARE PRE-beforeExport. Design's beforeExport reflows a
+        // `textDocument` into the frames (composeDesignStories), and this branch never
+        // calls runtime.export, so those rows would be the uncomposed ones. A document
+        // that composes stories therefore keeps to the tier that runs the hook.
+        const composesStories = String(values.textDocument ?? '').trim() !== '';
+        const nativeDeck = targetFormat.toLowerCase() === 'pptx' && !composesStories
+          ? await (await import('./raster.ts')).renderDesignPptx({
+            canvas, toolId: tool.manifest.id,
+            brandVar: (name: string) => canvas.style.getPropertyValue(name).trim(),
+            // docProps come from the same assembly runtime.export would have used, so a
+            // native deck is attributed the way the browser tier's deck was.
+            meta: bareRender ? null : await deckDocProps(host, tool.manifest, runtime.getModel()),
+          })
+          : null;
+        if (nativeDeck) {
+          buf = Buffer.from(nativeDeck);
+          assertRenderOk({ hookErrors: runtime.hookErrors, format: targetFormat, bytes: buf });
+        } else if (domFree) {
           const blob = await runtime.export(exportNode, targetFormat, exportOpts);
           buf = Buffer.from(await blob.arrayBuffer());
           // The DOM-free render is this runtime's own output - a swallowed onInit failure

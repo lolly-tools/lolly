@@ -108,7 +108,7 @@ export const RENDER_GET_BYTE_STABLE: readonly string[] = ['svg', 'emf', 'eps', '
 export const MCP_TOOLS: readonly string[] = [
   'lolly_compile', 'lolly_inspect', 'lolly_measure', 'lolly_validate', 'lolly_diff', 'lolly_package',
   'lolly_list_tools', 'lolly_describe_tool', 'lolly_build_url', 'lolly_render',
-  'lolly_transform', 'lolly_redact', 'lolly_verify',
+  'lolly_transform', 'lolly_rebrand', 'lolly_redact', 'lolly_verify',
 ];
 
 export const MCP_RESOURCES: readonly string[] = [
@@ -229,7 +229,7 @@ ${u}/#/tool/{id}?{input}={value}&{input}={value}&format={ext}&export
    address. The route is per deployment and live on lolly.tools; an operator
    switches it off with \`LOLLY_DISABLE_RENDER_GET=1\`. A \`404\` means the tool
    is not public there or the route is off; a
-   \`400\` names the reason (a browser-tier format, an output bound, a query over 4096
+   \`400\` gives the reason (a browser-tier format, an output bound, a query over 4096
    characters). Full contract: ${u}/openapi.json
 2. **MCP.** \`${mcpFull}\` renders every format a tool declares (a headless browser sits
    behind it); \`${u}/api/mcp\` is the browser-free tier with the same tools. Both take
@@ -344,7 +344,7 @@ export function buildOpenApi(o: AgentDocsOpts): Record<string, unknown> {
               content: renderContent,
             },
             '304': { description: 'If-None-Match matched the ETag.' },
-            '400': errorResponse('A format that needs the browser tier, png for a tool that is not SVG-native, an output bound exceeded (10000 px edge, dpi 1..1200) or a query over 4096 characters. The body names the reason.'),
+            '400': errorResponse('A format that needs the browser tier, png for a tool that is not SVG-native, an output bound exceeded (10000 px edge, dpi 1..1200) or a query over 4096 characters. The body gives the reason.'),
             '404': errorResponse('Unknown tool, a tool whose status is not official or community, or a deployment with the route switched off. The same answer for all three.'),
             '429': { description: 'Too many renders from this address.', headers: { 'Retry-After': { schema: { type: 'integer' } } }, content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
             '500': errorResponse('The render failed.'),

@@ -24,21 +24,21 @@ This document captures the purpose, structure and architectural decisions for th
 
 ## Why this exists
 
-Teams face a recurring problem: repeatable creative and content work that is too predictable to justify skilled hands every time, but too quality-sensitive to hand off without guardrails. The result is either slow throughput (specialist bottleneck), inconsistency (people using whatever tool they have) or vendor lock-in (a SaaS DAM that controls your templates).
+Repeatable creative work is too predictable to justify skilled hands every time, and too quality-sensitive to hand off without guardrails. Left alone it goes one of three ways: slow, inconsistent, or locked into a vendor's templates.
 
 This platform is the direct answer:
 
-> **Programmatic creative and content at scale** - zero-labor asset generation, with the rules under central control, for employees, vendors and partners.
+> **Programmatic creative and content at scale** - assets generated from inputs, with the rules set once, for whoever needs them.
 
 Lolly isn't where a design system gets invented - it's where it gets produced. Think of it like a vending machine for design: make a selection, get a result. Every time. The engine works for the highest quality each format can produce on the hardware in front of you, and the same engine makes the same file on every surface it ships to.
 
-The outcome is **abundance**: every event has correct signage, every CVE alert matches the house style, every label prints clean, every email signature is current - all without a design ticket. The platform handles recurring operationalised creative. It is deliberately not a bespoke creative tool - designers still own flagship work.
+The outcome is **abundance**: every event has correct signage, every CVE alert matches the house style, every label prints clean, every email signature is current - all from tools that already carry the rules. The platform handles recurring operationalised creative. It is deliberately not a bespoke creative tool - designers still own flagship work.
 
 ### Innovate probabilistically, scale deterministically
 
 Every argument about AI in a creative pipeline stalls on the same question: which part of this is the machine's job? It is an old question with a settled answer. Scribes and illuminators already worked between two instruments - the loose sketch, where nothing was fixed and everything could be tried, and the printing press, intimidating precisely because it committed. The sketches were where the art happened. The press was how it reached anyone. Nobody confused the two, and both kept advancing - new inks, new faces, new presses - each improving in harmony with the craft and the intention it served.
 
-Lolly draws the same line. Explore probabilistically: a model, a designer, a rough idea, a prompt that goes somewhere nobody planned. Then scale deterministically - the thing that reaches ten thousand outputs is a *tool*, and a tool renders the same way every time from inputs you can read. The exploration stays free because nothing downstream depends on it landing the same way twice. The output earns trust because it is not a guess. Getting AI experimentation into predictable, reproducible outcomes is not a new discipline; it is the same division of labour that made printed work worth trusting in the first place.
+Lolly draws the same line. Explore probabilistically: a model, a designer, a rough idea, a prompt that goes somewhere nobody planned. Then scale deterministically - the thing that becomes many outputs is a *tool*, and a tool renders the same way every time from inputs you can read. The exploration stays free because nothing downstream depends on it landing the same way twice. The output earns trust because it is not a guess. Getting AI experimentation into predictable, reproducible outcomes is not a new discipline; it is the same division of labour that made printed work worth trusting in the first place.
 
 > Trust the creative process, scale with rigour.
 
@@ -76,19 +76,19 @@ That's the force multiplier. Lolly isn't a drawer of separate tools for separate
 
 ---
 
-## One approval, ten thousand assets
+## One tool, many outputs
 
-Because approval lives in the tool and not the file (see [How Lolly compares](/info/positioning.html)), scale stops being a review problem. Approve a localized social-card tool once, then generate **10,000 assets across 12 languages** from a spreadsheet - and not one of them needs a fresh compliance check from legal or brand, because the template they all come from was already approved.
+The brand rules live in the tool, not in each file it makes (see [How Lolly compares](/info/positioning.html)). Get the tool right once and every output inherits the same type, colour and spacing, whether that is one card or a spreadsheet of rows in a dozen languages. How you check your work, and who does it, stays yours; Lolly makes the thing worth checking smaller and the output faster to make.
 
-The same deterministic tool reaches that scale three ways, all producing identical, pre-approved output:
+The same deterministic tool reaches that scale three ways, all producing identical output:
 
-- <!--i:people--> **A person, in the app.** The `/pro` batch grid: paste or import the rows, get one finished asset per row, download the zip. No design skill, no ticket, no wait.
-- <!--i:code--> **A developer, from the command line.** The CLI runs the *same* engine and the *same* render path headless, so the tool can be sequenced over all 10,000 rows in a script or a nightly pipeline. A `lolly <tool> --field=…` call in a loop is the whole integration.
-- <!--i:cpu--> **A system or an AI agent, over MCP.** The same tool operated programmatically, at the same fidelity and even greater scale - because a machine won't get bored while thousands of files roll in.
+- <!--i:people--> **A person, in the app.** The `/pro` batch grid: paste or import the rows, get one finished asset per row, download the zip. No design skill, no wait.
+- <!--i:code--> **A developer, from the command line.** The CLI runs the *same* engine and the *same* render path headless, so the tool can be sequenced over every row in a script or a nightly pipeline. A `lolly <tool> --field=…` call in a loop is the whole integration.
+- <!--i:cpu--> **A system or an AI agent, over MCP.** The same tool operated programmatically, at the same fidelity, for as many rows as the job has.
 
 ![Batch mode on a fresh install: one empty row waiting for a tool, with the whole spreadsheet surface and its Render button in place before any data arrives](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-One set of brand constraints, fixed once by a designer; three routes to the identical pre-approved output - and the machine route scales furthest of all, because it never tires while the files roll in.
+One set of brand constraints, fixed once by a designer; three routes to the identical output.
 
 ---
 
@@ -390,11 +390,11 @@ Web shell: IndexedDB. Tauri: filesystem. CLI: in-memory. Tools see only `host.st
 
 Users can save multiple named edit slots per tool and return to each session later. No account creation is required; state is per-device. Because the bridge is the only seam, that per-device state is also *portable*: `shells/web/src/data-transfer.ts` reads everything back out through `host.profile`/`host.state`/`host.assets` into a single `lolly-backup` zip that imports on any other install - the offline answer to "move to a new device" that doesn't need a server (full spec: `docs/data-transfer.md`). SUSE ID integration (multi-device sync) is a future milestone on top of this.
 
-### 7. Maturity tags answer the "brand approved" risk by design
+### 7. Maturity tags say what a tool is, by design
 
 Every tool declares `status: official | community | experimental` in its manifest. The gallery sorts by status. Experimental tools watermark their exports automatically - the watermark is applied by `host.export.render`, not by the tool, so it cannot be opted out of by a non-official tool author.
 
-This is a structural answer to the perception risk that using any tool implies brand approval. Process answers (a review queue, SUSE ID gating) layer on top.
+This is a structural answer to the perception risk that every tool in the gallery carries the same weight. Whatever process a team puts around the catalog sits on top of it.
 
 ### 8. Tool inputs are typed via the manifest, including assets
 
@@ -445,7 +445,7 @@ A user opens `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 5. **Runtime.** `createRuntime(tool, host, initialValues)` builds the input model (merging profile data, defaults and initial values), resolves asset refs via `host.assets.get()`, loads hooks (closure-scoped `host`, not sandboxed), calls `hooks.onInit`.
 6. **Render.** Shell subscribes to runtime; on every state change it receives `{ model, hydrated }`. It renders input controls from the model and writes the hydrated template HTML into `#tool-canvas`.
 7. **Interact.** User types in an input → `runtime.setInput(id, value)` → constraints applied → `hooks.onInput` called → re-hydrate → re-render. The canvas updates live.
-8. **Export.** User clicks Download(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (rasterises via dom-to-image-more; SVG/PDF go through dedicated DOM-walking vectorisers) → blob → `host.export.download`. The format range a tool can opt into is broad, and the `render.formats` enum in `schemas/tool.schema.json` is the authority on it - rasters and float rasters, vectors and cut files, print/CMYK, motion, editable documents (`pptx`, `docx`, `odt`), palette and data/text outputs, audio and font files. [URL Mode](/info/url-mode.html) names every id and what it produces. Audio is in that enum like anything else (`wav`, `mp3`, `m4a`, `opus`, declared by the audiogram and the recording tools); separately, a recording tool's `render.capture` mode drives `host.recorder`, whose take arrives as a finished Blob in whatever container the browser recorded. (Tools that set `render.export: false` - e.g. Color Palette, Countdown Timer, Strip Hidden Data, Text, Compress PDF - hide the download/format/dimension controls.) Physical units are converted per format here (PDF → true page points, raster → pixels at DPI with a `pHYs` chunk). Authorship/provenance metadata (author, tool, source - built by `engine/src/metadata.ts`) is embedded per format: PNG iTXt, JPEG EXIF, PDF info dict, SVG `<metadata>`, GIF comment. Experimental tools get a watermark inserted by the host, not the tool.
+8. **Export.** User clicks Download(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (rasterises via dom-to-image-more; SVG/PDF go through dedicated DOM-walking vectorisers) → blob → `host.export.download`. The format range a tool can opt into is broad, and the `render.formats` enum in `schemas/tool.schema.json` is the authority on it - rasters and float rasters, vectors and cut files, print/CMYK, motion, editable documents (`pptx`, `docx`, `odt`), palette and data/text outputs, audio and font files. [URL Mode](/info/url-mode.html) lists every id and what it produces. Audio is in that enum like anything else (`wav`, `mp3`, `m4a`, `opus`, declared by the audiogram and the recording tools); separately, a recording tool's `render.capture` mode drives `host.recorder`, whose take arrives as a finished Blob in whatever container the browser recorded. (Tools that set `render.export: false` - e.g. Color Palette, Countdown Timer, Strip Hidden Data, Text, Compress PDF - hide the download/format/dimension controls.) Physical units are converted per format here (PDF → true page points, raster → pixels at DPI with a `pHYs` chunk). Authorship/provenance metadata (author, tool, source - built by `engine/src/metadata.ts`) is embedded per format: PNG iTXt, JPEG EXIF, PDF info dict, SVG `<metadata>`, GIF comment. Experimental tools get a watermark inserted by the host, not the tool.
 
 ![The export panel that `?options` opens: the filename and format pair, the output size and the controls that write the file](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2200&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=aud-export-popup)
 

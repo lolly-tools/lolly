@@ -423,6 +423,38 @@
               "css": "inset 0 0 0 1px hsl(var(--primary) / .20)"
             }
           }
+        },
+        "selection-ring": {
+          "$type": "shadow",
+          "$value": {
+            "color": "#0c322cff",
+            "offsetX": "0px",
+            "offsetY": "0px",
+            "blur": "0px",
+            "spread": "2px"
+          },
+          "$description": "A 2px outer ring in the selection colour on a picture tile: the current layout or theme in a chooser. Drawn outside the tile so the picture keeps its size.",
+          "$extensions": {
+            "tools.lolly": {
+              "css": "0 0 0 2px var(--ui-color-selection-border)"
+            }
+          }
+        },
+        "selection-ring-hover": {
+          "$type": "shadow",
+          "$value": {
+            "color": "#0c322c66",
+            "offsetX": "0px",
+            "offsetY": "0px",
+            "blur": "0px",
+            "spread": "2px"
+          },
+          "$description": "The same ring at 40% for a tile under the pointer, so hover and selection read as one idiom.",
+          "$extensions": {
+            "tools.lolly": {
+              "css": "0 0 0 2px color-mix(in srgb, var(--ui-color-selection-border) 40%, transparent)"
+            }
+          }
         }
       },
       "type": {

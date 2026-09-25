@@ -87,7 +87,7 @@
       "default": "Northwind Summit 2026",
       "maxLength": 90,
       "placeholder": "e.g. Northwind Summit 2026",
-      "help": "Printed at the head of every layout, and it names the exported file."
+      "help": "Printed at the head of every layout, and used as the exported file name."
     },
     {
       "id": "subtitle",

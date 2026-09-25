@@ -45,6 +45,7 @@ import {
   SLIDER_DRAG_EVENT,
 } from '../components/custom-slider.ts';
 import { canSkipInputsRebuild, staticInputControl } from './inputs-sync.ts';
+import { dragTravel } from '../lib/pointer-wrap.ts';
 import { jellyActive, jellyEnabled } from '../lib/jelly.ts';
 import { BANDS, bandMeta, resolveBands, sectionGlyph, type Band } from '../lib/section-bands.ts';
 import { installTablePaste } from '../lib/table-paste.ts';
@@ -771,7 +772,7 @@ export function renderInputs(
     // or a catalog text/boilerplate asset. Not on a locked input.
     const dataSrcBtn =
       !locks && input.dataSource && (input.control === 'textarea' || input.control === 'text-input')
-        ? `<button type="button" class="input-data-src" data-data-source="${escape(input.id)}" title="Add data from a file or your library" aria-label="Add data">${icon('filePlus', { size: 13, strokeWidth: 2 })}</button>`
+        ? `<button type="button" class="input-data-src" data-data-source="${escape(input.id)}" title="Add data from a file or your library" aria-label="Add data">${icon('filePlus', { size: 13, strokeWidth: 2 })} Add Data</button>`
         : '';
     const label = `<span class="input-label">${labelText}${lockChip}${ht ? ht.button : ''}${dataSrcBtn}</span>`;
     // Always-visible fine print between label and control - the consent-gate
@@ -3875,8 +3876,9 @@ function setupVectorControl(
   // The whole field is the scrub surface, not just the symbol - drag anywhere on
   // a value to change it (Figma-style); the symbol is only a visual cue. A plain
   // click (no movement past the threshold) falls through to focus the <input> for
-  // typing. Pointer Lock kicks in once dragging starts so the cursor wraps at
-  // screen edges and a wide range (e.g. zoom) isn't capped by the sidebar width.
+  // typing. A drag that reaches the screen edge keeps going (lib/pointer-wrap.ts locks
+  // the pointer there and laps a stand-in cursor round the window), so a wide range
+  // (e.g. zoom) isn't capped by the sidebar width.
   container.querySelectorAll<HTMLElement>('.vec-field').forEach((fieldEl) => {
     const fieldId = fieldEl.querySelector<HTMLElement>('.vec-scrub')?.dataset.vecScrub;
     const f = fields.find((x) => x.id === fieldId);
@@ -3894,27 +3896,23 @@ function setupVectorControl(
 
     fieldEl.addEventListener('pointerdown', (e) => {
       if (e.button !== 0) return;
-      const startX = e.clientX;
       const startVal = Number(el.value) || 0;
-      let accumulated = 0; // total pixel delta once pointer lock is active
+      const travel = dragTravel(fieldEl, e, { onLost: () => onUp() });
       let dragging = false;
       let lastVecVal = String(startVal); // last value we ticked on, so we tick per step
 
       function onMove(ev: PointerEvent): void {
+        const accumulated = travel.move(ev);
         if (!dragging) {
           // Below the threshold this is still a potential click - leave it alone
           // so the field stays typeable.
-          if (Math.abs(ev.clientX - startX) < 4) return;
+          if (Math.abs(accumulated) < 4) return;
           dragging = true;
           _sliderDragging = true; // keep the sidebar from rebuilding mid-drag
           el!.blur(); // leave any text-edit mode
           document.body.style.cursor = 'ew-resize';
           fieldEl.setPointerCapture(e.pointerId);
-          const req = fieldEl.requestPointerLock?.({ unadjustedMovement: true });
-          if (req instanceof Promise) req.catch(() => fieldEl.requestPointerLock?.());
         }
-        if (document.pointerLockElement === fieldEl) accumulated += ev.movementX;
-        else accumulated = ev.clientX - startX; // keep in sync for the switch to locked mode
         el!.value = String(clamp(startVal + Math.round(accumulated / 4) * step)); // ~1 step / 4px
         if (el!.value !== lastVecVal) {
           lastVecVal = el!.value;
@@ -3927,8 +3925,7 @@ function setupVectorControl(
         fieldEl.removeEventListener('pointermove', onMove);
         fieldEl.removeEventListener('pointerup', onUp);
         fieldEl.removeEventListener('pointercancel', onUp);
-        document.removeEventListener('pointerlockchange', onLockChange);
-        if (document.pointerLockElement === fieldEl) document.exitPointerLock();
+        travel.end();
         document.body.style.cursor = '';
         if (dragging) {
           _sliderDragging = false;
@@ -3940,15 +3937,9 @@ function setupVectorControl(
         }
       }
 
-      function onLockChange(): void {
-        // Escape key or other external release - stop dragging cleanly.
-        if (document.pointerLockElement !== fieldEl) onUp();
-      }
-
       fieldEl.addEventListener('pointermove', onMove);
       fieldEl.addEventListener('pointerup', onUp);
       fieldEl.addEventListener('pointercancel', onUp);
-      document.addEventListener('pointerlockchange', onLockChange);
     });
 
     // Suppress the click-to-focus that follows a drag so the caret doesn't jump

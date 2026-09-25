@@ -58,6 +58,28 @@ export interface PdfNode {
    *  back to the historical 1.4 estimate. */
   lineHeight?: number;
   tracking?: number;
+  /**
+   * A text node's ink width per line, one entry per `text.split('\n')` line:
+   * the distance along the baseline from the node's origin (`x`, not the line's
+   * own start, so an indented second line counts its indent) to the end of the
+   * line's last visible glyph, measured with the font's own advance widths (the
+   * `/Widths` or `/W` the reader supplied, or the font's `/DW` or
+   * `/MissingWidth`). `w` cannot stand in for it: `w` is the widest line's pen
+   * advance, which counts the trailing space the text trims and the character
+   * spacing after the last glyph. pdf-text reads it to decide whether the gap
+   * before the next run is a word break. 0 for a line with no visible glyph and
+   * for a line where one advance was the 0.55 em guess the pen falls back to
+   * (a font with no widths, such as an unembedded standard font), because a
+   * guessed edge is not a measurement; absent when no line was measured and on
+   * Type3 text.
+   */
+  lineInk?: number[];
+  /**
+   * The run's last line ended in a space the producer showed as a glyph, which
+   * `text` trims. The next run on the same baseline starts a new word whatever
+   * the gap says, because the document spelled the break.
+   */
+  spaceAfter?: true;
   text?: string;
   fit?: string;
   group?: string;
@@ -438,8 +460,29 @@ export const PDF_MAP_MAX_CONTENT_CHARS = 16 * 1024 * 1024;
 export const PDF_MAP_MAX_TOTAL_CONTENT_CHARS = 32 * 1024 * 1024;
 
 /**
+ * One content-stream character back to the byte it was decoded from.
+ *
+ * Callers decode a stream to a string before it gets here, and the obvious way
+ * to do that, `new TextDecoder('latin1')`, is not Latin-1: the Encoding Standard
+ * maps that label to windows-1252, so the 27 bytes CP1252 assigns in 0x80-0x9F
+ * come back as the characters CP1252 gives them (0x92 as U+2019). Inside a
+ * string operand those are glyph codes, not text: a two-byte CID holding the
+ * byte 0x92 became a different code with no glyph and no Unicode mapping, and
+ * office PDFs lost spaces, commas and whole letters that way ("Why Sovereignty"
+ * read "hySovereignty"). Characters above 0xFF are mapped back through the same
+ * table, so a caller that decodes true Latin-1 and one that decodes
+ * windows-1252 give the interpreter the same bytes.
+ */
+function streamByte(c: number): number {
+  if (c <= 0xff) return c;
+  // Outside the table the character passes through, as it always did.
+  return WIN_ANSI_BYTE.get(c) ?? c;
+}
+
+/**
  * Tokenize a content stream. Operates on Latin-1 char codes so binary string bytes
- * survive. Inline images (BI … ID … EI) are skipped wholesale - their binary payload
+ * survive (`streamByte` undoes the windows-1252 decode a caller may have used).
+ * Inline images (BI … ID … EI) are skipped wholesale - their binary payload
  * isn't token-structured and we don't import them.
  */
 function tokenize(src: string, maxTokens: number): { tokens: Tok[]; count: number; exhausted: boolean } {
@@ -471,11 +514,11 @@ function tokenize(src: string, maxTokens: number): { tokens: Tok[]; count: numbe
           continue;
         } else if (e === 0x0a) { /* line continuation */ }
         else if (e === 0x0d) { if (code(i + 1) === 0x0a) i++; }
-        else bytes.push(e);
+        else bytes.push(streamByte(e));
         i++;
       } else if (c === 0x28) { depth++; bytes.push(c); i++; }
       else if (c === 0x29) { if (depth === 0) { i++; break; } depth--; bytes.push(c); i++; }
-      else { bytes.push(c); i++; }
+      else { bytes.push(streamByte(c)); i++; }
     }
     return bytes;
   };
@@ -982,6 +1025,17 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
      *  '\n' merges in this node, so flushText can record the document's actual
      *  line height instead of the serializer guessing 1.4. */
     let leadSum = 0, leadCount = 0;
+    /** Each line's ink width so far (see `PdfNode.lineInk`); the last entry is the open line. */
+    let lineInk: number[] = [];
+    /** Per line, parallel to `lineInk`: true once a glyph on it was advanced by the 0.55 em guess. */
+    let lineGuessed: boolean[] = [];
+    /**
+     * The pen gap, in em, between the end of what was shown and the next glyph,
+     * collected from a same-baseline move and from TJ adjustments. Whether it is a
+     * word break is decided when the next string is shown, because the rule
+     * depends on the characters on both sides (see `pdfWordBreak`).
+     */
+    let pendingGapEm = 0;
     /**
      * The fill alpha and the soft-mask decision captured AT THE RUN'S ORIGIN, not at
      * `ET`. A BT…ET block can change `gs` between shows, and the node carries a single
@@ -1043,6 +1097,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         textMask = maskPaint('raw');
         lastLineY = p.y; lastLineX = p.x;
         leadSum = 0; leadCount = 0;
+        lineInk = [0]; lineGuessed = [false]; pendingGapEm = 0;
       } else if (!textBuf) {
         // Nothing SHOWN yet in this run, so this move is pen positioning, not
         // layout - re-latch the origin at the new position. The origin must
@@ -1071,11 +1126,14 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
           // keeps accumulating; a leftward move or a tab/column jump is a new run.
           const gap = p.x - textEnd.x;
           if (gap < -textSize * 0.35 || gap > textSize * 3) { flushText(); onTextMove(); return; }
-          if (gap > textSize * 0.18 && !/\s$/.test(textBuf)) textBuf += ' ';
+          // Added, not assigned: `textEnd` already includes a TJ shift that
+          // opened part of this gap, and that part is in `pendingGapEm`.
+          pendingGapEm += gap / textSize;
         } else if (dy > textSize * 0.35 && dy <= textSize * 2.1 && Math.abs(dx) <= textSize * 2) {
           // Next line: downward, near the line start, at a plausible leading.
-          if (textBuf && !textBuf.endsWith('\n')) { textBuf += '\n'; leadSum += dy / textSize; leadCount++; }
+          if (textBuf && !textBuf.endsWith('\n')) { textBuf += '\n'; leadSum += dy / textSize; leadCount++; lineInk.push(0); lineGuessed.push(false); }
           lastLineY = p.y; lastLineX = p.x;
+          pendingGapEm = 0;
         } else {
           flushText(); onTextMove(); return;
         }
@@ -1129,12 +1187,39 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         || Math.abs(textTracking - s.charSpacing * scaleMag(matMul(s.ctm, tm)) * s.horizontalScale) > 0.01)) flushText();
       if (!originSet) onTextMove();
       latchMcid();
-      textBuf += decodeStr(codes, s.font);
+      const shown = decodeStr(codes, s.font);
+      if (pendingGapEm && pdfWordBreak(textBuf, shown, pendingGapEm, PDF_RUN_WORD_GAP_EM)) textBuf += ' ';
+      pendingGapEm = 0;
+      textBuf += shown;
       let advance = 0;
-      for (let i = 0; i < codes.length; i += fi?.twoByte ? 2 : 1) {
+      // The pen advance to the end of the last visible glyph, for `lineInk`.
+      let ink = -1;
+      // Whether an advance up to that glyph was the 0.55 em guess, not a width the font gave.
+      let guessed = false, inkGuessed = false;
+      const step = fi?.twoByte ? 2 : 1;
+      for (let i = 0; i < codes.length; i += step) {
         const code = fi?.twoByte ? (codes[i]! << 8) | (codes[i + 1] ?? 0) : codes[i]!;
-        advance += ((fi?.widths?.[code] ?? fi?.defaultWidth ?? 550) / 1000 * (s.fontSize || 0)
+        const width = fi?.widths?.[code] ?? fi?.defaultWidth;
+        if (width === undefined) guessed = true;
+        const glyph = (width ?? 550) / 1000 * (s.fontSize || 0);
+        if (decodeStr(codes.slice(i, i + step), s.font).trim()) { ink = advance + glyph * s.horizontalScale; inkGuessed = guessed; }
+        advance += (glyph
           + s.charSpacing + (!fi?.twoByte && code === 32 ? s.wordSpacing : 0)) * s.horizontalScale;
+      }
+      const k = lineInk.length - 1;
+      if (k >= 0) {
+        if (inkGuessed) lineGuessed[k] = true;
+        if (ink >= 0) {
+          // Along the baseline from the node's origin, so pdf-text can add it to `x`.
+          const trm = matMul(s.ctm, tm);
+          const end = apply(matMul(trm, { a: 1, b: 0, c: 0, d: 1, e: ink, f: 0 }), 0, s.rise);
+          const unit = apply(trm, 1, 0), zero = apply(trm, 0, 0);
+          const len = Math.hypot(unit.x - zero.x, unit.y - zero.y);
+          if (len > 0) {
+            const along = ((end.x - origin.x) * (unit.x - zero.x) + (end.y - origin.y) * (unit.y - zero.y)) / len;
+            lineInk[k] = Math.max(lineInk[k] ?? 0, along);
+          }
+        }
       }
       tm = matMul(tm, { a: 1, b: 0, c: 0, d: 1, e: advance, f: 0 });
       textEnd = apply(matMul(s.ctm, tm), 0, s.rise);
@@ -1156,7 +1241,12 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         if (el.t === 'str') showString(el.v);
         else if (el.t === 'num') {
           tm = matMul(tm, { a: 1, b: 0, c: 0, d: 1, e: -(el.v / 1000) * (s.fontSize || 0) * s.horizontalScale, f: 0 });
-          if (el.v <= -180 && textBuf && !/\s$/.test(textBuf)) textBuf += ' ';
+          // A negative adjustment moves the next glyph right, in thousandths of
+          // an em: -250 is a word space set by position, -30 is kerning. The
+          // next string decides (a word break, or justification in Chinese).
+          // Scaled by Tz like the pen move above, so it is the same unit as a
+          // same-baseline move's gap.
+          if (textBuf) pendingGapEm -= (el.v / 1000) * s.horizontalScale;
           textEnd = apply(matMul(s.ctm, tm), 0, s.rise);
         }
       }
@@ -1169,12 +1259,16 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         // as a multiple of the font size - pdf-svg's line placement reads it
         // so merged lines land on the true baselines, not a synthetic grid.
         const lead = leadCount ? Math.round((leadSum / leadCount) * 1000) / 1000 : 0;
+        const ink = lineInk.slice(0, txt.split('\n').length).map((v, k) => (lineGuessed[k] ? 0 : v));
+        const spaceAfter = /[^\S\n]$/.test(textBuf);
         sink.nodes.push({
           kind: 'text',
           x: origin.x, y: origin.y - size * 0.8,
           w: Math.max(1, textWidth), h: size * (lead || 1.4) * (txt.split('\n').length),
           ...(textTracking ? { tracking: textTracking } : {}),
           ...(lead ? { lineHeight: lead } : {}),
+          ...(ink.some((v) => v > 0) ? { lineInk: ink } : {}),
+          ...(spaceAfter ? { spaceAfter: true as const } : {}),
           rot: Math.abs(textRot) < 0.5 ? 0 : textRot,
           fg: safeColor(textFill, '#000000') || '#000000',
           opacity: clamp(Math.round(textAlpha * 100 * textMask.scale), 0, 100),
@@ -1190,6 +1284,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         sink.count++;
       }
       textBuf = ''; originSet = false; leadSum = 0; leadCount = 0;
+      lineInk = []; lineGuessed = []; pendingGapEm = 0;
       textAlpha = 1; textMcid = -1; textMask = { extra: {}, scale: 1 };
     };
 
@@ -1679,7 +1774,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         case 'W': pendingClip = 'nonzero'; break;
         case 'W*': pendingClip = 'evenodd'; break;
 
-        case 'BT': tm = IDENTITY; tlm = IDENTITY; textBuf = ''; originSet = false; break;
+        case 'BT': tm = IDENTITY; tlm = IDENTITY; textBuf = ''; originSet = false; pendingGapEm = 0; break;
         case 'ET': flushText(); break;
         case 'TL': s.leading = args[0] ?? 0; break;
         case 'Tc': s.charSpacing = args[0] ?? 0; break;
@@ -2028,6 +2123,83 @@ const WIN_ANSI_HIGH: Record<number, string> = {
   0x95: '•', 0x96: '–', 0x97: '\u2014', 0x98: '˜', 0x99: '™',
   0x9a: 'š', 0x9b: '›', 0x9c: 'œ', 0x9e: 'ž', 0x9f: 'Ÿ',
 };
+
+/**
+ * A gap between two runs on one baseline at least this fraction of the font
+ * size is a word break, when the edge before it is measured (pdf-text joining two
+ * nodes whose `lineInk` it has). A space in a text face is 0.2 to 0.28 em, less
+ * the kerning against the next letter, and a kerning pair rarely opens a gap
+ * wider than 0.1 em, so the line falls between them (Poppler's pdftotext breaks
+ * at 0.1 em).
+ */
+export const PDF_WORD_GAP_EM = 0.15;
+
+/**
+ * The same rule for a gap inside one text object: a TJ adjustment, or a move
+ * along the baseline between two shows. Wider than `PDF_WORD_GAP_EM` because
+ * letter-spaced type is often set with one TJ number per glyph (-160 is ordinary
+ * tracking in a heading), and a same-baseline move is judged against the pen,
+ * which is a guess for a font with no widths. A TJ adjustment of -180 or more
+ * breaks, as it always did.
+ */
+export const PDF_RUN_WORD_GAP_EM = 0.18;
+
+/**
+ * Between two characters of Chinese or Japanese, a gap is justification or
+ * kerning, never a missing space, until it is wider than this. A wider gap
+ * separates two things set apart (table cells, a label and its value), so a
+ * space still goes in.
+ */
+export const PDF_UNSPACED_GAP_EM = 1;
+
+/**
+ * Where only one side is Chinese or Japanese (a Latin product name inside
+ * Chinese prose), or either side is Thai, Lao, Khmer or Myanmar, the gap has to
+ * be at least this wide. Those four scripts put a space between phrases, and
+ * text set beside Chinese often keeps its space, so a gap the width of a space
+ * still breaks while a small justification gap does not.
+ */
+export const PDF_MIXED_GAP_EM = 0.2;
+
+/**
+ * Chinese and Japanese: Han, kana (the blocks, which also hold the prolonged
+ * sound mark the Katakana script property leaves out), Bopomofo, CJK punctuation,
+ * the full-width punctuation and the halfwidth katakana. Full-width Latin letters
+ * and digits and halfwidth Hangul are left out: Korean puts spaces between words.
+ */
+const CJK = /[\p{Script=Han}\u3040-\u30ff\u31f0-\u31ff\u3100-\u312f\u31a0-\u31bf\u3000-\u303f\uff01-\uff0f\uff1a-\uff20\uff3b-\uff40\uff5b-\uff9f]/u;
+const CJK_END = new RegExp(`${CJK.source}$`, 'u');
+const CJK_START = new RegExp(`^${CJK.source}`, 'u');
+/** Scripts with no space between words that do put one between phrases. */
+const PHRASE_SPACED = /[\p{Script=Thai}\p{Script=Lao}\p{Script=Khmer}\p{Script=Myanmar}]/u;
+const PHRASE_SPACED_END = new RegExp(`${PHRASE_SPACED.source}$`, 'u');
+const PHRASE_SPACED_START = new RegExp(`^${PHRASE_SPACED.source}`, 'u');
+
+/**
+ * Whether a space belongs between `before` and `after`, two pieces of one line
+ * separated by `gapEm` (the gap past the end of `before`'s last glyph, as a
+ * fraction of the font size). False when either side already carries the space,
+ * and for a gap narrower than `threshold`. Between two Chinese or Japanese
+ * characters only a gap wider than `PDF_UNSPACED_GAP_EM` counts; next to one, or
+ * next to Thai, Lao, Khmer or Myanmar, the gap must also reach
+ * `PDF_MIXED_GAP_EM`. A caller whose right edge is an estimate passes a wider
+ * `threshold`.
+ */
+export function pdfWordBreak(before: string, after: string, gapEm: number, threshold = PDF_WORD_GAP_EM): boolean {
+  if (!before || !after || !(gapEm > 0)) return false;
+  if (/\s$/.test(before) || /^\s/.test(after)) return false;
+  const cjkBefore = CJK_END.test(before), cjkAfter = CJK_START.test(after);
+  if (cjkBefore && cjkAfter) return gapEm > PDF_UNSPACED_GAP_EM;
+  if (cjkBefore || cjkAfter || PHRASE_SPACED_END.test(before) || PHRASE_SPACED_START.test(after)) {
+    return gapEm >= Math.max(threshold, PDF_MIXED_GAP_EM);
+  }
+  return gapEm >= threshold;
+}
+
+/** The inverse of `WIN_ANSI_HIGH`: a CP1252 character's code point to its byte. */
+const WIN_ANSI_BYTE: ReadonlyMap<number, number> = new Map(
+  Object.entries(WIN_ANSI_HIGH).map(([byte, ch]) => [ch.charCodeAt(0), Number(byte)]),
+);
 
 function ocgLabel(op: string, name: string, res: PdfResources): string {
   if (op === 'BDC' && res.ocgs && name && res.ocgs[name]) return res.ocgs[name]!;

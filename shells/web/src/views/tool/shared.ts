@@ -626,6 +626,10 @@ export function collectExportParams(exportScope: HTMLElement | null): string[] {
     if (emoji.emojifx) parts.push(`emojifx=${encodeURIComponent(emoji.emojifx)}`);
     if (emoji.emojistyle) parts.push(`emojistyle=${encodeURIComponent(emoji.emojistyle)}`);
   }
+  // The licence declared in Content protection. Document state like the emoji set,
+  // so a shared link carries the licence the sender chose.
+  const licence = exportScope?.querySelector<HTMLSelectElement>('[data-action="export-licence"]')?.value;
+  if (licence) parts.push(`licence=${encodeURIComponent(licence)}`);
   const fmtEl = exportScope?.querySelector<HTMLSelectElement>('[data-action="format"]');
   if (fmtEl?.value) parts.push(`format=${encodeURIComponent(fmtEl.value)}`);
   const fname = exportScope

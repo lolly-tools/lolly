@@ -39,7 +39,7 @@ Cách công việc sáng tạo thường nhật vẫn hay được thực hiện
 - **[Tự mình xác minh](/info/verify-yourself.html)** - đối chiếu các tuyên bố với một bản xuất thật, từng bước một, không có gì mà bạn không thể tự chạy được.
 - **[Chính sách quyền riêng tư](/info/privacy.html)** - tuyên bố chính thức về những gì được và không được thu thập, lưu trữ và gửi đi.
 - **[Sản xuất sáng tạo có chủ quyền](/info/sovereign-production.html)** - triển khai air-gapped, kết nối mạng có cổng đồng ý và ký trên thiết bị.
-- **[Áp dụng & Quản trị](/info/adoption-governance.html)** - ai phê duyệt một công cụ, quy tắc thương hiệu trở nên thực thi được như thế nào và tùy chọn danh mục dưới dạng repository mang lại lợi ích gì.
+- **[Áp dụng & Quản trị](/info/adoption-governance.html)** - quy tắc thương hiệu trở nên thực thi được như thế nào, một danh mục được chia sẻ bổ sung thêm gì và tùy chọn danh mục dưới dạng repository mang lại lợi ích gì.
 
 ## Pháp lý
 

@@ -53,27 +53,19 @@ Deck Studio adalah ukuran yang baik bagi siling di sini: keseluruhan dek slaid d
 
 Kebanyakan pitching "kreatif AI" meletakkan model di sisi yang salah pada satu garisan lama. Jurutulis dan penghias manuskrip sudah pun menetapkan di mana garisan itu jatuh: anda bekerja secara longgar pada lakaran, di mana apa sahaja boleh dicuba dan tiada apa yang komited, kemudian anda pergi ke mesin cetak, yang menggerunkan justeru kerana ia komited. Lakaran itulah tempat seninya berada. Mesin cetak itulah caranya ia diperjalankan. Dua alat, dua tugas, masing-masing inventif dengan caranya sendiri, dan karya cetakan itu boleh dipercayai kerana mesin cetak menepati janjinya pada setiap tarikan.
 
-Lolly adalah mesin cetak, bukan lakaran. Bawa apa sahaja yang anda suka kepada penjanaan idea - model, pereka bentuk, tisu napkin - tetapi sebaik sahaja sesuatu idea perlu menjadi sepuluh ribu aset, ia melalui sesuatu yang memaparkan dengan cara yang sama setiap kali, daripada input yang boleh dibaca semula oleh sesiapa sahaja. Itulah sebenarnya inti perbandingan di atas: bukan siapa mempunyai penjana yang lebih baik, tetapi siapa yang menjadikan langkah komited itu boleh dihasilkan semula.
+Lolly adalah mesin cetak, bukan lakaran. Bawa apa sahaja yang anda suka kepada penjanaan idea - model, pereka bentuk, tisu napkin - tetapi sebaik sahaja sesuatu idea perlu menjadi banyak aset, ia melalui sesuatu yang memaparkan dengan cara yang sama setiap kali, daripada input yang boleh dibaca semula oleh sesiapa sahaja. Itulah sebenarnya inti perbandingan di atas: bukan siapa mempunyai penjana yang lebih baik, tetapi siapa yang menjadikan langkah komited itu boleh dihasilkan semula.
 
 > Percayai proses kreatif, skala dengan ketelitian.
 
-## Luluskan alat, bukan fail
+## Peraturan berada dalam alat, bukan fail
 
-Setiap alat lain di papan menghasilkan *fail* yang kemudian perlu disemak - pengurus jenama dalam satu bebenang Slack, bahagian undang-undang pada penafian, satu pusingan perubahan, satu lagi semakan. Lolly menggerakkan kelulusan **satu langkah ke hulu**. Peraturan jenama - kod hex yang tepat, fail fon berlesen, jidar bleed, jarak - dikodkan keras ke dalam HTML dan CSS alat tersebut, jadi templat itu *tidak boleh* menghasilkan aset yang terkeluar daripada jenama. Susun atur itu sendiri yang menguatkuasakannya.
+Setiap alat lain di papan menghasilkan *fail*, dan fail hanya boleh dilihat selepas faktanya, satu output pada satu masa. Lolly menggerakkan peraturan jenama **satu langkah ke hulu**. Kod hex yang tepat, fail fon berlesen, jidar bleed, jarak - kesemuanya dikodkan keras ke dalam HTML dan CSS alat itu, jadi templat itu *tidak boleh* menghasilkan aset yang terkeluar daripada jenama. Susun atur itu sendiri yang menguatkuasakannya.
 
-Jadi anda berhenti meluluskan output dan mula meluluskan **alat** yang menghasilkannya. Luluskan sekali, dan setiap aset yang pernah dihasilkannya telah diluluskan terlebih dahulu secara binaan - tiada manusia dalam gelung, tiada kitaran semakan, pada sebarang jumlah.
+Jadi perkara yang patut dilihat ialah **alat** itu, bukan setiap fail yang dihasilkannya. Betulkan alat itu, dan setiap aset yang pernah dihasilkannya patuh jenama secara binaan. Cara anda menyemak kerja anda, dan siapa yang melakukannya, kekal terpulang kepada anda; Lolly menjadikan perkara yang patut disemak lebih kecil dan output lebih pantas dihasilkan.
 
-Inilah perubahan yang sebenarnya dibawa oleh enjin deterministik: ia bukan versi lebih pantas bagi proses kelulusan lama, ia menghapuskan proses itu. Bagi pasukan kreatif, ia adalah pagar keselamatan, bukan penggantian - anda masih melontar bola (data, teks, imej) dan kod itu ialah lorong bumper yang memastikan setiap lontaran tidak jatuh ke dalam parit.
+Inilah perubahan yang sebenarnya dibawa oleh enjin deterministik. Bagi pasukan kreatif, ia adalah pagar keselamatan, bukan penggantian - anda masih melontar bola (data, teks, imej) dan kod itu ialah lorong bumper yang memastikan setiap lontaran tidak jatuh ke dalam parit.
 
-![Seluruh kerja penerbit: taip perkataan. Jenis huruf, warna dan jarak telah ditetapkan apabila alat itu diluluskan](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DApproved&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-approve-the-tool)
-
-| Meluluskan aset cara lama | Meluluskan alat, cara Lolly |
-|---|---|
-| Setiap fail siap disemak, satu demi satu | Alat itu disemak sekali sahaja |
-| Permintaan → pereka bina → semakan jenama → semakan undang-undang → perubahan → semakan semula | Satu perubahan parameter → aset siap |
-| Pereka, pengurus jenama, undang-undang dan pemohon semuanya dalam gelung | Penerbit, bersendirian |
-| Beberapa hari setiap aset | Beberapa saat setiap aset |
-| 10,000 aset = 10,000 kitaran semakan | 10,000 aset = sifar (templat telah pun diluluskan) |
+![Seluruh kerja penerbit: taip perkataan. Jenis huruf, warna dan jarak telah ditetapkan apabila alat itu dibuat](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
 
 ## Apa yang disediakan secara unik oleh ini
 

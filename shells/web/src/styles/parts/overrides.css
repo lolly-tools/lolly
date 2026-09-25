@@ -161,3 +161,19 @@ body.is-scrubbing, body.is-scrubbing * {
   cursor: ew-resize !important;
   user-select: none !important;
 }
+
+/* The stand-in cursor a locked drag draws (lib/pointer-wrap.ts): the real pointer is
+   hidden by the Pointer Lock API while a drag wraps past the screen edge, so this marks
+   where it would be, lapping round the window. A two-headed arrow like the ew-resize
+   cursor it replaces, black with a white keyline so it reads on any surface. */
+.drag-wrap-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483647;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M1 12l6-6v4h10V6l6 6-6 6v-4H7v4z' fill='%23000' stroke='%23fff' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}

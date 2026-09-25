@@ -1,6 +1,6 @@
 # Lolly compared, tool by tool
 
-Lolly overlaps with several kinds of software and replaces none of them wholesale. Each page below states plainly what the other tool does better and what Lolly does instead. Nothing here is a superlative about Lolly, and nothing here names a villain: the reader does the arithmetic.
+Lolly overlaps with several kinds of software and replaces none of them wholesale. Each page below states plainly what the other tool does better and what Lolly does instead. Nothing here is a superlative about Lolly, and nothing here picks a villain: the reader does the arithmetic.
 
 For the capability-by-capability picture across the whole field, see [How Lolly compares](/info/positioning.html), which carries the comparison figure.
 

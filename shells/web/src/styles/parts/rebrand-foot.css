@@ -1,0 +1,158 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* #/rebrand footer (.rb-foot, plan 275 close-out section 3.8): the counts and the
+   report link, the last result with its Undo (or the reason Open in Design waits)
+   after a hairline, and the two actions (views/rebrand/foot.ts), with the job toast
+   rule that keeps clear of it. The grid that places it is rebrand.css.
+   One row: 52 px, 64 on a phone. The result is in body ink, since it is the answer to
+   what the person just did; the counts are muted.
+   Tokens only; chrome sizes as calc(Npx * var(--a11y-fs)).
+   Never write a star followed by a slash inside a CSS comment. */
+@layer views {
+  .rb-foot {
+    --rb-foot-control: calc(36px * var(--a11y-fs));
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    min-height: calc(52px * var(--a11y-fs));
+    padding: var(--sp-1) var(--sp-4);
+    border-top: 1px solid var(--ui-color-border-default);
+  }
+  .rb-foot [hidden] { display: none; }
+  .rb-foot .btn { min-height: var(--rb-foot-control); }
+
+  /* ── the counts and the report link ── */
+  .rb-foot-info {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-width: 0;
+  }
+  .rb-foot-counts {
+    margin: 0;
+    font-size: var(--ui-type-help);
+    color: var(--ui-color-text-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  /* A text button: words in ink with no fill and no edge until hovered. The Report link
+     and the result's Undo are both this. */
+  .rb-foot .btn--text {
+    min-height: calc(28px * var(--a11y-fs));
+    padding-block: 0;
+    padding-inline: var(--sp-2);
+    background: none;
+    box-shadow: none;
+    border-radius: var(--ui-radius-control);
+    color: var(--ui-color-text-default);
+    font-size: var(--ui-type-label);
+    font-weight: var(--ui-type-weight-label);
+  }
+  .rb-foot .btn--text:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
+  .rb-foot .btn--text:active:not(:disabled) { filter: brightness(.96); }
+
+  /* ── the last result, or the reason Open in Design waits ── after a hairline, taking
+     the room the counts and the actions leave, from a zero basis, so a long line never
+     pushes the footer onto a second row: it shortens with an ellipsis instead, and its
+     full words are in its title. */
+  .rb-foot-outcome, .rb-foot-reason {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    margin: 0;
+    padding-inline-start: var(--sp-4);
+    border-inline-start: 1px solid var(--ui-color-border-default);
+    white-space: nowrap;
+  }
+  .rb-foot-outcome {
+    gap: var(--sp-3);
+    font-size: var(--ui-type-label);
+    color: var(--ui-color-text-default);
+  }
+  .rb-foot-said {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rb-foot-outcome .rb-foot-undo { flex: none; }
+  .rb-foot-reason {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: var(--ui-type-help);
+    color: var(--ui-color-text-muted);
+  }
+  .rb-foot-outcome:not([hidden]) {
+    animation: rb-foot-said var(--ui-motion-feedback) var(--ui-motion-standard);
+  }
+  @keyframes rb-foot-said {
+    from { opacity: 0; }
+  }
+
+  /* ── the actions, at the end of the row ── */
+  .rb-foot-actions {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    margin-inline-start: auto;
+  }
+
+  @media (any-pointer: coarse) {
+    .rb-foot { --rb-foot-control: var(--ui-size-target); }
+    .rb-foot .btn--text { min-height: var(--ui-size-target); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rb-foot-outcome:not([hidden]) { animation: none; }
+  }
+  html[data-a11y-motion="reduce"] .rb-foot-outcome:not([hidden]) { animation: none; }
+
+  /* The global job toast rises clear of the footer and the filmstrip while it shows, so
+     it never covers Open in Design or a slide's Include box. --rb-foot-h and
+     --rb-strip-h are measured by the orchestrator. */
+  html:has(.rb-foot:not([hidden])) .job-toast {
+    bottom: calc(var(--vv-bottom, 0px) + var(--safe-bottom, 0px) + var(--rb-foot-h, 0px) + var(--rb-strip-h, 0px) + var(--sp-3));
+    /* The toast's own inline-end inset (job-toast.css reads --dock-w there) also steps
+       past the decision column, so a Done toast never covers Move earlier and Move
+       later. --rb-decide-w is measured by the orchestrator, 0px on a narrow screen. */
+    margin-inline-end: calc(var(--dock-w, 0px) + var(--rb-decide-w, 0px));
+  }
+
+  /* A phone: 64 px, "5 to review" then the two actions. The report link is in the
+     project menu. A result stands where the counts were and may take two lines; no
+     hairline, since it starts the row. */
+  .rb[data-narrow="true"] .rb-foot {
+    gap: var(--sp-2);
+    min-height: calc(64px * var(--a11y-fs));
+    padding-inline: var(--sp-4);
+  }
+  .rb[data-narrow="true"] .rb-foot-report { display: none; }
+  .rb[data-narrow="true"] .rb-foot-info { flex: 1 1 auto; }
+  .rb[data-narrow="true"] .rb-foot-info--yield {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .rb[data-narrow="true"] :is(.rb-foot-outcome, .rb-foot-reason) {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+    white-space: normal;
+  }
+  .rb[data-narrow="true"] .rb-foot-said {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  .rb[data-narrow="true"] .rb-foot-actions { gap: var(--sp-2); }
+  /* A phone on its side: the row is the touch target and its inset, so the slide keeps the height. */
+  @media (max-height: 479px) {
+    .rb[data-narrow="true"] .rb-foot { min-height: calc(var(--ui-size-target) + var(--sp-4)); }
+  }
+}

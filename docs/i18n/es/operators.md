@@ -39,7 +39,7 @@ La forma habitual en que se hace el trabajo creativo rutinario es una superficie
 - **[Verifícalo tú mismo](/info/verify-yourself.html)** - comprueba las afirmaciones contra una exportación real, paso a paso, sin nada que no puedas ejecutar tú mismo.
 - **[Política de privacidad](/info/privacy.html)** - la declaración formal de qué se recoge, almacena y envía, y qué no.
 - **[Producción creativa soberana](/info/sovereign-production.html)** - despliegue con air gap, redes condicionadas al consentimiento y firma en el dispositivo.
-- **[Adopción y gobernanza](/info/adoption-governance.html)** - quién aprueba una herramienta, cómo las reglas de marca se vuelven exigibles y qué te aporta la opción de catálogo como repositorio.
+- **[Adopción y gobernanza](/info/adoption-governance.html)** - cómo las reglas de marca se vuelven exigibles, qué añade un catálogo compartido y qué te aporta la opción de catálogo como repositorio.
 
 ## Legal
 

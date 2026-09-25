@@ -123,6 +123,9 @@
 }
 .export-popup-close:hover { background: var(--ui-color-surface-muted); color: var(--ui-color-text-default); }
 .export-popup-close:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+/* A tab beside other panels in the right sidebar stays open while the sidebar is on
+   (lib/export-panel-float.ts), so it has nothing to close. */
+.export-popup.is-dock-tab .export-popup-close { display: none; }
 
 /* Desktop (>640px): the Render button lives bottom-left of the sidebar and the
    export panel expands as a NON-MODAL sticky sheet over the sidebar bottom - no
@@ -862,12 +865,14 @@
 }
 .input-row--multiline > .input-label > :is(.help-tip-btn, .input-data-src) {
   flex: 0 0 32px;
-  width: 32px;
+  min-width: 32px;
   height: 32px;
   margin: 0;
   padding: 0;
   opacity: .8;
 }
+
+.input-row--multiline > .input-label > :is(.input-data-src) { width: 10em;}
 /* 16px is a fingertip miss. Padding grows the box to a 32px target; the matching
    negative margin pulls it back to its original 16px footprint (and 4px gap from
    the label text) in the flow, so no input row grows or reflows on every tool. */
@@ -1278,11 +1283,12 @@
 }
 .badge-select--marked .badge-select-opt {
   min-width: 0;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
-  gap: var(--sp-2);
-  padding: var(--sp-4);
+    display: grid;
+    place-items: flex-start;
+    grid-template-columns: 1.5em 1fr 1.5em;
+    justify-content: center;
+    gap: var(--sp-2);
+    padding: var(--sp-4);
 }
 .badge-select--marked .badge-select-label {
   white-space: normal;
@@ -1566,7 +1572,7 @@ span.flatpickr-weekday {
 
 .input-section-summary:hover {
   color: hsl(var(--primary));
-  background-color: hsl(var(--background) / 1);
+  background-color: hsl(var(--background) / .1);
 }
 
 /* Keyboard focus ring. The section's overflow:hidden would clip an outline or
@@ -2625,13 +2631,15 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
 .asset-picker-trigger:hover, .asset-edit:hover { box-shadow: var(--ui-effect-bevel), var(--ui-elevation-panel); }
 .asset-edit {
   flex: none;
+  border:0;
   /* 24px floor: the provenance row it sits in is content-sized and can grow. */
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 24px;
-  padding: 3px 10px;
+  min-height: var(--sp-6);
+  padding: var(--sp-2) var(--sp-6);
   cursor: pointer;
+  background-color:transparent;
   font-size: var(--fs-sm);
   transition: border-color var(--dur-1), color var(--dur-1);
 }

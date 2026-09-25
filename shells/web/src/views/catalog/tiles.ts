@@ -11,8 +11,7 @@ import { escape as escapeText } from '../../utils.ts';
 import { t } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
 import { viewTopbarHtml } from '../../components/view-topbar.ts';
-import { themeSegmentHtml } from '../../components/theme-toggle.ts';
-import { soundSegmentHtml } from '../../components/sound-toggle.ts';
+import { favouritesViewSection, sortSection, viewOptionsButtonHtml, viewOptionsSection } from '../../components/view-options.ts';
 import { segHtml } from '../../lib/seg.ts';
 import { loadAssetCategories } from '../../lib/asset-category.ts';
 import { assetBaseId, loadFavouriteAssets, loadHiddenAssets } from '../../lib/asset-favourites.ts';
@@ -29,7 +28,7 @@ import { familyFromTokenValue, listUserFonts } from '../../user-fonts.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import type { PhotoTreatment } from '../../../../../engine/src/photo-treatment.ts';
 import type { IconTheme } from '../../../../../engine/src/icon-theme.ts';
-import { CHEVRON, HEADSHOT_ID, SLIDERS_ICON, gridAdmits, isThemable } from './shared.ts';
+import { CHEVRON, HEADSHOT_ID, gridAdmits, isThemable } from './shared.ts';
 import type { CatFont } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 
@@ -231,38 +230,29 @@ export async function reload(cat: CatCtx): Promise<void> {
 export function catalogTopbarHtml(cat: CatCtx): string {
   return viewTopbarHtml({
     active: 'catalog',
-    right: `<button type="button" class="filter-fab cat-viewopts-btn" aria-label="${escapeText(t('View options'))}" aria-haspopup="true" aria-expanded="${cat.viewOptsOpen}" title="${escapeText(t('View options'))}">${SLIDERS_ICON}</button>`,
+    right: viewOptionsButtonHtml('cat-viewopts-btn', { expanded: cat.viewOptsOpen }),
     popover: `
-        <div class="cat-viewopts filter-popover" role="group" aria-label="${escapeText(t('Catalog view options'))}"${cat.viewOptsOpen ? '' : ' hidden'}>
-          ${themeSegmentHtml()}
-          ${soundSegmentHtml()}
-          <p class="filter-pop-head">${t('Layout')}</p>
-          ${segHtml('catalog-layout', [
-            { id: 'grid', label: t('Grid') },
-            { id: 'list', label: t('List') },
-          ], cat.catLayout, t('Catalog layout'), { attr: 'data-catlayout' })}
-          ${segHtml('catalog-density', [
-            { id: 'comfortable', label: t('Comfortable') },
-            { id: 'compact', label: t('Compact') },
-          ], cat.catDensity, t('Tile density'), { attr: 'data-catdensity' })}
-          <p class="filter-pop-head">${t('Sort by')}</p>
-          ${segHtml('catalog-sort', [
-            { id: 'default', label: t('Default') },
-            { id: 'name', label: t('Name') },
-            { id: 'added', label: t('Added') },
-            { id: 'modified', label: t('Modified') },
-            { id: 'size', label: t('Size') },
-            { id: 'type', label: t('Type') },
-          ], cat.catSort, t('Sort assets by'), { attr: 'data-catsort' })}
-          <p class="filter-pop-head">${t('Favourites')}</p>
-          ${segHtml('favourites-view', [
-            { id: 'gallery', label: t('Gallery') },
-            { id: 'coverflow', label: t('Cover Flow') },
-          ], cat.favView, t('Favourites view mode'), { attr: 'data-favview' })}
+        <div class="cat-viewopts filter-popover view-options" role="group" aria-label="${escapeText(t('View options'))}"${cat.viewOptsOpen ? '' : ' hidden'}>
+          ${favouritesViewSection(cat.favView, `
           <label class="filter-pop-check">
             <input type="checkbox" class="cat-favstrip-toggle field-check"${cat.favStripOn ? ' checked' : ''}>
             <span>${t('Show favourites strip')}</span>
-          </label>
+          </label>`)}
+          ${viewOptionsSection(t('Layout'), segHtml('catalog-layout', [
+            { id: 'grid', label: t('Grid') },
+            { id: 'list', label: t('List') },
+          ], cat.catLayout, t('Catalog layout'), { attr: 'data-catlayout' }) + segHtml('catalog-density', [
+            { id: 'comfortable', label: t('Comfortable') },
+            { id: 'compact', label: t('Compact') },
+          ], cat.catDensity, t('Tile density'), { attr: 'data-catdensity' }))}
+          ${sortSection('catalog-sort', [
+            { id: 'default', label: t('Default') },
+            { id: 'name', label: t('Name') },
+            { id: 'added', label: t('Date added') },
+            { id: 'modified', label: t('Last modified') },
+            { id: 'size', label: t('Size') },
+            { id: 'type', label: t('Type') },
+          ], cat.catSort, cat.catSortRev)}
         </div>`,
     profile: { firstname: cat.profile?.firstname, headshotUrl: cat.headshotUrl },
   });

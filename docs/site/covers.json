@@ -98,12 +98,12 @@
     },
     {
       "img": "covers/3d-poster.webp",
-      "video": "covers/3d.webm",
+      "video": "covers/3d.mp4",
       "hue": 247.5,
-      "name": "3D",
-      "href": "#/tool/3d",
-      "promise": "Pose a model, render a still or a turntable",
-      "alt": "A 3D model turning on a turntable, in an indigo brand"
+      "name": "3D Studio",
+      "href": "#/tool/3d-studio?controls=expert&source=text&words=Lolly&wordWeight=100&wordTracking=-0.09&subjects=Badge,primitive,,badge,auto,false,25,14,29,1,,,0,0,0,false,0,1,0,0,,,inherit~Sphere,primitive,,sphere,auto,false,25,14,29,1,,,0,0,0,false,0,1,0,0,,,inherit~Box,primitive,,box,auto,false,25,14,29,1,,,0,0,0,false,0,1,0,0,,,inherit&objects=Badge,primitive,,badge,auto,-1.2,0,0.3,0,12,0,0.55,true,true~Sphere,primitive,,sphere,auto,1.05,0,-0.2,0,0,0,0.4,true,true~Box,primitive,,box,auto,0.15,0,-1.7,0,28,0,0.45,true,true&studio=custom&colorA=%2381aefc&colorB=%7Bcolor.semantic.primary%7D&finishA=iridescent&finishB=matte&glow=0.25&surfaceFinishes=true&faceFinishA=chrome&bevelFinishA=chrome&sideFinishA=iridescent&bevelFinishB=neon&sideFinishB=glow&drama=0.45&softness=2.6&exposure=1.15&lightMotion=orbit&lightMotionAmount=0.1&shape.depth=0.28&camera.azimuth=25.18017578125&camera.elevation=-33.416015625&camera.zoom=2.5&camera.panX=0.05000000000000003&camera.panY=-0.4500000000000002&background=031526&background2=294f6d&backdropStrength=0.75&floorColor=031526&shadowOpacity=0.15&keyColor=214362&fillColor=%23fcb244&rimColor=%23a1ef8b&warmColor=%232453ff&environment=desert&environmentIntensity=1.3&environmentRotation=18&lights=directional,ffffff,-3,6,4,2,1.5,true&outputMode=scene&motion=hover&motionAmount=0.5&motionRest=0.2&cameraMotion=sweep&cameraAmount=0.3&cameraKeys=0,25,36,29,0.7,0,1.6,0,0~0,25,14,29,1,0,1.6,0,0&duration=3",
+      "promise": "Words, artwork and models in one lit scene, still or moving",
+      "alt": "The word Lolly as iridescent 3D letters hovering in a deep blue studio while the camera sweeps"
     },
     {
       "img": "covers/colours.webp",

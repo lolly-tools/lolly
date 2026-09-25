@@ -18,8 +18,11 @@ import { announce } from '../../a11y.ts';
 import { pinRecords, pinTool, unpinAll, unpinTool } from '../../lib/offline-pins.ts';
 import type { PinRecord } from '../../lib/offline-pins.ts';
 import { catalogDownloadSummary, catalogScopeSize, downloadCatalogScope, prefetchAssetsById } from '../../catalog/sync.ts';
-import { docsFileList, downloadAiDetect, downloadApp, downloadAsk, downloadDocs, downloadDurable, downloadMatte, downloadOcr, downloadReword, downloadSpeech, downloadUpscale, downloadVerify, fetchInfoManifest, fetchPrecacheManifest, partRecords, persistenceState, recordCatalogDownload, removePart, storageHeadroom, trustmarkGroupSplit } from '../../lib/offline-manager.ts';
+import { docsFileList, downloadApp, downloadDocs, fetchInfoManifest, fetchPrecacheManifest, partRecords, persistenceState, recordCatalogDownload, removePart, storageHeadroom } from '../../lib/offline-manager.ts';
 import type { DownloadProgress, OfflinePartId, PartState } from '../../lib/offline-manager.ts';
+import { downloadModelPart, isModelPart, MODEL_PART_IDS, modelPartsInfo } from '../../lib/model-parts.ts';
+import type { ModelPartId, ModelPartInfo } from '../../lib/model-parts.ts';
+import { partRowState } from './offline-rows.ts';
 import { beginOfflineRun, cancelOfflineRun, offlineRunActive, offlineRunLine, subscribeOfflineRun } from '../../lib/offline-run.ts';
 import type { OfflineRunHandle, OfflineRunLine } from '../../lib/offline-run.ts';
 import { toolSupport } from '../../capabilities.ts';
@@ -59,6 +62,8 @@ export async function loadOffline(pv: ProfileViewCtx) {
 
   // Everything the parts rows need up front - all cheap (two small manifest
   // fetches + the already-synced asset index + IDB reads), all best-effort.
+  // precache.json is read fresh on every open, so a deploy made during the session
+  // shows as an update and a read that failed earlier is tried again.
   const [precache, infoManifest, catSummary, parts, persist] = await Promise.all([
     fetchPrecacheManifest(),
     fetchInfoManifest(),
@@ -66,6 +71,17 @@ export async function loadOffline(pv: ProfileViewCtx) {
     partRecords().catch(() => ({} as PartState)),
     persistenceState(),
   ]);
+  // The model rows read one source (lib/model-parts.ts): the build's precache
+  // groups where it has them, the committed model listing where it does not, so a
+  // dev server or `tauri dev` offers the same downloads a release build does.
+  const modelInfo = Object.fromEntries(
+    (await modelPartsInfo(MODEL_PART_IDS, { precache, records: parts })).map(i => [i.id, i]),
+  ) as Record<ModelPartId, ModelPartInfo>;
+  // Files a feature fetched on first use, with no record: the row reads as on
+  // this device. Cleared for a part when it is removed here.
+  const readyNow: Partial<Record<OfflinePartId, boolean>> = Object.fromEntries(
+    MODEL_PART_IDS.map(id => [id, modelInfo[id].ready === true]),
+  );
   // The folded summary: what this device is actually holding offline, tools plus
   // parts. Measured once, when the card opens - a download made later in the same
   // visit shows in the card's own rows, and this line catches up on the next mount.
@@ -74,29 +90,18 @@ export async function loadOffline(pv: ProfileViewCtx) {
   pv.summaries.setSummary('offline-section', heldBytes ? fmtBytes(heldBytes) : tRaw('Not downloaded'));
 
   const sum = (files: readonly { size: number }[]) => files.reduce((n, f) => n + f.size, 0);
+  // Model sizes come from model-parts (each part's files plus the runtime that
+  // rides with it, and the trustmark group split between verify and durable).
+  // 0 means unknown: the row then prints no size rather than "0 B".
   const plannedBytes: Record<OfflinePartId, number> = {
     app: precache ? sum(precache.groups.app) : 0,
     docs: infoManifest ? sum(docsFileList(infoManifest, currentLang())) : 0,
-    // The trustmark models group carries BOTH parts' files, so each row prices its
-    // own half (offline-manager's trustmarkGroupSplit is the one rule).
-    verify: precache ? sum(precache.groups.ort) + sum(trustmarkGroupSplit(precache.groups.models).verify) : 0,
     catalog: catSummary?.totalBytes ?? 0,
-    speech: precache ? sum(precache.groups.speech ?? []) + sum(precache.groups.ortHf ?? []) : 0,
-    upscale: precache?.groups.upscale ? sum(precache.groups.upscale) : 0,
-    matte: precache?.groups.matte ? sum(precache.groups.matte) : 0,
-    ocr: precache?.groups.ocr ? sum(precache.groups.ocr) : 0,
-    // Like speech, the reword part owns the shared /ort-hf/ runtime too, so
-    // its stated size is honest when it is the only transformers part taken.
-    reword: precache?.groups.reword?.length ? sum(precache.groups.reword) + sum(precache.groups.ortHf ?? []) : 0,
-    // The Ask embed model (plans/103 M1) - same shared-runtime accounting.
-    ask: precache?.groups.embed?.length ? sum(precache.groups.embed) + sum(precache.groups.ortHf ?? []) : 0,
-    // The AI-text detector (plans/126 WP-A) - same shared-runtime accounting.
-    'ai-detect': precache?.groups.aiDetect?.length ? sum(precache.groups.aiDetect) + sum(precache.groups.ortHf ?? []) : 0,
-    // The durable-credential encoder. Manifest-driven like every other model part:
-    // a build whose model host does not list the encoder offers no row, rather than
-    // a Download button that fails.
-    durable: precache ? sum(trustmarkGroupSplit(precache.groups.models).durable) : 0,
+    ...Object.fromEntries(MODEL_PART_IDS.map(id => [id, modelInfo[id].bytes ?? 0])) as Record<ModelPartId, number>,
   };
+  // A model is a large download when it is over 50 MB, or when its size is unknown
+  // (the tag then stands in for the size the row cannot print).
+  const isHeavy = (bytes: number | undefined): boolean => !bytes || bytes > 50 * 1024 * 1024;
   // Model parts are release-versioned in IndexedDB (invalidated by their own
   // cache-version, not a manifest watermark), so they have no live manifest
   // version to go stale against - resyncOfflineParts never touches them.
@@ -105,45 +110,35 @@ export async function loadOffline(pv: ProfileViewCtx) {
     : (id === 'upscale' || id === 'matte' || id === 'ocr' || id === 'durable') ? null
     : (precache?.version ?? null);
 
-  interface PartDef { id: OfflinePartId; name: string; desc: string; heavy?: boolean }
+  // One plain sentence per row. The size is printed on the row's own line
+  // (syncPartRow), never in the description, so an unknown size prints nothing.
+  interface PartDef { id: OfflinePartId; name: string; desc: string; model?: boolean }
+  const modelDescs: Record<ModelPartId, string> = {
+    speech: t('Voices for Script audio and narration, and speech recognition for subtitles.'),
+    upscale: t('Makes pictures larger with Upscale, for photos, illustrations and faces.'),
+    matte: t('Cuts the subject out of a picture with Remove background.'),
+    ocr: t('Reads the text in pictures and scans.'),
+    verify: t('Checks pictures for invisible watermarks on the Verify page.'),
+    durable: t('Hides an invisible credential in the pixels you export.'),
+    reword: t('Rewrites, summarises and explains text on this device, for Humanize and the text actions.'),
+    ask: t('Helps Ask Lolly match your question to the right guide.'),
+    'ai-detect': t('Runs the deeper AI text check on Verify and in the catalogue.'),
+  };
+  // Model rows carry the large-download tag slot; syncPartRow shows it only when
+  // there is something left to download and it is big (isHeavy).
   const partDefs: PartDef[] = [
-    { id: 'app', name: t('The app'), desc: t('Every view, editor and font - so the whole app opens and renders with no connection, not just the pages you have already visited.') },
-    { id: 'catalog', name: t('Catalogue'), desc: t('Brand assets beyond the essentials - logos, art and music your tools can pull in. Narrow it by tag if you only need some of it.') },
+    { id: 'app', name: t('The app'), desc: t('Every view, editor and font, so the whole app opens with no connection.') },
+    { id: 'catalog', name: t('Catalogue'), desc: t('Logos, art and music your tools can use, all of it or by tag.') },
     { id: 'docs', name: t('Guides & docs'), desc: t('The full documentation site in your language, screenshots included.') },
-    { id: 'speech', name: t('Speech voices'), desc: t('Voice models for Script audio and narration. Downloads once (~{size}), runs on-device.', { size: fmtBytes(plannedBytes.speech) }), heavy: true },
-    { id: 'upscale', name: t('Upscaling models'), desc: t('The AI image upscalers - photo, illustration/anime and face. Pull them down now (~{size}) and Upscale runs offline, with no wait when you need it.', { size: fmtBytes(plannedBytes.upscale) }), heavy: true },
-    { id: 'matte', name: t('Background removal'), desc: t('The on-device cut-out models for Remove background. Pull them down now (~{size}) and it runs offline, with no wait when you need it.', { size: fmtBytes(plannedBytes.matte) }), heavy: true },
-    { id: 'ocr', name: t('Text recognition'), desc: t('The on-device OCR models for reading text out of images. Pull them down now (~{size}) and Copy text runs offline, with no wait when you need it.', { size: fmtBytes(plannedBytes.ocr) }), heavy: true },
-    { id: 'verify', name: t('Verify deep scan'), desc: t('The on-device watermark scanner for the Verify page. Big - only worth it if you check content credentials away from a connection.'), heavy: true },
-    { id: 'durable', name: t('Durable credential'), desc: t('The on-device model that hides an invisible credential in exported pixels. Pull it down now (~{size}) and the first durable export starts straight away, with no wait.', { size: fmtBytes(plannedBytes.durable) }), heavy: true },
-    // Only on builds carrying the staged model (plans/127) - the group is
-    // empty on public/CI builds and the row would be a dead control.
-    ...(precache?.groups.reword?.length ? [{
-      id: 'reword' as const,
-      name: t('Rewriter model'),
-      desc: t('The on-device rewriter behind Humanize. Pull it down now (~{size}) and rewording runs fully offline, with no wait when you need it.', { size: fmtBytes(plannedBytes.reword) }),
-      heavy: true,
-    }] : []),
-    // Only on builds carrying the staged embed model (plans/103 M1) - the
-    // group is empty on builds where the model is not staged.
-    ...(precache?.groups.embed?.length ? [{
-      id: 'ask' as const,
-      name: t('Ask matching model'),
-      desc: t('The small on-device model that helps Ask Lolly match questions to the right docs section. Pull it down now (~{size}) and better matching works offline from the first question.', { size: fmtBytes(plannedBytes.ask) }),
-    }] : []),
-    // Only on builds carrying a staged detector (plans/126 WP-A) - the group
-    // is empty on builds where no model is staged.
-    ...(precache?.groups.aiDetect?.length ? [{
-      id: 'ai-detect' as const,
-      name: t('AI text detector'),
-      desc: t('The on-device model behind the deeper AI-text check on Verify and in the catalog. Pull it down now (~{size}) and the check runs offline, with no wait when you need it.', { size: fmtBytes(plannedBytes['ai-detect']) }),
-    }] : []),
+    ...(['speech', 'upscale', 'matte', 'ocr', 'verify', 'durable', 'reword', 'ask', 'ai-detect'] as const).map((id): PartDef => ({
+      id, name: modelInfo[id].label, desc: modelDescs[id], model: true,
+    })),
   ];
 
   const partRowHtml = (p: PartDef): string => `
       <li class="odl-part" data-part="${p.id}">
         <div class="odl-part-info">
-          <span class="odl-part-name">${escapeText(p.name)}${p.heavy ? ` <span class="odl-part-heavy">${t('large download')}</span>` : ''}</span>
+          <span class="odl-part-name">${escapeText(p.name)}${p.model ? ` <span class="odl-part-heavy" data-part-heavy hidden>${t('large download')}</span>` : ''}</span>
           <span class="odl-part-desc">${escapeText(p.desc)}</span>
           ${p.id === 'catalog' && catSummary?.tags.length ? `
           <details class="odl-tagscope">
@@ -371,19 +366,13 @@ export async function loadOffline(pv: ProfileViewCtx) {
   };
   let catalogPlanned = plannedBytes.catalog;
 
-  // A part is downloadable when its manifest (or index) was reachable. The
-  // dev server ships no dist/precache.json - the rows state it instead of
-  // pretending a download happened.
+  // The app, docs and catalogue parts are downloadable when their manifest (or
+  // index) was reachable: a dev server ships no dist/precache.json, so the app
+  // row says so. A model part is downloadable whenever the model host serves it
+  // (lib/model-parts.ts), precache or not.
   const partAvailable: Record<OfflinePartId, boolean> = {
-    app: !!precache, docs: !!infoManifest, verify: !!precache && plannedBytes.verify > 0, catalog: !!catSummary,
-    speech: !!precache && plannedBytes.speech > 0,
-    upscale: !!precache && plannedBytes.upscale > 0,
-    matte: !!precache && plannedBytes.matte > 0,
-    ocr: !!precache && plannedBytes.ocr > 0,
-    reword: !!precache && plannedBytes.reword > 0,
-    ask: !!precache && plannedBytes.ask > 0,
-    'ai-detect': !!precache && plannedBytes['ai-detect'] > 0,
-    durable: !!precache && plannedBytes.durable > 0,
+    app: !!precache, docs: !!infoManifest, catalog: !!catSummary,
+    ...Object.fromEntries(MODEL_PART_IDS.map(id => [id, modelInfo[id].available])) as Record<ModelPartId, boolean>,
   };
   const isStale = (id: OfflinePartId): boolean => {
     const rec = partState[id];
@@ -398,7 +387,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
    *  not work already on disk. */
   const planned = (id: OfflinePartId): number => {
     const full = id === 'catalog' ? catalogPlanned : plannedBytes[id];
-    if (!partState[id]) return full;
+    if (!partState[id]) return readyNow[id] ? 0 : full;
     return isStale(id) ? Math.round(full / 8) : 0;
   };
 
@@ -409,34 +398,23 @@ export async function loadOffline(pv: ProfileViewCtx) {
     const dl = row.querySelector<HTMLButtonElement>(`[data-part-dl="${id}"]`)!;
     const rm = row.querySelector<HTMLButtonElement>(`[data-part-rm="${id}"]`)!;
     const rec = partState[id];
-    if (!aiOfflinePartAllowed(id)) {
-      sub.textContent = t('AI downloads are disabled by your service policy.');
-      dl.hidden = true;
-      rm.hidden = !rec;
-      return;
-    }
-    if (!partAvailable[id]) {
-      sub.textContent = t('Not offered by this server');
-      dl.hidden = true;
-      rm.hidden = true;
-      return;
-    }
-    if (rec) {
-      const stale = isStale(id);
-      sub.textContent = stale
-        ? (id === 'catalog' ? t('Selection changed · download to update') : t('Downloaded · update available'))
-        : t('Downloaded · {size} on disk', { size: fmtBytes(rec.bytes) });
-      dl.textContent = stale ? t('Update') : t('Downloaded');
-      dl.disabled = !stale;
-      dl.hidden = false;
-      rm.hidden = false;
-    } else {
-      sub.textContent = fmtBytes(planned(id));
-      dl.textContent = t('Download');
-      dl.disabled = false;
-      dl.hidden = false;
-      rm.hidden = true;
-    }
+    const state = partRowState({
+      allowed: aiOfflinePartAllowed(id),
+      available: partAvailable[id],
+      rec,
+      stale: isStale(id),
+      ready: !!readyNow[id],
+      planned: planned(id),
+      catalog: id === 'catalog',
+    });
+    sub.textContent = state.sub;
+    // The tag only where a download is on offer and it is big.
+    const heavy = row.querySelector<HTMLElement>('[data-part-heavy]');
+    if (heavy) heavy.hidden = state.dl.hidden || state.dl.disabled || !isModelPart(id) || !isHeavy(modelInfo[id].bytes);
+    dl.textContent = state.dl.text;
+    dl.disabled = state.dl.disabled;
+    dl.hidden = state.dl.hidden;
+    rm.hidden = state.rm.hidden;
   };
 
   // The heavyweight on-device AI models. Kept OUT of the plain "Download everything"
@@ -521,15 +499,8 @@ export async function loadOffline(pv: ProfileViewCtx) {
     try {
       if (id === 'app' && precache) await downloadApp(precache, { signal, onProgress });
       else if (id === 'docs' && infoManifest) await downloadDocs(infoManifest, { signal, onProgress });
-      else if (id === 'verify' && precache) await downloadVerify(precache, { signal, onProgress });
-      else if (id === 'speech' && precache) await downloadSpeech(precache, { signal, onProgress });
-      else if (id === 'reword' && precache) await downloadReword(precache, { signal, onProgress });
-      else if (id === 'ask' && precache) await downloadAsk(precache, { signal, onProgress });
-      else if (id === 'ai-detect' && precache) await downloadAiDetect(precache, { signal, onProgress });
-      else if (id === 'upscale') await downloadUpscale({ signal, onProgress });
-      else if (id === 'matte') await downloadMatte({ signal, onProgress });
-      else if (id === 'ocr') await downloadOcr({ signal, onProgress });
-      else if (id === 'durable') await downloadDurable({ signal, onProgress });
+      // The same downloader the in-context offer runs (lib/model-offer.ts).
+      else if (isModelPart(id)) await downloadModelPart(id, precache, { signal, onProgress });
       else if (id === 'catalog') {
         const res = await downloadCatalogScope(syncHost, scope, { signal, onProgress });
         await recordCatalogDownload(scope, res.bytes, res.files);
@@ -558,7 +529,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
     if (running || (!outer && offlineRunActive())) return false;
     running = true;   // synchronous - closes the double-click window the two awaits below open
     try {
-      const want = ids.filter(id => partAvailable[id] && aiOfflinePartAllowed(id) && (!partState[id] || isStale(id)));
+      const want = ids.filter(id => partAvailable[id] && aiOfflinePartAllowed(id) && ((!partState[id] && !readyNow[id]) || isStale(id)));
       if (!want.length) return true; // nothing to do IS a completed run
       const scope = catalogScope();
       const totalPlanned = want.reduce((n, id) => n + planned(id), 0);
@@ -631,6 +602,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
     });
     if (!sure) return;
     await removePart(id);
+    readyNow[id] = false;
     partState = await partRecords();
     syncPartRow(id);
     syncSweepSize();

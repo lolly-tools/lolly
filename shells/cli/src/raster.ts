@@ -18,6 +18,7 @@ import { serializeUrlState, serializeHdr, HDR_DEFAULTS, isToolUrl } from '@lolly
 import { eligibleForResvgPng, rasterizeTierAPng, rasterizeSvgToRgba, pxDims } from '@lolly-tools/node-shell/raster';
 import type { DeepHdrRequest } from '@lolly-tools/node-shell/raster';
 import type { RenderDims } from '@lolly-tools/node-shell/webshell-render';
+import type { SlideMasterFileV1, SlideMasterV1 } from '@lolly-tools/core';
 import { pickFramePage } from './frame-page.ts';
 import { note, warn } from './output.ts';
 
@@ -311,4 +312,137 @@ async function renderHdrStill(opts: {
     log,
   });
   return { bytes: res.bytes, usedBrowser, imprinted: imprint, nodeEncoded: true };
+}
+
+// ── Tier A: a native .pptx from a Design document, with no browser ─────────────
+//
+// `pptx` used to be a browser-only format here: the web shell walked the rendered
+// DOM, so the CLI had to drive it in Chromium. A Design document does not need that.
+// Its authored rows are already in the render as `<script data-penpot-doc>`, and
+// `designFramesToPptx` lowers them to real slides - placeholder-bound text where a
+// frame names a slide master, plain text, rectangles and pictures where it does not.
+// Anything else (a tool that is not Design, a document with no frames, a master that
+// is not on this profile) answers null and the caller keeps to Tier B.
+
+/** One image an exported layer names, read off the catalog of this profile. */
+async function catalogAssetBytes(ref: string): Promise<{ bytes: Uint8Array; mime: string } | null> {
+  const { contentUrlFile } = await import('@lolly-tools/node-shell/content-roots');
+  const { readFile } = await import('node:fs/promises');
+  let file: string | null = null;
+  try {
+    file = ref.startsWith('/') ? contentUrlFile(ref) : null;
+  } catch { file = null; }
+  if (!file) return null;
+  const bytes = new Uint8Array(await readFile(file));
+  const lower = file.toLowerCase();
+  const mime = lower.endsWith('.png') ? 'image/png'
+    : lower.endsWith('.jpg') || lower.endsWith('.jpeg') ? 'image/jpeg'
+      : lower.endsWith('.svg') ? 'image/svg+xml' : '';
+  return mime ? { bytes, mime } : null;
+}
+
+/** The slide master with this id, from whichever catalog entry is tagged `slide-master`. */
+async function catalogSlideMaster(id: string): Promise<SlideMasterV1 | null> {
+  try {
+    const { readAssetIndex, contentUrlFile } = await import('@lolly-tools/node-shell/content-roots');
+    const { readFile } = await import('node:fs/promises');
+    const index = readAssetIndex() as { assets: Array<Record<string, unknown>> };
+    for (const asset of index.assets ?? []) {
+      const tags = Array.isArray(asset.tags) ? asset.tags as string[] : [];
+      if (!tags.includes('slide-master')) continue;
+      const formats = Array.isArray(asset.formats) ? asset.formats as Array<{ url?: string }> : [];
+      for (const fmt of formats) {
+        const file = fmt.url ? contentUrlFile(fmt.url) : null;
+        if (!file) continue;
+        const parsed = JSON.parse(await readFile(file, 'utf8')) as SlideMasterFileV1;
+        const hit = parsed?.masters?.find((m) => m.id === id);
+        if (hit) return hit;
+      }
+    }
+  } catch { /* no master on this profile - Tier B still exports */ }
+  return null;
+}
+
+export interface DesignPptxRequest {
+  /** The hydrated canvas, which carries Design's own `<script data-penpot-doc>`. */
+  canvas: Element;
+  /** The tool this render came from; only `design` takes this path. */
+  toolId: string;
+  /** Reads one brand custom property off the canvas, for the token colours. */
+  brandVar: (name: string) => string;
+  meta?: { title?: string; description?: string; source?: string; contact?: string; author?: string; sourceAuthor?: string } | null;
+  now?: string;
+}
+
+/**
+ * The docProps metadata for a deck this shell writes.
+ *
+ * The browser tier used to write these because `runtime.export()` assembled them; Tier A
+ * never calls it, so they are threaded in by the caller instead, and the source author a
+ * composed render stamps on the canvas is picked up here.
+ */
+function pptxDeckMeta(req: DesignPptxRequest): DesignPptxRequest['meta'] {
+  const el = req.canvas.querySelector?.('[data-source-author]');
+  const sourceAuthor = el?.getAttribute?.('data-source-author')?.trim() || undefined;
+  if (!req.meta && !sourceAuthor) return null;
+  return { ...(req.meta ?? {}), ...(sourceAuthor ? { sourceAuthor } : {}) };
+}
+
+/** The .pptx bytes, or null when this document is not one this tier can write. */
+export async function renderDesignPptx(req: DesignPptxRequest): Promise<Uint8Array | null> {
+  if (req.toolId !== 'design') return null;
+  const { designFramesToPptx, framesOfDesignDoc, hasMasterBindings, parseDesignDoc, transitionsOfDeckModel, MAX_SLIDES } =
+    await import('@lolly-tools/node-shell/design-pptx');
+  const script = req.canvas.querySelector?.('[data-penpot-doc]');
+  const doc = parseDesignDoc(script?.textContent);
+  if (!doc) return null;
+  // THE SAME GATE THE WEB SHELL APPLIES (export-pptx.ts renderPptx). A document with no
+  // slide-master binding keeps to the deck model on both shells, which is the lowering
+  // that carries per-element animation and the document-level transition. Taking Tier A
+  // for those here would make `lolly design --export=pptx` and the web shell's own
+  // download write different decks from one document.
+  if (!hasMasterBindings(doc)) return null;
+  const frames = framesOfDesignDoc(doc).slice(0, MAX_SLIDES);
+  if (!frames.length) return null;
+
+  const deckTransitions = transitionsOfDeckModel(req.canvas.querySelector?.('[data-pptx-deck]')?.textContent);
+  const masterId = frames.map((f) => (typeof f.row.master === 'string' ? f.row.master : '')).find(Boolean);
+  const master = masterId ? await catalogSlideMaster(masterId) : null;
+  if (masterId && !master) return null;   // a binding we cannot honour is not Tier A
+
+  const result = await designFramesToPptx({
+    frames,
+    ...(master ? { master } : {}),
+    tokens: (path: string) => {
+      const m = /^color\.semantic\.([a-z0-9-]+)$/i.exec(path);
+      return m ? (req.brandVar(`--brand-${m[1]}`) || undefined) : undefined;
+    },
+    // A Design colour is commonly authored as `var(--brand-primary, #1e293b)`. Without
+    // this the literal inside the var() is what gets written, so the deck comes out in
+    // the fallback colours rather than the brand's own - wrong, and silently so.
+    cssVars: req.brandVar,
+    // The document-level transition is an input, not a row, and the tool has already
+    // resolved it per slide in its own deck model. Read it back so a deck that sets
+    // the transition once still leaves each slide the way it was authored to.
+    ...(deckTransitions ? { slideTransitions: deckTransitions } : {}),
+    resolveAsset: catalogAssetBytes,
+  });
+  for (const line of result.notes) note(`pptx: ${line}.`);
+
+  const { buildPptxParts, EMU_PER_PX } = await import('@lolly/engine');
+  const parts = buildPptxParts(result.slides, {
+    emuW: Math.max(1, Math.round(result.size.w * EMU_PER_PX)),
+    emuH: Math.max(1, Math.round(result.size.h * EMU_PER_PX)),
+    ...(result.theme ? { theme: result.theme } : {}),
+    ...(result.layouts.length ? { layouts: result.layouts } : {}),
+    meta: pptxDeckMeta(req),
+    now: req.now ?? new Date().toISOString(),
+  });
+  const { zipSync } = await import('fflate');
+  const enc = new TextEncoder();
+  const files: Record<string, Uint8Array> = {};
+  for (const [path, content] of Object.entries(parts)) {
+    files[path] = typeof content === 'string' ? enc.encode(content) : content;
+  }
+  return zipSync(files);
 }

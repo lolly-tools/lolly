@@ -22,7 +22,7 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 **URL mode.** Every input is expressible as a URL parameter, so a link is a finished asset and a reproducible render. The CLI is URL mode over a different transport: `--foo=bar` on the command line is `?foo=bar` in the browser. A short list of parameter names is reserved for the engine (`format`, `width`, `dpi`, `c2pa` and others) and cannot be input ids.
 
-**Capabilities and requires.** Two different manifest lists. `capabilities` names device abilities the tool needs (camera, microphone, screen). `requires` names the optional host APIs the hooks call without checking first; a host that lacks one refuses to mount the tool and the gallery greys it out.
+**Capabilities and requires.** Two different manifest lists. `capabilities` lists the device abilities the tool needs (camera, microphone, screen). `requires` lists the optional host APIs the hooks call without checking first; a host that lacks one refuses to mount the tool and the gallery greys it out.
 
 **Status.** A tool is `official`, `community` or `experimental`. Status drives gallery sorting and approval messaging. Experimental tools watermark their exports by default; on-device tools are exempt.
 

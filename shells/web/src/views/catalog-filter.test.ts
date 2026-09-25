@@ -263,6 +263,16 @@ test('sortAssets: default preserves order; name/size/added order correctly', () 
   assert.deepEqual(sortAssets(list, 'added').map((a: { id: string }) => a.id), [newer.id, older.id, cat.id].map(String));
 });
 
+test('sortAssets: reversed flips the finished order of every key, the input untouched', () => {
+  const older = mk('user/upload/1700000000000-b.png', { name: 'Beta', bytes: 10 });
+  const newer = mk('user/upload/1800000000000-a.png', { name: 'alpha', bytes: 999 });
+  const cat = mk('suse/logo/primary', { name: 'Zeta' }, 'svg');
+  const list = [older, cat, newer];
+  assert.deepEqual(sortAssets(list, 'name', true).map((a) => a.meta?.name), ['Zeta', 'Beta', 'alpha']);
+  assert.deepEqual(sortAssets(list, 'default', true), [newer, cat, older]);
+  assert.deepEqual(list, [older, cat, newer]);
+});
+
 // ── Structured query prefixes (plans/132 WP-C item 3) ────────────────────────
 
 const tagged = (id: string, extra: Record<string, unknown> = {}): AssetRef => ({

@@ -10,9 +10,11 @@
  *   token doc / .penpot / design-system pack zip → the Design System studio
  *   PDF / .ai   → edit as a design · pages → SVG library assets · compress ·
  *                 the Design System studio (a guidelines PDF's colours, marks
- *                 and embedded faces - plan 97 section 8)
+ *                 and embedded faces - plan 97 section 8) · Rebrand (a PDF deck,
+ *                 renovated for the design system)
  *   zipped tool folder → install it on this device and open it
- *   PowerPoint  → slides → SVG library assets · content → Markdown
+ *   PowerPoint  → slides → SVG library assets · content → Markdown ·
+ *                 Rebrand (#/rebrand, renovated for the design system)
  *   Word (.docx) → content → Markdown
  *   image/video/audio → the asset library · /verify (Content Credentials)
  *   unknown / C2PA-looking bytes → /verify
@@ -46,7 +48,7 @@ import { NAV_EVENTS } from '../utils.ts';
 import { navigateTo } from '../nav.ts';
 import { announce } from '../a11y.ts';
 import { playSfx } from './sfx.ts';
-import { choiceDialog, confirmDialog, closeConfirmDialogs } from '../components/confirm-dialog.ts';
+import { choiceDialog, confirmDialog, closeConfirmDialogs, noticeDialog } from '../components/confirm-dialog.ts';
 import type { DialogChoice } from '../components/confirm-dialog.ts';
 import type { ToolManifest } from '../../../../engine/src/loader.ts';
 import type { InstalledToolTrust } from './installed-tools.ts';
@@ -57,7 +59,8 @@ import type { PickerHost } from '../views/picker.ts';
 import type { BeamPackHost } from './beam-pack.ts';
 import type { FolderHost } from '../folders.ts';
 import type { Unzipped } from 'fflate';
-import type { LollyPreview, LollySessionPreview } from './lolly-intake.ts';
+import type { LollyPreview, LollyRenovationPreview, LollySessionPreview } from './lolly-intake.ts';
+import type { RenovationOpenWarningV1 } from './rebrand/open.ts';
 import type { LollyFileContents } from './lolly-pack.ts';
 import type { UserTemplate, UserTemplateHost } from './user-templates.ts';
 import type { DesignSystemRegistry } from './design-system/registry.ts';
@@ -167,6 +170,53 @@ export function takePendingToolFile(toolId: string): File | null {
   pendingToolFile = null;
   return f;
 }
+
+let pendingRebrandFiles: File[] = [];
+
+/** Arm the Rebrand view's one-shot deck handoff: the pptx door and anything else that
+ *  hands a deck over. Held in memory only; `#/rebrand` reads it on mount. */
+export function setPendingRebrandFile(file: File): void {
+  pendingRebrandFiles = [file];
+}
+
+/** Arm the handoff with several decks at once (a multi-file drop through the Rebrand
+ *  door): the view reads them one after another under one job. */
+export function setPendingRebrandFiles(files: File[]): void {
+  pendingRebrandFiles = [...files];
+}
+
+/** Consume the deck stashed for `#/rebrand` (plan 274 section 2.1 step 1) - single use,
+ *  cleared on read. With several stashed, the first; the rest are dropped with it. */
+export function takePendingRebrandFile(): File | null {
+  const [f = null] = pendingRebrandFiles;
+  pendingRebrandFiles = [];
+  return f;
+}
+
+/** Consume every deck stashed for `#/rebrand` - single use, cleared on read. The
+ *  intake reads them when it wires, before its first render. */
+export function takePendingRebrandFiles(): File[] {
+  const files = pendingRebrandFiles;
+  pendingRebrandFiles = [];
+  return files;
+}
+
+/**
+ * Hold the in-place model offer back for the length of an import, so no download sheet
+ * opens over it (`holdModelOffers` in `lib/model-offer.ts`, loaded on first use so the
+ * router's chunk does not carry the sheet). Returns the release; calling it twice is
+ * harmless. A build without the module has nothing to hold.
+ */
+async function holdOffers(): Promise<() => void> {
+  try {
+    return (await import('./model-offer.ts')).holdModelOffers();
+  } catch {
+    return () => {};
+  }
+}
+
+/** Whether the address bar is already on `#/rebrand`, so the handoff remounts instead of pushing. */
+const onRebrandRoute = (): boolean => /^#\/rebrand([?/]|$)/.test(window.location.hash);
 
 let pendingConvertFile: File | null = null;
 
@@ -438,6 +488,21 @@ export interface ChooserContext {
   count: number;
   allIngestable: boolean;
   has: (toolId: string) => boolean;
+  /** Every dropped file is a deck of one kind (all pptx, or all PDF), so a multi-file drop can go to Rebrand. */
+  allDecks?: boolean;
+  /** Which kind of deck `allDecks` found, for the sentence. PowerPoint when absent. */
+  deckKind?: 'pptx' | 'pdf';
+}
+
+/**
+ * Whether several dropped files are decks of one kind, and which: every one a pptx,
+ * or every one a PDF. A mixed drop keeps only the batch routes.
+ */
+export function deckKindOf(files: readonly File[], isPptx: (f: File) => boolean, isPdf: (f: File) => boolean): 'pptx' | 'pdf' | null {
+  if (files.length === 0) return null;
+  if (files.every((f) => isPptx(f))) return 'pptx';
+  if (files.every((f) => isPdf(f))) return 'pdf';
+  return null;
 }
 
 /**
@@ -505,6 +570,13 @@ export function dropChooserChoices(s: Sniff, ctx: ChooserContext): DialogChoice[
   if (single && (s.design || s.pdf || s.pptx) && has('design')) {
     choices.push({ id: 'sequence', label: t('Make a video from its frames') });
   }
+  // The Rebrand door (plan 274 section 2.1): a deck renovated for the design system in
+  // #/rebrand, which is a view, so no tool has to be in the build. It sits with the other
+  // "open it somewhere" doors and never leads: a dropped deck is first a document. A PDF
+  // is a deck too (the ingest reads it page by page), so it gets the same door.
+  if (single && (s.pptx || s.pdf)) {
+    choices.push({ id: 'rebrand', label: t('Rebrand') });
+  }
   // A .penpot can carry per-shape export marks; the ingest bakes them through an
   // offscreen Design render, so the route needs that tool. Whether the zip
   // really is a marked-up Penpot file resolves inside the ingest (it throws a
@@ -548,6 +620,11 @@ export function dropChooserChoices(s: Sniff, ctx: ChooserContext): DialogChoice[
   if ((single && (s.media || s.textDoc) && !s.pdf && !s.pptx) || (!single && allIngestable)) {
     choices.push({ id: 'library', label: t('Add to your library'), primary: choices.length === 0 });
   }
+  // Several decks of one kind go to Rebrand together, one project each, read one after
+  // another under one job. The library keeps the lead, as it does for one deck.
+  if (!single && ctx.allDecks) {
+    choices.push({ id: 'rebrand', label: t('Rebrand {n} decks', { n: ctx.count }) });
+  }
   const unknown = single && !s.design && !s.pdf && !s.pptx && !s.media && !s.textDoc && !s.data;
   // Provenance applies to media, to anything carrying C2PA-looking bytes, to a text
   // document (the verify view reads its AI-writing signals), to unknown formats - and
@@ -565,10 +642,15 @@ export function dropChooserChoices(s: Sniff, ctx: ChooserContext): DialogChoice[
  * never appears in the copy at all.
  */
 export function dropChooserMessage(s: Sniff, name: string, ctx: ChooserContext): string {
+  if (!ctx.single && ctx.allDecks) {
+    // Both doors named, since Add to your library leads and Rebrand is the other.
+    if (ctx.deckKind === 'pdf') return t('{n} PDF decks. Add them to your library, or rebrand them onto the design system, one project each.', { n: ctx.count });
+    return t('{n} PowerPoint decks. Add them to your library, or rebrand them onto the design system, one project each.', { n: ctx.count });
+  }
   if (!ctx.single) return t('{n} files are ready to import.', { n: ctx.count });
   if (s.layers) return tRaw('“{name}” is a layered image (Photoshop/GIMP).', { name });
   if (s.pdf) return tRaw('“{name}” is a PDF or Illustrator document.', { name });
-  if (s.pptx) return tRaw('“{name}” is a PowerPoint deck.', { name });
+  if (s.pptx) return tRaw('{name} is a PowerPoint deck. Rebrand moves its slides onto the design system.', { name });
   if (s.docx) return tRaw('“{name}” is a Word document.', { name });
   // Two doors, so the sentence names both destinations rather than leaving
   // "design file" to stand for either of them (plan 97 section 14.9).
@@ -696,6 +778,47 @@ function declaredTemplateCount(manifest: Record<string, unknown>): number {
   if (!block || typeof block !== 'object') return 0;
   const n = Number((block as { count?: unknown }).count);
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+}
+
+/**
+ * The doors a `.lolly` opens, from what the manifest declared and nothing else.
+ *
+ * A renovation is work in progress on a deck, not a saved document, so a file carrying
+ * one leads with the Rebrand door. A file that carries a renovation AND a document
+ * offers both, because either one may be what the person came for; a renovation on its
+ * own offers no session door at all, since there is no session in it to open.
+ *
+ * A tool file never reaches here: it is installed before the chooser (see openLollyFile).
+ */
+export function lollyIntakeChoices(
+  preview: LollyPreview, opts: { preferred?: 'session' | 'design-system' } = {},
+): DialogChoice[] {
+  if (preview.format !== 'lolly-share') {
+    return [{ id: 'use-brand', label: preview.kind === 'instance' ? t('Install brand workspace') : t('Add design system'), primary: true }];
+  }
+  const renovation = preview.renovation;
+  const door = renovation ? [{ id: 'open-renovation', label: t('Open in Rebrand'), primary: true }] : [];
+  if (preview.kind === 'project') {
+    return [...door, { id: 'open-project', label: t('Open project'), primary: !renovation }];
+  }
+  return [
+    ...door,
+    ...(renovation && !renovation.withDocument ? [] : [{
+      id: 'open-session', label: t('Open shared design'),
+      primary: !renovation && (opts.preferred !== 'design-system' || !preview.includesDesignSystem),
+    }]),
+    ...(preview.includesDesignSystem
+      ? [{ id: 'use-design-system', label: t('Add its design system'), primary: !renovation && opts.preferred === 'design-system' }] : []),
+  ];
+}
+
+/** What a renovation file is, and how big it is. */
+function renovationFacts(preview: LollyPreview, description: string): string {
+  const size = intakeBytesLabel(preview.fileBytes);
+  const pace = preview.sizeBand === 'large'
+    ? t(' This is a large bundle; keep Lolly open while it verifies and imports it.')
+    : preview.sizeBand === 'medium' ? t(' It may take a moment to verify on this device.') : '';
+  return tRaw('{description} It is a {size} file.{pace}', { description, size, pace });
 }
 
 function previewFacts(preview: LollyPreview): string {
@@ -904,6 +1027,8 @@ export async function openLollyFile(
   file: File, host: PickerHost,
   opts: { preferred?: 'session' | 'design-system' } = {},
 ): Promise<void> {
+  // No model download sheet opens over a .lolly import.
+  const releaseOffers = await holdOffers();
   try {
     announce(tRaw('Inspecting {name}…', { name: file.name }));
     const intake = await import('./lolly-intake.ts');
@@ -920,20 +1045,23 @@ export async function openLollyFile(
       return;
     }
     const storage = await storageFact(preview);
-    const choices: DialogChoice[] = preview.kind === 'project'
-      ? [{ id: 'open-project', label: t('Open project'), primary: true }]
-      : preview.kind === 'session'
-      ? [
-          { id: 'open-session', label: t('Open shared design'), primary: opts.preferred !== 'design-system' || !preview.includesDesignSystem },
-          ...(preview.includesDesignSystem
-            ? [{ id: 'use-design-system', label: t('Add its design system'), primary: opts.preferred === 'design-system' }] : []),
-        ]
-      : [{ id: 'use-brand', label: preview.kind === 'instance' ? t('Install brand workspace') : t('Add design system'), primary: true }];
+    const renovation = preview.format === 'lolly-share' ? preview.renovation : null;
     const chosen = await choiceDialog({
-      title: preview.kind === 'project' ? t('Shared project')
+      title: renovation && !renovation.withDocument ? t('Rebrand project')
+        : preview.kind === 'project' ? t('Shared project')
         : preview.kind === 'session' ? t('Shared design')
         : preview.kind === 'instance' ? t('Brand workspace') : t('Design system'),
-      message: previewFacts(preview) + storage, choices, tag: 'lolly-intake',
+      // A file carrying a renovation AND a document opens two doors, so it states the
+      // facts behind both: what the renovation is, then what the document brings. With
+      // only the renovation sentence, a person pressing Open project was told what the
+      // other door does. The size and the pace clause are stated once, by whichever
+      // sentence is last, rather than by both.
+      message: (renovation
+        ? (renovation.withDocument
+            ? `${intake.describeRenovation(renovation, undefined, preview.label)} ${previewFacts(preview)}`
+            : renovationFacts(preview, intake.describeRenovation(renovation, undefined, preview.label)))
+        : previewFacts(preview)) + storage,
+      choices: lollyIntakeChoices(preview, opts), tag: 'lolly-intake',
     });
     if (!chosen) return;
     announce(tRaw('Verifying {name}…', { name: file.name }));
@@ -945,6 +1073,15 @@ export async function openLollyFile(
     }
     if (chosen === 'use-design-system') {
       await importCarriedDesignSystem(file, preview as LollySessionPreview, loaded.contents, host);
+      return;
+    }
+    // A renovation is work in progress on a deck, not a saved document, so it opens at
+    // #/rebrand. A file that carries one and no document must never reach the session
+    // route below: there is no slot to open, and an empty one would be announced as an
+    // opened design.
+    const renovationOnly = !!loaded.contents.renovation && !loaded.contents.session && !loaded.contents.project;
+    if (chosen === 'open-renovation' || renovationOnly) {
+      await openRenovationDrop(loaded.contents, renovation, host);
       return;
     }
     const lp = await import('./lolly-pack.ts');
@@ -993,6 +1130,8 @@ export async function openLollyFile(
     }
   } catch (err) {
     announce(tRaw('Could not open this .lolly file: {message}', { message: (err as Error).message }), { assertive: true });
+  } finally {
+    releaseOffers();
   }
 }
 
@@ -1032,6 +1171,114 @@ async function openLollyProject(contents: LollyFileContents, host: PickerHost, l
   const folderId = res.project?.folderIds.length === 1 ? res.project.folderIds[0] : undefined;
   const hash = folderId ? `#/p/${encodeURIComponent(folderId)}` : '#/p';
   routeToConsumer(hash, window.location.hash === hash);
+}
+
+/**
+ * What the person is told about one thing that happened during the import, in their own
+ * language. `open.ts` returns a code and an English fallback; the wording lives here,
+ * where the rest of this file's copy lives.
+ */
+function renovationWarningText(warning: RenovationOpenWarningV1): string {
+  switch (warning.code) {
+    case 'renamed':
+      return t('This project is already on this device, so it opened as a copy.');
+    case 'part-unreadable':
+      return t('Part of this project could not be read, so it was left out.');
+    case 'part-refused':
+      return t('Part of this project could not be saved, so it was added with what fit. Delete a project you have finished with to free the space.');
+    case 'unknown-stage':
+      return t('This project was saved by a newer Lolly, so it opens at the start.');
+    case 'partial-stage':
+      return t('Part of this project did not arrive, so it opens at the furthest step it can.');
+    case 'media-missing':
+      return warning.count === 1
+        ? t('1 picture is missing.')
+        : tRaw('{n} pictures are missing.', { n: warning.count ?? 0 });
+    case 'media-nested':
+      return t('Some pictures in this project did not come with it.');
+    case 'document-landed': {
+      const n = warning.count ?? 0;
+      const f = warning.folders ?? 0;
+      if (!f) return n === 1 ? t('1 design was added to Projects.') : tRaw('{n} designs were added to Projects.', { n });
+      if (n === 1) {
+        return f === 1
+          ? t('1 design was added to Projects, in 1 folder.')
+          : tRaw('1 design was added to Projects, in {f} folders.', { f });
+      }
+      return f === 1
+        ? tRaw('{n} designs were added to Projects, in 1 folder.', { n })
+        : tRaw('{n} designs were added to Projects, in {f} folders.', { n, f });
+    }
+    default:
+      return warning.message;
+  }
+}
+
+/**
+ * Land a dropped renovation: its pictures, its project record and its parts, plus the
+ * folders of a document travelling with it.
+ *
+ * The store is built here rather than held at module scope, so a device that never
+ * receives one of these files never loads the renovation modules at all. Every ref the
+ * record and the parts carry is rebased onto the ids this device minted inside
+ * `openRenovationFile`; what comes back is where it opens, plus whatever the person
+ * should be told about pictures that did not travel.
+ *
+ * What happened is stated first, to the live region for a reader and on screen when
+ * something did not travel, which is the only place a missing picture gets said out
+ * loud. Then the project opens where it lives, `#/rebrand?project=<id>`.
+ */
+async function openRenovationDrop(
+  contents: LollyFileContents, renovation: LollyRenovationPreview | null, host: PickerHost,
+): Promise<void> {
+  const [{ openRenovationFile }, { createWebProjectStore }, { createFolderStore }, picker, intake] = await Promise.all([
+    import('./rebrand/open.ts'),
+    import('./rebrand/project-store.ts'),
+    import('../folders.ts'),
+    import('../views/picker.ts'),
+    import('./lolly-intake.ts'),
+  ]);
+  // The picker surface, plus the pack reader's asset rows and the folder store a
+  // carried document's tree needs: the same three the project door names.
+  const receiver = host as ProjectIntakeHost;
+  const folders = createFolderStore(receiver);
+  const now = (): string => new Date().toISOString();
+  announce(contents.manifest.counts.assets
+    ? t('Importing {n} files…', { n: contents.manifest.counts.assets })
+    : t('Saving the project…'));
+  const opened = await openRenovationFile({
+    bytes: contents,
+    host: receiver,
+    store: createWebProjectStore(receiver, {
+      now,
+      storeUpload: (fileToStore, o) => picker.storeUserUpload(receiver, fileToStore, o),
+      // This device met these bytes a moment ago, so nothing outside the renovation
+      // store can be holding them yet. Remove is where that question has to be asked
+      // properly, and the view that offers it builds its own store.
+      referencedElsewhere: async () => false,
+      deleteAsset: (ref) => receiver.assets._deleteUserAsset(ref),
+    }),
+    now,
+    // A document travelling with the renovation keeps its folder tree, exactly as it
+    // would through the project door. Without this its sessions arrive unfiled.
+    folders: {
+      instantiateSubtree: (tree, parentId, slotMap, assetMap) => folders.instantiateSubtree(tree, parentId, slotMap, assetMap),
+      removeSubtree: (id) => folders.removeSubtree(id),
+    },
+    onProgress: (progress) => announce(progress.phase === 'assets'
+      ? t('Importing file {current} of {total}…', { current: progress.current, total: progress.total })
+      : t('Saving the project…')),
+  });
+  playSfx('drop');
+  const said = renovation
+    ? intake.describeRenovation(renovation, opened.project)
+    : t('The project was added to this device.');
+  const told = opened.warnings.map(renovationWarningText);
+  announce([said, ...told].join(' '), { assertive: !!told.length });
+  // A live region is read once and is then gone, and the next screen would not say what
+  // failed either. A picture that did not travel is worth seeing.
+  if (told.length) await noticeDialog({ title: t('Project added'), message: [said, ...told] });
+  routeToConsumer(opened.route, onRebrandRoute());
 }
 
 /**
@@ -1272,7 +1519,8 @@ export async function openDropChooser(
       || TEXT_DROP_RE.test(f.name) || /^text\//i.test(f.type),
   );
 
-  const ctx: ChooserContext = { single, count: files.length, allIngestable, has: toolExists };
+  const deckKind = single ? null : deckKindOf(files, picker.isPptxUpload, picker.isPdfUpload);
+  const ctx: ChooserContext = { single, count: files.length, allIngestable, has: toolExists, ...(deckKind ? { allDecks: true, deckKind } : {}) };
   const choices = dropChooserChoices(s, ctx);
   const message = dropChooserMessage(s, first.name, ctx);
 
@@ -1287,124 +1535,135 @@ export async function openDropChooser(
   });
   if (!chosen) return;
 
-  switch (chosen) {
-    case 'layers': {
-      // Parse + store per-layer assets BEFORE navigating (the dialog for
-      // flat-vs-grouped lives inside), then arm the seed and go.
-      try {
-        const { importLayeredFileAsSeed } = await import('../views/psd-import.ts');
-        const seed = await importLayeredFileAsSeed(host, first, {
-          warn: (m: string) => announce(m, { assertive: true }),
-        });
-        if (!seed) break; // user cancelled the flat/grouped dialog
-        setPendingToolSeed('darkroom', seed);
-        playSfx('drop');
-        routeToConsumer('#/tool/darkroom', onToolRoute('darkroom'));
-      } catch (err) {
-        announce(tRaw('Import failed: {message}', { message: (err as Error).message }), { assertive: true });
-      }
-      break;
-    }
-    case 'flatten': {
-      try {
-        const { ingestLayeredFileFlattened } = await import('../views/psd-import.ts');
-        await ingestLayeredFileFlattened(host, first);
-        playSfx('drop');
-        announce(t('Added 1 file to your library.'));
-      } catch (err) {
-        announce(tRaw('Upload failed: {message}', { message: (err as Error).message }), { assertive: true });
-      }
-      break;
-    }
-    case 'animation':
-      pendingDesign = { file: first, scenes: false, animation: true };
-      routeToConsumer('#/tool/design', onToolRoute('design'));
-      break;
-    case 'design-rules':
-      pendingDesign = { file: first, scenes: false, rules: true };
-      routeToConsumer('#/tool/design', onToolRoute('design'));
-      break;
-    case 'design':
-      pendingDesign = { file: first, scenes: false };
-      routeToConsumer('#/tool/design', onToolRoute('design'));
-      break;
-    case 'sequence':
-      // "Make a video from its frames" - the same design opens in Design, but each
-      // frame becomes a timed scene (plans/104 section 337; Sequence Studio's old home for
-      // this route retired into Design).
-      pendingDesign = { file: first, scenes: true };
-      routeToConsumer('#/tool/design', onToolRoute('design'));
-      break;
-    case 'design-system':
-      // The studio's own import flow owns the parsing - colours, fonts, logos,
-      // the semantic-mapping review and the PDF scan all live there - so this
-      // route hands over the FILE and names the source it needs. views/start.ts
-      // consumes the stash on mount (takePendingDesignSystemFile) and opens the
-      // stage that file wants; the `?source=` is what it falls back to if the
-      // stash has already been spent.
-      pendingDesignSystemFile = first;
-      routeToConsumer(
-        s.pdf ? '#/start?source=pdf' : '#/start?source=file',
-        /^#\/start([?/]|$)/.test(window.location.hash),
-      );
-      break;
-    case 'compress':
-      pendingToolFile = { toolId: 'compress-pdf', file: first };
-      routeToConsumer('#/tool/compress-pdf', onToolRoute('compress-pdf'));
-      break;
-    case 'spreadsheet':
-      pendingSpreadsheetFile = first;
-      routeToConsumer('#/data', /^#\/data([?/]|$)/.test(window.location.hash));
-      break;
-    case 'chart': {
-      // Rows → Chart's data field (a longtext taking CSV/TSV): the decode is the
-      // field's own data-source one (xlsx → CSV, a sheet picker when there is more
-      // than one sheet), then the one-shot seed the tool view folds into its
-      // initial values on mount. Cancelling the sheet picker cancels the route.
-      if (first.size > DATA_MAX_BYTES) {
-        announce(t('That file is too big to chart - the limit is 8 MB.'), { assertive: true });
+  // No model download sheet opens over the import the person just chose.
+  const releaseOffers = await holdOffers();
+  try {
+    switch (chosen) {
+      case 'layers': {
+        // Parse + store per-layer assets BEFORE navigating (the dialog for
+        // flat-vs-grouped lives inside), then arm the seed and go.
+        try {
+          const { importLayeredFileAsSeed } = await import('../views/psd-import.ts');
+          const seed = await importLayeredFileAsSeed(host, first, {
+            warn: (m: string) => announce(m, { assertive: true }),
+          });
+          if (!seed) break; // user cancelled the flat/grouped dialog
+          setPendingToolSeed('darkroom', seed);
+          playSfx('drop');
+          routeToConsumer('#/tool/darkroom', onToolRoute('darkroom'));
+        } catch (err) {
+          announce(tRaw('Import failed: {message}', { message: (err as Error).message }), { assertive: true });
+        }
         break;
       }
-      const { bytesToFieldTextInteractive } = await import('./data-source.ts');
-      const text = await bytesToFieldTextInteractive(new Uint8Array(await first.arrayBuffer()), first.name, announce);
-      if (text == null) break;
-      setPendingToolSeed('chart', { data: text });
-      routeToConsumer('#/tool/chart', onToolRoute('chart'));
-      break;
-    }
-    case 'verify':
-      setPendingVerify({ files });
-      routeToConsumer('#/verify', /^#\/(verify|valid|v)([?/]|$)/.test(window.location.hash));
-      break;
-    case 'library':
-      await ingestToLibrary(files, host, picker, opts.onStored, opts.source);
-      break;
-    case 'extract':
-      await extractOfficeMarkdown(first, host);
-      break;
-    case 'unpack': {
-      // Explode the archive to its members, then feed them through the SAME library
-      // ingest as any multi-file drop. readArchiveMembers refuses an office/OCF
-      // package (never shreds a .xlsx) and enforces the member/byte caps.
-      try {
-        const { readArchiveMembers } = await import('./archive-ingest.ts');
-        const bytes = new Uint8Array(await first.arrayBuffer());
-        const members = readArchiveMembers(bytes, first.name);
-        const memberFiles = members.map(
-          (m) => new File([m.bytes as BlobPart], m.name.split('/').pop() || m.name),
-        );
-        await ingestToLibrary(memberFiles, host, picker, opts.onStored, opts.source);
-      } catch (err) {
-        announce(tRaw('Upload failed: {message}', { message: (err as Error).message }), { assertive: true });
+      case 'flatten': {
+        try {
+          const { ingestLayeredFileFlattened } = await import('../views/psd-import.ts');
+          await ingestLayeredFileFlattened(host, first);
+          playSfx('drop');
+          announce(t('Added 1 file to your library.'));
+        } catch (err) {
+          announce(tRaw('Upload failed: {message}', { message: (err as Error).message }), { assertive: true });
+        }
+        break;
       }
-      break;
+      case 'animation':
+        pendingDesign = { file: first, scenes: false, animation: true };
+        routeToConsumer('#/tool/design', onToolRoute('design'));
+        break;
+      case 'design-rules':
+        pendingDesign = { file: first, scenes: false, rules: true };
+        routeToConsumer('#/tool/design', onToolRoute('design'));
+        break;
+      case 'design':
+        pendingDesign = { file: first, scenes: false };
+        routeToConsumer('#/tool/design', onToolRoute('design'));
+        break;
+      case 'rebrand':
+        if (single) setPendingRebrandFile(first);
+        else setPendingRebrandFiles(files.filter((f) => picker.isPptxUpload(f) || picker.isPdfUpload(f)));
+        routeToConsumer('#/rebrand', onRebrandRoute());
+        break;
+      case 'sequence':
+        // "Make a video from its frames" - the same design opens in Design, but each
+        // frame becomes a timed scene (plans/104 section 337; Sequence Studio's old home for
+        // this route retired into Design).
+        pendingDesign = { file: first, scenes: true };
+        routeToConsumer('#/tool/design', onToolRoute('design'));
+        break;
+      case 'design-system':
+        // The studio's own import flow owns the parsing - colours, fonts, logos,
+        // the semantic-mapping review and the PDF scan all live there - so this
+        // route hands over the FILE and names the source it needs. views/start.ts
+        // consumes the stash on mount (takePendingDesignSystemFile) and opens the
+        // stage that file wants; the `?source=` is what it falls back to if the
+        // stash has already been spent.
+        pendingDesignSystemFile = first;
+        routeToConsumer(
+          s.pdf ? '#/start?source=pdf' : '#/start?source=file',
+          /^#\/start([?/]|$)/.test(window.location.hash),
+        );
+        break;
+      case 'compress':
+        pendingToolFile = { toolId: 'compress-pdf', file: first };
+        routeToConsumer('#/tool/compress-pdf', onToolRoute('compress-pdf'));
+        break;
+      case 'spreadsheet':
+        pendingSpreadsheetFile = first;
+        routeToConsumer('#/data', /^#\/data([?/]|$)/.test(window.location.hash));
+        break;
+      case 'chart': {
+        // Rows → Chart's data field (a longtext taking CSV/TSV): the decode is the
+        // field's own data-source one (xlsx → CSV, a sheet picker when there is more
+        // than one sheet), then the one-shot seed the tool view folds into its
+        // initial values on mount. Cancelling the sheet picker cancels the route.
+        if (first.size > DATA_MAX_BYTES) {
+          announce(t('That file is too big to chart - the limit is 8 MB.'), { assertive: true });
+          break;
+        }
+        const { bytesToFieldTextInteractive } = await import('./data-source.ts');
+        const text = await bytesToFieldTextInteractive(new Uint8Array(await first.arrayBuffer()), first.name, announce);
+        if (text == null) break;
+        setPendingToolSeed('chart', { data: text });
+        routeToConsumer('#/tool/chart', onToolRoute('chart'));
+        break;
+      }
+      case 'verify':
+        setPendingVerify({ files });
+        routeToConsumer('#/verify', /^#\/(verify|valid|v)([?/]|$)/.test(window.location.hash));
+        break;
+      case 'library':
+        await ingestToLibrary(files, host, picker, opts.onStored, opts.source);
+        break;
+      case 'extract':
+        await extractOfficeMarkdown(first, host);
+        break;
+      case 'unpack': {
+        // Explode the archive to its members, then feed them through the SAME library
+        // ingest as any multi-file drop. readArchiveMembers refuses an office/OCF
+        // package (never shreds a .xlsx) and enforces the member/byte caps.
+        try {
+          const { readArchiveMembers } = await import('./archive-ingest.ts');
+          const bytes = new Uint8Array(await first.arrayBuffer());
+          const members = readArchiveMembers(bytes, first.name);
+          const memberFiles = members.map(
+            (m) => new File([m.bytes as BlobPart], m.name.split('/').pop() || m.name),
+          );
+          await ingestToLibrary(memberFiles, host, picker, opts.onStored, opts.source);
+        } catch (err) {
+          announce(tRaw('Upload failed: {message}', { message: (err as Error).message }), { assertive: true });
+        }
+        break;
+      }
+      case 'exports':
+        await ingestExportsToLibrary(first, host);
+        break;
+      case 'install-tool':
+        await installToolZipDrop(first);
+        break;
     }
-    case 'exports':
-      await ingestExportsToLibrary(first, host);
-      break;
-    case 'install-tool':
-      await installToolZipDrop(first);
-      break;
+  } finally {
+    releaseOffers();
   }
 }
 

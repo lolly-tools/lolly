@@ -55,7 +55,7 @@ render.
   (`Authorization: Bearer …`). The protected resource is `<base>/api/mcp` with the
   usual discovery endpoints under `/.well-known/`.
 
-### The 13 tools
+### The 14 tools
 
 | Tool | Required | Does |
 |---|---|---|
@@ -70,6 +70,7 @@ render.
 | `lolly_build_url` | `toolId` | Build a shareable, editable link plus a raw render URL, without rendering. |
 | `lolly_render` | `toolId` | Render to an asset (PNG/SVG/PDF/…). Returns the image plus an editable link. |
 | `lolly_transform` | `toolId`, `file` | Run an on-device file utility (`strip-data`, `compress-pdf`). Never watermarked. |
+| `lolly_rebrand` | `stage` | Renovate a `.pptx` deck into the design system in stages: `capabilities`, `plan`, `compile` (to a `.lolly`, optionally a `.pptx`) and `inspect`. A hosted server receives the file. |
 | `lolly_redact` | `file` | Destroy regions of an image/SVG/PDF. Rebuilds and re-checks; a failed check returns no file. |
 | `lolly_verify` | `file` | Verify a file's Content Credentials: made with Lolly, who signed, changed since export. |
 

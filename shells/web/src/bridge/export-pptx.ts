@@ -13,6 +13,11 @@ import { buildPptxParts, EMU_PER_PX, parseGradientAngle, parseGradientStop, spli
 import type { PptxSlide, PptxShape, PptxFill, PptxMedia, PptxLayout, PptxAudio } from "../../../../engine/src/pptx.ts";
 import { parseCssColorFull, objectPositionFractions } from "./export-css.ts";
 import { asStr, deckAnim, deckAudioExt, deckBox, deckFill, deckNarrationMark, deckNotes, deckPlaceholder, deckSrcRect, deckSlideTransitions, deckSyncShape, deckTheme, emuOf, parseDeckModel, type DeckBox, type DeckColorResolver, type DeckNotes, type DeckNoteSink } from "./pptx-deck.ts";
+import {
+  designFramesToPptx, framesOfDesignDoc, hasMasterBindings, parseDesignDoc, transitionsOfDeckModel,
+  type DesignDocV1,
+} from '@lolly-tools/node-shell/design-pptx';
+import type { SlideMasterFileV1, SlideMasterV1 } from '@lolly-tools/core';
 import { presentationOf } from './presentation.ts';
 import { beginFrameClock, renderFrameAt, endFrameClock } from './frame-clock.ts';
 import { renderVideo } from './export.ts';
@@ -112,10 +117,10 @@ function pptxIsInlineTextTree(el: Element): boolean {
   return true;
 }
 
-type PptxRunDraft = { text: string; sizePt: number; color?: string; bold?: boolean; italic?: boolean; font?: string };
-function pptxRunStyle(text: string, cs: CSSStyleDeclaration): PptxRunDraft {
+type PptxRunDraft = { text: string; sizePt: number; color?: string; bold?: boolean; italic?: boolean; underline?: boolean; strike?: boolean; font?: string };
+function pptxRunStyle(text: string, cs: CSSStyleDeclaration, deco?: { u: boolean; s: boolean }): PptxRunDraft {
   const cc = parseCssColorFull(cs.color);
-  return {
+  const run: PptxRunDraft = {
     text,
     sizePt: (parseFloat(cs.fontSize) || 16) * 0.75,
     color: cc ? rgbaHex(cc) : undefined,
@@ -123,27 +128,115 @@ function pptxRunStyle(text: string, cs: CSSStyleDeclaration): PptxRunDraft {
     italic: cs.fontStyle === 'italic',
     font: (cs.fontFamily || '').split(',')[0]?.replace(/["']/g, '').trim() || undefined,
   };
+  // text-decoration is not inherited in the computed style, so the walk carries it
+  // down from the element that drew it (Design's `{u|...}` and `{s|...}` spans).
+  if (deco?.u) run.underline = true;
+  if (deco?.s) run.strike = true;
+  return run;
 }
+
+/** The line a run stands for between two paragraphs of a pre-wrapped text box. */
+const PPTX_PARA_BREAK = '\n';
 
 // Flatten an inline text tree into styled runs - each text node carries its OWN parent's
 // computed font style, so <b>/<i>/coloured spans keep their formatting in one text box.
+// A box that keeps its line breaks (Design text is `white-space: pre-wrap`) keeps them as
+// paragraph-break runs, so its lines become paragraphs rather than one run-on line. Its
+// spaces are kept the way the browser draws them: `pre`, `pre-wrap` and `break-spaces`
+// keep every space, which is also what lets Design's two-space list marker be read back,
+// and only `pre-line` folds a run of spaces into one.
 function pptxCollectRuns(el: Element): PptxRunDraft[] {
   const runs: PptxRunDraft[] = [];
-  const walk = (node: Element): void => {
+  const whiteSpace = window.getComputedStyle(el).whiteSpace || '';
+  const keepsBreaks = /^(pre|pre-wrap|pre-line|break-spaces)$/.test(whiteSpace);
+  const foldsSpaces = whiteSpace === 'pre-line';
+  const walk = (node: Element, deco: { u: boolean; s: boolean }): void => {
+    const own = window.getComputedStyle(node).textDecorationLine || '';
+    const here = { u: deco.u || /underline/.test(own), s: deco.s || /line-through/.test(own) };
     for (const nd of Array.from(node.childNodes)) {
       if (nd.nodeType === 3) {
-        const raw = (nd.textContent || '').replace(/\s+/g, ' ');
-        if (raw) runs.push(pptxRunStyle(raw, window.getComputedStyle(node)));
+        const content = nd.textContent || '';
+        if (keepsBreaks) {
+          content.split('\n').forEach((piece, i) => {
+            if (i > 0) runs.push({ text: PPTX_PARA_BREAK, sizePt: 12 });
+            const drawn = foldsSpaces ? piece.replace(/[ \t]+/g, ' ') : piece;
+            if (drawn) runs.push(pptxRunStyle(drawn, window.getComputedStyle(node), here));
+          });
+        } else {
+          const raw = content.replace(/\s+/g, ' ');
+          if (raw) runs.push(pptxRunStyle(raw, window.getComputedStyle(node), here));
+        }
       } else if (nd.nodeType === 1) {
-        if ((nd as Element).tagName.toLowerCase() === 'br') runs.push({ text: ' ', sizePt: 12 });
-        else walk(nd as Element);
+        if ((nd as Element).tagName.toLowerCase() === 'br') runs.push(keepsBreaks ? { text: PPTX_PARA_BREAK, sizePt: 12 } : { text: ' ', sizePt: 12 });
+        else walk(nd as Element, here);
       }
     }
   };
-  walk(el);
+  walk(el, { u: false, s: false });
   while (runs.length && !runs[0]!.text.trim()) runs.shift();
   while (runs.length && !runs[runs.length - 1]!.text.trim()) runs.pop();
   return runs;
+}
+
+type PptxParaDraft = { align: 'l' | 'ctr' | 'r' | 'just'; runs: PptxRunDraft[]; bullet?: boolean | 'number'; level?: number };
+
+/**
+ * Split collected runs into paragraphs at their break runs, and read Design's list
+ * markers as list paragraphs (plan 275 section 7.2): a line Design draws as `•  text`
+ * or `N.  text`, after two spaces per level, becomes a bullet or numbered paragraph
+ * at that level, and the marker is not written as characters. A box with no break
+ * runs is the one paragraph it always was.
+ */
+function pptxParasFromRuns(runs: PptxRunDraft[], align: PptxParaDraft['align']): PptxParaDraft[] {
+  if (!runs.some((run) => run.text === PPTX_PARA_BREAK)) return [{ align, runs }];
+  const lines: PptxRunDraft[][] = [[]];
+  for (const run of runs) {
+    if (run.text === PPTX_PARA_BREAK) lines.push([]);
+    else lines[lines.length - 1]!.push(run);
+  }
+  const listed = lines.some((line) => PPTX_LIST_MARKER.test(line.map((run) => run.text).join('')));
+  return lines.map((line) => {
+    const whole = line.map((run) => run.text).join('');
+    const marker = PPTX_LIST_MARKER.exec(whole);
+    const para: PptxParaDraft = { align, runs: line.length ? line : [{ text: '', sizePt: 12 }] };
+    if (!marker) {
+      if (!listed) return para;
+      para.bullet = false;
+      // In a list, a line set in by two spaces a level is a line of the item above it
+      // (the line after a soft break) or a plain paragraph of the outline: its spaces
+      // become its level rather than characters.
+      const lead = (/^ */.exec(whole)?.[0] ?? '').length;
+      const level = Math.min(8, Math.floor(lead / 2));
+      if (level > 0) {
+        para.level = level;
+        para.runs = pptxDropLeading(line, level * 2);
+      }
+      return para;
+    }
+    para.bullet = marker[2] === '•' ? true : 'number';
+    const level = Math.min(8, Math.floor((marker[1] ?? '').length / 2));
+    if (level > 0) para.level = level;
+    para.runs = pptxDropLeading(line, marker[0].length);
+    return para;
+  });
+}
+
+/** Design's list marker as the canvas draws it: two spaces a level, then `•` or `N.` and two spaces. */
+const PPTX_LIST_MARKER = /^( *)(•|\d{1,3}\.) {2}/;
+
+/** A line's runs with its first `count` characters taken off the front. */
+function pptxDropLeading(line: PptxRunDraft[], count: number): PptxRunDraft[] {
+  let cut = count;
+  const rest: PptxRunDraft[] = [];
+  for (const run of line) {
+    if (cut >= run.text.length) {
+      cut -= run.text.length;
+      continue;
+    }
+    rest.push(cut > 0 ? { ...run, text: run.text.slice(cut) } : run);
+    cut = 0;
+  }
+  return rest.length ? rest : [{ ...(line[0] as PptxRunDraft), text: '' }];
 }
 
 // Intrinsic aspect (w,h) of an SVG from its viewBox (or width/height attrs), for
@@ -222,6 +315,8 @@ function pptxBorderRects(style: CSSStyleDeclaration, box: { x: number; y: number
 
 import { bakeTextStyles } from './bake-text-styles.ts';
 export { bakeTextStyles };
+// The DOM walk's text reading, exported so a test can drive it over Design's own HTML.
+export { pptxCollectRuns, pptxParasFromRuns };
 
 // Walk one page element into PPTX shapes + media (see the section comment above).
 async function pptxSlideFromPage(pageEl: Element, opts: ExportOpts): Promise<PptxSlide> {
@@ -433,7 +528,7 @@ async function pptxSlideFromPage(pageEl: Element, opts: ExportOpts): Promise<Ppt
       if (runs.length) {
         const align: 'l' | 'ctr' | 'r' | 'just' =
           style.textAlign === 'center' ? 'ctr' : style.textAlign === 'right' ? 'r' : style.textAlign === 'justify' ? 'just' : 'l';
-        shapes.push({ kind: 'text', ...boxOf(rect), anchor: 't', paras: [{ align, runs }] });
+        shapes.push({ kind: 'text', ...boxOf(rect), anchor: 't', paras: pptxParasFromRuns(runs, align) });
       }
       return;   // inline children are consumed as runs - don't recurse into them
     }
@@ -597,7 +692,7 @@ async function deckImageShape(el: Record<string, unknown>, box: DeckBox, addMedi
 async function deckElementToShape(el: Record<string, unknown>, addMedia: (b: Uint8Array, e: PptxMedia['ext']) => number, animNotes?: DeckNoteSink, resolve?: DeckColorResolver): Promise<PptxShape | null> {
   if (!el || typeof el !== 'object') return null;
   if (el.t === 'image') return await deckImageShape(el, deckBox(el), addMedia, animNotes);
-  return deckSyncShape(el, animNotes, resolve); // rect / text / table (pure)
+  return deckSyncShape(el, animNotes, resolve); // rect / text / table / path (pure)
 }
 
 /**
@@ -673,6 +768,105 @@ async function deckLayoutsFrom(raw: unknown, resolve?: DeckColorResolver): Promi
     layouts.push({ name: asStr(L?.name) ?? 'Layout', bg: deckFill(L?.bg, resolve), shapes, media, placeholders });
   }
   return layouts;
+}
+
+// ── native deck from a Design document (plan 274 work package 6) ──────────────
+//
+// Design already serialises its RAW authored rows into `<script data-penpot-doc>`
+// for the .penpot writer, and those rows are what a slide-master binding lives on
+// (`master` + `archetype` on the frame, `role` on a layer). Reading them here is
+// what lets a bound deck lower to REAL layout placeholders - Outline view and Reset
+// Slide work in PowerPoint - instead of the flat deck model, which drops the
+// bindings. A document with no bindings takes the deck-model path exactly as before,
+// so deck-studio and deck-builder are untouched.
+const DESIGN_DOC_SEL = '[data-penpot-doc]';
+
+function readDesignDoc(node: Element): DesignDocV1 | null {
+  const el = node.querySelector?.(DESIGN_DOC_SEL) ?? (node.matches?.(DESIGN_DOC_SEL) ? node : null);
+  return parseDesignDoc(el?.textContent);
+}
+
+/** The slide master a bound frame names, from the catalog, or null when it is absent. */
+async function loadSlideMaster(id: string): Promise<SlideMasterV1 | null> {
+  const assets = _host?.assets;
+  if (!assets?.bytes) return null;
+  try {
+    const found = await assets.query({ type: 'data', tags: ['slide-master'] });
+    for (const ref of found.slice(0, 8)) {
+      const bytes = await assets.bytes(ref);
+      const file = JSON.parse(new TextDecoder().decode(bytes)) as SlideMasterFileV1;
+      const hit = file?.masters?.find((m) => m.id === id);
+      if (hit) return hit;
+    }
+  } catch { /* no master on this profile - the deck-model path still exports */ }
+  return null;
+}
+
+/** `color.semantic.<slot>` reads the `--brand-<slot>` custom property the shell paints. */
+function brandTokenResolver(resolve?: DeckColorResolver): (path: string) => string | undefined {
+  return (path: string): string | undefined => {
+    const m = /^color\.semantic\.([a-z0-9-]+)$/i.exec(path);
+    if (!m || !resolve) return undefined;
+    return resolve(`--brand-${m[1]}`) || undefined;
+  };
+}
+
+/**
+ * Lower a Design document with slide-master bindings, or null to let the caller keep
+ * to the deck-model path. Null is the answer whenever the master cannot be read, so a
+ * profile without one exports exactly what it did before.
+ */
+async function renderPptxFromDesign(doc: DesignDocV1, opts: ExportOpts, sourceAuthor?: string, node?: Element): Promise<Blob | null> {
+  const frames = framesOfDesignDoc(doc).slice(0, MAX_DECK_SLIDES);
+  const masterId = frames.map((f) => (typeof f.row.master === 'string' ? f.row.master : '')).find(Boolean);
+  if (!masterId) return null;
+  const master = await loadSlideMaster(masterId);
+  if (!master) return null;
+
+  const cssVars = canvasColorResolver(node);
+  const assets = _host?.assets;
+  // The document-level transition is an input, not a row, and Design resolves it per
+  // slide into its own deck model. Read it back so a deck that states the transition
+  // once still leaves each slide the way it was authored to.
+  const deckEl = node?.querySelector?.(PPTX_DECK_SEL);
+  const slideTransitions = transitionsOfDeckModel(deckEl?.textContent);
+  const result = await designFramesToPptx({
+    frames,
+    master,
+    tokens: brandTokenResolver(cssVars),
+    cssVars,
+    ...(slideTransitions ? { slideTransitions } : {}),
+    resolveAsset: assets?.bytes
+      ? async (ref: string) => {
+        try {
+          const bytes = await assets.bytes!(ref);
+          return bytes.length ? { bytes, mime: mimeOfImageBytes(bytes, ref) } : null;
+        } catch { return null; }
+      }
+      : undefined,
+    rasterizeSvg: async (bytes: Uint8Array, w: number, h: number) => svgBytesToPng(bytes, w, h),
+  });
+
+  for (const line of result.notes) _host?.log?.('warn', `pptx: ${line}.`);
+  opts.onProgress?.(result.slides.length, result.slides.length);
+  const parts = buildPptxParts(result.slides, {
+    emuW: Math.max(1, emuOf(result.size.w)),
+    emuH: Math.max(1, emuOf(result.size.h)),
+    theme: result.theme,
+    layouts: result.layouts.length ? result.layouts : undefined,
+    meta: pptxMeta(opts, sourceAuthor),
+    now: new Date().toISOString(),
+  });
+  return zipPptxParts(parts);
+}
+
+/** The media type of image bytes, sniffed first and taken from the name second. */
+function mimeOfImageBytes(bytes: Uint8Array, url: string): string {
+  const ext = sniffImgExt(bytes, url);
+  if (ext === 'png') return 'image/png';
+  if (ext === 'jpeg') return 'image/jpeg';
+  if (ext === 'svg') return 'image/svg+xml';
+  return 'application/octet-stream';
 }
 
 async function renderPptxFromDeck(deck: Record<string, unknown>, opts: ExportOpts, sourceAuthor?: string, node?: Element): Promise<Blob> {
@@ -770,6 +964,14 @@ export async function renderPptx(node: Element, opts: ExportOpts): Promise<Blob>
   const srcAuthor = sourceAuthorOf(node);
   // Fast path: a tool that authored its own native deck model (tables, precise text,
   // brand theme) drives the OOXML directly; the DOM walk below is the general fallback.
+  // A Design document whose frames carry slide-master bindings lowers natively, with
+  // real layout placeholders. Everything else (including Design without bindings)
+  // takes the authored deck model, and the DOM walk stays the general fallback.
+  const designDoc = readDesignDoc(node);
+  if (designDoc && hasMasterBindings(designDoc)) {
+    const bound = await renderPptxFromDesign(designDoc, opts, srcAuthor, node);
+    if (bound) return bound;
+  }
   const deck = readDeckModel(node);
   if (deck) return renderPptxFromDeck(deck, opts, srcAuthor, node);
 

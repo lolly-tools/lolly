@@ -43,7 +43,7 @@ import {
   chmodSync, copyFileSync, cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync,
   writeFileSync,
 } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { availableParallelism, tmpdir } from 'node:os';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from 'esbuild';
@@ -210,11 +210,20 @@ cpSync(join(REPO, 'packages/node-shell/wasm/jxl'), join(PKG, 'wasm/jxl'), { recu
 const result = await build({
   // The output NAMES matter: shells/cli/src/tui.ts starts the TUI by looking for
   // `./tui.js` beside its own bundle, which is how `lolly tui` works in the package.
-  entryPoints: { cli: join(REPO, 'shells/cli/bin/lolly.ts'), tui: join(REPO, 'shells/tui/src/main.tsx') },
+  // `rebrand-worker` is the same idiom: `lolly rebrand --jobs=N` looks for
+  // `./rebrand-worker.js` beside whichever chunk holds rebrand.ts's compiled code
+  // (rebrand.ts's `workerUrl()`), so without this entry a packaged build has no
+  // worker file to spawn and `--jobs` runs one deck at a time regardless of what
+  // was asked.
+  entryPoints: {
+    cli: join(REPO, 'shells/cli/bin/lolly.ts'),
+    tui: join(REPO, 'shells/tui/src/main.tsx'),
+    'rebrand-worker': join(REPO, 'shells/cli/src/rebrand-worker.ts'),
+  },
   outdir: join(PKG, 'dist'),
   bundle: true,
   // Splitting keeps the CLI's lazy `await import()` shape: `lolly --version` still loads
-  // a few kB rather than the whole shell, and the two entries share one copy of the
+  // a few kB rather than the whole shell, and the three entries share one copy of the
   // engine instead of carrying one each.
   splitting: true,
   platform: 'node',
@@ -229,7 +238,7 @@ const result = await build({
 });
 
 const outputs = Object.keys(result.metafile.outputs);
-for (const name of ['cli', 'tui']) {
+for (const name of ['cli', 'tui', 'rebrand-worker']) {
   if (!outputs.some(o => o.endsWith(`/dist/${name}.js`))) {
     throw new Error(`esbuild produced no dist/${name}.js (outputs: ${outputs.join(', ')})`);
   }
@@ -378,6 +387,39 @@ if (binding) {
     throw new Error('The installed CLI did not produce a JPEG XL image.');
 }
 
+// `lolly rebrand compile <folder> --jobs=2`: proves the packaged build actually carries
+// dist/rebrand-worker.js (the esbuild entry added above). Without it `workerUrl()` finds
+// no worker file, `--jobs` silently falls back to one deck at a time, and the compile
+// itself still succeeds - so this checks `run.jobs`, not just the exit status.
+const rebrandDecks = join(SMOKE, 'rebrand-decks');
+mkdirSync(rebrandDecks, { recursive: true });
+for (const name of ['simple.pptx', 'palette.pptx']) {
+  copyFileSync(join(REPO, 'tests', 'fixtures', 'rebrand', name), join(rebrandDecks, name));
+}
+const rebrand = runCaptured(
+  LOLLY,
+  ['rebrand', 'compile', rebrandDecks, `--out-dir=${join(SMOKE, 'rebrand-out')}`, '--keep-going', '--jobs=2', '--json'],
+  SMOKE,
+  { LOLLY_ROOT: REPO },
+);
+if (!rebrand.stdout.trim().startsWith('{')) {
+  throw new Error(`\`lolly rebrand compile --jobs=2\` printed no JSON envelope: ${rebrand.stdout.slice(0, 200)} / ${rebrand.stderr.slice(0, 600)}`);
+}
+const rebrandEnvelope = JSON.parse(rebrand.stdout) as {
+  result: { files: Array<{ input: string; error?: { message: string } }>; run: { jobs: number } };
+};
+const rebrandFailed = rebrandEnvelope.result.files.filter(file => file.error);
+if (rebrandFailed.length) {
+  throw new Error(`\`lolly rebrand compile\` failed a fixture deck: ${rebrandFailed.map(f => `${f.input}: ${f.error!.message}`).join('; ')}`);
+}
+const expectedRebrandJobs = Math.min(2, availableParallelism());
+if (rebrandEnvelope.result.run.jobs !== expectedRebrandJobs || /no worker thread file for rebrand/.test(rebrand.stderr)) {
+  throw new Error(
+    `\`lolly rebrand compile --jobs=2\` used ${rebrandEnvelope.result.run.jobs} job(s) of an expected ${expectedRebrandJobs} - `
+    + `dist/rebrand-worker.js may be missing from the package (${rebrand.stderr.slice(0, 400)})`,
+  );
+}
+
 // The no-content experience, exercised where it is real: no LOLLY_ROOT, and an install
 // with no catalog anywhere above it, so the marker walk genuinely finds nothing.
 const refusal = runCaptured(LOLLY, ['list'], SMOKE, { LOLLY_ROOT: '' });
@@ -407,7 +449,7 @@ if (binding) {
 }
 
 rmSync(SMOKE, { recursive: true, force: true });
-console.log('smoke: --version, list --json, a rendered SVG, the exit-3 refusal, and tui - all ok');
+console.log('smoke: --version, list --json, a rendered SVG, a two-job rebrand compile, the exit-3 refusal, and tui - all ok');
 console.log(`packed → ${relative(REPO, OUT)}`);
 console.log(`  @lolly-tools/cli@${VERSION}  ${tgzName}`);
 console.log(`  tarball ${(statSync(tgz).size / 1024 / 1024).toFixed(1)} MB · unpacked ${(unpacked / 1024 / 1024).toFixed(1)} MB · ${listing.length} files · no tools, no catalog`);

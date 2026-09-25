@@ -1,0 +1,375 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* #/rebrand intake (.rb-intake, plans/274 section 4, plan 275 close-out 2.1 and 3.2):
+   one 640px column with the heading, the design system line, the mode segment and its
+   one help line, the drop area, the reading surface, a problem, readiness rows and the
+   recent projects; plus the slide pictures offer and the same progress, error and
+   readiness rows where the notice band (.rb-alert, placed by rebrand.css) shows them,
+   and the preset chooser dialog (views/rebrand/intake.ts).
+   This sheet comes before rebrand-decide.css, whose .rb-choice the preset rows share.
+   Tokens only; chrome sizes as calc(Npx * var(--a11y-fs)).
+   Never write a star followed by a slash inside a CSS comment. */
+@layer views {
+  /* ── intake ── one column: the heading, the drop area, then progress, a
+     problem, readiness and the recent projects, each only when it has something. */
+  .rb-intake {
+    --rb-intake-seg-h: calc(32px * var(--a11y-fs));
+    --rb-intake-pick-h: calc(36px * var(--a11y-fs));
+    --rb-intake-sw: calc(14px * var(--a11y-fs));
+    --rb-recent-thumb-w: calc(64px * var(--a11y-fs));
+    --rb-read-frame-max: calc(56px * var(--a11y-fs));
+    overflow: auto;
+    padding: var(--sp-8) var(--sp-4) var(--sp-6);
+  }
+  .rb-intake-inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-5);
+    width: min(100%, var(--rb-intake-max));
+    margin: 0 auto;
+  }
+  .rb-intake-head { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-3); }
+  .rb-intake-title {
+    margin: 0;
+    font-size: var(--ui-type-lead);
+    font-weight: var(--ui-type-weight-section);
+    line-height: 1.25;
+  }
+  /* What the deck goes into: the design system's ground, ink and accent, then its name. */
+  .rb-intake-system {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    margin: calc(-1 * var(--sp-1)) 0 0;
+    font-size: var(--ui-type-label);
+    color: var(--ui-color-text-muted);
+  }
+  .rb-intake-sws { display: inline-flex; flex: none; gap: var(--sp-1); }
+  .rb-intake-sw {
+    display: block;
+    width: var(--rb-intake-sw);
+    height: var(--rb-intake-sw);
+    border-radius: var(--radius-round);
+    background: var(--sw);
+    box-shadow: var(--ui-edge-strong);
+  }
+  /* The mode: the panel primitive's segment at 32px, and one help line under it that
+     follows the pressed half. */
+  .rb-intake-mode-host { display: flex; margin-top: var(--sp-1); }
+  .rb-intake .rb-intake-mode { min-height: var(--rb-intake-seg-h); }
+  .rb-intake .rb-intake-mode > button { flex: 1 1 auto; padding-inline: var(--sp-3); white-space: nowrap; }
+  .rb-intake .rb-intake-help { margin: calc(-1 * var(--sp-1)) 0 0; }
+
+  .rb-intake-notice {
+    margin: 0;
+    padding: var(--sp-3) var(--sp-4);
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-color-status-notice-surface);
+    font-size: var(--ui-type-body);
+    line-height: 1.5;
+  }
+  .rb-intake-subtitle {
+    margin: 0 0 var(--sp-2);
+    font-size: var(--ui-type-section);
+    font-weight: var(--ui-type-weight-section);
+  }
+  /* A list's name as an eyebrow: small, muted capitals, as the queue's group heads. */
+  .rb-intake-eyebrow {
+    margin: 0 0 var(--sp-2);
+    font-size: var(--ui-type-band);
+    font-weight: var(--ui-type-weight-label);
+    letter-spacing: var(--ui-type-tracking-label);
+    text-transform: uppercase;
+    color: var(--ui-color-text-muted);
+  }
+
+  /* The one dashed border on the page: it is where a file goes. */
+  .rb-drop {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-7) var(--sp-5);
+    border: 2px dashed var(--ui-color-border-default);
+    border-radius: var(--ui-radius-card);
+    background: var(--ui-color-surface-raised);
+    text-align: center;
+    transition: border-color var(--ui-motion-feedback) var(--ui-motion-standard), background-color var(--ui-motion-feedback) var(--ui-motion-standard);
+  }
+  .rb-drop.is-over {
+    border-color: var(--ui-color-action-primary);
+    background: var(--ui-color-selection-surface);
+  }
+  .rb-drop-title { margin: 0; font-size: var(--ui-type-section); font-weight: var(--ui-type-weight-section); }
+  .rb-drop-note { margin: 0; font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+
+  /* ── reading ── one surface: the sentence, the file, Cancel, and the frames that fill
+     left to right as slides are read. */
+  .rb-progress {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-4);
+    border-radius: var(--ui-radius-card);
+    background: var(--ui-color-surface-muted);
+  }
+  .rb-progress-head {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    min-width: 0;
+    margin: 0;
+  }
+  .rb-progress-line {
+    flex: none;
+    font-size: var(--ui-type-body);
+    font-weight: var(--ui-type-weight-section);
+  }
+  .rb-progress-file {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--ui-type-help);
+    color: var(--ui-color-text-muted);
+  }
+  .rb-progress-cancel { flex: none; margin-inline-start: auto; }
+  .rb-progress-frames {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-width: 0;
+  }
+  .rb-read-frame {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: var(--rb-read-frame-max);
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--ui-radius-choice);
+    background: var(--ui-color-surface-raised);
+    box-shadow: var(--ui-edge-faint);
+    transition: background-color var(--ui-motion-feedback) var(--ui-motion-standard);
+  }
+  .rb-read-frame.is-read { background: var(--ui-color-selection-surface); box-shadow: var(--ui-edge-default); }
+  .rb-read-frame > svg { display: block; width: 100%; height: 100%; }
+  .rb-read-more { flex: none; font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+
+  .rb-error {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-4);
+    border-radius: var(--ui-radius-card);
+    background: var(--ui-color-status-danger-surface);
+  }
+  .rb-error-line {
+    flex: 1 1 var(--rb-line-min);
+    margin: 0;
+    font-size: var(--ui-type-body);
+  }
+  .rb-error-actions, .rb-ready-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+  .rb-ready-list, .rb-recent-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .rb-ready-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-3) var(--sp-4);
+    border-radius: var(--ui-radius-card);
+    background: var(--ui-color-surface-raised);
+    box-shadow: var(--ui-edge-default);
+  }
+  .rb-ready-text, .rb-recent-text {
+    flex: 1 1 var(--rb-text-min);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+  }
+  .rb-ready-message { margin: 0; font-size: var(--ui-type-body); }
+  .rb-ready-size, .rb-recent-meta { margin: 0; font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+
+  /* ── recent projects ── flat rows: the first slide, the name and where it is, and
+     the row's menu. The row is the button that opens the project. */
+  .rb-recent-list { gap: 0; }
+  .rb-recent-row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-width: 0;
+  }
+  .rb-recent-open {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    padding: var(--sp-2);
+    border: 0;
+    border-radius: var(--ui-radius-control);
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    transition: background-color var(--ui-motion-feedback) var(--ui-motion-standard);
+  }
+  .rb-recent-open:hover { background: var(--ui-color-surface-muted); }
+  .rb-recent-open:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .rb-recent-thumb {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--rb-recent-thumb-w);
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--ui-radius-choice);
+    background: var(--ui-color-surface-raised);
+    box-shadow: var(--ui-edge-default);
+  }
+  .rb-recent-thumb > svg { display: block; width: 100%; height: 100%; }
+  .rb-recent-thumb--wire { padding: 2px; }
+  .rb-recent-thumb--glyph { color: var(--ui-color-text-muted); }
+  .rb-recent-thumb--glyph > svg { width: var(--ui-size-icon-lg); height: var(--ui-size-icon-lg); }
+  .rb-recent-name {
+    font-size: var(--ui-type-body);
+    font-weight: var(--ui-type-weight-label);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .rb-recent-meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* The decks of a multi-file read share the list; each says its state beside a glyph. */
+  .rb-batch-row { padding: var(--sp-2); }
+  .rb-recent-icon { display: inline-flex; flex: none; color: var(--ui-color-text-muted); }
+  .rb-recent-icon svg { width: var(--ui-size-icon-lg); height: var(--ui-size-icon-lg); }
+  /* A failed deck says so in words beside its alert glyph, never by colour alone. */
+  .rb-batch-row[data-batch-state="failed"] .rb-recent-icon { color: var(--ui-color-status-danger); }
+  .rb-intake [hidden] { display: none; }
+
+  /* The preset the next read applies: one quiet line under the drop area. */
+  .rb-intake-preset {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-2) var(--sp-3);
+    margin: 0;
+    font-size: var(--ui-type-help);
+    color: var(--ui-color-text-muted);
+  }
+
+  /* On a fine pointer the small controls take the control height and the drop area's
+     primary a step more; a finger keeps the full target rebrand.css gives every button. */
+  @media (any-pointer: fine) {
+    .rb-intake .btn--sm, .rb-intake .rb-intake-preset .btn { min-height: var(--ui-size-control); }
+    .rb-intake .rb-drop-pick { min-height: var(--rb-intake-pick-h); }
+    .rb-alert .rb-recent-go { min-height: var(--ui-size-control); }
+  }
+  @media (any-pointer: coarse) {
+    /* The track's own 2px inset on each side, so each half is a full target. */
+    .rb-intake .rb-intake-mode { min-height: calc(var(--ui-size-target) + 4px); }
+    .rb-recent-open { min-height: var(--ui-size-target); }
+    .rb-recent-more { width: var(--ui-size-target); height: var(--ui-size-target); }
+  }
+
+  /* ── slide pictures ── the one offer to read a picture deck's text, in the band under
+     the top bar: the first picture, one sentence or the reading's progress, and the two
+     ways. */
+  .rb-pictures {
+    --rb-pictures-art-w: calc(56px * var(--a11y-fs));
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    min-width: 0;
+  }
+  .rb-pictures-art {
+    flex: none;
+    width: var(--rb-pictures-art-w);
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: var(--ui-radius-choice);
+    background: var(--ui-color-surface-muted);
+    box-shadow: var(--ui-edge-default);
+  }
+  .rb-pictures-art > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .rb-pictures-text {
+    flex: 1 1 var(--rb-text-min);
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+  }
+  .rb-pictures-line { margin: 0; font-size: var(--ui-type-body); }
+  .rb-pictures-note { margin: 0; font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+  .rb-pictures-actions { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
+  .rb-pictures [aria-disabled="true"] { opacity: .6; cursor: default; }
+  @media (any-pointer: fine) {
+    .rb-alert .rb-pictures .btn { min-height: var(--ui-size-control); }
+  }
+  .rb[data-narrow="true"] .rb-pictures { flex-wrap: wrap; }
+  .rb[data-narrow="true"] .rb-pictures-actions { flex: 1 1 100%; justify-content: flex-end; }
+
+  /* Narrow: the column keeps its gutter and the reading row drops the file name. */
+  .rb[data-narrow="true"] .rb-intake { padding: var(--sp-5) var(--sp-4); }
+  .rb[data-narrow="true"] .rb-progress-file { display: none; }
+  /* A phone on its side: a notice row keeps its words and its action on one line, so
+     the slide keeps its room. */
+  @media (max-height: 479px) {
+    .rb[data-narrow="true"] .rb-ready-row { flex-wrap: nowrap; padding-block: var(--sp-2); }
+    .rb[data-narrow="true"] .rb-pictures { flex-wrap: nowrap; }
+    .rb[data-narrow="true"] .rb-pictures-actions { flex: none; }
+  }
+
+  /* The preset chooser: a single-choice list inside the standard modal, one row per
+     preset with where a personal one came from on a second line. The dialog lives on
+     the body, outside .rb, so these rules are not scoped to the view. */
+  .rb-preset-dialog {
+    --rb-preset-w: calc(440px * var(--a11y-fs));
+    --rb-preset-list-h: calc(360px * var(--a11y-fs));
+    width: min(var(--rb-preset-w), 92vw);
+  }
+  .rb-preset-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    max-height: min(46vh, var(--rb-preset-list-h));
+    margin: 0 0 var(--sp-4);
+    padding: 0;
+    border: 0;
+    overflow-y: auto;
+  }
+  .rb-preset-row {
+    align-items: flex-start;
+    padding: var(--sp-2);
+    border-radius: var(--ui-radius-control);
+  }
+  .rb-preset-row:hover { background: var(--ui-color-surface-muted); }
+  .rb-preset-row:has(> input:checked) { background: var(--ui-color-selection-surface); }
+  .rb-preset-row > input { margin-block-start: var(--sp-1); }
+  .rb-preset-text { display: flex; flex-direction: column; gap: var(--sp-1); min-width: 0; }
+  .rb-preset-name { overflow-wrap: anywhere; }
+  .rb-preset-origin { font-size: var(--ui-type-help); color: var(--ui-color-text-muted); }
+
+  @media (prefers-reduced-motion: reduce) {
+    :is(.rb-drop, .rb-read-frame, .rb-recent-open) { transition: none; }
+  }
+}
+
+/* The app's own reduced-motion preference turns the same transitions off. Unlayered
+   and led by html, as the other a11y gates are. */
+html[data-a11y-motion="reduce"] :is(.rb-drop, .rb-read-frame, .rb-recent-open) { transition: none; }
+
+/* The panel primitive's segment rules sit outside the cascade layers (panel.css), so
+   the intake's own spacing for its mode halves is stated outside them too, one step
+   more specific. */
+.rb-intake .rb-intake-mode > button { flex: 1 1 auto; padding-inline: var(--sp-3); }

@@ -430,6 +430,38 @@ export function licenceDisplayName(id: string, extra: readonly LicenceProfileV1[
   return id;
 }
 
+/**
+ * The licences a person can declare for their OWN export, in the order the export
+ * panel lists them. No entry means no declaration (all rights reserved), which is
+ * also what an unknown id reads as. NC and ND variants are offered because people
+ * choose them for their work; declaring one writes the notice and nothing else,
+ * since the evaluator does not interpret those conditions (see RECOGNISED).
+ * Public Domain Mark is for a work already free of known copyright; CC0 is the
+ * dedication an author makes for their own work.
+ */
+export const OUTPUT_LICENCE_CHOICES: readonly { id: string; name: string; url: string }[] = [
+  { id: 'CC0-1.0', name: 'CC0 1.0', url: 'https://creativecommons.org/publicdomain/zero/1.0/' },
+  { id: 'CC-PDM-1.0', name: 'Public Domain Mark 1.0', url: 'https://creativecommons.org/publicdomain/mark/1.0/' },
+  { id: 'CC-BY-4.0', name: 'CC BY 4.0', url: 'https://creativecommons.org/licenses/by/4.0/' },
+  { id: 'CC-BY-SA-4.0', name: 'CC BY-SA 4.0', url: 'https://creativecommons.org/licenses/by-sa/4.0/' },
+  { id: 'CC-BY-NC-4.0', name: 'CC BY-NC 4.0', url: 'https://creativecommons.org/licenses/by-nc/4.0/' },
+  { id: 'CC-BY-NC-SA-4.0', name: 'CC BY-NC-SA 4.0', url: 'https://creativecommons.org/licenses/by-nc-sa/4.0/' },
+  { id: 'CC-BY-ND-4.0', name: 'CC BY-ND 4.0', url: 'https://creativecommons.org/licenses/by-nd/4.0/' },
+  { id: 'CC-BY-NC-ND-4.0', name: 'CC BY-NC-ND 4.0', url: 'https://creativecommons.org/licenses/by-nc-nd/4.0/' },
+];
+
+/** The declared-licence id off untrusted input (a link, a saved session), or null. */
+export function outputLicenceId(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  return OUTPUT_LICENCE_CHOICES.some((c) => c.id === value) ? value : null;
+}
+
+/** The notice a metadata licence field carries, `CC BY 4.0 (https://…)`, or '' for none. */
+export function outputLicenceNotice(id: string | null | undefined): string {
+  const choice = OUTPUT_LICENCE_CHOICES.find((c) => c.id === id);
+  return choice ? `${choice.name} (${choice.url})` : '';
+}
+
 const LOCATOR_MAX = 2048;
 
 /**

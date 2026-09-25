@@ -956,7 +956,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
       const btn = target.closest<HTMLButtonElement>('.cat-act-read-text');
       if (btn?.disabled) return;
       const span = btn?.querySelector('span');
-      const orig = span?.textContent ?? t('Read text');
+      let orig = span?.textContent ?? t('Read text');
       if (btn) btn.disabled = true;
       if (span) span.textContent = t('Reading…');
       const alive = (): boolean => cat.detailsDialog === dlg;
@@ -969,7 +969,7 @@ export function wireSheetEvents(dt: DetailsCtx): void {
           const blob = await (await fetch(ref.url)).blob();
           const result = await dr.extractDocumentText(blob, ocrAvail ? (host.ocr ?? null) : null, (done, total) => {
             if (span) span.textContent = tRaw('Reading page {i} of {n}…', { i: done, n: total });
-          });
+          }, { ensureOcr: dr.offerTextRecognition });
           text = result.text;
           source = result.source;
           const n = result.notes;
@@ -977,23 +977,29 @@ export function wireSheetEvents(dt: DetailsCtx): void {
           if (n.ocrPages > 0) noteLines.push(tRaw('{n} scanned pages were read with on-device text recognition, so hidden-character checks could not run on those pages.', { n: n.ocrPages }));
           if (n.scannedUnread > 0) {
             noteLines.push(n.ocrUnavailable
-              ? tRaw('{n} pages are pictures of text and the text-recognition model is not installed, so they were not read.', { n: n.scannedUnread })
+              ? (n.scannedUnread === 1
+                ? t('One scanned page was not read because Text recognition is not on this device.')
+                : tRaw('{n} scanned pages were not read because Text recognition is not on this device.', { n: n.scannedUnread }))
               : tRaw('{n} scanned pages were left unread to keep this quick.', { n: n.scannedUnread }));
+            // The button stays and a press offers the download again.
+            if (n.ocrUnavailable && ocrAvail) orig = t('Read scanned pages');
           }
-          if (text == null && n.ocrUnavailable) noteLines = [t('The pages of this document are pictures of text, and the text-recognition model that could read them is not installed.')];
+          if (text == null && n.ocrUnavailable) noteLines = [t('These pages are pictures of text. Text recognition is not on this device, so they were not read.')];
         } else {
           const src = await (await fetch(ref.url)).text();
           text = dr.extractSvgText(src) || null;
           if (text) {
             noteLines.push(t('Read from the vector\u2019s own text elements - a digital extraction, no pixels involved.'));
-          } else if (ocrAvail && host.ocr) {
+          } else if (ocrAvail && host.ocr && await (await import('../../lib/model-offer.ts')).ensureModel('ocr', { reason: t('Reading text in pictures') })) {
+            // The model is offered in place first, so its download is never a
+            // silent wait under "Reading…".
             const frame = await dr.svgToOcrFrame(src, ref.width, ref.height);
             const res = frame ? await host.ocr.run(frame) : null;
             text = res?.text.trim() || null;
             source = 'ocr';
             if (text) noteLines.push(t('This vector draws its words as shapes, so they were read with on-device text recognition.'));
           } else {
-            noteLines.push(t('This vector draws its words as shapes, and the text-recognition model that could read them is not installed.'));
+            noteLines.push(t('This vector draws its words as shapes, and Text recognition is not on this device, so they were not read.'));
           }
         }
         if (!alive() || !box) { announce(t('The text was read. Open this asset again to see the result.')); return; }

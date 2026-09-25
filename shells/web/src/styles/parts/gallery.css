@@ -631,13 +631,10 @@ stroke-width:.81;
   border: 2px solid hsl(var(--background));
 }
 
-/* Desktop: anchored dropdown under the cluster (right-aligned so it stays on
-   screen). .gallery-topright is position:fixed, i.e. the containing block. */
-.filter-popover {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  z-index: 100;
+/* The view-options panel (components/view-options.ts) - one skin for Tools, Utilities,
+   Catalogue and Projects. Placement is separate: the top-bar views add .filter-popover
+   below, Projects places it through the body popover (parts/projects.css). */
+.view-options {
   width: min(280px, calc(100vw - 3em));
   padding: var(--sp-6);
   background: hsl(var(--card));
@@ -649,6 +646,14 @@ stroke-width:.81;
   flex-direction: column;
   gap: var(--sp-6);
   text-align: left;
+}
+/* Desktop: anchored dropdown under the cluster (right-aligned so it stays on
+   screen). .gallery-topright is position:fixed, i.e. the containing block. */
+.filter-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 100;
 }
 .filter-popover[hidden] { display: none; }
 .filter-pop-head {
@@ -754,11 +759,14 @@ stroke-width:.81;
 @media (max-width: 640px) {
   .filter-popover {
     position: fixed;
-    inset: auto 0 0 0;
+    /* Longhands, so the mobile-chrome guard can read them: the sheet rides above the
+       soft keyboard, and its controls are padded up out of the home-indicator strip. */
+    top: auto; right: 0; bottom: var(--vv-bottom, 0px); left: 0;
     width: auto;
     z-index: var(--z-top);
     border-radius: 18px 18px 0 0;
-    padding: 16px 16px calc(16px + var(--safe-bottom));
+    padding: 16px 16px 0;
+    padding-bottom: calc(16px + var(--safe-bottom));
     box-shadow: 0 -10px 32px hsl(0 0% 0% / 0.32);
     animation: filter-sheet-up var(--dur-2) ease both;
   }
@@ -943,7 +951,7 @@ html[data-a11y-previews="hidden"] .gallery .ftile-iconfill svg { max-width: 52px
    utilities keep the dot at the bottom of their icon-and-caption card. */
 .gtile { container-type: inline-size; }
 .gtile .tile-check { top: calc(75cqw - var(--object-check-size) - 6px); }
-.gtile--utility .tile-check { top: auto; bottom: 6px; }
+.gtile--utility .tile-check { right: var(--sp-4); left: auto; top: var(--sp-4); }
 /* Hidden previews collapse the hero, so use the caption's lower-left corner. */
 html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
 /* Long-press opens the context menu on touch - suppress the OS link preview /
@@ -1055,7 +1063,7 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 14%;
+  padding: 2%;
   box-sizing: border-box;
 }
 .gtile-iconfill-base svg,
@@ -1064,16 +1072,17 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
   width: 100%; height: 100%;
 }
 .gtile-iconfill-base svg,
-.gtile-iconfill-trace svg { max-width: 96px; max-height: 96px; }
+.gtile-iconfill-trace svg { max-width: 512px; max-height: 512px; }
 /* A true 2px hairline regardless of icon scale (vector-effect isn't inherited, so it
    must land on the drawn shapes, not just the <svg>). */
 .gtile-iconfill-base svg :is(path, circle, rect, line, polyline, polygon, ellipse),
 .gtile-iconfill-trace svg :is(path, circle, rect, line, polyline, polygon, ellipse) {
-  stroke-width: 2px;
+  stroke-width: 3px;
   vector-effect: non-scaling-stroke;
 }
 /* Base: the very muted ghost that always stands in for a missing/loading preview. */
-.gtile-iconfill-base { color: hsl(var(--muted-foreground) / .18); }
+
+.gtile-iconfill-base {  color: var(--ui-color-surface-canvas); opacity: 0.5; transform: translatey(4px); filter: blur(6px);}
 /* Trace: the brand's own primary from the palette (--brand-primary, set by
    applyBrandVars when the active brand declares colour.semantic slots), falling
    back to SUSE Pine Green (#30ba78) when no brand palette is installed - so an
@@ -1081,13 +1090,14 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
    stroke-dasharray leaves one short drawn segment per subpath; the animated
    dashoffset walks it along the outline and loops seamlessly (offset travels
    exactly one dash+gap). Transparent gaps reveal the muted base. */
-.gtile-iconfill-trace { color: var(--brand-primary, hsl(151 60% 47%)); }
+.gtile-iconfill-trace {   color: hsl(var(--secondary) / 1); }
 .gtile-iconfill-trace svg :is(path, circle, rect, line, polyline, polygon, ellipse) {
   stroke-width: 4px;             /* thicker than the 2px base outline it walks over */
-  stroke-dasharray: 250 250;     /* equal dash + gap */
-  animation: gtile-icon-trace 1.9s linear infinite;
+  stroke-dasharray: 10 9;     /* equal dash + gap */
+  animation: gtile-icon-trace 60s linear infinite;
+
 }
-@keyframes gtile-icon-trace { to { stroke-dashoffset: -500; } }   /* -(250 + 250) */
+@keyframes gtile-icon-trace { to { stroke-dashoffset: -200; } }   /* -(250 + 250) */
 /* The trace is a WAITING affordance only - stop it once real art has loaded (carousel
    .has-art / hero .is-ready), on the permanent icon-only fallback (preview gone, not
    "loading"), and under reduced-motion - leaving just the muted base. */
@@ -1165,7 +1175,9 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
   scroll-snap-align: start;
   scroll-snap-stop: always;
   position: relative;
-  margin: 0;
+  margin: 0;  
+  background: repeating-conic-gradient(#00000005 0% 25%, #ffffff05 0% 50%) 50% / 10px 10px;
+
 }
 .gcar-open {
   display: block;
@@ -1194,9 +1206,22 @@ html[data-a11y-previews="hidden"] .gtile .tile-check { top: auto; bottom: 6px; }
   background: hsl(var(--foreground) / .06);
 }
 .gcar-slide--ex:not(.is-loaded) .gcar-img { opacity: 0; }
-.gcar-slide--ex.is-loaded .gcar-img { animation: gcar-fade var(--dur-3) ease both; }
-@keyframes gcar-fade { from { opacity: 0; } to { opacity: 1; } }
+
+
+
+.ftile.has-art{opacity:1;}
+/* The first-load intro plays only while the strip carries .featured--intro, which
+   featured-row.ts sets on a fresh mount (first load, a tab change) and removes once the
+   intro has finished. Tiles added later - the copies Cover Flow and the endless Gallery
+   strip rebuild on a window resize - arrive after that and so appear without it. */
+.featured--intro .ftile{ animation: ftile-fade 1s cubic-bezier(.3,.1,.1,1) both; }
+@keyframes ftile-fade {
+  0% { opacity: 0; transform:scale(1.2)} }
+.gcar-slide--ex.is-loaded .gcar-img { animation: gcar-fade 1s ease both; }
+@keyframes gcar-fade {
+  0% { opacity: 0; transform:scale(1.05)} 50% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
+  .featured--intro .ftile,
   .gcar-slide--ex.is-loaded .gcar-img { animation: none; }
 }
 

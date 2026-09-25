@@ -255,6 +255,8 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     const stored = localStorage.getItem(SORT_PREF_KEY) as CatSort | null;
     if (stored && CAT_SORTS.includes(stored)) cat.catSort = stored;
   } catch { /* storage off */ }
+  cat.catSortRev = false;
+  try { cat.catSortRev = localStorage.getItem(`${SORT_PREF_KEY}-rev`) === '1'; } catch { /* storage off */ }
   try {
     const v = localStorage.getItem(FAV_VIEW_KEY);
     if (v === 'coverflow' || v === 'gallery') cat.favView = v;

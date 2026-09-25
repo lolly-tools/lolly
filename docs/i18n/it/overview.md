@@ -24,21 +24,21 @@ Questo documento riassume lo scopo, la struttura e le decisioni architetturali d
 
 ## Perché esiste
 
-I team affrontano un problema ricorrente: lavoro creativo e di contenuto ripetibile che è troppo prevedibile per giustificare mani esperte ogni volta, ma troppo sensibile alla qualità per essere delegato senza vincoli. Il risultato è una produttività lenta (collo di bottiglia dello specialista), incoerenza (persone che usano qualsiasi strumento hanno a disposizione) oppure dipendenza dal fornitore (un DAM SaaS che controlla i tuoi template).
+Il lavoro creativo ripetibile è troppo prevedibile per giustificare mani esperte ogni volta, ed è troppo sensibile alla qualità per essere delegato senza vincoli. Se lasciato a sé stesso, va in uno di tre modi: lento, incoerente o vincolato ai template di un fornitore.
 
 Questa piattaforma è la risposta diretta:
 
-> **Contenuti e creatività programmatici su larga scala** - generazione di asset a lavoro zero, con le regole sotto controllo centrale, per dipendenti, fornitori e partner.
+> **Contenuti e creatività programmatici su larga scala** - asset generati dagli input, con le regole impostate una volta, per chiunque ne abbia bisogno.
 
 Lolly non è il posto dove nasce un design system - è il posto dove viene prodotto. Pensalo come un distributore automatico per il design: fai una selezione, ottieni un risultato. Ogni volta. Il motore lavora per la massima qualità che ogni formato può produrre sull'hardware che hai davanti, e lo stesso motore crea lo stesso file su ogni piattaforma su cui viene distribuito.
 
-Il risultato è **abbondanza**: ogni evento ha la segnaletica corretta, ogni avviso CVE rispetta lo stile della casa, ogni etichetta si stampa pulita, ogni firma email è aggiornata - tutto senza un ticket di design. La piattaforma gestisce la creatività ricorrente e operativizzata. Deliberatamente non è uno strumento creativo su misura - i designer continuano a possedere il lavoro di punta.
+Il risultato è **abbondanza**: ogni evento ha la segnaletica corretta, ogni avviso CVE rispetta lo stile della casa, ogni etichetta si stampa pulita, ogni firma email è aggiornata - tutto grazie a strumenti che già portano le regole. La piattaforma gestisce la creatività ricorrente e operativizzata. Deliberatamente non è uno strumento creativo su misura - i designer continuano a possedere il lavoro di punta.
 
 ### Innova in modo probabilistico, scala in modo deterministico
 
 Ogni discussione sull'IA in una pipeline creativa si arena sulla stessa domanda: quale parte di questo è compito della macchina? È una domanda antica con una risposta consolidata. Amanuensi e miniaturisti già lavoravano tra due strumenti - lo schizzo libero, dove nulla era fissato e tutto poteva essere provato, e la stampa a caratteri mobili, intimidatoria proprio perché si impegnava. Gli schizzi erano dove nasceva l'arte. La stampa era il modo in cui raggiungeva chiunque. Nessuno confondeva i due, ed entrambi continuavano a progredire - nuovi inchiostri, nuovi caratteri, nuove presse - migliorando ciascuno in armonia con l'arte e l'intento che servivano.
 
-Lolly traccia la stessa linea. Esplora in modo probabilistico: un modello, un designer, un'idea abbozzata, un prompt che va da qualche parte che nessuno aveva pianificato. Poi scala in modo deterministico - ciò che raggiunge diecimila output è uno *strumento*, e uno strumento si renderizza allo stesso modo ogni volta a partire da input che puoi leggere. L'esplorazione resta libera perché nulla a valle dipende dal fatto che approdi due volte nello stesso modo. L'output guadagna fiducia perché non è un'ipotesi. Portare la sperimentazione con l'IA verso risultati prevedibili e riproducibili non è una disciplina nuova; è la stessa divisione del lavoro che ha reso affidabile il lavoro a stampa fin dall'inizio.
+Lolly traccia la stessa linea. Esplora in modo probabilistico: un modello, un designer, un'idea abbozzata, un prompt che va da qualche parte che nessuno aveva pianificato. Poi scala in modo deterministico - ciò che diventa molti output è uno *strumento*, e uno strumento si renderizza allo stesso modo ogni volta a partire da input che puoi leggere. L'esplorazione resta libera perché nulla a valle dipende dal fatto che approdi due volte nello stesso modo. L'output guadagna fiducia perché non è un'ipotesi. Portare la sperimentazione con l'IA verso risultati prevedibili e riproducibili non è una disciplina nuova; è la stessa divisione del lavoro che ha reso affidabile il lavoro a stampa fin dall'inizio.
 
 > Fidati del processo creativo, scala con rigore.
 
@@ -76,19 +76,19 @@ Questo è il moltiplicatore di forza. Lolly non è un cassetto di strumenti sepa
 
 ---
 
-## Un'approvazione, diecimila asset
+## Uno strumento, molti output
 
-Poiché l'approvazione risiede nello strumento e non nel file (vedi [Come si confronta Lolly](/info/positioning.html)), scalare smette di essere un problema di revisione. Approva una volta uno strumento per card social localizzate, poi genera **10.000 asset in 12 lingue** da un foglio di calcolo - e nessuno di essi richiede un nuovo controllo di conformità da parte del legale o del brand, perché il template da cui provengono tutti era già stato approvato.
+Le regole del brand vivono nello strumento, non in ogni file che produce (vedi [Come si confronta Lolly](/info/positioning.html)). Sistema bene lo strumento una volta e ogni output eredita lo stesso carattere, colore e spaziatura, che si tratti di una singola card o di un foglio di calcolo con righe in una dozzina di lingue. Come controlli il tuo lavoro, e chi lo fa, resta una tua scelta; Lolly rende più piccola la cosa da controllare e più veloce da produrre l'output.
 
-Lo stesso strumento deterministico raggiunge quella scala in tre modi, tutti producendo un output identico e pre-approvato:
+Lo stesso strumento deterministico raggiunge quella scala in tre modi, tutti producendo lo stesso output identico:
 
-- <!--i:people--> **Una persona, nell'app.** La griglia batch `/pro`: incolla o importa le righe, ottieni un asset finito per riga, scarica lo zip. Nessuna competenza di design, nessun ticket, nessuna attesa.
-- <!--i:code--> **Uno sviluppatore, dalla riga di comando.** La CLI esegue *lo stesso* motore e *lo stesso* percorso di rendering in modalità headless, così lo strumento può essere sequenziato su tutte le 10.000 righe in uno script o in una pipeline notturna. Una chiamata `lolly <tool> --field=…` in un ciclo è l'intera integrazione.
-- <!--i:cpu--> **Un sistema o un agente IA, tramite MCP.** Lo stesso strumento azionato in modo programmatico, alla stessa fedeltà e su una scala ancora maggiore - perché una macchina non si annoia mentre arrivano migliaia di file.
+- <!--i:people--> **Una persona, nell'app.** La griglia batch `/pro`: incolla o importa le righe, ottieni un asset finito per riga, scarica lo zip. Nessuna competenza di design, nessuna attesa.
+- <!--i:code--> **Uno sviluppatore, dalla riga di comando.** La CLI esegue *lo stesso* motore e *lo stesso* percorso di rendering in modalità headless, così lo strumento può essere sequenziato su ogni riga in uno script o in una pipeline notturna. Una chiamata `lolly <tool> --field=…` in un ciclo è l'intera integrazione.
+- <!--i:cpu--> **Un sistema o un agente IA, tramite MCP.** Lo stesso strumento azionato in modo programmatico, alla stessa fedeltà, per tutte le righe che il lavoro richiede.
 
 ![La modalità Batch su un'installazione appena fatta: una riga vuota in attesa di uno strumento, con l'intera superficie tipo foglio di calcolo e il suo pulsante Rendi già al loro posto prima che arrivino dati](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&walker=1&format=svg&dark=1&filename=ov2-batch-grid)
 
-Un insieme di vincoli di brand, fissato una volta da un designer; tre percorsi verso lo stesso output identico e pre-approvato - e il percorso macchina scala più di tutti gli altri, perché non si stanca mai mentre i file arrivano.
+Un insieme di vincoli di brand, fissato una volta da un designer; tre percorsi verso lo stesso output identico.
 
 ---
 
@@ -390,11 +390,11 @@ Web shell: IndexedDB. Tauri: filesystem. CLI: in memoria. I tool vedono solo `ho
 
 Gli utenti possono salvare più slot di modifica con nome per ogni tool e tornare a ogni sessione in seguito. Non è richiesta la creazione di un account; lo stato è per dispositivo. Poiché il bridge è l'unico punto di passaggio, quello stato per dispositivo è anche *portabile*: `shells/web/src/data-transfer.ts` rilegge tutto tramite `host.profile`/`host.state`/`host.assets` in un unico zip `lolly-backup` che si importa su qualsiasi altra installazione - la risposta offline a "passa a un nuovo dispositivo" che non richiede un server (specifica completa: `docs/data-transfer.md`). L'integrazione con SUSE ID (sincronizzazione multi-dispositivo) è una milestone futura costruita sopra questo.
 
-### 7. I tag di maturità rispondono per design al rischio "approvato dal brand"
+### 7. I tag di maturità dicono cos'è un tool, per design
 
 Ogni tool dichiara `status: official | community | experimental` nel proprio manifest. La galleria ordina per status. I tool sperimentali filigranano automaticamente i propri export - la filigrana è applicata da `host.export.render`, non dal tool, quindi non può essere disattivata da un autore di tool non ufficiale.
 
-Questa è una risposta strutturale al rischio di percezione secondo cui usare un qualsiasi tool implichi approvazione del brand. Le risposte di processo (una coda di revisione, il gating via SUSE ID) si aggiungono sopra.
+Questa è una risposta strutturale al rischio di percezione secondo cui ogni tool nella galleria porta lo stesso peso. Qualsiasi processo che un team costruisca intorno al catalogo si aggiunge sopra di esso.
 
 ### 8. Gli input dei tool sono tipizzati tramite il manifest, asset inclusi
 

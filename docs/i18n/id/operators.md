@@ -39,7 +39,7 @@ Cara biasa pekerjaan kreatif rutin dikerjakan adalah sebuah permukaan liabilitas
 - **[Verifikasi Sendiri](/info/verify-yourself.html)** - periksa klaim-klaim tersebut terhadap sebuah ekspor sungguhan, langkah demi langkah, tanpa apa pun yang tidak bisa Anda jalankan sendiri.
 - **[Kebijakan Privasi](/info/privacy.html)** - pernyataan formal tentang apa yang dikumpulkan, disimpan, dan dikirim, serta apa yang tidak.
 - **[Produksi kreatif yang berdaulat](/info/sovereign-production.html)** - deployment air-gapped, jaringan yang bergantung pada persetujuan (consent-gated), dan penandatanganan di perangkat.
-- **[Adopsi & Tata Kelola](/info/adoption-governance.html)** - siapa yang menyetujui sebuah alat, bagaimana aturan brand menjadi dapat ditegakkan, dan apa yang didapat dari opsi catalog-as-a-repository.
+- **[Adopsi & Tata Kelola](/info/adoption-governance.html)** - bagaimana aturan brand menjadi dapat ditegakkan, apa yang ditambahkan oleh sebuah katalog bersama, dan apa yang didapat dari opsi catalog-as-a-repository.
 
 ## Legal
 

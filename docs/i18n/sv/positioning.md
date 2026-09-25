@@ -53,27 +53,19 @@ Deck Studio är ett bra mått på taket här: en hel bildspelspresentation dekla
 
 De flesta "AI-kreativa" säljargument placerar modellen på fel sida av en gammal skiljelinje. Skrivare och illuminatörer avgjorde redan var den går: du arbetar löst i skissen, där vad som helst kan prövas och inget är bindande, och sedan går du till tryckpressen, som är skrämmande just för att den binder. Skisserna var där konsten fanns. Pressen var hur den spreds. Två redskap, två uppgifter, var och en uppfinningsrik på sitt sätt, och det tryckta verket gick att lita på eftersom pressen höll sitt löfte vid varje tryckning.
 
-Lolly är pressen, inte skissen. Ta med vad du vill till idéarbetet - en modell, en designer, en servett - men i det ögonblick en idé måste bli tio tusen tillgångar går den genom något som renderar likadant varje gång, utifrån indata vem som helst kan läsa av i efterhand. Det är vad jämförelsen ovan egentligen handlar om: inte vem som har den bättre generatorn, utan vem som gör det bindande steget reproducerbart.
+Lolly är pressen, inte skissen. Ta med vad du vill till idéarbetet - en modell, en designer, en servett - men i det ögonblick en idé måste bli många tillgångar går den genom något som renderar likadant varje gång, utifrån indata vem som helst kan läsa av i efterhand. Det är vad jämförelsen ovan egentligen handlar om: inte vem som har den bättre generatorn, utan vem som gör det bindande steget reproducerbart.
 
 > Lita på den kreativa processen, skala med noggrannhet.
 
-## Godkänn verktyget, inte filen
+## Reglerna lever i verktyget, inte i filen
 
-Alla andra verktyg på marknaden producerar en *fil* som sedan måste kontrolleras - en varumärkesansvarig i en Slack-tråd, juridik som granskar friskrivningen, en omgång ändringar, ännu en granskning. Lolly flyttar godkännandet **ett steg uppströms**. Varumärkesreglerna - exakta hex-koder, licensierade typsnittsfiler, utfallsmarginaler, avstånd - är hårdkodade i verktygets HTML och CSS, så mallen *kan inte* producera en tillgång som avviker från varumärket. Det är själva layouten som gör kontrollen.
+Alla andra verktyg på marknaden producerar en *fil*, och en fil går bara att titta på i efterhand, en utdata i taget. Lolly flyttar varumärkesreglerna **ett steg uppströms**. Exakta hex-koder, licensierade typsnittsfiler, utfallsmarginaler, avstånd - allt är hårdkodat i verktygets HTML och CSS, så mallen *kan inte* producera en tillgång som avviker från varumärket. Det är själva layouten som gör kontrollen.
 
-Så du slutar godkänna resultat och börjar godkänna **verktyget** som skapar dem. Godkänn det en gång, så är varje tillgång det någonsin producerar förgodkänd genom sin konstruktion - ingen människa i loopen, ingen granskningscykel, oavsett volym.
+Så det som är värt att titta på är **verktyget**, inte varje fil det skapar. Få verktyget rätt, så är varje tillgång det någonsin producerar varumärkesenlig genom sin konstruktion. Hur du kontrollerar ditt arbete, och vem som gör det, är fortfarande upp till dig; Lolly gör det som kontrolleras mindre och utdatan snabbare att skapa.
 
-Det här är den förändring som den deterministiska motorn faktiskt levererar: det är inte en snabbare version av den gamla godkännandeprocessen, den tar bort processen. För det kreativa teamet är det ett skyddsräcke, inte en ersättning - du kastar fortfarande bollen (datan, texten, bilden) och koden är den bumperbana som håller varje kast borta från rännan.
+Det här är den förändring som den deterministiska motorn faktiskt levererar. För det kreativa teamet är det ett skyddsräcke, inte en ersättning - du kastar fortfarande bollen (datan, texten, bilden) och koden är den bumperbana som håller varje kast borta från rännan.
 
-![Producentens hela jobb: skriva orden. Typsnitt, färg och avstånd var avgjorda när verktyget godkändes](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DApproved&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-approve-the-tool)
-
-| Att godkänna tillgångar på gamla sättet | Att godkänna verktyget, Lolly-sättet |
-|---|---|
-| Varje färdig fil kontrolleras, en i taget | Verktyget kontrolleras en gång |
-| Förfrågan → designer bygger → varumärkesgranskning → juridisk kontroll → ändringar → omgranskning | En parameterändring → färdig tillgång |
-| Designer, varumärkesansvarig, jurist och beställare alla i loopen | Producenten, på egen hand |
-| Dagar per tillgång | Sekunder per tillgång |
-| 10 000 tillgångar = 10 000 granskningscykler | 10 000 tillgångar = noll (mallen var redan godkänd) |
+![Producentens hela jobb: skriva orden. Typsnitt, färg och avstånd var avgjorda när verktyget gjordes](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
 
 ## Vad detta unikt bidrar med
 

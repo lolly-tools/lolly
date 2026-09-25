@@ -64,7 +64,7 @@ export const LOLLY_FILE_FORMAT = 'lolly-share' as const;
 export const LOLLY_FILE_VERSION = 1;
 /** Readers gate on this, never `formatVersion` - additive parts stay compatible. */
 export const LOLLY_MIN_READER = 1;
-export const LOLLY_READER_VERSION = 3;
+export const LOLLY_READER_VERSION = 4;
 /** A project file (a folder tree and its sessions) needs a reader that knows the
  *  `project` kind, so it asks for 3: a reader from before it says "update" instead of
  *  opening the first session and dropping the rest. */
@@ -96,6 +96,75 @@ export const LOLLY_MAX_TEMPLATES = 200;
  *  share of your own uploads carries no extra file. Additive: `minReader` stays 1
  *  and a reader that predates it simply never looks for it. */
 export const CREDITS_PART = 'CREDITS.txt';
+
+// ── Renovation projects (plan 274 section 3.5) ────────────────────────────────
+
+/** The manifest's `tool.id` for a file whose payload is a renovation project. */
+export const LOLLY_RENOVATION_TOOL_ID = 'lolly-renovation';
+/** The project record: which source was renovated, the checkpoint, the design-system
+ *  snapshot and the ids of the big parts. Small on purpose, so a reader can describe
+ *  the file without inflating a census. */
+export const RENOVATION_PROJECT_PART = 'renovation/project.json';
+/** The four big parts, each written at `renovation/<kind>.json` when it exists. The
+ *  names are `PROJECT_PART_KINDS` from the rebrand contract, kept as plain strings
+ *  here so the envelope stays free of the renovation types themselves. */
+export const RENOVATION_PART_KINDS = ['sourceDeck', 'census', 'plan', 'compiled'] as const;
+export type LollyRenovationPartKind = (typeof RENOVATION_PART_KINDS)[number];
+/** The one zip path a part of that kind may occupy. The reader compares the manifest's
+ *  declared path against this, so nothing is ever read from a path the writer would
+ *  not have written. */
+export function renovationPartPath(kind: LollyRenovationPartKind): string {
+  return `renovation/${kind}.json`;
+}
+/**
+ * A renovation asks for reader 4, unlike `design-system.json` and `templates.json`
+ * which are additive at reader 1.
+ *
+ * The difference is what an older reader would do with the file rather than what it
+ * would miss. A renovation-only file carries no `session.json`, so a reader from
+ * before this part opens it as an empty saved session and files that under the
+ * renovation's tool id: the person is told the file opened, and what they get is a
+ * blank document with the whole project silently dropped. "Update to open it" is the
+ * true answer, so the gate says so.
+ */
+export const LOLLY_RENOVATION_MIN_READER = 4;
+/** How many media refs one renovation may name. A deck's pictures, not a library;
+ *  the cap bounds a hostile archive without needing a second size guard. */
+export const LOLLY_MAX_RENOVATION_ASSETS = 5000;
+
+/** The manifest block for a carried renovation project. */
+export interface LollyRenovationManifest {
+  /** The sender's project id. Re-minted on import, exactly like a folder id. */
+  id: string;
+  name: string;
+  /** Always `RENOVATION_PROJECT_PART`; spelled out so the block reads on its own. */
+  project: string;
+  /** Zip path per big part that travelled. A part with nothing written is absent. */
+  parts: Partial<Record<LollyRenovationPartKind, string>>;
+  /** The media refs the project and its parts point at, in first-seen order. Their
+   *  bytes ride in `manifest.assets` like every other carried asset. */
+  assets: string[];
+}
+
+/** A renovation handed to the builder. The values travel verbatim as JSON; the
+ *  rebrand contract types live in `@lolly-tools/core` and are checked by the caller
+ *  (`lib/lolly-renovation.ts`), not by the envelope. */
+export interface LollyRenovationInput {
+  id: string;
+  name: string;
+  project: unknown;
+  parts?: Partial<Record<LollyRenovationPartKind, unknown>>;
+  assets?: readonly string[];
+}
+
+/** A read renovation: the project record and whichever parts the file carried. */
+export interface LollyRenovationContents {
+  id: string;
+  name: string;
+  project: Record<string, unknown>;
+  parts: Partial<Record<LollyRenovationPartKind, Record<string, unknown>>>;
+  assets: string[];
+}
 
 // Read caps - a .lolly can legitimately carry a video, so allow well past the
 // brand-pack defaults while still bounding a malicious archive.
@@ -241,6 +310,9 @@ export interface LollyManifest {
   /** Present on a project file (`kind: 'project'`): the folder tree and the sessions it
    *  files, each session's values in its own `sessions/<key>.json` part. */
   project?: LollyProjectManifest;
+  /** Present when a renovation project travels (plan 274 section 3.5). Orthogonal to
+   *  `kind`: a file may carry a renovation on its own, or beside a project's sessions. */
+  renovation?: LollyRenovationManifest;
   integrity?: Record<string, string> | null;
 }
 
@@ -409,6 +481,9 @@ export interface LollyBuildInput {
   /** The folder tree and sessions of a project file (`kind: 'project'`). `session` is
    *  ignored for a project; `toolId` is conventionally LOLLY_PROJECT_TOOL_ID. */
   project?: LollyProjectInput;
+  /** A renovation project to carry (plan 274 section 3.5). With no `session` beside it
+   *  the file has no `session.json` at all, which is what raises `minReader` to 4. */
+  renovation?: LollyRenovationInput;
 }
 
 export interface LollyBuildResult {
@@ -429,6 +504,8 @@ export interface LollyFileContents {
   templates: UserTemplateRecord[];
   /** The folder tree and sessions, on a project file only. */
   project?: LollyProjectContents;
+  /** The renovation project, when the file carried one. */
+  renovation?: LollyRenovationContents;
   /** The unzipped parts, so ingest can pull each asset's bytes by `entry.path`. */
   files: Record<string, Uint8Array>;
 }
@@ -528,7 +605,12 @@ function assetPath(dir: string, base: string, format: string, mime: string, take
  * `data-transfer.ts` does, so integrity + `minReader` behave identically.
  */
 export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuildResult> {
-  if (input.kind === 'tool' && (!input.tool || input.session != null || input.templates?.length || input.designSystem)) throw new Error('A tool file carries exactly one tool, without a saved session or design-system install.');
+  if (input.kind === 'tool' && (!input.tool || input.session != null || input.templates?.length || input.designSystem || input.renovation)) throw new Error('A tool file carries exactly one tool, without a saved session or design-system install.');
+  const renovation = input.renovation ? renovationBlock(input.renovation) : null;
+  if (renovation) {
+    const problem = renovationShapeProblem(renovation);
+    if (problem) throw new Error(problem);
+  }
   const project = input.kind === 'project' ? input.project : undefined;
   if (input.kind === 'project') {
     if (!project) throw new Error('A project file needs its folders and sessions.');
@@ -543,8 +625,15 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
   // have been left out of the file.
   await ensureSceneManifest();
   // A project's closure is every session plus every image filed in its folders, so a
-  // folder's pictures travel with it even when no session uses them.
-  const refs = collectSessionAssetRefs(project ? projectClosure(project) : input.session);
+  // folder's pictures travel with it even when no session uses them. A renovation adds
+  // the media its project and parts point at - added to the project's closure rather
+  // than instead of it, so a file carrying both keeps both sets of pictures.
+  const refs = collectSessionAssetRefs(
+    project
+      ? (renovation ? { project: projectClosure(project), renovationMedia: renovationMedia(renovation) } : projectClosure(project))
+      : renovation ? renovationClosure(renovation, input.session)
+      : input.session,
+  );
   const byId = new Map(input.userAssets.map(r => [r.id, r]));
 
   const entries: Record<string, BundleEntry> = {};
@@ -641,7 +730,10 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
   // part per session instead, plus each session's tile image.
   let projectManifest: LollyProjectManifest | null = null;
   if (project) projectManifest = packProjectSessions(project, entries);
-  else if (input.kind !== 'tool') entries['session.json'] = strToU8(JSON.stringify(input.session ?? null, null, 2));
+  // A renovation on its own writes no `session.json`: there is no document yet, and an
+  // empty one would land on the receiver as a blank saved session.
+  else if (input.kind !== 'tool' && !(renovation && input.session == null)) entries['session.json'] = strToU8(JSON.stringify(input.session ?? null, null, 2));
+  if (renovation && input.renovation) packRenovation(input.renovation, renovation, entries);
   // The sender's design system, when they have one - the same document their studio
   // holds, so "Add from a file" on another device installs the look the session wore.
   const designSystem = input.designSystem?.doc != null ? input.designSystem : null;
@@ -681,7 +773,7 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
   const manifest: LollyManifest = {
     format: LOLLY_FILE_FORMAT,
     formatVersion: LOLLY_FILE_VERSION,
-    minReader: input.kind === 'project' ? LOLLY_PROJECT_MIN_READER : input.kind === 'tool' ? 2 : 1,
+    minReader: renovation ? LOLLY_RENOVATION_MIN_READER : input.kind === 'project' ? LOLLY_PROJECT_MIN_READER : input.kind === 'tool' ? 2 : 1,
     app: input.appVersion ?? 'Lolly',
     ...(input.engineVersion ? { engineVersion: input.engineVersion } : {}),
     kind: input.kind ?? 'session',
@@ -700,6 +792,7 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
     } } : {}),
     ...(templates.length ? { templates: { count: templates.length } } : {}),
     ...(projectManifest ? { project: projectManifest } : {}),
+    ...(renovation ? { renovation } : {}),
     ...(integrity ? { integrity } : {}),
   };
   // Put the routing manifest first. The universal intake can then describe a
@@ -856,6 +949,143 @@ function readProjectPart(manifest: LollyManifest, files: Parameters<typeof readJ
     ...(Array.isArray(f.tags) ? { tags: f.tags.filter((tag): tag is string => typeof tag === 'string' && tag.length <= 60).slice(0, 20) } : {}),
   }));
   return { name: block.name.trim(), folders, sessions };
+}
+
+// ── Renovation projects ───────────────────────────────────────────────────────
+
+/**
+ * The manifest block a renovation input produces, before it is checked.
+ *
+ * The payloads are judged here as well as the block, because a part the reader would
+ * refuse must never become a file a person was told had saved: a stage that has not run
+ * hands back nothing, and a stage that hands back a non-object is a bug worth hearing
+ * about at write time. `id` and `name` are trimmed once, here, so the written manifest is
+ * already normalised and every reader files the project under the same id.
+ */
+function renovationBlock(input: LollyRenovationInput): LollyRenovationManifest {
+  if (!isRecord(input.project)) throw new Error('The project record in this renovation is unreadable.');
+  const parts: Partial<Record<LollyRenovationPartKind, string>> = {};
+  for (const kind of RENOVATION_PART_KINDS) {
+    const value = input.parts?.[kind];
+    if (value === undefined) continue;
+    if (!isRecord(value)) throw new Error(`The "${kind}" part of this renovation is unreadable.`);
+    parts[kind] = renovationPartPath(kind);
+  }
+  const assets: string[] = [];
+  const seen = new Set<string>();
+  for (const ref of input.assets ?? []) {
+    if (typeof ref !== 'string' || !ref || seen.has(ref)) continue;
+    seen.add(ref);
+    assets.push(ref);
+  }
+  const id = typeof input.id === 'string' ? input.id.trim() : '';
+  const name = typeof input.name === 'string' ? input.name.trim() : '';
+  return { id, name, project: RENOVATION_PROJECT_PART, parts, assets };
+}
+
+/**
+ * What is wrong with a renovation block, in a sentence, or null when it is sound. The
+ * builder and the reader share it, so a file this module writes is always one it reads:
+ * the project part sits at its one path, every declared part sits at the path its kind
+ * owns, and the media list is bounded and free of repeats.
+ */
+export function renovationShapeProblem(block: unknown): string | null {
+  if (!isRecord(block)) return 'This renovation has no project record.';
+  if (!shortText(block.id, 128)) return 'This renovation has no id.';
+  if (!shortText(block.name, 200)) return 'This renovation has no name.';
+  if (block.project !== RENOVATION_PROJECT_PART) return 'This renovation names an unexpected project record.';
+  if (!isRecord(block.parts)) return 'This renovation has an unreadable part list.';
+  for (const [kind, path] of Object.entries(block.parts)) {
+    if (!(RENOVATION_PART_KINDS as readonly string[]).includes(kind)) return `This renovation names a part this reader does not know ("${kind}").`;
+    if (path !== renovationPartPath(kind as LollyRenovationPartKind)) return `The "${kind}" part of this renovation is at an unexpected path.`;
+  }
+  if (!Array.isArray(block.assets) || block.assets.length > LOLLY_MAX_RENOVATION_ASSETS) return 'This renovation has an unreadable media list.';
+  const seen = new Set<string>();
+  for (const ref of block.assets) {
+    if (typeof ref !== 'string' || !ref || ref.length > 2048 || seen.has(ref)) return 'This renovation names a missing or repeated picture.';
+    seen.add(ref);
+  }
+  return null;
+}
+
+/**
+ * The value the asset closure walks for a renovation. Every ref is asked for as a
+ * `user` one: a renovation's media are the bytes of the person's own file, kept in the
+ * user asset store (plan 274 section 3.5), so they are never catalog works and never go
+ * past the redistribution gate. A ref the store cannot supply is recorded as an
+ * `asset-ref`, so the recipient reads a missing picture rather than losing it quietly.
+ */
+function renovationMedia(block: LollyRenovationManifest): unknown {
+  return block.assets.map(ref => ({ id: ref, source: 'user' }));
+}
+
+function renovationClosure(block: LollyRenovationManifest, session: unknown): unknown {
+  return { session, renovationMedia: renovationMedia(block) };
+}
+
+/**
+ * The manifest row carrying one renovation ref's bytes, or undefined when nothing in
+ * the file answers to it.
+ *
+ * A row is filed under the closure's own key, which strips a `?modifier` off the ref,
+ * so a ref that carries one would otherwise be looked up under a name the manifest
+ * never wrote. Both readers go through here, so they agree on the answer. A ref whose
+ * pin cannot be decoded resolves to nothing rather than throwing: this is a read of
+ * someone else's file, and a broken link is a missing picture, not a crash.
+ */
+export function renovationAssetRow(manifest: LollyManifest, ref: string): LollyAssetEntry | undefined {
+  const rows = Array.isArray(manifest.assets) ? manifest.assets : [];
+  const direct = rows.find(row => row.id === ref);
+  if (direct) return direct;
+  let key: string;
+  try { key = assetDependency({ id: ref }).key; } catch { return undefined; }
+  return key === ref ? undefined : rows.find(row => row.id === key);
+}
+
+/** Write the project record and each big part that travelled. */
+function packRenovation(input: LollyRenovationInput, block: LollyRenovationManifest, entries: Record<string, BundleEntry>): void {
+  entries[RENOVATION_PROJECT_PART] = strToU8(JSON.stringify(input.project ?? null, null, 2));
+  for (const kind of RENOVATION_PART_KINDS) {
+    const path = block.parts[kind];
+    if (path === undefined) continue;
+    entries[path] = strToU8(JSON.stringify(input.parts?.[kind] ?? null, null, 2));
+  }
+}
+
+/**
+ * Read a renovation block back, checking every part it names. The integrity map has
+ * already vouched for the bytes; this checks that the parts are the ones the manifest
+ * promises, and nothing is read from a path the manifest did not declare.
+ */
+function readRenovationPart(manifest: LollyManifest, files: Parameters<typeof readJson>[0]): LollyRenovationContents {
+  const problem = renovationShapeProblem(manifest.renovation);
+  if (problem) throw new Error(problem);
+  const block = manifest.renovation!;
+  if (!files[RENOVATION_PROJECT_PART] || !manifest.integrity?.[RENOVATION_PROJECT_PART]) throw new Error('This renovation is missing its project record.');
+  const project = readJson(files, RENOVATION_PROJECT_PART);
+  if (!isRecord(project)) throw new Error('The project record in this renovation is unreadable.');
+  const parts: Partial<Record<LollyRenovationPartKind, Record<string, unknown>>> = {};
+  for (const kind of RENOVATION_PART_KINDS) {
+    const path = block.parts[kind];
+    if (path === undefined) continue;
+    if (!files[path] || !manifest.integrity?.[path]) throw new Error(`This renovation is missing its "${kind}" part.`);
+    const value = readJson(files, path);
+    if (!isRecord(value)) throw new Error(`The "${kind}" part of this renovation is unreadable.`);
+    parts[kind] = value;
+  }
+  // The pictures get the gate the parts get. `verifyIntegrity` walks the map's own
+  // entries, so bytes at a path the map never mentions are bytes nothing vouched for -
+  // and the manifest is not itself covered, because the map lives inside it. A ref that
+  // travelled as a reference carries no bytes and is nothing to check.
+  for (const ref of block.assets) {
+    const row = renovationAssetRow(manifest, ref);
+    if (row?.kind !== 'asset' || !row.path) continue;
+    const vouched = manifest.integrity?.[row.path];
+    if (!files[row.path] || !vouched || (row.checksum && row.checksum !== vouched)) {
+      throw new Error(`This renovation's picture "${row.label || ref}" is not covered by the file's integrity map.`);
+    }
+  }
+  return { id: block.id.trim(), name: block.name.trim(), project, parts, assets: [...block.assets] };
 }
 
 /**
@@ -1066,14 +1296,20 @@ export async function readLollyFile(bytes: ArrayBuffer | Uint8Array): Promise<Lo
     const toolManifest = readJson(files, 'tool/tool.json') as { id?: string; version?: string } | null;
     if (toolManifest?.id !== bundle.id || bundle.version && bundle.version !== toolManifest.version) throw new Error('This tool file has inconsistent identity.');
   }
+  // A manifest that lost its gate cannot smuggle a renovation past an older reader:
+  // the block travels only in a file that asked for reader 4 in the first place.
+  // `minReader` comes off untrusted JSON, so a deleted field has to fail the gate the
+  // way a downgraded one does - `undefined < 4` is false, and that is not a pass.
+  if (manifest.renovation !== undefined && (typeof manifest.minReader !== 'number' || manifest.minReader < LOLLY_RENOVATION_MIN_READER || !manifest.integrity)) throw new Error('This renovation has an invalid payload.');
   const project = manifest.kind === 'project' ? readProjectPart(manifest, files) : undefined;
+  const renovation = manifest.renovation !== undefined ? readRenovationPart(manifest, files) : undefined;
   const session = manifest.kind === 'tool' || project ? null : readJson(files, 'session.json');
   const designSystem = manifest.designSystem && files[DESIGN_SYSTEM_PART] ? readJson(files, DESIGN_SYSTEM_PART) : undefined;
   // The part is read whenever it is THERE, not whenever the manifest mentions it: the
   // integrity map already vouched for its bytes, and a file whose manifest lost the
   // count would otherwise hand back templates it plainly carries.
   const templates = files[TEMPLATES_PART] ? readTemplatesPart(readJson(files, TEMPLATES_PART)) : [];
-  return { manifest, session, templates, files: files as Record<string, Uint8Array>, ...(designSystem !== undefined ? { designSystem } : {}), ...(project ? { project } : {}) };
+  return { manifest, session, templates, files: files as Record<string, Uint8Array>, ...(designSystem !== undefined ? { designSystem } : {}), ...(project ? { project } : {}), ...(renovation ? { renovation } : {}) };
 }
 
 /** A carried tool pulled out of a parsed `.lolly`, ready to hand to the installer.
@@ -1122,6 +1358,17 @@ export interface LollyIngestResult {
   session: unknown;
   /** On a project file: the new top-level folders and every session slot written. */
   project?: { folderIds: string[]; slots: string[] };
+  /**
+   * On a renovation file: the project the file carried, plus the sender-id to
+   * receiver-id map the asset ingest minted.
+   *
+   * The map is the whole point. Media that arrive get freshly minted local ids (or dedup
+   * onto ids already here), so without it the refs inside `renovation/project.json` and
+   * its parts name nothing on this device. A session rewrites its own refs through
+   * `applyLollyRekey` before it is saved; a renovation is stored elsewhere, so the map
+   * is handed back for the store to rebase instead.
+   */
+  renovation?: { contents: LollyRenovationContents; rekey: ReadonlyMap<string, string> };
 }
 
 /**
@@ -1253,20 +1500,31 @@ export async function ingestLollyFile(
       const r = await ingestBeamItem({ id: it.id, label: it.label, bytes: it.bytes, checksum: it.checksum }, it.blob, ctx);
       if (r.kind === 'asset') { if (r.deduped) deduped++; else imported++; }
     }
+    // A carried renovation comes back on every path it can travel on, not only on the
+    // one where it arrived alone: the media are written under freshly minted local ids,
+    // so the re-key map is the only way the project record's refs can be rebased, and a
+    // file that also carried a document would otherwise drop it here in silence.
+    const carried = parsed.renovation ? { renovation: { contents: parsed.renovation, rekey: ctx.rekey } } : {};
     if (parsed.project) {
       const landed = await ingestProjectSessions(parsed.project, host, ctx.rekey, opts);
-      return { slot: landed.slots[0] ?? '', toolId: manifest.tool.id, imported, deduped, session: null, project: landed };
+      return { slot: landed.slots[0] ?? '', toolId: manifest.tool.id, imported, deduped, session: null, project: landed, ...carried };
+    }
+    // A renovation with no document beside it brings its media across and nothing else:
+    // the project record goes to the renovation store, which is not this ingest's job,
+    // and minting a blank saved session for it would misreport what arrived.
+    if (parsed.renovation && session == null) {
+      return { slot: '', toolId: manifest.tool.id, imported, deduped, session: null, ...carried };
     }
     const rewritten = rebaseImportedAssetPins(applyLollyRekey(session, ctx.rekey), ctx.rekey, await host.assets._exportUserAssets());
     // A brand collection reuses the asset transaction, then saves its real
     // sessions individually. It must never mint a synthetic wrapper Project.
-    if (manifest.kind === 'tool' || opts.saveSession === false) return { slot: '', toolId: manifest.tool.id, imported, deduped, session: rewritten };
+    if (manifest.kind === 'tool' || opts.saveSession === false) return { slot: '', toolId: manifest.tool.id, imported, deduped, session: rewritten, ...carried };
     const taken = new Set((await host.state.list()).map(r => r.slot));
     const slot = mintLollySlot(manifest.tool.id, taken);
     const thumb = typeof manifest.thumb === 'string' ? manifest.thumb : null;
     opts.onProgress?.({ phase: 'session', current: 1, total: 1 });
     await host.state.save(slot, rewritten as object, thumb);
-    return { slot, toolId: manifest.tool.id, imported, deduped, session: rewritten };
+    return { slot, toolId: manifest.tool.id, imported, deduped, session: rewritten, ...carried };
   } catch (err) {
     await rollbackBeamIngest(ctx);
     throw err;

@@ -127,6 +127,87 @@ function richText(raw) {
   return esc(raw).split('\n').map(richLine).join('\n');
 }
 
+// The same subset read into runs instead of HTML, for the native .pptx deck model
+// (plan 275 section 7.2): one entry per line with its list marker, its indent and
+// runs carrying bold, italic, underline, strike, colour, weight and face. It walks
+// the SAME regexes inlineMd runs, with private-use markers in place of the tags, so a
+// line lowers to the runs the canvas draws. engine/src/design-text.ts parseDesignText
+// is its twin; tests/design-text.test.ts pins that the two agree.
+var RICH_ATTR_RE = /\{([^|{}]+)\|([^{}]*)\}/g;
+function richAttrs(attrs) {
+  var toks = attrs.trim().split(/\s+/);
+  var span = {};
+  for (var i = 0; i < toks.length; i++) {
+    var tok = toks[i];
+    if (/^#[0-9a-fA-F]{3,8}$/.test(tok)) span.color = tok;
+    else if (/^w[1-9]00$/.test(tok)) span.weight = Number(tok.slice(1));
+    else if (tok === 'mono' || tok === 'sans') span.font = tok;
+    else if (tok === 'u') span.underline = true;
+    else if (tok === 's') span.strike = true;
+    else return null;
+  }
+  return span;
+}
+function richRuns(src) {
+  var spans = [];
+  var s = String(src).replace(/[\u0001\u0002\uE000-\uE005]/g, '').replace(/\\\*/g, '\u0001').replace(/\\_/g, '\u0002');
+  s = s.replace(RICH_ATTR_RE, function (whole, attrs, inner) {
+    var span = richAttrs(attrs);
+    if (!span) return whole;
+    spans.push(span);
+    return '\uE004' + String.fromCharCode(0xE100 + spans.length - 1) + inner + '\uE005';
+  });
+  s = s.replace(/\*\*([^*]+)\*\*/g, '\uE000$1\uE001');
+  s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1\uE002$2\uE003');
+  s = s.replace(/(^|[^_\w])_([^_\n]+)_/g, '$1\uE002$2\uE003');
+  var runs = [];
+  var bold = 0, italic = 0, span = null, text = '';
+  function flush() {
+    if (!text) return;
+    var run = { text: text.replace(/\u0001/g, '*').replace(/\u0002/g, '_') };
+    if (bold > 0) run.bold = true;
+    if (italic > 0) run.italic = true;
+    if (span && span.underline) run.underline = true;
+    if (span && span.strike) run.strike = true;
+    if (span && span.color) run.color = span.color;
+    if (span && span.weight != null) run.weight = span.weight;
+    if (span && span.font) run.font = span.font;
+    runs.push(run);
+    text = '';
+  }
+  for (var i = 0; i < s.length; i++) {
+    var ch = s.charAt(i);
+    if (ch === '\uE000') { flush(); bold++; }
+    else if (ch === '\uE001') { flush(); bold = Math.max(0, bold - 1); }
+    else if (ch === '\uE002') { flush(); italic++; }
+    else if (ch === '\uE003') { flush(); italic = Math.max(0, italic - 1); }
+    else if (ch === '\uE004') { flush(); span = spans[s.charCodeAt(i + 1) - 0xE100] || null; i++; }
+    else if (ch === '\uE005') { flush(); span = null; }
+    else text += ch;
+  }
+  flush();
+  return runs;
+}
+function richParseLine(ln) {
+  var mb = ln.match(/^(\s*)[-*•]\s+([\s\S]*)$/);
+  if (mb) return { list: 'bullet', indent: mb[1].length, runs: richRuns(mb[2]) };
+  var mo = ln.match(/^(\s*)(\d{1,3})\.\s+([\s\S]*)$/);
+  if (mo) return { list: 'number', number: Number(mo[2]), indent: mo[1].length, runs: richRuns(mo[3]) };
+  // A plain line keeps its leading spaces as text, which is what the canvas draws.
+  return { indent: ln.match(/^ */)[0].length, runs: richRuns(ln) };
+}
+function richParse(raw) {
+  return String(raw == null ? '' : raw).replace(/\r\n?/g, '\n').split('\n').map(richParseLine);
+}
+// Does a text use the subset at all? One that does not lowers exactly as it always has.
+function richHasMarkup(raw) {
+  var s = String(raw == null ? '' : raw);
+  if (/[*_\\]/.test(s) || /\{[^|{}]+\|[^{}]*\}/.test(s)) return true;
+  var lines = s.split('\n');
+  for (var i = 0; i < lines.length; i++) if (/^(\s*)[-*•]\s+/.test(lines[i]) || /^(\s*)(\d{1,3})\.\s+/.test(lines[i])) return true;
+  return false;
+}
+
 function radiusFor(shape, radius) {
   switch (shape) {
     case 'rounded': return Math.max(0, num(radius, 0)) + 'px';
@@ -2310,17 +2391,24 @@ function pasteboardFor(boxes, ext) {
 // "expressible natively" and "plain enough to have no extra CSS" stay the same predicate.
 function deckInexpressible(b, byId) {
   if (!b) return true;
-  if (num(b.rot, 0) !== 0) return true;
-  // A flip is a negative scale in boxCss's transform; the flat deck element is axis-aligned
-  // and carries none, so a flipped box is skipped native and rasterised (mirror intact),
-  // exactly like a rotated one - never emitted as an UNFLIPPED rect/text/picture.
-  if (boolVal(b.flipH, false) || boolVal(b.flipV, false)) return true;
+  var bk = String(b.kind == null ? '' : b.kind);
+  // A box, a path and a text box turn in the deck as on the canvas, about their centre, by
+  // the rot on their transform (plan 275 decision 32: a turned chart). A picture carries
+  // none, so a turned picture is still skipped native.
+  if (num(b.rot, 0) !== 0 && !DECK_TURNS[bk]) return true;
+  // A flip is a negative scale in boxCss's transform. A box's rectangle is the same
+  // mirrored, and a path's mirror is written into its outline; anything else would be
+  // emitted UNFLIPPED, so it is skipped native and rasterised (mirror intact).
+  if ((boolVal(b.flipH, false) || boolVal(b.flipV, false)) && !DECK_MIRRORS[bk]) return true;
   // A perspective tilt is a projective transform in boxCss; a deck element is axis-aligned
   // and flat and carries no vanishing point of its own, so a tilted box is skipped native
   // and rasterised with its tilt intact - never emitted as an UNTILTED rect/text/picture,
   // which is the same silent wrong picture the rotation and flip guards exist to stop.
   if (tiltDeg(b.rx) !== 0 || tiltDeg(b.ry) !== 0) return true;
-  if (clamp(num(b.opacity, 100), 0, 100) !== 100) return true; // boxCss emits opacity:<1 - the flat deck element carries no alpha (rasterise follow-up)
+  // boxCss emits opacity:<1. A box with no outline and a path fold it into the alpha of
+  // their own colours (plan 275 decision 32: a chart's translucent labels and gridlines);
+  // anything else carries no alpha in the flat deck element (rasterise follow-up).
+  if (clamp(num(b.opacity, 100), 0, 100) !== 100 && !deckOpacityFolds(b)) return true;
   if (b.grad != null && String(b.grad).trim() !== '') return true;
   if (num(b.blur, 0) > 0 || num(b.bgBlur, 0) > 0) return true;
   if (Object.prototype.hasOwnProperty.call(BLENDS, String(b.blend))) return true;
@@ -2335,6 +2423,87 @@ function deckInexpressible(b, byId) {
 
 // One non-frame member box → one deck element at frame-LOCAL (lx, ly), or null to
 // emit nothing native (a skipped kind/effect). RAW numbers + css colours only.
+// A literal hex colour with an opacity folded into its alpha, as #rrggbbaa, or null for
+// a colour that is not a literal hex (a token var, a named colour), which cannot carry it.
+function deckAlphaHex(v, opacity) {
+  var s = String(v == null ? '' : v).trim();
+  var m = /^#([0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.exec(s);
+  if (!m) return null;
+  var h = m[1];
+  if (h.length <= 4) h = h.split('').map(function (c) { return c + c; }).join('');
+  var a = (h.length === 8 ? parseInt(h.slice(6, 8), 16) / 255 : 1) * clamp(opacity, 0, 1);
+  if (a >= 1) return '#' + h.slice(0, 6);
+  return '#' + h.slice(0, 6) + ('0' + Math.round(a * 255).toString(16)).slice(-2);
+}
+
+// Row kinds a deck element turns (rot on its transform) and mirrors (a box is symmetric,
+// a path's outline takes the mirror). Mirrors design-pptx.ts TURNS and MIRRORS.
+var DECK_TURNS = { '': 1, box: 1, path: 1, text: 1 };
+var DECK_MIRRORS = { '': 1, box: 1, path: 1 };
+
+// Whether a box's partial opacity can ride on its colours in the flat deck element, as it
+// does in design-pptx.ts: text carries it as the alpha of every run, and a box or a path
+// as the alpha of its fill and line, when those colours are literal hex values the alpha
+// can be folded into.
+function deckOpacityFolds(b) {
+  var kind = String(b.kind == null ? '' : b.kind);
+  if (kind === 'text') return true;
+  var bg = String(b.bg == null ? '' : b.bg).trim();
+  var sc = String(b.stroke == null ? '' : b.stroke).trim();
+  var stroked = !!sc && num(b.strokeW, 0) > 0;
+  if (bg && !deckAlphaHex(bg, 1)) return false;
+  if (kind === 'path' || kind === '' || kind === 'box') return !stroked || !!deckAlphaHex(sc, 1);
+  return false;
+}
+
+// The turn a deck element carries, set on it only when there is one.
+function deckTurn(el, b) {
+  var rot = num(b.rot, 0);
+  if (rot !== 0 && isFinite(rot)) el.rot = rot;
+  return el;
+}
+
+// A deck line, with a dashed or dotted outline said on it so the export can name the
+// solid line it draws instead.
+function deckLineOf(color, w, b) {
+  var line = { color: color, w: w };
+  var dash = String(b.strokeDash == null ? '' : b.strokeDash);
+  if (dash === 'dashed' || dash === 'dotted') line.dash = dash;
+  return line;
+}
+
+// A path box's outline at w by h px as one SVG path d, the same lowering pathHtmlFor
+// draws with, or '' when host.geom is missing or the value does not decode. A mirrored
+// box is drawn mirrored inside its own box, so the deck element needs no flip of its own.
+function deckPathData(b, w, h) {
+  var fx = boolVal(b.flipH, false) ? -1 : 1;
+  var fy = boolVal(b.flipV, false) ? -1 : 1;
+  var raw = b.path == null ? '' : String(b.path);
+  var geom = geomApi();
+  if (!raw || !geom || !geom.decodeAuthored || !geom.fromNodes) return '';
+  var dec = geom.decodeAuthored(raw);
+  if (!dec || !dec.ok) return '';
+  var ds = [];
+  for (var pi = 0; pi < dec.value.length; pi++) {
+    var src = dec.value[pi];
+    var nodes = [];
+    for (var i = 0; i < src.nodes.length; i++) {
+      var n = src.nodes[i];
+      var out = { x: (fx < 0 ? 1 - n.x : n.x) * w, y: (fy < 0 ? 1 - n.y : n.y) * h };
+      if (n.hInX != null) out.hInX = n.hInX * w * fx;
+      if (n.hInY != null) out.hInY = n.hInY * h * fy;
+      if (n.hOutX != null) out.hOutX = n.hOutX * w * fx;
+      if (n.hOutY != null) out.hOutY = n.hOutY * h * fy;
+      if (n.continuity) out.continuity = n.continuity;
+      nodes.push(out);
+    }
+    var res = geom.fromNodes({ kind: src.kind, nodes: nodes, closed: src.closed === true, tension: src.tension, decimals: 3 });
+    if (!res || !res.ok) return '';
+    if (res.d) ds.push(res.d);
+  }
+  return ds.join(' ');
+}
+
 function deckElementFor(cb, byId, lx, ly) {
   // An audio box is invisible and has no picture, so it lowers to NOTHING native - never
   // the fallback deck rect below (which would print a stray rectangle where the bed sits).
@@ -2345,25 +2514,100 @@ function deckElementFor(cb, byId, lx, ly) {
   var cw = Math.max(1, Math.round(num(cb.w, 1)));
   var ch = Math.max(1, Math.round(num(cb.h, 1)));
   var kind = String(cb.kind);
-  if (kind === 'path') return null; // pen/vector shape → rasterise FOLLOW-UP
+  var op = clamp(num(cb.opacity, 100), 0, 100) / 100;
+  if (kind === 'path') {
+    // A path is native custom geometry (plan 275 decision 32): its outline at the box's
+    // own size, in the box's own px, with its opacity folded into the fill and line
+    // alpha. A multi-colour vector (pathPaint) keeps the DOM walk, which draws it whole.
+    if (cb.pathPaint) return null;
+    var d = deckPathData(cb, cw, ch);
+    if (!d) return null;
+    var pel = { t: 'path', x: lx, y: ly, w: cw, h: ch, d: d };
+    var pfill = String(cb.bg == null ? '' : cb.bg).trim();
+    if (pfill && pfill !== 'none') {
+      var pf = deckAlphaHex(pfill, op) || (op === 1 ? safeColor(pfill, '') : '');
+      if (pf) pel.fill = pf;
+    }
+    var psw = num(cb.strokeW, 0);
+    var psc = String(cb.stroke == null ? '' : cb.stroke).trim();
+    if (psc && psw > 0) {
+      var pl = deckAlphaHex(psc, op) || (op === 1 ? safeColor(psc, '') : '');
+      if (pl) pel.line = deckLineOf(pl, psw, cb);
+    }
+    return deckTurn(pel, cb);
+  }
   if (kind === 'text') {
-    // One paragraph, one run (v1). sizePt = px * 0.75 (matches export-pptx's
-    // pptxRunStyle and deck-studio's pt↔cqw inverse); colour/weight/font reuse the
-    // exact reads textCss/weightOf/deckFont use, so the run matches the preview.
-    var run = {
-      text: cb.text == null ? '' : String(cb.text),
-      sizePt: f2(num(cb.fontSize, 48) * 0.75),
-      color: safeColor(cb.fg, '#11141f'),
-      bold: Number(weightOf(cb)) >= 600,
-    };
+    // sizePt = px * 0.75 (matches export-pptx's pptxRunStyle and deck-studio's pt↔cqw
+    // inverse); colour/weight/font reuse the exact reads textCss/weightOf/deckFont use,
+    // so the run matches the preview. Plain text is one paragraph and one run, as it
+    // always was; text in the subset (plan 275) lowers line by line to paragraphs with
+    // their list marker and level, and each run keeps the bold, italic, underline,
+    // strike and colour the canvas draws, so no marker reaches the .pptx as a character.
+    var raw = cb.text == null ? '' : String(cb.text);
+    var rowBold = Number(weightOf(cb)) >= 600;
+    var rowColor = safeColor(cb.fg, '#11141f');
+    var sizePt = f2(num(cb.fontSize, 48) * 0.75);
     var fnt = deckFont(cb);
-    if (fnt) run.font = fnt;
     var al = H_JUSTIFY[cb.align] ? String(cb.align) : 'center';
-    return {
+    var paras;
+    // A line indented by two or more spaces is an outline level, so it takes the
+    // subset path too: its spaces become the paragraph's level, not characters.
+    if (!richHasMarkup(raw) && !/(^|\n) {2,}\S/.test(raw)) {
+      var run = { text: raw, sizePt: sizePt, color: rowColor, bold: rowBold };
+      // A translucent text box carries its opacity as the alpha of every run.
+      if (op < 1) run.alpha = op;
+      if (fnt) run.font = fnt;
+      paras = [{ align: DECK_ALIGN[al], runs: [run] }];
+    } else {
+      var lines = richParse(raw);
+      var listed = lines.some(function (line) { return !!line.list; });
+      paras = lines.map(function (line) {
+        // A plain line's indent is its level (a paragraph of an outline, or the line
+        // after a soft break), so its leading spaces leave the words.
+        var strip = line.list ? 0 : Math.floor(line.indent / 2) * 2;
+        var parts = [];
+        line.runs.forEach(function (r) {
+          if (strip <= 0) { parts.push(r); return; }
+          var lead = r.text.length - r.text.replace(/^ +/, '').length;
+          var cut = Math.min(strip, lead);
+          strip = cut < r.text.length ? 0 : strip - cut;
+          if (cut < r.text.length) parts.push(Object.assign({}, r, { text: r.text.slice(cut) }));
+        });
+        var runs = parts.map(function (r) {
+          var out = {
+            text: r.text,
+            sizePt: sizePt,
+            color: r.color ? safeColor(r.color, rowColor) : rowColor,
+            bold: r.weight != null ? r.weight >= 600 : (r.bold === true || rowBold),
+          };
+          if (op < 1) out.alpha = op;
+          if (r.italic) out.italic = true;
+          if (r.underline) out.underline = true;
+          if (r.strike) out.strike = true;
+          var face = r.font ? deckFont({ font: r.font }) : fnt;
+          if (face) out.font = face;
+          return out;
+        });
+        if (!runs.length) {
+          runs = [{ text: '', sizePt: sizePt, color: rowColor, bold: rowBold }];
+          if (op < 1) runs[0].alpha = op;
+        }
+        var para = { align: DECK_ALIGN[al], runs: runs };
+        if (line.list === 'bullet') para.bullet = true;
+        else if (line.list === 'number') para.bullet = 'number';
+        // A plain line among list items, or one set in, says so, so a placeholder's own
+        // bullets never mark it.
+        var level = Math.min(8, Math.floor(line.indent / 2));
+        if (!line.list && (listed || level > 0)) para.bullet = false;
+        if (level > 0) para.level = level;
+        return para;
+      });
+    }
+    return deckTurn({
       t: 'text', x: lx, y: ly, w: cw, h: ch,
       anchor: DECK_ANCHOR[String(cb.valign)] || 'ctr',
-      paras: [{ align: DECK_ALIGN[al], runs: [run] }],
-    };
+      paras: paras,
+    }, cb);
   }
   if (kind === 'image') {
     // Asset refs are resolved by the runtime BEFORE this hook, so cb.image already
@@ -2383,12 +2627,13 @@ function deckElementFor(cb, byId, lx, ly) {
   // carries a numeric radius the deck can express; pill/ellipse/circle round in CSS
   // to values (9999px/50%) the flat px radius can't carry, so they lower to a plain
   // rect in v1 (documented). A stroke → the rect's line.
-  var rect = { t: 'rect', x: lx, y: ly, w: cw, h: ch, fill: safeColor(cb.bg, 'transparent') };
+  var rect = { t: 'rect', x: lx, y: ly, w: cw, h: ch, fill: op < 1 ? (deckAlphaHex(cb.bg, op) || 'transparent') : safeColor(cb.bg, 'transparent') };
   if (String(cb.shape) === 'rounded') rect.radius = num(cb.radius, 0);
   var sw = num(cb.strokeW, 0);
   var sc = safeColor(cb.stroke, '');
-  if (sc && sw > 0) rect.line = { color: sc, w: sw };
-  return rect;
+  // A translucent box's outline takes the same alpha as its fill.
+  if (sc && sw > 0) rect.line = deckLineOf(op < 1 ? (deckAlphaHex(cb.stroke, op) || sc) : sc, sw, cb);
+  return deckTurn(rect, cb);
 }
 
 // Build the whole deck model, or undefined when no frame exists (same gate as

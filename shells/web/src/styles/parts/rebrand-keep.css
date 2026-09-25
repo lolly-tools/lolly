@@ -1,0 +1,265 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* #/rebrand Keep the design (plans/274 mode A, plan 275 close-out section 2.6): the
+   work area .rb-keep that keep.ts draws into the shared comparison region, in the
+   Renovate stage's grammar (rebrand-compare.css), and its Result column. The mode
+   control in the top bar is the panel primitive's segment; its size in the bar is
+   rebrand-top.css. Tokens only; chrome sizes as calc(Npx * var(--a11y-fs)). A slide
+   preview is content, not chrome: its page tone never follows the app theme.
+   Never write a star followed by a slash inside a CSS comment.
+   panel.css is unlayered, so a rule here cannot restyle an .lp class; the panel
+   column only adds its own divider.
+
+     .rb-keep-layout        stage column | .lp Result column
+     ├─ .rb-keep-stagecol   on the table colour, like the Renovate stage
+     │  └─ .rb-keep-cmp     row one: the inset and the segment; then the panes
+     │     └─ .rb-keep-pane one hero with its caption row, or two under Both; Wipe
+     │                      lays the Result over the Original, the slider in the row
+     └─ .rb-keep-panel      the summary, Download .pptx, Open the result in Design
+
+   The literal sizes are the picture sizes the stage uses (the 176px inset), declared
+   once below. */
+@layer views {
+  /* ── the work area ────────────────────────────────────────────────────── */
+  .rb-keep-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(var(--rb-decide-min), 320px);
+    height: 100%;
+    min-height: 0;
+  }
+  .rb-keep-stagecol {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    background: var(--ui-color-surface-muted);
+  }
+  .rb-keep-panel { border-left: 1px solid var(--ui-color-border-default); }
+
+  .rb-keep-cmp {
+    --rb-keep-inset-w: 176px;
+    --rb-keep-cap-h: calc(32px * var(--a11y-fs));
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: var(--ui-space-panel);
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: var(--ui-space-panel);
+  }
+  /* Two slides side by side: each caption may take two lines. */
+  .rb-keep-cmp[data-show="both"] { --rb-keep-cap-h: calc(52px * var(--a11y-fs)); }
+
+  /* ── row one: the inset, its caption, the segment ── */
+  .rb-keep-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-6);
+    min-width: 0;
+  }
+  .rb-keep-inset {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-6);
+    min-width: 0;
+  }
+  .rb-keep-inset-art {
+    position: relative;
+    flex: none;
+    width: var(--rb-keep-inset-w);
+    aspect-ratio: var(--rb-keep-ratio, 1.7778);
+    padding: 0;
+    border: 0;
+    border-radius: var(--ui-radius-choice);
+    overflow: hidden;
+    background: var(--ui-color-surface-raised);
+    color-scheme: light;
+    cursor: pointer;
+    transition: box-shadow var(--ui-motion-feedback) var(--ui-motion-standard);
+  }
+  /* The edge is drawn over the art, since an inset shadow paints under a child. */
+  .rb-keep-inset-art::after,
+  .rb-keep-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    border-radius: inherit;
+    box-shadow: var(--ui-edge-default);
+    pointer-events: none;
+  }
+  [data-theme="dark"] .rb-keep-hero::after,
+  [data-theme="brand"] .rb-keep-hero::after { box-shadow: var(--ui-edge-strong); }
+  @media (hover: hover) {
+    .rb-keep-inset-art:hover { box-shadow: var(--ui-effect-selection-ring-hover), var(--ui-edge-faint); }
+  }
+  .rb-keep-inset-art:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .rb-keep-inset-cap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    min-width: 0;
+    margin: 0;
+    padding-top: var(--sp-1);
+    font-size: var(--ui-type-help);
+    color: var(--ui-color-text-muted);
+  }
+  .rb-keep-inset-cap > strong {
+    font-size: var(--ui-type-label);
+    font-weight: var(--ui-type-weight-label);
+    color: var(--ui-color-text-default);
+  }
+  /* The stage's segment: 28 px halves in a 32 px track, its track drawn by an edge
+     since it sits on the stage's own colour. The halves are the primitive's own. */
+  .rb-keep-seg {
+    flex: none;
+    height: calc(32px * var(--a11y-fs));
+    margin-inline-start: auto;
+    box-shadow: var(--ui-edge-faint);
+  }
+
+  /* ── the panes ── */
+  .rb-keep-panes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    column-gap: var(--sp-8);
+    min-height: 0;
+  }
+  .rb-keep-cmp[data-show="both"] .rb-keep-panes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Each pane is a size container, and the hero is the largest width at the slide's
+     proportions that leaves room for the caption row under it. One slide is centred
+     in the height left over; two sit right under the segment, their tops in line. */
+  .rb-keep-pane {
+    container: rb-keep-pane / size;
+    --rb-keep-w: min(100cqw, (100cqh - var(--rb-keep-cap-h) - var(--sp-4)) * var(--rb-keep-ratio, 1.7778));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-4);
+    min-width: 0;
+    min-height: 0;
+    margin: 0;
+  }
+  .rb-keep-cmp[data-show="both"] .rb-keep-pane { justify-content: flex-start; }
+
+  .rb-keep-hero {
+    position: relative;
+    flex: none;
+    width: var(--rb-keep-w);
+    aspect-ratio: var(--rb-keep-ratio, 1.7778);
+    border-radius: var(--ui-radius-choice);
+    overflow: hidden;
+    background: var(--ui-color-surface-raised);
+    box-shadow: var(--ui-elevation-control);
+    color-scheme: light;
+  }
+  /* A long press is a hold, never the system's picture menu or a text selection. */
+  .rb-keep-hero[data-hold] {
+    -webkit-touch-callout: none;
+    user-select: none;
+    cursor: default;
+  }
+  .rb-keep-art { position: absolute; inset: 0; }
+  .rb-keep-inset-art > .rb-keep-art { display: block; }
+  .rb-keep-art > svg { display: block; width: 100%; height: 100%; }
+  /* The Original waits under the Result, so a hold swaps at once. */
+  .rb-keep-cmp[data-held="true"] .rb-keep-art--after { visibility: hidden; }
+  .rb-keep-divider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 2;
+    width: 2px;
+    transform: translateX(-50%);
+    background: var(--ui-color-action-primary);
+    box-shadow: var(--ui-elevation-control);
+    pointer-events: none;
+  }
+
+  /* ── the caption row ── */
+  .rb-keep-cap {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--sp-6);
+    width: var(--rb-keep-w);
+    min-height: var(--rb-keep-cap-h);
+    min-width: 0;
+    font-size: var(--ui-type-help);
+    color: var(--ui-color-text-muted);
+    white-space: nowrap;
+  }
+  .rb-keep-cap > strong {
+    flex: none;
+    font-size: var(--ui-type-label);
+    font-weight: var(--ui-type-weight-label);
+    color: var(--ui-color-text-default);
+  }
+  .rb-keep-note, .rb-keep-hint {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rb-keep-note { flex: 0 1 auto; }
+  .rb-keep-note[hidden] { display: none; }
+  .rb-keep-hint { flex: 0 1 auto; margin-inline-start: auto; }
+  .rb-keep-cmp[data-show="both"] .rb-keep-cap { flex-wrap: wrap; align-content: flex-start; row-gap: var(--sp-1); white-space: normal; }
+  /* Wipe: the slider takes the caption row, with the two names at its ends. */
+  .rb-keep-cap--wipe { justify-content: center; }
+  .rb-keep-cap--wipe .custom-slider { flex: 0 1 auto; flex-basis: calc(360px * var(--a11y-fs)); min-width: 0; }
+  .rb-keep-end { flex: none; font-size: var(--ui-type-label); }
+
+  /* ── the Result column ── */
+  .rb-keep-empty,
+  .rb-keep-status {
+    margin: 0;
+    font-size: var(--ui-type-body);
+    line-height: 1.45;
+    color: var(--ui-color-text-default);
+  }
+  .rb-keep-empty { padding: var(--sp-6); color: var(--ui-color-text-muted); }
+  .rb-keep-panel .lp-rows { padding-top: var(--sp-4); }
+  /* A failure reads in the default ink on the danger surface: the destructive hue is
+     too dark to read as text on a dark theme. */
+  .rb-keep-status[data-status="failed"] {
+    padding: var(--sp-2) var(--sp-3);
+    border-radius: var(--ui-radius-control);
+    background: var(--ui-color-status-danger-surface);
+    font-weight: var(--ui-type-weight-label);
+  }
+  .rb-keep-detail { color: var(--ui-color-text-muted); }
+  .rb-keep-acts { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+  .rb-keep-acts--stack { flex-direction: column; flex-wrap: nowrap; }
+  .rb-keep-acts > .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-2);
+    min-height: var(--ui-size-control);
+  }
+  .rb-keep-acts > .btn svg {
+    width: var(--ui-size-icon-md);
+    height: var(--ui-size-icon-md);
+  }
+  @media (any-pointer: coarse) {
+    .rb-keep-acts > .btn { min-height: var(--ui-size-target); }
+    .rb-keep-seg { height: calc(var(--ui-size-target) + 4px); }
+  }
+
+  /* Narrow: one slide at a time under a full-width segment, the column under it. */
+  .rb[data-narrow="true"] .rb-keep-layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    height: auto;
+  }
+  .rb[data-narrow="true"] .rb-keep-stagecol { overflow: visible; }
+  .rb[data-narrow="true"] .rb-keep-cmp { padding: var(--sp-4) var(--sp-3); gap: var(--sp-4); }
+  .rb[data-narrow="true"] .rb-keep-seg { flex: 1 1 auto; margin-inline-start: 0; }
+  .rb[data-narrow="true"] .rb-keep-cmp { grid-template-rows: auto auto; }
+  .rb[data-narrow="true"] .rb-keep-panes { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; row-gap: var(--sp-6); }
+  .rb[data-narrow="true"] .rb-keep-pane { container-type: inline-size; --rb-keep-w: 100cqw; justify-content: flex-start; }
+  .rb[data-narrow="true"] .rb-keep-cap { min-height: 0; white-space: normal; flex-wrap: wrap; row-gap: var(--sp-1); }
+  .rb[data-narrow="true"] .rb-keep-cap--wipe { flex-wrap: nowrap; gap: var(--sp-4); }
+  .rb[data-narrow="true"] .rb-keep-panel { border-left: 0; border-top: 1px solid var(--ui-color-border-default); }
+}

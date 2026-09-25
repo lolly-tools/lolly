@@ -100,7 +100,7 @@ These decisions are settled. Changing any of them is a major undertaking:
 
 6. **Storage via the bridge.** Tools call `host.state.save()` / `host.state.load()`. The bridge picks IndexedDB (web), filesystem (Tauri) or memory (CLI). Tools never know which.
 
-7. **Maturity tags.** Every tool declares `status: official | community | experimental`. Experimental tools watermark their exports. This is the structural answer to the "brand approved by default" risk.
+7. **Maturity tags.** Every tool declares `status: official | community | experimental`. Experimental tools watermark their exports. This is the structural answer to the risk that every tool in the gallery reads as carrying the same weight.
 
 ## Getting started
 

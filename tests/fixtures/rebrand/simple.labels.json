@@ -1,0 +1,296 @@
+{
+  "fixture": "simple.pptx",
+  "version": 1,
+  "builder": "scripts/build-rebrand-fixtures.ts",
+  "objectIdForm": "<slide part base name>.<p:cNvPr id>",
+  "slides": [
+    {
+      "id": "slide1",
+      "index": 0,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide1.2",
+          "name": "rect2",
+          "authored": "band",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 0,
+            "y": 40,
+            "w": 1280,
+            "h": 56
+          },
+          "note": "the same full-width band near the top of every slide"
+        },
+        {
+          "id": "slide1.3",
+          "name": "text3",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 120,
+            "w": 1120,
+            "h": 110
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide1.4",
+          "name": "text4",
+          "authored": "body",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 260,
+            "w": 1120,
+            "h": 340
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide1.5",
+          "name": "text5",
+          "authored": "page-number",
+          "origin": "slide",
+          "kind": "text",
+          "class": "page-number",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 1150,
+            "y": 660,
+            "w": 60,
+            "h": 30
+          }
+        }
+      ]
+    },
+    {
+      "id": "slide2",
+      "index": 1,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide2.2",
+          "name": "rect2",
+          "authored": "band",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 0,
+            "y": 40,
+            "w": 1280,
+            "h": 56
+          },
+          "note": "the same full-width band near the top of every slide"
+        },
+        {
+          "id": "slide2.3",
+          "name": "text3",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 120,
+            "w": 1120,
+            "h": 110
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide2.4",
+          "name": "text4",
+          "authored": "body",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 260,
+            "w": 1120,
+            "h": 340
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide2.5",
+          "name": "photo",
+          "authored": "photo",
+          "origin": "slide",
+          "kind": "pic",
+          "class": "photo",
+          "fidelity": {
+            "state": "raster-preserved"
+          },
+          "boxPx": {
+            "x": 700,
+            "y": 300,
+            "w": 480,
+            "h": 270
+          },
+          "mustKeep": true,
+          "note": "a gradient with grain, so edge and colour signals read it as a photograph"
+        },
+        {
+          "id": "slide2.6",
+          "name": "text6",
+          "authored": "page-number",
+          "origin": "slide",
+          "kind": "text",
+          "class": "page-number",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 1150,
+            "y": 660,
+            "w": 60,
+            "h": 30
+          }
+        }
+      ]
+    },
+    {
+      "id": "slide3",
+      "index": 2,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide3.2",
+          "name": "rect2",
+          "authored": "band",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 0,
+            "y": 40,
+            "w": 1280,
+            "h": 56
+          },
+          "note": "the same full-width band near the top of every slide"
+        },
+        {
+          "id": "slide3.3",
+          "name": "text3",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 120,
+            "w": 1120,
+            "h": 110
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide3.4",
+          "name": "text4",
+          "authored": "body",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 260,
+            "w": 1120,
+            "h": 340
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide3.5",
+          "name": "text5",
+          "authored": "page-number",
+          "origin": "slide",
+          "kind": "text",
+          "class": "page-number",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 1150,
+            "y": 660,
+            "w": 60,
+            "h": 30
+          }
+        }
+      ]
+    }
+  ],
+  "inherited": [
+    {
+      "id": "slideLayout1.2",
+      "name": "logo",
+      "authored": "logo",
+      "origin": "layout",
+      "kind": "pic",
+      "class": "logo-candidate",
+      "fidelity": {
+        "state": "raster-preserved"
+      },
+      "boxPx": {
+        "x": 48,
+        "y": 640,
+        "w": 96,
+        "h": 24
+      },
+      "note": "the deck owner's mark, placed once by the layout, so every slide shows it and no slide part declares it"
+    }
+  ],
+  "mustKeep": [
+    "slide1.3",
+    "slide1.4",
+    "slide2.3",
+    "slide2.4",
+    "slide2.5",
+    "slide3.3",
+    "slide3.4"
+  ]
+}

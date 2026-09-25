@@ -352,7 +352,7 @@ test('a table reads its cell text row-major, with the graphicFrame p:xfrm geomet
   assert.equal(table.cxEmu, 2000000);
 });
 
-test('grouped shapes are flattened (group child-offset transform is deferred)', () => {
+test('grouped shapes flatten into slide coordinates and record their group', () => {
   const deck = readPptx(deckParts(), parseXml);
   const ellipse = byType(deck.slides[0]!.nodes, 'shape')[1] as PptxShapeNode;
   assert.equal(ellipse.geom, 'ellipse');
@@ -360,9 +360,12 @@ test('grouped shapes are flattened (group child-offset transform is deferred)', 
   assert.ok(fill && 'scheme' in fill);
   assert.equal(fill.scheme, 'accent2');
   assert.equal(fill.hex, 'ED7D31');
-  // DEFERRED: chOff/chExt is not composed - the child keeps its authored xfrm.
+  // This group states ext == chExt at the origin, so the remap is the identity
+  // and the child keeps its authored place. What is new is the ancestry.
   assert.equal(ellipse.xEmu, 10);
   assert.equal(ellipse.yEmu, 20);
+  assert.deepEqual(ellipse.groupPath, ['6'], 'the group cNvPr id is recorded');
+  assert.equal(ellipse.transform, undefined, 'an identity remap needs no affine');
 });
 
 // ─── notes ───────────────────────────────────────────────────────────────────
@@ -993,8 +996,9 @@ test('a layout carrying ten thousand placeholders is capped, not fatal', () => {
 
 test('a deck with no layout parts reads exactly as it did before the cascade', () => {
   // Pinned against the pre-cascade output of the shared fixture. The ONLY
-  // difference is the additive `lineWidthPt`, which is new surface, not a
-  // changed value: nothing inherits when there is no layout to inherit from.
+  // differences are the additive `lineWidthPt` and `groupPath`, which are new
+  // surface, not changed values: nothing inherits when there is no layout to
+  // inherit from, and this fixture's group states an identity remap.
   const slide = readPptx(deckParts(), parseXml).slides[0]!;
   assert.deepEqual(slide, {
     index: 0,
@@ -1032,7 +1036,16 @@ test('a deck with no layout parts reads exactly as it did before the cascade', (
           ['A2', 'B2'],
         ],
       },
-      { type: 'shape', xEmu: 10, yEmu: 20, cxEmu: 30, cyEmu: 40, geom: 'ellipse', fill: { scheme: 'accent2', hex: 'ED7D31' } },
+      {
+        type: 'shape',
+        xEmu: 10,
+        yEmu: 20,
+        cxEmu: 30,
+        cyEmu: 40,
+        groupPath: ['6'],
+        geom: 'ellipse',
+        fill: { scheme: 'accent2', hex: 'ED7D31' },
+      },
     ],
     notes: 'Speaker note here',
   });
@@ -1163,3 +1176,147 @@ test('a deck with no layout parts reads exactly as before: no inherited, no back
   assert.equal(slide.background, undefined);
 });
 
+
+// ─── plan 275 decision 32: SVG pictures, custom geometry, colour alpha ────────
+
+const NS_SVG_EXT = 'http://schemas.microsoft.com/office/drawing/2016/SVG/main';
+
+/** One slide holding `shapes`, with the image and SVG relationships a picture names. */
+function vectorParts(shapes: string, rels = ''): PptxParts {
+  return deckParts({
+    'ppt/slides/slide1.xml': `${XML_DECL}
+<p:sld xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}"><p:cSld><p:spTree>
+  <p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/>
+  ${shapes}
+</p:spTree></p:cSld></p:sld>`,
+    'ppt/slides/_rels/slide1.xml.rels': `${XML_DECL}
+<Relationships xmlns="${NS_PKG_REL}">
+  <Relationship Id="rId2" Type="${NS_R}/image" Target="../media/image1.png"/>
+  <Relationship Id="rId3" Type="${NS_R}/image" Target="../media/image1.svg"/>
+  ${rels}
+</Relationships>`,
+    'ppt/media/image1.svg': '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><rect width="10" height="10"/></svg>',
+  });
+}
+
+/** A freeform whose one path states `commands`, in a `w` by `h` path space when given. */
+function custGeomSp(commands: string, pathAttrs = ' w="100" h="100"', extra = ''): string {
+  return `<p:sp><p:nvSpPr><p:cNvPr id="7" name="Freeform 6"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="200" cy="100"/></a:xfrm>
+      <a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/><a:rect l="0" t="0" r="r" b="b"/>
+        <a:pathLst><a:path${pathAttrs}>${commands}</a:path>${extra}</a:pathLst></a:custGeom>
+      <a:solidFill><a:srgbClr val="30BA78"><a:alpha val="40000"/></a:srgbClr></a:solidFill>
+    </p:spPr></p:sp>`;
+}
+
+const readShape = (parts: PptxParts): PptxShapeNode => byType(readPptx(parts, parseXml).slides[0]!.nodes, 'shape')[0]!;
+
+test('a picture with an svgBlip names its SVG part beside the raster', () => {
+  const pic = `<p:pic><p:nvPicPr><p:cNvPr id="5" name="vector"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr>
+    <p:blipFill><a:blip r:embed="rId2"><a:extLst><a:ext uri="{96DAC541-7B7A-43D3-8B79-37D633B846F1}">
+      <asvg:svgBlip xmlns:asvg="${NS_SVG_EXT}" r:embed="rId3"/></a:ext></a:extLst></a:blip><a:stretch><a:fillRect/></a:stretch></p:blipFill>
+    <p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="100" cy="100"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic>`;
+  const node = byType(readPptx(vectorParts(pic), parseXml).slides[0]!.nodes, 'pic')[0]!;
+  assert.equal(node.media, 'ppt/media/image1.png', 'the raster stays the media');
+  assert.equal(node.svg, 'ppt/media/image1.svg', 'the drawing itself is named beside it');
+});
+
+test('an svgBlip whose relationship names nothing keeps the raster and says so', () => {
+  const pic = `<p:pic><p:nvPicPr><p:cNvPr id="5" name="vector"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr>
+    <p:blipFill><a:blip r:embed="rId2"><a:extLst><a:ext uri="{96DAC541-7B7A-43D3-8B79-37D633B846F1}">
+      <asvg:svgBlip xmlns:asvg="${NS_SVG_EXT}" r:embed="rId9"/></a:ext></a:extLst></a:blip></p:blipFill>
+    <p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="100" cy="100"/></a:xfrm></p:spPr></p:pic>`;
+  const deck = readPptx(vectorParts(pic), parseXml);
+  const node = byType(deck.slides[0]!.nodes, 'pic')[0]!;
+  assert.equal(node.media, 'ppt/media/image1.png');
+  assert.equal(node.svg, undefined);
+  assert.ok(deck.warnings?.some((w) => w.code === 'media-skipped' && /SVG relationship rId9/.test(w.message)));
+});
+
+test('custom geometry reads as SVG path data in the path space, and geom stays absent', () => {
+  const shape = readShape(vectorParts(custGeomSp(
+    '<a:moveTo><a:pt x="0" y="0"/></a:moveTo><a:lnTo><a:pt x="100" y="0"/></a:lnTo>'
+    + '<a:cubicBezTo><a:pt x="100" y="50"/><a:pt x="50" y="100"/><a:pt x="0" y="100"/></a:cubicBezTo>'
+    + '<a:quadBezTo><a:pt x="0" y="50"/><a:pt x="10" y="10"/></a:quadBezTo><a:close/>',
+  )));
+  assert.equal(shape.geom, undefined, 'a freeform is not a preset');
+  assert.equal(shape.custGeom?.paths.length, 1);
+  const path = shape.custGeom!.paths[0]!;
+  assert.deepEqual([path.w, path.h], [100, 100]);
+  assert.equal(path.d, 'M0 0L100 0C100 50 50 100 0 100C0 66.667 3.333 36.667 10 10Z', 'the quadratic is raised to a cubic');
+  assert.equal(shape.fill?.alpha, 0.4, 'a:alpha reads as 0 to 1');
+});
+
+test('a full-turn arcTo stays a closed ellipse of four quarter curves', () => {
+  const shape = readShape(vectorParts(custGeomSp(
+    '<a:moveTo><a:pt x="100" y="50"/></a:moveTo><a:arcTo wR="50" hR="50" stAng="0" swAng="21600000"/><a:close/>',
+  )));
+  const d = shape.custGeom!.paths[0]!.d;
+  assert.equal((d.match(/C/g) ?? []).length, 4, 'a 360 degree sweep is four quarter turns');
+  const end = d.replace(/Z$/, '').split(/[CM ]/).filter(Boolean).slice(-2).map(Number);
+  assert.ok(Math.abs(end[0]! - 100) < 0.01 && Math.abs(end[1]! - 50) < 0.01, `the sweep ends where it began (${end})`);
+  assert.match(d, /C100 77\.614 77\.614 100 50 100/, 'the first quarter runs clockwise to the bottom of the circle');
+});
+
+test('custom geometry whose points name guides is left unread, with a warning', () => {
+  const deck = readPptx(vectorParts(custGeomSp('<a:moveTo><a:pt x="l" y="t"/></a:moveTo><a:lnTo><a:pt x="r" y="b"/></a:lnTo>')), parseXml);
+  const shape = byType(deck.slides[0]!.nodes, 'shape')[0]!;
+  assert.equal(shape.custGeom, undefined);
+  assert.equal(shape.geom, undefined);
+  assert.ok(deck.warnings?.some((w) => w.code === 'nodes-truncated' && /by formula/.test(w.message)));
+});
+
+test('a path with no w or h takes the shape extents, and fill="none" and stroke="0" are carried', () => {
+  const shape = readShape(vectorParts(custGeomSp(
+    '<a:moveTo><a:pt x="0" y="0"/></a:moveTo><a:lnTo><a:pt x="200" y="100"/></a:lnTo>',
+    ' fill="none" stroke="0"',
+  )));
+  const path = shape.custGeom!.paths[0]!;
+  assert.deepEqual([path.w, path.h], [200, 100], 'the xfrm extents');
+  assert.equal(path.noFill, true);
+  assert.equal(path.noStroke, true);
+});
+
+test('a freeform with text keeps its outline on the text node', () => {
+  const sp = custGeomSp('<a:moveTo><a:pt x="0" y="0"/></a:moveTo><a:lnTo><a:pt x="100" y="100"/></a:lnTo>')
+    .replace('</p:spPr></p:sp>', '</p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>Label</a:t></a:r></a:p></p:txBody></p:sp>');
+  const text = byType(readPptx(vectorParts(sp), parseXml).slides[0]!.nodes, 'text')[0]!;
+  assert.equal(text.custGeom?.paths.length, 1);
+});
+
+test('custom geometry past its path cap is left unread rather than cut short', () => {
+  const many = Array.from({ length: 65 }, () => '<a:path w="10" h="10"><a:moveTo><a:pt x="0" y="0"/></a:moveTo><a:lnTo><a:pt x="10" y="10"/></a:lnTo></a:path>').join('');
+  const deck = readPptx(vectorParts(custGeomSp('<a:moveTo><a:pt x="0" y="0"/></a:moveTo>', ' w="10" h="10"', many)), parseXml);
+  assert.equal(byType(deck.slides[0]!.nodes, 'shape')[0]!.custGeom, undefined);
+  assert.ok(deck.warnings?.some((w) => /more than 64 paths/.test(w.message)));
+});
+
+test('an opaque colour reads exactly as before, with no alpha field', () => {
+  const rect = byType(readPptx(deckParts(), parseXml).slides[0]!.nodes, 'shape')[0]!;
+  assert.deepEqual(rect.fill, { hex: 'FF0000' });
+});
+
+test('a picture crop reads as fractions per edge, and an uncropped picture states none', () => {
+  const pic = (crop: string): string => `<p:pic><p:nvPicPr><p:cNvPr id="5" name="vector"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr>
+    <p:blipFill><a:blip r:embed="rId2"><a:extLst><a:ext uri="{96DAC541-7B7A-43D3-8B79-37D633B846F1}">
+      <asvg:svgBlip xmlns:asvg="${NS_SVG_EXT}" r:embed="rId3"/></a:ext></a:extLst></a:blip>${crop}<a:stretch><a:fillRect/></a:stretch></p:blipFill>
+    <p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="100" cy="100"/></a:xfrm></p:spPr></p:pic>`;
+  const cropped = byType(readPptx(vectorParts(pic('<a:srcRect l="10000" t="0" r="25000" b="-5000"/>')), parseXml).slides[0]!.nodes, 'pic')[0]!;
+  assert.deepEqual(cropped.srcRect, { l: 0.1, r: 0.25, b: -0.05 });
+  const whole = byType(readPptx(vectorParts(pic('<a:srcRect/>')), parseXml).slides[0]!.nodes, 'pic')[0]!;
+  assert.equal(whole.srcRect, undefined);
+});
+
+test('a straight freeform line with no extent on one axis keeps its outline', () => {
+  const sp = `<p:sp><p:nvSpPr><p:cNvPr id="8" name="Freeform 7"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+    <p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="300" cy="0"/></a:xfrm>
+      <a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/><a:rect l="0" t="0" r="r" b="b"/>
+        <a:pathLst><a:path w="300" h="0"><a:moveTo><a:pt x="0" y="0"/></a:moveTo><a:lnTo><a:pt x="300" y="0"/></a:lnTo></a:path></a:pathLst></a:custGeom>
+      <a:ln w="12700"><a:solidFill><a:srgbClr val="0C322C"/></a:solidFill></a:ln>
+    </p:spPr></p:sp>`;
+  const shape = readShape(vectorParts(sp));
+  assert.equal(shape.custGeom?.paths.length, 1, 'the path is read rather than skipped');
+  const path = shape.custGeom!.paths[0]!;
+  assert.deepEqual([path.w, path.h], [300, 1], 'the axis of no extent is taken as 1 wide');
+  assert.equal(path.d, 'M0 0L300 0');
+});

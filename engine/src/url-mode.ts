@@ -31,6 +31,9 @@
  *                  only; ignored by the CLI.
  *   - `output` - output filename (CLI only)
  *   - `filename` - download filename (web shell)
+ *   - `licence` - the licence declared for the export, an id from
+ *                  OUTPUT_LICENCE_CHOICES (`licence=CC-BY-4.0`). Written into the
+ *                  file's licence metadata; absent means no declaration.
  *   - `_v` - tool version pinning (optional). The `_` PREFIX as a whole is a
  *                  reserved namespace: any param starting with `_` is skipped before
  *                  input matching (and the schema/validator refuse `_`-prefixed
@@ -400,6 +403,9 @@ export interface UrlState {
    *  only place that knows the colours. null ⇒ absent. */
   emojiFx: string | null;
   emojiStyle?: string | null;
+  /** The declared export licence (the `licence` param), verbatim; the runtime
+   *  keeps it only when it names a known choice. null ⇒ absent. */
+  licence?: string | null;
 }
 
 /** The slice of an input model item serializeUrlState reads. */
@@ -464,6 +470,8 @@ export interface SerializeUrlOpts {
   emoji?: string | null;
   emojiFx?: string | null;
   emojiStyle?: string | null;
+  /** The declared export licence (the `licence` param), written when set. */
+  licence?: string | null;
   /** Keep device-local `user/…` asset ids in the serialised state (plan 171).
    *  Default FALSE - the engine-enforced product contract is that a device-local
    *  id never leaves the device (docs/url-mode.md), so a top-level `user/` asset
@@ -475,7 +483,7 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'ds', 'full', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'meta', 'hdr', 'depth', 'cuts', 'lang', 'designv', 'ds', 'full', 'options', 'nostage', 'template', 'preset', 'present', 's', 'kiosk', 'z', 'zx', 'fps', 'seconds', 'wait', 'codec', 'vq', 'emoji', 'emojifx', 'emojistyle', 'licence']);
 // NOTE on the presentation-mode kiosk flag: it was the unreserved `loop` until
 // 2026-08-28 (plan 171 executed the rename inside the id-break window). `loop` is a
 // live *input* id in several tools (deck-builder, 3d, flythrough, digi-ad,
@@ -732,6 +740,7 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     emoji: params.get('emoji') || null,
     emojiFx: params.get('emojifx') || null,
     emojiStyle: params.get('emojistyle') || null,
+    licence: params.get('licence') || null,
   };
 }
 
@@ -813,6 +822,8 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
   if (opts.emoji?.trim()) params.set('emoji', opts.emoji.trim());
   if (opts.emojiFx?.trim()) params.set('emojifx', opts.emojiFx.trim());
   if (opts.emojiStyle?.trim()) params.set('emojistyle', opts.emojiStyle.trim());
+  // Written, like the emoji set: a licence declared for a document belongs to it.
+  if (opts.licence?.trim()) params.set('licence', opts.licence.trim());
   return params.toString();
 }
 

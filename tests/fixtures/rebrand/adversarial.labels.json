@@ -1,0 +1,552 @@
+{
+  "fixture": "adversarial.pptx",
+  "version": 1,
+  "builder": "scripts/build-rebrand-fixtures.ts",
+  "objectIdForm": "<slide part base name>.<p:cNvPr id>",
+  "slides": [
+    {
+      "id": "slide1",
+      "index": 0,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide1.2",
+          "name": "text2",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 120,
+            "w": 1120,
+            "h": 110
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide1.3",
+          "name": "partner-mark",
+          "authored": "partner-mark",
+          "origin": "slide",
+          "kind": "pic",
+          "class": "logo-candidate",
+          "fidelity": {
+            "state": "raster-preserved"
+          },
+          "boxPx": {
+            "x": 1120,
+            "y": 620,
+            "w": 64,
+            "h": 64
+          },
+          "mustKeep": true,
+          "note": "the same bytes on three slides, and a partner mark rather than the mark of the deck owner"
+        },
+        {
+          "id": "slide1.4",
+          "name": "text4",
+          "authored": "citation-2021",
+          "origin": "slide",
+          "kind": "text",
+          "class": "footer",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 672,
+            "w": 500,
+            "h": 24
+          },
+          "mustKeep": true,
+          "note": "repeats on every slide with the year changed, so a digit-normalised repeat must not read it as furniture to drop"
+        },
+        {
+          "id": "slide1.5",
+          "name": "text5",
+          "authored": "small-meaningful-text",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 620,
+            "w": 500,
+            "h": 22
+          },
+          "mustKeep": true,
+          "text": "Figures in EUR millions",
+          "note": "seven point and meaningful, at the same box on all three slides, so it meets every clause of the decoration rule and must still survive"
+        },
+        {
+          "id": "slide1.71",
+          "name": "group-bar",
+          "authored": "group-bar",
+          "origin": "slide",
+          "kind": "shape",
+          "class": "decoration",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 120,
+            "y": 470,
+            "w": 200,
+            "h": 30
+          },
+          "groupPath": [
+            "70"
+          ],
+          "groupNames": [
+            "group-phase"
+          ],
+          "note": "authored 400 by 60 in a group whose child extent is twice its extent, so the composed box is half size"
+        },
+        {
+          "id": "slide1.72",
+          "name": "group-caption",
+          "authored": "group-caption",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 120,
+            "y": 510,
+            "w": 280,
+            "h": 30
+          },
+          "groupPath": [
+            "70"
+          ],
+          "groupNames": [
+            "group-phase"
+          ],
+          "mustKeep": true,
+          "note": "same group scaling as the bar beside it"
+        },
+        {
+          "id": "slide1.73",
+          "name": "long-url",
+          "authored": "long-url",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 640,
+            "w": 900,
+            "h": 24
+          },
+          "mustKeep": true,
+          "note": "one run carrying a:hlinkClick to an external target"
+        }
+      ]
+    },
+    {
+      "id": "slide2",
+      "index": 1,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide2.2",
+          "name": "text2",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 120,
+            "w": 1120,
+            "h": 110
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide2.3",
+          "name": "partner-mark",
+          "authored": "partner-mark",
+          "origin": "slide",
+          "kind": "pic",
+          "class": "logo-candidate",
+          "fidelity": {
+            "state": "raster-preserved"
+          },
+          "boxPx": {
+            "x": 1120,
+            "y": 620,
+            "w": 64,
+            "h": 64
+          },
+          "mustKeep": true,
+          "note": "the same bytes on three slides, and a partner mark rather than the mark of the deck owner"
+        },
+        {
+          "id": "slide2.4",
+          "name": "text4",
+          "authored": "chart-legend-key",
+          "origin": "slide",
+          "kind": "text",
+          "class": "recurring-text",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 596,
+            "w": 400,
+            "h": 24
+          },
+          "mustKeep": true,
+          "note": "the same key on two slides; a repeat rule must not remove it"
+        },
+        {
+          "id": "slide2.5",
+          "name": "text5",
+          "authored": "citation-2022",
+          "origin": "slide",
+          "kind": "text",
+          "class": "footer",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 672,
+            "w": 500,
+            "h": 24
+          },
+          "mustKeep": true,
+          "note": "repeats on every slide with the year changed, so a digit-normalised repeat must not read it as furniture to drop"
+        },
+        {
+          "id": "slide2.6",
+          "name": "text6",
+          "authored": "small-meaningful-text",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 620,
+            "w": 500,
+            "h": 22
+          },
+          "mustKeep": true,
+          "text": "Figures in EUR millions",
+          "note": "seven point and meaningful, at the same box on all three slides, so it meets every clause of the decoration rule and must still survive"
+        },
+        {
+          "id": "slide2.74",
+          "name": "chart-no-fallback",
+          "authored": "chart-no-fallback",
+          "origin": "slide",
+          "kind": "chart",
+          "class": "chart",
+          "fidelity": {
+            "state": "unavailable",
+            "reason": "native-chart-no-fallback"
+          },
+          "boxPx": {
+            "x": 200,
+            "y": 260,
+            "w": 560,
+            "h": 300
+          },
+          "mustKeep": true,
+          "note": "a native chart part with no picture anywhere in the file, so nothing can be SHOWN for it and it reaches Design as a labelled placeholder, never as a picture of the source. Its caches are complete, and those categories, series names, values and literal series colours travel on the source object's chartData whatever the fidelity state says: `unavailable` is never licence to discard them"
+        }
+      ]
+    },
+    {
+      "id": "slide3",
+      "index": 2,
+      "widthPx": 1280,
+      "heightPx": 720,
+      "flattened": false,
+      "objects": [
+        {
+          "id": "slide3.2",
+          "name": "text2",
+          "authored": "title",
+          "origin": "slide",
+          "kind": "text",
+          "class": "title",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 120,
+            "w": 1120,
+            "h": 110
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide3.3",
+          "name": "text3",
+          "authored": "overflowing-body",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 240,
+            "w": 420,
+            "h": 90
+          },
+          "mustKeep": true,
+          "note": "more text than the box holds at eighteen point"
+        },
+        {
+          "id": "slide3.4",
+          "name": "table4",
+          "authored": "table",
+          "origin": "slide",
+          "kind": "table",
+          "class": "table",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 360,
+            "w": 420,
+            "h": 120
+          },
+          "mustKeep": true
+        },
+        {
+          "id": "slide3.5",
+          "name": "partner-mark",
+          "authored": "partner-mark",
+          "origin": "slide",
+          "kind": "pic",
+          "class": "logo-candidate",
+          "fidelity": {
+            "state": "raster-preserved"
+          },
+          "boxPx": {
+            "x": 1120,
+            "y": 620,
+            "w": 64,
+            "h": 64
+          },
+          "mustKeep": true,
+          "note": "the same bytes on three slides, and a partner mark rather than the mark of the deck owner"
+        },
+        {
+          "id": "slide3.6",
+          "name": "text6",
+          "authored": "chart-legend-key",
+          "origin": "slide",
+          "kind": "text",
+          "class": "recurring-text",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 596,
+            "w": 400,
+            "h": 24
+          },
+          "mustKeep": true,
+          "note": "the same key on two slides; a repeat rule must not remove it"
+        },
+        {
+          "id": "slide3.7",
+          "name": "text7",
+          "authored": "citation-2023",
+          "origin": "slide",
+          "kind": "text",
+          "class": "footer",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 672,
+            "w": 500,
+            "h": 24
+          },
+          "mustKeep": true,
+          "note": "repeats on every slide with the year changed, so a digit-normalised repeat must not read it as furniture to drop"
+        },
+        {
+          "id": "slide3.8",
+          "name": "text8",
+          "authored": "small-meaningful-text",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 620,
+            "w": 500,
+            "h": 22
+          },
+          "mustKeep": true,
+          "text": "Figures in EUR millions",
+          "note": "seven point and meaningful, at the same box on all three slides, so it meets every clause of the decoration rule and must still survive"
+        },
+        {
+          "id": "slide3.75",
+          "name": "chart-with-fallback",
+          "authored": "chart-with-fallback",
+          "origin": "slide",
+          "kind": "chart",
+          "class": "chart",
+          "fidelity": {
+            "state": "raster-preserved",
+            "fallbackSource": "embedded",
+            "fallbackAssetRef": "ppt/media/image3_2.png"
+          },
+          "boxPx": {
+            "x": 620,
+            "y": 300,
+            "w": 480,
+            "h": 300
+          },
+          "mustKeep": true,
+          "alternateContent": "choice",
+          "pairedWith": "slide3.76",
+          "note": "the choice half of an mc:AlternateContent pair; the file carries real bytes for it, and no fidelity reason applies because nothing about it is missing"
+        },
+        {
+          "id": "slide3.76",
+          "name": "chart-fallback-picture",
+          "authored": "chart-fallback-picture",
+          "origin": "slide",
+          "kind": "pic",
+          "class": "chart",
+          "fidelity": {
+            "state": "raster-preserved"
+          },
+          "boxPx": {
+            "x": 620,
+            "y": 300,
+            "w": 480,
+            "h": 300
+          },
+          "alternateContent": "fallback",
+          "pairedWith": "slide3.75",
+          "note": "the fallback half. A correct reading surfaces ONE object for the pair, carrying these bytes as its fallback, so this half is not its own object and carries no mustKeep of its own; the pair is kept through slide3.75"
+        },
+        {
+          "id": "slide3.77",
+          "name": "arabic-line",
+          "authored": "arabic-line",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 620,
+            "y": 200,
+            "w": 480,
+            "h": 40
+          },
+          "mustKeep": true,
+          "note": "right to left paragraph"
+        },
+        {
+          "id": "slide3.78",
+          "name": "japanese-line",
+          "authored": "japanese-line",
+          "origin": "slide",
+          "kind": "text",
+          "class": "body",
+          "fidelity": {
+            "state": "editable"
+          },
+          "boxPx": {
+            "x": 80,
+            "y": 500,
+            "w": 420,
+            "h": 40
+          },
+          "mustKeep": true
+        }
+      ]
+    }
+  ],
+  "inherited": [
+    {
+      "id": "slideMaster1.80",
+      "name": "confidential",
+      "authored": "confidential",
+      "origin": "master",
+      "kind": "text",
+      "class": "recurring-text",
+      "fidelity": {
+        "state": "editable"
+      },
+      "boxPx": {
+        "x": 980,
+        "y": 20,
+        "w": 260,
+        "h": 24
+      },
+      "mustKeep": true,
+      "note": "declared on the master, so it is on every slide and appears in no slide part"
+    }
+  ],
+  "mustKeep": [
+    "slide1.2",
+    "slide1.3",
+    "slide1.4",
+    "slide1.5",
+    "slide1.72",
+    "slide1.73",
+    "slide2.2",
+    "slide2.3",
+    "slide2.4",
+    "slide2.5",
+    "slide2.6",
+    "slide2.74",
+    "slide3.2",
+    "slide3.3",
+    "slide3.4",
+    "slide3.5",
+    "slide3.6",
+    "slide3.7",
+    "slide3.8",
+    "slide3.75",
+    "slide3.77",
+    "slide3.78",
+    "slideMaster1.80"
+  ]
+}

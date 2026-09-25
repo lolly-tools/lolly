@@ -53,27 +53,19 @@ Deck Studio è una buona misura del limite superiore qui: un intero mazzo di sli
 
 La maggior parte delle proposte di "AI creativa" mette il modello dal lato sbagliato di una linea antica. Amanuensi e miniaturisti avevano già stabilito dove cadesse quella linea: lavori liberamente sullo schizzo, dove tutto può essere provato e nulla è definitivo, e poi vai alla stampa, che intimorisce proprio perché si impegna. Gli schizzi erano dove nasceva l'arte. La stampa era il modo in cui viaggiava. Due strumenti, due compiti, ciascuno inventivo a modo suo, e l'opera stampata poteva essere ritenuta affidabile perché la stampa manteneva la sua promessa a ogni tiratura.
 
-Lolly è la stampa, non lo schizzo. Porta quello che vuoi all'ideazione - un modello, un designer, un tovagliolo - ma nel momento in cui un'idea deve diventare diecimila asset, passa attraverso qualcosa che rende allo stesso modo ogni volta, a partire da input che chiunque può rileggere. È di questo che parla davvero il confronto qui sopra: non chi ha il generatore migliore, ma chi rende riproducibile il passaggio definitivo.
+Lolly è la stampa, non lo schizzo. Porta quello che vuoi all'ideazione - un modello, un designer, un tovagliolo - ma nel momento in cui un'idea deve diventare molti asset, passa attraverso qualcosa che rende allo stesso modo ogni volta, a partire da input che chiunque può rileggere. È di questo che parla davvero il confronto qui sopra: non chi ha il generatore migliore, ma chi rende riproducibile il passaggio definitivo.
 
 > Fidati del processo creativo, scala con rigore.
 
-## Approva lo strumento, non il file
+## Le regole vivono nello strumento, non nel file
 
-Ogni altro strumento sul mercato produce un *file* che poi deve essere controllato - un brand manager in un thread Slack, l'ufficio legale sul disclaimer, un giro di modifiche, un'altra revisione. Lolly sposta l'approvazione **un passo più a monte**. Le regole del brand - codici hex esatti, file dei font con licenza, margini di abbondanza, spaziatura - sono codificate direttamente nell'HTML e nel CSS dello strumento, quindi il template *non può* generare un asset fuori brand. È il layout stesso a farla rispettare.
+Ogni altro strumento sul mercato produce un *file*, e un file può essere osservato solo a cose fatte, un output alla volta. Lolly sposta le regole del brand **un passo più a monte**. Codici hex esatti, file dei font con licenza, margini di abbondanza, spaziatura - tutto è codificato direttamente nell'HTML e nel CSS dello strumento, quindi il template *non può* generare un asset fuori brand. È il layout stesso a farla rispettare.
 
-Così smetti di approvare gli output e inizi ad approvare lo **strumento** che li genera. Approvalo una volta, e ogni asset che produrrà sarà pre-approvato per costruzione - nessun essere umano nel ciclo, nessun ciclo di revisione, a qualsiasi volume.
+Quindi la cosa da guardare è lo **strumento**, non ogni file che produce. Fai bene lo strumento, e ogni asset che produrrà sarà in linea con il brand per costruzione. Come controlli il tuo lavoro, e chi lo fa, resta una tua scelta; Lolly rende più piccola la cosa da controllare e più veloce da produrre l'output.
 
-Questo è il cambiamento che il motore deterministico offre davvero: non è una versione più veloce del vecchio processo di approvazione, lo elimina. Per il team creativo è un guard-rail, non un sostituto - sei sempre tu a lanciare la palla (i dati, il copy, l'immagine) e il codice è la corsia con le protezioni che impedisce a ogni lancio di finire nella canaletta.
+Questo è il cambiamento che il motore deterministico offre davvero. Per il team creativo è un guard-rail, non un sostituto - sei sempre tu a lanciare la palla (i dati, il copy, l'immagine) e il codice è la corsia con le protezioni che impedisce a ogni lancio di finire nella canaletta.
 
-![L'intero lavoro del producer: digitare le parole. Il carattere, il colore e la spaziatura erano già stabiliti quando lo strumento è stato approvato](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DApproved&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-approve-the-tool)
-
-| Approvare gli asset alla vecchia maniera | Approvare lo strumento, alla maniera Lolly |
-|---|---|
-| Ogni file finito viene controllato, uno alla volta | Lo strumento viene controllato una volta sola |
-| Richiesta → il designer crea → revisione brand → controllo legale → modifiche → nuova revisione | Una modifica di parametro → asset finito |
-| Designer, brand manager, legale e richiedente tutti coinvolti | Il producer, da solo |
-| Giorni per asset | Secondi per asset |
-| 10.000 asset = 10.000 cicli di revisione | 10.000 asset = zero (il template era già approvato) |
+![L'intero lavoro del producer: digitare le parole. Il carattere, il colore e la spaziatura erano già stabiliti quando lo strumento è stato creato](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
 
 ## Cosa offre in modo unico
 

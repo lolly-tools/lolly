@@ -205,7 +205,14 @@ cpSync(join(REPO, 'packages/node-shell/wasm/jxl'), join(LIB, 'wasm/jxl'), { recu
 const result = await build({
   // The output names matter: shells/cli/src/tui.ts starts the TUI by looking for
   // `./tui.js` beside its own bundle, exactly as it does in the npm package.
-  entryPoints: { cli: join(REPO, 'shells/cli/bin/lolly.ts'), tui: join(REPO, 'shells/tui/src/main.tsx') },
+  // `rebrand-worker` is the same idiom, for `lolly rebrand --jobs=N`'s worker
+  // threads (rebrand.ts's `workerUrl()`) - without this entry the sidecar has
+  // no worker file to spawn and runs one deck at a time regardless of `--jobs`.
+  entryPoints: {
+    cli: join(REPO, 'shells/cli/bin/lolly.ts'),
+    tui: join(REPO, 'shells/tui/src/main.tsx'),
+    'rebrand-worker': join(REPO, 'shells/cli/src/rebrand-worker.ts'),
+  },
   outdir: join(LIB, 'dist'),
   bundle: true,
   splitting: true,
@@ -228,7 +235,7 @@ const result = await build({
 });
 
 const outputs = Object.keys(result.metafile.outputs);
-for (const name of ['cli', 'tui']) {
+for (const name of ['cli', 'tui', 'rebrand-worker']) {
   if (!outputs.some(o => o.endsWith(`/dist/${name}.js`))) {
     throw new Error(`esbuild produced no dist/${name}.js (outputs: ${outputs.join(', ')})`);
   }

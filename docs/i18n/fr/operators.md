@@ -39,7 +39,7 @@ La façon habituelle dont le travail créatif de routine se fait est une surface
 - **[Vérifie-le toi-même](/info/verify-yourself.html)** - vérifie les affirmations sur un export réel, étape par étape, sans rien que tu ne puisses exécuter toi-même.
 - **[Politique de confidentialité](/info/privacy.html)** - l'énoncé formel de ce qui est collecté, stocké et envoyé, et de ce qui ne l'est pas.
 - **[Production créative souveraine](/info/sovereign-production.html)** - déploiement en air gap, réseau soumis à consentement et signature sur l'appareil.
-- **[Adoption et gouvernance](/info/adoption-governance.html)** - qui approuve un outil, comment les règles de marque deviennent applicables et ce que t'apporte l'option catalogue-en-tant-que-dépôt.
+- **[Adoption et gouvernance](/info/adoption-governance.html)** - comment les règles de marque deviennent applicables, ce qu'ajoute un catalogue partagé et ce que t'apporte l'option catalogue-en-tant-que-dépôt.
 
 ## Juridique
 

@@ -14,6 +14,6 @@ A full freeform design tool, real-time multiplayer with cursors and presence, pl
 
 ## What Lolly does instead
 
-Cloud and self-hosted Penpot both run against a server; Lolly renders and signs in the page itself, with no server and no account. A Lolly tool is a file you keep in version control rather than a document in a database, so approving the tool once approves every asset it makes, at any volume. What comes out is the production file, in every format Lolly writes, from the browser, the desktop or the terminal.
+Cloud and self-hosted Penpot both run against a server; Lolly renders and signs in the page itself, with no server and no account. A Lolly tool is a file you keep in version control rather than a document in a database, so the brand rules are set once, in the tool, and every asset it makes follows them. What comes out is the production file, in every format Lolly writes, from the browser, the desktop or the terminal.
 
 Penpot is a trademark of its owner. The plugin named above is Lolly's, not Penpot's. See [How Lolly compares](/info/positioning.html) for the capability-by-capability picture and [Lolly compared, tool by tool](/info/compare.html) for the rest of this set.

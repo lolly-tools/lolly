@@ -53,27 +53,19 @@ Deck Studio este o măsură bună a plafonului aici: un întreg set de diapoziti
 
 Majoritatea discursurilor de tip "AI creativ" pun modelul pe partea greșită a unei linii vechi. Scribii și miniaturiștii au stabilit deja unde trece această linie: lucrezi liber pe schiță, unde orice poate fi încercat și nimic nu este definitiv, iar apoi treci la tipar, care este intimidant tocmai pentru că se angajează. Schițele erau locul unde se afla arta. Tiparul era felul în care ea călătorea. Două instrumente, două funcții, fiecare inventiv în felul său, iar lucrarea tipărită putea fi de încredere pentru că tiparul își ținea promisiunea la fiecare tragere.
 
-Lolly este tiparul, nu schița. Adu orice vrei la etapa de idee - un model, un designer, un șervețel - dar din momentul în care o idee trebuie să devină zece mii de resurse, ea trece prin ceva care randează la fel de fiecare dată, pornind de la date pe care oricine le poate citi înapoi. Despre asta este vorba de fapt în comparația de mai sus: nu cine are generatorul mai bun, ci cine face reproductibil pasul definitiv.
+Lolly este tiparul, nu schița. Adu orice vrei la etapa de idee - un model, un designer, un șervețel - dar din momentul în care o idee trebuie să devină multe resurse, ea trece prin ceva care randează la fel de fiecare dată, pornind de la date pe care oricine le poate citi înapoi. Despre asta este vorba de fapt în comparația de mai sus: nu cine are generatorul mai bun, ci cine face reproductibil pasul definitiv.
 
 > Ai încredere în procesul creativ, scalează cu rigoare.
 
-## Aprobă instrumentul, nu fișierul
+## Regulile trăiesc în instrument, nu în fișier
 
-Orice alt instrument de pe piață produce un *fișier* care apoi trebuie verificat - un manager de brand într-un fir de Slack, juridicul pe disclaimer, o rundă de modificări, o altă revizuire. Lolly mută aprobarea **cu un pas mai devreme**. Regulile de brand - codurile hex exacte, fișierele de fonturi licențiate, marginile de sângerare, spațierea - sunt integrate direct în HTML-ul și CSS-ul instrumentului, astfel încât șablonul *nu poate* produce un asset care nu respectă brandul. Layout-ul însuși aplică regulile.
+Orice alt instrument de pe piață produce un *fișier*, iar un fișier poate fi privit doar după fapt, câte un rezultat pe rând. Lolly mută regulile de brand **cu un pas mai devreme**. Codurile hex exacte, fișierele de fonturi licențiate, marginile de sângerare, spațierea - toate sunt integrate direct în HTML-ul și CSS-ul instrumentului, astfel încât șablonul *nu poate* produce un asset care nu respectă brandul. Layout-ul însuși aplică regulile.
 
-Așadar nu mai aprobi rezultatele, ci începi să aprobi **instrumentul** care le produce. Îl aprobi o singură dată, iar fiecare asset pe care îl produce vreodată este pre-aprobat prin construcție - fără om în buclă, fără ciclu de revizuire, la orice volum.
+Așadar lucrul care merită privit este **instrumentul**, nu fiecare fișier pe care îl produce. Pune instrumentul la punct, și fiecare asset pe care îl produce vreodată respectă brandul prin construcție. Cum îți verifici munca, și cine o face, rămâne alegerea ta; Lolly face lucrul verificat mai mic și rezultatul mai rapid de produs.
 
-Aceasta este schimbarea pe care motorul determinist o aduce cu adevărat: nu e o versiune mai rapidă a vechiului proces de aprobare, ci elimină procesul. Pentru echipa creativă e o barieră de siguranță, nu un înlocuitor - tu tot arunci mingea (datele, textul, imaginea), iar codul este culoarul cu bumperi care ține fiecare aruncare departe de șanț.
+Aceasta este schimbarea pe care motorul determinist chiar o aduce. Pentru echipa creativă e o barieră de siguranță, nu un înlocuitor - tu tot arunci mingea (datele, textul, imaginea), iar codul este culoarul cu bumperi care ține fiecare aruncare departe de șanț.
 
-![Toată treaba producătorului: să tasteze cuvintele. Tipul de literă, culoarea și spațierea au fost stabilite când instrumentul a fost aprobat](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DApproved&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-approve-the-tool)
-
-| Aprobarea asseturilor în modul vechi | Aprobarea instrumentului, în stilul Lolly |
-|---|---|
-| Fiecare fișier finalizat este verificat, unul câte unul | Instrumentul este verificat o singură dată |
-| Cerere → designerul construiește → revizuire de brand → verificare juridică → modificări → re-revizuire | O schimbare de parametru → asset finalizat |
-| Designer, manager de brand, juridic și solicitant, toți implicați | Producătorul, singur |
-| Zile per asset | Secunde per asset |
-| 10.000 de assets = 10.000 de cicluri de revizuire | 10.000 de assets = zero (șablonul era deja aprobat) |
+![Toată treaba producătorului: să tasteze cuvintele. Tipul de literă, culoarea și spațierea au fost stabilite când a fost creat instrumentul](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
 
 ## Ce oferă acest lucru, în mod unic
 

@@ -71,16 +71,17 @@
 .view-toggle-opt {
   display: inline-flex; align-items: center;
   padding: var(--sp-3) var(--sp-6); border-radius: calc(var(--ui-radius-control)*1.5); font-size: var(--ui-type-body); font-weight: 600; line-height: 1.4;
-  color: var(--ui-color-text-default); text-decoration: none; transition: background var(--ui-motion-feedback), color var(--ui-motion-feedback);
+  color: var(--ui-color-text-muted); text-decoration: none; transition: background var(--ui-motion-feedback), color var(--ui-motion-feedback);
 }
 /* Each tab holds an icon + a label. BOTH show on desktop (Andy, 2026-08-20 -
    the tabs must be identifiable by glyph on every form factor); under 640px
    topbar.css hides the label and the toggle shrinks to the icons alone.
    Inactive tabs mute their glyph so the active one reads at a glance (the
    a11y ask, same date) - opacity, not colour, so it works over any brand. */
-.view-toggle-ic { display: inline-flex; align-items: center; margin-inline-end: 7px; opacity: .42; }
-.view-toggle-opt.is-active .view-toggle-ic,
-.view-toggle-opt:hover .view-toggle-ic { opacity: 1; }
+.view-toggle-ic { display: inline-flex; align-items: center; margin-inline-end: 4px; opacity: 1;color:var(--ui-color-border-default);  }
+.view-toggle-opt:hover .view-toggle-ic { opacity: 1; color:var(--ui-color-action-primary);}
+.view-toggle-opt.is-active .view-toggle-ic{color:var(--ui-color-text-default); }
+
 /* Second cue riding the same states: a lighter stroke on inactive glyphs, the
    authored weight on the active one (stroke-width in viewBox units - these are
    24-unit Lucide strokes, so 1 here is half the authored 2). Both cues ease
@@ -102,8 +103,12 @@
    app on a phone. */
 .view-toggle-ic svg { display: block; width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
 .view-toggle-opt:hover { color: var(--ui-color-text-default); }
+.view-toggle-opt:hover{color:var(--ui-color-action-primary) }
+
 .view-toggle-opt.is-active {
-  background: var(--ui-color-selection-surface); color: var(--ui-color-text-default); box-shadow: var(--ui-elevation-control);
+  background: var(--ui-color-surface-raised); color: var(--ui-color-text-default); box-shadow: var(--ui-elevation-control);
+
+
 }
 /* Jelly effects mode (lib/jelly.ts): ONE persistent <jelly-segmented> pill,
    mounted at body level by syncJellyNavToggle (view-toggle.ts) so it lives
@@ -299,18 +304,15 @@ button.projects-result-path:hover { background: var(--ui-color-surface-muted); c
   text-decoration: underline; text-underline-offset: 2px; cursor: pointer;
 }
 
-/* Active option in the view-options popover. */
-.projects-viewmenu .folder-menu-item.is-on { font-weight: 700; }
-
 /* Both panels use the shared body popover's viewport-relative positioning. */
 .projects-menu, .projects-viewmenu { position: fixed; }
 .projects-viewmenu {
+  z-index: 100001;   /* the body-popover layer every .folder-menu sits on (parts/folders.css) */
   max-width: calc(100vw - 16px);
   max-height: calc(100dvh - 16px);
   overflow-y: auto;
   box-sizing: border-box;
 }
-.projects-viewmenu .folder-menu-item { white-space: normal; overflow-wrap: anywhere; }
 /* The bulk menu's "{n} selected" head sits outside its nested role="menu" (see
    views/projects.ts bulkMenuHtml) - same flex-column list layout as the outer
    .folder-menu, just one level deeper. */

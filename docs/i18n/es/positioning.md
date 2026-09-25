@@ -53,27 +53,19 @@ Deck Studio es una buena medida del techo aquí: toda una presentación de diapo
 
 La mayoría de los discursos de "creatividad con IA" colocan al modelo en el lado equivocado de una línea antigua. Los copistas e iluminadores ya resolvieron dónde cae esa línea: trabajas con soltura en el boceto, donde se puede probar cualquier cosa y nada queda comprometido, y luego pasas a la imprenta, que resulta intimidante precisamente porque compromete. Los bocetos eran donde estaba el arte. La imprenta era cómo viajaba. Dos instrumentos, dos funciones, cada uno inventivo a su manera, y la obra impresa merecía confianza porque la imprenta cumplía su promesa en cada tirada.
 
-Lolly es la imprenta, no el boceto. Trae lo que quieras a la ideación - un modelo, un diseñador, una servilleta - pero en el momento en que una idea tiene que convertirse en diez mil recursos, pasa por algo que se renderiza igual cada vez, a partir de entradas que cualquiera puede leer después. De eso trata realmente la comparación anterior: no de quién tiene el mejor generador, sino de quién hace reproducible el paso comprometido.
+Lolly es la imprenta, no el boceto. Trae lo que quieras a la ideación - un modelo, un diseñador, una servilleta - pero en el momento en que una idea tiene que convertirse en muchos recursos, pasa por algo que se renderiza igual cada vez, a partir de entradas que cualquiera puede leer después. De eso trata realmente la comparación anterior: no de quién tiene el mejor generador, sino de quién hace reproducible el paso comprometido.
 
 > Confía en el proceso creativo, escala con rigor.
 
-## Aprueba la herramienta, no el archivo
+## Las reglas viven en la herramienta, no en el archivo
 
-Cualquier otra herramienta del panorama produce un *archivo* que luego hay que revisar - un responsable de marca en un hilo de Slack, legal revisando el descargo de responsabilidad, una ronda de cambios, otra revisión. Lolly mueve la aprobación **un paso hacia arriba**. Las reglas de marca - códigos hexadecimales exactos, archivos de fuentes con licencia, márgenes de sangrado, espaciados - están codificadas en el HTML y el CSS de la herramienta, de modo que la plantilla *no puede* generar un recurso fuera de marca. Es la propia maqueta la que hace cumplir las reglas.
+Cualquier otra herramienta del panorama produce un *archivo*, y un archivo solo puede mirarse después de los hechos, un resultado cada vez. Lolly mueve las reglas de marca **un paso hacia arriba**. Códigos hexadecimales exactos, archivos de fuentes con licencia, márgenes de sangrado, espaciados - todo eso está codificado en el HTML y el CSS de la herramienta, de modo que la plantilla *no puede* generar un recurso fuera de marca. Es la propia maqueta la que hace cumplir las reglas.
 
-Así que dejas de aprobar salidas y empiezas a aprobar la **herramienta** que las produce. Apruébala una vez, y cada recurso que produzca a partir de entonces queda preaprobado por construcción - sin humano en el bucle, sin ciclo de revisión, a cualquier volumen.
+Así que lo que merece la pena mirar es la **herramienta**, no cada archivo que produce. Ajusta bien la herramienta, y cada recurso que produzca a partir de entonces es conforme a la marca por construcción. Cómo compruebas tu trabajo, y quién lo hace, sigue siendo tuyo; Lolly hace más pequeño lo comprobado y más rápida la salida.
 
-Este es el cambio que realmente aporta el motor determinista: no es una versión más rápida del antiguo proceso de aprobación, elimina el proceso. Para el equipo creativo es una barandilla de seguridad, no un reemplazo - sigues lanzando la bola (los datos, el texto, la imagen) y el código es el carril con topes que mantiene cada lanzamiento fuera de la canaleta.
+Este es el cambio que realmente aporta el motor determinista. Para el equipo creativo es una barandilla de seguridad, no un reemplazo - sigues lanzando la bola (los datos, el texto, la imagen) y el código es el carril con topes que mantiene cada lanzamiento fuera de la canaleta.
 
-![Todo el trabajo del productor: escribir las palabras. La tipografía, el color y el espaciado quedaron fijados cuando se aprobó la herramienta](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DApproved&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-approve-the-tool)
-
-| Aprobar recursos a la manera antigua | Aprobar la herramienta, a la manera de Lolly |
-|---|---|
-| Cada archivo terminado se revisa, uno a uno | La herramienta se revisa una vez |
-| Solicitud → el diseñador la construye → revisión de marca → revisión legal → cambios → nueva revisión | Un cambio de parámetro → recurso terminado |
-| Diseñador, responsable de marca, legal y solicitante, todos en el bucle | El productor, por su cuenta |
-| Días por recurso | Segundos por recurso |
-| 10.000 recursos = 10.000 ciclos de revisión | 10.000 recursos = cero (la plantilla ya estaba aprobada) |
+![Todo el trabajo del productor: escribir las palabras. La tipografía, el color y el espaciado quedaron fijados cuando se hizo la herramienta](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
 
 ## Lo que esto aporta de forma única
 

@@ -28,8 +28,15 @@ export type Band = (typeof BANDS)[number];
 interface BandMeta { id: Band; title: string; glyph: string; asks: string }
 interface SectionMeta { band: Band; glyph: string }
 
-const BAND_LIST = vocabulary.bands as unknown as BandMeta[];
-const SECTIONS = vocabulary.sections as unknown as Record<string, SectionMeta>;
+const isBand = (value: unknown): value is Band => typeof value === 'string' && (BANDS as readonly string[]).includes(value);
+
+/** The vocabulary file read through a guard, so a band id the code does not know is dropped rather than trusted. */
+const BAND_LIST: BandMeta[] = vocabulary.bands.flatMap((band) =>
+  isBand(band.id) ? [{ id: band.id, title: band.title, glyph: band.glyph, asks: band.asks }] : []);
+const SECTIONS: Record<string, SectionMeta> = Object.fromEntries(
+  Object.entries(vocabulary.sections).flatMap(([name, section]) =>
+    isBand(section.band) ? [[name, { band: section.band, glyph: section.glyph }]] : []),
+);
 
 /** `Object.hasOwn`, not a bare lookup: a section literally named `constructor` or
  *  `__proto__` must not resolve through the prototype into a band. */
@@ -77,6 +84,18 @@ export function resolveBands(sections: readonly string[]): Map<string, Band> {
     out.set(name, carried);
   }
   return out;
+}
+
+/**
+ * Whether a band is drawn with a band head (`.lp-band-head` in panel.css) rather
+ * than a band label: it holds exactly one section, and that section has the
+ * band's own name ("Layout" alone in the layout band). A label reading LAYOUT
+ * over a section head reading Layout says one word twice, so the rule becomes
+ * the section's head. Every other band keeps its label, including one whose single
+ * section has a different name (Position alone is still Layout, then Position).
+ */
+export function isBandHead(band: Band, sections: readonly string[]): boolean {
+  return sections.length === 1 && normalise(sections[0]!) === normalise(bandMeta(band).title);
 }
 
 /** The sections a tool declares, regrouped into ladder order. Order WITHIN a band

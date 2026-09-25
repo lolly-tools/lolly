@@ -174,7 +174,9 @@ export function subPathsFromPath(p: GeomPath): SubPath[] {
 /** Round to a sane number of decimals without printing `1.2000000000000002`. */
 function num(v: number, dp: number): string {
   const s = v.toFixed(dp);
-  return s.replace(/\.?0+$/, '') || '0';
+  // Trailing zeros are trimmed only after a decimal point: at 0 places "1524000" is a whole number.
+  const out = s.includes('.') ? s.replace(/\.?0+$/, '') : s;
+  return out === '-0' || out === '' ? '0' : out;
 }
 
 /**

@@ -410,7 +410,7 @@ export async function rasterToOcrFrame(_cat: CatCtx, url: string): Promise<{ wid
 // the current pairing.
 export const iconSwatchRow = (cat: CatCtx, active: string | null): string =>
   `<div class="cat-dl-themes" role="group" aria-label="${escapeText(t('Icon colours'))}">${cat.iconThemes.map(th =>
-      `<button type="button" class="cat-dl-theme${th.id === active ? ' is-active' : ''}" data-theme="${escapeText(th.id)}" data-sfx="shimmer" data-voice="${escapeText(th.label ?? th.id)}" aria-pressed="${th.id === active}" title="${escapeText(th.label ?? th.id)}"><span class="cat-dl-duo" style="background:${escapeText(th.previewBg ?? '#fff')}"><i style="background:${escapeText(String(th.c2 ?? '#888'))}"></i><i style="background:${escapeText(String(th.c1 ?? '#333'))}"></i></span></button>`).join('')}</div>`;
+      `<button type="button" class="cat-dl-theme${th.id === active ? ' is-active' : ''}" data-theme="${escapeText(th.id)}" data-sfx="shimmer" aria-pressed="${th.id === active}" title="${escapeText(th.label ?? th.id)}"><span class="cat-dl-duo" style="background:${escapeText(th.previewBg ?? '#fff')}"><i style="background:${escapeText(String(th.c2 ?? '#888'))}"></i><i style="background:${escapeText(String(th.c1 ?? '#333'))}"></i></span></button>`).join('')}</div>`;
 // The bitmap sibling of iconSwatchRow: a photo-treatment strip for raster groups. Leads
 // with an "Original" (no-treatment) button, then one gradient swatch per treatment
 // (greyscale ramp / duotone shadow→highlight). Reuses the .cat-dl-theme chrome; the extra
@@ -422,9 +422,9 @@ export const treatmentSwatchRow = (cat: CatCtx, active: string | null): string =
     return `linear-gradient(135deg,${stops.join(',')})`;
   };
   return `<div class="cat-dl-themes" role="group" aria-label="${escapeText(t('Photo colour treatment'))}">`
-    + `<button type="button" class="cat-dl-theme cat-dl-treat${!active ? ' is-active' : ''}" data-treatment="" data-voice="${escapeText(t('Original'))}" aria-pressed="${!active}" title="${escapeText(t('Original - no treatment'))}" style="width:auto;padding:0 9px;font-size:11px;font-weight:600">${t('Original')}</button>`
+    + `<button type="button" class="cat-dl-theme cat-dl-treat${!active ? ' is-active' : ''}" data-treatment="" aria-pressed="${!active}" title="${escapeText(t('Original - no treatment'))}" style="width:auto;padding:0 9px;font-size:11px;font-weight:600">${t('Original')}</button>`
     + cat.photoTreatments.map(tr =>
-      `<button type="button" class="cat-dl-theme cat-dl-treat${tr.id === active ? ' is-active' : ''}" data-treatment="${escapeText(tr.id)}" data-sfx="shimmer" data-voice="${escapeText(tr.label ?? tr.id)}" aria-pressed="${tr.id === active}" title="${escapeText(tr.label ?? tr.id)}"><span class="cat-dl-duo" style="background:${swatch(tr)}"></span></button>`).join('')
+      `<button type="button" class="cat-dl-theme cat-dl-treat${tr.id === active ? ' is-active' : ''}" data-treatment="${escapeText(tr.id)}" data-sfx="shimmer" aria-pressed="${tr.id === active}" title="${escapeText(tr.label ?? tr.id)}"><span class="cat-dl-duo" style="background:${swatch(tr)}"></span></button>`).join('')
     + `</div>`;
 };
 /** A DOM-built copy of genAiPill (text form) - for in-place updates where a

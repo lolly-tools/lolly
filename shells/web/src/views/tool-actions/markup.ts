@@ -8,7 +8,7 @@
  * from renderActions() by scripts/split-closure.ts.
  */
 import { learningRenditions } from '../../../../../engine/src/learning/delivery.ts';
-import { CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, UNITS } from '@lolly/engine';
+import { CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, HDR_DEFAULTS, OUTPUT_LICENCE_CHOICES, UNITS } from '@lolly/engine';
 import { durableSupport, liveCaptureSupport } from '../../bridge/format-support.js';
 import { helpTip } from '../../components/help-tip.js';
 import { t, tRaw } from '../../i18n.ts';
@@ -394,7 +394,37 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
   // or per-format [data-*-only] gating changes; this only adds one more OUTER
   // layer of visibility on top (see refreshPrintUi, which also owns hiding the
   // whole wrapper when NONE of the three apply to the selected format).
-  const hasProtection = hasPdf || hasZip || c2paFormats.length > 0 || imprintFmts.length > 0; ta.hasProtection = hasProtection;
+  // The licence the person declares for their own export. Written into the file's
+  // licence metadata by the runtime, so it is offered wherever the runtime stamps
+  // metadata: never on an on-device utility (which adds nothing to the file), and
+  // not beside a tool input that already binds the licence field (Claim), which
+  // would be two controls for one value.
+  const hasLicence =
+    manifest.privacy !== 'on-device' &&
+    !(manifest.inputs ?? []).some((i) => (i as { bindToMeta?: string }).bindToMeta === 'license') &&
+    typeof runtime.setOutputLicence === 'function'; ta.hasLicence = hasLicence;
+  const heldLicence = hasLicence ? runtime.outputLicence() : null;
+  const licenceTip = hasLicence
+    ? helpTip(
+        t(
+          'The licence you grant for this work. Its name and a link to the licence are written into the file’s metadata and its Content Credential, where the format has room for them. Lolly records the licence you choose; it does not check or enforce its terms.'
+        )
+      )
+    : null;
+  const licenceRow = hasLicence
+    ? `
+      <div class="section-card export-licence" data-licence-section>
+        <label class="export-licence-pick help-tip-host">
+          <span class="c2pa-head">${icon('users', { className: 'c2pa-icon' })}<span>${escapeText(t('Licence'))}</span></span>
+          ${licenceTip!.button}${licenceTip!.pop}
+          <select class="field-select field-select--sm" data-action="export-licence" aria-label="${escapeText(t('Licence for this work'))}">
+            <option value=""${heldLicence ? '' : ' selected'}>${escapeText(t('None (all rights reserved)'))}</option>
+            ${OUTPUT_LICENCE_CHOICES.map((c) => `<option value="${escapeText(c.id)}"${c.id === heldLicence ? ' selected' : ''}>${escapeText(c.name)}</option>`).join('')}
+          </select>
+        </label>
+      </div>`
+    : ''; ta.licenceRow = licenceRow;
+  const hasProtection = hasPdf || hasZip || c2paFormats.length > 0 || imprintFmts.length > 0 || hasLicence; ta.hasProtection = hasProtection;
   // Collapsed by default. Pre-opened only when an inner card carries an EXPLICIT
   // deep-linked setting - a URL-sourced password, a URL-sourced C2PA choice, or a
   // linked imprint/durable flag - so a share link still surfaces its setting without
@@ -404,7 +434,8 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
     pdfPassInitOpen ||
     Boolean(exportDefaults.c2pa) ||
     Boolean(exportDefaults.imprint) ||
-    Boolean(exportDefaults.durable); ta.protectionOpen = protectionOpen;
+    Boolean(exportDefaults.durable) ||
+    Boolean(heldLicence); ta.protectionOpen = protectionOpen;
   // Matches the canonical per-format predicates the inner cards already use
   // (isC2paFmt/isImprintFmt, plus the password card's pdf/pdf-cmyk/zip set) -
   // never loosened, just OR'd together to decide the outer wrapper.
@@ -413,13 +444,14 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
     initialFmt === 'pdf-cmyk' ||
     initialFmt === 'zip' ||
     isC2paFmt(initialFmt) ||
-    isImprintFmt(initialFmt); ta.protectionVisibleInitial = protectionVisibleInitial;
+    isImprintFmt(initialFmt) ||
+    hasLicence; ta.protectionVisibleInitial = protectionVisibleInitial;
   const protectionRow = hasProtection
     ? `
       <div class="section-card export-protection${protectionOpen ? ' is-open' : ''}" data-protection-section style="display:${protectionVisibleInitial ? 'flex' : 'none'}">
         <button type="button" class="protection-head" data-action="protection-toggle" aria-expanded="${protectionOpen}">${icon('shield', { className: 'protection-icon' })}<span>${t('Content protection')}</span></button>
         <div class="protection-body" data-protection-body style="display:${protectionOpen ? 'flex' : 'none'}">
-          ${pdfPassRow}${c2paRow}${imprintRow}${durableRow}
+          ${licenceRow}${ta.rights.rowHtml()}${pdfPassRow}${c2paRow}${imprintRow}${durableRow}
         </div>
       </div>`
     : ''; ta.protectionRow = protectionRow;
@@ -665,27 +697,24 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
         )
       )
     : null; ta.captionsTip = captionsTip;
+  // Lives in the Pro settings fold and stays hidden until there is caption text to
+  // carry (syncCaptionsAvailable): burned-in captions need no setting, so a film
+  // with nothing spoken and no caption boxes has nothing to choose here.
   const captionsRow = !hasVideo
     ? ''
     : `
-      <div class="export-audio export-captions" data-video-only style="display:${ta.formatRules.isVideoFmt(initialFmt) ? 'flex' : 'none'}">
-        <span class="audio-head help-tip-host">${icon('transcript', { className: 'audio-icon' })}<span>${escapeText(t('Captions'))}</span>${captionsTip!.button}${captionsTip!.pop}</span>
-        <div class="audio-fade">
-          <label title="${escapeText(t('Caption boxes on the canvas are drawn into every frame.'))}">
-            <input type="checkbox" class="field-check" checked disabled aria-label="${escapeText(t('Burned in'))}">
-            ${escapeText(t('Burned in'))}
-          </label>
-          <label>
-            <input type="checkbox" class="field-check" data-action="captions-embed" ${initialFmt === 'webm' ? 'checked' : ''}>
-            ${escapeText(t('Embedded track'))}
-          </label>
-          <label>
-            <input type="checkbox" class="field-check" data-action="captions-sidecar">
-            ${escapeText(t('Sidecar .vtt + .srt'))}
-          </label>
-        </div>
-        <p class="section-card__hint" data-captions-mp4-note style="display:${initialFmt === 'mp4' ? 'block' : 'none'}">${escapeText(t('Some players ignore captions inside MP4'))}</p>
-      </div>`; ta.captionsRow = captionsRow;
+            <div class="prosettings-captions help-tip-host" data-captions-block hidden>
+              <span class="prosettings-captions-head">${escapeText(t('Captions'))}</span>${captionsTip!.button}${captionsTip!.pop}
+              <label class="export-option">
+                <input type="checkbox" class="field-check" data-action="captions-embed" ${initialFmt === 'webm' ? 'checked' : ''}>
+                ${escapeText(t('Embedded track'))}
+              </label>
+              <label class="export-option">
+                <input type="checkbox" class="field-check" data-action="captions-sidecar">
+                ${escapeText(t('Sidecar .vtt + .srt'))}
+              </label>
+              <p class="section-card__hint" data-captions-mp4-note style="display:${initialFmt === 'mp4' ? 'block' : 'none'}">${escapeText(t('Some players ignore captions inside MP4'))}</p>
+            </div>`; ta.captionsRow = captionsRow;
 
   // WP-B: video quality select (Smaller / Balanced / Best) plus a default-collapsed
   // "Pro settings" disclosure (explicit codec, frame rate, rate mode, encoder hint).
@@ -739,6 +768,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
                 <option value="prefer-software">${escapeText(t('Prefer software'))}</option>
               </select>
             </label>
+            ${captionsRow}
           </div>
         </div>
       </div>`; ta.videoQualityRow = videoQualityRow;
@@ -891,7 +921,7 @@ export function buildPrintAndRows(ta: ActionsCtx): void {
 }
 
 export function paintBar(ta: ActionsCtx): void {
-  const { actions, aspectWarnRow, audioRow, captionsRow, cmykRow, costRow, dimsRow, downloadRow, el, exportOpts, fidelityWarnRow, filenameRow, hdrRow, host, initialExperience, isAudioCaptureTool, loudnessRow, manifest, notesHandoutRow, pkgRow, preflightRow, printRow, protectionRow, recordingRow, runtime, secondaryRow, sendRow, settingsRow, timingRow, videoQualityRow } = ta;
+  const { actions, aspectWarnRow, audioRow, cmykRow, costRow, dimsRow, downloadRow, el, exportOpts, fidelityWarnRow, filenameRow, hdrRow, host, initialExperience, isAudioCaptureTool, loudnessRow, manifest, notesHandoutRow, pkgRow, preflightRow, printRow, protectionRow, recordingRow, runtime, secondaryRow, sendRow, settingsRow, timingRow, videoQualityRow } = ta;
   // The action buttons are the sheet's PRIMARY content, so they come FIRST -
   // Copy / Save / Share and Download at the very top, before any setting - and
   // the dock sticks to the top edge so they stay in reach while the long sheets
@@ -905,7 +935,7 @@ export function paintBar(ta: ActionsCtx): void {
       ${actions.includes('download') ? `<p class="export-degraded-note" data-export-degraded role="status" hidden style="margin:.2rem 0 0;color:hsl(var(--muted-foreground));font-size:12px;text-align:center"></p>` : ''}
       ${actions.includes('download') ? `<p class="export-delivery" data-export-delivery role="status" hidden></p>` : ''}
     </div>
-    ${actions.includes('download') ? `${recordingRow}${filenameRow}${dimsRow}${timingRow}${aspectWarnRow}${fidelityWarnRow}${notesHandoutRow}${cmykRow}${printRow}${pkgRow}${protectionRow}<div class="export-ingredient-note" data-ingredient-note hidden></div>${ta.rights.rowHtml()}${captionsRow}${settingsRow}${videoQualityRow}<details class="section-card export-video-options" data-video-options open><summary hidden>${escapeText(t('Audio and colour settings'))}</summary>${audioRow}${loudnessRow}${hdrRow}</details>${sendRow}${preflightRow}${costRow}` : ''}
+    ${actions.includes('download') ? `${recordingRow}${filenameRow}${dimsRow}${timingRow}${aspectWarnRow}${fidelityWarnRow}${notesHandoutRow}${cmykRow}${printRow}${pkgRow}${protectionRow}<div class="export-ingredient-note" data-ingredient-note hidden></div>${protectionRow ? '' : ta.rights.rowHtml()}${settingsRow}${videoQualityRow}<details class="section-card export-video-options" data-video-options open><summary hidden>${escapeText(t('Audio and colour settings'))}</summary>${audioRow}${loudnessRow}${hdrRow}</details>${sendRow}${preflightRow}${costRow}` : ''}
   `;
   void ta.notes.fillIngredientNote();
 

@@ -214,7 +214,7 @@ Source keys retain their own frame times and easing. Existing spatial position k
 
 Position axes can use different curves in dotLottie export. Anchor and scale axes must use matching curves for that export; otherwise use movie export. Your internal edits and original upload remain saved.
 
-Font-dependent text, expressions, 3D, masks, mattes, effects and themed appearance are not supported. An unsupported import or export names the feature; it is never silently replaced by a still. Use movie export for supported editor content that cannot be represented in dotLottie, such as native text and video.
+Font-dependent text, expressions, 3D, masks, mattes, effects and themed appearance are not supported. An unsupported import or export reports the feature; it is never silently replaced by a still. Use movie export for supported editor content that cannot be represented in dotLottie, such as native text and video.
 
 Packages must be at most 64 MiB, and clips must last at least 0.1 seconds. Required credits travel inside the exported package as readable files. dotLottie exports do not carry signed Content Credentials.
 

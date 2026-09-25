@@ -217,7 +217,7 @@ A Design document made of **artboards** is already a deck. Open the **Lolly menu
 
 ![The inspector's Document section: Voice, Blend with, Speed, Lead-in, Tail and Show captions when presenting](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
 
-The deck is a link as well. `?present` opens straight into it, `s=` names the slide - a position, an artboard id or `id.step` for a build step - and the address updates as you move, so what you send is the slide you're on. Tool authors: those parameters are documented on the [URL Mode](/info/url-parameters.html#reserved-parameters) page.
+The deck is a link as well. `?present` opens straight into it, `s=` picks the slide - a position, an artboard id or `id.step` for a build step - and the address updates as you move, so what you send is the slide you're on. Tool authors: those parameters are documented on the [URL Mode](/info/url-parameters.html#reserved-parameters) page.
 
 ## On a phone
 
@@ -238,7 +238,7 @@ Tools expose only the inputs that are meant to vary - everything else (colours, 
 
 ### Undo and redo
 
-**Cmd/Ctrl-Z** steps back and **Cmd/Ctrl-Shift-Z** (or **Cmd/Ctrl-Y**) steps forward again. The same pair sits as **Undo** and **Redo** buttons in the row above the controls - on the free canvas they're on the tool rail instead - and each greys out while there's nothing left to take back. Every step says what it was: undo a colour and a small message names the input it just restored, with a **Redo** button in it for the way back.
+**Cmd/Ctrl-Z** steps back and **Cmd/Ctrl-Shift-Z** (or **Cmd/Ctrl-Y**) steps forward again. The same pair sits as **Undo** and **Redo** buttons in the row above the controls - on the free canvas they're on the tool rail instead - and each greys out while there's nothing left to take back. Every step says what it was: undo a colour and a small message tells you which input it just restored, with a **Redo** button in it for the way back.
 
 - **A drag is one step.** Repeated changes to the same control within half a second merge together, so pulling a slider across its range is a single undo rather than two hundred.
 - **The last 100 steps are kept** - older ones drop off the end. Making a fresh edit after undoing clears the forward stack, as it does everywhere else.
@@ -290,7 +290,7 @@ folder has to already EXIST in the capture profile, which a per-shot fresh
 context has none of.
 Also: the popover is not sort-only. openViewOpts() writes a theme segment, a
 "View" pair (Preview / List) and a sound segment around the Sort rows, so the
-alt text names them - do not re-caption this as "the sort menu".
+alt text lists them - do not re-caption this as "the sort menu".
 -->
 
 **What the selection bar offers** differs a little by view, since not every action makes sense everywhere:
@@ -337,7 +337,7 @@ Paste the link to a colleague, bookmark it or commit it. (Full details: [URL Mod
 
 ![Jump Page in the editor - the heading, three link scenes each with its own wash and a Made with Lolly footer, laid out as one page in the canvas](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
-**The dialog says what a link cannot carry.** Three things don't fit in a URL: an image or file you added from this device, a very long text value or a very large list. Each one is counted as the link is built. If anything had to be dropped the dialog names it and points you at the file below, instead of handing you a link that opens with the picture missing. A link that is merely *long* gets a milder note with its character count, since packing can still rescue length.
+**The dialog says what a link cannot carry.** Three things don't fit in a URL: an image or file you added from this device, a very long text value or a very large list. Each one is counted as the link is built. If anything had to be dropped the dialog lists it and points you at the file below, instead of handing you a link that opens with the picture missing. A link that is merely *long* gets a milder note with its character count, since packing can still rescue length.
 
 ### The .lolly file
 
@@ -346,7 +346,7 @@ Paste the link to a colleague, bookmark it or commit it. (Full details: [URL Mod
 - A **shared design** (`lolly-share`) contains one saved tool session, its embedded files and a receipt for anything that still resolves by reference. It may also carry the tool and the design system used to make it. Opening adds a new Project; it never overwrites an existing session.
 - A **shared project** (`lolly-share` with the `project` kind) contains a folder from Projects: its sub-folders, every saved session filed in them, each session's tile and the pictures filed there. Opening adds a copy of the whole folder to Projects; nothing already there is replaced. A Lolly from before project files existed cannot read one and says to update.
 - A **design-system pack** (`lolly-brand`) contains tokens and may contain fonts, logos, published versions and retained resources. Opening adds it as a separate named design system, then switches to it; systems already on the device remain.
-- A **brand workspace / instance pack** is a `lolly-brand` with declared tools, catalogue assets and optionally an instance address. The preflight names those device-wide effects because loading it replaces the single previously loaded workspace overlay.
+- A **brand workspace / instance pack** is a `lolly-brand` with declared tools, catalogue assets and optionally an instance address. The preflight lists those device-wide effects because loading it replaces the single previously loaded workspace overlay.
 
 A full **device/profile backup is not a `.lolly`**. It remains a `LollyTools-….zip` with format `lolly-backup`, and restores only through **Profile → Storage**. A plain zipped tool folder also remains `.zip`. In other words, session and design-system bundles own `.lolly`; backup and loose archive workflows do not.
 
@@ -368,7 +368,7 @@ An iOS or Android document handed in from another app is capped at 48 MB because
 
 After confirmation the selected reader inflates and verifies the bundle once. A shared design's assets go to your library, its session goes to Projects and its tool opens when available. A shared project's sessions go to Projects under a new copy of its folders, with new ids so the same file can be opened twice, and the folder opens; a session whose tool this device lacks waits there. An asset already on the device is matched by checksum and reused. A design-system pack is stored in its own namespace before the app switches to it. Files over 100 MB are called out as large, and the preflight warns when browser storage reports less free space than the declared payload needs. Every integrity-covered part is checked before the operation commits; a damaged copy is refused and the newly-created destination is rolled back.
 
-If the file carries a tool you don't have, Lolly asks before that tool can run: **Trust this tool?** names it and its author and says plainly that opening it runs the tool's own code on your device, with **Trust & install** as the way through. Decline and the shared work is still saved to your projects, waiting there for the day you add the tool. (One kind of tool can't be sideloaded yet - one whose code ships as a module - and it's turned away the same way.)
+If the file carries a tool you don't have, Lolly asks before that tool can run: **Trust this tool?** shows the tool and its author and says plainly that opening it runs the tool's own code on your device, with **Trust & install** as the way through. Decline and the shared work is still saved to your projects, waiting there for the day you add the tool. (One kind of tool can't be sideloaded yet - one whose code ships as a module - and it's turned away the same way.)
 
 A link and a file both hand over a snapshot. To work on the same session *at the same time* as someone else - two devices, no server, no internet needed if you're on one network - see [Working together](/info/collaborate.html).
 

@@ -1,0 +1,239 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schema/slide-master-v1.schema.json",
+  "title": "Lolly SlideMasterFileV1",
+  "description": "What a brand pack's catalog/assets/<ns>/slides/masters.json holds. Mirrors packages/core/src/slide-master-v1.ts (plan 274 section 3.4, plan 275 section 2.5). The root is the FILE; one master is $defs/master. From plan 275 an archetype id is open (the twelve of $defs/knownArchetypeId, or a layout library id); a build from before it refuses a master holding a library id with its own message rather than misreading it.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "masters"],
+  "properties": {
+    "version": { "const": 1 },
+    "masters": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": { "$ref": "#/$defs/master" }
+    },
+    "library": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "description": "The layout library the masters restyle, when a build generated them from one.",
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 256 },
+        "version": { "type": "string", "minLength": 1, "maxLength": 64 }
+      }
+    }
+  },
+  "$defs": {
+    "fraction": { "type": "number", "minimum": -1, "maximum": 2 },
+    "box": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["x", "y", "w", "h"],
+      "description": "Fractions of the master size, origin top left.",
+      "properties": {
+        "x": { "$ref": "#/$defs/fraction" },
+        "y": { "$ref": "#/$defs/fraction" },
+        "w": { "type": "number", "exclusiveMinimum": 0, "maximum": 2 },
+        "h": { "type": "number", "exclusiveMinimum": 0, "maximum": 2 }
+      }
+    },
+    "hex": { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$" },
+    "tokenPath": { "type": "string", "minLength": 1, "maxLength": 256, "pattern": "^[a-z0-9]+([.-][a-z0-9]+)*$" },
+    "knownArchetypeId": {
+      "description": "The twelve archetype ids every master before the layout library carries (KNOWN_ARCHETYPE_IDS). Every one matches $defs/archetypeId too.",
+      "enum": [
+        "title", "section", "content", "two-column", "split", "visual",
+        "full-image", "quote", "big-number", "main-point", "agenda", "table"
+      ]
+    },
+    "archetypeId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,40}$",
+      "description": "One of $defs/knownArchetypeId, or a layout library id the build generated the archetype under (StructureIdV1)."
+    },
+    "structureId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,40}$",
+      "description": "A layout library entry id: lower case letters, digits and dashes, starting with a letter. Permanent, never reused."
+    },
+    "gridSpan": {
+      "type": "array",
+      "description": "[start, span] on the 12-column content grid.",
+      "prefixItems": [
+        { "type": "integer", "minimum": 0, "maximum": 11 },
+        { "type": "integer", "minimum": 1, "maximum": 12 }
+      ],
+      "items": false,
+      "minItems": 2
+    },
+    "repeat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["count", "across", "cell"],
+      "description": "The authoring shorthand for repeated boxes: count cells, across per row, each split top to bottom by cell (role:share).",
+      "properties": {
+        "count": { "type": "integer", "minimum": 1, "maximum": 32 },
+        "across": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "cell": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": { "type": "string", "pattern": "^(title|subtitle|body|visual|data|caption|number|label|quote|attribution):(0\\.[0-9]*[1-9][0-9]*|1(\\.0+)?)$", "description": "role:share, the share above 0 and at most 1." }
+        },
+        "cellCols": { "$ref": "#/$defs/gridSpan" },
+        "numberCol": { "$ref": "#/$defs/gridSpan" },
+        "iconCol": { "$ref": "#/$defs/gridSpan" },
+        "rule": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "A rule through the row. y (with h) draws it across the row, x (with w) down a stacked list; the position is derived from the cells, so the x or y value marks the axis and is not a place on the slide.",
+          "properties": {
+            "x": { "$ref": "#/$defs/fraction" },
+            "y": { "$ref": "#/$defs/fraction" },
+            "w": { "type": "number", "exclusiveMinimum": 0, "maximum": 2 },
+            "h": { "type": "number", "exclusiveMinimum": 0, "maximum": 2 }
+          }
+        },
+        "fit": { "enum": ["contain", "cover", "fill"] },
+        "inset": { "type": "number", "minimum": 0, "maximum": 0.5 },
+        "dataKind": { "enum": ["image", "table"] }
+      }
+    },
+    "role": {
+      "enum": ["title", "subtitle", "body", "visual", "data", "caption", "number", "label", "quote", "attribution"]
+    },
+    "textStyle": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fontSize": { "type": "number", "exclusiveMinimum": 0, "maximum": 4096, "description": "px at the master size." },
+        "weight": { "enum": ["100", "200", "300", "400", "500", "600", "700", "800", "900"] },
+        "align": { "enum": ["left", "center", "right"] },
+        "valign": { "enum": ["top", "middle", "bottom"] },
+        "font": { "enum": ["sans", "display", "mono"] },
+        "fg": { "$ref": "#/$defs/hex" },
+        "fgTokenPath": { "$ref": "#/$defs/tokenPath" }
+      }
+    },
+    "placeholder": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["role", "box", "kind"],
+      "properties": {
+        "role": { "$ref": "#/$defs/role" },
+        "box": { "$ref": "#/$defs/box" },
+        "kind": { "enum": ["text", "image", "table"] },
+        "style": { "$ref": "#/$defs/textStyle" },
+        "fit": { "enum": ["contain", "cover", "fill"] },
+        "prompt": { "type": "string", "maxLength": 256 },
+        "group": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$", "description": "The cell this placeholder shares with others in a repeat." },
+        "index": { "type": "integer", "minimum": 0, "maximum": 255, "description": "Position within a repeat, 0-based, in reading order." },
+        "optional": { "type": "boolean", "description": "An empty optional slot is not spare and is not drawn as an empty placeholder." },
+        "overlay": { "type": "boolean", "description": "Sits over another placeholder on purpose, so the overlap rule allows it." }
+      }
+    },
+    "furniture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "box"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$", "description": "Unique within the master, and not one of the placeholder roles or a role with a number suffix (title, body-2, ...): a seeded layer id is <prefix>.<furniture id> or <prefix>.<role>[-<n>], so a furniture id that spells a role would mint two layers with one id." },
+        "kind": { "enum": ["logo", "page-number", "footer", "bar", "rect"] },
+        "box": { "$ref": "#/$defs/box" },
+        "variantByBackground": { "type": "boolean" },
+        "text": { "type": "string", "maxLength": 256 },
+        "tokenPath": { "$ref": "#/$defs/tokenPath" },
+        "hex": { "$ref": "#/$defs/hex" },
+        "style": { "$ref": "#/$defs/textStyle" }
+      }
+    },
+    "background": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tokenPath": { "$ref": "#/$defs/tokenPath" },
+        "hex": { "$ref": "#/$defs/hex" },
+        "dark": { "type": "boolean", "description": "The master's own statement about this background, and the one the logo variant is picked from. State it wherever the resolved colour would not measure the way the archetype is meant to read." }
+      }
+    },
+    "archetype": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "placeholders"],
+      "properties": {
+        "id": { "$ref": "#/$defs/archetypeId" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "placeholders": { "type": "array", "maxItems": 32, "items": { "$ref": "#/$defs/placeholder" } },
+        "furniture": { "type": "array", "maxItems": 64, "items": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$" } },
+        "background": { "$ref": "#/$defs/background" },
+        "structure": { "$ref": "#/$defs/structureId" },
+        "section": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,40}$" },
+        "repeat": { "$ref": "#/$defs/repeat" },
+        "variants": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "dark": { "$ref": "#/$defs/archetypeId" }
+          }
+        },
+        "variantOf": { "$ref": "#/$defs/archetypeId", "description": "On a variant, the archetype it is the variant of." }
+      }
+    },
+    "master": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version", "name", "size", "archetypes", "furniture", "typeScale", "logo"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9]+(/[a-z0-9][a-z0-9-]*)+$" },
+        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "description": { "type": "string", "maxLength": 2048 },
+        "size": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["width", "height"],
+          "properties": {
+            "width": { "type": "integer", "minimum": 1, "maximum": 20000 },
+            "height": { "type": "integer", "minimum": 1, "maximum": 20000 }
+          }
+        },
+        "archetypes": { "type": "array", "minItems": 1, "maxItems": 128, "items": { "$ref": "#/$defs/archetype" } },
+        "furniture": { "type": "array", "maxItems": 64, "items": { "$ref": "#/$defs/furniture" } },
+        "typeScale": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["title", "subtitle", "body", "caption", "number", "label"],
+          "description": "px at the master size.",
+          "properties": {
+            "title": { "type": "number", "exclusiveMinimum": 0, "maximum": 4096 },
+            "subtitle": { "type": "number", "exclusiveMinimum": 0, "maximum": 4096 },
+            "body": { "type": "number", "exclusiveMinimum": 0, "maximum": 4096 },
+            "caption": { "type": "number", "exclusiveMinimum": 0, "maximum": 4096 },
+            "number": { "type": "number", "exclusiveMinimum": 0, "maximum": 4096 },
+            "label": { "type": "number", "exclusiveMinimum": 0, "maximum": 4096 }
+          }
+        },
+        "logo": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["variantByBackground"],
+          "properties": {
+            "variantByBackground": { "type": "boolean" },
+            "assetTags": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["onLight", "onDark"],
+              "properties": {
+                "onLight": { "type": "array", "minItems": 1, "maxItems": 8, "items": { "type": "string", "minLength": 1, "maxLength": 64 } },
+                "onDark": { "type": "array", "minItems": 1, "maxItems": 8, "items": { "type": "string", "minLength": 1, "maxLength": 64 } },
+                "mono": { "type": "array", "minItems": 1, "maxItems": 8, "items": { "type": "string", "minLength": 1, "maxLength": 64 }, "description": "Extra tags that name the mono mark WITHIN a side, not a third side: the mono slot for a side is that side's tags plus these, and the colour slot is that side's first match that is not the mono one." }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

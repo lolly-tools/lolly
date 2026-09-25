@@ -59,6 +59,14 @@ public/info/audio/
 # copy here is per-profile, so committing it would freeze one brand's art into a
 # build output that every other profile rewrites.
 public/info/examples/
+# The document model specification, built by docs/spec-pages.ts (plan 276). Its
+# chapters and the concatenated twin are already covered by the **/*.html and
+# **/*.md rules at the top; these two are the rest of that build: the diagrams
+# copied from the committed docs/diagrams/, and the chapter index derived from the
+# committed docs/spec/ sources. Same rule as shots/ and examples/ above - mirrored
+# from a source of truth that lives elsewhere, so a copy here would go stale.
+public/info/diagrams/
+public/info/spec/**/index.json
 public/info/search-index.json
 public/info/*/search-index.json
 public/info/audio-index.json

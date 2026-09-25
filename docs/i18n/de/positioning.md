@@ -53,27 +53,19 @@ Deck Studio ist ein guter Maßstab für die Obergrenze hier: eine ganze Foliende
 
 Die meisten "KI-Kreativ"-Pitches stellen das Modell auf die falsche Seite einer alten Trennlinie. Schreiber und Illuminatoren hatten längst geklärt, wo sie verläuft: Man arbeitet locker in der Skizze, wo alles ausprobiert und nichts festgelegt wird, und geht dann zur Druckpresse, die genau deshalb einschüchternd wirkt, weil sie sich festlegt. In den Skizzen steckte die Kunst. Die Presse war das Mittel, wie sie sich verbreitete. Zwei Werkzeuge, zwei Aufgaben, jedes auf seine Weise erfinderisch, und dem gedruckten Werk konnte man vertrauen, weil die Presse ihr Versprechen bei jedem Abzug einhielt.
 
-Lolly ist die Presse, nicht die Skizze. Bringen Sie zur Ideenfindung mit, was Sie wollen - ein Modell, einen Designer, eine Serviette -, aber sobald eine Idee zu zehntausend Assets werden muss, durchläuft sie etwas, das jedes Mal gleich rendert, ausgehend von Eingaben, die jeder nachvollziehen kann. Genau darum geht es beim obigen Vergleich: nicht darum, wer den besseren Generator hat, sondern wer den festgelegten Schritt reproduzierbar macht.
+Lolly ist die Presse, nicht die Skizze. Bringen Sie zur Ideenfindung mit, was Sie wollen - ein Modell, einen Designer, eine Serviette -, aber sobald eine Idee zu vielen Assets werden muss, durchläuft sie etwas, das jedes Mal gleich rendert, ausgehend von Eingaben, die jeder nachvollziehen kann. Genau darum geht es beim obigen Vergleich: nicht darum, wer den besseren Generator hat, sondern wer den festgelegten Schritt reproduzierbar macht.
 
 > Dem kreativen Prozess vertrauen, mit Präzision skalieren.
 
-## Das Tool freigeben, nicht die Datei
+## Die Regeln liegen im Tool, nicht in der Datei
 
-Jedes andere Tool auf dem Markt erzeugt eine *Datei*, die anschließend geprüft werden muss - ein Brand Manager in einem Slack-Thread, Legal zum Disclaimer, eine Änderungsrunde, eine weitere Prüfung. Lolly verschiebt die Freigabe **einen Schritt weiter vorn**. Die Markenregeln - exakte Hex-Codes, lizenzierte Schriftdateien, Anschnittmargen, Abstände - sind fest in HTML und CSS des Tools kodiert, sodass das Template *kein* markenfremdes Asset ausgeben kann. Das Layout selbst setzt die Regeln durch.
+Jedes andere Tool auf dem Markt erzeugt eine *Datei*, und eine Datei lässt sich immer erst im Nachhinein betrachten, eine Ausgabe nach der anderen. Lolly verschiebt die Markenregeln **einen Schritt weiter vorn**. Exakte Hex-Codes, lizenzierte Schriftdateien, Anschnittmargen, Abstände - all das ist fest in HTML und CSS des Tools kodiert, sodass das Template *kein* markenfremdes Asset ausgeben kann. Das Layout selbst setzt die Regeln durch.
 
-Sie hören also auf, Ausgaben freizugeben, und fangen an, das **Tool** freizugeben, das sie erzeugt. Einmal freigegeben, ist jedes Asset, das es je produziert, durch Konstruktion bereits vorab freigegeben - kein Mensch im Kreislauf, kein Prüfzyklus, bei jeder Menge.
+Das Betrachtenswerte ist also das **Tool**, nicht jede Datei, die es erzeugt. Richten Sie das Tool richtig ein, und jedes Asset, das es je produziert, ist durch Konstruktion markenkonform. Wie Sie Ihre Arbeit prüfen und wer das übernimmt, bleibt Ihre Sache; Lolly macht das Geprüfte kleiner und die Ausgabe schneller herstellbar.
 
-Das ist die Veränderung, die die deterministische Engine tatsächlich liefert: Sie ist keine schnellere Version des alten Freigabeprozesses, sie schafft den Prozess ab. Für das Creative-Team ist sie eine Leitplanke, kein Ersatz - Sie werfen weiterhin den Ball (die Daten, den Text, das Bild), und der Code ist die Bumperbahn, die jeden Wurf aus der Gosse hält.
+Das ist die Veränderung, die die deterministische Engine tatsächlich liefert. Für das Creative-Team ist sie eine Leitplanke, kein Ersatz - Sie werfen weiterhin den Ball (die Daten, den Text, das Bild), und der Code ist die Bumperbahn, die jeden Wurf aus der Gosse hält.
 
-![Der ganze Job des Producers: die Worte tippen. Schrift, Farbe und Abstand waren festgelegt, als das Tool freigegeben wurde](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DApproved&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-approve-the-tool)
-
-| Assets auf die alte Art freigeben | Das Tool freigeben, die Lolly-Art |
-|---|---|
-| Jede fertige Datei wird einzeln geprüft | Das Tool wird einmal geprüft |
-| Anfrage → Designer baut → Markenprüfung → Rechtsprüfung → Änderungen → erneute Prüfung | Eine Parameteränderung → fertiges Asset |
-| Designer, Brand Manager, Legal und Anfragender alle im Kreislauf | Der Producer, allein |
-| Tage pro Asset | Sekunden pro Asset |
-| 10.000 Assets = 10.000 Prüfzyklen | 10.000 Assets = null (das Template war bereits freigegeben) |
+![Der ganze Job des Producers: die Worte tippen. Schrift, Farbe und Abstand waren festgelegt, als das Tool entstand](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
 
 ## Was das einzigartig ermöglicht
 

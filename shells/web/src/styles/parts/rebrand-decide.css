@@ -1,0 +1,429 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* #/rebrand decision column (.rb-decide, plans/274 section 4, plan 275 close-out 3.5),
+   built on the plan 273 .lp-* primitive, so this sheet adds only what the primitive does
+   not have (views/rebrand/decide.ts), and its narrow bottom sheet. The grid that places
+   it is rebrand.css.
+   Tokens only; chrome sizes as calc(Npx * var(--a11y-fs)). A slide preview is content,
+   not chrome: its page tone never follows the app theme, so every drawing paints its
+   own ground and nothing here sets a background under it.
+   Controls take the panel's one control height (--ui-size-control) and grow to the
+   touch target under a coarse pointer, the rule panel.css states for its own.
+   panel.css is unlayered, so a rule in the views layer below never changes a property
+   it sets on an .lp-* class; the rows this column lays out its own way (colours, fonts,
+   objects) carry classes of their own for that reason, and the one override of the
+   primitive (the flag as plain words) sits unlayered at the end.
+   Never write a star followed by a slash inside a CSS comment. */
+@layer views {
+  /* The column's own picture sizes, scaled with the type where they are declared. */
+  .rb-decide {
+    --rb-layout-art-w: calc(96px * var(--a11y-fs));
+    --rb-obj-pic-w: calc(32px * var(--a11y-fs));
+    --rb-obj-pic-h: calc(24px * var(--a11y-fs));
+    --rb-flag-max: calc(160px * var(--a11y-fs));
+  }
+  .rb-decide > .rb-lp { height: 100%; }
+
+  /* Keep, Replace and Remove: the panel's segmented control, full width. Replace
+     opens its choices, so it carries the door glyph beside its word. */
+  .rb-acts,
+  .rb-scope-seg { width: 100%; }
+  .rb-acts > button,
+  .rb-scope-seg > button { min-height: var(--ui-size-control); gap: var(--sp-1); }
+  .rb-act-go {
+    flex: none;
+    width: calc(12px * var(--a11y-fs));
+    height: calc(12px * var(--a11y-fs));
+  }
+  .rb-scope-seg > button[aria-disabled="true"] { opacity: .5; cursor: not-allowed; }
+
+  /* The Replace choices sit straight in the row, each framed with its trailing chevron. */
+  .rb-replace {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    width: 100%;
+  }
+  .rb-replace .lp-door { min-height: var(--ui-size-control); }
+  .rb-replace .lp-door:disabled { opacity: .5; cursor: not-allowed; }
+  .rb-door-go { color: var(--ui-color-text-muted); }
+
+  /* A radio or a checkbox sits in the glyph cell, so its words start on the label edge.
+     The intake's preset dialog rows use this rule too. */
+  .rb-choice {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-height: var(--ui-size-control);
+    font-size: var(--ui-type-body);
+    cursor: pointer;
+  }
+  .rb-choice > input {
+    flex: none;
+    width: var(--ui-size-icon-sm);
+    height: var(--ui-size-icon-sm);
+    margin: 0;
+    accent-color: var(--ui-color-action-primary);
+  }
+  .rb-choice:has(> input:disabled) { cursor: not-allowed; color: var(--ui-color-text-muted); }
+
+  /* Every small button in the column is a real control, never shorter than the rest. */
+  .rb-decide .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    min-height: var(--ui-size-control);
+  }
+  .rb-decide .btn > svg {
+    flex: none;
+    width: var(--ui-size-icon-sm);
+    height: var(--ui-size-icon-sm);
+  }
+
+  /* ── Layout ─────────────────────────────────────────────────────────────── */
+  .rb-layout-now {
+    display: grid;
+    grid-template-columns: var(--rb-layout-art-w) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--sp-3);
+  }
+  .rb-layout-art {
+    display: block;
+    aspect-ratio: var(--rb-ratio, 16 / 9);
+    overflow: hidden;
+    border-radius: var(--ui-radius-choice);
+    box-shadow: var(--ui-edge-faint);
+  }
+  .rb-layout-art > svg { display: block; width: 100%; height: 100%; }
+  .rb-layout-words {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    min-width: 0;
+  }
+  .rb-layout-name { font-size: var(--ui-type-body); font-weight: var(--ui-type-weight-section); }
+  .rb-layout-why {
+    font-size: var(--ui-type-help);
+    line-height: 1.45;
+    color: var(--ui-color-text-muted);
+  }
+  .rb-layout-acts { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+  .rb-layout-acts > .btn { white-space: normal; text-align: start; }
+  /* Position: the two moves, and the switch for whether the slide is in the deck. */
+  .rb-position {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-2);
+    width: 100%;
+  }
+  .rb-include { gap: var(--sp-2); min-height: var(--ui-size-control); font-size: var(--ui-type-body); }
+
+  /* ── Objects ────────────────────────────────────────────────────────────── */
+  .rb-objs {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .rb-objs--sub { padding-inline-start: var(--sp-5); }
+  .rb-objs--sub[hidden] { display: none; }
+  .rb-obj {
+    display: grid;
+    grid-template-columns: var(--rb-obj-pic-w) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--sp-2);
+    width: 100%;
+    min-height: var(--rb-obj-pic-w);
+    padding: 2px var(--sp-2) 2px 2px;
+    border: 0;
+    border-radius: var(--ui-radius-control);
+    background: none;
+    color: var(--ui-color-text-default);
+    font: inherit;
+    font-size: var(--ui-type-body);
+    text-align: start;
+    cursor: pointer;
+  }
+  .rb-obj--group { grid-template-columns: var(--rb-obj-pic-w) minmax(0, 1fr) auto var(--ui-size-icon-sm); }
+  /* The tile rule (close-out principle 3): flat on the column, a 40% ring on hover, the
+     full ring on the selection tint when current. The focus ring sits outside it. The
+     list's gap is the room the ring takes, so two rings never touch. */
+  .rb-obj:hover { box-shadow: var(--ui-effect-selection-ring-hover); }
+  .rb-obj:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
+  .rb-obj[aria-current="true"] { background: var(--ui-color-selection-surface); box-shadow: var(--ui-effect-selection-ring); }
+  /* The object's own region, cropped from its Original slide: a picture that identifies. */
+  .rb-obj-pic {
+    display: block;
+    width: var(--rb-obj-pic-w);
+    height: var(--rb-obj-pic-h);
+    overflow: hidden;
+    border-radius: var(--ui-radius-choice);
+    background: var(--ui-color-surface-muted);
+    box-shadow: var(--ui-edge-faint);
+  }
+  .rb-obj-pic > svg { display: block; width: 100%; height: 100%; }
+  html[data-a11y-previews="hidden"] .rb-obj-pic > svg { display: none; }
+  .rb-obj-words { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rb-obj-snip { color: var(--ui-color-text-muted); }
+  .rb-obj-act { font-size: var(--ui-type-help); color: var(--ui-color-text-muted); white-space: nowrap; }
+  /* A decision that differs from the rule reads in ink. */
+  .rb-obj-act--own { color: var(--ui-color-text-default); font-weight: var(--ui-type-weight-section); }
+
+  /* ── Colours ────────────────────────────────────────────────────────────── */
+  /* A sub-head is a whole line: the primitive's heading across the label and control cells. */
+  .rb-role > .lp-subhead { grid-column: 2 / -1; }
+  .rb-colour {
+    display: grid;
+    grid-template-columns: var(--ui-size-icon-sm) minmax(0, 1fr) minmax(0, 1.2fr);
+    align-items: center;
+    column-gap: var(--sp-2);
+    min-width: 0;
+  }
+  .rb-colour-src {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    font-size: var(--ui-type-help);
+  }
+  .rb-src { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* The source hex keeps its case and its figures: it is a value, not an eyebrow. */
+  .rb-hex { font-family: var(--ui-type-mono-family); font-size: var(--ui-type-help); }
+  .rb-uses { color: var(--ui-color-text-muted); }
+  .rb-nomatch {
+    font-style: normal;
+    font-weight: var(--ui-type-weight-section);
+    color: var(--ui-color-text-default);
+  }
+  .rb-colour-to {
+    grid-column: 3;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+    min-width: 0;
+  }
+  .rb-target { flex: 1 1 auto; min-width: 0; height: var(--ui-size-control); }
+  /* The swatch opens the grid for the eye; the select beside it is the keyboard's. */
+  .rb-sw-open {
+    flex: none;
+    display: inline-flex;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ui-radius-choice);
+    background: none;
+    cursor: pointer;
+  }
+  .rb-target > select {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-size: var(--ui-type-help);
+    cursor: pointer;
+  }
+  .rb-target > select:focus { outline: none; }
+  .rb-target:focus-within { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+  .rb-sw {
+    flex: none;
+    display: block;
+    width: var(--ui-size-icon-sm);
+    height: var(--ui-size-icon-sm);
+    border-radius: var(--ui-radius-choice);
+    background: var(--sw);
+    box-shadow: var(--ui-edge-default);
+  }
+  .rb-sw--none { background: var(--ui-color-surface-muted); }
+  /* Automatic: the hatch the engine draws for a colour it picks itself. */
+  .rb-sw--auto {
+    background: repeating-linear-gradient(135deg, var(--ui-color-surface-muted) 0 3px, var(--ui-color-surface-raised) 3px 6px);
+  }
+  .rb-target .rb-sw { width: var(--ui-size-icon-lg); height: var(--ui-size-icon-lg); }
+  /* Several source colours folded into one row: their swatches overlap in the glyph cell. */
+  .rb-sw-stack { display: inline-flex; }
+  .rb-sw-stack > .rb-sw { width: calc(10px * var(--a11y-fs)); height: var(--ui-size-icon-sm); }
+  .rb-sw-stack > .rb-sw + .rb-sw { margin-inline-start: -4px; }
+  /* A row with nothing to lock keeps the lock's place, so every target ends on one edge. */
+  .rb-lock-slot { flex: none; width: var(--ui-size-control); }
+  .rb-lock[aria-pressed="true"] {
+    background: var(--ui-color-selection-surface);
+    color: var(--ui-color-text-default);
+  }
+
+  /* The swatch grid: tiles grouped by ramp, Automatic first, the current one ringed. */
+  .rb-swatch-pop {
+    --rb-swatch-pop-h: calc(420px * var(--a11y-fs));
+    position: fixed;
+    z-index: var(--ui-layer-overlay);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    width: min(calc(296px * var(--a11y-fs)), calc(100vw - 16px));
+    max-height: min(70vh, var(--rb-swatch-pop-h));
+    overflow-y: auto;
+    padding: var(--ui-space-panel);
+    border-radius: var(--ui-radius-panel);
+    background: var(--ui-color-surface-overlay);
+    color: var(--ui-color-text-default);
+    box-shadow: var(--ui-elevation-floating), var(--ui-edge-faint);
+  }
+  .rb-swatch-group { display: flex; flex-direction: column; gap: var(--sp-1); }
+  .rb-swatch-name {
+    margin: 0;
+    font-size: var(--ui-type-field);
+    font-weight: var(--ui-type-weight-label);
+    text-transform: uppercase;
+    letter-spacing: var(--ui-type-tracking-label);
+    color: var(--ui-color-text-muted);
+  }
+  .rb-swatch-row { display: flex; flex-wrap: wrap; gap: var(--sp-1); }
+  .rb-swatch-tile {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ui-size-target);
+    height: var(--ui-size-target);
+    padding: 0;
+    border: 0;
+    border-radius: var(--ui-radius-control);
+    background: none;
+    cursor: pointer;
+  }
+  .rb-swatch-tile > .rb-sw { width: calc(32px * var(--a11y-fs)); height: calc(32px * var(--a11y-fs)); }
+  /* The same tile rule as the chooser's: a 40% ring on hover, the full ring on the tint for the current colour. */
+  .rb-swatch-tile:hover { box-shadow: var(--ui-effect-selection-ring-hover); }
+  .rb-swatch-tile[aria-pressed="true"] { background: var(--ui-color-selection-surface); box-shadow: var(--ui-effect-selection-ring); }
+  .rb-swatch-tile:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 3px; }
+
+  /* ── Fonts ──────────────────────────────────────────────────────────────── */
+  .rb-font-all { grid-column: 2 / -1; margin: 0; font-size: var(--ui-type-help); color: var(--ui-color-text-default); }
+  .rb-font {
+    display: grid;
+    grid-template-columns: var(--ui-size-icon-sm) minmax(0, 1fr) minmax(0, 1.2fr);
+    align-items: center;
+    column-gap: var(--sp-2);
+    row-gap: var(--sp-1);
+    min-width: 0;
+  }
+  /* The source face in its own case: never the eyebrow's capitals. */
+  .rb-font-from { grid-column: 2; font-size: var(--ui-type-help); }
+  .rb-font-to { grid-column: 3; display: flex; min-width: 0; }
+  .rb-font-to > select { flex: 1 1 auto; min-width: 0; height: var(--ui-size-control); }
+  /* The deck's first title, set in the target face, under the row. */
+  .rb-font-specimen {
+    grid-column: 2 / -1;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--ui-type-title);
+    color: var(--ui-color-text-default);
+  }
+
+  /* The text a picture deck read, or its correction, and a reading the recogniser doubted. */
+  .rb-text-low { display: flex; align-items: center; gap: var(--sp-1); }
+  .rb-text-low > svg { flex: none; width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+
+  /* Under a coarse pointer every control in the column grows to the touch target, the
+     same step panel.css takes for its own controls, so the rhythm holds. */
+  @media (any-pointer: coarse) {
+    .rb-decide :is(.btn, .rb-obj, .rb-choice, .rb-include, .lp-door, .rb-acts > button, .rb-scope-seg > button, .rb-target) { min-height: var(--ui-size-target); }
+    .rb-decide .lp-iconbtn { min-width: var(--ui-size-target); min-height: var(--ui-size-target); }
+    .rb-decide .rb-lock-slot { width: var(--ui-size-target); }
+  }
+
+  /* Narrow: the column is a sheet. At rest it is docked under the comparison (the grid
+     row rebrand.css gives it), with its top corners rounded like a sheet, its head and
+     its folded section heads showing, and it scrolls in place; a head there opens its
+     section in place. A tap on the slide or a chip opens it over the page, one step
+     above the dimmer (.rb-scrim) behind it. Every control in it takes the touch target,
+     since the sheet is where a phone decides. */
+  .rb[data-narrow="true"] .rb-decide {
+    min-height: 0;
+    overflow: hidden;
+    border-radius: var(--ui-radius-surface) var(--ui-radius-surface) 0 0;
+    background: var(--ui-color-surface-raised);
+  }
+  .rb[data-narrow="true"] .rb-decide:not([data-sheet="open"]) { box-shadow: var(--ui-edge-faint); }
+  .rb[data-narrow="true"] .rb-decide[data-sheet="open"] {
+    position: fixed;
+    inset: auto 0 0 0;
+    max-height: 75dvh;
+    z-index: calc(var(--ui-layer-overlay) + 1);
+    box-shadow: var(--ui-elevation-sheet);
+  }
+  .rb[data-narrow="true"] .rb-decide[data-sheet="open"] > .rb-lp { max-height: 75dvh; }
+  /* A phone on its side has no room for the docked sheet: only the one opened over the page shows. */
+  @media (max-height: 479px) {
+    .rb[data-narrow="true"] .rb-decide:not([data-sheet="open"]) { display: none; }
+  }
+  .rb[data-narrow="true"] .rb-decide :is(.btn, .rb-obj, .rb-choice, .rb-include, .lp-door, .rb-acts > button, .rb-scope-seg > button, .rb-target, select) {
+    min-height: var(--ui-size-target);
+  }
+  /* While the sheet is open it covers the footer and the filmstrip the toast's usual
+     inset (rebrand-foot.css) clears, so the job toast moves to the top of the screen, over
+     the dimmer, where it covers none of the rows in the sheet. */
+  html:has(.rb[data-narrow="true"] .rb-decide[data-sheet="open"]) .job-toast {
+    top: calc(var(--safe-top, 0px) + var(--sp-3));
+    bottom: auto;
+  }
+  /* The grab bar says this is a sheet over the page. */
+  .rb-sheet-grip {
+    flex: none;
+    align-self: center;
+    width: calc(var(--ui-size-target) * .9);
+    height: var(--sp-1);
+    margin: var(--sp-2) 0 0;
+    border-radius: var(--ui-radius-pill);
+    background: var(--ui-color-border-default);
+  }
+}
+
+/* Unlayered, to reach the primitive's own flag rule: in this column a section flag is
+   plain words beside the caret, not a pill. A count to review reads in ink, and only
+   what blocks the handoff takes the danger tone, always with its glyph. */
+.rb-decide .lp-sec-head > .lp-sec-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-width: 0;
+  max-width: var(--rb-flag-max);
+  padding: 0;
+  background: none;
+  color: var(--ui-color-text-muted);
+  font-size: var(--ui-type-help);
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.rb-decide .lp-sec-head > .lp-sec-flag > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.rb-decide .lp-sec-head > .lp-sec-flag > svg { flex: none; width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
+.rb-decide .lp-sec-head > .rb-flag--ink { color: var(--ui-color-text-default); font-weight: var(--ui-type-weight-section); }
+/* The danger colour is a fill in the dark themes, so the words take it half mixed toward
+   the ink, which keeps them at text contrast (4.5:1) in both themes; the glyph keeps the
+   pure colour. */
+.rb-decide .lp-sec-head > .rb-flag--danger { color: color-mix(in oklab, var(--ui-color-status-danger) 50%, var(--ui-color-text-default)); font-weight: var(--ui-type-weight-section); }
+.rb-decide .lp-sec-head > .rb-flag--danger > svg { color: var(--ui-color-status-danger); }
+/* A folded group of object rows points its caret along, as a folded section does. */
+.rb-obj--group[aria-expanded="false"] .lp-caret::before { transform: rotate(-45deg); }
+/* The band head's flag names the layout when it is folded, so it keeps to one line. */
+.rb-decide .lp-band-head > .lp-sec-flag { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* The docked narrow sheet (rebrand.css gives it its row), unlayered to reach the
+   primitive's own display rules. Docked, the head says what the sections are about;
+   closing belongs to the sheet over the page, and so does the grab bar. The band words
+   step aside so the section heads come up into the room the dock has; the sheet over
+   the page shows them. The layout row under the slide already says which layout the
+   slide has and opens the chooser, so the dock leaves out the Layout section; the sheet
+   over the page keeps it, since it covers that row. */
+.rb[data-narrow="true"] .rb-decide:not([data-sheet="open"]) :is([data-act="close-sheet"], .rb-sheet-grip, .lp-band-label) { display: none; }
+.rb[data-narrow="true"]:has(.rb-cmp-layout:not([hidden])) .rb-decide:not([data-sheet="open"]) [data-sec="layout"] { display: none; }

@@ -39,7 +39,7 @@ A forma usual como o trabalho criativo de rotina é feito é uma superfície de 
 - **[Verifique você mesmo](/info/verify-yourself.html)** - confira as afirmações contra uma exportação real, passo a passo, sem nada que você não possa executar você mesmo.
 - **[Política de privacidade](/info/privacy.html)** - a declaração formal do que é e do que não é coletado, armazenado e enviado.
 - **[Produção criativa soberana](/info/sovereign-production.html)** - implantação isolada de rede (air-gapped), rede condicionada a consentimento e assinatura no dispositivo.
-- **[Adoção e governança](/info/adoption-governance.html)** - quem aprova uma ferramenta, como as regras de marca se tornam aplicáveis e o que a opção de catálogo como repositório oferece a você.
+- **[Adoção e governança](/info/adoption-governance.html)** - como as regras de marca se tornam aplicáveis, o que um catálogo compartilhado acrescenta e o que a opção de catálogo como repositório oferece a você.
 
 ## Jurídico
 

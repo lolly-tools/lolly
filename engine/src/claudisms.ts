@@ -146,6 +146,13 @@ export const CLAUDE_TELLS: Tell[] = [
   { re: /\bkey takeaways?\b/gi, label: '"key takeaways"' },
   // The copula flourish: "the X is Y here." - a subject redefined and hedged with "here".
   { re: /(?<=[\w'’] )(?<!there )is (?:not )?(?:the|a|an) [\w'’-]+(?: [\w'’-]+){0,2} here[.,!?:;]/gi, label: 'the "…is Y here." flourish' },
+  // The trailing "here," aside (Andy, 2026-09-24): "The risk here, though, is…",
+  // "What matters here, then, …" - "here" as the last word before a comma, used
+  // as a pointer at the argument rather than a place. The literal senses are
+  // left out (over/right/in/out/up/down/near/back here, come/get/stay/live here,
+  // click/tap here, from here) and so is the copula flourish above, which already
+  // scores "is the X here," so one span never counts twice.
+  { re: /(?<=[\w'’] )(?<!\b(?:over|right|in|out|up|down|near|back|from|around|come|came|get|got|getting|stay|stayed|live|lived|living|work|worked|click|tap|start|sit|wait|stop) )(?<!\b(?:is|are|was|were) (?:not )?(?:the|a|an) [\w'’-]+(?: [\w'’-]+){0,2} )here,/gi, label: 'the "…here," aside' },
   // Abstract-register nouns Andy flagged (2026-08-21): bookkeeping and machine
   // words applied to ideas. Weak on their own - the frames are scoped so each
   // word's literal senses (accounting, physics, data layout) stay out, and
@@ -356,4 +363,4 @@ export const FAMILY_TELLS: FamilyTells[] = [
  * analysis (e.g. a catalog asset's stored AI-signal note) key it by this, so a
  * stored verdict from an older lexicon is recomputed rather than trusted.
  */
-export const LEXICON_VERSION = 5;
+export const LEXICON_VERSION = 6;

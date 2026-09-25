@@ -50,7 +50,8 @@ import { loadGalleryLook } from './gallery-look-loader.ts';
 import { renderFeaturedVariant, renderFeaturedPages, displayFormatOf } from '../lib/featured-render.ts';
 import { currentTheme } from '../theme.ts';
 import { prefersReducedMotion } from '../lib/a11y-prefs.ts';
-import { segHtml } from '../lib/seg.ts';
+import { wireStripMenu } from './gallery-strip-menu.ts';
+import { favouritesViewSection, sortSection, syncSortDir, viewOptionsButtonHtml, viewOptionsSection } from '../components/view-options.ts';
 import { wireDisclosure } from '../components/body-popover.ts';
 import type { FeaturedEntry, FeaturedManifest, FeaturedVariant, FeaturedRowHandle, FeaturedViewMode } from '../components/featured-row.ts';
 import { loadFavourites, saveFavourites } from '../lib/favourites.ts';
@@ -146,7 +147,6 @@ const SORT_LABELS: Record<SortKey, string> = {
 const SORT_KEY_STORAGE = 'lolly-gallery-sort';
 // Featured hero view mode: the current strip ('gallery') or the Cover Flow player-select.
 const FEATURED_VIEWS: readonly FeaturedViewMode[] = ['gallery', 'coverflow'];
-const FEATURED_VIEW_LABELS: Record<FeaturedViewMode, string> = { gallery: 'Gallery', coverflow: 'Cover Flow' };
 const FEATURED_VIEW_STORAGE = 'lolly-featured-view';
 // Sort DIRECTION, orthogonal to the key: 'desc' is each label's natural order
 // (Recently updated = newest first, A→Z, …); 'asc' reverses it so the last
@@ -355,15 +355,11 @@ const SHEET_ICON = icon('table');
 // Sentinel category id for the starred-favourites filter (not a real catalog category).
 const FAV_CAT = 'favourites';
 
-// Lucide "sliders-horizontal" - the filter trigger (collapses the category pills).
-const FILTER_ICON = icon('filterLines');
-
 // (Footer nav links + their glyphs live in components/footer-nav.ts, shared with
 // Projects and the Catalogue so all three bottom bars stay identical.)
 // Sort-direction toggle - paired up/down arrows. CSS emphasizes the .sd-up or
 // .sd-down group depending on the button's .is-asc state, so the lit arrow shows
 // which way the results run.
-const SORT_DIR_ICON = icon('sortDir');
 
 // lucide "package" - placeholder thumbnail for batch sessions, which have no
 // single render to show (they resume into #/pro). Deduped against projects.ts's
@@ -887,26 +883,13 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       ${viewTopbarHtml({
         active: opts.only ? 'utilities' : 'tools',
         right: `
-          ${visibleCats.length ? `<button type="button" class="filter-fab" aria-label="${escape(t('Sort and filter tools'))}" aria-haspopup="true" aria-expanded="false" aria-controls="filter-popover" title="${escape(t('Sort & filter'))}">${FILTER_ICON}</button>` : ''}
+          ${visibleCats.length ? viewOptionsButtonHtml('gallery-viewopts', { controls: 'filter-popover' }) : ''}
           ${sortedSaved.length && !opts.only ? `<button type="button" class="history-fab" title="${escape(t('Saved sessions'))}" aria-label="${escape(t('Saved sessions ({n})', { n: sortedSaved.length }))}">${HISTORY_ICON}<span class="history-fab-count" aria-hidden="true">${sortedSaved.length}</span></button>` : ''}`,
         popover: visibleCats.length ? `
-          <div class="filter-popover" id="filter-popover" role="group" aria-label="${escape(t('Sort and filter tools'))}" hidden>
-            ${featuredEntries.length ? `
-            <div class="filter-pop-sort">
-              <p class="filter-pop-head">${t('Featured view')}</p>
-              ${segHtml('featured-view', FEATURED_VIEWS.map(v => ({ id: v, label: t(FEATURED_VIEW_LABELS[v]) })), featuredView, t('Featured view'), { attr: 'data-view' })}
-            </div>` : ''}
-            <div class="filter-pop-sort">
-              <label class="filter-pop-head" for="gallery-sort">${t('Sort by')}</label>
-              <div class="gallery-sort-row">
-                <select class="gallery-sort field-select" id="gallery-sort">
-                  ${SORT_KEYS.map(k => `<option value="${k}">${escape(t(SORT_LABELS[k]))}</option>`).join('')}
-                </select>
-                <button type="button" class="gallery-sort-dir" id="gallery-sort-dir" aria-pressed="false" aria-label="${escape(t('Sort direction: newest first'))}" title="${escape(t('Reverse order'))}">${SORT_DIR_ICON}</button>
-              </div>
-            </div>
-            <p class="filter-pop-head">${t('Filter')}</p>
-            <div class="filter-pop-pills" aria-label="${escape(t('Filter tools by category'))}"></div>
+          <div class="filter-popover view-options" id="filter-popover" role="group" aria-label="${escape(t('View options'))}" hidden>
+            ${featuredEntries.length ? favouritesViewSection(featuredView) : ''}
+            ${sortSection('gallery-sort', SORT_KEYS.map(k => ({ id: k, label: t(SORT_LABELS[k]) })), 'recent', false)}
+            ${viewOptionsSection(t('Filter'), `<div class="filter-pop-pills" aria-label="${escape(t('Filter tools by category'))}"></div>`)}
           </div>` : '',
         profile: { firstname: profile.firstname },
       })}
@@ -1106,6 +1089,15 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       onAction: (act, tgt) => { void onMenuAction(act, tgt?.ref ?? null); },
     });
     cleanups.push(() => ctxMenu.destroy());
+    // The favourites strip's own tile menu: Open / Unfavourite / Share (gallery-strip-menu.ts).
+    if (!featuredMount) return;
+    const stripMenu = wireStripMenu(m, {
+      host: featuredMount, tileAt: (x, y) => featuredHandle?.tileAt(x, y) ?? null,
+      nameOf: (ref) => isViewRef(ref) ? viewByRef(ref)?.name : toolById.get(ref)?.name,
+      openable: (ref) => !unavailableIds.has(ref), isFavourite: (ref) => favourites.has(ref),
+      linkFor, copyLink, onAction: (act, ref) => { void onMenuAction(act, ref); },
+    });
+    cleanups.push(() => stripMenu.destroy());
   });
 
   // Mount the cinematic featured hero row (the user's favourited tools) at the top. It
@@ -1793,13 +1785,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // Direction toggle: flips the active sort so the last results show first.
   const sortDirBtn = viewEl.querySelector<HTMLButtonElement>('.gallery-sort-dir');
   if (sortDirBtn) {
-    const syncDirBtn = (): void => {
-      const asc = sortDir === 'asc';
-      sortDirBtn.classList.toggle('is-asc', asc);
-      sortDirBtn.setAttribute('aria-pressed', String(asc));
-      sortDirBtn.setAttribute('aria-label', asc ? t('Sort direction: oldest / last first') : t('Sort direction: newest / first first'));
-      sortDirBtn.title = asc ? t('Showing last results first - click for the usual order') : t('Reverse - show the last results first');
-    };
+    const syncDirBtn = (): void => syncSortDir(sortDirBtn, sortDir === 'asc');
     syncDirBtn();
     sortDirBtn.addEventListener('click', () => {
       sortDir = sortDir === 'asc' ? 'desc' : 'asc';
@@ -2077,12 +2063,15 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
 
   /** Copy the canonical link for one tile: /t/<id> for a tool (the crawler-visible
    *  share stub), the app route for a view card. Flashes "Copied!" on the trigger. */
+  /** The shareable link for a tile: a view's own route, or a tool's short /t/ link. */
+  function linkFor(ref: string): string {
+    const v = isViewRef(ref) ? viewByRef(ref) : null;
+    return v ? `${location.origin}${location.pathname}${v.href}` : `${location.origin}/t/${encodeURIComponent(ref)}`;
+  }
+
   async function copyLink(ref: string | null, feedbackBtn: HTMLElement | null = null): Promise<void> {
     if (!ref) return;
-    const v = isViewRef(ref) ? viewByRef(ref) : null;
-    const link = v
-      ? `${location.origin}${location.pathname}${v.href}`
-      : `${location.origin}/t/${encodeURIComponent(ref)}`;
+    const link = linkFor(ref);
     try {
       await navigator.clipboard.writeText(link);
     } catch {
@@ -2363,6 +2352,12 @@ const utilityViews = (speechOk: boolean): UtilityView[] => [{
   icon: 'document',
   name: t('Unpack'),
   description: t('Take a design file apart: the words, images, fonts, colours and marks inside a PDF, SVG, InDesign, Penpot, Figma, PowerPoint or Photoshop file, each one viewable and keepable. Nothing is uploaded.'),
+}, {
+  id: 'rebrand',
+  href: '#/rebrand',
+  icon: 'paintbrush',
+  name: t('Rebrand'),
+  description: t('Move a PowerPoint deck onto the design system on this device, slide by slide or by swapping only its theme, colours and fonts.'),
 }, {
   id: 'color-lab',
   href: '#/lab',

@@ -15,6 +15,7 @@
      └─ .lp-scroll
         └─ .lp-band
            ├─ .lp-band-label   the divider word, on a rule
+           │  (.lp-band-head   instead, for a band of one section of its own name)
            └─ .lp-sec
               ├─ .lp-sec-head  grid: glyph | name | flag | caret
               └─ .lp-rows
@@ -213,6 +214,66 @@ input.lp-head-name:focus {
 }
 .lp-band:first-child > .lp-band-label { padding-top: var(--sp-3); }
 
+/* A band that holds ONE section named with the band's own word (Rebrand's
+   Layout) would print that word twice: once on the rule and once as the
+   section head under it. There the rule IS the section's head: a button in the
+   band's type, the rule, the flag and the caret, with no section head below.
+   Every other band keeps its label. lib/section-bands.ts `isBandHead` says
+   which case a band is in.
+
+     <button class="lp-band-head" aria-expanded="true">
+       <span class="lp-band-name">Layout</span>
+       <em class="lp-sec-flag">Suggested</em>
+       <i class="lp-caret" aria-hidden="true"></i>
+     </button>
+
+   Every part has its own column, so a band with no flag keeps its caret on
+   the same x as the section carets under the other bands. The rule is drawn,
+   not written, so the markup carries only what is read. */
+.lp-band-head {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto var(--ui-size-icon-sm);
+  align-items: center;
+  column-gap: var(--sp-2);
+  margin: 0;
+  padding: var(--sp-5) var(--sp-3) var(--sp-2);
+  border: 0;
+  background: transparent;
+  color: var(--ui-color-text-muted);
+  font: inherit;
+  font-size: var(--ui-type-band);
+  font-weight: var(--ui-type-weight-label);
+  text-transform: uppercase;
+  letter-spacing: var(--ui-type-tracking-label);
+  text-align: start;
+  cursor: pointer;
+}
+.lp-band:first-child > .lp-band-head { padding-top: var(--sp-3); }
+.lp-band-head > .lp-band-name { grid-column: 1; grid-row: 1; min-width: 0; white-space: nowrap; }
+.lp-band-head::after {
+  content: '';
+  grid-column: 2;
+  grid-row: 1;
+  height: 1px;
+  background: var(--ui-color-border-default);
+}
+/* The flag here is a word beside the rule, not a pill on it. */
+.lp-band-head > .lp-sec-flag {
+  grid-column: 3;
+  grid-row: 1;
+  padding: 0;
+  background: none;
+  color: var(--ui-color-text-muted);
+  font-size: var(--ui-type-help);
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: nowrap;
+}
+.lp-band-head > .lp-caret { grid-column: 4; grid-row: 1; }
+.lp-band-head:hover { color: var(--ui-color-text-default); background: color-mix(in srgb, var(--ui-color-surface-muted) 55%, transparent); }
+.lp-band-head:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+
 /* ── section ───────────────────────────────────────────────────────────────── */
 
 .lp-sec { border-top: 1px solid color-mix(in srgb, var(--ui-color-border-default) 55%, transparent); }
@@ -296,7 +357,8 @@ input.lp-head-name:focus {
   transform: rotate(45deg);
   transition: transform var(--ui-motion-feedback) var(--ui-motion-standard);
 }
-.lp-sec-head[aria-expanded="false"] .lp-caret::before { transform: rotate(-45deg); }
+.lp-sec-head[aria-expanded="false"] .lp-caret::before,
+.lp-band-head[aria-expanded="false"] .lp-caret::before { transform: rotate(-45deg); }
 @media (prefers-reduced-motion: reduce) { .lp-caret::before { transition: none; } }
 html[data-a11y-motion="reduce"] .lp-caret::before { transition: none; }
 
@@ -499,13 +561,27 @@ html[data-a11y-text="large"] .lp-row--wide > .lp-control { grid-column: 1 / -1; 
 .lp-door:hover { background: var(--ui-color-surface-muted); }
 .lp-door:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
 
+/* The segmented control. Two forms, one look: a value picker (`role="group"`,
+   `aria-pressed` on the chosen half) and a tab bar (`role="tablist"`,
+   `aria-selected`, keys from lib/tabs.ts). lib/seg.ts `segHtml(..., { variant:
+   'panel' })` writes both.
+
+   The chosen half is the RAISED step, lighter than the track in every theme.
+   In light that is --card on --muted. In dark and brand --card is the darker of
+   the two, so the chosen half read as pressed in, the opposite of what it
+   means; there it is the track lifted toward the ink instead. */
 .lp-seg {
+  --lp-seg-on: var(--ui-color-surface-raised);
   display: inline-flex;
   min-width: 0;
   gap: 2px;
   padding: 2px;
   background: var(--ui-color-surface-muted);
   border-radius: var(--ui-radius-control);
+}
+[data-theme="dark"] .lp-seg,
+[data-theme="brand"] .lp-seg {
+  --lp-seg-on: color-mix(in oklab, var(--ui-color-surface-muted), var(--ui-color-text-default) 10%);
 }
 .lp-seg > button {
   flex: 1 1 0;
@@ -524,12 +600,28 @@ html[data-a11y-text="large"] .lp-row--wide > .lp-control { grid-column: 1 / -1; 
 }
 .lp-seg > button > svg { width: var(--ui-size-icon-sm); height: var(--ui-size-icon-sm); }
 .lp-seg > button:hover { color: var(--ui-color-text-default); }
-.lp-seg > button[aria-pressed="true"] {
-  background: var(--ui-color-surface-raised);
+.lp-seg > button[aria-pressed="true"],
+.lp-seg[role="tablist"] > [aria-selected="true"] {
+  background: var(--lp-seg-on);
   color: var(--ui-color-text-default);
   box-shadow: var(--ui-elevation-control);
 }
+/* The press answers under the finger before the command does. */
+.lp-seg > button:active { filter: brightness(.96); }
 .lp-seg > button:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+/* A count inside a half ("To review 5"): the number is what changes, so it is
+   the weight that reads first. */
+.lp-seg-count {
+  margin-inline-start: var(--sp-1);
+  font-weight: var(--ui-type-weight-section);
+  font-variant-numeric: tabular-nums;
+}
+/* A command in flight. The halves stay clickable, so a second press can be
+   answered with "still working" rather than swallowed. The group itself is
+   pinned against parts/multi-edit.css, whose unscoped `[aria-busy="true"]`
+   rule would dim and disable it a second time. */
+.lp-seg[aria-busy="true"] { opacity: 1; pointer-events: auto; }
+.lp-seg[aria-busy="true"] > button { opacity: .6; cursor: progress; }
 
 /* A read-only value row: same geometry as an editable one, visibly not a
    control. Tabular figures because these numbers change. */
@@ -719,4 +811,5 @@ html[data-a11y-text="large"] .lp-row--wide > .lp-control { grid-column: 1 / -1; 
     height: auto;
     min-height: var(--ui-size-target);
   }
+  .lp-band-head { min-height: var(--ui-size-target); }
 }

@@ -1,0 +1,21 @@
+digraph policy {
+  rankdir=TB
+  node [shape=box]
+
+  authority  [label="Authority\nresolved first"]
+  exceptions [label="Exceptions\nwhat may be waived"]
+  overlay    [label="Instance overlay"]
+  authored   [label="Authored rules"]
+  local      [label="Local decisions"]
+  active     [label="Active rule set"]
+  evaluate   [label="Evaluate"]
+
+  authority -> exceptions
+  exceptions -> overlay
+  exceptions -> authored
+  exceptions -> local
+  overlay -> active [label="administrator"]
+  authored -> active [label="author"]
+  local -> active [label="person"]
+  active -> evaluate
+}

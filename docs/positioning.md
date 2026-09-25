@@ -53,27 +53,19 @@ Deck Studio is a good measure of the ceiling here: a whole slide deck declared a
 
 Most "AI creative" pitches put the model on the wrong side of an old line. Scribes and illuminators already settled where it falls: you work loose on the sketch, where anything can be tried and nothing is committed, and then you go to the printing press, which is intimidating exactly because it commits. The sketches were where the art was. The press was how it travelled. Two instruments, two jobs, each inventive in its own way, and the printed work could be trusted because the press kept its promise on every pull.
 
-Lolly is the press, not the sketch. Bring whatever you like to the ideation - a model, a designer, a napkin - but the moment an idea has to become ten thousand assets it goes through something that renders the same way every time, from inputs anyone can read back. That is what the comparison above is really about: not who has the better generator, but who makes the committed step reproducible.
+Lolly is the press, not the sketch. Bring whatever you like to the ideation - a model, a designer, a napkin - but the moment an idea has to become many assets it goes through something that renders the same way every time, from inputs anyone can read back. That is what the comparison above is really about: not who has the better generator, but who makes the committed step reproducible.
 
 > Trust the creative process, scale with rigour.
 
-## Approve the tool, not the file
+## The rules live in the tool and it's templates
 
-Every other tool on the board produces a *file* that then has to be checked - a brand manager in a Slack thread, legal on the disclaimer, a round of changes, another review. Lolly moves the approval **one step upstream**. The brand rules - exact hex codes, licensed font files, bleed margins, spacing - are hard-coded into the tool's HTML and CSS, so the template *cannot* emit an off-brand asset. The layout itself does the enforcing.
+Every other tool on the board produces a *file*, and a file can only be looked at after the fact. Lolly moves the brand rules **one step upstream**. Exact hex codes, licensed font files, bleed margins, spacing - all of it is hard-coded into the tool's HTML and CSS, so the template *cannot* emit an off-brand asset. The layout itself does the enforcing.
 
-So you stop approving outputs and start approving the **tool** that makes them. Approve it once, and every asset it ever produces is pre-approved by construction - no human in the loop, no review cycle, at any volume.
+So the thing worth looking at is the **tool**, not each file it makes. Get the tool right, and every asset it ever produces is on-brand by construction. How you check your work, and who does it, stays yours; Lolly makes the checked thing smaller and the output quicker to make.
 
-This is the change the deterministic engine actually delivers: it isn't a faster version of the old approval process, it removes the process. For the creative team it's a guard-rail, not a replacement - you still throw the ball (the data, the copy, the image) and the code is the bumper lane that keeps every throw out of the gutter.
+This is the change the deterministic engine actually delivers. For the creative team it's a guard-rail, not a replacement - you still throw the ball (the data, the copy, the image) and the code is the bumper lane that keeps every throw out of the gutter.
 
-![The producer's whole job: type the words. Type, colour and spacing were settled when the tool was approved](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DApproved&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-approve-the-tool)
-
-| Approving assets the old way | Approving the tool, the Lolly way |
-|---|---|
-| Every finished file is checked, one at a time | The tool is checked once |
-| Request → designer builds → brand review → legal check → changes → re-review | One parameter change → finished asset |
-| Designer, brand manager, legal and requester all in the loop | The producer, on their own |
-| Days per asset | Seconds per asset |
-| 10,000 assets = 10,000 review cycles | 10,000 assets = zero (the template was already approved) |
+![The producer's whole job: type the words. Type, colour and spacing were settled when the tool was made](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
 
 ## What this uniquely provides
 

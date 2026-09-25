@@ -9,6 +9,7 @@
 // Mirrors the colour-field popover lifecycle (Escape closes + refocuses the
 // trigger, outside-click disarms) so it matches the app's escape-to-close idiom.
 import './help-tip.css';
+import { icon } from '../lib/icons.ts';
 import { escape, safeHref } from '../utils.ts';
 import { linkInputLabels } from './input-labels.ts';
 
@@ -16,6 +17,18 @@ const INFO_ICON =
   '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" ' +
   'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
   '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
+
+// The X in a tip's corner. A POINTER affordance only, and deliberately invisible to
+// assistive tech: linkHelpDescriptions points each control's aria-describedby at the
+// pop, and a description is the flattened text of what it references - a labelled
+// close button would tack "Close" onto every described field in the sidebar. Keyboard
+// and screen-reader users close a tip with Escape, or with a second press of the info
+// button, both of which this file already wires. aria-hidden with tabindex="-1" is
+// not focusable, so nothing is stranded behind the hidden attribute either.
+const CLOSE_BUTTON =
+  `<button type="button" class="help-tip-close" tabindex="-1" aria-hidden="true">`
+  + icon('close', { size: 11, strokeWidth: 2.4 })
+  + `</button>`;
 
 let _seq = 0;
 
@@ -53,7 +66,7 @@ export function helpTip(
       (external ? ' target="_blank" rel="noopener"' : '') +
       `>${escape(link.text || 'Learn more')}</a>`;
   }
-  const pop = `<span class="help-tip-pop" id="${id}" hidden>${escape(text)}${linkHtml}</span>`;
+  const pop = `<span class="help-tip-pop" id="${id}" hidden>${escape(text)}${linkHtml}${CLOSE_BUTTON}</span>`;
   return { id, button, pop };
 }
 
@@ -82,7 +95,24 @@ export function wireHelpTips(scope: HelpScope): void {
     });
   };
 
+  // Dismiss a pop, and hand focus back to its info button - the same landing Escape
+  // makes, so a tip never leaves focus on a node it just hid.
+  const closePop = (pop: HTMLElement) => {
+    pop.hidden = true;
+    const btn = btnFor(pop);
+    btn?.setAttribute('aria-expanded', 'false');
+    btn?.focus();
+  };
+
   scope._helpTipClick = (e) => {
+    const x = (e.target as Element).closest('.help-tip-close');
+    if (x) {
+      e.preventDefault();
+      e.stopPropagation(); // the pop can sit inside a wrapping <label>
+      const open = x.closest<HTMLElement>('.help-tip-pop');
+      if (open) closePop(open);
+      return;
+    }
     const btn = (e.target as Element).closest('.help-tip-btn');
     if (!btn) return;
     e.preventDefault();
@@ -100,10 +130,7 @@ export function wireHelpTips(scope: HelpScope): void {
     if (e.key !== 'Escape') return;
     const pop = scope.querySelector<HTMLElement>('.help-tip-pop:not([hidden])');
     if (!pop) return;
-    pop.hidden = true;
-    const btn = btnFor(pop);
-    btn?.setAttribute('aria-expanded', 'false');
-    btn?.focus();
+    closePop(pop);
     e.stopPropagation();
   };
   scope.addEventListener('keydown', scope._helpTipKey);

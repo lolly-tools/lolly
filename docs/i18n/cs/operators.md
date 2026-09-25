@@ -39,7 +39,7 @@ Obvyklý způsob, jakým se dělá rutinní kreativní práce, je plocha odpově
 - **[Ověř si to sám](/info/verify-yourself.html)** - projdi tvrzení proti reálnému exportu, krok za krokem, bez ničeho, co bys nemohl spustit sám.
 - **[Zásady ochrany osobních údajů](/info/privacy.html)** - formální prohlášení o tom, co se sbírá, ukládá a odesílá a co ne.
 - **[Suverénní kreativní produkce](/info/sovereign-production.html)** - nasazení bez připojení k síti (air-gapped), síťová komunikace podmíněná souhlasem a podepisování na zařízení.
-- **[Zavádění a governance](/info/adoption-governance.html)** - kdo schvaluje nástroj, jak se pravidla značky stávají vynutitelnými a co ti přinese možnost katalogu jako repozitáře.
+- **[Zavádění a governance](/info/adoption-governance.html)** - jak se pravidla značky stávají vynutitelnými, co přidává sdílený katalog a co ti přinese možnost katalogu jako repozitáře.
 
 ## Právní
 

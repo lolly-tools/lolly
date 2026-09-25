@@ -236,7 +236,7 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   'pro/run-overlay.ts': 1,
   'theme.ts': 3,
   'views/catalog.ts': 1,   // +2 2026-08-18: INTERP_ICON + FIT_ICON zoom-pill glyphs (inline, like ZOOM_IN/OUT_ICON)
-  'views/catalog/shared.ts': 22,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts (the zoom-pill and treatment glyph constants)
+  'views/catalog/shared.ts': 21,   // 2026-09-25: the view-options sliders glyph went to the shared button. 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts (the zoom-pill and treatment glyph constants)
   'views/dashboard.ts': 1,
   'views/doc-editor.ts': 23,
   // Moved verbatim from free-canvas.ts into its icon registry during the plan
@@ -720,6 +720,45 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // #/prepare route scaffold: the shared chrome (backHomeHtml/langFabHtml) plus t() copy,
   // no free text; the panel itself mounts into an empty slot (components/prepare/panel.ts).
   'views/prepare.ts': 1,
+  // #/rebrand (plans/274 milestone 3). The scaffold writes fixed region markup with
+  // no interpolation. The feature modules write deck ids and layer ids through
+  // escape(), t() copy, numbers, validated hex, lib/icons glyphs and engine
+  // framePreviewSvg output, which escapes its own text. A label composed from
+  // translated nouns is escape()d as a whole. The footer writes the standard
+  // helpTip() markup around a t() sentence.
+  'views/rebrand.ts': 1,
+  'views/rebrand/compare.ts': 9, // +2: the Original picture (escaped href and alt) and its loading line (t() copy); +1: a kept picture's object outline (a numeric box style only).
+  // The decision column (close-out CP4): the column itself; the swatch grid popover, whose
+  // token names and ramp names are escape()d, labels are t() copy and hexes pass the
+  // /^#[0-9a-f]{3,8}$/ test before a style sees them; and an object row's crop, which is
+  // the shared drawing cache's own SVG (rb.compare.crop), the string queue.ts mounts too.
+  'views/rebrand/decide.ts': 3,
+  // The intake (close-out CP8): the mode segment, lib/seg.ts segHtml markup with
+  // escape()d t() labels, mounted once. Every picture is parsed as a node.
+  'views/rebrand/intake.ts': 1,
+  // Keep the design (close-out CP10): the mode segment, lib/seg.ts segHtml markup with
+  // tRaw() labels that segHtml escapes; and the work area, whose status and every free
+  // string pass escape(), with t()/tRaw() copy, lib/icons glyphs, customSliderHtml and
+  // the engine's framePreviewSvg drawings, which escape their own text.
+  'views/rebrand/keep.ts': 2,
+  // The queue (close-out CP3): the list render (ids and titles escape()d, t() copy,
+  // lib/icons glyphs) and a card's picture slot, one assignment of the drawing cache's
+  // crop or slide SVG plus its corner inset.
+  'views/rebrand/queue.ts': 2,
+  // The report drawer (close-out CP9): one cached frame or crop SVG from the comparison's
+  // drawing cache; every row, count and sentence is built as nodes.
+  'views/rebrand/report.ts': 1,
+  // The filmstrip: the mount (a t() heading, escape()d), the keyed render's one-row parse
+  // of thumbHtml markup into a <template> (ids, names and hrefs escape()d, art from the
+  // engine's own frame SVG) and the selection bar, whose t() labels are escape()d.
+  // 4 to 3 (close-out wave two): thumbnails are patched in place, so the whole-window
+  // innerHTML render is gone.
+  'views/rebrand/strip.ts': 3,
+  // Deck themes (plan 275 WP7): the theme popover, the top-bar button and the Background
+  // section. Tile names and every sentence are escape()d (look names come from the person),
+  // swatches pass a hex test before they reach a style, and the wireframes are the engine's own
+  // archetype SVG; the rest is t() copy and lib/icons glyphs.
+  'views/rebrand/theme.ts': 3,
   // The Transcript panel (right dock, plans/174). Two sinks, both TRUSTED lib/icons
   // constants: the close-button glyph and makeActBtn's toolbar-button glyph. The flowing
   // transcript words, the title and every label are set via textContent - no user/model

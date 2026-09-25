@@ -1,0 +1,3490 @@
+{
+  "$comment": "The slide layout library (plan 275 section 2): seventy-three structures, each geometry plus named roles with no design system in it. Ids are permanent and never reused; append only, in the order tests/slide-structures.test.ts pins. The geometry and ids came from the JSON block of the plan 275 layout research note; the keywords add the PowerPoint and Google Slides layout names (title slide, section header, two content, caption only and more) so search finds a structure by the name a person already knows, and `expanded` is this repository's own list. `expanded` lists the structures scripts/build-slide-masters.ts writes into every pack's slides/masters.json in that master's own margins, type and furniture; the rest are data until someone has drawn each against real content. The same script turns this file into engine/src/slide-structures-data.ts. Run `node scripts/build-slide-masters.ts` after an edit.",
+  "version": 1,
+  "id": "lolly/slide-structures",
+  "grid": {
+    "marginX": 0.05,
+    "gutterX": 0.02,
+    "columns": 12,
+    "titleY": 0.06,
+    "titleH": 0.14,
+    "kickerH": 0.05,
+    "subtitleH": 0.05,
+    "contentY": 0.24,
+    "contentH": 0.64,
+    "gutterY": 0.03,
+    "rows": 6,
+    "cellGap": 0.015,
+    "furnitureY": 0.9
+  },
+  "sections": [
+    {
+      "id": "titles",
+      "name": "Titles and sections"
+    },
+    {
+      "id": "text",
+      "name": "Text"
+    },
+    {
+      "id": "boxes",
+      "name": "Columns and boxes"
+    },
+    {
+      "id": "images",
+      "name": "Images"
+    },
+    {
+      "id": "data",
+      "name": "Data"
+    },
+    {
+      "id": "process",
+      "name": "Process and time"
+    },
+    {
+      "id": "people",
+      "name": "People and logos"
+    },
+    {
+      "id": "lists",
+      "name": "Lists and agenda"
+    },
+    {
+      "id": "closing",
+      "name": "Closing"
+    }
+  ],
+  "expanded": [
+    "cover-title",
+    "cover-title-image",
+    "title-only",
+    "section",
+    "statement",
+    "title-body",
+    "title-subtitle-body",
+    "text-two-column",
+    "comparison",
+    "columns-2",
+    "columns-3",
+    "columns-4",
+    "icon-columns-3",
+    "grid-2x2",
+    "grid-3x2",
+    "cards-3",
+    "full-image",
+    "full-image-caption",
+    "visual",
+    "image-caption",
+    "image-and-text",
+    "text-and-image",
+    "images-2",
+    "images-3",
+    "image-grid-2x2",
+    "chart",
+    "chart-and-callout",
+    "big-number",
+    "stats-3",
+    "stats-4",
+    "table",
+    "steps-3",
+    "steps-4",
+    "timeline",
+    "quote",
+    "agenda",
+    "agenda-numbered",
+    "numbered-rows",
+    "closing-thanks"
+  ],
+  "structures": [
+    {
+      "id": "cover-title",
+      "section": "titles",
+      "name": "Title slide",
+      "mapsTo": "title",
+      "dark": true,
+      "keywords": [
+        "cover",
+        "opening",
+        "front",
+        "deck title",
+        "title slide"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.22,
+            "w": 0.7,
+            "h": 0.4
+          }
+        },
+        {
+          "role": "subtitle",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.65,
+            "w": 0.9,
+            "h": 0.15
+          }
+        }
+      ],
+      "detect": {
+        "position": "first",
+        "titles": 1,
+        "bodies": 0,
+        "maxWords": 14,
+        "pictureShare": [
+          0,
+          0.2
+        ]
+      }
+    },
+    {
+      "id": "cover-title-image",
+      "section": "titles",
+      "name": "Title with picture",
+      "mapsTo": "title",
+      "keywords": [
+        "cover photo",
+        "hero",
+        "title and photo"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.22,
+            "w": 0.42,
+            "h": 0.38
+          }
+        },
+        {
+          "role": "subtitle",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.63,
+            "w": 0.42,
+            "h": 0.15
+          }
+        },
+        {
+          "role": "visual",
+          "kind": "image",
+          "fit": "cover",
+          "box": {
+            "x": 0.52,
+            "y": 0,
+            "w": 0.48,
+            "h": 1
+          }
+        }
+      ],
+      "detect": {
+        "position": "first",
+        "titles": 1,
+        "maxWords": 20,
+        "pictureSide": [
+          "left",
+          "right"
+        ],
+        "pictureShare": [
+          0.2,
+          0.6
+        ]
+      }
+    },
+    {
+      "id": "cover-full-image",
+      "section": "titles",
+      "name": "Title over picture",
+      "mapsTo": "full-image",
+      "dark": true,
+      "keywords": [
+        "hero",
+        "full bleed cover",
+        "photo cover"
+      ],
+      "slots": [
+        {
+          "role": "visual",
+          "kind": "image",
+          "fit": "cover",
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1
+          }
+        },
+        {
+          "role": "title",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.55,
+            "w": 0.7,
+            "h": 0.22
+          }
+        },
+        {
+          "role": "subtitle",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.78,
+            "w": 0.7,
+            "h": 0.1
+          }
+        }
+      ],
+      "detect": {
+        "titles": 1,
+        "maxWords": 20,
+        "pictureShare": [
+          0.6,
+          1
+        ]
+      }
+    },
+    {
+      "id": "title-only",
+      "section": "titles",
+      "name": "Title only",
+      "mapsTo": "content",
+      "keywords": [
+        "heading only",
+        "blank with title",
+        "divider",
+        "title only"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        }
+      ],
+      "detect": {
+        "titles": 1,
+        "bodies": 0,
+        "pictures": 0,
+        "maxWords": 12,
+        "position": "any"
+      }
+    },
+    {
+      "id": "section",
+      "section": "titles",
+      "name": "Section header",
+      "mapsTo": "section",
+      "dark": true,
+      "keywords": [
+        "divider",
+        "chapter",
+        "segue",
+        "break",
+        "section header"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.25,
+            "w": 0.6,
+            "h": 0.4
+          }
+        },
+        {
+          "role": "subtitle",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.67,
+            "w": 0.6,
+            "h": 0.12
+          }
+        }
+      ],
+      "detect": {
+        "titles": 1,
+        "bodies": 0,
+        "maxWords": 10,
+        "maxParagraphs": 2
+      }
+    },
+    {
+      "id": "section-numbered",
+      "section": "titles",
+      "name": "Numbered section",
+      "mapsTo": "section",
+      "dark": true,
+      "keywords": [
+        "chapter number",
+        "part",
+        "agenda tracker"
+      ],
+      "slots": [
+        {
+          "role": "number",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.2,
+            "w": 0.2,
+            "h": 0.25
+          }
+        },
+        {
+          "role": "title",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.47,
+            "w": 0.7,
+            "h": 0.25
+          }
+        },
+        {
+          "role": "subtitle",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.74,
+            "w": 0.7,
+            "h": 0.1
+          }
+        }
+      ],
+      "detect": {
+        "titles": 1,
+        "numbersLike": 1,
+        "maxWords": 12
+      }
+    },
+    {
+      "id": "section-description",
+      "section": "titles",
+      "name": "Section title and description",
+      "mapsTo": "section",
+      "keywords": [
+        "section intro",
+        "chapter summary",
+        "section title and description"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.24,
+            "w": 0.36,
+            "h": 0.5
+          }
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "box": {
+            "x": 0.47,
+            "y": 0.26,
+            "w": 0.48,
+            "h": 0.5
+          }
+        }
+      ],
+      "detect": {
+        "titles": 1,
+        "bodies": 1,
+        "titleSide": "left",
+        "maxWords": 80
+      }
+    },
+    {
+      "id": "statement",
+      "section": "titles",
+      "name": "Statement",
+      "mapsTo": "main-point",
+      "keywords": [
+        "main point",
+        "headline slide",
+        "big statement",
+        "key message"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "box": {
+            "x": 0.1,
+            "y": 0.3,
+            "w": 0.8,
+            "h": 0.3
+          }
+        },
+        {
+          "role": "subtitle",
+          "kind": "text",
+          "box": {
+            "x": 0.1,
+            "y": 0.62,
+            "w": 0.8,
+            "h": 0.1
+          }
+        }
+      ],
+      "detect": {
+        "titles": 1,
+        "bodies": [
+          0,
+          1
+        ],
+        "maxWords": 30,
+        "largestTextPt": [
+          28,
+          999
+        ],
+        "pictures": 0
+      }
+    },
+    {
+      "id": "title-body",
+      "section": "text",
+      "name": "Title and body",
+      "mapsTo": "content",
+      "keywords": [
+        "title and content",
+        "bullets",
+        "text slide",
+        "standard",
+        "title and body"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "r": [
+            0,
+            6
+          ]
+        }
+      ],
+      "detect": {
+        "titles": 1,
+        "bodies": [
+          1,
+          2
+        ],
+        "rows": [],
+        "pictures": 0
+      }
+    },
+    {
+      "id": "title-subtitle-body",
+      "section": "text",
+      "name": "Title, subtitle and body",
+      "mapsTo": "content",
+      "keywords": [
+        "kicker",
+        "subheading",
+        "headline and subheading"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "subtitle",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "subtitle"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "r": [
+            0,
+            6
+          ],
+          "shift": "subtitle"
+        }
+      ],
+      "detect": {
+        "titles": 1,
+        "subtitles": 1,
+        "bodies": [
+          1,
+          2
+        ],
+        "pictures": 0
+      }
+    },
+    {
+      "id": "kicker-title-body",
+      "section": "text",
+      "name": "Action title with label",
+      "mapsTo": "content",
+      "keywords": [
+        "action title",
+        "category label",
+        "tag line"
+      ],
+      "slots": [
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "kicker"
+        },
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title-after-kicker"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "r": [
+            0,
+            6
+          ]
+        }
+      ],
+      "detect": {
+        "labelsAboveTitle": 1,
+        "titles": 1,
+        "bodies": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "id": "one-column-text",
+      "section": "text",
+      "name": "One column text",
+      "mapsTo": "content",
+      "keywords": [
+        "narrow column",
+        "essay",
+        "reading width",
+        "one column text"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            7
+          ],
+          "band": "title"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            0,
+            7
+          ],
+          "r": [
+            0,
+            6
+          ]
+        }
+      ],
+      "detect": {
+        "titles": 1,
+        "bodies": 1,
+        "bodyWidthShare": [
+          0.3,
+          0.62
+        ],
+        "pictures": 0,
+        "minWords": 40
+      }
+    },
+    {
+      "id": "text-two-column",
+      "section": "text",
+      "name": "Two columns of text",
+      "mapsTo": "two-column",
+      "keywords": [
+        "two column text",
+        "running text",
+        "continuous",
+        "two content",
+        "title and two columns"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            0,
+            6
+          ],
+          "r": [
+            0,
+            6
+          ],
+          "group": "c1"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            6,
+            6
+          ],
+          "r": [
+            0,
+            6
+          ],
+          "group": "c2"
+        }
+      ],
+      "detect": {
+        "rows": [
+          {
+            "count": 2,
+            "kind": "text",
+            "minWidthShare": 0.3
+          }
+        ],
+        "minWords": 30
+      }
+    },
+    {
+      "id": "comparison",
+      "section": "text",
+      "name": "Comparison",
+      "mapsTo": "two-column",
+      "keywords": [
+        "versus",
+        "before after",
+        "option A B",
+        "pros cons",
+        "comparison"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            0,
+            6
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "c1"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            0,
+            6
+          ],
+          "r": [
+            1,
+            5
+          ],
+          "group": "c1"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            6,
+            6
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "c2"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            6,
+            6
+          ],
+          "r": [
+            1,
+            5
+          ],
+          "group": "c2"
+        }
+      ],
+      "detect": {
+        "rows": [
+          {
+            "count": 2,
+            "kind": "text",
+            "headed": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "text-and-callout",
+      "section": "text",
+      "name": "Text with callout",
+      "mapsTo": "split",
+      "keywords": [
+        "takeaway",
+        "side note",
+        "key point",
+        "callout box",
+        "content with caption"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            0,
+            8
+          ],
+          "r": [
+            0,
+            6
+          ]
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            8,
+            4
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "callout"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            8,
+            4
+          ],
+          "r": [
+            1,
+            5
+          ],
+          "group": "callout"
+        }
+      ],
+      "detect": {
+        "rows": [
+          {
+            "count": 2,
+            "kind": "text",
+            "widthRatio": [
+              0.4,
+              0.6
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "columns-2",
+      "section": "boxes",
+      "name": "Two boxes",
+      "mapsTo": "two-column",
+      "keywords": [
+        "2 columns",
+        "two boxes",
+        "pair",
+        "two content"
+      ],
+      "repeat": {
+        "count": 2,
+        "across": 2,
+        "cell": [
+          "label:0.2",
+          "body:0.8"
+        ]
+      },
+      "detect": {
+        "rows": [
+          {
+            "count": 2,
+            "kind": "text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "columns-3",
+      "section": "boxes",
+      "name": "Three boxes",
+      "mapsTo": null,
+      "keywords": [
+        "3 columns",
+        "three boxes",
+        "pillars",
+        "three things",
+        "triptych"
+      ],
+      "repeat": {
+        "count": 3,
+        "across": 3,
+        "cell": [
+          "label:0.2",
+          "body:0.8"
+        ]
+      },
+      "detect": {
+        "rows": [
+          {
+            "count": 3,
+            "kind": "text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "columns-4",
+      "section": "boxes",
+      "name": "Four boxes",
+      "mapsTo": null,
+      "keywords": [
+        "4 columns",
+        "four boxes"
+      ],
+      "repeat": {
+        "count": 4,
+        "across": 4,
+        "cell": [
+          "label:0.2",
+          "body:0.8"
+        ]
+      },
+      "detect": {
+        "rows": [
+          {
+            "count": 4,
+            "kind": "text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "columns-5",
+      "section": "boxes",
+      "name": "Five boxes",
+      "mapsTo": null,
+      "keywords": [
+        "5 columns",
+        "five"
+      ],
+      "repeat": {
+        "count": 5,
+        "across": 5,
+        "cell": [
+          "label:0.25",
+          "body:0.75"
+        ]
+      },
+      "detect": {
+        "rows": [
+          {
+            "count": 5,
+            "kind": "text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "icon-columns-3",
+      "section": "boxes",
+      "name": "Three boxes with icons",
+      "mapsTo": null,
+      "keywords": [
+        "icons",
+        "features",
+        "benefits"
+      ],
+      "repeat": {
+        "count": 3,
+        "across": 3,
+        "cell": [
+          "visual:0.25",
+          "label:0.15",
+          "body:0.6"
+        ]
+      },
+      "detect": {
+        "rows": [
+          {
+            "count": 3,
+            "kind": "text",
+            "iconAbove": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "icon-columns-4",
+      "section": "boxes",
+      "name": "Four boxes with icons",
+      "mapsTo": null,
+      "keywords": [
+        "features",
+        "four with icons"
+      ],
+      "repeat": {
+        "count": 4,
+        "across": 4,
+        "cell": [
+          "visual:0.25",
+          "label:0.15",
+          "body:0.6"
+        ]
+      },
+      "detect": {
+        "rows": [
+          {
+            "count": 4,
+            "kind": "text",
+            "iconAbove": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "grid-2x2",
+      "section": "boxes",
+      "name": "Four boxes in a grid",
+      "mapsTo": null,
+      "keywords": [
+        "2x2",
+        "four quadrants",
+        "matrix",
+        "SWOT"
+      ],
+      "repeat": {
+        "count": 4,
+        "across": 2,
+        "cell": [
+          "label:0.25",
+          "body:0.75"
+        ]
+      },
+      "detect": {
+        "grid": {
+          "cols": 2,
+          "rows": 2,
+          "kind": "text"
+        }
+      }
+    },
+    {
+      "id": "grid-3x2",
+      "section": "boxes",
+      "name": "Six boxes",
+      "mapsTo": null,
+      "keywords": [
+        "6 boxes",
+        "six",
+        "3x2"
+      ],
+      "repeat": {
+        "count": 6,
+        "across": 3,
+        "cell": [
+          "label:0.25",
+          "body:0.75"
+        ]
+      },
+      "detect": {
+        "grid": {
+          "cols": 3,
+          "rows": 2,
+          "kind": "text"
+        }
+      }
+    },
+    {
+      "id": "grid-2x3",
+      "section": "boxes",
+      "name": "Six boxes tall",
+      "mapsTo": null,
+      "keywords": [
+        "six boxes",
+        "2x3",
+        "two columns three rows"
+      ],
+      "repeat": {
+        "count": 6,
+        "across": 2,
+        "cell": [
+          "label:0.3",
+          "body:0.7"
+        ]
+      },
+      "detect": {
+        "grid": {
+          "cols": 2,
+          "rows": 3,
+          "kind": "text"
+        }
+      }
+    },
+    {
+      "id": "grid-4x2",
+      "section": "boxes",
+      "name": "Eight boxes",
+      "mapsTo": null,
+      "keywords": [
+        "8 boxes",
+        "eight",
+        "4x2"
+      ],
+      "repeat": {
+        "count": 8,
+        "across": 4,
+        "cell": [
+          "label:0.3",
+          "body:0.7"
+        ]
+      },
+      "detect": {
+        "grid": {
+          "cols": 4,
+          "rows": 2,
+          "kind": "text"
+        }
+      }
+    },
+    {
+      "id": "bento-5",
+      "section": "boxes",
+      "name": "Feature grid",
+      "mapsTo": null,
+      "keywords": [
+        "bento",
+        "feature grid",
+        "mixed sizes",
+        "mosaic"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            0,
+            6
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "big"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            0,
+            6
+          ],
+          "r": [
+            1,
+            2
+          ],
+          "group": "big"
+        },
+        {
+          "role": "visual",
+          "kind": "image",
+          "fit": "cover",
+          "c": [
+            0,
+            6
+          ],
+          "r": [
+            3,
+            3
+          ],
+          "group": "big"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            6,
+            3
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "s1"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            6,
+            3
+          ],
+          "r": [
+            1,
+            2
+          ],
+          "group": "s1"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            9,
+            3
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "s2"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            9,
+            3
+          ],
+          "r": [
+            1,
+            2
+          ],
+          "group": "s2"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            6,
+            3
+          ],
+          "r": [
+            3,
+            1
+          ],
+          "group": "s3"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            6,
+            3
+          ],
+          "r": [
+            4,
+            2
+          ],
+          "group": "s3"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            9,
+            3
+          ],
+          "r": [
+            3,
+            1
+          ],
+          "group": "s4"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            9,
+            3
+          ],
+          "r": [
+            4,
+            2
+          ],
+          "group": "s4"
+        }
+      ],
+      "detect": {
+        "mixedGrid": true
+      }
+    },
+    {
+      "id": "cards-3",
+      "section": "boxes",
+      "name": "Three cards",
+      "mapsTo": null,
+      "keywords": [
+        "cards",
+        "tiles",
+        "product cards"
+      ],
+      "repeat": {
+        "count": 3,
+        "across": 3,
+        "cell": [
+          "visual:0.45",
+          "label:0.15",
+          "body:0.4"
+        ]
+      },
+      "detect": {
+        "rows": [
+          {
+            "count": 3,
+            "kind": "mixed",
+            "pictureAbove": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "full-image",
+      "section": "images",
+      "name": "Full-page picture",
+      "mapsTo": "full-image",
+      "dark": true,
+      "keywords": [
+        "full bleed",
+        "photo only",
+        "background photo"
+      ],
+      "slots": [
+        {
+          "role": "visual",
+          "kind": "image",
+          "fit": "cover",
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1
+          }
+        }
+      ],
+      "detect": {
+        "pictureShare": [
+          0.6,
+          1
+        ],
+        "maxWords": 0
+      }
+    },
+    {
+      "id": "full-image-caption",
+      "section": "images",
+      "name": "Full-page picture with caption",
+      "mapsTo": "full-image",
+      "dark": true,
+      "keywords": [
+        "caption",
+        "photo with caption",
+        "credit"
+      ],
+      "slots": [
+        {
+          "role": "visual",
+          "kind": "image",
+          "fit": "cover",
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 1
+          }
+        },
+        {
+          "role": "caption",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.82,
+            "w": 0.9,
+            "h": 0.12
+          }
+        }
+      ],
+      "detect": {
+        "pictureShare": [
+          0.6,
+          1
+        ],
+        "maxWords": 30
+      }
+    },
+    {
+      "id": "visual",
+      "section": "images",
+      "name": "Title and picture",
+      "mapsTo": "visual",
+      "keywords": [
+        "image slide",
+        "title and image",
+        "screenshot"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "visual",
+          "kind": "image",
+          "c": [
+            0,
+            12
+          ],
+          "r": [
+            0,
+            6
+          ]
+        }
+      ],
+      "detect": {
+        "titles": 1,
+        "pictures": 1,
+        "pictureShare": [
+          0.2,
+          0.6
+        ],
+        "maxWords": 30
+      }
+    },
+    {
+      "id": "image-caption",
+      "section": "images",
+      "name": "Picture with caption",
+      "mapsTo": "visual",
+      "keywords": [
+        "picture with caption",
+        "figure",
+        "screenshot with note",
+        "caption only"
+      ],
+      "slots": [
+        {
+          "role": "visual",
+          "kind": "image",
+          "c": [
+            0,
+            12
+          ],
+          "r": [
+            0,
+            5
+          ],
+          "shift": "no-title"
+        },
+        {
+          "role": "caption",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "r": [
+            5,
+            1
+          ]
+        }
+      ],
+      "detect": {
+        "titles": 0,
+        "pictures": 1,
+        "pictureShare": [
+          0.3,
+          0.8
+        ],
+        "captionBelow": true
+      }
+    },
+    {
+      "id": "image-and-text",
+      "section": "images",
+      "name": "Picture left, text right",
+      "mapsTo": "split",
+      "mirror": "text-and-image",
+      "keywords": [
+        "image left",
+        "photo and text",
+        "side by side"
+      ],
+      "detect": {
+        "pictureSide": "left",
+        "pictureShare": [
+          0.15,
+          0.6
+        ],
+        "minWords": 30
+      }
+    },
+    {
+      "id": "text-and-image",
+      "section": "images",
+      "name": "Text left, picture right",
+      "mapsTo": "split",
+      "keywords": [
+        "image right",
+        "panel",
+        "text and photo"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.06,
+            "w": 0.36,
+            "h": 0.28
+          }
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.36,
+            "w": 0.36,
+            "h": 0.5
+          }
+        },
+        {
+          "role": "visual",
+          "kind": "image",
+          "fit": "cover",
+          "box": {
+            "x": 0.47,
+            "y": 0.06,
+            "w": 0.48,
+            "h": 0.8
+          }
+        }
+      ],
+      "detect": {
+        "pictureSide": "right",
+        "pictureShare": [
+          0.15,
+          0.6
+        ],
+        "minWords": 30
+      }
+    },
+    {
+      "id": "image-top-text-bottom",
+      "section": "images",
+      "name": "Picture above text",
+      "mapsTo": null,
+      "keywords": [
+        "banner",
+        "magazine",
+        "image on top"
+      ],
+      "slots": [
+        {
+          "role": "visual",
+          "kind": "image",
+          "fit": "cover",
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 1,
+            "h": 0.5
+          }
+        },
+        {
+          "role": "title",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.56,
+            "w": 0.9,
+            "h": 0.12
+          }
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.7,
+            "w": 0.9,
+            "h": 0.2
+          }
+        }
+      ],
+      "detect": {
+        "pictureSide": "top",
+        "pictureShare": [
+          0.3,
+          0.6
+        ]
+      }
+    },
+    {
+      "id": "images-2",
+      "section": "images",
+      "name": "Two pictures",
+      "mapsTo": null,
+      "keywords": [
+        "two images",
+        "side by side photos",
+        "before after"
+      ],
+      "repeat": {
+        "count": 2,
+        "across": 2,
+        "cell": [
+          "visual:0.85",
+          "caption:0.15"
+        ]
+      },
+      "detect": {
+        "rows": [
+          {
+            "count": 2,
+            "kind": "picture"
+          }
+        ]
+      }
+    },
+    {
+      "id": "images-3",
+      "section": "images",
+      "name": "Three pictures",
+      "mapsTo": null,
+      "keywords": [
+        "three images",
+        "3 up",
+        "photo strip"
+      ],
+      "repeat": {
+        "count": 3,
+        "across": 3,
+        "cell": [
+          "visual:0.85",
+          "caption:0.15"
+        ]
+      },
+      "detect": {
+        "rows": [
+          {
+            "count": 3,
+            "kind": "picture"
+          }
+        ]
+      }
+    },
+    {
+      "id": "image-grid-2x2",
+      "section": "images",
+      "name": "Four pictures",
+      "mapsTo": null,
+      "keywords": [
+        "photo grid",
+        "four images",
+        "gallery"
+      ],
+      "repeat": {
+        "count": 4,
+        "across": 2,
+        "cell": [
+          "visual:1"
+        ]
+      },
+      "detect": {
+        "grid": {
+          "cols": 2,
+          "rows": 2,
+          "kind": "picture"
+        }
+      }
+    },
+    {
+      "id": "image-grid-3x2",
+      "section": "images",
+      "name": "Six pictures",
+      "mapsTo": null,
+      "keywords": [
+        "photo grid",
+        "mosaic",
+        "gallery",
+        "six images"
+      ],
+      "repeat": {
+        "count": 6,
+        "across": 3,
+        "cell": [
+          "visual:1"
+        ]
+      },
+      "detect": {
+        "grid": {
+          "cols": 3,
+          "rows": 2,
+          "kind": "picture"
+        }
+      }
+    },
+    {
+      "id": "image-with-quote",
+      "section": "images",
+      "name": "Picture with a line",
+      "mapsTo": "quote",
+      "keywords": [
+        "testimonial photo",
+        "customer",
+        "case study"
+      ],
+      "slots": [
+        {
+          "role": "visual",
+          "kind": "image",
+          "fit": "cover",
+          "box": {
+            "x": 0,
+            "y": 0,
+            "w": 0.45,
+            "h": 1
+          }
+        },
+        {
+          "role": "quote",
+          "kind": "text",
+          "box": {
+            "x": 0.52,
+            "y": 0.28,
+            "w": 0.43,
+            "h": 0.4
+          }
+        },
+        {
+          "role": "attribution",
+          "kind": "text",
+          "box": {
+            "x": 0.52,
+            "y": 0.7,
+            "w": 0.43,
+            "h": 0.08
+          }
+        }
+      ],
+      "detect": {
+        "quoteMarks": true,
+        "pictureSide": "left"
+      }
+    },
+    {
+      "id": "chart",
+      "section": "data",
+      "name": "Title and chart",
+      "mapsTo": "visual",
+      "keywords": [
+        "chart",
+        "graph",
+        "bar chart",
+        "line chart"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "data",
+          "kind": "image",
+          "c": [
+            0,
+            12
+          ],
+          "r": [
+            0,
+            6
+          ]
+        }
+      ],
+      "detect": {
+        "charts": 1,
+        "maxWords": 30
+      }
+    },
+    {
+      "id": "chart-and-callout",
+      "section": "data",
+      "name": "Chart with takeaway",
+      "mapsTo": "split",
+      "keywords": [
+        "insight",
+        "so what",
+        "chart with text",
+        "commentary"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "data",
+          "kind": "image",
+          "c": [
+            0,
+            8
+          ],
+          "r": [
+            0,
+            6
+          ]
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            8,
+            4
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "callout"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            8,
+            4
+          ],
+          "r": [
+            1,
+            5
+          ],
+          "group": "callout"
+        }
+      ],
+      "detect": {
+        "charts": 1,
+        "chartSide": "left",
+        "minWords": 20
+      }
+    },
+    {
+      "id": "callout-and-chart",
+      "section": "data",
+      "name": "Takeaway with chart",
+      "mapsTo": "split",
+      "mirror": "chart-and-callout",
+      "keywords": [
+        "text then chart"
+      ],
+      "detect": {
+        "charts": 1,
+        "chartSide": "right",
+        "minWords": 20
+      }
+    },
+    {
+      "id": "charts-2",
+      "section": "data",
+      "name": "Two charts",
+      "mapsTo": null,
+      "keywords": [
+        "two charts",
+        "compare charts"
+      ],
+      "repeat": {
+        "count": 2,
+        "across": 2,
+        "cell": [
+          "label:0.12",
+          "data:0.88"
+        ],
+        "dataKind": "image"
+      },
+      "detect": {
+        "charts": 2,
+        "rows": [
+          {
+            "count": 2,
+            "kind": "picture"
+          }
+        ]
+      }
+    },
+    {
+      "id": "big-number",
+      "section": "data",
+      "name": "Big number",
+      "mapsTo": "big-number",
+      "keywords": [
+        "one number",
+        "stat",
+        "headline figure",
+        "KPI",
+        "big number"
+      ],
+      "slots": [
+        {
+          "role": "number",
+          "kind": "text",
+          "box": {
+            "x": 0.225,
+            "y": 0.255,
+            "w": 0.55,
+            "h": 0.38
+          }
+        },
+        {
+          "role": "caption",
+          "kind": "text",
+          "box": {
+            "x": 0.225,
+            "y": 0.62,
+            "w": 0.55,
+            "h": 0.13
+          }
+        }
+      ],
+      "detect": {
+        "numbersLike": 1,
+        "maxWords": 8
+      }
+    },
+    {
+      "id": "stats-2",
+      "section": "data",
+      "name": "Two numbers",
+      "mapsTo": null,
+      "keywords": [
+        "two stats",
+        "KPIs",
+        "metrics"
+      ],
+      "repeat": {
+        "count": 2,
+        "across": 2,
+        "cell": [
+          "number:0.55",
+          "label:0.45"
+        ]
+      },
+      "detect": {
+        "numbersLike": 2,
+        "rows": [
+          {
+            "count": 2,
+            "kind": "text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "stats-3",
+      "section": "data",
+      "name": "Three numbers",
+      "mapsTo": null,
+      "keywords": [
+        "three stats",
+        "metrics row"
+      ],
+      "repeat": {
+        "count": 3,
+        "across": 3,
+        "cell": [
+          "number:0.55",
+          "label:0.45"
+        ]
+      },
+      "detect": {
+        "numbersLike": 3,
+        "rows": [
+          {
+            "count": 3,
+            "kind": "text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "stats-4",
+      "section": "data",
+      "name": "Four numbers",
+      "mapsTo": null,
+      "keywords": [
+        "four stats",
+        "KPI row",
+        "scorecard"
+      ],
+      "repeat": {
+        "count": 4,
+        "across": 4,
+        "cell": [
+          "number:0.55",
+          "label:0.45"
+        ]
+      },
+      "detect": {
+        "numbersLike": 4,
+        "rows": [
+          {
+            "count": 4,
+            "kind": "text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "dashboard",
+      "section": "data",
+      "name": "Numbers over a chart",
+      "mapsTo": null,
+      "keywords": [
+        "dashboard",
+        "KPIs and chart",
+        "overview"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "number",
+          "kind": "text",
+          "c": [
+            0,
+            3
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "k1"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            0,
+            3
+          ],
+          "r": [
+            1,
+            1
+          ],
+          "group": "k1"
+        },
+        {
+          "role": "number",
+          "kind": "text",
+          "c": [
+            3,
+            3
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "k2"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            3,
+            3
+          ],
+          "r": [
+            1,
+            1
+          ],
+          "group": "k2"
+        },
+        {
+          "role": "number",
+          "kind": "text",
+          "c": [
+            6,
+            3
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "k3"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            6,
+            3
+          ],
+          "r": [
+            1,
+            1
+          ],
+          "group": "k3"
+        },
+        {
+          "role": "number",
+          "kind": "text",
+          "c": [
+            9,
+            3
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "k4"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            9,
+            3
+          ],
+          "r": [
+            1,
+            1
+          ],
+          "group": "k4"
+        },
+        {
+          "role": "data",
+          "kind": "image",
+          "c": [
+            0,
+            12
+          ],
+          "r": [
+            2,
+            4
+          ]
+        }
+      ],
+      "detect": {
+        "numbersLike": [
+          3,
+          4
+        ],
+        "charts": 1
+      }
+    },
+    {
+      "id": "table",
+      "section": "data",
+      "name": "Table",
+      "mapsTo": "table",
+      "keywords": [
+        "table",
+        "grid of values",
+        "matrix",
+        "scorecard"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "data",
+          "kind": "table",
+          "c": [
+            0,
+            12
+          ],
+          "r": [
+            0,
+            6
+          ]
+        }
+      ],
+      "detect": {
+        "tables": 1
+      }
+    },
+    {
+      "id": "table-and-text",
+      "section": "data",
+      "name": "Table with notes",
+      "mapsTo": "table",
+      "keywords": [
+        "table with commentary",
+        "pricing with notes"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "data",
+          "kind": "table",
+          "c": [
+            0,
+            8
+          ],
+          "r": [
+            0,
+            6
+          ]
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            8,
+            4
+          ],
+          "r": [
+            0,
+            6
+          ]
+        }
+      ],
+      "detect": {
+        "tables": 1,
+        "minWords": 30
+      }
+    },
+    {
+      "id": "steps-3",
+      "section": "process",
+      "name": "Three steps",
+      "mapsTo": null,
+      "keywords": [
+        "process",
+        "how it works",
+        "1 2 3",
+        "flow"
+      ],
+      "repeat": {
+        "count": 3,
+        "across": 3,
+        "cell": [
+          "number:0.2",
+          "label:0.15",
+          "body:0.65"
+        ]
+      },
+      "detect": {
+        "rows": [
+          {
+            "count": 3,
+            "kind": "text",
+            "numbered": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "steps-4",
+      "section": "process",
+      "name": "Four steps",
+      "mapsTo": null,
+      "keywords": [
+        "process",
+        "four steps",
+        "phases"
+      ],
+      "repeat": {
+        "count": 4,
+        "across": 4,
+        "cell": [
+          "number:0.2",
+          "label:0.15",
+          "body:0.65"
+        ]
+      },
+      "detect": {
+        "rows": [
+          {
+            "count": 4,
+            "kind": "text",
+            "numbered": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "steps-5",
+      "section": "process",
+      "name": "Five steps",
+      "mapsTo": null,
+      "keywords": [
+        "five steps",
+        "journey",
+        "stages"
+      ],
+      "repeat": {
+        "count": 5,
+        "across": 5,
+        "cell": [
+          "number:0.25",
+          "label:0.15",
+          "body:0.6"
+        ]
+      },
+      "detect": {
+        "rows": [
+          {
+            "count": 5,
+            "kind": "text",
+            "numbered": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "timeline",
+      "section": "process",
+      "name": "Timeline",
+      "mapsTo": null,
+      "keywords": [
+        "timeline",
+        "milestones",
+        "history",
+        "roadmap"
+      ],
+      "repeat": {
+        "count": 5,
+        "across": 5,
+        "cell": [
+          "label:0.2",
+          "body:0.8"
+        ],
+        "rule": {
+          "y": 0.36,
+          "h": 0.004
+        }
+      },
+      "detect": {
+        "rows": [
+          {
+            "count": [
+              4,
+              6
+            ],
+            "kind": "text",
+            "dated": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "timeline-vertical",
+      "section": "process",
+      "name": "Vertical timeline",
+      "mapsTo": null,
+      "keywords": [
+        "vertical timeline",
+        "history",
+        "changelog"
+      ],
+      "repeat": {
+        "count": 4,
+        "across": 1,
+        "cellCols": [
+          1,
+          11
+        ],
+        "cell": [
+          "label:0.3",
+          "body:0.7"
+        ],
+        "rule": {
+          "x": 0.055,
+          "w": 0.004
+        }
+      },
+      "detect": {
+        "stack": {
+          "count": [
+            3,
+            5
+          ],
+          "dated": true
+        }
+      }
+    },
+    {
+      "id": "roadmap",
+      "section": "process",
+      "name": "Roadmap",
+      "mapsTo": null,
+      "keywords": [
+        "roadmap",
+        "quarters",
+        "phases",
+        "plan",
+        "gantt"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            3,
+            3
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "h1"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            6,
+            3
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "h2"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            9,
+            3
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "h3"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            0,
+            3
+          ],
+          "r": [
+            1,
+            1
+          ],
+          "group": "l1"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            3,
+            9
+          ],
+          "r": [
+            1,
+            1
+          ],
+          "group": "l1"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            0,
+            3
+          ],
+          "r": [
+            3,
+            1
+          ],
+          "group": "l2"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            3,
+            9
+          ],
+          "r": [
+            3,
+            1
+          ],
+          "group": "l2"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            0,
+            3
+          ],
+          "r": [
+            5,
+            1
+          ],
+          "group": "l3"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            3,
+            9
+          ],
+          "r": [
+            5,
+            1
+          ],
+          "group": "l3"
+        }
+      ],
+      "detect": {
+        "grid": {
+          "cols": [
+            3,
+            5
+          ],
+          "rows": [
+            3,
+            4
+          ],
+          "kind": "text",
+          "headedRowAndColumn": true
+        }
+      }
+    },
+    {
+      "id": "cycle",
+      "section": "process",
+      "name": "Cycle",
+      "mapsTo": null,
+      "keywords": [
+        "cycle",
+        "loop",
+        "circular",
+        "continuous"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "box": {
+            "x": 0.375,
+            "y": 0.5,
+            "w": 0.25,
+            "h": 0.12
+          }
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "box": {
+            "x": 0.375,
+            "y": 0.24,
+            "w": 0.25,
+            "h": 0.2
+          },
+          "group": "n"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "box": {
+            "x": 0.7,
+            "y": 0.46,
+            "w": 0.25,
+            "h": 0.2
+          },
+          "group": "e"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "box": {
+            "x": 0.375,
+            "y": 0.68,
+            "w": 0.25,
+            "h": 0.2
+          },
+          "group": "s"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.46,
+            "w": 0.25,
+            "h": 0.2
+          },
+          "group": "w"
+        }
+      ],
+      "detect": {
+        "compass": 4
+      }
+    },
+    {
+      "id": "funnel",
+      "section": "process",
+      "name": "Funnel",
+      "mapsTo": null,
+      "keywords": [
+        "funnel",
+        "pipeline",
+        "conversion",
+        "stages"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            0,
+            8
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "f1"
+        },
+        {
+          "role": "number",
+          "kind": "text",
+          "c": [
+            9,
+            3
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "f1"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            1,
+            6
+          ],
+          "r": [
+            1,
+            1
+          ],
+          "group": "f2"
+        },
+        {
+          "role": "number",
+          "kind": "text",
+          "c": [
+            9,
+            3
+          ],
+          "r": [
+            1,
+            1
+          ],
+          "group": "f2"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            2,
+            4
+          ],
+          "r": [
+            2,
+            1
+          ],
+          "group": "f3"
+        },
+        {
+          "role": "number",
+          "kind": "text",
+          "c": [
+            9,
+            3
+          ],
+          "r": [
+            2,
+            1
+          ],
+          "group": "f3"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            3,
+            2
+          ],
+          "r": [
+            3,
+            1
+          ],
+          "group": "f4"
+        },
+        {
+          "role": "number",
+          "kind": "text",
+          "c": [
+            9,
+            3
+          ],
+          "r": [
+            3,
+            1
+          ],
+          "group": "f4"
+        }
+      ],
+      "detect": {
+        "stack": {
+          "count": [
+            3,
+            5
+          ],
+          "narrowing": true
+        }
+      }
+    },
+    {
+      "id": "quote",
+      "section": "people",
+      "name": "Quote",
+      "mapsTo": "quote",
+      "dark": true,
+      "keywords": [
+        "quotation",
+        "testimonial",
+        "said",
+        "citation"
+      ],
+      "slots": [
+        {
+          "role": "quote",
+          "kind": "text",
+          "box": {
+            "x": 0.14,
+            "y": 0.34,
+            "w": 0.72,
+            "h": 0.34
+          }
+        },
+        {
+          "role": "attribution",
+          "kind": "text",
+          "box": {
+            "x": 0.14,
+            "y": 0.72,
+            "w": 0.72,
+            "h": 0.08
+          }
+        }
+      ],
+      "detect": {
+        "quoteMarks": true,
+        "maxWords": 40,
+        "pictures": 0
+      }
+    },
+    {
+      "id": "quote-portrait",
+      "section": "people",
+      "name": "Quote with portrait",
+      "mapsTo": "quote",
+      "keywords": [
+        "testimonial with photo",
+        "customer quote"
+      ],
+      "slots": [
+        {
+          "role": "visual",
+          "kind": "image",
+          "fit": "cover",
+          "box": {
+            "x": 0.08,
+            "y": 0.3,
+            "w": 0.22,
+            "h": 0.39
+          }
+        },
+        {
+          "role": "quote",
+          "kind": "text",
+          "box": {
+            "x": 0.38,
+            "y": 0.3,
+            "w": 0.54,
+            "h": 0.3
+          }
+        },
+        {
+          "role": "attribution",
+          "kind": "text",
+          "box": {
+            "x": 0.38,
+            "y": 0.62,
+            "w": 0.54,
+            "h": 0.08
+          }
+        }
+      ],
+      "detect": {
+        "quoteMarks": true,
+        "pictures": 1,
+        "pictureShare": [
+          0.03,
+          0.2
+        ]
+      }
+    },
+    {
+      "id": "profile",
+      "section": "people",
+      "name": "Profile",
+      "mapsTo": "split",
+      "keywords": [
+        "speaker",
+        "bio",
+        "about me",
+        "presenter"
+      ],
+      "slots": [
+        {
+          "role": "visual",
+          "kind": "image",
+          "fit": "cover",
+          "box": {
+            "x": 0.05,
+            "y": 0.2,
+            "w": 0.3,
+            "h": 0.6
+          }
+        },
+        {
+          "role": "title",
+          "kind": "text",
+          "box": {
+            "x": 0.42,
+            "y": 0.22,
+            "w": 0.53,
+            "h": 0.12
+          }
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "box": {
+            "x": 0.42,
+            "y": 0.35,
+            "w": 0.53,
+            "h": 0.06
+          }
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "box": {
+            "x": 0.42,
+            "y": 0.44,
+            "w": 0.53,
+            "h": 0.36
+          }
+        }
+      ],
+      "detect": {
+        "portrait": 1,
+        "pictureSide": "left",
+        "titles": 1
+      }
+    },
+    {
+      "id": "team-3",
+      "section": "people",
+      "name": "Team of three",
+      "mapsTo": null,
+      "keywords": [
+        "team",
+        "people",
+        "presenters"
+      ],
+      "repeat": {
+        "count": 3,
+        "across": 3,
+        "cell": [
+          "visual:0.6",
+          "label:0.2",
+          "caption:0.2"
+        ],
+        "fit": "cover"
+      },
+      "detect": {
+        "rows": [
+          {
+            "count": 3,
+            "kind": "picture",
+            "portrait": true,
+            "captioned": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "team-4",
+      "section": "people",
+      "name": "Team of four",
+      "mapsTo": null,
+      "keywords": [
+        "team",
+        "four people",
+        "leadership"
+      ],
+      "repeat": {
+        "count": 4,
+        "across": 4,
+        "cell": [
+          "visual:0.6",
+          "label:0.2",
+          "caption:0.2"
+        ],
+        "fit": "cover"
+      },
+      "detect": {
+        "rows": [
+          {
+            "count": 4,
+            "kind": "picture",
+            "portrait": true,
+            "captioned": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "team-grid-4x2",
+      "section": "people",
+      "name": "Team of eight",
+      "mapsTo": null,
+      "keywords": [
+        "team grid",
+        "org",
+        "eight people"
+      ],
+      "repeat": {
+        "count": 8,
+        "across": 4,
+        "cell": [
+          "visual:0.6",
+          "label:0.2",
+          "caption:0.2"
+        ],
+        "fit": "cover"
+      },
+      "detect": {
+        "grid": {
+          "cols": 4,
+          "rows": 2,
+          "kind": "picture",
+          "portrait": true
+        }
+      }
+    },
+    {
+      "id": "logo-wall",
+      "section": "people",
+      "name": "Logo wall",
+      "mapsTo": null,
+      "keywords": [
+        "logos",
+        "customers",
+        "partners",
+        "trusted by",
+        "clients"
+      ],
+      "repeat": {
+        "count": 8,
+        "across": 4,
+        "cell": [
+          "visual:1"
+        ],
+        "fit": "contain",
+        "inset": 0.2
+      },
+      "detect": {
+        "grid": {
+          "cols": [
+            3,
+            6
+          ],
+          "rows": [
+            1,
+            3
+          ],
+          "kind": "picture",
+          "logoLike": true
+        }
+      }
+    },
+    {
+      "id": "agenda",
+      "section": "lists",
+      "name": "Agenda",
+      "mapsTo": "agenda",
+      "keywords": [
+        "agenda",
+        "contents",
+        "overview",
+        "outline",
+        "today"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "r": [
+            0,
+            6
+          ]
+        }
+      ],
+      "detect": {
+        "agendaWords": true,
+        "position": "early"
+      }
+    },
+    {
+      "id": "agenda-numbered",
+      "section": "lists",
+      "name": "Numbered agenda",
+      "mapsTo": "agenda",
+      "keywords": [
+        "numbered agenda",
+        "contents with numbers"
+      ],
+      "repeat": {
+        "count": 5,
+        "across": 1,
+        "cellCols": [
+          1,
+          11
+        ],
+        "cell": [
+          "body:1"
+        ],
+        "numberCol": [
+          0,
+          1
+        ]
+      },
+      "detect": {
+        "agendaWords": true,
+        "stack": {
+          "count": [
+            3,
+            7
+          ],
+          "numbered": true
+        }
+      }
+    },
+    {
+      "id": "agenda-two-column",
+      "section": "lists",
+      "name": "Agenda in two columns",
+      "mapsTo": "agenda",
+      "keywords": [
+        "long agenda",
+        "split agenda"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            12
+          ],
+          "band": "title"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            0,
+            6
+          ],
+          "r": [
+            0,
+            6
+          ]
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            6,
+            6
+          ],
+          "r": [
+            0,
+            6
+          ]
+        }
+      ],
+      "detect": {
+        "agendaWords": true,
+        "rows": [
+          {
+            "count": 2,
+            "kind": "text"
+          }
+        ]
+      }
+    },
+    {
+      "id": "numbered-rows",
+      "section": "lists",
+      "name": "Numbered list",
+      "mapsTo": null,
+      "keywords": [
+        "numbered list",
+        "key points",
+        "top four",
+        "ranking"
+      ],
+      "repeat": {
+        "count": 4,
+        "across": 1,
+        "cellCols": [
+          1,
+          11
+        ],
+        "cell": [
+          "label:0.35",
+          "body:0.65"
+        ],
+        "numberCol": [
+          0,
+          1
+        ]
+      },
+      "detect": {
+        "stack": {
+          "count": [
+            3,
+            6
+          ],
+          "numbered": true,
+          "headed": true
+        }
+      }
+    },
+    {
+      "id": "checklist",
+      "section": "lists",
+      "name": "Checklist",
+      "mapsTo": "content",
+      "keywords": [
+        "checklist",
+        "requirements",
+        "do and do not"
+      ],
+      "repeat": {
+        "count": 5,
+        "across": 1,
+        "cellCols": [
+          1,
+          11
+        ],
+        "cell": [
+          "body:1"
+        ],
+        "iconCol": [
+          0,
+          1
+        ]
+      },
+      "detect": {
+        "stack": {
+          "count": [
+            3,
+            7
+          ],
+          "iconLeft": true
+        }
+      }
+    },
+    {
+      "id": "closing-thanks",
+      "section": "closing",
+      "name": "Thank you",
+      "mapsTo": "title",
+      "dark": true,
+      "keywords": [
+        "thank you",
+        "end",
+        "closing",
+        "questions"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.3,
+            "w": 0.7,
+            "h": 0.25
+          }
+        },
+        {
+          "role": "subtitle",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.58,
+            "w": 0.7,
+            "h": 0.1
+          }
+        },
+        {
+          "role": "caption",
+          "kind": "text",
+          "box": {
+            "x": 0.05,
+            "y": 0.72,
+            "w": 0.7,
+            "h": 0.1
+          }
+        }
+      ],
+      "detect": {
+        "position": "last",
+        "closingWords": true
+      }
+    },
+    {
+      "id": "closing-contact",
+      "section": "closing",
+      "name": "Contact",
+      "mapsTo": null,
+      "keywords": [
+        "contact",
+        "get in touch",
+        "next steps",
+        "call to action"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "c": [
+            0,
+            8
+          ],
+          "band": "title"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            0,
+            8
+          ],
+          "r": [
+            0,
+            1
+          ],
+          "group": "l1"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            0,
+            8
+          ],
+          "r": [
+            1,
+            1
+          ],
+          "group": "l1"
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "c": [
+            0,
+            8
+          ],
+          "r": [
+            2,
+            1
+          ],
+          "group": "l2"
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "c": [
+            0,
+            8
+          ],
+          "r": [
+            3,
+            1
+          ],
+          "group": "l2"
+        },
+        {
+          "role": "visual",
+          "kind": "image",
+          "fit": "contain",
+          "c": [
+            9,
+            3
+          ],
+          "r": [
+            0,
+            4
+          ]
+        }
+      ],
+      "detect": {
+        "position": "last",
+        "contactWords": true
+      }
+    },
+    {
+      "id": "closing-cta",
+      "section": "closing",
+      "name": "Call to action",
+      "mapsTo": "main-point",
+      "keywords": [
+        "next steps",
+        "call to action",
+        "ask"
+      ],
+      "slots": [
+        {
+          "role": "title",
+          "kind": "text",
+          "box": {
+            "x": 0.1,
+            "y": 0.26,
+            "w": 0.8,
+            "h": 0.24
+          }
+        },
+        {
+          "role": "body",
+          "kind": "text",
+          "box": {
+            "x": 0.1,
+            "y": 0.52,
+            "w": 0.8,
+            "h": 0.16
+          }
+        },
+        {
+          "role": "label",
+          "kind": "text",
+          "box": {
+            "x": 0.1,
+            "y": 0.72,
+            "w": 0.3,
+            "h": 0.08
+          }
+        }
+      ],
+      "detect": {
+        "position": "last",
+        "titles": 1,
+        "maxWords": 40
+      }
+    }
+  ]
+}

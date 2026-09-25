@@ -53,27 +53,19 @@ Magandang panukat ng ceiling dito ang Deck Studio: isang buong slide deck na idi
 
 Karamihan sa mga pitch na "AI creative" ay inilalagay ang model sa maling gilid ng isang lumang linya. Naayos na ito noon ng mga eskriba at illuminator: gumagawa ka nang maluwag sa sketch, kung saan kahit ano ay maaaring subukan at walang naka-commit, at pagkatapos ay pupunta ka sa printing press, na nakakatakot mismo dahil nagko-commit ito. Sa mga sketch nakasalalay ang sining. Sa press naman kung paano ito lumaganap. Dalawang kasangkapan, dalawang trabaho, bawat isa ay malikhain sa sarili nitong paraan, at mapagkakatiwalaan ang naka-print na trabaho dahil tinupad ng press ang pangako nito sa bawat pull.
 
-Ang Lolly ang press, hindi ang sketch. Dalhin ang kahit ano sa ideation - isang model, isang designer, isang napkin - pero sa sandaling kailangan nang maging sampung libong asset ang isang ideya, dumadaan ito sa isang bagay na nagre-render nang pareho sa bawat pagkakataon, mula sa mga input na kaya ng kahit sino basahin pabalik. Iyan ang tunay na punto ng paghahambing sa itaas: hindi kung sino ang may mas mahusay na generator, kundi kung sino ang gumagawang reproducible sa committed step.
+Ang Lolly ang press, hindi ang sketch. Dalhin ang kahit ano sa ideation - isang model, isang designer, isang napkin - pero sa sandaling kailangan nang maging maraming asset ang isang ideya, dumadaan ito sa isang bagay na nagre-render nang pareho sa bawat pagkakataon, mula sa mga input na kaya ng kahit sino basahin pabalik. Iyan ang tunay na punto ng paghahambing sa itaas: hindi kung sino ang may mas mahusay na generator, kundi kung sino ang gumagawang reproducible sa committed step.
 
 > Pagkatiwalaan ang creative process, mag-scale nang may rigor.
 
-## I-approve ang tool, hindi ang file
+## Nakatira ang mga alituntunin sa tool, hindi sa file
 
-Ang bawat ibang tool sa board ay gumagawa ng *file* na kailangang suriin pagkatapos - isang brand manager sa Slack thread, legal sa disclaimer, isang round ng pagbabago, isa pang review. Inililipat ni Lolly ang approval **isang hakbang paatras**. Ang mga brand rules - eksaktong hex codes, licensed font files, bleed margins, spacing - ay naka-hard-code sa HTML at CSS ng tool, kaya *hindi kayang* mag-emit ang template ng off-brand na asset. Ang layout mismo ang nag-eenforce.
+Ang bawat ibang tool sa board ay gumagawa ng *file*, at matitingnan lang ang isang file pagkatapos itong magawa, isang output sa isang pagkakataon. Inililipat ni Lolly ang mga brand rules **isang hakbang paatras**. Eksaktong hex codes, licensed font files, bleed margins, spacing - lahat ay naka-hard-code sa HTML at CSS ng tool, kaya *hindi kayang* mag-emit ang template ng off-brand na asset. Ang layout mismo ang nag-eenforce.
 
-Kaya titigil ka sa pag-approve ng outputs at magsisimulang mag-approve ng **tool** na gumagawa sa mga ito. I-approve ito nang isang beses, at bawat asset na ilalabas nito ay pre-approved na sa pagkabuo nito - walang tao sa loop, walang review cycle, sa kahit anong volume.
+Kaya ang bagay na dapat tingnan ay ang **tool**, hindi ang bawat file na ginagawa nito. Kapag tama na ang tool, on-brand na ang bawat asset na ilalabas nito sa mismong pagkakabuo nito. Ikaw pa rin ang bahala kung paano mo susuriin ang iyong trabaho, at kung sino ang gagawa nito; pinaliit ni Lolly ang bagay na sinusuri at pinabilis ang paggawa ng output.
 
-Ito ang pagbabagong talagang idinudulot ng deterministic engine: hindi ito mas mabilis na bersyon ng lumang approval process, tinatanggal nito ang proseso. Para sa creative team, ito ay guard-rail, hindi kapalit - itinatapon mo pa rin ang bola (ang data, ang copy, ang imahe) at ang code ang bumper lane na pumipigil sa bawat throw na mapunta sa gutter.
+Ito ang pagbabagong talagang idinudulot ng deterministic engine. Para sa creative team, ito ay guard-rail, hindi kapalit - itinatapon mo pa rin ang bola (ang data, ang copy, ang imahe) at ang code ang bumper lane na pumipigil sa bawat throw na mapunta sa gutter.
 
-![Ang buong trabaho ng producer: i-type ang mga salita. Ang type, kulay at spacing ay naayos na noong na-approve ang tool](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DApproved&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-approve-the-tool)
-
-| Pag-approve ng assets sa lumang paraan | Pag-approve ng tool, ang paraan ng Lolly |
-|---|---|
-| Bawat tapos na file ay sinusuri, isa-isa | Ang tool ay sinusuri isang beses |
-| Request → gumagawa ang designer → brand review → legal check → pagbabago → re-review | Isang parameter change → tapos na asset |
-| Designer, brand manager, legal at requester lahat nasa loop | Ang producer, mag-isa |
-| Mga araw kada asset | Mga segundo kada asset |
-| 10,000 assets = 10,000 review cycles | 10,000 assets = zero (na-approve na ang template) |
+![Ang buong trabaho ng producer: i-type ang mga salita. Ang type, kulay at spacing ay naayos na noong ginawa ang tool](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
 
 ## Ang natatanging ibinibigay nito
 

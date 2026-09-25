@@ -4,7 +4,7 @@ Ask Lolly is the in-app help view: you type a question, and it hands back the se
 
 ## What it is
 
-One job: find the part of these guides that answers your question, and show it to you unchanged. There is no model and no summarising step - the words in an answer are the documentation's own words, the citation under them names the page and section and an **Open in docs** link goes straight there.
+One job: find the part of these guides that answers your question, and show it to you unchanged. There is no model and no summarising step - the words in an answer are the documentation's own words, the citation under them gives the page and section and an **Open in docs** link goes straight there.
 
 Under the quoted section sit the places in the app the same question matches: a tool, a utility, a saved project, a catalogue asset, a setting, a page of the app. Each is a row that only navigates. Nothing in an answer flips a setting, opens a file or acts on your behalf - the same rule [Search](/info/search.html) follows.
 

@@ -6,7 +6,7 @@ Lolly is a platform-agnostic engine that runs the same render path across severa
 
 You are the multiplier in the relay: a creative authors the rules and you scale them into a pipeline, a CLI batch or an MCP endpoint, so [The lifecycle of a campaign](/info/overview.html#the-lifecycle-of-a-campaign) follows one asset through all three pairs of hands.
 
-New here? The **[Quickstart](/info/quickstart.html)** gets a brand and your first render in place before you go deep. [About](/info/about.html) names the licence boundary and the repositories each piece lives in, and [Lolly for Operators](/info/operators.html) is the door for whoever will ask you about rollout and security.
+New here? The **[Quickstart](/info/quickstart.html)** gets a brand and your first render in place before you go deep. [About](/info/about.html) states the licence boundary and the repositories each piece lives in, and [Lolly for Operators](/info/operators.html) is the door for whoever will ask you about rollout and security.
 
 ## Designers
 

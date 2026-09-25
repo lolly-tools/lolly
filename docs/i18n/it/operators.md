@@ -39,7 +39,7 @@ Il modo abituale in cui viene svolto il lavoro creativo di routine è una superf
 - **[Verificalo tu stesso](/info/verify-yourself.html)** - controlla le affermazioni contro un'esportazione reale, passo per passo, senza nulla che tu non possa eseguire da solo.
 - **[Informativa sulla privacy](/info/privacy.html)** - la dichiarazione formale di cosa viene raccolto, salvato e inviato e cosa no.
 - **[Produzione creativa sovrana](/info/sovereign-production.html)** - installazione air-gapped, rete soggetta a consenso e firma sul dispositivo.
-- **[Adozione e governance](/info/adoption-governance.html)** - chi approva uno strumento, come le regole di brand diventano vincolanti e cosa offre l'opzione del catalogo come repository.
+- **[Adozione e governance](/info/adoption-governance.html)** - come le regole di brand diventano vincolanti, cosa aggiunge un catalogo condiviso e cosa offre l'opzione del catalogo come repository.
 
 ## Legale
 

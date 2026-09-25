@@ -1,6 +1,6 @@
 # `schemas/`
 
-The machine-readable contracts a tool, an asset and a design-tokens document have to satisfy. Five files, all owned by the umbrella (`lolly`) repo, all declaring the JSON Schema draft 2020-12 dialect except `canonical-inputs.json`, which is a registry rather than a schema.
+The machine-readable contracts a tool, an asset, a design-tokens document and a deck renovation have to satisfy. The table below covers those four, all owned by the umbrella (`lolly`) repo, all declaring the JSON Schema draft 2020-12 dialect except `canonical-inputs.json`, which is a registry rather than a schema. The directory holds more than the table lists: the other files there are documented beside the code that reads them, not here, so the table stays a reading order rather than an inventory that goes stale on the next addition.
 
 | File | `$id` | Validates |
 |---|---|---|
@@ -9,6 +9,13 @@ The machine-readable contracts a tool, an asset and a design-tokens document hav
 | `asset-ref.schema.json` | `https://lolly.tools/schemas/asset-ref.schema.json` | The runtime object a resolved asset becomes |
 | `tokens.schema.json` | `https://lolly.tools/schemas/tokens.schema.json` | A W3C Design Tokens (DTCG) document |
 | `canonical-inputs.json` | none (not a schema) | Nothing. It is the registry of shared input `id`s that the validator warns against. |
+| `slide-master-v1.schema.json` | `https://lolly.tools/schemas/slide-master-v1.schema.json` | A design system's slide master: archetype frames with placeholder roles and furniture, seeded into Design (plan 274 section 3.4) |
+| `rebrand-source-v1.schema.json` | `https://lolly.tools/schemas/rebrand-source-v1.schema.json` | A source deck read as faithfully as the reader managed, with a fidelity fact per object (plan 274 stage 1) |
+| `rebrand-census-v1.schema.json` | `https://lolly.tools/schemas/rebrand-census-v1.schema.json` | Origin, class hypothesis and evidence per object, plus the colour, font and layout censuses (stage 2) |
+| `rebrand-plan-v1.schema.json` | `https://lolly.tools/schemas/rebrand-plan-v1.schema.json` | A renovation plan: proposals and decisions kept apart, with review state, author and scope (stages 3 and 4) |
+| `rebrand-compiled-v1.schema.json` | `https://lolly.tools/schemas/rebrand-compiled-v1.schema.json` | The accepted plan lowered to Design authored values, with lineage both ways and the report (stage 5) |
+| `rebrand-report-v1.schema.json` | `https://lolly.tools/schemas/rebrand-report-v1.schema.json` | Every source object accounted for, with stable machine codes beside localisable messages |
+| `rebrand-project-v1.schema.json` | `https://lolly.tools/schemas/rebrand-project-v1.schema.json` | The durable local unit of work: source, checkpoint, design-system snapshot, stored-record ids |
 
 ## `tool.schema.json` is the authority
 
@@ -45,6 +52,26 @@ It has no `$id` and no `$schema`, and it validates nothing. Its top-level keys a
 The reason it exists is the `/pro` batch grid. Two tools that share an input id collapse into one column there, and if they also agree on type and constraints (number `min`/`max`/`step`, select options, colour palette) that column becomes bulk-writable, so one value fills every row. `scripts/validate-catalog.ts` emits a **warning, never an error**, when a tool uses one of these ids with a divergent type or constraints, which keeps the drift visible without blocking anyone's PR. Labels in the registry are advisory; a tool may show its own.
 
 Adding a new shared input means adding it here first, then adopting it in tools.
+
+## The six `rebrand-*` schemas mirror one TypeScript module
+
+They are the JSON half of `packages/core/src/rebrand-v1.ts` (plan 274), the contracts the web view at `#/rebrand`, the CLI `lolly rebrand plan|compile|inspect` stages and the MCP `lolly_rebrand` tool all speak. One schema per document the journey produces, in the order it produces them: source, census, plan, compiled, report, project.
+
+Five things to check before you edit one.
+
+**A vocabulary the module exports as a const array is pinned; a union written inline in the module is not.** `SOURCE_KINDS`, `SOURCE_OBJECT_KINDS`, `SOURCE_ORIGINS`, `FIDELITY_STATES`, `FIDELITY_REASONS`, `PLACEHOLDER_TYPES`, `OCR_STATES`, `SOURCE_WARNING_CODES`, `OBJECT_CLASSES`, `EVIDENCE_SIGNALS`, `PLAN_ACTIONS`, `REVIEW_STATES`, `DECISION_AUTHORS`, `ARCHETYPE_ROLES`, `ARCHETYPE_IDS`, `COLOR_UNRESOLVED_REASONS`, `DISPOSITIONS`, `REPORT_CODES`, `FILE_OUTCOMES`, `REBRAND_ERROR_CODES`, `PROJECT_STAGES`, `PROJECT_PART_KINDS`, `PROJECT_WRITE_REFUSALS` and plan 275's `KNOWN_ARCHETYPE_IDS`, `LAYOUT_UNIT_KINDS`, `LAYOUT_MATCH_BANDS`, `SLIDE_GROUNDS` and `DECK_THEME_IDS` each appear as a bare `enum` in one named `$defs` entry, with the members in the same order as the array. `tests/rebrand-contract.test.ts` holds those copies together element by element, refuses an exported array with no schema home, and walks every schema to refuse the same list written out a second time anywhere else, so an inline `propertyNames` copy cannot reappear where no test can see it. `FILE_OUTCOMES`, `REBRAND_ERROR_CODES`, `PROJECT_PART_KINDS` and `PROJECT_WRITE_REFUSALS` are the vocabularies no document property uses; they live in the report and project schemas' `$defs` as published contracts for the CLI, MCP and project-store surfaces.
+
+The module also carries about seventeen unions written inline in an interface rather than as an exported array: `fallbackSource`, `fontProvenance`, a paragraph's `bullet` and `align`, an object group's `kind`, a colour `role`, the font-use `roles` key set, `layoutSource`, a font mapping's `source`, `carriedBy`, `mode`, the logo `policy`, `surplus`, a brand-logo `variant`, the backward lineage's `derived`, and the capability `surface` and `bytes`. Those are copied into the schemas **by hand and guarded by nothing**. They match today, checked by reading. Promote one to an exported array and add it to the test's table if you want it held together.
+
+**Archetype ids are open from plan 275 on.** `layout`, `layoutAlternative` and a compiled frame's `archetype` point at `$defs/archetypeRef`, a pattern (`STRUCTURE_ID_PATTERN` in the module, lower case letters, digits and dashes) rather than the enum of twelve, so a master generated from the layout library can name `columns-3`. `$defs/archetypeId` keeps the twelve as the published list (`ARCHETYPE_IDS`, also `KNOWN_ARCHETYPE_IDS`). The slide master schema does the same: `knownArchetypeId` is the list, `archetypeId` the pattern, and `archetypes` holds up to 128. The policy for an older build is to refuse, never to misread: a plan read by `planProblems` (`packages/node-shell/src/rebrand/pipeline.ts`, used by the CLI and the MCP tool) against the older plan schema fails on the enum with its own message, a preset read by the older `presetProblems` or web `presetOf` is refused for its unknown layout key or id, and an older `validate:catalog` refuses a master holding a library id. `REBRAND_CONTRACT_VERSION` stays 1, because nothing an older file says changes meaning; every plan 275 field is optional.
+
+**Shared sub-shapes are copied, not cross-referenced.** A `box`, an `assetRef`, a `sourceWarning`, an `evidence` entry and a `designSystemSnapshot` are written into each schema that needs them, so each document schema validates on its own with nothing else registered. The one exception is `report` inside `rebrand-compiled-v1`, which refers to `rebrand-report-v1` by `$id`, because a compiled deck carries a whole report; register the report schema with Ajv before compiling the compiled-deck validator. The copies are kept honest by the same test file: a `$defs` name that appears in more than one schema must be the same definition in every one of them.
+
+**An asset ref has to survive a reload, a device and a shell.** `$defs/assetRef` is a namespaced catalog id or a host-generated user asset id, and its pattern refuses a `data:` or `blob:` URL, an absolute path and a `..` segment, because the portable documents are the only place that rule can be enforced. Every ref field points at it: a picture's `media`, a slide background's `media`, a slide `preview`, `fidelity.fallbackAssetRef`, the plan's `supplied-picture` and the project's `bytesAssetRef`.
+
+**The caps are one number, not four.** A deck carries at most 200000 objects through the whole journey. The census entries, both lineage directions and the report entries all say so in their descriptions and the test compares them, so a source deck that validates cannot produce a census, a lineage or a report that does not. A reader at the ceiling emits a `nodes-truncated` or `slides-truncated` warning rather than writing a deck stage 2 refuses.
+
+None of the six is duplicated into `packages/core/schema/`, so the drift hazard described below does not apply to them. The authored sample documents under `tests/fixtures/rebrand/samples/` are the worked examples, and they read as one journey over one deck: a native chart nothing could be shown for beside a second chart whose file did carry an image, a decision that overrides its proposal, an unresolved colour use, a continuation frame holding the content it was added for, and lineage both ways. Three walks in the test keep them honest: the census classifies every source object and invents none, the report accounts for every source object once with its entries tallying against its counts, and every Design box row in the compiled deck uses field ids and `kind` values `schemas/blocks-wire-order.json` and `community/design/tool.json` actually declare. That last one matters because `design:boxes` is a frozen positional URL contract (plan 171): a row with an invented key never decodes.
 
 ## How validation is actually invoked
 

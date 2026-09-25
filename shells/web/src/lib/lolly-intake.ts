@@ -17,6 +17,7 @@
  * exactly once, after the person has accepted the measured action.
  */
 import { Unzip, UnzipInflate, strFromU8 } from 'fflate';
+import { t, tRaw } from '../i18n.ts';
 
 export const LOLLY_MAX_FILE_BYTES = 2 * 1024 * 1024 * 1024;
 export const LOLLY_MEDIUM_FILE_BYTES = 10 * 1024 * 1024;
@@ -24,6 +25,31 @@ export const LOLLY_LARGE_FILE_BYTES = 100 * 1024 * 1024;
 const MANIFEST_MAX_BYTES = 1024 * 1024;
 
 export type LollySizeBand = 'small' | 'medium' | 'large';
+
+/**
+ * The manifest tool id a renovation that travels on its own carries
+ * (`LOLLY_RENOVATION_TOOL_ID` in `lolly-pack.ts`). Spelled again here rather than
+ * imported, so the streaming preview keeps the pack reader out of the cold path; a test
+ * in `drop-router.test.ts` pins the two spellings together.
+ */
+const RENOVATION_TOOL_ID = 'lolly-renovation';
+
+/**
+ * A renovation project inside a `.lolly` (plan 274 section 3.5), as the manifest
+ * declares it. A renovation is not a saved document: it is work in progress on a deck,
+ * so a file carrying one opens at `#/rebrand` and not at a tool.
+ */
+export interface LollyRenovationPreview {
+  id: string;
+  /** The project name the person gave it. */
+  name: string;
+  /** The big records the file carries: `sourceDeck`, `census`, `plan`, `compiled`. */
+  parts: string[];
+  /** How many pictures the project and its records point at. */
+  media: number;
+  /** True when a saved document travelled beside the renovation. */
+  withDocument: boolean;
+}
 
 export interface LollySessionPreview {
   /** `project` is a folder tree of sessions; the rest describe one session or tool. */
@@ -45,6 +71,8 @@ export interface LollySessionPreview {
   /** On a project file: how many saved sessions and folders it declares. */
   sessionCount: number;
   folderCount: number;
+  /** Present when the file carries a renovation project, whatever else it carries. */
+  renovation: LollyRenovationPreview | null;
   manifest: Record<string, unknown>;
 }
 
@@ -100,6 +128,124 @@ export function lollyBytesLabel(bytes: number): string {
 }
 
 /**
+ * The renovation block as the manifest declares it. The format reader checks the paths,
+ * the integrity map and every part before a byte of this is acted on; this is the
+ * preview's own reading, so a chooser can say what the file is without inflating it.
+ */
+function readRenovation(
+  manifest: Record<string, unknown>,
+  toolId: string | null
+): LollyRenovationPreview | null {
+  const block = record(manifest.renovation);
+  if (!block) return null;
+  const id = text(block.id);
+  const name = text(block.name);
+  if (!id || !name) return null;
+  const parts = record(block.parts);
+  return {
+    id,
+    name,
+    parts: parts ? Object.keys(parts).filter((kind) => typeof parts[kind] === 'string') : [],
+    media: Array.isArray(block.assets) ? block.assets.length : 0,
+    // A renovation travelling on its own is written under the renovation's own tool id,
+    // because there is no document yet for a tool to own.
+    withDocument: !!toolId && toolId !== RENOVATION_TOOL_ID,
+  };
+}
+
+/**
+ * The stages in the order they run, the same list the renovation store keeps
+ * (`PROJECT_STAGES`). Spelled again here for the reason the tool id above is spelled
+ * again: the streaming preview stays clear of the renovation modules. A test in
+ * `drop-router.test.ts` pins the two spellings together.
+ */
+const STAGE_ORDER = ['ingest', 'census', 'plan', 'review', 'compile', 'done'] as const;
+
+/**
+ * Where the work picks up, read from the checkpoint the record carries.
+ *
+ * A checkpoint that carries a time is a stage that FINISHED, which is how the renovation
+ * store reads it too (`resumePoint` in `rebrand/lifecycle.ts`). So the stage to name is
+ * the one after it: naming the stage itself would send a person back to work the file
+ * says is already done. A checkpoint with no time committed nothing, so its own stage is
+ * the one still to run, and a stage past the end of the list is a finished renovation.
+ */
+function resumeStage(checkpoint: Record<string, unknown> | null): { stage: string | null; finished: boolean } {
+  const stage = text(checkpoint?.stage);
+  if (!stage) return { stage: null, finished: false };
+  const at = STAGE_ORDER.indexOf(stage as (typeof STAGE_ORDER)[number]);
+  if (at < 0) return { stage: null, finished: false };
+  if (!text(checkpoint?.at)) {
+    return stage === 'done' ? { stage: null, finished: true } : { stage, finished: false };
+  }
+  const next = STAGE_ORDER[at + 1];
+  if (!next || next === 'done') return { stage: null, finished: true };
+  return { stage: next, finished: false };
+}
+
+/** Where the work picks up, in plain words. An unknown stage gets none rather than a guess. */
+/**
+ * How far the work got, in the words the Rebrand intake's recent list uses for the
+ * same stages (`stageWords` in views/rebrand/intake.ts), never the pipeline's own ids.
+ */
+function stageText(stage: string): string | null {
+  switch (stage) {
+    case 'ingest':
+      return t('not read yet');
+    case 'census':
+    case 'plan':
+      return t('being prepared');
+    case 'review':
+      return t('ready to review');
+    case 'compile':
+      return t('opening in Design');
+    case 'done':
+      return t('opened in Design');
+    default:
+      return null;
+  }
+}
+
+/**
+ * One sentence for a renovation file. A renovation is work in progress on a deck, so
+ * describing it as a saved design would be wrong twice over: there is no document in it
+ * yet, and the part that matters is where the work stopped.
+ *
+ * `project` is the carried project record, for a caller that has read the file. With it
+ * the sentence names the source document and the stage it picks up at; without it, which
+ * is what a chooser has before the file is inflated, it says what the manifest declares.
+ * `name` is the file's own label, used when the record names no source document, so a
+ * renovation-only drop still says which file it is talking about.
+ */
+export function describeRenovation(renovation: LollyRenovationPreview, project?: unknown, name?: string): string {
+  const carried = record(project);
+  // The record's source name first; a renovation-only drop with no record yet
+  // falls back to the file's own label so the sentence still names something.
+  const file = text(record(carried?.source)?.name) || text(name);
+  const point = resumeStage(record(carried?.checkpoint));
+  const stage = point.stage ? stageText(point.stage) : null;
+
+  // A project, in the word the view uses, never a renovation.
+  if (file && point.finished) return tRaw('A Rebrand project for {file}, opened in Design.', { file });
+  if (point.finished) return t('A Rebrand project, opened in Design.');
+  if (file && stage) return tRaw('A Rebrand project for {file}, {stage}.', { file, stage });
+  if (file) return tRaw('A Rebrand project for {file}.', { file });
+  if (stage) return tRaw('A Rebrand project, {stage}.', { stage });
+
+  const content = [
+    renovation.parts.length === 1
+      ? t('1 stage of work')
+      : renovation.parts.length
+        ? t('{n} stages of work', { n: renovation.parts.length })
+        : null,
+    renovation.media === 1 ? t('1 picture') : renovation.media ? t('{n} pictures', { n: renovation.media }) : null,
+  ]
+    .filter(Boolean)
+    .join(', ');
+  return content ? tRaw('A Rebrand project: {content}.', { content }) : t('A Rebrand project.');
+}
+
+/**
  * Turn the untrusted manifest declaration into the small preview model. The
  * selected format reader still validates versions, checks integrity and treats
  * the payload bytes as authoritative before anything is written.
@@ -125,6 +271,7 @@ export function classifyLollyManifest(
     const creator = record(manifest.creator);
     const creatorName = text(creator?.name) ?? text(creator?.org);
     const project = manifest.kind === 'project' ? record(manifest.project) : null;
+    const renovation = readRenovation(manifest, text(tool?.id));
     return {
       kind: manifest.kind === 'tool' ? 'tool' : manifest.kind === 'project' ? 'project' : 'session',
       format,
@@ -143,6 +290,7 @@ export function classifyLollyManifest(
       creator: creatorName,
       sessionCount: Array.isArray(project?.sessions) ? project.sessions.length : 0,
       folderCount: Array.isArray(project?.folders) ? project.folders.length : 0,
+      renovation,
       manifest,
     };
   }
@@ -280,13 +428,31 @@ export type LoadedLolly =
     }
   | { kind: 'brand' | 'instance'; preview: LollyBrandPreview; files: import('fflate').Unzipped };
 
-/** Full guarded read, chosen after preflight and performed exactly once. */
+/**
+ * Full guarded read, chosen after preflight and performed exactly once. The in-place
+ * model offer is held back while it runs (`holdModelOffers` in `model-offer.ts`), so no
+ * download sheet opens over the import.
+ */
 export async function loadLollyFile(file: File, preview: LollyPreview): Promise<LoadedLolly> {
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  if (preview.format === 'lolly-share') {
-    const { readLollyFile } = await import('./lolly-pack.ts');
-    return { kind: preview.kind, preview, contents: await readLollyFile(bytes) };
+  const release = await holdOffers();
+  try {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    if (preview.format === 'lolly-share') {
+      const { readLollyFile } = await import('./lolly-pack.ts');
+      return { kind: preview.kind, preview, contents: await readLollyFile(bytes) };
+    }
+    const { unzipBrandBytes } = await import('../brand-transfer.ts');
+    return { kind: preview.kind, preview, files: await unzipBrandBytes(bytes) };
+  } finally {
+    release();
   }
-  const { unzipBrandBytes } = await import('../brand-transfer.ts');
-  return { kind: preview.kind, preview, files: await unzipBrandBytes(bytes) };
+}
+
+/** The offer hold, loaded on first use so this module's chunk does not carry the sheet. */
+async function holdOffers(): Promise<() => void> {
+  try {
+    return (await import('./model-offer.ts')).holdModelOffers();
+  } catch {
+    return () => {};
+  }
 }

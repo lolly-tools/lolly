@@ -2,19 +2,20 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
-import { baseHost } from '../../../../tests/helpers/host.ts';
 import { mountProjectsViewOptions } from './projects-view-options.ts';
 
-function fixture(atRoot = false) {
+function fixture(atRoot = false, favView: 'gallery' | 'coverflow' | null = null) {
   const dom = new JSDOM('<button id="trigger">View options</button><button id="outside">Outside</button>', { pretendToBeVisual: true, url: 'https://example.test' });
   const w = dom.window;
   Object.assign(globalThis, { window: w, document: w.document, HTMLElement: w.HTMLElement, Element: w.Element, Node: w.Node, localStorage: w.localStorage });
   const anchor = w.document.querySelector<HTMLButtonElement>('#trigger')!;
   const changes: string[] = [];
-  const popover = mountProjectsViewOptions(anchor, baseHost(), {
-    atRoot, view: 'list', sort: 'modified',
+  const popover = mountProjectsViewOptions(anchor, {
+    atRoot, view: 'list', sort: 'modified', reversed: false, favView,
     onView: value => changes.push('view:' + value),
     onSort: value => changes.push('sort:' + value),
+    onReverse: value => changes.push('reverse:' + value),
+    onFavView: value => changes.push('fav:' + value),
   });
   const panel = () => w.document.querySelector<HTMLElement>('.projects-viewmenu');
   return { dom, w, anchor, changes, popover, panel, close: () => { popover.close(); w.close(); } };
@@ -34,16 +35,35 @@ test('view settings focus the current view and Escape restores the real trigger 
   f.close();
 });
 
-test('settings apply one choice, close, and omit the tool sort at the root', () => {
+test('settings apply at once and stay open, as in the other views; the tool sort is omitted at the root', () => {
   const f = fixture(true);
   f.popover.open();
-  assert.equal(f.panel()!.querySelector('[data-sort="tool"]'), null);
-  f.panel()!.querySelector<HTMLButtonElement>('[data-sort="name"]')!.click();
-  assert.deepEqual(f.changes, ['sort:name']);
-  assert.equal(f.popover.isOpen(), false);
-  f.popover.open();
+  const select = f.panel()!.querySelector<HTMLSelectElement>('#projects-sort')!;
+  assert.equal(select.querySelector('option[value="tool"]'), null);
+  assert.equal(select.value, 'modified');
+  select.value = 'name';
+  select.dispatchEvent(new f.w.Event('change', { bubbles: true }));
+  assert.equal(f.popover.isOpen(), true);
   f.panel()!.querySelector<HTMLButtonElement>('[data-vm="preview"]')!.click();
-  assert.deepEqual(f.changes, ['sort:name', 'view:preview']);
+  assert.equal(f.panel()!.querySelector('[data-vm="preview"]')!.getAttribute('aria-pressed'), 'true');
+  const dir = f.panel()!.querySelector<HTMLButtonElement>('.view-options-dir')!;
+  dir.click();
+  assert.equal(dir.getAttribute('aria-pressed'), 'true');
+  assert.deepEqual(f.changes, ['sort:name', 'view:preview', 'reverse:true']);
+  assert.equal(f.popover.isOpen(), true);
+  f.close();
+});
+
+test('the favourites segment shows only when a strip does, and reports the chosen mode', () => {
+  const plain = fixture();
+  plain.popover.open();
+  assert.equal(plain.panel()!.querySelector('[data-be-seg="featured-view"]'), null);
+  plain.close();
+  const f = fixture(false, 'coverflow');
+  f.popover.open();
+  f.panel()!.querySelector<HTMLButtonElement>('[data-view="gallery"]')!.click();
+  assert.equal(f.panel()!.querySelector('[data-view="gallery"]')!.getAttribute('aria-pressed'), 'true');
+  assert.deepEqual(f.changes, ['fav:gallery']);
   f.close();
 });
 

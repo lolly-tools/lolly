@@ -111,7 +111,7 @@ governed `net://` refs to Lolly Work.
 
 ### Verbs, and why they exist
 
-The first argument is either a **verb** or a **tool id**, and the verbs win. `list`, `describe`, `run`, `assets`, `batch`, `smoke`, `validate`, `preflight`, `install-browser`, `completion`, `help`, `version`, `models`, `speak`, `transcribe`, `mix`, `upscale`, `matte`, `ocr`, `detect-ai`, `reword` and `depth` are reserved words a tool id may never take - otherwise a brand pack shipping a tool called `batch` would be permanently unreachable. `lolly run <tool-id>` and `lolly describe <tool-id>` are the unambiguous spellings; the bare `lolly <tool-id>` sugar renders when flags follow and describes when they do not.
+The first argument is either a **verb** or a **tool id**, and the verbs win. The verbs include `list`, `describe`, `run`, `assets`, `batch`, `smoke`, `validate`, `preflight`, `install-browser`, `completion`, `help`, `version`, `models`, `speak`, `transcribe`, `mix`, `upscale`, `matte`, `ocr`, `detect-ai`, `reword`, `depth` and `rebrand`, plus `prepare`, `files`, `start`, `system`, `compile`, `schema`, `inspect`, `diff`, `measure`, `optimize`, `package`, `icons`, `pack` and `tui` - reserved words a tool id may never take, otherwise a brand pack shipping a tool called `batch` would be permanently unreachable. Run `lolly --help` for the full, current set. `lolly run <tool-id>` and `lolly describe <tool-id>` are the unambiguous spellings; the bare `lolly <tool-id>` sugar renders when flags follow and describes when they do not.
 
 ### Global flags
 
@@ -142,7 +142,7 @@ If `--output` is given, the file is written and a byte count is reported on stde
 
 ### The `--output` extension is a format request
 
-An extension names a format, so it is checked like one. If the tool does not declare it, the run stops - it does not fall back to the tool's first format and write those bytes under your filename:
+An extension picks a format, so it is checked like one. If the tool does not declare it, the run stops - it does not fall back to the tool's first format and write those bytes under your filename:
 
 ```
 $ lolly meeting-planner --output=times.csv
@@ -152,6 +152,27 @@ write it under that filename anyway.
 ```
 
 Naming the format explicitly is how you opt out, because then you have said which bytes you expect: `lolly meeting-planner --export=json --output=times.notes` writes JSON under that name and exits 0. An `--output` with no extension at all renders the tool's default format.
+
+## Rebrand: renovate an old deck
+
+`lolly rebrand` reads a `.pptx` someone else made and turns it into the active design system's own: colours, fonts and logo snapped to the system, decoration and page furniture pulled out, kept content carried over. It runs in three explicit stages, so an agent or a script can look at what a deck's first pass proposed before anything is written:
+
+```bash
+lolly rebrand plan old.pptx --plan-out=plan.json
+# writes plan.json (every object's proposal and review state) and plan.report.json (the counts)
+
+lolly rebrand compile old.pptx --plan=plan.json --export=pptx
+# writes old.lolly (a Design document), old.report.json, and old.rebranded.pptx
+
+lolly rebrand inspect plan.json --source=old.pptx
+# a summary, the review queue, and per-slide states; --slide=<n> lists one slide's objects
+```
+
+The plan is a plain JSON file whose schema is `schemas/rebrand-plan-v1.schema.json`: an editor, a script or an agent can open it between the two calls and change a row - drop a slide, keep a photo, map a colour to a different design-system token - and `compile` takes exactly the plan it is handed. The plan carries the source deck's hash, so compiling it against a different `.pptx` is refused rather than silently reconciled. `--accept-suggestions` answers every row still marked unreviewed the way the app's own "Accept all suggestions" does; `--accept-suggestions=all` also answers rows flagged as needing attention. `--auto-match` sets each slide's layout from the structure it reads as, the way the app's "Auto-match layouts" action does: `--auto-match=clear` takes only the clear reads, `=likely` adds the likely ones, and a bare flag or `=all` also takes the slides with no confident read. It never changes a slide whose layout a person or a preset set, and each file in the `--json` envelope counts the slides it set per band under `autoMatched`.
+
+Each deck ends `ready`, `needs-review` or `failed` (`needs-review` is not a success: something in the compiled deck still needs a look). `compile` exits `5` when every deck compiled but at least one needs review (`ok: false` in `--json`), `4` on a refused plan or an existing output, and `2` on a usage error. `lolly rebrand plan|compile <dir>` runs over every `.pptx` a folder holds, `--recursive` includes its subfolders, `--jobs=<n>` runs several decks at once in worker threads, and `--resume` keeps a run record beside the outputs (`.lolly-rebrand-run.json`) so a second call only redoes the decks that still need it. `--preset=<id|file.json>` takes a renovation preset - a design system's or a person's own default decisions - resolved from the active content profile first and a personal presets file second; `lolly rebrand presets` lists what resolves. Every stage reads the active content profile's design system (`LOLLY_PROFILE`) and touches no network.
+
+The full stage reference, the object classes a deck's contents are read into, and the plan-editing rules an agent should follow are in the [agent skill's Rebrand reference](/info/skills/lolly/reference/rebrand.md).
 
 ## Related
 

@@ -20,6 +20,7 @@
  * their panels and always attach the synthetic-content risk assessment.
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
+import { t, tRaw } from '../i18n.ts';
 
 type OcrApi = NonNullable<HostV1['ocr']>;
 
@@ -32,7 +33,8 @@ export interface DocReadNotes {
   ocrPages: number;
   /** Scanned pages left unread (over the OCR cap, or no model). */
   scannedUnread: number;
-  /** True when scanned pages exist but no OCR model is installed. */
+  /** True when scanned pages exist but no OCR model is installed (or the person
+   *  said Not now to downloading it). */
   ocrUnavailable: boolean;
 }
 
@@ -128,6 +130,33 @@ export function extractHtmlText(html: string): string {
   }
 }
 
+export interface DocReadOpts {
+  /**
+   * Asked once, only when there are scanned pages to read: make sure the Text
+   * recognition model is on this device (lib/model-offer.ts ensureModel, which
+   * offers the download in place). False leaves the scanned pages unread and the
+   * notes say the model is not installed. Without it the first read downloads
+   * the model inside the reader, with no size stated and no progress to show.
+   */
+  ensureOcr?: () => Promise<boolean>;
+}
+
+/** The note for scanned pages a read left alone, and why. Shared by both callers. */
+export function scannedUnreadNote(notes: DocReadNotes): string {
+  if (!notes.ocrUnavailable) return tRaw('{n} scanned pages were left unread to keep this quick.', { n: notes.scannedUnread });
+  return notes.scannedUnread === 1
+    ? t('One scanned page was not read because Text recognition is not on this device.')
+    : tRaw('{n} scanned pages were not read because Text recognition is not on this device.', { n: notes.scannedUnread });
+}
+
+/** `DocReadOpts.ensureOcr` for a person-started read: offers Text recognition in place. */
+export const offerTextRecognition = async (): Promise<boolean> =>
+  (await import('../lib/model-offer.ts')).ensureModel('ocr', { reason: t('Reading text in scanned pages') });
+
+/** True when scanned pages stayed unread only because the model is missing, so a press can offer it again. */
+export const canOfferOcrAgain = (notes: DocReadNotes, ocrReady: boolean): boolean =>
+  notes.ocrUnavailable && notes.scannedUnread > 0 && ocrReady;
+
 /**
  * Read a PDF: text layer first, per-page OCR for its scanned pages where a
  * model is present. `text` is null when nothing was readable - the notes say why.
@@ -138,6 +167,7 @@ export async function extractDocumentText(
   file: Blob,
   ocr: OcrApi | null,
   onProgress?: (done: number, total: number) => void,
+  opts: DocReadOpts = {},
 ): Promise<DocReadResult> {
   const [{ openPdfFile }, { joinPageText }] = await Promise.all([
     import('./pdf-import.ts'),
@@ -150,7 +180,14 @@ export async function extractDocumentText(
   const pages = Array.from({ length: cap }, (_, i) => toText(i));
 
   const scanned = pages.map((p, i) => (p.scanned ? i : -1)).filter((i) => i >= 0);
-  const ocrRun = ocr ? scanned.slice(0, OCR_PAGE_CAP) : [];
+  let ocrRun = ocr ? scanned.slice(0, OCR_PAGE_CAP) : [];
+  // The model is offered once, before the first page, rather than downloaded
+  // silently under a "Reading page 1" line that would look stuck.
+  let declined = false;
+  if (ocrRun.length && opts.ensureOcr && !(await opts.ensureOcr().catch(() => false))) {
+    ocrRun = [];
+    declined = true;
+  }
   let ocrPages = 0;
   for (let k = 0; k < ocrRun.length; k++) {
     const i = ocrRun[k]!;
@@ -185,7 +222,7 @@ export async function extractDocumentText(
       pagesRead: cap,
       ocrPages,
       scannedUnread,
-      ocrUnavailable: scanned.length > 0 && !ocr,
+      ocrUnavailable: scanned.length > 0 && (!ocr || declined),
     },
   };
 }

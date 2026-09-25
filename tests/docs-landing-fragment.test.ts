@@ -66,11 +66,15 @@ test('every built /info landing wraps its body in the .docs-landing fragment mar
 });
 
 test('the reader extracts .docs-landing beside .docs-content', () => {
+  // The extraction moved into lib/docs-rehost.ts, shared with the specification browser
+  // (views/document-model.ts), so the reader is the view and the module it rehosts through.
   const view = readFileSync(join(WEB_SRC, 'views/docs.ts'), 'utf8');
+  const rehost = readFileSync(join(WEB_SRC, 'lib/docs-rehost.ts'), 'utf8');
   assert.ok(
-    view.includes(`querySelector('.docs-content, .docs-landing')`),
-    'views/docs.ts must accept both fragment markers',
+    rehost.includes(`DOC_FRAGMENT_SELECTOR = '.docs-content, .docs-landing'`),
+    'lib/docs-rehost.ts must accept both fragment markers',
   );
+  assert.ok(view.includes('docs-rehost.ts'), 'views/docs.ts rehosts through lib/docs-rehost.ts');
   assert.ok(
     !/slug === 'index' \? 'quickstart'/.test(view),
     'the #/docs/index -> quickstart alias is gone: the landing rehosts for real now',

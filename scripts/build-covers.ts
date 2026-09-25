@@ -154,7 +154,46 @@ const POSES: CoverPose[] = [
   // complement, so the sky-blue tile came out red - hence accent = the primary.
   { slug: 'audiogram', hue: 202.5, route: '#/tool/audiogram?audio=lolly/loops/pixel-quest-save-point&style=milkdrop&vizLook=stock:flexi-bouncing-balls-double-mindblob-neon-mix&title=Save%20point&subtitle=Pixel%20Quest&layout=overlay-center&vizBrand=full&credit=false&captions=false&size=wide&accent={primary}&bg={primaryDark}', wait: '.lolly-viz-canvas', settleMs: 4000, exportVideo: { fps: 60, seconds: LOOP_SECONDS } },
   { slug: 'street-map', hue: 225, route: '#/tool/street-map?city=brisbane&theme=dark&roadColor={primaryLight}&waterColor={primary}&background={primaryDark}', settleMs: 7000 },
-  { slug: '3d', hue: 247.5, route: '#/tool/3d', settleMs: 5000, video: LOOP_SECONDS },
+  // The 3D Studio scene Andy composed for this slot (2026-09-23): a "Lolly" badge
+  // beside a sphere and a box, iridescent and chrome over a dark blue gradient
+  // backdrop, hovering while the camera sweeps. The TOOL exports it as a 3 s loop
+  // at the card's own size, so the tile plays the render and none of the app
+  // (replacing the screen recording of the older 3d tool).
+  //
+  // The tile in docs/shots/covers is ANDY'S OWN export of this scene (800x600,
+  // 30 fps, 3 s), transcoded to H.264 for the card; this pose is the reproducible
+  // recipe for it, not the bytes that shipped. Re-running it writes a 1040x780
+  // capture over that file, so pass --only without 3d unless you mean to.
+  //
+  // The scene arrived as a ?z= link authored on the SUSE profile, and four of its
+  // colours were SUSE token refs - color.ramp.blue.6, color.spectrum.marigold,
+  // color.spectrum.lime and color.brand.waterhole. They are written here as the
+  // hexes those tokens resolve to, because covers pose on lolly-start, where the
+  // SUSE namespaces do not exist and the refs would not resolve. colorB stays a
+  // semantic ref so material B follows the posed brand, and the scene's unused
+  // suse/model/geeko asset ref is dropped (source is text, not a model).
+  { slug: '3d', hue: 247.5,
+    route: '#/tool/3d-studio?controls=expert&source=text&words=Lolly&wordWeight=100&wordTracking=-0.09'
+      + '&subjects=Badge,primitive,,badge,auto,false,25,14,29,1,,,0,0,0,false,0,1,0,0,,,inherit'
+      + '~Sphere,primitive,,sphere,auto,false,25,14,29,1,,,0,0,0,false,0,1,0,0,,,inherit'
+      + '~Box,primitive,,box,auto,false,25,14,29,1,,,0,0,0,false,0,1,0,0,,,inherit'
+      + '&objects=Badge,primitive,,badge,auto,-1.2,0,0.3,0,12,0,0.55,true,true'
+      + '~Sphere,primitive,,sphere,auto,1.05,0,-0.2,0,0,0,0.4,true,true'
+      + '~Box,primitive,,box,auto,0.15,0,-1.7,0,28,0,0.45,true,true'
+      + '&studio=custom&colorA=%2381aefc&colorB=%7Bcolor.semantic.primary%7D'
+      + '&finishA=iridescent&finishB=matte&glow=0.25&surfaceFinishes=true'
+      + '&faceFinishA=chrome&bevelFinishA=chrome&sideFinishA=iridescent&bevelFinishB=neon&sideFinishB=glow'
+      + '&drama=0.45&softness=2.6&exposure=1.15&lightMotion=orbit&lightMotionAmount=0.1'
+      + '&shape.depth=0.28&camera.azimuth=25.18017578125&camera.elevation=-33.416015625'
+      + '&camera.zoom=2.5&camera.panX=0.05000000000000003&camera.panY=-0.4500000000000002'
+      + '&background=031526&background2=294f6d&backdropStrength=0.75&floorColor=031526&shadowOpacity=0.15'
+      + '&keyColor=214362&fillColor=%23fcb244&rimColor=%23a1ef8b&warmColor=%232453ff'
+      + '&environment=desert&environmentIntensity=1.3&environmentRotation=18'
+      + '&lights=directional,ffffff,-3,6,4,2,1.5,true'
+      + '&outputMode=scene&motion=hover&motionAmount=0.5&motionRest=0.2'
+      + '&cameraMotion=sweep&cameraAmount=0.3&cameraKeys=0,25,36,29,0.7,0,1.6,0,0~0,25,14,29,1,0,1.6,0,0'
+      + '&duration=3',
+    settleMs: 6000, exportVideo: { fps: 30, seconds: 3 } },
   { slug: 'colours', hue: 270, route: '#/start?area=color', wait: '.start', settleMs: 3500 },
   // The render alone (Andy, 2026-09-03): the card's theme colours carry the cover, so
   // the app chrome around it is dropped and the export fills the frame.

@@ -53,27 +53,19 @@ Deck Studio adalah tolok ukur yang baik untuk batas atas di sini: satu set slide
 
 Sebagian besar pitch "AI kreatif" menempatkan model di sisi yang salah dari sebuah garis lama. Para penyalin naskah dan pelukis iluminasi sudah lebih dulu menetapkan di mana garis itu jatuh: Anda bekerja bebas di atas sketsa, tempat apa pun bisa dicoba dan tidak ada yang terikat, lalu Anda pergi ke mesin cetak, yang terasa menakutkan justru karena ia mengikat. Sketsa adalah tempat seninya berada. Mesin cetak adalah caranya bepergian. Dua instrumen, dua tugas, masing-masing inventif dengan caranya sendiri, dan karya cetak bisa dipercaya karena mesin cetak menepati janjinya pada setiap kali cetak.
 
-Lolly adalah mesin cetak, bukan sketsa. Bawa apa pun yang Anda suka ke tahap ideasi - sebuah model, seorang desainer, secarik kertas - tetapi begitu sebuah ide harus menjadi sepuluh ribu aset, ide itu melewati sesuatu yang me-render dengan cara yang sama setiap kali, dari input yang bisa dibaca ulang oleh siapa pun. Itulah inti sebenarnya dari perbandingan di atas: bukan siapa yang punya generator lebih baik, tetapi siapa yang membuat langkah yang terikat itu dapat direproduksi.
+Lolly adalah mesin cetak, bukan sketsa. Bawa apa pun yang Anda suka ke tahap ideasi - sebuah model, seorang desainer, secarik kertas - tetapi begitu sebuah ide harus menjadi banyak aset, ide itu melewati sesuatu yang me-render dengan cara yang sama setiap kali, dari input yang bisa dibaca ulang oleh siapa pun. Itulah inti sebenarnya dari perbandingan di atas: bukan siapa yang punya generator lebih baik, tetapi siapa yang membuat langkah yang terikat itu dapat direproduksi.
 
 > Percayai proses kreatif, berskala dengan kedisiplinan.
 
-## Setujui alat, bukan filenya
+## Aturan ada di alat, bukan di file
 
-Setiap alat lain di papan menghasilkan *file* yang kemudian harus diperiksa - manajer merek dalam thread Slack, tim legal untuk disclaimer, satu putaran perubahan, satu tinjauan lagi. Lolly memindahkan persetujuan **satu langkah ke hulu**. Aturan merek - kode hex yang tepat, file font berlisensi, margin bleed, spasi - dikodekan langsung ke dalam HTML dan CSS alat tersebut, sehingga template *tidak dapat* menghasilkan aset yang menyimpang dari merek. Tata letak itu sendiri yang menegakkannya.
+Setiap alat lain di papan ini menghasilkan sebuah *file*, dan sebuah file hanya bisa dilihat setelah jadi, satu output pada satu waktu. Lolly memindahkan aturan brand **satu langkah ke hulu**. Kode hex yang tepat, file font berlisensi, margin bleed, spasi - semuanya dikodekan langsung ke dalam HTML dan CSS alat tersebut, sehingga template *tidak bisa* menghasilkan aset yang menyimpang dari brand. Tata letak itu sendiri yang menegakkannya.
 
-Jadi Anda berhenti menyetujui output dan mulai menyetujui **alat** yang membuatnya. Setujui sekali, dan setiap aset yang pernah dihasilkannya sudah disetujui sejak dari konstruksinya - tanpa manusia dalam alur, tanpa siklus tinjauan, pada volume berapa pun.
+Jadi yang layak diperhatikan adalah **alat**-nya, bukan setiap file yang dibuatnya. Buat alatnya benar, dan setiap aset yang pernah dihasilkannya sesuai brand sejak dari konstruksinya. Bagaimana Anda memeriksa pekerjaan Anda, dan siapa yang melakukannya, tetap urusan Anda; Lolly membuat hal yang diperiksa menjadi lebih kecil dan outputnya lebih cepat dibuat.
 
-Inilah perubahan yang sebenarnya dihadirkan oleh mesin deterministik: ini bukan versi yang lebih cepat dari proses persetujuan lama, ini menghilangkan prosesnya. Bagi tim kreatif ini adalah pagar pengaman, bukan pengganti - Anda tetap yang melempar bola (data, teks, gambar) dan kode adalah jalur bumper yang menjaga setiap lemparan tidak keluar dari jalur.
+Inilah perubahan yang sebenarnya dihadirkan oleh mesin deterministik. Bagi tim kreatif ini adalah pagar pengaman, bukan pengganti - Anda tetap yang melempar bola (data, teks, gambar) dan kode adalah jalur bumper yang menjaga setiap lemparan tidak keluar dari jalur.
 
-![Seluruh pekerjaan produser: ketik kata-katanya. Jenis huruf, warna, dan spasi sudah ditetapkan saat alat disetujui](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DApproved&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-approve-the-tool)
-
-| Menyetujui aset dengan cara lama | Menyetujui alat, cara Lolly |
-|---|---|
-| Setiap file jadi diperiksa, satu per satu | Alat diperiksa sekali |
-| Permintaan → desainer membuat → tinjauan merek → pemeriksaan legal → perubahan → tinjauan ulang | Satu perubahan parameter → aset jadi |
-| Desainer, manajer merek, legal, dan pemohon semuanya dalam alur | Produser, sendirian |
-| Berhari-hari per aset | Beberapa detik per aset |
-| 10.000 aset = 10.000 siklus tinjauan | 10.000 aset = nol (template sudah disetujui) |
+![Seluruh pekerjaan produser: ketik kata-katanya. Jenis huruf, warna, dan spasi sudah ditetapkan saat alat itu dibuat](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHello&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=aud-rules-in-the-tool)
 
 ## Apa yang secara unik disediakan ini
 

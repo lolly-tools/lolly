@@ -14,6 +14,9 @@ import { generateOgImages } from './og-image.ts';
 import { LANGS, LANG_META, sortedLangs } from '../engine/src/lang.ts';
 import { ENGINE_VERSION } from '../engine/src/version.ts';
 import { buildAgentDocs, AGENT_FILES } from './agents-pages.ts';
+// The document model specification (plan 276): its own web document under
+// /info/spec/document-model/, built from docs/spec/document-model/*.md.
+import { buildSpecPages, SPEC_BASE } from './spec-pages.ts';
 import { readShotProvenance } from './shot-provenance.ts';
 import { scan as scanVernacular, staleAllows as staleVernacularAllows } from '../scripts/check-docs-vernacular.ts';
 // Where the active profile's catalog is (plan 244): it belongs to a brand pack, not to
@@ -158,6 +161,13 @@ interface Page {
   // header, nav, footer and theme every other page wears, without the pathway rail
   // it does not belong to. Built in build()'s per-locale loop, never in pages[].
   generated?: boolean;
+  // A page that carries its OWN navigation, which stands in for the pathway rail:
+  // the aside, and the same list inside the mobile menu. The specification chapters
+  // (docs/spec-pages.ts) use it. A reader who has entered a twelve-chapter document
+  // needs those chapters beside them; the forty links of the pathway they arrived
+  // through answer a question they have stopped asking, and the document is not a
+  // page of that pathway.
+  rail?: { aside: string; mobile: string };
   // A brand-experience page (What we stand for): full-bleed bands under the site
   // nav, no docs rail, no masthead, no jump nav - the landing's shape, for a page
   // that is still one markdown source with a twin. `render` supplies the bands.
@@ -204,7 +214,7 @@ const pages: Page[] = [
   { slug: 'status-quo',       title: 'The trade we never agreed to', src: 'status-quo.md', pathway: 'trust', description: "Uploading a logo to a stranger to resize it. Artwork locked behind a lapsed plan. The frictions we all learned to accept, and what replaces them." },
   { slug: 'tenets',           title: 'Tenets', author: 'Andy Fitzsimon', src: 'tenets.md', pathway: 'trust', description: "Our vision, values and mission: all potential to all mediums.", render: renderTenetsPage, immersive: true },
   { slug: 'input-not-impersonation', title: 'Input, not impersonation', src: 'input-not-impersonation.md', pathway: 'trust', description: "An AI agent may fill in the inputs and may not claim to be you. Where the line sits, how it is enforced, and what a rogue agent still cannot do." },
-  { slug: 'creative-rights', title: 'Creative rights and credits', src: 'creative-rights.md', pathway: 'trust', description: "How Lolly records a source licence, works out what it asks of the use you are making, writes the credit into the file, and names the part only you can do." },
+  { slug: 'creative-rights', title: 'Creative rights and credits', src: 'creative-rights.md', pathway: 'trust', description: "How Lolly records a source licence, works out what it asks of the use you are making, writes the credit into the file, and tells you the part only you can do." },
 
   // ── Creators pathway ─────────────────────────────────────────────────────
   { slug: 'create-a-tool', title: 'Share a design with rules', src: 'create-a-tool.md', pathway: 'creators', description: 'Turn a Design document into a portable tool with approved inputs, shared names, themes and fixed artwork.' },
@@ -260,6 +270,10 @@ const pages: Page[] = [
   { slug: 'overview',         title: 'Architecture',      src: 'overview.md',        pathway: 'builders', description: "How the Lolly platform is put together: the engine, the shells, the capability bridge, and why tools are data rather than bundled code." },
   { slug: 'design-tokens',    title: 'Design Tokens',     src: 'design-tokens.md',   pathway: 'builders' },
   { slug: 'glossary',         title: 'Glossary',          src: 'glossary.md',        pathway: 'builders', description: "The words Lolly uses with exact meanings: engine, shell, bridge, tool, brand pack, profile, view, catalog, session, utility, collab, and what each is not." },
+  // The summary of the document model draft (plan 276). The draft itself is its own
+  // web document under /info/spec/document-model/ (docs/spec-pages.ts), browsed in
+  // the app at #/document-model; this page is its front door in the docs site.
+  { slug: 'document-model',   title: 'Document model draft', src: 'document-model.md', pathway: 'builders', description: "A draft specification of the Lolly document model: the records, operations, values, evaluation, policy, conformance and packaging rules that make a complete tool portable, and what is decided, open and not yet built." },
   { slug: 'constraints',      title: 'Constraints',       src: 'constraints.md',     pathway: 'builders', description: "Why output comes out right by construction: inputs declared in the manifest, logic-less templates and brand values resolved from tokens, with the tests that enforce each." },
   { slug: 'determinism',      title: 'Determinism',       src: 'determinism.md',     pathway: 'builders', description: "Same inputs, same file: one render path behind every shell, what is byte-reproducible and what is not, and the receipts for both." },
   { slug: 'reproducibility',  title: 'Reproducibility',   src: 'reproducibility.md', pathway: 'builders', description: "The URL is the artifact: every input travels as parameters, so a link re-renders next year, and the limits of what a bare link can carry." },
@@ -554,7 +568,8 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
       { label: 'Architecture', items: [
         { slug: 'overview',      label: 'Architecture' },
         { slug: 'design-tokens', label: 'Design Tokens' },
-        { slug: 'glossary',      label: 'Glossary' } ] },
+        { slug: 'glossary',      label: 'Glossary' },
+        { slug: 'document-model', label: 'Document model draft' } ] },
       // The three concept pages: each takes one term the landing states in plain
       // words and shows the mechanism, the receipts and the limits (plan 117 section 2).
       { label: 'Concepts', items: [
@@ -666,7 +681,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'tenets',           label: 'Tenets' },
         { slug: 'status-quo',       label: 'Why this differs' },
         { slug: 'inclusive-design', label: 'Inclusive Design' } ] },
-      { label: 'Where content comes from', items: [
+      { label: 'Project perspective', items: [
         { slug: 'input-not-impersonation',      label: 'Input, not impersonation' },
         { slug: 'content-credentials-identity', label: 'Content Credentials' },
         { slug: 'creative-rights',              label: 'Creative rights and credits' },
@@ -2773,7 +2788,16 @@ ${LANDING_CSS}
    /--pale only), so every var(--dark) foreground is near-black on the dark panel.
    The docs headings solve it the same way one block up: repoint to --text. */
 [data-theme="dark"] .docs-search-hit .hit-h{color:var(--text)}
-.sidebar-pathway{font-size:1.0625rem;font-weight:700;letter-spacing:-.01em;color:var(--dark);margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+/* The specification rail (docs/spec-pages.ts): the chapter list a reader gets in
+   place of the pathway rail, and the current chapter's headings under it. It wears
+   .docs-sidebar, so everything but the number column and the heading list is
+   already settled by the rules above and below. */
+.spec-rail .spec-n{flex:none;width:1.5em;font-size:.75rem;font-variant-numeric:tabular-nums;color:var(--muted);padding-top:.15em}
+.spec-rail a.active .spec-n{color:inherit;opacity:.8}
+.spec-heads{list-style:none;margin:.15rem 0 .6rem 1.25rem;padding-left:.6rem;border-left:1px solid var(--border)}
+.spec-heads a{font-size:.8125rem;color:var(--muted);padding:.2rem .5rem}
+.spec-heads a.is-sub{padding-left:1.1rem}
+.sidebar-pathway{font-size:1.0625rem;font-weight:700;letter-spacing:-.01em;color:var(--dark);margin-top:2rem; margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
 .docs-sidebar a{display:flex;align-items:flex-start;gap:.5rem;padding:.3rem .5rem;font-size:.875rem;color:var(--text);border-radius:5px}
 .docs-sidebar a:hover{color:var(--green);background:var(--pale);text-decoration:none}
 .docs-sidebar a.active{color:var(--green);font-weight:600;background:var(--pale)}
@@ -3441,7 +3465,7 @@ footer .founded-badge{margin-top:.5rem}
 .nav-mobile-menu.open{display:flex}
 .nav-mobile-menu a{color:hsl(var(--on-band-dark) / .7);font-size:.9375rem;padding:.625rem .625rem;border-radius:6px;display:block;text-decoration:none}
 .nav-mobile-menu a:hover{color:hsl(var(--on-band-dark));background:rgba(255,255,255,.07)}
-.nav-mobile-menu a.active{color:var(--green);font-weight:600}
+.nav-mobile-menu a.active{color:hsl(var(--band-accent));font-weight:600}
 .nav-mobile-menu .nav-launch{background:hsl(var(--band-accent));color:hsl(var(--band-dark))!important;font-weight:700;text-align:center;margin-top:.75rem;padding:.75rem;border-radius:8px}
 .nav-mobile-menu .nav-launch:hover{background:hsl(var(--band-accent) / .82)}
 /* Page nav inside the hamburger panel. Hidden by default and switched on at 768px
@@ -3450,7 +3474,7 @@ footer .founded-badge{margin-top:.5rem}
    with the other panel styles rather than in the media query so the two kinds of
    navigation are described in one place. */
 .nav-mobile-page{display:none;margin-top:.75rem;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.14)}
-.nav-mobile-title{color:var(--green);font-size:.8125rem;font-weight:700;letter-spacing:.02em;padding:0 .625rem .25rem}
+.nav-mobile-title{color:hsl(var(--band-accent));font-size:.8125rem;font-weight:700;letter-spacing:.02em;padding:0 .625rem .25rem}
 /* .55 not .42 - at 42% over the panel's #0c322c this computes to 3.7:1, under AA
    for 11px text. .55 clears 5.3:1 and still reads as a quieter tier than the
    links at .7. */
@@ -4733,7 +4757,7 @@ const LANG_PICKER_SCRIPT = `<script>
 })();
 </script>`;
 
-function buildNav(lang: Lang, slug: string, activeHref: string, isLanding: boolean | undefined, activePathway?: Pathway) {
+function buildNav(lang: Lang, slug: string, activeHref: string, isLanding: boolean | undefined, activePathway?: Pathway, ownPageNav?: string) {
   const link = (n: NavLink) => {
     const isActive = n.href === activeHref || NAV_PATHWAY[n.href] === activePathway;
     return `<a href="${localeHref(lang, hrefToSlug(n.href))}"${isActive ? ' class="active"' : ''}>${esc(t(n.label))}</a>`;
@@ -4751,7 +4775,9 @@ function buildNav(lang: Lang, slug: string, activeHref: string, isLanding: boole
   const draft = lang === 'en' ? '<span class="nav-draft">BETA</span>' : '';
   // The landing page has no rail, so it gets no page-nav block - an empty heading
   // and a separator with nothing under it would be worse than the omission.
-  const pageNav = isLanding ? '' : mobilePageNavHtml(lang, activePathway ?? 'builders', activeHref);
+  // A page carrying its own rail carries its own mobile list with it, so the menu
+  // and the rail name the same places (Page.rail).
+  const pageNav = isLanding ? '' : ownPageNav ?? mobilePageNavHtml(lang, activePathway ?? 'builders', activeHref);
   // Search joins the right-hand cluster of whole-site controls, ahead of the
   // language picker. Docs pages only - there is no index behind the landing page,
   // and a box that returns nothing is worse than no box.
@@ -4832,7 +4858,7 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   { hub: 'creators', label: 'For Creators', slugs: [
     'using', 'training-creators', 'templates', 'create-a-tool', 'brand-studio', '3d-studio', 'text-composition', 'design-import', 'sequence-editor', 'hdr-editing', 'animating', 'utilities', 'extension'] },
   { hub: 'builders', label: 'For Builders', slugs: [
-    'overview', 'design-tokens', 'glossary', 'authoring-tools', 'authoring-assets', 'text-composition-engine', 'host-api', 'url-mode'] },
+    'overview', 'design-tokens', 'glossary', 'document-model', 'authoring-tools', 'authoring-assets', 'text-composition-engine', 'host-api', 'url-mode'] },
   { hub: 'operators', label: 'For Operators', slugs: [
     'sales', 'press', 'marketing', 'legal',
     'adoption-governance', 'sovereign-production', 'deployment', 'configuration', 'build-guide', 'cli-signing'] },
@@ -4965,7 +4991,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   ask: 'sparkle', dashboard: 'monitor', utilities: 'wrench',
   collaborate: 'people', search: 'search', favourites: 'star', sync: 'convert',
   // Builders - architecture & authoring
-  overview: 'layers', 'design-tokens': 'hash', glossary: 'document', 'authoring-tools': 'wrench', 'authoring-assets': 'photos',
+  overview: 'layers', 'design-tokens': 'hash', glossary: 'document', 'document-model': 'layers', 'authoring-tools': 'wrench', 'authoring-assets': 'photos',
   'host-api': 'code', 'url-mode': 'link',
   'build-terminal': 'box', 'build-desktop': 'box', 'build-mobile': 'box', 'build-obs': 'box', 'build-kubernetes': 'box',
   'cli-rendering': 'code', 'cli-files': 'code', 'cli-automation': 'code', 'cli-reference': 'code',
@@ -4977,7 +5003,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   'contributing-setup': 'download', 'build-guide': 'box', 'ios-build': 'box', deployment: 'upload', configuration: 'sliders', about: 'document',
   // Operators
   'adoption-governance': 'people',
-  // Trust - where content comes from
+  // Trust - Project perspective
   tenets: 'star',
   'content-credentials-identity': 'seal', 'content-credentials-engineering': 'cpu', 'ai-stance': 'sparkle',
   'creative-rights': 'people',
@@ -5484,7 +5510,7 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
     : page.immersive ? `<main class="docs-landing docs-immersive page-${slugClass}">${listen}${content}</main>`
     : page.generated ? `
 <div class="docs-wrap">
-  ${buildSidebar(lang, page, activeHref)}
+  ${page.rail?.aside ?? buildSidebar(lang, page, activeHref)}
   <main class="docs-content no-mast page-${slugClass}">
     ${listen}
     ${article}
@@ -5493,7 +5519,7 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
     : `
 ${mast ? mast.band : ''}
 <div class="docs-wrap">
-  ${buildSidebar(lang, page, activeHref)}
+  ${page.rail?.aside ?? buildSidebar(lang, page, activeHref)}
   <main class="docs-content${mast ? '' : ' no-mast'} page-${slugClass}">
     ${listen}
     ${article}
@@ -5549,7 +5575,7 @@ ${SHOT_MOTION_INIT}
 ${DOCS_CSS_LINK}
 </head>
 <body class="page-${slugClass}">
-${buildNav(lang, page.slug, activeHref, isLanding, page.pathway)}
+${buildNav(lang, page.slug, activeHref, isLanding, page.pathway, page.rail?.mobile)}
 ${body}
 ${FOOTER(lang, page.slug === 'tenets')}
 ${jump}
@@ -5694,6 +5720,26 @@ async function build() {
         if (/\.(png|svg|jpg|webp|webm|mp4)$/.test(f)) copyFileSync(resolve(coversSrc, f), resolve(outDir, 'shots', 'covers', f));
       }
     }
+  }
+
+  // The specification's diagrams (plan 276): vector pictures rendered from checked-in
+  // Mermaid, DOT and Pikchr sources by scripts/build-spec-diagrams.ts, committed under
+  // docs/diagrams/ and served verbatim at /info/diagrams/. They stay OUT of docs/shots/,
+  // whose --rebuild prunes any file no top-level page references. Mirrored, not
+  // accumulated, like the shots above; a checkout that never rendered one still builds.
+  const diagramsSrc = resolve(repoRoot, 'docs', 'diagrams');
+  if (existsSync(diagramsSrc)) {
+    rmSync(resolve(outDir, 'diagrams'), { recursive: true, force: true });
+    const copyDiagrams = (from: string, to: string): number => {
+      mkdirSync(to, { recursive: true });
+      let n = 0;
+      for (const e of readdirSync(from, { withFileTypes: true })) {
+        if (e.isDirectory()) n += copyDiagrams(resolve(from, e.name), resolve(to, e.name));
+        else if (e.name.endsWith('.svg')) { copyFileSync(resolve(from, e.name), resolve(to, e.name)); n++; }
+      }
+      return n;
+    };
+    console.log(`✓  /info/diagrams/ (${copyDiagrams(diagramsSrc, resolve(outDir, 'diagrams'))} specification diagrams)`);
   }
 
   // Block 2's worked examples (plan 117): each card shows the tool's OWN preview of
@@ -5904,6 +5950,29 @@ async function build() {
   }
   activeCatalog = {};
   activeLang = 'en';
+
+  // The document model specification (plan 276, stage 1): one page per chapter under
+  // /info/spec/document-model/, plus the index.json the in-app browser reads and the
+  // whole draft concatenated as one markdown file. English only, so it is written
+  // once here rather than inside the locale loop; not a pathway page, so it carries
+  // no `pages` entry, no footer column, no stub and no page seal. docs/spec-pages.ts
+  // is handed this build's renderer and page chrome so these pages cannot become a
+  // second way to render a docs page.
+  const specFiles = buildSpecPages({
+    render: (md) => mdToHtml(md),
+    wrap: (ch, content) => doorizeLinks(wrapPage('en', {
+      slug: `${SPEC_BASE}/${ch.slug}`, title: ch.title, src: '',
+      description: ch.description, pathway: 'builders', generated: true, rail: ch.rail,
+    }, content, ogSlugs, '')),
+  });
+  for (const [rel, body] of Object.entries(specFiles)) {
+    const path = resolve(outDir, rel);
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, body, 'utf-8');
+  }
+  if (Object.keys(specFiles).length) {
+    console.log(`✓  /info/${SPEC_BASE}/ (${Object.keys(specFiles).length - 2} chapters, the index and the whole draft in one file)`);
+  }
 
   // Redirect stubs for retired slugs - keep inbound links + bookmarks resolving.
   // English-only: these are legacy URLs, never linked from the localized nav tree.

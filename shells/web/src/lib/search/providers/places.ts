@@ -35,6 +35,7 @@ const PLACES: readonly PlaceEntry[] = [
   { label: 'Verify', href: '#/verify', glyph: 'shieldCheck' },
   { label: 'Convert', href: '#/convert', glyph: 'convert' },
   { label: 'Unpack', href: '#/unpack', glyph: 'document', keywords: 'pdf svg idml indesign penpot figma fig pptx powerpoint psd photoshop take apart extract text images fonts colours attachments' },
+  { label: 'Rebrand', href: '#/rebrand', glyph: 'paintbrush', keywords: 'pptx powerpoint deck slides renovate restyle design system' },
   { label: 'Spreadsheet', href: '#/data', glyph: 'grid' },
   { label: 'Colour Lab', href: '#/lab', glyph: 'palette', keywords: 'color colour contrast gamut report oklch' },
   { label: 'Component library', href: '#/components', glyph: 'shapes' },
