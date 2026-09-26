@@ -82,7 +82,7 @@ A tool's `status` controls trust signalling, enforced by the engine, not by conv
 
 Promote a tool by changing one field in its manifest. The status is not an internal note: every surface shows it, so a reader knows what they are picking up before they open it.
 
-![A gallery tile carrying the Experimental status badge that its manifest sets, the same field that forces a watermark on every export](/t/url-shot?url=%2F%23%2F&width=1440&height=2400&dpi=192&waitMs=2400&format=svg&walker=1&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&cropSelector=.gtile%5Bdata-tool-id%3D%22voice-recorder%22%5D&tolerance=0.03&dark=1&filename=fq-experimental-badge)
+![A gallery tile carrying the Experimental status badge that its manifest sets, the same field that forces a watermark on every export](/t/url-shot?url=%2F%23%2Fu&width=1440&height=2400&dpi=192&waitMs=2400&format=svg&walker=1&css=.welcome-dialog%2C.personalize-nudge%2C.brand-tips%7Bdisplay%3Anone!important%7D&cropSelector=.gtile%5Bdata-tool-id%3D%22voice-recorder%22%5D&tolerance=0.03&dark=1&filename=fq-experimental-badge)
 
 ## Catalog build & validation
 

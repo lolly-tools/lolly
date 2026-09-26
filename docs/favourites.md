@@ -16,7 +16,7 @@ Star a tool (or, on Utilities, a utility card) and a big, cinematic tile for it 
 
 A fresh install shows none of this. There's no starter set: the strip simply doesn't exist until you star your first thing, and it collapses away again if you ever get back down to zero.
 
-![The Tools gallery with two favourited tools drifting past in the strip above the grid](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A%5Bdata-fav%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-fav%3D%22battlecards%22%5D%3Bwait%3A800&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=fav-strip-gallery)
+![The Tools gallery with two favourited tools drifting past in the strip above the grid](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&drive=click%3A%5Bdata-tool-id%3D%22qr-code%22%5D%7Cright%3Bclick%3A.folder-menu%20%5Bdata-act%3D%22fav%22%5D%3Bclick%3A%5Bdata-tool-id%3D%22battlecards%22%5D%7Cright%3Bclick%3A.folder-menu%20%5Bdata-act%3D%22fav%22%5D%3Bpress%3AHome%7Con%3Dbody%3Bwait%3A800&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&cropSelector=.featured&filename=fav-strip-gallery)
 <!--
 SHOT NOTE (fav-strip-gallery): the two drive clicks star `qr-code` and
 `battlecards`, and the pairing is not arbitrary - BOTH MUST BE IN THE FIRST
@@ -33,28 +33,16 @@ no extra flag is needed to avoid Cover Flow here.
 
 ## Starring and unstarring
 
-The star lives in three places, and all three write to the same list:
+You star a tool in two places, and both write to the same list:
 
-- **On the card itself** - the ★ in its corner. Click it once to add, again to remove.
-- **In its right-click menu** - **Add to favourites** / **Remove from favourites**.
+- **In its right-click menu** - **Add to favourites** / **Remove from favourites**. On a phone or tablet, press and hold the card for the same menu.
 - **In the selection bar** - tick a card's checkbox (or several: ⌘/Ctrl-click, Shift-click a range or drag a box across empty space) and an action bar appears along the bottom with a **Favourite** button that stars, or unstars, the whole selection in one go. Right-clicking inside a selection offers the same **Favourite** / **Unfavourite** row.
 
-![A single tool card, with the ★ that stars it sitting in the top corner beside the download and info buttons](/t/url-shot?url=%2F%23%2F&width=700&height=420&dpi=192&waitMs=1600&drive=click%3A%5Bdata-fav%3D%22qr-code%22%5D&cropSelector=%5Bdata-tool-id%3D%22qr-code%22%5D&walker=1&format=svg&dark=1&filename=fav-star-toggle)
+![The right-click menu of a tool card, with Add to favourites among its rows](/t/url-shot?url=%2F%23%2F&width=700&height=520&dpi=192&waitMs=1600&drive=click%3A%5Bdata-tool-id%3D%22qr-code%22%5D%7Cright&cropSelector=.folder-menu&walker=1&format=svg&dark=1&filename=fav-star-toggle)
 
 <!--
-SHOT NOTE (fav-star-toggle): the alt says WHERE the star is, not that it is
-filled, and that is a walker limitation rather than an editorial choice. The
-drive click really does star the tool - measured after the click:
-`aria-pressed="true"`, `class="… gtile-fav is-fav"` - but the FILL is applied by
-CSS (`.gtile-fav.is-fav svg { fill: … }`, gallery.css), and the walker's
-svg-rooted passthrough clones an inline icon with its AUTHORED attributes, so
-the icon keeps `fill="none"` and comes out as an outline. Computed `color` does
-carry across; computed `fill`/`stroke` on a passthrough <svg> root do not.
-Worth fixing in shells/web/src/bridge/export.ts (apply the computed
-fill/stroke to the cloned root when it differs from the attribute) - every
-CSS-filled icon in every walker shot has the same hole. Until then, do NOT
-"solve" this with a raster: the shot is honest about the control's position,
-and a bitmap would trade a whole page of vector for one filled glyph.
+SHOT NOTE (fav-star-toggle): tool cards carry no star of their own any more; favouriting
+lives in the card's right-click menu and the selection bar, so the shot opens that menu.
 -->
 
 The same star works on a **utility** card in the Utilities view - Verify & Inspect, Colour Lab, Unpack, Spreadsheet and the rest. They aren't tools (no saved sessions, nothing to keep offline), but the strip treats a starred one exactly the same way: a tile of its own, icon-led since there's no preview to show.
