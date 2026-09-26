@@ -66,6 +66,8 @@ public/info/examples/
 # committed docs/spec/ sources. Same rule as shots/ and examples/ above - mirrored
 # from a source of truth that lives elsewhere, so a copy here would go stale.
 public/info/diagrams/
+# Print editions (a page's PDF), copied from the committed docs/editions/.
+public/info/editions/
 public/info/spec/**/index.json
 public/info/search-index.json
 public/info/*/search-index.json

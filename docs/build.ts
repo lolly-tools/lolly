@@ -173,6 +173,9 @@ interface Page {
   // nav, no docs rail, no masthead, no jump nav - the landing's shape, for a page
   // that is still one markdown source with a twin. `render` supplies the bands.
   immersive?: boolean;
+  // A print edition of the page, laid out in Design: a PDF file in docs/editions/,
+  // served from /info/editions/ and linked beside the Listen pill on the English page.
+  pdf?: string;
 }
 
 // Where docs/formats.md wants the composed three-zone table dropped in. An HTML
@@ -340,7 +343,7 @@ const pages: Page[] = [
   { slug: 'ai-features',      title: 'Generated once, rendered the same', src: 'ai-features.md', pathway: 'trust', description: "Text-to-speech, upscaling and background removal: generated once under guard-rails, then rendered identically everywhere. Why inventing pixels is marked AI and removing them is not." },
   { slug: 'eu-ai-act',        title: 'AI marking and the EU AI Act', src: 'eu-ai-act.md', pathway: 'trust', description: "Article 50 has applied since 2 August 2026, and its Code of Practice points at C2PA. Lolly's honest fit: it preserves arriving AI marks, declares its own AI operations and verifies files on-device." },
   { slug: 'beatrice-warde',   title: 'Beatrice Warde',    src: 'beatrice-warde.md',  pathway: 'trust', description: "The typographer whose 1932 lines this project adapted, who proved that the types the whole trade called Garamond had been cut by somebody else entirely." },
-  { slug: 'shoulders-of-giants', title: 'Shoulders of giants', src: 'shoulders-of-giants.md', pathway: 'trust', description: "The open source projects and people Lolly is built from, and the story of how shared work made it possible: SUSE and three decades of the free desktop, Penpot and Inkscape, WebAssembly, WebGPU and the open models beside them." },
+  { slug: 'shoulders-of-giants', title: 'Shoulders of giants', src: 'shoulders-of-giants.md', pathway: 'trust', description: "The open source projects and people Lolly is built from, and the story of how shared work made it possible: SUSE and three decades of the free desktop, Penpot and Inkscape, WebAssembly, WebGPU and the open models beside them.", pdf: 'shoulders-of-giants.pdf' },
 ];
 
 // ── Door-structured URLs (plans/177 P1) ──────────────────────────────────────
@@ -5274,15 +5277,18 @@ const LISTEN_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 // /info/docs-player.css, fetched with the bundle. Shipped inline beside the
 // button (not in CSS above) so pages without audio carry none of it.
 const LISTEN_STYLE = `<style>
-.listen-bar{display:flex;justify-content:flex-end;margin:0 0 -8px}
+.listen-bar{display:flex;justify-content:flex-end;gap:8px;margin:0 0 -8px}
 .listen-bar-float{position:fixed;right:16px;bottom:16px;z-index:89;margin:0}
 /* Phones only: docked under the top nav while the landing hero owns the screen, so the
    pill never sits on a hero CTA (plans/168 WP-6; the class comes from NAV_SOLID_JS). */
 @media(max-width:600px){.listen-bar-float.over-hero{bottom:auto;top:calc(3.75rem + 8px)}}
-.docs-listen{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;border:1px solid hsl(var(--muted-foreground) / .25);background:hsl(var(--popover) / .9);color:hsl(var(--popover-foreground));font:600 13px/1 inherit;font-family:inherit;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-.docs-listen:hover{border-color:hsl(var(--primary) / .5)}
-.docs-listen svg{width:15px;height:15px}
-.docs-listen .listen-mins{font-weight:400;opacity:.65}
+.docs-listen,.docs-edition{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;border:1px solid hsl(var(--muted-foreground) / .25);background:hsl(var(--popover) / .9);color:hsl(var(--popover-foreground));font:600 13px/1 inherit;font-family:inherit;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+/* The Listen pill is a <button> and shows the browser's button type (13.333px, regular),
+   so the link beside it takes the same size rather than the page's body text. */
+.docs-edition{text-decoration:none;font-size:13.333px;line-height:normal}
+.docs-listen:hover,.docs-edition:hover{border-color:hsl(var(--primary) / .5)}
+.docs-listen svg,.docs-edition svg{width:15px;height:15px}
+.docs-listen .listen-mins,.docs-edition .listen-mins{font-weight:400;opacity:.65}
 .docs-listen.is-loading{opacity:.6;pointer-events:none}
 </style>`;
 
@@ -5299,7 +5305,7 @@ var btn=document.querySelector('.docs-listen');if(!btn)return;
 var produced=btn.hasAttribute('data-listen-produced');
 var hasTts=('speechSynthesis' in window)&&(typeof SpeechSynthesisUtterance!=='undefined');
 var canOpus=false;try{canOpus=!!document.createElement('audio').canPlayType('audio/ogg; codecs=opus');}catch(e){}
-if((!produced||!canOpus)&&!hasTts){var bar=btn.closest('.listen-bar');if(bar)bar.remove();return;}
+if((!produced||!canOpus)&&!hasTts){var bar=btn.closest('.listen-bar');btn.remove();if(bar&&!bar.children.length)bar.remove();return;}
 var busy=false;
 function open(auto){if(busy)return;busy=true;btn.classList.add('is-loading');
 import('/info/docs-player.js').then(function(m){
@@ -5370,10 +5376,24 @@ function assertAudioCues(page: Page, content: string, md: string): void {
 // reference/side-door pages - falls back to the reader's device voice via
 // speechSynthesis. `data-listen-produced` lets the loader tell the two apart for its
 // codec ladder; the minutes badge only makes sense for a fixed-length produced track.
-function listenButtonHtml(page: Page, a?: AudioEntry): string {
+function listenButtonHtml(page: Page, a?: AudioEntry, edition = ''): string {
   const mins = a && a.duration > 0 ? `${Math.max(1, Math.round(a.duration / 60))} min` : '';
   const producedAttr = a ? ' data-listen-produced' : '';
-  return `<div class="listen-bar${page.isLanding ? ' listen-bar-float' : ''}"><button type="button" class="docs-listen"${producedAttr} data-listen-slug="${esc(page.slug)}" data-listen-title="${esc(page.title)}" aria-label="${esc(`Listen to ${page.title}`)}">${LISTEN_ICON}<span>Listen</span>${mins ? `<span class="listen-mins">${esc(mins)}</span>` : ''}</button></div>`;
+  return `<div class="listen-bar${page.isLanding ? ' listen-bar-float' : ''}">${edition}<button type="button" class="docs-listen"${producedAttr} data-listen-slug="${esc(page.slug)}" data-listen-title="${esc(page.title)}" aria-label="${esc(`Listen to ${page.title}`)}">${LISTEN_ICON}<span>Listen</span>${mins ? `<span class="listen-mins">${esc(mins)}</span>` : ''}</button></div>`;
+}
+
+const EDITION_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`;
+
+// The print edition sits beside the Listen pill as a second way to take the page away.
+// The PDF is English, like the produced narration, so only the English page links the PDF.
+// Its size is on the chip because a laid-out edition is megabytes, not kilobytes.
+function editionChipHtml(page: Page): string {
+  if (!page.pdf) return '';
+  const file = resolve(__dirname, 'editions', page.pdf);
+  if (!existsSync(file)) throw new Error(`${page.slug}: print edition docs/editions/${page.pdf} is missing`);
+  const mb = statSync(file).size / (1024 * 1024);
+  const size = `${mb < 10 ? mb.toFixed(1) : Math.round(mb)} MB`;
+  return `<a class="docs-edition" href="/info/editions/${esc(page.pdf)}" target="_blank" rel="noopener" type="application/pdf" aria-label="${esc(`${page.title}, print edition (PDF, ${size})`)}">${EDITION_ICON}<span>PDF</span><span class="listen-mins">${esc(size)}</span></a>`;
 }
 
 // ── "On this page" jump nav ──────────────────────────────────────────────────
@@ -5541,7 +5561,7 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   // resolves an AudioEntry; a locale page passes undefined and the loader/host take the
   // device-voice branch. Cues (produced-only) are still asserted where audio exists.
   const audio = lang === 'en' ? audioBySlug.get(page.slug) : undefined;
-  const listen = listenButtonHtml(page, audio);
+  const listen = listenButtonHtml(page, audio, lang === 'en' ? editionChipHtml(page) : '');
   if (audio) assertAudioCues(page, content, md);
 
   // Docs pages only: the landing page already carries its own sticky quicknav, and
@@ -5844,6 +5864,15 @@ async function build() {
   for (const file of ['tenets-print.pdf', 'tenets-screen.png', 'tenets-motion.mp4']) {
     copyFileSync(resolve(__dirname, 'figures', file), resolve(outDir, 'figures', file));
   }
+  // Print editions: only the files a page names, mirrored so a withdrawn edition is
+  // not left behind in the output.
+  rmSync(resolve(outDir, 'editions'), { recursive: true, force: true });
+  const editions = pages.flatMap(p => (p.pdf ? [p.pdf] : []));
+  if (editions.length) {
+    mkdirSync(resolve(outDir, 'editions'), { recursive: true });
+    for (const f of editions) copyFileSync(resolve(__dirname, 'editions', f), resolve(outDir, 'editions', f));
+    console.log(`✓  /info/editions/ (${editions.length} print ${editions.length === 1 ? 'edition' : 'editions'})`);
+  }
 
   // Docs narration - mirror the committed artefacts and link them (plan section 4.5).
   // Same mirror-don't-accumulate rule as shots: a withdrawn narration must not
@@ -6138,6 +6167,9 @@ function writeInfoManifest(): void {
   for (const f of walk(outDir).sort((a, b) => a.url.localeCompare(b.url))) {
     const seg = f.url.split('/')[2] ?? '';
     if (seg === 'og' || f.url === '/info/manifest.json') continue;
+    // A print edition is a download of a page the reader already has offline, and
+    // megabytes each, so it stays out of "Available offline: Docs".
+    if (seg === 'editions') continue;
     // The agent set is for machine readers fetching over HTTP; llms-full.txt alone is
     // the whole corpus a second time, so none of it belongs in "Available offline: Docs".
     if (AGENT_SET_URLS.has(f.url)) continue;
