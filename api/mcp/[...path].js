@@ -115128,11 +115128,11 @@ function detailShare(image, box3) {
   }
   return samples ? detail / samples : 0;
 }
-function inkAbove(image, window2, under, lineHeight, threshold, maxLines) {
-  const x0 = Math.max(0, Math.floor(window2.x));
-  const y0 = Math.max(0, Math.floor(window2.y));
-  const x1 = Math.min(image.width, Math.ceil(window2.x + window2.w));
-  const y1 = Math.min(image.height, Math.ceil(window2.y + window2.h));
+function inkAbove(image, area2, under, lineHeight, threshold, maxLines) {
+  const x0 = Math.max(0, Math.floor(area2.x));
+  const y0 = Math.max(0, Math.floor(area2.y));
+  const x1 = Math.min(image.width, Math.ceil(area2.x + area2.w));
+  const y1 = Math.min(image.height, Math.ceil(area2.y + area2.h));
   if (x1 - x0 < 4 || y1 - y0 < 4) return null;
   const step = Math.max(4, Math.round(lineHeight));
   const cols = Math.ceil(image.width / step);

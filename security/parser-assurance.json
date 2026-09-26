@@ -167,7 +167,7 @@
         "bounds": "`MAX_TAGS = 512`, `MAX_CHANNELS = 15`, `MAX_TABLE_ENTRIES = 4096`, `MAX_CURVE_ENTRIES = 65536`, `MAX_CLUT_VALUES = 1 << 22`, `MAX_PARA_PARAMS = 7`, `MAX_CURVE_INVERT_STEPS = 40`",
         "directTests": "`tests/icc.test.ts`, `tests/icc-real-profiles.test.ts`",
         "fuzzCoverage": "`icc` (`parseIccProfile` + evaluate)",
-        "notes": "The clearest statement of the house reader contract in the codebase: never throws, malformed input yields `null`, nothing the file declares is trusted and every cap comment names the largest value seen across the forty-odd real profiles. Apple's over-reporting `gamt` tag is handled by name."
+        "notes": "The clearest statement of the house reader contract in the codebase: never throws, malformed input yields `null`, nothing the file declares is trusted and every cap comment gives the largest value seen across the forty-odd real profiles. Apple's over-reporting `gamt` tag is handled by name."
       }
     },
     "engine/src/file-metadata.ts": {
@@ -275,7 +275,7 @@
         "bounds": "`BMP_MAX_DIM = 0x7fff`, `BMP_MAX_PIXELS = 64 Mpx`; the 54-byte header, pixel offset and `pixelOffset + stride * height` are range-validated before allocation/deref",
         "directTests": "`tests/bmp.test.ts`",
         "fuzzCoverage": "`raster-decode`",
-        "notes": "Decoder half of an encoder/decoder pair. A typed `BmpUnsupportedError` names the refused class rather than mis-decoding compressed, paletted or 1/16-bit data. The pixel cap prevents the individually legal width/height maxima multiplying into a multi-gigabyte RGBA allocation."
+        "notes": "Decoder half of an encoder/decoder pair. A typed `BmpUnsupportedError` says which class it refused rather than mis-decoding compressed, paletted or 1/16-bit data. The pixel cap prevents the individually legal width/height maxima multiplying into a multi-gigabyte RGBA allocation."
       }
     },
     "engine/src/ico-decode.ts": {

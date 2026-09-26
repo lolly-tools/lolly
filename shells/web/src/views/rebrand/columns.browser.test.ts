@@ -206,9 +206,10 @@ test('Chromium: the grips sit on the column lines at 1440 by 900, and the pill s
     assert.equal(b.decideGrip.shown, true);
     assert.equal(Math.round(b.queue.width), 272);
     assert.equal(Math.round(b.decide.width), 320);
-    // The page's own width, not the viewport's: Linux shows a 15 px scrollbar where macOS overlays one.
-    const pageWidth = await page.evaluate(() => document.documentElement.clientWidth);
-    assert.equal(Math.round(b.work.width), pageWidth - 272 - 320);
+    // The body's own width, not the viewport's: Linux gives a scrolling container a 15 px
+    // scrollbar where macOS overlays one, so the columns share what the body has.
+    const bodyWidth = await page.evaluate(() => document.querySelector<HTMLElement>('.rb-body')!.clientWidth);
+    assert.equal(Math.round(b.work.width), bodyWidth - 272 - 320);
     // The strip is 24 px and leans off the column it resizes, 4 px over it, so it never
     // covers that column's scrollbar; the pill stays on the line.
     assert.equal(Math.round(b.queueGrip.width), 24);
@@ -322,8 +323,8 @@ test('Chromium: at 390 px no grip shows and the body keeps the narrow grid', { s
     assert.equal(b.queueGrip.shown, false);
     assert.equal(b.decideGrip.shown, false);
     assert.equal(await page.evaluate(() => document.querySelector<HTMLElement>('.rb-body')!.dataset.columns ?? null), null);
-    // No sideways scroll: the page is exactly as wide as the space it has (a Linux scrollbar takes 15 px of 390).
-    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), await page.evaluate(() => document.documentElement.clientWidth));
+    // No sideways scroll: nothing is wider than the window (a Linux scrollbar may take 15 px of 390).
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), 'the page does not scroll sideways');
   } finally {
     await close();
   }

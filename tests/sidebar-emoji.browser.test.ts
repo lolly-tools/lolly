@@ -119,7 +119,8 @@ test('tool sidebars choose an emoji set once, insert at the caret, and preserve 
       const mirror = field.parentElement!.querySelector<HTMLElement>('.input-emoji-display-text')!;
       return field.scrollTop > 0 && mirror.style.transform.includes(`${-field.scrollTop}px`);
     });
-    assert.deepEqual(await page.locator('#tool-inputs .input-section-summary').allTextContents(), ['Text', 'Title bar', 'Look', 'Callouts']);
+    // The sidebar orders sections by the plan 273 band ladder, so Callouts (content) comes before Look (style).
+    assert.deepEqual(await page.locator('#tool-inputs .input-section-summary').allTextContents(), ['Text', 'Title bar', 'Callouts', 'Look']);
     assert.equal(await page.locator('#tool-inputs .input-section-icon svg').count(), 4);
 
     // Block fields use qualified row identities and retain the other cards.

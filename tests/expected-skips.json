@@ -2859,13 +2859,6 @@
       "owner": "tests"
     },
     {
-      "file": "tests/rebrand-structure.test.ts",
-      "fullName": "the private corpus: no wrong read and no read over its slot capacity in the apply band, against the structure labels",
-      "reason": "the private rebrand deck fixture corpus is not on this machine (set LOLLY_REBRAND_FIXTURES)",
-      "capability": "fixture",
-      "owner": "tests"
-    },
-    {
       "file": "tests/recorder-reliability.browser.test.ts",
       "fullName": "composed recording cleanup: cancel",
       "reason": "Serve the web shell and set LOLLY_PRESENT_TEST_URL",
@@ -3115,6 +3108,90 @@
       "fullName": "274 WP6: LibreOffice converts the bound deck to a PDF",
       "reason": "the soffice binary is not on PATH, so no independent consumer can open the deck here",
       "capability": "external-tool",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-structure.test.ts",
+      "fullName": "the private corpus: no wrong read, no read over its slot capacity and no unexplained continuation in the apply band, against the structure labels",
+      "reason": "the private rebrand deck fixture corpus is not on this machine (set LOLLY_REBRAND_FIXTURES)",
+      "capability": "fixture",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-theme.test.ts",
+      "fullName": "a Brand ground takes the stored theme's hue, never a hue the caller holds",
+      "reason": "the SUSE pack is not in this checkout",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-theme.test.ts",
+      "fullName": "SUSE grounds Brand colour on its jungle with pine ink, since its primary is the Dark ground",
+      "reason": "the SUSE pack is not in this checkout",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-theme.test.ts",
+      "fullName": "SUSE, formatting.pptx: the red text that fell to 2.42:1 on the Dark ground now holds or is counted",
+      "reason": "the SUSE pack is not in this checkout",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-theme.test.ts",
+      "fullName": "SUSE, formatting.pptx: under every theme each text holds on its slide's themed ground, or its row or an issue says why",
+      "reason": "the SUSE pack is not in this checkout",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-theme.test.ts",
+      "fullName": "SUSE, simple.pptx: under every theme each text holds on its slide's themed ground, or its row or an issue says why",
+      "reason": "the SUSE pack is not in this checkout",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-theme.test.ts",
+      "fullName": "SUSE: Brand remaps every ground the Light theme draws light",
+      "reason": "the SUSE pack is not in this checkout",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-theme.test.ts",
+      "fullName": "SUSE: Dark draws only hexes from the pack's dark mode tokens",
+      "reason": "the SUSE pack is not in this checkout",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-theme.test.ts",
+      "fullName": "SUSE: every themed layout keeps its text, page numbers, footers, rules and panels readable on what they sit on",
+      "reason": "the SUSE pack is not in this checkout",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-theme.test.ts",
+      "fullName": "SUSE: no theme introduces a hex absent from the resolved token set of its mode",
+      "reason": "the SUSE pack is not in this checkout",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-theme.test.ts",
+      "fullName": "SUSE: no two offered themes are one choice at a glance",
+      "reason": "the SUSE pack is not in this checkout",
+      "capability": "brand:suse",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/rebrand-theme.test.ts",
+      "fullName": "SUSE: on the Brand colour ground the frame draws the mono mark, and an unthemed deck keeps the colour marks",
+      "reason": "the SUSE pack is not in this checkout",
+      "capability": "brand:suse",
       "owner": "tests"
     }
   ]
