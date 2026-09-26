@@ -7,7 +7,7 @@
  * draggable/resizable device rather than as two separate windows.
  *
  * This module keeps ONLY the neuro-specific lifecycle it always owned - flag-gated
- * register/unregister, the spring-in entrance + confetti, and the close (×) semantics
+ * register/unregister, the spring-in entrance, and the close (×) semantics
  * (leave the mode). Everything shell-shaped (DOM, drag/resize/collapse, placement, the
  * collapse pref) now lives in the singleton. The music `DockHost` itself is built by
  * lib/neurospicy-dock-host.ts from the untouched engine (lib/neurospicy.ts).
@@ -52,7 +52,7 @@ function closeMode(host: NeurospicyHost): void {
 /** Options for showNeuroDock/syncNeuroDock. The legacy boolean form still means
  *  `{ animateIn }` - sound-toggle.ts passes it straight through. */
 export interface NeuroDockShowOpts {
-  /** Spring the window up from the corner with a confetti burst (mode just enabled). */
+  /** Spring the window up from the corner (mode just enabled). */
   animateIn?: boolean;
   /** Show expanded regardless of the collapsed pref - WITHOUT writing the pref (the
    *  ?neuro demo must not persist anything). A user's own minimize afterwards still works. */
@@ -63,7 +63,7 @@ function normShowOpts(o: boolean | NeuroDockShowOpts): NeuroDockShowOpts {
 }
 
 /** Register the music source and show the shared window. When `animateIn` (the mode was
- *  just switched on) spring it up and pop a confetti burst to point the eye at it. */
+ *  just switched on) spring it up, which is what points the eye at it. */
 export function showNeuroDock(host: NeurospicyHost, opts: boolean | NeuroDockShowOpts = false): void {
   if (typeof document === 'undefined') return;
   const { animateIn = false, forceExpanded = false } = normShowOpts(opts);
@@ -85,10 +85,6 @@ export function showNeuroDock(host: NeurospicyHost, opts: boolean | NeuroDockSho
       el.classList.add('is-entering');
       el.addEventListener('animationend', () => el.classList.remove('is-entering'), { once: true });
     }
-    const r = el.getBoundingClientRect();
-    void import('../lib/particles.ts').then((m) =>
-      m.celebrateBurst(r.left + r.width / 2, r.top + r.height / 2,
-        host as unknown as import('../lib/particles.ts').ChipPairsHost));
   }
 }
 

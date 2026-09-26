@@ -65,7 +65,8 @@ function mount(o: { freeLayout?: boolean; editorLayout?: boolean; preferEdge?: b
     overlay, popup, head, isMobile: () => false,
     freeLayout: !!o.freeLayout, editorLayout: !!o.editorLayout, preferEdge: !!o.preferEdge,
     onOpen: (cb) => { hooks.add(cb); return () => { hooks.delete(cb); }; },
-    ...(o.quiet ? { isOpen: () => opened, openQuietly: open } : {}),
+    // closeQuietly mirrors views/tool/stage-layout.ts closeExport: out of the column, then shut.
+    ...(o.quiet ? { isOpen: () => opened, openQuietly: open, closeQuietly: () => { if (ED.isDocked('export')) ED.releaseDock('export'); opened = false; } } : {}),
   });
   return {
     popup, head, off, open,
@@ -368,6 +369,31 @@ test('dragging the tab out keeps it out until the sidebar next empties', async (
     h.off();
     ED.releaseDock('inspector');
     ED.releaseDock('neuro');
+    document.getElementById('export-overlay')?.remove();
+    forget();
+  }
+});
+
+test('a sheet that only joined the column leaves with its neighbour, unless someone used it', async () => {
+  forget();
+  const inspector = document.createElement('div');
+  ED.requestDock('inspector', inspector, { label: 'Inspector' });
+  const h = mount({ freeLayout: true, quiet: true });
+  try {
+    await tick();
+    assert.equal(h.isOpen(), true, 'the sheet joined the sidebar on its own');
+    ED.releaseDock('inspector');
+    assert.equal(ED.isDocked('export'), false, 'closing the inspector does not leave an Export column behind');
+    assert.equal(h.isOpen(), false, 'the sheet nobody opened closes again');
+    ED.requestDock('inspector', inspector, { label: 'Inspector' });
+    assert.equal(h.isOpen(), true, 'the next sidebar brings it back as a tab');
+    document.querySelector<HTMLElement>('.edge-dock-tab[data-tab="export"]')!.click();
+    ED.releaseDock('inspector');
+    assert.equal(h.isOpen(), true, 'a sheet someone fronted stays open');
+    assert.equal(ED.isDocked('export'), true, 'in the column');
+  } finally {
+    h.off();
+    ED.releaseDock('inspector');
     document.getElementById('export-overlay')?.remove();
     forget();
   }

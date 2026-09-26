@@ -340,7 +340,7 @@ test('a case-variant name on a case-insensitive volume is caught as the source d
   const upper = join(dir, 'Deck.LOLLY');
   copyFileSync(fixturePath('simple.pptx'), upper);
   if (!existsSync(join(dir, 'Deck.lolly'))) {
-    t.skip('this volume is case-sensitive, so a case-variant name is another file');
+    t.skip('platform: this volume is case-sensitive (Linux CI), so a case-variant name is another file');
     return;
   }
   const run = lolly('rebrand', 'compile', upper, '--force', '--json');

@@ -640,6 +640,13 @@
       "owner": "tests"
     },
     {
+      "file": "tests/cli-rebrand.test.ts",
+      "fullName": "a case-variant name on a case-insensitive volume is caught as the source deck",
+      "reason": "platform: this volume is case-sensitive (Linux CI), so a case-variant name is another file",
+      "capability": "platform",
+      "owner": "tests"
+    },
+    {
       "file": "tests/cli-tierb-video.test.ts",
       "fullName": "--seconds and --fps shape the clip: the URL-mode video params reach the browser tier",
       "reason": "no built web shell at /home/runner/work/lolly/lolly/shells/web/dist - run `pnpm run build:web`",
@@ -3100,6 +3107,13 @@
       "file": "tests/wmf.test.ts",
       "fullName": "ImageMagick cross-check (skipped unless a WMF delegate is present)",
       "reason": "no ImageMagick binary",
+      "capability": "external-tool",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/design-pptx.test.ts",
+      "fullName": "274 WP6: LibreOffice converts the bound deck to a PDF",
+      "reason": "the soffice binary is not on PATH, so no independent consumer can open the deck here",
       "capability": "external-tool",
       "owner": "tests"
     }

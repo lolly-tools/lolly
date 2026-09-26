@@ -116,6 +116,10 @@ test('template Open edits, saves and returns to its originating Projects folder 
         for (const mode of ['list', 'preview']) {
           await page.locator('.projects-viewopts').click();
           await page.locator(`[data-vm="${mode}"]`).click();
+          // View options stays open after a choice (views/projects-view-options.ts), so
+          // close it before checking the layout underneath and reopening it.
+          await page.keyboard.press('Escape');
+          await page.locator('.projects-viewmenu').waitFor({ state: 'detached' });
           assert.equal(await create.isVisible(), true);
           assert.ok(await create.evaluate(el => el.getBoundingClientRect().bottom < innerHeight));
           assert.equal(await page.locator('[data-create-btn="folder"]').first().isVisible(), true);

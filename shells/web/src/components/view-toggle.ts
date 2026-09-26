@@ -78,7 +78,7 @@ const LABELS: Record<ViewToggleKey, string> = {
   tools: 'Tools',
   utilities: 'Utilities',
   projects: 'Projects',
-  catalog: 'Catalogue',
+  catalog: 'Assets',
 };
 
 /** The tabs currently on offer - Utilities drops out with its feature flag. */

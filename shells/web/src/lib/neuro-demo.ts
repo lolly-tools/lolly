@@ -64,7 +64,7 @@ async function demoLoopId(host: NeurospicyHost, neuro: NeuroModule): Promise<str
 /**
  * Stage the demo: flag lit in memory, silent "playing" player state, an Atmosphere
  * mix with its section open, the dock shown expanded with no entrance animation
- * (the spring-in + confetti burst are nondeterministic), and for `viz` the enlarged
+ * (the spring-in is nondeterministic), and for `viz` the enlarged
  * panel on top. Fire-and-forget from main.ts's boot.
  */
 export async function applyNeuroDemo(host: NeurospicyHost, mode: NeuroDemoMode): Promise<void> {

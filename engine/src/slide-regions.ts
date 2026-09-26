@@ -2087,7 +2087,7 @@ const ICON_MAX_ASPECT = 3;
 
 /**
  * The drawing standing over a label (a card's icon over its heading): the ink in
- * `window` against a local ground (the median of each square a line high), on a grid of cells an eighth
+ * `area` against a local ground (the median of each square a line high), on a grid of cells an eighth
  * of `lineHeight`, joined where parts lie within half a line of each other, and
  * the group standing most squarely over `under` (the label's span across) whose
  * centre lies over it, that keeps off the window's sides (a card's edge runs
@@ -2097,16 +2097,16 @@ const ICON_MAX_ASPECT = 3;
  */
 export function inkAbove(
   image: RgbaImageV1,
-  window: RegionBoxV1,
+  area: RegionBoxV1,
   under: { x: number; w: number },
   lineHeight: number,
   threshold: number,
   maxLines: number,
 ): RegionBoxV1 | null {
-  const x0 = Math.max(0, Math.floor(window.x));
-  const y0 = Math.max(0, Math.floor(window.y));
-  const x1 = Math.min(image.width, Math.ceil(window.x + window.w));
-  const y1 = Math.min(image.height, Math.ceil(window.y + window.h));
+  const x0 = Math.max(0, Math.floor(area.x));
+  const y0 = Math.max(0, Math.floor(area.y));
+  const x1 = Math.min(image.width, Math.ceil(area.x + area.w));
+  const y1 = Math.min(image.height, Math.ceil(area.y + area.h));
   if (x1 - x0 < 4 || y1 - y0 < 4) return null;
   // The ground is local: the median of each square a line high, which is the
   // fill a card shows there however it is lit, and which a drawing's strokes

@@ -30,7 +30,7 @@ import { t } from '../i18n.ts';
 import { panelGripsHtml, wirePanelGrips } from './panel-grips.ts';
 import { icon } from './icons.ts';
 import { attachWobble } from './wobble.ts';
-import { requestDock, releaseDock, showPanel, isDocked, dockedFullCount, edgeDockHitTest, edgeDockPreview, edgeDockWidth, onDockChange } from './edge-dock.ts';
+import { requestDock, releaseDock, showPanel, isDocked, dockedFullCount, edgeDockHitTest, edgeDockPreview, edgeDockWidth, onDockChange, type DockReleaseReason } from './edge-dock.ts';
 
 interface Box { x: number; y: number; w: number; h: number }
 // 'edge' = docked into the full-height inline-end column (lib/edge-dock.ts). Distinct
@@ -64,6 +64,9 @@ export interface ExportFloatOpts {
    *  right sidebar as a tab whenever another panel is in it (Andy, 2026-09-24). */
   isOpen?(): boolean;
   openQuietly?(): void;
+  /** Close the sheet without a sound or a focus move. A sheet that joined the column on
+   *  its own leaves the same way once no other panel is beside it. */
+  closeQuietly?(): void;
 }
 
 export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
@@ -90,6 +93,11 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
   /** The user pulled the sheet out while other panels were docked. It stays out until
    *  the column next empties, rather than snapping back on the next dock change. */
   let declined = false;
+  /** The sheet is open only because it joined the column beside another panel: nobody
+   *  opened it, fronted its tab or moved it. It closes again when it would be left on its
+   *  own, in the column or out of it (the mobile breakpoint), instead of staying open as
+   *  a panel nobody asked for. */
+  let joinedQuietly = false;
 
   // ── persistence ──────────────────────────────────────────────────────────
   const save = (): void => {
@@ -191,7 +199,9 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
     const returnBox = clampFully(box ?? currentRect());
     // The label is VISIBLE text, not a tooltip: past two docked panels the column names
     // each one in its tab strip, so it goes through t() like every other word on screen.
-    if (!requestDock('export', popup, { onRelease: exitEdgeToFloat, icon: icon('download'), label: t('Export'), background: autoDocking })) return;  // not desktop
+    // Fronting the Export tab is someone looking at the sheet, so it stops being a
+    // background tab that leaves with its neighbour.
+    if (!requestDock('export', popup, { onRelease: exitEdgeToFloat, onActivate: () => { joinedQuietly = false; }, icon: icon('download'), label: t('Export'), background: autoDocking })) return;  // not desktop
     box = returnBox;   // remembered so undock re-floats where it was
     mode = 'edge';
     edgePref = true;
@@ -199,13 +209,18 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
     wobble.impulse(towardEdge(), 0);
   };
   // Called by releaseDock (drag-out, the mode buttons, teardown, or the mobile guard).
-  const exitEdgeToFloat = (): void => {
+  const exitEdgeToFloat = (reason: DockReleaseReason = 'user'): void => {
     mode = 'floating';
     if (userUndock) edgePref = false;   // the user left; a host close or a breakpoint bounce did not
     if (userUndock && dockedFullCount() > 0) declined = true;
+    const leaveQuietly = joinedQuietly && !userUndock && reason === 'host';
+    if (userUndock) joinedQuietly = false;   // moved by hand: it is theirs now
     userUndock = false;
     render(); save();
     wobble.impulse(-towardEdge(), 0);
+    // The app took the column away (the mobile breakpoint) from a sheet that was only
+    // there as a background tab: close it rather than leave it open over the page.
+    if (leaveQuietly) closeQuietly();
   };
   /**
    * Out of the column before a mode that needs the sheet's own box. Without it the
@@ -219,6 +234,7 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
   };
   /** The host opened the sheet: put it back on the side the user keeps it on. */
   const restoreEdge = (): void => {
+    if (!autoDocking) joinedQuietly = false;   // a person (or a link) opened it
     if (isMobile()) return;
     // Already a tab in the column: a person opening Export wants to see it, so front it.
     if (mode === 'edge') { if (!autoDocking) showPanel('export'); return; }
@@ -355,6 +371,7 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
   // behind it. Guarded so the notification our OWN dock fires cannot re-enter.
   const offDockChange = onDockChange(() => {
     syncTabState();
+    if (leaveIfAlone()) return;
     if (autoDock()) return;
     if (mode === 'edge' || isDocked('export') || drag || !box || isMobile()) return;
     box = clampFully(box);
@@ -376,11 +393,22 @@ export function wireExportPanelFloat(opts: ExportFloatOpts): () => void {
     if (isDocked('export') || dockedFullCount() === 0) return false;
     autoDocking = true;
     try {
-      if (!opts.isOpen()) opts.openQuietly();   // the open hook docks it (restoreEdge)
+      if (!opts.isOpen()) { opts.openQuietly(); joinedQuietly = true; }   // the open hook docks it (restoreEdge)
       if (!isDocked('export')) enterEdge();
     } finally {
       autoDocking = false;
     }
+    return true;
+  };
+  const closeQuietly = (): void => {
+    joinedQuietly = false;
+    opts.closeQuietly?.();
+  };
+  /** The panel it joined has gone and nobody has used the sheet: it goes too, so closing
+   *  the inspector does not leave an Export column standing in its place. */
+  const leaveIfAlone = (): boolean => {
+    if (!joinedQuietly || !isDocked('export') || dockedFullCount() > 1) return false;
+    closeQuietly();
     return true;
   };
 

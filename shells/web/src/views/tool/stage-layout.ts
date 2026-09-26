@@ -991,7 +991,9 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
       }
       exportPopup.setAttribute('aria-modal', modal ? 'true' : 'false');
     };
-    const closeExport = (): void => {
+    // `quiet` is the sheet leaving on its own (lib/export-panel-float.ts): it opened with
+    // no sound and no focus move, and it closes the same way.
+    const closeExport = ({ quiet = false }: { quiet?: boolean } = {}): void => {
       const { actionsApi } = tview;
       // A tab beside other panels in the right sidebar stays open while that sidebar is
       // on (lib/export-panel-float.ts); closing it there would only bring it straight back.
@@ -1007,7 +1009,7 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
       // so every dismissal path (✕, scrim, Escape, flick-down) sounds it exactly once, and
       // only when a panel was actually open (defensive/duplicate closes stay silent). The
       // matching 'shhhht' open rides the trigger's data-sfx, which every open path clicks.
-      if (wasOpen) playSfx('hydraulicClose');
+      if (wasOpen && !quiet) playSfx('hydraulicClose');
       // The mirror of 'lolly:export-open': anything showing a value the sheet also edits
       // has to re-read it on the way OUT too. The document name is the case that bit -
       // the sheet's Filename field and the design top bar's name field are two views of
@@ -1015,6 +1017,7 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
       // the bar showing the value the user no longer had.
       if (wasOpen) actionsEl.dispatchEvent(new CustomEvent('lolly:export-close'));
       applyModality(); // un-inert before returning focus to the trigger
+      if (quiet) return;   // it never had focus, so focus stays where the person is working
       // Return focus to the trigger. In editor mode the render pill is hidden, so the
       // visible Export control is the real trigger: the design top bar's when it is
       // mounted (plan 179 M1 - it is the primary now), the rail icon otherwise.
@@ -1073,7 +1076,7 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     renderFab.addEventListener('click', () => openExport());
     exportOverlay
       .querySelectorAll('[data-export-close]')
-      .forEach((el) => { el.addEventListener('click', closeExport); });
+      .forEach((el) => { el.addEventListener('click', () => closeExport()); });
     // Escape closes the export popup; Tab is wrapped so focus stays within the
     // sheet (a belt-and-braces companion to the inert background above - inert
     // alone can let Tab graze the browser chrome between the last and first stop).
@@ -1165,6 +1168,7 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
           preferEdge: canvasStage && !editorLayout,
           isOpen: () => layout.classList.contains('export-open'),
           openQuietly: () => openExport({ focus: false }),
+          closeQuietly: () => closeExport({ quiet: true }),
           onOpen: (cb) => {
             exportOpenHooks.add(cb);
             return () => {

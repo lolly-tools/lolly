@@ -111,12 +111,22 @@ const SWITCH_CSS = `
 }
 .sound-switch-track[aria-checked="true"] .sound-switch-knob { transform: translateX(20px); }
 .sound-switch-track:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+/* Turning Neurospicy on: one ring pulses out from the switch. Transform and opacity only,
+   on a single pseudo-element, so the compositor runs it without a paint per frame. */
+.sound-switch-track.is-celebrating::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  border: 2px solid hsl(var(--primary));
+  animation: sound-switch-ring .6s cubic-bezier(.2,.7,.3,1) both;
+}
+@keyframes sound-switch-ring { from { transform: scale(1); opacity: .9; } to { transform: scale(1.9, 2.4); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) {
   .sound-switch-knob, .sound-switch-track, .sound-switch-icon { transition: none; }
+  .sound-switch-track.is-celebrating::after { animation: none; display: none; }
 }
 /* And for the app's own preference (data-a11y-motion, lib/a11y-prefs.ts) -
    parts/base.css leaves transitions alone by design, so this has to repeat. */
 html[data-a11y-motion="reduce"] :is(.sound-switch-knob, .sound-switch-track, .sound-switch-icon) { transition: none; }
+html[data-a11y-motion="reduce"] .sound-switch-track.is-celebrating::after { animation: none; display: none; }
 /* Neurospicy sits directly under Sound as ONE group - no dividing rule between them; the loop
    picker + volume tuck underneath its own switch. */
 .neurospicy { display: flex; flex-direction: column; gap: 9px; margin-top: 9px; transition: opacity .18s ease; }
@@ -232,21 +242,16 @@ function wireNeurospicy(root: ParentNode, host: NeuroHost): void {
     const on = !getNeurospicy().enabled;
     sw.setAttribute('aria-checked', String(on));
     swWrap?.setAttribute('data-on', String(on));
-    // Celebrate turning it ON: a one-shot confetti blast across the screen, launched from the
-    // toggle itself (like the /info hero's click-burst). Only on enable, once per activation.
+    // Mark turning it ON with one ring pulsing out from the switch (SWITCH_CSS). It replaced
+    // a full-screen confetti burst that was too heavy for the front end.
     if (on) {
-      const r = sw.getBoundingClientRect();
-      // Lazy: confetti code only loads on first activation of this niche feature,
-      // not on the gallery boot path. celebrateBurst is already fire-and-forget.
-      // Passing the host lets the chips take the LOADED brand's light/dark pairs
-      // (the runtime host is the full WebHost, so tokens rides along even though
-      // this control's slice type doesn't declare it).
-      void import('../lib/particles.ts').then(m =>
-        m.celebrateBurst(r.left + r.width / 2, r.top + r.height / 2,
-          host as import('../lib/particles.ts').ChipPairsHost));
+      sw.classList.remove('is-celebrating');
+      void sw.offsetWidth;   // restart the ring on a quick off-and-on
+      sw.classList.add('is-celebrating');
+      sw.addEventListener('animationend', () => sw.classList.remove('is-celebrating'), { once: true });
     }
     await setNeurospicyEnabled(host, on);
-    void neuroDock().then(m => m.syncNeuroDock(host, on));   // show (with a spring-in + corner confetti on enable) / hide the dock
+    void neuroDock().then(m => m.syncNeuroDock(host, on));   // show (springing in on enable) / hide the dock
   });
 }
 
