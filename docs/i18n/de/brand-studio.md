@@ -136,7 +136,7 @@ Ein optionales Panel **Verläufe** erzeugt Übergangs-Tokens aus Ihrer Palette f
 
 ### Die Palette anderswo nutzen
 
-Die schwebende Pille am unteren Rand des Paletten-Bereichs lädt die gesamte Palette als **Design Tokens (JSON)**, **CSS-Variablen**, **CSS-Klassen**, **SCSS-Variablen**, eine **GIMP-Palette (.gpl)** oder ein **Adobe Swatch Exchange (.ase)** herunter - sodass die Marke direkt in Illustrator, Figma, GIMP oder ein Stylesheet übernommen werden kann. Sie sitzt außerhalb des Scrollbereichs des Panels und behält daher ihren Platz, egal wie weit die Palette gescrollt wird. (Sie können die Palette auch aus der Ansicht [Katalog](/info/using.html) herunterladen.)
+Die schwebende Pille am unteren Rand des Paletten-Bereichs lädt die gesamte Palette als **Design Tokens (JSON)**, **CSS-Variablen**, **CSS-Klassen**, **SCSS-Variablen**, eine **GIMP-Palette (.gpl)** oder ein **Adobe Swatch Exchange (.ase)** herunter - sodass die Marke direkt in Illustrator, Figma, GIMP oder ein Stylesheet übernommen werden kann. Sie sitzt außerhalb des Scrollbereichs des Panels und behält daher ihren Platz, egal wie weit die Palette gescrollt wird. (Sie können die Palette auch in der Ansicht [Assets](/info/using.html#assets-your-library) herunterladen.)
 
 ## Schrift
 
@@ -179,7 +179,7 @@ Der Rest des Design-Systems, bearbeitbar ohne Code anzufassen:
 
 ## Dateien
 
-Legen Sie hier die Dateien ab, die Ihre Marke aufbewahrt - abgesehen von Logos: **Vektor**-, **Bild**-, **Audio**- und **Bewegtbild**-Assets (Video, Lottie, animiert). Sie landen in Ihrem [Katalog](/info/using.html), nach Bereichen sortiert und in der Asset-Auswahl jedes Tools bereit. Alles bleibt auf diesem Gerät. (Die Leiste beschriftet den Raum mit **Files** (Dateien); der URL-Schlüssel bleibt `catalogue`, weil ein Panel-Schlüssel ein dauerhafter Vertrag ist.)
+Legen Sie hier die Dateien ab, die Ihre Marke aufbewahrt - abgesehen von Logos: **Vektor**-, **Bild**-, **Audio**- und **Bewegtbild**-Assets (Video, Lottie, animiert). Sie landen in [Assets](/info/using.html#assets-your-library), nach Bereichen sortiert und in der Asset-Auswahl jedes Tools bereit. Alles bleibt auf diesem Gerät. (Die Leiste beschriftet den Raum mit **Files** (Dateien); der URL-Schlüssel bleibt `catalogue`, weil ein Panel-Schlüssel ein dauerhafter Vertrag ist.)
 
 ## Eine Marke importieren
 
@@ -231,6 +231,6 @@ Manche Builds liefern eine **gesperrte Marke** aus - ihre Farben, Schriften und 
 
 ## Wie es weitergeht
 
-- **[Lolly benutzen](/info/using.html)** - die Zeichenfläche, Speichern, Projekte und der Katalog.
+- **[Lolly benutzen](/info/using.html)** - die Zeichenfläche, Speichern, Projekte und Assets.
 - **[Design-Token](/info/design-tokens.html)** - das Token-Modell, in dem Ihre Marke ausgedrückt wird.
 - **[Exportieren & Formate](/info/exporting.html)** - Druckeinheiten, CMYK und die Formate, in die Ihre Marke gerendert wird.

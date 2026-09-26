@@ -12,13 +12,13 @@ What a fixture must state is specified in [Conformance and fidelity](conformance
 
 Each case carries two parts. The setup lists what is involved: the records, the operation and, where it decides the answer, the execution class. The expected outcome is what must hold for the case to pass.
 
-None of the 23 has a fixture yet, so the status of every case below is the same until one is built.
+None of the 25 has a fixture yet, so the status of every case below is the same until one is built.
 
 A case states the resolution or confirmed decision it tests. Plan section 17 lists the cases and their required evidence; the ids in this chapter are this chapter's own mapping of each case onto the decisions in plan section 2 and the corrections in section 0.1.
 
 A case must never be reworded to match an implementation that failed it. That is why the plan's section 18 places these fixtures before any shared type is frozen: a failure is evidence about the model, not about the fixture.
 
-Twelve cases come from the three pilots and the utilities. Eleven more were added by review: four after the first round and seven from the final review's findings C1 to C7. The eleven are grouped below under the resolution each one tests.
+Twelve cases come from the three pilots and the utilities. Eleven more were added by review: four after the first round and seven from the final review's findings C1 to C7. Two more, 24 and 25, were added on 2026-09-26 for invariants that had no case of their own. The thirteen added cases are grouped below under the resolution or decision each one tests.
 
 ## Pilot and utility cases
 
@@ -107,6 +107,16 @@ Expected outcome: the three checks must read the produced artifact or an indepen
 **23. Live-text fallback.** A run whose text stayed a live `<text>` element instead of an outline is exported.
 Expected outcome: the receipt must record that fallback per run, with the resolved font files by digest, the shaping engine version and the emoji set and treatment (R15). The run must not claim font-independent fidelity (R15). The command line already warns on an unresolvable font or a baseline shift it cannot place exactly, and a strict run promotes that warning to a refusal (`shells/cli/src/svg-outline.ts`). Today that fact reaches standard error, the `--json` envelope's `warnings` list and, under `--strict`, the exit code, but never a receipt (`shells/cli/src/output.ts`, `shells/cli/src/envelope.ts`). The receipt is the gap this case closes.
 
+### Invariants with no case of their own (D1, D11, R5, R15)
+
+Two cases were added when the table in the [constitution](constitution.html) mapped each invariant to its cases. No case tested invariant 11 on its own, and only case 7, the live-input half of Q4, stood behind invariant 5.
+
+**24. Accessible intent across outputs.** One chart whose accessibility metadata carries a title, a description, a reading order and a data table is exported to SVG, PDF, PNG and MP4 (`packages/core/src/chart-v1.ts`).
+Expected outcome: each output must carry the parts its format has a place for, and each must be checked by a check of its own that reads the exported file, never the screen render or the spec (D1, C8). An output with no place for the reading order or the table must report that loss as a finding in the one finding shape, never drop it silently (R5, `packages/core/src/file-v1.ts`). A declared motion description must reach the motion output or be reported missing. No output may be recorded as accessible because another output was. Today the chart template writes the title and description into the SVG as `<title>`, `<desc>` and an `aria-label` (`community/chart/template.html`). A test pins that template source (`tests/chart-spec.test.ts`), and nothing reads the metadata back from an exported file.
+
+**25. Local utility with no record.** The on-device `strip-data` tool removes metadata from a person's file under Q4's default for a utility: capture off, retention none and replay semantic from pinned inputs (`community/strip-data/tool.json`).
+Expected outcome: the operation must succeed with a typed outcome and no receipt, and an absent receipt must read as "no receipt was retained", never as "not evaluated" (D11, R15). The output must carry no provenance and no watermark. The host must keep neither the input file nor a record of the run once it ends, and the run must declare that it kept none rather than leave it to be inferred. A second run on the same input file, held by the person and not by the host, must compare as `equivalent-content` or `identical-bytes` with the first (`engine/src/compare.ts`). Today a picked file never reaches a link (`engine/src/url-mode.ts`) and the output carries no stamp (`engine/src/runtime.ts`), but no declaration says what a run captured or kept, so neither fact can be checked from outside the run.
+
 ## What must never pass
 
 For every admitted visual suite, schema validity alone must never pass the gate (D3, plan section 17). For an action-only operation, a fabricated preview must never stand in for the real outcome (D11, plan section 17).
@@ -136,7 +146,7 @@ The patch envelope and the source-aware diff land when their semantics are fixed
 - **Q1. The first editable interchange routes per pilot.** Default from plan section 16: the four routes and three edits named in [Conformance and fidelity](conformance.html). No case in this chapter yet covers a route end to end: cases 2 and 9 test only the chart half of an editable round trip, so a route fixture is owed when Q1 is answered. Evidence that would change it: a customer route that outranks them.
 - **Q2. The granularity and persistence of a local rejection.** Default from plan section 16: per rule, instance-scoped, recorded on the session record with a fingerprint, which is what case 18 asserts. A derived tool revision is a Design tool export and is not part of 0.1. Evidence that would change it: a need to share a rejected state as a reusable tool.
 - **Q3. What freshness a governed-claim export needs, and who states it.** Default from plan section 16: freshness is a policy rule the instance issues with a validity interval and a stated behaviour when it cannot be established, which is what case 19 asserts. With no such rule the held policy is enforced, and the receipt records the policy version it evaluated and when it was last attested. Evidence that would change it: an organisation that needs a hard deadline, or a fully offline site.
-- **Q4. What non-recordable means for a local utility and a live-input tool.** Default from plan section 16: for a utility, capture off, retention none and replay semantic from pinned inputs. For live input, capture unsupported unless the person turns it on, retention session and replay none. Case 7 tests the second. Evidence that would change it: a regulated workflow that needs durable receipts for utilities.
+- **Q4. What non-recordable means for a local utility and a live-input tool.** Default from plan section 16: for a utility, capture off, retention none and replay semantic from pinned inputs. For live input, capture unsupported unless the person turns it on, retention session and replay none. Case 25 tests the first and case 7 the second. Evidence that would change it: a regulated workflow that needs durable receipts for utilities.
 
 The other open questions are settled in other chapters. Q5 is answered in [Conformance and fidelity](conformance.html). Q6 is answered in [Status and open points](status.html).
 
@@ -170,4 +180,8 @@ The other open questions are settled in other chapters. Q5 is answered in [Confo
 - `community/design/tool.json`
 - `docs/agenda.md`
 - `docs/determinism.md`
+- `packages/core/src/file-v1.ts`
+- `community/chart/template.html`
+- `community/strip-data/tool.json`
+- `tests/chart-spec.test.ts`
 - `plans/276-document-model-evidence/README.md`

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+import { stripCanvasAnnotations } from './export-canvas-annotations.ts';
 import { wantsDeepExport, hdrTune } from './export-deep-choice.ts';
 /**
  * ExportAPI - converts a rendered DOM node to a file format.
@@ -1569,10 +1570,7 @@ async function renderSvg(node: Element, opts: ExportOpts = {}): Promise<Blob> {
   // stripped); they are inert noise in a standalone .svg file. Remove them from the
   // CLONE only. The .penpot export is a separate path (export-penpot.ts) that KEEPS
   // data-lolly-bind, so this never touches it (plans/222 item E).
-  for (const attr of ['data-canvas-input', 'data-lolly-paint', 'data-lolly-bind']) {
-    if (clone.hasAttribute?.(attr)) clone.removeAttribute(attr);
-    clone.querySelectorAll(`[${attr}]`).forEach((el) => { el.removeAttribute(attr); });
-  }
+  stripCanvasAnnotations(clone);
   // The clone leaves the canvas, so any rule scopeTemplateStyles pinned under the
   // canvas selector has to be released or it matches nothing in the standalone file.
   unscopeStyleEls(clone);

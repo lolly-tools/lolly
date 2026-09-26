@@ -1837,7 +1837,7 @@ function renderReportBody(fileName: string, report: VerifyReport, meta: FileMeta
       </details>
       <div class="valid-receipt-actions">
         <button type="button" class="btn" data-report-card data-file-index="${fileIndex}">${svgIcon('seal')}<span>${t('Save a signed report card')}</span></button>
-        <button type="button" class="btn" data-add-catalog data-file-index="${fileIndex}">${svgIcon('package')}<span>${t('Keep in my catalogue with these findings')}</span></button>
+        <button type="button" class="btn" data-add-catalog data-file-index="${fileIndex}">${svgIcon('package')}<span>${t('Keep in Assets with these findings')}</span></button>
       </div>
     </div>`;
 
@@ -3687,8 +3687,8 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
     try {
       const { storeUserUpload } = await import('./picker.ts');
       await storeUserUpload(host as unknown as Parameters<typeof storeUserUpload>[0], file);
-      announce(tRaw('"{name}" is in your catalogue, findings attached.', { name: file.name }));
-      if (span) span.textContent = t('Kept - see your catalogue');
+      announce(tRaw('"{name}" is in Assets, findings attached.', { name: file.name }));
+      if (span) span.textContent = t('Kept - see Assets');
     } catch {
       btn.disabled = false;
       if (span) span.textContent = orig;

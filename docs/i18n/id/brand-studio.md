@@ -136,7 +136,7 @@ Panel opsional **Gradients** membangun token blend dari palet Anda untuk latar b
 
 ### Bawa palet ke tempat lain
 
-Pil mengambang yang terparkir di tepi bawah panel palet mengunduh seluruh palet sebagai **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, **GIMP palette (.gpl)** atau **Adobe Swatch Exchange (.ase)** - sehingga brand langsung masuk ke Illustrator, Figma, GIMP atau stylesheet. Pil ini berada di luar area scroll panel, sehingga tetap di tempatnya sejauh apa pun palet digulir. (Anda juga dapat mengunduh palet dari tampilan [Catalogue](/info/using.html).)
+Pil mengambang yang terparkir di tepi bawah panel palet mengunduh seluruh palet sebagai **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, **GIMP palette (.gpl)** atau **Adobe Swatch Exchange (.ase)** - sehingga brand langsung masuk ke Illustrator, Figma, GIMP atau stylesheet. Pil ini berada di luar area scroll panel, sehingga tetap di tempatnya sejauh apa pun palet digulir. (Anda juga dapat mengunduh palet dari tampilan [Aset](/info/using.html#assets-your-library).)
 
 ## Type
 
@@ -179,7 +179,7 @@ Sisa dari sistem desain, dapat diedit tanpa menyentuh kode:
 
 ## Files
 
-Jatuhkan file yang disimpan brand Anda - selain logo - di sini: aset **vector**, **image**, **audio**, dan **motion** (video, Lottie, animasi). File-file ini masuk ke [Catalogue](/info/using.html) Anda, disortir ke dalam bagian-bagian dan siap di asset picker setiap tool. Semuanya tetap di perangkat ini. (Rail memberi label ruang ini **Files**; kunci URL tetap `catalogue`, karena kunci panel adalah kontrak permanen.)
+Jatuhkan file yang disimpan brand Anda - selain logo - di sini: aset **vector**, **image**, **audio**, dan **motion** (video, Lottie, animasi). File-file ini masuk ke [Aset](/info/using.html#assets-your-library), disortir ke dalam bagian-bagian dan siap di asset picker setiap tool. Semuanya tetap di perangkat ini. (Rail memberi label ruang ini **Files**; kunci URL tetap `catalogue`, karena kunci panel adalah kontrak permanen.)
 
 ## Bawa brand masuk
 
@@ -231,6 +231,6 @@ Beberapa build dikirim dengan **brand terkunci** - warna, font, dan tokennya ada
 
 ## Ke mana selanjutnya
 
-- **[Menggunakan Lolly](/info/using.html)** - kanvas, penyimpanan, proyek, dan katalog.
+- **[Menggunakan Lolly](/info/using.html)** - kanvas, penyimpanan, proyek, dan Aset.
 - **[Token Desain](/info/design-tokens.html)** - model token tempat brand Anda diekspresikan.
 - **[Ekspor & Format](/info/exporting.html)** - unit cetak, CMYK, dan format tempat brand Anda dirender.

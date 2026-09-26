@@ -631,7 +631,7 @@ export async function mountScriptStudio(viewEl: HTMLElement, host: ScriptAudioHo
       // link lands on the catalogue with the uploads section open and the clip
       // highlighted.
       const where = rewriting ? t('This clip has been updated everywhere it is used.') : t('Saved to your uploads.');
-      savedEl.innerHTML = `${escape(where)} <a href="#/c?section=your-uploads&asset=${escape(encodeURIComponent(ref?.id ?? ''))}">${escape(t('View it in the Catalogue'))}</a>`;
+      savedEl.innerHTML = `${escape(where)} <a href="#/a?section=your-uploads&asset=${escape(encodeURIComponent(ref?.id ?? ''))}">${escape(t('View it in Assets'))}</a>`;
       announce(where);
     } catch (e) {
       if (!viewEl.isConnected) return;

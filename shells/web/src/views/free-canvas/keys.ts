@@ -551,15 +551,40 @@ export function onKey(fc: FcCtx, e: KeyboardEvent): void {
 // Geometry changed (pan/zoom/resize) - invalidate the metrics cache and mark the
 // frame scrim for repositioning (M2: paintChrome only moves the scrim when this is
 // set, so drag/hover/selection syncs skip the 100vmax shadow repaint).
+// Bound to the canvas wrapper's MutationObserver, which sees every pan and zoom the
+// stage navigation writes. The connector preview layer is placed from the stage
+// transform, so it is moved here, on the same change, to keep it on its boxes.
 export const onStageMove = (fc: FcCtx, e: any): void => {
   const { connectLayer } = fc;
+  markStageMoved(fc, e);
+  if (connectLayer.style.display !== 'none') fc.connectors.placeConnectLayer(fc.stage.metrics());
+};
+// The cheap half of a geometry change: drop the cached measurements, mark the scrim,
+// remember the pointer and ask for one chrome sync (scheduleSync coalesces to a frame).
+function markStageMoved(fc: FcCtx, e: unknown): void {
   fc.gestureMetrics = null;
   fc.ctxBlockers = null;
   fc.scrimDirty = true;
-  if (e && typeof e.clientX === 'number') fc.lastPointer = { x: e.clientX, y: e.clientY };
+  if (e && typeof e === 'object' && 'clientX' in e && 'clientY' in e && typeof e.clientX === 'number' && typeof e.clientY === 'number') {
+    fc.lastPointer = { x: e.clientX, y: e.clientY };
+  }
   fc.chromeSync.scheduleSync();
+}
+// A wheel over the stage. When it pans or zooms, the stage navigation writes the
+// wrapper's transform and the MutationObserver runs the full onStageMove for it, so
+// doing that work here as well ran it twice per tick. This keeps only the cheap half,
+// which still covers a wheel that moves nothing (a zoom already at its limit) and
+// records the pointer for paste-at-cursor.
+export const onStageWheel = (fc: FcCtx, e: unknown): void => {
+  markStageMoved(fc, e);
+};
+// The stage itself changed size (its ResizeObserver, or a window resize). Everything a
+// pan or zoom needs, plus keeping a floating tool rail inside the new stage box: the
+// rail's clamp reads the rail and stage rects, which a pan or zoom never changes, so it
+// runs here and not on every wheel tick.
+export const onStageResize = (fc: FcCtx, e: unknown): void => {
+  onStageMove(fc, e);
   fc.rail.reclampRail();
-  if (connectLayer.style.display !== 'none') fc.connectors.placeConnectLayer(fc.stage.metrics());
 };
 // pointermove fires continuously while the cursor merely HOVERS the canvas. The old
 // handler rebuilt the whole selection chrome (2 getBoundingClientRect + innerHTML swap
@@ -569,7 +594,9 @@ export const onStageMove = (fc: FcCtx, e: any): void => {
 // costs nothing.
 export const onStagePointerMove = (fc: FcCtx, e: any): void => {
   const { connectCfg } = fc;
-  if (e && typeof e.clientX === 'number') fc.lastPointer = { x: e.clientX, y: e.clientY };
+  if (e && typeof e === 'object' && 'clientX' in e && 'clientY' in e && typeof e.clientX === 'number' && typeof e.clientY === 'number') {
+    fc.lastPointer = { x: e.clientX, y: e.clientY };
+  }
   // Pen: the segment from the last placed node to the cursor, previewed live. Only while
   // no gesture is running - mid-drag the pointer is pulling a handle, not proposing a
   // node. Works for `pointerType: 'touch'` too: a touch drag reports `buttons` while
@@ -686,6 +713,8 @@ export function keysOps(fc: FcCtx) {
     chromeKeysOff: bindOp(fc, chromeKeysOff),
     onKey: bindOp(fc, onKey),
     onStageMove: bindOp(fc, onStageMove),
+    onStageWheel: bindOp(fc, onStageWheel),
+    onStageResize: bindOp(fc, onStageResize),
     onStagePointerMove: bindOp(fc, onStagePointerMove),
     onStageTransitionEnd: bindOp(fc, onStageTransitionEnd),
     chromeRoot: bindOp(fc, chromeRoot),

@@ -8,7 +8,7 @@
  *
  * Companion to scripts/build-tool-og.ts. Where that script gives every *tool* its own
  * share card, this one covers Lolly's top-level *views* - Dashboard (/d), Verify (/v),
- * Catalogue (/c), Projects (/p) and Profile (/profile). Same root cause: the web shell
+ * Assets (/a), Projects (/p) and Profile (/profile). Same root cause: the web shell
  * routes these by URL *fragment* (#/d, #/verify, …), which social crawlers (Slack, X,
  * LinkedIn, iMessage, Facebook, Discord) never send to the server and never execute JS
  * for - so a shared /d link only ever previewed as the one generic og.png.
@@ -131,12 +131,17 @@ const VIEWS: View[] = [
     icon: mark('<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>'),
   },
   {
-    slug: 'c',
-    title: 'Catalogue',
+    slug: 'a',
+    title: 'Assets',
     description: 'Every brand asset and every upload of yours, in one searchable library.',
-    // No /catalog alias: the catalog's own static assets are served under /catalog/*,
-    // and a rewrite next door to that path is not worth the ambiguity. /c is canonical.
-    hash: '#/c',
+    // /a is canonical and /assets its long form. /c is the view's old path, from
+    // before it was renamed Assets, and keeps serving this stub so shared links
+    // still open it. There is no /catalog alias: the catalog's own static files are
+    // served under /catalog/*, and a rewrite next door to that path is not worth
+    // the ambiguity. /assets is free because the web build's hashed files live
+    // under /_app/ (shells/web/vite.config.js build.assetsDir).
+    hash: '#/a',
+    aliases: ['assets', 'c'],
     icon: mark('<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>'),
   },
   {

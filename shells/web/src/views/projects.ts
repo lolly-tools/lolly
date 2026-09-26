@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 import { createProjectScenePreviews, projectRecentExports } from './projects-scene-previews.ts';
+import { sceneThumbPatcher } from './projects-scene-patch.ts';
 import { handleProjectTextAction, projectAssetMenu } from './projects-asset-actions.ts';
 import { moveSessionSlot } from './tool-revision-history.ts';
 /**
@@ -256,7 +257,10 @@ export async function mountProjects(
   let imageRefs = new Map<string, AssetRef>();
   let profile: Profile | null = null;
   let headshotUrl = '';
-  const scenePreviews = createProjectScenePreviews(viewEl, host, () => render());
+  const scenePreviews = createProjectScenePreviews(viewEl, host, sceneThumbPatcher(viewEl, {
+    mounted: () => mounted, entry: slot => entryBySlot().get(slot), render: () => render(), strip: () => featuredHandle, folders: () => folders,
+    hasPreview: ref => !!previewForRef(ref), isFavourite: id => favourites.has(id), folderCover: f => folderCoverDataUrl(f),
+  }));
   let mounted = true;        // false after the view is swapped out (guards async renders)
   let overlayModal: ModalHandle<any> | null = null;      // the move-picker / new-folder-name dialog, if open
   let releaseSearch: (() => void) | null = null;         // the shell search-bar claim (set in boot, below)
@@ -1713,7 +1717,7 @@ export async function mountProjects(
     await reload(); render();
     announce(t('Removed from project'));
     showUndoToast({
-      message: tRaw('Removed "{name}" from the project. It is still in the Catalog.', { name }),
+      message: tRaw('Removed "{name}" from the project. It is still in Assets.', { name }),
       undo: async () => {
         await store.addItem(owner.id, { type: 'image', ref });
         if (!mounted) return;
@@ -2898,7 +2902,7 @@ export async function mountProjects(
     }
     if (removedImages.length) {
       showUndoToast({
-        message: tRaw('Removed {n} images from the project. They are still in the Catalog.', { n: removedImages.length }),
+        message: tRaw('Removed {n} images from the project. They are still in Assets.', { n: removedImages.length }),
         undo: async () => {
           for (const r of removedImages) await store.addItem(r.owner, { type: 'image', ref: r.ref }).catch(() => {});
           if (mounted) { await reload(); render(); }

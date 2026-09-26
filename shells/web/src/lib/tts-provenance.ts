@@ -2,7 +2,7 @@
 /**
  * TTS provenance - the ONE implementation of a generated clip's Content
  * Credential, shared by the save path (views/script-audio.ts) and the lazy
- * heal path (views/catalog.ts) so the two can never drift on the manifest
+ * heal path (views/assets.ts) so the two can never drift on the manifest
  * shape: c2pa.created with trainedAlgorithmicMedia and the full recipe
  * ({ script, voice, speed, model, lang }) in the action's parameters, RIFF
  * LIST/INFO tags, then the signed store embedded as a top-level RIFF chunk.

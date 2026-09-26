@@ -7,7 +7,7 @@
        canonical host (lolly.tools on this SUSE build) via Vercel redirects, but
        the root document "/" on the www.* primary domains (www.lolly.to,
        www.lolly.tools) is served from a sticky edge cache as a 200 shell rather
-       than redirecting. Its relative /assets/*.js module scripts then 308
+       than redirecting. Its relative /_app/*.js module scripts then 308
        cross-origin with a text/plain body, which browsers refuse to load as ES
        modules ("disallowed MIME type text/plain"). Bounce off the alternate to
        the canonical before those scripts are even fetched. Scoped to the lolly

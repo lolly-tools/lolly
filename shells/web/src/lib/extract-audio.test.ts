@@ -458,8 +458,8 @@ test('Go ENQUEUES a job and CLOSES the dialog - it never waits on the extraction
 // ── contract: the catalog action is video-only ────────────────────────────────
 
 test('catalog "Extract audio" is gated on ref.type === video', () => {
-  const catDir = fileURLToPath(new URL('../views/catalog/', import.meta.url));
-  const catalog = [readFileSync(fileURLToPath(new URL('../views/catalog.ts', import.meta.url)), 'utf8'), ...readdirSync(catDir).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(catDir, n), 'utf8'))].join('\n');
+  const catDir = fileURLToPath(new URL('../views/assets/', import.meta.url));
+  const catalog = [readFileSync(fileURLToPath(new URL('../views/assets.ts', import.meta.url)), 'utf8'), ...readdirSync(catDir).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(catDir, n), 'utf8'))].join('\n');
   // The gate variable exists and requires the video type.
   const gate = catalog.match(/const canExtractAudio = ([^;]*);/s);
   assert.ok(gate, 'canExtractAudio gate is present');

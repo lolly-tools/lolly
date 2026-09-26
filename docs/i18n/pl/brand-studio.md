@@ -136,7 +136,7 @@ Opcjonalny panel **Gradients** tworzy tokeny przejść z Twojej palety dla teł 
 
 ### Zabierz paletę gdzie indziej
 
-Pływająca pigułka umieszczona przy dolnej krawędzi panelu palety pozwala pobrać całą paletę jako **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, **GIMP palette (.gpl)** lub **Adobe Swatch Exchange (.ase)** - dzięki temu marka trafia od razu do Illustratora, Figmy, GIMP-a lub arkusza stylów. Znajduje się poza obszarem przewijania panelu, więc zachowuje swoje miejsce niezależnie od tego, jak daleko przewinięta jest paleta. (Paletę można też pobrać z widoku [Catalogue](/info/using.html).)
+Pływająca pigułka umieszczona przy dolnej krawędzi panelu palety pozwala pobrać całą paletę jako **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, **GIMP palette (.gpl)** lub **Adobe Swatch Exchange (.ase)** - dzięki temu marka trafia od razu do Illustratora, Figmy, GIMP-a lub arkusza stylów. Znajduje się poza obszarem przewijania panelu, więc zachowuje swoje miejsce niezależnie od tego, jak daleko przewinięta jest paleta. (Paletę można też pobrać z [Zasobów](/info/using.html#assets-your-library).)
 
 ## Typografia
 
@@ -179,7 +179,7 @@ Reszta systemu projektowego, edytowalna bez dotykania kodu:
 
 ## Pliki
 
-Upuść tutaj pliki, które przechowuje Twoja marka - poza logotypami: zasoby **vector**, **image**, **audio** i **motion** (wideo, Lottie, animacje). Trafiają do Twojego [Catalogue](/info/using.html), posortowane na sekcje i gotowe w selektorze zasobów każdego narzędzia. Wszystko pozostaje na tym urządzeniu. (Pasek boczny nazywa ten pokój **Files**; klucz URL pozostaje `catalogue`, ponieważ klucz panelu to trwały kontrakt.)
+Upuść tutaj pliki, które przechowuje Twoja marka - poza logotypami: zasoby **vector**, **image**, **audio** i **motion** (wideo, Lottie, animacje). Trafiają do [Zasobów](/info/using.html#assets-your-library), posortowane na sekcje i gotowe w selektorze zasobów każdego narzędzia. Wszystko pozostaje na tym urządzeniu. (Pasek boczny nazywa ten pokój **Files**; klucz URL pozostaje `catalogue`, ponieważ klucz panelu to trwały kontrakt.)
 
 ## Wprowadź markę
 
@@ -231,6 +231,6 @@ Niektóre kompilacje są dostarczane z **zablokowaną marką** - jej kolory, czc
 
 ## Dokąd dalej
 
-- **[Using Lolly](/info/using.html)** - płótno, zapisywanie, projekty i katalog.
+- **[Using Lolly](/info/using.html)** - płótno, zapisywanie, projekty i Zasoby.
 - **[Design Tokens](/info/design-tokens.html)** - model tokenów, w którym wyrażona jest twoja marka.
 - **[Exporting & formats](/info/exporting.html)** - jednostki druku, CMYK i formaty, w których renderowana jest twoja marka.

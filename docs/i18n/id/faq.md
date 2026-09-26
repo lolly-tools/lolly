@@ -70,7 +70,7 @@ peramban. Hambatan adopsi jarang bersifat teknis; hambatannya organisasional. Be
 paket template Anda yang sudah jadi. Untuk *peluncuran yang terkelola*, seseorang mendefinisikan katalog
 aset bersama (logo, palet, font sebagai ID permanen) dan menulis manifest +
 template untuk setiap jenis keluaran. Namun perorangan tidak perlu menunggu itu - di
-aplikasi terbuka, siapa pun bisa memasukkan file miliknya sendiri ke katalog dan membangun alat di
+aplikasi terbuka, siapa pun bisa memasukkan file miliknya sendiri ke Aset dan membangun alat di
 Design sejak hari pertama.
 
 **Tidak perlu git untuk berkontribusi.** Desainer membuat alat dan template mereka sendiri

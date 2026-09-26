@@ -56,7 +56,7 @@ export interface StudioPanelHandle { render: () => void; teardown: () => void }
  *
  * Both arguments are **trusted HTML, not escaped** - every call site passes a
  * `t()` string, and several of the subs carry deliberate inline markup
- * (`<strong>`, `<em>`, a `<a href="#/c">` link). Never pass user input here.
+ * (`<strong>`, `<em>`, a `<a href="#/a">` link). Never pass user input here.
  * `sub` is optional; omitting it emits the head with a title alone.
  */
 export const panelHead = (title: string, sub?: string): string =>
@@ -827,7 +827,7 @@ export interface CataloguePanelCtx { host: HostV1; notify: () => void }
 
 export function mountCataloguePanel(mount: HTMLElement, ctx: CataloguePanelCtx): StudioPanelHandle {
   mount.innerHTML = `
-    ${panelHead(t('Catalogue'), tRaw("Files the design system keeps - drop them here and they land in the {link}, sorted into its sections, ready for every tool's asset picker.", { link: `<a href="#/c">${t('Catalogue')}</a>` }))}
+    ${panelHead(t('Catalogue'), tRaw("Files the design system keeps - drop them here and they land in {link}, sorted into its sections, ready for every tool's asset picker.", { link: `<a href="#/a">${t('Assets')}</a>` }))}
     <div data-be-cat-dropzone></div>
     <div class="be-cat-groups" data-be-cat-groups aria-live="polite"></div>`;
 

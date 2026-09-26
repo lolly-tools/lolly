@@ -115,6 +115,11 @@ for (const [id, files] of Object.entries({
     }),
     'template.html': VECTOR_TEMPLATE,
   },
+  'annotated-mark': {
+    'tool.json': manifest('annotated-mark', { inputs: [{ id: 'shade', type: 'color', default: '#3cb44b' }] }),
+    'template.html': VECTOR_TEMPLATE.replace('<rect ', '<rect data-canvas-input="shade" data-canvas-settings="shade" data-canvas-name="Card" tabindex="0" role="button" ')
+      .replace('</svg>', '<path data-export-hide="" d="M0 0L120 80" stroke="transparent" stroke-width="14"/></svg>'),
+  },
   'text-mark': {
     'tool.json': manifest('text-mark', {
       render: { width: 200, height: 80, formats: ['svg', 'emf', 'eps', 'dxf'] },
@@ -173,6 +178,12 @@ async function render(toolId: string, format: string, params: Record<string, str
   await runToolCli({ toolId, params: { 'no-provenance': '1', ...params }, outputPath: out, format, ...flags });
   return readFile(out);
 }
+
+test('SVG exports omit interactive hit targets and canvas menu annotations', async () => {
+  const actual = (await render('annotated-mark', 'svg')).toString();
+  assert.doesNotMatch(actual, /data-canvas-|data-export-hide|tabindex|role="button"|stroke="transparent"/);
+  assert.equal(actual.replaceAll('annotated-mark', 'vector-mark'), (await render('vector-mark', 'svg')).toString());
+});
 
 // ── golden fixture I/O ──────────────────────────────────────────────────────
 // Text formats are stored utf8 (reviewable diffs); EMF bytes as base64.

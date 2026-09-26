@@ -609,11 +609,12 @@ input.field-range.is-upgraded { display: none; }
    moves - so it needs a round base and the JS must own its transform 1:1.
    During a drag we drop the CSS transform transition (the rAF spring is the
    only smoother; a second .12s ease would smear the trail) and disable the
-   plain grab-swell rule (the spring drives the swell instead). */
+   plain grab-swell rule (the spring drives the swell instead). No standing
+   will-change on the thumb or the tail: every slider on a page carries this
+   class, so custom-slider.ts sets the hint inline only while the spring runs. */
 .cs-jelly .cs-thumb {
   border-radius: var(--radius-round);
   transform-origin: center;
-  will-change: transform;
   /* JS owns transform (the rAF spring) - keep box-shadow/left transitions,
      drop the transform one so nothing smears the egg. left still glides on
      keyboard steps; the drag rule below drops it for a 1:1 pointer follow. */
@@ -640,7 +641,6 @@ input.field-range.is-upgraded { display: none; }
   transform: translateY(-50%);
   opacity: 0;
   pointer-events: none;
-  will-change: transform, opacity, border-width;
 }
 
 .cs-ticks {

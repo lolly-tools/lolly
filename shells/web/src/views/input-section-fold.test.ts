@@ -80,7 +80,8 @@ test('sheet mode is the mobile-sheet breakpoint, not a second opinion', () => {
 });
 
 test('scrolling to a control reveals its fold before it scrolls', () => {
-  const fn = SRC.slice(SRC.indexOf('function scrollToControl'));
+  const focusSource = readFileSync(resolve(import.meta.dirname, '../lib/sidebar-focus.ts'), 'utf8');
+  const fn = focusSource.slice(focusSource.indexOf('function scrollToControl'));
   const reveal = fn.indexOf(`closest('details.input-section')?.setAttribute('open', '')`);
   const scroll = fn.indexOf('scrollIntoView(');
   assert.ok(reveal > 0, 'the shared scroll seam opens the ancestor section');

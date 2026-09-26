@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The Catalogue spotlight provider (plans/99 section 2b) over fake assets: recall via
- * the shared catalog-filter haystack (name/id/tags/category/format) with
+ * the shared assets-filter haystack (name/id/tags/category/format) with
  * diacritic folding on top, the view-mirroring visibility rules (visual types
- * only, user audio + neurospicy audio, no profile headshot), the #/c?asset=
+ * only, user audio + neurospicy audio, no profile headshot), the #/a?asset=
  * focus href, category/format subtitles, and the short-lived load cache.
  *
  * Run directly:
@@ -46,9 +46,9 @@ test('a catalog asset matches by name; hit shape carries the scoped-list deep li
   const hits = await provider.search(tokenize('primary'), 5);
   assert.equal(hits.length, 1);
   assert.equal(hits[0]!.title, 'Primary Logo');
-  // plans/99 section 5 locked target: the #/c?q= scoped list keyed on the asset's
-  // name - never #/c?asset=, which opens the per-asset details modal.
-  assert.equal(hits[0]!.href, '#/c?q=Primary%20Logo');
+  // plans/99 section 5 locked target: the #/a?q= scoped list keyed on the asset's
+  // name - never #/a?asset=, which opens the per-asset details modal.
+  assert.equal(hits[0]!.href, '#/a?q=Primary%20Logo');
   assert.equal(hits[0]!.subtitle, 'Logos'); // lib/asset-category off the 'logo' tag
   assert.ok(hits[0]!.icon.includes('<svg'));
 });

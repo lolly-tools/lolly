@@ -11,7 +11,7 @@
  *
  * The colour swatches do NOT speak: an icon theme or photo treatment is a brand colour
  * pairing, and a robot reading its name over every swatch click is not how the brand
- * sounds. Those rows carry the shimmer cue alone (views/catalog/thumbs.ts).
+ * sounds. Those rows carry the shimmer cue alone (views/assets/thumbs.ts).
  *
  * Usage:  node scripts/build-voice-clips.ts
  */

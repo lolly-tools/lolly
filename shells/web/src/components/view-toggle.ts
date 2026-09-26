@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * The Tools | Utilities | Catalog | Projects switch shown atop the gallery, the
- * utilities view, the projects view and the catalog view. Two coordinated forms:
+ * The Tools | Utilities | Assets | Projects switch shown atop the gallery, the
+ * utilities view, the projects view and the Assets view. Two coordinated forms:
  *
  * - Native links (`viewToggle()`, rendered by every listing view's topbar):
  *   pure markup - real hash links (`#` tools, `#/u` utilities, `#/p` projects,
- *   `#/c` catalog), so the router's hashchange listener handles navigation; no
+ *   `#/a` Assets), so the router's hashchange listener handles navigation; no
  *   JS wiring. Desktop shows icon+label; on mobile the label hides and the
  *   toggle shrinks to icons (topbar.css). The Utilities tab only renders while
  *   the 'Offline Utilities' feature flag is on - the same flag that gates the
@@ -52,7 +52,7 @@ export const UTILITIES_FLAG_ID = 'cat-developer';
 
 // Glyphs - hammer (Tools) and a lightning bolt (Utilities), Andy 2026-08-20:
 // the hammer reads as "build things", the bolt as "quick powered actions" -
-// plus folder (Projects) and layout-grid (Catalog).
+// plus folder (Projects) and layout-grid (Assets).
 const ICONS: Record<ViewToggleKey, string> = {
   tools: icon('hammer'),
   utilities: icon('zap'),
@@ -66,11 +66,11 @@ export const VIEW_TOGGLE_HREFS: Record<ViewToggleKey, string> = {
   tools: '#',
   utilities: '#/u',
   projects: '#/p',
-  catalog: '#/c',
+  catalog: '#/a',
 };
 
 // Tab order maps the journey start-to-end: Tools (discovery) leads, Projects
-// (the major work) closes; Utilities and Catalog sit between. Logical order,
+// (the major work) closes; Utilities and Assets sit between. Logical order,
 // so RTL locales mirror it for free.
 const KEYS: readonly ViewToggleKey[] = ['tools', 'utilities', 'catalog', 'projects'];
 
@@ -96,7 +96,7 @@ export function viewToggle(active: ViewToggleKey): string {
     `<span class="view-toggle-label">${escape(label)}</span>` +
     `</a>`;
   return `
-    <nav class="view-toggle" aria-label="${escape(t('Switch between tools, utilities, projects and catalog'))}">
+    <nav class="view-toggle" aria-label="${escape(t('Switch between Tools, Utilities, Projects and Assets'))}">
       ${activeKeys().map(k => opt(k, VIEW_TOGGLE_HREFS[k], t(LABELS[k]))).join('\n      ')}
     </nav>`;
 }
@@ -183,7 +183,7 @@ export function syncJellyNavToggle(active: ViewToggleKey | null): void {
     // the wrapper's 3px padding made the pill taller than the sibling icon FABs
     // (2.9em). 2.5rem host + the 3px rim ≈ 46px, matching them. Inline so it can't
     // lose the cascade to the shadow default; the tab paddings ride in projects.css.
-    jellyNav.innerHTML = `<jelly-segmented class="view-toggle-seg" style="height:2.5rem" value="${VIEW_TOGGLE_HREFS[active]}" label="${escape(t('Switch between tools, utilities, projects and catalog'))}">${segmentsHtml(keys)}</jelly-segmented>`;
+    jellyNav.innerHTML = `<jelly-segmented class="view-toggle-seg" style="height:2.5rem" value="${VIEW_TOGGLE_HREFS[active]}" label="${escape(t('Switch between Tools, Utilities, Projects and Assets'))}">${segmentsHtml(keys)}</jelly-segmented>`;
   } else {
     // Steering the value attribute re-syncs the control and the pill ANIMATES
     // from wherever it is - including a route change driven by the native

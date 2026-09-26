@@ -6,7 +6,7 @@
 
 ## 도구 열기
 
-홈 화면은 **갤러리**예요 - 모든 도구가 분류별로 묶여 있어요. 카드를 클릭하면 도구가 열리고, 전에 작업한 적이 있다면 **Continue** 버튼이 가장 최근 세션을 이어서 열어 줘요. 검색창으로 이름을 걸러 내거나, 여섯 개 목록 화면(갤러리, Utilities, Projects, Catalogue, Dashboard, Profile) 아래쪽 바에서 [검색](/info/search.html)하세요. 이 검색은 도구뿐 아니라 저장한 작업물과 카탈로그, 설정까지 찾아 줘요. 도구 안에서는 이 바가 물러나고 도구 자체의 조작 영역이 그 자리를 차지해요.
+홈 화면은 **갤러리**예요 - 모든 도구가 분류별로 묶여 있어요. 카드를 클릭하면 도구가 열리고, 전에 작업한 적이 있다면 **Continue** 버튼이 가장 최근 세션을 이어서 열어 줘요. 검색창으로 이름을 걸러 내거나, 여섯 개 목록 화면(갤러리, Utilities, Projects, 애셋, Dashboard, Profile) 아래쪽 바에서 [검색](/info/search.html)하세요. 이 검색은 도구뿐 아니라 저장한 작업물과 애셋, 설정까지 찾아 줘요. 도구 안에서는 이 바가 물러나고 도구 자체의 조작 영역이 그 자리를 차지해요.
 
 ![도구 갤러리 - 모든 도구가 분류별로 묶인 카드로 나열된 모습](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
@@ -237,7 +237,7 @@ Design 도구에도 같은 타임라인이 있어요. 그래서 다른 도구로
 - <!--i:folder--> **겹겹이 넣는 폴더.** 저장한 세션을 폴더로 묶고, 폴더 안에 폴더를 원하는 만큼 깊이 넣으세요. 폴더를 만들고 이름을 바꾸거나, 타일을 다른 폴더 위로 끌어 옮기세요. 이동 경로가 위로 되돌아가는 길을 안내해요. 폴더 없이 저장한 세션은 **프로젝트**의 최상위에 바로 표시됩니다.
 - <!--i:clock--> **원하는 방식으로 정렬.** **View & sort**에는 **Name**, **Date added**, **Last modified**(기본값)가 있고, 폴더 안에서는 **By tool**도 있어요. 어떤 정렬이 켜져 있든 폴더가 언제나 먼저 오고, 정렬은 각자의 묶음 안에서 세션과 폴더의 순서만 정해요.
 - <!--i:document--> **새 작업을 바로 정리해 넣기.** **새 애셋**을 선택하면 공용 선택 창이 열립니다. 저장한 템플릿으로 시작하려면 **템플릿**을 선택하세요. 열어서 편집하거나 **+ 추가**로 새 작업을 바로 저장할 수 있습니다.
-- <!--i:checklist--> **다중 선택(데스크톱).** 타일의 체크박스를 켜거나, 빈 곳에서 선택 상자를 끌거나, **Shift/Cmd-클릭**하세요. 타일을 **오른쪽 클릭**하면 컨텍스트 메뉴가 나와요. 그런 다음 선택 전체에 한 번에 적용하세요 - 같은 동작과 같은 떠 있는 실행 바가 여기뿐 아니라 Tools 갤러리와 Utilities, Catalogue, Projects에서 모두 통해요.
+- <!--i:checklist--> **다중 선택(데스크톱).** 타일의 체크박스를 켜거나, 빈 곳에서 선택 상자를 끌거나, **Shift/Cmd-클릭**하세요. 타일을 **오른쪽 클릭**하면 컨텍스트 메뉴가 나와요. 그런 다음 선택 전체에 한 번에 적용하세요 - 같은 동작과 같은 떠 있는 실행 바가 여기뿐 아니라 Tools 갤러리와 Utilities, 애셋, Projects에서 모두 통해요.
 - <!--i:download--> **폴더나 선택 전체를 렌더링.** **Render folder**는 폴더 안에 저장된 모든 세션을 하위 폴더까지 포함해 하나의 중첩된 `.zip`으로 내보내요. **Render selection**은 어떤 다중 선택에도 같은 일을 하고, 세션 하나는 곧바로 자기 파일로 렌더링돼요. Batch나 Pro는 필요 없어요.
 - <!--i:link--> **어떤 도구로 저장한 작업으로 바로 가기.** Tools 갤러리에서 도구를 하나 이상 고르고 선택 바에서 **View sessions**를 누르면, 그 도구로 만든 세션만 보이는 Projects가 열려요. **Clear**를 누르면 전체 보기로 돌아와요.
 - <!--i:link--> **저장한 세션 공유하기.** 세션을 오른쪽 클릭 → **Share link**를 누르면 똑같은 입력으로 다시 열리는 링크가 복사돼요(아래에서 설명하는 전체 Share 대화상자예요).
@@ -265,7 +265,7 @@ alt text names them - do not re-caption this as "the sort menu".
 **선택 바가 무엇을 내주는지**는 보기마다 조금씩 달라요. 모든 동작이 어디서나 말이 되는 건 아니니까요:
 
 - **Tools / Utilities:** Favourite(또는 Unfavourite), Hide(또는 Unhide), Available offline(또는 Remove from offline), **View sessions**(위에서 설명한 건너뛰기), 그리고 카드가 정확히 하나만 선택됐을 때의 Copy link예요.
-- **Catalogue:** Favourite와 Hide는 어떤 선택에도 적용돼요. Duplicate와 Download, Delete는 선택한 항목이 모두 내가 올린 것일 때만 나타나요 - 공유된 디자인 시스템 자산은 영구적인 약속이라, 한꺼번에 처리할 때조차 이 셋은 붙지 않아요.
+- **애셋:** Favourite와 Hide는 어떤 선택에도 적용돼요. Duplicate와 Download, Delete는 선택한 항목이 모두 내가 올린 것일 때만 나타나요 - 공유된 디자인 시스템 자산은 영구적인 약속이라, 한꺼번에 처리할 때조차 이 셋은 붙지 않아요.
 - **Projects:** **Render selection**, **Move to…**, **New folder**, **Delete**, 한 도구의 세션을 두 개에서 여덟 개까지 골랐을 때의 **Edit together**(하나로 합친 사이드바 아래에 나란히 열어 줘요), 그리고 선택 전체를 대신 배치 격자의 행으로 여는 **Edit as sheet**가 있어요. 마지막 것은 **개수 제한이 없고** 세션이 같은 도구에서 왔는지도 따지지 않으니, 선택이 Edit together의 2~8개보다 크거나 더 뒤섞였을 때의 비상구예요.
 
 > 이름 때문에 헷갈리기 쉬운 지점 하나. **View sessions**는 무언가 *선택된* 뒤에만 있어요. 선택하지 않은 카드 하나를 오른쪽 클릭하면 대신 **N saved sessions**가 나오는데, 이건 Projects로 이동하는 대신 그 도구의 기록 대화상자를 열어요.
@@ -334,26 +334,26 @@ storage-seeding hook.
 
 도구에서 내 기기의 이미지를 추가하면 들어온 그대로 보관돼요 - 그래서 거기에 붙은 Content Credential도 그대로 검증돼요 - 그리고 개인 **My images** 라이브러리(**Profile → Storage** 아래)에 저장돼요. 정말로 큰 파일일 때만 그대로 둘지 크기를 줄일지 물어봐요. 어느 도구에서든 다시 쓰세요. 들어오는 이미지에서 EXIF/GPS를 지우려면 프로필에서 **Strip metadata from uploads**를 켜세요. 개수 제한은 없어요. 라이브러리는 전부 로컬이고 기기의 저장 공간만이 한계예요 - 이미지 관리와 삭제도 거기서 해요.
 
-## 카탈로그 - 내 자산 라이브러리
+## 애셋 - 내 라이브러리
 
-**Catalogue**(`#/c`, 또는 모든 목록 화면 위쪽에 있는 Projects · Tools · Utilities · Catalog 전환기의 **Catalog** 칸)는 도구가 끌어다 쓸 수 있는 모든 것을 모아 둬요 - 브랜드 로고, 이미지, 오디오, 모션이 종류별로 묶여 있어요 - 그리고 **내가 만든 파일**도 여기에 살아요. 서버도, 관리 콘솔도, 풀 리퀘스트도 없어요. 전부 내 기기 안에 있어요.
+**애셋**(`#/a`, 또는 모든 목록 화면 위쪽에 있는 도구 · 유틸리티 · 애셋 · 프로젝트 전환기의 **애셋** 칸)은 도구가 끌어다 쓸 수 있는 모든 것을 모아 둬요 - 브랜드 로고, 이미지, 오디오, 모션이 종류별로 묶여 있어요 - 그리고 **내가 만든 파일**도 여기에 살아요. 서버도, 관리 콘솔도, 풀 리퀘스트도 없어요. 전부 내 기기 안에 있어요.
 
-![카탈로그 - 브랜드 자산과 색 견본, 글꼴, 그리고 내가 올린 파일](/t/url-shot?url=%2F%23%2Fc%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=catalogue)
+![애셋 - 브랜드 자산과 색 견본, 글꼴, 그리고 내가 올린 파일](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
-- <!--i:upload--> **파일을 가져오세요.** 이미지, SVG, 오디오 클립, 동영상, Lottie, PDF, PowerPoint 덱을 업로드 영역에 드래그하거나 - 클릭해서 선택하면 - 즉시 카탈로그에 도착해 모든 도구의 애셋 선택기에서 바로 사용할 수 있어요. 여러 페이지의 PDF나 `.pptx`는 유지할 페이지나 슬라이드를 물어보고, 각각이 SVG 애셋이 돼요. 원하는 만큼 가져오세요. 기기 밖으로 나가지 않아요.
+- <!--i:upload--> **파일을 가져오세요.** 이미지, SVG, 오디오 클립, 동영상, Lottie, PDF, PowerPoint 덱을 업로드 영역에 드래그하거나 - 클릭해서 선택하면 - 즉시 애셋에 도착해 모든 도구의 애셋 선택기에서 바로 사용할 수 있어요. 여러 페이지의 PDF나 `.pptx`는 유지할 페이지나 슬라이드를 물어보고, 각각이 SVG 애셋이 돼요. 원하는 만큼 가져오세요. 기기 밖으로 나가지 않아요.
 - <!--i:star--> **자주 쓰는 항목을 즐겨찾기하세요.** 애셋(또는 브랜드 색상 견본)에 ★를 표시하면 모든 선택기 맨 위에 고정되어, 자주 쓰는 로고나 색상을 클릭 한 번으로 사용할 수 있어요.
 - <!--i:folder--> **정리하세요.** 애셋을 다른 그룹으로 다시 분류하거나, 사용하지 않는 공유 브랜드 애셋을 숨기거나(**Show hidden**(숨긴 항목 표시)으로 다시 불러올 수 있어요), 직접 업로드한 항목을 완전히 삭제할 수 있어요. Projects와 같은 다중 선택 제스처와 플로팅 작업 표시줄을 여기서도 사용할 수 있어서, 선택한 전체 항목에 한 번에 적용할 수 있어요.
 - <!--i:layers--> **동영상에서 배경을 제거하세요.** 애셋 선택기에서 동영상의 세부 정보를 열거나 카드를 오른쪽 클릭해 **Remove background…**(배경 제거…)를 선택하면 투명 버전을 저장할 수 있어요 - 실제 알파값을 가진 애니메이션 WebP 또는 PNG예요. **Method**(방법)를 선택하세요: **On-device model**(온디바이스 모델)은 복잡한 장면에서 피사체를 오려내고, **Colour key**(컬러 키)는 그린 스크린이나 단색 벽처럼 조명이 고른 단색 배경을 제거하며, **Tolerance**(허용 오차), **Softness**(부드러움), **Spill removal**(번짐 제거)로 경계를 다듬을 수 있어요. 컬러 키는 모델 다운로드도 네트워크도 필요 없어서 **Remove background**(배경 제거)는 모든 동영상에서 제공되며, 깔끔하게 촬영된 영상에서 더 좋은 결과를 낼 때가 많아요. **Resolution**(해상도) 설정(360, 480, 720 또는 1080p, 원본을 넘지 않음)은 화질과 더 작고 빠른 파일 사이에서 절충할 수 있게 해줘요. 이 작업은 기기에서 백그라운드 작업으로 실행돼요. 완성된 오려내기는 원본 옆에 별도의 애셋으로 저장되고, 원본 동영상의 Content Credential이 재료(ingredient)로 함께 따라가요. (배경 제거가 왜 평범한 편집으로 유지되는지는 [한 번 생성하면 똑같이 렌더링](/info/ai-features.html)을 참고하세요.)
 
 ### 팔레트와 글꼴을 어디로든 가져가기
 
-카탈로그의 **Swatches** 패널은 보여 주기만 하지 않아요 - 색을 클릭하면 복사되고, 다른 도구가 알아듣는 형식으로 **브랜드 팔레트 전체를 내려받을** 수도 있어요:
+애셋의 **Swatches** 패널은 보여 주기만 하지 않아요 - 색을 클릭하면 복사되고, 다른 도구가 알아듣는 형식으로 **브랜드 팔레트 전체를 내려받을** 수도 있어요:
 
 - <!--i:code--> **디자인 토큰(JSON)**, **CSS 변수** 또는 **CSS 클래스** - 브랜드를 스타일시트나 빌드에 그대로 넣으세요;
 - <!--i:palette--> **Adobe Swatch Exchange (.ase)** - Illustrator나 Photoshop으로 불러오세요;
 - <!--i:pentool--> **GIMP palette (.gpl)** - GIMP나 Inkscape용이에요.
 
-![Swatches 패널 - 위쪽에 늘어선 다섯 개의 팔레트 다운로드 버튼과, 그 아래 복사할 수 있는 칩으로 놓인 모든 브랜드 색](/t/url-shot?url=%2F%23%2Fc%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+![Swatches 패널 - 위쪽에 늘어선 다섯 개의 팔레트 다운로드 버튼과, 그 아래 복사할 수 있는 칩으로 놓인 모든 브랜드 색](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
 
 **Fonts** 패널은 브랜드 글꼴을 나열하고 각각 옆에 **download**를 두어, 기기에 설치하거나 인쇄소에 건넬 수 있게 해요. ([Brand Studio](/info/brand-studio.html)의 Colours 방에서도 같은 팔레트 다운로드를 제공해요.)
 

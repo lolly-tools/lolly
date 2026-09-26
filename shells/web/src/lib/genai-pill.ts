@@ -2,7 +2,7 @@
 /**
  * The generative-AI provenance pill - shared by the catalog view, its details modal,
  * and the asset picker so they read identically. Styled by `.genai-pill` in
- * styles/parts/catalog.css (a fixed violet, deliberately brand-independent, matching the
+ * styles/parts/asset-shared.css (a fixed violet, deliberately brand-independent, matching the
  * /verify AI banner). One markup for both forms: the default shows the "GEN AI" text and
  * hides the sparkle; `iconOnly` (or the narrow-tile media query) collapses it to just the
  * sparkle in a circle.

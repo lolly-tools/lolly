@@ -52,7 +52,7 @@ export const GROUP_LABELS: Record<SearchGroupId, string> = {
   tools: 'Tools',
   utilities: 'Utilities',
   projects: 'Projects',
-  catalog: 'Catalogue',
+  catalog: 'Assets',
   settings: 'Settings',
   places: 'Places',
   docs: 'Docs',
@@ -77,7 +77,7 @@ export const GROUP_SEE_ALL: Partial<Record<SearchGroupId, (q: string) => string>
   tools: (q) => `#/?q=${encodeURIComponent(q)}`,
   utilities: (q) => `#/u?q=${encodeURIComponent(q)}`,
   projects: (q) => `#/p?q=${encodeURIComponent(q)}`,
-  catalog: (q) => `#/c?q=${encodeURIComponent(q)}`,
+  catalog: (q) => `#/a?q=${encodeURIComponent(q)}`,
 };
 
 /** Per-group row caps (plans/99 section 2a). */

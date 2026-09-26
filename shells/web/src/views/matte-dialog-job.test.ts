@@ -219,8 +219,8 @@ test('every openMatteDialog call site passes an onComplete hook', async () => {
   // The dialog resolves when it CLOSES, not when the cutout exists, so a call site
   // that ignores onComplete silently drops the user's result. tsc can't catch that
   // (the hook is optional), which is why it is pinned here.
-  for (const file of ['catalog.ts', 'picker.ts', 'free-canvas.ts']) {
-    // catalog and free-canvas are an orchestrator plus feature modules under a dir of the same name (2026-09-09 split)
+  for (const file of ['assets.ts', 'picker.ts', 'free-canvas.ts']) {
+    // assets and free-canvas are an orchestrator plus feature modules under a dir of the same name (2026-09-09 split)
     const dir = join(here, file.replace(/\.ts$/, ''));
     const text = [readFileSync(join(here, file), 'utf8'), ...(existsSync(dir) ? readdirSync(dir).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(dir, n), 'utf8')) : [])].join('\n');
     let from = 0;

@@ -117,7 +117,7 @@ export type SaveRenderResult = 'saved' | 'skipped-off' | 'skipped-dupe' | 'decli
 export type ConfirmSave = (size: number) => Promise<boolean>;
 
 const defaultConfirm: ConfirmSave = (size) => confirmDialog({
-  title: t('Save this render to your catalog?'),
+  title: t('Save this render to Assets?'),
   message: fmtBytes(size),
   confirmLabel: t('Save'),
   danger: false,

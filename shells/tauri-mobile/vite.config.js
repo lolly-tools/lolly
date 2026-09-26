@@ -6,7 +6,7 @@ import {
 } from '../tauri-shared/vite-embed.mjs';
 import { tauriCspMeta } from '../tauri-shared/vite-csp.mjs';
 // Borrowed from the web shell's config, which owns the format. See the plugin list.
-import { precacheManifest } from '../web/vite.config.js';
+import { precacheManifest, APP_ASSETS_DIR } from '../web/vite.config.js';
 
 const webShell  = resolve(__dirname, '../web');
 const repoRoot  = resolve(__dirname, '../..');
@@ -157,6 +157,9 @@ export default defineConfig({
   build: {
     outDir: resolve(__dirname, 'dist'),
     emptyOutDir: true,
+    // Same build folder name as the web shell (/_app/), so the shared precache
+    // grouping and lib/offline-manager.ts read one layout on every shell.
+    assetsDir: APP_ASSETS_DIR,
     // iOS WKWebView / Android System WebView are modern WebKit/Chromium, so target
     // esnext. The default (es2020) forbids top-level await, which harfbuzzjs relies
     // on - without this `vite build` fails in esbuild transpile, breaking build:ios.

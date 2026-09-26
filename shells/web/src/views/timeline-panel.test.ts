@@ -7530,6 +7530,45 @@ test('a wedge too narrow to clear the trim edge shows no grip, so a press at a c
   } finally { h.teardown(); }
 });
 
+test('a crossfade or wedge drag measures once per move, before it writes any style', async () => {
+  // Reading a rect after a style write forces a layout, and the old handlers did that on
+  // every pointermove (the band, then the badge, each re-measured). Each spy records what
+  // the drawn width was when it was asked, so a read after the write would see the new one.
+  const h = mount(xfadePair());
+  try {
+    await frames(2);
+    const inner = h.root.querySelector('.tl-tracks-inner') as HTMLElement;
+    const band = (): HTMLElement => h.root.querySelector('.tl-xfade') as HTMLElement;
+    const seen: string[] = [];
+    const read = inner.getBoundingClientRect.bind(inner);
+    inner.getBoundingClientRect = () => { seen.push(band().style.width); return read(); };
+    const grip = h.root.querySelector('.tl-xfade-grip') as HTMLElement;
+    grip.dispatchEvent(pointer('pointerdown', 140, { button: 0 }));
+    seen.length = 0;
+    grip.dispatchEvent(pointer('pointermove', 161));
+    assert.deepEqual(seen, ['20px'], 'one read of the track box, taken while the band still had its old width');
+    assert.equal(band().style.width, '42px', 'and the band still follows the pointer on the same move');
+    grip.dispatchEvent(pointer('pointerup', 161));
+  } finally { h.teardown(); }
+
+  const r = mount([{ ...clip('a', 0, 3), exit: 'fade', exitMs: 1000 }, { ...clip('b', 3, 2), enter: 'rise', enterMs: 1000 }]);
+  try {
+    await frames(2);
+    const bar = r.bar('b');
+    const wedge = (): HTMLElement => r.root.querySelector('.tl-clip[data-id="b"] > .tl-ramp-in') as HTMLElement;
+    const seen: string[] = [];
+    const barRect = bar.getBoundingClientRect.bind(bar);
+    bar.getBoundingClientRect = () => { seen.push(wedge().style.width); return barRect(); };
+    const grip = r.root.querySelector('.tl-clip[data-id="b"] > .tl-ramp-grip-in') as HTMLElement;
+    grip.dispatchEvent(pointer('pointerdown', 160, { button: 0 }));
+    seen.length = 0;
+    grip.dispatchEvent(pointer('pointermove', 149));
+    assert.deepEqual(seen, ['40px'], 'the bar is read once, before the wedge is resized');
+    assert.equal(wedge().style.width, '30px', 'and the wedge still follows the pointer on the same move');
+    grip.dispatchEvent(pointer('pointerup', 149));
+  } finally { r.teardown(); }
+});
+
 test('project frame rate drives the keyboard; markers and range marks stay in the document', async () => {
   let wire = '';
   const writes: string[] = [];

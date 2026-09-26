@@ -1,0 +1,829 @@
+/* ─── Assets view (#/a) - every asset, swatches and downloadable fonts ────────
+   Loaded by the view itself (views/assets.ts imports this sheet), so Vite ships it
+   as a separate CSS chunk that arrives with the view instead of blocking first
+   paint. A gallery-style page reached from the Tools | Projects | Assets toggle.
+   It reuses the fixed .gallery-topbar chrome (topbar.css), the .plat-swatch and
+   .plat-font panels (platform.css), and the shared asset pieces in
+   asset-shared.css.
+
+   Every class a rule here needs must be used only under views/assets*. A rule
+   that other modules can match belongs in asset-shared.css, which is eager.
+
+   Cascade layer: this sheet sits in the `chrome` layer, the layer its rules were
+   in when they lived in the eager catalog.css. The layer order is declared once
+   in styles/app.css, so injecting this chunk later does not move the rules to a
+   different layer. Inside the layer a later rule still wins a tie, and this chunk
+   arrives after every eager chrome sheet, which is why the few view-only rules
+   that must lose such a tie stay in asset-shared.css. */
+@layer chrome {
+
+/* Full-bleed like the Tools masonry - fill the whole window width (minus the
+   .catalog side gutters) instead of centring in a fixed 1200px column. */
+.catalog-body { max-width: none; }
+
+/* ── Toolbar - a floating pill that sticks to the top as you scroll past the header, so
+   the filetype filter + Expand/Collapse-all + Hide-hidden stay reachable everywhere. It's
+   centred (width:fit-content + auto margins) so it clears the fixed corner chrome (view
+   toggle top-left, profile/history cluster top-right) instead of underlapping it. */
+.cat-typefilter-opt {
+  display: inline-flex; align-items: center; gap: var(--sp-3);
+  font: inherit; font-size: var(--fs-md); font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  background: none; border: none; border-radius: var(--radius-pill);
+  padding: 5px 12px; cursor: pointer;
+  transition: background var(--dur-1), color var(--dur-1);
+}
+.cat-typefilter-opt svg, .cat-showhidden svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); flex-shrink: 0; }
+.cat-typefilter-opt:hover { color: hsl(var(--foreground)); }
+.cat-typefilter-opt.is-on { background: hsl(var(--background)); color: hsl(var(--foreground)); box-shadow: 0 1px 3px #0000001a; }
+.cat-showhidden {
+  display: inline-flex; align-items: center; gap: var(--sp-3);
+  font: inherit; font-size: var(--fs-xs); font-weight: 500;
+  color: hsl(var(--foreground) / .6);
+  background: hsl(var(--background));
+  border: 0;
+  border-radius: var(--radius);
+  padding: 6px 9px; cursor: pointer;
+  transition: background var(--dur-1), border-color var(--dur-1);
+}
+.cat-showhidden:hover { border-color: hsl(var(--primary) / .5); }
+.cat-showhidden.is-on { background: hsl(var(--muted)); }
+/* The .cat-showhidden buttons (Collapse-all + Show-hidden) show their LABELS on
+   desktop (2026-08-20 audit: icon-only left "Show hidden (N)" - and 20 shipped
+   hidden assets behind it - effectively undiscoverable). Under 640px they fold
+   back to icons for width; aria-label + title keep them named there. */
+@media (max-width: 640px) {
+  .cat-showhidden .cat-btn-label { display: none; }
+}
+/* Mobile: the fixed topbar is taller (safe-area inset) - clear it - and let the pill wrap
+   / drop the count rather than overflow a narrow viewport. */
+@media (max-width: 640px) {
+  /* The type filters collapse to icon-only too on mobile (they keep their labels on desktop;
+     the .cat-showhidden buttons are already icon-only everywhere). aria-label + title keep
+     them named for assistive tech and long-press tooltips. */
+  .cat-typefilter-opt .cat-btn-label { display: none; }
+  .cat-typefilter-opt { padding: 6px 9px; }
+}
+
+/* ── Collapsible groups ──
+   NB: `.cat-group*`, `.cat-grid` and `.cat-tile` are ALSO defined by the shared
+   catalogue-summary component (components.css, on /platform + /profile). That sheet
+   imports AFTER this one, so at equal specificity its generic rules would win here -
+   every view rule that shares a name is scoped under `.catalog` so this view owns its
+   own look regardless of import order. (The details/download dialogs mount on <body>,
+   OUTSIDE `.catalog`, so their `.cat-*` classes below are deliberately left unscoped.) */
+.catalog .cat-tile.is-hidden-asset { opacity: .55; }
+.cat-thumb-stub {
+  width: 100%; height: 100%; display: grid; place-items: center;
+  font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  color: hsl(var(--muted-foreground));
+}
+.cat-src--lib  { background: hsl(var(--muted) / .8); color: hsl(var(--muted-foreground)); }
+/* The Origins row: state line, then (own assets) the declare control + one
+   quiet line of why. Buttons are ordinary .btn chips; the pressed one reads
+   as chosen without colour doing the whole job. */
+.cat-origins-state { display: inline-flex; align-items: center; gap: var(--sp-3); }
+.cat-origins-ctl { display: flex; flex-wrap: wrap; gap: var(--sp-3); margin-top: 6px; }
+.cat-origin-btn { font-size: var(--fs-xs); padding: 3px 9px; }
+.cat-origin-btn[aria-pressed="true"] {
+  border-color: hsl(var(--primary) / .6);
+  background: hsl(var(--primary) / .12);
+  font-weight: 600;
+}
+.cat-origins-note {
+  display: block;
+  margin-top: 6px;
+  font-size: var(--fs-xs);
+  color: hsl(var(--muted-foreground));
+  max-width: 46ch;
+  line-height: 1.45;
+}
+
+/* The uploads drop area lives in styles/parts/dropzone.css now (.updz*, shared with the
+   brand studio's Assets tab) - the old .cat-dropzone rules that stood here were dead once
+   the markup moved, and were deleted rather than left to rot. */
+
+/* Uploads section - the "Select all / Deselect all" control leads the section BODY (right-
+   aligned above the grid), so it folds away with the grid when the section is collapsed
+   instead of lingering on the always-visible header row (which read as confusing). */
+/* "Script audio" beside the uploads drop area (opens views/script-audio.ts). */
+.cat-uploads-tts { margin: .5rem 0 .7rem; }
+.cat-uploads-tts .btn { display: inline-flex; align-items: center; gap: var(--sp-3); }
+.cat-uploads-tts .btn svg { display: block; }
+
+.cat-uploads-bar { display: flex; justify-content: flex-end; align-items: center; gap: .8rem; margin-bottom: .7rem; }
+/* Device-storage chip (plans/132 WP-K item 2): one quiet line, left of the bar's controls. */
+.cat-storage-chip { margin-right: auto; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.cat-skel-toolbar { display: flex; gap: var(--sp-4); margin-bottom: 1rem; }
+.cat-skel-pill { width: 92px; height: calc(30px * var(--a11y-fs)); border-radius: var(--radius-pill); background: hsl(var(--muted) / .5); }
+.cat-skel-pill--wide { width: 220px; margin-left: auto; }
+.cat-skel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: var(--sp-6); }
+.cat-skel-tile { aspect-ratio: 4 / 3; border-radius: calc(var(--radius) * 0.8); background: hsl(var(--muted) / .35); }
+.cat-uploads-selectall {
+  flex: none; font: inherit; font-size: var(--fs-md); font-weight: 600;
+  color: hsl(var(--foreground)); background: hsl(var(--background));
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  padding: 5px 12px; cursor: pointer; transition: background var(--dur-1), border-color var(--dur-1);
+}
+.cat-uploads-selectall:hover { border-color: hsl(var(--primary) / .5); }
+.cat-uploads-selectall[aria-pressed="true"] { background: hsl(var(--muted)); }
+
+/* ── Reference sections (Swatches, Fonts) ──
+   These are collapsible .cat-group sections now (see groupSection in catalog.ts); their
+   bodies keep the panel-* styling below. A divider on the first sets the reference zone
+   apart from the asset categories above. */
+.catalog .cat-group--ref { margin-top: 2.4rem; padding-top: 1.4rem; border-top: 1px solid hsl(var(--border)); }
+.cat-panel-desc { font-size: var(--fs-lg); color: hsl(var(--muted-foreground)); margin: 0 0 1.2rem; max-width: 60ch; }
+.cat-panel-subhead { font-size: calc(.95rem * var(--a11y-fs)); font-weight: 700; margin: 1.4rem 0 .6rem; }
+.cat-panel-foot { font-size: var(--fs-lg); color: hsl(var(--muted-foreground)); margin-top: 1.2rem; }
+.cat-swatch-downloads { margin-bottom: 14px; }
+
+/* ── Favourites strip ── The shared featured-row component at the same commanding height
+   as the Tools hero (--ftile-h lives in featured.css - one source for all three strips),
+   with a little air below it. The negative top margin cancels .catalog's top padding so the
+   featured hero bleeds flush to the very top of the viewport (the floating view-toggle +
+   profile pills, which have their own backdrop, sit over it); the negative side margins
+   full-bleed it past the .catalog side gutters. Keep -top in step with .catalog padding-top. */
+.cat-fav-strip { margin: -52px -20px 1.2rem; }
+
+
+/* ── Asset details modal ──
+   Mobile: a stacked card (preview on top, meta/actions below). Desktop: a big two-column
+   inspector (large preview left, meta/actions right) that claims real screen space so the
+   art can be examined at size. */
+/* Prev/next lightbox paging - round buttons floating over the preview's left/right edges
+   (inside .cat-details-preview so they track the image, not the metadata column on desktop). */
+.cat-details-nav {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 4;
+  width: 40px; height: 40px; padding: 0; border: none; border-radius: var(--radius-pill); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #fff; background: #0007;
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+  transition: background var(--dur-1);
+}
+.cat-details-nav:hover { background: #000a; }
+.cat-details-nav:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.cat-details-prev { left: 12px; }
+.cat-details-next { right: 12px; }
+/* "Edits not saved" over the preview while it shows a working copy (the humanize/
+   reword flow). Same solid-pill treatment as the zoom HUD: readable over ANY art. */
+.cat-unsaved-pill {
+  position: absolute;
+  top: 10px;
+  inset-inline-start: 10px;
+  z-index: 4;
+  display: inline-flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-5);
+  border-radius: var(--radius-pill);
+  background: hsl(0 0% 0% / .72);
+  color: #fff;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  pointer-events: none;
+}
+.cat-unsaved-pill::before {
+  content: '';
+  width: 7px; height: 7px; border-radius: var(--radius-round);
+  background: hsl(38 92% 58%);
+}
+.cat-unsaved-pill[hidden] { display: none; }
+
+/* ── Inline text edits (the plans/125/127 UX pass) ──────────────────────────
+   The preview is the decision surface: swaps and rewordable sentences are
+   clickable underlines, invisible characters become named chips, and one
+   floating card at a time carries the decision. */
+/* A clickable range inside the <pre>: a REAL button, reset to read as text. */
+.cat-sug, .cat-rw {
+  display: inline;
+  padding: 0; border: 0; margin: 0;
+  background: transparent;
+  font: inherit; color: inherit; letter-spacing: inherit;
+  white-space: inherit; text-align: inherit;
+  cursor: pointer;
+}
+.cat-sug {
+  text-decoration: underline;
+  text-decoration-color: hsl(38 92% 48%);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  background: hsl(38 92% 58% / .14);
+  border-radius: var(--radius-xs);
+}
+.cat-sug:hover, .cat-sug:focus-visible { background: hsl(38 92% 58% / .28); }
+.cat-rw {
+  text-decoration: underline dotted;
+  text-decoration-color: hsl(var(--primary) / .75);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+.cat-rw:hover, .cat-rw:focus-visible { background: hsl(var(--primary) / .1); border-radius: var(--radius-xs); }
+/* The floating edit card - one decision, beside the text it changes. */
+.cat-edit-card {
+  position: absolute;
+  z-index: 6;
+  width: min(348px, calc(100% - 16px));
+  padding: 12px 14px;
+  border-radius: calc(var(--radius) * 1.2);
+  background: hsl(var(--card)); color: hsl(var(--foreground));
+  box-shadow: 0 0.6rem 2rem #0006;
+  font-family: var(--font-sans, system-ui, sans-serif);
+  font-size: var(--fs-md);
+  line-height: 1.45;
+  white-space: normal;
+  text-align: start;
+  /* The candy hues the shared .job-bar fill reads (job-toast.css), aliased from
+     the shared tokens (tokens.css) so this card, the toast and the
+     models-welcome hero bar never disagree about the stripe. */
+  --candy-a: var(--job-candy-a);
+  --candy-b: var(--job-candy-b);
+}
+.cat-edit-card .cat-card-line { margin: 0 0 6px; }
+.cat-edit-card .cat-reword-quote {
+  margin: 0 0 8px; padding: var(--sp-3) var(--sp-5);
+  border-radius: 8px;
+  background: hsl(var(--muted) / .5);
+  font-size: 0.92em;
+  max-height: 7.5em; overflow: hidden;
+}
+.cat-edit-card .cat-card-actions {
+  display: flex; align-items: center; gap: var(--sp-5); flex-wrap: wrap;
+  margin-top: 8px;
+}
+.cat-card-progress { display: flex; align-items: center; gap: var(--sp-4); margin: 8px 0; }
+.cat-card-progress[hidden] { display: none; }
+.cat-card-progress .job-bar { flex: 1 1 auto; }
+.cat-card-progress-label { font-size: 0.85em; color: hsl(var(--muted-foreground, var(--foreground))); white-space: nowrap; }
+/* The bar: one row, bottom-anchored, over the media rather than pushing it around - so
+   the stage is the same size whatever chrome a type needs, and a control never changes
+   the preview's height. Mirrors .viz-bar. */
+.cat-stage-bar {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+  /* NEVER wrap. A long preset name (some run to 40+ characters) pushed the trailing
+     buttons onto a second row that rendered OUTSIDE the stage, over the page behind it.
+     One row, and the flexible parts shrink instead. */
+  display: flex; align-items: center; gap: .4rem; flex-wrap: nowrap; min-width: 0;
+  padding: .45rem .6rem;
+  background: linear-gradient(to top, hsl(var(--background) / .92), hsl(var(--background) / 0));
+  color: hsl(var(--foreground));
+}
+.cat-stage-bar:empty { display: none; }
+/* Idle-fade like the player's: the chrome gets out of the way of the thing you are
+   looking at, and comes back on hover or keyboard focus. Never on touch (no hover), and
+   never under reduced motion. */
+@media (hover: hover) {
+  .cat-details-preview:not(:hover) .cat-stage-bar:not(:focus-within) { opacity: .35; }
+  .cat-stage-bar { transition: opacity var(--dur-2) ease; }
+}
+@media (prefers-reduced-motion: reduce) { .cat-stage-bar { transition: none; opacity: 1 !important; } }
+/* An explicit HEIGHT, not `100%`. The pane is `place-items:center` with a max-height, so
+   a percentage height resolves against nothing, the canvas collapses to zero, and the
+   stage renders empty - while the bar still pushed the pane past its 46vh cap. A stated
+   height gives the media a box and keeps the pane inside its bounds. */
+.cat-details-preview .cat-audio-meter,
+.cat-details-preview .cat-audio-viz {
+  position: absolute; inset: 0 0 44px; width: 100%; height: auto;
+  border-radius: calc(var(--radius) * .6);
+}
+/* A stage type STRETCHES rather than centring. `place-items:center` sizes the child to
+   its own content, which is right for a contained <img> but wrong for a stage: the
+   waveform then drew at whatever height it liked and spilled past the pane, with the bar
+   stranded across the middle of it. `stretch` plus a definite pane height is what makes
+   every type's preview the same size. */
+/* A stage type STRETCHES rather than centring: `place-items:center` sizes the child to
+   its own content, which suits a contained <img> but lets a stage spill past the pane.
+   NO height here - the pane already gets one (46vh on mobile, `100%` of the desktop grid
+   row), and overriding it left the pane short of the dialog with a dead area beneath. */
+.cat-details-preview:has(.cat-stage) { place-items: stretch; padding: 0; }
+
+/* ── Palette asset ──────────────────────────────────────────────────────────
+   A brand palette is a first-class catalog asset: a swatch mosaic on its grid
+   tile, and "Colour Lab in a card" in the details modal - every hard-coded
+   preset with its OKLCH and a freshly extrapolated OKLab tint→shade ramp. */
+.cat-thumb-swatches { display: grid; grid-template-columns: repeat(4, 1fr); width: 100%; height: 100%; }
+.cat-thumb-swatches > span { display: block; }
+/* Stretch + scroll like the audio stage: `place-items:center` would clip a tall
+   preset list against the pane's max-height instead of scrolling it. */
+.cat-details-preview:has(.cat-swatch-lab) { place-items: stretch; padding: 0; background: hsl(var(--card)); }
+.cat-lab-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; }
+.cat-lab-swatch {
+  width: 22px; height: 22px; flex: none; border-radius: calc(var(--radius) * .6);
+  box-shadow: var(--edge);
+}
+.cat-lab-name { font-weight: 600; font-size: var(--fs-lg); color: hsl(var(--foreground)); }
+.cat-lab-hex { font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.cat-lab-oklch { margin-inline-start: auto; font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.cat-lab-ramp {
+  flex-basis: 100%; display: grid; grid-template-columns: repeat(9, 1fr);
+  height: 24px; border-radius: calc(var(--radius) * .6); overflow: hidden;
+}
+.cat-lab-step { display: block; }
+
+/* ── Emoji sets ─────────────────────────────────────────────────────────────
+   An emoji pack is a catalog asset like any other, and its tile shows the SET: five
+   glyphs drawn from that pack's own artwork, over the family and style names.
+   lib/emoji-specimen.ts fills the slot once the tile is on screen (a bundle is 15 to
+   20 MB, so nothing is fetched before that). Until then the slot is EMPTY and takes
+   no room: the characters are never written into the live page, because this
+   machine's emoji font would paint them - the one thing choosing a set prevents. So
+   the names line carries the tile on its own, and keeps carrying it on a device that
+   does not hold the pack. */
+.cat-thumb-emoji {
+  width: 100%; height: 100%; box-sizing: border-box; padding: var(--sp-3);
+  display: grid; grid-template-rows: 1fr auto; align-items: center; justify-items: center;
+  gap: var(--sp-2); text-align: center;
+}
+/* The glyphs are sized in `em` by the engine, so this font-size IS the artwork size.
+   It deliberately does NOT ride var(--a11y-fs): this is preview art inside a fixed
+   4/3 box, like a thumbnail image, and a thumbnail does not grow under largeText.
+   The names line below is real type, so it takes a type token. */
+.cat-emoji-specimen {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: .18em; font-size: 30px; line-height: 1;
+}
+.cat-emoji-specimen:empty { display: none; }
+/* A flat figure, not the shared checkerboard (object-tiles.css). The checkerboard
+   says "this picture has transparency", which is a fact about a file; a specimen is
+   five small glyphs, and the pattern behind them only makes them harder to read. */
+.catalog .cat-tile-fig:has(.cat-thumb-emoji) { background: hsl(var(--muted) / .35); }
+.cat-emoji-names {
+  font-size: var(--fs-2xs); font-weight: 700; text-transform: uppercase;
+  letter-spacing: .04em; color: hsl(var(--muted-foreground));
+}
+/* In the details sheet the specimen IS the preview, so it gets the room a picture
+   would have had. A flat surface, like text and audio: the checkerboard means "this
+   is transparent", which says nothing about a set. */
+.cat-details-preview:has(.cat-thumb-emoji) { background: hsl(var(--muted) / .35); }
+.cat-thumb-emoji--lg .cat-emoji-specimen { font-size: 52px; }
+.cat-thumb-emoji--lg .cat-emoji-names { font-size: var(--fs-xs); }
+/* The glyphs a set does not carry, listed with the reason each one was recorded
+   with. A count, never a verdict - so no warning colour and no shield. */
+.cat-emoji-gaps { margin-top: var(--sp-2); }
+.cat-emoji-gap-head { margin: var(--sp-2) 0 var(--sp-1); font-weight: 600; }
+.cat-emoji-gap-list { margin: 0; padding-inline-start: 1.1em; display: grid; gap: 2px; }
+.cat-emoji-gap-list code { font-size: var(--fs-xs); }
+
+/* A text asset (.txt/.md) reads as text, not a picture: a scrollable monospace panel
+   fills the preview instead of a broken image, and the checkerboard would only imply a
+   transparency it does not have. */
+/* The grid track must be told to respect the stage's max-height bound
+   (minmax(0, 1fr)) - an auto track grows to the text's full height, the parent
+   clips it, and the pre's own overflow:auto never engages: the "text preview
+   does not scroll vertically" defect. */
+.cat-details-preview:has(.cat-thumb-text) {
+  background: hsl(var(--muted) / .35); place-items: stretch; padding: 0;
+  grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr);
+}
+.cat-text-preview {
+  margin: 0; width: 100%; height: 100%; box-sizing: border-box;
+  padding: 1rem 1.1rem; overflow-y: auto; overflow-x: hidden; text-align: left;
+  white-space: pre-wrap; word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: calc(.82rem * var(--cat-text-zoom, 1)); line-height: 1.5;
+}
+
+/* The reading tools pill (font zoom + the monospace/rendered toggle). */
+.cat-text-tools {
+  position: absolute; top: .5rem; right: .75rem; z-index: 3;
+  display: flex; gap: var(--sp-1); padding: var(--sp-1); border-radius: var(--radius-pill);
+  background: hsl(var(--background) / .88); box-shadow: 0 1px 4px #0003;
+}
+.cat-text-tools button {
+  border: 0; background: transparent; width: 26px; height: 26px; border-radius: var(--radius-pill);
+  display: grid; place-items: center; cursor: pointer; color: hsl(var(--foreground));
+}
+.cat-text-tools button:hover { background: hsl(var(--accent)); }
+.cat-text-tools button.is-active { background: hsl(var(--accent)); }
+
+/* The rendered-markdown reading surface (DOMPurify-sanitised lib/markdown output). */
+.cat-md-rendered {
+  height: 100%; box-sizing: border-box; overflow-y: auto; overflow-x: hidden;
+  padding: 1rem 1.2rem; text-align: left;
+  font-size: calc(.9rem * var(--cat-text-zoom, 1)); line-height: 1.55;
+}
+.cat-md-rendered h1, .cat-md-rendered h2, .cat-md-rendered h3, .cat-md-rendered h4 { margin: .9em 0 .35em; line-height: 1.25; }
+.cat-md-rendered h1 { font-size: 1.45em; }
+.cat-md-rendered h2 { font-size: 1.25em; }
+.cat-md-rendered h3 { font-size: 1.1em; }
+.cat-md-rendered p, .cat-md-rendered ul, .cat-md-rendered ol, .cat-md-rendered blockquote { margin: .45em 0; }
+.cat-md-rendered ul, .cat-md-rendered ol { padding-left: 1.4em; }
+.cat-md-rendered code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .9em; background: hsl(var(--muted) / .6); border-radius: var(--radius-xs); padding: 0 .25em; }
+.cat-md-rendered pre { background: hsl(var(--muted) / .5); border-radius: calc(var(--radius) * .5); padding: .6em .75em; overflow-x: auto; }
+.cat-md-rendered pre code { background: none; padding: 0; }
+.cat-md-rendered blockquote { border-left: 3px solid hsl(var(--muted-foreground) / .4); padding-left: .8em; color: hsl(var(--foreground) / .85); }
+.cat-md-rendered table { border-collapse: collapse; margin: .5em 0; }
+.cat-md-rendered th, .cat-md-rendered td { border: 1px solid hsl(var(--muted-foreground) / .3); padding: .25em .55em; }
+.cat-md-rendered img { max-width: 100%; }
+
+/* The formatted-download row under the actions grid. */
+.cat-text-dl { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin-top: .5rem; }
+.cat-text-dl .cat-dl-label { font-size: .74rem; color: hsl(var(--muted-foreground)); margin-right: .15rem; }
+/* The provenance passport (plans/136 W2a): the flat lamp strip + licence chips
+   above the asset name - one glance, whole trust state. */
+.cat-passport { margin: 0 0 6px; }
+.cat-passport .lampstrip { margin: 0; }
+.cat-passport .lamp { font-size: var(--fs-xs); cursor: default; }
+.cat-passport-chips { margin-top: 5px; display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+
+/* The text AI-likelihood panel: a calm note in the metadata column, never a verdict. */
+.cat-tsig { margin-top: .75rem; padding: .7rem .85rem; border-radius: calc(var(--radius) * .7); background: hsl(var(--muted) / .4); font-size: .82rem; line-height: 1.45; }
+.cat-tsig-head { margin: 0 0 .35rem; display: flex; align-items: center; gap: .4rem; }
+.cat-tsig-list { margin: .3rem 0; padding-left: 1.1rem; }
+.cat-tsig-list li { margin: .2rem 0; }
+/* Dimmed only voiceless - a composed .guide-warn/.guide-hint must not be faded. */
+.cat-tsig-guess, .cat-tsig-note:not(.guide-hint):not(.guide-warn) { opacity: .82; }
+/* A watermark detection reads firmer than a hedged style guess: bold and full
+   strength against the muted panel, theme-neutral on purpose. */
+.cat-tsig-wm { font-weight: 600; opacity: 1; }
+.cat-tsig[data-band="strong"] { background: hsl(var(--muted) / .7); }
+/* A GLYPH is a stand-in, so it stays small and quiet rather than filling the stage the
+   way a real waveform legitimately does. */
+/* `position: relative` (not absolute) ON PURPOSE: the meter participates in the stage's
+   flex centring, while the visualiser stays absolutely positioned and fills. z-index
+   keeps it above the resting artwork, which shows through until playback paints. */
+.cat-details-preview .cat-audio-meter {
+  position: relative; z-index: 1; background: transparent;
+  /* Inset via WIDTH rather than the stage's padding: the visualiser is absolutely
+     positioned against the stage's padding box, so padding here would inset the MilkDrop
+     field too - and that one is meant to be full-bleed. This keeps the end bars off the
+     modal's rounded corners without touching it. */
+  width: calc(100% - 2rem); height: min(240px, 34vh); flex: 0 0 auto;
+}
+/* The player takes the room the bar's other controls leave, and never less than half -
+   it is the primary control here, not an afterthought squeezed by a long preset name. */
+/* The <audio> element is the engine, never the UI - its native chrome is off (set in
+   wireAudioTransport) and it takes no room in the bar. */
+.cat-stage-bar audio { display: none; }
+
+/* ── Themed transport (lib/audio-transport.ts) ────────────────────────────────────
+   Deliberately mirrors the Neurospicy player's `.neuro-*` transport: same round buttons,
+   same filled primary play, same thin fill-bar scrubber. Two players in one app that do
+   the same job should not look like two products. */
+.cat-viz-group { display: contents; }
+.cat-viz-group[hidden] { display: none; }
+/* Big, but never bigger than the preview pane allows: the pane caps at 46vh with
+   overflow:hidden, and the <audio> controls below must stay visible on short screens. */
+.cat-audio-meter { width: 100%; height: min(160px, 24vh); display: block; border-radius: calc(var(--radius) * .6); background: hsl(var(--muted) / .5); color: hsl(var(--primary)); }
+.cat-audio-meter[hidden] { display: none; }
+
+/* The audio surface's escalation: analyser → visualiser → immersive. The visualiser and
+   the meter occupy the same box (one is hidden at a time), so the panel never jumps
+   height as you move up the ladder. */
+.cat-audio-viz { width: 100%; height: min(160px, 24vh); display: block; border-radius: calc(var(--radius) * .6); background: hsl(var(--muted) / .5); color: var(--audio-thumb-ink, hsl(var(--primary))); }
+.cat-audio-viz[hidden] { display: none; }
+.cat-audio-viz > svg { width: 100%; height: 100%; display: block; }
+.cat-thumb-audio.is-immersive .cat-audio-viz,
+.cat-thumb-audio.is-immersive .cat-audio-meter { flex: 1 1 auto; height: auto; min-height: 0; }
+.cat-thumb-audio.is-immersive .cat-audio-vizbar,
+.cat-thumb-audio.is-immersive .cat-viz-colours,
+.cat-thumb-audio.is-immersive audio { flex: 0 0 auto; }
+.cat-thumb-audio.is-immersive audio { width: 100%; }
+/* The meter/viz fills the space it was given rather than a fixed box. */
+.cat-audio-viz > canvas { width: 100%; height: 100%; display: block; border-radius: inherit; }
+
+/* The tap affordance. Quiet - it is a hint, not a control, since the picture itself is
+   the button. */
+.cat-viz-hint:hover { opacity: .9; }
+.cat-audio-meter[role="button"] { cursor: pointer; }
+
+.cat-viz-name { flex: 1 1 auto; font-size: var(--fs-sm); opacity: .75; text-transform: capitalize; }
+/* Say when what you're looking at IS the saved cover, so the button is never a mystery. */
+.cat-viz-name[data-pinned="true"]::after { content: " · saved as cover"; opacity: .7; text-transform: none; }
+.cat-viz-btn { border: 1px solid hsl(var(--border)); background: transparent; color: inherit; border-radius: calc(var(--radius) * .5); padding: .15rem .5rem; font: inherit; font-size: var(--fs-sm); cursor: pointer; }
+.cat-viz-btn:hover { background: hsl(var(--muted) / .6); }
+.cat-viz-btn.is-primary { border-color: hsl(var(--primary) / .5); }
+.cat-viz-toggle { align-self: flex-start; margin-top: .4rem; border: 1px solid hsl(var(--border)); background: transparent; color: inherit; border-radius: calc(var(--radius) * .5); padding: .15rem .5rem; font: inherit; font-size: var(--fs-sm); cursor: pointer; }
+.cat-viz-toggle[aria-pressed="true"] { background: hsl(var(--muted) / .6); }
+
+/* The colour strip. `Auto` sits first and is the default - letting the brand pick is the
+   normal case, so it is a named choice rather than the absence of one. */
+.cat-viz-colours { display: inline-flex; align-items: center; gap: .25rem; }
+.cat-viz-colours[hidden] { display: none; }
+.cat-viz-hint { border: 1px solid hsl(var(--border)); background: transparent; color: inherit; border-radius: calc(var(--radius) * .5); padding: .12rem .45rem; font: inherit; font-size: var(--fs-xs); cursor: pointer; }
+/* The name is the one part that may shrink to nothing: every button beside it is an
+   action, and losing a control to fit a label would be the wrong trade. */
+.cat-viz-name { flex: 0 1 auto; min-width: 0; max-width: 12rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(.74rem * var(--a11y-fs)); }
+.cat-stage-bar .cat-viz-btn { flex: 0 0 auto; }
+/* The motion toggle is now an ordinary bar button rather than a floating overlay, so a
+   lottie and an audio asset carry their chrome in the same place. */
+.cat-viz-swatch { width: 1.15rem; height: 1.15rem; border-radius: var(--radius-round); border: 2px solid transparent; background: var(--sw, transparent); box-shadow: var(--edge); cursor: pointer; padding: 0; }
+.cat-viz-swatch.is-auto { width: auto; height: auto; border-radius: calc(var(--radius) * .5); padding: .1rem .4rem; font: inherit; font-size: var(--fs-xs); color: inherit; box-shadow: none; border-color: hsl(var(--border)); }
+.cat-viz-swatch.is-on { border-color: hsl(var(--primary)); }
+.cat-viz-swatch:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+.cat-details-body { padding: 18px 20px 22px; }
+
+/* Desktop: a wide two-column inspector. The dialog becomes the grid; the close button is
+   absolutely positioned, so it stays out of the column flow. Each pane manages its own
+   height - the preview fills, the body scrolls if the metadata is long. */
+@media (min-width: 860px) {
+  .cat-details-body { overflow: auto; padding: 40px 28px 28px; }
+}
+
+/* ── Zoom inspector (the preview when it's a real image) ──
+   A stage that clips the scaled art, plus a floating HUD. attachZoom() in views/assets/shared.ts
+   drives the transform; the HUD itself (.cat-zoom-hud, shared with the crop dialog)
+   is mounted by components/zoom-hud.ts (mountZoomHud) - this sheet and asset-shared.css only skin it. */
+.cat-zoom-stage.is-zoomed { cursor: grab; }
+.cat-zoom-stage.is-panning { cursor: grabbing; }
+/* Hairline before the interpolation toggle + its "pixel-accurate is on" highlight. */
+.cat-zoom-sep { flex: none; width: 1px; height: 18px; margin: 0 2px; background: #ffffff40; }
+.cat-zoom-interp.is-active { background: #ffffff33; color: #fff; }
+.cat-zoom-interp.is-active:hover { background: #ffffff4d; }
+/* Hide the OS cursor while the lens is up - the lens is the cursor. */
+.cat-zoom-stage.has-loupe { cursor: none; }
+/* Play/pause overlay for the details-modal Lottie player. Bottom-left of the preview, clear of
+   the centred zoom HUD and the vertically-centred prev/next chevrons. z-index above the stage so
+   the stage's wheel/drag surface doesn't swallow the click. */
+.cat-motion-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; padding: 0;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius-pill); cursor: pointer;
+  color: inherit; background: transparent;
+}
+.cat-motion-toggle:hover { background: hsl(var(--muted) / .6); }
+.cat-motion-toggle:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+/* The asset's own artwork, in the DETAILS panel under the title - spatial reinforcement.
+   It used to sit behind the analyser in the stage, where it overlapped the live meter and
+   read as a second, competing visualisation. Here it is an identity mark: the same art
+   the grid tile carries, so a track you recognised in the grid is recognisably the same
+   thing in its detail view. Sized to sit under the title, never to compete with it. */
+.cat-details-art {
+  width: min(6em, 40%); aspect-ratio: 1; margin: .5rem 0 .25rem;
+  color: var(--audio-thumb-ink, hsl(var(--primary)));
+  border-radius: calc(var(--radius) * .8); overflow: hidden;
+}
+.cat-details-art svg, .cat-details-art > * { width: 100%; height: 100%; display: block; }
+.cat-details-art svg[data-audio-shape="none"] { opacity: .5; }
+
+.cat-details-name { font-size: calc(1.25rem * var(--a11y-fs)); font-weight: 700; margin: 0 0 12px; }
+.cat-details-meta dd.cat-details-ai { display: flex; align-items: center; gap: var(--sp-4); flex-wrap: wrap; }
+/* Technical-metadata panel (lib/asset-metadata.ts) - reuses .cat-details-meta's
+   dl grid, under a quiet subheading. Chrome-only; type rides the a11y multiplier. */
+.cat-details-tech { margin: 0 0 16px; }
+.cat-details-tech .cat-details-meta { margin: 0; }
+.cat-tech-head { font-size: var(--fs-xs); font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: hsl(var(--muted-foreground)); margin: 0 0 8px; }
+.cat-details-tags { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.cat-tag--edit { background: none; outline: 1px solid hsl(var(--border)); outline-offset: -1px; }
+/* Match context (plans/132 WP-C item 4): the why-this-matched chip on a tile
+   during search - same quiet chip family as .cat-tag, never louder than the name. */
+.cat-match-chip { font-size: var(--fs-xs); padding: 0 6px; border-radius: var(--radius-pill); background: hsl(var(--accent) / .5); color: hsl(var(--muted-foreground)); white-space: nowrap; }
+.cat-act-row { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+/* The Edit… expander exists only below 860px; above, the edit row is always out. */
+.cat-act-more { display: none; }
+@media (max-width: 859px) {
+  .cat-act-more { display: inline-flex; }
+  .cat-details-actions:not(.is-edit-open) .cat-act-row--edit { display: none; }
+}
+/* The toolbar's "Download as" format menu (a body-popover mounted inside the
+   details dialog, so it paints above the ::backdrop). Box-coloured from tokens. */
+.cat-dl-as-menu {
+  display: flex; flex-direction: column; gap: var(--sp-1);
+  min-width: 110px; padding: var(--sp-2);
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--card)); color: hsl(var(--foreground));
+  box-shadow: var(--shadow-4);
+}
+.cat-dl-as-item {
+  border: 0; background: none; color: inherit; font: inherit; cursor: pointer;
+  text-align: start; padding: var(--sp-3) var(--sp-5); border-radius: calc(var(--radius) * 0.7);
+  font-size: var(--fs-md);
+}
+.cat-dl-as-item:hover, .cat-dl-as-item:focus-visible { background: hsl(var(--muted)); }
+/* fill (background/color) is aliased in parts/buttons.css's .btn--primary list */
+.cat-act-fav.is-fav { border-color: hsl(var(--primary)); }
+.cat-act-fav.is-fav svg { fill: currentColor; }
+.cat-act-share.is-copied { color: hsl(var(--primary)); }
+
+/* ── Content Credentials (details) ── the checker for any inspectable asset, plus the
+   "Made with Lolly" lockup revealed only once the verifier confirms it (openDetails). */
+.cat-details-cred { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sp-6); margin: 0 0 16px; }
+.cat-act-verify svg { width: calc(15px * var(--a11y-fs)); height: calc(15px * var(--a11y-fs)); }
+
+/* The prominent lockup - a FULLY tinted panel (not a one-edge stripe), wordmark + a
+   one-line explanation. Hidden until verifyC2pa confirms madeWithLolly. */
+.cat-cred-lolly {
+  align-self: stretch; display: flex; flex-direction: column; gap: var(--sp-2);
+  padding: 12px 14px; border-radius: calc(var(--radius) * 1.1);
+  background: hsl(145 58% 34% / .1); border: 1px solid hsl(145 45% 40% / .32);
+}
+.cat-cred-lolly[hidden] { display: none; }
+.cat-cred-lolly-sub { font-size: var(--fs-sm); font-weight: 500; color: hsl(var(--muted-foreground)); }
+
+/* Inline "Made from" + "Change history" panels (the Verify checker's own .valid-panel
+   cards, reused). Stack full-width in the modal; each card styles itself via valid.css. */
+.cat-cred-panels { align-self: stretch; display: grid; gap: var(--sp-5); }
+.cat-cred-panels[hidden] { display: none; }
+
+/* ── Download dialog (icon styler + SVG/PNG size) ── */
+.cat-dl-title { font-size: calc(1.1rem * var(--a11y-fs)); font-weight: 700; margin: 0 0 12px; }
+.cat-dl-preview {
+  display: grid; place-items: center; height: 160px; margin-bottom: 14px; border-radius: var(--radius);
+  background: repeating-conic-gradient(hsl(var(--muted) / .5) 0% 25%, transparent 0% 50%) 50% / 16px 16px;
+}
+/* Contain within the fixed preview box, aspect preserved: max-width resolves fine, but
+   the max-height MUST be a definite value - a % can't resolve against the grid track, so
+   the art would render at its intrinsic size and overflow (same trap as the tile figure
+   above). The longer side hits whichever max it reaches first; object-fit letterboxes. */
+.cat-dl-img { max-width: 100%; max-height: 130px; object-fit: contain; }
+.cat-dl-section { margin-bottom: 14px; }
+.cat-dl-label { display: block; font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: hsl(var(--muted-foreground)); margin-bottom: 6px; }
+.cat-dl-hint { color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); }
+.cat-dl-select { width: 100%; }
+.cat-dl-field { display: grid; gap: var(--sp-2); font-size: var(--fs-sm); }
+.cat-dl-field > span:first-child:not(.cat-dl-label) { font-weight: 650; }
+.cat-dl-unit { display: flex; align-items: center; gap: var(--sp-2); color: hsl(var(--muted-foreground)); }
+.cat-dl-unit .field-input { min-width: 0; width: 100%; color: hsl(var(--foreground)); }
+.cat-dl-advanced {
+  margin: 0 0 var(--sp-5); border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--muted) / .24); overflow: clip;
+}
+.cat-dl-advanced > summary {
+  padding: var(--sp-4); cursor: pointer; font-size: var(--fs-sm); font-weight: 700;
+  list-style-position: inside;
+}
+.cat-dl-advanced[open] > summary { border-bottom: 1px solid hsl(var(--border)); }
+.cat-dl-advanced-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-5); padding: var(--sp-5); }
+.cat-dl-check { grid-column: 1 / -1; }
+.cat-dl-provenance, .cat-dl-fineprint, .cat-dl-status {
+  margin: 0 0 var(--sp-4); color: hsl(var(--muted-foreground)); font-size: var(--fs-sm); line-height: 1.4;
+}
+.cat-dl-provenance { padding-left: 22px; position: relative; }
+.cat-dl-provenance::before { content: '✓'; position: absolute; left: 2px; color: hsl(var(--primary)); font-weight: 800; }
+.cat-dl-status:empty { display: none; }
+.cat-dl-media-mark {
+  display: grid; place-items: center; width: 72px; height: 72px; margin: 0 auto var(--sp-6);
+  border-radius: var(--radius-round); color: hsl(var(--primary)); background: hsl(var(--primary) / .1);
+}
+.cat-dl-media-mark svg { width: 34px; height: 34px; }
+.cat-dl-actions { display: flex; justify-content: flex-end; gap: var(--sp-4); margin-top: 4px; }
+
+@media (max-width: 520px) {
+  .cat-dl-advanced-grid { grid-template-columns: 1fr; }
+  .cat-dl-check { grid-column: auto; }
+}
+
+/* "Send to…" dialog (stored-asset sends, plans/129): provider buttons + one status line. */
+.cat-send-row { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+.cat-send-row .btn { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.cat-send-status { min-height: 1.2em; margin: var(--sp-3) 0 0; font-size: var(--fs-sm); color: hsl(var(--muted-foreground)); }
+.cat-send-status a { color: hsl(var(--primary)); }
+.cat-send-empty { color: hsl(var(--muted-foreground)); font-size: var(--fs-lg); max-width: 40ch; }
+.cat-crop-work { position: relative; width: max-content; max-width: 100%; margin: 0 auto 14px; }
+.cat-crop-viewport {
+  overflow: hidden; max-width: 100%; border-radius: var(--radius);
+  touch-action: none; user-select: none; -webkit-user-select: none;
+  background: repeating-conic-gradient(hsl(var(--muted) / .5) 0% 25%, transparent 0% 50%) 50% / 16px 16px;
+}
+.cat-crop-viewport.is-zoomed { cursor: grab; }
+.cat-crop-viewport.is-panning { cursor: grabbing; }
+.cat-crop-stage { position: relative; }
+.cat-crop-img { display: block; width: 100%; height: 100%; pointer-events: none; -webkit-user-drag: none; }
+.cat-crop-h { position: absolute; width: 14px; height: 14px; background: #fff; border: 1px solid #0007; border-radius: 2px; }
+.cat-crop-h[data-h="nw"] { top: -7px; left: -7px; cursor: nwse-resize; }
+.cat-crop-h[data-h="ne"] { top: -7px; right: -7px; cursor: nesw-resize; }
+.cat-crop-h[data-h="sw"] { bottom: -7px; left: -7px; cursor: nesw-resize; }
+.cat-crop-h[data-h="se"] { bottom: -7px; right: -7px; cursor: nwse-resize; }
+/* Invisible full-length strips straddling each border, so an edge can be grabbed anywhere
+   along its run (no hunting for a handle while zoomed in). Inset 8px from each end to stay
+   clear of the 14px corner handles. */
+.cat-crop-e { position: absolute; }
+.cat-crop-e[data-h="n"] { top: -6px; left: 8px; right: 8px; height: 12px; cursor: ns-resize; }
+.cat-crop-e[data-h="s"] { bottom: -6px; left: 8px; right: 8px; height: 12px; cursor: ns-resize; }
+.cat-crop-e[data-h="w"] { left: -6px; top: 8px; bottom: 8px; width: 12px; cursor: ew-resize; }
+.cat-crop-e[data-h="e"] { right: -6px; top: 8px; bottom: 8px; width: 12px; cursor: ew-resize; }
+
+/* ── Inline crop mode (details modal) ── the same crop-box interaction, overlaid on the OPEN
+   details preview rather than a separate dialog (openDetails → enterInlineCrop). It reuses
+   every .cat-crop-* rule above, so the only new rules swap the preview/action chrome. */
+/* The still grade mode (views/grade-inline.ts) is the fourth, same takeover shape. */
+.cat-details-preview.is-grading .cat-zoom-stage,
+.cat-details-preview.is-grading .cat-stage-bar,
+.cat-details-preview.is-grading .cat-thumb,
+.cat-details-preview.is-grading .cat-details-nav { display: none; }
+.cat-details.is-cropping .cat-details-actions,
+.cat-details.is-retouching .cat-details-actions,
+.cat-details.is-video-editing .cat-details-actions,
+.cat-details.is-grading .cat-details-actions { display: none; }
+/* The work centres in the preview (its grid place-items:center); the viewport carries its
+   own rounded corners, so the wrapper's dialog margin is dropped. */
+.cat-crop-work.cat-crop-inline {
+  margin: 0;
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  z-index: 3;
+}
+.cat-crop-inline .cat-crop-body {
+  flex: 1 1 auto; min-height: 0; position: relative;
+  display: grid; place-items: center; overflow: hidden;
+}
+/* Float the crop HUD over the (dark) viewport, not below it in the preview flow - its white
+   controls need the dark backing to stay legible, and there's no card behind it here. */
+.cat-crop-inline .cat-zoom-hud {
+  position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%);
+  z-index: 3; padding: var(--sp-1) var(--sp-3); border-radius: var(--radius-pill); background: hsl(0 0% 0% / .55);
+}
+
+
+/* ── Inline trim mode (details modal) ── "Trim margins" mounts the shared trim-to-content
+   card (lib/design-system/trim-offer.ts, styled in parts/dropzone.css) under the action
+   row. Same shape as inline crop: while the question is open the normal actions step
+   aside, so a stray Delete/Crop can't land behind the card. Only the mount's own inset
+   differs here - the details body already carries one - and the note the already-tight
+   answer leaves behind. */
+.cat-details-body .trimo-host { padding: 12px 0 0; max-height: none; overflow: visible; }
+.cat-trim-note { margin: 10px 0 0; color: hsl(var(--muted-foreground)); font-size: var(--fs-md); }
+
+@media (max-width: 640px) {
+  /* Touch: no hover, so keep the star always visible. */
+  .cat-star { opacity: 1; }
+  /* Match the mobile .catalog padding-top so the featured hero still bleeds to the top. */
+  .cat-fav-strip { margin: calc(-4.2rem - var(--safe-top)) -12px 1.2rem; }
+}
+
+/* The heat-bar minimap: one cell per rolling window, start of the text to its end.
+   Each cell's --h (0-1) turns into hue 45 down to 0 and a matching alpha, so a cool
+   window stays a faint amber and a hot one reads as a solid red. */
+.cat-tsig-heatbar { display: flex; gap: 1px; height: 8px; margin: 0.45rem 0 0.2rem; border-radius: var(--radius-xs); overflow: hidden; }
+.cat-tsig-heatbar i { flex: 1 1 0; background: hsl(calc(45 - var(--h, 0) * 45) 90% 52% / max(0.10, calc(var(--h, 0) * 0.85))); }
+
+/* The runners-up line behind a low-confidence style guess - muted, like the guess. */
+.cat-tsig-cands { margin: 0.4rem 0 0; opacity: 0.82; }
+
+/* The score donut: a centred hero gauge with the rating inside the ring. Colour
+   follows the band; the number wears text tokens. Mirrors valid.css. */
+.cat-tsig-gauge-wrap { display: flex; justify-content: center; margin: 0.55rem 0 0.3rem; }
+.cat-tsig-gauge { width: calc(64px * var(--a11y-fs)); height: calc(64px * var(--a11y-fs)); }
+.cat-tsig-gauge circle { fill: none; stroke-width: 6; }
+.cat-tsig-gauge-num { font-size: 17px; font-weight: 700; text-anchor: middle; fill: hsl(var(--foreground)); }
+.cat-tsig-gauge-den { font-size: 8.5px; text-anchor: middle; fill: hsl(var(--muted-foreground)); }
+.cat-tsig-gauge-track { stroke: hsl(var(--muted-foreground) / 0.25); }
+.cat-tsig-gauge-fill { stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; }
+.cat-tsig-gauge[data-band="none"] .cat-tsig-gauge-fill { stroke: hsl(var(--muted-foreground) / 0.6); }
+.cat-tsig-gauge[data-band="weak"] .cat-tsig-gauge-fill { stroke: hsl(45 90% 42%); }
+.cat-tsig-gauge[data-band="notable"] .cat-tsig-gauge-fill { stroke: hsl(30 90% 45%); }
+.cat-tsig-gauge[data-band="strong"] .cat-tsig-gauge-fill { stroke: hsl(0 82% 50%); }
+:root[data-theme="dark"] .cat-tsig-gauge[data-band="weak"] .cat-tsig-gauge-fill,
+:root:not([data-theme="light"]) .cat-tsig-gauge[data-band="weak"] .cat-tsig-gauge-fill { stroke: hsl(45 90% 55%); }
+:root[data-theme="dark"] .cat-tsig-gauge[data-band="notable"] .cat-tsig-gauge-fill,
+:root:not([data-theme="light"]) .cat-tsig-gauge[data-band="notable"] .cat-tsig-gauge-fill { stroke: hsl(30 90% 55%); }
+:root[data-theme="dark"] .cat-tsig-gauge[data-band="strong"] .cat-tsig-gauge-fill,
+:root:not([data-theme="light"]) .cat-tsig-gauge[data-band="strong"] .cat-tsig-gauge-fill { stroke: hsl(0 82% 60%); }
+
+/* Humanize result actions (plans/125): the copy-cleaned button row. */
+.cat-humanize-actions { margin-top: 0.6rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+/* Reword sections (plans/127): deterministic plain-wording suggestions and the
+   on-device model's per-sentence offers. Quiet rows inside the tsig panel -
+   the strikethrough original, the plain replacement, one small action each. */
+.cat-reword-sec { margin-top: 0.9rem; padding-top: 0.6rem; border-top: 1px solid hsl(var(--border) / 0.6); }
+.cat-reword-list { list-style: none; margin: 0.4rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.45rem; }
+.cat-reword-row { display: flex; align-items: baseline; gap: 0.4em; flex-wrap: wrap; font-size: var(--fs-md); }
+.cat-reword-before { opacity: 0.62; text-decoration-color: hsl(var(--muted-foreground) / 0.7); }
+.cat-reword-after { font-weight: 650; }
+.cat-reword-row em { opacity: 0.7; }
+.cat-reword-apply, .cat-reword-use { font-size: var(--fs-xs); padding: 0.1rem 0.55rem; }
+.cat-reword-apply-all { margin-top: 0.5rem; font-size: calc(0.76rem * var(--a11y-fs)); }
+.cat-reword-span { display: flex; flex-direction: column; gap: 0.35rem; }
+.cat-reword-quote {
+  margin: 0; padding: 0.35rem 0.6rem; border-radius: var(--radius-sm);
+  background: hsl(var(--muted) / 0.35); font-size: var(--fs-md);
+}
+.cat-reword-alts { list-style: none; margin: 0; padding: 0 0 0 0.6rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.cat-reword-alts li { display: flex; align-items: baseline; gap: 0.4em; flex-wrap: wrap; }
+.cat-reword-alt { font-size: var(--fs-md); font-weight: 550; }
+.cat-reword-go { align-self: flex-start; font-size: calc(0.76rem * var(--a11y-fs)); }
+
+/* ── Layout + density (plans/132 WP-I) - view-options choices, pure CSS ──────*/
+.catalog.cat-density-compact .cat-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--grid-gap-tight); }
+.catalog.cat-density-compact .cat-tile-cap { padding: var(--sp-3) var(--sp-4); }
+/* List rows: the same tiles reflowed - thumb chip, name, sub inline. */
+.catalog.cat-layout-list .cat-grid { display: flex; flex-direction: column; gap: var(--sp-2); }
+.catalog.cat-layout-list .cat-tile { container-type: normal; }
+.catalog.cat-layout-list .cat-tile-open { display: flex; align-items: center; gap: var(--sp-6); padding: var(--sp-3) var(--sp-5); text-align: start; }
+.catalog.cat-layout-list .cat-tile-fig {
+  aspect-ratio: auto; position: relative; flex: none;
+  width: 52px; height: 40px; overflow: hidden;
+  border-radius: calc(var(--radius) / 1.6); border: 1px solid hsl(var(--border));
+}
+.catalog.cat-layout-list .cat-tile-cap { flex: 1 1 auto; min-width: 0; display: flex; align-items: baseline; gap: var(--sp-5); padding: 0; }
+.catalog.cat-layout-list .cat-tile-name { flex: 0 1 auto; }
+.catalog.cat-layout-list .cat-check { top: 50%; left: auto; right: 10px; transform: translateY(-50%); }
+
+
+/* ── Straighten transforms in the inline crop (2026-08-20) ───────────────────
+   A second bar under the mode bar: rotate / 90° / skew X / skew Y / flips /
+   Reset. Rasters only (the phone-photo case). The image transforms under the
+   axis-aligned crop frame; .cat-crop-viewport's overflow:hidden clips the
+   overhang, exactly like a straighten tool. */
+.cat-crop-tf {
+  padding: var(--sp-3) var(--sp-6);
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+}
+.cat-crop-tf .cat-vid-slider input[type="range"] { width: 96px; }
+.cat-tf-flip[aria-pressed="true"] { background: hsl(var(--accent)); }
+/* Smooth the straighten preview a touch (transform only - never layout). */
+.cat-crop-img { transition: transform 0.08s linear; }
+html[data-a11y-motion="reduce"] .cat-crop-img { transition: none; }
+@media (prefers-reduced-motion: reduce) { .cat-crop-img { transition: none; } }
+
+} /* @layer chrome */

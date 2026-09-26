@@ -98,7 +98,7 @@ The CA service holds policy server-side (certificate-day limits, allowed provide
 
 Tools are **data, not code** - a manifest, a template and optional hooks in a directory. You never redeploy the app to ship a tool.
 
-In the open app, the everyday path needs no build step at all. Someone works in a tool, saves the result as a **session** and shares it - as a share link (URL mode carries the whole state), inside a backup or over a collab session. Ingesting creative files into the catalogue is on-device the same way. Nobody needs git, an account or a deployment to do any of that.
+In the open app, the everyday path needs no build step at all. Someone works in a tool, saves the result as a **session** and shares it - as a share link (URL mode carries the whole state), inside a backup or over a collab session. Ingesting creative files into Assets is on-device the same way. Nobody needs git, an account or a deployment to do any of that.
 
 Whoever controls the deployment can then lock a shared session in as a **template**: open the link, record its values as a `templates[]` entry on that tool's manifest in the brand pack and commit. The entry shows up in that tool's "New from template" chooser and is deep-linkable as `?template=<id>`. Git is the admin's locking step, used exactly once per template - never the creator's.
 

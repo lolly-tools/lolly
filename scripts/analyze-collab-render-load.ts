@@ -47,7 +47,7 @@ for (const peer of ['alice', 'bob']) {
   const parents = new Map<number, number>();
   for (const [id, node] of nodes) for (const child of node.children ?? []) parents.set(child, id);
   const labelFor = (frame: Frame) => {
-    const mapFile = resolve(dist, 'assets', basename(frame.url) + '.map');
+    const mapFile = resolve(dist, '_app', basename(frame.url) + '.map');
     if (!maps.has(mapFile) && existsSync(mapFile)) {
       const payload = JSON.parse(readFileSync(mapFile, 'utf8'));
       maps.set(mapFile, new SourceMap(payload));

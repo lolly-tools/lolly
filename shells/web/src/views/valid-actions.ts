@@ -15,7 +15,7 @@ interface ActionSpec {
 const SPECS: readonly ActionSpec[] = [
   { id: 'report', label: 'Save report', icon: 'download', selector: '[data-report-card]', primary: true },
   { id: 'clean', label: 'Clean copy', icon: 'eyeOff', selector: '[data-clean-copy]:not([data-clean-package])', primary: true },
-  { id: 'keep', label: 'Keep in catalogue', icon: 'package', selector: '[data-add-catalog]', group: 'Save & use' },
+  { id: 'keep', label: 'Keep in Assets', icon: 'package', selector: '[data-add-catalog]', group: 'Save & use' },
   { id: 'claim', label: 'Add credentials', icon: 'seal', selector: '[data-claim-panel] > summary', group: 'Save & use', reveal: '[data-claim-panel]', keepLocal: true },
   { id: 'recreate', label: 'Recreate', icon: 'tool', selector: '[data-recreate]', group: 'Save & use' },
   { id: 'redact', label: 'Redact', icon: 'pen', selector: '.valid-meta-actions a[href="#/tool/redact"]', group: 'Save & use' },

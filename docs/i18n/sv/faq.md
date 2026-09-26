@@ -71,7 +71,7 @@ organisatoriskt. Räkna med det här:
 färdigt paket med dina mallar. För en *styrd utrullning* definierar någon den gemensamma
 tillgångskatalogen (logotyper, paletter, typsnitt som permanenta ID:n) och skriver manifestet +
 mallen för varje utdatatyp. Enskilda användare behöver dock inte vänta på det - i den
-öppna appen kan vem som helst läsa in sina egna filer i katalogen och bygga verktyg i
+öppna appen kan vem som helst läsa in sina egna filer i Tillgångar och bygga verktyg i
 Design från dag ett.
 
 **Det krävs ingen git för att bidra.** Designers gör sina egna verktyg och mallar

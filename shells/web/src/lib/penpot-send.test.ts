@@ -12,7 +12,7 @@
  * tested is everything around it - the target declares a `prepare`, the
  * listing failures it maps, and the send's own reading of a `choice` (which is
  * what the modal resolves). The two surfaces that await `prepare` and skip the
- * render on a null (views/tool-actions.ts, views/catalog.ts) are DOM code too.
+ * render on a null (views/tool-actions.ts, views/assets.ts) are DOM code too.
  */
 
 import { test, beforeEach, afterEach } from 'node:test';

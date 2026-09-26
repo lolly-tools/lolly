@@ -18,6 +18,7 @@ import { buildAgentDocs, AGENT_FILES } from './agents-pages.ts';
 // /info/spec/document-model/, built from docs/spec/document-model/*.md.
 import { buildSpecPages, SPEC_BASE } from './spec-pages.ts';
 import { readShotProvenance } from './shot-provenance.ts';
+import { diagramRecipes } from './diagram-recipes.ts';
 import { scan as scanVernacular, staleAllows as staleVernacularAllows } from '../scripts/check-docs-vernacular.ts';
 // Where the active profile's catalog is (plan 244): it belongs to a brand pack, not to
 // a repo-root catalog/ directory. Relative import, the way this file already reaches
@@ -3146,6 +3147,17 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
   font-size:.8125rem;font-weight:600;color:var(--muted)}
 .shot-try::after{content:' →'}
 .shot-try:hover,.shot-try:focus-visible{color:var(--green);text-decoration:underline}
+.docs-diagram{display:block;max-width:40em;margin:1.5em auto}
+.diagram-actions{text-align:center; width:100%;display:flex;align-items:center;justify-content:center;gap:.35rem;margin-top:.5rem; font-size:var(--ui-type-help)}
+.docs-diagram>img{border-radius: var(--radius-lg);    box-shadow: var(--shadow-3);display:block;max-width:100%;height:auto;margin:0 auto}
+.diagram-actions{display:flex;align-items:center;justify-content:center;gap:.35rem;margin-top:.5rem; font-size:.8125rem;font-weight:600;color:var(--muted)}
+.diagram-actions a{color:inherit}
+.diagram-verify{display:grid;place-items:center;flex:none;width:2.25rem;height:2.25rem;border-radius:50%}
+.diagram-verify svg{width:1.1rem;height:1.1rem}
+.diagram-open{padding:.5rem .25rem}
+.diagram-open::after{content:' →'}
+.diagram-actions a:hover{color:var(--green)}
+.diagram-actions a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 /* A PAGE ASSET's credential (the AI stance hero): open at rest, because the file's
    history is what the surrounding page is arguing about rather than a footnote to a
    screenshot. Same mark, same line, same two links - only the resting state differs,
@@ -4541,6 +4553,7 @@ const docCtx: DocsRenderContext = {
   // resolves to its built path; a bare shot (no assetSrc) reads from docs/shots/<file>.
   shotSize: (f, assetSrc) => shotSize(f, assetSrc ? resolve(outDir, assetSrc.replace(/^\/info\//, '')) : undefined),
   tryLink: (file) => {
+    if (file.startsWith('diagrams/')) return diagramRecipes()[file.replace(/\.svg$/, '')] ?? null;
     const def = shotRecipe(file.split('.')[0] ?? '');
     return def?.tryIt && def.route.startsWith('/') ? { route: def.route } : null;
   },
@@ -6137,6 +6150,10 @@ function writeDocsManifest(): void {
 
   // Page assets referenced in the prose (the AI-stance hero, the-flood, …).
   const assetRefs = new Set<string>();
+  for (const [slug, recipe] of Object.entries(diagramRecipes())) {
+    recipes[slug] = recipe;
+    assetRefs.add(`/info/${slug}.svg`);
+  }
   const pages = readdirSync(__dirname).filter((f) => f.endsWith('.md')).sort();
   for (const page of pages) {
     const md = readFileSync(resolve(__dirname, page), 'utf-8');

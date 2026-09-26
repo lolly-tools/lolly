@@ -70,7 +70,7 @@ forhåndsviser i en nettleser. Friksjonen ved innføring er sjelden teknisk; den
 ferdig pakke med malene dine. Ved en *styrt utrulling* er det noen som definerer den felles
 ressurskatalogen (logoer, paletter, fonter som permanente ID-er) og skriver manifestet +
 malen for hver utdatatype. Enkeltbrukere trenger likevel ikke å vente på det - i
-den åpne appen kan hvem som helst importere sine egne filer inn i katalogen og bygge verktøy i
+den åpne appen kan hvem som helst importere sine egne filer inn i Ressurser og bygge verktøy i
 Design fra dag én.
 
 **Du trenger ikke git for å bidra.** Designere lager sine egne verktøy og maler

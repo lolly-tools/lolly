@@ -152,7 +152,7 @@ export function formatPageList(catalog: FmtCatalog): Array<{ token: string; slug
 
 /**
  * The tool a format page's "do it now" link opens. Lolly has no generic convert
- * surface, so most formats point at the catalogue (/#/c) where the reader picks a
+ * surface, so most formats point at Assets (/#/a) where the reader picks a
  * tool that opens or makes the file. A few formats have one obvious on-device
  * tool, listed here and nowhere else so the mapping stays reviewable.
  */
@@ -172,9 +172,9 @@ export const FORMAT_TOOL_HINTS: Record<string, string> = {
   SCORM: '#/tool/design',
 };
 
-/** The app hash a format page's "do it now" link opens (catalogue by default). */
+/** The app hash a format page's "do it now" link opens (Assets by default). */
 export function formatAppHash(entry: FmtEntry): string {
-  return FORMAT_TOOL_HINTS[entry.token] ?? '#/c';
+  return FORMAT_TOOL_HINTS[entry.token] ?? '#/a';
 }
 
 /** The rendered model for one per-format side-door page. */
@@ -321,8 +321,8 @@ const FONT_TOKENS = new Set(['TTF', 'OTF', 'WOFF']);
 /**
  * The app hash a convert page's "do it now" link opens. Image pairs the
  * convert-image tool actually handles open straight into it with the output
- * preselected; font pairs open the font converter. Everything else opens the
- * catalogue, because Lolly has no single tool for that crossing and inventing a
+ * preselected; font pairs open the font converter. Everything else opens
+ * Assets, because Lolly has no single tool for that crossing and inventing a
  * convert surface that does not exist would be a false promise.
  */
 export function convertAppHash(inToken: string, outToken: string): string {
@@ -330,7 +330,7 @@ export function convertAppHash(inToken: string, outToken: string): string {
     return `#/tool/convert-image?format=${CONVERT_IMAGE_OUT[outToken]}`;
   }
   if (FONT_TOKENS.has(inToken) && FONT_TOKENS.has(outToken)) return '#/tool/font-convert';
-  return '#/c';
+  return '#/a';
 }
 
 /** The rendered model for one convert side-door page. */

@@ -12,7 +12,7 @@ below has been captured as of this page landing; both are recipes only.
 # Search
 
 One search field, always in the same place at the bottom of the screen, that
-reaches your tools, your saved work, the catalogue and your own
+reaches your tools, your saved work, your assets and your own
 settings. Type from wherever you happen to be: either the list already in
 front of you narrows, or a small panel opens above the field with what
 matched.
@@ -31,7 +31,7 @@ it for that reason; drop the word if a future capture profile turns Pro off.
 -->
  It's one field for the
 whole app rather than a different box on every screen, and it follows you: it
-shows on the Tools gallery, Utilities, the Catalogue, Projects, the Dashboard
+shows on the Tools gallery, Utilities, Assets, Projects, the Dashboard
 and Profile.
 
 ![the persistent search bar at rest: Pro and Dashboard on the left, the search field with its magnifier icon and a Ctrl-Space hint chip, Verify and What? on the right](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&cropSelector=.gallery-footer&dark=1&filename=srch-footer-closed)
@@ -65,7 +65,7 @@ A match is sorted into groups, always shown in the same order:
   tool that made them, and your folders by name. It matches the session's own
   label, not anything inside it: it can't find a session by a word you typed
   into one of its fields.
-- **Catalogue** - the design system's images, logos, audio and fonts, and
+- **Assets** - the design system's images, logos, audio and fonts, and
   anything you've uploaded yourself, by name, id, tag, category and format. Again, this
   is metadata, not contents: it can't find an image by what's actually in the
   picture.
@@ -95,13 +95,13 @@ of which" rather than the flat claim.
   "didn't see it above?" row, not a result of its own.
 
 What happens with a match depends on where you're standing. On the Tools
-gallery, Utilities and the Catalogue, the grid you're already looking at
+gallery, Utilities and Assets, the grid you're already looking at
 filters itself, exactly as it always has - that grid *is* the result, so its
 own group is left out of the floating panel. On Projects, the Dashboard and
 Profile, the screen behind never changes shape while you type: everything,
 including your own projects and your own settings, shows in the panel
 instead, so nothing you own can look like it quietly disappeared. Inside the
-Tools, Utilities, Projects and Catalogue groups, a "See all in ..." row hands
+Tools, Utilities, Projects and Assets groups, a "See all in ..." row hands
 off to a proper results view when a handful of matches isn't enough; Settings,
 Places, Docs and Ask just end.
 
@@ -154,4 +154,4 @@ then a second press clears what you typed, then a third leaves the field.
 
 ---
 
-**Related:** [Your favourites](/info/favourites.html) for keeping the handful you use where you can see them. [Using Lolly](/info/using.html) for the gallery, Projects and the Catalogue that search reaches into. [Privacy](/info/privacy.html) for what stays on your device.
+**Related:** [Your favourites](/info/favourites.html) for keeping the handful you use where you can see them. [Using Lolly](/info/using.html) for the gallery, Projects and Assets that search reaches into. [Privacy](/info/privacy.html) for what stays on your device.

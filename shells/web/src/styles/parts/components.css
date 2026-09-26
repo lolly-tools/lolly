@@ -165,7 +165,7 @@
 /* Icon tile: glyph, then a big count, then the type label. Surface composes
    .card--sub (chips.css) - layout + padding are local deltas. Named
    .cat-stat-tile (component audit rec 10 follow-up) - it used to be plain
-   .cat-tile, which collided with catalog.ts's OWN unrelated .cat-tile asset
+   .cat-tile, which collided with views/assets.ts's OWN unrelated .cat-tile asset
    card (that one stays put; this is the renamed side). */
 .cat-stat-tile {
   display: flex; flex-direction: column; align-items: flex-start; gap: .1rem;
@@ -180,7 +180,7 @@
    Capitalize composes .chip--status (chips.css); the rest (gap, padding,
    background alpha, font-size) are real local deltas. Named
    .cat-stat-tag (component audit M1.2 follow-up) - it used to be plain
-   .cat-tag, which collided with catalog.ts's OWN unrelated .cat-tag on the
+   .cat-tag, which collided with views/assets.ts's OWN unrelated .cat-tag on the
    details-modal tag list (that one stays put; this is the renamed side). */
 .cat-stat-tags { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
 .cat-stat-tag {

@@ -1,7 +1,7 @@
-Env: box rad 8px wid 1.6 ht 0.72 "Patch envelope" "baseRevision, ops"
-arrow right 150% from Env.e "all or" "nothing"
-Head: box rad 8px wid 1.6 ht 0.72 "The mutable head" "compare and swap"
-arrow right 150% from Head.e "lanes" "converge"
-Merge: box rad 8px wid 1.6 ht 0.72 "Merge validation" "after convergence"
-arrow down 80% from Merge.s "cycle found"
-Stop: box rad 8px wid 1.6 ht 0.72 "Evaluation stops" "both edits kept"
+Env: box rad 10px wid 1.9 ht 1.0 "Patch envelope" "baseRevision, ops" at (0, 0)
+Head: box rad 10px wid 1.9 ht 1.0 "Mutable head" "compare and swap" at Env + (3.1, 0)
+Merge: box rad 10px wid 1.9 ht 1.0 "Merge validation" "after convergence" at Head + (0, -1.8)
+Stop: box rad 10px wid 1.9 ht 1.0 "Evaluation stops" "both edits kept" at Merge + (-3.1, 0)
+arrow from Env.e to Head.w "all or nothing"
+arrow from Head.s to Merge.n "lanes converge"
+arrow from Merge.w to Stop.e "cycle found"

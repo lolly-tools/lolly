@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * The shared multi-select GESTURES for the tile grids - Projects (#/p) and the
- * Catalogue (#/c). Both grids let you rubber-band a box through the gaps between
+ * Assets view (#/a). Both grids let you rubber-band a box through the gaps between
  * cards and Shift-click a selection dot to sweep up everything in between, and
  * both do it from this one implementation so they can never drift apart.
  *

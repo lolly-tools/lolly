@@ -1042,7 +1042,7 @@ export function narrateDeckAsJob(
       if (job.cancelled) return;
       job.finish({ narrated, skipped, unmarkedBuilds } satisfies NarrateResult);
       // The commonest run is ONE slide, from the inspector - "1 slides narrated." is the
-      // sentence a reader meets first (views/catalog.ts's own singular/plural pattern).
+      // sentence a reader meets first (views/assets.ts's own singular/plural pattern).
       announce(narrated === 1
         ? t('1 slide narrated.')
         : tRaw('{n} slides narrated.', { n: String(narrated) }));

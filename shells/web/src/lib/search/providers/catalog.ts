@@ -2,14 +2,14 @@
 /**
  * The Catalogue spotlight provider (plans/99 section 2b) - brand assets + the user's
  * own uploads, searched over the SAME haystack the catalogue view builds
- * (views/catalog-filter.ts buildSearchHaystack - name, id, tags, category,
+ * (views/assets-filter.ts buildSearchHaystack - name, id, tags, category,
  * format/type), so the overlay and the view's live filter agree on recall.
  *
- * The asset set mirrors views/catalog.ts's reload: catalog assets (deprecated
+ * The asset set mirrors views/assets.ts's reload: catalog assets (deprecated
  * included - the view lists them) plus user uploads minus the profile
  * headshot, filtered to what the catalogue actually TILES (visual types, the
  * user's own audio, and neurospicy focus audio) - a hit must land on a visible
- * tile, since the href is a #/c?q= scoped list keyed on the asset's name
+ * tile, since the href is a #/a?q= scoped list keyed on the asset's name
  * (plans/99 section 5's locked target - never the per-asset details modal). Categories
  * come from the shared lib/asset-category rules WITHOUT the per-user override
  * layer (that would cost a profile read per search; overrides only reclassify
@@ -24,13 +24,13 @@ import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { t } from '../../../i18n.ts';
 import { icon } from '../../icons.ts';
 import { fold, scoreHaystack } from '../match.ts';
-import { buildSearchHaystack } from '../../../views/catalog-filter.ts';
+import { buildSearchHaystack } from '../../../views/assets-filter.ts';
 import { categoryLabel, libCategory } from '../../asset-category.ts';
 import { VISUAL_TYPES } from '../../asset-kinds.ts';
 import type { SearchHit, SearchProvider } from '../registry.ts';
 
 /** Minimal structural host slice (repo convention - see SyncHost): the two
- *  asset reads views/catalog.ts's reload makes. Never the full HostV1. */
+ *  asset reads views/assets.ts's reload makes. Never the full HostV1. */
 export interface CatalogSearchHost {
   assets: {
     query(filter?: unknown): Promise<AssetRef[]>;
@@ -39,11 +39,11 @@ export interface CatalogSearchHost {
 }
 
 // The user's profile headshot is a working asset, not library content - the
-// catalogue view filters it out of its grid (views/catalog.ts reload) and so
+// catalogue view filters it out of its grid (views/assets.ts reload) and so
 // does this provider. The id is the bridge's fixed slot.
 const HEADSHOT_ID = 'user/headshot';
 
-/** What the catalogue view tiles (mirrors views/catalog.ts reload): visual
+/** What the catalogue view tiles (mirrors views/assets.ts reload): visual
  *  types, plus the user's own audio and catalog focus-music (neurospicy). */
 function listable(a: AssetRef): boolean {
   return VISUAL_TYPES.has(a.type)
@@ -68,7 +68,7 @@ export function createCatalogProvider(host: CatalogSearchHost): SearchProvider {
       const categories = new Map(assets.map((a) => [a.id, libCategory(a)]));
       // The shared haystack builder (do NOT re-implement - plans/99 principle
       // 1). fold() the stored value before scoring: idempotent, so it is
-      // correct whether catalog-filter has migrated to fold() internally yet.
+      // correct whether assets-filter has migrated to fold() internally yet.
       const haystack = buildSearchHaystack(assets, (a) => categoryLabel(categories.get(a.id) ?? 'other'));
       return assets.map((asset) => ({
         asset,
@@ -112,12 +112,12 @@ export function createCatalogProvider(host: CatalogSearchHost): SearchProvider {
         subtitle: row.category !== 'other'
           ? t(categoryLabel(row.category))
           : String(row.asset.format || row.asset.type),
-        // The locked plans/99 section 5 target: catalogue hits land on the #/c?q=
-        // SCOPED LIST (never the per-asset details modal, which #/c?asset=
+        // The locked plans/99 section 5 target: catalogue hits land on the #/a?q=
+        // SCOPED LIST (never the per-asset details modal, which #/a?asset=
         // would open - detail affordances vary by asset type). Scoping to the
         // asset's own name narrows the list to it and its likenames, so the
         // hit still lands somewhere obviously specific.
-        href: `#/c?q=${encodeURIComponent(String(row.asset.meta?.name ?? row.asset.id))}`,
+        href: `#/a?q=${encodeURIComponent(String(row.asset.meta?.name ?? row.asset.id))}`,
         score,
       }));
     },

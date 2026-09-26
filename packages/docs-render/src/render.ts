@@ -89,9 +89,21 @@ export function inline(text: string, ctx: DocsRenderContext): string {
       + renderCredential(ctx.credential(file), { file, extraClass: '', fromPresent: false }, ctx)
       + `${twin}</span>${shotTry(file, ctx)}`;
   });
-  // A page ASSET that is not a screenshot (the AI stance hero, say) gets the same wrapper
-  // and credential glyph, read from the same served bytes. Assets with no readable
-  // credential fall through unchanged.
+  // Diagram recipes reopen the source and look. A verify mark requires a credential
+  // in the served file; the verifier decides whether its signature can be trusted.
+  s = s.replace(/<img src="(\/info\/diagrams\/[^"]+\.svg)"([^>]*)>/g, (original, src: string, rest: string) => {
+    const file = src.slice('/info/'.length);
+    const recipe = ctx.tryLink(file);
+    const facts = ctx.credential(file, { assetSrc: src });
+    if (!recipe && !facts) return original;
+    const size = ctx.shotSize(file, src);
+    const dims = size ? ` width="${size.w}" height="${size.h}"` : '';
+    const verify = facts ? `<a class="diagram-verify" href="/#/verify?src=${encodeURIComponent(src)}"`
+      + ` aria-label="${esc(ctx.t('Verify this diagram'))}" title="${esc(ctx.t('Content Credentials'))}">${ctx.docIcon('imprint')}</a>` : '';
+    const open = recipe ? `<a class="diagram-open" href="${esc(recipe.route)}">${esc(ctx.t('Open this in Diagram Builder'))}</a>` : '';
+    return `<span class="docs-diagram"><img src="${src}"${dims}${rest}><span class="diagram-actions">${verify}${open}</span></span>`;
+  });
+  // Page assets with readable credentials get the standard credential wrapper.
   s = s.replace(/<img src="(\/info\/(?!shots\/)[^"]+\.(?:webp|png|jpe?g|avif))"([^>]*)>/g, (_m, src: string, rest: string) => {
     const file = src.slice('/info/'.length);
     const cred = renderCredential(ctx.credential(file, { assetSrc: src }), { file, extraClass: 'shot-cred--asset', fromPresent: true }, ctx);

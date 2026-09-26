@@ -65,12 +65,16 @@ export function createRecentStack(root: HTMLElement, items: StackItem[]): StackH
       let rot = r === 0 ? 0 : (r % 2 ? 1 : -1) * Math.min(depth, 3) * 1.4;
       let tx = 0;
       const hidden = r > VISIBLE;
+      // Only the card under the finger is promoted, and only while it follows the
+      // pointer (no transition runs then to promote it). Release clears the hint.
       if (r === 0 && dragging) {
         tx = dragDx;
         rot = dragDx / 18;
         card.style.transition = 'none';
+        card.style.willChange = 'transform';
       } else {
         card.style.transition = '';
+        card.style.willChange = '';
       }
       card.style.transform = `translate(-50%, -50%) translate(${tx}px, ${ty}px) scale(${sc}) rotate(${rot}deg)`;
       card.style.opacity = hidden ? '0' : r === VISIBLE ? '0.4' : '1';

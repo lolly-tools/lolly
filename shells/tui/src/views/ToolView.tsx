@@ -839,7 +839,7 @@ export function ToolView({ toolId, query, values, bridge, onBack }: { toolId: st
     catch (e) { setStatus('Asset error: ' + (e as Error).message); }
   }
   // Open the catalog asset picker for a top-level input OR a block field. Lazy-loads the
-  // asset registry the first time (the same catalog/assets/index.json the Catalog view browses).
+  // asset registry the first time (the same catalog/assets/index.json the Assets view browses).
   async function openAssetPicker(target: { type: 'input' | 'field'; id: string }): Promise<void> {
     setPickTarget(target);
     setPick({ query: '', sel: 0, searching: false });

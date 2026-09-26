@@ -76,7 +76,7 @@ export async function readTextAsset(
       digest: await textDigest(text),
       writable: ref.source === 'user',
       folderId,
-      origin: folderId ? 'Projects' : 'Catalog',
+      origin: folderId ? 'Projects' : 'Assets',
       aiGenerated: typeof ref.meta?.aiGenerated === 'string' ? ref.meta.aiGenerated : undefined,
     },
   };

@@ -374,7 +374,7 @@ export function openVideoJobDialog(host: VideoJobHost, opts: VideoJobDialogOpts)
         onComplete: (ref) => opts.onComplete?.(ref),
         onError: (err) => host.log?.('error', 'Video job failed', { error: String(err) }),
       });
-      showStatus(t('Working in the background. It will appear in your catalog when it’s done.'));
+      showStatus(t('Working in the background. It will appear in Assets when it’s done.'));
       // Let the message land, then close: the toast takes it from here.
       setTimeout(finish, 900);
     });

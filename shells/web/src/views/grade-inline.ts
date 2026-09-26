@@ -85,7 +85,7 @@ export async function mountInlineGrade(env: GradeInlineEnv): Promise<GradeInline
         `<label class="field-toggle"><input type="radio" class="field-radio" name="cat-grade-fmt" value="${escapeHtml(v)}"${i === 0 ? ' checked' : ''}> ${escapeHtml(l)}</label>`).join('')}</div>
       <span class="cat-mode-bar-actions">
         <button type="button" class="btn" data-cancel>${escapeHtml(t('Cancel'))}</button>
-        <button type="button" class="btn modal-primary" data-apply>${escapeHtml(t('Save to catalog'))}</button>
+        <button type="button" class="btn modal-primary" data-apply>${escapeHtml(t('Save to Assets'))}</button>
       </span>
     </div>
     <div class="cat-vid-body">

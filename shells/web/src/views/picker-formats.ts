@@ -3,7 +3,7 @@
  * The asset picker's format and embeddability rules - pure, DOM-free, testable.
  *
  * Extracted from views/picker.ts for maintainability-2026-07-29.md item 2, the
- * third increment after catalog-filter.ts and tool-history.ts. views/picker.ts is
+ * third increment after assets-filter.ts and tool-history.ts. views/picker.ts is
  * 3,155 lines with only `picker-initial-tab.test.ts` against it.
  *
  * WHY THIS CLUSTER. These decide what an upload is STORED as (a wrong answer

@@ -70,7 +70,7 @@ personne prévisualise dans un navigateur. Le frein à l'adoption est rarement t
 lot fini de tes gabarits. Pour un *déploiement gouverné*, quelqu'un définit le catalogue
 d'assets partagé (logos, palettes, polices sous forme d'ID permanents) et écrit le manifeste +
 le template de chaque type de sortie. Les individus n'ont pas à attendre pour autant - dans
-l'application ouverte, chacun peut importer ses propres fichiers dans le catalogue et créer des outils dans
+l'application ouverte, chacun peut importer ses propres fichiers dans Éléments et créer des outils dans
 Design dès le premier jour.
 
 **Aucun git requis pour contribuer.** Les designers font leurs propres outils et gabarits

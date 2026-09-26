@@ -70,7 +70,7 @@
 .plat-chip,        /* platform.css - low-emphasis secondary chip */
 .cat-stat-tag {    /* components.css - catalogue-summary "by status" tags;
                       renamed from .cat-tag (component audit M1.2) so it no
-                      longer collides with catalog.css's unrelated .cat-tag
+                      longer collides with asset-shared.css's unrelated .cat-tag
                       on the details-modal tag list */
   text-transform: capitalize;
 }
@@ -110,7 +110,7 @@
 .plat-theme,         /* platform.css - theme swatch card */
 .cat-stat-tile {     /* components.css - catalogue-summary icon/count tile;
                          renamed from .cat-tile (component audit rec 10
-                         follow-up) - that bare name collided with catalog.ts's
+                         follow-up) - that bare name collided with views/assets.ts's
                          OWN unrelated asset card, which keeps `.cat-tile`. */
   background: var(--ui-color-surface-canvas);
   border: 1px solid var(--ui-color-border-default);

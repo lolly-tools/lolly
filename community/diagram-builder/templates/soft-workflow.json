@@ -1,0 +1,14 @@
+{
+  "id": "soft-workflow",
+  "name": "Soft depth workflow",
+  "category": "Looks",
+  "description": "A four-step workflow in the Soft depth look.",
+  "values": {
+    "look": "soft",
+    "source": "text",
+    "diagramType": "process",
+    "flowDir": "down",
+    "dsl": "Discover -> Design\nDiscover -> Build\nDesign -> Share\nBuild -> Share",
+    "title": "From idea to impact"
+  }
+}

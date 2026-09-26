@@ -70,7 +70,7 @@ przeglądarce. Opór przed wdrożeniem rzadko jest techniczny; jest organizacyjn
 gotowy pakiet twoich szablonów. Przy *zarządzanym wdrożeniu* ktoś definiuje wspólny
 katalog zasobów (logo, palety, fonty jako trwałe identyfikatory) i pisze manifest +
 szablon dla każdego typu wyniku. Osoby prywatne nie muszą jednak na to czekać - w
-otwartej aplikacji każdy może wgrać własne pliki do katalogu i budować narzędzia w
+otwartej aplikacji każdy może wgrać własne pliki do Zasobów i budować narzędzia w
 Design od pierwszego dnia.
 
 **Do współtworzenia nie jest potrzebny git.** Projektanci tworzą własne narzędzia i szablony

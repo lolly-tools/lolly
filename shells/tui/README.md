@@ -1,6 +1,6 @@
 # lolly-tui
 
-An interactive terminal shell built on Ink and React. Four top-level sections switched with `1`/`2`/`3`/`4` (Tools, Projects, Profile, Catalog), plus a tool view opened from the gallery, from a saved project or from a pasted lolly.tools URL.
+An interactive terminal shell built on Ink and React. Four top-level sections switched with `1`/`2`/`3`/`4` (Tools, Projects, Profile, Assets), plus a tool view opened from the gallery, from a saved project or from a pasted lolly.tools URL.
 
 The one-line summary is in the header of `src/bridge.ts`: **the TUI is the CLI bridge under an interactive transport.** Same Node plus jsdom render path, same filesystem assets, same engine.
 

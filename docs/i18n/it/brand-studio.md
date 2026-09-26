@@ -136,7 +136,7 @@ Un pannello opzionale **Gradients** costruisce token di sfumatura dalla tua pale
 
 ### Portare la palette altrove
 
-La pillola flottante posizionata sul bordo inferiore del pannello della palette scarica l'intera palette come **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, una **GIMP palette (.gpl)** o un **Adobe Swatch Exchange (.ase)** - così il brand entra direttamente in Illustrator, Figma, GIMP o in un foglio di stile. Si trova fuori dallo scroller del pannello, quindi mantiene il suo posto indipendentemente da quanto scorri la palette. (Puoi anche scaricare la palette dalla vista [Catalogue](/info/using.html).)
+La pillola flottante posizionata sul bordo inferiore del pannello della palette scarica l'intera palette come **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, una **GIMP palette (.gpl)** o un **Adobe Swatch Exchange (.ase)** - così il brand entra direttamente in Illustrator, Figma, GIMP o in un foglio di stile. Si trova fuori dallo scroller del pannello, quindi mantiene il suo posto indipendentemente da quanto scorri la palette. (Puoi anche scaricare la palette dalla vista [Risorse](/info/using.html#assets-your-library).)
 
 ## Type
 
@@ -179,7 +179,7 @@ Il resto del design system, modificabile senza toccare il codice:
 
 ## Files
 
-Rilascia qui i file che il tuo brand conserva - a parte i loghi -: risorse **vettoriali**, **immagine**, **audio** e **motion** (video, Lottie, animate). Finiscono nel tuo [Catalogue](/info/using.html), ordinati in sezioni e pronti nel selettore risorse di ogni strumento. Tutto resta su questo dispositivo. (Il pannello laterale chiama la sezione **Files**; la chiave URL resta `catalogue`, perché la chiave di un pannello è un contratto permanente.)
+Rilascia qui i file che il tuo brand conserva - a parte i loghi -: risorse **vettoriali**, **immagine**, **audio** e **motion** (video, Lottie, animate). Finiscono in [Risorse](/info/using.html#assets-your-library), ordinati in sezioni e pronti nel selettore risorse di ogni strumento. Tutto resta su questo dispositivo. (Il pannello laterale chiama la sezione **Files**; la chiave URL resta `catalogue`, perché la chiave di un pannello è un contratto permanente.)
 
 ## Importare un brand
 
@@ -231,6 +231,6 @@ Alcune build spediscono con un **brand bloccato** - i suoi colori, i font e i to
 
 ## Dove andare adesso
 
-- **[Usare Lolly](/info/using.html)** - la canvas, il salvataggio, i progetti e il catalogo.
+- **[Usare Lolly](/info/using.html)** - la canvas, il salvataggio, i progetti e Risorse.
 - **[Design Tokens](/info/design-tokens.html)** - il modello di token in cui è espresso il tuo brand.
 - **[Esportazione e formati](/info/exporting.html)** - unità di stampa, CMYK e i formati in cui il tuo brand viene renderizzato.

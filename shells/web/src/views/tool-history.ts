@@ -3,7 +3,7 @@
  * The tool view's undo/redo model - pure, DOM-free, testable.
  *
  * Extracted from views/tool.ts for maintainability-2026-07-29.md item 2, the
- * second increment after views/catalog-filter.ts. Same shape as the pattern that
+ * second increment after views/assets-filter.ts. Same shape as the pattern that
  * already works in this repo (free-canvas-math.ts, timeline-math.ts): the view
  * keeps the wiring - the runtime, the toasts, the button sync - and this module
  * owns the rules.

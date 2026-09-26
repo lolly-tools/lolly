@@ -198,7 +198,7 @@ const POSES: CoverPose[] = [
   // The render alone (Andy, 2026-09-03): the card's theme colours carry the cover, so
   // the app chrome around it is dropped and the export fills the frame.
   { slug: 'snippet', hue: 292.5, route: '#/tool/snippet?language=typescript&fileName=make-a-card.ts&code=%2F%2F%20Every%20input%20is%20a%20URL%20param%20-%20the%20CLI%20is%20URL%20mode%0Aconst%20card%20%3D%20new%20URL%28%27https%3A%2F%2Flolly.tools%2Ftool%2Fqr-code.svg%27%29%3B%0Acard.searchParams.set%28%27url%27%2C%20%27https%3A%2F%2Flolly.tools%27%29%3B%0Acard.searchParams.set%28%27color%27%2C%20brand.primary%29%3B%0A%0Aconst%20svg%20%3D%20await%20fetch%28card%29.then%28%28r%29%20%3D%3E%20r.text%28%29%29%3B&full', crop: '#tool-canvas', settleMs: 4000 },
-  { slug: 'catalogue', hue: 315, route: '#/c?section=swatches,fonts', wait: '.catalog-view, .cat-view, [data-view="catalog"]', settleMs: 3500 },
+  { slug: 'assets', hue: 315, route: '#/a?section=swatches,fonts', wait: '.catalog-view, .cat-view, [data-view="catalog"]', settleMs: 3500 },
   // The Utilities shelf as a vector screenshot (Andy, 2026-09-03: "an svg screenshot
   // of the utilities view in the right colors").
   { slug: 'utilities', hue: 337.5, route: '#/utilities', wait: '.gallery-view, .gallery', settleMs: 3500, walkerSvg: true },

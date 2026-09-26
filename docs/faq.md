@@ -70,7 +70,7 @@ browser. The friction to adoption is rarely technical; it's organisational. Expe
 finished pack of your templates. For a *governed rollout*, someone defines the shared
 asset catalog (logos, palettes, fonts as permanent IDs) and writes the manifest +
 template for each output type. Individuals don't have to wait for that, though - in
-the open app anyone can ingest their own files into the catalogue and build tools in
+the open app anyone can ingest their own files into Assets and build tools in
 Design from day one.
 
 **No git required to contribute.** Designers make their own tools and templates

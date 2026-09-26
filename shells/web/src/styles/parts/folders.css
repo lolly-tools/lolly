@@ -75,6 +75,20 @@
 
 /* Card appearance and selection controls are shared in object-tiles.css. */
 .folder-tile { container-type: inline-size; }
+/* Skip layout and paint for Projects grid tiles scrolled off-screen, as the gallery's
+   .gtile and the catalog's .cat-tile do: each session cover is a data: URL thumb, and
+   an SVG one rasterises on the main thread. `auto` remembers each tile's real height
+   once drawn. The first guess is measured from the rules here and in object-tiles.css:
+   a session card is its 180px column at 4/3 (135px) plus about 81px of name, time and
+   badges; a folder is its 83px tabbed banner plus about 60px of name and count pill.
+   Grid mode only: the list rows and the favourites strip keep drawing as before. Tiles
+   stay in the DOM, so focus and drag-over still find them, and docs captures force
+   every subtree visible (build-docs-shots.ts). */
+.projects-grid:not(.projects-list) .folder-tile {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 216px;
+}
+.projects-grid:not(.projects-list) .folder-tile--folder { contain-intrinsic-size: auto 143px; }
 .tile-primary {
   display: flex; flex-direction: column; width: 100%; padding: 0; box-sizing: border-box;
   border: 0; background: none; color: inherit; cursor: pointer; text-align: left;
@@ -219,6 +233,7 @@
 }
 .ctx-sheet-thumb > :is(svg, img) { display: block; width: 100%; height: 100%; object-fit: contain; }
 .ctx-sheet-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctx-sheet .canvas-object-menu-head { display: none; }
 .ctx-sheet-body { flex: 1 1 auto; min-block-size: 0; overflow-y: auto; overscroll-behavior: contain; }
 .ctx-sheet-body [role="menu"] { display: flex; flex-direction: column; }
 /* A bulk menu with no head of its own: its count line becomes the head. */

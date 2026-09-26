@@ -2,7 +2,7 @@
 /**
  * The top chrome shared by Tools and Catalog (component-audit rec 11 - the
  * `.gallery-topbar` + `.gallery-topright` + profile-pill cluster was hand-copied
- * between gallery.ts and catalog.ts). Each view still owns its OWN popover
+ * between gallery.ts and assets.ts). Each view still owns its OWN popover
  * content (the gallery's sort/filter popover vs the catalog's view-options
  * popover - passed through `popover`) and its own extra trigger button(s)
  * (filter-fab / history-fab vs the view-options button - passed through

@@ -28,7 +28,7 @@ export async function queryPickerAssets(
 }
 
 /** The type pills an untyped pick offers (plans/134 P5) - the catalog's buckets. */
-export const PICKER_TYPE_FILTERS: ReadonlyArray<{ key: import('./catalog-filter.ts').TypeFilter; label: string }> = [
+export const PICKER_TYPE_FILTERS: ReadonlyArray<{ key: import('./assets-filter.ts').TypeFilter; label: string }> = [
   { key: 'all', label: 'All' },
   { key: 'image', label: 'Image' },
   { key: 'vector', label: 'Vector' },

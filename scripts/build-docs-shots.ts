@@ -1014,7 +1014,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
           // are already mis-anchored is refuted. The reason is that the stages centre
           // with `place-items: center`, and an oversized GRID item pins to the
           // container's top-left under the scroll-container safe-overflow rule
-          // (documented at shells/web/src/styles/parts/catalog.css:669-672), giving
+          // (documented on .cat-zoom-stage in shells/web/src/styles/parts/asset-shared.css), giving
           // rect.top = 0. Measured in Chromium: grid -> top 0, flex
           // align-items:center -> top -554.5 for a 944x2009 child in a 900 viewport.
           // So this guards flex/absolutely-centred overflow, and the day a stage

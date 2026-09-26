@@ -14,14 +14,14 @@ svg {
    font tokens (brand-vars.ts), so under any profile the diagram renders and
    exports in that brand's faces. The font-family attributes the hook writes
    into the SVG stay as the fallback for a standalone file with no stylesheet. */
-svg text {
+svg:not([data-diagram-look]) text {
   font-family: var(--font-brand, 'SUSE', ui-sans-serif, system-ui, sans-serif);
 }
 
 /* Dated roadmap axis: tick dates and the today marker in the brand mono face.
    The rule (not an attribute) is what the vector export reads, since it resolves a
    run's COMPUTED font-family before outlining it. */
-svg text.db-axis {
+svg:not([data-diagram-look]) text.db-axis {
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
 }
 

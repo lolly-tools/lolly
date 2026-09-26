@@ -70,7 +70,7 @@ Two mechanisms narrow the catalog without forking it:
 
   ![Every feature flag as its own switch, with the gallery categories on and Strip metadata off](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dfeature-flags&width=1440&height=1800&dpi=192&waitMs=2000&format=svg&cropSelector=%23feature-flags-section&walker=1&dark=1&filename=pd-feature-flags)
 
-  **Strip metadata from uploads** is the privacy one of those two opt-ins: turn it on and images uploaded to your catalogue are scrubbed of EXIF, location (GPS) and other embedded metadata on import. Content Credentials (C2PA provenance) are *always* preserved either way - a signed or AI-generated image keeps its credential whether the flag is on or off.
+  **Strip metadata from uploads** is the privacy one of those two opt-ins: turn it on and images uploaded to Assets are scrubbed of EXIF, location (GPS) and other embedded metadata on import. Content Credentials (C2PA provenance) are *always* preserved either way - a signed or AI-generated image keeps its credential whether the flag is on or off.
 
 ## Maturity & watermarking
 

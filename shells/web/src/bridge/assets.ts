@@ -910,7 +910,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * credential to change). The regenerate path for a speech clip writes
      * through here: new audio, a fresh Content Credential over it, and the
      * `meta` keys the new take changed (plans/181 section 5.2). The id never
-     * moves, so no box in whatever document is re-pointed and every `#/c?asset=`
+     * moves, so no box in whatever document is re-pointed and every `#/a?asset=`
      * link keeps resolving.
      *
      * Like _restampUserAsset before it: preservePinned FIRST, because the

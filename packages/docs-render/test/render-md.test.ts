@@ -6,7 +6,7 @@
 // Run: node --test packages/docs-render/test/render-md.test.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mdToHtml, type DocsRenderContext } from '../src/index.ts';
+import { mdToHtml, type CredentialFacts, type DocsRenderContext } from '../src/index.ts';
 
 // The same minimal in-memory context the M0b seam test uses (context.test.ts): every
 // impure hook is a no-op so the pure block/inline pass is what the golden measures. t is
@@ -103,4 +103,38 @@ test('markup metacharacters in prose are HTML-escaped', () => {
   const html = mdToHtml('Compare a < b && c > d in code.', ctx);
   // esc rewrites & < > (and only those) so the paragraph is safe to inject.
   assert.ok(html.includes('a &lt; b &amp;&amp; c &gt; d'), 'angle brackets and ampersands escaped');
+});
+
+test('diagram actions link to the served credential and the editable recipe', () => {
+  const src = '/info/diagrams/document-model/example.svg';
+  const facts: CredentialFacts = {
+    signer: null, generator: 'Lolly', when: null, dimensions: null, ai: undefined,
+    model: null, oversight: null, anat: null, recipe: null, src, canCopySource: true,
+  };
+  const html = mdToHtml(`![A diagram](${src})`, mockContext({
+    docIcon: key => `<svg data-icon="${key}"></svg>`,
+    shotSize: () => ({ w: 640, h: 400 }),
+    credential: (file, opts) => {
+      assert.equal(file, 'diagrams/document-model/example.svg');
+      assert.equal(opts?.assetSrc, src);
+      return facts;
+    },
+    tryLink: () => ({ route: '/#/tool/diagram-builder?source=text&dsl=A+-%3E+B' }),
+  }));
+  assert.match(html, /width="640" height="400"/);
+  assert.ok(html.includes(`href="/#/verify?src=${encodeURIComponent(src)}"`));
+  assert.match(html, /aria-label="Verify this diagram"/);
+  assert.match(html, /data-icon="imprint"/);
+  assert.match(html, /source=text&amp;dsl=A\+-%3E\+B/);
+  assert.match(html, />Open this in Diagram Builder<\/a>/);
+});
+
+test('a diagram with no credential has no verify mark, even when it has a recipe', () => {
+  const html = mdToHtml('![Diagram](/info/diagrams/example.svg)', mockContext({
+    tryLink: () => ({ route: '/#/tool/diagram-builder' }),
+  }));
+  assert.ok(html.includes('Open this in Diagram Builder'));
+  assert.ok(!html.includes('diagram-verify'));
+  assert.equal(mdToHtml('![Diagram](/info/diagrams/example.svg)', mockContext()),
+    '<p><img src="/info/diagrams/example.svg" alt="Diagram" loading="lazy"></p>');
 });

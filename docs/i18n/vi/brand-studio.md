@@ -136,7 +136,7 @@ Một bảng **Gradients** tùy chọn xây dựng các token pha trộn từ b�
 
 ### Mang bảng màu đi nơi khác
 
-Nút nổi đặt ở mép dưới của bảng bảng màu cho phép tải xuống toàn bộ bảng màu dưới dạng **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, một **GIMP palette (.gpl)** hoặc một **Adobe Swatch Exchange (.ase)** - để thương hiệu chuyển thẳng vào Illustrator, Figma, GIMP hoặc một stylesheet. Nút này nằm ngoài vùng cuộn của bảng, nên nó luôn giữ nguyên vị trí dù bảng màu cuộn đến đâu. (Bạn cũng có thể tải bảng màu xuống từ chế độ xem [Catalogue](/info/using.html).)
+Nút nổi đặt ở mép dưới của bảng bảng màu cho phép tải xuống toàn bộ bảng màu dưới dạng **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, một **GIMP palette (.gpl)** hoặc một **Adobe Swatch Exchange (.ase)** - để thương hiệu chuyển thẳng vào Illustrator, Figma, GIMP hoặc một stylesheet. Nút này nằm ngoài vùng cuộn của bảng, nên nó luôn giữ nguyên vị trí dù bảng màu cuộn đến đâu. (Bạn cũng có thể tải bảng màu xuống từ [Tài sản](/info/using.html#assets-your-library).)
 
 ## Type
 
@@ -179,7 +179,7 @@ Phần còn lại của hệ thống thiết kế, có thể chỉnh sửa mà k
 
 ## Files
 
-Thả vào đây các tệp mà thương hiệu của bạn lưu giữ - ngoại trừ logo: tài sản **vector**, **image**, **audio** và **motion** (video, Lottie, hoạt hình). Chúng sẽ nằm trong [Catalogue](/info/using.html) của bạn, được sắp xếp theo phần và sẵn sàng trong trình chọn tài sản của mọi công cụ. Mọi thứ đều ở lại trên thiết bị này. (Thanh bên gọi khu vực này là **Files**; khóa URL vẫn là `catalogue`, vì khóa của một bảng là một hợp đồng vĩnh viễn.)
+Thả vào đây các tệp mà thương hiệu của bạn lưu giữ - ngoại trừ logo: tài sản **vector**, **image**, **audio** và **motion** (video, Lottie, hoạt hình). Chúng sẽ nằm trong [Tài sản](/info/using.html#assets-your-library), được sắp xếp theo phần và sẵn sàng trong trình chọn tài sản của mọi công cụ. Mọi thứ đều ở lại trên thiết bị này. (Thanh bên gọi khu vực này là **Files**; khóa URL vẫn là `catalogue`, vì khóa của một bảng là một hợp đồng vĩnh viễn.)
 
 ## Mang một thương hiệu vào
 
@@ -231,6 +231,6 @@ Một số bản build sử dụng **thương hiệu bị khóa** - màu sắc, 
 
 ## Đi tiếp từ đâu
 
-- **[Sử dụng Lolly](/info/using.html)** - canvas, lưu, dự án và danh mục.
+- **[Sử dụng Lolly](/info/using.html)** - canvas, lưu, dự án và Tài sản.
 - **[Design Tokens](/info/design-tokens.html)** - mô hình token mà thương hiệu của bạn được thể hiện qua đó.
 - **[Xuất & định dạng](/info/exporting.html)** - đơn vị in ấn, CMYK và các định dạng thương hiệu của bạn kết xuất ra.

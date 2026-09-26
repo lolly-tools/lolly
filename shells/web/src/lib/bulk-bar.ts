@@ -2,7 +2,7 @@
 /**
  * Shared bulk-action bar - the floating bottom-centre pill that appears over a
  * multi-selection (count + actions + ✕ clear), extracted from the two structurally
- * identical copies projects.ts and catalog.ts grew.
+ * identical copies projects.ts and assets.ts grew.
  *
  * This module owns the MARKUP and the SYNC (show/hide, count, per-action
  * hidden/disabled/label refresh, the `.has-selection` room-reservation class, and

@@ -136,7 +136,7 @@ Bu baskı kilitleri, bir CMYK PDF ya da TIFF dışa aktardığında bir matbaan�
 
 ### Paleti başka bir yere taşı
 
-Palet bölmesinin alt kenarında park etmiş yüzen hap, bütün paleti **Tasarım token'ları (JSON)**, **CSS değişkenleri**, **CSS sınıfları**, **SCSS değişkenleri**, bir **GIMP paleti (.gpl)** ya da bir **Adobe Swatch Exchange (.ase)** olarak indirir - böylece marka doğrudan Illustrator, Figma, GIMP ya da bir stil sayfasına düşer. Bölmenin kaydırma alanının dışında oturur, böylece palet ne kadar kaydırılırsa kaydırılsın yerini korur. (Paleti [Katalog](/info/using.html) görünümünden de indirebilirsin.)
+Palet bölmesinin alt kenarında park etmiş yüzen hap, bütün paleti **Tasarım token'ları (JSON)**, **CSS değişkenleri**, **CSS sınıfları**, **SCSS değişkenleri**, bir **GIMP paleti (.gpl)** ya da bir **Adobe Swatch Exchange (.ase)** olarak indirir - böylece marka doğrudan Illustrator, Figma, GIMP ya da bir stil sayfasına düşer. Bölmenin kaydırma alanının dışında oturur, böylece palet ne kadar kaydırılırsa kaydırılsın yerini korur. (Paleti [Varlıklar](/info/using.html#assets-your-library) görünümünden de indirebilirsin.)
 
 ## Tip
 
@@ -179,7 +179,7 @@ Tasarım sisteminin geri kalanı, koda dokunmadan düzenlenebilir:
 
 ## Dosyalar
 
-Markanın tuttuğu dosyaları - logolar hariç - buraya bırak: **vektör**, **görsel**, **ses** ve **hareket** (video, Lottie, animasyonlu) varlıkları. [Kataloğuna](/info/using.html) düşerler, bölümlere ayrılmış ve her aracın varlık seçicisinde hazır halde. Her şey bu cihazda kalır. (Rayda oda **Dosyalar** olarak etiketlenir; URL anahtarı `catalogue` olarak kalır, çünkü bir panel anahtarı kalıcı bir sözleşmedir.)
+Markanın tuttuğu dosyaları - logolar hariç - buraya bırak: **vektör**, **görsel**, **ses** ve **hareket** (video, Lottie, animasyonlu) varlıkları. [Varlıklar](/info/using.html#assets-your-library) görünümüne düşerler, bölümlere ayrılmış ve her aracın varlık seçicisinde hazır halde. Her şey bu cihazda kalır. (Rayda oda **Dosyalar** olarak etiketlenir; URL anahtarı `catalogue` olarak kalır, çünkü bir panel anahtarı kalıcı bir sözleşmedir.)
 
 ## Bir marka getir
 
@@ -231,6 +231,6 @@ Bazı yapılar **kilitli bir marka** ile gelir - renkleri, yazı tipleri ve toke
 
 ## Bundan sonra nereye
 
-- **[Lolly'yi kullanma](/info/using.html)** - tuval, kaydetme, projeler ve katalog.
+- **[Lolly'yi kullanma](/info/using.html)** - tuval, kaydetme, projeler ve Varlıklar.
 - **[Tasarım Tokenleri](/info/design-tokens.html)** - markanın ifade edildiği token modeli.
 - **[Dışa aktarma ve formatlar](/info/exporting.html)** - baskı birimleri, CMYK ve markanın dışa aktarıldığı formatlar.

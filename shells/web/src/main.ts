@@ -212,7 +212,7 @@ const ROUTES: Record<RouteName, RouteSpec> = {
   pro: { label: 'Batch mode', viewClasses: ['pro-view'], sigKey: 'params', footer: 'none' },
   projects: { label: 'Projects', tab: 'projects', viewClasses: ['projects-view'], sigKey: 'folderId', footer: 'search' },
   history: { label: 'History', viewClasses: ['history-view'], sigKey: 'params', footer: 'none' },
-  catalog: { label: 'Catalogue', tab: 'catalog', viewClasses: ['catalog-view'], footer: 'search' },
+  catalog: { label: 'Assets', tab: 'catalog', viewClasses: ['catalog-view'], footer: 'search' },
   // Verify/Convert/PDF/Lab keep their own chrome in v1 - the bar reaches them in
   // plans/99 M3 once proven (decision locked 2026-08-08).
   verify: { label: 'Verify', viewClasses: ['verify-view'], footer: 'none' },
@@ -623,10 +623,10 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
       await mountProjects(view, host, route.folderId, { onBatchRendered, params: route.params });
       break;
     }
-    // --- Catalog: a gallery-style view of every asset (catalog + user), plus swatches
+    // --- Assets (#/a): a gallery-style view of every asset (catalog + user), plus swatches
     // and downloadable fonts. Lazy-loaded like the other non-gallery views. ---
     case 'catalog': {
-      const { mountCatalog } = await import('./views/catalog.ts');
+      const { mountCatalog } = await import('./views/assets.ts');
       await mountCatalog(view, host, route.params);
       break;
     }
@@ -1695,13 +1695,13 @@ async function boot(): Promise<void> {
   {
     const dashboard = (): void => { void import('./views/dashboard.ts').catch(() => {}); };
     const projects = (): void => { void import('./views/projects.ts').catch(() => {}); };
-    const catalog = (): void => { void import('./views/catalog.ts').catch(() => {}); };
+    const catalog = (): void => { void import('./views/assets.ts').catch(() => {}); };
     // Every hash spelling parseRoute() below accepts for these three, including the
     // ones that land via a redirect (#/b and #/brand → the dashboard's brand tab).
     warmSecondary.set('settings', () => { void import('./views/profile.ts').catch(() => {}); });
     for (const k of ['d', 'dashboard', 'b', 'brand', 'platform', 'capabilities']) warmSecondary.set(k, dashboard);
     warmSecondary.set('p', projects);
-    for (const k of ['c', 'catalog']) warmSecondary.set(k, catalog);
+    for (const k of ['a', 'assets', 'c', 'catalog']) warmSecondary.set(k, catalog);
   }
   /** The route a hover/press is aimed at: the first path segment of the nearest
    *  link's hash (an `<a href>` or a jelly-button's `data-href`), else a
@@ -1884,7 +1884,14 @@ function parseRoute(): Route {
     }
     if (parts[0] === 'learning') return { name: 'learning', params: query || '' };
     if (parts[0] === 'p') return { name: 'projects', folderId: parts[1] || null, params: query || '' };
-    if (parts[0] === 'c' || parts[0] === 'catalog') return { name: 'catalog', params: query || '' };
+    if (parts[0] === 'a' || parts[0] === 'assets') return { name: 'catalog', params: query || '' };
+    // The view's spelling before it was renamed Assets (2026-09-26). Old bookmarks,
+    // share links (`#/c?asset=…`) and docs recipes forward to #/a with the query
+    // kept, the same way /pro forwards to /batch. The app never builds a #/c link.
+    if (parts[0] === 'c' || parts[0] === 'catalog') {
+      window.location.replace(`/#/a${query ? `?${query}` : ''}`);
+      return { name: 'catalog', params: query || '' };
+    }
     if (parts[0] === 'u' || parts[0] === 'utilities') return { name: 'utilities', params: query || '' }; // gallery filtered to the utility category
     if (parts[0] === 'lab') return { name: 'lab', params: query || '' }; // Colour Lab (?c=<any css colour>)
     if (parts[0] === 'pdf' || parts[0] === 'unpack') return { name: 'pdf', params: query || '' }; // Unpack - take a design file apart; #/unpack is canonical, #/pdf a kept alias for old shared links
@@ -1999,8 +2006,11 @@ function parseRoute(): Route {
       tools:     { hash: '#/',     route: { name: 'gallery' } },
       u:         { hash: '#/u',    route: { name: 'utilities' } },
       utilities: { hash: '#/u',    route: { name: 'utilities' } },
-      c:         { hash: '#/c',    route: { name: 'catalog' } },
-      catalog:   { hash: '#/c',    route: { name: 'catalog' } },
+      a:         { hash: '#/a',    route: { name: 'catalog' } },
+      assets:    { hash: '#/a',    route: { name: 'catalog' } },
+      // The Assets view's old path spellings forward to the same place.
+      c:         { hash: '#/a',    route: { name: 'catalog' } },
+      catalog:   { hash: '#/a',    route: { name: 'catalog' } },
       lab:       { hash: '#/lab',  route: { name: 'lab' } },
       // Unpack: /unpack is canonical, /pdf a kept alias (old shared links).
       compare:   { hash: '#/compare', route: { name: 'compare' } },

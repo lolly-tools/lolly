@@ -6,7 +6,7 @@ Part of [URL Mode](/info/url-mode.html).
 
 ## App links
 
-[Tool URLs](/info/url-mode.html) address an individual tool. The rest of the app is addressable the same way: the browse views, the studio, the dashboard and the settings pages each read a few params off their own route, so a link can land someone on a particular shelf of the catalogue or a particular settings card rather than on the front door.
+[Tool URLs](/info/url-mode.html) address an individual tool. The rest of the app is addressable the same way: the browse views, the studio, the dashboard and the settings pages each read a few params off their own route, so a link can land someone on a particular shelf of Assets or a particular settings card rather than on the front door.
 
 Two audiences use this, and they want the same thing for different reasons:
 
@@ -51,7 +51,7 @@ Where it is registered: the macOS and Windows installers and the Linux `.desktop
 
 | Param | Description |
 |---|---|
-| `lang` | UI language for this session, on any route (`#/c?lang=ja`, `/#/profile?lang=ar`). Same value set as the [tool-route `lang`](/info/url-parameters.html); same "session only, saved preference untouched" rule. |
+| `lang` | UI language for this session, on any route (`#/a?lang=ja`, `/#/profile?lang=ar`). Same value set as the [tool-route `lang`](/info/url-parameters.html); same "session only, saved preference untouched" rule. |
 | `theme` | `light`, `dark` or `brand` - pins the app's look for this page load. Deliberately **not** saved to the profile or to `localStorage`: a link you paste must not permanently flip someone's theme. Mostly for screenshots and for "here's how it looks in dark" links. **App views only** - on a tool link (`/t/<id>`, `#/tool/<id>`, `/design`) it is left alone, because `theme` is a declared input in a dozen tools where it already means "draw the artwork dark". |
 
 ### Gallery (`#/`, and `#/u` for utilities)
@@ -66,7 +66,9 @@ Where it is registered: the macOS and Windows installers and the Linux `.desktop
 | `history` \| `history=<id>` | Opens a tool's saved-sessions dialog instead of the info one. |
 | `welcome` | Presence flag - forces the first-run welcome dialog open even if it has been dismissed, so it can be captured deterministically. Ignored on branded and brand-locked installs: a link can't nag someone who already has a design system. |
 
-### Catalogue (`#/c`)
+### Assets (`#/a`)
+
+The server paths `/a` and `/assets` open the same view. Its earlier addresses, `#/c`, `#/catalog` and `/c`, still forward here for now and keep their query, so an old `#/c?asset=<id>` link still opens that asset.
 
 | Param | Description |
 |---|---|

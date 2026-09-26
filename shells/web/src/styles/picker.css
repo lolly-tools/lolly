@@ -402,7 +402,7 @@
   pointer-events: none;
 }
 /* Generative-AI badge - top-left corner (the format badge owns bottom-right). The
-   .genai-pill visual (fixed violet, sparkle-in-a-circle) is defined in parts/catalog.css. */
+   .genai-pill visual (fixed violet, sparkle-in-a-circle) is defined in parts/asset-shared.css. */
 .asset-picker-card .genai-pill {
   position: absolute;
   left: 7px;
@@ -411,7 +411,7 @@
   pointer-events: none;
 }
 /* The "AI?" signals chip shares the declared badge's corner - only one of the
-   two ever renders (a declaration outranks a signal). Visual: parts/catalog.css. */
+   two ever renders (a declaration outranks a signal). Visual: parts/asset-shared.css. */
 .asset-picker-card .cat-ai-chip {
   position: absolute;
   left: 7px;

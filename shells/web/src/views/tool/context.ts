@@ -45,6 +45,7 @@ import type { stageLayoutOps } from './stage-layout.ts';
 import type { exportingOps } from './exporting.ts';
 import type { sessionOps } from './session.ts';
 import type { presentationOps } from './presentation.ts';
+import type { canvasObjectsOps } from './canvas-objects.ts';
 import type { popoversOps } from './popovers.ts';
 import type { renderOps } from './render.ts';
 import type { setupOps } from './setup.ts';
@@ -298,6 +299,7 @@ export interface ToolViewCtx {
   session: ReturnType<typeof sessionOps>;
   presentation: ReturnType<typeof presentationOps>;
   popovers: ReturnType<typeof popoversOps>;
+  canvasObjects: ReturnType<typeof canvasObjectsOps>;
   render: ReturnType<typeof renderOps>;
   setup: ReturnType<typeof setupOps>;
 }

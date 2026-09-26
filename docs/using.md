@@ -6,7 +6,7 @@ A practical guide to actually *using* the app - opening a tool, working the canv
 
 ## Opening a tool
 
-The home screen is the **gallery** - every tool, grouped by category. Click a card to open the tool; if you've worked on it before, a **Continue** button resumes your most recent session. Use the search box to filter by name - or [Search](/info/search.html) from the bar at the foot of the six listing screens (the gallery, Utilities, Projects, the Catalogue, the Dashboard and Profile), which reaches your saved work, the catalogue and your settings as well as the tools. Inside a tool the bar steps aside for the tool's own chrome.
+The home screen is the **gallery** - every tool, grouped by category. Click a card to open the tool; if you've worked on it before, a **Continue** button resumes your most recent session. Use the search box to filter by name - or [Search](/info/search.html) from the bar at the foot of the six listing screens (the gallery, Utilities, Projects, Assets, the Dashboard and Profile), which reaches your saved work, your assets and your settings as well as the tools. Inside a tool the bar steps aside for the tool's own chrome.
 
 ![A gallery card with example navigation and a New action](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
@@ -268,7 +268,7 @@ Click **Save** to store the current inputs as a session for that tool. You can k
 - <!--i:folder--> **Folders that nest.** Group saved sessions into folders, and folders inside folders, as deep as you like. Create a folder, rename it or drag a tile onto another folder to move it; a breadcrumb walks you back up. Sessions saved without a folder appear directly at the **Projects** root.
 - <!--i:clock--> **Sort your own way.** **View & sort** offers **Name**, **Date added**, **Last modified** (the default) and, inside a folder, **By tool**. Folders always come first regardless of which sort is active - the sort only orders the sessions and folders within their own group.
 - <!--i:document--> **File new work straight in.** **New asset** opens the shared picker. Choose **Templates** to start from a saved template: open it to edit, or use **+ Add** to save a new creation immediately.
-- <!--i:checklist--> **Multi-select (desktop).** Tick a tile's checkbox, drag a selection box across empty space or **Shift/Cmd-click**; **right-click** a tile for its context menu. Then act on the whole selection at once - the same gesture and the same floating action bar work on the Tools gallery, Utilities, the Catalogue and Projects, not just here.
+- <!--i:checklist--> **Multi-select (desktop).** Tick a tile's checkbox, drag a selection box across empty space or **Shift/Cmd-click**; **right-click** a tile for its context menu. Then act on the whole selection at once - the same gesture and the same floating action bar work on the Tools gallery, Utilities, Assets and Projects, not just here.
 - <!--i:download--> **Render a whole folder or selection.** **Render folder** exports every saved session in a folder - including its sub-folders - as one nested `.zip`. **Render selection** does the same for any multi-selection, and a single session renders straight to its own file. No Batch/Pro needed.
 - <!--i:link--> **Jump straight to a tool's saved work.** Tick one or more tools on the Tools gallery and choose **View sessions** from the selection bar - Projects opens showing only the sessions made with those tools, with a **Clear** to get back to the full view.
 - <!--i:link--> **Share a saved session.** Right-click a session → **Share link** to copy a link that reopens it with the exact same inputs (the full Share dialog - see below).
@@ -296,7 +296,7 @@ alt text lists them - do not re-caption this as "the sort menu".
 **What the selection bar offers** differs a little by view, since not every action makes sense everywhere:
 
 - **Tools / Utilities:** Favourite (or Unfavourite), Hide (or Unhide), Available offline (or Remove from offline), **View sessions** (the jump described above) and Copy link when exactly one card is selected.
-- **Catalogue:** Favourite and Hide apply to any selection; Duplicate, Download and Delete only appear once every selected item is one of your own uploads - a shared design-system asset is a permanent contract, so those three stay off it even in bulk.
+- **Assets:** Favourite and Hide apply to any selection; Duplicate, Download and Delete only appear once every selected item is one of your own uploads - a shared design-system asset is a permanent contract, so those three stay off it even in bulk.
 - **Projects:** **Render selection**, **Move to…**, **New folder**, **Delete**, **Edit together** when the selection is between two and eight single-tool sessions (it opens them side by side under one combined sidebar) and **Edit as sheet**, which opens the whole selection as rows in the batch grid instead. That one has **no size limit** and doesn't care whether the sessions came from the same tool, so it's the escape hatch when a selection is bigger or more mixed than Edit together's two-to-eight.
 
 > One label trap: **View sessions** only exists once something is *selected*. Right-clicking a single unselected card instead offers **N saved sessions**, which opens that tool's own history dialog rather than navigating to Projects.
@@ -380,26 +380,26 @@ Every photo **Filter** - Halftone, Scanline, Posterize, Voronoi cells, Colour tr
 
 When a tool lets you add an image from your device, it's kept exactly as it arrived - so a Content Credential on it still verifies - and saved to your personal **My images** library (under **Profile → Storage**). Only a genuinely huge file asks whether to keep or resize it. Reuse it across any tool. To scrub EXIF/GPS as images come in, turn on **Strip metadata from uploads** in your profile. There's no cap: the library is entirely local and limited only by your device's storage - manage or delete images there.
 
-## The Catalogue - your asset library
+## Assets - your library
 
-The **Catalogue** (`#/c`, or the **Catalog** segment of the Projects · Tools · Utilities · Catalog switch at the top of every listing view) gathers everything your tools can draw on - brand logos, images, audio and motion, grouped by kind - and it's where your **own creative files** live too. No server, no admin console, no pull request: it's all on your device.
+**Assets** (`#/a`, or the **Assets** segment of the Tools · Utilities · Assets · Projects switch at the top of every listing view) gathers everything your tools can draw on - brand logos, images, audio and motion, grouped by kind - and it's where your **own creative files** live too. No server, no admin console, no pull request: it's all on your device.
 
-![The Catalogue - brand assets, swatches and fonts, plus your own uploads](/t/url-shot?url=%2F%23%2Fc%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=catalogue)
+![Assets, with the brand's swatches and fonts and your own uploads](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
-- <!--i:upload--> **Bring your files in.** Drag any image, SVG, audio clip, video, Lottie, PDF or PowerPoint deck onto the upload area - or click to choose - and it arrives in your catalogue instantly, ready in every tool's asset picker. A multi-page PDF or a `.pptx` asks which pages or slides to keep - each becomes an SVG asset. Ingest as much as you like; it never leaves your device.
+- <!--i:upload--> **Bring your files in.** Drag any image, SVG, audio clip, video, Lottie, PDF or PowerPoint deck onto the upload area - or click to choose - and it arrives in Assets instantly, ready in every tool's asset picker. A multi-page PDF or a `.pptx` asks which pages or slides to keep - each becomes an SVG asset. Ingest as much as you like; it never leaves your device.
 - <!--i:star--> **Favourite what you reach for.** ★ an asset (or a brand swatch) and it pins to the top of every picker, so your go-to logo or colour is one click away.
 - <!--i:folder--> **Tidy up.** Recategorise an asset into a different group, hide a shared brand asset you don't use (with **Show hidden** to bring it back) or delete your own uploads outright. The same multi-select gesture and floating action bar as Projects work here too, so any of that can be done to a whole selection at once.
 - <!--i:layers--> **Lift a video off its background.** Open a video's detail or right-click its card in any asset picker and choose **Remove background…** to save a transparent alternative - an animated WebP or PNG with real alpha. Pick a **Method**: an **On-device model** cuts a subject out of a busy scene, or a **Colour key** keys out an evenly lit, flat backdrop like a green screen or a plain wall, with **Tolerance**, **Softness** and **Spill removal** to tune the edge. The colour key needs no model download and no network, so **Remove background** is offered on any video and is often cleaner on tidy footage. A **Resolution** control (360, 480, 720 or 1080p, never past the source) trades detail for a smaller, faster file. It runs as a background job on your device. The finished cut-out is saved beside the original as its own asset and the source video's Content Credential rides along as an ingredient. (See [Generated once, rendered the same](/info/ai-features.html) for why removing a background stays a plain edit.)
 
 ### Take your palette and fonts anywhere
 
-The Catalogue's **Swatches** panel does more than display - click a colour to copy it, or **download the whole brand palette** in the format your other tool speaks:
+The **Swatches** panel in Assets does more than display - click a colour to copy it, or **download the whole brand palette** in the format your other tool speaks:
 
 - <!--i:code--> **Design tokens (JSON)**, **CSS variables** or **CSS classes** - drop the brand straight into a stylesheet or a build;
 - <!--i:palette--> **Adobe Swatch Exchange (.ase)** - load it into Illustrator or Photoshop;
 - <!--i:pentool--> **GIMP palette (.gpl)** - for GIMP or Inkscape.
 
-![The Swatches panel - the five palette download buttons across the top, then every brand colour as a copyable chip](/t/url-shot?url=%2F%23%2Fc%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+![The Swatches panel - the five palette download buttons across the top, then every brand colour as a copyable chip](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
 
 The **Fonts** panel lists your brand faces with a **download** beside each, to install locally or hand to a print shop. (The [Brand Studio](/info/brand-studio.html)'s Colours room offers the same palette download.)
 

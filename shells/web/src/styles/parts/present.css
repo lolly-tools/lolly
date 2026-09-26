@@ -202,11 +202,13 @@
    (zoom out to hold both frames, then in on the destination) while the transition
    interpolates the composed transform. Placement is `cameraFor` in present-math.ts - the
    same function the overview map uses, so the map and the flight cannot disagree about
-   where a frame is. Reduced motion never enters this mode; it crossfades instead. */
+   where a frame is. Reduced motion never enters this mode; it crossfades instead.
+   No standing will-change here: the container can be scaled above 1, and a permanent
+   hint would keep a layer that size alive between moves. `setCamera` in present-mode.ts
+   sets the hint inline for the length of each leg and drops it afterwards. */
 .pr-stage.pr-canvas .pr-frames {
   transform-origin: 0 0;
   transform: translate(var(--pr-cam-x, 0px), var(--pr-cam-y, 0px)) scale(var(--pr-cam-s, 1));
-  will-change: transform;
 }
 .pr-stage.pr-canvas .pr-page {
   left: var(--pr-cx, 0px);

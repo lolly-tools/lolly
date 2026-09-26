@@ -1172,7 +1172,7 @@
     "shells/web/src/pro/pro.css": {
       "error/lint/suspicious/noDuplicateProperties": 1
     },
-    "shells/web/src/styles/catalog-mobile.test.ts": {
+    "shells/web/src/styles/assets-mobile.test.ts": {
       "error/lint/suspicious/noAssignInExpressions": 1
     },
     "shells/web/src/styles/fixed-popover-containing-block.test.ts": {

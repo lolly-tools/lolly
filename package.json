@@ -67,6 +67,7 @@
     "check:web-src-readme": "node scripts/gen-web-src-readme.ts --check",
     "index:plans": "node scripts/index-plans.ts",
     "validate:catalog:all": "node scripts/build-catalog-all.ts --check",
+    "build:diagram-hooks": "node scripts/build-diagram-hooks.ts",
     "sync:shared": "node scripts/sync-shared-hooks.ts",
     "build:design-renderer": "node scripts/build-design-tool-renderer.ts",
     "check:design-renderer": "node scripts/build-design-tool-renderer.ts --check",

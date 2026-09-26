@@ -83,11 +83,11 @@ beforeEach(() => {
 
 describe('offline-manager: downloadList', () => {
   test('downloads every file, reports byte progress, and lands them in the bucket', async () => {
-    server.set('/assets/a.js', 100);
+    server.set('/_app/a.js', 100);
     server.set('/fonts/b.woff2', 50);
     const seen: Array<{ loaded: number; total: number | null }> = [];
     const res = await downloadList('bucket', [
-      { url: '/assets/a.js', size: 100 },
+      { url: '/_app/a.js', size: 100 },
       { url: '/fonts/b.woff2', size: 50 },
     ], { onProgress: p => seen.push({ loaded: p.loaded, total: p.total }) });
 
@@ -124,13 +124,13 @@ describe('offline-manager: downloadList', () => {
   });
 
   test('resumes: files already present and current are not re-fetched', async () => {
-    server.set('/assets/a.js', 100);
+    server.set('/_app/a.js', 100);
     server.set('/data/big.bin', 500);
-    await downloadList('bucket', [{ url: '/assets/a.js', size: 100 }]);
+    await downloadList('bucket', [{ url: '/_app/a.js', size: 100 }]);
     fetches = [];
 
     const res = await downloadList('bucket', [
-      { url: '/assets/a.js', size: 100 },       // hashed name - existence is proof
+      { url: '/_app/a.js', size: 100 },       // hashed name - existence is proof
       { url: '/data/big.bin', size: 500 },      // new file - must fetch
     ]);
     assert.deepEqual(res, { bytes: 600, files: 2 });
@@ -148,16 +148,16 @@ describe('offline-manager: downloadList', () => {
   });
 
   test('throws when any file fails, after draining the rest - never silently partial', async () => {
-    server.set('/assets/a.js', 10);
-    // /assets/missing.js is not served → 404 (an HTML body, the SPA-fallback shape)
+    server.set('/_app/a.js', 10);
+    // /_app/missing.js is not served → 404 (an HTML body, the SPA-fallback shape)
     await assert.rejects(
       downloadList('bucket', [
-        { url: '/assets/a.js', size: 10 },
-        { url: '/assets/missing.js', size: 20 },
+        { url: '/_app/a.js', size: 10 },
+        { url: '/_app/missing.js', size: 20 },
       ]),
       /1 of 2 files failed/,
     );
-    assert.ok(cacheStore.get('bucket')!.entries.has('/assets/a.js'),
+    assert.ok(cacheStore.get('bucket')!.entries.has('/_app/a.js'),
       'the good file stays cached for the retry to resume from');
   });
 

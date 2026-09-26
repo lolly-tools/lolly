@@ -136,7 +136,7 @@ function vectorFileName(v: ExtractedVector, base: string, index: number): string
 const wordCount = (p: PageText): number => (p.text.match(/\S+/g) ?? []).length;
 
 // Counts. Two whole keys per phrase behind a ternary - the app-wide convention
-// (see catalog.ts / gallery.ts), because a translator needs the whole sentence,
+// (see assets.ts / gallery.ts), because a translator needs the whole sentence,
 // not "{n}" glued to a noun that inflects differently at one.
 const nPages = (n: number): string => (n === 1 ? t('1 page') : t('{n} pages', { n }));
 const nWords = (n: number): string => (n === 1 ? t('1 word') : t('{n} words', { n }));
@@ -319,7 +319,7 @@ function imagesMarkup(x: Extracted): string {
         </figcaption>
         <div class="pdfx-asset-actions">
           <button type="button" class="btn btn--ghost" data-save-image="${i}">${t('Download')}</button>
-          <button type="button" class="btn btn--ghost" data-catalog-image="${i}">${t('Add to catalogue')}</button>
+          <button type="button" class="btn btn--ghost" data-catalog-image="${i}">${t('Add to Assets')}</button>
         </div>
       </figure>`;
   }).join('');
@@ -380,7 +380,7 @@ function vectorsMarkup(x: Extracted, kind: 'mark' | 'drawing'): string {
         </figcaption>
         <div class="pdfx-asset-actions">
           <button type="button" class="btn btn--ghost" data-save-vector="${i}">${t('Download SVG')}</button>
-          <button type="button" class="btn btn--ghost" data-catalog-vector="${i}">${t('Add to catalogue')}</button>
+          <button type="button" class="btn btn--ghost" data-catalog-vector="${i}">${t('Add to Assets')}</button>
           ${kind === 'mark' ? `<button type="button" class="btn btn--ghost" data-logos-vector="${i}">${t('Send to Logos')}</button>` : ''}
         </div>
       </figure>`;

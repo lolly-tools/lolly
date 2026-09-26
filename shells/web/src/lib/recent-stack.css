@@ -24,8 +24,10 @@
   top: 48%;
   width: min(268px, 70vw);
   transform: translate(-50%, -50%);
+  /* No standing will-change: the stack holds up to 12 cards, most of them hidden, and a
+     hint would keep a layer alive for each. The transitions promote a card while they
+     run, and layout() in recent-stack.ts hints only the front card during a drag. */
   transition: transform 0.42s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.42s ease;
-  will-change: transform, opacity;
   border-radius: calc(var(--radius) * 1.15);
   overflow: hidden;
   background: hsl(var(--card));

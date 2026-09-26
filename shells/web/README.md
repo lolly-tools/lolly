@@ -45,7 +45,7 @@ There is no router library. `src/main.ts` parses the hash, then a single `switch
 | `multi` | `views/multi-edit.ts` |
 | `pro` | `pro/index.ts` |
 | `projects` | `views/projects.ts` |
-| `catalog` | `views/catalog.ts` |
+| `catalog` | `views/assets.ts` |
 | `start` | `views/start.ts` |
 | `lab` | `views/color-lab.ts` |
 | `pdf` | `views/pdf-extract.ts` |

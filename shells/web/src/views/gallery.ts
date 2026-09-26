@@ -420,10 +420,12 @@ const REVEAL_STEP_MS = 30;  // delay between tiles within one reveal batch
 // sort on the cached keys - a comparator that measured inside itself would re-read both
 // operands O(n log n) times, thrashing layout for no reason.
 function sortByReadingOrder<T extends Element>(els: T[]): T[] {
-  const keyed = els.map(el => {
-    const r = el.getBoundingClientRect();
-    return { el, top: Math.round(r.top / 8), left: r.left };
-  });
+  return orderByRects(els.map(el => ({ el, rect: el.getBoundingClientRect() })));
+}
+// The same ordering from rects the caller already has (an IntersectionObserver entry
+// carries its target's box), so nothing is measured here.
+function orderByRects<T extends Element>(items: { el: T; rect: { top: number; left: number } }[]): T[] {
+  const keyed = items.map(({ el, rect }) => ({ el, top: Math.round(rect.top / 8), left: rect.left }));
   keyed.sort((a, b) => (a.top - b.top) || (a.left - b.left));
   return keyed.map(k => k.el);
 }
@@ -474,8 +476,10 @@ function revealCards(masonry: HTMLElement, animate: boolean): IntersectionObserv
   // Below the fold: fade in per tile as it scrolls into view. Each batch re-starts the
   // stagger at 0 so a late scroll never inherits a big delay.
   if (!below.length) return null;
+  // Ordered by each entry's own boundingClientRect, taken when the observer computed the
+  // intersection, rather than by measuring every target again before the reveal writes.
   const io = new IntersectionObserver((entries, obs) => {
-    sortByReadingOrder(entries.filter(e => e.isIntersecting).map(e => e.target as HTMLElement))
+    orderByRects(entries.filter(e => e.isIntersecting).map(e => ({ el: e.target as HTMLElement, rect: e.boundingClientRect })))
       .forEach((el, i) => { reveal(el, i); obs.unobserve(el); });
   // Pull the trigger up a touch from the bottom edge so scroll reveals read as
   // "fades in as it arrives" rather than only once fully on-screen.

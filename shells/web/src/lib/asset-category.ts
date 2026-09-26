@@ -2,7 +2,7 @@
 /**
  * Asset categorisation - the single source of truth for how an asset is bucketed into a
  * library group, shared by the asset picker (views/picker.ts) and the Catalog view
- * (views/catalog.ts) so both group identically.
+ * (views/assets.ts) so both group identically.
  *
  * The base category is inferred from the asset's catalog TAGS. A per-user override
  * (profile.assetCategories, keyed by base asset id → group key) layers on top so a user

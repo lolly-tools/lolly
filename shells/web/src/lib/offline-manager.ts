@@ -11,7 +11,7 @@ import { assertAiAllowed, modelCapability, runAi } from './ai-policy.ts';
  * service-worker bucket (or store) that actually serves it offline:
  *
  *   app - the full build payload (dist/precache.json `app` group: every
- *             hashed /assets/ chunk incl. lazy views + locale chunks +
+ *             hashed /_app/ chunk incl. lazy views + locale chunks +
  *             HarfBuzz wasm, the bundled UI fonts, icons, share stubs) into
  *             the APP_CACHE bucket. Closes the biggest hole in the offline
  *             story: before this, a lazy chunk cached only if its code path
@@ -46,7 +46,7 @@ import { assertAiAllowed, modelCapability, runAi } from './ai-policy.ts';
  * Downloads are resumable and cancellable: every file already present (same
  * URL, and where sizes are known, same byte size) is skipped, so a dropped
  * connection or a cancelled run resumes from where it stopped, and a deploy
- * re-downloads only the delta (hashed /assets/ names miss the cache only when
+ * re-downloads only the delta (hashed /_app/ names miss the cache only when
  * their content actually changed). An AbortController threads through every
  * fetch. Part state (which parts are downloaded, at which manifest version)
  * persists in IndexedDB next to the pin map - device-local, never in the
@@ -95,7 +95,7 @@ const PARTS_KEY = 'offline-parts';
 
 /** One downloadable file as the manifests list it. `hash` (sha256, base64url,
  *  truncated) is present for files whose URL does not already encode their
- *  content (everything except the content-hash-named /assets/ chunks and the
+ *  content (everything except the content-hash-named /_app/ chunks and the
  *  huge, release-versioned /ort/ + /models/ binaries) - it is what lets a
  *  resume distinguish "current" from "same size, different bytes". */
 export interface ManifestFile { url: string; size: number; hash?: string }
@@ -243,7 +243,7 @@ export function docsFileList(manifest: InfoManifest, lang: string): ManifestFile
 const HASH_HEADER = 'x-lolly-manifest-hash';
 const SIZE_HEADER = 'x-lolly-manifest-size';
 
-/** Is this cached copy still the manifest's copy? Hashed /assets/ names make
+/** Is this cached copy still the manifest's copy? Hashed /_app/ names make
  *  existence proof enough. Everything else compares the manifest identity the
  *  download stamped onto the stored response: the content hash when the
  *  manifest carries one, else the DECODED byte size (never the wire
@@ -267,7 +267,8 @@ async function cachedMatches(cache: Cache, file: ManifestFile): Promise<boolean>
 }
 
 function entryMatches(held: Response, file: ManifestFile): boolean {
-  if (/^\/assets\//.test(file.url)) return true;
+  // /_app/ is the build's content-hashed folder (APP_ASSETS_DIR, shells/web/vite.config.js).
+  if (/^\/_app\//.test(file.url)) return true;
   if (file.hash) return held.headers.get(HASH_HEADER) === file.hash;
   const stamped = held.headers.get(SIZE_HEADER);
   return stamped !== null && Number(stamped) === file.size;
@@ -300,7 +301,7 @@ const DOWNLOAD_CONCURRENCY = 4;
  *  them) but 404s in the desktop shell, whose build prunes `dist/models/` to stay
  *  under the binary-embed limit. There, VITE_MODELS_BASE points at the model host
  *  so ONLY the pruned `/models/` bytes are pulled from there; `/ort/`, `/ort-hf/`,
- *  `/assets/` etc. stay in the bundle and same-origin. On the web build MODELS_BASE
+ *  `/_app/` etc. stay in the bundle and same-origin. On the web build MODELS_BASE
  *  is '' so this is a no-op (byte-identical).
  *
  *  It is also the CACHE KEY a model file is stored under: the speech, rewriter,

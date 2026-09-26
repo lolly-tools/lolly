@@ -1256,6 +1256,20 @@ test('flight: the stage goes to canvas mode and the camera ends framing the dest
   ctl.close(); cleanup();
 });
 
+test('flight: the camera holds a will-change hint only while a leg is moving', async () => {
+  const src = makeMotionSource([{ id: 'a', transition: 'flight' }, { id: 'b' }]);
+  const ctl = openPresentMode({ source: src })!;
+  const frames = stageEl()!.querySelector<HTMLElement>('.pr-frames')!;
+  assert.equal(frames.style.willChange, '', 'no hint on a deck at rest');
+  document.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'ArrowRight' }));
+  assert.equal(frames.style.willChange, 'transform', 'promoted as the flight takes off');
+  const view = { w: win.innerWidth, h: win.innerHeight };
+  const path = flightPath({ x: 0, y: 0, w: 1920, h: 1080 }, { x: 2000, y: 0, w: 1920, h: 1080 }, view)!;
+  await delay(path.total + 120);
+  assert.equal(frames.style.willChange, '', 'and let go once the camera has landed');
+  ctl.close(); cleanup();
+});
+
 test('flight: a later move that is not a flight leaves canvas mode behind', async () => {
   const src = makeMotionSource([{ id: 'a', transition: 'flight' }, { id: 'b', transition: 'fade' }, { id: 'c' }]);
   const ctl = openPresentMode({ source: src })!;

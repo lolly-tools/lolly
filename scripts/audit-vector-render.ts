@@ -75,7 +75,7 @@ const FIXTURES: Fixture[] = [
   // fixture carries no foreign-font penalty, so its ENGINE-loss is directly
   // comparable to `local-qr`'s noise floor.
   { slug: 'local-gallery',   url: '/#/',                    local: true, note: 'docs: tools gallery - forced to png (featured-row backdrop plate)' },
-  { slug: 'local-catalogue', url: '/#/c',                   local: true, note: 'docs: catalogue - forced to png' },
+  { slug: 'local-catalogue', url: '/#/a',                   local: true, note: 'docs: catalogue - forced to png' },
   { slug: 'local-brand-col', url: '/#/start?tab=color',     local: true, note: 'docs: brand studio Colours tab - forced to png' },
   { slug: 'local-export',    url: '/#/tool/qr-code?url=https://lolly.tools&options', local: true, note: 'docs: export panel - forced to png' },
   { slug: 'local-verify',    url: '/#/verify',              local: true, note: 'docs: verify page - vector candidate' },

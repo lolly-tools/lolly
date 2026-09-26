@@ -10,7 +10,7 @@
  * hairline. Every extract therefore replaces each such character with a small
  * NAMED chip (ZWSP, RLO, TAG, VS17...) carrying the codepoint in its tooltip,
  * so what the finding says is right there in the text, glanceable - not an
- * abstract row the reader has to hunt for. Promoted from catalog.ts's local
+ * abstract row the reader has to hunt for. Promoted from views/assets.ts's local
  * work-preview helper (2026-08-19) so verify and the catalog can never drift.
  *
  * Chips are visual only: copy actions always use the ORIGINAL text, and the

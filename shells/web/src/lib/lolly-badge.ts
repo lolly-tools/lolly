@@ -2,7 +2,7 @@
 /**
  * The "Made with Lolly" mark - the lollipop glyph + wordmark, shared so the catalog
  * (its details modal) and the Verify view read identically instead of the glyph being
- * trapped inline in valid.ts. Styled by `.lolly-badge` in styles/parts/catalog.css.
+ * trapped inline in valid.ts. Styled by `.lolly-badge` in styles/parts/asset-shared.css.
  *
  * The claim is only honest when a credential actually records a Lolly export - the
  * catalog reveals the `lg` lockup lazily, gated on `verifyC2pa(...).madeWithLolly`

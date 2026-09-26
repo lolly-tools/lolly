@@ -1,0 +1,14 @@
+{
+  "id": "flow-workflow",
+  "name": "Flow workflow",
+  "category": "Looks",
+  "description": "A four-step workflow in the Flow look.",
+  "values": {
+    "look": "flow",
+    "source": "text",
+    "diagramType": "process",
+    "flowDir": "down",
+    "dsl": "Discover -> Design\nDiscover -> Build\nDesign -> Share\nBuild -> Share",
+    "title": "From idea to impact"
+  }
+}

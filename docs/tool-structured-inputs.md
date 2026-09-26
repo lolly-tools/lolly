@@ -179,3 +179,19 @@ One caveat before you offer `pitch`/`yaw`: a tilted plane is a projective homogr
 Whole marks are the documented exception: `logo-wall`, `logo-lockup-partner` and `snippet`'s title icon offer scale only, because a logo is not cropped.
 
 [Back to Authoring Tools](/info/authoring-tools.html).
+
+## Clickable artwork and object menus
+
+The web shell can connect template artwork to the declared input model. Add `data-canvas-input="title"` to focus one input, `data-canvas-input="nodes:2"` to open the third block row, or `data-canvas-input="nodes:2:label"` to focus its label field. A source-driven tool should point imported artwork at the visible source editor instead of a hidden block row.
+
+Add a readable `data-canvas-name` and a space-separated `data-canvas-settings` list to offer the object's relevant settings on secondary click or touch hold. Select settings can be changed directly in the menu; other settings focus the sidebar. Hidden controls, unavailable fields and input policies still apply. For keyboard access, give SVG groups `tabindex="0"`, `role="button"` and an `aria-label`. Enter opens the sidebar control and Shift+F10 opens the menu.
+
+```html
+<g data-canvas-input="nodes:2" data-canvas-name="Design"
+   data-canvas-settings="nodes:2:label nodes:2:shape nodes:2:fill"
+   tabindex="0" role="button" aria-label="Design">
+  <!-- Render the card here. -->
+</g>
+```
+
+The shell owns the interaction and writes through the runtime. Hooks only emit escaped annotations. A thin connection can have a wider transparent hit path marked `data-export-hide`; exports remove that path and the canvas menu affordances.

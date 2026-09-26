@@ -70,7 +70,7 @@ trình duyệt. Rào cản khi áp dụng hiếm khi nằm ở kỹ thuật; nó
 tảng, không phải một gói template hoàn chỉnh của bạn. Với một *đợt triển khai có quản trị*,
 ai đó phải định nghĩa catalog tài nguyên dùng chung (logo, bảng màu, phông chữ dưới dạng
 ID vĩnh viễn) rồi viết manifest + template cho từng loại đầu ra. Tuy vậy cá nhân không
-phải chờ điều đó - trong ứng dụng mở, ai cũng có thể nạp tệp của mình vào catalog và dựng
+phải chờ điều đó - trong ứng dụng mở, ai cũng có thể nạp tệp của mình vào Tài sản và dựng
 công cụ trong Design ngay từ ngày đầu.
 
 **Không cần git để đóng góp.** Nhà thiết kế tự làm công cụ và template ngay

@@ -719,7 +719,7 @@ export function lollyMarkHex(hue: number, theme: 'light' | 'dark'): string {
  * glyph + wordmark, theme-adaptive) and `--lolly-coin-glow` (the made-with-Lolly
  * medallion's outer glow, so it matches the recoloured logo swirl filling it).
  * '' when the brand has no real hue, so the green fallbacks in valid.css /
- * catalog.css stand. The bitmap recolour (`--lolly-logo`) is handled separately
+ * asset-shared.css stand. The bitmap recolour (`--lolly-logo`) is handled separately
  * by applyBrandLogo, since it needs a canvas at runtime.
  */
 export function lollyMarkCss(lightHex: string | null, darkHex: string | null): string {

@@ -235,8 +235,8 @@ const INLINE_GLYPH_ALLOWED: Record<string, number> = {
   'pro/grid.ts': 5,
   'pro/run-overlay.ts': 1,
   'theme.ts': 3,
-  'views/catalog.ts': 1,   // +2 2026-08-18: INTERP_ICON + FIT_ICON zoom-pill glyphs (inline, like ZOOM_IN/OUT_ICON)
-  'views/catalog/shared.ts': 21,   // 2026-09-25: the view-options sliders glyph went to the shared button. 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts (the zoom-pill and treatment glyph constants)
+  'views/assets.ts': 1,   // +2 2026-08-18: INTERP_ICON + FIT_ICON zoom-pill glyphs (inline, like ZOOM_IN/OUT_ICON)
+  'views/assets/shared.ts': 21,   // 2026-09-25: the view-options sliders glyph went to the shared button. 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts (the zoom-pill and treatment glyph constants)
   'views/dashboard.ts': 1,
   'views/doc-editor.ts': 23,
   // Moved verbatim from free-canvas.ts into its icon registry during the plan
@@ -1095,15 +1095,15 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // template family), no raw user text reaches markup.
   // +1 2026-08-21 (plans/136 W2a): the [data-passport] fill - lampStripHtml
   // escape()s every value, chips are escape()d licence strings/t() constants.
-  'views/catalog.ts': 1,  // +1 2026-09-02 (plans/129 section 2.3): openSendDialog's per-target status line - the remote url is safeHref()-gated and escape()d, the label escape()d; +1 2026-08-21 (plans/132 WP-M): the mount-time loading skeleton (viewEl.innerHTML) - static markup, the only interpolation is a repeated constant tile string, no user text; +1 2026-08-20 (WP-G): the [data-usage] Used-in fill - labels escape()d, mirrors the [data-tech] sink; +1 2026-08-20: the Download-as toolbar menu (body-popover render `el.innerHTML`) - format values/labels are constants (plus the escape()d source format), no user text; +1 2026-08-18: interpBtn.innerHTML = INTERP_ICON - a trusted inline SVG constant, no interpolation; +2 2026-08-18 (plans/125): the [data-tsig] box (renderTextPanel, catTextWorkHtml escape()s every value) + read-text - the read-text <pre> is filled via textContent, never markup; +1 2026-08-18 (plans/126 markdown reading view): setTextRenderMode's [data-md-rendered] fill - user markdown through lib/markdown mdToHtml then DOMPurify.sanitize, the same pairing doc-editor's paste path uses; 2026-08-19 (inline-edits UX pass): the analyse-text fill folded into renderTextPanel, and the freed slot is openEditCard's card.innerHTML - sugCardHtml/rwCardHtml escape() every interpolated value
-  'views/catalog/details-sheet.ts': 9,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
-  'views/catalog/details-shared.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
-  'views/catalog/details-panels.ts': 4,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
-  'views/catalog/details-inline-modes.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
-  'views/catalog/wiring.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
-  'views/catalog/shared.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
-  'views/catalog/sections.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
-  'views/catalog/downloads.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/assets.ts': 1,  // +1 2026-09-02 (plans/129 section 2.3): openSendDialog's per-target status line - the remote url is safeHref()-gated and escape()d, the label escape()d; +1 2026-08-21 (plans/132 WP-M): the mount-time loading skeleton (viewEl.innerHTML) - static markup, the only interpolation is a repeated constant tile string, no user text; +1 2026-08-20 (WP-G): the [data-usage] Used-in fill - labels escape()d, mirrors the [data-tech] sink; +1 2026-08-20: the Download-as toolbar menu (body-popover render `el.innerHTML`) - format values/labels are constants (plus the escape()d source format), no user text; +1 2026-08-18: interpBtn.innerHTML = INTERP_ICON - a trusted inline SVG constant, no interpolation; +2 2026-08-18 (plans/125): the [data-tsig] box (renderTextPanel, catTextWorkHtml escape()s every value) + read-text - the read-text <pre> is filled via textContent, never markup; +1 2026-08-18 (plans/126 markdown reading view): setTextRenderMode's [data-md-rendered] fill - user markdown through lib/markdown mdToHtml then DOMPurify.sanitize, the same pairing doc-editor's paste path uses; 2026-08-19 (inline-edits UX pass): the analyse-text fill folded into renderTextPanel, and the freed slot is openEditCard's card.innerHTML - sugCardHtml/rwCardHtml escape() every interpolated value
+  'views/assets/details-sheet.ts': 9,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/assets/details-shared.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/assets/details-panels.ts': 4,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/assets/details-inline-modes.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/assets/wiring.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/assets/shared.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/assets/sections.ts': 2,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
+  'views/assets/downloads.ts': 1,   // 2026-09-09: moved verbatim out of the parent view by scripts/split-closure.ts
   'lib/job-toast.ts': 2,   // +2 2026-08-17 (plan 124 WP-F): the pill + panel innerHTML - title/note/id/count all ESC()d
   'lib/perf-hud.ts': 1,    // +1 2026-08-18 (perf-hud flag): root.innerHTML = scaffold() - only icon() glyphs + tRaw() strings, no interpolated values; the live FPS number is written via textContent, not markup
   'views/video-job-dialog.ts': 1, // +1 2026-08-18 (plan 124 WP-G): the Resolution <select> rebuild (resSel.innerHTML) - resOptionHtml() emits a numeric px value + an escapeHtml()d "{px}p" label, no user text
@@ -1862,10 +1862,10 @@ test('R14: _updateUserAssetMeta runs neither pin-preserver nor quota check, and 
   const body = assets.slice(start, end);
   assert.doesNotMatch(body, /preservePinned|assertQuotaRoom/,
     '_updateUserAssetMeta must not run the pin-preserver or the quota check: a meta rewrite adds no bytes and must never freeze a pinned duplicate');
-  // views/catalog.ts is an orchestrator plus feature modules under views/catalog/ (2026-09-09 split)
-  const catalog = TS.filter(f => f.rel === 'views/catalog.ts' || f.rel.startsWith('views/catalog/')).map(f => f.text).join('\n');
+  // views/assets.ts is an orchestrator plus feature modules under views/assets/ (2026-09-09 split)
+  const catalog = TS.filter(f => f.rel === 'views/assets.ts' || f.rel.startsWith('views/assets/')).map(f => f.text).join('\n');
   assert.ok(hitLines(catalog, /host\.assets\._updateUserAssetMeta\(/).length >= 2,
-    'views/catalog.ts: persistAiSignals and declare-ai-origins both annotate via _updateUserAssetMeta, never a whole-record re-upload');
+    'views/assets.ts: persistAiSignals and declare-ai-origins both annotate via _updateUserAssetMeta, never a whole-record re-upload');
 });
 
 // ── R12 (plans/172 P0): chrome-scale token ratchets ──────────────────────────

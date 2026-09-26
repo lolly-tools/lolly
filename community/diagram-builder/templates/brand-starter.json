@@ -6,7 +6,7 @@
   "galleryCover": true,
   "values": {
     "diagramType": "process",
-    "flowDir": "right",
+    "flowDir": "down",
     "nodes": [
       {
         "nodeId": "discover",
@@ -26,13 +26,25 @@
     ],
     "background": "transparent",
     "gridBg": "none",
-    "labelSize": 24,
-    "cardWidth": 220,
-    "cardBorderWidth": 2,
-    "cornerRadius": 8,
+    "labelSize": 16,
+    "cardWidth": 208,
+    "cardBorderWidth": 1,
+    "cornerRadius": 12,
     "nodeStroke": "{color.semantic.secondary}",
     "edgeColor": "{color.semantic.secondary}",
     "nodeFill": "{color.semantic.surface}",
-    "nodeText": "{color.semantic.text}"
+    "nodeText": "{color.semantic.text}",
+    "look": "minimal",
+    "arrowHead": "open",
+    "arrows": [
+      {
+        "from": "discover",
+        "to": "build"
+      },
+      {
+        "from": "build",
+        "to": "share"
+      }
+    ]
   }
 }

@@ -70,7 +70,7 @@ vede in anteprima in un browser. L'attrito nell'adozione è raramente tecnico; �
 pacchetto già pronto dei tuoi template. Per un *rollout governato*, qualcuno definisce il
 catalogo condiviso degli asset (loghi, palette, font come ID permanenti) e scrive il manifest +
 il template per ogni tipo di output. I singoli però non devono aspettare che questo accada -
-nell'app aperta chiunque può importare i propri file nel catalogo e costruire strumenti in
+nell'app aperta chiunque può importare i propri file in Risorse e costruire strumenti in
 Design fin dal primo giorno.
 
 **Non serve git per contribuire.** I designer creano i propri strumenti e template

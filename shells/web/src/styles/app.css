@@ -8,8 +8,8 @@
  */
 
 /* Landing + shared chrome. Everything here render-blocks first paint, so it holds
- * ONLY what the gallery/catalog landing and every-page chrome need. View-specific
- * sheets (tool, editor, profile, picker, platform, valid, storage) are imported
+ * ONLY what the gallery landing and every-page chrome need. View-specific
+ * sheets (tool, editor, profile, picker, platform, valid, storage, assets) are imported
  * from their own lazy view modules instead - Vite emits them as async CSS chunks
  * loaded with the view, keeping ~60% of the old bundle off the critical path. */
 
@@ -54,7 +54,7 @@
 @import './parts/folders.css'      layer(chrome);
 @import './parts/collab.css'       layer(chrome); /* the Projects live-collab tile badge (plan 100 section 4.6) - sits beside folders.css/projects.css, which it decorates; the rest of the presence chrome is self-styled components (see the file's own header) */
 @import './parts/projects.css'     layer(chrome);
-@import './parts/catalog.css'      layer(chrome); /* Catalog view (a primary tab; kept on the landing sheet) */
+@import './parts/asset-shared.css' layer(chrome); /* asset tiles, groups, bulk bar, transport, zoom HUD and inline edit modes that modules outside the Assets view render too. The view-only rules are parts/assets.css, loaded by views/assets.ts */
 @import './parts/guide.css'        layer(chrome); /* The guidance grammar + trust lamps + shared census (verify AND catalog render these) */
 @import './parts/components.css'   layer(chrome);
 @import './parts/color-field.css'  layer(chrome); /* colour picker - split out of components.css; same layer, so host overrides keep winning */

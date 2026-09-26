@@ -136,7 +136,7 @@ En valfri **Gradients**-panel bygger övertoningstoken från din palett för bak
 
 ### Ta med paletten någon annanstans
 
-Pillret som flyter längs nederkanten av palettpanelen laddar ner hela paletten som **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, en **GIMP palette (.gpl)** eller en **Adobe Swatch Exchange (.ase)** - så att varumärket går rakt in i Illustrator, Figma, GIMP eller ett stilmallsdokument. Det ligger utanför panelens rullningslist, så det behåller sin plats oavsett hur långt paletten rullas. (Du kan också ladda ner paletten från vyn [Catalogue](/info/using.html).)
+Pillret som flyter längs nederkanten av palettpanelen laddar ner hela paletten som **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, en **GIMP palette (.gpl)** eller en **Adobe Swatch Exchange (.ase)** - så att varumärket går rakt in i Illustrator, Figma, GIMP eller ett stilmallsdokument. Det ligger utanför panelens rullningslist, så det behåller sin plats oavsett hur långt paletten rullas. (Du kan också ladda ner paletten från [Tillgångar](/info/using.html#assets-your-library).)
 
 ## Typsnitt
 
@@ -179,7 +179,7 @@ Resten av designsystemet, redigerbart utan att röra kod:
 
 ## Files
 
-Släpp filerna ditt varumärke sparar - bortsett från loggor - här: **vector**, **image**, **audio** och **motion** (video, Lottie, animerat) tillgångar. De hamnar i din [Catalogue](/info/using.html), sorterade i sektioner och redo i varje verktygs tillgångsväljare. Allt stannar på den här enheten. (Menyraden märker rummet **Files**; URL-nyckeln förblir `catalogue`, eftersom en panelnyckel är ett permanent kontrakt.)
+Släpp filerna ditt varumärke sparar - bortsett från loggor - här: **vector**, **image**, **audio** och **motion** (video, Lottie, animerat) tillgångar. De hamnar i [Tillgångar](/info/using.html#assets-your-library), sorterade i sektioner och redo i varje verktygs tillgångsväljare. Allt stannar på den här enheten. (Menyraden märker rummet **Files**; URL-nyckeln förblir `catalogue`, eftersom en panelnyckel är ett permanent kontrakt.)
 
 ## Ta in ett varumärke
 
@@ -231,6 +231,6 @@ Vissa builds levereras med ett **låst varumärke** - dess färger, typsnitt och
 
 ## Vart du ska gå härnäst
 
-- **[Använda Lolly](/info/using.html)** - arbetsytan, spara, projekt och katalogen.
+- **[Använda Lolly](/info/using.html)** - arbetsytan, spara, projekt och Tillgångar.
 - **[Designtokens](/info/design-tokens.html)** - tokenmodellen som ditt varumärke uttrycks i.
 - **[Export och format](/info/exporting.html)** - utskriftsenheter, CMYK och formaten ditt varumärke renderas till.

@@ -397,6 +397,7 @@ function computeCardH(S, lines, hasDetail) {
 
 // Render one card <g> with a click-to-focus hook (focuses block `idx` of `nodes`).
 function renderCard(n, S) {
+  if (S.modern) return dbCard(n, S);
   var scol = n.stroke ? color(n.stroke, S.nodeStroke) : S.nodeStroke;
   var bw = (n.strokeWidth > 0) ? n.strokeWidth : S.cardBorderWidth;
   var geom = shapeGeom(n.shape, n.x, n.y, n.w, n.h, S, scol, bw);
@@ -404,7 +405,7 @@ function renderCard(n, S) {
   var cx = n.x + n.w / 2;
   var tb = geom.tb;
 
-  var g = '<g data-canvas-input="nodes:' + n.idx + '">';
+  var g = '<g' + dbCardAttrs(n, S) + '>';
   if (geom.outline) {
     g += '<path d="' + geom.outline + '" fill="' + esc(fill) + '"'
       + (bw > 0 ? ' stroke="' + esc(scol) + '" stroke-width="' + f2(bw) + '" stroke-linejoin="round"' : '') + '/>';
@@ -491,7 +492,7 @@ function normaliseNodes(rawNodes) {
     nodes.push({
       idx: i, id: id,
       shape: SHAPES[b.shape] ? b.shape : 'rounded',
-      label: label, detail: detail,
+      label: label, detail: detail, emphasis: trim(b.emphasis),
       parentId: slug(b.parent), layerId: slug(b.layer),
       fill: trim(b.fill),
       image: imgUrl,
@@ -542,6 +543,7 @@ function buildTree(nodes) {
 
 // ── org / tree layout: tidy tree, top-down (dir 'down') or left-to-right ('right') ──
 function layoutOrg(nodes, S, dir) {
+  if (S.modern) return dbTree(nodes, S, dir, false);
   var cardW = S.cardWidth, sib = S.siblingGap, flow = S.rowGap, cardH = S.cardH;
   var right = dir === 'right';
   var roots = buildTree(nodes);
@@ -589,6 +591,7 @@ function mindEdge(p, n) {
   return 'M' + f2(px) + ' ' + f2(py) + 'C' + f2(mx) + ' ' + f2(py) + ' ' + f2(mx) + ' ' + f2(cy) + ' ' + f2(cx) + ' ' + f2(cy);
 }
 function layoutMindmap(nodes, S, inp) {
+  if (S.modern) return dbTree(nodes, S, "right", true);
   var roots = buildTree(nodes), primary = roots[0];
   var cardW = S.cardWidth, depthGap = S.rowGap + 30, leafGap = S.siblingGap;
   roots.forEach(function (r) {
@@ -633,6 +636,7 @@ function layoutMindmap(nodes, S, inp) {
 
 // ── layercake layout: stacked layer bands ───────────────────────────────────────
 function layoutLayercake(nodes, rawLayers, S) {
+  if (S.modern) return dbLayercake(nodes, rawLayers, S);
   var layers = [], layerById = {};
   rawLayers.forEach(function (b, i) {
     if (!b) return;
@@ -640,7 +644,7 @@ function layoutLayercake(nodes, rawLayers, S) {
     // (deriveBlockKeys) so a band's id matches whatever a card's Group dropdown stored.
     var id = slug(b.layerId) || slug(b.label) || ('layer-' + (i + 1));
     if (layerById[id] !== undefined) return;
-    var L = { idx: i, id: id, label: trim(b.label) || id, bandFill: color(b.bandFill, FOG), _cards: [] };
+    var L = { idx: i, id: id, label: trim(b.label) || id, bandFill: color(b.bandFill, S.modern ? S.bandPalette[i % S.bandPalette.length] : FOG), _cards: [] };
     layerById[id] = L; layers.push(L);
   });
   nodes.forEach(function (n) {
@@ -653,7 +657,7 @@ function layoutLayercake(nodes, rawLayers, S) {
   nodes.forEach(function (n) {
     var L = (n.layerId && layerById[n.layerId] !== undefined) ? layerById[n.layerId] : null;
     if (!L) {
-      if (!unassigned) { unassigned = { idx: layers.length, id: '__unassigned__', label: 'Unassigned', bandFill: FOG, _cards: [] }; layers.push(unassigned); }
+      if (!unassigned) { unassigned = { idx: layers.length, id: '__unassigned__', label: 'Unassigned', bandFill: S.modern ? S.bandPalette[0] : FOG, _cards: [] }; layers.push(unassigned); }
       L = unassigned;
     }
     L._cards.push(n);
@@ -671,7 +675,7 @@ function layoutLayercake(nodes, rawLayers, S) {
   var capW = 1320, cw = S.cardWidth;
   if (maxN > 0) {
     var totalDesired = maxN * cw + cardGap * (maxN - 1);
-    if (totalDesired > capW) cw = Math.max(120, (capW - cardGap * (maxN - 1)) / maxN);
+    if (!S.modern && totalDesired > capW) cw = Math.max(120, (capW - cardGap * (maxN - 1)) / maxN);
   }
   var innerW = maxN > 0 ? (maxN * cw + cardGap * (maxN - 1)) : cw;
 
@@ -682,11 +686,12 @@ function layoutLayercake(nodes, rawLayers, S) {
       if (trim(c.detail)) hasDetail = true;
     });
   });
-  var cardH = computeCardH(S, maxLines, hasDetail);
+  var cardH = S.modern ? Math.max(60, ...nodes.map(function (n) { return n.measuredHeight; })) : computeCardH(S, maxLines, hasDetail);
   S.cardH = cardH; S.labelLines = maxLines;
 
   var bandH = cardH + padY * 2, y = 0, bandW = gutter + innerW + padX * 2;
   layers.forEach(function (L) {
+    if (S.modern) { cardH = Math.max(60, ...L._cards.map(function (n) { return n.measuredHeight; })); bandH = cardH + padY * 2; }
     L.x = 0; L.y = y; L.h = bandH; L.w = bandW;
     var cards = L._cards, n = cards.length;
     if (n > 0) {
@@ -737,6 +742,7 @@ function layoutKanban(nodes, rawColumns, S, inp) {
 
 // ── process layout: ranked flow (a DAG layered by longest path) ──────────────────
 function layoutProcess(nodes, rawArrows, S, dir) {
+  if (S.modern) return dbProcess(nodes, rawArrows, S, dir);
   var byId = {};
   nodes.forEach(function (n) { if (byId[n.id] === undefined) byId[n.id] = n; });
   var edges = [];
@@ -805,6 +811,7 @@ function layoutTimeline(nodes, S, dir, bb) {
 
 // ── cycle layout: stages on a ring, arrows around the loop ───────────────────────
 function layoutCycle(nodes, S, inp, bb) {
+  if (S.modern) return dbCycle(nodes, S, inp, bb);
   var n = nodes.length;
   var cardW = Math.min(S.cardWidth, 180);
   var R = Math.max(150, (n * (cardW + S.siblingGap + 20)) / (2 * Math.PI));
@@ -856,10 +863,12 @@ function layoutPyramid(nodes, S, style, bb) {
   }
   var behind = '';
   nodes.forEach(function (nd, i) {
+    if (S.modern) behind += '<g' + dbCardAttrs(nd, S) + '>';
     var yT = i * tierH, yB = yT + tierH - Math.round(6 * S.scale);
     var wT = wAt(i / n), wB = wAt((i + 1) / n);
     var fill = color(nd.fill, S.bandPalette[i % S.bandPalette.length]);
-    behind += '<path d="' + trapezoidPath(cx - wT / 2, cx + wT / 2, cx - wB / 2, cx + wB / 2, yT, yB) + '" fill="' + esc(fill) + '"'
+    if (S.modern) behind += dbObject(trapezoidPath(cx - wT / 2, cx + wT / 2, cx - wB / 2, cx + wB / 2, yT, yB), fill, S);
+    else behind += '<path d="' + trapezoidPath(cx - wT / 2, cx + wT / 2, cx - wB / 2, cx + wB / 2, yT, yB) + '" fill="' + esc(fill) + '"'
       + (S.cardBorderWidth > 0 ? ' stroke="' + esc(S.nodeStroke) + '" stroke-width="' + f2(S.cardBorderWidth) + '"' : '') + '/>';
     var midY = (yT + yB) / 2, narrow = Math.min(wT, wB), lab = trim(nd.label);
     if (narrow > textWidth(lab, S.labelSize) + 16) {
@@ -871,6 +880,7 @@ function layoutPyramid(nodes, S, style, bb) {
       behind += textEl(lx, midY + S.labelSize * 0.3, lab, S.labelSize, 600, S.nodeText, 'start');
       bb.add(lx + textWidth(lab, S.labelSize) + 8, midY, 0, 0);
     }
+    if (S.modern) behind += '</g>';
     nd.x = cx - baseW / 2; nd.y = yT; nd.w = baseW; nd.h = tierH;
   });
   bb.add(cx - baseW / 2, 0, baseW, n * tierH);
@@ -886,8 +896,14 @@ function quadFromText(s) {
   return '';
 }
 function layoutMatrix(nodes, S, inp, bb) {
-  var side = Math.max(440, S.cardWidth * 2.6), cx = side / 2, cy = side / 2, behind = '', front = '';
-  var qfill = ['#f3faf7', '#eafaf4', '#fef6ee', '#f6f1fb'];
+  var side = Math.max(440, S.cardWidth * 2.6);
+  if (S.modern) {
+    var counts = {};
+    nodes.forEach(function (n) { if (!n.score) { var q = quadFromText(n.quadrant) || 'tr'; counts[q] = (counts[q] || 0) + 1; } });
+    Object.keys(counts).forEach(function (q) { var cols = Math.ceil(Math.sqrt(counts[q])), rows = Math.ceil(counts[q] / cols); side = Math.max(side, 2 * (cols * 174 + 40), 2 * (rows * (S.cardH + 10) + 40)); });
+  }
+  var cx = side / 2, cy = side / 2, behind = '', front = '';
+  var qfill = S.modern ? S.bandPalette : ['#f3faf7', '#eafaf4', '#fef6ee', '#f6f1fb'];
   var rects = [{ x: 0, y: 0 }, { x: cx, y: 0 }, { x: 0, y: cy }, { x: cx, y: cy }];
   rects.forEach(function (r, i) { behind += '<path d="' + roundedRectPath(r.x, r.y, cx, cy, 0) + '" fill="' + qfill[i] + '"/>'; });
   behind += shaft(cx, 0, cx, side, 'solid', S.edgeColor, 1.2);
@@ -1028,19 +1044,22 @@ function layoutGantt(nodes, rawLayers, S, inp, bb) {
     for (var t = 0; t <= ticks; t++) {
       var tx = gutter + (t / ticks) * chartW, val = f2(minT + (t / ticks) * span);
       behind += shaft(tx, -6, tx, totalH, 'solid', S.edgeColor, 0.4);
-      behind += textEl(tx, -12, String(val) + (unit ? ' ' + unit : ''), 10, 400, S.detailColor, 'middle');
+      behind += textEl(tx, -12, String(val) + (unit ? ' ' + unit : ''), S.modern ? 12 : 10, 400, S.detailColor, 'middle');
     }
     bb.add(gutter, -28, chartW, 0);
   }
   nodes.forEach(function (n, i) {
+    if (S.modern) behind += '<g' + dbCardAttrs(n, S) + '>';
     var rowY = i * rowH, barX = gutter + (n._start - minT) * pxU, barW = Math.max(8, n._len * pxU);
     n.x = barX; n.y = rowY + pad; n.w = barW; n.h = S.cardH - pad * 2;
     var fill = color(n.fill, S.bandPalette[i % S.bandPalette.length]);
-    behind += '<path d="' + roundedRectPath(n.x, n.y, n.w, n.h, Math.min(6, S.cornerRadius)) + '" fill="' + esc(fill) + '"'
+    if (S.modern) behind += dbObject(roundedRectPath(n.x, n.y, n.w, n.h, Math.min(6, S.cornerRadius)), fill, S, Object.assign({}, n, { shape: 'rounded' }));
+    else behind += '<path d="' + roundedRectPath(n.x, n.y, n.w, n.h, Math.min(6, S.cornerRadius)) + '" fill="' + esc(fill) + '"'
       + (S.cardBorderWidth > 0 ? ' stroke="' + esc(S.nodeStroke) + '" stroke-width="' + f2(S.cardBorderWidth) + '"' : '') + '/>';
     var lab = wrapLines(n.label, maxCharsFor(gutter - 14, S.labelSize), 2), ly = rowY + (rowH - lab.length * S.labelLH) / 2 + S.labelSize * 0.8;
     lab.forEach(function (line, li) { behind += textEl(gutter - 10, ly + li * S.labelLH, line, S.labelSize, S.labelWeight, S.nodeText, 'end'); });
     if (trim(n.detail) && barW > textWidth(n.detail, S.detailSize) + 12) behind += textEl(barX + barW / 2, rowY + rowH / 2 + S.detailSize * 0.3, n.detail, S.detailSize, 400, inkOn(fill, S.nodeText), 'middle');
+    if (S.modern) behind += '</g>';
   });
   bb.add(0, 0, gutter, totalH);
   return { autoEdges: [], bands: [], layerById: {}, behind: behind, skipCards: true };
@@ -1139,12 +1158,13 @@ function layoutGanttDates(nodes, rawLayers, S, inp, bb) {
     ticks.forEach(function (t) {
       var tx = xOf(t);
       behind += shaft(tx, -6, tx, totalH, 'solid', S.edgeColor, 0.4);
-      behind += textEl(tx, -12, tickLabel(t, scale), 10, 400, S.detailColor, 'middle', 'db-axis');
+      behind += textEl(tx, -12, tickLabel(t, scale), S.modern ? 12 : 10, 400, S.detailColor, 'middle', 'db-axis');
     });
     bb.add(gutter, -28, chartW, 0);
   }
 
   rows.forEach(function (n, i) {
+    if (S.modern) behind += '<g' + dbCardAttrs(n, S) + '>';
     var rowY = n._rowY, lab = wrapLines(n.label, maxCharsFor(taskW - 14, S.labelSize), 2);
     var ly = rowY + (rowH - lab.length * S.labelLH) / 2 + S.labelSize * 0.8;
     lab.forEach(function (line, li) { behind += textEl(gutter - 10, ly + li * S.labelLH, line, S.labelSize, S.labelWeight, S.nodeText, 'end'); });
@@ -1161,16 +1181,19 @@ function layoutGanttDates(nodes, rawLayers, S, inp, bb) {
         behind += textEl(mx + r + 6, my + S.detailSize * 0.34, n.detail, S.detailSize, 400, S.detailColor, 'start');
         bb.add(mx + r + 6, my, textWidth(n.detail, S.detailSize), 0);
       }
+      if (S.modern) behind += '</g>';
       return;
     }
     // With lanes the band carries the colour and a bar is a card on it, as in the
     // layercake; with no lanes the bar keeps the palette rotation it always had.
     var fill = color(n.fill, useLanes ? S.nodeFill : S.bandPalette[i % S.bandPalette.length]);
     n.x = xOf(n._t0); n.y = rowY + pad; n.w = Math.max(8, (n._t1 - n._t0) * pxU); n.h = S.cardH - pad * 2;
-    behind += '<path d="' + roundedRectPath(n.x, n.y, n.w, n.h, Math.min(6, S.cornerRadius)) + '" fill="' + esc(fill) + '"' + stroke + '/>';
+    if (S.modern) behind += dbObject(roundedRectPath(n.x, n.y, n.w, n.h, Math.min(6, S.cornerRadius)), fill, S, Object.assign({}, n, { shape: 'rounded' }));
+    else behind += '<path d="' + roundedRectPath(n.x, n.y, n.w, n.h, Math.min(6, S.cornerRadius)) + '" fill="' + esc(fill) + '"' + stroke + '/>';
     if (trim(n.detail) && n.w > textWidth(n.detail, S.detailSize) + 12) {
       behind += textEl(n.x + n.w / 2, rowY + rowH / 2 + S.detailSize * 0.3, n.detail, S.detailSize, 400, inkOn(fill, S.nodeText), 'middle');
     }
+    if (S.modern) behind += '</g>';
   });
 
   var today = parseDay(inp.ganttToday);
@@ -1178,7 +1201,7 @@ function layoutGanttDates(nodes, rawLayers, S, inp, bb) {
   if (today && isFinite(today.day) && today.day >= minT && today.day <= maxT) {
     var tx2 = xOf(today.day);
     behind += shaft(tx2, -6, tx2, totalH, 'solid', S.nodeText, Math.max(1.4, S.connectorWidth * 0.7));
-    behind += textEl(tx2, totalH + 16, 'Today', 10, 500, S.nodeText, 'middle', 'db-axis');
+    behind += textEl(tx2, totalH + 16, 'Today', S.modern ? 12 : 10, 500, S.nodeText, 'middle', 'db-axis');
     bb.add(tx2 - 22, totalH + 22, 44, 0);
   }
 
@@ -2063,7 +2086,7 @@ var PIK_SHAPE = { box: 'box', circle: 'circle', ellipse: 'ellipse', oval: 'pill'
 var PIK_DIR = { right: 1, left: 1, up: 1, down: 1 };
 function pikDirUnit(d) { return d === 'right' ? { x: 1, y: 0 } : d === 'left' ? { x: -1, y: 0 } : d === 'up' ? { x: 0, y: 1 } : { x: 0, y: -1 }; }
 
-function parsePikchr(text, labelPx) {
+function parsePikchr(text, labelPx, preserveLines) {
   var U = PIK_U;
   labelPx = labelPx > 0 ? labelPx : 15;
   var objs = [], named = {}, warns = [];
@@ -2361,7 +2384,7 @@ function parsePikchr(text, labelPx) {
       // All strings are equal-weight lines (PIC has no title/subtitle) - join them and
       // let the card wrap; width was fit to the longest string so breaks land per-line.
       maxLines = Math.max(maxLines, o.labels.length || 1);
-      nodes.push({ shape: o.shape, nodeId: '', label: o.labels.join(' '), detail: '', image: '', fill: o.fill && o.fill !== 'none' ? o.fill : '', parent: '', layer: '', quadrant: '', stroke: o.stroke, strokeWidth: o.sw });
+      nodes.push({ shape: o.shape, nodeId: '', label: o.labels.join(preserveLines ? '\n' : ' '), detail: '', image: '', fill: o.fill && o.fill !== 'none' ? o.fill : '', parent: '', layer: '', quadrant: '', stroke: o.stroke, strokeWidth: o.sw });
       pos.push({ x: X(o.cx) - w / 2, y: Y(o.cy) - h / 2, w: w, h: h });
     } else {
       if (o.isMove) return;
@@ -2406,12 +2429,19 @@ function renderPikchrPrims(prims, S, bg, bb) {
   arr(prims).forEach(function (p) {
     if (p.kind === 'dot') { out += '<path d="' + circlePath(p.x, p.y, p.r) + '" fill="' + esc(p.color || S.edgeColor) + '"/>'; bb.add(p.x - p.r, p.y - p.r, p.r * 2, p.r * 2); return; }
     var pts = p.pts; if (!pts || pts.length < 2) return;
-    var col = color(p.color, S.edgeColor);
+    if (S.modern) out += '<g' + dbCanvasAttrs('pikchr', arr(p.labels).join(' ') || 'Connection', 'pikchr bendRadius connectionPaint arrowWidth arrowHead') + '>';
+    var col = color(S.modern && S.inp.importColours === 'brand' ? '' : p.color, S.edgeColor);
     var w = p.width > 0 ? p.width : (S.arrowWidth || 2);
     var s = Math.max(S.arrowHeadSize || 11, w * 4);
     var kind = S.arrowHead && S.arrowHead !== 'none' ? S.arrowHead : 'triangle';
     if (kind === 'double') kind = 'triangle';
-    if (!p.invis) {
+    if (!p.invis && S.modern) {
+      var modernPath = dbRounded(pts, clamp(num(S.inp.bendRadius, 16), 0, 48));
+      var modernRoute = { d: modernPath, points: dbSample(modernPath) };
+      out += dbPaintRoute(modernRoute, col, S.brand.secondary, w, p.style || 'solid', S, (!p.color || S.inp.importColours === 'brand') && !S.inp.edgeColor && S.inp.connectionPaint === 'gradient');
+      out += dbRouteHeads(modernRoute, { start: !!p.headStart, end: !!p.headEnd }, col, col, w, S);
+      out += '<path d="' + esc(modernPath) + '" fill="none" stroke="transparent" stroke-width="14" pointer-events="stroke" data-export-hide=""/>';
+    } else if (!p.invis) {
       // shaft: trim the extreme ends so the heads sit cleanly
       for (var k = 0; k < pts.length - 1; k++) {
         var a = pts[k], b = pts[k + 1];
@@ -2426,13 +2456,20 @@ function renderPikchrPrims(prims, S, bg, bb) {
       var s0 = pts[0], s1 = pts[1];
       if (p.headStart) { var sd = Math.hypot(s0.x - s1.x, s0.y - s1.y) || 1; out += arrowHead(s0, (s0.x - s1.x) / sd, (s0.y - s1.y) / sd, s, col, kind, w); }
     }
-    pts.forEach(function (pt) { bb.add(pt.x, pt.y, 0, 0); });
+    pts.forEach(function (pt) { var pad = S.modern ? Math.max(12, S.arrowHeadSize + w / 2) : 0; bb.add(pt.x - pad, pt.y - pad, pad * 2, pad * 2); });
     // Labels: plain stacked text sitting just off the midpoint segment (Pikchr-style),
     // NOT a boxed pill - a labelled arrow should still read as an arrow.
     var labs = arr(p.labels).map(trim).filter(Boolean);
     if (labs.length) {
       var half = (pts.length - 1) / 2;
       var m1 = pts[Math.floor(half)], m2 = pts[Math.ceil(half)];
+      if (S.modern) {
+        var longest = -1;
+        for (var j = 1; j < pts.length; j++) {
+          var segmentLength = Math.hypot(pts[j].x - pts[j - 1].x, pts[j].y - pts[j - 1].y);
+          if (segmentLength > longest) { longest = segmentLength; m1 = pts[j - 1]; m2 = pts[j]; }
+        }
+      }
       var mx = (m1.x + m2.x) / 2, my = (m1.y + m2.y) / 2;
       var sx = m2.x - m1.x, sy = m2.y - m1.y, sl = Math.hypot(sx, sy) || 1;
       var horiz = Math.abs(sx) >= Math.abs(sy);
@@ -2449,17 +2486,17 @@ function renderPikchrPrims(prims, S, bg, bb) {
         bb.add(lx, ty2, textWidth(labs[0], fs) + 6, block);
       }
     }
+    if (S.modern) out += '</g>';
   });
   return out;
 }
 
 // ── compose the whole scene ─────────────────────────────────────────────────────
 async function buildDiagram(inp) {
-  _notes = [];
-  var fonts = await resolvedFonts(); FONT = fonts._fontBrand; FONT_MONO = fonts._fontMono;
+  var fonts = await resolvedFonts(); FONT = inp._brand ? inp._brand.font : fonts._fontBrand; FONT_MONO = inp._brand ? inp._brand.mono : fonts._fontMono;
   var mode = VALID_TYPES[inp.diagramType] ? inp.diagramType : 'org';
   var source = ['text', 'ascii', 'mermaid', 'dot', 'pikchr', 'table'].indexOf(inp.source) >= 0 ? inp.source : 'visual';
-  var bg = color(inp.background, WHITE);
+  var bg = inp._brand ? inp._brand.bg : color(inp.background, WHITE);
 
   var src, asciiPos = null, pikchrPos = null, pikchrPrims = null, overrideDir = null;
   if (source === 'text') src = parseDsl(inp.dsl, mode);
@@ -2473,12 +2510,18 @@ async function buildDiagram(inp) {
   }
   else if (source === 'pikchr') {
     var pkLabelPx = clamp(num(inp.labelSize, 15), 10, 28) * clamp(num(inp.cardScale, 1), 0.6, 1.6);
-    var pk = parsePikchr(inp.pikchr, pkLabelPx); src = { nodes: pk.nodes, layers: [], arrows: [] }; pikchrPos = pk.pos; pikchrPrims = pk.prims;
+    var pk = parsePikchr(inp.pikchr, pkLabelPx, !!inp._brand); src = { nodes: pk.nodes, layers: [], arrows: [] }; pikchrPos = pk.pos; pikchrPrims = pk.prims;
     if (pk.warns.length && host && host.log) host.log('info', 'diagram-builder: ' + pk.warns.length + ' Pikchr line(s) skipped (unsupported): ' + pk.warns.slice(0, 4).join(' · '));
   }
   else if (source === 'table') src = parseTable(inp.table, mode);
   else src = { nodes: arr(inp.nodes), layers: arr(inp.layers), arrows: arr(inp.arrows) };
 
+  if (inp._brand && inp.importColours === 'brand') {
+    src.nodes = arr(src.nodes).map(function (n) { return Object.assign({}, n, { fill: '', stroke: '' }); });
+  }
+  if (inp._brand && (source !== 'visual' || inp.importColours === 'brand')) {
+    src.layers = arr(src.layers).map(function (layer) { return Object.assign({}, layer, { bandFill: '' }); });
+  }
   var nodes = normaliseNodes(src.nodes);
   if (!nodes.length && !(source === 'pikchr' && pikchrPrims && pikchrPrims.length)) return placeholder(mode, source === 'visual' ? null : source);
 
@@ -2516,6 +2559,11 @@ async function buildDiagram(inp) {
     cardH: 46, labelLines: 1, imgBand: 0, rowImgSide: 0
   };
 
+  if (inp._brand) dbStyle(S, inp, nodes);
+  S.inp = inp; S.sourceInput = source === 'visual' ? 'nodes' : source === 'text' ? 'dsl' : source === 'ascii' ? 'asciiArt' : source;
+  S.diagramType = mode;
+  S.routeDirection = (overrideDir || (mode === 'org' ? inp.orgDir : inp.flowDir)) === 'right' ? 'right' : 'down';
+
   // Images: stacked reserves a uniform band ON TOP of the text; row reserves a
   // square avatar column to the LEFT. Only one is non-zero. Embed + measure below.
   var anyImage = nodes.some(function (n) { return n.image; });
@@ -2527,12 +2575,22 @@ async function buildDiagram(inp) {
     }));
   }
 
+  if (S.modern) {
+    if (mode === 'matrix' && source !== 'ascii' && source !== 'pikchr') nodes.forEach(function (n) { n.w = Math.min(160, S.cardWidth * 0.85); });
+    await dbMeasureNodes(nodes, S);
+  }
   var bb = bounds();
   var layout;
 
   // cardH (uniform) - computed up front from the active reference width; layercake
   // sets its own (per-band widths vary) and ascii preserves the drawn boxes.
   function setCardH(refW) {
+    if (S.modern) {
+      S.labelLines = Math.max(1, ...nodes.map(function (n) { return n.lines.length; }));
+      S.detailLines = Math.max(1, ...nodes.map(function (n) { return n.details.length; }));
+      S.cardH = Math.max(60, ...nodes.map(function (n) { return n.measuredHeight; }));
+      return;
+    }
     // In row mode an image card's text is only as wide as what's left beside the
     // avatar, so measure each card against its own available width.
     var rowTextW = Math.max(40, refW - S.rowImgSide - S.imgGap);
@@ -2596,6 +2654,8 @@ async function buildDiagram(inp) {
     layout = layoutOrg(nodes, S, (overrideDir || inp.orgDir) === 'right' ? 'right' : 'down');
   }
 
+  if (S.modern && (source === 'ascii' || source === 'pikchr' || mode === 'cycle' || mode === 'matrix' || mode === 'kanban')) await dbMeasureNodes(nodes, S);
+
   var nodeById = {};
   nodes.forEach(function (n) { if (nodeById[n.id] === undefined) nodeById[n.id] = n; });
 
@@ -2603,6 +2663,8 @@ async function buildDiagram(inp) {
 
   layout.bands.forEach(function (L) {
     bb.add(L.x, L.y, L.w, L.h);
+    var bandRef = source === 'visual' ? L.idx < arr(inp.layers).length ? 'layers:' + L.idx : 'layers' : S.sourceInput;
+    bandsSvg += '<g' + dbCanvasAttrs(bandRef, L.label, bandRef.indexOf(':') >= 0 ? bandRef + ':label ' + bandRef + ':bandFill' : 'rowGap siblingGap') + '>';
     bandsSvg += '<path d="' + roundedRectPath(L.x, L.y, L.w, L.h, 10) + '" fill="' + esc(L.bandFill) + '"/>';
     var bandInk = inkOn(L.bandFill, S.nodeText);
     if (layout.kanbanHeader) {
@@ -2614,9 +2676,11 @@ async function buildDiagram(inp) {
       var llab2 = wrapLines(L.label, maxCharsFor(gw, 15), 1);
       if (llab2.length) bandsSvg += textEl(L.x + 20, L.y + L.h / 2 + 5, llab2[0], 15, 600, bandInk, 'start');
     }
+    bandsSvg += '</g>';
   });
 
   layout.autoEdges.forEach(function (d) {
+    if (S.modern) { edgesSvg += '<g' + dbCanvasAttrs('connectionRoute', 'Connection', 'connectionRoute connectionPaint connectorWidth') + '>' + dbAutoPath(d, S) + '<path d="' + esc(d) + '" fill="none" stroke="transparent" stroke-width="14" pointer-events="stroke" data-export-hide=""/></g>'; return; }
     edgesSvg += '<path d="' + d + '" fill="none" stroke="' + esc(S.edgeColor) + '" stroke-width="' + f2(S.connectorWidth) + '"/>';
   });
 
@@ -2626,7 +2690,10 @@ async function buildDiagram(inp) {
     if (!layout.skipCards) cardsSvg += renderCard(n, S);
   });
 
-  var arrows = renderArrows(src.arrows, nodeById, layout.layerById, bg, bb, S);
+  if (layout.routeDirection) S.routeDirection = layout.routeDirection;
+  var arrows = S.modern
+    ? await dbEdges((layout.modernEdges || []).concat(arr(src.arrows).map(function (edge, i) { return Object.assign({}, edge, { _inputIndex: i }); })), nodeById, layout.layerById, bg, bb, S)
+    : renderArrows(src.arrows, nodeById, layout.layerById, bg, bb, S);
   if (host && host.log) {
     if (arrows.unresolved) host.log('warn', 'diagram-builder: ' + arrows.unresolved + ' arrow(s) skipped - unresolved From/To ID');
     if (arrows.degenerate) host.log('warn', 'diagram-builder: ' + arrows.degenerate + ' arrow(s) skipped - endpoints coincide or one contains the other');
@@ -2636,9 +2703,9 @@ async function buildDiagram(inp) {
 
   var title = trim(inp.title), titleH = title ? 50 : 0;
   var contentMinY = bb.minY, contentCx = bb.minX + (bb.maxX - bb.minX) / 2;
-  if (title) { var tw = textWidth(title, 26); bb.add(contentCx - tw / 2, contentMinY, tw, 0); }
+  if (title) { var tw = S.modern ? await S.measure(title, 26, 600) : textWidth(title, 26); bb.add(contentCx - tw / 2, contentMinY, tw, 0); }
 
-  var pad = clamp(num(inp.canvasPadding, 44), 0, 200);
+  var pad = clamp(num(inp.canvasPadding, 44), 0, 200) + (S.modern ? 14 * Math.max(num(inp.cardDepth, 0), num(inp.lineDepth, 0)) + 4 : 0);
   var vbX = bb.minX - pad, vbY = contentMinY - pad - titleH;
   var vbW = (bb.maxX - bb.minX) + pad * 2, vbH = (bb.maxY - contentMinY) + pad * 2 + titleH;
 
@@ -2650,10 +2717,11 @@ async function buildDiagram(inp) {
   var out = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + f2(vbX) + ' ' + f2(vbY) + ' ' + f2(vbW) + ' ' + f2(vbH) + '"'
     + ' width="' + f2(vbW) + '" height="' + f2(vbH) + '"'
     + ' style="width:100%;height:auto;max-height:100%;display:block;" preserveAspectRatio="xMidYMid meet">';
+  if (S.modern) out = out.replace('<svg ', '<svg data-diagram-look="' + esc(S.look) + '" ');
   if (bg !== 'transparent') out += '<rect x="' + f2(vbX) + '" y="' + f2(vbY) + '" width="' + f2(vbW) + '" height="' + f2(vbH) + '" fill="' + esc(bg) + '" data-canvas-input="background" pointer-events="all"/>';
   out += gridBg(inp.gridBg, vbX, vbY, vbW, vbH, S.nodeStroke);
-  out += bandsSvg + (layout.behind || '') + edgesSvg + '<g data-canvas-input="' + sourceInput + '">' + cardsSvg + '</g>' + (layout.front || '') + arrows.svg;
-  if (title) out += '<g data-canvas-input="title">' + textEl(contentCx, contentMinY - pad - titleH / 2 + 10, title, 26, 600, theme ? theme.nodeText : PINE, 'middle') + '</g>';
+  out += bandsSvg + (layout.behind || '') + edgesSvg + (S.modern ? arrows.svg : '') + '<g data-canvas-input="' + sourceInput + '">' + cardsSvg + '</g>' + (layout.front || '') + (S.modern ? arrows.labels : arrows.svg);
+  if (title) out += '<g data-canvas-input="title">' + textEl(contentCx, contentMinY - pad - titleH / 2 + 10, title, 26, 600, S.modern ? S.nodeText : theme ? theme.nodeText : PINE, 'middle') + '</g>';
   out += '</svg>';
   return out;
 }
@@ -2784,14 +2852,18 @@ function resolvePatches(inp, changedId) {
 
 // ── lifecycle ────────────────────────────────────────────────────────────────────
 async function compute(model, changedId) {
+  _notes = [];
   await ensureBrandThemes();
   var inp = inputsFrom(model);
   var patch = (changedId === 'diagramPreset' || changedId === 'theme' || changedId === 'density') ? resolvePatches(inp, changedId) : {};
+  Object.assign(patch, dbSeed(model, inp, changedId));
   Object.keys(patch).forEach(function (k) { inp[k] = patch[k]; });
+  if (DB_LOOKS[inp.look]) inp._brand = await dbAppearance(inp);
   var svg;
   try { svg = await buildDiagram(inp); }
   catch (e) {
     if (host && host.log) host.log('warn', 'diagram-builder: build failed', { error: String(e) });
+    note(e && e.message ? e.message : 'Check the diagram inputs.');
     svg = errPlaceholder('Could not build this diagram.');
   }
   // Always present, so a cleared warning clears the extra instead of going stale.
@@ -2817,3 +2889,829 @@ async function resolvedFonts() {
   }
   return fonts;
 }
+
+// BEGIN GENERATED DIAGRAM VISUALS
+// Edit source/*.js, then run pnpm run build:diagram-hooks.
+// SPDX-License-Identifier: MPL-2.0
+// Tool data, assembled into hooks.js by scripts/build-diagram-hooks.ts.
+const DB_LOOKS = { minimal: 1, editorial: 1, soft: 1, flow: 1, studio: 1 };
+const DB_BASE = {
+  cardWidth: 208, cardScale: 1, rowGap: 76, siblingGap: 32,
+  cornerRadius: 12, radiusMode: 'design', canvasPadding: 44, labelSize: 16, labelWeight: 600,
+  cardBorderWidth: 1, connectorWidth: 1.75, arrowWidth: 1.75,
+  arrowHead: 'open', arrowHeadSizing: 'auto', gridBg: 'none', theme: 'custom',
+  connectionRoute: 'auto', connectionPaint: 'solid', connectionForm: 'line',
+  bendRadius: 16, cardDepth: 0, lineDepth: 0, directionMarkers: 'infer',
+  focalEmphasis: 'none', surfaceHighlight: 0
+};
+function dbRecipe(look) {
+  const recipe = Object.assign({}, DB_BASE);
+  if (look === 'editorial') { recipe.cornerRadius = 5; recipe.focalEmphasis = 'first'; }
+  if (look === 'soft') recipe.cardDepth = 1;
+  if (look === 'flow' || look === 'studio') {
+    recipe.connectionRoute = 'curve'; recipe.connectionPaint = 'gradient';
+    recipe.cardDepth = look === 'studio' ? 1.5 : 0.5;
+    recipe.lineDepth = look === 'studio' ? 0.5 : 0;
+    if (look === 'studio') { recipe.focalEmphasis = 'first'; recipe.surfaceHighlight = 1; }
+  }
+  return recipe;
+}
+function dbSeed(model, inp, changedId) {
+  const patch = {}, supplied = {};
+  model.forEach((item) => { if (item.isDirty) supplied[item.id] = true; });
+  const fresh = changedId === null && !Object.keys(supplied).length;
+  const selected = supplied.look && DB_LOOKS[inp.look];
+  if (fresh) patch.look = 'minimal';
+  const look = patch.look || inp.look;
+  if (!DB_LOOKS[look]) return patch;
+  if (changedId === 'cornerRadius') patch.radiusMode = 'custom';
+  const reset = changedId === 'resetLook' && inp.resetLook;
+  if (fresh || (changedId === null && selected) || changedId === 'look' || reset) {
+    const recipe = dbRecipe(look);
+    Object.keys(recipe).forEach((id) => {
+      if (reset || changedId === 'look' || !supplied[id]) patch[id] = recipe[id];
+    });
+    if (changedId === null && supplied.cornerRadius && !supplied.radiusMode) patch.radiusMode = 'custom';
+    ['nodeFill', 'nodeStroke', 'nodeText', 'edgeColor', 'background'].forEach((id) => {
+      if (reset || !supplied[id]) patch[id] = '';
+    });
+    if (reset) patch.resetLook = false;
+    if (fresh || !supplied.layers) patch.layers = arr(inp.layers).map((layer) => Object.assign({}, layer, { bandFill: '' }));
+  }
+  return patch;
+}
+function dbMix(a, b, t) {
+  if (host.color?.mix) return host.color.mix(a, b, t, { space: 'oklab' }) || a;
+  return mixHex(a, b, t);
+}
+function dbInk(fill, preferred, ratio) {
+  const base = inkOn(fill, preferred);
+  if (host.color?.contrast && host.color.contrast(preferred, fill) >= ratio) return preferred;
+  if (host.color?.contrast && host.color.contrast(base, fill) >= ratio) return base;
+  return relLuminance(fill) > 0.18 ? '#17191c' : '#ffffff';
+}
+async function dbAppearance(inp) {
+  let swatches = [], set = null, themes = [], opts;
+  if (host.tokens) {
+    try {
+      themes = host.tokens.themes ? await host.tokens.themes() : [];
+      const match = inp.colourMode !== 'system' && themes.find((t) => t.name.toLowerCase() === inp.colourMode);
+      if (match) opts = { theme: match.name };
+      if (host.tokens.colors) swatches = await host.tokens.colors(opts);
+      if (host.tokens.get) set = await host.tokens.get(opts);
+    } catch (_err) { note('Some design-system values are unavailable. Neutral defaults are in use.'); }
+  }
+  const map = {};
+  swatches.forEach((s) => { if (/^#[0-9a-f]{6}$/i.test(s.value)) map[s.path] = s.value; });
+  function slot(name, fallback) { return map['color.semantic.' + name] || fallback; }
+  let surface = slot('surface', '#ffffff'), ink = slot('text', '#20272c');
+  if (!opts && inp.colourMode === 'dark' && relLuminance(surface) > 0.3) { surface = '#172027'; ink = '#f5f7f8'; }
+  if (!opts && inp.colourMode === 'light' && relLuminance(surface) < 0.3) { surface = '#ffffff'; ink = '#20272c'; }
+  const primary = slot('primary', ink), secondary = slot('secondary', primary);
+  let bg = color(inp.background, surface), card = color(inp.nodeFill, surface);
+  if (!inp.nodeFill && (inp.look === 'soft' || inp.look === 'studio')) card = dbMix(surface, ink, relLuminance(surface) < 0.3 ? 0.06 : 0.015);
+  if (!inp.background && (inp.look === 'soft' || inp.look === 'studio')) bg = dbMix(surface, primary, relLuminance(surface) < 0.3 ? 0.02 : 0.045);
+  let font = 'sans-serif', mono = 'monospace';
+  async function token(path) {
+    try { return set ? set.resolve('{' + path + '}') : host.tokens?.resolve ? await host.tokens.resolve('{' + path + '}', opts) : null; }
+    catch (_err) { return null; }
+  }
+  function family(v, fallback) { return Array.isArray(v) ? v.join(', ') : typeof v === 'string' && v && v[0] !== '{' ? v : fallback; }
+  font = family(await token('font.brand'), font); mono = family(await token('font.mono'), mono);
+  const body = await token('typography.body');
+  if (body?.fontFamily) font = family(body.fontFamily, font);
+  const radius = await token('shape.radius'), base = await token('space.base');
+  function dimension(v) { if (v && typeof v === 'object') return v.unit === 'px' ? Number(v.value) : null; return typeof v === 'number' ? v : typeof v === 'string' && /^\d+(\.\d+)?px$/.test(v) ? parseFloat(v) : null; }
+  const gradients = set?.query ? set.query({ type: 'gradient' }) : [];
+  const shadows = set?.query ? set.query({ type: 'shadow' }) : [];
+  const shadowEntry = shadows.find((s) => s.path === 'shadow.card' || s.path === 'shadow.medium') || (shadows.length === 1 ? shadows[0] : null);
+  let shadow = shadowEntry?.value;
+  if (Array.isArray(shadow)) shadow = shadow[0];
+  const elevation = shadow && typeof shadow === 'object' ? {
+    x: clamp(dimension(shadow.offsetX) || 0, -8, 8), y: clamp(dimension(shadow.offsetY) || 3, -8, 8),
+    blur: clamp(dimension(shadow.blur) || 8, 1, 12), colour: color(shadow.color, '#10191d')
+  } : null;
+  return { primary: primary, secondary: secondary, surface: surface, bg: bg, card: card,
+    ink: color(inp.nodeText, ink), detail: slot('muted', dbMix(ink, card, 0.3)),
+    edge: color(inp.edgeColor, dbInk(bg === 'transparent' ? surface : bg, primary, 3)),
+    border: color(inp.nodeStroke, slot('edge', dbMix(ink, card, 0.75))),
+    font: font, mono: mono, radius: dimension(radius), space: dimension(base), elevation: elevation,
+    gradient: gradients.find((g) => g.path === inp.gradientToken) || (gradients.length === 1 ? gradients[0] : null)
+  };
+}
+function dbHash(value) { let h = 2166136261; for (let i = 0; i < value.length; i++) h = Math.imul(h ^ value.charCodeAt(i), 16777619); return h >>> 0; }
+function dbAccent(n, nodes, S) {
+  let root = n, visited = new Set();
+  while (root.parentId && !visited.has(root.id)) {
+    visited.add(root.id);
+    const parent = nodes.find((other) => other.id === root.parentId);
+    if (!parent?.parentId) break;
+    root = parent;
+  }
+  const key = n.layerId || root.id;
+  return dbMix(S.brand.primary, S.brand.secondary, (dbHash(key) % 5) / 4);
+}
+function dbStyle(S, inp, nodes) {
+  S.modern = true; S.look = inp.look; S.brand = inp._brand; S.inp = inp;
+  S.nodeFill = S.brand.card; S.nodeStroke = S.brand.border; S.nodeText = S.brand.ink;
+  S.detailColor = S.brand.detail; S.edgeColor = S.brand.edge;
+  S.detailSize = Math.max(12, Math.round(S.labelSize * 0.8125)); S.detailLH = Math.round(S.detailSize * 1.38);
+  S.labelLH = Math.round(S.labelSize * 1.375); S.cardPadV = Math.round(16 * S.scale);
+  if (S.brand.space) S.cardPadV = clamp(S.brand.space * 4, 12, 20) * S.scale;
+  S.bandPalette = [0.9, 0.84, 0.78, 0.72].map((t) => dbMix(S.brand.secondary, S.brand.surface, t));
+  S.cornerRadius = inp.radiusMode === 'design' && S.brand.radius !== null ? clamp(S.brand.radius * (S.look === 'editorial' ? 0.45 : 1), 0, 28) : S.cornerRadius;
+  if (nodes.length > 300) throw new Error('Use at most 300 cards per diagram.');
+  nodes.forEach((n) => { n.accent = dbAccent(n, nodes, S); });
+}
+
+function dbCanvasAttrs(ref, label, settings) {
+  return ' data-canvas-input="' + esc(ref) + '" data-canvas-name="' + esc(label) + '" data-canvas-settings="' + esc(settings || '') + '" tabindex="0" role="button" aria-label="' + esc(label) + '"';
+}
+function dbCardAttrs(n, S) {
+  const ref = S.sourceInput === 'nodes' ? 'nodes:' + n.idx : S.sourceInput;
+  const settings = S.sourceInput === 'nodes' ? ['label', 'detail', 'shape', 'fill', 'emphasis'].map((field) => ref + ':' + field).join(' ') : '';
+  return dbCanvasAttrs(ref, n.label || n.id, settings + ' cardDepth focalEmphasis surfaceHighlight');
+}
+
+// SPDX-License-Identifier: MPL-2.0
+const dbTextCache = new Map();
+async function dbTextMetrics(S) {
+  const faces = {};
+  if (host.text?.fontUrl) {
+    for (const weight of new Set([S.labelWeight, 400, 500, 600])) {
+      try { faces[weight] = await host.text.fontUrl(S.brand.font, { weight: weight }); }
+      catch (_err) { faces[weight] = null; }
+    }
+  }
+  return async (text, size, weight) => {
+    const face = faces[weight], key = JSON.stringify([face, S.brand.font, size, weight, text]);
+    if (dbTextCache.has(key)) {
+      const cached = dbTextCache.get(key);
+      if (cached.missing) note('Some characters are missing from the design-system font. Check their appearance before exporting.');
+      return cached.width;
+    }
+    let width, missing = false;
+    if (face && host.text?.toPath) {
+      try {
+        const shaped = await host.text.toPath({ text: text, fontUrl: face.url, fontSize: size, variations: face.variations });
+        missing = !!shaped.notdef;
+        if (missing) note('Some characters are missing from the design-system font. Check their appearance before exporting.');
+        else width = shaped.advanceWidth;
+      } catch (_err) { note('Font measurement is unavailable. Check long labels before exporting.'); }
+    }
+    if (!Number.isFinite(width)) {
+      width = Array.from(text).reduce((sum, ch) => sum + (/[\u2e80-\uffff]/.test(ch) ? 1 : /[ilI.,' ]/.test(ch) ? 0.28 : /[MW@]/.test(ch) ? 0.9 : 0.57) * size, 0);
+    }
+    if (dbTextCache.size > 6000) dbTextCache.clear();
+    dbTextCache.set(key, { width, missing }); return width;
+  };
+}
+async function dbWrap(text, width, size, weight, measure) {
+  if (!trim(text)) return [];
+  if (String(text).length > 1600) throw new Error('Keep each card label and detail below 1600 characters.');
+  if (!String(text).includes('\n') && await measure(text, size, weight) <= width) return [String(text).trim()];
+  const segments = typeof Intl !== 'undefined' && Intl.Segmenter ? Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(text), (s) => s.segment) : Array.from(text);
+  let lines = [], current = '', lastSpace = -1;
+  for (const ch of segments) {
+    if (ch === '\n') { lines.push(current.trim()); current = ''; lastSpace = -1; continue; }
+    const candidate = current + ch;
+    if (current && await measure(candidate, size, weight) > width) {
+      if (lastSpace > 0) { lines.push(current.slice(0, lastSpace).trim()); current = current.slice(lastSpace + 1) + ch; }
+      else { lines.push(current.trim()); current = ch; }
+      lastSpace = current.lastIndexOf(' ');
+    } else { current = candidate; if (/\s/.test(ch)) lastSpace = current.length - 1; }
+    if (lines.length >= 12) { note('Some text exceeds twelve lines. Widen the card or shorten the text.'); lines[11] += '…'; return lines; }
+  }
+  if (current.trim()) lines.push(current.trim());
+  return lines;
+}
+async function dbMeasureNodes(nodes, S) {
+  S.measure = await dbTextMetrics(S);
+  for (const n of nodes) {
+    let cardWidth = n.w || S.cardWidth, width = cardWidth - 2 * S.cardPadV;
+    if (n.image && S.cardLayout === 'row') width -= S.rowImgSide + S.imgGap;
+    if (n.shape === 'diamond') width = cardWidth * 0.5 - 2 * S.cardPadV;
+    if (n.shape === 'hexagon') width -= 32;
+    if (n.shape === 'circle' || n.shape === 'ellipse') width *= 0.7;
+    n.lines = await dbWrap(n.label, Math.max(40, width), S.labelSize, S.labelWeight, S.measure);
+    n.details = await dbWrap(n.detail, Math.max(40, width), S.detailSize, 400, S.measure);
+    n.textHeight = n.lines.length * S.labelLH + (n.details.length ? n.details.length * S.detailLH + 5 : 0);
+    n.measuredHeight = Math.max(60 * S.scale, 2 * S.cardPadV + (S.cardLayout === 'row' ? Math.max(S.rowImgSide, n.textHeight) : S.imgBand + n.textHeight));
+    if (n.shape === 'diamond') n.measuredHeight = Math.max(2 * (n.textHeight + 2 * S.cardPadV), S.cardWidth * 0.65);
+    if (n.shape === 'circle') n.measuredHeight = Math.max(n.measuredHeight, S.cardWidth);
+  }
+}
+function dbText(x, y, content, size, weight, fill, anchor) {
+  const rtl = /[\u0590-\u08ff]/.test(content);
+  const el = textEl(x, y, content, size, weight, fill, anchor);
+  return rtl ? el.replace('<text ', '<text direction="rtl" unicode-bidi="plaintext" ') : el;
+}
+function dbCard(n, S) {
+  let fill = color(n.fill, S.nodeFill), focal = n.emphasis === 'accent' || (n.emphasis !== 'quiet' && S.inp.focalEmphasis === 'first' && !n.parentId && n.idx === 0);
+  if (!n.fill && !S.inp.nodeFill && S.look === 'flow') fill = dbMix(n.accent, S.nodeFill, 0.9);
+  if (!n.fill && !S.inp.nodeFill && focal) fill = S.brand.primary;
+  const ink = dbInk(fill, S.nodeText, 4.5), detail = dbInk(fill, S.detailColor, 4.5);
+  const stroke = color(n.stroke, S.nodeStroke), width = n.strokeWidth > 0 ? n.strokeWidth : S.cardBorderWidth;
+  const geom = shapeGeom(n.shape, n.x, n.y, n.w, n.h, S, stroke, width), d = geom.outline;
+  let out = '<g' + dbCardAttrs(n, S) + ' data-diagram-node="' + esc(n.id) + '">';
+  if (d) {
+    out += dbShadow(d, S.inp.cardDepth, false, S, n);
+    out += dbFill(d, fill);
+    if (S.look === 'studio' && S.inp.surfaceHighlight > 0 && (n.shape === 'box' || n.shape === 'rounded' || n.shape === 'pill')) {
+      const r = rectRx(n.shape, n.w, n.h, S);
+      for (let i = 0; i < 10; i++) {
+        const inset = 0.5 + i * 0.45;
+        const sheen = roundedRectPath(n.x + inset, n.y + inset, n.w - inset * 2, n.h - inset * 2, Math.max(0, r - inset));
+        out += dbFill(sheen, dbMix(fill, '#ffffff', 0.055 * Number(S.inp.surfaceHighlight) * (1 - i / 10)));
+      }
+    }
+    if (width > 0) out += dbStroke(d, stroke, width);
+    if (S.look === 'editorial' && !focal && (n.shape === 'rounded' || n.shape === 'box')) out += dbFill(roundedRectPath(n.x + 1, n.y + 13, 3, Math.max(8, n.h - 26), 1.5), n.accent);
+  }
+  out += geom.decor;
+  const imageSide = n.image ? S.rowImgSide : 0;
+  const available = geom.tb.w - S.cardPadV * 2 - (imageSide ? imageSide + S.imgGap : 0);
+  const textHeight = n.textHeight || 0;
+  if (textHeight > geom.tb.h - S.cardPadV || available < 40) note('Some cards need more space for their text. Increase the card width or source box size.');
+  const left = S.cardLayout === 'row', tx = left ? geom.tb.x + S.cardPadV + (imageSide ? imageSide + S.imgGap : 0) : n.x + n.w / 2;
+  let ty = geom.tb.y + (geom.tb.h - textHeight) / 2;
+  if (n.image) {
+    let iw = left ? imageSide : Math.min(S.imgH, n.w - 2 * S.cardPadV), ih = iw;
+    if (n._imgAspect > 0) { if (n._imgAspect > 1) ih /= n._imgAspect; else iw *= n._imgAspect; }
+    const ix = left ? n.x + S.cardPadV : n.x + (n.w - iw) / 2;
+    const iy = left ? n.y + (n.h - ih) / 2 : n.y + S.cardPadV;
+    out += '<image href="' + esc(n.image) + '" x="' + f2(ix) + '" y="' + f2(iy) + '" width="' + f2(iw) + '" height="' + f2(ih) + '"/>';
+    if (!left) ty = n.y + S.cardPadV + S.imgBand;
+  }
+  (n.lines || [n.label]).forEach((line, i) => {
+    const rtl = /[\u0590-\u08ff]/.test(line), x = left && rtl ? geom.tb.x + geom.tb.w - S.cardPadV : tx;
+    out += dbText(x, ty + S.labelSize * 0.82 + i * S.labelLH, line, S.labelSize, S.labelWeight, ink, left ? 'start' : 'middle');
+  });
+  const detailY = ty + (n.lines || []).length * S.labelLH + 5;
+  (n.details || []).forEach((line, i) => {
+    const rtl = /[\u0590-\u08ff]/.test(line), x = left && rtl ? geom.tb.x + geom.tb.w - S.cardPadV : tx;
+    out += dbText(x, detailY + S.detailSize * 0.82 + i * S.detailLH, line, S.detailSize, 400, detail, left ? 'start' : 'middle');
+  });
+  return out + '</g>';
+}
+
+// SPDX-License-Identifier: MPL-2.0
+function dbCycle(nodes, S, inp, bb) {
+  const count = nodes.length, width = S.cardWidth;
+  const height = Math.max.apply(null, nodes.map((n) => n.measuredHeight));
+  const radius = Math.max(150, count * (Math.max(width, height) + S.siblingGap + 24) / (2 * Math.PI));
+  nodes.forEach((n, i) => {
+    const angle = -Math.PI / 2 + i * 2 * Math.PI / count;
+    n.w = width; n.h = n.measuredHeight; n.x = radius * Math.cos(angle) - n.w / 2; n.y = radius * Math.sin(angle) - n.h / 2;
+  });
+  let behind = '';
+  if (inp.cycleArrows !== false && count > 1) nodes.forEach((n, i) => {
+    const target = nodes[(i + 1) % count], lookup = {};
+    lookup[n.id] = n; lookup[target.id] = target;
+    const a = anchorOf(n.id, lookup, {}), b = anchorOf(target.id, lookup, {});
+    const p = borderPoint(a, b.cx, b.cy), q = borderPoint(b, a.cx, a.cy), distance = Math.hypot(q.x - p.x, q.y - p.y) || 1;
+    const ux = (q.x - p.x) / distance, uy = (q.y - p.y) / distance;
+    p.x += ux * 6; p.y += uy * 6; q.x -= ux * 6; q.y -= uy * 6;
+    const mx = (p.x + q.x) / 2, my = (p.y + q.y) / 2, radial = Math.hypot(mx, my);
+    const cx = mx + (radial > 1 ? mx / radial : i % 2 ? -1 : 1) * radius * 0.24;
+    const cy = my + (radial > 1 ? my / radial : 0) * radius * 0.24;
+    const d = 'M' + f2(p.x) + ' ' + f2(p.y) + (inp.cycleCurved === false ? 'L' : 'Q' + f2(cx) + ' ' + f2(cy) + ' ') + f2(q.x) + ' ' + f2(q.y);
+    const route = { d: d, points: dbSample(d) }, gradient = !inp.edgeColor && inp.connectionPaint === 'gradient';
+    const col = gradient || inp.connectionPaint === 'branch' ? n.accent : S.edgeColor, end = gradient ? target.accent : col;
+    behind += '<g' + dbCanvasAttrs('cycleCurved', n.label + ' → ' + target.label, 'cycleCurved connectionPaint arrowHead directionMarkers') + '>';
+    behind += dbPaintRoute(route, col, end, S.arrowWidth, S.arrowStyle, S, gradient);
+    behind += dbRouteHeads(route, {}, col, end, S.arrowWidth, S);
+    behind += '<path d="' + esc(d) + '" fill="none" stroke="transparent" stroke-width="14" pointer-events="stroke" data-export-hide=""/></g>';
+    const pad = Math.max(16, S.inp.arrowHeadSizing === 'custom' ? S.arrowHeadSize + S.arrowWidth / 2 : 16);
+    route.points.forEach((pt) => { bb.add(pt.x - pad, pt.y - pad, pad * 2, pad * 2); });
+  });
+  return { autoEdges: [], bands: [], layerById: {}, behind: behind };
+}
+
+function dbProcess(nodes, rawEdges, S, dir) {
+  const adjacency = new Map(nodes.map((n) => [n.id, []]));
+  arr(rawEdges).forEach((edge) => {
+    const from = slug(edge.from), to = slug(edge.to);
+    if (adjacency.has(from) && adjacency.has(to)) { adjacency.get(from).push(to); adjacency.get(to).push(from); }
+  });
+  const visited = new Set(), groups = [];
+  nodes.forEach((node) => {
+    if (visited.has(node.id)) return;
+    const group = new Set([node.id]), queue = [node.id]; visited.add(node.id);
+    for (let i = 0; i < queue.length; i++) adjacency.get(queue[i]).forEach((id) => {
+      if (!visited.has(id)) { visited.add(id); group.add(id); queue.push(id); }
+    });
+    groups.push(group);
+  });
+  if (groups.length > 1) {
+    let cross = 0;
+    groups.forEach((group) => {
+      const subset = nodes.filter((node) => group.has(node.id));
+      dbProcess(subset, arr(rawEdges).filter((edge) => group.has(slug(edge.from)) && group.has(slug(edge.to))), S, dir);
+      const horizontal = dir === 'right';
+      const min = Math.min(...subset.map((node) => horizontal ? node.y : node.x));
+      const max = Math.max(...subset.map((node) => horizontal ? node.y + node.h : node.x + node.w));
+      subset.forEach((node) => { if (horizontal) node.y += cross - min; else node.x += cross - min; });
+      cross += max - min + Math.max(40, S.siblingGap);
+    });
+    return { autoEdges: [], bands: [], layerById: {}, routeDirection: dir };
+  }
+  const next = new Map(nodes.map((n) => [n.id, []]));
+  const incoming = new Map();
+  arr(rawEdges).forEach((e) => { if (next.has(slug(e.from)) && next.has(slug(e.to))) next.get(slug(e.from)).push(slug(e.to)); });
+  arr(rawEdges).forEach((e) => { incoming.set(slug(e.to), (incoming.get(slug(e.to)) || 0) + 1); });
+  let index = 0, stack = [], active = new Set(), indices = new Map(), low = new Map(), components = [], component = new Map();
+  function visit(id) {
+    indices.set(id, index); low.set(id, index++); stack.push(id); active.add(id);
+    next.get(id).forEach((to) => {
+      if (!indices.has(to)) { visit(to); low.set(id, Math.min(low.get(id), low.get(to))); }
+      else if (active.has(to)) low.set(id, Math.min(low.get(id), indices.get(to)));
+    });
+    if (low.get(id) === indices.get(id)) {
+      let group = [], member;
+      do { member = stack.pop(); active.delete(member); component.set(member, components.length); group.push(member); } while (member !== id);
+      components.push(group);
+    }
+  }
+  nodes.forEach((n) => { if (!indices.has(n.id)) visit(n.id); });
+  const order = new Map(nodes.map((n, i) => [n.id, i])), local = new Map(nodes.map((n) => [n.id, 0]));
+  const spans = components.map((members) => {
+    members.sort((a, b) => order.get(a) - order.get(b));
+    members.forEach((from) => { next.get(from).forEach((to) => {
+      if (component.get(from) === component.get(to) && order.get(to) > order.get(from)) local.set(to, Math.max(local.get(to), local.get(from) + 1));
+    }); });
+    return 1 + Math.max(...members.map((id) => local.get(id)));
+  });
+  const ranks = components.map(() => 0), indegree = components.map(() => 0), links = components.map(() => new Set());
+  next.forEach((tos, from) => { tos.forEach((to) => {
+    const a = component.get(from), b = component.get(to);
+    if (a !== b && !links[a].has(b)) { links[a].add(b); indegree[b]++; }
+  }); });
+  const queue = []; indegree.forEach((degree, i) => { if (!degree) queue.push(i); });
+  for (let q = 0; q < queue.length; q++) links[queue[q]].forEach((to) => { ranks[to] = Math.max(ranks[to], ranks[queue[q]] + spans[queue[q]]); if (--indegree[to] === 0) queue.push(to); });
+  const rows = [];
+  nodes.forEach((n) => { const rank = ranks[component.get(n.id)] + local.get(n.id); if (!rows[rank]) rows[rank] = []; rows[rank].push(n); });
+  let horizontal = dir === 'right', main = 0;
+  rows.forEach((row) => {
+    row.forEach((n) => { n.w = S.cardWidth; n.h = Math.max(n.measuredHeight, horizontal ? Math.max(next.get(n.id).length, incoming.get(n.id) || 0) * 18 + 24 : 0); });
+    const extent = row.reduce((sum, n) => sum + (horizontal ? n.h : n.w) + S.siblingGap, -S.siblingGap);
+    let cross = -extent / 2;
+    row.forEach((n) => { n.x = horizontal ? main : cross; n.y = horizontal ? cross : main; cross += (horizontal ? n.h : n.w) + S.siblingGap; });
+    main += Math.max.apply(null, row.map((n) => horizontal ? n.w : n.h)) + Math.max(48, S.rowGap);
+  });
+  return { autoEdges: [], bands: [], layerById: {}, routeDirection: dir };
+}
+function dbTree(nodes, S, dir, mindmap) {
+  const roots = buildTree(nodes), horizontal = dir === 'right' || mindmap;
+  function span(n) {
+    n.w = S.cardWidth; n.h = n.measuredHeight;
+    const children = n._children.map(span);
+    n.span = Math.max(horizontal ? n.h : n.w, children.reduce((sum, value) => sum + value, 0) + Math.max(0, children.length - 1) * S.siblingGap);
+    return n.span;
+  }
+  roots.forEach(span);
+  const depthSizes = [];
+  function sizes(n, depth) { depthSizes[depth] = Math.max(depthSizes[depth] || 0, horizontal ? n.w : n.h); n._children.forEach((c) => { sizes(c, depth + 1); }); }
+  roots.forEach((r) => { sizes(r, 0); });
+  const depths = [0]; for (let i = 0; i < depthSizes.length; i++) depths[i + 1] = depths[i] + depthSizes[i] + Math.max(48, S.rowGap);
+  function place(n, depth, cross, side) {
+    if (horizontal) { n.x = side < 0 ? -depths[depth] - n.w : depths[depth]; n.y = cross + n.span / 2 - n.h / 2; }
+    else { n.x = cross + n.span / 2 - n.w / 2; n.y = depths[depth]; }
+    n._side = side;
+    const total = n._children.reduce((sum, c) => sum + c.span, 0) + Math.max(0, n._children.length - 1) * S.siblingGap;
+    let offset = cross + (n.span - total) / 2;
+    n._children.forEach((c) => { place(c, depth + 1, offset, side); offset += c.span + S.siblingGap; });
+  }
+  let cross = 0;
+  roots.forEach((r) => {
+    if (mindmap && S.inp.mindmapStyle !== 'right' && r._children.length > 1) {
+      const sides = [[], []], totals = [0, 0];
+      r._children.forEach((c) => { const side = totals[0] <= totals[1] ? 0 : 1; sides[side].push(c); totals[side] += c.span + S.siblingGap; });
+      const extent = Math.max.apply(null, totals); r.x = -r.w / 2; r.y = cross + extent / 2 - r.h / 2;
+      sides.forEach((list, side) => {
+        let offset = cross + (extent - totals[side] + S.siblingGap) / 2;
+        list.forEach((c) => { place(c, 1, offset, side ? -1 : 1); offset += c.span + S.siblingGap; });
+      });
+      cross += extent + S.rowGap;
+    } else { place(r, 0, cross, 1); cross += r.span + S.rowGap; }
+  });
+  const trunks = [], joined = new Set();
+  if (!mindmap && ['auto', 'elbow'].includes(S.inp.connectionRoute) && ['infer', 'none'].includes(S.inp.directionMarkers)) {
+    nodes.forEach((parent) => {
+      if (parent._children.length < 2) return;
+      const children = parent._children.slice().sort((a, b) => horizontal ? a.y - b.y : a.x - b.x);
+      const end = horizontal ? parent.x + parent.w + 5 : parent.y + parent.h + 5;
+      const center = horizontal ? parent.y + parent.h / 2 : parent.x + parent.w / 2;
+      const tips = children.map((c) => ({ main: (horizontal ? c.x : c.y) - 5, cross: horizontal ? c.y + c.h / 2 : c.x + c.w / 2 }));
+      const bus = (end + Math.min(...tips.map((p) => p.main))) / 2;
+      const point = (main, cross) => horizontal ? { x: main, y: cross } : { x: cross, y: main };
+      const line = (points) => dbRounded(points, clamp(num(S.inp.bendRadius, 16), 0, 48));
+      trunks.push(line([point(end, center), point(bus, center)]));
+      const first = tips[0], last = tips[tips.length - 1];
+      trunks.push(line([point(first.main, first.cross), point(bus, first.cross), point(bus, last.cross), point(last.main, last.cross)]));
+      tips.slice(1, -1).forEach((p) => { trunks.push(line([point(bus, p.cross), point(p.main, p.cross)])); });
+      children.forEach((c) => { joined.add(c.id); });
+    });
+  }
+  return { autoEdges: trunks, bands: [], layerById: {}, routeDirection: horizontal ? 'right' : 'down',
+    modernEdges: nodes.filter((n) => n._parent && !joined.has(n.id)).map((n) => ({ from: n._parent.id, to: n.id, head: 'none', _auto: true })) };
+}
+function dbSimplify(points) {
+  const out = [];
+  points.forEach((p) => {
+    const last = out[out.length - 1]; if (last && Math.hypot(last.x - p.x, last.y - p.y) < 0.01) return;
+    while (out.length > 1) {
+      const a = out[out.length - 2], b = out[out.length - 1];
+      if (Math.abs((b.x - a.x) * (p.y - b.y) - (b.y - a.y) * (p.x - b.x)) > 0.001 || (b.x - a.x) * (p.x - b.x) + (b.y - a.y) * (p.y - b.y) < 0) break;
+      out.pop();
+    }
+    out.push(p);
+  });
+  return out;
+}
+function dbRounded(points, radius) {
+  const p = dbSimplify(points); if (p.length < 2) return '';
+  let d = 'M' + f2(p[0].x) + ' ' + f2(p[0].y), k = 4 * (Math.sqrt(2) - 1) / 3;
+  for (let i = 1; i < p.length - 1; i++) {
+    const a = p[i - 1], b = p[i], c = p[i + 1], al = Math.hypot(b.x - a.x, b.y - a.y), bl = Math.hypot(c.x - b.x, c.y - b.y);
+    const r = Math.min(radius, al / 2, bl / 2), ux = (b.x - a.x) / al, uy = (b.y - a.y) / al, vx = (c.x - b.x) / bl, vy = (c.y - b.y) / bl;
+    const ax = b.x - ux * r, ay = b.y - uy * r, bx = b.x + vx * r, by = b.y + vy * r;
+    d += 'L' + f2(ax) + ' ' + f2(ay) + 'C' + f2(ax + ux * r * k) + ' ' + f2(ay + uy * r * k) + ' ' + f2(bx - vx * r * k) + ' ' + f2(by - vy * r * k) + ' ' + f2(bx) + ' ' + f2(by);
+  }
+  return d + 'L' + f2(p[p.length - 1].x) + ' ' + f2(p[p.length - 1].y);
+}
+function dbPort(n, side, fraction, gap) {
+  const u = { x: side === 'right' ? 1 : side === 'left' ? -1 : 0, y: side === 'bottom' ? 1 : side === 'top' ? -1 : 0 };
+  const horizontal = !!u.x, cx = n.cx, cy = n.cy, hw = n.hw, hh = n.hh;
+  const half = horizontal ? hh : hw, offset = (fraction - 0.5) * Math.max(half, 2 * half - 20);
+  let x = cx + (horizontal ? u.x * hw : offset), y = cy + (horizontal ? offset : u.y * hh);
+  if (n.shape === 'circle' || n.shape === 'ellipse') {
+    if (horizontal) x = cx + u.x * hw * Math.sqrt(Math.max(0, 1 - offset * offset / (hh * hh)));
+    else y = cy + u.y * hh * Math.sqrt(Math.max(0, 1 - offset * offset / (hw * hw)));
+  } else if (n.shape === 'diamond') {
+    if (horizontal) x = cx + u.x * hw * (1 - Math.abs(offset) / hh);
+    else y = cy + u.y * hh * (1 - Math.abs(offset) / hw);
+  } else if ((n.shape === 'pill' || n.shape === 'oval') && horizontal && hw >= hh) {
+    x = cx + u.x * (hw - hh + Math.sqrt(Math.max(0, hh * hh - offset * offset)));
+  }
+  if ((n.shape === 'pill' || n.shape === 'oval') && !horizontal && hh >= hw) y = cy + u.y * (hh - hw + Math.sqrt(Math.max(0, hw * hw - offset * offset)));
+  if (n.shape === 'hexagon' && horizontal) x = cx + u.x * (hw - clamp(Math.min(hw * 0.4, hh), 6, 44) * Math.abs(offset) / hh);
+  if (n.shape === 'cylinder' && !horizontal) {
+    const cap = clamp(Math.min(hh * 0.32, hw * 0.84), 4, 16);
+    y = cy + u.y * (hh - cap + cap * Math.sqrt(Math.max(0, 1 - offset * offset / (hw * hw))));
+  }
+  return { x: x + u.x * gap, y: y + u.y * gap, ux: u.x, uy: u.y };
+}
+function dbHits(a, b, box, pad) {
+  const minX = box.cx - box.hw - pad, maxX = box.cx + box.hw + pad, minY = box.cy - box.hh - pad, maxY = box.cy + box.hh + pad;
+  let lo = 0, hi = 1, dx = b.x - a.x, dy = b.y - a.y;
+  for (const pair of [[-dx, a.x - minX], [dx, maxX - a.x], [-dy, a.y - minY], [dy, maxY - a.y]]) {
+    if (Math.abs(pair[0]) < 1e-8) { if (pair[1] <= 0) return false; }
+    else { const t = pair[1] / pair[0]; if (pair[0] < 0) lo = Math.max(lo, t); else hi = Math.min(hi, t); }
+  }
+  return hi > lo + 1e-6 && hi > 0 && lo < 1;
+}
+function dbRoute(A, B, S, boxes, fromFraction, toFraction, routeMode, lane, tree) {
+  let horizontal = S.routeDirection === 'right', forward = horizontal ? B.cx > A.cx + A.hw : B.cy > A.cy + A.hh;
+  let sideA = horizontal ? 'right' : 'bottom', sideB = horizontal ? 'left' : 'top';
+  if (A === B) { sideA = 'right'; sideB = 'top'; }
+  else if (tree && horizontal && B.cx < A.cx) { sideA = 'left'; sideB = 'right'; forward = true; }
+  else if (horizontal && Math.abs(B.cx - A.cx) < Math.max(A.hw, B.hw) && B.cy > A.cy + A.hh) { horizontal = false; forward = true; sideA = 'bottom'; sideB = 'top'; }
+  else if (horizontal && Math.abs(B.cx - A.cx) < Math.max(A.hw, B.hw)) { sideA = 'right'; sideB = 'right'; }
+  else if (!forward) { sideA = horizontal ? 'top' : 'left'; sideB = sideA; }
+  const gap = Math.max(5, S.arrowWidth * 2), a = dbPort(A, sideA, fromFraction, gap), b = dbPort(B, sideB, toFraction, gap);
+  const landing = Math.max(16, clamp(3.5 * S.arrowWidth, 6, 10) + 6);
+  const aa = { x: a.x + a.ux * landing, y: a.y + a.uy * landing }, bb = { x: b.x + b.ux * landing, y: b.y + b.uy * landing };
+  const candidates = [], pad = 8 + Math.max(0, Number(S.inp.cardDepth)) * 5;
+  const clear = (points) => points.every((p, i) => !i || boxes.every((box) => {
+    if ((box === A && i === 1) || (box === B && i === points.length - 1)) return true;
+    return !dbHits(points[i - 1], p, box, box === A || box === B ? 0 : pad);
+  }));
+  const result = (d) => ({ d, points: dbSample(d), start: a, end: b, startTangent: { x: a.ux, y: a.uy }, endTangent: { x: -b.ux, y: -b.uy }, unresolved: false });
+  if (forward && routeMode === 'curve') {
+    const d = 'M' + f2(a.x) + ' ' + f2(a.y) + 'C' + f2(horizontal ? (a.x + b.x) / 2 : a.x) + ' ' + f2(horizontal ? a.y : (a.y + b.y) / 2) + ' ' + f2(horizontal ? (a.x + b.x) / 2 : b.x) + ' ' + f2(horizontal ? b.y : (a.y + b.y) / 2) + ' ' + f2(b.x) + ' ' + f2(b.y);
+    const sampled = dbSample(d);
+    if (sampled.every((p, i) => !i || boxes.every((box) => box === A || box === B || !dbHits(sampled[i - 1], p, box, pad)))) return result(d);
+  }
+  if (routeMode === 'straight' && A !== B) candidates.push([a, b]);
+  if (forward) {
+    const mx = (aa.x + bb.x) / 2, my = (aa.y + bb.y) / 2;
+    candidates.push(horizontal ? [a, aa, { x: mx, y: aa.y }, { x: mx, y: bb.y }, bb, b] : [a, aa, { x: aa.x, y: my }, { x: bb.x, y: my }, bb, b]);
+  }
+  for (const candidate of candidates) {
+    const points = dbSimplify(candidate);
+    if (clear(points)) return result(dbRounded(points, routeMode === 'straight' ? 0 : clamp(num(S.inp.bendRadius, 16), 0, 48)));
+  }
+  const xs = [Math.min(A.cx - A.hw, B.cx - B.hw) - 32 - lane * 8], ys = [Math.min(A.cy - A.hh, B.cy - B.hh) - 32 - lane * 8];
+  boxes.forEach((box) => { xs.push(box.cx - box.hw - pad - 16 - lane * 6, box.cx + box.hw + pad + 16 + lane * 6); ys.push(box.cy - box.hh - pad - 16 - lane * 6, box.cy + box.hh + pad + 16 + lane * 6); });
+  const corridors = (values, center) => [...new Set(values)].sort((a, b) => Math.abs(a - center) - Math.abs(b - center)).slice(0, 24).concat(Math.min(...values), Math.max(...values));
+  corridors(xs, (aa.x + bb.x) / 2).forEach((x) => { candidates.push([a, aa, { x: x, y: aa.y }, { x: x, y: bb.y }, bb, b]); });
+  corridors(ys, (aa.y + bb.y) / 2).forEach((y) => { candidates.push([a, aa, { x: aa.x, y: y }, { x: bb.x, y: y }, bb, b]); });
+  let best = null, score = Infinity;
+  candidates.forEach((raw) => {
+    let points = dbSimplify(raw), length = 0;
+    for (let i = 1; i < points.length; i++) {
+      const p = points[i - 1], q = points[i]; length += Math.hypot(q.x - p.x, q.y - p.y);
+      for (const box of boxes) {
+        if ((box === A && i === 1) || (box === B && i === points.length - 1)) continue;
+        if (dbHits(p, q, box, box === A || box === B ? 0 : pad)) return;
+      }
+    }
+    const value = length + points.length * 10;
+    if (value < score) { best = points; score = value; }
+  });
+  if (!best) { note('Some connections could not avoid nearby cards. Increase row and sibling spacing.'); best = [a, aa, bb, b]; }
+  let curve = routeMode === 'curve' && forward && best.length <= 6;
+  let d;
+  if (curve) {
+    d = 'M' + f2(a.x) + ' ' + f2(a.y) + 'C' + f2(horizontal ? (a.x + b.x) / 2 : a.x) + ' ' + f2(horizontal ? a.y : (a.y + b.y) / 2) + ' ' + f2(horizontal ? (a.x + b.x) / 2 : b.x) + ' ' + f2(horizontal ? b.y : (a.y + b.y) / 2) + ' ' + f2(b.x) + ' ' + f2(b.y);
+    const sampled = dbSample(d);
+    if (sampled.some((p, i) => i && boxes.some((box) => box !== A && box !== B && dbHits(sampled[i - 1], p, box, pad)))) curve = false;
+  }
+  if (!curve) d = dbRounded(best, routeMode === 'straight' ? 0 : clamp(num(S.inp.bendRadius, 16), 0, 48));
+  return { d: d, points: dbSample(d), start: a, end: b, startTangent: { x: a.ux, y: a.uy }, endTangent: { x: -b.ux, y: -b.uy }, unresolved: !Number.isFinite(score) };
+}
+function dbSample(d) {
+  let tokens = d.match(/[MLCQZ]|-?\d*\.?\d+(?:e[-+]?\d+)?/gi) || [], points = [], x = 0, y = 0, i = 0;
+  function add(px, py) { if (!points.length || Math.hypot(px - x, py - y) > 0.001) points.push({ x: px, y: py }); x = px; y = py; }
+  while (i < tokens.length) {
+    const op = tokens[i++];
+    if (op === 'M' || op === 'L') add(Number(tokens[i++]), Number(tokens[i++]));
+    else if (op === 'C' || op === 'Q') {
+      let x0 = x, y0 = y, x1 = Number(tokens[i++]), y1 = Number(tokens[i++]);
+      let x2 = Number(tokens[i++]), y2 = Number(tokens[i++]), x3, y3;
+      if (op === 'Q') { x3 = x2; y3 = y2; x2 = x3 + (x1 - x3) * 2 / 3; y2 = y3 + (y1 - y3) * 2 / 3; x1 = x0 + (x1 - x0) * 2 / 3; y1 = y0 + (y1 - y0) * 2 / 3; }
+      else { x3 = Number(tokens[i++]); y3 = Number(tokens[i++]); }
+      const steps = Math.min(128, Math.max(8, Math.ceil((Math.hypot(x1 - x0, y1 - y0) + Math.hypot(x2 - x1, y2 - y1) + Math.hypot(x3 - x2, y3 - y2)) / 4)));
+      for (let j = 1; j <= steps; j++) { const t = j / steps, u = 1 - t; add(u*u*u*x0 + 3*u*u*t*x1 + 3*u*t*t*x2 + t*t*t*x3, u*u*u*y0 + 3*u*u*t*y1 + 3*u*t*t*y2 + t*t*t*y3); }
+    } else if (op !== 'Z') break;
+  }
+  return points;
+}
+
+function dbLayercake(nodes, rawLayers, S) {
+  const layers = [], layerById = {};
+  arr(rawLayers).forEach((raw, i) => {
+    if (!raw) return;
+    const id = slug(raw.layerId) || slug(raw.label) || 'layer-' + (i + 1);
+    if (layerById[id]) return;
+    const layer = { idx: i, id: id, label: trim(raw.label) || id, bandFill: color(raw.bandFill, S.bandPalette[i % S.bandPalette.length]), _cards: [] };
+    layers.push(layer); layerById[id] = layer;
+  });
+  nodes.forEach((node) => {
+    const id = node.layerId || '__unassigned__';
+    if (!layerById[id]) {
+      const layer = { idx: layers.length, id: id, label: node.layerId ? titleize(id) : 'Unassigned', bandFill: S.bandPalette[layers.length % S.bandPalette.length], _cards: [] };
+      layers.push(layer); layerById[id] = layer;
+    }
+    layerById[id]._cards.push(node);
+  });
+  const limit = clamp(num(S.inp.layerColumns, 0), 0, 8), cw = S.cardWidth;
+  const cols = Math.max(1, ...layers.map((layer) => limit ? Math.min(limit, layer._cards.length) : layer._cards.length));
+  const gap = Math.max(12, Math.round(S.siblingGap * 0.6)), pad = 20;
+  const gutter = clamp(Math.max(0, ...layers.map((layer) => textWidth(layer.label, 15))) + 36, 112, 180);
+  const inner = cols * cw + (cols - 1) * gap, width = gutter + inner + pad * 2;
+  let y = 0;
+  layers.forEach((layer) => {
+    const rows = [];
+    layer._cards.forEach((node, i) => { const row = Math.floor(i / cols); if (!rows[row]) rows[row] = []; rows[row].push(node); });
+    let cy = y + pad;
+    rows.forEach((row) => {
+      const h = Math.max(60, ...row.map((node) => node.measuredHeight));
+      const left = gutter + pad + (inner - row.length * cw - (row.length - 1) * gap) / 2;
+      row.forEach((node, i) => { node.x = left + i * (cw + gap); node.y = cy; node.w = cw; node.h = h; });
+      cy += h + gap;
+    });
+    layer.x = 0; layer.y = y; layer.w = width; layer.h = Math.max(60, cy - y - gap) + pad;
+    y += layer.h + Math.max(24, S.rowGap * 0.5);
+  });
+  return { autoEdges: [], bands: layers, layerById: layerById, gutter: gutter };
+}
+
+// SPDX-License-Identifier: MPL-2.0
+const dbOutlineCache = new Map();
+function dbFill(d, fill, opacity) {
+  return '<path d="' + esc(d) + '" fill="' + esc(fill) + '"' + (opacity == null ? '' : ' opacity="' + f2(opacity) + '"') + '/>';
+}
+function dbObject(d, fill, S, box) {
+  let out = dbShadow(d, S.inp.cardDepth, false, S, box) + dbFill(d, fill);
+  if (S.cardBorderWidth > 0) out += dbStroke(d, S.nodeStroke, S.cardBorderWidth);
+  if (S.look === 'studio' && S.inp.surfaceHighlight > 0 && box && box.w > 14) {
+    out += dbStroke('M' + f2(box.x + 6) + ' ' + f2(box.y + 1.5) + 'L' + f2(box.x + box.w - 6) + ' ' + f2(box.y + 1.5), dbMix(fill, '#ffffff', 0.35 * Number(S.inp.surfaceHighlight)), 1);
+  }
+  return out;
+}
+function dbOutline(d, width) {
+  const line = /^M(-?[\d.]+) (-?[\d.]+)L(-?[\d.]+) (-?[\d.]+)$/.exec(d);
+  if (line) return dbCapsule(Number(line[1]), Number(line[2]), Number(line[3]), Number(line[4]), width);
+  const key = width + ':' + d;
+  if (dbOutlineCache.has(key)) return dbOutlineCache.get(key);
+  if (host.geom?.stroke) {
+    const result = host.geom.stroke(d, width, { cap: 'round', join: 'round', tolerance: 0.1, decimals: 2 });
+    if (result.ok) {
+      if (dbOutlineCache.size > 1200) dbOutlineCache.clear();
+      dbOutlineCache.set(key, result.d); return result.d;
+    }
+  }
+  return null;
+}
+function dbCapsule(ax, ay, bx, by, width) {
+  const length = Math.hypot(bx - ax, by - ay), r = width / 2, k = 0.5522847498 * r;
+  if (length < 0.001) return circlePath(ax, ay, r);
+  const ux = (bx - ax) / length, uy = (by - ay) / length;
+  const p = (x, y) => f2(ax + ux * x - uy * y) + ' ' + f2(ay + uy * x + ux * y);
+  return 'M' + p(0,r) + 'L' + p(length,r)
+    + 'C' + p(length+k,r) + ' ' + p(length+r,k) + ' ' + p(length+r,0)
+    + 'C' + p(length+r,-k) + ' ' + p(length+k,-r) + ' ' + p(length,-r)
+    + 'L' + p(0,-r) + 'C' + p(-k,-r) + ' ' + p(-r,-k) + ' ' + p(-r,0)
+    + 'C' + p(-r,k) + ' ' + p(-k,r) + ' ' + p(0,r) + 'Z';
+}
+function dbStroke(d, col, width, opacity) {
+  const outline = dbOutline(d, width);
+  if (outline !== null) return dbFill(outline, col, opacity);
+  return '<path d="' + esc(d) + '" fill="none" stroke="' + esc(col) + '" stroke-width="' + f2(width) + '" stroke-linecap="round" stroke-linejoin="round"' + (opacity == null ? '' : ' opacity="' + f2(opacity) + '"') + '/>';
+}
+function dbShadow(d, amount, line, S, node) {
+  amount = clamp(num(amount, 0), 0, 2); if (!amount || !d) return '';
+  const token = S.brand.elevation, factor = line ? 0.5 : 1;
+  const dx = token ? token.x * factor : 0, dy = token ? token.y * factor : line ? 1.5 : 3;
+  let out = '<g transform="translate(' + f2(dx * amount) + ' ' + f2(dy * amount) + ')" aria-hidden="true">';
+  const colour = token ? token.colour : '#10191d', layers = 8, blur = token ? token.blur * factor : line ? 3.6 : 7.2;
+  for (let i = layers; i > 0; i--) {
+    const spread = i / layers * amount * blur / 2, alpha = 0.01 + (layers - i) * 0.002;
+    if (node) {
+      const expanded = shapeGeom(node.shape, node.x-spread, node.y-spread, node.w+2*spread, node.h+2*spread, Object.assign({},S,{cornerRadius:S.cornerRadius+spread}), colour, 0);
+      out += dbFill(expanded.outline, colour, alpha);
+    } else out += dbStroke(d, colour, Math.max(0.3, spread * 2), alpha);
+  }
+  out += dbFill(d, colour, line ? 0.04 : 0.05);
+  return out + '</g>';
+}
+function dbResample(points, maxSegments) {
+  if (points.length < 2) return points;
+  let total = 0, lengths = [0];
+  for (let i = 1; i < points.length; i++) { total += Math.hypot(points[i].x - points[i-1].x, points[i].y - points[i-1].y); lengths.push(total); }
+  if (total < 0.01) return points.slice(0, 1);
+  let count = Math.min(maxSegments, Math.max(2, Math.ceil(total / 3))), out = [], index = 1;
+  for (let j = 0; j <= count; j++) {
+    const distance = total * j / count;
+    while (index < points.length - 1 && lengths[index] < distance) index++;
+    const a = points[index-1], b = points[index], t = (distance - lengths[index-1]) / Math.max(0.001, lengths[index] - lengths[index-1]);
+    out.push({ x: lerp(a.x,b.x,t), y: lerp(a.y,b.y,t), distance: distance });
+  }
+  return out;
+}
+function dbRamp(from, to, S) {
+  const gradient = S.brand.gradient;
+  if (gradient && Array.isArray(gradient.value) && !S.inp.gradientFrom && !S.inp.gradientTo) {
+    const stops = gradient.value.map((stop) => ({ color: color(stop.color, ''), position: Number(stop.position) })).filter((s) => s.color && Number.isFinite(s.position));
+    stops.sort((a, b) => a.position - b.position);
+    if (stops.length > 1) return Array.from({ length: 65 }, (_, i) => {
+      const t = i / 64, next = stops.findIndex((s) => s.position >= t);
+      if (next === 0) return stops[0].color;
+      if (next < 0) return stops[stops.length - 1].color;
+      const a = stops[next - 1], b = stops[next];
+      return dbMix(a.color, b.color, (t - a.position) / Math.max(0.00001, b.position - a.position));
+    });
+  }
+  if (host.color?.ramp) {
+    try { return host.color.ramp([from, to], 65); } catch (_err) { /* use the same bounded fallback below */ }
+  }
+  return Array.from({ length: 65 }, (_, i) => dbMix(from, to, i / 64));
+}
+function dbPaintRoute(route, col, endCol, width, style, S, gradient) {
+  let out = '';
+  if (S.inp.lineDepth > 0 && style === 'solid') {
+    const amount = clamp(Number(S.inp.lineDepth), 0, 2);
+    out += '<g transform="translate(0 ' + f2(amount * 1.5) + ')" aria-hidden="true">';
+    for (let i = 4; i > 0; i--) out += dbFill(dbEnvelope(route.points, width + i * amount), '#10191d', 0.025);
+    out += '</g>';
+  }
+  const points = dbResample(route.points, 160), ramp = gradient ? dbRamp(col, endCol, S) : [col];
+  const ground = S.brand.bg === 'transparent' ? S.brand.surface : S.brand.bg;
+  const casing = gradient && ramp.some((c) => contrastRatio(relLuminance(c), relLuminance(ground)) < 3);
+  if (casing && style === 'solid') out += dbStroke(route.d, S.edgeColor, width + 1.25);
+  if (!gradient && style === 'solid') return out + dbStroke(route.d, col, width);
+  if (style === 'dotted' && points.length > 1) {
+    const total = points[points.length - 1].distance, count = Math.min(320, Math.max(1, Math.floor(total / Math.max(3, width * 3))));
+    let index = 1;
+    for (let i = 0; i <= count; i++) {
+      const distance = total * i / count;
+      while (index < points.length - 1 && points[index].distance < distance) index++;
+      const a = points[index - 1], b = points[index], t = (distance - a.distance) / Math.max(0.001, b.distance - a.distance);
+      const x = lerp(a.x, b.x, t), y = lerp(a.y, b.y, t);
+      if (casing) out += dbFill(circlePath(x, y, width / 2 + 0.625), S.edgeColor);
+      out += dbFill(circlePath(x, y, width / 2), ramp[Math.round(i / count * (ramp.length - 1))]);
+    }
+    return out;
+  }
+  const dash = style === 'dotted' ? width * 2.5 : Math.max(8, width * 5);
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i-1], b = points[i], middle = (a.distance + b.distance) / 2;
+    if (style !== 'solid' && Math.floor(middle / dash) % 2) continue;
+    const paint = ramp[Math.round((i - 0.5) / (points.length - 1) * (ramp.length - 1))];
+    const d = 'M' + f2(a.x) + ' ' + f2(a.y) + 'L' + f2(b.x) + ' ' + f2(b.y);
+    if (casing && style !== 'solid') out += dbStroke(d, S.edgeColor, width + 1.25);
+    out += dbStroke(d, paint, width);
+  }
+  return out;
+}
+function dbEnvelope(points, width) {
+  if (points.length < 2) return '';
+  const radius = width / 2, left = [], right = [];
+  const p = (x, y) => f2(x) + ' ' + f2(y);
+  points.forEach((point, i) => {
+    const a = points[Math.max(0, i-1)], b = points[Math.min(points.length-1, i+1)];
+    const length = Math.hypot(b.x-a.x,b.y-a.y) || 1, nx = -(b.y-a.y) / length * radius, ny = (b.x-a.x) / length * radius;
+    left.push({x:point.x+nx,y:point.y+ny}); right.push({x:point.x-nx,y:point.y-ny});
+  });
+  let d = 'M' + p(left[0].x,left[0].y);
+  left.slice(1).forEach((point) => { d += 'L' + p(point.x,point.y); });
+  const cap = (tip, before, from, to) => {
+    const length = Math.hypot(tip.x-before.x,tip.y-before.y) || 1, ux = (tip.x-before.x) / length * radius, uy = (tip.y-before.y) / length * radius;
+    return 'Q' + p(from.x+ux,from.y+uy) + ' ' + p(tip.x+ux,tip.y+uy) + 'Q' + p(to.x+ux,to.y+uy) + ' ' + p(to.x,to.y);
+  };
+  const last = points.length-1;
+  d += cap(points[last],points[last-1],left[last],right[last]);
+  right.slice(0,-1).reverse().forEach((point) => { d += 'L' + p(point.x,point.y); });
+  return d + cap(points[0],points[1],right[0],left[0]) + 'Z';
+}
+function dbHead(tip, tangent, size, col, kind, width) {
+  if (kind === 'none') return '';
+  if (kind === 'double') kind = 'open';
+  const length = Math.hypot(tangent.x, tangent.y) || 1, ux = tangent.x / length, uy = tangent.y / length;
+  if (kind !== 'open') return arrowHead(tip, ux, uy, size, col, kind, width);
+  const ax = tip.x - size * ux - size * uy, ay = tip.y - size * uy + size * ux;
+  const bx = tip.x - size * ux + size * uy, by = tip.y - size * uy - size * ux;
+  return dbStroke('M' + f2(ax) + ' ' + f2(ay) + 'L' + f2(tip.x) + ' ' + f2(tip.y) + 'L' + f2(bx) + ' ' + f2(by), col, width);
+}
+function dbRouteHeads(route, edge, col, endCol, width, S) {
+  const points = route.points, count = points.length; if (count < 2) return '';
+  let kind = edge.head || S.arrowHead || 'open', both = edge.double || kind === 'double';
+  const direction = S.inp.directionMarkers || 'infer';
+  let end = edge.end == null ? kind !== 'none' : edge.end, start = edge.start == null ? both : edge.start;
+  if (direction !== 'infer') { start = direction === 'start' || direction === 'both'; end = direction === 'end' || direction === 'both'; if (kind === 'none') kind = S.arrowHead === 'none' ? 'open' : S.arrowHead; }
+  let size = S.inp.arrowHeadSizing === 'custom' ? S.arrowHeadSize : clamp(3.5 * width, 6, 10), out = '';
+  if (start) out += dbHead(points[0], { x: points[0].x - points[1].x, y: points[0].y - points[1].y }, size, col, kind, width);
+  if (end) out += dbHead(points[count-1], { x: points[count-1].x - points[count-2].x, y: points[count-1].y - points[count-2].y }, size, endCol, kind, width);
+  return out;
+}
+async function dbEdges(raw, nodeById, layerById, bg, bb, S) {
+  let edges = arr(raw), boxes = [], lookup = new Map(), out = '', labels = '', unresolved = 0, labelBoxes = [];
+  Object.keys(nodeById).forEach((id) => { const box = anchorOf(id, nodeById, layerById); box.id = id; lookup.set(id, box); boxes.push(box); });
+  Object.keys(layerById).forEach((id) => { if (!lookup.has(id)) lookup.set(id, anchorOf(id, nodeById, layerById)); });
+  if (edges.length > 900) throw new Error('Use at most 900 connections per diagram.');
+  const fromCounts = new Map(), toCounts = new Map(), fromSeen = new Map(), toSeen = new Map();
+  edges.forEach((edge) => { const a = slug(edge.from), b = slug(edge.to); fromCounts.set(a,(fromCounts.get(a)||0)+1); toCounts.set(b,(toCounts.get(b)||0)+1); });
+  for (let i = 0; i < edges.length; i++) {
+    const edge = edges[i], from = slug(edge.from), to = slug(edge.to), A = lookup.get(from), B = lookup.get(to);
+    if (!A || !B) { unresolved++; continue; }
+    const fi = (fromSeen.get(from)||0)+1, ti = (toSeen.get(to)||0)+1; fromSeen.set(from,fi); toSeen.set(to,ti);
+    let mode = edge.route && edge.route !== 'auto' ? edge.route : S.inp.connectionRoute;
+    if (!mode || mode === 'auto') mode = S.diagramType === 'mindmap' ? 'curve' : 'elbow';
+    const route = dbRoute(A, B, S, boxes, fi/(fromCounts.get(from)+1), ti/(toCounts.get(to)+1), mode, i % 4, edge._auto);
+    const node = nodeById[from], target = nodeById[to];
+    const override = S.inp.importColours === 'brand' ? '' : edge.color;
+    let col = color(override, color(S.inp.edgeColor, S.inp.connectionPaint === 'branch' ? node?.accent || S.edgeColor : S.edgeColor)), endCol = col;
+    const gradient = !override && !S.inp.edgeColor && S.inp.connectionPaint === 'gradient';
+    if (gradient) { col = color(S.inp.gradientFrom, node?.accent || S.brand.primary); endCol = color(S.inp.gradientTo, target?.accent || S.brand.secondary); }
+    const w = num(edge.width,0) > 0 ? Number(edge.width) : edge._auto ? S.connectorWidth : S.arrowWidth;
+    const formWidth = S.inp.connectionForm === 'ribbon' ? Math.max(8, w * 5) : w;
+    const style = edge.style || S.arrowStyle;
+    const ref = S.sourceInput === 'nodes' ? Number.isInteger(edge._inputIndex) ? 'arrows:' + edge._inputIndex : 'connectionRoute' : S.sourceInput;
+    const settings = ref.startsWith('arrows:') ? ['label', 'style', 'color', 'head', 'route'].map((field) => ref + ':' + field).join(' ') : 'connectionRoute directionMarkers connectionPaint connectionForm';
+    const attrs = dbCanvasAttrs(ref, (node?.label || from) + ' → ' + (target?.label || to), settings);
+    out += '<g' + attrs + ' data-diagram-edge="' + esc(from + ':' + to + ':' + i) + '">' + dbPaintRoute(route, col, endCol, formWidth, style, S, gradient);
+    out += '<path d="' + esc(route.d) + '" fill="none" stroke="transparent" stroke-width="14" pointer-events="stroke" data-export-hide=""/>';
+    const headRamp = gradient ? dbRamp(col, endCol, S) : [col, endCol];
+    out += dbRouteHeads(route, edge, headRamp[0], headRamp[headRamp.length - 1], w, S) + '</g>';
+    route.points.forEach((p) => { const pad = Math.max(14, formWidth, (S.inp.arrowHeadSizing === 'custom' ? S.arrowHeadSize : 10) + w / 2); bb.add(p.x-pad,p.y-pad,pad*2,pad*2); });
+    const label = trim(edge.label);
+    if (label) {
+      let lw = await S.measure(label,12,500) + 14, lh = 26, candidates = dbResample(route.points,16), position = null;
+      const endDistance = candidates[candidates.length-1].distance;
+      candidates.sort((a,b) => Math.abs(a.distance-endDistance/2)-Math.abs(b.distance-endDistance/2));
+      for (const candidate of candidates) {
+        for (const dy of [0,-24,24,-44,44]) {
+          const rect = { cx: candidate.x, cy: candidate.y+dy, hw: lw/2, hh: lh/2 };
+          if (!boxes.concat(labelBoxes).some((b) => Math.abs(b.cx-rect.cx) < b.hw+rect.hw+6 && Math.abs(b.cy-rect.cy) < b.hh+rect.hh+6)) { position=rect; break; }
+        }
+        if (position) break;
+      }
+      if (!position) { note('Some connection labels need more space. Increase row spacing.'); position={cx:A.cx,cy:A.cy-A.hh-30,hw:lw/2,hh:lh/2}; }
+      labelBoxes.push(position);
+      const surface = bg === 'transparent' ? S.brand.surface : bg;
+      labels += '<g' + attrs.replace('tabindex="0"', 'tabindex="-1"') + '>' + dbFill(roundedRectPath(position.cx-lw/2,position.cy-lh/2,lw,lh,5),surface);
+      labels += dbText(position.cx,position.cy+4,label,12,500,dbInk(surface,S.nodeText,4.5),'middle') + '</g>';
+      bb.add(position.cx-lw/2,position.cy-lh/2,lw,lh);
+    }
+  }
+  return { svg:out, labels:labels, unresolved:unresolved, degenerate:0 };
+}
+function dbAutoPath(d, S) {
+  const points = dbSample(d); if (points.length < 2) return '';
+  const straight = points.every((p,i) => !i || p.x === points[i-1].x || p.y === points[i-1].y);
+  const path = straight ? dbRounded(points,clamp(num(S.inp.bendRadius,16),0,48)) : d;
+  return dbPaintRoute({d:path,points:dbSample(path)},S.edgeColor,S.brand.secondary,S.connectorWidth,'solid',S,!S.inp.edgeColor && S.inp.connectionPaint === 'gradient');
+}
+// END GENERATED DIAGRAM VISUALS

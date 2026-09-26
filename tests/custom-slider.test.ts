@@ -101,6 +101,28 @@ test('keyboard stepping snaps, clamps, and reports through onCommit', () => {
   assert.equal(cs.getAttribute('aria-valuenow'), '1');
 });
 
+test('jelly: the head and tail are promoted only while the spring runs', async () => {
+  const el = doc.createElement('div');
+  el.innerHTML = customSliderHtml({ min: 0, max: 1, step: 0.25, value: 0.5 });
+  const cs = el.firstElementChild as HTMLElement;
+  doc.body.appendChild(cs);
+  mountCustomSlider(cs, {});
+  // The jelly flag defaults on and nothing here turns on reduced motion or perf-ui.
+  assert.ok(cs.classList.contains('cs-jelly'), 'jelly is active in this realm');
+  const thumb = cs.querySelector<HTMLElement>('.cs-thumb')!;
+  const tail = cs.querySelector<HTMLElement>('.cs-tail')!;
+  assert.equal(thumb.style.willChange, '', 'an idle slider keeps no layer');
+  assert.equal(tail.style.willChange, '');
+  cs.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true }));
+  assert.equal(thumb.style.willChange, 'transform', 'the step wakes the spring and promotes the head');
+  assert.equal(tail.style.willChange, 'transform, opacity', 'and the tail, without border-width');
+  // The spring settles within a few hundred frames; the stand-in rAF is one tick each.
+  for (let i = 0; i < 400 && thumb.style.willChange; i++) await new Promise((r) => setTimeout(r, 0));
+  assert.equal(thumb.style.willChange, '', 'released when the spring settles');
+  assert.equal(tail.style.willChange, '');
+  cs.remove();
+});
+
 // ── the upgraded `.field-range` pair ──────────────────────────────────────────
 
 test('upgrade: a slider joins the input, which keeps the value and leaves the a11y tree', () => {

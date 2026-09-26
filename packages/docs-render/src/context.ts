@@ -155,7 +155,7 @@ export interface DocsRenderContext {
    * banked art never borrows a screenshot's viewport facts).
    */
   credential(file: string, opts?: { assetSrc?: string; art?: boolean }): CredentialFacts | null;
-  /** The "Try it in the app" route for a shot file's slug, or null. */
+  /** The editable app route for a shot or diagram file, or null. */
   tryLink(file: string): { route: string } | null;
   /** Resolve a `::: showcase` recipe's slug to its animation frame, or null (bail to a plain shot). */
   showcase(slug: string): ShowcaseResolution | null;

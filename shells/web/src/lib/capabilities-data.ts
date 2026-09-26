@@ -280,7 +280,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
     flag: 'import', id: 'cap-import', title: 'Import formats', icon: ICONS.install,
     desc: 'Bring existing work in - photos, design files, tables and video. Every file is parsed on your device and never uploaded: design files open as an editable layout, images join your local library, and data fills a tool’s blocks.',
     cards: [
-      { icon: ICONS.image, title: 'Images', shot: 'auth-catalogue-uploads', keywords: 'png jpg jpeg webp avif heic heif iphone photo exif gps strip gif apng animated svg sanitise', features: [
+      { icon: ICONS.image, title: 'Images', shot: 'auth-assets-uploads', keywords: 'png jpg jpeg webp avif heic heif iphone photo exif gps strip gif apng animated svg sanitise', features: [
         { name: 'PNG · JPG · WebP · AVIF · HEIC/HEIF', desc: 'Drop a photo or graphic into any image picker or your <strong>My images</strong> library. Stills are downscaled and stripped of EXIF/GPS on ingest; iPhone HEIC/HEIF decodes even where the browser can’t, via a bundled fallback. AVIF reads wherever the browser decodes it.' },
         { name: 'Animated GIF · Animated PNG · Animated WebP', desc: 'Animated rasters are recognised and kept <em>verbatim</em> - frames intact - so a looping GIF or animated PNG stays animated when you place it.' },
         { name: 'SVG', desc: 'Vector artwork is sanitised - scripts, <code>on*</code> handlers and <code>javascript:</code> URLs are stripped - and normalised to a clean viewBox before it’s stored.' },
@@ -472,7 +472,7 @@ export const CAPABILITY_SECTIONS: CapSection[] = [
       { icon: ICONS.cube, title: 'Tool composition', keywords: 'compose nested render embed recursion depth guard reuse', features: [
         { name: 'Tools compose tools', desc: 'A tool can embed another tool’s rendered output as an image - declared in the manifest (<code>composes</code>) and placed with <code>{{asset …}}</code>. It renders through the same engine path, so the embed is pixel-identical, and recursion is depth- and cycle-guarded. One tool reuses another instead of copying its code.' },
       ] },
-      { icon: ICONS.sync, title: 'Synced as data', shot: 'at2-catalogue-more-group', keywords: 'catalog sync manifest signed no app update ship tools', features: [
+      { icon: ICONS.sync, title: 'Synced as data', shot: 'at2-assets-more-group', keywords: 'catalog sync manifest signed no app update ship tools', features: [
         { name: 'No app update needed', desc: 'Tools and assets sync from a signed manifest; new tools appear automatically on clients.' },
       ] },
       { icon: ICONS.id, title: 'Stable asset IDs', shot: 'at2-token-linked-swatch', keywords: 'permanent id contract rename version replacedby checksum', features: [

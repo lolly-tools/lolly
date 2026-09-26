@@ -374,7 +374,7 @@ const USE_CASES: Record<string, [string, string]> = {
   'Dashboard & Brand studio': ['#/start', 'Brand studio'],
   'Profile': ['#/profile', 'Profile'],
   'Gallery': ['#/', 'Tool gallery'],
-  'Catalog': ['#/c', 'Catalogue'],
+  'Assets': ['#/a', 'Assets'],
   'Projects / folders': ['#/p', 'Projects'],
   'Export panel': ['#/design', 'Design workspace'],
 };

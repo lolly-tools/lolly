@@ -70,7 +70,7 @@ persona previsualiza en un navegador. La fricción para adoptarlo rara vez es t�
 paquete terminado con tus plantillas. Para un *despliegue gobernado*, alguien define el catálogo
 compartido de recursos (logotipos, paletas, tipografías como IDs permanentes) y escribe el manifiesto +
 la plantilla de cada tipo de salida. Aun así, nadie tiene que esperar a eso - en
-la app abierta cualquiera puede incorporar sus propios archivos al catálogo y crear herramientas en
+la app abierta cualquiera puede incorporar sus propios archivos a Recursos y crear herramientas en
 Design desde el primer día.
 
 **No hace falta git para contribuir.** Los diseñadores crean sus propias herramientas y plantillas

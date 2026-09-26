@@ -28,10 +28,10 @@
       "typeEscapes": 19
     },
     "shells/web/src/bridge/export.ts": {
-      "lines": 4546,
+      "lines": 4544,
       "largestFunctionLines": 647,
       "importFanIn": 26,
-      "importFanOut": 58,
+      "importFanOut": 59,
       "typeEscapes": 60
     },
     "shells/web/src/bridge/sequence-render.ts": {
@@ -91,7 +91,7 @@
       "typeEscapes": 8
     },
     "shells/web/src/views/tool-inputs.ts": {
-      "lines": 2922,
+      "lines": 2865,
       "largestFunctionLines": 2115,
       "importFanIn": 7,
       "importFanOut": 36,
@@ -205,7 +205,7 @@
     "lib/narration.ts -> views/timeline-captions.ts",
     "lib/pdf-thumbs.ts -> views/pdf-import.ts",
     "lib/pdf-vector-shot.ts -> views/pdf-import.ts",
-    "lib/search/providers/catalog.ts -> views/catalog-filter.ts",
+    "lib/search/providers/catalog.ts -> views/assets-filter.ts",
     "lib/search/providers/settings.ts -> views/profile/shared.ts",
     "lib/stt-job.ts -> views/timeline-captions.ts",
     "lib/tts-regenerate.ts -> views/script-audio.ts",
@@ -347,13 +347,13 @@
     "shells/web/src/user-fonts.ts": 4,
     "shells/web/src/views/anim-transport.ts": 1,
     "shells/web/src/views/block-tree.ts": 1,
-    "shells/web/src/views/catalog/bulk.ts": 2,
-    "shells/web/src/views/catalog/details-inline-modes.ts": 4,
-    "shells/web/src/views/catalog/details-sheet.ts": 8,
-    "shells/web/src/views/catalog/sections.ts": 1,
-    "shells/web/src/views/catalog/tiles.ts": 1,
-    "shells/web/src/views/catalog/user-assets.ts": 1,
-    "shells/web/src/views/catalog/wiring.ts": 2,
+    "shells/web/src/views/assets/bulk.ts": 2,
+    "shells/web/src/views/assets/details-inline-modes.ts": 4,
+    "shells/web/src/views/assets/details-sheet.ts": 8,
+    "shells/web/src/views/assets/sections.ts": 1,
+    "shells/web/src/views/assets/tiles.ts": 1,
+    "shells/web/src/views/assets/user-assets.ts": 1,
+    "shells/web/src/views/assets/wiring.ts": 2,
     "shells/web/src/views/convert.ts": 1,
     "shells/web/src/views/dashboard.ts": 3,
     "shells/web/src/views/design-import.ts": 68,

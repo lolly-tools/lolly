@@ -1,0 +1,14 @@
+{
+  "id": "editorial-workflow",
+  "name": "Editorial workflow",
+  "category": "Looks",
+  "description": "A four-step workflow in the Editorial look.",
+  "values": {
+    "look": "editorial",
+    "source": "text",
+    "diagramType": "process",
+    "flowDir": "down",
+    "dsl": "Discover -> Design\nDiscover -> Build\nDesign -> Share\nBuild -> Share",
+    "title": "From idea to impact"
+  }
+}

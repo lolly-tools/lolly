@@ -70,7 +70,7 @@ ca aplicația, așa că o rulare de pipeline la 2 noaptea nu se poate abate de l
 pachet gata făcut cu șabloanele tale. Pentru o *implementare guvernată*, cineva definește catalogul comun
 de resurse (logouri, palete, fonturi ca ID-uri permanente) și scrie manifestul +
 șablonul pentru fiecare tip de rezultat. Persoanele individuale nu trebuie totuși să aștepte asta - în
-aplicația deschisă oricine își poate încărca propriile fișiere în catalog și poate construi instrumente în
+aplicația deschisă oricine își poate încărca propriile fișiere în Resurse și poate construi instrumente în
 Design din prima zi.
 
 **Nu ai nevoie de git ca să contribui.** Designerii își fac propriile instrumente și șabloane

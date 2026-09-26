@@ -6,7 +6,7 @@
 //
 // The catalog crop re-encodes to a canvas → a FRESH raster with no C2PA, so the only carrier
 // of the source's genAI-ness + journey is the ingredient the sign step embeds. The web-shell
-// glue (views/catalog.ts: downloadCrop → downloadSigned → sourceIngredients →
+// glue (views/assets.ts: downloadCrop → downloadSigned → sourceIngredients →
 // prepareC2paIngredientFromStore → stampDerivedC2pa → embedC2pa) builds that ingredient from
 // the source's stored credential and passes it to embedC2pa. This pins the ENGINE half of
 // that path - the part that actually round-trips the manifest boxes and source type - with a

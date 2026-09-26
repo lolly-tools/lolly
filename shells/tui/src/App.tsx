@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // Root component + routing across the four top-level sections (Tools · Projects ·
-// Profile · Catalog, switched with 1/2/3/4) plus the tool view opened from Tools, a
+// Profile · Assets, switched with 1/2/3/4) plus the tool view opened from Tools, a
 // saved Project, or a pasted lolly.tools URL. Each view owns its own keys; the app
 // just swaps them.
 import { useState } from 'react';
@@ -10,7 +10,7 @@ import { importDesignFile } from './import-design.ts';
 import { Gallery } from './views/Gallery.tsx';
 import { Projects } from './views/Projects.tsx';
 import { Profile } from './views/Profile.tsx';
-import { Catalog } from './views/Catalog.tsx';
+import { Assets } from './views/Assets.tsx';
 import { ToolView } from './views/ToolView.tsx';
 import { Prepare } from './views/Prepare.tsx';
 import { Rebrand } from './views/Rebrand.tsx';
@@ -96,7 +96,7 @@ export function App({ tools, bridge, firstRun = false }: { tools: ToolEntry[]; b
     case 'profile':
       return <Profile bridge={bridge} onNav={goNav} onQuit={quit} />;
     case 'catalog':
-      return <Catalog onNav={goNav} onQuit={quit} onOpenTool={(toolId, query) => nameById.has(toolId) && setRoute({ name: 'tool', toolId, query })} />;
+      return <Assets onNav={goNav} onQuit={quit} onOpenTool={(toolId, query) => nameById.has(toolId) && setRoute({ name: 'tool', toolId, query })} />;
     case 'system':
       return <System onNav={goNav} onQuit={quit} initialAction={route.action} />;
     case 'tool':

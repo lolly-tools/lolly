@@ -209,6 +209,12 @@
   background: hsl(var(--muted));
 }
 
+/* A vector preview describes the complete composition, including its margins. */
+.tmpl-chooser-tile-thumb[src^="data:image/svg+xml"] {
+  object-fit: contain;
+  object-position: center;
+}
+
 .tmpl-chooser-tile-name {
   font-size: var(--fs-lg);
   font-weight: 600;

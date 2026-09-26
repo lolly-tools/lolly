@@ -71,7 +71,7 @@ templat anda yang sudah siap. Untuk *pelancaran yang ditadbir*, seseorang perlu
 mentakrifkan katalog aset dikongsi (logo, palet, fon sebagai ID kekal) dan menulis
 manifest + templat bagi setiap jenis output. Namun individu tidak perlu menunggu semua
 itu - dalam apl terbuka, sesiapa sahaja boleh memasukkan fail mereka sendiri ke dalam
-katalog dan membina alat dalam Design sejak hari pertama.
+Aset dan membina alat dalam Design sejak hari pertama.
 
 **Tiada git diperlukan untuk menyumbang.** Pereka membina alat dan templat mereka
 sendiri dalam apl, kemudian berkongsinya dengan rakan sekerja atau menghantarnya kepada

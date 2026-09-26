@@ -169,9 +169,17 @@ export function mountCustomSlider(el: HTMLElement, hooks: CustomSliderHooks = {}
       jVis = NaN; jVel = 0; jPress = 1; jLastT = 0;
       thumb.style.transform = '';
       if (jTail) { jTail.style.opacity = '0'; jTail.style.borderWidth = '0'; }
+      jHint(false);
     }
   }
-  function jWake(): void { if (jelly && !jRaf) { jLastT = 0; jRaf = requestAnimationFrame(jStep); } }
+  // Compositor hints for the head and tail, held only while the spring loop runs so
+  // an idle slider keeps no layer of its own. border-width is left out: it changes
+  // every frame but is a layout property, so a hint for it buys nothing.
+  function jHint(on: boolean): void {
+    thumb.style.willChange = on ? 'transform' : '';
+    if (jTail) jTail.style.willChange = on ? 'transform, opacity' : '';
+  }
+  function jWake(): void { if (jelly && !jRaf) { jLastT = 0; jHint(true); jRaf = requestAnimationFrame(jStep); } }
   // Keyboard/step change: yank the tail-tip back so the tail flicks out in the
   // step direction, then the spring reels it in.
   function jImpulse(dir: number): void {

@@ -84,7 +84,7 @@ const FORBIDDEN_BOOT_CHUNK = /(engine-render|engine-c2pa|handlebars|ajv|html2can
 // feature weight, argued here rather than diet-ed: the db upgrade that creates the
 // file-operation, asset-version and batch stores, the WKWebView Jelly gates in
 // lib/jelly.ts and components/view-toggle.ts, and two lazy asset-menu entries in
-// views/catalog.ts. Ceiling moved 135 -> 136 for exactly that; next growth needs
+// views/assets.ts. Ceiling moved 135 -> 136 for exactly that; next growth needs
 // its own argument, not this note.
 // Moved 136 -> 146 on 2026-09-08: legitimate landing/gallery feature weight, not a
 // leak (Rule 1 still passes - no engine/handlebars/ajv on boot). The 8 KB is diffuse
@@ -141,7 +141,7 @@ try {
 }
 
 // Collect boot JS: every <script type="module" src> and every
-// <link rel="modulepreload" href>. Only same-origin /assets JS counts.
+// <link rel="modulepreload" href>. Only same-origin /_app/ JS counts.
 //
 // EVERY script, plural, and a build may legitimately carry no preloads at all: since the
 // `web-boot` chunk group (shells/web/vite.config.js) put the whole boot graph in one chunk,

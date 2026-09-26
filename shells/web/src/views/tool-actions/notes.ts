@@ -70,7 +70,7 @@ export async function fillIngredientNote(ta: ActionsCtx): Promise<void> {
     const line = document.createElement('p');
     line.className = 'guide-hint';
     line.textContent = tRaw(
-      'An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in the catalogue before this file travels.',
+      'An ingredient carries AI-writing signals: {names}. A signal, not proof - review it in Assets before this file travels.',
       { names: flagged.join(', ') }
     );
     slot.appendChild(line);

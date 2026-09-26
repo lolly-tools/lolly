@@ -135,7 +135,7 @@ static void buildLollyMenus(id<UIMenuBuilder> builder) {
   [go addObject:[UIMenu menuWithTitle:@"Utilities" children:utils]];
 
   [go addObject:inlineMenu(@[
-    routeAction(@"Catalog", @"#/c"),
+    routeAction(@"Assets", @"#/a"),
     routeAction(@"Dashboard", @"#/d"),
     routeAction(@"Batch", @"#/batch"),
     routeAction(@"Colour Lab", @"#/lab"),

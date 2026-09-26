@@ -138,7 +138,7 @@
 /* The mount the card is rendered into. Neutral, because three surfaces share it: the
    shared dropzone (below its zone), the asset picker (between the scrolling body and the
    upload footer - flex:none so the panel squeezes the body, not the question) and the
-   catalogue details modal (below the action row, where catalog.css drops the inset the
+   catalogue details modal (below the action row, where assets.css drops the inset the
    body already carries). Capped + scrollable so a short viewport can still reach the two
    buttons. Empty until an offer stands, so it is `hidden` at rest and carries no padding
    of its own then. */

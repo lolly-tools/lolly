@@ -1,5 +1,5 @@
 digraph source_rows {
-  rankdir=LR
+  rankdir=TB
   node [shape=box]
 
   doc    [label="One instance\ntwo lanes"]

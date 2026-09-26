@@ -136,7 +136,7 @@ Un panou opțional **Gradients** (Degradeuri) construiește tokenuri de amestec 
 
 ### Ia paleta în altă parte
 
-Pastila plutitoare fixată la marginea de jos a panoului paletei descarcă întreaga paletă ca **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, o paletă **GIMP (.gpl)** sau un **Adobe Swatch Exchange (.ase)** - astfel încât brandul intră direct în Illustrator, Figma, GIMP sau o foaie de stil. Stă în afara zonei derulabile a panoului, deci își păstrează locul indiferent cât de mult derulezi paleta. (Poți descărca paleta și din vizualizarea [Catalog](/info/using.html).)
+Pastila plutitoare fixată la marginea de jos a panoului paletei descarcă întreaga paletă ca **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, o paletă **GIMP (.gpl)** sau un **Adobe Swatch Exchange (.ase)** - astfel încât brandul intră direct în Illustrator, Figma, GIMP sau o foaie de stil. Stă în afara zonei derulabile a panoului, deci își păstrează locul indiferent cât de mult derulezi paleta. (Poți descărca paleta și din [Resurse](/info/using.html#assets-your-library).)
 
 ## Tipografie
 
@@ -179,7 +179,7 @@ Restul sistemului de design, editabil fără să atingi codul:
 
 ## Fișiere
 
-Lasă aici fișierele pe care le păstrează brandul tău - în afară de logo-uri: active **vectoriale**, de **imagine**, **audio** și de **animație** (video, Lottie, animate). Ajung în [Catalogul](/info/using.html) tău, sortate pe secțiuni și gata de folosit în selectorul de active al fiecărei unelte. Totul rămâne pe acest dispozitiv. (Bara laterală etichetează camera **Files** (Fișiere); cheia din URL rămâne `catalogue`, pentru că o cheie de panou este un contract permanent.)
+Lasă aici fișierele pe care le păstrează brandul tău - în afară de logo-uri: active **vectoriale**, de **imagine**, **audio** și de **animație** (video, Lottie, animate). Ajung în [Resurse](/info/using.html#assets-your-library), sortate pe secțiuni și gata de folosit în selectorul de active al fiecărei unelte. Totul rămâne pe acest dispozitiv. (Bara laterală etichetează camera **Files** (Fișiere); cheia din URL rămâne `catalogue`, pentru că o cheie de panou este un contract permanent.)
 
 ## Adu un brand
 
@@ -231,6 +231,6 @@ Unele build-uri livrează un **brand blocat** - culorile, fonturile și token-ur
 
 ## Ce urmează
 
-- **[Using Lolly](/info/using.html)** - canvasul, salvarea, proiectele și catalogul.
+- **[Using Lolly](/info/using.html)** - canvasul, salvarea, proiectele și vederea Resurse.
 - **[Design Tokens](/info/design-tokens.html)** - modelul de token-uri în care e exprimat brandul tău.
 - **[Exporting & formats](/info/exporting.html)** - unități de tipar, CMYK și formatele în care se randează brandul tău.

@@ -6,7 +6,7 @@
  *      new deploy is picked up on the next load. When the network fails (offline
  *      cold load), we serve the last cached shell instead, so the app still boots.
  *
- *   2. Immutable, content-hashed build assets (/assets/index-*.js, *.css) and the
+ *   2. Immutable, content-hashed build assets (/_app/index-*.js, *.css) and the
  *      bundled variable fonts → CACHE-FIRST. Vite content-hashes these filenames,
  *      so a cached copy can never be stale: a new deploy emits new filenames that
  *      simply miss the cache and fetch fresh. This is what makes the offline cold
@@ -56,6 +56,10 @@
  * entries on activate (a one-time clear of anything already gone stale).
  */
 
+// v17: the web build's hashed output moved from /assets/ to /_app/ (build.assetsDir
+// in shells/web/vite.config.js), so /assets could become the Assets view's clean
+// URL. Every /assets/* entry the previous generation cached is now unreachable
+// dead weight; the bump lets activate drop it rather than leave it on disk.
 // v16: the PWA share target ships (plan 202 WP4.3) - one POST branch in fetch,
 // plus SHARE_CACHE on the activate keep-list.
 // v15: /catalog/previews/bundle.json changed FORMAT (plans/155 Task 2.4) - it went from
@@ -74,7 +78,7 @@
 // gains a cache-first rule, and three page-owned unversioned buckets join
 // lolly-pins: lolly-app (pre-downloaded build assets), lolly-ort (the ONNX
 // runtime for /verify's deep scan), lolly-info (the /info docs site).
-const CACHE = 'lolly-v16';
+const CACHE = 'lolly-v17';
 
 // Tools pinned "available offline": the page writes /tools/<id>/* copies into
 // this SEPARATE, unversioned bucket (shells/web/src/lib/offline-pins.ts - keep
@@ -97,7 +101,7 @@ const INSTALLED_CACHE = 'lolly-installed';
 // PIN_CACHE: activate never deletes them, the page owns writes/evictions.
 //
 //   APP_CACHE  - the full build payload enumerated by dist/precache.json
-//                (hashed /assets/ chunks, /fonts/, icons, share stubs). Read as
+//                (hashed /_app/ chunks, /fonts/, icons, share stubs). Read as
 //                the fallback when the versioned CACHE misses on an immutable
 //                path, so a pre-downloaded app boots fully offline even across
 //                a CACHE-generation bump (hashed filenames can't go stale; the
@@ -181,7 +185,9 @@ const PREVIEW_PATTERN = /^\/catalog\/previews\//;
 // (stable filenames, effectively immutable - refreshed by a CACHE bump). Checked
 // before CACHE_PATTERNS so fonts under /tools/ take this path, not network-first.
 const IMMUTABLE_PATTERNS = [
-  /^\/assets\//,
+  // The build's own folder (APP_ASSETS_DIR in shells/web/vite.config.js). Not
+  // /assets/: that path is the Assets view's URL, a navigation, never a file.
+  /^\/_app\//,
   // The bundled app UI fonts (SUSE + SUSE Mono variable woff2, and the legacy
   // Outfit face, all under /fonts/) -
   // stable filenames, preloaded on every page. Before v13 these had NO rule at
@@ -329,7 +335,7 @@ self.addEventListener('fetch', event => {
   // stubs under /t/ and /view/, manifest.webmanifest, …): pass straight to the
   // network as before, but fall back to the pre-downloaded APP_CACHE when the
   // network fails. Without this, most of what "download the app" stores could
-  // never be SERVED - the download filled the bucket and only /assets/ +
+  // never be SERVED - the download filled the bucket and only /_app/ +
   // fonts ever read it back. Online behaviour is byte-identical (network
   // response wins; nothing is written).
   event.respondWith(networkThenAppCache(event));
@@ -383,7 +389,7 @@ async function cacheFirst(event) {
   if (downloaded) {
     // Serve the pre-downloaded copy, but freshen the generation cache in the
     // background: /fonts/ names are stable, so without this a CACHE bump
-    // could pin a downloaded font forever (hashed /assets/ names make the
+    // could pin a downloaded font forever (hashed /_app/ names make the
     // revalidate a cheap no-op-equivalent there - same bytes come back).
     event.waitUntil(
       fetch(request).then(r => { if (r && r.ok) return cache.put(request, r.clone()); }).catch(() => {})

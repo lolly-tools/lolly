@@ -163,7 +163,8 @@
       "ganttLen",
       "startDate",
       "endDate",
-      "milestone"
+      "milestone",
+      "emphasis"
     ],
     "diagram-builder:layers": [
       "kind",
@@ -178,7 +179,8 @@
       "style",
       "head",
       "width",
-      "color"
+      "color",
+      "route"
     ],
     "filter:pz_colors": [
       "color"

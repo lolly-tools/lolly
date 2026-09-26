@@ -122,12 +122,12 @@
       "alt": "A TypeScript snippet card highlighted in a purple brand theme"
     },
     {
-      "img": "covers/catalogue.webp",
+      "img": "covers/assets.webp",
       "hue": 315,
-      "name": "Catalogue",
-      "href": "#/c",
+      "name": "Assets",
+      "href": "#/a",
       "promise": "Every file, font and colour in one place",
-      "alt": "The Catalogue's swatches in a magenta brand"
+      "alt": "The swatches in Assets, in a magenta brand"
     },
     {
       "img": "covers/utilities.svg",

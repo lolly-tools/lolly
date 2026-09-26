@@ -3,25 +3,125 @@
   "name": "Diagrams",
   "description": "Org charts, flowcharts, timelines and more - from cards, text, Mermaid, DOT or CSV.",
   "a11yLabel": "{{default title \"Untitled\"}} - {{diagramType}} diagram",
-  "version": "1.7.4",
+  "version": "1.8.1",
   "engineVersion": "^1.0.0",
   "status": "experimental",
   "category": "everyone",
-  "tags": ["diagram", "org-chart", "org chart", "architecture", "layercake", "flowchart", "process", "hierarchy", "mind map", "mindmap", "timeline", "roadmap", "cycle", "pyramid", "funnel", "kanban", "matrix", "quadrant", "gantt", "milestone", "swimlane", "cards", "arrows", "ascii", "text", "mermaid", "sequence", "dot", "graphviz", "csv"],
+  "tags": [
+    "diagram",
+    "org-chart",
+    "org chart",
+    "architecture",
+    "layercake",
+    "flowchart",
+    "process",
+    "hierarchy",
+    "mind map",
+    "mindmap",
+    "timeline",
+    "roadmap",
+    "cycle",
+    "pyramid",
+    "funnel",
+    "kanban",
+    "matrix",
+    "quadrant",
+    "gantt",
+    "milestone",
+    "swimlane",
+    "cards",
+    "arrows",
+    "ascii",
+    "text",
+    "mermaid",
+    "sequence",
+    "dot",
+    "graphviz",
+    "csv"
+  ],
   "featured": {
     "order": 12,
     "blurb": "Turn cards or text into on-brand diagrams"
   },
+  "examples": [
+    {
+      "label": "Minimal",
+      "values": {
+        "look": "minimal",
+        "source": "text",
+        "diagramType": "process",
+        "flowDir": "right",
+        "dsl": "Discover -> Design -> Build -> Share"
+      }
+    },
+    {
+      "label": "Editorial",
+      "values": {
+        "look": "editorial",
+        "source": "text",
+        "diagramType": "process",
+        "flowDir": "right",
+        "dsl": "Discover -> Design -> Build -> Share"
+      }
+    },
+    {
+      "label": "Soft depth",
+      "values": {
+        "look": "soft",
+        "source": "text",
+        "diagramType": "process",
+        "flowDir": "right",
+        "dsl": "Discover -> Design -> Build -> Share"
+      }
+    },
+    {
+      "label": "Flow",
+      "values": {
+        "look": "flow",
+        "source": "text",
+        "diagramType": "process",
+        "flowDir": "right",
+        "dsl": "Discover -> Design -> Build -> Share"
+      }
+    },
+    {
+      "label": "Studio",
+      "values": {
+        "look": "studio",
+        "source": "text",
+        "diagramType": "process",
+        "flowDir": "right",
+        "dsl": "Discover -> Design -> Build -> Share"
+      }
+    }
+  ],
   "render": {
     "sectionIcons": {
       "Layout": "grid",
       "Style": "paintbrush",
-      "Arrow defaults": "arrowRight"
+      "Arrow defaults": "arrowRight",
+      "Advanced": "sliders"
     },
     "width": 1600,
     "height": 1000,
-    "formats": ["svg", "penpot", "pdf", "dxf", "png", "jpg", "webp", "avif", "emf", "pdf-cmyk", "pptx"],
-    "actions": ["copy", "download", "save"],
+    "formats": [
+      "svg",
+      "penpot",
+      "pdf",
+      "dxf",
+      "png",
+      "jpg",
+      "webp",
+      "avif",
+      "emf",
+      "pdf-cmyk",
+      "pptx"
+    ],
+    "actions": [
+      "copy",
+      "download",
+      "save"
+    ],
     "transparentBg": true
   },
   "hooks": {
@@ -30,18 +130,73 @@
   },
   "inputs": [
     {
+      "id": "look",
+      "label": "Look",
+      "type": "select",
+      "default": "legacy",
+      "options": [
+        {
+          "value": "minimal",
+          "label": "Minimal"
+        },
+        {
+          "value": "editorial",
+          "label": "Editorial"
+        },
+        {
+          "value": "soft",
+          "label": "Soft depth"
+        },
+        {
+          "value": "flow",
+          "label": "Flow"
+        },
+        {
+          "value": "studio",
+          "label": "Studio"
+        },
+        {
+          "value": "legacy",
+          "label": "Legacy"
+        }
+      ],
+      "help": "Choose a coordinated look, then adjust its cards and connections below. Existing saved diagrams keep Legacy. SVG and PDF keep vector detail; PPTX contains artwork.",
+      "display": "segmented"
+    },
+    {
       "id": "diagramPreset",
+      "showIf": {
+        "look": "legacy"
+      },
       "label": "Preset",
       "type": "select",
       "default": "custom",
       "help": "A one-click starting point that seeds the type, theme and spacing. Pick one, then fine-tune anything - your later edits are kept.",
       "options": [
-        { "value": "custom", "label": "Custom" },
-        { "value": "org-classic", "label": "Org - classic" },
-        { "value": "layercake-mint", "label": "Layercake - mint" },
-        { "value": "process-lr", "label": "Process - left to right" },
-        { "value": "blueprint", "label": "Blueprint" },
-        { "value": "mono", "label": "Minimal mono" }
+        {
+          "value": "custom",
+          "label": "Custom"
+        },
+        {
+          "value": "org-classic",
+          "label": "Org - classic"
+        },
+        {
+          "value": "layercake-mint",
+          "label": "Layercake - mint"
+        },
+        {
+          "value": "process-lr",
+          "label": "Process - left to right"
+        },
+        {
+          "value": "blueprint",
+          "label": "Blueprint"
+        },
+        {
+          "value": "mono",
+          "label": "Minimal mono"
+        }
       ]
     },
     {
@@ -51,17 +206,54 @@
       "default": "org",
       "help": "Org/Mind map build a tree from each card's parent. Layercake/Kanban group cards by their “Group” ID (stacked bands vs side-by-side columns). Process/Timeline/Cycle lay cards out along flow/order. Pyramid, Matrix and Gantt have their own controls below.",
       "options": [
-        { "value": "org", "label": "Org chart (hierarchy)" },
-        { "value": "mindmap", "label": "Mind map" },
-        { "value": "layercake", "label": "Layercake (layered architecture)" },
-        { "value": "kanban", "label": "Kanban / columns" },
-        { "value": "process", "label": "Process (flowchart)" },
-        { "value": "timeline", "label": "Timeline" },
-        { "value": "cycle", "label": "Cycle (loop)" },
-        { "value": "pyramid", "label": "Pyramid / funnel" },
-        { "value": "matrix", "label": "Matrix (2×2 quadrant)" },
-        { "value": "gantt", "label": "Gantt / roadmap" }
-      ]
+        {
+          "value": "org",
+          "label": "Org chart (hierarchy)"
+        },
+        {
+          "value": "mindmap",
+          "label": "Mind map"
+        },
+        {
+          "value": "layercake",
+          "label": "Layercake (layered architecture)"
+        },
+        {
+          "value": "kanban",
+          "label": "Kanban / columns"
+        },
+        {
+          "value": "process",
+          "label": "Process (flowchart)"
+        },
+        {
+          "value": "timeline",
+          "label": "Timeline"
+        },
+        {
+          "value": "cycle",
+          "label": "Cycle (loop)"
+        },
+        {
+          "value": "pyramid",
+          "label": "Pyramid / funnel"
+        },
+        {
+          "value": "matrix",
+          "label": "Matrix (2×2 quadrant)"
+        },
+        {
+          "value": "gantt",
+          "label": "Gantt / roadmap"
+        }
+      ],
+      "showIf": {
+        "source": [
+          "visual",
+          "text",
+          "table"
+        ]
+      }
     },
     {
       "id": "source",
@@ -70,13 +262,34 @@
       "default": "visual",
       "help": "Pick how you describe the diagram: card rows, plain text, drawn ASCII boxes, Mermaid, DOT, Pikchr or a pasted table. Each text mode reads a subset of that language, and every one of them also takes a dropped file.",
       "options": [
-        { "value": "visual", "label": "Visual editor" },
-        { "value": "text", "label": "Text (type it)" },
-        { "value": "ascii", "label": "ASCII art (draw it)" },
-        { "value": "mermaid", "label": "Mermaid (paste it)" },
-        { "value": "dot", "label": "DOT / Graphviz (paste it)" },
-        { "value": "pikchr", "label": "Pikchr (paste it)" },
-        { "value": "table", "label": "Table / CSV (paste it)" }
+        {
+          "value": "visual",
+          "label": "Visual editor"
+        },
+        {
+          "value": "text",
+          "label": "Text (type it)"
+        },
+        {
+          "value": "ascii",
+          "label": "ASCII art (draw it)"
+        },
+        {
+          "value": "mermaid",
+          "label": "Mermaid (paste it)"
+        },
+        {
+          "value": "dot",
+          "label": "DOT / Graphviz (paste it)"
+        },
+        {
+          "value": "pikchr",
+          "label": "Pikchr (paste it)"
+        },
+        {
+          "value": "table",
+          "label": "Table / CSV (paste it)"
+        }
       ]
     },
     {
@@ -90,8 +303,12 @@
       "id": "dsl",
       "label": "Diagram text",
       "type": "longtext",
-      "showIf": { "source": "text" },
-      "dataSource": { "accept": ".txt" },
+      "showIf": {
+        "source": "text"
+      },
+      "dataSource": {
+        "accept": ".txt"
+      },
       "help": "Org/Mind map: indent for hierarchy. Layercake/Kanban: “# Group” headings with cards below. Process/Gantt: “A -> B” (Gantt adds “ : 0..3”). Timeline/Cycle/Pyramid: one item per line, in order. Matrix: “# top-right” sections or “Item @ (0.8,0.3)”. Shared: “:: subtitle”, “#hex” fill, “(Rounded)”/“[Box]”/“([Pill])” shape, “@ https://…/logo.png” image, edge styles --> -.-> ==> <->, “// comment”.",
       "default": "CEO\n  CTO :: Technology\n    Eng Lead\n    QA Lead\n  CFO :: Finance\n  COO :: Operations"
     },
@@ -99,8 +316,12 @@
       "id": "asciiArt",
       "label": "ASCII art",
       "type": "longtext",
-      "showIf": { "source": "ascii" },
-      "dataSource": { "accept": ".txt" },
+      "showIf": {
+        "source": "ascii"
+      },
+      "dataSource": {
+        "accept": ".txt"
+      },
       "help": "Draw boxes with + - | and connect them with - | and arrowheads > < ^ v. Keep each box's | sides lined up with its +---+ borders. The first line inside a box is its title, the rest its subtitle, and a line of “@ https://…/logo.png” adds an image. Your layout is preserved - we just render it as clean cards.",
       "default": "+--------+          +-------+\n| Client |--------->|  API  |\n+--------+          +-------+\n                        |\n                        v\n                  +----------+\n                  | Database |\n                  +----------+"
     },
@@ -108,8 +329,12 @@
       "id": "mermaid",
       "label": "Mermaid",
       "type": "longtext",
-      "showIf": { "source": "mermaid" },
-      "dataSource": { "accept": ".mmd,.mermaid,.txt,text/plain" },
+      "showIf": {
+        "source": "mermaid"
+      },
+      "dataSource": {
+        "accept": ".mmd,.mermaid,.txt,text/plain"
+      },
       "help": "Paste a Mermaid flowchart or sequenceDiagram subset, or drop a .mmd file. Flowchart: “graph/flowchart TD/LR/BT/RL” sets direction; A[Box], A(Rounded), A([Pill]), A{Diamond} define nodes; A-->B, A---B, A-.->B, A==>B, A-->|label|B, A -- label --> B are edges; chains A-->B-->C and fan-outs A --> B & C work; subgraph Name … end becomes layer bands (nested ones fold into the outermost). Sequence: participants become cards left to right and each message an arrow, so lifelines and timing are approximated, not drawn. Unsupported lines (classDef, click, style, notes, loop/alt…) are skipped, never run.",
       "default": "graph LR\n  A[Client] --> B(API Gateway)\n  B --> C[(Database)]\n  B -.-> D{{Cache}}"
     },
@@ -117,8 +342,12 @@
       "id": "dot",
       "label": "DOT / Graphviz",
       "type": "longtext",
-      "showIf": { "source": "dot" },
-      "dataSource": { "accept": ".dot,.gv,.txt" },
+      "showIf": {
+        "source": "dot"
+      },
+      "dataSource": {
+        "accept": ".dot,.gv,.txt"
+      },
       "help": "Paste a Graphviz digraph, or drop a .dot file. “digraph { a -> b }” for directed, “graph { a -- b }” for plain lines; rankdir=LR/TB/RL/BT sets direction; node attributes [label=\"…\", shape=box|ellipse|circle|diamond|cylinder|hexagon|note|plaintext, fillcolor=\"#hex\"] and edge attributes [label=\"…\", style=dashed|dotted|bold, dir=both|none, arrowhead=…] are read; “subgraph cluster_x { label=\"…\" }” becomes a layer band; “node [shape=…]” sets defaults. Node lists (a, b -> c) and chains (a -> b -> c) expand. Anything else is skipped, never run.",
       "default": "digraph pipeline {\n  rankdir=LR\n  node [shape=box]\n  build [label=\"Build\"]\n  test [label=\"Test\", fillcolor=\"#e8f4f0\"]\n  ship [label=\"Ship\", shape=cylinder]\n  build -> test -> ship\n  test -> build [label=\"fix\", style=dashed]\n}"
     },
@@ -126,8 +355,12 @@
       "id": "pikchr",
       "label": "Pikchr",
       "type": "longtext",
-      "showIf": { "source": "pikchr" },
-      "dataSource": { "accept": ".pikchr,.txt" },
+      "showIf": {
+        "source": "pikchr"
+      },
+      "dataSource": {
+        "accept": ".pikchr,.txt"
+      },
       "help": "Paste a PIC-style Pikchr diagram. Objects flow in a direction: box/circle/ellipse/oval/cylinder/file/dot/line/arrow/move, each with \"labels\", fill/color, dashed/dotted/thick, wid/ht/rad. Place with from/to/at, compass points (last box.s, .n .e .w .ne …), named objects (Name: box) and ->/<-/<->. Supported subset - macros, [blocks], expressions and splines are skipped, never run.",
       "default": "arrow right 200% \"Source\" \"input\"\nbox rad 8px \"Diagram\" \"Builder\" fill 0xe8f4f0\narrow right 200% \"SVG\" \"output\"\narrow <-> down 60% from last box.s\ncylinder \"Store\" fill 0xd0e8e0"
     },
@@ -135,8 +368,12 @@
       "id": "table",
       "label": "Table / CSV",
       "type": "longtext",
-      "showIf": { "source": "table" },
-      "dataSource": { "accept": ".csv,.tsv,.txt,.xlsx" },
+      "showIf": {
+        "source": "table"
+      },
+      "dataSource": {
+        "accept": ".csv,.tsv,.txt,.xlsx"
+      },
       "help": "Paste comma- or tab-separated rows, or drop a CSV. Org/Mind map: id,label,detail,parent. Process: from,to,label (an edge list - ids are created automatically). Timeline/Cycle/Pyramid: label,detail. A header row (id/label/from/…) is detected and skipped.",
       "default": "id,label,parent\nceo,CEO,\ncto,CTO,ceo\ncfo,CFO,ceo\neng,Eng Lead,cto\nqa,QA Lead,cto"
     },
@@ -145,10 +382,25 @@
       "label": "Cards",
       "type": "blocks",
       "labelledFields": true,
-      "showIf": { "source": "visual" },
+      "showIf": {
+        "source": "visual"
+      },
       "help": "One card per row. In org / mind map, drag a card onto another to nest it - drop above or below to make it a sibling, or onto the middle to make it a child. Elsewhere, drag to reorder (order sets sibling order, layer/column order, and the sequence for timeline/cycle/pyramid/gantt). The ID is an optional short handle.",
-      "addMenu": { "field": "shape", "label": "Add card" },
-      "nesting": { "parentField": "parent", "keyField": "nodeId", "labelField": "label", "activeWhen": { "diagramType": ["org", "mindmap"] } },
+      "addMenu": {
+        "field": "shape",
+        "label": "Add card"
+      },
+      "nesting": {
+        "parentField": "parent",
+        "keyField": "nodeId",
+        "labelField": "label",
+        "activeWhen": {
+          "diagramType": [
+            "org",
+            "mindmap"
+          ]
+        }
+      },
       "fields": [
         {
           "id": "shape",
@@ -156,76 +408,1394 @@
           "type": "select",
           "default": "rounded",
           "options": [
-            { "value": "box", "label": "Box", "repeatable": true },
-            { "value": "rounded", "label": "Rounded", "repeatable": true },
-            { "value": "pill", "label": "Pill", "repeatable": true },
-            { "value": "circle", "label": "Circle", "repeatable": true },
-            { "value": "ellipse", "label": "Ellipse", "repeatable": true },
-            { "value": "cylinder", "label": "Cylinder", "repeatable": true },
-            { "value": "file", "label": "File", "repeatable": true },
-            { "value": "diamond", "label": "Diamond", "repeatable": true },
-            { "value": "hexagon", "label": "Hexagon", "repeatable": true }
+            {
+              "value": "box",
+              "label": "Box",
+              "repeatable": true
+            },
+            {
+              "value": "rounded",
+              "label": "Rounded",
+              "repeatable": true
+            },
+            {
+              "value": "pill",
+              "label": "Pill",
+              "repeatable": true
+            },
+            {
+              "value": "circle",
+              "label": "Circle",
+              "repeatable": true
+            },
+            {
+              "value": "ellipse",
+              "label": "Ellipse",
+              "repeatable": true
+            },
+            {
+              "value": "cylinder",
+              "label": "Cylinder",
+              "repeatable": true
+            },
+            {
+              "value": "file",
+              "label": "File",
+              "repeatable": true
+            },
+            {
+              "value": "diamond",
+              "label": "Diamond",
+              "repeatable": true
+            },
+            {
+              "value": "hexagon",
+              "label": "Hexagon",
+              "repeatable": true
+            }
           ]
         },
-        { "id": "label", "label": "Label", "type": "text", "placeholder": "Card text" },
-        { "id": "fill", "label": "Card colour", "type": "color", "default": "", "help": "Overrides the global card fill for this card only." },
-        { "id": "image", "label": "Image", "type": "asset", "assetType": "any", "allowUpload": true, "help": "Optional headshot, icon, or product logo shown on the card." },
-        { "id": "nodeId", "label": "ID", "type": "text", "placeholder": "e.g. ceo", "help": "Short unique handle. Auto-derived from the label if left blank." },
-        { "id": "detail", "label": "Detail", "type": "text", "placeholder": "Subtitle (optional)" },
-        { "id": "parent", "label": "Reports to", "default": "", "optionsFrom": { "input": "nodes", "value": "nodeId", "label": "label", "excludeSelf": true, "excludeDescendants": true, "emptyLabel": " - Top level - " }, "help": "Org / mind map: the card this one reports to / branches from. Pick a card, or just drag this row onto another in the list." },
-        { "id": "layer", "label": "Group", "default": "", "optionsFrom": { "input": "layers", "value": "layerId", "label": "label", "prefix": "layer-", "freeText": true, "emptyLabel": " - none - " }, "help": "Layercake: which band. Kanban: which column - pick one, or type a new name to create a column. Dated Gantt: which swimlane. Cards in the same group sit together." },
-        { "id": "quadrant", "label": "Quadrant", "type": "select", "default": "tr", "showIf": { "diagramType": "matrix" }, "options": [ { "value": "tr", "label": "Top-right" }, { "value": "tl", "label": "Top-left" }, { "value": "br", "label": "Bottom-right" }, { "value": "bl", "label": "Bottom-left" } ] },
-        { "id": "ganttStart", "label": "Start", "type": "number", "min": 0, "max": 1000, "step": 0.5, "showIf": { "diagramType": "gantt" }, "help": "Bar start on the time axis. Ignored once this card has a start date." },
-        { "id": "ganttLen", "label": "Length", "type": "number", "min": 0.5, "max": 1000, "step": 0.5, "showIf": { "diagramType": "gantt" }, "help": "Bar length in the same units." },
-        { "id": "startDate", "label": "Start date", "type": "text", "placeholder": "2026-01-15", "showIf": { "diagramType": "gantt" }, "help": "yyyy-mm-dd. One dated card turns the whole chart into a dated roadmap: real ticks, swimlanes by Group, and the today line." },
-        { "id": "endDate", "label": "End date", "type": "text", "placeholder": "2026-03-31", "showIf": { "diagramType": "gantt" }, "help": "yyyy-mm-dd, inclusive. Blank = a one-day task." },
-        { "id": "milestone", "label": "Milestone", "type": "boolean", "default": false, "showIf": { "diagramType": "gantt" }, "help": "Draw a diamond on the start date instead of a bar." }
+        {
+          "id": "label",
+          "label": "Label",
+          "type": "text",
+          "placeholder": "Card text"
+        },
+        {
+          "id": "fill",
+          "label": "Card colour",
+          "type": "color",
+          "default": "",
+          "help": "Overrides the global card fill for this card only."
+        },
+        {
+          "id": "image",
+          "label": "Image",
+          "type": "asset",
+          "assetType": "any",
+          "allowUpload": true,
+          "help": "Optional headshot, icon, or product logo shown on the card.",
+          "showIf": {
+            "diagramType": [
+              "org",
+              "mindmap",
+              "layercake",
+              "kanban",
+              "process",
+              "timeline",
+              "cycle",
+              "matrix"
+            ]
+          }
+        },
+        {
+          "id": "nodeId",
+          "label": "ID",
+          "type": "text",
+          "placeholder": "e.g. ceo",
+          "help": "Short unique handle. Auto-derived from the label if left blank.",
+          "showIf": {
+            "showIds": true
+          }
+        },
+        {
+          "id": "detail",
+          "label": "Detail",
+          "type": "text",
+          "placeholder": "Subtitle (optional)"
+        },
+        {
+          "id": "parent",
+          "label": "Reports to",
+          "default": "",
+          "optionsFrom": {
+            "input": "nodes",
+            "value": "nodeId",
+            "label": "label",
+            "excludeSelf": true,
+            "excludeDescendants": true,
+            "emptyLabel": " - Top level - "
+          },
+          "help": "Org / mind map: the card this one reports to / branches from. Pick a card, or just drag this row onto another in the list.",
+          "showIf": {
+            "diagramType": [
+              "org",
+              "mindmap"
+            ]
+          }
+        },
+        {
+          "id": "layer",
+          "label": "Group",
+          "default": "",
+          "optionsFrom": {
+            "input": "layers",
+            "value": "layerId",
+            "label": "label",
+            "prefix": "layer-",
+            "freeText": true,
+            "emptyLabel": " - none - "
+          },
+          "help": "Layercake: which band. Kanban: which column - pick one, or type a new name to create a column. Dated Gantt: which swimlane. Cards in the same group sit together.",
+          "showIf": {
+            "diagramType": [
+              "layercake",
+              "kanban",
+              "gantt"
+            ]
+          }
+        },
+        {
+          "id": "quadrant",
+          "label": "Quadrant",
+          "type": "select",
+          "default": "tr",
+          "showIf": {
+            "diagramType": "matrix"
+          },
+          "options": [
+            {
+              "value": "tr",
+              "label": "Top-right"
+            },
+            {
+              "value": "tl",
+              "label": "Top-left"
+            },
+            {
+              "value": "br",
+              "label": "Bottom-right"
+            },
+            {
+              "value": "bl",
+              "label": "Bottom-left"
+            }
+          ]
+        },
+        {
+          "id": "ganttStart",
+          "label": "Start",
+          "type": "number",
+          "min": 0,
+          "max": 1000,
+          "step": 0.5,
+          "showIf": {
+            "diagramType": "gantt"
+          },
+          "help": "Bar start on the time axis. Ignored once this card has a start date."
+        },
+        {
+          "id": "ganttLen",
+          "label": "Length",
+          "type": "number",
+          "min": 0.5,
+          "max": 1000,
+          "step": 0.5,
+          "showIf": {
+            "diagramType": "gantt"
+          },
+          "help": "Bar length in the same units."
+        },
+        {
+          "id": "startDate",
+          "label": "Start date",
+          "type": "text",
+          "placeholder": "2026-01-15",
+          "showIf": {
+            "diagramType": "gantt"
+          },
+          "help": "yyyy-mm-dd. One dated card turns the whole chart into a dated roadmap: real ticks, swimlanes by Group, and the today line."
+        },
+        {
+          "id": "endDate",
+          "label": "End date",
+          "type": "text",
+          "placeholder": "2026-03-31",
+          "showIf": {
+            "diagramType": "gantt"
+          },
+          "help": "yyyy-mm-dd, inclusive. Blank = a one-day task."
+        },
+        {
+          "id": "milestone",
+          "label": "Milestone",
+          "type": "boolean",
+          "default": false,
+          "showIf": {
+            "diagramType": "gantt"
+          },
+          "help": "Draw a diamond on the start date instead of a bar."
+        },
+        {
+          "id": "emphasis",
+          "label": "Emphasis",
+          "type": "select",
+          "default": "auto",
+          "showIf": {
+            "look": [
+              "minimal",
+              "editorial",
+              "soft",
+              "flow",
+              "studio"
+            ],
+            "diagramType": [
+              "org",
+              "mindmap",
+              "layercake",
+              "kanban",
+              "process",
+              "timeline",
+              "cycle",
+              "matrix"
+            ]
+          },
+          "options": [
+            {
+              "value": "auto",
+              "label": "Follow look"
+            },
+            {
+              "value": "accent",
+              "label": "Accent card"
+            },
+            {
+              "value": "quiet",
+              "label": "Standard card"
+            }
+          ]
+        }
       ],
       "default": [
-        { "shape": "rounded", "nodeId": "ceo",       "label": "Chief Executive",       "detail": "Executive office",        "parent": "",    "layer": "experience", "fill": "" },
-        { "shape": "rounded", "nodeId": "coo",       "label": "Operations",            "detail": "Chief Operating Officer", "parent": "ceo", "layer": "services",   "fill": "" },
-        { "shape": "rounded", "nodeId": "corp-dev",  "label": "Corporate Development", "detail": "Partnerships",            "parent": "coo", "layer": "",           "fill": "" },
-        { "shape": "rounded", "nodeId": "cio",       "label": "Information Technology","detail": "Chief Information Officer","parent": "coo", "layer": "",           "fill": "" },
-        { "shape": "rounded", "nodeId": "design",    "label": "Design",                "detail": "Brand and product",       "parent": "coo", "layer": "",           "fill": "" },
-        { "shape": "rounded", "nodeId": "solutions", "label": "Solutions",             "detail": "Customer engineering",    "parent": "coo", "layer": "",           "fill": "" },
-        { "shape": "rounded", "nodeId": "pmo",       "label": "Programme Office",      "detail": "Delivery and planning",   "parent": "coo", "layer": "",           "fill": "" }
-      ]
+        {
+          "shape": "rounded",
+          "nodeId": "ceo",
+          "label": "Chief Executive",
+          "detail": "Executive office",
+          "parent": "",
+          "layer": "experience",
+          "fill": ""
+        },
+        {
+          "shape": "rounded",
+          "nodeId": "coo",
+          "label": "Operations",
+          "detail": "Chief Operating Officer",
+          "parent": "ceo",
+          "layer": "services",
+          "fill": ""
+        },
+        {
+          "shape": "rounded",
+          "nodeId": "corp-dev",
+          "label": "Corporate Development",
+          "detail": "Partnerships",
+          "parent": "coo",
+          "layer": "",
+          "fill": ""
+        },
+        {
+          "shape": "rounded",
+          "nodeId": "cio",
+          "label": "Information Technology",
+          "detail": "Chief Information Officer",
+          "parent": "coo",
+          "layer": "",
+          "fill": ""
+        },
+        {
+          "shape": "rounded",
+          "nodeId": "design",
+          "label": "Design",
+          "detail": "Brand and product",
+          "parent": "coo",
+          "layer": "",
+          "fill": ""
+        },
+        {
+          "shape": "rounded",
+          "nodeId": "solutions",
+          "label": "Solutions",
+          "detail": "Customer engineering",
+          "parent": "coo",
+          "layer": "",
+          "fill": ""
+        },
+        {
+          "shape": "rounded",
+          "nodeId": "pmo",
+          "label": "Programme Office",
+          "detail": "Delivery and planning",
+          "parent": "coo",
+          "layer": "",
+          "fill": ""
+        }
+      ],
+      "notice": "Click a card on the canvas to edit it here. Right-click or press and hold for its settings."
     },
     {
       "id": "arrows",
-      "label": "Flow arrows",
+      "label": "Connections",
       "type": "blocks",
       "labelledFields": true,
-      "showIf": { "source": "visual" },
-      "help": "In process/gantt these arrows ARE the flow / dependencies. In org/layercake/etc they're extra arrows on top of the automatic connectors. Pick the cards (or layers) each arrow runs between.",
+      "showIf": {
+        "source": "visual"
+      },
+      "help": "Connect cards or groups by name. Leave colour, head and route at their defaults to follow the look. Click a connection on the canvas to edit this row.",
       "fields": [
-        { "id": "from", "label": "From", "default": "", "optionsFrom": { "sources": [ { "input": "nodes", "value": "nodeId", "label": "label" }, { "input": "layers", "value": "layerId", "label": "label", "prefix": "layer-" } ], "emptyLabel": " - choose - " } },
-        { "id": "to", "label": "To", "default": "", "optionsFrom": { "sources": [ { "input": "nodes", "value": "nodeId", "label": "label" }, { "input": "layers", "value": "layerId", "label": "label", "prefix": "layer-" } ], "emptyLabel": " - choose - " } },
-        { "id": "label", "label": "Label", "type": "text", "placeholder": "optional" },
-        { "id": "style", "label": "Line", "type": "select", "default": "solid", "options": [ { "value": "solid", "label": "Solid" }, { "value": "dashed", "label": "Dashed" }, { "value": "dotted", "label": "Dotted" } ] },
-        { "id": "head", "label": "Arrowhead", "type": "select", "default": "", "options": [ { "value": "", "label": "Default" }, { "value": "triangle", "label": "Triangle" }, { "value": "open", "label": "Open" }, { "value": "diamond", "label": "Diamond" }, { "value": "circle", "label": "Circle" }, { "value": "bar", "label": "Bar" }, { "value": "double", "label": "Double-ended" }, { "value": "none", "label": "None" } ] },
-        { "id": "width", "label": "Width", "type": "number", "display": "slider", "min": 0, "max": 8, "step": 0.5, "default": 0, "help": "0 = use the global arrow width." },
-        { "id": "color", "label": "Colour", "type": "color", "default": "{color.semantic.primary}" }
+        {
+          "id": "from",
+          "label": "From",
+          "default": "",
+          "optionsFrom": {
+            "sources": [
+              {
+                "input": "nodes",
+                "value": "nodeId",
+                "label": "label"
+              },
+              {
+                "input": "layers",
+                "value": "layerId",
+                "label": "label",
+                "prefix": "layer-"
+              }
+            ],
+            "emptyLabel": " - choose - "
+          }
+        },
+        {
+          "id": "to",
+          "label": "To",
+          "default": "",
+          "optionsFrom": {
+            "sources": [
+              {
+                "input": "nodes",
+                "value": "nodeId",
+                "label": "label"
+              },
+              {
+                "input": "layers",
+                "value": "layerId",
+                "label": "label",
+                "prefix": "layer-"
+              }
+            ],
+            "emptyLabel": " - choose - "
+          }
+        },
+        {
+          "id": "label",
+          "label": "Label",
+          "type": "text",
+          "placeholder": "optional"
+        },
+        {
+          "id": "style",
+          "label": "Line",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Default"
+            },
+            {
+              "value": "solid",
+              "label": "Solid"
+            },
+            {
+              "value": "dashed",
+              "label": "Dashed"
+            },
+            {
+              "value": "dotted",
+              "label": "Dotted"
+            }
+          ]
+        },
+        {
+          "id": "head",
+          "label": "Arrowhead",
+          "type": "select",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Default"
+            },
+            {
+              "value": "triangle",
+              "label": "Triangle"
+            },
+            {
+              "value": "open",
+              "label": "Open"
+            },
+            {
+              "value": "diamond",
+              "label": "Diamond"
+            },
+            {
+              "value": "circle",
+              "label": "Circle"
+            },
+            {
+              "value": "bar",
+              "label": "Bar"
+            },
+            {
+              "value": "double",
+              "label": "Double-ended"
+            },
+            {
+              "value": "none",
+              "label": "None"
+            }
+          ]
+        },
+        {
+          "id": "width",
+          "label": "Width",
+          "type": "number",
+          "display": "slider",
+          "min": 0,
+          "max": 8,
+          "step": 0.5,
+          "default": 0,
+          "help": "0 = use the global arrow width."
+        },
+        {
+          "id": "color",
+          "label": "Colour",
+          "type": "color",
+          "default": "",
+          "help": "Leave empty to inherit the connection colour."
+        },
+        {
+          "id": "route",
+          "label": "Route",
+          "type": "select",
+          "default": "auto",
+          "showIf": {
+            "look": [
+              "minimal",
+              "editorial",
+              "soft",
+              "flow",
+              "studio"
+            ]
+          },
+          "options": [
+            {
+              "value": "auto",
+              "label": "Default"
+            },
+            {
+              "value": "straight",
+              "label": "Straight"
+            },
+            {
+              "value": "elbow",
+              "label": "Rounded elbows"
+            },
+            {
+              "value": "curve",
+              "label": "Curves"
+            }
+          ]
+        }
       ],
       "default": []
     },
-    { "id": "density", "label": "Density", "type": "select", "default": "cozy", "section": "Layout", "help": "Seeds the spacing + card scale below. Pick one, then nudge the sliders.", "options": [ { "value": "custom", "label": "Custom" }, { "value": "compact", "label": "Compact" }, { "value": "cozy", "label": "Cozy" }, { "value": "comfortable", "label": "Comfortable" }, { "value": "spacious", "label": "Spacious" } ] },
-    { "id": "cardWidth", "label": "Card width", "type": "number", "display": "slider", "min": 120, "max": 320, "step": 4, "default": 196, "section": "Layout" },
-    { "id": "cardScale", "label": "Card scale", "type": "number", "display": "slider", "min": 0.6, "max": 1.6, "step": 0.05, "default": 1, "section": "Layout", "help": "Scales card size, padding and text together." },
-    { "id": "rowGap", "label": "Row / layer gap", "type": "number", "display": "slider", "min": 0, "max": 200, "step": 4, "default": 56, "section": "Layout", "help": "Spacing along the flow (levels, ranks, bands)." },
-    { "id": "siblingGap", "label": "Sibling gap", "type": "number", "display": "slider", "min": 0, "max": 160, "step": 2, "default": 30, "section": "Layout", "help": "Spacing between neighbours within a level." },
-    { "id": "cornerRadius", "label": "Corner radius", "type": "number", "display": "slider", "min": 0, "max": 28, "step": 1, "default": 14, "section": "Layout", "help": "Roundness of “Rounded” cards (Box and Pill keep their shape)." },
-    { "id": "canvasPadding", "label": "Canvas padding", "type": "number", "display": "slider", "min": 0, "max": 160, "step": 4, "default": 44, "section": "Layout", "help": "Whitespace around the diagram." },
+    {
+      "id": "layers",
+      "label": "Groups",
+      "type": "blocks",
+      "labelledFields": true,
+      "showIf": {
+        "source": "visual",
+        "diagramType": [
+          "layercake",
+          "kanban",
+          "gantt"
+        ]
+      },
+      "help": "Each band of the layercake, stacked in this order. Cards reference a band by its ID. (Kanban columns are created automatically from each card's Group ID.)",
+      "addMenu": {
+        "field": "kind",
+        "label": "Add group"
+      },
+      "fields": [
+        {
+          "id": "kind",
+          "label": "Kind",
+          "type": "select",
+          "default": "layer",
+          "options": [
+            {
+              "value": "layer",
+              "label": "Layer",
+              "repeatable": true
+            }
+          ],
+          "showFor": []
+        },
+        {
+          "id": "layerId",
+          "label": "ID",
+          "type": "text",
+          "placeholder": "e.g. experience",
+          "showIf": {
+            "showIds": true
+          }
+        },
+        {
+          "id": "label",
+          "label": "Label",
+          "type": "text",
+          "placeholder": "e.g. Experience"
+        },
+        {
+          "id": "bandFill",
+          "label": "Band colour",
+          "type": "color",
+          "default": ""
+        }
+      ],
+      "default": [
+        {
+          "kind": "layer",
+          "layerId": "experience",
+          "label": "Experience",
+          "bandFill": "#90ebcd"
+        },
+        {
+          "kind": "layer",
+          "layerId": "services",
+          "label": "Services",
+          "bandFill": "#bff1ea"
+        },
+        {
+          "kind": "layer",
+          "layerId": "data",
+          "label": "Data",
+          "bandFill": "#efefef"
+        }
+      ]
+    },
+    {
+      "id": "theme",
+      "showIf": {
+        "look": "legacy"
+      },
+      "label": "Theme",
+      "type": "select",
+      "default": "custom",
+      "section": "Style",
+      "help": "Seeds the colours below. Pick one, then override any individual colour.",
+      "options": [
+        {
+          "value": "custom",
+          "label": "Custom"
+        },
+        {
+          "value": "brand-light",
+          "label": "Design system (light)"
+        },
+        {
+          "value": "brand-dark",
+          "label": "Design system (dark)"
+        },
+        {
+          "value": "blueprint",
+          "label": "Blueprint"
+        },
+        {
+          "value": "mono",
+          "label": "Mono"
+        },
+        {
+          "value": "mint",
+          "label": "Mint"
+        }
+      ]
+    },
+    {
+      "id": "colourMode",
+      "label": "Colour mode",
+      "type": "select",
+      "default": "system",
+      "section": "Style",
+      "showIf": {
+        "look": [
+          "minimal",
+          "editorial",
+          "soft",
+          "flow",
+          "studio"
+        ]
+      },
+      "options": [
+        {
+          "value": "system",
+          "label": "Design system"
+        },
+        {
+          "value": "light",
+          "label": "Light"
+        },
+        {
+          "value": "dark",
+          "label": "Dark"
+        }
+      ],
+      "display": "segmented"
+    },
+    {
+      "id": "cardLayout",
+      "label": "Card layout",
+      "type": "select",
+      "default": "row",
+      "section": "Style",
+      "help": "How each card arranges its image and text. Side by side puts the image on the left with left-aligned text - a card with no image uses the full width. Image on top stacks a centred image above centred text.",
+      "options": [
+        {
+          "value": "row",
+          "label": "Side by side (image left)"
+        },
+        {
+          "value": "stacked",
+          "label": "Image on top"
+        }
+      ]
+    },
+    {
+      "id": "focalEmphasis",
+      "label": "Focal card",
+      "type": "select",
+      "default": "none",
+      "section": "Style",
+      "showIf": {
+        "look": [
+          "minimal",
+          "editorial",
+          "soft",
+          "flow",
+          "studio"
+        ],
+        "diagramType": [
+          "org",
+          "mindmap",
+          "layercake",
+          "kanban",
+          "process",
+          "timeline",
+          "cycle",
+          "matrix"
+        ]
+      },
+      "options": [
+        {
+          "value": "none",
+          "label": "Equal emphasis"
+        },
+        {
+          "value": "first",
+          "label": "Emphasise the first card"
+        }
+      ],
+      "help": "Use equal emphasis for peer relationships. Individual cards can override this in their Emphasis setting."
+    },
+    {
+      "id": "cardDepth",
+      "label": "Card depth",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 2,
+      "step": 0.25,
+      "section": "Style",
+      "showIf": {
+        "look": [
+          "minimal",
+          "editorial",
+          "soft",
+          "flow",
+          "studio"
+        ]
+      }
+    },
+    {
+      "id": "surfaceHighlight",
+      "label": "Surface highlight",
+      "type": "number",
+      "default": 0,
+      "min": 0,
+      "max": 2,
+      "step": 0.1,
+      "display": "slider",
+      "section": "Style",
+      "showIf": {
+        "look": "studio"
+      },
+      "help": "The strength of the shallow highlight on Studio cards and objects."
+    },
+    {
+      "id": "radiusMode",
+      "label": "Corner radius source",
+      "type": "select",
+      "default": "custom",
+      "section": "Style",
+      "showIf": {
+        "look": [
+          "minimal",
+          "editorial",
+          "soft",
+          "flow",
+          "studio"
+        ]
+      },
+      "options": [
+        {
+          "value": "design",
+          "label": "Design system"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
+      ]
+    },
+    {
+      "id": "cornerRadius",
+      "showIf": [
+        {
+          "look": "legacy"
+        },
+        {
+          "radiusMode": "custom"
+        }
+      ],
+      "label": "Corner radius",
+      "type": "number",
+      "display": "slider",
+      "min": 0,
+      "max": 28,
+      "step": 1,
+      "default": 14,
+      "section": "Style",
+      "help": "Roundness of “Rounded” cards (Box and Pill keep their shape)."
+    },
+    {
+      "id": "nodeFill",
+      "label": "Card fill",
+      "type": "color",
+      "default": "{color.semantic.surface}",
+      "section": "Style"
+    },
+    {
+      "id": "nodeStroke",
+      "label": "Card border",
+      "type": "color",
+      "default": "{color.semantic.primary}",
+      "section": "Style"
+    },
+    {
+      "id": "cardBorderWidth",
+      "label": "Card border width",
+      "type": "number",
+      "display": "slider",
+      "min": 0,
+      "max": 6,
+      "step": 0.5,
+      "default": 2,
+      "section": "Style",
+      "help": "0 = borderless cards."
+    },
+    {
+      "id": "nodeText",
+      "label": "Card text",
+      "type": "color",
+      "default": "{color.semantic.text}",
+      "section": "Style"
+    },
+    {
+      "id": "labelSize",
+      "label": "Label size",
+      "type": "number",
+      "display": "slider",
+      "min": 10,
+      "max": 28,
+      "step": 1,
+      "default": 10,
+      "section": "Style"
+    },
+    {
+      "id": "labelWeight",
+      "label": "Label weight",
+      "type": "number",
+      "display": "slider",
+      "min": 100,
+      "max": 900,
+      "step": 100,
+      "default": 500,
+      "section": "Style",
+      "help": "Font weight of the card labels (100 Thin to 900 Black)."
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "type": "color",
+      "default": "{color.semantic.surface}",
+      "section": "Style",
+      "help": "Set to Transparent for a knock-out background."
+    },
+    {
+      "id": "gridBg",
+      "label": "Background pattern",
+      "type": "select",
+      "default": "dots",
+      "section": "Style",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "dots",
+          "label": "Dots"
+        },
+        {
+          "value": "grid",
+          "label": "Grid"
+        }
+      ]
+    },
+    {
+      "id": "importColours",
+      "label": "Imported colours",
+      "type": "select",
+      "default": "preserve",
+      "section": "Style",
+      "showIf": {
+        "look": [
+          "minimal",
+          "editorial",
+          "soft",
+          "flow",
+          "studio"
+        ]
+      },
+      "options": [
+        {
+          "value": "preserve",
+          "label": "Keep source colours"
+        },
+        {
+          "value": "brand",
+          "label": "Use design system"
+        }
+      ],
+      "help": "Keep explicit colours from cards and imported sources, or recolour them using the design system.",
+      "display": "segmented"
+    },
+    {
+      "id": "resetLook",
+      "label": "Reset look",
+      "type": "boolean",
+      "default": false,
+      "section": "Style",
+      "showIf": {
+        "look": [
+          "minimal",
+          "editorial",
+          "soft",
+          "flow",
+          "studio"
+        ]
+      },
+      "help": "Restore this look’s spacing, colour inheritance and depth. Cards and text are kept."
+    },
+    {
+      "id": "connectionRoute",
+      "label": "Connection shape",
+      "type": "select",
+      "default": "auto",
+      "section": "Arrow defaults",
+      "showIf": {
+        "look": [
+          "minimal",
+          "editorial",
+          "soft",
+          "flow",
+          "studio"
+        ],
+        "source": [
+          "visual",
+          "text",
+          "table",
+          "mermaid",
+          "dot",
+          "ascii"
+        ],
+        "diagramType": [
+          "org",
+          "mindmap",
+          "layercake",
+          "kanban",
+          "process",
+          "timeline",
+          "pyramid",
+          "matrix",
+          "gantt"
+        ]
+      },
+      "options": [
+        {
+          "value": "auto",
+          "label": "Automatic"
+        },
+        {
+          "value": "straight",
+          "label": "Straight"
+        },
+        {
+          "value": "elbow",
+          "label": "Rounded elbows"
+        },
+        {
+          "value": "curve",
+          "label": "Curves"
+        }
+      ]
+    },
+    {
+      "id": "bendRadius",
+      "label": "Bend radius",
+      "type": "number",
+      "display": "slider",
+      "default": 16,
+      "min": 0,
+      "max": 48,
+      "step": 1,
+      "section": "Arrow defaults",
+      "showIf": {
+        "look": [
+          "minimal",
+          "editorial",
+          "soft",
+          "flow",
+          "studio"
+        ],
+        "connectionRoute": [
+          "auto",
+          "elbow"
+        ]
+      }
+    },
+    {
+      "id": "directionMarkers",
+      "label": "Direction markers",
+      "type": "select",
+      "default": "infer",
+      "section": "Arrow defaults",
+      "showIf": {
+        "look": [
+          "minimal",
+          "editorial",
+          "soft",
+          "flow",
+          "studio"
+        ]
+      },
+      "options": [
+        {
+          "value": "infer",
+          "label": "From the diagram"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "end",
+          "label": "End"
+        },
+        {
+          "value": "start",
+          "label": "Start"
+        },
+        {
+          "value": "both",
+          "label": "Both ends"
+        }
+      ]
+    },
+    {
+      "id": "arrowHead",
+      "label": "Arrowhead",
+      "type": "select",
+      "default": "triangle",
+      "section": "Arrow defaults",
+      "help": "Default arrowhead for arrows that don't set their own.",
+      "options": [
+        {
+          "value": "triangle",
+          "label": "Triangle"
+        },
+        {
+          "value": "open",
+          "label": "Open"
+        },
+        {
+          "value": "diamond",
+          "label": "Diamond"
+        },
+        {
+          "value": "circle",
+          "label": "Circle"
+        },
+        {
+          "value": "bar",
+          "label": "Bar"
+        },
+        {
+          "value": "double",
+          "label": "Double-ended"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        }
+      ],
+      "showIf": [
+        {
+          "look": "legacy"
+        },
+        {
+          "directionMarkers": [
+            "infer",
+            "start",
+            "end",
+            "both"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "arrowHeadSizing",
+      "label": "Arrowhead sizing",
+      "type": "select",
+      "default": "auto",
+      "section": "Arrow defaults",
+      "showIf": {
+        "look": [
+          "minimal",
+          "editorial",
+          "soft",
+          "flow",
+          "studio"
+        ],
+        "directionMarkers": [
+          "infer",
+          "start",
+          "end",
+          "both"
+        ]
+      },
+      "options": [
+        {
+          "value": "auto",
+          "label": "Automatic"
+        },
+        {
+          "value": "custom",
+          "label": "Custom"
+        }
+      ]
+    },
+    {
+      "id": "arrowHeadSize",
+      "showIf": [
+        {
+          "look": "legacy"
+        },
+        {
+          "arrowHeadSizing": "custom",
+          "directionMarkers": [
+            "infer",
+            "start",
+            "end",
+            "both"
+          ]
+        }
+      ],
+      "label": "Arrowhead size",
+      "type": "number",
+      "display": "slider",
+      "min": 6,
+      "max": 28,
+      "step": 1,
+      "default": 11,
+      "section": "Arrow defaults"
+    },
+    {
+      "id": "connectionPaint",
+      "label": "Connection colour",
+      "type": "select",
+      "default": "solid",
+      "section": "Arrow defaults",
+      "showIf": {
+        "look": [
+          "minimal",
+          "editorial",
+          "soft",
+          "flow",
+          "studio"
+        ]
+      },
+      "options": [
+        {
+          "value": "solid",
+          "label": "Solid"
+        },
+        {
+          "value": "branch",
+          "label": "By branch"
+        },
+        {
+          "value": "gradient",
+          "label": "Brand gradient"
+        }
+      ]
+    },
+    {
+      "id": "gradientFrom",
+      "label": "Gradient start",
+      "type": "color",
+      "default": "",
+      "section": "Arrow defaults",
+      "showIf": {
+        "look": [
+          "minimal",
+          "editorial",
+          "soft",
+          "flow",
+          "studio"
+        ],
+        "connectionPaint": "gradient"
+      }
+    },
+    {
+      "id": "gradientTo",
+      "label": "Gradient end",
+      "type": "color",
+      "default": "",
+      "section": "Arrow defaults",
+      "showIf": {
+        "look": [
+          "minimal",
+          "editorial",
+          "soft",
+          "flow",
+          "studio"
+        ],
+        "connectionPaint": "gradient"
+      }
+    },
+    {
+      "id": "edgeColor",
+      "label": "Connectors",
+      "type": "color",
+      "default": "{color.semantic.primary}",
+      "section": "Arrow defaults",
+      "help": "Colour of the automatic connectors / spines."
+    },
+    {
+      "id": "connectionForm",
+      "label": "Connection form",
+      "type": "select",
+      "default": "line",
+      "section": "Arrow defaults",
+      "showIf": {
+        "look": [
+          "minimal",
+          "editorial",
+          "soft",
+          "flow",
+          "studio"
+        ],
+        "source": [
+          "visual",
+          "text",
+          "ascii",
+          "mermaid",
+          "dot",
+          "table"
+        ],
+        "diagramType": [
+          "org",
+          "mindmap",
+          "process",
+          "timeline",
+          "layercake",
+          "kanban",
+          "matrix",
+          "gantt",
+          "pyramid"
+        ]
+      },
+      "options": [
+        {
+          "value": "line",
+          "label": "Line"
+        },
+        {
+          "value": "ribbon",
+          "label": "Ribbon"
+        }
+      ],
+      "help": "Ribbons have a constant width. They do not represent quantities."
+    },
+    {
+      "id": "arrowStyle",
+      "label": "Arrow line",
+      "type": "select",
+      "default": "solid",
+      "section": "Arrow defaults",
+      "help": "Default line style for arrows that don't set their own.",
+      "options": [
+        {
+          "value": "solid",
+          "label": "Solid"
+        },
+        {
+          "value": "dashed",
+          "label": "Dashed"
+        },
+        {
+          "value": "dotted",
+          "label": "Dotted"
+        }
+      ]
+    },
+    {
+      "id": "arrowWidth",
+      "label": "Arrow width",
+      "type": "number",
+      "display": "slider",
+      "min": 0.5,
+      "max": 8,
+      "step": 0.5,
+      "default": 2,
+      "section": "Arrow defaults"
+    },
+    {
+      "id": "connectorWidth",
+      "label": "Connector width",
+      "type": "number",
+      "display": "slider",
+      "min": 0.3,
+      "max": 6,
+      "step": 0.1,
+      "default": 2.6,
+      "section": "Arrow defaults",
+      "showIf": {
+        "diagramType": [
+          "org",
+          "mindmap",
+          "timeline",
+          "cycle"
+        ]
+      }
+    },
+    {
+      "id": "lineDepth",
+      "label": "Line depth",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 2,
+      "step": 0.25,
+      "section": "Arrow defaults",
+      "showIf": {
+        "look": [
+          "minimal",
+          "editorial",
+          "soft",
+          "flow",
+          "studio"
+        ],
+        "arrowStyle": "solid"
+      }
+    },
+    {
+      "id": "density",
+      "label": "Density",
+      "type": "select",
+      "default": "cozy",
+      "section": "Layout",
+      "help": "Seeds the spacing + card scale below. Pick one, then nudge the sliders.",
+      "options": [
+        {
+          "value": "custom",
+          "label": "Custom"
+        },
+        {
+          "value": "compact",
+          "label": "Compact"
+        },
+        {
+          "value": "cozy",
+          "label": "Cozy"
+        },
+        {
+          "value": "comfortable",
+          "label": "Comfortable"
+        },
+        {
+          "value": "spacious",
+          "label": "Spacious"
+        }
+      ],
+      "showIf": {
+        "look": "legacy",
+        "source": [
+          "visual",
+          "text",
+          "table",
+          "mermaid",
+          "dot"
+        ]
+      }
+    },
     {
       "id": "orgDir",
       "label": "Direction",
       "type": "select",
       "default": "down",
-      "showIf": { "diagramType": "org" },
+      "showIf": {
+        "diagramType": "org",
+        "source": [
+          "visual",
+          "text",
+          "table"
+        ]
+      },
       "help": "Lay the tree top-to-bottom, or left-to-right for deep hierarchies.",
       "options": [
-        { "value": "down", "label": "Top to bottom" },
-        { "value": "right", "label": "Left to right" }
+        {
+          "value": "down",
+          "label": "Top to bottom"
+        },
+        {
+          "value": "right",
+          "label": "Left to right"
+        }
       ],
       "section": "Layout"
     },
@@ -234,10 +1804,18 @@
       "label": "Branch layout",
       "type": "select",
       "default": "balanced",
-      "showIf": { "diagramType": "mindmap" },
+      "showIf": {
+        "diagramType": "mindmap"
+      },
       "options": [
-        { "value": "balanced", "label": "Balanced (both sides)" },
-        { "value": "right", "label": "Right only" }
+        {
+          "value": "balanced",
+          "label": "Balanced (both sides)"
+        },
+        {
+          "value": "right",
+          "label": "Right only"
+        }
       ],
       "section": "Layout"
     },
@@ -246,7 +1824,10 @@
       "label": "Colour by branch",
       "type": "boolean",
       "default": true,
-      "showIf": { "diagramType": "mindmap" },
+      "showIf": {
+        "diagramType": "mindmap",
+        "look": "legacy"
+      },
       "help": "Tint each top-level branch with its own palette colour.",
       "section": "Layout"
     },
@@ -255,11 +1836,24 @@
       "label": "Flow direction",
       "type": "select",
       "default": "down",
-      "showIf": { "diagramType": "process" },
+      "showIf": {
+        "diagramType": "process",
+        "source": [
+          "visual",
+          "text",
+          "table"
+        ]
+      },
       "help": "Which way a process flows between steps.",
       "options": [
-        { "value": "down", "label": "Top to bottom" },
-        { "value": "right", "label": "Left to right" }
+        {
+          "value": "down",
+          "label": "Top to bottom"
+        },
+        {
+          "value": "right",
+          "label": "Left to right"
+        }
       ],
       "section": "Layout"
     },
@@ -268,10 +1862,23 @@
       "label": "Direction",
       "type": "select",
       "default": "right",
-      "showIf": { "diagramType": "timeline" },
+      "showIf": {
+        "diagramType": "timeline",
+        "source": [
+          "visual",
+          "text",
+          "table"
+        ]
+      },
       "options": [
-        { "value": "right", "label": "Left to right" },
-        { "value": "down", "label": "Top to bottom" }
+        {
+          "value": "right",
+          "label": "Left to right"
+        },
+        {
+          "value": "down",
+          "label": "Top to bottom"
+        }
       ],
       "section": "Layout"
     },
@@ -280,7 +1887,9 @@
       "label": "Show loop arrows",
       "type": "boolean",
       "default": true,
-      "showIf": { "diagramType": "cycle" },
+      "showIf": {
+        "diagramType": "cycle"
+      },
       "section": "Layout"
     },
     {
@@ -288,7 +1897,9 @@
       "label": "Curved arrows",
       "type": "boolean",
       "default": true,
-      "showIf": { "diagramType": "cycle" },
+      "showIf": {
+        "diagramType": "cycle"
+      },
       "help": "Bow the ring arrows outward instead of straight chords.",
       "section": "Layout"
     },
@@ -297,12 +1908,23 @@
       "label": "Style",
       "type": "select",
       "default": "pyramid",
-      "showIf": { "diagramType": "pyramid" },
+      "showIf": {
+        "diagramType": "pyramid"
+      },
       "help": "Cards are listed top to bottom. Pyramid widens downward, funnel narrows, inverted widens upward.",
       "options": [
-        { "value": "pyramid", "label": "Pyramid (wide base)" },
-        { "value": "funnel", "label": "Funnel (narrowing)" },
-        { "value": "inverted", "label": "Inverted pyramid" }
+        {
+          "value": "pyramid",
+          "label": "Pyramid (wide base)"
+        },
+        {
+          "value": "funnel",
+          "label": "Funnel (narrowing)"
+        },
+        {
+          "value": "inverted",
+          "label": "Inverted pyramid"
+        }
       ],
       "section": "Layout"
     },
@@ -311,7 +1933,9 @@
       "label": "Show card counts",
       "type": "boolean",
       "default": false,
-      "showIf": { "diagramType": "kanban" },
+      "showIf": {
+        "diagramType": "kanban"
+      },
       "section": "Layout"
     },
     {
@@ -320,7 +1944,9 @@
       "type": "text",
       "default": "",
       "placeholder": "e.g. High impact",
-      "showIf": { "diagramType": "matrix" },
+      "showIf": {
+        "diagramType": "matrix"
+      },
       "section": "Layout"
     },
     {
@@ -329,7 +1955,9 @@
       "type": "text",
       "default": "",
       "placeholder": "e.g. Low impact",
-      "showIf": { "diagramType": "matrix" },
+      "showIf": {
+        "diagramType": "matrix"
+      },
       "section": "Layout"
     },
     {
@@ -338,7 +1966,9 @@
       "type": "text",
       "default": "",
       "placeholder": "e.g. High effort",
-      "showIf": { "diagramType": "matrix" },
+      "showIf": {
+        "diagramType": "matrix"
+      },
       "section": "Layout"
     },
     {
@@ -347,7 +1977,9 @@
       "type": "text",
       "default": "",
       "placeholder": "e.g. Low effort",
-      "showIf": { "diagramType": "matrix" },
+      "showIf": {
+        "diagramType": "matrix"
+      },
       "section": "Layout"
     },
     {
@@ -355,7 +1987,9 @@
       "label": "Show time grid",
       "type": "boolean",
       "default": true,
-      "showIf": { "diagramType": "gantt" },
+      "showIf": {
+        "diagramType": "gantt"
+      },
       "section": "Layout"
     },
     {
@@ -364,7 +1998,9 @@
       "type": "text",
       "default": "",
       "placeholder": "e.g. wk",
-      "showIf": { "diagramType": "gantt" },
+      "showIf": {
+        "diagramType": "gantt"
+      },
       "help": "Unitless bars only. Give any card real dates and the axis labels itself.",
       "section": "Layout"
     },
@@ -373,14 +2009,31 @@
       "label": "Time scale",
       "type": "select",
       "default": "auto",
-      "showIf": { "diagramType": "gantt" },
+      "showIf": {
+        "diagramType": "gantt"
+      },
       "help": "Tick spacing on a dated roadmap. Auto picks it from the span.",
       "options": [
-        { "value": "auto", "label": "Auto" },
-        { "value": "days", "label": "Days" },
-        { "value": "weeks", "label": "Weeks" },
-        { "value": "months", "label": "Months" },
-        { "value": "quarters", "label": "Quarters" }
+        {
+          "value": "auto",
+          "label": "Auto"
+        },
+        {
+          "value": "days",
+          "label": "Days"
+        },
+        {
+          "value": "weeks",
+          "label": "Weeks"
+        },
+        {
+          "value": "months",
+          "label": "Months"
+        },
+        {
+          "value": "quarters",
+          "label": "Quarters"
+        }
       ],
       "section": "Layout"
     },
@@ -389,46 +2042,169 @@
       "label": "Today line",
       "type": "date",
       "default": "",
-      "showIf": { "diagramType": "gantt" },
+      "showIf": {
+        "diagramType": "gantt"
+      },
       "help": "Draws a marker line at this date when it falls inside the roadmap. Empty = off.",
       "section": "Layout"
     },
     {
-      "id": "layers",
-      "label": "Layers / columns (in order)",
-      "type": "blocks",
-      "labelledFields": true,
-      "showIf": { "source": "visual", "diagramType": "layercake" },
-      "help": "Each band of the layercake, stacked in this order. Cards reference a band by its ID. (Kanban columns are created automatically from each card's Group ID.)",
-      "addMenu": { "field": "kind", "label": "Add layer" },
-      "fields": [
-        { "id": "kind", "label": "Kind", "type": "select", "default": "layer", "options": [ { "value": "layer", "label": "Layer", "repeatable": true } ] },
-        { "id": "layerId", "label": "ID", "type": "text", "placeholder": "e.g. experience" },
-        { "id": "label", "label": "Label", "type": "text", "placeholder": "e.g. Experience" },
-        { "id": "bandFill", "label": "Band colour", "type": "color", "default": "#efefef" }
-      ],
-      "default": [
-        { "kind": "layer", "layerId": "experience", "label": "Experience", "bandFill": "#90ebcd" },
-        { "kind": "layer", "layerId": "services", "label": "Services", "bandFill": "#bff1ea" },
-        { "kind": "layer", "layerId": "data", "label": "Data", "bandFill": "#efefef" }
-      ],
-      "section": "Layout"
+      "id": "cardWidth",
+      "label": "Card width",
+      "type": "number",
+      "display": "slider",
+      "min": 120,
+      "max": 320,
+      "step": 4,
+      "default": 196,
+      "section": "Layout",
+      "showIf": {
+        "source": [
+          "visual",
+          "text",
+          "table",
+          "mermaid",
+          "dot"
+        ]
+      }
     },
-    { "id": "theme", "label": "Theme", "type": "select", "default": "custom", "section": "Style", "help": "Seeds the colours below. Pick one, then override any individual colour.", "options": [ { "value": "custom", "label": "Custom" }, { "value": "brand-light", "label": "Design system (light)" }, { "value": "brand-dark", "label": "Design system (dark)" }, { "value": "blueprint", "label": "Blueprint" }, { "value": "mono", "label": "Mono" }, { "value": "mint", "label": "Mint" } ] },
-    { "id": "cardLayout", "label": "Card layout", "type": "select", "default": "row", "section": "Style", "help": "How each card arranges its image and text. Side by side puts the image on the left with left-aligned text - a card with no image uses the full width. Image on top stacks a centred image above centred text.", "options": [ { "value": "row", "label": "Side by side (image left)" }, { "value": "stacked", "label": "Image on top" } ] },
-    { "id": "nodeFill", "label": "Card fill", "type": "color", "default": "{color.semantic.surface}", "section": "Style" },
-    { "id": "nodeStroke", "label": "Card border", "type": "color", "default": "{color.semantic.primary}", "section": "Style" },
-    { "id": "cardBorderWidth", "label": "Card border width", "type": "number", "display": "slider", "min": 0, "max": 6, "step": 0.5, "default": 2, "section": "Style", "help": "0 = borderless cards." },
-    { "id": "nodeText", "label": "Card text", "type": "color", "default": "{color.semantic.text}", "section": "Style" },
-    { "id": "labelSize", "label": "Label size", "type": "number", "display": "slider", "min": 10, "max": 28, "step": 1, "default": 10, "section": "Style" },
-    { "id": "labelWeight", "label": "Label weight", "type": "number", "display": "slider", "min": 100, "max": 900, "step": 100, "default": 500, "section": "Style", "help": "Font weight of the card labels (100 Thin to 900 Black)." },
-    { "id": "edgeColor", "label": "Connectors", "type": "color", "default": "{color.semantic.primary}", "section": "Style", "help": "Colour of the automatic connectors / spines." },
-    { "id": "connectorWidth", "label": "Connector width", "type": "number", "display": "slider", "min": 0.3, "max": 6, "step": 0.1, "default": 2.6, "section": "Style" },
-    { "id": "background", "label": "Background", "type": "color", "default": "{color.semantic.surface}", "section": "Style", "help": "Set to Transparent for a knock-out background." },
-    { "id": "gridBg", "label": "Background pattern", "type": "select", "default": "dots", "section": "Style", "options": [ { "value": "none", "label": "None" }, { "value": "dots", "label": "Dots" }, { "value": "grid", "label": "Grid" } ] },
-    { "id": "arrowStyle", "label": "Arrow line", "type": "select", "default": "solid", "section": "Arrow defaults", "help": "Default line style for arrows that don't set their own.", "options": [ { "value": "solid", "label": "Solid" }, { "value": "dashed", "label": "Dashed" }, { "value": "dotted", "label": "Dotted" } ] },
-    { "id": "arrowHead", "label": "Arrowhead", "type": "select", "default": "triangle", "section": "Arrow defaults", "help": "Default arrowhead for arrows that don't set their own.", "options": [ { "value": "triangle", "label": "Triangle" }, { "value": "open", "label": "Open" }, { "value": "diamond", "label": "Diamond" }, { "value": "circle", "label": "Circle" }, { "value": "bar", "label": "Bar" }, { "value": "double", "label": "Double-ended" }, { "value": "none", "label": "None" } ] },
-    { "id": "arrowWidth", "label": "Arrow width", "type": "number", "display": "slider", "min": 0.5, "max": 8, "step": 0.5, "default": 2, "section": "Arrow defaults" },
-    { "id": "arrowHeadSize", "label": "Arrowhead size", "type": "number", "display": "slider", "min": 6, "max": 28, "step": 1, "default": 11, "section": "Arrow defaults" }
+    {
+      "id": "rowGap",
+      "label": "Row / layer gap",
+      "type": "number",
+      "display": "slider",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "default": 56,
+      "section": "Layout",
+      "help": "Spacing along the flow (levels, ranks, bands).",
+      "showIf": {
+        "source": [
+          "visual",
+          "text",
+          "table",
+          "mermaid",
+          "dot"
+        ]
+      }
+    },
+    {
+      "id": "siblingGap",
+      "label": "Sibling gap",
+      "type": "number",
+      "display": "slider",
+      "min": 0,
+      "max": 160,
+      "step": 2,
+      "default": 30,
+      "section": "Layout",
+      "help": "Spacing between neighbours within a level.",
+      "showIf": {
+        "source": [
+          "visual",
+          "text",
+          "table",
+          "mermaid",
+          "dot"
+        ]
+      }
+    },
+    {
+      "id": "layerColumns",
+      "label": "Cards per row",
+      "type": "number",
+      "default": 0,
+      "min": 0,
+      "max": 8,
+      "step": 1,
+      "section": "Layout",
+      "showIf": [
+        {
+          "diagramType": "layercake",
+          "look": [
+            "minimal",
+            "editorial",
+            "soft",
+            "flow",
+            "studio"
+          ],
+          "source": [
+            "visual",
+            "text",
+            "table",
+            "mermaid",
+            "dot"
+          ]
+        },
+        {
+          "source": [
+            "mermaid",
+            "dot"
+          ],
+          "look": [
+            "minimal",
+            "editorial",
+            "soft",
+            "flow",
+            "studio"
+          ]
+        }
+      ],
+      "help": "Zero keeps each group on one row. Set a limit to wrap large groups without shrinking their labels."
+    },
+    {
+      "id": "canvasPadding",
+      "label": "Canvas padding",
+      "type": "number",
+      "display": "slider",
+      "min": 0,
+      "max": 160,
+      "step": 4,
+      "default": 44,
+      "section": "Layout",
+      "help": "Whitespace around the diagram."
+    },
+    {
+      "id": "gradientToken",
+      "label": "Named gradient",
+      "type": "text",
+      "default": "",
+      "section": "Advanced",
+      "showIf": {
+        "look": [
+          "minimal",
+          "editorial",
+          "soft",
+          "flow",
+          "studio"
+        ],
+        "connectionPaint": "gradient"
+      },
+      "help": "Optional design-system token path, for example gradient.brand. Leave empty to use the only gradient token or the two brand accents."
+    },
+    {
+      "id": "cardScale",
+      "label": "Card scale",
+      "type": "number",
+      "display": "slider",
+      "min": 0.6,
+      "max": 1.6,
+      "step": 0.05,
+      "default": 1,
+      "section": "Advanced",
+      "help": "Scales card size, padding and text together."
+    },
+    {
+      "id": "showIds",
+      "label": "Show reference IDs",
+      "type": "boolean",
+      "default": false,
+      "section": "Advanced",
+      "showIf": {
+        "source": "visual"
+      },
+      "help": "IDs connect cards and groups. Keep an existing ID when you rename its label."
+    }
   ]
 }

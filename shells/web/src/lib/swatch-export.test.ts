@@ -191,8 +191,8 @@ test('exportSwatches handles every format in the union', () => {
 
 test('both enumerating UIs offer every format - none is reachable in only one', () => {
   const editor = [readFileSync(join(HERE, 'brand-editor.ts'), 'utf8'), ...readdirSync(join(HERE, 'brand-editor')).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(HERE, 'brand-editor', n), 'utf8'))].join('\n');
-  const catDir = join(HERE, '../views/catalog');
-  const catalog = [readFileSync(join(HERE, '../views/catalog.ts'), 'utf8'), ...readdirSync(catDir).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(catDir, n), 'utf8'))].join('\n');
+  const catDir = join(HERE, '../views/assets');
+  const catalog = [readFileSync(join(HERE, '../views/assets.ts'), 'utf8'), ...readdirSync(catDir).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(catDir, n), 'utf8'))].join('\n');
 
   // The option body is t('label') optionally followed by an untranslated
   // annotation (tokens-json carries "· Penpot / Tokens Studio" - product names

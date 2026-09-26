@@ -2,7 +2,7 @@
 /**
  * Library-category glyphs - one Lucide-house icon per Catalog section, so a
  * category reads at a glance and identically everywhere it appears: the Catalog
- * view (views/catalog.ts) and the asset picker (views/picker.ts).
+ * view (views/assets.ts) and the asset picker (views/picker.ts).
  *
  * Keys mirror LIB_GROUPS (lib/asset-category.ts) plus the sibling sections that
  * render alongside the tag-bucketed groups - 'swatches', 'fonts', 'uploads' - and

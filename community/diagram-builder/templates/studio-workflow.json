@@ -1,0 +1,14 @@
+{
+  "id": "studio-workflow",
+  "name": "Studio workflow",
+  "category": "Looks",
+  "description": "A four-step workflow in the Studio look.",
+  "values": {
+    "look": "studio",
+    "source": "text",
+    "diagramType": "process",
+    "flowDir": "down",
+    "dsl": "Discover -> Design\nDiscover -> Build\nDesign -> Share\nBuild -> Share",
+    "title": "From idea to impact"
+  }
+}

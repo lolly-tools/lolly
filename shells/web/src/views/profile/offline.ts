@@ -122,7 +122,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
     durable: t('Hides an invisible credential in the pixels you export.'),
     reword: t('Rewrites, summarises and explains text on this device, for Humanize and the text actions.'),
     ask: t('Helps Ask Lolly match your question to the right guide.'),
-    'ai-detect': t('Runs the deeper AI text check on Verify and in the catalogue.'),
+    'ai-detect': t('Runs the deeper AI text check on Verify and in Assets.'),
   };
   // Model rows carry the large-download tag slot; syncPartRow shows it only when
   // there is something left to download and it is big (isHeavy).

@@ -136,7 +136,7 @@ Een optioneel **Verlopen**-paneel bouwt mengtokens uit je palet voor achtergrond
 
 ### Neem het palet mee
 
-De zwevende pil onderaan het paletvenster downloadt het hele palet als **Design tokens (JSON)**, **CSS-variabelen**, **CSS-klassen**, **SCSS-variabelen**, een **GIMP-palet (.gpl)** of een **Adobe Swatch Exchange (.ase)** - zodat het merk direct in Illustrator, Figma, GIMP of een stylesheet terechtkomt. Hij staat buiten de scroller van het venster, dus hij houdt zijn plek hoe ver het palet ook scrollt. (Je kunt het palet ook downloaden vanuit de weergave [Catalogus](/info/using.html).)
+De zwevende pil onderaan het paletvenster downloadt het hele palet als **Design tokens (JSON)**, **CSS-variabelen**, **CSS-klassen**, **SCSS-variabelen**, een **GIMP-palet (.gpl)** of een **Adobe Swatch Exchange (.ase)** - zodat het merk direct in Illustrator, Figma, GIMP of een stylesheet terechtkomt. Hij staat buiten de scroller van het venster, dus hij houdt zijn plek hoe ver het palet ook scrollt. (Je kunt het palet ook downloaden vanuit [Assets](/info/using.html#assets-your-library).)
 
 ## Typografie
 
@@ -179,7 +179,7 @@ De rest van het ontwerpsysteem, te bewerken zonder code aan te raken:
 
 ## Bestanden
 
-Zet hier de bestanden neer die je merk bijhoudt - logo's daargelaten - **vector**-, **afbeeldings**-, **audio**- en **bewegings**bestanden (video, Lottie, geanimeerd). Ze komen terecht in je [Catalogus](/info/using.html), gesorteerd in secties en beschikbaar in de assetkiezer van elke tool. Alles blijft op dit apparaat. (De zijbalk noemt de ruimte **Bestanden**; de URL-sleutel blijft `catalogue`, omdat een paneelsleutel een permanent contract is.)
+Zet hier de bestanden neer die je merk bijhoudt - logo's daargelaten - **vector**-, **afbeeldings**-, **audio**- en **bewegings**bestanden (video, Lottie, geanimeerd). Ze komen terecht in [Assets](/info/using.html#assets-your-library), gesorteerd in secties en beschikbaar in de assetkiezer van elke tool. Alles blijft op dit apparaat. (De zijbalk noemt de ruimte **Bestanden**; de URL-sleutel blijft `catalogue`, omdat een paneelsleutel een permanent contract is.)
 
 ## Een merk binnenhalen
 
@@ -231,6 +231,6 @@ Sommige builds leveren een **vastgezet merk** - de kleuren, lettertypen en token
 
 ## Waar je hierna heen kunt
 
-- **[Lolly gebruiken](/info/using.html)** - het canvas, opslaan, projecten en de catalogus.
+- **[Lolly gebruiken](/info/using.html)** - het canvas, opslaan, projecten en Assets.
 - **[Design Tokens](/info/design-tokens.html)** - het tokenmodel waarin je merk wordt uitgedrukt.
 - **[Exporteren & formaten](/info/exporting.html)** - druk-eenheden, CMYK en de formaten waarin je merk gerenderd wordt.

@@ -136,7 +136,7 @@ Um painel opcional de **Gradientes** cria tokens de mescla a partir da sua palet
 
 ### Leve a paleta para outros lugares
 
-A pílula flutuante fixada na borda inferior do painel de paleta baixa a paleta inteira como **Tokens de design (JSON)**, **Variáveis CSS**, **Classes CSS**, **Variáveis SCSS**, uma **Paleta GIMP (.gpl)** ou um **Adobe Swatch Exchange (.ase)** - assim a marca entra direto no Illustrator, Figma, GIMP ou numa folha de estilos. Ela fica fora do scroller do painel, então mantém seu lugar não importa até onde a paleta role. (Você também pode baixar a paleta na visão [Catálogo](/info/using.html).)
+A pílula flutuante fixada na borda inferior do painel de paleta baixa a paleta inteira como **Tokens de design (JSON)**, **Variáveis CSS**, **Classes CSS**, **Variáveis SCSS**, uma **Paleta GIMP (.gpl)** ou um **Adobe Swatch Exchange (.ase)** - assim a marca entra direto no Illustrator, Figma, GIMP ou numa folha de estilos. Ela fica fora do scroller do painel, então mantém seu lugar não importa até onde a paleta role. (Você também pode baixar a paleta em [Ativos](/info/using.html#assets-your-library).)
 
 ## Tipografia
 
@@ -179,7 +179,7 @@ O restante do sistema de design, editável sem tocar em código:
 
 ## Arquivos
 
-Solte aqui os arquivos que sua marca guarda - além dos logotipos: recursos **vetoriais**, de **imagem**, de **áudio** e de **movimento** (vídeo, Lottie, animado). Eles chegam ao seu [Catálogo](/info/using.html), organizados em seções e prontos no seletor de recursos de cada ferramenta. Tudo permanece neste dispositivo. (O trilho rotula a sala como **Arquivos**; a chave de URL permanece `catalogue`, porque a chave de um painel é um contrato permanente.)
+Solte aqui os arquivos que sua marca guarda - além dos logotipos: recursos **vetoriais**, de **imagem**, de **áudio** e de **movimento** (vídeo, Lottie, animado). Eles chegam em [Ativos](/info/using.html#assets-your-library), organizados em seções e prontos no seletor de recursos de cada ferramenta. Tudo permanece neste dispositivo. (O trilho rotula a sala como **Arquivos**; a chave de URL permanece `catalogue`, porque a chave de um painel é um contrato permanente.)
 
 ## Trazer uma marca
 
@@ -231,6 +231,6 @@ Algumas builds vêm com uma **marca bloqueada** - suas cores, fontes e tokens s�
 
 ## Para onde ir agora
 
-- **[Usando o Lolly](/info/using.html)** - a tela, o salvamento, os projetos e o catálogo.
+- **[Usando o Lolly](/info/using.html)** - a tela, o salvamento, os projetos e Ativos.
 - **[Tokens de Design](/info/design-tokens.html)** - o modelo de tokens em que sua marca é expressa.
 - **[Exportação e formatos](/info/exporting.html)** - unidades de impressão, CMYK e os formatos em que sua marca é renderizada.

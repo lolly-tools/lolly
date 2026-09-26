@@ -16,7 +16,7 @@ test('composed Design text exports settled paths across still, document and Sequ
   const doc:TextDocumentV1={version:1,stories:[story],styles:[{id:'body',kind:'paragraph',name:'Body',paragraph:{character:{font:'font',size:36,weight:500,color:'#223344'}}}],fonts:[{id:'font',family:'SUSE',sha256:createHash('sha256').update(readFileSync('shells/web/public/fonts/SUSE[wght].ttf')).digest('hex'),faceIndex:0,source:{kind:'bundled',path:'/fonts/SUSE[wght].ttf'}}]};
   const boxes=[{id:'text',kind:'text',text:'',textStory:'story',textFrame:JSON.stringify({mode:'fixed',inset:{top:0,right:0,bottom:0,left:0},columns:{count:1,gutter:0,balance:false},verticalAlign:'top'}),x:40,y:45,w:560,h:240,start:0,dur:1}];
   const browser=await getBrowser(),context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'}),page=await context.newPage(),diagnose=journeyDiagnostics(context,'design-text-export');page.setDefaultTimeout(30000);
-  await page.addLocatorHandler(page.getByRole('dialog',{name:'Save this render to your catalog?',exact:true}),async dialog=>{await dialog.getByRole('button',{name:'Cancel',exact:true}).click();});
+  await page.addLocatorHandler(page.getByRole('dialog',{name:'Save this render to Assets?',exact:true}),async dialog=>{await dialog.getByRole('button',{name:'Cancel',exact:true}).click();});
   await context.addInitScript(()=>{Object.defineProperty(window,'showSaveFilePicker',{value:undefined});});
   try{
     await page.goto(`${origin}/design?${new URLSearchParams({boxes:JSON.stringify(boxes),textDocument:JSON.stringify(doc),background:'#ffffff',width:'640',height:'360',c2pa:'0',imprint:'0',fps:'12',seconds:'1'})}`);await page.locator('#tool-canvas svg[data-text-frame="text"]').waitFor();

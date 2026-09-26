@@ -136,7 +136,7 @@ Volitelný panel **Přechody** staví z tvé palety blend tokeny pro pozadí a a
 
 ### Vezmi paletu jinam
 
-Plovoucí pilulka zaparkovaná na spodním okraji panelu palety stáhne celou paletu jako **Design tokeny (JSON)**, **CSS proměnné**, **CSS třídy**, **SCSS proměnné**, **paletu GIMP (.gpl)** nebo **Adobe Swatch Exchange (.ase)** - takže značka rovnou zapadne do Illustratoru, Figmy, GIMPu nebo stylopisu. Sedí mimo posuvník panelu, takže si drží místo bez ohledu na to, jak daleko se paleta posune. (Paletu můžeš stáhnout i z pohledu [Katalog](/info/using.html).)
+Plovoucí pilulka zaparkovaná na spodním okraji panelu palety stáhne celou paletu jako **Design tokeny (JSON)**, **CSS proměnné**, **CSS třídy**, **SCSS proměnné**, **paletu GIMP (.gpl)** nebo **Adobe Swatch Exchange (.ase)** - takže značka rovnou zapadne do Illustratoru, Figmy, GIMPu nebo stylopisu. Sedí mimo posuvník panelu, takže si drží místo bez ohledu na to, jak daleko se paleta posune. (Paletu můžeš stáhnout i ze zobrazení [Assety](/info/using.html#assets-your-library).)
 
 ## Typ
 
@@ -179,7 +179,7 @@ Zbytek designového systému, upravitelný bez zásahu do kódu:
 
 ## Soubory
 
-Sem odlož soubory, které tvá značka uchovává - kromě log: **vektorové**, **obrazové**, **zvukové** a **pohyblivé** (video, Lottie, animované) prostředky. Přistanou v tvém [Katalogu](/info/using.html), setříděné do sekcí a připravené ve výběru prostředků každého nástroje. Vše zůstává v tomto zařízení. (Lišta pojmenovává místnost **Soubory**; klíč URL zůstává `catalogue`, protože klíč panelu je trvalý závazek.)
+Sem odlož soubory, které tvá značka uchovává - kromě log: **vektorové**, **obrazové**, **zvukové** a **pohyblivé** (video, Lottie, animované) prostředky. Přistanou v zobrazení [Assety](/info/using.html#assets-your-library), setříděné do sekcí a připravené ve výběru prostředků každého nástroje. Vše zůstává v tomto zařízení. (Lišta pojmenovává místnost **Soubory**; klíč URL zůstává `catalogue`, protože klíč panelu je trvalý závazek.)
 
 ## Přines vlastní značku
 
@@ -231,6 +231,6 @@ Některé buildy dodávají **uzamčený brand** - jeho barvy, fonty a tokeny js
 
 ## Kam dál
 
-- **[Using Lolly](/info/using.html)** - plátno, ukládání, projekty a katalog.
+- **[Using Lolly](/info/using.html)** - plátno, ukládání, projekty a Assety.
 - **[Design Tokens](/info/design-tokens.html)** - tokenový model, ve kterém je tvůj brand vyjádřený.
 - **[Exporting & formats](/info/exporting.html)** - tiskové jednotky, CMYK a formáty, do kterých se tvůj brand renderuje.

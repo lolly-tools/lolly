@@ -70,7 +70,7 @@ jemand im Browser sieht. Die Reibung bei der Einführung ist selten technisch, s
 fertiges Paket Ihrer Vorlagen. Für einen *gesteuerten Rollout* legt jemand den gemeinsamen
 Asset-Katalog fest (Logos, Paletten, Schriften als dauerhafte IDs) und schreibt Manifest +
 Template für jeden Ausgabetyp. Einzelne müssen darauf aber nicht warten - in der
-offenen App kann jeder eigene Dateien in den Katalog übernehmen und vom ersten Tag an
+offenen App kann jeder eigene Dateien in Assets übernehmen und vom ersten Tag an
 Werkzeuge in Design bauen.
 
 **Für Beiträge ist kein Git nötig.** Designerinnen und Designer bauen ihre eigenen Werkzeuge

@@ -187,7 +187,7 @@ async function renderVideo(result: HTMLElement, bytes: Uint8Array, file: File, h
       source: new Blob([bytes as BlobPart], { type: file.type || 'video/mp4' }),
       sourceName: file.name,
     });
-    status.textContent = t('Audio extraction started - it will appear in your catalog when it’s done.');
+    status.textContent = t('Audio extraction started - it will appear in Assets when it’s done.');
   });
 }
 

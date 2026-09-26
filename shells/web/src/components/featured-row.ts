@@ -120,6 +120,11 @@ export interface FeaturedRowHandle {
    *  only ever finds the track (see the Open button's note). Null in the Gallery strip,
    *  whose tiles hit-test normally, and for a point outside the strip. */
   tileAt(x: number, y: number): HTMLElement | null;
+  /** Give tile `id` (and its wrap copies) the committed preview `src`, as if the entry had
+   *  carried it at mount: an existing base image gets the new src, otherwise one is added
+   *  and the icon-hero styling dropped. Touches no scroll state, so a grab in progress
+   *  carries on. False when no tile has that id. */
+  setPreview(id: string, src: string): boolean;
   /** Tear down timers, the drift loop, listeners and the pending render queue. */
   destroy(): void;
 }
@@ -191,7 +196,7 @@ function tileMarkup(entry: FeaturedEntry, eager = false, menu = false): string {
   // seeded URL, so opening the tile lands in the look you're watching; see refreshLinkHref).
   return `
     <li class="ftile${iconHero ? ' ftile--icon' : ''}" data-tool="${escape(entry.id)}">
-      ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - every entry.href is a fixed-prefix in-app route ('#/tool/…', '#/c?asset=…', '#/batch?session=…'), else the '#/tool/<id>' fallback */ ''}
+      ${/* nosemgrep: lolly-href-escape-is-not-scheme-validation - every entry.href is a fixed-prefix in-app route ('#/tool/…', '#/a?asset=…', '#/batch?session=…'), else the '#/tool/<id>' fallback */ ''}
       <a class="ftile-link" href="${escape(href)}" data-basehref="${escape(href)}" aria-label="${escape(label)}" draggable="false">
         <span class="ftile-stage" aria-hidden="true">
           ${iconFill}
@@ -256,7 +261,7 @@ export function mountFeaturedRow(
   // In-view activation: when the consumer wants a tile press to DO something in place
   // (e.g. open a modal) rather than navigate a route, it passes onActivate. Tiles then
   // hand their id to it instead of following their href - which is what keeps the
-  // catalogue favourites strip's "Open" (a same-route #/c?asset=… link) from being
+  // catalogue favourites strip's "Open" (a same-route #/a?asset=… link) from being
   // swallowed by the router's same-route dedupe. The <a href> is kept as the middle- /
   // ⌘-click "open in new tab" + no-JS deep-link fallback.
   const onActivate = opts.onActivate;
@@ -434,6 +439,9 @@ export function mountFeaturedRow(
   let lastTs = 0;
   let looping = false;
   let halfWidth = 0;
+  // The original tiles the current wrap clones were copied from (setupLoop), so a
+  // re-measure can tell whether the clones still match them.
+  let loopTiles: { count: number; first: Element; last: Element } | null = null;
   let velocity = 0;   // px/s, for flick / wheel inertia
   const cfMotion = new CoverflowMotion();
   const cfGesture = new CoverflowGesture();
@@ -547,7 +555,9 @@ export function mountFeaturedRow(
     const dt = lastTs ? ts - lastTs : 0;
     lastTs = ts;
     if (!visible || document.hidden || dt <= 0 || dt > 200) return; // skip huge gaps
-    if (dragging) { if (coverflow) { flushDrag(); layoutCoverflow(); } return; }   // (1) pointer owns scrollLeft
+    // (1) pointer owns scrollLeft. flushDrag already lays the fan out after its write;
+    // a second layout would read scrollLeft back and force a reflow for nothing.
+    if (dragging) { if (coverflow) { if (pendingDx) flushDrag(); else layoutCoverflow(); } return; }
 
     if (coverflow) {
       cfMotion.reconcile(viewport.scrollLeft);
@@ -575,6 +585,7 @@ export function mountFeaturedRow(
       if (flow) { if (flow.refresh()) { cfMotion.reset(viewport.scrollLeft); pendingDx = 0; } }
       else {
         track.querySelectorAll('.ftile--clone').forEach(node => node.remove());
+        loopTiles = null;
         looping = false;
         halfWidth = 0;
         flow = mountCoverflow(viewport, track, { initialIndex, onChange(index) {
@@ -591,7 +602,31 @@ export function mountFeaturedRow(
     flow = null;
     // Where the strip is within one set of tiles, so a re-measure keeps the view put.
     const offset = looping && halfWidth > 0 ? viewport.scrollLeft - halfWidth : viewport.scrollLeft;
+    // Resize, the 600 ms relayout and a re-show all land here. When the wrap is already
+    // built over the same original tiles, keep its clones (each one carries decoded
+    // images) and only re-measure the period and re-seat scrollLeft. The clones are
+    // rebuilt below when the originals change, the strip stops overflowing, or a mode
+    // switch removed them.
+    if (looping && halfWidth > 0 && loopTiles && !captureNeutralPinned()) {
+      const originals = [...track.children].filter(node => !node.classList.contains('ftile--clone')) as HTMLElement[];
+      const firstClone = track.firstElementChild as HTMLElement | null;
+      const same = originals.length === loopTiles.count && originals[0] === loopTiles.first
+        && originals[originals.length - 1] === loopTiles.last
+        && track.children.length === 3 * loopTiles.count && !!firstClone?.classList.contains('ftile--clone');
+      if (same) {
+        const period = originals[0]!.offsetLeft - firstClone!.offsetLeft;
+        // One set's width is the track minus its two clone sets, which is what the
+        // overflow test below measures with the clones removed.
+        const overflow = track.scrollWidth - 2 * period - viewport.clientWidth > 4;
+        if (period > 0 && overflow) {
+          halfWidth = period;
+          seatWrap(offset);
+          return;
+        }
+      }
+    }
     track.querySelectorAll('.ftile--clone').forEach(node => node.remove());
+    loopTiles = null;
     looping = false;
     halfWidth = 0;
     // A tile is ~fixed width; overflow means the single set is wider than the viewport.
@@ -624,10 +659,16 @@ export function mountFeaturedRow(
     halfWidth = originals[0]!.offsetLeft - before[0]!.offsetLeft;
     looping = halfWidth > 0;
     if (looping) {
-      // Rounded for the same half-pixel readback, or -0.5 would wrap a whole period on.
-      const into = ((Math.round(offset) % halfWidth) + halfWidth) % halfWidth;
-      viewport.scrollLeft = halfWidth + (halfWidth - into < 1 ? 0 : into);
+      loopTiles = { count: originals.length, first: originals[0]!, last: originals[originals.length - 1]! };
+      seatWrap(offset);
     }
+  }
+
+  // Put the view `offset` px into the originals, within one wrap period.
+  function seatWrap(offset: number): void {
+    // Rounded for the same half-pixel readback, or -0.5 would wrap a whole period on.
+    const into = ((Math.round(offset) % halfWidth) + halfWidth) % halfWidth;
+    viewport.scrollLeft = halfWidth + (halfWidth - into < 1 ? 0 : into);
   }
 
   // ── Pause wiring (ambient drift) ─────────────────────────────────────────────
@@ -992,6 +1033,8 @@ export function mountFeaturedRow(
       const nowOn = entries2[entries2.length - 1]!.isIntersecting;
       if (nowOn === onScreen) return;
       onScreen = nowOn;
+      // The CSS Ken Burns scale is not driven by the loop, so pause it by class.
+      section.classList.toggle('is-parked', !nowOn);
       if (nowOn) { lastTs = 0; startRaf(); resumeQueue(); }   // reset clock + resume enrichment on re-entry
     }, { rootMargin: '200px' });
     vizObserver.observe(section);
@@ -1155,6 +1198,34 @@ export function mountFeaturedRow(
       const r = viewport.getBoundingClientRect();
       if (x < r.left || x > r.right || y < r.top || y > r.bottom) return null;
       return coverAtClientX(x);
+    },
+    setPreview(id: string, src: string) {
+      const tiles = track.querySelectorAll<HTMLElement>(`.ftile[data-tool="${CSS.escape(id)}"]`);
+      // tileMarkup's loading hint: the start tile (and so its copies) loads eagerly.
+      const eager = entries.findIndex(e => e.id === id) === initialIndex;
+      tiles.forEach((tile) => {
+        const stage = tile.querySelector<HTMLElement>('.ftile-stage');
+        if (!stage) return;
+        let img = stage.querySelector<HTMLImageElement>('.ftile-img[data-base]');
+        if (!img) {
+          // Same element and position tileMarkup gives a committed preview.
+          img = document.createElement('img');
+          img.className = stage.querySelector('.ftile-img.is-active') ? 'ftile-img' : 'ftile-img is-active';
+          img.dataset.base = '';
+          img.alt = '';
+          img.setAttribute('aria-hidden', 'true');
+          img.draggable = false;
+          if (eager) { img.loading = 'eager'; img.setAttribute('fetchpriority', 'high'); }
+          else img.loading = 'lazy';
+          stage.insertBefore(img, stage.querySelector('.ftile-open'));
+          // With a preview the tile is no longer an icon hero (see tileMarkup).
+          tile.classList.remove('ftile--icon');
+          stage.querySelector('.ftile-iconname')?.remove();
+        }
+        img.src = src;
+        markArt(img);   // a cached image may already be decoded; otherwise the load listener marks it
+      });
+      return tiles.length > 0;
     },
     destroy() {
       destroyed = true;

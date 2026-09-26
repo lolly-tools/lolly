@@ -122,8 +122,9 @@ export interface StageNav {
   /** The current absolute ratio of native pixels (1 === 100%). 0 before the canvas is laid out. */
   actual(): number;
   /**
-   * Fire `cb` with the absolute ratio on every applied view change (and once, now, with
-   * the current one, so a readout is never born blank). Returns the unsubscribe.
+   * Fire `cb` with the absolute ratio after applied view changes, at most once per
+   * animation frame and before that frame paints (and once, now, with the current one,
+   * so a readout is never born blank). Returns the unsubscribe.
    */
   subscribe(cb: (abs: number) => void): () => void;
   /**
@@ -246,17 +247,34 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     return { left, top, right, bottom, width: right - left, height: bottom - top };
   }
 
-  // Readouts that want to follow the view (the Design top bar's NN%). Fired from apply(),
-  // the ONE place a transform is written, so no zoom path can forget to announce itself.
+  // Readouts that want to follow the view (the Design top bar's NN%). Scheduled from
+  // apply(), the ONE place a transform is written, so no zoom path can forget to announce
+  // itself.
   const zoomListeners = new Set<(abs: number) => void>();
+  // The readout is told once per frame, in the frame's animation callback, rather than
+  // inside apply(). absScale() measures the canvas, and measuring straight after the
+  // transform write made every wheel tick force a layout of its own. The callback runs
+  // before that frame paints, so the number still changes in the same frame as the view.
+  let zoomNotifyPending = false;
+  let zoomNotifyRaf = 0;
+
+  function notifyZoom(): void {
+    zoomNotifyPending = false;
+    zoomNotifyRaf = 0;
+    if (!zoomListeners.size) return;
+    const abs = absScale();
+    for (const cb of zoomListeners) { try { cb(abs); } catch { /* a bad readout must not break the view */ } }
+  }
 
   function apply(): void {
     outerEl.style.transform = (scale === 1 && tx === 0 && ty === 0)
       ? '' : `translate(${tx}px, ${ty}px) scale(${scale})`;
     syncHud();
-    if (zoomListeners.size) {
-      const abs = absScale();
-      for (const cb of zoomListeners) { try { cb(abs); } catch { /* a bad readout must not break the view */ } }
+    if (zoomListeners.size && !zoomNotifyPending) {
+      // No animation frames (a test harness, a detached document): tell them now.
+      if (typeof requestAnimationFrame !== 'function') { notifyZoom(); return; }
+      zoomNotifyPending = true;
+      zoomNotifyRaf = requestAnimationFrame(notifyZoom);
     }
   }
 
@@ -279,13 +297,61 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     originY = r.top  - ty;
   }
 
+  /**
+   * ── ONE MEASURE PER WHEEL BURST OR MOUSE PAN ─────────────────────────────────
+   *
+   * The wrapper's natural origin, the visible band, the wrapper's own size and the
+   * fitted canvas width do not move when only this module's transform changes: the
+   * transform is applied on top of layout, and the origin is recovered with the
+   * translation taken off. So a wheel burst or a middle-drag pan measures them on its
+   * first event and reuses them until it ends, instead of reading layout straight after
+   * the previous event's transform write. Anything that can change the layout under
+   * them releases the hold: the burst going quiet, the pan's pointerup, a fit or reset,
+   * a window or stage resize, and fitCanvas's `canvas-resize`.
+   */
+  const BURST_IDLE_MS = 150;
+  let burstHeld = false;
+  let burstBox: ReturnType<typeof stageBox> | null = null;
+  let burstOuter: { w: number; h: number } | null = null;
+  let burstFitW = 0;
+  let burstTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function holdBurstGeometry(): void {
+    if (burstHeld) return;
+    captureOrigin();
+    burstHeld = true;
+  }
+  function releaseBurstGeometry(): void {
+    burstHeld = false;
+    burstBox = null;
+    burstOuter = null;
+    burstFitW = 0;
+    if (burstTimer !== null) { clearTimeout(burstTimer); burstTimer = null; }
+  }
+  // Wheel events carry no "end": hold for the burst and release once it goes quiet.
+  function holdForWheel(): void {
+    holdBurstGeometry();
+    if (burstTimer !== null) clearTimeout(burstTimer);
+    burstTimer = setTimeout(releaseBurstGeometry, BURST_IDLE_MS);
+  }
+  // The canvas width at Fit (the on-screen width with this module's zoom divided out).
+  function fitWidth(): number {
+    if (burstHeld && burstFitW > 0) return burstFitW;
+    const w = canvasEl ? canvasEl.getBoundingClientRect().width : 0;
+    const fw = w > 0 ? w / scale : 0;
+    if (burstHeld) burstFitW = fw;
+    return fw;
+  }
+
   // Design has a free pasteboard, including objects outside every artboard. Other
   // tools keep an edge reachable while allowing every corner to reach the centre.
   function clampPan(): void {
     if (opts?.editorLayout) return;
-    const sr = stageBox();
-    const w  = outerEl.offsetWidth  * scale;
-    const h  = outerEl.offsetHeight * scale;
+    const sr = burstBox ?? stageBox();
+    const outer = burstOuter ?? { w: outerEl.offsetWidth, h: outerEl.offsetHeight };
+    if (burstHeld) { burstBox = sr; burstOuter = outer; }
+    const w  = outer.w * scale;
+    const h  = outer.h * scale;
     const cx = (sr.left + sr.right) / 2;
     const cy = (sr.top + sr.bottom) / 2;
     tx = Math.max(cx - originX - w, Math.min(cx - originX, tx));
@@ -303,9 +369,9 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   // rule would forbid the view it just calculated. Read from a cached value, not by
   // re-measuring the artboards, so a wheel tick stays free of DOM work.
   function minScale(): number {
-    const w = canvasEl ? canvasEl.getBoundingClientRect().width : 0;
-    if (!(w > 0)) return 1;
-    const fitAbs = (w / scale) / nativeW;   // absolute zoom the Fit view shows
+    const fw = fitWidth();
+    if (!(fw > 0)) return 1;
+    const fitAbs = fw / nativeW;   // absolute zoom the Fit view shows
     return Math.min(1, contentFloor, MIN_ABS / fitAbs);
   }
 
@@ -314,15 +380,15 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   // (MAX_ABS is an ABSOLUTE cap; the fit ratio varies, so a fixed multiplier wouldn't).
   // Never below 1, so a tiny canvas already shown large still zooms to at least Fit.
   function maxScale(): number {
-    const w = canvasEl ? canvasEl.getBoundingClientRect().width : 0;
-    if (!(w > 0)) return MAX_ABS;
-    const fitAbs = (w / scale) / nativeW;
+    const fw = fitWidth();
+    if (!(fw > 0)) return MAX_ABS;
+    const fitAbs = fw / nativeW;
     return Math.max(1, MAX_ABS / fitAbs);
   }
 
   function isZoomed(): boolean { return Math.abs(scale - 1) > 0.001 || tx !== 0 || ty !== 0; }
   function isUserZoomed(): boolean { return isZoomed() && !contentFit; }
-  function reset(): void { scale = 1; tx = 0; ty = 0; contentFit = false; contentFloor = 1; apply(); }
+  function reset(): void { releaseBurstGeometry(); scale = 1; tx = 0; ty = 0; contentFit = false; contentFloor = 1; apply(); }
 
   /**
    * Fit the WORK, not the canvas (plan 179 C5).
@@ -373,8 +439,9 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   }
 
   // Zoom by `factor`, keeping the client point (fx, fy) pinned under the cursor.
+  // Inside a held wheel burst the origin measured at its start still holds.
   function zoomAbout(factor: number, fx: number, fy: number): void {
-    captureOrigin();
+    if (!burstHeld) captureOrigin();
     const next = Math.max(minScale(), Math.min(maxScale(), scale * factor));
     if (next === scale) return;
     const r = next / scale;
@@ -856,10 +923,11 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     stageEl.addEventListener('wheel', e => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
+        holdForWheel();
         zoomAbout(Math.exp(-e.deltaY * 0.0015), e.clientX, e.clientY);
       } else if (isZoomed() || opts?.editorLayout) {
         e.preventDefault();
-        captureOrigin();
+        holdForWheel();
         contentFit = false;
         tx -= e.deltaX; ty -= e.deltaY;
         clampPan(); apply();
@@ -878,7 +946,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     });
     stageEl.addEventListener('pointermove', e => {
       if (!mousePanPt || e.pointerType !== 'mouse') return;
-      captureOrigin();
+      holdBurstGeometry();
       contentFit = false;
       tx += e.clientX - mousePanPt.x;
       ty += e.clientY - mousePanPt.y;
@@ -888,6 +956,7 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     const endMouse = () => {
       if (!mousePanPt) return;
       mousePanPt = null;
+      releaseBurstGeometry();
       stageEl.classList.remove('is-grabbing');
       if (!isZoomed()) reset();
     };
@@ -903,8 +972,22 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
   stageEl.addEventListener('fc-text-focus',onTextFocus);
   syncHud();
 
+  // A layout change under a held burst releases it, so the next event measures afresh.
+  const onLayoutChange = (): void => releaseBurstGeometry();
+  window.addEventListener('resize', onLayoutChange);
+  canvasEl?.addEventListener('canvas-resize', onLayoutChange);
+  const stageRo = typeof ResizeObserver === 'function' ? new ResizeObserver(onLayoutChange) : null;
+  stageRo?.observe(stageEl);
+
   function destroy(): void {
     stageEl.removeEventListener('fc-text-focus',onTextFocus);
+    window.removeEventListener('resize', onLayoutChange);
+    canvasEl?.removeEventListener('canvas-resize', onLayoutChange);
+    stageRo?.disconnect();
+    releaseBurstGeometry();
+    if (zoomNotifyRaf && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(zoomNotifyRaf);
+    zoomNotifyPending = false;
+    zoomNotifyRaf = 0;
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('keyup', onKeyUp);
     offDockChange?.();    // before the undock below, so the auto-dock can't answer its own release

@@ -449,7 +449,7 @@ describe('service worker: the offline-download buckets', () => {
       'offline, with the runtime only in the legacy lolly-ort bucket, /ort-hf/ is still served');
   });
 
-  test('the whole app group serves offline - not just /assets/: voice, viz-presets, share stubs', async () => {
+  test('the whole app group serves offline - not just /_app/: voice, viz-presets, share stubs', async () => {
     // Regression pin for the review finding that downloadApp filled lolly-app
     // with /voice/, /viz-presets/, /t/ etc. but no fetch-handler rule ever
     // read the bucket for those paths - "downloaded" yet unservable.
@@ -496,17 +496,30 @@ describe('service worker: the offline-download buckets', () => {
       '/info/de (no trailing slash) is how a typed locale URL arrives');
   });
 
+  test('/assets is the Assets view, not the build folder: a navigation there boots the shell', async () => {
+    // The build's hashed output moved to /_app/ (APP_ASSETS_DIR in vite.config.js)
+    // so /assets could be the Assets view's clean URL. It must take the
+    // navigation path like any other view, never the cache-first immutable one.
+    const h = loadServiceWorker();
+    h.server.set('/assets', 'APP_SHELL');
+    assert.equal(await navigate(h, 'https://lolly.tools/assets'), 'APP_SHELL');
+    assert.equal(shellEntry(h), 'APP_SHELL', 'an /assets navigation takes the document branch, like /pro or /d');
+    h.offline.value = true;
+    assert.equal(await navigate(h, 'https://lolly.tools/assets'), 'APP_SHELL',
+      'offline, /assets still reaches the app');
+  });
+
   test('immutable assets fall back to the pre-downloaded lolly-app bucket', async () => {
     // A fresh CACHE generation is empty; a user who pre-downloaded the app must
     // still get every chunk and font offline.
     const h = loadServiceWorker();
     const app = new FakeCache();
-    app.entries.set('https://lolly.tools/assets/lazy-view-abc123.js', 'CHUNK');
+    app.entries.set('https://lolly.tools/_app/lazy-view-abc123.js', 'CHUNK');
     app.entries.set('https://lolly.tools/fonts/Outfit-latin%5Bwght%5D.woff2', 'FONT');
     h.caches.set('lolly-app', app);
 
     h.offline.value = true;
-    assert.equal(await subresource(h, 'https://lolly.tools/assets/lazy-view-abc123.js'), 'CHUNK');
+    assert.equal(await subresource(h, 'https://lolly.tools/_app/lazy-view-abc123.js'), 'CHUNK');
     assert.equal(await subresource(h, 'https://lolly.tools/fonts/Outfit-latin%5Bwght%5D.woff2'), 'FONT',
       '/fonts/ must have an offline path - before v13 it had no rule at all');
   });
@@ -579,19 +592,19 @@ describe('precache.json grouping (vite.config.js)', () => {
   // the review findings that /ort-hf/ rode the `app` group (lolly-app can
   // never serve it - ORT_PATTERN routes /ort-hf/ to lolly-ort) and that
   // /models/kokoro/ inflated the verify part's models size by ~95 MB, and that
-  // the bundler's re-emitted /assets/ort-wasm-*.wasm copies (46.2 MB of the
+  // the bundler's re-emitted /_app/ort-wasm-*.wasm copies (46.2 MB of the
   // app group's 82.7, byte-identical to the /ort/ + /ort-hf/ originals the
   // groups below own) rode the mandatory offline download.
   //
   // A current build emits no such copy at all (ortWasmFromPublic, covered by the
-  // describe below), so the /assets/ort-wasm-* entry in this fixture is a
+  // describe below), so the /_app/ort-wasm-* entry in this fixture is a
   // hypothetical - the filter it exercises is the backstop for an ORT upgrade
   // that gets past the rewrite, and it has to keep working while unused.
   const urls = [
     '/index.html',
-    '/assets/index-abc123.js',
-    '/assets/harfbuzz-CTCWZ5ti.wasm',
-    '/assets/ort-wasm-simd-threaded.jsep-DC5y_g6C.wasm',
+    '/_app/index-abc123.js',
+    '/_app/harfbuzz-CTCWZ5ti.wasm',
+    '/_app/ort-wasm-simd-threaded.jsep-DC5y_g6C.wasm',
     '/fonts/Outfit-latin[wght].woff2',
     '/ort/ort-wasm-simd-threaded.wasm',
     '/ort/ort.min.mjs',
@@ -616,9 +629,9 @@ describe('precache.json grouping (vite.config.js)', () => {
 
     assert.deepEqual(
       names(groups.app),
-      ['/index.html', '/assets/index-abc123.js', '/assets/harfbuzz-CTCWZ5ti.wasm', '/fonts/Outfit-latin[wght].woff2'],
+      ['/index.html', '/_app/index-abc123.js', '/_app/harfbuzz-CTCWZ5ti.wasm', '/fonts/Outfit-latin[wght].woff2'],
       'the app group must exclude /ort/, /ort-hf/ and /models/ (lolly-app never serves those) AND the bundler-emitted '
-      + '/assets/ort-wasm-* duplicates - while KEEPING /assets/harfbuzz-*.wasm, which exists nowhere else and is what '
+      + '/_app/ort-wasm-* duplicates - while KEEPING /_app/harfbuzz-*.wasm, which exists nowhere else and is what '
       + 'shapes text into paths for offline SVG/PDF export');
     assert.deepEqual(names(groups.ort), [
       '/ort/ort-wasm-simd-threaded.wasm',
@@ -631,9 +644,9 @@ describe('precache.json grouping (vite.config.js)', () => {
     // the /ort/ + /ort-hf/ paths, so re-homing it there would only move the 46.2 MB into
     // the opt-in parts, where the originals it duplicates already sit.
     assert.deepEqual(
-      Object.entries(groups).filter(([, list]) => names(list).includes('/assets/ort-wasm-simd-threaded.jsep-DC5y_g6C.wasm')),
+      Object.entries(groups).filter(([, list]) => names(list).includes('/_app/ort-wasm-simd-threaded.jsep-DC5y_g6C.wasm')),
       [],
-      'the bundler\'s /assets/ copy of an ORT runtime belongs to no offline group - /ort/ and /ort-hf/ ship the same bytes');
+      'the bundler\'s /_app/ copy of an ORT runtime belongs to no offline group - /ort/ and /ort-hf/ ship the same bytes');
     assert.deepEqual(names(groups.models), ['/models/trustmark/decoder_Q.onnx'],
       'verify\'s models are the TrustMark ones only - kokoro belongs to the speech part');
     assert.deepEqual(names(groups.speech), [
@@ -662,7 +675,7 @@ describe('precache.json grouping (vite.config.js)', () => {
     const listing = [
       { url: '/models/kokoro/onnx/model_quantized.onnx', size: 5 },     // stale size must NOT override
       { url: '/models/upscale/realesr-general-x4v3.onnx', size: 7 },    // pruned from dist - filled in
-      { url: '/assets/evil.js', size: 1 },                              // non-model listing rows are ignored
+      { url: '/_app/evil.js', size: 1 },                              // non-model listing rows are ignored
     ];
     const merged = mergeModelsManifest(scanned, listing);
     assert.deepEqual(merged.map((f: { url: string; size: number }) => `${f.url}:${f.size}`), [
@@ -681,6 +694,8 @@ describe('precache.json grouping (vite.config.js)', () => {
     assert.equal(precacheNeedsHash('/ort-hf/1.22.0-dev.20250409-89f8206ba4/ort-wasm-simd-threaded.wasm'), false,
       '/ort-hf/ carries its version in the path, like /ort/ and /models/');
     assert.equal(precacheNeedsHash('/models/trustmark/decoder_Q.onnx'), false);
+    assert.equal(precacheNeedsHash('/_app/index-abc123.js'), false,
+      'the build folder is content-hash-named, so its URL already encodes its bytes');
     assert.equal(precacheNeedsHash('/fonts/Outfit-latin[wght].woff2'), true,
       'stable-named files still need the hash to catch same-size content changes');
   });
@@ -688,15 +703,15 @@ describe('precache.json grouping (vite.config.js)', () => {
 
 // These cover the ORT wasm URL REWRITE in isolation - that it finds every emittable site in
 // the real installed packages, points each at the right staged prefix, and is registered in
-// BOTH bundling passes. They still do not observe dist/assets, so a green run here is not by
+// BOTH bundling passes. They still do not observe the built folder (dist/_app), so a green run here is not by
 // itself proof that the duplicates are gone; the build is what settles that.
 describe('ORT wasm URL rewrite (vite.config.js)', () => {
   // The duplicate that made this necessary: onnxruntime-web's emscripten glue
   // falls back to `new URL('ort-wasm-simd-threaded.jsep.wasm', import.meta.url)`
   // when wasmPaths is unset, vite:asset-import-meta-url resolved that literal, and
-  // dist/assets came out carrying 46.2 MB of runtime already staged at /ort/ and
+  // the build folder came out carrying 46.2 MB of runtime already staged at /ort/ and
   // /ort-hf/ (sha256-identical, verified 2026-08-25). Nothing ever fetched the
-  // /assets/ copies - lib/ort.ts sets wasmPaths='/ort/' and every transformers.js
+  // /_app/ copies - lib/ort.ts sets wasmPaths='/ort/' and every transformers.js
   // worker sets it to ORT_HF_BASE - they just uploaded on every deploy.
   //
   // Run over the REAL installed package rather than a fixture: the thing that
@@ -719,7 +734,7 @@ describe('ORT wasm URL rewrite (vite.config.js)', () => {
       const code = readFileSync(ORT_DIST + file, 'utf8');
       assert.ok(emittable(code).length > 0,
         `${file} no longer carries an emittable ort-wasm URL - if ORT changed how it loads its binary, `
-        + 'this whole rewrite may be obsolete; confirm dist/assets is clean before deleting it');
+        + 'this whole rewrite may be obsolete; confirm dist/_app is clean before deleting it');
 
       const out = ortWasmFromPublic().transform(code, ORT_DIST + file);
       assert.ok(out, 'the plugin must rewrite onnxruntime-web/dist sources');
@@ -768,7 +783,7 @@ describe('ORT wasm URL rewrite (vite.config.js)', () => {
   });
 
   test('non-ORT wasm imports are left alone', async () => {
-    // /assets/harfbuzz-*.wasm (390 KB) is the text-to-path shaper behind offline
+    // /_app/harfbuzz-*.wasm (390 KB) is the text-to-path shaper behind offline
     // SVG/PDF outline export and has no copy anywhere else on the origin - an
     // extension-wide rewrite would take vector export out with the duplicates.
     const { ortWasmFromPublic } = await import('../vite.config.js');

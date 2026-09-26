@@ -16,7 +16,7 @@ Pick a tool, fill in a few fields and download the finished file. Or open the De
 - **[Import a design](/info/design-import.html)** - when the artwork already exists as a `.fig`, `.penpot`, `.ai`, `.idml` or SVG file and you want it editable rather than flattened.
 - **[Utility views](/info/utilities.html)** - the spreadsheet, the converter, the Colour Lab, the PDF extractor and Script audio, for the jobs that are not a tool render.
 - **[Browser Extension](/info/extension.html)** - capture a live web page and reuse it as an asset in your own designs.
-- **[Search](/info/search.html)** - one field that reaches your tools, your saved work, the catalogue and your settings.
+- **[Search](/info/search.html)** - one field that reaches your tools, your saved work, your assets and your settings.
 - **[Ask Lolly](/info/ask.html)** - type a question and get the matching section of these guides back, with a link straight into it.
 - **[The Dashboard](/info/dashboard.html)** - what this device can do, your design system read-only and a glance at storage.
 - **[Your favourites](/info/favourites.html)** - star what you use often so it gets a tile of its own above the grid.

@@ -136,6 +136,8 @@ Two rules bind that order. No shared type may be frozen before the fixtures in s
 | Date | Change |
 |---|---|
 | 2026-09-24 | Draft for review. The twelve chapters were written from the plan 276 consolidation after its final review, with D1 to D13 confirmed, R1 to R15 adopted from evidence, C1 to C9 corrected and Q1 to Q6 recorded with their defaults. No type is frozen and no conformance claim is made. |
+| 2026-09-26 | Constitution. The thirteen invariants gain four reading groups with their numbers unchanged, and a table of where each one holds today, what is not met yet and which proof cases test it; the table finds no case that tests invariant 11 on its own and only case 7 behind invariant 5. The no-cloud limit now states R7 as a requirement and records that the web shell fails closed after 24 hours offline instead. The limits section says which two promises its first two items bound. Affects R7. |
+| 2026-09-26 | Proof cases. Cases 24 and 25 are added for the two gaps the constitution's table found: one chart's accessibility metadata checked in each of four outputs, and a local utility that keeps no record of its run. The table now maps both, and the count of cases is 25. Q4 stays open; case 25 tests its default for a utility. Affects R5 and R15. |
 
 A change to any chapter must add a row here with its date and what changed, so that the chapter sources in `docs/spec/document-model/` carry one history (`plans/276-execution.md` section 1A). A row lists the resolution ids the change affects, which is this specification's own convention.
 

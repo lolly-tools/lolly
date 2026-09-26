@@ -100,7 +100,7 @@
  *     this refuses to do.
  *   - **`meta`.** Bounded and key-filtered ({@link META_REJECTED_KEYS}): Lolly's own
  *     bookkeeping keys never arrive from outside, and no string value may carry a
- *     remote URL scheme - `views/catalog.ts` paints `meta.thumbUrl` straight into an
+ *     remote URL scheme - `views/assets.ts` paints `meta.thumbUrl` straight into an
  *     `<img src>`, so an unfiltered one would turn accepting a beam into an outbound
  *     beacon. The same rule governs a received session's `thumb`, which must be a
  *     `data:` image or nothing.
@@ -350,7 +350,7 @@ export interface BeamSessionRow {
 
 /** One user-asset record, as the assets bridge stores it (`bridge/assets.ts`). Typed
  *  structurally rather than imported: that interface is not exported, and the same
- *  shape is what `data-transfer.ts` and `views/catalog.ts` already write against. */
+ *  shape is what `data-transfer.ts` and `views/assets.ts` already write against. */
 export interface BeamAssetRecord {
   id: string;
   type: string;
@@ -1277,7 +1277,7 @@ const POISON_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
  * reads it back as though THIS device had written it:
  *
  *   - `tts` - `lib/tts-provenance.ts` re-arms the on-device speech-credential heal off
- *     `meta.tts.text`/`.voice`, and `views/catalog.ts` fires that heal automatically
+ *     `meta.tts.text`/`.voice`, and `views/assets.ts` fires that heal automatically
  *     when the details dialog opens. Carrying a peer's block would make the receiver's
  *     own enrolled identity sign the SENDER's audio as its own AI synthesis, rewriting
  *     the received bytes to do it;
@@ -1286,7 +1286,7 @@ const POISON_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
  *   - `beamFrom`/`beamNote`/`beamSourceId` - this ingest's own attribution, written
  *     below. A peer choosing its own "From …" line is a forged origin;
  *   - `baked` - "my bytes are already in the ref", which the closure walk trusts;
- *   - the URL-bearing keys - `views/catalog.ts` paints `meta.thumbUrl` straight into an
+ *   - the URL-bearing keys - `views/assets.ts` paints `meta.thumbUrl` straight into an
  *     `<img src>` with no `source` guard, so one accepted beam would beacon out of the
  *     receiver's library on every paint.
  */

@@ -70,7 +70,7 @@ visualiza no navegador. O atrito na adoção raramente é técnico; é organizac
 pacote pronto com os seus templates. Para uma *implantação governada*, alguém define o catálogo
 compartilhado de assets (logos, paletas, fontes como IDs permanentes) e escreve o manifesto +
 template de cada tipo de saída. Mas ninguém precisa esperar por isso - no
-app aberto qualquer pessoa pode trazer os próprios arquivos para o catálogo e criar ferramentas no
+app aberto qualquer pessoa pode trazer os próprios arquivos para Ativos e criar ferramentas no
 Design desde o primeiro dia.
 
 **Não é preciso git para contribuir.** Designers criam as próprias ferramentas e templates

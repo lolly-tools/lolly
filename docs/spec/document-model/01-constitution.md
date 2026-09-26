@@ -72,6 +72,15 @@ One word carries three senses in this tree, and each is written in full every ti
 
 The plan lists these as candidates. This chapter states them as rules so reviewers can argue with them; the [status chapter](status.html) records when they bind. Each one cites the resolution or the repository file it rests on.
 
+The numbers are fixed, because other chapters cite invariants by number. Read by what each one governs, the thirteen fall into four groups:
+
+- What the source holds: 1, 7, 8 and 9.
+- What code may do before and while it runs: 2 and 10.
+- What a run must report, and how it fails: 3, 4, 5 and 6.
+- What the model must stay open to: 11, 12 and 13.
+
+The table after the list says where each invariant holds today, what is not met yet and which proof cases test it.
+
 1. **Intent over implementation.** The source must record meaning, parameters, dependencies and permitted changes, and renderer internals must live in declared extensions (D1, R10). A document that stores one renderer's internals cannot be read by a second renderer.
 2. **Inspection before execution.** A host must be able to read declared inputs, operations, rules, code, required powers and known dependencies without running any document code (D4, `schemas/tool.schema.json`). Inputs are declared in the manifest and never inferred from the template, and one module owns what an input means (`engine/src/inputs.ts`), so the declared surface can be read before anything runs. The declared dependency envelope and the dependencies discovered during execution must be reported separately (R15).
 3. **Explicit evaluation context.** A result must identify the definition and instance revisions, the resolved resources, the engine and suite versions, the execution class, the effective policy, the time, the seed and the capabilities granted for that operation (R15). A receipt that omits the font files it resolved cannot support a fidelity claim about the file it describes.
@@ -85,6 +94,28 @@ The plan lists these as candidates. This chapter states them as rules so reviewe
 11. **Accessible intent.** Roles, descriptions, reading and focus order and input alternatives must be available where they are meaningful, with checks specific to each output (D1; the plan's section 6.6 re-homes the accessibility chapter, and its findings take the one finding shape R5 gives every outcome). Roles and reading order that survive to the screen but not into PDF or video are lost at the export boundary, and each output needs a check of its own.
 12. **Media and operation independence.** A new domain or output kind must be addable without forcing every tool into image or scene semantics (D5, D11). Extraction has no rotation, and a transform has no canvas.
 13. **Existing tools remain usable.** Adoption must be incremental, and an opaque adapter must state which guarantees and editing surfaces it preserves (R13, D11). Every mounted tool keeps working while the model is adopted, or the model is not adopted.
+
+## Where each invariant holds today
+
+Each row gives the place in the tree that already holds part of the invariant, the gap the model still has to close and the proof cases that would fail if the invariant broke. Each gap is work the model requires, taken from the chapter that specifies it. The case numbers are this table's own mapping onto the [proof cases](proof-cases.html), which key each case to a resolution rather than to an invariant.
+
+| Invariant | Holds today at | Not met yet | Proof cases |
+|---|---|---|---|
+| 1. Intent over implementation | Inputs are declared with their meaning in a closed manifest schema that refuses unknown keys (`schemas/tool.schema.json`). | No extension map exists for renderer internals to live in (R10), and the Design `3d` row carries the 3D Studio's own settings as a link query (`community/design/tool.json`). | 3, 8, 21 |
+| 2. Inspection before execution | `validateDocument` answers through `validateManifest` without running the tool (`engine/src/validate.ts`), and `missingRequires` refuses a mount before any hook runs (`packages/core/src/host-v1/apis.ts`). | The `requires` list comes from a regular expression that `host["text"]` and a local alias evade (`scripts/tool-requires.ts`, C6), and declared and discovered dependencies are not reported apart. | 8, 20 |
+| 3. Explicit evaluation context | Run facts are recorded in six forms that nothing joins, among them the C2PA manifest (`engine/src/c2pa.ts`) and the `.lolly` manifest's engine version and fonts by digest (`shells/web/src/lib/lolly-pack.ts`). | No evaluation receipt exists. A live-text fallback reaches standard error and the `--json` warnings, never a receipt (`shells/cli/src/output.ts`), and no record says which execution class ran. | 4, 18, 19, 23 |
+| 4. Output-based conformance | `compareSources` answers `undetermined` rather than equal when a budget cuts it short (`engine/src/compare.ts`), and `lolly smoke` never counts a skip as a pass (`shells/cli/src/smoke.ts`). | No suite, no fixture and no three-check comparator, and no band is calibrated (R9, C8). | 9, 10, 22 |
+| 5. Repeatability is declared | An on-device utility's output carries no provenance and no watermark, so its success never depends on a record of the run (`engine/src/runtime.ts`). | Nothing declares capture, retention or replay, and Q4 is open. | 7, 25 |
+| 6. Safe failure | An engine range that cannot be parsed fails closed (`engine/src/loader.ts`), a missing host API is refused by name before any hook runs, and an export that needs a layout check the host cannot perform fails with `NEEDS_BROWSER` rather than substituting (`shells/cli/src/exit-codes.ts`). | Refusal is scoped to the mount rather than the operation, no shared outcome type exists, and `resume()` drops the record of files already written when an input changes (`packages/node-shell/src/rebrand-run-manifest.ts`). | 5, 6, 8, 11, 16, 23, 24 |
+| 7. Stable identity | Tool and asset ids are permanent, the same version with different bytes is refused (`shells/web/src/lib/installed-tools.ts`), and `validate:catalog` holds the blocks wire order append-only (`schemas/blocks-wire-order.json`). | No patch carries a base revision (`services/mcp/src/tools.ts`), nothing validates a merge after convergence (C2), and Design paints rows in array position with no per-row order key. | 2, 15, 17, 21 |
+| 8. Typed authorable values | Collaboration rows accept scalars only (`schemas/canvas-op.schema.json`), and `validateDesignTool` refuses a second writer on one property (`packages/core/src/design-tool-v1.ts`). | No typed payload record exists. Design's text document, text frames and 3D scene travel as JSON or a query string inside text fields (`community/design/tool.json`), and a nested chart arrives as an image (R14). | 2, 9, 13, 14 |
+| 9. Separate concerns | Editor selection and panel state travel as `_ui=`, apart from the document's inputs (`shells/web/src/lib/editor-state.ts`), and `CompiledDocument` stays a transient result (`engine/src/document-api.ts`). | `diffDocuments` takes row identity from hydrated output (F10), and whether a recorded local waiver belongs to the revision waits on Q2. | 1, 2, 18 |
+| 10. Least authority for strict execution | Sideloaded and remote tools run in a strict worker that refuses the mount rather than fall back, with undeclared host namespaces left out (`shells/web/src/bridge/hook-worker.ts`), and `isolate` is set only from evidence (`scripts/tool-isolation.ts`). | No authored effect envelope exists, and a hook that overran its budget keeps running in the realm with nothing binding its grant to the attempt (`engine/src/runtime.ts`, C6). | 12, 20 |
+| 11. Accessible intent | `ChartSpecV1` carries accessibility metadata as a structured member (`packages/core/src/chart-v1.ts`). | No accessibility finding type and no per-output check, because plan 195 is not built, and a chart nested through `composes` loses its metadata. | 2, 4, 13, 24 |
+| 12. Media and operation independence | The transform path `file()` takes a file in and hands bytes out with no canvas (`packages/core/src/host-v1/export.ts`), and inspection and validation return typed answers (`engine/src/document-api.ts`). | Unpack, Prepare, Batch, Verify and the Rebrand review have no operation adapters (R13), and the manifest has no field that declares a tool's operations. | 3, 4, 5, 16, 25 |
+| 13. Existing tools remain usable | `lolly smoke` renders every tool in the active content profile at its defaults, with each skip stated (`shells/cli/src/smoke.ts`), and `migrateSessionRecord` reads a record written at any earlier format (`engine/src/session-record.ts`). | No adapter states which guarantees it preserves, a migration returns no findings, and the tool and project reader gates pass a manifest whose `minReader` was deleted (`shells/web/src/lib/lolly-pack.ts`). | 5, 12, 14, 21 |
+
+Cases 24 and 25 were added because of this table. Before them no case tested invariant 11 on its own, since cases 2, 4 and 13 check accessibility metadata or reading order only beside other facts, and invariant 5 rested on case 7 alone, which covers the live-input half of Q4. Case 24 tests accessible intent in four outputs and case 25 the utility half of Q4.
 
 ## Measured conformance and contextual acceptance
 
@@ -100,7 +131,9 @@ What exists today is the material for suites, not a suite. `lolly smoke` renders
 
 ## What this model does not promise
 
-- **No cloud service.** The core requires no hosted service, and a governed client that loses its connection keeps enforcing the policy it holds (R7). What a link needs in order to render again is the list in `docs/reproducibility.md`, and no item on it is an account.
+Two of these limits bound promises made above. The first item bounds local evaluation, which the thesis lists among its outcomes. The second bounds invariant 4, which states what a fidelity claim is tested against in place of identical pixels. The other three say what this draft is not.
+
+- **No cloud service.** The core requires no hosted service, and a governed client that loses its connection must keep enforcing the policy it holds (R7). The web shell does not do that yet. Once its cached copy is 24 hours old and the server cannot be reached, it drops that copy and fails closed on the surfaces the policy governs (`shells/web/src/org/index.ts`). The [policy chapter](policy.html) records this as a change the model requires. What a link needs in order to render again is the list in `docs/reproducibility.md`, and no item on it is an account.
 - **No identical pixels across hardware.** The model makes no unconditional promise of identical pixels on all hardware. This draft adds no conformance or reproducibility claim beyond those `docs/determinism.md` already makes. It states no threshold (C8) and no latency target, because the plan's section 18 puts baseline device measurements before any responsiveness claim.
 - **No fabrication or spatial commitment.** Spatial experiences, fabrication and unfamiliar media are extensibility checks, not roadmap items or gates for the first native suite (D5). They exist to keep the extension boundary coherent.
 - **No frozen types.** Nothing here freezes a document type, an outcome vocabulary, the patch envelope or the migration contract. Run the counterexamples in the [proof cases chapter](proof-cases.html) before freezing anything, and read the draft shapes in this specification as review material only (R11).
@@ -127,6 +160,12 @@ The other open questions (Q1 on first interchange routes, Q2 on the granularity 
 - `packages/core/src/rights-v1.ts`
 - `packages/core/src/file-operation-v1.ts`
 - `packages/core/src/host-conformance.ts`
+- `packages/core/src/host-v1/apis.ts`
+- `packages/core/src/host-v1/export.ts`
+- `packages/core/src/chart-v1.ts`
+- `schemas/canvas-op.schema.json`
+- `schemas/blocks-wire-order.json`
+- `community/design/tool.json`
 - `engine/src/session-record.ts`
 - `engine/src/url-mode.ts`
 - `engine/src/document-api.ts`
@@ -134,7 +173,20 @@ The other open questions (Q1 on first interchange routes, Q2 on the granularity 
 - `engine/src/hook-worker-core.ts`
 - `engine/src/compare.ts`
 - `engine/src/emoji-treatment.ts`
+- `engine/src/validate.ts`
+- `engine/src/loader.ts`
+- `engine/src/runtime.ts`
+- `engine/src/c2pa.ts`
+- `scripts/tool-requires.ts`
+- `scripts/tool-isolation.ts`
+- `services/mcp/src/tools.ts`
 - `shells/web/src/lib/lolly-pack.ts`
 - `shells/web/src/lib/editor-state.ts`
+- `shells/web/src/lib/installed-tools.ts`
+- `shells/web/src/bridge/hook-worker.ts`
+- `shells/web/src/org/index.ts`
 - `shells/cli/src/smoke.ts`
+- `shells/cli/src/output.ts`
+- `shells/cli/src/exit-codes.ts`
 - `packages/node-shell/src/lolly-file.ts`
+- `packages/node-shell/src/rebrand-run-manifest.ts`

@@ -77,7 +77,7 @@ pub fn build_menu(handle: &AppHandle, data: &MenuData) -> tauri::Result<Menu<tau
     go.append(&utilities)?;
 
     go.append(&PredefinedMenuItem::separator(handle)?)?;
-    go.append(&route_item(handle, "Catalog", "#/c", None)?)?;
+    go.append(&route_item(handle, "Assets", "#/a", None)?)?;
     go.append(&route_item(handle, "Dashboard", "#/d", None)?)?;
     go.append(&route_item(handle, "Batch", "#/batch", None)?)?;
     go.append(&route_item(handle, "Colour Lab", "#/lab", None)?)?;

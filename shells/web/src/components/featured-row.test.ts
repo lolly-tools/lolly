@@ -34,7 +34,10 @@ function fixture(t: TestContext, viewMode: 'coverflow' | 'gallery' = 'coverflow'
       const parent = this.parentElement;
       return parent ? [...parent.children].indexOf(this) * 260 + (parseFloat(parent.style.paddingLeft) || 0) : 0;
     } },
-    scrollWidth: { get() { return 7 * 260 + 130; } },
+    // The wrap clones widen the track they sit in, as they do in a browser.
+    scrollWidth: { get(this: HTMLElement) {
+      return this.querySelector(':scope > .ftile--clone') ? this.children.length * 260 + 130 : 7 * 260 + 130;
+    } },
   });
   const mount = win.document.getElementById('mount')!;
   const opened: string[] = [];
@@ -442,4 +445,68 @@ test('the still Gallery strip wraps both ways, with a clone set on each side of 
   f.viewport.scrollLeft = 2 * period + 40;
   f.viewport.dispatchEvent(new window.Event('scroll'));
   assert.equal(f.viewport.scrollLeft, period + 40);
+});
+
+test('a re-measure over unchanged tiles keeps the wrap clones and the view', t => {
+  const f = fixture(t, 'gallery');
+  const period = 7 * 260;
+  const clones = [...f.mount.querySelectorAll('.ftile--clone')];
+  assert.equal(clones.length, 14);
+  f.viewport.scrollLeft = period + 300;
+  f.handle.setVisible(true);   // the same re-measure a resize or the 600 ms relayout runs
+  window.dispatchEvent(new window.Event('resize'));
+  f.frame();
+  const after = [...f.mount.querySelectorAll('.ftile--clone')];
+  assert.ok(after.length === clones.length && after.every((node, i) => node === clones[i]), 'no clone was rebuilt');
+  assert.equal(f.viewport.scrollLeft, period + 300, 'the view stays put');
+  // A mode switch removes the clones, so coming back builds a fresh set.
+  f.handle.setViewMode('coverflow');
+  f.handle.setViewMode('gallery');
+  const rebuilt = [...f.mount.querySelectorAll('.ftile--clone')];
+  assert.equal(rebuilt.length, 14);
+  assert.ok(rebuilt.every(node => !clones.includes(node)));
+});
+
+test('setPreview gives a tile and its wrap copies the committed preview in place', t => {
+  const f = fixture(t, 'gallery');
+  // jsdom has no CSS.escape; these ids need no escaping.
+  if (typeof globalThis.CSS === 'undefined') {
+    globalThis.CSS = { escape: (value: string) => value } as typeof CSS;
+    t.after(() => { delete (globalThis as { CSS?: unknown }).CSS; });
+  }
+  const copies = f.mount.querySelectorAll('.ftile[data-tool="tool-2"]');
+  assert.equal(copies.length, 3);
+  assert.ok([...copies].every(tile => tile.classList.contains('ftile--icon')));
+  const before = f.viewport.scrollLeft;
+  assert.equal(f.handle.setPreview('tool-2', 'data:image/png;base64,AAAA'), true);
+  for (const tile of copies) {
+    const img = tile.querySelector<HTMLImageElement>('.ftile-stage > .ftile-img[data-base]');
+    assert.equal(img?.getAttribute('src'), 'data:image/png;base64,AAAA');
+    assert.ok(img!.classList.contains('is-active'));
+    assert.equal(img!.nextElementSibling?.className, 'ftile-open', 'sits where tileMarkup puts it');
+    assert.ok(!tile.classList.contains('ftile--icon'));
+    assert.equal(tile.querySelector('.ftile-iconname'), null);
+  }
+  assert.equal(f.handle.setPreview('tool-2', 'data:image/png;base64,BBBB'), true);
+  assert.equal(f.mount.querySelectorAll('.ftile[data-tool="tool-2"] .ftile-img').length, 3, 'a second call swaps the src');
+  assert.equal(f.viewport.scrollLeft, before);
+  assert.equal(f.handle.setPreview('missing', 'data:,'), false);
+});
+
+test('the strip is marked parked while it is scrolled out of view', t => {
+  let notify: ((entries: Array<{ isIntersecting: boolean }>) => void) | undefined;
+  const original = globalThis.IntersectionObserver;
+  globalThis.IntersectionObserver = class {
+    constructor(callback: (entries: Array<{ isIntersecting: boolean }>) => void) { notify = callback; }
+    observe() {}
+    disconnect() {}
+  } as unknown as typeof IntersectionObserver;
+  t.after(() => { globalThis.IntersectionObserver = original; });
+  const f = fixture(t, 'gallery');
+  const section = f.mount.querySelector('.featured')!;
+  assert.ok(!section.classList.contains('is-parked'));
+  notify!([{ isIntersecting: false }]);
+  assert.ok(section.classList.contains('is-parked'));
+  notify!([{ isIntersecting: true }]);
+  assert.ok(!section.classList.contains('is-parked'));
 });

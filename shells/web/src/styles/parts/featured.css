@@ -84,7 +84,7 @@
   background-image:
     radial-gradient(ellipse 60% 210% at 50% -8%, var(--spot) 0%, transparent 90%),
     repeating-conic-gradient(#ffffff06 1% 25%, #00000006 0% 50%);
-  background-size: 100% 100%, .5em .5em;
+  background-size: 100% 100%, 22px 22px;
   background-position: center, 50%;
   background-repeat: no-repeat, repeat;
   cursor: grab;
@@ -375,6 +375,10 @@
 @media (max-width: 640px) {
   .featured:not(.featured--static) .ftile-img.is-active { animation: none; }
 }
+/* Parked: the strip is scrolled right out of view (featured-row.ts toggles .is-parked
+   from the same observer that stops the drift and the cross-fade), so hold the Ken
+   Burns scale where it is. It picks up from that frame when the strip comes back. */
+.featured.is-parked:not(.featured--static) .ftile-img.is-active { animation-play-state: paused; }
 
 /* Centered caption, resting just under the floating art + its shadow. Theme-coloured
    (it sits over the studio backdrop now, not over the art), so it reads in light,
@@ -536,8 +540,8 @@
   -webkit-backface-visibility: hidden;
           backface-visibility: hidden;
   /* Frost the covers stacked behind each one - the fan reads with a little depth-of-field. */
-  -webkit-backdrop-filter: blur(4px);
-          backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(3px);
+          backdrop-filter: blur(3px);
 }
 /* Mobile: a cover is re-transformed (scale + rotateY) every frame during a drag/flick,
    so EVERY paint effect on it is re-rasterised per frame - the source of the coverflow
@@ -573,9 +577,9 @@
 .featured--coverflow .ftile-link {
   height: var(--cf-cover-h);
   border-radius: calc(var(--radius) * 1.5);
-  box-shadow: inset 0 1px #fff1, inset 0 1px .15rem#fff2, 0 .6rem 2.2rem -0.6rem #0004;
+  box-shadow: inset 0 1px .5px #fff1, inset 0 1px .5rem #fff1, 0 0.6rem 10px -0.6rem #0003;
   filter: brightness(0.85);
-  transition: filter var(--dur-3) ease, box-shadow var(--dur-3) ease;
+ 
 }
 /* The covers here are much smaller than the Gallery-mode filmstrip tiles, so the strip's
    generous art padding (tuned for the big hero tiles) eats a small cover alive. Pull the
@@ -588,7 +592,9 @@
    selected" job the old outline did, but reads as real elevation rather than a border. */
 .featured--coverflow .ftile.is-centred .ftile-link {
   filter: none;
-  box-shadow: 0 0 0 1px hsl(var(--primary)/.25),0 .2rem 2.2rem -0.6rem hsl(var(--primary)/.5)
+  box-shadow: 0 0 0 1px hsl(var(--primary)/.25),0 .2rem 2.2rem -0.6rem hsl(var(--primary)/.5);
+
+  background-color: hsl(var(--background) / .2);
 }
 /* Only the centred (selected) cover carries its label and dots (the Open button is one
    per strip now - see .featured-go). Its floor shadow is dropped (it reads odd on an

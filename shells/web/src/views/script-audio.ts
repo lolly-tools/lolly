@@ -311,7 +311,7 @@ export async function saveTtsClip(host: ScriptAudioHost, clip: TtsClip): Promise
  * Rewrite a saved clip at its own asset id (plans/181 section 5.2): the same
  * record recipe, the same freshly signed credential, only the bytes and the
  * `meta.tts` block change. The id is the contract - no timeline box is
- * re-pointed, every `#/c?asset=` link keeps resolving, and each document using
+ * re-pointed, every `#/a?asset=` link keeps resolving, and each document using
  * the clip hears the fix, which is the point of a fix.
  *
  * `name` keeps the clip's existing display name: a regenerated clip is the

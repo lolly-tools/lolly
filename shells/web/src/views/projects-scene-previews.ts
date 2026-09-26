@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MPL-2.0
-/** Fill missing scene previews only when their saved-session tiles come into view. */
+/** Fill missing scene previews only when their saved-session tiles come into view.
+ *  Each finished thumb is written onto its row (the caller's session record) and handed
+ *  to `changed` with its slot, so the caller can patch that one tile in place. */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { WebStateAPI } from '../bridge/state.ts';
 interface SceneEntry {slot:string;toolId:string;thumb?:string|null;updatedAt:string}
-export function createProjectScenePreviews(root:HTMLElement,host:HostV1,changed:()=>void) {
+export function createProjectScenePreviews(root:HTMLElement,host:HostV1,changed:(slot:string,thumb:string)=>void) {
   let stopped=false,running=false;
   let rows=new Map<string,SceneEntry>();
   const queue:string[]=[],pending=new Set<string>(),failed=new Set<string>();
@@ -22,7 +24,7 @@ export function createProjectScenePreviews(root:HTMLElement,host:HostV1,changed:
           const {renderFeaturedVariant}=await import('../lib/featured-render.ts');
           const thumb=await renderFeaturedVariant(host,'3d-studio',['png'],slot,values,'project-scene');
           const current=rows.get(slot);
-          if(!stopped&&current&&key(current)===identity&&!current.thumb&&thumb){current.thumb=thumb;changed();}
+          if(!stopped&&current&&key(current)===identity&&!current.thumb&&thumb){current.thumb=thumb;changed(slot,thumb);}
         }catch{failed.add(identity);}
         finally{pending.delete(slot);}
       }

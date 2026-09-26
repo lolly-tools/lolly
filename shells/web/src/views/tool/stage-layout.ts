@@ -31,7 +31,7 @@ import { attachCanvasCommit } from '../../lib/canvas-commit.ts';
 import { mountUndoControls } from '../tool-history-controls.ts';
 import { icon } from '../../lib/icons.ts';
 import { setupStageNav } from '../tool-stage-nav.ts';
-import { focusSidebarBlock, scrollToControl, stopSlotPreview } from '../tool-inputs.ts';
+import { stopSlotPreview } from '../tool-inputs.ts';
 import { armViewEnter } from '../../view-enter.ts';
 import type { PanelEl } from './shared.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
@@ -1299,71 +1299,7 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
 }
 
 export function wireCanvasEditor(tview: ToolViewCtx): void {
-  const { INLINE_EDIT_CONTROLS, canvasEl, hideSidebar, inputsEl, layout, runtime } = tview;
-  // Click-to-focus: clicking a rendered canvas element that represents an input
-  // focuses the corresponding sidebar control. Tools can suppress this per-element
-  // with pointer-events:none. The handler is added once; annotations are re-applied
-  // via resolveCanvasAnnotations() after each innerHTML update.
-  if (canvasEl)
-    canvasEl.addEventListener('click', (e) => {
-      if (hideSidebar || !inputsEl) return;
-      const target = (e.target as HTMLElement).closest<HTMLElement>('[data-canvas-input]');
-      if (!target) return;
-      const id = target.dataset.canvasInput!;
-
-      // A FRAMED image belongs to the framing overlay (plans/148): a tap there arms
-      // pan/zoom/tilt. It usually also carries data-canvas-input for its asset slot
-      // (annotateTemplate tags the tag's first referenced input, which is the src),
-      // and that would open the asset picker on top of the arm - two editors from
-      // one tap. The overlay wins on its own element; the sidebar row is still one
-      // more tap away, and the picker stays reachable from there.
-      if ((e.target as HTMLElement).closest('[data-framing]')) return;
-
-      // A plain top-level input (never a "<blocksId>:<index>" block reference -
-      // that never matches a top-level model item's id) whose control has an
-      // in-place editor opens it right here instead of falling through to the
-      // sidebar-focus path below.
-      const inlineInput = runtime.getModel().find((i) => i.id === id);
-      if (inlineInput && INLINE_EDIT_CONTROLS.has(inlineInput.control)) {
-        tview.popovers.openInlineInputEditor(target, inlineInput);
-        return;
-      }
-
-      // Most ids map straight to a sidebar row. A "<blocksInputId>:<index>" id
-      // (emitted per rendered block, e.g. data-canvas-input="blocks:0") points at
-      // one block inside a blocks input - focus that block and fold the rest.
-      let control = inputsEl.querySelector<HTMLElement>(`[data-input-id="${id}"]`);
-      let blockIndex: string | null = null;
-      const blockRef = !control && id.match(/^(.+):(\d+)$/);
-      if (blockRef) {
-        const blocksEl = inputsEl.querySelector<HTMLElement>(
-          `.blocks-input[data-input-id="${blockRef[1]}"]`
-        );
-        if (blocksEl) {
-          control = blocksEl;
-          blockIndex = blockRef[2]!;
-        }
-      }
-      if (!control) return;
-
-      const focus = () => {
-        // Reveal the control if it lives inside a collapsed section (mirrors the
-        // scrollToInput path), so the focused input is actually visible.
-        control!.closest('details.input-section')?.setAttribute('open', '');
-        if (blockIndex != null) {
-          focusSidebarBlock(control!, blockIndex);
-        } else {
-          control!.focus(); // lights the CSS :focus-within spotlight
-          scrollToControl(control!); // header-aware, reduce-motion-safe, with arrival pulse
-        }
-      };
-      if (layout.dataset.sidebar === 'closed') {
-        tview.stageLayout.setSidebarWidth(tview.stageLayout.getRestoreWidth());
-        requestAnimationFrame(focus);
-      } else {
-        focus();
-      }
-    });
+  tview.canvasObjects.wireCanvasObjects();
 
   // Deferred-preview tools (manifest.render.preview): the live canvas is only a
   // placeholder until an explicit, expensive render runs - e.g. url-shot, which

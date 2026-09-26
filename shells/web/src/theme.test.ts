@@ -28,7 +28,7 @@ function at(url: string): void {
 }
 
 test('reads a valid theme off the hash query and off ?search', () => {
-  at('/#/c?theme=dark');
+  at('/#/a?theme=dark');
   assert.equal(urlThemeOverride(), 'dark');
   at('/?theme=light');
   assert.equal(urlThemeOverride(), 'light');
@@ -37,14 +37,14 @@ test('reads a valid theme off the hash query and off ?search', () => {
 });
 
 test('absent, empty or unrecognised values are ignored', () => {
-  at('/#/c');
+  at('/#/a');
   assert.equal(urlThemeOverride(), null);
-  at('/#/c?theme=');
+  at('/#/a?theme=');
   assert.equal(urlThemeOverride(), null);
-  at('/#/c?theme=neon');
+  at('/#/a?theme=neon');
   assert.equal(urlThemeOverride(), null);
   // A Set, not an object lookup - an inherited key is not a theme.
-  at('/#/c?theme=constructor');
+  at('/#/a?theme=constructor');
   assert.equal(urlThemeOverride(), null);
 });
 

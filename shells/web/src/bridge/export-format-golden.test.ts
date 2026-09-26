@@ -152,6 +152,16 @@ test.after(async () => { if (shared) await shared.close(); });
 
 type Format = 'svg' | 'emf' | 'eps' | 'dxf';
 
+test('SVG export strips canvas menu affordances from the copy and keeps the live object interactive', { skip: SKIP }, async () => {
+  const plain = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60"><rect width="100" height="60" fill="#123456"/></svg>';
+  const annotated = plain.replace('<rect ', '<rect data-canvas-input="nodes:0" data-canvas-settings="nodes:0:shape" data-canvas-name="Card" tabindex="0" role="button" ');
+  const [expected] = await renderTwice(plain, 'svg');
+  const [actual, repeated] = await renderTwice(annotated, 'svg');
+  assert.equal(actual, expected);
+  assert.equal(repeated, expected);
+  assert.equal(await (await page()).locator('[data-canvas-settings][tabindex="0"][role="button"]').count(), 1);
+});
+
 /**
  * Render `inner` inside #root through the REAL per-format entry point, TWICE in
  * the same page, and return both outputs (EMF as base64, the text formats

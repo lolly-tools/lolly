@@ -74,7 +74,7 @@ test('no reader at all: nothing is offered', async () => {
 
 test('Verify and the catalogue pass the in-place offer to their document reads', async () => {
   const { readFileSync } = await import('node:fs');
-  for (const file of ['./valid.ts', './catalog/details-sheet.ts']) {
+  for (const file of ['./valid.ts', './assets/details-sheet.ts']) {
     const src = readFileSync(new URL(file, import.meta.url), 'utf8');
     const call = src.slice(src.indexOf('extractDocumentText('), src.indexOf('extractDocumentText(') + 600);
     assert.match(call, /ensureOcr: (?:dr\.)?offerTextRecognition \}/, file);

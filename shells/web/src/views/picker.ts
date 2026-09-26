@@ -66,7 +66,7 @@ import { icon } from '../lib/icons.ts';
 import { createUrlEntry } from '../lib/add-via-url-entry.ts';
 import { isChromium } from '../capabilities.ts';
 import { loadFavouriteAssets, loadHiddenAssets, assetBaseId } from '../lib/asset-favourites.ts';
-import { matchesType as pickerMatchesType, type TypeFilter as PickerTypeFilter } from './catalog-filter.ts';
+import { matchesType as pickerMatchesType, type TypeFilter as PickerTypeFilter } from './assets-filter.ts';
 
 import { VISUAL_TYPES, isPlaceableAsset } from '../lib/asset-kinds.ts';
 import { PICKER_TYPE_FILTERS, pickerAcceptsType, queryPickerAssets } from './picker-query.ts';

@@ -2,9 +2,9 @@
 
 Assets are global, versioned, brand-controlled resources tools draw from. Logos and mascots, palettes, design tokens, event tiles, fonts, music beds and video b-roll. The authoritative list of asset types is the `type` enum in `schemas/asset.schema.json`: `vector | raster | video | audio | lottie | palette | tokens | font`.
 
-Those types are what the Catalogue's filter row is built from, and it only offers the buckets the library actually holds, so a catalogue of audio and tokens shows fewer pills than a catalogue of logos and photos.
+Those types are what the filter row in Assets is built from, and it only offers the buckets the library actually holds, so a library of audio and tokens shows fewer pills than a library of logos and photos.
 
-![The Catalogue toolbar - type filter pills on the left and a live asset count beside them, the file-type enum surfaced as a control](/t/url-shot?url=%2F%23%2Fc&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&cropSelector=.cat-toolbar&dark=1&filename=at2-catalogue-typefilters)
+![The Assets toolbar - type filter pills on the left and a live asset count beside them, the file-type enum surfaced as a control](/t/url-shot?url=%2F%23%2Fa&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&cropSelector=.cat-toolbar&dark=1&filename=at2-assets-typefilters)
 
 ## Anatomy
 
@@ -47,9 +47,9 @@ Validated against `schemas/asset.schema.json`.
 }
 ```
 
-Each entry becomes one tile in the Catalogue, grouped by what its tags say it is. A pack of audio beds and token documents appears under **More**; logos, backgrounds and icons get their own sections once the tags are there.
+Each entry becomes one tile in Assets, grouped by what its tags say it is. A pack of audio beds and token documents appears under **More**; logos, backgrounds and icons get their own sections once the tags are there.
 
-![The More group in the Catalogue - one tile per index entry, each carrying the name and file type from its index.json record](/t/url-shot?url=%2F%23%2Fc%3Fsection%3Dother&width=1440&height=1400&dpi=96&waitMs=2400&format=svg&walker=1&cropSelector=.cat-group%5Bdata-group%3D%22other%22%5D&dark=1&filename=at2-catalogue-more-group)
+![The More group in Assets - one tile per index entry, each carrying the name and file type from its index.json record](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dother&width=1440&height=1400&dpi=96&waitMs=2400&format=svg&walker=1&cropSelector=.cat-group%5Bdata-group%3D%22other%22%5D&dark=1&filename=at2-assets-more-group)
 
 ## Rules that don't bend
 
@@ -104,9 +104,9 @@ Palettes are a special asset type whose payload is JSON, not an image:
 }
 ```
 
-A palette asset is what the Catalogue's Swatches section renders: every ramp step as a chip, click to copy its hex.
+A palette asset is what the Swatches section in Assets renders: every ramp step as a chip, click to copy its hex.
 
-![The Catalogue's Swatches section - the brand ramps laid out as labelled chips with download buttons above](/t/url-shot?url=%2F%23%2Fc%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=2000&walker=1&format=svg&cropSelector=.cat-group%5Bdata-group%3D%22swatches%22%5D&dark=1&filename=auth-catalogue-swatches)
+![The Swatches section in Assets - the brand ramps laid out as labelled chips with download buttons above](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=2000&walker=1&format=svg&cropSelector=.cat-group%5Bdata-group%3D%22swatches%22%5D&dark=1&filename=auth-assets-swatches)
 
 Tools reference palette swatches through `host.assets.get(id)` → `ref.meta.swatches`. Note this is wired up in the **CLI shell** today (its bridge parses the palette JSON and spreads `swatches` into `meta`); the web shell's assets bridge does not yet populate `meta.swatches`, so don't rely on it cross-shell.
 
@@ -161,12 +161,12 @@ The web shell loads them via `@font-face` (`shells/web/src/styles/fonts.css`, wi
 
 This git-reviewed flow is for a **shared, governed catalog** - the model where a whole organisation syncs one asset library and wants every change to carry PR review as brand approval. It's an *option for that case*, not how the app works day to day.
 
-Most people never touch it: in the open app you **ingest your own creative files straight into your catalogue** - drag them onto the [Catalogue](/info/using.html) view or the Brand Studio's Catalogue tab, and they're instantly available in every tool's asset picker, on your device. **Add from URL** takes the same files by web address instead: paste an image link (or a Lolly tool link, which renders on your device) in the Catalogue's uploads section or a tool's asset picker, and it is added to your uploads the same way. Because the web app is only allowed to fetch from its own origin, a remote image is fetched for you by a small pass-through on the app's own origin; the desktop apps fetch it directly. Nothing is stored but the image, and the [privacy policy](/info/privacy.html) covers it in its own words.
+Most people never touch it: in the open app you **ingest your own creative files straight into Assets** - drag them onto [Assets](/info/using.html#assets-your-library) or the Brand Studio's Files room, and they're instantly available in every tool's asset picker, on your device. **Add from URL** takes the same files by web address instead: paste an image link (or a Lolly tool link, which renders on your device) in the uploads section of Assets or a tool's asset picker, and it is added to your uploads the same way. Because the web app is only allowed to fetch from its own origin, a remote image is fetched for you by a small pass-through on the app's own origin; the desktop apps fetch it directly. Nothing is stored but the image, and the [privacy policy](/info/privacy.html) covers it in its own words.
 
-![The Brand Studio's Catalogue tab - a drop area and the assets already ingested, the no-git route into the same picker every tool reads](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dcatalogue&width=1440&height=900&dpi=192&waitMs=2000&css=.start-head%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.be-cat&dark=1&filename=at2-brand-catalogue-tab)
+![The Brand Studio's Files room - a drop area and the assets already ingested, the no-git route into the same picker every tool reads](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dcatalogue&width=1440&height=900&dpi=192&waitMs=2000&css=.start-head%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.be-cat&dark=1&filename=at2-brand-catalogue-tab)
 
 Those user assets live under the `user/` namespace and never enter a shared catalog. The git route matters only when you're curating a library many people depend on.
 
-![The Catalogue's Your uploads section - a drop area that takes files straight from your device into every tool's picker](/t/url-shot?url=%2F%23%2Fc%3Fsection%3Dyour-uploads&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&cropSelector=.cat-group--uploads&dark=1&filename=auth-catalogue-uploads)
+![The Your uploads section in Assets - a drop area that takes files straight from your device into every tool's picker](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dyour-uploads&width=1440&height=900&dpi=192&waitMs=2000&format=svg&walker=1&cropSelector=.cat-group--uploads&dark=1&filename=auth-assets-uploads)
 
 Composed renders - a tool that embeds another tool's output via `composes` (see [Authoring tools](/info/authoring-tools.html)) - surface as ephemeral `AssetRef`s through the same `{{asset id}}` helper, but they are runtime intermediates, not catalog assets.

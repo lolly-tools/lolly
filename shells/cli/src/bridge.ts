@@ -851,7 +851,15 @@ function rootSvgOf(node: Element | null): Element | null {
           if (node.hasAttribute?.(attr)) node.removeAttribute(attr);
           node.querySelectorAll(`[${attr}]`).forEach((el) => { el.removeAttribute(attr); });
         };
+        for (const el of [node, ...node.querySelectorAll('[data-canvas-settings]')]) {
+          if (!el.hasAttribute?.('data-canvas-settings')) continue;
+          el.removeAttribute('tabindex');
+          if (el.getAttribute('role') === 'button') el.removeAttribute('role');
+        }
+        node.querySelectorAll('[data-export-hide]:not([data-cam])').forEach(el => { el.remove(); });
         strip('data-canvas-input');
+        strip('data-canvas-settings');
+        strip('data-canvas-name');
         strip('data-lolly-paint');
         if (format !== 'penpot') strip('data-lolly-bind');
       }

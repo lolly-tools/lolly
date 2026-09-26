@@ -136,7 +136,7 @@ May opsyonal na **Gradients** panel na bumubuo ng blend tokens mula sa iyong pal
 
 ### Dalhin ang palette sa ibang lugar
 
-Ang floating pill na nakalagay sa ibabang gilid ng palette pane ay nagda-download ng buong palette bilang **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, isang **GIMP palette (.gpl)** o isang **Adobe Swatch Exchange (.ase)** - para diretso itong makapasok ang brand sa Illustrator, Figma, GIMP o isang stylesheet. Nasa labas ito ng scroller ng pane, kaya nananatili itong nakatayo kahit gaano pa kalayo ang pag-scroll ng palette. (Maaari mo ring i-download ang palette mula sa [Catalogue](/info/using.html) view.)
+Ang floating pill na nakalagay sa ibabang gilid ng palette pane ay nagda-download ng buong palette bilang **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, isang **GIMP palette (.gpl)** o isang **Adobe Swatch Exchange (.ase)** - para diretso itong makapasok ang brand sa Illustrator, Figma, GIMP o isang stylesheet. Nasa labas ito ng scroller ng pane, kaya nananatili itong nakatayo kahit gaano pa kalayo ang pag-scroll ng palette. (Maaari mo ring i-download ang palette mula sa [Mga asset](/info/using.html#assets-your-library).)
 
 ## Type
 
@@ -179,7 +179,7 @@ Ang natitirang bahagi ng design system, na maaaring i-edit nang hindi humihipo n
 
 ## Files
 
-Idrop dito ang mga file na taglay ng brand mo - bukod sa logos - dito: **vector**, **image**, **audio** at **motion** (video, Lottie, animated) assets. Napupunta ang mga ito sa iyong [Catalogue](/info/using.html), na naka-sort sa mga section at handa na sa asset picker ng bawat tool. Lahat ay nananatili sa device na ito. (Tinatawag ng rail ang silid na **Files**; ang URL key ay nananatiling `catalogue`, dahil ang isang panel key ay isang permanenteng kontrata.)
+Idrop dito ang mga file na taglay ng brand mo - bukod sa logos - dito: **vector**, **image**, **audio** at **motion** (video, Lottie, animated) assets. Napupunta ang mga ito sa [Mga asset](/info/using.html#assets-your-library), na naka-sort sa mga section at handa na sa asset picker ng bawat tool. Lahat ay nananatili sa device na ito. (Tinatawag ng rail ang silid na **Files**; ang URL key ay nananatiling `catalogue`, dahil ang isang panel key ay isang permanenteng kontrata.)
 
 ## Magdala ng isang brand
 
@@ -231,6 +231,6 @@ May mga build na naglalabas ng **naka-lock na brand** - ang mga kulay, font at t
 
 ## Saan susunod
 
-- **[Paggamit ng Lolly](/info/using.html)** - ang canvas, pag-save, mga proyekto at ang catalogue.
+- **[Paggamit ng Lolly](/info/using.html)** - ang canvas, pag-save, mga proyekto at ang view na Mga asset.
 - **[Design Tokens](/info/design-tokens.html)** - ang token model kung saan naipahahayag ang iyong brand.
 - **[Pag-export at mga format](/info/exporting.html)** - print units, CMYK at ang mga format na ginagawan ng render ng iyong brand.

@@ -35,7 +35,7 @@ export function objectCardsExample(): string {
   return `<div class="cl-object-demo">
     <p>Use the selection dots, or focus one and press Space.</p>
     <div class="cl-object-grid">
-      <div><p class="cl-eyebrow">Catalog</p>${catalogTileExample(true)}</div>
+      <div><p class="cl-eyebrow">Assets</p>${catalogTileExample(true)}</div>
       <div><p class="cl-eyebrow">Tools</p><div class="gallery cl-object-context">
         <article class="gtile">
           ${dot('cl-tool', 'tool')}

@@ -70,7 +70,7 @@ browser bekijkt. De weerstand bij invoering is zelden technisch; die is organisa
 kant-en-klaar pakket met jouw templates. Voor een *bestuurde uitrol* legt iemand de gedeelde
 assetcatalogus vast (logo's, paletten, lettertypes als permanente ID's) en schrijft het manifest +
 template voor elk uitvoertype. Losse gebruikers hoeven daar niet op te wachten - in
-de open app kan iedereen vanaf dag één eigen bestanden in de catalogus opnemen en tools bouwen in
+de open app kan iedereen vanaf dag één eigen bestanden in Assets opnemen en tools bouwen in
 Design.
 
 **Geen git nodig om bij te dragen.** Ontwerpers maken hun eigen tools en templates

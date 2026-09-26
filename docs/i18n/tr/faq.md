@@ -70,7 +70,7 @@ Benimsemedeki sürtünme nadiren tekniktir; kurumsaldır. Şunları bekle:
 şablonlarının hazır bir paketi değil. *Yönetişimli bir yayılım* için biri ortak varlık
 kataloğunu (kalıcı kimlikler olarak logolar, paletler, fontlar) tanımlar ve her çıktı türü
 için manifest + şablon yazar. Yine de bireylerin bunu beklemesi gerekmez - açık uygulamada
-herkes kendi dosyalarını katalogda içeri aktarabilir ve ilk günden Design içinde araç kurabilir.
+herkes kendi dosyalarını Varlıklar'a aktarabilir ve ilk günden Design içinde araç kurabilir.
 
 **Katkı vermek için git gerekmez.** Tasarımcılar kendi araçlarını ve şablonlarını
 uygulamada yapar, sonra bunları meslektaşlarıyla paylaşır ya da varsayılan olarak dahil

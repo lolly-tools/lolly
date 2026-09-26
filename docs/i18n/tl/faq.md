@@ -71,7 +71,7 @@ madaling araw sa nakikita ng tao sa preview sa browser. Bihirang teknikal ang ha
 tapos nang pakete ng mga template mo. Para sa isang *governed rollout*, may nagtatakda ng
 shared asset catalog (mga logo, palette, font bilang permanenteng ID) at sumusulat ng manifest +
 template para sa bawat uri ng output. Pero hindi kailangang maghintay doon ng mga indibidwal - sa
-bukas na app, kahit sino ay puwedeng mag-ingest ng sariling files sa catalogue at gumawa ng tools sa
+bukas na app, kahit sino ay puwedeng mag-ingest ng sariling files sa Mga asset at gumawa ng tools sa
 Design mula sa unang araw.
 
 **Hindi kailangan ng git para makapag-ambag.** Gumagawa ang mga designer ng sarili nilang tools at templates

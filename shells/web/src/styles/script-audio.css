@@ -134,7 +134,7 @@ html[data-a11y-motion="reduce"] .script-audio-progress-indeterminate .script-aud
 }
 .script-audio-status.script-audio-error { color: hsl(var(--destructive)); }
 /* The preview row hosts the shared themed transport (.cat-tp - lib/audio-transport.ts,
-   visuals in parts/catalog.css) plus its hidden <audio> engine. */
+   visuals in parts/asset-shared.css) plus its hidden <audio> engine. */
 .script-audio-preview {
   display: flex;
   align-items: center;

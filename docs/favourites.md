@@ -61,7 +61,7 @@ The same star works on a **utility** card in the Utilities view - Verify & Inspe
 
 > Not the strip you're after? The **★ Favourites** pill in **Sort & filter** shows the same starred set as an ordinary filtered list in the grid below, instead of the drifting strip up top - useful if you'd rather scan a plain list.
 
-**One star, two lists.** The ★ on a **catalogue asset** ([Using Lolly → The Catalogue](/info/using.html#the-catalogue-your-asset-library)) is a different list entirely: it pins that logo, image or colour to the top of every asset picker. Same verb, same glyph, unrelated sets - starring a tool never touches your pinned assets, and vice versa.
+**One star, two lists.** The ★ on an **asset** ([Using Lolly → Assets](/info/using.html#assets-your-library)) is a different list entirely: it pins that logo, image or colour to the top of every asset picker. Same verb, same glyph, unrelated sets - starring a tool never touches your pinned assets, and vice versa.
 
 ## Gallery or Cover Flow
 

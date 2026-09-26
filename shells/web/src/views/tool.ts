@@ -49,6 +49,7 @@ import { stageLayoutOps } from './tool/stage-layout.ts';
 import { exportingOps } from './tool/exporting.ts';
 import { sessionOps } from './tool/session.ts';
 import { presentationOps } from './tool/presentation.ts';
+import { canvasObjectsOps } from './tool/canvas-objects.ts';
 import { popoversOps } from './tool/popovers.ts';
 import { renderOps } from './tool/render.ts';
 import { setupOps } from './tool/setup.ts';
@@ -129,6 +130,7 @@ export async function mountTool(
   tview.session = sessionOps(tview);
   tview.presentation = presentationOps(tview);
   tview.popovers = popoversOps(tview);
+  tview.canvasObjects = canvasObjectsOps(tview);
   tview.render = renderOps(tview);
   tview.setup = setupOps(tview);
   tview.viewEl = viewEl;

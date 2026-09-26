@@ -136,7 +136,7 @@ Un panel opcional de **Degradados** construye tokens de mezcla a partir de tu pa
 
 ### Lleva la paleta a otro sitio
 
-La píldora flotante situada en el borde inferior del panel de paleta descarga la paleta completa como **Tokens de diseño (JSON)**, **variables CSS**, **clases CSS**, **variables SCSS**, una **paleta GIMP (.gpl)** o un **Adobe Swatch Exchange (.ase)** - así la marca entra directamente en Illustrator, Figma, GIMP o una hoja de estilos. Está fuera del scroller del panel, así que mantiene su lugar por mucho que se desplace la paleta. (También puedes descargar la paleta desde la vista [Catálogo](/info/using.html).)
+La píldora flotante situada en el borde inferior del panel de paleta descarga la paleta completa como **Tokens de diseño (JSON)**, **variables CSS**, **clases CSS**, **variables SCSS**, una **paleta GIMP (.gpl)** o un **Adobe Swatch Exchange (.ase)** - así la marca entra directamente en Illustrator, Figma, GIMP o una hoja de estilos. Está fuera del scroller del panel, así que mantiene su lugar por mucho que se desplace la paleta. (También puedes descargar la paleta desde la vista [Recursos](/info/using.html#assets-your-library).)
 
 ## Tipografía
 
@@ -179,7 +179,7 @@ El resto del sistema de diseño, editable sin tocar código:
 
 ## Archivos
 
-Suelta aquí los archivos que guarda tu marca -aparte de los logos-: recursos **vectoriales**, de **imagen**, de **audio** y de **movimiento** (vídeo, Lottie, animados). Llegan a tu [Catálogo](/info/using.html), clasificados en secciones y listos en el selector de recursos de cada herramienta. Todo permanece en este dispositivo. (El riel etiqueta la sala como **Archivos**; la clave de URL sigue siendo `catalogue`, porque la clave de un panel es un contrato permanente.)
+Suelta aquí los archivos que guarda tu marca -aparte de los logos-: recursos **vectoriales**, de **imagen**, de **audio** y de **movimiento** (vídeo, Lottie, animados). Llegan a [Recursos](/info/using.html#assets-your-library), clasificados en secciones y listos en el selector de recursos de cada herramienta. Todo permanece en este dispositivo. (El riel etiqueta la sala como **Archivos**; la clave de URL sigue siendo `catalogue`, porque la clave de un panel es un contrato permanente.)
 
 ## Traer una marca
 
@@ -231,6 +231,6 @@ Algunas compilaciones incluyen una **marca bloqueada** - sus colores, fuentes y 
 
 ## A dónde ir ahora
 
-- **[Usar Lolly](/info/using.html)** - el lienzo, guardar, proyectos y el catálogo.
+- **[Usar Lolly](/info/using.html)** - el lienzo, guardar, proyectos y Recursos.
 - **[Tokens de diseño](/info/design-tokens.html)** - el modelo de tokens en el que se expresa tu marca.
 - **[Exportar y formatos](/info/exporting.html)** - unidades de impresión, CMYK y los formatos a los que renderiza tu marca.

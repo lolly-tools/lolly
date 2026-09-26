@@ -194,7 +194,7 @@ mod tests {
         assert!(is_root_asset("/catalog/assets/index.json"));
         // The web shell's own build output is not content.
         assert!(!is_root_asset("/index.html"));
-        assert!(!is_root_asset("/assets/main-abc123.js"));
+        assert!(!is_root_asset("/_app/main-abc123.js"));
         // A path that merely CONTAINS the word is not under it.
         assert!(!is_root_asset("/info/tools.html"));
     }

@@ -136,7 +136,7 @@
 
 ### 把調色盤帶到別處使用
 
-停靠在調色盤面板底部邊緣的浮動小圓鈕,可將整個調色盤下載為**設計權杖(JSON)**、**CSS 變數**、**CSS 類別**、**SCSS 變數**、**GIMP 調色盤(.gpl)**或 **Adobe Swatch Exchange(.ase)** - 讓品牌可以直接匯入 Illustrator、Figma、GIMP 或樣式表。它位於面板捲動範圍之外,因此無論調色盤捲到多遠,它都會保持在原位。(你也可以從[目錄](/info/using.html)檢視畫面下載調色盤。)
+停靠在調色盤面板底部邊緣的浮動小圓鈕,可將整個調色盤下載為**設計權杖(JSON)**、**CSS 變數**、**CSS 類別**、**SCSS 變數**、**GIMP 調色盤(.gpl)**或 **Adobe Swatch Exchange(.ase)** - 讓品牌可以直接匯入 Illustrator、Figma、GIMP 或樣式表。它位於面板捲動範圍之外,因此無論調色盤捲到多遠,它都會保持在原位。(你也可以從[素材](/info/using.html#assets-your-library)下載調色盤。)
 
 ## 字體
 
@@ -179,7 +179,7 @@
 
 ## 檔案
 
-把你品牌保存的檔案放到這裡 - 標誌除外:**向量**、**圖片**、**音訊**與**動態**(影片、Lottie、動畫)素材。它們會進入你的[目錄](/info/using.html),依區段分類,並可在每個工具的素材選取器中隨時取用。所有內容皆保留在這台裝置上。(側邊列將此區塊標示為**檔案**;URL 鍵仍為 `catalogue`,因為面板鍵是永久性的約定。)
+把你品牌保存的檔案放到這裡 - 標誌除外:**向量**、**圖片**、**音訊**與**動態**(影片、Lottie、動畫)素材。它們會進入[素材](/info/using.html#assets-your-library),依區段分類,並可在每個工具的素材選取器中隨時取用。所有內容皆保留在這台裝置上。(側邊列將此區塊標示為**檔案**;URL 鍵仍為 `catalogue`,因為面板鍵是永久性的約定。)
 
 ## 匯入品牌
 
@@ -231,6 +231,6 @@
 
 ## 接下來往哪裡走
 
-- **[Using Lolly](/info/using.html)** - 畫布、儲存、專案與目錄。
+- **[Using Lolly](/info/using.html)** - 畫布、儲存、專案與素材。
 - **[Design Tokens](/info/design-tokens.html)** - 你的品牌所表達的權杖模型。
 - **[Exporting & formats](/info/exporting.html)** - 列印單位、CMYK 以及你的品牌會匯出成的格式。

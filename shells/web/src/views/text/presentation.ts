@@ -105,7 +105,7 @@ export function openTextMenu(
     kind === 'open'
       ? [
           { action: 'open', label: 'Open a file', glyph: 'upload' },
-          { action: 'catalog', label: 'Open from catalog', glyph: 'grid' },
+          { action: 'catalog', label: 'Open from Assets', glyph: 'grid' },
         ]
       : kind === 'document'
         ? [
@@ -114,7 +114,7 @@ export function openTextMenu(
             { action: 'new', label: 'New text…', glyph: 'filePlus' },
           ]
         : [
-            { action: 'save-result', label: 'Save result to catalog…', glyph: 'document' },
+            { action: 'save-result', label: 'Save result to Assets…', glyph: 'document' },
             { action: 'download-result', label: 'Download result…', glyph: 'download' },
           ];
   if (kind === 'result' && ctx.result) {

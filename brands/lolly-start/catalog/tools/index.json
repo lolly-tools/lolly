@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-24T16:28:48.787Z",
+  "generatedAt": "2026-09-26T02:04:19.264Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -11010,7 +11010,7 @@
       "id": "diagram-builder",
       "name": "Diagrams",
       "description": "Org charts, flowcharts, timelines and more - from cards, text, Mermaid, DOT or CSV.",
-      "version": "1.7.4",
+      "version": "1.8.1",
       "status": "experimental",
       "category": "everyone",
       "tags": [
@@ -11068,6 +11068,58 @@
         "order": 12,
         "blurb": "Turn cards or text into on-brand diagrams"
       },
+      "examples": [
+        {
+          "label": "Minimal",
+          "values": {
+            "look": "minimal",
+            "source": "text",
+            "diagramType": "process",
+            "flowDir": "right",
+            "dsl": "Discover -> Design -> Build -> Share"
+          }
+        },
+        {
+          "label": "Editorial",
+          "values": {
+            "look": "editorial",
+            "source": "text",
+            "diagramType": "process",
+            "flowDir": "right",
+            "dsl": "Discover -> Design -> Build -> Share"
+          }
+        },
+        {
+          "label": "Soft depth",
+          "values": {
+            "look": "soft",
+            "source": "text",
+            "diagramType": "process",
+            "flowDir": "right",
+            "dsl": "Discover -> Design -> Build -> Share"
+          }
+        },
+        {
+          "label": "Flow",
+          "values": {
+            "look": "flow",
+            "source": "text",
+            "diagramType": "process",
+            "flowDir": "right",
+            "dsl": "Discover -> Design -> Build -> Share"
+          }
+        },
+        {
+          "label": "Studio",
+          "values": {
+            "look": "studio",
+            "source": "text",
+            "diagramType": "process",
+            "flowDir": "right",
+            "dsl": "Discover -> Design -> Build -> Share"
+          }
+        }
+      ],
       "templates": [
         {
           "id": "brand-starter",
@@ -11075,6 +11127,30 @@
           "category": "Brand",
           "description": "A simple three-step workflow on transparency.",
           "galleryCover": true
+        },
+        {
+          "id": "editorial-workflow",
+          "name": "Editorial workflow",
+          "category": "Looks",
+          "description": "A four-step workflow in the Editorial look."
+        },
+        {
+          "id": "flow-workflow",
+          "name": "Flow workflow",
+          "category": "Looks",
+          "description": "A four-step workflow in the Flow look."
+        },
+        {
+          "id": "soft-workflow",
+          "name": "Soft depth workflow",
+          "category": "Looks",
+          "description": "A four-step workflow in the Soft depth look."
+        },
+        {
+          "id": "studio-workflow",
+          "name": "Studio workflow",
+          "category": "Looks",
+          "description": "A four-step workflow in the Studio look."
         }
       ],
       "i18n": {

@@ -136,7 +136,7 @@ Un panneau **Dégradés** optionnel construit des tokens de mélange à partir d
 
 ### Emporte la palette ailleurs
 
-La pastille flottante calée sur le bord inférieur du panneau de palette télécharge la palette entière en **Design tokens (JSON)**, **variables CSS**, **classes CSS**, **variables SCSS**, une **palette GIMP (.gpl)** ou un **Adobe Swatch Exchange (.ase)** - de quoi faire tomber la marque directement dans Illustrator, Figma, GIMP ou une feuille de style. Elle se tient hors du défilement du panneau, donc elle garde sa place quelle que soit la distance à laquelle la palette défile. (Tu peux aussi télécharger la palette depuis la vue [Catalogue](/info/using.html).)
+La pastille flottante calée sur le bord inférieur du panneau de palette télécharge la palette entière en **Design tokens (JSON)**, **variables CSS**, **classes CSS**, **variables SCSS**, une **palette GIMP (.gpl)** ou un **Adobe Swatch Exchange (.ase)** - de quoi faire tomber la marque directement dans Illustrator, Figma, GIMP ou une feuille de style. Elle se tient hors du défilement du panneau, donc elle garde sa place quelle que soit la distance à laquelle la palette défile. (Tu peux aussi télécharger la palette depuis la vue [Éléments](/info/using.html#assets-your-library).)
 
 ## Typographie
 
@@ -179,7 +179,7 @@ Le reste du système de design, éditable sans toucher au code :
 
 ## Fichiers
 
-Dépose ici les fichiers que ta marque conserve - hormis les logos : ressources **vectorielles**, **image**, **audio** et **animation** (vidéo, Lottie, animée). Elles atterrissent dans ton [Catalogue](/info/using.html), triées en sections et prêtes dans le sélecteur d'assets de chaque outil. Tout reste sur cet appareil. (Le rail nomme la salle **Fichiers** ; la clé d'URL reste `catalogue`, car une clé de panneau est un contrat permanent.)
+Dépose ici les fichiers que ta marque conserve - hormis les logos : ressources **vectorielles**, **image**, **audio** et **animation** (vidéo, Lottie, animée). Elles atterrissent dans [Éléments](/info/using.html#assets-your-library), triées en sections et prêtes dans le sélecteur d'assets de chaque outil. Tout reste sur cet appareil. (Le rail nomme la salle **Fichiers** ; la clé d'URL reste `catalogue`, car une clé de panneau est un contrat permanent.)
 
 ## Faire entrer une marque
 
@@ -231,6 +231,6 @@ Certaines versions livrent une **marque verrouillée** - ses couleurs, polices e
 
 ## Où aller ensuite
 
-- **[Using Lolly](/info/using.html)** - le canevas, la sauvegarde, les projets et le catalogue.
+- **[Using Lolly](/info/using.html)** - le canevas, la sauvegarde, les projets et Éléments.
 - **[Design Tokens](/info/design-tokens.html)** - le modèle de tokens dans lequel ta marque est exprimée.
 - **[Exporting & formats](/info/exporting.html)** - unités d'impression, CMJN et les formats dans lesquels ta marque s'exporte.

@@ -5,22 +5,22 @@ This file exists so you can find the code for a feature without reading all of i
 The counts below are GENERATED - `pnpm run build:web-src-readme`, checked in CI by `pnpm run check:web-src-readme`, so they cannot rot the way the hand-measured ones did. They convey proportion; don't cite them as an API.
 
 <!-- web-src-dirs:start -->
-Roughly 642,000 lines of TypeScript, tests included, and 56,000 lines of CSS.
+Roughly 643,000 lines of TypeScript, tests included, and 56,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 413 files, 181,903 lines | 185 files, 69,627 lines | 6 files, 1,427 lines |
-| `lib/` | 631 files, 144,692 lines | 354 files, 75,577 lines | 11 files, 1,780 lines |
-| `bridge/` | 165 files, 47,964 lines | 99 files, 21,505 lines | none |
-| `components/` | 82 files, 23,511 lines | 38 files, 11,198 lines | 14 files, 945 lines |
+| `views/` | 415 files, 182,119 lines | 186 files, 69,863 lines | 6 files, 1,427 lines |
+| `lib/` | 632 files, 144,799 lines | 354 files, 75,577 lines | 11 files, 1,782 lines |
+| `bridge/` | 166 files, 47,976 lines | 99 files, 21,515 lines | none |
+| `components/` | 82 files, 23,590 lines | 38 files, 11,265 lines | 14 files, 945 lines |
 | `collab/` | 20 files, 13,532 lines | 22 files, 14,132 lines | none |
 | `pro/` | 22 files, 8,513 lines | 11 files, 1,738 lines | 3 files, 1,226 lines |
 | `org/` | 19 files, 5,881 lines | 15 files, 4,257 lines | none |
 | `catalog/` | 2 files, 895 lines | 2 files, 231 lines | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 5 files, 1,035 lines | 108 files, 50,154 lines |
+| `styles/` | none | 5 files, 1,037 lines | 109 files, 50,329 lines |
 
-Plus 48 `.ts`/`.js` files at the top level of `src/`, 15,991 lines all told, of which 22 are tests and 3 are ambient declarations. `main.ts` is 2,184 of that.
+Plus 48 `.ts`/`.js` files at the top level of `src/`, 16,016 lines all told, of which 22 are tests and 3 are ambient declarations. `main.ts` is 2,194 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature
@@ -35,7 +35,7 @@ If the feature is about producing bytes rather than showing a screen, skip the v
 
 ## What lives where
 
-**`views/`**: one module per screen, each lazily imported by the `main.ts` switch, plus the sub-modules those screens split into. The routed entry points are `tool.ts`, `gallery.ts`, `catalog.ts`, `projects.ts`, `profile.ts`, `dashboard.ts`, `valid.ts` (the `/verify` Content Credentials check), `multi-edit.ts`, `start.ts` (the brand studio), `color-lab.ts`, `pdf-extract.ts` and `components.ts` (the browsable component library). Everything else in here is a piece of one of those: `tool-inputs.ts`, `tool-actions.ts`, `tool-stage-nav.ts` and `tool-types.ts` belong to the tool view; `free-canvas*.ts`, `timeline-panel.ts`, `deck-editor.ts`, `doc-editor.ts` and `rich-text.ts` are editor surfaces; `pdf-import.ts`, `pptx-import.ts`, `idml-import.ts` and `design-import.ts` are ingest paths; `picker.ts` is the asset picker that `host.assets.pick` lazily loads.
+**`views/`**: one module per screen, each lazily imported by the `main.ts` switch, plus the sub-modules those screens split into. The routed entry points are `tool.ts`, `gallery.ts`, `assets.ts`, `projects.ts`, `profile.ts`, `dashboard.ts`, `valid.ts` (the `/verify` Content Credentials check), `multi-edit.ts`, `start.ts` (the brand studio), `color-lab.ts`, `pdf-extract.ts` and `components.ts` (the browsable component library). Everything else in here is a piece of one of those: `tool-inputs.ts`, `tool-actions.ts`, `tool-stage-nav.ts` and `tool-types.ts` belong to the tool view; `free-canvas*.ts`, `timeline-panel.ts`, `deck-editor.ts`, `doc-editor.ts` and `rich-text.ts` are editor surfaces; `pdf-import.ts`, `pptx-import.ts`, `idml-import.ts` and `design-import.ts` are ingest paths; `picker.ts` is the asset picker that `host.assets.pick` lazily loads.
 
 **`bridge/`**: the web implementation of `HostV1`, one file per capability, composed by `index.ts`. Everything to do with turning a rendered DOM node into a file is here: `export.ts` and its satellites (`export-pdf-vector.ts`, `export-pdfx.ts`, `export-css.ts`, `export-image-meta.ts`, `export-pptx.ts`), `svg-ir.ts`, `text.ts` and `text-svg.ts` (HarfBuzz text-to-path), `font-registry.ts`, the `sequence-*.ts` and `video-encode*.ts` family for motion export, plus `state.ts`, `assets.ts`, `pdf.ts`, `pptx.ts`, `capture.ts`, `recorder.ts`, `media.ts`, `images.ts`, `audio.ts` and `viz.ts`. Six of them are now re-export shims over `packages/node-shell/src/` (`pdf.ts`, `pdf-structure.ts`, `pptx.ts`, `net.ts`, `svg-ir.ts`, `text-svg.ts`) - the terminal shells run the same code, and plans/202 WP1.1 moved the implementations into the package so `shells/cli` no longer imports across the submodule boundary. Treat their public exports as a contract with other shells and edit the node-shell file, not the shim. Four more are replaced wholesale at build time by the Tauri desktop shell (`state.ts`, `capture.ts`, `export.ts`, `capabilities-provided.ts`; the mobile shell overrides the same set minus `capture.ts`), which puts their public exports under the same rule.
 
@@ -58,14 +58,14 @@ Do not be ambushed by these. The largest source files, by line count:
 <!-- web-src-largest:start -->
 | Lines | File | Direct test coverage |
 |---|---|---|
-| 7,266 | `bridge/export.ts` | yes, but mostly gated. `export-audio-bed.test.ts` imports `bedStartOffset` and `connectMusic` directly and always runs; the SVG and PDF emission is covered by ten `chromiumOrSkip()` suites (`export-m3`, `export-paint-order`, `export-stroke-paint`, `export-shadow-fidelity`, `export-pdf-shadow-fidelity`, `export-emf-eps-shadow`, `export-atomic-inline`, `export-backdrop-blur`, `export-form-controls`, `export-text-emission`) that esbuild-bundle the real `renderSvgFromHtml` and drive it in Chromium, and which **self-skip** when no Chromium is installed. `export-text-emission` is the newest and covers the `<path>`-vs-`<text>` decision layer specifically; unlike the SUSE-gated golden suite it is brand-independent, so it runs on `lolly-start` too. |
+| 7,264 | `bridge/export.ts` | yes, but mostly gated. `export-audio-bed.test.ts` imports `bedStartOffset` and `connectMusic` directly and always runs; the SVG and PDF emission is covered by ten `chromiumOrSkip()` suites (`export-m3`, `export-paint-order`, `export-stroke-paint`, `export-shadow-fidelity`, `export-pdf-shadow-fidelity`, `export-emf-eps-shadow`, `export-atomic-inline`, `export-backdrop-blur`, `export-form-controls`, `export-text-emission`) that esbuild-bundle the real `renderSvgFromHtml` and drive it in Chromium, and which **self-skip** when no Chromium is installed. `export-text-emission` is the newest and covers the `<path>`-vs-`<text>` decision layer specifically; unlike the SUSE-gated golden suite it is brand-independent, so it runs on `lolly-start` too. |
 | 4,042 | `views/valid.ts` | `valid-verdict.test.ts` only |
-| 3,998 | `views/tool-inputs.ts` | none |
 | 3,940 | `views/picker.ts` | partial - the format and embeddability rules are extracted to `picker-formats.ts` and covered by `picker-formats.test.ts`, plus `picker-initial-tab.test.ts`; the 3,000-line panel body is not. |
+| 3,898 | `views/tool-inputs.ts` | none |
 | 3,659 | `views/color-lab.ts` | yes |
 | 3,257 | `bridge/sequence-render.ts` | yes |
-| 3,175 | `views/projects.ts` | none |
-| 3,086 | `views/gallery.ts` | none |
+| 3,179 | `views/projects.ts` | none |
+| 3,090 | `views/gallery.ts` | none |
 | 3,033 | `bridge/export-svg-walker.ts` | **none** |
 | 3,009 | `lib/rebrand/controller.ts` | yes |
 | 2,674 | `views/deck-editor.ts` | yes |
@@ -74,13 +74,13 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,366 | `views/design-inspector.ts` | yes |
 | 2,363 | `views/free-canvas-math.ts` | yes |
 | 2,245 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
-| 2,184 | `main.ts` | yes |
+| 2,194 | `main.ts` | yes |
 | 2,124 | `lib/drop-router.ts` | yes |
 | 2,103 | `lib/clip-thumbs.ts` | yes |
 | 2,103 | `views/tool/session.ts` | yes |
 <!-- web-src-largest:end -->
 
-The pattern is consistent and worth internalising: the **pure helpers** extracted out of a big view are well covered (`free-canvas-math.ts`, `timeline-math.ts`, `valid-verdict.ts`, `export-css.ts`, `text-svg.ts`, `svg-ir.ts`, `catalog-filter.ts`, `tool-history.ts`, `picker-formats.ts`), while the DOM-mounting bodies of the big views mostly are not. When you change one of the uncovered files, the cheapest way to get coverage is to extract the logic into a sibling pure module and test that, which is how the covered ones came to exist.
+The pattern is consistent and worth internalising: the **pure helpers** extracted out of a big view are well covered (`free-canvas-math.ts`, `timeline-math.ts`, `valid-verdict.ts`, `export-css.ts`, `text-svg.ts`, `svg-ir.ts`, `assets-filter.ts`, `tool-history.ts`, `picker-formats.ts`), while the DOM-mounting bodies of the big views mostly are not. When you change one of the uncovered files, the cheapest way to get coverage is to extract the logic into a sibling pure module and test that, which is how the covered ones came to exist.
 
 Largest stylesheets, for the same reason: `styles/parts/tool.css` (2,850), `gallery.css` (1,654), `brand-studio.css` (1,280), `color-lab.css` (1,265), `styles/picker.css` (1,188), `valid.css` (1,166) and `tool-chrome.css` (1,030).
 

@@ -29,8 +29,8 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const read = (rel: string): string => readFileSync(fileURLToPath(new URL(rel, import.meta.url)), 'utf8');
-// catalog is an orchestrator plus feature modules under ./catalog/ (2026-09-09 split)
-const CATALOG = [read('./catalog.ts'), ...readdirSync(new URL('./catalog/', import.meta.url)).filter((n) => n.endsWith('.ts')).sort().map((n) => read(`./catalog/${n}`))].join('\n');
+// the Assets view is an orchestrator plus feature modules under ./assets/ (2026-09-09 split)
+const CATALOG = [read('./assets.ts'), ...readdirSync(new URL('./assets/', import.meta.url)).filter((n) => n.endsWith('.ts')).sort().map((n) => read(`./assets/${n}`))].join('\n');
 const VALID = read('./valid.ts');
 
 /** The `read-text` action's whole handler body, from its guard to the next action. */

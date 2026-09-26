@@ -209,12 +209,12 @@ export function paint(tp: TpCtx, boxes: Box[]): void {
   }
 }
 
-function showBadge(tp: TpCtx, d: XfadeDrag, clientX: number): void {
-  const { trimBadge, inner } = tp;
-  const lane = tp.laneWrap.querySelector<HTMLElement>('.tl-lane-seq');
-  if (!lane) return;
-  const innerBox = inner.getBoundingClientRect();
-  const laneBox = lane.getBoundingClientRect();
+/**
+ * Place the length badge over the sequence lane. The boxes are measured by the caller at
+ * the top of its pointermove, before it writes any style, so this only writes.
+ */
+function showBadge(tp: TpCtx, d: XfadeDrag, clientX: number, innerBox: DOMRect, laneBox: DOMRect): void {
+  const { trimBadge } = tp;
   const top = laneBox.top - innerBox.top;
   const below = top < 24;
   const lift = isCoarsePointer(d.pointerType) ? 44 : 0;
@@ -267,13 +267,16 @@ function rampMove(tp: TpCtx, e: PointerEvent): void {
   const px = d.side === 'in' ? e.clientX - d.edgeClientX : d.edgeClientX - e.clientX;
   const rawMs = (px / Math.max(1e-6, tp.pxPerSec)) * 1000;
   d.ms = clampJunctionMs(rawMs, Math.max(MIN_JUNCTION_MS, d.maxMs), tp.opts.projectTime ? tp.helpers.frameStep() * 1000 : e.altKey ? JUNCTION_STEP_FINE_MS : JUNCTION_STEP_MS);
+  // Measure before any style write below, so the browser lays out at most once per move.
+  // The wedge and grip are absolutely placed inside the bar, so resizing them never moves
+  // either box: the numbers are the same as reading them after the writes.
+  const { trimBadge, inner } = tp;
+  const innerBox = inner.getBoundingClientRect();
+  const barBox = d.bar.getBoundingClientRect();
   const w = timeToPx(d.ms / 1000, tp.pxPerSec);
   const wedge = d.bar.querySelector<HTMLElement>(`:scope > .tl-ramp-${d.side}`);
   if (wedge) wedge.style.width = `${w}px`;
   d.src.style[d.side === 'in' ? 'left' : 'right'] = `${w}px`;
-  const { trimBadge, inner } = tp;
-  const innerBox = inner.getBoundingClientRect();
-  const barBox = d.bar.getBoundingClientRect();
   const top = barBox.top - innerBox.top;
   const below = top < 24;
   const lift = isCoarsePointer(d.pointerType) ? 44 : 0;
@@ -359,6 +362,10 @@ function onMove(tp: TpCtx, e: PointerEvent): void {
     ? null
     : clampJunctionMs(rawMs, d.maxMs, tp.opts.projectTime ? tp.helpers.frameStep() * 1000 : e.altKey ? JUNCTION_STEP_FINE_MS : JUNCTION_STEP_MS);
   const seqLane = tp.laneWrap.querySelector<HTMLElement>('.tl-lane-seq');
+  // Measure once, before the band and badge writes below, so a move costs one layout at
+  // most. The band and badge are absolutely placed, so writing them never moves these boxes.
+  const innerBox = tp.inner.getBoundingClientRect();
+  const laneBox = seqLane?.getBoundingClientRect() ?? null;
   let band = bandFor(tp, d.aId, d.bId);
   if (!band && seqLane) {
     band = makeBand(d.aId, d.bId);
@@ -366,14 +373,14 @@ function onMove(tp: TpCtx, e: PointerEvent): void {
   }
   if (band) {
     band.classList.add('is-dragging');
-    const cutSec = (d.cutClientX - tp.inner.getBoundingClientRect().left) / Math.max(1e-6, tp.pxPerSec);
+    const cutSec = (d.cutClientX - innerBox.left) / Math.max(1e-6, tp.pxPerSec);
     // The held part is recomputed from the model on release; while dragging, the live
     // length against the same source is what `seqJunctions` would say, so ask it.
     const probe = d.ms === null ? null
       : junctionFor(seqJunctions(setJunction(tp.getBoxes(), tp.cfg, d.aId, d.bId, d.ms), tp.cfg, tp.helpers.mediaDur), d.aId, d.bId);
     sizeBand(tp, band, { cutSec, ms: d.ms ?? 0, heldMs: probe?.heldMs ?? 0 });
   }
-  showBadge(tp, d, e.clientX);
+  if (laneBox) showBadge(tp, d, e.clientX, innerBox, laneBox);
 }
 
 function finish(tp: TpCtx, commit: boolean): void {

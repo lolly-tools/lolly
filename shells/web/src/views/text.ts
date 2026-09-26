@@ -329,7 +329,7 @@ export async function mountTextWorkspace(options: {
   const showSource = (): void => {
     query(ctx, '[data-source]').textContent = ctx.source.name ?? 'Untitled text';
     query(ctx, '[data-source]').title = ctx.source.assetId
-      ? `${ctx.source.origin ?? 'Catalog'}${ctx.source.writable ? '' : ' · Read-only source; save a copy'}`
+      ? `${ctx.source.origin ?? 'Assets'}${ctx.source.writable ? '' : ' · Read-only source; save a copy'}`
       : 'Working draft';
     query(ctx, '[data-save] span').textContent =
       ctx.source.assetId && ctx.source.writable ? 'Save changes' : 'Save';
@@ -430,7 +430,7 @@ export async function mountTextWorkspace(options: {
       : (ctx.source.name ?? 'text.txt');
     const canReplace = !result && ctx.source.assetId && ctx.source.writable;
     const modal = mountModal(
-      `<form><h2>${icon('document', { className: 'text-icon' })}${canReplace ? 'Save changes' : 'Save text'}</h2><p class="text-muted">${canReplace ? 'Update the catalog file you opened. Its project references keep working.' : `Save a text asset in the catalog${ctx.source.folderId ? ' and the source project' : ''}.`}</p><label class="text-save-name">Filename <input data-name value="${esc(defaultName)}"></label><p role="status" data-message class="text-form-error"></p><footer class="text-dialog-footer"><button type="button" class="btn btn--ghost" data-close>Cancel</button>${canReplace ? '<button type="button" class="btn btn--ghost" data-copy>Save a copy</button><button type="submit" class="btn btn--primary" data-replace>Save changes</button>' : '<button type="submit" class="btn btn--primary" data-copy>Save to catalog</button>'}</footer></form>`,
+      `<form><h2>${icon('document', { className: 'text-icon' })}${canReplace ? 'Save changes' : 'Save text'}</h2><p class="text-muted">${canReplace ? 'Update the file you opened from Assets. Its project references keep working.' : `Save a text asset in Assets${ctx.source.folderId ? ' and the source project' : ''}.`}</p><label class="text-save-name">Filename <input data-name value="${esc(defaultName)}"></label><p role="status" data-message class="text-form-error"></p><footer class="text-dialog-footer"><button type="button" class="btn btn--ghost" data-close>Cancel</button>${canReplace ? '<button type="button" class="btn btn--ghost" data-copy>Save a copy</button><button type="submit" class="btn btn--primary" data-replace>Save changes</button>' : '<button type="submit" class="btn btn--primary" data-copy>Save to Assets</button>'}</footer></form>`,
       {
         className: 'modal text-action-dialog',
         ariaLabel: 'Save text',
@@ -466,7 +466,7 @@ export async function mountTextWorkspace(options: {
           showSource();
         }
         modal.close();
-        ctx.status(replace ? 'Saved to the source asset.' : 'Saved a copy in the catalog.');
+        ctx.status(replace ? 'Saved to the source asset.' : 'Saved a copy in Assets.');
       } catch (error) {
         saving = false;
         modal.el.querySelector('[data-message]')!.textContent =
@@ -547,7 +547,7 @@ export async function mountTextWorkspace(options: {
           const ref = await host.assets.pick({
             type: 'text',
             types: ['text', 'data'],
-            title: 'Open text from catalog',
+            title: 'Open text from Assets',
             allowUpload: true,
           });
           if (ref) await openDocument(await readTextAsset(host, ref));

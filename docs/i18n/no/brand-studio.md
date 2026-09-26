@@ -136,7 +136,7 @@ Et valgfritt **Gradienter**-panel bygger blandingstokens fra paletten din for ba
 
 ### Ta paletten med deg
 
-Den flytende pillen plassert nederst på palettpanelet laster ned hele paletten som **Designtokens (JSON)**, **CSS-variabler**, **CSS-klasser**, **SCSS-variabler**, en **GIMP-palett (.gpl)** eller en **Adobe Swatch Exchange (.ase)** - slik at merkevaren går rett inn i Illustrator, Figma, GIMP eller et stilark. Den ligger utenfor panelets rullefelt, så den beholder plassen sin uansett hvor langt paletten rulles. (Du kan også laste ned paletten fra [Katalog](/info/using.html)-visningen.)
+Den flytende pillen plassert nederst på palettpanelet laster ned hele paletten som **Designtokens (JSON)**, **CSS-variabler**, **CSS-klasser**, **SCSS-variabler**, en **GIMP-palett (.gpl)** eller en **Adobe Swatch Exchange (.ase)** - slik at merkevaren går rett inn i Illustrator, Figma, GIMP eller et stilark. Den ligger utenfor panelets rullefelt, så den beholder plassen sin uansett hvor langt paletten rulles. (Du kan også laste ned paletten fra [Ressurser](/info/using.html#assets-your-library).)
 
 ## Skrift
 
@@ -179,7 +179,7 @@ Resten av designsystemet, redigerbart uten å røre kode:
 
 ## Filer
 
-Slipp filene merkevaren din har - bortsett fra logoer - her: **vektor-**, **bilde-**, **lyd-** og **bevegelses**ressurser (video, Lottie, animert). De havner i [Katalog](/info/using.html), sortert i seksjoner og klare i hvert verktøys ressursvelger. Alt forblir på denne enheten. (Menyen kaller rommet **Filer**; URL-nøkkelen forblir `catalogue`, fordi en panelnøkkel er en permanent kontrakt.)
+Slipp filene merkevaren din har - bortsett fra logoer - her: **vektor-**, **bilde-**, **lyd-** og **bevegelses**ressurser (video, Lottie, animert). De havner i [Ressurser](/info/using.html#assets-your-library), sortert i seksjoner og klare i hvert verktøys ressursvelger. Alt forblir på denne enheten. (Menyen kaller rommet **Filer**; URL-nøkkelen forblir `catalogue`, fordi en panelnøkkel er en permanent kontrakt.)
 
 ## Ta inn en merkevare
 
@@ -231,6 +231,6 @@ Enkelte bygg leveres med en **låst merkevare** - fargene, fontene og tokens er 
 
 ## Hvor du går videre
 
-- **[Bruke Lolly](/info/using.html)** - lerretet, lagring, prosjekter og katalogen.
+- **[Bruke Lolly](/info/using.html)** - lerretet, lagring, prosjekter og Ressurser.
 - **[Designtokens](/info/design-tokens.html)** - tokenmodellen merkevaren din uttrykkes i.
 - **[Eksport og formater](/info/exporting.html)** - trykkeenheter, CMYK og formatene merkevaren din gjengis til.

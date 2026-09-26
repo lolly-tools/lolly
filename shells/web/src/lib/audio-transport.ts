@@ -57,7 +57,7 @@ const FALLBACK: AudioTransportLabels = {
 
 /**
  * The markup. Self-contained and inert until wired - safe to drop into a template string.
- * Styling lives with the surface that uses it (see `.cat-tp-*` in styles/parts/catalog.css)
+ * Styling lives with the surface that uses it (see `.cat-tp-*` in styles/parts/asset-shared.css)
  * so this module stays free of any one view's layout.
  */
 export function audioTransportHtml(labels: Partial<AudioTransportLabels> = {}): string {

@@ -7,7 +7,7 @@
  * in-place asset rewrite (lib/tts-provenance.ts's rewriteTtsClip).
  *
  * The clip keeps its own asset id. No box in any document is re-pointed, every
- * `#/c?asset=` link keeps resolving, and each document using the clip hears the
+ * `#/a?asset=` link keeps resolving, and each document using the clip hears the
  * fix, which is the point of a fix.
  *
  * Only the sentences that changed are spoken again. The line diff decides that,

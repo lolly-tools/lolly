@@ -74,7 +74,7 @@ test('catalog visual pairs and exact saved versions preserve selection and bytes
       await host.assets._importUserAsset({ id: other, type: 'vector', format: 'svg', version: 'first', blob: new Blob([before], { type: 'image/svg+xml' }), meta: { name: 'Compare proof B.svg' } });
       return { id, other, version: (await host.assets.get(id)).version };
     }, { before: svg(20), after: svg(100) });
-    await page.goto(`${origin}/#/c`, { waitUntil: 'networkidle' });
+    await page.goto(`${origin}/#/a`, { waitUntil: 'networkidle' });
     for (const id of [ids.id, ids.other]) await page.locator(`.cat-tile[data-id="${id}"] .cat-check`).click();
     const url = page.url(); await page.locator('.cat-bulkbar [data-bulk="compare"]').click();
     await page.getByText('1 page differs', { exact: true }).waitFor();

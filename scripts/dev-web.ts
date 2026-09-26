@@ -74,7 +74,7 @@ start('node', ['docs/build.ts', '--watch']);
 start('node', ['scripts/build-tool-og.ts']);
 
 // 1c. Per-view OG cards + share stubs (one-shot). Same deal for the top-level views
-// (/d, /v, /c, /p, /profile) → committed catalog/og/views cards + /view/<slug>.html stubs.
+// (/d, /v, /a, /p, /profile) → committed catalog/og/views cards + /view/<slug>.html stubs.
 start('node', ['scripts/build-view-og.ts']);
 
 // 2. vite dev server - pipe stdout so we can discover the port, but forward every

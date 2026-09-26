@@ -117,9 +117,9 @@ test('a pinned target (the tool view’s launch folder) keeps its href', () => {
 test('a back target that IS the current view escapes to Home instead of looping', () => {
   clearStored();
   withHistoryEntry();
-  // Arrive at /#/catalog with /#/catalog ALSO recorded as the previous view - the
+  // Arrive at /#/a with /#/a ALSO recorded as the previous view - the
   // self-loop a direct entry can produce. Back to yourself is not a back.
-  walkFrom('catalog', 'Catalog - Lolly', '/#/catalog', '/#/catalog');
+  walkFrom('catalog', 'Assets - Lolly', '/#/a', '/#/a');
   const target = resolveBackTarget();
   assert.equal(target.href, '/#/', 'escapes to Home rather than pointing at the current view');
   assert.equal(target.label, 'Home');
@@ -137,7 +137,7 @@ test('the home escape renders a house icon in the markup, not the back arrow', (
   clearStored();
   // Force the self-loop (arrive where the prev points) so the target is Home
   // regardless of any prev left in memory by an earlier test.
-  walkFrom('catalog', 'Catalog - Lolly', '/#/catalog', '/#/catalog');
+  walkFrom('catalog', 'Assets - Lolly', '/#/a', '/#/a');
   const html = backPillHtml();
   assert.match(html, /href="\/#\/"/, 'points at Home');
   // The Lucide "house" path (icons.ts "home") starts with this distinctive
@@ -149,12 +149,12 @@ test('the home escape renders a house icon in the markup, not the back arrow', (
 test('markup carries a real href and the resolved mode', () => {
   clearStored();
   withHistoryEntry();
-  walkFrom('catalog', 'Catalog - Lolly', '/#/catalog');
+  walkFrom('catalog', 'Assets - Lolly', '/#/a');
   const html = backPillHtml();
-  assert.match(html, /href="\/#\/catalog"/);
+  assert.match(html, /href="\/#\/a"/);
   assert.match(html, /data-back-pill="history"/);
   assert.match(html, /class="tools-home home-full"/);
-  assert.match(html, />Catalog</, 'the label is the previous view, not "Tools"');
+  assert.match(html, />Assets</, 'the label is the previous view, not "Tools"');
   assert.match(html, /<svg /, 'the arrow is a real glyph, not the ::before text fallback');
 });
 
@@ -170,7 +170,7 @@ test('iconOnly drops the label but keeps the destination in the accessible name'
 test('a history-mode click pops the entry instead of pushing a new one', () => {
   clearStored();
   withHistoryEntry();
-  walkFrom('catalog', 'Catalog - Lolly', '/#/catalog');
+  walkFrom('catalog', 'Assets - Lolly', '/#/a');
   const root = document.getElementById('view')!;
   root.innerHTML = backPillHtml();
 
@@ -187,7 +187,7 @@ test('a history-mode click pops the entry instead of pushing a new one', () => {
 test('a modified click is left to the browser, so "open in new tab" still works', () => {
   clearStored();
   withHistoryEntry();
-  walkFrom('catalog', 'Catalog - Lolly', '/#/catalog');
+  walkFrom('catalog', 'Assets - Lolly', '/#/a');
   const root = document.getElementById('view')!;
   root.innerHTML = backPillHtml();
 
@@ -204,7 +204,7 @@ test('a modified click is left to the browser, so "open in new tab" still works'
 test('an intercepting view owns the click until it calls go()', () => {
   clearStored();
   withHistoryEntry();
-  walkFrom('catalog', 'Catalog - Lolly', '/#/catalog');
+  walkFrom('catalog', 'Assets - Lolly', '/#/a');
   const root = document.getElementById('view')!;
   root.innerHTML = backPillHtml();
 
@@ -228,7 +228,7 @@ test('an intercepting view owns the click until it calls go()', () => {
   // was entered by in-app navigation (a history-mode pill). Regression guard.
   assert.equal(backCalls, 0, 'must not history.back() - it would pop the dialog entry, not leave the tool');
   assert.equal(navigated, 1, 'the dialog’s "leave" navigates to the resolved target by URL');
-  assert.match(dom.window.location.href, /catalog/, 'and lands on the back target');
+  assert.match(dom.window.location.href, /#\/a$/, 'and lands on the back target');
   dom.window.removeEventListener('lolly:navigate', onNav);
 });
 

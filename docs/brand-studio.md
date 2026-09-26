@@ -182,7 +182,7 @@ An optional **Gradients** panel builds blend tokens from the palette for backgro
 
 ### Take the palette elsewhere
 
-The floating pill parked at the bottom edge of the palette pane downloads the whole palette as **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, a **GIMP palette (.gpl)** or an **Adobe Swatch Exchange (.ase)** - so the design system drops straight into Illustrator, Figma, GIMP or a stylesheet. It sits outside the pane's scroller, so it keeps its seat however far the palette scrolls, and it appears once the palette has shades. (You can also download the palette from the [Catalogue](/info/using.html) view.)
+The floating pill parked at the bottom edge of the palette pane downloads the whole palette as **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, a **GIMP palette (.gpl)** or an **Adobe Swatch Exchange (.ase)** - so the design system drops straight into Illustrator, Figma, GIMP or a stylesheet. It sits outside the pane's scroller, so it keeps its seat however far the palette scrolls, and it appears once the palette has shades. (You can also download the palette from [Assets](/info/using.html#assets-your-library).)
 
 ## Type
 
@@ -239,7 +239,7 @@ The rest of the design system, editable without touching code:
 
 ## Files
 
-Drop the files your brand keeps - logos aside - here: **vector**, **image**, **audio** and **motion** (video, Lottie, animated) assets. They land in your [Catalogue](/info/using.html), sorted into sections and ready in every tool's asset picker. Everything stays on this device. (The rail labels the room **Files**; the URL key stays `catalogue`, because a panel key is a permanent contract.)
+Drop the files your brand keeps - logos aside - here: **vector**, **image**, **audio** and **motion** (video, Lottie, animated) assets. They land in [Assets](/info/using.html#assets-your-library), sorted into sections and ready in every tool's asset picker. Everything stays on this device. (The rail labels the room **Files**; the URL key stays `catalogue`, because a panel key is a permanent contract.)
 
 ## Bring a brand in
 
@@ -302,7 +302,7 @@ Some builds ship a **locked design system**, such as the SUSE Brand. Opening it 
 
 ## Where to go next
 
-- **[Using Lolly](/info/using.html)** - the canvas, saving, projects and the catalogue.
+- **[Using Lolly](/info/using.html)** - the canvas, saving, projects and Assets.
 - **[Design Tokens](/info/design-tokens.html)** - the token model your brand is expressed in.
 - **[Exporting & formats](/info/exporting.html)** - print units, CMYK and the formats your brand renders into.
 

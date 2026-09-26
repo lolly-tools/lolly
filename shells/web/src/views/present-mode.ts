@@ -662,6 +662,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   let appliedState: string[] = []; // frame `state` tokens currently on the stage root (M4)
   let idleTimer: ReturnType<typeof setTimeout> | null = null;
   let armTimer: ReturnType<typeof setTimeout> | null = null;
+  let camTimer: ReturnType<typeof setTimeout> | null = null;
   let advTimer: ReturnType<typeof setTimeout> | null = null;
   let morphTimer: ReturnType<typeof setTimeout> | null = null;
   let noteTimer: ReturnType<typeof setTimeout> | null = null;
@@ -810,6 +811,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
       }
       setCamera(cameraFor(frameRect(active), viewport(), FLIGHT_MARGIN), 0);
     } else {
+      releaseCamera();
       framesEl.style.removeProperty('transition-property');
       framesEl.style.removeProperty('transition-duration');
       framesEl.style.removeProperty('transition-timing-function');
@@ -823,12 +825,30 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
   /** Point the camera, taking `ms` to get there (0 = now). The transform itself is
    *  composed in present.css out of these three properties. */
   function setCamera(cam: Camera, ms: number): void {
+    const dur = Math.max(0, Math.round(ms));
+    // Promote the container only while a leg is moving, the same way armWillChange
+    // treats the pages: set the hint as the leg starts and drop it 60ms after it should
+    // have finished. The next leg of an arc starts before that timer fires and re-arms
+    // it, so a whole flight stays on one layer. An instant jump (0ms) needs no layer.
+    if (camTimer) { clearTimeout(camTimer); camTimer = null; }
+    if (dur > 0) {
+      framesEl.style.willChange = 'transform';
+      camTimer = setTimeout(releaseCamera, dur + 60);
+    } else {
+      framesEl.style.removeProperty('will-change');
+    }
     framesEl.style.transitionProperty = 'transform';
-    framesEl.style.transitionDuration = `${Math.max(0, Math.round(ms))}ms`;
+    framesEl.style.transitionDuration = `${dur}ms`;
     framesEl.style.transitionTimingFunction = FLIGHT_EASE_CSS;
     framesEl.style.setProperty('--pr-cam-s', String(cam.scale));
     framesEl.style.setProperty('--pr-cam-x', `${cam.tx}px`);
     framesEl.style.setProperty('--pr-cam-y', `${cam.ty}px`);
+  }
+
+  /** Drop the camera's layer hint and any pending timer that would have dropped it. */
+  function releaseCamera(): void {
+    if (camTimer) { clearTimeout(camTimer); camTimer = null; }
+    framesEl.style.removeProperty('will-change');
   }
 
   // The heart: assign the state-class contract for the whole deck at `active`, in travel
@@ -1897,6 +1917,7 @@ export function openPresentMode(opts: OpenPresentOptions): PresentController | n
     window.removeEventListener('resize', onResize);
     if (idleTimer) clearTimeout(idleTimer);
     if (armTimer) clearTimeout(armTimer);
+    if (camTimer) clearTimeout(camTimer);
     if (advTimer) clearTimeout(advTimer);
     if (leaveTimer) clearTimeout(leaveTimer);
     if (morphTimer) clearTimeout(morphTimer);

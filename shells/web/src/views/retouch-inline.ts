@@ -8,7 +8,7 @@
  * the preview area becomes the brush stage with a toolbar pinned on top, the
  * modal's own action row steps aside for Cancel + the morphing primary, and
  * Escape backs out of the MODE, not the modal - the inline-crop pattern
- * exactly (`enterInlineCrop` in views/catalog.ts owns the mode classes and
+ * exactly (`enterInlineCrop` in views/assets.ts owns the mode classes and
  * consults `busy()` before letting Escape exit).
  *
  * Provenance: a fill is a deterministic edit, not generation - the saved copy

@@ -91,7 +91,7 @@ server {
     }
 
     # ── Content-hashed build output: safe to cache forever (immutable).
-    location /assets/ {
+    location /_app/ {
         add_header Cache-Control "public, max-age=31536000, immutable";
         include /etc/nginx/security-headers.conf;
         try_files $uri =404;
@@ -106,7 +106,7 @@ server {
 }
 ```
 
-That repeated `include` is not redundancy: nginx drops **every** inherited `add_header` inside a location that declares one of its own, so any location setting `Cache-Control` would otherwise ship with no security headers at all. Keep the include when you add a location. The file also carries a cheap unauthenticated `/healthz` for the chart's probes, explicit `types` for `.wasm`/`.avif`/`.webmanifest`, long-cache rules for `/ort/`, `/models/` and `/fonts/` and the short URL aliases (`/d`, `/v`, `/c`, `/p`, `/profile`) that mirror the hosted deployment's rewrites.
+That repeated `include` is not redundancy: nginx drops **every** inherited `add_header` inside a location that declares one of its own, so any location setting `Cache-Control` would otherwise ship with no security headers at all. Keep the include when you add a location. The file also carries a cheap unauthenticated `/healthz` for the chart's probes, explicit `types` for `.wasm`/`.avif`/`.webmanifest`, long-cache rules for `/ort/`, `/models/` and `/fonts/` and the short URL aliases (`/d`, `/v`, `/a`, `/assets`, `/c`, `/p`, `/profile`) that mirror the hosted deployment's rewrites.
 
 ### 4. The chart
 

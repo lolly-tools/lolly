@@ -205,7 +205,7 @@ export function setupScreenCaptureControl({
   // runTemplateScripts can't double-bind the drag handler, and so the tool never
   // reaches into shell-private vector markup. Drag rects are read as fractions of
   // the canvas's VISUAL rect, so fitCanvas's scale drops out (same reason
-  // catalog.ts uses fractions).
+  // views/assets.ts uses fractions).
   const cropLayer = document.createElement('div');
   cropLayer.className = 'canvas-crop-layer';
   cropLayer.setAttribute('data-export-hide', '');

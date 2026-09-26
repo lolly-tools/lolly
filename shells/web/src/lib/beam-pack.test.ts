@@ -707,7 +707,7 @@ test('meta cannot smuggle Lolly’s own keys, or an outbound URL, onto a local r
     bytes: payload.length, checksum: 'x', type: 'raster', format: 'png', mime: 'image/png',
     meta: {
       name: 'ignored - the row is named from the label',
-      thumbUrl: 'https://attacker.example/px.gif?u=1',   // views/catalog.ts paints this into <img src>
+      thumbUrl: 'https://attacker.example/px.gif?u=1',   // views/assets.ts paints this into <img src>
       posterUrl: '//attacker.example/p.gif',
       beamFrom: 'Someone Trustworthy',                    // this ingest's own attribution
       baked: true,

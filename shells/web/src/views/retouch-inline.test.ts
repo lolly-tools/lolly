@@ -15,8 +15,8 @@ import { dirname, join } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const mode = readFileSync(join(here, 'retouch-inline.ts'), 'utf8');
-// catalog.ts is an orchestrator plus feature modules under catalog/ (2026-09-09 split)
-const catalog = [readFileSync(join(here, 'catalog.ts'), 'utf8'), ...readdirSync(join(here, 'catalog')).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(here, 'catalog', n), 'utf8'))].join('\n');
+// assets.ts is an orchestrator plus feature modules under assets/ (2026-09-09 split)
+const catalog = [readFileSync(join(here, 'assets.ts'), 'utf8'), ...readdirSync(join(here, 'assets')).filter((n) => n.endsWith('.ts')).sort().map((n) => readFileSync(join(here, 'assets', n), 'utf8'))].join('\n');
 
 test('provenance: a deterministic edit with the original as ingredient', () => {
   assert.match(mode, /stampDerivedC2pa/, 'the save path stamps a credential');

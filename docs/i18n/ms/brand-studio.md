@@ -136,7 +136,7 @@ Panel **Gradients** pilihan membina token campuran daripada palet anda untuk lat
 
 ### Bawa palet ke tempat lain
 
-Pil terapung yang diletakkan di tepi bawah anak tetingkap palet memuat turun keseluruhan palet sebagai **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, satu **GIMP palette (.gpl)** atau satu **Adobe Swatch Exchange (.ase)** - jadi jenama itu terus masuk ke dalam Illustrator, Figma, GIMP atau helaian gaya. Ia berada di luar penatal anak tetingkap itu, jadi ia kekal di tempatnya tidak kira sejauh mana palet ditatal. (Anda juga boleh memuat turun palet daripada paparan [Catalogue](/info/using.html).)
+Pil terapung yang diletakkan di tepi bawah anak tetingkap palet memuat turun keseluruhan palet sebagai **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, satu **GIMP palette (.gpl)** atau satu **Adobe Swatch Exchange (.ase)** - jadi jenama itu terus masuk ke dalam Illustrator, Figma, GIMP atau helaian gaya. Ia berada di luar penatal anak tetingkap itu, jadi ia kekal di tempatnya tidak kira sejauh mana palet ditatal. (Anda juga boleh memuat turun palet daripada paparan [Aset](/info/using.html#assets-your-library).)
 
 ## Type
 
@@ -179,7 +179,7 @@ Selebihnya sistem reka bentuk, boleh disunting tanpa menyentuh kod:
 
 ## Files
 
-Jatuhkan fail yang disimpan jenama anda - selain logo - di sini: aset **vector**, **image**, **audio** dan **motion** (video, Lottie, animasi). Ia mendarat dalam [Catalogue](/info/using.html) anda, disusun ke dalam bahagian dan sedia dalam pemilih aset setiap alat. Segalanya kekal pada peranti ini. (Rel melabelkan bilik itu **Files**; kunci URL kekal `catalogue`, kerana kunci panel adalah kontrak kekal.)
+Jatuhkan fail yang disimpan jenama anda - selain logo - di sini: aset **vector**, **image**, **audio** dan **motion** (video, Lottie, animasi). Ia mendarat dalam [Aset](/info/using.html#assets-your-library), disusun ke dalam bahagian dan sedia dalam pemilih aset setiap alat. Segalanya kekal pada peranti ini. (Rel melabelkan bilik itu **Files**; kunci URL kekal `catalogue`, kerana kunci panel adalah kontrak kekal.)
 
 ## Bawa masuk satu jenama
 
@@ -231,6 +231,6 @@ Sesetengah binaan menghantar **jenama terkunci** - warna, fon dan tokennya adala
 
 ## Ke mana seterusnya
 
-- **[Using Lolly](/info/using.html)** - kanvas, penyimpanan, projek dan katalog.
+- **[Using Lolly](/info/using.html)** - kanvas, penyimpanan, projek dan Aset.
 - **[Design Tokens](/info/design-tokens.html)** - model token tempat jenama anda dinyatakan.
 - **[Exporting & formats](/info/exporting.html)** - unit cetak, CMYK dan format yang menjadi hasil render jenama anda.

@@ -92,6 +92,6 @@ X-Content-Type-Options:         nosniff
 Permissions-Policy:             camera=(self), microphone=(self), display-capture=(self), geolocation=()
 ```
 
-Plus: `sw.js` and `index.html` no-cache; `/assets/`, `/ort/`, `/fonts/`
+Plus: `sw.js` and `index.html` no-cache; `/_app/`, `/ort/`, `/fonts/`
 immutable; `.wasm` served as `application/wasm`; and the SPA fallback
 `try_files $uri $uri.html $uri/index.html /index.html`.

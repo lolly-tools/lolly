@@ -70,7 +70,7 @@ prohlédne v prohlížeči. Tření při zavádění je jen zřídka technické;
 hotový balík tvých šablon. Pro *řízené nasazení* někdo nadefinuje sdílený
 katalog assetů (loga, palety, fonty jako trvalá ID) a napíše manifest +
 šablonu pro každý typ výstupu. Jednotlivci na to ale čekat nemusí - v
-otevřené aplikaci si kdokoli může nahrát vlastní soubory do katalogu a stavět nástroje v
+otevřené aplikaci si kdokoli může nahrát vlastní soubory do zobrazení Assety a stavět nástroje v
 Designu hned první den.
 
 **K přispívání není potřeba git.** Designéři si vlastní nástroje a šablony vyrobí

@@ -49,5 +49,5 @@ Read a chapter, then send what you found, quoting the chapter and heading. Open 
 - No threshold. The comparator probe in the conformance chapter shows only that one whole-image number cannot separate a lost caption from a half-pixel shift. Calibration comes after review (R9).
 - No frozen type. The counterexamples in the proof cases must pass as contract fixtures before anything is added to `packages/core` or `schemas/`.
 - No determinism or reproducibility claim beyond the ones [Determinism](/info/determinism.html) and [Reproducibility](/info/reproducibility.html) already make.
-- No cloud dependency. The core evaluates on the device. A governed client that loses its connection keeps enforcing the policy it holds (R7).
+- No cloud dependency. The core evaluates on the device. A governed client that loses its connection must keep enforcing the policy it holds (R7). The web shell does not do that yet: once its cached copy is 24 hours old and the server cannot be reached, it fails closed ([policy chapter](/info/spec/document-model/policy.html)).
 - Nothing about spatial output or fabrication beyond an extension boundary. Both stay written explorations. This draft commits to building neither (D5).

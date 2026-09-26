@@ -21,7 +21,7 @@
 //
 //   • createViewCardRenderer - per-view AND per-/info-page share cards
 //     (scripts/build-view-og.ts and docs/build.ts → generateOgImages). The same
-//     light-on-dark language for the app's own sections (Tools, Projects, Catalogue, …)
+//     light-on-dark language for the app's own sections (Tools, Projects, Assets, …)
 //     and the docs pages (Authoring Tools, URL Mode, …): a rounded app-icon tile, the
 //     title (wrapping to two lines for long docs titles), a one-line description, a
 //     faint icon watermark, and the lollipop cropped by the bottom-right corner.
@@ -415,9 +415,9 @@ export function createToolCardRenderer(rasterize: SvgToPng, chrome: BrandChrome)
 
 // ── Per-view share card (app-section header style) ───────────────────────────
 //
-// The app's own sections (Tools, Utilities, Projects, Catalogue, Dashboard, Verify,
+// The app's own sections (Tools, Utilities, Projects, Assets, Dashboard, Verify,
 // Brand setup, Colour Lab, Batch mode, PDF, Profile) shared as clean deep links
-// (/tools, /u, /p, /c, /d, /v, …). Same field, marks and type as the tool card - what
+// (/tools, /u, /p, /a, /d, /v, …). Same field, marks and type as the tool card - what
 // differs is the composition: no preview panel, but an app-icon tile in the accent, a
 // much bigger title, a low-opacity watermark of the same icon bleeding off the right
 // edge, and the lollipop cropped by the corner. Cohesive as a family; distinguished by

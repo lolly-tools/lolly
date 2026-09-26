@@ -1778,14 +1778,14 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
   document.addEventListener('copy', fc.modes.onCopy);
   document.addEventListener('cut', fc.modes.onCut);
   stageEl.addEventListener('pointermove', fc.keys.onStagePointerMove, { passive: true });
-  stageEl.addEventListener('wheel', fc.keys.onStageMove, { passive: true });
+  stageEl.addEventListener('wheel', fc.keys.onStageWheel, { passive: true });
   // The camera's wheel (plans/104 section 8) - on the CANVAS, not the stage, and non-passive
   // so a claimed notch can be preventDefault()ed. It runs BEFORE `tool-stage-nav`'s
   // stage-level listener (a canvas-level handler on the way up), and only claims the
   // event when a camera is actually armed.
   canvasEl.addEventListener('wheel', fc.contextBar.onCameraWheel as EventListener, { passive: false });
-  window.addEventListener('resize', fc.keys.onStageMove);
-  const ro = new ResizeObserver(fc.keys.onStageMove); fc.ro = ro;
+  window.addEventListener('resize', fc.keys.onStageResize);
+  const ro = new ResizeObserver(fc.keys.onStageResize); fc.ro = ro;
   ro.observe(stageEl);
   stageEl.addEventListener('transitionend', fc.keys.onStageTransitionEnd);
   // Keyboard/HUD zoom (setupStageNav's − / + / 0 / 1 / Fit) changes the canvas
@@ -2195,14 +2195,14 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
       document.removeEventListener('copy', fc.modes.onCopy);
       document.removeEventListener('cut', fc.modes.onCut);
       stageEl.removeEventListener('pointermove', fc.keys.onStagePointerMove);
-      stageEl.removeEventListener('wheel', fc.keys.onStageMove);
+      stageEl.removeEventListener('wheel', fc.keys.onStageWheel);
       stageEl.removeEventListener('transitionend', fc.keys.onStageTransitionEnd);
       canvasEl.removeEventListener('wheel', fc.contextBar.onCameraWheel as EventListener);
       if (fc.dollyTimer) {
         clearTimeout(fc.dollyTimer);
         fc.dollyTimer = null;
       }
-      window.removeEventListener('resize', fc.keys.onStageMove);
+      window.removeEventListener('resize', fc.keys.onStageResize);
       document.removeEventListener('pointerdown', fc.keys.onDocDown, true);
       document.removeEventListener('keydown', fc.keys.onPreviewKey);
       fc.keys.chromeRoot()?.classList.remove('is-chrome-hidden'); // never leave the next mount chromeless

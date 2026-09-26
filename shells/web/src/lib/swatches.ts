@@ -13,7 +13,7 @@
  * palette sheet's read-only mirror chip (`.stu-chip`) - which show no visible text, only
  * a colour + title/aria-label. It's deliberately separate from `swatch()` above: that one
  * renders a full read-only card (name + hex + CMYK row) and its three call sites
- * (dashboard.ts, catalog.ts) are outside this refactor. The palette-wheel dot stays its
+ * (dashboard.ts, assets.ts) are outside this refactor. The palette-wheel dot stays its
  * own thing too - it's geometry (positioned on a hue/lightness disc), not a tile.
  */
 import { escape } from '../utils.ts';

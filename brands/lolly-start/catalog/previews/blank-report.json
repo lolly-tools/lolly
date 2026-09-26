@@ -1712,20 +1712,120 @@
       "sparse": false
     },
     {
-      "file": "diagram-builder.svg",
-      "bytes": 64372,
-      "sha": "c357c6a60d056292",
-      "stddev": 26.499,
-      "inkRatio": 0.09461,
+      "file": "diagram-builder.look0.svg",
+      "bytes": 12659,
+      "sha": "68d294516818b5c9",
+      "stddev": 17.306,
+      "inkRatio": 0.07444,
       "ground": "black",
       "grounds": {
         "white": {
-          "stddev": 24.867,
-          "inkRatio": 0.0868
+          "stddev": 11.717,
+          "inkRatio": 0.0173
         },
         "black": {
-          "stddev": 26.499,
-          "inkRatio": 0.09461
+          "stddev": 17.306,
+          "inkRatio": 0.07444
+        }
+      },
+      "blank": false,
+      "sparse": false
+    },
+    {
+      "file": "diagram-builder.look1.svg",
+      "bytes": 12396,
+      "sha": "a031466f922fbd08",
+      "stddev": 56.377,
+      "inkRatio": 0.15446,
+      "ground": "black",
+      "grounds": {
+        "white": {
+          "stddev": 55.797,
+          "inkRatio": 0.09732
+        },
+        "black": {
+          "stddev": 56.377,
+          "inkRatio": 0.15446
+        }
+      },
+      "blank": false,
+      "sparse": false
+    },
+    {
+      "file": "diagram-builder.look2.svg",
+      "bytes": 18390,
+      "sha": "9e277a01d32a41d8",
+      "stddev": 11.685,
+      "inkRatio": 0.13398,
+      "ground": "black",
+      "grounds": {
+        "white": {
+          "stddev": 10.202,
+          "inkRatio": 0.08398
+        },
+        "black": {
+          "stddev": 11.685,
+          "inkRatio": 0.13398
+        }
+      },
+      "blank": false,
+      "sparse": false
+    },
+    {
+      "file": "diagram-builder.look3.svg",
+      "bytes": 25423,
+      "sha": "cff9b7abaea367e7",
+      "stddev": 20.643,
+      "inkRatio": 0.28209,
+      "ground": "black",
+      "grounds": {
+        "white": {
+          "stddev": 14.693,
+          "inkRatio": 0.27428
+        },
+        "black": {
+          "stddev": 20.643,
+          "inkRatio": 0.28209
+        }
+      },
+      "blank": false,
+      "sparse": false
+    },
+    {
+      "file": "diagram-builder.look4.svg",
+      "bytes": 33054,
+      "sha": "f75ed4c61b97d39b",
+      "stddev": 50.319,
+      "inkRatio": 0.12128,
+      "ground": "black",
+      "grounds": {
+        "white": {
+          "stddev": 46.622,
+          "inkRatio": 0.11347
+        },
+        "black": {
+          "stddev": 50.319,
+          "inkRatio": 0.12128
+        }
+      },
+      "blank": false,
+      "sparse": false
+    },
+    {
+      "file": "diagram-builder.svg",
+      "bytes": 60795,
+      "sha": "b397d0f50ac6388d",
+      "stddev": 12.917,
+      "inkRatio": 0.04724,
+      "ground": "white",
+      "grounds": {
+        "white": {
+          "stddev": 12.917,
+          "inkRatio": 0.04724
+        },
+        "black": {
+          "stddev": 12.915,
+          "inkRatio": 0.04724
         }
       },
       "blank": false,

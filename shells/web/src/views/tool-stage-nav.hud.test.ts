@@ -273,3 +273,81 @@ test('dragging the bar out of the sidebar by hand keeps it out for the session',
     h.teardown();
   }
 });
+
+// ── Wheel ticks and the readout: measure once, tell once per frame ─────────────
+//
+// apply() used to measure the canvas for the readout straight after writing the
+// transform, and every wheel tick re-measured the wrapper's origin, so each tick forced
+// a layout of its own. The readout now hears once per animation frame, and a wheel
+// burst measures its geometry on the first tick and reuses it until the burst ends.
+
+/** The wrapper's rect the way a real browser reports it: its natural top-left plus the translation. */
+function stubOuterRect(outer: HTMLElement, natural = { left: 30, top: 50 }): () => number {
+  let reads = 0;
+  outer.getBoundingClientRect = () => {
+    reads++;
+    const m = outer.style.transform.match(/translate\(([-\d.e+]+)px, ([-\d.e+]+)px\)/);
+    const tx = m ? Number(m[1]) : 0, ty = m ? Number(m[2]) : 0;
+    return { x: natural.left + tx, y: natural.top + ty, left: natural.left + tx, top: natural.top + ty, right: 0, bottom: 0, width: 0, height: 0, toJSON: () => ({}) } as DOMRect;
+  };
+  return () => reads;
+}
+
+function wheel(stage: HTMLElement, deltaY: number, clientX: number, clientY: number, ctrlKey = true): void {
+  stage.dispatchEvent(new dom.window.WheelEvent('wheel', { deltaY, clientX, clientY, ctrlKey, bubbles: true, cancelable: true }));
+}
+
+test('the zoom readout hears once per animation frame, with the latest view, before that frame paints', () => {
+  const g = globalThis as Record<string, unknown>;
+  const queue: Array<() => void> = [];
+  g.requestAnimationFrame = (cb: () => void) => { queue.push(cb); return queue.length; };
+  g.cancelAnimationFrame = (id: number) => { queue[id - 1] = () => {}; };
+  const h = mount({ hud: false });
+  try {
+    const seen: number[] = [];
+    h.nav.subscribe(v => seen.push(v));
+    assert.deepEqual(seen, [1], 'subscribing still answers at once');
+    h.nav.zoomBy(2);
+    h.nav.zoomBy(2);
+    h.nav.zoomBy(0.5);
+    assert.equal(seen.length, 1, 'no measuring inside apply(): the view changed, the readout waits for the frame');
+    assert.equal(queue.length, 1, 'three changes in one frame ask for one frame');
+    queue.shift()!();
+    assert.equal(seen.length, 2, 'the frame tells it once');
+    assert.ok(Math.abs(seen[1]! - 2) < 1e-9, 'with where the view ended up');
+    h.nav.zoomBy(2);
+    h.teardown();
+    queue.shift()!();
+    assert.equal(seen.length, 2, 'a frame still queued when the view is destroyed tells no one');
+  } finally {
+    delete g.requestAnimationFrame;
+    delete g.cancelAnimationFrame;
+    h.stage.remove();
+  }
+});
+
+test('a wheel burst measures the wrapper once and lands exactly where measuring every tick would', () => {
+  const ticks: Array<[number, number, number]> = [[-40, 300, 200], [-40, 310, 205], [60, 280, 190], [-120, 400, 260]];
+
+  // Reference: a window resize between ticks releases the hold, so every tick measures.
+  const ref = mount({ hud: false });
+  const refReads = stubOuterRect(ref.outer);
+  let expected = '';
+  try {
+    for (const [dy, x, y] of ticks) { wheel(ref.stage, dy, x, y); dom.window.dispatchEvent(new dom.window.Event('resize')); }
+    expected = ref.outer.style.transform;
+    assert.equal(refReads(), ticks.length, 'released between ticks, each tick measures');
+  } finally { ref.teardown(); }
+
+  const h = mount({ hud: false });
+  const reads = stubOuterRect(h.outer);
+  try {
+    for (const [dy, x, y] of ticks) wheel(h.stage, dy, x, y);
+    assert.ok(expected.length > 0, 'the reference zoomed');
+    assert.equal(h.outer.style.transform, expected, 'the same transform, tick for tick');
+    assert.equal(reads(), 1, 'one measure for the whole burst');
+    dom.window.dispatchEvent(new dom.window.Event('resize'));
+    wheel(h.stage, -40, 300, 200);
+    assert.equal(reads(), 2, 'a resize releases the hold, so the next tick measures afresh');
+  } finally { h.teardown(); }
+});
