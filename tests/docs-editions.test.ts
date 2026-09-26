@@ -59,7 +59,7 @@ test('docs/editions holds only files a page names', () => {
 test('the built English page links its edition beside Listen', (t) => {
   for (const e of named) {
     const page = join(infoDir, e.pathway ?? '', `${e.slug}.html`);
-    if (!existsSync(page)) { t.skip('/info is not built'); return; }
+    if (!existsSync(page)) { t.skip('no built /info on disk - run `pnpm run build:info`'); return; }
     const html = readFileSync(page, 'utf8');
     const bar = /<div class="listen-bar[^"]*">([\s\S]*?)<\/div>/.exec(html)?.[1] ?? '';
     assert.ok(bar.includes(`href="/info/editions/${e.pdf}"`), `${e.slug}: the listen bar does not link its edition`);
@@ -70,6 +70,6 @@ test('the built English page links its edition beside Listen', (t) => {
 
 test('the offline docs manifest leaves print editions out', (t) => {
   const manifest = join(infoDir, 'manifest.json');
-  if (!existsSync(manifest)) { t.skip('/info is not built'); return; }
+  if (!existsSync(manifest)) { t.skip('no built /info on disk - run `pnpm run build:info`'); return; }
   assert.ok(!readFileSync(manifest, 'utf8').includes('/info/editions/'), 'an edition is in the offline docs download');
 });

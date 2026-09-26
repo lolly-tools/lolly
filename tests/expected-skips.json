@@ -3111,6 +3111,20 @@
       "owner": "tests"
     },
     {
+      "file": "tests/docs-editions.test.ts",
+      "fullName": "the built English page links its edition beside Listen",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-editions.test.ts",
+      "fullName": "the offline docs manifest leaves print editions out",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
       "file": "tests/rebrand-structure.test.ts",
       "fullName": "the private corpus: no wrong read, no read over its slot capacity and no unexplained continuation in the apply band, against the structure labels",
       "reason": "the private rebrand deck fixture corpus is not on this machine (set LOLLY_REBRAND_FIXTURES)",
