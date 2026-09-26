@@ -84,10 +84,10 @@
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {
-      "lines": 2259,
-      "largestFunctionLines": 2919,
+      "lines": 2263,
+      "largestFunctionLines": 2922,
       "importFanIn": 1,
-      "importFanOut": 45,
+      "importFanOut": 46,
       "typeEscapes": 8
     },
     "shells/web/src/views/tool-inputs.ts": {
@@ -346,7 +346,6 @@
     "shells/web/src/pro/run-overlay.ts": 1,
     "shells/web/src/user-fonts.ts": 4,
     "shells/web/src/views/anim-transport.ts": 1,
-    "shells/web/src/views/block-tree.ts": 1,
     "shells/web/src/views/assets/bulk.ts": 2,
     "shells/web/src/views/assets/details-inline-modes.ts": 4,
     "shells/web/src/views/assets/details-sheet.ts": 8,
@@ -354,6 +353,7 @@
     "shells/web/src/views/assets/tiles.ts": 1,
     "shells/web/src/views/assets/user-assets.ts": 1,
     "shells/web/src/views/assets/wiring.ts": 2,
+    "shells/web/src/views/block-tree.ts": 1,
     "shells/web/src/views/convert.ts": 1,
     "shells/web/src/views/dashboard.ts": 3,
     "shells/web/src/views/design-import.ts": 68,
