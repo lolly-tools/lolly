@@ -1,0 +1,7 @@
+KHTML :: KDE, late 1990s
+  WebKit :: Apple, 2003
+    WebKitGTK :: Lolly on Linux #dcf3e6
+    WKWebView :: Lolly on macOS #dcf3e6
+    Blink :: Google, 2013
+      WebView2 :: Lolly on Windows #dcf3e6
+      Chromium :: command line #dcf3e6

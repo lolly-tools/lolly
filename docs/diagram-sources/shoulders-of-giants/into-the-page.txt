@@ -1,0 +1,2 @@
+Desktop code :: C, C++ and Rust -> Compilers :: Emscripten and Rust -> WebAssembly :: W3C, 2019 -> Lolly :: on your device #30ba78
+Graphics card :: already in your device -> WebGPU :: W3C, 2023 -> Models in the page :: nothing sent away -> Lolly :: on your device #30ba78

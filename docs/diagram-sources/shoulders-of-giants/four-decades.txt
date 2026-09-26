@@ -1,0 +1,13 @@
+1983 · GNU :: volunteers #dcf3e6 : 0.33..4.67
+1991 · Linux :: Linus Torvalds #dcf3e6 : 1.1..4.67
+1992 · SUSE :: four founders in Fürth #dde8f7 : 1.2..4.67
+1996 · GIMP :: two Berkeley students #dcf3e6 : 1.6..4.67
+1998 · Mozilla :: Netscape #dde8f7 : 1.8..4.67
+2002 · Blender :: bought free by users #dcf3e6 : 2.2..4.67
+2003 · Inkscape :: Sodipodi developers #dcf3e6 : 2.3..4.67
+2011 · D3 :: a Stanford lab #dcf3e6 : 3.1..4.67
+2014 · Kubernetes :: Google #dde8f7 : 3.4..4.67
+2015 · WebAssembly :: browser makers #fbeccd : 3.5..4.67
+2021 · Penpot :: Kaleidos #dde8f7 : 4.1..4.67
+2023 · WebGPU :: W3C #fbeccd : 4.3..4.67
+Today · Lolly #30ba78 : 4.58..4.67

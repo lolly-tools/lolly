@@ -340,7 +340,7 @@ const pages: Page[] = [
   { slug: 'ai-features',      title: 'Generated once, rendered the same', src: 'ai-features.md', pathway: 'trust', description: "Text-to-speech, upscaling and background removal: generated once under guard-rails, then rendered identically everywhere. Why inventing pixels is marked AI and removing them is not." },
   { slug: 'eu-ai-act',        title: 'AI marking and the EU AI Act', src: 'eu-ai-act.md', pathway: 'trust', description: "Article 50 has applied since 2 August 2026, and its Code of Practice points at C2PA. Lolly's honest fit: it preserves arriving AI marks, declares its own AI operations and verifies files on-device." },
   { slug: 'beatrice-warde',   title: 'Beatrice Warde',    src: 'beatrice-warde.md',  pathway: 'trust', description: "The typographer whose 1932 lines this project adapted, who proved that the types the whole trade called Garamond had been cut by somebody else entirely." },
-  { slug: 'shoulders-of-giants', title: 'Shoulders of giants', src: 'shoulders-of-giants.md', pathway: 'trust', description: "The open source projects Lolly is built from, named and thanked: three decades of free-desktop text shaping, speech and formats, and the newer giants beside them." },
+  { slug: 'shoulders-of-giants', title: 'Shoulders of giants', src: 'shoulders-of-giants.md', pathway: 'trust', description: "The open source projects and people Lolly is built from, and the story of how shared work made it possible: SUSE and three decades of the free desktop, Penpot and Inkscape, WebAssembly, WebGPU and the open models beside them." },
 ];
 
 // ── Door-structured URLs (plans/177 P1) ──────────────────────────────────────
@@ -1368,13 +1368,16 @@ function docLogo(key: string): string {
 /**
  * The whole-line form: `<!--lb:kubernetes helm-->` on its own line, before a `## `
  * heading, becomes a centred row of big marks - a moment in the scroll that says
- * "this next part is about these" before a word of it is read.
+ * "this next part is about these" before a word of it is read. The row carries the
+ * section's top rule, so it reads as the opening of the section below it.
  *
  * Why a block instead of marks IN the heading: a heading is a name, and a glyph
  * wedged in front of one competes with the words for the same line. Reserved for
- * MAJOR sections whose subject really is the technology - one per page at most in
- * practice. A whole row of marks that only decorates would spend the device on
- * nothing (and the section headings are what a reader scans to navigate).
+ * MAJOR sections whose subject really is the technology. Most pages carry one at
+ * most; Shoulders of giants, whose story sections are each about a set of projects,
+ * carries one per story section and none in its appendix. A whole row of marks that
+ * only decorates would spend the device on nothing (and the section headings are
+ * what a reader scans to navigate).
  *
  * aria-hidden on the WRAPPER, not per mark: the heading underneath already names
  * every one of them, so to a screen reader this row is silence by design.
@@ -2870,10 +2873,14 @@ ${LANDING_CSS}
    makes it an event, not colour. Sized in px rather than em: this row belongs to the
    PAGE's rhythm, not to the type around it, and every block should be the same size
    on every page. */
-.doc-logo-block{display:flex;justify-content:center;align-items:center;gap:1.5rem;margin:4.5rem 0 2rem;color:var(--muted);opacity:.55}
+.doc-logo-block{display:flex;justify-content:center;align-items:center;gap:1.5rem;margin:2.5rem 0 1.75rem;padding-top:2.5rem;border-top:1px solid var(--border);color:var(--muted)}
+.doc-logo-block>.doc-logo-mark{opacity:.55}
+/* The row opens its section, so the section's rule sits above the row, not between
+   the row and the heading it introduces. */
+.docs-content .doc-logo-block+h2{border-top:0;padding-top:0;margin-top:0}
 .doc-logo-mark{display:block;width:44px;height:44px}
 .doc-logo-mark svg{width:100%;height:100%;display:block}
-@media(max-width:600px){.doc-logo-block{gap:1.1rem;margin:3rem 0 1.5rem}.doc-logo-mark{width:36px;height:36px}}
+@media(max-width:600px){.doc-logo-block{gap:1.1rem;margin:2rem 0 1.25rem;padding-top:2rem}.doc-logo-mark{width:36px;height:36px}}
 /* Two columns from a ::: cols fence. The pairing IS the argument on
    /info/status-quo - what happened on the left, what it cost on the right - so the
    two read together rather than one after the other. Below 900px they stack, which
@@ -3156,6 +3163,11 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
 .diagram-verify svg{width:1.1rem;height:1.1rem}
 .diagram-open{padding:.5rem .25rem}
 .diagram-open::after{content:' →'}
+/* A diagram with a dark twin (.docs-diagram--dual) carries both files, and the
+   reader's own theme picks one, the same way a dual screenshot does. */
+.docs-diagram--dual>img.diagram-alt{display:none}
+[data-theme="dark"] .docs-diagram--dual>img:not(.diagram-alt),[data-theme="brand"] .docs-diagram--dual>img:not(.diagram-alt){display:none}
+[data-theme="dark"] .docs-diagram--dual>img.diagram-alt,[data-theme="brand"] .docs-diagram--dual>img.diagram-alt{display:block}
 .diagram-actions a:hover{color:var(--green)}
 .diagram-actions a:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 /* A PAGE ASSET's credential (the AI stance hero): open at rest, because the file's
@@ -3599,6 +3611,34 @@ footer .founded-badge{margin-top:.5rem}
 .page-beatrice-warde .docs-content pre{font-family:'Cinzel',Georgia,serif;font-size:1.0625rem;line-height:2.05;letter-spacing:.055em;text-align:center;background:linear-gradient(#fbfaf7,#f4f2ec);color:#25313a;padding:2.5rem 1.5rem;border-radius:10px;box-shadow:inset 0 0 0 1px #0000000f,0 1px 2px #0000000a;white-space:pre-wrap;text-wrap:balance}
 .page-beatrice-warde .docs-content pre code{font-family:inherit;font-size:inherit;background:none;padding:0}
 [data-theme="dark"] .page-beatrice-warde .docs-content pre,[data-theme="brand"] .page-beatrice-warde .docs-content pre{background:linear-gradient(#12271d,#0d2016);color:#e8f0ea;box-shadow:inset 0 0 0 1px #ffffff14}
+/* Shoulders of giants reads as a long editorial piece. Prose keeps a measure near
+   seventy characters; the Newton epigraph stands unboxed over a standfirst with a drop
+   cap; the Jefferson quotation keeps the house quotation style; the closing motto is
+   set in Cinzel, as Warde's own broadside is on its page; and the appendix of credits
+   drops to a quieter size. Figures keep the width they were drawn at, and on a phone
+   they show at that size in a sideways scroll rather than shrinking their labels
+   below reading size. */
+.page-shoulders-of-giants .docs-content>:is(p,ul,h2,h3,blockquote,.doc-logo-block){max-width:38rem;margin-inline:auto}
+.page-shoulders-of-giants .docs-content p,.page-shoulders-of-giants .docs-content li{text-wrap:pretty}
+.page-shoulders-of-giants .docs-content blockquote p{font-size:1.1875rem;line-height:1.6;text-wrap:balance}
+.page-shoulders-of-giants .docs-content blockquote p+p{font-size:.875rem;line-height:1.5;color:var(--muted);margin-top:.9rem;letter-spacing:.01em;text-wrap:pretty}
+.page-shoulders-of-giants .docs-content blockquote:first-of-type{background:none;box-shadow:none;transform:none;border-radius:0;padding:0;margin:.5rem auto 2.75rem;max-width:30rem;text-align:center}
+.page-shoulders-of-giants .docs-content blockquote:first-of-type p{font-size:1.375rem;line-height:1.45;font-style:italic}
+.page-shoulders-of-giants .docs-content blockquote:first-of-type p+p{font-style:normal;font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;margin-top:.8rem}
+.page-shoulders-of-giants .docs-content blockquote:first-of-type+p{font-size:1.1875rem;line-height:1.7}
+.page-shoulders-of-giants .docs-content blockquote:first-of-type+p::first-letter{float:left;font-size:3.35em;line-height:.86;font-weight:800;margin:.06em .1em 0 0;color:var(--green)}
+.page-shoulders-of-giants .docs-content blockquote:last-of-type{background:none;box-shadow:none;transform:none;border-radius:0;padding:0;margin:3rem auto 4.5rem;text-align:center}
+.page-shoulders-of-giants .docs-content blockquote:last-of-type::before{content:'';display:block;width:3rem;height:1px;background:var(--border);margin:0 auto 2.25rem}
+.page-shoulders-of-giants .docs-content blockquote:last-of-type p{font-family:'Cinzel',Georgia,serif;font-size:1.75rem;font-weight:500;letter-spacing:.05em;line-height:1.35;color:var(--dark)}
+.page-shoulders-of-giants .docs-content .docs-diagram{margin:3.5rem auto}
+.page-shoulders-of-giants .docs-content #everyone-else-inside-lolly~:is(p,ul){font-size:.9375rem;line-height:1.6}
+.page-shoulders-of-giants .docs-content #everyone-else-inside-lolly~ul li+li{margin-top:.45rem}
+@media(max-width:640px){
+  .page-shoulders-of-giants .docs-content blockquote{transform:none;margin:2.5rem 0}
+  .page-shoulders-of-giants .docs-content blockquote:last-of-type p{font-size:1.375rem}
+  .page-shoulders-of-giants .docs-content .docs-diagram{overflow-x:auto;overscroll-behavior-x:contain;margin-inline:-16px;padding:0 16px 12px}
+  .page-shoulders-of-giants .docs-content .docs-diagram>img{max-width:none}
+}
 .docs-immersive{padding:0;margin:0}
 .doc-audio{margin:0 0 .5rem;padding:0}
 .doc-audio audio{width:100%;height:40px;display:block}
@@ -4549,6 +4589,10 @@ const docCtx: DocsRenderContext = {
   nextCredId: () => `shot-cred-${++credSeq}`,
   localizedShot: (slug, ext) => localizedShot(slug, ext),
   darkShot: (f) => darkShot(f),
+  diagramDark: (file) => {
+    const name = file.replace(/\.svg$/, '.dark.svg');
+    return name !== file && existsSync(resolve(__dirname, name)) ? name : null;
+  },
   // The contract's second arg is a served /info/ URL (a page asset), which this impl
   // resolves to its built path; a bare shot (no assetSrc) reads from docs/shots/<file>.
   shotSize: (f, assetSrc) => shotSize(f, assetSrc ? resolve(outDir, assetSrc.replace(/^\/info\//, '')) : undefined),

@@ -101,7 +101,18 @@ export function inline(text: string, ctx: DocsRenderContext): string {
     const verify = facts ? `<a class="diagram-verify" href="/#/verify?src=${encodeURIComponent(src)}"`
       + ` aria-label="${esc(ctx.t('Verify this diagram'))}" title="${esc(ctx.t('Content Credentials'))}">${ctx.docIcon('imprint')}</a>` : '';
     const open = recipe ? `<a class="diagram-open" href="${esc(recipe.route)}">${esc(ctx.t('Open this in Diagram Builder'))}</a>` : '';
-    return `<span class="docs-diagram"><img src="${src}"${dims}${rest}><span class="diagram-actions">${verify}${open}</span></span>`;
+    // A diagram with a dark twin ships both files, like a dual screenshot: the reader's
+    // theme toggle picks one, so the figure never sits as a white slab on a dark page.
+    const dark = ctx.diagramDark?.(file) ?? null;
+    let twin = '';
+    if (dark) {
+      const darkSrc = `/info/${dark}`;
+      // Measured from the DARK file, never reused (the 0x0 deadlock).
+      const dsize = ctx.shotSize(dark, darkSrc);
+      const ddims = dsize ? ` width="${dsize.w}" height="${dsize.h}"` : '';
+      twin = `<img class="diagram-alt" src="${darkSrc}"${ddims}${rest}>`;
+    }
+    return `<span class="docs-diagram${dark ? ' docs-diagram--dual' : ''}"><img src="${src}"${dims}${rest}>${twin}<span class="diagram-actions">${verify}${open}</span></span>`;
   });
   // Page assets with readable credentials get the standard credential wrapper.
   s = s.replace(/<img src="(\/info\/(?!shots\/)[^"]+\.(?:webp|png|jpe?g|avif))"([^>]*)>/g, (_m, src: string, rest: string) => {

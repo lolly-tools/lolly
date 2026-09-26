@@ -129,6 +129,18 @@ test('diagram actions link to the served credential and the editable recipe', ()
   assert.match(html, />Open this in Diagram Builder<\/a>/);
 });
 
+test('a diagram with a dark twin ships both files, each with its own size', () => {
+  const html = mdToHtml('![Diagram](/info/diagrams/set/example.svg)', mockContext({
+    tryLink: () => ({ route: '/#/tool/diagram-builder' }),
+    shotSize: file => (file.endsWith('.dark.svg') ? { w: 500, h: 300 } : { w: 640, h: 400 }),
+    diagramDark: file => file.replace(/\.svg$/, '.dark.svg'),
+  }));
+  assert.match(html, /class="docs-diagram docs-diagram--dual"><img src="\/info\/diagrams\/set\/example\.svg" width="640" height="400"/);
+  assert.match(html, /<img class="diagram-alt" src="\/info\/diagrams\/set\/example\.dark\.svg" width="500" height="300" alt="Diagram"/);
+  const plain = mdToHtml('![Diagram](/info/diagrams/set/example.svg)', mockContext({ tryLink: () => ({ route: '/#/tool/diagram-builder' }) }));
+  assert.ok(!plain.includes('diagram-alt') && !plain.includes('docs-diagram--dual'), 'no twin, no second image');
+});
+
 test('a diagram with no credential has no verify mark, even when it has a recipe', () => {
   const html = mdToHtml('![Diagram](/info/diagrams/example.svg)', mockContext({
     tryLink: () => ({ route: '/#/tool/diagram-builder' }),

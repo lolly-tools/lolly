@@ -1,0 +1,8 @@
+HarfBuzz :: shapes the world's text
+  Chrome
+  Firefox
+  Android
+  LibreOffice
+  GNOME :: through Pango
+  KDE :: through Qt
+  Lolly :: in the browser #30ba78

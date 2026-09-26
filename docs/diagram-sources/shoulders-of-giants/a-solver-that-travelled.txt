@@ -1,0 +1,4 @@
+libsolv :: Michael Schröder, SUSE
+  zypper :: openSUSE and SUSE
+  DNF :: Fedora
+  mamba :: conda's default since 2023

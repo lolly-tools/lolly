@@ -1,0 +1,22 @@
+# Lolly
+Lolly :: on your device #30ba78
+# Open models
+Whisper :: hears speech
+Kokoro :: reads aloud
+ONNX Runtime :: runs models
+# Open web
+WebAssembly :: runs old code
+WebGPU :: the graphics card
+WebKit :: draws the page
+# Libraries
+HarfBuzz :: shapes text
+D3 :: draws charts
+eSpeak NG :: speaks words
+# Free desktop
+GNOME :: a desktop
+KDE :: a desktop
+D-Bus :: shared plumbing
+# Systems
+Linux :: the kernel
+GNU :: the tools
+Kubernetes :: runs it at scale

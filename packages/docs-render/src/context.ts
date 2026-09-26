@@ -145,6 +145,10 @@ export interface DocsRenderContext {
   localizedShot(slug: string, ext: string): string | null;
   /** The dark twin filename paired with a shot file, or null. */
   darkShot(file: string): string | null;
+  /** The dark twin of a checked-in diagram (`diagrams/<set>/<name>.svg` pairs with
+   *  `diagrams/<set>/<name>.dark.svg`), or null. Optional: a context with no diagrams
+   *  on disk simply never pairs one. */
+  diagramDark?(file: string): string | null;
   /** A served file's intrinsic pixel size (the fit-content 0×0-deadlock guard). `assetSrc`
    *  names a non-shot file's served URL so the impl can locate a page asset / mascot. */
   shotSize(file: string, assetSrc?: string): { w: number; h: number } | null;
