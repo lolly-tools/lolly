@@ -2057,7 +2057,15 @@ html[data-a11y-text="large"] .input-section--dense .input-section-body {
   font-size: var(--fs-2xs); font-weight: 600; letter-spacing: var(--ui-type-tracking-label);
   text-transform: uppercase; color: hsl(var(--muted-foreground));
 }
-.block-fields .block-field--full { grid-column: 1 / -1; }
+/* A full-width block field, whether the control is the grid item itself or an
+   enhancer has wrapped it. components/input-emoji.ts wraps every text/longtext block
+   field in .input-emoji-field to hang its emoji button off, and the WRAPPER - not the
+   control - becomes the grid item, so the class never reached the grid. In a typed
+   block (Booklet's Content blocks) the Heading and its Body textarea therefore sat
+   side by side in the two columns. A build without emoji keeps the bare control and
+   was already stacked, so this restores parity rather than inventing a layout. */
+.block-fields .block-field--full,
+.block-fields > :has(> .block-field--full) { grid-column: 1 / -1; }
 /* Checkbox sub-field (e.g. logo-wall's per-logo "Tune this logo" / "Invert"):
    a checkbox + inline label on its own full-width row. */
 .block-control--checkbox { flex-direction: row; align-items: center; gap: var(--sp-4); flex-wrap: wrap; cursor: pointer; }
