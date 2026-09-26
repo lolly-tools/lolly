@@ -74,7 +74,7 @@ rand = "0.8"
 # daemon and no C dependency, so it builds the same on macOS/Linux/Windows. Runs its
 # own background thread; the invite exchange itself is plain std::net TCP, no async
 # runtime added.
-mdns-sd = "0.11"
+mdns-sd = "0.21"
 # Native LAN socket transport (src/native_transport.rs, plans/110 section 4): Noise
 # XX_25519_ChaChaPoly_BLAKE2s. The pure-Rust resolver (no `ring`/C dependency) keeps
 # cross-compilation to Linux/Windows/macOS - and later the Android NDK - unchanged.
