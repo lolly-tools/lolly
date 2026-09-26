@@ -9,7 +9,7 @@
  * content-stream rewrite. The DOM walkers themselves (drawHtmlVectors /
  * drawSvgVectorsInRegion) stay in export.ts and import these.
  */
-import { splitCssArgs, parseGradientStop, parseGradientAngle, parseRadialGradient, rgbToCmyk, roundedRectPath, parseColorToSrgb8 } from '@lolly/engine';
+import { splitCssArgs, parseGradientStop, parseGradientAngle, parseRadialGradient, rgbToCmyk, roundedRectPath, parseColorToSrgb8, parseSvgPath } from '@lolly/engine';
 import { objectPositionFractions } from './export-css.ts';
 import { FINISH_MASK_CMYK, buildCmykPaletteMap, cmykKey } from '@lolly/engine';
 import type { BrandPaletteEntry, PaletteHit, PaletteSpotHit } from '@lolly/engine';
@@ -400,123 +400,20 @@ export async function withPdfMatrix(
 // Emits PDF path operations (moveTo/lineTo/curveTo/close) for an SVG `d` string.
 // tx/ty are coordinate-transform functions: SVG user units → pt (top-left origin).
 // Caller must call fill()/stroke()/fillStroke() after this returns.
+//
+// The path is read by the engine's parseSvgPath, the same reader the command line's
+// PDF export uses, so both write the same geometry. That reader treats arc flags as
+// single characters: minified icons (simple-icons, SVGO output) pack them against the
+// next number ("a.62.62 0 00-.52.338"), and reading "00" as one number misplaced every
+// later arc, which drew the Linux and GNU marks as torn shapes.
 export function drawSvgPathToPdf(pdf: any, d: string, tx: (v: number) => number, ty: (v: number) => number): void {
-  const cmdRe = /([MLHVCSQTAZmlhvcsqtaz])([^MLHVCSQTAZmlhvcsqtaz]*)/g;
-  let cx = 0, cy = 0;
-  let sx = 0, sy = 0;   // current subpath start - Z returns the current point here (SVG spec)
-  let lastCmd = '';
-  let lastCpx = 0, lastCpy = 0;
-  let m: RegExpExecArray | null;
-
-  while ((m = cmdRe.exec(d)) !== null) {
-    const cmd  = m[1]!;
-    const nums = parseSvgPathArgs(m[2]!);
-    const abs  = cmd === cmd.toUpperCase();
-    const C    = cmd.toUpperCase();
-    const ax   = (i: number) => abs ? nums[i]! : cx + nums[i]!;
-    const ay   = (i: number) => abs ? nums[i]! : cy + nums[i]!;
-
-    switch (C) {
-      case 'M':
-        for (let i = 0; i + 1 < nums.length; i += 2) {
-          const x = ax(i), y = ay(i + 1);
-          if (i === 0) { pdf.moveTo(tx(x), ty(y)); sx = x; sy = y; } // remember subpath start
-          else pdf.lineTo(tx(x), ty(y));
-          cx = x; cy = y;
-        }
-        break;
-      case 'L':
-        for (let i = 0; i + 1 < nums.length; i += 2) {
-          const x = ax(i), y = ay(i + 1);
-          pdf.lineTo(tx(x), ty(y)); cx = x; cy = y;
-        }
-        break;
-      case 'H':
-        for (let i = 0; i < nums.length; i++) {
-          cx = abs ? nums[i]! : cx + nums[i]!;
-          pdf.lineTo(tx(cx), ty(cy));
-        }
-        break;
-      case 'V':
-        for (let i = 0; i < nums.length; i++) {
-          cy = abs ? nums[i]! : cy + nums[i]!;
-          pdf.lineTo(tx(cx), ty(cy));
-        }
-        break;
-      case 'C':
-        for (let i = 0; i + 5 < nums.length; i += 6) {
-          const x1 = ax(i),     y1 = ay(i + 1);
-          const x2 = ax(i + 2), y2 = ay(i + 3);
-          const x  = ax(i + 4), y  = ay(i + 5);
-          pdf.curveTo(tx(x1), ty(y1), tx(x2), ty(y2), tx(x), ty(y));
-          lastCpx = x2; lastCpy = y2; cx = x; cy = y;
-        }
-        break;
-      case 'S':
-        for (let i = 0; i + 3 < nums.length; i += 4) {
-          const r1x = (lastCmd === 'C' || lastCmd === 'S') ? 2 * cx - lastCpx : cx;
-          const r1y = (lastCmd === 'C' || lastCmd === 'S') ? 2 * cy - lastCpy : cy;
-          const x2  = ax(i),     y2 = ay(i + 1);
-          const x   = ax(i + 2), y  = ay(i + 3);
-          pdf.curveTo(tx(r1x), ty(r1y), tx(x2), ty(y2), tx(x), ty(y));
-          lastCpx = x2; lastCpy = y2; cx = x; cy = y;
-        }
-        break;
-      case 'Q':
-        for (let i = 0; i + 3 < nums.length; i += 4) {
-          const qx1 = ax(i), qy1 = ay(i + 1);
-          const x   = ax(i + 2), y = ay(i + 3);
-          const x1  = cx + 2 / 3 * (qx1 - cx), y1 = cy + 2 / 3 * (qy1 - cy);
-          const x2  = x  + 2 / 3 * (qx1 - x),  y2 = y  + 2 / 3 * (qy1 - y);
-          pdf.curveTo(tx(x1), ty(y1), tx(x2), ty(y2), tx(x), ty(y));
-          lastCpx = qx1; lastCpy = qy1; cx = x; cy = y;
-        }
-        break;
-      case 'T':
-        for (let i = 0; i + 1 < nums.length; i += 2) {
-          const qx1 = (lastCmd === 'Q' || lastCmd === 'T') ? 2 * cx - lastCpx : cx;
-          const qy1 = (lastCmd === 'Q' || lastCmd === 'T') ? 2 * cy - lastCpy : cy;
-          const x   = ax(i), y = ay(i + 1);
-          const x1  = cx + 2 / 3 * (qx1 - cx), y1 = cy + 2 / 3 * (qy1 - cy);
-          const x2  = x  + 2 / 3 * (qx1 - x),  y2 = y  + 2 / 3 * (qy1 - y);
-          pdf.curveTo(tx(x1), ty(y1), tx(x2), ty(y2), tx(x), ty(y));
-          lastCpx = qx1; lastCpy = qy1; cx = x; cy = y;
-        }
-        break;
-      case 'A':
-        for (let i = 0; i + 6 < nums.length; i += 7) {
-          const rx = Math.abs(nums[i]!);
-          const ry = Math.abs(nums[i + 1]!);
-          const xRot = nums[i + 2]! * Math.PI / 180;
-          const la   = nums[i + 3]! ? 1 : 0;
-          const sw   = nums[i + 4]! ? 1 : 0;
-          const x    = ax(i + 5), y = ay(i + 6);
-          if (rx < 1e-6 || ry < 1e-6) {
-            pdf.lineTo(tx(x), ty(y));
-          } else {
-            for (const [bx1, by1, bx2, by2, bx, by] of svgArcToBeziers(cx, cy, rx, ry, xRot, la, sw, x, y)) {
-              pdf.curveTo(tx(bx1), ty(by1), tx(bx2), ty(by2), tx(bx), ty(by));
-            }
-          }
-          cx = x; cy = y;
-          lastCpx = cx; lastCpy = cy;
-        }
-        break;
-      case 'Z':
-        pdf.close();
-        // SVG: after closepath the current point returns to the subpath's start, so a
-        // following relative command (`z m…`) is offset from there - not the last drawn
-        // point. Without this the mono-white SUSE wordmark mangled (hourglass 'S').
-        cx = sx; cy = sy;
-        break;
+  for (const sub of parseSvgPath(d)) {
+    for (const seg of sub.segments) {
+      if (seg.op === 'M') pdf.moveTo(tx(seg.x), ty(seg.y));
+      else if (seg.op === 'L') pdf.lineTo(tx(seg.x), ty(seg.y));
+      else pdf.curveTo(tx(seg.x1), ty(seg.y1), tx(seg.x2), ty(seg.y2), tx(seg.x), ty(seg.y));
     }
-
-    lastCmd = C;
-    // Preserve the stored control point after curve commands so the next smooth
-    // command can reflect it: C/S keep the cubic control point, Q/T the quadratic
-    // one. Everything else has no control point, so it collapses to the current
-    // point. (Resetting after Q/T here was the bug that mangled smooth-quad glyphs.)
-    if (C !== 'C' && C !== 'S' && C !== 'Q' && C !== 'T') { lastCpx = cx; lastCpy = cy; }
+    if (sub.closed) pdf.close();
   }
 }
 

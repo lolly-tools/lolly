@@ -114,6 +114,21 @@ test('drawSvgPathToPdf: A emits bezier segments ending on the arc endpoint', () 
   assert.ok(Math.abs(last[6] as number) < 1e-9, 'arc lands on y=0');
 });
 
+test('drawSvgPathToPdf: arc flags packed against the next number read as single characters', () => {
+  // Minified icons write "0 00-.52.338": large-arc 0, sweep 0, then x -.52, y .338.
+  // Read as numbers, "00" became one value and every later arc shifted by one
+  // argument, which tore the Linux and GNU marks in exported PDFs.
+  const packed = pdfRecorder();
+  drawSvgPathToPdf(packed.pdf, 'M1 1a.62.62 0 00-.52.338a.62.62 0 01.52-.338', v => v, v => v);
+  const spaced = pdfRecorder();
+  drawSvgPathToPdf(spaced.pdf, 'M1 1a.62.62 0 0 0 -.52 .338a.62.62 0 0 1 .52 -.338', v => v, v => v);
+  assert.deepEqual(packed.ops, spaced.ops);
+  const curves = packed.ops.filter(o => o[0] === 'curveTo');
+  assert.ok(curves.length >= 2, 'both arcs are drawn');
+  const last = curves[curves.length - 1]!;
+  assert.deepEqual([round2(last[5]), round2(last[6])], [1, 1], 'the second arc returns to the start');
+});
+
 test('drawSvgPathToPdf: tx/ty coordinate transforms apply to every emitted point', () => {
   const { ops, pdf } = pdfRecorder();
   drawSvgPathToPdf(pdf, 'M1 2 L3 4', v => v * 2, v => v * 10);
