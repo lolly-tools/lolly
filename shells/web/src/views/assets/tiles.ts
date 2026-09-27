@@ -7,8 +7,10 @@
  * a value (an event listener), goes through `cat.<module>.<fn>`. Extracted verbatim
  * from mountCatalog() by scripts/split-closure.ts.
  */
+import { createTrash } from '../../lib/trash.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { t } from '../../i18n.ts';
+import { isTauriShell } from '../../lib/instance-choice.ts';
 import { announce } from '../../a11y.ts';
 import { viewTopbarHtml } from '../../components/view-topbar.ts';
 import { favouritesViewSection, sortSection, viewOptionsButtonHtml, viewOptionsSection } from '../../components/view-options.ts';
@@ -70,7 +72,9 @@ export function catTileMenuHtml(cat: CatCtx, id: string): string {
     menuItemHtml('add-to-project', icon('folder'), t('Add to project…')),
     isUser ? menuItemHtml('duplicate', icon('duplicate'), t('Duplicate')) : '',
     menuItemHtml('hide', icon('eye'), cat.hiddenSet.has(base) ? t('Unhide') : t('Hide')),
-    isUser ? menuItemHtml('delete', icon('trash'), t('Delete'), { danger: true }) : '',
+    // Deleting an upload moves it to the Trash (plan 277 P3); the row says so, as
+    // the Projects menus do.
+    isUser ? menuItemHtml('delete', icon('trash'), t('Move to Trash'), { danger: true }) : '',
   ].join('');
 }
 // Mirrors the bulk bar's gating: favourite/hide for any selection, the
@@ -174,7 +178,7 @@ export async function computeBrandFonts(cat: CatCtx): Promise<CatFont[]> {
   try {
     for (const uf of await listUserFonts(host as unknown as Parameters<typeof listUserFonts>[0])) {
       push(uf.family, uf.primary ? t('Brand - primary') : t('Added font'),
-        `'${uf.family}', ui-sans-serif, sans-serif`, `${uf.weights}${uf.italic ? ` · ${t('italic')}` : ''} · ${t('on this device')}`, [], true);
+        `'${uf.family}', ui-sans-serif, sans-serif`, `${uf.weights}${uf.italic ? ` · ${t('italic')}` : ''} · ${isTauriShell() ? t('on this device') : t('in this browser')}`, [], true);
     }
   } catch { /* user fonts unavailable - brand tokens still stand */ }
   return out;
@@ -185,13 +189,16 @@ export async function reload(cat: CatCtx): Promise<void> {
   // distinct "couldn't load" state (with a Retry) rather than the identical-looking empty
   // catalogue. The other two loads degrade quietly (uploads/profile are best-effort).
   let failed = false;
-  const [catalog, user, prof, livePal] = await Promise.all([
+  const [catalog, user, prof, livePal, trashEntries] = await Promise.all([
     host.assets.query({ includeDeprecated: true }).catch(() => { failed = true; return [] as AssetRef[]; }),
     host.assets._listUserAssets().catch(() => [] as AssetRef[]),
     host.profile.get().catch(() => null),
     livePalette(host),
+    // The Trash's size for the uploads section's Trash button (plan 277 P3).
+    createTrash(host).list({ sessions: false }).catch(() => []),
   ]);
   if (!cat.mounted) return;
+  cat.trashCount = trashEntries.length;
   cat.palette = livePal;
   cat.coverMap = loadAudioCovers(prof);
   cat.coverPool = audioThumbPool(livePal, host, (document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light') as ThumbTheme);

@@ -34,6 +34,7 @@ import type { BrandEditorHandle } from '../../brand-editor.ts';
 import { icon } from '../../icons.ts';
 import { escape } from '../../../utils.ts';
 import { t, tRaw } from '../../../i18n.ts';
+import { isTauriShell } from '../../instance-choice.ts';
 
 /** The whole host; the slices this room reads are reached through the same
  *  narrow casts mountBrandEditor uses (they are web-shell extensions absent
@@ -444,7 +445,7 @@ export function overviewHtml(model: OverviewModel | null): string {
           ${doorHtml('color-pick', icon('palette'), t('Pick a colour'),
             t('It becomes the primary. Shades and roles can follow from it.'))}
           ${doorHtml('type-stage', icon('font'), t('Choose a face'),
-            t('Google Fonts or a font file. Stays on this device.'))}
+            isTauriShell() ? t('Google Fonts or a font file. Stays on this device.') : t('Google Fonts or a font file. Stays in this browser.'))}
           ${doorHtml('logos', icon('shapes'), t('Add a logo'),
             t('Drop a mark; Lolly reads its shape and offers the right slot.'))}
         </div>

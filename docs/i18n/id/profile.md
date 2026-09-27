@@ -19,7 +19,7 @@ Semua isi profil tersimpan **di perangkat**, dalam basis data lokal browser (Ind
 | **Accessibility** | Empat sakelar kenyamanan - *Reduce motion*, *Hide colourful previews*, *High contrast*, *Large text* - disimpan pada catatan profil, sehingga ikut terbawa dalam ekspor profil. Lihat [Accessibility](#accessibility). |
 | **Your work** | Sesi tersimpan (dengan thumbnail) - diatur ke dalam folder bersarang di **[Projects](/info/using.html)** - pustaka **My images** Anda, dan statistik aktivitas lokal, semuanya terkait dengan profil ini. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
 
 ![Layar Profile - nama, kontak, foto profil opsional, dan preferensi Anda](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -35,7 +35,7 @@ Kata "profil" mengesankan satu orang yang tetap, tapi di Lolly ini sebenarnya se
 
 ### Sebagai individu
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
 
 ![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -53,11 +53,11 @@ Di Lolly, peran itu hanyalah **profil lain yang Anda simpan siap pakai** - sebua
 
 Pada suatu saat, satu instalasi memiliki **satu profil aktif** - detail yang dilihat oleh sebuah alat saat ini. Tidak ada pengalih profil di dalam aplikasi; sebagai gantinya, setiap profil adalah **bundle portabel** (satu file `.zip`, lihat [di bawah](#moving-a-profile-to-a-new-device)). Ini sengaja dibuat sebagai mekanisme yang sama dengan memindahkan ke perangkat baru - sebuah profil adalah file yang dapat Anda simpan, salin, dan muat.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
 
 - <!--i:trash--> **Peralihan paling bersih:** **Pengaturan → Preferences → Penyimpanan → Hapus semua data saya**, lalu **Impor** bundle untuk konteks yang akan Anda masuki. Anda sekarang berkarya murni sebagai profil tersebut.
-- <!--i:layers--> **Layering:** mengimpor *tanpa* menghapus terlebih dahulu akan **menggabungkan** - profil, sesi, dan gambar yang diimpor mendarat di atas apa yang sudah ada, menggantikan apa pun dengan nama yang sama dan menyisakan yang lain. Berguna untuk menarik sesi tersimpan satu tim ke dalam setup Anda sendiri; bukan yang Anda inginkan jika Anda memerlukan batas peran yang bersih.
-- <!--i:monitor--> **Berdampingan:** karena semuanya bersifat device-scoped, profil peramban terpisah, akun pengguna terpisah, atau PWA terpasang kedua masing-masing membawa profil Lolly-nya sendiri secara independen. Jalankan instalasi pribadi Anda dan instalasi kios acara sekaligus, tanpa perlu berpindah.
+- <!--i:layers--> **Layering:** mengimpor *tanpa* menghapus terlebih dahulu **menggabungkan** - sesi dan gambar yang diimpor mendarat di atas apa yang sudah ada; ketika keduanya memiliki yang sama, salinan yang disimpan lebih baru dipertahankan, dan sisanya dibiarkan. Folder, favorit dan template ditambahkan ke milik Anda, dan detail serta pengaturan Anda sendiri tetap ada. Berguna untuk menarik sesi tersimpan satu tim ke dalam setup Anda sendiri; bukan yang Anda inginkan jika Anda memerlukan batas peran yang bersih.
+- <!--i:monitor--> **Berdampingan:** karena semuanya bersifat device-scoped, sebuah profil browser terpisah, sebuah akun pengguna terpisah atau sebuah PWA kedua yang terinstal masing-masing membawa profil Lolly independennya sendiri. Jalankan instalasi pribadi Anda dan instalasi kiosk acara sekaligus, tanpa perlu berpindah.
 
 Jadi jika Anda benar-benar menjalankan beberapa konteks sekaligus (Anda, tim Anda, topi manajer acara), Anda menyimpan beberapa bundel dan memuat yang Anda butuhkan:
 
@@ -108,13 +108,13 @@ Karena sebuah profil sepenuhnya lokal, ada dua cara untuk memindahkannya ke inst
 
 Di bawah **Pengaturan → Preferences → Penyimpanan → Pindah ke perangkat lain**:
 
-- <!--i:download--> **Export my data** mengunduh satu `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - dinamai sesuai profil pemiliknya, dengan nomor urut per hari agar ekspor berulang tidak bentrok (bagian nama dihilangkan saat profil tidak memilikinya). File ini berisi profil Anda, setiap sesi tersimpan (dengan thumbnail-nya), gambar yang Anda unggah - token brand dan font terpasang Anda ikut serta sebagai aset pengguna - dan preferensi Anda (tema, tata letak, statistik aktivitas lokal).
-- <!--i:upload--> **Import data…** pada instalasi lain membaca kembali file itu dan Anda melanjutkan persis dari tempat Anda berhenti.
-- <!--i:box--> **Export my data & render everything** menulis backup yang sama *ditambah* zip kedua yang me-render setiap sesi tersimpan menjadi file hasil akhirnya, dalam folder yang mencerminkan Projects Anda. Arsip offline lengkap dari sumber maupun hasil - dan bisa berukuran besar serta lambat jika sesinya banyak.
+- <!--i:download--> **Ekspor data saya** mengunduh satu `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - dinamai sesuai profil pemiliknya, dengan nomor urut per hari agar ekspor berulang tidak bentrok (bagian nama dihilangkan saat profil tidak memilikinya). File ini berisi profil Anda, setiap sesi tersimpan (dengan thumbnail-nya), gambar yang Anda unggah - token brand dan font terpasang Anda ikut serta sebagai aset pengguna - dan preferensi Anda (tema, tata letak, statistik aktivitas lokal).
+- <!--i:upload--> **Impor data…** pada instalasi lain membaca kembali file itu dan Anda melanjutkan persis dari tempat Anda berhenti. Ini juga mengambil sebuah salinan yang disimpan [Sync](/info/sync.html) di penyimpanan Anda.
+- <!--i:box--> **Ekspor data saya & render semuanya** menulis backup yang sama *ditambah* zip kedua yang me-render setiap sesi tersimpan menjadi file hasil akhirnya, dalam folder yang mencerminkan Projects Anda. Arsip offline lengkap dari sumber maupun hasil - dan bisa berukuran besar serta lambat jika sesinya banyak.
 
 ![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-Bundel ini adalah zip biasa yang mandiri, jadi ia bisa dipindahkan lewat cara **apa pun** - USB, AirDrop, berbagi jaringan, email-ke-diri-sendiri - dan targetnya bisa sepenuhnya offline. Setiap bagian diberi checksum, jadi berkas yang rusak dalam perjalanan tertangkap saat impor alih-alih dipulihkan dalam keadaan setengah rusak. Impor **menggabungkan** (profil/sesi/gambar dengan nama yang sama ditimpa; semua lainnya dipertahankan), jadi ia tidak pernah menghapus target yang sudah digunakan.
+Bundel itu adalah file zip yang sederhana dan mandiri sepenuhnya, sehingga bisa berpindah dengan **cara apa pun** - USB, AirDrop, berbagi jaringan, email ke diri sendiri - dan target bisa sepenuhnya offline. Setiap bagian memiliki checksum, sehingga file yang rusak selama transit akan tertangkap saat impor, bukan dipulihkan dalam keadaan setengah rusak. Impor **menggabungkan** (untuk sesi atau gambar bernama sama, salinan yang disimpan lebih baru dipertahankan; folder, favorit dan template ditambahkan; detail dan pengaturan target tetap ada; semua yang lain dipertahankan), sehingga tidak pernah menghapus target yang sudah digunakan.
 
 Yang tidak ikut berpindah: cache katalog (ia mengunduh ulang dirinya di perangkat baru) dan tool itu sendiri (diasumsikan sudah ada). 
 
@@ -122,7 +122,7 @@ Untuk tata letak bundel yang tepat, kebijakan versi dan aturan integritas, lihat
 
 ## Cara tool menggunakan profil Anda
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
 
 Sebuah tool hanya *mengisi otomatis* field profil yang memang secara eksplisit dirancang untuk diikat:
 

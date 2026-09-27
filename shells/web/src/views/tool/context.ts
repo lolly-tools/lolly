@@ -56,6 +56,13 @@ export interface ToolViewCtx {
   host: WebToolHost;
   toolId: string;
   urlParams: string | null | undefined;
+  /** The query the tool was opened with, before decryption or unpacking: where Back
+   *  returns after Leave without saving when no saved creation is kept. */
+  launchQuery: string | null;
+  /** Set once Leave without saving starts, so a second press cannot reopen the dialog. */
+  leavingWithoutSaving?: boolean;
+  /** Whether this tool's browser entry should carry the unsaved-edits mark. */
+  entryUnsaved?: boolean;
   mountLifecycle: MountLifecycle;
   /** Open the document "Save as" dialog (a project, or a template) - the render
    *  pill's Save. Set by session wiring; the export panel's Save as calls it too. */

@@ -5,11 +5,31 @@ import type { IDBPDatabase } from 'idb';
 import type { RevisionEntry, RevisionStore } from './revision-history.ts';
 import type { RecoveryStore } from './revision-recovery.ts';
 import type { StateRecord } from './state.ts';
-import { REVISION_STORES as STORES, type DocumentHead } from './revision-records.ts';
+import { REVISION_STORES as STORES, type DocumentHead, type RevisionTransaction } from './revision-records.ts';
 import { indexSavedWork } from './history-index.ts';
 import { MAX_REVISION_PREVIEWS as MAX_PREVIEWS } from './revision-limits.ts';
 import { collectAssetRefs } from './asset-ref-collector.ts';
 import { isHiddenSlot } from '../lib/batch-slots.ts';
+
+/** The stores a slot move touches; a caller that checks more first opens these. */
+export const MOVE_STORES = ['state', 'revision-documents', 'revisions', 'revision-recovery'];
+
+/** Move a document with its whole history to another slot, inside `tx`. Trash,
+ * undo and Leave without saving (plan 277 P1) all move this way. */
+export async function moveSlot(tx: RevisionTransaction, from: string, to: string): Promise<void> {
+  const state = await tx.objectStore('state').get(from) as StateRecord | undefined;
+  if (!state) return;
+  if (await tx.objectStore('state').get(to)) throw new Error('The destination already exists.');
+  const doc = await tx.objectStore('revision-documents').get(from) as DocumentHead | undefined;
+  if (doc) {
+    await tx.objectStore('revision-documents').put({ ...doc, slot: to });
+    await tx.objectStore('revision-documents').delete(from);
+    for (const row of await tx.objectStore('revisions').index('documentId').getAll(doc.documentId)) await tx.objectStore('revisions').put({ ...row, slot: to });
+  }
+  for (const row of await tx.objectStore('revision-recovery').index('slot').getAll(from)) await tx.objectStore('revision-recovery').put({ ...row, slot: to });
+  await tx.objectStore('state').put(indexSavedWork({ ...state, slot: to }));
+  await tx.objectStore('state').delete(from);
+}
 
 export function revisionMaintenance(db: IDBPDatabase, recovery: RecoveryStore): Pick<RevisionStore, 'move' | 'delete' | 'recentSessions' | 'name' | 'attachPreview' | 'assetRefs'> {
   return {
@@ -55,19 +75,8 @@ export function revisionMaintenance(db: IDBPDatabase, recovery: RecoveryStore): 
       await tx.store.put({ ...entry, reason: 'save', milestone: label }); await tx.done;
     },
     async move(from, to) {
-      const tx = db.transaction(['state', 'revision-documents', 'revisions', 'revision-recovery'], 'readwrite');
-      const state = await tx.objectStore('state').get(from) as StateRecord | undefined;
-      if (!state) return;
-      if (await tx.objectStore('state').get(to)) throw new Error('The destination already exists.');
-      const doc = await tx.objectStore('revision-documents').get(from) as DocumentHead | undefined;
-      if (doc) {
-        await tx.objectStore('revision-documents').put({ ...doc, slot: to });
-        await tx.objectStore('revision-documents').delete(from);
-        for (const row of await tx.objectStore('revisions').index('documentId').getAll(doc.documentId)) await tx.objectStore('revisions').put({ ...row, slot: to });
-      }
-      for (const row of await tx.objectStore('revision-recovery').index('slot').getAll(from)) await tx.objectStore('revision-recovery').put({ ...row, slot: to });
-      await tx.objectStore('state').put(indexSavedWork({ ...state, slot: to }));
-      await tx.objectStore('state').delete(from);
+      const tx = db.transaction(MOVE_STORES, 'readwrite');
+      await moveSlot(tx, from, to);
       await tx.done;
     },
     async delete(slot) {

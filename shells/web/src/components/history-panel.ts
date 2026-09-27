@@ -12,6 +12,7 @@ import type { AutomaticHistory } from '../views/automatic-history.ts';
 import { requestDock, releaseDock, isDocked } from '../lib/edge-dock.ts';
 import { icon } from '../lib/icons.ts';
 import { t } from '../i18n.ts';
+import { isTauriShell } from '../lib/instance-choice.ts';
 import './history-panel.css';
 
 let closeActive: (() => void) | undefined;
@@ -59,7 +60,7 @@ export function openHistoryPanel(opts: {
   if (shared) scope.add(new Option(t('This collaboration'), 'collaboration'));
   else {
     if (opts.slot) scope.add(new Option(t('This creation'), 'document'));
-    scope.add(new Option(t('All history on this device'), 'all'));
+    scope.add(new Option(isTauriShell() ? t('All history on this device') : t('All history in this browser'), 'all'));
   }
   // The status line only ever shows a genuine error or the collab-only ephemerality
   // note now: the routine "Checkpoint saved at…" and the local how-it-works blurb are
@@ -68,9 +69,9 @@ export function openHistoryPanel(opts: {
   const showError = (message: string): void => { status.textContent = message; status.hidden = false; };
   const note = document.createElement('p'); note.className = 'revision-history-note';
   if (opts.collab) note.textContent = opts.collab.scope === 'memory'
-    ? t('This session history lives in memory. Save a copy to keep a checkpoint on this device.')
+    ? (isTauriShell() ? t('This session history lives in memory. Save a copy to keep a checkpoint on this device.') : t('This session history lives in memory. Save a copy to keep a checkpoint in this browser.'))
     : opts.collab.durability === 'session'
-      ? t('These session checkpoints are temporary. Open a copy to keep one on this device.')
+      ? (isTauriShell() ? t('These session checkpoints are temporary. Open a copy to keep one on this device.') : t('These session checkpoints are temporary. Open a copy to keep one in this browser.'))
       : t('These checkpoints are stored by your Lolly Work instance. Open a copy to edit a version separately.');
   const list = document.createElement('div'); list.className = 'revision-history-list';
   const peerList = document.createElement('div'); peerList.className = 'revision-history-list revision-history-peer';

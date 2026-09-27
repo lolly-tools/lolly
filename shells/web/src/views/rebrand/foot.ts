@@ -36,6 +36,7 @@
  */
 import { confirmDialog } from '../../components/confirm-dialog.ts';
 import { tRaw } from '../../i18n.ts';
+import { isTauriShell } from '../../lib/instance-choice.ts';
 import type { QueueItemV1 } from '@lolly/engine';
 import type {
   RebrandEditOutcomeV1,
@@ -201,7 +202,7 @@ export function acceptOutcomeText(outcome: RebrandEditOutcomeV1): string {
     case 'stale-revision':
       return STALE();
     case 'quota':
-      return tRaw('This device has no room left, so the change was not saved.');
+      return isTauriShell() ? tRaw('This device has no room left, so the change was not saved.') : tRaw('This browser has no room left, so the change was not saved.');
     default:
       return tRaw('Choose a deck first.');
   }

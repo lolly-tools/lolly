@@ -13,6 +13,7 @@
  *                 and embedded faces - plan 97 section 8) · Rebrand (a PDF deck,
  *                 renovated for the design system)
  *   zipped tool folder → install it on this device and open it
+ *   backup .zip from Export my data → the Import dialog, then Projects
  *   PowerPoint  → slides → SVG library assets · content → Markdown ·
  *                 Rebrand (#/rebrand, renovated for the design system)
  *   Word (.docx) → content → Markdown
@@ -44,6 +45,7 @@
  */
 
 import { t, tRaw } from '../i18n.ts';
+import { isTauriShell } from './instance-choice.ts';
 import { NAV_EVENTS } from '../utils.ts';
 import { navigateTo } from '../nav.ts';
 import { announce } from '../a11y.ts';
@@ -55,11 +57,12 @@ import type { InstalledToolTrust } from './installed-tools.ts';
 import { setPendingVerify } from './verify-handoff.ts';
 import { deepLinkToHash } from './deep-link.ts';
 import { tauriInvoke } from './nearby-boot.ts';
+import { isEncryptedSnapshot } from './snapshot-crypto.ts';
 import type { PickerHost } from '../views/picker.ts';
 import type { BeamPackHost } from './beam-pack.ts';
 import type { FolderHost } from '../folders.ts';
 import type { Unzipped } from 'fflate';
-import type { LollyPreview, LollyRenovationPreview, LollySessionPreview } from './lolly-intake.ts';
+import type { LollyBrandPreview, LollyPreview, LollyRenovationPreview, LollySessionPreview } from './lolly-intake.ts';
 import type { RenovationOpenWarningV1 } from './rebrand/open.ts';
 import type { LollyFileContents } from './lolly-pack.ts';
 import type { UserTemplate, UserTemplateHost } from './user-templates.ts';
@@ -315,6 +318,10 @@ export interface Sniff {
    *  Spreadsheet utility; Chart remains an optional second route.
    *  Optional, absent reads as false. */
   data?: boolean;
+  /** A backup .zip that Export my data wrote, recognised by its manifest (format
+   *  `lolly-backup`, plans/277 P11). Open imports it as it imports a Sync copy, so no
+   *  design, archive or tool route claims the zip. Optional, absent reads as false. */
+  backup?: boolean;
 }
 
 const isMediaFile = (f: File): boolean =>
@@ -395,8 +402,9 @@ async function looksLikeTokensFile(file: File, head: string): Promise<boolean> {
 /**
  * Classify one file by name/MIME plus (when `deep`) a bounded head read - 64 KB,
  * enough for the zip/PDF/SVG magic and a C2PA marker scan, never the whole file.
+ * Exported for the co-located test.
  */
-async function sniffFile(file: File, deep: boolean, picker: PickerModule): Promise<Sniff> {
+export async function sniffFile(file: File, deep: boolean, picker: Pick<PickerModule, 'isPptxUpload' | 'isPdfUpload'>): Promise<Sniff> {
   const pptx = picker.isPptxUpload(file);
   // Name/MIME only, the same gate office-text's looksLikeDocxFile applies - a .docx is
   // a zip, so without this the generic design route claims it (and errors in Design).
@@ -419,7 +427,10 @@ async function sniffFile(file: File, deep: boolean, picker: PickerModule): Promi
   // (which zip-magic would otherwise trigger) never claim it - it opens directly. Also
   // accept the canonical MIME (LOLLY_MIME) for a share that arrives typed but with a
   // mangled name (e.g. Android ACTION_SEND of application/vnd.lolly+zip).
-  const lolly = /\.lolly$/i.test(file.name) || file.type === 'application/vnd.lolly+zip';
+  // A Sync copy encrypted with the sync passphrase is no zip: its "LSE1" header is
+  // enough, so a copy whose name lost the extension still reaches the intake.
+  const lolly = /\.lolly$/i.test(file.name) || file.type === 'application/vnd.lolly+zip'
+    || (!!head && isEncryptedSnapshot(head));
   // JUMBF box type / C2PA manifest label / PNG caBX chunk - a heuristic "this
   // carries Content Credentials" signal, not a verification (that's /verify's job).
   const c2pa = /jumb|c2pa|caBX/.test(text);
@@ -431,24 +442,31 @@ async function sniffFile(file: File, deep: boolean, picker: PickerModule): Promi
       || text.startsWith('gimp xcf '))
     : /\.(psd|psb|xcf)$/i.test(file.name);
   const data = !lolly && (DATA_DROP_RE.test(file.name) || DATA_MIME_RE.test(file.type));
+  // A backup .zip that Export my data wrote (plans/277 P11): its manifest says
+  // `lolly-backup`. The manifest is read through the zip's central directory, so the
+  // check is three small reads whatever the size of the archive. Open imports the zip
+  // the way it imports a Sync copy, so this is settled before the zip sniffs below.
+  const backup = deep && zipMagic && !lolly && !pdf && !pptx && !docx && !layers && !data
+    && !PURE_DESIGN_EXT_RE.test(file.name) && !CONTAINER_DOC_EXT_RE.test(file.name)
+    && !!(await (await import('./lolly-intake.ts')).peekBackupZip(file));
   let animation = /\.lottie$/i.test(file.name) || file.type === 'application/zip+dotlottie';
-  if (!animation && deep && zipMagic && file.size <= 64 * 1024 * 1024) {
+  if (!animation && !backup && deep && zipMagic && file.size <= 64 * 1024 * 1024) {
     animation = (await import('./zip-classify.ts')).classifyZipBytes(new Uint8Array(await file.arrayBuffer())) === 'lottie';
   }
   if (!animation && deep && /\.json$/i.test(file.name) && file.size <= 32 * 1024 * 1024) {
     try { const raw = JSON.parse(await file.text()); animation = Array.isArray(raw.layers) && typeof raw.fr === 'number' && typeof raw.op === 'number'; } catch { /* another JSON document */ }
   }
-  const design = !animation && !lolly && !pdf && !pptx && !docx && !layers && !data && (DESIGN_EXT_RE.test(file.name) || zipMagic || svgText);
+  const design = !animation && !backup && !lolly && !pdf && !pptx && !docx && !layers && !data && (DESIGN_EXT_RE.test(file.name) || zipMagic || svgText);
   // A plain archive: a zip/tar by name, or PK-magic bytes that aren't a design
   // bundle. Design bundles and office/OCF packages (zips too) are excluded so the
   // "unpack" route never competes for a .penpot or shreds a .xlsx.
-  const archive = !animation && !lolly && !layers && !PURE_DESIGN_EXT_RE.test(file.name) && !CONTAINER_DOC_EXT_RE.test(file.name)
+  const archive = !animation && !backup && !lolly && !layers && !PURE_DESIGN_EXT_RE.test(file.name) && !CONTAINER_DOC_EXT_RE.test(file.name)
     && (ARCHIVE_EXT_RE.test(file.name) || (zipMagic && !DESIGN_EXT_RE.test(file.name)));
   // Design-system material (plan 97 section 8), sniffed LAST and only on the deep
   // (single-file) path - the route is a single-file journey, and every flag
   // above is computed exactly as it was before this one existed. A .penpot is
   // one by extension; a zip needs its parts named; a .json has to parse.
-  const designSystem = !lolly && deep && !pdf && !pptx && !docx && !layers
+  const designSystem = !lolly && !backup && deep && !pdf && !pptx && !docx && !layers
     && (PENPOT_EXT_RE.test(file.name)
       ? true
       : zipMagic || /\.zip$/i.test(file.name)
@@ -458,7 +476,7 @@ async function sniffFile(file: File, deep: boolean, picker: PickerModule): Promi
   // and never for a container the office/OCF readers own. A zip whose tool.json sits
   // past the head read simply doesn't get the route offered - the cost of a miss is
   // one route, and no real tool folder is 64 KB of headers deep.
-  const tool = deep && !lolly && !pdf && !pptx && !docx && !layers
+  const tool = deep && !lolly && !backup && !pdf && !pptx && !docx && !layers
     && !CONTAINER_DOC_EXT_RE.test(file.name)
     && (zipMagic || /\.zip$/i.test(file.name))
     && TOOL_ZIP_HEAD_RE.test(text);
@@ -469,7 +487,7 @@ async function sniffFile(file: File, deep: boolean, picker: PickerModule): Promi
     && (TEXT_DROP_RE.test(file.name) || /^text\//i.test(file.type));
   // A PSD/XCF often carries an image/* MIME - the layered routes own it, not
   // the plain media ones (the library route still exists, as a flatten).
-  return { animation, design, pdf, pptx, docx, media: (isMediaFile(file) || !!head && (await import('../../../../engine/src/jxl.ts')).isJxl(head)) && !layers, c2pa, layers, archive, designSystem, lolly, textDoc, tool, data };
+  return { animation, design, pdf, pptx, docx, media: (isMediaFile(file) || !!head && (await import('../../../../engine/src/jxl.ts')).isJxl(head)) && !layers, c2pa, layers, archive, designSystem, lolly, textDoc, tool, data, backup };
 }
 
 const toolExists = (id: string): boolean =>
@@ -793,6 +811,8 @@ function declaredTemplateCount(manifest: Record<string, unknown>): number {
 export function lollyIntakeChoices(
   preview: LollyPreview, opts: { preferred?: 'session' | 'design-system' } = {},
 ): DialogChoice[] {
+  // A Sync copy has no chooser: openLollyFile hands it to the import dialog.
+  if (preview.kind === 'backup') return [];
   if (preview.format !== 'lolly-share') {
     return [{ id: 'use-brand', label: preview.kind === 'instance' ? t('Install brand workspace') : t('Add design system'), primary: true }];
   }
@@ -821,7 +841,7 @@ function renovationFacts(preview: LollyPreview, description: string): string {
   return tRaw('{description} It is a {size} file.{pace}', { description, size, pace });
 }
 
-function previewFacts(preview: LollyPreview): string {
+function previewFacts(preview: LollySessionPreview | LollyBrandPreview): string {
   const size = intakeBytesLabel(preview.fileBytes);
   const pace = preview.sizeBand === 'large'
     ? t(' This is a large bundle; keep Lolly open while it verifies and imports it.')
@@ -883,9 +903,10 @@ async function storageFact(preview: LollyPreview): Promise<string> {
       ? Math.max(preview.fileBytes, preview.embeddedBytes)
       : preview.fileBytes;
     if (free >= needed * 1.25) return '';
-    return tRaw(' This device reports {free} free; the import needs at least about {needed}, so it may be refused without changing existing work.', {
-      free: intakeBytesLabel(free), needed: intakeBytesLabel(needed),
-    });
+    const room = { free: intakeBytesLabel(free), needed: intakeBytesLabel(needed) };
+    return isTauriShell()
+      ? tRaw(' This device reports {free} free; the import needs at least about {needed}, so it may be refused without changing existing work.', room)
+      : tRaw(' This browser reports {free} free; the import needs at least about {needed}, so it may be refused without changing existing work.', room);
   } catch { return ''; }
 }
 
@@ -1033,6 +1054,12 @@ export async function openLollyFile(
     announce(tRaw('Inspecting {name}…', { name: file.name }));
     const intake = await import('./lolly-intake.ts');
     const preview = await intake.peekLollyFile(file);
+    // A copy Sync wrote of this person's own data (plans/277 P13) is imported the way
+    // Import data… restores a backup, in the same dialog, never opened as a design.
+    if (preview.kind === 'backup') {
+      await openDataCopy(file, host);
+      return;
+    }
     if (preview.kind === 'tool') {
       const loaded = await intake.loadLollyFile(file, preview);
       if (loaded.kind !== 'tool' && loaded.kind !== 'session') return;
@@ -1138,6 +1165,41 @@ export async function openLollyFile(
 // Backwards-compatible private spelling for the existing drop/open call sites.
 const importLollyDrop = openLollyFile;
 
+/**
+ * A copy of the person's own data opened from a file: a Sync copy (plans/277 P13), that
+ * is the current copy, a daily copy or the before-apply copy downloaded from their
+ * storage, or a backup .zip that Export my data wrote (P11). Both go through the dialog
+ * Import data… uses (lib/data-import.ts), which asks for the sync passphrase in place
+ * when a copy is encrypted and decrypts it on this device. The import merges and
+ * deletes nothing; afterwards Projects opens, showing the sessions the copy brought.
+ */
+async function openDataCopy(file: File, host: PickerHost): Promise<void> {
+  const [{ runDataImport, dataImportMessage }, intake] = await Promise.all([import('./data-import.ts'), import('./lolly-intake.ts')]);
+  const summary = await runDataImport(file, host, intake, {
+    afterImport: (result) => {
+      const { message, assertive } = dataImportMessage(result);
+      announce(message, assertive ? { assertive: true } : undefined);
+    },
+  });
+  if (summary) routeToConsumer('#/p', window.location.hash === '#/p');
+}
+
+/**
+ * A backup .zip dropped on Lolly or picked with Open (plans/277 P11). It arrives from
+ * the chooser's sniff rather than the .lolly intake, so this holds the model offers and
+ * reports a failure to start the import, as openLollyFile does for a .lolly.
+ */
+async function importBackupZipDrop(file: File, host: PickerHost): Promise<void> {
+  const releaseOffers = await holdOffers();
+  try {
+    await openDataCopy(file, host);
+  } catch (err) {
+    announce(tRaw('Could not import {name}: {message}', { name: file.name, message: (err as Error).message }), { assertive: true });
+  } finally {
+    releaseOffers();
+  }
+}
+
 /** The web host as a project file arrives on it: the picker surface, plus the folder
  *  store's profile writes and the pack reader's asset rows. The web host carries all
  *  three, so the one downcast in openLollyProject names exactly what it reads. */
@@ -1181,7 +1243,7 @@ async function openLollyProject(contents: LollyFileContents, host: PickerHost, l
 function renovationWarningText(warning: RenovationOpenWarningV1): string {
   switch (warning.code) {
     case 'renamed':
-      return t('This project is already on this device, so it opened as a copy.');
+      return isTauriShell() ? t('This project is already on this device, so it opened as a copy.') : t('This project is already in this browser, so it opened as a copy.');
     case 'part-unreadable':
       return t('Part of this project could not be read, so it was left out.');
     case 'part-refused':
@@ -1272,7 +1334,7 @@ async function openRenovationDrop(
   playSfx('drop');
   const said = renovation
     ? intake.describeRenovation(renovation, opened.project)
-    : t('The project was added to this device.');
+    : (isTauriShell() ? t('The project was added to this device.') : t('The project was added to this browser.'));
   const told = opened.warnings.map(renovationWarningText);
   announce([said, ...told].join(' '), { assertive: !!told.length });
   // A live region is read once and is then gone, and the next screen would not say what
@@ -1472,7 +1534,9 @@ async function installToolZipDrop(file: File): Promise<void> {
   if (await it.isToolInstalled(id)) {
     const ok = await confirmDialog({
       title: t('Replace the installed copy?'),
-      message: tRaw('“{id}” is already installed on this device. Installing this zip replaces it, and runs the new code.', { id }),
+      message: isTauriShell()
+        ? tRaw('“{id}” is already installed on this device. Installing this zip replaces it, and runs the new code.', { id })
+        : tRaw('“{id}” is already installed in this browser. Installing this zip replaces it, and runs the new code.', { id }),
       confirmLabel: t('Replace'),
       danger: true,
     });
@@ -1514,6 +1578,9 @@ export async function openDropChooser(
   // `.lolly` is a container family, so it owns a manifest-first preflight of its
   // own: session, design system and instance pack have different consequences.
   if (s.lolly) { await importLollyDrop(first, host); return; }
+  // A backup .zip from Export my data opens the Import dialog, as a Sync copy does
+  // (plans/277 P11). Every other zip is offered its routes below.
+  if (s.backup) { await importBackupZipDrop(first, host); return; }
   const allIngestable = single && s.media || files.every(
     (f) => isMediaFile(f) || picker.isPdfUpload(f) || picker.isPptxUpload(f)
       || TEXT_DROP_RE.test(f.name) || /^text\//i.test(f.type),

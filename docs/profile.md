@@ -56,7 +56,7 @@ At any moment an install has **one active profile** - the details a tool sees ri
 So if you genuinely juggle several contexts (you, your team, the event-manager hat), you keep several bundles and load the one you need:
 
 - <!--i:trash--> **Cleanest switch:** **Settings → Preferences → Storage → Clear all my data**, then **Import** the bundle for the context you're stepping into. You're now creating purely as that profile.
-- <!--i:layers--> **Layering:** importing *without* clearing first **merges** - the imported profile, sessions and images land on top of what's already there, replacing anything with the same name and leaving the rest. Handy for pulling one team's saved sessions into your own setup; not what you want if you need a clean role boundary.
+- <!--i:layers--> **Layering:** importing *without* clearing first **merges** - the imported sessions and images land on top of what's already there; where both have the same one, the copy saved more recently is kept, and the rest is left alone. Folders, favourites and templates are added to yours, and your own details and settings stay. Handy for pulling one team's saved sessions into your own setup; not what you want if you need a clean role boundary.
 - <!--i:monitor--> **Side by side:** because everything is device-scoped, a separate browser profile, a separate user account or a second installed PWA each carries its own independent Lolly profile. Run your personal install and the event kiosk install at once, no switching.
 
 Storage is where both halves of that live: the meter accounts for every byte this install is holding, category by category, and the buttons under it are how you clear or carry it.
@@ -109,12 +109,12 @@ Because a profile is entirely local, there are two ways to get it onto a blank i
 Under **Settings → Preferences → Storage → Move to another device**:
 
 - <!--i:download--> **Export my data** downloads one `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - named for the profile it belongs to, with a per-day sequence number so repeat exports don't collide (name parts are dropped when the profile doesn't have them). It contains your profile, every saved session (with its thumbnail), your uploaded images - your brand tokens and installed fonts ride along as user assets - and your preferences (theme, layout, local activity stats).
-- <!--i:upload--> **Import data…** on the other install reads that file back in and you pick up exactly where you left off.
+- <!--i:upload--> **Import data…** on the other install reads that file back in and you pick up exactly where you left off. It also takes a copy [Sync](/info/sync.html) keeps in your storage.
 - <!--i:box--> **Export my data & render everything** writes that same backup *plus* a second zip that renders every saved session to its finished output file, in folders that mirror your Projects. A complete offline archive of both the sources and the results - and it can be large and slow with a lot of sessions.
 
 ![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-The bundle is a plain, self-contained zip, so it travels by **any** means - USB, AirDrop, a network share, email-to-yourself - and the target can be completely offline. Each part is checksummed, so a file damaged in transit is caught on import rather than restored half-broken. Import **merges** (same-named profile/session/image is overwritten; everything else is kept), so it never wipes a target that was already in use.
+The bundle is a plain, self-contained zip, so it travels by **any** means - USB, AirDrop, a network share, email-to-yourself - and the target can be completely offline. Each part is checksummed, so a file damaged in transit is caught on import rather than restored half-broken. Import **merges** (of a same-named session or image, the copy saved more recently is kept; folders, favourites and templates are added; the target's details and settings stay; everything else is kept), so it never wipes a target that was already in use.
 
 What doesn't travel: the catalogue cache (it re-downloads itself on the new device) and the tools themselves (assumed already present). 
 

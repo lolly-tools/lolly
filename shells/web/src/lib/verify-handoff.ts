@@ -13,6 +13,7 @@
 import { C2PA_FORMATS, attachC2paStore, extractC2paStore } from '@lolly/engine';
 import type { AssetRef, HostV1 } from '@lolly-tools/core/host-v1';
 import { t } from '../i18n.ts';
+import { isTauriShell } from './instance-choice.ts';
 
 export interface VerifyHandoff {
   files: File[];
@@ -24,6 +25,12 @@ let pending: VerifyHandoff | null = null;
 
 export function setPendingVerify(handoff: VerifyHandoff): void {
   pending = handoff;
+}
+
+/** What Verify says when a `#/verify?asset=<id>` link points at an asset that is
+ *  not held here: "this device" in the apps, "this browser" on the web. */
+export function missingVerifyAssetText(): string {
+  return isTauriShell() ? t('No asset with that id is on this device, so there is nothing to check. Open the link where the asset lives, or drop the file here instead.') : t('No asset with that id is in this browser, so there is nothing to check. Open the link where the asset lives, or drop the file here instead.');
 }
 
 /** Consume the pending handoff (single use - cleared on read). */

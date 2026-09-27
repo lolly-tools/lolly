@@ -283,7 +283,9 @@ export function oneDriveSendTarget(): SendTarget {
     // No formats list: every export format Lolly makes is welcome.
     available: () => (isTauriMobileShell() ? oneDriveMobileAvailable()
       : isTauriShell() ? oneDriveDesktopAvailable() : oneDriveAvailable()),
-    hint: t('Uploads this file to the Lolly app folder in your OneDrive. Lolly can only see that folder, and whether your sign-in is remembered on this device is your choice in Profile.'),
+    hint: isTauriShell()
+      ? t('Uploads this file to the Lolly app folder in your OneDrive. Lolly can only see that folder, and whether your sign-in is remembered on this device is your choice in Profile.')
+      : t('Uploads this file to the Lolly app folder in your OneDrive. Lolly can only see that folder, and whether your sign-in is remembered in this browser is your choice in Profile.'),
     send: async ({ bytes, name, format, mime }) => {
       const filename = name.toLowerCase().endsWith(`.${format}`) ? name : `${name}.${format}`;
       const item = bytes.byteLength <= GRAPH_SIMPLE_UPLOAD_MAX

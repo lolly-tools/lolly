@@ -51,14 +51,14 @@ sul tuo dispositivo**, mai trasmessi:
 - <!--i:folder--> **I tuoi documenti, sessioni salvate, asset e font caricati** - archiviati in
   IndexedDB sul tuo dispositivo, mai caricati, mai letti da nessuno tranne te.
 
-Nulla di tutto ciò viene condiviso, venduto o usato per identificarti o tracciarti. Non
-c'è nulla a cui acconsentire, perché non avviene alcuna raccolta - solo questo avviso,
-così sai cosa viene conservato e dove. Cancellare i dati del sito nel tuo browser rimuove
-tutto in qualsiasi momento; **Impostazioni → Spazio di archiviazione → Cancella tutti i
-miei dati** rimuove il tuo profilo, le sessioni salvate, le immagini caricate e la cache
-degli asset. (Secondo la Direttiva ePrivacy Art. 5(3), l'archiviazione strettamente
-necessaria per il servizio richiesto non richiede consenso - solo trasparenza, che è
-esattamente ciò che sono questo documento e l'avviso nell'app.)
+Nulla di tutto questo viene condiviso, venduto o usato per identificarti o tracciarti. Non c'è nulla
+a cui acconsentire, perché non avviene alcuna raccolta - solo questo avviso, così sai
+cosa viene conservato e dove. Cancellare lo storage del sito nel tuo browser rimuove
+tutto in qualsiasi momento, e lo stesso fa **Impostazioni → Spazio di archiviazione → Cancella tutti i miei dati**,
+che disattiva anche la Sincronizzazione. (Ai sensi della Direttiva ePrivacy
+Art. 5(3), l'archiviazione strettamente necessaria per il servizio che hai richiesto
+non richiede consenso - solo trasparenza, che è esattamente ciò che sono questo documento e
+l'avviso nell'app.)
 
 ![La sezione archiviazione della pagina profilo su uno schermo largo quanto un telefono: ogni categoria di dati sul dispositivo è nominata, con il pulsante Cancella tutti i miei dati proprio accanto](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

@@ -51,14 +51,14 @@ dispozitivul tău**, niciodată transmisă:
 - <!--i:folder--> **Propriile tale documente, sesiuni salvate, asset-uri încărcate și fonturi** - stocate în
   IndexedDB pe dispozitivul tău, niciodată încărcate, niciodată citite de altcineva decât tine.
 
-Nimic din toate acestea nu este partajat, vândut sau folosit pentru a te identifica
-sau urmări. Nu există nimic la care să consimți, pentru că nu are loc nicio colectare
-- doar această notificare, ca să știi ce se păstrează și unde. Ștergerea stocării
-site-ului din browserul tău elimină totul oricând; **Setări → Stocare → Șterge toate
-datele mele** elimină profilul tău, sesiunile salvate, imaginile încărcate și
-cache-ul de resurse. (Conform Directivei ePrivacy Art. 5(3), stocarea strict necesară
-pentru serviciul pe care l-ai cerut nu necesită consimțământ - doar transparență,
-ceea ce reprezintă atât acest document, cât și notificarea din aplicație.)
+Nimic din toate acestea nu este partajat, vândut sau folosit pentru a te
+identifica sau urmări. Nu există nimic la care să consimți, pentru că nu are loc
+nicio colectare - doar această notificare, ca să știi ce se păstrează și unde.
+Ștergerea stocării site-ului din browserul tău elimină totul oricând, la fel ca
+**Setări → Stocare → Șterge toate datele mele**, care mai întâi oprește și Sync.
+(Conform Directivei ePrivacy Art. 5(3), stocarea strict necesară pentru
+serviciul pe care l-ai cerut nu necesită consimțământ - doar transparență, ceea
+ce reprezintă atât acest document, cât și notificarea din aplicație.)
 
 ![Secțiunea de stocare a paginii de profil pe un ecran cu lățime de telefon: fiecare categorie de date de pe dispozitiv, numită, cu butonul Șterge toate datele mele chiar alături](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

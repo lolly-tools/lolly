@@ -8,7 +8,7 @@ import type { ExportEntry } from '../lib/export-history.ts';
 import type { LocalFileOperation } from '../lib/file-operation-store.ts';
 import type { LocalFileBatch } from '../lib/file-batch-store.ts';
 import type { Folder } from '../folders.ts';
-import { isHiddenSlot } from '../lib/batch-slots.ts';
+import { isDiscardedSlot, isHiddenSlot } from '../lib/batch-slots.ts';
 import { fold, tokenize, scoreHaystack } from '../lib/search/match.ts';
 
 export type AppHistoryView = 'recent' | 'changes' | 'milestones';
@@ -56,7 +56,9 @@ function contextFor(context: AppHistoryContext, query: AppHistoryQuery) {
   const tools = new Map(context.tools?.map(tool => [tool.id, tool.name]));
   const tokens = tokenize((query.search ?? '').slice(0, 200));
   return (row: AppHistoryRow): boolean => {
-    if (row.slot && isHiddenSlot(row.slot)) return false;
+    // A creation discarded by Leave without saving is hidden everywhere except its
+    // checkpoints, which stay here to open as a copy (plan 277 P1).
+    if (row.slot && isHiddenSlot(row.slot) && !(row.kind === 'revision' && isDiscardedSlot(row.slot))) return false;
     const folder = row.slot ? owner.get(row.slot) : undefined;
     const path = folder ? paths.get(folder.id)! : [];
     if (folder) { row.projectId = folder.id; row.project = path.map(part => part.name).join(' / '); }

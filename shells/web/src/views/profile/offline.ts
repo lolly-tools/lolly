@@ -10,6 +10,7 @@
 import { aiOfflinePartAllowed, aiPolicy } from '../../lib/ai-policy.ts';
 import { presentApis } from '@lolly-tools/core/host-v1';
 import { currentLang, t, tRaw } from '../../i18n.ts';
+import { isTauriShell } from '../../lib/instance-choice.ts';
 import { playSfx } from '../../lib/sfx.ts';
 import { staggerReveal } from '../../lib/reveal.ts';
 import { escape as escapeText } from '../../utils.ts';
@@ -156,7 +157,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
       </li>`;
 
   body.innerHTML = `
-      <p class="storage-hint-text">${t('Heading somewhere with no connection? Download what you need and it all keeps working - the app, your tools, the catalogue and the docs. Downloads stay on this device and refresh themselves when you are back online.')}</p>
+      <p class="storage-hint-text">${isTauriShell() ? t('Heading somewhere with no connection? Download what you need and it all keeps working - the app, your tools, the catalogue and the docs. Downloads stay on this device and refresh themselves when you are back online.') : t('Heading somewhere with no connection? Download what you need and it all keeps working - the app, your tools, the catalogue and the docs. Downloads stay in this browser and refresh themselves when you are back online.')}</p>
       <div class="odl-sweep">
         <button type="button" id="odl-everything" class="btn">${t('Download everything')}</button>
         <button type="button" id="odl-cancel" class="btn" hidden>${t('Cancel')}</button>
@@ -170,7 +171,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
       <ul class="odl-parts">${partDefs.map(partRowHtml).join('')}</ul>
       <p class="odl-persist" id="odl-persist" hidden></p>
       <h3 class="odl-subhead">${t('Tools')}</h3>
-      <p class="storage-hint-text">${t('Download a tool to keep it working with no connection - its template, hooks and fonts are stored on this device. The tick means ready offline.')}</p>
+      <p class="storage-hint-text">${isTauriShell() ? t('Download a tool to keep it working with no connection - its template, hooks and fonts are stored on this device. The tick means ready offline.') : t('Download a tool to keep it working with no connection - its template, hooks and fonts are stored in this browser. The tick means ready offline.')}</p>
       <div class="odl-head">
         <span class="odl-total" id="odl-total" aria-live="polite"></span>
         <button type="button" id="odl-all" class="btn">${t('Download all')}</button>
@@ -314,7 +315,7 @@ export async function loadOffline(pv: ProfileViewCtx) {
   noneBtn.addEventListener('click', async () => {
     const sure = await confirmDialog({
       title: t('Remove all offline downloads?'),
-      message: t('Every downloaded tool is removed from this device. Each re-downloads on demand when you next open it online.'),
+      message: isTauriShell() ? t('Every downloaded tool is removed from this device. Each re-downloads on demand when you next open it online.') : t('Every downloaded tool is removed from this browser. Each re-downloads on demand when you next open it online.'),
       confirmLabel: t('Remove all'),
       danger: true,
     });
@@ -596,7 +597,9 @@ export async function loadOffline(pv: ProfileViewCtx) {
     const id = rm.dataset.partRm as OfflinePartId;
     const sure = await confirmDialog({
       title: t('Remove this offline download?'),
-      message: tRaw('{name} is removed from this device. You can download it again any time you are online.', { name: partLabel(id) }),
+      message: isTauriShell()
+        ? tRaw('{name} is removed from this device. You can download it again any time you are online.', { name: partLabel(id) })
+        : tRaw('{name} is removed from this browser. You can download it again any time you are online.', { name: partLabel(id) }),
       confirmLabel: t('Remove'),
       danger: true,
     });

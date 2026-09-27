@@ -21,6 +21,9 @@ import { createRevisionStore } from './revision-history.ts';
 import { REVISION_STORES } from './revision-records.ts';
 import { createProfileAPI } from './profile.ts';
 import { trackHostChanges } from '../lib/sync-changes.ts';
+// Loads at boot on purpose: it also installs the notice a tab shows when another
+// tab's "Clear all my data" stops it (plan 277 review B6).
+import { guardHostWrites } from '../lib/clear-elsewhere.ts';
 import type { PreviewsAPI } from './previews.ts';
 import { createAssetsAPI } from './assets.ts';
 import { createTokensAPI, USER_TOKENS_ID } from './tokens.ts';
@@ -671,6 +674,10 @@ export async function createBridge(): Promise<WebHost> {
   // Device sync (plans/138 Tier D): every write the person makes through the bridge
   // from here on marks this device as having changes the synced copy lacks.
   trackHostChanges(host);
+  // "Clear all my data" in another tab (lib/clear-signal.ts): from then on this tab
+  // refuses every write, and a clear waits for the writes already under way. Outside
+  // the change tracking, so a refused write never schedules a sync push.
+  guardHostWrites(host);
   return host;
 }
 

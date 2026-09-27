@@ -22,6 +22,7 @@ import { cssEscape } from '../lib/util/escape.ts';
 import { presentApis } from '@lolly-tools/core/host-v1';
 import { isHiddenSlot } from '../lib/batch-slots.ts';
 import { t, tRaw } from '../i18n.ts';
+import { isTauriShell } from '../lib/instance-choice.ts';
 import { icon } from '../lib/icons.ts';
 import { claimSearchBar, clearSearchBar, setSearchBarValue } from '../components/search-bar.ts';
 import { fold, tokenize, scoreHaystack, type SearchField } from '../lib/search/match.ts';
@@ -198,7 +199,7 @@ function deckPageFit(ar: number): { w: number; h: number } {
 }
 
 /** A saved-session entry as returned by host.state.list(). */
-type SavedEntry = StateEntry & { filename: string | null; thumb: string | null };
+type SavedEntry = StateEntry & { filename: string | null; thumb: string | null; openedAt?: string };
 
 /**
  * The host surface the gallery touches: HostV1 plus the web-shell extras this view
@@ -1827,19 +1828,14 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
     // The thin recents dialog (plans/133 WP-10): the reopen rail + a Projects
     // hand-off. The full folder manager lives in /p now - one folder UI to
     // maintain; per-tool resume stays on the gallery cards' saved badges.
-    const { openRecentsDialog } = await import('../components/recents-dialog.ts');
-    await openRecentsDialog({
-      savedCount: sortedSaved.length,
-      // One-click resume (plans/142 W4): the freshest sessions, captioned by
-      // filename first, else their tool's display name.
-      // The web state bridge's list() carries filename + thumb beyond the HostV1
-      // StateEntry (bridge/state.ts); the gallery's own type is the narrow one.
-      sessions: (sortedSaved as Array<typeof sortedSaved[number] & { filename?: string | null; thumb?: string | null }>).slice(0, 8).map(e => ({
-        slot: e.slot, toolId: e.toolId,
-        name: e.filename || nameById.get(e.toolId) || e.toolId,
-        thumb: e.thumb, updatedAt: e.updatedAt,
-      })),
-    });
+    // One-click resume (plans/142 W4): the freshest sessions, captioned by
+    // filename first, else their tool's display name. The opener is shared with
+    // Projects' avatar menu (plan 277 P10), so both open exactly this.
+    // The web state bridge's list() carries filename + thumb beyond the HostV1
+    // StateEntry (bridge/state.ts); the gallery's own type is the narrow one.
+    const { openSavedSessionsDialog } = await import('../components/recents-dialog.ts');
+    await openSavedSessionsDialog(sortedSaved as Array<typeof sortedSaved[number] & { filename?: string | null; thumb?: string | null }>,
+      (id) => nameById.get(id) || id);
   }
   historyFab?.addEventListener('click', openHistoryOverlay);
 
@@ -1849,6 +1845,9 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   // to the card's (stable) info button so keyboard focus isn't dropped to <body>.
   function openHistoryFor(tool: GalleryTool): void {
     showHistoryDialog(tool, entriesByTool.get(tool.id) ?? [], sessionSizes, host, {
+      // Undo from the Trash toast (plan 277 P3) puts the row back. With the dialog still open the
+      // redraw waits for its close (onClose), so the browser's focus return is not broken.
+      onRestore: (entry, dialogOpen) => { reinsertSavedEntry(entry, tool.id, entriesByTool, sortedSaved, historyFab); if (!dialogOpen) render(); },
       onDelete: (slot) => {
         const arr = entriesByTool.get(tool.id) ?? [];
         const ai = arr.findIndex(x => x.slot === slot);
@@ -2361,7 +2360,7 @@ const utilityViews = (speechOk: boolean): UtilityView[] => [{
   href: '#/rebrand',
   icon: 'paintbrush',
   name: t('Rebrand'),
-  description: t('Move a PowerPoint deck onto the design system on this device, slide by slide or by swapping only its theme, colours and fonts.'),
+  description: isTauriShell() ? t('Move a PowerPoint deck onto the design system on this device, slide by slide or by swapping only its theme, colours and fonts.') : t('Move a PowerPoint deck onto the design system in this browser, slide by slide or by swapping only its theme, colours and fonts.'),
 }, {
   id: 'color-lab',
   href: '#/lab',
@@ -2549,7 +2548,7 @@ function cardMarkup(
   } else if (hasSession) {
     // Session exists but its preview failed to capture - still resumable from the card.
     visual = `<button class="gtile-tile gtile-tile--resume" data-resume="${escape(latest!.toolId)}" data-slot="${escape(latest!.slot)}"
-              aria-label="${escape(tRaw('Continue {name}', { name: latest!.filename || tool.name }))}"><span class="gtile-tile-txt">${t('Continue · {time}', { time: relativeTime(latest!.updatedAt) })}</span></button>`;
+              aria-label="${escape(tRaw('Continue {name}', { name: latest!.filename || tool.name }))}"><span class="gtile-tile-txt">${t('Continue · {time}', { time: relativeTime(sessionCaptionTime(latest!)) })}</span></button>`;
   } else {
     // No session, no preview, no examples - still lead with the tool's icon (never
     // a network fetch, so never broken) so the tile is a real, on-brand card rather
@@ -2558,11 +2557,17 @@ function cardMarkup(
     visual = `<a class="gtile-tile gtile-tile--iconled" href="${openHref}" data-new-tool="${escape(tool.id)}" tabindex="-1" aria-hidden="true">${tool.icon ? `<span class="gtile-tile-icon" aria-hidden="true">${tool.icon}</span>` : ''}<span class="gtile-tile-txt">${t('Open to start')}</span></a>`;
   }
 
-  // Caption sub-line: only the last-opened time, and only on resumable cards.
+  // Caption sub-line: when the resumable session was last opened or changed, and
+  // only on resumable cards (plan 277 P10). The label says which time is shown:
+  // "Last opened" only where the app recorded an open (the web app stamps one when a
+  // saved item is reopened in a tool), else "Last modified", the save time Projects
+  // sorts and labels by. It used to say "Last opened" over the save time.
   // The category is deliberately omitted here - it's discoverable via the filter
   // pills and shown in the info dialog - so the card stays about this tool itself.
   const sub = hasSession
-    ? t('Last opened · {time}', { time: relativeTime(latest!.updatedAt) })
+    ? (latest!.openedAt
+      ? t('Last opened · {time}', { time: relativeTime(latest!.openedAt) })
+      : t('Last modified · {time}', { time: relativeTime(latest!.updatedAt) }))
     : '';
 
   // Export formats no longer clutter the card - they live in the About dialog now,
@@ -2942,12 +2947,28 @@ async function fillDefaultsList(dialog: HTMLElement, toolId: string): Promise<vo
 
 // ── History modal ───────────────────────────────────────────────────────────
 
+/** Put back a saved-session row that the Trash toast's Undo restored (plan 277 P3):
+ *  into its tool's list and the all-sessions list, each kept newest first, and into
+ *  the history button's count. */
+function reinsertSavedEntry(entry: SavedEntry, toolId: string, byTool: Map<string, SavedEntry[]>, all: StateEntry[], fab: HTMLElement | null): void {
+  const newestFirst = (a: StateEntry, b: StateEntry): number => String(b.updatedAt).localeCompare(String(a.updatedAt));
+  const arr = byTool.get(toolId) ?? [];
+  if (!arr.some(x => x.slot === entry.slot)) { arr.push(entry); arr.sort(newestFirst); byTool.set(toolId, arr); }
+  if (!all.some(x => x.slot === entry.slot)) { all.push(entry); all.sort(newestFirst); }
+  const count = fab?.querySelector('.history-fab-count');
+  if (count) count.textContent = String(all.length);
+  if (fab) fab.hidden = all.length === 0;
+}
+
 interface ShowHistoryDialogOpts {
   onDelete?(slot: string): void;
+  /** The Trash toast's Undo put this row back (plan 277 P3). `dialogOpen`: the
+   *  dialog is still up, so the gallery's redraw waits for onClose. */
+  onRestore?(entry: SavedEntry, dialogOpen: boolean): void;
   onClose?(): void;
 }
 
-function showHistoryDialog(tool: GalleryTool | undefined, entries: SavedEntry[], sizes: Record<string, number>, host: GalleryHost, { onDelete, onClose }: ShowHistoryDialogOpts = {}): void {
+function showHistoryDialog(tool: GalleryTool | undefined, entries: SavedEntry[], sizes: Record<string, number>, host: GalleryHost, { onDelete, onRestore, onClose }: ShowHistoryDialogOpts = {}): void {
   if (!tool) return;
   const countText = (n: number) => (n === 1 ? t('1 saved session') : t('{n} saved sessions', { n }));
   // Defer the gallery re-render until the dialog closes: rebuilding the masonry
@@ -2976,36 +2997,49 @@ function showHistoryDialog(tool: GalleryTool | undefined, entries: SavedEntry[],
   modal.el.setAttribute('aria-labelledby', 'tool-history-title');
   modal.el.querySelectorAll('.meta-dialog-close').forEach(b => b.addEventListener('click', () => modal.close()));
 
-  modal.el.querySelectorAll<HTMLElement>('[data-resume]').forEach(el => {
-    el.addEventListener('click', (e) => {
+  // One delegated listener, so the rows can be redrawn after an Undo (below).
+  const listEl = modal.el.querySelector<HTMLElement>('.history-list');
+  const countEl = modal.el.querySelector('.history-count');
+  const repaint = (): void => {
+    if (listEl) listEl.innerHTML = entries.map(e => savedItem(e, sizes[e.slot])).join('');
+    if (countEl) countEl.textContent = countText(entries.length);
+  };
+  modal.el.addEventListener('click', async (e) => {
+    const resume = (e.target as Element).closest<HTMLElement>('[data-resume]');
+    if (resume) {
       e.stopPropagation();
       modal.close();
-      window.location.hash = `#/tool/${el.dataset.resume}?slot=${encodeURIComponent(el.dataset.slot!)}`;
+      window.location.hash = `#/tool/${resume.dataset.resume}?slot=${encodeURIComponent(resume.dataset.slot!)}`;
+      return;
+    }
+    const el = (e.target as Element).closest<HTMLElement>('[data-delete]');
+    if (!el) return;
+    e.stopPropagation();
+    const slot = el.dataset.delete!;
+    // A web delete goes to the Trash (plan 277 P3), the same as Projects: no
+    // confirm, an Undo toast, and the item's history kept until it is deleted
+    // forever. The Trash modules are lazy-loaded here, off the boot path.
+    const [{ createTrash }, { showTrashUndoToast }] = await Promise.all([
+      import('../lib/trash.ts'), import('../components/trash-dialog.ts'),
+    ]);
+    const trash = createTrash(host);
+    const row = entries.find(x => x.slot === slot);
+    const moved = await trash.trashSessions([slot], () => row?.filename || row?.label || tool.name);
+    if (!moved.length) { announce(t('That did not work. Try again.'), { assertive: true }); return; }
+    el.closest('.saved-row')?.remove();
+    onDelete?.(slot);            // update in-memory state only - render happens on close
+    changed = true;
+    // Undo puts the row back in the gallery's lists (onRestore, which shares the
+    // `entries` array) and, while this dialog is still open, in its list too.
+    showTrashUndoToast(trash, moved, (restored) => {
+      if (!restored) return;
+      const open = modal.el.isConnected;
+      if (row) onRestore?.(row, open);
+      if (open) { changed = true; repaint(); }
     });
-  });
-  modal.el.querySelectorAll<HTMLElement>('[data-delete]').forEach(el => {
-    el.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const slot = el.dataset.delete!;
-      // confirm-dialog is lazy-loaded here (off the boot path) - this is a click handler,
-      // so paying its ~1 KB on the delete gesture is free.
-      const { confirmDialog } = await import('../components/confirm-dialog.ts');
-      const ok = await confirmDialog({
-        title: t('Delete session?'),
-        message: t('Delete this saved session? This can’t be undone.'),
-        confirmLabel: t('Delete'),
-      });
-      if (!ok) return;
-      await host.state.delete(slot);
-      el.closest('.saved-row')?.remove();
-      onDelete?.(slot);            // update in-memory state only - render happens on close
-      changed = true;
-      announce(t('Session deleted'));
-      const left = modal.el.querySelectorAll('.saved-row').length;
-      const countEl = modal.el.querySelector('.history-count');
-      if (countEl) countEl.textContent = countText(left);
-      if (left === 0) modal.close();
-    });
+    const left = modal.el.querySelectorAll('.saved-row').length;
+    if (countEl) countEl.textContent = countText(left);
+    if (left === 0) modal.close();
   });
 }
 
@@ -3069,6 +3103,12 @@ function prefetchTool(toolId: string | undefined): void {
     link.href = `${base}/${file}`;
     document.head.appendChild(link);
   }
+}
+
+/** The time a resumable card shows: the recorded last open where there is one,
+ *  else the last save (see the caption in the card builder). */
+function sessionCaptionTime(entry: SavedEntry): string {
+  return entry.openedAt || entry.updatedAt;
 }
 
 function relativeTime(iso: string): string {

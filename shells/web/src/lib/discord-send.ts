@@ -16,6 +16,7 @@
  */
 
 import { t } from '../i18n.ts';
+import { isTauriShell } from './instance-choice.ts';
 import { providerFetch } from './provider-auth.ts';
 import { getConnection, hasConnection, removeConnection, saveConnection } from './provider-connections.ts';
 import type { SendTarget } from './send-target.ts';
@@ -68,7 +69,9 @@ export function discordSendTarget(): SendTarget {
     label: t('Discord'),
     // No formats list: webhooks take any file the channel's size limit allows.
     available: () => hasConnection(KIND),
-    hint: t('Posts this file into the Discord channel behind your webhook. The webhook URL stays on this device; anyone holding such a URL can post to that channel, so treat it like a key.'),
+    hint: isTauriShell()
+      ? t('Posts this file into the Discord channel behind your webhook. The webhook URL stays on this device; anyone holding such a URL can post to that channel, so treat it like a key.')
+      : t('Posts this file into the Discord channel behind your webhook. The webhook URL stays in this browser; anyone holding such a URL can post to that channel, so treat it like a key.'),
     send: async ({ bytes, name, format, mime }) => {
       const conn = await getConnection(KIND);
       const url = conn?.config?.url;

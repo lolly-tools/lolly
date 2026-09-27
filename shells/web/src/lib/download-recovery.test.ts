@@ -10,6 +10,11 @@ import { getHostRef, setHostRef } from './host-ref.ts';
 import { createClipboardAPI } from '../bridge/clipboard.ts';
 import { DeliveryResult } from './delivery-result.ts';
 import { consumeSaveAsNext, requestSaveAsNext, saveFileWithPicker } from '../bridge/export-save-picker.ts';
+import { attachDeliveryResult } from './download-recovery.ts';
+import { chooseLocationDeliver, deliverFile } from './deliver-file.ts';
+import { createDownload, deferredDownload, reportingDownload } from '../bridge/download.ts';
+import type { DeliveryReport } from '../bridge/download.ts';
+import { t, tRaw } from '../i18n.ts';
 
 const tick = (): Promise<void> => new Promise(resolve => setTimeout(resolve, 0));
 
@@ -237,4 +242,147 @@ test('Save As preserves cancellation and refusal without starting an anchor down
   } finally {
     if (previousWindow) Object.defineProperty(globalThis, 'window', previousWindow); else delete (globalThis as any).window;
   }
+});
+
+// plans/277, P9: the export panel's line on the Tauri shells. The host is built the
+// way bridge/index.ts builds it (the lazy facade around the export module's
+// download), with the export module's download made the way each override makes it
+// (reportingDownload). The recovery control is mounted exactly as
+// views/tool-actions/wiring.ts mounts the export panel's, so these read the same
+// words a person would.
+function exportPanelLine(host: DeliveryHost, surface: HTMLElement, blob: Blob, name: string): DeliveryResult {
+  const result = new DeliveryResult(
+    { blob, filename: name, label: tRaw('{name} · exported {time}', { name, time: '14:02' }) },
+    (again, againName) => deliverFile(host, again, againName),
+    chooseLocationDeliver(host),
+  );
+  mountDownloadRecovery(surface, result, { ready: tRaw('{name} ready.', { name }), saved: t('Saved.') });
+  return result;
+}
+
+const facadeHost = (download: HostV1['export']['download']): DeliveryHost =>
+  ({ export: { download: deferredDownload(async () => download) } }) as DeliveryHost;
+
+test('desktop: a native save reports the saved file with Show in folder; failure and cancel keep Retry', async () => {
+  const { restore } = withDom('<p data-export-delivery></p>');
+  const surface = document.querySelector<HTMLElement>('p')!;
+  const blob = new Blob(['png bytes'], { type: 'image/png' });
+  // The desktop override's one-shot Save As seam, as bridge-overrides/export.ts installs the seam.
+  let armed = false;
+  (window as any).__LOLLY_DESKTOP_EXPORT__ = { requestSaveAs() { armed = true; }, cancelSaveAs() { armed = false; } };
+  const revealed: string[] = [];
+  const written: Blob[] = [];
+  let mode: 'save' | 'fail' | 'cancel' = 'save';
+  const native = reportingDownload(async (data, filename): Promise<DeliveryReport> => {
+    const dialog = armed;
+    armed = false;
+    assert.equal(filename, 'qr.png');
+    if (mode === 'fail') throw new Error('Disk full');
+    if (dialog && mode === 'cancel') throw new DOMException('Save cancelled', 'AbortError');
+    written.push(data);
+    return dialog
+      ? { saved: true, name: 'Poster.png', reveal: async () => { revealed.push('Poster.png'); } }
+      : { saved: true, name: 'qr (1).png', place: 'Downloads/Lolly', reveal: async () => { revealed.push('qr (1).png'); } };
+  });
+  try {
+    const result = exportPanelLine(facadeHost(native), surface, blob, 'qr.png');
+    await result.retry(); // the panel's first hand-over
+    assert.equal(result.state, 'saved');
+    assert.match(surface.textContent!, /Saved to Downloads\/Lolly as “qr \(1\)\.png”/, 'where it went, under the name it got');
+    assert.match(surface.textContent!, /qr\.png · exported 14:02/, 'name and time, as on the web');
+    assert.doesNotMatch(surface.textContent!, /Download requested|If no file appears/, 'never the requested wording after a save');
+    const show = byText(surface, 'Show in folder')!;
+    assert.ok(show, 'Show in folder where the shell can reveal the file');
+    assert.equal(show.getAttribute('aria-label'), 'Show qr (1).png in its folder');
+    assert.ok(byText(surface, 'Save file…'), 'the native Save As dialog is still offered');
+    assert.ok(byText(surface, 'Retry download'), 'Retry stays after a save');
+    show.click(); await tick();
+    assert.deepEqual(revealed, ['qr (1).png']);
+    assert.deepEqual(written, [blob], 'the exact prepared bytes');
+
+    mode = 'fail';
+    byText(surface, 'Retry download')!.click(); await tick();
+    assert.equal(result.state, 'failed');
+    assert.match(surface.textContent!, /Could not save: Disk full Try again\./);
+    assert.doesNotMatch(surface.textContent!, /Saved to|Download requested/);
+    assert.equal(byText(surface, 'Show in folder'), undefined, 'no reveal for a file that was not written');
+    assert.equal(byText(surface, 'Retry download')!.disabled, false, 'Retry stays available after a failure');
+
+    mode = 'cancel';
+    byText(surface, 'Save file…')!.click(); await tick();
+    assert.equal(result.state, 'ready');
+    assert.equal(armed, false, 'the one-shot dialog arm never leaks into a later download');
+    assert.match(surface.textContent!, /Save cancelled\. Your file is still ready\./);
+    assert.doesNotMatch(surface.textContent!, /Saved to|Download requested/);
+    assert.equal(byText(surface, 'Show in folder'), undefined);
+    assert.ok(byText(surface, 'Retry download'), 'Retry stays after a cancel');
+
+    mode = 'save';
+    byText(surface, 'Save file…')!.click(); await tick();
+    assert.match(surface.textContent!, /Saved as “Poster\.png”/, 'a name chosen in the dialog is reported');
+    byText(surface, 'Show in folder')!.click(); await tick();
+    assert.deepEqual(revealed, ['qr (1).png', 'Poster.png']);
+    result.dispose();
+  } finally { restore(); }
+});
+
+test('phone: a native save says where the file went, with no reveal; a failure keeps Retry', async () => {
+  const { restore } = withDom('<p data-export-delivery></p><div id="owner"><p role="status"></p></div>');
+  const surface = document.querySelector<HTMLElement>('p')!;
+  const blob = new Blob(['pdf bytes'], { type: 'application/pdf' });
+  let fail = false;
+  const host = facadeHost(reportingDownload(async (_data, filename): Promise<DeliveryReport> => {
+    if (fail) throw new Error('No space left on device');
+    return { saved: true, name: filename, place: 'Files → Lolly' };
+  }));
+  try {
+    const result = exportPanelLine(host, surface, blob, 'poster.pdf');
+    await result.retry();
+    assert.match(surface.textContent!, /Saved to Files → Lolly/);
+    assert.doesNotMatch(surface.textContent!, / as “/, 'the same name is not repeated');
+    assert.doesNotMatch(surface.textContent!, /Download requested/);
+    assert.equal(byText(surface, 'Show in folder'), undefined, 'no reveal where the shell offers none');
+    assert.equal(byText(surface, 'Save file…'), undefined, 'no dialog this shell cannot open');
+    fail = true;
+    byText(surface, 'Retry download')!.click(); await tick();
+    assert.match(surface.textContent!, /Could not save: No space left on device Try again\./);
+    assert.ok(byText(surface, 'Retry download'));
+    result.dispose();
+
+    // A surface that records the first hand-over itself (components/prepare/outputs.ts)
+    // passes the report straight on; the receipt survives that route too.
+    fail = false;
+    const owner = document.querySelector<HTMLElement>('#owner')!;
+    const status = owner.querySelector<HTMLElement>('p')!;
+    const report = await deliverFile(host, blob, 'poster.pdf');
+    const recorded = attachDeliveryResult(owner, status, { blob, filename: 'poster.pdf', label: 'poster.pdf' }, host, report, { ready: 'Copy ready.', saved: 'Copy saved.' });
+    assert.equal(recorded.state, 'saved');
+    assert.match(status.textContent!, /Saved to Files → Lolly/);
+    releaseDeliveryFor(owner);
+  } finally { restore(); }
+});
+
+test('web: the browser line is unchanged, and a receipt with no detail reads as plain Saved.', async () => {
+  const { restore } = withDom('<p data-export-delivery></p>');
+  const surface = document.querySelector<HTMLElement>('p')!;
+  const blob = new Blob(['png bytes'], { type: 'image/png' });
+  const anchors: Blob[] = [];
+  try {
+    const web = exportPanelLine(facadeHost(createDownload(b => { anchors.push(b); })), surface, blob, 'qr.png');
+    await web.retry();
+    assert.equal(web.state, 'requested');
+    assert.deepEqual(anchors, [blob]);
+    assert.match(surface.textContent!, /qr\.png ready\./);
+    assert.match(surface.textContent!, /Download requested\. If no file appears, try again\./);
+    assert.doesNotMatch(surface.textContent!, /Saved/, 'an anchor click never claims a save');
+    assert.equal(byText(surface, 'Show in folder'), undefined);
+    assert.ok(byText(surface, 'Retry download'));
+    web.dispose();
+
+    const quiet = exportPanelLine(facadeHost(reportingDownload(async () => ({ saved: true }) as const)), surface, blob, 'qr.png');
+    await quiet.retry();
+    assert.match(surface.textContent!, /^Saved\./, 'no detail reported: the surface’s own Saved. line');
+    assert.equal(byText(surface, 'Show in folder'), undefined);
+    quiet.dispose();
+  } finally { restore(); }
 });

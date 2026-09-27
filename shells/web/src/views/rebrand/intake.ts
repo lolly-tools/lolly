@@ -58,6 +58,7 @@ import type { CompiledFrameV1, ProjectStageV1 } from '@lolly-tools/core/rebrand-
 import { confirmDialog, promptDialog } from '../../components/confirm-dialog.ts';
 import { mountModal } from '../../components/modal.ts';
 import { tRaw } from '../../i18n.ts';
+import { isTauriShell } from '../../lib/instance-choice.ts';
 import { menuItemHtml, wireTileContextMenu, type ContextMenuSheetHead, type TileContextMenuHandle } from '../../lib/context-menu.ts';
 import { takePendingRebrandFiles } from '../../lib/drop-router.ts';
 import { fmtBytes, relativeTime } from '../../lib/format.ts';
@@ -391,7 +392,7 @@ export function errorCopy(error: RebrandErrorV1): { text: string; ways: ErrorWay
     case 'ocr.unavailable':
       return { text: tRaw('Text recognition is not installed on this device.'), ways: ['models', 'pictures'] };
     case 'storage.quota':
-      return { text: tRaw('This device has no room left to save the project. Download it to keep your decisions.'), ways: ['lolly', 'close'] };
+      return { text: isTauriShell() ? tRaw('This device has no room left to save the project. Download it to keep your decisions.') : tRaw('This browser has no room left to save the project. Download it to keep your decisions.'), ways: ['lolly', 'close'] };
     case 'cancelled':
       return { text: tRaw('Reading stopped.'), ways: ['pick'] };
     case 'compile.unresolved-objects':
@@ -492,7 +493,7 @@ export function readinessCopy(item: ReadinessItemV1): { text: string; ways: Read
     case 'master':
       return item.state === 'unknown'
         ? { text: tRaw('Lolly could not check the slide master on this device.'), ways: ['studio'] }
-        : { text: tRaw('The slide master of the design system is not on this device.'), ways: ['studio'] };
+        : { text: isTauriShell() ? tRaw('The slide master of the design system is not on this device.') : tRaw('The slide master of the design system is not in this browser.'), ways: ['studio'] };
     case 'logo': {
       if (item.state === 'unknown') return { text: tRaw('Lolly could not check the design system mark on this device.'), ways: ['studio'] };
       const side = tag.toLowerCase();
@@ -599,7 +600,7 @@ function presetChoice(list: RebrandPresetSummaryV1[], current: string | null, ap
     + `<p class="modal-msg">${htmlEscape(tRaw('A preset sets the first suggestions for each kind of object. Every suggestion stays reversible.'))}</p>`
     + `<fieldset class="rb-preset-list"><legend class="visually-hidden">${htmlEscape(title)}</legend>`
     + row(NO_PRESET, tRaw('No preset'), '')
-    + list.map((preset) => row(preset.id, preset.name, preset.origin === 'personal' ? tRaw('Saved on this device') : '')).join('')
+    + list.map((preset) => row(preset.id, preset.name, preset.origin === 'personal' ? (isTauriShell() ? tRaw('Saved on this device') : tRaw('Saved in this browser')) : '')).join('')
     + '</fieldset>'
     + '<div class="modal-actions">'
     + `<button type="button" class="btn modal-cancel" data-act="cancel">${htmlEscape(tRaw('Cancel'))}</button>`
@@ -685,7 +686,7 @@ export async function savePreset(rb: RbCtx): Promise<void> {
   }
   const outcome = await rb.controller.savePreset?.(name);
   rb.foot.say(outcome?.ok
-    ? tRaw('Saved {name} as a preset on this device.', { name })
+    ? (isTauriShell() ? tRaw('Saved {name} as a preset on this device.', { name }) : tRaw('Saved {name} as a preset in this browser.', { name }))
     : tRaw('The preset could not be saved.'));
   if (outcome?.ok) await refreshPresets(rb);
 }
@@ -876,7 +877,7 @@ async function openProject(rb: RbCtx, id: string): Promise<void> {
 async function deleteProject(rb: RbCtx, project: RebrandProjectSummaryV1): Promise<void> {
   const ok = await confirmDialog({
     title: tRaw('Delete {name}?', { name: project.name }),
-    message: tRaw('The project and its decisions are deleted from this device. The original file is not changed.'),
+    message: isTauriShell() ? tRaw('The project and its decisions are deleted from this device. The original file is not changed.') : tRaw('The project and its decisions are deleted from this browser. The original file is not changed.'),
     confirmLabel: tRaw('Delete'),
   });
   if (!ok) return;

@@ -160,9 +160,60 @@ export async function checkForNewer(
 export interface ApplyOpts extends SyncOpts {
   /** What the apply may remove from this device; absent = add and update only. */
   replace?: ReplaceScope;
+  /** How the copy's profile record and preferences meet this device's. Absent =
+   *  'replace': keeping devices in step means the synced record wins, and so does
+   *  its copy of a session or asset that is on both sides. 'merge' keeps this
+   *  device's folders, favourites, templates and settings, adds the copy's new
+   *  ones, and keeps whichever copy of a shared session or asset is newer (the
+   *  first join's "Bring it to this device"). */
+  profile?: 'merge' | 'replace';
   /** Runs once the copy is downloaded and readable, before anything is written.
    *  A throw stops the apply with this device unchanged. */
   beforeApply?: () => Promise<void>;
+}
+
+/** Why an encrypted sync copy could not be opened: no passphrase was given, or the
+ *  one given does not decrypt the copy (a wrong passphrase, or damaged bytes: AES-GCM
+ *  cannot tell the two apart). */
+export class SnapshotPassphraseError extends Error {
+  readonly reason: 'missing' | 'wrong';
+  constructor(reason: 'missing' | 'wrong') {
+    super(reason === 'missing'
+      ? 'This snapshot is encrypted - enter its passphrase to restore it.'
+      : 'Wrong passphrase for this snapshot.');
+    this.name = 'SnapshotPassphraseError';
+    this.reason = reason;
+  }
+}
+
+/**
+ * The backup bundle inside a sync copy: the bytes unchanged when the copy is plain,
+ * decrypted with `passphrase` when it is encrypted (snapshot-crypto.ts, "LSE1").
+ * Throws SnapshotPassphraseError when an encrypted copy has no passphrase or the
+ * wrong one. This is the one decoder for a sync copy: pullAndApply uses it for a
+ * download, and importSnapshotFile for a copy the person opened from a file.
+ */
+export async function openSnapshot(bytes: Uint8Array, passphrase?: string): Promise<Uint8Array> {
+  if (!isEncryptedSnapshot(bytes)) return bytes;
+  if (!passphrase) throw new SnapshotPassphraseError('missing');
+  const plain = await decryptSnapshot(bytes, passphrase);
+  if (!plain) throw new SnapshotPassphraseError('wrong');
+  return plain;
+}
+
+/**
+ * Import a sync copy the person opened from a file (plans/277 P13): the current copy,
+ * a daily copy or the before-apply copy, downloaded from their storage and dropped on
+ * Open or picked in Import data…. It is imported exactly as a backup .zip is, with
+ * importBackup's defaults: it adds and updates, merges the profile record, and deletes
+ * nothing. It reads no remote and leaves the sync bookkeeping alone, because a copy
+ * opened by hand is not a sync. Nothing is written when the passphrase is missing or
+ * wrong, or when the bundle inside is not a readable backup.
+ */
+export async function importSnapshotFile(
+  deps: BackupDeps, bytes: Uint8Array, opts: SyncOpts = {},
+): Promise<Awaited<ReturnType<typeof importBackup>>> {
+  return importBackup(deps, await openSnapshot(bytes, opts.passphrase));
 }
 
 /**
@@ -177,19 +228,20 @@ export async function pullAndApply(
 ): Promise<{ summary: Awaited<ReturnType<typeof importBackup>>; state: SyncState; ids: BackupIds }> {
   const got = await remote.get();
   if (!got) throw new Error('There is no snapshot in your cloud yet.');
-  let bytes = got.bytes;
-  if (isEncryptedSnapshot(bytes)) {
-    if (!opts.passphrase) throw new Error('This snapshot is encrypted - enter its passphrase to restore it.');
-    const plain = await decryptSnapshot(bytes, opts.passphrase);
-    if (!plain) throw new Error('Wrong passphrase for this snapshot.');
-    bytes = plain;
-  } else if (opts.passphrase) {
+  if (!isEncryptedSnapshot(got.bytes) && opts.passphrase) {
     // A plaintext snapshot when a passphrase was expected: don't silently apply -
     // it may be an older unencrypted push, but the mismatch is worth surfacing.
     throw new Error('This snapshot is not encrypted, but a passphrase was set. Check your sync settings.');
   }
+  const bytes = await openSnapshot(got.bytes, opts.passphrase);
   if (opts.beforeApply) await opts.beforeApply();
-  const summary = await importBackup(deps, bytes, { mode: 'sync', ...(opts.replace ? { replace: opts.replace } : {}) });
+  // A merge (Bring it to this device) keeps the newer copy of a session or asset
+  // that is on both sides; keeping devices in step and restoring take the copy.
+  const merge = opts.profile === 'merge';
+  const summary = await importBackup(deps, bytes, {
+    mode: 'sync', profile: merge ? 'merge' : 'replace', sameId: merge ? 'newer' : 'incoming',
+    ...(opts.replace ? { replace: opts.replace } : {}),
+  });
   // A partial restore is not a synced revision. Leave the previous revision in
   // place, so a storage/conflict failure remains visible and retryable.
   if (summary.failedAssets || summary.failedHistory || summary.skipped) throw new Error('The snapshot was only partly restored. Keep the cloud backup and retry after freeing space, resolving conflicting versions, or updating Lolly.');

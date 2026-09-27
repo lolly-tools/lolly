@@ -36,6 +36,9 @@ import './eyedropper-shim.ts';
 import './notify.ts';
 import './zoom.ts';
 import './updater.ts';
+// And one registration, for the same reason: what "Clear all my data" removes
+// from the app's own folders (the capture sign-in profile, the Reword model).
+import './device-clearers.ts';
 import { PROVIDED_CAPABILITIES as WEB_CAPABILITIES } from '../../web/src/bridge/capabilities-provided.ts';
 
 export const PROVIDED_CAPABILITIES: readonly Capability[] = [...WEB_CAPABILITIES.filter(c => c !== 'screen'), 'filesystem', 'capture'];

@@ -19,7 +19,7 @@
 | **접근성** | 네 가지 편의 스위치 - *동작 줄이기*, *화려한 미리보기 숨기기*, *고대비*, *큰 텍스트* - 는 프로필 레코드에 저장되므로 프로필 내보내기에도 함께 담깁니다. [Accessibility](#accessibility) 참고. |
 | **작업물** | (썸네일이 있는) 저장된 세션 - **[Projects](/info/using.html)**의 중첩 폴더로 정리됨 - 사용자의 **My images** 라이브러리, 그리고 이 프로필에 연결된 로컬 활동 통계. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
 
 ![The Profile screen - name, contact, an optional headshot and your preferences](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -35,7 +35,7 @@
 
 ### 개인으로서
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
 
 ![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -53,10 +53,10 @@ Lolly에서 그 역할은 그저 **손 닿는 곳에 두는 또 하나의 프로
 
 어느 순간이든 설치본에는 **활성 프로필 하나**만 있습니다 - 도구가 지금 보고 있는 정보입니다. 앱 안에 프로필 전환기는 없습니다. 대신 각 프로필은 **이동 가능한 번들**입니다(하나의 `.zip` 파일, [아래](#moving-a-profile-to-a-new-device) 참고). 이는 새 기기로 옮길 때와 의도적으로 같은 방식입니다 - 프로필은 저장하고 복사하고 불러올 수 있는 파일입니다.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
 
-- <!--i:trash--> **가장 깔끔한 전환:** **Settings → Preferences → Storage → Clear all my data**를 실행한 다음, 새로 들어갈 맥락에 맞는 번들을 **Import**하세요. 이제부터는 오직 그 프로필로만 제작하는 거예요.
-- <!--i:layers--> **레이어링:** 먼저 지우지 *않고* 가져오면 **병합**돼요 - 가져온 프로필, 세션, 이미지가 기존 내용 위에 얹혀, 이름이 같은 항목은 대체하고 나머지는 그대로 둬요. 한 팀의 저장된 세션을 내 설정에 끌어오고 싶을 때 유용하지만, 깔끔한 역할 경계가 필요할 때는 맞지 않아요.
+- <!--i:trash--> **가장 깔끔한 전환:** **설정 → Preferences → 저장 공간 → 내 데이터 모두 지우기**를 실행한 다음, 새로 들어갈 맥락에 맞는 번들에서 **가져오기**를 누르세요. 이제부터는 오직 그 프로필로만 제작하는 거예요.
+- <!--i:layers--> **레이어링:** 먼저 지우지 *않고* 가져오면 **병합**돼요 - 가져온 세션과 이미지가 기존 내용 위에 얹히고, 양쪽에 같은 항목이 있으면 더 최근에 저장된 사본이 유지되며, 나머지는 그대로 둬요. 폴더, 즐겨찾기, 템플릿은 사용자의 것에 추가되고, 사용자 자신의 정보와 설정은 그대로 남아요. 한 팀의 저장된 세션을 내 설정에 끌어오고 싶을 때 유용하지만, 깔끔한 역할 경계가 필요할 때는 맞지 않아요.
 - <!--i:monitor--> **나란히 운영:** 모든 것이 기기 범위이므로, 별도의 브라우저 프로필, 별도의 사용자 계정, 또는 두 번째로 설치한 PWA는 각각 독립된 Lolly 프로필을 가져요. 전환할 필요 없이 개인 설치본과 행사용 키오스크 설치본을 동시에 실행할 수 있어요.
 
 여러 맥락(나, 팀, 이벤트 매니저라는 모자)을 실제로 오간다면, 여러 개의 번들을 보관해두고 필요한 것을 불러오면 돼요.
@@ -108,13 +108,13 @@ Lolly는 사용하는 동안 계속 캐시를 쌓지만, 이런 자연스러운 
 
 **Settings → Preferences → Storage → Move to another device** 아래에 있어요:
 
-- <!--i:download--> **내 데이터 내보내기**는 `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` 파일 하나를 다운로드합니다 - 해당하는 프로필 이름을 따르며, 반복 내보내기가 충돌하지 않도록 일별 일련번호가 붙습니다(프로필에 해당 항목이 없으면 이름 부분은 생략됩니다). 여기에는 프로필, 저장된 모든 세션(썸네일 포함), 업로드한 이미지 - 브랜드 토큰과 설치된 폰트도 사용자 자산으로 함께 포함됩니다 - 그리고 환경설정(테마, 레이아웃, 로컬 활동 통계)이 담깁니다.
-- <!--i:upload--> 다른 설치본의 **데이터 가져오기…**는 그 파일을 다시 읽어들여 중단했던 지점 그대로 이어갑니다.
-- <!--i:box--> **내 데이터 내보내기 및 전체 렌더링**은 동일한 백업을 작성하면서 *더불어* 저장된 모든 세션을 완성된 출력 파일로 렌더링한 두 번째 zip을 Projects 구조를 그대로 반영하는 폴더에 작성합니다. 소스와 결과물 모두를 담은 완전한 오프라인 아카이브입니다 - 세션이 많으면 용량이 크고 느릴 수 있습니다.
+- <!--i:download--> **내 데이터 내보내기**는 `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` 파일 하나를 다운로드해요 - 해당 프로필의 이름을 따르며, 반복 내보내기가 충돌하지 않도록 일별 일련번호가 붙어요(프로필에 해당 이름 부분이 없으면 생략돼요). 여기에는 프로필, 저장된 모든 세션(썸네일 포함), 업로드한 이미지가 담겨요 - 브랜드 토큰과 설치된 폰트도 사용자 자산으로 함께 실려요 - 그리고 환경설정(테마, 레이아웃, 로컬 활동 통계)도 담겨요.
+- <!--i:upload--> 다른 설치본의 **데이터 가져오기…**는 그 파일을 다시 읽어들여 중단했던 지점 그대로 이어가요. [동기화](/info/sync.html)가 저장소에 보관하는 사본도 함께 가져와요.
+- <!--i:box--> **내 데이터 내보내기 & 전체 렌더링**은 같은 백업을 작성하면서 *더불어* 저장된 모든 세션을 완성된 출력 파일로 렌더링한 두 번째 zip을 프로젝트 구조를 그대로 반영하는 폴더에 작성해요. 소스와 결과물 모두를 담은 완전한 오프라인 아카이브예요 - 세션이 많으면 용량이 크고 느릴 수 있어요.
 
 ![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-번들은 그 자체로 완결된 평범한 zip 파일이라서 USB, AirDrop, 네트워크 공유, 자신에게 보내는 이메일 등 **어떤** 방법으로도 옮길 수 있고, 대상 기기가 완전히 오프라인이어도 괜찮아요. 각 부분에는 체크섬이 있어서, 전송 중 손상된 파일은 어중간하게 복원되지 않고 가져오는 시점에 걸러져요. 가져오기는 **병합**되기 때문에(이름이 같은 프로필/세션/이미지는 덮어쓰고, 나머지는 그대로 유지) 이미 사용 중인 대상 기기를 지워버리는 일은 없어요.
+번들은 그 자체로 완결된 평범한 zip 파일이라서 USB, AirDrop, 네트워크 공유, 자신에게 보내는 이메일 등 **어떤** 방법으로도 옮길 수 있고, 대상 기기가 완전히 오프라인이어도 괜찮아요. 각 부분에는 체크섬이 있어서, 전송 중 손상된 파일은 어중간하게 복원되지 않고 가져오는 시점에 걸러져요. 가져오기는 **병합**돼요(이름이 같은 세션이나 이미지는 더 최근에 저장된 사본이 유지되고, 폴더, 즐겨찾기, 템플릿은 추가되며, 대상의 세부 정보와 설정은 그대로 남고, 나머지는 모두 유지돼요). 그래서 이미 사용 중인 대상을 지워버리는 일은 절대 없어요.
 
 함께 옮겨지지 않는 것: 카탈로그 캐시(새 기기에서 스스로 다시 다운로드돼요)와 도구 자체(이미 있다고 전제해요).
 
@@ -122,7 +122,7 @@ Lolly는 사용하는 동안 계속 캐시를 쌓지만, 이런 자연스러운 
 
 ## 도구가 프로필을 사용하는 방식
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
 
 도구는 명시적으로 연결하도록 만들어진 프로필 필드만 *미리 채워요*.
 

@@ -21,6 +21,7 @@ import { icon } from '../icons.ts';
 import { panelHead } from '../brand-studio-tabs.ts';
 import { POPULAR_FAMILIES } from '../google-fonts.ts';
 import { t, tRaw } from '../../i18n.ts';
+import { isTauriShell } from '../instance-choice.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { segHtml } from '../seg.ts';
 import { announce } from '../../a11y.ts';
@@ -245,7 +246,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
   // single mark (plan 137 C4). The whole of it is still here, one tap away in
   // the shared help tip, and the room opens on the one sentence that says what
   // to do. Plain text, no markup: helpTip escapes what it is given.
-  const logoTaxonomyTip = helpTip(t('Each orientation (horizontal, vertical) can carry each treatment: primary and mono, each with a reverse form for dark backgrounds. Marks the design system calls by its own name - an icon, a crest - go under Custom marks. A design system with more than one logo can carry each as its own set. Every slot is optional. PNG, SVG, JPEG or WebP; they stay on this device and travel in the design system file.')); bedit.logoTaxonomyTip = logoTaxonomyTip;
+  const logoTaxonomyTip = helpTip(isTauriShell() ? t('Each orientation (horizontal, vertical) can carry each treatment: primary and mono, each with a reverse form for dark backgrounds. Marks the design system calls by its own name - an icon, a crest - go under Custom marks. A design system with more than one logo can carry each as its own set. Every slot is optional. PNG, SVG, JPEG or WebP; they stay on this device and travel in the design system file.') : t('Each orientation (horizontal, vertical) can carry each treatment: primary and mono, each with a reverse form for dark backgrounds. Marks the design system calls by its own name - an icon, a crest - go under Custom marks. A design system with more than one logo can carry each as its own set. Every slot is optional. PNG, SVG, JPEG or WebP; they stay in this browser and travel in the design system file.')); bedit.logoTaxonomyTip = logoTaxonomyTip;
 
   root.innerHTML = `
     <div class="be" data-brand-editor>
@@ -617,7 +618,7 @@ export function seedDraftAndMarkup(bedit: BrandEditorCtx): void {
              now goes through the stage, so there is one door and everything is
              seen before it is stored. */''}
       <div class="be-panel be-fonts">
-        ${panelHead(t('Fonts'), t("Every face on this device and the role it serves. Faces of the design system's own travel in its file; starter faces come with the app."))}
+        ${panelHead(t('Fonts'), isTauriShell() ? t("Every face on this device and the role it serves. Faces of the design system's own travel in its file; starter faces come with the app.") : t("Every face in this browser and the role it serves. Faces of the design system's own travel in its file; starter faces come with the app."))}
         <ul class="be-font-list" data-be-fonts role="list"></ul>
         <div class="be-font-add">
           <button type="button" class="be-btn" data-be-font-compare>${t('Add a face')}</button>

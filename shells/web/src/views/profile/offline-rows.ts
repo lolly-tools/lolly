@@ -6,6 +6,7 @@
  * mounting Profile; offline.ts applies the result to the row's elements.
  */
 import { t } from '../../i18n.ts';
+import { isTauriShell } from '../../lib/instance-choice.ts';
 import { fmtBytes } from '../../lib/format.ts';
 import type { PartRecord } from '../../lib/offline-manager.ts';
 
@@ -49,7 +50,7 @@ export function partRowState(i: PartRowInput): PartRowState {
   }
   // Fetched the first time a feature needed it: already here, so no Download.
   if (i.ready) {
-    return { sub: t('On this device'), dl: { hidden: false, text: t('Downloaded'), disabled: true }, rm: { hidden: false } };
+    return { sub: isTauriShell() ? t('On this device') : t('In this browser'), dl: { hidden: false, text: t('Downloaded'), disabled: true }, rm: { hidden: false } };
   }
   if (!i.available) {
     return { sub: t('Not available to download here'), dl: { hidden: true, text: t('Download'), disabled: false }, rm: { hidden: true } };

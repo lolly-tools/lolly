@@ -11,3 +11,9 @@
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
+
+/** True when `value` is an object with a function under each of `keys`: a host
+ *  slice checked member by member where its declared type is narrower. */
+export function hasMethods(value: unknown, keys: readonly string[]): boolean {
+  return isRecord(value) && keys.every((key) => typeof value[key] === 'function');
+}

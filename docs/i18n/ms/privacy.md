@@ -55,9 +55,9 @@ peranti anda sahaja**, tidak pernah dihantar:
 Tiada satu pun daripada ini dikongsi, dijual atau digunakan untuk mengenal pasti atau menjejaki anda. Tiada apa-apa
 untuk dipersetujui, kerana tiada pengumpulan berlaku - hanya notis ini, supaya anda
 tahu apa yang disimpan dan di mana. Mengosongkan storan tapak dalam pelayar anda mengeluarkan
-semuanya pada bila-bila masa; **Tetapan → Storan → Kosongkan semua data saya** mengeluarkan profil anda,
-sesi tersimpan, imej yang dimuat naik dan cache aset. (Di bawah
-ePrivacy Directive Art. 5(3), storan yang perlu secara mutlak untuk perkhidmatan yang anda minta
+semuanya pada bila-bila masa, dan begitu juga **Tetapan → Storan → Kosongkan semua data saya**,
+yang turut mematikan Sync dahulu. (Di bawah ePrivacy
+Directive Art. 5(3), storan yang perlu secara mutlak untuk perkhidmatan yang anda minta
 tidak memerlukan persetujuan - hanya ketelusan, iaitu apa yang menjadi tujuan dokumen ini dan
 notis dalam aplikasi ini.)
 

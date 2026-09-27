@@ -70,14 +70,17 @@ export async function performSave(ta: ActionsCtx,
     // lost the save silently after its success UI had already played (audit 167
     // F-A3's root cause). Now the record is written in milliseconds; the
     // thumbnail patches it below, whenever it arrives.
-    if (ta.automaticHistory) await ta.automaticHistory.save(slot, data);
-    else await host.state.save(slot, data, null);
+    // With history, the controller records the save, or writes the record
+    // directly when history cannot take it; either way the record is written
+    // before anything below says "Saved" (plan 277 P1, review B1).
+    const outcome = ta.automaticHistory ? await ta.automaticHistory.save(slot, data) : 'stored';
+    if (!ta.automaticHistory) await host.state.save(slot, data, null);
     markSyncDirty(); // device sync (plans/138): a saved session is a change to push (no-op if sync is off)
     // Background thumbnail patch. captureThumbnail swallows its own errors, and
     // the race caps a render that never quiesces. The generation check keeps a
     // slow capture from clobbering a NEWER re-save's data with this older data.
     const gen = ++ta.saveGen;
-    const thumbnail = !ta.automaticHistory ? Promise.race([
+    const thumbnail = outcome === 'stored' ? Promise.race([
       captureThumbnail(manifest, canvasEl, runtime, exportUnscaled, data.__export_format),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), THUMB_CAPTURE_TIMEOUT_MS)),
     ])

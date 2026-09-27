@@ -55,6 +55,7 @@
  */
 import '../styles/parts/welcome.css';
 import { currentLang, docsAppHref, langOptions, setActiveLang, t, LANG_ICON_SVG, flagEmoji } from '../i18n.ts';
+import { isTauriShell } from '../lib/instance-choice.ts';
 import type { Lang } from '../i18n.ts';
 import { escape, NAV_EVENTS } from '../utils.ts';
 import { createScope } from '../lib/dispose.ts';
@@ -127,7 +128,7 @@ function welcomePrivacy(): string {
     <h2 class="welcome-title">${t('Your designs and files stay on this device')}</h2>
     <p class="welcome-sub">${t('No tracking, no analytics, no accounts.')}</p>
     <ul class="welcome-facts">
-      <li>${t('Your documents, theme and preferences are kept in this browser only.')}</li>
+      <li>${isTauriShell() ? t('Your documents, theme and preferences are kept on this device only.') : t('Your documents, theme and preferences are kept in this browser only.')}</li>
       <li>${t('Exports are made here and saved wherever you choose.')}</li>
       <li>${t('Nothing is sent anywhere unless you start something that needs the internet, such as adding a Google Font.')}</li>
     </ul>

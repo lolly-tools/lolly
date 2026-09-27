@@ -85,8 +85,10 @@ interface TrackedHost {
  * really changes, because several boot steps write the profile back unchanged.
  */
 export function trackHostChanges(host: TrackedHost): void {
+  // restore is the save a backup import writes through (it keeps the session's
+  // own times), so an import is a local change sync must push (plan 277 P7).
   const state = host.state as Record<string, unknown> | undefined;
-  for (const name of ['save', 'delete']) wrap(state, name);
+  for (const name of ['save', 'restore', 'delete']) wrap(state, name);
 
   // The profile bridge hands out its cached record, and callers often change that
   // object in place before calling set(), so comparing with a fresh read would see
@@ -109,7 +111,7 @@ export function trackHostChanges(host: TrackedHost): void {
   for (const name of [
     '_uploadUserAsset', '_duplicateUserAsset', '_restoreUserAssetVersion', '_removeUserAssetVersion',
     '_importUserAsset', '_deleteUserAsset', '_renameUserAsset', '_updateUserAssetMeta',
-    '_restampUserAsset', '_replaceUserAssetBytes',
+    '_restampUserAsset', '_replaceUserAssetBytes', '_setUserAssetTrashed',
   ]) wrap(assets, name);
 
   const systems = host.designSystems as Record<string, unknown> | undefined;

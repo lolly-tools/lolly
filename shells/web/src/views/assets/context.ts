@@ -40,6 +40,9 @@ export interface CatCtx {
   allAssets: AssetRef[];
   assetById: Map<string, AssetRef>;
   pendingDeletes: Set<string>;
+  /** How many entries the Trash holds (plan 277 P3), for the uploads section's
+   *  Trash button; refreshed on every reload(). */
+  trashCount: number;
   favSet: Set<string>;
   hiddenSet: Set<string>;
   overrides: Record<string, string>;

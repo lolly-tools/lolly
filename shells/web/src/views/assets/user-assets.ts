@@ -9,6 +9,8 @@
  */
 import { t, tRaw } from '../../i18n.ts';
 import { showUndoToast } from '../../lib/undo-toast.ts';
+import { createTrash } from '../../lib/trash.ts';
+import { showTrashUndoToast } from '../../components/trash-dialog.ts';
 import { announce } from '../../a11y.ts';
 import { choiceDialog, confirmDialog, promptDialog } from '../../components/confirm-dialog.ts';
 import { LIB_GROUPS, categoryLabel, libCategory, loadAssetCategories, saveAssetCategory } from '../../lib/asset-category.ts';
@@ -113,10 +115,11 @@ export async function recategorise(cat: CatCtx, ref: AssetRef): Promise<void> {
   cat.sections.rerender();
 }
 /**
- * Soft-delete uploads behind an undo toast (plans/132 WP-E): the tiles leave
- * the view NOW, the bytes leave the device only when the toast settles. No
- * confirm dialog any more - the toast IS the safety net, and it costs nothing
- * on the (overwhelmingly common) intentional path.
+ * Delete uploads to the Trash (plan 277 P3; plans/132 WP-E gave the Undo): the
+ * tiles leave the view NOW, the uploads move to the Trash (lib/trash.ts), and the
+ * toast's Undo, or Restore in the Trash, puts them back. No confirm dialog - the
+ * Trash IS the safety net. The bytes go only when the Trash is emptied, so the
+ * favourite, hidden and category marks stay for a restore; the purge drops them.
  */
 export function softDeleteUploads(cat: CatCtx, refs: readonly AssetRef[]): void {
   const { host, pendingDeletes, selected } = cat;
@@ -128,33 +131,21 @@ export function softDeleteUploads(cat: CatCtx, refs: readonly AssetRef[]): void 
     selected.delete(r.id);
   }
   cat.sections.rerender();
-  const firstName = String(refs[0]!.meta?.name ?? refs[0]!.id.split('/').pop());
-  showUndoToast({
-    message: refs.length === 1
-      ? tRaw('Deleted "{name}".', { name: firstName })
-      : tRaw('Deleted {n} uploads.', { n: refs.length }),
-    undo: async () => {
+  const trash = createTrash(host);
+  const repaint = async (): Promise<void> => {
+    if (!cat.mounted) return;
+    await cat.tiles.reload();
+    if (cat.mounted) cat.sections.rerender();
+  };
+  void trash.trashAssets(refs.map(r => ({ id: r.id, name: String(r.meta?.name ?? ''), type: r.type })))
+    .catch((err) => { host.log?.('error', 'Upload delete failed', { error: String(err) }); return []; })
+    .then(async (moved) => {
       for (const r of refs) pendingDeletes.delete(r.id);
-      if (!cat.mounted) return;
-      await cat.tiles.reload();
-      if (cat.mounted) cat.sections.rerender();
-      announce(refs.length === 1 ? tRaw('Restored "{name}".', { name: firstName }) : tRaw('Restored {n} uploads.', { n: refs.length }));
-    },
-    commit: async () => {
-      for (const r of refs) {
-        const base = assetBaseId(r.id);
-        // The bridge announces the delete ('lolly:user-asset-deleted', wired in
-        // main.ts), which also drops an audio upload from the Neurospicy player.
-        await host.assets._deleteUserAsset(r.id).catch(() => {});
-        pendingDeletes.delete(r.id);
-        // Prune any dangling per-user overlay entries for the gone asset (one
-        // write each, only when actually present).
-        if (cat.profile && cat.favSet.delete(base)) await saveFavouriteAssets(host, cat.profile, cat.favSet);
-        if (cat.profile && cat.hiddenSet.delete(base)) await saveHiddenAssets(host, cat.profile, cat.hiddenSet);
-        if (cat.profile && cat.overrides[base]) { await saveAssetCategory(host, cat.profile, base, null); cat.tiles.setOverrides(loadAssetCategories(cat.profile)); }
-      }
-    },
-  });
+      // Repaint either way: the Trash button's count changed, and an upload whose
+      // move failed comes back rather than vanishing without a trace.
+      await repaint();
+      showTrashUndoToast(trash, moved, repaint);
+    });
 }
 export async function deleteUserAsset(cat: CatCtx, ref: AssetRef): Promise<void> {
   softDeleteUploads(cat, [ref]);

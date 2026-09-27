@@ -52,11 +52,11 @@ på din enhet**, och skickar den aldrig vidare:
 Inget av detta delas, säljs eller används för att identifiera eller spåra dig. Det
 finns inget att samtycka till, eftersom ingen insamling sker - bara det här
 meddelandet, så att du vet vad som sparas och var. Att rensa webbplatsens lagring i
-din webbläsare tar bort allt av det när som helst; **Inställningar → Lagring → Rensa all min data** tar bort din profil, sparade
-sessioner, uppladdade bilder och tillgångscachen. (Enligt ePrivacy-direktivet Art.
-5(3) kräver lagring som är strikt nödvändig för den tjänst du bad om inget samtycke
-- bara transparens, vilket är vad både det här dokumentet och meddelandet i appen
-är.)
+din webbläsare tar bort allt av det när som helst, och det gör även
+**Inställningar → Lagring → Rensa all min data**, som också stänger av Synk först.
+(Enligt ePrivacy-direktivet Art. 5(3) kräver lagring som är strikt nödvändig för
+den tjänst du bad om inget samtycke - bara transparens, vilket är vad både det
+här dokumentet och meddelandet i appen är.)
 
 ![Lagringssektionen på profilsidan i telefonbredd: varje kategori av data på enheten namngiven, med knappen Clear all my data alldeles bredvid](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

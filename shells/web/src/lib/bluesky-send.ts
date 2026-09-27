@@ -18,6 +18,7 @@
  */
 
 import { t } from '../i18n.ts';
+import { isTauriShell } from './instance-choice.ts';
 import { providerFetch } from './provider-auth.ts';
 import { getConnection, hasConnection, removeConnection, saveConnection } from './provider-connections.ts';
 import type { SendTarget } from './send-target.ts';
@@ -80,7 +81,9 @@ export function blueskySendTarget(): SendTarget {
     label: t('Bluesky'),
     formats: ['png', 'jpg', 'jpeg', 'webp', 'gif'],
     available: () => hasConnection(KIND),
-    hint: t('Posts this image to your Bluesky feed. Your app password stays on this device - revoke it any time in Bluesky settings.'),
+    hint: isTauriShell()
+      ? t('Posts this image to your Bluesky feed. Your app password stays on this device - revoke it any time in Bluesky settings.')
+      : t('Posts this image to your Bluesky feed. Your app password stays in this browser - revoke it any time in Bluesky settings.'),
     send: async ({ bytes, name, mime }) => {
       const conn = await getConnection(KIND);
       const cfg = conn?.config as unknown as BlueskyConfig | undefined;

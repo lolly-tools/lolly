@@ -35,7 +35,7 @@ Slovo „profil" navozuje dojem jedné pevně dané osoby, ale v Lolly je to sp�
 
 ### Jako jednotlivec
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
 
 ![Ovládací prvek fotky, prázdný, dokud nenahraješ snímek, který pak zůstane na tomto zařízení](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -56,7 +56,7 @@ Instalace má v každém okamžiku **jeden aktivní profil** - údaje, které n�
 Pokud tedy opravdu žongluješ s víc kontexty (ty, tvůj tým, role manažera akce), stačí mít víc balíčků a načíst si ten, který zrovna potřebuješ:
 
 - <!--i:trash--> **Nejčistší přepnutí:** **Nastavení → Preferences → Úložiště → Vymazat všechna moje data**, pak **Import** balíčku pro kontext, do kterého přecházíš. Teď tvoříš čistě jako tento profil.
-- <!--i:layers--> **Vrstvení:** import *bez* předchozího vymazání se **sloučí** - importovaný profil, relace a obrázky přistanou navrch toho, co už tam je, přičemž nahradí vše se stejným názvem a zbytek ponechají. Hodí se k natažení uložených relací jednoho týmu do tvého vlastního nastavení; není to řešení, pokud potřebuješ čistou hranici mezi rolemi.
+- <!--i:layers--> **Vrstvení:** import *bez* předchozího vymazání se **sloučí** - importované relace a obrázky přistanou navrch toho, co už tam je; tam, kde obě strany mají totéž, se zachová kopie uložená později, a zbytek se ponechá. Složky, oblíbené a šablony se přidají k tvým, a tvoje vlastní údaje a nastavení zůstanou. Hodí se k natažení uložených relací jednoho týmu do tvého vlastního nastavení; není to řešení, pokud potřebuješ čistou hranici mezi rolemi.
 - <!--i:monitor--> **Vedle sebe:** protože je vše vázané na zařízení, samostatný profil prohlížeče, samostatný uživatelský účet nebo druhá nainstalovaná PWA nese vlastní nezávislý profil Lolly. Můžeš mít spuštěnou svou osobní instalaci i instalaci pro kiosek na akci současně, bez přepínání.
 
 Obojí se odehrává v sekci Storage: ukazatel vyúčtuje každý bajt, který tahle instalace drží, kategorii po kategorii, a tlačítka pod ním jsou to, čím data smažeš nebo přeneseš.
@@ -108,13 +108,13 @@ Protože je profil čistě lokální, existují dva způsoby, jak ho dostat do p
 
 V **Nastavení → Preferences → Úložiště → Přesunout na jiné zařízení**:
 
-- <!--i:download--> **Export my data** stáhne jeden soubor `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - pojmenovaný podle profilu, ke kterému patří, s pořadovým číslem pro daný den, aby se opakované exporty nepřekrývaly (části názvu se vynechají, pokud je profil nemá). Obsahuje tvůj profil, každou uloženou relaci (i s náhledem), tvoje nahrané obrázky - tokeny tvé značky a nainstalovaná písma jedou s nimi jako uživatelská aktiva - a tvoje předvolby (motiv, rozvržení, statistiky lokální aktivity).
-- <!--i:upload--> **Import data…** na jiné instalaci soubor znovu načte a pokračuješ přesně tam, kde jsi skončil(a).
-- <!--i:box--> **Export my data & render everything** zapíše stejnou zálohu *plus* druhý zip, který vyrenderuje každou uloženou relaci do jejího hotového výstupního souboru, ve složkách odpovídajících tvým Projects. Kompletní offline archiv zdrojů i výsledků - u velkého množství relací může být rozsáhlý a pomalý.
+- <!--i:download--> **Exportovat moje data** stáhne jeden soubor `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - pojmenovaný podle profilu, ke kterému patří, s pořadovým číslem pro daný den, aby se opakované exporty nepřekrývaly (části názvu se vynechají, pokud je profil nemá). Obsahuje tvůj profil, každou uloženou relaci (i s náhledem), tvoje nahrané obrázky - tokeny tvé značky a nainstalovaná písma jedou s nimi jako uživatelská aktiva - a tvoje předvolby (motiv, rozvržení, statistiky lokální aktivity).
+- <!--i:upload--> **Importovat data…** na jiné instalaci soubor znovu načte a pokračuješ přesně tam, kde jsi skončil(a). Vezme také kopii, kterou [Synchronizace](/info/sync.html) uchovává v tvém úložišti.
+- <!--i:box--> **Exportovat moje data & vykreslit vše** zapíše stejnou zálohu *plus* druhý zip, který vyrenderuje každou uloženou relaci do jejího hotového výstupního souboru, ve složkách odpovídajících tvým Projects. Kompletní offline archiv zdrojů i výsledků - u velkého množství relací může být rozsáhlý a pomalý.
 
 ![Dvě tlačítka, která přesunou celou instalaci: Exportovat moje data zapíše jeden zip, Import data ho zase načte](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-Balíček je obyčejný, samostatný zip, takže se dá přenést **jakýmkoliv** způsobem - přes USB, AirDrop, síťové úložiště, e-mail sám sobě - a cíl může být úplně offline. Každá část má kontrolní součet, takže soubor poškozený při přenosu se odhalí při importu, místo aby se obnovil napůl rozbitý. Import **slučuje** (profil/relace/obrázek se stejným názvem se přepíše, zbytek zůstane zachovaný), takže nikdy nesmaže cíl, který se už používal.
+Balíček je obyčejný, samostatný zip, takže se dá přenést **jakýmkoliv** způsobem - přes USB, AirDrop, síťové úložiště, e-mail sám sobě - a cíl může být úplně offline. Každá část má kontrolní součet, takže soubor poškozený při přenosu se odhalí při importu, místo aby se obnovil napůl rozbitý. Import **slučuje** (u relace nebo obrázku se stejným názvem se zachová kopie uložená později; složky, oblíbené a šablony se přidají; údaje a nastavení cíle zůstanou; všechno ostatní se zachová), takže nikdy nesmaže cíl, který se už používal.
 
 Co se nepřenáší: cache katalogu (na novém zařízení se sama znovu stáhne) a samotné nástroje (předpokládá se, že už tam jsou).
 
@@ -122,7 +122,7 @@ Přesné rozvržení balíčku, zásady verzí a pravidla integrity najdeš v **
 
 ## Jak nástroje používají tvůj profil
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
 
 Nástroj vždy jen *předvyplní* ta pole profilu, pro která byl výslovně postavený:
 

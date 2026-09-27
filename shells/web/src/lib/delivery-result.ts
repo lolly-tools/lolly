@@ -20,6 +20,8 @@
  *   saving     a delivery is in flight; a second click is a no-op until it settles
  *   requested  an anchor download was clicked. That is all an anchor can prove.
  *   saved      a picker or native write CLOSED. The only state that may say Saved.
+ *              A shell that wrote the file itself may add a receipt (the name
+ *              used, where the file went, a way to show the file), kept in `receipt`.
  *   failed     the delivery threw. The bytes are still here; retry is still valid.
  *
  * Generation errors never reach this object: a result only exists once bytes do,
@@ -33,9 +35,11 @@
  * one, cannot repaint a surface that no longer means this file.
  */
 import type { DeliveryOutcome } from '../bridge/export-save-picker.ts';
+import { outcomeOf, receiptOf } from '../bridge/download.ts';
+import type { DeliveryReport, SavedReceipt } from '../bridge/download.ts';
 import type { Deliver } from './deliver-file.ts';
 
-export type { DeliveryOutcome, Deliver };
+export type { DeliveryOutcome, DeliveryReport, SavedReceipt, Deliver };
 
 export type DeliveryState = 'ready' | 'saving' | 'requested' | 'saved' | 'failed';
 
@@ -55,6 +59,7 @@ export class DeliveryResult {
   #state: DeliveryState = 'ready';
   #error: string | null = null;
   #lastOutcome: DeliveryOutcome | null = null;
+  #receipt: SavedReceipt | null = null;
   #busy = false;
   #disposed = false;
   readonly #listeners = new Set<DeliveryListener>();
@@ -83,6 +88,9 @@ export class DeliveryResult {
   /** The most recent settled outcome - lets a surface say "Save cancelled" while the
    *  state, correctly, went back to 'ready'. */
   get lastOutcome(): DeliveryOutcome | null { return this.#lastOutcome; }
+  /** What the shell reported about the file it wrote, when state is 'saved' and it
+   *  reported anything. Null on the web, where a picker or anchor adds nothing. */
+  get receipt(): SavedReceipt | null { return this.#receipt; }
   get busy(): boolean { return this.#busy; }
   get disposed(): boolean { return this.#disposed; }
 
@@ -104,9 +112,11 @@ export class DeliveryResult {
   /** Record a delivery that already happened outside this object - the first
    *  hand-over an export makes itself, before its result exists - so the surface
    *  starts in the honest state rather than pretending nothing was asked yet. */
-  recordOutcome(outcome: DeliveryOutcome): void {
+  recordOutcome(report: DeliveryReport): void {
     if (this.#disposed) return;
+    const outcome = outcomeOf(report);
     this.#lastOutcome = outcome;
+    this.#receipt = outcome === 'saved' ? receiptOf(report) : null;
     this.#set(outcome === 'cancelled' ? 'ready' : outcome, null);
   }
 
@@ -115,6 +125,7 @@ export class DeliveryResult {
   recordFailure(error: string): void {
     if (this.#disposed) return;
     this.#lastOutcome = null;
+    this.#receipt = null;
     this.#set('failed', error);
   }
 
@@ -123,6 +134,7 @@ export class DeliveryResult {
     if (this.#disposed) return;
     this.#disposed = true;
     this.#file = null;
+    this.#receipt = null;
     this.#listeners.clear();
   }
 
@@ -134,12 +146,15 @@ export class DeliveryResult {
     const file = this.#file;
     if (this.#disposed || this.#busy || !file) return null;
     this.#busy = true;
+    this.#receipt = null;
     this.#set('saving', null);
     let outcome: DeliveryOutcome | null = null;
     try {
-      outcome = await fn(file.blob, file.filename);
+      const report = await fn(file.blob, file.filename);
       if (this.#disposed) return null;
+      outcome = outcomeOf(report);
       this.#lastOutcome = outcome;
+      this.#receipt = outcome === 'saved' ? receiptOf(report) : null;
       // A cancelled save is not a failure and not a save: the file is simply still ready.
       this.#set(outcome === 'cancelled' ? 'ready' : outcome, null);
     } catch (err) {

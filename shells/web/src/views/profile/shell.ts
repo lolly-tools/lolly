@@ -136,7 +136,7 @@ export function renderShell(pv: ProfileViewCtx): void {
       <details class="profile-card profile-collapse profile-card--appearance" id="appearance-section"${pv.rows.startOpen('appearance-section')}>
         ${summaryRow('appearance-section', t('Appearance'), escapeText(pv.summaries.themeLabel(activeTheme)))}
         <div class="profile-collapse-body section-card-body">
-        <p class="profile-appearance-sub">${t('How the app dresses for you - your preference, separate from your brand. Applied instantly and remembered on this device.')}</p>
+        <p class="profile-appearance-sub">${isTauriShell() ? t('How the app dresses for you - your preference, separate from your brand. Applied instantly and remembered on this device.') : t('How the app dresses for you - your preference, separate from your brand. Applied instantly and remembered in this browser.')}</p>
         <div class="profile-theme-grid" data-theme-pick>
           ${THEMES.map(theme => `
             <button type="button" class="profile-theme${theme === activeTheme ? ' is-active' : ''}" data-theme-set="${escapeText(theme)}" data-theme="${escapeText(theme)}" aria-pressed="${theme === activeTheme ? 'true' : 'false'}">

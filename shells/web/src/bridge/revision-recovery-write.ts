@@ -80,6 +80,8 @@ export async function writeRecovery(
         hash: doc?.hash ?? null,
         version,
         workingHash: snapshot.hash,
+        // A document that recovery creates was never explicitly saved (plan 277 P1).
+        ...(doc ? {} : { saved: null }),
       });
       await writeCurrentState(tx, record, snapshot.data, documentId);
     }
@@ -118,6 +120,10 @@ export async function replaceRecovery(db: IDBPDatabase, record: StateRecord): Pr
         await tx
           .objectStore('state')
           .put(indexSavedWork({ ...record, data: snapshot.data, documentId: doc.documentId }));
+        // The same data saved from outside the editor is a save too: a state a
+        // recovery draft wrote now counts as saved (plan 277 P1, review B1). The
+        // version is kept, so an editor with this document open does not diverge.
+        if (doc.workingHash !== '') await docs.put({ ...doc, workingHash: '' });
         await tx.done;
         return;
       }

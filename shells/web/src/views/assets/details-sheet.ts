@@ -465,7 +465,7 @@ export function buildSheet(dt: DetailsCtx): void {
           ];
           const danger = [
             isUser
-              ? `<button type="button" class="btn cat-act-danger" data-act="delete">${TRASH_ICON}<span>${t('Delete')}</span></button>`
+              ? `<button type="button" class="btn cat-act-danger" data-act="delete">${TRASH_ICON}<span>${t('Move to Trash')}</span></button>`
               : (hidden
                   ? `<button type="button" class="btn" data-act="unhide">${EYE_ICON}<span>${t('Unhide')}</span></button>`
                   : `<button type="button" class="btn cat-act-danger" data-act="hide">${EYE_OFF_ICON}<span>${t('Hide')}</span></button>`),

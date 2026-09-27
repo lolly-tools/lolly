@@ -19,11 +19,12 @@ import { getSyncConfig, saveSyncConfig, getSyncBase, saveSyncBase, resetSyncConf
 import type { BackupIds } from '../data-transfer.ts';
 import { resetSyncChangesForTests } from './sync-changes.ts';
 
-function makeHost(sessions: Record<string, unknown> = {}) {
+function makeHost(sessions: Record<string, unknown> = {}, profile: Record<string, unknown> = {}) {
   const sess = new Map<string, unknown>(Object.entries(sessions));
   const store = new Map<string, string>();
+  const me = { value: profile };
   const host = {
-    profile: { async get() { return {}; }, async set() {} },
+    profile: { async get() { return me.value; }, async set(p: Record<string, unknown>) { me.value = p; } },
     state: {
       async list() { return [...sess.keys()].map((slot) => ({ slot })); },
       async load(slot: string) { return sess.get(slot) ?? null; },
@@ -39,7 +40,7 @@ function makeHost(sessions: Record<string, unknown> = {}) {
     log() {},
   };
   const storage = { getItem: (k: string) => store.get(k) ?? null, setItem: (k: string, v: string) => { store.set(k, v); } };
-  return { deps: { host: host as never, storage }, sess, keys: () => [...sess.keys()].sort() };
+  return { deps: { host: host as never, storage }, sess, keys: () => [...sess.keys()].sort(), profile: () => me.value };
 }
 
 /** One in-memory store per path, shared by every "device" in a test. */
@@ -181,6 +182,52 @@ test('restore lists the copies and makes the device and the store match one', as
   const check = makeHost();
   await applyNewer(check.deps, { useSynced: true });
   assert.deepEqual(check.keys(), ['old'], 'the restored state is now the synced copy');
+});
+
+// plans/277 P7: "Bring it to this device" merges the profile record, so the
+// joining device keeps its folders, favourites and templates; the ordinary apply
+// that keeps devices in step still takes the synced record.
+test('"Bring it to this device" keeps this device’s folders, favourites and templates; a later apply converges', async () => {
+  memoryStores();
+  const folder = (id: string, ref: string) => ({ id, name: id, parentId: null, items: [{ type: 'session', ref }], createdAt: 'a', updatedAt: 'a' });
+  const laptop = makeHost({ a: { v: 1 } }, {
+    firstname: 'Ada', favourites: ['chart'], folders: [folder('laptop-folder', 'a')],
+    userTemplates: [{ id: 'tpl-laptop' }],
+  });
+  await syncNow(laptop.deps);
+  const laptopSettings = await current();
+
+  await asDevice(null);
+  const phone = makeHost({ p: { phone: true } }, {
+    firstname: 'Grace', favourites: ['qr-code'], folders: [folder('phone-folder', 'p')],
+    userTemplates: [{ id: 'tpl-phone' }],
+  });
+  await joinBringHere(phone.deps);
+  const joined = phone.profile() as Record<string, any>;
+  assert.equal(joined.firstname, 'Grace');
+  assert.deepEqual(joined.favourites, ['qr-code', 'chart']);
+  assert.deepEqual(joined.folders.map((f: { id: string }) => f.id), ['phone-folder', 'laptop-folder']);
+  assert.deepEqual(joined.userTemplates.map((t: { id: string }) => t.id), ['tpl-phone', 'tpl-laptop']);
+
+  // The join pushed the union; the laptop's ordinary apply takes that record whole.
+  await asDevice(laptopSettings);
+  assert.deepEqual(await applyNewer(laptop.deps), { status: 'applied' });
+  const applied = laptop.profile() as Record<string, any>;
+  assert.equal(applied.firstname, 'Grace', 'keeping devices in step takes the synced record');
+  assert.deepEqual(applied.folders.map((f: { id: string }) => f.id), ['phone-folder', 'laptop-folder']);
+});
+
+test('"Bring it to this device" keeps this device’s copy of a shared session; Restore still goes back in time', async () => {
+  memoryStores();
+  await syncNow(makeHost({ doc: { from: 'laptop' } }).deps);
+  await asDevice(null);
+  const phone = makeHost({ doc: { from: 'phone' } });
+  await joinBringHere(phone.deps);                       // no readable times: this device's copy stays
+  assert.deepEqual(phone.sess.get('doc'), { from: 'phone' });
+
+  phone.sess.set('doc', { from: 'phone, edited later' });
+  await restoreFrom(phone.deps, 'before-apply');         // the copy saved before the join
+  assert.deepEqual(phone.sess.get('doc'), { from: 'phone' }, 'a restore replaces newer work on purpose');
 });
 
 test('a local change marks the device as waiting once sync is wired', async () => {

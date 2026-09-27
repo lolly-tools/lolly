@@ -48,6 +48,7 @@ import { mountBodyPopover, type BodyPopoverHandle } from '../../components/body-
 import { promptDialog } from '../../components/confirm-dialog.ts';
 import { helpTip, unwireHelpTips, wireHelpTips } from '../../components/help-tip.ts';
 import { t, tRaw } from '../../i18n.ts';
+import { isTauriShell } from '../../lib/instance-choice.ts';
 import { trapFocus, type FocusTrap } from '../../lib/focus-trap.ts';
 import { icon, type IconName } from '../../lib/icons.ts';
 import type { RebrandEditOutcomeV1 } from '../../lib/rebrand/controller-api.ts';
@@ -220,7 +221,7 @@ export function announceOutcome(rb: RbCtx, outcome: RebrandEditOutcomeV1, succes
   switch (outcome.refusal) {
     case 'busy': rb.announce(t('Still working. Try again in a moment.')); break;
     case 'stale-revision': rb.announce(tRaw('Changed in another tab. Reload to continue.')); break;
-    case 'quota': rb.announce(tRaw('This device has no room left, so the change was not saved.')); break;
+    case 'quota': rb.announce(isTauriShell() ? tRaw('This device has no room left, so the change was not saved.') : tRaw('This browser has no room left, so the change was not saved.')); break;
     case 'no-plan': rb.announce(t('Choose a deck first.')); break;
     default: rb.announce(t('Nothing changed.'));
   }

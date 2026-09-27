@@ -92,3 +92,25 @@ export async function openRecentsDialog(opts: { savedCount?: number; sessions?: 
   });
   modal.el.querySelector('[data-recents-close]')?.addEventListener('click', () => modal.close());
 }
+
+/** A saved-session row as the gallery and Projects hold it (host.state.list()). */
+interface SavedRow { slot: string; toolId?: string; filename?: string | null; thumb?: string | null; updatedAt?: string }
+
+/**
+ * The avatar menu's "Saved sessions" item, the same on every view that offers it
+ * (plan 277 P10): the freshest eight, newest save first, captioned by file name
+ * and else by tool name, then the dialog above (or History, on the web host).
+ */
+export async function openSavedSessionsDialog(rows: readonly SavedRow[], toolName: (toolId: string) => string): Promise<void> {
+  const { isHiddenSlot } = await import('../lib/batch-slots.ts');
+  const visible = rows.filter(r => !isHiddenSlot(r.slot))
+    .sort((a, b) => String(b.updatedAt ?? '').localeCompare(String(a.updatedAt ?? '')));
+  await openRecentsDialog({
+    savedCount: visible.length,
+    sessions: visible.slice(0, 8).map(r => ({
+      slot: r.slot, toolId: r.toolId ?? '',
+      name: r.filename || toolName(r.toolId ?? '') || r.toolId || '',
+      thumb: r.thumb, updatedAt: r.updatedAt,
+    })),
+  });
+}

@@ -10,6 +10,11 @@
  *   Retry download   the ordinary path again - anchor on web, native on the
  *                    shells. Always offered, because a browser without the picker
  *                    still needs a way back that is not "render it again".
+ *   Show in folder   only after a shell that wrote the file itself says it can
+ *                    show that file in the system file manager (the desktop app).
+ *
+ * When such a shell reports where the file went, the saved line says so ("Saved to
+ * Downloads/Lolly"), with the name it used when that differs from the one asked for.
  *
  * It never rebuilds a file and never regenerates a render: retrying reuses the
  * exact Blob and filename the result retained. The result's LABEL is painted next
@@ -20,7 +25,7 @@
 import './download-recovery.css';
 import { t, tRaw } from '../i18n.ts';
 import { DeliveryResult } from './delivery-result.ts';
-import type { Deliver, DeliveryOutcome, PreparedFile } from './delivery-result.ts';
+import type { Deliver, DeliveryReport, PreparedFile, SavedReceipt } from './delivery-result.ts';
 import { chooseLocationDeliver, deliverFile } from './deliver-file.ts';
 import type { DeliveryHost } from './deliver-file.ts';
 import { getHostRef } from './host-ref.ts';
@@ -39,6 +44,17 @@ function control(label: string, ariaLabel: string): HTMLButtonElement {
   button.textContent = label;
   button.setAttribute('aria-label', ariaLabel);
   return button;
+}
+
+/** The saved line: where a shell said the file went, else the surface's own copy. */
+function savedLine(receipt: SavedReceipt | null, filename: string, fallback: string): string {
+  const renamed = receipt?.name && receipt.name !== filename ? receipt.name : null;
+  if (receipt?.place) {
+    return renamed
+      ? tRaw('Saved to {path} as “{name}”', { path: receipt.place, name: renamed })
+      : tRaw('Saved to {path}', { path: receipt.place });
+  }
+  return renamed ? tRaw('Saved as “{name}”', { name: renamed }) : fallback;
 }
 
 /**
@@ -67,11 +83,18 @@ export function mountDownloadRecovery(status: HTMLElement, result: DeliveryResul
   // literal entities.
   const saveButton = canSave ? control(t('Save file…'), tRaw('Save {name}', { name: file.filename })) : null;
   const retryButton = control(t('Retry download'), tRaw('Download {name} again', { name: file.filename }));
+  const revealButton = control(t('Show in folder'), tRaw('Show {name} in its folder', { name: file.filename }));
 
   const paint = (): void => {
     const state = result.state;
+    const receipt = state === 'saved' ? result.receipt : null;
+    // In the tree only while it can act, so no stylesheet can show a dead control.
+    if (receipt?.reveal) {
+      revealButton.setAttribute('aria-label', tRaw('Show {name} in its folder', { name: receipt.name ?? file.filename }));
+      if (revealButton.parentNode !== message.parentNode) message.after(revealButton);
+    } else revealButton.remove();
     if (state === 'saved') {
-      summary.textContent = copy.saved;
+      summary.textContent = savedLine(receipt, file.filename, copy.saved);
       message.textContent = '';
     } else {
       summary.textContent = copy.ready;
@@ -86,13 +109,17 @@ export function mountDownloadRecovery(status: HTMLElement, result: DeliveryResul
     const locked = result.busy || result.disposed;
     if (saveButton) saveButton.disabled = locked;
     retryButton.disabled = locked;
+    revealButton.disabled = locked;
   };
 
   // No await between the click and the picker: save() opens it synchronously.
   const onSave = (): void => { void result.save(); };
   const onRetry = (): void => { void result.retry(); };
+  // The shell's reveal reports its own failure; a rejection here must not go unhandled.
+  const onReveal = (): void => { void result.receipt?.reveal?.().catch(() => {}); };
   saveButton?.addEventListener('click', onSave);
   retryButton.addEventListener('click', onRetry);
+  revealButton.addEventListener('click', onReveal);
   const unsubscribe = result.subscribe(paint);
 
   recovery.append(message);
@@ -105,6 +132,8 @@ export function mountDownloadRecovery(status: HTMLElement, result: DeliveryResul
     unsubscribe();
     saveButton?.removeEventListener('click', onSave);
     retryButton.removeEventListener('click', onRetry);
+    revealButton.removeEventListener('click', onReveal);
+    revealButton.remove();
     label.remove();
     recovery.remove();
   };
@@ -135,13 +164,13 @@ export function attachDeliveryResult(
   surface: HTMLElement,
   file: PreparedFile,
   host: DeliveryHost,
-  outcome: DeliveryOutcome | { failed: string } | null,
+  outcome: DeliveryReport | { failed: string } | null,
   copy: Partial<RecoveryCopy> = {},
 ): DeliveryResult {
   releaseDeliveryFor(owner);
   const result = new DeliveryResult(file, (blob, filename) => deliverFile(host, blob, filename), chooseLocationDeliver(host));
-  if (typeof outcome === 'string') result.recordOutcome(outcome);
-  else if (outcome) result.recordFailure(outcome.failed);
+  if (outcome && typeof outcome === 'object' && 'failed' in outcome) result.recordFailure(outcome.failed);
+  else if (outcome) result.recordOutcome(outcome);
   surface.hidden = false;
   const unmount = mountDownloadRecovery(surface, result, {
     ready: copy.ready ?? tRaw('{name} ready.', { name: file.filename }),

@@ -54,8 +54,8 @@ your device only**, never transmitted:
 None of this is shared, sold or used to identify or track you. There is nothing
 to consent to, because there is no collection happening - only this notice, so you
 know what's kept and where. Clearing the site's storage in your browser removes
-all of it at any time; **Settings → Storage → Clear all my data** removes your
-profile, saved sessions, uploaded images and the asset cache. (Under the ePrivacy
+all of it at any time, and so does **Settings → Storage → Clear all my data**,
+which also turns off Sync first. (Under the ePrivacy
 Directive Art. 5(3), storage that is strictly necessary for the service you asked
 for doesn't require consent - only transparency, which is what this document and
 the in-app notice both are.)

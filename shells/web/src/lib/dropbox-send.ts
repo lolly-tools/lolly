@@ -213,7 +213,9 @@ export function dropboxSendTarget(): SendTarget {
     // In the mobile apps a send needs a connection: without one, the key alone
     // does not prove the mobile redirect was registered (plans/138 Tier D, M1).
     available: () => dropboxAvailable() && (!isTauriMobileShell() || hasConnection(KIND)),
-    hint: t('Uploads this file to the Lolly app folder in your Dropbox. Lolly can only see that folder, and whether your sign-in is remembered on this device is your choice in Profile.'),
+    hint: isTauriShell()
+      ? t('Uploads this file to the Lolly app folder in your Dropbox. Lolly can only see that folder, and whether your sign-in is remembered on this device is your choice in Profile.')
+      : t('Uploads this file to the Lolly app folder in your Dropbox. Lolly can only see that folder, and whether your sign-in is remembered in this browser is your choice in Profile.'),
     send: async ({ bytes, name, format }) => {
       const filename = name.toLowerCase().endsWith(`.${format}`) ? name : `${name}.${format}`;
       const file = await dropboxUpload(bytes, `/${filename}`);

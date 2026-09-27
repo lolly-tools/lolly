@@ -19,7 +19,7 @@ Semua yang ada dalam profil disimpan **pada peranti**, dalam pangkalan data temp
 | **Kebolehcapaian** | Empat suis keselesaan - *Reduce motion*, *Hide colourful previews*, *High contrast*, *Large text* - disimpan pada rekod profil, jadi ia turut serta dalam eksport profil. Lihat [Kebolehcapaian](#accessibility). |
 | **Kerja anda** | Sesi yang disimpan (dengan lakaran kecil) - disusun ke dalam folder bersarang dalam **[Projects](/info/using.html)** - pustaka **My images** anda dan statistik aktiviti tempatan, semuanya dikaitkan dengan profil ini. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
 
 ![Skrin Profile - nama, hubungan, gambar kepala pilihan dan keutamaan anda](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -35,7 +35,7 @@ Perkataan "profil" memberi kesan seolah-olah ia satu individu yang tetap, tetapi
 
 ### Sebagai individu
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
 
 ![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -53,11 +53,11 @@ Dalam Lolly, peranan itu hanyalah **satu lagi profil yang anda simpan berdekatan
 
 Pada bila-bila masa, satu pemasangan mempunyai **satu profil aktif** - butiran yang dilihat oleh sesuatu alat pada masa itu. Tiada penukar profil dalam aplikasi; sebaliknya, setiap profil ialah **bungkusan mudah alih** (satu `.zip` sahaja, lihat [di bawah](#moving-a-profile-to-a-new-device)). Ini sengaja menggunakan mekanisme yang sama seperti berpindah ke peranti baharu - profil ialah fail yang boleh anda simpan, salin dan muatkan.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
 
 - <!--i:trash--> **Penukaran paling bersih:** **Tetapan → Preferences → Storan → Kosongkan semua data saya**, kemudian **Import** bungkusan untuk konteks yang anda masuki. Anda kini mencipta semata-mata sebagai profil itu.
-- <!--i:layers--> **Berlapis:** mengimport *tanpa* mengosongkan dahulu akan **bercantum** - profil, sesi dan imej yang diimport mendarat di atas apa yang sudah ada, menggantikan mana-mana yang mempunyai nama sama dan membiarkan selebihnya. Berguna untuk menarik sesi tersimpan sesuatu pasukan ke dalam persediaan anda sendiri; bukan pilihan yang sesuai jika anda memerlukan sempadan peranan yang bersih.
-- <!--i:monitor--> **Bersebelahan:** kerana semuanya bersifat khusus-peranti, profil pelayar berasingan, akaun pengguna berasingan atau PWA kedua yang dipasang masing-masing membawa profil Lolly sendiri yang bebas. Jalankan pemasangan peribadi anda dan pemasangan kiosk acara serentak, tanpa perlu bertukar.
+- <!--i:layers--> **Berlapis:** mengimport *tanpa* mengosongkan dahulu **menggabungkan** - sesi dan imej yang diimport mendarat di atas apa yang sudah ada; apabila kedua-duanya mempunyai yang sama, salinan yang disimpan lebih baru dikekalkan, dan selebihnya dibiarkan begitu sahaja. Folder, kegemaran dan templat ditambah kepada milik anda, dan butiran serta tetapan anda sendiri kekal. Berguna untuk menarik sesi tersimpan satu pasukan ke dalam persediaan anda sendiri; bukan yang anda mahukan jika anda memerlukan sempadan peranan yang bersih.
+- <!--i:monitor--> **Bersebelahan:** kerana segala-galanya bersifat khusus peranti, satu profil pelayar berasingan, satu akaun pengguna berasingan atau satu PWA kedua yang dipasang masing-masing membawa profil Lolly bebasnya sendiri. Jalankan pemasangan peribadi anda dan pemasangan kiosk acara serentak, tanpa perlu bertukar.
 
 Jadi jika anda benar-benar mengendalikan beberapa konteks serentak (anda, pasukan anda, topi pengurus acara), anda simpan beberapa bungkusan dan muatkan yang mana satu anda perlukan:
 
@@ -108,13 +108,13 @@ Oleh sebab profil adalah sepenuhnya tempatan, ada dua cara untuk memasukkannya k
 
 Di bawah **Tetapan → Preferences → Storan → Pindah ke peranti lain**:
 
-- <!--i:download--> **Export my data** memuat turun satu `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - dinamakan mengikut profil yang memilikinya, dengan nombor jujukan harian supaya eksport berulang tidak berlanggar (bahagian nama digugurkan apabila profil tidak mempunyainya). Ia mengandungi profil anda, setiap sesi yang disimpan (berserta lakarannya), imej yang anda muat naik - token jenama dan fon yang dipasang turut serta sebagai aset pengguna - dan keutamaan anda (tema, susun atur, statistik aktiviti tempatan).
-- <!--i:upload--> **Import data…** pada pemasangan lain membaca semula fail itu dan anda menyambung tepat di tempat anda berhenti.
-- <!--i:box--> **Export my data & render everything** menulis sandaran yang sama itu *ditambah* satu zip kedua yang merender setiap sesi tersimpan kepada fail hasil siapnya, dalam folder yang mencerminkan Projek anda. Satu arkib luar talian yang lengkap bagi kedua-dua sumber dan hasil - dan ia boleh menjadi besar dan perlahan jika sesinya banyak.
+- <!--i:download--> **Eksport data saya** memuat turun satu `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - dinamakan mengikut profil yang memilikinya, dengan nombor jujukan harian supaya eksport berulang tidak berlanggar (bahagian nama digugurkan apabila profil tidak mempunyainya). Ia mengandungi profil anda, setiap sesi yang disimpan (berserta lakarannya), imej yang anda muat naik - token jenama dan fon yang dipasang turut serta sebagai aset pengguna - dan keutamaan anda (tema, susun atur, statistik aktiviti tempatan).
+- <!--i:upload--> **Mengimport data…** pada pemasangan lain membaca semula fail itu dan anda menyambung tepat di tempat anda berhenti. Ia juga mengambil satu salinan yang disimpan [Sync](/info/sync.html) dalam storan anda.
+- <!--i:box--> **Eksport data saya & render semuanya** menulis sandaran yang sama itu *ditambah* satu zip kedua yang merender setiap sesi tersimpan kepada fail hasil siapnya, dalam folder yang mencerminkan Projek anda. Satu arkib luar talian yang lengkap bagi kedua-dua sumber dan hasil - dan ia boleh menjadi besar dan perlahan jika sesinya banyak.
 
 ![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-Bungkusan itu ialah fail zip yang ringkas dan berdikari sepenuhnya, jadi ia boleh dipindahkan dengan **apa-apa sahaja** cara - USB, AirDrop, perkongsian rangkaian, e-mel kepada diri sendiri - dan sasarannya boleh sepenuhnya luar talian. Setiap bahagian mempunyai checksum, jadi fail yang rosak semasa pemindahan akan dikesan semasa import dan bukannya dipulihkan dalam keadaan separa rosak. Import akan **menggabungkan** (profil/sesi/imej yang mempunyai nama sama akan ditulis ganti; selebihnya dikekalkan), jadi ia tidak akan sekali-kali memadamkan sasaran yang sudah digunakan.
+Bungkusan itu ialah fail zip yang ringkas dan berdikari sepenuhnya, jadi ia boleh dipindahkan dengan **apa-apa sahaja** cara - USB, AirDrop, perkongsian rangkaian, e-mel kepada diri sendiri - dan sasarannya boleh sepenuhnya luar talian. Setiap bahagian mempunyai checksum, jadi fail yang rosak semasa pemindahan akan dikesan semasa import dan bukannya dipulihkan dalam keadaan separuh rosak. Import **menggabungkan** (bagi sesi atau imej bernama sama, salinan yang disimpan lebih baru dikekalkan; folder, kegemaran dan templat ditambah; butiran dan tetapan sasaran kekal; segala-galanya yang lain dikekalkan), jadi ia tidak sekali-kali memadamkan sasaran yang sudah digunakan.
 
 Apa yang tidak turut dipindahkan: cache katalog (ia memuat turun semula sendiri pada peranti baharu) dan alat-alat itu sendiri (dianggap sudah tersedia).
 
@@ -122,7 +122,7 @@ Untuk susun atur bandel yang tepat, dasar versi dan peraturan integriti, lihat *
 
 ## Bagaimana alat menggunakan profil anda
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
 
 Sesuatu alat hanya sekali-kali *pra-isi* medan profil yang direka khusus untuknya:
 

@@ -93,8 +93,10 @@ address, so they can reach your server directly.
 4. On each of your other devices, connect the same storage and do the same.
 
 If your storage already holds Lolly data, Lolly asks before it syncs.
-**Bring it to this device** adds that data here and keeps this device's saved
-work, but takes the folders, favourites and templates from the synced copy.
+**Bring it to this device** adds that data here and removes nothing: this
+device keeps its folders, favourites, templates and settings and gains the ones
+it did not have, and where a project is on both, the copy saved more recently
+is kept.
 **Replace it with this device** makes this device the synced copy.
 
 ## How sync keeps your work safe
@@ -116,7 +118,9 @@ work, but takes the folders, favourites and templates from the synced copy.
 - **Earlier copies.** Your storage keeps one copy a day for the last seven
   days, plus the copy from before your last apply. Use **Restore an earlier
   copy** to go back to one. Your provider's own version history can keep
-  more.
+  more. You can also download any of these copies from your storage and open
+  it in Lolly, or pick it in **Import data…**: it is added to the device like
+  a backup, and an encrypted copy asks for your passphrase.
 
 ## Encryption is optional
 

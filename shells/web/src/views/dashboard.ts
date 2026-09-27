@@ -33,6 +33,7 @@ import '../styles/parts/platform.css'; // shared dashboard chrome (.plat-* / .ca
 import '../styles/parts/dashboard.css'; // this view's layout + signature pieces
 import { escape } from '../utils.ts';
 import { t, tRaw, loadNamespace } from '../i18n.ts';
+import { isTauriShell } from '../lib/instance-choice.ts';
 import { armViewEnter } from '../view-enter.ts';
 import { langFabHtml, attachLangMenu } from '../components/lang-menu.ts';
 import { icon } from '../lib/icons.ts';
@@ -655,7 +656,7 @@ function renderStorageGlance(m: StorageGlance): string {
   // measured line (some browsers withhold an estimate).
   const hero = m.usage != null && m.quota
     ? storeDonut(m.total, m.quota)
-    : `<p class="dash-store-headline">${t('<strong>{n}</strong> measured on this device', { n: fmtBytes(m.total) })}</p>`;
+    : `<p class="dash-store-headline">${isTauriShell() ? t('<strong>{n}</strong> measured on this device', { n: fmtBytes(m.total) }) : t('<strong>{n}</strong> measured in this browser', { n: fmtBytes(m.total) })}</p>`;
   return `
     ${hero}
     <div class="dash-store-bar" role="img" aria-label="${escape(tRaw('Storage composition: {list}', { list: segs.map((s) => `${s.label} ${fmtBytes(s.bytes)}`).join(', ') }))}">${bar || '<span class="dash-store-seg dash-store-seg--other" style="flex:1"></span>'}</div>
@@ -761,7 +762,7 @@ export async function mountDashboard(viewEl: HTMLElement, host: HostV1, routePar
                 flag: dashFlag('dash-storage'),
                 title: t('Storage'),
                 cls: 'dash-card',
-                desc: t('What Lolly is keeping on this device.'),
+                desc: isTauriShell() ? t('What Lolly is keeping on this device.') : t('What Lolly is keeping in this browser.'),
                 body: `<div class="dash-store" data-store><p class="cat-empty">${t('measuring…')}</p></div>`,
               })}
             </div>
@@ -923,7 +924,7 @@ export async function mountDashboard(viewEl: HTMLElement, host: HostV1, routePar
         : mine
           ? t('Your brand is installed - every tool, page and export wears it.')
           : metaId
-            ? t('Running the catalogue’s built-in brand. Make it yours - pick a colour and Lolly derives the rest. It stays on this device.')
+            ? (isTauriShell() ? t('Running the catalogue’s built-in brand. Make it yours - pick a colour and Lolly derives the rest. It stays on this device.') : t('Running the catalogue’s built-in brand. Make it yours - pick a colour and Lolly derives the rest. It stays in this browser.'))
             : t('This install is unbranded. Pick one colour and Lolly derives the ramps, themes and every semantic slot - <strong>make it yours</strong>.');
     }
     // The one action: adjust the brand at Start. A locked catalogue's brand

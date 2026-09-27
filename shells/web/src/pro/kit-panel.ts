@@ -4,6 +4,7 @@ import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { InputValue } from '../../../../engine/src/inputs.ts';
 import { fetchTemplateFile } from '../lib/template-source.ts';
 import { t, tRaw } from '../i18n.ts';
+import { isTauriShell } from '../lib/instance-choice.ts';
 import { escape as escapeHtml } from '../utils.ts';
 import { getTool, renderRowToBlob } from './render-export.ts';
 import { commonInputKit, applyKit, boundValue, captureKitEdits, createKitRows, kitIssues, kitRowIssues, parseKitDefinition } from './kit-model.ts';
@@ -78,7 +79,7 @@ export function mountKitPanel<R extends KitRow>(
         return `<label class="kit-field">${escapeHtml(t(f.label))}<input class="field-input" data-kit-field="${f.id}" type="${f.type === 'url' ? 'url' : 'text'}" value="${escapeHtml(typeof value === 'string' ? value : '')}" ${f.required ? 'required' : ''} ${frozen ? 'disabled' : ''}></label>`;
       }).join('')}</div>
       <p class="kit-hint">${t('Dates are printed exactly as entered. Text shrinks to fit; preview before printing. Editing a linked field in the grid unlinks that field.')}</p>
-      <p class="kit-hint">${t('Save kit keeps the editable brief on this device. Share the downloaded files.')}</p>
+      <p class="kit-hint">${isTauriShell() ? t('Save kit keeps the editable brief on this device. Share the downloaded files.') : t('Save kit keeps the editable brief in this browser. Share the downloaded files.')}</p>
       <div class="kit-actions"><button type="button" class="btn btn--primary" data-kit-action="preview" ${frozen || messages.length ? 'disabled' : ''}>${busy ? t('Preparing previews…') : t('Preview all')}</button><button type="button" class="btn btn--ghost" data-kit-action="rows">${t('Show or hide batch rows')}</button></div>
       <p role="status" class="kit-status">${messages.map(escapeHtml).join(' ')} ${previews.size ? (fresh ? t('Previews are up to date.') : t('Details changed. Refresh the previews.')) : ''}</p>
       <div class="kit-outputs">${kit.definition.outputs.map(o => {

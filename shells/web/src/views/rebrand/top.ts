@@ -30,6 +30,7 @@ import { mountBodyPopover, type BodyPopoverHandle } from '../../components/body-
 import { confirmDialog, noticeDialog } from '../../components/confirm-dialog.ts';
 import { homeFabEl } from '../../components/home-fab.ts';
 import { tRaw } from '../../i18n.ts';
+import { isTauriShell } from '../../lib/instance-choice.ts';
 import { icon, type IconName } from '../../lib/icons.ts';
 import type { RebrandHistoryLabelV1, RebrandSaveStateV1 } from '../../lib/rebrand/controller-api.ts';
 import { bindOp, type RbCtx } from './context.ts';
@@ -229,7 +230,7 @@ export function saveCopy(save: RebrandSaveStateV1): { text: string; fine?: boole
     case 'saving':
       return { text: tRaw('Saving') };
     case 'saved':
-      return { text: tRaw('Saved on this device'), fine: true };
+      return { text: isTauriShell() ? tRaw('Saved on this device') : tRaw('Saved in this browser'), fine: true };
     case 'held':
       return { text: tRaw('Not saved: storage is full'), action: 'download' };
     case 'stale':
@@ -276,7 +277,7 @@ export async function deleteProject(rb: RbCtx): Promise<void> {
   if (!project) return;
   const ok = await confirmDialog({
     title: tRaw('Delete {name}?', { name: project.name }),
-    message: tRaw('The project and its decisions are deleted from this device. The original file is not changed.'),
+    message: isTauriShell() ? tRaw('The project and its decisions are deleted from this device. The original file is not changed.') : tRaw('The project and its decisions are deleted from this browser. The original file is not changed.'),
     confirmLabel: tRaw('Delete'),
   });
   if (!ok) return;

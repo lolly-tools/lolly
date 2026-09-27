@@ -8,6 +8,7 @@ import { DEFAULT_IMAGE_OPTIONS, conversionFindings, resizedDimensions, type Imag
 import { fmtBytes } from '../lib/format.ts';
 import { escape as escapeHtml } from '../utils.ts';
 import { t } from '../i18n.ts';
+import { isTauriShell } from '../lib/instance-choice.ts';
 import { requestSaveAsNext, saveFilePickerSupported } from '../bridge/export-save-picker.ts';
 import type { Target } from './convert.ts';
 import { fileBatchReportV1, type FileOperationRequestV1 } from '@lolly-tools/core/file-operation-v1';
@@ -78,7 +79,7 @@ export function mountConvertWorkbench(root: HTMLElement, sources: ConvertSource[
     </div>
     <section class="convert-completed" data-completed hidden aria-label="${t('Converted files')}">
       <div class="convert-completed-heading"><div><p class="convert-eyebrow">${t('Ready to use')}</p><h2>${t('Your converted files')}</h2></div><button type="button" class="btn" data-zip hidden>${t('Download all as ZIP')}</button></div>
-      <p class="convert-retention">${t('Completed copies are saved in Recent file operations on this device, including after a reload. Originals are not retained.')}</p>
+      <p class="convert-retention">${isTauriShell() ? t('Completed copies are saved in Recent file operations on this device, including after a reload. Originals are not retained.') : t('Completed copies are saved in Recent file operations in this browser, including after a reload. Originals are not retained.')}</p>
       <button class="btn" type="button" data-batch-report>${t('Download batch report')}</button>
       <div data-outputs></div>
     </section>`;

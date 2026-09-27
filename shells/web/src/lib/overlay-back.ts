@@ -69,6 +69,49 @@ let depth = 0;
  *  the second popstate can arrive after a NEW overlay has opened. */
 let selfPops = 0;
 let listening = false;
+/** Entries a closed overlay will pop on its deferred task and has not popped yet. */
+let pendingConsumes = 0;
+/** Callers of historySettled(), waiting for this module's own traversals to finish. */
+const settledWaiters = new Set<() => void>();
+/** Callers of overlaysClosed(), waiting for every overlay to close as well. */
+const closedWaiters = new Set<() => void>();
+
+function notifySettled(): void {
+  if (pendingConsumes || selfPops) return;
+  for (const resolve of [...settledWaiters]) resolve();
+  if (openStack.length) return;
+  for (const resolve of [...closedWaiters]) { closedWaiters.delete(resolve); resolve(); }
+}
+
+/**
+ * Resolves once no overlay is open and every entry they pushed has been popped, so
+ * the current entry is the view's own again. For state a view keeps on its entry
+ * (the unsaved-edits mark, plan 277 P1): a write made while a dialog is open goes
+ * to the dialog's same-URL copy, which Back then pops, so the view writes again
+ * here. No timeout: it resolves when the overlay closes, however long that takes.
+ */
+export function overlaysClosed(): Promise<void> {
+  if (!openStack.length && !pendingConsumes && !selfPops) return Promise.resolve();
+  return new Promise(resolve => { closedWaiters.add(resolve); });
+}
+
+/**
+ * Resolves once every entry a closed overlay owed has been popped and its popstate
+ * has arrived, so the current entry is the view's own again. A flow that closes a
+ * dialog and then rewrites or leaves the entry underneath waits here first: until
+ * the pop arrives, the current entry is still the dialog's same-URL copy, and a
+ * navigation from there strands the view's real entry behind it, which costs the
+ * next Back or Home press (Leave without saving, plan 277 P1). `timeoutMs` caps
+ * the wait for a traversal the browser never reports.
+ */
+export function historySettled(timeoutMs = 500): Promise<void> {
+  if (!pendingConsumes && !selfPops) return Promise.resolve();
+  return new Promise(resolve => {
+    const done = (): void => { clearTimeout(timer); settledWaiters.delete(done); resolve(); };
+    const timer = setTimeout(done, timeoutMs);
+    settledWaiters.add(done);
+  });
+}
 
 /** A final dialog's deferred back() still needs its popstate accounted for,
  * even while no overlay is open. Otherwise the next real Back is swallowed. */
@@ -84,7 +127,7 @@ function syncListeners(): void {
 
 const onNavEvent = (e: Event): void => {
   if (e.type === 'popstate') {
-    if (selfPops) { selfPops -= 1; syncListeners(); return; }
+    if (selfPops) { selfPops -= 1; syncListeners(); notifySettled(); return; }
     // One Back, the innermost overlay - the rule everywhere else in the shell. The
     // entry it popped was that overlay's own, so the URL is unchanged and main.ts's
     // navigate() resolves the same route signature and returns without re-mounting.
@@ -104,12 +147,15 @@ const onNavEvent = (e: Event): void => {
  *  traversal against that navigation. */
 function consume(entry: StackEntry): void {
   entry.owed = false;
+  pendingConsumes += 1;
   setTimeout(() => {
-    if (entry.seq < depth || location.href !== entry.pushedHref) return;
+    pendingConsumes -= 1;
+    if (entry.seq < depth || location.href !== entry.pushedHref) { notifySettled(); return; }
     depth -= 1;
     selfPops += 1;
     syncListeners();
     try { history.back(); } catch { selfPops -= 1; syncListeners(); }
+    notifySettled();
   });
 }
 
@@ -142,6 +188,7 @@ export function registerOverlay(record: OverlayRecord): OverlayEntry {
       if (i >= 0) openStack.splice(i, 1);
       syncListeners();
       if (entry.owed) consume(entry);
+      else notifySettled();
     },
   };
 }

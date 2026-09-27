@@ -267,7 +267,7 @@ async function buildRegistry(): Promise<Map<string, RegistryFace[]>> {
   try {
     const db = await openDB();
     const records = await db.getAll('user-assets') as Array<{
-      id: string; type: string; meta?: Record<string, unknown>;
+      id: string; type: string; meta?: Record<string, unknown>; trashedAt?: string;
     }>;
     // Only the ACTIVE design system's faces resolve for vector export (plans/186
     // section 3.2): two systems may both hold "Inter" under their own namespaces,
@@ -281,7 +281,8 @@ async function buildRegistry(): Promise<Map<string, RegistryFace[]>> {
       systemId = typeof stored === 'string' && stored ? stored : null;
     } catch { systemId = null; }
     for (const r of records) {
-      if (r.type !== 'font' || !isFontOf(r.id, systemId)) continue;
+      // A face in the Trash (plan 277 P3) is not installed, so it never outlines.
+      if (r.type !== 'font' || !isFontOf(r.id, systemId) || r.trashedAt) continue;
       const family = String(r.meta?.family ?? '').trim();
       if (!family) continue;
       const key = family.toLowerCase();

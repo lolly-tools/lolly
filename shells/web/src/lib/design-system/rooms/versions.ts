@@ -50,6 +50,7 @@ import { fmtBytes } from '../../format.ts';
 import { escape } from '../../../utils.ts';
 import { announce } from '../../../a11y.ts';
 import { t, tRaw } from '../../../i18n.ts';
+import { isTauriShell } from '../../instance-choice.ts';
 
 export interface VersionsCtx extends VersionsIoCtx {
   /**
@@ -290,7 +291,7 @@ function storageHtml(model: VersionsModel): string {
       frozen === 1 ? t('{n} preserved file', { n: frozen }) : t('{n} preserved files', { n: frozen }),
       escape(fmtBytes(bytes)),
     ].join(' · ')}</p>
-    <p class="ds-v-storage-note">${t('A version cannot be deleted yet. The images it pins are kept on this device, so it keeps drawing them the way it did on the day it was published. Type follows whichever font file is installed for that family today.')}</p>`;
+    <p class="ds-v-storage-note">${isTauriShell() ? t('A version cannot be deleted yet. The images it pins are kept on this device, so it keeps drawing them the way it did on the day it was published. Type follows whichever font file is installed for that family today.') : t('A version cannot be deleted yet. The images it pins are kept in this browser, so it keeps drawing them the way it did on the day it was published. Type follows whichever font file is installed for that family today.')}</p>`;
 }
 
 /** The whole panel for a model, or the resting line while the first read runs. */
@@ -300,7 +301,7 @@ export function versionsHtml(model: VersionsModel | null): string {
   return `
     <div class="ds-versions">
       <h2 class="ds-v-title" tabindex="-1" data-ds-v-focus="title">${t('Versions')}</h2>
-      <p class="ds-v-sub">${t('A version is a permanent, named copy of the design system. Once published it never changes, and it stays on this device.')}</p>
+      <p class="ds-v-sub">${isTauriShell() ? t('A version is a permanent, named copy of the design system. Once published it never changes, and it stays on this device.') : t('A version is a permanent, named copy of the design system. Once published it never changes, and it stays in this browser.')}</p>
       <p class="ds-v-err" data-ds-v-err role="alert" hidden></p>
       ${model.restored ? `
         <div class="ds-v-restored">

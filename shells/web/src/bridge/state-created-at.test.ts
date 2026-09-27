@@ -49,3 +49,19 @@ test('list() surfaces createdAt when present and omits it for legacy rows', asyn
   assert.ok(!('createdAt' in legacy), 'legacy rows carry no fabricated createdAt');
   assert.ok(typeof fresh.createdAt === 'string' && fresh.createdAt.length > 0);
 });
+
+test('restore() keeps the session\'s own save time; save() still stamps now', async () => {
+  const db = memDb();
+  const api = createStateAPI(db);
+  const original = '2026-09-20T10:00:00.000Z';
+  await api.restore!('qr-code:200', { __toolId: 'qr-code', text: 'from a backup' }, null, original);
+  const restored = db.rows.get('qr-code:200')!;
+  assert.equal(restored.updatedAt, original, 'an imported session keeps the time its work was saved');
+  assert.equal(restored.createdAt, original, 'a fresh restored record is created at that time too');
+
+  await api.save('qr-code:200', { __toolId: 'qr-code', text: 'edited here' });
+  assert.notEqual(db.rows.get('qr-code:200')!.updatedAt, original, 'a later save stamps the current time');
+
+  await api.restore!('qr-code:300', { __toolId: 'qr-code' }, null, 'not a date');
+  assert.ok(Number.isFinite(Date.parse(String(db.rows.get('qr-code:300')!.updatedAt))), 'an unreadable time falls back to now');
+});

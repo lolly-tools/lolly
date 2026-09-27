@@ -292,6 +292,15 @@
   font-size: var(--fs-md);
   color: hsl(var(--muted-foreground));
 }
+/* "Clear all my data": a lead line, then the short list of what goes (plan 277 P2). */
+.clear-dialog p.clear-dialog-lead { margin-bottom: 8px; }
+.clear-dialog-list {
+  margin: 0 0 16px;
+  padding-left: 1.2em;
+  font-size: var(--fs-md);
+  color: hsl(var(--muted-foreground));
+}
+.clear-dialog-list li + li { margin-top: 2px; }
 
 .clear-dialog-actions {
   display: flex;

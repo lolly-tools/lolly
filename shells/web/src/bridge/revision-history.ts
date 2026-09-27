@@ -6,7 +6,7 @@ import type { AppHistoryAPI } from './app-history.ts';
 import type { RevisionArchiveAPI } from './revision-archive-format.ts';
 import type { RevisionFidelityAPI } from './revision-fidelity.ts';
 import { createRevisionRecovery, type RecoveryStore, type RecoveryAPI } from './revision-recovery.ts';
-import { type DocumentHead, type RevisionCursor, documentVersion } from './revision-records.ts';
+import { type DocumentHead, type RevisionCursor, documentVersion, holdsUnsavedWork, needsAdopt, savedRevision } from './revision-records.ts';
 export { revisionSnapshot } from './revision-snapshot.ts';
 import type { SavedStateData, StateRecord } from './state.ts';
 import type { RevisionQuery } from './revision-query.ts';
@@ -35,14 +35,23 @@ export interface RevisionEntry {
   engineVersion?: string;
   designSystem?: { id: string; label: string };
 }
-export interface RevisionOptions { reason: RevisionEntry['reason']; expectedHead: string | null; expectedVersion?: string | null }
+export interface RevisionOptions {
+  reason: RevisionEntry['reason']; expectedHead: string | null; expectedVersion?: string | null;
+  /** Record the current state as a saved revision without rewriting it: an editor
+   * opening a state that was saved outside it (or before history existed) keeps
+   * that state's thumbnail and times, and Leave without saving has it to return to. */
+  adopt?: boolean;
+}
+/** What Leave without saving did: put the last explicit save back, moved a
+ * never-saved creation out of Projects (to `slot`), or found nothing to undo. */
+export interface DiscardResult { outcome: 'restored' | 'removed' | 'unchanged'; slot: string }
 export interface RevisionPage { entries: RevisionEntry[]; before?: string }
 export interface RevisionStore {
   activity?: AppHistoryAPI;
   fidelity?: RevisionFidelityAPI;
   backup: RevisionArchiveAPI;
   head(slot: string): Promise<string | null>;
-  current(slot: string): Promise<{ head: string | null; version: string | null }>;
+  current(slot: string): Promise<RevisionCursor>;
   open(slot: string): Promise<RevisionCursor & { record: StateRecord | null }>;
   recovery: RecoveryStore;
   replace(record: StateRecord): Promise<void>;
@@ -54,6 +63,8 @@ export interface RevisionStore {
   attachPreview(id: string, thumb: string): Promise<void>;
   move(from: string, to: string): Promise<void>;
   delete(slot: string): Promise<void>;
+  /** Leave without saving: return the document to its last explicit save. */
+  discard(slot: string): Promise<DiscardResult>;
   assetRefs(): Promise<Set<string>>;
   recentSessions(): Promise<Array<{ slot: string; toolId: string; label?: string; filename?: string; updatedAt: string }>>;
 }
@@ -79,17 +90,24 @@ export function createRevisionStore(db: IDBPDatabase): RevisionStore {
     recovery,
     backup: {
       export: async () => (await import('./revision-archive.ts')).createRevisionArchive(db).export(),
-      restore: async archive => (await import('./revision-archive.ts')).createRevisionArchive(db).restore(archive),
+      restore: async (archive, options) => (await import('./revision-archive.ts')).createRevisionArchive(db).restore(archive, options),
     },
     replace: record => recovery.replace(record),
-    async current(slot) { const doc = await db.get('revision-documents', slot) as DocumentHead | undefined; return { head: doc?.head ?? null, version: documentVersion(doc) }; },
+    async current(slot) {
+      const doc = await db.get('revision-documents', slot) as DocumentHead | undefined;
+      return { head: doc?.head ?? null, version: documentVersion(doc), ...(doc?.workingHash !== undefined ? { workingHash: doc.workingHash } : {}),
+        ...(needsAdopt(doc) ? { adopt: true } : {}) };
+    },
     async open(slot) {
-      const tx = db.transaction(['state', 'revision-documents'], 'readwrite');
+      const tx = db.transaction(['state', 'revision-documents', 'revisions'], 'readwrite');
       const doc = await tx.objectStore('revision-documents').get(slot) as DocumentHead | undefined;
       const record = await tx.objectStore('state').get(slot) as StateRecord | undefined;
       if (record) await tx.objectStore('state').put(indexSavedWork({ ...record, openedAt: new Date().toISOString() }));
+      const unsaved = !!record && holdsUnsavedWork(doc, doc ? await savedRevision(tx, doc) : null);
       await tx.done;
-      return { record: record ?? null, head: doc?.head ?? null, version: documentVersion(doc) };
+      return { record: record ?? null, head: doc?.head ?? null, version: documentVersion(doc), unsaved,
+        ...(doc?.workingHash !== undefined ? { workingHash: doc.workingHash } : {}), ...(record && needsAdopt(doc) ? { adopt: true } : {}),
+        ...(record && doc?.saved === null && doc.workingHash !== '' ? { neverSaved: true } : {}) };
     },
     async head(slot) { return (await db.get('revision-documents', slot) as DocumentHead | undefined)?.head ?? null; },
     commit: async (record, options) => (await import('./revision-commit.ts')).commitRevision(db, recovery, record, options),
@@ -100,6 +118,7 @@ export function createRevisionStore(db: IDBPDatabase): RevisionStore {
     attachPreview: async (id, thumb) => (await import('./revision-maintenance.ts')).revisionMaintenance(db, recovery).attachPreview(id, thumb),
     move: async (from, to) => (await import('./revision-maintenance.ts')).revisionMaintenance(db, recovery).move(from, to),
     delete: async slot => (await import('./revision-maintenance.ts')).revisionMaintenance(db, recovery).delete(slot),
+    discard: async slot => (await import('./revision-discard.ts')).discardUnsaved(db, recovery, slot),
     assetRefs: async () => (await import('./revision-maintenance.ts')).revisionMaintenance(db, recovery).assetRefs(),
     recentSessions: async () => (await import('./revision-maintenance.ts')).revisionMaintenance(db, recovery).recentSessions(),
   };

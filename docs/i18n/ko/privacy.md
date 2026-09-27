@@ -54,11 +54,11 @@ Lolly의 웹, 데스크톱, 모바일 셸은 전체 렌더링 엔진을 클라�
 이 중 어느 것도 공유되거나 판매되거나 사용자를 식별·추적하는 데
 사용되지 않습니다. 수집 자체가 일어나지 않으므로 동의할 대상도 없습니다
 - 무엇이 어디에 보관되는지 알려드리기 위한 이 안내문이 있을 뿐입니다.
-브라우저에서 사이트 저장소를 지우면 언제든 전부 삭제할 수 있습니다;
-**설정 → 저장 공간 → 내 데이터 모두 지우기**는 프로필, 저장된 세션,
-업로드한 이미지, 애셋 캐시를 제거합니다.
-(ePrivacy 지침 Art. 5(3)에 따라, 요청한 서비스에 반드시 필요한 저장소는
-동의가 아니라 투명성만을 요구하며, 이 문서와 앱 내 안내문이 바로 그 투명성입니다.)
+브라우저에서 사이트 저장소를 지우면 언제든 전부 삭제할 수 있고,
+**설정 → 저장 공간 → 내 데이터 모두 지우기**도 마찬가지이며, 이때
+동기화도 먼저 꺼집니다. (ePrivacy 지침 Art. 5(3)에 따라, 요청한
+서비스에 반드시 필요한 저장소는 동의가 아니라 투명성만을 요구하며,
+이 문서와 앱 내 안내문이 바로 그 투명성입니다.)
 
 ![휴대폰 너비 화면에서 본 프로필 페이지의 저장소 섹션: 기기 내 데이터의 모든 카테고리가 나열되어 있고, 그 바로 옆에 Clear all my data 버튼이 있다](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

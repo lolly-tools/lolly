@@ -2,13 +2,13 @@
 
 Semua yang anda buat dalam Lolly kekal dalam pelayar atau aplikasi tempat anda membuatnya, pada peranti itu, melainkan anda menghidupkan [Sync](/info/sync.html). Kerja tersimpan berada dalam **Projek**. Satu fail yang dimuat turun berada di mana sahaja pelayar atau sistem anda meletakkannya, dan satu salinan biasanya menunggu dalam **Aset**. Dalam sembilan alat, kerja yang tidak pernah anda simpan turut disimpan. Halaman ini merangkumi setiap satu daripadanya, ditambah tab yang ditutup, data pelayar yang dikosongkan, versi terdahulu, item yang dipadam dan berpindah ke peranti lain.
 
-| Apa yang anda lakukan | Tempat untuk dilihat |
+| Apa yang anda lakukan | Di mana hendak melihat |
 |---|---|
 | Menekan **Simpan sebagai** atau **Simpan** | **Projek** |
 | Menekan **Muat turun** | Muat turun pelayar anda, dan satu salinan dalam **Aset** |
 | Tidak keduanya, dalam salah satu [sembilan alat yang menyimpan semasa anda bekerja](#the-nine-tools-that-save-as-you-work) | **Projek** dan **History** |
 | Tidak keduanya, dalam mana-mana alat lain | Hanya tab tempat anda bekerja, sehingga anda menutup tab itu |
-| Mengalihkannya ke Tong Sampah | Jubin **Tong Sampah** dalam **Projek**, selama 30 hari |
+| Memadamkannya dalam aplikasi | **Tong Sampah**, dalam **Projek**, **Aset** atau **Tetapan → Storan**, selama 30 hari |
 
 ## Cari sesuatu yang anda simpan
 
@@ -72,19 +72,19 @@ not visible in the closed menu, so the alt does not list them.
 Apa yang kembali bergantung pada cara anda meninggalkannya dan alat mana yang anda gunakan:
 
 - **Anda menutup tab, atau kembali pada masa lain.** Kerja yang belum disimpan hilang, kecuali dalam [sembilan alat](#the-nine-tools-that-save-as-you-work), yang menyimpan suntingan anda semasa anda bekerja: buka daripada **Projek**.
-- **Anda memuat semula halaman dalam tab yang sama.** Tetapan anda kembali daripada alamat halaman. Dalam alat selain sembilan itu, gambar dan fail yang anda tambah daripada peranti anda, serta teks satu baris yang lebih panjang daripada 150 aksara, tidak kembali, kerana alamat itu tidak menyimpannya.
-- **Anda menekan Laman utama, atau butang kembali di kiri atas.** Jika anda mengubah sesuatu sejak kali terakhir anda menyimpan, memuat turun atau menyalin, satu dialog **Unsaved changes** bertanya sama ada hendak menyimpan dahulu. **Save & leave** menyimpan kerja itu dan membawa anda ke **Projek**, atau kembali ke folder projek tempat anda membuka kerja itu. **Leave without saving** meninggalkan; dalam sembilan alat itu suntingan anda sudah tersimpan dan kekal dalam Projek. **Cancel** mengekalkan anda dalam alat itu.
+- **Anda memuat semula halaman dalam tab yang sama.** Tetapan anda kembali daripada alamat halaman. Dalam alat selain sembilan itu, gambar dan fail yang anda tambah daripada peranti anda, dan teks satu baris yang lebih panjang daripada 150 aksara, tidak kembali, kerana alamat itu tidak menyimpannya.
+- **Anda menekan Laman utama, atau butang kembali di kiri atas.** Jika anda mengubah sesuatu sejak kali terakhir anda menyimpan, memuat turun atau menyalin, satu dialog **Perubahan belum disimpan** bertanya sama ada hendak menyimpan dahulu. **Simpan & tinggalkan** menyimpan kerja itu dan membawa anda ke **Projek**, atau kembali ke folder projek tempat anda membuka kerja itu. **Tinggalkan tanpa menyimpan** membuang perubahan anda: item yang telah disimpan kembali kepada keadaan kali terakhir anda menyimpannya, dan ciptaan yang tidak pernah anda simpan meninggalkan **Projek**. **Batal** mengekalkan anda dalam alat itu.
 
 Lolly hanya bertanya apabila anda menekan **Laman utama** atau butang kembali dalam sesuatu alat. Menutup tab, memuat semula dan butang Back milik pelayar anda sendiri tidak pernah bertanya. Untuk memastikan, tekan **Simpan sebagai**, atau **Simpan** dalam panel eksport, sebelum anda meninggalkan sesuatu alat.
 
-::: note Terlanjur keluar tanpa menyimpan?
-Dalam alat selain sembilan itu, segera tekan butang Back pelayar anda. Tetapan daripada alamat halaman akan kembali, walaupun gambar yang anda tambah daripada peranti anda tidak. Kemudian tekan **Simpan sebagai** dan **Simpan** sebelum anda melakukan apa-apa lagi: kali ini Lolly tidak bertanya sebelum anda keluar.
+::: note Tersilap tinggalkan tanpa menyimpan?
+Dalam sembilan alat, History menyimpan satu salinan suntingan yang dibuang. Buka halaman **History**, cari suntingan itu di bawah **Changes** dan tekan **Open as a copy**. Dalam alat lain suntingan itu hilang.
 :::
 
 ::: details Sembilan alat yang menyimpan semasa anda bekerja
 [Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) dan [Text](/#/tool/text-helper). Senarai ini berkembang seiring lebih banyak alat memperoleh penyimpanan automatik.
 
-Dalam alat-alat ini, perubahan pertama anda memfailkan kerja itu dalam **Projek** seolah-olah anda telah menyimpannya, dan perubahan seterusnya dikekalkan dalam beberapa saat. Jadi satu ciptaan yang belum disimpan masih berada dalam Projek selepas anda menutup tab, dan **Leave without saving** tidak membuang suntingan anda. Membuka alat itu semula daripada skrin utama memulakan satu ciptaan baharu; buka yang terdahulu daripada Projek.
+Dalam alat-alat ini, perubahan pertama anda memfailkan kerja itu dalam **Projek** seolah-olah anda telah menyimpannya, dan perubahan seterusnya dikekalkan dalam beberapa saat. Jadi satu ciptaan yang belum disimpan masih berada dalam Projek selepas anda menutup tab dan dibuka semula dengan perubahannya ditanda belum disimpan. **Tinggalkan tanpa menyimpan** tetap membuang perubahan itu, dan History menyimpan satu salinan suntingan yang dibuang selama 30 hari. Membuka alat itu semula daripada skrin utama memulakan satu ciptaan baharu; buka yang terdahulu daripada Projek.
 
 Ini hanya berfungsi dalam aplikasi web, bukan dalam aplikasi desktop atau mudah alih, dan bukan semasa anda bekerja langsung bersama orang lain.
 :::
@@ -101,9 +101,9 @@ Lolly turut menyimpan dua perkara selepas setiap muat turun:
 - **Tetapan yang anda gunakan**, untuk 24 muat turun terakhir anda. **Eksport terkini**, di bawah kerja tersimpan anda dalam **Projek**, membuka semula alat itu dengan tetapan tersebut supaya anda boleh membuat fail itu semula, walaupun gambar dan fail yang anda tambah daripada peranti anda tidak disertakan. Senarai yang sama berada di bawah **Tetapan → Aktiviti & statistik → Eksport terkini** dan pada tab **Changes** dalam **History**. Senarai ini menyimpan tetapan, bukan failnya.
 
 ::: details Dalam aplikasi desktop dan mudah alih
-- **Aplikasi desktop:** **Muat turun** terus menyimpan ke dalam satu folder **Lolly** di dalam folder **Downloads** anda, tanpa dialog. Satu mesej mengesahkan simpanan itu dan menawarkan **Reveal** untuk menunjukkan fail itu. **Open Exports Folder**, dalam menu **Window** atau **Exports**, membuka folder itu pada bila-bila masa. Satu fail dengan nama sama seperti yang terdahulu disimpan sebagai "name (1)".
-- **iPhone dan iPad:** fail itu disimpan dalam aplikasi **Files**, di bawah **Lolly**, dan helaian kongsi terbuka supaya anda boleh menghantarnya.
-- **Android:** menu kongsi terbuka supaya anda boleh memilih ke mana fail itu pergi.
+- **Aplikasi desktop:** **Muat turun** terus menyimpan ke dalam satu folder **Lolly** di dalam folder **Downloads** anda, tanpa dialog. Baris di bawah **Muat turun** menyatakan ke mana fail itu pergi, seperti "Saved to Downloads/Lolly", berserta **Show in folder**. **Open Exports Folder**, dalam menu **Window** atau **Exports**, membuka folder itu pada bila-bila masa. Satu fail dengan nama sama seperti yang terdahulu disimpan sebagai "name (1)".
+- **iPhone dan iPad:** fail itu disimpan dalam aplikasi **Files**, di bawah **Lolly**, dan helaian perkongsian dibuka supaya anda boleh menghantarnya. Baris di bawah **Muat turun** berbunyi "Saved to Files → Lolly".
+- **Android:** menu perkongsian dibuka supaya anda boleh memilih ke mana fail itu pergi.
 
 Pada iPhone, iPad dan Android, satu fail baharu menggantikan yang terdahulu dengan nama yang sama.
 :::
@@ -146,8 +146,8 @@ Tapis mengikut projek, alat dan tarikh (di sebalik **Filters** pada telefon). Ha
 
 Satu pautan kongsi membawa tetapan anda, tetapi bukan gambar atau fail yang anda tambah daripada peranti anda.
 
-::: warning Mengimport menggantikan folder anda
-Jika peranti lain sudah mempunyai kerja, baca ini dahulu. Import menambah apa yang dibawa fail itu, mengemas kini item yang sepadan dan tidak memadam sebarang item tersimpan. Walau bagaimanapun profil anda ialah satu rekod, jadi folder, kegemaran, templat dan butiran pada peranti itu digantikan oleh yang ada dalam fail itu. Satu item tersimpan yang hanya ada pada peranti itu kekal, pada paras teratas **Projek**. **Bring it to this device**, dalam Sync, melakukan perkara yang sama.
+::: note Mengimport tidak menambah atau memadam apa-apa
+Folder, kegemaran dan templat dalam fail itu ditambah di sebelah yang sudah ada pada peranti lain. Apabila satu item tersimpan berada pada kedua-duanya, salinan yang disimpan lebih baru dikekalkan. Butiran dan tetapan anda pada peranti itu kekal seperti sedia ada; yang kosong diisi daripada fail itu. **Bring it to this device**, dalam Sync, berfungsi dengan cara yang sama.
 :::
 
 Untuk memindahkan semuanya sekali sahaja:
@@ -157,7 +157,7 @@ Untuk memindahkan semuanya sekali sahaja:
 3. Pada peranti baharu, buka **Tetapan → Storan**, tekan **Import data…**, pilih fail itu dan tekan **Import**.
 
 ::: note Apa yang tertinggal
-Log masuk, kunci dan frasa laluan sync kekal pada setiap peranti. Senarai muat turun terkini, muat turun luar talian dan model AI tidak berpindah melalui laluan mana pun. Sejarah versi hanya berpindah dalam satu fail **Export my data**, bukan melalui Sync atau satu `.lolly`. Salinan yang disimpan Sync dalam storan anda hanya terbuka melalui Sync, bukan dengan **Import data…** atau **Buka**.
+Log masuk, kunci dan frasa laluan sync kekal pada setiap peranti. Senarai muat turun terkini, muat turun luar talian dan model AI tidak berpindah melalui apa-apa laluan. Sejarah versi hanya berpindah dalam satu fail **Export my data**, bukan melalui Sync atau satu `.lolly`. Satu salinan yang disimpan Sync dalam storan anda boleh dimuat turun dan dibuka, atau dipilih dalam **Import data…**, seperti satu fail sandaran; satu salinan yang disulitkan meminta frasa laluan anda.
 :::
 
 ::: details Apa yang dibawa fail sandaran
@@ -176,7 +176,7 @@ Tekan **Export my data** di bawah **Tetapan → Storan**, dan simpan fail itu di
 
 Apabila aplikasi bermula, Lolly meminta pelayar supaya tidak mengosongkan storannya apabila peranti kehabisan ruang. Pelayar yang memutuskan. Di bawah **Tetapan → Tersedia luar talian**, satu baris yang bermula dengan **Protected** bermakna pelayar bersetuju; "The browser may clear downloads if the device runs low on space" bermakna ia tidak bersetuju, dan **Lindungi muat turun** bertanya semula. Jika pelayar tidak bersetuju, ia mungkin mengosongkan kerja tersimpan selain muat turun apabila ruang menipis, jadi simpan satu fail **Export my data** terkini.
 
-**Tetapan → Storan** menunjukkan berapa banyak ruang yang digunakan setiap jenis data. **Clear cache** membuang fail katalog yang dimuat turun, yang akan dimuat turun semula apabila diperlukan. **Clear all my data** meminta anda menaip satu perkataan, kemudian mengeluarkan profil, sesi tersimpan, imej yang dimuat naik dan cache aset anda. Data lain kekal, termasuk sejarah versi, senarai muat turun terkini, hasil Convert, sistem reka bentuk dan model AI yang dimuat turun. Untuk mengeluarkan semuanya, kosongkan data laman ini dalam pelayar anda.
+**Tetapan → Storan** menunjukkan berapa banyak ruang yang digunakan setiap jenis data. **Kosongkan cache** membuang fail katalog yang dimuat turun, yang akan dimuat turun semula apabila diperlukan. **Kosongkan semua data saya** meminta anda menaip satu perkataan, mematikan Sync, kemudian mengeluarkan segala yang disimpan Lolly dalam pelayar ini: profil dan tetapan anda, sesi tersimpan berserta sejarah dan Tong Sampahnya, muat naik, fon dan sistem reka bentuk, log muat turun, hasil Convert, model AI yang dimuat turun dan salinan luar talian. Fail yang anda muat turun kekal di tempat anda menyimpannya. Aplikasi itu kemudian bermula seperti pada lawatan pertama.
 
 ![Kad storan pada skrin selebar telefon: setiap kategori data pada peranti dinamakan, dengan butang Clear all my data di bahagian bawah](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
@@ -195,15 +195,15 @@ Gambar, sistem reka bentuk dan senarai muat turun terkini kekal dalam storan dal
 
 ## Dapatkan semula sesuatu yang anda padam
 
-Dalam **Projek**, **Alih ke Tong Sampah** mengekalkan satu item selama 30 hari. Satu folder pergi ke Tong Sampah berserta semua kandungannya, sebagai satu entri. Sejurus selepas itu, satu mesej menawarkan **Undo** selama kira-kira sepuluh saat. Kemudian:
+Memadam satu sesi tersimpan, satu folder, salah satu muat naik anda atau salah satu fon anda dalam aplikasi mengalihkannya ke **Tong Sampah** selama 30 hari, di mana sahaja anda memadamkannya: **Projek**, **Aset**, **Tetapan → Storan** atau senarai sesi tersimpan sesuatu alat. Satu folder pergi berserta segala kandungannya, sebagai satu entri, dan satu sesi mengekalkan sejarah versinya semasa ia berada di situ. Sejurus selepas itu, satu mesej menawarkan **Undo**. Kemudian:
 
-1. Buka **Projek** dan tekan jubin **Tong Sampah**. Jubin ini hanya muncul selagi Tong Sampah menyimpan sesuatu.
-2. Tekan **Pulihkan** di sebelah item itu.
+1. Buka **Tong Sampah**: jubin **Tong Sampah** dalam **Projek**, butang **Tong Sampah** dalam **Aset → Muat naik anda**, atau baris **Tong Sampah** dalam **Tetapan → Storan**. Ketiga-tiganya membuka senarai yang sama.
+2. Tekan **Pulihkan** di sebelah item itu. Ia kembali ke foldernya, dan satu fon mendapat semula peranan yang dimilikinya dalam sistem reka bentuknya.
 
-**Padam selama-lamanya** dan **Kosongkan Tong Sampah** mengeluarkan item serta-merta, tanpa bertanya. Item yang lebih tua daripada 30 hari dikeluarkan untuk selama-lamanya pada kali seterusnya anda membuka Projek.
+**Padam selama-lamanya** mengeluarkan satu item untuk selama-lamanya. **Kosongkan Tong Sampah** bertanya dahulu, kemudian mengeluarkan setiap item dalam Tong Sampah. Item yang lebih tua daripada 30 hari dikeluarkan untuk selama-lamanya.
 
-::: warning Penghapusan lain bersifat kekal
-Memadam satu sesi tersimpan di bawah **Tetapan → Storan**, atau daripada senarai sesi tersimpan sesuatu alat dalam galeri (klik kanan kad alat itu, kemudian **N saved sessions**), mengeluarkan sesi itu untuk selama-lamanya, berserta sejarah versinya. Satu gambar yang anda padam daripada **Imej saya** dikeluarkan serta-merta, tanpa bertanya.
+::: warning Sesetengah penghapusan bersifat serta-merta
+Memadam satu sistem reka bentuk, satu logo atau gambar profil anda tidak pergi ke Tong Sampah. Baris arahan dan aplikasi terminal turut memadam serta-merta.
 :::
 
 Dengan [Sync](/info/sync.html) dihidupkan, **Restore an earlier copy** dapat mengembalikan keadaan keseluruhan peranti dari hari yang terdahulu, dan satu fail **Export my data** mengembalikan apa yang dibawa fail itu.

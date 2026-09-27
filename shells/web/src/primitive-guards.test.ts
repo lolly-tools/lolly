@@ -1265,7 +1265,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // interpolation reaches either sink.
   // 8 → 7, 2026-08-22: the sound segment left the filter popover (Sound/Neurospicy are
   // app-level prefs, and the /profile sound card is their home), taking its sink with it.
-  'views/gallery.ts': 7,
+  // +1 2026-09-27 (plan 277 P3): the saved-sessions dialog redraws its rows after
+  // a Trash Undo; savedItem builds each row through sessionRow, which escapes.
+  'views/gallery.ts': 8,
   'views/multi-edit.ts': 3,
   // 6, unchanged 2026-08-09 (plan 97 M5 - the design-system hand-offs). The three
   // new controls are markup inside the existing report template, not new sinks:
@@ -1690,6 +1692,10 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   'views/free-canvas/story-path-handles.ts': 3,
   'views/free-canvas/story-type.ts': 2,
   'views/free-canvas/story-wrap.ts': 2,
+  // 2026-09-27 (plan 277 P3): the shared Trash dialog repaints its list after a
+  // restore or deletion. Entry names go through escape(); kinds, dates and button
+  // labels are translated strings, escaped; icons come from the fixed registry.
+  'components/trash-dialog.ts': 1,
 };
 
 test('R10: raw-HTML sinks are a pinned inventory, not a growing one', () => {

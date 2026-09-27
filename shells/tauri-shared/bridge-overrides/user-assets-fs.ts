@@ -81,6 +81,8 @@ interface UserAssetRecord {
   credential?: Uint8Array;
   credentialFormat?: string;
   aiGenerated?: 'full' | 'partial';
+  /** Set while the upload sits in the web app's Trash (plan 277 P3). */
+  trashedAt?: string;
 }
 
 /** A version snapshot as asset-history stores it ([assetId, version] keyed). */
@@ -162,6 +164,7 @@ function headSidecar(rec: UserAssetRecord): Record<string, unknown> {
     credentialB64: rec.credential ? bytesToB64(rec.credential) : undefined,
     credentialFormat: rec.credentialFormat,
     aiGenerated: rec.aiGenerated,
+    trashedAt: rec.trashedAt,
     blobType: rec.blob?.type ?? undefined,
     blobBytes: rec.blob?.size ?? undefined,
   };
@@ -182,6 +185,9 @@ function headFromSidecar(side: Record<string, unknown>, bytes: Uint8Array | null
     credentialFormat: typeof side.credentialFormat === 'string' ? side.credentialFormat : undefined,
     aiGenerated: side.aiGenerated === 'full' || side.aiGenerated === 'partial' ? side.aiGenerated : undefined,
   };
+  // Only a string mark means "in the Trash"; an absent one keeps the key off the
+  // record entirely, the shape the web bridge writes.
+  if (typeof side.trashedAt === 'string' && side.trashedAt) rec.trashedAt = side.trashedAt;
   if (typeof side.credentialB64 === 'string') rec.credential = b64ToBytes(side.credentialB64);
   if (bytes) rec.blob = new Blob([bytes as BlobPart], blobType ? { type: blobType } : undefined);
   return rec;
@@ -450,4 +456,14 @@ export function createFsMirroredAssetsDb<T extends RealAssetsDb>(realDb: T, fs: 
   };
 
   return wrapper as T;
+}
+
+/**
+ * Remove the whole durable mirror (every head and version) for "Clear all my
+ * data" (plan 277 P2). The web clear empties IndexedDB, but without this the
+ * next boot's reconcile would restore every upload from disk, so the clear would
+ * not stick. Best-effort: a missing directory is already clear.
+ */
+export async function clearUserAssetsFs(fs: UserAssetsFs): Promise<void> {
+  if (await fs.exists(ROOT)) await fs.removeDirRecursive(ROOT);
 }

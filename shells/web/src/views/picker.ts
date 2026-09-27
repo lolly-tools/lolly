@@ -48,7 +48,7 @@ import { downscaleRaster, computeResize, MAX_LONGEST_EDGE, readVideoDimensions, 
 import { depthHint } from '../lib/image-sample.ts';
 import { createFolderStore, childFolders, folderPath } from '../folders.ts';
 import { announce } from '../a11y.ts';
-import { choiceDialog, confirmDialog } from '../components/confirm-dialog.ts';
+import { choiceDialog } from '../components/confirm-dialog.ts';
 import { openWebcamCapture } from './picker-webcam.ts';
 import { mountModal, type ModalHandle } from '../components/modal.ts';
 import { maybeNudgeAssetMilestone } from '../lib/asset-milestone.ts';
@@ -58,7 +58,7 @@ import { audioThumbPool, type ThumbTheme } from '../lib/audio-thumb-colour.ts';
 import { mountTextThumbs } from '../lib/text-thumbs.ts';
 import { loadAudioCovers, resolveAudioLook, type AudioCover } from '../lib/audio-covers.ts';
 import { livePalette } from '../lib/live-palette.ts';
-import { cachedPeaks, derivePeaks, memoPeaks, deletePeaks, MAX_CONCURRENT_DERIVES, peaksFingerprint } from '../lib/audio-peaks.ts';
+import { cachedPeaks, derivePeaks, memoPeaks, MAX_CONCURRENT_DERIVES, peaksFingerprint } from '../lib/audio-peaks.ts';
 import { libCategory, LIB_GROUPS, loadAssetCategories, categoryLabel } from '../lib/asset-category.ts';
 import type { LibGroup } from '../lib/asset-category.ts';
 import { categoryGlyph } from '../lib/category-icons.ts';
@@ -939,30 +939,26 @@ async function render(
     const del = (e.target as HTMLElement).closest<HTMLElement>('[data-delete-id]');
     if (del) {
       const id = del.dataset.deleteId!;
-      const name = (userAssets.find(a => a.id === id)?.meta?.name as string | undefined) ?? t('this image');
-      // Deleting a user image is destructive and can't be undone - confirm first
-      // (shared modal, matching the Catalog/Projects delete flows).
-      const ok = await confirmDialog({
-        title: t('Delete this image?'),
-        message: tRaw('“{name}” will be permanently removed from your images. This can’t be undone.', { name }),
-      });
-      if (!ok) return;
+      const deleted = userAssets.find(a => a.id === id);
       const card = del.closest<HTMLElement>('.asset-picker-card');
       card?.querySelector('.asset-picker-card-error')?.remove(); // clear any prior failure note
       try {
-        // The bridge announces the delete ('lolly:user-asset-deleted', wired in
-        // main.ts), which also drops an audio upload from the Neurospicy player.
-        await host.assets._deleteUserAsset(id);
-        // The measured waveform is keyed by asset id and nothing else deletes it, so
-        // without this every deleted audio upload leaves an orphan row in the
-        // 'audio-peaks' store that no code path can ever read or reclaim. Awaited
-        // after the asset delete succeeded and never able to reject (deletePeaks
-        // swallows), so it cannot turn a successful delete into the error branch.
-        await deletePeaks(id);
+        // To the Trash, like every upload deleted in the web app (plan 277 P3):
+        // no confirm, an Undo toast, and Restore in the Trash. The bytes, and
+        // the measured waveform keyed by this id, go when the Trash is emptied
+        // (lib/trash.ts purge), which is also when the bridge announces the delete.
+        // Undo puts the card back unless the list already has it again.
+        const { moveToTrash } = await import('../components/trash-dialog.ts');
+        const moved = await moveToTrash(host, (trash) => trash.trashAssets([{ id, name: String(deleted?.meta?.name ?? ''), type: deleted?.type }]), (restored) => {
+          if (!restored || !deleted || userAssets.some(a => a.id === id)) return;
+          userAssets = [deleted, ...userAssets];
+          renderUserAssets();
+          renderFavourites();
+        });
+        if (!moved.length) throw new Error('The upload could not be moved to the Trash.');
         userAssets = userAssets.filter(a => a.id !== id);
         renderUserAssets();
         renderFavourites();
-        announce(tRaw('Deleted {name}.', { name }));
       } catch (err) {
         host.log('error', 'Failed to delete user image', { id, error: String(err) });
         // The card is still on screen (the delete threw) - surface the failure beside

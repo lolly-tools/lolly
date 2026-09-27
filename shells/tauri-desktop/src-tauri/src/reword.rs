@@ -364,6 +364,31 @@ pub async fn reword_put_file(app: AppHandle, request: Request<'_>) -> Result<Res
     Ok(Response::new(Vec::new()))
 }
 
+/// "Clear all my data" (plan 277 P2, review S6): remove the staged model set and
+/// nothing else. The cached engine for that folder is dropped first, so a loaded
+/// session does not keep the files alive. Only MODEL_DIR is removed; its parents
+/// (`models/reword`, `models`) go too when that leaves them empty, and stay when
+/// anything else is in them.
+#[tauri::command]
+pub async fn reword_clear(app: AppHandle) -> Result<(), String> {
+    let root = model_root(&app)?;
+    if let Ok(mut cache) = engines().lock() {
+        cache.remove(&root);
+    }
+    if root.exists() {
+        std::fs::remove_dir_all(&root).map_err(|e| format!("remove {}: {e}", root.display()))?;
+    }
+    let mut parent = root.parent();
+    for _ in 0..2 {
+        let Some(dir) = parent else { break };
+        if std::fs::remove_dir(dir).is_err() {
+            break; // not empty (or already gone): leave it
+        }
+        parent = dir.parent();
+    }
+    Ok(())
+}
+
 /// Sample `count` raw rewrite candidates for one sentence. The engine gate on
 /// the JS side judges them - this returns the model's words verbatim.
 #[tauri::command]

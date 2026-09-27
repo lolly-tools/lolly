@@ -7,7 +7,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { DeliveryResult } from './delivery-result.ts';
-import type { DeliveryOutcome } from './delivery-result.ts';
+import type { DeliveryOutcome, DeliveryReport } from './delivery-result.ts';
 
 const tick = (): Promise<void> => new Promise(resolve => setTimeout(resolve, 0));
 const file = (label = 'Export from 12:04'): { blob: Blob; filename: string; label: string } =>
@@ -121,4 +121,31 @@ test('subscribers hear every state change and can unsubscribe', async () => {
   off();
   await result.retry();
   assert.equal(heard.length, 3, 'nothing after unsubscribe');
+});
+
+test('a native receipt belongs to the save that reported it and never outlives it', async () => {
+  let report: DeliveryReport = { saved: true, name: 'poster (1).pdf', place: 'Downloads/Lolly' };
+  let fail = false;
+  const result = new DeliveryResult(file(), async () => { if (fail) throw new Error('Disk full'); return report; });
+  // Read through a call so an assertion on one read does not narrow the next.
+  const receipt = (): DeliveryResult['receipt'] => result.receipt;
+  assert.equal(await result.retry(), 'saved', 'retry still answers with the plain outcome');
+  assert.equal(result.state, 'saved');
+  assert.deepEqual(receipt(), { saved: true, name: 'poster (1).pdf', place: 'Downloads/Lolly' });
+  fail = true;
+  await result.retry();
+  assert.equal(result.state, 'failed');
+  assert.equal(receipt(), null, 'a failed retry drops the earlier receipt');
+  fail = false;
+  report = 'requested';
+  await result.retry();
+  assert.equal(receipt(), null, 'a plain outcome carries no receipt');
+  result.recordOutcome({ saved: true, place: 'Files → Lolly' });
+  assert.equal(result.state, 'saved');
+  assert.equal(receipt()?.place, 'Files → Lolly', 'a recorded first hand-over keeps its receipt');
+  result.recordFailure('late failure');
+  assert.equal(receipt(), null);
+  result.recordOutcome({ saved: true, place: 'Downloads/Lolly' });
+  result.dispose();
+  assert.equal(receipt(), null, 'dispose releases the receipt with the file');
 });

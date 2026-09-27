@@ -19,7 +19,7 @@ Ang lahat ng nasa profile ay nananatili **sa device**, sa local database ng brow
 | **Accessibility** | Apat na comfort switch - *Reduce motion*, *Hide colourful previews*, *High contrast*, *Large text* - na nakatago sa profile record, kaya sumasama ito sa isang profile export. Tingnan ang [Accessibility](#accessibility). |
 | **Ang trabaho mo** | Naka-save na sessions (may thumbnails) - naka-organisa sa nested folders sa **[Projects](/info/using.html)** - ang **My images** library mo at ang lokal na activity stats, lahat naka-key sa profile na ito. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
 
 ![Ang Profile screen - pangalan, contact, isang optional na headshot at ang mga preference mo](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -35,7 +35,7 @@ Ang salitang "profile" ay parang tumutukoy sa iisang fixed na tao, pero sa Lolly
 
 ### Bilang indibidwal
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
 
 ![Ang headshot control, walang laman hanggang mag-upload ka ng larawan na nananatili sa device na ito pagkatapos](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -53,11 +53,11 @@ Sa Lolly, ang role na iyon ay isa lamang **ibang profile na nakalaan sa iyo** - 
 
 Sa anumang sandali, may **isang aktibong profile** ang isang install - ang mga detalyeng nakikita ng isang tool ngayon. Walang in-app profile switcher; sa halip, ang bawat profile ay isang **portable bundle** (isang solong `.zip`, tingnan [sa ibaba](#moving-a-profile-to-a-new-device)). Sadya iyon ang parehong mekanismo ng paglipat sa bagong device - ang isang profile ay isang file na maaari mong i-save, kopyahin at i-load.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
 
-- <!--i:trash--> **Pinakamalinis na paglipat:** **Mga Setting → Preferences → Storage → Clear all my data**, tapos **Import** ang bundle para sa context na papasukan mo. Purong gumagawa ka na bilang profile na iyon.
-- <!--i:layers--> **Layering:** ang pag-import *nang hindi* muna nililinis ay **nag-me-merge** - ang na-import na profile, sessions at larawan ay dumadapo sa ibabaw ng nandiyan na, pinapalitan ang anumang may parehong pangalan at iniiwan ang iba. Kapaki-pakinabang para sa pagkuha ng naka-save na sessions ng isang team papunta sa sarili mong setup; hindi ito para sa iyo kung kailangan mo ng malinis na role boundary.
-- <!--i:monitor--> **Magkatabi:** dahil device-scoped ang lahat, ang isang hiwalay na browser profile, isang hiwalay na user account o isang pangalawang naka-install na PWA ay may sarili at independiyenteng Lolly profile. Patakbuhin ang personal mong install at ang event kiosk install nang sabay, walang pagpapalit.
+- <!--i:trash--> **Pinakamalinis na paglipat:** **Mga Setting → Preferences → Imbakan → Burahin ang lahat ng aking data**, tapos **I-import** ang bundle para sa context na papasukan mo. Purong gumagawa ka na bilang profile na iyon.
+- <!--i:layers--> **Layering:** ang pag-import *nang hindi* muna nililinis ay **nag-me-merge** - dumadapo sa ibabaw ng mayroon na ang mga na-import na session at larawan; kapag pareho ang laman ng dalawa, mananatili ang kopyang mas kamakailang na-save, at hindi na ginagalaw ang iba. Idinaragdag sa iyo ang mga folder, favourite at template, at nananatili ang sarili mong mga detalye at setting. Kapaki-pakinabang para sa pagkuha ng naka-save na session ng isang team papunta sa sarili mong setup; hindi ito ang gusto mo kung kailangan mo ng malinis na hangganan ng role.
+- <!--i:monitor--> **Magkatabi:** dahil device-scoped ang lahat, may sarili at independiyenteng Lolly profile ang bawat hiwalay na browser profile, hiwalay na user account, o pangalawang naka-install na PWA. Patakbuhin nang sabay ang personal mong install at ang install ng event kiosk, walang paglipat-lipat.
 
 Kaya kung talagang nagpapalit-palit ka ng maraming konteksto (ikaw, ang team mo, ang event-manager hat), magtago ka ng ilang bundle at i-load ang kailangan mo:
 
@@ -108,13 +108,13 @@ Dahil ganap na local ang profile, may dalawang paraan para mailagay ito sa isang
 
 Sa ilalim ng **Mga Setting → Preferences → Storage → Ilipat sa ibang device**:
 
-- <!--i:download--> Ang **Export my data** ay nagda-download ng isang `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - pinangalanan para sa profile na kinabibilangan nito, may per-day sequence number para hindi magbanggaan ang paulit-ulit na exports (ibinabagsak ang mga bahagi ng pangalan kapag wala ang mga ito sa profile). Naglalaman ito ng iyong profile, bawat na-save na session (kasama ang thumbnail nito), ang iyong mga na-upload na larawan - sumasama rin ang iyong brand tokens at naka-install na fonts bilang user assets - at ang iyong mga kagustuhan (theme, layout, local activity stats).
-- <!--i:upload--> Ang **Import data…** sa ibang install ay babasahin ang file na iyon at magpapatuloy ka mula mismo sa iyong iniwan.
-- <!--i:box--> Isinusulat ng **Export my data & render everything** ang parehong backup *kasama* ang pangalawang zip na nagre-render ng bawat na-save na session sa finished output file nito, sa mga folder na kagaya ng iyong Projects. Isang kompletong offline archive ng parehong sources at resulta - at maaari itong maging malaki at mabagal kung marami ang sessions.
+- <!--i:download--> Nagda-download ang **I-export ang data ko** ng isang `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - pinangalanan para sa profile na kinabibilangan nito, may per-day sequence number para hindi magbanggaan ang paulit-ulit na exports (ibinabagsak ang mga bahagi ng pangalan kapag wala ang mga ito sa profile). Naglalaman ito ng iyong profile, bawat na-save na session (kasama ang thumbnail nito), ang iyong mga na-upload na larawan - sumasama rin ang iyong brand tokens at naka-install na fonts bilang user assets - at ang iyong mga kagustuhan (theme, layout, local activity stats).
+- <!--i:upload--> Babasahin ng **I-import ang data…** sa ibang install ang file na iyon at magpapatuloy ka mula mismo sa iyong iniwan. Kinukuha rin nito ang isang kopyang hawak ng [Sync](/info/sync.html) sa storage mo.
+- <!--i:box--> Isinusulat ng **I-export ang data ko & i-render lahat** ang parehong backup *kasama* ang pangalawang zip na nagre-render ng bawat na-save na session sa finished output file nito, sa mga folder na kagaya ng iyong Projects. Isang kompletong offline archive ng parehong sources at resulta - at maaari itong maging malaki at mabagal kung marami ang sessions.
 
 ![Ang dalawang button na naglilipat ng buong install: isinusulat ng Export my data ang isang zip, binabasa ito pabalik ng Import data](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-Ang bundle ay simple at self-contained na zip, kaya puwede itong dalhin sa **anumang** paraan - USB, AirDrop, network share, email-to-yourself - at maaaring ganap na offline ang target. Bawat bahagi ay may checksum, kaya ang file na nasira sa paglipat ay mahuhuli sa import sa halip na ma-restore nang kalahating-sira. Ang Import ay **nag-me-merge** (ang profile/session/image na may parehong pangalan ay ino-overwrite; pinapanatili ang lahat ng iba), kaya hindi nito kailanman bubura ang isang target na ginagamit na.
+Ang bundle ay simple at self-contained na zip, kaya puwede itong dalhin sa **anumang** paraan - USB, AirDrop, network share, email-to-yourself - at maaaring ganap na offline ang target. Bawat bahagi ay may checksum, kaya ang file na nasira sa paglipat ay mahuhuli sa import sa halip na ma-restore nang kalahating-sira. Ang import ay **nag-me-merge** (para sa session o larawang magkapareho ang pangalan, mananatili ang kopyang mas kamakailang na-save; idinaragdag ang mga folder, favourite at template; nananatili ang mga detalye at setting ng target; napananatili ang lahat ng iba), kaya hindi nito kailanman bubura ang isang target na ginagamit na.
 
 Ang hindi kasama sa paglipat: ang catalogue cache (nagda-download ulit ito mismo sa bagong device) at ang mga tool mismo (ipinapalagay na naroroon na).
 
@@ -122,7 +122,7 @@ Para sa eksaktong bundle layout, version policy at integrity rules, tingnan ang 
 
 ## Paano ginagamit ng mga tool ang iyong profile
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
 
 Ang isang tool ay *nagpu-pre-fill* lamang ng mga field ng profile na talagang dinisenyo nitong i-bind:
 

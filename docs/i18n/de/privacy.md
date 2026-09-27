@@ -51,14 +51,14 @@ auf Ihrem Gerät**, niemals übertragen:
 - <!--i:folder--> **Ihre eigenen Dokumente, gespeicherten Sitzungen, hochgeladenen Assets und Schriften** - gespeichert in
   IndexedDB auf Ihrem Gerät, nie hochgeladen, von niemandem außer Ihnen gelesen.
 
-Nichts davon wird geteilt, verkauft oder zur Identifizierung oder Verfolgung
-genutzt. Es gibt nichts, dem zuzustimmen wäre, weil keine Erhebung stattfindet - nur
-diesen Hinweis, damit Sie wissen, was wo aufbewahrt wird. Das Leeren des Speichers
-der Seite in Ihrem Browser entfernt jederzeit alles davon; **Einstellungen →
-Speicher → Alle meine Daten löschen** entfernt Ihr Profil, gespeicherte Sitzungen,
-hochgeladene Bilder und den Asset-Cache. (Nach der ePrivacy-Richtlinie Art. 5(3)
-benötigt eine Speicherung, die für den angeforderten Dienst unbedingt erforderlich
-ist, keine Einwilligung - nur Transparenz, was sowohl dieses Dokument als auch der In-App-Hinweis bieten.)
+Nichts davon wird geteilt, verkauft oder dazu verwendet, Sie zu identifizieren oder
+zu verfolgen. Es gibt nichts, dem zuzustimmen wäre, weil keine Erhebung stattfindet - nur
+dieser Hinweis, damit Sie wissen, was wo aufbewahrt wird. Das Löschen des Speichers der
+Seite in Ihrem Browser entfernt jederzeit alles davon, ebenso **Einstellungen → Speicher →
+Alle meine Daten löschen**, was außerdem zuerst Sync ausschaltet. (Nach der ePrivacy-Richtlinie
+Art. 5(3) benötigt eine Speicherung, die für den angeforderten Dienst unbedingt
+erforderlich ist, keine Einwilligung - nur Transparenz, was sowohl dieses Dokument als
+auch der In-App-Hinweis bieten.)
 
 ![Der Speicherbereich der Profilseite auf einem Bildschirm in Telefonbreite: jede Kategorie geräteinterner Daten benannt, mit der Schaltfläche „Alle meine Daten löschen“ direkt daneben](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

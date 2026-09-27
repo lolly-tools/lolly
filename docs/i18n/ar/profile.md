@@ -19,7 +19,7 @@
 | **إمكانية الوصول** | أربعة مفاتيح راحة - *تقليل الحركة*، و*إخفاء المعاينات الملوّنة*، و*تباين عالٍ*، و*نص كبير* - محفوظة في سجل الملف الشخصي، لذا تنتقل معه عند تصديره. انظر [إمكانية الوصول](#accessibility). |
 | **عملك** | الجلسات المحفوظة (مع الصور المصغَّرة) - منظَّمة في مجلدات متداخلة ضمن **[المشاريع](/info/using.html)** - ومكتبة **صوري** الخاصة بك، وإحصاءات النشاط المحلية، جميعها مرتبطة بهذا الملف الشخصي. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
 
 ![شاشة الملف الشخصي - الاسم، والتواصل، وصورة شخصية اختيارية، وتفضيلاتك](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -43,7 +43,7 @@
 
 ### كفرد
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
 
 ![عنصر تحكم الصورة الشخصية، فارغ إلى أن ترفع صورة تبقى بعدها على هذا الجهاز](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -61,10 +61,10 @@
 
 في أي لحظة، تحتوي النسخة المثبَّتة على **ملف شخصي نشط واحد** - التفاصيل التي تراها الأداة الآن. لا يوجد مبدّل ملفات شخصية داخل التطبيق؛ بدلاً من ذلك، كل ملف شخصي هو **حزمة قابلة للنقل** (ملف `.zip` واحد، انظر [أدناه](#moving-a-profile-to-a-new-device)). وهذا عمدًا الآلية نفسها المستخدمة للانتقال إلى جهاز جديد - فالملف الشخصي ملف يمكنك حفظه ونسخه وتحميله.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
 
 - <!--i:trash--> **أنظف تبديل:** **الإعدادات → Preferences → التخزين → امسح كل بياناتي**، ثم **استيراد** الحزمة الخاصة بالسياق الذي تنتقل إليه. أنت الآن تنشئ بحتا باسم ذلك الملف الشخصي.
-- <!--i:layers--> **التكديس:** استيراد الحزمة *دون* المسح أولا **يدمج** - يهبط الملف الشخصي والجلسات والصور المستوردة فوق ما هو موجود بالفعل، فيستبدل أي عنصر يحمل الاسم نفسه ويترك الباقي. مفيد لسحب جلسات محفوظة لفريق واحد إلى إعدادك الخاص؛ وليس ما تريده إن احتجت حدودا نظيفة للأدوار.
+- <!--i:layers--> **التكديس:** استيراد الحزمة *دون* المسح أولا **يدمج** - تهبط الجلسات والصور المستوردة فوق ما هو موجود بالفعل؛ وحين يكون العنصر نفسه في الطرفين، تُحفظ النسخة الأحدث حفظا، ويُترك الباقي كما هو. وتُضاف المجلدات والمفضلة والقوالب إلى مجلداتك، وتبقى تفاصيلك وإعداداتك الخاصة. مفيد لسحب جلسات محفوظة لفريق واحد إلى إعدادك الخاص؛ وليس ما تريده إن احتجت حدودا نظيفة للأدوار.
 - <!--i:monitor--> **جنبا إلى جنب:** بما أن كل شيء محصور بنطاق الجهاز، فإن كل ملف متصفح منفصل، أو حساب مستخدم منفصل، أو تطبيق PWA مثبت ثان يحمل ملفه الشخصي المستقل الخاص به في Lolly. شغّل نسختك الشخصية ونسخة كشك الحدث في آن واحد، دون أي تبديل.
 
 فإذا كنت فعلا تتنقل بين عدة سياقات (أنت، وفريقك، وقبعة مدير الفعاليات)، فاحتفظ بعدة حزم وحمل ما تحتاجه:
@@ -116,13 +116,13 @@
 
 ضمن **الإعدادات → Preferences → التخزين → نقل إلى جهاز آخر**:
 
-- <!--i:download--> **تصدير بياناتي** يُنزّل ملفا واحدا بالاسم `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - مسمى باسم الملف الشخصي الذي يخصه، مع رقم تسلسلي يومي حتى لا تتعارض عمليات التصدير المتكررة (تُحذف أجزاء الاسم عندما لا تتوفر في الملف الشخصي). يحتوي على ملفك الشخصي، وكل جلسة محفوظة (مع صورتها المصغرة)، وصورك المرفوعة - رموز علامتك التجارية والخطوط المثبَّتة تُرفق كأصول مستخدم - وتفضيلاتك (السمة، التخطيط، إحصاءات النشاط المحلية).
-- <!--i:upload--> **استيراد بيانات…** في التثبيت الآخر يقرأ ذلك الملف من جديد فتستأنف تماما من حيث توقفت.
-- <!--i:box--> **تصدير بياناتي وعرض كل شيء** يكتب النسخة الاحتياطية نفسها *بالإضافة إلى* ملف مضغوط ثانٍ يُخرج كل جلسة محفوظة إلى ملفها النهائي، في مجلدات تعكس مشاريعك. أرشيف كامل غير متصل للمصادر والنتائج معا - وقد يكون كبيرا وبطيئا مع عدد كبير من الجلسات.
+- <!--i:download--> **تصدير بياناتي** يُنزّل ملفا واحدا بالاسم `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - مسمى باسم الملف الشخصي الذي يخصه، مع رقم تسلسلي يومي حتى لا تتعارض عمليات التصدير المتكررة (تُحذف أجزاء الاسم عندما لا تتوفر في الملف الشخصي). يحتوي على ملفك الشخصي، وكل جلسة محفوظة (مع صورتها المصغرة)، وصورك المرفوعة - وترافقها رموز علامتك التجارية والخطوط المثبَّتة كأصول مستخدم - وتفضيلاتك (السمة، التخطيط، إحصاءات النشاط المحلية).
+- <!--i:upload--> **استيراد البيانات…** في التثبيت الآخر يقرأ ذلك الملف من جديد فتستأنف تماما من حيث توقفت. ويأخذ أيضا نسخة تحتفظ بها [المزامنة](/info/sync.html) في مخزونك.
+- <!--i:box--> **تصدير بياناتي وإخراج كل شيء** يكتب النسخة الاحتياطية نفسها *بالإضافة إلى* ملف مضغوط ثانٍ يُخرج كل جلسة محفوظة إلى ملفها النهائي، في مجلدات تعكس مشاريعك. أرشيف كامل غير متصل للمصادر والنتائج معا - وقد يكون كبيرا وبطيئا مع عدد كبير من الجلسات.
 
 ![الزران اللذان ينقلان تثبيتا كاملا: تصدير بياناتي يكتب ملفا مضغوطا واحدا، واستيراد بيانات يقرأه من جديد](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-الحزمة ملف zip عادي مكتف بذاته، فتنتقل **بأي** وسيلة — USB، أو AirDrop، أو مشاركة شبكة، أو بريد إلكتروني إلى نفسك — ويمكن للجهاز الهدف أن يكون دون اتصال تماما. كل جزء له مجموع تحقق، فيكتشف الملف المتضرر أثناء النقل عند الاستيراد بدلا من استعادته نصف مكسور. الاستيراد **يدمج** (يستبدل الملف الشخصي/الجلسة/الصورة التي تحمل الاسم نفسه؛ ويحتفظ بكل شيء آخر)، فلا يمسح أبدا جهازا هدفا كان قيد الاستخدام أصلا.
+الحزمة ملف zip عادي مكتف بذاته، فتنتقل **بأي** وسيلة - USB، أو AirDrop، أو مشاركة شبكة، أو بريد إلكتروني إلى نفسك - ويمكن للجهاز الهدف أن يكون دون اتصال تماما. كل جزء له مجموع تحقق، فيُكتشف الملف المتضرر أثناء النقل عند الاستيراد بدلا من استعادته نصف مكسور. الاستيراد **يدمج** (بالنسبة إلى جلسة أو صورة تحمل الاسم نفسه، تُحفظ النسخة الأحدث حفظا؛ وتُضاف المجلدات والمفضلة والقوالب؛ وتبقى تفاصيل الجهاز الهدف وإعداداته؛ ويُحتفظ بكل شيء آخر)، فلا يمحو أبدا جهازا هدفا كان قيد الاستخدام أصلا.
 
 ما لا ينتقل: ذاكرة الكتالوج المؤقتة (تعيد تنزيل نفسها على الجهاز الجديد) والأدوات نفسها (يفترض وجودها مسبقا).
 
@@ -130,7 +130,7 @@
 
 ## كيف تستخدم الأدوات ملفك الشخصي
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
 
 الأداة لا تفعل أبدا سوى *الملء المسبق* لحقول الملف الشخصي التي بنيت صراحة لربطها:
 

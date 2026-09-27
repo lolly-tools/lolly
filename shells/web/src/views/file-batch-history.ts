@@ -8,6 +8,7 @@ import { describeFile, runWebFileOperation } from '../lib/file-operation-adapter
 import { confirmDialog } from '../components/confirm-dialog.ts';
 import { escape as escapeHtml } from '../utils.ts';
 import { t } from '../i18n.ts';
+import { isTauriShell } from '../lib/instance-choice.ts';
 
 export function renderFileBatchHistory(root: HTMLElement, batches: LocalFileBatch[], store: FileOperationStore, host: HostV1, refresh: () => Promise<void>): void {
   root.hidden = !batches.length;
@@ -36,7 +37,7 @@ export function renderFileBatchHistory(root: HTMLElement, batches: LocalFileBatc
       const row = document.createElement('article'); row.className = 'convert-history-row'; row.dataset.batchMember = member.operationId;
       row.innerHTML = `<div><h4>${escapeHtml(member.source.facts.name)}</h4><p>${state}</p>${result?.findings.map(f => `<p class="${f.severity === 'error' ? 'convert-error' : 'convert-retention'}">${escapeHtml(f.message)}</p>`).join('') ?? ''}${result?.state === 'succeeded' ? `<p class="convert-retention">${t('The batch keeps the receipt. Download availability depends on keeping the individual saved result.')}</p>` : ''}</div><div class="convert-actions">${result?.state === 'succeeded' ? `<button class="btn" data-batch-result>${t('Download copy')}</button>` : ''}${result ? `<button class="btn" data-batch-retry>${t('Retry with original…')}</button><input type="file" hidden data-batch-retry-file>` : ''}</div>`;
       row.querySelector('[data-batch-result]')?.addEventListener('click', async () => {
-        try { const file = await store.getOutput(member.operationId); if (!file) throw new Error(t('This saved copy is no longer on this device. The receipt was kept. Retry with the original file.')); await host.export.download(file, file.name); } catch (error) { announce(error); }
+        try { const file = await store.getOutput(member.operationId); if (!file) throw new Error(isTauriShell() ? t('This saved copy is no longer on this device. The receipt was kept. Retry with the original file.') : t('This saved copy is no longer in this browser. The receipt was kept. Retry with the original file.')); await host.export.download(file, file.name); } catch (error) { announce(error); }
       });
       const input = row.querySelector<HTMLInputElement>('[data-batch-retry-file]');
       const retry = row.querySelector<HTMLButtonElement>('[data-batch-retry]');

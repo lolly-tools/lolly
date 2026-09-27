@@ -51,6 +51,11 @@ export interface StateRecord {
    *  active record's id and label at save time. Optional: rows written before
    *  this existed, and devices with no registry, have none. */
   designSystem?: { id: string; label: string };
+  /** When this work was last explicitly saved (plan 277 P7): what the newer-copy
+   *  rule in lib/backup-sessions.ts compares. Unlike updatedAt it does not move for
+   *  a recovery draft, an automatic checkpoint, a rename or a Trash move. Absent
+   *  on records written before it existed; readers fall back to updatedAt. */
+  savedAt?: string;
   /** Which emoji set and brand treatment the session's text was drawn with
    *  (plans/252), as the two reserved params verbatim. Optional: a session saved
    *  before this existed, or with no set chosen, carries none and reopens on the
@@ -107,8 +112,13 @@ export interface WebStateAPI extends StateAPI {
    * they implement an atomic revision transaction. Never inferred from shell type. */
   history?: RevisionHistoryAPI;
   save(slot: string, data: SavedStateData, thumb?: string | null): Promise<void>;
+  /** A save that keeps the session's own save time instead of stamping now: a
+   *  backup import writes restored work through this, so the newer-copy rule
+   *  (lib/backup-sessions.ts) compares when the work was saved, not when it was
+   *  imported. Optional; a shell without one falls back to save(). */
+  restore?(slot: string, data: SavedStateData, thumb: string | null, updatedAt: string, savedAt?: string): Promise<void>;
   load(slot: string): Promise<SavedStateData | null>;
-  list(): Promise<(StateEntry & { filename: string | null; thumb: string | null; createdAt?: string })[]>;
+  list(): Promise<(StateEntry & { filename: string | null; thumb: string | null; createdAt?: string; openedAt?: string; savedAt?: string })[]>;
   /** Bytes used per slot (rough: the JSON-serialised record size). */
   sizes(): Promise<Record<string, number>>;
   /** Blob keys (id:format:version) referenced across all saved sessions -
@@ -121,6 +131,11 @@ export interface WebStateAPI extends StateAPI {
   /** The licence decisions a saved session recorded (plan 253), or null when it
    *  recorded none. Optional on the surface for the same reason as the stamp above. */
   rightsDecisions?(slot: string): Promise<RightsDecisionV1[] | null>;
+  /** Remove every saved session this bridge holds, for "Clear all my data"
+   *  (plan 277 P2). The Tauri filesystem bridge implements it over its
+   *  saved-state files; the web bridge needs none, because that clear empties
+   *  every IndexedDB store the app owns. */
+  _clearAll?(): Promise<void>;
 }
 
 /**
@@ -139,12 +154,33 @@ async function activeDesignSystemStamp(db: StateDb): Promise<{ designSystem?: { 
   } catch { return {}; }
 }
 
+/** How a write sets the record's savedAt: 'now' for an explicit save, 'carry'
+ *  for a write that is not one (a recovery draft, an automatic checkpoint),
+ *  'auto' for save(), which counts as a save only when the work changed, and a
+ *  given time for a restore. */
+type SavedAtRule = 'now' | 'carry' | 'auto' | { time: string };
+
+/** The work a save time is about: the document without its name, so a rename
+ *  (which writes `__label`, and `__export_filename` for a single-tool session)
+ *  is not new work. */
+export function workOf(data: unknown): string {
+  if (!data || typeof data !== 'object') return JSON.stringify(data ?? null);
+  const { __label: _label, __export_filename: _filename, ...work } = data as Record<string, unknown>;
+  return JSON.stringify(work);
+}
+
 export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebStateAPI {
-  const makeRecord = async (slot: string, data: SavedStateData, thumb: string | null): Promise<StateRecord> => {
+  const makeRecord = async (slot: string, data: SavedStateData, thumb: string | null, at?: string, saved: SavedAtRule = 'auto'): Promise<StateRecord> => {
     const prior = await db.get('state', slot).catch(() => undefined);
-    const now = new Date().toISOString();
+    const now = at ?? new Date().toISOString();
+    const priorSaved = prior ? prior.savedAt ?? prior.updatedAt : undefined;
+    const savedAt = typeof saved === 'object' ? saved.time
+      : saved === 'now' ? now
+        : saved === 'carry' ? priorSaved
+          : prior && workOf(prior.data) === workOf(data) ? priorSaved : now;
     return { slot, toolId: data.__toolId, toolVersion: data.__toolVersion, label: data.__label,
       data, thumb, updatedAt: now, createdAt: prior?.createdAt ?? now, openedAt: prior?.openedAt,
+      ...(savedAt ? { savedAt } : {}),
       ...sessionVersionStamp(), ...(await activeDesignSystemStamp(db)),
       // Carried from the prior record when nothing is mounted (a save from the
       // Projects view re-writes a session this tab never opened), so re-saving
@@ -159,11 +195,20 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
   return {
     ...(revisions ? { history: {
       ...revisions,
-      recovery: { ...revisions.recovery, save: async (slot, data, options) => revisions.recovery.write(await makeRecord(slot, data, null), options) },
-      checkpoint: async (slot, data, options) => revisions.commit(await makeRecord(slot, data, null), options),
+      // A draft or an automatic checkpoint is not a save: the record keeps its save time.
+      recovery: { ...revisions.recovery, save: async (slot, data, options) => revisions.recovery.write(await makeRecord(slot, data, null, undefined, 'carry'), options) },
+      checkpoint: async (slot, data, options) => revisions.commit(await makeRecord(slot, data, null, undefined, options.reason === 'save' ? 'now' : 'carry'), options),
     } satisfies RevisionHistoryAPI } : {}),
     async save(slot, data, thumb = null) {
       const record = await makeRecord(slot, data, thumb);
+      if (revisions) await revisions.replace(record);
+      else await db.put('state', indexSavedWork(record));
+    },
+
+    async restore(slot, data, thumb, updatedAt, savedAt) {
+      const at = Number.isFinite(Date.parse(updatedAt)) ? updatedAt : undefined;
+      const saved = savedAt && Number.isFinite(Date.parse(savedAt)) ? savedAt : at;
+      const record = await makeRecord(slot, data, thumb, at, saved ? { time: saved } : 'auto');
       if (revisions) await revisions.replace(record);
       else await db.put('state', indexSavedWork(record));
     },
@@ -188,6 +233,11 @@ export function createStateAPI(db: StateDb, revisions?: RevisionStore): WebState
         thumb: r.thumb ?? null,
         updatedAt: r.updatedAt,
         ...(r.createdAt ? { createdAt: r.createdAt } : {}),
+        ...(r.savedAt ? { savedAt: r.savedAt } : {}),
+        // When the web app last reopened this item in a tool (revision-history
+        // open()). Absent for work never reopened, and on hosts that do not record
+        // opens, so a caption reads "Last opened" only where one was recorded.
+        ...(r.openedAt ? { openedAt: r.openedAt } : {}),
         ...(r.designSystem ? { designSystem: r.designSystem } : {}),
       }));
     },

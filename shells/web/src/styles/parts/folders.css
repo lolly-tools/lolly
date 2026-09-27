@@ -343,12 +343,21 @@ html[data-a11y-previews="hidden"] .folder-export-tile img {
 .trash-dialog h2, .folder-style-body h2 { margin: 0; font-size: var(--fs-xl); }
 .trash-note { margin: 0; font-size: calc(12.5px * var(--a11y-fs)); color: hsl(var(--muted-foreground)); }
 .trash-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; }
-.trash-row { display: flex; align-items: center; gap: 10px; padding: 6px 4px; }
+.trash-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; padding: 6px 4px; }
 .trash-row-icon { display: inline-flex; color: hsl(var(--muted-foreground)); }
 .trash-row-icon svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
-.trash-row-meta { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+/* The meta column keeps a readable minimum; below it the two buttons wrap onto
+   their own line, right-aligned, instead of squeezing the name to nothing (390px). */
+.trash-row-meta { flex: 1 1 150px; min-width: 0; display: flex; flex-direction: column; }
 .trash-row-name { font-size: var(--fs-md); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .trash-row-sub { font-size: var(--fs-xs); color: hsl(var(--muted-foreground)); }
+.trash-row-acts { display: flex; gap: 6px; margin-left: auto; }
+/* A row's Delete forever reads as destructive by its text colour only, so a long
+   list is not a wall of solid red; Empty Trash keeps the solid danger fill. */
+.trash-row .btn.trash-purge { color: hsl(var(--destructive)); }
+.trash-row .btn.trash-purge:hover { background: hsl(var(--destructive) / 0.1); }
+.trash-empty { margin: 0; padding: 18px 4px; text-align: center; font-size: var(--fs-md); color: hsl(var(--muted-foreground)); }
+.trash-status { margin: 0; font-size: var(--fs-sm); color: hsl(var(--destructive)); }
 .trash-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .folder-style-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .folder-color-dot { width: calc(24px * var(--a11y-fs)); height: calc(24px * var(--a11y-fs)); border-radius: var(--radius-round); border: 2px solid transparent; cursor: pointer; padding: 0; }

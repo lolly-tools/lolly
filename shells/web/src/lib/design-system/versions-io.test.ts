@@ -194,7 +194,7 @@ test('activate, then follow the latest again', async () => {
   assert.equal((await readIndex(h.ctx)).active, null);
   assert.equal(await h.tokens.activeSlug(), 'latest');
 
-  await assert.rejects(setActiveVersion(h.ctx, 'nope'), /not on this device/);
+  await assert.rejects(setActiveVersion(h.ctx, 'nope'), /not in this browser/); // the web wording (plans/277 P11)
 });
 
 test('restoring from a version keeps the ledger - the history is not what gets overwritten', async () => {

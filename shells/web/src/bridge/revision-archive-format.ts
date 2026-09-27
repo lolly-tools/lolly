@@ -8,6 +8,7 @@ import type { DocumentHead } from './revision-records.ts';
 import type { RevisionEntry } from './revision-history.ts';
 import type { RecoveryRecord } from './revision-recovery.ts';
 import { revisionSnapshot } from './revision-snapshot.ts';
+import { sessionEmojiStamp, sessionRightsDecisions } from '../../../../engine/src/session-record.ts';
 
 export interface RevisionArchive {
   version: 1;
@@ -15,10 +16,38 @@ export interface RevisionArchive {
   revisions: Array<{ entry: RevisionEntry; data: SavedStateData; preview?: string }>;
   recoveries: RecoveryRecord[];
 }
-export interface RevisionArchiveSummary { revisions: number; recoveryDrafts: number }
+export interface RevisionArchiveSummary {
+  /** Checkpoints and drafts this import added here (not what the archive holds). */
+  revisions: number; recoveryDrafts: number;
+  /** Creations new here that were added as they are. */
+  added?: number;
+  /** Creations on both sides where this device's copy stayed and the backup's
+   * became a protected draft (plan 277 P1, review B1). */
+  kept?: number;
+  /** Creations on both sides where the backup's newer copy replaced this device's,
+   * which became a protected draft. */
+  replaced?: number;
+  /** Creations added beside a different creation that already used their slot. */
+  copies?: number;
+  /** Creations here in the Trash or discarded: left there, with the backup's
+   * history added and its state kept as a protected draft. */
+  hidden?: number;
+  /** Checkpoints the backup holds under an id this device uses for different
+   * content; this device's is kept. */
+  skippedCheckpoints?: number;
+  /** Older checkpoints and drafts left out because this browser's history space
+   * could not hold them. The sessions, current states and saves still came in. */
+  historyLeftOut?: number;
+}
+export interface RevisionArchiveRestoreOptions {
+  /** Which copy's current state wins for a creation on both sides: the one saved
+   * more recently (the default), or the backup's (a restore). The other side's
+   * state is kept as a protected draft either way. See lib/backup-sessions.ts. */
+  sameId?: 'newer' | 'incoming';
+}
 export interface RevisionArchiveAPI {
   export(): Promise<RevisionArchive>;
-  restore(archive: unknown): Promise<RevisionArchiveSummary>;
+  restore(archive: unknown, options?: RevisionArchiveRestoreOptions): Promise<RevisionArchiveSummary>;
 }
 const MAX_ITEMS = 100_000;
 const invalid = (): never => { throw new Error('Invalid revision history in this backup. Nothing from its history was restored.'); };
@@ -52,12 +81,17 @@ export async function validateRevisionArchive(value: unknown): Promise<RevisionA
     unique(documentIds, documentId); unique(slots, slot);
     if (state.slot !== slot || state.documentId !== documentId) invalid();
     const data = await snapshot(state.data);
+    // Additive since plan 277 P1 (review B2): an empty workingHash (saved outside the
+    // editor) and the last explicit save travel with the document. An archive
+    // without them imports as before; an older reader ignores them.
     const document: DocumentHead = { slot, documentId, head: nullable(doc.head), hash: nullable(doc.hash),
-      version: string(doc.version ?? doc.head), workingHash: data.hash };
+      version: string(doc.version ?? doc.head), workingHash: doc.workingHash === '' ? '' : data.hash, ...savedField(doc.saved) };
     if (doc.workingHash && doc.workingHash !== data.hash) invalid();
     result.documents.push({ document, state: { slot, documentId, data: data.data, thumb: null,
       toolId: data.data.__toolId, toolVersion: data.data.__toolVersion, label: data.data.__label,
       updatedAt: date(state.updatedAt), ...(state.createdAt ? { createdAt: date(state.createdAt) } : {}),
+      // The last explicit save's time (plan 277 P7), which the newer-copy rule compares.
+      ...(state.savedAt ? { savedAt: date(state.savedAt) } : {}),
       ...stamps(state),
     } });
   }
@@ -102,9 +136,24 @@ export async function validateRevisionArchive(value: unknown): Promise<RevisionA
     const head = document.head ? byId.get(document.head) : null;
     if (document.head && (!head || head.documentId !== document.documentId || head.hash !== document.hash)) invalid();
     if (!document.head && document.hash !== null) invalid();
+    // A last explicit save missing from the archive points at nothing here: read the
+    // document as one from before the pointer existed, whose state counts as saved.
+    const saved = document.saved ? byId.get(document.saved.id) : null;
+    if (document.saved && (!saved || saved.documentId !== document.documentId || saved.hash !== document.saved.hash)) delete document.saved;
   }
   if (bytes > MAX_REVISION_ARCHIVE_BYTES) invalid();
   return result;
+}
+
+/** The last explicit save as an archive carries it; anything malformed reads as
+ * absent (a document from before the pointer, whose state counts as saved). */
+function savedField(value: unknown): Pick<DocumentHead, 'saved'> {
+  if (value === null) return { saved: null };
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const row = value as Record<string, unknown>;
+  if (typeof row.id !== 'string' || !row.id || row.id.length > 4096 || typeof row.hash !== 'string' || !row.hash || row.hash.length > 4096) return {};
+  const emoji = sessionEmojiStamp({ emoji: row.emoji }), rightsDecisions = sessionRightsDecisions({ rightsDecisions: row.rightsDecisions });
+  return { saved: { id: row.id, hash: row.hash, ...(emoji ? { emoji } : {}), ...(rightsDecisions ? { rightsDecisions } : {}) } };
 }
 
 function stamps(row: Record<string, unknown>): Partial<Pick<StateRecord, 'engineVersion' | 'toolVersion' | 'formatVersion' | 'designSystem'>> {

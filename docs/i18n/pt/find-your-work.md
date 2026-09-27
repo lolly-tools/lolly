@@ -8,7 +8,7 @@ Tudo o que você cria no Lolly permanece no navegador ou app em que você o crio
 | Pressionou **Baixar** | Os downloads do seu navegador, e uma cópia em **Ativos** |
 | Nenhum dos dois, em uma das [nove ferramentas que salvam enquanto você trabalha](#the-nine-tools-that-save-as-you-work) | **Projetos** e **History** |
 | Nenhum dos dois, em qualquer outra ferramenta | Só a aba em que você trabalhou, até você fechá-la |
-| Moveu para a Lixeira | O bloco **Lixeira** em **Projetos**, por 30 dias |
+| Excluiu no app | **Lixeira**, em **Projetos**, **Ativos** ou **Configurações → Armazenamento**, por 30 dias |
 
 ## Encontre algo que você salvou
 
@@ -73,18 +73,18 @@ O que volta depende de como você saiu e de qual ferramenta você usou:
 
 - **Você fechou a aba, ou voltou outra hora.** O trabalho não salvo se foi, exceto nas [nove ferramentas](#the-nine-tools-that-save-as-you-work), que salvam suas edições enquanto você trabalha: abra-as em **Projetos**.
 - **Você recarregou a página na mesma aba.** Suas configurações voltam a partir do endereço da página. Em ferramentas fora as nove, imagens e arquivos que você adicionou do seu dispositivo, e texto de uma linha com mais de 150 caracteres, não voltam, porque o endereço não os guarda.
-- **Você pressionou Home, ou o botão de voltar no canto superior esquerdo.** Se você mudou algo desde a última vez que salvou, baixou ou copiou, um diálogo de **Alterações não salvas** pergunta se quer salvar primeiro. **Salvar e sair** salva o trabalho e leva você a **Projetos**, ou de volta à pasta do projeto de onde você abriu o trabalho. **Sair sem salvar** sai; nas nove ferramentas suas edições já estão salvas e continuam em Projetos. **Cancelar** mantém você na ferramenta.
+- **Você pressionou Home, ou o botão de voltar no canto superior esquerdo.** Se você mudou algo desde a última vez que salvou, baixou ou copiou, um diálogo de **Alterações não salvas** pergunta se quer salvar primeiro. **Salvar & sair** salva o trabalho e leva você a **Projetos**, ou de volta à pasta do projeto de onde você abriu o trabalho. **Sair sem salvar** descarta suas alterações: um item salvo volta a como você o salvou pela última vez, e uma criação nunca salva sai de **Projetos**. **Cancelar** mantém você na ferramenta.
 
 O Lolly só pergunta quando você pressiona **Home** ou o botão de voltar em uma ferramenta. Fechar a aba, recarregar e o próprio botão Voltar do navegador nunca perguntam. Para garantir, pressione **Salvar como**, ou **Salvar** no painel de exportação, antes de sair de uma ferramenta.
 
 ::: note Saiu sem salvar por engano?
-Em ferramentas fora as nove, pressione o botão Voltar do seu navegador imediatamente. As configurações do endereço da página voltam, embora imagens que você adicionou do seu dispositivo não voltem. Depois pressione **Salvar como** e **Salvar** antes de fazer qualquer outra coisa: dessa vez o Lolly não pergunta antes de você sair.
+Nas nove ferramentas, Histórico guarda uma cópia das edições descartadas. Abra a página **History**, encontre-as em **Changes** e pressione **Open as a copy**. Nas outras ferramentas as alterações se foram.
 :::
 
 ::: details As nove ferramentas que salvam enquanto você trabalha
 [Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) e [Text](/#/tool/text-helper). A lista cresce conforme mais ferramentas ganham salvamento automático.
 
-Nessas ferramentas, sua primeira mudança arquiva o trabalho em **Projetos** como se você tivesse salvo, e mudanças posteriores são mantidas em poucos segundos. Então uma criação não salva continua em Projetos depois que você fecha a aba, e **Sair sem salvar** não descarta suas edições. Abrir a ferramenta de novo pela tela inicial começa uma nova criação; abra a anterior em Projetos.
+Nessas ferramentas, sua primeira mudança arquiva o trabalho em **Projetos** como se você tivesse salvo, e mudanças posteriores são mantidas em poucos segundos. Então uma criação não salva continua em Projetos depois que você fecha a aba e reabre com suas alterações marcadas como não salvas. **Sair sem salvar** ainda assim as descarta, e o Histórico guarda uma cópia das edições descartadas por 30 dias. Abrir a ferramenta de novo pela tela inicial começa uma nova criação; abra a anterior em Projetos.
 
 Isso funciona só no app web, não nos apps de desktop ou mobile, e não enquanto você trabalha ao vivo com outra pessoa.
 :::
@@ -101,8 +101,8 @@ O Lolly também mantém duas coisas depois de cada download:
 - **As configurações que você usou**, para seus últimos 24 downloads. **Exportações recentes**, abaixo do seu trabalho salvo em **Projetos**, reabre a ferramenta com essas configurações para que você possa gerar o arquivo de novo, embora imagens e arquivos que você adicionou do seu dispositivo não sejam incluídos. A mesma lista fica em **Configurações → Atividade e estatísticas → Exportações recentes** e na aba **Changes** de **History**. Essa lista guarda configurações, não os arquivos.
 
 ::: details Nos apps de desktop e mobile
-- **App de desktop:** **Baixar** salva direto em uma pasta **Lolly** dentro da sua pasta **Downloads**, sem diálogo. Uma mensagem confirma o salvamento e oferece **Revelar** para mostrar o arquivo. **Open Exports Folder**, no menu **Window** ou **Exports**, abre a pasta a qualquer momento. Um arquivo com o mesmo nome de um anterior é salvo como "nome (1)".
-- **iPhone e iPad:** o arquivo é salvo no app **Files**, em **Lolly**, e a folha de compartilhamento abre para que você possa enviá-lo adiante.
+- **App de desktop:** **Baixar** salva direto em uma pasta **Lolly** dentro da sua pasta **Downloads**, sem diálogo. A linha abaixo de **Baixar** mostra para onde foi, como "Saved to Downloads/Lolly", com **Mostrar na pasta**. **Open Exports Folder**, no menu **Window** ou **Exports**, abre a pasta a qualquer momento. Um arquivo com o mesmo nome de um anterior é salvo como "nome (1)".
+- **iPhone e iPad:** o arquivo é salvo no app **Arquivos**, em **Lolly**, e a folha de compartilhamento abre para que você possa enviá-lo adiante. A linha abaixo de **Baixar** mostra "Saved to Files → Lolly".
 - **Android:** o menu de compartilhamento abre para que você escolha para onde o arquivo vai.
 
 No iPhone, iPad e Android, um arquivo novo substitui um anterior com o mesmo nome.
@@ -146,8 +146,8 @@ Filtre por projeto, ferramenta e data (atrás de **Filters** no celular). A pág
 
 Um link de compartilhamento carrega suas configurações, mas não imagens ou arquivos que você adicionou do seu dispositivo.
 
-::: warning Importar substitui suas pastas
-Se o outro dispositivo já tem trabalho, leia isto primeiro. Importar adiciona o que o arquivo contém, atualiza itens que correspondem e não exclui nenhum item salvo. Seu perfil é um único registro, porém, então as pastas, favoritos, modelos e detalhes naquele dispositivo são substituídos pelos do arquivo. Um item salvo que existia só naquele dispositivo permanece, no nível superior de **Projetos**. **Bring it to this device**, na Sincronização, faz o mesmo.
+::: note Importar não adiciona nem exclui nada
+Pastas, favoritos e modelos no arquivo são adicionados ao lado dos que já existem no outro dispositivo. Quando um item salvo está em ambos, a cópia salva mais recentemente é mantida. Seus dados e configurações naquele dispositivo permanecem como estão; os vazios são preenchidos a partir do arquivo. **Trazer para este dispositivo**, na Sincronização, funciona da mesma forma.
 :::
 
 Para mover tudo de uma vez:
@@ -157,7 +157,7 @@ Para mover tudo de uma vez:
 3. No dispositivo novo, abra **Configurações → Armazenamento**, pressione **Import data…**, escolha o arquivo e pressione **Import**.
 
 ::: note O que fica para trás
-Logins, chaves e a frase secreta de sincronização ficam em cada dispositivo. A lista de downloads recentes, downloads offline e modelos de IA não viajam por nenhum caminho. O histórico de versões viaja só em um arquivo de **Exportar meus dados**, não pela Sincronização ou por um `.lolly`. As cópias que a Sincronização guarda no seu armazenamento só abrem pela Sincronização, não com **Import data…** ou **Open**.
+Logins, chaves e a frase secreta de sincronização ficam em cada dispositivo. A lista de downloads recentes, downloads offline e modelos de IA não viajam por nenhum caminho. O histórico de versões viaja só em um arquivo de **Exportar meus dados**, não pela Sincronização ou por um `.lolly`. Uma cópia que a Sincronização guarda no seu armazenamento pode ser baixada e aberta, ou escolhida em **Importar dados…**, como um arquivo de backup; uma cópia criptografada pede sua frase secreta.
 :::
 
 ::: details O que o arquivo de backup contém
@@ -176,7 +176,7 @@ Pressione **Exportar meus dados** em **Configurações → Armazenamento**, e gu
 
 Quando o app inicia, o Lolly pede ao navegador para não limpar seu armazenamento quando o dispositivo ficar sem espaço. O navegador decide. Em **Configurações → Disponível offline**, uma linha começando com **Protected** significa que o navegador concordou; "The browser may clear downloads if the device runs low on space" significa que não concordou, e **Protect downloads** pergunta de novo. Se o navegador não concordou, ele pode limpar trabalho salvo além de downloads quando o espaço acabar, então guarde um arquivo recente de **Exportar meus dados**.
 
-**Configurações → Armazenamento** mostra quanto espaço cada tipo de dado usa. **Clear cache** descarta arquivos de catálogo baixados, que se baixam de novo quando necessário. **Limpar todos os meus dados** pede que você digite uma palavra, depois remove seu perfil, sessões salvas, imagens enviadas e o cache de ativos. Outros dados permanecem, incluindo histórico de versões, a lista de downloads recentes, resultados do Convert, design systems e modelos de IA baixados. Para remover tudo, limpe os dados deste site no seu navegador.
+**Configurações → Armazenamento** mostra quanto espaço cada tipo de dado usa. **Limpar cache** descarta arquivos de catálogo baixados, que baixam de novo quando necessário. **Limpar todos os meus dados** pede que você digite uma palavra, desliga a Sincronização, depois remove tudo que o Lolly guarda neste navegador: seu perfil e configurações, sessões salvas com seu histórico e a Lixeira, uploads, fontes e design systems, o log de downloads, resultados do Convert, modelos de IA baixados e cópias offline. Arquivos que você baixou permanecem onde você os salvou. O app então inicia como em uma primeira visita.
 
 ![O cartão de armazenamento em uma tela com largura de celular: cada categoria de dados no dispositivo nomeada, com o botão Limpar todos os meus dados embaixo](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
@@ -195,15 +195,15 @@ Imagens, design systems e a lista de downloads recentes ficam no armazenamento i
 
 ## Recupere algo que você excluiu
 
-Em **Projetos**, **Move to Trash** mantém um item por 30 dias. Uma pasta vai para a Lixeira com tudo dentro dela, como uma única entrada. Logo em seguida, uma mensagem oferece **Undo** por cerca de dez segundos. Depois disso:
+Excluir uma sessão salva, uma pasta, um dos seus uploads ou uma das suas fontes no app move o item para a **Lixeira** por 30 dias, onde quer que você o exclua: **Projetos**, **Ativos**, **Configurações → Armazenamento** ou a lista de sessões salvas de uma ferramenta. Uma pasta vai com tudo o que contém, como uma única entrada, e uma sessão mantém seu histórico de versões enquanto está lá. Logo em seguida, uma mensagem oferece **Desfazer**. Depois:
 
-1. Abra **Projetos** e pressione o bloco **Lixeira**. O bloco só aparece enquanto a Lixeira guarda algo.
-2. Pressione **Restore** ao lado do item.
+1. Abra a **Lixeira**: o bloco **Lixeira** em **Projetos**, o botão **Lixeira** em **Ativos → Seus uploads**, ou a linha **Lixeira** em **Configurações → Armazenamento**. Os três abrem a mesma lista.
+2. Pressione **Restaurar** ao lado do item. Ele volta para sua pasta, e uma fonte recupera as funções que tinha no seu design system.
 
-**Delete forever** e **Empty Trash** removem itens imediatamente, sem perguntar. Itens com mais de 30 dias são removidos definitivamente na próxima vez que você abrir Projetos.
+**Excluir para sempre** remove um item definitivamente. **Esvaziar lixeira** pede confirmação antes, depois remove todo item da Lixeira. Itens com mais de 30 dias são removidos definitivamente.
 
-::: warning Outras exclusões são permanentes
-Excluir uma sessão salva em **Configurações → Armazenamento**, ou na lista de sessões salvas de uma ferramenta na galeria (clique com o botão direito no cartão da ferramenta, depois **N saved sessions**), remove a sessão definitivamente, com seu histórico de versões. Uma imagem que você exclui de **My images** é removida imediatamente, sem perguntar.
+::: warning Algumas exclusões são imediatas
+Excluir um design system, um logotipo ou sua foto de perfil não vai para a Lixeira. A linha de comando e o app de terminal também excluem na hora.
 :::
 
 Com a [Sincronização](/info/sync.html) ativada, **Restore an earlier copy** pode trazer de volta o estado de um dia anterior do dispositivo inteiro, e um arquivo de **Exportar meus dados** traz de volta o que o arquivo contém.

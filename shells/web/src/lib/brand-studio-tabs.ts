@@ -27,6 +27,7 @@ import type { PickerHost } from '../views/picker.ts';
 import { confirmDialog } from '../components/confirm-dialog.ts';
 import { mountColorField } from '../components/color-field.ts';
 import { t, tRaw } from '../i18n.ts';
+import { isTauriShell } from './instance-choice.ts';
 import { escape } from '../utils.ts';
 import { announce } from '../a11y.ts';
 import { playSfx } from './sfx.ts';
@@ -841,7 +842,7 @@ export function mountCataloguePanel(mount: HTMLElement, ctx: CataloguePanelCtx):
     const uploads = refs.filter(r => !INTERNAL_ID.test(r.id));
     if (!mount.isConnected) return;
     if (!uploads.length) {
-      groupsEl.innerHTML = `<p class="be-cat-empty">${t('Nothing yet - everything you add stays on this device.')}</p>`;
+      groupsEl.innerHTML = `<p class="be-cat-empty">${isTauriShell() ? t('Nothing yet - everything you add stays on this device.') : t('Nothing yet - everything you add stays in this browser.')}</p>`;
       return;
     }
     const byBucket = new Map<string, string[]>();

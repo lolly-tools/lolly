@@ -6,9 +6,9 @@ Todo lo que haces en Lolly permanece en el navegador o la app donde lo hiciste, 
 |---|---|
 | Pulsaste **Guardar como** o **Guardar** | **Proyectos** |
 | Pulsaste **Descargar** | Las descargas de tu navegador, y una copia en **Recursos** |
-| Ninguna de las dos, en una de las [nueve herramientas que guardan mientras trabajas](#the-nine-tools-that-save-as-you-work) | **Proyectos** y **History** |
+| Ninguna de las dos, en una de las [nueve herramientas que guardan mientras trabajas](#the-nine-tools-that-save-as-you-work) | **Proyectos** y **Historial** |
 | Ninguna de las dos, en cualquier otra herramienta | Solo la pestaña en la que trabajaste, hasta que la cierres |
-| Lo moviste a la Papelera | El mosaico **Papelera** en **Proyectos**, durante 30 días |
+| Lo eliminaste en la aplicación | **Papelera**, en **Proyectos**, **Recursos** o **Ajustes → Almacenamiento**, durante 30 días |
 
 ## Encuentra algo que guardaste
 
@@ -73,18 +73,18 @@ Lo que vuelve depende de cómo saliste y de qué herramienta usaste:
 
 - **Cerraste la pestaña, o volviste en otro momento.** El trabajo sin guardar se pierde, excepto en las [nueve herramientas](#the-nine-tools-that-save-as-you-work), que guardan tus cambios mientras trabajas: ábrelas desde **Proyectos**.
 - **Recargaste la página en la misma pestaña.** Tus ajustes vuelven desde la dirección de la página. En herramientas distintas de las nueve, las imágenes y archivos que añadiste desde tu dispositivo, y el texto de una línea de más de 150 caracteres, no vuelven, porque la dirección no los contiene.
-- **Pulsaste Inicio, o el botón de retroceso arriba a la izquierda.** Si cambiaste algo desde la última vez que guardaste, descargaste o copiaste, un diálogo de **Cambios sin guardar** pregunta si guardar antes. **Save & leave** guarda el trabajo y te lleva a **Proyectos**, o de vuelta a la carpeta de proyecto desde la que abriste el trabajo. **Salir sin guardar** sale; en las nueve herramientas tus cambios ya están guardados y permanecen en Proyectos. **Cancelar** te mantiene en la herramienta.
+- **Pulsaste Inicio, o el botón de retroceso arriba a la izquierda.** Si cambiaste algo desde la última vez que guardaste, descargaste o copiaste, un diálogo de **Cambios sin guardar** pregunta si guardar antes. **Guardar y salir** guarda el trabajo y te lleva a **Proyectos**, o de vuelta a la carpeta de proyecto desde la que abriste el trabajo. **Salir sin guardar** descarta tus cambios: un elemento guardado vuelve a como lo dejaste la última vez que lo guardaste, y una creación que nunca guardaste desaparece de **Proyectos**. **Cancelar** te mantiene en la herramienta.
 
 Lolly solo pregunta cuando pulsas **Inicio** o el botón de retroceso en una herramienta. Cerrar la pestaña, recargar y el propio botón Atrás de tu navegador nunca preguntan. Para estar seguro, pulsa **Guardar como**, o **Guardar** en el panel de exportación, antes de salir de una herramienta.
 
 ::: note ¿Saliste sin guardar por error?
-En herramientas distintas de las nueve, pulsa enseguida el botón Atrás de tu navegador. Los ajustes de la dirección de la página vuelven, aunque las imágenes que añadiste desde tu dispositivo no. Luego pulsa **Guardar como** y **Guardar** antes de hacer cualquier otra cosa: esta vez Lolly no pregunta antes de que salgas.
+En las nueve herramientas, el historial conserva una copia de los cambios descartados. Abre la página **Historial**, encuéntralos bajo **Changes** y pulsa **Abrir como copia**. En otras herramientas los cambios han desaparecido.
 :::
 
 ::: details Las nueve herramientas que guardan mientras trabajas
 [Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) y [Text](/#/tool/text-helper). La lista crece a medida que más herramientas obtienen guardado automático.
 
-En estas herramientas, tu primer cambio archiva el trabajo en **Proyectos** como si lo hubieras guardado, y los cambios posteriores se conservan en cuestión de segundos. Así que una creación sin guardar sigue en Proyectos después de cerrar la pestaña, y **Salir sin guardar** no descarta tus cambios. Abrir la herramienta de nuevo desde la pantalla de inicio empieza una creación nueva; abre la anterior desde Proyectos.
+En estas herramientas, tu primer cambio archiva el trabajo en **Proyectos** como si lo hubieras guardado, y los cambios posteriores se conservan en cuestión de segundos. Así que una creación sin guardar sigue en Proyectos después de cerrar la pestaña y se vuelve a abrir con sus cambios marcados como sin guardar. **Salir sin guardar** los descarta de todos modos, y el historial conserva una copia de los cambios descartados durante 30 días. Abrir la herramienta de nuevo desde la pantalla de inicio empieza una creación nueva; abre la anterior desde Proyectos.
 
 Esto funciona solo en la app web, no en las apps de escritorio o móviles, y no mientras trabajas en vivo con otra persona.
 :::
@@ -101,8 +101,8 @@ Lolly también conserva dos cosas después de cada descarga:
 - **Los ajustes que usaste**, para tus últimas 24 descargas. **Exportaciones recientes**, debajo de tu trabajo guardado en **Proyectos**, reabre la herramienta con esos ajustes para que puedas hacer de nuevo el archivo, aunque las imágenes y archivos que añadiste desde tu dispositivo no se incluyen. La misma lista está bajo **Ajustes → Actividad y estadísticas → Últimas exportaciones** y en la pestaña **Changes** de **History**. Esta lista conserva ajustes, no archivos.
 
 ::: details En las apps de escritorio y móviles
-- **App de escritorio:** **Descargar** guarda directamente en una carpeta **Lolly** dentro de tu carpeta **Descargas**, sin ningún diálogo. Un mensaje confirma el guardado y ofrece **Revelar** para mostrar el archivo. **Open Exports Folder**, en el menú **Window** o **Exports**, abre la carpeta en cualquier momento. Un archivo con el mismo nombre que uno anterior se guarda como "nombre (1)".
-- **iPhone y iPad:** el archivo se guarda en la app **Archivos**, bajo **Lolly**, y se abre la hoja para compartir para que puedas enviarlo.
+- **App de escritorio:** **Descargar** guarda directamente en una carpeta **Lolly** dentro de tu carpeta **Descargas**, sin ningún diálogo. La línea bajo **Descargar** indica adónde fue el archivo, algo como "Saved to Downloads/Lolly", con **Mostrar en la carpeta**. **Open Exports Folder**, en el menú **Ventana** o **Exportaciones**, abre la carpeta en cualquier momento. Un archivo con el mismo nombre que uno anterior se guarda como "name (1)".
+- **iPhone y iPad:** el archivo se guarda en la app **Archivos**, bajo **Lolly**, y se abre la hoja para compartir para que puedas enviarlo. La línea bajo **Descargar** dice "Saved to Files → Lolly".
 - **Android:** se abre el menú para compartir para que elijas adónde va el archivo.
 
 En iPhone, iPad y Android, un archivo nuevo reemplaza a uno anterior con el mismo nombre.
@@ -146,8 +146,8 @@ Filtra por proyecto, herramienta y fecha (detrás de **Filters** en un móvil). 
 
 Un enlace para compartir lleva tus ajustes, pero no las imágenes o archivos que añadiste desde tu dispositivo.
 
-::: warning Importar reemplaza tus carpetas
-Si el otro dispositivo ya tiene trabajo, lee esto primero. Importar añade lo que contiene el archivo, actualiza los elementos que coinciden y no elimina ningún elemento guardado. Sin embargo, tu perfil es un único registro, así que las carpetas, favoritos, plantillas y datos de ese dispositivo se reemplazan por los del archivo. Un elemento guardado que solo estaba en ese dispositivo permanece, en el nivel superior de **Proyectos**. **Bring it to this device**, en Sincronización, hace lo mismo.
+::: note Importar no añade ni elimina nada
+Las carpetas, favoritos y plantillas del archivo se añaden junto a los que ya hay en el otro dispositivo. Cuando un elemento guardado está en ambos, se conserva la copia guardada más recientemente. Tus datos y ajustes en ese dispositivo se quedan como están; los que están vacíos se rellenan desde el archivo. **Traer a este dispositivo**, en Sincronización, funciona igual.
 :::
 
 Para trasladarlo todo de una vez:
@@ -157,7 +157,7 @@ Para trasladarlo todo de una vez:
 3. En el dispositivo nuevo, abre **Ajustes → Almacenamiento**, pulsa **Importar datos…**, elige el archivo y pulsa **Importar**.
 
 ::: note Qué se queda atrás
-Los inicios de sesión, las claves y la frase de contraseña de sincronización permanecen en cada dispositivo. La lista de descargas recientes, las descargas sin conexión y los modelos de IA no viajan por ninguna vía. El historial de versiones viaja solo en un archivo de **Exportar mis datos**, no a través de Sincronización ni de un `.lolly`. Las copias que Sincronización guarda en tu almacenamiento solo se abren a través de Sincronización, no con **Importar datos…** ni **Abrir**.
+Los inicios de sesión, las claves y la frase de contraseña de sincronización permanecen en cada dispositivo. La lista de descargas recientes, las descargas sin conexión y los modelos de IA no viajan por ninguna vía. El historial de versiones viaja solo en un archivo de **Exportar mis datos**, no a través de Sincronización ni de un `.lolly`. Una copia que Sincronización guarda en tu almacenamiento se puede descargar y abrir, o elegir en **Importar datos…**, como un archivo de copia de seguridad; una copia cifrada pide tu frase de contraseña.
 :::
 
 ::: details Qué contiene el archivo de copia de seguridad
@@ -176,7 +176,7 @@ Pulsa **Exportar mis datos** bajo **Ajustes → Almacenamiento**, y guarda el ar
 
 Cuando la app arranca, Lolly le pide al navegador que no borre su almacenamiento cuando al dispositivo le quede poco espacio. El navegador decide. Bajo **Ajustes → Disponible sin conexión**, una línea que empieza por **Protected** significa que el navegador aceptó; "The browser may clear downloads if the device runs low on space" significa que no, y **Protect downloads** vuelve a preguntar. Si el navegador no aceptó, puede borrar el trabajo guardado además de las descargas cuando escasee el espacio, así que conserva un archivo reciente de **Exportar mis datos**.
 
-**Ajustes → Almacenamiento** muestra cuánto espacio usa cada tipo de dato. **Borrar caché** elimina los archivos de catálogo descargados, que se vuelven a descargar cuando hacen falta. **Borrar todos mis datos** te pide que escribas una palabra, y luego elimina tu perfil, las sesiones guardadas, las imágenes subidas y la caché de recursos. El resto de los datos permanece, incluidos el historial de versiones, la lista de descargas recientes, los resultados de Convert, los sistemas de diseño y los modelos de IA descargados. Para eliminarlo todo, borra los datos de este sitio en tu navegador.
+**Ajustes → Almacenamiento** muestra cuánto espacio usa cada tipo de dato. **Borrar caché** elimina los archivos de catálogo descargados, que se vuelven a descargar cuando hacen falta. **Borrar todos mis datos** te pide que escribas una palabra, desactiva Sincronización y luego elimina todo lo que Lolly guarda en este navegador: tu perfil y tus ajustes, las sesiones guardadas con su historial y la Papelera, los archivos subidos, las tipografías y los sistemas de diseño, el registro de descargas, los resultados de Convert, los modelos de IA descargados y las copias sin conexión. Los archivos que descargaste se quedan donde los guardaste. La aplicación arranca entonces como en la primera visita.
 
 ![La tarjeta de almacenamiento en una pantalla de ancho de teléfono: cada categoría de datos del dispositivo con su nombre, y el botón Borrar todos mis datos abajo](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
@@ -195,15 +195,15 @@ Las imágenes, los sistemas de diseño y la lista de descargas recientes permane
 
 ## Recupera algo que eliminaste
 
-En **Proyectos**, **Mover a la papelera** conserva un elemento durante 30 días. Una carpeta va a la Papelera con todo lo que contiene, como una sola entrada. Justo después, un mensaje ofrece **Deshacer** durante unos diez segundos. Más tarde:
+Eliminar una sesión guardada, una carpeta, uno de tus archivos subidos o una de tus tipografías en la aplicación lo mueve a la **Papelera** durante 30 días, sea donde sea que lo elimines: **Proyectos**, **Recursos**, **Ajustes → Almacenamiento** o la lista de sesiones guardadas de una herramienta. Una carpeta se va con todo su contenido, como una sola entrada. Una sesión conserva su historial de versiones mientras está allí. Justo después, un mensaje ofrece **Deshacer**. Más tarde:
 
-1. Abre **Proyectos** y pulsa el mosaico **Papelera**. El mosaico aparece solo mientras la Papelera contiene algo.
-2. Pulsa **Restaurar** junto al elemento.
+1. Abre la **Papelera**: el mosaico **Papelera** en **Proyectos**, el botón **Papelera** en **Recursos → Tus archivos subidos**, o la fila **Papelera** en **Ajustes → Almacenamiento**. Las tres abren la misma lista.
+2. Pulsa **Restaurar** junto al elemento. Vuelve a su carpeta, y una tipografía recupera los roles que tenía en su sistema de diseño.
 
-**Eliminar para siempre** y **Vaciar papelera** eliminan los elementos al instante, sin preguntar. Los elementos de más de 30 días se eliminan definitivamente la siguiente vez que abres Proyectos.
+**Eliminar para siempre** elimina un elemento para siempre. **Vaciar papelera** pregunta primero, y luego elimina todos los elementos de la Papelera. Los elementos de más de 30 días se eliminan definitivamente.
 
-::: warning Otras eliminaciones son permanentes
-Eliminar una sesión guardada desde **Ajustes → Almacenamiento**, o desde la lista de sesiones guardadas de una herramienta en la galería (clic derecho en la tarjeta de la herramienta, luego **N sesiones guardadas**), elimina la sesión para siempre, junto con su historial de versiones. Una imagen que elimines de **Mis imágenes** se elimina al instante, sin preguntar.
+::: warning Algunas eliminaciones son inmediatas
+Eliminar un sistema de diseño, un logotipo o tu foto de perfil no pasa por la Papelera. La línea de comandos y la aplicación de terminal también eliminan al instante.
 :::
 
 Con [Sincronización](/info/sync.html) activada, **Restore an earlier copy** puede recuperar el estado de un día anterior de todo el dispositivo, y un archivo de **Exportar mis datos** recupera lo que contiene el archivo.

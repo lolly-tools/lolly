@@ -19,7 +19,7 @@ Alles in einem Profil befindet sich **auf dem Gerät**, in der lokalen Datenbank
 | **Barrierefreiheit** | Vier Komfortschalter - *Bewegung reduzieren*, *Farbige Vorschauen ausblenden*, *Hoher Kontrast*, *Große Schrift* - im Profil gespeichert, sodass sie bei einem Profilexport mitwandern. Siehe [Barrierefreiheit](#accessibility). |
 | **Ihre Arbeit** | Gespeicherte Sitzungen (mit Vorschaubildern) - organisiert in verschachtelten Ordnern unter **[Projekte](/info/using.html)** -, Ihre **Meine Bilder**-Bibliothek und die lokalen Aktivitätsstatistiken, alle diesem Profil zugeordnet. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
 
 ![Der Profil-Bildschirm - Name, Kontakt, ein optionales Porträtfoto und Ihre Einstellungen](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -35,7 +35,7 @@ Das Wort „Profil" legt eine feste Person nahe, aber in Lolly ist es eigentlich
 
 ### Als Einzelperson
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
 
 ![Die Porträtfoto-Steuerung, leer bis Sie ein Foto hochladen, das dann auf diesem Gerät bleibt](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -53,11 +53,11 @@ In Lolly ist diese Rolle einfach **ein weiteres Profil, das Sie griffbereit halt
 
 Zu jedem Zeitpunkt hat eine Installation **ein aktives Profil** - die Angaben, die ein Tool gerade sieht. Es gibt keinen In-App-Profilwechsler; stattdessen ist jedes Profil ein **portables Bündel** (eine einzelne `.zip`-Datei, siehe [unten](#moving-a-profile-to-a-new-device)). Das ist bewusst derselbe Mechanismus wie der Wechsel auf ein neues Gerät - ein Profil ist eine Datei, die Sie speichern, kopieren und laden können.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
 
-- <!--i:trash--> **Sauberster Wechsel:** **Einstellungen → Preferences → Speicher → Alle meine Daten löschen**, dann **importieren** Sie das Bündel für den Kontext, in den Sie wechseln. Sie erstellen jetzt ausschließlich als dieses Profil.
-- <!--i:layers--> **Schichtung:** Ein Import *ohne* vorheriges Löschen **verschmilzt** - das importierte Profil, die Sitzungen und Bilder landen oben auf dem, was schon da ist, ersetzen alles mit demselben Namen und lassen den Rest unberührt. Praktisch, um die gespeicherten Sitzungen eines Teams in Ihr eigenes Setup zu übernehmen; nicht das Richtige, wenn Sie eine saubere Rollentrennung brauchen.
-- <!--i:monitor--> **Nebeneinander:** Da alles geräteabhängig ist, führt ein separates Browserprofil, ein separates Benutzerkonto oder eine zweite installierte PWA jeweils ein eigenes, unabhängiges Lolly-Profil. Führen Sie Ihre persönliche Installation und die Event-Kiosk-Installation gleichzeitig aus, ohne Wechsel.
+- <!--i:trash--> **Sauberster Wechsel:** **Einstellungen → Preferences → Speicher → Alle meine Daten löschen**, dann **Importieren** Sie das Bundle für den Kontext, in den Sie wechseln. Sie erstellen jetzt rein als dieses Profil.
+- <!--i:layers--> **Schichten:** Ein Import *ohne* vorheriges Löschen **führt zusammen** - die importierten Sitzungen und Bilder landen oben auf dem, was bereits da ist; haben beide dasselbe Element, bleibt die zuletzt gespeicherte Kopie erhalten, der Rest bleibt unangetastet. Ordner, Favoriten und Vorlagen werden zu Ihren hinzugefügt, und Ihre eigenen Angaben und Einstellungen bleiben erhalten. Praktisch, um die gespeicherten Sitzungen eines Teams in Ihr eigenes Setup zu übernehmen; nicht das Richtige, wenn Sie eine saubere Rollentrennung brauchen.
+- <!--i:monitor--> **Nebeneinander:** Weil alles gerätebezogen ist, trägt ein separates Browserprofil, ein separates Nutzerkonto oder eine zweite installierte PWA jeweils sein eigenes, unabhängiges Lolly-Profil. Führen Sie Ihre persönliche Installation und die Kiosk-Installation für die Veranstaltung gleichzeitig aus, ohne zu wechseln.
 
 Wenn Sie also tatsächlich mehrere Kontexte jonglieren (Sie selbst, Ihr Team, den Eventmanager-Hut), bewahren Sie mehrere Bundles auf und laden das, das Sie gerade brauchen:
 
@@ -108,13 +108,13 @@ Da ein Profil vollständig lokal ist, gibt es zwei Wege, es auf eine leere Insta
 
 Unter **Einstellungen → Preferences → Speicher → Auf ein anderes Gerät verschieben**:
 
-- <!--i:download--> **Export my data** lädt eine `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` herunter - benannt nach dem Profil, zu dem sie gehört, mit einer Sequenznummer pro Tag, damit wiederholte Exporte nicht kollidieren (Namensteile entfallen, wenn das Profil sie nicht hat). Die Datei enthält Ihr Profil, jede gespeicherte Sitzung (mit ihrem Thumbnail), Ihre hochgeladenen Bilder - Ihre Brand-Tokens und installierten Schriften reisen als Benutzer-Assets mit - und Ihre Einstellungen (Theme, Layout, lokale Aktivitätsstatistiken).
-- <!--i:upload--> **Import data…** auf der anderen Installation liest diese Datei wieder ein, und Sie machen genau dort weiter, wo Sie aufgehört haben.
-- <!--i:box--> **Export my data & render everything** schreibt dasselbe Backup *plus* eine zweite Zip-Datei, die jede gespeicherte Sitzung zu ihrer fertigen Ausgabedatei rendert, in Ordnern, die Ihre Projekte spiegeln. Ein vollständiges Offline-Archiv sowohl der Quellen als auch der Ergebnisse - und das kann bei vielen Sitzungen groß und langsam werden.
+- <!--i:download--> **Meine Daten exportieren** lädt eine `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` herunter - benannt nach dem Profil, zu dem sie gehört, mit einer Sequenznummer pro Tag, damit wiederholte Exporte nicht kollidieren (Namensteile entfallen, wenn das Profil sie nicht hat). Sie enthält Ihr Profil, jede gespeicherte Sitzung (mit ihrem Thumbnail), Ihre hochgeladenen Bilder - Ihre Brand-Tokens und installierten Schriften reisen als Benutzer-Assets mit - und Ihre Einstellungen (Theme, Layout, lokale Aktivitätsstatistiken).
+- <!--i:upload--> **Daten importieren…** auf der anderen Installation liest diese Datei wieder ein, und Sie machen genau dort weiter, wo Sie aufgehört haben. Sie liest auch eine Kopie ein, die [Sync](/info/sync.html) in Ihrem Speicher ablegt.
+- <!--i:box--> **Meine Daten exportieren & alles rendern** schreibt dasselbe Backup *plus* eine zweite Zip-Datei, die jede gespeicherte Sitzung zu ihrer fertigen Ausgabedatei rendert, in Ordnern, die Ihre Projekte spiegeln. Ein vollständiges Offline-Archiv sowohl der Quellen als auch der Ergebnisse - und das kann bei vielen Sitzungen groß und langsam werden.
 
 ![Die beiden Schaltflächen, die eine ganze Installation umziehen: Meine Daten exportieren schreibt ein Zip, Daten importieren liest es wieder ein](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-Das Bundle ist ein einfaches, in sich geschlossenes Zip, das daher auf **jedem** Weg reist - USB, AirDrop, eine Netzwerkfreigabe, E-Mail an sich selbst - und das Ziel kann vollständig offline sein. Jeder Teil ist mit einer Prüfsumme versehen, sodass eine beim Transport beschädigte Datei beim Import erkannt wird, statt halb kaputt wiederhergestellt zu werden. Der Import **führt zusammen** (gleichnamiges Profil/Sitzung/Bild wird überschrieben; alles andere bleibt erhalten), sodass ein bereits genutztes Ziel nie gelöscht wird.
+Das Bundle ist ein einfaches, in sich geschlossenes Zip, das daher auf **jedem** Weg reist - USB, AirDrop, eine Netzwerkfreigabe, E-Mail an sich selbst - und das Ziel kann vollständig offline sein. Jeder Teil ist mit einer Prüfsumme versehen, sodass eine beim Transport beschädigte Datei beim Import erkannt wird, statt halb kaputt wiederhergestellt zu werden. Der Import **führt zusammen** (bei einer gleichnamigen Sitzung oder einem gleichnamigen Bild bleibt die zuletzt gespeicherte Kopie erhalten; Ordner, Favoriten und Vorlagen werden hinzugefügt; die Angaben und Einstellungen des Ziels bleiben erhalten; alles andere bleibt erhalten), sodass ein bereits genutztes Ziel nie gelöscht wird.
 
 Was nicht mitreist: der Katalog-Cache (er lädt sich auf dem neuen Gerät von selbst neu herunter) und die Tools selbst (es wird angenommen, dass sie bereits vorhanden sind).
 
@@ -122,7 +122,7 @@ Für den genauen Bündelaufbau, die Versionsrichtlinie und die Integritätsregel
 
 ## Wie Tools Ihr Profil nutzen
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
 
 Ein Tool *füllt* stets nur die Profilfelder *vor*, für deren Bindung es ausdrücklich gebaut wurde:
 

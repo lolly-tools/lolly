@@ -19,7 +19,7 @@ Tout ce qui compose un profil vit **sur l'appareil**, dans la base de données l
 | **Accessibilité** | Quatre interrupteurs de confort - *Reduce motion*, *Hide colourful previews*, *High contrast*, *Large text* - conservés sur la fiche du profil, donc inclus dans un export de profil. Voir [Accessibilité](#accessibility). |
 | **Ton travail** | Les sessions enregistrées (avec vignettes) - organisées en dossiers imbriqués dans **[Projects](/info/using.html)** - ta bibliothèque **My images** et les statistiques d'activité locales, tout cela lié à ce profil. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
 
 ![L'écran Profile - nom, contact, une photo de profil optionnelle et tes préférences](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -35,7 +35,7 @@ Le mot « profil » suggère une personne fixe et unique, mais dans Lolly c'est 
 
 ### En tant qu'individu
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
 
 ![Le contrôle de photo de profil, vide jusqu'à ce que tu importes une photo qui reste ensuite sur cet appareil](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -53,11 +53,11 @@ Dans Lolly, ce rôle n'est qu'**un autre profil que tu gardes sous la main** - u
 
 À tout moment, une installation n'a **qu'un seul profil actif** - les informations qu'un outil voit à l'instant présent. Il n'existe pas de sélecteur de profil dans l'application ; à la place, chaque profil est un **paquet portable** (un simple `.zip`, voir [ci-dessous](#moving-a-profile-to-a-new-device)). C'est volontairement le même mécanisme que pour changer d'appareil - un profil est un fichier que tu peux enregistrer, copier et charger.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
 
-- <!--i:trash--> **Changement le plus propre :** **Paramètres → Preferences → Stockage → Effacer toutes mes données**, puis **importe** le paquet du contexte dans lequel tu entres. Tu crées désormais uniquement sous ce profil.
-- <!--i:layers--> **Superposition :** importer *sans* d'abord effacer **fusionne** - le profil importé, les sessions et les images viennent s'ajouter à ce qui existe déjà, remplaçant tout ce qui porte le même nom et laissant le reste intact. Pratique pour récupérer les sessions enregistrées d'une équipe dans ta propre configuration ; pas ce qu'il faut si tu as besoin d'une séparation nette des rôles.
-- <!--i:monitor--> **Côte à côte :** comme tout est propre à l'appareil, un profil de navigateur distinct, un compte utilisateur distinct ou une seconde installation PWA portent chacun leur propre profil Lolly indépendant. Fais tourner ton installation personnelle et l'installation du kiosque d'événement en même temps, sans avoir à basculer.
+- <!--i:trash--> **Changement le plus propre :** **Paramètres → Preferences → Stockage → Effacer toutes mes données**, puis **Importer** le bundle pour le contexte dans lequel tu entres. Tu crées maintenant uniquement en tant que ce profil.
+- <!--i:layers--> **Superposition :** importer *sans* effacer d'abord **fusionne** - les sessions et images importées atterrissent par-dessus ce qui existe déjà ; quand les deux ont le même élément, la copie enregistrée le plus récemment est conservée, et le reste n'est pas touché. Les dossiers, favoris et modèles sont ajoutés aux tiens, et tes propres coordonnées et réglages restent. Pratique pour récupérer les sessions enregistrées d'une équipe dans ta propre configuration ; pas ce qu'il te faut si tu as besoin d'une séparation nette des rôles.
+- <!--i:monitor--> **Côte à côte :** comme tout est propre à l'appareil, un profil de navigateur séparé, un compte utilisateur séparé ou une seconde PWA installée porte chacun son propre profil Lolly indépendant. Fais tourner ton installation personnelle et l'installation de la borne d'événement en même temps, sans basculer.
 
 Donc si tu jongles vraiment entre plusieurs contextes (toi, ton équipe, la casquette de responsable événementiel), tu gardes plusieurs bundles et tu charges celui dont tu as besoin :
 
@@ -108,13 +108,13 @@ Comme un profil est entièrement local, il existe deux façons de le faire arriv
 
 Sous **Paramètres → Preferences → Stockage → Déplacer vers un autre appareil** :
 
-- <!--i:download--> **Export my data** télécharge un fichier `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - nommé d'après le profil auquel il appartient, avec un numéro de séquence quotidien pour que les exports répétés ne se percutent pas (les parties du nom sont omises quand le profil ne les a pas). Il contient ton profil, chaque session enregistrée (avec sa vignette), tes images importées - tes tokens de marque et les polices installées voyagent avec en tant qu'assets utilisateur - et tes préférences (thème, mise en page, statistiques d'activité locales).
-- <!--i:upload--> **Import data…** sur l'autre installation relit ce fichier et tu reprends exactement là où tu t'étais arrêté.
-- <!--i:box--> **Export my data & render everything** écrit cette même sauvegarde *plus* un second zip qui rend chaque session enregistrée jusqu'à son fichier de sortie final, dans des dossiers qui reflètent tes Projects. Une archive hors ligne complète des sources et des résultats - et cela peut être volumineux et lent avec beaucoup de sessions.
+- <!--i:download--> **Exporter mes données** télécharge un fichier `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - nommé d'après le profil auquel il appartient, avec un numéro de séquence quotidien pour que les exports répétés ne se percutent pas (les parties du nom sont omises quand le profil ne les a pas). Il contient ton profil, chaque session enregistrée (avec sa vignette), tes images importées - tes tokens de marque et les polices installées voyagent avec en tant qu'assets utilisateur - et tes préférences (thème, mise en page, statistiques d'activité locales).
+- <!--i:upload--> **Importer les données…** sur l'autre installation relit ce fichier et tu reprends exactement là où tu t'étais arrêté. Elle relit aussi une copie que [Sync](/info/sync.html) conserve dans ton espace de stockage.
+- <!--i:box--> **Exporter mes données et tout générer** écrit cette même sauvegarde *plus* un second zip qui rend chaque session enregistrée jusqu'à son fichier de sortie final, dans des dossiers qui reflètent tes Projets. Une archive hors ligne complète des sources et des résultats - et cela peut être volumineux et lent avec beaucoup de sessions.
 
 ![Les deux boutons qui déplacent toute une installation : Export my data écrit un zip, Import data le relit](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-Le bundle est un simple zip autonome, donc il voyage par **n'importe quel** moyen - clé USB, AirDrop, un partage réseau, un e-mail à toi-même - et la cible peut être totalement hors ligne. Chaque partie est vérifiée par somme de contrôle, donc un fichier endommagé en transit est détecté à l'import plutôt que restauré à moitié cassé. L'import **fusionne** (un profil/une session/une image du même nom est écrasé ; tout le reste est conservé), donc il n'efface jamais une cible déjà en usage.
+Le bundle est un simple zip autonome, donc il voyage par **n'importe quel** moyen - clé USB, AirDrop, un partage réseau, un e-mail à toi-même - et la cible peut être totalement hors ligne. Chaque partie est vérifiée par somme de contrôle, donc un fichier endommagé en transit est détecté à l'import plutôt que restauré à moitié cassé. L'import **fusionne** (pour une session ou une image du même nom, la copie enregistrée le plus récemment est conservée ; les dossiers, favoris et modèles sont ajoutés ; les coordonnées et réglages de la cible restent ; tout le reste est conservé), donc il n'efface jamais une cible déjà en usage.
 
 Ce qui ne voyage pas : le cache du catalogue (il se retélécharge tout seul sur le nouvel appareil) et les outils eux-mêmes (supposés déjà présents).
 
@@ -122,7 +122,7 @@ Pour la disposition exacte du bundle, la politique de version et les règles d'i
 
 ## Comment les outils utilisent ton profil
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
 
 Un outil ne fait jamais que *pré-remplir* les champs de profil qu'il a été explicitement conçu pour lier :
 

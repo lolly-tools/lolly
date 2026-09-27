@@ -58,8 +58,8 @@ kaunting data **sa iyong device lamang**, hindi kailanman ipinapadala:
 Wala sa mga ito ang ibinabahagi, ibinebenta, o ginagamit para kilalanin o subaybayan ka. Walang dapat
 pahintulutan, dahil walang collection na nagaganap - itong abiso lang, para malaman mo
 kung ano ang naka-imbak at saan. Tinatanggal ng pag-clear ng storage ng site sa browser mo ang
-lahat nito anumang oras; tinatanggal ng **Mga Setting → Imbakan → Burahin ang lahat ng aking data**
-ang profile mo, mga naka-save na session, na-upload na larawan at ang asset cache. (Sa ilalim ng ePrivacy
+lahat nito anumang oras, at ganoon din ang **Mga Setting → Imbakan → Burahin ang lahat ng aking data**,
+na nag-o-off din sa Sync muna. (Sa ilalim ng ePrivacy
 Directive Art. 5(3), ang storage na mahigpit na kailangan para sa serbisyong hiniling mo
 ay hindi nangangailangan ng pahintulot - transparency lamang, na siyang katuturan ng dokumentong ito at
 ng abiso sa loob ng app.)

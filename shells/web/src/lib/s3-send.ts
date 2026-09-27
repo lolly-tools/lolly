@@ -178,7 +178,9 @@ export function s3SendTarget(): SendTarget {
     kind: KIND,
     label: t('S3 bucket'),
     available: () => hasConnection(KIND),
-    hint: t('Uploads this file straight to your own S3-compatible bucket with the keys you saved in Profile. They stay on this device - there is no server between you and your storage.'),
+    hint: isTauriShell()
+      ? t('Uploads this file straight to your own S3-compatible bucket with the keys you saved in Profile. They stay on this device - there is no server between you and your storage.')
+      : t('Uploads this file straight to your own S3-compatible bucket with the keys you saved in Profile. They stay in this browser - there is no server between you and your storage.'),
     send: async ({ bytes, name, format, mime }) => {
       const cfg = await s3Config();
       if (!cfg) throw new Error(t('Set up your bucket in Profile first'));

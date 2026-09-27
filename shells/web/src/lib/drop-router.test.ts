@@ -595,6 +595,29 @@ test('a .lolly with no renovation keeps exactly the doors it always had', () => 
   assert.deepEqual(doorIds(lollyIntakeChoices(brand)), ['use-brand']);
 });
 
+// plans/277 P13: a copy Sync wrote opens as an import, before any design door. The
+// design .lolly files above keep exactly their own doors.
+test('a Sync copy has no design doors: Open hands it to the import dialog first', () => {
+  const copy = classifyLollyManifest({ format: 'lolly-backup', counts: { sessions: 2 } }, 'snapshot.lolly', 4096);
+  assert.equal(copy.kind, 'backup');
+  assert.deepEqual(lollyIntakeChoices(copy), [], 'the design chooser never offers a Sync copy a door');
+  const src = readFileSync(new URL('./drop-router.ts', import.meta.url), 'utf8');
+  const open = src.slice(src.indexOf('export async function openLollyFile('), src.indexOf('const importLollyDrop'));
+  const route = open.indexOf("if (preview.kind === 'backup') {");
+  assert.ok(route > open.indexOf('await intake.peekLollyFile(file)'), 'the copy is recognised from the preview');
+  assert.ok(route < open.indexOf('intake.loadLollyFile('), 'and routed before any design reader inflates it');
+  assert.ok(route < open.indexOf('choiceDialog('), 'and before the design chooser opens');
+  assert.match(open.slice(route, route + 200), /await openDataCopy\(file, host\);\s*return;/);
+  const handler = src.slice(src.indexOf('async function openDataCopy('));
+  assert.match(handler, /import\('\.\/data-import\.ts'\)/, 'Open runs the same import as Import data…');
+  assert.match(handler, /routeToConsumer\('#\/p'/, 'and lands in Projects afterwards');
+});
+
+test('an encrypted Sync copy reaches the .lolly intake by its header, even with the extension lost', () => {
+  const src = readFileSync(new URL('./drop-router.ts', import.meta.url), 'utf8');
+  assert.match(src, /const lolly = [^;]*isEncryptedSnapshot\(head\)/);
+});
+
 test('a project file that also carries a renovation offers both', () => {
   const preview = classifyLollyManifest(
     renovationManifest({ kind: 'project', project: { name: 'Pitch', sessions: [{}, {}], folders: [] }, tool: { id: 'chart' } }),

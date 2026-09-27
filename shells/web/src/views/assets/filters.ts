@@ -10,7 +10,7 @@
 import { escape as escapeText } from '../../utils.ts';
 import { buildSearchHaystack, favItems as favItemsRule, matchesQuery as matchesQueryRule, matchesType as matchesTypeRule, sortAssets, visibleAssets as visibleAssetsRule } from '../assets-filter.ts';
 import type { TypeFilter } from '../assets-filter.ts';
-import { t } from '../../i18n.ts';
+import { t, tRaw } from '../../i18n.ts';
 import { LIB_GROUPS, categoryLabel, libCategory } from '../../lib/asset-category.ts';
 import { assetBaseId } from '../../lib/asset-favourites.ts';
 import { icon } from '../../lib/icons.ts';
@@ -90,9 +90,12 @@ export function uploadsSectionHtml(cat: CatCtx, items: AssetRef[]): string {
   // feature-detected - absent bridge, absent button. "Paste text" (type or
   // paste text/Markdown, stored as a first-class text asset through the same
   // ingest path a dropped .md takes) needs no bridge, so it always renders.
+  // The Trash sits beside them, always (plan 277 P3): a deleted upload goes
+  // there, and the button says whether anything is waiting.
+  const trashLabel = cat.trashCount ? tRaw('Open Trash, {n} items', { n: cat.trashCount }) : t('Open Trash, empty');
   const scriptAudio = `<div class="cat-uploads-tts">${host.speech?.isAvailable()
       ? `<button type="button" class="btn" data-script-audio>${icon('mic', { size: 14 })} ${t('Script audio')}</button>` : ''
-    }<button type="button" class="btn" data-paste-text>${icon('filePlus', { size: 14 })} ${t('Paste text')}</button></div>`;
+    }<button type="button" class="btn" data-paste-text>${icon('filePlus', { size: 14 })} ${t('Paste text')}</button><button type="button" class="btn cat-uploads-trash" data-open-trash aria-label="${escapeText(trashLabel)}">${icon('trash', { size: 14 })} ${t('Trash')}${cat.trashCount ? ` <span class="cat-uploads-trash-count">${cat.trashCount}</span>` : ''}</button></div>`;
   return `<section class="cat-group cat-group--uploads${isCollapsed ? ' is-collapsed' : ''}" data-group="${key}">
       <button type="button" class="cat-group-head" data-cat-toggle="${key}" aria-expanded="${!isCollapsed}">
         <span class="cat-group-chevron">${CHEVRON}</span>

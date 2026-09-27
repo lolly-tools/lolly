@@ -46,9 +46,10 @@ test('a part the host does not serve says so, with no button', async () => {
   assert.equal(row.dl.hidden, true);
 });
 
-test('a model fetched on first use reads as on this device, removable, with no Download', () => {
+test('a model fetched on first use reads as kept in this browser, removable, with no Download', () => {
   const row = partRowState({ allowed: true, available: true, stale: false, ready: true, planned: 0 });
-  assert.equal(row.sub, 'On this device');
+  // The web wording; the desktop and mobile apps say "On this device" (plans/277 P11).
+  assert.equal(row.sub, 'In this browser');
   assert.equal(row.dl.disabled, true);
   assert.equal(row.rm.hidden, false);
 });

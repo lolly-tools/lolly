@@ -236,7 +236,7 @@ test('rolling recovery survives reopen, preserves competing edits and keeps the 
   } finally { await browser.close(); }
 });
 
-test('manual backup round-trips revision IDs, previews and drafts; reimport is idempotent and conflicts roll back', { skip, timeout: 60_000 }, async () => {
+test('manual backup round-trips revision IDs, previews and drafts; reimport is idempotent and a creation on both sides merges', { skip, timeout: 60_000 }, async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
   try {
@@ -288,12 +288,19 @@ test('manual backup round-trips revision IDs, previews and drafts; reimport is i
         corrupt, preserved, afterSync, profileWrites };
     });
     assert.equal(result.summary.revisions, 1); assert.equal(result.summary.recoveryDrafts, 1);
-    assert.equal(result.quotaRejected, true); assert.equal(result.quotaHead, null); assert.equal(result.quotaPayload, null); assert.equal(result.quotaDraft, null);
-    assert.equal(result.restoredSummary.revisions, 1); assert.equal(result.restoredSummary.skipped, 0);
+    // A full history space no longer refuses the import (plan 277 P1): older history is
+    // left out, but the current state's checkpoint always comes in.
+    assert.equal(result.quotaRejected, false); assert.equal(result.quotaHead, result.before.documents[0].document.head);
+    assert.equal(result.quotaPayload.text, 'saved'); assert.equal(result.quotaDraft.text, 'latest draft');
+    // Counts say what an import changed (plan 277 P1, recheck R1): the import before this
+    // one already brought the checkpoint back, so this one adds nothing.
+    assert.equal(result.restoredSummary.revisions, 0); assert.equal(result.restoredSummary.skipped, 0);
     assert.deepEqual(result.restored, result.before); assert.deepEqual(result.afterRepeat, result.usage); assert.equal(result.recoveryUsage, result.repeatRecovery);
     assert.equal(result.syncSummary.revisions, undefined); assert.equal(result.syncSummary.recoveryDrafts, undefined);
-    assert.match(result.conflict, /conflicts.*existing work was kept/); assert.equal(result.afterConflict.text, 'new target work');
-    assert.equal(result.headAfterConflict, result.changed); assert.equal(result.profileAfterConflict, result.profileBefore);
+    // A creation on both sides no longer refuses the import (plan 277 P1, review B1):
+    // this browser's newer work stays current and the backup's copy is kept beside that work.
+    assert.equal(result.conflict, ''); assert.equal(result.afterConflict.text, 'new target work');
+    assert.equal(result.headAfterConflict, result.changed); assert.ok(result.profileAfterConflict >= result.profileBefore);
     assert.equal(result.corrupt, true); assert.equal(result.preserved.text, 'saved');
     assert.equal(result.afterSync.revisions.length, 2);
     assert.ok(result.afterSync.recoveries.some((row: { data: { text: string }; diverged: boolean }) => row.diverged && row.data.text === 'new target work'));
@@ -332,7 +339,8 @@ test('the recovery schema upgrade preserves a v21 document and adopts its old he
       const draft = await api.history.recovery.save('legacy', { ...data, text: 'after upgrade' }, { writerId: 'migration', expectedHead: cursor.head, expectedVersion: cursor.version });
       return { version: db.version, cursor, saved, draft, current: await api.load('legacy') };
     });
-    assert.equal(result.version, 24); assert.deepEqual(result.cursor, { head: 'legacy-head', version: 'legacy-head' });
+    // A document from before the saved pointer is adopted as saved on open (plan 277 P1, review B7).
+    assert.equal(result.version, 24); assert.deepEqual(result.cursor, { head: 'legacy-head', version: 'legacy-head', adopt: true });
     assert.equal(result.saved.text, 'v21 saved work'); assert.equal(result.draft.documentId, 'legacy-document');
     assert.equal(result.draft.diverged, false); assert.equal(result.current.text, 'after upgrade');
   } finally { await browser.close(); }

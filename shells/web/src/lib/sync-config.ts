@@ -16,6 +16,7 @@
  */
 
 import { openDB } from '../bridge/db.ts';
+import { clearSignal } from './clear-signal.ts';
 import type { SyncState } from './sync-engine.ts';
 import type { SnapshotMeta } from './sync-remote.ts';
 import type { BackupIds } from '../data-transfer.ts';
@@ -62,13 +63,20 @@ async function readStore(): Promise<SyncConfig> {
   return cache;
 }
 
-/** The current sync config (defaults merged). Cached after first read. */
+/** The current sync config (defaults merged). Cached after first read. Reads as
+ *  off in a tab that must not write after "Clear all my data" (lib/clear-signal.ts),
+ *  so no automatic push, boot check or apply starts there. */
 export async function getSyncConfig(): Promise<SyncConfig> {
+  if (clearSignal.writesBlocked()) return { ...(cache ?? DEFAULT), enabled: false };
   return { ...(await readStore()) };
 }
 
-/** Merge a patch into the config and persist it. Returns the new config. */
+/** Merge a patch into the config and persist it. Returns the new config. Refused
+ *  (nothing stored, in memory or on disk) in a tab that must not write after a
+ *  clear: such a tab still holds the config from before the clear, and writing
+ *  any of it back would turn sync on again over the emptied browser. */
 export async function saveSyncConfig(patch: Partial<SyncConfig>): Promise<SyncConfig> {
+  if (clearSignal.writesBlocked()) return { ...(cache ?? DEFAULT), enabled: false };
   const next: SyncConfig = { ...(await readStore()), ...patch };
   cache = next;
   try {
@@ -100,11 +108,28 @@ export async function getSyncBase(): Promise<BackupIds | null> {
 }
 
 export async function saveSyncBase(ids: BackupIds): Promise<void> {
+  if (clearSignal.writesBlocked()) return; // as saveSyncConfig
   baseCache = ids;
   try {
     const db = await openDB();
     await db.put('profile', ids, BASE_KEY);
   } catch { /* no IDB - the memory cache already holds it */ }
+}
+
+/**
+ * "Clear all my data", first step (lib/clear-all-data.ts): sync off, and this
+ * browser's sync bookkeeping forgotten, in memory and on disk, before anything is
+ * emptied. With no last synced revision a later push is a first join, which never
+ * replaces a synced copy by itself, so a cleared browser cannot upload its empty
+ * state over the person's synced data even if the rest of the clear fails. Runs
+ * while the clear already refuses every other write, so it writes directly.
+ */
+export async function resetSyncForClear(): Promise<void> {
+  cache = { ...DEFAULT };
+  baseCache = null;
+  const db = await openDB();
+  await db.put('profile', { ...DEFAULT }, KEY);
+  await db.delete('profile', BASE_KEY);
 }
 
 /** Test seam: drop the in-memory caches (never touches IndexedDB). */

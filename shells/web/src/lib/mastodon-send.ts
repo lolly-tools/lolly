@@ -132,7 +132,9 @@ export function mastodonSendTarget(): SendTarget {
     label: t('Mastodon'),
     formats: ['png', 'jpg', 'jpeg', 'webp', 'gif', 'mp4', 'webm', 'mp3'],
     available: () => hasConnection(KIND),
-    hint: t('Posts this file to your Mastodon account. Your sign-in stays on this device, and whether it is remembered between sessions is your choice in Profile.'),
+    hint: isTauriShell()
+      ? t('Posts this file to your Mastodon account. Your sign-in stays on this device, and whether it is remembered between sessions is your choice in Profile.')
+      : t('Posts this file to your Mastodon account. Your sign-in stays in this browser, and whether it is remembered between sessions is your choice in Profile.'),
     send: async ({ bytes, name, mime }) => {
       const { server, token } = await mastodonToken();
       const auth = { Authorization: `Bearer ${token}` };

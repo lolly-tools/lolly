@@ -19,7 +19,7 @@ Tot ce ține de un profil trăiește **pe dispozitiv**, în baza de date locală
 | **Accesibilitate** | Patru comutatoare de confort - *Reduce motion*, *Hide colourful previews*, *High contrast*, *Large text* - păstrate în înregistrarea profilului, deci sunt incluse la exportul unui profil. Vezi [Accessibility](#accessibility). |
 | **Munca ta** | Sesiuni salvate (cu miniaturi) - organizate în foldere imbricate în **[Projects](/info/using.html)** - biblioteca ta **My images** și statisticile locale de activitate, toate asociate acestui profil. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
 
 ![Ecranul Profil - nume, contact, o fotografie de profil opțională și preferințele tale](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -35,7 +35,7 @@ Cuvântul „profil" sugerează o singură persoană fixă, dar în Lolly este d
 
 ### Ca individ
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
 
 ![Controlul pentru fotografia de profil, gol până încarci o fotografie care apoi rămâne pe acest dispozitiv](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -53,10 +53,10 @@ Acesta este cazul pe care modelul rigid „o persoană, un profil" îl ratează.
 
 În orice moment, o instalare are **un singur profil activ** - detaliile pe care le vede un instrument chiar acum. Nu există un comutator de profiluri în aplicație; în schimb, fiecare profil este un **pachet portabil** (un singur `.zip`, vezi [mai jos](#moving-a-profile-to-a-new-device)). Acesta este, în mod deliberat, același mecanism ca mutarea pe un dispozitiv nou - un profil este un fișier pe care îl poți salva, copia și încărca.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
 
 - <!--i:trash--> **Comutarea cea mai curată:** **Setări → Preferences → Stocare → Șterge toate datele mele**, apoi **Importă** pachetul pentru contextul în care intri. Acum creezi exclusiv sub acel profil.
-- <!--i:layers--> **Suprapunere:** importul *fără* a curăța mai întâi **suprapune** - profilul, sesiunile și imaginile importate se așază peste ce există deja, înlocuind orice are același nume și lăsând restul neatins. Util pentru a prelua sesiunile salvate ale unei echipe în propria configurație; nu ce vrei dacă ai nevoie de o delimitare clară de rol.
+- <!--i:layers--> **Suprapunere:** importul *fără* a curăța mai întâi **suprapune** - sesiunile și imaginile importate se așază peste ce există deja; când există același element pe ambele părți, este păstrată copia salvată mai recent, iar restul rămâne neatins. Folderele, favoritele și șabloanele sunt adăugate la ale tale, iar propriile tale detalii și setări rămân. Util pentru a prelua sesiunile salvate ale unei echipe în propria configurație; nu ce vrei dacă ai nevoie de o delimitare clară de rol.
 - <!--i:monitor--> **Unul lângă altul:** pentru că totul este limitat la nivel de dispozitiv, un profil de browser separat, un cont de utilizator separat sau o a doua instalare PWA poartă fiecare propriul profil Lolly independent. Rulează simultan instalarea ta personală și instalarea de chioșc pentru eveniment, fără să comuți.
 
 Deci dacă chiar jonglezi cu mai multe contexte (tu, echipa ta, pălăria de manager de eveniment), păstrezi mai multe pachete și încarci pe cel de care ai nevoie:
@@ -108,13 +108,13 @@ Pentru că un profil este în întregime local, există două moduri de a-l aduc
 
 Sub **Setări → Preferences → Stocare → Mută pe alt dispozitiv**:
 
-- <!--i:download--> **Export my data** descarcă un fișier `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - numit după profilul căruia îi aparține, cu un număr de secvență zilnic pentru ca exporturile repetate să nu se suprapună (părțile numelui lipsesc dacă profilul nu le are). Conține profilul tău, fiecare sesiune salvată (cu miniatura ei), imaginile încărcate de tine - tokenii tăi de brand și fonturile instalate călătoresc alături ca active de utilizator - și preferințele tale (temă, aspect, statistici locale de activitate).
-- <!--i:upload--> **Import data…** pe cealaltă instalare citește acel fișier înapoi și continui exact de unde ai rămas.
-- <!--i:box--> **Export my data & render everything** scrie aceeași copie de rezervă *plus* un al doilea zip care randează fiecare sesiune salvată în fișierul ei final, în foldere care oglindesc Proiectele tale. O arhivă offline completă a surselor și a rezultatelor - poate fi mare și lentă cu multe sesiuni.
+- <!--i:download--> **Exportă datele mele** descarcă un singur fișier `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - numit după profilul căruia îi aparține, cu un număr de secvență zilnic ca exporturile repetate să nu se ciocnească (părțile numelui lipsesc dacă profilul nu le are). Conține profilul tău, fiecare sesiune salvată (cu miniatura ei), imaginile tale încărcate - tokenii tăi de brand și fonturile instalate călătoresc alături ca active de utilizator - și preferințele tale (temă, aspect, statistici locale de activitate).
+- <!--i:upload--> **Importă date…** pe cealaltă instalare citește acel fișier înapoi și continui exact de unde ai rămas. De asemenea, preia o copie pe care [Sync](/info/sync.html) o ține în stocarea ta.
+- <!--i:box--> **Exportă datele mele & randează totul** scrie aceeași copie de rezervă *plus* un al doilea zip care randează fiecare sesiune salvată în fișierul ei final, în foldere care oglindesc Proiectele tale. O arhivă offline completă a surselor și a rezultatelor - și poate fi mare și lentă cu o mulțime de sesiuni.
 
 ![Cele două butoane care mută o instalare întreagă: Export my data scrie un zip, Import data îl citește înapoi](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-Pachetul este un zip simplu, autonom, deci călătorește prin **orice** mijloc - USB, AirDrop, un partaj de rețea, email către tine însuți - iar ținta poate fi complet offline. Fiecare parte are checksum, deci un fișier deteriorat în tranzit este detectat la import, în loc să fie restaurat pe jumătate stricat. Importul **fuzionează** (profilul/sesiunea/imaginea cu același nume este suprascrisă; tot restul este păstrat), deci nu șterge niciodată o țintă deja în uz.
+Pachetul este un zip simplu, autonom, deci călătorește prin **orice** mijloc - USB, AirDrop, un partaj de rețea, email către tine însuți - iar ținta poate fi complet offline. Fiecare parte are checksum, deci un fișier deteriorat în tranzit este detectat la import, în loc să fie restaurat pe jumătate stricat. Importul **fuzionează** (pentru o sesiune sau imagine cu același nume, este păstrată copia salvată mai recent; folderele, favoritele și șabloanele sunt adăugate; detaliile și setările țintei rămân; tot restul este păstrat), deci nu șterge niciodată o țintă deja în uz.
 
 Ce nu călătorește: cache-ul de catalog (se re-descarcă singur pe noul dispozitiv) și instrumentele în sine (se presupune că sunt deja prezente).
 
@@ -122,7 +122,7 @@ Pentru structura exactă a pachetului, politica de versiuni și regulile de inte
 
 ## Cum folosesc instrumentele profilul tău
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
 
 Un instrument doar *precompletează* câmpurile de profil pentru care a fost construit explicit să se lege:
 

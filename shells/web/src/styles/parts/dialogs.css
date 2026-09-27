@@ -696,3 +696,6 @@
 }
 .devpick-item:hover { background: hsl(var(--muted)); }
 .devpick-item.is-current { background: hsl(var(--primary) / 0.16); font-weight: 600; }
+/* The notice a tab shows when another tab's "Clear all my data" stops it
+   (lib/clear-elsewhere.ts): nothing sits below the message, so no gap for actions. */
+.clear-elsewhere .modal-msg { margin-bottom: 0; }

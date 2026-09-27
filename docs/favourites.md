@@ -98,7 +98,7 @@ Your starred tools are saved onto your **profile** - the same on-device record t
 
 - It's saved **on this device**, in the browser's own local database. No account, nothing uploaded.
 - It has nothing to do with the **design system** - the colours, fonts and tools the app was set up with. Starring a tool is a personal shortcut for you; it changes nothing about what anyone else's install shows.
-- It **doesn't follow you** anywhere on its own. The one way it travels is the same way your whole profile does - export a portable backup and import it on another device - and that's a deliberate, occasional action you take, never an ambient sync running in the background.
+- It travels only where your whole profile does: with [Sync](/info/sync.html), to the storage you chose for it and on to your other devices, or in a backup you export and import yourself. It never goes to a Lolly server.
 
 Even the choice between **Gallery** and **Cover Flow** is more local still: it lives in a small preference kept only in this one browser's own storage, and it isn't part of that profile export at all. A new device always starts back on the plain default, no matter how many profiles you've moved around.
 

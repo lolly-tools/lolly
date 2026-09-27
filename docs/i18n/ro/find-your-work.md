@@ -8,7 +8,7 @@ Tot ce faci în Lolly rămâne în browserul sau aplicația în care l-ai făcut
 | Ai apăsat **Descarcă** | Descărcările browserului tău, și o copie în **Resurse** |
 | Niciuna, într-unul dintre [cele nouă instrumente care salvează pe măsură ce lucrezi](#the-nine-tools-that-save-as-you-work) | **Proiecte** și **History** |
 | Niciuna, în orice alt instrument | Doar fila în care ai lucrat, până o închizi |
-| L-ai mutat la coșul de gunoi | Dala **Coș de gunoi** din **Proiecte**, timp de 30 de zile |
+| L-ai șters în aplicație | **Coș de gunoi**, în **Proiecte**, **Resurse** sau **Setări → Stocare**, timp de 30 de zile |
 
 ## Găsește ceva ce ai salvat
 
@@ -73,18 +73,18 @@ Ce revine depinde de cum ai plecat și ce instrument ai folosit:
 
 - **Ai închis fila, sau ai revenit altă dată.** Lucrarea nesalvată dispare, cu excepția [celor nouă instrumente](#the-nine-tools-that-save-as-you-work), care îți salvează modificările pe măsură ce lucrezi: deschide-le din **Proiecte**.
 - **Ai reîncărcat pagina în aceeași filă.** Setările tale revin din adresa paginii. În instrumentele, altele decât cele nouă, fotografiile și fișierele pe care le-ai adăugat de pe dispozitivul tău, și textul pe un singur rând mai lung de 150 de caractere, nu revin, fiindcă adresa nu le conține.
-- **Ai apăsat Acasă, sau butonul de înapoi din stânga sus.** Dacă ai schimbat ceva de la ultima salvare, descărcare sau copiere, un dialog **Modificări nesalvate** te întreabă dacă vrei să salvezi întâi. **Save & leave** salvează lucrarea și te duce la **Proiecte**, sau înapoi la folderul de proiect din care ai deschis lucrarea. **Ieși fără să salvezi** pleacă; în cele nouă instrumente modificările tale sunt deja salvate și rămân în Proiecte. **Anulează** te ține în instrument.
+- **Ai apăsat Acasă, sau butonul de înapoi din stânga sus.** Dacă ai schimbat ceva de la ultima salvare, descărcare sau copiere, un dialog **Modificări nesalvate** te întreabă dacă vrei să salvezi întâi. **Salvează și ieși** salvează lucrarea și te duce la **Proiecte**, sau înapoi la folderul de proiect din care ai deschis lucrarea. **Ieși fără să salvezi** îți anulează modificările: un element salvat revine la felul în care l-ai salvat ultima dată, iar o creație pe care n-ai salvat-o niciodată părăsește **Proiecte**. **Anulează** te ține în instrument.
 
 Lolly întreabă doar când apeși **Acasă** sau butonul de înapoi într-un instrument. Închiderea filei, reîncărcarea și butonul propriu de înapoi al browserului tău nu întreabă niciodată. Ca să fii sigur, apasă **Salvează ca**, sau **Salvează** din panoul de export, înainte să părăsești un instrument.
 
 ::: note Ai plecat fără să salvezi din greșeală?
-În instrumentele, altele decât cele nouă, apasă imediat butonul de înapoi al browserului tău. Setările din adresa paginii revin, deși fotografiile pe care le-ai adăugat de pe dispozitivul tău nu revin. Apoi apasă **Salvează ca** și **Salvează** înainte să faci orice altceva: de data asta Lolly nu întreabă înainte să pleci.
+În cele nouă instrumente, History păstrează o copie a modificărilor abandonate. Deschide pagina **History**, găsește-le sub **Changes** și apasă **Open as a copy**. În celelalte instrumente, modificările s-au pierdut.
 :::
 
 ::: details Cele nouă instrumente care salvează pe măsură ce lucrezi
 [Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) și [Text](/#/tool/text-helper). Lista crește pe măsură ce mai multe instrumente capătă salvare automată.
 
-În aceste instrumente, prima ta modificare depune lucrarea în **Proiecte** ca și cum ai fi salvat, iar modificările ulterioare sunt păstrate în câteva secunde. Așa că o creație nesalvată rămâne în Proiecte după ce închizi fila, iar **Ieși fără să salvezi** nu îți aruncă modificările. Deschiderea din nou a instrumentului din ecranul principal pornește o creație nouă; deschide-o pe cea anterioară din Proiecte.
+În aceste instrumente, prima ta modificare depune lucrarea în **Proiecte** ca și cum ai fi salvat, iar modificările ulterioare sunt păstrate în câteva secunde. Așa că o creație nesalvată rămâne în Proiecte după ce închizi fila și reapare cu modificările ei marcate ca nesalvate. **Ieși fără să salvezi** tot le anulează, iar History păstrează o copie a modificărilor abandonate timp de 30 de zile. Deschiderea din nou a instrumentului din ecranul principal pornește o creație nouă; deschide-o pe cea anterioară din Proiecte.
 
 Asta funcționează doar în aplicația web, nu în aplicațiile desktop sau mobile, și nu cât timp lucrezi live cu altcineva.
 :::
@@ -101,8 +101,8 @@ Lolly mai păstrează și două lucruri după fiecare descărcare:
 - **Setările pe care le-ai folosit**, pentru ultimele tale 24 de descărcări. **Exporturi recente**, sub lucrarea ta salvată din **Proiecte**, redeschide instrumentul cu acele setări ca să poți face din nou fișierul, deși fotografiile și fișierele pe care le-ai adăugat de pe dispozitivul tău nu sunt incluse. Aceeași listă e sub **Setări → Activitate & statistici → Ultimele exporturi** și pe fila **Changes** din **History**. Lista asta păstrează setări, nu fișiere.
 
 ::: details În aplicațiile desktop și mobile
-- **Aplicația desktop:** **Descarcă** salvează direct într-un folder **Lolly** din interiorul folderului tău **Downloads**, fără niciun dialog. Un mesaj confirmă salvarea și oferă **Dezvăluie** ca să arate fișierul. **Open Exports Folder**, din meniul **Window** sau **Exports**, deschide folderul oricând. Un fișier cu același nume ca unul anterior e salvat ca „name (1)”.
-- **iPhone și iPad:** fișierul e salvat în aplicația **Fișiere**, sub **Lolly**, iar foaia de partajare se deschide ca să-l poți trimite mai departe.
+- **Aplicația desktop:** **Descarcă** salvează direct într-un folder **Lolly** din interiorul folderului tău **Downloads**, fără niciun dialog. Rândul de sub **Descarcă** spune unde a ajuns, ceva de genul „Salvat la Downloads/Lolly”, împreună cu **Arată în folder**. **Open Exports Folder**, din meniul **Window** sau **Exports**, deschide folderul oricând. Un fișier cu același nume ca unul anterior e salvat ca „name (1)”.
+- **iPhone și iPad:** fișierul e salvat în aplicația **Fișiere**, sub **Lolly**, iar foaia de partajare se deschide ca să-l poți trimite mai departe. Rândul de sub **Descarcă** spune „Salvat la Fișiere → Lolly”.
 - **Android:** meniul de partajare se deschide ca să alegi unde merge fișierul.
 
 Pe iPhone, iPad și Android, un fișier nou îl înlocuiește pe unul anterior cu același nume.
@@ -146,8 +146,8 @@ Filtrează după proiect, instrument și dată (sub **Filters** pe telefon). Pag
 
 Un link de partajare duce mai departe setările tale, dar nu și fotografiile sau fișierele pe care le-ai adăugat de pe dispozitivul tău.
 
-::: warning Importul îți înlocuiește folderele
-Dacă celălalt dispozitiv are deja lucrări, citește asta întâi. Importul adaugă ce conține fișierul, actualizează elementele care se potrivesc și nu șterge niciun element salvat. Profilul tău e însă o singură înregistrare, așa că folderele, favoritele, șabloanele și detaliile de pe dispozitivul respectiv sunt înlocuite de cele din fișier. Un element salvat care era doar pe dispozitivul respectiv rămâne, la nivelul de sus al **Proiecte**. **Bring it to this device**, din Sync, face același lucru.
+::: note Importul adaugă, dar nu șterge nimic
+Folderele, favoritele și șabloanele din fișier sunt adăugate alături de cele deja existente pe celălalt dispozitiv. Când un element salvat există pe ambele, este păstrată copia salvată mai recent. Detaliile și setările tale de pe acel dispozitiv rămân așa cum sunt; cele goale sunt completate din fișier. **Bring it to this device**, din Sync, funcționează la fel.
 :::
 
 Ca să muți totul o singură dată:
@@ -157,7 +157,7 @@ Ca să muți totul o singură dată:
 3. Pe dispozitivul nou, deschide **Setări → Stocare**, apasă **Importă date…**, alege fișierul și apasă **Importă**.
 
 ::: note Ce rămâne în urmă
-Autentificările, cheile și fraza de acces pentru sincronizare rămân pe fiecare dispozitiv. Lista descărcărilor recente, descărcările offline și modelele AI nu călătoresc pe nicio cale. Istoricul versiunilor călătorește doar într-un fișier **Exportă datele mele**, nu prin Sync sau printr-un `.lolly`. Copiile pe care Sync le ține în stocarea ta se deschid doar prin Sync, nu cu **Importă date…** sau **Deschide**.
+Autentificările, cheile și fraza de acces pentru sincronizare rămân pe fiecare dispozitiv. Lista descărcărilor recente, descărcările offline și modelele AI nu călătoresc pe nicio cale. Istoricul versiunilor călătorește doar într-un fișier **Exportă datele mele**, nu prin Sync sau printr-un `.lolly`. O copie pe care Sync o ține în stocarea ta poate fi descărcată și deschisă, sau aleasă din **Importă date…**, ca un fișier de backup; o copie criptată îți cere fraza de acces.
 :::
 
 ::: details Ce conține fișierul de rezervă
@@ -176,7 +176,7 @@ Apasă **Exportă datele mele** sub **Setări → Stocare**, și păstrează fi�
 
 Când pornește aplicația, Lolly cere browserului să nu-i șteargă stocarea când dispozitivul rămâne fără spațiu. Browserul decide. Sub **Setări → Disponibil offline**, un rând care începe cu **Protected** înseamnă că browserul a fost de acord; „Browserul poate șterge descărcările dacă dispozitivul rămâne fără spațiu” înseamnă că n-a fost, iar **Protejează descărcările** întreabă din nou. Dacă browserul n-a fost de acord, poate șterge atât lucrarea salvată, cât și descărcările când spațiul se termină, așa că păstrează un fișier **Exportă datele mele** recent.
 
-**Setări → Stocare** arată cât spațiu folosește fiecare tip de date. **Golește cache-ul** elimină fișierele de catalog descărcate, care se descarcă din nou când e nevoie. **Șterge toate datele mele** îți cere să tastezi un cuvânt, apoi îți elimină profilul, sesiunile salvate, imaginile încărcate și cache-ul de resurse. Alte date rămân, inclusiv istoricul versiunilor, lista descărcărilor recente, rezultatele Convert, sistemele de design și modelele AI descărcate. Ca să elimini totul, șterge datele acestui site din browserul tău.
+**Setări → Stocare** arată cât spațiu folosește fiecare tip de date. **Golește cache-ul** elimină fișierele de catalog descărcate, care se descarcă din nou când e nevoie. **Șterge toate datele mele** îți cere să tastezi un cuvânt, oprește Sync, apoi elimină tot ce păstrează Lolly în acest browser: profilul și setările tale, sesiunile salvate împreună cu istoricul lor și Coșul de gunoi, încărcările, fonturile și sistemele de design, jurnalul de descărcări, rezultatele Convert, modelele AI descărcate și copiile offline. Fișierele pe care le-ai descărcat rămân unde le-ai salvat. Aplicația pornește apoi ca la prima vizită.
 
 ![Cardul de stocare pe un ecran de lățimea unui telefon: fiecare categorie de date de pe dispozitiv, numită, cu butonul Clear all my data jos](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
@@ -195,15 +195,15 @@ Fotografiile, sistemele de design și lista descărcărilor recente rămân în 
 
 ## Recuperează ceva ce ai șters
 
-În **Proiecte**, **Mută la coșul de gunoi** păstrează un element timp de 30 de zile. Un folder ajunge în coșul de gunoi cu tot ce conține, ca o singură intrare. Imediat după, un mesaj oferă **Anulează** timp de vreo zece secunde. Mai târziu:
+Ștergerea unei sesiuni salvate, a unui folder, a uneia dintre încărcările tale sau a unuia dintre fonturile tale în aplicație o mută în **Coș de gunoi** timp de 30 de zile, indiferent de unde o ștergi: **Proiecte**, **Resurse**, **Setări → Stocare** sau lista de sesiuni salvate a unui instrument. Un folder pleacă împreună cu tot ce conține, ca o singură intrare, iar o sesiune își păstrează istoricul de versiuni cât timp se află acolo. Imediat după, un mesaj oferă **Anulează**. Mai târziu:
 
-1. Deschide **Proiecte** și apasă dala **Coș de gunoi**. Dala apare doar cât timp coșul de gunoi conține ceva.
-2. Apasă **Restaurează** lângă element.
+1. Deschide **Coș de gunoi**: dala **Coș de gunoi** din **Proiecte**, butonul **Coș de gunoi** din **Resurse → Încărcările tale**, sau rândul **Coș de gunoi** din **Setări → Stocare**. Toate trei deschid aceeași listă.
+2. Apasă **Restaurează** lângă element. Se întoarce în folderul lui, iar un font își recapătă rolurile pe care le avea în sistemul lui de design.
 
-**Șterge definitiv** și **Golește coșul de gunoi** elimină elementele pe loc, fără să întrebe. Elementele mai vechi de 30 de zile sunt eliminate definitiv data următoare când deschizi Proiecte.
+**Șterge definitiv** elimină un element pentru totdeauna. **Golește coșul de gunoi** întreabă întâi, apoi elimină fiecare element din Coșul de gunoi. Elementele mai vechi de 30 de zile sunt eliminate definitiv.
 
-::: warning Alte ștergeri sunt permanente
-Ștergerea unei sesiuni salvate sub **Setări → Stocare**, sau din lista de sesiuni salvate a unui instrument din galerie (clic dreapta pe cartela instrumentului, apoi **N saved sessions**), elimină sesiunea definitiv, împreună cu istoricul ei de versiuni. O fotografie pe care o ștergi din **Imaginile mele** e eliminată pe loc, fără să întrebe.
+::: warning Unele ștergeri sunt imediate
+Ștergerea unui sistem de design, a unui logo sau a fotografiei tale de profil nu ajunge în Coșul de gunoi. Linia de comandă și aplicația de terminal șterg și ele pe loc.
 :::
 
 Cu [Sync](/info/sync.html) activat, **Restore an earlier copy** poate aduce înapoi starea dintr-o zi anterioară a întregului dispozitiv, iar un fișier **Exportă datele mele** aduce înapoi ce conține fișierul.

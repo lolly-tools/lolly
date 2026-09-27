@@ -98,7 +98,9 @@ export function nextcloudSendTarget(): SendTarget {
     kind: KIND,
     label: t('Nextcloud / WebDAV'),
     available: () => hasConnection(KIND),
-    hint: t('Uploads this file to your own Nextcloud or WebDAV server with the app password you saved in Profile. It stays on this device - there is no server between you and yours.'),
+    hint: isTauriShell()
+      ? t('Uploads this file to your own Nextcloud or WebDAV server with the app password you saved in Profile. It stays on this device - there is no server between you and yours.')
+      : t('Uploads this file to your own Nextcloud or WebDAV server with the app password you saved in Profile. It stays in this browser - there is no server between you and yours.'),
     send: async ({ bytes, name, format, mime }) => {
       const cfg = await config();
       if (!cfg) throw new Error(t('Set up your server in Profile first'));

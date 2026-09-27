@@ -5,7 +5,9 @@
  * `.lolly` is the product's portable-container extension, not one payload:
  * `lolly-share` is one saved tool session (or, with `kind: 'project'`, a folder
  * tree of them) and `lolly-brand` is one design system (optionally promoted to
- * an instance pack by tools/catalog parts).
+ * an instance pack by tools/catalog parts). A copy that Sync wrote to the person's
+ * storage wears the extension too: a `lolly-backup` bundle, plain or encrypted with
+ * the sync passphrase, which opens as an import into this device (plans/277 P13).
  * Entry points must therefore ask the manifest what the file is before they
  * choose a verb. This module is that one read-only decision seam.
  *
@@ -15,9 +17,14 @@
  * headers as File.stream() advances; every entry except the tiny manifest is
  * left unopened. The selected reader later performs the full guarded inflate
  * exactly once, after the person has accepted the measured action.
+ *
+ * A backup .zip that Export my data writes holds the same `lolly-backup` bundle as a
+ * plain Sync copy. `peekBackupZip` reads its manifest from the zip's central directory,
+ * so Open can import the zip the same way (plans/277 P11).
  */
-import { Unzip, UnzipInflate, strFromU8 } from 'fflate';
+import { Inflate, Unzip, UnzipInflate, strFromU8 } from 'fflate';
 import { t, tRaw } from '../i18n.ts';
+import { isEncryptedSnapshot } from './snapshot-crypto.ts';
 
 export const LOLLY_MAX_FILE_BYTES = 2 * 1024 * 1024 * 1024;
 export const LOLLY_MEDIUM_FILE_BYTES = 10 * 1024 * 1024;
@@ -98,7 +105,30 @@ export interface LollyBrandPreview {
   manifest: Record<string, unknown>;
 }
 
-export type LollyPreview = LollySessionPreview | LollyBrandPreview;
+/**
+ * A copy of this person's own data that Sync wrote to their storage (plans/277 P13):
+ * `lolly-sync/snapshot.lolly` (`lolly-sync.lolly` on Google Drive), a daily
+ * `lolly-backup/day-N.lolly` or `lolly-backup/before-apply.lolly`. Inside is the same
+ * `lolly-backup` bundle that Export my data writes, optionally encrypted with the sync
+ * passphrase. It opens as an import, the way Import data… restores a backup.
+ */
+export interface LollyBackupPreview {
+  kind: 'backup';
+  format: 'lolly-backup';
+  label: string;
+  fileBytes: number;
+  sizeBand: LollySizeBand;
+  /** Encrypted with the sync passphrase, so nothing inside can be read until it is unlocked. */
+  encrypted: boolean;
+  /** When the copy was written, as the manifest records it; null while encrypted. */
+  exportedAt: string | null;
+  sessions: number;
+  userAssets: number;
+  /** The declared manifest, or null for an encrypted copy. */
+  manifest: Record<string, unknown> | null;
+}
+
+export type LollyPreview = LollySessionPreview | LollyBrandPreview | LollyBackupPreview;
 
 const record = (value: unknown): Record<string, unknown> | null =>
   typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -327,11 +357,40 @@ export function classifyLollyManifest(
   }
 
   if (format === 'lolly-backup') {
-    throw new Error(
-      'This is a Lolly device backup. Restore it from Profile → Storage; backups remain .zip files so they cannot be mistaken for a shared design.'
-    );
+    // A Sync copy (plans/277 P13). It is offered as an import into this device, never
+    // as a shared design: the chooser for it has one door and says what the import adds.
+    const counts = record(manifest.counts);
+    return {
+      kind: 'backup',
+      format,
+      label: fallback,
+      fileBytes,
+      sizeBand: lollySizeBand(fileBytes),
+      encrypted: false,
+      exportedAt: text(manifest.exportedAt),
+      sessions: count(counts?.sessions),
+      userAssets: count(counts?.userAssets),
+      manifest,
+    };
   }
   throw new Error('This .lolly file uses an unknown bundle format.');
+}
+
+/** The preview of a Sync copy encrypted with the sync passphrase: only its name and size
+ *  can be read before it is unlocked. */
+export function encryptedBackupPreview(fileName: string, fileBytes: number): LollyBackupPreview {
+  return {
+    kind: 'backup',
+    format: 'lolly-backup',
+    label: fileName.replace(/\.lolly$/i, '').trim() || 'Lolly file',
+    fileBytes,
+    sizeBand: lollySizeBand(fileBytes),
+    encrypted: true,
+    exportedAt: null,
+    sessions: 0,
+    userAssets: 0,
+    manifest: null,
+  };
 }
 
 /** Read only manifest.json from a File/Blob without materialising the archive. */
@@ -340,6 +399,11 @@ export async function peekLollyFile(file: File): Promise<LollyPreview> {
     throw new Error(
       `This .lolly file is too large to open (max ${lollyBytesLabel(LOLLY_MAX_FILE_BYTES)}).`
     );
+  }
+  // An encrypted Sync copy is not a zip at all: its first bytes are the "LSE1" header
+  // (snapshot-crypto.ts), so it is recognised before the streaming unzip below.
+  if (isEncryptedSnapshot(new Uint8Array(await file.slice(0, 64).arrayBuffer()))) {
+    return encryptedBackupPreview(file.name, file.size);
   }
 
   const value = await new Promise<unknown>((resolve, reject) => {
@@ -420,6 +484,112 @@ export async function peekLollyFile(file: File): Promise<LollyPreview> {
   return classifyLollyManifest(value, file.name, file.size);
 }
 
+const u16 = (b: Uint8Array, at: number): number => b[at]! | (b[at + 1]! << 8);
+const u32 = (b: Uint8Array, at: number): number =>
+  (b[at]! | (b[at + 1]! << 8) | (b[at + 2]! << 16) | (b[at + 3]! << 24)) >>> 0;
+/** A zip's end record: 22 bytes, then a comment of at most 65,535 bytes. */
+const ZIP_TAIL_BYTES = 22 + 0xffff;
+/** Upper bound on a central directory read. A backup lists a few parts plus one entry
+ *  per history file, about a hundred bytes each. */
+const ZIP_DIRECTORY_MAX_BYTES = 8 * 1024 * 1024;
+
+const sliceBytes = async (file: Blob, start: number, end: number): Promise<Uint8Array> =>
+  new Uint8Array(await file.slice(start, end).arrayBuffer());
+
+/** Inflate raw deflate bytes, stopping past `max` output bytes. Null when the bytes are
+ *  damaged or expand past the limit. */
+function inflateBounded(data: Uint8Array, max: number): Uint8Array | null {
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  let over = false;
+  const inflater = new Inflate((chunk) => {
+    total += chunk.length;
+    if (total > max) over = true;
+    else chunks.push(chunk);
+  });
+  const step = 16 * 1024;
+  try {
+    for (let at = 0; at < data.length && !over; at += step) {
+      inflater.push(data.subarray(at, at + step), at + step >= data.length);
+    }
+  } catch {
+    return null;
+  }
+  if (over) return null;
+  const out = new Uint8Array(total);
+  let at = 0;
+  for (const chunk of chunks) {
+    out.set(chunk, at);
+    at += chunk.length;
+  }
+  return out;
+}
+
+/**
+ * Read manifest.json out of a zip without reading the rest. A zip lists its entries in
+ * a central directory at the end of the file, so the end record, that directory and the
+ * manifest's own bytes are three small reads, whatever the size of the archive. Null
+ * when the file is not a zip readable this way (no end record, ZIP64, an encrypted or
+ * oversized manifest), when the manifest is not JSON, or when there is no manifest.json.
+ */
+async function readZipManifest(file: Blob): Promise<unknown> {
+  if (file.size < 22) return null;
+  const tailStart = Math.max(0, file.size - ZIP_TAIL_BYTES);
+  const tail = await sliceBytes(file, tailStart, file.size);
+  let end = -1;
+  for (let at = tail.length - 22; at >= 0; at--) {
+    if (u32(tail, at) === 0x06054b50 && at + 22 + u16(tail, at + 20) === tail.length) {
+      end = at;
+      break;
+    }
+  }
+  if (end < 0) return null;
+  const dirBytes = u32(tail, end + 12);
+  const dirStart = u32(tail, end + 16);
+  if (dirStart === 0xffffffff || dirBytes > ZIP_DIRECTORY_MAX_BYTES) return null;
+  if (dirStart + dirBytes > tailStart + end) return null;
+  const dir = await sliceBytes(file, dirStart, dirStart + dirBytes);
+  for (let p = 0; p + 46 <= dir.length;) {
+    if (u32(dir, p) !== 0x02014b50) return null;
+    const flags = u16(dir, p + 8);
+    const method = u16(dir, p + 10);
+    const packed = u32(dir, p + 20);
+    const size = u32(dir, p + 24);
+    const nameLength = u16(dir, p + 28);
+    const local = u32(dir, p + 42);
+    const name = strFromU8(dir.subarray(p + 46, p + 46 + nameLength), true);
+    p += 46 + nameLength + u16(dir, p + 30) + u16(dir, p + 32);
+    if (name !== 'manifest.json') continue;
+    const encrypted = (flags & 1) === 1;
+    if (encrypted || (method !== 0 && method !== 8) || packed > MANIFEST_MAX_BYTES || size > MANIFEST_MAX_BYTES) return null;
+    const head = await sliceBytes(file, local, local + 30);
+    if (head.length < 30 || u32(head, 0) !== 0x04034b50) return null;
+    const dataStart = local + 30 + u16(head, 26) + u16(head, 28);
+    const body = await sliceBytes(file, dataStart, dataStart + packed);
+    if (body.length !== packed) return null;
+    const bytes = method === 0 ? body : inflateBounded(body, MANIFEST_MAX_BYTES);
+    if (!bytes) return null;
+    try {
+      return JSON.parse(strFromU8(bytes));
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
+
+/**
+ * The preview of a backup .zip that Export my data wrote (plans/277 P11), read from its
+ * manifest alone, or null for any other zip. The zip holds the same `lolly-backup`
+ * bundle as a plain Sync copy, so Open imports it through the same dialog.
+ */
+export async function peekBackupZip(file: File): Promise<LollyBackupPreview | null> {
+  const manifest = record(await readZipManifest(file).catch(() => null));
+  if (!manifest || text(manifest.format) !== 'lolly-backup') return null;
+  const preview = classifyLollyManifest(manifest, file.name, file.size) as LollyBackupPreview;
+  return { ...preview, label: file.name.replace(/\.zip$/i, '').trim() || preview.label };
+}
+
 export type LoadedLolly =
   | {
       kind: 'session' | 'tool' | 'project';
@@ -433,7 +603,7 @@ export type LoadedLolly =
  * model offer is held back while it runs (`holdModelOffers` in `model-offer.ts`), so no
  * download sheet opens over the import.
  */
-export async function loadLollyFile(file: File, preview: LollyPreview): Promise<LoadedLolly> {
+export async function loadLollyFile(file: File, preview: LollySessionPreview | LollyBrandPreview): Promise<LoadedLolly> {
   const release = await holdOffers();
   try {
     const bytes = new Uint8Array(await file.arrayBuffer());

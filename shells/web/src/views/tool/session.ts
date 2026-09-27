@@ -19,6 +19,7 @@ import { DESIGN_INTENT_OPTIONS, designNarrationEnabled, designOutcome, designTim
 import { backHomeHtml, mountBackPill } from '../../components/back-pill.ts';
 import { mountHomeFab } from '../../components/home-fab.ts';
 import { t, tRaw } from '../../i18n.ts';
+import { isTauriShell } from '../../lib/instance-choice.ts';
 import { announce } from '../../a11y.ts';
 import { urlProfileValue } from '../../lib/press-profile-embed.ts';
 import { edgeDockCollapsed, isDocked, onDockChange } from '../../lib/edge-dock.ts';
@@ -58,6 +59,9 @@ const lazyEmojiControl: EmojiControlMount = (container, opts) => {
 };
 import type { MotionCaptureOpts } from './shared.ts';
 import { bindOp, type ToolViewCtx } from './context.ts';
+import { discardUnsavedWork, leftEntryHref, localDocument, rewriteLeftEntry, syncEntryMark } from '../tool-leave.ts';
+import { unfileSession } from '../tool-revision-history.ts';
+import { historySettled } from '../../lib/overlay-back.ts';
 
 export const currentDesignOutcome = (tview: ToolViewCtx) =>
   { const { runtime } = tview; return designOutcome(tview.designIntent, runtime.getModel().find((i) => i.id === 'boxes')?.value); };
@@ -68,6 +72,9 @@ export const currentDesignOutcome = (tview: ToolViewCtx) =>
 // replay it), so it fires again after each subsequent save→edit cycle.
 export function markSessionDirty(tview: ToolViewCtx): void {
   tview.exportedSinceEdit = false; // a fresh edit re-arms the leave guard
+  // The entry remembers the edit, so a reload, Back or Forward that brings the edit
+  // back still counts as unsaved (plan 277 P1). Set on every edit; a save clears the mark.
+  rememberEntryEdits(tview, true);
   if (tview.userHasMadeChanges) return; // already dirty - keep the resting amber
   tview.userHasMadeChanges = true;
   tview.canvasEl?.dispatchEvent(new Event('lolly-session-status'));
@@ -79,6 +86,7 @@ export function markSessionDirty(tview: ToolViewCtx): void {
 }
 export function markSessionSaved(tview: ToolViewCtx): void {
   tview.userHasMadeChanges = false;
+  rememberEntryEdits(tview, false);
   tview.canvasEl?.dispatchEvent(new Event('lolly-session-status'));
   tview.renderSaveBtn?.classList.remove('is-unsaved');
 }
@@ -402,7 +410,8 @@ export const openBulk = (tview: ToolViewCtx): void => {
           if (await actionsApi!.save!()) go();
         }
       : null,
-    go
+    () => { void leaveWithoutSaving(tview, go); },
+    historyKeepsEdits(tview)
   );
 };
 // Wire the back pill(s) - the full-screen one and/or the sidebar one. When the
@@ -417,6 +426,7 @@ export const openBulk = (tview: ToolViewCtx): void => {
  */
 export function backPillIntercept(tview: ToolViewCtx, go: () => void): boolean {
   const { actionsApi, actionsEl, hasInputs, runtime } = tview;
+  if (tview.leavingWithoutSaving) return true; // already on the way out
   if (!hasInputs || !tview.userHasMadeChanges || tview.exportedSinceEdit) return false;
   // Offer "Save & leave" only when the tool actually has a save action.
   const canSave = !!actionsEl?.querySelector('[data-action="save"]') && !!actionsApi?.save;
@@ -428,8 +438,8 @@ export function backPillIntercept(tview: ToolViewCtx, go: () => void): boolean {
     .map((i) => (i.value as { meta?: { bytes?: number } } | undefined)?.meta?.bytes)
     .find((b): b is number => typeof b === 'number' && b > 0);
   const detail = heavy
-    ? t('Includes a {size} video clip, stored on this device.', { size: fmtBytes(heavy) })
-    : undefined;
+    ? (isTauriShell() ? t('Includes a {size} video clip, stored on this device.', { size: fmtBytes(heavy) }) : t('Includes a {size} video clip, stored in this browser.', { size: fmtBytes(heavy) }))
+    : historyKeepsEdits(tview);
   showUnsavedDialog(
     canSave
       ? async () => {
@@ -437,12 +447,68 @@ export function backPillIntercept(tview: ToolViewCtx, go: () => void): boolean {
           if (await actionsApi!.save!()) navigateTo(tview.fromFolder ? tview.returnTo : '/#/p');
         }
       : null,
-    () => {
-      go();
-    },
+    () => { void leaveWithoutSaving(tview, go); },
     detail
   );
   return true;
+}
+/** Whether the browser entry holds edits nobody saved (plan 277 P1). Local
+ *  documents only; the mark is left alone once Leave without saving starts. */
+export function rememberEntryEdits(tview: ToolViewCtx, unsaved: boolean): void {
+  if (!isLocalDocument(tview)) return;
+  tview.entryUnsaved = unsaved;
+  syncEntryMark(tview.toolId, () => tview.entryUnsaved === true, () => !tview.leavingWithoutSaving && !tview.mountLifecycle.disposed);
+}
+/** Live collaboration and shared mounts keep no local history, so nothing here
+ *  changes for them. */
+function isLocalDocument(tview: ToolViewCtx): boolean {
+  return localDocument({ collab: tview.collabHandle, ephemeral: tview.ephemeralState });
+}
+/** The dialog's detail line (plan 277 P1): that leaving takes a never-saved creation
+ *  out of Projects, and that History keeps the edits, each only when true. */
+function historyKeepsEdits(tview: ToolViewCtx): string | undefined {
+  const history = tview.actionsApi?.history;
+  if (!history || !isLocalDocument(tview)) return undefined;
+  const lines = [
+    ...(history.neverSaved() ? [t('This creation was never saved, so leaving without saving removes it from Projects.')] : []),
+    ...(history.keepsEdits() ? [t('History keeps a copy of these edits.')] : []),
+  ];
+  return lines.length ? lines.join(' ') : undefined;
+}
+/** Why a discard could not run, in one clause, for the toast (plan 277 P1, recheck R2). */
+function discardFailure(error: unknown): string {
+  const reason = (error as { reason?: string } | null)?.reason;
+  return reason === 'changed' ? t('Edits kept because this creation changed in another tab.')
+    : reason === 'missing' ? t('Edits kept because the last saved version is missing.')
+      : t('Edits kept because storage refused the change.');
+}
+/**
+ * "Leave without saving" discards the work (plan 277 P1): the saved item goes back
+ * to its last explicit save, or a never-saved creation leaves Projects, and the
+ * entry being left stops holding the discarded edits for Back to bring back. The
+ * dialog's own Back entry is popped first, so the tool's entry is current when it
+ * is rewritten and no stale copy is stranded behind the next view.
+ */
+export async function leaveWithoutSaving(tview: ToolViewCtx, go: () => void): Promise<void> {
+  if (tview.leavingWithoutSaving) return;
+  tview.leavingWithoutSaving = true;
+  if (!isLocalDocument(tview)) { go(); return; }
+  const slot = (): string | null => tview.actionsApi?.getSlot?.() ?? null;
+  let kept = slot();
+  try {
+    ({ kept } = await discardUnsavedWork({ host: tview.host, controller: tview.actionsApi?.history, slot,
+      unfile: (from) => unfileSession(tview.host, from) }));
+  } catch (error) {
+    tview.host.log?.('warn', 'Leave without saving could not discard the edits', { error: String(error) });
+    const message = discardFailure(error);
+    void import('../../lib/undo-toast.ts').then(({ showUndoToast }) => showUndoToast({
+      message, actionLabel: t('Open Projects'), undo: () => navigateTo('#/p'), duration: 10_000,
+    }));
+  }
+  await historySettled();
+  if (tview.mountLifecycle.disposed) return; // the person has already gone somewhere else
+  rewriteLeftEntry(leftEntryHref(tview.TOOL_URL_BASE, tview.launchQuery, kept), tview.toolId, kept);
+  go();
 }
 /**
  * "Use as a new image" (plans/148 WP-E): bake a framing into new bytes, save
@@ -2096,6 +2162,8 @@ export function sessionOps(tview: ToolViewCtx) {
     openRevisions: bindOp(tview, openRevisions),
     openBulk: bindOp(tview, openBulk),
     backPillIntercept: bindOp(tview, backPillIntercept),
+    leaveWithoutSaving: bindOp(tview, leaveWithoutSaving),
+    rememberEntryEdits: bindOp(tview, rememberEntryEdits),
     bakeFraming: bindOp(tview, bakeFraming),
     wireLiveEditing: bindOp(tview, wireLiveEditing),
   };

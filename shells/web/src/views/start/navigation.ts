@@ -13,6 +13,7 @@ import { attachLangMenu, langFabHtml } from '../../components/lang-menu.ts';
 import { mountProfileFab } from '../../components/profile-menu.ts';
 import { mountThemeFab } from '../../components/theme-toggle.ts';
 import { t } from '../../i18n.ts';
+import { isTauriShell } from '../../lib/instance-choice.ts';
 import { START_ROOMS } from '../../lib/design-system/start-route.ts';
 import { icon } from '../../lib/icons.ts';
 import { escape as escapeText } from '../../utils.ts';
@@ -40,7 +41,7 @@ export function renderShell(start: StartCtx): void {
       <header class="start-head">
         <p class="start-eyebrow">${t('Design system')}</p>
         <h1 class="start-title">${t('Make it yours')}</h1>
-        <p class="start-sub">${t('Everything stays on this device. Every tool and export follows it.')}</p>
+        <p class="start-sub">${isTauriShell() ? t('Everything stays on this device. Every tool and export follows it.') : t('Everything stays in this browser. Every tool and export follows the design system.')}</p>
         <!-- Which design system the studio is editing (plans/186 section 5): filled
              async from the registry; the link opens the Profile card that switches. -->
         <p class="start-sub start-ds" data-start-ds hidden></p>

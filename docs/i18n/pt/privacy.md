@@ -51,14 +51,14 @@ no seu dispositivo**, nunca transmitidos:
 - <!--i:folder--> **Seus próprios documentos, sessões salvas, recursos enviados e fontes** - armazenados no
   IndexedDB no seu dispositivo, nunca enviados, nunca lidos por ninguém além de você.
 
-Nada disso é compartilhado, vendido ou usado para identificar ou rastrear você. Não há
-nada para consentir, porque não há coleta acontecendo - só este aviso, para que você
+Nada disso é compartilhado, vendido ou usado para identificar ou rastrear você. Não há nada
+a consentir, porque não há coleta acontecendo - só este aviso, para que você
 saiba o que é mantido e onde. Limpar o armazenamento do site no seu navegador remove
-tudo isso a qualquer momento; **Configurações → Armazenamento → Limpar todos os meus dados** remove seu
-perfil, sessões salvas, imagens enviadas e o cache de ativos. (Nos termos da Diretiva
-ePrivacy, Art. 5(3), o armazenamento estritamente necessário para o serviço que você pediu
+tudo isso a qualquer momento, e o mesmo faz **Configurações → Armazenamento → Limpar todos os meus dados**,
+que também desliga a Sincronização primeiro. (Nos termos da Diretiva ePrivacy
+Art. 5(3), o armazenamento estritamente necessário para o serviço que você pediu
 não exige consentimento - só transparência, que é o que este documento e
-o aviso dentro do app são, os dois.)
+o aviso no app são, os dois.)
 
 ![A seção de armazenamento da página de perfil em uma tela com largura de celular: cada categoria de dado no dispositivo é nomeada, com o botão Clear all my data logo ao lado](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

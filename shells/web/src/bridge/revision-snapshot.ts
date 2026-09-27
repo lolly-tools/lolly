@@ -2,6 +2,7 @@
 import { deflateSync, inflateSync } from 'fflate';
 import { MAX_REVISION_EXPANDED, MAX_REVISION_SNAPSHOT } from './revision-limits.ts';
 import type { SavedStateData } from './state.ts';
+import { isToolUrl } from '../../../../engine/src/tool-url.ts';
 
 /** A checkpoint as `revision-payloads` keeps it: the snapshot's canonical JSON,
  * deflated. A saved document never holds bytes (canonicalRevisionData refuses
@@ -42,6 +43,14 @@ export function unpackRevision(payload: RevisionPayload): SavedStateData {
   return value as SavedStateData;
 }
 
+/** A `source: 'remote'` asset reference whose id the runtime resolves again on
+ * every open: a plain http(s) file, or a Lolly tool link it renders again. */
+export function isRefetchableRemote(record: Record<string, unknown>): boolean {
+  return record.source === 'remote' && typeof record.id === 'string' && (/^https?:\/\//i.test(record.id) || isToolUrl(record.id));
+}
+const holdsBlobUrl = (value: unknown): boolean => typeof value === 'string' ? value.startsWith('blob:')
+  : !!value && typeof value === 'object' && typeof (value as { url?: unknown }).url === 'string' && (value as { url: string }).url.startsWith('blob:');
+
 /** Deterministic JSON, retaining row identity/order. Refuse transient bytes instead
  * of claiming a File, typed array, or temporary URL is a recoverable document.
  * A stored payload is inflated first, so callers compare documents, not bytes. */
@@ -66,7 +75,13 @@ export function canonicalRevisionData(input: SavedStateData | RevisionPayload): 
       const record = value as Record<string, unknown>;
       const baked = !!record.meta && typeof record.meta === 'object' && (record.meta as Record<string, unknown>).baked === true;
       const durable = !baked && (record.source === 'library' || record.source === 'user') && typeof record.id === 'string';
-      result = Object.fromEntries(Object.keys(record).sort().filter(key => !(durable && (key === 'url' || key === 'original')))
+      // A remote reference whose id is fetched again on open (an http(s) file or a
+      // Lolly tool link) keeps its id; the page-local blob: copy of its bytes is
+      // dropped rather than refused (plan 277 P1, review B2). Only blob: values go,
+      // so a checkpoint admitted before keeps its hash.
+      const refetchable = !baked && isRefetchableRemote(record);
+      const transient = (key: string): boolean => refetchable && (key === 'url' || key === 'original') && holdsBlobUrl(record[key]);
+      result = Object.fromEntries(Object.keys(record).sort().filter(key => !(durable && (key === 'url' || key === 'original')) && !transient(key))
         .map(key => [key, normalise(record[key])]).filter(([, item]) => item !== undefined));
     }
     seen.delete(value);

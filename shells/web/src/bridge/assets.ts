@@ -129,6 +129,30 @@ interface UserAssetRecord {
   // on every render. Absent means not yet computed (older uploads);
   // `_listUserAssets` recomputes those from `credential` on the fly.
   aiGenerated?: 'full' | 'partial';
+  /** When the person moved this upload to the Trash from the web app (plan
+   *  277 P3), else absent. The record keeps its id and bytes, so a saved
+   *  design that uses the picture still draws, while every list leaves the
+   *  upload out. The matching entry lives in profile.trash (lib/trash.ts). */
+  trashedAt?: string;
+}
+
+/** A trashed upload as the Trash lists it (lib/trash.ts). */
+export interface TrashedUserAssetRow {
+  id: string;
+  type: AssetRef['type'];
+  name: string;
+  /** A font face's family, so the Trash can group faces into one entry. */
+  family?: string;
+  trashedAt: string;
+  bytes: number;
+}
+
+/** Copy a record without its Trash mark: a duplicate, an imported version or a
+ *  restored version is live work, never born in the Trash. */
+function withoutTrashMark<T extends { trashedAt?: string }>(rec: T): T {
+  if (!('trashedAt' in rec)) return rec;
+  const { trashedAt: _drop, ...rest } = rec;
+  return rest as T;
 }
 
 /** The record shape toAssetRef consumes - a user record or a catalog record resolved
@@ -702,7 +726,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       const taken = new Set((await db.getAll('user-assets')).map(r => String(r.meta?.name ?? '')));
       const srcName = String(src.meta?.name ?? id.split('/').pop() ?? 'image');
       const record: UserAssetRecord = {
-        ...src,
+        ...withoutTrashMark(src),
         id: mintDuplicateId(id),
         meta: { ...src.meta, name: nextCopyName(srcName, taken) },
       };
@@ -725,7 +749,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       if (!snapshot?.blob) throw new Error('Saved version not found.');
       // A restore creates a new head and snapshots the replaced head. It never
       // moves or overwrites the immutable version selected by the designer.
-      await api._uploadUserAsset({ ...snapshot, version: crypto.randomUUID() });
+      await api._uploadUserAsset({ ...withoutTrashMark(snapshot as UserAssetRecord), version: crypto.randomUUID() });
       evictObjectUrlsByPrefix(`user:${id}:`);
     },
     async _removeUserAssetVersion(id: string, version: string): Promise<void> { await (await assetHistory()).removeUserAssetVersions(db, id, version); },
@@ -737,7 +761,9 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      *  _userAssetsSize for storage honesty, and the Versions panel reports
      *  their total separately. */
     async _listUserAssets(): Promise<AssetRef[]> {
-      const all = (await db.getAll('user-assets')).filter(r => !String(r.id).startsWith(FROZEN_PREFIX));
+      // Trashed uploads (plan 277 P3) are hidden like frozen rows: the Trash
+      // lists them through _listTrashedUserAssets, and their bytes still count.
+      const all = (await db.getAll('user-assets')).filter(r => !String(r.id).startsWith(FROZEN_PREFIX) && !r.trashedAt);
       // Only older records (pre-dating the persisted flag) need the provenance
       // reader; when none do, the whole c2pa cluster is never fetched.
       const needsRead = all.some(r => r.aiGenerated === undefined && r.credential && r.credentialFormat);
@@ -816,8 +842,63 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       return out;
     },
 
+    /**
+     * Internal: move one upload to the Trash, or back out of it (plan 277
+     * P3). Only a mark on the record: the id, bytes, versions and cached
+     * object URL stay, so a saved design that uses the picture keeps drawing
+     * and a restore is exact. A read-modify-write like _renameUserAsset, so
+     * no quota check and no pin preservation (no bytes change). Returns false
+     * when the record is gone. Web-app deletes only; every other caller
+     * keeps using _deleteUserAsset, which deletes at once.
+     *
+     * `expect` makes it a compare-and-set (review B3): the write happens only
+     * while the record's mark is exactly that (`null` = not in the Trash), so a
+     * restore from a stale Trash row never unmarks an upload trashed again
+     * since, and a Trash move never re-dates one already there.
+     */
+    async _setUserAssetTrashed(id: string, trashedAt: string | null, setOpts: { expect?: string | null } = {}): Promise<boolean> {
+      const rec = await db.get('user-assets', id);
+      if (!rec) return false;
+      if (setOpts.expect !== undefined && (rec.trashedAt ?? null) !== setOpts.expect) return false;
+      if (trashedAt) rec.trashedAt = trashedAt; else delete rec.trashedAt;
+      await db.put('user-assets', rec);
+      return true;
+    },
+
+    /** Internal: the uploads now in the Trash, for the Trash view and its sweep. */
+    async _listTrashedUserAssets(): Promise<TrashedUserAssetRow[]> {
+      return (await db.getAll('user-assets'))
+        .filter(r => typeof r.trashedAt === 'string' && r.trashedAt)
+        .map(r => ({
+          id: r.id, type: r.type, name: String(r.meta?.name ?? r.id.split('/').pop() ?? r.id),
+          ...(typeof r.meta?.family === 'string' ? { family: r.meta.family } : {}),
+          trashedAt: r.trashedAt!, bytes: r.blob?.size ?? 0,
+        }));
+    },
+
     /** Internal: delete one user image and revoke its cached object URL. */
     async _deleteUserAsset(id: string): Promise<void> {
+      await api._deleteUserAssetWhere(id);
+    },
+
+    /**
+     * Internal: the Trash's permanent delete (Delete forever, Empty Trash, the
+     * 30-day purge; review B3). Deletes only while the upload is still in the
+     * Trash under the same mark, checked before the pin pass and again inside
+     * the delete transaction, so a stale Trash row can never delete an upload
+     * that was restored (or trashed again) in the meantime. False when the
+     * record is gone or no longer carries that mark; nothing is touched then.
+     */
+    async _deleteTrashedUserAsset(id: string, trashedAt: string): Promise<boolean> {
+      const rec = await db.get('user-assets', id).catch(() => undefined);
+      if (!rec || rec.trashedAt !== trashedAt) return false;
+      return api._deleteUserAssetWhere(id, trashedAt);
+    },
+
+    /** Internal: the one delete path behind both methods above. With
+     *  `onlyIfTrashedAt` the transaction deletes only a record still carrying
+     *  that Trash mark, and answers false otherwise. */
+    async _deleteUserAssetWhere(id: string, onlyIfTrashedAt?: string): Promise<boolean> {
       // Deleting is the most complete way to destroy pinned bytes, so it
       // gets the same preservation pass as a replacement, but marked
       // `reclaiming`, because here the preserved copy REPLACES the bytes it
@@ -828,7 +909,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       // Read the record first: the deletion event below carries its type so
       // listeners can react without re-querying a store the record just left.
       const rec = await db.get('user-assets', id).catch(() => undefined) as { type?: string } | undefined;
-      await (await assetHistory()).deleteUserAsset(db, id);
+      if (!(await (await assetHistory()).deleteUserAsset(db, id, onlyIfTrashedAt))) return false;
       // toAssetRef keys user URLs as `user:<id>:<format>:<version>` - evict whatever.
       evictObjectUrlsByPrefix(`user:${id}:`);
       // The AI-kind memo is keyed by id; the bytes are gone, so its verdict must not linger to
@@ -841,6 +922,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       if (typeof document !== 'undefined') {
         document.dispatchEvent(new CustomEvent('lolly:user-asset-deleted', { detail: { id, type: rec?.type } }));
       }
+      return true;
     },
 
     /**
@@ -855,7 +937,9 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     async _renameUserAsset(id: string, name: string): Promise<void> {
       const rec = await db.get('user-assets', id);
       if (!rec) return;
-      rec.meta = { ...rec.meta, name };
+      // A metadata edit is an edit: stamp it, so the newer-copy import rule
+      // (lib/backup-sessions.ts) carries it to another browser (plan 277 P7).
+      rec.meta = { ...rec.meta, name, modifiedAt: Date.now() };
       await db.put('user-assets', rec);
     },
 
@@ -877,7 +961,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     async _updateUserAssetMeta(id: string, meta: Record<string, unknown>, patch: { aiGenerated?: 'full' | 'partial' | null } = {}): Promise<void> {
       const rec = await db.get('user-assets', id);
       if (!rec) return;
-      rec.meta = meta;
+      rec.meta = { ...meta, modifiedAt: Date.now() };   // an edit, stamped like a rename
       // null WITHDRAWS a declaration (the catalog's Origins control): the
       // record-level flag and its memo go, so the next list re-derives from
       // the file's own credential - a signed declaration cannot be cleared
@@ -901,7 +985,9 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
      * heal has one job and reads better saying so.
      */
     async _restampUserAsset(id: string, patch: { blob: Blob; credential: Uint8Array; credentialFormat: string }): Promise<void> {
-      await api._replaceUserAssetBytes(id, patch);
+      // A heal is not an edit, so it keeps the clip's modifiedAt: a copy healed
+      // here must not beat a take regenerated in another browser.
+      await api._replaceUserAssetBytes(id, patch, { keepModifiedAt: true });
     },
 
     /**
@@ -928,6 +1014,7 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
     async _replaceUserAssetBytes(
       id: string,
       patch: { blob: Blob; credential?: Uint8Array; credentialFormat?: string; meta?: Record<string, unknown> },
+      replaceOpts: { keepModifiedAt?: boolean } = {},
     ): Promise<void> {
       await opts.preservePinned?.(id);
       const rec = await db.get('user-assets', id);
@@ -945,7 +1032,8 @@ export function createAssetsAPI(db: AssetsDb, opts: AssetsApiOptions = {}) {
       // The AI-kind memo is keyed by id and valid only while the bytes under
       // that id do not change. These bytes just changed.
       AI_KIND_MEMO.delete(id);
-      rec.meta = { ...rec.meta, ...patch.meta, bytes: patch.blob.size };
+      rec.meta = { ...rec.meta, ...patch.meta, bytes: patch.blob.size,
+        ...(replaceOpts.keepModifiedAt ? {} : { modifiedAt: Date.now() }) };
       rec.version = String(Date.now());   // cache-buster - object URLs key on id:format:version
       await (await assetHistory()).writeVersionedUserAsset(db, rec, previousVersion);
       // The bump only stops a NEW ref from reusing the old URL; the old URL

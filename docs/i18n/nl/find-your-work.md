@@ -8,7 +8,7 @@ Alles wat je in Lolly maakt, blijft in de browser of app waarin je het maakte, o
 | **Downloaden** ingedrukt | De downloads van je browser, en een kopie in **Assets** |
 | Geen van beide, in een van de [negen tools die opslaan terwijl je werkt](#the-nine-tools-that-save-as-you-work) | **Projecten** en **History** |
 | Geen van beide, in een andere tool | Alleen het tabblad waarin je werkte, tot je het sluit |
-| Naar de prullenbak verplaatst | De tegel **Prullenbak** in **Projecten**, 30 dagen lang |
+| In de app verwijderd | **Prullenbak**, in **Projecten**, **Assets** of **Instellingen → Opslag**, 30 dagen lang |
 
 ## Iets vinden dat je hebt opgeslagen
 
@@ -73,18 +73,18 @@ Wat terugkomt, hangt af van hoe je bent vertrokken en welke tool je gebruikte:
 
 - **Je sloot het tabblad, of kwam een andere keer terug.** Niet-opgeslagen werk is weg, behalve in de [negen tools](#the-nine-tools-that-save-as-you-work), die je bewerkingen opslaan terwijl je werkt: open ze vanuit **Projecten**.
 - **Je herlaadde de pagina in hetzelfde tabblad.** Je instellingen komen terug uit het paginaadres. In tools buiten de negen komen afbeeldingen en bestanden die je vanaf je apparaat hebt toegevoegd, en tekst van één regel langer dan 150 tekens, niet terug, omdat het adres ze niet bevat.
-- **Je drukte op Home, of de terugknop linksboven.** Als je iets hebt gewijzigd sinds je voor het laatst opsloeg, downloadde of kopieerde, vraagt een dialoog **Niet-opgeslagen wijzigingen** of je eerst wilt opslaan. **Opslaan en verlaten** slaat het werk op en brengt je naar **Projecten**, of terug naar de projectmap van waaruit je het werk opende. **Verlaten zonder op te slaan** verlaat de tool; in de negen tools zijn je bewerkingen al opgeslagen en blijven ze in Projecten. **Annuleer** houdt je in de tool.
+- **Je drukte op Home, of de terugknop linksboven.** Als je iets hebt gewijzigd sinds je voor het laatst opsloeg, downloadde of kopieerde, vraagt een dialoog **Niet-opgeslagen wijzigingen** of je eerst wilt opslaan. **Opslaan & verlaten** slaat het werk op en brengt je naar **Projecten**, of terug naar de projectmap van waaruit je het werk opende. **Verlaten zonder op te slaan** verwerpt je wijzigingen: een opgeslagen item gaat terug naar hoe je het voor het laatst opsloeg, en een nooit opgeslagen creatie verlaat **Projecten**. **Annuleer** houdt je in de tool.
 
 Lolly vraagt het alleen als je op **Home** of de terugknop drukt in een tool. Het tabblad sluiten, herladen en de eigen Terug-knop van je browser vragen nooit. Om zeker te zijn, druk je op **Opslaan als**, of **Opslaan** in het exportpaneel, voordat je een tool verlaat.
 
 ::: note Per ongeluk verlaten zonder op te slaan?
-Druk in tools buiten de negen meteen op de Terug-knop van je browser. De instellingen uit het paginaadres komen terug, al komen afbeeldingen die je vanaf je apparaat hebt toegevoegd niet terug. Druk daarna op **Opslaan als** en **Opslaan** voordat je iets anders doet: deze keer vraagt Lolly niet voordat je vertrekt.
+In de negen tools bewaart Geschiedenis een kopie van de verworpen bewerkingen. Open de pagina **History**, zoek ze onder **Changes** en druk op **Open as a copy**. In andere tools zijn de wijzigingen weg.
 :::
 
 ::: details De negen tools die opslaan terwijl je werkt
 [Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) en [Text](/#/tool/text-helper). De lijst groeit naarmate meer tools automatisch opslaan krijgen.
 
-In deze tools archiveert je eerste wijziging het werk al in **Projecten**, alsof je had opgeslagen, en latere wijzigingen worden binnen enkele seconden bewaard. Een niet-opgeslagen creatie blijft dus in Projecten staan nadat je het tabblad sluit, en **Verlaten zonder op te slaan** gooit je bewerkingen niet weg. De tool opnieuw openen vanaf het startscherm begint een nieuwe creatie; open de eerdere vanuit Projecten.
+In deze tools archiveert je eerste wijziging het werk al in **Projecten**, alsof je had opgeslagen, en latere wijzigingen worden binnen enkele seconden bewaard. Een niet-opgeslagen creatie blijft dus in Projecten staan nadat je het tabblad sluit en heropent met zijn wijzigingen als niet-opgeslagen gemarkeerd. **Verlaten zonder op te slaan** verwerpt ze toch, en Geschiedenis bewaart een kopie van de verworpen bewerkingen gedurende 30 dagen. De tool opnieuw openen vanaf het startscherm begint een nieuwe creatie; open de eerdere vanuit Projecten.
 
 Dit werkt alleen in de webapp, niet in de desktop- of mobiele apps, en niet terwijl je live samenwerkt met iemand anders.
 :::
@@ -101,8 +101,8 @@ Lolly bewaart ook twee dingen na elke download:
 - **De instellingen die je gebruikte**, voor je laatste 24 downloads. **Recente exports**, onder je opgeslagen werk in **Projecten**, heropent de tool met die instellingen zodat je het bestand opnieuw kunt maken, al worden afbeeldingen en bestanden die je vanaf je apparaat hebt toegevoegd niet meegenomen. Dezelfde lijst staat onder **Instellingen → Activiteit & statistieken → Laatste exports** en op het tabblad **Changes** van **History**. Deze lijst bewaart instellingen, niet de bestanden.
 
 ::: details In de desktop- en mobiele apps
-- **Desktop-app:** **Downloaden** slaat rechtstreeks op in een map **Lolly** binnen je map **Downloads**, zonder dialoog. Een melding bevestigt het opslaan en biedt **Onthullen** om het bestand te tonen. **Open Exports Folder**, in het menu **Window** of **Exports**, opent de map op elk moment. Een bestand met dezelfde naam als een eerder bestand wordt opgeslagen als "naam (1)".
-- **iPhone en iPad:** het bestand wordt opgeslagen in de app **Files**, onder **Lolly**, en het deelvenster opent zodat je het kunt doorsturen.
+- **Desktop-app:** **Downloaden** slaat rechtstreeks op in een map **Lolly** binnen je map **Downloads**, zonder dialoog. De regel onder **Downloaden** zegt waar het bestand is beland, zoals "Saved to Downloads/Lolly", met **Tonen in map**. **Open Exports Folder**, in het menu **Window** of **Exports**, opent de map op elk moment. Een bestand met dezelfde naam als een eerder bestand wordt opgeslagen als "naam (1)".
+- **iPhone en iPad:** het bestand wordt opgeslagen in de app **Bestanden**, onder **Lolly**, en het deelvenster opent zodat je het kunt doorsturen. De regel onder **Downloaden** meldt "Saved to Files → Lolly".
 - **Android:** het deelmenu opent zodat je kunt kiezen waar het bestand naartoe gaat.
 
 Op iPhone, iPad en Android vervangt een nieuw bestand een eerder bestand met dezelfde naam.
@@ -146,8 +146,8 @@ Filter op project, tool en datum (achter **Filters** op een telefoon). De Histor
 
 Een deellink draagt je instellingen mee, maar geen afbeeldingen of bestanden die je vanaf je apparaat hebt toegevoegd.
 
-::: warning Importeren vervangt je mappen
-Als het andere apparaat al werk heeft, lees dit dan eerst. Importeren voegt toe wat het bestand bevat, werkt overeenkomende items bij en verwijdert geen enkel opgeslagen item. Je profiel is echter één record, dus de mappen, favorieten, sjablonen en gegevens op dat apparaat worden vervangen door die uit het bestand. Een opgeslagen item dat alleen op dat apparaat stond, blijft bestaan, op het bovenste niveau van **Projecten**. **Bring it to this device**, in Synchronisatie, doet hetzelfde.
+::: note Importeren voegt toe en verwijdert niets
+Mappen, favorieten en sjablonen in het bestand worden toegevoegd naast die al op het andere apparaat staan. Wanneer een opgeslagen item op beide voorkomt, wordt de meest recent opgeslagen kopie bewaard. Je gegevens en instellingen op dat apparaat blijven zoals ze zijn; lege worden ingevuld vanuit het bestand. **Naar dit apparaat brengen**, in Synchronisatie, werkt op dezelfde manier.
 :::
 
 Om alles in één keer te verplaatsen:
@@ -157,7 +157,7 @@ Om alles in één keer te verplaatsen:
 3. Open op het nieuwe apparaat **Instellingen → Opslag**, druk op **Import data…**, kies het bestand en druk op **Import**.
 
 ::: note Wat achterblijft
-Aanmeldingen, sleutels en de synchronisatiewachtwoordzin blijven op elk apparaat. De lijst met recente downloads, offline downloads en AI-modellen reizen via geen enkele route mee. Versiegeschiedenis reist alleen mee in een bestand van **Exporteer mijn gegevens**, niet via Synchronisatie of een `.lolly`. De kopieën die Synchronisatie in je opslag bewaart, openen alleen via Synchronisatie, niet met **Import data…** of **Open**.
+Aanmeldingen, sleutels en de synchronisatiewachtwoordzin blijven op elk apparaat. De lijst met recente downloads, offline downloads en AI-modellen reizen via geen enkele route mee. Versiegeschiedenis reist alleen mee in een bestand van **Exporteer mijn gegevens**, niet via Synchronisatie of een `.lolly`. Een kopie die Synchronisatie in je opslag bewaart, kan worden gedownload en geopend, of gekozen in **Gegevens importeren…**, zoals een back-upbestand; een versleutelde kopie vraagt om je wachtwoordzin.
 :::
 
 ::: details Wat het back-upbestand bevat
@@ -176,7 +176,7 @@ Druk op **Exporteer mijn gegevens** onder **Instellingen → Opslag**, en bewaar
 
 Wanneer de app start, vraagt Lolly de browser om zijn opslag niet te wissen als het apparaat weinig ruimte heeft. De browser beslist. Onder **Instellingen → Offline beschikbaar** betekent een regel die begint met **Protected** dat de browser akkoord ging; "The browser may clear downloads if the device runs low on space" betekent dat hij dat niet deed, en **Protect downloads** vraagt het opnieuw. Als de browser niet akkoord ging, kan hij opgeslagen werk net zo goed als downloads wissen wanneer de ruimte opraakt, dus bewaar een recent bestand van **Exporteer mijn gegevens**.
 
-**Instellingen → Opslag** toont hoeveel ruimte elk soort gegevens gebruikt. **Clear cache** verwijdert gedownloade catalogusbestanden, die opnieuw downloaden wanneer nodig. **Al mijn gegevens wissen** vraagt je een woord te typen en verwijdert dan je profiel, opgeslagen sessies, geüploade afbeeldingen en de asset-cache. Andere gegevens blijven staan, waaronder versiegeschiedenis, de lijst met recente downloads, Convert-resultaten, design systems en gedownloade AI-modellen. Om alles te verwijderen, wis je de gegevens van deze site in je browser.
+**Instellingen → Opslag** toont hoeveel ruimte elk soort gegevens gebruikt. **Cache wissen** verwijdert gedownloade catalogusbestanden, die opnieuw downloaden wanneer nodig. **Al mijn gegevens wissen** vraagt je een woord te typen, zet Synchronisatie uit, en verwijdert dan alles wat Lolly in deze browser bewaart: je profiel en instellingen, opgeslagen sessies met hun geschiedenis en de Prullenbak, uploads, lettertypen en design systems, het downloadlogboek, Convert-resultaten, gedownloade AI-modellen en offline kopieën. Bestanden die je hebt gedownload, blijven waar je ze hebt opgeslagen. De app start daarna als bij een eerste bezoek.
 
 ![De opslagkaart op een schermbreedte van een telefoon: elke categorie gegevens op het apparaat met naam genoemd, met onderaan de knop Al mijn gegevens wissen](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
@@ -195,15 +195,15 @@ Afbeeldingen, design systems en de lijst met recente downloads blijven in de int
 
 ## Iets terugvinden dat je hebt verwijderd
 
-In **Projecten** bewaart **Move to Trash** een item 30 dagen. Een map gaat met alles erin naar de Prullenbak, als één vermelding. Direct daarna biedt een melding **Undo** aan, ongeveer tien seconden lang. Later:
+Een opgeslagen sessie, een map, een van je uploads of een van je lettertypen in de app verwijderen, verplaatst het 30 dagen lang naar de **Prullenbak**, waar je het ook verwijdert: **Projecten**, **Assets**, **Instellingen → Opslag** of de lijst met opgeslagen sessies van een tool. Een map gaat met alles erin als één vermelding, en een sessie behoudt zijn versiegeschiedenis zolang hij daar staat. Direct daarna biedt een melding **Ongedaan maken** aan. Later:
 
-1. Open **Projecten** en druk op de tegel **Prullenbak**. De tegel verschijnt alleen zolang de Prullenbak iets bevat.
-2. Druk op **Restore** naast het item.
+1. Open **Prullenbak**: de tegel **Prullenbak** in **Projecten**, de knop **Prullenbak** in **Assets → Je uploads**, of de rij **Prullenbak** in **Instellingen → Opslag**. Alle drie openen dezelfde lijst.
+2. Druk op **Herstellen** naast het item. Het gaat terug naar zijn map, en een lettertype krijgt de rollen terug die het had in zijn design system.
 
-**Delete forever** en **Empty Trash** verwijderen items meteen, zonder te vragen. Items ouder dan 30 dagen worden definitief verwijderd de volgende keer dat je Projecten opent.
+**Definitief verwijderen** verwijdert één item voorgoed. **Prullenbak legen** vraagt eerst bevestiging en verwijdert dan elk item in de Prullenbak. Items ouder dan 30 dagen worden definitief verwijderd.
 
-::: warning Andere verwijderingen zijn definitief
-Een opgeslagen sessie verwijderen via **Instellingen → Opslag**, of uit de lijst met opgeslagen sessies van een tool in de galerij (rechtsklik op de kaart van de tool, dan **N saved sessions**), verwijdert de sessie definitief, met zijn versiegeschiedenis. Een afbeelding die je verwijdert uit **My images** wordt meteen verwijderd, zonder te vragen.
+::: warning Sommige verwijderingen zijn direct
+Een design system, een logo of je profielfoto verwijderen gaat niet naar de Prullenbak. De command line en de terminal-app verwijderen ook meteen.
 :::
 
 Met [Synchronisatie](/info/sync.html) aan kan **Restore an earlier copy** de staat van een eerdere dag van het hele apparaat terugbrengen, en een bestand van **Exporteer mijn gegevens** brengt terug wat het bestand bevat.

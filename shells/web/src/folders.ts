@@ -54,7 +54,9 @@ export const FOLDER_COLORS: readonly string[] = [
 // subtree records are lifted out of `profile.folders` wholesale into the entry.
 // Restore reverses both; purge (30 days, or Delete forever) does the real
 // deletion. Image items ride inside a trashed folder's records as plain refs -
-// bytes live in the catalog and are never deleted from here.
+// bytes live in the catalog and are never deleted from here. An upload deleted
+// on its own is a third kind of entry (TrashedAsset); lib/trash.ts owns the
+// state and asset moves for all three, for every web delete door.
 
 export interface TrashedSession {
   kind: 'session';
@@ -77,7 +79,48 @@ export interface TrashedFolder {
   sessions: Array<{ originalSlot: string; slot: string }>;
   deletedAt: string;
 }
-export type TrashEntry = TrashedSession | TrashedFolder;
+/** One of the person's own uploads, deleted from the web app (plan 277 P3).
+ *  Unlike a session, the record stays at its id, marked `trashedAt` by the
+ *  assets bridge, so every list skips it while a saved design that uses the
+ *  picture still draws. Restore clears the mark; purge deletes the bytes. */
+export interface TrashedAsset {
+  kind: 'asset';
+  /** The user asset id (`user/...`), unchanged while in the Trash. */
+  id: string;
+  label: string;
+  /** The asset's type (raster, vector, audio, video, …), for the row's icon. */
+  assetType?: string;
+  /** Folder the upload was filed in (null = none) - restore puts it back. */
+  parentId: string | null;
+  deletedAt: string;
+}
+/** One of the person's own font families, deleted from the web app's brand
+ *  editor (plan 277 P3, fonts decided 2026-09-27). Every face is an upload
+ *  marked `trashedAt`, and the entry remembers the roles the family served in
+ *  its design system so a restore can set them back. */
+export interface TrashedFont {
+  kind: 'font';
+  family: string;
+  label: string;
+  /** Every stored face (`user/fonts/<slug>/<n>`), marked while in the Trash. */
+  assetIds: string[];
+  /** The font roles the family held (the design system's font.* tokens). */
+  roles: Array<'brand' | 'mono' | 'display' | 'italic'>;
+  /** The design system those roles were in; null on a host with no registry. */
+  designSystemId: string | null;
+  /** What the delete left in each role (the next family for `brand`, '' for a
+   *  cleared role). A restore sets a role back only while it still holds this,
+   *  so a choice made after the delete is kept (review S7). */
+  released?: Partial<Record<'brand' | 'mono' | 'display' | 'italic', string>>;
+  deletedAt: string;
+}
+export type TrashEntry = TrashedSession | TrashedFolder | TrashedAsset | TrashedFont;
+
+/** The identity an entry is dropped by: a session's trash slot, a folder's
+ *  root id, an upload's asset id, a font family's first face. */
+export function trashEntryKey(e: TrashEntry): string {
+  return e.kind === 'session' ? e.slot : e.kind === 'folder' ? e.rootId : e.kind === 'asset' ? e.id : `font:${e.assetIds[0] ?? e.family}`;
+}
 
 /** How long a trash entry survives before the purge sweep removes it for real. */
 export const TRASH_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
@@ -371,12 +414,29 @@ export function createFolderStore(host: FolderHost) {
       await host.profile.set({ ...profile, trash: [entry, ...(profile.trash ?? [])] });
     },
 
-    /** Drop entries by identity key (a session's `slot` / a folder's `rootId`) -
-     *  after a restore, a Delete-forever, or the retention sweep. */
+    /** Drop entries by identity key (see trashEntryKey) - after a restore, a
+     *  Delete-forever, or the retention sweep. */
     async trashDrop(keys: ReadonlySet<string>): Promise<void> {
       const profile = await host.profile.get();
-      const trash = (profile.trash ?? []).filter(e => !keys.has(e.kind === 'session' ? e.slot : e.rootId));
+      const trash = (profile.trash ?? []).filter(e => !keys.has(trashEntryKey(e)));
       await host.profile.set({ ...profile, trash });
+    },
+
+    /** Drop exactly one entry: the same key AND the same delete time. An upload
+     *  restored and deleted again has a new entry under the same key, and a
+     *  stale row acting on the old one must never drop the new one. */
+    async trashDropEntry(entry: TrashEntry): Promise<void> {
+      const profile = await host.profile.get();
+      const key = trashEntryKey(entry);
+      const trash = (profile.trash ?? []).filter(e => !(trashEntryKey(e) === key && e.deletedAt === entry.deletedAt));
+      if (trash.length !== (profile.trash ?? []).length) await host.profile.set({ ...profile, trash });
+    },
+
+    /** Replace exactly one entry (same key and delete time) with a narrower copy. */
+    async trashReplaceEntry(entry: TrashEntry, next: TrashEntry): Promise<void> {
+      const profile = await host.profile.get();
+      const key = trashEntryKey(entry);
+      await host.profile.set({ ...profile, trash: (profile.trash ?? []).map(e => (trashEntryKey(e) === key && e.deletedAt === entry.deletedAt ? next : e)) });
     },
 
     /**
@@ -397,11 +457,30 @@ export function createFolderStore(host: FolderHost) {
 
     /** Re-insert a trashed subtree's records. A root whose original parent no
      *  longer exists surfaces at the top level via the orphan rule - nothing is
-     *  lost. Skips ids that already exist (double-restore safety). */
+     *  lost. A folder that is live again (an import brought it back) keeps its
+     *  record and gains the trashed copy's items (review S4). An item already
+     *  filed in a live folder stays where it is: a ref belongs to one folder. */
     async restoreSubtree(tree: readonly Folder[]): Promise<void> {
       await mutate(folders => {
-        const live = new Set(folders.map(f => f.id));
-        for (const f of tree) if (!live.has(f.id)) folders.push({ ...f, items: [...f.items], updatedAt: now() });
+        const filed = new Set(folders.flatMap(f => f.items.map(i => i.ref)));
+        const fresh = (items: readonly FolderItem[]): FolderItem[] => {
+          const out: FolderItem[] = [];
+          for (const i of items) {
+            if (filed.has(i.ref)) continue;
+            filed.add(i.ref);
+            out.push(i);
+          }
+          return out;
+        };
+        for (const f of tree) {
+          const live = folders.find(x => x.id === f.id);
+          if (live) {
+            const add = fresh(f.items);
+            if (add.length) { live.items.push(...add); live.updatedAt = now(); }
+          } else {
+            folders.push({ ...f, items: fresh(f.items), updatedAt: now() });
+          }
+        }
       });
     },
 

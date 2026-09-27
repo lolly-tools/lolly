@@ -15,6 +15,7 @@
  */
 
 import { t, tRaw, currentLang } from '../i18n.ts';
+import { isTauriShell } from '../lib/instance-choice.ts';
 import { escape } from '../utils.ts';
 import { announce } from '../a11y.ts';
 import { confirmDialog, choiceDialog } from '../components/confirm-dialog.ts';
@@ -53,6 +54,15 @@ function slotLabel(slot: SyncSlot): string {
     return slot;
   }
 }
+
+/** Sync words for the copy of Lolly that syncs: this browser on the web, whose storage
+ *  belongs to the browser, and this device in the desktop and mobile apps. Whole
+ *  sentences per shell, for translation. */
+const bringHereLabel = (): string => (isTauriShell() ? t('Bring it to this device') : t('Bring it to this browser'));
+const replaceWithHereLabel = (): string => (isTauriShell() ? t('Replace it with this device') : t('Replace it with this browser'));
+const bringHereNote = (): string => (isTauriShell()
+  ? t('Bringing it here adds the synced data to this device and removes nothing.')
+  : t('Bringing it here adds the synced data to this browser and removes nothing.'));
 
 /** The "where can this device sync" list (plans/138 Tier D, WP-S5). */
 function choicesHtml(choices: SyncChoice[], open: boolean): string {
@@ -94,7 +104,7 @@ export async function mountSyncBody(body: HTMLElement, host: SyncHost): Promise<
     });
   };
 
-  const intro = `<p class="storage-hint-text">${t('Keep your projects, brand and settings in step across your devices, through storage you own. Your data goes straight from this device to your storage; no Lolly server ever holds it. Before a newer copy is applied here, a copy of this device is saved, so you can undo it.')}</p>`;
+  const intro = `<p class="storage-hint-text">${isTauriShell() ? t('Keep your projects, brand and settings in step across your devices, through storage you own. Your data goes straight from this device to your storage; no Lolly server ever holds it. Before a newer copy is applied here, a copy of this device is saved, so you can undo it.') : t('Keep your projects, brand and settings in step across your devices, through storage you own. Your data goes straight from this device to your storage; no Lolly server ever holds a copy. Before a newer copy is applied here, this browser’s data is saved, so you can undo the change.')}</p>`;
 
   if (providers.length === 0) {
     body.innerHTML = `${intro}
@@ -111,25 +121,28 @@ export async function mountSyncBody(body: HTMLElement, host: SyncHost): Promise<
   let choicePanel = '';
   if (cfg.conflict && cfg.lastSyncedRev === null) {
     choicePanel = `<div class="pconn-cred pconn-sync-choice" role="group" aria-label="${escape(t('Choose what to keep'))}">
-      <p>${t('Your sync home already has Lolly data from {when}. Choose what to keep before this device starts syncing.', { when: whenText(cfg.conflict.updatedAt) })}</p>
+      <p>${isTauriShell() ? t('Your sync home already has Lolly data from {when}. Choose what to keep before this device starts syncing.', { when: whenText(cfg.conflict.updatedAt) }) : t('Your sync home already has Lolly data from {when}. Choose what to keep before this browser starts syncing.', { when: whenText(cfg.conflict.updatedAt) })}</p>
       <div class="pconn-actions">
-        <button type="button" class="btn btn--primary" data-sync-join="bring">${t('Bring it to this device')}</button>
-        <button type="button" class="btn" data-sync-join="replace">${t('Replace it with this device')}</button>
+        <button type="button" class="btn btn--primary" data-sync-join="bring">${bringHereLabel()}</button>
+        <button type="button" class="btn" data-sync-join="replace">${replaceWithHereLabel()}</button>
       </div>
+      <p class="pconn-note">${bringHereNote()}</p>
     </div>`;
   } else if (cfg.conflict) {
     choicePanel = `<div class="pconn-cred pconn-sync-choice" role="group" aria-label="${escape(t('Choose what to keep'))}">
-      <p>${t('Your synced data changed on another device ({when}), and this device has changes of its own. Automatic sync is paused until you choose.', { when: whenText(cfg.conflict.updatedAt) })}</p>
+      <p>${isTauriShell() ? t('Your synced data changed on another device ({when}), and this device has changes of its own. Automatic sync is paused until you choose.', { when: whenText(cfg.conflict.updatedAt) }) : t('Your synced data changed on another device ({when}), and this browser has changes of its own. Automatic sync is paused until you choose.', { when: whenText(cfg.conflict.updatedAt) })}</p>
       <div class="pconn-actions">
         <button type="button" class="btn btn--primary" data-sync-resolve="synced">${t('Use the synced copy')}</button>
-        <button type="button" class="btn" data-sync-resolve="device">${t('Keep this device')}</button>
+        <button type="button" class="btn" data-sync-resolve="device">${isTauriShell() ? t('Keep this device') : t('Keep this browser')}</button>
       </div>
       <p class="pconn-note">${t('Either way, the other version is kept in your sync home, and you can restore it below.')}</p>
     </div>`;
   }
 
   const waiting = cfg.dirty && !cfg.conflict
-    ? `<p class="pconn-note">${cfg.enabled ? t('Changes on this device are waiting to sync.') : t('This device has changes that are not synced. Turn on sync, or use Sync now.')}</p>`
+    ? `<p class="pconn-note">${cfg.enabled
+      ? (isTauriShell() ? t('Changes on this device are waiting to sync.') : t('Changes in this browser are waiting to sync.'))
+      : (isTauriShell() ? t('This device has changes that are not synced. Turn on sync, or use Sync now.') : t('This browser has changes that are not synced. Turn on sync, or use Sync now.'))}</p>`
     : '';
   const lastError = cfg.lastError
     ? `<p class="pconn-note" role="alert">${t('The last sync did not finish: {reason}', { reason: cfg.lastError })}</p>`
@@ -187,7 +200,7 @@ export async function mountSyncBody(body: HTMLElement, host: SyncHost): Promise<
   const replaceSyncedCopy = async (when: string | undefined): Promise<boolean> => {
     const ok = await confirmDialog({
       title: t('Replace the synced copy?'),
-      message: tRaw('The synced copy from {when} is replaced by this device. Other devices then get this device’s version. The replaced copy stays in your sync home as an earlier copy you can restore.', { when: whenText(when) }),
+      message: isTauriShell() ? tRaw('The synced copy from {when} is replaced by this device. Other devices then get this device’s version. The replaced copy stays in your sync home as an earlier copy you can restore.', { when: whenText(when) }) : tRaw('The synced copy from {when} is replaced by this browser’s data. Other devices then get this browser’s version. The replaced copy stays in your sync home as an earlier copy you can restore.', { when: whenText(when) }),
       confirmLabel: t('Replace'),
       danger: true,
     });
@@ -205,10 +218,10 @@ export async function mountSyncBody(body: HTMLElement, host: SyncHost): Promise<
     if (!existing) return true;
     const choice = await choiceDialog({
       title: t('Your sync home already has Lolly data'),
-      message: tRaw('It was synced from another device on {when}. Bring it to this device, or replace it with this device?', { when: whenText(existing.updatedAt) }),
+      message: `${isTauriShell() ? tRaw('It was synced from another device on {when}. Bring it to this device, or replace it with this device?', { when: whenText(existing.updatedAt) }) : tRaw('It was synced from another device on {when}. Bring it to this browser, or replace it with this browser?', { when: whenText(existing.updatedAt) })} ${bringHereNote()}`,
       choices: [
-        { id: 'replace', label: t('Replace it with this device') },
-        { id: 'bring', label: t('Bring it to this device'), primary: true },
+        { id: 'replace', label: replaceWithHereLabel() },
+        { id: 'bring', label: bringHereLabel(), primary: true },
       ],
     });
     if (choice === 'bring') {
@@ -296,11 +309,11 @@ export async function mountSyncBody(body: HTMLElement, host: SyncHost): Promise<
       }
       const ok = await confirmDialog({
         title: t('Apply the newer version?'),
-        message: tRaw('Another device synced newer changes on {when}. Applying them updates this device to match, including items deleted there. A copy of this device is saved first, so you can undo this below.', { when: whenText(meta?.updatedAt) }),
+        message: isTauriShell() ? tRaw('Another device synced newer changes on {when}. Applying them updates this device to match, including items deleted there. A copy of this device is saved first, so you can undo this below.', { when: whenText(meta?.updatedAt) }) : tRaw('Another device synced newer changes on {when}. Applying them updates this browser to match, including items deleted there. A copy of this browser’s data is saved first, so you can undo this below.', { when: whenText(meta?.updatedAt) }),
         confirmLabel: t('Apply and reload'),
         danger: false,
       });
-      if (!ok) { status(t('Left this device unchanged.')); return; }
+      if (!ok) { status(isTauriShell() ? t('Left this device unchanged.') : t('Left this browser unchanged.')); return; }
       busy(true); status(t('Applying…'));
       await applyNewer(depsOf(host));
       status(t('Applied. Reloading…'));
@@ -333,7 +346,7 @@ export async function mountSyncBody(body: HTMLElement, host: SyncHost): Promise<
         if (btn.dataset.syncResolve === 'synced') {
           const ok = await confirmDialog({
             title: t('Use the synced copy?'),
-            message: tRaw('This device is updated to match the synced copy from {when}. Its own changes are saved to your sync home first, so you can restore them below.', { when: whenText(cfg.conflict?.updatedAt) }),
+            message: isTauriShell() ? tRaw('This device is updated to match the synced copy from {when}. Its own changes are saved to your sync home first, so you can restore them below.', { when: whenText(cfg.conflict?.updatedAt) }) : tRaw('This browser is updated to match the synced copy from {when}. Its own changes are saved to your sync home first, so you can restore them below.', { when: whenText(cfg.conflict?.updatedAt) }),
             confirmLabel: t('Use the synced copy'),
             danger: false,
           });
@@ -377,7 +390,7 @@ export async function mountSyncBody(body: HTMLElement, host: SyncHost): Promise<
           const point = points.find((p) => p.slot === slot);
           const ok = await confirmDialog({
             title: t('Restore this copy?'),
-            message: tRaw('This device is changed to match the copy from {when}, including removing items that copy does not have. That copy then becomes the synced copy for your other devices. This device is saved first as “Before your last apply”.', { when: whenText(point?.meta.updatedAt) }),
+            message: isTauriShell() ? tRaw('This device is changed to match the copy from {when}, including removing items that copy does not have. That copy then becomes the synced copy for your other devices. This device is saved first as “Before your last apply”.', { when: whenText(point?.meta.updatedAt) }) : tRaw('This browser is changed to match the copy from {when}, including removing items that copy does not have. That copy then becomes the synced copy for your other devices. This browser’s data is saved first as “Before your last apply”.', { when: whenText(point?.meta.updatedAt) }),
             confirmLabel: t('Restore and reload'),
             danger: true,
           });

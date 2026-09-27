@@ -8,7 +8,7 @@ Tutto ciò che crei in Lolly resta nel browser o nell'app in cui lo hai creato, 
 | Hai premuto **Scarica** | I download del tuo browser, e una copia in **Risorse** |
 | Nessuna delle due, in uno dei [nove strumenti che salvano mentre lavori](#the-nine-tools-that-save-as-you-work) | **Progetti** e **History** |
 | Nessuna delle due, in qualsiasi altro strumento | Solo la scheda in cui hai lavorato, finché non la chiudi |
-| L'hai spostato nel Cestino | Il riquadro **Cestino** in **Progetti**, per 30 giorni |
+| L'hai eliminato nell'app | **Cestino**, in **Progetti**, **Risorse** o **Impostazioni → Spazio di archiviazione**, per 30 giorni |
 
 ## Trova qualcosa che hai salvato
 
@@ -73,18 +73,18 @@ Ciò che torna dipende da come sei uscito e da quale strumento hai usato:
 
 - **Hai chiuso la scheda, o sei tornato un'altra volta.** Il lavoro non salvato va perso, tranne nei [nove strumenti](#the-nine-tools-that-save-as-you-work), che salvano le tue modifiche mentre lavori: aprili da **Progetti**.
 - **Hai ricaricato la pagina nella stessa scheda.** Le tue impostazioni tornano dall'indirizzo della pagina. Negli strumenti diversi dai nove, le immagini e i file che hai aggiunto dal tuo dispositivo, e il testo su una riga più lungo di 150 caratteri, non tornano, perché l'indirizzo non li contiene.
-- **Hai premuto Home, o il pulsante indietro in alto a sinistra.** Se hai cambiato qualcosa dall'ultima volta che hai salvato, scaricato o copiato, una finestra di dialogo **Modifiche non salvate** chiede se salvare prima. **Save & leave** salva il lavoro e ti porta a **Progetti**, oppure indietro alla cartella di progetto da cui hai aperto il lavoro. **Esci senza salvare** esce; nei nove strumenti le tue modifiche sono già salvate e restano in Progetti. **Annulla** ti mantiene nello strumento.
+- **Hai premuto Home, o il pulsante indietro in alto a sinistra.** Se hai cambiato qualcosa dall'ultima volta che hai salvato, scaricato o copiato, una finestra di dialogo **Modifiche non salvate** chiede se salvare prima. **Salva & esci** salva il lavoro e ti porta a **Progetti**, oppure indietro alla cartella di progetto da cui hai aperto il lavoro. **Esci senza salvare** scarta le tue modifiche: un elemento salvato torna a come l'avevi salvato l'ultima volta, e una creazione mai salvata esce da **Progetti**. **Annulla** ti mantiene nello strumento.
 
 Lolly chiede solo quando premi **Home** o il pulsante indietro in uno strumento. Chiudere la scheda, ricaricare e il pulsante Indietro del tuo browser non chiedono mai. Per essere sicuro, premi **Salva come**, oppure **Salva** nel pannello di esportazione, prima di lasciare uno strumento.
 
 ::: note Sei uscito senza salvare per sbaglio?
-Negli strumenti diversi dai nove, premi subito il pulsante Indietro del tuo browser. Le impostazioni dall'indirizzo della pagina tornano, anche se le immagini che hai aggiunto dal tuo dispositivo no. Poi premi **Salva come** e **Salva** prima di fare qualsiasi altra cosa: questa volta Lolly non chiede prima che tu esca.
+Nei nove strumenti, Cronologia conserva una copia delle modifiche scartate. Apri la pagina **History**, trovale sotto **Changes** e premi **Open as a copy**. Negli altri strumenti le modifiche sono perse.
 :::
 
 ::: details I nove strumenti che salvano mentre lavori
 [Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) e [Text](/#/tool/text-helper). L'elenco cresce man mano che più strumenti ottengono il salvataggio automatico.
 
-In questi strumenti, la tua prima modifica archivia il lavoro in **Progetti** come se lo avessi salvato, e le modifiche successive vengono conservate entro pochi secondi. Così una creazione non salvata resta in Progetti dopo che chiudi la scheda, e **Esci senza salvare** non scarta le tue modifiche. Aprire di nuovo lo strumento dalla schermata iniziale avvia una nuova creazione; apri quella precedente da Progetti.
+In questi strumenti, la tua prima modifica archivia il lavoro in **Progetti** come se lo avessi salvato, e le modifiche successive vengono conservate entro pochi secondi. Così una creazione non salvata resta in Progetti dopo che chiudi la scheda e si riapre con le sue modifiche contrassegnate come non salvate. **Esci senza salvare** le scarta comunque, e Cronologia conserva una copia delle modifiche scartate per 30 giorni. Aprire di nuovo lo strumento dalla schermata iniziale avvia una nuova creazione; apri quella precedente da Progetti.
 
 Questo funziona solo nell'app web, non nelle app desktop o mobili, e non mentre lavori dal vivo con qualcun altro.
 :::
@@ -101,8 +101,8 @@ Lolly conserva anche due cose dopo ogni download:
 - **Le impostazioni che hai usato**, per i tuoi ultimi 24 download. **Esportazioni recenti**, sotto il tuo lavoro salvato in **Progetti**, riapre lo strumento con quelle impostazioni così puoi rifare il file, anche se le immagini e i file che hai aggiunto dal tuo dispositivo non sono inclusi. Lo stesso elenco è sotto **Impostazioni → Attività e statistiche → Ultime esportazioni** e nella scheda **Changes** di **History**. Questo elenco conserva le impostazioni, non i file.
 
 ::: details Nelle app desktop e mobili
-- **App desktop:** **Scarica** salva direttamente in una cartella **Lolly** dentro la tua cartella **Download**, senza finestra di dialogo. Un messaggio conferma il salvataggio e offre **Rivela** per mostrare il file. **Open Exports Folder**, nel menu **Window** o **Exports**, apre la cartella in qualsiasi momento. Un file con lo stesso nome di uno precedente viene salvato come "nome (1)".
-- **iPhone e iPad:** il file viene salvato nell'app **File**, sotto **Lolly**, e si apre il foglio di condivisione così puoi inviarlo.
+- **App desktop:** **Scarica** salva direttamente in una cartella **Lolly** dentro la tua cartella **Download**, senza finestra di dialogo. La riga sotto **Scarica** indica dove è finito, come "Salvato in Downloads/Lolly", con **Mostra nella cartella**. **Open Exports Folder**, nel menu **Window** o **Exports**, apre la cartella in qualsiasi momento. Un file con lo stesso nome di uno precedente viene salvato come "nome (1)".
+- **iPhone e iPad:** il file viene salvato nell'app **File**, sotto **Lolly**, e si apre il foglio di condivisione così puoi inviarlo. La riga sotto **Scarica** riporta "Salvato in File → Lolly".
 - **Android:** si apre il menu di condivisione così puoi scegliere dove va il file.
 
 Su iPhone, iPad e Android, un file nuovo sostituisce uno precedente con lo stesso nome.
@@ -146,8 +146,8 @@ Filtra per progetto, strumento e data (dietro **Filters** su un telefono). La pa
 
 Un link di condivisione porta le tue impostazioni, ma non le immagini o i file che hai aggiunto dal tuo dispositivo.
 
-::: warning Importare sostituisce le tue cartelle
-Se l'altro dispositivo ha già del lavoro, leggi prima questo. L'importazione aggiunge ciò che contiene il file, aggiorna gli elementi che corrispondono e non elimina nessun elemento salvato. Il tuo profilo è però un unico record, quindi le cartelle, i preferiti, i template e i dati su quel dispositivo vengono sostituiti da quelli nel file. Un elemento salvato che era presente solo su quel dispositivo resta, al livello superiore di **Progetti**. **Bring it to this device**, nella Sincronizzazione, fa lo stesso.
+::: note L'importazione non aggiunge né elimina nulla
+Le cartelle, i preferiti e i template nel file vengono aggiunti accanto a quelli già presenti sull'altro dispositivo. Quando un elemento salvato è presente su entrambi, viene mantenuta la copia salvata più di recente. I tuoi dati e le tue impostazioni su quel dispositivo restano come sono; quelli vuoti vengono compilati dal file. **Portalo su questo dispositivo**, nella Sincronizzazione, funziona allo stesso modo.
 :::
 
 Per spostare tutto in una volta:
@@ -157,7 +157,7 @@ Per spostare tutto in una volta:
 3. Sul nuovo dispositivo, apri **Impostazioni → Spazio di archiviazione**, premi **Importa dati…**, scegli il file e premi **Importa**.
 
 ::: note Cosa resta indietro
-Gli accessi, le chiavi e la passphrase di sincronizzazione restano su ogni dispositivo. L'elenco dei download recenti, i download offline e i modelli AI non viaggiano per nessuna via. La cronologia delle versioni viaggia solo in un file di **Esporta i miei dati**, non tramite la Sincronizzazione o un `.lolly`. Le copie che la Sincronizzazione conserva nel tuo storage si aprono solo tramite la Sincronizzazione, non con **Importa dati…** o **Apri**.
+Gli accessi, le chiavi e la passphrase di sincronizzazione restano su ogni dispositivo. L'elenco dei download recenti, i download offline e i modelli AI non viaggiano per nessuna via. La cronologia delle versioni viaggia solo in un file di **Esporta i miei dati**, non tramite la Sincronizzazione o un `.lolly`. Una copia che la Sincronizzazione conserva nel tuo storage può essere scaricata e aperta, oppure scelta in **Importa dati…**, come un file di backup; una copia cifrata chiede la tua passphrase.
 :::
 
 ::: details Cosa contiene il file di backup
@@ -176,7 +176,7 @@ Premi **Esporta i miei dati** sotto **Impostazioni → Spazio di archiviazione**
 
 Quando l'app si avvia, Lolly chiede al browser di non cancellare il suo storage quando al dispositivo rimane poco spazio. Decide il browser. Sotto **Impostazioni → Disponibile offline**, una riga che inizia con **Protected** significa che il browser ha accettato; "The browser may clear downloads if the device runs low on space" significa che non lo ha fatto, e **Protect downloads** chiede di nuovo. Se il browser non ha accettato, potrebbe cancellare il lavoro salvato oltre ai download quando lo spazio scarseggia, quindi conserva un file recente di **Esporta i miei dati**.
 
-**Impostazioni → Spazio di archiviazione** mostra quanto spazio usa ogni tipo di dato. **Svuota cache** elimina i file di catalogo scaricati, che si riscaricano quando servono. **Cancella tutti i miei dati** ti chiede di digitare una parola, poi rimuove il tuo profilo, le sessioni salvate, le immagini caricate e la cache degli asset. Gli altri dati restano, inclusi la cronologia delle versioni, l'elenco dei download recenti, i risultati di Convert, i sistemi di design e i modelli AI scaricati. Per rimuovere tutto, cancella i dati di questo sito nel tuo browser.
+**Impostazioni → Spazio di archiviazione** mostra quanto spazio usa ogni tipo di dato. **Svuota cache** elimina i file di catalogo scaricati, che si riscaricano quando servono. **Cancella tutti i miei dati** ti chiede di digitare una parola, disattiva la Sincronizzazione, poi rimuove tutto ciò che Lolly conserva in questo browser: il tuo profilo e le impostazioni, le sessioni salvate con la loro cronologia e il Cestino, i caricamenti, i font e i sistemi di design, il registro dei download, i risultati di Convert, i modelli AI scaricati e le copie offline. I file che hai scaricato restano dove li hai salvati. L'app riparte poi come alla prima visita.
 
 ![La card dello spazio di archiviazione su uno schermo largo come un telefono: ogni categoria di dati sul dispositivo nominata, con il pulsante Clear all my data in fondo](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
@@ -195,15 +195,15 @@ Le immagini, i sistemi di design e l'elenco dei download recenti restano nello s
 
 ## Recupera qualcosa che hai eliminato
 
-In **Progetti**, **Sposta nel cestino** conserva un elemento per 30 giorni. Una cartella va nel Cestino con tutto ciò che contiene, come una sola voce. Subito dopo, un messaggio offre **Annulla** per circa dieci secondi. In seguito:
+Eliminare una sessione salvata, una cartella, uno dei tuoi caricamenti o uno dei tuoi font nell'app la sposta nel **Cestino** per 30 giorni, ovunque tu la elimini: **Progetti**, **Risorse**, **Impostazioni → Spazio di archiviazione** o l'elenco delle sessioni salvate di uno strumento. Una cartella va con tutto ciò che contiene, come un'unica voce, e una sessione mantiene la sua cronologia delle versioni finché resta lì. Subito dopo, un messaggio offre **Annulla**. In seguito:
 
-1. Apri **Progetti** e premi il riquadro **Cestino**. Il riquadro compare solo finché il Cestino contiene qualcosa.
-2. Premi **Ripristina** accanto all'elemento.
+1. Apri **Cestino**: il riquadro **Cestino** in **Progetti**, il pulsante **Cestino** in **Risorse → I tuoi caricamenti**, oppure la riga **Cestino** in **Impostazioni → Spazio di archiviazione**. Tutti e tre aprono lo stesso elenco.
+2. Premi **Ripristina** accanto all'elemento. Torna alla sua cartella, e un font recupera i ruoli che aveva nel suo sistema di design.
 
-**Elimina per sempre** ed **Svuota il cestino** rimuovono gli elementi all'istante, senza chiedere. Gli elementi più vecchi di 30 giorni vengono rimossi definitivamente la prossima volta che apri Progetti.
+**Elimina per sempre** rimuove un elemento in modo definitivo. **Svuota il cestino** chiede prima conferma, poi rimuove ogni elemento nel Cestino. Gli elementi più vecchi di 30 giorni vengono rimossi in modo definitivo.
 
-::: warning Le altre eliminazioni sono permanenti
-Eliminare una sessione salvata da **Impostazioni → Spazio di archiviazione**, o dall'elenco delle sessioni salvate di uno strumento nella galleria (clic destro sulla card dello strumento, poi **N sessioni salvate**), rimuove la sessione per sempre, insieme alla sua cronologia delle versioni. Un'immagine che elimini da **Le mie immagini** viene rimossa all'istante, senza chiedere.
+::: warning Alcune eliminazioni sono immediate
+Eliminare un sistema di design, un logo o la tua foto profilo non va nel Cestino. Anche la riga di comando e l'app da terminale eliminano all'istante.
 :::
 
 Con la [Sincronizzazione](/info/sync.html) attiva, **Restore an earlier copy** può recuperare lo stato di un giorno precedente dell'intero dispositivo, e un file di **Esporta i miei dati** recupera ciò che contiene il file.

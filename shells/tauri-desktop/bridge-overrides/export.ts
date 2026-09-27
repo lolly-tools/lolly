@@ -25,12 +25,19 @@
  * BaseDirectory.Download is the user's own shared ~/Downloads. So we de-collide
  * rather than overwrite, matching both browser and wry's native download semantics
  * ("qr.png" → "qr (1).png").
+ *
+ * `download` is built with the web bridge's reportingDownload, so the export panel's
+ * recovery line learns what the toast says: the file was saved, under which name,
+ * where, and (when the native side accepted the path) how to show the file. Without that
+ * the line could only say the download was requested (plans/277, P9).
  */
 import { createExportAPI as createWebExportAPI } from '../../web/src/bridge/export.ts';
 import { writeFile, mkdir, exists, BaseDirectory } from '@tauri-apps/plugin-fs';
 import { save } from '@tauri-apps/plugin-dialog';
 import { invoke } from '@tauri-apps/api/core';
 import { basename, dirname, downloadDir, join } from '@tauri-apps/api/path';
+import { reportingDownload } from '../../web/src/bridge/download.ts';
+import type { DeliveryReport, SavedReceipt } from '../../web/src/bridge/download.ts';
 
 // Seeded by the native side (src-tauri/src/cli.rs build_init_script) ONLY when the
 // binary was invoked as a headless CLI render. Absent for every GUI launch, so the
@@ -131,19 +138,22 @@ function toast(
   } catch { /* no DOM - nothing to show */ }
 }
 
-async function noteAndOfferReveal(path: string, message: string): Promise<void> {
+/** Toast the save and return the reveal action, or undefined when the native side
+ *  did not accept the path (then neither the toast nor the recovery line offers Reveal). */
+async function noteAndOfferReveal(path: string, message: string): Promise<(() => Promise<void>) | undefined> {
   let noted = false;
   try {
     await invoke('desktop_note_export', { path });
     noted = true;
   } catch { /* save still succeeded; omit an action the native side cannot allow */ }
-  toast(message, false, noted ? [{
-    label: 'Reveal',
-    run: async () => {
+  const reveal = noted
+    ? async (): Promise<void> => {
       try { await invoke('desktop_reveal_export', { path }); }
       catch (err) { toast(`Couldn't reveal that file: ${String(err)}`, true); }
-    },
-  }] : []);
+    }
+    : undefined;
+  toast(message, false, reveal ? [{ label: 'Reveal', run: reveal }] : []);
+  return reveal;
 }
 
 function rememberedSaveDir(): string | null {
@@ -154,7 +164,7 @@ function rememberSaveDir(path: string): void {
   try { localStorage.setItem(LAST_SAVE_DIR, path); } catch { /* device-local nicety */ }
 }
 
-async function saveAs(bytes: Uint8Array, filename: string): Promise<void> {
+async function saveAs(bytes: Uint8Array, filename: string): Promise<SavedReceipt> {
   const fallback = await downloadDir();
   const initialDir = rememberedSaveDir() || fallback;
   const defaultPath = await join(initialDir, filename);
@@ -177,18 +187,19 @@ async function saveAs(bytes: Uint8Array, filename: string): Promise<void> {
   await writeFile(path, bytes);
   rememberSaveDir(await dirname(path));
   const chosenName = await basename(path);
-  await noteAndOfferReveal(path, `Saved “${chosenName}”`);
+  const reveal = await noteAndOfferReveal(path, `Saved “${chosenName}”`);
+  return { saved: true, name: chosenName, ...(reveal ? { reveal } : {}) };
 }
 
-async function saveToDownloads(blob: Blob, filename: string | undefined, host: ExportHost): Promise<void> {
+async function saveToDownloads(blob: Blob, filename: string | undefined, host: ExportHost): Promise<SavedReceipt> {
   const bytes = new Uint8Array(await blob.arrayBuffer());
   const name = sanitize(filename);
   try {
     if (saveAsNext) {
       saveAsNext = false;
-      await saveAs(bytes, name);
+      const receipt = await saveAs(bytes, name);
       host?.log?.('info', `Saved ${name} with the native Save As dialog`);
-      return;
+      return receipt;
     }
     if (!(await exists(SUBDIR, BASE))) {
       await mkdir(SUBDIR, { ...BASE, recursive: true });
@@ -197,7 +208,8 @@ async function saveToDownloads(blob: Blob, filename: string | undefined, host: E
     await writeFile(`${SUBDIR}/${finalName}`, bytes, BASE);
     host?.log?.('info', `Saved ${finalName} to Downloads/${SUBDIR}`);
     const absolute = await join(await downloadDir(), SUBDIR, finalName);
-    await noteAndOfferReveal(absolute, `Saved “${finalName}” to Downloads/${SUBDIR}`);
+    const reveal = await noteAndOfferReveal(absolute, `Saved “${finalName}” to Downloads/${SUBDIR}`);
+    return { saved: true, name: finalName, place: `Downloads/${SUBDIR}`, ...(reveal ? { reveal } : {}) };
   } catch (err) {
     saveAsNext = false;
     if ((err as { name?: string })?.name === 'AbortError') throw err;
@@ -231,10 +243,12 @@ export function createExportAPI(host: ExportHost): WebExportAPI {
   const web = createWebExportAPI(host);
   return {
     ...web,
-    async download(blob: Blob, filename: string) {
-      if (window.__LOLLY_CLI__) return deliverCli(blob, filename);
-      await saveToDownloads(blob, filename, host);
-    },
+    // A headless CLI job reports 'requested', as before: deliverCli ends the process
+    // and never throws, so it cannot vouch for the write.
+    download: reportingDownload(async (blob: Blob, filename: string): Promise<DeliveryReport> => {
+      if (window.__LOLLY_CLI__) { await deliverCli(blob, filename); return 'requested'; }
+      return saveToDownloads(blob, filename, host);
+    }),
     async file(blob: Blob, opts: { filename?: string } = {}) {
       if (window.__LOLLY_CLI__) return deliverCli(blob, opts.filename || 'file');
       await saveToDownloads(blob, opts.filename || 'file', host);

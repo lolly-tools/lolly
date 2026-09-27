@@ -3,6 +3,7 @@ import type { RevisionEntry } from '../bridge/revision-history.ts';
 import type { RevisionAssetReport, RevisionAssetReplacement, RevisionAssetStatus, RevisionFidelityAPI } from '../bridge/revision-fidelity.ts';
 import type { SavedStateData } from '../bridge/state.ts';
 import { t } from '../i18n.ts';
+import { isTauriShell } from '../lib/instance-choice.ts';
 import './history-fidelity.css';
 
 const button = (label: string): HTMLButtonElement => {
@@ -13,9 +14,11 @@ const paragraph = (label: string): HTMLParagraphElement => {
 };
 function statusText(asset: RevisionAssetStatus): string {
   switch (asset.status) {
-    case 'saved': return t('Saved file available on this device');
+    case 'saved': return isTauriShell() ? t('Saved file available on this device') : t('Saved file available in this browser');
     case 'current': return t('Uses the current asset; appearance can change');
-    case 'missing': return asset.version ? t('Saved asset version unavailable on this device') : t('Asset unavailable on this device');
+    case 'missing':
+      if (isTauriShell()) return asset.version ? t('Saved asset version unavailable on this device') : t('Asset unavailable on this device');
+      return asset.version ? t('Saved asset version unavailable in this browser') : t('Asset unavailable in this browser');
     case 'embedded': return t('Embedded in this version');
     case 'invalid': return t('This asset reference could not be read');
     default: return t('Cannot verify this asset locally');

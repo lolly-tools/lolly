@@ -35,6 +35,7 @@ import { activeHeadId } from './active.ts';
 // User-facing throws: these reach a person through the panel, so they are chrome
 // strings. t() (not tRaw) with no params is the brand-logos.ts precedent.
 import { t } from '../../i18n.ts';
+import { isTauriShell } from '../instance-choice.ts';
 import type { WebTokensAPI } from '../../bridge/tokens.ts';
 import { FROZEN_PREFIX } from '../../bridge/version-assets.ts';
 import {
@@ -272,7 +273,7 @@ export async function setActiveVersion(ctx: VersionsIoCtx, slug: string | null):
   if (!isDoc(head)) throw new Error(t('There is no design system to change yet.'));
   const index = readVersionIndex(head);
   if (slug && !index.versions.some(v => v.slug === slug)) {
-    throw new Error(t('That version is not on this device.'));
+    throw new Error(isTauriShell() ? t('That version is not on this device.') : t('That version is not in this browser.'));
   }
   if (index.active === slug) return; // nothing to write, so nothing to undo
   await writeHead(ctx, withVersionIndex(head, { versions: index.versions, active: slug }), 'activate-version');

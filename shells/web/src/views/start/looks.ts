@@ -2,6 +2,7 @@
 /** Browse and compare local systems without changing the active one. */
 import { mountModal } from '../../components/modal.ts';
 import { t, tRaw } from '../../i18n.ts';
+import { isTauriShell } from '../../lib/instance-choice.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { brandFontStack } from '../../brand-vars.ts';
 import { brandSpecimenHtml } from '../../lib/design-system/brand-specimen.ts';
@@ -57,7 +58,7 @@ export async function openLooks(start: StartCtx): Promise<void> {
       review.textContent = choices.length === 1 ? t('Review this look') : t('Compare these two looks');
       compare.innerHTML = `<h3>${t('Compare looks')}</h3><div class="ds-looks-comparison">${choices.map(look => `<article data-look-detail="${escapeText(look.id)}">
         <h4>${escapeText(look.name)}</h4>${specimen(look)}
-        <p>${look.source === 'saved' ? t('Saved on this device') : t('Reusable Lolly example')}</p>
+        <p>${look.source === 'saved' ? (isTauriShell() ? t('Saved on this device') : t('Saved in this browser')) : t('Reusable Lolly example')}</p>
         <p>${escapeText(look.context.fonts.map(f => f.value).join(' · ') || t('Your current fonts'))}</p>
         <button type="button" class="be-cta is-active" data-look-use="${escapeText(look.id)}" ${look.id === activeId ? 'disabled' : ''}>${look.id === activeId ? t('Active') : look.source === 'saved' ? t('Use this saved system') : t('Use these colours')}</button>
         ${look.source === 'example' ? `<p class="ds-src-stage-note">${t('Replaces the active colours and style settings. Restore brand settings recovers the previous version.')}</p>` : ''}

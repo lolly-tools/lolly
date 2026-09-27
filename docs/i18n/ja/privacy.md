@@ -35,10 +35,10 @@ Lollyのweb、デスクトップ、モバイル各シェルは、レンダーエ
 追跡したりするために使用されることもありません。同意すべき対象はありません
 - データ収集自体が行われていないためで、これは何がどこに保持されているかを
 お知らせする通知に過ぎません。ブラウザでサイトのストレージを消去すれば
-いつでもすべてを削除できます。**設定 → ストレージ → すべてのデータを消去**は、
-プロフィール、保存済みのセッション、アップロードした画像、アセットキャッシュを削除します。
-(ePrivacy指令 Art. 5(3)により、要求されたサービスに厳密に必要なストレージには
-同意は不要で、必要なのは透明性のみです。それは本書とアプリ内通知が果たしている役割です。)
+いつでもすべてを削除でき、**設定 → ストレージ → すべてのデータを消去**も
+同じことを行います。まず同期をオフにしたうえでのことです。(ePrivacy指令
+Art. 5(3)により、要求されたサービスに厳密に必要なストレージには同意は不要で、
+必要なのは透明性のみです。それは本書とアプリ内通知が果たしている役割です。)
 
 ![スマートフォン幅の画面に表示されたプロフィールページのストレージセクション: デバイス上のデータの各カテゴリが列挙され、そのすぐ横にClear all my dataボタンがある](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

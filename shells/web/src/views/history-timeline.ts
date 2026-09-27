@@ -2,7 +2,7 @@
 import type { AppHistoryRow } from '../bridge/app-history.ts';
 import { bindHistoryLink } from '../lib/history-navigation.ts';
 import { sessionOpenHref } from '../lib/search/projects-source.ts';
-import { isBatchSlot } from '../lib/batch-slots.ts';
+import { isBatchSlot, isDiscardedSlot } from '../lib/batch-slots.ts';
 import { icon } from '../lib/icons.ts';
 import { t } from '../i18n.ts';
 
@@ -105,7 +105,8 @@ export function historyRow(ctx: HistoryTimelineContext, row: AppHistoryRow): HTM
     const versions = historyButton('Versions', 'history', row.kind === 'creation');
     if (row.kind === 'revision') versions.classList.add('btn--primary');
     versions.addEventListener('click', () => ctx.versions(row)); actions.append(versions);
-    actions.append(historyLink('Show in Projects', row.projectId ? `#/p/${encodeURIComponent(row.projectId)}` : '#/p', 'folder', true));
+    // A discarded creation is no longer in Projects; its versions are all that remain.
+    if (!isDiscardedSlot(row.slot)) actions.append(historyLink('Show in Projects', row.projectId ? `#/p/${encodeURIComponent(row.projectId)}` : '#/p', 'folder', true));
   } else if (row.kind === 'export') {
     const reopen = historyButton('Reopen settings', 'sliders'); reopen.classList.add('btn--primary');
     reopen.addEventListener('click', () => ctx.reopen(row, reopen)); actions.append(reopen);

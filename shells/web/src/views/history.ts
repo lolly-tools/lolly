@@ -11,6 +11,7 @@ import { historyPeriods } from '../lib/history-periods.ts';
 import { icon } from '../lib/icons.ts';
 import { SEARCH_DEBOUNCE_MS } from '../lib/search/match.ts';
 import { t } from '../i18n.ts';
+import { isTauriShell } from '../lib/instance-choice.ts';
 import { historyFilterPicker } from './history-filter-picker.ts';
 import { historyElement as element, historyButton as button, historyLink as link, historyIcon, historyAction, historyDayKey, historyDay, historyPeriod, type HistoryTimelineContext } from './history-timeline.ts';
 import './history.css';
@@ -27,7 +28,7 @@ export async function mountHistory(view: HTMLElement & { _cleanup?: () => void }
   const intro = element('div', undefined, 'app-history-intro');
   const title = element('h1', t('History'));
   const description = element('p', t('Pick up a creation or revisit the work that led to it.'), 'app-history-description');
-  const source = element('span', undefined, 'app-history-source'); source.append(historyIcon('monitor'), element('span', t('This device')));
+  const source = element('span', undefined, 'app-history-source'); source.append(historyIcon('monitor'), element('span', isTauriShell() ? t('This device') : t('This browser')));
   const heading = element('div', undefined, 'app-history-heading'); heading.append(title, source);
   intro.append(heading, description);
   const headerActions = element('div', undefined, 'app-history-header-actions');

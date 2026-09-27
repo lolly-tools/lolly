@@ -2,7 +2,6 @@
 import { createProjectScenePreviews, projectRecentExports } from './projects-scene-previews.ts';
 import { sceneThumbPatcher } from './projects-scene-patch.ts';
 import { handleProjectTextAction, projectAssetMenu } from './projects-asset-actions.ts';
-import { moveSessionSlot } from './tool-revision-history.ts';
 /**
  * Projects view (route /p and /p/<folderId>).
  *
@@ -28,9 +27,12 @@ import { moveSessionSlot } from './tool-revision-history.ts';
 import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
 import { icon } from '../lib/icons.ts';
-import { createFolderStore, childFolders, folderPath, descendantFolderIds, TRASH_RETENTION_MS, FOLDER_COLORS } from '../folders.ts';
+import { createFolderStore, childFolders, folderPath, descendantFolderIds, FOLDER_COLORS } from '../folders.ts';
 import type { Folder, FolderItem, TrashEntry, ProjectTemplate } from '../folders.ts';
-import { TRASH_SLOT_PREFIX, PTPL_SLOT_PREFIX, isHiddenSlot } from '../lib/batch-slots.ts';
+import { PTPL_SLOT_PREFIX, isHiddenSlot } from '../lib/batch-slots.ts';
+import { createTrash } from '../lib/trash.ts';
+import { openTrashDialog as openSharedTrashDialog, showTrashUndoToast } from '../components/trash-dialog.ts';
+import { openSavedSessionsDialog } from '../components/recents-dialog.ts';
 import { showUndoToast, flushUndoToasts } from '../lib/undo-toast.ts';
 import { livePalette } from '../lib/live-palette.ts';
 import { MULTI_EDIT_MIN, MULTI_EDIT_MAX } from '../lib/multi-edit-limits.ts';
@@ -221,6 +223,8 @@ export async function mountProjects(
   opts: MountProjectsOpts = {},
 ): Promise<void> {
   const store = createFolderStore(host as ProjectsHost);
+  // The one Trash model (lib/trash.ts), shared with every other web delete door.
+  const trash = createTrash(host as ProjectsHost);
   // The soft "stacking clicks → puff of wind" arrival - only on the MAIN projects view
   // (folderId null), NOT every time a folder opens. One-shot, gesture-gated, silent when
   // sound's off; cancelled on leave (see _cleanup) so it can't fire on another page.
@@ -351,7 +355,9 @@ export async function mountProjects(
     // Trashed sessions keep their state records under `__trash__:` slots, project
     // templates theirs under `__ptpl__:` - neither is a browsable tile.
     entries = entries.filter(e => !isHiddenSlot(e.slot));
-    trashEntries = await store.trashList().catch(() => []);
+    // The tile needs a count; the Trash dialog does the full pass when it opens,
+    // so this skips re-reading every saved record a second time.
+    trashEntries = await trash.list({ sessions: false }).catch(() => []);
     templates = await store.templateList().catch(() => []);
     favourites = loadProjectFavourites(profile);
     if (folderId === TEMPLATES) await tpl.load(profile);   // the collection reads the same profile pass
@@ -624,15 +630,15 @@ export async function mountProjects(
     const teamTile = getSessionSource()
       ? actionTile('team', TEAM_ICON, t('Team projects'), t('Shared with you on this instance'))
       : '';
-    // Trash (plans/133 WP-4): a muted system tile, only while it holds anything.
-    const trashCount = trashEntries.length === 1 ? t('1 item') : tRaw('{n} items', { n: trashEntries.length });
-    const trashTile = trashEntries.length
-      ? `<div class="folder-tile folder-tile--trash"><button type="button" class="tile-primary" data-open-trash aria-label="${escape(t('Open Trash'))}">
+    // Trash (plans/133 WP-4): a muted system tile, always there (plan 277 P3) so
+    // the place a delete went to can be found even before the first delete.
+    const trashCount = !trashEntries.length ? t('Empty')
+      : trashEntries.length === 1 ? t('1 item') : tRaw('{n} items', { n: trashEntries.length });
+    const trashTile = `<div class="folder-tile folder-tile--trash"><button type="button" class="tile-primary" data-open-trash aria-label="${escape(t('Open Trash'))}">
            <span class="tile-cover tile-cover--batch" aria-hidden="true">${TRASH_ICON}</span>
            <span class="tile-meta"><span class="tile-title">${t('Trash')}</span><span class="tile-sub">${trashCount}</span></span>
            ${tileColsHtml({ kind: t('Trash'), count: trashCount, when: '' })}
-         </button></div>`
-      : '';
+         </button></div>`;
     // The favourites hero is a grid-mode thing: above a table it would push the
     // rows below the fold for a carousel of two covers (Part C, C2h). Starred
     // folders still pin first in the sort either way. List mode carries no create
@@ -1232,14 +1238,16 @@ export async function mountProjects(
     // The folder-overlay mount is RETIRED here (plans/133 WP-10): this view IS
     // the folder manager, and the one thing the overlay added that the grid
     // lacked - the Recent-exports reopen rail - now renders at the root above.
-    // The history fab went with it; the mobile profile menu keeps its saved
-    // count but hands off nowhere (you are already looking at your saved work).
+    // The history fab went with it; the mobile profile menu's Saved sessions item
+    // opens the same dialog it opens on the gallery.
 
     // The invariant top-bar wiring - language menu, plus the mobile profile menu (on
     // mobile the avatar opens theme + saved sessions + Settings; on desktop it stays a
     // plain link to the profile page). Same call Tools and Catalog make.
     mountViewTopbar(root, host as ProjectsHost, {
-      profileMenu: { savedCount: entries.length },
+      // The same Saved sessions item the gallery's menu carries, opening the same
+      // dialog (plan 277 P10): it used to do nothing here.
+      profileMenu: { savedCount: entries.length, onHistory: () => { void openSavedSessionsDialog(entries, toolName); } },
     });
 
     wireDrag(root);
@@ -1757,52 +1765,13 @@ export async function mountProjects(
   // dumping every folder at once): click a folder to drill in, breadcrumb to climb, then
   // "Move to «here»" commits at the current level. `blocked` folder ids (a folder's own
   // subtree, to prevent a cycle) are shown disabled. onPick(destId|null) - null = top level.
-  /** The Trash browser (plans/133 WP-4): restore / delete forever / empty. */
+  /** The Trash browser (plans/133 WP-4): the shared dialog (plan 277 P3), which
+   *  also lists uploads deleted from Assets. The grid redraws after each change. */
   function openTrashDialog(): void {
-    const fmtWhen = (iso: string): string => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    const rows = trashEntries.map((e, i) => {
-      const name = e.kind === 'session' ? e.label : e.name;
-      const kind = e.kind === 'session' ? t('Saved session') : t('Folder');
-      return `<li class="trash-row">
-        <span class="trash-row-icon" aria-hidden="true">${e.kind === 'folder' ? FOLDER_ICON : FILE_PLUS_ICON}</span>
-        <span class="trash-row-meta"><span class="trash-row-name">${escape(name)}</span><span class="trash-row-sub">${kind} · ${escape(fmtWhen(e.deletedAt))}</span></span>
-        <button type="button" class="btn btn--sm" data-trash-restore="${i}">${t('Restore')}</button>
-        <button type="button" class="btn btn--sm cat-act-danger" data-trash-purge="${i}">${t('Delete forever')}</button>
-      </li>`;
-    }).join('');
-    const modal = mountModal<void>(`
-      <div class="trash-dialog-body">
-        <h2>${t('Trash')}</h2>
-        <p class="trash-note">${t('Items here are removed for good after 30 days.')}</p>
-        ${rows ? `<ul class="trash-list">${rows}</ul>` : `<p class="trash-note">${t('The Trash is empty.')}</p>`}
-        <div class="trash-actions">
-          ${rows ? `<button type="button" class="btn cat-act-danger" data-trash-empty>${t('Empty Trash')}</button>` : ''}
-          <button type="button" class="btn" data-trash-close>${t('Close')}</button>
-        </div>
-      </div>`, { className: 'trash-dialog', ariaLabel: t('Trash') });
-    modal.el.addEventListener('click', async (e) => {
-      const el = e.target as HTMLElement;
-      const restore = el.closest<HTMLElement>('[data-trash-restore]');
-      const purge = el.closest<HTMLElement>('[data-trash-purge]');
-      if (el.closest('[data-trash-close]')) { modal.close(); return; }
-      if (el.closest('[data-trash-empty]')) {
-        for (const entry of [...trashEntries]) await purgeTrashEntry(entry).catch(() => {});
-        modal.close();
-        if (mounted) { await reload(); render(); }
-        announce(t('Trash emptied'));
-        return;
-      }
-      if (restore) {
-        const entry = trashEntries[Number(restore.dataset.trashRestore)];
-        modal.close();
-        if (entry) { await restoreTrashEntry(entry); announce(t('Restored')); }
-        return;
-      }
-      if (purge) {
-        const entry = trashEntries[Number(purge.dataset.trashPurge)];
-        modal.close();
-        if (entry) { await purgeTrashEntry(entry).catch(() => {}); if (mounted) { await reload(); render(); } }
-      }
+    void openSharedTrashDialog({
+      trash,
+      onChange: async () => { if (mounted) { await reload(); render(); } },
+      returnFocus: () => viewEl.querySelector<HTMLElement>('[data-open-trash]'),
     });
   }
 
@@ -1840,6 +1809,8 @@ export async function mountProjects(
         [t('Size'), sizes[ref] ? fmtBytes(sizes[ref]!) : ''],
         [t('Added'), fmtIso(e.createdAt)],
         [t('Modified'), fmtIso(e.updatedAt)],
+        // Recorded when the web app reopens the item in a tool; left out otherwise.
+        [t('Last opened'), fmtIso(e.openedAt)],
         [t('Favourite'), favourites.has(ref) ? t('Yes') : t('No')],
       );
     }
@@ -2162,7 +2133,11 @@ export async function mountProjects(
         // A batch slot encodes its label → re-key under a new slot + follow membership.
         const newSlot = BATCH_SLOT_PREFIX + name;
         if (newSlot !== entry.slot) {
-          await (host as ProjectsHost).state.save(newSlot, data, entry.thumb);
+          // Re-keyed with its own times kept (plan 277 timing fix): a new slot
+          // for a new name is not a new save.
+          const state = (host as ProjectsHost).state;
+          if (state.restore && entry.updatedAt) await state.restore(newSlot, data, entry.thumb, entry.updatedAt, entry.savedAt);
+          else await state.save(newSlot, data, entry.thumb);
           await host.state.delete(entry.slot).catch(() => {});
           await store.swapSessionSlot(entry.slot, newSlot);
         } else {
@@ -2558,36 +2533,19 @@ export async function mountProjects(
   // slot namespace, folders lift their subtree records into a profile.trash
   // entry, and both get an undo toast. Real deletion happens on Delete forever,
   // Empty trash, or the 30-day sweep. Image items are references - "deleting"
-  // one only removes it from the project; the bytes stay in the Catalog, whose
-  // own delete has its own soft path.
-
-  /** Move one session's state record between slots (thumb preserved). */
-  const moveSlot = (from: string, to: string) => moveSessionSlot(host, from, to);
+  // one only removes it from the project; the bytes stay in Assets, whose own
+  // delete goes to the same Trash. The moves themselves live in lib/trash.ts,
+  // shared with every other web delete door (plan 277 P3).
 
   /** Trash a set of loose/foldered sessions with ONE undo toast. */
   async function trashSessions(slots: readonly string[]): Promise<void> {
-    const moved: Array<{ entry: import('../folders.ts').TrashedSession }> = [];
-    for (const slot of slots) {
+    const moved = await trash.trashSessions(slots, (slot) => {
       const e = entryMap.get(slot);
-      const parentId = ownerByRef.get(slot)?.id ?? null;
-      const label = e?.label || e?.filename || toolName(e?.toolId ?? '') || slot;
-      const tslot = TRASH_SLOT_PREFIX + slot;
-      if (!(await moveSlot(slot, tslot))) continue;
-      await store.moveItem(slot, null, 'session');
-      const entry: import('../folders.ts').TrashedSession = {
-        kind: 'session', slot: tslot, originalSlot: slot, label, parentId, deletedAt: new Date().toISOString(),
-      };
-      await store.trashAdd(entry);
-      moved.push({ entry });
-    }
+      return e?.label || e?.filename || toolName(e?.toolId ?? '') || slot;
+    });
     if (!mounted) return;
     await reload(); render();
-    if (!moved.length) return;
-    const first = moved[0]!.entry.label;
-    showUndoToast({
-      message: moved.length === 1 ? tRaw('Moved "{name}" to Trash.', { name: first }) : tRaw('Moved {n} sessions to Trash.', { n: moved.length }),
-      undo: async () => { for (const m of moved) await restoreTrashEntry(m.entry); },
-    });
+    showTrashUndoToast(trash, moved, async () => { if (mounted) { await reload(); render(); } });
   }
 
   /** Trash a folder subtree (records + member sessions) with an undo toast. */
@@ -2597,24 +2555,9 @@ export async function mountProjects(
     const folder = folders.find(f => f.id === id);
     if (!folder) return;
     const subtreeIds = [id, ...descendantFolderIds(folders, id)];
-    const tree = await store.detachSubtree(id);
-    if (!tree) return;
-    const sessionRefs = tree.flatMap(f => f.items.filter(i => i.type === 'session').map(i => i.ref));
-    const moves: Array<{ originalSlot: string; slot: string }> = [];
-    for (const ref of sessionRefs) {
-      const tslot = TRASH_SLOT_PREFIX + ref;
-      if (await moveSlot(ref, tslot)) moves.push({ originalSlot: ref, slot: tslot });
-    }
-    const entry: import('../folders.ts').TrashedFolder = {
-      kind: 'folder', tree, rootId: id, name: folder.name, sessions: moves, deletedAt: new Date().toISOString(),
-    };
-    await store.trashAdd(entry);
-    announce(tRaw('Moved "{name}" to Trash', { name: folder.name }));
-    if (!mounted) return;
-    showUndoToast({
-      message: tRaw('Moved "{name}" to Trash.', { name: folder.name }),
-      undo: async () => { await restoreTrashEntry(entry); },
-    });
+    const entry = await trash.trashFolder(id);
+    if (!entry || !mounted) return;
+    showTrashUndoToast(trash, [entry], async () => { if (mounted) { await reload(); render(); } });
     // If we were viewing the trashed folder (or one beneath it), climb out.
     if (folderId != null && subtreeIds.includes(folderId)) {
       const parentId = folder.parentId ?? null;
@@ -2624,42 +2567,23 @@ export async function mountProjects(
     await reload(); render();
   }
 
-  /** Put a trash entry back: records + slots + membership. */
-  async function restoreTrashEntry(entry: TrashEntry): Promise<void> {
-    if (entry.kind === 'session') {
-      await moveSlot(entry.slot, entry.originalSlot);
-      const live = await store.list();
-      if (entry.parentId && live.some(f => f.id === entry.parentId)) {
-        await store.moveItem(entry.originalSlot, entry.parentId, 'session');
-      }
-      await store.trashDrop(new Set([entry.slot]));
-    } else {
-      for (const m of entry.sessions) await moveSlot(m.slot, m.originalSlot);
-      await store.restoreSubtree(entry.tree);
-      await store.trashDrop(new Set([entry.rootId]));
-    }
-    if (!mounted) return;
-    await reload(); render();
-  }
-
-  /** Really delete a trash entry's data (Delete forever / Empty trash / sweep). */
-  async function purgeTrashEntry(entry: TrashEntry): Promise<void> {
-    if (entry.kind === 'session') {
-      await host.state.delete(entry.slot).catch(() => {});
-      await store.trashDrop(new Set([entry.slot]));
-    } else {
-      for (const m of entry.sessions) await host.state.delete(m.slot).catch(() => {});
-      await store.trashDrop(new Set([entry.rootId]));
-    }
-  }
-
   /** Age out entries past the retention window. Runs once per mount, silently. */
   async function sweepTrash(): Promise<void> {
-    const cutoff = Date.now() - TRASH_RETENTION_MS;
-    const old = trashEntries.filter(e => +new Date(e.deletedAt) < cutoff);
-    for (const e of old) await purgeTrashEntry(e).catch(() => {});
-    if (old.length) trashEntries = await store.trashList().catch(() => trashEntries);
+    await trash.sweep().catch(() => 0);
+    await refreshTrashCount();
   }
+
+  /** Keep the Trash tile's count true: the sweep's full pass can find items the
+   *  light count missed (an entry another tab's stale write dropped), and a
+   *  restore or delete in the dialog, an Undo or another tab changes the count. */
+  async function refreshTrashCount(): Promise<void> {
+    if (!mounted) return;
+    const before = trashEntries.length;
+    trashEntries = await trash.list({ sessions: false }).catch(() => trashEntries);
+    if (mounted && trashEntries.length !== before && folderId == null && !query) render();
+  }
+  const onTrashChanged = (): void => { void refreshTrashCount(); };
+  window.addEventListener('lolly:trash-changed', onTrashChanged);
 
   async function deleteFolderCascade(id: string): Promise<void> {
     await trashFolder(id);
@@ -3103,7 +3027,7 @@ export async function mountProjects(
   try { sessionStorage.removeItem(FILE_INTO_KEY); sessionStorage.removeItem(RETURN_KEY); } catch { /* ignore */ }
   // NB tileSelect.destroy() is not optional: its mousedown is bound to viewEl (#view), which
   // the router REUSES for every route - leave it bound and the next mount stacks another.
-  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { mounted = false; scenePreviews.destroy(); flushUndoToasts(); cancelArrivalAah(); tileSelect.destroy(); tileMenu.destroy(); unwireEscape(); featuredHandle?.destroy(); featuredHandle = null; tpl.destroy(); closeMenu(); closeConfirmDialogs(); overlayModal?.close(); releaseSearch?.(); };
+  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => { mounted = false; window.removeEventListener('lolly:trash-changed', onTrashChanged); scenePreviews.destroy(); flushUndoToasts(); cancelArrivalAah(); tileSelect.destroy(); tileMenu.destroy(); unwireEscape(); featuredHandle?.destroy(); featuredHandle = null; tpl.destroy(); closeMenu(); closeConfirmDialogs(); overlayModal?.close(); releaseSearch?.(); };
   await reload();
   void sweepTrash();   // age out trash entries past the 30-day retention (silent)
   // A stale /p/<id> deep link to a deleted folder falls back to root.

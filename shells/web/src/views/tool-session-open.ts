@@ -52,7 +52,8 @@ export async function openToolSession(state: StateAPI, toolId: string, url: UrlS
     ?? (await (state as WebStateAPI).rightsDecisions?.(slot).catch(() => null)) ?? null;
   return {
     url, values: values as Record<string, InputValue>,
-    ...(opened ? { cursor: { head: opened.head, version: opened.version } } : {}),
+    ...(opened ? { cursor: { head: opened.head, version: opened.version, unsaved: opened.unsaved === true,
+      ...(opened.workingHash !== undefined ? { workingHash: opened.workingHash } : {}), ...(opened.adopt ? { adopt: true } : {}), ...(opened.neverSaved ? { neverSaved: true } : {}) } } : {}),
     ...(emoji ? { emoji } : {}),
     ...(rightsDecisions ? { rightsDecisions } : {}),
   };

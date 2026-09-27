@@ -39,8 +39,9 @@
  */
 
 import { strToU8 } from 'fflate';
-import { packBackupSessions, restoreBackupSessions, type BackupState, type BackupHistoryMode } from './lib/backup-sessions.ts';
+import { assetRecordsToImport, packBackupSessions, restoreBackupSessions, type BackupState, type BackupHistoryMode } from './lib/backup-sessions.ts';
 import { backupOwnCounts } from './lib/backup-summary.ts';
+import { mergeProfileRecords } from './lib/profile-merge.ts';
 import { zipAsync } from './lib/zip.ts';
 import {
   BUNDLE_HEADER, README_NAME, buildIntegrity, readJson, unzipBundle, verifyIntegrity,
@@ -52,6 +53,8 @@ export const BACKUP_FORMAT = 'lolly-backup';
 /** One uploaded-image record as the assets bridge exports it. */
 interface BackupAssetRecord {
   [key: string]: unknown;
+  id?: unknown;
+  meta?: unknown;
   format?: string;
   blob?: Blob;
 }
@@ -106,6 +109,15 @@ export type ReplaceScope = { removable: BackupIds } | 'all';
 
 export interface ImportOptions extends BackupHistoryMode {
   replace?: ReplaceScope;
+  /**
+   * How the bundle's profile record and preferences meet this device's.
+   * 'merge' (the default; Import data… and Sync's "Bring it to this device"):
+   * this device keeps what it has and the bundle only adds (lib/profile-merge.ts
+   * has the rules), and a preference is written only where this device has none.
+   * 'replace': the bundle's record and preferences win, which device sync uses to
+   * keep devices in step and a restore uses to match an earlier copy.
+   */
+  profile?: 'merge' | 'replace';
 }
 
 /** Byte counts of an export, checked against the restore limits before a sync upload. */
@@ -224,8 +236,8 @@ function backupReadme(
     `Exported on ${date} at ${time} (local)`,
     '',
     "A portable backup of everything you've made in Lolly on one device.",
-    'Open Lolly on another device, go to Profile → Storage → “Import data…”',
-    'and choose this .zip to pick up exactly where you left off.',
+    'Open Lolly on another device, go to Settings → Storage → “Import data…”',
+    'and choose this file to pick up exactly where you left off.',
     'Everything stayed on your devices - nothing was uploaded.',
     '',
     '',
@@ -415,10 +427,16 @@ export async function exportBackup(
 /**
  * Read a bundle produced by exportBackup and write it back through the bridge.
  *
- * Strategy is merge-overwrite: existing data is left in place, and any key that
- * collides (same profile, same session slot, same asset id) is replaced by the
- * imported copy. Nothing on the target device is wiped - safe to import onto an
- * install that's already in use.
+ * Strategy is merge: existing data is left in place. A session slot or asset id on
+ * both keeps the copy saved more recently (`sameId: 'newer'`, the default); device
+ * sync's apply and a restore pass `'incoming'` and take the imported copy. The
+ * profile record is merged
+ * (lib/profile-merge.ts): folders, favourites, templates and Trash gain what is
+ * new and lose nothing, and every other field keeps this device's value unless it
+ * is empty here. Preferences are written only where this device has none. Nothing
+ * on the target device is wiped - safe to import onto an install that's already
+ * in use. `options.profile: 'replace'` makes the bundle's profile and preferences
+ * win instead (device sync).
  *
  * Before writing anything it (1) gates on the bundle's `minReader` so a genuinely
  * future format is refused cleanly, (2) verifies per-part integrity when present so
@@ -474,10 +492,13 @@ export async function importBackup(
   const sessionSummary = await restoreBackupSessions(host.state, files, options);
   const summary: ImportSummary = { profile: false, userAssets: 0, prefs: 0, skipped: 0, failedAssets: 0, ...sessionSummary };
 
-  // Profile.
+  // Profile. A merge keeps this device's folders, favourites, templates, Trash and
+  // settings and adds the bundle's new ones; a replace (device sync) takes the
+  // bundle's record whole.
+  const mergeProfile = options.profile !== 'replace';
   const profile = readJson(files, 'profile.json');
   if (profile && typeof profile === 'object') {
-    await host.profile.set(profile);
+    await host.profile.set(mergeProfile ? mergeProfileRecords(await host.profile.get(), profile) : profile);
     summary.profile = true;
   }
 
@@ -501,7 +522,7 @@ export async function importBackup(
   }
 
   // Uploaded images - rebuild the Blob from its in-zip bytes + recorded MIME.
-  for (const record of assetRecords) {
+  for (const record of await assetRecordsToImport(host.assets, assetRecords, options)) {
     if (!record.id) continue;
     // Restore each asset independently: a single oversized blob (a large verbatim
     // video/animation can trip IndexedDB's quota, which _importUserAsset does NOT
@@ -527,9 +548,11 @@ export async function importBackup(
   }
 
   // Preferences / metrics.
+  // A merge keeps this device's own preference and fills only a missing one.
   const prefs = readJson(files, 'prefs.json') ?? {};
   for (const key of PREF_KEYS) {
-    if (prefs[key] != null) { storage.setItem(key, prefs[key]); summary.prefs++; }
+    if (prefs[key] == null || (mergeProfile && storage.getItem(key) != null)) continue;
+    storage.setItem(key, prefs[key]); summary.prefs++;
   }
 
   // Parts from a newer, forward-compatible writer that this build doesn't know how

@@ -50,7 +50,7 @@ Chceš-li provést akci na několika kartách najednou, zaškrtni políčko u ka
 - **Assety:** Oblíbené a Skrýt platí pro jakýkoli výběr; Duplikovat, Stáhnout a Smazat se objeví, teprve když je každá vybraná položka tvůj vlastní nahraný soubor - sdílený asset design systému je trvalý závazek, takže se ho ty tři nedotknou ani hromadně.
 - **Projekty:** viz [Najdi a obnov svou práci](/info/find-your-work.html#find-something-you-saved).
 
-> Jedna past na popisky: **Zobrazit relace** existuje, jen když je něco *vybrané*. Kliknutí pravým tlačítkem na jednu nevybranou kartu místo toho nabídne **N uložených session**, což otevře seznam uložených relací daného nástroje, kde je smazání trvalé, místo aby přešlo do Projektů.
+> Past v pojmenování: **Zobrazit relace** existuje, jen když je něco *vybráno*. Kliknutí pravým tlačítkem na jednu nevybranou dlaždici místo toho nabídne **N uložených session**, což otevře seznam uložených relací daného nástroje, kde smazání přesune relaci do Koše místo přechodu do Projektů.
 
 ![Lišta výběru v galerii pro dva nástroje, nabízející Dostupné offline, Zobrazit relace, Oblíbené a Skrýt](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
 <!--
@@ -326,7 +326,7 @@ Pošli odkaz kolegovi, přidej si ho do záložek nebo ho commitni. (Plné detai
 - **Balíček design systému** (`lolly-brand`) obsahuje tokeny a může obsahovat písma, loga, publikované verze a zachované zdroje. Otevření ho přidá jako samostatný pojmenovaný design systém a pak na něj přepne; systémy už v zařízení zůstanou.
 - **Pracovní prostor značky / balíček instance** je `lolly-brand` s deklarovanými nástroji, katalogovými assety a volitelně adresou instance. Předletová kontrola vypíše tyto dopady pro celé zařízení, protože jeho načtení nahradí jedinou dřív načtenou překryvnou vrstvu pracovního prostoru.
 
-Úplná **záloha zařízení/profilu není `.lolly`**. Zůstává souborem `LollyTools-….zip` ve formátu `lolly-backup` a obnovuje se jen přes **Nastavení → Úložiště**. Obyčejná zazipovaná složka nástroje také zůstává `.zip`. Jinými slovy, balíčky relace a design systému patří `.lolly`; zálohy a volné archivy ne.
+Kompletní **záloha zařízení/profilu není `.lolly`**. Zůstává souborem `LollyTools-….zip` ve formátu `lolly-backup` a obnovuje se přes **Nastavení → Úložiště → Importovat data…**, což také vezme kopii, kterou Synchronizace uchovává v tvém úložišti. Obyčejná zazipovaná složka nástroje zůstává také `.zip`. Jinými slovy, balíčky relace a design systému vlastní `.lolly`; zálohy a pracovní postupy s volnými archivy ne.
 
 **Download .lolly** v dialogu Sdílet nástroje, ve kterém pracuješ, zapíše aktuální design jako balíček sdílené relace. Nese uloženou relaci spolu s obrázky a soubory dostupnými na tomto zařízení. Obyčejná katalogová grafika veze se s ní taky. Licencovaná grafika se zadrží, pokud ji výslovně nezahrneš, a zastaralý nebo nedostupný soubor zůstává externím odkazem místo toho, aby zmizel. Připravené potvrzení ukáže skutečnou velikost `.lolly`, počet vložených souborů, počet externích odkazů a to, jestli je zahrnutý nástroj. Tam, kde má tvé zařízení sdílení systému, ho **Send to…** předá rovnou jemu (AirDrop, sdílení na Androidu), místo aby ho ukládalo na disk.
 

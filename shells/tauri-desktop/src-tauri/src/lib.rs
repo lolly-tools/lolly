@@ -146,6 +146,8 @@ fn run_gui(mut context: tauri::Context, search_provider: bool) {
             reword::reword_probe,
             reword::reword_put_file,
             reword::reword_generate,
+            // "Clear all my data" removes the staged model folder (and only that).
+            reword::reword_clear,
             // CORS-free remote-instance/provider transport. Unlike the former
             // raw HTTP plugin, this command pins public DNS answers, enforces
             // HTTPS, bounds bytes/headers and rechecks every redirect.

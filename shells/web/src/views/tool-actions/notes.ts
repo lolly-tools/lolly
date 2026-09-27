@@ -9,6 +9,7 @@
  */
 import { LEXICON_VERSION } from '@lolly/engine';
 import { t, tRaw } from '../../i18n.ts';
+import { isTauriShell } from '../../lib/instance-choice.ts';
 import type { ProfileStore } from './shared.ts';
 import { bindOp, type ActionsCtx } from './context.ts';
 
@@ -96,7 +97,7 @@ export async function offerDetailsAsk(ta: ActionsCtx): Promise<boolean> {
   if (current.useDetails || current.personalizeNudgeDismissed) return false;
   const line = document.createElement('p');
   line.className = 'export-details-ask';
-  line.textContent = t('Add your details to this file? They stay on this device.');
+  line.textContent = isTauriShell() ? t('Add your details to this file? They stay on this device.') : t('Add your details to this file? They stay in this browser.');
   const link = document.createElement('a');
   link.href = '#/profile?focus=use-details';
   link.textContent = t('Set up my details');

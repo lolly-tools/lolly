@@ -19,7 +19,7 @@ Allt i en profil finns **på enheten**, i webbläsarens lokala databas (IndexedD
 | **Tillgänglighet** | Fyra komfortomkopplare - *Minska rörelse*, *Dölj färgglada förhandsvisningar*, *Hög kontrast*, *Stor text* - lagrade på profilposten, så de följer med i en profilexport. Se [Tillgänglighet](#accessibility). |
 | **Ditt arbete** | Sparade sessioner (med miniatyrbilder) - organiserade i nästlade mappar i **[Projects](/info/using.html)** - ditt **My images**-bibliotek och den lokala aktivitetsstatistiken, alla kopplade till denna profil. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
 
 ![Profilskärmen - namn, kontakt, en valfri profilbild och dina inställningar](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -35,7 +35,7 @@ Ordet "profil" antyder en fast person, men i Lolly är det egentligen ett **skap
 
 ### Som individ
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
 
 ![Profilbildskontrollen, tom tills du laddar upp ett foto som sedan stannar på den här enheten](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -53,10 +53,10 @@ I Lolly är den rollen bara **ännu en profil du har till hands** - ett sparat p
 
 I varje ögonblick har en installation **en aktiv profil** - de uppgifter ett verktyg ser just nu. Det finns ingen profilväxlare i appen; i stället är varje profil ett **portabelt paket** (en enda `.zip`, se [nedan](#moving-a-profile-to-a-new-device)). Det är medvetet samma mekanism som att flytta till en ny enhet - en profil är en fil du kan spara, kopiera och ladda.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
 
-- <!--i:trash--> **Renaste bytet:** **Inställningar → Preferences → Lagring → Rensa all min data**, och sedan **Import** paketet för det sammanhang du går in i. Nu skapar du helt och hållet som den profilen.
-- <!--i:layers--> **Lagring:** att importera *utan* att först rensa **slår ihop** - den importerade profilen, sessionerna och bilderna hamnar ovanpå det som redan finns, ersätter allt med samma namn och lämnar resten. Praktiskt för att dra in ett teams sparade sessioner i din egen uppsättning; inte vad du vill om du behöver en ren rollgräns.
+- <!--i:trash--> **Renaste bytet:** **Inställningar → Preferences → Lagring → Rensa all min data**, och sedan **Importera** paketet för det sammanhang du går in i. Nu skapar du helt och hållet som den profilen.
+- <!--i:layers--> **Lagring:** att importera *utan* att rensa först **slår ihop** - de importerade sessionerna och bilderna hamnar ovanpå det som redan finns; där båda har samma sak behålls den kopia som sparades senast, och resten lämnas orörd. Mappar, favoriter och mallar läggs till dina, och dina egna uppgifter och inställningar behålls. Praktiskt för att dra in ett teams sparade sessioner i din egen uppsättning; inte vad du vill om du behöver en ren rollgräns.
 - <!--i:monitor--> **Sida vid sida:** eftersom allt är enhetsbundet bär en separat webbläsarprofil, ett separat användarkonto eller en andra installerad PWA var sin oberoende Lolly-profil. Kör din personliga installation och event-kioskens installation samtidigt, utan att växla.
 
 Så om du verkligen jonglerar flera sammanhang (du, ditt team, eventansvarig-hatten), håller du flera paket och läser in det du behöver:
@@ -108,13 +108,13 @@ Eftersom en profil är helt lokal finns det två sätt att få den till en tom i
 
 Under **Inställningar → Preferences → Lagring → Flytta till en annan enhet**:
 
-- <!--i:download--> **Export my data** laddar ner en `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - uppkallad efter profilen den tillhör, med ett sekvensnummer per dag så att upprepade exporter inte krockar (namndelar utelämnas om profilen saknar dem). Den innehåller din profil, varje sparad session (med sin miniatyrbild), dina uppladdade bilder - dina varumärkestoken och installerade typsnitt följer med som användartillgångar - och dina inställningar (tema, layout, lokal aktivitetsstatistik).
-- <!--i:upload--> **Import data…** på den andra installationen läser in den filen igen så att du fortsätter precis där du slutade.
-- <!--i:box--> **Export my data & render everything** skriver samma säkerhetskopia *plus* en andra zip-fil som renderar varje sparad session till sin färdiga utdatafil, i mappar som speglar dina Projects. Ett komplett offlinearkiv av både källorna och resultaten - och det kan bli stort och långsamt med många sessioner.
+- <!--i:download--> **Exportera mina data** laddar ner en `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - uppkallad efter profilen den tillhör, med ett sekvensnummer per dag så att upprepade exporter inte krockar (namndelar utelämnas om profilen saknar dem). Den innehåller din profil, varje sparad session (med sin miniatyrbild), dina uppladdade bilder - dina varumärkestoken och installerade typsnitt följer med som användartillgångar - och dina inställningar (tema, layout, lokal aktivitetsstatistik).
+- <!--i:upload--> **Importera data…** på den andra installationen läser in den filen igen så att du fortsätter precis där du slutade. Den tar också en kopia som [Synk](/info/sync.html) håller i din lagring.
+- <!--i:box--> **Exportera mina data & rendera allt** skriver samma säkerhetskopia *plus* en andra zip-fil som renderar varje sparad session till sin färdiga utdatafil, i mappar som speglar dina Projects. Ett komplett offlinearkiv av både källorna och resultaten - och det kan bli stort och långsamt med många sessioner.
 
 ![De två knapparna som flyttar en hel installation: Exportera mina data skriver en zip, Importera data läser in den igen](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-Paketet är en enkel, självständig zip-fil, så den kan färdas på **vilket** sätt som helst - USB, AirDrop, en nätverksdelning, e-post till dig själv - och målet kan vara helt offline. Varje del är checksummerad, så en fil som skadats under transporten fångas upp vid import istället för att återställas halvtrasig. Import **slår samman** (profil/session/bild med samma namn skrivs över; allt annat behålls), så den suddar aldrig ut ett mål som redan är i bruk.
+Paketet är en enkel, självständig zip-fil, så den kan färdas på **vilket** sätt som helst - USB, AirDrop, en nätverksdelning, e-post till dig själv - och målet kan vara helt offline. Varje del är checksummerad, så en fil som skadats under transporten fångas upp vid import i stället för att återställas halvtrasig. Import **slår samman** (av en session eller bild med samma namn behålls den kopia som sparades senast; mappar, favoriter och mallar läggs till; målets uppgifter och inställningar behålls; allt annat behålls), så den suddar aldrig ut ett mål som redan är i bruk.
 
 Det som inte följer med: katalogcachen (den laddas ner igen på den nya enheten) och själva verktygen (antas redan finnas där).
 
@@ -122,7 +122,7 @@ För den exakta paketstrukturen, versionspolicyn och integritetsreglerna, se **[
 
 ## Hur verktyg använder din profil
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
 
 Ett verktyg *förifyller* bara någonsin de profilfält det uttryckligen är byggt för att binda till:
 

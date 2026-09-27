@@ -30,9 +30,10 @@
  * one.
  */
 
-import { openDB as idbOpen, deleteDB as idbDelete } from 'idb';
+import { openDB as idbOpen, deleteDB as idbDelete, unwrap } from 'idb';
 import type { IDBPDatabase } from 'idb';
 import { indexSavedWork, indexExport } from './history-index.ts';
+import { clearSignal } from '../lib/clear-signal.ts';
 
 const DB_NAME = 'lolly';
 const DB_VERSION = 24;
@@ -344,12 +345,65 @@ function openOnce(timeoutMs = OPEN_TIMEOUT_MS): Promise<IDBPDatabase> {
 // boot hang. A failed open clears this so a later call (e.g. after the blocking tab
 // finally closes) can retry from scratch.
 let dbPromise: Promise<IDBPDatabase> | null = null;
+/** The resolved shared connection, so a seal can close it synchronously. */
+let dbHandle: IDBPDatabase | null = null;
 
 export function openDB(): Promise<IDBPDatabase> {
+  // "Clear all my data" (lib/clear-signal.ts): once this tab must stop writing,
+  // no connection opens again until the page reloads.
+  if (clearSignal.databaseSealed()) {
+    return Promise.reject(Object.assign(new Error('Lolly data was cleared: this tab reloads before it uses the database again.'), { code: 'DB_SEALED' }));
+  }
   if (!dbPromise) {
-    dbPromise = openResilient().catch((e) => { dbPromise = null; throw e; });
+    dbPromise = openResilient().then((db) => { dbHandle = db; checkEachTransaction(db); return db; }).catch((e) => { dbPromise = null; throw e; });
   }
   return dbPromise;
+}
+
+/**
+ * Every transaction on the shared connection checks the clear marker first
+ * (lib/clear-signal.ts). Code that keeps the connection it got at boot (the state
+ * and profile bridges do) never calls openDB() again, so the check in openDB()
+ * alone would miss that code. A tab that did not answer the clearing tab in time (busy,
+ * or frozen in the background) still sees the marker before its next transaction,
+ * and one it created earlier runs before the clear's own, which is created later.
+ * The check is one localStorage read per transaction.
+ */
+function checkEachTransaction(db: IDBPDatabase): void {
+  const raw = unwrap(db) as IDBDatabase | undefined;
+  if (!raw || typeof IDBDatabase === 'undefined') return;
+  const native = IDBDatabase.prototype.transaction;
+  Object.defineProperty(raw, 'transaction', {
+    configurable: true,
+    writable: true,
+    value: function checkedTransaction(this: IDBDatabase, ...args: Parameters<IDBDatabase['transaction']>): IDBTransaction {
+      if (clearSignal.databaseSealed()) {
+        throw new DOMException('Lolly data was cleared: this tab reloads before it uses the database again.', 'InvalidStateError');
+      }
+      return native.apply(this, args);
+    },
+  });
+}
+
+// Close the shared connection the moment this tab stops for a clear (its own, or
+// another tab's). Transactions already created still finish, and IndexedDB runs
+// them before the clear's own transaction, which is created later; any write that
+// had not created its transaction yet fails, because the connection is closed.
+clearSignal.onSealDatabase(() => {
+  const pendingOpen = dbPromise;
+  dbPromise = null;
+  if (dbHandle) { try { dbHandle.close(); } catch { /* already closed */ } dbHandle = null; }
+  else pendingOpen?.then((db) => { try { db.close(); } catch { /* already closed */ } }, () => { /* never opened */ });
+});
+
+/**
+ * A connection of its own for "Clear all my data" (lib/clear-all-data.ts). The
+ * clear seals the shared connection first, so nothing else in this tab can queue
+ * a write behind the clear, then empties the stores through this connection and
+ * closes the connection.
+ */
+export function openUnsharedDB(): Promise<IDBPDatabase> {
+  return openHealed();
 }
 
 /** openHealed(), but a BLOCKED open (another tab holding an older version) is retried for

@@ -155,17 +155,27 @@ export async function removeUserAssetVersions(db: HistoryDb, id: string, version
   } catch (error) { try { tx.abort(); } catch {} await tx.done.catch(() => {}); throw error; }
 }
 
-/** Current bytes can also be a retained revision's only copy. */
-export async function deleteUserAsset(db: HistoryDb, id: string): Promise<void> {
-  if (!available(db)) { await db.delete('user-assets', id); return; }
+/** Current bytes can also be a retained revision's only copy. `onlyIfTrashedAt`
+ *  (the Trash's permanent delete, plan 277 review B3) deletes only a record that
+ *  still carries exactly that Trash mark, read inside the same transaction, and
+ *  answers false without touching anything otherwise. */
+export async function deleteUserAsset(db: HistoryDb, id: string, onlyIfTrashedAt?: string): Promise<boolean> {
+  const stillTrashed = (record: { trashedAt?: unknown } | undefined): boolean =>
+    onlyIfTrashedAt === undefined || (!!record && record.trashedAt === onlyIfTrashedAt);
+  if (!available(db)) {
+    if (onlyIfTrashedAt !== undefined && !stillTrashed(await db.get('user-assets', id) as { trashedAt?: unknown } | undefined)) return false;
+    await db.delete('user-assets', id); return true;
+  }
   const roots = ['state', 'revisions', 'revision-recovery'].filter(store => db.objectStoreNames?.contains(store));
   const tx = db.transaction(['user-assets', ...roots], 'readwrite'); void tx.done.catch(() => {});
   try {
-    const record = await tx.objectStore('user-assets').get(id) as VersionedUserAsset | undefined;
+    const record = await tx.objectStore('user-assets').get(id) as (VersionedUserAsset & { trashedAt?: unknown }) | undefined;
+    if (!stillTrashed(record)) { await tx.done; return false; }
     if (record?.version && (await dependencyRoots(tx, roots)).has(`${id}:${record.format}:${record.version}`)) {
       throw new Error('This asset is used by a saved creation or retained history. Remove those references before deleting it.');
     }
     await tx.objectStore('user-assets').delete(id); await tx.done;
+    return true;
   } catch (error) { try { tx.abort(); } catch {} await tx.done.catch(() => {}); throw error; }
 }
 

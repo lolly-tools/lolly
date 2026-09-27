@@ -5,11 +5,12 @@ import type { IDBPDatabase } from 'idb';
 import type { RevisionEntry, RevisionOptions } from './revision-history.ts';
 import type { RecoveryStore } from './revision-recovery.ts';
 import type { StateRecord } from './state.ts';
-import { MAX_REVISION_BYTES as MAX_BYTES } from './revision-limits.ts';
+import { MAX_REVISION_BYTES as MAX_BYTES, MAX_REVISION_PREVIEWS } from './revision-limits.ts';
 import { packedRevisionSnapshot } from './revision-snapshot.ts';
 import { pinRevisionAssets } from './revision-asset-pins.ts';
 import { collectAssetRefs } from './asset-ref-collector.ts';
-import { REVISION_STORES as STORES, type DocumentHead, documentVersion, writeCurrentState } from './revision-records.ts';
+import { REVISION_STORES as STORES, type DocumentHead, type RevisionTransaction, documentVersion, savedPointer, writeCurrentState } from './revision-records.ts';
+import { indexSavedWork } from './history-index.ts';
 
 /** Minute detail for an hour, hourly for a day, daily for a month, weekly after
  * that. Explicit saves are outside compaction. Keep the newest point per bucket. */
@@ -39,6 +40,9 @@ export async function commitRevision(db: IDBPDatabase, recovery: RecoveryStore, 
     const docs = tx.objectStore('revision-documents'), revisions = tx.objectStore('revisions');
     const prior = await docs.get(record.slot) as DocumentHead | undefined;
     if ((prior?.head ?? null) !== options.expectedHead || options.expectedVersion !== undefined && documentVersion(prior) !== options.expectedVersion) throw new Error('This document changed in another tab. Reopen it before saving more history.');
+    // An adopted state keeps its own record: its save time and stamps describe that state.
+    const adopted = options.adopt ? await tx.objectStore('state').get(record.slot) as StateRecord | undefined : undefined;
+    const stamps = adopted ?? record;
     if (prior?.head && prior.hash === snapshot.hash) {
       const existing = await revisions.get(prior.head) as RevisionEntry;
       if (options.reason === 'save' && existing.reason === 'automatic') {
@@ -46,9 +50,13 @@ export async function commitRevision(db: IDBPDatabase, recovery: RecoveryStore, 
         await revisions.put(existing);
       }
       const currentVersion = crypto.randomUUID();
-      await docs.put({ ...prior, version: currentVersion, workingHash: snapshot.hash });
-      await writeCurrentState(tx, record, snapshot.data, prior.documentId);
-      await recovery.clearCommitted(tx, record.slot);
+      await docs.put({ ...prior, version: currentVersion, workingHash: snapshot.hash,
+        ...(options.reason === 'save' ? { saved: savedPointer(existing, stamps) } : {}) });
+      if (options.adopt) await adoptState(tx, adopted, prior.documentId, existing.id);
+      else {
+        await writeCurrentState(tx, record, snapshot.data, prior.documentId);
+        await recovery.clearCommitted(tx, record.slot);
+      }
       await done;
       return { ...existing, currentVersion };
     }
@@ -56,7 +64,7 @@ export async function commitRevision(db: IDBPDatabase, recovery: RecoveryStore, 
     const entry: RevisionEntry = {
       id: crypto.randomUUID(), documentId, slot: record.slot, parentId: prior?.head ?? null,
       toolId: record.toolId ?? '', label: record.label || record.toolId || 'Untitled',
-      at: record.updatedAt, reason: options.reason, hash: snapshot.hash, bytes: snapshot.bytes, stored: snapshot.stored, assetRefs: [...assetRefs],
+      at: adopted?.updatedAt ?? record.updatedAt, reason: options.reason, hash: snapshot.hash, bytes: snapshot.bytes, stored: snapshot.stored, assetRefs: [...assetRefs],
       toolVersion: record.toolVersion, formatVersion: record.formatVersion,
       engineVersion: record.engineVersion, designSystem: record.designSystem,
     };
@@ -79,13 +87,37 @@ export async function commitRevision(db: IDBPDatabase, recovery: RecoveryStore, 
     await tx.objectStore('revision-usage').put(usage, 'total');
     await revisions.add(entry);
     await tx.objectStore('revision-payloads').add(snapshot.payload, entry.id);
-    await docs.put({ slot: record.slot, documentId, head: entry.id, hash: entry.hash, workingHash: entry.hash, version: entry.id });
-    await writeCurrentState(tx, record, snapshot.data, documentId);
-    await recovery.clearCommitted(tx, record.slot);
+    // The last explicit save moves only on a save; any other write keeps it, and a
+    // document born from an automatic write has none (plan 277 P1).
+    const saved = options.reason === 'save' ? { saved: savedPointer(entry, stamps) }
+      : prior ? ('saved' in prior ? { saved: prior.saved } : {}) : { saved: null };
+    await docs.put({ slot: record.slot, documentId, head: entry.id, hash: entry.hash, workingHash: entry.hash, version: entry.id, ...saved });
+    if (options.adopt) await adoptState(tx, adopted, documentId, entry.id);
+    else {
+      await writeCurrentState(tx, record, snapshot.data, documentId);
+      await recovery.clearCommitted(tx, record.slot);
+    }
     await done;
     return entry;
   } catch (error) {
     try { tx.abort(); } catch { /* transaction already failed */ }
     throw error;
   }
+}
+
+/** An adopted state stays as it was saved: same record, times and thumbnail. The
+ * thumbnail also becomes the revision's preview, so a later Leave without saving
+ * can put the picture back with the data. Drafts are left for the next write. */
+async function adoptState(tx: RevisionTransaction, current: StateRecord | undefined, documentId: string, revisionId: string): Promise<void> {
+  if (!current) return;
+  if (current.documentId !== documentId) await tx.objectStore('state').put(indexSavedWork({ ...current, documentId }));
+  const thumb = current.thumb;
+  if (!thumb || !/^data:image\/(png|jpeg|webp);base64,/.test(thumb) || thumb.length > 256 * 1024) return;
+  const previews = tx.objectStore('revision-previews');
+  if (await previews.get(revisionId)) return;
+  const usage = await tx.objectStore('revision-usage').get('total') ?? { bytes: 0, previews: 0 };
+  const size = new TextEncoder().encode(thumb).byteLength;
+  if (usage.previews + size > MAX_REVISION_PREVIEWS) return;
+  await previews.put(thumb, revisionId);
+  await tx.objectStore('revision-usage').put({ ...usage, previews: usage.previews + size }, 'total');
 }

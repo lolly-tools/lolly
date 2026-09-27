@@ -51,14 +51,14 @@ tu dispositivo**, nunca transmitidos:
 - <!--i:folder--> **Tus propios documentos, sesiones guardadas, recursos subidos y fuentes** - almacenados en
   IndexedDB en tu dispositivo, nunca subidos, nunca leídos por nadie salvo tú.
 
-Nada de esto se comparte, se vende ni se usa para identificarte o rastrearte. No hay nada
-a lo que dar consentimiento, porque no ocurre ninguna recopilación - solo este aviso, para
-que sepas qué se guarda y dónde. Borrar los datos del sitio en tu navegador lo elimina
-todo en cualquier momento; **Ajustes → Almacenamiento → Borrar todos mis datos** elimina
-tu perfil, las sesiones guardadas, las imágenes subidas y la caché de recursos. (Según el
-Art. 5(3) de la ePrivacy Directive, el almacenamiento estrictamente necesario para el
-servicio que solicitaste no requiere consentimiento - solo transparencia, que es lo que
-son tanto este documento como el aviso dentro de la aplicación.)
+Nada de esto se comparte, se vende ni se usa para identificarte o hacerte seguimiento. No
+hay nada que consentir, porque no ocurre ninguna recopilación - solo este aviso, para que
+sepas qué se guarda y dónde. Borrar el almacenamiento del sitio en tu navegador elimina
+todo eso en cualquier momento, y lo mismo hace **Ajustes → Almacenamiento → Borrar todos
+mis datos**, que además desactiva Sincronización primero. (Según la Directiva ePrivacy
+Art. 5(3), el almacenamiento estrictamente necesario para el servicio que pediste no
+requiere consentimiento - solo transparencia, que es lo que ofrecen tanto este documento
+como el aviso dentro de la app.)
 
 ![La sección de almacenamiento de la página de perfil en una pantalla del ancho de un teléfono: cada categoría de datos en el dispositivo nombrada, con el botón Clear all my data justo al lado](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

@@ -8,7 +8,7 @@ Všechno, co v Lolly vytvoříš, zůstává v prohlížeči nebo aplikaci, ve k
 | Stiskl/a jsi **Stáhnout** | Stažené soubory tvého prohlížeče, a kopie v **Assetech** |
 | Nic z toho, v jednom z [devíti nástrojů, které ukládají průběžně](#the-nine-tools-that-save-as-you-work) | **Projekty** a **History** |
 | Nic z toho, v jiném nástroji | Jen karta, ve které jsi pracoval/a, dokud ji nezavřeš |
-| Přesunul/a jsi to do koše | Dlaždice **Koš** v **Projektech**, na 30 dní |
+| Smazal/a jsi to v aplikaci | **Koš**, v **Projektech**, **Assetech** nebo **Nastavení → Úložiště**, na 30 dní |
 
 ## Najdi něco, co jsi uložil/a
 
@@ -73,18 +73,18 @@ Co se vrátí, závisí na tom, jak jsi odešel/odešla a který nástroj jsi po
 
 - **Zavřel/a jsi kartu, nebo ses vrátil/a jindy.** Neuložená práce zmizí, kromě [devíti nástrojů](#the-nine-tools-that-save-as-you-work), které ukládají tvé úpravy za chodu: otevři je z **Projektů**.
 - **Znovu jsi načetl/a stránku ve stejné kartě.** Tvoje nastavení se vrátí z adresy stránky. V jiných nástrojích než těch devíti se obrázky a soubory, které jsi přidal/a ze zařízení, a jednořádkový text delší než 150 znaků nevrátí, protože je adresa neuchovává.
-- **Stiskl/a jsi Domů, nebo tlačítko zpět vlevo nahoře.** Pokud jsi něco změnil/a od posledního uložení, stažení nebo zkopírování, dialog **Neuložené změny** se zeptá, jestli chceš nejdřív uložit. **Save & leave** uloží práci a přenese tě do **Projektů**, nebo zpátky do složky projektu, ze které jsi práci otevřel/a. **Odejít bez uložení** odejde; v devíti nástrojích jsou tvé úpravy už uložené a zůstávají v Projektech. **Zrušit** tě nechá v nástroji.
+- **Stiskl/a jsi Domů, nebo tlačítko zpět vlevo nahoře.** Pokud jsi něco změnil/a od posledního uložení, stažení nebo zkopírování, dialog **Neuložené změny** se zeptá, jestli chceš nejdřív uložit. **Uložit & odejít** uloží práci a přenese tě do **Projektů**, nebo zpátky do složky projektu, ze které jsi práci otevřel/a. **Odejít bez uložení** zahodí tvoje změny: uložená položka se vrátí do stavu, ve kterém jsi ji naposledy uložil/a, a výtvor, který jsi nikdy neuložil/a, opustí **Projekty**. **Zrušit** tě nechá v nástroji.
 
 Lolly se zeptá, jen když stiskneš **Domů** nebo tlačítko zpět v nástroji. Zavření karty, znovunačtení a vlastní tlačítko Zpět tvého prohlížeče se nikdy neptají. Pro jistotu stiskni **Uložit jako**, nebo **Uložit** v exportním panelu, než nástroj opustíš.
 
 ::: note Odešel/odešla jsi bez uložení omylem?
-V jiných nástrojích než těch devíti hned stiskni tlačítko Zpět svého prohlížeče. Nastavení z adresy stránky se vrátí, i když obrázky, které jsi přidal/a ze zařízení, ne. Pak stiskni **Uložit jako** a **Uložit**, než uděláš cokoli jiného: tentokrát se Lolly před odchodem nezeptá.
+V devíti nástrojích si History drží kopii zahozených úprav. Otevři stránku **History**, najdi je pod **Changes** a stiskni **Otevřít jako kopii**. V jiných nástrojích jsou změny pryč.
 :::
 
 ::: details Devět nástrojů, které ukládají průběžně
 [Design](/#/tool/design), [Graf](/#/tool/chart), [QR kód](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Vývojový diagram](/#/tool/org-chart), [Ceník](/#/tool/pricing-table), [Slovní značka](/#/tool/wordmark) a [Text](/#/tool/text-helper). Seznam roste, jak další nástroje získávají automatické ukládání.
 
-V těchto nástrojích tvoje první změna zařadí práci do **Projektů**, jako bys ji uložil/a, a další změny se ukládají během pár sekund. Neuložený výtvor tak zůstává v Projektech i po zavření karty a **Odejít bez uložení** tvoje úpravy nezahodí. Opětovné otevření nástroje z domovské obrazovky začne nový výtvor; ten dřívější otevři z Projektů.
+V těchto nástrojích tvoje první změna zařadí práci do **Projektů**, jako bys ji uložil/a, a další změny se ukládají během pár sekund. Neuložený výtvor tak zůstává v Projektech i po zavření karty a znovu se otevře se svými změnami označenými jako neuložené. **Odejít bez uložení** je přesto zahodí, a History uchová kopii zahozených úprav na 30 dní. Opětovné otevření nástroje z domovské obrazovky začne nový výtvor; ten dřívější otevři z Projektů.
 
 Tohle funguje jen ve webové aplikaci, ne v desktopové nebo mobilní aplikaci, a ne když pracuješ naživo s někým jiným.
 :::
@@ -101,8 +101,8 @@ Lolly si po každém stažení navíc uchová dvě věci:
 - **Nastavení, které jsi použil/a**, pro tvých posledních 24 stažení. **Nedávné exporty**, pod tvojí uloženou prací v **Projektech**, znovu otevře nástroj s těmito nastaveními, abys mohl/a soubor udělat znovu, i když obrázky a soubory, které jsi přidal/a ze zařízení, nejsou zahrnuté. Stejný seznam je pod **Nastavení → Aktivita a statistiky → Poslední exporty** a na kartě **Changes** v **History**. Tento seznam uchovává nastavení, ne soubory.
 
 ::: details V desktopové a mobilní aplikaci
-- **Desktopová aplikace:** **Stáhnout** uloží přímo do složky **Lolly** uvnitř tvé složky **Downloads**, bez dialogu. Zpráva potvrdí uložení a nabídne **Odhalit** pro zobrazení souboru. **Open Exports Folder**, v nabídce **Window** nebo **Exporty**, otevře tuto složku kdykoli. Soubor se stejným názvem jako dřívější se uloží jako „název (1)“.
-- **iPhone a iPad:** soubor se uloží v aplikaci **Files**, pod **Lolly**, a otevře se sdílecí panel, abys ho mohl/a poslat dál.
+- **Desktopová aplikace:** **Stáhnout** uloží přímo do složky **Lolly** uvnitř tvé složky **Downloads**, bez dialogu. Řádek pod **Stáhnout** ukazuje, kam soubor putoval, například „Uloženo do Downloads/Lolly“, s tlačítkem **Zobrazit ve složce**. **Open Exports Folder**, v nabídce **Window** nebo **Exports**, otevře tuto složku kdykoli. Soubor se stejným názvem jako dřívější se uloží jako „název (1)“.
+- **iPhone a iPad:** soubor se uloží v aplikaci **Soubory**, pod **Lolly**, a otevře se sdílecí panel, abys ho mohl/a poslat dál. Řádek pod **Stáhnout** ukazuje „Uloženo do Souborů → Lolly“.
 - **Android:** otevře se nabídka sdílení, abys mohl/a vybrat, kam soubor půjde.
 
 Na iPhonu, iPadu a Androidu nový soubor nahradí dřívější se stejným názvem.
@@ -146,8 +146,8 @@ Filtruj podle projektu, nástroje a data (na mobilu pod **Filters**). Stránka H
 
 Odkaz ke sdílení nese tvá nastavení, ale ne obrázky nebo soubory, které jsi přidal/a ze zařízení.
 
-::: warning Import nahradí tvoje složky
-Pokud už druhé zařízení má nějakou práci, přečti si tohle nejdřív. Import přidá to, co soubor obsahuje, aktualizuje odpovídající položky a nesmaže žádnou uloženou položku. Tvůj profil je ale jeden záznam, takže složky, oblíbené, šablony a údaje na tomto zařízení nahradí ty ze souboru. Uložená položka, která byla jen na tamtom zařízení, zůstane, na nejvyšší úrovni **Projektů**. **Bring it to this device**, v Synchronizaci, dělá totéž.
+::: note Import přidává a nic nemaže
+Složky, oblíbené a šablony ze souboru se přidají vedle těch, které už jsou na druhém zařízení. Když je uložená položka na obou stranách, zachová se kopie uložená později. Tvoje údaje a nastavení na tom zařízení zůstanou, jaké jsou; prázdná pole se doplní ze souboru. **Přenést to do tohoto zařízení**, v Synchronizaci, funguje stejně.
 :::
 
 Chceš-li přenést všechno najednou:
@@ -157,7 +157,7 @@ Chceš-li přenést všechno najednou:
 3. Na novém zařízení otevři **Nastavení → Úložiště**, stiskni **Importovat data…**, vyber soubor a stiskni **Import**.
 
 ::: note Co zůstane stranou
-Přihlášení, klíče a synchronizační heslo zůstávají na každém zařízení. Seznam nedávných stažení, offline stažení a AI modely necestují žádnou cestou. Historie verzí cestuje jen v souboru **Exportovat moje data**, ne přes Synchronizaci nebo `.lolly`. Kopie, které Synchronizace uchovává v tvém úložišti, se otevírají jen přes Synchronizaci, ne pomocí **Importovat data…** nebo **Otevřít**.
+Přihlášení, klíče a synchronizační heslo zůstávají na každém zařízení. Seznam nedávných stažení, offline stažení a AI modely necestují žádnou cestou. Historie verzí cestuje jen v souboru **Exportovat moje data**, ne přes Synchronizaci nebo `.lolly`. Kopii, kterou Synchronizace uchovává v tvém úložišti, lze stáhnout a otevřít, nebo ji vybrat v **Importovat data…**, jako záložní soubor; šifrovaná kopie se zeptá na tvoje heslo.
 :::
 
 ::: details Co obsahuje záložní soubor
@@ -176,7 +176,7 @@ Stiskni **Exportovat moje data** pod **Nastavení → Úložiště** a ulož si 
 
 Když se aplikace spustí, Lolly požádá prohlížeč, aby nemazal jeho úložiště, když zařízení dochází místo. Rozhoduje prohlížeč. Pod **Nastavení → Dostupné offline** řádek začínající **Chráněno** znamená, že prohlížeč souhlasil; „Prohlížeč může stažené soubory smazat, pokud zařízení dochází místo“ znamená, že nesouhlasil, a **Chránit stažené soubory** se zeptá znovu. Pokud prohlížeč nesouhlasil, může při nedostatku místa smazat uloženou práci i stažené soubory, takže si ulož aktuální soubor **Exportovat moje data**.
 
-**Nastavení → Úložiště** ukazuje, kolik místa zabírá každý druh dat. **Vymazat cache** zahodí stažené soubory katalogu, které se stáhnou znovu, až budou potřeba. **Vymazat všechna moje data** tě požádá o napsání slova, a pak odstraní tvůj profil, uložené relace, nahrané obrázky a cache assetů. Ostatní data zůstanou, včetně historie verzí, seznamu nedávných stažení, výsledků Convert, design systémů a stažených AI modelů. Chceš-li odstranit úplně všechno, vymaž data tohoto webu ve svém prohlížeči.
+**Nastavení → Úložiště** ukazuje, kolik místa zabírá každý druh dat. **Vymazat cache** zahodí stažené soubory katalogu, které se stáhnou znovu, až budou potřeba. **Vymazat všechna moje data** tě požádá o napsání slova, vypne Synchronizaci, a pak odstraní všechno, co Lolly uchovává v tomto prohlížeči: tvůj profil a nastavení, uložené relace s jejich historií a Koš, nahrané soubory, písma a design systémy, log stažení, výsledky Convert, stažené AI modely a offline kopie. Soubory, které jsi stáhl/a, zůstanou tam, kam jsi je uložil/a. Aplikace se pak spustí, jako při první návštěvě.
 
 ![Karta úložiště na obrazovce o šířce telefonu: pojmenovaná každá kategorie dat v zařízení a dole tlačítko Vymazat všechna moje data](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
@@ -195,15 +195,15 @@ Obrázky, design systémy a seznam nedávných stažení zůstávají ve vnitřn
 
 ## Získej zpět něco, co jsi smazal/a
 
-V **Projektech** **Přesunout do koše** uchová položku po dobu 30 dní. Složka jde do koše se vším, co obsahuje, jako jedna položka. Hned poté zpráva nabídne **Zpět** na asi deset sekund. Později:
+Smazání uložené relace, složky, jednoho z tvých nahraných souborů nebo jednoho z tvých písem v aplikaci ji přesune do **Koše** na 30 dní, ať ji smažeš kdekoli: v **Projektech**, **Assetech**, **Nastavení → Úložiště** nebo v seznamu uložených relací nástroje. Složka jde i se vším, co obsahuje, jako jedna položka, a relace si po tu dobu uchovává svou historii verzí. Hned poté zpráva nabídne **Zpět**. Později:
 
-1. Otevři **Projekty** a stiskni dlaždici **Koš**. Dlaždice se objeví, jen když Koš něco obsahuje.
-2. Stiskni **Obnovit** vedle položky.
+1. Otevři **Koš**: dlaždici **Koš** v **Projektech**, tlačítko **Koš** v **Assetech → Tvoje nahrané soubory**, nebo řádek **Koš** v **Nastavení → Úložiště**. Všechny tři otevřou stejný seznam.
+2. Stiskni **Obnovit** vedle položky. Vrátí se do své složky, a písmo získá zpět role, které mělo ve svém design systému.
 
-**Smazat natrvalo** a **Vyprázdnit koš** odstraní položky okamžitě, bez ptaní. Položky starší než 30 dní se natrvalo odstraní při dalším otevření Projektů.
+**Smazat natrvalo** odstraní jednu položku navždy. **Vyprázdnit koš** se nejdřív zeptá, a pak odstraní všechny položky v Koši. Položky starší než 30 dní se odstraní navždy.
 
-::: warning Ostatní mazání jsou trvalá
-Smazání uložené relace pod **Nastavení → Úložiště**, nebo ze seznamu uložených relací nástroje v galerii (klikni pravým tlačítkem na kartu nástroje, pak **N uložených session**), odstraní relaci natrvalo, i s její historií verzí. Obrázek, který smažeš z **Moje obrázky**, se odstraní okamžitě, bez ptaní.
+::: warning Některá mazání jsou okamžitá
+Smazání design systému, loga nebo tvé profilové fotky nejde do Koše. Příkazová řádka a terminálová aplikace mažou také okamžitě.
 :::
 
 Se zapnutou [Synchronizací](/info/sync.html) může **Restore an earlier copy** obnovit stav celého zařízení z dřívějšího dne, a soubor **Exportovat moje data** obnoví to, co soubor obsahuje.

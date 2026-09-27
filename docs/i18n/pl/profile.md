@@ -35,7 +35,7 @@ Słowo „profil" sugeruje jedną, stałą osobę, ale w Lolly to tak naprawdę 
 
 ### Jako osoba
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
 
 ![Kontrolka zdjęcia profilowego, pusta, dopóki nie prześlesz zdjęcia, które potem pozostaje na tym urządzeniu](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -55,9 +55,9 @@ W dowolnej chwili instalacja ma **jeden aktywny profil** - dane, które narzędz
 
 Jeśli więc naprawdę żonglujesz kilkoma kontekstami (ty, twój zespół, kapelusz menedżera wydarzeń), trzymasz kilka pakietów i wczytujesz ten, którego potrzebujesz:
 
-- <!--i:trash--> **Najczystsze przełączenie:** **Ustawienia → Preferences → Pamięć → Wyczyść wszystkie moje dane**, a następnie **Importuj** paczkę dla kontekstu, w który wchodzisz. Od teraz tworzysz wyłącznie jako ten profil.
-- <!--i:layers--> **Warstwowanie:** import *bez* wcześniejszego wyczyszczenia **scala** - zaimportowany profil, sesje i obrazy lądują na wierzchu tego, co już tam jest, zastępując wszystko o tej samej nazwie i pozostawiając resztę. Przydatne do przeniesienia zapisanych sesji jednego zespołu do własnej konfiguracji; niekoniecznie to, czego chcesz, jeśli potrzebujesz czystej granicy ról.
-- <!--i:monitor--> **Obok siebie:** ponieważ wszystko jest przypisane do urządzenia, osobny profil przeglądarki, osobne konto użytkownika lub druga zainstalowana PWA niosą własny, niezależny profil Lolly. Uruchom jednocześnie swoją osobistą instalację i instalację kiosku eventowego, bez przełączania.
+- <!--i:trash--> **Najczystsze przejście:** **Ustawienia → Preferences → Pamięć → Wyczyść wszystkie moje dane**, a potem **Importuj** paczkę dla kontekstu, w który wchodzisz. Od teraz tworzysz wyłącznie jako ten profil.
+- <!--i:layers--> **Warstwowanie:** import *bez* wcześniejszego czyszczenia **scala** - zaimportowane sesje i obrazy lądują na tym, co już tam jest; gdy oba mają ten sam element, zachowywana jest kopia zapisana później, a reszta pozostaje nietknięta. Foldery, ulubione i szablony są dodawane do twoich, a twoje własne dane i ustawienia zostają. Przydatne, gdy chcesz przenieść zapisane sesje jednego zespołu do swojej konfiguracji; nieprzydatne, jeśli potrzebujesz czystej granicy ról.
+- <!--i:monitor--> **Obok siebie:** ponieważ wszystko jest przypisane do urządzenia, osobny profil przeglądarki, osobne konto użytkownika albo druga zainstalowana aplikacja PWA - każde niesie własny, niezależny profil Lolly. Uruchom jednocześnie swoją prywatną instalację i instalację kioskową na wydarzenie, bez przełączania.
 
 Oba te warianty żyją w sekcji Pamięć: miernik rozlicza każdy bajt, który przechowuje ta instalacja, kategoria po kategorii, a przyciski pod nim służą do wyczyszczenia albo przeniesienia danych.
 
@@ -108,13 +108,13 @@ Ponieważ profil jest w całości lokalny, istnieją dwa sposoby, by przenieść
 
 W **Ustawienia → Preferences → Pamięć → Przenieś na inne urządzenie**:
 
-- <!--i:download--> **Eksportuj moje dane** pobiera jeden plik `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - nazwany według profilu, do którego należy, z numerem porządkowym dnia, aby powtórne eksporty się nie zderzały (części nazwy są pomijane, gdy profil ich nie ma). Zawiera Twój profil, każdą zapisaną sesję (wraz z miniaturą), przesłane obrazy - Twoje tokeny marki i zainstalowane czcionki jadą razem jako zasoby użytkownika - oraz Twoje preferencje (motyw, układ, lokalne statystyki aktywności).
-- <!--i:upload--> **Importuj dane…** na drugiej instalacji wczytuje ten plik z powrotem i kontynuujesz dokładnie tam, gdzie skończyłeś/aś.
-- <!--i:box--> **Eksportuj moje dane i wyrenderuj wszystko** zapisuje tę samą kopię zapasową *plus* drugi plik zip, który renderuje każdą zapisaną sesję do gotowego pliku wynikowego, w folderach odzwierciedlających Twoje Projekty. Kompletne archiwum offline zarówno źródeł, jak i wyników - przy dużej liczbie sesji może być duże i wolne.
+- <!--i:download--> **Eksportuj moje dane** pobiera jeden plik `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - nazwany według profilu, do którego należy, z numerem porządkowym dnia, aby powtórne eksporty się nie zderzały (części nazwy są pomijane, gdy profil ich nie ma). Zawiera twój profil, każdą zapisaną sesję (wraz z jej miniaturą), twoje przesłane obrazy - twoje tokeny marki i zainstalowane fonty jadą razem jako zasoby użytkownika - oraz twoje preferencje (motyw, układ, lokalne statystyki aktywności).
+- <!--i:upload--> **Importuj dane…** na drugiej instalacji wczytuje ten plik z powrotem i kontynuujesz dokładnie tam, gdzie skończyłeś. Bierze też kopię, którą [Synchronizacja](/info/sync.html) przechowuje w twojej pamięci.
+- <!--i:box--> **Eksportuj moje dane & wyrenderuj wszystko** zapisuje tę samą kopię zapasową *plus* drugi plik zip, który renderuje każdą zapisaną sesję do jej gotowego pliku wynikowego, w folderach odzwierciedlających twoje Projekty. Kompletne archiwum offline zarówno źródeł, jak i wyników - i przy dużej liczbie sesji może być duże i wolne.
 
 ![Dwa przyciski przenoszące całą instalację: Eksportuj moje dane zapisuje jeden plik zip, Import data wczytuje go z powrotem](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-Pakiet to zwykły, samowystarczalny plik zip, więc podróżuje **dowolnym** sposobem - przez USB, AirDrop, udział sieciowy, e-mail do samego siebie - a urządzenie docelowe może być całkowicie offline. Każda część ma sumę kontrolną, dzięki czemu plik uszkodzony w trakcie przesyłania jest wykrywany podczas importu, a nie przywracany w połowie zepsuty. Import **scala** dane (profil/sesja/obraz o tej samej nazwie jest nadpisywany; cała reszta jest zachowywana), więc nigdy nie kasuje urządzenia docelowego, które było już w użyciu.
+Paczka to zwykły, samowystarczalny zip, więc podróżuje **dowolnym** sposobem - przez USB, AirDrop, udział sieciowy, e-mail do samego siebie - a urządzenie docelowe może być całkowicie offline. Każda część ma sumę kontrolną, dzięki czemu plik uszkodzony w trakcie przesyłania jest wykrywany podczas importu, a nie przywracany w połowie zepsuty. Import **scala** dane (dla sesji lub obrazu o tej samej nazwie zachowywana jest kopia zapisana później; foldery, ulubione i szablony są dodawane; dane i ustawienia urządzenia docelowego zostają; wszystko inne jest zachowywane), więc nigdy nie czyści urządzenia docelowego, które już było w użyciu.
 
 Co nie jest przenoszone: pamięć podręczna katalogu (pobiera się ponownie na nowym urządzeniu) oraz same narzędzia (zakłada się, że są już obecne).
 
@@ -122,7 +122,7 @@ Dokładny układ paczki, politykę wersji i zasady integralności znajdziesz w *
 
 ## Jak narzędzia korzystają z twojego profilu
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
 
 Narzędzie zawsze tylko *wstępnie wypełnia* te pola profilu, do których powiązania zostało wyraźnie stworzone:
 

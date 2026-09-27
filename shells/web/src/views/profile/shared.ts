@@ -10,8 +10,8 @@ import type { AssetRef, AssetsAPI, HostV1, Profile, ProfileAPI } from '@lolly-to
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
 import { isTauriShell } from '../../lib/instance-choice.ts';
 import { t } from '../../i18n.ts';
-import { mountModal } from '../../components/modal.ts';
 import type { ModalHandle } from '../../components/modal.ts';
+import { showImportDialog as showSharedImportDialog, type ImportDialogOpts } from '../../components/import-dialog.ts';
 import { helpTip } from '../../components/help-tip.ts';
 import { escape } from '../../utils.ts';
 import { icon } from '../../lib/icons.ts';
@@ -258,44 +258,15 @@ export function clearIdbStores(storeNames: string[]) {
   });
 }
 
-// Confirm + run a data import. The action may throw (not a backup, wrong format,
-// quota); surface the reason in place and keep the dialog open rather than
-// leaving the user guessing.
-export function showImportDialog(onConfirm: () => Promise<void>) {
-  const content = `
-    <h3 id="import-dialog-title">${t('Import data?')}</h3>
-    <p>${t('This imports your profile, sessions, uploaded assets, preferences and saved file history. Matching profile, session and asset IDs are updated; unrelated data is kept. Existing historical versions and result records are never overwritten. Keep the backup until every item is restored.')}</p>
-    <p class="import-error" style="color:hsl(var(--destructive));font-size:13px;margin:0" hidden></p>
-    <div class="clear-dialog-actions">
-      <button class="btn" data-scope="import">${t('Import')}</button>
-      <button class="btn" data-scope="cancel">${t('Cancel')}</button>
-    </div>`;
-  const modal = mountModal<void>(content, {
-    className: 'clear-dialog',
-    initialFocus: (el) => el.querySelector<HTMLElement>('[data-scope="import"]'),
-    onClose: () => openProfileModals.delete(modal),
-  });
-  modal.el.setAttribute('aria-labelledby', 'import-dialog-title');
-  openProfileModals.add(modal);
+export type { ImportDialogOpts } from '../../components/import-dialog.ts';
 
-  modal.el.addEventListener('click', async e => {
-    const scope = (e.target as Element).closest<HTMLElement>('[data-scope]')?.dataset.scope;
-    if (!scope) return;
-    if (scope === 'cancel') { modal.close(); return; }
-
-    const btns = modal.el.querySelectorAll('button');
-    const errEl = modal.el.querySelector<HTMLElement>('.import-error');
-    btns.forEach(b => (b.disabled = true));
-    (e.target as HTMLElement).textContent = t('Importing…');
-    try {
-      await onConfirm();
-      modal.close(); // success re-mounts the page; drop the dialog
-    } catch (err) {
-      if (errEl) { errEl.textContent = (err as { message?: string })?.message || t('Import failed.'); errEl.hidden = false; }
-      btns.forEach(b => (b.disabled = false));
-      (e.target as HTMLElement).textContent = t('Import');
-    }
-  });
+/** The import dialog (components/import-dialog.ts), closed with this view's other
+ *  dialogs when the view is swapped out. */
+export function showImportDialog(
+  onConfirm: (input: { passphrase: string }) => Promise<void>,
+  opts: ImportDialogOpts = {},
+): Promise<boolean> {
+  return showSharedImportDialog(onConfirm, opts, openProfileModals);
 }
 
 // Store the cropped square WebP in the user-assets store (one fixed id, so it

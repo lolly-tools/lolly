@@ -110,6 +110,8 @@
 .cat-uploads-tts { margin: .5rem 0 .7rem; }
 .cat-uploads-tts .btn { display: inline-flex; align-items: center; gap: var(--sp-3); }
 .cat-uploads-tts .btn svg { display: block; }
+/* The Trash button's count (plan 277 P3): a quiet number, not a badge. */
+.cat-uploads-trash-count { color: hsl(var(--muted-foreground)); font-variant-numeric: tabular-nums; }
 
 .cat-uploads-bar { display: flex; justify-content: flex-end; align-items: center; gap: .8rem; margin-bottom: .7rem; }
 /* Device-storage chip (plans/132 WP-K item 2): one quiet line, left of the bar's controls. */

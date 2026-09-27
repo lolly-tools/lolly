@@ -95,13 +95,16 @@ Manifest neuvádí ani sám sebe, ani znovu generovaný soubor `lolly.txt` READM
 
 ## Sémantika importu
 
-Import je **sloučení s přepisem**, nikdy nahrazení všeho:
+Import je sloučení, nikdy nahrazení všeho:
 
 - Existující data na cílovém zařízení zůstávají na místě.
-- Každý klíč, který koliduje - profil, slot relace, ID nahraného obrázku - je nahrazen importovanou kopií.
-- Profil je jeden záznam, takže je nahrazen celý: složky, Koš, šablony, oblíbené a skryté nástroje cíle se stanou těmi z balíčku. Relace, kterou cíl měl, ale balíček ne, zůstane zachovaná, nezařazená, na nejvyšší úrovni Projektů.
-- Historické verze assetů a ID operací jsou neměnné výjimky: opakovaný import je idempotentní a ID, které už pojmenovává jiná data/historii, se odmítne, nepřepíše. Opakovaný import identického aktuálního assetu zachová jeho verzi. Změněný aktuální asset musí nést jinou verzi.
-- Historie výtvorů je také výjimkou: kolidující aktuální dokument nebo identita revize přeruší jeho obnovu ještě před změnami profilu, assetů nebo preferencí. Identický opakovaný import nepřidá žádné úložiště. Kolidující archiv obnov na samostatné instalaci, abys jeho výtvory prohlédl/a a zkopíroval/a.
+- Když je slot relace nebo ID nahraného obrázku na obou stranách, zachová se kopie uložená později, takže starší záloha nikdy nepřepíše novější práci na cíli. Stejné nebo neznámé časy zachovají kopii cíle. Na webové instalaci s historií výtvorů rozhoduje stejné pravidlo o tom, která kopie výtvoru zůstane aktuální, a druhá kopie se zachová jako chráněný návrh (viz níže).
+- Záznam profilu se sloučí, nenahradí se. Každá složka na cíli si zachová svůj obsah; složka z balíčku, kterou cíl nemá, se přidá, a složka na obou stranách si zachová název a nadřazenou složku cíle a získá členy z balíčku, které jí chybí. Relace zařazená do složky na cíli zůstává zařazená tam.
+- Oblíbené (nástroje, assety katalogu a položky Projektů) se sloučí. Šablony, šablony Projektů a uživatelské nástroje z balíčku se přidají, když cíl nemá záznam s daným ID. Položky Koše z obou stran se zachovají, takže položka, kterou bylo možné obnovit na kterékoli instalaci, to pořád jde.
+- Každé další pole profilu (jméno, kontaktní údaje, jazyk, feature flags, skryté nástroje a ostatní nastavení) si zachová hodnotu cíle. Pole, které je na cíli prázdné, převezme hodnotu z balíčku. Totéž platí pro `prefs.json`: předvolba se zapíše jen tam, kde ji cíl nemá.
+- Výjimkou je běžná aplikace synchronizace zařízení: aby udržela zařízení v kroku, převezme záznam profilu, předvolby, relace a obrázky ze synchronizované kopie. Obnovení dřívější kopie dělá totéž, protože se úmyslně vrací v čase. První připojení, **Přenést to do tohoto zařízení**, se slučuje jako import.
+- Historické verze assetů a ID operací jsou neměnné výjimky: opakovaný import je idempotentní a ID, které už pojmenovává jiná data nebo historii, se odmítne, nepřepíše se. Opakovaný import identického aktuálního assetu zachová jeho verzi. Změněný aktuální asset musí nést jinou verzi.
+- Historie výtvorů se slučuje také. Výtvor na obou stranách zachová jako aktuální kopii uloženou později a druhou kopii jako chráněný návrh; výtvor, jehož slot cíl používá pro jiný výtvor, se přidá vedle něj; výtvor v Koši cíle tam zůstává. ID checkpointu, které na cíli pojmenovává jiný obsah, zachová to cílové. Archiv, který neprojde vlastními kontrolami, zastaví import ještě před jakoukoli změnou profilu, relace, assetu nebo předvolby. Identický opakovaný import nepřidá žádné úložiště.
 - Nic, co v balíčku nebylo, se nedotkne. Relace, kterou cíl měl, ale balíček ne, import přežije.
 
 Uložené relace se ke svým obrázkům automaticky znovu propojí: reference na assety se udržují podle ID a bridge je znovu přeloží poté, co jsou nahrané obrázky obnovené (musí tak jako tak, protože URL `blob:` nepřežijí obnovení stránky).
@@ -114,9 +117,9 @@ Když je přítomná historie souborů, souhrn nese navíc `assetVersions`, `fil
 
 Ruční zálohy z webového hostitele schopného historie obsahují `revision-history.json` s vlastním schématem `{ version: 1, documents, revisions, recoveries }`. Nese zachovaná ID, kanonické snímky vstupů, verzová razítka, rastrové náhledy a samostatné návrhy editoru. Adaptér historie zachytí aktuální relace a jejich hlavy v jedné čtecí transakci; `sessions.json` používá stejné aktuální snímky pro starší čtenáře.
 
-Obnova před potvrzením archivu v jedné transakci kontroluje SHA-256 a počty bajtů payloadu, unikátní identity, vztahy dokument/hlava, původ, časová razítka, typy náhledů a limity. Zkompaktované odkazy na rodiče mohou chybět. Existující aktuální práce musí odpovídat importovanému dokumentu; konflikty se odmítnou, místo aby ho tiše nahradily. Limit přenosu archivu 384 MiB se kontroluje explicitně a limity úložiště se vynucují bez zkracování zachovaných checkpointů. Celá záloha stále používá in-memory implementaci ZIP a není to streamovaný archiv.
+Obnova před potvrzením archivu v jedné transakci kontroluje SHA-256 a počty bajtů payloadu, unikátní identity, vztahy dokument/hlava, původ, časová razítka, typy náhledů a limity. Zkompaktované odkazy na rodiče mohou chybět. Existující aktuální práce se nikdy tiše nenahradí: když je výtvor na obou stranách, strana, která se nezachová jako aktuální, se stane chráněným návrhem. Limit přenosu archivu 384 MiB se kontroluje explicitně a limity úložiště se vynucují bez zkracování zachovaných checkpointů. Celá záloha stále používá in-memory implementaci ZIP a není to streamovaný archiv.
 
-Souhrn přidává `revisions` a `recoveryDrafts`. Shell bez této schopnosti obnoví běžné relace a část historie nahlásí jako přeskočenou. Historie nativního souborového systému zůstává nepodporovaná, dokud její adaptér nedodá trvalé transakce historie. Stav P2P hosta nemá trvalou historii ani archiv pro obnovu.
+Souhrn přidává `revisions` a `recoveryDrafts`, které počítají jen to, co tento import přidal, a `added`, `kept`, `replaced`, `copies` a `hidden` pro to, jak se každý výtvor sloučil. Shell bez této schopnosti obnoví běžné relace a část historie nahlásí jako přeskočenou. Historie nativního souborového systému zůstává nepodporovaná, dokud její adaptér nedodá trvalé transakce historie. Stav P2P hosta nemá trvalou historii ani archiv pro obnovu.
 
 Osobní synchronizace snímků výslovně vylučuje historii výtvorů. Aplikace snímku na lokální dokument nesoucí historii zachová jeho předchozí pracovní stav jako samostatný návrh pro obnovu a zneplatní zapisovací token každého otevřeného editoru. Jeho neměnné checkpointy zůstávají na zařízení. Tohle chrání lokální historii během nahrazení snímkem; neslučuje souběžné historie z různých zařízení.
 

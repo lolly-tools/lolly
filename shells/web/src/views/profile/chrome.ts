@@ -52,7 +52,7 @@ export function wireInstanceCard(pv: ProfileViewCtx): void {
     const inert = await countSessionsUsingInstanceTools(host as unknown as Parameters<typeof countSessionsUsingInstanceTools>[0]).catch(() => 0);
     const ok = await confirmDialog({
       title: t('Leave this instance?'),
-      message: t('Your work stays on this device - sessions, images, profile, and anything you installed yourself. What the organisation supplied leaves with it: its brand, its tools, its catalogue, and this device’s standing with it. Anything you saved to the instance stays there. You can reconnect any time.')
+      message: (isTauriShell() ? t('Your work stays on this device - sessions, images, profile, and anything you installed yourself. What the organisation supplied leaves with it: its brand, its tools, its catalogue, and this device’s standing with it. Anything you saved to the instance stays there. You can reconnect any time.') : t('Your work stays in this browser - sessions, images, profile, and anything you installed yourself. What the organisation supplied leaves with it: its brand, its tools, its catalogue, and this browser’s standing with the organisation. Anything you saved to the instance stays there. You can reconnect any time.'))
         + (inert ? ' ' + t('Saved sessions that use this instance’s tools: {n}. They stay, but will not open until you reconnect.', { n: inert }) : ''),
       confirmLabel: t('Leave'),
       danger: false,

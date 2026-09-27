@@ -39,6 +39,8 @@ import {
 import type { GamutSource, IccProfile, RenderingIntent } from '@lolly/engine';
 import { registerColorProfile, unregisterColorProfile } from '../components/color-spaces.ts';
 import type { ChannelSpec } from '../components/color-spaces.ts';
+import { t } from '../i18n.ts';
+import { isTauriShell } from './instance-choice.ts';
 
 /** Every stored profile asset id starts with this. */
 export const USER_PROFILE_PREFIX = 'user/profiles/';
@@ -161,6 +163,12 @@ export function absentLabel(id: string): string {
   const parsed = parseProfileLimit(id);
   if (!parsed) return 'icc';
   return `icc ${parsed.digest.slice(0, 6)}… · ${parsed.intent.slice(0, 3)}`;
+}
+
+/** The tooltip for a link whose limit profile is not held here: "this device" in
+ *  the apps, "this browser" on the web. */
+export function absentProfileTitle(): string {
+  return isTauriShell() ? t('This link compares against a profile that isn’t on this device.') : t('This link compares against a profile that isn’t in this browser.');
 }
 
 // ── Ingest ────────────────────────────────────────────────────────────────────

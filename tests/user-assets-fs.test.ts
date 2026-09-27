@@ -15,7 +15,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { createFsMirroredAssetsDb, type UserAssetsFs, type RealAssetsDb } from '../shells/tauri-shared/bridge-overrides/user-assets-fs.ts';
+import { createFsMirroredAssetsDb, clearUserAssetsFs, type UserAssetsFs, type RealAssetsDb } from '../shells/tauri-shared/bridge-overrides/user-assets-fs.ts';
 import { writeVersionedUserAsset, readUserAssetVersion, type VersionedUserAsset } from '../shells/web/src/bridge/asset-history.ts';
 
 // ── a Map-backed fake IndexedDB, the slice the assets bridge + asset-history use ──
@@ -199,4 +199,42 @@ test('non-user stores pass straight through - no mirror, no gating', async () =>
   await (wrapped as unknown as { put(s: string, v: unknown, k?: unknown): Promise<unknown> }).put('asset-blob', new Blob(['x']), 'k:png:1');
   assert.equal(extra.size, 1, 'catalog blob stored via passthrough');
   assert.equal([...files.keys()].length, 0, 'a non-user store write mirrors nothing to disk');
+});
+
+// ── plan 277: the Trash mark and "Clear all my data" ─────────────────────────────
+
+test('an upload in the Trash stays in the Trash after a purged IndexedDB is rebuilt', async () => {
+  const { fs } = fakeFs();
+  const id = 'user/upload/1700000000000-2-trashed';
+  {
+    const { db } = fakeIdb();
+    const wrapped = createFsMirroredAssetsDb(db, fs);
+    await writeVersionedUserAsset(wrapped as unknown as Parameters<typeof writeVersionedUserAsset>[0], { id, type: 'raster', format: 'png', blob: new Blob(['PIC']), meta: { name: 'Pic' } });
+    // What bridge/assets.ts _setUserAssetTrashed writes: the same record, marked.
+    const rec = await wrapped.get('user-assets', id) as Record<string, unknown>;
+    await wrapped.put('user-assets', { ...rec, trashedAt: '2026-09-27T00:00:00.000Z' });
+  }
+  const { db } = fakeIdb();
+  const wrapped = createFsMirroredAssetsDb(db, fs);
+  const restored = await wrapped.get('user-assets', id) as { trashedAt?: string } | undefined;
+  assert.equal(restored?.trashedAt, '2026-09-27T00:00:00.000Z', 'the mark rides the sidecar, so a purge does not quietly restore it');
+});
+
+test('clearUserAssetsFs removes the whole mirror, so a cleared device does not refill on launch', async () => {
+  const { fs, files } = fakeFs();
+  const id = 'user/upload/1700000000000-3-gone';
+  {
+    const { db } = fakeIdb();
+    const wrapped = createFsMirroredAssetsDb(db, fs);
+    await writeVersionedUserAsset(wrapped as unknown as Parameters<typeof writeVersionedUserAsset>[0], { id, type: 'raster', format: 'png', blob: new Blob(['A']), meta: { name: 'A' } });
+    await writeVersionedUserAsset(wrapped as unknown as Parameters<typeof writeVersionedUserAsset>[0], { id, type: 'raster', format: 'png', blob: new Blob(['B']), meta: { name: 'A' } });
+  }
+  assert.ok([...files.keys()].some(k => k.startsWith('user-assets/')));
+  await clearUserAssetsFs(fs);
+  assert.deepEqual([...files.keys()].filter(k => k.startsWith('user-assets/')), []);
+  const { db, heads } = fakeIdb();
+  const wrapped = createFsMirroredAssetsDb(db, fs);
+  assert.equal(await wrapped.get('user-assets', id), undefined, 'nothing comes back from disk');
+  assert.equal(heads.size, 0);
+  await clearUserAssetsFs(fs); // a second clear of an empty mirror is fine
 });

@@ -210,17 +210,111 @@ test('import merges without wiping unrelated existing data', async () => {
   const src = await seedSource();
   const { blob } = await exportBackup({ host: src.host, storage: src.storage });
 
-  // Target already has its own session + a colliding slot.
+  // Target already has its own session + a colliding slot, saved in the past.
   const dst = { host: makeHost(), storage: makeStorage() };
   await dst.host.state.save('local-only', { keep: true, __toolId: 'meeting-planner' }, null);
   await dst.host.state.save('my-qr', { url: 'OLD', __toolId: 'qr-code', __label: 'stale' }, null);
+  dst.host._peek.sessions.get('my-qr').updatedAt = '2020-01-01T00:00:00.000Z';
 
   await importBackup(dst, await blob.arrayBuffer());
 
   const all = await dst.host.state.list();
   assert.equal(all.length, 3); // local-only + my-qr + chart-1
   assert.equal((await dst.host.state.load('local-only')).keep, true); // untouched
-  assert.equal((await dst.host.state.load('my-qr')).url, 'https://suse.com'); // overwritten
+  assert.equal((await dst.host.state.load('my-qr')).url, 'https://suse.com'); // the backup's copy is newer
+});
+
+// plans/277 P7: the newer copy wins. Import data… never lets an older file
+// overwrite work saved later on this device; a restore still goes back in time.
+test('import keeps whichever copy of a shared session was saved later; a restore takes the backup’s', async () => {
+  const src = await seedSource();
+  src.host._peek.sessions.get('my-qr').updatedAt = '2026-09-10T00:00:00.000Z';
+  src.host._peek.sessions.get('chart-1').updatedAt = '2026-09-25T00:00:00.000Z';
+  const bytes = await (await exportBackup({ host: src.host, storage: src.storage })).blob.arrayBuffer();
+
+  const seedTarget = async () => {
+    const dst = { host: makeHost(), storage: makeStorage() };
+    await dst.host.state.save('my-qr', { url: 'NEWER HERE', __toolId: 'qr-code' }, null);
+    await dst.host.state.save('chart-1', { title: 'OLDER HERE', __toolId: 'chart-creator' }, null);
+    dst.host._peek.sessions.get('my-qr').updatedAt = '2026-09-20T00:00:00.000Z';
+    dst.host._peek.sessions.get('chart-1').updatedAt = '2026-09-20T00:00:00.000Z';
+    return dst;
+  };
+
+  const merged = await seedTarget();
+  const summary = await importBackup(merged, bytes);
+  assert.equal((await merged.host.state.load('my-qr')).url, 'NEWER HERE', 'an older backup copy is kept out');
+  assert.equal((await merged.host.state.load('chart-1')).title, 'Revenue', 'a newer backup copy is taken');
+  assert.equal(summary.sessions, 1);
+
+  const restored = await seedTarget();
+  await importBackup(restored, bytes, { mode: 'sync', profile: 'replace', sameId: 'incoming', replace: 'all' });
+  assert.equal((await restored.host.state.load('my-qr')).url, 'https://suse.com', 'a restore goes back in time');
+});
+
+// plans/277 P7: Import data… used to replace the whole profile record, so the
+// target's folders, favourites and templates were lost and its sessions fell back
+// to the top level. The profile is merged now (lib/profile-merge.ts has the rules).
+test('import onto a device in use merges the profile: folders, favourites, templates and Trash are added, nothing here is lost', async () => {
+  const src = await seedSource();
+  await src.host.profile.set({
+    ...(await src.host.profile.get()),
+    lang: 'fr',
+    favourites: ['chart-creator'],
+    folders: [
+      { id: 'shared', name: 'Event (source)', parentId: null, items: [{ type: 'session', ref: 'my-qr' }], createdAt: 'a', updatedAt: 'a' },
+      { id: 'from-source', name: 'Source work', parentId: null, items: [{ type: 'session', ref: 'chart-1' }], createdAt: 'a', updatedAt: 'a' },
+    ],
+    userTemplates: [{ id: 'tpl-source', toolId: 'qr-code', name: 'Source', values: {}, createdAt: 'a', updatedAt: 'a' }],
+    trash: [{ kind: 'session', slot: '__trash__:s', originalSlot: 's', label: 'S', parentId: null, deletedAt: 'a' }],
+  });
+  const { blob } = await exportBackup({ host: src.host, storage: src.storage });
+
+  const dst = { host: makeHost(), storage: makeStorage({ theme: 'light' }) };
+  await dst.host.state.save('local-only', { keep: true, __toolId: 'meeting-planner', __label: 'Mine' }, null);
+  await dst.host.profile.set({
+    firstname: 'Grace', lang: 'de',
+    favourites: ['qr-code'],
+    folders: [
+      { id: 'shared', name: 'Event', parentId: null, items: [], createdAt: 'b', updatedAt: 'b' },
+      { id: 'from-target', name: 'Target work', parentId: null, items: [{ type: 'session', ref: 'local-only' }], createdAt: 'b', updatedAt: 'b' },
+    ],
+    userTemplates: [{ id: 'tpl-target', toolId: 'chart-creator', name: 'Target', values: {}, createdAt: 'b', updatedAt: 'b' }],
+    trash: [{ kind: 'folder', rootId: 'old', name: 'Old', tree: [], sessions: [], deletedAt: 'b' }],
+  });
+
+  const bytes = await blob.arrayBuffer();
+  await importBackup(dst, bytes);
+  const once = structuredClone(await dst.host.profile.get());
+
+  assert.equal(once.firstname, 'Grace', 'this device keeps its own details');
+  assert.equal(once.lang, 'de', 'and its language');
+  assert.equal(once.email, 'ada@analytical.engine', 'an empty field is filled from the backup');
+  assert.deepEqual(once.favourites, ['qr-code', 'chart-creator']);
+  assert.deepEqual(once.folders.map((f: any) => f.id), ['shared', 'from-target', 'from-source']);
+  assert.equal(once.folders[0].name, 'Event');
+  assert.deepEqual(once.folders[0].items.map((i: any) => i.ref), ['my-qr'], 'a shared folder gains the member it lacked');
+  assert.deepEqual(once.folders[1].items.map((i: any) => i.ref), ['local-only'], 'a session filed only here stays filed');
+  assert.deepEqual(once.userTemplates.map((t: any) => t.id), ['tpl-target', 'tpl-source']);
+  assert.deepEqual(once.trash.map((e: any) => e.rootId ?? e.slot), ['old', '__trash__:s']);
+  assert.equal(dst.storage.getItem('theme'), 'light', 'this device keeps its own preference');
+  assert.equal(dst.storage.getItem('sidebarWidth'), '300', 'a preference missing here is filled');
+
+  await importBackup(dst, bytes);
+  assert.deepEqual(await dst.host.profile.get(), once, 'importing the same backup again changes nothing');
+});
+
+test('a replace import (device sync) takes the bundle’s profile record and preferences', async () => {
+  const src = await seedSource();
+  const { blob } = await exportBackup({ host: src.host, storage: src.storage });
+  const dst = { host: makeHost(), storage: makeStorage({ theme: 'light' }) };
+  await dst.host.profile.set({ firstname: 'Grace', favourites: ['qr-code'] });
+
+  await importBackup(dst, await blob.arrayBuffer(), { mode: 'sync', profile: 'replace' });
+  const profile = await dst.host.profile.get();
+  assert.equal(profile.firstname, 'Ada');
+  assert.equal(profile.favourites, undefined);
+  assert.equal(dst.storage.getItem('theme'), 'dark');
 });
 
 test('rejects files that are not Lolly backups', async () => {

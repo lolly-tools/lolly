@@ -43,6 +43,7 @@ import { framePreviewSvg } from '@lolly/engine';
 import { confirmDialog } from '../../components/confirm-dialog.ts';
 import { customSliderHtml, mountCustomSlider, type MountedSlider } from '../../components/custom-slider.ts';
 import { t, tRaw } from '../../i18n.ts';
+import { isTauriShell } from '../../lib/instance-choice.ts';
 import type { KeepDesignStateV1, RebrandDownloadV1, RebrandModeV1 } from '../../lib/rebrand/controller-api.ts';
 import { KEEP_FAILURE_CODES, type KeepFailureCodeV1 } from '../../lib/rebrand/controller.ts';
 import { icon } from '../../lib/icons.ts';
@@ -311,7 +312,7 @@ function renderModeSlot(rb: RbCtx): void {
  */
 const KEEP_FAILURE_WORDS: Record<KeepFailureCodeV1, () => string | null> = {
   'keep.no-patcher': () => tRaw('This version of Lolly cannot change a PowerPoint file.'),
-  'keep.no-source': () => tRaw('The original file was not kept on this device, so choose it again to keep the design.'),
+  'keep.no-source': () => (isTauriShell() ? tRaw('The original file was not kept on this device, so choose it again to keep the design.') : tRaw('The original file was not kept in this browser, so choose it again to keep the design.')),
   'keep.no-system': () => tRaw('No design system is active.'),
   'keep.not-a-deck': () => tRaw('The file is not a PowerPoint deck Lolly can read.'),
   'keep.failed': () => null,

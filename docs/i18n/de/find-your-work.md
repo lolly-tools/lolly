@@ -6,9 +6,9 @@ Alles, was Sie in Lolly erstellen, bleibt in dem Browser oder der App, in der Si
 |---|---|
 | **Speichern unter** oder **Speichern** gedrückt | **Projekte** |
 | **Herunterladen** gedrückt | Die Downloads Ihres Browsers, und eine Kopie in **Assets** |
-| Weder noch, in einem der [neun Tools, die während der Arbeit speichern](#the-nine-tools-that-save-as-you-work) | **Projekte** und **History** |
+| Weder noch, in einem der [neun Tools, die während der Arbeit speichern](#the-nine-tools-that-save-as-you-work) | **Projekte** und **Verlauf** |
 | Weder noch, in einem anderen Tool | Nur der Tab, in dem Sie gearbeitet haben, bis Sie ihn schließen |
-| In den Papierkorb verschoben | Die Kachel **Papierkorb** in **Projekte**, für 30 Tage |
+| In der App gelöscht | **Papierkorb**, in **Projekte**, **Assets** oder **Einstellungen → Speicher**, für 30 Tage |
 
 ## Etwas finden, das Sie gespeichert haben
 
@@ -73,18 +73,18 @@ Was zurückkommt, hängt davon ab, wie Sie das Tool verlassen haben und welches 
 
 - **Sie haben den Tab geschlossen oder kommen ein anderes Mal zurück.** Nicht gespeicherte Arbeit ist weg, außer in den [neun Tools](#the-nine-tools-that-save-as-you-work), die Ihre Änderungen während der Arbeit speichern: Öffnen Sie sie über **Projekte**.
 - **Sie haben die Seite im selben Tab neu geladen.** Ihre Einstellungen kommen aus der Seitenadresse zurück. In anderen Tools als den neun kommen Bilder und Dateien, die Sie von Ihrem Gerät hinzugefügt haben, sowie einzeiliger Text über 150 Zeichen nicht zurück, weil die Adresse sie nicht enthält.
-- **Sie haben Start oder die Zurück-Schaltfläche oben links gedrückt.** Wenn Sie seit dem letzten Speichern, Herunterladen oder Kopieren etwas geändert haben, fragt ein Dialog **Nicht gespeicherte Änderungen**, ob zuerst gespeichert werden soll. **Speichern & verlassen** speichert die Arbeit und bringt Sie zu **Projekte**, oder zurück in den Projektordner, aus dem Sie die Arbeit geöffnet haben. **Verlassen ohne zu speichern** verlässt das Tool; in den neun Tools sind Ihre Änderungen bereits gespeichert und bleiben in Projekte. **Abbrechen** hält Sie im Tool.
+- **Sie haben Start oder die Zurück-Schaltfläche oben links gedrückt.** Wenn Sie seit dem letzten Speichern, Herunterladen oder Kopieren etwas geändert haben, fragt ein Dialog **Nicht gespeicherte Änderungen**, ob zuerst gespeichert werden soll. **Speichern & verlassen** speichert die Arbeit und bringt Sie zu **Projekte**, oder zurück in den Projektordner, aus dem Sie die Arbeit geöffnet haben. **Verlassen ohne zu speichern** verwirft Ihre Änderungen: Ein gespeichertes Element kehrt zu dem Stand zurück, in dem Sie es zuletzt gespeichert haben, und eine nie gespeicherte Kreation verlässt **Projekte**. **Abbrechen** hält Sie im Tool.
 
 Lolly fragt nur, wenn Sie **Start** oder die Zurück-Schaltfläche in einem Tool drücken. Das Schließen des Tabs, ein Neuladen und die eigene Zurück-Schaltfläche Ihres Browsers fragen nie. Um sicherzugehen, drücken Sie **Speichern unter** oder **Speichern** im Exportbereich, bevor Sie ein Tool verlassen.
 
 ::: note Versehentlich ohne Speichern verlassen?
-Drücken Sie in anderen Tools als den neun sofort die Zurück-Schaltfläche Ihres Browsers. Die Einstellungen aus der Seitenadresse kommen zurück, Bilder, die Sie von Ihrem Gerät hinzugefügt haben, jedoch nicht. Drücken Sie dann **Speichern unter** und **Speichern**, bevor Sie etwas anderes tun: Diesmal fragt Lolly nicht, bevor Sie es verlassen.
+In den neun Tools bewahrt der Verlauf eine Kopie der verworfenen Änderungen auf. Öffnen Sie die Seite **Verlauf**, finden Sie sie unter **Changes** und drücken Sie **Als Kopie öffnen**. In anderen Tools sind die Änderungen weg.
 :::
 
 ::: details Die neun Tools, die während der Arbeit speichern
 [Design](/#/tool/design), [Diagramm](/#/tool/chart), [QR-Code](/#/tool/qr-code), [Verlauf](/#/tool/gradient), [Schnipsel](/#/tool/snippet), [Flussdiagramm](/#/tool/org-chart), [Preise](/#/tool/pricing-table), [Wortmarke](/#/tool/wordmark) und [Text](/#/tool/text-helper). Die Liste wächst, sobald weitere Tools automatisches Speichern erhalten.
 
-In diesen Tools legt Ihre erste Änderung die Arbeit in **Projekte** ab, als hätten Sie gespeichert, und spätere Änderungen werden innerhalb weniger Sekunden gesichert. Eine nicht gespeicherte Kreation bleibt also auch nach dem Schließen des Tabs in Projekte, und **Verlassen ohne zu speichern** verwirft Ihre Änderungen nicht. Das erneute Öffnen des Tools über den Startbildschirm beginnt eine neue Kreation; öffnen Sie die frühere aus Projekte.
+In diesen Tools legt Ihre erste Änderung die Arbeit in **Projekte** ab, als hätten Sie gespeichert, und spätere Änderungen werden innerhalb weniger Sekunden gesichert. Eine nicht gespeicherte Kreation bleibt also auch nach dem Schließen des Tabs in Projekte und öffnet sich mit als nicht gespeichert markierten Änderungen erneut. **Verlassen ohne zu speichern** verwirft sie weiterhin, und der Verlauf bewahrt eine Kopie der verworfenen Änderungen für 30 Tage auf. Das erneute Öffnen des Tools über den Startbildschirm beginnt eine neue Kreation; öffnen Sie die frühere aus Projekte.
 
 Dies funktioniert nur in der Web-App, nicht in den Desktop- oder Mobil-Apps, und nicht, während Sie live mit jemand anderem zusammenarbeiten.
 :::
@@ -101,8 +101,8 @@ Lolly behält außerdem zwei Dinge nach jedem Download:
 - **Die von Ihnen verwendeten Einstellungen**, für Ihre letzten 24 Downloads. **Letzte Exporte**, unterhalb Ihrer gespeicherten Arbeit in **Projekte**, öffnet das Tool erneut mit diesen Einstellungen, damit Sie die Datei erneut erstellen können, wobei Bilder und Dateien, die Sie von Ihrem Gerät hinzugefügt haben, nicht enthalten sind. Dieselbe Liste finden Sie unter **Einstellungen → Aktivität & Statistiken → Neueste Exporte** und im Tab **Changes** von **History**. Diese Liste hält Einstellungen fest, nicht die Dateien.
 
 ::: details In den Desktop- und Mobil-Apps
-- **Desktop-App:** **Herunterladen** speichert direkt in einen Ordner **Lolly** innerhalb Ihres Ordners **Downloads**, ohne Dialog. Eine Meldung bestätigt das Speichern und bietet **Anzeigen** an, um die Datei zu zeigen. **Open Exports Folder**, im Menü **Window** oder **Exports**, öffnet den Ordner jederzeit. Eine Datei mit demselben Namen wie eine frühere wird als "name (1)" gespeichert.
-- **iPhone und iPad:** Die Datei wird in der App **Files** unter **Lolly** gespeichert, und das Teilen-Menü öffnet sich, damit Sie sie weiterschicken können.
+- **Desktop-App:** **Herunterladen** speichert direkt in einen Ordner **Lolly** innerhalb Ihres Ordners **Downloads**, ohne Dialog. Die Zeile unter **Herunterladen** zeigt an, wohin die Datei gegangen ist, etwa "Saved to Downloads/Lolly", mit **Im Ordner anzeigen**. **Open Exports Folder**, im Menü **Fenster** oder **Exporte**, öffnet den Ordner jederzeit. Eine Datei mit demselben Namen wie eine frühere wird als "name (1)" gespeichert.
+- **iPhone und iPad:** Die Datei wird in der App **Dateien** unter **Lolly** gespeichert, und das Teilen-Menü öffnet sich, damit Sie sie weiterschicken können. Die Zeile unter **Herunterladen** liest "Saved to Files → Lolly".
 - **Android:** Das Teilen-Menü öffnet sich, damit Sie wählen können, wohin die Datei geht.
 
 Auf iPhone, iPad und Android ersetzt eine neue Datei eine frühere mit demselben Namen.
@@ -146,8 +146,8 @@ Filtern Sie nach Projekt, Tool und Datum (auf dem Smartphone hinter **Filters**)
 
 Ein geteilter Link trägt Ihre Einstellungen, aber keine Bilder oder Dateien, die Sie von Ihrem Gerät hinzugefügt haben.
 
-::: warning Der Import ersetzt Ihre Ordner
-Wenn das andere Gerät bereits Arbeit enthält, lesen Sie dies zuerst. Der Import fügt hinzu, was die Datei enthält, aktualisiert übereinstimmende Elemente und löscht kein gespeichertes Element. Ihr Profil ist jedoch ein einzelner Datensatz, daher werden die Ordner, Favoriten, Vorlagen und Angaben auf diesem Gerät durch die aus der Datei ersetzt. Ein gespeichertes Element, das nur auf diesem Gerät war, bleibt erhalten, auf der obersten Ebene von **Projekte**. **Bring it to this device**, in Sync, tut dasselbe.
+::: note Der Import fügt hinzu und löscht nichts
+Ordner, Favoriten und Vorlagen in der Datei werden neben den bereits auf dem anderen Gerät vorhandenen hinzugefügt. Ist ein gespeichertes Element auf beiden vorhanden, bleibt die zuletzt gespeicherte Kopie erhalten. Ihre Angaben und Einstellungen auf diesem Gerät bleiben, wie sie sind; leere werden aus der Datei aufgefüllt. **Auf dieses Gerät übernehmen**, in Sync, funktioniert genauso.
 :::
 
 So übertragen Sie alles einmal:
@@ -157,7 +157,7 @@ So übertragen Sie alles einmal:
 3. Öffnen Sie auf dem neuen Gerät **Einstellungen → Speicher**, drücken Sie **Daten importieren…**, wählen Sie die Datei und drücken Sie **Import**.
 
 ::: note Was zurückbleibt
-Anmeldungen, Schlüssel und die Synchronisierungs-Passphrase bleiben auf jedem Gerät. Die Liste der letzten Downloads, Offline-Downloads und KI-Modelle reisen auf keinem Weg mit. Der Versionsverlauf reist nur in einer Datei von **Meine Daten exportieren**, nicht über Sync oder eine `.lolly`. Die Kopien, die Sync in Ihrem Speicherort ablegt, öffnen sich nur über Sync, nicht mit **Daten importieren…** oder **Öffnen**.
+Anmeldungen, Schlüssel und die Synchronisierungs-Passphrase bleiben auf jedem Gerät. Die Liste der letzten Downloads, Offline-Downloads und KI-Modelle reisen auf keinem Weg mit. Der Versionsverlauf reist nur in einer Datei von **Meine Daten exportieren**, nicht über Sync oder eine `.lolly`. Eine Kopie, die Sync in Ihrem Speicher ablegt, kann heruntergeladen und geöffnet oder in **Daten importieren…** ausgewählt werden, wie eine Sicherungsdatei; eine verschlüsselte Kopie fragt nach Ihrer Passphrase.
 :::
 
 ::: details Was die Sicherungsdatei enthält
@@ -176,7 +176,7 @@ Drücken Sie **Meine Daten exportieren** unter **Einstellungen → Speicher**, u
 
 Beim Start der App bittet Lolly den Browser, seinen Speicher nicht zu löschen, wenn dem Gerät der Platz ausgeht. Der Browser entscheidet. Unter **Einstellungen → Offline verfügbar** bedeutet eine mit **Protected** beginnende Zeile, dass der Browser zugestimmt hat; "The browser may clear downloads if the device runs low on space" bedeutet, dass er es nicht getan hat, und **Downloads schützen** fragt erneut. Hat der Browser nicht zugestimmt, kann er bei knappem Speicherplatz sowohl gespeicherte Arbeit als auch Downloads löschen, bewahren Sie also eine aktuelle Datei von **Meine Daten exportieren** auf.
 
-**Einstellungen → Speicher** zeigt, wie viel Platz jede Art von Daten belegt. **Cache leeren** verwirft heruntergeladene Katalogdateien, die bei Bedarf erneut heruntergeladen werden. **Alle meine Daten löschen** verlangt die Eingabe eines Wortes und entfernt dann Ihr Profil, gespeicherte Sitzungen, hochgeladene Bilder und den Asset-Cache. Andere Daten bleiben erhalten, einschließlich Versionsverlauf, der Liste der letzten Downloads, Convert-Ergebnissen, Designsystemen und heruntergeladenen KI-Modellen. Um alles zu entfernen, löschen Sie die Daten dieser Seite in Ihrem Browser.
+**Einstellungen → Speicher** zeigt, wie viel Platz jede Art von Daten belegt. **Cache leeren** verwirft heruntergeladene Katalogdateien, die bei Bedarf erneut heruntergeladen werden. **Alle meine Daten löschen** verlangt die Eingabe eines Wortes, schaltet Sync aus und entfernt dann alles, was Lolly in diesem Browser aufbewahrt: Ihr Profil und Ihre Einstellungen, gespeicherte Sitzungen mit ihrem Verlauf und dem Papierkorb, Uploads, Schriften und Designsysteme, das Download-Protokoll, Convert-Ergebnisse, heruntergeladene KI-Modelle und Offline-Kopien. Dateien, die Sie heruntergeladen haben, bleiben dort, wo Sie sie gespeichert haben. Die App startet danach wie bei einem ersten Besuch.
 
 ![Die Speicherkarte auf einem schmalen Smartphone-Bildschirm: jede Kategorie der Daten auf dem Gerät benannt, unten die Schaltfläche Alle meine Daten löschen](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
@@ -195,15 +195,15 @@ Bilder, Designsysteme und die Liste der letzten Downloads bleiben im internen Sp
 
 ## Etwas wiederbekommen, das Sie gelöscht haben
 
-In **Projekte** hält **In den Papierkorb verschieben** ein Element für 30 Tage. Ein Ordner geht mit allem darin als ein Eintrag in den Papierkorb. Direkt danach bietet eine Meldung für etwa zehn Sekunden **Rückgängig** an. Später:
+Das Löschen einer gespeicherten Sitzung, eines Ordners, eines Ihrer Uploads oder einer Ihrer Schriften in der App verschiebt es für 30 Tage in den **Papierkorb**, egal wo Sie es löschen: **Projekte**, **Assets**, **Einstellungen → Speicher** oder die Liste gespeicherter Sitzungen eines Tools. Ein Ordner geht mit allem darin als ein Eintrag mit. Eine Sitzung behält ihren Versionsverlauf, solange sie dort ist. Direkt danach bietet eine Meldung **Rückgängig** an. Später:
 
-1. Öffnen Sie **Projekte** und drücken Sie die Kachel **Papierkorb**. Die Kachel erscheint nur, solange der Papierkorb etwas enthält.
-2. Drücken Sie **Wiederherstellen** neben dem Element.
+1. Öffnen Sie den **Papierkorb**: die Kachel **Papierkorb** in **Projekte**, die Schaltfläche **Papierkorb** in **Assets → Ihre Uploads**, oder die Zeile **Papierkorb** in **Einstellungen → Speicher**. Alle drei öffnen dieselbe Liste.
+2. Drücken Sie **Wiederherstellen** neben dem Element. Es kehrt in seinen Ordner zurück, und eine Schrift erhält die Rollen zurück, die sie in ihrem Designsystem hatte.
 
-**Endgültig löschen** und **Papierkorb leeren** entfernen Elemente sofort, ohne nachzufragen. Elemente, die älter als 30 Tage sind, werden beim nächsten Öffnen von Projekte endgültig entfernt.
+**Endgültig löschen** entfernt ein einzelnes Element für immer. **Papierkorb leeren** fragt zuerst nach und entfernt dann jedes Element im Papierkorb. Elemente, die älter als 30 Tage sind, werden endgültig entfernt.
 
-::: warning Andere Löschvorgänge sind endgültig
-Das Löschen einer gespeicherten Sitzung unter **Einstellungen → Speicher**, oder aus der Liste gespeicherter Sitzungen eines Tools in der Galerie (Rechtsklick auf die Karte des Tools, dann **N gespeicherte Sitzungen**), entfernt die Sitzung endgültig, mitsamt ihrem Versionsverlauf. Ein Bild, das Sie aus **Meine Bilder** löschen, wird sofort entfernt, ohne nachzufragen.
+::: warning Manche Löschvorgänge sind sofort endgültig
+Das Löschen eines Designsystems, eines Logos oder Ihres Profilfotos geht nicht in den Papierkorb. Die Kommandozeile und die Terminal-App löschen ebenfalls sofort.
 :::
 
 Bei eingeschalteter [Synchronisierung](/info/sync.html) kann **Restore an earlier copy** den Zustand des gesamten Geräts von einem früheren Tag zurückholen, und eine Datei von **Meine Daten exportieren** bringt zurück, was die Datei enthält.

@@ -70,24 +70,24 @@
       "typeEscapes": 68
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 1932,
-      "largestFunctionLines": 1771,
+      "lines": 1952,
+      "largestFunctionLines": 1769,
       "importFanIn": 1,
-      "importFanOut": 59,
+      "importFanOut": 61,
       "typeEscapes": 8
     },
     "shells/web/src/views/picker.ts": {
       "lines": 2525,
-      "largestFunctionLines": 2169,
+      "largestFunctionLines": 2165,
       "importFanIn": 28,
-      "importFanOut": 56,
+      "importFanOut": 57,
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {
-      "lines": 2263,
-      "largestFunctionLines": 2922,
+      "lines": 2178,
+      "largestFunctionLines": 2844,
       "importFanIn": 1,
-      "importFanOut": 46,
+      "importFanOut": 48,
       "typeEscapes": 8
     },
     "shells/web/src/views/tool-inputs.ts": {
@@ -98,10 +98,10 @@
       "typeEscapes": 5
     },
     "shells/web/src/views/tool/session.ts": {
-      "lines": 1515,
+      "lines": 1567,
       "largestFunctionLines": 1505,
       "importFanIn": 1,
-      "importFanOut": 51,
+      "importFanOut": 55,
       "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {
@@ -392,7 +392,7 @@
     "shells/web/src/views/profile/prefs.ts": 3,
     "shells/web/src/views/profile/rows.ts": 1,
     "shells/web/src/views/profile/shared.ts": 1,
-    "shells/web/src/views/profile/storage.ts": 9,
+    "shells/web/src/views/profile/storage.ts": 7,
     "shells/web/src/views/projects.ts": 8,
     "shells/web/src/views/record-control.ts": 1,
     "shells/web/src/views/screen-capture-control.ts": 1,

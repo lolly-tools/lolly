@@ -481,7 +481,7 @@ test('the save state is words only, and nothing on screen while it is fine', () 
   const save = view.querySelector<HTMLElement>('.rb-save')!;
   const action = view.querySelector<HTMLButtonElement>('.rb-save-action')!;
   // Fine: a screen reader hears it, a sighted person sees nothing.
-  assert.equal(text(view.querySelector('.rb-save-text')), 'Saved on this device');
+  assert.equal(text(view.querySelector('.rb-save-text')), 'Saved in this browser');
   assert.ok(save.classList.contains('visually-hidden'));
   assert.equal(save.querySelector('svg'), null, 'never a glyph');
   assert.equal(action.hidden, true);
@@ -570,7 +570,7 @@ test('a preset is chosen from a single-choice list with one Apply, and the resul
   assert.deepEqual(radios.map((one) => one.value), ['__none__', 'tidy', 'mine/quarterly'], 'one row per preset, and none');
   assert.equal(radios.find((one) => one.checked)?.value, 'tidy', 'the current preset is the checked row, never a filled button');
   assert.equal(dialog.querySelectorAll('.modal-primary').length, 1, 'one primary action');
-  assert.match(text(dialog.querySelector('input[value="mine/quarterly"]')?.closest('label') ?? null), /Quarterly\s*Saved on this device/, 'where it came from on a line of its own');
+  assert.match(text(dialog.querySelector('input[value="mine/quarterly"]')?.closest('label') ?? null), /Quarterly\s*Saved in this browser/, 'where it came from on a line of its own');
   const mine = radios[2];
   assert.ok(mine);
   mine.checked = true;
@@ -598,5 +598,5 @@ test('Save as my preset asks again on a blank name, and says where it saved', as
   dialog.querySelector<HTMLButtonElement>('[data-act="ok"]')!.click();
   await saving;
   assert.ok(controller.calls.includes('savePreset:Quarterly'));
-  assert.equal(said(view), 'Saved Quarterly as a preset on this device.');
+  assert.equal(said(view), 'Saved Quarterly as a preset in this browser.');
 });

@@ -8,7 +8,7 @@ Allt du skapar i Lolly stannar i webbläsaren eller appen du skapade det i, på 
 | Tryckte på **Ladda ner** | Din webbläsares nedladdningar, och en kopia i **Tillgångar** |
 | Inget av detta, i ett av [de nio verktyg som sparar medan du arbetar](#the-nine-tools-that-save-as-you-work) | **Projekt** och **History** |
 | Inget av detta, i något annat verktyg | Bara fliken du arbetade i, tills du stänger den |
-| Flyttade det till papperskorgen | Rutan **Papperskorg** i **Projekt**, i 30 dagar |
+| Raderade det i appen | **Papperskorgen**, i **Projekt**, **Tillgångar** eller **Inställningar → Lagring**, i 30 dagar |
 
 ## Hitta något du sparat
 
@@ -73,18 +73,18 @@ Vad som kommer tillbaka beror på hur du lämnade och vilket verktyg du använde
 
 - **Du stängde fliken, eller kom tillbaka en annan gång.** Osparat arbete är borta, förutom i [de nio verktygen](#the-nine-tools-that-save-as-you-work), som sparar dina ändringar medan du arbetar: öppna dem från **Projekt**.
 - **Du laddade om sidan i samma flik.** Dina inställningar kommer tillbaka från sidans adress. I andra verktyg än de nio kommer bilder och filer du lagt till från din enhet, samt enradig text längre än 150 tecken, inte tillbaka, eftersom adressen inte rymmer dem.
-- **Du tryckte på Hem, eller bakåtknappen längst upp till vänster.** Om du ändrat något sedan du senast sparade, laddade ner eller kopierade, frågar en dialog om **Osparade ändringar** om du vill spara först. **Save & leave** sparar arbetet och tar dig till **Projekt**, eller tillbaka till den projektmapp du öppnade arbetet från. **Lämna utan att spara** lämnar; i de nio verktygen är dina ändringar redan sparade och stannar i Projekt. **Avbryt** håller dig kvar i verktyget.
+- **Du tryckte på Hem, eller bakåtknappen längst upp till vänster.** Om du ändrat något sedan du senast sparade, laddade ner eller kopierade, frågar dialogen **Osparade ändringar** om du vill spara först. **Spara & lämna** sparar arbetet och tar dig till **Projekt**, eller tillbaka till den projektmapp du öppnade arbetet från. **Lämna utan att spara** kastar dina ändringar: ett sparat objekt återgår till hur du senast sparade det, och en skapelse du aldrig sparade lämnar **Projekt**. **Avbryt** håller dig kvar i verktyget.
 
 Lolly frågar bara när du trycker på **Hem** eller bakåtknappen i ett verktyg. Att stänga fliken, ladda om eller använda webbläsarens egen bakåtknapp frågar aldrig. För att vara säker, tryck på **Spara som**, eller **Spara** i exportpanelen, innan du lämnar ett verktyg.
 
 ::: note Lämnade utan att spara av misstag?
-I andra verktyg än de nio, tryck på webbläsarens bakåtknapp direkt. Inställningarna från sidans adress kommer tillbaka, men bilder du lagt till från din enhet gör det inte. Tryck sedan på **Spara som** och **Spara** innan du gör något annat: den här gången frågar inte Lolly innan du lämnar.
+I de nio verktygen håller History kvar en kopia av de kastade ändringarna. Öppna sidan **History**, hitta dem under **Changes** och tryck på **Öppna som en kopia**. I andra verktyg är ändringarna borta.
 :::
 
 ::: details De nio verktyg som sparar medan du arbetar
 [Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) och [Text](/#/tool/text-helper). Listan växer när fler verktyg får automatisk sparning.
 
-I dessa verktyg arkiverar din första ändring arbetet i **Projekt** som om du hade sparat, och senare ändringar sparas inom några sekunder. Så en osparad skapelse finns kvar i Projekt efter att du stängt fliken, och **Lämna utan att spara** kastar inte dina ändringar. Att öppna verktyget igen från startskärmen påbörjar en ny skapelse; öppna den tidigare från Projekt.
+I dessa verktyg arkiverar din första ändring arbetet i **Projekt** som om du hade sparat, och senare ändringar sparas inom några sekunder. Så en osparad skapelse finns kvar i Projekt efter att du stängt fliken och öppnas igen med sina ändringar markerade som osparade. **Lämna utan att spara** kastar dem ändå, och History behåller en kopia av de kastade ändringarna i 30 dagar. Att öppna verktyget igen från startskärmen påbörjar en ny skapelse; öppna den tidigare från Projekt.
 
 Det här fungerar bara i webbappen, inte i skrivbords- eller mobilapparna, och inte medan du arbetar live med någon annan.
 :::
@@ -101,8 +101,8 @@ Lolly behåller också två saker efter varje nedladdning:
 - **Inställningarna du använde**, för dina senaste 24 nedladdningar. **Senaste exporter**, under ditt sparade arbete i **Projekt**, öppnar verktyget igen med de inställningarna så att du kan göra filen igen, även om bilder och filer du lagt till från din enhet inte tas med. Samma lista finns under **Inställningar → Aktivitet och statistik → Senaste exporter** och på fliken **Changes** i **History**. Den här listan behåller inställningar, inte filerna.
 
 ::: details I skrivbords- och mobilapparna
-- **Skrivbordsappen:** **Ladda ner** sparar direkt i en mapp med namnet **Lolly** inuti din **Downloads**-mapp, utan någon dialogruta. Ett meddelande bekräftar sparandet och erbjuder **Visa** för att visa filen. **Open Exports Folder**, i menyn **Window** eller **Exporter**, öppnar mappen när som helst. En fil med samma namn som en tidigare sparas som "name (1)".
-- **iPhone och iPad:** filen sparas i appen **Filer**, under **Lolly**, och delningsarket öppnas så att du kan skicka den vidare.
+- **Skrivbordsappen:** **Ladda ner** sparar direkt i en mapp med namnet **Lolly** inuti din **Downloads**-mapp, utan någon dialogruta. Raden under **Ladda ner** visar var filen hamnade, till exempel "Sparad till Downloads/Lolly", med **Visa i mapp**. **Open Exports Folder**, i menyn **Window** eller **Exports**, öppnar mappen när som helst. En fil med samma namn som en tidigare sparas som "name (1)".
+- **iPhone och iPad:** filen sparas i appen **Filer**, under **Lolly**, och delningsarket öppnas så att du kan skicka den vidare. Raden under **Ladda ner** visar "Sparad till Filer → Lolly".
 - **Android:** delningsmenyn öppnas så att du kan välja var filen ska hamna.
 
 På iPhone, iPad och Android ersätter en ny fil en tidigare med samma namn.
@@ -146,8 +146,8 @@ Filtrera efter projekt, verktyg och datum (bakom **Filters** på en telefon). Hi
 
 En delningslänk bär dina inställningar, men inte bilder eller filer du lagt till från din enhet.
 
-::: warning Import ersätter dina mappar
-Om den andra enheten redan har arbete, läs det här först. Import lägger till det filen innehåller, uppdaterar objekt som matchar och raderar inget sparat objekt. Din profil är dock en enda post, så mapparna, favoriterna, mallarna och uppgifterna på den enheten ersätts av dem i filen. Ett sparat objekt som bara fanns på den enheten finns kvar, på översta nivån i **Projekt**. **Bring it to this device**, i Synk, gör samma sak.
+::: note Import lägger till och tar aldrig bort något
+Mappar, favoriter och mallar i filen läggs till bredvid dem som redan finns på den andra enheten. När ett sparat objekt finns på båda behålls den kopia som sparades senast. Dina uppgifter och inställningar på den enheten förblir som de är; tomma fält fylls i från filen. **Hämta hit till den här enheten**, i Synk, fungerar på samma sätt.
 :::
 
 För att flytta allt på en gång:
@@ -156,8 +156,8 @@ För att flytta allt på en gång:
 2. Ta med filen på USB, e-posta den till dig själv, AirDrop eller en delad mapp.
 3. På den nya enheten, öppna **Inställningar → Lagring**, tryck på **Importera data…**, välj filen och tryck på **Importera**.
 
-::: note Vad som blir kvar
-Inloggningar, nycklar och synk-lösenfrasen stannar på varje enhet. Listan över senaste nedladdningar, offlinenedladdningar och AI-modeller följer inte med på någon väg. Versionshistoriken följer bara med i en fil från **Exportera mina data**, inte via Synk eller en `.lolly`. Kopiorna Synk håller i din lagring öppnas bara via Synk, inte med **Importera data…** eller **Öppna**.
+::: note Vad som stannar kvar
+Inloggningar, nycklar och synk-lösenfrasen stannar på varje enhet. Listan över senaste nedladdningar, offlinenedladdningar och AI-modeller följer inte med på någon väg. Versionshistoriken följer bara med i en fil från **Exportera mina data**, inte via Synk eller en `.lolly`. En kopia som Synk håller i din lagring kan laddas ner och öppnas, eller väljas i **Importera data…**, precis som en säkerhetskopia; en krypterad kopia frågar efter din lösenfras.
 :::
 
 ::: details Vad säkerhetskopian innehåller
@@ -176,7 +176,7 @@ Tryck på **Exportera mina data** under **Inställningar → Lagring**, och spar
 
 När appen startar ber Lolly webbläsaren att inte rensa dess lagring när enheten får ont om utrymme. Webbläsaren bestämmer. Under **Inställningar → Tillgänglig offline** betyder en rad som börjar med **Protected** att webbläsaren gick med på det; "The browser may clear downloads if the device runs low on space" betyder att den inte gjorde det, och **Skydda nedladdningar** frågar igen. Om webbläsaren inte gick med på det kan den rensa både sparat arbete och nedladdningar när utrymmet tar slut, så håll en färsk fil från **Exportera mina data**.
 
-**Inställningar → Lagring** visar hur mycket utrymme varje typ av data använder. **Rensa cache** släpper nedladdade katalogfiler, som laddas ner igen vid behov. **Rensa all min data** ber dig skriva ett ord, och tar sedan bort din profil, sparade sessioner, uppladdade bilder och tillgångscachen. Annan data finns kvar, inklusive versionshistorik, listan över senaste nedladdningar, Convert-resultat, designsystem och nedladdade AI-modeller. För att ta bort allt, rensa den här sajtens data i din webbläsare.
+**Inställningar → Lagring** visar hur mycket utrymme varje typ av data använder. **Rensa cache** släpper nedladdade katalogfiler, som laddas ner igen vid behov. **Rensa all min data** ber dig skriva ett ord, stänger av Synk, och tar sedan bort allt Lolly sparar i den här webbläsaren: din profil och dina inställningar, sparade sessioner med sin historik och Papperskorgen, uppladdningar, typsnitt och designsystem, nedladdningsloggen, Convert-resultat, nedladdade AI-modeller och offlinekopior. Filer du laddat ner ligger kvar där du sparade dem. Appen startar sedan som vid ett första besök.
 
 ![Lagringskortet på en telefonbred skärm: varje kategori av data på enheten namngiven, med knappen Rensa all min data längst ner](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
@@ -195,15 +195,15 @@ Bilder, designsystem och listan över senaste nedladdningar finns kvar i appens 
 
 ## Få tillbaka något du raderat
 
-I **Projekt** håller **Flytta till papperskorgen** kvar ett objekt i 30 dagar. En mapp går till papperskorgen med allt i den, som en enda post. Direkt efteråt erbjuder ett meddelande **Ångra** i ungefär tio sekunder. Senare:
+Att radera en sparad session, en mapp, en av dina uppladdningar eller ett av dina typsnitt i appen flyttar den till **Papperskorgen** i 30 dagar, oavsett var du raderar den: **Projekt**, **Tillgångar**, **Inställningar → Lagring** eller ett verktygs lista över sparade sessioner. En mapp följer med allt den innehåller, som en enda post, och en session behåller sin versionshistorik medan den är där. Direkt efteråt erbjuder ett meddelande **Ångra**. Senare:
 
-1. Öppna **Projekt** och tryck på rutan **Papperskorg**. Rutan visas bara medan papperskorgen håller något.
-2. Tryck på **Återställ** bredvid objektet.
+1. Öppna **Papperskorgen**: rutan **Papperskorg** i **Projekt**, knappen **Papperskorg** i **Tillgångar → Dina uppladdningar**, eller raden **Papperskorg** i **Inställningar → Lagring**. Alla tre öppnar samma lista.
+2. Tryck på **Återställ** bredvid objektet. Det går tillbaka till sin mapp, och ett typsnitt får tillbaka de roller det hade i sitt designsystem.
 
-**Ta bort permanent** och **Töm papperskorgen** tar bort objekt direkt, utan att fråga. Objekt äldre än 30 dagar tas bort permanent nästa gång du öppnar Projekt.
+**Ta bort permanent** tar bort ett objekt för gott. **Töm papperskorgen** frågar först, och tar sedan bort alla objekt i Papperskorgen. Objekt äldre än 30 dagar tas bort för gott.
 
-::: warning Andra raderingar är permanenta
-Att radera en sparad session under **Inställningar → Lagring**, eller från ett verktygs lista över sparade sessioner i galleriet (högerklicka på verktygets kort, sedan **N sparade sessioner**), tar bort sessionen permanent, med dess versionshistorik. En bild du raderar från **Mina bilder** tas bort direkt, utan att fråga.
+::: warning Vissa raderingar sker direkt
+Att radera ett designsystem, en logotyp eller din profilbild går inte till Papperskorgen. Kommandoraden och terminalappen raderar också direkt.
 :::
 
 Med [Synk](/info/sync.html) på kan **Restore an earlier copy** ta tillbaka en tidigare dags tillstånd för hela enheten, och en fil från **Exportera mina data** tar tillbaka det filen innehåller.

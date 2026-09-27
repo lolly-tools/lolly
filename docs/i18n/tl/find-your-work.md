@@ -2,13 +2,13 @@
 
 Lahat ng ginagawa mo sa Lolly ay nananatili sa browser o app na ginamit mo, sa device na iyon, maliban kung i-on mo ang [Sync](/info/sync.html). Nasa **Mga Project** ang na-save na gawa. Ang isang na-download na file ay nasa kahit saan inilagay ito ng browser o system mo, at karaniwang may kopya sa **Mga asset**. Sa siyam na tool, iniingatan din ang gawang hindi mo na-save. Sinasaklaw ng pahinang ito ang bawat isa sa mga ito, kasama ang isang isinarang tab, nabura na data ng browser, mas naunang bersyon, na-delete na item at paglipat sa ibang device.
 
-| Ginawa mo | Saan tumingin |
+| Ano ang ginawa mo | Saan titingin |
 |---|---|
 | Pinindot ang **I-save bilang** o **I-save** | **Mga Project** |
 | Pinindot ang **I-download** | Downloads ng browser mo, at may kopya sa **Mga asset** |
 | Wala sa dalawa, sa isa sa [siyam na tool na nag-sa-save habang ginagawa mo](#the-nine-tools-that-save-as-you-work) | **Mga Project** at **History** |
-| Wala sa dalawa, sa ibang tool | Ang tab lang na pinagtrabahuhan mo, hangga't hindi mo ito isinasara |
-| Inilipat sa Trash | Ang **Trash** tile sa **Mga Project**, sa loob ng 30 araw |
+| Wala sa dalawa, sa ibang tool | Ang tab lang na ginamit mo, hanggang isara mo ang tab |
+| Na-delete mo ito sa app | **Trash**, sa **Mga Project**, **Mga asset** o **Mga Setting → Imbakan**, sa loob ng 30 araw |
 
 ## Hanapin ang na-save mong gawa
 
@@ -72,19 +72,19 @@ not visible in the closed menu, so the alt does not list them.
 Nakadepende ang babalik sa kung paano ka umalis at kung aling tool ang ginamit mo:
 
 - **Isinara mo ang tab, o bumalik ka sa ibang pagkakataon.** Nawawala ang hindi na-save na gawa, maliban sa [siyam na tool](#the-nine-tools-that-save-as-you-work), na nag-sa-save ng mga edit mo habang ginagawa mo ito: buksan ang mga ito mula sa **Mga Project**.
-- **Ni-reload mo ang page sa parehong tab.** Babalik ang mga setting mo mula sa address ng page. Sa mga tool maliban sa siyam, ang mga larawan at file na idinagdag mo mula sa device mo, at ang single-line na teksto na mas mahaba sa 150 character, ay hindi babalik, dahil hindi hawak ng address ang mga ito.
-- **Pinindot mo ang Home, o ang back button sa kaliwang itaas.** Kung may binago ka mula noong huli kang nag-save, nag-download o kumopya, magtatanong ang isang **Mga hindi na-save na pagbabago** na dialog kung i-save muna. Ise-save ng **Save & leave** ang gawa at dadalhin ka sa **Mga Project**, o babalik sa project folder na pinagbuksan mo ng gawa. Aalis ang **Umalis nang hindi nagse-save**; sa siyam na tool, naka-save na ang mga edit mo at nananatili sa Projects. Pananatilihin ka ng **Kanselahin** sa tool.
+- **Ni-reload mo ang page sa parehong tab.** Bumabalik ang mga setting mo mula sa address ng page. Sa mga tool maliban sa siyam, hindi bumabalik ang mga larawan at file na idinagdag mo mula sa device mo, at ang single-line na text na mas mahaba sa 150 character, dahil hindi ito hawak ng address.
+- **Pinindot mo ang Home, o ang back button sa kaliwang itaas.** Kung may binago ka mula noong huli kang nag-save, nag-download o kumopya, magtatanong ang isang **Mga hindi na-save na pagbabago** na dialog kung i-save muna. Ise-save ng **I-save & umalis** ang gawa at dadalhin ka sa **Mga Project**, o babalik sa project folder na pinagbuksan mo ng gawa. Tinatanggal ng **Umalis nang hindi nagse-save** ang mga pagbabago mo: babalik ang isang na-save na item sa huli mong pagkaka-save nito, at aalis sa **Mga Project** ang isang creation na hindi mo na-save kailanman. Pananatilihin ka ng **Kanselahin** sa tool.
 
 Nagtatanong lang ang Lolly kapag pinindot mo ang **Home** o ang back button sa isang tool. Hindi kailanman nagtatanong ang pagsara ng tab, pag-reload at ang sariling Back button ng browser mo. Para sigurado, pindutin ang **I-save bilang**, o **I-save** sa export panel, bago ka umalis sa isang tool.
 
-::: note Nakalimutang i-save at umalis?
-Sa mga tool maliban sa siyam, pindutin agad ang Back button ng browser mo. Babalik ang mga setting mula sa address ng page, pero hindi babalik ang mga larawang idinagdag mo mula sa device mo. Pagkatapos, pindutin ang **I-save bilang** at **I-save** bago ka gumawa ng iba pang bagay: sa pagkakataong ito, hindi magtatanong ang Lolly bago ka umalis.
+::: note Hindi sinasadyang umalis nang hindi nag-save?
+Sa siyam na tool, may kopya ang History ng mga natanggal na edit. Buksan ang **History** page, hanapin ang mga ito sa ilalim ng **Changes** at pindutin ang **Open as a copy**. Sa ibang tool, nawawala na ang mga pagbabago.
 :::
 
 ::: details Ang siyam na tool na nag-sa-save habang ginagawa mo
 [Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) at [Text](/#/tool/text-helper). Lumalaki ang listahan habang mas maraming tool ang nagkakaroon ng automatic saving.
 
-Sa mga tool na ito, ang unang pagbabago mo ay nag-file na ng gawa sa **Mga Project** na parang na-save mo na, at iniingatan ang mga susunod na pagbabago sa loob ng ilang segundo. Kaya nandoon pa rin sa Projects ang isang hindi na-save na likha kahit isara mo ang tab, at hindi tinatanggal ng **Umalis nang hindi nagse-save** ang mga edit mo. Ang muling pagbukas ng tool mula sa home screen ay nagsisimula ng bagong likha; buksan ang naunang isa mula sa Projects.
+Sa mga tool na ito, ang unang pagbabago mo ay nag-file na ng gawa sa **Mga Project** na parang na-save mo na, at iniingatan ang mga susunod na pagbabago sa loob ng ilang segundo. Kaya nandoon pa rin sa Projects ang isang hindi na-save na likha kahit isara mo ang tab, at muling bubukas na naka-mark ang mga pagbabago nito bilang hindi na-save. Tinatanggal pa rin ng **Umalis nang hindi nagse-save** ang mga ito, at may kopya ang History ng mga natanggal na edit sa loob ng 30 araw. Ang muling pagbukas ng tool mula sa home screen ay nagsisimula ng bagong likha; buksan ang naunang isa mula sa Projects.
 
 Gumagana ito sa web app lang, hindi sa desktop o mobile app, at hindi habang nagtatrabaho ka nang live kasama ang iba.
 :::
@@ -101,8 +101,8 @@ Iniingatan din ng Lolly ang dalawang bagay pagkatapos ng bawat download:
 - **Ang mga setting na ginamit mo**, para sa huli mong 24 na download. Ang **Kamakailang mga export**, sa ilalim ng na-save mong gawa sa **Mga Project**, ay muling nagbubukas ng tool gamit ang mga setting na iyon para magawa mo ulit ang file, bagaman hindi kasama ang mga larawan at file na idinagdag mo mula sa device mo. Nasa ilalim din ng **Mga Setting → Aktibidad at stats → Pinakabagong exports** ang parehong listahan, at sa **Changes** tab ng **History**. Iniingatan ng listahang ito ang mga setting, hindi ang mga file.
 
 ::: details Sa desktop at mobile app
-- **Desktop app:** dire-diretsong sina-save ng **I-download** sa isang **Lolly** folder sa loob ng **Downloads** folder mo, nang walang dialog. Kinukumpirma ng isang mensahe ang pag-save at nag-aalok ng **Ipakita** para ipakita ang file. Binubuksan ng **Open Exports Folder**, sa **Window** o **Exports** menu, ang folder anumang oras. Ang isang file na may parehong pangalan ng naunang isa ay nase-save bilang "name (1)".
-- **iPhone at iPad:** nase-save ang file sa **Files** app, sa ilalim ng **Lolly**, at bubukas ang share sheet para maipadala mo ito.
+- **Desktop app:** direktang sina-save ng **I-download** sa isang **Lolly** folder sa loob ng **Downloads** folder mo, nang walang dialog. Sinasabi ng linya sa ilalim ng **I-download** kung saan ito napunta, gaya ng "Saved to Downloads/Lolly", may **Show in folder**. Binubuksan ng **Open Exports Folder**, sa **Window** o **Exports** menu, ang folder anumang oras. Ang isang file na may parehong pangalan ng naunang isa ay nase-save bilang "name (1)".
+- **iPhone at iPad:** na-save ang file sa **Files** app, sa ilalim ng **Lolly**, at bubukas ang share sheet para maipadala mo ito. Ganito ang linya sa ilalim ng **I-download**: "Saved to Files → Lolly".
 - **Android:** bubukas ang share menu para mapili mo kung saan mapupunta ang file.
 
 Sa iPhone, iPad at Android, pinapalitan ng bagong file ang naunang isa na may parehong pangalan.
@@ -146,8 +146,8 @@ I-filter ayon sa project, tool at petsa (nasa likod ng **Filters** sa telepono).
 
 Dala ng isang share link ang mga setting mo, pero hindi ang mga larawan o file na idinagdag mo mula sa device mo.
 
-::: warning Pinapalitan ng pag-import ang mga folder mo
-Kung may gawa na ang ibang device, basahin muna ito. Idinaragdag ng import ang laman ng file, ina-update ang mga item na tumutugma at walang binubura na naka-save na item. Iisang record ang profile mo, kaya't ang mga folder, favourites, template at detalye sa device na iyon ay papalitan ng nasa file. Ang isang naka-save na item na nasa device na iyon lang ay mananatili, sa top level ng **Mga Project**. Ginagawa rin ito ng **Bring it to this device**, sa Sync.
+::: note Walang idinaragdag o binubura ang pag-import
+Idinaragdag ang mga folder, favourite at template sa file sa tabi ng mga nasa ibang device na. Kapag nasa dalawa ang isang naka-save na item, ang kopyang mas kamakailang na-save ang mananatili. Nananatili ang mga detalye at setting mo sa device na iyon nang gaya ng dati; napupunan ang mga blangko mula sa file. Ganito rin gumagana ang **Bring it to this device**, sa Sync.
 :::
 
 Para ilipat ang lahat nang minsan:
@@ -156,8 +156,8 @@ Para ilipat ang lahat nang minsan:
 2. Dalhin ang file gamit ang USB, i-email sa sarili mo, AirDrop o isang shared folder.
 3. Sa bagong device, buksan ang **Mga Setting → Imbakan**, pindutin ang **I-import ang data…**, piliin ang file at pindutin ang **I-import**.
 
-::: note Ano ang naiiwan
-Nananatili sa bawat device ang mga sign-in, key at ang sync passphrase. Hindi naglalakbay sa anumang ruta ang listahan ng kamakailang download, offline download at mga AI model. Naglalakbay lang ang version history sa isang **I-export ang data ko** na file, hindi sa pamamagitan ng Sync o ng isang `.lolly`. Ang mga kopyang iniingatan ng Sync sa imbakan mo ay bumubukas lang sa pamamagitan ng Sync, hindi gamit ang **I-import ang data…** o **Buksan**.
+::: note Ang naiiwan
+Nananatili sa bawat device ang mga sign-in, key at sync passphrase. Hindi naglalakbay sa anumang ruta ang listahan ng kamakailang download, offline download at AI model. Naglalakbay lang ang version history sa isang **Export my data** file, hindi sa pamamagitan ng Sync o isang `.lolly`. Puwedeng i-download at buksan ang isang kopyang hawak ng Sync sa storage mo, o piliin sa **Import data…**, tulad ng isang backup file; hihingi ng passphrase mo ang isang naka-encrypt na kopya.
 :::
 
 ::: details Ano ang laman ng backup file
@@ -176,7 +176,7 @@ Pindutin ang **I-export ang data ko** sa ilalim ng **Mga Setting → Imbakan**, 
 
 Kapag nagsimula ang app, hinihiling ng Lolly sa browser na huwag i-clear ang imbakan nito kapag paubos na ang espasyo ng device. Ang browser ang magpapasya. Sa ilalim ng **Mga Setting → Magagamit offline**, ang isang linyang nagsisimula sa **Protected** ay nangangahulugang sumang-ayon ang browser; ang "The browser may clear downloads if the device runs low on space" ay nangangahulugang hindi, at muling magtatanong ang **Protektahan ang mga download**. Kung hindi sumang-ayon ang browser, puwede nitong i-clear ang na-save na gawa pati ang mga download kapag paubos ang espasyo, kaya mag-ingat ng kamakailang **I-export ang data ko** na file.
 
-Ipinapakita ng **Mga Setting → Imbakan** kung gaano karaming espasyo ang ginagamit ng bawat uri ng data. Inaalis ng **Burahin ang cache** ang mga na-download na catalogue file, na muling magda-download kapag kailangan. Hinihiling sa iyo ng **Burahin ang lahat ng aking data** na mag-type ng isang salita, tapos tinatanggal ang profile mo, mga naka-save na session, na-upload na larawan at ang asset cache. Nananatili ang ibang data, kasama ang version history, ang listahan ng kamakailang download, resulta ng Convert, design system at na-download na AI model. Para tanggalin ang lahat, i-clear ang data ng site na ito sa browser mo.
+Ipinapakita ng **Mga Setting → Imbakan** kung gaano karaming espasyo ang ginagamit ng bawat uri ng data. Inaalis ng **Burahin ang cache** ang mga na-download na catalogue file, na muling magda-download kapag kailangan. Hinihiling sa iyo ng **Burahin ang lahat ng aking data** na mag-type ng isang salita, i-off ang Sync, at pagkatapos ay alisin ang lahat ng hawak ng Lolly sa browser na ito: ang profile at setting mo, mga naka-save na session kasama ang history at Trash ng mga ito, mga upload, font at design system, ang download log, resulta ng Convert, na-download na AI model at offline copies. Nananatili ang mga file na na-download mo kung saan mo ito na-save. Magsisimula ang app tulad ng sa unang bisita.
 
 ![Ang storage card sa screen na kasinlapad ng telepono: pinangalanan ang bawat kategorya ng datos na nasa device, kasama ang Clear all my data na button sa ibaba](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
@@ -195,15 +195,15 @@ Nananatili ang mga larawan, design system at ang listahan ng kamakailang downloa
 
 ## Bawiin ang na-delete mong bagay
 
-Sa **Mga Project**, iniingatan ng **Ilipat sa Trash** ang isang item sa loob ng 30 araw. Napupunta sa Trash ang isang folder kasama ang lahat ng laman nito, bilang iisang entry. Kaagad pagkatapos, nag-aalok ang isang mensahe ng **I-undo** sa loob ng mga sampung segundo. Pagkatapos:
+Ang pagbura ng isang naka-save na session, isang folder, isa sa mga upload mo o isa sa mga font mo sa app ay naglilipat nito sa **Trash** sa loob ng 30 araw, saan mo man ito binura: **Mga Project**, **Mga asset**, **Mga Setting → Imbakan** o ang listahan ng naka-save na session ng isang tool. Napupunta ang isang folder kasama ang lahat ng laman nito, bilang iisang entry, at pinapanatili ng isang session ang version history nito habang naroon ito. Kaagad pagkatapos, nag-aalok ang isang mensahe ng **Undo**. Pagkatapos:
 
-1. Buksan ang **Mga Project** at pindutin ang **Trash** tile. Lumalabas lang ang tile habang may laman ang Trash.
-2. Pindutin ang **I-restore** sa tabi ng item.
+1. Buksan ang **Trash**: ang **Trash** tile sa **Mga Project**, ang **Trash** button sa **Mga asset → Ang iyong mga upload**, o ang **Trash** row sa **Mga Setting → Imbakan**. Ang tatlo ay nagbubukas ng parehong listahan.
+2. Pindutin ang **I-restore** sa tabi ng item. Babalik ito sa folder nito, at makukuha ulit ng isang font ang mga role nito sa design system nito.
 
-Tinatanggal agad ng **I-delete nang tuluyan** at **I-empty ang Trash** ang mga item, nang hindi nagtatanong. Ang mga item na mas matanda sa 30 araw ay tinatanggal nang tuluyan sa susunod mong pagbukas ng Projects.
+Tinatanggal ng **I-delete nang tuluyan** ang isang item nang tuluyan. Nagtatanong muna ang **I-empty ang Trash**, saka tinatanggal ang bawat item sa Trash. Tinatanggal nang tuluyan ang mga item na mas matanda sa 30 araw.
 
-::: warning Permanente ang ibang pagbura
-Ang pagbura ng isang naka-save na session sa ilalim ng **Mga Setting → Imbakan**, o mula sa listahan ng naka-save na session ng isang tool sa gallery (i-right-click ang card ng tool, tapos **N saved sessions**), ay tinatanggal ang session nang tuluyan, kasama ang version history nito. Agad na tinatanggal ang isang larawang binura mo mula sa **My images**, nang hindi nagtatanong.
+::: warning Agad ang ilang pagbura
+Ang pagbura ng isang design system, isang logo o ng iyong profile photo ay hindi napupunta sa Trash. Agad ding nagbubura ang command line at ang terminal app.
 :::
 
 Kapag naka-on ang [Sync](/info/sync.html), puwedeng ibalik ng **Restore an earlier copy** ang estado ng buong device mula sa isang naunang araw, at ibinabalik ng isang **I-export ang data ko** na file ang laman nito.

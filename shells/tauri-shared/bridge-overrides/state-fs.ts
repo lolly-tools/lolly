@@ -81,6 +81,10 @@ interface FsStateRecord {
   /** First-save time, carried forward across re-saves (mirrors the web bridge) - 
    *  the "Date added" sort key. Optional: older files have none. */
   createdAt?: string;
+  /** When this work was last explicitly saved (mirrors the web bridge): what the
+   *  newer-copy import rule compares. A rename or a move keeps the time. Optional:
+   *  older files have none, and readers fall back to updatedAt. */
+  savedAt?: string;
   formatVersion?: number;
   engineVersion?: string;
 }
@@ -116,6 +120,18 @@ function slotFilename(slot: string): string {
 function slotPath(slot: string): string {
   return `${STATE_DIR}/${slotFilename(slot)}`;
 }
+
+/** The work a save time is about: the document without its name, so a rename
+ *  is not new work (the web bridge's workOf, kept in step by hand because this
+ *  module imports nothing from the web shell at runtime). */
+function workOf(data: unknown): string {
+  if (!data || typeof data !== 'object') return JSON.stringify(data ?? null);
+  const { __label: _label, __export_filename: _filename, ...work } = data as Record<string, unknown>;
+  return JSON.stringify(work);
+}
+
+const validTime = (value: unknown): string | undefined =>
+  typeof value === 'string' && Number.isFinite(Date.parse(value)) ? value : undefined;
 
 // Where migrateSessionRecord reports a record written by a newer app build.
 function stateLog(level: 'warn' | 'info', message: string, meta?: Record<string, unknown>): void {
@@ -227,31 +243,47 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
     return out;
   }
 
+  /** Write one record. `times` given (a restore) keeps the session's own update
+   *  and save times; otherwise the update time is now, and the save time is now
+   *  only when the work changed, so a rename keeps it (matching the web bridge). */
+  async function writeRecord(slot: string, data: SavedStateData, thumb: string | null, times?: { updatedAt: string; savedAt: string }): Promise<void> {
+    await ensureMigrated();
+    // Re-saves reuse the slot: carry the original creation time forward off the
+    // existing file (matching the web bridge's IndexedDB read-before-write).
+    let prior: ParsedRecord | undefined;
+    try {
+      const path = slotPath(slot);
+      if (await fs.exists(path)) prior = JSON.parse(await fs.readTextFile(path)) as ParsedRecord;
+    } catch { /* unreadable prior record - stamp fresh */ }
+    const now = times?.updatedAt ?? new Date().toISOString();
+    const priorSaved = prior ? validTime(prior.savedAt) ?? validTime(prior.updatedAt) : undefined;
+    const savedAt = times?.savedAt ?? (prior && priorSaved && workOf(prior.data) === workOf(data) ? priorSaved : now);
+    const record: FsStateRecord = {
+      slot,
+      toolId: data.__toolId,
+      toolVersion: data.__toolVersion,
+      label: data.__label,
+      data,
+      thumb,
+      updatedAt: now,
+      createdAt: prior?.createdAt ?? now,
+      savedAt,
+      ...sessionVersionStamp(),
+    };
+    await fs.writeTextFile(slotPath(slot), JSON.stringify(record, null, 2));
+  }
+
   return {
     async save(slot, data, thumb = null) {
-      await ensureMigrated();
-      // Re-saves reuse the slot: carry the original creation time forward off the
-      // existing file (matching the web bridge's IndexedDB read-before-write).
-      let priorCreated: string | undefined;
-      try {
-        const path = slotPath(slot);
-        if (await fs.exists(path)) {
-          priorCreated = (JSON.parse(await fs.readTextFile(path)) as ParsedRecord).createdAt;
-        }
-      } catch { /* unreadable prior record - stamp fresh */ }
-      const now = new Date().toISOString();
-      const record: FsStateRecord = {
-        slot,
-        toolId: data.__toolId,
-        toolVersion: data.__toolVersion,
-        label: data.__label,
-        data,
-        thumb,
-        updatedAt: now,
-        createdAt: priorCreated ?? now,
-        ...sessionVersionStamp(),
-      };
-      await fs.writeTextFile(slotPath(slot), JSON.stringify(record, null, 2));
+      await writeRecord(slot, data, thumb);
+    },
+
+    // A backup import or a Trash move writes through here, keeping the session's
+    // own times, so the newer-copy rule compares when the work was saved.
+    async restore(slot, data, thumb, updatedAt, savedAt) {
+      const at = validTime(updatedAt);
+      const saved = validTime(savedAt) ?? at;
+      await writeRecord(slot, data, thumb, at && saved ? { updatedAt: at, savedAt: saved } : undefined);
     },
 
     async load(slot) {
@@ -286,6 +318,7 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
           thumb: raw.thumb ?? null,
           updatedAt: raw.updatedAt ?? '',
           ...(raw.createdAt ? { createdAt: raw.createdAt } : {}),
+          ...(raw.savedAt ? { savedAt: raw.savedAt } : {}),
         }))
         .sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
     },
@@ -295,6 +328,20 @@ export function createFsStateAPI(fs: StateFs): WebStateAPI {
       const path = slotPath(slot);
       const ok = await fs.exists(path);
       if (ok) await fs.remove(path);
+    },
+
+    // "Clear all my data" (plan 277 P2): every saved-state file goes, the Trash's
+    // `__trash__:` records with them. The migration marker stays, so the next
+    // launch does not re-walk an empty directory. A file that will not delete is
+    // skipped rather than stopping the rest.
+    async _clearAll() {
+      await ensureMigrated();
+      let names: string[];
+      try { names = await fs.readDirNames(STATE_DIR); } catch { return; }
+      for (const name of names) {
+        if (!name?.endsWith('.json')) continue;
+        try { await fs.remove(`${STATE_DIR}/${name}`); } catch { /* keep clearing the rest */ }
+      }
     },
 
     async sizes() {

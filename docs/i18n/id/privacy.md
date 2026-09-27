@@ -55,8 +55,8 @@ perangkat Anda**, tidak pernah dikirimkan:
 Tak satu pun dari ini dibagikan, dijual, atau digunakan untuk mengidentifikasi atau melacak Anda. Tidak ada
 yang perlu disetujui, karena tidak ada pengumpulan data yang terjadi - hanya pemberitahuan ini, agar Anda
 tahu apa yang disimpan dan di mana. Menghapus penyimpanan situs di browser Anda menghapus
-semuanya kapan saja; **Pengaturan → Penyimpanan → Hapus semua data saya** menghapus profil Anda,
-sesi tersimpan, gambar yang diunggah dan cache aset. (Berdasarkan ePrivacy
+semuanya kapan saja, dan begitu juga **Pengaturan → Penyimpanan → Hapus semua data saya**,
+yang juga mematikan Sync terlebih dahulu. (Berdasarkan ePrivacy
 Directive Art. 5(3), penyimpanan yang benar-benar diperlukan untuk layanan yang Anda minta
 tidak memerlukan persetujuan - hanya transparansi, yang merupakan tujuan dari dokumen ini dan
 pemberitahuan dalam aplikasi.)

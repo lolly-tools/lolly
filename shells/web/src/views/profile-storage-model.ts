@@ -25,6 +25,11 @@ export interface PreviewsMeasure { bytes: number; count: number; available: bool
 export interface StorageModel {
   sessions: { bytes: number; count: number; sizes: Record<string, number>; list: SessionEntry[] };
   images: { bytes: number; count: number; list: AssetRef[] };
+  /** What the Trash holds (plan 277 P3). Its bytes are already inside the
+   *  sessions and images slices; the Trash row shows them separately so the
+   *  person knows that Empty Trash is what frees them. Optional for older test
+   *  fixtures. */
+  trash?: { count: number; bytes: number };
   cache: { bytes: number };
   fileHistory?: { bytes: number };
   previews: PreviewsMeasure;

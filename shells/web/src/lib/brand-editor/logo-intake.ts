@@ -14,6 +14,7 @@ import { hasPendingLogoFiles, takePendingLogoFiles } from '../design-system/pend
 import { deriveMonoSvg, deriveReverseSvg, eligibleForDerivedVariants } from '../design-system/recolor-logo.ts';
 import { confirmDialog } from '../../components/confirm-dialog.ts';
 import { t, tRaw } from '../../i18n.ts';
+import { isTauriShell } from '../instance-choice.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
 import { playSfx } from '../sfx.ts';
@@ -445,7 +446,7 @@ export function wireIntakeZone(bedit: BrandEditorCtx): void {
     e.preventDefault();
     const variant = del.dataset.logoDel!;
     const identity = del.dataset.identity || 'default';
-    const ok = await confirmDialog({ title: tRaw('Remove the {variant} mark?', { variant: variantLabel(variant).toLowerCase() }), message: t('It’s deleted from this device.'), confirmLabel: t('Remove') });
+    const ok = await confirmDialog({ title: tRaw('Remove the {variant} mark?', { variant: variantLabel(variant).toLowerCase() }), message: isTauriShell() ? t('It’s deleted from this device.') : t('It’s deleted from this browser.'), confirmLabel: t('Remove') });
     if (!ok) return; del.disabled = true;
     try {
       await removeLogo(fontsHost, variant, identity === 'default' ? undefined : identity);

@@ -447,7 +447,9 @@ export async function exportBrandPack(
   const fontRows: FontRow[] = [];
   const families = new Set<string>();
   for (const r of records) {
-    if (r.type !== 'font' || !r.blob) continue;
+    // A font in the Trash (plan 277 P3) is deleted as far as the person can see,
+    // so it does not travel with the brand.
+    if (r.type !== 'font' || !r.blob || (r as { trashedAt?: string }).trashedAt) continue;
     const id = packId(r.id, 'font');
     if (!id) continue;
     const file = `fonts/${id.slice(USER_FONT_PREFIX.length).replace(/\//g, '-')}.woff2`;

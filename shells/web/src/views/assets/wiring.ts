@@ -140,6 +140,18 @@ export function wire(cat: CatCtx): void {
       return;
     }
 
+    // "Trash" (uploads section, plan 277 P3): the shared Trash dialog. A restore
+    // brings the upload back into the grid, so reload + repaint on every change.
+    if (target.closest('[data-open-trash]')) {
+      const [{ createTrash }, { openTrashDialog }] = await Promise.all([import('../../lib/trash.ts'), import('../../components/trash-dialog.ts')]);
+      await openTrashDialog({
+        trash: createTrash(host),
+        onChange: async () => { if (cat.mounted) { await cat.tiles.reload(); if (cat.mounted) cat.sections.rerender(); } },
+        returnFocus: () => cat.viewEl.querySelector<HTMLElement>('[data-open-trash]'),
+      });
+      return;
+    }
+
     // "Paste text" (uploads section): the lazy paste dialog; the saved text
     // asset ends up in "Your uploads", so reload + repaint like a dropzone ingest.
     const pasteTextBtn = target.closest<HTMLElement>('[data-paste-text]');

@@ -51,9 +51,9 @@ na tvém zařízení**, nikdy je nepřenáší:
 Nic z toho se nesdílí, neprodává ani nepoužívá k tvé identifikaci či
 sledování. Není tu s čím souhlasit, protože k žádnému sběru nedochází -
 jen toto oznámení, abys věděl, co se uchovává a kde. Vymazání úložiště
-webu ve tvém prohlížeči to všechno kdykoli odstraní; **Nastavení → Úložiště
-→ Vymazat všechna moje data** odstraní tvůj profil, uložené relace, nahrané
-obrázky a cache assetů. (Podle směrnice ePrivacy čl. 5(3) úložiště, které
+webu ve tvém prohlížeči to všechno kdykoli odstraní, a totéž udělá
+**Nastavení → Úložiště → Vymazat všechna moje data**, což navíc nejdřív vypne
+Synchronizaci. (Podle směrnice ePrivacy čl. 5(3) úložiště, které
 je nezbytně nutné pro službu, o kterou jsi požádal, nevyžaduje souhlas
 - jen transparentnost, kterou poskytuje tento dokument i oznámení v aplikaci.)
 

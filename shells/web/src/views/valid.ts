@@ -51,7 +51,7 @@ import { startJob, type JobHandle } from '../lib/jobs.ts';
 import { announce } from '../a11y.ts';
 import { armViewEnter } from '../view-enter.ts';
 import { playSfx } from '../lib/sfx.ts';
-import { prepareAssetForVerify, takePendingVerify } from '../lib/verify-handoff.ts';
+import { missingVerifyAssetText, prepareAssetForVerify, takePendingVerify } from '../lib/verify-handoff.ts';
 import { langFabHtml, attachLangMenu } from '../components/lang-menu.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { backHomeHtml, mountBackPill } from '../components/back-pill.ts';
@@ -4034,7 +4034,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
         await handle(prep.files);
         showHandoffNote(prep.note);
       } else {
-        sayVerifyProblem(t('No asset with that id is on this device, so there is nothing to check. Open the link where the asset lives, or drop the file here instead.'));
+        sayVerifyProblem(missingVerifyAssetText());
       }
     }
   }

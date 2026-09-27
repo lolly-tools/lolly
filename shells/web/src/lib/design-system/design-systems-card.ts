@@ -13,6 +13,7 @@
  */
 import { brandSpecimenHtml, type BrandPreview } from './brand-specimen.ts';
 import { t, tRaw } from '../../i18n.ts';
+import { isTauriShell } from '../instance-choice.ts';
 import { escape } from '../../utils.ts';
 import { icon } from '../icons.ts';
 import { confirmDialog, promptDialog } from '../../components/confirm-dialog.ts';
@@ -153,7 +154,7 @@ export async function renderDesignSystemsCard(body: HTMLElement, host: CardHost)
   ]);
   const previews = await Promise.all(records.map(record => previewOf(host, record)));
   body.innerHTML = `
-    <p class="profile-appearance-sub">${t('The design systems on this device. The active one is what every tool renders with.')}</p>
+    <p class="profile-appearance-sub">${isTauriShell() ? t('The design systems on this device. The active one is what every tool renders with.') : t('The design systems in this browser. The active one is what every tool renders with.')}</p>
     <div class="ds-rows">${records.map((r, i) => designSystemCardHtml(r, activeId, sizes[r.id], previews[i]!)).join('')}</div>
     <div class="ds-add">
       <button type="button" class="btn" data-ds-act="looks">${t('Find a look')}</button>
@@ -179,7 +180,7 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
   let busy = true;
   body.setAttribute('aria-busy', 'true');
   announce(body, t('Loading design systems…'));
-  void renderDesignSystemsCard(body, host).catch(() => { body.innerHTML = `<p class="profile-appearance-sub">${t('Design systems are unavailable on this device.')}</p>`; }).finally(() => { busy = false; body.removeAttribute('aria-busy'); });
+  void renderDesignSystemsCard(body, host).catch(() => { body.innerHTML = `<p class="profile-appearance-sub">${isTauriShell() ? t('Design systems are unavailable on this device.') : t('Design systems are unavailable in this browser.')}</p>`; }).finally(() => { busy = false; body.removeAttribute('aria-busy'); });
 
   body.addEventListener('click', async (e) => {
     const btn = (e.target as Element).closest<HTMLElement>('[data-ds-act]');
@@ -212,7 +213,7 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
         const record = await host.designSystems.get(id);
         const ok = await confirmDialog({
           title: t('Remove “{name}”?', { name: record?.label ?? id }),
-          message: t('Its colours, type and logos leave this device. Sessions made with it stay, and keep rendering with whatever design system is active. Images you uploaded are yours and stay.'),
+          message: isTauriShell() ? t('Its colours, type and logos leave this device. Sessions made with it stay, and keep rendering with whatever design system is active. Images you uploaded are yours and stay.') : t('Its colours, type and logos are removed from this browser. Sessions made with it stay, and keep rendering with whatever design system is active. Images you uploaded are yours and stay.'),
           confirmLabel: t('Remove'),
           danger: true,
         });
@@ -227,7 +228,7 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
           await switchDesignSystem(host, id, { route: 'profile' });
           return;
         }
-        if (outcome === 'unreachable') announce(body, t('Could not reach the instance. The copy on this device stands.'));
+        if (outcome === 'unreachable') announce(body, isTauriShell() ? t('Could not reach the instance. The copy on this device stands.') : t('Could not reach the instance. The copy in this browser stands.'));
         else if (outcome === 'stale') announce(body, t('An update is available but could not be brought down. It will be tried again when online.'));
         else if (outcome === 'unchanged') announce(body, t('Up to date.'));
         else if (outcome === 'updated') announce(body, t('Updated.'));

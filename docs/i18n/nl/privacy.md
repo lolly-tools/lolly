@@ -55,9 +55,9 @@ je apparaat** bij, nooit verzonden:
 Niets hiervan wordt gedeeld, verkocht of gebruikt om je te identificeren of te volgen. Er is niets
 om toestemming voor te geven, omdat er geen verzameling plaatsvindt - alleen deze kennisgeving, zodat je
 weet wat wordt bewaard en waar. De opslag van de site in je browser wissen verwijdert
-dat allemaal op elk moment; **Instellingen → Opslag → Al mijn gegevens wissen** verwijdert je
-profiel, opgeslagen sessies, geüploade afbeeldingen en de asset-cache. (Onder de ePrivacy-
-richtlijn Art. 5(3) vereist opslag die strikt noodzakelijk is voor de dienst die je hebt aangevraagd
+dat allemaal op elk moment, en dat doet **Instellingen → Opslag → Al mijn gegevens wissen** ook,
+wat ook eerst Synchronisatie uitschakelt. (Onder de ePrivacy-richtlijn
+Art. 5(3) vereist opslag die strikt noodzakelijk is voor de dienst die je hebt aangevraagd
 geen toestemming - alleen transparantie, en dat zijn dit document en
 de melding in de app allebei.)
 

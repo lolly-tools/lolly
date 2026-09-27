@@ -44,6 +44,7 @@ import type { BackupDeps } from './sync-engine.ts';
 import { getSyncConfig, saveSyncConfig, syncStateOf, getSyncBase, saveSyncBase } from './sync-config.ts';
 import { noteLocalChange, onLocalChange, localChangeSeq, withoutLocalChanges } from './sync-changes.ts';
 import { isTauriShell } from './instance-choice.ts';
+import { clearSignal } from './clear-signal.ts';
 
 /** The sync engine's module type, for the return/handle types below. `typeof import()`
  *  in TYPE position is erased by tsc - it creates no runtime edge, unlike a top-level
@@ -111,10 +112,31 @@ export function availableSyncProviders(): Array<{ kind: string; label: string }>
  *  connector kill switch also stops a provider a previous session had configured:
  *  no remote, no push, no check. */
 async function remoteFor(kind: string, slot: SyncSlot = 'snapshot'): Promise<SyncRemote | null> {
+  if (clearSignal.writesBlocked()) return null;   // "Clear all my data" ran: see refuseAfterClear
   const testLoader = testRemotes.get(kind);
-  if (testLoader) return testLoader(slotPath(kind, slot));
+  if (testLoader) return refuseAfterClear(testLoader(slotPath(kind, slot)));
   if (!connectorEnabled(kind)) return null;
-  return (await REMOTES[kind]?.(slotPath(kind, slot))) ?? null;
+  const remote = (await REMOTES[kind]?.(slotPath(kind, slot))) ?? null;
+  return remote && refuseAfterClear(remote);
+}
+
+/** Said when sync is refused in a tab that has not reloaded since a clear. */
+const clearedMessage = (): string => t('Your data was cleared in another tab. Reload this tab to keep working.');
+
+/**
+ * No upload from a tab that must stop writing for "Clear all my data"
+ * (lib/clear-signal.ts, plan 277 review B6). A push already under way when the
+ * clear starts may have read part of the emptied database, so the check runs
+ * again right before the upload, not only when the push begins.
+ */
+function refuseAfterClear(remote: SyncRemote): SyncRemote {
+  return {
+    kind: remote.kind,
+    head: () => remote.head(),
+    get: () => remote.get(),
+    put: (bytes, opts) => (clearSignal.writesBlocked() ? Promise.reject(new Error(clearedMessage())) : remote.put(bytes, opts)),
+    ...(remote.canSyncSilently ? { canSyncSilently: () => remote.canSyncSilently!() } : {}),
+  };
 }
 
 const testRemotes = new Map<string, (path?: string) => SyncRemote>();
@@ -126,7 +148,7 @@ export function setSyncRemoteForTests(kind: string, loader: ((path?: string) => 
 
 async function requireRemote(kind: string, slot: SyncSlot = 'snapshot'): Promise<SyncRemote> {
   const remote = await remoteFor(kind, slot);
-  if (!remote) throw new Error(t('Pick a connected provider for sync first.'));
+  if (!remote) throw new Error(clearSignal.writesBlocked() ? clearedMessage() : t('Pick a connected provider for sync first.'));
   return remote;
 }
 
@@ -256,7 +278,9 @@ export async function existingCopyForFirstJoin(): Promise<SnapshotMeta | null> {
 }
 
 /** How an apply treats this device. 'sync' is the normal case: remove only what
- *  another device deleted. 'merge' adds and updates only (a first join). 'all'
+ *  another device deleted, and take the copy's profile record. 'merge' adds and
+ *  updates only, and merges the profile record: the folders, favourites,
+ *  templates and settings on this device stay (a first join, plans/277 P7). 'all'
  *  makes this device match the copy exactly (restoring an earlier copy). */
 export type ApplyMode = 'sync' | 'merge' | 'all';
 
@@ -274,15 +298,18 @@ async function applyFrom(deps: BackupDeps, slot: SyncSlot, mode: ApplyMode): Pro
   const replace = mode === 'all' ? 'all' as const
     : mode === 'sync' && cfg.lastSyncedRev !== null && base ? { removable: base } : undefined;
   const opts = { passphrase: cfg.passphrase || undefined, maxUploadBytes: maxUploadBytes() };
+  const profile = mode === 'merge' ? 'merge' as const : 'replace' as const;
   const beforeApply = async (): Promise<void> => {
     try {
       await engine.saveCopy(deps, undoSlot, opts);
     } catch (err) {
       const reason = (await tooLargeMessage(err)) ?? (err as Error)?.message ?? String(err);
-      throw new Error(tRaw('Nothing was changed: this device could not be saved to your sync home first. {reason}', { reason }));
+      throw new Error(isTauriShell()
+        ? tRaw('Nothing was changed: this device could not be saved to your sync home first. {reason}', { reason })
+        : tRaw('Nothing was changed: this browser’s data could not be saved to your sync home first. {reason}', { reason }));
     }
   };
-  return withoutLocalChanges(() => engine.pullAndApply(deps, remote, { ...opts, replace, beforeApply }));
+  return withoutLocalChanges(() => engine.pullAndApply(deps, remote, { ...opts, replace, profile, beforeApply }));
 }
 
 /**
@@ -310,7 +337,8 @@ export async function applyNewer(
 
 /**
  * First join, "Bring it here": add the synced copy to this device without removing
- * anything, then push, so the store also gets what only this device had.
+ * anything (folders, favourites, templates and Trash are merged, and this device's
+ * settings stay), then push, so the store also gets what only this device had.
  */
 export async function joinBringHere(deps: BackupDeps): Promise<void> {
   const { state, ids } = await applyFrom(deps, 'snapshot', 'merge');

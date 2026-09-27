@@ -13,7 +13,7 @@
  * static graph stays /pro-free and the overlay loads from the (pro-free) gallery.
  */
 import { escape } from './utils.ts';
-import { tRaw } from './i18n.ts';
+import { t, tRaw } from './i18n.ts';
 import { mountModal } from './components/modal.ts';
 import { confirmDialog } from './components/confirm-dialog.ts';
 import { mountBodyPopover } from './components/body-popover.ts';
@@ -44,6 +44,8 @@ interface OverlayHost {
   state: {
     load(slot: string): Promise<Record<string, unknown> | null>;
     save(slot: string, data: unknown, thumb?: string | null): Promise<unknown>;
+    /** Write keeping the record's own update and save times (web and Tauri bridges). */
+    restore?(slot: string, data: never, thumb: string | null, updatedAt: string, savedAt?: string): Promise<unknown>;
     delete(slot: string): Promise<unknown>;
     list(): Promise<ReadonlyArray<{ slot: string }>>;
   };
@@ -409,7 +411,11 @@ export function openFolderOverlay(host: OverlayHost, opts: FolderOverlayOpts = {
       const newSlot = BATCH_SLOT_PREFIX + name;
       if (newSlot !== ref) {
         if (sessionByRef.has(newSlot)) { announce('A batch session with that name already exists.', { assertive: true }); return; }
-        await host.state.save(newSlot, data, entry.thumb ?? null);
+        // Re-keyed with its own times kept (plan 277 timing fix): a new slot for
+        // a new name is not a new save.
+        const times = entry as { updatedAt?: string | null; savedAt?: string };
+        if (host.state.restore && times.updatedAt) await host.state.restore(newSlot, data as never, entry.thumb ?? null, times.updatedAt, times.savedAt);
+        else await host.state.save(newSlot, data, entry.thumb ?? null);
         await host.state.delete(ref);
         await store.swapSessionSlot(ref, newSlot);
         sessionByRef.delete(ref);
@@ -426,34 +432,36 @@ export function openFolderOverlay(host: OverlayHost, opts: FolderOverlayOpts = {
     render();
   }
 
+  // A web delete goes to the Trash (plan 277 P3), the same as Projects: no
+  // confirm, an Undo toast, and Restore in the Trash puts the item back in its
+  // folder. The Trash detaches it from the folder itself.
   async function deleteItem(ref: string, kind: 'session' | 'image') {
     const isImage = kind === 'image';
-    const ok = await confirmDialog({
-      title: isImage ? 'Delete this saved image?' : 'Delete this saved session?',
-      message: isImage
-        ? 'This permanently deletes the saved image. This cannot be undone.'
-        : 'This permanently deletes the saved session and its preview. This cannot be undone.',
-      confirmLabel: 'Delete',
-    });
-    if (!ok) return;
     try {
-      if (isImage) {
-        await host.assets._deleteUserAsset(ref);
-        imageByRef.delete(ref);
-      } else {
-        await host.state.delete(ref);
-        sessionByRef.delete(ref);
-      }
-      // Detach from whatever folder it sat in (root deletes are a no-op here).
-      if (viewFolderId) await store.removeItem(viewFolderId, ref);
-      else { const f = folders.find(x => x.items.some(i => i.ref === ref)); if (f) await store.removeItem(f.id, ref); }
+      const [{ createTrash }, { showTrashUndoToast }] = await Promise.all([
+        import('./lib/trash.ts'), import('./components/trash-dialog.ts'),
+      ]);
+      const trash = createTrash(host);
+      const image = imageByRef.get(ref);
+      const session = sessionByRef.get(ref);
+      const moved = isImage
+        ? await trash.trashAssets([{ id: ref, name: String(image?.meta?.name ?? '') }])
+        : await trash.trashSessions([ref], () => session?.label || session?.filename || nameById.get(session?.toolId ?? '') || undefined);
+      if (!moved.length) throw new Error('not moved');
+      if (isImage) imageByRef.delete(ref); else sessionByRef.delete(ref);
       folders = await store.list();
       onDelete?.(ref);
       render();
-      announce(isImage ? 'Image deleted' : 'Session deleted');
+      showTrashUndoToast(trash, moved, async (restored) => {
+        if (!restored) return;
+        if (isImage && image) imageByRef.set(ref, image);
+        if (!isImage && session) sessionByRef.set(ref, session);
+        folders = await store.list();
+        render();
+      });
     } catch (err) {
       host.log?.('error', 'Folder overlay delete failed', { ref, error: String(err) });
-      announce('Could not delete that item.', { assertive: true });
+      announce(t('That did not work. Try again.'), { assertive: true });
     }
   }
 

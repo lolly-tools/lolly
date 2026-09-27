@@ -1347,10 +1347,17 @@ export async function mountPro(viewEl: HTMLElement, host: ProHost, opts: ProMoun
       showProgress(`<p class="pro-progress-msg">Loaded session “${escape(btn.dataset.name)}”.</p>`);
     }));
 
+    // A web delete goes to the Trash (plan 277 P3), with the Undo toast every
+    // other door shows; Projects and Assets hold the Trash to restore from.
     pop.querySelectorAll<HTMLElement>('[data-del]').forEach(btn => btn.addEventListener('click', async (e) => {
       e.stopPropagation();
-      await sessions.delete(btn.dataset.del!);
+      const [{ createTrash, trashHostOf }, { showTrashUndoToast }] = await Promise.all([
+        import('../lib/trash.ts'), import('../components/trash-dialog.ts'),
+      ]);
+      const trash = createTrash(trashHostOf(host));
+      const moved = await trash.trashSessions([btn.dataset.del!]);
       await drawSessions(pop);
+      showTrashUndoToast(trash, moved, async () => { if (pop.isConnected) await drawSessions(pop); });
     }));
 
     // ── Project picker (only when the shell injects a folderApi) ──────────────

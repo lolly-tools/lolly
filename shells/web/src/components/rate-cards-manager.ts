@@ -42,6 +42,7 @@ import { icon } from '../lib/icons.ts';
 import { announce } from '../a11y.ts';
 import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
+import { isTauriShell } from '../lib/instance-choice.ts';
 
 export interface RateCardsPanelOpts {
   host: RateCardsHost;
@@ -176,7 +177,7 @@ export function openRateCardsPanel(opts: RateCardsPanelOpts): Promise<void> {
         </div>
         <p class="rcm-msg" data-rcm-msg role="status" aria-live="polite" hidden></p>
         <ul class="rcm-list" data-rcm-list></ul>
-        <p class="rcm-empty" data-rcm-empty hidden>${escape(t('No rate cards on this device yet.'))}</p>
+        <p class="rcm-empty" data-rcm-empty hidden>${escape(isTauriShell() ? t('No rate cards on this device yet.') : t('No rate cards in this browser yet.'))}</p>
       </div>`, {
       className: 'modal rcm-modal',
       ariaLabel: t('Rate cards'),

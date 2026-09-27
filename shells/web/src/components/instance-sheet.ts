@@ -42,7 +42,7 @@ import { getInstanceBase, setInstanceBase, instanceFetch } from '../lib/instance
 import { validateInstanceUrl, shapeProbeResult, shapeInstanceManifest, type ProbeOutcome, type ManifestOutcome } from '../lib/instance-probe.ts';
 import { syncCatalog } from '../catalog/sync.ts';
 import { importBackup, MAX_RESTORE_TOTAL_BYTES } from '../data-transfer.ts';
-import { backupHistoryNote } from '../lib/backup-summary.ts';
+import { backupImportLine } from '../lib/backup-summary.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 
 
@@ -246,10 +246,7 @@ export function openInstanceSheet(host: HostV1, opts: { firstRun?: boolean } = {
           { host: host as unknown as Parameters<typeof importBackup>[0]['host'], storage: localStorage },
           bytes,
         );
-        const line = tRaw('Imported {sessions} and {images}', {
-          sessions: summary.sessions === 1 ? t('1 session') : t('{n} sessions', { n: summary.sessions }),
-          images: summary.userAssets === 1 ? t('1 image') : t('{n} images', { n: summary.userAssets }),
-        }) + backupHistoryNote(summary)
+        const line = backupImportLine(summary)
           + (summary.failedAssets ? ` · ${t('{n} assets could not be restored. Keep your backup.', { n: summary.failedAssets })}` : '')
           + (summary.skipped ? ` · ${t('{n} unsupported backup parts skipped', { n: summary.skipped })}` : '');
         announce(line, summary.failedAssets || summary.failedHistory ? { assertive: true } : undefined);

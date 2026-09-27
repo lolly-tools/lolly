@@ -56,7 +56,7 @@ function oauthChoice(f: ShellFacts, id: 'dropbox' | 'gdrive' | 'o365', label: st
       id, label, state: 'ready',
       note: id === 'gdrive' && !isApp(f)
         ? t('Connected. In the browser, automatic sync starts after you sign in during a visit.')
-        : t('Connected on this device.'),
+        : (isApp(f) ? t('Connected on this device.') : t('Connected in this browser.')),
     };
   }
   if (isMobile(f) && !f.mobileSignIn.has(id)) {
@@ -76,7 +76,7 @@ function oauthChoice(f: ShellFacts, id: 'dropbox' | 'gdrive' | 'o365', label: st
 /** A person's own server (Nextcloud / WebDAV, an S3 bucket). */
 function ownServerChoice(f: ShellFacts, id: 'webdav' | 's3', label: string): SyncChoice {
   if (f.connected.has(id)) {
-    return { id, label, state: 'ready', note: t('Connected on this device.') };
+    return { id, label, state: 'ready', note: isApp(f) ? t('Connected on this device.') : t('Connected in this browser.') };
   }
   if (f.shell === 'web-hosted') {
     return {

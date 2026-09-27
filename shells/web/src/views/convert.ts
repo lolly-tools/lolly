@@ -25,6 +25,7 @@ import { renderFileOperationHistory } from './file-operation-history.ts';
 import { TRANSMUX_CONTAINERS, type TransmuxTarget } from '../lib/transmux.ts';
 import type { ExtractAudioHost } from '../lib/extract-audio.ts';
 import { t } from '../i18n.ts';
+import { isTauriShell } from '../lib/instance-choice.ts';
 import { escape } from '../utils.ts';   // the single shared HTML escaper (R11) - never re-fork it
 import { backHomeHtml, mountBackPill } from '../components/back-pill.ts';
 import { langFabHtml, attachLangMenu } from '../components/lang-menu.ts';
@@ -253,7 +254,7 @@ export async function mountConvert(viewEl: HTMLElement, host: HostV1, params = '
   async function onFiles(files: File[]): Promise<void> {
     const current = ++generation;
     if (result.querySelector('.convert-output')) {
-      const confirmed = await confirmDialog({ title: t('Start a new batch?'), message: t('Completed copies remain in Recent file operations on this device. Your originals are never changed.'), confirmLabel: t('Start new batch'), danger: false });
+      const confirmed = await confirmDialog({ title: t('Start a new batch?'), message: isTauriShell() ? t('Completed copies remain in Recent file operations on this device. Your originals are never changed.') : t('Completed copies remain in Recent file operations in this browser. Your originals are never changed.'), confirmLabel: t('Start new batch'), danger: false });
       if (!confirmed || current !== generation) return;
     }
     cleanupWorkbench?.(); cleanupWorkbench = undefined;

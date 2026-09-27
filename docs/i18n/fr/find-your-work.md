@@ -6,9 +6,9 @@ Tout ce que tu crées dans Lolly reste dans le navigateur ou l'application où t
 |---|---|
 | Appuyé sur **Enregistrer sous** ou **Enregistrer** | **Projets** |
 | Appuyé sur **Télécharger** | Les téléchargements de ton navigateur, et une copie dans **Éléments** |
-| Ni l'un ni l'autre, dans l'un des [neuf outils qui enregistrent au fil du travail](#the-nine-tools-that-save-as-you-work) | **Projets** et **History** |
+| Ni l'un ni l'autre, dans l'un des [neuf outils qui enregistrent au fil du travail](#the-nine-tools-that-save-as-you-work) | **Projets** et **Historique** |
 | Ni l'un ni l'autre, dans un autre outil | Seulement l'onglet où tu as travaillé, jusqu'à ce que tu le fermes |
-| Déplacé vers la Corbeille | La tuile **Corbeille** dans **Projets**, pendant 30 jours |
+| Supprimé dans l'application | **Corbeille**, dans **Projets**, **Éléments** ou **Paramètres → Stockage**, pendant 30 jours |
 
 ## Retrouver quelque chose que tu as enregistré
 
@@ -73,18 +73,18 @@ Ce qui revient dépend de la façon dont tu es parti et de l'outil que tu as uti
 
 - **Tu as fermé l'onglet, ou tu reviens une autre fois.** Le travail non enregistré a disparu, sauf dans les [neuf outils](#the-nine-tools-that-save-as-you-work), qui enregistrent tes modifications au fil du travail : ouvre-les depuis **Projets**.
 - **Tu as rechargé la page dans le même onglet.** Tes réglages reviennent depuis l'adresse de la page. Dans les outils autres que les neuf, les images et fichiers que tu as ajoutés depuis ton appareil, et le texte sur une ligne de plus de 150 caractères, ne reviennent pas, parce que l'adresse ne les contient pas.
-- **Tu as appuyé sur Accueil, ou le bouton retour en haut à gauche.** Si tu as changé quelque chose depuis ton dernier enregistrement, téléchargement ou copie, une boîte de dialogue **Modifications non enregistrées** demande s'il faut d'abord enregistrer. **Enregistrer et quitter** enregistre le travail et t'emmène vers **Projets**, ou vers le dossier de projet depuis lequel tu as ouvert le travail. **Quitter sans enregistrer** quitte ; dans les neuf outils, tes modifications sont déjà enregistrées et restent dans Projets. **Annuler** te garde dans l'outil.
+- **Tu as appuyé sur Accueil, ou le bouton retour en haut à gauche.** Si tu as changé quelque chose depuis ton dernier enregistrement, téléchargement ou copie, une boîte de dialogue **Modifications non enregistrées** demande s'il faut d'abord enregistrer. **Enregistrer et quitter** enregistre le travail et t'emmène vers **Projets**, ou vers le dossier de projet depuis lequel tu as ouvert le travail. **Quitter sans enregistrer** annule tes modifications : un élément enregistré revient à l'état de son dernier enregistrement, et une création que tu n'as jamais enregistrée quitte **Projets**. **Annuler** te garde dans l'outil.
 
 Lolly ne demande que lorsque tu appuies sur **Accueil** ou le bouton retour dans un outil. Fermer l'onglet, recharger et le propre bouton retour de ton navigateur ne demandent jamais. Pour être sûr, appuie sur **Enregistrer sous**, ou **Enregistrer** dans le panneau d'export, avant de quitter un outil.
 
 ::: note Parti sans enregistrer par erreur ?
-Dans les outils autres que les neuf, appuie immédiatement sur le bouton retour de ton navigateur. Les réglages de l'adresse de la page reviennent, mais pas les images que tu as ajoutées depuis ton appareil. Appuie ensuite sur **Enregistrer sous** et **Enregistrer** avant de faire quoi que ce soit d'autre : cette fois, Lolly ne demande pas avant que tu partes.
+Dans les neuf outils, l'historique conserve une copie des modifications abandonnées. Ouvre la page **Historique**, trouve-les sous **Changes** et appuie sur **Ouvrir comme copie**. Dans les autres outils, les modifications ont disparu.
 :::
 
 ::: details Les neuf outils qui enregistrent au fil du travail
 [Design](/#/tool/design), [Graphique](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Diagramme de flux](/#/tool/org-chart), [Tarifs](/#/tool/pricing-table), [Logotype](/#/tool/wordmark) et [Texte](/#/tool/text-helper). La liste s'allonge à mesure que d'autres outils gagnent l'enregistrement automatique.
 
-Dans ces outils, ta première modification classe le travail dans **Projets** comme si tu avais enregistré, et les modifications suivantes sont conservées en quelques secondes. Une création non enregistrée reste donc dans Projets après la fermeture de l'onglet, et **Quitter sans enregistrer** ne rejette pas tes modifications. Rouvrir l'outil depuis l'écran d'accueil démarre une nouvelle création ; ouvre l'ancienne depuis Projets.
+Dans ces outils, ta première modification classe le travail dans **Projets** comme si tu avais enregistré, et les modifications suivantes sont conservées en quelques secondes. Une création non enregistrée reste donc dans Projets après la fermeture de l'onglet et se rouvre avec ses modifications marquées comme non enregistrées. **Quitter sans enregistrer** les rejette quand même, et l'historique conserve une copie des modifications abandonnées pendant 30 jours. Rouvrir l'outil depuis l'écran d'accueil démarre une nouvelle création ; ouvre l'ancienne depuis Projets.
 
 Cela ne fonctionne que dans l'application web, pas dans les applications de bureau ou mobiles, et pas pendant que tu travailles en direct avec quelqu'un d'autre.
 :::
@@ -101,8 +101,8 @@ Lolly conserve aussi deux choses après chaque téléchargement :
 - **Les réglages que tu as utilisés**, pour tes 24 derniers téléchargements. **Exports récents**, sous ton travail enregistré dans **Projets**, rouvre l'outil avec ces réglages pour que tu puisses refaire le fichier, bien que les images et fichiers que tu as ajoutés depuis ton appareil ne soient pas inclus. La même liste se trouve sous **Paramètres → Activité et statistiques → Derniers exports** et dans l'onglet **Changes** de **History**. Cette liste conserve les réglages, pas les fichiers.
 
 ::: details Dans les applications de bureau et mobiles
-- **Application de bureau :** **Télécharger** enregistre directement dans un dossier **Lolly** à l'intérieur de ton dossier **Téléchargements**, sans boîte de dialogue. Un message confirme l'enregistrement et propose **Révéler** pour montrer le fichier. **Open Exports Folder**, dans le menu **Window** ou **Exports**, ouvre le dossier à tout moment. Un fichier portant le même nom qu'un précédent est enregistré comme "name (1)".
-- **iPhone et iPad :** le fichier est enregistré dans l'app **Files**, sous **Lolly**, et la feuille de partage s'ouvre pour que tu puisses l'envoyer ailleurs.
+- **Application de bureau :** **Télécharger** enregistre directement dans un dossier **Lolly** à l'intérieur de ton dossier **Téléchargements**, sans boîte de dialogue. La ligne sous **Télécharger** indique où le fichier est allé, du genre "Saved to Downloads/Lolly", avec **Afficher dans le dossier**. **Open Exports Folder**, dans le menu **Fenêtre** ou **Exports**, ouvre le dossier à tout moment. Un fichier portant le même nom qu'un précédent est enregistré comme "name (1)".
+- **iPhone et iPad :** le fichier est enregistré dans l'app **Fichiers**, sous **Lolly**, et la feuille de partage s'ouvre pour que tu puisses l'envoyer ailleurs. La ligne sous **Télécharger** indique "Saved to Files → Lolly".
 - **Android :** le menu de partage s'ouvre pour que tu puisses choisir où va le fichier.
 
 Sur iPhone, iPad et Android, un nouveau fichier remplace un précédent portant le même nom.
@@ -146,8 +146,8 @@ Filtre par projet, outil et date (derrière **Filters** sur un téléphone). La 
 
 Un lien de partage transporte tes réglages, mais pas les images ou fichiers que tu as ajoutés depuis ton appareil.
 
-::: warning L'import remplace tes dossiers
-Si l'autre appareil a déjà du travail, lis ceci d'abord. L'import ajoute ce que le fichier contient, met à jour les éléments qui correspondent et ne supprime aucun élément enregistré. Ton profil est cependant une seule fiche, donc les dossiers, favoris, modèles et informations sur cet appareil sont remplacés par ceux du fichier. Un élément enregistré qui n'existait que sur cet appareil reste, au niveau supérieur de **Projets**. **Bring it to this device**, dans Sync, fait de même.
+::: note L'import n'ajoute ni ne supprime rien
+Les dossiers, favoris et modèles du fichier sont ajoutés à côté de ceux déjà présents sur l'autre appareil. Quand un élément enregistré existe des deux côtés, la copie enregistrée le plus récemment est conservée. Tes coordonnées et réglages sur cet appareil restent tels quels ; ceux qui sont vides sont complétés depuis le fichier. **Importer sur cet appareil**, dans Sync, fonctionne de la même façon.
 :::
 
 Pour tout transférer une fois :
@@ -157,7 +157,7 @@ Pour tout transférer une fois :
 3. Sur le nouvel appareil, ouvre **Paramètres → Stockage**, appuie sur **Importer les données…**, choisis le fichier et appuie sur **Import**.
 
 ::: note Ce qui ne voyage pas
-Les connexions, les clés et la phrase secrète de synchronisation restent sur chaque appareil. La liste des téléchargements récents, les téléchargements hors ligne et les modèles d'IA ne voyagent par aucune voie. L'historique des versions ne voyage que dans un fichier **Exporter mes données**, pas via Sync ou un `.lolly`. Les copies que Sync conserve dans ton espace de stockage ne s'ouvrent que via Sync, pas avec **Importer les données…** ou **Ouvrir**.
+Les connexions, les clés et la phrase secrète de synchronisation restent sur chaque appareil. La liste des téléchargements récents, les téléchargements hors ligne et les modèles d'IA ne voyagent par aucune voie. L'historique des versions ne voyage que dans un fichier **Exporter mes données**, pas via Sync ou un `.lolly`. Une copie que Sync conserve dans ton espace de stockage peut être téléchargée et ouverte, ou choisie dans **Importer les données…**, comme un fichier de sauvegarde ; une copie chiffrée demande ta phrase secrète.
 :::
 
 ::: details Ce que contient le fichier de sauvegarde
@@ -176,7 +176,7 @@ Appuie sur **Exporter mes données** sous **Paramètres → Stockage**, et conse
 
 Au démarrage de l'application, Lolly demande au navigateur de ne pas effacer son stockage quand l'appareil manque d'espace. C'est le navigateur qui décide. Sous **Paramètres → Disponible hors ligne**, une ligne commençant par **Protected** signifie que le navigateur a accepté ; "The browser may clear downloads if the device runs low on space" signifie qu'il n'a pas accepté, et **Protect downloads** redemande. Si le navigateur n'a pas accepté, il peut effacer le travail enregistré autant que les téléchargements quand l'espace manque, garde donc un fichier récent **Exporter mes données**.
 
-**Paramètres → Stockage** montre combien d'espace utilise chaque type de données. **Vider le cache** supprime les fichiers de catalogue téléchargés, qui se retéléchargent en cas de besoin. **Effacer toutes mes données** te demande de taper un mot, puis supprime ton profil, tes sessions enregistrées, tes images téléversées et le cache d'assets. Les autres données restent, y compris l'historique des versions, la liste des téléchargements récents, les résultats de Convert, les systèmes de design et les modèles d'IA téléchargés. Pour tout supprimer, efface les données de ce site dans ton navigateur.
+**Paramètres → Stockage** montre combien d'espace utilise chaque type de données. **Vider le cache** abandonne les fichiers de catalogue téléchargés, qui se retéléchargent en cas de besoin. **Effacer toutes mes données** te demande de taper un mot, désactive Sync, puis supprime tout ce que Lolly conserve dans ce navigateur : ton profil et tes réglages, les sessions enregistrées avec leur historique et la Corbeille, les imports, les polices et les design systems, le journal de téléchargement, les résultats de Convert, les modèles d'IA téléchargés et les copies hors ligne. Les fichiers que tu as téléchargés restent où tu les as enregistrés. L'application redémarre alors comme lors d'une première visite.
 
 ![La carte de stockage sur un écran de largeur téléphone : chaque catégorie de données présentes sur l'appareil est nommée, avec le bouton Effacer toutes mes données en bas](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
@@ -195,15 +195,15 @@ Les images, systèmes de design et la liste des téléchargements récents reste
 
 ## Récupérer quelque chose que tu as supprimé
 
-Dans **Projets**, **Déplacer vers la corbeille** conserve un élément pendant 30 jours. Un dossier part à la Corbeille avec tout son contenu, comme une seule entrée. Juste après, un message propose **Annuler** pendant environ dix secondes. Plus tard :
+Supprimer une session enregistrée, un dossier, l'un de tes imports ou l'une de tes polices dans l'application le déplace vers la **Corbeille** pendant 30 jours, où que tu le supprimes : **Projets**, **Éléments**, **Paramètres → Stockage** ou la liste des sessions enregistrées d'un outil. Un dossier part avec tout son contenu, comme une seule entrée. Une session garde son historique de versions tant qu'elle y est. Juste après, un message propose **Annuler**. Plus tard :
 
-1. Ouvre **Projets** et appuie sur la tuile **Corbeille**. La tuile n'apparaît que tant que la Corbeille contient quelque chose.
-2. Appuie sur **Restaurer** à côté de l'élément.
+1. Ouvre la **Corbeille** : la tuile **Corbeille** dans **Projets**, le bouton **Corbeille** dans **Éléments → Tes imports**, ou la ligne **Corbeille** dans **Paramètres → Stockage**. Les trois ouvrent la même liste.
+2. Appuie sur **Restaurer** à côté de l'élément. Il retourne dans son dossier, et une police retrouve les rôles qu'elle avait dans son design system.
 
-**Supprimer définitivement** et **Vider la corbeille** retirent les éléments immédiatement, sans demander. Les éléments de plus de 30 jours sont retirés définitivement la prochaine fois que tu ouvres Projets.
+**Supprimer définitivement** retire un élément pour de bon. **Vider la corbeille** demande d'abord confirmation, puis retire tous les éléments de la Corbeille. Les éléments de plus de 30 jours sont retirés définitivement.
 
-::: warning Les autres suppressions sont définitives
-Supprimer une session enregistrée sous **Paramètres → Stockage**, ou depuis la liste des sessions enregistrées d'un outil dans la galerie (clic droit sur la carte de l'outil, puis **N sessions enregistrées**), retire la session définitivement, avec son historique de versions. Une image que tu supprimes depuis **Mes images** est retirée immédiatement, sans demander.
+::: warning Certaines suppressions sont immédiates
+Supprimer un design system, un logo ou ta photo de profil ne passe pas par la Corbeille. La ligne de commande et l'application terminal suppriment aussi immédiatement.
 :::
 
 Avec la [synchronisation](/info/sync.html) activée, **Restore an earlier copy** peut ramener l'état d'un jour antérieur de l'appareil entier, et un fichier **Exporter mes données** ramène ce que le fichier contient.

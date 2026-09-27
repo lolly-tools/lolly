@@ -86,6 +86,7 @@ import { icon } from '../lib/icons.ts';
 import { announce } from '../a11y.ts';
 import { escape } from '../utils.ts';
 import { t, tRaw } from '../i18n.ts';
+import { isTauriShell } from '../lib/instance-choice.ts';
 
 export interface ProfilesPanelOpts {
   host: ColorProfilesHost;
@@ -346,7 +347,7 @@ export function openProfilesPanel(opts: ProfilesPanelOpts): Promise<void> {
               the target into a wall of text. */''}
         <p class="labp-where">${escape(t('Already on this device:'))} <code>${escape(locationHint())}</code></p>
         <p class="labp-msg" data-labp-msg role="status" aria-live="polite"${opts.absent ? '' : ' hidden'}
-          >${opts.absent ? escape(t('This link compares against a profile that isn’t on this device.')) : ''}</p>
+          >${opts.absent ? escape(isTauriShell() ? t('This link compares against a profile that isn’t on this device.') : t('This link compares against a profile that isn’t in this browser.')) : ''}</p>
         ${/* Two sections, because the reader already knows whether they care about press
               or screen - the split matches the question rather than the storage. Each
               carries the profiles OF that kind that are loaded, then the ones we can

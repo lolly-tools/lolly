@@ -8,7 +8,7 @@ Lolly'de yaptığın her şey, [Sync](/info/sync.html)'i açmadıkça, onu yapt�
 | **İndir**'e bastın | Tarayıcının indirilenleri, ve **Varlıklar**'da bir kopya |
 | Hiçbiri, [çalışırken kaydeden dokuz araçtan](#the-nine-tools-that-save-as-you-work) birinde | **Projeler** ve **History** |
 | Hiçbiri, başka herhangi bir araçta | Yalnızca çalıştığın sekme, onu kapatana kadar |
-| Çöp kutusuna taşıdın | **Projeler**'deki **Çöp kutusu** kutucuğu, 30 gün boyunca |
+| Uygulamada sildin | **Çöp kutusu**, **Projeler**'de, **Varlıklar**'da veya **Ayarlar → Depolama**'da, 30 gün boyunca |
 
 ## Kaydettiğin bir şeyi bul
 
@@ -73,18 +73,18 @@ Neyin geri geldiği, nasıl ayrıldığına ve hangi aracı kullandığına bağ
 
 - **Sekmeyi kapattın, ya da başka bir zaman geri döndün.** Kaydedilmemiş çalışma, düzenlemelerini çalışırken kaydeden [dokuz araç](#the-nine-tools-that-save-as-you-work) dışında, kaybolur: onları **Projeler**'den aç.
 - **Sayfayı aynı sekmede yeniden yükledin.** Ayarların sayfa adresinden geri gelir. Dokuz araç dışındaki araçlarda, cihazından eklediğin görseller ve dosyalar, ve 150 karakterden uzun tek satırlık metin geri gelmez, çünkü adres onları tutmaz.
-- **Ana sayfa'ya ya da sol üstteki geri düğmesine bastın.** Son kaydetmenden, indirmenden ya da kopyalamandan bu yana bir şey değiştirdiysen, bir **Kaydedilmemiş değişiklikler** penceresi önce kaydetmek isteyip istemediğini sorar. **Save & leave** çalışmayı kaydeder ve seni **Projeler**'e, ya da çalışmayı açtığın proje klasörüne geri götürür. **Kaydetmeden çık** ayrılır; dokuz araçta düzenlemelerin zaten kaydedilmiştir ve Projeler'de kalır. **İptal** seni araçta tutar.
+- **Ana sayfa'ya ya da sol üstteki geri düğmesine bastın.** Son kaydetmenden, indirmenden ya da kopyalamandan bu yana bir şey değiştirdiysen, bir **Kaydedilmemiş değişiklikler** penceresi önce kaydetmek isteyip istemediğini sorar. **Kaydet & çık** çalışmayı kaydeder ve seni **Projeler**'e, ya da çalışmayı açtığın proje klasörüne geri götürür. **Kaydetmeden çık** değişikliklerini geri alır: kaydedilmiş bir öge en son kaydettiğin hâline döner, hiç kaydetmediğin bir oluşum ise **Projeler**'den ayrılır. **İptal** seni araçta tutar.
 
 Lolly yalnızca bir araçta **Ana sayfa**'ya ya da geri düğmesine bastığında sorar. Sekmeyi kapatmak, yeniden yüklemek ve tarayıcının kendi Geri düğmesi hiçbir zaman sormaz. Emin olmak için bir araçtan ayrılmadan önce **Farklı kaydet**'e, ya da dışa aktarım panelinde **Kaydet**'e bas.
 
 ::: note Yanlışlıkla kaydetmeden mi ayrıldın?
-Dokuz araç dışındaki araçlarda, hemen tarayıcının Geri düğmesine bas. Sayfa adresinden gelen ayarlar geri gelir, ama cihazından eklediğin görseller gelmez. Sonra başka bir şey yapmadan önce **Farklı kaydet** ve **Kaydet**'e bas: bu sefer Lolly ayrılmadan önce sormaz.
+Çalışırken kaydeden dokuz araçta, History atılan düzenlemelerin bir kopyasını tutar. **History** sayfasını aç, onları **Changes** altında bul ve **Open as a copy**'e bas. Diğer araçlarda değişiklikler kaybolmuştur.
 :::
 
 ::: details Çalışırken kaydeden dokuz araç
 [Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) ve [Text](/#/tool/text-helper). Daha fazla araç otomatik kaydetme kazandıkça liste büyür.
 
-Bu araçlarda, ilk değişikliğin çalışmayı sanki kaydetmişsin gibi **Projeler**'e dosyalar, sonraki değişiklikler de birkaç saniye içinde tutulur. Yani kaydedilmemiş bir oluşum, sekmeyi kapattıktan sonra bile Projeler'de kalır ve **Kaydetmeden çık**, düzenlemelerini atmaz. Aracı ana ekrandan yeniden açmak yeni bir oluşum başlatır; öncekini Projeler'den aç.
+Bu araçlarda, ilk değişikliğin çalışmayı sanki kaydetmişsin gibi **Projeler**'e dosyalar, sonraki değişiklikler de birkaç saniye içinde tutulur. Yani kaydedilmemiş bir oluşum, sekmeyi kapattıktan sonra bile Projeler'de kalır ve değişiklikleri kaydedilmemiş olarak işaretlenmiş biçimde yeniden açılır. **Kaydetmeden çık** yine de bunları geri alır, ve History atılan düzenlemelerin bir kopyasını 30 gün boyunca tutar. Aracı ana ekrandan yeniden açmak yeni bir oluşum başlatır; öncekini Projeler'den aç.
 
 Bu yalnızca web uygulamasında çalışır, masaüstü ya da mobil uygulamalarda değil, ve başka biriyle canlı çalışırken de değil.
 :::
@@ -101,8 +101,8 @@ Lolly her indirmeden sonra iki şey daha tutar:
 - **Kullandığın ayarlar**, son 24 indirmen için. **Projeler**'deki kaydedilmiş çalışmanın altındaki **Son dışa aktarımlar**, dosyayı yeniden yapabilmen için aracı o ayarlarla yeniden açar, ama cihazından eklediğin görseller ve dosyalar dahil edilmez. Aynı liste **Ayarlar → Etkinlik & istatistikler → En son dışa aktarımlar** altında ve **History**'nin **Changes** sekmesindedir. Bu liste dosyaları değil, ayarları tutar.
 
 ::: details Masaüstü ve mobil uygulamalarda
-- **Masaüstü uygulaması:** **İndir**, hiçbir pencere açmadan dosyayı doğrudan **Downloads** klasörünün içindeki bir **Lolly** klasörüne kaydeder. Bir mesaj kaydı onaylar ve dosyayı göstermek için **Reveal** sunar. **Window** ya da **Exports** menüsündeki **Open Exports Folder**, klasörü istediğin zaman açar. Öncekiyle aynı ada sahip bir dosya "name (1)" olarak kaydedilir.
-- **iPhone ve iPad:** dosya **Lolly** altında **Dosyalar** uygulamasına kaydedilir ve onu göndermen için paylaşım sayfası açılır.
+- **Masaüstü uygulaması:** **İndir**, hiçbir pencere açmadan dosyayı doğrudan **Downloads** klasörünün içindeki bir **Lolly** klasörüne kaydeder. **İndir**'in altındaki satır, "Downloads/Lolly konumuna kaydedildi" gibi nereye gittiğini söyler, **Klasörde göster** ile birlikte. **Window** ya da **Exports** menüsündeki **Open Exports Folder**, klasörü istediğin zaman açar. Öncekiyle aynı ada sahip bir dosya "name (1)" olarak kaydedilir.
+- **iPhone ve iPad:** dosya **Lolly** altında **Dosyalar** uygulamasına kaydedilir ve onu göndermen için paylaşım sayfası açılır. **İndir**'in altındaki satır "Dosyalar → Lolly konumuna kaydedildi" yazar.
 - **Android:** dosyanın nereye gideceğini seçebilmen için paylaşım menüsü açılır.
 
 iPhone, iPad ve Android'de yeni bir dosya, aynı ada sahip bir öncekinin yerini alır.
@@ -146,8 +146,8 @@ Projeye, araca ve tarihe göre filtrele (telefonda **Filters**'ın arkasında). 
 
 Bir paylaşım bağlantısı ayarlarını taşır, ama cihazından eklediğin görselleri ya da dosyaları taşımaz.
 
-::: warning İçe aktarma klasörlerinin yerini alır
-Diğer cihazda zaten çalışma varsa, önce bunu oku. İçe aktarma, dosyanın tuttuğunu ekler, eşleşen öğeleri günceller ve hiçbir kaydedilmiş öğeyi silmez. Ama profilin tek bir kayıttır, bu yüzden o cihazdaki klasörler, favoriler, şablonlar ve ayrıntılar dosyadakilerle değiştirilir. Yalnızca o cihazda olan kaydedilmiş bir öğe, **Projeler**'in en üst düzeyinde kalır. Sync'teki **Bring it to this device** aynısını yapar.
+::: note İçe aktarma ekler, hiçbir şeyi silmez
+Dosyadaki klasörler, favoriler ve şablonlar, diğer cihazda zaten var olanların yanına eklenir. Kaydedilmiş bir öge her ikisinde de varsa, daha yakın zamanda kaydedilen kopya tutulur. O cihazdaki bilgilerin ve ayarların olduğu gibi kalır; boş olanlar dosyadan doldurulur. Sync'teki **Bring it to this device** aynı şekilde çalışır.
 :::
 
 Her şeyi bir kerede taşımak için:
@@ -157,7 +157,7 @@ Her şeyi bir kerede taşımak için:
 3. Yeni cihazda, **Ayarlar → Depolama**'yı aç, **Veri içe aktar…**'a bas, dosyayı seç ve **İçe aktar**'a bas.
 
 ::: note Geride ne kalır
-Girişler, anahtarlar ve senkronizasyon parolası her cihazda kalır. Son indirmelerin listesi, çevrimdışı indirmeler ve AI modelleri hiçbir yoldan taşınmaz. Sürüm geçmişi yalnızca bir **Verilerimi dışa aktar** dosyasında taşınır, Sync ya da bir `.lolly` üzerinden değil. Sync'in depolamanda tuttuğu kopyalar yalnızca Sync üzerinden açılır, **Veri içe aktar…** ya da **Aç** ile değil.
+Girişler, anahtarlar ve senkronizasyon parolası her cihazda kalır. Son indirmelerin listesi, çevrimdışı indirmeler ve AI modelleri hiçbir yoldan taşınmaz. Sürüm geçmişi yalnızca bir **Verilerimi dışa aktar** dosyasında taşınır, Sync ya da bir `.lolly` üzerinden değil. Sync'in depolamanda tuttuğu bir kopya indirilip açılabilir, ya da bir yedek dosyası gibi **Veri içe aktar…**'da seçilebilir; şifrelenmiş bir kopya parolanı sorar.
 :::
 
 ::: details Yedek dosyası ne tutar
@@ -176,7 +176,7 @@ Web uygulamasında Lolly, bu site için tarayıcının depolamasında her şeyi 
 
 Uygulama başladığında, Lolly tarayıcıdan, cihazın alanı azaldığında depolamasını temizlememesini ister. Karar tarayıcıya aittir. **Ayarlar → Çevrimdışı kullanılabilir** altında, **Protected** ile başlayan bir satır tarayıcının kabul ettiği anlamına gelir; "Cihazın alanı azalırsa tarayıcı indirmeleri temizleyebilir" ise kabul etmediği anlamına gelir ve **İndirmeleri koru** yeniden sorar. Tarayıcı kabul etmediyse, alan azaldığında indirmelerin yanı sıra kaydedilmiş çalışmayı da temizleyebilir, bu yüzden yakın tarihli bir **Verilerimi dışa aktar** dosyası sakla.
 
-**Ayarlar → Depolama**, her veri türünün ne kadar alan kullandığını gösterir. **Önbelleği temizle**, indirilen katalog dosyalarını bırakır, bunlar gerektiğinde yeniden indirilir. **Tüm verilerimi temizle**, bir kelime yazmanı ister, ardından profilini, kaydedilmiş oturumlarını, yüklenen görsellerini ve varlık önbelleğini kaldırır. Sürüm geçmişi, son indirmelerin listesi, Convert sonuçları, tasarım sistemleri ve indirilen AI modelleri dahil olmak üzere diğer veriler kalır. Her şeyi kaldırmak için bu sitenin verilerini tarayıcında temizle.
+**Ayarlar → Depolama**, her veri türünün ne kadar alan kullandığını gösterir. **Önbelleği temizle**, indirilen katalog dosyalarını bırakır, bunlar gerektiğinde yeniden indirilir. **Tüm verilerimi temizle**, bir kelime yazmanı ister, Sync'i kapatır, ardından Lolly'nin bu tarayıcıda tuttuğu her şeyi kaldırır: profilin ve ayarların, geçmişleriyle birlikte kaydedilmiş oturumların ve Çöp kutusu, yüklemelerin, yazı tiplerin ve tasarım sistemlerin, indirme günlüğü, Convert sonuçları, indirilen AI modelleri ve çevrimdışı kopyalar. İndirdiğin dosyalar, kaydettiğin yerde kalır. Uygulama ardından ilk ziyaretteki gibi başlar.
 
 ![Telefon genişliğinde bir ekranda depolama kartı: cihazdaki her veri kategorisi adlandırılmış, altta Tüm verilerimi temizle düğmesiyle](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
@@ -195,15 +195,15 @@ Görseller, tasarım sistemleri ve son indirmelerin listesi bu klasörlerde değ
 
 ## Sildiğin bir şeyi geri al
 
-**Projeler**'de, **Çöp kutusuna taşı** bir öğeyi 30 gün tutar. Bir klasör, içindeki her şeyle birlikte tek bir kayıt olarak çöp kutusuna gider. Hemen ardından, bir mesaj yaklaşık on saniye boyunca **Geri al** sunar. Daha sonra:
+Uygulamada bir kaydedilmiş oturumu, bir klasörü, yüklemelerinden birini ya da yazı tiplerinden birini silmek, nereden sildiğine bakılmaksızın onu 30 gün boyunca **Çöp kutusu**'na taşır: **Projeler**, **Varlıklar**, **Ayarlar → Depolama** ya da bir aracın kaydedilmiş oturumlar listesi. Bir klasör, içindeki her şeyle birlikte tek bir kayıt olarak gider, ve bir oturum orada kaldığı sürece sürüm geçmişini korur. Hemen ardından, bir mesaj **Geri al** sunar. Daha sonra:
 
-1. **Projeler**'i aç ve **Çöp kutusu** kutucuğuna bas. Kutucuk yalnızca çöp kutusu bir şey tutarken görünür.
-2. Öğenin yanındaki **Geri yükle**'ye bas.
+1. **Çöp kutusu**'nu aç: **Projeler**'deki **Çöp kutusu** kutucuğu, **Varlıklar → Yüklemelerin**'deki **Çöp kutusu** düğmesi, ya da **Ayarlar → Depolama**'daki **Çöp kutusu** satırı. Üçü de aynı listeyi açar.
+2. Öğenin yanındaki **Geri yükle**'ye bas. Kendi klasörüne geri döner, ve bir yazı tipi kendi tasarım sistemindeki rollerini geri kazanır.
 
-**Kalıcı olarak sil** ve **Çöp kutusunu boşalt**, öğeleri sormadan hemen kaldırır. 30 günden eski öğeler, Projeler'i bir sonraki açışında kalıcı olarak kaldırılır.
+**Kalıcı olarak sil**, tek bir öğeyi tamamen kaldırır. **Çöp kutusunu boşalt** önce sorar, ardından Çöp kutusundaki her öğeyi kaldırır. 30 günden eski öğeler tamamen kaldırılır.
 
-::: warning Diğer silmeler kalıcıdır
-**Ayarlar → Depolama** altında, ya da galerideki bir aracın kaydedilmiş oturumlar listesinden (aracın kartına sağ tıkla, sonra **N saved sessions**) bir kaydedilmiş oturumu silmek, oturumu sürüm geçmişiyle birlikte kalıcı olarak kaldırır. **Görsellerim**'den sildiğin bir görsel sormadan hemen kaldırılır.
+::: warning Bazı silmeler anındadır
+Bir tasarım sistemini, bir logoyu ya da profil fotoğrafını silmek Çöp kutusuna gitmez. Komut satırı ve terminal uygulaması da anında siler.
 :::
 
 [Sync](/info/sync.html) açıkken, **Restore an earlier copy**, tüm cihazın önceki bir günkü durumunu geri getirebilir, bir **Verilerimi dışa aktar** dosyası ise dosyanın tuttuğunu geri getirir.

@@ -54,14 +54,14 @@ quantité de données **uniquement sur ton appareil**, jamais transmises :
   téléversés** - stockés dans IndexedDB sur ton appareil, jamais téléversés, jamais lus
   par personne d'autre que toi.
 
-Rien de tout cela n'est partagé, vendu ni utilisé pour t'identifier ou te suivre. Il n'y
-a rien à consentir, parce qu'il n'y a aucune collecte en cours - seulement cette notice,
-pour que tu saches ce qui est conservé et où. Effacer le stockage du site dans ton
-navigateur supprime tout cela à tout moment ; **Paramètres → Stockage → Effacer toutes
-mes données** supprime ton profil, tes sessions enregistrées, tes images téléversées et
-le cache d'assets. (En vertu de l'article 5(3) de la directive ePrivacy, un stockage
-strictement nécessaire au service que tu as demandé ne requiert pas de consentement -
-seulement de la transparence, ce que sont à la fois ce document et la notice dans l'application.)
+Rien de tout cela n'est partagé, vendu ni utilisé pour t'identifier ou te suivre. Il n'y a
+rien à quoi consentir, parce qu'aucune collecte n'a lieu - seulement cet avis, pour que tu
+saches ce qui est conservé et où. Effacer le stockage du site dans ton navigateur supprime
+tout cela à tout moment, tout comme **Paramètres → Stockage → Effacer toutes mes données**,
+qui désactive aussi Sync au passage. (Selon la directive ePrivacy Art. 5(3), un stockage
+strictement nécessaire au service que tu as demandé ne nécessite pas de consentement -
+seulement de la transparence, ce que sont à la fois ce document et l'avis affiché dans
+l'application.)
 
 ![La section stockage de la page profil sur un écran largeur téléphone : chaque catégorie de données sur l'appareil nommée, avec le bouton Clear all my data juste à côté](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

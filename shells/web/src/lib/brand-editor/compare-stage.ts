@@ -8,14 +8,12 @@
  * from mountBrandEditor() by scripts/split-closure.ts.
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
-import { installFontFromBytes, installGoogleFont, removeUserFont, setDisplayFont, setItalicFont, setMonoFont, setPrimaryFont } from '../../user-fonts.ts';
+import { fontTrashHooks, installFontFromBytes, installGoogleFont, setDisplayFont, setItalicFont, setMonoFont, setPrimaryFont, trashUserFont } from '../../user-fonts.ts';
 import type { FontRole } from '../../user-fonts.ts';
 import { mountTypeCompare, pinnedFaces } from '../design-system/type-compare.ts';
 import type { CompareChoice } from '../design-system/type-compare.ts';
 import { googleMatch, parseFaceName } from '../design-system/font-resolve.ts';
 import { PINNED_FAMILIES } from '../google-fonts.ts';
-import { confirmDialog } from '../../components/confirm-dialog.ts';
-import { fmtBytes } from '../device-info.ts';
 import { t, tRaw } from '../../i18n.ts';
 import { announce } from '../../a11y.ts';
 import { prefersReducedMotion } from '../a11y-prefs.ts';
@@ -297,21 +295,19 @@ export function wireTypeCards(bedit: BrandEditorCtx): void {
     if (ital) { ital.disabled = true; try { await setItalicFont(fontsHost, ital.dataset.italic!); await bedit.type.paintFonts(); bedit.state.notify('type'); announce(tRaw('{family} now serves italic text', { family: ital.dataset.italic ?? '' })); } catch (err) { ital.disabled = false; bedit.roles.showFontErr(String((err as { message?: unknown })?.message ?? err)); } return; }
     const del = (e.target as Element).closest<HTMLButtonElement>('[data-del]'); if (!del) return;
     const fam = bedit.fontFamilies.find(f => f.family === del.dataset.del); if (!fam) return;
-    const ok = await confirmDialog({
-      title: tRaw('Remove {family}?', { family: fam.family }),
-      message: fam.primary
-        ? tRaw('Its font files ({size}) are deleted from this device and the next font becomes primary.', { size: fmtBytes(fam.bytes) })
-        : tRaw('Its font files ({size}) are deleted from this device.', { size: fmtBytes(fam.bytes) }),
-      confirmLabel: t('Remove'),
-    });
-    if (!ok) return; del.disabled = true;
+    // To the Trash, like every delete in the web app (plan 277 P3): no confirm,
+    // an Undo toast, and Restore in the Trash brings back the faces and the
+    // roles the family served. trashUserFont releases those roles meanwhile.
+    del.disabled = true;
     try {
-      await removeUserFont(fontsHost, fam);
-      // A removed face can't keep any role it served.
-      if (fam.family === bedit.monoFamily) await setMonoFont(fontsHost, null).catch(() => {});
-      if (fam.family === bedit.displayFamily) await setDisplayFont(fontsHost, null).catch(() => {});
-      if (fam.family === bedit.italicFamily) await setItalicFont(fontsHost, null).catch(() => {});
+      const [{ createTrash, trashHostOf }, { showTrashUndoToast }] = await Promise.all([
+        import('../trash.ts'), import('../../components/trash-dialog.ts'),
+      ]);
+      const trash = createTrash(trashHostOf(fontsHost), { fonts: fontTrashHooks(fontsHost) });
+      const entry = await trashUserFont(fontsHost, fam, trash);
+      if (!entry) throw new Error(t('That did not work. Try again.'));
       await bedit.type.paintFonts(); bedit.state.notify('type');
+      showTrashUndoToast(trash, [entry], async () => { await bedit.type.paintFonts(); bedit.state.notify('type'); });
     } catch (err) { del.disabled = false; bedit.roles.showFontErr(String((err as { message?: unknown })?.message ?? err)); }
   });
 

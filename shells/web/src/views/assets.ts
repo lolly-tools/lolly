@@ -112,10 +112,11 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   cat.profile = null;
   cat.allAssets = [];
   cat.assetById = new Map<string, AssetRef>();
-  // Uploads soft-deleted behind a live undo toast (lib/undo-toast.ts): out of
-  // sight immediately, actually deleted only when the toast settles. reload()
-  // filters them so a mid-toast refresh can't resurrect the tile.
+  // Uploads on their way to the Trash (plan 277 P3): out of sight at once, while
+  // the move is written. reload() filters them so a refresh in that moment can't
+  // resurrect the tile.
   const pendingDeletes = new Set<string>(); cat.pendingDeletes = pendingDeletes;
+  cat.trashCount = 0;
   cat.favSet = new Set<string>();
   cat.hiddenSet = new Set<string>();
   cat.overrides = {};

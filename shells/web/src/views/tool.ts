@@ -137,6 +137,7 @@ export async function mountTool(
   tview.host = host;
   tview.toolId = toolId;
   tview.urlParams = urlParams;
+  tview.launchQuery = urlParams ?? null;
 
   // FIRST, and before any early return: the Team-projects open stashed the instance's id
   // for the session it is navigating into, and that stash is bounded by "the next mount

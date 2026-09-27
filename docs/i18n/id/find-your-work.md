@@ -2,13 +2,13 @@
 
 Semua yang Anda buat di Lolly tetap berada di browser atau aplikasi tempat Anda membuatnya, di perangkat itu, kecuali Anda mengaktifkan [Sync](/info/sync.html). Karya tersimpan ada di **Proyek**. Berkas yang diunduh berada di mana pun browser atau sistem Anda menaruhnya, dan sebuah salinan biasanya menunggu di **Aset**. Di sembilan tool, karya yang belum pernah Anda simpan juga dipertahankan. Halaman ini membahas masing-masing hal ini, ditambah tab yang tertutup, data browser yang terhapus, versi sebelumnya, item yang dihapus dan berpindah ke perangkat lain.
 
-| Apa yang Anda lakukan | Tempat mencarinya |
+| Apa yang Anda lakukan | Di mana harus mencari |
 |---|---|
 | Menekan **Simpan sebagai** atau **Simpan** | **Proyek** |
 | Menekan **Unduh** | Unduhan browser Anda, dan sebuah salinan di **Aset** |
 | Tidak keduanya, di salah satu [sembilan tool yang menyimpan sambil Anda bekerja](#the-nine-tools-that-save-as-you-work) | **Proyek** dan **History** |
 | Tidak keduanya, di tool lain mana pun | Hanya tab tempat Anda bekerja, sampai Anda menutup tab itu |
-| Memindahkannya ke Sampah | Ubin **Sampah** di **Proyek**, selama 30 hari |
+| Menghapusnya di aplikasi | **Sampah**, di **Proyek**, **Aset** atau **Pengaturan → Penyimpanan**, selama 30 hari |
 
 ## Temukan sesuatu yang Anda simpan
 
@@ -72,19 +72,19 @@ not visible in the closed menu, so the alt does not list them.
 Apa yang kembali bergantung pada bagaimana Anda meninggalkannya dan tool mana yang Anda gunakan:
 
 - **Anda menutup tab, atau kembali di lain waktu.** Karya yang belum disimpan hilang, kecuali di [sembilan tool](#the-nine-tools-that-save-as-you-work), yang menyimpan editan Anda sambil Anda bekerja: buka dari **Proyek**.
-- **Anda memuat ulang halaman di tab yang sama.** Pengaturan Anda kembali dari alamat halaman. Di tool selain sembilan itu, gambar dan berkas yang Anda tambahkan dari perangkat Anda, serta teks satu baris yang lebih panjang dari 150 karakter, tidak kembali, karena alamat itu tidak menyimpannya.
-- **Anda menekan Beranda, atau tombol kembali di kiri atas.** Jika Anda mengubah sesuatu sejak terakhir menyimpan, mengunduh atau menyalin, sebuah dialog **Unsaved changes** menanyakan apakah akan menyimpan dulu. **Save & leave** menyimpan karya dan membawa Anda ke **Proyek**, atau kembali ke folder proyek tempat Anda membuka karya itu. **Leave without saving** keluar; di sembilan tool tersebut editan Anda sudah tersimpan dan tetap ada di Proyek. **Cancel** mempertahankan Anda di tool itu.
+- **Anda memuat ulang halaman di tab yang sama.** Pengaturan Anda kembali dari alamat halaman. Di tool selain sembilan itu, gambar dan berkas yang Anda tambahkan dari perangkat Anda, dan teks satu baris yang lebih panjang dari 150 karakter, tidak kembali, karena alamat itu tidak menyimpannya.
+- **Anda menekan Beranda, atau tombol kembali di kiri atas.** Jika Anda mengubah sesuatu sejak terakhir menyimpan, mengunduh atau menyalin, sebuah dialog **Perubahan belum disimpan** menanyakan apakah akan menyimpan dulu. **Simpan & keluar** menyimpan karya dan membawa Anda ke **Proyek**, atau kembali ke folder proyek tempat Anda membuka karya itu. **Keluar tanpa menyimpan** membuang perubahan Anda: item yang sudah tersimpan kembali ke kondisi terakhir Anda menyimpannya, dan kreasi yang belum pernah Anda simpan meninggalkan **Proyek**. **Batalkan** mempertahankan Anda di tool itu.
 
 Lolly hanya bertanya ketika Anda menekan **Beranda** atau tombol kembali di dalam sebuah tool. Menutup tab, memuat ulang dan tombol Back milik browser Anda sendiri tidak pernah bertanya. Untuk memastikan, tekan **Simpan sebagai**, atau **Simpan** di panel ekspor, sebelum Anda meninggalkan sebuah tool.
 
 ::: note Tidak sengaja keluar tanpa menyimpan?
-Di tool selain sembilan itu, segera tekan tombol Back browser Anda. Pengaturan dari alamat halaman akan kembali, meski gambar yang Anda tambahkan dari perangkat Anda tidak. Lalu tekan **Simpan sebagai** dan **Simpan** sebelum Anda melakukan hal lain: kali ini Lolly tidak bertanya sebelum Anda keluar.
+Di sembilan tool, History menyimpan sebuah salinan editan yang dibuang. Buka halaman **History**, temukan di bawah **Changes** dan tekan **Open as a copy**. Di tool lain, perubahannya hilang.
 :::
 
 ::: details Sembilan tool yang menyimpan sambil Anda bekerja
 [Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) dan [Text](/#/tool/text-helper). Daftar ini bertambah seiring makin banyak tool yang mendapatkan penyimpanan otomatis.
 
-Di tool-tool ini, perubahan pertama Anda mengajukan karya itu ke **Proyek** seolah-olah Anda sudah menyimpannya, dan perubahan berikutnya dipertahankan dalam hitungan detik. Jadi sebuah kreasi yang belum disimpan tetap ada di Proyek setelah Anda menutup tab, dan **Leave without saving** tidak membuang editan Anda. Membuka tool itu lagi dari layar utama memulai sebuah kreasi baru; buka yang sebelumnya dari Proyek.
+Di tool-tool ini, perubahan pertama Anda mengajukan karya itu ke **Proyek** seolah-olah Anda sudah menyimpannya, dan perubahan berikutnya dipertahankan dalam hitungan detik. Jadi sebuah kreasi yang belum disimpan tetap ada di Proyek setelah Anda menutup tab dan terbuka kembali dengan perubahannya ditandai belum disimpan. **Keluar tanpa menyimpan** tetap membuang perubahan itu, dan History menyimpan sebuah salinan editan yang dibuang selama 30 hari. Membuka tool itu lagi dari layar utama memulai sebuah kreasi baru; buka yang sebelumnya dari Proyek.
 
 Ini hanya berfungsi di aplikasi web, tidak di aplikasi desktop atau mobile, dan tidak saat Anda bekerja live bersama orang lain.
 :::
@@ -101,9 +101,9 @@ Lolly juga menyimpan dua hal setelah setiap unduhan:
 - **Pengaturan yang Anda gunakan**, untuk 24 unduhan terakhir Anda. **Ekspor terbaru**, di bawah karya tersimpan Anda di **Proyek**, membuka lagi tool itu dengan pengaturan tersebut sehingga Anda bisa membuat berkasnya lagi, meski gambar dan berkas yang Anda tambahkan dari perangkat Anda tidak disertakan. Daftar yang sama ada di bawah **Pengaturan → Aktivitas & statistik → Ekspor terbaru** dan di tab **Changes** pada **History**. Daftar ini menyimpan pengaturan, bukan berkasnya.
 
 ::: details Di aplikasi desktop dan mobile
-- **Aplikasi desktop:** **Unduh** langsung menyimpan ke sebuah folder **Lolly** di dalam folder **Downloads** Anda, tanpa dialog. Sebuah pesan mengonfirmasi penyimpanan dan menawarkan **Reveal** untuk menampilkan berkasnya. **Open Exports Folder**, di menu **Window** atau **Exports**, membuka folder itu kapan saja. Sebuah berkas dengan nama sama seperti yang sebelumnya disimpan sebagai "name (1)".
-- **iPhone dan iPad:** berkasnya disimpan di aplikasi **Files**, di bawah **Lolly**, dan share sheet terbuka sehingga Anda bisa meneruskannya.
-- **Android:** menu share terbuka sehingga Anda bisa memilih ke mana berkas itu pergi.
+- **Aplikasi desktop:** **Unduh** langsung menyimpan ke sebuah folder **Lolly** di dalam folder **Downloads** Anda, tanpa dialog. Baris di bawah **Unduh** menyatakan ke mana berkas itu pergi, seperti "Saved to Downloads/Lolly", disertai **Show in folder**. **Open Exports Folder**, di menu **Window** atau **Exports**, membuka folder itu kapan saja. Sebuah berkas dengan nama sama seperti yang sebelumnya disimpan sebagai "name (1)".
+- **iPhone dan iPad:** berkas itu disimpan di aplikasi **Files**, di bawah **Lolly**, dan share sheet terbuka sehingga Anda bisa mengirimkannya. Baris di bawah **Unduh** berbunyi "Saved to Files → Lolly".
+- **Android:** menu berbagi terbuka sehingga Anda bisa memilih ke mana berkas itu pergi.
 
 Di iPhone, iPad dan Android, berkas baru menggantikan yang sebelumnya dengan nama yang sama.
 :::
@@ -146,8 +146,8 @@ Filter berdasarkan proyek, tool dan tanggal (di balik **Filters** di ponsel). Ha
 
 Sebuah share link membawa pengaturan Anda, tetapi tidak gambar atau berkas yang Anda tambahkan dari perangkat Anda.
 
-::: warning Mengimpor menggantikan folder Anda
-Jika perangkat lain sudah memiliki karya, baca ini dulu. Import menambahkan apa yang dimuat berkas itu, memperbarui item yang cocok dan tidak menghapus item tersimpan apa pun. Namun profil Anda adalah satu rekaman, jadi folder, favorit, template dan detail di perangkat itu digantikan oleh yang ada di berkas. Sebuah item tersimpan yang hanya ada di perangkat itu tetap ada, di level teratas **Proyek**. **Bring it to this device**, di Sync, melakukan hal yang sama.
+::: note Mengimpor tidak menambah atau menghapus apa pun
+Folder, favorit dan template dalam berkas itu ditambahkan di samping yang sudah ada di perangkat lain. Ketika sebuah item tersimpan ada di keduanya, salinan yang disimpan lebih baru dipertahankan. Detail dan pengaturan Anda di perangkat itu tetap seperti apa adanya; yang kosong diisi dari berkas itu. **Bring it to this device**, di Sync, bekerja dengan cara yang sama.
 :::
 
 Untuk memindahkan semuanya sekaligus:
@@ -157,7 +157,7 @@ Untuk memindahkan semuanya sekaligus:
 3. Di perangkat baru, buka **Pengaturan → Penyimpanan**, tekan **Import data…**, pilih berkasnya dan tekan **Impor**.
 
 ::: note Apa yang tertinggal
-Sign-in, kunci dan passphrase sync tetap ada di setiap perangkat. Daftar unduhan terbaru, unduhan offline dan model AI tidak berpindah lewat rute mana pun. Riwayat versi hanya berpindah di dalam sebuah berkas **Export my data**, bukan lewat Sync atau sebuah `.lolly`. Salinan yang disimpan Sync di penyimpanan Anda hanya terbuka lewat Sync, bukan dengan **Import data…** atau **Buka**.
+Sign-in, kunci dan passphrase sync tetap ada di masing-masing perangkat. Daftar unduhan terbaru, unduhan offline dan model AI tidak berpindah lewat jalur mana pun. Riwayat versi hanya berpindah dalam sebuah berkas **Export my data**, bukan lewat Sync atau sebuah `.lolly`. Sebuah salinan yang disimpan Sync di penyimpanan Anda dapat diunduh dan dibuka, atau dipilih di **Import data…**, seperti sebuah berkas backup; sebuah salinan terenkripsi meminta passphrase Anda.
 :::
 
 ::: details Apa yang dimuat berkas backup
@@ -176,7 +176,7 @@ Tekan **Export my data** di bawah **Pengaturan → Penyimpanan**, dan simpan ber
 
 Ketika aplikasi dimulai, Lolly meminta browser untuk tidak menghapus penyimpanannya ketika perangkat kehabisan ruang. Browser yang memutuskan. Di bawah **Pengaturan → Tersedia offline**, sebuah baris yang dimulai dengan **Protected** berarti browser menyetujuinya; "The browser may clear downloads if the device runs low on space" berarti tidak, dan **Lindungi unduhan** bertanya lagi. Jika browser tidak menyetujuinya, browser bisa menghapus karya tersimpan selain unduhan ketika ruang menipis, jadi simpan sebuah berkas **Export my data** terbaru.
 
-**Pengaturan → Penyimpanan** menampilkan berapa banyak ruang yang digunakan tiap jenis data. **Clear cache** membuang berkas katalog yang diunduh, yang akan diunduh lagi saat dibutuhkan. **Clear all my data** meminta Anda mengetik sebuah kata, lalu menghapus profil, sesi tersimpan, gambar yang diunggah dan cache aset Anda. Data lain tetap ada, termasuk riwayat versi, daftar unduhan terbaru, hasil Convert, design system dan model AI yang diunduh. Untuk menghapus semuanya, hapus data situs ini di browser Anda.
+**Pengaturan → Penyimpanan** menampilkan berapa banyak ruang yang digunakan tiap jenis data. **Hapus cache** membuang berkas katalog yang diunduh, yang akan diunduh lagi saat dibutuhkan. **Hapus semua data saya** meminta Anda mengetik sebuah kata, mematikan Sync, lalu menghapus semua yang disimpan Lolly di browser ini: profil dan pengaturan Anda, sesi tersimpan beserta riwayat dan Trash-nya, unggahan, font dan design system, log unduhan, hasil Convert, model AI yang diunduh dan salinan offline. Berkas yang Anda unduh tetap ada di tempat Anda menyimpannya. Aplikasi kemudian mulai seperti pada kunjungan pertama.
 
 ![Kartu penyimpanan pada layar selebar ponsel: setiap kategori data di perangkat disebutkan, dengan tombol Clear all my data di bagian bawah](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
@@ -195,15 +195,15 @@ Gambar, design system dan daftar unduhan terbaru tetap ada di penyimpanan intern
 
 ## Dapatkan kembali sesuatu yang Anda hapus
 
-Di **Proyek**, **Pindahkan ke Sampah** mempertahankan sebuah item selama 30 hari. Sebuah folder pergi ke Sampah beserta semua isinya, sebagai satu entri. Segera setelahnya, sebuah pesan menawarkan **Undo** selama sekitar sepuluh detik. Setelahnya:
+Menghapus sebuah sesi tersimpan, sebuah folder, salah satu unggahan Anda atau salah satu font Anda di aplikasi memindahkannya ke **Sampah** selama 30 hari, di mana pun Anda menghapusnya: **Proyek**, **Aset**, **Pengaturan → Penyimpanan** atau daftar sesi tersimpan sebuah tool. Sebuah folder pergi beserta semua isinya, sebagai satu entri, dan sebuah sesi mempertahankan riwayat versinya selama berada di sana. Segera setelahnya, sebuah pesan menawarkan **Undo**. Setelahnya:
 
-1. Buka **Proyek** dan tekan ubin **Sampah**. Ubin ini hanya muncul selama Sampah menyimpan sesuatu.
-2. Tekan **Pulihkan** di samping item itu.
+1. Buka **Sampah**: ubin **Sampah** di **Proyek**, tombol **Sampah** di **Aset → Unggahan Anda**, atau baris **Sampah** di **Pengaturan → Penyimpanan**. Ketiganya membuka daftar yang sama.
+2. Tekan **Pulihkan** di samping item itu. Item itu kembali ke foldernya, dan sebuah font mendapatkan kembali peran yang dimilikinya di design system-nya.
 
-**Hapus permanen** dan **Kosongkan Sampah** menghapus item seketika, tanpa bertanya. Item yang lebih tua dari 30 hari dihapus untuk selamanya pada saat berikutnya Anda membuka Proyek.
+**Hapus permanen** menghapus satu item untuk selamanya. **Kosongkan Sampah** bertanya dulu, lalu menghapus setiap item di Sampah. Item yang lebih tua dari 30 hari dihapus untuk selamanya.
 
-::: warning Penghapusan lainnya bersifat permanen
-Menghapus sebuah sesi tersimpan di bawah **Pengaturan → Penyimpanan**, atau dari daftar sesi tersimpan sebuah tool di galeri (klik kanan kartu tool itu, lalu **N saved sessions**), menghapus sesi itu untuk selamanya, beserta riwayat versinya. Sebuah gambar yang Anda hapus dari **Gambar saya** dihapus seketika, tanpa bertanya.
+::: warning Sebagian penghapusan bersifat seketika
+Menghapus sebuah design system, sebuah logo atau foto profil Anda tidak masuk ke Sampah. Command line dan aplikasi terminal juga menghapus seketika.
 :::
 
 Dengan [Sync](/info/sync.html) aktif, **Restore an earlier copy** dapat mengembalikan state perangkat secara keseluruhan dari hari sebelumnya, dan sebuah berkas **Export my data** mengembalikan apa yang dimuat berkas itu.

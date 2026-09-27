@@ -56,5 +56,32 @@ export const REBRAND_SLOT_PREFIX = '__rebrand__:';
 export const isRebrandSlot = (slot: unknown): boolean =>
   typeof slot === 'string' && slot.startsWith(REBRAND_SLOT_PREFIX);
 
+/**
+ * Discarded namespace (plan 277 P1): Leave without saving moves a creation that
+ * was never explicitly saved to `__discarded__:<time>:<original slot>`, with its
+ * history, instead of leaving it in Projects. Hidden from every session list like
+ * the trash, but this is not the trash and has no Restore. Its automatic
+ * checkpoints stay in History, where a copy can be opened, until a later discard
+ * clears entries older than DISCARD_RETENTION_MS.
+ */
+export const DISCARDED_SLOT_PREFIX = '__discarded__:';
+export const DISCARD_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+
+export const isDiscardedSlot = (slot: unknown): boolean =>
+  typeof slot === 'string' && slot.startsWith(DISCARDED_SLOT_PREFIX);
+
+/** The hidden slot a discarded creation moves to, stamped with the discard time. */
+export const discardedSlot = (slot: string, at: number): string =>
+  `${DISCARDED_SLOT_PREFIX}${Math.max(0, Math.floor(at)).toString(36)}:${slot}`;
+
+/** When a discarded slot was discarded (ms since the epoch), or null for any other slot. */
+export function discardedAt(slot: string): number | null {
+  if (!isDiscardedSlot(slot)) return null;
+  const stamp = slot.slice(DISCARDED_SLOT_PREFIX.length).split(':', 1)[0] ?? '';
+  const at = /^[0-9a-z]+$/.test(stamp) ? parseInt(stamp, 36) : NaN;
+  return Number.isSafeInteger(at) ? at : null;
+}
+
 export const isHiddenSlot = (slot: unknown): boolean =>
-  isTrashedSlot(slot) || isTemplateSlot(slot) || isExportPrefsSlot(slot) || isDesignSystemSlot(slot) || isRebrandSlot(slot);
+  isTrashedSlot(slot) || isTemplateSlot(slot) || isExportPrefsSlot(slot) || isDesignSystemSlot(slot) || isRebrandSlot(slot)
+  || isDiscardedSlot(slot);

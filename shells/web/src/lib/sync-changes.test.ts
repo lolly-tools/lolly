@@ -59,6 +59,23 @@ test('writes report a change; reads do not; results pass through', async () => {
   assert.deepEqual(calls, ['save:s1', 'delete:s1'], 'the original methods still run');
 });
 
+// plans/277 P7 review S3: a backup import writes restored sessions through
+// state.restore, and a Trash move marks an upload; both are changes to push.
+test('an import written through state.restore and a Trash mark on an upload report a change', async () => {
+  const calls: string[] = [];
+  const host = {
+    state: { async restore(slot: string) { calls.push(`restore:${slot}`); } },
+    assets: { async _setUserAssetTrashed(id: string) { calls.push(`trash:${id}`); return true; } },
+  };
+  trackHostChanges(host);
+  const before = localChangeSeq();
+  await host.state.restore('qr-code:1');
+  assert.equal(localChangeSeq(), before + 1);
+  assert.equal(await host.assets._setUserAssetTrashed('user/a'), true, 'the result passes through');
+  assert.equal(localChangeSeq(), before + 2);
+  assert.deepEqual(calls, ['restore:qr-code:1', 'trash:user/a']);
+});
+
 test('profile and active design system report only real changes', async () => {
   const { host } = fakeHost();
   trackHostChanges(host);

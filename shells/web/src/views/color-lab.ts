@@ -104,7 +104,7 @@ import { jellyActive, ensureJelly } from '../lib/jelly.ts';
 import { icon } from '../lib/icons.ts';
 import {
   activateProfile, deactivateProfile, getProfile, parseProfileLimit, profileFor,
-  removeProfile, shortLabel, absentLabel,
+  removeProfile, shortLabel, absentLabel, absentProfileTitle,
 } from '../lib/color-profiles.ts';
 import type { ColorProfilesHost, ProfileEntry } from '../lib/color-profiles.ts';
 import { openProfilesPanel } from '../components/profiles-manager.ts';
@@ -661,7 +661,7 @@ export async function mountColorLab(view: HTMLElement, host: ColorLabHost, param
       // gamut we cannot compute. The URL is untouched - see `limitParam`.
       pills.push(`<button type="button" class="view-seg-btn lab-limit-press"
         data-lab-limit-absent aria-pressed="false" data-state="absent"
-        title="${escape(t('This link compares against a profile that isn’t on this device.'))}"
+        title="${escape(absentProfileTitle())}"
         >${escape(absentLabel(absentLimit))}</button>`);
     }
     if (host.assets) {
@@ -717,7 +717,7 @@ export async function mountColorLab(view: HTMLElement, host: ColorLabHost, param
     if (!activeProfile && absentLimit) {
       tail.push(`<button type="button" class="view-seg-btn lab-limit-press"
         data-lab-limit-absent aria-pressed="false" data-state="absent"
-        title="${escape(t('This link compares against a profile that isn’t on this device.'))}"
+        title="${escape(absentProfileTitle())}"
         >${escape(absentLabel(absentLimit))}</button>`);
     }
     if (host.assets) {

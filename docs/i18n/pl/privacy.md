@@ -56,11 +56,11 @@ ilość danych **wyłącznie na twoim urządzeniu**, nigdy nie przesyłanych dal
 Nic z tego nie jest udostępniane, sprzedawane ani wykorzystywane do identyfikowania czy śledzenia
 cię. Nie ma na co wyrażać zgody, ponieważ nie zachodzi żadne zbieranie danych
 - jest tylko ta informacja, żebyś wiedział, co jest przechowywane i gdzie. Wyczyszczenie
-pamięci strony w twojej przeglądarce usuwa to wszystko w dowolnej chwili; **Ustawienia →
-Pamięć → Wyczyść wszystkie moje dane** usuwa twój profil, zapisane sesje, przesłane
-obrazy i pamięć podręczną zasobów. (Zgodnie z dyrektywą ePrivacy, art. 5(3), przechowywanie
-ściśle niezbędne do świadczenia usługi, o którą poprosiłeś, nie wymaga zgody -
-jedynie przejrzystości, którą zapewniają zarówno ten dokument, jak i powiadomienie w aplikacji.)
+pamięci strony w twojej przeglądarce usuwa to wszystko w dowolnej chwili, tak samo jak **Ustawienia →
+Pamięć → Wyczyść wszystkie moje dane**, co najpierw wyłącza też Synchronizację. (Zgodnie
+z dyrektywą ePrivacy, art. 5(3), przechowywanie ściśle niezbędne do świadczenia usługi, o którą
+poprosiłeś, nie wymaga zgody - jedynie przejrzystości, którą zapewniają zarówno ten dokument, jak
+i powiadomienie w aplikacji.)
 
 ![Sekcja przechowywania danych na stronie profilu na ekranie o szerokości telefonu: każda kategoria danych na urządzeniu nazwana, z przyciskiem Clear all my data tuż obok](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

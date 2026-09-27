@@ -50,7 +50,7 @@ To act on several cards at once, tick each card's checkbox, drag a selection box
 - **Assets:** Favourite and Hide apply to any selection; Duplicate, Download and Delete only appear once every selected item is one of your own uploads - a shared design-system asset is a permanent contract, so those three stay off it even in bulk.
 - **Projects:** see [Find and recover your work](/info/find-your-work.html#find-something-you-saved).
 
-> One label trap: **View sessions** only exists once something is *selected*. Right-clicking a single unselected card instead offers **N saved sessions**, which opens a list of that tool's saved sessions, where a delete is permanent, rather than navigating to Projects.
+> One label trap: **View sessions** only exists once something is *selected*. Right-clicking a single unselected card instead offers **N saved sessions**, which opens a list of that tool's saved sessions, where a delete moves the session to the Trash, rather than navigating to Projects.
 
 ![The gallery selection bar for two tools, offering Available offline, View sessions, Favourite and Hide](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
 <!--
@@ -326,7 +326,7 @@ Paste the link to a colleague, bookmark it or commit it. (Full details: [URL Mod
 - A **design-system pack** (`lolly-brand`) contains tokens and may contain fonts, logos, published versions and retained resources. Opening adds it as a separate named design system, then switches to it; systems already on the device remain.
 - A **brand workspace / instance pack** is a `lolly-brand` with declared tools, catalogue assets and optionally an instance address. The preflight lists those device-wide effects because loading it replaces the single previously loaded workspace overlay.
 
-A full **device/profile backup is not a `.lolly`**. It remains a `LollyTools-….zip` with format `lolly-backup`, and restores only through **Settings → Storage**. A plain zipped tool folder also remains `.zip`. In other words, session and design-system bundles own `.lolly`; backup and loose archive workflows do not.
+A full **device/profile backup is not a `.lolly`**. It remains a `LollyTools-….zip` with format `lolly-backup`, and restores through **Settings → Storage → Import data…**, which also takes a copy Sync keeps in your storage. A plain zipped tool folder also remains `.zip`. In other words, session and design-system bundles own `.lolly`; backup and loose archive workflows do not.
 
 **Download .lolly**, in the Share dialog of the tool you're working in, writes the current design as a shared-design bundle. It carries the saved session together with the images and files available on this device. Ordinary catalogue art rides along too. Licensed art is held back unless you explicitly include it, and a stale or unavailable file remains an external reference rather than disappearing. The prepared receipt shows the actual `.lolly` size, embedded-file count, external-reference count and whether the tool is included. Where your device has a share sheet, **Send to…** hands that file straight to it (AirDrop, an Android share) rather than saving it to disk.
 

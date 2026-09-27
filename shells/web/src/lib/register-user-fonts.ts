@@ -37,7 +37,7 @@ export const USER_FONT_PREFIX = 'user/fonts/';
  *  others unloaded); without it every stored face loads, as before. */
 export interface RegisterFontsHost {
   assets: {
-    _exportUserAssets: () => Promise<Array<{ id: string; type: string; blob?: Blob; meta?: Record<string, unknown> }>>;
+    _exportUserAssets: () => Promise<Array<{ id: string; type: string; blob?: Blob; meta?: Record<string, unknown>; trashedAt?: string }>>;
   };
   designSystems?: { active(): Promise<{ id: string }> };
 }
@@ -111,7 +111,7 @@ export async function registerUserFonts(host: RegisterFontsHost): Promise<void> 
   // landing a microtask later is unobservable - and importing it eagerly would
   // put the whole export-side font resolver back on first paint.
   void import('../bridge/font-registry.ts').then(m => m.bustFontRegistry()).catch(() => { /* best-effort */ });
-  let records: Array<{ id: string; type: string; blob?: Blob; meta?: Record<string, unknown> }>;
+  let records: Array<{ id: string; type: string; blob?: Blob; meta?: Record<string, unknown>; trashedAt?: string }>;
   try { records = await host.assets._exportUserAssets(); }
   catch { return; }
   // Refresh the family cache FIRST, off the records' meta - it needs only the
@@ -120,7 +120,9 @@ export async function registerUserFonts(host: RegisterFontsHost): Promise<void> 
   // to a font-picking tool) already sees the installed brand fonts in its select,
   // instead of racing the parse. Covers boot, install (installGoogleFont calls us)
   // and backup import; one store read for both.
-  const wanted = records.filter(r => r.type === 'font' && isFontOf(r.id, systemId));
+  // A face in the Trash (plan 277 P3) stays stored but is not installed, so the
+  // unregister pass below unloads it and a restore's call here loads it back.
+  const wanted = records.filter(r => r.type === 'font' && isFontOf(r.id, systemId) && !r.trashedAt);
   setBrandFontFamilyCache(wanted.map(r => String(r.meta?.family ?? r.meta?.name ?? '')));
   // The unregister pass: a face loaded for another design system (or one whose
   // row is gone) leaves document.fonts, or the CSS font matcher would keep

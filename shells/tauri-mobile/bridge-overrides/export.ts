@@ -21,9 +21,16 @@
  *            LIVE user activation, which a long render can spend - the catch
  *            path degrades to the saved-file toast, never a failed export.
  * Neither present (older builds) → the saved-toast behaviour.
+ *
+ * `download` is built with the web bridge's reportingDownload, so the export panel's
+ * recovery line says the file was saved and where, as the toast does, instead of
+ * saying the download was requested (plans/277, P9). There is no reveal action here:
+ * the share sheet is this shell's way to reach the file.
  */
 import { createExportAPI as createWebExportAPI } from '../../web/src/bridge/export.ts';
 import { writeFile, mkdir, exists, BaseDirectory } from '@tauri-apps/plugin-fs';
+import { reportingDownload } from '../../web/src/bridge/download.ts';
+import type { SavedReceipt } from '../../web/src/bridge/download.ts';
 
 // This override REPLACES the whole web export module for every importer inside
 // bridge/, not just for the bridge index - so it must carry that module's full
@@ -131,7 +138,7 @@ async function webShare(blob: Blob, name: string, mime: string): Promise<boolean
   }
 }
 
-async function saveToDownloads(blob: Blob, filename: string | undefined, host: ExportHost): Promise<void> {
+async function saveToDownloads(blob: Blob, filename: string | undefined, host: ExportHost): Promise<SavedReceipt> {
   const name = sanitize(filename);
   const bytes = new Uint8Array(await blob.arrayBuffer());
   try {
@@ -147,6 +154,7 @@ async function saveToDownloads(blob: Blob, filename: string | undefined, host: E
     } else {
       toast(`Saved “${name}” to ${savedPlace()}`);
     }
+    return { saved: true, name, place: savedPlace() };
   } catch (err) {
     host?.log?.('error', 'Mobile export save failed', { error: String(err) });
     toast(`Couldn't save “${name}”: ${err instanceof Error ? err.message : String(err)}`, true);
@@ -158,7 +166,7 @@ export function createExportAPI(host: ExportHost): WebExportAPI {
   const web = createWebExportAPI(host);
   return {
     ...web,
-    async download(blob: Blob, filename: string) { await saveToDownloads(blob, filename, host); },
+    download: reportingDownload((blob: Blob, filename: string) => saveToDownloads(blob, filename, host)),
     async file(blob: Blob, opts: { filename?: string } = {}) { await saveToDownloads(blob, opts.filename || 'file', host); },
     // Native OS share. Android's ACTION_SEND needs the bytes persisted first, so this is
     // the same save-to-Downloads path - which already offers the native chooser via

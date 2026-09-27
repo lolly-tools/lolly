@@ -46,6 +46,7 @@ import { createUrlGauge } from '../../lib/url-budget-gauge.ts';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
 import { makeLollyVehicle } from '../tool-lolly-vehicle.ts';
 import { historyParticipation, localHistorySlot, mountCollabActionHistory, trackRevisionInput, wireToolRevisionHistory } from '../tool-revision-history.ts';
+import { entryHoldsUnsavedEdits, localDocument } from '../tool-leave.ts';
 import { asRow } from '../tool-types.ts';
 import { openToolSession } from '../tool-session-open.ts';
 import { _sliderDragging, fileToRef, fmtBytes, makeBlocksDropper, syncInputs } from '../tool-inputs.ts';
@@ -877,6 +878,8 @@ export function mountActions(tview: ToolViewCtx): void {
   let returnAfterSave = tview.fileIntoFolder !== null && tview.fromFolder;
   actionsEl?.addEventListener('lolly:export-complete', (event) => {
     tview.exportedSinceEdit = true;
+    // A save settles the edits the entry remembered; a download or copy does not.
+    if ((event as CustomEvent<unknown>).detail === 'save') tview.session.rememberEntryEdits(false);
     if (returnAfterSave && (event as CustomEvent<unknown>).detail === 'save') {
       returnAfterSave = false;
       navigateTo(tview.returnTo);
@@ -1032,6 +1035,11 @@ export function wireBulkRows(tview: ToolViewCtx): void {
 export function wireBackPill(tview: ToolViewCtx): void {
   const { inputsEl, viewEl } = tview;
   mountBackPill(viewEl, { intercept: tview.session.backPillIntercept });
+  // An edit present in the tool counts as unsaved until it is saved (plan 277 P1):
+  // a creation whose current state is not its last explicit save, or an entry whose
+  // address still carries edits nobody saved (a reload, Back or Forward).
+  if (localDocument({ collab: tview.collabHandle, ephemeral: tview.ephemeralState }) && (tview.openedSession.cursor?.unsaved
+    || (tview.tool.manifest.render.urlSync !== false && entryHoldsUnsavedEdits(tview.toolId)))) tview.session.markSessionDirty();
 
   // Mark model inputs dirty the first time the user touches them.
   // The listener lives on the container so it survives renderInputs re-renders.

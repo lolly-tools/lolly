@@ -11,21 +11,24 @@
  * continue through their own `host.export.download`. No global last-result slot
  * can confuse concurrent deliveries.
  *
- * On those shells nothing is recorded, because their override never touches the
- * web module: a resolved download there means the native write already completed
- * (bridge-overrides/export.ts awaits `writeFile`), which is exactly the standard
- * "Saved" asks for. A dismissed native Save As throws AbortError, and that is a
- * cancellation, not a failure.
+ * The Tauri overrides register their own download the same way, through
+ * reportingDownload (bridge/download.ts): their write has completed by the time it
+ * resolves, so they report 'saved', optionally with the name the file got, where it
+ * went and a way to show it in the file manager. They have to register, because the
+ * web bridge reaches them through the lazy export facade, and that facade can only
+ * answer 'requested' for an implementation it does not know (plans/277, P9). A
+ * dismissed native Save As throws AbortError, and that is a cancellation, not a
+ * failure.
  */
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import { saveFilePickerSupported, saveFileWithPicker } from '../bridge/export-save-picker.ts';
 import { deliveryFor } from '../bridge/download.ts';
-import type { DeliveryOutcome } from '../bridge/export-save-picker.ts';
+import type { DeliveryReport } from '../bridge/download.ts';
 
 export type DeliveryHost = Pick<HostV1, 'export'>;
 
 /** A prepared file → an outcome the browser or shell could actually vouch for. */
-export type Deliver = (blob: Blob, filename: string) => Promise<DeliveryOutcome>;
+export type Deliver = (blob: Blob, filename: string) => Promise<DeliveryReport>;
 
 /**
  * The desktop shell's one-shot seam: arm it and the NEXT `host.export.download`
@@ -64,7 +67,7 @@ export function chooseLocationDeliver(host: DeliveryHost | null): Deliver | null
   return null;
 }
 
-export async function deliverFile(host: DeliveryHost, blob: Blob, filename: string): Promise<DeliveryOutcome> {
+export async function deliverFile(host: DeliveryHost, blob: Blob, filename: string): Promise<DeliveryReport> {
   try {
     const deliver = deliveryFor(host.export.download);
     if (deliver) return await deliver(blob, filename);
@@ -73,8 +76,8 @@ export async function deliverFile(host: DeliveryHost, blob: Blob, filename: stri
     if ((err as { name?: string })?.name === 'AbortError') return 'cancelled';
     throw err;
   }
-  // Nothing recorded: only a host with the desktop shell's native seam has actually
-  // written the file by the time download() resolves. Any other silent host (a test
-  // stub, an unknown shell) gets the honest answer - requested, not saved.
+  // Nothing registered for this download (a test stub, a wrapped host, an unknown
+  // shell): only a host with the desktop shell's native seam has written the file by
+  // the time download() resolves. Anything else gets the honest answer, requested.
   return nativeSaveAsSeam() ? 'saved' : 'requested';
 }

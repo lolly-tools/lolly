@@ -8,7 +8,7 @@ Alt du lager i Lolly, blir værende i nettleseren eller appen du laget det i, p�
 | Trykte **Last ned** | Nettleserens nedlastinger, og en kopi i **Ressurser** |
 | Ingen av delene, i ett av [de ni verktøyene som lagrer mens du jobber](#the-nine-tools-that-save-as-you-work) | **Prosjekter** og **History** |
 | Ingen av delene, i et annet verktøy | Bare fanen du jobbet i, til du lukker den |
-| Flyttet det til papirkurven | Flisen **Papirkurv** i **Prosjekter**, i 30 dager |
+| Slettet det i appen | **Papirkurv**, i **Prosjekter**, **Ressurser** eller **Innstillinger → Lagring**, i 30 dager |
 
 ## Finn noe du har lagret
 
@@ -73,18 +73,18 @@ Hva som kommer tilbake, avhenger av hvordan du forlot og hvilket verktøy du bru
 
 - **Du lukket fanen, eller kom tilbake en annen gang.** Ulagret arbeid er borte, unntatt i [de ni verktøyene](#the-nine-tools-that-save-as-you-work), som lagrer endringene dine mens du jobber: åpne dem fra **Prosjekter**.
 - **Du lastet siden på nytt i samme fane.** Innstillingene dine kommer tilbake fra sideadressen. I andre verktøy enn de ni kommer bilder og filer du har lagt til fra enheten din, og enkeltlinjetekst lengre enn 150 tegn, ikke tilbake, fordi adressen ikke inneholder dem.
-- **Du trykte Hjem, eller tilbakeknappen øverst til venstre.** Hvis du har endret noe siden du sist lagret, lastet ned eller kopierte, spør en **Ulagrede endringer**-dialog om du vil lagre først. **Save & leave** lagrer arbeidet og tar deg til **Prosjekter**, eller tilbake til prosjektmappen du åpnet arbeidet fra. **Forlat uten å lagre** forlater; i de ni verktøyene er endringene dine allerede lagret og blir værende i Prosjekter. **Avbryt** holder deg igjen i verktøyet.
+- **Du trykte Hjem, eller tilbakeknappen øverst til venstre.** Hvis du har endret noe siden du sist lagret, lastet ned eller kopierte, spør dialogen **Ulagrede endringer** om du vil lagre først. **Lagre & forlat** lagrer arbeidet og tar deg til **Prosjekter**, eller tilbake til prosjektmappen du åpnet arbeidet fra. **Forlat uten å lagre** forkaster endringene dine: et lagret element går tilbake til slik du sist lagret det, og en kreasjon du aldri lagret, forlater **Prosjekter**. **Avbryt** holder deg igjen i verktøyet.
 
 Lolly spør bare når du trykker **Hjem** eller tilbakeknappen i et verktøy. Å lukke fanen, laste på nytt og nettleserens egen tilbakeknapp spør aldri. For å være sikker, trykk **Lagre som**, eller **Lagre** i eksportpanelet, før du forlater et verktøy.
 
 ::: note Forlot uten å lagre ved en feil?
-I andre verktøy enn de ni, trykk nettleserens tilbakeknapp med en gang. Innstillingene fra sideadressen kommer tilbake, men bilder du la til fra enheten din, gjør det ikke. Trykk deretter **Lagre som** og **Lagre** før du gjør noe annet: denne gangen spør ikke Lolly før du forlater.
+I de ni verktøyene holder History på en kopi av de forkastede endringene. Åpne siden **History**, finn dem under **Changes** og trykk **Åpne som en kopi**. I andre verktøy er endringene borte.
 :::
 
 ::: details De ni verktøyene som lagrer mens du jobber
 [Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) og [Text](/#/tool/text-helper). Listen vokser etter hvert som flere verktøy får automatisk lagring.
 
-I disse verktøyene arkiverer den første endringen din arbeidet i **Prosjekter** som om du hadde lagret, og senere endringer lagres i løpet av noen sekunder. Så en ulagret kreasjon blir værende i Prosjekter etter at du har lukket fanen, og **Forlat uten å lagre** kaster ikke bort endringene dine. Å åpne verktøyet igjen fra hjemskjermen starter en ny kreasjon; åpne den tidligere fra Prosjekter.
+I disse verktøyene arkiverer den første endringen din arbeidet i **Prosjekter** som om du hadde lagret, og senere endringer lagres i løpet av noen sekunder. Så en ulagret kreasjon blir værende i Prosjekter etter at du har lukket fanen, og åpnes igjen med endringene markert som ulagret. **Forlat uten å lagre** forkaster dem likevel, og History beholder en kopi av de forkastede endringene i 30 dager. Å åpne verktøyet igjen fra hjemskjermen starter en ny kreasjon; åpne den tidligere fra Prosjekter.
 
 Dette fungerer bare i nettappen, ikke i skrivebords- eller mobilappene, og ikke mens du jobber live med noen andre.
 :::
@@ -101,8 +101,8 @@ Lolly beholder også to ting etter hver nedlasting:
 - **Innstillingene du brukte**, for dine siste 24 nedlastinger. **Nylige eksporter**, under det lagrede arbeidet ditt i **Prosjekter**, åpner verktøyet på nytt med de innstillingene slik at du kan lage filen igjen, selv om bilder og filer du har lagt til fra enheten din, ikke er inkludert. Den samme listen ligger under **Innstillinger → Aktivitet og statistikk → Siste eksporter** og på fanen **Changes** i **History**. Denne listen beholder innstillinger, ikke filene.
 
 ::: details I skrivebords- og mobilappene
-- **Skrivebordsappen:** **Last ned** lagrer rett inn i en mappe kalt **Lolly** inne i **Downloads**-mappen din, uten en dialog. En melding bekrefter lagringen og tilbyr **Avslør** for å vise filen. **Open Exports Folder**, i menyen **Window** eller **Eksporter**, åpner mappen når som helst. En fil med samme navn som en tidligere, lagres som "name (1)".
-- **iPhone og iPad:** filen lagres i appen **Filer**, under **Lolly**, og delearket åpnes slik at du kan sende den videre.
+- **Skrivebordsappen:** **Last ned** lagrer rett inn i en mappe kalt **Lolly** inne i **Downloads**-mappen din, uten en dialog. Linjen under **Last ned** viser hvor filen havnet, for eksempel "Lagret til Downloads/Lolly", med **Vis i mappe**. **Open Exports Folder**, i menyen **Window** eller **Exports**, åpner mappen når som helst. En fil med samme navn som en tidligere, lagres som "name (1)".
+- **iPhone og iPad:** filen lagres i appen **Filer**, under **Lolly**, og delearket åpnes slik at du kan sende den videre. Linjen under **Last ned** viser "Lagret til Filer → Lolly".
 - **Android:** delemenyen åpnes slik at du kan velge hvor filen skal havne.
 
 På iPhone, iPad og Android erstatter en ny fil en tidligere med samme navn.
@@ -146,8 +146,8 @@ Filtrer etter prosjekt, verktøy og dato (bak **Filters** på en telefon). Histo
 
 En delingslenke bærer innstillingene dine, men ikke bilder eller filer du har lagt til fra enheten din.
 
-::: warning Import erstatter mappene dine
-Hvis den andre enheten allerede har arbeid, les dette først. Import legger til det filen inneholder, oppdaterer elementer som samsvarer, og sletter ingen lagrede elementer. Profilen din er derimot én post, så mappene, favorittene, malene og opplysningene på den enheten erstattes av dem i filen. Et lagret element som bare fantes på den enheten, blir værende, på øverste nivå i **Prosjekter**. **Bring it to this device**, i Synk, gjør det samme.
+::: note Import legger til og sletter ingenting
+Mapper, favoritter og maler i filen legges til ved siden av dem som allerede finnes på den andre enheten. Når et lagret element finnes på begge, beholdes kopien som ble lagret sist. Opplysningene og innstillingene dine på den enheten forblir som de er; tomme felt fylles inn fra filen. **Hent hit til denne enheten**, i Synk, fungerer på samme måte.
 :::
 
 For å flytte alt på én gang:
@@ -157,7 +157,7 @@ For å flytte alt på én gang:
 3. På den nye enheten, åpne **Innstillinger → Lagring**, trykk **Importer data…**, velg filen og trykk **Importer**.
 
 ::: note Hva som blir igjen
-Innlogginger, nøkler og synk-passordfrasen blir på hver enhet. Listen over nylige nedlastinger, offline nedlastinger og AI-modeller følger ikke med på noen måte. Versjonshistorikken følger bare med i en fil fra **Eksporter dataene mine**, ikke via Synk eller en `.lolly`. Kopiene Synk holder i lagringen din, åpnes bare via Synk, ikke med **Importer data…** eller **Åpne**.
+Innlogginger, nøkler og synk-passordfrasen blir på hver enhet. Listen over nylige nedlastinger, offline nedlastinger og AI-modeller følger ikke med på noen måte. Versjonshistorikken følger bare med i en fil fra **Eksporter dataene mine**, ikke via Synk eller en `.lolly`. En kopi Synk holder i lagringen din, kan lastes ned og åpnes, eller velges i **Importer data…**, som en sikkerhetskopi; en kryptert kopi spør etter passordfrasen din.
 :::
 
 ::: details Hva sikkerhetskopifilen inneholder
@@ -176,7 +176,7 @@ Trykk **Eksporter dataene mine** under **Innstillinger → Lagring**, og oppbeva
 
 Når appen starter, ber Lolly nettleseren om ikke å slette lagringen sin når enheten går tom for plass. Nettleseren avgjør. Under **Innstillinger → Tilgjengelig offline** betyr en linje som starter med **Protected** at nettleseren sa seg enig; "The browser may clear downloads if the device runs low on space" betyr at den ikke gjorde det, og **Beskytt nedlastinger** spør på nytt. Hvis nettleseren ikke sa seg enig, kan den slette både lagret arbeid og nedlastinger når plassen tar slutt, så ta vare på en fersk fil fra **Eksporter dataene mine**.
 
-**Innstillinger → Lagring** viser hvor mye plass hver type data bruker. **Tøm cache** dropper nedlastede katalogfiler, som lastes ned på nytt ved behov. **Slett alle mine data** ber deg skrive et ord, og fjerner deretter profilen din, lagrede økter, opplastede bilder og ressurscachen. Annen data blir værende, inkludert versjonshistorikk, listen over nylige nedlastinger, Convert-resultater, designsystemer og nedlastede AI-modeller. For å fjerne alt, slett dette nettstedets data i nettleseren din.
+**Innstillinger → Lagring** viser hvor mye plass hver type data bruker. **Tøm cache** dropper nedlastede katalogfiler, som lastes ned på nytt ved behov. **Slett alle mine data** ber deg skrive et ord, slår av Synk, og fjerner deretter alt Lolly lagrer i denne nettleseren: profilen og innstillingene dine, lagrede økter med historikken og Papirkurven deres, opplastinger, fonter og designsystemer, nedlastingsloggen, Convert-resultater, nedlastede AI-modeller og offlinekopier. Filer du har lastet ned, blir liggende der du lagret dem. Appen starter deretter som ved et første besøk.
 
 ![Lagringskortet på en telefonbred skjerm: hver kategori av data på enheten navngitt, med knappen Slett alle mine data nederst](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
@@ -195,15 +195,15 @@ Bilder, designsystemer og listen over nylige nedlastinger blir værende i appens
 
 ## Få tilbake noe du har slettet
 
-I **Prosjekter** holder **Flytt til papirkurven** på et element i 30 dager. En mappe går til papirkurven med alt i den, som én oppføring. Rett etterpå tilbyr en melding **Angre** i omtrent ti sekunder. Senere:
+Å slette en lagret økt, en mappe, en av opplastingene dine eller en av fontene dine i appen flytter den til **Papirkurv** i 30 dager, uansett hvor du sletter den: **Prosjekter**, **Ressurser**, **Innstillinger → Lagring** eller et verktøys liste over lagrede økter. En mappe følger med alt den inneholder, som én oppføring, og en økt beholder versjonshistorikken sin mens den er der. Rett etterpå tilbyr en melding **Angre**. Senere:
 
-1. Åpne **Prosjekter** og trykk på flisen **Papirkurv**. Flisen vises bare mens papirkurven inneholder noe.
-2. Trykk **Gjenopprett** ved siden av elementet.
+1. Åpne **Papirkurv**: flisen **Papirkurv** i **Prosjekter**, knappen **Papirkurv** i **Ressurser → Opplastingene dine**, eller raden **Papirkurv** i **Innstillinger → Lagring**. Alle tre åpner den samme listen.
+2. Trykk **Gjenopprett** ved siden av elementet. Det går tilbake til mappen sin, og en font får tilbake rollene den hadde i designsystemet sitt.
 
-**Slett for godt** og **Tøm papirkurven** fjerner elementer med en gang, uten å spørre. Elementer eldre enn 30 dager fjernes for godt neste gang du åpner Prosjekter.
+**Slett for godt** fjerner ett element for godt. **Tøm papirkurven** spør først, og fjerner deretter alle elementer i Papirkurven. Elementer eldre enn 30 dager fjernes for godt.
 
-::: warning Andre slettinger er permanente
-Å slette en lagret økt under **Innstillinger → Lagring**, eller fra et verktøys liste over lagrede økter i galleriet (høyreklikk verktøyets kort, deretter **N lagrede økter**), fjerner økten for godt, med versjonshistorikken dens. Et bilde du sletter fra **Mine bilder**, fjernes med en gang, uten å spørre.
+::: warning Noen slettinger skjer umiddelbart
+Å slette et designsystem, en logo eller profilbildet ditt går ikke til Papirkurv. Kommandolinjen og terminalappen sletter også med en gang.
 :::
 
 Med [Synk](/info/sync.html) på kan **Restore an earlier copy** bringe tilbake en tidligere dags tilstand for hele enheten, og en fil fra **Eksporter dataene mine** bringer tilbake det filen inneholder.

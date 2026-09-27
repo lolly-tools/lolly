@@ -54,8 +54,8 @@ trên thiết bị của bạn**, không bao giờ được truyền đi:
 Không cái nào trong số này được chia sẻ, bán hay dùng để nhận dạng hoặc theo dõi bạn. Không có gì
 cần đồng ý, vì không có việc thu thập nào diễn ra - chỉ có thông báo này, để bạn
 biết những gì được giữ lại và ở đâu. Việc xóa bộ nhớ của trang trong trình duyệt của bạn sẽ xóa
-toàn bộ những thứ đó bất cứ lúc nào; **Cài đặt → Bộ nhớ → Xóa toàn bộ dữ liệu của tôi**
-xóa hồ sơ, các phiên đã lưu, ảnh đã tải lên và bộ nhớ đệm tài sản của bạn. (Theo Chỉ thị
+toàn bộ những thứ đó bất cứ lúc nào, và **Cài đặt → Bộ nhớ → Xóa toàn bộ dữ liệu của tôi**
+cũng làm điều tương tự, đồng thời tắt Sync trước tiên. (Theo Chỉ thị
 ePrivacy Điều 5(3), việc lưu trữ thực sự cần thiết cho dịch vụ bạn yêu cầu
 không cần sự đồng ý - chỉ cần minh bạch, và đó chính là điều tài liệu này và
 thông báo trong ứng dụng cùng thể hiện.)

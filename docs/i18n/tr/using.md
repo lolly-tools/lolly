@@ -50,7 +50,7 @@ Birden fazla kart üzerinde işlem yapmak için, her kartın onay kutusunu işar
 - **Varlıklar:** Favori ve Gizle her seçime uygulanır; Çoğalt, İndir ve Sil yalnızca seçili her öğe kendi yüklemelerinden biri olduğunda görünür - paylaşılan bir tasarım sistemi varlığı kalıcı bir sözleşmedir, bu yüzden bu üçü toplu seçimde bile kapalı kalır.
 - **Projeler:** bkz. [Çalışmanı bul ve kurtar](/info/find-your-work.html#find-something-you-saved).
 
-> Bir etiket tuzağı: **Oturumları görüntüle** yalnızca bir şey *seçiliyken* vardır. Seçili olmayan tek bir karta sağ tıklamak ise, Projeler'e gitmek yerine, o aracın kaydedilmiş oturumlarının listesini açan **N saved sessions**'ı sunar; burada bir silme kalıcıdır.
+> Bir etiket tuzağı: **Oturumları görüntüle** yalnızca bir şey *seçiliyken* vardır. Seçili olmayan tek bir karta sağ tıklamak ise, Projeler'e gitmek yerine, o aracın kaydedilmiş oturumlarının listesini açan **N kayıtlı oturum**'u sunar; burada bir silme, oturumu Çöp kutusuna taşır.
 
 ![İki araç için galeri seçim çubuğu, Available offline, View sessions, Favourite ve Hide sunuyor](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
 <!--
@@ -326,7 +326,7 @@ Bağlantıyı bir meslektaşına yapıştır, yer imlerine ekle ya da commit'le.
 - Bir **tasarım sistemi paketi** (`lolly-brand`), tokenlar içerir ve yazı tipleri, logolar, yayınlanmış sürümler ve saklanan kaynaklar içerebilir. Açmak onu ayrı, adlandırılmış bir tasarım sistemi olarak ekler, sonra ona geçer; cihazda zaten olan sistemler kalır.
 - Bir **marka çalışma alanı / örnek paketi**, bildirilmiş araçlar, katalog varlıkları ve isteğe bağlı bir örnek adresi olan bir `lolly-brand`'dir. Ön kontrol bu cihaz geneli etkileri listeler, çünkü onu yüklemek daha önce yüklenmiş tek çalışma alanı katmanının yerini alır.
 
-Tam bir **cihaz/profil yedeği bir `.lolly` değildir**. `lolly-backup` formatıyla bir `LollyTools-….zip` olarak kalır ve yalnızca **Ayarlar → Depolama** üzerinden geri yüklenir. Düz zip'lenmiş bir araç klasörü de `.zip` olarak kalır. Başka bir deyişle, oturum ve tasarım sistemi paketleri `.lolly`'ye sahiptir; yedek ve düz arşiv iş akışları değil.
+Tam bir **cihaz/profil yedeği bir `.lolly` değildir**. `lolly-backup` formatıyla bir `LollyTools-….zip` olarak kalır ve **Ayarlar → Depolama → Veri içe aktar…** üzerinden geri yüklenir; bu da Sync'in depolamanda tuttuğu bir kopyayı da alır. Düz zip'lenmiş bir araç klasörü de `.zip` olarak kalır. Başka bir deyişle, oturum ve tasarım sistemi paketleri `.lolly`'ye sahiptir; yedek ve düz arşiv iş akışları değil.
 
 Üzerinde çalıştığın aracın Paylaş penceresindeki **.lolly indir**, geçerli tasarımı bir paylaşılan tasarım paketi olarak yazar. Kaydedilmiş oturumu, bu cihazda bulunan görseller ve dosyalarla birlikte taşır. Sıradan katalog işleri de yanında yolculuk eder. Lisanslı işler, açıkça dahil etmedikçe geride tutulur ve eski ya da erişilemeyen bir dosya kaybolmak yerine dış bir referans olarak kalır. Hazırlanan makbuz, gerçek `.lolly` boyutunu, gömülü dosya sayısını, dış referans sayısını ve aracın dahil olup olmadığını gösterir. Cihazında bir paylaşım sayfası varsa **Gönder…** o dosyayı diske kaydetmek yerine doğrudan ona verir (AirDrop, bir Android paylaşımı).
 

@@ -23,7 +23,10 @@
  */
 
 import { installUserTokens } from './bridge/tokens.ts';
-import { activeHeadId } from './lib/design-system/active.ts';
+import { activeDesignSystemRecord, activeHeadId } from './lib/design-system/active.ts';
+import type { TrashedFont } from './folders.ts';
+import type { FontTrashHooks, Trash, TrashFontRole } from './lib/trash.ts';
+import { hasMethods, isRecord } from './lib/util/guards.ts';
 import { applyChromeBrandVars, brandRadiusValue, brandSpaceValue } from './brand-vars.ts';
 import { bustFontRegistry } from './bridge/font-registry.ts';
 import { REGISTERED, USER_FONT_PREFIX, brandFontFamilies, registerUserFonts, setBrandFontFamilyCache } from './lib/register-user-fonts.ts';
@@ -47,6 +50,8 @@ export interface UserFontsHost {
     _deleteUserAsset(id: string): Promise<unknown>;
     _exportUserAssets(): Promise<Array<{
       id: string; type: string; blob?: Blob; meta?: Record<string, unknown>;
+      /** Set while the face sits in the Trash (plan 277 P3); such a face is not installed. */
+      trashedAt?: string;
     }>>;
     _getBlob(id: string): Promise<Blob | null>;
   };
@@ -58,6 +63,9 @@ export interface UserFontsHost {
      *  still goes through installUserTokens, which is the chokepoint. */
     isLocked?(): Promise<boolean>;
   };
+  /** The design systems this device holds (the web bridge's registry): a restored
+   *  family's roles go back into the system they were in (restoreFontRoles). */
+  designSystems?: RegistrySlice & { active(): Promise<{ id: string }> };
 }
 
 /** One installed family, grouped from its per-face assets. */
@@ -546,13 +554,16 @@ export async function installFontFromBytes(
 
   // Where this face goes: over the family's existing same-weight/same-style face
   // if this path wrote it, else the next free index in the family.
-  let records: Array<{ id: string; type: string; meta?: Record<string, unknown> }> = [];
+  let records: Array<{ id: string; type: string; meta?: Record<string, unknown>; trashedAt?: string }> = [];
   try { records = await host.assets._exportUserAssets(); }
   catch { /* an unreadable store just means we start this family at 0 */ }
   const prefix = `${USER_FONT_PREFIX}${slug}/`;
   const siblings = records.filter(r => r.type === 'font' && r.id.startsWith(prefix));
-  const replacing = siblings.find(r =>
-    String(r.meta?.source ?? '') === 'upload'
+  // A face in the Trash is never replaced in place (its restore must bring back
+  // the bytes that were deleted), but its index still counts, so a new face
+  // takes the next free id.
+  const replacing = siblings.find(r => !r.trashedAt
+    && String(r.meta?.source ?? '') === 'upload'
     && String(r.meta?.weight ?? '') === weight && String(r.meta?.style ?? 'normal') === style);
   const nextIndex = siblings.reduce((max, r) => Math.max(max, Number(r.id.slice(prefix.length)) || 0), -1) + 1;
   const id = replacing?.id ?? `${prefix}${nextIndex}`;
@@ -616,13 +627,14 @@ function weightsBlurb(weights: Set<string>): string {
 
 /** Installed families, grouped, with the primary marked. */
 export async function listUserFonts(host: UserFontsHost): Promise<UserFontFamily[]> {
-  let records: Array<{ id: string; type: string; blob?: Blob; meta?: Record<string, unknown> }>;
+  let records: Array<{ id: string; type: string; blob?: Blob; meta?: Record<string, unknown>; trashedAt?: string }>;
   try { records = await host.assets._exportUserAssets(); }
   catch { return []; }
   const primary = await primaryFontFamily(host);
   const byFamily = new Map<string, UserFontFamily & { _weights: Set<string> }>();
   for (const r of records) {
-    if (r.type !== 'font' || !r.id.startsWith(USER_FONT_PREFIX)) continue;
+    // A family in the Trash is not installed (plan 277 P3).
+    if (r.type !== 'font' || !r.id.startsWith(USER_FONT_PREFIX) || r.trashedAt) continue;
     const family = String(r.meta?.family ?? r.meta?.name ?? 'Font');
     let g = byFamily.get(family);
     if (!g) {
@@ -640,9 +652,11 @@ export async function listUserFonts(host: UserFontsHost): Promise<UserFontFamily
 }
 
 /**
- * Remove a family: delete its assets, unload its FontFaces, and - if it was
- * the primary - hand font.brand to the next installed family (or clear it,
- * falling back to the platform default stack).
+ * Remove a family for good: delete its assets, unload its FontFaces, and - if it
+ * was the primary - hand font.brand to the next installed family (or clear it,
+ * falling back to the platform default stack). The immediate delete, for every
+ * caller outside the web UI; the brand editor moves a family to the Trash with
+ * trashUserFont below.
  */
 export async function removeUserFont(host: UserFontsHost, family: UserFontFamily): Promise<void> {
   for (const id of family.assetIds) {
@@ -656,4 +670,151 @@ export async function removeUserFont(host: UserFontsHost, family: UserFontFamily
     await setPrimaryFont(host, rest[0]?.family ?? null);
   }
   await refreshBrandFontFamilies(host); // the removed family must leave tool selectors too
+}
+
+// ── Fonts in the Trash (plan 277 P3, decided 2026-09-27) ──────────────────────
+// Deleting one of the person's own fonts in the web UI moves the family to the
+// same Trash as sessions and uploads (lib/trash.ts): its faces are marked and
+// leave the document, the roles it served are remembered with their design
+// system and cleared, and a restore puts the faces and those roles back.
+
+const ROLES: readonly FontRole[] = ['brand', 'mono', 'display', 'italic'];
+const roleFamily = (host: UserFontsHost, role: FontRole): Promise<string> =>
+  role === 'brand' ? primaryFontFamily(host) : role === 'mono' ? monoFontFamily(host)
+    : role === 'display' ? displayFontFamily(host) : italicFontFamily(host);
+
+/** The roles `family` serves in the active design system right now. */
+export async function fontRolesOf(host: UserFontsHost, family: string): Promise<FontRole[]> {
+  const held: FontRole[] = [];
+  for (const role of ROLES) if ((await roleFamily(host, role)) === family) held.push(role);
+  return held;
+}
+
+/** The slice of the design-system registry a role restore reads. */
+interface RegistrySlice {
+  get(id: string): Promise<{ id: string; headId: string; locked: boolean; source: { kind: string } } | null>;
+  activeId(): Promise<string>;
+}
+
+/** The family a doc's own `font.<role>` token names ('' when it names none). */
+const roleTokenFamily = (doc: unknown, role: FontRole): string => {
+  const token = fontGroupOf(doc)?.[role] as { $value?: unknown } | undefined;
+  return familyFromTokenValue(token?.$value);
+};
+
+/**
+ * Set `roles` back to `family` in the design system they were in. The active
+ * system is written the way the role buttons write it; another system that
+ * still exists is written by name, into its own head. A system that is gone,
+ * locked or shipped gets nothing (a shipped brand's fonts are not the person's
+ * to set). With `released` (what the delete left in each role) a role is set
+ * back only while it still holds exactly that, so a choice made after the
+ * delete is kept (review S7). Returns the roles that serve `family` afterwards.
+ */
+export async function restoreFontRoles(
+  host: UserFontsHost, family: string, roles: readonly FontRole[], designSystemId: string | null,
+  released?: Partial<Record<FontRole, string>>,
+): Promise<FontRole[]> {
+  if (!roles.length) return [];
+  const reg = host.designSystems;
+  let other: { id: string; headId: string } | null = null;
+  if (designSystemId && reg) {
+    const record = await reg.get(designSystemId).catch(() => null);
+    if (!record || record.locked || record.source.kind === 'shipped') return [];
+    if ((await reg.activeId().catch(() => null)) !== designSystemId) other = { id: record.id, headId: record.headId };
+  }
+  let doc: unknown = {};
+  if (other) {
+    try {
+      const blob = await host.assets._getBlob(other.headId);
+      if (blob) doc = JSON.parse(await blob.text());
+    } catch { doc = {}; }
+  } else {
+    doc = await primaryBaseDoc(host);
+  }
+  // Which roles to write: those still holding what the delete left (or, for a
+  // font trashed before `released` was recorded, every role it held). A role
+  // that already points at the family needs no write; one changed since is kept.
+  const serving = roles.filter(role => roleTokenFamily(doc, role) === family);
+  const toSet = roles.filter(role => !serving.includes(role)
+    && (released === undefined || roleTokenFamily(doc, role) === (released[role] ?? '')));
+  if (!toSet.length) return serving;
+  let next = withFontRoleToken(doc, toSet[0]!, family);
+  for (const role of toSet.slice(1)) next = withFontRoleToken(next, role, family);
+  if (other) {
+    await installUserTokens(host as Parameters<typeof installUserTokens>[0], next, { system: other.id });
+  } else {
+    await installUserTokens(host as Parameters<typeof installUserTokens>[0], next, { label: 'My brand' });
+    await applyChromeBrandVars(host as Parameters<typeof applyChromeBrandVars>[0]).catch(() => {});
+  }
+  return [...serving, ...toSet];
+}
+
+/** Does `host` carry the font members this module calls? */
+function isUserFontsHost<H extends object>(host: H): host is H & UserFontsHost {
+  const h: unknown = host;
+  return isRecord(h) && hasMethods(h.assets, ['_uploadUserAsset', '_deleteUserAsset', '_exportUserAssets', '_getBlob']);
+}
+
+/**
+ * `host` as a UserFontsHost, checked rather than asserted: the Trash (lib/trash.ts)
+ * holds the web bridge through its own slice, so the font members are tested here.
+ * Throws for a host without them.
+ */
+export function userFontsHostOf<H extends object>(host: H): H & UserFontsHost {
+  if (!isUserFontsHost(host)) throw new Error('user-fonts: this host keeps no user fonts');
+  return host;
+}
+
+/** What lib/trash.ts needs to restore or delete a font entry. */
+export function fontTrashHooks(host: UserFontsHost): FontTrashHooks {
+  return {
+    async refresh() {
+      await registerUserFonts(host);   // loads restored faces, unloads trashed ones
+      bustFontRegistry();
+      await refreshBrandFontFamilies(host);
+    },
+    restoreRoles: (family, roles, designSystemId, released) => restoreFontRoles(host, family, roles as FontRole[], designSystemId, released),
+  };
+}
+
+/**
+ * Move a family to the Trash (the brand editor's delete). Its faces are marked
+ * and unloaded, the roles it served are recorded with the active design system
+ * and then released: the primary passes to the next family, as a removal always
+ * did, and the other roles clear. Returns the entry for the Undo toast, or null
+ * when no face could be marked. The caller hands in the Trash (lib/trash.ts,
+ * made with fontTrashHooks), so this module never loads the Trash module.
+ */
+export async function trashUserFont(host: UserFontsHost, family: UserFontFamily, trash: Pick<Trash, 'trashFont'>): Promise<TrashedFont | null> {
+  const roles: TrashFontRole[] = await fontRolesOf(host, family.family);
+  const record = await activeDesignSystemRecord(host);
+  const designSystemId = record && record.source.kind !== 'shipped' ? record.id : null;
+  // What the release below leaves in each role, kept on the entry so a restore
+  // only puts back a role nobody has chosen since (review S7).
+  const nextPrimary = roles.includes('brand')
+    ? (await listUserFonts(host)).find(f => f.family !== family.family)?.family ?? null : null;
+  const released: Partial<Record<FontRole, string>> = {};
+  for (const role of roles) released[role] = role === 'brand' ? (nextPrimary ?? '') : '';
+  const entry = await trash.trashFont({ family: family.family, assetIds: family.assetIds, roles, designSystemId, released });
+  if (!entry) return null;
+  for (const id of entry.assetIds) {
+    const face = REGISTERED.get(id);
+    if (face && typeof document !== 'undefined') document.fonts.delete(face);
+    REGISTERED.delete(id);
+  }
+  bustFontRegistry();   // exports must stop resolving the family
+  // A family in the Trash serves no role. Released in one tokens write; a locked
+  // brand refuses it, and then the faces are still in the Trash, only the roles stay.
+  try {
+    let doc = await primaryBaseDoc(host);
+    if (roles.includes('brand')) doc = withFontRoleToken(doc, 'brand', nextPrimary);
+    for (const role of roles) if (role !== 'brand') doc = withFontRoleToken(doc, role, null);
+    if (roles.length) {
+      await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc, { label: 'My brand' });
+      await applyChromeBrandVars(host as Parameters<typeof applyChromeBrandVars>[0]).catch(() => {});
+    }
+  } catch { /* the roles could not be released; the family is in the Trash either way */ }
+  await refreshBrandFontFamilies(host);
+  return entry;
 }

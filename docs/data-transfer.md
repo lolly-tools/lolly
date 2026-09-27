@@ -95,13 +95,16 @@ The manifest lists neither itself nor the regenerated `lolly.txt` README. The di
 
 ## Import semantics
 
-Import is **merge-overwrite**, never replace-all:
+Import is a **merge**, never replace-all:
 
 - Existing data on the target is left in place.
-- Any key that collides - the profile, a session slot, an uploaded image id - is replaced by the imported copy.
-- The profile is one record, so it is replaced whole: the target's folders, Trash, templates, favourites and hidden tools become the bundle's. A session the target had but the bundle did not is kept, unfiled, at the top level of Projects.
+- When a session slot or uploaded image id is on both, the copy saved more recently is kept, so an older backup never overwrites newer work on the target. Equal or unknown times keep the target's copy. On a web install with creation history, the same rule decides which copy of a creation stays current, and the other copy is kept as a protected draft (see below).
+- The profile record is merged, not replaced. Every folder on the target stays with its contents; a folder from the bundle that the target lacks is added, and a folder on both keeps the target's name and parent and gains the bundle's members it lacks. A session filed in a folder on the target stays filed there.
+- Favourites (tools, catalog assets and Projects items) are combined. Templates, Projects templates and user tools from the bundle are added when the target has no record with that id. Trash entries from both are kept, so an item that could be restored on either install still can be.
+- Every other profile field (name, contact details, language, feature flags, hidden tools and the other settings) keeps the target's value. A field that is empty on the target takes the bundle's value. The same goes for `prefs.json`: a preference is written only where the target has none.
+- Device sync's ordinary apply is the exception: keeping devices in step, it takes the synced copy's profile record, preferences, sessions and images. Restoring an earlier copy does the same, since it goes back in time on purpose. The first join, **Bring it to this device**, merges like an import.
 - Historical asset versions and operation IDs are immutable exceptions: a repeat import is idempotent, and an ID already naming different bytes/history is refused, not overwritten. Re-importing an identical current asset preserves its version. A changed current asset must carry a different version.
-- Creation history is also an exception: a conflicting current document or revision identity aborts its restore before profile, asset or preference changes. An identical repeat import adds no storage. Restore a conflicting archive on a separate install to inspect and copy its creations.
+- Creation history merges too. A creation on both sides keeps the copy saved more recently as current and the other copy as a protected draft; a creation whose slot the target uses for a different creation is added beside it; a creation in the target's Trash stays there. A checkpoint id that names different content on the target keeps the target's. An archive that fails its own checks stops the import before any profile, session, asset or preference change. An identical repeat import adds no storage.
 - Nothing that was not in the bundle is touched. A session the target had but the bundle did not survives the import.
 
 Saved sessions re-link to their images automatically: asset references are kept by id, and the bridge re-resolves them after the uploaded images are restored (it must anyway, because `blob:` URLs do not survive a reload).
@@ -114,9 +117,9 @@ When file history is present, the summary also carries `assetVersions`, `fileOpe
 
 Manual backups from a history-capable web host include `revision-history.json` with its own `{ version: 1, documents, revisions, recoveries }` schema. It carries the retained IDs, canonical input snapshots, version stamps, raster previews and separate writer drafts. The history adapter captures current sessions and their heads in one read transaction; `sessions.json` uses those same current snapshots for older readers.
 
-Restore checks payload SHA-256 and byte counts, unique identities, document/head relationships, ancestry, timestamps, preview types and limits before committing the archive in one transaction. Compacted parent references may be absent. Existing current work must match the imported document; conflicts are refused rather than silently replacing it. The archive's 384 MiB transfer limit is checked explicitly, and storage limits are enforced without truncating retained checkpoints. The overall backup still uses an in-memory ZIP implementation and is not a streaming archive.
+Restore checks payload SHA-256 and byte counts, unique identities, document/head relationships, ancestry, timestamps, preview types and limits before committing the archive in one transaction. Compacted parent references may be absent. Existing current work is never replaced silently: when a creation is on both sides, the side not kept current becomes a protected draft. The archive's 384 MiB transfer limit is checked explicitly, and storage limits are enforced without truncating retained checkpoints. The overall backup still uses an in-memory ZIP implementation and is not a streaming archive.
 
-The summary adds `revisions` and `recoveryDrafts`. A shell without this capability restores ordinary sessions and reports the history part as skipped. Native filesystem history remains unsupported until its adapter supplies durable history transactions. P2P guest state has no durable history or recovery archive.
+The summary adds `revisions` and `recoveryDrafts`, counting only what this import added, and `added`, `kept`, `replaced`, `copies` and `hidden` for how each creation was merged. A shell without this capability restores ordinary sessions and reports the history part as skipped. Native filesystem history remains unsupported until its adapter supplies durable history transactions. P2P guest state has no durable history or recovery archive.
 
 Personal snapshot sync explicitly excludes creation history. Applying a snapshot to a history-bearing local document preserves its previous working state as a separate recovery draft and invalidates any open editor's write token. Its immutable checkpoints remain on the device. This protects local history during snapshot replacement; it does not merge concurrent device histories.
 

@@ -55,13 +55,13 @@ tutulan ve asla iletilmeyen küçük bir miktar veri saklar:
   başka kimse tarafından okunmaz.
 
 Bunların hiçbiri paylaşılmaz, satılmaz veya seni tanımlamak ya da izlemek için
-kullanılmaz. Onay verilecek bir şey yoktur, çünkü herhangi bir toplama işlemi olmuyor
-- yalnızca bu bildirim var, böylece neyin nerede tutulduğunu bilirsin. Tarayıcında
-sitenin depolama alanını temizlemek bunların tümünü istediğin an kaldırır; **Ayarlar →
-Depolama → Tüm verilerimi temizle** profilini, kaydedilmiş oturumlarını, yüklenen
-görsellerini ve varlık önbelleğini kaldırır. (ePrivacy Directive Art. 5(3) uyarınca,
-talep ettiğin hizmet için kesinlikle gerekli olan depolama onay gerektirmez - yalnızca
-şeffaflık gerektirir; bu belge ve uygulama içi bildirim de tam olarak bunu sağlar.)
+kullanılmaz. Onay verilecek bir şey yoktur, çünkü herhangi bir toplama işlemi
+olmuyor - yalnızca bu bildirim var, böylece neyin nerede tutulduğunu bilirsin.
+Tarayıcında sitenin depolama alanını temizlemek bunların tümünü istediğin an
+kaldırır, **Ayarlar → Depolama → Tüm verilerimi temizle** de aynısını yapar ve
+önce Sync'i de kapatır. (ePrivacy Directive Art. 5(3) uyarınca, talep ettiğin
+hizmet için kesinlikle gerekli olan depolama onay gerektirmez - yalnızca şeffaflık
+gerektirir; bu belge ve uygulama içi bildirim de tam olarak bunu sağlar.)
 
 ![Profil sayfasının depolama bölümü, telefon genişliğinde bir ekranda: cihaz üzerindeki her veri kategorisi adlandırılmış, hemen yanında Clear all my data düğmesi](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

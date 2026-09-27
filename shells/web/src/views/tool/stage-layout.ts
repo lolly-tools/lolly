@@ -17,6 +17,7 @@ import { escape as escapeText } from '../../utils.ts';
 import { backPillHtml } from '../../components/back-pill.ts';
 import { guideButtonHtml, hasGuide } from '../../components/tool-guide.ts';
 import { docsAppHref, t, tRaw } from '../../i18n.ts';
+import { isTauriShell } from '../../lib/instance-choice.ts';
 import { announce } from '../../a11y.ts';
 import { applyBrandVars } from '../../brand-vars.ts';
 import { createThemeToggle } from '../../components/theme-toggle.ts';
@@ -325,10 +326,15 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
           ? t('Made with <strong>{name}</strong>. This design system is not the active one.', {
               name: escapeText(madeWith.label),
             })
-          : t(
-              'Made with <strong>{name}</strong>, which is not on this device. Rendering with the active design system.',
-              { name: escapeText(madeWith.label) }
-            )
+          : isTauriShell()
+            ? t(
+                'Made with <strong>{name}</strong>, which is not on this device. Rendering with the active design system.',
+                { name: escapeText(madeWith.label) }
+              )
+            : t(
+                'Made with <strong>{name}</strong>, which is not in this browser. Rendering with the active design system.',
+                { name: escapeText(madeWith.label) }
+              )
       }
         ${madeWithOnDevice ? ` <button type="button" class="tool-notice-link" id="made-with-switch">${t('Switch to {name}', { name: escapeText(madeWith.label) })}</button>` : ''}</span>
       <button type="button" class="tool-notice-close" id="made-with-dismiss" aria-label="${escapeText(t('Dismiss this message'))}">✕</button>

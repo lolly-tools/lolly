@@ -21,6 +21,7 @@ import type { Tray } from '../design-system/tray.ts';
 import { icon } from '../icons.ts';
 import { confirmDialog } from '../../components/confirm-dialog.ts';
 import { t, tRaw } from '../../i18n.ts';
+import { isTauriShell } from '../instance-choice.ts';
 import { escape } from '../../utils.ts';
 import { segHtml } from '../seg.ts';
 import { FONT_ROLES, colorIdentity } from '../design-system/ownership.ts';
@@ -116,7 +117,7 @@ export async function ensureGoogleFontsConsent(): Promise<boolean> {
     // Trimmed to the two facts and the one reassurance (plan 182 section 6.3): the
     // dialog now arrives on the press somebody just made, so it has to be
     // readable at a glance rather than skimmed past.
-    message: t('Google learns the family name and your IP address. The file is then kept on this device and used offline. This is the one step in the studio that reaches a third party.'),
+    message: isTauriShell() ? t('Google learns the family name and your IP address. The file is then kept on this device and used offline. This is the one step in the studio that reaches a third party.') : t('Google learns the family name and your IP address. The file is then kept in this browser and used offline. This is the one step in the studio that reaches a third party.'),
     confirmLabel: t('Fetch from Google'),
   });
   if (!ok) return false;
@@ -558,7 +559,7 @@ export function mountFaces(mount: HTMLElement, ctx: FacesCtx): { render: () => v
             Array.isArray(f.value) ? `${Math.round(f.drift)}pt` : `ΔEOK ${f.drift.toFixed(3)}`}</span>`
           : ''}
         ${absent
-          ? `<span class="be-face-tag">${escape(t('profile not on this device'))}</span>`
+          ? `<span class="be-face-tag">${escape(isTauriShell() ? t('profile not on this device') : t('profile not in this browser'))}</span>`
           : editable
             ? `<span class="be-face-acts">
                 <button type="button" class="be-face-btn" data-be-face-act="auto" data-be-face-target="${escape(f.target)}" aria-pressed="${!isSet}">${escape(t('Auto'))}</button>

@@ -11,7 +11,6 @@ import type { AssetRef } from '@lolly-tools/core/host-v1';
 import { applyTheme } from '../../theme.ts';
 import { prefersReducedMotion } from '../../lib/a11y-prefs.ts';
 import { t, tRaw } from '../../i18n.ts';
-import { playSfx } from '../../lib/sfx.ts';
 import { staggerReveal } from '../../lib/reveal.ts';
 import { isHiddenSlot } from '../../lib/batch-slots.ts';
 import { mountModal } from '../../components/modal.ts';
@@ -20,20 +19,24 @@ import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
 import { storeUserUpload } from '../picker.ts';
 import { saveBlob } from '../../pro/zip.ts';
-import { exportBackup, importBackup } from '../../data-transfer.ts';
+import { exportBackup } from '../../data-transfer.ts';
 import { backupHistoryNote } from '../../lib/backup-summary.ts';
 import { measureFileHistory } from '../../lib/file-history-storage.ts';
 import { pinnedToolBytes, unpinAll } from '../../lib/offline-pins.ts';
 import { aiDetectCacheBytes, clearAiDetectCaches, removePart, rewordCacheBytes, speechCacheBytes } from '../../lib/offline-manager.ts';
 import { durableCacheBytes, matteCacheBytes, ocrCacheBytes, upscaleCacheBytes } from '../../lib/model-prefetch.ts';
-import { registerUserFonts } from '../../user-fonts.ts';
-import { applyChromeBrandVars } from '../../brand-vars.ts';
-import { confirmDialog } from '../../components/confirm-dialog.ts';
+import { createTrash, trashHostOf } from '../../lib/trash.ts';
+import { openTrashDialog, showTrashUndoToast } from '../../components/trash-dialog.ts';
+import { clearAllLollyData, sealWebStorageUntilReload } from '../../lib/clear-all-data.ts';
+import { isTauriShell } from '../../lib/instance-choice.ts';
 import { fmtBytes } from '../../folder-tiles.ts';
 import { openImageLightbox, userImageThumb } from '../profile-user-images.ts';
 import { fmtPct, reconciliationSentence, sessionRowsHtml } from '../profile-storage-model.ts';
 import type { PreviewsMeasure, SessionEntry, StorageModel } from '../profile-storage-model.ts';
-import { CLEAR_CONFIRM_WORDS, COLLAPSE_CHEV, HEADSHOT_ID, HOARD_CONFIRM_WORDS, clearIdbStores, infoDot, openProfileModals, showImportDialog } from './shared.ts';
+import { CLEAR_CONFIRM_WORDS, COLLAPSE_CHEV, HEADSHOT_ID, HOARD_CONFIRM_WORDS, clearIdbStores, infoDot, openProfileModals } from './shared.ts';
+
+/** The Trash over this view's host (lib/trash.ts): Storage deletes go there too. */
+const trashFor = (pv: ProfileViewCtx) => createTrash(trashHostOf(pv.host));
 import { bindOp, type ProfileViewCtx } from './context.ts';
 
 export async function refreshCounter(pv: ProfileViewCtx) { if (pv.refreshStorageMeter) await pv.refreshStorageMeter(); }
@@ -81,6 +84,18 @@ export async function measure(pv: ProfileViewCtx): Promise<StorageModel> {
     durableCacheBytes().catch(() => ({ bytes: 0, files: 0 })),
     measureFileHistory().catch(() => ({ bytes: 0 })),
   ]);
+  // What the Trash holds (plan 277 P3). Its bytes stay inside the Saved sessions
+  // and My images slices below, so the meter still adds up; the Trash row names
+  // them so the person knows Empty Trash is what frees them.
+  const trash = await (async () => {
+    const tr = trashFor(pv);
+    const entries = await tr.list();
+    return { count: entries.length, bytes: await tr.bytes(entries) };
+  })().catch(() => ({ count: 0, bytes: 0 }));
+  // The list and its count are the person's own sessions: the Trash, templates,
+  // export shapes and design-system records are not rows to delete here. Their
+  // bytes still count in the slice.
+  const ownSessions = sessions.filter(s => !isHiddenSlot(s.slot));
   const sessBytes = Object.values(sessionSizes).reduce((s, n) => s + n, 0);
   const cacheBytes = blobCacheBytes;
   // The grid shows visual uploads only: the headshot is hidden, and the non-visual
@@ -96,7 +111,8 @@ export async function measure(pv: ProfileViewCtx): Promise<StorageModel> {
   const other = (hasEstimate && !overshoot) ? Math.max(0, usage! - measured) : 0;
   const total = hasEstimate ? Math.max(usage!, measured) : measured; // the hero number
   return {
-    sessions: { bytes: sessBytes, count: sessions.length, sizes: sessionSizes, list: sessions },
+    sessions: { bytes: sessBytes, count: ownSessions.length, sizes: sessionSizes, list: ownSessions },
+    trash,
     images: { bytes: imagesBytes, count: imageList.length, list: imageList },
     cache: { bytes: cacheBytes },
     previews,
@@ -112,6 +128,21 @@ export async function measure(pv: ProfileViewCtx): Promise<StorageModel> {
     measured, hasEstimate, usage, quota, overshoot, other, total,
   };
 }
+/** The Trash row's count and size, or "Empty" when the Trash holds nothing. */
+function trashSummary(trash: StorageModel['trash']): string {
+  const n = trash?.count ?? 0;
+  if (!n) return t('Empty');
+  return n === 1 ? t('1 item · {size}', { size: fmtBytes(trash!.bytes) }) : t('{n} items · {size}', { n, size: fmtBytes(trash!.bytes) });
+}
+
+/** My images' trailing Add tile (the grid is rebuilt after a restore). */
+function userImgAddButton(): string {
+  return `<button type="button" class="userimg-add" id="userimg-add" aria-label="${escapeText(t('Add images'))}">
+                  <span class="userimg-add-icon" aria-hidden="true">+</span>
+                  <span class="userimg-add-text">${t('Add')}</span>
+                </button>`;
+}
+
 // The whole section, rendered ONCE. applyMeter() then refreshes only the viz so an
 // open managed list (multi-select state) is never rebuilt out from under the user.
 export function renderSection(pv: ProfileViewCtx, m: StorageModel, sort: string) {
@@ -134,10 +165,10 @@ export function renderSection(pv: ProfileViewCtx, m: StorageModel, sort: string)
   // part has fetched it. Scoped to its own key in the shared trustmark store.
   const hasDurable = m.durable.bytes > 0;
   return `
-      <section class="store-meter" aria-label="${escapeText(t('Storage on this device'))}">
+      <section class="store-meter" aria-label="${escapeText(isTauriShell() ? t('Storage on this device') : t('Storage in this browser'))}">
         <header class="store-hero">
           <p class="store-hero-num" id="store-hero-num" data-bytes="0">0 KB</p>
-          <p class="store-hero-cap">${t('On this device')} ${infoDot(t('The real total this origin uses on this device, measured by your browser. Everything below is on THIS device only - nothing is uploaded.'))}</p>
+          <p class="store-hero-cap">${isTauriShell() ? t('On this device') : t('In this browser')} ${infoDot(isTauriShell() ? t('The real total this origin uses on this device, measured by your browser. Everything below is on THIS device only - nothing is uploaded.') : t('The real total Lolly uses in this browser, as measured by the browser. Everything below is in THIS browser only - nothing is uploaded.'))}</p>
           <p class="store-headroom" id="store-headroom" hidden></p>
         </header>
 
@@ -202,15 +233,17 @@ export function renderSection(pv: ProfileViewCtx, m: StorageModel, sort: string)
             <div class="store-manage-body">
               <div class="userimg-grid" id="userimg-grid">
                 ${m.images.list.map(userImageThumb).join('')}
-                <button type="button" class="userimg-add" id="userimg-add" aria-label="${escapeText(t('Add images'))}">
-                  <span class="userimg-add-icon" aria-hidden="true">+</span>
-                  <span class="userimg-add-text">${t('Add')}</span>
-                </button>
+                ${userImgAddButton()}
               </div>
               <input type="file" id="userimg-file" accept="image/svg+xml,image/png,image/apng,image/jpeg,image/webp,image/gif,image/avif,image/heic,image/heif,video/mp4,video/webm,.mp4,.webm,.mov" multiple hidden>
               <p class="profile-inline-error" id="userimg-error" style="color:hsl(var(--destructive));font-size:13px;margin:.4rem 0 0" hidden></p>
             </div>
           </details>
+
+          <div class="store-manage store-manage--row" data-cat="trash">
+            <span class="store-manage-name">${t('Trash')} ${infoDot(t('Saved sessions, folders and uploads you deleted here, in Projects or in Assets. They stay for 30 days, then go for good. Their space is counted above until the Trash is emptied.'))} <span class="storage-count" data-trash-summary>${trashSummary(m.trash)}</span></span>
+            <button type="button" id="open-trash-btn" class="btn">${t('Open Trash')}</button>
+          </div>
 
           <div class="store-manage store-manage--row" data-cat="cache">
             <span class="store-manage-name">${t('Asset cache')} ${infoDot(t('Downloaded catalog content; it re-downloads on demand. Safe to clear.'))} <span class="storage-count" data-size-label="cache">0 KB</span></span>
@@ -223,7 +256,7 @@ export function renderSection(pv: ProfileViewCtx, m: StorageModel, sort: string)
           </div>` : ''}
 
           ${hasPins ? `<div class="store-manage store-manage--row" data-cat="pins">
-            <span class="store-manage-name">${t('Available offline')} ${infoDot(t('Tools you pinned in the gallery to work offline - their files are kept on this device. Unpinning re-downloads them on demand.'))} <span class="storage-count" data-size-label="pins">0 KB</span></span>
+            <span class="store-manage-name">${t('Available offline')} ${infoDot(isTauriShell() ? t('Tools you pinned in the gallery to work offline - their files are kept on this device. Unpinning re-downloads them on demand.') : t('Tools you pinned in the gallery to work offline - their files are kept in this browser. Unpinning re-downloads them on demand.'))} <span class="storage-count" data-size-label="pins">0 KB</span></span>
             <button type="button" id="unpin-all-btn" class="btn-link-danger">${t('Unpin all')}</button>
           </div>` : ''}
 
@@ -271,7 +304,7 @@ export function renderSection(pv: ProfileViewCtx, m: StorageModel, sort: string)
             <jelly-button variant="platinum" id="import-data-btn">${t('Import data…')}</jelly-button>`
               : `<button type="button" id="export-data-btn" class="btn" data-sfx="whoosh">${t('Export my data')}</button>
             <button type="button" id="import-data-btn" class="btn">${t('Import data…')}</button>`}
-            <input type="file" id="import-data-input" accept=".zip,application/zip" hidden>
+            <input type="file" id="import-data-input" accept=".zip,application/zip,.lolly,application/vnd.lolly+zip" hidden>
           </div>
           <button type="button" id="export-render-btn" class="btn storage-hoard-btn">📦 ${t('Export my data &amp; render everything')}</button>
           <p class="storage-hoard-hint">${t('The backup above, plus a second zip that <strong>renders every saved session</strong> to its output file - organised into folders that mirror your Projects. A complete offline archive; can be large and slow with many sessions.')}</p>
@@ -334,14 +367,12 @@ export async function loadStorage(pv: ProfileViewCtx) {
     requestAnimationFrame(tick);
   }
 
-  const selectedSessionBytes = () => {
-    let n = 0;
-    body.querySelectorAll<HTMLElement>('.store-sess-check:checked').forEach(c => { n += model.sessions.sizes[c.dataset.slot!] || 0; });
-    return n;
-  };
+  // What the rows below can free: the re-downloadable caches, plus the Trash,
+  // which Empty Trash frees. A deleted session goes to the Trash (plan 277 P3), so
+  // selecting sessions no longer counts as space freed.
   function updateReclaim(m: StorageModel) {
     const el = body.querySelector('#store-reclaim');
-    if (el) el.innerHTML = t('Up to <strong>{n}</strong> can be freed here', { n: fmtBytes(m.cache.bytes + m.previews.bytes + m.pins.bytes + m.speech.bytes + m.upscale.bytes + m.matte.bytes + m.ocr.bytes + m.durable.bytes + selectedSessionBytes()) });
+    if (el) el.innerHTML = t('Up to <strong>{n}</strong> can be freed here', { n: fmtBytes(m.cache.bytes + m.previews.bytes + m.pins.bytes + m.speech.bytes + m.upscale.bytes + m.matte.bytes + m.ocr.bytes + m.durable.bytes + (m.trash?.bytes ?? 0)) });
   }
 
   // Refresh ONLY the visualization (hero, segments, legend, quota, reclaim, aria,
@@ -401,6 +432,7 @@ export async function loadStorage(pv: ProfileViewCtx) {
     setText('[data-size="durable"]', fmtBytes(m.durable.bytes));
     setText('[data-size="other"]', `~${fmtBytes(m.other)}`);
     setText('[data-count="sessions"]', String(m.sessions.count));
+    setText('[data-trash-summary]', trashSummary(m.trash));
     setText('[data-size-hint="sessions"]', fmtBytes(m.sessions.bytes));
     setText('[data-size-label="cache"]', fmtBytes(m.cache.bytes));
     setText('[data-size-label="previews"]', fmtBytes(m.previews.bytes));
@@ -487,73 +519,81 @@ export async function loadStorage(pv: ProfileViewCtx) {
     t?.focus?.();
   }
 
-  async function deleteOneSession(slot: string, btn: HTMLButtonElement) {
-    const bytes = model.sessions.sizes[slot] || 0;
+  const trash = trashFor(pv);
+  const sessionLabel = (slot: string): string | undefined => {
     const row = [...body.querySelectorAll<HTMLElement>('.store-sess')].find(r => r.dataset.slot === slot);
-    const label = row?.querySelector('.store-sess-label')?.textContent || t('this session');
-    const ok = await confirmDialog({
-      title: t('Delete this session?'),
-      message: bytes
-        ? tRaw('"{name}" will be permanently removed from this device, freeing about {size}. This cannot be undone.', { name: label, size: fmtBytes(bytes) })
-        : tRaw('"{name}" will be permanently removed from this device. This cannot be undone.', { name: label }),
-      confirmLabel: t('Delete'),
-    });
-    if (!ok) return;
+    return row?.querySelector('.store-sess-label')?.textContent || undefined;
+  };
+
+  /** The session list's rows, in the current sort. One writer, shared by the
+   *  sort toggle and the redraw below. Every row value is escaped by sessionRow. */
+  function paintSessionRows() {
+    const list = body.querySelector('#store-sess-list');
+    if (list) list.innerHTML = sessionRowsHtml(model, sessSort, pv.sessRowCtx);
+  }
+  /** Prepend image tiles to My images, ahead of the Add tile. One writer, shared
+   *  by an upload and the redraw below; userImageThumb escapes every value. */
+  function prependImageTiles(html: string) {
+    body.querySelector('#userimg-grid')?.insertAdjacentHTML('afterbegin', html);
+  }
+
+  /** Re-read the model and redraw the session list, My images and the meter:
+   *  after an Undo, a restore from the Trash, or a Trash emptied from here. */
+  async function redrawLists() {
+    if (!body.isConnected) return;
+    model = await measure(pv);
+    paintSessionRows();
+    userImages.splice(0, userImages.length, ...model.images.list);
+    // Only the image tiles are rebuilt; the Add tile (and its listener) stays.
+    body.querySelectorAll('#userimg-grid [data-userimg]').forEach(n => n.remove());
+    prependImageTiles(model.images.list.map(userImageThumb).join(''));
+    syncSelbar();
+    applyMeter(model);
+  }
+
+  // A delete here goes to the Trash (plan 277 P3), the same as Projects: no
+  // confirm, an Undo toast, and the item's version history kept until it is
+  // deleted forever. The space is freed when the Trash is emptied.
+  async function deleteOneSession(slot: string, btn: HTMLButtonElement) {
+    const row = [...body.querySelectorAll<HTMLElement>('.store-sess')].find(r => r.dataset.slot === slot);
     // The next/previous row's delete button is the natural landing spot post-removal.
     const nextFocus = (row?.nextElementSibling || row?.previousElementSibling)?.querySelector?.('.store-sess-del') as HTMLElement | null | undefined;
     btn.disabled = true;
-    try { await host.state.delete(slot); }
-    catch (err) { host.log?.('error', 'Session delete failed', { slot, error: String(err) }); btn.disabled = false; return; }
+    const moved = await trash.trashSessions([slot], sessionLabel).catch((err) => { host.log?.('error', 'Session delete failed', { slot, error: String(err) }); return []; });
+    if (!moved.length) { btn.disabled = false; return; }
     row?.remove();
     ensureSessEmptyState();
     syncSelbar();
     focusSurvivingSession(nextFocus);
     await refreshMeter();
-    announce(t('Freed {freed} - {used} used', { freed: fmtBytes(bytes), used: fmtBytes(model.hasEstimate ? model.total : model.measured) }));
+    showTrashUndoToast(trash, moved, redrawLists);
   }
 
   async function deleteSelectedSessions(btn: HTMLButtonElement) {
     const checked = [...body.querySelectorAll<HTMLElement>('.store-sess-check:checked')];
     if (!checked.length) return;
     const slots = checked.map(c => c.dataset.slot!);
-    let bytes = 0; slots.forEach(s => bytes += model.sessions.sizes[s] || 0);
-    const ok = await confirmDialog({
-      title: slots.length === 1 ? t('Delete 1 saved session?') : t('Delete {n} saved sessions?', { n: slots.length }),
-      message: slots.length === 1
-        ? t('This permanently removes it from this device, freeing about {size}. This cannot be undone.', { size: fmtBytes(bytes) })
-        : t('This permanently removes them from this device, freeing about {size}. This cannot be undone.', { size: fmtBytes(bytes) }),
-      confirmLabel: t('Delete {n}', { n: slots.length }),
-    });
-    if (!ok) return;
     const prev = btn.textContent; btn.disabled = true; btn.textContent = t('Deleting…');
-    // Only splice a row once its delete actually resolves - otherwise a rejected
-    // delete leaves a ghost (row gone, but the session still counted by refreshMeter
-    // and resurrected on the next sort). Freed bytes are summed from real successes.
-    let freed = 0, done = 0;
-    for (const slot of slots) {
-      try { await host.state.delete(slot); }
-      catch (err) { host.log?.('error', 'Session delete failed', { slot, error: String(err) }); continue; }
-      freed += model.sessions.sizes[slot] || 0; done++;
-      [...body.querySelectorAll<HTMLElement>('.store-sess')].find(r => r.dataset.slot === slot)?.remove();
-    }
+    // Only a row whose move succeeded leaves the list, so a failure never leaves a
+    // ghost (row gone, session still counted and back on the next sort).
+    const moved = await trash.trashSessions(slots, sessionLabel).catch((err) => { host.log?.('error', 'Session delete failed', { error: String(err) }); return []; });
+    const gone = new Set(moved.map(e => e.originalSlot));
+    for (const r of [...body.querySelectorAll<HTMLElement>('.store-sess')]) if (gone.has(r.dataset.slot!)) r.remove();
     btn.textContent = prev; btn.disabled = false;
     ensureSessEmptyState();
     syncSelbar();
     focusSurvivingSession();
     await refreshMeter();
-    announce(done === slots.length
-      ? (done === 1 ? t('Deleted 1 session - freed {size}', { size: fmtBytes(freed) }) : t('Deleted {n} sessions - freed {size}', { n: done, size: fmtBytes(freed) }))
-      : t('Deleted {done} of {total} - freed {size}; some could not be removed', { done, total: slots.length, size: fmtBytes(freed) }));
+    if (moved.length < slots.length) announce(t('Moved {done} of {total} to Trash; some could not be moved', { done: moved.length, total: slots.length }), { assertive: true });
+    showTrashUndoToast(trash, moved, redrawLists);
   }
 
   function toggleSort(btn: HTMLElement) {
-  const { sessRowCtx } = pv;
     sessSort = sessSort === 'size' ? 'recent' : 'size';
     btn.dataset.sort = sessSort;
     btn.textContent = sessSort === 'recent' ? t('Recent ▾') : t('Largest first ▾');
     const checked = new Set([...body.querySelectorAll<HTMLElement>('.store-sess-check:checked')].map(c => c.dataset.slot!));
-    const list = body.querySelector('#store-sess-list');
-    if (list) list.innerHTML = sessionRowsHtml(model, sessSort, sessRowCtx);
+    paintSessionRows();
     checked.forEach(slot => {
       const box = [...body.querySelectorAll<HTMLInputElement>('.store-sess-check')].find(c => c.dataset.slot === slot);
       if (box) box.checked = true;
@@ -649,7 +689,7 @@ export async function loadStorage(pv: ProfileViewCtx) {
         // exact PickerHost type isn't exported from picker.
         const ref = await storeUserUpload(host as unknown as Parameters<typeof storeUserUpload>[0], file);
         userImages.unshift(ref);
-        body.querySelector('#userimg-grid')?.insertAdjacentHTML('afterbegin', userImageThumb(ref));
+        prependImageTiles(userImageThumb(ref));
       } catch (err) {
         host.log?.('error', 'Image upload failed', { name: file.name, error: String(err) });
         const msg = String((err as { message?: unknown })?.message ?? err);
@@ -671,25 +711,44 @@ export async function loadStorage(pv: ProfileViewCtx) {
     const btn = (e.target as Element).closest<HTMLButtonElement>('[data-delete-userimg]');
     if (!btn) return;
     const id = btn.dataset.deleteUserimg!;
+    const ref = userImages.find(a => a.id === id);
     btn.disabled = true;
-    try { await host.assets._deleteUserAsset!(id); }
-    catch (err) { host.log?.('error', 'Failed to delete image', { id, error: String(err) }); btn.disabled = false; return; }
+    // To the Trash, like every upload deleted in the web app (plan 277 P3).
+    const moved = await trash.trashAssets([{ id, name: String(ref?.meta?.name ?? ''), type: ref?.type }])
+      .catch((err) => { host.log?.('error', 'Failed to delete image', { id, error: String(err) }); return []; });
+    if (!moved.length) { btn.disabled = false; return; }
     btn.closest('[data-userimg]')?.remove();
     const i = userImages.findIndex(a => a.id === id);
     if (i !== -1) userImages.splice(i, 1);
     await syncUserImgMeta();
+    showTrashUndoToast(trash, moved, redrawLists);
+  });
+
+  // The Trash row: the shared Trash dialog. Restores and deletions redraw the
+  // lists and the meter behind the dialog.
+  body.querySelector('#open-trash-btn')?.addEventListener('click', () => {
+    void openTrashDialog({ trash, onChange: redrawLists, returnFocus: () => body.querySelector<HTMLElement>('#open-trash-btn') });
   });
 
   applyMeter(model);
   pv.refreshStorageMeter = refreshMeter;
 
   // Clear all - confirmation dialog gated on typing a randomised word, so an
-  // irreversible wipe can't be fired by reflex (or a stray double-click).
+  // irreversible wipe can't be fired by reflex (or a stray double-click). It
+  // clears everything Lolly keeps here (lib/clear-all-data.ts, plan 277 P2), and
+  // the list below says so in a few words.
   viewEl.querySelector('#clear-storage-btn')?.addEventListener('click', () => {
     const word = CLEAR_CONFIRM_WORDS[Math.floor(Math.random() * CLEAR_CONFIRM_WORDS.length)]!;
     const content = `
         <h3 id="clear-dialog-title">${t('Clear all my data?')}</h3>
-        <p>${t('This removes your profile, all saved sessions, your uploaded images, and the asset cache. Cannot be undone.')}</p>
+        <p class="clear-dialog-lead">${isTauriShell() ? t('This removes everything Lolly keeps on this device, then restarts the app:') : t('This removes everything Lolly keeps in this browser, then restarts the app:')}</p>
+        <ul class="clear-dialog-list">
+          <li>${t('your profile, settings and Content Credentials')}</li>
+          <li>${t('saved sessions, their history and the Trash')}</li>
+          <li>${t('uploads, fonts and design systems')}</li>
+          <li>${t('the download log, file results, downloaded models and offline copies')}</li>
+        </ul>
+        <p>${t('Files you downloaded stay where you saved them. This cannot be undone.')}</p>
         <label class="clear-confirm">
           <span class="clear-confirm-prompt">${t('Type <strong>{word}</strong> to confirm', { word })}</span>
           <input type="text" class="clear-confirm-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="${escapeText(tRaw('Type {word} to confirm', { word }))}">
@@ -721,19 +780,16 @@ export async function loadStorage(pv: ProfileViewCtx) {
       btns.forEach(b => (b.disabled = true));
       clearBtn.textContent = t('Clearing…');
 
-      localStorage.clear();
-      sessionStorage.clear();
-      // 'audio-peaks' belongs in this list for a PRIVACY reason, not a tidiness one:
-      // its rows are keyed by asset id, and an upload's id embeds the user's original
-      // filename ("user/upload/…-therapy_session.mp3"), alongside a measured envelope
-      // of the audio. Leaving it out means "Delete everything" leaves behind both the
-      // name of a file and the form of its sound. Every derived cache added here in
-      // future needs the same check: does its KEY or its VALUE say anything about the
-      // user's own content?
-      await clearIdbStores(['state', 'profile', 'user-assets', 'asset-blob', 'asset-meta', 'derived-media', 'audio-peaks', 'audio-cover-bakes']);
-      // The 'profile' wipe above dropped the pin RECORDS; also drop the pinned
-      // tools' Cache Storage bucket so no orphaned bytes survive the clear.
-      await unpinAll().catch(() => { /* cache API unavailable - nothing pinned */ });
+      // Everything, by enumeration (see lib/clear-all-data.ts): every other tab of
+      // the app stops writing first and reloads after, sync goes off, then the
+      // app's files outside the browser (the Tauri saved-state files via the state
+      // bridge), every IndexedDB store, every cache, the private file system and
+      // web storage. 'audio-peaks' and the other derived caches go with the rest,
+      // which matters for privacy as well as tidiness: their keys embed upload file
+      // names.
+      const report = await clearAllLollyData({ state: host.state as { _clearAll?(): Promise<void> } });
+      if (report.errors.length) host.log?.('warn', 'Clear all my data: some parts did not clear', { errors: report.errors });
+      sealWebStorageUntilReload();
       host.profile.bust!();
       applyTheme('light');
       modal.close();
@@ -743,8 +799,10 @@ export async function loadStorage(pv: ProfileViewCtx) {
       // a locked brand never shows it, see mountGallery). A hard reload (not just
       // a hash change) is required: in-memory singletons like the tokens bridge
       // cache (bridge/tokens.ts) only reset on bust(), so a soft nav would keep
-      // painting a just-cleared user brand until the next manual refresh.
-      window.location.hash = '';
+      // painting a just-cleared user brand until the next manual refresh. The hash
+      // is dropped without a hashchange: a view mounted now would reach for the
+      // database the clear has just closed in this tab.
+      try { history.replaceState(null, '', window.location.pathname + window.location.search); } catch { window.location.hash = ''; }
       window.location.reload();
     });
   });
@@ -919,37 +977,25 @@ export async function loadStorage(pv: ProfileViewCtx) {
     });
   }
 
-  // Import a bundle from another install (merge-overwrite), then re-mount.
+  // Import a backup .zip from another install, or a copy Sync wrote to the person's
+  // storage (a .lolly, plain or encrypted: plans/277 P13), then re-mount. Both merge
+  // and delete nothing; lib/data-import.ts runs the dialog, the passphrase and the
+  // repaint, shared with Open.
   const importInput = viewEl.querySelector<HTMLInputElement>('#import-data-input');
   viewEl.querySelector('#import-data-btn')?.addEventListener('click', () => importInput?.click());
   importInput?.addEventListener('change', () => {
     const file = importInput!.files?.[0];
     importInput!.value = ''; // let the same file be re-picked later
     if (!file) return;
-    showImportDialog(async () => {
-      const { fontsHost } = pv;
-      playSfx('vacuum');   // the data gets sucked in - the mirror of export's whoosh
-      const bytes = await file.arrayBuffer();
-      const summary = await importBackup({ host: host as unknown as Parameters<typeof importBackup>[0]['host'], storage: localStorage }, bytes);
-      host.profile.bust!();
-      // The bundle may carry a brand: user tokens + font-face assets restore as
-      // plain user assets, so drop the token caches, load the faces into
-      // document.fonts and repaint the chrome - same as a fresh boot would.
-      (host.tokens as { bust?(): void } | undefined)?.bust?.();
-      await registerUserFonts(fontsHost).catch(() => { /* faces load at next boot */ });
-      void applyChromeBrandVars(host as unknown as Parameters<typeof applyChromeBrandVars>[0]);
-      applyTheme(localStorage.getItem('theme') || 'light');
-      // `skipped` > 0 means the bundle came from a newer app and carried parts this
-      // build doesn't understand yet - surface it rather than pretend a full restore.
-      const skipNote = summary.skipped ? ` · ${summary.skipped === 1 ? t('1 newer item skipped') : t('{n} newer items skipped', { n: summary.skipped })}` : '';
-      // Failed restores are surfaced separately (and assertively) - a silently-dropped
-      // image would be lost for good once the user discards the source backup.
-      const failNote = summary.failedAssets ? ` · ${summary.failedAssets === 1 ? t('1 image couldn’t be restored (storage full?)') : t('{n} images couldn’t be restored (storage full?)', { n: summary.failedAssets })}` : '';
-      announce(tRaw('Imported {sessions} and {images}', {
-        sessions: summary.sessions === 1 ? t('1 session') : t('{n} sessions', { n: summary.sessions }),
-        images: summary.userAssets === 1 ? t('1 image') : t('{n} images', { n: summary.userAssets }),
-      }) + skipNote + failNote + backupHistoryNote(summary), summary.failedAssets || summary.failedHistory ? { assertive: true } : undefined);
-      await pv.mountProfile(viewEl, host);
+    void Promise.all([import('../../lib/data-import.ts'), import('../../lib/lolly-intake.ts')]).then(([{ runDataImport, dataImportMessage }, intake]) => runDataImport(file, host, intake, {
+      modals: openProfileModals,
+      afterImport: async (summary) => {
+        const { message, assertive } = dataImportMessage(summary);
+        announce(message, assertive ? { assertive: true } : undefined);
+        await pv.mountProfile(viewEl, host);
+      },
+    })).catch((err: unknown) => {
+      announce(tRaw('Could not import {name}: {message}', { name: file.name, message: (err as Error)?.message ?? String(err) }), { assertive: true });
     });
   });
 }

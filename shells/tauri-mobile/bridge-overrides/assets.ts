@@ -28,8 +28,9 @@ import {
 } from '@tauri-apps/plugin-fs';
 import { createAssetsAPI as createWebAssetsAPI } from '../../web/src/bridge/assets.ts';
 import {
-  createFsMirroredAssetsDb, type UserAssetsFs, type RealAssetsDb,
+  createFsMirroredAssetsDb, clearUserAssetsFs, type UserAssetsFs, type RealAssetsDb,
 } from '../../tauri-shared/bridge-overrides/user-assets-fs.ts';
+import { registerDeviceDataClearer } from '../../web/src/lib/device-data-clearers.ts';
 
 export * from '../../web/src/bridge/assets.ts';
 
@@ -50,6 +51,10 @@ const appDataFs: UserAssetsFs = {
   removeFile: (path) => remove(path, { baseDir: BaseDirectory.AppData }),
   removeDirRecursive: (path) => remove(path, { baseDir: BaseDirectory.AppData, recursive: true }),
 };
+
+// "Clear all my data" (plan 277 P2) empties IndexedDB, but the next launch's
+// reconcile would restore every upload from this mirror; so the mirror goes too.
+registerDeviceDataClearer('user-assets-fs', () => clearUserAssetsFs(appDataFs));
 
 /**
  * Same signature as the web factory (the resolveId swap requires substitutability):

@@ -26,11 +26,11 @@ const fresh = { state: INITIAL_SYNC_STATE };
 // importBackup actually touch (profile, state.list/load/save, assets export/import).
 function makeHost(seed: {
   profile?: Record<string, unknown>;
-  sessions?: Record<string, { data: unknown; thumb?: string | null }>;
+  sessions?: Record<string, { data: unknown; thumb?: string | null; updatedAt?: string }>;
   assets?: string[];
 } = {}) {
   const profile: Record<string, unknown> = { ...(seed.profile ?? {}) };
-  const sessions = new Map<string, { data: unknown; thumb?: string | null }>(Object.entries(seed.sessions ?? {}));
+  const sessions = new Map<string, { data: unknown; thumb?: string | null; updatedAt?: string }>(Object.entries(seed.sessions ?? {}));
   const assets: Array<Record<string, unknown>> = (seed.assets ?? []).map((id) => ({ id, type: 'image', format: 'png' }));
   const store = new Map<string, string>();
   const host = {
@@ -39,7 +39,7 @@ function makeHost(seed: {
       async set(p: Record<string, unknown>) { for (const k of Object.keys(profile)) delete profile[k]; Object.assign(profile, p); },
     },
     state: {
-      async list() { return [...sessions.entries()].map(([slot]) => ({ slot })); },
+      async list() { return [...sessions.entries()].map(([slot, r]) => ({ slot, updatedAt: r.updatedAt ?? null })); },
       async load(slot: string) { return sessions.get(slot)?.data ?? null; },
       async save(slot: string, data: unknown, thumb?: string | null) { sessions.set(slot, { data, thumb }); },
       async delete(slot: string) { sessions.delete(slot); },
@@ -276,6 +276,23 @@ test('a sync apply removes what another device deleted and keeps what this devic
   assert.deepEqual(phone.assetIds(), ['user/a', 'user/phone']);
   assert.equal(summary.removed, 2);
   assert.equal(summary.failedRemovals, 0);
+});
+
+// plans/277 P7: "Bring it to this device" (profile 'merge') keeps the newer copy of
+// a session on both sides; keeping devices in step takes the synced copy.
+test('a merge apply keeps the newer session here; an ordinary apply takes the synced copy', async () => {
+  const source = makeHost({ sessions: { 'doc': { data: 'synced', updatedAt: '2026-09-10T00:00:00.000Z' } } });
+  const remote = new MemoryRemote();
+  pushed(await pushSnapshot(deps(source), remote, fresh));
+  const newerHere = () => makeHost({ sessions: { 'doc': { data: 'newer here', updatedAt: '2026-09-20T00:00:00.000Z' } } });
+
+  const joined = newerHere();
+  await pullAndApply(deps(joined), remote, { profile: 'merge' });
+  assert.equal(joined.sessions.get('doc')!.data, 'newer here');
+
+  const inStep = newerHere();
+  await pullAndApply(deps(inStep), remote);
+  assert.equal(inStep.sessions.get('doc')!.data, 'synced');
 });
 
 test('a plain apply only adds; replace "all" matches the copy exactly', async () => {
