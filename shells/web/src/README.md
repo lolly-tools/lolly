@@ -5,12 +5,12 @@ This file exists so you can find the code for a feature without reading all of i
 The counts below are GENERATED - `pnpm run build:web-src-readme`, checked in CI by `pnpm run check:web-src-readme`, so they cannot rot the way the hand-measured ones did. They convey proportion; don't cite them as an API.
 
 <!-- web-src-dirs:start -->
-Roughly 643,000 lines of TypeScript, tests included, and 56,000 lines of CSS.
+Roughly 644,000 lines of TypeScript, tests included, and 56,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 415 files, 182,119 lines | 186 files, 69,863 lines | 6 files, 1,427 lines |
-| `lib/` | 632 files, 144,799 lines | 354 files, 75,577 lines | 11 files, 1,782 lines |
+| `views/` | 415 files, 182,224 lines | 186 files, 69,932 lines | 6 files, 1,427 lines |
+| `lib/` | 635 files, 145,274 lines | 356 files, 75,849 lines | 11 files, 1,782 lines |
 | `bridge/` | 166 files, 47,873 lines | 99 files, 21,530 lines | none |
 | `components/` | 82 files, 23,590 lines | 38 files, 11,265 lines | 14 files, 945 lines |
 | `collab/` | 20 files, 13,532 lines | 22 files, 14,132 lines | none |
@@ -18,9 +18,9 @@ Roughly 643,000 lines of TypeScript, tests included, and 56,000 lines of CSS.
 | `org/` | 19 files, 5,881 lines | 15 files, 4,257 lines | none |
 | `catalog/` | 2 files, 895 lines | 2 files, 231 lines | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 5 files, 1,037 lines | 109 files, 50,384 lines |
+| `styles/` | none | 5 files, 1,037 lines | 111 files, 50,799 lines |
 
-Plus 48 `.ts`/`.js` files at the top level of `src/`, 16,016 lines all told, of which 22 are tests and 3 are ambient declarations. `main.ts` is 2,194 of that.
+Plus 48 `.ts`/`.js` files at the top level of `src/`, 16,035 lines all told, of which 22 are tests and 3 are ambient declarations. `main.ts` is 2,206 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature
@@ -74,7 +74,7 @@ Do not be ambushed by these. The largest source files, by line count:
 | 2,366 | `views/design-inspector.ts` | yes |
 | 2,363 | `views/free-canvas-math.ts` | yes |
 | 2,245 | `views/free-canvas.ts` | yes, nine `free-canvas-*.test.ts` files |
-| 2,194 | `main.ts` | yes |
+| 2,206 | `main.ts` | yes |
 | 2,124 | `lib/drop-router.ts` | yes |
 | 2,103 | `lib/clip-thumbs.ts` | yes |
 | 2,103 | `views/tool/session.ts` | yes |

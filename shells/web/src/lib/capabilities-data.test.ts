@@ -17,7 +17,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { CAPABILITY_SECTIONS } from './capabilities-data.ts';
 
 const allCards = CAPABILITY_SECTIONS.flatMap((s) => s.cards);
@@ -137,4 +137,44 @@ test('a card`s `shot` is the base slug, never a variant suffix', () => {
     if (!c.shot) continue;
     assert.doesNotMatch(c.shot, /\.(dark|svg|png|jpg)$/, `card "${c.title}" - \`shot\` must be the bare slug, not "${c.shot}"`);
   }
+});
+
+// The formats register (docs/site/formats-catalog.json) is what the /info formats
+// table is built from. The two formats sections here are written by hand, so they
+// drifted: by 2026-09-26 they still said "Forty formats" against 56, and missed
+// whole families (audio, 3D, decks and fonts on the way in; EPUB, DOCX, SCORM and
+// Lottie on the way out). These two tests hold the copy to the register.
+const registerUrl = new URL('../../../../docs/site/formats-catalog.json', import.meta.url);
+interface RegisterFormat { token: string; name: string; dir: 'in' | 'out' | 'both' }
+const register = (): RegisterFormat[] =>
+  (JSON.parse(readFileSync(registerUrl, 'utf8')) as { formats: RegisterFormat[] }).formats;
+const sectionText = (id: string): string => {
+  const s = CAPABILITY_SECTIONS.find((x) => x.id === id);
+  assert.ok(s, `no section ${id}`);
+  return [s.desc, ...s.cards.flatMap((c) => [c.title, ...c.features.flatMap((f) => [f.name, f.desc])])].join(' ').toLowerCase();
+};
+const escapeRe = (x: string): string => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const names = (text: string, f: RegisterFormat): boolean =>
+  [f.name, f.token].some((n) => new RegExp(`(^|[^a-z0-9])${escapeRe(n.toLowerCase())}(?![a-z0-9])`).test(text));
+
+test('every format in the register is named in its section', (t) => {
+  if (!existsSync(registerUrl)) { t.skip('docs/site/formats-catalog.json is not in this checkout'); return; }
+  const out = sectionText('cap-formats');
+  const into = sectionText('cap-import');
+  const missing: string[] = [];
+  for (const f of register()) {
+    if (f.dir !== 'in' && !names(out, f)) missing.push(`Export formats: ${f.name}`);
+    if (f.dir !== 'out' && !names(into, f)) missing.push(`Import formats: ${f.name}`);
+  }
+  assert.deepEqual(missing, [], `formats the register lists but this tab does not mention: ${missing.join(', ')}`);
+});
+
+test('the formats sections state the register`s own counts', (t) => {
+  if (!existsSync(registerUrl)) { t.skip('docs/site/formats-catalog.json is not in this checkout'); return; }
+  const formats = register();
+  const writes = formats.filter((f) => f.dir !== 'in').length;
+  const reads = formats.filter((f) => f.dir !== 'out').length;
+  const desc = (id: string): string => CAPABILITY_SECTIONS.find((x) => x.id === id)!.desc;
+  assert.match(desc('cap-formats'), new RegExp(`^${writes} formats\\b`), `Export formats should open with "${writes} formats"`);
+  assert.match(desc('cap-import'), new RegExp(`^${reads} formats\\b`), `Import formats should open with "${reads} formats"`);
 });

@@ -575,5 +575,11 @@
   "Keep in Assets with these findings": "Păstrează în Resurse cu aceste constatări",
   "Kept - see Assets": "Păstrat - vezi Resurse",
   "\"{name}\" is in Assets, findings attached.": "\"{name}\" este în Resurse, cu rezultatele atașate.",
-  "Runs the deeper AI text check on Verify and in Assets.": "Rulează verificarea AI mai amănunțită a textului, la Verifică și în Resurse."
+  "Runs the deeper AI text check on Verify and in Assets.": "Rulează verificarea AI mai amănunțită a textului, la Verifică și în Resurse.",
+  "Design": "Design",
+  "Open shared design": "Deschide designul partajat",
+  "Shared design": "Design partajat",
+  "Saving the shared design…": "Se salvează designul partajat…",
+  "This shared design does not carry a design system.": "Acest design partajat nu conține un sistem de design.",
+  "“{name}” is a {size} shared design{tool}. Opening it adds a new Project and {content}; it does not replace existing work.{pace}": "„{name}” este un design partajat de {size}{tool}. Deschiderea lui adaugă un proiect nou și {content}; nu înlocuiește lucrările existente.{pace}"
 }

@@ -71,6 +71,7 @@ export const DASH_SECTIONS: ReadonlyArray<DashSection> = [
   // dashboard.ts renders these from the data module itself, not from here.
   { id: 'cap-experiences', flag: 'experiences', label: 'Experiences', tab: 'caps' },
   { id: 'cap-platforms', flag: 'platforms', label: 'Platforms & runtimes', tab: 'caps' },
+  { id: 'cap-access', flag: 'accessibility', label: 'Accessibility & languages', tab: 'caps' },
   { id: 'cap-formats', flag: 'formats', label: 'Export formats', tab: 'caps' },
   { id: 'cap-import', flag: 'import', label: 'Import formats', tab: 'caps' },
   { id: 'cap-print', flag: 'print', label: 'Print production', tab: 'caps' },
