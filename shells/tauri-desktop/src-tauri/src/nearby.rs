@@ -44,7 +44,7 @@ use std::sync::mpsc::{channel, Sender};
 use std::sync::{Mutex, OnceLock};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use mdns_sd::{ServiceDaemon, ServiceEvent, ServiceInfo};
+use mdns_sd::{ResolvedService, ServiceDaemon, ServiceEvent, ServiceInfo};
 use serde::Serialize;
 
 /// DNS-SD service type. The trailing dot + `local.` domain is the DNS-SD convention.
@@ -373,7 +373,7 @@ fn complete_invite(exchange_id: &str, resp: Response) -> Result<(), String> {
 
 // ── browse folding ───────────────────────────────────────────────────────────
 
-fn absorb_resolved(info: &ServiceInfo) {
+fn absorb_resolved(info: &ResolvedService) {
     let fullname = info.get_fullname().to_string();
     let Ok(mut st) = state().lock() else { return };
     // Never list ourselves.
@@ -395,7 +395,9 @@ fn absorb_resolved(info: &ServiceInfo) {
         .and_then(|s| s.chars().next())
         .filter(|c| *c == 'd' || *c == 'm')
         .unwrap_or('d');
-    let Some(addr) = info.get_addresses().iter().copied().next() else {
+    // mdns-sd 0.21 reports addresses as `ScopedIp` (interface-tagged); we only need the
+    // plain IpAddr to open a TCP connection later, so collapse to that.
+    let Some(addr) = info.get_addresses().iter().next().map(|ip| ip.to_ip_addr()) else {
         return; // no address yet - a later event will carry one
     };
     let transport_port = info
