@@ -16,6 +16,7 @@ const ALLOWED_TAGS = new Set([
   '<span class="star-inline" aria-hidden="true">',
   '</span>',
   '<a href="#/verify">',
+  '<a href="#/rebrand">',
   '<a href="https://c2pa.org" target="_blank" rel="noopener">',
   '<a href="https://contentauthenticity.org" target="_blank" rel="noopener">',
   '<a href="https://modelcontextprotocol.io" target="_blank" rel="noopener">',
