@@ -4,12 +4,13 @@ The **TUI** (text user interface) is Lolly's interactive **terminal shell** - th
 
 It runs the **same engine and the same render path** as the web shell and the CLI, so its output can never drift from the GUI.
 
+From a checkout:
+
 ```bash
-lolly tui        # from the installed CLI (npm i -g @lolly-tools/cli)
-pnpm run tui      # from a checkout
+pnpm run tui
 ```
 
-`lolly tui` and `lolly-tui` start the same thing: the CLI hands the terminal straight to it, so one install gives you both doors. See [Install](/info/cli.html#install) for the three ways to get the command.
+With a standalone `lolly` binary, `lolly tui` and `lolly-tui` start the same thing. See [Install](/info/cli.html#install) for the two ways to get the command.
 
 It takes over the whole screen (like `vim` or `htop`) and restores your terminal on exit. It needs a real interactive terminal (a TTY); with output piped it says so and stops.
 

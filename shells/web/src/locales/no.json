@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "Samme farge, skrevet for hvert rom. En rad merket «klemt» viser et rom for smalt til å romme den - CSS ville avrundet disse tallene til å ligge innenfor området.",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "Hver palettfarge som TEKST (nedover radene) mot hver palettfarge som BAKGRUNN (bortover kolonnene), pluss hvitt og svart. APCA er polaritetsavhengig, så en celle og speilbildet dens er ulike, og diagonalen - en farge mot seg selv - viser ~0. Velg en synsmodus for å farge om rutenettet og merkevarelisten på nytt og gi hver kombinasjon ny poengsum for den synsmodusen.",
   "Assets": "Ressurser",
-  "Runs the deeper AI text check on Verify and in Assets.": "Kjører den dypere AI-tekstsjekken i Verifiser og i Ressurser."
+  "Runs the deeper AI text check on Verify and in Assets.": "Kjører den dypere AI-tekstsjekken i Verifiser og i Ressurser.",
+  "Copied to clipboard": "Kopiert til utklippstavlen",
+  "Copy did not work": "Kopiering mislyktes",
+  "Select the text, then use your device’s copy command.": "Velg teksten og bruk enhetens kopieringskommando.",
+  "Select text": "Velg tekst",
+  "Text selected. Use your device’s copy command.": "Tekst valgt. Bruk enhetens kopieringskommando.",
+  "Copy {label}": "Kopier {label}"
 }

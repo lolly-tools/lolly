@@ -1,8 +1,8 @@
 # Every format Lolly can open and make
 
-Lolly reads dozens of source formats and writes dozens more. This is the whole set, grouped by what each one is, with a card behind every chip that says in plain language what that format is for and what Lolly supports in it.
+Lolly reads dozens of source formats and writes dozens more. This is the whole set, grouped by what each one is, with a card behind every chip that says in plain language what that format is for and what Lolly supports in that format.
 
-**How to read the table.** Each row is a family of formats. Anything Lolly only *reads* sits at the left edge, anything it only *writes* sits at the right edge and the formats it does **both ways** sit once in the middle - so a format Lolly reads and writes appears one time, never twice. Tap or click any chip for the full name, a plain description and the properties Lolly handles (transparency, colour profiles, layers, credentials and the rest), plus anything it does not handle yet.
+**How to read the table.** Each row is a family of formats. Anything Lolly only *reads* sits at the left edge, anything it only *writes* sits at the right edge and the formats it does **both ways** sit once in the middle - so a format Lolly reads and writes appears one time, never twice. Tap or click any chip for the full name, a plain description and the properties Lolly handles (transparency, colour profiles, layers, credentials and the rest), plus anything it does not handle yet. The same descriptions are listed in words under the table, one family at a time.
 
 <!-- the three-zone formats table renders here -->
 

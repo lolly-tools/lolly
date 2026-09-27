@@ -34,9 +34,15 @@ Text na gumagalaw, mga eksena sa isang timeline at motion na nananatiling on-bra
 
 Mag-record ng malinaw na take gamit ang count-in, level meter at magiliw na coaching, o gawing tapos na video ang isang voice note na gumagalaw kasabay ng tunog. Wala pang hiwalay na Record page: dala ito ng Paggamit ng Lolly, sa seksyon ng timeline.
 
-- **[Paggamit ng Lolly](/info/using.html#timeline-sequence-studio)** - pag-record ng voiceover nang diretso sa timeline, kung saan naka-save ang take at kung paano ito umaabot sa mix.
-- **[Gumawa ng Bagay sa 60 Segundo](/info/make-something.html#make)** - ang audiogram scene, para sa mga pagkakataong mas gusto mong marinig kaysa makita.
+- **[Paggamit ng Lolly](/info/using.html#timeline-sequence)** - pag-record ng voiceover nang diretso sa timeline, kung saan naka-save ang take at kung paano ito umaabot sa mix.
+- **[Gumawa ng iyong unang file](/info/make-something.html#other-first-projects)** - ang audiogram, para sa mga pagkakataong mas gusto mong marinig kaysa makita.
 - **[Mga View ng Utility](/info/utilities.html)** - Script audio, kapag ang mga salita ang nauna at ang boses ang sumusunod.
+
+## Magpresenta
+
+Ilagay ang iyong camera, logo at pangalan sa ibabaw ng isang Design deck o Countdown, na may pribadong control sa isang hiwalay na window.
+
+- **[Presenting with camera](/info/presenting.html)** - framing, mga naka-save na eksena, pagbabahagi sa audience, lokal na pag-record, at ang kasalukuyang mga limitasyon ng trial.
 
 ## Makipagtulungan
 

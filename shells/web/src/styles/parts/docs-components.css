@@ -1,0 +1,220 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* ── Docs reading components (plan 277 step 3) ─────────────────────────────
+   One stylesheet for both readers: docs/build.ts reads it verbatim into the /info
+   bundle, and the in-app reader (views/docs.ts, views/document-model.ts) imports it.
+   Markup: packages/docs-render/src/components.ts. Behaviour: docs/reader/enhance.ts.
+
+   Built from the app's token roles only (tokens.css), so a component looks the
+   same on /info as in the app and follows Light, Dark, Brand and the active design
+   system. /info's bridge re-points the two roles its legacy names shadow
+   (surface-muted, border-default). The shapes follow the app's own primitives:
+   the disclosure card is disclosure.css's section card at reading size, and the
+   Copy control restates buttons.css's .btn base under its own class, because /info
+   ships an unrelated global .btn from the landing stylesheet.
+
+   Standing rules: meaning is carried by an icon, a label and a tinted fill, never
+   by an accent-coloured edge; no negative letter spacing; sizes ride the a11y type
+   multiplier, which falls back to 1 where it is not defined. */
+
+.docs-content .doc-visually-hidden {
+  position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ── Admonition: ::: note | warning | check ─────────────────────────────── */
+.docs-content .doc-note {
+  display: grid;
+  grid-template-columns: calc(20px * var(--a11y-fs, 1)) minmax(0, 1fr);
+  gap: 14px;
+  margin: 20px 0;
+  padding: 14px 18px;
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-color-surface-muted);
+  font-size: calc(16px * var(--a11y-fs, 1));
+  line-height: 1.55;
+}
+.docs-content .doc-note--check { background: color-mix(in srgb, var(--ui-color-action-primary) 12%, var(--ui-color-surface-muted)); }
+/* Tinted into the muted surface rather than the canvas, so the tint still reads on the
+   dark grounds (Dark, Brand), where a tint into the canvas all but vanished. */
+.docs-content .doc-note--warning { background: color-mix(in srgb, var(--ui-color-status-danger) 14%, var(--ui-color-surface-muted)); }
+.docs-content .doc-note-glyph { display: flex; margin-block-start: 2px; color: var(--ui-color-text-muted); }
+.docs-content .doc-note--check .doc-note-glyph { color: var(--ui-color-action-primary); }
+.docs-content .doc-note--warning .doc-note-glyph { color: color-mix(in oklab, var(--ui-color-status-danger) 60%, var(--ui-color-text-default)); }
+.docs-content .doc-note-glyph svg { width: calc(20px * var(--a11y-fs, 1)); height: calc(20px * var(--a11y-fs, 1)); }
+.docs-content .doc-note-title { font-weight: 600; line-height: 1.4; color: var(--ui-color-text-default); }
+.docs-content .doc-note-body > :first-child { margin-block-start: 4px; }
+.docs-content .doc-note-body > :last-child { margin-block-end: 0; }
+.docs-content .doc-note-body p { margin: 6px 0 0; }
+
+/* ── Disclosure: ::: details ─────────────────────────────────────────────── */
+:is(.docs-content, .docs-compact-nav) .doc-details {
+  margin: 12px 0;
+  border-radius: var(--ui-radius-panel);
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 55%, transparent);
+}
+:is(.docs-content, .docs-compact-nav) .doc-details + .doc-details { margin-block-start: 8px; }
+:is(.docs-content, .docs-compact-nav) .doc-details > summary {
+  display: grid;
+  grid-template-columns: calc(20px * var(--a11y-fs, 1)) minmax(0, 1fr) calc(20px * var(--a11y-fs, 1));
+  gap: 16px;
+  align-items: center;
+  min-height: var(--ui-size-target, 44px);
+  padding: 12px 16px;
+  list-style: none;
+  cursor: pointer;
+  border-radius: var(--ui-radius-panel);
+  font-size: calc(16px * var(--a11y-fs, 1));
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--ui-color-text-default);
+}
+:is(.docs-content, .docs-compact-nav) .doc-details > summary::-webkit-details-marker { display: none; }
+:is(.docs-content, .docs-compact-nav) .doc-details > summary::marker { content: ''; }
+:is(.docs-content, .docs-compact-nav) .doc-details-glyph,
+:is(.docs-content, .docs-compact-nav) .doc-details-chev { display: flex; align-items: center; justify-content: center; color: var(--ui-color-text-muted); }
+:is(.docs-content, .docs-compact-nav) .doc-details-glyph { align-self: start; margin-block-start: 1px; }
+:is(.docs-content, .docs-compact-nav) .doc-details-glyph svg,
+:is(.docs-content, .docs-compact-nav) .doc-details-chev svg { width: calc(20px * var(--a11y-fs, 1)); height: calc(20px * var(--a11y-fs, 1)); }
+:is(.docs-content, .docs-compact-nav) .doc-details-title { min-width: 0; overflow-wrap: anywhere; }
+:is(.docs-content, .docs-compact-nav) .doc-details-chev { transition: transform var(--ui-motion-feedback, 150ms); }
+:is(.docs-content, .docs-compact-nav) .doc-details[open] > summary .doc-details-chev { transform: rotate(90deg); }
+:is(.docs-content, .docs-compact-nav) .doc-details:dir(rtl) > summary .doc-details-chev { transform: rotate(180deg); }
+/* The glyph is lines of left-aligned text; right-to-left text aligns right. */
+:is(.docs-content, .docs-compact-nav) .doc-details:dir(rtl) > summary .doc-details-glyph svg { transform: scaleX(-1); }
+:is(.docs-content, .docs-compact-nav) .doc-details:dir(rtl)[open] > summary .doc-details-chev { transform: rotate(90deg); }
+:is(.docs-content, .docs-compact-nav) .doc-details > summary:hover .doc-details-chev { color: var(--ui-color-text-default); }
+:is(.docs-content, .docs-compact-nav) .doc-details > summary:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+/* The body starts under the title, past the icon column and its gap. */
+:is(.docs-content, .docs-compact-nav) .doc-details-body { padding-block: 0 14px; padding-inline: calc(16px + 20px * var(--a11y-fs, 1) + 16px) 16px; }
+:is(.docs-content, .docs-compact-nav) .doc-details-body > :first-child { margin-block-start: 0; }
+:is(.docs-content, .docs-compact-nav) .doc-details-body > :last-child { margin-block-end: 0; }
+
+/* The formats register in words (docs/build.ts formatsReference): a name and a
+   description per format inside the family's disclosure. */
+.docs-content .fmt-reference { margin: 1.5rem 0 2rem; }
+.docs-content .fmt-ref-list { margin: 0; }
+.docs-content .fmt-ref-list dt { margin: .9rem 0 .15rem; color: var(--ui-color-text-default); }
+.docs-content .fmt-ref-list dt:first-child { margin-top: 0; }
+.docs-content .fmt-ref-list dd { margin: 0; color: var(--ui-color-text-muted); line-height: 1.55; }
+
+/* ── Code block: fenced code ─────────────────────────────────────────────── */
+.docs-content .doc-code {
+  margin: 16px 0 20px;
+  min-width: 0;
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-color-surface-muted);
+}
+.docs-content li > .doc-code,
+.docs-content li > pre { margin-block: 10px 4px; }
+/* The bar is static markup with no text of its own: the label is the block's
+   data-label, shown through generated content so it never enters the page text
+   that search, the model index and narration read. The enhancer adds Copy. */
+.docs-content .doc-code-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 52px;
+  padding: 4px 4px 4px 16px;
+  border-block-end: 1px solid var(--ui-color-border-default);
+  color: var(--ui-color-text-muted);
+  font-size: calc(13px * var(--a11y-fs, 1));
+}
+.docs-content .doc-code-bar::before { content: attr(data-label); min-width: 0; overflow-wrap: anywhere; }
+/* A block without Copy needs only its label. */
+.docs-content .doc-code:not([data-copy]) .doc-code-bar { min-height: 36px; }
+.docs-content .doc-code pre {
+  margin: 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+  max-width: 100%;
+  background: none;
+  box-shadow: none;
+  border: 0;
+  border-radius: 0 0 var(--ui-radius-panel) var(--ui-radius-panel);
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+  tab-size: 2;
+  direction: ltr;
+  text-align: left;
+  font-family: var(--ui-type-mono-family, var(--font-mono, monospace));
+  font-size: calc(14px * var(--a11y-fs, 1));
+  line-height: 1.6;
+}
+/* A short command may wrap between arguments, never inside one: no anywhere-breaks. */
+.docs-content .doc-code[data-wrap] pre { white-space: pre-wrap; }
+.docs-content .doc-code[data-wrap] .doc-code-token { white-space: nowrap; }
+/* A wrapped command reads as one command: its continuation lines hang under the first.
+   (Where each-line is unsupported the rule is dropped and the block keeps its padding.) */
+.docs-content .doc-code[data-wrap] pre { padding-inline-start: calc(16px + 2ch); text-indent: -2ch each-line; }
+.docs-content .doc-code pre code { font: inherit; background: none; padding: 0; color: inherit; white-space: inherit; overflow-wrap: inherit; }
+.docs-content .doc-code pre:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+
+/* Copy, the app's button base under its own name. */
+.docs-content .doc-copy-slot { position: relative; flex: 0 0 auto; }
+.docs-content .doc-copy {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: var(--ui-size-target, 44px);
+  padding: 0 14px;
+  border: 0;
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-color-surface-canvas);
+  color: var(--ui-color-text-default);
+  box-shadow: var(--ui-effect-bevel), var(--ui-elevation-control);
+  font: inherit;
+  font-size: var(--ui-type-body, calc(13px * var(--a11y-fs, 1)));
+  cursor: pointer;
+  transition: background var(--ui-motion-feedback, 150ms);
+}
+/* The app's button hover (buttons.css, .tool-actions): the accent surface. */
+.docs-content .doc-copy:hover { background: hsl(var(--accent)); }
+.docs-content .doc-copy:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.docs-content .doc-copy svg { width: calc(18px * var(--a11y-fs, 1)); height: calc(18px * var(--a11y-fs, 1)); flex: none; }
+/* Feedback floats: anchored to Copy, outside the flow, so nothing on the page moves. */
+.docs-content .doc-copy-toast {
+  position: absolute;
+  inset-block-start: calc(100% + 8px);
+  inset-inline-end: 0;
+  z-index: var(--ui-layer-toast, 60);
+  translate: var(--doc-toast-shift, 0px) 0;
+  padding: 7px 11px;
+  border-radius: var(--ui-radius-control, 6px);
+  background: var(--ui-color-text-default);
+  color: var(--ui-color-surface-canvas);
+  box-shadow: var(--ui-elevation-floating);
+  font-size: calc(13px * var(--a11y-fs, 1));
+  font-weight: 500;
+  line-height: 1.35;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.docs-content .doc-copy-toast[data-above] { inset-block-start: auto; inset-block-end: calc(100% + 8px); }
+.docs-content .doc-copy-help {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+  padding: 10px 16px 12px;
+  border-block-start: 1px solid var(--ui-color-border-default);
+  color: var(--ui-color-text-muted);
+  font-size: calc(13px * var(--a11y-fs, 1));
+}
+.docs-content .doc-copy-help[hidden] { display: none; }
+
+@media (max-width: 520px) {
+  :is(.docs-content, .docs-compact-nav) .doc-details > summary { gap: 14px; padding-inline: 14px; }
+  :is(.docs-content, .docs-compact-nav) .doc-details-body { padding-inline: calc(14px + 20px * var(--a11y-fs, 1) + 14px) 14px; }
+  .docs-content .doc-note { padding: 14px; gap: 12px; }
+  .docs-content .doc-code pre { padding: 12px 14px; font-size: calc(13px * var(--a11y-fs, 1)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(.docs-content, .docs-compact-nav) .doc-details-chev { transition: none; }
+}
+html[data-a11y-motion="reduce"] :is(.docs-content, .docs-compact-nav) .doc-details-chev { transition: none; }
+@media print {
+  .docs-content .doc-copy-slot, .docs-content .doc-copy-help, .docs-content .doc-details-chev { display: none !important; }
+  .docs-content .doc-details > .doc-details-body { display: block !important; }
+  .docs-content .doc-details::details-content { content-visibility: visible !important; height: auto !important; }
+  /* Paper has no tint, so a plain grey outline marks each box instead. */
+  .docs-content .doc-note, .docs-content .doc-details { break-inside: avoid; background: none; box-shadow: none; outline: 1px solid #888; outline-offset: -1px; }
+  .docs-content .doc-code { background: none; box-shadow: none; outline: 1px solid #888; outline-offset: -1px; }
+  .docs-content .doc-code pre { white-space: pre-wrap; overflow: visible; }
+}

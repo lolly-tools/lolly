@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "Cùng một màu, được viết cho từng không gian. Một hàng đánh dấu “bị ép” chỉ ra một không gian quá hẹp để chứa nó - CSS sẽ làm tròn các con số đó vào phạm vi.",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "APCA phụ thuộc vào chiều phân cực, nên một ô và ô đối xứng của nó khác nhau, còn đường chéo - một màu trên chính nó - đọc ra ~0. Chọn một chế độ thị giác để tô lại lưới và dải màu thương hiệu, đồng thời chấm điểm lại từng cặp cho chế độ thị giác đó.",
   "Assets": "Tài sản",
-  "Runs the deeper AI text check on Verify and in Assets.": "Chạy kiểm tra văn bản AI chuyên sâu trên Xác minh và trong Tài sản."
+  "Runs the deeper AI text check on Verify and in Assets.": "Chạy kiểm tra văn bản AI chuyên sâu trên Xác minh và trong Tài sản.",
+  "Copied to clipboard": "Đã sao chép vào bộ nhớ tạm",
+  "Copy did not work": "Sao chép thất bại",
+  "Select the text, then use your device’s copy command.": "Chọn văn bản, sau đó dùng lệnh sao chép của thiết bị.",
+  "Select text": "Chọn văn bản",
+  "Text selected. Use your device’s copy command.": "Đã chọn văn bản. Dùng lệnh sao chép của thiết bị.",
+  "Copy {label}": "Sao chép {label}"
 }

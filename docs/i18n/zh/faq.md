@@ -2,9 +2,10 @@
 
 在 `/info` 落地页折叠面板中展示的常见问题。
 
-**维护方式：** 下面每个 `##` 标题都是一个问题；它下方（直到下一个 `##`）的内容
-就是答案。答案使用与本站其余部分相同的轻量 markdown，段落之间用空行分隔。
-在此处增删或重排问题，然后重新运行 `npm run build:info`（或 `npm run dev:web`）。
+**维护方式：** 下面每个 `##` 标题都是一个问题；
+它下方（直到下一个 `##`）的内容就是答案。答案使用与
+本站其余部分相同的轻量 markdown，段落之间用空行分隔。
+在此处增删或重排问题，然后重新运行 `pnpm run build:info`（或 `pnpm run dev:web`）。
 第一个 `##` 之前的所有内容（本标题与这些说明）会被构建忽略。
 
 ## 我在 /profile 页面选择加入后会发生什么？
@@ -65,10 +66,12 @@ Lolly 可以嵌入你现有的任何文件生成环节，CLI 与应用使用同�
 不会与有人在浏览器里预览到的结果产生偏差。采用的阻力很少来自技术，而是来自组织。
 可以预期以下几点：
 
-**需要有人编写一份经过策划的品牌资产目录。** Lolly 是一个平台，而不是一套做好的模板包。
-若要做*受治理的推广*，需要有人定义共享的资产目录（徽标、色板、字体，都以永久 ID 存在），
-并为每种输出类型编写清单和模板。不过个人用户不必等这一步：在开放的应用中，任何人从第一天起
-就可以把自己的文件导入素材，并在 Design 中构建工具。
+**必须有人编写一套精选的品牌目录。** Lolly 是一个平台，而不是一套做好
+的模板。若要实现*受治理的推行*，需要有人定义共享的素材目录
+（logo、调色板、字体，都以永久 ID 表示），并为每种输出类型编写
+清单和模板。不过个人不必等待这一步 - 在开放版应用中，
+任何人从第一天起就能把自己的文件导入素材，
+并在 Design 中搭建工具。
 
 **参与贡献不需要 git。** 设计师在应用里制作自己的工具和模板，然后分享给同事，
 或提交给部署的负责人，以纳入默认集合。
@@ -113,9 +116,17 @@ Lolly 让一切水涨船高。
 
 可以。打开 **Design**，点击 **Import a design**（导入设计）：它接受 Figma 原生的 **.fig**（Save local copy）、Penpot 导出的 **.penpot**、Illustrator 的 **.ai** 或 **.pdf**、InDesign 的 **.idml**（File → Export → InDesign Markup），或者**任意 SVG**（这是最宽的一道门，几乎所有设计软件都能导出）。不需要账号、不需要插件，也不需要设计软件的授权。
 
-![Design's open canvas - Import a design sits in the toolbar's Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Design 的开放画布 - Import a design（导入设计）位于工具栏的 Lolly 菜单中](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 图层会以可编辑的方框出现在自由画布上：文字仍可重新输入，形状仍是形状，图片进入你自己的图片库，字体和颜色遵循品牌全局设定。保存之后，这个版式就成为一个可复用、可用 URL 寻址的模板，任何用 Lolly 的人都能重新填充内容，你还可以混入在加载时重新渲染的实时工具（二维码、图表）。之后它就和 Lolly 里的其他东西一样渲染：SVG、PDF、PNG 等等，都可以从它的 URL 复现。参见[导入设计](/info/design-import.html)。
+
+## 我昨天做的东西在哪里？
+
+如果你按过**另存为**或**保存**，它就在主屏幕的**项目**中，位于你保存时所用的浏览器或应用里。如果你只按过**下载**，文件就在你的浏览器或系统保存下载内容的地方，通常**素材**中也会有一份副本。有九个工具还会把未保存的作品保留在**项目**中。[找回你的作品](/info/find-your-work.html)涵盖了每一种情况。
+
+## 我关掉了标签页。我的作品还在吗？
+
+已保存的作品仍在**项目**中。未保存的作品会丢失，除了那九个会随手保存的工具，它们同样会把作品保留在**项目**中。下次离开前，先按**另存为**。见[如果你关闭了标签页或离开了工具](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool)。
 
 ## 我可以用文件而不是链接来分享作品吗？
 

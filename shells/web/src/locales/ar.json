@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "اللون نفسه، مكتوبًا لكل فضاء. الصف الموسوم بـ “مقصوص” يشير إلى فضاء أضيق من أن يحتويه - وستقرّب CSS تلك الأرقام إلى المدى.",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "كل لون من لوحة الألوان كنص (على طول الصفوف) فوق كل لون من لوحة الألوان كخلفية (عبر الأعمدة)، بالإضافة إلى الأبيض والأسود. APCA يعتمد على القطبية، لذا تختلف الخلية عن نظيرتها، والقطر - لون على نفسه - يُقرأ ~0. اختر نمط رؤية لإعادة تلوين الشبكة وشريط العلامة التجارية وإعادة تقييم كل زوج لتلك الرؤية.",
   "Assets": "الأصول",
-  "Runs the deeper AI text check on Verify and in Assets.": "يشغّل الفحص الأعمق لنص الذكاء الاصطناعي في صفحة التحقق وفي الأصول."
+  "Runs the deeper AI text check on Verify and in Assets.": "يشغّل الفحص الأعمق لنص الذكاء الاصطناعي في صفحة التحقق وفي الأصول.",
+  "Copied to clipboard": "تم النسخ إلى الحافظة",
+  "Copy did not work": "فشل النسخ",
+  "Select the text, then use your device’s copy command.": "حدّد النص، ثم استخدم أمر النسخ في جهازك.",
+  "Select text": "تحديد النص",
+  "Text selected. Use your device’s copy command.": "تم تحديد النص. استخدم أمر النسخ في جهازك.",
+  "Copy {label}": "نسخ {label}"
 }

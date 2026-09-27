@@ -1,14 +1,14 @@
 # Lolly کا استعمال
 
-ایپ کو عملی طور پر *استعمال* کرنے کی ایک کارآمد رہنمائی - ٹول کھولنا، کینوس پر کام کرنا، ایکسپورٹ کرنا، محفوظ کرنا اور شیئر کرنا۔ یہاں سب کچھ **آپ کی ڈیوائس پر** چلتا ہے: کوئی اکاؤنٹ نہیں، کوئی اپ لوڈ نہیں، پہلی بار لوڈ ہونے کے بعد انٹرنیٹ کی ضرورت نہیں۔
+ایپ کو عملی طور پر *استعمال* کرنے کی ایک کارآمد رہنمائی - ٹول کھولنا، کینوس پر کام کرنا، ایکسپورٹ کرنا، محفوظ کرنا اور شیئر کرنا۔ یہاں سب کچھ **آپ کی ڈیوائس پر** چلتا ہے: کوئی اکاؤنٹ نہیں، کوئی اپ لوڈ نہیں، اور اُن اسکرینز کے لیے انٹرنیٹ کی ضرورت نہیں جو آپ پہلے ہی کھول چکے ہیں۔
 
 > یہاں نئے ہیں؟ [فوری آغاز](/info/quickstart.html) آپ کو چند منٹوں میں تخلیق شروع کرا دیتا ہے، اور [آپریٹرز کے لیے Lolly](/info/operators.html) ایپ کی تنصیب/تعیناتی کا احاطہ کرتا ہے؛ یہ صفحہ ایپ کے کھلنے کے بعد اسے چلانے کے بارے میں ہے۔
 
 ## ٹول کھولنا
 
-ہوم اسکرین **گیلری** ہے - ہر ٹول، زمرے کے حساب سے گروپ شدہ۔ ٹول کھولنے کے لیے کسی کارڈ پر کلک کریں؛ اگر آپ اس پر پہلے کام کر چکے ہیں تو **Continue** بٹن آپ کا تازہ ترین سیشن دوبارہ شروع کر دیتا ہے۔ نام کے حساب سے فلٹر کرنے کے لیے سرچ باکس استعمال کریں - یا فہرست والی چھ اسکرینوں (گیلری، Utilities، Projects، اثاثے، Dashboard اور Profile) کے نیچے موجود بار سے [تلاش](/info/search.html) کریں، جو ٹولز کے علاوہ آپ کے محفوظ کام، آپ کے اثاثوں اور آپ کی سیٹنگز تک بھی پہنچتی ہے۔ ٹول کے اندر یہ بار ہٹ کر ٹول کے اپنے کروم کو جگہ دے دیتی ہے۔
+ہوم اسکرین **گیلری** ہے - ہر ٹول، زمرے کے حساب سے گروپ شدہ۔ کسی کارڈ پر کلک کریں تاکہ اس ٹول میں کوئی نئی چیز شروع کریں؛ [محفوظ کام](#saving-continuing) **پراجیکٹس** سے دوبارہ کھلتا ہے۔ نام کے حساب سے فلٹر کرنے کے لیے سرچ باکس استعمال کریں - یا فہرست والی چھ اسکرینوں (گیلری، Utilities، Projects، اثاثے، Dashboard اور سیٹنگز) کے نیچے موجود بار سے [تلاش](/info/search.html) کریں، جو ٹولز کے علاوہ آپ کے محفوظ کام، آپ کے اثاثوں اور آپ کی سیٹنگز تک بھی پہنچتی ہے۔ ٹول کے اندر یہ بار ہٹ کر ٹول کے اپنے کروم کو جگہ دے دیتی ہے۔
 
-![ٹول گیلری - ہر ٹول ایک کارڈ کے طور پر، زمرے کے حساب سے گروپ شدہ](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
+![مثالی نیویگیشن اور ایک نئے ایکشن والا گیلری کارڈ](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
 ہر ٹول ایک سپلٹ ویو ہے: ایک طرف **کنٹرولز**، دوسری طرف ایک لائیو **پیش نظارہ** (کینوس)۔ کوئی بھی کنٹرول بدلیں اور پیش نظارہ فوراً اپ ڈیٹ ہو جاتا ہے۔
 
@@ -42,6 +42,32 @@ selection bullet under Projects uses), click the bar's Hide button
 (`[data-bulk="hide"]` - the literal `data-bulk` value bulkBarHtml() writes,
 confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 (`.gtile--hiddenbox`, confirmed in gallery.ts).
+-->
+
+ایک ساتھ کئی کارڈز پر کارروائی کرنے کے لیے، ہر کارڈ کا چیک باکس ٹک کریں، خالی جگہ پر سلیکشن باکس کھینچیں یا **Shift/Cmd-کلک** کریں، تو ایک فلوٹنگ ایکشن بار ظاہر ہوتا ہے۔ **سلیکشن بار کیا پیش کرتا ہے** یہ ہر ویو میں کچھ مختلف ہوتا ہے، کیونکہ ہر عمل ہر جگہ بامعنی نہیں ہوتا:
+
+- **Tools / Utilities:** Favourite (یا Unfavourite)، Hide (یا Unhide)، Available offline (یا Remove from offline)، **View sessions** (Projects کھول کر صرف انہی ٹولز سے بنے سیشن دکھاتا ہے) اور جب بالکل ایک کارڈ منتخب ہو تو Copy link۔
+- **اثاثے:** Favourite اور Hide کسی بھی سلیکشن پر لاگو ہوتے ہیں؛ Duplicate، Download اور Delete تبھی ظاہر ہوتے ہیں جب ہر منتخب شے آپ کی اپنی اپ لوڈ کردہ ہو - مشترکہ ڈیزائن سسٹم کا اثاثہ ایک مستقل معاہدہ ہے، اس لیے یہ تینوں اس پر بلک میں بھی لاگو نہیں ہوتے۔
+- **Projects:** دیکھیں [اپنا کام تلاش اور بازیافت کریں](/info/find-your-work.html#find-something-you-saved)۔
+
+> ایک لیبل کا دھوکا: **View sessions** تبھی موجود ہوتا ہے جب کوئی چیز *منتخب* ہو۔ کسی غیر منتخب اکیلے کارڈ پر رائٹ کلک کرنے سے اس کے بجائے **N saved sessions** ملتا ہے، جو اُس ٹول کے محفوظ سیشنز کی ایک فہرست کھولتا ہے، جہاں حذف کرنا حتمی ہوتا ہے، Projects پر جانے کے بجائے۔
+
+![دو ٹولز کے لیے گیلری سلیکشن بار، جو Available offline، View sessions، Favourite اور Hide پیش کرتا ہے](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
+<!--
+SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
+`[data-select="gradient"]` - the `.tile-check[data-select="<ref>"]` checkbox button
+confirmed directly in views/gallery.ts's card markup (the same attribute
+cardMarkup gives every tile), so these two clicks tick both cards without
+opening either tool.
+
+SHOT NOTE (misc-sessions-by-tool, NOT PUBLISHED): the "View sessions" result
+had a recipe of its own (`/#/p?tools=qr-code,d3`, views/projects.ts's
+toolsBodyHtml()), dropped here because it has no `drive=` that can
+manufacture its own content - a saved session isn't a click away, it has to
+already exist, and build-docs-shots.ts gives every shot a fresh
+`browser.newContext()`. It would publish an empty list. Same dependency the
+`projects` shot (now on find-your-work.md) carries; revisit if the pipeline gains a
+storage-seeding hook.
 -->
 
 ### Ask Lolly
@@ -79,10 +105,17 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 - **صرف فریم ایکسپورٹ ہوتا ہے۔** ایکسپورٹ شدہ فائل کی حد آرٹ بورڈ ہے - باہر رہ جانے والی کوئی بھی چیز (یا کسی باکس کا کنارے سے باہر لٹکتا حصہ) آؤٹ پٹ سے کٹ جاتی ہے، ریسٹر اور ویکٹر دونوں فارمیٹس میں یکساں۔
 - **Fit سے آگے زوم آؤٹ کریں** (20% تک) تاکہ جب آپ نے چیزیں فریم سے کافی باہر رکھی ہوں تو پورا پیسٹ بورڈ نظر آئے۔
 - **ری سائز ہونے والا آرٹ بورڈ۔** ایکسپورٹ کے طول و عرض بدلنے سے فریم اپنی جگہ ری سائز ہو جاتا ہے؛ باکس اپنی پوزیشن پر رہتے ہیں، تو آپ موجودہ مواد کے گرد لے آؤٹ کو نئے سرے سے فریم کر سکتے ہیں۔
+- **ایکسپورٹ سے پہلے۔** انسپکٹر کا Document سیکشن محفوظ شدہ لیئر ڈھانچے کی جانچ کرتا ہے، پھر ٹھہرے ہوئے کینوس کو کٹے ہوئے متن اور فلیٹ رنگ کے تضاد کے لیے پڑھتا ہے۔ یہ وہی فونٹ رجسٹری بھی پوچھتا ہے جو SVG/PDF آؤٹ لائننگ استعمال کرتی ہے کہ کیا ہر ٹیکسٹ رن کے پاس ایمبیڈ ایبل فونٹ بائٹس ہیں؛ تصویر اور گریڈیئنٹ پس منظر کو بصری جانچ کے طور پر نام دیا جاتا ہے، بجائے اس کے کہ انہیں من گھڑت کنٹراسٹ اسکور دیا جائے۔
 
-![Design's free canvas - the artboard with its surrounding pasteboard](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Design کا آزاد کینوس - آرٹ بورڈ اور اس کے ارد گرد کا پیسٹ بورڈ](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **سلیکشن کو فلپ کریں۔** کسی بھی باکس پر رائٹ-کلک کریں اور **افقی فلپ کریں** یا **عمودی فلپ کریں** چنیں تاکہ اسے اسی جگہ آئینہ بنایا جا سکے، یا کی بورڈ سے `Shift+H` / `Shift+V` دبائیں - Shift، کیونکہ خالی `V` پوائنٹر ٹول ہے۔ ہر منتخب باکس اپنے محور پر ایک انڈو مرحلے میں آئینہ بنتا ہے، اور یہ آئینہ ایک حقیقی ٹرانسفارم ہے، تو یہ ایکسپورٹ شدہ SVG، PDF اور PNG میں برقرار رہتا ہے، صرف کینوس پر نہیں۔
+
+### لیئرز اور انسپکٹر
+
+**لیئرز** میں، ہر آرٹ بورڈ ایک سکڑنے والا پیرنٹ گروپ ہوتا ہے۔ وہاں جانے کے لیے اس کا نام منتخب کریں، اس کی لیئرز پھیلائیں، اور اس آرٹ بورڈ کے اندر آبجیکٹس منتخب یا دوبارہ ترتیب دیں۔ تھمب نیلز اور صفحہ ترتیب کے لیے **صفحات** پر جائیں۔ ایرو کیز لیئر لسٹ میں حرکت کرتی ہیں؛ Left آرٹ بورڈ کی heading پر واپس لے جاتی ہے۔
+
+**انسپکٹر** منتخب آبجیکٹ کے لیے متن یا تصویر کے کنٹرولز کو سب سے پہلے رکھتا ہے۔ فوری انتخاب کے لیے آپشن چپس استعمال کریں اور اسٹائلنگ کی تفصیلات کے لیے **Advanced** پھیلائیں۔ فون پر، **انسپکٹر** کو **مزید اقدامات** سے کھولیں۔ کنٹرولز ایک شیٹ میں کھلتے ہیں؛ Escape یا **واپس** آپ کے انتخاب کو برقرار رکھتے ہوئے اسے بند کر دیتا ہے۔
 
 ### اپنی شکلیں بنانا (پین)
 
@@ -137,13 +170,27 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 دو کام یہ آپریشنز جان بوجھ کر نہیں کرتے۔ یہ **تباہ کرنے کے بجائے انکار کرتے ہیں**: ایسی دو شکلوں کو انٹرسیکٹ کرنے کو کہیں جو اوورلیپ نہیں کرتیں تو آپ کو بتا دیا جاتا ہے کہ رکھنے کو کچھ نہیں، اور کچھ نہیں بدلتا۔ اور متن اور تصویر کے باکسز کا کوئی خاکہ نہیں ہوتا جس پر کام ہو، تو انہیں ان کے فریم سے تخمینہ لگانے کے بجائے چھوڑ دیا جاتا ہے۔ ملا ہوا نتیجہ سادہ Bezier خموں کے طور پر محفوظ ہوتا ہے، جو ڈرائنگ ایپ بھی کرتی ہے - اصل spline type آپریشن کے بعد باقی نہیں رہتی۔
 
-## ٹائم لائن (Sequence Studio)
+### 3D مناظر
 
-![The timeline with the music clip selected: its strip runs along the bottom with Speed, Fades, Volume, Pan, EQ, Pitch, Normalize volume and the Effect slot](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
+ٹول ریل کے ایڈ مینو سے **3D منظر** منتخب کریں اور فریم کھینچیں: 3D Studio فوراً نئے باکس پر کھل جاتا ہے، اور جو کچھ آپ وہاں مقرر کریں وہ کینوس پر واپس آ جاتا ہے۔ ہر دوسرے لحاظ سے scene باکس ایک عام باکس ہے۔ اسے حرکت دیں، ری سائز کریں، گھمائیں، سایہ دیں، کسی سلائیڈ یا ٹائم لائن پر رکھیں، یہ باقی باکسز کی طرح برتاؤ کرتا ہے۔
 
-**Sequence Studio** آزاد کینوس میں *وقت* شامل کرتا ہے۔ ہر باکس کسی لمحے شروع ہو سکتا ہے، ایک مدت تک چل سکتا ہے اور آتے جاتے متحرک ہو سکتا ہے، اور آرٹ بورڈ کے نیچے لگی ٹائم لائن وہ جگہ ہے جہاں آپ انہیں ترتیب دیتے ہیں۔ اسے کھولیں تو ایک سلسلہ پہلے سے چل رہا ہوتا ہے - ایک ٹائٹل کارڈ، ایک کلپ، ایک اختتامی کارڈ، ایک لوئر تھرڈ اور ایک میوزک بیڈ - تاکہ کچھ بدلنے سے پہلے ہی ماڈل نظر آ جائے۔
+**scene باکس ترکیب رکھتا ہے، تصویر نہیں۔** image باکس ایک رینڈر شدہ فائل رکھتا ہے؛ scene باکس ایک ہی سیٹنگ رکھتا ہے، یعنی خود منظر، جو 3D Studio کے اپنے link query کے طور پر لکھا جاتا ہے، جس میں ہر وہ قدر چھوڑ دی جاتی ہے جو اب بھی اسٹوڈیو کے ڈیفالٹ پر ہو۔ یہی وجہ ہے کہ ایک منظر تقریباً سو بائٹس کا ہوتا ہے نہ کہ پوری ترکیب کے چند کلوبائٹس کا، یہی وجہ ہے کہ وہی سٹرنگ شیئر لنک میں اور ایڈیٹر کے دروازے میں بھی کام کرتی ہے، اور یہی وجہ ہے کہ اسٹوڈیو کا کوئی نیا کنٹرول Design میں کسی تبدیلی کا تقاضا نہیں کرتا۔ یہی وجہ ہے کہ باکس دستاویز کی مانگی ہوئی کسی بھی سائز اور لمحے پر دوبارہ رینڈر ہوتا ہے، بجائے اس کے کہ پہلے لی گئی کسی تصویر کو بڑا کیا جائے۔ منظر جو تصاویر استعمال کرتا ہے وہ اثاثے ہی رہتی ہیں اور اپنی id کے ذریعے سفر کرتی ہیں، تو منظر کے اندر کوئی اپ لوڈ باقی دستاویز کے ساتھ ایک `.lolly` فائل میں چلا جاتا ہے۔
 
-![Sequence Studio کی ٹائم لائن: ٹرانسپورٹ، رولر، ایک اوورلے لین، کلپس اور سیم چپس کے ساتھ میگنیٹک سیکوئنس قطار اور Always on پٹی](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
+**اسے سٹوڈیو میں ایڈٹ کریں۔** باکس منتخب کریں اور انسپکٹر ایک **3D منظر** سیکشن دکھاتا ہے: ایک لائن جو بتاتی ہے کہ منظر کس چیز سے بنا ہے، ایک اور جو اس کا لائٹنگ سٹوڈیو نام دیتی ہے جب آپ کوئی چن لیں، اور ایک بٹن، **3D Studio میں ترمیم کریں**۔ یہ بٹن اس باکس کے منظر پر سٹوڈیو کو اس ٹول کے ہر کنٹرول کے ساتھ کھول دیتا ہے۔ Apply دبائیں تو ترمیم شدہ منظر ایک ہی قدم میں واپس لکھا جاتا ہے، تو ایک ہی انڈو باکس کو اس منظر پر واپس لے جاتا ہے جہاں سے آپ نے شروع کیا تھا؛ Apply کیے بغیر سٹوڈیو بند کریں تو کچھ نہیں بدلتا۔ باکس کے بارے میں باقی سب کچھ - آرٹ بورڈ پر اس کی جگہ، اس کا سائز، اس کا سایہ، سلائیڈ پر اس کی آمد کا وقت - انہی سیکشنز میں رہتا ہے جو یہ ہمیشہ استعمال کرتا تھا۔ scene باکس اپنی کوئی تصویر یا کیپشن نہیں لیتا: اس کی تصویر سٹوڈیو سے آتی ہے، اور اس کے الفاظ بھی وہیں مقرر ہوتے ہیں۔
+
+**ایک زندہ منظر، ہر دوسرے باکس پر ایک پوسٹر۔** دستاویز کا ہر 3D باکس ایک پوسٹر دکھاتا ہے: منظر کی ایک ساکن تصویر، جو مشترکہ رینڈرر پول کے ذریعے سکرین سے باہر اسی سائز پر بنائی جاتی ہے جتنی جگہ باکس گھیرتا ہے۔ بیس مناظر والی دستاویز کی قیمت ایک ڈرائنگ کانٹیکسٹ ہے، بیس نہیں۔ کسی scene باکس کو منتخب کریں تو وہ دستاویز کا واحد زندہ منظر بن جاتا ہے؛ اسے غیر منتخب کریں تو جو فریم سکرین پر تھا وہ اس کا پوسٹر بن جاتا ہے، تو کچھ اچھلتا نہیں۔ ایک وقت میں صرف ایک ہی منظر زندہ ہوتا ہے، اور دو scene باکسز کو ایک ساتھ منتخب کرنے سے دونوں پوسٹر ہی رہتے ہیں۔ اس ریلیز میں زندہ منظر دیکھنے کے لیے ہے، گھمانے کے لیے نہیں: منظر بدلنے کے لیے **3D Studio میں ترمیم کریں** استعمال کریں۔ جو ڈیوائس فلوٹنگ پوائنٹ گرافکس کانٹیکسٹ نہیں کھول سکتی وہ پوسٹر ہی برقرار رکھتی ہے اور خالی مستطیل دکھانے کے بجائے باکس کے اندر وجہ بتاتی ہے، اور دستاویز کا باقی حصہ متاثر نہیں ہوتا۔ بغیر کسی 3D باکس کے Design دستاویز کھولنے سے کوئی بھی 3D کوڈ لوڈ نہیں ہوتا۔
+
+**ٹائم لائن پر**، scene باکس ویڈیو کلپ کی طرح پلے ہیڈ کی پیروی کرتا ہے: اس کا آغاز، clip-in اور رفتار منظر کو اس کی اپنی اینیمیشن میں حرکت دیتے ہیں، اور منظر کی لمبائی وہی ہے جو آپ نے 3D Studio میں مقرر کی، تو باکس کو مختصر کرنے سے منظر کا کم حصہ نظر آتا ہے، اسے تیز کرنے کے بجائے۔ صرف منتخب scene باکس ہی زندہ ہوتا ہے؛ ہر دوسرا ایک ساکن تصویر ہے، اور ساکن تصویر اسکرب نہیں ہوتی۔
+
+**ایکسپورٹ میں**، ہر منظر اسی رینڈرر کے ذریعے، جو سٹوڈیو استعمال کرتا ہے، فائل کی مطلوبہ سائز پر نئے سرے سے بنایا جاتا ہے۔ ویڈیو ہر لمحے ہر منظر کا ایک فریم رینڈر کرتی ہے؛ PNG، SVG یا PDF ہر باکس کی اپنی پکسل سائز پر ایک تصویر ایمبیڈ کرتی ہے۔ کچھ بھی سکرین سے فوٹو نہیں لیا جاتا، تو ایکسپورٹ اس پر منحصر نہیں کہ آپ نے کون سا باکس منتخب کر رکھا تھا۔ جو منظر نہیں بن سکتا وہ ایکسپورٹ کو ناکام کر دیتا ہے اور سٹوڈیو کے اپنے الفاظ میں وجہ بتاتا ہے۔
+
+**اپنی اپ لوڈ پر بنایا گیا منظر شیئر کرنا۔** Design دستاویز کا شیئر لنک منظر کے اندر ایک ڈیوائس مقامی اپ لوڈ id کو جوں کا توں لے جاتا ہے، جہاں image باکس اسے خالی کر دیتا ہے۔ تو ایسا منظر جس کا آرٹ ورک یا ماڈل آپ کی اپ لوڈ کردہ فائل ہو، کسی دوسرے کی ڈیوائس پر اس تصویر کے لیے سٹوڈیو کا ڈیفالٹ دکھاتا ہے، جب تک کہ دستاویز `.lolly` فائل کے طور پر سفر نہ کرے، جو بائٹس ساتھ لے جاتی ہے۔
+
+## ٹائم لائن (Sequence)
+
+**Sequence** Design کی ٹائم لائن ہے: یہ آزاد کینوس میں *وقت* شامل کرتا ہے۔ ہر باکس کسی لمحے شروع ہو سکتا ہے، ایک مدت تک چل سکتا ہے اور آتے جاتے متحرک ہو سکتا ہے، اور آرٹ بورڈ کے نیچے لگی ٹائم لائن وہ جگہ ہے جہاں آپ انہیں ترتیب دیتے ہیں۔ اسے کھولیں تو ایک سلسلہ پہلے سے چل رہا ہوتا ہے - ایک ٹائٹل کارڈ، ایک کلپ، ایک اختتامی کارڈ، ایک لوئر تھرڈ اور ایک میوزک بیڈ - تاکہ کچھ بدلنے سے پہلے ہی ماڈل نظر آ جائے۔
+
+![Sequence کی ٹائم لائن: ٹرانسپورٹ، رولر، ایک اوورلے لین، کلپس اور سیم چپس کے ساتھ میگنیٹک سیکوئنس قطار اور Always on پٹی](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
 
 قطاریں دو قسم کی ہیں، اور اصل خیال یہی فرق ہے:
 
@@ -153,7 +200,7 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 ![ایڈٹنگ اسٹیج: آرٹ بورڈ سامنے اور مرکز میں، بائیں طرف ٹول ریل اور کونے میں زوم HUD](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-stage)
 
-ٹائم لائن کھولنے سے کی بورڈ اسی کے حوالے ہو جاتا ہے، تو Space اور تیر والی کیز صفحے کے بجائے پلے ہیڈ چلاتی ہیں - اور چونکہ یہ ایسی کمپوزیشن پر خود بخود کھلتی ہے جس میں پہلے سے ٹائمنگ ہو، یہ Sequence Studio کے لوڈ ہوتے ہی درست ہوتا ہے۔
+ٹائم لائن کھولنے سے کی بورڈ اسی کے حوالے ہو جاتا ہے، تو Space اور تیر والی کیز صفحے کے بجائے پلے ہیڈ چلاتی ہیں - اور چونکہ یہ ایسی کمپوزیشن پر خود بخود کھلتی ہے جس میں پہلے سے ٹائمنگ ہو، یہ Sequence کے لوڈ ہوتے ہی درست ہوتا ہے۔
 
 > **[سیکوئنس ایڈیٹر](/info/sequence-editor.html)** ان چار چیزوں پر تفصیل سے بات کرتا ہے جو طے کرتی ہیں کہ وقت میں ایڈیٹنگ قابلِ پیش گوئی محسوس ہوتی ہے یا نہیں: کینوس پر کلک کس کلپ کو ایڈٹ کرتا ہے، ساتھ والے کلپس کے اونین اسکن عکس، اسپلٹ کا دائرہ اور وہ Join جو کٹ واپس کر دیتا ہے، اور ٹرمنگ (کی بورڈ سیٹ سمیت)۔ شارٹ کٹ شیٹ کے لیے ٹائم لائن فوکس ہونے پر `?` دبائیں۔
 
@@ -165,9 +212,13 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 **آواز۔** کوئی **Audio** کلپ شامل کریں اور وہ ٹائم لائن پر ہر دوسرے کلپ کی طرح رہتا ہے: ویوفارم، ٹرم، میوٹ۔ (ڈیفالٹ سیشن کے ساتھ آنے والا تیار شدہ بیڈ واحد استثنا ہے - وہ ایکسپورٹ کے وقت بنایا جاتا ہے، اس لیے رینڈر کرنے تک اس کی بار سادہ اور خاموش رہتی ہے۔) سیدھا ٹائم لائن پر **وائس اوور ریکارڈ** کرنے کے لیے مائیک دبائیں، کاؤنٹ اِن اور لیول میٹر کے ساتھ، اور ریکارڈنگ آپ کے اپنے اثاثے کے طور پر اسی مقام پر محفوظ ہو جاتی ہے جہاں سے آپ نے شروع کیا۔ اس کے ساتھ موجود کیمرہ دبائیں تاکہ اسی طرح **ویڈیو ریکارڈ** کریں: ریکارڈنگ کے دوران ٹیک آرٹ بورڈ کے ایکسپورٹ سائز پر کراپ ہوتی رہتی ہے، تاکہ چھوٹا سیلف ویو بالکل وہی دکھائے جو پلے ہیڈ پر سیکوئنس میں پورے فریم کے ساتھ شامل ہو رہا ہے - کسی ساتھی کا کلپ کسی شیئر کردہ لنک سے حاصل کرنے کا یہی طریقہ ہے۔ موسیقی، مکالمہ اور کلپ کا اپنا ساؤنڈ ٹریک سب ایکسپورٹ شدہ مکس تک پہنچتے ہیں۔ (ایکسپورٹ پینل کا **Audio track** الگ چیز ہے: پورے کلپ کے نیچے بچھا ایک بیڈ، فیڈ اور ڈکنگ کے ساتھ۔ دونوں ساتھ ساتھ چلتے ہیں۔)
 
+**آڈیو سٹرپ۔** آواز رکھنے والا کوئی بھی کلپ منتخب کریں تو ٹائم لائن کے نیچے ایک مختصر سٹرپ کھلتی ہے: **Volume** فیڈر، سٹیریو پوزیشن کے لیے **Pan**، تین بینڈ **EQ** (**Low**، **Mid**، **High**)، ایک **Pitch** کنٹرول جو آواز کا کردار برقرار رکھتے ہوئے سیمی ٹونز میں ٹرانسپوز کرتا ہے، اور **Normalize volume**، جو کلپ کو براڈکاسٹ لاؤڈنیس (BS.1770) پر لے آتا ہے تاکہ ایک دھیمی وائس نوٹ اور ایک اونچا ٹریک ایک ہی سطح پر رہیں۔ جہاں دو کلپس ملتے ہیں، **Crossfade** کاٹنے کے بجائے جوڑ کو ملا دیتا ہے۔ ایک **Effect** سلاٹ کلپ پر آن ڈیوائس پروسیسنگ چلاتا ہے - **Voice cleanup** ریکارڈنگ سے کمرے کی بازگشت اور ہس نکال دیتا ہے۔ رفتار کی تبدیلیاں پچ بھی برقرار رکھتی ہیں: سست یا تیز کیا گیا کلپ ٹائم سٹریچ ہوتا ہے، چپمنک آواز میں نہیں بدلتا۔ ہر مکس پر ایکسپورٹ موسیقی کو تقریر کے آنے جانے کے ساتھ اس کے نیچے دباتا ہے اور پورے پروگرام کو ٹرو پیک لیمیٹر کے نیچے رکھتا ہے، تاکہ باہر جاتے ہوئے کچھ کلپ نہ ہو؛ جو ویوفارم کلپ ہو جاتا وہ اسی جگہ ایک انتباہ کے ساتھ دکھایا جاتا ہے۔
+
+![میوزک کلپ منتخب کیے ہوئے ٹائم لائن: اس کی پٹی نیچے کی طرف چلتی ہے جس میں Speed، Fades، Volume، Pan، EQ، Pitch، Normalize volume اور Effect سلاٹ شامل ہیں](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
+
 **اسے رینڈر کرنا۔** موشن ایکسپورٹ ایک **متعین کمپوزٹ** ہے، اسکرین ریکارڈنگ نہیں - ہر فریم ٹھیک وقت پر ڈی کوڈ، ڈرا اور اینکوڈ ہوتا ہے، اس لیے فائل کا انحصار اس پر نہیں کہ آپ کی مشین ساتھ چل رہی ہے یا نہیں، اور MP4 یا WebM پر فریموں کی کوئی عملی حد نہیں۔ دورانیہ ٹائم لائن کی اپنی لمبائی طے کرتی ہے، جب تک آپ خود کوئی نہ لکھیں۔ Content Credentials ویسے ہی ثبت ہوتے ہیں جیسے کسی بھی دوسرے ایکسپورٹ پر۔ اسٹِل ایکسپورٹ آپ کو پلے ہیڈ والا فریم دیتا ہے، یا آؤٹ پٹ سائز کے ساتھ موجود **Frames** فیلڈ سے پوری کانٹیکٹ شیٹ - دیکھیں [ایکسپورٹ کرنا](/info/exporting.html#stills-from-a-timed-composition)۔
 
-چند حدود ذہن میں رکھیں: سلسلہ زیادہ سے زیادہ ایک گھنٹے کا ہو سکتا ہے، GIF اور اینیمیٹڈ PNG اپنے فریم بفر کرتے ہیں اس لیے وہ مختصر رہتے ہیں، جس کلپ کی رفتار ×1 نہ ہو اس کی آواز خاموش رہتی ہے (ابھی ٹائم اسٹریچنگ نہیں ہے)، اور **Record live** یہاں چھپا ہوا ہے کیونکہ کمپوزیٹر بہتر راستہ ہے۔
+چند حدود ذہن میں رکھیں: سلسلہ زیادہ سے زیادہ ایک گھنٹے کا ہو سکتا ہے، GIF اور اینیمیٹڈ PNG اپنے فریم بفر کرتے ہیں اس لیے وہ مختصر رہتے ہیں، تیز یا آہستہ چلایا گیا کلپ اپنی پچ برقرار رکھتا ہے (آڈیو سٹرپ اسے ٹائم سٹریچ کرتی ہے، اور ایک **Pitch** کنٹرول آواز کا کردار برقرار رکھتے ہوئے سیمی ٹونز میں ٹرانسپوز کرتا ہے)، اور **Record live** یہاں چھپا ہوا ہے کیونکہ کمپوزیٹر بہتر راستہ ہے۔
 
 **presets سے آگے: keyframes، depth اور ایک کیمرہ۔** ایک transition کسی کلپ کو اس کے آنے اور جانے پر متحرک کرتا ہے۔ کسی باکس کو کلپ *کے اندر* پوز کرنے کے لیے - اسے بہانا، fade کرنا، دھندلانا، صفحے سے اٹھا کر واپس بٹھانا - keyframes شامل کریں: کلپ منتخب کریں، **+Keyframe** دبائیں (timeline کے tool cluster میں موجود ہیرا، canvas کے object bar پر موجود ہیرا، یا `K`) اور playhead کی پوزیشن طے کرتی ہے کہ آپ کی اگلی ترمیم کون سا پوز لکھے گی۔ وہی keyframe نظام ہر وقتی composition کو ایک **کیمرہ** دیتا ہے جو اندر آتا ہے، پار پین کرتا ہے، فوکس کھینچتا ہے، اور ایک چپٹے SVG کو تہوں کے ایک ڈھیر میں بدل دیتا ہے جن کے درمیان آپ اڑ سکتے ہیں۔ **[Animating](/info/animating.html)** مکمل گائیڈ ہے۔
 
@@ -175,7 +226,7 @@ Design ٹول میں بھی وہی ٹائم لائن ہے، تو آپ کسی د�
 
 ## پیشکش کرنا
 
-![The inspector's Document section: Voice, Blend with, Speed, Lead-in, Tail and Show captions when presenting](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
+اپنے کیمرے، ایک لوگو اور نام کیپشن کو حاضرین کی تصویر پر رکھنے کے لیے **Present with camera** استعمال کریں۔ اس کے نجی کنٹرولز، محفوظ شدہ مناظر، شیئرنگ اور ریکارڈنگ کے مراحل [کیمرے کے ساتھ پیش کرنا](/info/presenting.html) میں بیان کیے گئے ہیں۔ نیچے دیے گئے عام ڈیک کنٹرولز **پیش کریں** کے ذریعے دستیاب رہتے ہیں۔
 
 **آرٹ بورڈز** سے بنی Design دستاویز پہلے ہی ایک ڈیک ہے۔ ٹول ریل پر **Lolly menu** کھولیں اور **Present** چنیں - آخری قطار - اور ہر آرٹ بورڈ پوری اسکرین کی سلائیڈ بن جاتا ہے، اسی ترتیب سے جس میں آرٹ بورڈز کینوس پر رکھے ہیں۔ ڈیک رینڈر شدہ آرٹ بورڈز کی نقل پر چلتا ہے، تو نیچے موجود ایڈیٹر کو کچھ نہیں ہوتا اور باہر نکلنے پر آپ بالکل وہیں واپس آ جاتے ہیں جہاں تھے۔
 
@@ -186,7 +237,13 @@ Design ٹول میں بھی وہی ٹائم لائن ہے، تو آپ کسی د�
 - `B` سیاہ اسکرین روکے رکھتا ہے (کوئی بھی کلید سلائیڈ واپس لے آتی ہے)، `F` فل اسکرین پر واپس لے جاتا ہے اور **Escape** ایک وقت میں ایک تہہ ہٹاتا ہے: اوورویو سے ڈیک، ڈیک سے ایڈیٹر۔
 - **Kiosk.** کسی آرٹ بورڈ کو ایک **Length** دیں اور ڈیک اُتنی دیر وہیں ٹھہرے گا، پھر ایک باریک پروگریس بار کے پیچھے خود بخود آگے بڑھے گا؛ `K` (یا پاز بٹن، جو صرف اُس وقت ظاہر ہوتا ہے جب کسی چیز کی Length مقرر ہو) اسے روکتا اور دوبارہ شروع کرتا ہے۔ لنک میں `kiosk` شامل کریں تو ڈیک آخر میں دوبارہ شروع سے چلتا ہے، جو اسے سائنیج بناتا ہے۔
 
-ڈیک ایک لنک بھی ہے۔ `?present` سیدھا اسی میں کھول دیتا ہے، `s=` سلائیڈ کا نام دیتا ہے - ایک پوزیشن، آرٹ بورڈ کی id یا بلڈ اسٹیپ کے لیے `id.step` - اور آپ کے آگے بڑھنے کے ساتھ پتہ اپ ڈیٹ ہوتا رہتا ہے، تو آپ جو بھیجتے ہیں وہی سلائیڈ ہوتی ہے جس پر آپ ہیں۔ ٹول مصنفین: یہ پیرامیٹرز [URL Mode](/info/url-mode.html#reserved-parameters) صفحے پر دستاویز شدہ ہیں۔
+- **ذیلی سلائیڈ اسٹیک۔** آرٹ بورڈ پر رائٹ کلک کریں اور **پچھلی سلائیڈ کے نیچے اسٹیک کریں** منتخب کریں تو یہ اپنی الگ سلائیڈ کے بجائے اسی سلائیڈ کا ایک قدم بن جاتا ہے: Overview ایک کارڈ دکھاتا ہے، ڈیک ترتیب سے اسٹیک میں سے گزرتا ہے، اور انسپکٹر کی **Stack** رو بتاتی ہے کہ یہ کس سلائیڈ سے تعلق رکھتا ہے۔
+- **Morph۔** جب دو لگاتار سلائیڈز دونوں ایک ہی نام والا باکس رکھتی ہوں **Morph match** میں (باکس پر رائٹ کلک کریں، یا انسپکٹر کی **Morph match** رو - مثلاً `hero`)، تو ٹرانزیشن اس باکس کو کٹ کرنے کے بجائے اس کی پرانی جگہ سے نئی جگہ لے جاتا ہے، راستے میں اس کا سائز اور رنگ بدلتے ہوئے۔ ایک ڈیک بھر کا **Morph** ٹرانزیشن ہر ملتے جوڑے کے لیے یہی کرتا ہے۔
+- **بیانیہ۔** ہر آرٹ بورڈ کے **Speaker notes** بلند آواز میں پڑھے جا سکتے ہیں۔ انسپکٹر کے **Document** سیکشن میں ایک **Voice** چنیں، اختیاری طور پر **Blend with** کے لیے دوسری آواز، پڑھنے کی **Speed**، اور ہر سلائیڈ کے ارد گرد ملی سیکنڈز میں **Lead-in** اور **Tail**؛ **Show captions when presenting** آن کریں تو الفاظ بولے جاتے ہی نظر آنے لگتے ہیں۔ آواز آپ کی ڈیوائس پر چلتی ہے۔ یہی نوٹس ویڈیو ایکسپورٹ میں فلم بن جاتے ہیں، PowerPoint ایکسپورٹ میں حقیقی سلائیڈ آڈیو، اور [SCORM پیکج](/info/create/exporting.html#scorm-course-packages) کے اندر بیان کی گئی فلم۔
+
+![انسپکٹر کا Document سیکشن: Voice، Blend with، Speed، Lead-in، Tail اور Show captions when presenting](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
+
+ڈیک ایک لنک بھی ہے۔ `?present` سیدھا اسی میں کھول دیتا ہے، `s=` سلائیڈ چنتا ہے - ایک پوزیشن، آرٹ بورڈ کی id یا بلڈ اسٹیپ کے لیے `id.step` - اور آپ کے آگے بڑھنے کے ساتھ پتہ اپ ڈیٹ ہوتا رہتا ہے، تو آپ جو بھیجتے ہیں وہی سلائیڈ ہوتی ہے جس پر آپ ہیں۔ ٹول مصنفین کے لیے: یہ پیرامیٹرز [URL Mode](/info/url-parameters.html#reserved-parameters) صفحے پر دستاویز شدہ ہیں۔
 
 ## فون پر
 
@@ -216,77 +273,29 @@ Design ٹول میں بھی وہی ٹائم لائن ہے، تو آپ کسی د�
 
 لائیو [collaboration](/info/collaborate.html) میں history صرف آپ کی رہتی ہے۔ دوسرے آلے سے آنے والی کوئی تبدیلی کبھی آپ کے stack پر نہیں جاتی، اس لیے undo ہمیشہ صرف وہی چیز واپس لے سکتا ہے جو آپ نے خود کی ہو۔
 
+Undo صرف اسی وزٹ کے دوران واپس جا سکتا ہے؛ نو ٹولز **History** کے تحت پرانے ورژن بھی رکھتے ہیں، **Undo** کے ساتھ (دیکھیں [پرانے ورژن پر واپس جائیں](/info/find-your-work.html#go-back-to-an-earlier-version))۔
+
 ## آپ کی تفصیلات اور ہیڈ شاٹ
 
-**Profile** (گیلری کے اوپر دائیں جانب) آپ کا نام، رابطے کی تفصیلات اور ایک اختیاری **ہیڈ شاٹ** رکھتا ہے۔ جو ٹولز یہ فیلڈز مانگتے ہیں وہ انہیں خود بخود پہلے سے بھر دیتے ہیں - انہیں ایک بار مقرر کریں اور آپ کے ای میل دستخط، لاک اپ اور بیج خود بھر جاتے ہیں۔ آپ پھر بھی ہر سیشن میں کسی بھی فیلڈ کو بدل سکتے ہیں۔ **Use my details to create** کے ذریعے شامل ہوں تاکہ آپ کی تفصیلات آپ کے ایکسپورٹ کردہ کام پر مصنف کے طور پر ساتھ چلیں۔
+**سیٹنگز** (گیلری کے اوپر دائیں جانب، جو آپ کا پہلا نام مقرر کرتے ہی دکھاتی ہے) آپ کا نام، رابطے کی تفصیلات اور ایک اختیاری **ہیڈ شاٹ** رکھتی ہے۔ جو ٹولز یہ فیلڈز مانگتے ہیں وہ انہیں خود بخود پہلے سے بھر دیتے ہیں - انہیں ایک بار مقرر کریں اور آپ کے ای میل دستخط، لاک اپ اور بیج خود بھر جاتے ہیں۔ آپ پھر بھی ہر سیشن میں کسی بھی فیلڈ کو بدل سکتے ہیں۔ **Use my details to create** کے ذریعے شامل ہوں تاکہ آپ کی تفصیلات آپ کے ایکسپورٹ کردہ کام پر مصنف کے طور پر ساتھ چلیں۔
 
 آپ کا ہیڈ شاٹ اور تفصیلات **صرف اسی ڈیوائس پر** رہتی ہیں۔ پروفائل صرف آپ سے زیادہ بھی ہو سکتی ہے - ایک ٹیم یا وہ کردار جو آپ کبھی کبھار سنبھالتے ہیں۔ ایک سے زیادہ رکھنے سمیت مکمل تصویر کے لیے **[پروفائلز](/info/profile.html)** دیکھیں۔
 
 ## محفوظ کرنا اور جاری رکھنا
 
-موجودہ ان پٹس کو اس ٹول کے ایک سیشن کے طور پر محفوظ کرنے کے لیے **Save** پر کلک کریں۔ آپ ہر ٹول کے لیے کئی نام والے سیشن رکھ سکتے ہیں؛ ہر ٹول کا **Continue** بٹن آپ کا تازہ ترین سیشن دوبارہ کھولتا ہے، اور **history بٹن** (اوپر دائیں، آپ کی پروفائل کے ساتھ) تمام ٹولز کے ہر محفوظ سیشن کی فہرست دیتا ہے۔ سیشن ڈیوائس پر ہی رہتے ہیں۔ انہیں منظم کرنے کے لیے **Projects** کھولیں (نیچے)۔
+اپنا کام محفوظ رکھنے کے لیے **محفوظ کریں بطور** دبائیں، جو **ایکسپورٹ** کے ساتھ موجود ٹک ہے۔ **Save to a project** کے تحت **میری لائبریری** منتخب رہنے دیں یا کوئی پروجیکٹ چنیں (**＋ نیا پروجیکٹ…** ایک بنا دیتا ہے)، پھر **محفوظ کریں** دبائیں۔ دوبارہ محفوظ کرنے سے وہی آئٹم اپ ڈیٹ ہوتا ہے، نقل نہیں بنتی۔ Design میں **محفوظ کریں بطور** Lolly لوگو کے نیچے مینو میں ہے؛ فون پر **•••** دبائیں، پھر **File menu**، پھر **محفوظ کریں بطور**۔
 
-![دو حصوں والی رینڈر پِل - ایک اوپر کا تیر جو ایکسپورٹ پینل کھولتا ہے، اور ایک ٹِک جو سیشن کو اسی جگہ محفوظ کر دیتا ہے](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+ایکسپورٹ پینل کا **محفوظ کریں** بٹن ایک ہی کلک میں وہی کام کرتا ہے اور کبھی فائل ڈاؤن لوڈ نہیں کرتا: نیا کام میری لائبریری میں جاتا ہے، اور جو کام آپ پہلے محفوظ کر چکے ہیں وہ اپنی جگہ اپ ڈیٹ ہو جاتا ہے۔
+
+بعد میں واپس آنے کے لیے اوپر بائیں طرف **ہوم** دبائیں، پھر **پراجیکٹس** ٹیب کھولیں (فون پر ایک فولڈر آئیکن)۔ میری لائبریری کا محفوظ کام اس کی پہلی اسکرین پر ہوتا ہے؛ ایک پروجیکٹ وہاں فولڈر ہے۔ آئٹمز کا نام وہ فائل نام ہوتا ہے جو آپ نے ایکسپورٹ پینل میں ٹائپ کیا تھا، یا اگر کچھ نہ لکھا ہو تو ان کے ٹول کے مطابق، جیسے **QR Code**۔ کوئی ایک کھولیں تو ہر سیٹنگ وہیں ملتی ہے، بدلنے اور دوبارہ ایکسپورٹ کرنے کے لیے تیار۔
+
+محفوظ کام اسی ڈیوائس پر، اسی براؤزر یا ایپ میں رہتا ہے جس سے آپ نے محفوظ کیا تھا، جب تک آپ [Sync](/info/sync.html) آن نہ کریں۔ جو فائل آپ **ڈاؤن لوڈ** سے حاصل کرتے ہیں وہ ایک تیار شدہ نقل ہے؛ بعد میں بدلنے کے لیے پروجیکٹس میں محفوظ شدہ آئٹم کھولیں۔ اگر کوئی چیز وہاں نہ ملے جہاں آپ توقع کر رہے تھے، تو دیکھیں [اپنا کام تلاش اور بازیافت کریں](/info/find-your-work.html)۔
+
+![دو حصوں والی رینڈر پِل - ایک اوپر کا تیر جو ایکسپورٹ پینل کھولتا ہے، اور ایک ٹِک جس پر Save as لکھا ہے اور جو سیو شیٹ کھولتا ہے](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
 ## پروجیکٹس (Projects)
 
-**Projects** - اسے **Tools** کے ساتھ موجود **Projects** ٹیب سے کھولیں، یا **Profile → Storage → Organise in Projects** سے - آپ کے محفوظ کردہ ہر کام کا گھر ہے، اور یہ فائل مینیجر کی طرح کام کرتا ہے:
-
-![Projects - محفوظ سیشنز ایک دوسرے میں سماتے فولڈرز میں منظم](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
-
-- <!--i:folder--> **ایک دوسرے میں سماتے فولڈرز۔** محفوظ سیشنز کو فولڈرز میں، اور فولڈرز کو فولڈرز کے اندر، جتنا چاہیں گہرا گروپ کریں۔ فولڈر بنائیں، اس کا نام بدلیں یا کسی ٹائل کو دوسرے فولڈر پر ڈریگ کر کے منتقل کریں؛ بریڈکرمب آپ کو واپس اوپر لے جاتا ہے۔ فولڈر کے بغیر محفوظ کیے گئے سیشن براہ راست **پراجیکٹس** کی بنیادی سطح پر نظر آتے ہیں۔
-- <!--i:clock--> **اپنی مرضی سے ترتیب دیں۔** **View & sort** میں **Name**، **Date added**، **Last modified** (ڈیفالٹ) اور فولڈر کے اندر **By tool** ملتے ہیں۔ کوئی بھی ترتیب فعال ہو، فولڈرز ہمیشہ پہلے آتے ہیں - ترتیب صرف سیشنز اور فولڈرز کو ان کے اپنے گروپ کے اندر ترتیب دیتی ہے۔
-- <!--i:document--> **نیا کام سیدھا یہیں فائل کریں۔** **نیا اثاثہ** مشترکہ پکر کھولتا ہے۔ محفوظ ٹیمپلیٹ سے شروع کرنے کے لیے **ٹیمپلیٹس** منتخب کریں: ترمیم کے لیے اسے کھولیں، یا فوراً نئی تخلیق محفوظ کرنے کے لیے **+ شامل کریں** استعمال کریں۔
-- <!--i:checklist--> **ملٹی سلیکٹ (ڈیسک ٹاپ)۔** کسی ٹائل کا چیک باکس ٹک کریں، خالی جگہ پر سلیکشن باکس کھینچیں یا **Shift/Cmd-کلک** کریں؛ کانٹیکسٹ مینو کے لیے ٹائل پر **رائٹ کلک** کریں۔ پھر پوری سلیکشن پر ایک ساتھ عمل کریں - یہی اشارہ اور یہی فلوٹنگ ایکشن بار Tools گیلری، Utilities، اثاثے اور Projects پر بھی چلتا ہے، صرف یہاں نہیں۔
-- <!--i:download--> **پورا فولڈر یا سلیکشن رینڈر کریں۔** **Render folder** کسی فولڈر کے ہر محفوظ سیشن کو - اس کے ذیلی فولڈرز سمیت - ایک نیسٹڈ `.zip` کے طور پر ایکسپورٹ کرتا ہے۔ **Render selection** کسی بھی ملٹی سلیکشن کے لیے یہی کرتا ہے، اور اکیلا سیشن سیدھا اپنی فائل میں رینڈر ہو جاتا ہے۔ Batch/Pro کی ضرورت نہیں۔
-- <!--i:link--> **کسی ٹول کے محفوظ کام پر سیدھا پہنچیں۔** Tools گیلری پر ایک یا زیادہ ٹولز ٹک کریں اور سلیکشن بار سے **View sessions** چنیں - Projects کھل کر صرف انہی ٹولز سے بنے سیشن دکھاتا ہے، اور پوری فہرست پر واپسی کے لیے ایک **Clear** موجود ہوتا ہے۔
-- <!--i:link--> **محفوظ سیشن شیئر کریں۔** کسی سیشن پر رائٹ کلک کریں → **Share link** تاکہ ایسا لنک کاپی ہو جو اسے بالکل انہی ان پٹس کے ساتھ دوبارہ کھولے (مکمل Share ڈائیلاگ - نیچے دیکھیں)۔
-
-![Projects میں کھلا ہوا View and sort پاپ اوور، جس میں ایک تھیم قطار، Preview یا List کا View انتخاب اور Sort کے تحت Name، Date added اور Last modified ہیں](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
-<!--
-SHOT NOTE (misc-projects-sort): trigger button confirmed as
-`.filter-fab.projects-viewopts` in views/projects.ts (openViewOpts() is bound
-to `.projects-viewopts` specifically) - `.projects-viewopts` alone is the
-more specific hook, so that's what drives the click. The popover it opens
-(`.projects-viewmenu`, also confirmed directly in openViewOpts()) is body-
-appended, not nested under the Projects root, so cropSelector finds it
-regardless. "By tool" only appears inside a folder - this recipe captures at
-the Projects ROOT (`url=/#/p`), so if the capture pass wants "By tool"
-visible too, point url= at a real folder instead: the route is a path
-segment, `/#/p/<folderId>` (confirmed in main.ts's hash router - `parts[0]
-=== 'p'` reads `folderId` from `parts[1]`), not a query param. Caveat: a
-folder has to already EXIST in the capture profile, which a per-shot fresh
-context has none of.
-Also: the popover is not sort-only. openViewOpts() writes a theme segment, a
-"View" pair (Preview / List) and a sound segment around the Sort rows, so the
-alt text names them - do not re-caption this as "the sort menu".
--->
-
-**سلیکشن بار کیا پیش کرتا ہے** یہ ہر ویو میں کچھ مختلف ہوتا ہے، کیونکہ ہر عمل ہر جگہ بامعنی نہیں ہوتا:
-
-- **Tools / Utilities:** Favourite (یا Unfavourite)، Hide (یا Unhide)، Available offline (یا Remove from offline)، **View sessions** (اوپر بیان کردہ چھلانگ) اور جب بالکل ایک کارڈ منتخب ہو تو Copy link۔
-- **اثاثے:** Favourite اور Hide کسی بھی سلیکشن پر لاگو ہوتے ہیں؛ Duplicate، Download اور Delete تبھی ظاہر ہوتے ہیں جب ہر منتخب شے آپ کی اپنی اپ لوڈ کردہ ہو - مشترکہ ڈیزائن سسٹم کا اثاثہ ایک مستقل معاہدہ ہے، اس لیے یہ تینوں اس پر بلک میں بھی لاگو نہیں ہوتے۔
-- **Projects:** **Render selection**، **Move to…**، **New folder**، **Delete**، اور جب سلیکشن دو سے آٹھ ایک ہی ٹول کے سیشنز پر مشتمل ہو تو **Edit together** (یہ انہیں ایک مشترکہ سائیڈبار کے نیچے ساتھ ساتھ کھولتا ہے)، اور **Edit as sheet**، جو اس کے بجائے پوری سلیکشن کو بیچ گرڈ میں قطاروں کے طور پر کھولتا ہے۔ اس پر **سائز کی کوئی حد نہیں** اور اسے پروا نہیں کہ سیشن ایک ہی ٹول کے ہیں یا نہیں، تو جب سلیکشن Edit together کی دو سے آٹھ کی حد سے بڑی یا زیادہ ملی جلی ہو تو یہی نکلنے کا راستہ ہے۔
-
-> ایک لیبل کا دھوکا: **View sessions** تبھی موجود ہوتا ہے جب کوئی چیز *منتخب* ہو۔ کسی غیر منتخب اکیلے کارڈ پر رائٹ کلک کرنے سے اس کے بجائے **N saved sessions** ملتا ہے، جو Projects پر جانے کے بجائے اسی ٹول کا اپنا history ڈائیلاگ کھولتا ہے۔
-
-![Tools گیلری میں دو tool کارڈز پر نشان لگا ہوا، فلوٹنگ سلیکشن بار پر "2 selected" لکھا ہے اور Available offline، View sessions، Favourite اور Hide پیش کیے جا رہے ہیں](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
-<!--
-SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
-`[data-select="gradient"]` - the `.tile-check[data-select="<ref>"]` checkbox button
-confirmed directly in views/gallery.ts's card markup (the same attribute
-cardMarkup gives every tile), so these two clicks tick both cards without
-opening either tool.
-
-SHOT NOTE (misc-sessions-by-tool, NOT PUBLISHED): the "View sessions" result
-had a recipe of its own (`/#/p?tools=qr-code,d3`, views/projects.ts's
-toolsBodyHtml()), dropped here because it has no `drive=` that can
-manufacture its own content - a saved session isn't a click away, it has to
-already exist, and build-docs-shots.ts gives every shot a fresh
-`browser.newContext()`. It would publish an empty list. Same dependency the
-`projects` shot above already carries; revisit if the pipeline gains a
-storage-seeding hook.
--->
+**Projects**، ہوم اسکرین کے اوپر موجود **Projects** ٹیب، وہ سب کچھ رکھتا ہے جو آپ نے محفوظ کیا ہے، اُن فولڈرز میں جو آپ خود بناتے ہیں۔ وہاں اپنا کام تلاش کرنا، ترتیب دینا اور تلاش کرنا، اور **ٹریش** سے کوئی آئٹم بحال کرنا، سب [اپنا کام تلاش اور بازیافت کریں](/info/find-your-work.html#find-something-you-saved) پر ہے۔
 
 
 ## اپنا کام شیئر کرنا
@@ -297,7 +306,7 @@ storage-seeding hook.
 
 ہر ان پٹ صفحے کے URL میں محفوظ ہوتا ہے، تو لنک *ہی* ڈیزائن ہے۔ ڈائیلاگ کے اوپر کاپی کے لیے تیار لنک ہوتا ہے، اور اس کے نیچے دو سکڑے ہوئے سیکشن۔
 
-- **Link options** میں **Shortest link** ہے (بڑا ڈیزائن لمبا URL بناتا ہے، تو یہ پوری حالت کو ایک مختصر ٹوکن میں سمیٹ دیتا ہے اور آپ کو حروف میں بچت دکھاتا ہے؛ پڑھنے کے قابل شکل بھی ہمیشہ موجود رہتی ہے)، **Password-protect this link** (پورے لنک پر AES-256، اور پاس ورڈ کبھی اس میں نہیں ہوتا) اور **Pin this tool version** - یعنی `_v` فلیگ، جو لنک کو اسی ٹول ورژن سے باندھ دیتا ہے جو آپ دیکھ رہے ہیں تاکہ بعد کی کوئی اپ ڈیٹ اس کی رینڈرنگ نہ بدل سکے۔
+- **Link options** میں **Open in the installed app** (فیلڈ کو Shortcuts، لانچرز اور آٹومیشن کے لیے ایک `lolly://` URI میں بدل دیتا ہے، ہر پیرامیٹر جوں کا توں رکھتے ہوئے)، **Shortest link** (بڑا ڈیزائن لمبا URL بناتا ہے، تو یہ پوری حالت کو ایک مختصر ٹوکن میں سمیٹ دیتا ہے اور آپ کو حروف میں بچت دکھاتا ہے؛ پڑھنے کے قابل شکل بھی ہمیشہ موجود رہتی ہے)، **Password-protect this link** (پورے لنک پر AES-256، اور پاس ورڈ کبھی اس میں نہیں ہوتا) اور **Pin this tool version** ہے - یعنی `_v` فلیگ، جو لنک کو اسی ٹول ورژن سے باندھ دیتا ہے جو آپ دیکھ رہے ہیں تاکہ بعد کی کوئی اپ ڈیٹ اس کی رینڈرنگ نہ بدل سکے۔
 - **Link behaviour** یہ ہے کہ وصول کنندہ کے کھولنے پر کیا ہوگا: پوری اسکرین، ایکسپورٹ پینل پہلے سے کھلا، `&export` کے ساتھ کھلتے ہی ڈاؤن لوڈ یا `&copy` کے ساتھ کلپ بورڈ پر کاپی۔
 
 لنک کسی ساتھی کو بھیجیں، بک مارک کریں یا کوڈ میں کمِٹ کر دیں۔ (مکمل تفصیل: [URL Mode](/info/url-mode.html)۔)
@@ -310,7 +319,18 @@ storage-seeding hook.
 
 ### .lolly فائل
 
-جس ٹول میں آپ کام کر رہے ہیں اس کے Share ڈائیلاگ میں **Download .lolly** وہی ڈیزائن ایک فائل کے طور پر لکھ دیتا ہے۔ یہ محفوظ سیشن کے ساتھ وہ تصاویر اور فائلیں بھی لے جاتا ہے جو آپ نے اپنی ڈیوائس سے شامل کیں۔ ڈیزائن جس کیٹلاگ آرٹ پر انحصار کرتا ہے وہ بھی اندر ساتھ چلا جاتا ہے، تو فائل ایسی مشین پر بھی مکمل کھلتی ہے جس نے آپ کا برانڈ کبھی نہ دیکھا ہو۔ جہاں آپ کی ڈیوائس میں شیئر شیٹ ہو، وہاں **Send to…** وہ فائل ڈسک پر محفوظ کرنے کے بجائے سیدھا اسی کے حوالے کر دیتا ہے (AirDrop، Android کا شیئر)۔
+`.lolly` Lolly کا پورٹیبل بنڈل ایکسٹینشن ہے، یہ وعدہ نہیں کہ ہر فائل ایک ہی چیز رکھتی ہے۔ اصل حوالہ `manifest.json` میں موجود `format` ہے۔ ایپ پہلے وہ چھوٹا سا مینی فیسٹ پڑھتی ہے اور کچھ بھی لکھنے سے پہلے سائز، مواد اور عمل دکھاتی ہے:
+
+- ایک **شیئرڈ ڈیزائن** (`lolly-share`) ایک محفوظ ٹول سیشن، اس کی ایمبیڈڈ فائلیں اور ہر اس چیز کی رسید رکھتا ہے جو اب بھی reference کے ذریعے حل ہوتی ہے۔ یہ ٹول اور اسے بنانے میں استعمال ہونے والا design system بھی ساتھ لے جا سکتا ہے۔ کھولنے سے ایک نیا Project شامل ہوتا ہے؛ یہ کسی موجودہ سیشن کو کبھی overwrite نہیں کرتا۔
+- ایک **شیئرڈ پراجیکٹ** (`project` قسم کے ساتھ `lolly-share`) Projects کا ایک فولڈر رکھتا ہے: اس کے ذیلی فولڈرز، اس میں فائل شدہ ہر محفوظ سیشن، ہر سیشن کی ٹائل اور وہاں فائل شدہ تصاویر۔ کھولنے سے پورے فولڈر کی ایک نقل Projects میں شامل ہو جاتی ہے؛ جو پہلے سے موجود ہے وہ تبدیل نہیں ہوتا۔ project files کے وجود سے پہلے کا Lolly ایسی فائل نہیں پڑھ سکتا اور اپ ڈیٹ کرنے کو کہتا ہے۔
+- ایک **ڈیزائن سسٹم پیک** (`lolly-brand`) ٹوکنز رکھتا ہے اور فونٹس، لوگو، شائع شدہ ورژنز اور محفوظ رکھے گئے وسائل بھی رکھ سکتا ہے۔ کھولنے سے یہ ایک الگ نام والے design system کے طور پر شامل ہوتا ہے، پھر اسی پر سوئچ کر دیتا ہے؛ ڈیوائس پر پہلے سے موجود سسٹمز برقرار رہتے ہیں۔
+- ایک **برانڈ ورک اسپیس / انسٹینس پیک** ایک `lolly-brand` ہے جس میں اعلان کردہ ٹولز، کیٹلاگ اثاثے اور اختیاری طور پر ایک انسٹینس ایڈریس ہوتا ہے۔ preflight ان ڈیوائس بھر پھیلے اثرات کی فہرست دیتا ہے کیونکہ اسے لوڈ کرنا پہلے سے لوڈ شدہ اکلوتے workspace overlay کی جگہ لے لیتا ہے۔
+
+مکمل **ڈیوائس/پروفائل بیک اپ `.lolly` نہیں ہے**۔ یہ فارمیٹ `lolly-backup` کے ساتھ `LollyTools-….zip` ہی رہتا ہے، اور صرف **سیٹنگز → اسٹوریج** کے ذریعے بحال ہوتا ہے۔ ایک سادہ زپ شدہ ٹول فولڈر بھی `.zip` ہی رہتا ہے۔ دوسرے الفاظ میں، سیشن اور design system بنڈلز کی ملکیت `.lolly` ہے؛ بیک اپ اور علیحدہ آرکائیو کے طریقہ کار کی نہیں۔
+
+**Download .lolly**، اس ٹول کے Share ڈائیلاگ میں جس میں آپ کام کر رہے ہیں، موجودہ ڈیزائن کو ایک شیئرڈ ڈیزائن بنڈل کے طور پر لکھتا ہے۔ یہ محفوظ سیشن کو اس ڈیوائس پر دستیاب تصاویر اور فائلوں کے ساتھ لے جاتا ہے۔ عام کیٹلاگ آرٹ بھی ساتھ چلا جاتا ہے۔ لائسنس شدہ آرٹ روکا جاتا ہے جب تک آپ اسے واضح طور پر شامل نہ کریں، اور کوئی پرانی یا ناقابلِ دستیاب فائل غائب ہونے کے بجائے ایک بیرونی reference ہی رہتی ہے۔ تیار شدہ رسید اصل `.lolly` سائز، ایمبیڈڈ فائل کی تعداد، بیرونی reference کی تعداد اور یہ کہ ٹول شامل ہے یا نہیں دکھاتی ہے۔ جہاں آپ کی ڈیوائس میں شیئر شیٹ ہو، وہاں **Send to…** وہ فائل ڈسک پر محفوظ کرنے کے بجائے سیدھا اسی کے حوالے کر دیتا ہے (AirDrop، Android کا شیئر)۔
+
+**Projects** میں ایک فولڈر کے مینو میں **Download project (.lolly)**، اس فولڈر کو ایک شیئرڈ پراجیکٹ کے طور پر لکھتا ہے، تاکہ کوئی اور شخص اسے کھول کر اس میں موجود ہر سیشن پر کام جاری رکھ سکے۔ ہر سیشن اپنے ہی حصے کے طور پر سفر کرتا ہے (`sessions/<key>.json`، اس کی ٹائل `thumbs/` کے نیچے)، فولڈر کا درخت `manifest.json` میں درج ہوتا ہے، اور اپ لوڈز اور کیٹلاگ آرٹ اسی قاعدے کے تحت سفر کرتے ہیں جس کے تحت ایک اکیلا شیئرڈ ڈیزائن کرتا ہے۔ Batch سیشن ٹول سیشن نہیں ہوتے اور پیچھے رہ جاتے ہیں؛ نوٹس بتاتا ہے کہ کتنے۔ اس کے ساتھ **اصل فائلیں ڈاؤن لوڈ کریں** بلا تبدیلی ہے: ہر آئٹم کا اپنی فائل کے طور پر ایک سادہ زپ۔
 
 `.lolly` ایک عام زپ ہے۔ اس کا نام بدل کر `.zip` کریں اور کھول لیں: آپ کی اپنی تصاویر `assets/uploads/` کے نیچے ہیں اور کیٹلاگ آرٹ `assets/catalog/` کے نیچے، ہر ایک اپنے اصل نام اور ایکسٹینشن کے ساتھ، `manifest.json` سب کی فہرست دیتا ہے اور اوپر موجود ایک README بتاتا ہے کہ یہ فائل کیا ہے۔
 
@@ -320,9 +340,13 @@ storage-seeding hook.
 - **کیا لائسنس شدہ آرٹ شامل ہو۔** لائسنس شدہ اور برانڈ-لاک شدہ اثاثے بطور ڈیفالٹ روکے جاتے ہیں۔ اگر ڈیزائن ان میں سے کوئی استعمال کرتا ہے، تو ڈائیلاگ بتاتا ہے کہ کتنے ہیں اور دو بٹن پیش کرتا ہے - *ان کے بغیر ڈاؤن لوڈ کریں* یا *شامل کریں اور ڈاؤن لوڈ کریں* - کیونکہ انہیں شامل کرنے سے اصل فائلیں `.lolly` کھولنے والے کسی بھی شخص کے حوالے ہو جاتی ہیں۔
 - **کیا ٹول شامل ہو۔** **Include the tool** ٹول کی اپنی فائلوں کو ڈیزائن کے ساتھ پیک کرتا ہے، تاکہ یہ ایسی ڈیوائس پر بھی کھلے جس کے پاس وہ ٹول نہ ہو۔ یہ ایک کسٹم ٹول کے لیے پہلے سے ٹِک شدہ آتا ہے - ایک فورک یا نجی برانڈ ٹول جو آپ کے وصول کنندہ کے پاس شاید نہ ہو - اور اس ٹول کے لیے غیر ٹک شدہ جو دستخط شدہ کیٹلاگ میں درج ہے، کیونکہ ان کی کاپی اسی ذریعے سے آتی ہے۔ (ایسے بلڈ پر جس میں کوئی دستخط شدہ کیٹلاگ نہ ہو، ہر ٹول کسٹم شمار ہوتا ہے اور باکس پہلے سے ٹِک شدہ شروع ہوتا ہے۔)
 
-**فائل کھولنا۔** ایپ پر `.lolly` ڈراپ کریں: assets آپ کی لائبریری میں چلے جاتے ہیں، سیشن Projects میں چلا جاتا ہے، اور tool اس پر کھل جاتا ہے۔ آپ کی کوئی چیز overwrite نہیں ہوتی: سیشن ایک نئی محفوظ slot کے طور پر آتا ہے، جبکہ اس آلے پر پہلے سے موجود کوئی asset checksum کے ذریعے ملایا اور دوبارہ استعمال کیا جاتا ہے، نقل نہیں کیا جاتا۔ آنے کے دوران ہر حصے کو فائل کے اپنے checksums کے خلاف جانچا جاتا ہے، اس لیے راستے میں خراب ہونے والی کاپی کو مسترد کر دیا جاتا ہے، آدھی import نہیں کی جاتی۔
+**فائل کھولنا۔** کسی انسٹال شدہ ڈیسک ٹاپ یا موبائل ایپ پر، `.lolly` پر ڈبل کلک یا ٹیپ کریں، **Open with Lolly** منتخب کریں، یا سسٹم شیئر شیٹ سے اسے Lolly کو بھیجیں۔ macOS، Windows، Linux، iOS اور Android سب اس فارمیٹ کو رجسٹر کرتے ہیں؛ ڈیسک ٹاپ فائل مینیجرز اسے ایک Lolly دستاویز کے طور پر دکھاتے ہیں (اور GNOME Files محفوظ سیشن کا اپنا تھمب نیل دکھا سکتا ہے)۔ ویب ایپ میں، **کھولیں** استعمال کریں یا فائل کو Lolly پر ڈراپ کریں۔ ہر دروازہ وہی manifest-first preflight استعمال کرتا ہے۔ Brand Studio سے کھولنا design system کا عمل تجویز کرتا ہے جب کوئی شیئرڈ ڈیزائن ایک ساتھ رکھتا ہو، لیکن یہ فائل کا نام کبھی نہیں بدلتا اور نہ **مشترکہ ڈیزائن** چھپاتا ہے۔
 
-اگر فائل میں ایسا ٹول ہو جو آپ کے پاس نہیں، تو Lolly اسے چلانے سے پہلے پوچھتا ہے: **Trust this tool?** اس کا اور اس کے مصنف کا نام بتاتا ہے اور صاف کہتا ہے کہ اسے کھولنے کا مطلب ٹول کا اپنا کوڈ آپ کی ڈیوائس پر چلانا ہے، اور آگے بڑھنے کا راستہ **Trust & install** ہے۔ انکار کریں تو شیئر کیا گیا کام پھر بھی آپ کے پروجیکٹس میں محفوظ ہو جاتا ہے، اُس دن کے انتظار میں جب آپ وہ ٹول شامل کریں۔ (ایک قسم کا ٹول ابھی سائیڈ لوڈ نہیں ہو سکتا - وہ جس کا کوڈ ماڈیول کے طور پر آتا ہے - اور اسے بھی اسی طرح واپس کر دیا جاتا ہے۔)
+دوسری ایپ سے حوالے کی گئی iOS یا Android دستاویز 48 MB پر محدود ہے کیونکہ native hand-off کو اپنے بائٹس ایپ کی حد پار کرتے ہوئے کاپی کرنے پڑتے ہیں۔ موبائل ایپ خاموشی سے زیادہ سائز کی فائل کو نظر انداز کرنے کے بجائے یہ بتا دیتی ہے۔ Lolly کے اندر **کھولیں** وہ hand-off استعمال نہیں کرتا؛ بڑے بنڈل کے لیے یہی آزمانے کا راستہ ہے۔
+
+تصدیق کے بعد منتخب reader بنڈل کو ایک بار پھلاتا اور تصدیق کرتا ہے۔ ایک شیئرڈ ڈیزائن کے اثاثے آپ کی لائبریری میں جاتے ہیں، اس کا سیشن Projects میں جاتا ہے اور دستیاب ہونے پر اس کا ٹول کھل جاتا ہے۔ ایک شیئرڈ پراجیکٹ کے سیشنز اس کے فولڈرز کی ایک نئی نقل کے تحت Projects میں جاتے ہیں، نئی ids کے ساتھ تاکہ ایک ہی فائل دو بار کھولی جا سکے، اور فولڈر کھل جاتا ہے؛ جس سیشن کا ٹول اس ڈیوائس کے پاس نہیں وہ وہیں انتظار کرتا ہے۔ ڈیوائس پر پہلے سے موجود اثاثہ checksum سے ملایا اور دوبارہ استعمال کیا جاتا ہے۔ design system پیک ایپ کے سوئچ کرنے سے پہلے اپنی الگ namespace میں محفوظ ہوتا ہے۔ 100 MB سے بڑی فائلوں کو بڑی قرار دیا جاتا ہے، اور preflight خبردار کرتا ہے جب براؤزر اسٹوریج اعلان کردہ payload کی ضرورت سے کم خالی جگہ بتائے۔ عمل کے commit ہونے سے پہلے integrity سے ڈھکا ہر حصہ جانچا جاتا ہے؛ خراب نقل مسترد کر دی جاتی ہے اور نئے بنائے گئے مقام کو واپس پلٹ دیا جاتا ہے۔
+
+اگر فائل ایسا ٹول رکھتی ہو جو آپ کے پاس نہیں، تو Lolly اسے چلانے سے پہلے پوچھتا ہے: **اس ٹول پر اعتماد کریں؟** اس کا اور اس کے مصنف کا نام بتاتا ہے اور صاف کہتا ہے کہ اسے کھولنے کا مطلب ٹول کا اپنا کوڈ آپ کی ڈیوائس پر چلانا ہے، اور آگے بڑھنے کا راستہ **اعتماد کریں اور انسٹال کریں** ہے۔ انکار کریں تو شیئر کیا گیا کام پھر بھی آپ کے پراجیکٹس میں محفوظ ہو جاتا ہے، اس دن کے انتظار میں جب آپ وہ ٹول شامل کریں۔ (ایک قسم کا ٹول ابھی سائیڈ لوڈ نہیں ہو سکتا - وہ جس کا کوڈ ماڈیول کے طور پر آتا ہے - اور اسے بھی اسی طرح واپس کر دیا جاتا ہے۔)
 
 لنک اور فائل دونوں ایک لمحے کی تصویر سونپتے ہیں۔ کسی اور کے ساتھ *ایک ہی وقت* میں ایک ہی سیشن پر کام کرنے کے لیے - دو ڈیوائسیں، کوئی سرور نہیں، ایک ہی نیٹ ورک پر ہوں تو انٹرنیٹ کی بھی ضرورت نہیں - دیکھیں [مل کر کام کرنا](/info/collaborate.html)۔
 
@@ -332,13 +356,13 @@ storage-seeding hook.
 
 ## میری تصاویر (My images)
 
-جب کوئی ٹول آپ کو اپنی ڈیوائس سے تصویر شامل کرنے دیتا ہے، تو وہ بالکل ویسی ہی رکھی جاتی ہے جیسی آئی تھی - تاکہ اس پر موجود Content Credential اب بھی تصدیق ہو سکے - اور آپ کی ذاتی **My images** لائبریری میں محفوظ ہو جاتی ہے (**Profile → Storage** کے تحت)۔ صرف واقعی بہت بڑی فائل پوچھتی ہے کہ اسے ویسے ہی رکھنا ہے یا ری سائز کرنا ہے۔ اسے کسی بھی ٹول میں دوبارہ استعمال کریں۔ تصاویر آتے وقت EXIF/GPS صاف کرنے کے لیے اپنی پروفائل میں **Strip metadata from uploads** آن کریں۔ کوئی حد نہیں: لائبریری مکمل طور پر مقامی ہے اور صرف آپ کی ڈیوائس کی گنجائش سے محدود ہے - تصاویر وہیں سے منظم یا حذف کریں۔
+جب کوئی ٹول آپ کو اپنی ڈیوائس سے تصویر شامل کرنے دیتا ہے، تو وہ بالکل ویسی ہی رکھی جاتی ہے جیسی آئی تھی - تاکہ اس پر موجود Content Credential اب بھی تصدیق ہو سکے - اور آپ کی ذاتی **My images** لائبریری میں محفوظ ہو جاتی ہے (**Settings → Storage** کے تحت)۔ صرف واقعی بہت بڑی فائل پوچھتی ہے کہ اسے ویسے ہی رکھنا ہے یا ری سائز کرنا ہے۔ اسے کسی بھی ٹول میں دوبارہ استعمال کریں۔ تصاویر آتے وقت EXIF/GPS صاف کرنے کے لیے اپنی پروفائل میں **Strip metadata from uploads** آن کریں۔ کوئی حد نہیں: لائبریری مکمل طور پر مقامی ہے اور صرف آپ کی ڈیوائس کی گنجائش سے محدود ہے - تصاویر وہیں سے منظم یا حذف کریں۔
 
 ## اثاثے (Assets) - آپ کی لائبریری
 
 **اثاثے** ویو (`#/a`، یا ہر فہرست والے ویو کے اوپر موجود ٹولز · یوٹیلیٹیز · اثاثے · پراجیکٹس سوئچ کا **اثاثے** حصہ) وہ سب جمع کرتا ہے جس پر آپ کے ٹولز انحصار کر سکتے ہیں - برانڈ لوگو، تصاویر، آڈیو اور موشن، قسم کے حساب سے گروپ شدہ - اور آپ کی **اپنی تخلیقی فائلیں** بھی یہیں رہتی ہیں۔ کوئی سرور نہیں، کوئی ایڈمن کنسول نہیں، کوئی پُل ریکویسٹ نہیں: سب کچھ آپ کی ڈیوائس پر ہے۔
 
-![اثاثے - برانڈ اثاثے، سواچز اور فونٹس، اور ساتھ آپ کی اپنی اپ لوڈ کردہ فائلیں](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
+![اثاثے، برانڈ کے سواچز اور فونٹس اور آپ کی اپنی اپ لوڈز کے ساتھ](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
 - <!--i:upload--> **اپنی فائلیں لائیں۔** کوئی بھی تصویر، SVG، آڈیو کلپ، ویڈیو، Lottie، PDF یا PowerPoint deck upload کے علاقے پر ڈریگ کریں - یا چننے کے لیے کلک کریں - اور یہ فوراً اثاثوں میں آ جاتا ہے، ہر tool کے asset picker میں تیار۔ ایک multi-page PDF یا `.pptx` پوچھتا ہے کہ کون سے صفحات یا slides رکھنے ہیں - ہر ایک ایک SVG asset بن جاتا ہے۔ جتنا چاہیں ingest کریں؛ یہ کبھی آپ کے آلے سے باہر نہیں جاتا۔
 - <!--i:star--> **جسے آپ بار بار استعمال کریں اسے favourite بنائیں۔** کسی asset (یا برانڈ swatch) پر ★ کریں اور یہ ہر picker کے اوپر pin ہو جاتا ہے، تاکہ آپ کا پسندیدہ لوگو یا رنگ ایک کلک کی دوری پر ہو۔
@@ -363,31 +387,19 @@ storage-seeding hook.
 
 Lolly کی کوشش ہے کہ وہ ہر کسی کے لیے استعمال میں آسان ہو۔ انٹرفیس کی بورڈ سے چلایا جا سکتا ہے، حسبِ ضرورت کنٹرولز اسکرین ریڈرز کے لیے مناسب لیبل رکھتے ہیں، اور ہر ٹول کا لائیو پیش نظارہ ایک واحد لیبل شدہ تصویر کے طور پر پیش کیا جاتا ہے جو بتاتی ہے کہ کیا بن رہا ہے۔
 
-**معاون آوازوں** کی ایک ہلکی تہہ آپ کے عمل کی تصدیق کرتی ہے - گیلری میں پہنچنا، Content Credentials کی جانچ کا درست یا غلط ہونا، کوئی پینل بند کرنا، فلٹر بدلنا۔ یہ **ڈیفالٹ پر بند** ہے: جہاں بھی سوئچ نظر آئے وہاں **Sound** آن کر دیں (ہر ویو کا آپشنز پاپ اوور، یا **Profile**)، اور آپ کا انتخاب یاد رکھا جاتا ہے۔
+**معاون آوازوں** کی ایک ہلکی تہہ آپ کے عمل کی تصدیق کرتی ہے - گیلری میں پہنچنا، Content Credentials کی جانچ کا درست یا غلط ہونا، کوئی پینل بند کرنا، فلٹر بدلنا۔ یہ **ڈیفالٹ پر بند** ہے: جہاں بھی سوئچ نظر آئے وہاں **Sound** آن کر دیں (ہر ویو کا آپشنز پاپ اوور، یا **سیٹنگز**)، اور آپ کا انتخاب یاد رکھا جاتا ہے۔
 
-**Profile → Accessibility** کے تحت چار اختیاری آسائشی سیٹنگز ہیں: **Reduce motion** (ایپ کی ٹرانزیشنز اور سجاوٹی حرکتیں ہٹا دیتی ہے)، **Hide colourful previews** (گیلری کارڈز کو پرسکون آئیکن اور متن تک محدود کرتی ہے، اور پروجیکٹ تھمب نیلز کو مدھم)، **High contrast** (زیادہ نمایاں بارڈر، متن اور فوکس رِنگ) اور **Large text** (ایپ کا بڑا ٹائپ - لیبل، مینو، بٹن کا متن)۔ چاروں ایپ کو آپ کے کام کے *اردگرد* پرسکون کرتی ہیں: یہ کبھی ٹول کینوس کے اندر نہیں پہنچتیں اور نہ آپ کے ایکسپورٹ کا ایک پکسل بدلتی ہیں، اور ہر ایک اس وقت تک بند رہتی ہے جب تک آپ اسے آن نہ کریں۔ مکمل تفصیل [آپ کی پروفائل → رسائی](/info/profile.html#accessibility) میں۔
+**سیٹنگز → Accessibility** کے تحت چار اختیاری آسائشی سیٹنگز ہیں: **Reduce motion** (ایپ کی ٹرانزیشنز اور سجاوٹی حرکتیں ہٹا دیتی ہے)، **Hide colourful previews** (گیلری کارڈز کو پرسکون آئیکن اور متن تک محدود کرتی ہے، اور پروجیکٹ تھمب نیلز کو مدھم)، **High contrast** (زیادہ نمایاں بارڈر، متن اور فوکس رِنگ) اور **Large text** (ایپ کا بڑا ٹائپ - لیبل، مینو، بٹن کا متن)۔ چاروں ایپ کو آپ کے کام کے *اردگرد* پرسکون کرتی ہیں: یہ کبھی ٹول کینوس کے اندر نہیں پہنچتیں اور نہ آپ کے ایکسپورٹ کا ایک پکسل بدلتی ہیں، اور ہر ایک اس وقت تک بند رہتی ہے جب تک آپ اسے آن نہ کریں۔ مکمل تفصیل [آپ کی پروفائل → رسائی](/info/profile.html#accessibility) میں۔
 
 Sound سوئچ کے ساتھ **Neurospicy Mode** ہے - ایک اختیاری، پرسکون پس منظر کا فوکس ٹریک جو آپ کے کام کے دوران دھیمے سے چلتا ہے۔ اسے آن کرنے سے نیچے والے کونے میں ایک چھوٹا **پلیئر ڈاک** کھلتا ہے جو پوری ایپ میں آپ کے ساتھ چلتا ہے؛ اس سے آپ ٹریک تلاش اور منتخب کر سکتے ہیں، آگے پیچھے جا سکتے ہیں، والیوم مقرر کر سکتے ہیں اور اسے چھوٹا یا بند کر سکتے ہیں۔ ٹریک کی فہرست چند زمروں پر پھیلی ہے - خودکار طور پر بنی *Lolly Sings* دھنیں، ماحولیاتی لُوپس اور بیٹس، آپ کی اپنی اپ لوڈ کردہ آڈیو، اور چند لائیو انٹرنیٹ **radio** اسٹیشن (ان کے لیے کنکشن درکار ہے؛ باقی سب آف لائن چلتا ہے)۔ یہ **ڈیفالٹ پر بند** ہے اور Sound کی طرح سیشنز اور ڈیوائسز کے درمیان یاد رکھا جاتا ہے۔ Sound بند کرنے سے فوکس ٹریک بھی خاموش ہو جاتا ہے۔
 
 ## اسٹوریج اور رازداری
 
-سب کچھ آپ کے براؤزر کے مقامی ڈیٹابیس (IndexedDB) میں محفوظ ہوتا ہے: آپ کی پروفائل، محفوظ سیشنز، اپ لوڈ کی گئی تصاویر اور ڈاؤن لوڈ شدہ کیٹلاگ مواد کا کیش۔ **Profile → Storage** استعمال دکھاتا ہے اور آپ کو یہ سہولت دیتا ہے:
-
-- <!--i:box--> **Clear cache** - ڈاؤن لوڈ شدہ کیٹلاگ مواد ہٹا دیں (اگلی بار لوڈ ہونے پر دوبارہ سنک ہو جاتا ہے)۔
-- <!--i:trash--> **Clear all my data** - پروفائل، سیشنز اور تصاویر مٹا دیں۔ *یہ واپس نہیں ہو سکتا۔*
-
-![فون کی چوڑائی والی اسکرین پر اسٹوریج کارڈ: ڈیوائس پر موجود ڈیٹا کا ہر زمرہ نام کے ساتھ، اور نیچے Clear all my data بٹن](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
-
-یہ مقامی ڈیٹا کہیں بھی منتقل نہیں ہوتا - کوئی ٹیلی میٹری نہیں، کوئی کلاؤڈ رینڈرنگ نہیں۔ ایپ کبھی جو کچھ حاصل یا ارسال کرتی ہے اس کی مکمل فہرست [رازداری کی پالیسی](/info/privacy.html) میں ہے، اور [Server Surface](/info/server-surface.html) اختیاری سرور اجزاء کی فہرست دیتا ہے۔
+Lolly آپ کا کام آپ کی ڈیوائس پر رکھتا ہے: ویب ایپ میں اسی براؤزر کے اپنے اسٹوریج میں، اور ڈیسک ٹاپ اور موبائل ایپس میں ایپ کے اپنے اسٹوریج میں۔ کیا رکھا جاتا ہے، **میرا تمام ڈیٹا صاف کریں** کیا ہٹاتا ہے، اور براؤزر ڈیٹا صاف کرنے سے ساتھ کیا جاتا ہے، یہ سب [اپنا کام تلاش اور بازیافت کریں](/info/find-your-work.html#if-you-clear-your-browser-data) میں ہے؛ [رازداری کی پالیسی](/info/privacy.html) وہ سب کچھ درج کرتی ہے جو ایپ حاصل یا ارسال کرتی ہے، اور [Server Surface](/info/server-surface.html) اختیاری سرور اجزاء کی فہرست دیتا ہے۔
 
 ## کسی دوسری ڈیوائس پر منتقل ہونا
 
-چونکہ سب کچھ آپ کی ڈیوائس پر ہے، **Profile → Storage → Move to another device** آپ کو یہ سب دوسری تنصیب پر لے جانے دیتا ہے - نہ کوئی اکاؤنٹ، نہ کلاؤڈ:
-
-- <!--i:download--> **Export my data** ایک ہی `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` ڈاؤن لوڈ کرتا ہے (نام کے حصے آپ کی پروفائل سے آتے ہیں اور مقرر نہ ہوں تو چھوڑ دیے جاتے ہیں؛ `<n>` روزانہ کا شمار کنندہ ہے تاکہ ایک ہی دن کے ایکسپورٹ آپس میں نہ ٹکرائیں) جس میں آپ کی پروفائل، ہر محفوظ سیشن (اپنے تھمب نیل سمیت)، آپ کی اپ لوڈ کردہ تصاویر اور آپ کی ترجیحات (تھیم، سائیڈبار کی چوڑائی، مقامی سرگرمی کے اعداد و شمار) شامل ہوتی ہیں۔
-- <!--i:upload--> دوسری تنصیب پر **Import data…** وہ فائل واپس پڑھ لیتا ہے۔ یہ **ضم کرتا ہے**: ایک ہی نام والی ہر چیز (آپ کی پروفائل، کوئی سیشن سلاٹ، کوئی تصویر) امپورٹ شدہ نقل سے بدل دی جاتی ہے؛ اس ڈیوائس پر باقی سب کچھ برقرار رہتا ہے۔ محفوظ سیشنز خود بخود آپ کی امپورٹ کردہ تصاویر سے دوبارہ جڑ جاتے ہیں۔
-
-کیٹلاگ کیش شامل نہیں - وہ نئی ڈیوائس پر خود دوبارہ ڈاؤن لوڈ ہو جاتا ہے۔ بنڈل ایک سادہ زپ ہے (`manifest.json` + `profile.json` + `sessions.json` + `assets.json` + `assets/blobs/…` + `prefs.json`، فارمیٹ id `lolly-backup`)، تو یہ ای میل، USB یا AirDrop سے صحیح سالم گزر جاتا ہے اور یہی فارمیٹ ہر شیل پڑھتا ہے۔ ہر حصے کا چیک سم ہوتا ہے، تو راستے میں خراب ہونے والی فائل امپورٹ کے وقت پکڑی جاتی ہے، آدھی ٹوٹی حالت میں بحال نہیں ہوتی۔ (مکمل فارمیٹ تفصیل: [Data Transfer](/info/data-transfer.html)۔)
+اپنا کام کسی دوسرے کمپیوٹر یا فون تک لے جانے کے لیے Sync، بیک اپ فائل یا `.lolly` فائل استعمال کریں۔ [اپنا کام دوسری ڈیوائس پر منتقل کریں](/info/find-your-work.html#move-your-work-to-another-device) تینوں کا موازنہ کرتا ہے اور **میرا ڈیٹا ایکسپورٹ کریں** اور **ڈیٹا امپورٹ کریں…** مرحلہ بہ مرحلہ سمجھاتا ہے۔
 
 ## ڈیزائن امپورٹ کرنا (Figma، Penpot، Illustrator، InDesign)
 
@@ -403,7 +415,7 @@ Sound سوئچ کے ساتھ **Neurospicy Mode** ہے - ایک اختیاری، 
 
 ![batch toolbar - zip کا نام، اکائیاں، DPI اور وہ format جو ہر row وراثت میں پاتی ہے، دائیں جانب Sessions اور Render کے ساتھ](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.pro-toolbar&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
-Batch ایک ہی ٹیمپلیٹ کی **کئی اقسام** ایک ساتھ بنانے کے لیے ہے۔ جو سیشن آپ **پہلے محفوظ کر چکے** ہیں انہیں دوبارہ رینڈر کرنے کے لیے **Projects → Render folder / Render selection** استعمال کریں (اوپر) - Pro کی ضرورت نہیں۔
+Batch ایک ہی ٹیمپلیٹ کی **کئی اقسام** ایک ساتھ بنانے کے لیے ہے۔ جو سیشن آپ **پہلے محفوظ کر چکے** ہیں انہیں دوبارہ رینڈر کرنے کے لیے **Projects → Render folder / Render selection** استعمال کریں (دیکھیں [اپنا کام تلاش اور بازیافت کریں](/info/find-your-work.html#find-something-you-saved)) - Pro کی ضرورت نہیں۔
 
 ## ساتھ ساتھ ایڈیٹنگ (Multi-edit)
 
@@ -423,6 +435,8 @@ Batch *ایک* ڈیزائن کی بہت سی قسمیں ہیں۔ **Multi-edit** 
 
 ## آف لائن اور انسٹال
 
-Lolly ایک PWA ہے۔ پہلی بار لوڈ ہونے کے بعد یہ **آف لائن** کام کرتا ہے - ایپ جیسے، پوری اسکرین کے تجربے کے لیے اسے اپنے براؤزر کے ایڈریس بار سے انسٹال کریں (یا موبائل پر *Add to Home Screen*)۔ آن لائن واپس آنے پر یہ خود کو اپ ڈیٹ کر لیتا ہے۔
+Lolly ایک PWA ہے۔ یہ اُن اسکرینز پر **آف لائن** کام کرتا رہتا ہے جو آپ پہلے ہی کھول چکے ہیں، اور **سیٹنگز → Available offline** کے تحت **ایپ** باقی سب کچھ ڈاؤن لوڈ کر لیتی ہے - ایپ جیسے، پوری اسکرین کے تجربے کے لیے اسے اپنے براؤزر کے ایڈریس بار سے انسٹال کریں (یا موبائل پر *Add to Home Screen*)۔ آن لائن واپس آنے پر یہ خود کو اپ ڈیٹ کر لیتا ہے۔
 
-updates کے بارے میں: اگر کوئی view کسی update کے فوراً بعد load ہونے میں ناکام ہو جائے (خالی panel، کونے میں ایک "failed to fetch")، ایک بار صفحہ reload کریں - ایپ نئے ورژن کو صاف طریقے سے اپنا لیتی ہے اور آپ کا کام، sessions اور برانڈ نہیں چھیڑے جاتے۔ یہ سب کچھ آپ کے آلے پر محفوظ کرتی ہے، صفحے میں نہیں۔
+updates کے بارے میں: اگر کوئی view کسی update کے فوراً بعد load ہونے میں ناکام ہو جائے (خالی panel، کونے میں ایک "failed to fetch")، ایک بار صفحہ reload کریں - ایپ نئے ورژن کو صاف طریقے سے اپنا لیتی ہے اور آپ کا کام، sessions اور برانڈ نہیں چھیڑے جاتے؛ صرف وہ تصویر جو آپ نے شامل کی تھی اور کبھی محفوظ نہیں کی، دوبارہ شامل کرنی پڑ سکتی ہے۔ یہ سب کچھ آپ کے آلے پر محفوظ کرتی ہے، صفحے میں نہیں۔
+
+Design اور Darkroom **Wide colour / HDR** ایڈیٹنگ کے ساتھ اصل تصویر کی درستگی برقرار رکھ سکتے ہیں، بشمول Sequence ویڈیو۔ برانڈ سواچز الگ sRGB اور P3 اقدار رکھ سکتے ہیں۔ آؤٹ پٹ کے انتخاب اور موجودہ حدود کے لیے [Wide colour and HDR editing](/info/hdr-editing.html) دیکھیں۔

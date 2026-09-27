@@ -24,15 +24,15 @@ Your saved templates and your choices about shipped templates are kept on your [
 
 ## Save one from a tool
 
-1. Press **Save as…** on the render pill, beside **Export**.
+1. Press **Save as** on the render pill, beside **Export**.
 2. Two cards open. **Save to a project** keeps this one document. **Save as a template** keeps it as a starting point for new ones.
 3. Name it, add one line of description if that helps you recognise it in six months, and save.
 
 The template card also carries a checkbox. In Chart it reads **Start new Chart documents with this**, in Design **Start new Design documents with this**: the tool you are in names itself. Tick it and every blank open of that tool begins here instead of asking. There is more on that below.
 
-In **Design**, the **Lolly** menu has both doors: **Save as…** opens the dialog, and **Save as a template…** opens it with the template card ready to type into.
+In **Design**, the **Lolly** menu has both doors: **Save as** opens the dialog, and **Save as a template…** opens it with the template card ready to type into.
 
-The quick **Save** in the export panel is unchanged: one click, no dialog, it stores the session you are working in. **Save as…** is the one that asks which kind of save you meant.
+The quick **Save** in the export panel is unchanged: one click, no dialog, it stores the session you are working in. **Save as** is the one that asks which kind of save you meant.
 
 **What a template keeps:** every setting you touched, plus the export size and format you chose, so a poster template opens back at A4 and 300 dpi rather than at the tool's own default size. Pictures are kept as references to the asset in your library, not as copies.
 

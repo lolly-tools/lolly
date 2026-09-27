@@ -1,19 +1,33 @@
 # Dışa Aktarma ve Formatlar
 
-Bir araçtan bitmiş bir dosyanın nasıl alınacağı - doğru formatı seçmek, çıktı boyutunu ayarlamak ve her seçeneğin ne yaptığı. Her şeyde olduğu gibi, **dışa aktarma cihazında gerçekleşir**; hiçbir şey yüklenmez.
+Bir aracın **Dışa aktar | Farklı kaydet** düğmesinde **Dışa aktar**'a bas, dosya adının yanındaki menüden bir format seç, ardından **İndir**'e bas. Dosya cihazında oluşturulur; hiçbir şey yüklenmez.
+
+Çoğu iş için üç formattan biri doğrudur:
+
+| İçin | Kullan | Çünkü |
+|---|---|---|
+| Bir ekran, bir mesaj veya bir slayt | **PNG** | Her uygulama onu açar ve araç sunduğunda saydam bir arka planı korur |
+| Bitmiş bir sayfa veya basılan herhangi bir şey | **PDF** | Göründüğü gibi basılan gerçek bir sayfa boyutu; bir araç sunuyorsa **Print PDF**, matbaa için CMYK sürümüdür |
+| Her boyutta net kalması gereken görseller | **SVG** | Vektör şekiller, bir rozetten bir bannera kadar net |
+
+::: check Dosyayı kullanılacağı boyutta kontrol et
+Göndermeden önce, yapıldığı ekranda aç, ya da gerçek boyutunda yazdır.
+:::
+
+Bu sayfanın geri kalanı her formatı, boyutu ve seçeneği kapsar.
 
 ## Dışa aktarma nasıl çalışır
 
-Önizleme *dosyanın kendisidir*. Dışa aktardığında, host o tuvali seçtiğin formata işler ve sana bir indirme sunar (veya panoya koyar). Bir araç yalnızca yazarının bildirdiği formatları sunar, ve seçici tarayıcının üretemeyeceği formatları gizler (bkz. [Video](#video)).
+Önizleme *dosyanın kendisidir*. Dışa aktardığında, host o tuvali seçtiğin formata işler ve sana bir indirme sunar (veya panoya koyar). Seçici, tarayıcının üretemeyeceği formatları gizler (bkz. [Video](#video)).
 
 Bir dosya üreten üç yol vardır. Çoğu araç **tuvali** seçilen formata işler. Metin ve veri formatları (HTML, MD, TXT, JSON, CSV, ICS, VCF) ise resimden rasterleştirilmek yerine **aracın içeriğinden üretilir**. Ve gizlilik araçları (örn. *Gizli Verileri Temizle*) üçüncü bir yol kullanır: *senin* seçtiğin dosya cihaz üzerinde bayt bayt dönüştürülür ve doğrudan geri verilir - tuval yok, filigran yok ve eklenen köken meta verisi yok, çünkü zaten senin kendi dosyandır.
 
-Dışa aktarma kontrollerindeki eylemler:
+Dışa aktarma panelindeki eylemler:
 
-- <!--i:download--> **İndir** - dosyayı kaydet (birincil eylem).
+- <!--i:download--> **İndir** - dosyayı kaydet (birincil eylem). Sonradan bulamıyorsan, bkz. [İndirdiğin bir dosyayı bul](/info/find-your-work.html#find-a-file-you-downloaded).
 - <!--i:photos--> **Kopyala** - görseli doğrudan Slack'e, e-postaya, bir belgeye yapıştırmak üzere panona koy. Tarayıcının görselleri kopyalayamadığı yerde bunun yerine indirir ve sana bildirir.
-- <!--i:folder--> **Kaydet** - mevcut tasarımı kitaplığında kayıtlı bir araç oturumu olarak tut.
-- <!--i:link--> **Paylaş** - **Paylaşım iletişim kutusunu** açar: tasarımı yeniden üreten kopyalanabilir bir bağlantı, ziyarette açılan geçişler (tam ekran, dışa aktarma paneli, açılışta indirme veya kopyalama) ve tüm durumu kompakt bir tokene sıkıştıran isteğe bağlı bir **En Kısa Bağlantı** (bkz. [URL Modu](/info/url-mode.html)).
+- <!--i:folder--> **Kaydet** - mevcut tasarımı tek tıkla, nereye sorulmadan Projeler'de tutar; asla bir dosya indirmez. **Dışa aktar**'ın yanındaki **Farklı kaydet**, nereye olduğunu sorar (bkz. [Kaydetme ve devam etme](/info/using.html#saving-continuing)).
+- <!--i:link--> **Paylaş** - **Share dialog**'u açar: tasarımı yeniden üreten kopyalanabilir bir bağlantı, ziyarette açılan geçişler (tam ekran, dışa aktarma paneli, açılışta indirme veya kopyalama) ve tüm durumu kompakt bir tokene sıkıştıran isteğe bağlı bir **Shortest link** (bkz. [URL Modu](/info/url-mode.html)).
 
 (Bunlardan hangilerinin görüneceğini aracın yazarı seçer; varsayılan küme Kopyala, İndir ve Kaydet'tir.)
 
@@ -32,18 +46,18 @@ Kaydedilmiş bir oturum, Projeler'den bir araç bağlantısı olarak yeniden de 
 
 ## Format seçme
 
-Dosya adı ve format seçici, panelin üstünde tek bir `ad.format` çifti olarak durur, ve seçici yalnızca bu aracın yazarının bildirdiği formatları listeler.
+Dosya adı ve format menüsü, **İndir**'in altında tek bir `name.format` çifti olarak birlikte durur.
 
 ![Dosya adı alanı format seçiciyle birleşmiş, böylece dışa aktarma tek bir ad.format çifti gibi okunur](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
 | İstediğin… | Kullan | Neden |
 |---|---|---|
-| Ölçeklenen net logolar/görseller | **SVG** | Vektör - sonsuz ölçeklenebilir, küçük, düzenlenebilir |
+| Ölçeklenen net logolar/görseller | **SVG** | Vektör - sonsuz ölçeklenebilir, küçük, düzenlenebilir; vektör dışa aktarımın çizemediği bir efekt, görsel olarak gömülür |
 | Office/Windows uygulamaları için vektör | **EMF** | PowerPoint/Word'e düzenlenebilir vektör olarak yapıştırılır; metin canlı ve düzenlenebilir kalır, Google Drive ise Slaytlar için Google Çizimler'de açar |
 | Baskı/tasarım uygulamaları için vektör | **EPS** veya **EPS (CMYK)** | Illustrator/matbaa iş akışları için PostScript vektör |
 | Kesim/CAD makineleri için vektör | **DXF** | Lazer kesiciler, vinil plotterlar, CNC - milimetre cinsinden dış hat yolları |
 | Düzenlenebilir bir slayt destesi | **PowerPoint** (PPTX) | Yerel düzenlenebilir metin + şekiller, görseller ve vektörler çıkarılabilir kalır |
-| Taşınabilir bir eğitim kursu | **Kursu dışa aktar** | Proje içeriğini gözden geçir ve sürümlenmiş bir Web Sitesi, SCORM veya deneysel bir xAPI paketi oluştur |
+| Taşınabilir bir eğitim kursu | **Export course** | Proje içeriğini gözden geçir ve sürümlenmiş bir Web Sitesi, SCORM veya deneysel bir xAPI paketi oluştur |
 | Düzenlenebilir bir metin belgesi | **Word** (DOCX) veya **OpenDocument** (ODT) | Bir kelime işlemcinin düzenlemeye devam edebileceği gerçek paragraflar ve başlıklar (Doc Studio) |
 | Bir fotoğraf veya genel amaçlı görsel | **PNG** (kayıpsız) veya **JPG** (daha küçük) | Evrensel raster |
 | Daha küçük modern görseller | **WebP** / **AVIF** | Daha iyi sıkıştırma, alfa |
@@ -51,8 +65,8 @@ Dosya adı ve format seçici, panelin üstünde tek bir `ad.format` çifti olara
 | Matbaa için baskı rasteri | **Print TIFF** (CMYK) | Bir RIP için DeviceCMYK pikselleri |
 | Web için animasyon | **GIF** | Her yerde çalışır, daha büyük dosyalar |
 | Tam renk + gerçek alfa ile animasyon | **APNG** | Animasyonlu PNG - palet sınırı yok, gerçek saydamlık |
-| Animasyon, en küçük dosya | **Animated WebP** | Tam renk + alfa, GIF veya APNG'den daha iyi sıkıştırılmış |
-| Ölçeklenen animasyonlu vektör | **Animated SVG** | Kendi kendine yeterli; bir tarayıcıda veya `<img>` içinde döngüye girer, codec gerekmez, her boyutta |
+| Animasyon, en küçük dosya | **Animasyonlu WebP** | Tam renk + alfa, GIF veya APNG'den daha iyi sıkıştırılmış |
+| Ölçeklenen animasyonlu vektör | **Animasyonlu SVG** | Kendi kendine yeterli; bir tarayıcıda veya `<img>` içinde döngüye girer, codec gerekmez, her boyutta |
 | Sosyal medya/paylaşım için video | **MP4** veya **WebM** | Bayt başına en iyi kalite (aşağıya bakın) |
 | Zengin metin/e-posta imzası | **HTML** | Posta istemcilerine biçimlendirilmiş şekilde yapıştırılır |
 | Düz içerik | **MD** / **TXT** | Sadece metin |
@@ -91,7 +105,7 @@ Bir hikaye tahtası, bir küçük resim sayfası, inceleme için bir kontak bask
 
 Örnekleme, kenarlarda değil her aralığın **orta noktasında** alınır, çünkü bir dizinin ilk anı genellikle henüz solmamış bir giriş geçişidir ve son anı da her klibin bittiği durumdur - uç nokta örneklemesi karelerinden ikisini neredeyse boş olanlara harcardı. Sayı **64** ile sınırlıdır (bir kontak baskı sayfası bir insanın okuması içindir), ve alana yazılan anlamsız herhangi bir şey, dışa aktarımı başarısız kılmak yerine `1`'e geri döner. Her kare sıradan bir durağan karedir, bu yüzden Content Credentials, damga, fiziksel birimler ve DPI tam olarak tek bir dışa aktarımda davrandığı gibi davranır.
 
-**Kareler** alanı bugün bir sayfa elde etmenin yoludur. Motor eşleşen bir `cuts` URL parametresi ayırır, ama henüz hiçbir shell bunu bir bağlantıdan okumaz, bu yüzden paylaşılan bir bağlantı her zaman oynatma başlığı karesinde yeniden açılır - bkz. [URL Modu](/info/url-mode.html#contact-sheets-cuts).
+**Kareler** alanı bugün bir sayfa elde etmenin yoludur. Motor eşleşen bir `cuts` URL parametresi ayırır, ama henüz hiçbir shell bunu bir bağlantıdan okumaz, bu yüzden paylaşılan bir bağlantı her zaman oynatma başlığı karesinde yeniden açılır - bkz. [URL Modu](/info/url-parameters.html#contact-sheets-cuts).
 
 ## Çok sayfalı PDF
 
@@ -235,7 +249,7 @@ Animasyonlu araçlar hareketi **MP4**, **WebM** veya **GIF** olarak dışa aktar
 
 GIF her yerde çalışır (sohbet/e-posta için harika; video'dan daha büyük ve daha düşük renklidir). Animasyonlu araçlar ayrıca **Wait** (kaydetmeden önce animasyonun oturması için beklenecek saniye) ve **Duration** (klip uzunluğu) sunar.
 
-> Tarayıcının kaydedemediği bir kapsayıcı isteyen paylaşılan bir `?format=…` bağlantısı, incelikle diğerine döner ve dosyayı buna göre adlandırır.
+> Tarayıcının kaydedemediği bir kapsayıcı isteyen paylaşılan bir `?format=…` bağlantısı, incelikle diğerine döner ve dosya adı, kaydedilen kapsayıcıyla eşleşir.
 
 **Ses.** Video dışa aktarmaları sessiz değildir. Bir araç klibin altına bir **müzik altyapısı** yerleştirebilir - katalogdan bir ses varlığı, klip uzunluğuna döngülenmiş veya kırpılmış, giriş/çıkış solması, ses düzeyi ve görüntünün kendi sesinin altında otomatik kısma ile - ve kayıt araçları görüntülerinin canlı sesini doğrudan dosyaya taşır. **MP4** ve **WebM** karıştırılmış izi korur; GIF ve animasyonlu görsel formatları (APNG, Animated WebP, Animasyonlu SVG) doğaları gereği sessizdir.
 
@@ -255,7 +269,9 @@ Formatın desteklediği yerde, dışa aktarmalar **köken meta verisi** taşır 
 
 **Kalıcı kimlik bilgisi.** Damganın yanında ikinci, daha ağır bir işaret durur: "made with Lolly" bağlantısının bir meta veri temizlemesinden, yeniden kodlamadan ve TrustMark farkında araçlar tarafından (Lolly'ninkiler kadar) yeniden okunmadan sağ çıkması için Lolly'nin kimliğini piksellerin *içine* yazmak üzere cihaz üstü bir sinir modeli (TrustMark formatı) kullanan **Durable credential**. **Varsayılan olarak kapalıdır** - saf JavaScript Damgadan farklı olarak dışa aktarma başına bir sinir geçişine artı tek seferlik bir model indirmesine mal olur, bu yüzden sessiz bir vergi değil, kasıtlı bir katılımdır. Yalnızca raster (**PNG, JPG, WebP, AVIF, TIFF**), dışa aktarma panelinde işaretlenir veya bir paylaşım bağlantısında `durable=1` olarak geçirilir. Masaüstü ve mobil uygulamalarda, modeli çevrimdışı getirecek bir kaynak olmadığı için kart işlevsiz gösterilmek yerine tamamen gizlenir.
 
-**İçerik koruması.** Dışa aktarma panelinde, *Password protect*, **C2PA Credentials**, **Lolly Imprint** ve **Durable credential**, tek bir daraltılmış, formata duyarlı **Content protection** grubuna katlanır, böylece bir dosyanın köken ve koruma seçenekleri tek bir yerde yaşar - grup yalnızca seçilen formata uygulanan kartları gösterir ve hiçbiri uygulanmadığında kendini tamamen gizler. Baskı işaretleri kasıtlı olarak bunun *dışındadır*: koruma değil baskı üretim geometrisidir, bu yüzden **Print marks & bleed** - milimetre cinsinden taşma ölçümü artı Crop, Registration, Bleed, Colour bars ve Stamp details - baskı formatlarında kendi üst düzey kartını korur.
+**İçerik koruması.** Dışa aktarma panelinde, verdiğin **Lisans**, yerleştirdiğin her şeyin **Kaynak kredileri**, *Password protect*, **C2PA Credentials**, **Lolly Imprint** ve **Kalıcı kimlik bilgisi**, tek bir daraltılmış, formata duyarlı **İçerik koruması** grubuna katlanır, böylece bir dosyanın kökeni, hakları ve koruma seçenekleri tek bir yerde yaşar. Grup yalnızca seçilen formata uygulanan kartları gösterir. Bir bağlantı veya kaydedilmiş bir belge zaten bir lisans bildiriyorsa, ya da bir kaynağın senden bir karar beklediği durumlarda kendiliğinden açılır.
+
+**Lisans.** Başkalarının çalışmanı nasıl kullanabileceğini seç: varsayılan olarak *Yok (tüm hakları saklıdır)*, ya da CC0 1.0, Public Domain Mark 1.0, ya da Creative Commons 4.0 lisanslarından biri (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Lisans adı ve tapusuna bir bağlantı, dosyanın lisans meta verisine (formatın bu alanlara sahip olduğu yerde EXIF, XMP ve RIFF) ve Content Credential'ına yazılır. Seçim belgeyle birlikte kaydedilir ve bir paylaşım bağlantısında `licence=` olarak yolculuk eder. Lolly seçtiğin lisansı yazar. Koşulları kontrol etmez veya uygulamaz. Claim gibi kendi lisans alanı olan bir araç, bunun yerine o alanı korur ve ikinci bir seçici göstermez. Baskı işaretleri kasıtlı olarak bunun *dışındadır*: koruma değil baskı üretim geometrisidir, bu yüzden **Baskı işaretleri ve taşma payı** - milimetre cinsinden taşma ölçümü artı Crop, Registration, Bleed, Colour bars ve Stamp details - baskı formatlarında kendi üst düzey kartını korur.
 
 ![Bir PNG dışa aktarmada açılmış Content protection grubu, yalnızca ona uygulanan kartları gösteriyor](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
@@ -263,7 +279,7 @@ Formatın desteklediği yerde, dışa aktarmalar **köken meta verisi** taşır 
 
 **Fiyat listesinden hesaplanan maliyet.** Ön kontrolün altında - hepsinin sonuncusu, hâlâ düğmelerin üzerinde - aynı sayıları paraya çeviren bir kart durur ve bunu yalnızca birinin ona verdiği fiyatlardan yapar. Ön kontrol geçişinin saydığı her şeyi okur, ön kontrol kartının kendisi açık olsun olmasın, ve iki şeyin doğru olması gerekir: işin bir fiyat listesinin fiyatlandırabileceği bir şeyi olması (plakalar, tabakalar, alan, sayfalar, varyant satırları veya çıktı dosyaları - böylece düz bir logo PNG'si onu asla göstermez) **ve** bir **rate card**'ın var olması. Bir rate card, yazıcından gelen bir JSON fiyat listesidir. Varsayılan bir derleme hiçbirini taşımaz ve uygulama içinde birini yükleyecek bir yolu yoktur: ya bir dağıtımın sunduğu bir katalog varlığı olarak gelir ya da bir self-hoster'ın veya kontrol düzleminin açtığı isteğe bağlı rate-card uzantısı yoluyla gelir. Rate card olmadan hiçbir şey gösterilmez - ne bir istem ne boş bir tablo.
 
-Her şeyin üzerine kurulu olduğu kural, **asla para uydurmadığıdır**. Her rakam senin sağladığın bir oranın Lolly'nin saydığı bir miktarla çarpımıdır - `4 plaka × 35,00 €` - ve toplam, rakamla aynı cümlede kendi kaynağını adlandırır: kartın adlandırdığı yayıncı ve kartın oranlarının hangi tarihten olduğunu söylediği tarih. Varsayılan para birimi yoktur, yer tutucu yoktur ve eksik bir fiyatın yerine geçen sıfır yoktur. Dosyanın kendisi hakkında söylediği şey aktarılmış söz olarak kalır: *"Dosya şunu söylüyor: … Lolly bunu doğrulamadı."*
+Her şeyin üzerine kurulu olduğu kural, **asla para uydurmadığıdır**. Her rakam senin sağladığın bir oranın Lolly'nin saydığı bir miktarla çarpımıdır - `4 plate × €35.00` - ve toplam, rakamla aynı cümlede kendi kaynağını adlandırır: kartın adlandırdığı yayıncı ve kartın oranlarının hangi tarihten olduğunu söylediği tarih. Varsayılan para birimi yoktur, yer tutucu yoktur ve eksik bir fiyatın yerine geçen sıfır yoktur. Dosyanın kendisi hakkında söylediği şey aktarılmış söz olarak kalır: *"Dosya şunu söylüyor: … Lolly bunu doğrulamadı."*
 
 Ve dürüstçe hesaplayamadığında, çalışma tablosu grileşmiş veya doldurulmuş bir rakama düşmek yerine **tamamen kaybolur**:
 
@@ -318,11 +334,11 @@ Başkasının işini yerleştiren bir dışa aktarma, o kaynağı kimlik bilgisi
 
 ## Telefonda
 
-Dışa aktarma denetimleri, dokunmaya göre boyutlandırılmış aynı biçimler, boyut, kopyalama, indirme ve paylaşımı açan yüzen **Render** düğmesinin arkasında, **Export** sayfasında yer alır.
+Dışa aktarma denetimleri, yüzen **Dışa aktar** düğmesinin arkasında yer alır; bu düğme, dokunmaya göre boyutlandırılmış aynı biçimleri, boyutu, kopyalamayı, indirmeyi ve paylaşımı sunan **Dışa aktar** sayfasını açar.
 
 ## Biçim referansı
 
-Ana bilgisayarın işleyebildiği her kimlik, gruplandırılmış. Bunlar aynı zamanda URL `format=` parametresinin ve CLI `--export=` bayrağının değerleridir - bkz. [URL Modu](/info/url-mode.html) ve [CLI](/info/cli.html). Bir araç yalnızca yazarının belirttiği alt kümeyi sunar, bu yüzden seçici her zaman bu listeden daha kısadır.
+Ana bilgisayarın işleyebildiği her kimlik, gruplandırılmış. Bunlar aynı zamanda URL `format=` parametresinin ve CLI `--export=` bayrağının değerleridir - bkz. [URL Modu](/info/url-mode.html) ve [CLI](/info/cli.html). Bir aracın menüsü yalnızca o aracın üretebildiği formatları gösterir, bu yüzden her zaman bu listeden daha kısadır.
 
 | Tür | Kimlikler |
 |---|---|

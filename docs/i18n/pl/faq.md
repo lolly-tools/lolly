@@ -5,7 +5,7 @@ Najczęściej zadawane pytania wyświetlane w akordeonie na stronie startowej `/
 **Jak to utrzymywać:** każdy nagłówek `##` poniżej to pytanie; wszystko pod nim
 (aż do następnego `##`) jest odpowiedzią. Odpowiedzi korzystają z tego samego lekkiego markdownu co
 reszta strony - akapity rozdzielaj pustą linią. Dodawaj, usuwaj lub
-zmieniaj kolejność pytań tutaj, a potem uruchom ponownie `npm run build:info` (albo `npm run dev:web`).
+zmieniaj kolejność pytań tutaj, a potem uruchom ponownie `pnpm run build:info` (albo `pnpm run dev:web`).
 Wszystko powyżej pierwszego `##` (ten tytuł i te notatki) jest pomijane przez build.
 
 ## Co się dzieje, gdy wyrażę zgodę na stronie /profile?
@@ -66,7 +66,7 @@ Lolly wpasowuje się wszędzie tam, gdzie już generujesz pliki - CLI to ten sam
 co aplikacja, więc pipeline uruchomiony o drugiej w nocy nie może się rozjechać z tym, co ktoś ogląda w
 przeglądarce. Opór przed wdrożeniem rzadko jest techniczny; jest organizacyjny. Spodziewaj się tego:
 
-**Ktoś musi opracować wyselekcjonowany katalog marki.** Lolly to platforma, a nie
+**Wyselekcjonowany katalog marki trzeba opracować.** Lolly to platforma, a nie
 gotowy pakiet twoich szablonów. Przy *zarządzanym wdrożeniu* ktoś definiuje wspólny
 katalog zasobów (logo, palety, fonty jako trwałe identyfikatory) i pisze manifest +
 szablon dla każdego typu wyniku. Osoby prywatne nie muszą jednak na to czekać - w
@@ -124,6 +124,14 @@ Tak. Otwórz **Design** i kliknij **Import a design**: przyjmuje natywny plik Fi
 ![Otwarte płótno Design - Importowanie projektu znajduje się w menu Lolly na pasku narzędzi](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Warstwy trafiają na otwarte płótno jako edytowalne bloki: tekst nadal da się przepisać, kształty pozostają kształtami, obrazy dołączają do twojej biblioteki obrazów, a typografia i kolory trzymają się ustawień globalnych marki. Zapisz układ, a stanie się on szablonem wielokrotnego użytku z własnym adresem URL, który każdy, kto ma Lolly, może wypełnić na nowo - możesz też wpleść w niego żywe narzędzia (kod QR, wykres), które renderują się ponownie przy wczytaniu. Dalej renderuje się jak wszystko inne w Lolly - SVG, PDF, PNG i reszta, odtwarzalne z adresu URL. Zobacz [Import a design](/info/design-import.html).
+
+## Gdzie jest to, co zrobiłem wczoraj?
+
+Jeśli nacisnąłeś **Zapisz jako** albo **Zapisz**, jest to w **Projektach**, na ekranie startowym, w przeglądarce lub aplikacji, z której zapisałeś. Jeśli nacisnąłeś tylko **Pobierz**, plik jest tam, gdzie twoja przeglądarka lub system zapisuje pobrane pliki, a zwykle kopia jest też w **Zasobach**. Dziewięć narzędzi zachowuje niezapisaną pracę również w **Projektach**. [Znajdź i odzyskaj swoją pracę](/info/find-your-work.html) obejmuje każdy z tych przypadków.
+
+## Zamknąłem kartę. Czy moja praca przepadła?
+
+Zapisana praca nadal jest w **Projektach**. Niezapisana praca przepada, z wyjątkiem dziewięciu narzędzi, które zapisują w trakcie pracy - one też trzymają ją w **Projektach**. Następnym razem naciśnij **Zapisz jako**, zanim wyjdziesz. Zobacz [Jeśli zamknąłeś kartę albo opuściłeś narzędzie](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Czy mogę udostępnić swoją pracę jako plik zamiast linku?
 

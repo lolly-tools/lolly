@@ -45,10 +45,21 @@ import { C2PA_CHECK } from '../engine/src/c2pa-verdict.ts';
 const REPO = new URL('..', import.meta.url).pathname;
 const BUILT = join(REPO, 'shells/web/public/info');
 
+// English pages live behind their door (plans/177 P1: /info/create/exporting.html);
+// the top level holds the landing and redirect stubs, and every sidecar stays flat
+// (/info/exporting.c2pa). EXPORTING is the probe page used throughout.
+const DOORS = ['start', 'create', 'build', 'operate', 'trust'];
+const EXPORTING = join(BUILT, 'create', 'exporting.html');
+/** Top-level and door-directory HTML, relative to BUILT: the English site. */
+const englishPages = (): string[] => ['', ...DOORS].flatMap((door) => {
+  const dir = join(BUILT, door);
+  return existsSync(dir) ? readdirSync(dir).filter((f) => f.endsWith('.html')).map((f) => (door ? `${door}/${f}` : f)) : [];
+});
+
 /** Skip reason, or false to run. Same shape the other docs suites use. */
-const built = !existsSync(join(BUILT, 'exporting.html'))
+const built = !existsSync(EXPORTING)
   ? 'no built /info on disk - run `pnpm run build:info`'
-  : !readFileSync(join(BUILT, 'exporting.html'), 'utf-8').includes('rel="c2pa-manifest"')
+  : !readFileSync(EXPORTING, 'utf-8').includes('rel="c2pa-manifest"')
     ? 'built /info predates page seals - run `pnpm run build:info`'
     : false;
 
@@ -70,7 +81,7 @@ test('the seal link is the spec\'s external form, and the href is the sidecar be
 });
 
 test('every English page carries exactly one seal link, in <head>, pointing at its own slug', { skip: built }, () => {
-  const pages = readdirSync(BUILT).filter((f) => f.endsWith('.html'));
+  const pages = englishPages();
   let sealed = 0;
   for (const file of pages) {
     const html = readFileSync(join(BUILT, file), 'utf-8');
@@ -81,7 +92,7 @@ test('every English page carries exactly one seal link, in <head>, pointing at i
     // HTML document" - and the inlined banked art must never smuggle in a second.
     assert.equal(hits.length, 1, `${file} declares ${hits.length} C2PA manifest associations`);
     assert.ok(!/<script[^>]+type="application\/c2pa"/.test(html), `${file} carries an inline manifest as well as a link`);
-    const slug = file.slice(0, -'.html'.length);
+    const slug = file.slice(file.lastIndexOf('/') + 1, -'.html'.length);
     assert.ok(hits[0]![0].includes(`href="${pageSealHref(slug)}"`), `${file} links a sidecar that is not its own`);
     const headEnd = html.indexOf('</head>');
     assert.ok(html.indexOf(hits[0]![0]) < headEnd, `${file}: the seal link is outside <head> (section A.7.1.1)`);
@@ -109,7 +120,7 @@ test('locale pages carry no seal link at all', { skip: built }, () => {
 // ── The binding (section A.7.1.3) ───────────────────────────────────────────────────
 
 test('a built page verifies against its sidecar, and one changed byte breaks it', { skip: built }, async () => {
-  const page = bytesOf(join(BUILT, 'exporting.html'));
+  const page = bytesOf(EXPORTING);
   const store = bytesOf(join(BUILT, 'exporting.c2pa'));
   const report = await verifyC2pa(page, { externalManifest: store });
   assert.equal(report.state, 'valid');
@@ -135,7 +146,7 @@ test('a built page verifies against its sidecar, and one changed byte breaks it'
 test('a page read WITHOUT its sidecar says the credential is elsewhere, never "no credential"', { skip: built }, async () => {
   // The M2 precondition: /verify must be able to tell a reader where to look,
   // rather than reporting an unsigned document (plan section 7).
-  const report = await verifyC2pa(bytesOf(join(BUILT, 'exporting.html')));
+  const report = await verifyC2pa(bytesOf(EXPORTING));
   assert.equal(report.found, true);
   assert.match(report.reason ?? '', /references an external C2PA manifest at \/info\/exporting\.c2pa/);
   assert.ok(report.checks.some((c) => c.code === C2PA_CHECK.manifestInaccessible && !c.ok));
@@ -144,7 +155,7 @@ test('a page read WITHOUT its sidecar says the credential is elsewhere, never "n
 test('the seal names the page\'s signed components as ingredients', { skip: built }, () => {
   // A page with screenshots: its store must record exactly the manifests of the
   // files the page references, so the verifier's chain walk reaches them.
-  const html = readFileSync(join(BUILT, 'exporting.html'), 'utf-8');
+  const html = readFileSync(EXPORTING, 'utf-8');
   const expected = collectPageIngredients(html, BUILT).map((i) => i.activeLabel);
   assert.ok(expected.length > 3, 'expected a page with several credentialed screenshots');
   const recorded = recordedComponentLabels(bytesOf(join(BUILT, 'exporting.c2pa')));
@@ -173,9 +184,12 @@ test('a second build over an unchanged site writes no sidecar (the churn guard)'
 });
 
 test('no sidecar is left behind by a page that no longer exists', { skip: built }, () => {
+  // The flat /info/<slug>.html is a redirect stub for every door page, so its existence
+  // proves nothing. A sidecar belongs to whichever page carries a seal link to that sidecar.
+  const sealedSlugs = new Set(discoverSealTargets(BUILT).map((t) => t.slug));
   const orphans = readdirSync(BUILT)
     .filter((f) => f.endsWith('.c2pa'))
-    .filter((f) => !existsSync(join(BUILT, `${f.slice(0, -'.c2pa'.length)}.html`)));
+    .filter((f) => !sealedSlugs.has(f.slice(0, -'.c2pa'.length)));
   assert.deepEqual(orphans, []);
 });
 

@@ -34,9 +34,15 @@ Text som rör sig, scener på en tidslinje och rörelse som håller sig inom var
 
 Spela in en ren tagning med nedräkning, en nivåmätare och lätt coachning, eller gör om en röstanteckning till en färdig video som rör sig med ljudet. Det finns ännu ingen separat sida för inspelning: Att använda Lolly tar upp det, i tidslinjeavsnittet.
 
-- **[Att använda Lolly](/info/using.html#timeline-sequence-studio)** - att spela in en speakerröst direkt på tidslinjen, var tagningen sparas och hur den når mixen.
-- **[Skapa något på 60 sekunder](/info/make-something.html#make)** - audiogramscenen, för när du hellre vill höras än synas.
+- **[Att använda Lolly](/info/using.html#timeline-sequence)** - att spela in en speakerröst direkt på tidslinjen, var tagningen sparas och hur den når mixen.
+- **[Skapa din första fil](/info/make-something.html#other-first-projects)** - audiogrammet, för när du hellre vill höras än synas.
 - **[Verktygsvyer](/info/utilities.html)** - Script audio, när orden kommer först och rösten kommer efter.
+
+## Presentera
+
+Lägg din kamera, logotyp och ditt namn ovanpå ett Design-bygge eller en Countdown, med privata kontroller i ett separat fönster.
+
+- **[Presentera med kamera](/info/presenting.html)** - beskärning, sparade scener, delning med publik, lokal inspelning och de nuvarande testbegränsningarna.
 
 ## Samarbeta
 

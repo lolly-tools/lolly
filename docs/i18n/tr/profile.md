@@ -2,9 +2,9 @@
 
 Bir **profil**, Lolly'nin *olarak* oluşturduğu çalışma kimliğidir. Bir aracın, her seferinde yeniden yazmaman için başvurabileceği küçük bir detay kümesidir - adın, iletişim bilgilerin, isteğe bağlı bir vesikalık, birkaç tercih - artı çalışırken biriktirdiğin her şey: kaydedilmiş oturumlar, yüklenen görseller ve yerel etkinlik sayacı.
 
-Bir profildeki her şey, tarayıcının yerel veritabanında **cihazda** yaşar (web PWA'da IndexedDB, Tauri uygulamalarında dosya sistemi). Hesap yoktur ve hiçbir şey yüklenmez. Onu **Profil** altından (galerinin sağ üstünde) yönetirsin; araçlar onu yalnızca *okur* ve yalnızca önceden doldurmak üzere yapıldıkları belirli alanları.
+Bir profildeki her şey, tarayıcının yerel veritabanında **cihazda** yaşar (web PWA'da IndexedDB, Tauri uygulamalarında dosya sistemi). Hesap yoktur ve hiçbir şey yüklenmez. Onu **Ayarlar → Preferences** altından (altbilgide veya avatar menüsünde) yönetirsin; araçlar onu yalnızca *okur* ve yalnızca önceden doldurmak üzere yapıldıkları belirli alanları.
 
-> Bir profil *seninle* (ya da burada oluşturan kim ise onunla) ilgilidir. **Platform**'dan - markanın renkleri, fontları ve genel ayarları - ve **Capabilities**'ten - uygulamanın yapabildiklerinin kataloğu - farklıdır. Sonda [Profile vs Platform vs Capabilities](#profile-vs-platform-vs-capabilities) bölümüne bak.
+> Ayarlar, profilini ve eski Kontrol Paneli'ni tek bir hedefte birleştirir. **Preferences**, bilgilerini ve kişisel tercihlerini tutar; **Bu cihaz**, **Tasarım sistemi**, **Yetenekler** ve **Etkinlik & istatistikler** onun yanında durur. Tam haritası için [Ayarlar](/info/dashboard.html)'a bak.
 
 ## Bir profilde neler var
 
@@ -21,7 +21,7 @@ Bir profildeki her şey, tarayıcının yerel veritabanında **cihazda** yaşar 
 
 ![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
-![Profile ekranı - ad, iletişim, isteğe bağlı bir vesikalık ve tercihlerin](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
+![Profil ekranı - ad, iletişim, isteğe bağlı bir vesikalık ve tercihlerin](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
 | Bölüm | Nedir |
 |---|---|
@@ -33,7 +33,7 @@ Bir profildeki her şey, tarayıcının yerel veritabanında **cihazda** yaşar 
 | **Tercihler** | Temandır (açık, koyu veya SUSE) ve uygulamanın **Özellik bayrakları** ile hangi bölümlerini etkinleştirdiğin. |
 | **Çalışmaların** | Kayıtlı oturumlar (küçük resimlerle) - **[Projeler](/info/using.html)** içinde iç içe klasörlere düzenlenmiş - **Görsellerim** kitaplığın ve yerel etkinlik istatistikleri, hepsi bu profile bağlı. |
 
-Sayfa uzun olduğundan, yanında kendi **ayarlar şeridini** taşır - Bilgilerin, Görünüm, Erişilebilirlik, Lolly örneği, Etkinliğin, Depolama, Çevrimdışı kullanılabilir, Özellik bayrakları, Content Credentials - üstünde de yazdıkça listeyi filtreleyen bir **Ayarlarda ara** alanı bulunur. Her bölüm `#/profile?focus=<section-id>` şeklinde derin bağlantı verilebilir durumdadır, bu da bölümü açar ve görünüme kaydırır (`#/profile?focus=storage-section`, `?focus=feature-flags-section` vb.), böylece bir bağlantı sayfanın en üstüne değil tek bir ayara işaret edebilir.
+Sayfa uzun olduğundan, yanında kendi **ayarlar şeridini** taşır - Bilgilerin, Görünüm, Erişilebilirlik, Lolly örneği, Aktiviten, Depolama, Çevrimdışı kullanılabilir, Özellik bayrakları, Content Credentials - üstünde de yazdıkça listeyi filtreleyen bir **Ayarlarda ara** alanı bulunur. Her bölüm `#/settings?focus=<section-id>` şeklinde derin bağlantı verilebilir durumdadır; bu da bölümü açar ve görünüme kaydırır (`#/settings?focus=storage-section`, `?focus=feature-flags-section` vb.), böylece bir bağlantı sayfanın en üstüne değil tek bir ayara işaret edebilir.
 
 ![Her biri kendi tipografisini ve rengini önizleyen üç tema kartı, etkin olan işaretlenmiş](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
@@ -63,7 +63,7 @@ Herhangi bir anda bir kurulumun **tek bir etkin profili** vardır - bir aracın 
 
 ![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
-- <!--i:trash--> **En temiz geçiş:** **Profile → Storage → Clear all my data** (Profil → Depolama → Tüm verilerimi temizle), ardından geçtiğin bağlam için paketi **Import** (İçe aktar) et. Artık yalnızca o profil olarak oluşturuyorsun.
+- <!--i:trash--> **En temiz geçiş:** **Ayarlar → Preferences → Depolama → Tüm verilerimi temizle**, ardından geçtiğin bağlam için paketi **İçe aktar** et. Artık yalnızca o profil olarak oluşturuyorsun.
 - <!--i:layers--> **Katmanlama:** önce temizlemeden içe aktarmak **birleştirir** - içe aktarılan profil, oturumlar ve görseller zaten orada olanın üstüne iner, aynı isimdeki her şeyin yerini alır ve geri kalanını bırakır. Bir ekibin kaydedilmiş oturumlarını kendi kurulumuna çekmek için kullanışlıdır; net bir rol sınırına ihtiyacın varsa istediğin şey bu değildir.
 - <!--i:monitor--> **Yan yana:** her şey cihaza özgü olduğundan, ayrı bir tarayıcı profili, ayrı bir kullanıcı hesabı veya ikinci bir kurulu PWA, her biri kendi bağımsız Lolly profilini taşır. Kişisel kurulumunu ve etkinlik kiosku kurulumunu aynı anda, geçiş yapmadan çalıştır.
 
@@ -75,7 +75,7 @@ Yani gerçekten birkaç bağlamı bir arada yürütüyorsan (sen, ekibin, etkinl
 
 ## Erişilebilirlik
 
-**Profile → Accessibility** (Profil → Erişilebilirlik), çalışman *etrafındaki* uygulama için dört konfor ayarı barındırır. Her biri sen açana kadar kapalıdır ve hiçbiri bir araç tuvalinin veya dışa aktarımın içine ulaşmaz - daha sakin bir uygulama, gönderdiğin dosyanın bir pikselini bile oynatmamalıdır.
+**Ayarlar → Preferences → Erişilebilirlik**, çalışman *etrafındaki* uygulama için dört konfor ayarı barındırır. Her biri sen açana kadar kapalıdır ve hiçbiri bir araç tuvalinin veya dışa aktarımın içine ulaşmaz - daha sakin bir uygulama, gönderdiğin dosyanın bir pikselini bile oynatmamalıdır.
 
 - <!--i:film--> **Reduce motion** (Hareketi azalt) - uygulamadaki geçişleri, kaymaları ve animasyonlu süslemeleri kapatır. Araç tuvalin ve herhangi bir animasyonlu dışa aktarım tam olarak tasarlandığı gibi hareket etmeye devam eder.
 - <!--i:image--> **Hide colourful previews** (Renkli önizlemeleri gizle) - galeri önizleme görsellerini sakin simge-ve-metin kartlarıyla değiştirir ve proje küçük resimlerinin rengini ve kontrastını düşürerek göz yormadan tanınabilir kalmalarını sağlar. Bir aracın içinde her şey tam renkli görünür.
@@ -86,13 +86,13 @@ Bunlar profil kaydının kendisinde tutulur, bu yüzden bir profil dışa aktar�
 
 ## Lolly örneğin
 
-**Profile → Lolly instance** (Profil → Lolly örneği), bu kurulumun araçlarını ve kataloğunu nereden aldığını söyler - örneğin adresi, ya da her şey derlemenin içinde gönderiliyorsa *Bundled with this app* (Bu uygulamayla birlikte gelir). Bir dağıtım bunu sunuyorsa, bir **Instance console** (Örnek konsolu) bağlantısı yönetim yüzeyini açar ve **Change** (Değiştir) / **Disconnect** (Bağlantıyı kes) kurulumu yeniden yönlendirir veya ondan koparır.
+**Ayarlar → Preferences → Lolly örneği**, bu kurulumun araçlarını ve kataloğunu nereden aldığını söyler - örneğin adresi, ya da her şey build'in içinde gönderildiğinde *Bu uygulamayla birlikte gelir*. Bir dağıtımın bir tane sunduğu yerde, bir **Örnek konsolu** bağlantısı onun yönetim yüzeyini açar, **Değiştir** kurulumu yeniden yönlendirir ve **Ayrıl**, kendi çalışman kalırken örneğin tasarım sistemini, araçlarını ve kataloğunu kaldırır (bkz. [Lolly'yi kuruluşunda kullan](/info/organisation.html#leaving)).
 
 Başka bir örneğe yeniden yönlendirmek **masaüstü uygulamasını** gerektirir: bir tarayıcı, bir sayfanın araçları ve varlıkları farklı kaynaklardan yüklemesini engeller, bu yüzden web'de bu bölüm sadece nerede olduğunu bildirir ve orada bırakır.
 
 ## Çevrimdışı kullanılabilir
 
-Lolly ilerledikçe önbelleğe alır, ama ilerledikçe önbelleğe alma yalnızca zaten gittiğin yerleri kapsar. **Profile → Available offline** (Profil → Çevrimdışı kullanılabilir), önceden görebildiğin yolculuk içindir: bağlantısı olmayan bir uçuştan önce havaalanı wifi'sinde geçen bir saat gibi. İhtiyacın olacak parçaları indir, tek bir ilerleme çubuğunu izle ve aldığın her şey bağlantı gittikten sonra da çalışmaya devam etsin.
+Lolly ilerledikçe önbelleğe alır, ama ilerledikçe önbelleğe alma yalnızca zaten gittiğin yerleri kapsar. **Ayarlar → Preferences → Çevrimdışı kullanılabilir**, önceden görebildiğin yolculuk içindir: bağlantısı olmayan bir uçuştan önce havaalanı wifi'sinde geçen bir saat gibi. İhtiyacın olacak parçaları indir, tek bir ilerleme çubuğunu izle ve aldığın her şey bağlantı gittikten sonra da çalışmaya devam etsin.
 
 Yedi parça, her biri taahhüt etmeden önce boyutu belirtilmiş halde:
 
@@ -112,9 +112,9 @@ Tarayıcı kalıcı depolama izni vermemişse bölüm bunu belirtir ve bunu iste
 
 ## Bir profili yeni bir cihaza taşıma
 
-![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+Bir profil tamamen yerel olduğundan, onu boş bir kuruluma - yeni bir dizüstü, yeni sıfırlanmış bir tarayıcı, bir meslektaşın makinesi, çevrimdışı bir kutu - almanın iki yolu vardır. Aşağıdaki gibi **dosyayı taşı**, ya da [Cihazlarını senkronize et](/info/sync.html)'in anlattığı gibi, seçtiğin bir depolama üzerinden kendi cihazlarını birbiriyle uyumlu tut. Hiçbir Lolly girişi onu senin için geri yüklemez ve mesele de budur: başından beri hiçbir şey bir Lolly sunucusuna gitmedi.
 
-Bir profil tamamen yerel olduğundan, onu boş bir kuruluma - yeni bir dizüstü, yeni sıfırlanmış bir tarayıcı, bir meslektaşın makinesi, çevrimdışı bir kutu - almanın tek yolu **dosyayı taşımaktır**. Hiçbir oturum açma onu senin için geri yüklemez ve mesele de budur: başından beri hiçbir şey cihazından çıkmadı.
+**Ayarlar → Preferences → Depolama → Başka bir cihaza taşı** altında:
 
 - <!--i:download--> **Export my data**, ait olduğu profilin adıyla adlandırılmış tek bir `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` dosyası indirir - tekrarlanan dışa aktarımların çakışmaması için günlük bir sıra numarasıyla (profilde olmayan ad parçaları atlanır). İçinde profilin, kaydedilen her oturum (küçük resmiyle birlikte), yüklediğin görseller - marka belirteçlerin ve yüklü yazı tiplerin kullanıcı varlığı olarak buna dahildir - ve tercihlerin (tema, düzen, yerel etkinlik istatistikleri) bulunur.
 - <!--i:upload--> Diğer kurulumdaki **Import data…**, o dosyayı geri okur ve tam olarak kaldığın yerden devam edersin.
@@ -134,7 +134,7 @@ Tam paket düzeni, sürüm ilkesi ve bütünlük kuralları için bkz. **[Data T
 
 Bir araç yalnızca bağlamak üzere açıkça yapıldığı profil alanlarını *önceden doldurur*:
 
-**Onay kutusu (köken bilgisi).** Bir varlığı dışa aktardığında bilgilerin isteğe bağlı olarak **köken bilgisi (provenance)** olarak eşlik eder - dosyanın meta verisine gömülü bir yazar/kaynak satırı (PNG, PDF, SVG, …) - böylece bitmiş bir varlık kimin yaptığını söyleyebilir. **Use my details to create**'in yönettiği şey *tam olarak budur*: kapalı bırakırsan dışa aktarım yine de "Made with Lolly" araç/platform atfını taşır, ancak kişisel yazar/iletişim satırı gömülmez. (Aynı onay, **/pro** toplu çalıştırmalarında da yazarı ayarlar.) (Araç yazarları için bkz. [Authoring Tools → `bindToProfile`](/info/authoring-tools.html#bindtoprofile) ve [Host API → `host.profile`](/info/host-api.html#host-profile).)
+**Onay kutusu (köken bilgisi).** Bir varlığı dışa aktardığında bilgilerin isteğe bağlı olarak **köken bilgisi (provenance)** olarak eşlik eder - dosyanın meta verisine gömülü bir yazar/kredi satırı (PNG, PDF, SVG, …) - böylece bitmiş bir varlık kimin yaptığını söyleyebilir. **Oluşturmak için bilgilerimi kullan**'ın yönettiği şey *tam olarak budur*: kapalı bırakırsan dışa aktarım yine de "Made with Lolly" araç/platform atfını taşır, ancak kişisel yazar/iletişim satırı gömülmez. (Aynı onay, **/pro** toplu çalıştırmalarında da yazarı ayarlar.) (Araç yazarları için bkz. [Araç Oluşturma → `bindToProfile`](/info/tool-inputs.html#bindtoprofile) ve [Host API → `host.profile`](/info/host-api.html#host-profile).)
 
 ![Save Profile'ın yanında duran ve sen açana kadar kapalı olan tek bir Use my details to create anahtarı](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
@@ -159,4 +159,4 @@ Kelime, proje genelinde birden çok anlam taşır. Bunların hiçbiri, bu sayfan
 
 ## Gizlilik
 
-Yukarıdaki isteğe bağlı kimlik kaydı dışında (bu, kaydolduğun e-postayı sertifika hizmetine gönderir - bkz. [Server Surface](/info/server-surface.html)), bir profil asla iletilmez, yüklenmez veya seni tanımlamak ya da izlemek için kullanılmaz - onaylanacak bir şey yok, yalnızca neyin saklandığını bilmen için bu bildirim var. İstediğin zaman **Profile → Clear all my data** ile tümünü sil. Bkz. [Privacy Policy](/info/privacy.html).
+Yukarıdaki isteğe bağlı kimlik kaydı dışında (bu, kaydolduğun e-postayı sertifika hizmetine gönderir - bkz. [Sunucu Yüzeyi](/info/server-surface.html)), bir profil asla iletilmez, yüklenmez veya seni tanımlamak ya da izlemek için kullanılmaz - onaylanacak bir şey yok, yalnızca neyin saklandığını bilmen için bu bildirim var. **Ayarlar → Preferences → Tüm verilerimi temizle** ile istediğin zaman tümünü sil. Bkz. [Gizlilik Politikası](/info/privacy.html).

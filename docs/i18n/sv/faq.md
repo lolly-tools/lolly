@@ -5,7 +5,7 @@ Vanliga frågor som visas i dragspelsmenyn på landningssidan `/info`.
 **Så här underhåller du sidan:** varje `##`-rubrik nedan är en fråga; allt under den
 (fram till nästa `##`) är svaret. Svaren använder samma lättviktiga markdown som
 resten av webbplatsen - separera stycken med en tom rad. Lägg till, ta bort eller
-flytta om frågor här och kör `npm run build:info` (eller `npm run dev:web`) igen.
+flytta om frågor här och kör `pnpm run build:info` (eller `pnpm run dev:web`) igen.
 Allt ovanför den första `##` (den här titeln och de här noteringarna) ignoreras av bygget.
 
 ## Vad händer när jag väljer att delta på sidan /profile?
@@ -122,9 +122,17 @@ Vi vinner kampen om styrningen med utmärkt bekvämlighet och service.
 
 Ja. Öppna **Design** och klicka på **Importera en design**: den tar emot en Figma-egen **.fig** (Save local copy), en Penpot-export **.penpot**, en Illustrator-fil **.ai** eller **.pdf**, en InDesign-fil **.idml** (File → Export → InDesign Markup) eller **vilken SVG som helst** (den breda dörren - nästan alla designprogram exporterar den). Det krävs inget konto, inget plugin och ingen licens till ett designprogram.
 
-![Designs öppna kanvas - Importera en design finns i verktygsfältets Lolly-meny](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Designs öppna arbetsyta - Importera en design ligger i verktygslistens Lolly-meny](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Lagren kommer in som redigerbara rutor på den öppna ytan: text går att skriva om, former förblir former, bilder hamnar i ditt eget bildbibliotek och typografi och färger följer varumärkets globala värden. Spara den, så blir layouten en återanvändbar mall med egen URL som vem som helst med Lolly kan fylla på nytt - och du kan blanda in levande verktyg (en QR-kod, ett diagram) som renderas om vid inläsning. Därifrån renderas den som allt annat i Lolly - SVG, PDF, PNG och resten, reproducerbart från sin URL. Se [Importera en design](/info/design-import.html).
+
+## Var är det jag gjorde igår?
+
+Om du tryckte på **Spara som** eller **Spara** finns det i **Projekt**, på startskärmen, i webbläsaren eller appen du sparade från. Om du bara tryckte på **Ladda ner** finns filen där din webbläsare eller ditt system sparar nedladdningar, och vanligtvis ligger en kopia i **Tillgångar**. Nio verktyg behåller också osparat arbete i **Projekt**. [Hitta och återfå ditt arbete](/info/find-your-work.html) tar upp varje fall.
+
+## Jag stängde fliken. Är mitt arbete borta?
+
+Sparat arbete finns fortfarande i **Projekt**. Osparat arbete är borta, förutom i de nio verktyg som sparar medan du arbetar, som behåller det i **Projekt** också. Tryck på **Spara som** nästa gång innan du lämnar. Se [Om du stängde fliken eller lämnade verktyget](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Kan jag dela mitt arbete som en fil i stället för en länk?
 

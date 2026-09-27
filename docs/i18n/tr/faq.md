@@ -5,7 +5,7 @@
 **Nasıl güncellenir:** aşağıdaki her `##` başlığı bir sorudur; altındaki her şey
 (bir sonraki `##` başlığına kadar) cevaptır. Cevaplar sitenin geri kalanıyla aynı hafif
 markdown'ı kullanır - paragrafları boş bir satırla ayır. Soruları burada ekle, çıkar ya da
-yeniden sırala ve `npm run build:info` (ya da `npm run dev:web`) komutunu yeniden çalıştır.
+yeniden sırala ve `pnpm run build:info` (ya da `pnpm run dev:web`) komutunu yeniden çalıştır.
 İlk `##` başlığından önceki her şeyi (bu başlık ve bu notlar) derleme yok sayar.
 
 ## /profile sayfasında onay verdiğimde ne olur?
@@ -66,11 +66,12 @@ Lolly, halihazırda dosya ürettiğin her yere yerleşir - CLI, uygulamayla ayn�
 yani gece 2'de çalışan bir pipeline, bir kişinin tarayıcıda gördüğü önizlemeden sapamaz.
 Benimsemedeki sürtünme nadiren tekniktir; kurumsaldır. Şunları bekle:
 
-**Özenle hazırlanmış bir marka kataloğunun yazılması gerekir.** Lolly bir platformdur,
-şablonlarının hazır bir paketi değil. *Yönetişimli bir yayılım* için biri ortak varlık
-kataloğunu (kalıcı kimlikler olarak logolar, paletler, fontlar) tanımlar ve her çıktı türü
-için manifest + şablon yazar. Yine de bireylerin bunu beklemesi gerekmez - açık uygulamada
-herkes kendi dosyalarını Varlıklar'a aktarabilir ve ilk günden Design içinde araç kurabilir.
+**Özenle hazırlanmış bir marka kataloğunun yazılması gerekir.** Lolly bir
+platformdur, şablonlarının hazır bir paketi değil. *Yönetişimli bir yayılım*
+için biri ortak varlık kataloğunu (kalıcı kimlikler olarak logolar, paletler,
+fontlar) tanımlar ve her çıktı türü için manifest + şablon yazar. Yine de
+bireylerin bunu beklemesi gerekmez - açık uygulamada herkes kendi dosyalarını
+Varlıklar'a aktarabilir ve ilk günden Design içinde araç kurabilir.
 
 **Katkı vermek için git gerekmez.** Tasarımcılar kendi araçlarını ve şablonlarını
 uygulamada yapar, sonra bunları meslektaşlarıyla paylaşır ya da varsayılan olarak dahil
@@ -120,9 +121,17 @@ Yönetişim savaşını kusursuz kolaylık ve hizmetle kazanırız.
 
 Evet. **Design**'ı aç ve **Import a design**'a tıkla: yerel bir Figma **.fig** (Save local copy), bir Penpot **.penpot** dışa aktarımı, bir Illustrator **.ai** ya da **.pdf**, bir InDesign **.idml** (File → Export → InDesign Markup) veya **herhangi bir SVG** (geniş kapı - neredeyse her tasarım uygulaması bunu dışa aktarır) kabul edilir. Hesap, eklenti ve tasarım uygulaması lisansı gerekmez.
 
-![Design'ın açık tuvali - Bir tasarımı içe aktar, araç çubuğunun Lolly menüsünde yer alır](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Design'ın serbest kanvası - Bir tasarım içe aktar, araç çubuğunun Lolly menüsünde durur](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Katmanlar açık tuvale düzenlenebilir kutular olarak gelir: metin yeniden yazılabilir kalır, şekiller şekil kalır, görseller kendi görsel kitaplığına katılır, tipografi ve renkler ise marka globallerine uyar. Kaydettiğinde düzen, Lolly'si olan herkesin yeniden doldurabileceği, URL ile adreslenebilir ve tekrar kullanılabilir bir şablona dönüşür - üstelik yüklenirken yeniden render olan canlı araçları (bir QR kodu, bir grafik) araya karıştırabilirsin. Oradan sonrası Lolly'deki her şey gibi render edilir - SVG, PDF, PNG ve gerisi, URL'sinden yeniden üretilebilir şekilde. Bkz. [Import a design](/info/design-import.html).
+
+## Dün yaptığım şeyi nerede bulabilirim?
+
+**Farklı kaydet** ya da **Kaydet**'e bastıysan, kaydettiğin tarayıcıda ya da uygulamada, ana ekranda, **Projeler**'dedir. Yalnızca **İndir**'e bastıysan, dosya tarayıcının ya da sisteminin indirmeleri kaydettiği yerdedir ve genellikle bir kopyası **Varlıklar**'dadır. Dokuz araç, kaydedilmemiş çalışmayı da **Projeler**'de tutar. [Çalışmanı bul ve kurtar](/info/find-your-work.html) her durumu kapsar.
+
+## Sekmeyi kapattım. Çalışmam gitti mi?
+
+Kaydedilmiş çalışma hâlâ **Projeler**'dedir. Kaydedilmemiş çalışma gider, çalışırken kaydeden dokuz araç dışında; onlar da bunu **Projeler**'de tutar. Bir dahaki sefere, ayrılmadan önce **Farklı kaydet**'e bas. Bkz. [Sekmeyi kapattıysan ya da araçtan ayrıldıysan](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Çalışmamı bağlantı yerine dosya olarak paylaşabilir miyim?
 

@@ -1,19 +1,33 @@
 # Export et formats
 
-Comment obtenir un fichier fini à partir d'un outil - choisir le bon format, définir la taille de sortie et ce que fait chaque option. Comme pour tout le reste, **l'export se fait sur ton appareil** ; rien n'est envoyé en ligne.
+Appuie sur **Exporter** sur la pastille **Export | Save as** d'un outil, choisis un format dans le menu à côté du nom de fichier, puis appuie sur **Télécharger**. Le fichier est créé sur ton appareil ; rien n'est envoyé en ligne.
+
+Pour la plupart des tâches, l'un de ces trois formats convient :
+
+| Pour | Utilise | Parce que |
+|---|---|---|
+| Un écran, un message ou une diapositive | **PNG** | Toute application l'ouvre, et il garde un arrière-plan transparent quand l'outil en propose un |
+| Une page finie, ou tout ce qui est imprimé | **PDF** | Une taille de page réelle qui s'imprime comme elle apparaît ; **Print PDF**, quand un outil le propose, est la version CMJN pour la presse |
+| Une illustration qui doit rester nette à toute taille | **SVG** | Des formes vectorielles, nettes du badge à la bannière |
+
+::: check Vérifie le fichier à la taille où il sera utilisé
+Avant de l'envoyer, ouvre-le sur l'écran pour lequel il a été fait, ou imprime-le à sa taille réelle.
+:::
+
+Le reste de cette page couvre tous les formats, toutes les tailles et toutes les options.
 
 ## Comment fonctionne l'export
 
-L'aperçu *est* le fichier. Quand tu exportes, l'hôte rend ce canevas dans le format choisi et te fournit un téléchargement (ou le place dans ton presse-papiers). Un outil ne propose que les formats déclarés par son auteur, et le sélecteur masque ceux que ton navigateur ne peut pas produire (voir [Video](#video)).
+L'aperçu *est* le fichier. Quand tu exportes, l'hôte rend ce canevas dans le format choisi et te fournit un téléchargement (ou le place dans ton presse-papiers). Le sélecteur masque tout format que ton navigateur ne peut pas produire (voir [Video](#video)).
 
 Trois voies produisent un fichier. La plupart des outils **rendent le canevas** dans le format choisi. Les formats texte et données (HTML, MD, TXT, JSON, CSV, ICS, VCF) sont au contraire **générés à partir du contenu de l'outil**, pas rastérisés depuis l'image. Et les utilitaires de confidentialité (par ex. *Strip Hidden Data*) empruntent une troisième voie : le fichier que *tu* choisis est transformé octet par octet sur ton appareil et rendu tel quel - pas de canevas, pas de filigrane et pas de métadonnées de provenance ajoutées, puisque c'est déjà ton propre fichier.
 
 Les actions dans les contrôles d'export :
 
-- <!--i:download--> **Download** - enregistrer le fichier (l'action principale).
-- <!--i:photos--> **Copy** - mettre l'image dans ton presse-papiers pour la coller directement dans Slack, un e-mail, un document. Là où un navigateur ne peut pas copier d'images, il télécharge à la place et te le signale.
-- <!--i:folder--> **Save** - conserver le design actuel comme une session d'outil sauvegardée dans ta bibliothèque.
-- <!--i:link--> **Share** - ouvre la **boîte de dialogue Share** : un lien copiable qui reproduit le design, des bascules à l'ouverture (plein écran, panneau d'export, téléchargement ou copie à l'ouverture) et un **Shortest link** optionnel qui compresse tout l'état dans un jeton compact (voir [URL Mode](/info/url-mode.html)).
+- <!--i:download--> **Télécharger** - enregistrer le fichier (l'action principale). Si tu ne le retrouves pas ensuite, voir [Retrouver un fichier téléchargé](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Copier** - mettre l'image dans ton presse-papiers pour la coller directement dans Slack, un e-mail, un document. Là où un navigateur ne peut pas copier d'images, il télécharge à la place et te le signale.
+- <!--i:folder--> **Enregistrer** - conserver le design actuel dans Projets en un clic, sans demander où ; ça ne télécharge jamais de fichier. **Enregistrer sous**, à côté d'**Exporter**, demande où (voir [Enregistrer et reprendre](/info/using.html#saving-continuing)).
+- <!--i:link--> **Partager** - ouvre la **boîte de dialogue Share** : un lien copiable qui reproduit le design, des bascules à l'ouverture (plein écran, panneau d'export, téléchargement ou copie à l'ouverture) et un **Shortest link** optionnel qui compresse tout l'état dans un jeton compact (voir [URL Mode](/info/url-mode.html)).
 
 (L'auteur d'un outil choisit lesquelles de ces actions apparaissent ; l'ensemble par défaut est Copy, Download et Save.)
 
@@ -32,23 +46,23 @@ Une session sauvegardée peut aussi être repartagée comme lien d'outil depuis 
 
 ## Choisir un format
 
-Le nom de fichier et le sélecteur de format se trouvent en haut du panneau, formant une seule paire `nom.format`, et le sélecteur ne liste que les formats déclarés par l'auteur de cet outil.
+Le nom de fichier et le menu de format se trouvent ensemble comme une seule paire `name.format`, sous **Télécharger**.
 
 ![Le champ du nom de fichier fusionné au sélecteur de format, de sorte que l'export se lit comme une seule paire nom.format](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
 | Tu veux… | Utilise | Pourquoi |
 |---|---|---|
-| Des logos / illustrations nets qui s'adaptent à l'échelle | **SVG** | Vectoriel - infiniment redimensionnable, léger, modifiable |
+| Des logos / illustrations nets qui s'adaptent à l'échelle | **SVG** | Vectoriel - infiniment redimensionnable, léger, modifiable ; un effet que l'export vectoriel ne peut pas dessiner est intégré comme une image |
 | Du vectoriel pour Office / applications Windows | **EMF** | Se colle comme vecteur modifiable dans PowerPoint / Word ; le texte reste actif et modifiable, et Google Drive l'ouvre dans Google Drawings pour Slides |
-| Du vectoriel pour l'impression / applications de design | **EPS**, ou **EPS (CMJN)** | Vectoriel PostScript pour Illustrator / flux d'impression |
+| Du vectoriel pour l'impression / applications de design | **EPS**, ou **EPS (CMYK)** | Vectoriel PostScript pour Illustrator / flux d'impression |
 | Du vectoriel pour découpe / machines CAO | **DXF** | Découpeuses laser, traceurs vinyle, CNC - tracés de contour en millimètres |
 | Une présentation modifiable | **PowerPoint** (PPTX) | Texte et formes natifs modifiables, images et vecteurs extractibles |
 | Un cours portable | **Export course** | Réviser le contenu du projet et construire un package Website, SCORM ou xAPI expérimental versionné |
 | Un document texte modifiable | **Word** (DOCX) ou **OpenDocument** (ODT) | De vrais paragraphes et titres qu'un traitement de texte peut continuer à modifier (Doc Studio) |
 | Une photo ou une image polyvalente | **PNG** (sans perte) ou **JPG** (plus léger) | Raster universel |
 | Des images modernes plus légères | **WebP** / **AVIF** | Meilleure compression, alpha |
-| Impression | **PDF**, ou **Print PDF** (CMJN) | Taille de page réelle ; CMJN pour l'impression |
-| Raster d'impression pour une presse | **Print TIFF** (CMJN) | Pixels DeviceCMYK pour un RIP |
+| Impression | **PDF**, ou **Print PDF** (CMYK) | Taille de page réelle ; CMJN pour l'impression |
+| Raster d'impression pour une presse | **Print TIFF** (CMYK) | Pixels DeviceCMYK pour un RIP |
 | Animé pour le web | **GIF** | Fonctionne partout, fichiers plus lourds |
 | Animé en couleurs complètes + vrai alpha | **APNG** | PNG animé - pas de limite de palette, transparence réelle |
 | Animé, fichier le plus léger | **WebP animé** | Couleurs complètes + alpha, mieux compressé que GIF ou APNG |
@@ -91,7 +105,7 @@ Utile pour un storyboard, une planche de vignettes, une planche-contact pour ré
 
 L'échantillonnage se fait au **milieu** de chaque intervalle plutôt qu'à ses bords, car le premier instant d'une séquence est souvent une transition d'entrée qui n'a pas encore terminé son fondu, et le dernier est l'état après la fin de chaque clip - un échantillonnage aux extrémités gaspillerait deux de tes images sur des images quasi vides. Le nombre est plafonné à **64** (une planche-contact est faite pour être lue par un humain), et toute saisie incohérente dans le champ retombe sur `1` plutôt que de faire échouer l'export. Chaque image est une image fixe ordinaire, donc Content Credentials, l'imprint, les unités physiques et le DPI se comportent exactement comme pour un export unique.
 
-Le champ **Frames** est aujourd'hui le moyen d'obtenir une planche. Le moteur réserve un paramètre d'URL `cuts` correspondant, mais aucun shell ne le lit encore depuis un lien, donc un lien partagé se rouvre toujours sur l'image à la tête de lecture - voir [URL Mode](/info/url-mode.html#contact-sheets-cuts).
+Le champ **Frames** est aujourd'hui le moyen d'obtenir une planche. Le moteur réserve un paramètre d'URL `cuts` correspondant, mais aucun shell ne le lit encore depuis un lien, donc un lien partagé se rouvre toujours sur l'image à la tête de lecture - voir [URL Mode](/info/url-parameters.html#contact-sheets-cuts).
 
 ## PDF multi-pages
 
@@ -255,7 +269,9 @@ Là où le format le permet, les exports portent des **métadonnées de provenan
 
 **Le credential durable.** Une seconde marque, plus lourde, se trouve à côté de l'Imprint : le **Credential durable**, qui utilise un modèle neuronal sur l'appareil (format TrustMark) pour écrire l'identifiant de Lolly *dans* les pixels afin que le lien « fait avec Lolly » survive à un nettoyage de métadonnées, un réencodage et une relecture par des outils compatibles TrustMark aussi bien que par ceux de Lolly. Il est **désactivé par défaut** - contrairement à l'Imprint en pur JavaScript, il coûte une passe neuronale par export plus un téléchargement de modèle unique, donc c'est un choix explicite plutôt qu'une taxe discrète. Raster seulement (**PNG, JPG, WebP, AVIF, TIFF**), coché dans le panneau d'export ou passé en `durable=1` dans un lien de partage. Sur les applications de bureau et mobile, la carte est carrément masquée plutôt qu'affichée comme sans effet, car il n'y a pas d'origine où récupérer le modèle hors ligne.
 
-**Protection du contenu.** Dans le panneau d'export, *Protéger par mot de passe*, les **Content Credentials C2PA**, le **Lolly Imprint** et le **Credential durable** se replient en un seul groupe **Protection du contenu** réduit et adapté au format, si bien que les options de provenance et de protection d'un fichier vivent au même endroit - le groupe n'affiche que les cartes qui s'appliquent au format choisi, et se masque entièrement quand aucune ne s'applique. Les repères d'impression n'y figurent volontairement *pas* : ce sont de la géométrie de production imprimée plutôt que de la protection, donc **Repères d'impression et fond perdu** - la mesure de fond perdu en millimètres plus Crop, Registration, Bleed, barres de couleur et détails de tampon - conserve sa propre carte de premier niveau sur les formats impression.
+**Protection du contenu.** Dans le panneau d'export, la **Licence** que tu accordes, les **Crédits de source** de tout ce que tu as placé, *Password protect*, **C2PA Credentials**, le **Lolly Imprint** et le **Credential durable** se replient en un seul groupe **Protection du contenu** réduit et adapté au format, si bien que les options de provenance, de droits et de protection d'un fichier vivent au même endroit. Le groupe n'affiche que les cartes qui s'appliquent au format choisi. Il s'ouvre de lui-même quand un lien ou un document enregistré déclare déjà une licence, ou quand une source a besoin d'une décision de ta part.
+
+**Licence.** Choisis comment les autres peuvent utiliser ton travail : *None (all rights reserved)* par défaut, ou CC0 1.0, la Public Domain Mark 1.0, ou l'une des licences Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Le nom de la licence et un lien vers son résumé sont écrits dans les métadonnées de licence du fichier (EXIF, XMP et RIFF là où le format a ces champs) et dans son Content Credential. Le choix est enregistré avec le document et voyage dans un lien de partage sous la forme `licence=`. Lolly écrit la licence que tu as choisie. Il ne vérifie ni n'impose les conditions. Un outil avec son propre champ de licence, comme Claim, garde ce champ à la place et n'affiche pas de second sélecteur. Les repères d'impression n'y figurent volontairement *pas* : ce sont de la géométrie de production imprimée plutôt que de la protection, donc **Repères d'impression et fond perdu** - la mesure de fond perdu en millimètres plus Crop, Registration, Bleed, barres de couleur et détails de tampon - conserve sa propre carte de premier niveau sur les formats impression.
 
 ![Le groupe Protection du contenu ouvert sur un export PNG, montrant seulement les cartes qui s'appliquent](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
@@ -263,7 +279,7 @@ Là où le format le permet, les exports portent des **métadonnées de provenan
 
 **Coût, calculé à partir de ta grille tarifaire.** Sous le contrôle qualité - tout en bas, encore au-dessus des boutons - se trouve une carte qui transforme ces mêmes comptages en argent, et uniquement à partir de prix que quelqu'un lui a donnés. Elle lit ce que la passe de contrôle qualité a compté, que la carte de contrôle qualité elle-même soit activée ou non, et elle a besoin de deux conditions vraies : le travail a quelque chose qu'une liste de prix peut effectivement chiffrer (plaques, feuilles, surface, pages, lignes de variantes ou fichiers de sortie - donc un simple PNG de logo ne l'affiche jamais), **et** une **grille tarifaire** est présente. Une grille tarifaire est une liste de prix JSON venant de ton imprimeur. Une installation par défaut n'en fournit aucune et n'a aucun moyen d'en charger une dans l'application : elle arrive soit comme un asset de catalogue qu'un déploiement fournit, soit via l'extension de grille tarifaire optionnelle qu'un auto-hébergeur ou un plan de contrôle active. Sans grille tarifaire, rien ne s'affiche - ni invite, ni tableau vide.
 
-La règle sur laquelle tout repose est qu'**elle n'invente jamais d'argent**. Chaque chiffre est un tarif que tu as fourni multiplié par une quantité que Lolly a comptée - `4 plaques × 35,00 €` - et le total nomme sa propre source dans la même phrase que le chiffre : l'émetteur nommé par la grille, et la date à laquelle la grille dit que ses tarifs datent. Il n'y a ni devise par défaut, ni valeur de substitution, ni zéro tenant lieu de prix manquant. Ce que le fichier dit de lui-même reste du discours rapporté : *« Le fichier indique : … Lolly n'a pas vérifié cela. »*
+La règle sur laquelle tout repose est qu'**elle n'invente jamais d'argent**. Chaque chiffre est un tarif que tu as fourni multiplié par une quantité que Lolly a comptée - `4 plate × €35.00` - et le total nomme sa propre source dans la même phrase que le chiffre : l'émetteur nommé par la grille, et la date à laquelle la grille dit que ses tarifs datent. Il n'y a ni devise par défaut, ni valeur de substitution, ni zéro tenant lieu de prix manquant. Ce que le fichier dit de lui-même reste du discours rapporté : *« Le fichier indique : … Lolly n'a pas vérifié cela. »*
 
 Et quand elle ne peut pas calculer honnêtement, le tableau de travail **disparaît** plutôt que de se dégrader en un chiffre grisé ou complété d'office :
 
@@ -318,11 +334,11 @@ Un export qui place l'œuvre de quelqu'un d'autre enregistre aussi cette source 
 
 ## Sur téléphone
 
-Les commandes d'export se trouvent derrière le bouton flottant **Render**, qui ouvre la feuille **Export** - mêmes formats, taille, copie, téléchargement et partage, dimensionnés pour le tactile.
+Les commandes d'export se trouvent derrière le bouton flottant **Exporter**, qui ouvre la feuille **Export** - mêmes formats, taille, copie, téléchargement et partage, dimensionnés pour le tactile.
 
 ## Référence des formats
 
-Tous les identifiants que l'hôte peut rendre, regroupés. Ce sont aussi les valeurs du paramètre d'URL `format=` et du flag CLI `--export=` - voir [URL Mode](/info/url-mode.html) et [CLI](/info/cli.html). Un outil n'offre que le sous-ensemble déclaré par son auteur, donc le sélecteur est toujours plus court que cette liste.
+Tous les identifiants que l'hôte peut rendre, regroupés. Ce sont aussi les valeurs du paramètre d'URL `format=` et du flag CLI `--export=` - voir [URL Mode](/info/url-mode.html) et [CLI](/info/cli.html). Le menu d'un outil n'affiche que les formats que cet outil peut produire, donc il est toujours plus court que cette liste.
 
 | Type | Identifiants |
 |---|---|

@@ -73,32 +73,20 @@
   padding: 0 1rem;
 }
 
-/* Top-right chrome cluster (home / theme), mirroring the Ask view idiom so the reader
- * sits in the same button family as its peer utility views. */
+/* Top-right chrome cluster (wide / theme / profile). It sits on the same top-row
+ * geometry as the back pill opposite it (tokens.css --chrome-top, --chrome-inset),
+ * and its round buttons are --chrome-h tall (docs-chrome.css .docs-top-btn), so the
+ * two ends of the row are level at every width (plan 277 step 3c; they used to be a
+ * 42px pill at 8px beside 38px buttons at 12px). */
 .docs-topright {
   position: fixed;
-  top: max(0.75rem, var(--safe-top));
-  right: max(0.9rem, var(--safe-right));
+  top: calc(var(--chrome-top) + var(--vv-top, 0px));
+  right: calc(var(--chrome-inset) + var(--safe-right) + var(--vv-right, 0px));
   z-index: 30;
   display: flex;
   align-items: center;
   gap: 0.4rem;
 }
-.docs-top-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: calc(38px * var(--a11y-fs));
-  height: calc(38px * var(--a11y-fs));
-  border-radius: var(--radius-pill);
-  border: 1px solid hsl(var(--border));
-  background: hsl(var(--background) / 0.85);
-  color: hsl(var(--foreground));
-  backdrop-filter: blur(8px);
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
-}
-.docs-top-btn:hover { background: hsl(var(--muted)); border-color: hsl(var(--foreground) / 0.25); }
 /* The full-width toggle is meaningless on a phone (the reader is already full-bleed)
    and its slot collides with the back-pill island at large Dynamic Type sizes. */
 @media (max-width: 640px) {
@@ -108,9 +96,6 @@
    width now (2026-08-26) - the menu opens on desktop too, so the docs top-bar's
    own language pill is redundant. Was ≤640px-only. */
 .docs-top-btn--lang { display: none; }
-.docs-top-btn:active { transform: scale(0.94); }
-.docs-top-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px hsl(var(--primary) / 0.4); }
-.docs-top-btn svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); }
 
 /* A pending / failed state - the reader renders chrome first, then swaps this out. */
 .docs-status {
@@ -155,7 +140,11 @@
 .docs-content h2:first-of-type { border-top: none; padding-top: 0; margin-top: 0; }
 .docs-content h3 { font-size: calc(1.15rem * var(--a11y-fs, 1)); color: var(--dark); margin-top: 1.75rem; margin-bottom: 0.5rem; }
 .docs-content h4 { font-size: calc(1rem * var(--a11y-fs, 1)); color: var(--muted); margin-top: 1.25rem; margin-bottom: 0.35rem; }
-.docs-content h2[id], .docs-content h3[id], .docs-content h4[id] { scroll-margin-top: 1.5rem; }
+/* A landed heading clears the fixed top row (its offset plus its height), so its
+ * focus ring is not drawn under the back pill or the round buttons. */
+.docs-content h2[id], .docs-content h3[id], .docs-content h4[id] {
+  scroll-margin-top: calc(var(--chrome-top) + var(--chrome-h) + 0.75rem);
+}
 
 /* Narration follow-along highlight (lib/docs-narration-host.ts): the currently
    spoken block. Mirrors the static docs player's `.ldp-here` (docs/player/player.css)
@@ -193,6 +182,11 @@
   box-shadow: inset 0 0.2rem 0.4rem #0002;
 }
 .docs-content pre code { background: none; padding: 0; color: inherit; font-size: 1em; }
+/* A long token in running text (a URL, a flag list, a link whose text is an address)
+   breaks where it must rather than widening the page. break-word leaves table columns
+   their natural width, so a wide table keeps scrolling in its own frame. Same rule as
+   /info (docs/build.ts). */
+.docs-content :not(pre) > code, .docs-content a { overflow-wrap: break-word; }
 
 .docs-content blockquote {
   border-left: 0; border-radius: 1.5em; padding: 1.5rem 2.25rem;
@@ -240,6 +234,11 @@
 /* Dual light/dark screenshots: .shot holds both the light img and a `.shot-alt` dark img;
  * the app's [data-theme] on <html> chooses which one shows (same mechanism as the static site). */
 .docs-content .shot { display: block; position: relative; width: fit-content; max-width: 100%; margin: 1.5rem auto; }
+/* The frame holds its screenshot's final size before the image loads, so the page does
+   not grow under the reader. Unlike /info (docs/build.ts), the app never capped a
+   screenshot's height, so the width here is the image's own, capped only by the column. */
+.docs-content .shot[style*="--shot-w"] { width: min(calc(var(--shot-w) * 1px), 100%); }
+.docs-content .shot[style*="--shot-w"] > img { width: 100%; }
 .docs-content .shot--dual > img.shot-alt { display: none; }
 [data-theme="dark"] .docs-content .shot--dual > img:not(.shot-alt) { display: none; }
 [data-theme="dark"] .docs-content .shot--dual > img.shot-alt { display: block; }
@@ -379,6 +378,9 @@
 
 .docs-content ul.icon-list { list-style: none; padding-inline-start: 0; display: flex; flex-direction: column; gap: 0.9rem; }
 .docs-content ul.icon-list > li.ic { display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 0; }
+/* The text column may shrink below its longest word, so a long link or code token breaks
+   instead of pushing the page sideways (same rule as /info). */
+.docs-content ul.icon-list > li.ic > span:not(.li-icon) { min-width: 0; }
 .docs-content .li-icon { flex-shrink: 0; width: 1.35rem; height: 1.35rem; margin-top: 0.2rem; color: var(--green); }
 .docs-content .li-icon svg { width: 100%; height: 100%; display: block; }
 
@@ -476,11 +478,10 @@
 .docs-toc-slot svg, .docs-toc-slot img,
 .docs-sitemap-slot svg, .docs-sitemap-slot img { width: 1.05em; height: 1.05em; max-width: 1.25em; max-height: 1.25em; flex: none; }
 
-/* top section pathways (Quickstart · For Creators · For Builders · For Operators · Trust) */
-.docs-pathways { display: flex; flex-wrap: wrap; gap: .3rem 1.4rem; padding: 0 0 1rem; border-bottom: 1px solid hsl(var(--border)); margin-bottom: 1.75rem;margin-top:4em; }
-.docs-pathway { font: 600 calc(.95rem * var(--a11y-fs, 1))/1.4 var(--font-brand, system-ui, sans-serif); color: hsl(var(--muted-foreground)); text-decoration: none; padding: .2rem 0; border-bottom: 2px solid transparent; white-space: nowrap; }
-.docs-pathway:hover { color: hsl(var(--foreground)); }
-.docs-pathway.active { color: hsl(var(--primary)); border-bottom-color: hsl(var(--primary)); }
+/* The section pathways strip, adopted from the built page (lib/docs-nav.ts
+   extractPathways). Its tabs are docs-chrome.css's, shared with /info; here it sits
+   in its slot over a divider. */
+.docs-pathways-slot .docs-pathways { padding: 0 0 1rem; border-bottom: 1px solid hsl(var(--border)); margin-bottom: 1.75rem; margin-top: 4em; }
 
 /* AI-scan donut at the strip's right end: the page's text-signal score (the same
    read #/verify runs on this served page), pressing through to the full report.
@@ -577,6 +578,22 @@
   .docs-reader-grid { grid-template-columns: minmax(0, 1fr); }
   .docs-sidebar-slot { display: none; }
   .docs-toc-slot { position: static; max-height: none; margin-bottom: 1.5rem; }
+  /* The compact disclosures above the article carry "On this page" here, so the copy
+     that used to follow the whole article goes. */
+  .docs-reader-grid:has(.docs-compact-nav) .docs-toc-slot { display: none; }
+}
+
+/* Phone and tablet navigation (views/docs.ts compactNav): the rail and the contents as
+   two disclosures above the article. The disclosure itself is the shared reading
+   component (docs-components.css) and its lists are docs-chrome.css's, the same rows
+   /info's phone menu holds; only their place is styled here. */
+.docs-compact-nav { display: none; }
+@media (max-width: 1024px) {
+  /* One column here, so the grid's column gap would open a 44px row gap under the
+     disclosures; the article's own top padding is enough. */
+  .docs-reader-grid:has(.docs-compact-nav) { row-gap: .75rem; }
+  .docs-compact-nav { display: grid; gap: 8px; margin: 0; }
+  .docs-compact-nav .doc-details { margin: 0; }
 }
 
 /* ── Landing mode: #/docs/index (plans/123) ───────────────────────────────────

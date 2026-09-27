@@ -1,19 +1,33 @@
 # Ekspor & Format
 
-Cara mengeluarkan file jadi dari sebuah alat - memilih format yang tepat, mengatur ukuran output, dan apa yang dilakukan setiap opsi. Seperti hal lainnya, **ekspor terjadi di perangkat Anda**; tidak ada yang diunggah.
+Tekan **Ekspor** pada pil **Export | Save as** milik sebuah tool, pilih sebuah format dari menu di samping nama file, lalu tekan **Unduh**. File tersebut dibuat di perangkat Anda; tidak ada yang diunggah.
+
+Untuk sebagian besar pekerjaan, salah satu dari tiga format berikut sudah tepat:
+
+| For | Choose | Because |
+|---|---|---|
+| Layar, pesan, atau slide | **PNG** | Semua aplikasi dapat membukanya, dan tetap mempertahankan latar belakang transparan jika tool menyediakannya |
+| Halaman jadi, atau apa pun yang dicetak | **PDF** | Ukuran halaman sebenarnya yang tercetak persis seperti tampilannya; **Print PDF**, jika disediakan sebuah tool, adalah versi CMYK untuk percetakan |
+| Karya seni yang harus tetap tajam pada ukuran berapa pun | **SVG** | Bentuk vektor, tajam mulai dari lencana hingga spanduk |
+
+::: check Periksa file pada ukuran yang akan digunakan
+Sebelum Anda mengirimkannya, buka di layar yang menjadi tujuannya, atau cetak pada ukuran aslinya.
+:::
+
+Sisa halaman ini membahas setiap format, ukuran dan opsi.
 
 ## Cara kerja ekspor
 
-Pratinjau *adalah* file itu sendiri. Saat Anda mengekspor, host merender kanvas tersebut ke format yang Anda pilih dan memberikan Anda unduhan (atau menaruhnya di clipboard Anda). Sebuah alat hanya menawarkan format yang dideklarasikan oleh pembuatnya, dan pemilih format menyembunyikan format apa pun yang tidak dapat dihasilkan browser Anda (lihat [Video](#video)).
+Pratinjau *adalah* file itu sendiri. Saat Anda mengekspor, host merender kanvas tersebut ke format yang Anda pilih dan memberikan Anda sebuah unduhan (atau menaruhnya di clipboard Anda). Pemilih menyembunyikan format apa pun yang tidak dapat dihasilkan browser Anda (lihat [Video](#video)).
 
 Ada tiga jalur yang menghasilkan file. Sebagian besar alat **merender kanvas** ke format yang dipilih. Format teks dan data (HTML, MD, TXT, JSON, CSV, ICS, VCF) sebaliknya **dihasilkan dari konten alat**, bukan dirasterisasi dari gambar. Dan utilitas privasi (misalnya *Strip Hidden Data*) menggunakan jalur ketiga: file yang *Anda* pilih ditransformasikan byte demi byte di perangkat dan langsung dikembalikan - tanpa kanvas, tanpa watermark, dan tanpa metadata provenans yang ditambahkan, karena itu memang sudah file Anda sendiri.
 
-Aksi-aksi pada kontrol ekspor:
+Aksi-aksi pada panel ekspor:
 
-- <!--i:download--> **Download** - simpan file (aksi utama).
-- <!--i:photos--> **Copy** - taruh gambar di clipboard Anda untuk ditempel langsung ke Slack, email, atau dokumen. Jika browser tidak dapat menyalin gambar, ia akan mengunduh sebagai gantinya dan memberi tahu Anda.
-- <!--i:folder--> **Save** - simpan desain saat ini sebagai sesi alat tersimpan di pustaka Anda.
-- <!--i:link--> **Share** - membuka **Share dialog**: tautan yang dapat disalin yang mereproduksi desain, sakelar saat kunjungan (layar penuh, panel ekspor, unduh- atau salin-saat-dibuka) dan **Shortest link** opsional yang memadatkan seluruh state ke dalam token ringkas (lihat [URL Mode](/info/url-mode.html)).
+- <!--i:download--> **Unduh** - simpan file (aksi utama). Jika Anda tidak dapat menemukannya setelahnya, lihat [Temukan berkas yang Anda unduh](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Salin** - taruh gambar di clipboard Anda untuk ditempel langsung ke Slack, email, atau dokumen. Jika browser tidak dapat menyalin gambar, ia akan mengunduh sebagai gantinya dan memberi tahu Anda.
+- <!--i:folder--> **Simpan** - simpan desain saat ini ke Proyek dalam satu klik, tanpa menanyakan lokasi; ini tidak pernah mengunduh sebuah file. **Simpan sebagai**, di samping **Ekspor**, menanyakan lokasi (lihat [Menyimpan dan melanjutkan](/info/using.html#saving-continuing)).
+- <!--i:link--> **Bagikan** - membuka **Share dialog**: sebuah tautan yang dapat disalin yang mereproduksi desain, sakelar saat kunjungan (layar penuh, panel ekspor, unduh- atau salin-saat-dibuka) dan **Shortest link** opsional yang memadatkan seluruh state ke dalam token ringkas (lihat [URL Mode](/info/url-mode.html)).
 
 (Pembuat alat memilih mana dari opsi ini yang muncul; set default-nya adalah Copy, Download, dan Save.)
 
@@ -32,13 +46,13 @@ Sesi tersimpan juga dapat dibagikan ulang sebagai tautan alat dari Projects (ia 
 
 ## Memilih format
 
-Nama file dan pemilih format berada di bagian atas panel sebagai satu pasangan `name.format`, dan pemilih hanya menampilkan format yang dideklarasikan oleh pembuat alat ini.
+Nama file dan menu format berada bersama sebagai satu pasangan `name.format`, di bawah **Unduh**.
 
 ![Bidang nama file menyatu dengan pemilih format, sehingga ekspor terbaca sebagai satu pasangan name.format](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-| Anda menginginkan… | Gunakan | Alasan |
+| You want… | Use | Why |
 |---|---|---|
-| Logo / karya seni tajam yang dapat diskalakan | **SVG** | Vektor - dapat diskalakan tanpa batas, kecil, dapat diedit |
+| Logo / karya seni tajam yang dapat diskalakan | **SVG** | Vektor - dapat diskalakan tanpa batas, kecil, dapat diedit; sebuah efek yang tidak dapat digambar oleh ekspor vektor disematkan sebagai gambar |
 | Vektor untuk aplikasi Office / Windows | **EMF** | Ditempel sebagai vektor yang dapat diedit ke PowerPoint / Word; teks tetap hidup dan dapat diedit, dan Google Drive membukanya di Google Drawings untuk Slides |
 | Vektor untuk cetak / aplikasi desain | **EPS**, atau **EPS (CMYK)** | Vektor PostScript untuk Illustrator / alur kerja percetakan |
 | Vektor untuk mesin potong / CAD | **DXF** | Pemotong laser, plotter vinil, CNC - jalur garis luar dalam milimeter |
@@ -53,7 +67,7 @@ Nama file dan pemilih format berada di bagian atas panel sebagai satu pasangan `
 | Animasi dengan warna penuh + alpha nyata | **APNG** | PNG animasi - tanpa batas palet, transparansi sejati |
 | Animasi, ukuran file terkecil | **Animated WebP** | Warna penuh + alpha, kompresi lebih baik daripada GIF atau APNG |
 | Vektor animasi yang dapat diskalakan | **Animated SVG** | Mandiri; berulang di browser atau `<img>`, tanpa codec, ukuran berapa pun |
-| Video untuk sosial / berbagi | **MP4** atau **WebM** | Kualitas per-byte terbaik (lihat di bawah) |
+| Video untuk sosial / berbagi | **MP4** atau **WebM** | Kualitas terbaik per-byte (lihat di bawah) |
 | Teks kaya / tanda tangan email | **HTML** | Ditempel terformat ke klien email |
 | Konten polos | **MD** / **TXT** | Teks saja |
 | Acara kalender | **ICS** | Diimpor ke aplikasi kalender mana pun |
@@ -91,7 +105,7 @@ Berguna untuk storyboard, lembar thumbnail, contact sheet untuk peninjauan, atau
 
 Sampel diambil pada **titik tengah** setiap interval, bukan pada tepinya, karena momen pertama sebuah sequence sering kali adalah transisi masuk yang belum selesai memudar dan momen terakhir adalah keadaan setelah setiap klip berakhir - sampel pada titik ujung akan menghabiskan dua frame Anda untuk frame yang hampir kosong. Jumlahnya dibatasi hingga **64** (contact sheet dibuat untuk dibaca manusia), dan apa pun yang tidak masuk akal yang diketik ke dalam bidang tersebut kembali ke `1` alih-alih menggagalkan ekspor. Setiap frame adalah gambar diam biasa, sehingga Content Credentials, imprint, unit fisik, dan DPI semuanya berperilaku persis seperti pada ekspor tunggal.
 
-Bidang **Frames** adalah cara untuk mendapatkan lembar itu saat ini. Engine mencadangkan parameter URL `cuts` yang sesuai, tetapi belum ada shell yang membacanya dari tautan, sehingga tautan yang dibagikan selalu terbuka kembali pada frame playhead - lihat [URL Mode](/info/url-mode.html#contact-sheets-cuts).
+Bidang **Frames** adalah cara untuk mendapatkan lembar itu saat ini. Engine mencadangkan parameter URL `cuts` yang sesuai, tetapi belum ada shell yang membacanya dari tautan, sehingga tautan yang dibagikan selalu terbuka kembali pada frame playhead - lihat [URL Mode](/info/url-parameters.html#contact-sheets-cuts).
 
 ## PDF multi-halaman
 
@@ -157,7 +171,7 @@ Pilih **Export course** dari alat yang didukung, sebuah folder proyek, atau sebu
 - <!--i:file--> Pilih Website, SCORM 1.2, SCORM 2004 4th Edition, atau target xAPI eksperimental. Periksa konten sebenarnya dan ukuran ZIP, lalu simpan dan unduh versi yang sudah diperiksa.
 - <!--i:check--> Penyelesaian mengharuskan setiap pelajaran wajib diakui dan memilih Finish. Pemutar situs web menyimpan progres di browser; paket LMS terhubung ke LMS penerimanya.
 
-![Panel ekspor pada deck Design dengan SCORM (LMS) dipilih](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+![Panel ekspor pada sebuah deck Design dengan SCORM (LMS) dipilih](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Paketnya menyertakan konten jadinya dan tidak membutuhkan akun Lolly. Ekstrak ZIP Website ke host HTTP(S); impor ZIP LMS tanpa mengubah isinya. Uji tujuan yang dimaksud sebelum mendistribusikan kursus tersebut.
 
@@ -235,7 +249,7 @@ Alat animasi mengekspor gerakan sebagai **MP4**, **WebM** atau **GIF** - dan, ji
 
 GIF berfungsi di mana saja (bagus untuk chat/email; lebih besar dan warnanya lebih sedikit dibanding video). Alat animasi juga menampilkan **Wait** (detik untuk membiarkan animasi mengendap sebelum perekaman) dan **Duration** (panjang klip).
 
-> Tautan `?format=…` yang dibagikan dan meminta kontainer yang tidak dapat direkam browser Anda akan mundur dengan baik ke kontainer lain dan menamai file sesuai dengan itu.
+> Sebuah tautan berbagi `?format=…` yang meminta sebuah kontainer yang tidak dapat direkam browser Anda akan mundur secara mulus ke kontainer lainnya, dan nama file akan sesuai dengan kontainer yang benar-benar direkam.
 
 **Suara.** Ekspor video tidak bisu. Sebuah alat dapat meletakkan **musik latar** di bawah klip - aset audio dari katalog, diulang atau dipotong sesuai panjang klip, dengan fade-in/out, volume dan ducking otomatis di bawah suara asli rekaman - dan alat perekaman membawa audio langsung rekamannya langsung ke dalam file. **MP4** dan **WebM** mempertahankan trek yang telah dicampur; GIF dan format gambar animasi (APNG, Animated WebP, SVG Animasi) secara alami bisu.
 
@@ -255,7 +269,9 @@ Di mana format mendukungnya, ekspor membawa **metadata provenans** - perangkat l
 
 **Kredensial tahan lama.** Tanda kedua yang lebih berat berdampingan dengan Imprint: **Durable credential**, yang menggunakan model neural di perangkat (format TrustMark) untuk menulis id Lolly *ke dalam* piksel sehingga tautan "made with Lolly" bertahan dari penghapusan metadata, pengodean ulang dan pembacaan ulang oleh alat yang mengenal TrustMark maupun oleh Lolly sendiri. Ini **nonaktif secara default** - tidak seperti Imprint murni-JavaScript, ini membutuhkan proses neural per ekspor ditambah unduhan model satu kali, sehingga ini adalah opt-in yang disengaja, bukan pajak diam-diam. Hanya raster (**PNG, JPG, WebP, AVIF, TIFF**), dicentang di panel ekspor atau disertakan sebagai `durable=1` pada tautan berbagi. Pada aplikasi desktop dan mobile, kartu ini disembunyikan sepenuhnya alih-alih ditampilkan sebagai tidak berfungsi, karena tidak ada origin untuk mengambil model secara offline.
 
-**Perlindungan konten.** Di panel ekspor, *Password protect*, **C2PA Credentials**, **Lolly Imprint** dan **Durable credential** dilipat menjadi satu grup **Content protection** yang diciutkan dan menyesuaikan format, sehingga opsi provenans dan perlindungan file berada di satu tempat - grup ini hanya menampilkan kartu yang berlaku untuk format yang dipilih, dan menyembunyikan dirinya sepenuhnya ketika tidak satu pun berlaku. Tanda cetak dengan sengaja *tidak* ada di dalamnya: itu adalah geometri produksi cetak, bukan perlindungan, sehingga **Print marks & bleed** - pengukuran bleed dalam milimeter ditambah Crop, Registration, Bleed, Colour bars dan Stamp details - mempertahankan kartu tingkat atasnya sendiri pada format cetak.
+**Perlindungan konten.** Di panel ekspor, **Lisensi** yang Anda berikan, **Kredit sumber** dari apa pun yang Anda tempatkan, *Password protect*, **C2PA Credentials**, **Lolly Imprint** dan **Kredensial tahan lama** dilipat menjadi satu grup **Perlindungan konten** yang diciutkan dan menyesuaikan format, sehingga opsi provenans, hak, dan perlindungan sebuah file berada di satu tempat. Grup ini hanya menampilkan kartu yang berlaku untuk format yang dipilih. Grup ini terbuka dengan sendirinya ketika sebuah tautan atau dokumen tersimpan sudah menyatakan sebuah lisensi, atau ketika sebuah sumber memerlukan keputusan dari Anda.
+
+**Lisensi.** Pilih bagaimana orang lain boleh menggunakan karya Anda: *Tidak ada (semua hak dilindungi)* sebagai default, atau CC0 1.0, Public Domain Mark 1.0, atau salah satu lisensi Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Nama lisensi dan sebuah tautan ke deed-nya dituliskan ke dalam metadata lisensi file (EXIF, XMP dan RIFF di mana format memiliki field tersebut) dan ke dalam Content Credential-nya. Pilihan ini disimpan bersama dokumen dan ikut dalam tautan berbagi sebagai `licence=`. Lolly menuliskan lisensi yang Anda pilih. Lolly tidak memeriksa atau menegakkan ketentuannya. Sebuah tool dengan field lisensinya sendiri, seperti Claim, mempertahankan field tersebut alih-alih menampilkan pemilih kedua. Tanda cetak dengan sengaja *tidak* ada di dalamnya: itu adalah geometri produksi cetak, bukan perlindungan, sehingga **Tanda cetak & bleed** - pengukuran bleed dalam milimeter ditambah Crop, Registration, Bleed, Colour bars dan Stamp details - mempertahankan kartu tingkat atasnya sendiri pada format cetak.
 
 ![Grup Content protection dibuka pada ekspor PNG, menampilkan hanya kartu yang berlaku untuknya](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
@@ -318,11 +334,11 @@ Ekspor yang menempatkan karya milik orang lain juga mencatat sumber itu di dalam
 
 ## Di ponsel
 
-Kontrol ekspor berada di balik tombol mengambang **Render**, yang membuka lembar **Export** - format, ukuran, salin, unduh dan berbagi yang sama, dibuat pas untuk sentuhan.
+Kontrol ekspor berada di balik tombol mengambang **Ekspor**, yang membuka lembar **Ekspor** - format, ukuran, salin, unduh dan berbagi yang sama, dibuat pas untuk sentuhan.
 
 ## Referensi format
 
-Setiap id yang bisa dirender host, dikelompokkan. Ini juga menjadi nilai untuk parameter URL `format=` dan flag CLI `--export=` - lihat [URL Mode](/info/url-mode.html) dan [CLI](/info/cli.html). Sebuah tool hanya menawarkan subset yang dideklarasikan penulisnya, jadi pemilih selalu lebih pendek dari daftar ini.
+Setiap id yang dapat dirender host, dikelompokkan. Ini juga menjadi nilai untuk parameter URL `format=` dan flag CLI `--export=` - lihat [URL Mode](/info/url-mode.html) dan [CLI](/info/cli.html). Menu sebuah tool hanya menampilkan format yang dapat dibuat tool tersebut, sehingga selalu lebih pendek daripada daftar ini.
 
 | Jenis | Id |
 |---|---|

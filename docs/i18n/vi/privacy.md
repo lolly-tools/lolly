@@ -53,8 +53,9 @@ trên thiết bị của bạn**, không bao giờ được truyền đi:
 
 Không cái nào trong số này được chia sẻ, bán hay dùng để nhận dạng hoặc theo dõi bạn. Không có gì
 cần đồng ý, vì không có việc thu thập nào diễn ra - chỉ có thông báo này, để bạn
-biết những gì được giữ lại và ở đâu. Xóa toàn bộ bất cứ lúc nào bằng **Hồ sơ → Xóa toàn bộ
-dữ liệu của tôi**, hoặc bằng cách xóa bộ nhớ của trang trong trình duyệt của bạn. (Theo Chỉ thị
+biết những gì được giữ lại và ở đâu. Việc xóa bộ nhớ của trang trong trình duyệt của bạn sẽ xóa
+toàn bộ những thứ đó bất cứ lúc nào; **Cài đặt → Bộ nhớ → Xóa toàn bộ dữ liệu của tôi**
+xóa hồ sơ, các phiên đã lưu, ảnh đã tải lên và bộ nhớ đệm tài sản của bạn. (Theo Chỉ thị
 ePrivacy Điều 5(3), việc lưu trữ thực sự cần thiết cho dịch vụ bạn yêu cầu
 không cần sự đồng ý - chỉ cần minh bạch, và đó chính là điều tài liệu này và
 thông báo trong ứng dụng cùng thể hiện.)
@@ -62,8 +63,9 @@ thông báo trong ứng dụng cùng thể hiện.)
 ![Phần lưu trữ của trang hồ sơ trên màn hình rộng bằng điện thoại: mọi hạng mục dữ liệu trên thiết bị được nêu tên, cùng nút Xóa toàn bộ dữ liệu của tôi ngay bên cạnh](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 Bản sao lưu dữ liệu của riêng bạn - gói `lolly-backup` được tạo bởi **Xuất dữ liệu
-của tôi & render mọi thứ** - là một tệp bạn giữ và kiểm soát. Nó không bao giờ chạm vào máy
-chủ của chúng tôi trừ khi bạn tự chọn gửi nó đi đâu đó. Xem [Chuyển dữ liệu](/info/data-transfer.html).
+của tôi** - là một tệp bạn giữ và kiểm soát. Nó không bao giờ chạm vào máy
+chủ của chúng tôi trừ khi bạn tự chọn gửi nó đi đâu đó. Xem [Chuyển
+dữ liệu](/info/data-transfer.html).
 
 ## Tiện ích trên thiết bị
 
@@ -75,6 +77,17 @@ tiện ích này hoạt động ngoại tuyến, và kết quả của chúng kh
 của chúng tôi - mục đích của phần lớn các công cụ này là loại bỏ & bảo vệ dữ liệu, chứ không phải thêm rủi ro.
 
 ![Huy hiệu mà các công cụ này mang: Chạy trên thiết bị của bạn - không có gì được tải lên](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+
+**Prepare for sharing** giữ các đầu vào đang xử lý, các phát hiện riêng tư và bản đồ thay thế
+trong bộ nhớ, mà không tự động thêm chúng vào history, liên kết, bản sao lưu hay sync.
+Việc kiểm tra và thay thế không gửi nội dung file lên máy chủ hay xác thực thông tin đăng nhập
+trực tuyến. Người dùng chọn có sao chép, tải xuống, gửi hay chủ động lưu kết quả vào thư viện
+của mình hay không; một kết quả đã lưu sau đó tuân theo các thiết lập sao lưu và sync
+thông thường của thư viện. Các file recipe bỏ qua các payload trước đó và các ánh xạ nguyên văn.
+Các báo cáo tóm tắt chứa số lượng, scope ID và hash của file. CLI cũng có thể lưu một file
+review riêng tư chứa các giá trị gốc, chỉ khi được yêu cầu rõ ràng bằng `--review-file`.
+Việc xóa hoặc rời khỏi một khung xem chuẩn bị (preparation view) trên trình duyệt sẽ giải phóng
+trạng thái đang xử lý của nó; đây không phải là một lời hứa xóa dấu vết pháp y khỏi bộ nhớ trình duyệt hay hệ điều hành.
 
 ## Khi ứng dụng giao tiếp với mạng, đầy đủ
 
@@ -90,18 +103,45 @@ mạng. Nếu không có ở đây, ứng dụng không làm điều đó.
 | Gửi đến Dropbox | Chỉ một tệp bạn chọn để gửi, đến API của Dropbox (`api.dropboxapi.com` cho đăng nhập và metadata, `content.dropboxapi.com` cho chính tệp), sau khi bạn đăng nhập Dropbox hoàn tất trong cửa sổ riêng của Dropbox. Quyền truy cập của Lolly chỉ giới hạn trong thư mục ứng dụng (nó chỉ có thể thấy `Apps/` và thư mục riêng của nó trong đó - không bao giờ thấy phần còn lại trong Dropbox của bạn), liên kết "Open" mà nó hiển thị cho bạn là một liên kết riêng tư có thời hạn ngắn (không tạo chia sẻ công khai nào), và mã làm mới chỉ được lưu trữ nếu bạn tick chọn "stay connected" | Chỉ khi bạn nhấn "Send to Dropbox" trên một tệp, và chỉ trên các bản dựng mà quản trị viên đã cấu hình một client id của Dropbox - nếu không có, nút này không tồn tại | Nút này không bao giờ xuất hiện. Hãy tự tải tệp về và tải lên Dropbox |
 | Gửi đến OneDrive | Chỉ một tệp bạn chọn để gửi, đến các dịch vụ định danh và Graph của Microsoft (`login.microsoftonline.com` cho đăng nhập, `graph.microsoft.com` cho việc tải lên; một tệp lớn được tải lên theo từng phần đến một địa chỉ tải lên do Microsoft sở hữu trên `api.onedrive.com`, `*.up.1drv.com` hoặc `*.sharepoint.com`), sau khi bạn đăng nhập Microsoft hoàn tất trong cửa sổ riêng của Microsoft. Quyền truy cập của Lolly giới hạn trong thư mục riêng của nó dưới `Apps/` (nó không bao giờ đọc được phần còn lại trong OneDrive của bạn) cộng với tên hiển thị của bạn dùng cho nhãn tài khoản, và mã làm mới chỉ được lưu trữ nếu bạn tick chọn "stay connected" | Chỉ khi bạn nhấn "Send to OneDrive" trên một tệp, và chỉ trên các bản dựng mà quản trị viên đã cấu hình một client id của Microsoft - nếu không có, nút này không tồn tại | Nút này không bao giờ xuất hiện. Hãy tự tải tệp về và tải lên OneDrive |
 | Gửi đến LinkedIn | Chỉ một tệp bạn chọn để gửi, cùng tên của nó làm nội dung bài đăng, đến LinkedIn (`www.linkedin.com` cho đăng nhập, `api.linkedin.com` cho việc tải lên và đăng bài), sau khi bạn đăng nhập LinkedIn hoàn tất ngay trong trình duyệt của bạn. Bài đăng xuất hiện trên chính dòng thời gian của bạn dưới dạng bài đăng công khai mang tên bạn. Lolly có thể đăng bài dưới tên bạn và đọc tên bạn để dùng làm nhãn tài khoản, không gì khác trên LinkedIn của bạn, và thông tin đăng nhập chỉ được giữ lại trên thiết bị này nếu bạn tick chọn "stay connected" - mã của LinkedIn có hạn 60 ngày và không thể tự động gia hạn ngầm, nên nó tự hết hạn | Chỉ khi bạn nhấn "Send to LinkedIn" trên một tệp, chỉ trong các ứng dụng desktop, và chỉ trên các bản dựng có cấu hình một ứng dụng LinkedIn - nếu không có, nút này không tồn tại | Không có gì cần chặn trong ứng dụng web: tính năng này chỉ tồn tại trong **các ứng dụng desktop**, nên hai máy chủ đó cố tình KHÔNG có mặt trong Content-Security-Policy của ứng dụng web bên dưới. Trong các ứng dụng desktop, hãy gỡ bỏ ứng dụng LinkedIn đã cấu hình và nút này sẽ không bao giờ xuất hiện |
+| Gửi đến Penpot | Token truy cập cá nhân Penpot của bạn (bạn dán vào ứng dụng) và tệp lưu trữ `.penpot` của thiết kế bạn chọn để gửi, đến API của Penpot (`design.penpot.app`) qua một lớp chuyển tiếp nhỏ trên chính origin của ứng dụng (`/api/penpot`), vì API của Penpot sẽ không trả lời trực tiếp cho trình duyệt. Lớp chuyển tiếp này chuyển đi rồi quên ngay; các ứng dụng desktop nói chuyện trực tiếp với Penpot | Chỉ khi bạn nhấn "Send to Penpot" trong công cụ Design và xác nhận một dự án | Lớp chuyển tiếp trả về lỗi và việc gửi thất bại một cách an toàn (fail closed). Hãy tự xuất tệp `.penpot` rồi nhập nó vào Penpot |
+| Gửi đến Bluesky | Hình ảnh duy nhất bạn chọn để gửi, tên của nó làm nội dung bài đăng và alt text, cùng handle của bạn cộng với một app password (Bluesky → Settings → App passwords, không bao giờ là mật khẩu tài khoản của bạn), đến máy chủ Bluesky bạn nêu tên (`bsky.social` trừ khi bạn tự host). App password chỉ được lưu trên thiết bị này, không bao giờ trong bản sao lưu, và Ngắt kết nối sẽ xóa nó | Chỉ khi bạn nhấn "Send to Bluesky" trên một hình ảnh, sau khi bạn kết nối tài khoản trong hồ sơ của mình, chỉ trong **ứng dụng desktop** | Không có gì để chặn trong ứng dụng web: chính sách của nó bên dưới không liệt kê máy chủ Bluesky nào, nên việc đi qua đó không tồn tại ở đó. Trong các ứng dụng desktop, gỡ kết nối và nút đó sẽ không bao giờ xuất hiện |
+| Gửi đến Discord | Tệp duy nhất bạn chọn để gửi, dưới dạng tệp đính kèm, đến địa chỉ webhook của kênh bạn đã dán (`discord.com`). Bất kỳ ai giữ một địa chỉ webhook đều có thể đăng lên kênh đó, nên nó chỉ được lưu trên thiết bị này, không bao giờ trong bản sao lưu, và Ngắt kết nối sẽ xóa nó | Chỉ khi bạn nhấn "Send to Discord" trên một tệp, chỉ trong **ứng dụng desktop** | Không có gì để chặn trong ứng dụng web: chính sách của nó bên dưới không nêu tên `discord.com`, nên việc đi qua đó không tồn tại ở đó. Trong các ứng dụng desktop, gỡ webhook và nút đó sẽ không bao giờ xuất hiện |
+| Gửi đến Mastodon | Tệp duy nhất bạn chọn để gửi và tên của nó làm nội dung bài đăng, đến máy chủ Mastodon (hoặc tương thích) bạn nêu tên, sau khi bạn hoàn tất đăng nhập trong cửa sổ riêng của máy chủ đó. Việc kết nối đăng ký một ứng dụng nhỏ theo từng thiết bị trên máy chủ đó; đăng nhập chỉ được giữ trên thiết bị này nếu bạn tick chọn "stay connected" | Chỉ khi bạn nhấn "Send to Mastodon" trên một tệp. Bạn chọn máy chủ, nên nó không có trong chính sách bên dưới | Máy chủ bạn nêu tên phải cho phép gọi từ trình duyệt; nếu không, hãy dùng các ứng dụng desktop. Ngắt kết nối sẽ gỡ nút đó |
+| Gửi đến Nextcloud / WebDAV | Tệp duy nhất bạn chọn để gửi, đến máy chủ của riêng bạn, qua một lượt PUT có xác thực với địa chỉ máy chủ, tên người dùng và app password bạn đã nhập (Nextcloud → Settings → Security → Devices & sessions; không bao giờ là mật khẩu tài khoản của bạn). Chỉ được lưu trên thiết bị này, không bao giờ trong bản sao lưu, bị xóa bởi Ngắt kết nối | Chỉ khi bạn nhấn "Send to Nextcloud" trên một tệp. Bạn chọn máy chủ, nên nó không có trong chính sách bên dưới | Máy chủ của bạn phải cho phép gọi từ trình duyệt từ origin của ứng dụng; nếu không, hãy dùng các ứng dụng desktop |
+| Gửi đến kho lưu trữ tương thích S3 | Tệp duy nhất bạn chọn để gửi, đến bucket của riêng bạn (AWS S3, MinIO, R2, B2, Garage - bất kỳ endpoint SigV4 nào), được ký trên thiết bị của bạn bằng cặp khóa bạn đã nhập. Các khóa chỉ được lưu trên thiết bị này, không bao giờ trong bản sao lưu, bị xóa bởi Ngắt kết nối | Chỉ khi bạn nhấn "Send to S3" trên một tệp. Bạn chọn endpoint, nên nó không có trong chính sách bên dưới | Các quy tắc CORS của bucket bạn phải cho phép origin của ứng dụng; nếu không, hãy dùng các ứng dụng desktop |
+| Đồng bộ trên các thiết bị của bạn | Một bản sao của những gì bạn đã làm trên thiết bị này - các phiên và dự án đã lưu, hệ thống thiết kế của bạn cùng phông chữ và logo của chúng, ảnh đã tải lên, hồ sơ của bạn và các tùy chọn của bạn - dưới dạng một tệp duy nhất, đến một nơi lưu trữ bạn chọn: thư mục ứng dụng Lolly trong Dropbox của bạn (`api.dropboxapi.com`, `content.dropboxapi.com`), các tệp do Lolly tạo trong Google Drive của bạn (`www.googleapis.com`), thư mục ứng dụng Lolly trong OneDrive của bạn (`graph.microsoft.com`, với các tệp lớn hơn được tải lên `api.onedrive.com`, `*.up.1drv.com` hoặc `*.sharepoint.com`, và tải xuống từ `*.files.1drv.com`, `my.microsoftpersonalcontent.com` hoặc `*.sharepoint.com` của Microsoft), hoặc máy chủ Nextcloud / WebDAV hay bucket S3 của riêng bạn. Cùng nơi lưu trữ đó cũng giữ tối đa bảy bản sao hằng ngày và một bản sao từ trước lần áp dụng gần nhất của bạn. **Không gì đến với Lolly:** không có máy chủ Lolly, relay hay máy chủ Lolly Work nào nằm trên đường đi, và các ứng dụng không cần trang web Lolly cho việc này, kể cả để đăng nhập. Bản sao chỉ được mã hóa trên thiết bị của bạn trước nếu bạn đặt một passphrase. Các thông tin đăng nhập, khóa, app password, passphrase và các thiết lập sync ở lại trên thiết bị và không bao giờ nằm trong bản sao. Trên web, một kết nối Google Drive được ghi nhớ chỉ giữ tên tài khoản của bạn (và client id của riêng bạn, nếu bạn đã cung cấp một cái); bản thân lượt đăng nhập Google chỉ kéo dài một lượt truy cập. Trong ứng dụng Android, đăng nhập Google Drive đi qua Google Play services trên điện thoại, do Google vận hành | Chỉ sau khi bạn bật "Sync across my devices" hoặc nhấn "Sync now": một lượt tải lên ngay sau mỗi thay đổi và khi bạn rời ứng dụng, cùng một lượt kiểm tra bản sao mới hơn khi ứng dụng khởi động | Sync thất bại và cho biết lý do; công việc của bạn vẫn ở trên thiết bị. Hãy tự xuất dữ liệu của bạn ra một tệp và tự di chuyển nó thay vào đó |
 | Hồ sơ in ICC | Không có gì mang tính cá nhân - một yêu cầu lấy hồ sơ điều kiện in chuẩn, gửi đến sổ đăng ký công khai của ICC (`registry.color.org`, `www.color.org`) | Chỉ khi bạn nhấp vào một cài đặt sẵn ICC trong trình quản lý hồ sơ in - tải về một lần cho mỗi hồ sơ, sau đó nó nằm trên thiết bị của bạn | Các cài đặt sẵn ICC sẽ không hoạt động. Hãy cung cấp hồ sơ `.icc` của riêng bạn thay thế |
 | Radio Internet | Không có gì mang tính cá nhân - một yêu cầu danh sách phát và một luồng âm thanh, gửi đến đài (`api.somafm.com` và máy chủ icecast mà nó nêu tên, `*.somafm.com`) | Chỉ khi bạn phát radio tích hợp tùy chọn trong trình phát âm thanh | Radio sẽ không hoạt động. Mọi tính năng âm thanh khác vẫn hoạt động bình thường |
 | Một URL bạn yêu cầu công cụ chụp lại | Một yêu cầu gửi đến chính địa chỉ web bạn gõ vào, từ công cụ chụp ảnh màn hình URL. Dù địa chỉ đó là gì. Máy chủ này không có trong chính sách bên dưới, vì bạn chọn nó ngay tại thời điểm sử dụng | Chỉ khi bạn nhập một URL vào công cụ đó và bắt đầu chụp | Quản trị viên không thể đưa vào danh sách cho phép theo máy chủ. Để loại bỏ nó, hãy gỡ bỏ công cụ |
+| Thêm một ảnh từ URL | Một yêu cầu đến đúng địa chỉ ảnh bạn dán vào "Add from URL" (trong bộ chọn tài sản hoặc Tài sản). Chính sách riêng của ứng dụng web cấm trình duyệt lấy trực tiếp nội dung từ một trang khác, nên yêu cầu được thực hiện thay bạn bởi một lớp chuyển tiếp nhỏ trên chính origin của ứng dụng (`/api/fetch-image`), lớp này lấy ảnh ở phía máy chủ và chỉ trả lại các byte - nó không lưu trữ gì và quên ngay địa chỉ đó. Nó từ chối bất cứ thứ gì không phải là địa chỉ ảnh công khai (một địa chỉ riêng tư hoặc nội bộ sẽ bị chặn). Các ứng dụng desktop lấy địa chỉ đó trực tiếp. Một liên kết Lolly bạn dán vào hoàn toàn không được lấy về - nó được kết xuất ngay trên thiết bị của bạn. Máy chủ đó không có trong chính sách bên dưới, vì bạn chọn nó ngay tại thời điểm sử dụng | Chỉ khi bạn dán một URL vào "Add from URL" và xác nhận | Nhà vận hành tắt lớp chuyển tiếp (`LOLLY_DISABLE_IMAGE_PROXY=1`); khi đó chỉ liên kết Lolly, ảnh `data:` và ảnh cùng origin mới có thể được thêm vào trong ứng dụng web. Các ứng dụng desktop không bị ảnh hưởng |
 | Kiểm tra chữ ký SEAL | **Không có gì.** Ứng dụng web hoàn toàn không có bộ phân giải DNS - xem bên dưới | Không bao giờ | Không có gì cần chặn |
 | Mô hình AI trên thiết bị | Không có gì mang tính cá nhân - một lượt tải tệp mô hình một lần từ máy chủ mô hình của Lolly (`lolli.li`), sau đó được lưu đệm trên thiết bị của bạn; không tài khoản, không định danh, chỉ có yêu cầu và IP của bạn | Chỉ khi bạn dùng một tính năng cần đến mô hình (quét sâu Verify, phóng to ảnh, giọng nói, và tương tự) | Tính năng đó chờ tải xong; mọi thứ khác vẫn hoạt động bình thường |
 | Instance từ xa | Bất kỳ điều gì instance bạn nêu tên trả về, qua cùng cơ chế đồng bộ danh mục đã mô tả ở trên - cộng với một nhãn phiên bản trên các yêu cầu gửi đến nó (loại shell và phiên bản engine, cùng loại thông tin mà một user agent mang theo), để quản trị viên của nó có thể thấy những phiên bản Lolly nào đang được dùng thực tế. Trên một instance được quản lý, khi bạn đã đăng nhập, nhãn đó còn mang theo một id cài đặt riêng cho từng thiết bị để danh sách thiết bị của quản trị viên có thể phân biệt lượt cài đặt này. Nó chỉ đi kèm các yêu cầu mà việc sử dụng của chính bạn vốn đã tạo ra - không có bộ đếm giờ và không có gì tự động gọi về - và rời khỏi instance sẽ xóa id đó, nên một thiết bị kết nối lại sau này sẽ xuất trình một id mới. Bạn chọn máy chủ ngay tại thời điểm sử dụng, nên nó không có trong chính sách bên dưới | Chỉ khi bạn chủ động trỏ shell đến một triển khai Lolly khác | Việc chuyển instance sẽ thất bại. Instance cục bộ của bạn không bị ảnh hưởng |
 
-Mọi máy chủ cố định trong bảng đó cũng là toàn bộ danh sách cho phép trong Content-Security-Policy của ứng dụng, thứ mà trình duyệt thực thi. Vì vậy danh sách này không chỉ là một mô tả về những gì mã nguồn làm hôm nay, nó là ranh giới mà trình duyệt buộc ứng dụng phải tuân theo: một thay đổi trong tương lai cố liên hệ với một máy chủ khác sẽ bị chặn, chứ không được âm thầm cho qua. Một hàng là ngoại lệ có chủ đích, và chính ô của nó đã nói rõ điều đó: Send to LinkedIn chỉ tồn tại trong các ứng dụng desktop, nên chính sách của ứng dụng web không nêu tên bất kỳ máy chủ nào trong hai máy chủ đó - ứng dụng web sẽ không thể liên hệ được chúng dù mã nguồn của nó có cố thử. Hai hàng khác không có máy chủ cố định, vì bạn chọn địa chỉ ngay tại thời điểm sử dụng: một URL bạn yêu cầu công cụ chụp lại, và một instance từ xa bạn trỏ shell đến. Cả hai đều không có trong chính sách, và mỗi trường hợp chỉ xảy ra khi bạn gõ một địa chỉ và thực hiện hành động với nó. Một triển khai không muốn dùng bất kỳ tùy chọn nào trong số đó (chẳng hạn một instance doanh nghiệp với phông chữ riêng) sẽ loại các máy chủ đó khỏi chính sách của mình, và các tính năng tương ứng sẽ ngừng hoạt động thay vì cố liên hệ ra ngoài.
+Mọi máy chủ cố định trong bảng đó cũng là toàn bộ danh sách cho phép trong Content-Security-Policy
+của ứng dụng, thứ mà trình duyệt thực thi. Vì vậy danh sách này không chỉ là một mô tả về những gì
+mã nguồn làm hôm nay, nó là ranh giới mà trình duyệt buộc ứng dụng phải tuân theo: một thay đổi
+trong tương lai cố liên hệ với một máy chủ khác sẽ bị chặn, chứ không được âm thầm cho qua.
+Một hàng là ngoại lệ có chủ đích, và chính ô của nó đã nói rõ điều đó: Send to LinkedIn chỉ tồn tại
+trong các ứng dụng desktop, nên chính sách của ứng dụng web không nêu tên bất kỳ máy chủ nào trong
+hai máy chủ đó - ứng dụng web sẽ không thể liên hệ được chúng dù mã nguồn của nó có cố thử.
+Hai hàng khác, Bluesky và Discord, cũng chỉ dành cho desktop theo cách tương tự, và máy chủ của
+chúng bị loại khỏi chính sách web vì cùng lý do đó. Năm hàng không có máy chủ cố định, vì bạn
+chọn địa chỉ ngay tại thời điểm sử dụng: một URL bạn yêu cầu công cụ chụp lại, một instance từ xa
+bạn trỏ shell đến, và máy chủ Mastodon, máy chủ WebDAV hay bucket S3 của riêng bạn (hai loại sau
+cũng dùng làm nơi lưu đồng bộ). Không cái nào trong số đó có trong chính sách, và mỗi trường hợp
+chỉ xảy ra khi bạn gõ một địa chỉ và thực hiện hành động với nó. Hàng Penpot tiếp cận Penpot qua
+chính origin của ứng dụng, nên nó được bao phủ bởi `'self'`. Một triển khai không muốn dùng bất kỳ
+tùy chọn nào trong số đó (chẳng hạn một instance doanh nghiệp với phông chữ riêng) sẽ loại các
+máy chủ đó khỏi chính sách của mình, và các tính năng tương ứng sẽ ngừng hoạt động thay vì cố
+liên hệ ra ngoài.
 
-Không cái nào trong số này gửi tài liệu, dự án, phiên làm việc hay tệp đã tải lên của bạn đi đâu cả.
-Chúng tồn tại để mang mọi thứ *đến* thiết bị của bạn (công cụ, phông chữ, mô hình), không bao giờ để gửi
-mọi thứ *đi từ* thiết bị, ngoại trừ các trường hợp được nêu rõ ràng trong các phần bên dưới.
+Ngoại trừ hai loại hàng, không cái nào trong số này gửi tài liệu, dự án, phiên làm việc hay tệp
+đã tải lên của bạn đi đâu cả: chúng tồn tại để mang mọi thứ *đến* thiết bị của bạn (công cụ,
+phông chữ, mô hình). Hai loại đó là các hàng Gửi (Send), gửi đi tệp duy nhất bạn đã chọn,
+và hàng đồng bộ, gửi một bản sao công việc của bạn đến nơi lưu trữ bạn chọn và không đến
+bất kỳ máy chủ Lolly nào. Mọi ngoại lệ khác đều được nêu rõ ràng trong các phần
+bên dưới.
 
 **Một lưu ý về những gì chúng tôi đã loại bỏ.** Verify có thể kiểm tra chữ ký SEAL, một cơ chế mà
 khóa ký của tệp được công bố trong DNS. Trình duyệt không thể thực hiện truy vấn DNS, nên bất kỳ
@@ -148,15 +188,14 @@ ghi trong URL.
   `noindex` để công cụ tìm kiếm không lập chỉ mục các bản kết xuất của bạn.
 
 Tự lưu trữ Lolly và không muốn một bề mặt render công khai? Đặt
-`LOLLY_DISABLE_RENDER_GET=1` và mọi
-URL trong số này sẽ trả về 404.
+`LOLLY_DISABLE_RENDER_GET=1` và mọi URL trong số này sẽ trả về 404.
 
 ## Máy chủ MCP (tùy chọn, dành cho các tác nhân AI)
 
-Lolly cũng có thể được một tác nhân AI truy cập qua Model Context Protocol - một
-điểm cuối do bên vận hành chạy (lolly.tools chạy một điểm cuối như vậy; bất kỳ ai cũng có thể tự lưu trữ riêng,
+Lolly cũng có thể được một tác nhân AI truy cập qua Model Context Protocol - một điểm cuối do bên
+vận hành chạy (lolly.tools chạy một điểm cuối như vậy; bất kỳ ai cũng có thể tự lưu trữ riêng,
 kể cả hoàn toàn cách ly mạng). Nó chia sẻ lập trường không tài khoản của luồng render, cộng thêm
-ba công cụ tất yếu phải xử lý byte tệp:
+bốn công cụ tất yếu phải xử lý byte tệp:
 
 - <!--i:cpu--> **`lolly_transform`** (chạy một tiện ích trên thiết bị ở phía máy chủ, thay mặt cho
   tác nhân gọi), **`lolly_verify`** (kiểm tra Content Credentials) và **`lolly_redact`**
@@ -164,6 +203,14 @@ ba công cụ tất yếu phải xử lý byte tệp:
   byte của một tệp từ bên gọi. Chúng được xử lý **trong tiến trình, trong bộ nhớ**,
   và kết quả được trả về ngay trong cùng lệnh gọi đó - tệp không bao giờ được ghi vào
   đĩa và không bao giờ được lưu trữ sau khi yêu cầu hoàn tất.
+- <!--i:cpu--> **`lolly_rebrand`** (chỉnh trang một bộ slide cũ theo một hệ thống thiết kế,
+  qua các giai đoạn `plan`, `compile` và `inspect` của nó) nhận byte của bộ slide theo
+  cùng cách đó, và xử lý chúng **trong bộ nhớ, chỉ cho lệnh gọi đó** - không có gì được
+  ghi vào đĩa hay giữ lại sau khi phản hồi được gửi đi. Giai đoạn đầu tiên của nó,
+  `capabilities`, nói rõ bằng lời byte của bạn sẽ đi đâu trước khi bạn gửi bất kỳ
+  byte nào: trên một máy chủ cục bộ tự lưu trữ, bộ slide không bao giờ rời khỏi máy đó;
+  trên một máy chủ được lưu trữ, gọi `lolly_rebrand` sẽ gửi bộ slide đến đó, trong giới hạn
+  kích thước và số trang mà cùng giai đoạn đó cho biết.
 - <!--i:checklist--> Mọi công cụ khác - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
   `lolly_describe_tool` - chỉ hoạt động từ các tham số (văn bản, số, màu sắc,
   URL, id tài sản danh mục), cùng các dữ liệu đầu vào mà một URL render liên kết trực tiếp nhận.
@@ -186,36 +233,38 @@ thiết bị của bạn. Phần này đề cập đến bước duy nhất *tù
 \<your email\>" thay vì một khóa ẩn danh. **Nếu bạn bỏ qua việc đăng ký, không gì trong
 phần này áp dụng cho bạn, và không có dữ liệu cá nhân nào rời khỏi thiết bị của bạn.**
 
-![Thẻ danh tính Verified trên trang hồ sơ, độ rộng điện thoại: bộ chọn thời hạn chứng chỉ và bước đăng ký bên dưới, không hoạt động cho đến khi bạn tự khởi động nó](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
+![Thẻ Verified identity trên trang hồ sơ, phone-width: ô chọn thời hạn chứng chỉ và bước đăng ký bên dưới nó, án binh cho đến khi bạn tự bắt đầu](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 Nếu bạn đăng ký, đây là chính xác những gì xảy ra:
 
-1. **Bạn chọn một phương thức đăng nhập** - GitHub, Google, SUSE (id.suse.com) hoặc một
-   liên kết gửi qua email. Với ba nhà cung cấp OIDC, bạn được chuyển hướng đến trang đăng nhập
-   riêng của nhà cung cấp đó, chịu sự chi phối của chính sách quyền riêng tư của họ, không phải của chúng tôi.
-   Dịch vụ chứng chỉ của Lolly chỉ nhận lại một địa chỉ email đã xác minh và
-   tên của nhà cung cấp. Với liên kết email, địa chỉ bạn nhập được chuyển tới
-   **Resend**, một API email giao dịch, chỉ nhằm gửi đúng liên kết đó.
-2. **Một cookie có thời hạn ngắn bảo vệ việc chuyển hướng.** Đây là cookie duy nhất mà
-   toàn bộ hệ thống Lolly đặt: `lolly_ca_state`, `HttpOnly`, giới hạn phạm vi ở `/api/ca`,
-   hết hạn trong vòng mười phút. Nó mang một giá trị ngẫu nhiên, không phải một định danh
-   theo dõi, và chỉ tồn tại để ngăn việc chuyển hướng OAuth bị giả mạo. Nó được xóa
-   ngay khi việc đăng nhập hoàn tất.
-3. **Địa chỉ IP của bạn được sử dụng, trong thời gian ngắn, để ngăn chặn lạm dụng** các
-   điểm cuối đăng nhập (để một tập lệnh không thể spam một hộp thư hay làm cạn hạn ngạch email) - được giữ
-   chỉ trong bộ nhớ máy chủ, trong một cửa sổ trượt khoảng một phút, không bao giờ được ghi
-   vào nhật ký hay lưu trữ ở bất cứ đâu.
-4. **Dịch vụ chứng chỉ cấp một chứng chỉ có thời hạn ngắn** (7, 30, 90 hoặc 365
-   ngày, tùy bạn chọn, giới hạn bởi chính sách của bên vận hành) gắn email đã xác minh của bạn
-   với nửa công khai của cặp khóa được tạo trên thiết bị của bạn. Nửa riêng tư không bao giờ
-   rời khỏi trình duyệt của bạn.
-5. **Không có gì về việc cấp phát được ghi lại.** Dịch vụ chứng chỉ không giữ nhật ký cấp
-   phát nào: không email của bạn, không nhà cung cấp, không số sê-ri, không dấu
-   thời gian. Không cơ sở dữ liệu, không dòng nhật ký, không webhook. Địa chỉ email của bạn chỉ tồn tại trong
-   yêu cầu đủ lâu để được ghi vào chứng chỉ mà chính thiết bị của bạn nhận, và sau đó
-   nó biến mất hoàn toàn khỏi phía chúng tôi.
-6. **Sau đó, việc ký lại trở nên ngoại tuyến** trong suốt thời hạn của chứng chỉ.
-   Xuất một tệp không bao giờ liên hệ với dịch vụ chứng chỉ - chỉ việc đăng ký mới làm vậy.
+1. **Bạn chọn một phương thức đăng nhập** - GitHub, Google, SUSE (id.suse.com) hoặc
+   một liên kết gửi qua email. Với ba nhà cung cấp OIDC, bạn được chuyển hướng đến
+   trang đăng nhập riêng của nhà cung cấp đó, chịu sự quản lý bởi chính sách quyền
+   riêng tư của họ, không phải của chúng tôi. Dịch vụ chứng chỉ của Lolly chỉ nhận
+   lại một địa chỉ email đã xác minh và tên của nhà cung cấp. Với liên kết email,
+   địa chỉ bạn nhập được chuyển cho **Resend**, một API email giao dịch, chỉ để gửi đúng liên kết đó.
+2. **Một cookie ngắn hạn bảo vệ lượt chuyển hướng.** Đây là cookie duy nhất mà
+   toàn bộ hệ thống Lolly đặt ra: `lolly_ca_state`, `HttpOnly`, giới hạn phạm vi
+   ở `/api/ca`, hết hạn trong vòng mười phút. Nó mang một giá trị ngẫu nhiên,
+   không phải mã theo dõi, và chỉ tồn tại để ngăn việc giả mạo chuyển hướng OAuth.
+   Nó bị xóa ngay khi đăng nhập hoàn tất.
+3. **Địa chỉ IP của bạn được dùng, trong thời gian ngắn, để ngăn chặn lạm dụng**
+   các điểm cuối đăng nhập (để một script không thể spam một hộp thư hay dùng hết
+   hạn ngạch email). Lolly băm địa chỉ đó trước khi tạo một bucket kiểm soát lạm dụng
+   ngắn hạn; địa chỉ gốc không được gửi đến kho lưu trữ đó. Bucket hết hạn sau khoảng
+   một phút và không được dùng để theo dõi. Nhật ký truy cập lưu trữ thông thường là
+   riêng biệt và được mô tả bên dưới.
+4. **Dịch vụ chứng chỉ cấp một chứng chỉ ngắn hạn** (7, 30, 90 hoặc 365
+   ngày, tùy bạn chọn, giới hạn bởi chính sách của bên vận hành) gắn email đã
+   xác minh của bạn với nửa công khai của cặp khóa được tạo trên thiết bị của bạn.
+   Nửa riêng tư không bao giờ rời khỏi trình duyệt của bạn.
+5. **Không có gì về việc cấp phát được ghi lại.** Dịch vụ chứng chỉ không giữ
+   nhật ký cấp phát nào: không email của bạn, không nhà cung cấp, không số sê-ri,
+   không dấu thời gian. Không cơ sở dữ liệu, không dòng nhật ký, không webhook.
+   Địa chỉ email của bạn chỉ tồn tại trong yêu cầu đủ lâu để được ghi vào chứng chỉ mà
+   chính thiết bị của bạn nhận, rồi sau đó hoàn toàn biến mất khỏi phía chúng tôi.
+6. **Sau đó, việc ký lại trở về ngoại tuyến** trong suốt vòng đời của chứng chỉ.
+   Việc xuất một tệp không bao giờ liên hệ với dịch vụ chứng chỉ - chỉ việc đăng ký mới liên hệ.
 
 **Sự đánh đổi, nói thẳng ra.** Một phiên bản trước của dịch vụ này từng ghi nhật ký mỗi
 lần cấp phát, để một chứng chỉ bị cấp sai hoặc bị xâm phạm có thể được truy vết. Chúng tôi
@@ -267,7 +316,7 @@ bản triển khai Lolly nào - đều tạo ra nhật ký truy cập máy chủ
 cơ bản, không phải điều Lolly thêm vào, và nó không bao giờ chứa
 nội dung tài liệu của bạn, vì những tài liệu đó vốn không bao giờ chạm tới một máy chủ ngay từ đầu. Ngoại
 lệ chủ ý duy nhất là một tệp bạn chủ động đưa cho một lệnh gọi MCP
-`lolly_transform`, `lolly_verify` hoặc `lolly_redact`, được xử lý trong bộ nhớ và không bao giờ
+`lolly_transform`, `lolly_verify`, `lolly_redact` hoặc `lolly_rebrand`, được xử lý trong bộ nhớ và không bao giờ
 ghi vào đĩa hay nhật ký, như đã mô tả ở trên.
 
 **Mã nguồn của chính Lolly không ghi bất cứ điều gì vào các nhật ký đó.** Máy chủ MCP hoàn toàn không
@@ -292,12 +341,14 @@ Hầu như không có gì ở đây cần căn cứ pháp lý, vì hầu như kh
 |---|---|---|
 | Mọi thứ trên thiết bị của bạn (tài liệu, tùy chọn, bộ nhớ đệm, bộ đếm) | **Hoàn toàn không phải xử lý của chúng tôi** - dữ liệu không bao giờ đến với chúng tôi. Việc lưu trữ trên thiết bị của bạn là cần thiết một cách nghiêm ngặt cho dịch vụ bạn yêu cầu (ePrivacy Art. 5(3)), nên không cần sự đồng ý | Cho đến khi bạn xóa nó |
 | Địa chỉ email của bạn trong quá trình đăng ký Content Credentials | **Art. 6(1)(b)**, thực hiện một dịch vụ mà bạn đã yêu cầu rõ ràng | Không lưu trữ. Chỉ tồn tại trong bộ nhớ trong thời gian xử lý yêu cầu |
-| Địa chỉ IP của bạn trên các điểm cuối đăng nhập, để giới hạn tốc độ | **Art. 6(1)(f)**, lợi ích hợp pháp của chúng tôi trong việc ngăn chặn lạm dụng một dịch vụ miễn phí và hạn ngạch email của bên thứ ba. Chúng tôi cho rằng điều này vượt qua bài kiểm tra cân bằng vì nó chỉ tồn tại trong bộ nhớ, không bao giờ được ghi lại và bị loại bỏ trong khoảng một phút | ~1 phút, trong bộ nhớ máy chủ, không bao giờ được lưu lại |
+| Một khóa bucket suy ra một chiều từ địa chỉ IP của bạn tại các điểm cuối đăng nhập, dùng để giới hạn tốc độ | **Art. 6(1)(f)**, lợi ích hợp pháp của chúng tôi trong việc ngăn chặn lạm dụng một dịch vụ miễn phí và hạn ngạch email của bên thứ ba. Chúng tôi cho rằng điều này vượt qua bài kiểm tra cân bằng vì địa chỉ gốc không được gửi đến bộ giới hạn, bucket chỉ được dùng để kiểm soát lạm dụng và tự động hết hạn | Khoảng 1 phút trong kho lưu trữ kiểm soát lạm dụng; không được lưu giữ sau đó |
 | Nhật ký truy cập lưu trữ (IP, đường dẫn, dấu thời gian, user agent) | **Art. 6(1)(f)**, lợi ích hợp pháp của chúng tôi trong bảo mật dịch vụ, ngăn chặn lạm dụng và chẩn đoán lỗi | Mặc định của nền tảng Vercel cho gói của chúng tôi. Chúng tôi không thêm bất kỳ luồng trích xuất hay xuất dữ liệu nào |
 
 **Bên nhận dữ liệu.** Các nhóm bên nhận là: nhà cung cấp lưu trữ của chúng tôi (Vercel
-Inc.), và - chỉ khi bạn dùng tùy chọn đăng nhập bằng email - một nhà cung cấp
-email giao dịch (Resend). Nếu bạn đăng nhập bằng GitHub, Google hoặc SUSE (id.suse.com), bạn
+Inc.); nhà cung cấp kho kiểm soát lạm dụng của chúng tôi, chỉ nhận các khóa bucket ngắn hạn,
+suy ra một chiều, và không bao giờ nhận địa chỉ IP gốc; và - chỉ khi bạn dùng tùy chọn
+đăng nhập bằng email - một nhà cung cấp email giao dịch (Resend). Nếu bạn đăng nhập bằng GitHub,
+Google hoặc SUSE (id.suse.com), bạn
 tương tác trực tiếp với nhà cung cấp đó theo chính sách quyền riêng tư của họ. Họ cho
 chúng tôi biết một địa chỉ email đã xác minh và không gì khác. Chúng tôi không chia sẻ dữ liệu cá nhân với bất kỳ ai
 khác, và chúng tôi không bán dữ liệu, không chạy quảng cáo hay lập hồ sơ người dùng.
@@ -307,9 +358,10 @@ cho lolly.tools được cố định tại khu vực Frankfurt (`fra1`) của V
 việc xử lý diễn ra tại EU, nhưng vì là các nhà cung cấp có trụ sở tại Mỹ, họ vẫn có thể
 truy cập dữ liệu với tư cách bên xử lý từ Mỹ. Những lần chuyển giao đó dựa trên Các điều khoản hợp đồng
 tiêu chuẩn của Ủy ban Châu Âu và/hoặc Khung quyền riêng tư dữ liệu EU-US, như quy định trong thỏa thuận
-xử lý dữ liệu của mỗi nhà cung cấp. Vì dữ liệu cá nhân đến được với một trong hai
-nhà cung cấp là rất hạn chế - một địa chỉ email được chuyển tiếp để gửi một tin nhắn,
-và nhật ký truy cập thông thường - mức độ phơi nhiễm tương ứng là nhỏ.
+xử lý dữ liệu của mỗi nhà cung cấp. Vì dữ liệu cá nhân đến được với các nhà
+cung cấp này là rất hạn chế - một địa chỉ email được chuyển tiếp để gửi một tin nhắn,
+nhật ký truy cập thông thường, và một bucket kiểm soát lạm dụng suy ra ngắn hạn
+- mức độ phơi nhiễm tương ứng là nhỏ.
 
 **Ra quyết định tự động.** Không có. Không có việc lập hồ sơ và không có quyết định
 tự động nào tạo ra hiệu lực pháp lý hoặc tương tự đáng kể (Art. 22).
@@ -327,8 +379,8 @@ Vì hầu hết mọi thứ Lolly chạm vào chỉ được lưu trên chính t
 luật bảo vệ dữ liệu gọi là "quyền của bạn" - truy cập, chỉnh sửa, xóa,
 khả năng di chuyển dữ liệu - là những việc bạn đã có thể tự làm ngay lập tức, mà không cần hỏi
 ai: dữ liệu của bạn nằm trong bộ nhớ trình duyệt, ở dạng bạn có thể kiểm tra, xuất
-(**Xuất dữ liệu của tôi & render mọi thứ**, ở trên) hoặc xóa (**Hồ sơ → Xóa toàn bộ
-dữ liệu của tôi**).
+(**Xuất dữ liệu của tôi**, ở trên) hoặc xóa (bằng cách xóa bộ nhớ của trang trong trình duyệt
+của bạn, như trên).
 
 Về mặt chính thức, theo Điều 15-22 GDPR bạn có quyền **truy cập** dữ liệu cá nhân của mình,
 **chỉnh sửa** nó, **xóa** nó, **hạn chế** hoặc **phản đối**
@@ -337,13 +389,14 @@ pháp), quyền **di chuyển dữ liệu** và - khi việc xử lý dựa trê
 **rút lại sự đồng ý đó bất cứ lúc nào**, mà không ảnh hưởng đến tính hợp pháp của những gì
 đã diễn ra trước khi bạn rút lại.
 
-Đây là lập trường trung thực về việc thực thi các quyền đó với chúng tôi. Vì chúng tôi không còn
-lưu nhật ký cấp phát, **chúng tôi không giữ bất kỳ dữ liệu cá nhân nào về bạn mà chúng tôi có thể tra cứu,
-chỉnh sửa, xuất hoặc xóa.** Nếu bạn viết thư hỏi chúng tôi có gì về bạn, câu trả lời
-trung thực là không có gì, và chúng tôi sẽ nói như vậy. Loại duy nhất tồn tại là nhật ký truy cập
-lưu trữ gắn với địa chỉ IP, do nhà cung cấp lưu trữ của chúng tôi giữ theo mặc định lưu trữ của họ.
-Chúng tôi không có cơ chế để tìm kiếm hoặc xóa chọn lọc những dữ liệu đó, và chúng tôi sẽ nói với bạn điều đó
-thay vì giả vờ khác đi. Mọi thứ thực sự là *của bạn* nằm trên thiết bị của bạn, nơi bạn đã có thể đọc, xuất
+Đây là lập trường trung thực về việc thực thi các quyền đó với chúng tôi. Vì chúng tôi
+không còn lưu nhật ký cấp phát, **chúng tôi không giữ bất kỳ dữ liệu cá nhân nào về bạn mà
+chúng tôi có thể tra cứu, chỉnh sửa, xuất hoặc xóa.** Nếu bạn viết thư hỏi chúng tôi có gì
+về bạn, câu trả lời trung thực là không có gì, và chúng tôi sẽ nói như vậy. Loại duy nhất
+tồn tại là nhật ký truy cập lưu trữ gắn với địa chỉ IP, do nhà cung cấp lưu trữ của chúng tôi
+giữ theo mặc định lưu trữ của họ. Chúng tôi không có cơ chế để tìm kiếm hoặc xóa chọn lọc
+những dữ liệu đó, và chúng tôi sẽ nói với bạn điều đó thay vì giả vờ khác đi. Mọi thứ thực sự
+là *của bạn* nằm trên thiết bị của bạn, nơi bạn đã có thể đọc, xuất
 và xóa nó mà không cần xin phép ai.
 
 **Bạn có quyền khiếu nại.** Nếu bạn cho rằng chúng tôi đã xử lý dữ liệu của bạn

@@ -2,7 +2,11 @@
 
 顯示於 `/info` 首頁摺疊面板中的常見問題。
 
-**維護方式：** 底下每個 `##` 標題都是一個問題；它下方（直到下一個 `##` 為止）的內容就是答案。答案使用與網站其他部分相同的輕量 markdown，段落之間以空行分隔。在這裡新增、移除或重新排序問題後，再重新執行 `npm run build:info`（或 `npm run dev:web`）。第一個 `##` 之前的所有內容（本標題與這些說明）都會被建置流程忽略。
+**維護方式：** 底下每個 `##` 標題都是一個問題；
+它下方（直到下一個 `##` 為止）的內容就是答案。答案使用與
+網站其他部分相同的輕量 markdown，段落之間以空行分隔。
+在這裡新增、移除或重新排序問題後，再重新執行 `pnpm run build:info`（或 `pnpm run dev:web`）。
+第一個 `##` 之前的所有內容（本標題與這些說明）都會被建置流程忽略。
 
 ## 我在 /profile 頁面選擇加入之後會發生什麼事？
 
@@ -60,7 +64,12 @@ Lolly的程式碼庫中有一個確定性建置關卡,用以讓程式碼和文�
 
 你原本在哪裡產生檔案，Lolly 就能接進哪裡；CLI 和 App 用的是同一套引擎，所以凌晨兩點跑的流水線，不可能和有人在瀏覽器裡預覽到的結果產生落差。導入的阻力很少出在技術，而是出在組織。可以預期以下這幾點：
 
-**必須有人編寫一套精選的品牌目錄。** Lolly 是一個平台，不是一包做好的範本。若要進行*受治理的推行*，得有人定義共用的素材目錄（標誌、色盤、字型，都以永久 ID 表示），並為每一種輸出類型撰寫 manifest + 範本。不過個人不必等這一步：在開放的應用程式裡，任何人第一天就能把自己的檔案匯入素材，並在 Design 裡建立工具。
+**必須有人編寫一套精選的品牌目錄。** Lolly 是一個平台，不是一包做好
+的範本。若要進行*受治理的推行*，得有人定義共用的素材目錄
+（標誌、色盤、字型，都以永久 ID 表示），並為每一種輸出類型撰寫
+manifest + 範本。不過個人不必等這一步：在開放的應用程式裡，
+任何人第一天就能把自己的檔案匯入素材，
+並在 Design 裡建立工具。
 
 **要貢獻不需要用 git。** 設計師在應用程式裡做出自己的工具與範本，然後分享給同事，或是提交給部署的擁有者納入預設。
 
@@ -98,6 +107,14 @@ Lolly 把整體水準一起拉上來。
 ![Design 的開放畫布 - 匯入設計位於工具列的 Lolly 選單中](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 圖層會以可編輯的方塊出現在開放畫布上：文字仍然可以重打，形狀仍然是形狀，圖片會加進你自己的圖庫，字體與顏色則遵循品牌全域設定。存檔之後，這份版面就成為可重複使用、可用網址取用的範本，任何有 Lolly 的人都能重新填入內容；你還可以混入會在載入時重新算圖的即時工具（QR code、圖表）。從那裡開始，它就跟 Lolly 裡的其他東西一樣算圖：SVG、PDF、PNG 等等，都能從網址重現。請見[匯入設計](/info/design-import.html)。
+
+## 我昨天做的東西在哪裡？
+
+如果你按過**另存為**或**儲存**，它就在首頁的**專案**裡，在你儲存時所用的瀏覽器或應用程式中。如果你只按過**下載**，檔案就在你的瀏覽器或系統儲存下載內容的地方，通常**素材**裡也會有一份副本。有九個工具還會把未儲存的作品保留在**專案**裡。[找回你的成果](/info/find-your-work.html)涵蓋了每一種情況。
+
+## 我關掉了分頁。我的作品還在嗎？
+
+已儲存的作品仍在**專案**裡。未儲存的作品會消失，除了那九個會隨手儲存的工具，它們同樣會把作品保留在**專案**裡。下次離開前，先按**另存為**。見[如果你關閉了分頁或離開了工具](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool)。
 
 ## 我可以用檔案而不是連結來分享作品嗎？
 

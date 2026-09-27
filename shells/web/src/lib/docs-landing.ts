@@ -13,9 +13,9 @@
  *
  *  1. THE BAND CSS. styles/parts/docs-landing.css is the ONE source both surfaces read
  *     (build.ts inlines it, this module injects it). Its selectors are bare class names
- *     (`.hero`, `.audience-tab`, `.btn`), so it is wrapped in `@scope (.docs-landing)`
- *     before it reaches the document: loose in the app shell, one `.btn` rule would
- *     repaint every button in the chrome. @scope only asks that the SUBJECT of a
+ *     (`.hero`, `.audience-tab`, `.quicknav`), so it is wrapped in `@scope (.docs-landing)`
+ *     before it reaches the document: loose in the app shell, those rules would
+ *     restyle the chrome's own elements. @scope only asks that the SUBJECT of a
  *     selector be in scope, so the file's `html[data-theme="dark"] .quicknav` ancestor
  *     rules keep working, its nested @media still apply, and @keyframes inside the
  *     block register globally as usual.

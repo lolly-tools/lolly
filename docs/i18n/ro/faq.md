@@ -5,7 +5,7 @@
 **Cum se întreține:** fiecare titlu `##` de mai jos este o întrebare; tot ce se află sub el
 (până la următorul `##`) este răspunsul. Răspunsurile folosesc același markdown simplu ca
 restul site-ului - separă paragrafele cu o linie goală. Adaugă, șterge sau
-reordonează întrebările aici și rulează din nou `npm run build:info` (sau `npm run dev:web`).
+reordonează întrebările aici și rulează din nou `pnpm run build:info` (sau `pnpm run dev:web`).
 Tot ce se află deasupra primului `##` (acest titlu și aceste note) este ignorat de build.
 
 ## Ce se întâmplă când îmi dau acordul pe pagina /profile?
@@ -67,11 +67,11 @@ ca aplicația, așa că o rulare de pipeline la 2 noaptea nu se poate abate de l
 în previzualizare, într-un browser. Frecarea la adopție este rareori tehnică; este organizațională. Așteaptă-te la:
 
 **Trebuie creat un catalog de brand curatoriat.** Lolly este o platformă, nu un
-pachet gata făcut cu șabloanele tale. Pentru o *implementare guvernată*, cineva definește catalogul comun
-de resurse (logouri, palete, fonturi ca ID-uri permanente) și scrie manifestul +
-șablonul pentru fiecare tip de rezultat. Persoanele individuale nu trebuie totuși să aștepte asta - în
-aplicația deschisă oricine își poate încărca propriile fișiere în Resurse și poate construi instrumente în
-Design din prima zi.
+pachet gata făcut cu șabloanele tale. Pentru o *implementare guvernată*, cineva
+definește catalogul comun de resurse (logouri, palete, fonturi ca ID-uri permanente)
+și scrie manifestul + șablonul pentru fiecare tip de rezultat. Persoanele individuale
+nu trebuie totuși să aștepte asta - în aplicația deschisă oricine își poate încărca
+propriile fișiere în Resurse și poate construi instrumente în Design din prima zi.
 
 **Nu ai nevoie de git ca să contribui.** Designerii își fac propriile instrumente și șabloane
 în aplicație, apoi le împart cu colegii sau le trimit celui care deține
@@ -121,9 +121,17 @@ Câștigăm războiul guvernanței prin comoditate și servicii excelente.
 
 Da. Deschide **Design** și apasă **Import a design** (Importă un design): acceptă un fișier nativ Figma **.fig** (Save local copy), un export Penpot **.penpot**, un Illustrator **.ai** sau **.pdf**, un InDesign **.idml** (File → Export → InDesign Markup) sau **orice SVG** (ușa largă - aproape orice aplicație de design îl exportă). Fără cont, fără plugin și fără licență de aplicație de design.
 
-![Design's open canvas - Import a design sits in the toolbar's Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Canvasul liber al Design - Importă o creație stă în meniul Lolly al barei de instrumente](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Straturile ajung ca niște casete editabile pe canvasul deschis: textul rămâne rescriabil, formele rămân forme, imaginile intră în propria ta bibliotecă de imagini, iar tipografia și culorile respectă variabilele globale ale brandului. Salvează-l și macheta devine un șablon reutilizabil, adresabil prin URL, pe care oricine are Lolly îl poate reumple - și poți amesteca în el instrumente vii (un cod QR, un grafic) care se re-randează la încărcare. De acolo se randează ca orice altceva în Lolly - SVG, PDF, PNG și restul, reproductibil din URL-ul său. Vezi [Importă un design](/info/design-import.html).
+
+## Unde e lucrul pe care l-am făcut ieri?
+
+Dacă ai apăsat **Salvează ca** sau **Salvează**, e în **Proiecte**, pe ecranul principal, în browserul sau aplicația din care ai salvat. Dacă ai apăsat doar **Descarcă**, fișierul e acolo unde browserul sau sistemul tău salvează descărcările, și de obicei o copie e în **Resurse**. Nouă instrumente păstrează și lucrarea nesalvată în **Proiecte**. [Găsește și recuperează-ți lucrarea](/info/find-your-work.html) acoperă fiecare caz.
+
+## Am închis fila. S-a dus lucrarea mea?
+
+Lucrarea salvată e tot în **Proiecte**. Lucrarea nesalvată dispare, cu excepția celor nouă instrumente care salvează pe măsură ce lucrezi, care o păstrează și ele în **Proiecte**. Data viitoare, apasă **Salvează ca** înainte să pleci. Vezi [Dacă ai închis fila sau ai părăsit instrumentul](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Pot să îmi partajez lucrarea ca fișier în loc de link?
 

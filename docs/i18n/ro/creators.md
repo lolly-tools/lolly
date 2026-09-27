@@ -34,9 +34,15 @@ Text care se mișcă, scene pe o cronologie (timeline) și mișcare care rămân
 
 Înregistrează o priză curată cu numărătoare inversă, un indicator de nivel și îndrumare blândă, sau transformă o notă vocală într-un video finit care se mișcă odată cu sunetul. Nu există încă o pagină separată pentru Înregistrare: Folosirea Lolly o conține, în secțiunea despre cronologie.
 
-- **[Folosirea Lolly](/info/using.html#timeline-sequence-studio)** - înregistrarea unei voci direct pe cronologie, unde se salvează priza și cum ajunge ea în mixaj.
-- **[Fă ceva în 60 de secunde](/info/make-something.html#make)** - scena audiogramă, pentru când preferi să fii auzit decât văzut.
+- **[Folosirea Lolly](/info/using.html#timeline-sequence)** - înregistrarea unei voci direct pe cronologie, unde se salvează priza și cum ajunge ea în mixaj.
+- **[Fă-ți primul fișier](/info/make-something.html#other-first-projects)** - audiograma, pentru când preferi să fii auzit decât văzut.
 - **[Vizualizări utilitare](/info/utilities.html)** - Script audio, când cuvintele vin primele și vocea vine după.
+
+## Prezintă
+
+Pune-ți camera, logo-ul și numele peste un deck Design sau un Countdown, cu comenzi private într-o fereastră separată.
+
+- **[Prezentare cu camera](/info/presenting.html)** - încadrare, scene salvate, partajare cu publicul, înregistrare locală și limitările actuale ale versiunii de probă.
 
 ## Colaborează
 

@@ -1,14 +1,14 @@
 # Lolly का उपयोग
 
-ऐप को वास्तव में *उपयोग* करने की व्यावहारिक गाइड - टूल खोलना, कैनवस पर काम करना, एक्सपोर्ट, सेव और शेयर करना। यहाँ बताया गया सब कुछ **आपके डिवाइस पर** चलता है: न कोई अकाउंट, न कोई अपलोड, और पहली बार लोड होने के बाद इंटरनेट की ज़रूरत भी नहीं।
+ऐप को वास्तव में *उपयोग* करने की व्यावहारिक गाइड - टूल खोलना, कैनवस पर काम करना, एक्सपोर्ट, सेव और शेयर करना। यहाँ बताया गया सब कुछ **आपके डिवाइस पर** चलता है: न कोई अकाउंट, न कोई अपलोड, और जिन स्क्रीन को आप पहले ही खोल चुके हैं उनके लिए इंटरनेट की भी ज़रूरत नहीं।
 
 > यहाँ नए हैं? [क्विकस्टार्ट](/info/quickstart.html) आपको कुछ ही मिनटों में चीज़ें बनाना शुरू करा देता है, और [ऑपरेटरों के लिए Lolly](/info/operators.html) में ऐप को इंस्टॉल/डिप्लॉय करना बताया गया है; यह पेज इस बारे में है कि खुल जाने के बाद उसे कैसे चलाया जाए।
 
 ## टूल खोलना
 
-होम स्क्रीन ही **गैलरी** है - हर टूल, श्रेणी के अनुसार समूहित। किसी कार्ड पर क्लिक करें और टूल खुल जाता है; अगर आपने उस पर पहले काम किया है, तो **Continue** बटन आपका सबसे हालिया सेशन फिर से शुरू कर देता है। नाम से फ़िल्टर करने के लिए सर्च बॉक्स का उपयोग करें - या छह लिस्टिंग स्क्रीन (गैलरी, Utilities, Projects, एसेट, डैशबोर्ड और Profile) के नीचे लगी बार से [सर्च](/info/search.html) करें, जो टूल के साथ-साथ आपके सहेजे गए काम, आपके एसेट और आपकी सेटिंग तक भी पहुँचती है। किसी टूल के भीतर यह बार हट जाती है ताकि टूल का अपना क्रोम दिख सके।
+होम स्क्रीन ही **गैलरी** है - हर टूल, श्रेणी के अनुसार समूहित। किसी कार्ड पर क्लिक करके उसी टूल में कुछ नया शुरू करें; [सहेजा गया काम](#saving-continuing) **प्रोजेक्ट्स** से दोबारा खुलता है। नाम से फ़िल्टर करने के लिए सर्च बॉक्स का उपयोग करें - या छह लिस्टिंग स्क्रीन (गैलरी, Utilities, Projects, एसेट, डैशबोर्ड और सेटिंग्स) के नीचे लगी बार से [सर्च](/info/search.html) करें, जो टूल के साथ-साथ आपके सहेजे गए काम, आपके एसेट और आपकी सेटिंग तक भी पहुँचती है। किसी टूल के भीतर यह बार हट जाती है ताकि टूल का अपना क्रोम दिख सके।
 
-![The tool gallery - every tool as a card, grouped by category](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
+![उदाहरण नेविगेशन और एक New कार्रवाई वाला गैलरी कार्ड](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
 हर टूल एक स्प्लिट व्यू है: एक तरफ़ **कंट्रोल**, दूसरी तरफ़ लाइव **प्रीव्यू** (कैनवस)। कोई भी कंट्रोल बदलें और प्रीव्यू तुरंत अपडेट हो जाता है।
 
@@ -42,6 +42,32 @@ selection bullet under Projects uses), click the bar's Hide button
 (`[data-bulk="hide"]` - the literal `data-bulk` value bulkBarHtml() writes,
 confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 (`.gtile--hiddenbox`, confirmed in gallery.ts).
+-->
+
+एक साथ कई कार्ड पर कार्रवाई करने के लिए, हर कार्ड का चेकबॉक्स टिक करें, खाली जगह में एक सिलेक्शन बॉक्स खींचें या **Shift/Cmd-click** करें, और एक फ़्लोटिंग एक्शन बार दिखाई देता है। **सिलेक्शन बार क्या पेश करता है** व्यू के अनुसार थोड़ा अलग होता है, क्योंकि हर कार्रवाई हर जगह मायने नहीं रखती:
+
+- **Tools / Utilities:** पसंदीदा (या पसंदीदा से हटाएं), छिपाएँ (या अनहाइड करें), ऑफ़लाइन उपलब्ध (या ऑफ़लाइन से हटाएँ), **सेशन देखें** (केवल उन्हीं टूल से बने सेशन दिखाते हुए प्रोजेक्ट्स खोलता है) और ठीक एक कार्ड चुने जाने पर लिंक कॉपी करें।
+- **Assets:** पसंदीदा और छिपाएँ किसी भी चयन पर लागू होते हैं; डुप्लिकेट, डाउनलोड करें और हटाएँ तभी दिखते हैं जब चुना गया हर आइटम आपकी अपनी अपलोड की हुई चीज़ हो - एक शेयर्ड डिज़ाइन-सिस्टम एसेट एक स्थायी अनुबंध है, इसलिए बल्क में भी ये तीनों उस पर बंद रहते हैं।
+- **Projects:** देखें [अपना काम खोजें और वापस पाएँ](/info/find-your-work.html#find-something-you-saved)।
+
+> एक लेबल जाल: **सेशन देखें** तभी मौजूद होता है जब कुछ *चुना* गया हो। किसी एक बिना चुने कार्ड पर राइट-क्लिक करने पर इसके बजाय **N saved sessions** मिलता है, जो उस टूल के सेव किए सेशन की एक सूची खोलता है, जहाँ डिलीट स्थायी होता है, न कि प्रोजेक्ट्स पर ले जाने वाला।
+
+![दो टूल के लिए गैलरी सिलेक्शन बार, जिसमें Available offline, View sessions, Favourite और Hide दिए गए हैं](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
+<!--
+SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
+`[data-select="gradient"]` - the `.tile-check[data-select="<ref>"]` checkbox button
+confirmed directly in views/gallery.ts's card markup (the same attribute
+cardMarkup gives every tile), so these two clicks tick both cards without
+opening either tool.
+
+SHOT NOTE (misc-sessions-by-tool, NOT PUBLISHED): the "View sessions" result
+had a recipe of its own (`/#/p?tools=qr-code,d3`, views/projects.ts's
+toolsBodyHtml()), dropped here because it has no `drive=` that can
+manufacture its own content - a saved session isn't a click away, it has to
+already exist, and build-docs-shots.ts gives every shot a fresh
+`browser.newContext()`. It would publish an empty list. Same dependency the
+`projects` shot (now on find-your-work.md) carries; revisit if the pipeline gains a
+storage-seeding hook.
 -->
 
 ### Ask Lolly
@@ -79,10 +105,17 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 - **सिर्फ़ फ़्रेम ही एक्सपोर्ट होता है।** एक्सपोर्ट की गई फ़ाइल आर्टबोर्ड तक सीमित है - बाहर छूटी कोई भी चीज़ (या किनारे से लटकता किसी बॉक्स का हिस्सा) आउटपुट से बस क्रॉप हो जाती है, रास्टर और वेक्टर दोनों फ़ॉर्मैट में समान रूप से।
 - **Fit से भी आगे ज़ूम आउट करें** (20% तक), ताकि फ़्रेम से दूर रखी चीज़ों समेत पूरा पेस्टबोर्ड दिखे।
 - **आकार बदलने योग्य आर्टबोर्ड।** एक्सपोर्ट आयाम बदलने पर फ़्रेम वहीं का वहीं आकार बदल लेता है; बॉक्स अपनी जगहों पर बने रहते हैं, इसलिए आप मौजूदा सामग्री के इर्द-गिर्द लेआउट को फिर से फ़्रेम कर सकते हैं।
+- **एक्सपोर्ट से पहले।** इंस्पेक्टर का दस्तावेज़ सेक्शन सहेजी गई लेयर संरचना जाँचता है, फिर क्लिप हुए टेक्स्ट और फ़्लैट-रंग कॉन्ट्रास्ट के लिए सेटल्ड कैनवस पढ़ता है। यह उसी फ़ॉन्ट रजिस्ट्री से भी पूछता है जो SVG/PDF आउटलाइनिंग में इस्तेमाल होती है कि क्या हर टेक्स्ट रन में एम्बेड करने लायक़ फ़ॉन्ट बाइट्स हैं; इमेज और ग्रेडिएंट बैकग्राउंड को बनावटी कॉन्ट्रास्ट स्कोर देने के बजाय विज़ुअल जाँच के रूप में नामित किया जाता है।
 
-![Design's free canvas - the artboard with its surrounding pasteboard](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Design का फ़्री कैनवस - अपने चारों ओर पेस्टबोर्ड सहित आर्टबोर्ड](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **एक चयन को फ़्लिप करें।** किसी भी बॉक्स पर राइट-क्लिक करें और उसे उसकी जगह पर मिरर करने के लिए **Flip horizontal** या **Flip vertical** चुनें, या कीबोर्ड से `Shift+H` / `Shift+V` दबाएँ - Shift इसलिए, क्योंकि सिर्फ़ `V` Pointer टूल है। हर चुना गया बॉक्स एक अनडू स्टेप में अपनी ही धुरी पर मिरर होता है, और यह मिरर एक असली ट्रांसफ़ॉर्म है, इसलिए यह सिर्फ़ कैनवास पर ही नहीं बल्कि एक्सपोर्ट की गई SVG, PDF और PNG में भी बना रहता है।
+
+### लेयर्स और इंस्पेक्टर
+
+**लेयर्स** में हर आर्टबोर्ड एक समेटा जा सकने वाला पैरंट ग्रुप होता है। वहाँ जाने के लिए उसका नाम चुनें, उसकी लेयर्स फैलाएँ, और उस आर्टबोर्ड के भीतर ऑब्जेक्ट चुनें या उनका क्रम बदलें। थंबनेल और पेज क्रम के लिए **पेज** पर स्विच करें। ऐरो कुंजियाँ लेयर लिस्ट में घुमाती हैं; Left आर्टबोर्ड हेडिंग पर लौटा देता है।
+
+**इंस्पेक्टर** चुने गए ऑब्जेक्ट के लिए टेक्स्ट या इमेज कंट्रोल सबसे पहले दिखाता है। जल्दी विकल्प चुनने के लिए ऑप्शन चिप्स का उपयोग करें और स्टाइलिंग विवरण के लिए **Advanced** फैलाएँ। फ़ोन पर, **इंस्पेक्टर** को **और कार्रवाइयां** से खोलें। कंट्रोल एक शीट में खुलते हैं; Escape या वापस इसे बंद कर देता है और आपका चयन बना रहता है।
 
 ### अपनी आकृतियाँ बनाना (पेन)
 
@@ -137,13 +170,27 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 दो चीज़ें ये ऑपरेशन जान-बूझकर नहीं करते। ये **नष्ट करने के बजाय मना कर देते हैं**: ऐसी दो आकृतियों को इंटरसेक्ट करने को कहें जो ओवरलैप ही नहीं करतीं, तो आपको बता दिया जाता है कि रखने को कुछ है ही नहीं, और कुछ भी नहीं बदलता। और टेक्स्ट व इमेज बॉक्स के पास काम करने लायक़ कोई बाहरी रेखा नहीं होती, इसलिए उन्हें उनके फ़्रेम से अनुमानित करने के बजाय छोड़ दिया जाता है। मिलाया हुआ नतीजा सादे बेज़िए कर्व के रूप में रखा जाता है, जैसा कोई ड्रॉइंग ऐप भी करता है - मूल स्प्लाइन प्रकार इस ऑपरेशन के बाद नहीं बचता।
 
-## टाइमलाइन (Sequence Studio)
+### 3D सीन
 
-![The timeline with the music clip selected: its strip runs along the bottom with Speed, Fades, Volume, Pan, EQ, Pitch, Normalize volume and the Effect slot](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
+टूल रेल के ऐड मेन्यू से **3D सीन** चुनें और एक फ़्रेम खींचें: नए बॉक्स पर 3D Studio तुरंत खुल जाता है, और वहाँ जो भी आप सेट करते हैं वह कैनवस पर वापस आ जाता है। बाक़ी हर तरह से सीन बॉक्स एक सामान्य बॉक्स ही है। उसे हिलाएँ, आकार बदलें, घुमाएँ, उसे शैडो दें, किसी स्लाइड या टाइमलाइन पर रखें - वह बाक़ी सबकी तरह ही बर्ताव करता है।
 
-**Sequence Studio** फ़्री कैनवस में *समय* जोड़ देता है। हर बॉक्स किसी पल पर शुरू हो सकता है, कुछ देर चल सकता है और आते-जाते ऐनिमेट हो सकता है, और आर्टबोर्ड के नीचे लगी टाइमलाइन वह जगह है जहाँ आप उन्हें जमाते हैं। इसे खोलें और एक सीक्वेंस पहले से चल रहा होता है - एक टाइटल कार्ड, एक क्लिप, एक एंड कार्ड, एक लोअर-थर्ड और एक म्यूज़िक बेड - ताकि आपके कुछ बदलने से पहले ही यह मॉडल दिख जाए।
+**सीन बॉक्स रेसिपी रखता है, तस्वीर नहीं।** एक इमेज बॉक्स एक रेंडर की गई फ़ाइल रखता है; एक सीन बॉक्स एक ही सेटिंग रखता है - सीन ख़ुद, जो 3D Studio की अपनी लिंक क्वेरी के रूप में लिखी होती है, जिसमें अब भी स्टूडियो के डिफ़ॉल्ट पर पड़ा हर वैल्यू छोड़ दिया जाता है। यही वजह है कि एक सीन पूरी रेसिपी की लगने वाली कुछ किलोबाइट के बजाय क़रीब सौ बाइट का होता है, कि वही स्ट्रिंग शेयर लिंक में और एडिटर के दरवाज़े दोनों में काम करती है, और क्यों किसी नए स्टूडियो कंट्रोल के लिए Design में कोई बदलाव नहीं चाहिए। यही वजह है कि बॉक्स दस्तावेज़ जो भी आकार और पल माँगे उसी पर फिर से रेंडर होता है, न कि पहले खींची गई किसी तस्वीर को बड़ा करके। सीन जिन तस्वीरों का उपयोग करता है वे एसेट ही बनी रहती हैं और id से यात्रा करती हैं, इसलिए किसी सीन के भीतर किया गया अपलोड बाक़ी दस्तावेज़ के साथ एक `.lolly` फ़ाइल में जाता है।
 
-![Sequence Studio की टाइमलाइन: ट्रांसपोर्ट, रूलर, एक ओवरले लेन, क्लिप्स और सीम चिप्स के साथ चुंबकीय सीक्वेंस पंक्ति और Always on स्ट्रिप](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
+**स्टूडियो में ही एडिट करें।** बॉक्स चुनें और इंस्पेक्टर एक **3D सीन** सेक्शन दिखाता है: एक लाइन बताती है सीन किस चीज़ से बना है, दूसरी उसकी लाइटिंग स्टूडियो का नाम बताती है एक बार आपने कोई चुन ली, और एक बटन, **3D Studio में एडिट करें**। यह बटन उस बॉक्स के सीन को टूल के हर कंट्रोल के साथ स्टूडियो में खोल देता है। Apply करें, और एडिट किया गया सीन एक ही चरण में वापस लिख दिया जाता है, इसलिए एक अनडू बॉक्स को उसी सीन पर लौटा देता है जहाँ से आपने शुरू किया था; बिना Apply किए स्टूडियो बंद करें तो कुछ नहीं बदलता। बॉक्स के बारे में बाक़ी सब कुछ - आर्टबोर्ड पर उसकी जगह, वह कितना बड़ा है, उसकी शैडो, वह किसी स्लाइड पर कब आता है - उन्हीं सेक्शन में बना रहता है जो वह हमेशा इस्तेमाल करता था। सीन बॉक्स की अपनी कोई इमेज या कैप्शन नहीं होता: उसकी तस्वीर स्टूडियो से आती है, और उसके शब्द भी वहीं तय होते हैं।
+
+**एक लाइव सीन, बाक़ी हर बॉक्स पर एक पोस्टर।** दस्तावेज़ का हर 3D बॉक्स एक पोस्टर दिखाता है: सीन की एक स्थिर तस्वीर, जो साझा रेंडरर पूल के ज़रिए स्क्रीन से बाहर, बॉक्स जितनी जगह घेरता है उसी आकार में खींची जाती है। बीस सीन वाले दस्तावेज़ की क़ीमत एक ड्रॉइंग कॉन्टेक्स्ट है, बीस नहीं। किसी सीन बॉक्स को चुनें और वह दस्तावेज़ का एकमात्र लाइव सीन बन जाता है; उसे अचुना करें तो स्क्रीन पर मौजूद फ़्रेम उसका पोस्टर बन जाता है, इसलिए कुछ भी नहीं उछलता। एक बार में सिर्फ़ एक सीन लाइव रहता है, और एक साथ दो सीन बॉक्स चुनने पर दोनों पोस्टर ही बने रहते हैं। इस रिलीज़ में लाइव सीन देखने के लिए है, घुमाने के लिए नहीं: सीन बदलने के लिए **3D Studio में एडिट करें** का उपयोग करें। जो डिवाइस फ़्लोटिंग-पॉइंट ग्राफ़िक्स कॉन्टेक्स्ट नहीं खोल सकता वह पोस्टर बनाए रखता है और खाली आयत दिखाने के बजाय बॉक्स के भीतर वजह बताता है, और बाक़ी दस्तावेज़ पर कोई असर नहीं पड़ता। बिना किसी 3D बॉक्स वाला Design दस्तावेज़ खोलने पर कोई भी 3D कोड लोड नहीं होता।
+
+**टाइमलाइन पर**, कोई सीन बॉक्स वीडियो क्लिप की तरह प्लेहेड का अनुसरण करता है: उसका start, clip-in और स्पीड सीन को उसकी अपनी ऐनिमेशन में आगे बढ़ाते हैं, और सीन की लंबाई वही होती है जो आपने 3D Studio में तय की है, इसलिए बॉक्स को छोटा ट्रिम करने पर सीन तेज़ होने के बजाय उसका कम हिस्सा दिखता है। सिर्फ़ चुना गया सीन बॉक्स ही लाइव है; बाक़ी हर एक स्थिर तस्वीर है, और स्थिर तस्वीर स्क्रब नहीं होती।
+
+**किसी एक्सपोर्ट में**, हर सीन उतना ही आकार में नए सिरे से खींचा जाता है जितना फ़ाइल को चाहिए, उसी रेंडरर से जो स्टूडियो इस्तेमाल करता है। एक वीडियो हर पल हर सीन का एक फ़्रेम रेंडर करता है; एक PNG, SVG या PDF हर बॉक्स की अपनी पिक्सेल साइज़ में एक तस्वीर एम्बेड करता है। स्क्रीन से कुछ भी फ़ोटो नहीं खींचा जाता, इसलिए एक्सपोर्ट इस पर निर्भर नहीं करता कि आपने कौन-सा बॉक्स चुन रखा था। जो सीन नहीं खींचा जा सकता वह एक्सपोर्ट को असफल कर देता है और स्टूडियो के अपने ही शब्दों में बता देता है क्यों।
+
+**अपने ही अपलोड पर बनी सीन को शेयर करना।** किसी Design दस्तावेज़ का शेयर लिंक किसी सीन के भीतर डिवाइस-लोकल अपलोड id को जस का तस साथ ले जाता है, जबकि इमेज बॉक्स उसे ख़ाली कर देता है। इसलिए जिस सीन की आर्टवर्क या मॉडल आपकी अपलोड की हुई फ़ाइल है, वह किसी और के डिवाइस पर उस तस्वीर के लिए स्टूडियो का डिफ़ॉल्ट दिखाती है, जब तक दस्तावेज़ `.lolly` फ़ाइल के रूप में यात्रा न करे, जो बाइट्स साथ ले जाती है।
+
+## टाइमलाइन (Sequence)
+
+**Sequence** Design की टाइमलाइन है: यह फ़्री कैनवस में *समय* जोड़ देती है। हर बॉक्स किसी पल पर शुरू हो सकता है, कुछ देर चल सकता है और आते-जाते ऐनिमेट हो सकता है, और आर्टबोर्ड के नीचे लगी टाइमलाइन वह जगह है जहाँ आप उन्हें जमाते हैं। इसे खोलें और एक सीक्वेंस पहले से चल रहा होता है - एक टाइटल कार्ड, एक क्लिप, एक एंड कार्ड, एक लोअर-थर्ड और एक म्यूज़िक बेड - ताकि आपके कुछ बदलने से पहले ही यह मॉडल दिख जाए।
+
+![Sequence टाइमलाइन: ट्रांसपोर्ट, रूलर, एक ओवरले लेन, क्लिप्स और सीम चिप्स के साथ चुंबकीय सीक्वेंस पंक्ति और Always on स्ट्रिप](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
 
 पंक्तियाँ दो तरह की होती हैं, और यही फ़र्क़ पूरा विचार है:
 
@@ -153,7 +200,7 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 ![संपादन स्टेज: सामने और केंद्र में आर्टबोर्ड, बाईं ओर टूल रेल और कोने में ज़ूम HUD](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-stage)
 
-टाइमलाइन खोलने पर कीबोर्ड उसी के पास चला जाता है, इसलिए Space और ऐरो कुंजियाँ पेज के बजाय प्लेहेड चलाती हैं - और चूँकि जिस कंपोज़िशन में पहले से समय तय है उस पर वह ख़ुद ही खुल जाती है, यह बात Sequence Studio के लोड होते ही लागू हो जाती है।
+टाइमलाइन खोलने पर कीबोर्ड उसी के पास चला जाता है, इसलिए Space और ऐरो कुंजियाँ पेज के बजाय प्लेहेड चलाती हैं - और चूँकि जिस कंपोज़िशन में पहले से समय तय है उस पर वह ख़ुद ही खुल जाती है, यह बात Sequence के लोड होते ही लागू हो जाती है।
 
 > **[सीक्वेंस एडिटर](/info/sequence-editor.html)** उन चार चीज़ों में गहराई से जाता है जो तय करती हैं कि समय में संपादन कितना अनुमान लगाने लायक़ लगता है: कैनवस पर किया गया क्लिक किस क्लिप को संपादित करता है, पड़ोसी क्लिप की ओनियन-स्किन परछाइयाँ, स्प्लिट का दायरा और वह Join जो कट को पलट देता है, और ट्रिमिंग (कीबोर्ड सेट समेत)। टाइमलाइन पर फ़ोकस रहते हुए `?` दबाएँ और शॉर्टकट शीट खुल जाती है।
 
@@ -165,9 +212,13 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 **ध्वनि।** कोई **Audio** क्लिप जोड़ें और वह टाइमलाइन पर बाक़ी क्लिप की तरह ही रहती है: वेवफ़ॉर्म, ट्रिम, म्यूट। (डिफ़ॉल्ट सेशन के साथ आने वाला जनरेट किया हुआ बेड इकलौता अपवाद है - वह एक्सपोर्ट के समय बनता है, इसलिए रेंडर करने तक उसकी बार सादी और ख़ामोश रहती है।) माइक दबाकर सीधे टाइमलाइन पर **वॉइसओवर रिकॉर्ड करें**, काउंट-इन और लेवल मीटर के साथ, और आपका टेक जहाँ से आपने शुरू किया वहीं आपकी अपनी एसेट के रूप में सहेज लिया जाता है। इसके बगल का कैमरा दबाकर उसी तरह **वीडियो रिकॉर्ड करें**: रिकॉर्ड होते समय टेक आर्टबोर्ड के एक्सपोर्ट आकार में क्रॉप होता रहता है, इसलिए छोटी सेल्फ़-व्यू ठीक वही दिखाती है जो प्लेहेड पर सीक्वेंस में जाता है, पूरे फ़्रेम में - किसी सहकर्मी का क्लिप शेयर किए गए लिंक से जुटाने का यही तरीका है। संगीत, संवाद और क्लिप का अपना साउंडट्रैक, सब एक्सपोर्ट किए गए मिक्स तक पहुँचते हैं। (एक्सपोर्ट पैनल का **Audio track** अलग चीज़ है: पूरी क्लिप के नीचे बिछा एक बेड, फ़ेड और डकिंग के साथ। दोनों साथ-साथ रह सकते हैं।)
 
+**ऑडियो स्ट्रिप।** आवाज़ वाली किसी भी क्लिप को चुनें और टाइमलाइन के नीचे एक कॉम्पैक्ट स्ट्रिप खुल जाती है: एक **Volume** फ़ेडर, स्टीरियो पोज़िशन के लिए **Pan**, तीन-बैंड वाला **EQ** (**Low**, **Mid**, **High**), एक **Pitch** कंट्रोल जो सेमीटोन में ट्रांसपोज़ करता है जबकि आवाज़ अपना चरित्र बनाए रखती है, और **Normalize volume**, जो क्लिप को प्रसारण लाउडनेस (BS.1770) पर ले आता है ताकि एक धीमा वॉइस नोट और एक तेज़ ट्रैक बराबर स्तर पर बैठें। जहाँ दो क्लिप मिलती हैं, वहाँ **Crossfade** काटने के बजाय जोड़ को मिला देता है। एक **Effect** स्लॉट क्लिप पर ऑन-डिवाइस प्रोसेसिंग चलाता है - **Voice cleanup** किसी रिकॉर्डिंग से कमरे की गूँज और हिस निकाल देता है। स्पीड बदलने पर भी पिच बनी रहती है: धीमी या तेज़ की गई क्लिप को टाइम-स्ट्रेच किया जाता है, चिपमंक नहीं बनाया जाता। हर मिक्स में एक्सपोर्ट बोलने के दौरान संगीत को नीचे दबाता और छोड़ता रहता है, और पूरे प्रोग्राम को एक ट्रू-पीक लिमिटर के नीचे रखता है, ताकि बाहर निकलते समय कुछ भी क्लिप न हो; जो वेवफ़ॉर्म क्लिप हो जाता, उसे उस जगह चेतावनी के साथ दिखाया जाता है।
+
+![संगीत क्लिप चुनी हुई टाइमलाइन: इसकी स्ट्रिप सबसे नीचे चलती है, जिसमें Speed, Fades, Volume, Pan, EQ, Pitch, Normalize volume और Effect स्लॉट होते हैं](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
+
 **इसे रेंडर करना।** मोशन एक्सपोर्ट एक **डिटर्मिनिस्टिक कंपोज़िट** है, स्क्रीन रिकॉर्डिंग नहीं - हर फ़्रेम ठीक तय समय पर डिकोड, ड्रॉ और एनकोड होता है, इसलिए फ़ाइल इस पर निर्भर नहीं करती कि आपकी मशीन साथ दे पा रही है या नहीं, और MP4 या WebM पर फ़्रेम की कोई व्यावहारिक सीमा नहीं है। जब तक आप ख़ुद कोई अवधि न लिखें, टाइमलाइन की अपनी लंबाई ही अवधि तय करती है। Content Credentials वैसे ही अंकित होते हैं जैसे किसी भी दूसरे एक्सपोर्ट पर। स्टिल एक्सपोर्ट आपको प्लेहेड वाला फ़्रेम देता है, या आउटपुट आकार के बगल वाले **Frames** फ़ील्ड से पूरी कॉन्टैक्ट शीट - देखें [एक्सपोर्ट करना](/info/exporting.html#stills-from-a-timed-composition)।
 
-कुछ सीमाएँ ध्यान में रखें: एक सीक्वेंस अधिकतम एक घंटे का हो सकता है, GIF और ऐनिमेटेड PNG अपने फ़्रेम बफ़र करते हैं इसलिए वे छोटे ही रहते हैं, जिस क्लिप की गति ×1 नहीं है उस पर ऑडियो ख़ामोश रहता है (अभी टाइम-स्ट्रेचिंग नहीं है), और **Record live** यहाँ छिपा दिया गया है क्योंकि कंपोज़िटर बेहतर रास्ता है।
+कुछ सीमाएँ ध्यान में रखें: एक सीक्वेंस अधिकतम एक घंटे का हो सकता है, GIF और ऐनिमेटेड PNG अपने फ़्रेम बफ़र करते हैं इसलिए वे छोटे ही रहते हैं, तेज़ या धीमी चलाई गई क्लिप अपनी पिच बनाए रखती है (ऑडियो स्ट्रिप उसे टाइम-स्ट्रेच करती है, और एक **Pitch** कंट्रोल आवाज़ का चरित्र बनाए रखते हुए सेमीटोन में ट्रांसपोज़ करता है), और **Record live** यहाँ छिपा दिया गया है क्योंकि कंपोज़िटर बेहतर रास्ता है।
 
 **प्रीसेट से आगे: कीफ़्रेम, डेप्थ और एक कैमरा।** एक ट्रांज़िशन किसी क्लिप को आते और जाते समय एनिमेट करता है। किसी क्लिप *के भीतर* किसी बॉक्स को पोज़ देने के लिए - उसे बहाना, फ़ेड करना, ब्लर करना, पेज से उठाकर वापस बिठाना - कीफ़्रेम जोड़ें: क्लिप चुनें, **+Keyframe** दबाएँ (टाइमलाइन के टूल क्लस्टर में हीरा, कैनवास ऑब्जेक्ट बार पर हीरा या `K`) और प्लेहेड की स्थिति तय करती है कि आपका अगला एडिट कौन-सा पोज़ लिखेगा। वही कीफ़्रेम सिस्टम हर टाइम्ड कंपोज़िशन को एक **कैमरा** देता है जो अंदर पुश करता है, आर-पार पैन करता है और फ़ोकस खींचता है, और एक फ़्लैट SVG को लेयर के ऐसे स्टैक में बदल देता है जिनके बीच आप उड़ सकते हैं। पूरी गाइड के लिए **[Animating](/info/animating.html)** देखें।
 
@@ -175,7 +226,7 @@ Design टूल में भी वही टाइमलाइन है, इ
 
 ## प्रस्तुत करना
 
-![The inspector's Document section: Voice, Blend with, Speed, Lead-in, Tail and Show captions when presenting](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
+अपने कैमरे, किसी लोगो और नाम कैप्शन को दर्शक तस्वीर पर रखने के लिए **Present with camera** का उपयोग करें। इसके निजी कंट्रोल, सहेजे गए सीन, शेयरिंग और रिकॉर्डिंग के चरण [कैमरे के साथ प्रस्तुत करना](/info/presenting.html) में बताए गए हैं। नीचे दिए सामान्य डेक कंट्रोल **प्रस्तुत करें** के ज़रिए उपलब्ध रहते हैं।
 
 **आर्टबोर्ड** से बना कोई Design दस्तावेज़ पहले से ही एक डेक है। टूल रेल पर **Lolly menu** खोलें और **Present** चुनें - सबसे आख़िरी पंक्ति - और हर आर्टबोर्ड एक फ़ुल-स्क्रीन स्लाइड बन जाता है, उसी क्रम में जिसमें आर्टबोर्ड कैनवस पर रखे हैं। डेक रेंडर किए गए आर्टबोर्ड की एक प्रति पर चलता है, इसलिए नीचे का एडिटर कभी नहीं छुआ जाता और बाहर निकलते ही आप ठीक वहीं लौट आते हैं जहाँ थे।
 
@@ -186,7 +237,13 @@ Design टूल में भी वही टाइमलाइन है, इ
 - `B` एक काली स्क्रीन बनाए रखता है (कोई भी की स्लाइड को वापस लाती है), `F` फ़ुलस्क्रीन पर लौटता है और **Escape** एक बार में एक परत छीलता है: ओवरव्यू से डेक पर, डेक से एडिटर पर।
 - **कियोस्क।** किसी आर्टबोर्ड को एक **Length** दें और डेक उतनी देर वहाँ रुकता है, फिर एक पतली प्रोग्रेस बार के पीछे खुद आगे बढ़ जाता है; `K` (या पॉज़ बटन, जो तभी दिखाई देता है जब किसी चीज़ की एक लंबाई हो) इसे रोकता और फिर से शुरू करता है। लिंक में `kiosk` जोड़ें और डेक अंत में फिर से शुरू हो जाता है, यही इसे साइनेज बनाता है।
 
-डेक एक लिंक भी है। `?present` सीधे उसी में खोलता है, `s=` स्लाइड का नाम देता है - कोई स्थिति, कोई आर्टबोर्ड id, या किसी बिल्ड चरण के लिए `id.step` - और जैसे-जैसे आप आगे बढ़ते हैं पता बदलता जाता है, इसलिए आप जो भेजते हैं वही स्लाइड होती है जिस पर आप हैं। टूल लेखकों के लिए: ये पैरामीटर [URL मोड](/info/url-mode.html#reserved-parameters) पेज पर दस्तावेज़ीकृत हैं।
+- **सब-स्लाइड स्टैक्स।** किसी आर्टबोर्ड पर राइट-क्लिक करें और **पिछली स्लाइड के नीचे स्टैक करें** चुनें, और वह अपनी अलग स्लाइड होने के बजाय उसी स्लाइड का एक स्टेप बन जाता है: ओवरव्यू एक ही कार्ड दिखाता है, डेक क्रम से स्टैक में से गुज़रता है, और इंस्पेक्टर की **स्टैक** पंक्ति बताती है कि वह किस स्लाइड का हिस्सा है।
+- **मॉर्फ।** जब दो लगातार स्लाइड में एक ही **Morph मिलान** नाम वाला बॉक्स हो (किसी बॉक्स पर राइट-क्लिक करें, या इंस्पेक्टर की **Morph मिलान** पंक्ति - मान लीजिए `hero`), तो ट्रांज़िशन उस बॉक्स को काटने के बजाय उसकी पुरानी जगह से नई जगह तक ले जाता है, रास्ते में उसका आकार और रंग बदलते हुए। एक डेक-व्यापी **मॉर्फ** ट्रांज़िशन हर मिलान वाले जोड़े के लिए यही करता है।
+- **नैरेशन।** हर आर्टबोर्ड के **Speaker notes** को बोलकर पढ़ा जा सकता है। इंस्पेक्टर के **दस्तावेज़** सेक्शन में एक **आवाज़** चुनें, चाहें तो **इसके साथ मिलाएं** के लिए दूसरी आवाज़, पढ़ने की **गति**, और हर स्लाइड के इर्द-गिर्द मिलीसेकंड में **प्रारंभिक विराम** और **अंतिम विराम** चुनें; **प्रस्तुति के दौरान कैप्शन दिखाएं** चालू करें और बोले जाते ही शब्द दिखने लगते हैं। आवाज़ आपके डिवाइस पर चलती है। यही नोट्स वीडियो एक्सपोर्ट में फ़िल्म बन जाते हैं, PowerPoint एक्सपोर्ट में असली स्लाइड ऑडियो, और [SCORM पैकेज](/info/create/exporting.html#scorm-course-packages) के भीतर सुनाई गई फ़िल्म।
+
+![इंस्पेक्टर का दस्तावेज़ सेक्शन: आवाज़, इसके साथ मिलाएं, गति, प्रारंभिक विराम, अंतिम विराम, और प्रस्तुति के दौरान कैप्शन दिखाएं](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
+
+डेक एक लिंक भी है। `?present` सीधे उसी में खोलता है, `s=` स्लाइड चुनता है - कोई स्थिति, कोई आर्टबोर्ड id, या किसी बिल्ड चरण के लिए `id.step` - और जैसे-जैसे आप आगे बढ़ते हैं पता बदलता जाता है, इसलिए आप जो भेजते हैं वही स्लाइड होती है जिस पर आप हैं। टूल लेखकों के लिए: ये पैरामीटर [URL मोड](/info/url-parameters.html#reserved-parameters) पेज पर दस्तावेज़ीकृत हैं।
 
 ## फ़ोन पर
 
@@ -216,77 +273,29 @@ Design टूल में भी वही टाइमलाइन है, इ
 
 किसी लाइव [सहयोग](/info/collaborate.html) में हिस्ट्री सिर्फ़ आपकी ही रहती है। दूसरी डिवाइस से आने वाला कोई बदलाव कभी आपके स्टैक पर नहीं जाता, इसलिए undo हमेशा केवल वही वापस ले सकता है जो आपने किया था।
 
+Undo सिर्फ़ इसी विज़िट तक वापस पहुँचता है; नौ टूल **History** के अंतर्गत, **Undo** के बगल में, पुराने वर्शन भी रखते हैं (देखें [पहले के किसी वर्शन पर वापस जाएँ](/info/find-your-work.html#go-back-to-an-earlier-version))।
+
 ## आपका विवरण और हेडशॉट
 
-**Profile** (गैलरी में ऊपर-दाएँ) में आपका नाम, संपर्क विवरण और एक वैकल्पिक **हेडशॉट** रहता है। जो टूल ये फ़ील्ड माँगते हैं, वे इन्हें अपने आप पहले से भर लेते हैं - एक बार सेट करें और आपका ईमेल सिग्नेचर, लॉकअप और बैज ख़ुद-ब-ख़ुद भर जाते हैं। आप फिर भी किसी भी फ़ील्ड को हर सेशन में अलग से बदल सकते हैं। **Use my details to create** से ऑप्ट-इन करें, ताकि आप जो एक्सपोर्ट करें उस पर लेखक के रूप में आपका विवरण साथ जाए।
+**सेटिंग्स** (गैलरी में ऊपर-दाएँ, एक बार आपका पहला नाम सेट करने के बाद वही दिखाता है) में आपका नाम, संपर्क विवरण और एक वैकल्पिक **हेडशॉट** रहता है। जो टूल ये फ़ील्ड माँगते हैं, वे इन्हें अपने आप पहले से भर लेते हैं - एक बार सेट करें और आपका ईमेल सिग्नेचर, लॉकअप और बैज ख़ुद-ब-ख़ुद भर जाते हैं। आप फिर भी किसी भी फ़ील्ड को हर सेशन में अलग से बदल सकते हैं। **बनाने के लिए मेरी जानकारी इस्तेमाल करें** से ऑप्ट-इन करें, ताकि आप जो एक्सपोर्ट करें उस पर लेखक के रूप में आपका विवरण साथ जाए।
 
 आपका हेडशॉट और विवरण **केवल इसी डिवाइस पर** रहते हैं। एक प्रोफ़ाइल सिर्फ़ आप ही नहीं हो सकती - कोई टीम या ऐसी भूमिका भी, जिसमें आप कभी-कभी आते हैं। पूरी तस्वीर के लिए, एक से अधिक प्रोफ़ाइल रखने समेत, **[प्रोफ़ाइल](/info/profile.html)** देखें।
 
 ## सेव करना और जारी रखना
 
-मौजूदा इनपुट को उस टूल के सेशन के रूप में सहेजने के लिए **Save** क्लिक करें। हर टूल के लिए कई नामित सेशन रखे जा सकते हैं; हर टूल का **Continue** बटन आपका सबसे हालिया सेशन फिर से खोलता है, और **हिस्ट्री बटन** (ऊपर-दाएँ, आपकी प्रोफ़ाइल के बगल में) सभी टूल के हर सहेजे गए सेशन की सूची दिखाता है। सेशन डिवाइस-लोकल होते हैं। इन्हें व्यवस्थित करने के लिए **Projects** खोलें (नीचे देखें)।
+अपना काम रखने के लिए **इस रूप में सेव करें** दबाएँ, जो **एक्सपोर्ट** के बगल वाला टिक है। **Save to a project** के अंतर्गत **मेरी लाइब्रेरी** को चुना ही रहने दें या कोई प्रोजेक्ट चुनें (**＋ नया प्रोजेक्ट…** एक बना देता है), फिर **सहेजें** दबाएँ। दोबारा सेव करने से वही आइटम अपडेट होता है, कॉपी नहीं बनती। Design में **इस रूप में सेव करें** Lolly लोगो के नीचे मेन्यू में है; फ़ोन पर, **•••** दबाएँ, फिर **File menu**, फिर **इस रूप में सेव करें**।
 
-![The two-half render pill - an up arrow that opens the export panel, and a tick that saves the session in place](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+एक्सपोर्ट पैनल का **सहेजें** बटन एक ही क्लिक में वही काम करता है और कभी फ़ाइल डाउनलोड नहीं करता: नया काम मेरी लाइब्रेरी में जाता है, और जो काम आपने पहले सेव किया था वह अपनी जगह अपडेट हो जाता है।
+
+बाद में वापस आने के लिए ऊपर-बाएँ **होम** दबाएँ, फिर **प्रोजेक्ट्स** टैब खोलें (फ़ोन पर एक फ़ोल्डर आइकन)। मेरी लाइब्रेरी की सेव इसकी पहली स्क्रीन पर होती है; एक प्रोजेक्ट वहाँ एक फ़ोल्डर होता है। आइटम का नाम एक्सपोर्ट पैनल में आपके टाइप किए फ़ाइल नाम के अनुसार होता है, या फिर उनके टूल के अनुसार, जैसे **QR Code**। कोई एक खोलें और हर सेटिंग वहीं मिलती है, बदलने और फिर से एक्सपोर्ट करने के लिए तैयार।
+
+सेव किया गया काम इसी डिवाइस पर, उसी ब्राउज़र या ऐप में रहता है जिससे आपने सेव किया था, जब तक आप [Sync](/info/sync.html) चालू न करें। जो फ़ाइल आप **डाउनलोड करें** से पाते हैं वह एक तैयार कॉपी है; बाद में बदलने के लिए प्रोजेक्ट्स में सेव किया गया आइटम खोलें। अगर कुछ वहाँ नहीं है जहाँ आप उम्मीद करते हैं, तो देखें [अपना काम खोजें और वापस पाएँ](/info/find-your-work.html)।
+
+![दो हिस्सों वाली रेंडर पिल - एक ऊपर की तीर जो एक्सपोर्ट पैनल खोलता है, और इस रूप में सेव करें लेबल वाला एक टिक जो सेव शीट खोलता है](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
 ## प्रोजेक्ट्स
 
-**Projects** - इसे **Tools** के बगल वाले **Projects** टैब से खोलें, या **Profile → Storage → Organise in Projects** से - आपकी सहेजी हुई हर चीज़ का घर है, और यह फ़ाइल मैनेजर की तरह काम करता है:
-
-![Projects - saved sessions organised into nestable folders](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
-
-- <!--i:folder--> **नेस्ट होने वाले फ़ोल्डर।** सहेजे गए सेशनों को फ़ोल्डरों में, और फ़ोल्डरों के भीतर फ़ोल्डरों में, जितनी गहराई तक चाहें, समूहित करें। फ़ोल्डर बनाएँ, नाम बदलें, या किसी टाइल को दूसरे फ़ोल्डर पर खींचकर उसे वहाँ ले जाएँ; ब्रेडक्रम्ब आपको वापस ऊपर ले आता है। बिना फ़ोल्डर के सहेजे गए सत्र सीधे **प्रोजेक्ट्स** के मूल स्तर पर दिखाई देते हैं।
-- <!--i:clock--> **अपने हिसाब से क्रम लगाएँ।** **View & sort** में **Name**, **Date added**, **Last modified** (डिफ़ॉल्ट) और किसी फ़ोल्डर के भीतर **By tool** मिलते हैं। कोई भी क्रम चालू हो, फ़ोल्डर हमेशा पहले आते हैं - क्रम सिर्फ़ अपने-अपने समूह के भीतर सेशनों और फ़ोल्डरों को लगाता है।
-- <!--i:document--> **नया काम सीधे यहीं दर्ज करें।** **नया एसेट** साझा पिकर खोलता है। सहेजे गए टेम्पलेट से शुरू करने के लिए **टेम्पलेट्स** चुनें: उसे संपादित करने के लिए खोलें, या तुरंत नई रचना सहेजने के लिए **+ जोड़ें** का उपयोग करें।
-- <!--i:checklist--> **मल्टी-सेलेक्ट (डेस्कटॉप)।** किसी टाइल का चेकबॉक्स टिक करें, ख़ाली जगह पर सिलेक्शन बॉक्स खींचें या **Shift/Cmd-क्लिक** करें; टाइल का कॉन्टेक्स्ट मेन्यू खोलने के लिए उस पर **राइट-क्लिक** करें। फिर पूरे चयन पर एक साथ कार्रवाई करें - वही इशारा और वही तैरती ऐक्शन बार Tools गैलरी, Utilities, एसेट और Projects में भी चलती है, सिर्फ़ यहीं नहीं।
-- <!--i:download--> **पूरा फ़ोल्डर या चयन रेंडर करें।** **Render folder** किसी फ़ोल्डर के हर सहेजे गए सेशन को, उसके सब-फ़ोल्डरों समेत, एक नेस्टेड `.zip` के रूप में एक्सपोर्ट करता है। **Render selection** किसी भी मल्टी-सेलेक्शन के लिए यही करता है, और एक अकेला सेशन सीधे अपनी फ़ाइल में रेंडर होता है। किसी Batch/Pro की ज़रूरत नहीं।
-- <!--i:link--> **किसी टूल के सहेजे काम पर सीधे जाएँ।** Tools गैलरी में एक या अधिक टूल टिक करें और सिलेक्शन बार से **View sessions** चुनें - Projects खुलकर सिर्फ़ उन्हीं टूल से बने सेशन दिखाता है, और **Clear** से पूरे व्यू पर लौटा जा सकता है।
-- <!--i:link--> **सहेजा हुआ सेशन शेयर करें।** किसी सेशन पर राइट-क्लिक → **Share link** से ऐसा लिंक कॉपी करें जो उसे ठीक उन्हीं इनपुट के साथ फिर से खोलता है (पूरा Share डायलॉग - नीचे देखें)।
-
-![The View and sort popover in Projects open, with a theme row, a View choice of Preview or List and Name, Date added and Last modified under Sort](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
-<!--
-SHOT NOTE (misc-projects-sort): trigger button confirmed as
-`.filter-fab.projects-viewopts` in views/projects.ts (openViewOpts() is bound
-to `.projects-viewopts` specifically) - `.projects-viewopts` alone is the
-more specific hook, so that's what drives the click. The popover it opens
-(`.projects-viewmenu`, also confirmed directly in openViewOpts()) is body-
-appended, not nested under the Projects root, so cropSelector finds it
-regardless. "By tool" only appears inside a folder - this recipe captures at
-the Projects ROOT (`url=/#/p`), so if the capture pass wants "By tool"
-visible too, point url= at a real folder instead: the route is a path
-segment, `/#/p/<folderId>` (confirmed in main.ts's hash router - `parts[0]
-=== 'p'` reads `folderId` from `parts[1]`), not a query param. Caveat: a
-folder has to already EXIST in the capture profile, which a per-shot fresh
-context has none of.
-Also: the popover is not sort-only. openViewOpts() writes a theme segment, a
-"View" pair (Preview / List) and a sound segment around the Sort rows, so the
-alt text names them - do not re-caption this as "the sort menu".
--->
-
-**सिलेक्शन बार क्या देती है**, यह हर व्यू में थोड़ा अलग है, क्योंकि हर कार्रवाई हर जगह मायने नहीं रखती:
-
-- **Tools / Utilities:** Favourite (या Unfavourite), Hide (या Unhide), Available offline (या Remove from offline), **View sessions** (ऊपर बताया गया रास्ता) और जब ठीक एक ही कार्ड चुना हो तब Copy link।
-- **एसेट:** Favourite और Hide किसी भी चयन पर लागू होते हैं; Duplicate, Download और Delete तभी दिखते हैं जब चुनी हुई हर चीज़ आपका अपना अपलोड हो - साझा डिज़ाइन-सिस्टम एसेट एक स्थायी अनुबंध है, इसलिए ये तीनों थोक कार्रवाई में भी उस पर नहीं आते।
-- **Projects:** **Render selection**, **Move to…**, **New folder**, **Delete**, और जब चयन में दो से आठ तक एकल-टूल सेशन हों तब **Edit together** (जो उन्हें एक साझा साइडबार के नीचे अगल-बगल खोल देता है), और **Edit as sheet**, जो पूरे चयन को बैच ग्रिड में पंक्तियों के रूप में खोलता है। उस पर **कोई आकार सीमा नहीं** है और उसे इससे फ़र्क़ नहीं पड़ता कि सेशन एक ही टूल के हैं या नहीं, इसलिए जब चयन Edit together की दो-से-आठ की सीमा से बड़ा या ज़्यादा मिला-जुला हो, तो यही निकास का रास्ता है।
-
-> एक लेबल की उलझन: **View sessions** तभी मौजूद होता है जब कुछ *चुना* गया हो। बिना चुने किसी अकेले कार्ड पर राइट-क्लिक करने पर उसकी जगह **N saved sessions** मिलता है, जो Projects पर ले जाने के बजाय उस टूल की अपनी हिस्ट्री डायलॉग खोलता है।
-
-![Tools गैलरी में टिक किए गए दो टूल कार्ड, जिनके साथ फ़्लोटिंग सिलेक्शन बार पर "2 selected" लिखा है और Available offline, View sessions, Favourite और Hide का विकल्प दिया गया है](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
-<!--
-SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
-`[data-select="gradient"]` - the `.tile-check[data-select="<ref>"]` checkbox button
-confirmed directly in views/gallery.ts's card markup (the same attribute
-cardMarkup gives every tile), so these two clicks tick both cards without
-opening either tool.
-
-SHOT NOTE (misc-sessions-by-tool, NOT PUBLISHED): the "View sessions" result
-had a recipe of its own (`/#/p?tools=qr-code,d3`, views/projects.ts's
-toolsBodyHtml()), dropped here because it has no `drive=` that can
-manufacture its own content - a saved session isn't a click away, it has to
-already exist, and build-docs-shots.ts gives every shot a fresh
-`browser.newContext()`. It would publish an empty list. Same dependency the
-`projects` shot above already carries; revisit if the pipeline gains a
-storage-seeding hook.
--->
+**प्रोजेक्ट्स**, होम स्क्रीन के ऊपर मौजूद **प्रोजेक्ट्स** टैब, आपकी बनाई फ़ोल्डरों में आपकी हर सेव की गई चीज़ रखता है। वहाँ अपना काम खोजना, सॉर्ट करना और सर्च करना, और **ट्रैश** से कोई आइटम रीस्टोर करना, [अपना काम खोजें और वापस पाएँ](/info/find-your-work.html#find-something-you-saved) पर है।
 
 
 ## अपना काम शेयर करना
@@ -297,7 +306,7 @@ storage-seeding hook.
 
 हर इनपुट पेज के URL में दर्ज रहता है, इसलिए लिंक ही *डिज़ाइन है*। डायलॉग के सबसे ऊपर कॉपी करने के लिए तैयार लिंक बैठा रहता है, और उसके नीचे दो समेटे हुए खंड।
 
-- **Link options** में **Shortest link** है (बड़ा डिज़ाइन लंबा URL बना देता है, इसलिए यह पूरी स्थिति को एक कॉम्पैक्ट टोकन में समेट देता है और आपको अक्षरों में हुई बचत दिखाता है; पढ़ने योग्य रूप भी हमेशा साथ रहता है), **Password-protect this link** (पूरे लिंक पर AES-256, और पासवर्ड कभी उसमें नहीं जाता) और **Pin this tool version** - यानी `_v` फ़्लैग, जो लिंक को उसी टूल संस्करण से बाँध देता है जो आप देख रहे हैं, ताकि बाद का कोई अपडेट यह न बदल सके कि वह क्या रेंडर करता है।
+- **Link options** में **Open in the installed app** है (यह फ़ील्ड को Shortcuts, लॉन्चर और ऑटोमेशन के लिए एक `lolly://` URI में बदल देता है, हर पैरामीटर वैसे का वैसा रहता है), **Shortest link** (बड़ा डिज़ाइन लंबा URL बना देता है, इसलिए यह पूरी स्थिति को एक कॉम्पैक्ट टोकन में समेट देता है और आपको अक्षरों में हुई बचत दिखाता है; पढ़ने योग्य रूप भी हमेशा साथ रहता है), **Password-protect this link** (पूरे लिंक पर AES-256, और पासवर्ड कभी उसमें नहीं जाता) और **Pin this tool version** - यानी `_v` फ़्लैग, जो लिंक को उसी टूल संस्करण से बाँध देता है जो आप देख रहे हैं, ताकि बाद का कोई अपडेट यह न बदल सके कि वह क्या रेंडर करता है।
 - **Link behaviour** यह है कि पाने वाला जब उसे खोले तो क्या हो: फ़ुलस्क्रीन, एक्सपोर्ट पैनल पहले से खुला, `&export` से खुलते ही डाउनलोड या `&copy` से क्लिपबोर्ड पर कॉपी।
 
 लिंक को किसी सहकर्मी को पेस्ट करें, बुकमार्क करें या कमिट कर दें। (पूरा विवरण: [URL मोड](/info/url-mode.html)।)
@@ -310,7 +319,18 @@ storage-seeding hook.
 
 ### .lolly फ़ाइल
 
-जिस टूल में आप काम कर रहे हैं उसके Share डायलॉग में **Download .lolly** वही डिज़ाइन एक फ़ाइल के रूप में लिख देता है। इसमें सहेजा हुआ सेशन उन इमेज और फ़ाइलों के साथ आता है जो आपने अपने डिवाइस से जोड़ी थीं। डिज़ाइन जिस कैटलॉग सामग्री का उपयोग करता है वह भी उसी के भीतर साथ चलती है, इसलिए फ़ाइल ऐसी मशीन पर भी पूरी खुलती है जिसने आपका ब्रांड कभी देखा ही नहीं। जहाँ आपके डिवाइस में शेयर शीट है, वहाँ **Send to…** वह फ़ाइल डिस्क पर सहेजने के बजाय सीधे उसे सौंप देता है (AirDrop, कोई Android शेयर)।
+`.lolly` Lolly का पोर्टेबल-बंडल एक्सटेंशन है, यह वादा नहीं कि हर फ़ाइल में एक जैसी चीज़ हो। असली अधिकार `manifest.json` में मौजूद `format` का है। ऐप कुछ भी लिखने से पहले पहले वही छोटा-सा मैनिफ़ेस्ट पढ़ता है और आकार, सामग्री और कार्रवाई दिखाता है:
+
+- एक **शेयर्ड डिज़ाइन** (`lolly-share`) में एक सहेजा गया टूल सेशन, उसकी एम्बेड की गई फ़ाइलें, और अब भी संदर्भ से जुड़ी हर चीज़ की रसीद होती है। इसमें वह टूल और वह डिज़ाइन सिस्टम भी हो सकता है जिससे इसे बनाया गया था। खोलने पर एक नया Project जुड़ता है; यह किसी मौजूदा सेशन को कभी ओवरराइट नहीं करता।
+- एक **शेयर्ड प्रोजेक्ट** (`project` किस्म वाला `lolly-share`) में Projects का एक फ़ोल्डर होता है: उसके सब-फ़ोल्डर, उनमें फ़ाइल किया गया हर सहेजा गया सेशन, हर सेशन की टाइल और वहाँ फ़ाइल की गई तस्वीरें। खोलने पर पूरे फ़ोल्डर की एक कॉपी Projects में जुड़ जाती है; जो पहले से वहाँ है उसमें से कुछ भी बदला नहीं जाता। प्रोजेक्ट फ़ाइलों के आने से पहले वाला कोई Lolly इसे नहीं पढ़ सकता और अपडेट करने को कहता है।
+- एक **डिज़ाइन-सिस्टम पैक** (`lolly-brand`) में टोकन होते हैं और इसमें फ़ॉन्ट, लोगो, पब्लिश किए गए वर्शन और रखे गए संसाधन भी हो सकते हैं। खोलने पर यह एक अलग नामित डिज़ाइन सिस्टम के रूप में जुड़ता है, फिर उस पर स्विच कर देता है; डिवाइस पर पहले से मौजूद सिस्टम बने रहते हैं।
+- एक **ब्रांड वर्कस्पेस / इंस्टेंस पैक** ऐसा `lolly-brand` है जिसमें घोषित टूल, कैटलॉग एसेट और वैकल्पिक रूप से एक इंस्टेंस पता शामिल होता है। प्रीफ़्लाइट उन डिवाइस-व्यापी असर को सूचीबद्ध करता है, क्योंकि इसे लोड करने पर पहले से लोड किया हुआ इकलौता वर्कस्पेस ओवरले बदल जाता है।
+
+एक पूरा **डिवाइस/प्रोफ़ाइल बैकअप `.lolly` नहीं है**। यह `lolly-backup` फ़ॉर्मैट वाली `LollyTools-….zip` ही बना रहता है, और सिर्फ़ **सेटिंग्स → स्टोरेज** से रीस्टोर होता है। किसी टूल फ़ोल्डर का सादा zip भी `.zip` ही बना रहता है। दूसरे शब्दों में, सेशन और डिज़ाइन-सिस्टम बंडल ही `.lolly` के मालिक हैं; बैकअप और अलग आर्काइव वर्कफ़्लो नहीं।
+
+**Download .lolly**, आप जिस टूल में काम कर रहे हैं उसके Share डायलॉग में, मौजूदा डिज़ाइन को एक शेयर्ड-डिज़ाइन बंडल के रूप में लिख देता है। इसमें सहेजा गया सेशन उन इमेज और फ़ाइलों के साथ जाता है जो इस डिवाइस पर उपलब्ध हैं। सामान्य कैटलॉग आर्ट भी साथ चलता है। लाइसेंस्ड आर्ट तब तक रोक ली जाती है जब तक आप उसे साफ़ तौर पर शामिल न करें, और कोई पुरानी या अनुपलब्ध फ़ाइल ग़ायब होने के बजाय एक बाहरी संदर्भ बनी रहती है। तैयार की गई रसीद असली `.lolly` आकार, एम्बेड की गई फ़ाइलों की गिनती, बाहरी संदर्भों की गिनती और यह दिखाती है कि टूल शामिल है या नहीं। जहाँ आपके डिवाइस में शेयर शीट है, वहाँ **Send to…** उस फ़ाइल को डिस्क पर सहेजने के बजाय सीधे उसे सौंप देता है (AirDrop, कोई Android शेयर)।
+
+**Download project (.lolly)**, **Projects** में किसी फ़ोल्डर के मेन्यू में, उस फ़ोल्डर को एक शेयर्ड प्रोजेक्ट के रूप में लिख देता है, ताकि कोई और उसे खोलकर उसमें मौजूद हर सेशन के साथ आगे बढ़ सके। हर सेशन अपने ही हिस्से के रूप में यात्रा करता है (`sessions/<key>.json`, उसकी टाइल `thumbs/` के अंतर्गत), फ़ोल्डर ट्री `manifest.json` में सूचीबद्ध है, और अपलोड व कैटलॉग आर्ट वही नियम मानते हैं जो एक अकेले शेयर्ड डिज़ाइन में लागू होते हैं। Batch सेशन टूल सेशन नहीं हैं और पीछे छूट जाते हैं; सूचना बताती है कि कितने। इसके बगल वाला **Download originals** वैसा ही रहता है: हर आइटम का अपनी फ़ाइल के रूप में एक सादा zip।
 
 `.lolly` एक सामान्य zip है। उसका नाम बदलकर `.zip` करें और खोलें: आपकी अपनी इमेज `assets/uploads/` में हैं और कैटलॉग सामग्री `assets/catalog/` में, हर एक अपने असली नाम और एक्सटेंशन के साथ, `manifest.json` में हर एक की सूची है, और सबसे ऊपर एक README बताता है कि यह फ़ाइल है क्या।
 
@@ -320,9 +340,13 @@ storage-seeding hook.
 - **क्या लाइसेंस वाली आर्ट अंदर जाती है।** लाइसेंस प्राप्त और ब्रांड-लॉक्ड एसेट डिफ़ॉल्ट रूप से रोक ली जाती हैं। अगर डिज़ाइन में ऐसे कोई एसेट इस्तेमाल हुए हैं, तो डायलॉग बताता है कितने हैं और दो बटन देता है - *Download without them* या *Include and download* - क्योंकि उन्हें शामिल करने का मतलब है असली फ़ाइलें उसे सौंपना जो `.lolly` खोलता है।
 - **क्या टूल अंदर जाता है।** **Include the tool** टूल की अपनी फ़ाइलों को डिज़ाइन के साथ पैक कर देता है, ताकि यह उस डिवाइस पर भी खुले जिसमें वह टूल न हो। यह किसी कस्टम टूल के लिए टिक होकर आता है - जैसे कोई फोर्क या निजी ब्रांड टूल जो आपके प्राप्तकर्ता के पास शायद न हो - और उस टूल के लिए अनटिक होता है जो सिग्नड कैटलॉग में सूचीबद्ध है, क्योंकि उनकी प्रति उसी स्रोत से आती है। (बिना सिग्नड कैटलॉग वाले बिल्ड में, हर टूल कस्टम माना जाता है और बॉक्स टिक होकर शुरू होता है।)
 
-**किसी को खोलना।** ऐप पर कोई `.lolly` फ़ाइल छोड़ें: एसेट आपकी लाइब्रेरी में जाते हैं, सेशन Projects में जाता है और टूल उस पर खुल जाता है। आपकी कोई भी चीज़ ओवरराइट नहीं होती: सेशन एक नए सेव्ड स्लॉट के रूप में आता है, जबकि इस डिवाइस पर पहले से मौजूद कोई एसेट checksum से मिलाया जाता है और डुप्लिकेट होने के बजाय दोबारा उपयोग किया जाता है। हर हिस्सा आने के दौरान फ़ाइल के अपने checksum के विरुद्ध जाँचा जाता है, इसलिए ट्रांज़िट में खराब हुई कॉपी आधी-अधूरी इम्पोर्ट होने के बजाय अस्वीकार कर दी जाती है।
+**किसी को खोलना।** इंस्टॉल किए गए डेस्कटॉप या मोबाइल ऐप पर, किसी `.lolly` पर डबल-क्लिक या टैप करें, **Open with Lolly** चुनें, या सिस्टम शेयर शीट से इसे Lolly को भेजें। macOS, Windows, Linux, iOS और Android सभी इस फ़ॉर्मैट को रजिस्टर करते हैं; डेस्कटॉप फ़ाइल मैनेजर इसे एक Lolly दस्तावेज़ के रूप में दिखाते हैं (और GNOME Files किसी सहेजे गए सेशन का अपना थंबनेल दिखा सकता है)। वेब ऐप में, **Open** का उपयोग करें या फ़ाइल को Lolly पर छोड़ दें। हर दरवाज़ा वही मैनिफ़ेस्ट-पहले प्रीफ़्लाइट इस्तेमाल करता है। Brand Studio से खोलने पर, जब कोई शेयर्ड डिज़ाइन अपने साथ एक डिज़ाइन सिस्टम लाता है तो वह उसकी कार्रवाई की सिफ़ारिश करता है, लेकिन यह फ़ाइल का नाम कभी नहीं बदलता और न **Open shared design** को छिपाता है।
 
-अगर फ़ाइल के साथ ऐसा टूल आता है जो आपके पास नहीं है, तो Lolly उसे चलने देने से पहले पूछता है: **Trust this tool?** उसका और उसके लेखक का नाम बताता है और साफ़ कहता है कि उसे खोलने का मतलब है टूल का अपना कोड आपके डिवाइस पर चलाना, और आगे बढ़ने का रास्ता है **Trust & install**। मना कर दें तो भी साझा किया गया काम आपके प्रोजेक्ट में सहेज लिया जाता है, और उस दिन का इंतज़ार करता है जब आप वह टूल जोड़ें। (एक तरह का टूल अभी साइडलोड नहीं हो सकता - वह, जिसका कोड मॉड्यूल के रूप में आता है - और उसे भी इसी तरह लौटा दिया जाता है।)
+किसी दूसरे ऐप से सौंपा गया iOS या Android दस्तावेज़ 48 MB तक सीमित है, क्योंकि नेटिव हैंड-ऑफ़ को इसके बाइट्स ऐप की सीमा के आर-पार कॉपी करने पड़ते हैं। मोबाइल ऐप किसी बहुत बड़ी फ़ाइल को चुपचाप अनदेखा करने के बजाय यह साफ़ बता देता है। Lolly के भीतर का **Open** उस हैंड-ऑफ़ का उपयोग नहीं करता; बड़े बंडल के लिए यही रास्ता आज़माएँ।
+
+पुष्टि के बाद चुना गया रीडर बंडल को एक बार इनफ़्लेट करता और सत्यापित करता है। शेयर्ड डिज़ाइन के एसेट आपकी लाइब्रेरी में जाते हैं, उसका सेशन Projects में जाता है और टूल उपलब्ध होने पर खुल जाता है। शेयर्ड प्रोजेक्ट के सेशन उसके फ़ोल्डरों की एक नई कॉपी के अंतर्गत Projects में जाते हैं, नई id के साथ ताकि वही फ़ाइल दो बार खोली जा सके, और फ़ोल्डर खुल जाता है; जिस सेशन का टूल इस डिवाइस में नहीं है वह वहीं इंतज़ार करता है। डिवाइस पर पहले से मौजूद कोई एसेट checksum से मिलाया जाता है और दोबारा उपयोग किया जाता है। ऐप के उस पर स्विच करने से पहले डिज़ाइन-सिस्टम पैक अपने ही नेमस्पेस में सहेजा जाता है। 100 MB से बड़ी फ़ाइलों को बड़ा बताया जाता है, और जब ब्राउज़र स्टोरेज घोषित पेलोड की ज़रूरत से कम खाली जगह बताता है तो प्रीफ़्लाइट चेतावनी देता है। ऑपरेशन कमिट होने से पहले इंटीग्रिटी-कवर्ड हर हिस्सा जाँचा जाता है; ख़राब कॉपी को अस्वीकार कर दिया जाता है और नई बनाई गई मंज़िल को वापस पहले जैसा कर दिया जाता है।
+
+अगर फ़ाइल के साथ ऐसा टूल आता है जो आपके पास नहीं है, तो वह टूल चलने से पहले Lolly पूछता है: **Trust this tool?** टूल और उसके लेखक का नाम दिखाता है और साफ़ कहता है कि इसे खोलने का मतलब है टूल का अपना कोड आपके डिवाइस पर चलाना, और आगे बढ़ने का रास्ता है **Trust & install**। मना कर दें तो भी शेयर किया गया काम आपके प्रोजेक्ट में सहेज लिया जाता है, और उस दिन का इंतज़ार करता है जब आप वह टूल जोड़ें। (एक तरह का टूल अभी साइडलोड नहीं हो सकता - वह, जिसका कोड मॉड्यूल के रूप में आता है - और उसे भी इसी तरह लौटा दिया जाता है।)
 
 लिंक और फ़ाइल, दोनों एक स्नैपशॉट सौंपते हैं। किसी और के साथ *एक ही समय पर* एक ही सेशन पर काम करने के लिए - दो डिवाइस, कोई सर्वर नहीं, और एक ही नेटवर्क पर हों तो इंटरनेट की भी ज़रूरत नहीं - देखें [साथ मिलकर काम करना](/info/collaborate.html)।
 
@@ -332,13 +356,13 @@ storage-seeding hook.
 
 ## मेरी इमेज
 
-जब कोई टूल आपको अपने डिवाइस से इमेज जोड़ने देता है, तो वह ठीक वैसी ही रखी जाती है जैसी आई थी - ताकि उस पर लगा कोई Content Credential अब भी सत्यापित हो - और आपकी निजी **My images** लाइब्रेरी (**Profile → Storage** के अंतर्गत) में सहेज ली जाती है। सिर्फ़ सचमुच बहुत बड़ी फ़ाइल पूछती है कि उसे वैसा ही रखना है या छोटा करना है। उसे किसी भी टूल में दोबारा इस्तेमाल करें। आती हुई इमेज से EXIF/GPS हटाने के लिए अपनी प्रोफ़ाइल में **Strip metadata from uploads** चालू करें। कोई सीमा नहीं है: लाइब्रेरी पूरी तरह लोकल है और सिर्फ़ आपके डिवाइस के स्टोरेज से बँधी है - इमेज वहीं प्रबंधित करें या हटाएँ।
+जब कोई टूल आपको अपने डिवाइस से इमेज जोड़ने देता है, तो वह ठीक वैसी ही रखी जाती है जैसी आई थी - ताकि उस पर लगा कोई Content Credential अब भी सत्यापित हो - और आपकी निजी **My images** लाइब्रेरी (**सेटिंग्स → स्टोरेज** के अंतर्गत) में सहेज ली जाती है। सिर्फ़ सचमुच बहुत बड़ी फ़ाइल पूछती है कि उसे वैसा ही रखना है या छोटा करना है। उसे किसी भी टूल में दोबारा इस्तेमाल करें। आती हुई इमेज से EXIF/GPS हटाने के लिए अपनी प्रोफ़ाइल में **Strip metadata from uploads** चालू करें। कोई सीमा नहीं है: लाइब्रेरी पूरी तरह लोकल है और सिर्फ़ आपके डिवाइस के स्टोरेज से बँधी है - इमेज वहीं प्रबंधित करें या हटाएँ।
 
 ## एसेट - आपकी लाइब्रेरी
 
-**एसेट** (`#/a`, या हर लिस्टिंग व्यू के ऊपर लगे टूल · यूटिलिटीज़ · एसेट · प्रोजेक्ट्स स्विच का **एसेट** हिस्सा) वह सब कुछ एक जगह इकट्ठा करता है जिस पर आपके टूल काम कर सकते हैं - ब्रांड लोगो, इमेज, ऑडियो और मोशन, प्रकार के अनुसार समूहित - और आपकी **अपनी क्रिएटिव फ़ाइलें** भी यहीं रहती हैं। न कोई सर्वर, न एडमिन कंसोल, न पुल रिक्वेस्ट: सब कुछ आपके डिवाइस पर है।
+**एसेट** (`#/a`, या हर लिस्टिंग व्यू के ऊपर लगे Tools · Utilities · Assets · Projects स्विच का **एसेट** हिस्सा) वह सब कुछ एक जगह इकट्ठा करता है जिस पर आपके टूल काम कर सकते हैं - ब्रांड लोगो, इमेज, ऑडियो और मोशन, प्रकार के अनुसार समूहित - और आपकी **अपनी क्रिएटिव फ़ाइलें** भी यहीं रहती हैं। न कोई सर्वर, न एडमिन कंसोल, न पुल रिक्वेस्ट: सब कुछ आपके डिवाइस पर है।
 
-![एसेट - ब्रांड एसेट, स्वॉच और फ़ॉन्ट, साथ में आपके अपने अपलोड](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
+![एसेट, ब्रांड के स्वॉच और फ़ॉन्ट के साथ, और आपके अपने अपलोड](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
 - <!--i:upload--> **अपनी फ़ाइलें लाएँ।** किसी भी इमेज, SVG, ऑडियो क्लिप, वीडियो, Lottie, PDF या PowerPoint डेक को अपलोड एरिया पर खींचें - या चुनने के लिए क्लिक करें - और यह तुरंत एसेट में आ जाता है, हर टूल के एसेट पिकर में तैयार। मल्टी-पेज PDF या कोई `.pptx` पूछता है कि कौन-से पेज या स्लाइड रखने हैं - हर एक एक SVG एसेट बन जाता है। जितना चाहें उतना इनजेस्ट करें; यह कभी आपके डिवाइस से बाहर नहीं जाता।
 - <!--i:star--> **जो बार-बार चाहिए उसे फ़ेवरेट करें।** किसी एसेट (या ब्रांड स्वैच) को ★ करें और वह हर पिकर के सबसे ऊपर पिन हो जाता है, ताकि आपका पसंदीदा लोगो या रंग एक क्लिक दूर रहे।
@@ -353,7 +377,7 @@ storage-seeding hook.
 - <!--i:palette--> **Adobe Swatch Exchange (.ase)** - इसे Illustrator या Photoshop में लोड करें;
 - <!--i:pentool--> **GIMP पैलेट (.gpl)** - GIMP या Inkscape के लिए।
 
-![The Swatches panel - the five palette download buttons across the top, then every brand colour as a copyable chip](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+![Swatches पैनल - सबसे ऊपर पाँच पैलेट डाउनलोड बटन एक पंक्ति में, फिर हर ब्रांड रंग एक कॉपी करने लायक़ चिप के रूप में](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
 
 **Fonts** पैनल आपके ब्रांड टाइपफ़ेस सूचीबद्ध करता है, हर एक के बगल में एक **डाउनलोड** के साथ - लोकल इंस्टॉल के लिए या किसी प्रिंट शॉप को सौंपने के लिए। ([Brand Studio](/info/brand-studio.html) का Colours कमरा भी यही पैलेट डाउनलोड देता है।)
 
@@ -363,31 +387,19 @@ storage-seeding hook.
 
 Lolly का लक्ष्य है कि इसका उपयोग हर किसी के लिए सहज हो। इंटरफ़ेस कीबोर्ड से नेविगेट किया जा सकता है, कस्टम कंट्रोल पर स्क्रीन रीडर के लिए उचित लेबल हैं, और हर टूल का लाइव प्रीव्यू एक अकेली, लेबल की हुई इमेज के रूप में प्रस्तुत होता है जो बताती है कि वह क्या बना रहा है।
 
-**सहायक ध्वनियों** की एक हल्की परत आपके कामों की पुष्टि करती है - गैलरी में पहुँचना, वैध बनाम अवैध Content Credentials जाँच, पैनल बंद करना, फ़िल्टर बदलना। यह **डिफ़ॉल्ट रूप से बंद** है: जहाँ भी स्विच दिखे (हर व्यू का ऑप्शंस पॉपओवर, या **Profile**) वहाँ **Sound** चालू कर दें, और आपका चुनाव याद रखा जाता है।
+**सहायक ध्वनियों** की एक हल्की परत आपके कामों की पुष्टि करती है - गैलरी में पहुँचना, वैध बनाम अवैध Content Credentials जाँच, पैनल बंद करना, फ़िल्टर बदलना। यह **डिफ़ॉल्ट रूप से बंद** है: जहाँ भी स्विच दिखे (हर व्यू का ऑप्शंस पॉपओवर, या **सेटिंग्स**) वहाँ **Sound** चालू कर दें, और आपका चुनाव याद रखा जाता है।
 
-**Profile → Accessibility** के अंतर्गत चार वैकल्पिक आराम-सेटिंग हैं: **Reduce motion** (ऐप के ट्रांज़िशन और सजावटी हरकतें हटा देती है), **Hide colourful previews** (शांत, आइकन-और-टेक्स्ट वाले गैलरी कार्ड और हल्के प्रोजेक्ट थंबनेल), **High contrast** (गहरे बॉर्डर, टेक्स्ट और फ़ोकस रिंग) और **Large text** (बड़ा ऐप टाइप - लेबल, मेन्यू, बटन टेक्स्ट)। चारों ऐप को आपके काम के *इर्द-गिर्द* शांत करती हैं: वे किसी टूल कैनवस के भीतर कभी नहीं पहुँचतीं और आपके एक्सपोर्ट का एक पिक्सेल भी नहीं बदलतीं, और हर एक तब तक बंद रहती है जब तक आप उसे चालू न करें। पूरा विवरण [आपकी प्रोफ़ाइल → सुगम्यता](/info/profile.html#accessibility) में।
+**सेटिंग्स → सुगम्यता** के अंतर्गत चार वैकल्पिक आराम-सेटिंग हैं: **Reduce motion** (ऐप के ट्रांज़िशन और सजावटी हरकतें हटा देती है), **Hide colourful previews** (शांत, आइकन-और-टेक्स्ट वाले गैलरी कार्ड और हल्के प्रोजेक्ट थंबनेल), **High contrast** (गहरे बॉर्डर, टेक्स्ट और फ़ोकस रिंग) और **Large text** (बड़ा ऐप टाइप - लेबल, मेन्यू, बटन टेक्स्ट)। चारों ऐप को आपके काम के *इर्द-गिर्द* शांत करती हैं: वे किसी टूल कैनवस के भीतर कभी नहीं पहुँचतीं और आपके एक्सपोर्ट का एक पिक्सेल भी नहीं बदलतीं, और हर एक तब तक बंद रहती है जब तक आप उसे चालू न करें। पूरा विवरण [आपकी प्रोफ़ाइल → सुगम्यता](/info/profile.html#accessibility) में।
 
 Sound स्विच के बगल में **Neurospicy Mode** है - एक वैकल्पिक, शांत करने वाला बैकग्राउंड फ़ोकस ट्रैक जो आपके काम के दौरान धीमे-धीमे बजता है। इसे चालू करने पर निचले कोने में एक छोटा **प्लेयर डॉक** खुलता है जो पूरे ऐप में आपके साथ चलता है; इससे आप ट्रैक खोजकर चुन सकते हैं, आगे-पीछे स्किप कर सकते हैं, आवाज़ सेट कर सकते हैं, और उसे छोटा या बंद कर सकते हैं। ट्रैक सूची कुछ श्रेणियों में फैली है - प्रोसीजरल *Lolly Sings* धुनें, एम्बिएंट लूप और बीट, आपका अपना अपलोड किया हुआ ऑडियो, और कुछ लाइव इंटरनेट **रेडियो** स्टेशन (इनके लिए कनेक्शन चाहिए; बाक़ी सब ऑफ़लाइन बजता है)। यह **डिफ़ॉल्ट रूप से बंद** है और, Sound की तरह, सेशनों और डिवाइसों के बीच याद रखा जाता है। Sound बंद करने पर फ़ोकस ट्रैक भी म्यूट हो जाता है।
 
 ## स्टोरेज और निजता
 
-सब कुछ आपके ब्राउज़र के लोकल डेटाबेस (IndexedDB) में संग्रहीत रहता है: आपकी प्रोफ़ाइल, सहेजे गए सेशन, अपलोड की गई इमेज और डाउनलोड की गई कैटलॉग सामग्री का कैश। **Profile → Storage** उपयोग दिखाता है और आपको ये विकल्प देता है:
-
-- <!--i:box--> **Clear cache** - डाउनलोड की गई कैटलॉग सामग्री हटाएँ (अगले लोड पर फिर से सिंक हो जाती है)।
-- <!--i:trash--> **Clear all my data** - प्रोफ़ाइल, सेशन और इमेज मिटा दें। *इसे पूर्ववत नहीं किया जा सकता।*
-
-![The storage card on a phone-width screen: every category of on-device data named, with the Clear all my data button at the bottom](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
-
-यह लोकल डेटा कहीं भी नहीं भेजा जाता - न टेलीमेट्री, न क्लाउड रेंडरिंग। ऐप कभी जो कुछ लाता या भेजता है उसकी पूरी सूची [निजता नीति](/info/privacy.html) में है, और [सर्वर सरफ़ेस](/info/server-surface.html) वैकल्पिक सर्वर घटकों की सूची देता है।
+Lolly आपका काम आपके डिवाइस पर रखता है: वेब ऐप में इसी ब्राउज़र के अपने स्टोरेज में, और डेस्कटॉप व मोबाइल ऐप में ऐप के अपने स्टोरेज में। क्या रखा जाता है, **मेरा सारा डेटा हटाएँ** क्या हटाता है और ब्राउज़र डेटा साफ़ करने से क्या साथ चला जाता है, यह सब [अपना काम खोजें और वापस पाएँ](/info/find-your-work.html#if-you-clear-your-browser-data) पर है; [निजता नीति](/info/privacy.html) ऐप जो कुछ भी लाता या भेजता है उसकी पूरी सूची देती है, और [सर्वर सरफ़ेस](/info/server-surface.html) वैकल्पिक सर्वर घटकों की।
 
 ## दूसरे डिवाइस पर जाना
 
-चूँकि सब कुछ आपके डिवाइस पर रहता है, **Profile → Storage → Move to another device** से आप यह सब किसी दूसरे इंस्टॉल पर ले जा सकते हैं - न अकाउंट, न क्लाउड:
-
-- <!--i:download--> **Export my data** एक अकेली `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` डाउनलोड करता है (नाम के हिस्से आपकी प्रोफ़ाइल से आते हैं और सेट न होने पर छोड़ दिए जाते हैं; `<n>` एक प्रति-दिन गिनती है ताकि एक ही दिन के एक्सपोर्ट आपस में न टकराएँ) जिसमें आपकी प्रोफ़ाइल, हर सहेजा हुआ सेशन (उसके थंबनेल समेत), आपकी अपलोड की गई इमेज और आपकी प्राथमिकताएँ (थीम, साइडबार की चौड़ाई, लोकल गतिविधि आँकड़े) होती हैं।
-- <!--i:upload--> दूसरे इंस्टॉल पर **Import data…** उस फ़ाइल को वापस पढ़ लेता है। यह **मर्ज** करता है: एक ही नाम की कोई भी चीज़ (आपकी प्रोफ़ाइल, कोई सेशन स्लॉट, कोई इमेज) आयातित प्रति से बदल दी जाती है; उस डिवाइस की बाक़ी हर चीज़ बनी रहती है। सहेजे गए सेशन आपकी आयातित इमेज से अपने आप फिर से जुड़ जाते हैं।
-
-कैटलॉग कैश इसमें शामिल नहीं है - वह नए डिवाइस पर ख़ुद ही फिर से डाउनलोड हो जाता है। बंडल एक सादी zip है (`manifest.json` + `profile.json` + `sessions.json` + `assets.json` + `assets/blobs/…` + `prefs.json`, फ़ॉर्मैट id `lolly-backup`), इसलिए वह ईमेल, USB या AirDrop से गुज़रकर भी सही-सलामत पहुँचती है और यही वह फ़ॉर्मैट है जिसे हर शेल पढ़ता है। हर हिस्से का चेकसम रखा जाता है, इसलिए रास्ते में क्षतिग्रस्त हुई फ़ाइल आधी-अधूरी बहाल होने के बजाय इंपोर्ट के समय ही पकड़ ली जाती है। (पूरा फ़ॉर्मैट विनिर्देश: [डेटा ट्रांसफ़र](/info/data-transfer.html)।)
+अपना काम किसी दूसरे कंप्यूटर या फ़ोन पर ले जाने के लिए, Sync, कोई बैकअप फ़ाइल या कोई `.lolly` फ़ाइल इस्तेमाल करें। [अपना काम किसी दूसरे डिवाइस पर ले जाएँ](/info/find-your-work.html#move-your-work-to-another-device) तीनों की तुलना करता है और **मेरा डेटा एक्सपोर्ट करें** व **डेटा इंपोर्ट करें…** के ज़रिए ले चलता है।
 
 ## डिज़ाइन इंपोर्ट करना (Figma, Penpot, Illustrator, InDesign)
 
@@ -403,7 +415,7 @@ Sound स्विच के बगल में **Neurospicy Mode** है - �
 
 ![बैच टूलबार - zip का नाम, यूनिट, DPI और वह फ़ॉर्मेट जो हर पंक्ति इनहेरिट करती है, दाईं ओर Sessions और Render के साथ](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.pro-toolbar&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
-Batch एक ही टेम्पलेट के **कई वैरिएंट** एक साथ बनाने के लिए है। **पहले से सहेजे** सेशनों को दोबारा रेंडर करने के लिए **Projects → Render folder / Render selection** (ऊपर) इस्तेमाल करें - Pro की ज़रूरत नहीं।
+Batch एक ही टेम्पलेट के **कई वैरिएंट** एक साथ बनाने के लिए है। **पहले से सहेजे** सेशनों को दोबारा रेंडर करने के लिए **Projects → Render folder / Render selection** इस्तेमाल करें (देखें [अपना काम खोजें और वापस पाएँ](/info/find-your-work.html#find-something-you-saved)) - Pro की ज़रूरत नहीं।
 
 ## अगल-बगल संपादन (Multi-edit)
 
@@ -423,6 +435,8 @@ Batch *एक* डिज़ाइन के कई वैरिएंट है�
 
 ## ऑफ़लाइन और इंस्टॉल
 
-Lolly एक PWA है। पहली बार लोड होने के बाद यह **ऑफ़लाइन** काम करता है - ऐप जैसे, फ़ुल-स्क्रीन अनुभव के लिए इसे अपने ब्राउज़र के एड्रेस बार से इंस्टॉल करें (या मोबाइल पर *Add to Home Screen*)। ऑनलाइन वापस आने पर यह ख़ुद को अपडेट कर लेता है।
+Lolly एक PWA है। यह उन स्क्रीन पर **ऑफ़लाइन** काम करता रहता है जिन्हें आप पहले ही खोल चुके हैं, और **सेटिंग्स → ऑफ़लाइन उपलब्ध** के अंतर्गत **ऐप** बाक़ी सब कुछ डाउनलोड कर देता है - ऐप जैसे, फ़ुल-स्क्रीन अनुभव के लिए इसे अपने ब्राउज़र के एड्रेस बार से इंस्टॉल करें (या मोबाइल पर *Add to Home Screen*)। ऑनलाइन वापस आने पर यह ख़ुद को अपडेट कर लेता है।
 
-अपडेट के बारे में: अगर किसी अपडेट के ठीक बाद कोई व्यू लोड होने में विफल हो जाए (एक खाली पैनल, कोने में "failed to fetch"), तो पेज को एक बार फिर से लोड करें - ऐप नए वर्ज़न को साफ़-साफ़ अपना लेता है और आपका काम, सेशन और ब्रांड अछूते रहते हैं। यह सब कुछ आपके डिवाइस पर स्टोर करता है, पेज में नहीं।
+अपडेट के बारे में: अगर किसी अपडेट के ठीक बाद कोई व्यू लोड होने में विफल हो जाए (एक खाली पैनल, कोने में "failed to fetch"), तो पेज को एक बार फिर से लोड करें - ऐप नए वर्ज़न को साफ़-साफ़ अपना लेता है और आपका सेव किया गया काम, सेशन और ब्रांड अछूते रहते हैं; बस कोई ऐसी तस्वीर जो आपने जोड़ी पर कभी सेव नहीं की, उसे फिर से जोड़ना पड़ सकता है। यह सब कुछ आपके डिवाइस पर स्टोर करता है, पेज में नहीं।
+
+Design और Darkroom **Wide colour / HDR** एडिटिंग के साथ मूल इमेज की सटीकता बनाए रख सकते हैं, Sequence वीडियो सहित। ब्रांड स्वॉच अलग sRGB और P3 वैल्यू रख सकते हैं। आउटपुट विकल्पों और मौजूदा सीमाओं के लिए [Wide colour and HDR editing](/info/hdr-editing.html) देखें।

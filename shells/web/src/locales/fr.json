@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "La même couleur, exprimée pour chaque espace. Une ligne marquée « limité » montre un espace trop étroit pour la contenir - CSS arrondirait ces valeurs pour les ramener dans la plage.",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "L'APCA dépend de la polarité, donc une cellule et son miroir diffèrent et la diagonale - une couleur sur elle-même - se lit ~0. Choisis un mode de vision pour recolorer la grille et le rail de marque et renoter chaque paire pour cette vision.",
   "Assets": "Éléments",
-  "Runs the deeper AI text check on Verify and in Assets.": "Lance la vérification IA-texte approfondie sur Vérifier et dans Éléments."
+  "Runs the deeper AI text check on Verify and in Assets.": "Lance la vérification IA-texte approfondie sur Vérifier et dans Éléments.",
+  "Copied to clipboard": "Copié dans le presse-papiers",
+  "Copy did not work": "La copie n'a pas fonctionné",
+  "Select the text, then use your device’s copy command.": "Sélectionne le texte, puis utilise la commande de copie de ton appareil.",
+  "Select text": "Sélectionner le texte",
+  "Text selected. Use your device’s copy command.": "Texte sélectionné. Utilise la commande de copie de ton appareil.",
+  "Copy {label}": "Copier {label}"
 }

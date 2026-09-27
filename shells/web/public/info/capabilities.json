@@ -227,7 +227,7 @@
     {
       "token": "JXL",
       "name": "JPEG XL",
-      "category": "Image",
+      "category": "Raster",
       "dir": "both",
       "reads": true,
       "writes": true,

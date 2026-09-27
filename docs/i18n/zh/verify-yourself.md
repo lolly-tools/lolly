@@ -33,7 +33,7 @@ Lolly 的隐私和安全页面做出了一些声明:没有分析统计、没有�
 
 **3. 数一数 Cookie。** 开发者工具 → **Application**(Firefox 中为 **Storage**)→ Cookies → `https://lolly.tools`。列表是空的 - 该应用不设置任何 Cookie。或者在控制台粘贴 `document.cookie`:得到的是 `""`。(整个系统中唯一的一个 Cookie,`lolly_ca_state`,在一次可选的身份登录期间最多存在十分钟 - 登录一完成就立即删除 - 作用域限定在 `/api/ca`,且带有 `HttpOnly` 属性:[隐私政策](/info/privacy.html)对它有精确描述。)
 
-**4. 读一读自己的存储空间。** 同样在 Application 面板中:Lolly 保存的一切都能在你眼前直接查看 - 大约二十来个明文的 `localStorage` 键(主题、语言、侧边栏宽度、声音和视图设置,以及公开工具目录索引的一份缓存副本),以及你自己存放在 IndexedDB 中的文档。每个值都是可读的字符串或 JSON - 没有任何混淆,也没有任何编码是为了阻止你阅读它。**Profile → Clear all my data** 会清空这些内容;清除浏览器的站点数据同样能做到这一点,因为根本没有服务器端副本能在此之后留存下来。
+**4. 读一读自己的存储空间。** 同样在 Application 面板中：Lolly 保留的一切都能在你眼前直接查看 - 大约二十来个明文的 `localStorage` 键（主题、语言、侧边栏宽度、声音和视图设置，以及公开工具目录索引的一份缓存副本），以及你自己存放在 IndexedDB 中的文档。每个值都是可读的字符串或 JSON - 没有任何内容被混淆，也没有任何内容被编码来阻止你阅读。清除浏览器中的站点数据会将这一切清除，而且 Lolly 不持有任何服务器端副本；**设置 → 存储空间 → 清除我的所有数据**会清除你的个人资料、已保存的会话、上传的图片和素材缓存。
 
 **5. 确认披露联系方式确实存在。** [`/.well-known/security.txt`](/.well-known/security.txt) 返回的是一个符合 [RFC 9116](https://www.rfc-editor.org/rfc/rfc9116) 的联系信息区块,而不是一个 HTML 页面。
 

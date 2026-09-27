@@ -47,27 +47,29 @@ The macOS bundle also carries the branded asset catalog and document icon. Keep 
 
 ### Development
 
+From the repository root:
+
 ```bash
-cd shells/tauri-desktop
-pnpm run dev
-# or from repo root:
 pnpm run dev:desktop
 ```
 
-Tauri opens a native window. The Vite dev server runs in the background; hot reload works. The state bridge uses the filesystem override (`bridge-overrides/state.ts`) - saved states go to `$APPDATA/Lolly/saved-state/`.
+Inside `shells/tauri-desktop`, `pnpm run dev` does the same.
+
+Tauri opens a native window. The Vite dev server runs in the background; hot reload works. The state bridge uses the filesystem override (`bridge-overrides/state.ts`) - saved states go to `<AppData>/saved-state/`, where `<AppData>` is the app's data directory under the identifier `tools.lolly.Desktop` (for example `~/Library/Application Support/tools.lolly.Desktop/` on macOS).
 
 ### Production build
 
 Provide `LOLLY_CATALOG_SIGNING_KEY` and `VITE_CATALOG_PUBLIC_KEY_JWK` through your private credential store. These sign the catalog embedded in the app; operating-system code signing uses a separate identity.
 
+From the repository root:
+
 ```bash
 export LOLLY_PROFILE=lolly-start
 export LOLLY_EMBED_CATALOG=profile
-cd shells/tauri-desktop
-pnpm run build
-# or from repo root:
 pnpm run build:desktop
 ```
+
+Inside `shells/tauri-desktop`, `pnpm run build` does the same, with the same two variables set.
 
 Tauri first builds and signs its frontend, builds the native CLI sidecar, and builds the Quick Look extensions on macOS. It then compiles and packages the application. Output:
 

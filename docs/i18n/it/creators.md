@@ -34,9 +34,15 @@ Testo che si muove, scene su una timeline e movimento che resta in brand. Un'esp
 
 Registra una ripresa pulita con un conto alla rovescia, un misuratore di livello e un supporto discreto, oppure trasforma una nota vocale in un video finito che si muove con il suono. Non esiste ancora una pagina Registra separata: la trovi in Usare Lolly, nella sezione sulla timeline.
 
-- **[Usare Lolly](/info/using.html#timeline-sequence-studio)** - registrare una voce fuori campo direttamente sulla timeline, dove viene salvata la ripresa e come arriva al mix.
-- **[Crea qualcosa in 60 secondi](/info/make-something.html#make)** - la scena audiogramma, per quando preferisci farti sentire piuttosto che vedere.
+- **[Usare Lolly](/info/using.html#timeline-sequence)** - registrare una voce fuori campo direttamente sulla timeline, dove viene salvata la ripresa e come arriva al mix.
+- **[Crea il tuo primo file](/info/make-something.html#other-first-projects)** - l'audiogramma, per quando preferisci farti sentire piuttosto che vedere.
 - **[Viste utilità](/info/utilities.html)** - Script audio, per quando le parole vengono prima e la voce dopo.
+
+## Presenta
+
+Sovrapponi la tua videocamera, il tuo logo e il tuo nome a una presentazione di Design o a un Conto alla rovescia, con controlli privati in una finestra separata.
+
+- **[Presentare con la videocamera](/info/presenting.html)** - inquadratura, scene salvate, condivisione con il pubblico, registrazione locale e i limiti attuali della versione di prova.
 
 ## Collabora
 

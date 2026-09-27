@@ -5,7 +5,7 @@ Ofte stilte spørsmål som vises i trekkspillmenyen på landingssiden `/info`.
 **Slik vedlikeholder du siden:** hver `##`-overskrift nedenfor er et spørsmål; alt under den
 (fram til neste `##`) er svaret. Svarene bruker den samme lette markdown-en som
 resten av nettstedet - skill avsnitt med en tom linje. Legg til, fjern eller
-endre rekkefølgen på spørsmål her og kjør `npm run build:info` (eller `npm run dev:web`) på nytt.
+endre rekkefølgen på spørsmål her og kjør `pnpm run build:info` (eller `pnpm run dev:web`) på nytt.
 Alt over den første `##` (denne tittelen og disse notatene) ignoreres av bygget.
 
 ## Hva skjer når jeg gir samtykke på /profile-siden?
@@ -121,9 +121,17 @@ Vi vinner kampen om styring med fremragende bekvemmelighet og service.
 
 Ja. Åpne **Design** og klikk **Import a design** (importer et design): den godtar en Figma-fil **.fig** (Save local copy), en Penpot-eksport **.penpot**, en Illustrator-fil **.ai** eller **.pdf**, en InDesign-fil **.idml** (File → Export → InDesign Markup) eller **hvilken som helst SVG** (den vide døra - nesten alle designprogrammer eksporterer det). Ingen konto, ingen plugin og ingen lisens på et designprogram er nødvendig.
 
-![Designs åpne canvas - «Import a design» ligger i verktøylinjens Lolly-meny](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Designs åpne canvas - Importer et design ligger i verktøylinjens Lolly-meny](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Lag kommer inn som redigerbare bokser på det åpne lerretet: tekst kan fortsatt skrives om, former er fortsatt former, bilder havner i ditt eget bildebibliotek, og typografi og farger følger merkevareglobalene. Lagre den, og oppsettet blir en gjenbrukbar mal med egen URL som hvem som helst med Lolly kan fylle på nytt - og du kan blande inn levende verktøy (en QR-kode, et diagram) som rendres på nytt ved innlasting. Derfra rendres den som alt annet i Lolly - SVG, PDF, PNG og resten, reproduserbart fra URL-en. Se [Importer et design](/info/design-import.html).
+
+## Hvor er det jeg lagde i går?
+
+Hvis du trykte på **Lagre som** eller **Lagre**, er det i **Prosjekter**, på hjemskjermen, i nettleseren eller appen du lagret fra. Hvis du bare trykte på **Last ned**, er filen der nettleseren eller systemet ditt lagrer nedlastinger, og som regel ligger en kopi i **Ressurser**. Ni verktøy beholder også ulagret arbeid i **Prosjekter**. [Finn og gjenopprett arbeidet ditt](/info/find-your-work.html) dekker hvert tilfelle.
+
+## Jeg lukket fanen. Er arbeidet mitt borte?
+
+Lagret arbeid ligger fortsatt i **Prosjekter**. Ulagret arbeid er borte, unntatt i de ni verktøyene som lagrer mens du jobber, som beholder det i **Prosjekter** også. Trykk **Lagre som** neste gang før du forlater. Se [Hvis du lukket fanen eller forlot verktøyet](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Kan jeg dele arbeidet mitt som en fil i stedet for en lenke?
 

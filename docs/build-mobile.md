@@ -52,16 +52,19 @@ See [Building for iOS](/info/ios-build.html) for the full iOS walkthrough - prer
 
 ### First-time platform init
 
-Run once to generate the native project files (`gen/android/` or `gen/apple/`):
+Run once to generate the native project files, from the repository root. For Android, which writes `gen/android/`:
 
 ```bash
 cd shells/tauri-mobile
 pnpm install
-
-# Android
 pnpm run tauri android init
+```
 
-# iOS
+For iOS, which writes `gen/apple/`:
+
+```bash
+cd shells/tauri-mobile
+pnpm install
 pnpm run tauri ios init
 ```
 
@@ -79,35 +82,35 @@ npx @tauri-apps/cli icon path/to/icon-1024.png
 **Android** (emulator or connected device with USB debugging enabled):
 
 ```bash
-cd shells/tauri-mobile
-pnpm run dev:android
-# or from repo root:
 pnpm run dev:android
 ```
 
 **iOS** (macOS only - requires Simulator or provisioned device):
 
 ```bash
-cd shells/tauri-mobile
-pnpm run dev:ios
-# or from repo root:
 pnpm run dev:ios
 ```
+
+Run both from the repository root; the same script names also work inside `shells/tauri-mobile`.
 
 ### Production build
 
 Use the public content profile and provide `LOLLY_CATALOG_SIGNING_KEY` plus `VITE_CATALOG_PUBLIC_KEY_JWK` through your private credential store. The production frontend wrapper signs the exact catalog embedded in the app. Install the mobile shell's separate dependencies with `pnpm -C shells/tauri-mobile install --frozen-lockfile` from the repository root.
 
+For Android, which writes an APK and an AAB:
+
 ```bash
 export LOLLY_PROFILE=lolly-start
 export LOLLY_EMBED_CATALOG=profile
-# Android - outputs APK + AAB
 pnpm run build:android
-# or: pnpm run build:android from repo root
+```
 
-# iOS - outputs .ipa
+For iOS, which writes an `.ipa`:
+
+```bash
+export LOLLY_PROFILE=lolly-start
+export LOLLY_EMBED_CATALOG=profile
 pnpm run build:ios
-# or: pnpm run build:ios from repo root
 ```
 
 **Android signing** - set these env vars before building for release:

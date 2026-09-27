@@ -34,9 +34,15 @@ Teks yang bergerak, adegan pada garis masa dan gerakan yang kekal menepati jenam
 
 Rakam satu ambilan yang bersih dengan kiraan masuk, meter aras dan bimbingan lembut, atau tukar nota suara menjadi video siap yang bergerak seiring bunyi. Belum ada halaman Rakam yang berasingan lagi: Menggunakan Lolly membawanya, dalam bahagian garis masa.
 
-- **[Menggunakan Lolly](/info/using.html#timeline-sequence-studio)** - merakam alih suara terus ke garis masa, di mana ambilan itu disimpan dan bagaimana ia sampai ke campuran.
-- **[Buat sesuatu dalam 60 saat](/info/make-something.html#make)** - adegan audiogram, untuk ketika anda lebih suka didengar daripada dilihat.
+- **[Menggunakan Lolly](/info/using.html#timeline-sequence)** - merakam alih suara terus ke garis masa, di mana ambilan itu disimpan dan bagaimana ia sampai ke campuran.
+- **[Buat fail pertama anda](/info/make-something.html#other-first-projects)** - audiogram, untuk ketika anda lebih suka didengar daripada dilihat.
 - **[Paparan utiliti](/info/utilities.html)** - Script audio, apabila kata-kata datang dahulu dan suara menyusul kemudian.
+
+## Membentangkan
+
+Letakkan kamera, logo dan nama anda di atas satu dek Design atau Countdown, dengan kawalan peribadi dalam satu tetingkap berasingan.
+
+- **[Membentangkan dengan kamera](/info/presenting.html)** - framing, adegan tersimpan, perkongsian penonton, rakaman tempatan dan batasan percubaan semasa.
 
 ## Kerjasama
 

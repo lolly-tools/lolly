@@ -63,3 +63,14 @@ test("every format's feature keys exist in the features label map", () => {
   }
   assert.deepEqual(bad, [], 'Every features[] key must have a label in the features map.');
 });
+
+test('every format sits in a family the table and the register list', () => {
+  // docs/build.ts groups chips and the written register by FMT_CAT_ORDER and stops on
+  // any other category. JPEG XL once carried "Image" and dropped out of both lists.
+  const src = readFileSync(resolve(ROOT, 'docs/build.ts'), 'utf8');
+  const m = src.match(/const FMT_CAT_ORDER = \[([^\]]*)\]/);
+  assert.ok(m, 'FMT_CAT_ORDER is declared in docs/build.ts');
+  const families = new Set([...m[1]!.matchAll(/'([^']+)'/g)].map((x) => x[1]));
+  const stray = load().formats.filter((f) => !families.has(f.category)).map((f) => `${f.name}: ${f.category}`);
+  assert.deepEqual(stray, []);
+});

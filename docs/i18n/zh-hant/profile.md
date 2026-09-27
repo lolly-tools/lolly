@@ -2,9 +2,9 @@
 
 **設定檔（profile）**是 Lolly 用來進行創作的工作身分。它是一小組工具可以取用的細節，讓你不必每次都重新輸入 - 你的姓名、聯絡方式、可選的大頭照、幾項偏好設定 - 再加上你在使用過程中累積的一切：已儲存的工作階段、上傳的圖片，以及本機活動統計。
 
-個人資料裡的一切都**存在裝置本機**，存放在瀏覽器的本機資料庫中（在 web PWA 上是 IndexedDB，在 Tauri 應用程式上是檔案系統）。沒有帳號，也不會上傳任何東西。你可以在畫廊右上角的**個人資料**中管理它；工具只會*讀取*它，而且只會讀取它們原本就設計要預先填入的特定欄位。
+個人資料中的一切都保存**在裝置上**，存在瀏覽器的本機資料庫裡（網頁版 PWA 用 IndexedDB，Tauri 應用程式用檔案系統）。沒有帳號，也不會上傳任何內容。你可以在**設定 → Preferences**中管理它（在頁尾或大頭照選單裡）；工具只會*讀取*它，而且只讀取它們原本就是為了預先填入而設計的那些欄位。
 
-> 設定檔談的是*你*（或任何在這裡進行創作的人）。它與**Platform（平台）** - 品牌的顏色、字型與全域設定 - 不同，也與**Capabilities（能力）**，也就是應用程式能做什麼的目錄，不同。詳見文末的 [設定檔 vs 平台 vs 能力](#profile-vs-platform-vs-capabilities)。
+> 設定把你的個人資料和原本的儀表板整合進了同一個地方。**Preferences** 存放你的資料與個人選擇；**這台裝置**、**設計系統**、**功能**與**活動與統計**則在它旁邊。完整地圖見[設定](/info/dashboard.html)。
 
 ## 個人資料裡有什麼
 
@@ -21,11 +21,11 @@
 
 ![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
-![設定檔畫面 - 姓名、聯絡方式、選用的大頭照與你的偏好設定](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
+![個人資料頁面 - 姓名、聯絡方式、一張可選頭像照片以及你的偏好設定](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
 這些都不是必填的。空白的個人資料本身就相當合用；你只需要填寫能省下打字功夫的部分。
 
-這個頁面很長，因此側邊自帶一條**設定導覽列**（settings rail）- Your details（你的詳細資料）、Appearance（外觀）、Accessibility（無障礙）、Lolly instance（Lolly 執行個體）、Your activity（你的活動）、Storage（儲存空間）、Available offline（離線可用）、Feature flags（功能旗標）、Content Credentials - 上方還有一個 **Search settings（搜尋設定）** 欄位，會隨你輸入即時篩選清單。每個區塊都可以用 `#/profile?focus=<section-id>` 深層連結，開啟該區塊並捲動至該處（例如 `#/profile?focus=storage-section`、`?focus=feature-flags-section` 等），因此連結可以直接指向單一設定項目，而不只是頁面最上方。
+這個頁面很長，因此側邊自帶一條**設定導覽列**（settings rail）- Your details（你的詳細資料）、Appearance（外觀）、Accessibility（無障礙）、Lolly instance（Lolly 執行個體）、Your activity（你的活動）、Storage（儲存空間）、Available offline（可離線使用）、Feature flags（功能旗標）、Content Credentials - 上方還有一個 **Search settings**（搜尋設定）欄位，會隨你輸入即時篩選清單。每個區塊都可以用 `#/settings?focus=<section-id>` 深層連結，開啟該區塊並捲動至該處（`#/settings?focus=storage-section`、`?focus=feature-flags-section` 等），因此連結可以直接指向單一設定項目，而不只是頁面最上方。
 
 ![三張主題卡片，各自預覽自己的字型與顏色，目前使用中的那張會被標示出來](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
@@ -55,9 +55,9 @@
 
 ![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
-- <!--i:trash--> **最乾淨的切換方式：** 依序點選 **Profile → Storage → Clear all my data**，然後 **Import（匯入）**你要切換進去的情境所對應的套件。此後你就純粹以那個設定檔進行創作。
-- <!--i:layers--> **疊加：** 若*不先*清除就匯入，會**合併** - 匯入的設定檔、工作階段與圖片會疊加在既有內容之上，同名項目會被取代，其餘保留。適合把某個團隊已儲存的工作階段拉進你自己的環境；若你需要乾淨的角色邊界，就不適合這麼做。
-- <!--i:monitor--> **並存：** 因為一切都是裝置範圍的，不同的瀏覽器設定檔、不同的使用者帳號或另外安裝的第二個 PWA，各自都會攜帶獨立的 Lolly 設定檔。可以同時執行你的個人安裝與活動資訊站安裝，無需切換。
+- <!--i:trash--> **最乾淨的切換方式：** **設定 → Preferences → 儲存空間 → 清除我的所有資料**，然後**匯入**你即將進入的那個情境所對應的包。此後你就是純粹以那個個人資料在創作。
+- <!--i:layers--> **分層疊加：** 不先清除就直接匯入會**合併** - 匯入的個人資料、工作階段與圖片會疊加在已有內容之上，同名的會被取代，其餘保留。適合把某個團隊已儲存的工作階段拉進你自己的環境；如果你需要一個乾淨的角色界線，這就不是你想要的效果。
+- <!--i:monitor--> **並行使用：** 因為一切都是裝置範圍的，一個獨立的瀏覽器設定檔、一個獨立的使用者帳號，或第二個安裝的 PWA，都各自帶有自己獨立的 Lolly 個人資料。你可以同時執行自己的個人安裝和活動展位安裝，不需切換。
 
 所以如果你真的要同時應付好幾種情境（你自己、你的團隊、活動經理這頂帽子），就保留好幾個包裹，需要哪個就載入哪個：
 
@@ -67,7 +67,7 @@
 
 ## 無障礙
 
-**Profile → Accessibility** 中有四項舒適度設定，作用於你工作*周圍*的應用程式介面。每一項在你開啟前都是關閉的，而且都不會影響工具畫布或匯出結果內部 - 更沉靜的應用程式介面，絕不能移動你交付檔案中的任何一個像素。
+**設定 → Preferences → 無障礙**中有四項舒適度設定，作用於你工作*周圍*的應用程式介面。每一項在你開啟前都是關閉的，而且都不會影響工具畫布或匯出結果內部 - 更沉靜的應用程式介面，絕不能移動你交付檔案中的任何一個像素。
 
 - <!--i:film--> **Reduce motion（減少動態效果）** - 關閉應用程式中的轉場、滑動與動畫裝飾效果。你的工具畫布與任何動態匯出，仍會完全依照設計持續動作。
 - <!--i:image--> **Hide colourful previews（隱藏彩色預覽）** - 將圖庫預覽圖換成沉靜的圖示加文字卡片，並降低專案縮圖的色彩與對比，讓它們在不搶眼的情況下依然可辨識。在工具內部，一切仍會以完整色彩顯示。
@@ -78,13 +78,13 @@
 
 ## 你的 Lolly 執行個體
 
-**Profile → Lolly instance** 顯示這次安裝的工具與目錄來源 - 執行個體的位址，或者在一切都內建於建置版本中時顯示 *Bundled with this app（隨此應用程式內建）*。若部署有提供的話，**Instance console（執行個體控制台）**連結會開啟其管理介面，而 **Change（變更）** / **Disconnect（中斷連線）**則可以重新指向或解除這次安裝的連結。
+**設定 → Preferences → Lolly 執行個體**說明此次安裝從何處取得工具與目錄 - 執行個體的地址，或者當一切都隨建置內建時顯示為 *Bundled with this app*。如果某個部署提供了管理入口，**執行個體主控台**連結會開啟其管理介面，**變更**可以重新指向該安裝，**離開**則會移除該執行個體的設計系統、工具與目錄，同時保留你自己的作品（見[在你的組織中使用 Lolly](/info/organisation.html#leaving)）。
 
 要重新指向另一個執行個體，需要使用**桌面應用程式**：瀏覽器會封鎖頁面跨來源載入工具與資產，因此在網頁版中，這個區塊只會顯示你目前所在的位置，僅此而已。
 
 ## 離線可用
 
-Lolly 會隨著你的使用逐步快取內容，但這種邊用邊快取的方式，只涵蓋你已經去過的地方。**Profile → Available offline** 是為你能預見的旅程準備的：例如登機前在機場 wifi 下的一小時，之後就完全沒有網路。事先下載你需要的部分，看著一條進度條跑完，你下載過的內容在失去連線後依然能正常運作。
+Lolly 會隨著你的使用逐步快取內容，但這種邊用邊快取的方式，只涵蓋你已經去過的地方。**設定 → Preferences → 可離線使用**是為你能預見的旅程準備的：例如登機前在機場 wifi 下的一小時，之後就完全沒有網路。事先下載你需要的部分，看著一條進度條跑完，你下載過的內容在失去連線後依然能正常運作。
 
 共有七個部分，每一項在你確認下載前都會先標示大小：
 
@@ -104,9 +104,9 @@ Lolly 會隨著你的使用逐步快取內容，但這種邊用邊快取的方�
 
 ## 把個人資料搬到新裝置
 
-![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+由於個人資料完全存放在本機，要把它帶到一個全新的安裝環境 - 新筆電、剛重設的瀏覽器、同事的電腦，或離線的機器 - 有兩種方法：**帶著檔案走**，如下文所述；或者透過你選擇的儲存方式，讓你自己的裝置保持同步，正如[同步你的裝置](/info/sync.html)所說明的那樣。沒有任何 Lolly 登入能幫你還原它，而這正是重點所在：一開始就沒有任何東西離開過你的裝置。
 
-由於個人資料完全存放在本機，要把它帶到一個全新的安裝環境——新筆電、剛重設的瀏覽器、同事的電腦、離線的機器——唯一的方法就是**帶著檔案走**。沒有任何登入程序能幫你還原它，而這正是重點所在：一開始就沒有任何東西離開過你的裝置。
+在**設定 → Preferences → 儲存空間 → 移至其他裝置**下：
 
 - <!--i:download--> **匯出我的資料**會下載一個 `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - 以所屬設定檔命名,並附上每日序號,避免重複匯出時檔名衝突(設定檔缺少的名稱部分會省略)。內容包含你的設定檔、每個已儲存的工作階段(含縮圖)、你上傳的圖片 - 你的品牌權杖與已安裝字型會一併作為使用者素材附帶 - 以及你的偏好設定(主題、版面配置、本機活動統計)。
 - <!--i:upload--> 在另一個安裝環境上使用**匯入資料…**讀回該檔案,即可從你離開的地方原樣接續。
@@ -126,9 +126,9 @@ Lolly 會隨著你的使用逐步快取內容，但這種邊用邊快取的方�
 
 工具只會*預先填入*它明確設計要綁定的個人資料欄位：
 
-**選擇加入(來源證明)。** 當你匯出資產時,你的個人資料可以選擇性地一併附上,成為**來源證明**(provenance) - 也就是嵌入檔案中繼資料(PNG、PDF、SVG 等)的作者/掛名資訊 - 讓完成的資產能表明是誰製作的。**用我的資料建立**所控管的正是*這一項*:關閉它,匯出檔案仍會帶有「Made with Lolly」的工具/平台署名,但不會嵌入個人作者/聯絡資訊。(同一個選擇加入設定也會決定 **/pro** 批次執行的作者。)(工具作者請參閱[撰寫工具指南 → `bindToProfile`](/info/authoring-tools.html#bindtoprofile)與[主應用程式 API → `host.profile`](/info/host-api.html#host-profile)。)
+**選擇加入(來源證明)。**當你匯出資產時,你的個人資料可以選擇性地一併附上,成為**來源證明**(provenance) - 也就是嵌入檔案中繼資料(PNG、PDF、SVG 等)的作者/掛名資訊 - 讓完成的資產能表明是誰製作的。**使用我的資料來建立**所控管的正是*這一項*:關閉它,匯出檔案仍會帶有「Made with Lolly」的工具/平台署名,但不會嵌入個人作者/聯絡資訊。(同一個選擇加入設定也會決定 **/pro** 批次執行的作者。)(工具作者請參閱[工具建立 → `bindToProfile`](/info/tool-inputs.html#bindtoprofile)與[主機 API → `host.profile`](/info/host-api.html#host-profile)。)
 
-![單一的用我的資料建立開關,位於儲存設定檔旁,在你開啟之前預設關閉](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![單一的使用我的資料來建立開關，位於儲存個人資料旁，在你開啟之前預設關閉](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 ## 個人資料、平台與功能的差異
 
@@ -151,4 +151,4 @@ Lolly 會隨著你的使用逐步快取內容，但這種邊用邊快取的方�
 
 ## 隱私
 
-除了上述選擇加入的身分註冊(這會將你註冊時使用的電子郵件傳送給憑證服務 - 見[伺服器介面](/info/server-surface.html))之外,設定檔絕不會被傳送、上傳或用來識別或追蹤你 - 沒有任何需要同意的事項,這裡只是讓你知道保留了哪些內容的說明。隨時可用**設定檔 → 清除我的所有資料**清除全部內容。詳見[隱私權政策](/info/privacy.html)。
+除了上述選擇加入的身分註冊(這會將你註冊時使用的電子郵件傳送給憑證服務 - 見[伺服器介面](/info/server-surface.html))之外,個人資料絕不會被傳送、上傳或用來識別或追蹤你 - 沒有任何需要同意的事項,這裡只是讓你知道保留了哪些內容的說明。隨時可用**設定 → Preferences → 清除我的所有資料**清除全部內容。詳見[隱私權政策](/info/privacy.html)。

@@ -35,7 +35,7 @@ Tools can be used via a:
 * Huge format support - **50 in, 56 out** (35 round-trip; the live register is `docs/site/formats-catalog.json`, and `tests/readme-formats.test.ts` keeps these three numbers pinned to it). Export: SVG · EPS · CMYK EPS · EMF · DXF · PDF · Print PDF (CMYK) · PPTX · PNG · Animated PNG · JPEG · WebP · Animated WebP · AVIF · TIFF · CMYK TIFF · ICO · **PSD** · EXR · Radiance HDR · MP4 · WebM · GIF · Animated SVG · dotLottie · MP3 · M4A · WAV · Opus · HTML · MD · TXT · CSV · JSON · ICS · VCF · ZIP. Import adds layered **PSD · PSB · XCF**, HEIC, MOV, GLB · glTF, audio & tracker (OGG · FLAC · MIDI · MOD) and live designs from Illustrator · InDesign · Figma · Penpot. EXR and Radiance HDR are floating-point HDR masters written through `host.codec` by tools that compute float pixels, and via the CLI - the web export picker does not offer them. AVIF encodes through the browser's own `canvas.toBlob`, and M4A · Opus through WebCodecs, so both depend on the browser build. Plus **design tokens & palettes** - import DTCG and Tokens Studio; export DTCG · ASE · GPL · CSS variables.
 * Print-ready output: CMYK PDF & TIFF, physical units, bleed, crop/registration marks, colour bars and press (FOGRA/SWOP) profiles. 
 * Infinite deterministic media creation.
-* Renders and exports offline - the engine makes no network call, and the shells need none at render time once a tool's assets, fonts, shaping WASM and any on-device model have been fetched once (the PWA caches them on first use; Profile → Available offline pre-fetches the lot). (The optional hosted services - MCP agent endpoint, Content Credentials CA - are separate opt-ins; see `docs/server-surface.md`.)
+* Renders and exports offline - the engine makes no network call, and the shells need none at render time once a tool's assets, fonts, shaping WASM and any on-device model have been fetched once (the PWA caches them on first use; Settings → Available offline pre-fetches the lot). (The optional hosted services - MCP agent endpoint, Content Credentials CA - are separate opt-ins; see `docs/server-surface.md`.)
 * Full command-line support.
 * Save tokens, tell your model to try Lolly first!
 
@@ -112,23 +112,28 @@ git clone https://github.com/lolly-tools/lolly.git && cd lolly && ./setup.sh
 
 `./setup.sh` installs the prerequisites (git, Node), runs `pnpm install` and builds a content profile - then tells you what to run next. SUSE devs add `--suse` to mount the private brand pack. Full details, the manual path and troubleshooting are in **[INSTALL.md](INSTALL.md)**.
 
-Prefer to do it by hand? It's a plain clone:
+Prefer to do it by hand? It's a plain clone. You need Node >=22.18 or >=24 (see `.nvmrc`): older Node fails `pnpm install`, because the scripts run TypeScript directly via native type-stripping. INSTALL.md has the table.
 
 ```bash
-# Prerequisite: Node >=22.18 or >=24 (see .nvmrc). Older Node fails pnpm install -
-# the scripts run TypeScript directly via native type-stripping. INSTALL.md has the table.
 git clone https://github.com/lolly-tools/lolly.git
 cd lolly
-# SUSE dev with access to the private brand pack? Opt in:
-git submodule update --init --checkout brands/suse
+npm install --global pnpm@11.26.0   # the pinned package manager, once (or use Corepack)
+pnpm install                        # picks a content profile automatically; see below
+```
 
-# Install the pinned package manager once (or use Corepack).
-npm install --global pnpm@11.26.0
-pnpm install                    # picks a content profile automatically; see below
+SUSE devs with access to the private brand pack opt in next, with `git submodule update --init --checkout brands/suse`. A public clone skips that step.
 
-pnpm run dev:web                # run the web shell → then open http://localhost:5173
-pnpm run cli qr-code --url=https://suse.com --output=./qr.svg   # run a tool headlessly
-pnpm run validate:catalog       # validate the catalog
+Then run the web shell and open http://localhost:5173:
+
+```bash
+pnpm run dev:web
+```
+
+In a second terminal, run a tool headlessly and validate the catalog:
+
+```bash
+pnpm run cli qr-code --url=https://suse.com --output=./qr.svg
+pnpm run validate:catalog
 ```
 
 Once it is running, **[docs/make-something.md](docs/make-something.md)** walks a first render in about 60 seconds (no account, nothing to configure), and **[docs/quickstart.md](docs/quickstart.md)** covers making Lolly wear your own brand.
@@ -170,7 +175,11 @@ Lolly is one repository, with one private submodule (see [Repository layout](#re
 
 ```bash
 git clone https://github.com/lolly-tools/lolly.git
-# SUSE dev with access to the private brand pack? Opt in, any time:
+```
+
+SUSE devs with access to the private brand pack can opt in at any time:
+
+```bash
 git submodule update --init --checkout brands/suse
 ```
 

@@ -142,9 +142,9 @@ reload works the same as the web and desktop shells.
 - Open the project in Xcode instead of running headless:
   `pnpm run dev:ios --open`.
 - The state bridge uses `bridge-overrides/state.ts` (filesystem via
-  `tauri-plugin-fs`, `$APPDATA/Lolly/saved-state/*.json`), not IndexedDB. iOS
-  sandboxing forbids absolute paths - keep all writes under AppData; never add
-  absolute-path fs scopes.
+  `tauri-plugin-fs`, `<AppData>/saved-state/*.json` under the identifier
+  `tools.lolly.mobile`), not IndexedDB. iOS sandboxing forbids absolute
+  paths - keep all writes under AppData; never add absolute-path fs scopes.
 
 ### Feature subset on iOS
 

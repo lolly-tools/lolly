@@ -40,14 +40,16 @@ The full list of every network request the app makes is on the
 
 - saved sessions and projects;
 - your design systems, with their uploaded fonts and logos;
-- your uploaded images;
+- your uploaded images and the copies of your downloads that Lolly keeps;
+- Convert's file results;
 - your profile and your preferences (theme, layout).
 
 **Stays on each device:**
 
 - sign-ins, keys and app passwords for your storage;
 - your sync settings and your passphrase;
-- the Lolly instance the app is connected to, and installed `.lolly` packs;
+- the Lolly instance the app is connected to, and tools installed by a brand pack
+  (a design system you added from a `.lolly` file does sync);
 - downloaded catalogue files and on-device AI models;
 - the revision history of each session.
 
@@ -91,8 +93,9 @@ address, so they can reach your server directly.
 4. On each of your other devices, connect the same storage and do the same.
 
 If your storage already holds Lolly data, Lolly asks before it syncs.
-**Bring it to this device** adds that data here and keeps what this device
-has. **Replace it with this device** makes this device the synced copy.
+**Bring it to this device** adds that data here and keeps this device's saved
+work, but takes the folders, favourites and templates from the synced copy.
+**Replace it with this device** makes this device the synced copy.
 
 ## How sync keeps your work safe
 
@@ -209,7 +212,8 @@ work or school accounts both work.
 Open **Settings → Preferences → Storage → Move to another device**, press
 **Export my data**, move the file to your other device, and press
 **Import data…** there. This works everywhere and needs
-no network. See [Profiles](/info/profile.html) for what the file holds.
+no network. See [Move your work to another device](/info/find-your-work.html#move-your-work-to-another-device)
+for the steps and what the file holds.
 
 ## For people who host Lolly or build the apps
 

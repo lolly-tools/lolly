@@ -716,7 +716,9 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // +1 2026-08-21: the AI-scan donut (donut.innerHTML) - fixed SVG markup whose only
   // interpolations are a clamped integer score, toFixed() arc lengths and the
   // analyser's closed band union (escape()d anyway); its label is an aria attribute.
-  'views/docs.ts': 5,
+  // +1 2026-09-26 (plan 277 step 2): the compact navigation's disclosure summary, fixed
+  // markup plus two lib/icons glyphs; the section title goes in through textContent.
+  'views/docs.ts': 6,
   // #/prepare route scaffold: the shared chrome (backHomeHtml/langFabHtml) plus t() copy,
   // no free text; the panel itself mounts into an empty slot (components/prepare/panel.ts).
   'views/prepare.ts': 1,
@@ -768,6 +770,11 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // static icon (lib/icons.ts glyph string) appended to the pill; the label beside it is
   // set via textContent, never interpolated as HTML. No user/manifest string reaches a sink.
   'lib/docs-tryit.ts': 1,
+  // The shared docs reading enhancer (plan 277 step 3). One insertAdjacentHTML sink: the
+  // Copy button's glyph, a TRUSTED icon string the host passes in (lib/icons in the app,
+  // the build's own sprite reference on /info). The button's label, its accessible name
+  // and the confirmation are set via textContent or setAttribute, never as HTML.
+  'lib/docs-enhance.ts': 1,
   // 1 as of 2026-08-09: the non-camera animated-SVG live source. `start()` inlines the
   // armed markup into an off-screen host so its CSS/SMIL actually ticks and `grabAnim`
   // can sample it - the same reason views/anim-svg-mount.ts inlines rather than uses an

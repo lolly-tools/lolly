@@ -25,6 +25,7 @@
  * views/design-navigator.ts already uses for the same reason.
  */
 import '../styles/parts/docs.css';
+import '../styles/parts/docs-components.css';
 import '../styles/parts/panel.css';
 import '../styles/parts/document-model.css';
 import { t, tRaw } from '../i18n.ts';
@@ -32,6 +33,8 @@ import { backHomeHtml, mountBackPill } from '../components/back-pill.ts';
 import { mountThemeFab } from '../components/theme-toggle.ts';
 import { icon, type IconName } from '../lib/icons.ts';
 import { fetchDocHtml, findDocFragment, rehostFragment, scrollToHeading } from '../lib/docs-rehost.ts';
+import { enhanceDocsReading } from '../lib/docs-enhance.ts';
+import { docsClipboardWriter, docsCopyLabels } from '../lib/docs-clipboard.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 
 /** The view drives the theme cycle, which writes the chosen theme to the profile. */
@@ -577,6 +580,10 @@ export async function mountDocumentModel(
   }
   source.append(sourceLink);
 
+  // Copy on the chapter's code blocks, released when the view goes (the reading
+  // enhancer adds document-level Escape and resize listeners).
+  const disposeReading = enhanceDocsReading(article, { writeText: docsClipboardWriter(host), labels: docsCopyLabels(), copyIcon: icon('clipboard') });
+  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = disposeReading;
   content.replaceChildren(article, pager, source);
 
   /** Mark one heading of the open chapter in the RAIL. The scroll-spy calls this
@@ -663,7 +670,7 @@ export async function mountDocumentModel(
     // because the router resets the scroll to the top after this mount resolves
     // whenever the route name changed, which is every fresh load of a pasted link.
     markHeading(deepLink);
-    scrollToHeading(article, deepLink, 'auto');
+    if (scrollToHeading(article, deepLink, 'auto')) viewEl.dataset.deepScrolled = '';
     const again = (): void => {
       if (article && viewEl.isConnected) scrollToHeading(article, deepLink, 'auto');
     };

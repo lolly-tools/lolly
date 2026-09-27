@@ -159,12 +159,15 @@ Read `values.yaml` top to bottom before a production install - it is written to 
 
 ### 5. Install
 
-If the image (or its base) is pulled from `dp.apps.rancher.io`, create the pull secret first and name it in `imagePullSecrets`:
+Create the namespace:
 
 ```bash
 kubectl create namespace lolly
+```
 
-# the SUSE Application Collection pull secret (skip if your image is on a public registry)
+If the image (or its base) is pulled from `dp.apps.rancher.io`, create the SUSE Application Collection pull secret and name it in `imagePullSecrets`. Skip this if your image is on a public registry. Replace the two values in angle brackets with your credentials:
+
+```bash
 kubectl create secret docker-registry application-collection \
   --docker-server=dp.apps.rancher.io \
   --docker-username=<username-or-sa-username> \

@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "वही रंग, हर स्पेस के लिए लिखा हुआ। “क्लैम्प्ड” चिह्नित पंक्ति ऐसे स्पेस को दिखाती है जो इसे रखने के लिए बहुत संकरा है - CSS उन संख्याओं को रेंज में गोल कर देता।",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "APCA ध्रुवता पर निर्भर है, इसलिए एक सेल और उसकी मिरर अलग होती हैं और विकर्ण - खुद पर एक रंग - लगभग 0 पढ़ता है। ग्रिड और ब्रांड रेल को दोबारा रंगने और उस दृष्टि के लिए हर जोड़ी को दोबारा स्कोर करने के लिए एक विज़न मोड चुनें।",
   "Assets": "एसेट",
-  "Runs the deeper AI text check on Verify and in Assets.": "वेरिफ़ाई और एसेट में गहरी AI-टेक्स्ट जाँच चलाता है।"
+  "Runs the deeper AI text check on Verify and in Assets.": "वेरिफ़ाई और एसेट में गहरी AI-टेक्स्ट जाँच चलाता है।",
+  "Copied to clipboard": "क्लिपबोर्ड पर कॉपी हो गया",
+  "Copy did not work": "कॉपी विफल",
+  "Select the text, then use your device’s copy command.": "टेक्स्ट चुनें, फिर अपने डिवाइस के कॉपी कमांड का उपयोग करें।",
+  "Select text": "टेक्स्ट चुनें",
+  "Text selected. Use your device’s copy command.": "टेक्स्ट चुन लिया गया। अपने डिवाइस के कॉपी कमांड का उपयोग करें।",
+  "Copy {label}": "{label} कॉपी करें"
 }

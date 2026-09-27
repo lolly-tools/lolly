@@ -1,18 +1,32 @@
 # Pag-export at mga Format
 
-Paano makakuha ng tapos na file mula sa isang tool - pagpili ng tamang format, pagtakda ng laki ng output at kung ano ang ginagawa ng bawat opsyon. Tulad ng lahat ng iba pa, **nangyayari ang export sa iyong device**; walang ina-upload.
+Pindutin ang **I-export** sa **I-export | I-save bilang** pill ng isang tool, pumili ng format mula sa menu sa tabi ng pangalan ng file, pagkatapos ay pindutin ang **I-download**. Ginagawa ang file sa iyong device; walang ina-upload.
+
+Para sa karamihan ng trabaho, isa sa tatlong format ang tama:
+
+| Para sa | Piliin | Dahil |
+|---|---|---|
+| Isang screen, mensahe o slide | **PNG** | Nabubuksan ito ng bawat app, at pinananatili nito ang transparent na background kapag inaalok ito ng tool |
+| Isang tapos na page, o anumang ipi-print | **PDF** | Tunay na page size na nagpi-print kagaya ng tingin nito; ang **Print PDF**, kung saan inaalok ito ng isang tool, ay ang CMYK na bersyon para sa isang press |
+| Artwork na dapat manatiling matalas sa kahit anong sukat | **SVG** | Vector shapes, malinaw mula sa isang badge hanggang sa isang banner |
+
+::: check Suriin ang file sa sukat na gagamitin dito
+Bago mo ito ipadala, buksan ito sa screen na ginawan nito, o i-print ito sa tunay na sukat nito.
+:::
+
+Tinatalakay ng natitirang bahagi ng page na ito ang bawat format, sukat at opsyon.
 
 ## Paano Gumagana ang Export
 
-Ang preview *ay* ang file. Kapag nag-export ka, ginagawan ng render ng host ang canvas na iyon sa format na pinili mo at ibinibigay sa iyo ang download (o inilalagay ito sa iyong clipboard). Ang isang tool ay nag-aalok lamang ng mga format na idineklara ng may-akda nito, at itinatago ng picker ang anumang hindi kayang gawin ng iyong browser (tingnan ang [Video](#video)).
+Ang preview *ay* ang file. Kapag nag-export ka, ginagawa ng host ang render ng canvas na iyon sa format na pinili mo at ibinibigay sa iyo ang download (o inilalagay ito sa iyong clipboard). Itinatago ng picker ang anumang format na hindi kayang gawin ng iyong browser (tingnan ang [Video](#video)).
 
 Tatlong landas ang gumagawa ng file. Karamihan sa mga tool ay **nagre-render ng canvas** patungo sa napiling format. Ang mga text at data na format (HTML, MD, TXT, JSON, CSV, ICS, VCF) ay sa halip **binubuo mula sa nilalaman ng tool**, hindi rinasterize mula sa larawan. At ang mga privacy utility (hal. *Strip Hidden Data*) ay gumagamit ng ikatlong landas: ang file na *iyong* pinili ay binabago nang byte-for-byte sa device at ibinibigay pabalik nang direkta - walang canvas, walang watermark at walang idinagdag na provenance metadata, dahil ito ay iyo na ring file.
 
-Ang mga aksyon sa export controls:
+Ang mga aksyon sa export panel:
 
-- <!--i:download--> **Download** - i-save ang file (ang pangunahing aksyon).
+- <!--i:download--> **Download** - i-save ang file (ang pangunahing aksyon). Kung hindi mo ito mahanap pagkatapos, tingnan ang [Hanapin ang file na na-download mo](/info/find-your-work.html#find-a-file-you-downloaded).
 - <!--i:photos--> **Copy** - ilagay ang larawan sa iyong clipboard para direktang i-paste sa Slack, email, isang doc. Kung saan hindi makapag-copy ng mga larawan ang isang browser, dine-download nito sa halip at sinasabihan ka.
-- <!--i:folder--> **Save** - itago ang kasalukuyang disenyo bilang isang naka-save na tool session sa iyong library.
+- <!--i:folder--> **Save** - itago ang kasalukuyang disenyo sa Projects nang isang click lang, nang hindi nagtatanong kung saan; hindi ito kailanman nagda-download ng file. Ang **Save as**, sa tabi ng **Export**, ay nagtatanong kung saan (tingnan ang [Pag-save at pagpapatuloy](/info/using.html#saving-continuing)).
 - <!--i:link--> **Share** - binubuksan ang **Share dialog**: isang link na pwedeng kopyahin na muling gumagawa ng disenyo, mga on-visit toggle (fullscreen, export panel, download- o copy-on-open) at isang opsyonal na **Shortest link** na nagpapaloob ng buong state sa isang compact na token (tingnan ang [URL Mode](/info/url-mode.html)).
 
 (Pinipili ng may-akda ng tool kung alin sa mga ito ang lumalabas; ang default na set ay Copy, Download at Save.)
@@ -32,7 +46,7 @@ Ang isang naka-save na session ay maaari ring muling ibahagi bilang tool link mu
 
 ## Pagpili ng Format
 
-Ang filename at ang format picker ay nasa itaas ng panel bilang isang `name.format` pair, at ang picker ay nag-lista lamang ng mga format na idineklara ng may-akda ng tool na ito.
+Magkasama ang pangalan ng file at ang format menu bilang isang `name.format` pair, sa ilalim ng **I-download**.
 
 ![Ang filename field na kaisa ng format picker, kaya ang export ay nababasa bilang isang name.format pair](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
@@ -91,7 +105,7 @@ Kapaki-pakinabang para sa isang storyboard, isang thumbnail sheet, isang contact
 
 Kinukuha ang sampling sa **midpoint** ng bawat agwat sa halip na sa mga gilid, dahil ang unang sandali ng isang sequence ay kadalasang isang enter transition na hindi pa nag-fade in at ang huli ay ang state pagkatapos matapos ang bawat clip - ang endpoint sampling ay gagastos ng dalawa sa iyong frame sa halos-blangkong mga ito. Ang bilang ay naka-cap sa **64** (ang isang contact sheet ay para basahin ng tao), at anumang walang-katuturan na na-type sa field ay babalik sa `1` sa halip na palyahin ang export. Bawat frame ay isang ordinaryong still, kaya ang Content Credentials, ang imprint, mga pisikal na unit at DPI ay lahat kumikilos nang eksakto tulad ng ginagawa nila para sa iisang export.
 
-Ang **Frames** field ang paraan para makakuha ng sheet ngayon. Nagre-reserve ang engine ng katumbas na `cuts` URL param, ngunit wala pang shell na nagbabasa nito mula sa isang link, kaya ang isang naibahaging link ay palaging muling bubukas sa playhead frame - tingnan ang [URL Mode](/info/url-mode.html#contact-sheets-cuts).
+Ang field na **Mga Frame** ang paraan para makakuha ng sheet ngayon. Nagreserba ang engine ng katugmang `cuts` URL param, pero wala pang shell na nagbabasa nito mula sa isang link, kaya palaging nagbubukas-muli ang isang shared link sa playhead frame - tingnan ang [URL Mode](/info/url-parameters.html#contact-sheets-cuts).
 
 ## Multi-page PDF
 
@@ -235,7 +249,7 @@ Ang mga animated tool ay nag-e-export ng motion bilang **MP4**, **WebM** o **GIF
 
 Gumagana ang GIF kahit saan (mainam para sa chat/email; mas malaki at mas mababa sa kulay kaysa sa video). Ang mga animated tool ay naglalantad din ng **Wait** (segundo para hayaang mag-settle ang animation bago mag-record) at **Duration** (haba ng clip).
 
-> Ang isang shared na `?format=…` link na humihiling ng container na hindi kayang i-record ng browser mo ay maayos na bumabagsak papunta sa isa pa at pinapangalanan ang file nang naaayon.
+> Ang isang shared na `?format=…` link na humihiling ng container na hindi kayang i-record ng browser mo ay bumabalik nang maayos sa isa pa, at tinutugma ng pangalan ng file ang container na na-record nito.
 
 **Sound.** Hindi tahimik ang mga video export. Ang isang tool ay kayang maglagay ng **music bed** sa ilalim ng clip - isang audio asset mula sa catalogue, naka-loop o naka-trim sa haba ng clip, na may fade-in/out, volume at automatic ducking sa ilalim ng sariling tunog ng footage - at ang mga recording tool ay dinadala nang diretso ang live audio ng footage nila papunta sa file. Pinananatili ng **MP4** at **WebM** ang mixed track; tahimik sa likas ang GIF at ang mga animated image format (APNG, Animated WebP, Animated SVG).
 
@@ -255,7 +269,9 @@ Kung saan sinusuportahan ito ng format, ang mga export ay may dalang **provenanc
 
 **Ang durable credential.** May pangalawang, mas mabigat na marka sa tabi ng Imprint: **Durable credential**, na gumagamit ng on-device neural model (TrustMark format) para isulat ang id ng Lolly *papasok* sa mga pixel kaya ang "made with Lolly" link ay nakakaligtas sa isang metadata strip, isang re-encode at muling pagbasa ng mga TrustMark-aware na tool pati na ng sarili ng Lolly. **Naka-off ito bilang default** - di tulad ng pure-JavaScript na Imprint, may gastos itong isang neural pass kada export kasama ang isang one-time model download, kaya ito ay isang sadyang opt-in sa halip na isang tahimik na buwis. Raster lang (**PNG, JPG, WebP, AVIF, TIFF**), naka-check sa export panel o ipinapasa bilang `durable=1` sa isang share link. Sa desktop at mobile apps, ang card ay itinatago nang tuluyan sa halip na ipakita bilang isang no-op, dahil walang origin kung saan kukunin ang model nang offline.
 
-**Content protection.** Sa export panel, ang *Password protect*, **C2PA Credentials**, ang **Lolly Imprint** at ang **Durable credential** ay tumitiklop papunta sa isang naka-collapse, format-aware na grupong **Content protection**, kaya ang provenance at protection options ng isang file ay nakatira sa isang lugar - ipinapakita lang ng grupo ang mga card na aplikable, at itinatago mismo ang sarili nang tuluyan kapag wala sa mga ito ang aplikable. Ang mga print mark ay sadyang *hindi* kasama rito: sila ay print production geometry sa halip na protection, kaya ang **Print marks & bleed** - ang bleed measurement sa millimetres kasama ang Crop, Registration, Bleed, Colour bars at Stamp details - ay pinananatili ang sarili nitong top-level na card sa mga print format.
+**Content protection.** Sa export panel, ang **Licence** na ibinibigay mo, ang **Source credits** ng anumang inilagay mo, ang *Password protect*, **C2PA Credentials**, ang **Lolly Imprint** at ang **Durable credential** ay tumitiklop papunta sa isang naka-collapse, format-aware na grupong **Content protection**, kaya ang provenance, rights at protection options ng isang file ay nakatira sa isang lugar. Ipinapakita lang ng grupo ang mga card na aplikable sa napiling format. Bumubukas ito nang mag-isa kapag may link o naka-save na document na may naideklara nang licence, o kapag may source na kailangan ng desisyon mula sa iyo.
+
+**Licence.** Piliin kung paano puwedeng gamitin ng iba ang gawa mo: *None (all rights reserved)* bilang default, o CC0 1.0, ang Public Domain Mark 1.0, o isa sa mga Creative Commons 4.0 licence (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Isinusulat ang pangalan ng licence at isang link sa deed nito sa licence metadata ng file (EXIF, XMP at RIFF kung saan may mga field na iyon ang format) at sa Content Credential nito. Naka-save ang pinili mo kasama ng document at naglalakbay ito sa isang share link bilang `licence=`. Isinusulat ni Lolly ang licence na pinili mo. Hindi nito che-check o ipinapatupad ang mga terms. Ang isang tool na may sariling licence field, tulad ng Claim, ay pinapanatili ang field na iyon sa halip at hindi nagpapakita ng ikalawang picker. Ang mga print mark ay sadyang *hindi* kasama rito: sila ay print production geometry sa halip na protection, kaya ang **Print marks & bleed** - ang bleed measurement sa millimetres kasama ang Crop, Registration, Bleed, Colour bars at Stamp details - ay pinananatili ang sarili nitong top-level na card sa mga print format.
 
 ![Ang Content protection group na nakabukas sa isang PNG export, na nagpapakita lang ng mga card na aplikable dito](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
@@ -263,7 +279,7 @@ Kung saan sinusuportahan ito ng format, ang mga export ay may dalang **provenanc
 
 **Cost, na kinuha mula sa rate card mo.** Sa ibaba ng preflight - huli sa lahat, nasa itaas pa rin ng mga button - may isang card na ginagawang pera ang parehong mga bilang, at galing lang laging sa mga presyong binigay ng isang tao rito. Binabasa nito kung ano man ang binilang ng preflight pass, kahit naka-on man o hindi ang preflight card mismo, at kailangan nito na totoo ang dalawang bagay: may kayang presyuhan ng price list ang trabaho (plates, sheets, area, pages, variant rows o output files - kaya hindi ito kailanman lalabas sa isang plain logo PNG), **at** may naroroong **rate card**. Ang rate card ay isang JSON price list mula sa printer mo. Ang isang default build ay walang dala nito at walang paraan sa-app para mag-load ng isa: dumarating ito bilang isang catalogue asset na ibinibigay ng isang deployment, o sa pamamagitan ng opsyonal na rate-card extension na sina-switch on ng isang self-hoster o control plane. Kung walang rate card, walang ipinapakita - hindi isang prompt, hindi isang walang laman na table.
 
-Ang panuntunan kung saan itinayo ang buong bagay ay hindi ito kailanman **gumagawa ng pera**. Bawat figure ay isang rate na ibinigay mo na pinarami sa isang quantity na binilang ng Lolly - `4 plate × €35.00` - at ang total ay pinapangalanan ang sarili nitong source sa parehong pangungusap ng figure: ang issuer na pinapangalanan ng card, at ang petsa na sinasabi ng card kung saan galing ang mga rate nito. Walang default na currency, walang placeholder at walang zero na tumatayo bilang kapalit ng nawawalang presyo. Ang sinasabi ng file tungkol sa sarili nito ay nananatiling reported speech: *"Sinasabi ng file: … Hindi pa ito na-verify ng Lolly."*
+Ang rule na pinagbabatayan ng lahat ng ito ay **hindi ito kailanman gumagawa ng pera**. Bawat figure ay isang rate na ibinigay mo na pinarami sa isang quantity na binilang ni Lolly - `4 plate × €35.00` - at dala ng total ang sarili nitong source sa parehong pangungusap ng figure: ang issuer na nakasaad sa card, at ang petsa kung saan sinasabi ng card na galing ang mga rate nito. Walang default na currency, walang placeholder at walang zero na pumapalit sa nawawalang presyo. Ang sinasabi ng file tungkol sa sarili nito ay nananatiling reported speech: *"Sinasabi ng file: … Hindi pa ito na-verify ni Lolly."*
 
 At kapag hindi ito makapag-compute nang tapat, ang working table ay **naglalaho** sa halip na bumagsak papunta sa isang greyed-out o filled-in na figure:
 
@@ -318,11 +334,11 @@ Ang isang export na naglalagay ng gawa ng ibang tao ay itinatala rin ang source 
 
 ## Sa telepono
 
-Nasa likod ng lumulutang na **Render** button ang mga export control, na nagbubukas ng **Export** sheet - parehong mga format, sukat, copy, download at share, na naka-size para sa touch.
+Nasa likod ng lumulutang na **Export** button ang mga export control, na nagbubukas ng **Export** sheet - parehong mga format, sukat, copy, download at share, na naka-size para sa touch.
 
 ## Sanggunian ng Format
 
-Bawat id na kayang i-render ng host, pinangkat. Ito rin ang mga value para sa URL `format=` parameter at ang CLI `--export=` flag - tingnan ang [URL Mode](/info/url-mode.html) at [CLI](/info/cli.html). Nag-aalok lang ang isang tool ng subset na idineklara ng may-akda nito, kaya palaging mas maikli ang picker kaysa sa listahang ito.
+Bawat id na kayang i-render ng host, nakagrupo. Ito rin ang mga value para sa URL parameter na `format=` at ang CLI flag na `--export=` - tingnan ang [URL Mode](/info/url-mode.html) at ang [CLI](/info/cli.html). Ipinapakita lang ng menu ng isang tool ang mga format na kaya nitong gawin, kaya palaging mas maikli ito kaysa sa listahang ito.
 
 | Uri | Mga Id |
 |---|---|

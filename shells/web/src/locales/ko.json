@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "같은 색을 공간마다 다르게 적은 거예요. “잘림”으로 표시된 행은 그 색을 담기엔 좁은 공간이라는 뜻이고, CSS라면 그 값을 범위 안으로 반올림해요.",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "APCA는 극성에 따라 달라지므로 셀과 그 대칭 셀은 값이 다르며, 대각선(같은 색상끼리)은 ~0으로 나와요.",
   "Assets": "애셋",
-  "Runs the deeper AI text check on Verify and in Assets.": "검증 기능과 애셋에서 심층 AI 텍스트 검사를 실행해요."
+  "Runs the deeper AI text check on Verify and in Assets.": "검증 기능과 애셋에서 심층 AI 텍스트 검사를 실행해요.",
+  "Copied to clipboard": "클립보드에 복사했어요",
+  "Copy did not work": "복사하지 못했어요",
+  "Select the text, then use your device’s copy command.": "텍스트를 선택한 다음 기기의 복사 기능을 사용하세요.",
+  "Select text": "텍스트 선택",
+  "Text selected. Use your device’s copy command.": "텍스트가 선택되었어요. 기기의 복사 기능을 사용하세요.",
+  "Copy {label}": "{label} 복사"
 }

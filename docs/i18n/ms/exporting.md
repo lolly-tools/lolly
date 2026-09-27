@@ -1,19 +1,33 @@
 # Eksport & Format
 
-Cara mendapatkan fail siap daripada sesuatu alat - memilih format yang betul, menetapkan saiz output dan apa yang dilakukan oleh setiap pilihan. Seperti semua perkara lain, **eksport berlaku pada peranti anda**; tiada apa yang dimuat naik.
+Tekan **Eksport** pada pil **Export | Save as** milik sesuatu alat, pilih satu format daripada menu di sebelah nama fail, kemudian tekan **Muat turun**. Fail itu dibuat pada peranti anda; tiada apa-apa dimuat naik.
+
+Untuk kebanyakan kerja, salah satu daripada tiga format berikut adalah tepat:
+
+| For | Choose | Because |
+|---|---|---|
+| Skrin, mesej atau slaid | **PNG** | Setiap aplikasi boleh membukanya, dan ia mengekalkan latar belakang lutsinar apabila alat itu menawarkannya |
+| Halaman siap, atau apa jua yang dicetak | **PDF** | Saiz halaman sebenar yang tercetak seperti rupanya; **Print PDF**, jika ditawarkan oleh sesuatu alat, ialah versi CMYK untuk akhbar cetak |
+| Karya seni yang perlu kekal tajam pada sebarang saiz | **SVG** | Bentuk vektor, tajam daripada lencana hingga sepanduk |
+
+::: check Semak fail itu pada saiz yang akan digunakan
+Sebelum anda menghantarnya, buka pada skrin yang menjadi tujuannya, atau cetak pada saiz sebenarnya.
+:::
+
+Selebihnya halaman ini merangkumi setiap format, saiz dan opsyen.
 
 ## Cara Eksport Berfungsi
 
-Pratonton *ialah* fail itu sendiri. Apabila anda mengeksport, host akan merender kanvas tersebut kepada format yang anda pilih dan menyerahkan muat turun kepada anda (atau meletakkannya pada papan klip anda). Sesuatu alat hanya menawarkan format yang diisytiharkan oleh pembuatnya, dan pemilih menyembunyikan mana-mana format yang tidak boleh dihasilkan oleh pelayar anda (lihat [Video](#video)).
+Pratonton itu *ialah* fail itu sendiri. Apabila anda mengeksport, hos merender kanvas itu kepada format yang anda pilih dan memberikan anda satu muat turun (atau meletakkannya pada papan keratan anda). Pemilih itu menyembunyikan mana-mana format yang tidak dapat dihasilkan oleh pelayar anda (lihat [Video](#video)).
 
 Tiga laluan menghasilkan fail. Kebanyakan alat **merender kanvas** kepada format yang dipilih. Format teks dan data (HTML, MD, TXT, JSON, CSV, ICS, VCF) pula **dijana daripada kandungan alat**, bukan dirasterkan daripada gambar. Dan utiliti privasi (contohnya *Strip Hidden Data*) menggunakan laluan ketiga: fail yang *anda* pilih diubah bait demi bait pada peranti dan diserahkan semula terus - tiada kanvas, tiada tera air dan tiada metadata provenans ditambah, kerana ia sudah pun fail anda sendiri.
 
-Tindakan dalam kawalan eksport:
+Tindakan pada panel eksport:
 
-- <!--i:download--> **Download** - simpan fail (tindakan utama).
-- <!--i:photos--> **Copy** - letakkan imej pada papan klip anda untuk ditampal terus ke dalam Slack, e-mel, atau dokumen. Jika pelayar tidak dapat menyalin imej, ia akan memuat turun sebaliknya dan memberitahu anda.
-- <!--i:folder--> **Save** - simpan reka bentuk semasa sebagai sesi alat yang tersimpan dalam pustaka anda.
-- <!--i:link--> **Share** - membuka **Share dialog**: pautan yang boleh disalin yang menghasilkan semula reka bentuk, togol semasa lawatan (skrin penuh, panel eksport, muat turun- atau salin-semasa-buka) dan **Shortest link** pilihan yang memampatkan seluruh keadaan ke dalam token yang padat (lihat [URL Mode](/info/url-mode.html)).
+- <!--i:download--> **Muat turun** - simpan fail (tindakan utama). Jika anda tidak dapat mencarinya selepas itu, lihat [Cari fail yang anda muat turun](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Salin** - letakkan imej pada papan keratan anda untuk ditampal terus ke dalam Slack, e-mel, atau satu dokumen. Jika pelayar tidak dapat menyalin imej, ia memuat turun sebaliknya dan memberitahu anda.
+- <!--i:folder--> **Simpan** - simpan reka bentuk semasa ke dalam Projek dalam satu klik, tanpa bertanya lokasi; ia tidak sekali-kali memuat turun satu fail. **Simpan sebagai**, di sebelah **Eksport**, bertanya lokasi (lihat [Menyimpan dan menyambung](/info/using.html#saving-continuing)).
+- <!--i:link--> **Kongsi** - membuka **Share dialog**: satu pautan yang boleh disalin yang menghasilkan semula reka bentuk itu, togol semasa lawatan (skrin penuh, panel eksport, muat turun- atau salin-semasa-buka) dan **Shortest link** pilihan yang memampatkan seluruh keadaan ke dalam satu token padat (lihat [URL Mode](/info/url-mode.html)).
 
 (Pembuat alat memilih yang mana antara ini dipaparkan; set lalai ialah Copy, Download dan Save.)
 
@@ -32,13 +46,13 @@ Sesi tersimpan juga boleh dikongsi semula sebagai pautan alat daripada Projects 
 
 ## Memilih Format
 
-Nama fail dan pemilih format terletak di bahagian atas panel sebagai satu pasangan `name.format`, dan pemilih itu hanya menyenaraikan format yang diisytiharkan oleh pembuat alat ini.
+Nama fail dan menu format terletak bersama sebagai satu pasangan `name.format`, di bawah **Muat turun**.
 
 ![Medan nama fail bergabung dengan pemilih format, jadi eksport dibaca sebagai satu pasangan name.format](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
-| Anda mahukan… | Guna | Sebab |
+| You want… | Use | Why |
 |---|---|---|
-| Logo / karya seni tajam yang boleh diskalakan | **SVG** | Vektor - boleh diskalakan tanpa had, kecil, boleh disunting |
+| Logo / karya seni tajam yang boleh diskalakan | **SVG** | Vektor - boleh diskalakan tanpa had, kecil, boleh disunting; kesan yang tidak dapat digambar oleh eksport vektor dibenamkan sebagai imej |
 | Vektor untuk aplikasi Office / Windows | **EMF** | Ditampal sebagai vektor boleh disunting ke dalam PowerPoint / Word; teks kekal langsung dan boleh disunting, dan Google Drive membukanya dalam Google Drawings untuk Slides |
 | Vektor untuk cetakan / aplikasi reka bentuk | **EPS**, atau **EPS (CMYK)** | Vektor PostScript untuk aliran kerja Illustrator / akhbar cetak |
 | Vektor untuk mesin pemotong / CAD | **DXF** | Pemotong laser, plotter vinil, CNC - laluan garis luar dalam milimeter |
@@ -91,7 +105,7 @@ Berguna untuk papan cerita, helaian lakaran kecil, helaian kenalan untuk semakan
 
 Persampelan diambil pada **titik tengah** setiap selang dan bukan pada tepinya, kerana detik pertama sesuatu urutan selalunya ialah peralihan masuk yang belum pudar masuk lagi dan detik terakhir ialah keadaan selepas setiap klip berakhir - persampelan pada titik hujung akan membazirkan dua daripada bingkai anda pada bingkai yang hampir kosong. Bilangannya dihadkan pada **64** (helaian kenalan adalah untuk dibaca oleh manusia), dan sebarang input yang tidak masuk akal ditaip ke dalam medan tersebut akan kembali kepada `1` dan bukannya menggagalkan eksport. Setiap bingkai ialah gambar diam biasa, jadi Content Credentials, imprint, unit fizikal dan DPI semuanya berkelakuan sama seperti untuk satu eksport tunggal.
 
-Medan **Frames** ialah cara untuk mendapatkan helaian pada masa ini. Enjin mengekalkan parameter URL `cuts` yang sepadan, tetapi tiada shell yang membacanya daripada pautan lagi, jadi pautan yang dikongsi sentiasa dibuka semula pada bingkai playhead - lihat [URL Mode](/info/url-mode.html#contact-sheets-cuts).
+Medan **Frames** ialah cara untuk mendapatkan helaian itu pada masa ini. Enjin mengekalkan parameter URL `cuts` yang sepadan, tetapi tiada shell yang membacanya daripada pautan lagi, jadi pautan yang dikongsi sentiasa dibuka semula pada bingkai playhead - lihat [URL Mode](/info/url-parameters.html#contact-sheets-cuts).
 
 ## PDF Berbilang Halaman
 
@@ -157,7 +171,7 @@ Pilih **Export course** daripada alat yang disokong, folder projek atau satu pil
 - <!--i:file--> Pilih Website, SCORM 1.2, SCORM 2004 4th Edition, atau sasaran xAPI eksperimen. Semak kandungan sebenar dan saiz ZIP, kemudian simpan dan muat turun versi yang telah disemak.
 - <!--i:check--> Penyelesaian memerlukan pengakuan bagi setiap pelajaran yang diperlukan dan memilih Finish. Pemain laman web menyimpan kemajuan dalam pelayar; pakej LMS menyambung kepada LMS penerimanya.
 
-![Panel eksport pada dek Design dengan SCORM (LMS) dipilih](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+![Panel eksport pada satu dek Design dengan SCORM (LMS) dipilih](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Pakej itu mengandungi kandungan siapnya sendiri dan tidak memerlukan akaun Lolly. Ekstrak ZIP Website ke atas hos HTTP(S); import ZIP LMS tanpa mengubah kandungannya. Uji destinasi yang dimaksudkan sebelum mengedarkan kursus itu.
 
@@ -235,7 +249,7 @@ Alat beranimasi mengeksport gerakan sebagai **MP4**, **WebM** atau **GIF** - dan
 
 GIF berfungsi di mana-mana (bagus untuk sembang/e-mel; lebih besar dan warna lebih rendah daripada video). Alat beranimasi juga mendedahkan **Wait** (saat untuk membenarkan animasi menetap sebelum merekod) dan **Duration** (panjang klip).
 
-> Pautan `?format=…` yang dikongsi yang meminta bekas yang tidak dapat direkod oleh pelayar anda kembali dengan lancar kepada yang satu lagi dan menamakan fail itu sewajarnya.
+> Satu pautan kongsi `?format=…` yang meminta satu bekas yang tidak dapat dirakam oleh pelayar anda beralih dengan licin kepada bekas yang satu lagi, dan nama fail itu sepadan dengan bekas yang sebenarnya dirakam.
 
 **Bunyi.** Eksport video tidak senyap. Alat boleh meletakkan **latar muzik** di bawah klip - aset audio daripada katalog, diulang atau dipotong kepada panjang klip, dengan fade-in/out, kelantangan dan pengurangan automatik di bawah bunyi rakaman sendiri - dan alat rakaman membawa audio langsung rakaman mereka terus ke dalam fail. **MP4** dan **WebM** mengekalkan trek bercampur; GIF dan format imej beranimasi (APNG, Animated WebP, Animated SVG) senyap secara semula jadi.
 
@@ -255,7 +269,9 @@ Di mana format menyokongnya, eksport membawa **metadata provenans** - perisian, 
 
 **Kredensial tahan lama.** Tanda kedua, lebih berat, terletak di sebelah Imprint: **Durable credential**, yang menggunakan model neural pada peranti (format TrustMark) untuk menulis id Lolly *ke dalam* piksel supaya pautan "dibuat dengan Lolly" terselamat daripada penanggalan metadata, pengekodan semula dan pembacaan semula oleh alat yang menyedari TrustMark serta alat Lolly sendiri. Ia **dimatikan secara lalai** - tidak seperti Imprint JavaScript tulen, ia mengambil kos laluan neural bagi setiap eksport ditambah muat turun model sekali sahaja, jadi ia pilih-masuk yang disengajakan dan bukan cukai senyap. Raster sahaja (**PNG, JPG, WebP, AVIF, TIFF**), ditandakan dalam panel eksport atau dilalukan sebagai `durable=1` dalam pautan kongsi. Pada aplikasi desktop dan mudah alih kad itu disembunyikan terus dan bukan ditunjukkan sebagai tiada-operasi, kerana tiada asal untuk mengambil model itu secara luar talian.
 
-**Perlindungan kandungan.** Dalam panel eksport, *Password protect*, **C2PA Credentials**, **Lolly Imprint** dan **Durable credential** dilipat menjadi satu kumpulan **Content protection** yang runtuh dan sedar-format, supaya opsyen provenans dan perlindungan fail hidup di satu tempat - kumpulan itu hanya menunjukkan kad yang terpakai untuk format yang dipilih, dan menyembunyikan diri sepenuhnya apabila tiada satu pun terpakai. Tanda cetak sengaja *tidak* di dalamnya: ia geometri pengeluaran cetak dan bukan perlindungan, jadi **Print marks & bleed** - ukuran bleed dalam milimeter ditambah Crop, Registration, Bleed, Colour bars dan Stamp details - mengekalkan kad peringkat atasnya sendiri pada format cetak.
+**Perlindungan kandungan.** Pada panel eksport, **Lesen** yang anda berikan, **Kredit sumber** bagi apa jua yang anda letakkan, *Password protect*, **C2PA Credentials**, **Lolly Imprint** dan **Kelayakan tahan lama** dilipat menjadi satu kumpulan **Perlindungan kandungan** yang runtuh dan sedar-format, supaya opsyen provenans, hak dan perlindungan sesuatu fail hidup di satu tempat. Kumpulan itu hanya menunjukkan kad yang terpakai untuk format yang dipilih. Ia terbuka dengan sendirinya apabila satu pautan atau dokumen tersimpan sudah mengisytiharkan satu lesen, atau apabila satu sumber memerlukan keputusan daripada anda.
+
+**Lesen.** Pilih bagaimana orang lain boleh menggunakan karya anda: *Tiada (semua hak terpelihara)* secara lalai, atau CC0 1.0, Public Domain Mark 1.0, atau salah satu lesen Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Nama lesen dan satu pautan kepada akta (deed) berkenaan ditulis ke dalam metadata lesen fail itu (EXIF, XMP dan RIFF di mana format itu mempunyai medan tersebut) dan ke dalam Content Credential-nya. Pilihan itu disimpan bersama dokumen dan turut serta dalam pautan kongsi sebagai `licence=`. Lolly menulis lesen yang anda pilih. Ia tidak menyemak atau menguatkuasakan syarat-syaratnya. Satu alat dengan medan lesennya sendiri, seperti Claim, mengekalkan medan itu dan bukannya memaparkan pemilih kedua. Tanda cetak sengaja *tidak* di dalamnya: ia geometri pengeluaran cetak dan bukan perlindungan, jadi **Tanda cetak & bleed** - ukuran bleed dalam milimeter ditambah Crop, Registration, Bleed, Colour bars dan Stamp details - mengekalkan kad peringkat atasnya sendiri pada format cetak.
 
 ![Kumpulan Content protection dibuka pada eksport PNG, menunjukkan hanya kad yang terpakai kepadanya](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
@@ -263,7 +279,7 @@ Di mana format menyokongnya, eksport membawa **metadata provenans** - perisian, 
 
 **Kos, dikira daripada kad kadar anda.** Di bawah praterbang - paling akhir, masih di atas butang - terletak kad yang menukar kiraan yang sama itu menjadi wang, dan hanya sekali daripada harga yang seseorang berikan kepadanya. Ia membaca apa jua yang dikira oleh laluan praterbang, sama ada kad praterbang itu sendiri dihidupkan atau tidak, dan ia memerlukan dua perkara supaya benar: kerja itu mempunyai sesuatu yang senarai harga boleh harga langsung (plat, helaian, luas, halaman, baris varian atau fail output - jadi logo PNG biasa tidak akan menunjukkannya), **dan** **kad kadar** hadir. Kad kadar ialah senarai harga JSON daripada pencetak anda. Binaan lalai tidak membawa satu pun dan tiada cara dalam-apl untuk memuatkannya: ia tiba sama ada sebagai aset katalog yang dihantar oleh penggunaan, atau melalui sambungan kad-kadar pilihan yang dihidupkan oleh penghos-sendiri atau bidang kawalan. Tanpa kad kadar, tiada apa ditunjukkan - bukan gesaan, bukan jadual kosong.
 
-Peraturan yang membina keseluruhan perkara ini ialah **ia tidak pernah mencipta wang**. Setiap angka ialah kadar yang anda berikan didarab dengan kuantiti yang dikira Lolly - `4 plat × €35.00` - dan jumlah itu menamakan sumbernya sendiri dalam ayat yang sama dengan angka itu: pengeluar yang dinamakan kad, dan tarikh yang kata kad itu kadarnya dari. Tiada mata wang lalai, tiada pemegang tempat dan tiada sifar berdiri untuk harga yang hilang. Apa yang dikatakan fail tentang dirinya kekal sebagai pertuturan yang dilaporkan: *"Fail berkata: … Lolly belum mengesahkan ini."*
+Peraturan yang membina keseluruhan perkara ini ialah **ia tidak pernah mencipta wang**. Setiap angka ialah kadar yang anda berikan didarab dengan kuantiti yang dikira Lolly - `4 plate × €35.00` - dan jumlah itu menamakan sumbernya sendiri dalam ayat yang sama dengan angka itu: pengeluar yang dinamakan kad, dan tarikh yang kata kad itu kadarnya dari. Tiada mata wang lalai, tiada pemegang tempat dan tiada sifar berdiri untuk harga yang hilang. Apa yang dikatakan fail tentang dirinya kekal sebagai pertuturan yang dilaporkan: *"Fail berkata: … Lolly belum mengesahkan ini."*
 
 Dan apabila ia tidak dapat mengira dengan jujur, jadual kerja **hilang** dan bukannya merosot menjadi angka kelabu atau yang diisi:
 
@@ -318,11 +334,11 @@ Eksport yang meletakkan karya orang lain turut merekodkan sumber itu dalam krede
 
 ## Pada telefon
 
-Kawalan eksport berada di sebalik butang terapung **Render**, yang membuka helaian **Export** - format, saiz, salin, muat turun dan kongsi yang sama, disaiz untuk sentuhan.
+Kawalan eksport berada di sebalik butang terapung **Eksport**, yang membuka helaian **Eksport** - format, saiz, salin, muat turun dan kongsi yang sama, disaiz untuk sentuhan.
 
 ## Rujukan format
 
-Setiap id yang boleh dipaparkan oleh hos, dikumpulkan. Ini juga nilai untuk parameter URL `format=` dan bendera CLI `--export=` - lihat [URL Mode](/info/url-mode.html) dan [CLI](/info/cli.html). Sesebuah alat hanya menawarkan subset yang diisytiharkan oleh pengarangnya, jadi pemilih sentiasa lebih pendek daripada senarai ini.
+Setiap id yang boleh dirender oleh hos, dikumpulkan. Ini juga menjadi nilai untuk parameter URL `format=` dan bendera CLI `--export=` - lihat [URL Mode](/info/url-mode.html) dan [CLI](/info/cli.html). Menu sesuatu alat hanya memaparkan format yang boleh dihasilkan oleh alat itu, jadi ia sentiasa lebih pendek daripada senarai ini.
 
 | Jenis | Id |
 |---|---|

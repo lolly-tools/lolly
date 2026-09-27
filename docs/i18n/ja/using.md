@@ -1,14 +1,14 @@
 # Lolly を使う
 
-アプリを実際に*使う*ための実践ガイドです。ツールを開き、キャンバスで作業し、書き出し、保存し、共有するまでを扱います。ここで扱う処理はすべて**お使いのデバイス上**で動きます。アカウントもアップロードも不要で、最初の読み込み以降はインターネット接続も要りません。
+アプリを実際に*使う*ための実践ガイドです。ツールを開き、キャンバスで作業し、書き出し、保存し、共有するまでを扱います。ここで扱う処理はすべて**お使いのデバイス上**で動きます。アカウントもアップロードも不要で、すでに開いた画面についてはインターネットも必要ありません。
 
 > はじめてですか。[クイックスタート](/info/quickstart.html)なら数分で制作を始められます。アプリの導入や配備については[運用者向け Lolly](/info/operators.html)をご覧ください。このページは、開いたあとの操作を扱います。
 
 ## ツールを開く
 
-ホーム画面は**ギャラリー**で、すべてのツールがカテゴリー別に並びます。カードをクリックするとツールが開きます。以前に作業したことがあれば、**Continue** ボタンで直近のセッションを再開できます。検索ボックスで名前を絞り込めます。一覧系の 6 画面（ギャラリー、Utilities、Projects、アセット、ダッシュボード、プロフィール）の下部にあるバーからは[検索](/info/search.html)が使え、ツールだけでなく保存した作業、アセット、設定にも届きます。ツールの中では、このバーはツール自身の操作領域に場所を譲ります。
+ホーム画面は**ギャラリー**です - すべてのツールがカテゴリー別にまとまっています。カードをクリックするとそのツールで新しく作り始められます。[保存した作業](#saving-continuing)は**プロジェクト**から再開します。検索ボックスで名前を絞り込むか、一覧系の6画面(ギャラリー、ユーティリティ、プロジェクト、アセット、Dashboard、プロフィール)の下部にあるバーから[検索](/info/search.html)を使うと、ツールだけでなく保存した作業やアセット、設定にも届きます。ツールの中では、このバーはツール自身の操作領域に場所を譲ります。
 
-![ツールギャラリー。すべてのツールがカードとしてカテゴリー別に並ぶ](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
+![ナビゲーションの例とNewアクションを示すギャラリーカード](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
 どのツールも分割ビューです。一方に**コントロール**、もう一方にライブの**プレビュー**（キャンバス）があります。コントロールを変えると、プレビューは即座に更新されます。
 
@@ -42,6 +42,32 @@ selection bullet under Projects uses), click the bar's Hide button
 (`[data-bulk="hide"]` - the literal `data-bulk` value bulkBarHtml() writes,
 confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 (`.gtile--hiddenbox`, confirmed in gallery.ts).
+-->
+
+複数のカードをまとめて操作するには、各カードのチェックボックスをオンにするか、空白部分をドラッグして選択ボックスを描くか、**Shift/Cmd-click**すると、フローティングアクションバーが現れます。**選択バーに並ぶ操作**はビューによって少し異なります。すべての操作がどこでも意味を持つわけではないからです:
+
+- **ツール / ユーティリティ:** お気に入り(またはお気に入り解除)、非表示にする(または再表示)、オフラインで利用可能(またはオフラインから削除)、**セッションを表示**(そのツールで作ったセッションだけを表示するプロジェクトを開きます)、そしてカードをちょうど1枚選んでいるときのリンクをコピーです。
+- **アセット:** お気に入りと非表示にするはどの選択にも使えます。重複、ダウンロード、削除は、選んだものがすべて自分のアップロードである場合にのみ表示されます - 共有のデザインシステム素材は恒久的な取り決めなので、一括操作でもこの3つは対象外です。
+- **プロジェクト:** [作業を見つけて復元する](/info/find-your-work.html#find-something-you-saved)をご覧ください。
+
+> 名称の紛らわしい点が1つあります。**セッションを表示**は何かが*選択されている*ときにだけ現れます。選択していないカードを右クリックすると代わりに**N件の保存済みセッション**が表示され、これはプロジェクトへ移動するのではなく、そのツール自身の保存済みセッション一覧を開きます。そこでの削除は元に戻せません。
+
+![2つのツールに対するギャラリーの選択バー。Available offline、View sessions、Favourite、Hideが並ぶ](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
+<!--
+SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
+`[data-select="gradient"]` - the `.tile-check[data-select="<ref>"]` checkbox button
+confirmed directly in views/gallery.ts's card markup (the same attribute
+cardMarkup gives every tile), so these two clicks tick both cards without
+opening either tool.
+
+SHOT NOTE (misc-sessions-by-tool, NOT PUBLISHED): the "View sessions" result
+had a recipe of its own (`/#/p?tools=qr-code,d3`, views/projects.ts's
+toolsBodyHtml()), dropped here because it has no `drive=` that can
+manufacture its own content - a saved session isn't a click away, it has to
+already exist, and build-docs-shots.ts gives every shot a fresh
+`browser.newContext()`. It would publish an empty list. Same dependency the
+`projects` shot (now on find-your-work.md) carries; revisit if the pipeline gains a
+storage-seeding hook.
 -->
 
 ### Ask Lolly
@@ -79,10 +105,17 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 - **書き出されるのはフレーム内だけ。** 書き出されるファイルはアートボードの範囲に収まります。外に置いたもの（や端からはみ出た部分）は、ラスターでもベクターでも出力から単純に切り取られます。
 - フレームの遠くに要素を置いたときは、**Fit より先までズームアウト**（20% まで）すると台紙全体が見えます。
 - **アートボードはサイズを変えられます。** 書き出しサイズを変えるとフレームがその場でリサイズされます。ボックスの位置は変わらないので、既存の内容に合わせてレイアウトを取り直せます。
+- **書き出す前に。** インスペクターの**ドキュメント**セクションが保存済みのレイヤー構造を確認し、続いて確定したキャンバスを読み取ってはみ出したテキストと単色コントラストをチェックします。SVG/PDF のアウトライン化に使うのと同じフォントレジストリーに、各テキストランに埋め込み可能なフォントバイトがあるかどうかも問い合わせます。画像とグラデーションの背景には、でっち上げのコントラストスコアを与える代わりに、目視確認が必要な項目という印が付きます。
 
-![Design's free canvas - the artboard with its surrounding pasteboard](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Design のフリーキャンバス - アートボードとそれを囲む台紙](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **選択範囲を反転する。** 任意のボックスを右クリックして**Flip horizontal**または**Flip vertical**を選ぶと、その場で反転できます。あるいはキーボードで`Shift+H` / `Shift+V`を押します - Shiftが必要なのは、単独の`V`がPointerツールに割り当てられているためです。選択された各ボックスはそれぞれの軸で反転し、1回のUndoステップにまとまります。反転は実際の変形なので、キャンバス上だけでなく書き出したSVG、PDF、PNGにも保持されます。
+
+### レイヤーとインスペクター
+
+**レイヤー**では、アートボードごとに折りたたみ可能な親グループになります。名前を選ぶとそこへジャンプし、レイヤーを展開して、そのアートボード内のオブジェクトを選択したり並べ替えたりできます。サムネイルとページの並び替えには**ページ**に切り替えます。矢印キーでレイヤー一覧を移動でき、左キーでアートボードの見出しに戻ります。
+
+**インスペクター**は、選択したオブジェクトのテキストや画像のコントロールを先頭に置きます。手早く選ぶにはオプションチップを使い、スタイルの詳細を見るには**Advanced**を展開します。スマートフォンでは**その他の操作**から**インスペクター**を開きます。コントロールはシートで開き、Escape または戻るで選択を保ったまま閉じます。
 
 ### 自分で図形を描く（ペン）
 
@@ -137,13 +170,27 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 これらの操作があえて行わないことが 2 つあります。まず、**壊すのではなく拒否します**。重なっていない 2 つの図形を Intersect しようとすると、残すものがない旨が示され、何も変わりません。次に、テキストと画像のボックスは対象となる輪郭を持たないため、フレームで近似せずそのまま残します。組み合わせた結果は単純なベジェ曲線として保存されます。これはドローアプリでも同じで、元のスプライン種別は操作後には残りません。
 
-## タイムライン（Sequence Studio）
+### 3D シーン
 
-![The timeline with the music clip selected: its strip runs along the bottom with Speed, Fades, Volume, Pan, EQ, Pitch, Normalize volume and the Effect slot](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
+ツールレールの追加メニューから**3D シーン**を選び、フレームをドラッグして作ります。新しいボックスに対して 3D Studio がすぐに開き、そこで設定した内容がキャンバスに反映されます。それ以外の点では、シーンボックスはふつうのボックスと変わりません。移動、リサイズ、回転、影付け、スライドやタイムラインへの配置ができ、他のボックスと同じように振る舞います。
 
-**Sequence Studio** はフリーキャンバスに*時間*を加えます。どのボックスも開始時点を持ち、一定の長さだけ再生され、出入りのアニメーションを付けられます。並べる場所はアートボードの下に固定されたタイムラインです。開くとすでにシーケンスが再生されています。タイトルカード、クリップ、エンドカード、ローワーサード、音楽ベッドがあり、何も変えないうちから仕組みが目に見えます。
+**シーンボックスが持つのは画像ではなくレシピです。** 画像ボックスはレンダリング済みのファイルを保持しますが、シーンボックスが持つのは設定ひとつ、つまりシーン自体を 3D Studio 独自のリンククエリとして書き出したもので、スタジオの既定値のままの項目はすべて省かれます。だからこそシーンは、レシピ全体にかかる数キロバイトではなく百バイト程度で済み、同じ文字列が共有リンクでもエディターの入口でも動作し、スタジオに新しいコントロールが増えても Design 側は変更不要なのです。また、これによりボックスは以前撮った画像を拡大するのではなく、ドキュメントが求めるサイズと瞬間でそのつど再レンダリングされます。シーンが使う画像はアセットのままで id で参照されるため、シーン内でのアップロードはドキュメントの他の部分と一緒に `.lolly` ファイルへ入ります。
 
-![Sequence Studioのタイムライン:トランスポート、ルーラー、オーバーレイレーン、クリップとシームチップを備えたマグネットのようなシーケンス行、Always onストリップ](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
+**スタジオで編集する。** ボックスを選択すると、インスペクターに**3D シーン**セクションが表示されます。シーンが何でできているかを示す行、照明スタジオを選んだあとに表示されるその名前の行、そして**Edit in 3D Studio**ボタンがひとつです。このボタンは、そのボックスのシーンをツールの全コントロール付きでスタジオに開きます。Apply すると編集したシーンが1ステップとして書き戻されるため、1回の Undo で元のシーンに戻せます。Apply せずにスタジオを閉じれば何も変わりません。ボックスに関するそれ以外のこと - アートボード上の位置、大きさ、影、スライドに現れるタイミング - は、いつもと同じセクションのままです。シーンボックスは自身の画像もキャプションも持ちません。絵はスタジオから来て、文字もそこで設定されます。
+
+**動くシーンはひとつ、他のボックスはすべてポスター。** ドキュメント内のすべての3Dボックスはポスター、つまりシーンの静止画を、共有レンダラープールを使って画面外でそのボックスが占める大きさに描いたものを表示します。20個のシーンがあるドキュメントでも、描画コンテキストは20個ではなく1個で済みます。シーンボックスを選択すると、それがドキュメント内で唯一動くシーンになり、選択を外すと画面上にあったフレームがそのままポスターになるので何も飛びません。動くシーンは常に1つだけで、2つのシーンボックスを同時に選択すると両方ともポスターのままです。このリリースでは、動くシーンは見るためのものであり、視点を回すためのものではありません。シーンを変えるには**Edit in 3D Studio**を使います。浮動小数点のグラフィックスコンテキストを開けないデバイスは、空白の四角形を出す代わりにポスターを保ち、その理由をボックス内に表示します。ドキュメントの他の部分には影響しません。3Dボックスのない Design ドキュメントを開いても、3D関連のコードはいっさい読み込まれません。
+
+**タイムライン上では**、シーンボックスは動画クリップと同じように再生ヘッドに追従します。開始位置、クリップイン、速度がシーン自身のアニメーションを動かし、シーンの長さは 3D Studio で設定した長さのままなので、ボックスを短くトリミングすると、速くなるのではなくシーンの一部だけが表示されます。動いているのは選択中のシーンボックスだけで、それ以外はすべて静止画であり、静止画はスクラブに反応しません。
+
+**書き出しでは**、各シーンがスタジオと同じレンダラーを使ってファイルに必要なサイズで新しく描かれます。動画はシーンごと・瞬間ごとに1フレームをレンダリングし、PNG、SVG、PDF はボックスごとに、そのボックス自身のピクセルサイズで1枚の画像を埋め込みます。画面から写し取るものは何もないため、書き出しはどのボックスを選択していたかに左右されません。描画できないシーンは書き出しを失敗させ、スタジオ自身の言葉でその理由を伝えます。
+
+**自分でアップロードした素材で作ったシーンを共有する。** Design ドキュメントの共有リンクは、画像ボックスなら空白にする場面でも、シーン内のデバイスローカルなアップロード id をそのまま運びます。そのため、アートワークやモデルが自分でアップロードしたファイルであるシーンは、`.lolly` ファイルとしてバイト列ごと運ばれない限り、他の人のデバイスではその画像の部分がスタジオの既定値で表示されます。
+
+## タイムライン（シーケンス）
+
+**シーケンス**は Design のタイムラインで、フリーキャンバスに*時間*を加えます。どのボックスもある瞬間に開始し、一定の長さだけ再生され、出入りのアニメーションを付けられます。それらを並べる場所が、アートボードの下に固定されたタイムラインです。開くとすでにシーケンスが再生されています - タイトルカード、クリップ、エンドカード、ローワーサード、音楽ベッドがあり、何も変えないうちからその仕組みが見えています。
+
+![シーケンスのタイムライン:トランスポート、ルーラー、オーバーレイレーン、クリップと継ぎ目チップを備えたマグネットのようなシーケンス行、Always on ストリップ](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
 
 行には 2 種類あり、その違いこそが要点です。
 
@@ -153,7 +200,7 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 ![編集ステージ:中央に配置されたアートボード、左側のツールレール、隅にあるズームHUD](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-stage)
 
-タイムラインを開くとキーボードの操作対象がタイムラインになり、Space と矢印キーはページではなく再生ヘッドを動かします。すでにタイミングを持つコンポジションでは自動的に開くため、Sequence Studio を読み込んだ時点からそうなります。
+タイムラインを開くとキーボードの操作対象がタイムラインになり、Space と矢印キーはページではなく再生ヘッドを動かします。すでにタイミングを持つコンポジションでは自動的に開くため、シーケンスが読み込まれた時点からそうなります。
 
 > **[シーケンスエディター](/info/sequence-editor.html)**では、時間軸の編集が予測どおりに感じられるかを左右する 4 点をさらに詳しく扱います。キャンバスのクリックがどのクリップを編集するか、隣接クリップのオニオンスキン、分割の適用範囲とカットを取り消す Join、そしてトリミング（キーボード操作を含む）です。タイムラインにフォーカスした状態で `?` を押すとショートカット一覧が開きます。
 
@@ -161,13 +208,17 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 クリップを選ぶと、インスペクターで同じ編集を数値で行えます。**Length**、**Trim in**（素材のどこから始めるか）、×0.25 から ×4 までの固定倍率で選ぶ **Speed**、長さを伴う **Animate in** / **Animate out**、そして **Mute clip** です。マグネティック行のクリップに **Start** 欄がないのは意図的です。順序は行が持つため、移動はドラッグで行います。
 
-**トランジション**はキーフレームではなくプリセットです。Fade、Pop、Grow、Rise、Drop、4 種類の Slide、Zoom in と Zoom out、Tilt、Swoop、Spin、Drift、そして **Cut (no animation)** があります。移動量はオブジェクトに応じて拡大縮小するので、画面いっぱいのカードでも小さなバッジでも同じプリセットが正しく見えます。シーケンス行で隣り合う 2 つのクリップの間には**継ぎ目チップ**があります。クリックして **Cut** か **Crossfade** を選ぶと即座に適用され、閉じます。同じチップをもう一度開くと **Length (ms)** を変更でき、**Done** を押します。クロスフェードは一方のフェードアウトと次のフェードインの組として保存され、実際のディゾルブはその組から導かれます。最初のクリップはカットを過ぎても再生を続けながらフェードアウトし、次のクリップはその下でフェードインします。プレビューとファイルは同じ規則に従うので、継ぎ目で見えるものがそのまま書き出されます。
+**トランジション**はキーフレームではなくプリセットです。Fade、Pop、Grow、Rise、Drop、4種類の Slide、Zoom in と Zoom out、Tilt、Swoop、Spin、Drift、そして**Cut (no animation)**があります。移動量はオブジェクトに応じて拡大縮小するので、同じプリセットが画面いっぱいのカードでも小さなバッジでも正しく見えます。シーケンス行で隣り合う2つのクリップの間には**継ぎ目チップ**があります。クリックして**Cut**か**Crossfade**を選ぶと即座に適用されて閉じます。同じチップをもう一度開くと**Length (ms)**を変更でき、**Done**を押します。クロスフェードは一方のフェードアウトと次のフェードインの組として保存され、実際のディゾルブはその組から導かれます。最初のクリップはカットを過ぎても再生を続けながらフェードアウトし、次のクリップはその下でフェードインします。プレビューとファイルは同じ規則に従うので、継ぎ目で見えるものがそのまま書き出されます。
 
 **音。** **Audio** クリップを追加すると、他のクリップと同じようにタイムライン上に置かれます。波形、トリミング、ミュートが使えます。（既定のセッションに入っている生成音のベッドだけは例外で、書き出し時に合成されるため、レンダリングするまでバーは無地のまま無音です。）マイクを押すと、カウントインとレベルメーター付きで**ナレーションをそのままタイムラインに録音**でき、録ったテイクは開始した位置に自分のアセットとして保存されます。その隣にあるカメラを押すと、同じ要領で**動画を録画**できます。録画中、テイクはアートボードの書き出しサイズに合わせて随時トリミングされるため、小さなセルフビューには再生ヘッド位置のシーケンスに入る内容がフルフレームでそのまま映ります - 共有リンクから同僚のクリップを取り込む方法でもあります。音楽、会話、クリップ自身のサウンドはすべて書き出し時のミックスに入ります。（書き出しパネルの **Audio track** は別物で、クリップ全体の下に敷く 1 本のベッドをフェードとダッキング付きで扱います。両者は併存します。）
 
+**オーディオストリップ。** 音を含むクリップを選択すると、タイムラインの下にコンパクトなストリップが開きます。**Volume**フェーダー、ステレオ定位の**Pan**、3バンドの**EQ**(**Low**、**Mid**、**High**)、声の質感を保ったまま半音単位で移調する**Pitch**コントロール、そして静かなボイスメモと大きなトラックの音量を揃える放送ラウドネス(BS.1770)にクリップを合わせる**Normalize volume**があります。2つのクリップが接する場所では、カットの代わりに**Crossfade**が継ぎ目をなじませます。**Effect**スロットはクリップにデバイス上の処理を実行し、**Voice cleanup**は録音から部屋鳴りとヒスノイズを取り除きます。速度変更でもピッチは保たれ、遅くしたり速めたりしたクリップはチップマンク化せずタイムストレッチされます。書き出し時にはどのミックスでも、セリフの出入りに合わせて音楽をダッキングし、番組全体をトゥルーピークリミッターの下に収めるので、出力時にクリップ(音割れ)は起きません。クリップしてしまうはずだった波形には、その位置に警告が描かれます。
+
+![音楽クリップを選択した状態のタイムライン。下部にSpeed、Fades、Volume、Pan、EQ、Pitch、Normalize volume、Effectスロットが並ぶストリップが表示される](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
+
 **書き出し。** モーションの書き出しは画面録画ではなく**決定論的な合成**です。各フレームは正確な時刻で復号、描画、符号化されるため、ファイルの内容はマシンの処理速度に左右されず、MP4 や WebM では実用上のフレーム数の上限もありません。長さを入力しない限り、尺はタイムライン自身の長さになります。Content Credentials は他の書き出しと同様に付与されます。静止画で書き出すと再生ヘッド位置のフレームが得られ、出力サイズの隣の **Frames** 欄からはコンタクトシート全体も作れます。[書き出し](/info/exporting.html#stills-from-a-timed-composition)をご覧ください。
 
-覚えておきたい制限がいくつかあります。シーケンスの上限は 1 時間です。GIF とアニメーション PNG はフレームをバッファーするため短時間向きです。速度が ×1 でないクリップの音声は無音になります（タイムストレッチはまだありません）。また、ここでは合成による書き出しのほうが適しているため **Record live** は表示されません。
+覚えておきたい制限がいくつかあります。シーケンスの上限は1時間です。GIF とアニメーション PNG はフレームをバッファーするため短時間向きです。速度を変えたクリップもピッチは保たれます(オーディオストリップがタイムストレッチを行い、**Pitch**コントロールは声の質感を保ったまま半音単位で移調します)。また、ここでは合成による書き出しのほうが適しているため**Record live**は表示されません。
 
 **プリセットの先へ:キーフレーム、奥行き、そしてカメラ。** トランジションはクリップが現れて消えるまでの間をアニメーションさせます。クリップの*内部で*ボックスをポーズさせる - 漂わせる、フェードさせる、ぼかす、ページから浮かせてまた落ち着かせる - にはキーフレームを追加します。クリップを選択し、**+Keyframe**(タイムラインのツールクラスターにあるひし形、キャンバスのオブジェクトバーにあるひし形、または`K`)を押すと、再生ヘッドの位置によって次の編集がどのポーズを書き込むかが決まります。同じキーフレームシステムは、あらゆる時間指定コンポジションに**カメラ**を与え、ズームイン、パン、フォーカス送りを行い、1枚のフラットなSVGを、その間を飛び回れるレイヤーのスタックへと変えます。**[アニメーション](/info/animating.html)**が完全なガイドです。
 
@@ -175,7 +226,7 @@ Design ツールにも同じタイムラインがあるので、別のツール�
 
 ## プレゼンテーション
 
-![The inspector's Document section: Voice, Blend with, Speed, Lead-in, Tail and Show captions when presenting](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
+カメラ映像とロゴ、名前のキャプションを観客に見せる映像の上に重ねるには、**Present with camera**を使います。専用のコントロール、保存したシーン、共有と録画の手順は[カメラでプレゼンテーションする](/info/presenting.html)で扱います。下記のふつうのデッキ操作は**プレゼン**からそのまま使えます。
 
 **アートボード**で構成された Design のドキュメントは、それだけでスライドです。ツールレールの **Lolly メニュー**を開いて最下段の **Present** を選ぶと、各アートボードがキャンバス上の並び順どおりに全画面のスライドになります。スライドはレンダリング済みアートボードの複製で動くため、下にあるエディターには一切触れず、終了すると元の状態にそのまま戻ります。
 
@@ -186,7 +237,13 @@ Design ツールにも同じタイムラインがあるので、別のツール�
 - `B` で画面を黒くします(何かキーを押すとスライドに戻ります)。`F` はフルスクリーンに戻り、**Escape** は一段階ずつ戻ります: 概観からデッキへ、デッキからエディタへ。
 - **Kiosk**(キオスク)。アートボードに **Length**(表示時間)を設定すると、デッキはその時間だけそこに留まり、細い進行バーの後ろで自動的に次へ進みます。`K`(または、何かに表示時間が設定されて初めて現れる一時停止ボタン)でこれを停止・再開できます。リンクに `kiosk` を追加すると、デッキは終端で最初に戻るようになり、これによってサイネージとして機能します。
 
-スライドはリンクでもあります。`?present` で直接開き、`s=` でスライドを指定します（位置、アートボードの id、段階表示なら `id.step`）。移動に合わせてアドレスも更新されるので、送るのは今見ているスライドになります。ツール作者の方へ。これらのパラメーターは [URL Mode](/info/url-mode.html#reserved-parameters) のページに記載しています。
+- **サブスライドスタック。** アートボードを右クリックして**前のスライドの下に積み重ねます**を選ぶと、独立したスライドではなくそのスライドの1ステップになります。概観では1枚のカードとして表示され、デッキはスタックを順に進み、インスペクターの**Stack**行がどのスライドに属するかを示します。
+- **モーフ。** 連続する2枚のスライドが同じ**Morph match**名を持つボックスをそれぞれ持っている場合(ボックスを右クリックするか、インスペクターの**Morph match**行で指定します。たとえば`hero`)、トランジションはカットする代わりに、そのボックスを元の位置から新しい位置へ、途中でサイズと色を変えながら移動させます。デッキ全体の**Morph**トランジションは、一致するすべてのペアに対して同じことを行います。
+- **ナレーション。** 各アートボードの**Speaker notes**は読み上げられます。インスペクターの**Document**セクションで**Voice**を選び、必要なら**Blend with**でブレンドする2つ目のボイス、読み上げの**Speed**、各スライドの前後に置く**Lead-in**と**Tail**(ミリ秒)を選びます。**Show captions when presenting**をオンにすると、話されている言葉がそのまま字幕として現れます。ボイスはデバイス上で動作します。同じノートは、動画書き出しではその映像に、PowerPoint 書き出しでは実際のスライド音声になり、[SCORM パッケージ](/info/create/exporting.html#scorm-course-packages)の中ではナレーション付きの映像になります。
+
+![インスペクターのDocumentセクション:Voice、Blend with、Speed、Lead-in、Tail、Show captions when presenting](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
+
+デッキはリンクでもあります。`?present`で直接開き、`s=`でスライドを指定します(位置、アートボードの id、あるいはビルドステップなら`id.step`)。移動するたびにアドレスが更新されるので、送るのは今見ているスライドになります。ツール作者の方へ。これらのパラメーターは[URL Mode](/info/url-parameters.html#reserved-parameters)のページに記載しています。
 
 ## スマートフォンでの表示
 
@@ -207,7 +264,7 @@ Design ツールにも同じタイムラインがあるので、別のツール�
 
 ### 元に戻す／やり直す
 
-**Cmd/Ctrl-Z** で 1 つ戻り、**Cmd/Ctrl-Shift-Z**（または **Cmd/Ctrl-Y**）で 1 つ進みます。同じ操作は、コントロール上部の行にある **Undo** と **Redo** のボタンにもあります（フリーキャンバスではツールレールに置かれます）。戻す対象がないときは、それぞれグレー表示になります。各操作は内容を伝えます。色を元に戻すと、復元した入力名を示す小さなメッセージが出て、その中の **Redo** ボタンで元に戻せます。
+**Cmd/Ctrl-Z**で1つ戻り、**Cmd/Ctrl-Shift-Z**(または**Cmd/Ctrl-Y**)でもう一度先へ進みます。同じ組み合わせはコントロール上部の行にある**Undo**と**Redo**ボタンとしても置かれており(フリーキャンバスではツールレールにあります)、戻すものがなくなるとそれぞれグレーアウトします。各ステップは内容を伝えます。色を元に戻すと、どの入力を復元したかを示す小さなメッセージが表示され、その中に戻り道の**Redo**ボタンが入っています。
 
 - **ドラッグは 1 ステップです。** 同じコントロールへの変更は 0.5 秒以内なら 1 つにまとまるので、スライダーを端から端まで動かしても取り消しは 200 回ではなく 1 回です。
 - **直近 100 ステップが保持されます。** それより古いものは順に破棄されます。元に戻したあとで新たに編集すると、他と同じくやり直し分は消えます。
@@ -216,74 +273,29 @@ Design ツールにも同じタイムラインがあるので、別のツール�
 
 ライブ[コラボレーション](/info/collaborate.html)では、履歴はあなた自身のものだけにとどまります。他のデバイスから届いた変更があなたの操作履歴に加わることは決してないため、取り消し(undo)は常にあなた自身が行った操作だけを取り消せます。
 
+**元に戻す**が遡れるのはこの訪問中の操作だけです。9つのツールでは、**History**の下にも以前のバージョンが保持されており、**元に戻す**の隣にあります([以前のバージョンに戻る](/info/find-your-work.html#go-back-to-an-earlier-version)を参照)。
+
 ## あなたの情報と顔写真
 
-**Profile**（ギャラリー右上）には、氏名、連絡先、任意の**顔写真**を保存します。これらの項目を求めるツールでは自動的に事前入力されます。一度設定すれば、メール署名、ロックアップ、バッジが自動で埋まります。セッションごとに個別に上書きすることもできます。**Use my details to create** を有効にすると、書き出したものに作成者としてあなたの情報が付きます。
+**設定**(ギャラリー右上、名前を設定すると名がそこに表示されます)には、氏名、連絡先、任意の**プロフィール写真**を保存します。これらの項目を求めるツールでは自動的に事前入力されます - 一度設定すれば、メール署名、ロックアップ、バッジが自動で埋まります。セッションごとに個別に上書きすることもできます。**自分の情報を使用して作成**を有効にすると、書き出したものに作成者としてあなたの情報が付きます。
 
 顔写真と情報は**このデバイスだけ**に保存されます。プロフィールは本人だけのものとは限りません。チームや、ときどき担う役割としても設定できます。複数持つ方法を含め、詳しくは**[プロフィール](/info/profile.html)**をご覧ください。
 
 ## 保存と再開
 
-**Save** をクリックすると、現在の入力がそのツールのセッションとして保存されます。ツールごとに名前を付けたセッションを複数保持できます。各ツールの **Continue** ボタンは直近のセッションを開き直し、**履歴ボタン**（右上、プロフィールの隣）にはすべてのツールの保存済みセッションが並びます。セッションはデバイス内に保存されます。整理するには **Projects**（下記）を開きます。
+作業を残すには、**エクスポート**の隣にあるチェックマークの**名前を付けて保存**を押します。**Save to a project**の下で**マイライブラリ**を選んだままにするか、プロジェクトを選び(**＋ 新規プロジェクト…**で新規作成できます)、それから**保存**を押します。もう一度保存すると、コピーではなく同じ項目が更新されます。Designでは、**名前を付けて保存**はLollyのロゴの下のメニューにあります。スマートフォンでは**•••**を押し、次に**File menu**、続いて**名前を付けて保存**を押します。
 
-![2 つに分かれたレンダーピル。書き出しパネルを開く上向き矢印と、その場でセッションを保存するチェック](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+書き出しパネルの**保存**ボタンも同じことをワンクリックで行い、ファイルをダウンロードすることはありません。新しい作品はマイライブラリに入り、以前保存した作品はそのままの場所で更新されます。
+
+あとで作業に戻るには、左上の**ホーム**を押してから**プロジェクト**タブを開きます(スマートフォンではフォルダーのアイコン)。マイライブラリに保存したものはその最初の画面にあり、プロジェクトはそこでフォルダーになります。項目は書き出しパネルで入力したファイル名で呼ばれ、何も入力していなければ**QRコード**のようにツールの名前になります。いずれかを開けば、すべての設定がそのまま残っていて、また変更して書き出せます。
+
+[同期](/info/sync.html)をオンにしない限り、保存した作業は、保存に使ったブラウザまたはアプリの中で、このデバイスだけに残ります。**ダウンロード**で取得したファイルは完成した複製で、あとで変更するにはプロジェクト内の保存項目を開きます。見当たらない場合は[作業を見つけて復元する](/info/find-your-work.html)をご覧ください。
+
+![2つに分かれたレンダーピル。書き出しパネルを開く上向き矢印と、保存シートを開くSave asと書かれたチェックマーク](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
 ## Projects
 
-**Projects**（**Tools** の隣の **Projects** タブ、または **Profile → Storage → Organise in Projects** から開きます）は、保存したものすべての置き場で、ファイルマネージャーのように使えます。
-
-![Projects。保存したセッションを入れ子にできるフォルダーで整理する](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
-
-- <!--i:folder--> **入れ子にできるフォルダー。** 保存したセッションをフォルダーにまとめ、フォルダーの中にフォルダーを、好きな深さまで作れます。フォルダーを作成し、名前を変更し、タイルを別のフォルダーにドラッグして移動できます。パンくずで上の階層に戻れます。 フォルダーを指定せずに保存したセッションは、**プロジェクト**の最上位に直接表示されます。
-- <!--i:clock--> **並べ替えは自由に。** **View & sort** には **Name**、**Date added**、**Last modified**（既定）があり、フォルダーの中ではさらに **By tool** が加わります。どの並べ替えでもフォルダーが先に来ます。並べ替えはそれぞれのグループ内でセッションとフォルダーを整えるだけです。
-- <!--i:document--> **新しい作業をそのまま入れる。** **新しいアセット**で共通の選択画面が開きます。保存済みテンプレートから始めるには**テンプレート**を選びます。開いて編集するか、**+ 追加**で新しい作品をすぐに保存できます。
-- <!--i:checklist--> **複数選択（デスクトップ）。** タイルのチェックボックスをオンにする、空白部分をドラッグして範囲選択する、**Shift/Cmd キーを押しながらクリック**する、のいずれかで選べます。タイルを**右クリック**するとコンテキストメニューが開きます。選んだもの全体にまとめて操作でき、同じ操作とフローティングのアクションバーは、ここだけでなく Tools ギャラリー、Utilities、アセット、Projects でも使えます。
-- <!--i:download--> **フォルダーや選択範囲をまとめてレンダリング。** **Render folder** は、サブフォルダーも含めてフォルダー内の保存済みセッションをすべて、入れ子構造の 1 つの `.zip` に書き出します。**Render selection** は任意の複数選択に対して同じことを行い、セッションが 1 つならそのままファイルとして書き出されます。Batch/Pro は不要です。
-- <!--i:link--> **ツールの保存済み作業へ直行。** Tools ギャラリーでツールを 1 つ以上選び、選択バーから **View sessions** を選ぶと、そのツールで作ったセッションだけを表示した Projects が開きます。**Clear** で全体表示に戻れます。
-- <!--i:link--> **保存したセッションを共有。** セッションを右クリック → **Share link** で、まったく同じ入力で開き直せるリンクをコピーします（共有ダイアログそのものです。下記参照）。
-
-![Projects の View and sort ポップオーバーを開いた状態。テーマの行、Preview か List を選ぶ View、そして Sort の下に Name、Date added、Last modified が並ぶ](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
-<!--
-SHOT NOTE (misc-projects-sort): trigger button confirmed as
-`.filter-fab.projects-viewopts` in views/projects.ts (openViewOpts() is bound
-to `.projects-viewopts` specifically) - `.projects-viewopts` alone is the
-more specific hook, so that's what drives the click. The popover it opens
-(`.projects-viewmenu`, also confirmed directly in openViewOpts()) is body-
-appended, not nested under the Projects root, so cropSelector finds it
-regardless. "By tool" only appears inside a folder - this recipe captures at
-the Projects ROOT (`url=/#/p`), so if the capture pass wants "By tool"
-visible too, point url= at a real folder instead: the route is a path
-segment, `/#/p/<folderId>` (confirmed in main.ts's hash router - `parts[0]
-=== 'p'` reads `folderId` from `parts[1]`), not a query param. Caveat: a
-folder has to already EXIST in the capture profile, which a per-shot fresh
-context has none of.
-Also: the popover is not sort-only. openViewOpts() writes a theme segment, a
-"View" pair (Preview / List) and a sound segment around the Sort rows, so the
-alt text names them - do not re-caption this as "the sort menu".
--->
-
-**選択バーに並ぶ操作**はビューによって少し異なります。すべての操作がどこでも意味を持つわけではないからです。
-
-- **Tools / Utilities:** Favourite（または Unfavourite）、Hide（または Unhide）、Available offline（または Remove from offline）、**View sessions**（上で説明した移動）、そしてカードをちょうど 1 枚選んでいるときの Copy link。
-- **アセット:** Favourite と Hide はどの選択にも使えます。Duplicate、Download、Delete は、選んだものがすべて自分のアップロードである場合にのみ表示されます。共有のデザインシステム素材は恒久的な取り決めなので、一括操作でもこの 3 つは対象外です。
-- **Projects:** **Render selection**、**Move to…**、**New folder**、**Delete**、選択が同一ツールのセッション 2 〜 8 件のときの **Edit together**（1 つにまとめたサイドバーの下に横並びで開きます）、そして選択全体をバッチグリッドの行として開く **Edit as sheet** です。後者は**件数の上限がなく**、同じツールかどうかも問わないため、Edit together の 2 〜 8 件を超える、あるいはより混ざった選択に対する逃げ道になります。
-
-> 名称の紛らわしい点が 1 つあります。**View sessions** は何かが*選択されている*ときにだけ現れます。選択していないカードを右クリックすると代わりに **N saved sessions** が表示され、これは Projects に移動するのではなく、そのツール自身の履歴ダイアログを開きます。
-
-![Toolsギャラリーでツールカードが2枚チェックされている状態。フローティング選択バーには「2 selected」と表示され、Available offline、View sessions、Favourite、Hideが提供されている](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
-<!--
-SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
-`[data-select="gradient"]` - `.tile-check[data-select="<ref>"]`チェックボックスボタンであることをviews/gallery.tsのカードマークアップ(cardMarkupがすべてのタイルに与える同じ属性)で直接確認済み。そのためこの2回のクリックはどちらのツールも開くことなく両方のカードをチェックする。
-
-SHOT NOTE (misc-sessions-by-tool, NOT PUBLISHED): the "View sessions" result
-had a recipe of its own (`/#/p?tools=qr-code,d3`, views/projects.ts's
-toolsBodyHtml()), dropped here because it has no `drive=` that can
-manufacture its own content - a saved session isn't a click away, it has to
-already exist, and build-docs-shots.ts gives every shot a fresh
-`browser.newContext()`. It would publish an empty list. Same dependency the
-`projects` shot above already carries; revisit if the pipeline gains a
-storage-seeding hook.
--->
+**プロジェクト**は、ホーム画面上部にある**プロジェクト**タブで、自分で作ったフォルダーに保存したものすべてを保管します。そこでの検索、並べ替え、**ゴミ箱**からの復元については、[作業を見つけて復元する](/info/find-your-work.html#find-something-you-saved)をご覧ください。
 
 
 ## 作ったものを共有する
@@ -294,8 +306,8 @@ storage-seeding hook.
 
 すべての入力はページの URL に収められるため、リンクがそのままデザインです。ダイアログの上部にはコピーできる状態のリンクがあり、その下に折りたたまれたセクションが 2 つあります。
 
-- **Link options** には **Shortest link**（大きなデザインは URL が長くなるため、状態全体を小さなトークンにまとめ、削減できた文字数を表示します。読める形式も常に併記されます）、**Password-protect this link**（リンク全体を AES-256 で保護し、パスワードはリンクに含まれません）、**Pin this tool version**（`_v` フラグ。今見ているツールのバージョンにリンクを固定し、以降の更新で描画内容が変わらないようにします）があります。
-- **Link behaviour** は、受け取った人が開いたときの挙動です。全画面表示、書き出しパネルを開いた状態、`&export` による開いた瞬間のダウンロード、`&copy` によるクリップボードへのコピーが選べます。
+- **Link options**には、**Open in the installed app**(Shortcuts やランチャー、自動化向けに、フィールドを`lolly://`URIへ切り替えます。パラメーターはすべてそのままです)、**Shortest link**(大きなデザインは URL が長くなるため、状態全体を小さなトークンにまとめ、削減できた文字数を表示します。読める形式も常に併記されます)、**Password-protect this link**(リンク全体を AES-256 で保護し、パスワードはリンクに含まれません)、**Pin this tool version**(`_v`フラグ。今見ているツールのバージョンにリンクを固定し、以降の更新で描画内容が変わらないようにします)があります。
+- **Link behaviour**は、受け取った人が開いたときの挙動です。全画面表示、書き出しパネルを開いた状態、`&export`による開いた瞬間のダウンロード、`&copy`によるクリップボードへのコピーが選べます。
 
 リンクは同僚に貼って送っても、ブックマークしても、コミットしても構いません。（詳細は [URL Mode](/info/url-mode.html) をご覧ください。）
 
@@ -303,11 +315,22 @@ storage-seeding hook.
 
 ![エディター内のJump Page - 見出し、それぞれ独自の背景色を持つ3つのリンクシーン、Made with Lollyフッターが、キャンバス内で1枚のページとして配置されている](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
-**リンクに載せられないものはダイアログが伝えます。** URL に収まらないものが 3 つあります。このデバイスから追加した画像やファイル、非常に長いテキスト、そして非常に大きなリストです。リンクを組み立てる際に、それぞれの数が数えられます。落とさざるを得ないものがあった場合、画像が欠けた状態で開くリンクを渡す代わりに、ダイアログがその内容を示し、下のファイルでの共有を案内します。単に*長い*だけのリンクには、文字数を添えた控えめな注意が出ます。長さは圧縮でまだ救えるからです。
+**リンクが担えないものは、ダイアログが伝えます。** URL に収まらないものが3つあります。このデバイスから追加した画像やファイル、非常に長いテキスト値、そして非常に大きなリストです。リンクを組み立てる際に、それぞれの数が数えられます。落とさざるを得ないものがあった場合、画像が欠けた状態で開くリンクを渡す代わりに、ダイアログがその内容を示し、下のファイルでの共有を案内します。単に*長い*だけのリンクには、文字数を添えた控えめな注意が出ます。長さは圧縮でまだ救えるからです。
 
 ### .lolly ファイル
 
-作業中のツールの共有ダイアログにある **Download .lolly** は、同じデザインをファイルとして書き出します。保存済みセッションに加え、デバイスから追加した画像やファイルも含まれます。デザインが参照しているカタログの素材も同梱されるため、あなたのブランドを一度も見たことのないマシンでも完全な状態で開けます。デバイスに共有シートがある場合は、**Send to…** でディスクに保存せずそのまま渡せます（AirDrop や Android の共有）。
+`.lolly`は Lolly の携帯可能なバンドル拡張子であり、すべてのファイルが同じ内容を持つという約束ではありません。権威となるのは`manifest.json`の中の`format`です。アプリはまずこの小さなマニフェストを読み、何かを書き込む前にサイズ、内容、操作を示します。
+
+- **共有デザイン**(`lolly-share`)には、保存されたツールセッション1つと、その埋め込みファイル、そして参照のまま解決される項目についての受領情報が含まれます。作成に使ったツールとデザインシステムが含まれることもあります。開くと新しいプロジェクトが追加され、既存のセッションを上書きすることはありません。
+- **共有プロジェクト**(`project`種別の`lolly-share`)には、プロジェクトの1つのフォルダー - そのサブフォルダー、そこに収められたすべての保存済みセッション、各セッションのタイルとそこに収められた画像 - が含まれます。開くとフォルダー全体のコピーがプロジェクトに追加され、すでにあるものは何も置き換えられません。プロジェクトファイルが存在する前の Lolly はこれを読み込めず、更新を促します。
+- **デザインシステムパック**(`lolly-brand`)にはトークンが含まれ、フォント、ロゴ、公開済みバージョン、保持されたリソースが含まれることもあります。開くと、別名のデザインシステムとして追加され、そちらに切り替わります。デバイス上の既存のシステムはそのまま残ります。
+- **ブランドワークスペース / インスタンスパック**は、宣言されたツール、カタログ素材、そして任意でインスタンスのアドレスを持つ`lolly-brand`です。読み込むと、それまで読み込まれていた単一のワークスペースオーバーレイが置き換わるため、プリフライトはそのデバイス全体への影響を一覧します。
+
+デバイス/プロフィールの完全な**バックアップは`.lolly`ではありません**。これは形式`lolly-backup`の`LollyTools-….zip`のままで、復元は**設定 → ストレージ**からのみ行えます。ふつうにzip化したツールフォルダーも`.zip`のままです。つまり、セッションとデザインシステムのバンドルが`.lolly`を担い、バックアップと単純なアーカイブの作業はそうではありません。
+
+作業中のツールの共有ダイアログにある**Download .lolly**は、現在のデザインを共有デザインバンドルとして書き出します。保存済みセッションに加え、このデバイスで使える画像やファイルも一緒に運びます。ふつうのカタログ素材も同梱されます。ライセンス素材は明示的に含めない限り除外され、古くなった、または利用できないファイルは消えるのではなく外部参照のまま残ります。用意される受領情報には、実際の`.lolly`のサイズ、埋め込みファイル数、外部参照数、ツールを含めたかどうかが示されます。デバイスに共有シートがある場合は、**Send to…**でディスクに保存せずそのファイルを直接渡せます(AirDrop、Android の共有など)。
+
+**プロジェクト**内のフォルダーメニューにある**Download project (.lolly)**は、そのフォルダーを共有プロジェクトとして書き出すため、他の人がそれを開いて中のすべてのセッションを引き継げます。各セッションはそれぞれ独立したパーツ(`sessions/<key>.json`、タイルは`thumbs/`以下)として運ばれ、フォルダーツリーは`manifest.json`に記載され、アップロードとカタログ素材は単一の共有デザインと同じ規則で運ばれます。バッチセッションはツールセッションではないため取り残され、通知でその件数が示されます。その隣にある**Download originals**は変わらず、各項目をそれぞれのファイルとして単純に zip 化します。
 
 `.lolly` はふつうの zip です。拡張子を `.zip` に変えて開くと、自分の画像は `assets/uploads/` に、カタログの素材は `assets/catalog/` に、それぞれ本来の名前と拡張子で入っています。`manifest.json` にすべてが一覧され、先頭の README にファイルの説明があります。
 
@@ -317,9 +340,13 @@ storage-seeding hook.
 - **ライセンス素材を含めるかどうか。** ライセンス済みおよびブランドロックされたアセットは、デフォルトでは除外されます。デザインがそれらを使用している場合、ダイアログにその数が表示され、*Download without them*と*Include and download*の2つのボタンが提示されます - 含めると、`.lolly`を開いた相手に実際のファイルが渡ってしまうためです。
 - **ツールを含めるかどうか。** **Include the tool**をオンにすると、ツール自体のファイルがデザインと一緒にパックされ、そのツールを持っていないデバイスでも開けるようになります。カスタムツール - 受け取り手が持っていそうにないフォークやプライベートなブランドツール - の場合はチェック済みで届き、署名済みカタログに載っているツールの場合はチェックなしで届きます。相手の手元にあるコピーも同じソースから来ているためです。(署名済みカタログのないビルドでは、すべてのツールがカスタム扱いとなり、チェックボックスは最初からオンになります。)
 
-**開き方。** `.lolly`ファイルをアプリにドロップすると、アセットはライブラリへ、セッションはProjectsへ送られ、ツールがそのセッションを開いた状態で起動します。あなたのものが上書きされることはありません。セッションは新しい保存スロットとして届き、このデバイスに既にあるアセットはチェックサムで照合され、重複させずに再利用されます。すべてのパーツはファイル自身のチェックサムと照合されながら取り込まれるため、転送中に破損したコピーは中途半端に取り込まれるのではなく拒否されます。
+**開く。** インストール済みのデスクトップアプリやモバイルアプリでは、`.lolly`をダブルクリックまたはタップして**Open with Lolly**を選ぶか、システムの共有シートから Lolly へ送ります。macOS、Windows、Linux、iOS、Android はすべてこの形式を登録しており、デスクトップのファイルマネージャーには Lolly のドキュメントとして表示されます(GNOME Files では保存済みセッション自身のサムネイルも表示できます)。ウェブアプリでは**Open**を使うか、ファイルを Lolly にドロップします。どの入口でも、同じマニフェスト優先のプリフライトが使われます。Brand Studio から開くと、共有デザインがデザインシステムを持っている場合にその操作が推奨されますが、ファイル名を付け替えたり**Open shared design**を隠したりすることはありません。
 
-手元にないツールがファイルに含まれている場合、Lolly はそのツールを実行する前に確認します。**Trust this tool?** にはツール名と作者が示され、開くとそのツール自身のコードがデバイス上で実行されることが明記され、**Trust & install** で先に進みます。断った場合でも、共有された作業はプロジェクトに保存され、ツールを追加する日まで残ります。（コードをモジュールとして提供するツールだけは、まだサイドロードできず、同じように拒否されます。）
+他のアプリから渡された iOS や Android のドキュメントは48MBまでに制限されています。ネイティブの受け渡しがアプリの境界をまたいでバイト列をコピーする必要があるためです。モバイルアプリは、サイズ超過のファイルを黙って無視する代わりに、そのことを伝えます。Lolly 内の**Open**はその受け渡しを使わないため、より大きなバンドルを試すならこちらの経路です。
+
+確認後、選択したリーダーがバンドルを一度だけ展開して検証します。共有デザインのアセットはライブラリーへ、セッションはプロジェクトへ送られ、ツールは利用できる場合に開きます。共有プロジェクトのセッションは、フォルダーの新しいコピーとしてプロジェクトへ送られます(同じファイルを2回開けるよう新しい id が振られます)。フォルダーは開き、このデバイスにないツールを持つセッションはそこで待機します。デバイス上にすでにあるアセットはチェックサムで照合され、再利用されます。デザインシステムパックは、アプリが切り替える前に自分専用の名前空間へ保存されます。100MBを超えるファイルは大きいものとして示され、ブラウザーのストレージが宣言されたペイロードより空き容量が少ないと報告した場合、プリフライトが警告します。整合性チェック対象のすべてのパーツは操作が確定する前に検証され、破損したコピーは拒否されて、新しく作られた保存先はロールバックされます。
+
+ファイルに手元にないツールが含まれている場合、Lolly はそのツールを実行する前に確認します。**Trust this tool?**にはツール名と作者が示され、開くとそのツール自身のコードがデバイス上で実行されることが明記され、**Trust & install**で先に進みます。断った場合でも、共有された作業はプロジェクトに保存され、ツールを追加する日まで残ります。(コードをモジュールとして提供するツールだけは、まだサイドロードできず、同じように拒否されます。)
 
 リンクもファイルも、渡されるのはある時点のスナップショットです。他の人と*同時に*同じセッションを編集したい場合（2 台のデバイス、サーバー不要、同じネットワーク上ならインターネットも不要）は、[共同で作業する](/info/collaborate.html)をご覧ください。
 
@@ -329,28 +356,28 @@ storage-seeding hook.
 
 ## My images
 
-ツールでデバイスから画像を追加すると、その画像は届いたそのままの状態で保持され（そのため付いている Content Credentials は引き続き検証できます）、個人用の **My images** ライブラリー（**Profile → Storage** の中）に保存されます。確認が出るのは本当に巨大なファイルのときだけで、そのまま保持するかリサイズするかを尋ねます。保存した画像はどのツールでも再利用できます。取り込み時に EXIF/GPS を消すには、プロフィールで **Strip metadata from uploads** を有効にします。上限はありません。ライブラリーは完全にローカルで、制限はデバイスの空き容量だけです。画像の管理や削除もそこで行えます。
+ツールでデバイスから画像を追加すると、その画像は届いたそのままの状態で保持され(そのため付いているContent Credentialsは引き続き検証できます)、個人用の**自分の画像**ライブラリー(**設定 → ストレージ**の中)に保存されます。確認が出るのは本当に巨大なファイルのときだけで、そのまま保持するかリサイズするかを尋ねます。保存した画像はどのツールでも再利用できます。取り込み時にEXIF/GPSを消すには、プロフィールで**アップロード時にメタデータを削除**を有効にします。上限はありません。ライブラリーは完全にローカルで、制限はデバイスの空き容量だけです。画像の管理や削除もそこで行えます。
 
-## アセット（素材ライブラリー）
+## アセット - 自分のライブラリー
 
-**アセット**（`#/a`、または一覧ビューの上部にある ツール · ユーティリティ · アセット · プロジェクト 切り替えの **アセット** 部分）は、ツールが使えるものすべて（ブランドロゴ、画像、音声、モーション）を種類別にまとめた場所であり、**あなた自身の制作ファイル**の置き場でもあります。サーバーも管理コンソールもプルリクエストも不要で、すべてデバイス上にあります。
+**アセット**(`#/a`、または一覧ビューの上部にある ツール・ユーティリティ・アセット・プロジェクト 切り替えの**アセット**部分)は、ツールが使えるものすべて(ブランドロゴ、画像、音声、モーション)を種類別にまとめた場所であり、**自分の制作ファイル**の置き場でもあります。サーバーも管理コンソールもプルリクエストも不要で、すべてデバイス上にあります。
 
-![アセット。ブランド素材、スウォッチ、フォント、そして自分でアップロードしたもの](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
+![アセット。ブランドのスウォッチとフォント、自分でアップロードしたもの](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
-- <!--i:upload--> **ファイルを取り込む。** 画像、SVG、音声クリップ、動画、Lottie、PDF、PowerPointデッキをアップロードエリアにドラッグする(またはクリックして選択する)と、即座にアセットに追加され、あらゆるツールのアセットピッカーで使えるようになります。複数ページのPDFや`.pptx`の場合はどのページ・スライドを残すか尋ねられ、それぞれがSVGアセットになります。好きなだけ取り込めます。デバイスの外に出ることはありません。
-- <!--i:star--> **よく使うものをお気に入りに。** アセット(またはブランドスウォッチ)を★すると、すべてのピッカーの先頭にピン留めされ、よく使うロゴや色にワンクリックでアクセスできます。
-- <!--i:folder--> **整理する。** アセットを別のグループに再分類したり、使わない共有ブランドアセットを非表示にしたり(**Show hidden**で元に戻せます)、自分でアップロードしたものを完全に削除したりできます。Projectsと同じ複数選択操作とフローティングアクションバーがここでも使えるため、選択したもの全体に対してまとめて操作できます。
-- <!--i:layers--> **動画から背景を取り除く。** アセットピッカーで動画の詳細を開くか、カードを右クリックして**Remove background…**を選ぶと、透過版(実アルファ付きのアニメーションWebPまたはPNG)を保存できます。**Method**を選択します:**On-device model**は複雑なシーンから被写体を切り抜き、**Colour key**はグリーンスクリーンや無地の壁のような均一な背景をキーアウトします。**Tolerance**、**Softness**、**Spill removal**でエッジを調整できます。カラーキーはモデルのダウンロードもネットワークも不要なため、**Remove background**はどの動画にも提供され、整った映像ではよりきれいに仕上がることが多いです。**Resolution**コントロール(360、480、720、1080pのいずれか。元の解像度は超えません)でディテールとファイルの軽さ・速さを調整できます。デバイス上のバックグラウンドジョブとして実行されます。完成した切り抜きは元のアセットの隣に別アセットとして保存され、元動画のContent Credentialがイングリディエントとして引き継がれます。(背景の削除が単純な編集にとどまる理由については[一度生成すれば、同じものがレンダリングされる](/info/ai-features.html)を参照してください。)
+- <!--i:upload--> **ファイルを取り込む。** 画像、SVG、音声クリップ、動画、Lottie、PDF、PowerPoint デッキをアップロードエリアにドラッグする(またはクリックして選択する)と、即座にアセットに届き、あらゆるツールのアセットピッカーですぐ使えます。複数ページの PDF や`.pptx`はどのページ・スライドを残すか尋ねられ、それぞれが SVG アセットになります。好きなだけ取り込めます。デバイスの外に出ることはありません。
+- <!--i:star--> **よく使うものをお気に入りに。** アセット(またはブランドスウォッチ)に★を付けると、すべてのピッカーの先頭にピン留めされ、よく使うロゴや色にワンクリックでアクセスできます。
+- <!--i:folder--> **整理する。** アセットを別のグループに再分類したり、使わない共有ブランドアセットを非表示にしたり(**Show hidden**で元に戻せます)、自分でアップロードしたものを完全に削除したりできます。プロジェクトと同じ複数選択操作とフローティングアクションバーがここでも使えるため、選択したもの全体にまとめて操作できます。
+- <!--i:layers--> **動画から背景を取り除く。** アセットピッカーで動画の詳細を開くか、カードを右クリックして**Remove background…**を選ぶと、透過版(実アルファ付きのアニメーション WebP または PNG)を保存できます。**Method**を選びます。**On-device model**は複雑なシーンから被写体を切り抜き、**Colour key**はグリーンスクリーンや無地の壁のような均一な背景をキーアウトし、**Tolerance**、**Softness**、**Spill removal**でエッジを調整できます。カラーキーはモデルのダウンロードもネットワークも不要なため、**Remove background**はどの動画にも提供され、整った映像ではよりきれいに仕上がることが多いです。**Resolution**コントロール(360、480、720、1080p のいずれか。元の解像度は超えません)でディテールとファイルの軽さ・速さを調整できます。デバイス上のバックグラウンドジョブとして実行されます。完成した切り抜きは元のアセットの隣に別アセットとして保存され、元動画の Content Credential がイングリディエントとして引き継がれます。(背景の削除が単純な編集にとどまる理由については[一度生成すれば、同じものがレンダリングされる](/info/ai-features.html)を参照してください。)
 
 ### パレットとフォントをどこへでも
 
-アセットの **Swatches** パネルは表示するだけではありません。色をクリックしてコピーしたり、他のツールが読める形式で**ブランドパレット全体をダウンロード**したりできます。
+アセットの**Swatches**パネルは表示するだけではありません - 色をクリックしてコピーしたり、他のツールが読める形式で**ブランドパレット全体をダウンロード**したりできます。
 
 - <!--i:code--> **Design tokens (JSON)**、**CSS variables**、**CSS classes**。ブランドをそのままスタイルシートやビルドに組み込めます。
 - <!--i:palette--> **Adobe Swatch Exchange (.ase)**。Illustrator や Photoshop に読み込めます。
 - <!--i:pentool--> **GIMP palette (.gpl)**。GIMP や Inkscape 向けです。
 
-![Swatches パネル。上部に 5 つのパレットダウンロードボタンが並び、その下にコピーできるチップとしてブランドの全色が並ぶ](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+![Swatches パネル。上部に5つのパレットダウンロードボタンが並び、その下にコピーできるチップとしてブランドの全色が並ぶ](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
 
 **Fonts** パネルにはブランドの書体が並び、それぞれに **download** が付いています。ローカルにインストールしたり、印刷所に渡したりできます。（[Brand Studio](/info/brand-studio.html) の Colours ルームでも同じパレットのダウンロードが行えます。）
 
@@ -360,31 +387,19 @@ storage-seeding hook.
 
 Lolly は誰にとっても快適に使えることを目指しています。インターフェイスはキーボードで操作でき、独自のコントロールにはスクリーンリーダー向けの適切なラベルが付き、各ツールのライブプレビューは、何を作っているかを説明するラベル付きの 1 枚の画像として提示されます。
 
-控えめな**補助音**が操作を確認します。ギャラリーに着いたとき、Content Credentials の検証が有効か無効か、パネルを閉じたとき、フィルターを切り替えたときなどです。**既定ではオフ**です。スイッチのある場所（各ビューのオプションポップオーバー、または **Profile**）で **Sound** をオンにすると、その選択は記憶されます。
+控えめな**補助音**が操作を確認します - ギャラリーに着いたとき、Content Credentialsの検証が有効か無効か、パネルを閉じたとき、フィルターを切り替えたときなどです。**既定ではオフ**です。スイッチのある場所(各ビューのオプションポップオーバー、または**設定**)で**サウンド**をオンにすると、その選択は記憶されます。
 
-**Profile → Accessibility** には、任意で有効にできる快適性の設定が 4 つあります。**Reduce motion**（アプリのトランジションや装飾的な動きをなくす）、**Hide colourful previews**（ギャラリーのカードをアイコンと文字だけの落ち着いた表示にし、プロジェクトのサムネイルも控えめにする）、**High contrast**（枠線、文字、フォーカスリングを強める）、**Large text**（ラベル、メニュー、ボタンなどアプリの文字を大きくする）です。4 つとも、作業の*まわり*を静めるものです。ツールのキャンバスの内側には及ばず、書き出したものを 1 ピクセルも変えません。いずれも、オンにするまでは無効です。詳しくは[プロフィール → アクセシビリティ](/info/profile.html#accessibility)をご覧ください。
+**設定 → アクセシビリティ**には、任意で有効にできる快適性の設定が4つあります。**Reduce motion**(アプリのトランジションや装飾的な動きをなくす)、**Hide colourful previews**(ギャラリーのカードをアイコンと文字だけの落ち着いた表示にし、プロジェクトのサムネイルも控えめにする)、**High contrast**(枠線、文字、フォーカスリングを強める)、**Large text**(ラベル、メニュー、ボタンなどアプリの文字を大きくする)です。4つとも、作業の*まわり*を静めるものです。ツールのキャンバスの内側には及ばず、書き出したものを1ピクセルも変えません。いずれも、オンにするまでは無効です。詳しくは[プロフィール → アクセシビリティ](/info/profile.html#accessibility)をご覧ください。
 
 Sound スイッチの隣にあるのが **Neurospicy Mode** です。作業中に静かに流れる、任意の落ち着いた集中用トラックです。オンにすると画面下隅に小さな**プレイヤードック**が現れ、アプリのどこへ移動しても付いてきます。ここから曲を検索して選び、前後に送り、音量を調整し、最小化や終了ができます。曲の一覧はいくつかの分類にまたがります。手続き的に生成される *Lolly Sings* の曲、アンビエントのループやビート、自分でアップロードした音声、そしていくつかのインターネット**ラジオ**局（ラジオには接続が必要で、それ以外はオフラインで再生できます）です。**既定ではオフ**で、Sound と同様にセッションやデバイスをまたいで記憶されます。Sound をオフにすると集中用トラックも消音されます。
 
 ## ストレージとプライバシー
 
-すべてはブラウザーのローカルデータベース（IndexedDB）に保存されます。プロフィール、保存済みセッション、アップロードした画像、ダウンロードしたカタログ内容のキャッシュです。**Profile → Storage** では使用量が表示され、次の操作ができます。
-
-- <!--i:box--> **Clear cache**。ダウンロードしたカタログ内容を破棄します（次回の読み込みで再同期されます）。
-- <!--i:trash--> **Clear all my data**。プロフィール、セッション、画像を消去します。*元に戻せません。*
-
-![スマートフォン幅の画面でのストレージカード。デバイス上のデータの分類がすべて示され、下部に Clear all my data ボタンがある](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
-
-これらのローカルデータがどこかに送信されることはありません。テレメトリーもクラウドでのレンダリングもありません。アプリが取得または送信するものの完全な一覧は[プライバシーポリシー](/info/privacy.html)にあり、[サーバー面](/info/server-surface.html)では任意のサーバーコンポーネントを一覧しています。
+Lollyは作業内容をお使いのデバイス上に保持します - Webアプリではこのブラウザ自身のストレージに、デスクトップアプリやモバイルアプリではアプリ自身のストレージにです。何が保持されるか、**すべてのデータを消去**で何が削除されるか、ブラウザのデータを消去すると何が失われるかは、[作業を見つけて復元する](/info/find-your-work.html#if-you-clear-your-browser-data)に、アプリが取得または送信するすべての内容は[Privacy Policy](/info/privacy.html)に、任意のサーバーコンポーネントは[Server Surface](/info/server-surface.html)にまとめています。
 
 ## 別のデバイスへの移行
 
-すべてがデバイス上にあるため、**Profile → Storage → Move to another device** を使えば、アカウントもクラウドもなしに、もう 1 つのインストール先へまとめて持ち運べます。
-
-- <!--i:download--> **Export my data** は `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` を 1 つダウンロードします（名前の各部分はプロフィールから取られ、未設定なら省かれます。`<n>` は日ごとの連番で、同じ日の書き出しが衝突しないようにします）。中身は、プロフィール、サムネイル付きの全保存済みセッション、アップロードした画像、設定（テーマ、サイドバー幅、ローカルの利用統計）です。
-- <!--i:upload--> 移行先のインストールで **Import data…** を選ぶと、そのファイルを読み込みます。動作は**マージ**です。同じ名前のもの（プロフィール、セッションの枠、画像）は取り込んだ内容で置き換えられ、それ以外はそのデバイスに残ります。保存済みセッションは、取り込んだ画像に自動で再リンクされます。
-
-カタログのキャッシュは含まれません。新しいデバイスで自動的に再ダウンロードされます。バンドルはふつうの zip（`manifest.json` + `profile.json` + `sessions.json` + `assets.json` + `assets/blobs/…` + `prefs.json`、形式 id は `lolly-backup`）なので、メールでも USB でも AirDrop でも壊れずに届き、どのシェルでも同じ形式として読めます。各部分にはチェックサムが付いているため、転送中に壊れたファイルは中途半端に復元されず、取り込み時に検出されます。（形式の詳細は [Data Transfer](/info/data-transfer.html) をご覧ください。）
+作業を2台目のパソコンやスマートフォンに持ち運ぶには、同期、バックアップファイル、または`.lolly`ファイルを使います。[作業を別のデバイスに移す](/info/find-your-work.html#move-your-work-to-another-device)ではこの3つを比較し、**自分のデータをエクスポート**と**データをインポート…**の手順を説明しています。
 
 ## デザインを取り込む（Figma、Penpot、Illustrator、InDesign）
 
@@ -400,7 +415,7 @@ Sound スイッチの隣にあるのが **Neurospicy Mode** です。作業中�
 
 ![バッチツールバー - ZIP名、単位、DPI、すべての行が継承する形式。右側にSessionsとRenderがある](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.pro-toolbar&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
-Batch は**1 つのテンプレートから多数のバリエーション**を一度に生成するための機能です。**すでに保存済み**のセッションを再レンダリングするには、上で説明した **Projects → Render folder / Render selection** を使います。Pro は不要です。
+Batchは**1つのテンプレートから多数のバリエーション**を一度に生成するための機能です。**すでに保存済み**のセッションを再レンダリングするには、**プロジェクト → フォルダをレンダリング / 選択範囲をレンダリング**を使います([作業を見つけて復元する](/info/find-your-work.html#find-something-you-saved)を参照) - Proは不要です。
 
 ## 並べて編集する（Multi-edit）
 
@@ -420,6 +435,8 @@ Batchは*1つの*デザインの多数のバリエーションです。**Multi-e
 
 ## オフラインとインストール
 
-Lolly は PWA です。最初の読み込み以降は**オフライン**で動作します。ブラウザーのアドレスバー（モバイルでは *Add to Home Screen*）からインストールすると、アプリのような全画面表示で使えます。オンラインに戻ると自動で更新されます。
+Lollyは PWA です。すでに開いた画面では**オフライン**でも動作を続け、**設定 → オフラインで利用可能**の下にある**アプリ**が残りをダウンロードします - ブラウザーのアドレスバーからインストールする(モバイルでは*Add to Home Screen*)と、アプリのような全画面表示で使えます。オンラインに戻ると自動で更新されます。
 
-アップデートについて:アップデート直後にビューが読み込みに失敗した場合(空白のパネル、隅に表示される「failed to fetch」など)は、ページを一度リロードしてください。アプリは新しいバージョンを問題なく読み込み、あなたの作業、セッション、ブランドはそのまま保持されます。すべてはページ内ではなくデバイス上に保存されているためです。
+アップデートについて: アップデート直後にビューが読み込みに失敗した場合(空白のパネル、隅に表示される「failed to fetch」など)は、ページを一度リロードしてください。アプリは新しいバージョンを問題なく読み込み、あなたの作業、セッション、ブランドはそのまま保持されます。追加したものの一度も保存していない画像だけは、もう一度追加し直す必要があるかもしれません。すべてはページ内ではなくデバイス上に保存されています。
+
+Design と Darkroom は、**Wide colour / HDR**編集によって元画像の精度を保つことができ、これは Sequence の動画にも及びます。ブランドスウォッチは sRGB と P3 の値を別々に持てます。出力の選択肢と現在の制限については[ワイドカラーと HDR 編集](/info/hdr-editing.html)をご覧ください。

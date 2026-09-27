@@ -68,8 +68,12 @@ import { extractSpokenText } from '../scripts/lib/docs-spoken-text.ts';
 // 3-char escaper the whole site relies on - never the web shell's 5-char one.
 import {
   esc,
+  escAttr,
+  detailsBlock,
+  hasCopyBlock,
   stripFrontMatter,
   unwrapFigureFences,
+  unwrapComponentFences,
   unwrapProvenanceMarkers,
   stripLogoMarkers,
   commentStandaloneProvenanceLines,
@@ -83,6 +87,9 @@ import {
 // esbuild bundles the docs player (docs/player/) into /info/docs-player.js - it
 // is already in the tree as vite's bundler, so this adds no dependency.
 import { buildSync } from 'esbuild';
+// The app's icon registry: pure path data with no imports, so the static build can use
+// the very glyphs the app draws (plan 277: the docs reading components).
+import { icon as appIcon } from '../shells/web/src/lib/icons.ts';
 // The format side-door page models (plan 116 workstream A). Pure transforms over
 // the register, factored into their own module so a unit test can import them
 // without importing build.ts (which reads the catalog + builds the site at import).
@@ -163,12 +170,12 @@ interface Page {
   // it does not belong to. Built in build()'s per-locale loop, never in pages[].
   generated?: boolean;
   // A page that carries its OWN navigation, which stands in for the pathway rail:
-  // the aside, and the same list inside the mobile menu. The specification chapters
-  // (docs/spec-pages.ts) use it. A reader who has entered a twelve-chapter document
-  // needs those chapters beside them; the forty links of the pathway they arrived
-  // through answer a question they have stopped asking, and the document is not a
-  // page of that pathway.
-  rail?: { aside: string; mobile: string };
+  // the aside, and the same list inside the phone menu under its own heading. The
+  // specification chapters (docs/spec-pages.ts) use it. A reader who has entered a
+  // twelve-chapter document needs those chapters beside them; the forty links of the
+  // pathway they arrived through answer a question they have stopped asking, and the
+  // document is not a page of that pathway.
+  rail?: { aside: string; mobile: string; mobileTitle: string };
   // A brand-experience page (What we stand for): full-bleed bands under the site
   // nav, no docs rail, no masthead, no jump nav - the landing's shape, for a page
   // that is still one markdown source with a twin. `render` supplies the bands.
@@ -199,7 +206,7 @@ const pages: Page[] = [
 
   // ── Primary article ──────────────────────────────────────────────────────
   { slug: 'quickstart',       title: 'Quickstart', src: 'quickstart.md', pathway: 'quickstart', isHub: true },
-  { slug: 'make-something',   title: 'Make something in 60 seconds', src: 'make-something.md', pathway: 'quickstart', description: "Pick a tool, type a few words and download the finished file: three short walkthroughs that need no account, no setup and no design skill.", render: renderMakeSomethingPage },
+  { slug: 'make-something',   title: 'Make your first file', src: 'make-something.md', pathway: 'quickstart', description: "Make a QR code for a web address, download it, check that it scans, and save an editable copy you can reopen from Projects. No account needed.", render: renderMakeSomethingPage },
   // The FAQ, previously an accordion inside the landing (plans/177 moved it out;
   // the gallery's #faq-… deep links now land here).
   { slug: 'faq',              title: 'Questions & answers', src: 'faq.md', pathway: 'quickstart', description: "The things people ask most: why it is free, what the catch is not, what happens to your files and where Lolly is going.", render: renderFaqPage },
@@ -208,6 +215,7 @@ const pages: Page[] = [
   // architecture, which repository, what to trust - and a bare link cannot answer any
   // of it. Registered under Quickstart: a reader who wants the app installed is at the
   // very start of the path, not deep in Operators.
+  { slug: 'organisation',     title: 'Use Lolly at your organisation', src: 'organisation.md', pathway: 'quickstart', description: "Reach your organisation's own Lolly in a browser or the app, sign in if asked, and see what changes there: managed settings, its tools, shared projects and how to leave." },
   { slug: 'install',          title: 'Install Lolly', src: 'install.md', pathway: 'quickstart', description: "Every packaged build in one list: the macOS disk image, the openSUSE Tumbleweed and Leap RPMs, the Flatpak, the Android APK, and how to check the file you downloaded is the one we made." },
 
   // ── Pathway hubs ─────────────────────────────────────────────────────────
@@ -230,6 +238,7 @@ const pages: Page[] = [
   { slug: 'brand-studio',     title: 'The Brand Studio',  src: 'brand-studio.md', pathway: 'creators' },
   { slug: '3d-studio', title: '3D Studio', src: '3d-studio.md', pathway: 'creators', description: 'Stage SVG artwork and meshes with materials, lighting, depth of field and transparent shadows.' },
   { slug: 'profile',          title: 'Profiles',          src: 'profile.md',      pathway: 'creators', description: "The working identity Lolly creates as - your name, role and contact details, filled into tools automatically and stored on your own device." },
+  { slug: 'find-your-work',   title: 'Find and recover your work', src: 'find-your-work.md', pathway: 'creators', description: "Where your saved work, downloads and earlier versions are, what a closed tab or cleared browser data takes with it, and how to move everything to another device." },
   { slug: 'sync',             title: 'Sync your devices', src: 'sync.md',         pathway: 'creators', description: "Keep your work the same on every device through storage you choose - Dropbox, Google Drive, OneDrive, your own Nextcloud or S3 - with no Lolly server in between." },
   // Both of these pages HOST a band that used to sit on the landing (plan 117 block
   // 9). The band is the same function the landing called, so the layout that made
@@ -449,17 +458,17 @@ const MASTHEADS: Record<string, string> = {
   'mcp': 'mcp',                             // one port, bidirectional call-and-return (Fable 5)
 };
 
-// Top-nav links, grouped into clusters. Each inner array renders as one cluster
-// (tight spacing); clusters are separated by a divider (see .nav-group CSS). Home
-// is intentionally omitted - the brand wordmark already links to /info/index.html.
+// The documentation sections, in the order the pathways strip shows them (pathwaysStrip,
+// after its Welcome tab). The inner arrays are the clusters the old top bar divided;
+// the strip reads them flat. Home is the strip's Welcome tab, not an entry here.
 interface NavLink {
   label: string;
   href: string;
 }
 
-// Simplified top nav: the one primary article + the three pathways. Each nav link
-// maps to a pathway (via NAV_PATHWAY below) so the hub highlights on any child page,
-// not only on the hub itself.
+// The one primary article + the pathways. Each link maps to a pathway (via
+// NAV_PATHWAY below) so the hub's tab highlights on any child page, not only on the
+// hub itself.
 const NAV: NavLink[][] = [
   [ { label: 'Quickstart',    href: '/info/quickstart.html' } ],
   [ { label: 'For Creators',  href: '/info/creators.html' },
@@ -496,6 +505,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'make-something', label: 'Make something' },
         { slug: 'quickstart',     label: 'Quickstart' },
         { slug: 'install',        label: 'Install Lolly' },
+        { slug: 'organisation',   label: 'At your organisation' },
         { slug: 'faq',            label: 'Questions & answers' } ] },
       { label: 'Then pick a path', items: [
         { slug: 'creators',  label: 'For Creators' },
@@ -542,6 +552,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: 'dashboard',   label: 'The Dashboard' },
         { slug: 'favourites',  label: 'Your favourites' },
         { slug: 'profile',     label: 'Your profile' },
+        { slug: 'find-your-work', label: 'Find your work' },
         { slug: 'sync',        label: 'Sync your devices' } ] },
       { label: 'Present', items: [
         { slug: 'agenda', label: 'Agenda screens and programmes' },
@@ -1348,6 +1359,23 @@ DOC_ICONS.monitor = SITE_ICONS.toolFeatureMonitor!;
 // The AI mark. Mirrors the spark the web shell's /verify view uses for
 // AI-generated content, so the same idea wears the same glyph in both places.
 DOC_ICONS.sparkle = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M18.5 15.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.2Z"/></svg>`;
+// The reading components' glyphs (packages/docs-render/src/components.ts), taken from
+// the app's registry so a note, a disclosure and Copy look the same in both readers.
+DOC_ICONS['adm-info'] = appIcon('info');
+DOC_ICONS['adm-alert'] = appIcon('alert');
+DOC_ICONS['adm-check'] = appIcon('circleCheck');
+DOC_ICONS['adm-chevron'] = appIcon('chevronRight');
+DOC_ICONS['adm-more'] = appIcon('textL');
+DOC_ICONS['adm-clipboard'] = appIcon('clipboard');
+// The site bar's glyphs, from the same registry, so the /info chrome draws the app's
+// search, arrow, menu and disclosure marks (plan 277 step 3c).
+DOC_ICONS['chrome-search'] = appIcon('search');
+DOC_ICONS['chrome-arrow'] = appIcon('arrowRight');
+DOC_ICONS['chrome-menu'] = appIcon('menuLines');
+DOC_ICONS['chrome-close'] = appIcon('close');
+DOC_ICONS['chrome-folder'] = appIcon('folder');
+DOC_ICONS['chrome-hash'] = appIcon('hash');
+DOC_ICONS['chrome-external'] = appIcon('externalLink');
 const DOC_ICON_SPRITE = createIconSprite(DOC_ICONS);
 function docIcon(key: string): string {
   const svg = DOC_ICON_SPRITE.icon(key);
@@ -1676,14 +1704,11 @@ function formatsSection(lang: Lang, opts: { head?: boolean } = {}): string {
   const formats = loadSiteJson('formats.json', lang) as { heading: string; lead: string };
   const catalog = formatCatalog();
   const n = formatCounts();
-  const CAT_ORDER = ['Vector', 'Raster', 'Layered', 'Motion', 'Audio', 'Document', 'Data', 'Font', 'Tokens', '3D', 'Bundle'];
   const fmtChip = (f: FmtEntry) =>
     `<button type="button" class="fmt-chip fmt-chip--${f.dir}" data-fmt="${esc(f.token)}" aria-haspopup="dialog"${f.dir === 'both' ? ' title="Round-trip - Lolly reads and writes this"' : ''}>${f.dir === 'both' ? '<span class="rt-mark" aria-hidden="true">⇄</span>' : ''}${esc(f.name)}</button>`;
   const zone = (cls: string, list: FmtEntry[]) => `<div class="fmt-zone fmt-zone--${cls}">${list.map(fmtChip).join('')}</div>`;
-  const catRows = CAT_ORDER
-    .map(cat => ({ cat, all: catalog.formats.filter(f => f.category === cat) }))
-    .filter(r => r.all.length)
-    .map(({ cat, all }) => `<div class="fmt-row">
+  const catRows = formatFamilies(catalog.formats)
+    .map(({ cat, list: all }) => `<div class="fmt-row">
         <span class="fmt-cat">${FMT_CAT_ICON[cat] || ''}<span class="fmt-cat-label">${esc(cat)}</span></span>
         ${zone('in', all.filter(f => f.dir === 'in'))}
         ${zone('both', all.filter(f => f.dir === 'both'))}
@@ -1745,6 +1770,50 @@ function formatsSection(lang: Lang, opts: { head?: boolean } = {}): string {
 </section>`;
 }
 
+// Every format in words, not only behind a chip (plan 277, decision D8): the dialog's
+// descriptions live in page script data that the Markdown twin, search, a reader without
+// JavaScript and a screen reader skimming the page never reach. English only, like the
+// register itself; grouped the way the table is.
+/** The families in the order the table and the register list them. A format whose
+ *  category is not here would drop out of both without a word, so the build stops with an error. */
+const FMT_CAT_ORDER = ['Vector', 'Raster', 'Layered', 'Motion', 'Audio', 'Document', 'Data', 'Font', 'Tokens', '3D', 'Bundle'];
+function formatFamilies(all: FmtEntry[]): Array<{ cat: string; list: FmtEntry[] }> {
+  const stray = all.filter(f => !FMT_CAT_ORDER.includes(f.category));
+  if (stray.length) {
+    throw new Error(`formats-catalog.json: ${stray.map(f => `${f.name} (category "${f.category}")`).join(', ')} not in FMT_CAT_ORDER; use an existing family or add one`);
+  }
+  return FMT_CAT_ORDER.map(cat => ({ cat, list: all.filter(f => f.category === cat) })).filter(g => g.list.length);
+}
+/** The table's own words for each direction. */
+const FMT_DIR_WORDS: Record<FmtEntry['dir'], string> = { in: 'Import only', out: 'Export only', both: 'Both ways' };
+/** An entry's lead: the name, then the full name when it says more. */
+function fmtLead(f: FmtEntry): { name: string; full: string } {
+  return { name: f.name, full: f.full && f.full !== f.name ? f.full : '' };
+}
+/** The HTML: one closed disclosure per family below the chips, every description in the page.
+ *  English only, like the table, so a translated page marks it as English. */
+function formatsReference(lang: Lang): string {
+  const groups = formatFamilies(formatCatalog().formats).map(({ cat, list }) => detailsBlock({
+    id: `formats-${cat.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+    titleHtml: `${esc(cat)} (${list.length})`,
+    bodyHtml: `<dl class="fmt-ref-list">${list.map(f => {
+      const { name, full } = fmtLead(f);
+      return `<dt><strong>${esc(name)}</strong>${full ? ` ${esc(full)}` : ''}</dt><dd>${esc(FMT_DIR_WORDS[f.dir])}. ${esc(f.desc)}</dd>`;
+    }).join('')}</dl>`,
+    glyph: docIcon('adm-more'),
+    chevron: docIcon('adm-chevron'),
+  })).join('\n');
+  return `<div class="fmt-reference"${lang === 'en' ? '' : ' lang="en"'}>\n${groups}\n</div>`;
+}
+/** The Markdown twin's version of the same list, in place of the table mark. */
+function formatsMarkdown(): string {
+  return formatFamilies(formatCatalog().formats).map(({ cat, list }) =>
+    `**${cat}**\n\n${list.map(f => {
+      const { name, full } = fmtLead(f);
+      return `- **${name}**${full ? `: ${full}` : ''}. ${FMT_DIR_WORDS[f.dir]}. ${f.desc}`;
+    }).join('\n')}`).join('\n\n');
+}
+
 /** /info/design-import.html: the import band opens the page it always linked to. */
 function renderDesignImportPage(md: string, lang: Lang): string {
   return `${importBand(lang, { cta: false })}\n${mdToHtml(md)}`;
@@ -1753,7 +1822,7 @@ function renderDesignImportPage(md: string, lang: Lang): string {
 /** /info/formats.html: the three-zone table, dropped where the source asks for it. */
 function renderFormatsPage(md: string, lang: Lang): string {
   const [before, after] = md.split(FORMATS_TABLE_MARK);
-  return `${mdToHtml(before ?? md)}\n${formatsSection(lang, { head: false })}\n${after ? mdToHtml(after) : ''}`;
+  return `${mdToHtml(before ?? md)}\n${formatsSection(lang, { head: false })}\n${formatsReference(lang)}\n${after ? mdToHtml(after) : ''}`;
 }
 
 /** A deep link INTO THE APP (not the docs): `/#/tool/…`, carrying the reader's locale. */
@@ -1806,30 +1875,6 @@ const LANDING_SCENES: Scene[] = [
     line: 'Drop in a picture and it takes on your two colours, so the poster looks like it was planned.',
     alt: 'A photograph recoloured in two flat brand colours' },
 ];
-function makeSomethingBlock(lang: Lang): string {
-  const cards = LANDING_SCENES.map((s, i) => {
-    const shot = existsSync(resolve(outDir, 'examples', s.look))
-      ? `<span class="make-shot"><img src="/info/examples/${esc(s.look)}" alt="${esc(t(s.alt))}" loading="lazy"></span>`
-      : '';
-    return `<a class="make-card reveal reveal-${i + 1}" href="${esc(appHref(lang, `#/tool/${s.tool}?${s.query}`))}">
-        ${shot}
-        <strong class="make-scene">${esc(t(s.scene))}</strong>
-        <span class="make-line">${esc(t(s.line))}</span>
-        <span class="make-go">${esc(t('Open this one'))} <span aria-hidden="true">→</span></span>
-      </a>`;
-  }).join('\n      ');
-  return `<section class="make-section" id="make">
-  <div class="make-inner">
-    <div class="make-head reveal">
-      <h2>${esc(t('Make something, right now'))}</h2>
-      <p class="make-lead">${esc(t('Three ordinary jobs. Pick one: it opens already filled in, and the words are yours to change.'))}</p>
-    </div>
-    <div class="make-grid">
-      ${cards}
-    </div>
-  </div>
-</section>`;
-}
 
 /**
  * The FAQ, its own page since plans/177 (/info/start/faq.html): the same native
@@ -1871,7 +1916,7 @@ function renderFaqPage(_md: string, lang: Lang): string {
 </script>`;
   return `<section class="faq-section faq-page" id="faq">
   <div class="faq-inner">
-    <h2>${esc(t('Questions & answers'))}</h2>
+    <h1>${esc(t('Questions & answers'))}</h1>
     <p class="faq-lead">${esc(t('The things people ask most.'))}</p>
     <div class="faq-list">
       ${FAQS.map((f, i) => `<details class="faq-item" id="${faqSlug(f.q, i)}">
@@ -1979,9 +2024,11 @@ function renderTenetsPage(md: string, lang: Lang): string {
   return [hero, ...bands].join('\n');
 }
 
-/** /info/start/make-something.html opens with the three worked scenes. */
-function renderMakeSomethingPage(md: string, lang: Lang): string {
-  return `${makeSomethingBlock(lang)}\n${mdToHtml(md)}`;
+/** /info/start/make-something.html is one QR lesson (plan 277, decision D6): make,
+ *  download, check and save a single file. The three worked scenes stay on the landing,
+ *  where they help a reader choose; above a lesson they were a second, competing start. */
+function renderMakeSomethingPage(md: string, _lang: Lang): string {
+  return mdToHtml(md);
 }
 
 // ── The landing's copy is DATA: docs/site/*.json (plans/177 P4) ─────────────
@@ -2043,6 +2090,65 @@ const landingCtaHref = (lang: Lang, href: string): string => (href.startsWith('#
  * surfaces cannot drift - the earlier hand-kept twin (COVERS_JS here plus a
  * TypeScript copy there) is gone. esbuild is already the docs player's bundler.
  */
+/**
+ * The reading enhancer (plan 277): Copy on code blocks, its feedback, and opening a
+ * closed disclosure that a #link points into. shells/web/src/lib/docs-enhance.ts is the
+ * module the in-app reader imports; bundled once here, like the Cover Flow, so the two
+ * readers run the same code. Its words come from the page (readingAttr), in the page's
+ * language, and it writes with the browser's clipboard only, refusing when that is
+ * absent rather than pretending a copy happened.
+ */
+let _readingJs: string | null = null;
+function readingScript(): string {
+  if (_readingJs === null) {
+    const out = buildSync({
+      entryPoints: [resolve(repoRoot, 'shells/web/src/lib/docs-enhance.ts')],
+      bundle: true, write: false, format: 'iife', globalName: 'LollyDocsReading',
+      minify: true, platform: 'browser', target: 'es2019', logLevel: 'silent',
+    });
+    _readingJs = out.outputFiles[0]!.text.trim();
+  }
+  return `<script>\n${_readingJs}\n(function(){var root=document.querySelector('.docs-content');if(!root)return;`
+    + `var l={};try{l=JSON.parse(root.getAttribute('data-reading')||'{}')}catch(e){}`
+    + `LollyDocsReading.enhanceDocsReading(root,{openOnHash:true,copyIcon:l.icon||'',`
+    + `writeText:function(s){return navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(s):Promise.reject(new Error('unavailable'))},`
+    + `labels:{copy:l.copy||'Copy',copied:l.copied||'Copied to clipboard',copyFailed:l.copyFailed||'Copy did not work',`
+    + `help:l.help||'',select:l.select||'Select text',selected:l.selected||'',`
+    + `copyNamed:function(x){return (l.copyNamed||'Copy {label}').replace('{label}',x)}}});})();\n</script>`;
+}
+
+/**
+ * The pathways strip on a phone (plan 277 step 3c): shells/web/src/lib/docs-strip.ts, the
+ * module the in-app reader calls on the strip it adopts, bundled once here so the two
+ * readers fade the same edges and bring the current tab into view the same way.
+ */
+let _stripJs: string | null = null;
+function stripScript(): string {
+  if (_stripJs === null) {
+    const out = buildSync({
+      entryPoints: [resolve(repoRoot, 'shells/web/src/lib/docs-strip.ts')],
+      bundle: true, write: false, format: 'iife', globalName: 'LollyDocsStrip',
+      minify: true, platform: 'browser', target: 'es2019', logLevel: 'silent',
+    });
+    _stripJs = out.outputFiles[0]!.text.trim();
+  }
+  return `<script>\n${_stripJs}\n(function(){document.querySelectorAll('nav.docs-pathways').forEach(function(s){LollyDocsStrip.enhancePathwaysStrip(s);});})();\n</script>`;
+}
+
+/** The enhancer's words for this page, in its language, as one attribute on the article.
+ *  Only pages with a copyable block carry it; attributes never reach the page text that
+ *  search, the model index and narration read. */
+function readingAttr(content: string): string {
+  if (!hasCopyBlock(content)) return '';
+  const words = {
+    copy: t('Copy'), copied: t('Copied to clipboard'), copyFailed: t('Copy did not work'),
+    help: t('Select the text, then use your device’s copy command.'), select: t('Select text'),
+    selected: t('Text selected. Use your device’s copy command.'), copyNamed: t('Copy {label}'),
+    icon: docIcon('adm-clipboard'),
+  };
+  return ` data-reading="${escAttr(JSON.stringify(words))}"`;
+}
+
 let _coversJs: string | null = null;
 function coversScript(): string {
   if (_coversJs === null) {
@@ -2081,7 +2187,7 @@ function workBand(lang: Lang): string {
         <p class="work-body">${esc(w.body)}</p>
       </div>
       <div class="work-links">
-        ${w.links.map((l, i) => `<a class="${i === 0 ? 'btn btn-primary btn-compact' : 'work-link'}" href="${esc(l.href)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('\n        ')}
+        ${w.links.map((l, i) => `<a class="${i === 0 ? 'hero-btn btn-primary btn-compact' : 'work-link'}" href="${esc(l.href)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('\n        ')}
       </div>
     </div>
   </div>
@@ -2158,6 +2264,8 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
 </script>`;
 
   // ── beat 1: hero ───────────────────────────────────────────────────────────
+  // The call to action into the app wears the app's arrow, the same words and glyph as
+  // the bar's Launch App, so the landing shows one Launch App however it is reached.
   const heroHtml = `<section class="hero">
   <div class="hero-inner">
   <div class="hero-heading">
@@ -2169,7 +2277,7 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
       <span class="sr-only">${esc(hero.cycle.slice(1).map(c => c.word).join(', '))}</span></h1>
     <p class="subtitle">${heroLines.join('<br>')}</p>
     <div class="hero-cta">
-      ${hero.ctas.map(c => `<a href="${esc(localizeHref(lang, c.href))}" class="${esc(c.class)}">${esc(c.label)}</a>`).join('\n      ')}
+      ${hero.ctas.map(c => `<a href="${esc(localizeHref(lang, c.href))}" class="${esc(c.class)}">${esc(c.label)}${c.href === '/' ? docIcon('chrome-arrow') : ''}</a>`).join('\n      ')}
     </div>
   </div>
   </div>
@@ -2268,7 +2376,7 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
       <p class="lane-pitch">${esc(l.pitch)}</p>
       ${l.links ? `<ul class="lane-links">${l.links.map(k => `<li><a href="${esc(k.href ? landingCtaHref(lang, k.href) : localeHref(lang, k.slug ?? 'index'))}"><span>${esc(k.label)}</span>${k.note ? `<code>${esc(k.note)}</code>` : ''}</a></li>`).join('')}</ul>` : ''}
       <div class="lane-cta">
-        ${l.cta ? `<a class="btn btn-primary btn-compact" href="${esc(landingCtaHref(lang, l.cta.href))}">${esc(l.cta.label)}</a>` : ''}
+        ${l.cta ? `<a class="hero-btn btn-primary btn-compact" href="${esc(landingCtaHref(lang, l.cta.href))}">${esc(l.cta.label)}</a>` : ''}
         <a class="lane-doc" href="${esc(localeHref(lang, l.doc.slug))}">${esc(l.doc.label)} <span aria-hidden="true">→</span></a>
       </div>
     </div>
@@ -2310,7 +2418,7 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
 
   const NAV_SOLID_JS = `<script>
 (function(){
-  var nav=document.querySelector('nav');
+  var bar=document.querySelector('.site-bar');
   var hero=document.querySelector('.hero');
   // The floating Listen pill rides the same measurement (plans/168 WP-6). At 393px the
   // hero's CTA stack fills the bottom of the first screen, so a bottom-right pill would
@@ -2325,9 +2433,14 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
   function fitHero(){if(wrap&&hero)wrap.style.setProperty('--hero-h',hero.offsetHeight+'px');}
   if(window.ResizeObserver&&hero)new ResizeObserver(fitHero).observe(hero);
   fitHero();
+  // The bar floats over the whole dark wrap (hero and covers) and takes its ground only
+  // once the wrap has passed wholly under it, so the translucent ground never lies over
+  // a dark and a light band at once, which read as a grey stripe. The Listen dock
+  // follows the hero.
   function updateNav(){
     var heroBottom=hero?hero.getBoundingClientRect().bottom:0;
-    nav.classList.toggle('nav-solid',heroBottom<=0);
+    var darkBottom=wrap?wrap.getBoundingClientRect().bottom:heroBottom;
+    if(bar){bar.classList.toggle('site-bar--solid',darkBottom<=0);bar.classList.toggle('site-bar--past-hero',heroBottom<=bar.offsetHeight);}
     if(listen)listen.classList.toggle('over-hero',heroBottom>0);
   }
   window.addEventListener('scroll',updateNav,{passive:true});
@@ -2345,7 +2458,12 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
 ${heroHtml}
 ${coversHtml}
 </div>`;
+  // The documentation sections, in the same strip every other page opens with, placed
+  // after the dark hero and its covers: the hero keeps its own opening, and the strip
+  // then introduces the pages that follow.
+  const stripBand = pathwaysBand(pathwaysStrip(lang, '/info/index.html', undefined, true), { flow: true, wide: true });
   return `${darkBandHtml}
+${stripBand}
 ${whatWhyHtml}
 ${personaHtml}
 ${downloadsHtml}
@@ -2529,6 +2647,18 @@ const APP_TOKENS = readFileSync(resolve(repoRoot, 'shells/web/src/styles/tokens.
 // APP_TOKENS above: the web shell imports this same file, and a comment stripped
 // here would be a comment missing there.
 const LANDING_CSS = readFileSync(resolve(repoRoot, 'shells/web/src/styles/parts/docs-landing.css'), 'utf-8');
+// The reading components' stylesheet (plan 277), shared verbatim with the in-app reader
+// like the landing's. Appended after every other docs rule, so at equal specificity the
+// component wins over the site's base pre/code/blockquote styles.
+const COMPONENTS_CSS = readFileSync(resolve(repoRoot, 'shells/web/src/styles/parts/docs-components.css'), 'utf-8');
+// The app's button primitive (.btn, .btn--primary, .btn--glass), read verbatim so
+// Launch App, Listen and the home pill have one declaration on both surfaces (plan
+// 277 step 3c). Its alias selectors name app-only elements and match nothing here;
+// the landing's call-to-action pill is .hero-btn for that reason.
+const BUTTONS_CSS = readFileSync(resolve(repoRoot, 'shells/web/src/styles/parts/buttons.css'), 'utf-8');
+// The chrome both readers share: the round top-row button, the pathways strip and
+// the compact navigation lists. The in-app reader imports the same file.
+const CHROME_CSS = readFileSync(resolve(repoRoot, 'shells/web/src/styles/parts/docs-chrome.css'), 'utf-8');
 
 const CSS = `
 /* Self-hosted SUSE variable fonts - same-origin, no CDN egress; mirrors shells/web/src/styles/fonts.css,
@@ -2567,6 +2697,17 @@ ${APP_TOKENS}
      there the docs take the stronger edge and the lighter surface. */
   --border:hsl(var(--input));
   --pale:hsl(var(--secondary));
+  /* The app's role tokens built on those two shadowed names break here the same way:
+     --ui-color-surface-muted is hsl(var(--muted)) and --ui-color-border-default reads
+     --border, so on /info both computed as transparent in every theme and anything
+     styled with them painted nothing. Re-point them at the same twins, so the shared
+     reading components (docs-components.css) look the same here as in the app. */
+  --ui-color-surface-muted:hsl(var(--secondary));
+  --ui-color-border-default:hsl(var(--input));
+  /* The app's type scale multiplies by the a11y text setting (parts/a11y.css), which a
+     static page has no control for. Declared at 1 so the app's type tokens resolve here
+     at their normal sizes instead of computing as invalid. */
+  --a11y-fs:1;
   --green:hsl(var(--primary));
   --dark:hsl(var(--foreground));
   --light:hsl(var(--primary)/0.4);
@@ -2610,6 +2751,12 @@ a:hover{text-decoration:underline}
    this with a more specific selector. Keeps a missing/renamed rule from ever ballooning. */
 svg{width:1em;height:1em;flex:none}
 code{font-family:var(--brand-font),'SUSE Mono','SF Mono','Fira Code',monospace;font-size:.875em;background:hsl(var(--muted));padding:.15em .35em;border-radius:3px}
+/* A long token in running text (a URL, a flag list, an env var, a link whose text is
+   an address) breaks where it must rather than widening the page. break-word, not
+   anywhere: it breaks only a token that would overflow and leaves table columns their
+   natural width, so a wide table keeps scrolling in its own frame. Visual only: a copy
+   of the text is unchanged. Code blocks keep their own rules. */
+.docs-content :not(pre)>code,.docs-content a{overflow-wrap:break-word}
 pre{background:hsl(var(--muted));color:hsl(var(--foreground));padding:1.25rem 1.5rem;border-radius:8px;overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.875rem;line-height:1.5;margin-bottom:1.25rem; box-shadow: inset 0 .2rem .4rem #0002, 0 1px #fff2}
 pre code{background:none;padding:0;color:inherit;font-size:1em}
 h1,h2,h3,h4{line-height:1.25;font-weight:700}
@@ -2618,89 +2765,181 @@ p{margin-bottom:2rem}
 ul{padding-left:1.25rem;margin-bottom:1rem}
 li{margin-bottom:.35rem}
 blockquote{border-left:0; box-shadow:0 0 0 1px #30ba7825, inset 0 1px #fff3, inset 0 -1px #0001, 0 .1rem 2.4rem #30ba7855;  border-radius: 2em; padding: 1.5rem 2.25rem;background:var(--pale);margin:4rem 0;transform:scale(1.1)}
+/* The desktop scale reaches past the column; on a phone the column is the screen. */
+/* The scale needs spare room beside the column; below 800px the column is the screen. */
+@media(max-width:800px){blockquote{transform:none}}
 blockquote p{margin:0}
 hr{border:none;border-top:1px solid var(--border);margin:2rem 0}
 strong{font-weight:600}
 
-/* Nav */
-nav{display:flex;align-items:center;gap:.25rem;padding:0 1.5rem;height:3.75rem;background:transparent;position:fixed;width:100%;top:0;z-index:100;overflow-x:auto;transition:background .25s}
-nav.nav-solid{background:hsl(var(--band-dark))}
-/* Phones: the top nav always carries its ground (plans/168 WP-6). Transparent-over-hero
-   is a desktop luxury - at 393px the hero's trust-chip row scrolls straight under the
-   bar and two rows of small text collide with the nav links. The :not()s keep this off
-   the quicknav and the doc jump nav, which paint their own surfaces. */
-@media(max-width:600px){
-  nav:not(.quicknav):not(.doc-jump-nav){background:hsl(var(--band-dark) / .94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
-}
-/* On-page quick nav - a sticky jump bar under the top nav, on the landing only. */
+${BUTTONS_CSS}
+${CHROME_CSS}
+
+/* ── The site bar (buildNav) ──────────────────────────────────────────────────
+   The app's top row on the app's canvas (plan 277 step 3c, decision D14). Every
+   control is --chrome-h tall and the gutter is --chrome-inset (tokens.css), and
+   the ground is the one the app's bottom bar paints (the canvas at 82%, a blur,
+   one hairline) in every theme. The ground is drawn by ::before, not by the bar,
+   so the bar sets no backdrop filter of its own and the search results and the
+   language menu, both position:fixed inside it, still place themselves against
+   the viewport. --site-bar-h is the one height everything below the bar clears:
+   the sticky rail, the band, the landing's quicknav and anchor scroll margins. */
+:root{--site-bar-h:calc(var(--chrome-h) + 2 * var(--sp-4) + var(--safe-top) + 1px);--site-bar-inset:var(--chrome-inset)}
+.site-bar{position:fixed;inset-block-start:0;inset-inline:0;z-index:100;display:flex;align-items:center;gap:var(--sp-5);box-sizing:border-box;min-height:var(--site-bar-h);padding:calc(var(--sp-4) + var(--safe-top)) var(--site-bar-inset) calc(var(--sp-4) + 1px);color:var(--ui-color-text-default)}
+.site-bar::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:color-mix(in srgb,var(--ui-color-surface-canvas) 82%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--ui-color-border-default);transition:opacity var(--ui-motion-overlay)}
+/* The landing: over its hero the bar is its controls alone, like the app's
+   floating top row, and it takes its ground once the hero has scrolled away
+   (NAV_SOLID_JS adds .site-bar--solid). A translucent light ground over the dark
+   hero read as a grey stripe. The hero is dark in every theme, so in Light the
+   home pill and Launch App take the canvas surface the round buttons already
+   have: light controls on the dark hero, and the primary fill again once the
+   bar has its ground. Every control carries its own surface, so the hero can
+   scroll under the bar on a phone too. */
+.site-bar--over-hero:not(.site-bar--solid)::before{opacity:0}
+[data-theme="light"] .site-bar--over-hero:not(.site-bar--solid) :is(.site-home,.site-launch){background:color-mix(in srgb,var(--ui-color-surface-canvas) 90%,transparent);color:var(--ui-color-text-default);border-color:transparent}
+/* The hero carries its own Launch App in the same words and glyph, so while the
+   hero is on screen the bar's copy steps aside; it returns once the hero's buttons
+   have passed under the bar (NAV_SOLID_JS adds .site-bar--past-hero). */
+.site-bar--over-hero:not(.site-bar--past-hero)>.site-launch{display:none}
+@media(prefers-reduced-motion:reduce){.site-bar::before{transition:none}}
+/* Skip to content: the app's skip link (base.css .skip-link), hidden with a clip
+   until it takes focus, then pinned to the start corner above the bar. Its fill is
+   the primary, from buttons.css's alias list. It targets the page's <main>. */
+.skip-link{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+/* The fixed bar would cover the article's first line after the jump. */
+#docs-main{scroll-margin-top:var(--site-bar-h)}
+.skip-link:focus{position:fixed;top:0;inset-inline-start:0;z-index:200;width:auto;height:auto;clip-path:none;padding:8px 16px;font-size:var(--fs-lg);font-weight:600;border-end-end-radius:var(--radius);overflow:visible;text-decoration:none}
+main[tabindex="-1"]:focus{outline:none}
+/* On-page quick nav - a sticky jump bar under the top bar, on the landing only. */
 html{scroll-behavior:smooth}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-section[id]{scroll-margin-top:6.4rem}
-/* The nav sits on #0c322c in BOTH themes (nav.nav-solid, and the dark hero on the
-   landing page), so its text needs a fixed light colour. It used var(--pale),
-   which the dark theme redefines to #0d2419 - near-identical to that background,
-   about 1.1:1, so the wordmark disappeared in dark mode. Every other nav control
-   already uses a literal white for this reason. */
-.brand{display:inline-flex;align-items:center;gap:.5rem;font-weight:800;color:hsl(var(--on-band-dark));font-size:1.05rem;white-space:nowrap;margin-right:.75rem;letter-spacing:-.01em;text-transform:uppercase}
-.brand:hover{color:var(--light);text-decoration:none}
-.brand-icon{width:1.5rem;height:1.5rem;border-radius:5px;flex-shrink:0;object-fit:contain}
-/* Draft marker in the nav. English pages only (see buildNav) - the translated
-   pages are a fallback to English source anyway, and a red pill nobody can read
-   in their own language is a worse signal than none. flex:none so the scrolling
-   nav can never squeeze it to unreadable. */
-.nav-draft{display:inline-flex;align-items:center;flex:none;font-family:'SUSE Mono','SF Mono','Fira Code',monospace;font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:hsl(var(--on-band-dark));background:var(--red);padding:.15em .6em;border-radius:999px;margin-right:.75rem;white-space:nowrap}
-nav .gap{flex:1}
-/* The <label> wrapping the icon + <select> is the WHOLE hit area - a generous
-   pill, matching .nav-theme-toggle's footprint - not just the select's own tight
-   text box. Clicking/tapping the icon activates the select exactly like clicking
-   the text does (native label→control delegation), and since hover/focus is
-   styled on the label, the icon (fill="currentColor") and the select text pick up
-   the SAME colour change together via inheritance - no separate icon hover rule. */
-.nav-lang-picker-wrap{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .75rem .45rem .6rem;border-radius:2em;color:hsl(var(--on-band-dark) / .55);cursor:pointer;transition:color .12s,background .12s}
-.nav-lang-picker-wrap:hover,.nav-lang-picker-wrap:focus-within{color:hsl(var(--on-band-dark));background:rgba(255,255,255,.1)}
-.nav-lang-picker-wrap .lang-switch-icon{width:16px;height:16px;flex-shrink:0;pointer-events:none}
-.nav-lang-picker{background:transparent;color:inherit;border:none;font-size:.8125rem;cursor:pointer;padding:0}
-.nav-lang-picker option{color:#000}
-nav:not(.quicknav):not(.doc-jump-nav) a:not(.brand):not(.nav-launch){color:hsl(var(--on-band-dark) / .55);font-size:.8125rem;padding:.25rem .5rem;white-space:nowrap;border-radius:2em;transition:color .12s}
-nav:not(.quicknav):not(.doc-jump-nav) a:not(.brand):not(.nav-launch):hover{color:hsl(var(--on-band-dark));text-decoration:none}
-nav:not(.quicknav):not(.doc-jump-nav) a.active:not(.nav-launch){color:hsl(var(--on-band-dark))}
-/* Top-nav clusters: tight within a group, a thin divider between groups. */
-nav .nav-group{display:inline-flex;align-items:center;gap:.0625rem}
-nav .nav-group + .nav-group{margin-left:.5rem;padding-left:.625rem;border-left:1px solid rgba(255,255,255,.18)}
-.nav-launch{background:hsl(var(--band-accent));color:hsl(var(--band-dark))!important;padding:.375rem 1rem;border-radius:1.5em;font-weight:700;font-size:.875rem;white-space:nowrap;margin-left:.5rem;transition:background .15s}
-.nav-launch:hover{background:hsl(var(--band-accent) / .82);text-decoration:none!important}
+section[id]{scroll-margin-top:calc(var(--site-bar-h) + 2.65rem)}
+/* Home: the app's back pill (components.css .tools-home) in the shared glass
+   (buttons.css .btn--glass), holding the app's mark, the name and, on English
+   pages, a quiet Beta chip. It pushes the rest of the row to the inline end. */
+.site-home{display:inline-flex;align-items:center;gap:var(--sp-4);flex:none;margin-inline-end:auto;box-sizing:border-box;min-height:var(--chrome-h);padding-block:0;padding-inline:var(--sp-3) var(--sp-7);border:1px solid transparent;border-radius:calc(var(--radius) * 1.5);font-size:var(--fs-md);font-weight:600;line-height:1;color:var(--ui-color-text-default);text-decoration:none;white-space:nowrap;box-shadow:inset 0 -.1em 1em 1px hsl(var(--primary) / .22),0 .1em .3em #0002}
+.site-home:hover{background:hsl(var(--primary) / .16);box-shadow:inset 0 0 0 1px hsl(var(--primary) / .34);text-decoration:none}
+.site-home:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:2px}
+.site-home img{display:block;width:calc(26px * var(--a11y-fs));height:calc(26px * var(--a11y-fs));border-radius:var(--radius-round)}
+/* Beta: English pages only (see buildNav) and deliberately not a t() key, so it
+   comes straight back out once the docs are no longer a draft. The tint the app
+   gives a chosen row, not an alarm red. */
+.site-beta{font-size:var(--fs-2xs);font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:var(--ui-radius-pill);background:var(--ui-color-selection-surface);color:var(--ui-color-action-primary)}
+:is([data-theme="dark"],[data-theme="brand"]) .site-beta{color:var(--ui-color-text-default)}
+/* The round buttons are the shared .site-fab (docs-chrome.css). Language keeps
+   its own glyph a little larger; Theme shows the active theme's glyph. */
+.lang-fab-wrap{display:contents}
+.site-fab--lang svg{width:calc(20px * var(--a11y-fs));height:calc(20px * var(--a11y-fs))}
+.site-fab--theme .icon-moon,.site-fab--theme .icon-brand{display:none}
+[data-theme="dark"] .site-fab--theme .icon-sun,[data-theme="brand"] .site-fab--theme .icon-sun{display:none}
+[data-theme="dark"] .site-fab--theme .icon-moon,[data-theme="brand"] .site-fab--theme .icon-brand{display:block}
+.site-fab--search{display:none}
+/* Pressed and current states the system colours would otherwise flatten. */
+@media(forced-colors:active){.site-sheet .profile-menu-seg[aria-pressed="true"]{outline:2px solid Highlight;outline-offset:-2px}.site-sheet .site-sheet-sections .docs-pathway.active{outline:2px solid Highlight;outline-offset:-2px}.docs-listen,.docs-edition{border:1px solid ButtonText}}
+/* Launch App: the app's primary button (buttons.css .btn.btn--primary, the shape
+   of the bottom bar's Verify) with the app's arrow, mirrored for right-to-left. */
+.site-launch{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;box-sizing:border-box;min-height:var(--chrome-h);font-weight:600}
+.site-launch:hover{text-decoration:none}
+.site-launch svg{width:calc(15px * var(--a11y-fs));height:calc(15px * var(--a11y-fs))}
+[dir="rtl"] .site-launch svg{transform:scaleX(-1)}
 
-/* Language FAB menu - popup language selector matching the app UX */
-.lang-fab-wrap{display:inline-flex}
-.lang-fab{background:none;border:none;padding:.45rem .6rem;border-radius:2em;color:hsl(var(--on-band-dark) / .55);cursor:pointer;transition:color .12s,background .12s;width:32px;height:32px;display:flex;align-items:center;justify-content:center}
-.lang-fab:hover{color:hsl(var(--on-band-dark));background:rgba(255,255,255,.1)}
-.lang-fab svg{width:24px;height:24px}
-.lang-menu{position:fixed;top:auto;right:1.5rem;margin-top:0;background:hsl(var(--band-dark) / .98);border:1px solid rgba(255,255,255,.15);border-radius:8px;min-width:200px;box-shadow:0 8px 32px rgba(0,0,0,.24);z-index:101;backdrop-filter:blur(8px)}
+/* Language menu: the app's language popover (topbar.css .lang-menu, the same
+   role tokens), a raised card with the sort tabs and one column of languages.
+   LANG_PICKER_SCRIPT places it under whichever button opened it. */
+.lang-menu{position:fixed;z-index:120;box-sizing:border-box;width:min(272px,calc(100vw - 16px));max-height:70vh;overflow:hidden;padding:6px;display:flex;flex-direction:column;gap:2px;background:var(--ui-color-surface-raised);color:var(--ui-color-text-default);border:1px solid var(--ui-color-border-default);border-radius:var(--ui-radius-card);box-shadow:var(--ui-elevation-floating)}
 .lang-menu[hidden]{display:none}
-.lang-sort-tabs{display:flex;gap:2px;margin:6px 6px 2px;padding:3px;background:rgba(255,255,255,.08);border-radius:999px}
-.lang-sort-tab{flex:1 1 auto;white-space:nowrap;padding:4px 8px;border:0;cursor:pointer;background:transparent;color:hsl(var(--on-band-dark) / .55);font-family:'SUSE Mono','SF Mono','Fira Code',monospace;font-size:10.5px;letter-spacing:.04em;border-radius:999px;transition:background .12s,color .12s}
-.lang-sort-tab:hover{color:hsl(var(--on-band-dark))}
-.lang-sort-tab[aria-selected=true]{background:rgba(255,255,255,.16);color:hsl(var(--on-band-dark));font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.24)}
-.lang-sort-tab:focus-visible{outline:2px solid var(--green);outline-offset:1px}
-.lang-menu-list{display:flex;flex-direction:column;max-height:calc(100vh - 7.5rem);overflow-y:auto}
-.lang-menu-item{background:none;border:none;display:flex;align-items:center;gap:.5rem;width:100%;padding:.625rem 1rem;color:hsl(var(--on-band-dark) / .7);text-align:left;cursor:pointer;transition:background .12s,color .12s;font-size:.8125rem;font-family:inherit}
-.lang-menu-item:hover{background:rgba(255,255,255,.08);color:hsl(var(--on-band-dark))}
-.lang-menu-item[aria-pressed=true]{background:rgba(48,186,120,.15);color:hsl(var(--on-band-dark))}
-.lang-menu-flags{display:inline-flex;gap:.2em;min-width:4em;     place-content: flex-end;}
-.lang-menu-name{flex:1}
-.lang-sort-tab:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
-@media (min-width:800px){
-.lang-menu-list {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    }
+@media(prefers-reduced-motion:no-preference){.lang-menu:not([hidden]){animation:site-pop-in var(--ui-motion-overlay) var(--ui-motion-standard) both}}
+@keyframes site-pop-in{from{opacity:0;transform:translateY(-6px) scale(.98)}to{opacity:1;transform:none}}
+.lang-sort-tabs{display:flex;gap:2px;padding:3px;margin-bottom:4px;flex:none;background:color-mix(in srgb,var(--ui-color-surface-muted) 50%,transparent);border-radius:var(--ui-radius-pill)}
+.lang-sort-tab{flex:1 1 auto;white-space:nowrap;padding:4px 8px;border:0;cursor:pointer;background:transparent;color:var(--ui-color-text-muted);font-family:var(--font-mono);font-size:calc(10.5px * var(--a11y-fs));letter-spacing:.04em;border-radius:var(--ui-radius-pill);transition:background var(--ui-motion-feedback),color var(--ui-motion-feedback)}
+.lang-sort-tab:hover{color:var(--ui-color-text-default)}
+.lang-sort-tab[aria-selected=true]{background:var(--ui-color-surface-raised);color:var(--ui-color-text-default);font-weight:700;box-shadow:var(--ui-elevation-control)}
+.lang-sort-tab:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:1px}
+.lang-menu-list{display:flex;flex-direction:column;gap:2px;flex:1 1 auto;min-height:0;overflow-y:auto}
+.lang-menu-item{display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;border:0;border-radius:var(--ui-radius-panel);background:transparent;color:var(--ui-color-text-default);font:inherit;font-size:calc(13.5px * var(--a11y-fs));font-weight:500;text-align:start;cursor:pointer}
+.lang-menu-flags{flex:0 0 auto;display:inline-flex;align-items:center;place-content:flex-end;gap:3px;min-width:4em;font-size:var(--fs-xl);line-height:1;filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.35))}
+.lang-menu-name{flex:1 1 auto;min-width:0}
+.lang-menu-item:hover{background:var(--ui-color-surface-muted)}
+.lang-menu-item:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:-2px}
+.lang-menu-item[aria-pressed=true]{background:var(--ui-color-selection-surface);color:var(--ui-color-action-primary);font-weight:700}
+
+/* ── The phone menu (buildNav's <details class="site-menu">) ─────────────────
+   A native disclosure, so it opens without JavaScript. Its sheet is the app's
+   profile menu (topbar.css .profile-menu and its rows, the same role tokens),
+   navigation first: the documentation sections, then this section's pages and
+   this page's headings as the shared disclosures, then the theme segment,
+   Language with the current language as a badge and GitHub, and Launch App at
+   the foot. Shown below 48em, where the rail folds away; between 40em and 48em
+   the bar still shows the theme, Language, GitHub and Launch App, so the sheet
+   leaves them out and no control appears twice. HAMBURGER_SCRIPT closes it on
+   Escape, an outside tap, a link tap, or focus moving out of it. */
+.site-menu{position:relative;display:none;flex:none}
+.site-menu>summary{list-style:none}
+.site-menu>summary::-webkit-details-marker{display:none}
+.site-menu>summary::marker{content:''}
+.site-menu>summary>span{display:flex}
+.site-menu[open]>summary .site-menu-open,.site-menu:not([open])>summary .site-menu-close{display:none}
+/* scroll-padding keeps a row that takes focus clear of the sticky Launch App
+   (WCAG technique C43), so keyboard focus is never drawn under it. */
+.site-sheet{position:absolute;inset-inline-end:0;top:calc(100% + var(--sp-5));z-index:110;box-sizing:border-box;width:min(340px,calc(100vw - 24px));max-height:calc(100vh - var(--site-bar-h) - 16px);max-height:calc(100dvh - var(--site-bar-h) - 16px);overflow-y:auto;overscroll-behavior:contain;scroll-padding-block-end:calc(var(--chrome-h) + 1.5rem);padding:8px;display:flex;flex-direction:column;gap:4px;background:var(--ui-color-surface-raised);color:var(--ui-color-text-default);border:1px solid var(--ui-color-border-default);border-radius:var(--ui-radius-card);box-shadow:var(--ui-elevation-floating)}
+@media(prefers-reduced-motion:no-preference){.site-menu[open] .site-sheet{animation:site-pop-in var(--ui-motion-overlay) var(--ui-motion-standard) both;transform-origin:top right}[dir="rtl"] .site-menu[open] .site-sheet{transform-origin:top left}}
+.site-sheet .profile-menu-theme{display:flex;gap:2px;padding:3px;margin-bottom:4px;border:1px solid var(--ui-color-border-default);border-radius:var(--ui-radius-pill);background:color-mix(in srgb,var(--ui-color-surface-muted) 50%,transparent)}
+.site-sheet .profile-menu-seg{flex:1;display:flex;align-items:center;justify-content:center;padding:8px 6px;border:0;border-radius:var(--ui-radius-pill);background:transparent;color:var(--ui-color-text-muted);font:inherit;line-height:1.2;cursor:pointer;transition:background var(--ui-motion-feedback),color var(--ui-motion-feedback)}
+.site-sheet .profile-menu-seg svg{width:calc(18px * var(--a11y-fs));height:calc(18px * var(--a11y-fs))}
+.site-sheet .profile-menu-seg:hover{color:var(--ui-color-text-default)}
+.site-sheet .profile-menu-seg[aria-pressed="true"]{background:var(--ui-color-surface-raised);color:var(--ui-color-text-default);box-shadow:var(--ui-elevation-control)}
+.site-sheet .profile-menu-seg:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:2px}
+.site-sheet .profile-menu-item{display:flex;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box;width:100%;min-height:var(--ui-size-target);padding:11px 12px;border:0;border-radius:var(--ui-radius-panel);background:transparent;color:var(--ui-color-text-default);font:inherit;font-size:var(--fs-lg);font-weight:500;line-height:1.3;text-align:start;text-decoration:none;cursor:pointer}
+.site-sheet .profile-menu-item:hover{background:var(--ui-color-surface-muted);text-decoration:none}
+.site-sheet .profile-menu-item:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:-2px}
+.site-sheet .profile-menu-item svg{flex:none;width:calc(15px * var(--a11y-fs));height:calc(15px * var(--a11y-fs));color:var(--ui-color-text-muted)}
+[dir="rtl"] .site-sheet .profile-menu-item svg{transform:scaleX(-1)}
+.site-sheet .profile-menu-count{min-width:calc(20px * var(--a11y-fs));height:calc(18px * var(--a11y-fs));padding:0 6px;display:inline-flex;align-items:center;justify-content:center;font-size:var(--fs-xs);font-weight:700;line-height:1;color:var(--ui-color-action-on-primary);background:var(--ui-color-action-primary);border-radius:var(--ui-radius-panel);white-space:nowrap}
+.site-sheet-rule{border:0;border-top:1px solid var(--ui-color-border-default);margin:4px}
+.site-sheet .docs-compact-nav{display:grid;gap:4px}
+.site-sheet .docs-compact-nav .doc-details{margin:0}
+.site-sheet .docs-compact-nav .doc-details-body{padding-block:0 8px;padding-inline:8px}
+/* The sections open the sheet, as rows: the chosen tint behind the current one
+   and a 2px primary line under its label (under the words, not an edge on the
+   rounded row). The label keeps the text colour, for contrast on every theme. */
+.site-sheet-sections{display:flex;flex-direction:column;gap:2px}
+.site-sheet .docs-pathway{display:flex;align-items:center;min-height:40px;padding:.35rem .75rem;border:0;border-radius:var(--ui-radius-control);color:var(--ui-color-text-default);font-weight:500}
+.site-sheet .docs-pathway:hover{background:var(--ui-color-surface-muted)}
+.site-sheet .docs-pathway.active{background:var(--ui-color-selection-surface);font-weight:600;text-decoration:underline 2px var(--ui-color-action-primary);text-underline-offset:.4em}
+.site-sheet-tools{display:flex;flex-direction:column;gap:4px}
+/* Launch App closes the sheet and stays in reach at its foot while a long page
+   list scrolls under it, with a band of the sheet's own surface around it. */
+.site-sheet .site-launch{position:sticky;bottom:0;z-index:1;width:100%;margin-block-start:4px;box-shadow:var(--ui-effect-bevel),var(--ui-elevation-control),0 0 0 8px var(--ui-color-surface-raised)}
+/* A short window (a phone on its side, 400% zoom): a pinned footer would take too
+   much of it, so Launch App scrolls with the list. */
+@media(max-height:500px){.site-sheet{scroll-padding-block-end:0}.site-sheet .site-launch{position:static}}
+
+/* The row folds the app's way, in three steps: the search field becomes a round
+   button, the menu arrives as the rail goes, then the theme, Language, GitHub and
+   Launch App move into the menu and the Beta chip goes. The mark goes last. The
+   steps are in em (62.5, 48, 40 and 22.5em are 1000, 768, 640 and 360px at the
+   default text size), so a reader who raised the browser's text size gets the
+   folded row early instead of a row that runs past the window. */
+@media(max-width:62.5em){
+  .site-bar .docs-search{display:none}
+  .site-fab--search{display:inline-flex}
+  .site-bar.is-searching .docs-search{display:flex;position:absolute;inset-inline:var(--site-bar-inset);inset-block:calc(var(--sp-4) + var(--safe-top)) calc(var(--sp-4) + 1px);z-index:2}
+  .site-bar.is-searching .docs-search-input{inline-size:100%}
 }
+@media(max-width:48em){.site-menu{display:block}}
+@media(min-width:40.0625em){.site-sheet-tools,.site-sheet .site-launch{display:none}}
+@media(max-width:40em){
+  :root{--site-bar-inset:var(--sp-6)}
+  .site-bar{gap:var(--sp-4)}
+  .site-fab--theme,.site-fab--lang,.site-fab--github,.site-bar>.site-launch,.site-beta{display:none}
+}
+@media(max-width:22.5em){.site-home img{display:none}.site-home{padding-inline:var(--sp-7)}}
 
 ${LANDING_CSS}
 
 /* Docs layout */
 .docs-wrap{display:grid;grid-template-columns:220px 1fr;max-width:1180px;margin:0 auto;min-height:calc(100vh - 3.5rem - 60px)}
-.docs-sidebar{padding:2rem 1.25rem;border-right:1px solid var(--border);position:sticky;top:3.75rem;height:calc(100vh - 3.75rem);overflow-y:auto}
+.docs-sidebar{padding:2rem 1.25rem;border-right:1px solid var(--border);position:sticky;top:var(--site-bar-h);height:calc(100vh - var(--site-bar-h));overflow-y:auto}
 /* Format / convert side-door pages (plan 116 workstream A). */
 .sidedoor-eyebrow{display:flex;align-items:center;gap:.5rem;font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--green);margin-bottom:.75rem}
 .sidedoor-eyebrow svg{width:1.25rem;height:1.25rem}
@@ -2748,31 +2987,34 @@ ${LANDING_CSS}
    It is also where readers look for it.
 
    Logical properties throughout so the Arabic build mirrors without a second rule
-   set. The field lives inside a fixed-height (3.75rem) nav on purpose - .docs-sidebar
-   pins its sticky top and height to that number, so this must not change it. */
-.docs-search{position:relative;flex:none;margin-inline-start:.25rem}
-.docs-search-input{inline-size:11rem;box-sizing:border-box;padding:.4rem .7rem;font:inherit;font-size:.8125rem;
-  color:hsl(var(--on-band-dark));background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:2em;
-  transition:inline-size .18s ease,background .15s ease,border-color .15s ease}
-.docs-search-input::placeholder{color:hsl(var(--on-band-dark) / .5)}
-.docs-search-input:hover{background:rgba(255,255,255,.14)}
-.docs-search-input:focus{outline:none;inline-size:15rem;background:rgba(255,255,255,.18);border-color:var(--green)}
-/* Only on genuinely small screens does the field collapse to a puck that opens on
-   focus. The breakpoint is 560px, not the ~900px that looks natural in isolation,
-   because the nav sheds its whole link row at 1100px (see the hamburger block) -
-   from there down to 560px the bar is just brand, search and three controls, so a
-   readable field fits easily and shrinking it early would cost function for nothing.
-   Below 560px the remaining controls do start to crowd, so it becomes a glyph. */
-@media(max-width:560px){
-  .docs-search-input{inline-size:2.1rem;padding-inline:0;text-align:center}
-  .docs-search-input:focus{inline-size:min(60vw,14rem);padding-inline:.7rem;text-align:start}
-  .docs-search-input::placeholder{color:transparent}
-}
-/* FIXED, not absolute: the nav is a horizontally scrolling flex bar, so an absolute
-   panel would be clipped to a 3.75rem-tall strip and scroll away with the field.
-   Fixed escapes it (nothing on the ancestor chain establishes a containing block -
-   no transform, no filter, no backdrop-filter on nav, which is what would trap it),
-   and the script positions it from the input's rect on scroll and resize.
+   set. The field is the app's own search field (gallery.css .gallery-search: its
+   padding, type size, canvas fill, hairline and focus colour, and its magnifier),
+   as tall as every other control in the bar. Below 1000px it folds into a round
+   button that opens it over the bar (the site bar block above, DOCS_SEARCH_SCRIPT). */
+.docs-search{position:relative;flex:none;display:flex;align-items:center}
+.docs-search-icon{position:absolute;inset-inline-start:11px;top:50%;transform:translateY(-50%);display:flex;color:var(--ui-color-text-muted);pointer-events:none}
+.docs-search-icon svg{width:var(--fs-xl);height:var(--fs-xl)}
+.docs-search-input{inline-size:15rem;box-sizing:border-box;min-height:var(--chrome-h);padding:8px 34px;font:inherit;font-size:var(--fs-md);
+  color:var(--ui-color-text-default);background:var(--ui-color-surface-canvas);border:1px solid var(--ui-color-border-default);border-radius:var(--radius);
+  outline:none;transition:border-color var(--ui-motion-feedback)}
+.docs-search-input::placeholder{color:var(--ui-color-text-muted);opacity:1}
+.docs-search-input:focus{border-color:var(--ui-color-focus-ring)}
+/* The app restores a 2px ring on its own field for keyboard readers (a11y.css:
+   the tinted 1px border alone is too faint), and so does this one. */
+.docs-search-input:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:2px}
+/* The app's clear control (gallery.css .gallery-search-clear) in place of the
+   browser's own glyph. Below 1000px, with the field open over the bar, it stays
+   visible and closes the field when there is nothing to clear. */
+.docs-search-input::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;display:none}
+.docs-search-clear{position:absolute;inset-inline-end:6px;top:50%;transform:translateY(-50%);width:calc(24px * var(--a11y-fs));height:calc(24px * var(--a11y-fs));display:inline-flex;align-items:center;justify-content:center;padding:0;border:0;border-radius:var(--radius-round);background:transparent;color:var(--ui-color-text-muted);font:inherit;font-size:var(--fs-md);line-height:1;cursor:pointer;transition:background var(--ui-motion-feedback),color var(--ui-motion-feedback)}
+.docs-search-clear[hidden]{display:none}
+.docs-search-clear:hover{background:var(--ui-color-surface-muted);color:var(--ui-color-text-default)}
+.docs-search-clear:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:1px}
+/* FIXED, not absolute, so the panel is never clipped by the bar and can be wider
+   than the field it hangs from. Fixed escapes the bar because nothing on the
+   ancestor chain establishes a containing block (no transform, no filter, and the
+   bar's blur is drawn by its ::before, not by the bar), and the script positions
+   it from the input's rect on scroll and resize.
 
    Width: wide enough for a result to read as three lines of prose rather than a
    column of single words. It is a floating overlay anchored to the field, so it is
@@ -2804,7 +3046,7 @@ ${LANDING_CSS}
 .spec-heads{list-style:none;margin:.15rem 0 .6rem 1.25rem;padding-left:.6rem;border-left:1px solid var(--border)}
 .spec-heads a{font-size:.8125rem;color:var(--muted);padding:.2rem .5rem}
 .spec-heads a.is-sub{padding-left:1.1rem}
-.sidebar-pathway{font-size:1.0625rem;font-weight:700;letter-spacing:-.01em;color:var(--dark);margin-top:2rem; margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+.sidebar-pathway{font-size:1.0625rem;font-weight:700;color:var(--dark);margin-top:2rem; margin-bottom:.75rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
 .docs-sidebar a{display:flex;align-items:flex-start;gap:.5rem;padding:.3rem .5rem;font-size:.875rem;color:var(--text);border-radius:5px}
 .docs-sidebar a:hover{color:var(--green);background:var(--pale);text-decoration:none}
 .docs-sidebar a.active{color:var(--green);font-weight:600;background:var(--pale)}
@@ -2849,6 +3091,9 @@ ${LANDING_CSS}
    properties so the Arabic build mirrors correctly. */
 .docs-content ul.icon-list{list-style:none;padding-inline-start:0;display:flex;flex-direction:column;gap:.9rem}
 .docs-content ul.icon-list>li.ic{display:flex;align-items:flex-start;gap:.75rem}
+/* The text column may shrink below its longest word, so a long link or code token
+   breaks instead of pushing the page sideways (a flex item keeps its min-content). */
+.docs-content ul.icon-list>li.ic>span:not(.li-icon){min-width:0}
 /* Technology marks (the <!--l:key--> md marker - docs/logos.ts). Sized in em so a
    mark tracks whatever text it sits in, capped so it cannot become an illustration,
    and nudged onto the baseline the way an inline image needs to be. Muted by default
@@ -2914,9 +3159,8 @@ ${LANDING_CSS}
 .li-icon{flex-shrink:0;width:1.35rem;height:1.35rem;margin-top:.2rem;color:var(--green)}
 .li-icon svg{width:100%;height:100%;display:block}
 .docs-content{padding:2.75rem 3.5rem 6rem;min-width:0}
-/* No band (a page with no h1 at all): the column is back to clearing the fixed nav
-   by itself, which is what the 6rem was always for. */
-.docs-content.no-mast{padding-top:6rem}
+/* No band (a page with no h1 at all): the column clears the fixed bar by itself. */
+.docs-content.no-mast{padding-top:calc(var(--site-bar-h) + 2.25rem)}
 /* ── Article masthead (docsMasthead + DOCS_MASTHEAD_SCRIPT) ───────────────────
    The page's own h1 over the chip field, FULL VIEWPORT WIDTH: the band is a sibling
    of .docs-wrap, so the sidebar rail and the article both begin underneath it. That
@@ -2931,16 +3175,27 @@ ${LANDING_CSS}
 
    isolation:isolate keeps the canvas's blend mode inside the band - without it the
    dark theme's color-dodge would reach the page behind. */
-.docs-masthead{position:relative;isolation:isolate;overflow:hidden;padding:calc(3.75rem + 3.25rem) 0 3rem;min-height:clamp(14rem,30vh,20rem);display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,var(--pale) 0%,var(--page) 100%)}
+.docs-masthead{position:relative;isolation:isolate;overflow:hidden;padding:calc(var(--site-bar-h) + 2.25rem) 0 2.25rem;min-height:clamp(14rem,30vh,20rem);display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,var(--pale) 0%,var(--page) 100%)}
 /* The dark plate stays a PLATE - a green a couple of steps up from the page - because
    color-dodge divides by the backdrop: over near-black (#061816) the chips resolve to
    near-black too and the field disappears. The gradient's last stop still reaches the
    page colour, so the band ends where the article begins. */
-[data-theme="dark"] .docs-masthead{background:linear-gradient(180deg,#16482f 0%,#0b2b21 58%,var(--page) 100%)}
+[data-theme="dark"] .docs-masthead,[data-theme="dark"] .docs-strip-band:not(.docs-strip-band--flow){background:linear-gradient(180deg,#16482f 0%,#0b2b21 58%,var(--page) 100%)}
 /* Same box as .docs-wrap, then indented past the rail: the h1 starts exactly where
-   the article's text will. Below 768px the rail is gone and so is the indent. */
-.docs-mast-inner{position:relative;z-index:2;max-width:1180px;width:100%;margin:0 auto;padding-inline:calc(220px + 3.5rem) 3.5rem}
+   the article's text will. Below 768px the rail is gone and so is the indent. It
+   holds two rows (plan 277 step 3c): the pathways strip, then the title row. */
+.docs-mast-inner{position:relative;z-index:2;max-width:1180px;width:100%;margin:0 auto;padding-inline:calc(220px + 3.5rem) 3.5rem;display:flex;flex-direction:column;gap:1.4rem}
 .docs-mast-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;opacity:.55}
+/* The chips are decoration under the title; the bar and the pathways strip above it
+   carry words, so the field fades in only below them. The banked art takes the same
+   line. --mast-clear sits on the band: MAST_CLEAR_SCRIPT sets it to the strip's own
+   foot, which moves with the band's height and the title's length; the values here
+   are the estimate a reader without JavaScript gets. */
+.docs-masthead{--mast-clear:calc(var(--site-bar-h) + 5rem)}
+@media(max-width:768px){.docs-masthead{--mast-clear:calc(var(--site-bar-h) + 4rem)}}
+.docs-mast-canvas,.docs-mast-art{
+  -webkit-mask-image:linear-gradient(180deg,transparent 0,transparent var(--mast-clear),#000 calc(var(--mast-clear) + 3rem));
+  mask-image:linear-gradient(180deg,transparent 0,transparent var(--mast-clear),#000 calc(var(--mast-clear) + 3rem))}
 /* Dark reuses the landing's own recipe (color-dodge over a dark plate); light gets
    a normal blend, because dodging on a near-white band blows the chips out to
    invisible white. Blend and opacity live here rather than in the JS: they are how
@@ -2952,6 +3207,7 @@ ${LANDING_CSS}
    into the page it sits on, which at full bleed is the whole difference between a
    masthead and a banner. */
 .docs-masthead::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse 70% 60% at 30% 88%,var(--mast-scrim) 0%,transparent 72%)}
+[dir="rtl"] .docs-masthead::before{background:radial-gradient(ellipse 70% 60% at 70% 88%,var(--mast-scrim) 0%,transparent 72%)}
 .docs-masthead::after{content:'';position:absolute;left:0;right:0;bottom:0;height:50%;z-index:1;pointer-events:none;background:linear-gradient(180deg,transparent 0%,var(--page) 94%)}
 :root{--mast-scrim:rgba(255,255,255,.82)}
 [data-theme="dark"]{--mast-scrim:rgba(6,24,22,.72)}
@@ -2963,9 +3219,38 @@ ${LANDING_CSS}
    is (0,1,1) and gives every page heading a bottom rule and 2rem of padding. Inside a
    band that rule is a second horizontal line under a heading that already sits on
    one, so it has to be out-specified rather than tied with. */
-.docs-masthead h1{margin:0;padding:0;border-bottom:0;color:var(--dark)}
+.docs-masthead h1{margin:0;padding:0;border-bottom:0;color:var(--dark);font-size:clamp(2.25rem,3.4vw,3rem);font-weight:300;line-height:1.15}
+/* The title row: the page's h1 (the in-app reader's title size and weight) with
+   Listen beside it as an app button, on the title's last line rather than over
+   the article's first. On a phone Listen wraps under the title. */
+.mast-title{display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:1rem 2rem}
+.mast-title h1{flex:1 1 18rem;min-width:0}
+.mast-title .listen-bar{margin:0 0 .35rem}
+/* The pathways strip at the top of the band (docs-chrome.css, which also makes it
+   one scrolling line on a phone, with its edge fades). */
+.docs-mast-inner .docs-pathways{margin:0}
+@media(max-width:640px){
+  .mast-title{gap:.75rem}
+  .mast-title .listen-bar{margin:0}
+}
+/* ── The strip band (wrapPage, pathwaysBand) ─────────────────────────────────
+   A page with no masthead (a format or conversion page, a specification chapter,
+   an immersive page, the landing) still opens its documentation sections with the
+   same strip: a slim band with the masthead's ground and no art or title. At the
+   top of a page it clears the fixed bar; on the landing it sits between the dark
+   hero and the first light band, where it does not compete with the hero. */
+.docs-strip-band{position:relative;padding:calc(var(--site-bar-h) + 1.75rem) 0 1.25rem;background:linear-gradient(180deg,var(--pale) 0%,var(--page) 100%)}
+.docs-strip-band .docs-pathways{margin:0}
+.docs-strip-band .docs-mast-inner{flex-direction:row;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.75rem 2rem}
+.docs-strip-band .docs-pathways{flex:1 1 auto;min-width:0}
+.docs-strip-band .listen-bar{margin:0}
+.docs-strip-band--flow{padding-block:1.75rem .5rem;background:var(--page)}
+.docs-strip-band--wide .docs-mast-inner{max-width:calc(1120px + 3rem);padding-inline:1.5rem}
+@media(max-width:768px){.docs-strip-band{padding-top:calc(var(--site-bar-h) + 1.25rem)}.docs-strip-band--flow{padding-top:1.25rem}}
+/* The article under a strip band no longer clears the bar by itself. */
+.docs-strip-band+.docs-wrap .docs-content.no-mast{padding-top:2rem}
 [data-theme="dark"] .docs-masthead h1{color:var(--text)}
-@media(max-width:768px){.docs-masthead{padding:calc(3.75rem + 1.75rem) 0 1.75rem;min-height:9rem}.docs-mast-inner{padding-inline:1rem}}
+@media(max-width:768px){.docs-masthead{padding:calc(var(--site-bar-h) + 1.5rem) 0 1.5rem;min-height:9rem}.docs-mast-inner{padding-inline:1rem}}
 /* ── Banked masthead art (MASTHEADS + docs-art.ts) ────────────────────────────
    A signed artifact inlined in place of the chip canvas. SAME BAND: same padding,
    min-height, scrims and hoisted h1 - the only thing that changes is what is painted
@@ -3061,6 +3346,13 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
    showcase block below makes the vector argument outright (it animates real
    geometry). */
 .shot{display:block;position:relative;width:fit-content;max-width:100%;margin:0 auto}
+/* The frame takes its screenshot's final size before the image loads: the width the
+   image will have (its own width, capped by the column and by the 50em height limit at
+   its ratio), from the size the renderer records on the wrapper. The image then fills
+   it. The screenshot rule's width:auto gave an unloaded image no size at all, so pages
+   grew as images arrived and section links landed far short of their heading. */
+.shot[style*="--shot-w"]{width:min(calc(var(--shot-w) * 1px),100%,calc(50em * var(--shot-w) / var(--shot-h)))}
+.shot[style*="--shot-w"]>img{width:100%}
 .shot>img{margin:0}
 /* The hidden start state is gated on .shots-motion, which the pre-paint script in
    <head> adds. A shot must NEVER be able to strand itself at opacity 0: with no
@@ -3238,11 +3530,16 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
 [data-theme="dark"] .shot-cred-line{background:hsl(var(--popover) / 0.93);box-shadow:0 2px 10px #0007, inset 0 0 0 1px hsl(var(--border))}
 [data-theme="dark"] .shot-cred-do:hover{background:hsl(var(--foreground) / 0.08)}
 @media(prefers-reduced-motion:reduce){.shot-cred-line{transition:none;transform:none}}
-/* Narrow columns: the line would be wider than the shot, so it stacks above the
-   glyph instead of beside it and takes the shot's full width. */
+/* Narrow columns: the line stacks above the glyph instead of beside it. The box
+   stays anchored to the inline-END corner only and grows toward inline-start, the
+   side a page never scrolls to (left in LTR, right in RTL). Pinning the start edge
+   as well used to stretch the box toward the scrolling side: on a small crop the
+   mark left its artwork and the page gained a sideways scroll, open or closed.
+   SHOT_CRED_SCRIPT sets --cred-shift on open so a long line stays on screen; the
+   independent translate property composes with the open/close transform. */
 @media(max-width:640px){
-  .shot-cred{flex-direction:column;align-items:flex-end;inset-inline-start:.7rem}
-  .shot-cred-line{max-width:100%;transform:translateY(.4rem)}
+  .shot-cred{flex-direction:column;align-items:flex-end}
+  .shot-cred-line{max-width:min(26rem,calc(100vw - 2rem));transform:translateY(.4rem);translate:var(--cred-shift,0px) 0}
 }
 
 /* ── Geometry showcase (::: showcase - one inlined vector shot) ─────────────
@@ -3270,8 +3567,12 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
   box-shadow:inset 0 0 0 1px hsl(var(--border)), 0 3px 8px #00000073, 0 6px 2em #0000004d}
 /* The <img> the build emits, and the live SVG that replaces it, must occupy the
    same box - the swap happens under the reader's eyes and any size change would
-   read as a jump rather than an upgrade. */
-.showcase-fallback,.showcase-art{display:block;width:min(100%,40em);height:auto;margin:0;border-radius:1.2em}
+   read as a jump rather than an upgrade, and moves every heading below it. The
+   fallback is a shot, so the screenshot rule above sizes it (width auto, capped at
+   the column and 50em tall); the art follows the same rule, from the width and
+   height the showcase script copies over from the image. */
+.showcase-fallback,.showcase-art{display:block;height:auto;margin:0;border-radius:1.2em}
+.showcase-art{width:auto;max-width:100%;max-height:50em}
 .showcase-art{filter:grayscale(calc(1 - var(--p)))}
 /* The stagger. Each leaf gets --i (its paint-order index) and the root gets --n
    (the total) from the showcase script; ×2.2 fades each shape over a fraction of
@@ -3364,10 +3665,10 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
 .docs-content h2:first-of-type{border-top:none;padding-top:0;margin-top:0}
 .docs-content h3{font-size:1.15rem;margin-top:1.75rem;margin-bottom:.5rem;color:var(--dark)}
 .docs-content h4{font-size:1rem;margin-top:1.25rem;margin-bottom:.35rem;color:var(--muted)}
-/* The top nav is fixed at 3.75rem, so a heading landed on by an #anchor (the jump
-   nav below, a search result, a shared deep link) would otherwise sit UNDER it. Same
-   idea as section[id] on the landing page, with room for the heading's rule. */
-.docs-content h2[id],.docs-content h3[id],.docs-content h4[id]{scroll-margin-top:5.5rem}
+/* The top bar is fixed, so a heading reached by an #anchor (the jump nav below, a
+   search result, a shared deep link) would otherwise sit UNDER it. Same idea as
+   section[id] on the landing page, with room for the heading's rule. */
+.docs-content h2[id],.docs-content h3[id],.docs-content h4[id]{scroll-margin-top:calc(var(--site-bar-h) + 1.75rem)}
 .docs-content ul,.docs-content ol{margin-bottom:1rem}
 /* ── "On this page" jump nav (long docs pages only - pageJumpNav) ─────────────
    Bottom-right, deliberately quiet: a 2.25rem disc that reads as page furniture
@@ -3378,10 +3679,10 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
 .doc-jump-btn{display:flex;align-items:center;justify-content:center;width:2.25rem;height:2.25rem;border-radius:999px;border:1px solid var(--border);background:var(--pale);color:var(--muted);cursor:pointer;box-shadow:0 2px 10px #0c322c1f;transition:color .12s,border-color .12s}
 .doc-jump-btn svg{width:1.1rem;height:1.1rem}
 .doc-jump-btn:hover,.doc-jump-btn[aria-expanded="true"]{color:var(--green);border-color:var(--green)}
-/* The first six declarations are RESETS, not choices: the bare nav element selector at
-   the top of this sheet IS the site's top bar (fixed, full-width, 3.75rem, flex), and
-   it lands on any <nav> on the page. The landing page's quicknav opts out the same
-   way. Losing them lays this panel out as a strip across the bottom of the window. */
+/* The first six declarations are RESETS, not choices. A bare nav element selector
+   used to be the site's top bar (fixed, full-width, flex) and landed on any <nav>
+   on the page; the bar is its own .site-bar now, and the resets stay so no element
+   rule can ever lay this panel out as a strip across the bottom of the window. */
 .doc-jump-nav{position:absolute;display:block;top:auto;width:auto;height:auto;overflow-x:hidden;transition:none;bottom:calc(100% + .5rem);inset-inline-end:0;min-width:14rem;max-width:min(20rem,calc(100vw - 2rem));max-height:min(60vh,26rem);overflow-y:auto;padding:.4rem;background:var(--pale);border:1px solid var(--border);border-radius:10px;box-shadow:0 10px 34px #0c322c26}
 .doc-jump-nav[hidden]{display:none}
 .doc-jump-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin:.15rem .5rem .35rem}
@@ -3455,7 +3756,7 @@ footer .founded-badge{margin-top:.5rem}
 .footer-sitemap{display:grid;grid-template-columns:repeat(2,1fr);align-items:start;gap:1.25rem 1.5rem;max-width:1180px;margin:0 auto 1.75rem;padding-bottom:1.75rem;border-bottom:1px solid var(--border);text-align:start}
 @media(min-width:34rem){.footer-sitemap{grid-template-columns:repeat(3,1fr)}}
 @media(min-width:64rem){.footer-sitemap{grid-template-columns:repeat(5,1fr)}}
-.footer-sitemap a{display:flex;align-items:flex-start;gap:.45em;color:var(--muted);text-decoration:none;padding:.15rem 0 .15rem;line-height:2}
+.footer-sitemap a{display:flex;align-items:flex-start;gap:.45em;color:var(--muted);text-decoration:none;padding:.15rem 0 .15rem;line-height:2;min-width:0;overflow-wrap:anywhere;hyphens:auto}
 .footer-sitemap a:hover{color:var(--green);text-decoration:underline}
 /* Every sitemap link opens with the SAME glyph the docs sidebar gives that page
    (SIDEBAR_ICON - one page→icon mapping, both navs), so the landmark a reader
@@ -3478,35 +3779,6 @@ footer .founded-badge{margin-top:.5rem}
 .footer-sitemap a.sitemap-title:hover{color:var(--green);text-decoration:underline}
 .sitemap-title .sitemap-ic{ width:2em; height:2em; color:var(--text);}
 
-/* Hamburger */
-.nav-hamburger{display:none;background:none;border:none;cursor:pointer;color:hsl(var(--on-band-dark) / .65);width:2.25rem;height:2.25rem;align-items:center;justify-content:center;border-radius:5px;padding:.3rem;flex-shrink:0}
-.nav-hamburger:hover{color:hsl(var(--on-band-dark));background:rgba(255,255,255,.1)}
-.nav-hamburger svg{width:1.25rem;height:1.25rem;pointer-events:none}
-.nav-hamburger .icon-close{display:none}
-.nav-hamburger.open .icon-menu{display:none}
-.nav-hamburger.open .icon-close{display:block}
-/* The panel scrolls on its own: below 768px it also carries the page nav (see
-   .nav-mobile-page), which on a builders page is longer than a phone screen.
-   overscroll-behavior keeps that scroll from continuing into the article behind it. */
-.nav-mobile-menu{display:none;position:fixed;top:3.75rem;left:0;right:0;background:hsl(var(--band-dark));border-bottom:1px solid rgba(255,255,255,.1);padding:1rem 1.5rem 1.5rem;z-index:99;flex-direction:column;gap:.125rem;max-height:calc(100vh - 3.75rem);overflow-y:auto;overscroll-behavior:contain}
-.nav-mobile-menu.open{display:flex}
-.nav-mobile-menu a{color:hsl(var(--on-band-dark) / .7);font-size:.9375rem;padding:.625rem .625rem;border-radius:6px;display:block;text-decoration:none}
-.nav-mobile-menu a:hover{color:hsl(var(--on-band-dark));background:rgba(255,255,255,.07)}
-.nav-mobile-menu a.active{color:hsl(var(--band-accent));font-weight:600}
-.nav-mobile-menu .nav-launch{background:hsl(var(--band-accent));color:hsl(var(--band-dark))!important;font-weight:700;text-align:center;margin-top:.75rem;padding:.75rem;border-radius:8px}
-.nav-mobile-menu .nav-launch:hover{background:hsl(var(--band-accent) / .82)}
-/* Page nav inside the hamburger panel. Hidden by default and switched on at 768px
-   only: from 768 to 1100px the hamburger is open for business while the rail is
-   still on screen, and listing the same links twice would be noise. The rule sits
-   with the other panel styles rather than in the media query so the two kinds of
-   navigation are described in one place. */
-.nav-mobile-page{display:none;margin-top:.75rem;padding-top:.75rem;border-top:1px solid rgba(255,255,255,.14)}
-.nav-mobile-title{color:hsl(var(--band-accent));font-size:.8125rem;font-weight:700;letter-spacing:.02em;padding:0 .625rem .25rem}
-/* .55 not .42 - at 42% over the panel's #0c322c this computes to 3.7:1, under AA
-   for 11px text. .55 clears 5.3:1 and still reads as a quieter tier than the
-   links at .7. */
-.nav-mobile-label{font-size:.6875rem;text-transform:uppercase;letter-spacing:.1em;color:hsl(var(--on-band-dark) / .55);font-weight:700;margin:.75rem 0 .125rem;padding:0 .625rem}
-
 /* Mobile */
 @media(max-width:900px){
   .platform-whats-wrap{flex-direction:column}
@@ -3518,33 +3790,17 @@ footer .founded-badge{margin-top:.5rem}
   .tool-anatomy{max-width:720px;margin:0 auto 2rem}
   .platform-features{grid-template-columns:repeat(2,1fr)}
 }
-/* Collapse the top nav to a hamburger before its links overflow into a horizontal
-   scroll. The full link row needs ~1032px; collapse at 1100px for a cross-browser /
-   font-fallback margin. (The docs grid + content keep reflowing at 768px below.) */
-@media(max-width:1100px){
-  nav{overflow-x:visible}
-  /* Collapse the desktop nav links into the hamburger - but NOT the search-result
-     anchors, which are also <a> inside <nav> (the results panel lives in .docs-search).
-     Without the exemption this rule hid every hit, collapsing the results panel to an
-     empty strip on any viewport ≤1100px, and neither the jump nav's section links
-     (.doc-jump-nav), for the same reason. The GitHub mark beside the theme switch is
-     an <a> too, and stays: it is a control of the bar, not a link of the row. */
-  nav:not(.quicknav):not(.doc-jump-nav) a:not(.brand):not(.docs-search-hit):not(.nav-github){display:none}
-  nav .nav-group{display:none}
-  .nav-hamburger{display:flex}
-}
 @media(max-width:768px){
   .docs-wrap{grid-template-columns:1fr}
   /* The rail goes away rather than stacking above the article: as a static block it
      put a screenful of nav in front of the first sentence of every short page. Its
-     links reappear inside the hamburger panel (.nav-mobile-page), which is switched
-     on by the same breakpoint. */
+     links reappear inside the phone menu (.site-menu), which the same breakpoint
+     shows. */
   .docs-sidebar{display:none}
-  .nav-mobile-page{display:block}
-  /* Top padding must still clear the 3.75rem FIXED nav - collapsing it with the
-     side padding slid every page's h1 underneath the bar on phones. */
+  /* Top padding must still clear the FIXED bar - collapsing it with the side
+     padding slid every page's h1 underneath the bar on phones. */
   .docs-content{padding:1.75rem 1rem 1.5rem}
-  .docs-content.no-mast{padding-top:5.25rem}
+  .docs-content.no-mast{padding-top:calc(var(--site-bar-h) + 1.5rem)}
   .audience-card{
     --aud-card-display:flex;
     display:flex;flex-direction:column;
@@ -3563,28 +3819,10 @@ footer .founded-badge{margin-top:.5rem}
   .tool-features{grid-template-columns:1fr}
   .card-benefits{grid-template-columns:1fr}
   .try-now-callout{position:static;transform:none;width:auto;margin-top:1.75rem;flex-direction:column;align-items:stretch}
-  .try-now-callout .btn{text-align:center;justify-content:center}
+  .try-now-callout .hero-btn{text-align:center;justify-content:center}
 }
 
 
-
-/* Theme toggle */
-.nav-theme-toggle{background:none;border:none;cursor:pointer;color:hsl(var(--on-band-dark) / .65);width:2rem;height:2rem;display:flex;align-items:center;justify-content:center;border-radius:5px;padding:.25rem;flex-shrink:0;margin-left:.25rem}
-.nav-theme-toggle:hover{color:hsl(var(--on-band-dark));background:rgba(255,255,255,.1)}
-.nav-theme-toggle svg{width:1.1rem;height:1.1rem;pointer-events:none}
-/* The repository, one glyph beside the theme switch (Andy, 2026-09-04): same footprint,
-   same colour ramp, a plain link - the code is the product's proof and belongs in the chrome. */
-.nav-github{color:hsl(var(--on-band-dark) / .65);width:2rem;height:2rem;display:flex;align-items:center;justify-content:center;border-radius:5px;padding:.25rem;flex-shrink:0;margin-left:.25rem;text-decoration:none}
-.nav-github:hover{color:hsl(var(--on-band-dark));background:rgba(255,255,255,.1)}
-.nav-github svg{width:1.1rem;height:1.1rem;pointer-events:none}
-/* Show the ACTIVE theme's glyph. Default (light, incl. no [data-theme]) = sun;
-   dark = moon; brand = palette. Each theme hides the other two. */
-.nav-theme-toggle .icon-moon,.nav-theme-toggle .icon-brand{display:none}
-.nav-theme-toggle .icon-sun{display:block}
-[data-theme="dark"] .nav-theme-toggle .icon-sun{display:none}
-[data-theme="dark"] .nav-theme-toggle .icon-moon{display:block}
-[data-theme="brand"] .nav-theme-toggle .icon-sun{display:none}
-[data-theme="brand"] .nav-theme-toggle .icon-brand{display:block}
 
 /* Dark mode. The token redefinitions that used to live here are gone: the DOCS_BRIDGE
    above maps --text/--muted/--border/--pale/--page onto the app's [data-theme]-driven
@@ -3662,23 +3900,21 @@ footer .founded-badge{margin-top:.5rem}
    always reads LTR - isolate it so surrounding RTL prose doesn't scramble
    leading/trailing punctuation. Mirrors the SPA's parts/rtl.css. */
 [dir="rtl"] pre,[dir="rtl"] code,[dir="rtl"] kbd,[dir="rtl"] samp{direction:ltr;text-align:left;unicode-bidi:isolate}
-/* The nav row mirrors under RTL, putting the lang FAB toward the LEFT edge -
-   follow it with the menu (which is otherwise pinned right:1.5rem physically). */
-[dir="rtl"] .lang-menu{right:auto;left:1.5rem}
 `.trim();
 
+// The three theme glyphs are the app's (shells/web/src/theme.ts THEME_ICONS): sun,
+// crescent moon, and a painter's palette for the mid-toned, palette-driven 'brand'
+// chrome, so the three read at a glance and match the app's own switch.
 const THEME_SVG_MOON = `<svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
-const THEME_SVG_SUN  = `<svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
-// The third theme: the app's mid-toned, palette-driven 'brand' chrome (theme.ts
-// THEME_ICONS.brand). A painter's palette so the three glyphs read at a glance.
-const THEME_SVG_BRAND = `<svg class="icon-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 1 10-10c0 2.5-2 3-3.5 3H16a2 2 0 0 0-1 3.75A1.3 1.3 0 0 1 12 22z"/><circle cx="13.5" cy="6.5" r=".8"/><circle cx="17.5" cy="10.5" r=".8"/><circle cx="8.5" cy="7.5" r=".8"/><circle cx="6.5" cy="12.5" r=".8"/></svg>`;
-// Icon-only cycle button showing the ACTIVE theme's glyph (CSS below picks which,
-// off [data-theme]) - matching the app's createThemeToggle. Clicking steps
+const THEME_SVG_SUN  = `<svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`;
+const THEME_SVG_BRAND = `<svg class="icon-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22a10 10 0 1 1 10-10c0 2.5-2 3-3.5 3H16a2 2 0 0 0-1 3.75A1.3 1.3 0 0 1 12 22z"/><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/></svg>`;
+// Icon-only cycle button showing the ACTIVE theme's glyph (CSS picks which, off
+// [data-theme]) - matching the app's createThemeToggle. Clicking steps
 // light → dark → brand → light (THEME_INTERACT_SCRIPT).
-const THEME_TOGGLE   = `<button class="nav-theme-toggle" aria-label="Switch theme (light, dark, brand)" title="Switch theme - light / dark / brand">${THEME_SVG_SUN}${THEME_SVG_MOON}${THEME_SVG_BRAND}</button>`;
+const THEME_TOGGLE   = `<button type="button" class="site-fab site-fab--theme" aria-label="Switch theme (light, dark, brand)" title="Switch theme - light / dark / brand">${THEME_SVG_SUN}${THEME_SVG_MOON}${THEME_SVG_BRAND}</button>`;
 // The source, next to the theme switch. The GitHub mark is a proper noun's glyph, so the
 // label is not a t() key (the site corpus would otherwise ask 26 translators for "GitHub").
-const GITHUB_LINK    = `<a class="nav-github" href="https://github.com/lolly-tools/lolly" aria-label="Lolly on GitHub" title="GitHub" rel="noopener" target="_blank"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a>`;
+const GITHUB_LINK    = `<a class="site-fab site-fab--github" href="https://github.com/lolly-tools/lolly" aria-label="Lolly on GitHub" title="GitHub" rel="noopener" target="_blank"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a>`;
 
 // The theme lives on [data-theme] (the app's mechanism, so the inlined tokens.css themes),
 // and the legacy `.dark` CLASS is kept in lock-step with it - purely so the banked masthead
@@ -3694,7 +3930,23 @@ const THEME_INIT_SCRIPT = `<script>(function(){var c=localStorage.getItem('theme
 // first frame is painted. It only ARMS the screenshot motion - SHOT_MOTION_SCRIPT
 // at end-of-body is what lands each shot. Without JS neither runs, the class is
 // absent, and the shots are plain visible images.
+// Without JavaScript the phone menu still opens (it is a native <details>), but search,
+// the language menu and the theme choice cannot run. Hide those controls rather than
+// leave dead ones in the bar and the menu; every link stays. The landing's bar keeps its
+// Launch App, which otherwise waits for the script to see the hero pass.
+const NOSCRIPT_NAV = `<noscript><style>.docs-search,.site-fab--search,.site-fab--lang,.site-fab--theme,.site-sheet .profile-menu-theme,.site-lang-row{display:none!important}@media(min-width:40.0625em){.site-bar--over-hero>.site-launch{display:inline-flex!important}}</style></noscript>`;
+
 const SHOT_MOTION_INIT = `<script>document.documentElement.classList.add('shots-motion');</script>`;
+
+// The masthead's decoration (the chip canvas or banked art) stays out of the pathways
+// strip's row: it may only appear from the strip's foot down. That foot moves with the
+// band's height and the title's length, so it is measured here and kept current as the
+// band resizes; the stylesheet's --mast-clear is the estimate without JavaScript.
+const MAST_CLEAR_SCRIPT = `<script>(function(){
+var band=document.querySelector('.docs-masthead'),strip=band&&band.querySelector('.docs-pathways');if(!strip)return;
+function fit(){var b=band.getBoundingClientRect(),r=strip.getBoundingClientRect();band.style.setProperty('--mast-clear',Math.round(r.bottom-b.top+8)+'px');}
+fit();if(window.ResizeObserver)new ResizeObserver(fit).observe(band);
+})();</script>`;
 
 // The formats table's educational dialog: click a chip → open a <dialog> naming the
 // format in full, describing it, and listing the properties Lolly supports. The whole
@@ -3729,9 +3981,10 @@ const FORMATS_DIALOG_SCRIPT = `<script>(function(){
     if(e.target===dlg)dlg.close();
   });
 })();</script>`;
-const THEME_INTERACT_SCRIPT = `<script>(function(){var order=['light','dark','brand'];var btn=document.querySelector('.nav-theme-toggle');if(!btn)return;function apply(t){var r=document.documentElement;r.dataset.theme=t;r.classList.toggle('dark',t==='dark'||t==='brand');localStorage.setItem('theme',t);}btn.addEventListener('click',function(){var cur=document.documentElement.dataset.theme||'light';var i=order.indexOf(cur);apply(order[i<0?0:(i+1)%order.length]);});window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',function(e){if(!localStorage.getItem('theme')){var r=document.documentElement;r.dataset.theme=e.matches?'dark':'light';r.classList.toggle('dark',e.matches);}});})();</script>`;
-
-const HAM_BTN = `<button class="nav-hamburger" id="navHamburger" aria-label="Toggle navigation" aria-expanded="false"><svg class="icon-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg><svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`;
+// The theme: the bar's cycle button and the phone menu's three-way segment set the same
+// [data-theme] and the same 'theme' key the app reads, and the segment's pressed state
+// follows whichever changed it (or the OS, while no choice is stored).
+const THEME_INTERACT_SCRIPT = `<script>(function(){var order=['light','dark','brand'];var r=document.documentElement;function sync(){var cur=r.dataset.theme||'light';document.querySelectorAll('[data-theme-set]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-theme-set')===cur));});}function apply(t){r.dataset.theme=t;r.classList.toggle('dark',t==='dark'||t==='brand');try{localStorage.setItem('theme',t);}catch(e){}sync();}var btn=document.querySelector('.site-fab--theme');if(btn)btn.addEventListener('click',function(){var cur=r.dataset.theme||'light';var i=order.indexOf(cur);apply(order[i<0?0:(i+1)%order.length]);});document.addEventListener('click',function(e){var s=e.target.closest&&e.target.closest('[data-theme-set]');if(s)apply(s.getAttribute('data-theme-set'));});window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',function(e){var stored=null;try{stored=localStorage.getItem('theme');}catch(err){}if(!stored){r.dataset.theme=e.matches?'dark':'light';r.classList.toggle('dark',e.matches);sync();}});sync();})();</script>`;
 
 /**
  * Screenshot settle. Its own observer rather than a `.reveal` class on each shot,
@@ -3804,8 +4057,12 @@ const SHOWCASE_SCRIPT = `<script>(function(){
       svg.setAttribute('class','showcase-art');
       svg.setAttribute('aria-hidden','true');
       svg.setAttribute('focusable','false');
-      svg.removeAttribute('width');svg.removeAttribute('height');
+      // The figure is fit-content, so the art's intrinsic width sizes it. An SVG with
+      // no width of its own falls back to the caption's width and the block shrinks
+      // under the reader, moving every heading below it: carry the image's size over.
       var img=fig.querySelector('.showcase-fallback');
+      svg.removeAttribute('width');svg.removeAttribute('height');
+      if(img&&img.getAttribute('width')&&img.getAttribute('height')){svg.setAttribute('width',img.getAttribute('width'));svg.setAttribute('height',img.getAttribute('height'));}
       var stage=fig.querySelector('.showcase-stage');
       if(!stage)return;
       // The image carried the accessible description; the live SVG is decorative,
@@ -3914,15 +4171,28 @@ const SHOT_CRED_SCRIPT = `<script>(function(){
   var creds=document.querySelectorAll('.shot-cred:not([data-static])');if(!creds.length)return;
   function close(c){c.removeAttribute('data-open');var b=c.querySelector('.shot-cred-btn');if(b)b.setAttribute('aria-expanded','false');}
   function closeAll(except){creds.forEach(function(c){if(c!==except)close(c);});}
+  // Keep an opened line inside the viewport. It grows from the artwork's corner
+  // toward inline-start, so on a narrow crop it can run past that edge of the
+  // screen; measure it and slide it back by the overshoot (plus an 8px margin).
+  function clamp(c){
+    var line=c.querySelector('.shot-cred-line');if(!line)return;
+    line.style.setProperty('--cred-shift','0px');
+    var r=line.getBoundingClientRect(),edge=8,w=document.documentElement.clientWidth;
+    var shift=r.left<edge?edge-r.left:(r.right>w-edge?w-edge-r.right:0);
+    if(shift)line.style.setProperty('--cred-shift',Math.round(shift)+'px');
+  }
   creds.forEach(function(c){
     var btn=c.querySelector('.shot-cred-btn');if(!btn)return;
+    btn.addEventListener('mouseenter',function(){clamp(c);});
+    btn.addEventListener('focus',function(){clamp(c);});
     btn.addEventListener('click',function(e){
       e.preventDefault();
       var open=!c.hasAttribute('data-open');
       closeAll(c);
-      if(open){c.setAttribute('data-open','');btn.setAttribute('aria-expanded','true');}else close(c);
+      if(open){clamp(c);c.setAttribute('data-open','');btn.setAttribute('aria-expanded','true');}else close(c);
     });
   });
+  window.addEventListener('resize',function(){var o=document.querySelector('.shot-cred[data-open]');if(o)clamp(o);});
   // Escape closes the open line and returns focus to its trigger, matching how the
   // app's own overlays behave.
   document.addEventListener('keydown',function(e){
@@ -4447,6 +4717,21 @@ function score(r,terms){
 
 function close(){out.hidden=true;out.textContent='';active=-1;input.setAttribute('aria-expanded','false');input.removeAttribute('aria-activedescendant');}
 
+// Below 1000px the field folds into a round button (.site-fab--search). Pressing it
+// opens the field over the bar and moves focus there; Escape on an empty field, or a
+// tap anywhere else, folds it again and returns focus to the button.
+var fab=document.querySelector('.site-fab--search'),bar=wrap.closest('.site-bar');
+// The clear control: shown while there is text to clear, and also while the folded field
+// is open over the bar, where it is the visible way to close the field again. Its name
+// says which it will do.
+var clearBtn=wrap.querySelector('.docs-search-clear');
+function syncClear(){if(!clearBtn)return;var open=!!bar&&bar.classList.contains('is-searching');clearBtn.hidden=!input.value&&!open;clearBtn.setAttribute('aria-label',input.value?(clearBtn.getAttribute('data-clear')||'Clear search'):(clearBtn.getAttribute('data-close')||'Close'));}
+function openField(){if(!bar)return;bar.classList.add('is-searching');fab.setAttribute('aria-expanded','true');input.focus();load();syncClear();}
+function foldField(focusFab){if(!bar||!bar.classList.contains('is-searching'))return;bar.classList.remove('is-searching');if(fab){fab.setAttribute('aria-expanded','false');if(focusFab)fab.focus();}syncClear();}
+if(fab)fab.addEventListener('click',openField);
+if(clearBtn)clearBtn.addEventListener('click',function(){if(input.value){input.value='';close();syncClear();input.focus();}else foldField(true);});
+input.addEventListener('input',syncClear);
+
 // The panel is position:fixed to escape the sidebar's scroll clipping, so it has
 // to be told where the input is - and told again whenever that moves. Clamped so
 // a narrow window can't push it off the inline edge.
@@ -4507,14 +4792,27 @@ input.addEventListener('keydown',function(e){
   if(e.key==='ArrowDown'){e.preventDefault();move(1);}
   else if(e.key==='ArrowUp'){e.preventDefault();move(-1);}
   else if(e.key==='Enter'){var l=out.querySelector('.docs-search-hit.is-active');if(l){e.preventDefault();l.click();}}
-  else if(e.key==='Escape'){if(input.value){input.value='';close();}else{input.blur();}}
+  else if(e.key==='Escape'){if(input.value){input.value='';close();syncClear();}else if(bar&&bar.classList.contains('is-searching')){foldField(true);}else{input.blur();}}
 });
-document.addEventListener('click',function(e){if(!wrap.contains(e.target)&&!out.contains(e.target))close();});
+document.addEventListener('click',function(e){if(!wrap.contains(e.target)&&!out.contains(e.target)){close();if(!fab||!fab.contains(e.target))foldField(false);}});
 addEventListener('resize',place);
 addEventListener('scroll',place,true);   // capture: the rail scrolls, not the window
 })();</script>`;
 
-const HAMBURGER_SCRIPT = `<script>(function(){var ham=document.getElementById('navHamburger');var menu=document.getElementById('navMobileMenu');if(!ham||!menu)return;ham.addEventListener('click',function(){var open=menu.classList.toggle('open');ham.classList.toggle('open',open);ham.setAttribute('aria-expanded',open?'true':'false');});menu.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){menu.classList.remove('open');ham.classList.remove('open');ham.setAttribute('aria-expanded','false');});});document.addEventListener('click',function(e){if(!menu.contains(e.target)&&!ham.contains(e.target)){menu.classList.remove('open');ham.classList.remove('open');ham.setAttribute('aria-expanded','false');}});})();</script>`;
+// The phone menu is a native <details>, so it opens and closes with no script at all.
+// This adds what a disclosure lacks as an overlay. Focus moving out of the menu closes
+// it (the WAI-ARIA disclosure navigation pattern), so the next control a keyboard
+// reader reaches is never hidden under the open sheet (WCAG 2.4.11). Escape closes the
+// menu too: focus returns to the menu button when it was inside the menu, and stays
+// where it is otherwise. A tap outside the menu, or on one of its links, also closes the menu.
+const HAMBURGER_SCRIPT = `<script>(function(){
+var menu=document.querySelector('.site-menu');if(!menu)return;var sum=menu.querySelector('summary');
+function close(focus){if(!menu.open)return;menu.open=false;if(focus&&sum)sum.focus();}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&menu.open){e.preventDefault();close(menu.contains(document.activeElement));}});
+document.addEventListener('pointerdown',function(e){if(menu.open&&!menu.contains(e.target))close(false);});
+menu.addEventListener('focusout',function(e){if(menu.open&&e.relatedTarget&&!menu.contains(e.relatedTarget))close(false);});
+menu.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.site-sheet a[href]'))close(false);});
+})();</script>`;
 
 // The "On this page" jump nav (pageJumpNav, near wrapPage). Deliberately does NOT
 // touch scrolling: the links are ordinary anchors, so the browser's own jump - and
@@ -4707,7 +5005,7 @@ function localizeHref(lang: Lang, href: string): string {
 // this static-site generator has no shared module boundary with the SPA.
 const LANG_ICON_SVG = `<svg class="lang-switch-icon" viewBox="0 0 440.332 510.236" fill="currentColor" aria-hidden="true"><path d="m311.768 445.719 12.531 20.615c-31.404 20.067-66.19 30.034-103.148 33.127h-16.436c-3.287 0-19.54-2.008-20.088-2.008-6.026-.913-12.235-2.009-17.896-3.287q-15.34-3.562-30.68-9.315c-7.487-2.739-15.34-6.391-22.28-9.86-3.469-1.644-6.573-3.287-9.86-5.296-1.096-.548-6.94-4.748-9.862-4.748-3.287 0-5.297 2.556-5.297 5.295 0 1.644.184 3.106 2.375 4.566 12.418 8.218 25.566 14.426 38.166 19.174 6.94 2.74 14.063 5.296 21.367 7.305 4.2 1.278 8.948 2.558 13.33 3.47 5.662 1.279 11.689 2.375 17.35 3.288 6.392.913 13.15 1.643 19.541 2.191 36.8 0 80.597-5.566 122.537-30.498 1.721-1.243 4.493-2.286 6.744-3.758l11.428 18.801 15.725-45.576z"/><path d="m639.838 180.403-40.768-12.976V48.363c0-3.47-2.557-5.843-5.844-5.843-2.556 0-84.917 28.306-91.492 30.68-22.334 7.444-86.798 29.733-86.798 29.733-1.034.297-2.638.787-4.741 1.449L252.855 48.85a1.826 1.826 0 0 0-2.435 1.722v106.724c-24.405 8.17-41.808 14.02-42.701 14.335-1.644.548-4.2.913-5.662 2.922-.73.73-.913 2.009-1.278 2.922v306.982c0 .365.183.547.183.73 1.095 2.374 3.104 3.835 5.296 3.835 2.739 0 208.367-69.03 212.933-70.856.215-.072.458-.24.697-.438L638.73 487.48a1.826 1.826 0 0 0 2.38-1.74V182.143c0-.795-.514-1.5-1.272-1.74M410.973 409.4l-199.054 66.29V182.04l199.054-66.29ZM587.93 55.668v108.213l-164.492-52.354Zm-20.243 329.6-10.52-38.43-60.517-18.341-13.013 31.304-29.292-8.886 62.178-152.587 28.508 8.636 51.939 187.188zm-183.723-51.715c-1.658-.602-35.965-14.814-40.828-17.142-3.98-1.914-13.737-6.04-18.328-7.913 12.931-19.938 21.094-34.984 22.18-37.276 2.012-4.193 15.699-30.976 16.018-32.625.31-1.67.7-7.843.399-9.31-.302-1.495-5.32 1.38-12.134 3.69-6.824 2.3-19.794 10.735-24.803 11.793-5.027 1.048-21.094 7.135-29.316 9.863s-23.773 7.475-30.17 9.202c-6.406 1.728-11.998 1.865-15.581 2.951 0 0 .477 5.019 1.428 6.523.94 1.505 4.33 5.194 8.27 6.224 3.942 1.037 10.465.62 13.436-.058 2.97-.69 8.114-3.204 8.804-4.301.698-1.116-.36-4.553.814-5.592 1.186-1.028 16.843-4.688 22.755-6.474 5.911-1.817 28.54-9.61 31.607-9.213-.971 3.223-19.173 39.276-25.035 50.032-5.864 10.755-39.926 58.07-47.177 66.408-5.505 6.338-18.843 22.558-23.463 26.218 1.165.322 9.425-.387 10.93-1.318 9.377-5.777 24.996-25.22 30.026-31.142 14.949-17.532 28.083-35.947 38.497-51.75h.011c2.03.845 18.434 14.21 22.714 17.173 4.281 2.96 21.173 12.385 24.833 13.948 3.66 1.583 17.725 8.068 18.317 5.873.591-2.213-2.544-15.154-4.204-15.784m-106.167-120.33c-1.118-1.098 1.455 8.968 5.036 12.59 6.35 6.405 11.31 7.23 13.95 7.337 5.844.233 13.056-1.456 17.338-3.25 4.144-1.769 11.405-5.476 14.153-10.883.583-1.156 2.173-3.097 1.174-7.893-.757-3.689-3.106-4.98-5.97-4.775-2.863.193-11.532 2.505-15.725 3.794-4.194 1.273-12.834 3.903-16.6 4.72-3.756.814-12.038-.379-13.356-1.64" transform="translate(-200.78 -42.52)"/><path d="m529.556 247.883-21.718 52.496 39.929 12.104z" transform="translate(-200.78 -42.52)"/></svg>`;
 const NAV_ICON_SPRITE = createIconSprite({ language: LANG_ICON_SVG, sun: THEME_SVG_SUN, moon: THEME_SVG_MOON, brand: THEME_SVG_BRAND,
-  ...Object.fromEntries([...`${GITHUB_LINK}${HAM_BTN}`.matchAll(/<svg\b[\s\S]*?<\/svg>/g)].map((match, i) => [`nav-${i}`, match[0]])),
+  ...Object.fromEntries([...GITHUB_LINK.matchAll(/<svg\b[\s\S]*?<\/svg>/g)].map((match, i) => [`nav-${i}`, match[0]])),
 });
 
 // The persistent, combined language picker - same control, same options, on
@@ -4739,13 +5037,17 @@ function langPickerHtml(lang: Lang, slug: string): string {
     `<button type="button" class="lang-menu-item" data-lang="${l}" data-href="${esc(localeHref(l, slug))}" data-name="${esc(LANG_META[l].nativeName)}" data-speakers="${LANG_META[l].speakers}" data-idx="${i}" aria-pressed="${l === lang}">${flags(l)}<span class="lang-menu-name">${esc(LANG_META[l].nativeName)}</span></button>`,
   ).join('');
   const sortTabs = `<div class="lang-sort-tabs" role="tablist" aria-label="${esc(t('Sort languages'))}"><button type="button" class="lang-sort-tab" role="tab" data-sort="speakers" aria-selected="true">№ ${esc(t('Speakers'))}</button><button type="button" class="lang-sort-tab" role="tab" data-sort="az" aria-selected="false">A–Z</button></div>`;
-  return `<div class="lang-fab-wrap"><button type="button" class="lang-fab" aria-label="${esc(t('Language'))}" aria-haspopup="menu" aria-expanded="false" title="${esc(t('Language'))}">${LANG_ICON_SVG}</button><div class="lang-menu" role="group" aria-label="${esc(t('Language'))}" hidden>${sortTabs}<div class="lang-menu-list" role="menu" aria-label="${esc(t('Language'))}">${options}</div></div></div>`;
+  return `<div class="lang-fab-wrap"><button type="button" class="site-fab site-fab--lang" aria-label="${esc(t('Language'))}" aria-haspopup="menu" aria-expanded="false" title="${esc(t('Language'))}">${LANG_ICON_SVG}</button><div class="lang-menu" role="group" aria-label="${esc(t('Language'))}" hidden>${sortTabs}<div class="lang-menu-list" role="menu" aria-label="${esc(t('Language'))}">${options}</div></div></div>`;
 }
 const LANG_PICKER_SCRIPT = `<script>
 (function(){
-  const trigger = document.querySelector('.lang-fab');
+  // Two ways in: the round Language button in the bar, and the Language row in the
+  // phone menu. The row closes the menu first, so the language menu then hangs from the
+  // menu's own button, which is where focus returns when it closes.
+  const triggers = [...document.querySelectorAll('.site-fab--lang, .site-lang-row')];
   const menu = document.querySelector('.lang-menu');
-  if (!trigger || !menu) return;
+  if (!triggers.length || !menu) return;
+  let anchor = triggers[0];
   const list = menu.querySelector('.lang-menu-list');
   const sortTabs = [...menu.querySelectorAll('.lang-sort-tab')];
   // Reorder the menu in place: speakers (descending data-speakers) or A–Z
@@ -4762,34 +5064,51 @@ const LANG_PICKER_SCRIPT = `<script>
   }
   try { if (localStorage.getItem('langSort') === 'az') applySort('az', false); } catch (err) {}
   let isOpen = false;
+  // Under the button it hangs from, its inline-end edge on the button's, held 8px
+  // inside the window either way and no taller than the room below.
   function positionMenu() {
-    const rect = trigger.getBoundingClientRect();
+    const rect = anchor.getBoundingClientRect();
+    const vw = document.documentElement.clientWidth;
+    const w = menu.offsetWidth;
     menu.style.top = (rect.bottom + 8) + 'px';
+    menu.style.maxHeight = Math.max(160, window.innerHeight - rect.bottom - 24) + 'px';
+    if (document.documentElement.dir === 'rtl') {
+      menu.style.right = 'auto';
+      menu.style.left = Math.max(8, Math.min(rect.left, vw - w - 8)) + 'px';
+    } else {
+      menu.style.left = 'auto';
+      menu.style.right = Math.max(8, Math.min(vw - rect.right, vw - w - 8)) + 'px';
+    }
   }
-  function close() {
+  function close(returnFocus) {
     if (!isOpen) return;
     menu.hidden = true;
-    trigger.setAttribute('aria-expanded', 'false');
+    triggers.forEach(t => t.setAttribute('aria-expanded', 'false'));
     isOpen = false;
     document.removeEventListener('pointerdown', onOutside);
     document.removeEventListener('keydown', onKey);
     window.removeEventListener('resize', positionMenu);
+    if (returnFocus && anchor) anchor.focus();
   }
-  function open() {
+  function open(from) {
     if (isOpen) return;
+    const sheet = from.closest('details');
+    if (sheet) { sheet.open = false; anchor = sheet.querySelector('summary') || from; } else anchor = from;
     menu.hidden = false;
-    trigger.setAttribute('aria-expanded', 'true');
+    from.setAttribute('aria-expanded', 'true');
     isOpen = true;
     positionMenu();
+    const current = menu.querySelector('.lang-menu-item[aria-pressed="true"]') || menu.querySelector('.lang-menu-item');
+    if (current) current.focus();
     setTimeout(() => document.addEventListener('pointerdown', onOutside), 0);
     document.addEventListener('keydown', onKey);
     window.addEventListener('resize', positionMenu);
   }
   function onOutside(e) {
-    if (!menu.contains(e.target) && !trigger.contains(e.target)) close();
+    if (!menu.contains(e.target) && !triggers.some(t => t.contains(e.target))) close(false);
   }
   function onKey(e) {
-    if (e.key === 'Escape') { e.stopPropagation(); close(); return; }
+    if (e.key === 'Escape') { e.stopPropagation(); close(true); return; }
     if (!['ArrowUp', 'ArrowDown'].includes(e.key)) return;
     const items = [...menu.querySelectorAll('.lang-menu-item')];
     const i = items.indexOf(document.activeElement);
@@ -4798,7 +5117,14 @@ const LANG_PICKER_SCRIPT = `<script>
     const step = e.key === 'ArrowDown' ? 1 : -1;
     items[(i + step + items.length) % items.length].focus();
   }
-  trigger.addEventListener('click', () => isOpen ? close() : open());
+  triggers.forEach(t => t.addEventListener('click', () => isOpen ? close(true) : open(t)));
+  // Focus moving on out of the open list closes it, so the control that takes focus
+  // next is never hidden beneath the list (WCAG 2.4.11). Back onto its own button is
+  // not leaving: the list hangs from there.
+  menu.addEventListener('focusout', e => {
+    const to = e.relatedTarget;
+    if (isOpen && to && !menu.contains(to) && !triggers.includes(to)) close(false);
+  });
   menu.addEventListener('click', e => {
     const tab = e.target.closest('.lang-sort-tab');
     if (tab) {
@@ -4817,32 +5143,98 @@ const LANG_PICKER_SCRIPT = `<script>
 })();
 </script>`;
 
-function buildNav(lang: Lang, slug: string, activeHref: string, isLanding: boolean | undefined, activePathway?: Pathway, ownPageNav?: string) {
-  const link = (n: NavLink) => {
-    const isActive = n.href === activeHref || NAV_PATHWAY[n.href] === activePathway;
-    return `<a href="${localeHref(lang, hrefToSlug(n.href))}"${isActive ? ' class="active"' : ''}>${esc(t(n.label))}</a>`;
-  };
-  // Desktop: one <span class="nav-group"> per cluster, dividers come from CSS.
-  const groups = NAV.map(group => `<span class="nav-group">${group.map(link).join('')}</span>`).join('');
-  // Mobile menu: a single flat vertical list (clusters collapse to plain rows).
-  const mobileLinks = NAV.flat().map(link).join('');
-  const navClass = isLanding ? '' : ' class="nav-solid"';
-  const launch = esc(t('Launch App ↗'));
+/**
+ * The pathways strip: Welcome (the landing) and the five documentation sections, as
+ * text tabs (plan 277 step 3c, decision D15). The in-app reader adopts this very
+ * element from the fetched page (lib/docs-nav.ts extractPathways), so both readers
+ * show one strip rather than two copies built apart. The current section is
+ * `.active`; `aria-current` says "page" on the section's own hub and "true" on a page
+ * within that section. A page with a masthead carries the strip at the top of its
+ * band; a page with none carries it in a slim band of its own (pathwaysBand).
+ *
+ * The phone menu opens with the same links as rows (`inSheet`): a plain group there,
+ * not a second navigation landmark of the same name, and not a `nav.docs-pathways`,
+ * so the in-app reader always adopts the page's own strip.
+ */
+function pathwaysStrip(lang: Lang, activeHref: string, activePathway: Pathway | undefined, isLanding: boolean, inSheet = false): string {
+  const tab = (href: string, label: string, current: '' | 'page' | 'true', extra = ''): string =>
+    `<a class="docs-pathway${extra}${current ? ' active' : ''}" href="${localeHref(lang, hrefToSlug(href))}"${current ? ` aria-current="${current}"` : ''}>${esc(label)}</a>`;
+  const home = tab('/info/index.html', t('Welcome'), isLanding ? 'page' : '', ' docs-pathway-home');
+  const links = NAV.flat().map((n) => {
+    const current = isLanding ? '' : n.href === activeHref ? 'page' : NAV_PATHWAY[n.href] === activePathway ? 'true' : '';
+    return tab(n.href, t(n.label), current);
+  }).join('');
+  return inSheet
+    ? `<div class="site-sheet-sections" role="group" aria-label="${esc(t('Documentation sections'))}">${home}${links}</div>`
+    : `<nav class="docs-pathways" aria-label="${esc(t('Documentation sections'))}">${home}${links}</nav>`;
+}
+
+/** The strip in a slim band of its own, for a page with no masthead: at the top of the
+ *  page (clearing the bar), or `flow` inside a page whose opening is its own (the
+ *  landing's hero). `wide` aligns it to a page without a rail. */
+function pathwaysBand(strip: string, opts: { flow?: boolean; wide?: boolean } = {}): string {
+  const cls = `docs-strip-band${opts.flow ? ' docs-strip-band--flow' : ''}${opts.wide ? ' docs-strip-band--wide' : ''}`;
+  return `<div class="${cls}"><div class="docs-mast-inner">${strip}</div></div>`;
+}
+
+/** One of the phone menu's disclosures: the shared reading component's markup
+ *  (packages/docs-render detailsBlock), without an id, since two sit in every page. */
+function sheetDisclosure(title: string, glyph: string, body: string, open: boolean): string {
+  return `<details class="doc-details"${open ? ' open' : ''}>`
+    + `<summary><span class="doc-details-glyph" aria-hidden="true">${glyph}</span>`
+    + `<span class="doc-details-title">${esc(title)}</span>`
+    + `<span class="doc-details-chev" aria-hidden="true">${docIcon('adm-chevron')}</span></summary>`
+    + `<div class="doc-details-body">${body}</div></details>`;
+}
+
+/** What the phone menu lists besides its fixed rows, for one page. */
+interface SheetParts {
+  /** This section's pages (the rail's links), or a page's own list (Page.rail). */
+  pages: { title: string; body: string } | null;
+  /** This page's h2 headings, for "On this page". */
+  headings: Array<{ id: string; text: string }>;
+  /** The documentation sections as rows, which open the sheet on every page. */
+  sections: string;
+}
+
+/**
+ * The site bar: the app's top row (decision D14). The home pill on the inline start;
+ * then search, Language, Theme, GitHub and Launch App; and, below 48em, the menu
+ * button whose sheet is the app's profile menu. The five section links left the bar
+ * for the pathways strip (pathwaysStrip). The landing's bar starts transparent over
+ * its hero (NAV_SOLID_JS adds the ground once the hero has scrolled away).
+ *
+ * The sheet puts navigation first (the sections, this section's pages, this page's
+ * headings), then the tools (theme, Language, GitHub), then Launch App. The tools and
+ * Launch App show only below 40em, where they have left the bar.
+ */
+function buildNav(lang: Lang, slug: string, isLanding: boolean | undefined, sheet: SheetParts) {
   const launchHref = esc(localizeHref(lang, '/'));
-  // Draft marker: English only, and deliberately not run through t() - it must
-  // not enter the translation corpora, because it is meant to come straight back
-  // out again once the docs are no longer a draft.
-  const draft = lang === 'en' ? '<span class="nav-draft">BETA</span>' : '';
-  // The landing page has no rail, so it gets no page-nav block - an empty heading
-  // and a separator with nothing under it would be worse than the omission.
-  // A page carrying its own rail carries its own mobile list with it, so the menu
-  // and the rail name the same places (Page.rail).
-  const pageNav = isLanding ? '' : ownPageNav ?? mobilePageNavHtml(lang, activePathway ?? 'builders', activeHref);
-  // Search joins the right-hand cluster of whole-site controls, ahead of the
-  // language picker. Docs pages only - there is no index behind the landing page,
-  // and a box that returns nothing is worse than no box.
-  return `<nav${navClass}><a href="${localeHref(lang, 'index')}" class="brand">Lolly</a>${draft}${groups}<div class="gap"></div>${isLanding ? '' : searchBox(lang)}${langPickerHtml(lang, slug)}${THEME_TOGGLE}${GITHUB_LINK}${HAM_BTN}<a href="${launchHref}" class="nav-launch">${launch}</a></nav>
-<div class="nav-mobile-menu" id="navMobileMenu">${mobileLinks}${pageNav}<a href="${launchHref}" class="nav-launch">${launch}</a></div> `;
+  const launch = `<a href="${launchHref}" class="btn btn--primary site-launch">${esc(t('Launch App'))}${docIcon('chrome-arrow')}</a>`;
+  // Beta: English only, and deliberately not run through t() - it must not enter the
+  // translation corpora, because it is meant to come straight back out again once the
+  // docs are no longer a draft.
+  const beta = lang === 'en' ? '<span class="site-beta">Beta</span>' : '';
+  const home = `<a href="${localeHref(lang, 'index')}" class="btn--glass site-home"><img src="/icons/icon-192.png" alt="" width="26" height="26"><span>Lolly</span>${beta ? ` ${beta}` : ''}</a>`;
+  const themeLabel: Record<string, string> = { light: t('Light'), dark: t('Dark'), brand: t('Brand') };
+  const themeGlyph: Record<string, string> = { light: THEME_SVG_SUN, dark: THEME_SVG_MOON, brand: THEME_SVG_BRAND };
+  const themeSeg = `<div class="profile-menu-theme" role="group" aria-label="${esc(t('Theme'))}">${['light', 'dark', 'brand'].map((th) =>
+    `<button type="button" class="profile-menu-seg" data-theme-set="${th}" aria-pressed="${th === 'light'}" aria-label="${esc(themeLabel[th]!)}" title="${esc(themeLabel[th]!)}">${themeGlyph[th]}</button>`).join('')}</div>`;
+  const langRow = `<button type="button" class="profile-menu-item site-lang-row" aria-haspopup="menu" aria-expanded="false"><span>${esc(t('Language'))}</span><span class="profile-menu-count">${esc(LANG_META[lang].nativeName)}</span></button>`;
+  const githubRow = `<a class="profile-menu-item" href="${REPO_URL}" rel="noopener" target="_blank"><span>GitHub</span>${docIcon('chrome-external')}</a>`;
+  const pages = sheet.pages ? sheetDisclosure(sheet.pages.title, docIcon('chrome-folder'), sheet.pages.body, true) : '';
+  const onPage = sheet.headings.length >= 2
+    ? sheetDisclosure(t('On this page'), docIcon('chrome-hash'),
+      `<nav class="docs-compact-list" aria-label="${esc(t('On this page'))}"><ul class="docs-toc-list">${sheet.headings.map((h) =>
+        `<li><a class="docs-toc-link is-h2" href="#${esc(h.id)}">${esc(h.text)}</a></li>`).join('')}</ul></nav>`, false)
+    : '';
+  const disclosures = pages || onPage ? `<div class="docs-compact-nav">${pages}${onPage}</div>` : '';
+  const menu = `<details class="site-menu"><summary class="site-fab" aria-label="${esc(t('Menu'))}" title="${esc(t('Menu'))}">`
+    + `<span class="site-menu-open">${docIcon('chrome-menu')}</span><span class="site-menu-close">${docIcon('chrome-close')}</span></summary>`
+    + `<div class="site-sheet">${sheet.sections}${disclosures}<div class="site-sheet-tools"><hr class="site-sheet-rule">${themeSeg}${langRow}${githubRow}</div>${launch}</div></details>`;
+  // Search sits first in the cluster of whole-site controls. Docs pages only - there is
+  // no index behind the landing page, and a box that returns nothing is worse than no box.
+  return `<header class="site-bar${isLanding ? ' site-bar--over-hero' : ''}">${home}${isLanding ? '' : searchBox(lang)}${langPickerHtml(lang, slug)}${THEME_TOGGLE}${GITHUB_LINK}${launch}${menu}</header>`;
 }
 
 /**
@@ -4907,7 +5299,7 @@ const PATHWAY_HUB: Record<Pathway, string> = {
  */
 interface SitemapSection { hub: Pathway; label: string; slugs: string[] }
 const FOOTER_SECTIONS: SitemapSection[] = [
-  { hub: 'quickstart', label: 'Quickstart', slugs: ['index', 'make-something', 'install', 'faq', 'positioning', 'compare',
+  { hub: 'quickstart', label: 'Quickstart', slugs: ['index', 'make-something', 'install', 'organisation', 'faq', 'positioning', 'compare',
     'compare-canva', 'compare-adobe', 'compare-figma', 'compare-render-apis', 'compare-converters',
     'compare-penpot', 'compare-brand-portals'] },
   // Keeps the pathway's own name rather than the rail's "Make things", because the
@@ -4923,7 +5315,7 @@ const FOOTER_SECTIONS: SitemapSection[] = [
     'sales', 'press', 'marketing', 'legal',
     'adoption-governance', 'sovereign-production', 'deployment', 'configuration', 'build-guide', 'cli-signing'] },
   { hub: 'creators', label: 'Find your way', slugs: [
-    'search', 'ask', 'dashboard', 'favourites', 'profile', 'sync'] },
+    'search', 'ask', 'dashboard', 'favourites', 'profile', 'find-your-work', 'sync'] },
   { hub: 'creators', label: 'Share & collaborate', slugs: [
     'agenda', 'presenting', 'collaborate', 'formats', 'exporting'] },
   { hub: 'builders', label: 'Concepts', slugs: [
@@ -5007,10 +5399,9 @@ function footerSitemap(lang: Lang, compact = false): string {
       + `<a class="sitemap-title" href="${localeHref(lang, PATHWAY_HUB[sec.hub])}">${ic(PATHWAY_HUB[sec.hub])}<span>${esc(t(sec.label))}</span></a>`
       + `${links}</div>`;
   }).join('');
-  // A <div role="navigation">, NOT a <nav>: the stylesheet styles the bare `nav`
-  // element as the fixed top bar (position:fixed; top:0; height:3.75rem; flex),
-  // so a second <nav> anywhere on the page is pinned over the real one with its
-  // column titles laid out as a nav row. Same landmark semantics, no inheritance.
+  // A <div role="navigation">, not a <nav>: the stylesheet once styled the bare `nav`
+  // element as the fixed top bar, which pinned any second <nav> over the real one.
+  // The bar has its own class now; the div keeps the same landmark semantics.
   const body = compact ? `<details class="sitemap-disclosure"><summary>${esc(t('Documentation'))}</summary><div class="sitemap-expanded">${cols}</div></details>` : cols;
   return `<div role="navigation" class="footer-sitemap" aria-label="${esc(t('Sitemap'))}">${body}</div>`;
 }
@@ -5042,14 +5433,14 @@ const SIDEBAR_ICON: Record<string, string> = {
   agenda: 'checklist', presenting: 'monitor', 'sequence-editor': 'clock', 'hdr-editing': 'sliders', animating: 'layers', exporting: 'download', formats: 'convert', positioning: 'sliders', compare: 'checklist',
   'compare-canva': 'checklist', 'compare-adobe': 'checklist', 'compare-figma': 'checklist', 'compare-render-apis': 'checklist', 'compare-converters': 'checklist',
   'compare-penpot': 'checklist', 'compare-brand-portals': 'checklist',
-  'make-something': 'pentool', install: 'download', faq: 'document',
+  'make-something': 'pentool', install: 'download', organisation: 'people', faq: 'document',
   // Operator playbooks (plans/177)
   sales: 'people', press: 'document', marketing: 'photos', legal: 'lock',
   // Concepts: the locked rule set, the same-every-time check, the link as the artifact.
   constraints: 'lock', determinism: 'check', reproducibility: 'link',
   'sovereign-production': 'server',
   ask: 'sparkle', dashboard: 'monitor', utilities: 'wrench',
-  collaborate: 'people', search: 'search', favourites: 'star', sync: 'convert',
+  collaborate: 'people', search: 'search', favourites: 'star', 'find-your-work': 'folder', sync: 'convert',
   // Builders - architecture & authoring
   overview: 'layers', 'design-tokens': 'hash', glossary: 'document', 'document-model': 'layers', 'authoring-tools': 'wrench', 'authoring-assets': 'photos',
   'host-api': 'code', 'url-mode': 'link',
@@ -5153,32 +5544,24 @@ function buildSidebar(lang: Lang, page: Page, activeHref: string) {
 }
 
 /**
- * The pathway rail again, this time inside the hamburger panel, for screens where
- * the rail itself is hidden (<=768px). Stacked above the article the rail cost a
- * reader a whole screenful of nav before the first word of a short page, so below
- * that width the page nav lives where the site nav already lives.
+ * The pathway rail again, this time inside the phone menu, for screens where the rail
+ * itself is hidden (<=768px). Stacked above the article the rail cost a reader a whole
+ * screenful of nav before the first word of a short page, so below that width the page
+ * nav lives in the menu, in a disclosure headed with the pathway's name.
  *
- * The group headings come across with it: a flat list of thirty links loses the
- * one thing the rail was giving a reader, which is shape.
+ * The group labels come across with it: a flat list of thirty links loses the one thing
+ * the rail was giving a reader, which is its groups. `repeatsPathwayTitle` decides the
+ * first group's label, so the rail and this list answer the same question the same way.
  */
-function mobilePageNavHtml(lang: Lang, pathway: Pathway, activeHref: string) {
+function sheetPagesHtml(lang: Lang, pathway: Pathway, activeHref: string): { title: string; body: string } {
   const sb = SIDEBARS[pathway];
   const groups = sb.groups.map((g, i) =>
     (i === 0 && repeatsPathwayTitle(g.label, sb.title)
       ? ''
-      : `<div class="nav-mobile-label">${esc(t(g.label))}</div>`)
-    + g.items.map(it => sidebarLinkHtml(lang, it, activeHref, false)).join(''),
+      : `<div class="sidebar-label">${esc(t(g.label))}</div>`)
+    + g.items.map(it => sidebarLinkHtml(lang, it, activeHref, true)).join(''),
   ).join('');
-  // Here the PATHWAY TITLE is the one that goes, not the group label: the site nav
-  // directly above already names the pathway with its active link, so the heading
-  // was the redundant half on this surface. `repeatsPathwayTitle` decides it, so
-  // the desktop rail and this one answer the same question the same way - the old
-  // `t(first) === t(sb.title)` caught Trust and missed the three "For X" rails.
-  const first = sb.groups[0]?.label;
-  const title = first && repeatsPathwayTitle(first, sb.title)
-    ? ''
-    : `<div class="nav-mobile-title">${esc(t(sb.title))}</div>`;
-  return `<div class="nav-mobile-page">${title}${groups}</div>`;
+  return { title: t(sb.title), body: `<div class="docs-compact-list">${groups}</div>` };
 }
 
 /**
@@ -5195,12 +5578,15 @@ function mobilePageNavHtml(lang: Lang, pathway: Pathway, activeHref: string) {
  */
 function searchBox(lang: Lang): string {
   return `<div class="docs-search" data-search-base="${lang === 'en' ? '/info' : `/info/${lang}`}">
+      <span class="docs-search-icon" aria-hidden="true">${docIcon('chrome-search')}</span>
       <input type="search" id="docs-search" class="docs-search-input" autocomplete="off" spellcheck="false"
              role="combobox" aria-expanded="false" aria-controls="docs-search-results" aria-autocomplete="list"
              placeholder="${esc(t('Search the docs…'))}" aria-label="${esc(t('Search the docs'))}">
+      <button type="button" class="docs-search-clear" aria-label="${esc(t('Clear search'))}" data-clear="${esc(t('Clear search'))}" data-close="${esc(t('Close'))}" hidden>✕</button>
       <div id="docs-search-results" class="docs-search-results" role="listbox" hidden
            data-empty="${esc(t('No matches'))}"></div>
-    </div>`;
+    </div>
+    <button type="button" class="site-fab site-fab--search" aria-label="${esc(t('Search the docs'))}" title="${esc(t('Search the docs'))}" aria-controls="docs-search" aria-expanded="false">${docIcon('chrome-search')}</button>`;
 }
 
 // ── Docs narration - "Listen to this page" (plans/40-docs-audio-listen.md) ───────
@@ -5281,14 +5667,16 @@ const LISTEN_STYLE = `<style>
 .listen-bar-float{position:fixed;right:16px;bottom:16px;z-index:89;margin:0}
 /* Phones only: docked under the top nav while the landing hero owns the screen, so the
    pill never sits on a hero CTA (plans/168 WP-6; the class comes from NAV_SOLID_JS). */
-@media(max-width:600px){.listen-bar-float.over-hero{bottom:auto;top:calc(3.75rem + 8px)}}
-.docs-listen,.docs-edition{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;border:1px solid hsl(var(--muted-foreground) / .25);background:hsl(var(--popover) / .9);color:hsl(var(--popover-foreground));font:600 13px/1 inherit;font-family:inherit;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
-/* The Listen pill is a <button> and shows the browser's button type (13.333px, regular),
-   so the link beside it takes the same size rather than the page's body text. */
-.docs-edition{text-decoration:none;font-size:13.333px;line-height:normal}
-.docs-listen:hover,.docs-edition:hover{border-color:hsl(var(--primary) / .5)}
-.docs-listen svg,.docs-edition svg{width:15px;height:15px}
-.docs-listen .listen-mins,.docs-edition .listen-mins{font-weight:400;opacity:.65}
+@media(max-width:600px){.listen-bar-float.over-hero{bottom:auto;top:calc(var(--site-bar-h) + 8px)}}
+/* Listen and the print edition beside it are the app's button (buttons.css aliases
+   both onto .btn: canvas fill, bevel, control elevation, panel radius, body type),
+   finger-sized, with the app's glyph and the minutes in the muted ink. In the band
+   they sit in the title row (.mast-title); on the landing Listen floats. */
+.docs-listen,.docs-edition{display:inline-flex;align-items:center;gap:7px;min-height:var(--ui-size-target);box-sizing:border-box;font-weight:600;line-height:1.2}
+.docs-listen:hover,.docs-edition:hover{background:var(--ui-color-surface-muted);text-decoration:none}
+.docs-listen:focus-visible,.docs-edition:focus-visible{outline:2px solid var(--ui-color-focus-ring);outline-offset:2px}
+.docs-listen svg,.docs-edition svg{width:16px;height:16px}
+.docs-listen .listen-mins,.docs-edition .listen-mins{font-weight:400;color:var(--ui-color-text-muted)}
 .docs-listen.is-loading{opacity:.6;pointer-events:none}
 </style>`;
 
@@ -5413,13 +5801,20 @@ const JUMP_MIN_BYTES = 25_000;
 // DOC_ICONS - its ticks say "done", and nothing here is done.
 const JUMP_ICON = `<svg viewBox="0 0 24 24" ${DOC_ICON_S}><path d="M4 7h16M4 12h11M4 17h13"/></svg>`;
 
-function pageJumpNav(content: string): string {
+/** A page's h2 headings, in order, as the ids mdToHtml stamped and their text. The jump
+ *  nav and the phone menu's "On this page" list both read them. */
+function pageHeadings(content: string): Array<{ id: string; text: string }> {
   const items: Array<{ id: string; text: string }> = [];
   for (const m of content.matchAll(/<h2\s+id="([^"]*)"[^>]*>([\s\S]*?)<\/h2>/g)) {
     const id = m[1]!;
     const text = htmlToText(m[2]!);
     if (id && text) items.push({ id, text });
   }
+  return items;
+}
+
+function pageJumpNav(content: string): string {
+  const items = pageHeadings(content);
   // The two thresholds are OR'd; `content` is the rendered body this page will ship,
   // so the measurement is of the real thing rather than of its source.
   if (items.length < JUMP_MIN_H2 && content.length < JUMP_MIN_BYTES) return '';
@@ -5451,15 +5846,18 @@ function pageJumpNav(content: string): string {
  * page record, and anything a reader has bookmarked. Rebuilding the heading from
  * page.title instead would have quietly renamed every one of them.
  */
-function docsMasthead(content: string, slug: string): { band: string; rest: string; canvas: boolean } | null {
+function docsMasthead(content: string, slug: string, top: { strip: string; listen: string }): { band: string; rest: string; canvas: boolean } | null {
   const m = /<h1(\s[^>]*)?>([\s\S]*?)<\/h1>/.exec(content);
   if (!m) return null; // a page with no h1 keeps its plain top
   const rest = content.slice(0, m.index) + content.slice(m.index + m[0].length);
-  const art = mastheadArt(slug, m[0]);
+  // The band's two rows (plan 277 step 3c, decisions D15 and D16): the pathways strip,
+  // then the title row, where the h1 keeps its element and id and Listen sits beside the heading.
+  const heading = `${top.strip}<div class="mast-title">${m[0]}${top.listen}</div>`;
+  const art = mastheadArt(slug, heading);
   if (art) return { band: art, rest, canvas: false };
   const band = `<div class="docs-masthead">`
     + `<canvas class="docs-mast-canvas" aria-hidden="true"></canvas>`
-    + `<div class="docs-mast-inner">${m[0]}</div></div>`;
+    + `<div class="docs-mast-inner">${heading}</div></div>`;
   return { band, rest, canvas: true };
 }
 
@@ -5525,11 +5923,11 @@ const DOCS_JS = [
   FORMATS_DIALOG_SCRIPT, THEME_INTERACT_SCRIPT, SHOT_MOTION_SCRIPT, SHOWCASE_SCRIPT,
   SHOT_CRED_SCRIPT, SCROLL_REVEAL_SCRIPT, LIQUID_GLASS_SCRIPT, HERO_CANVAS_SCRIPT,
   DOCS_MASTHEAD_SCRIPT, VERIFY_POPOUT_SCRIPT, DOCS_SEARCH_SCRIPT, HAMBURGER_SCRIPT,
-  DOC_JUMP_SCRIPT, LANG_PICKER_SCRIPT, LISTEN_SCRIPT,
+  DOC_JUMP_SCRIPT, LANG_PICKER_SCRIPT, LISTEN_SCRIPT, readingScript(), stripScript(), MAST_CLEAR_SCRIPT,
 ].map(stripScriptTags).join('\n;\n');
 const fingerprint = (s: string): string =>
   createHash('sha256').update(s).digest('base64url').slice(0, 16);
-const DOCS_CSS = CSS + '\n' + LISTEN_STYLE.replace(/^<style>\s*|\s*<\/style>$/g, '');
+const DOCS_CSS = CSS + '\n' + LISTEN_STYLE.replace(/^<style>\s*|\s*<\/style>$/g, '') + '\n' + COMPONENTS_CSS;
 const DOCS_CSS_FILE = `docs.${fingerprint(DOCS_CSS)}.css`;
 const DOCS_JS_FILE = `docs.${fingerprint(DOCS_JS)}.js`;
 const DOCS_CSS_LINK = `<link rel="stylesheet" href="/info/${DOCS_CSS_FILE}">`;
@@ -5569,12 +5967,29 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   // generated side-door page has no sidebar to mirror, so it skips the jump nav too.
   const jump = (isLanding || page.generated || page.immersive) ? '' : pageJumpNav(content);
 
-  // The masthead band, and the article body with its h1 lifted out of it. The Listen
-  // button keeps its place ABOVE the h1 (it was always the first thing in <main>),
-  // so it now floats over the band's top edge rather than over bare page. A generated
-  // page has no banked masthead, so it gets none.
-  const mast = (isLanding || page.generated) ? null : docsMasthead(content, page.slug);
+  // The masthead band, and the article body with its h1 lifted out of it. The band
+  // opens with the pathways strip and carries Listen in the title row beside the h1,
+  // so neither sits over the article's first line any more. A generated page has no
+  // banked masthead, so it gets none; the landing and the immersive pages have their
+  // own designed openings. A page without a masthead still opens with the strip, in a
+  // slim band of its own (pathwaysBand); the landing carries that band after its hero
+  // (buildLandingContent). Listen stays at the top of such a page's <main>, or beside
+  // the strip on an immersive page, whose own bands begin at once.
+  const strip = pathwaysStrip(lang, activeHref, page.pathway, !!isLanding);
+  const mast = (isLanding || page.generated || page.immersive) ? null : docsMasthead(content, page.slug, { strip, listen });
   const article = mast ? mast.rest : content;
+  const lead = mast ? '' : listen;
+  const reading = readingAttr(content);
+  const sheet: SheetParts = {
+    pages: isLanding ? null
+      : page.rail ? { title: page.rail.mobileTitle, body: page.rail.mobile }
+      : sheetPagesHtml(lang, page.pathway ?? 'builders', activeHref),
+    headings: (isLanding || page.immersive) ? [] : pageHeadings(article),
+    sections: pathwaysStrip(lang, activeHref, page.pathway, !!isLanding, true),
+  };
+  // The page's <main> is the skip link's target (buildNav); the in-app reader keeps only
+  // its classes when it rehosts the fragment, so the id stays on /info.
+  const mainAttrs = ' id="docs-main" tabindex="-1"';
 
   // The band is a SIBLING of .docs-wrap, not something inside the content column:
   // full viewport width, with the rail and the article both starting underneath it.
@@ -5583,22 +5998,23 @@ function wrapPage(lang: Lang, page: Page, content: string, ogSlugs: Set<string>,
   // The class is docs-landing, NOT docs-content: the article-typography rules scoped
   // to .docs-content sit at (0,1,1) and would out-specify every band rule at (0,1,0),
   // restyling all of the landing headings.
-  const body = isLanding ? `<main class="docs-landing page-${slugClass}">${listen}${content}</main>`
-    : page.immersive ? `<main class="docs-landing docs-immersive page-${slugClass}">${listen}${content}</main>`
+  const body = isLanding ? `<main class="docs-landing page-${slugClass}"${mainAttrs}>${listen}${content}</main>`
+    : page.immersive ? `<main class="docs-landing docs-immersive page-${slugClass}"${mainAttrs}>${pathwaysBand(strip + listen, { wide: true })}${content}</main>`
     : page.generated ? `
+${pathwaysBand(strip)}
 <div class="docs-wrap">
   ${page.rail?.aside ?? buildSidebar(lang, page, activeHref)}
-  <main class="docs-content no-mast page-${slugClass}">
-    ${listen}
+  <main class="docs-content no-mast page-${slugClass}"${mainAttrs}${reading}>
+    ${lead}
     ${article}
   </main>
 </div>`
     : `
-${mast ? mast.band : ''}
+${mast ? mast.band : pathwaysBand(strip)}
 <div class="docs-wrap">
   ${page.rail?.aside ?? buildSidebar(lang, page, activeHref)}
-  <main class="docs-content${mast ? '' : ' no-mast'} page-${slugClass}">
-    ${listen}
+  <main class="docs-content${mast ? '' : ' no-mast'} page-${slugClass}"${mainAttrs}${reading}>
+    ${lead}
     ${article}
   </main>
 </div>`;
@@ -5607,7 +6023,11 @@ ${mast ? mast.band : ''}
   const localeUrl  = `${SITE_URL}${localeHref(lang, page.slug)}`;
   const alternates = LANGS.map(l =>
     `<link rel="alternate" hreflang="${LANG_META[l].htmlLang}" href="${esc(`${SITE_URL}${localeHref(l, page.slug)}`)}">`,
-  ).join('\n') + `\n<link rel="alternate" hreflang="x-default" href="${esc(`${SITE_URL}${localeHref('en', page.slug)}`)}">`;
+  ).join('\n') + `\n<link rel="alternate" hreflang="x-default" href="${esc(`${SITE_URL}${localeHref('en', page.slug)}`)}">`
+    // The English Markdown twin beside the page (written in the build loop for every
+    // English page that is not generated), so a reader or an agent can find the same
+    // content without a DOM.
+    + (lang === 'en' && !page.generated ? `\n<link rel="alternate" type="text/markdown" href="${esc(`${SITE_URL}/info/${pathSlug(page.slug)}.md`)}">` : '');
   // The page's OWN Content Credential, C2PA 2.4 section A.7.1.2's external form: one
   // stable link, the store beside it at /info/<slug>.c2pa, signed after this
   // string has been written to disk (docs/page-seal.ts explains the ordering).
@@ -5650,9 +6070,11 @@ ${alternates}${seal}
 ${THEME_INIT_SCRIPT}
 ${SHOT_MOTION_INIT}
 ${DOCS_CSS_LINK}
+${NOSCRIPT_NAV}
 </head>
 <body class="page-${slugClass}">
-${buildNav(lang, page.slug, activeHref, isLanding, page.pathway, page.rail?.mobile)}
+<a class="skip-link" href="#docs-main">${esc(t('Skip to content'))}</a>
+${buildNav(lang, page.slug, isLanding, sheet)}
 ${body}
 ${FOOTER(lang, page.slug === 'tenets')}
 ${jump}
@@ -5824,7 +6246,7 @@ async function build() {
   // them. Copied verbatim out of the ACTIVE brand's catalog - these are signed
   // artifacts, so they are copied, never rewritten - and mirrored, not accumulated.
   // A brand whose catalog has no preview for a look ships that card without a
-  // picture (makeSomethingBlock checks), which is why this is a warning, not a fail.
+  // picture, which is why this is a warning, not a fail.
   rmSync(resolve(outDir, 'examples'), { recursive: true, force: true });
   const previewDir = catalogFile('previews');
   const havePreviews = LANDING_SCENES.filter(s => existsSync(resolve(previewDir, s.look)));
@@ -5983,7 +6405,9 @@ async function build() {
         });
         // Markdown twin: the verbatim English source, published next to the HTML
         // so agents (and llms.txt below) can read the docs without a DOM.
-        const twin = stripLogoMarkers(unwrapFigureFences(unwrapProvenanceMarkers(commentStandaloneProvenanceLines(stripFrontMatter(md)))));
+        // The formats page's table is built at render time; its twin gets the same register as a list.
+        const twinSrc = page.slug === 'formats' ? md.replace(FORMATS_TABLE_MARK, formatsMarkdown()) : md;
+        const twin = stripLogoMarkers(unwrapComponentFences(unwrapFigureFences(unwrapProvenanceMarkers(commentStandaloneProvenanceLines(stripFrontMatter(twinSrc))))));
         // Written at the DOORED path beside its HTML (/info/<door>/<slug>.md):
         // the search index records carry the doored path and the in-app Ask
         // fetches `/info/<p>.md` from it (lib/ask/answer.ts), so a flat twin

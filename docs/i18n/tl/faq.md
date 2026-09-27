@@ -2,11 +2,10 @@
 
 Mga madalas itanong na ipinapakita sa accordion sa `/info` landing page.
 
-**Paano i-maintain:** bawat `##` heading sa ibaba ay isang tanong; lahat ng nasa
-ilalim nito (hanggang sa susunod na `##`) ang sagot. Gumagamit ang mga sagot ng
-parehong magaan na markdown tulad ng iba pang bahagi ng site - paghiwalayin ang mga
-talata gamit ang blangkong linya. Magdagdag, mag-alis o mag-ayos ng mga tanong dito
-at patakbuhin ulit ang `npm run build:info` (o `npm run dev:web`).
+**Paano i-maintain:** bawat `##` heading sa ibaba ay isang tanong; lahat ng nasa ilalim nito
+(hanggang sa susunod na `##`) ang sagot. Gumagamit ang mga sagot ng parehong magaan na markdown tulad ng iba pang bahagi ng site
+- paghiwalayin ang mga talata gamit ang blangkong linya. Magdagdag, mag-alis o
+mag-ayos ng mga tanong dito at patakbuhin ulit ang `pnpm run build:info` (o `pnpm run dev:web`).
 Ang lahat ng nasa itaas ng unang `##` (ang pamagat na ito at ang mga notang ito) ay hindi pinapansin ng build.
 
 ## Ano ang mangyayari kapag nag-opt-in ako sa /profile page?
@@ -122,9 +121,17 @@ Napapanalunan namin ang labanan para sa governance sa pamamagitan ng mahusay na 
 
 Oo. Buksan ang **Design** at i-click ang **Import a design**: tumatanggap ito ng native na Figma **.fig** (Save local copy), ng Penpot **.penpot** export, ng Illustrator **.ai** o **.pdf**, ng InDesign **.idml** (File → Export → InDesign Markup) o ng **kahit anong SVG** (ang malapad na pinto - halos lahat ng design app ay nag-e-export nito). Walang kailangang account, plugin o lisensya ng design app.
 
-![Ang bukas na canvas ng Design - matatagpuan ang Mag-import ng Disenyo sa Lolly menu ng toolbar](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Ang bukas na canvas ng Design - nasa Lolly menu ng toolbar ang Import a design](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Dumarating ang mga layer bilang mga kahong puwedeng i-edit sa open canvas: nananatiling puwedeng muling i-type ang teksto, nananatiling hugis ang mga hugis, sumasama ang mga larawan sa sarili mong image library at sumusunod sa brand globals ang type at mga kulay. I-save ito at magiging muling nagagamit at URL-addressable na template ang layout na puwedeng punan ng kahit sinong may Lolly - at puwede kang maghalo ng live na tools (isang QR code, isang chart) na muling nagre-render pagka-load. Mula roon ay nagre-render ito tulad ng iba pang bagay sa Lolly - SVG, PDF, PNG at iba pa, muling magagawa mula sa URL nito. Tingnan ang [Import a design](/info/design-import.html).
+
+## Nasaan ang ginawa ko kahapon?
+
+Kung pinindot mo ang **I-save bilang** o **I-save**, nasa **Mga Project** ito, sa home screen, sa browser o app na pinagsimulan mong mag-save. Kung **I-download** lang ang pinindot mo, nasa kinaroroonan ng mga download ng browser o system mo ang file, at karaniwang may kopya sa **Mga asset**. Iniingatan din ng siyam na tool ang hindi na-save na gawa sa **Mga Project**. Sinasaklaw ng [Hanapin at bawiin ang gawa mo](/info/find-your-work.html) ang bawat kaso.
+
+## Isinara ko ang tab. Nawala na ba ang ginawa ko?
+
+Nasa **Mga Project** pa rin ang na-save na gawa. Nawawala ang hindi na-save na gawa, maliban sa siyam na tool na nag-sa-save habang ginagawa mo ito, na iniingatan din ito sa **Mga Project**. Sa susunod, pindutin ang **I-save bilang** bago ka umalis. Tingnan ang [Kung isinara mo ang tab o umalis ka sa tool](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Puwede ko bang ibahagi ang gawa ko bilang file sa halip na link?
 

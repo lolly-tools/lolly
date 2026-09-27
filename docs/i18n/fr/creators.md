@@ -34,9 +34,15 @@ Du texte qui bouge, des scènes sur une timeline et une animation qui reste fid�
 
 Enregistre une prise propre avec un décompte, un vu-mètre et un accompagnement en douceur, ou transforme une note vocale en vidéo terminée qui bouge avec le son. Il n'y a pas encore de page Enregistrer distincte : Utiliser Lolly la porte, dans la section timeline.
 
-- **[Utiliser Lolly](/info/using.html#timeline-sequence-studio)** - enregistrer une voix off directement sur la timeline, où la prise est enregistrée et comment elle rejoint le mix.
-- **[Fais quelque chose en 60 secondes](/info/make-something.html#make)** - la scène audiogramme, pour quand tu préfères être entendu que vu.
+- **[Utiliser Lolly](/info/using.html#timeline-sequence)** - enregistrer une voix off directement sur la timeline, où la prise est enregistrée et comment elle rejoint le mix.
+- **[Crée ton premier fichier](/info/make-something.html#other-first-projects)** - la scène audiogramme, pour quand tu préfères être entendu que vu.
 - **[Vues utilitaires](/info/utilities.html)** - Script audio, quand les mots viennent d'abord et la voix ensuite.
+
+## Présenter
+
+Superpose ta caméra, ton logo et ton nom à un diaporama Design ou à un Countdown, avec des contrôles privés dans une fenêtre séparée.
+
+- **[Présenter avec la caméra](/info/presenting.html)** - cadrage, scènes enregistrées, partage avec le public, enregistrement local et les limites actuelles de la version d'essai.
 
 ## Collaborer
 

@@ -1,19 +1,33 @@
 # Exportera och format
 
-Så här får du ut en färdig fil från ett verktyg - att välja rätt format, ställa in utdatastorleken och vad varje alternativ gör. Precis som allt annat sker **exporten på din enhet**; inget laddas upp.
+Tryck på **Exportera** på ett verktygs piller **Export | Save as**, välj ett format i menyn bredvid filnamnet, tryck sedan på **Ladda ner**. Filen skapas på din enhet; inget laddas upp.
+
+För de flesta jobb är ett av tre format rätt:
+
+| För | Välj | Eftersom |
+|---|---|---|
+| En skärm, ett meddelande eller en presentationsbild | **PNG** | Alla appar öppnar den, och den behåller en transparent bakgrund när verktyget erbjuder det |
+| En färdig sida, eller allt som ska tryckas | **PDF** | En verklig sidstorlek som skrivs ut precis som den ser ut; **Print PDF**, där ett verktyg erbjuder det, är CMYK-versionen för ett tryckeri |
+| Konstverk som måste förbli skarpt i alla storlekar | **SVG** | Vektorformer, skarpa från en bricka till en banderoll |
+
+::: check Kontrollera filen i den storlek den ska användas
+Innan du skickar den, öppna den på skärmen den gjordes för, eller skriv ut den i sin verkliga storlek.
+:::
+
+Resten av den här sidan tar upp alla format, storlekar och alternativ.
 
 ## Så fungerar export
 
-Förhandsgranskningen *är* filen. När du exporterar renderar värden den arbetsytan till formatet du valde och ger dig en nedladdning (eller lägger den i urklipp). Ett verktyg erbjuder bara de format dess upphovsperson deklarerat, och väljaren döljer alla din webbläsare inte kan producera (se [Video](#video)).
+Förhandsgranskningen *är* filen. När du exporterar renderar värden den arbetsytan till formatet du valde och ger dig en nedladdning (eller lägger den i urklipp). Väljaren döljer alla format din webbläsare inte kan producera (se [Video](#video)).
 
 Tre vägar ger en fil. De flesta verktyg **renderar arbetsytan** till valt format. Text- och dataformat (HTML, MD, TXT, JSON, CSV, ICS, VCF) **genereras i stället från verktygets innehåll**, inte rastreras från bilden. Och sekretessverktyg (t.ex. *Strip Hidden Data*) använder en tredje väg: filen *du* väljer omvandlas byte för byte på enheten och ges direkt tillbaka - ingen arbetsyta, ingen vattenstämpel och ingen härkomstmetadata läggs till, eftersom det redan är din egen fil.
 
-Åtgärderna i exportkontrollerna:
+Åtgärderna i exportpanelen:
 
-- <!--i:download--> **Download** - spara filen (huvudåtgärden).
-- <!--i:photos--> **Copy** - lägg bilden i urklipp för att klistra in direkt i Slack, e-post, ett dokument. Där en webbläsare inte kan kopiera bilder laddas den ner i stället och du får besked.
-- <!--i:folder--> **Save** - spara den aktuella designen som en sparad verktygssession i ditt bibliotek.
-- <!--i:link--> **Share** - öppnar **Share dialog**: en kopierbar länk som återskapar designen, växlar vid besök (helskärm, exportpanel, nedladdning eller kopiering vid öppning) och en valfri **Shortest link** som packar hela tillståndet i en kompakt token (se [URL Mode](/info/url-mode.html)).
+- <!--i:download--> **Ladda ner** - spara filen (huvudåtgärden). Om du inte hittar den efteråt, se [Hitta en fil du laddat ner](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Kopiera** - lägg bilden i urklipp för att klistra in direkt i Slack, e-post, ett dokument. Där en webbläsare inte kan kopiera bilder laddas den ner i stället och du får besked.
+- <!--i:folder--> **Spara** - behåll den aktuella designen i Projekt med ett klick, utan att fråga var; den laddar aldrig ner en fil. **Spara som**, bredvid **Exportera**, frågar var (se [Spara och fortsätta](/info/using.html#saving-continuing)).
+- <!--i:link--> **Dela** - öppnar **Share dialog**: en kopierbar länk som återskapar designen, växlar vid besök (helskärm, exportpanel, nedladdning eller kopiering vid öppning) och en valfri **Shortest link** som packar hela tillståndet i en kompakt token (se [URL-läge](/info/url-mode.html)).
 
 (Vilka av dessa som visas väljs av verktygets upphovsperson; standarduppsättningen är Copy, Download och Save.)
 
@@ -32,13 +46,13 @@ En sparad session kan också delas på nytt som en verktygslänk från Projects 
 
 ## Välja ett format
 
-Filnamnet och formatväljaren sitter högst upp i panelen som ett `name.format`-par, och väljaren listar bara de format verktygets upphovsperson deklarerat.
+Filnamnet och formatmenyn sitter tillsammans som ett `name.format`-par, under **Ladda ner**.
 
 ![Filnamnsfältet sammanfogat med formatväljaren, så att exporten läses som ett name.format-par](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
 | Du vill ha… | Använd | Varför |
 |---|---|---|
-| Skarpa logotyper/konstverk som skalar | **SVG** | Vektor - oändligt skalbar, liten, redigerbar |
+| Skarpa logotyper/konstverk som skalar | **SVG** | Vektor - oändligt skalbar, liten, redigerbar; en effekt vektorexporten inte kan rita bäddas in som en bild |
 | Vektor för Office-/Windows-appar | **EMF** | Klistras in som redigerbar vektor i PowerPoint/Word; texten förblir levande och redigerbar, och Google Drive öppnar den i Google Drawings för Slides |
 | Vektor för tryck-/designappar | **EPS**, eller **EPS (CMYK)** | PostScript-vektor för Illustrator-/tryckeriarbetsflöden |
 | Vektor för skär-/CAD-maskiner | **DXF** | Laserskärare, vinylplottrar, CNC - konturbanor i millimeter |
@@ -91,7 +105,7 @@ Användbart för en storyboard, ett miniatyrblad, ett kontaktark för granskning
 
 Samplingen tas vid **mittpunkten** av varje intervall snarare än vid kanterna, eftersom sekvensens första ögonblick ofta är en intoningsövergång som ännu inte tonat in och det sista är tillståndet efter att varje klipp har avslutats - sampling vid ändpunkterna skulle slösa två av dina bildrutor på nästan tomma sådana. Antalet begränsas till **64** (ett kontaktark är till för att en människa ska läsa), och allt orimligt som skrivs in i fältet återgår till `1` i stället för att exporten misslyckas. Varje bildruta är en vanlig stillbild, så Content Credentials, imprinten, fysiska enheter och DPI beter sig precis som vid en enskild export.
 
-Fältet **Frames** är sättet att få ett blad idag. Motorn reserverar en matchande `cuts`-URL-parameter, men inget skal läser den från en länk ännu, så en delad länk öppnas alltid på spelhuvudets bildruta - se [URL Mode](/info/url-mode.html#contact-sheets-cuts).
+Fältet **Bildrutor** är sättet att få ett blad idag. Motorn reserverar en matchande `cuts`-URL-parameter, men inget skal läser den från en länk ännu, så en delad länk öppnas alltid på spelhuvudets bildruta - se [URL-läge](/info/url-parameters.html#contact-sheets-cuts).
 
 ## Flersidig PDF
 
@@ -255,7 +269,9 @@ Där formatet stöder det bär exporter **proveniensmetadata** - programvara, k�
 
 **Det varaktiga credentialet.** En andra, tyngre markering sitter bredvid Imprinten: **Durable credential**, som använder en neural on-device-modell (TrustMark-format) för att skriva Lollys id *in i* pixlarna så att länken "gjord med Lolly" överlever en metadataavstripping, en omkodning och en omläsning av TrustMark-medvetna verktyg såväl som Lollys egna. Det är **avstängt som standard** - till skillnad från den rena JavaScript-Imprinten kostar det en neural pass per export plus en engångsmodellnedladdning, så det är ett medvetet opt-in snarare än en tyst avgift. Endast raster (**PNG, JPG, WebP, AVIF, TIFF**), ikryssad i exportpanelen eller skickad som `durable=1` i en delningslänk. På desktop- och mobilapparna döljs kortet helt i stället för att visas som en no-op, eftersom det inte finns någon ursprungskälla att hämta modellen från offline.
 
-**Innehållsskydd.** I exportpanelen viks *Password protect*, **C2PA Credentials**, **Lolly Imprint** och **Durable credential** ihop till en enda hopfälld, formatmedveten grupp **Content protection**, så att en fils proveniens- och skyddsalternativ bor på ett ställe - gruppen visar bara de kort som gäller för det valda formatet, och döljer sig helt när inget av dem gör det. Utskriftsmärken är avsiktligt *inte* med i den: de är utskriftsproduktionsgeometri snarare än skydd, så **Print marks & bleed** - utfallsmåttet i millimeter plus Crop, Registration, Bleed, Colour bars och Stamp details - behåller sitt eget kort på toppnivå på utskriftsformaten.
+**Innehållsskydd.** I exportpanelen viks **Licensen** du beviljar, **Källkrediterna** för allt du placerat, *Password protect*, **C2PA Credentials**, **Lolly Imprint** och **Beständig uppgift** ihop till en enda hopfälld, formatmedveten grupp **Innehållsskydd**, så att en fils proveniens-, rättighets- och skyddsalternativ bor på ett ställe. Gruppen visar bara de kort som gäller för det valda formatet. Den öppnar sig själv när en länk eller ett sparat dokument redan deklarerar en licens, eller när en källa behöver ett beslut från dig.
+
+**Licens.** Välj hur andra får använda ditt verk: *None (alla rättigheter förbehållna)* som standard, eller CC0 1.0, Public Domain Mark 1.0, eller en av Creative Commons 4.0-licenserna (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Licensnamnet och en länk till dess sammanfattning skrivs in i filens licensmetadata (EXIF, XMP och RIFF där formatet har de fälten) och i dess Content Credential. Valet sparas med dokumentet och följer med i en delningslänk som `licence=`. Lolly skriver den licens du valde. Det kontrollerar eller upprätthåller inte villkoren. Ett verktyg med ett eget licensfält, som Claim, behåller det fältet i stället och visar ingen andra väljare. Tryckmärken är avsiktligt *inte* med i den: de är utskriftsproduktionsgeometri snarare än skydd, så **Tryckmärken och utfall** - utfallsmåttet i millimeter plus Beskärning, Passning, Utfall, Colour bars och Stämpeldetaljer - behåller sitt eget kort på toppnivå på utskriftsformaten.
 
 ![Gruppen Content protection öppnad på en PNG-export, som visar bara de kort som gäller för den](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
@@ -263,7 +279,7 @@ Där formatet stöder det bär exporter **proveniensmetadata** - programvara, k�
 
 **Kostnad, uträknad från ditt prisregister.** Under förgranskningen - sist av allt, fortfarande ovanför knapparna - sitter ett kort som förvandlar samma antal till pengar, och alltid bara utifrån priser någon gav det. Det läser vad förgranskningspasset än räknade, oavsett om förgranskningskortet självt är påslaget, och det kräver att två saker är sanna: jobbet har något en prislista alls kan prissätta (plåtar, ark, yta, sidor, variantrader eller utdatafiler - så en enkel logga-PNG visar det aldrig), **och** ett **prisregister** finns. Ett prisregister är en JSON-prislista från ditt tryckeri. En standardbuild bär inget och har inget sätt i appen att ladda ett: det anländer antingen som en katalogtillgång en driftsättning skeppar, eller genom det valfria prisregistertillägget en självhostare eller kontrollplan slår på. Utan ett prisregister visas inget - varken en uppmaning eller en tom tabell.
 
-Regeln hela grejen är byggd kring är att den **aldrig hittar på pengar**. Varje siffra är en taxa du angav gånger en kvantitet Lolly räknade - `4 plåt × €35.00` - och totalsumman namnger sin egen källa i samma mening som siffran: utgivaren kortet namnger, och datumet kortet säger att dess taxor är från. Det finns ingen standardvaluta, ingen platshållare och ingen nolla som står in för ett saknat pris. Vad filen säger om sig själv förblir refererat tal: *"Filen säger: … Lolly har inte verifierat detta."*
+Regeln hela grejen är byggd kring är att den **aldrig hittar på pengar**. Varje siffra är en taxa du angav gånger en kvantitet Lolly räknade - `4 plate × €35.00` - och totalsumman namnger sin egen källa i samma mening som siffran: utgivaren kortet namnger, och datumet kortet säger att dess taxor är från. Det finns ingen standardvaluta, ingen platshållare och ingen nolla som står in för ett saknat pris. Vad filen säger om sig själv förblir refererat tal: *"Filen säger: … Lolly har inte verifierat detta."*
 
 Och när den inte kan räkna ärligt **försvinner** arbetstabellen i stället för att degradera till en gråad eller ifylld siffra:
 
@@ -318,11 +334,11 @@ En export som placerar någon annans verk registrerar den källan i autentiserin
 
 ## På en telefon
 
-Exportkontrollerna finns bakom den flytande knappen **Render**, som öppnar arket **Export** - samma format, storlek, kopiering, nedladdning och delning, anpassat för touch.
+Exportkontrollerna finns bakom den flytande knappen **Exportera**, som öppnar arket **Exportera** - samma format, storlek, kopiering, nedladdning och delning, anpassat för touch.
 
 ## Formatreferens
 
-Varje id som värden kan rendera, grupperat. Dessa är också värdena för URL-parametern `format=` och CLI-flaggan `--export=` - se [URL-läge](/info/url-mode.html) och [CLI](/info/cli.html). Ett verktyg erbjuder bara den delmängd dess upphovsperson deklarerat, så väljaren är alltid kortare än den här listan.
+Varje id som värden kan rendera, grupperat. Dessa är också värdena för URL-parametern `format=` och CLI-flaggan `--export=` - se [URL-läge](/info/url-mode.html) och [CLI](/info/cli.html). Ett verktygs meny visar bara de format det verktyget kan skapa, så den är alltid kortare än den här listan.
 
 | Typ | Id:n |
 |---|---|

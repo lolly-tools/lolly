@@ -1,19 +1,33 @@
 # Xuất & Định dạng
 
-Cách lấy ra một tệp hoàn chỉnh từ một công cụ - chọn đúng định dạng, đặt kích thước đầu ra và mỗi tùy chọn làm gì. Như mọi thứ khác, **việc xuất diễn ra trên thiết bị của bạn**; không có gì được tải lên.
+Nhấn **Xuất** trên cụm **Xuất | Lưu thành** của một công cụ, chọn một định dạng từ menu bên cạnh tên tệp, rồi nhấn **Tải xuống**. Tệp được tạo trên thiết bị của bạn; không có gì được tải lên.
+
+Với hầu hết công việc, một trong ba định dạng là phù hợp:
+
+| Dành cho | Chọn | Vì sao |
+|---|---|---|
+| Màn hình, tin nhắn hoặc slide | **PNG** | Mọi ứng dụng đều mở được, và giữ nền trong suốt khi công cụ có hỗ trợ |
+| Một trang hoàn chỉnh, hoặc bất cứ thứ gì để in | **PDF** | Kích thước trang thật, in ra đúng như hiển thị; **Print PDF**, ở nơi công cụ hỗ trợ, là phiên bản CMYK dành cho nhà in |
+| Hình ảnh cần luôn sắc nét ở mọi kích thước | **SVG** | Hình dạng vector, sắc nét từ một huy hiệu đến một biểu ngữ |
+
+::: check Kiểm tra tệp ở kích thước sẽ dùng thực tế
+Trước khi gửi, hãy mở nó trên màn hình mà nó được tạo ra để dùng, hoặc in nó ở kích thước thật.
+:::
+
+Phần còn lại của trang này nói về mọi định dạng, kích thước và tùy chọn.
 
 ## Cách xuất hoạt động
 
-Bản xem trước *chính là* tệp. Khi bạn xuất, host kết xuất canvas đó sang định dạng bạn chọn và đưa cho bạn một tệp tải xuống (hoặc đặt nó vào clipboard). Một công cụ chỉ đưa ra những định dạng mà tác giả của nó đã khai báo, và bộ chọn ẩn đi bất kỳ định dạng nào trình duyệt của bạn không tạo ra được (xem [Video](#video)).
+Bản xem trước *chính là* tệp. Khi bạn xuất, host kết xuất canvas đó sang định dạng bạn chọn và đưa cho bạn một tệp tải xuống (hoặc đặt nó vào clipboard). Bộ chọn ẩn đi bất kỳ định dạng nào trình duyệt của bạn không tạo ra được (xem [Video](#video)).
 
 Ba đường đi tạo ra một tệp. Hầu hết công cụ **kết xuất canvas** sang định dạng đã chọn. Các định dạng văn bản và dữ liệu (HTML, MD, TXT, JSON, CSV, ICS, VCF) thay vào đó được **tạo ra từ nội dung của công cụ**, không phải raster hóa từ hình ảnh. Và các tiện ích quyền riêng tư (ví dụ *Strip Hidden Data*) dùng đường thứ ba: tệp *bạn* chọn được biến đổi từng byte trên thiết bị và trả lại thẳng - không canvas, không watermark và không thêm siêu dữ liệu nguồn gốc nào, vì đó đã là tệp của riêng bạn.
 
-Các thao tác trong bộ điều khiển xuất:
+Các thao tác trong bảng xuất:
 
-- <!--i:download--> **Tải xuống** - lưu tệp (thao tác chính).
-- <!--i:photos--> **Sao chép** - đặt hình ảnh vào clipboard để dán thẳng vào Slack, email, một tài liệu. Ở nơi trình duyệt không thể sao chép hình ảnh, nó sẽ tải xuống thay thế và báo cho bạn biết.
-- <!--i:folder--> **Lưu** - giữ lại thiết kế hiện tại như một phiên công cụ đã lưu trong thư viện của bạn.
-- <!--i:link--> **Chia sẻ** - mở **hộp thoại Chia sẻ**: một liên kết có thể sao chép để tái tạo thiết kế, các bật/tắt khi truy cập (toàn màn hình, bảng xuất, tải xuống hoặc sao chép khi mở) và tùy chọn **Liên kết ngắn nhất** để đóng gói toàn bộ trạng thái thành một token gọn nhẹ (xem [URL Mode](/info/url-mode.html)).
+- <!--i:download--> **Download** - lưu tệp (thao tác chính). Nếu bạn không tìm thấy nó sau đó, xem [Tìm tệp bạn đã tải xuống](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Copy** - đặt hình ảnh vào clipboard để dán thẳng vào Slack, email, một tài liệu. Ở nơi trình duyệt không thể sao chép hình ảnh, nó sẽ tải xuống thay thế và báo cho bạn biết.
+- <!--i:folder--> **Save** - giữ lại thiết kế hiện tại vào Projects chỉ trong một cú nhấp, không hỏi lưu ở đâu; nó không bao giờ tải xuống một tệp. **Save as**, bên cạnh **Export**, sẽ hỏi lưu ở đâu (xem [Lưu và tiếp tục](/info/using.html#saving-continuing)).
+- <!--i:link--> **Share** - mở **hộp thoại Chia sẻ**: một liên kết có thể sao chép để tái tạo thiết kế, các bật/tắt khi truy cập (toàn màn hình, bảng xuất, tải xuống hoặc sao chép khi mở) và tùy chọn **Liên kết ngắn nhất** để đóng gói toàn bộ trạng thái thành một token gọn nhẹ (xem [URL Mode](/info/url-mode.html)).
 
 (Tác giả của một công cụ chọn những thao tác nào xuất hiện; bộ mặc định là Sao chép, Tải xuống và Lưu.)
 
@@ -32,7 +46,7 @@ Một phiên đã lưu cũng có thể được chia sẻ lại như một liên
 
 ## Chọn định dạng
 
-Trường tên tệp và bộ chọn định dạng nằm ở đầu bảng điều khiển như một cặp `name.format`, và bộ chọn chỉ liệt kê những định dạng mà tác giả công cụ này đã khai báo.
+Tên tệp và menu định dạng nằm cùng nhau thành một cặp `name.format`, bên dưới **Tải xuống**.
 
 ![Trường tên tệp gắn liền với bộ chọn định dạng, để việc xuất đọc như một cặp name.format](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
@@ -91,7 +105,7 @@ Hữu ích cho một storyboard, một bảng thumbnail, một contact sheet đ�
 
 Việc lấy mẫu được thực hiện tại **điểm giữa** của mỗi khoảng thay vì tại các cạnh, vì khoảnh khắc đầu tiên của một chuỗi cảnh thường là một chuyển cảnh vào chưa kịp hiện rõ và khoảnh khắc cuối là trạng thái sau khi mọi clip đã kết thúc - lấy mẫu tại điểm cuối sẽ tốn hai khung hình của bạn cho những khung gần như trống. Số lượng bị giới hạn ở **64** (một contact sheet là để con người đọc), và bất cứ thứ gì vô nghĩa được nhập vào trường này sẽ quay về `1` thay vì làm hỏng bản xuất. Mỗi khung hình là một ảnh tĩnh bình thường, nên Content Credentials, dấu ấn (imprint), đơn vị vật lý và DPI đều hoạt động y hệt như với một bản xuất đơn.
 
-Trường **Frames** là cách để có được một bảng ảnh ngay hôm nay. Engine dành sẵn một tham số URL `cuts` tương ứng, nhưng chưa có shell nào đọc nó từ một liên kết, nên một liên kết được chia sẻ luôn mở lại ở khung hình đầu phát - xem [URL Mode](/info/url-mode.html#contact-sheets-cuts).
+Trường **Khung hình** là cách để có một sheet ngay hôm nay. Engine dành sẵn một tham số URL `cuts` tương ứng, nhưng chưa có shell nào đọc nó từ một liên kết, nên một liên kết chia sẻ luôn mở lại ở khung playhead - xem [URL Mode](/info/url-parameters.html#contact-sheets-cuts).
 
 ## PDF nhiều trang
 
@@ -235,7 +249,7 @@ Các công cụ hoạt hình xuất chuyển động dưới dạng **MP4**, **W
 
 GIF hoạt động ở mọi nơi (rất phù hợp cho trò chuyện/email; dung lượng lớn hơn và ít màu hơn video). Các công cụ hoạt hình cũng cung cấp **Wait** (số giây để hoạt ảnh ổn định trước khi ghi) và **Duration** (độ dài đoạn clip).
 
-> Một liên kết `?format=…` được chia sẻ yêu cầu một vùng chứa mà trình duyệt của bạn không thể ghi được sẽ tự động chuyển sang vùng chứa còn lại và đặt tên tệp tương ứng.
+> Một liên kết `?format=…` được chia sẻ, yêu cầu một container mà trình duyệt của bạn không ghi được, sẽ tự động chuyển sang container còn lại một cách êm ái, và tên tệp khớp với container đã ghi được.
 
 **Âm thanh.** Các bản xuất video không im lặng. Một công cụ có thể đặt một **nền nhạc** dưới đoạn clip - một tài sản âm thanh từ danh mục, được lặp hoặc cắt cho khớp độ dài clip, kèm hiệu ứng mờ dần vào/ra, âm lượng và tự động hạ âm lượng dưới âm thanh riêng của cảnh quay - và các công cụ ghi hình mang nguyên âm thanh trực tiếp của cảnh quay vào tệp. **MP4** và **WebM** giữ track âm thanh đã trộn; GIF và các định dạng ảnh hoạt hình (APNG, Animated WebP, Animated SVG) vốn dĩ không có âm thanh.
 
@@ -255,7 +269,9 @@ Một số công cụ xuất **âm thanh riêng**, không chỉ là một track 
 
 **Thông tin xác thực bền vững.** Bên cạnh Imprint còn có một dấu thứ hai, nặng hơn: **Durable credential**, dùng một mô hình mạng nơ-ron trên thiết bị (định dạng TrustMark) để ghi id của Lolly *vào* pixel, để liên kết "làm bằng Lolly" tồn tại qua việc xóa metadata, mã hóa lại và được các công cụ nhận biết TrustMark đọc lại, cũng như chính Lolly. Nó **tắt theo mặc định** - khác với Imprint thuần JavaScript, nó tốn một lượt xử lý mạng nơ-ron cho mỗi lần xuất cộng thêm một lần tải mô hình duy nhất, nên đây là một lựa chọn bật thêm có chủ ý chứ không phải một khoản phí âm thầm. Chỉ dành cho raster (**PNG, JPG, WebP, AVIF, TIFF**), được tick trong bảng xuất hoặc truyền dưới dạng `durable=1` trong một liên kết chia sẻ. Trên các ứng dụng máy tính để bàn và di động, thẻ này bị ẩn hẳn thay vì hiển thị như một thao tác vô nghĩa, vì không có nguồn nào để tải mô hình khi ngoại tuyến.
 
-**Bảo vệ nội dung.** Trong bảng xuất, *Password protect*, **C2PA Credentials**, **Lolly Imprint** và **Durable credential** gộp lại thành một nhóm **Content protection** thu gọn, tùy theo định dạng, để các tùy chọn xuất xứ và bảo vệ của một tệp nằm cùng một chỗ - nhóm này chỉ hiển thị các thẻ áp dụng được cho định dạng đã chọn, và tự ẩn hoàn toàn khi không thẻ nào áp dụng. Các dấu in cố tình *không* nằm trong đó: chúng là hình học sản xuất in ấn chứ không phải bảo vệ, nên **Print marks & bleed** - phép đo bleed theo milimét cùng Crop, Registration, Bleed, Colour bars và Stamp details - vẫn giữ thẻ cấp cao nhất riêng trên các định dạng in.
+**Content protection.** Trong bảng xuất, **Licence** bạn cấp, **Source credits** của bất cứ thứ gì bạn đặt vào, *Password protect*, **C2PA Credentials**, **Lolly Imprint** và **Durable credential** gộp lại thành một nhóm **Content protection** thu gọn, tùy theo định dạng, để các tùy chọn xuất xứ, quyền và bảo vệ của một tệp nằm cùng một chỗ. Nhóm này chỉ hiển thị các thẻ áp dụng được cho định dạng đã chọn. Nó tự mở ra khi một liên kết hoặc tài liệu đã lưu đã khai báo sẵn licence, hoặc khi một nguồn cần bạn quyết định.
+
+**Licence.** Chọn cách người khác có thể sử dụng tác phẩm của bạn: *None (all rights reserved)* theo mặc định, hoặc CC0 1.0, Public Domain Mark 1.0, hoặc một trong các licence Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Tên licence và một liên kết đến văn bản của nó được ghi vào metadata licence của tệp (EXIF, XMP và RIFF ở những định dạng có các trường đó) và vào Content Credential của tệp. Lựa chọn này được lưu cùng tài liệu và đi theo trong một liên kết chia sẻ dưới dạng `licence=`. Lolly ghi lại licence bạn đã chọn. Nó không kiểm tra hay thực thi các điều khoản. Một công cụ có trường licence riêng, như Claim, giữ nguyên trường đó thay vì hiển thị thêm bộ chọn thứ hai. Các dấu in cố tình *không* nằm trong đó: chúng là hình học sản xuất in ấn chứ không phải bảo vệ, nên **Print marks & bleed** - phép đo bleed theo milimét cùng Crop, Registration, Bleed, Colour bars và Stamp details - vẫn giữ thẻ cấp cao nhất riêng trên các định dạng in.
 
 ![Nhóm Content protection được mở trên một bản xuất PNG, chỉ hiển thị các thẻ áp dụng được cho nó](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
@@ -263,7 +279,7 @@ Một số công cụ xuất **âm thanh riêng**, không chỉ là một track 
 
 **Chi phí, tính toán từ bảng giá của bạn.** Bên dưới phần preflight - cuối cùng, vẫn phía trên các nút bấm - là một thẻ chuyển những con số đếm đó thành tiền, và chỉ luôn từ mức giá do ai đó cung cấp. Nó đọc bất cứ thứ gì bước preflight đã đếm được, dù thẻ preflight có được bật hay không, và nó cần hai điều đúng cùng lúc: công việc có thứ gì đó mà một bảng giá có thể định giá được (bản kẽm, tờ in, diện tích, số trang, các dòng biến thể hoặc tệp đầu ra - nên một PNG logo đơn giản sẽ không bao giờ hiển thị nó), **và** có một **bảng giá** (rate card) hiện diện. Một bảng giá là danh sách giá dạng JSON từ nhà in của bạn. Một bản dựng mặc định không mang theo bảng giá nào và không có cách nào trong ứng dụng để nạp một bảng: nó chỉ đến dưới dạng một tài sản danh mục mà một triển khai cung cấp, hoặc qua tiện ích mở rộng bảng giá tùy chọn mà một người tự lưu trữ hoặc mặt bằng điều khiển bật lên. Không có bảng giá, không có gì được hiển thị - không lời nhắc, không bảng trống.
 
-Quy tắc mà toàn bộ tính năng này được xây dựng dựa trên là **nó không bao giờ bịa ra tiền**. Mỗi con số là một mức giá bạn cung cấp nhân với một số lượng Lolly đã đếm - `4 plate × €35.00` - và tổng số nêu rõ nguồn của chính nó ngay trong cùng câu với con số: nhà cung cấp mà bảng giá nêu tên, và ngày mà bảng giá nói mức giá của nó áp dụng từ đó. Không có đơn vị tiền tệ mặc định, không có giá trị giữ chỗ và không có số 0 nào thay thế cho một mức giá bị thiếu. Những gì tệp tự nói về chính nó vẫn luôn được thuật lại như lời trích dẫn: *"The file says: … Lolly has not verified this."*
+Quy tắc mà toàn bộ tính năng này dựa vào là **nó không bao giờ tự bịa ra tiền**. Mỗi con số là một mức giá bạn cung cấp nhân với một số lượng mà Lolly đếm được - `4 plate × €35.00` - và tổng số luôn mang theo nguồn của chính nó trong cùng câu với con số đó: nhà phát hành ghi trên thẻ, và ngày mà thẻ nói mức giá của nó có hiệu lực từ đó. Không có đơn vị tiền tệ mặc định, không có giá trị giữ chỗ và không có số 0 nào thay cho một mức giá còn thiếu. Những gì tệp tự nói về chính nó luôn ở dạng lời dẫn gián tiếp: *"Tệp ghi: … Lolly chưa xác minh điều này."*
 
 Và khi không thể tính toán một cách trung thực, bảng làm việc **biến mất** thay vì suy giảm thành một con số xám mờ hoặc điền ẩu:
 
@@ -318,11 +334,11 @@ Một bản xuất đặt vào tác phẩm của người khác cũng ghi lại 
 
 ## Trên điện thoại
 
-Các điều khiển xuất nằm sau nút **Render** nổi, mở ra bảng **Export** (Xuất) - cùng các định dạng, kích thước, sao chép, tải xuống và chia sẻ, được tối ưu cho thao tác chạm.
+Các điều khiển xuất nằm sau nút **Export** nổi, mở ra bảng **Export** (Xuất) - cùng các định dạng, kích thước, sao chép, tải xuống và chia sẻ, được tối ưu cho thao tác chạm.
 
 ## Tham chiếu định dạng
 
-Mọi id mà host có thể render, được nhóm lại. Đây cũng chính là các giá trị cho tham số URL `format=` và cờ CLI `--export=` - xem [URL Mode](/info/url-mode.html) và [CLI](/info/cli.html). Một công cụ chỉ cung cấp tập con mà tác giả của nó khai báo, nên bộ chọn luôn ngắn hơn danh sách này.
+Mọi id mà host có thể kết xuất, được nhóm lại. Đây cũng là các giá trị cho tham số URL `format=` và cờ CLI `--export=` - xem [URL Mode](/info/url-mode.html) và [CLI](/info/cli.html). Menu của một công cụ chỉ hiển thị các định dạng mà công cụ đó có thể tạo ra, nên nó luôn ngắn hơn danh sách này.
 
 | Loại | Id |
 |---|---|

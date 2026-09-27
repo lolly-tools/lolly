@@ -13,7 +13,7 @@ import assert from 'node:assert';
 import { existsSync, readdirSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { scan, scanBuilt, staleAllows, targets } from '../scripts/check-docs-vernacular.ts';
+import { BUILT_DOORS, builtTargets, scan, scanBuilt, staleAllows, targets } from '../scripts/check-docs-vernacular.ts';
 import { VERNACULAR_WHY } from '../scripts/lib/vernacular-why.ts';
 
 const BUILT = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'shells/web/public/info');
@@ -37,6 +37,18 @@ test('built pages carry no fingerprint unicode in visible text or spoken attribu
     [],
     'A build-time generator introduced a banned character - fix the generator (docs/build.ts or packages/docs-render), then pnpm run build:info.',
   );
+});
+
+test('the built-page scan reaches the pages behind every door, not only the stubs', { skip: !existsSync(BUILT) }, () => {
+  // The real English pages moved to /info/<door>/<slug>.html; the top level is the
+  // landing plus redirect stubs. A scan of the top level alone read one real page
+  // and still reported the site clean. Every door directory must contribute pages.
+  const files = builtTargets();
+  for (const door of BUILT_DOORS) {
+    const n = files.filter(f => f.startsWith(`shells/web/public/info/${door}/`)).length;
+    assert.ok(n > 0, `the built-page scan reads nothing under /info/${door}/`);
+  }
+  assert.ok(files.length > 150, `only ${files.length} built pages scanned`);
 });
 
 test('the specification chapters are in the scan set', () => {

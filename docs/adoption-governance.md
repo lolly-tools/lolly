@@ -35,7 +35,7 @@ One producer case is easy to miss because it is not marketing at all: **critical
 
 ### The first 15 minutes (any producer)
 
-1. **Open Lolly** - the web app needs no install, no account, no sign-up. Nothing you type into a tool is sent to Lolly - there is no server collecting it.
+1. **Open Lolly** - the public web app needs no install, no account and no sign-up, and it makes your files in the browser. An organisation's own Lolly may ask you to sign in ([Use Lolly at your organisation](/info/organisation.html)).
 2. **Pick a tool** that matches what you need (an event tile, a quote card, a signature).
 3. **Fill in the fields.** No fonts, colours or spacing to decide - the tool already holds the brand rules.
 4. **Get the file.** Download it, copy a share link or export a batch. Done.
@@ -72,7 +72,7 @@ The Dashboard's capability map is the inventory to scope that decision against: 
 
 1. Confirm the **data posture**: no telemetry, nothing uploaded by default and no backend in the core render/verify path - the two optional server components are inventoried on [Server Surface](/info/server-surface.html).
 2. Scope a first rollout to a low-risk context; the independent assurance described in [Status](#status) is still open.
-3. Decide who owns **governance** - see [Governance](#governance) below.
+3. Decide who owns **governance** - see [Governance](#governance-when-you-want-it) below.
 
 ## Measuring adoption
 

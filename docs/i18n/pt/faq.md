@@ -2,10 +2,10 @@
 
 Perguntas frequentes exibidas no acordeão da página inicial `/info`.
 
-**Como manter:** cada título `##` abaixo é uma pergunta; tudo o que vem abaixo dele
+**Como manter:** cada título `##` abaixo é uma pergunta; tudo abaixo dele
 (até o próximo `##`) é a resposta. As respostas usam o mesmo markdown leve do
-restante do site - separe os parágrafos com uma linha em branco. Adicione, remova ou
-reordene as perguntas aqui e rode `npm run build:info` (ou `npm run dev:web`) de novo.
+resto do site - parágrafos separados por uma linha em branco. Adicione, remova ou
+reordene perguntas aqui e rode de novo `pnpm run build:info` (ou `pnpm run dev:web`).
 Tudo acima do primeiro `##` (este título e estas notas) é ignorado pelo build.
 
 ## O que acontece quando eu ativo o opt-in na página /profile?
@@ -66,11 +66,11 @@ O Lolly se encaixa em qualquer lugar onde você já gera arquivos - a CLI é o m
 do App, então um pipeline rodando às 2h da manhã não tem como divergir do que uma pessoa
 visualiza no navegador. O atrito na adoção raramente é técnico; é organizacional. Espere o seguinte:
 
-**Alguém precisa montar um catálogo de marca curado.** O Lolly é uma plataforma, não um
-pacote pronto com os seus templates. Para uma *implantação governada*, alguém define o catálogo
-compartilhado de assets (logos, paletas, fontes como IDs permanentes) e escreve o manifesto +
-template de cada tipo de saída. Mas ninguém precisa esperar por isso - no
-app aberto qualquer pessoa pode trazer os próprios arquivos para Ativos e criar ferramentas no
+**Um catálogo de marca com curadoria precisa ser feito.** O Lolly é uma plataforma, não um
+pacote pronto de templates seus. Para um *rollout governado*, alguém define o catálogo
+de ativos compartilhado (logos, paletas, fontes como IDs permanentes) e escreve o manifesto +
+template para cada tipo de saída. Indivíduos não precisam esperar por isso, porém - no
+app aberto qualquer um pode ingerir seus próprios arquivos em Assets e construir ferramentas no
 Design desde o primeiro dia.
 
 **Não é preciso git para contribuir.** Designers criam as próprias ferramentas e templates
@@ -121,9 +121,17 @@ Ganhamos a guerra da governança com conveniência e serviço excelentes.
 
 Sim. Abra o **Design** e clique em **Import a design** (importar um design): ele aceita um **.fig** nativo do Figma (Save local copy), uma exportação **.penpot** do Penpot, um **.ai** ou **.pdf** do Illustrator, um **.idml** do InDesign (File → Export → InDesign Markup) ou **qualquer SVG** (a porta larga - quase todo app de design exporta esse formato). Sem conta, sem plugin e sem licença de app de design.
 
-![O canvas aberto do Design - Importar um design fica no menu Lolly da barra de ferramentas](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![A prancheta aberta do Design - Import a design fica no menu Lolly da barra de ferramentas](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 As camadas chegam como caixas editáveis no canvas aberto: o texto continua digitável, as formas continuam formas, as imagens entram na sua biblioteca de imagens e a tipografia e as cores seguem os globais da marca. Salve e o layout vira um template reutilizável e endereçável por URL que qualquer pessoa com o Lolly pode preencher de novo - e você pode misturar ferramentas vivas (um QR code, um gráfico) que voltam a renderizar no carregamento. Dali em diante ele renderiza como qualquer outra coisa no Lolly - SVG, PDF, PNG e o resto, reproduzível a partir da URL. Veja [Importar um design](/info/design-import.html).
+
+## Onde está a coisa que eu fiz ontem?
+
+Se você pressionou **Salvar como** ou **Salvar**, está em **Projetos**, na tela inicial, no navegador ou app de onde você salvou. Se você só pressionou **Baixar**, o arquivo está onde seu navegador ou sistema salva downloads, e geralmente uma cópia está em **Ativos**. Nove ferramentas também guardam trabalho não salvo em **Projetos**. [Encontre e recupere seu trabalho](/info/find-your-work.html) cobre todos os casos.
+
+## Fechei a aba. Meu trabalho se foi?
+
+O trabalho salvo continua em **Projetos**. O trabalho não salvo se foi, exceto nas nove ferramentas que salvam enquanto você trabalha, que também o guardam em **Projetos**. Da próxima vez, pressione **Salvar como** antes de sair. Veja [Se você fechou a aba ou saiu da ferramenta](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Posso compartilhar meu trabalho como arquivo em vez de link?
 
@@ -145,7 +153,7 @@ Essa linha está traçada na licença, não em uma promessa: tudo o que roda loc
 
 ## Quanto a SUSE mantém em privado? (ou seja, quando vão puxar o tapete)
 
-O motor, os shells, os schemas e as ferramentas que independem de marca são open source; as marcas registradas da SUSE e as ferramentas com a marca dela são a parte que fica privada, e já estão separadas. A instância pública em [lolly.tools](https://lolly.tools) roda com a marca neutra.
+O engine, os shells, os schemas e as ferramentas independentes de marca são open source; as marcas registradas e as ferramentas de marca da SUSE são a parte que continua privada, e elas já estão separadas. A instância pública em [lolly.tools](https://lolly.tools) roda com a marca em branco.
 
 A fronteira é estrutural, não prometida. Toda versão lançada é open source e não pode ser des-lançada, não existe contributor agreement que possa relicenciar o trabalho de ninguém e a única coisa retida é a marca registrada. Quando outra empresa fechou o código do seu Linux corporativo em 2023, a SUSE cofundou a [OpenELA](https://openela.org) para manter esse código aberto - a mesma postura que este projeto herda.
 

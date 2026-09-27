@@ -51,19 +51,21 @@ auf Ihrem Gerät**, niemals übertragen:
 - <!--i:folder--> **Ihre eigenen Dokumente, gespeicherten Sitzungen, hochgeladenen Assets und Schriften** - gespeichert in
   IndexedDB auf Ihrem Gerät, nie hochgeladen, von niemandem außer Ihnen gelesen.
 
-Nichts davon wird geteilt, verkauft oder zur Identifizierung oder Verfolgung genutzt. Es gibt nichts,
-dem zuzustimmen wäre, weil keine Erhebung stattfindet - nur diesen Hinweis, damit Sie
-wissen, was wo aufbewahrt wird. Löschen Sie alles jederzeit mit **Profil → Alle meine
-Daten löschen**, oder indem Sie den Speicher der Seite in Ihrem Browser leeren. (Nach der ePrivacy-
-Richtlinie Art. 5(3) benötigt eine Speicherung, die für den angeforderten Dienst unbedingt
-erforderlich ist, keine Einwilligung - nur Transparenz, was sowohl dieses Dokument als auch
-der In-App-Hinweis bieten.)
+Nichts davon wird geteilt, verkauft oder zur Identifizierung oder Verfolgung
+genutzt. Es gibt nichts, dem zuzustimmen wäre, weil keine Erhebung stattfindet - nur
+diesen Hinweis, damit Sie wissen, was wo aufbewahrt wird. Das Leeren des Speichers
+der Seite in Ihrem Browser entfernt jederzeit alles davon; **Einstellungen →
+Speicher → Alle meine Daten löschen** entfernt Ihr Profil, gespeicherte Sitzungen,
+hochgeladene Bilder und den Asset-Cache. (Nach der ePrivacy-Richtlinie Art. 5(3)
+benötigt eine Speicherung, die für den angeforderten Dienst unbedingt erforderlich
+ist, keine Einwilligung - nur Transparenz, was sowohl dieses Dokument als auch der In-App-Hinweis bieten.)
 
 ![Der Speicherbereich der Profilseite auf einem Bildschirm in Telefonbreite: jede Kategorie geräteinterner Daten benannt, mit der Schaltfläche „Alle meine Daten löschen“ direkt daneben](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
-Ihre eigene Sicherung dieser Daten - das `lolly-backup`-Bündel, erzeugt von **Meine
-Daten exportieren & alles rendern** - ist eine Datei, die Sie behalten und kontrollieren. Sie berührt nie unsere
-Server, es sei denn, Sie entscheiden sich, sie selbst irgendwohin zu senden. Siehe [Datenübertragung](/info/data-transfer.html).
+Ihre eigene Sicherung dieser Daten - das `lolly-backup` -Bündel, erzeugt von
+**Meine Daten exportieren** - ist eine Datei, die Sie behalten und
+kontrollieren. Sie berührt nie unsere Server, es sei denn, Sie entscheiden
+sich, sie selbst irgendwohin zu senden. Siehe [Datenübertragung](/info/data-transfer.html).
 
 ## Geräteinterne Werkzeuge
 
@@ -75,6 +77,17 @@ Diese Werkzeuge funktionieren offline, und ihre Ausgabe trägt kein Wasserzeiche
 uns - der Zweck der meisten von ihnen ist, Daten zu entfernen & zu schützen, nicht Risiken hinzuzufügen.
 
 ![Das Abzeichen, das diese Tools tragen: Läuft auf Ihrem Gerät - nichts wird hochgeladen](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+
+Prepare for sharing hält Arbeitseingaben, private Funde und Ersetzungszuordnungen im Arbeitsspeicher,
+ohne sie automatisch zum Verlauf, zu Links, Backups oder zur Synchronisierung hinzuzufügen. Prüfung
+und Ersetzung senden weder Dateiinhalte an einen Server noch validieren sie Zugangsdaten online.
+Nutzer entscheiden, ob sie ein Ergebnis kopieren, herunterladen, senden oder ausdrücklich in ihrer
+Bibliothek speichern; ein gespeichertes Ergebnis folgt danach den normalen Backup- und
+Synchronisierungseinstellungen der Bibliothek. Rezept-Dateien lassen frühere Nutzlasten und wörtliche
+Zuordnungen aus. Zusammenfassende Berichte enthalten Zählungen, Bereichs-IDs und Datei-Hashes. Die CLI
+kann außerdem eine private Prüfdatei mit den Originalwerten speichern, aber nur, wenn dies mit
+`--review-file` ausdrücklich angefordert wird. Das Leeren oder Verlassen einer
+Browser-Vorbereitungsansicht gibt ihren Arbeitszustand frei; das ist kein Versprechen forensischer Löschung aus dem Speicher des Browsers oder Betriebssystems.
 
 ## Wenn die App mit einem Netzwerk spricht, vollständig
 
@@ -90,18 +103,45 @@ Netzwerk abruft oder sendet. Steht es nicht hier, tut die App es nicht.
 | Senden an Dropbox | Die eine Datei, die Sie zum Senden ausgewählt haben, an die API von Dropbox (`api.dropboxapi.com` für Anmeldung und Metadaten, `content.dropboxapi.com` für die Datei selbst), nach einer Dropbox-Anmeldung, die Sie im eigenen Fenster von Dropbox abschließen. Lollys Zugriff ist auf den App-Ordner beschränkt (es sieht ausschließlich `Apps/` und den eigenen Ordner dort - niemals den Rest Ihrer Dropbox), der angezeigte "Open"-Link ist ein kurzlebiger privater Link (es wird keine öffentliche Freigabe erstellt), und ein Refresh-Token wird nur gespeichert, wenn Sie "stay connected" ankreuzen | Nur wenn Sie bei einer Datei auf "Send to Dropbox" klicken, und nur bei Builds, bei denen der Betreiber eine Dropbox-Client-ID konfiguriert hat - ohne eine solche existiert die Schaltfläche nicht | Die Schaltfläche erscheint nie. Laden Sie die Datei selbst herunter und laden Sie sie zu Dropbox hoch |
 | Senden an OneDrive | Die eine Datei, die Sie zum Senden ausgewählt haben, an Microsofts Identitäts- und Graph-Dienste (`login.microsoftonline.com` für die Anmeldung, `graph.microsoft.com` für den Upload; eine große Datei wird in Teilen an eine Microsoft-eigene Upload-Adresse unter `api.onedrive.com`, `*.up.1drv.com` oder `*.sharepoint.com` hochgeladen), nach einer Microsoft-Anmeldung, die Sie in Microsofts eigenem Fenster abschließen. Lollys Zugriff ist auf den eigenen Ordner unter `Apps/` beschränkt (es kann niemals den Rest Ihres OneDrive lesen), zuzüglich Ihres Anzeigenamens für die Kontobezeichnung, und ein Refresh-Token wird nur gespeichert, wenn Sie "stay connected" ankreuzen | Nur wenn Sie bei einer Datei auf "Send to OneDrive" klicken, und nur bei Builds, bei denen der Betreiber eine Microsoft-Client-ID konfiguriert hat - ohne eine solche existiert die Schaltfläche nicht | Die Schaltfläche erscheint nie. Laden Sie die Datei selbst herunter und laden Sie sie zu OneDrive hoch |
 | Senden an LinkedIn | Die eine Datei, die Sie zum Senden ausgewählt haben, plus deren Name als Text des Beitrags, an LinkedIn (`www.linkedin.com` für die Anmeldung, `api.linkedin.com` für den Upload und den Beitrag), nach einer LinkedIn-Anmeldung, die Sie in Ihrem eigenen Browser abschließen. Der Beitrag geht als öffentlicher Beitrag unter Ihrem Namen an Ihren eigenen Feed. Lolly kann als Sie posten und Ihren Namen für die Kontobezeichnung lesen, sonst nichts auf Ihrem LinkedIn, und die Anmeldung wird nur dann auf diesem Gerät gehalten, wenn Sie "stay connected" ankreuzen - LinkedIns Tokens gelten 60 Tage und können nicht im Stillen erneuert werden, laufen also von selbst ab | Nur wenn Sie bei einer Datei auf "Send to LinkedIn" klicken, nur in den Desktop-Apps, und nur bei Builds, bei denen eine LinkedIn-App konfiguriert ist - ohne eine solche existiert die Schaltfläche nicht | In der Web-App gibt es nichts zu blockieren: Dies existiert **nur in den Desktop-Apps**, daher stehen diese beiden Hosts bewusst NICHT in der Content-Security-Policy der Web-App weiter unten. Entfernen Sie in den Desktop-Apps die konfigurierte LinkedIn-App, und die Schaltfläche erscheint nie |
+| Senden an Penpot | Ihr persönliches Penpot-Zugriffstoken (Sie fügen es in der App ein) sowie das `.penpot`-Archiv des Designs, das Sie zum Senden ausgewählt haben, an Penpots API (`design.penpot.app`), über eine kleine Durchleitung am eigenen Ursprung der App (`/api/penpot`), weil Penpots API einem Browser nicht direkt antwortet. Die Durchleitung leitet weiter und vergisst; die Desktop-Apps sprechen direkt mit Penpot | Nur wenn Sie im Design-Tool auf "Send to Penpot" klicken und ein Projekt bestätigen | Die Durchleitung liefert einen Fehler, und der Versand schlägt kontrolliert fehl (fail closed). Exportieren Sie die `.penpot`-Datei und importieren Sie sie selbst in Penpot |
+| Senden an Bluesky | Das eine Bild, das Sie zum Senden ausgewählt haben, dessen Name als Beitragstext und Alt-Text, sowie Ihr Handle und ein App-Passwort (Bluesky → Settings → App passwords, niemals Ihr Konto-Passwort), an den von Ihnen benannten Bluesky-Server (`bsky.social`, sofern Sie nicht selbst hosten). Das App-Passwort wird nur auf diesem Gerät gespeichert, nie in einem Backup, und Trennen löscht es | Nur wenn Sie bei einem Bild auf "Send to Bluesky" klicken, nachdem Sie das Konto in Ihrem Profil verbunden haben, nur in den **Desktop-Apps** | In der Web-App gibt es nichts zu blockieren: Ihre Richtlinie weiter unten nennt keinen Bluesky-Host, daher gibt es dort diesen Übertritt nicht. Entfernen Sie in den Desktop-Apps die Verbindung, und die Schaltfläche erscheint nie |
+| Senden an Discord | Die eine Datei, die Sie zum Senden ausgewählt haben, als Anhang, an die eingefügte Kanal-Webhook-Adresse (`discord.com`). Eine Webhook-Adresse erlaubt jedem, der sie besitzt, in diesem Kanal zu posten, daher wird sie nur auf diesem Gerät gespeichert, nie in einem Backup, und Trennen löscht sie | Nur wenn Sie bei einer Datei auf "Send to Discord" klicken, nur in den **Desktop-Apps** | In der Web-App gibt es nichts zu blockieren: Ihre Richtlinie weiter unten nennt `discord.com` nicht, daher gibt es dort diesen Übertritt nicht. Entfernen Sie in den Desktop-Apps den Webhook, und die Schaltfläche erscheint nie |
+| Senden an Mastodon | Die eine Datei, die Sie zum Senden ausgewählt haben, und deren Name als Beitragstext, an den von Ihnen benannten Mastodon-Server (oder einen kompatiblen), nach einer Anmeldung, die Sie im eigenen Fenster dieses Servers abschließen. Das Verbinden registriert eine kleine geräteweise App auf diesem Server; die Anmeldung wird nur dann auf diesem Gerät gehalten, wenn Sie "stay connected" ankreuzen | Nur wenn Sie bei einer Datei auf "Send to Mastodon" klicken. Sie wählen den Server, daher steht er nicht in der Richtlinie weiter unten | Ihr genannter Server muss Browser-Aufrufe erlauben; tut er das nicht, nutzen Sie die Desktop-Apps. Trennen entfernt die Schaltfläche |
+| Senden an Nextcloud / WebDAV | Die eine Datei, die Sie zum Senden ausgewählt haben, an Ihren eigenen Server, über ein authentifiziertes PUT mit der Serveradresse, dem Benutzernamen und dem App-Passwort, die Sie eingegeben haben (Nextcloud → Settings → Security → Devices & sessions; niemals Ihr Konto-Passwort). Nur auf diesem Gerät gespeichert, nie in einem Backup, gelöscht durch Trennen | Nur wenn Sie bei einer Datei auf "Send to Nextcloud" klicken. Sie wählen den Server, daher steht er nicht in der Richtlinie weiter unten | Ihr Server muss Browser-Aufrufe vom Ursprung der App aus erlauben; tut er das nicht, nutzen Sie die Desktop-Apps |
+| Senden an S3-kompatiblen Speicher | Die eine Datei, die Sie zum Senden ausgewählt haben, an Ihren eigenen Bucket (AWS S3, MinIO, R2, B2, Garage - jeden SigV4-Endpunkt), signiert auf Ihrem Gerät mit dem von Ihnen eingegebenen Schlüsselpaar. Schlüssel werden nur auf diesem Gerät gespeichert, nie in einem Backup, gelöscht durch Trennen | Nur wenn Sie bei einer Datei auf "Send to S3" klicken. Sie wählen den Endpunkt, daher steht er nicht in der Richtlinie weiter unten | Die CORS-Regeln Ihres Buckets müssen den Ursprung der App erlauben; tun sie das nicht, nutzen Sie die Desktop-Apps |
+| Synchronisierung über Ihre Geräte hinweg | Eine Kopie dessen, was Sie auf diesem Gerät gemacht haben - gespeicherte Sitzungen und Projekte, Ihre Designsysteme mit ihren Schriften und Logos, hochgeladene Bilder, Ihr Profil und Ihre Einstellungen - als eine Datei, an den einen Speicherort, den Sie gewählt haben: den Lolly-App-Ordner in Ihrer Dropbox (`api.dropboxapi.com`, `content.dropboxapi.com`), von Lolly erstellte Dateien in Ihrem Google Drive (`www.googleapis.com`), den Lolly-App-Ordner in Ihrem OneDrive (`graph.microsoft.com`, wobei größere Dateien an `api.onedrive.com`, `*.up.1drv.com` oder `*.sharepoint.com` hochgeladen werden, und Downloads von Microsofts `*.files.1drv.com`, `my.microsoftpersonalcontent.com` oder `*.sharepoint.com`), oder Ihren eigenen Nextcloud- / WebDAV-Server oder S3-Bucket. Derselbe Speicherort hält außerdem bis zu sieben tägliche Kopien und eine Kopie von vor Ihrer letzten Anwendung. **Es geht nichts an Lolly:** Kein Lolly-Server, Relay oder Lolly-Work-Server liegt auf dem Weg, und die Apps brauchen dafür keine Lolly-Website, nicht einmal zur Anmeldung. Die Kopie wird nur dann zuerst auf Ihrem Gerät verschlüsselt, wenn Sie eine Passphrase festlegen. Anmeldungen, Schlüssel, App-Passwörter, die Passphrase und die Synchronisierungseinstellungen bleiben auf dem Gerät und sind nie in der Kopie enthalten. Im Web behält eine gemerkte Google-Drive-Verbindung nur Ihren Kontonamen (und Ihre eigene Client-ID, falls Sie eine angegeben haben); die Google-Anmeldung selbst gilt nur für einen Besuch. In der Android-App läuft die Google-Drive-Anmeldung über Google-Play-Dienste auf dem Telefon, die Google betreibt | Erst nachdem Sie "Sync across my devices" einschalten oder "Sync now" drücken: ein Upload kurz nach jeder Änderung und wenn Sie die App verlassen, sowie eine Prüfung auf eine neuere Kopie beim Start der App | Die Synchronisierung schlägt fehl und sagt warum; Ihre Arbeit bleibt auf dem Gerät. Exportieren Sie Ihre Daten stattdessen in eine Datei und übertragen Sie sie selbst |
 | ICC-Druckprofile | Nichts Persönliches - eine Anfrage nach einem Standard-Druckbedingungsprofil, an das öffentliche Register des ICC (`registry.color.org`, `www.color.org`) | Nur wenn Sie im Druckprofil-Manager eine ICC-Vorgabe anklicken - ein einmaliger Abruf pro Profil, danach liegt es auf Ihrem Gerät | ICC-Vorgaben schlagen fehl. Stellen Sie stattdessen Ihr eigenes `.icc`-Profil bereit |
 | Internetradio | Nichts Persönliches - eine Playlist-Anfrage und ein Audiostream, an den Sender (`api.somafm.com` und den von ihm genannten Icecast-Server, `*.somafm.com`) | Nur solange Sie das optionale integrierte Radio im Sound-Player abspielen | Das Radio schlägt fehl. Jede andere Sound-Funktion funktioniert weiterhin |
 | Eine URL, die Sie ein Tool erfassen lassen | Eine Anfrage an genau die Webadresse, die Sie eingeben, vom URL-Screenshot-Tool. Was auch immer diese Adresse ist. Dieser Host steht nicht in der Richtlinie weiter unten, weil Sie ihn im Moment der Nutzung selbst wählen | Nur wenn Sie in diesem Tool eine URL eingeben und die Erfassung starten | Ein Betreiber kann dies nicht nach Host auf eine Positivliste setzen. Um es zu entfernen, entfernen Sie das Tool |
+| Ein Bild von einer URL hinzufügen | Eine Anfrage an genau die Bildadresse, die Sie bei "Add from URL" einfügen (im Asset-Picker oder in Assets). Die eigene Richtlinie der Web-App verbietet dem Browser, eine andere Site direkt abzurufen, daher wird die Anfrage für Sie von einer kleinen Durchleitung am eigenen Ursprung der App gestellt (`/api/fetch-image`), die das Bild serverseitig abruft und nur die Bytes zurückgibt - sie speichert nichts und vergisst die Adresse. Sie verweigert alles, was keine öffentliche Bildadresse ist (eine private oder interne Adresse wird blockiert). Die Desktop-Apps rufen die Adresse direkt ab. Ein von Ihnen eingefügter Lolly-Link wird überhaupt nicht abgerufen - er wird auf Ihrem Gerät gerendert. Der Host steht nicht in der Richtlinie weiter unten, weil Sie ihn im Moment der Nutzung selbst wählen | Nur wenn Sie eine URL bei "Add from URL" einfügen und bestätigen | Der Betreiber schaltet die Durchleitung ab (`LOLLY_DISABLE_IMAGE_PROXY=1`); danach können in der Web-App nur noch Lolly-Links, `data:`-Bilder und Bilder vom selben Ursprung hinzugefügt werden. Die Desktop-Apps sind nicht betroffen |
 | SEAL-Signaturprüfung | **Nichts.** Die Web-App hat überhaupt keinen DNS-Resolver - siehe unten | Nie | Nichts zu blockieren |
 | KI-Modelle auf dem Gerät | Nichts Persönliches - ein einmaliger Download einer Modelldatei von Lollys Modell-Host (`lolli.li`), danach auf Ihrem Gerät zwischengespeichert; kein Konto, keine Kennung, nur die Anfrage und Ihre IP | Nur wenn Sie eine Funktion nutzen, die ein Modell benötigt (Verify-Tiefenscan, Bild-Upscaling, Sprache und Ähnliches) | Diese Funktion wartet auf den Download; alles andere funktioniert weiterhin |
 | Remote-Instanz | Was auch immer die von Ihnen benannte Instanz zurückliefert, über dieselbe oben beschriebene Katalog-Synchronisierung - plus ein Versionskennzeichen bei Anfragen an sie (Shell-Art und Engine-Version, dieselbe Information, die ein User-Agent trägt), damit ihr Betreiber sehen kann, welche Lolly-Versionen im Einsatz sind. Bei einer verwalteten Instanz trägt dieses Kennzeichen, solange Sie angemeldet sind, außerdem eine geräteweise Installations-ID, damit die Geräteliste des Betreibers diese Installation unterscheiden kann. Es reitet nur auf Anfragen mit, die Ihre eigene Nutzung ohnehin schon stellt - es gibt keinen Timer, und nichts telefoniert von sich aus nach Hause - und beim Verlassen der Instanz wird die ID gelöscht, sodass ein Gerät, das sich später erneut verbindet, eine neue präsentiert. Sie wählen den Host im Moment der Nutzung, daher steht er nicht in der Richtlinie weiter unten | Nur wenn Sie die Shell explizit auf ein anderes Lolly-Deployment richten | Der Instanzwechsel schlägt fehl. Ihre lokale Instanz ist nicht betroffen |
 
-Jeder feste Host in dieser Tabelle ist zugleich die vollständige Positivliste in der Content-Security-Policy der App, die der Browser durchsetzt. Die Liste ist also nicht nur eine Beschreibung dessen, was der Code heute tut, sondern die Grenze, an die der Browser die App bindet: Eine künftige Änderung, die versuchte, einen anderen Host zu kontaktieren, würde blockiert, nicht stillschweigend erlaubt. Eine Zeile ist die bewusste Ausnahme, und ihre eigene Zelle sagt das auch: Send to LinkedIn existiert nur in den Desktop-Apps, daher nennt die Richtlinie der Web-App keinen der beiden Hosts - die Web-App könnte sie nicht erreichen, selbst wenn ihr Code es versuchte. Zwei weitere Zeilen haben keinen festen Host, weil Sie die Adresse im Moment der Nutzung selbst wählen: eine URL, die Sie ein Tool erfassen lassen, und eine Remote-Instanz, auf die Sie die Shell richten. Keine von beiden steht in der Richtlinie, und beide treten nur ein, wenn Sie eine Adresse eingeben und darauf handeln. Ein Deployment, das keine der optionalen Verbindungen möchte (etwa eine Unternehmensinstanz mit eigenen Schriften), entfernt diese Hosts aus seiner Richtlinie, und die Funktionen schlagen dann kontrolliert fehl (fail closed), statt nach außen zu greifen.
+Jeder feste Host in dieser Tabelle ist zugleich die vollständige Positivliste in der
+Content-Security-Policy der App, die der Browser durchsetzt. Die Liste ist also nicht nur eine
+Beschreibung dessen, was der Code heute tut, sondern die Grenze, an die der Browser die App
+bindet: Eine künftige Änderung, die versuchte, einen anderen Host zu kontaktieren, würde
+blockiert, nicht stillschweigend erlaubt. Eine Zeile ist die bewusste Ausnahme, und ihre
+eigene Zelle sagt das auch: Send to LinkedIn existiert nur in den Desktop-Apps, daher nennt
+die Richtlinie der Web-App keinen der beiden Hosts - die Web-App könnte sie nicht erreichen,
+selbst wenn ihr Code es versuchte. Zwei weitere Zeilen, Bluesky und Discord, sind auf dieselbe
+Weise nur für Desktop, und ihre Hosts fehlen aus demselben Grund in der Web-Richtlinie. Fünf
+Zeilen haben keinen festen Host, weil Sie die Adresse im Moment der Nutzung selbst wählen:
+eine URL, die Sie ein Tool erfassen lassen, eine Remote-Instanz, auf die Sie die Shell
+richten, sowie Ihr eigener Mastodon-Server, WebDAV-Server oder S3-Bucket (die letzten beiden
+auch als Synchronisierungs-Ziel). Keine davon steht in der Richtlinie, und jede tritt nur ein,
+wenn Sie eine Adresse eingeben und darauf handeln. Die Penpot-Zeile erreicht Penpot über den
+eigenen Ursprung der App, sie ist also durch `'self'` abgedeckt. Ein Deployment, das keine der
+optionalen Verbindungen möchte (etwa eine Unternehmensinstanz mit eigenen Schriften), entfernt
+diese Hosts aus seiner Richtlinie, und die Funktionen schlagen dann kontrolliert fehl (fail closed), statt nach außen zu greifen.
 
-Nichts davon sendet Ihre Dokumente, Projekte, Sitzungen oder hochgeladenen Dateien irgendwohin.
-Sie existieren, um Dinge *zu* Ihrem Gerät zu bringen (Tools, Schriften, Modelle), nie um Dinge *von*
-ihm zu senden, mit den in den Abschnitten unten ausdrücklich genannten Ausnahmen.
+Abgesehen von zwei Arten von Zeilen sendet nichts davon Ihre Dokumente, Projekte,
+Sitzungen oder hochgeladenen Dateien irgendwohin: Sie existieren, um Dinge *zu*
+Ihrem Gerät zu bringen (Tools, Schriften, Modelle). Die zwei Arten sind die
+Senden-Zeilen, die die eine von Ihnen gewählte Datei senden, und die
+Synchronisierungs-Zeile, die eine Kopie Ihrer Arbeit an den von Ihnen gewählten
+Speicherort sendet und an keinen Lolly-Server. Jede andere Ausnahme wird ausdrücklich in den Abschnitten unten genannt.
 
 **Eine Anmerkung dazu, was wir entfernt haben.** Verify kann SEAL-Signaturen prüfen, ein Verfahren, bei dem
 der Signierschlüssel einer Datei im DNS veröffentlicht wird. Browser können keine DNS-Anfragen stellen, also muss jede
@@ -121,9 +161,9 @@ andere Behauptung auf dieser Seite, mit den genauen Befehlen und erwarteten Ausg
 ## Hot-verlinkte Render-URLs
 
 > **Live auf lolly.tools.** Jede
-> `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>`-URL wird tatsächlich gerendert, und die Eingaben
-> reisen in dieser URL mit. Der Abschnitt unten erklärt, was das für Sie bedeutet, und
-> ein Betreiber kann die Funktion auf seiner eigenen Instanz abschalten.
+> `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` -URL wird
+> tatsächlich gerendert, und die Eingaben reisen in dieser URL mit. Der
+> Abschnitt unten erklärt, was das für Sie bedeutet, und ein Betreiber kann die Funktion auf seiner eigenen Instanz abschalten.
 
 Die App selbst bleibt vollständig auf Ihrem Gerät. Separat kann ein Betreiber
 **Hot-Link-Render-URLs** aktivieren - `/tool/<tool-id>.<ext>?<inputs>` -, sodass ein
@@ -146,16 +186,15 @@ die URL geschriebenen Eingaben zu rendern.
 - <!--i:eyeoff--> Antworten werden **zwischengespeichert und ratenbegrenzt** wie jedes öffentliche Bild, und mit
   `noindex` markiert, damit Suchmaschinen Ihre Renderings nicht indexieren.
 
-Hosten Sie Lolly selbst und möchten keine öffentliche Render-Oberfläche? Setzen Sie
-`LOLLY_DISABLE_RENDER_GET=1`, und jede
-dieser URLs liefert 404.
+Hosten Sie Lolly selbst und möchten keine öffentliche Render-Oberfläche?
+Setzen Sie `LOLLY_DISABLE_RENDER_GET=1` , und jede dieser URLs liefert 404.
 
 ## Der MCP-Server (optional, für KI-Agenten)
 
-Lolly kann auch von einem KI-Agenten über das Model Context Protocol erreicht werden - ein
-von einem Betreiber betriebener Endpunkt (lolly.tools betreibt einen; jeder kann seinen eigenen selbst hosten,
-einschließlich vollständig abgeschottet). Er teilt die Kein-Konten-Haltung des Render-Pfads,
-plus drei Tools, die zwangsläufig Datei-Bytes verarbeiten:
+Lolly kann auch von einem KI-Agenten über das Model Context Protocol erreicht werden -
+ein von einem Betreiber betriebener Endpunkt (lolly.tools betreibt einen; jeder kann
+seinen eigenen selbst hosten, einschließlich vollständig abgeschottet). Er teilt die
+Kein-Konten-Haltung des Render-Pfads, plus vier Tools, die zwangsläufig Datei-Bytes verarbeiten:
 
 - <!--i:cpu--> **`lolly_transform`** (ein geräteinternes Werkzeug serverseitig ausführen, im Auftrag
   des aufrufenden Agenten), **`lolly_verify`** (Content Credentials prüfen) und **`lolly_redact`**
@@ -163,6 +202,14 @@ plus drei Tools, die zwangsläufig Datei-Bytes verarbeiten:
   die Bytes einer Datei vom Aufrufer entgegen. Sie werden **im Prozess, im Arbeitsspeicher**
   verarbeitet, und das Ergebnis wird in demselben Aufruf zurückgegeben - die Datei wird nie auf
   Datenträger geschrieben und nie gespeichert, sobald die Anfrage abgeschlossen ist.
+- <!--i:cpu--> ** `lolly_rebrand` ** (ein altes Foliendeck auf ein Designsystem
+umstellen, über seine Phasen `plan` , `compile` und `inspect` ) nimmt die Bytes eines
+Decks auf dieselbe Weise entgegen und verarbeitet sie **nur im Arbeitsspeicher, nur für
+diesen Aufruf** - nichts wird auf Datenträger geschrieben oder aufbewahrt, sobald die
+Antwort gesendet ist. Seine erste Phase, `capabilities` , sagt in Worten, wohin Ihre
+Bytes gelangen würden, bevor Sie welche senden: Auf einem selbst gehosteten lokalen
+Server verlässt das Deck diese Maschine nie; auf einem gehosteten Server sendet der
+Aufruf von `lolly_rebrand` das Deck dorthin, bis zu den Größen- und Folienlimits, die dieselbe Phase angibt.
 - <!--i:checklist--> Jedes andere Tool - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
   `lolly_describe_tool` - arbeitet nur mit Parametern (Text, Zahlen, Farben,
   URLs, Katalog-Asset-IDs), denselben Eingaben, die eine Hot-Link-Render-URL nimmt.
@@ -190,10 +237,12 @@ Wenn Sie sich tatsächlich registrieren, geschieht genau Folgendes:
    läuft innerhalb von zehn Minuten ab. Es trägt einen Zufallswert, keine Tracking-
    Kennung, und existiert nur, um zu verhindern, dass die OAuth-Weiterleitung gefälscht wird. Es wird
    gelöscht, sobald die Anmeldung abgeschlossen ist.
-3. **Ihre IP-Adresse wird kurzzeitig verwendet, um Missbrauch** der Anmelde-
-   Endpunkte zu verhindern (damit ein Skript nicht einen Posteingang zuspammen oder das E-Mail-Kontingent aufbrauchen kann) - nur
-   im Server-Arbeitsspeicher gehalten, für ein gleitendes Fenster von etwa einer Minute, nie in ein
-   Protokoll geschrieben oder irgendwo gespeichert.
+3. **Ihre IP-Adresse wird kurzzeitig verwendet, um Missbrauch** der Anmelde-Endpunkte
+zu verhindern (damit ein Skript nicht einen Posteingang zuspammen oder das
+E-Mail-Kontingent aufbrauchen kann). Lolly hasht sie, bevor daraus ein kurzlebiger
+Missbrauchskontroll-Bucket erzeugt wird; die rohe Adresse wird nie an diesen Speicher
+gesendet. Der Bucket läuft nach etwa einer Minute ab und wird nicht zur Verfolgung
+genutzt. Gewöhnliche Hosting-Zugriffsprotokolle sind davon getrennt und werden weiter unten beschrieben.
 4. **Der Zertifikatsdienst stellt ein kurzlebiges Zertifikat aus** (7, 30, 90 oder 365
    Tage, Ihre Wahl, begrenzt durch die Richtlinie des Betreibers), das Ihre verifizierte
    E-Mail-Adresse an die öffentliche Hälfte des auf Ihrem Gerät erzeugten Schlüsselpaars bindet. Die private
@@ -249,14 +298,14 @@ angeforderte Erfassung hinaus zu lesen, zu überwachen oder zu übertragen.
 
 ## Infrastruktur-Protokolle
 
-Wie jede Website erzeugen die Server hinter lolly.tools - und hinter jeder Lolly-
-Bereitstellung - standardmäßige Webserver-Zugriffsprotokolle, sobald überhaupt eine Anfrage sie
-erreicht: IP-Adresse, angeforderter Pfad, Zeitstempel, User-Agent. Das ist grundlegendes
-Hosting-Verhalten, nichts, was Lolly zusätzlich hinzufügt, und es enthält nie den
-Inhalt Ihrer Dokumente, weil diese von vornherein nie einen Server erreichen. Die
+Wie jede Website erzeugen die Server hinter lolly.tools - und hinter jeder
+Lolly-Bereitstellung - standardmäßige Webserver-Zugriffsprotokolle, sobald überhaupt eine
+Anfrage sie erreicht: IP-Adresse, angeforderter Pfad, Zeitstempel, User-Agent. Das ist
+grundlegendes Hosting-Verhalten, nichts, was Lolly zusätzlich hinzufügt, und es enthält
+nie den Inhalt Ihrer Dokumente, weil diese von vornherein nie einen Server erreichen. Die
 eine bewusste Ausnahme ist eine Datei, die Sie ausdrücklich an einen MCP-Aufruf
-`lolly_transform`, `lolly_verify` oder `lolly_redact` übergeben, der im Arbeitsspeicher verarbeitet und nie
-auf Festplatte oder in ein Protokoll geschrieben wird, wie oben beschrieben.
+`lolly_transform` , `lolly_verify` , `lolly_redact` oder `lolly_rebrand` übergeben, der
+im Arbeitsspeicher verarbeitet und nie auf Festplatte oder in ein Protokoll geschrieben wird, wie oben beschrieben.
 
 **Lollys eigener Code schreibt nichts in diese Protokolle.** Der MCP-Server enthält überhaupt keine
 Protokollierungsanweisungen. Der Zertifikatsdienst gibt genau zwei Zeilen aus, beide
@@ -280,25 +329,27 @@ Vollständigkeit halber die gesamte Liste:
 |---|---|---|
 | Alles auf Ihrem Gerät (Dokumente, Einstellungen, Cache, Zähler) | **Überhaupt keine Verarbeitung durch uns** - es erreicht uns nie. Speicherung auf Ihrem Gerät ist unbedingt erforderlich für den von Ihnen angeforderten Dienst (ePrivacy Art. 5(3)), daher ist keine Einwilligung nötig | Bis Sie es löschen |
 | Ihre E-Mail-Adresse während der Content-Credentials-Registrierung | **Art. 6(1)(b)**, Erfüllung eines von Ihnen ausdrücklich angeforderten Dienstes | Nicht gespeichert. Nur für die Dauer der Anfrage im Arbeitsspeicher vorhanden |
-| Ihre IP-Adresse an den Anmelde-Endpunkten, zur Ratenbegrenzung | **Art. 6(1)(f)**, unser berechtigtes Interesse, Missbrauch eines kostenlosen Dienstes und des E-Mail-Kontingents eines Dritten zu verhindern. Wir gehen davon aus, dass dies eine Interessenabwägung besteht, da es nur im Arbeitsspeicher vorliegt, nie aufgezeichnet und innerhalb von etwa einer Minute verworfen wird | ~1 Minute, im Server-Arbeitsspeicher, nie dauerhaft gespeichert |
+| Ein aus Ihrer IP-Adresse einweg-abgeleiteter Bucket-Schlüssel an den Anmelde-Endpunkten, zur Ratenbegrenzung | **Art. 6(1)(f)**, unser berechtigtes Interesse, Missbrauch eines kostenlosen Dienstes und des E-Mail-Kontingents eines Dritten zu verhindern. Wir gehen davon aus, dass dies eine Interessenabwägung besteht, weil die rohe Adresse nicht an den Begrenzer gesendet wird, der Bucket nur zur Missbrauchskontrolle dient und automatisch abläuft | Etwa 1 Minute im Missbrauchskontroll-Speicher; danach nicht aufbewahrt |
 | Hosting-Zugriffsprotokolle (IP, Pfad, Zeitstempel, User-Agent) | **Art. 6(1)(f)**, unser berechtigtes Interesse an Dienstsicherheit, Missbrauchsprävention und Fehlerdiagnose | Vercels Plattform-Standardwert für unseren Tarif. Wir fügen keinen Drain oder Export hinzu |
 
-**Empfänger.** Die Kategorien von Empfängern sind: unser Hosting-Anbieter (Vercel
-Inc.) und - nur wenn Sie die E-Mail-Anmeldeoption nutzen - ein Anbieter für Transaktions-E-Mails
-(Resend). Wenn Sie sich mit GitHub, Google oder SUSE (id.suse.com) anmelden,
-interagieren Sie direkt mit diesem Anbieter unter dessen eigener Datenschutzrichtlinie. Diese teilen
-uns eine verifizierte E-Mail-Adresse mit und sonst nichts. Wir geben personenbezogene Daten an niemand
-anderen weiter, und wir verkaufen keine Daten, betreiben keine Werbung und erstellen keine Nutzerprofile.
+**Empfänger.** Die Kategorien von Empfängern sind: unser Hosting-Anbieter (Vercel Inc.);
+unser Anbieter für den Missbrauchskontroll-Speicher, der nur kurzlebige,
+einweg-abgeleitete Bucket-Schlüssel erhält und niemals die rohe IP-Adresse; und - nur
+wenn Sie die E-Mail-Anmeldeoption nutzen - ein Anbieter für Transaktions-E-Mails
+(Resend). Wenn Sie sich mit GitHub, Google oder SUSE (id.suse.com) anmelden, interagieren
+Sie direkt mit diesem Anbieter unter dessen eigener Datenschutzrichtlinie. Diese teilen
+uns eine verifizierte E-Mail-Adresse mit und sonst nichts. Wir geben personenbezogene
+Daten an niemand anderen weiter, und wir verkaufen keine Daten, betreiben keine Werbung und erstellen keine Nutzerprofile.
 
 **Übermittlungen außerhalb des EWR.** Vercel und Resend sind US-Unternehmen. Die
-Rechenleistung für lolly.tools ist an Vercels Frankfurt-Region (`fra1`) gebunden, sodass
+Rechenleistung für lolly.tools ist an Vercels Frankfurt-Region ( `fra1` ) gebunden, sodass
 die Verarbeitung in der EU stattfindet, aber als in den USA ansässige Anbieter können sie
-weiterhin als Auftragsverarbeiter aus den USA auf Daten zugreifen. Diese Übermittlungen stützen sich auf die
-Standardvertragsklauseln der Europäischen Kommission und/oder das EU-US Data Privacy
-Framework, wie im Auftragsverarbeitungsvertrag jedes Anbieters festgelegt. Weil die
-personenbezogenen Daten, die einen der beiden Anbieter erreichen, so begrenzt sind - eine E-Mail-Adresse, die
-zum Versand einer Nachricht weitergegeben wird, und gewöhnliche Zugriffsprotokolle - ist die
-Exposition entsprechend gering.
+weiterhin als Auftragsverarbeiter aus den USA auf Daten zugreifen. Diese Übermittlungen
+stützen sich auf die Standardvertragsklauseln der Europäischen Kommission und/oder das
+EU-US Data Privacy Framework, wie im Auftragsverarbeitungsvertrag jedes Anbieters
+festgelegt. Weil die personenbezogenen Daten, die diese Anbieter erreichen, so begrenzt
+sind - eine E-Mail-Adresse, die zum Versand einer Nachricht weitergegeben wird, gewöhnliche
+Zugriffsprotokolle und ein kurzlebiger, abgeleiteter Missbrauchskontroll-Bucket - ist die Exposition entsprechend gering.
 
 **Automatisierte Entscheidungsfindung.** Keine. Es gibt kein Profiling und keine automatisierte
 Entscheidung, die rechtliche oder ähnlich bedeutsame Auswirkungen hat (Art. 22).
@@ -312,12 +363,12 @@ Content-Credentials-Registrierung, die sich nicht an Kinder richtet und nicht f�
 
 ## Ihre Rechte
 
-Weil fast alles, womit Lolly in Berührung kommt, nur auf Ihrem eigenen Gerät gespeichert wird, sind die meisten
-der Dinge, die das Datenschutzrecht "Ihre Rechte" nennt - Auskunft, Berichtigung, Löschung,
-Datenübertragbarkeit - Dinge, die Sie bereits selbst tun können, sofort, ohne jemanden zu
-fragen: Ihre Daten liegen im Speicher Ihres Browsers, in einer Form, die Sie einsehen, exportieren
-(**Export my data & render everything**, oben) oder löschen können (**Profile → Clear all
-my data**).
+Weil fast alles, womit Lolly in Berührung kommt, nur auf Ihrem eigenen Gerät
+gespeichert wird, sind die meisten der Dinge, die das Datenschutzrecht „Ihre Rechte“
+nennt - Auskunft, Berichtigung, Löschung, Datenübertragbarkeit - Dinge, die Sie
+bereits selbst tun können, sofort, ohne jemanden zu fragen: Ihre Daten liegen im
+Speicher Ihres Browsers, in einer Form, die Sie einsehen, exportieren (**Meine Daten
+exportieren**, oben) oder löschen können (indem Sie den Speicher der Seite in Ihrem Browser leeren, wie oben).
 
 Formal haben Sie gemäß den Artikeln 15-22 DSGVO das Recht auf **Auskunft** über Ihre
 personenbezogenen Daten, auf deren **Berichtigung**, auf deren **Löschung**, auf **Einschränkung**
@@ -328,13 +379,13 @@ vor dem Widerruf geschah.
 
 Hier die ehrliche Position zur Ausübung dieser Rechte uns gegenüber. Da wir kein
 Ausstellungsprotokoll mehr führen, **halten wir keine personenbezogenen Daten über Sie, die wir
-nachschlagen, korrigieren, exportieren oder löschen könnten.** Wenn Sie uns schreiben und fragen, was wir
-über Sie gespeichert haben, lautet die wahrheitsgemäße Antwort: nichts, und das werden wir Ihnen so sagen. Die einzige
-überhaupt existierende Kategorie sind Hosting-Zugriffsprotokolle, die einer IP-Adresse zugeordnet sind und
-von unserem Hosting-Anbieter nach dessen Standard-Aufbewahrungsfristen gehalten werden. Wir haben keine Möglichkeit, diese
-zu durchsuchen oder selektiv zu löschen, und wir werden Ihnen das mitteilen, statt etwas anderes vorzugeben. Alles,
-was tatsächlich *Ihnen* gehört, liegt auf Ihrem Gerät, wo Sie es bereits lesen, exportieren
-und vernichten können, ohne jemanden um Erlaubnis zu fragen.
+nachschlagen, korrigieren, exportieren oder löschen könnten.** Wenn Sie uns schreiben und fragen,
+was wir über Sie gespeichert haben, lautet die wahrheitsgemäße Antwort: nichts, und das werden wir
+Ihnen so sagen. Die einzige überhaupt existierende Kategorie sind Hosting-Zugriffsprotokolle, die
+einer IP-Adresse zugeordnet sind und von unserem Hosting-Anbieter nach dessen
+Standard-Aufbewahrungsfristen gehalten werden. Wir haben keine Möglichkeit, diese zu durchsuchen
+oder selektiv zu löschen, und wir werden Ihnen das mitteilen, statt etwas anderes vorzugeben. Alles,
+was tatsächlich *Ihnen* gehört, liegt auf Ihrem Gerät, wo Sie es bereits lesen, exportieren und vernichten können, ohne jemanden um Erlaubnis zu fragen.
 
 **Sie haben das Recht auf Beschwerde.** Wenn Sie glauben, dass wir Ihre Daten
 unsachgemäß behandelt haben, können Sie eine Beschwerde bei einer Datenschutz-Aufsichtsbehörde

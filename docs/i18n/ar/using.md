@@ -1,14 +1,14 @@
 # استخدام Lolly
 
-دليل عملي لـ*استخدام* التطبيق فعليا: فتح أداة، والعمل على لوحة الرسم، والتصدير، والحفظ، والمشاركة. وكل ما هنا يعمل **على جهازك**: بلا حساب، وبلا رفع، وبلا حاجة إلى إنترنت بعد التحميل الأول.
+دليل عملي لـ*استخدام* التطبيق فعليا: فتح أداة، والعمل على لوحة الرسم، والتصدير، والحفظ، والمشاركة. وكل ما هنا يعمل **على جهازك**: بلا حساب، وبلا رفع، وبلا حاجة إلى إنترنت للشاشات التي فتحتها من قبل.
 
 > جديد هنا؟ يجعلك [البدء السريع](/info/quickstart.html) تنتج أعمالا خلال دقائق، ويغطي [Lolly للمشغلين](/info/operators.html) تثبيت التطبيق ونشره؛ أما هذه الصفحة فتتناول تشغيله بعد فتحه.
 
 ## فتح أداة
 
-الشاشة الرئيسية هي **المعرض**: كل الأدوات مصنفة حسب الفئة. انقر بطاقة لفتح الأداة؛ وإن سبق أن عملت عليها، استأنف زر **متابعة** أحدث جلسة لك. استخدم مربع البحث للتصفية بالاسم، أو [البحث](/info/search.html) من الشريط أسفل شاشات القوائم الست (المعرض، والأدوات المساعدة، والمشاريع، والأصول، ولوحة المعلومات، والملف الشخصي)، وهو يصل إلى أعمالك المحفوظة وأصولك وإعداداتك إضافة إلى الأدوات. وداخل الأداة يتنحى الشريط لصالح واجهة الأداة نفسها.
+الشاشة الرئيسية هي **المعرض**: كل الأدوات مصنفة حسب الفئة. انقر بطاقة لبدء عمل جديد في تلك الأداة؛ ويُفتح [العمل المحفوظ](#saving-continuing) من جديد من **المشاريع**. استخدم مربع البحث للتصفية بالاسم، أو [البحث](/info/search.html) من الشريط أسفل شاشات القوائم الست (المعرض، والأدوات المساعدة، والمشاريع، والأصول، ولوحة المعلومات، والإعدادات)، وهو يصل إلى أعمالك المحفوظة وأصولك وإعداداتك إضافة إلى الأدوات. وداخل الأداة يتنحى الشريط لصالح واجهة الأداة نفسها.
 
-![معرض الأدوات: كل أداة كبطاقة، مصنفة حسب الفئة](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
+![بطاقة معرض بتنقل توضيحي وإجراء جديد](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
 كل أداة عرض مقسوم: **عناصر التحكم** في جهة، و**معاينة** حية (لوحة الرسم) في الجهة الأخرى. وعند تغيير أي عنصر تحكم تظهر النتيجة في المعاينة فورا.
 
@@ -42,6 +42,32 @@ selection bullet under Projects uses), click the bar's Hide button
 (`[data-bulk="hide"]` - the literal `data-bulk` value bulkBarHtml() writes,
 confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 (`.gtile--hiddenbox`, confirmed in gallery.ts).
+-->
+
+لتنفيذ إجراء على عدة بطاقات دفعة واحدة، أشر إلى مربع اختيار كل بطاقة، أو اسحب مربع تحديد عبر مساحة فارغة، أو انقر مع **Shift/Cmd**، فيظهر شريط إجراءات عائم. و**ما يقدمه شريط التحديد** يختلف قليلا بحسب الشاشة، لأن ليس كل إجراء منطقيا في كل مكان:
+
+- **الأدوات / الأدوات المساعدة:** الإضافة إلى المفضلة (أو إزالتها منها)، والإخفاء (أو إلغاء الإخفاء)، والإتاحة دون اتصال (أو الإزالة من وضع دون اتصال)، و**عرض الجلسات** (يفتح المشاريع ويعرض الجلسات المصنوعة بتلك الأدوات فقط)، ونسخ الرابط حين تكون بطاقة واحدة بالضبط محددة.
+- **الأصول:** تنطبق الإضافة إلى المفضلة والإخفاء على أي تحديد؛ أما التكرار والتنزيل والحذف فلا تظهر إلا حين يكون كل عنصر محدد من ملفاتك المرفوعة، فأصل نظام التصميم المشترك عقد دائم، ولذلك تبقى تلك الثلاثة بعيدة عنه حتى في العمليات الجماعية.
+- **المشاريع:** انظر [ابحث عن عملك واستعده](/info/find-your-work.html#find-something-you-saved).
+
+> وثمة فخ في التسمية: **عرض الجلسات** لا يوجد إلا بعد أن يكون شيء ما *محددا*. أما النقر بالزر الأيمن على بطاقة واحدة غير محددة فيقدم **N جلسة محفوظة**، التي تفتح قائمة بجلسات تلك الأداة المحفوظة، حيث يكون الحذف نهائيا، بدل الانتقال إلى المشاريع.
+
+![شريط تحديد المعرض لأداتين، يعرض Available offline وView sessions وFavourite وHide](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
+<!--
+SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
+`[data-select="gradient"]` - the `.tile-check[data-select="<ref>"]` checkbox button
+confirmed directly in views/gallery.ts's card markup (the same attribute
+cardMarkup gives every tile), so these two clicks tick both cards without
+opening either tool.
+
+SHOT NOTE (misc-sessions-by-tool, NOT PUBLISHED): the "View sessions" result
+had a recipe of its own (`/#/p?tools=qr-code,d3`, views/projects.ts's
+toolsBodyHtml()), dropped here because it has no `drive=` that can
+manufacture its own content - a saved session isn't a click away, it has to
+already exist, and build-docs-shots.ts gives every shot a fresh
+`browser.newContext()`. It would publish an empty list. Same dependency the
+`projects` shot (now on find-your-work.md) carries; revisit if the pipeline gains a
+storage-seeding hook.
 -->
 
 ### اسأل Lolly
@@ -79,10 +105,17 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 - **التصدير يقتصر على الإطار.** الملف المصدر محدود بلوح الرسم: أي شيء يبقى خارجه (أو الجزء البارز من صندوق عبر الحافة) يقص ببساطة من الناتج، في الصيغ النقطية والمتجهية على حد سواء.
 - **قلل التكبير إلى ما دون الملاءمة** (حتى 20%) لترى الطاولة كاملة حين تجهز أشياء بعيدا خارج الإطار.
 - **لوح رسم قابل لتغيير الحجم.** تغيير أبعاد التصدير يغير حجم الإطار في مكانه؛ وتحتفظ الصناديق بمواضعها، فيمكنك إعادة تأطير تخطيط حول محتوى قائم.
+- **قبل التصدير.** يتحقق قسم المستند في المفتش من بنية الطبقات المحفوظة، ثم يقرأ اللوحة المستقرة بحثا عن نص مقصوص وتباين لوني مسطح. ويسأل أيضا سجل الخطوط نفسه الذي يستخدمه تحويل النص في SVG/PDF إلى مخططات عما إذا كان كل مقطع نصي يملك بايتات خط قابلة للتضمين؛ أما خلفيات الصور والتدرجات فتوصف بأنها فحوصات بصرية بدل أن تُعطى درجة تباين مختلقة.
 
-![Design's free canvas - the artboard with its surrounding pasteboard](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![اللوحة الحرة في Design - لوح الرسم وما يحيط به من طاولة العمل](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **اقلب التحديد.** انقر بزر الفأرة الأيمن على أي صندوق واختر **Flip horizontal** أو **Flip vertical** لعكسه في مكانه، أو اضغط `Shift+H` / `Shift+V` من لوحة المفاتيح - وShift لأن `V` وحدها هي أداة المؤشر (Pointer). ينعكس كل صندوق محدد على محوره الخاص في خطوة تراجع واحدة، والانعكاس تحويل حقيقي، لذا يبقى ثابتًا في ملفات SVG وPDF وPNG المصدَّرة وليس على اللوحة فقط.
+
+### الطبقات والمفتش
+
+في **الطبقات**، كل لوح رسم مجموعة أب قابلة للطي. حدد اسمه للقفز إليه، ووسّع طبقاته، وحدد الكائنات داخل ذلك اللوح أو أعد ترتيبها. بدّل إلى **الصفحات** للحصول على صور مصغرة وترتيب الصفحات. تنقل مفاتيح الأسهم عبر قائمة الطبقات؛ ويعيدك السهم الأيسر (Left) إلى عنوان لوح الرسم.
+
+يضع **المفتش** عناصر تحكم النص أو الصورة أولا للكائن المحدد. استخدم رقائق الخيارات للاختيارات السريعة ووسّع **Advanced** لتفاصيل التنسيق. وعلى الهواتف، افتح **المفتش** من **المزيد من الإجراءات**. تُفتح عناصر التحكم في ورقة؛ ويغلقها Escape أو **رجوع** مع الإبقاء على تحديدك.
 
 ### رسم أشكالك الخاصة (القلم)
 
@@ -137,13 +170,27 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 وأمران لا تفعلهما هذه العمليات عمدا. فهي **ترفض بدل أن تتلف**: اطلب تقاطع شكلين لا يتداخلان فيقال لك إنه لا شيء يمكن إبقاؤه، ولا يتغير شيء. وصناديق النص والصور لا مخطط لها يمكن العمل عليه، فتترك كما هي بدل تقريبها بإطارها. ويخزن الناتج المدموج منحنيات بيزييه عادية، وهو ما يفعله تطبيق الرسم أيضا، فنوع المنحنى الأصلي لا يبقى بعد العملية.
 
-## الخط الزمني (Sequence Studio)
+### مشاهد ثلاثية الأبعاد
 
-![The timeline with the music clip selected: its strip runs along the bottom with Speed, Fades, Volume, Pan, EQ, Pitch, Normalize volume and the Effect slot](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
+اختر **مشهد ثلاثي الأبعاد** من قائمة الإضافة في شريط الأدوات واسحب لإنشاء إطار: يفتح 3D Studio فورا على الصندوق الجديد، وما تضبطه هناك يعود إلى اللوحة. وفي كل شيء آخر، صندوق المشهد صندوق عادي. حرّكه، وغيّر حجمه، ودوّره، وامنحه ظلا، وضعه على شريحة أو على الخط الزمني، فيتصرف كبقية الصناديق.
 
-يضيف **Sequence Studio** عنصر *الزمن* إلى اللوحة الحرة. فكل صندوق يمكن أن يبدأ عند لحظة، ويستمر مدة، ويتحرك دخولا وخروجا، وترتبها كلها في خط زمني مرسى أسفل لوح الرسم. افتحه فتجد تسلسلا يعمل بالفعل: بطاقة عنوان، ومقطعا، وبطاقة نهاية، وشريطا سفليا، وخلفية موسيقية، فيصبح النموذج مرئيا قبل أن تغير أي شيء.
+**صندوق المشهد يحتفظ بالوصفة لا بصورة.** صندوق الصورة يحمل ملفا مرسوما جاهزا؛ أما صندوق المشهد فيحمل إعدادا واحدا، هو المشهد نفسه، مكتوبا كاستعلام رابط خاص بـ3D Studio، مع حذف كل قيمة ما زالت عند افتراضي الاستوديو. ولهذا يبلغ حجم المشهد نحو مئة بايت بدل الكيلوبايتات القليلة التي تكلفها وصفة كاملة، ولهذا يعمل الرمز نفسه في رابط المشاركة وفي باب المحرر، ولهذا لا يحتاج عنصر تحكم جديد في الاستوديو إلى أي تغيير في Design. ولهذا أيضا يعاد رسم الصندوق بأي حجم ولحظة يطلبهما المستند بدل تكبيره من صورة التقطت سابقا. وتبقى الصور التي يستخدمها المشهد أصولا تنتقل بمعرفها، فالرفع داخل مشهد يذهب إلى ملف `.lolly` مع بقية المستند.
 
-![الخط الزمني لاستوديو التسلسل: أدوات النقل، والمسطرة، ومسار تراكب، وصف التسلسل المغناطيسي بمقاطعه وشرائح الوصل، وشريط Always on](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
+**عدّله في الاستوديو.** حدد الصندوق فيُظهر **المفتش** قسم **مشهد ثلاثي الأبعاد**: سطر يسمي مما صُنع المشهد، وثانٍ يسمي استوديو الإضاءة الخاص به بعد أن تختار واحدا، وزر واحد هو **التحرير في 3D Studio**. يفتح الزر الاستوديو على مشهد ذلك الصندوق بكل عنصر تحكم تملكه الأداة. اضغط تطبيق فيُكتب المشهد المعدل في خطوة واحدة، فيعيد تراجع واحد الصندوق إلى المشهد الذي بدأت منه؛ وأغلق الاستوديو بلا تطبيق فلا يتغير شيء. وكل ما عدا ذلك في الصندوق - موضعه على لوح الرسم، وحجمه، وظله، ووقت وصوله على شريحة - يبقى في الأقسام التي اعتاد عليها دائما. ولا يأخذ صندوق المشهد صورة خاصة به ولا تعليقا: فصورته تأتي من الاستوديو، وكلماته تُضبط هناك أيضا.
+
+**مشهد حي واحد، وملصق على كل صندوق آخر.** كل صندوق ثلاثي الأبعاد في المستند يعرض ملصقا: صورة ثابتة للمشهد، تُرسم خارج الشاشة عبر مجمع الرسم المشترك بالحجم الذي يشغله الصندوق. فمستند فيه عشرون مشهدا يكلف سياق رسم واحدا لا عشرين. حدد صندوق مشهد فيصير المشهد الحي الوحيد في المستند؛ وألغِ تحديده فيصير الإطار الذي كان على الشاشة ملصقه، فلا يقفز شيء. ومشهد واحد فقط يكون حيا في كل مرة، وتحديد صندوقي مشهد معا يترك كليهما ملصقين. وفي هذا الإصدار المشهد الحي للنظر لا للدوران حوله: غيّر مشهدا عبر **التحرير في 3D Studio**. والجهاز الذي لا يستطيع فتح سياق رسوميات بفاصلة عائمة يبقي على الملصق ويقول السبب داخل الصندوق بدل عرض مستطيل فارغ، وبقية المستند لا تتأثر. وفتح مستند Design بلا صندوق ثلاثي الأبعاد لا يحمّل أي شفرة ثلاثية الأبعاد إطلاقا.
+
+**على الخط الزمني**، يتبع صندوق المشهد رأس التشغيل كأي مقطع فيديو: يحرك بدؤه واقتصاصه وسرعته المشهد عبر حركته الخاصة، وطول المشهد هو الذي ضبطته في 3D Studio، فتقصير الصندوق يُظهر جزءا أقل من المشهد بدل تسريعه. والصندوق المحدد فقط هو الحي؛ وكل صندوق آخر صورة ثابتة، والصورة الثابتة لا تُسحب مع رأس التشغيل.
+
+**في التصدير**، يُرسم كل مشهد من جديد بالحجم الذي تحتاجه الملف، عبر الراسم نفسه الذي يستخدمه الاستوديو. يعرض الفيديو إطارا واحدا لكل مشهد في كل لحظة؛ ويضمّن PNG أو SVG أو PDF صورة واحدة لكل صندوق بحجم بكسل الصندوق نفسه. ولا شيء يُصوَّر من الشاشة، فالتصدير لا يعتمد على أي صندوق كان محددا لديك. والمشهد الذي يتعذر رسمه يُفشل التصدير ويقول لك السبب، بكلمات الاستوديو نفسها.
+
+**مشاركة مشهد مبني على رفعك الخاص.** يحمل رابط مشاركة مستند Design معرف رفع محليا للجهاز داخل المشهد كما هو، بينما يفرغه صندوق الصورة. فالمشهد الذي يكون عمله الفني أو نموذجه ملفا رفعته يعرض افتراضي الاستوديو لتلك الصورة على جهاز شخص آخر، إلا أن ينتقل المستند كملف `.lolly` يحمل البايتات.
+
+## الخط الزمني (Sequence)
+
+**Sequence** هو الخط الزمني لـDesign: يضيف عنصر *الزمن* إلى اللوحة الحرة. فكل صندوق يمكن أن يبدأ عند لحظة، ويستمر مدة، ويتحرك دخولا وخروجا، وترتبها كلها في خط زمني مرسى أسفل لوح الرسم. افتحه فتجد تسلسلا يعمل بالفعل: بطاقة عنوان، ومقطعا، وبطاقة نهاية، وشريطا سفليا، وخلفية موسيقية، فيصبح النموذج مرئيا قبل أن تغير أي شيء.
+
+![الخط الزمني لـSequence: أدوات النقل، والمسطرة، ومسار تراكب، وصف التسلسل المغناطيسي بمقاطعه وشرائح الوصل، وشريط Always on](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
 
 وهناك نوعان من الصفوف، والفرق بينهما هو الفكرة كلها:
 
@@ -153,7 +200,7 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 ![مسرح التحرير: لوحة العمل في المقدمة والوسط، وشريط الأدوات على اليسار، ومؤشر التكبير في الزاوية](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-stage)
 
-وفتح الخط الزمني يمنحه لوحة المفاتيح، فيقود مفتاح المسافة ومفاتيح الأسهم رأس التشغيل بدل الصفحة، ولأنه يفتح من تلقائه على تكوين له توقيت بالفعل، فهذا صحيح منذ لحظة تحميل Sequence Studio.
+وفتح الخط الزمني يمنحه لوحة المفاتيح، فيقود مفتاح المسافة ومفاتيح الأسهم رأس التشغيل بدل الصفحة - ولأنه يفتح من تلقائه على تكوين له توقيت بالفعل، فهذا صحيح منذ لحظة تحميل Sequence.
 
 > يتعمق **[محرر التسلسل](/info/sequence-editor.html)** في الأمور الأربعة التي تقرر ما إذا كان التحرير في الزمن متوقعا: أي مقطع تحرره النقرة على اللوحة، وأطياف القشرة البصلية للمقاطع المجاورة، ونطاق التقسيم والدمج الذي يتراجع عن قص، والاقتصاص (بما فيه مجموعة اختصارات لوحة المفاتيح). اضغط `?` والخط الزمني في التركيز لعرض ورقة الاختصارات.
 
@@ -165,9 +212,13 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 **الصوت.** أضف مقطع **صوت** فيعيش على الخط الزمني كأي مقطع آخر: شكل موجي، واقتصاص، وكتم. (والخلفية المولدة التي تأتي بها الجلسة الافتراضية هي الاستثناء الوحيد: إذ تركب وقت التصدير، فيبقى شريطها بسيطا وصامتا حتى تعرض الملف.) اضغط الميكروفون لـ**تسجيل تعليق صوتي** مباشرة على الخط الزمني، مع عد تنازلي ومقياس مستوى، وتحفظ اللقطة كأصل خاص بك عند النقطة التي بدأت منها. اضغط الكاميرا بجانبه لـ**تسجيل فيديو** بالطريقة نفسها: تُقتصّ اللقطة إلى مقاس تصدير لوح الرسم أثناء التسجيل، فتُظهر نافذة العرض الذاتي الصغيرة بالضبط ما سيدخل التسلسل عند رأس التشغيل، بالإطار الكامل - وهي الطريقة لجمع مقطع من زميل عبر رابط مشاركة. وتصل الموسيقى والحوار والمسار الصوتي الخاص بالمقطع كلها إلى المزيج المصدر. (و**المسار الصوتي** في لوحة التصدير شيء مختلف: خلفية واحدة توضع تحت المقطع كله، مع تدرج وخفض تلقائي للصوت. والاثنان يتعايشان.)
 
+**شريط الصوت.** حدد أي مقطع يحمل صوتا فيفتح شريط مضغوط أسفل الخط الزمني: منزلق **مستوى الصوت**، و**Pan** لموضع الاستريو، ومعادل ثلاثي النطاقات **EQ** (**منخفض**، **متوسط**، **مرتفع**)، وعنصر تحكم **طبقة الصوت** ينقل النغمة بأنصاف نغمات مع إبقاء الصوت على طابعه، و**تطبيع مستوى الصوت** الذي يرفع المقطع إلى جهارة البث (BS.1770) بحيث تستوي ملاحظة صوتية هادئة مع مقطوعة صاخبة. وحيث يلتقي مقطعان، يمزج **تلاشٍ متقاطع** نقطة الالتقاء بدل القطع. وتُشغّل خانة **تأثير** معالجة على الجهاز للمقطع - يزيل **تنظيف الصوت** صدى الغرفة والحفيف من التسجيل. وتغييرات السرعة تبقي طبقة الصوت أيضا: فالمقطع المبطأ أو المسرّع يُمدَّد زمنيا لا يتشوّه صوته. وفي كل مزيج يخفض التصدير الموسيقى تحت الكلام كلما جاء الكلام وذهب، ويبقي البرنامج كله تحت محدد ذروة حقيقية، فلا يُقطع شيء عند الخرج؛ ويُرسم الشكل الموجي الذي كان سيُقطع بتحذير في موضع القطع.
+
+![الخط الزمني مع تحديد مقطع الموسيقى: يمتد شريطه أسفل الشاشة بعناصر Speed وFades وVolume وPan وEQ وPitch وNormalize volume وخانة Effect](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
+
 **عرض الملف.** تصدير الحركة **تركيب حتمي** لا تسجيل شاشة: إذ يفك ترميز كل إطار ويرسم ويرمز عند زمن دقيق، فلا يعتمد الملف على قدرة جهازك على المجاراة، ولا سقف عملي لعدد الإطارات في MP4 أو WebM. وتحدد مدة الخط الزمني نفسها مدة الناتج ما لم تكتب واحدة. وتختم Content Credentials كما في أي تصدير آخر. ويعطيك تصدير الصورة الثابتة الإطار الواقع عند رأس التشغيل، أو ورقة تجميعية كاملة من حقل **الإطارات** بجوار مقاس الخرج، انظر [التصدير](/info/exporting.html#stills-from-a-timed-composition).
 
-وبعض الحدود الجديرة بالانتباه: التسلسل محدود بساعة واحدة، وتخزن صيغتا GIF وPNG المتحركة إطاراتها مؤقتا فتبقى قصيرة، والصوت صامت في مقطع سرعته ليست ×1 (فلا يوجد تمديد زمني بعد)، و**التسجيل المباشر** مخفي هنا لأن المركب مسار أفضل.
+وبعض الحدود الجديرة بالانتباه: التسلسل محدود بساعة واحدة، وتخزن صيغتا GIF وPNG المتحركة إطاراتها مؤقتا فتبقى قصيرة، والمقطع المشغَّل أسرع أو أبطأ يحتفظ بطبقة صوته (يُمدِّده شريط الصوت زمنيا، وعنصر تحكم **طبقة الصوت** ينقل النغمة بأنصاف نغمات مع الإبقاء على طابع الصوت)، و**التسجيل المباشر** مخفي هنا لأن المركب مسار أفضل.
 
 **ما وراء الإعدادات المسبقة: الإطارات الرئيسية، والعمق، وكاميرا.** يُحرِّك الانتقال (transition) مقطعًا عند وصوله ومغادرته. لوضع عنصر في وضعية معيّنة *داخل* مقطع - إزاحته، أو جعله يتلاشى، أو تمويهه، أو رفعه عن الصفحة وإعادته - أضِف إطارات رئيسية: حدِّد المقطع، واضغط **+إطار رئيسي** (الشكل الماسي في مجموعة أدوات الخط الزمني، أو الشكل الماسي في شريط كائن اللوحة، أو `K`) ويحدِّد موضع رأس التشغيل أي وضعية سيكتبها تعديلك التالي. يمنح نظام الإطارات الرئيسية نفسه كل تركيبة زمنية **كاميرا** تقترب وتُحرِّك المشهد أفقيًا وتغيّر التركيز، وتحوّل ملف SVG مسطحًا واحدًا إلى كومة من الطبقات يمكنك التنقل بينها. **[التحريك](/info/animating.html)** هو الدليل الكامل.
 
@@ -175,7 +226,7 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 ## العرض التقديمي
 
-![The inspector's Document section: Voice, Blend with, Speed, Lead-in, Tail and Show captions when presenting](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
+لوضع كاميرتك وشعار وتعليق اسم فوق صورة الجمهور، استخدم **Present with camera**. وتتناول [العرض بالكاميرا](/info/presenting.html) عناصر تحكمها الخاصة ومشاهدها المحفوظة وخطوات المشاركة والتسجيل. وتبقى عناصر تحكم العرض التقديمي العادية أدناه متاحة عبر **عرض**.
 
 مستند Design المكون من **ألواح رسم** هو عرض تقديمي أصلا. افتح **قائمة Lolly** في شريط الأدوات واختر **عرض تقديمي**، وهو الصف الأخير، فيصير كل لوح رسم شريحة بملء الشاشة، بالترتيب الذي تجلس به الألواح على اللوحة. ويعمل العرض على نسخة من الألواح المعروضة، فيبقى المحرر تحته دون تغيير، والخروج يعيدك إلى حيث كنت تماما.
 
@@ -186,7 +237,13 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 - `B` يُبقي شاشة سوداء (أي مفتاح يُعيد الشريحة)، و`F` يعود إلى ملء الشاشة، و**Escape** يزيل طبقة واحدة في كل مرة: من النظرة العامة إلى العرض، ومن العرض إلى المحرر.
 - **وضع الكشك (Kiosk).** أعطِ لوحة عمل قيمة **Length** ويتوقف العرض هناك لتلك المدة، ثم يتقدّم من تلقاء نفسه خلف شريط تقدّم رفيع؛ `K` (أو زر الإيقاف المؤقت، الذي يظهر فقط بعد أن يحصل عنصر ما على مدة) يوقف ذلك ويعيد تشغيله. أضف `kiosk` إلى الرابط ويلتف العرض عند النهاية، وهذا ما يجعله لافتة عرض (signage).
 
-والعرض رابط أيضا. فـ`?present` يفتحه مباشرة، و`s=` يسمي الشريحة، سواء أكانت موضعا أم معرف لوح رسم أم `id.step` لخطوة بناء، ويتحدث العنوان مع تنقلك، فما ترسله هو الشريحة التي أنت عليها. ولمؤلفي الأدوات: هذه المعاملات موثقة في صفحة [وضع الروابط](/info/url-mode.html#reserved-parameters).
+- **تكديس الشرائح الفرعية.** انقر لوح رسم بالزر الأيمن واختر **التكديس أسفل الشريحة السابقة** فيصير خطوة من تلك الشريحة بدل شريحة قائمة بذاتها: تعرض النظرة العامة بطاقة واحدة، ويسير العرض عبر الكومة بالترتيب، ويقول صف **تكديس** في المفتش أي شريحة ينتمي إليها.
+- **التحوّل التدريجي.** حين تحمل شريحتان متتاليتان صندوقا بالاسم نفسه في **تطابق التحول** (انقر صندوقا بالزر الأيمن، أو صف **تطابق التحول** في المفتش - `hero` مثلا)، ينقل الانتقال ذلك الصندوق من موضعه القديم إلى موضعه الجديد، مغيرا حجمه ولونه في الطريق، بدل القطع. ويفعل انتقال **تحوّل تدريجي** على مستوى العرض كله الشيء نفسه لكل زوج متطابق.
+- **السرد الصوتي.** يمكن قراءة **ملاحظات المتحدث** لكل لوح رسم بصوت عال. من قسم **المستند** في المفتش اختر **الصوت**، وصوتا ثانيا اختياريا **للمزج معه**، و**السرعة** في القراءة، و**التمهيد** و**الذيل** بالمللي ثانية حول كل شريحة؛ وفعّل **إظهار الترجمة أثناء العرض** فتظهر الكلمات مع نطقها. ويعمل الصوت على جهازك. وتصير الملاحظات نفسها الفيلم في تصدير فيديو، وصوت شريحة حقيقيا في تصدير PowerPoint، والفيلم المسرود داخل [حزمة SCORM](/info/create/exporting.html#scorm-course-packages).
+
+![قسم Document في المفتش: Voice وBlend with وSpeed وLead-in وTail وShow captions when presenting](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
+
+والعرض رابط أيضا. فـ`?present` يفتحه مباشرة، و`s=` يختار الشريحة - موضعا، أو معرف لوح رسم، أو `id.step` لخطوة بناء - ويتحدث العنوان مع تنقلك، فما ترسله هو الشريحة التي أنت عليها. ولمؤلفي الأدوات: هذه المعاملات موثقة في صفحة [وضع الروابط](/info/url-parameters.html#reserved-parameters).
 
 ## على الهاتف
 
@@ -216,77 +273,29 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 في [تعاون](/info/collaborate.html) مباشر، يبقى السجل التاريخي ملكك وحدك. لا يدخل أي تغيير قادم من الجهاز الآخر إلى كومتك أبدًا، لذا لا يمكن للتراجع أن يُلغي إلا شيئًا فعلته أنت.
 
+لا يرجع **التراجع** إلا خلال هذه الزيارة؛ وتحتفظ تسع أدوات أيضا بإصدارات سابقة تحت **History**، بجانب **تراجع** (انظر [العودة إلى إصدار سابق](/info/find-your-work.html#go-back-to-an-earlier-version)).
+
 ## بياناتك وصورتك الشخصية
 
-يحتفظ **الملف الشخصي** (أعلى يمين المعرض) باسمك وبيانات التواصل و**صورة شخصية** اختيارية. والأدوات التي تطلب تلك الحقول تملؤها تلقائيا: اضبطها مرة واحدة فيملأ توقيعك البريدي وشعاراتك المركبة وشاراتك نفسها بنفسها. ويمكنك تجاوز أي حقل في أي جلسة. واختر **استخدام بياناتي في الإنشاء** لترافق بياناتك ما تصدره بوصفك المؤلف.
+يحتفظ **الإعدادات** (أعلى يمين المعرض، وتعرض اسمك الأول متى ضبطته) باسمك وبيانات التواصل و**صورة شخصية** اختيارية. والأدوات التي تطلب تلك الحقول تملؤها تلقائيا: اضبطها مرة واحدة فيملأ توقيعك البريدي وشعاراتك المركبة وشاراتك نفسها بنفسها. ويمكنك تجاوز أي حقل في أي جلسة. واختر **استخدام بياناتي في الإنشاء** لترافق بياناتك ما تصدره بوصفك المؤلف.
 
 وتعيش صورتك وبياناتك **على هذا الجهاز وحده**. والملف الشخصي قد يمثل أكثر منك وحدك: فريقا أو دورا تدخل فيه من حين إلى آخر. انظر **[الملفات الشخصية](/info/profile.html)** للصورة الكاملة، بما فيها الاحتفاظ بأكثر من ملف.
 
 ## الحفظ والمتابعة
 
-انقر **حفظ** لتخزين المدخلات الحالية كجلسة لتلك الأداة. ويمكنك الاحتفاظ بعدة جلسات مسماة لكل أداة؛ ويعيد زر **متابعة** في كل أداة فتح أحدثها، ويسرد **زر السجل** (أعلى اليمين، بجوار ملفك الشخصي) كل جلسة محفوظة في جميع الأدوات. والجلسات محلية على الجهاز. ولتنظيمها، افتح **المشاريع** (أدناه).
+للاحتفاظ بعملك، اضغط **حفظ باسم**، وهي علامة الصح بجانب **تصدير**. تحت **Save to a project**، أبقِ **مكتبتي** محددة أو اختر مشروعا (**＋ مشروع جديد…** ينشئ واحدا)، ثم اضغط **حفظ**. الحفظ من جديد يحدّث العنصر نفسه بدل إنشاء نسخة. وفي Design، توجد **حفظ باسم** في القائمة تحت شعار Lolly؛ وعلى الهاتف، اضغط **•••**، ثم **File menu**، ثم **حفظ باسم**.
 
-![كبسولة العرض ذات النصفين: سهم لأعلى يفتح لوحة التصدير، وعلامة صح تحفظ الجلسة في مكانها](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+زر **حفظ** في لوحة التصدير يؤدي الأمر نفسه بنقرة واحدة ولا يُنزّل ملفا أبدا: يذهب العمل الجديد إلى مكتبتي، ويُحدَّث العمل الذي حفظته من قبل في مكانه.
+
+للعودة لاحقا، اضغط **الرئيسية** أعلى اليسار، ثم افتح تبويب **المشاريع** (أيقونة مجلد على الهاتف). حفظ مكتبتي يقع في شاشتها الأولى؛ والمشروع مجلد هناك. وتُسمى العناصر باسم الملف الذي كتبته في لوحة التصدير، أو باسم أداتها إن لم تكتب شيئا، مثل **QR Code**. افتح عنصرا فتجد كل إعداد هناك، جاهزا للتغيير والتصدير من جديد.
+
+يبقى العمل المحفوظ على هذا الجهاز، في المتصفح أو التطبيق الذي حفظت منه، ما لم تفعّل [المزامنة](/info/sync.html). الملف الذي تحصل عليه بـ**تنزيل** نسخة نهائية؛ ولتغييره لاحقا، افتح العنصر المحفوظ في المشاريع. وإن لم تجد شيئا حيث توقعته، انظر [ابحث عن عملك واستعده](/info/find-your-work.html).
+
+![كبسولة العرض ذات النصفين: سهم لأعلى يفتح لوحة التصدير، وعلامة صح باسم Save as تفتح ورقة الحفظ](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
 ## المشاريع
 
-**المشاريع**، وتفتحها من تبويب **المشاريع** بجوار **الأدوات**، أو من **الملف الشخصي → التخزين → التنظيم في المشاريع**، هي بيت كل ما حفظته، وتعمل كمدير ملفات:
-
-![المشاريع: جلسات محفوظة منظمة في مجلدات متداخلة](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
-
-- <!--i:folder--> **مجلدات متداخلة.** اجمع الجلسات المحفوظة في مجلدات، ومجلدات داخل مجلدات، بأي عمق تريده. أنشئ مجلدا، أو أعد تسميته، أو اسحب مربعا فوق مجلد آخر لنقله؛ ويعيدك شريط المسار إلى الأعلى. تظهر الجلسات المحفوظة دون مجلد مباشرة في المستوى الرئيسي من **المشاريع**.
-- <!--i:clock--> **رتب كما تشاء.** يقدم **العرض والترتيب** خيارات **الاسم** و**تاريخ الإضافة** و**آخر تعديل** (الافتراضي)، وداخل المجلد **حسب الأداة**. وتأتي المجلدات أولا دائما أيا كان الترتيب المطبق، فالترتيب ينظم الجلسات والمجلدات ضمن مجموعتها فقط.
-- <!--i:document--> **صنف العمل الجديد مباشرة.** يفتح **أصل جديد** منتقي العناصر المشترك. اختر **القوالب** للبدء من قالب محفوظ: افتحه للتحرير، أو استخدم **+ إضافة** لحفظ عمل جديد فورًا.
-- <!--i:checklist--> **التحديد المتعدد (على سطح المكتب).** أشر إلى مربع الاختيار في البطاقة، أو اسحب إطار تحديد عبر مساحة فارغة، أو انقر مع **Shift/Cmd**؛ وانقر البطاقة **بالزر الأيمن** لقائمتها السياقية. ثم تصرف في التحديد كله دفعة واحدة، فالإيماءة نفسها وشريط الإجراءات العائم نفسه يعملان في معرض الأدوات والأدوات المساعدة والأصول والمشاريع، لا هنا فحسب.
-- <!--i:download--> **اعرض مجلدا كاملا أو تحديدا.** يصدر **عرض المجلد** كل جلسة محفوظة في المجلد، بما فيها مجلداته الفرعية، في ملف `.zip` واحد متداخل. ويفعل **عرض التحديد** الشيء نفسه لأي تحديد متعدد، والجلسة الواحدة تعرض مباشرة إلى ملفها الخاص. ولا حاجة إلى Batch/Pro.
-- <!--i:link--> **انتقل مباشرة إلى الأعمال المحفوظة لأداة.** أشر أداة أو أكثر في معرض الأدوات واختر **عرض الجلسات** من شريط التحديد، فتفتح المشاريع وتعرض الجلسات المصنوعة بتلك الأدوات فقط، ومعها **مسح** للعودة إلى العرض الكامل.
-- <!--i:link--> **شارك جلسة محفوظة.** انقر جلسة بالزر الأيمن → **رابط مشاركة** لنسخ رابط يعيد فتحها بالمدخلات نفسها تماما (وهي نافذة المشاركة الكاملة، انظر أدناه).
-
-![نافذة العرض والترتيب المنبثقة مفتوحة في المشاريع، وفيها صف للسمة، واختيار عرض بين Preview أو List، والاسم وتاريخ الإضافة وآخر تعديل تحت الترتيب](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
-<!--
-SHOT NOTE (misc-projects-sort): trigger button confirmed as
-`.filter-fab.projects-viewopts` in views/projects.ts (openViewOpts() is bound
-to `.projects-viewopts` specifically) - `.projects-viewopts` alone is the
-more specific hook, so that's what drives the click. The popover it opens
-(`.projects-viewmenu`, also confirmed directly in openViewOpts()) is body-
-appended, not nested under the Projects root, so cropSelector finds it
-regardless. "By tool" only appears inside a folder - this recipe captures at
-the Projects ROOT (`url=/#/p`), so if the capture pass wants "By tool"
-visible too, point url= at a real folder instead: the route is a path
-segment, `/#/p/<folderId>` (confirmed in main.ts's hash router - `parts[0]
-=== 'p'` reads `folderId` from `parts[1]`), not a query param. Caveat: a
-folder has to already EXIST in the capture profile, which a per-shot fresh
-context has none of.
-Also: the popover is not sort-only. openViewOpts() writes a theme segment, a
-"View" pair (Preview / List) and a sound segment around the Sort rows, so the
-alt text names them - do not re-caption this as "the sort menu".
--->
-
-و**ما يقدمه شريط التحديد** يختلف قليلا بحسب الشاشة، لأن ليس كل إجراء منطقيا في كل مكان:
-
-- **الأدوات / الأدوات المساعدة:** الإضافة إلى المفضلة (أو إزالتها منها)، والإخفاء (أو إلغاء الإخفاء)، والإتاحة دون اتصال (أو الإزالة من وضع دون اتصال)، و**عرض الجلسات** (الانتقال الموصوف أعلاه)، ونسخ الرابط حين تكون بطاقة واحدة بالضبط محددة.
-- **الأصول:** تنطبق الإضافة إلى المفضلة والإخفاء على أي تحديد؛ أما التكرار والتنزيل والحذف فلا تظهر إلا حين يكون كل عنصر محدد من ملفاتك المرفوعة، فأصل نظام التصميم المشترك عقد دائم، ولذلك تبقى تلك الثلاثة بعيدة عنه حتى في العمليات الجماعية.
-- **المشاريع:** **عرض التحديد**، و**النقل إلى…**، و**مجلد جديد**، و**حذف**، و**التحرير معا** حين يكون التحديد بين جلستين وثماني جلسات لأداة واحدة (فيفتحها جنبا إلى جنب تحت شريط جانبي موحد)، و**التحرير كجدول** الذي يفتح التحديد كله صفوفا في شبكة الدفعات بدلا من ذلك. وهذا الأخير **بلا حد للحجم** ولا يعنيه أن تكون الجلسات من الأداة نفسها، فهو المخرج حين يكون التحديد أكبر أو أكثر خلطا من نطاق الاثنتين إلى الثماني في التحرير معا.
-
-> وثمة فخ في التسمية: **عرض الجلسات** لا يوجد إلا بعد أن يكون شيء ما *محددا*. أما النقر بالزر الأيمن على بطاقة واحدة غير محددة فيقدم **N جلسة محفوظة**، وهو يفتح نافذة سجل تلك الأداة بدل الانتقال إلى المشاريع.
-
-![بطاقتا أداتين محدَّدتان في معرض الأدوات، مع شريط التحديد العائم الذي يعرض "تم تحديد 2" ويوفّر إتاحة دون اتصال، وعرض الجلسات، والمفضلة، والإخفاء](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
-<!--
-ملاحظة اللقطة (misc-bulkbar-gallery): تستهدف معلمة drive العناصر `[data-select="qr-code"]` /
-`[data-select="gradient"]` - زر خانة الاختيار `.tile-check[data-select="<ref>"]`
-مؤكَّد مباشرة من ترميز البطاقة في views/gallery.ts (السمة نفسها
-تمنحها cardMarkup لكل بطاقة)، لذا تُحدِّد هاتان النقرتان كلتا البطاقتين دون
-فتح أي منهما.
-
-SHOT NOTE (misc-sessions-by-tool, NOT PUBLISHED): the "View sessions" result
-had a recipe of its own (`/#/p?tools=qr-code,d3`, views/projects.ts's
-toolsBodyHtml()), dropped here because it has no `drive=` that can
-manufacture its own content - a saved session isn't a click away, it has to
-already exist, and build-docs-shots.ts gives every shot a fresh
-`browser.newContext()`. It would publish an empty list. Same dependency the
-`projects` shot above already carries; revisit if the pipeline gains a
-storage-seeding hook.
--->
+**المشاريع**، تبويب **المشاريع** أعلى الشاشة الرئيسية، تضم كل ما حفظته، في مجلدات تصنعها بنفسك. والعثور على عملك هناك وترتيبه والبحث فيه، واسترجاع عنصر من **سلة المهملات**، كلها على صفحة [ابحث عن عملك واستعده](/info/find-your-work.html#find-something-you-saved).
 
 
 ## مشاركة عملك
@@ -297,7 +306,7 @@ storage-seeding hook.
 
 يلتقط كل مدخل في عنوان الصفحة، فالرابط *هو* التصميم. وفي أعلى النافذة يقع الرابط الجاهز للنسخ، وتحته قسمان مطويان.
 
-- **خيارات الرابط** تضم **أقصر رابط** (فالتصميم الكبير يصنع عنوانا طويلا، ولذلك يحزم هذا الخيار الحالة كلها في رمز مضغوط ويبين لك الوفر بعدد الأحرف؛ والصيغة المقروءة موجودة دائما أيضا)، و**حماية هذا الرابط بكلمة مرور** (AES-256 على الرابط كله، وكلمة المرور ليست فيه أبدا)، و**تثبيت إصدار الأداة**، وهو الراية `_v` التي تربط الرابط بإصدار الأداة الذي تراه، فلا يستطيع تحديث لاحق تغيير ما يعرضه.
+- **خيارات الرابط** تضم **الفتح في التطبيق المثبت** (يبدل الحقل إلى معرف `lolly://` للاختصارات والمشغلات والأتمتة، مع بقاء كل معلمة كما هي)، و**أقصر رابط** (فالتصميم الكبير يصنع عنوانا طويلا، ولذلك يحزم هذا الخيار الحالة كلها في رمز مضغوط ويبين لك الوفر بعدد الأحرف؛ والصيغة المقروءة موجودة دائما أيضا)، و**حماية هذا الرابط بكلمة مرور** (AES-256 على الرابط كله، وكلمة المرور ليست فيه أبدا)، و**تثبيت إصدار الأداة**، وهو الراية `_v` التي تربط الرابط بإصدار الأداة الذي تراه، فلا يستطيع تحديث لاحق تغيير ما يعرضه.
 - **سلوك الرابط** هو ما يحدث حين يفتحه المستلم: ملء الشاشة، أو لوحة التصدير موسعة سلفا، أو التنزيل عند الفتح بـ`&export`، أو النسخ إلى الحافظة بـ`&copy`.
 
 الصق الرابط لزميل، أو ضعه في إشاراتك المرجعية، أو أودعه في مستودع. (التفاصيل الكاملة: [وضع الروابط](/info/url-mode.html).)
@@ -310,7 +319,18 @@ storage-seeding hook.
 
 ### ملف .lolly
 
-يكتب **تنزيل .lolly**، في نافذة المشاركة داخل الأداة التي تعمل فيها، التصميم نفسه ملفا. وهو يحمل الجلسة المحفوظة مع الصور والملفات التي أضفتها من جهازك. وترافقه في داخله أيضا مواد الكتالوج التي يستند إليها التصميم، فيفتح الملف كاملا على جهاز لم ير علامتك التجارية قط. وحيث يوجد في جهازك ورقة مشاركة، يسلم **إرسال إلى…** ذلك الملف إليها مباشرة (AirDrop، أو مشاركة Android) بدل حفظه على القرص.
+`.lolly` امتداد لولي المحمول القابل للنقل، لا وعد بأن كل ملف يحتوي الشيء نفسه. والمرجع الفعلي هو `format` في `manifest.json`. ويقرأ التطبيق ذلك البيان الصغير أولا ويعرض الحجم والمحتوى والإجراء قبل أن يكتب أي شيء:
+
+- يحتوي **التصميم المشترك** (`lolly-share`) جلسة أداة محفوظة واحدة، وملفاتها المضمنة، وإيصالا لكل ما زال يُحل بالإشارة. وقد يحمل أيضا الأداة ونظام التصميم المستخدَمين لصنعه. ويضيف فتحه مشروعا جديدا؛ ولا يستبدل أبدا جلسة قائمة.
+- يحتوي **المشروع المشترك** (`lolly-share` بنوع `project`) مجلدا من المشاريع: مجلداته الفرعية، وكل جلسة محفوظة فيها، وبطاقة كل جلسة والصور المودعة هناك. ويضيف فتحه نسخة من المجلد كله إلى المشاريع؛ ولا يُستبدل شيء موجود مسبقا. ولا يستطيع إصدار Lolly من قبل وجود ملفات المشاريع قراءة واحد منها، ويطلب التحديث.
+- تحتوي **حزمة نظام التصميم** (`lolly-brand`) رموزا تصميمية وقد تحتوي خطوطا وشعارات وإصدارات منشورة وموارد محفوظة. ويضيفها فتحها نظام تصميم منفصلا مسمى، ثم يتحول إليه؛ وتبقى الأنظمة الموجودة على الجهاز كما هي.
+- **مساحة عمل العلامة التجارية / حزمة النسخة** هي `lolly-brand` بأدوات معلنة، وأصول كتالوج، وعنوان نسخة اختياريا. ويسرد الفحص الأولي تلك الآثار الممتدة على الجهاز كله لأن تحميلها يستبدل تراكب مساحة العمل الوحيد المحمل سابقا.
+
+**النسخ الاحتياطي الكامل للجهاز/الملف الشخصي ليس `.lolly`**. فهو يبقى `LollyTools-….zip` بصيغة `lolly-backup`، ولا يُستعاد إلا عبر **الإعدادات → التخزين**. ومجلد أداة مضغوط عاديا يبقى `.zip` أيضا. وبعبارة أخرى، حزم الجلسات وأنظمة التصميم تملك `.lolly`؛ أما مسارا النسخ الاحتياطي والأرشيف السائب فلا.
+
+يكتب **Download .lolly**، في نافذة المشاركة الخاصة بالأداة التي تعمل فيها، التصميم الحالي حزمة تصميم مشترك. وهو يحمل الجلسة المحفوظة مع الصور والملفات المتاحة على هذا الجهاز. وترافقه أيضا فنون الكتالوج العادية. أما الفنون المرخصة فتُحجب ما لم تُدرجها صراحة، والملف القديم أو غير المتاح يبقى مرجعا خارجيا بدل أن يختفي. ويُظهر الإيصال المُعَدّ حجم `.lolly` الفعلي، وعدد الملفات المضمنة، وعدد المراجع الخارجية، وما إذا كانت الأداة مُدرجة. وحيث يوجد في جهازك ورقة مشاركة، يسلّم **إرسال إلى…** ذلك الملف إليها مباشرة (AirDrop، أو مشاركة Android) بدل حفظه على القرص.
+
+يكتب **Download project (.lolly)**، في قائمة مجلد داخل **المشاريع**، ذلك المجلد مشروعا مشتركا، بحيث يستطيع شخص آخر فتحه ومتابعة العمل على كل جلسة فيه. وتنتقل كل جلسة كجزء مستقل (`sessions/<key>.json`، وبطاقتها تحت `thumbs/`)، وتُدرج شجرة المجلد في `manifest.json`، وتنتقل الملفات المرفوعة وفنون الكتالوج بالقواعد نفسها التي ينتقل بها تصميم مشترك واحد. وجلسات الدفعة ليست جلسات أداة فتبقى خلفا؛ ويقول الإشعار عددها. أما **تنزيل النسخ الأصلية** بجانبه فلا يتغير: أرشيف zip عادي لكل عنصر كملفه الخاص.
 
 وملف `.lolly` أرشيف zip عادي. أعد تسميته `.zip` وافتحه: صورك تحت `assets/uploads/`، ومواد الكتالوج تحت `assets/catalog/`، ولكل منها اسمها وامتدادها الحقيقيان، ويسرد `manifest.json` كل واحد منها، ويقول ملف README في الأعلى ما هو هذا الملف.
 
@@ -320,9 +340,13 @@ storage-seeding hook.
 - **هل يُدرَج العمل الفني المرخّص.** تُحجب الأصول المرخّصة والمقفلة بعلامة تجارية افتراضيًا. إذا استخدم التصميم أيًا منها، يذكر مربع الحوار عددها ويقدّم زرين - *Download without them* أو *Include and download* - لأن تضمينها يسلّم الملفات الفعلية لأي شخص يفتح `.lolly`.
 - **هل تُدرَج الأداة.** يعبّئ **Include the tool** ملفات الأداة نفسها مع التصميم، بحيث يُفتح على جهاز لا يملك تلك الأداة. يصل الخيار محددًا لأداة مخصصة - نسخة معدّلة أو أداة علامة تجارية خاصة يُستبعد أن تكون لدى المستلم - وغير محدد لأداة يدرجها الكتالوج الموقَّع، لأن نسخته تأتي من المصدر نفسه. (في بنية بلا كتالوج موقَّع، تُحتسب كل أداة كأداة مخصصة ويبدأ المربع محددًا.)
 
-**فتح ملف.** أفلِت ملف `.lolly` على التطبيق: تذهب الأصول إلى مكتبتك، وتذهب الجلسة إلى المشاريع، وتُفتح الأداة عليها. لا يُستبدَل أي شيء من ملفاتك: تصل الجلسة كفتحة حفظ جديدة، بينما يُطابَق الأصل الموجود مسبقًا على هذا الجهاز عبر مجموع الفحص (checksum) ويُعاد استخدامه بدلاً من تكراره. يُفحص كل جزء مقابل مجاميع الفحص الخاصة بالملف أثناء الدخول، لذا تُرفض النسخة التالفة أثناء النقل بدلاً من استيرادها جزئيًا.
+**فتح ملف.** على تطبيق سطح مكتب أو هاتف مثبت، انقر نقرا مزدوجا أو المس ملف `.lolly`، واختر **Open with Lolly**، أو أرسله إلى Lolly من ورقة مشاركة النظام. وتسجل macOS وWindows وLinux وiOS وAndroid كلها هذه الصيغة؛ وتعرضه مديرات ملفات سطح المكتب مستند Lolly (ويستطيع GNOME Files عرض الصورة المصغرة الخاصة بجلسة محفوظة). وفي تطبيق الويب، استخدم **فتح** أو أفلت الملف على Lolly. ويستخدم كل باب الفحص الأولي نفسه القائم على البيان أولا. ويوصي الفتح من Brand Studio بإجراء نظام التصميم حين يحمل التصميم المشترك واحدا، لكنه لا يعيد تسمية الملف أبدا ولا يخفي **Open shared design**.
 
-وإن حمل الملف أداة لا تملكها، سأل Lolly قبل أن تعمل تلك الأداة: فرسالة **هل تثق بهذه الأداة؟** تسمي الأداة ومؤلفها وتقول بوضوح إن فتحها يشغل شفرة الأداة نفسها على جهازك، و**الثقة والتثبيت** هو طريق المتابعة. وإن رفضت، حفظ العمل المشترك في مشاريعك على أي حال، منتظرا هناك يوم تضيف الأداة. (ونوع واحد من الأدوات لا يمكن تحميله جانبيا بعد، وهو ما تشحن شفرته كوحدة برمجية، ويرد بالطريقة نفسها.)
+ويُحد مستند iOS أو Android الوارد من تطبيق آخر بـ48 ميغابايت لأن التسليم الأصلي يجب أن ينسخ بايتاته عبر حدود التطبيق. ويقول تطبيق الهاتف ذلك بدل تجاهل ملف زائد الحجم بصمت. أما **فتح** داخل Lolly فلا يستخدم ذلك التسليم؛ فهو المسار الذي يُجرَّب لحزمة أكبر.
+
+وبعد التأكيد يفك القارئ المحدد ضغط الحزمة ويتحقق منها مرة واحدة. تذهب أصول التصميم المشترك إلى مكتبتك، وتذهب جلسته إلى المشاريع، وتُفتح أداته حين تتوفر. وتذهب جلسات المشروع المشترك إلى المشاريع تحت نسخة جديدة من مجلداته، بمعرفات جديدة بحيث يمكن فتح الملف نفسه مرتين، ويُفتح المجلد؛ وتنتظر هناك الجلسة التي لا يملك هذا الجهاز أداتها. ويُطابَق الأصل الموجود مسبقا على الجهاز بمجموع الفحص ويُعاد استخدامه. وتُخزَّن حزمة نظام التصميم في مساحة اسمها الخاصة قبل أن يتحول التطبيق إليها. وتُنعت الملفات التي تتجاوز 100 ميغابايت بالكبيرة، ويحذر الفحص الأولي حين يُبلغ تخزين المتصفح عن مساحة حرة أقل مما تحتاجه الحمولة المعلنة. ويُفحص كل جزء مشمول بالسلامة قبل أن تُثبَّت العملية؛ وتُرفض النسخة التالفة ويُتراجع عن الوجهة المُنشأة حديثا.
+
+وإن حمل الملف أداة لا تملكها، سأل Lolly قبل أن تعمل تلك الأداة: فرسالة **هل تثق بهذه الأداة؟** تُظهر الأداة ومؤلفها وتقول بوضوح إن فتحها يشغّل شفرة الأداة نفسها على جهازك، و**الثقة والتثبيت** هو طريق المتابعة. وإن رفضت، يظل العمل المشترك محفوظا في مشاريعك، منتظرا هناك يوم تضيف الأداة. (ونوع واحد من الأدوات لا يمكن تحميله جانبيا بعد - وهو ما تُشحَن شفرته كوحدة برمجية - ويُرد بالطريقة نفسها.)
 
 والرابط والملف كلاهما يسلم لقطة. وللعمل على الجلسة نفسها *في الوقت نفسه* مع شخص آخر، بجهازين، وبلا خادم، وبلا حاجة إلى إنترنت إن كنتما على شبكة واحدة، انظر [العمل معا](/info/collaborate.html).
 
@@ -332,22 +356,22 @@ storage-seeding hook.
 
 ## صوري
 
-حين تتيح لك أداة إضافة صورة من جهازك، تحفظ كما وصلت تماما، فيبقى Content Credentials عليها قابلا للتحقق، وتخزن في مكتبتك الشخصية **صوري** (تحت **الملف الشخصي → التخزين**). ولا يسألك عن الإبقاء عليه أو تصغيره إلا الملف الضخم فعلا. أعد استخدام الصورة في أي أداة. ولمحو بيانات EXIF/GPS عند دخول الصور، شغل **إزالة البيانات الوصفية من الملفات المرفوعة** في ملفك الشخصي. ولا حد أقصى: فالمكتبة محلية بالكامل ولا يحدها إلا تخزين جهازك، ومن هناك تدير الصور أو تحذفها.
+حين تتيح لك أداة إضافة صورة من جهازك، تحفظ كما وصلت تماما، فيبقى Content Credentials عليها قابلا للتحقق، وتخزن في مكتبتك الشخصية **صوري** (تحت **الإعدادات → التخزين**). ولا يسألك عن الإبقاء عليه أو تصغيره إلا الملف الضخم فعلا. أعد استخدام الصورة في أي أداة. ولمحو بيانات EXIF/GPS عند دخول الصور، شغل **إزالة البيانات الوصفية من الملفات المرفوعة** في ملفك الشخصي. ولا حد أقصى: فالمكتبة محلية بالكامل ولا يحدها إلا تخزين جهازك، ومن هناك تدير الصور أو تحذفها.
 
-## الأصول: مكتبتك
+## الأصول - مكتبتك
 
-يجمع قسم **الأصول** (`#/a`، أو مقطع **الأصول** من مبدل الأدوات · الأدوات المساعدة · الأصول · المشاريع في أعلى كل شاشة قوائم) كل ما يمكن لأدواتك أن تستند إليه، من شعارات العلامة التجارية والصور والصوت والحركة، مصنفا حسب النوع، وهو أيضا حيث تعيش **ملفاتك الإبداعية**. بلا خادم، وبلا لوحة إدارة، وبلا طلب دمج: كل شيء على جهازك.
+يجمع قسم **الأصول** (`#/a`، أو مقطع **الأصول** من مبدل الأدوات · الأدوات المساعدة · الأصول · المشاريع في أعلى كل شاشة قوائم) كل ما يمكن لأدواتك أن تستند إليه - شعارات العلامة التجارية والصور والصوت والحركة، مصنفة حسب النوع - وهو أيضا حيث تعيش **ملفاتك الإبداعية** الخاصة بك. بلا خادم، وبلا لوحة إدارة، وبلا طلب دمج: كل شيء على جهازك.
 
-![الأصول: أصول العلامة التجارية وعينات الألوان والخطوط، إضافة إلى ملفاتك المرفوعة](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
+![الأصول، بعينات ألوان العلامة التجارية وخطوطها وملفاتك المرفوعة](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
 - <!--i:upload--> **أدخِل ملفاتك.** اسحب أي صورة أو SVG أو مقطع صوتي أو فيديو أو Lottie أو PDF أو عرض PowerPoint إلى منطقة الرفع - أو انقر للاختيار - فيصل فورًا إلى الأصول، جاهزًا في منتقي الأصول الخاص بكل أداة. يسألك ملف PDF متعدد الصفحات أو ملف `.pptx` عن الصفحات أو الشرائح المراد الاحتفاظ بها - يصبح كل واحد منها أصل SVG. استوعب بقدر ما تشاء؛ فهو لا يغادر جهازك أبدًا.
 - <!--i:star--> **أضِف إلى المفضلة ما تحتاجه كثيرًا.** ضع ★ على أصل (أو عيّنة لون من العلامة التجارية) فيُثبَّت في أعلى كل منتقٍ، بحيث يكون شعارك أو لونك المعتاد على بُعد نقرة واحدة.
 - <!--i:folder--> **رتِّب.** أعِد تصنيف أصل إلى مجموعة مختلفة، أو أخفِ أصل علامة تجارية مشتركًا لا تستخدمه (مع **إظهار المخفي** لإعادته)، أو احذف ملفاتك المرفوعة نهائيًا. تعمل هنا إيماءة التحديد المتعدد نفسها وشريط الإجراءات العائم نفسه الموجودان في المشاريع، بحيث يمكن تطبيق أي من ذلك على تحديد كامل دفعة واحدة.
-- <!--i:layers--> **افصل الفيديو عن خلفيته.** افتح تفاصيل فيديو أو انقر بزر الفأرة الأيمن على بطاقته في أي منتقي أصول واختر **إزالة الخلفية…** لحفظ بديل شفاف - WebP أو PNG متحرك بقناة ألفا حقيقية. اختر **طريقة**: **نموذج على الجهاز** يقصّ الشخصية من مشهد مزدحم، أو **مفتاح لوني** يزيل خلفية مسطحة مضاءة بانتظام مثل شاشة خضراء أو جدار عادي، مع **التفاوت** و**النعومة** و**إزالة التسرب اللوني** لضبط الحافة. لا يحتاج المفتاح اللوني إلى تنزيل نموذج ولا إلى شبكة، لذا تُتاح **إزالة الخلفية** على أي فيديو وتكون غالبًا أنظف على اللقطات المرتبة. يوازن عنصر تحكم **الدقة** (360 أو 480 أو 720 أو 1080p، لا يتجاوز المصدر أبدًا) بين التفاصيل وحجم ملف أصغر وأسرع. يعمل كمهمة خلفية على جهازك. تُحفظ القصاصة النهائية بجانب الأصل كأصل مستقل خاص بها، وينتقل Content Credential الخاص بفيديو المصدر معها كمكوّن. (انظر [يُولَّد مرة واحدة، ويُعرض بالطريقة نفسها](/info/ai-features.html) لمعرفة سبب بقاء إزالة الخلفية تعديلاً عاديًا.)
+- <!--i:layers--> **افصل الفيديو عن خلفيته.** افتح تفاصيل فيديو أو انقر بزر الفأرة الأيمن على بطاقته في أي منتقي أصول واختر **إزالة الخلفية…** لحفظ بديل شفاف - WebP أو PNG متحرك بقناة ألفا حقيقية. اختر **الطريقة**: **نموذج على الجهاز** يقصّ الشخصية من مشهد مزدحم، أو **مفتاح الألوان** يزيل خلفية مسطحة مضاءة بانتظام مثل شاشة خضراء أو جدار عادي، مع **التسامح** و**النعومة** و**إزالة التسرب اللوني** لضبط الحافة. لا يحتاج مفتاح الألوان إلى تنزيل نموذج ولا إلى شبكة، لذا تُتاح **إزالة الخلفية** على أي فيديو وتكون غالبًا أنظف على اللقطات المرتبة. يوازن عنصر تحكم **الدقة** (360 أو 480 أو 720 أو 1080p، لا يتجاوز المصدر أبدًا) بين التفاصيل وحجم ملف أصغر وأسرع. يعمل كمهمة خلفية على جهازك. تُحفظ القصاصة النهائية بجانب الأصل كأصل مستقل خاص بها، وينتقل Content Credential الخاص بفيديو المصدر معها كمكوّن. (انظر [يُولَّد مرة واحدة، ويُعرض بالطريقة نفسها](/info/ai-features.html) لمعرفة سبب بقاء إزالة الخلفية تعديلاً عاديًا.)
 
 ### خذ لوحة ألوانك وخطوطك إلى أي مكان
 
-ولوحة **عينات الألوان** في الأصول تفعل أكثر من العرض: انقر لونا لنسخه، أو **نزل لوحة العلامة التجارية كاملة** بالصيغة التي تفهمها أداتك الأخرى:
+ولوحة **عينات الألوان** في الأصول تفعل أكثر من العرض - انقر لونا لنسخه، أو **نزل لوحة العلامة التجارية كاملة** بالصيغة التي تفهمها أداتك الأخرى:
 
 - <!--i:code--> **رموز التصميم (JSON)**، أو **متغيرات CSS**، أو **أصناف CSS**، لإدخال العلامة التجارية مباشرة في ورقة أنماط أو عملية بناء؛
 - <!--i:palette--> **Adobe Swatch Exchange (.ase)**، لتحميلها في Illustrator أو Photoshop؛
@@ -363,31 +387,19 @@ storage-seeding hook.
 
 يهدف Lolly إلى أن يكون مريحا في الاستخدام للجميع. فالواجهة قابلة للتنقل بلوحة المفاتيح، وعناصر التحكم المخصصة تحمل تسميات سليمة لقارئات الشاشة، والمعاينة الحية لكل أداة معروضة كصورة واحدة موسومة تصف ما تصنعه.
 
-وتؤكد طبقة لطيفة من **الأصوات المساعدة** ما تفعله: الوصول إلى المعرض، ونتيجة فحص Content Credentials صالحة أو غير صالحة، وإغلاق لوحة، وتبديل مرشح. وهي **معطلة افتراضيا**: شغل **الصوت** في أي موضع يظهر فيه المفتاح (نافذة الخيارات في كل شاشة، أو **الملف الشخصي**)، ويحفظ اختيارك.
+وتؤكد طبقة لطيفة من **الأصوات المساعدة** ما تفعله: الوصول إلى المعرض، ونتيجة فحص Content Credentials صالحة أو غير صالحة، وإغلاق لوحة، وتبديل مرشح. وهي **معطلة افتراضيا**: شغل **الصوت** في أي موضع يظهر فيه المفتاح (نافذة الخيارات في كل شاشة، أو **الإعدادات**)، ويحفظ اختيارك.
 
-وتوجد أربعة إعدادات راحة اختيارية تحت **الملف الشخصي → إمكانية الوصول**: **تقليل الحركة** (يسقط انتقالات التطبيق وزخارفه)، و**إخفاء المعاينات الملونة** (بطاقات معرض هادئة بأيقونة ونص، وصور مصغرة أهدأ للمشاريع)، و**تباين مرتفع** (حدود ونصوص وحلقات تركيز أقوى)، و**نص كبير** (خط أكبر في التطبيق: التسميات والقوائم ونصوص الأزرار). والأربعة كلها تهدئ التطبيق *حول* عملك: فهي لا تصل أبدا إلى داخل لوحة أداة ولا تغير بكسلا واحدا مما تصدره، وكل منها معطل حتى تشغله. التفاصيل الكاملة في [ملفك الشخصي → إمكانية الوصول](/info/profile.html#accessibility).
+وتوجد أربعة إعدادات راحة اختيارية تحت **الإعدادات → إمكانية الوصول**: **تقليل الحركة** (يسقط انتقالات التطبيق وزخارفه)، و**إخفاء المعاينات الملونة** (بطاقات معرض هادئة بأيقونة ونص، وصور مصغرة أهدأ للمشاريع)، و**تباين مرتفع** (حدود ونصوص وحلقات تركيز أقوى)، و**نص كبير** (خط أكبر في التطبيق: التسميات والقوائم ونصوص الأزرار). والأربعة كلها تهدئ التطبيق *حول* عملك: فهي لا تصل أبدا إلى داخل لوحة أداة ولا تغير بكسلا واحدا مما تصدره، وكل منها معطل حتى تشغله. التفاصيل الكاملة في [ملفك الشخصي → إمكانية الوصول](/info/profile.html#accessibility).
 
 وبجوار مفتاح الصوت يوجد **وضع Neurospicy**: مقطع تركيز خلفي مهدئ اختياري يعمل بهدوء أثناء عملك. وتشغيله يفتح **رصيف مشغل** صغيرا في الزاوية السفلية يرافقك عبر التطبيق؛ ومنه يمكنك البحث عن مقطع واختياره، والتخطي إلى الأمام والخلف، وضبط مستوى الصوت، وتصغير المشغل أو إغلاقه. وتمتد قائمة المقاطع على عدة فئات: ألحان *Lolly Sings* المولدة إجرائيا، والحلقات والإيقاعات المحيطة، وملفاتك الصوتية المرفوعة، وحفنة من محطات **الراديو** المباشرة على الإنترنت (وهذه تحتاج اتصالا؛ أما كل ما عداها فيعمل دون اتصال). وهو **معطل افتراضيا**، ويحفظ كالصوت عبر الجلسات والأجهزة. وإطفاء الصوت يكتم مقطع التركيز أيضا.
 
 ## التخزين والخصوصية
 
-يخزن كل شيء في قاعدة البيانات المحلية لمتصفحك (IndexedDB): ملفك الشخصي، والجلسات المحفوظة، والصور المرفوعة، ومخبأ لمحتوى الكتالوج المنزل. ويعرض **الملف الشخصي → التخزين** الاستهلاك ويتيح لك:
-
-- <!--i:box--> **مسح المخبأ**: إسقاط محتوى الكتالوج المنزل (وتعاد مزامنته عند التحميل التالي).
-- <!--i:trash--> **مسح كل بياناتي**: محو الملف الشخصي والجلسات والصور. *لا يمكن التراجع عن ذلك.*
-
-![بطاقة التخزين على شاشة بعرض هاتف: كل فئة من البيانات الموجودة على الجهاز مسماة، وزر مسح كل بياناتي في الأسفل](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
-
-ولا يرسل أي من هذه البيانات المحلية إلى أي مكان: لا قياس عن بعد، ولا عرض في السحابة. والقائمة الكاملة لما يجلبه التطبيق أو يرسله في أي وقت موجودة في [سياسة الخصوصية](/info/privacy.html)، ويحصي [سطح الخادم](/info/server-surface.html) مكونات الخادم الاختيارية.
+يحتفظ Lolly بعملك على جهازك: في مخزون هذا المتصفح الخاص في تطبيق الويب، وفي مخزون التطبيق الخاص في تطبيقي سطح المكتب والهاتف. وما يُحتفظ به، وما تزيله **امسح كل بياناتي**، وما تأخذه معه عملية مسح بيانات المتصفح، كلها موجودة في [ابحث عن عملك واستعده](/info/find-your-work.html#if-you-clear-your-browser-data)؛ وتسرد [سياسة الخصوصية](/info/privacy.html) كل ما يجلبه التطبيق أو يرسله، ويحصي [سطح الخادم](/info/server-surface.html) مكونات الخادم الاختيارية.
 
 ## الانتقال إلى جهاز آخر
 
-ولأن كل شيء يعيش على جهازك، يتيح لك **الملف الشخصي → التخزين → الانتقال إلى جهاز آخر** حمل ذلك كله إلى تثبيت آخر، بلا حساب وبلا سحابة:
-
-- <!--i:download--> **تصدير بياناتي** ينزل ملفا واحدا باسم `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (وتأتي أجزاء الاسم من ملفك الشخصي وتحذف إن لم تضبط؛ و`<n>` عداد يومي حتى لا تتصادم صادرات اليوم نفسه) يحوي ملفك الشخصي، وكل جلسة محفوظة (مع صورتها المصغرة)، وصورك المرفوعة، وتفضيلاتك (السمة، وعرض الشريط الجانبي، وإحصاءات النشاط المحلية).
-- <!--i:upload--> و**استيراد البيانات…** في التثبيت الآخر يقرأ ذلك الملف من جديد. وهو **يدمج**: كل ما يحمل الاسم نفسه (ملفك الشخصي، أو خانة جلسة، أو صورة) تحل محله النسخة المستوردة؛ ويحتفظ بكل ما عداه على ذلك الجهاز. وتعيد الجلسات المحفوظة ربط نفسها بصورك المستوردة تلقائيا.
-
-ولا يدرج مخبأ الكتالوج، فهو يعيد تنزيل نفسه على الجهاز الجديد. والحزمة أرشيف zip عادي (`manifest.json` + `profile.json` + `sessions.json` + `assets.json` + `assets/blobs/…` + `prefs.json`، ومعرف الصيغة `lolly-backup`)، فتنجو سليمة عبر البريد أو USB أو AirDrop، وهي الصيغة نفسها التي تقرؤها كل واجهة تشغيل. ولكل جزء مجموع اختباري، فالملف التالف أثناء النقل يكتشف عند الاستيراد بدل أن يستعاد ناقصا. (ومواصفة الصيغة الكاملة: [نقل البيانات](/info/data-transfer.html).)
+لحمل عملك إلى حاسوب ثانٍ أو هاتف آخر، استخدم المزامنة، أو ملف نسخة احتياطية، أو ملف `.lolly`. ويقارن [نقل عملك إلى جهاز آخر](/info/find-your-work.html#move-your-work-to-another-device) بين الطرق الثلاث، ويشرح خطوة بخطوة **تصدير بياناتي** و**استيراد البيانات…**.
 
 ## استيراد تصميم (Figma، Penpot، Illustrator، InDesign)
 
@@ -403,7 +415,7 @@ storage-seeding hook.
 
 ![شريط أدوات الدُفعات - اسم ملف zip، والوحدات، ودقة DPI، والصيغة التي يرثها كل صف، مع الجلسات والعرض على اليمين](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.pro-toolbar&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
-ووضع Batch لتوليد **متغيرات كثيرة من قالب واحد** دفعة واحدة. ولإعادة عرض جلسات **حفظتها من قبل**، استخدم **المشاريع → عرض المجلد / عرض التحديد** (أعلاه)، بلا حاجة إلى Pro.
+ووضع Batch لتوليد **متغيرات كثيرة من قالب واحد** دفعة واحدة. ولإعادة عرض جلسات **حفظتها من قبل**، استخدم **المشاريع → عرض المجلد / عرض التحديد** (انظر [ابحث عن عملك واستعده](/info/find-your-work.html#find-something-you-saved)) - بلا حاجة إلى Pro.
 
 ## التحرير جنبا إلى جنب (Multi-edit)
 
@@ -423,6 +435,8 @@ storage-seeding hook.
 
 ## العمل دون اتصال والتثبيت
 
-وLolly تطبيق ويب تقدمي (PWA). وبعد التحميل الأول يعمل **دون اتصال**: ثبته من شريط عنوان متصفحك (أو *الإضافة إلى الشاشة الرئيسية* على الهاتف) لتجربة بملء الشاشة أشبه بالتطبيقات. وهو يجلب تحديثاته تلقائيا حين تعود إلى الاتصال.
+وLolly تطبيق ويب تقدمي (PWA). فهو يستمر بالعمل **دون اتصال** على الشاشات التي فتحتها من قبل، وينزل **التطبيق** تحت **الإعدادات → متاح دون اتصال** البقية - ثبته من شريط عنوان متصفحك (أو *الإضافة إلى الشاشة الرئيسية* على الهاتف) لتجربة بملء الشاشة أشبه بالتطبيقات. وهو يجلب تحديثاته تلقائيا حين تعود إلى الاتصال.
 
-بخصوص التحديثات: إذا فشل عرض ما في التحميل مباشرة بعد أحدها (لوحة فارغة، أو رسالة "failed to fetch" في الزاوية)، أعِد تحميل الصفحة مرة واحدة - يلتقط التطبيق الإصدار الجديد بسلاسة ويبقى عملك وجلساتك وعلامتك التجارية دون تغيير. فهو يخزّن كل شيء على جهازك، لا في الصفحة.
+بخصوص التحديثات: إذا فشل عرض ما في التحميل مباشرة بعد أحدها (لوحة فارغة، أو رسالة "failed to fetch" في الزاوية)، أعِد تحميل الصفحة مرة واحدة - يلتقط التطبيق الإصدار الجديد بسلاسة ويبقى عملك وجلساتك وعلامتك التجارية دون تغيير؛ ولا يحتاج إلى إضافة من جديد سوى صورة أضفتها ولم تحفظها قط. فهو يخزّن كل شيء على جهازك، لا في الصفحة.
+
+ويستطيع Design وDarkroom الحفاظ على دقة الصورة الأصلية بتحرير **Wide colour / HDR**، بما في ذلك فيديو Sequence. وتستطيع عينات ألوان العلامة التجارية حمل قيم sRGB وP3 منفصلة. انظر [تحرير الألوان الواسعة وHDR](/info/hdr-editing.html) لخيارات الخرج والحدود الحالية.

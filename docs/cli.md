@@ -2,7 +2,7 @@
 
 `lolly` runs any tool from the terminal - same engine, same render path, same output as the web shell. It's **URL mode under a different transport**: `--foo=bar` argv pairs become the exact values the web shell parses from `?foo=bar`, so the CLI can never drift from the GUI. Great for build pipelines, CI, scripting and batch generation.
 
-> Want an **interactive** terminal experience instead of one-shot commands - browse tools, tweak inputs, save projects, all from the keyboard? Run `lolly tui`, or see the [TUI](/info/tui.html). It shares this same engine and render path.
+> Want an **interactive** terminal experience instead of one-shot commands - browse tools, tweak inputs, save projects, all from the keyboard? Run `pnpm run tui` in a checkout (or `lolly tui` with a standalone binary), or see the [TUI](/info/tui.html). It shares this same engine and render path.
 
 
 ## Choose a guide
@@ -16,41 +16,39 @@
 
 ## Install
 
-Three routes to the same program.
-
-**npm.** The published package carries both terminal doors, `lolly` and `lolly-tui`:
-
-```bash
-npm i -g @lolly-tools/cli
-lolly --help
-```
+Two routes to the same program.
 
 **The desktop app.** Lolly for macOS, Windows and Linux carries its own tools,
-catalog, and this same CLI, so installing the app is enough. `run` uses the
-app's native off-screen WebView; the other verbs are forwarded to the bundled
-Node package.
+catalog and this same CLI, so installing the app is enough. On macOS the command
+is the app's own executable, `Lolly.app/Contents/MacOS/lolly-desktop`, and it
+takes the same arguments. `run` uses the app's native off-screen WebView; the
+other verbs are forwarded to the bundled Node package.
 
-**A checkout.** In the repo it's wired as an npm script (note the `--` to pass args through):
+**A checkout.** In a clone of the Lolly source ([github.com/lolly-tools/lolly](https://github.com/lolly-tools/lolly)) the CLI is a package script.
 
-```bash
-pnpm run cli <tool-id> [--input=value ...] [--export=fmt] [--output=file]
-# or, once installed as a binary:
-lolly <tool-id> [--input=value ...] [--export=fmt] [--output=file]
+::: note Before you start
+You need Node.js 22.18 or later and pnpm; if `pnpm --version` fails, run `npm install --global pnpm` ([Prerequisites](/info/build-guide.html#prerequisites-all-targets)). Run `pnpm install` once at the repository root ([Getting the source](/info/build-guide.html#getting-the-source)), then run every command from that root. Arguments go straight after the tool id, with no `--` in between.
+:::
+
+```bash wrap
+pnpm run cli qr-code --url=https://example.com --output=qr.svg
 ```
 
-### The npm package ships no tools and no catalog
+pnpm may print a warning of its own first. The CLI ends with a line that starts `✓ Wrote`, and `qr.svg` is written to the repository root, replacing any file of that name. If your own address contains `?` or `&`, put it in quotes. The general form is `pnpm run cli <tool-id> [--input=value ...] [--export=fmt] [--output=file]`. Examples on these pages that start with `lolly` run from a checkout as `pnpm run cli` followed by the same arguments.
 
-Tools and brand assets are content, not code, and a full set runs well past 100 MB. The package carries none of it, so point it at a root:
+### A standalone CLI carries no tools and no catalog
+
+Tools and brand assets are content, not code, and a full set runs well past 100 MB. A standalone `lolly` (the packaged CLI, see [Build the CLI and TUI](/info/build-terminal.html#standalone-binary)) carries none of it, so point it at a root:
 
 ```bash
 LOLLY_ROOT=/path/to/lolly lolly list
 ```
 
-Two kinds of directory work: a **checkout** of this repository, where the resolver reads `profiles.json` and the packs under `community/` and `brands/`, and a **materialized** root - a real `tools/` + `catalog/` pair, which is what a `dist/` build, an RPM payload or a container image carries. The desktop app brings its own, so nothing needs pointing there. `lolly system import <pack.lolly>` is the third route, and it is a different thing: it imports **your design system** (colours, fonts, logos), which every render then uses, and it adds no tools, so it wants one of the other two beside it.
+Two kinds of directory work: a **checkout** of this repository, where the resolver reads `profiles.json` and the packs under `community/` and `brands/`, and a **materialized** root - a real `tools/` + `catalog/` pair, which is what a `dist/` build, an RPM payload or a container image carries. The desktop app brings its own, so nothing needs pointing there. `lolly system import <pack.lolly>` is the third route, and it is a different thing: it imports **your design system** (colours, fonts, logos), which every render then uses, and it adds no tools, so it needs one of the other two routes as well.
 
 Run a command that needs content without any and the CLI prints those three routes and exits **3** (`UNAVAILABLE_HERE`), the retry-somewhere-else code. It never downloads anything on its own.
 
-> **Redirecting or piping? Use `pnpm --silent run cli`.** npm prints its own two-line run banner (`> lolly@0.1.0 cli` …) on **stdout**, ahead of anything the CLI writes, so `pnpm run cli qr-code --export=png > qr.png` produces a file whose PNG magic starts 95 bytes in and `file` reports as `data`. The CLI's own rule holds - stdout is the payload - but npm's wrapper breaks it before the CLI runs. `--silent` suppresses the banner; an installed `lolly` binary never has it. Every redirecting example below is written that way.
+> **Redirecting or piping? Use `pnpm --silent run cli`.** pnpm can print lines of its own on **stdout** (a warning, a run banner) ahead of anything the CLI writes, so `pnpm run cli qr-code --export=png > qr.png` can produce a file that does not start with the PNG and that `file` reports as `data`. The CLI's own rule holds - stdout is the payload - but the package manager's wrapper breaks it before the CLI runs. `--silent` suppresses those lines; an installed `lolly` binary never prints them. Every redirecting example below is written that way.
 
 `lolly --help` prints the same surface this page documents - every flag and every exit code - so a script author never has to leave the terminal to find them.
 
@@ -67,7 +65,7 @@ pnpm run cli assets logo       # filter by substring
 pnpm run cli assets --type=raster
 ```
 
-`describe <tool-id>` (and its bare `<tool-id>` sugar) prints the input schema and a usage line - including a `↳` syntax hint for the non-scalar input types (how to express `asset`, `blocks`, `vector`, `file`, `color` values). The fastest way to learn what a tool accepts.
+`describe <tool-id>` (and its bare `<tool-id>` sugar) lists the tool's essential inputs with their defaults, plus a usage line (add `--all` for every input) - including a `↳` syntax hint for the non-scalar input types (how to express `asset`, `blocks`, `vector`, `file`, `color` values). The fastest way to learn what a tool accepts.
 
 `list --q=<words>` filters by tool id, name, description, category and declared formats. Add `--limit=1..100` to keep a model's discovery response small; JSON includes `query`, `limit` and `total` when those options are used. With neither option, the complete listing remains available.
 

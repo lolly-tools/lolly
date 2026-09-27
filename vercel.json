@@ -85,6 +85,11 @@
       "permanent": true
     },
     {
+      "source": "/sitemap.xml",
+      "destination": "/info/sitemap.xml",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "www\\.lolly\\.tools" }],
       "destination": "https://lolly.tools/:path*",
@@ -129,6 +134,7 @@
     { "source": "/llms-full.txt", "destination": "/info/llms-full.txt" },
     { "source": "/openapi.json", "destination": "/info/openapi.json" },
     { "source": "/.well-known/lolly.json", "destination": "/info/well-known-lolly.json" },
+    { "source": "/robots.txt", "destination": "/robots-lolly-tools.txt" },
     { "source": "/tool/:file([a-z0-9-]+\\.[a-z0-9-]+)", "destination": "/api/mcp/[...path]" },
     { "source": "/api/ca/:path*", "destination": "/api/ca/[...path]" },
     { "source": "/api/penpot/:path*", "destination": "/api/penpot/[...path]" },

@@ -5,7 +5,7 @@ Pertanyaan yang sering diajukan, ditampilkan dalam akordeon di halaman utama `/i
 **Cara merawat:** setiap judul `##` di bawah ini adalah sebuah pertanyaan; semua yang ada di bawahnya
 (sampai `##` berikutnya) adalah jawabannya. Jawaban memakai markdown ringan yang sama dengan
 bagian lain situs ini - pisahkan paragraf dengan satu baris kosong. Tambah, hapus atau
-susun ulang pertanyaan di sini lalu jalankan ulang `npm run build:info` (atau `npm run dev:web`).
+susun ulang pertanyaan di sini lalu jalankan ulang `pnpm run build:info` (atau `pnpm run dev:web`).
 Semua yang berada di atas `##` pertama (judul ini dan catatan ini) diabaikan oleh proses build.
 
 ## Apa yang terjadi ketika saya memilih opt-in di halaman /profile?
@@ -121,9 +121,17 @@ Kami memenangkan pertarungan tata kelola dengan kenyamanan dan layanan yang ungg
 
 Ya. Buka **Design** lalu klik **Import a design**: ia menerima **.fig** asli dari Figma (Save local copy), ekspor **.penpot** dari Penpot, **.ai** atau **.pdf** dari Illustrator, **.idml** dari InDesign (File → Export → InDesign Markup) atau **SVG apa pun** (pintu terlebarnya - hampir semua aplikasi desain bisa mengekspornya). Tidak perlu akun, tidak perlu plugin dan tidak perlu lisensi aplikasi desain.
 
-![Design's open canvas - Import a design sits in the toolbar's Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Kanvas terbuka Design - Impor desain berada di menu Lolly pada rel](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Layer masuk sebagai kotak yang bisa diedit di kanvas terbuka: teks tetap bisa diketik ulang, bentuk tetap menjadi bentuk, gambar bergabung ke pustaka gambar Anda sendiri, serta tipografi dan warna mengikuti brand global. Simpan, dan tata letaknya menjadi template yang bisa dipakai ulang, dialamatkan lewat URL dan diisi ulang oleh siapa pun yang punya Lolly - dan Anda bisa menyisipkan alat langsung (kode QR, bagan) yang dirender ulang saat dimuat. Setelah itu ia dirender seperti apa pun di Lolly - SVG, PDF, PNG dan lainnya, bisa direproduksi dari URL-nya. Lihat [Import a design](/info/design-import.html).
+
+## Di mana yang saya buat kemarin?
+
+Jika Anda menekan **Simpan sebagai** atau **Simpan**, karya itu ada di **Proyek**, di layar utama, di browser atau aplikasi tempat Anda menyimpannya. Jika Anda hanya menekan **Unduh**, berkasnya ada di tempat browser atau sistem Anda menyimpan unduhan, dan biasanya sebuah salinan ada di **Aset**. Sembilan tool juga menyimpan karya yang belum disimpan di **Proyek**. [Temukan dan pulihkan karya Anda](/info/find-your-work.html) membahas semua kasus.
+
+## Saya menutup tab. Apakah karya saya hilang?
+
+Karya tersimpan masih ada di **Proyek**. Karya yang belum disimpan hilang, kecuali pada sembilan tool yang menyimpan sambil Anda bekerja, yang juga menyimpannya di **Proyek**. Lain kali, tekan **Simpan sebagai** sebelum Anda keluar. Lihat [Jika Anda menutup tab atau meninggalkan tool](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Bisakah saya membagikan karya sebagai file, bukan tautan?
 

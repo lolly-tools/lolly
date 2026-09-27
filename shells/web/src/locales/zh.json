@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "同一颜色在各空间中的写法。标有“已钳制”的行表示该空间太窄,容不下它;CSS 会把这些数值取整到范围内。",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "APCA 与极性相关,因此一个单元格与其镜像值不同,而对角线(颜色与自身)的读数约为 0。选择一种色觉模式以重新着色网格与品牌色条,并针对该色觉重新评分每一组配对。",
   "Assets": "素材",
-  "Runs the deeper AI text check on Verify and in Assets.": "在“验证”和“素材”中运行深度 AI 文本检测。"
+  "Runs the deeper AI text check on Verify and in Assets.": "在“验证”和“素材”中运行深度 AI 文本检测。",
+  "Copied to clipboard": "已复制到剪贴板",
+  "Copy did not work": "复制失败",
+  "Select the text, then use your device’s copy command.": "选中文本，然后使用设备的复制功能。",
+  "Select text": "选择文本",
+  "Text selected. Use your device’s copy command.": "已选中文本。使用设备的复制功能。",
+  "Copy {label}": "复制{label}"
 }

@@ -2,9 +2,9 @@
 
 Een **profiel** is de werkidentiteit waaronder Lolly creëert. Het is de kleine set gegevens waar een tool uit kan putten zodat jij ze niet elke keer opnieuw hoeft te typen - je naam, contactgegevens, een optionele pasfoto, een paar voorkeuren - plus alles wat je opbouwt terwijl je werkt: opgeslagen sessies, geüploade afbeeldingen en de lokale activiteitenteller.
 
-Alles in een profiel leeft **op het apparaat**, in de lokale database van de browser (IndexedDB in de web-PWA, het bestandssysteem in de Tauri-apps). Er is geen account en er wordt niets geüpload. Je beheert het onder **Profiel** (rechtsboven in de galerij); tools *lezen* het alleen ooit, en alleen de specifieke velden waarvoor ze zijn gebouwd om vooraf in te vullen.
+Alles in een profiel leeft **op het apparaat**, in de lokale database van de browser (IndexedDB in de web-PWA, het bestandssysteem in de Tauri-apps). Er is geen account en er wordt niets geüpload. Je beheert het onder **Instellingen → Preferences** (in de voettekst of het avatarmenu); tools *lezen* het alleen ooit, en alleen de specifieke velden waarvoor ze zijn gebouwd om vooraf in te vullen.
 
-> Een profiel gaat over *jou* (of wie er hier ook aan het creëren is). Het staat los van het **Platform** - de kleuren, fonts en globale instellingen van het merk - en van **Capabilities**, de catalogus van wat de app kan. Zie [Profiel vs Platform vs Capabilities](#profile-vs-platform-vs-capabilities) aan het einde.
+> Instellingen brengt je profiel en het voormalige Dashboard samen op één plek. **Preferences** bevat je gegevens en persoonlijke keuzes; **Dit apparaat**, **Design system**, **Mogelijkheden** en **Activiteit & statistieken** staan ernaast. Zie [Instellingen](/info/dashboard.html) voor de volledige kaart.
 
 ## Wat er in een profiel zit
 
@@ -25,7 +25,7 @@ Alles in een profiel leeft **op het apparaat**, in de lokale database van de bro
 
 Niets hiervan is verplicht. Een leeg profiel is een prima profiel; je vult alleen in wat je typewerk bespaart.
 
-De pagina is lang, dus heeft hij een eigen **instellingenrail** aan de zijkant - Jouw gegevens, Weergave, Toegankelijkheid, Lolly-instantie, Jouw activiteit, Opslag, Beschikbaar offline, Feature flags, Content Credentials - met een **Instellingen zoeken** veld erboven dat de lijst filtert terwijl je typt. Elke sectie is diep te linken als `#/profile?focus=<section-id>`, wat hem opent en in beeld scrolt (`#/profile?focus=storage-section`, `?focus=feature-flags-section`, enzovoort), zodat een link naar één instelling kan verwijzen in plaats van naar de bovenkant van de pagina.
+De pagina is lang, dus heeft hij een eigen **instellingenrail** aan de zijkant - Your details, Appearance, Accessibility, Lolly instance, Your activity, Storage, Available offline, Feature flags, Content Credentials - met een **Instellingen zoeken** veld erboven dat de lijst filtert terwijl je typt. Elke sectie is diep te linken als `#/settings?focus=<section-id>`, wat hem opent en in beeld scrolt (`#/settings?focus=storage-section`, `?focus=feature-flags-section`, enzovoort), zodat een link naar één instelling kan verwijzen in plaats van naar de bovenkant van de pagina.
 
 ![Drie themakaarten, elk met een preview van zijn eigen type en kleur, met de actieve gemarkeerd](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
@@ -55,7 +55,7 @@ Op elk moment heeft een installatie **één actief profiel** - de gegevens die e
 
 ![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
-- <!--i:trash--> **Schoonste wissel:** **Profiel → Opslag → Al mijn gegevens wissen**, en vervolgens het pakket **importeren** voor de context waar je naartoe gaat. Je maakt nu puur als dat profiel.
+- <!--i:trash--> **Schoonste wissel:** **Instellingen → Preferences → Opslag → Al mijn gegevens wissen**, en dan het pakket **Importeren** voor de context waar je naartoe gaat. Je maakt nu puur als dat profiel.
 - <!--i:layers--> **Laagsgewijs:** importeren *zonder* eerst te wissen **voegt samen** - het geïmporteerde profiel, de sessies en de afbeeldingen komen boven op wat er al staat, waarbij alles met dezelfde naam wordt vervangen en de rest blijft staan. Handig om de opgeslagen sessies van één team in je eigen opstelling te trekken; niet wat je wilt als je een schone rolgrens nodig hebt.
 - <!--i:monitor--> **Naast elkaar:** omdat alles apparaatgebonden is, draagt een apart browserprofiel, een apart gebruikersaccount of een tweede geïnstalleerde PWA elk zijn eigen onafhankelijke Lolly-profiel. Draai je persoonlijke installatie en de eventkiosk-installatie tegelijk, zonder te wisselen.
 
@@ -67,7 +67,7 @@ Dus als je echt met meerdere contexten jongleert (jij, je team, het eventmanager
 
 ## Toegankelijkheid
 
-**Profiel → Toegankelijkheid** bevat vier comfortinstellingen voor de app *rond* je werk. Elke instelling staat uit tot je hem aanzet, en geen enkele reikt tot binnen een toolcanvas of een export - een rustigere app mag geen pixel verplaatsen van het bestand dat je aflevert.
+**Instellingen → Preferences → Toegankelijkheid** bevat vier comfortinstellingen voor de app *rond* je werk. Elke instelling staat uit tot je hem aanzet, en geen enkele reikt tot binnen een toolcanvas of een export - een rustigere app mag geen pixel verplaatsen van het bestand dat je aflevert.
 
 - <!--i:film--> **Beweging beperken** - schakelt de overgangen, sleep-animaties en geanimeerde flair in de app uit. Je toolcanvas en elke geanimeerde export blijven precies bewegen zoals ontworpen.
 - <!--i:image--> **Kleurrijke previews verbergen** - wisselt de galerij-previewafbeeldingen om voor rustige icoon-en-tekstkaarten, en verlaagt de kleur en het contrast van je projectminiaturen zodat ze herkenbaar blijven zonder te schreeuwen. Binnen een tool wordt alles in volle kleur getoond.
@@ -78,13 +78,13 @@ Deze staan op het profielrecord zelf, waarom ze meereizen in een profielexport e
 
 ## Jouw Lolly-instantie
 
-**Profiel → Lolly-instantie** laat zien waar deze installatie zijn tools en catalogus vandaan haalt - het adres van de instantie, of *Gebundeld met deze app* wanneer alles binnen de build meegeleverd wordt. Waar een implementatie er een aanbiedt, opent een **Instantieconsole**-link het beheeroppervlak, en **Wijzigen** / **Loskoppelen** verwijzen de installatie opnieuw of maken hem los.
+**Instellingen → Preferences → Lolly-instantie** zegt waar deze installatie zijn tools en catalogus vandaan haalt - het adres van de instantie, of *Meegeleverd met deze app* wanneer alles ingebouwd in de build meekomt. Waar een deployment er een aanbiedt, opent een link **Instance console** het beheeroppervlak ervan, verplaatst **Wijzigen** de installatie naar een ander punt, en verwijdert **Verlaten** het design system, de tools en de catalogus van de instantie terwijl je eigen werk blijft staan (zie [Lolly gebruiken bij je organisatie](/info/organisation.html#leaving)).
 
 Opnieuw verwijzen naar een andere instantie vereist de **desktop-app**: een browser blokkeert het laden van tools en assets over verschillende origins heen door een pagina, dus op het web meldt de sectie waar je bent en laat het daarbij.
 
 ## Beschikbaar offline
 
-Lolly cachet terwijl je werkt, maar caching-terwijl-je-werkt dekt alleen waar je al bent geweest. **Profiel → Beschikbaar offline** is voor de reis die je aan ziet komen: een uur op luchthaven-wifi voor een vlucht zonder wifi. Download de onderdelen die je nodig hebt, kijk naar één voortgangsbalk, en alles wat je meenam blijft werken zonder verbinding.
+Lolly cachet terwijl je werkt, maar caching-terwijl-je-werkt dekt alleen waar je al bent geweest. **Instellingen → Preferences → Offline beschikbaar** is voor de reis die je aan ziet komen: een uur op luchthaven-wifi voor een vlucht zonder wifi. Download de onderdelen die je nodig hebt, kijk naar één voortgangsbalk, en alles wat je meenam blijft werken zonder verbinding.
 
 Zeven onderdelen, elk met de grootte vermeld voordat je toezegt:
 
@@ -104,9 +104,9 @@ Als de browser geen persistente opslag heeft toegekend, meldt de sectie dat en b
 
 ## Een profiel verplaatsen naar een nieuw apparaat
 
-![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+Omdat een profiel volledig lokaal is, zijn er twee manieren om het op een lege installatie te krijgen - een nieuwe laptop, een net gereset browser, de machine van een collega, een offline apparaat. **Neem het bestand mee**, zoals hieronder, of houd je eigen apparaten synchroon via opslag die je zelf kiest, zoals [Sync your devices](/info/sync.html) uitlegt. Geen enkele Lolly-login herstelt het voor je, en dat is precies het punt: er is nooit iets naar een Lolly-server gegaan, om te beginnen.
 
-Omdat een profiel volledig lokaal is, is de enige manier om het op een lege installatie te krijgen - een nieuwe laptop, een net gereset browser, de machine van een collega, een offline machine - door **het bestand mee te nemen**. Geen enkele login herstelt het voor je, en dat is precies het punt: er heeft nooit iets je apparaat verlaten.
+Onder **Instellingen → Preferences → Opslag → Verplaatsen naar een ander apparaat**:
 
 - <!--i:download--> **Export my data** (Mijn gegevens exporteren) downloadt één `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - genoemd naar het profiel waartoe het behoort, met een dagelijks volgnummer zodat herhaalde exports niet botsen (naamdelen vervallen wanneer het profiel ze niet heeft). Het bevat je profiel, elke opgeslagen sessie (met miniatuur), je geüploade afbeeldingen - je merktokens en geïnstalleerde lettertypen liften mee als gebruikersassets - en je voorkeuren (thema, layout, lokale activiteitsstatistieken).
 - <!--i:upload--> **Import data…** (Gegevens importeren…) op de andere installatie leest dat bestand weer in, en je gaat precies verder waar je gebleven was.
@@ -126,9 +126,9 @@ Voor de exacte pakketopbouw, versiebeleid en integriteitsregels, zie **[Gegevens
 
 Een tool *vult* alleen ooit de profielvelden *vooraf in* die het expliciet is gebouwd om te koppelen:
 
-**De opt-in (herkomst).** Wanneer je een asset exporteert, liften je gegevens optioneel mee als **herkomst** - een auteur/creditregel ingebed in de metadata van het bestand (PNG, PDF, SVG, …) - zodat een afgewerkte asset kan aangeven wie hem gemaakt heeft. *Dit* is wat **Mijn gegevens gebruiken voor het maken van** bepaalt: laat hem uit en de export draagt nog steeds de "Made with Lolly" tool-/platformattributie, maar er wordt geen persoonlijke auteur-/contactregel ingebed. (Dezelfde opt-in stelt de auteur in bij **/pro** batchruns.) (Toolauteurs: zie [Tools schrijven → `bindToProfile`](/info/authoring-tools.html#bindtoprofile) en [Host API → `host.profile`](/info/host-api.html#host-profile).)
+**De opt-in (herkomst).** Wanneer je een asset exporteert, liften je gegevens optioneel mee als **herkomst** - een auteur/creditregel ingebed in de metadata van het bestand (PNG, PDF, SVG, …) - zodat een afgewerkte asset kan aangeven wie hem gemaakt heeft. *Dit* is wat **Gebruik mijn gegevens om te maken** bepaalt: laat hem uit en de export draagt nog steeds de "Made with Lolly" tool-/platformattributie, maar er wordt geen persoonlijke auteur-/contactregel ingebed. (Dezelfde opt-in stelt de auteur in bij **/pro** batchruns.) (Toolauteurs: zie [Tools schrijven → `bindToProfile`](/info/tool-inputs.html#bindtoprofile) en [Host API → `host.profile`](/info/host-api.html#host-profile).)
 
-![De enkele schakelaar Mijn gegevens gebruiken voor het maken van, naast Profiel opslaan en uit totdat je hem aanzet](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![De enkele schakelaar Gebruik mijn gegevens om te maken, naast Profiel opslaan en uit totdat je hem aanzet](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 ## Profiel versus Platform versus Mogelijkheden
 
@@ -151,4 +151,4 @@ Het woord wordt in het hele project op meerdere manieren gebruikt. Geen van beid
 
 ## Privacy
 
-Buiten de optionele identiteitsinschrijving hierboven (die het e-mailadres waarmee je je inschrijft naar de certificaatservice stuurt - zie [Server Surface](/info/server-surface.html)), wordt een profiel nooit verzonden, geüpload of gebruikt om je te identificeren of te volgen - er is niets om toestemming voor te geven, alleen deze mededeling zodat je weet wat er bewaard wordt. Wis alles op elk moment met **Profiel → Al mijn gegevens wissen**. Zie het [Privacybeleid](/info/privacy.html).
+Buiten de optionele identiteitsinschrijving hierboven (die het e-mailadres waarmee je je inschrijft naar de certificaatservice stuurt - zie [Server Surface](/info/server-surface.html)), wordt een profiel nooit verzonden, geüpload of gebruikt om je te identificeren of te volgen - er is niets om toestemming voor te geven, alleen deze mededeling zodat je weet wat er bewaard wordt. Wis alles op elk moment met **Instellingen → Preferences → Al mijn gegevens wissen**. Zie het [Privacybeleid](/info/privacy.html).

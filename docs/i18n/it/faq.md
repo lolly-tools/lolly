@@ -5,7 +5,7 @@ Domande frequenti mostrate nell'accordion nella pagina di destinazione `/info`.
 **Come si aggiorna:** ogni titolo `##` qui sotto è una domanda; tutto ciò che si trova sotto
 di esso (fino al `##` successivo) è la risposta. Le risposte usano lo stesso markdown leggero
 del resto del sito - separa i paragrafi con una riga vuota. Aggiungi, rimuovi o riordina
-le domande qui e riesegui `npm run build:info` (o `npm run dev:web`).
+le domande qui e riesegui `pnpm run build:info` (o `pnpm run dev:web`).
 Tutto ciò che precede il primo `##` (questo titolo e queste note) viene ignorato dalla build.
 
 ## Cosa succede quando attivo l'opt-in nella pagina /profile?
@@ -124,6 +124,14 @@ Sì. Apri **Design** e clicca su **Importa un design**: accetta un file Figma na
 ![La tela aperta di Design - Importa un design si trova nel menu Lolly della barra degli strumenti](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 I livelli arrivano come riquadri modificabili sul canvas aperto: il testo resta modificabile, le forme restano forme, le immagini si uniscono alla tua libreria di immagini e la tipografia e i colori si conformano alle variabili globali di brand. Salvalo e il layout diventa un template riutilizzabile e indirizzabile via URL che chiunque abbia Lolly può compilare di nuovo - e puoi mescolarci strumenti dal vivo (un codice QR, un grafico) che vengono renderizzati di nuovo al caricamento. Da lì si renderizza come qualsiasi altra cosa in Lolly - SVG, PDF, PNG e il resto, riproducibile dal suo URL. Vedi [Importa un design](/info/design-import.html).
+
+## Dov'è la cosa che ho fatto ieri?
+
+Se hai premuto **Salva come** o **Salva**, è in **Progetti**, sulla schermata iniziale, nel browser o nell'app da cui hai salvato. Se hai premuto solo **Scarica**, il file è dove il tuo browser o sistema salva i download, e di solito una copia è in **Risorse**. Nove strumenti conservano anche il lavoro non salvato in **Progetti**. [Trova e recupera il tuo lavoro](/info/find-your-work.html) copre ogni caso.
+
+## Ho chiuso la scheda. Il mio lavoro è perso?
+
+Il lavoro salvato resta in **Progetti**. Il lavoro non salvato va perso, tranne nei nove strumenti che salvano mentre lavori, che lo conservano anch'essi in **Progetti**. La prossima volta, premi **Salva come** prima di uscire. Vedi [Se hai chiuso la scheda o hai lasciato lo strumento](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Posso condividere il mio lavoro come file invece che come link?
 

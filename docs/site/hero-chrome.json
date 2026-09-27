@@ -8,7 +8,7 @@
     { "word": "is free", "slug": "positioning" }
   ],
   "ctas": [
-    { "href": "/", "label": "Launch App ↗", "class": "btn btn-primary" },
-    { "href": "/info/quickstart.html", "label": "Documentation", "class": "btn btn-secondary" }
+    { "href": "/", "label": "Launch App", "class": "hero-btn btn-primary" },
+    { "href": "/info/quickstart.html", "label": "Documentation", "class": "hero-btn btn-secondary" }
   ]
 }

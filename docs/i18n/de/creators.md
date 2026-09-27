@@ -10,7 +10,7 @@ Neu hier? Beginnen Sie mit **[In 60 Sekunden etwas erstellen](/info/make-somethi
 
 Wählen Sie ein Tool, füllen Sie ein paar Felder aus und laden Sie die fertige Datei herunter. Oder öffnen Sie die Design-Leinwand und legen Sie frei Hand an: In beiden Fällen kommen Farben, Schrift und Abstände aus Ihrer Marke statt aus dem Gedächtnis, und nichts erfordert ein Konto.
 
-- **[In 60 Sekunden etwas erstellen](/info/make-something.html)** - drei kurze Rundgänge ganz ohne Einrichtung, falls Sie Lolly noch nie geöffnet haben.
+- **[Make something in 60 seconds](/info/make-something.html)** - drei kurze Rundgänge ganz ohne Einrichtung, falls Sie Lolly noch nie geöffnet haben.
 - **[Lolly nutzen](/info/using.html)** - die Leinwand, die Steuerelemente, das Speichern, Projekte und die Nutzung am Telefon: wie sich die App selbst verhält.
 - **[Das Brand Studio](/info/brand-studio.html)** - wann Logos, Farben und Schrift Ihre eigenen sein sollen statt der Standardvorgaben.
 - **[Ein Design importieren](/info/design-import.html)** - wenn die Grafik bereits als `.fig`-, `.penpot`-, `.ai`-, `.idml`- oder SVG-Datei vorliegt und Sie sie bearbeitbar statt geplättet haben möchten.
@@ -34,9 +34,15 @@ Text, der sich bewegt, Szenen auf einer Zeitleiste und Bewegung, die markenkonfo
 
 Nehmen Sie einen sauberen Take mit Einzähler, Pegelanzeige und sanftem Coaching auf, oder verwandeln Sie eine Sprachnotiz in ein fertiges Video, das sich mit dem Ton bewegt. Es gibt noch keine eigene Record-Seite: Lolly nutzen trägt sie im Abschnitt zur Zeitleiste.
 
-- **[Lolly nutzen](/info/using.html#timeline-sequence-studio)** - eine Voiceover direkt auf die Zeitleiste aufnehmen, wo der Take gespeichert wird und wie er in die Mischung gelangt.
-- **[In 60 Sekunden etwas erstellen](/info/make-something.html#make)** - die Audiogramm-Szene, für wenn Sie lieber gehört als gesehen werden möchten.
+- **[Lolly nutzen](/info/using.html#timeline-sequence)** - eine Voiceover direkt auf die Zeitleiste aufnehmen, wo der Take gespeichert wird und wie er in die Mischung gelangt.
+- **[Ihre erste Datei erstellen](/info/make-something.html#other-first-projects)** - die Audiogramm-Szene, für wenn Sie lieber gehört als gesehen werden möchten.
 - **[Utility-Ansichten](/info/utilities.html)** - Script Audio, wenn die Worte zuerst kommen und die Stimme danach.
+
+## Präsentieren
+
+Legen Sie Ihre Kamera, Ihr Logo und Ihren Namen über ein Design-Deck oder einen Countdown, mit privaten Steuerelementen in einem separaten Fenster.
+
+- **[Mit Kamera präsentieren](/info/presenting.html)** - Bildausschnitt, gespeicherte Szenen, Teilen mit dem Publikum, lokale Aufnahme und die aktuellen Einschränkungen der Testphase.
 
 ## Zusammenarbeiten
 

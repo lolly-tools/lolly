@@ -25,7 +25,8 @@
    .tool-actions (the export panel), which predates the .btn class and still
    needs the identical look without every call-site adding the class by hand. */
 .btn,
-.tool-actions button:not(.btn) {
+.tool-actions button:not(.btn),
+.docs-listen, .docs-edition {                     /* docs/build.ts - /info's Listen and print-edition controls */
   text-decoration: none;
   padding: 5px 14px;
   background: var(--ui-color-surface-canvas);
@@ -161,7 +162,9 @@
 .lang-fab {                                       /* topbar.css - language FAB */
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
-  background: hsl(var(--muted) / 0.45);
+  /* The muted surface at 45%, through its role token: the same colour here, and
+     the one name /info re-points, where the raw --muted slot means muted text. */
+  background: color-mix(in srgb, var(--ui-color-surface-muted) 45%, transparent);
   text-shadow: 0 1px hsl(var(--secondary) / .5);
   color: hsl(var(--on-primary));
   transition: background var(--ui-motion-feedback), box-shadow var(--ui-motion-feedback);

@@ -5,7 +5,7 @@ Các câu hỏi thường gặp hiển thị ở phần accordion trên trang đ
 **Cách bảo trì:** mỗi tiêu đề `##` bên dưới là một câu hỏi; mọi thứ nằm dưới nó
 (cho đến `##` kế tiếp) là câu trả lời. Câu trả lời dùng cùng loại markdown nhẹ như
 phần còn lại của site - tách các đoạn bằng một dòng trống. Thêm, xoá hoặc
-sắp xếp lại câu hỏi ở đây rồi chạy lại `npm run build:info` (hoặc `npm run dev:web`).
+sắp xếp lại câu hỏi ở đây rồi chạy lại `pnpm run build:info` (hoặc `pnpm run dev:web`).
 Mọi thứ phía trên `##` đầu tiên (tiêu đề này và các ghi chú này) đều bị bản build bỏ qua.
 
 ## Điều gì xảy ra khi tôi bật tuỳ chọn trên trang /profile?
@@ -121,9 +121,17 @@ Chúng tôi thắng cuộc chiến quản trị bằng sự tiện lợi và d�
 
 Có. Mở **Design** rồi bấm **Import a design**: nó nhận tệp Figma **.fig** gốc (Save local copy), bản xuất **.penpot** của Penpot, tệp Illustrator **.ai** hoặc **.pdf**, tệp InDesign **.idml** (File → Export → InDesign Markup) hoặc **bất kỳ SVG nào** (cánh cửa rộng nhất - gần như mọi ứng dụng thiết kế đều xuất được). Không cần tài khoản, không cần plugin và không cần giấy phép ứng dụng thiết kế.
 
-![Design's open canvas - Import a design sits in the toolbar's Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Canvas mở của Design - Import a design nằm trong menu Lolly của thanh công cụ](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Các lớp hiện ra thành những hộp chỉnh sửa được trên canvas mở: chữ vẫn gõ lại được, hình vẫn là hình, ảnh được thêm vào thư viện ảnh của bạn, còn kiểu chữ và màu sắc tuân theo thiết lập chung của thương hiệu. Lưu lại và bố cục trở thành một template tái sử dụng được, có địa chỉ URL, ai có Lolly cũng điền lại được - và bạn có thể trộn thêm các công cụ sống (một mã QR, một biểu đồ) tự render lại khi tải. Từ đó nó render như mọi thứ khác trong Lolly - SVG, PDF, PNG và phần còn lại, tái tạo được từ URL của nó. Xem [Import a design](/info/design-import.html).
+
+## Tác phẩm tôi làm hôm qua đâu rồi?
+
+Nếu bạn nhấn **Lưu thành** hoặc **Lưu**, nó nằm trong **Dự án**, trên màn hình chính, trong trình duyệt hoặc ứng dụng bạn đã lưu từ đó. Nếu bạn chỉ nhấn **Tải xuống**, tệp nằm ở nơi trình duyệt hoặc hệ thống của bạn lưu các bản tải xuống, và thường có một bản sao trong **Tài sản**. Chín công cụ cũng giữ công việc chưa lưu trong **Dự án**. [Tìm và khôi phục công việc của bạn](/info/find-your-work.html) nói về mọi trường hợp.
+
+## Tôi đã đóng tab. Tác phẩm của tôi mất rồi à?
+
+Công việc đã lưu vẫn còn trong **Dự án**. Công việc chưa lưu sẽ mất, trừ chín công cụ tự lưu trong lúc bạn làm việc, chúng cũng giữ nó trong **Dự án**. Lần sau, hãy nhấn **Lưu thành** trước khi rời đi. Xem [Nếu bạn đã đóng tab hoặc rời khỏi công cụ](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Tôi có thể chia sẻ tác phẩm dưới dạng tệp thay vì liên kết không?
 

@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "Aynı renk, her uzay için yazılmış. “Sınırlandı” olarak işaretlenmiş bir satır, onu tutamayacak kadar dar bir uzayı gösterir - CSS bu sayıları aralığa yuvarlardı.",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "Her palet rengi METİN olarak (satırlarda) her palet rengine ARKA PLAN olarak (sütunlarda) karşı, artı beyaz ve siyah. APCA polariteye bağlıdır, bu yüzden bir hücre ile aynası farklıdır ve köşegen - bir renk kendi üzerinde - ~0 okur. Izgarayı ve marka rayını yeniden renklendirmek ve her eşleşmeyi o görüş için yeniden puanlamak üzere bir görüş modu seç.",
   "Assets": "Varlıklar",
-  "Runs the deeper AI text check on Verify and in Assets.": "Doğrulama'da ve Varlıklar'da daha derin AI metin kontrolünü çalıştırır."
+  "Runs the deeper AI text check on Verify and in Assets.": "Doğrulama'da ve Varlıklar'da daha derin AI metin kontrolünü çalıştırır.",
+  "Copied to clipboard": "Panoya kopyalandı",
+  "Copy did not work": "Kopyalama işe yaramadı",
+  "Select the text, then use your device’s copy command.": "Metni seç, ardından cihazının kopyalama komutunu kullan.",
+  "Select text": "Metni seç",
+  "Text selected. Use your device’s copy command.": "Metin seçildi. Cihazının kopyalama komutunu kullan.",
+  "Copy {label}": "{label} kopyala"
 }

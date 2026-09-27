@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "Той самий колір, записаний для кожного простору. Рядок з позначкою «обрізано» показує простір, надто вузький, щоб вмістити його, — CSS округлив би ці числа до діапазону.",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "Кожен колір палітри як ТЕКСТ (по рядках) на кожному кольорі палітри як ФОН (по стовпцях), плюс білий і чорний. APCA залежить від полярності, тож клітинка та її дзеркало різняться, а діагональ - колір на собі - читається як ~0. Виберіть режим зору, щоб перефарбувати сітку й панель бренду та переоцінити кожну пару для цього зору.",
   "Assets": "Ресурси",
-  "Runs the deeper AI text check on Verify and in Assets.": "Запускає поглиблену перевірку ШІ-тексту на сторінці «Перевірка» та в Ресурсах."
+  "Runs the deeper AI text check on Verify and in Assets.": "Запускає поглиблену перевірку ШІ-тексту на сторінці «Перевірка» та в Ресурсах.",
+  "Copied to clipboard": "Скопійовано в буфер обміну",
+  "Copy did not work": "Не вдалося скопіювати",
+  "Select the text, then use your device’s copy command.": "Виділіть текст, потім скористайтеся командою копіювання свого пристрою.",
+  "Select text": "Виділити текст",
+  "Text selected. Use your device’s copy command.": "Текст виділено. Скористайтеся командою копіювання свого пристрою.",
+  "Copy {label}": "Копіювати {label}"
 }

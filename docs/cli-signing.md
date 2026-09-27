@@ -12,7 +12,7 @@ Every example here that shows output is a command that was run, with its real ou
 
 ## 1. Install and prerequisites
 
-You need **Node 22.18+ or 24+** (the repo runs TypeScript directly via Node's type-stripping; this page was produced on v24.18.1) and a checkout of the repo. From the repo, the CLI runs as an npm script; the `--` passes arguments through:
+You need **Node 22.18 or later** (the repo runs TypeScript directly through Node's type-stripping; this page was produced on v24.18.1), **pnpm** and a checkout of the repo. The CLI runs as a package script, and its arguments follow the script name with no `--` in between:
 
 ```bash
 git clone https://github.com/lolly-tools/lolly
@@ -29,7 +29,7 @@ Every captured output block on this page reports the engine version it was
 produced against; yours will read higher, and that is the only difference you
 should see. `engine/src/version.ts` holds the live number.
 
-Use `pnpm --silent run cli` (not plain `pnpm run cli`) whenever you redirect or pipe: npm prints a two-line banner on stdout that would land inside your PNG. An installed `lolly` binary has no such wrapper.
+Use `pnpm --silent run cli` (not plain `pnpm run cli`) whenever you redirect or pipe: pnpm can print its own lines on stdout, and they would end up inside your PNG. An installed `lolly` binary prints none.
 
 **What works with no browser.** Everything on this page. SVG, PDF, EMF, EPS, DXF and the data formats render browser-free, PNG renders browser-free for SVG-native tools and signing, verification and trust anchors are pure Node.
 
@@ -285,7 +285,7 @@ Error: --no-provenance turns every provenance mark off, but --sign-key/--sign-ce
 
 ## 7. Automation
 
-Exit codes, the `--json` envelope, `batch` and `smoke` are documented once, in [CLI → Scripting & CI](/info/cli.html#scripting--ci). What signing adds:
+Exit codes, the `--json` envelope, `batch` and `smoke` are documented once, in [CLI automation → Scripting & CI](/info/cli-automation.html#scripting-ci). What signing adds:
 
 | Situation | Exit |
 |---|---|

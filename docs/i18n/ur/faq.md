@@ -5,7 +5,7 @@
 **دیکھ بھال کا طریقہ:** نیچے ہر `##` سرخی ایک سوال ہے؛ اس کے نیچے کی ہر چیز
 (اگلی `##` تک) اس کا جواب ہے۔ جوابات میں وہی ہلکی پھلکی مارک ڈاؤن استعمال ہوتی ہے جو
 باقی سائٹ میں ہے - پیراگراف خالی سطر سے الگ کریں۔ یہاں سوالات شامل کریں، ہٹائیں یا
-ان کی ترتیب بدلیں اور `npm run build:info` (یا `npm run dev:web`) دوبارہ چلائیں۔
+ان کی ترتیب بدلیں اور `pnpm run build:info` (یا `pnpm run dev:web`) دوبارہ چلائیں۔
 پہلی `##` سے اوپر کی ہر چیز (یہ عنوان اور یہ نوٹس) بلڈ نظرانداز کر دیتا ہے۔
 
 ## /profile صفحے پر opt-in کرنے سے کیا ہوتا ہے؟
@@ -121,9 +121,17 @@ Lolly ہر چیز کا معیار بلند کر دیتا ہے۔
 
 جی ہاں۔ **Design** کھولیں اور **Import a design** پر کلک کریں: یہ نیٹو Figma **.fig** (Save local copy)، Penpot کی **.penpot** ایکسپورٹ، Illustrator کی **.ai** یا **.pdf**، InDesign کی **.idml** (File → Export → InDesign Markup) یا **کوئی بھی SVG** قبول کرتا ہے (یہی سب سے کھلا دروازہ ہے - تقریباً ہر ڈیزائن ایپ اسے ایکسپورٹ کرتی ہے)۔ نہ اکاؤنٹ چاہیے، نہ پلگ اِن اور نہ کسی ڈیزائن ایپ کا لائسنس۔
 
-![Design's open canvas - Import a design sits in the toolbar's Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Design کا کھلا کینوس - Import a design ٹول بار کے Lolly مینو میں موجود ہے](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 لیئرز کھلے کینوس پر قابلِ تدوین باکسز کی صورت آتی ہیں: متن دوبارہ ٹائپ کیا جا سکتا ہے، شکلیں شکلیں ہی رہتی ہیں، تصاویر آپ کی اپنی امیج لائبریری میں شامل ہو جاتی ہیں، اور ٹائپ و رنگ برانڈ گلوبلز کے مطابق ڈھل جاتے ہیں۔ اسے محفوظ کریں تو لے آؤٹ ایک دوبارہ استعمال ہونے والا، URL سے قابلِ رسائی ٹیمپلیٹ بن جاتا ہے جسے Lolly رکھنے والا کوئی بھی دوبارہ بھر سکتا ہے - اور آپ اس میں زندہ ٹولز (QR کوڈ، چارٹ) بھی شامل کر سکتے ہیں جو لوڈ ہوتے وقت دوبارہ رینڈر ہوتے ہیں۔ اس کے بعد یہ Lolly کی ہر دوسری چیز کی طرح رینڈر ہوتا ہے - SVG، PDF، PNG اور باقی سب - اور اپنے URL سے ہوبہو دوبارہ بنایا جا سکتا ہے۔ دیکھیں [Import a design](/info/design-import.html)۔
+
+## کل میں نے جو چیز بنائی تھی وہ کہاں ہے؟
+
+اگر آپ نے **محفوظ کریں بطور** یا **محفوظ کریں** دبایا تھا، تو وہ **پراجیکٹس** میں ہے، ہوم اسکرین پر، اُسی براؤزر یا ایپ میں جس سے آپ نے محفوظ کیا تھا۔ اگر آپ نے صرف **ڈاؤن لوڈ** دبایا تھا، تو فائل وہیں ہے جہاں آپ کا براؤزر یا سسٹم ڈاؤن لوڈز محفوظ کرتا ہے، اور عام طور پر ایک کاپی **اثاثوں** میں ہوتی ہے۔ نو ٹولز غیر محفوظ کام بھی **پراجیکٹس** میں رکھتے ہیں۔ [اپنا کام تلاش اور بازیافت کریں](/info/find-your-work.html) ہر صورتحال کا احاطہ کرتا ہے۔
+
+## میں نے ٹیب بند کر دیا۔ کیا میرا کام ختم ہو گیا؟
+
+محفوظ شدہ کام اب بھی **پراجیکٹس** میں موجود ہے۔ غیر محفوظ کام ختم ہو جاتا ہے، سوائے اُن نو ٹولز کے جو کام کے دوران خود بخود محفوظ کرتے ہیں، جو اسے بھی **پراجیکٹس** میں رکھتے ہیں۔ اگلی بار، جانے سے پہلے **محفوظ کریں بطور** دبائیں۔ دیکھیں [اگر آپ نے ٹیب بند کیا یا ٹول چھوڑ دیا](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool)۔
 
 ## کیا میں اپنا کام لنک کے بجائے فائل کے طور پر شیئر کر سکتا ہوں؟
 
@@ -145,7 +153,7 @@ Lolly ہر چیز کا معیار بلند کر دیتا ہے۔
 
 ## SUSE کتنا حصہ نجی رکھ رہا ہے؟ (یعنی پاؤں تلے سے زمین کب کھینچی جائے گی)
 
-انجن، شیلز، اسکیماز اور برانڈ سے آزاد ٹولز اوپن سورس ہیں؛ SUSE کے ٹریڈ مارکس اور برانڈ والے ٹولز ہی وہ حصہ ہیں جو نجی رہتا ہے، اور وہ پہلے ہی الگ کیے جا چکے ہیں۔ عوامی انسٹنس، جو [lolly.tools](https://lolly.tools) پر ہے، خالی برانڈ پر چلتا ہے۔
+انجن، شیلز، اسکیمے اور برانڈ سے غیر متعلق ٹولز اوپن سورس ہیں؛ SUSE کے ٹریڈ مارکس اور اس کے برانڈڈ ٹولز وہ حصہ ہیں جو نجی رہتا ہے، اور یہ پہلے ہی الگ کیے جا چکے ہیں۔ [lolly.tools](https://lolly.tools) پر عوامی انسٹینس خالی برانڈ پر چلتا ہے۔
 
 یہ حد وعدے پر نہیں، ساخت پر قائم ہے۔ ہر جاری شدہ ورژن اوپن سورس ہے اور اسے غیر جاری نہیں کیا جا سکتا، کوئی کنٹریبیوٹر معاہدہ نہیں جو کسی کے کام کا لائسنس بدل سکے، اور صرف ٹریڈ مارک ہی روکا گیا ہے۔ جب 2023 میں ایک اور کمپنی نے اپنے انٹرپرائز Linux سورسز بند کر دیے، تو SUSE نے اُس کوڈ کو کھلا رکھنے کے لیے [OpenELA](https://openela.org) کی مشترکہ بنیاد رکھی - یہی رویہ اس منصوبے کو ورثے میں ملا ہے۔
 

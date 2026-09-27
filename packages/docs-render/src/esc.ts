@@ -9,3 +9,11 @@
 export function esc(s: string): string {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
+
+// The attribute escaper, for NEW attribute values only (a component's id, label or
+// data-* field). A double quote inside an attribute ends it, so an attribute needs
+// all five characters. Existing call sites keep esc() above, which leaves their
+// bytes, and every page seal, exactly as they are.
+export function escAttr(s: string): string {
+  return esc(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}

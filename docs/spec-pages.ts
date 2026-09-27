@@ -113,9 +113,10 @@ export interface SpecWrapPage {
    * reader inside a twelve-chapter document needs the chapters beside them, not
    * the forty links of the pathway they arrived through, and the specification is
    * not a page of that pathway. `aside` is the rail; `mobile` is the same list
-   * inside the menu, for the widths where the rail is hidden.
+   * inside the phone menu, for the widths where the rail is hidden, under the
+   * heading `mobileTitle`.
    */
-  rail: { aside: string; mobile: string };
+  rail: { aside: string; mobile: string; mobileTitle: string };
 }
 
 export interface SpecPagesOpts {
@@ -268,14 +269,16 @@ export function specRailHtml(rendered: RenderedChapter[], currentSlug: string): 
 }
 
 /**
- * The same chapter list inside the mobile menu, where the rail itself is hidden.
- * Headings are left out: the menu is reached from the top of the page, and a
- * hundred and thirty entries there would bury the twelve a reader came for.
+ * The same chapter list inside the phone menu, where the rail itself is hidden:
+ * the body of the menu's section disclosure (docs/build.ts buildNav), which is
+ * headed SPEC_HOME_LABEL. Headings are left out: the menu is reached from the top
+ * of the page, and a hundred and thirty entries there would bury the twelve a
+ * reader came for.
  */
 export function specMobileNavHtml(chapters: SpecChapter[], currentSlug: string): string {
   const links = chapters.map((c) =>
     `<a href="${chapterHref(c.slug)}"${c.slug === currentSlug ? ' class="active"' : ''}>${escapeHtml(c.title)}</a>`).join('');
-  return `<div class="nav-mobile-page"><div class="nav-mobile-title">${SPEC_HOME_LABEL}</div>${links}</div>`;
+  return `<div class="docs-compact-list">${links}</div>`;
 }
 
 /**
@@ -348,6 +351,7 @@ export function buildSpecPages(o: SpecPagesOpts): Record<string, string> {
       rail: {
         aside: specRailHtml(rendered, chapter.slug),
         mobile: specMobileNavHtml(chapters, chapter.slug),
+        mobileTitle: SPEC_HOME_LABEL,
       },
     };
     files[`${SPEC_BASE}/${chapter.slug}.html`] = fixChapterUrls(o.wrap(page, content), chapter.slug);

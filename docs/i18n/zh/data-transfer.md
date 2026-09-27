@@ -4,13 +4,13 @@ Lolly 用户积累的一切都保存**在自己的设备上** - 没有账号,没
 
 ![移动整个安装内容的两个按钮:导出我的数据写出一个 zip,导入数据将其读回](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-本页是格式规范。终端用户的操作说明参见 [使用 Lolly → 迁移到另一台设备](/info/using.html)。实现代码见 [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts),[`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) 固定了往返转换的约定。
+本页是格式规范。终端用户的操作演示见[找回你的作品 → 把你的作品移动到另一台设备](/info/find-your-work.html#move-your-work-to-another-device)。实现代码在 [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts)，[`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) 固定了往返契约。
 
-> **范围。** 迁移包携带的是*用户数据*,而非工具。工具和目录资源是单独同步的,并假定目标设备上已经存在(最坏情况下版本更高)。导入操作绝不会安装或升级工具。
+> **范围。** 一个迁移包携带的是*用户数据*，而不是目录工具。目录工具和目录资源是分开同步的，并假定目标设备上已经存在（最坏情况下版本更旧一些）；用户自己制作的工具则会随 `profile.json` 一起传输。导入操作绝不会安装或升级目录工具。
 
 ## 目标
 
-- <!--i:box--> **一种格式,适配所有 shell。** Web PWA、Tauri 桌面/移动应用以及未来的任何 shell 生成和读取的都是相同的字节。迁移包就是约定本身,每个 shell 的能力桥接层是其背后各平台的适配器。
+- <!--i:box--> **一种格式，所有 shell 通用。** Web PWA、Tauri 桌面/移动应用以及未来的 shell 共享同一套封装格式与受支持的分片模式（schema）。可选分片取决于各 shell 的能力；不受支持的分片会被报告。每个能力桥接层提供自己的存储适配器。
 - <!--i:shieldcheck--> **经得起传输。** 传输过程中被损坏或截断的迁移包会在导入时明确报错,绝不会部分恢复。
 - <!--i:clock--> **比当前版本更长久。** 较旧的应用仍能导入较新迁移包中可识别的部分。真正不兼容的格式会被干净地拒绝。
 - <!--i:check--> **可安全合并。** 导入到一个已在使用中的安装实例时,绝不会清除迁移包中没有的任何内容。
@@ -22,12 +22,18 @@ Lolly 用户积累的一切都保存**在自己的设备上** - 没有账号,没
 | 路径 | 是否必需 | 内容 |
 |---|---|---|
 | `manifest.json` | 是 | 格式 id、版本、数量以及各部分的完整性校验。读取者最先查看的内容。 |
-| `profile.json` | 设置时 | 用户的 `me` 记录(姓名、联系方式、头像引用、标志位)。通过 `host.profile` 读取。 |
-| `sessions.json` | 是 | 每个已保存的会话:插槽、工具 id/版本、标签、缩略图(data-URL)和完整的输入数据。通过 `host.state` 读取。 |
-| `assets.json` | 是 | 每个已上传资源(图片、字体、品牌令牌)的元数据,各自指向 `assets/blobs/` 下的字节内容。 |
-| `assets/blobs/<n>.<ext>` | 按资源计 | 原始资源字节(图片和字体文件)。未压缩存储(已经是压缩格式)。扩展名仅作外观标识,以 `assets.json` 中的 MIME 为准。 |
-| `prefs.json` | 是 | 用户自有的本地偏好设置:`theme`、`sidebarWidth` 以及 `ct-metrics` 活动统计。 |
-| `lolly.txt` | 是 | 迁移包的人类可读摘要(数量、个人资料、文件名),供未使用 Lolly 打开压缩包的人查看。每次导出都会重新生成,导入时可被识别,因此从不计入被跳过的部分。它是在完整性映射*之后*写入的,因此不在该映射范围内。 |
+| `profile.json` | 设置时 | 用户完整的 `me` 记录：姓名、联系方式、头像引用和标志位，加上文件夹、回收站、项目蓝图、用户模板和用户自制工具、收藏、隐藏的工具、语言和表情符号选择。通过 `host.profile` 读取。 |
+| `sessions.json` | 是 | 每个已保存的会话：插槽、工具 id/版本、标签、缩略图（data-URL）和完整的输入数据。通过 `host.state` 读取。 |
+| `assets.json` | 是 | 每个已上传资源（图片、字体、品牌令牌、徽标、下载内容的保存副本）的元数据，各自指向 `assets/blobs/` 下的字节内容。 |
+| `assets/blobs/<n>.<ext>` | 按资源计 | 原始资源字节（图片和字体文件）。未压缩存储（已经是压缩格式）。扩展名仅作外观标识，以 `assets.json` 中的 MIME 为准。 |
+| `assets/blobs/<n>.c2pa` | 存在时 | 以精确的二进制字节提取出的 Content Credentials，由资源记录中的 `_credentialFile` 引用。这些不是设备签名密钥。 |
+| `design-systems.json` | 存在时 | 本次安装制作或添加的设计系统，以 `{ active, records }` 形式存储。导入时按 id 合并；仅当目标设备没有自己的设计系统时，才会采用迁移包的当前选择。 |
+| `file-history.json` | 可选 | 带版本的资源快照、终态文件操作报告和完整的批处理清单。该历史部分有自己的版本号；由 shell 内部的 `fileHistory` 备份适配器提供。 |
+| `revision-history.json` | 可选，手动备份 | 稳定的创作 ID、保留的检查点、缩略图和滚动的恢复草稿。在支持的地方由 `host.state.history.backup` 提供。 |
+| `file-history/versions/` | 按快照计 | 之前的资源字节和提取出的凭据，与当前资源是否仍然存在无关。 |
+| `file-history/results/` | 按已完成的操作计 | 精确的输出字节。不会保留或包含被选中用于转换的原始文件。 |
+| `prefs.json` | 是 | 用户自有的本地偏好设置：`theme`、`sidebarWidth` 以及 `ct-metrics` 活动统计。 |
+| `lolly.txt` | 是 | 迁移包的人类可读摘要（数量、个人资料、文件名），供未使用 Lolly 打开压缩包的人查看。每次导出都会重新生成，导入时可被识别，因此从不计入被跳过的部分。它是在完整性映射*之后*写入的，因此不在该映射范围内。 |
 
 迁移包特意采用普通的压缩包格式:它能完好经受任何传输方式,任何解压工具都能查看它。
 
@@ -40,16 +46,19 @@ Lolly 用户积累的一切都保存**在自己的设备上** - 没有账号,没
 ```json
 {
   "format": "lolly-backup",
-  "formatVersion": 1,
+  "formatVersion": 3,
   "minReader": 1,
   "app": "lolly",
   "exportedAt": "2026-06-22T09:30:00.000Z",
-  "counts": { "profile": true, "sessions": 2, "userAssets": 4, "prefs": 3 },
+  "counts": { "profile": true, "sessions": 2, "userAssets": 4, "prefs": 3, "assetVersions": 1, "fileOperations": 1 },
   "integrity": {
     "profile.json": "sha256-…",
     "sessions.json": "sha256-…",
     "assets.json": "sha256-…",
-    "assets/blobs/0.webp": "sha256-…",
+    "assets/blobs/0.bin": "sha256-…",
+    "file-history.json": "sha256-…",
+    "file-history/versions/0.bin": "sha256-…",
+    "file-history/results/0.bin": "sha256-…",
     "prefs.json": "sha256-…"
   }
 }
@@ -90,38 +99,74 @@ Lolly 用户积累的一切都保存**在自己的设备上** - 没有账号,没
 
 - 目标设备上已有的数据保持原样。
 - 任何发生冲突的键 - 个人资料、某个会话插槽、已上传图片的 id - 都会被导入的副本替换。
+- 个人资料是单一记录，因此会被整体替换：目标设备的文件夹、回收站、模板、收藏和隐藏的工具都会变成迁移包里的那一份。目标设备原有而迁移包没有的会话会被保留，未归档地放在项目的顶层。
+- 历史资源版本和操作 ID 是不可变的例外：重复导入是幂等的，而一个已经指代不同字节/历史记录的 ID 会被拒绝，而不是被覆盖。重新导入相同的当前资源会保留其版本。变更过的当前资源必须携带不同的版本号。
+- 创作历史同样是一个例外：一个冲突的当前文档或修订版本身份，会在触及个人资料、资源或偏好设置之前就中止其还原。完全相同的重复导入不会增加任何存储占用。要检查并复制其中的创作内容，请在另一台独立的安装上还原有冲突的存档。
 - 迁移包中没有的内容不会被触碰。目标设备原有但迁移包中没有的会话在导入后依然存在。
 
 已保存的会话会自动重新关联其图片:资源引用以 id 保留,桥接层会在已上传图片恢复后重新解析它们(无论如何都必须如此,因为 `blob:` URL 无法在重新加载后存活)。
 
 导入摘要会报告 `{ profile, sessions, userAssets, prefs, skipped, failedAssets }`。`failedAssets` 统计无法恢复的已上传资源数量(例如设备存储已满)。它与 `skipped` 不同,后者统计的是当前版本无法识别的、来自向前兼容的更新写入者的部分。界面会展示 `skipped`(“… · N 项较新内容已跳过”),因此恢复过程会如实说明遗漏了什么。
 
+当文件历史存在时，摘要还会携带 `assetVersions`、`fileOperations` 和 `failedHistory`。存储空间耗尽或不可变 ID 冲突可能导致部分恢复；界面会提示用户保留原始备份。云同步在一次部分或不受支持的恢复之后**不会**推进其已应用的修订版本，因此该快照仍可用于重试。恢复并不是跨越个人资料/会话/资源/历史存储的单一事务。
+
+## 创作历史（v3）
+
+来自支持历史记录的网页宿主的手动备份，会包含带有自己的 `{ version: 1, documents, revisions, recoveries }` 模式的 `revision-history.json`。它携带保留下来的 ID、规范化的输入快照、版本戳、光栅预览和独立的写入者草稿。历史适配器会在一次读取事务中捕获当前会话及其头部；`sessions.json` 会为较旧的读取者使用这些相同的当前快照。
+
+恢复过程会先检查载荷的 SHA-256 与字节数、唯一身份、文档/头部关系、谱系、时间戳、预览类型和各项限制，然后再以一次事务提交该存档。被压缩过的父级引用可能会缺失。已存在的当前作品必须与导入的文档相匹配；发生冲突时会被拒绝，而不是被静默替换。存档 384 MiB 的传输上限会被明确检查，存储限制的强制执行也不会截断已保留的检查点。整体备份目前仍使用内存中的 ZIP 实现，而不是流式存档。
+
+摘要新增了 `revisions` 和 `recoveryDrafts`。不具备此能力的 shell 会恢复普通会话，并将历史部分报告为已跳过。原生文件系统历史目前仍不受支持，直到其适配器提供持久的历史事务为止。P2P 访客状态没有持久的历史记录或恢复存档。
+
+个人快照同步明确不包含创作历史。将一个快照应用到带有历史记录的本地文档上，会把它之前的工作状态保留为一份独立的恢复草稿，并使任何打开的编辑器的写入令牌失效。其不可变的检查点仍保留在设备上。这可以在快照替换期间保护本地历史，但不会合并多台设备并发产生的历史记录。
+
+历史性的资源引用会被保留，但渲染时仍会通过目标设备现有的资源库来解析资源。此存档目前还不保证旧的资源字节或旧工具渲染结果完全一致。资源版本和文件结果的字节仍会通过它们各自现有的独立备份部分传输。
+
+## 已保存的版本和文件结果（v2）
+
+这个可选的历史部分包含 `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }`；读取者也接受不含 batches 的早期 history-v1 形态。每个快照都标识出稳定的资源 ID 与确切版本、保存时间、字节长度和十六进制 SHA-256，外加一条资源记录，其 `_file` 和可选的 `_credentialFile` 指向二进制部分。操作会携带原始文件事实、请求、报告、时间戳和可选的结果 `_file`；存储后端名称、OPFS 句柄和执行租约不会随之传输。只支持 history-v1 的较旧读取者，会在导入前拒绝新的历史版本，而不是悄悄丢弃批处理成员关系。
+
+批处理清单会在处理之前记录每一个被选中的源文件，包括从未被读取的文件、被取消的成员、预留结果空间失败的情况以及被中断的工作。每个成员都有一个稳定的操作 ID、源引用/事实、请求的输出名称和终态报告。一个未被读取的源文件会有声明的事实，而不是凭空捏造的摘要。导入会校验成员身份，并与随附的任何操作报告核对一致性。即便单个结果已被明确删除，批处理报告仍然可用，但一份回执并不代表其输出字节仍然存储着。
+
+- 在任何个人资料或资源导入写入之前，每一条已知的历史记录、报告和被引用的文件都会先被校验。即便封装没有完整性映射，缺失的字节和不匹配的 SHA-256 也会导致失败。提取出的凭据始终保持为字节数组，即便是来自将其 JSON 序列化为数字键对象的旧版写入者的导入也是如此。
+- 正在运行的操作在备份中会变成中断记录，带有说明性的失败报告，且没有结果。恢复过程从不会重新启动后台工作，也不会导入一个活跃的执行租约。重试需要重新选择原始文件，并在可用时对照其记录的 SHA-256 进行校验。
+- 已恢复的结果会把字节和元数据一起提交到 IndexedDB 中。普通的新结果会在可用时使用 OPFS，并以 IndexedDB 作为后备。一个现存的活跃操作绝不会被导入替换。
+- 历史记录的 ZIP 打包目前仍在内存中完成：当前限制为**256 MiB 的历史载荷**、**4 MiB 的历史元数据**，最多**100 个操作**、**100 个批次**和**2,000 个快照**。导出会明确拒绝过大或不完整的历史记录；它绝不会悄悄省略它。请在删除较旧的本地副本之前，单独下载重要的版本/结果。这些限制并不是针对手机峰值内存的实测保证。
+- 本地结果历史有 512 MiB 的预算和 100 条记录的上限。资源快照另有一份独立的 512 MiB 预算，每个资源最多 20 个历史版本；提取出的凭据字节会计入该快照预算。恢复过程会遵守这些限制，绝不会悄悄清除已有的用户数据。
+- 本地批处理元数据另有一份独立的 4 MiB 预算，最多 100 份清单，每批最多 20 个成员。待处理的成员会预留元数据容量，单个成员的报告上限为 32 KiB。这是一个逻辑上的预算，而不是浏览器磁盘空间的保证；真正的配额失败会被明确呈现出来，且内存中的报告仍可下载。重试一个批处理成员会创建一个新批次，而不会覆盖旧报告。删除一条批处理记录不会删除单个结果的字节或资源库中的资源。
+- 转换后的结果可以被明确添加到资源库中，不做规范化或重新编码。源/输出哈希以及操作关系会随该资源一起保存。重复添加会复用未变更的副本；已编辑的副本绝不会被覆盖。位图图片可以用来开启一份新的 Design 文档。该文档使用的是资源库当前的资源 ID：要在整个 Design 运行时和 URL 路径中强制锁定精确版本，仍是另外的工作。SVG/HTML/PDF/ZIP 结果通过这个交接过程被当作不透明的文件资源保留，而不会被提升为可信的交互式/矢量内容。
+- **Convert → Recent file operations** 会展示历史记录的使用情况、报告、下载记录和版本管理器。该管理器还能找到已删除的资源库资源的更早版本。恢复一个快照会创建一个新的当前版本，同时保持所选快照原封不动。**设置 → 存储空间**会把结果和版本与可随意丢弃的缓存分开计算。
+- 明确的临时文件清理只会移除由操作拥有、且未被引用的字节。当前记录会保护自己的文件；最近的 OPFS 文件有一小时的宽限期。已保存的结果和资源快照不会被自动清除。
+
+较旧的读取者仍然接受 v2 封装（`minReader: 1`）并恢复它们熟悉的部分，把不受支持的历史部分计为已跳过。完整的历史恢复需要一个带有 `fileHistory` 适配器的 shell；这是 shell 内部的一条接缝，而不是面向工具的新增 `HostV1` 能力。真实的双设备恢复由本地 Chromium 关卡覆盖；已安装的 Tauri/iOS/Android 恢复验收仍是另外的工作。
+
 ## 不会随迁移包传输的内容
 
 - **目录缓存**(已下载的资源元数据和二进制数据、工具索引) - 会在目标设备上免费重新同步。
-- **工具和品牌资源** - 超出范围,假定目标设备上已经存在。
+- **目录工具和目录资源** - 超出范围，假定目标设备上已经存在。用户添加的品牌令牌、字体和徽标属于用户资源，因此它们会随迁移包传输。
 - **`blob:` / 对象 URL** - 由桥接层在加载时重新生成。
+- **转换原始文件、活跃的执行租约和设备本地的访问/签名密钥** - 不属于可迁移的历史载荷。已保存的结果是一份副本，并不代表原始源文件已被备份。
 - **导出序号计数器** - 按天计算的下载命名计数器(`localStorage` 键 `lolly-export-seq`)只是本地命名的便利机制。它被排除在 `PREF_KEYS` 之外,因此从不会包含在迁移包中。
 
-存储用量表列出的正是同样的划分。已保存的会话和“我的图片”会包含在迁移包中。它们下方的资源缓存、工具预览和离线固定项都是可重新生成的,因此不会包含在内。
+存储用量表列出的正是同样的划分。已保存的会话、“我的图片”和文件结果与版本都会包含在迁移包中。它们下方的资源缓存、工具预览和离线固定项都是可重新生成的，因此不会包含在内。
 
 ![存储用量表将本设备的数据划分为若干命名类别,已保存的会话和我的图片与资源缓存分开统计,此处为全新安装、每个类别仍为空的状态](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
 
 ## 跨 shell 保证
 
-`data-transfer.ts` 只通过能力桥接层(`host.profile`、`host.state`、`host.assets`)以及共享的 `localStorage` 偏好设置进行读写。由于桥接层是唯一的接口,即使底层存储不同(web 上是 IndexedDB,Tauri 上是文件系统),*同一个*模块在每个 shell 上都会产生字节级一致的包。Tauri shell 复用这个模块,不做任何改动,只有它们的 `host.state` 实现不同。无头测试针对内存桥接层执行了完整的往返流程,这也是它能代表所有场景的原因。
+`data-transfer.ts` 只通过能力桥接层（`host.profile`、`host.state`、`host.assets`）以及共享的 `localStorage` 偏好设置进行读写。同一个模块在 web 和 Tauri 上读写同一种通用封装，底层分别是 IndexedDB 或文件系统存储。可选的历史部分只会在对应的适配器可用时才会出现；不受支持的部分会在导入时被报告为已跳过。无头测试套件针对内存桥接层验证了通用部分，而历史事务还另有真实浏览器测试。
 
 有两个 shell 出于不同原因不在这个保证范围内:
 
 - **一次性 CLI** 没有需要携带的东西 - 它的状态是内存中的,每次调用后即消失。
-- **TUI** 确实会持久化状态(`~/.lolly`:会话、文件夹、个人资料),它的 Profile 视图可以备份这些状态,但写出的是它*自己更简单*的归档:每个会话一个 `sessions/<slot>.json`,加上 `profile.json` 和 `folders.json`,没有清单、没有 `formatVersion`/`minReader`,也没有完整性映射。这种格式**不能**被本格式导入 - 读取器会将其识别为“不是 Lolly 备份”并拒绝 - 而且令人困惑的是它使用了相似的名称(`lolly-backup-<stamp>.zip`)。统一这两者是一个已知的缺口。
+- **TUI** 确实会持久化状态(`~/.lolly`:会话、文件夹、个人资料),它的 Profile 视图可以备份这些状态,但写出的是它*自己更简单*的归档:每个会话一个 `saved-state/<slot>.json`,加上 `profile.json` 和 `folders.json`,没有清单、没有 `formatVersion`/`minReader`,也没有完整性映射。这种格式**不能**被本格式导入 - 读取器会将其识别为“不是 Lolly 备份”并拒绝 - 而且令人困惑的是它使用了相似的名称(`lolly-backup-<stamp>.zip`)。统一这两者是一个已知的缺口。
 
 ## 预留扩展点
 
-这个信封结构在设计上就是一份清单加上一组具名部分,这样新类型的可移植数据以后就能**在不引入破坏性变更的情况下**搭载进来。它们会以附加部分的形式插入(新的 `formatVersion`,相同的 `minReader`),而当前版本的读取器会跳过它不认识的内容。这些内容在[路线图](/info/overview.html#roadmap)上,尚未实现。这里先预留这些名称,以便这些功能落地时格式仍保持一致。
+这个信封结构在设计上就是一份清单加上一组具名部分，这样新类型的可移植数据以后就能**在不引入破坏性变更的情况下**搭载进来。它们会以附加部分的形式插入（新的 `formatVersion`，相同的 `minReader`），而当前版本的读取器会跳过它不认识的内容。这些内容目前还没有构建。这里先预留这些名称，以便这些功能落地时格式仍保持一致。
 
-- **`tokens.json` - 设计令牌(design tokens)。** 一份 [W3C DTCG](https://tr.designtokens.org/format/) 设计令牌文档(即 [Penpot 导入和导出](https://help.penpot.app/user-guide/design-systems/design-tokens/)所用的格式 - 带有 `$value`/`$type`/`$description` 的令牌,按组、集合和主题组织)。归档中的一个令牌集合让用户可以把自己的品牌基元连同会话一起在不同安装之间迁移。从长远看,被摄入的令牌集合会成为工具和调色板资源据以解析的一等来源。
-- **`penpot/` - 已摄入的 Penpot 文件。** 为一个 Penpot 文件(或其提取出来的、与 Lolly 相关的子集)预留的目录,该文件被导入并*作为工具*呈现。归档会携带这份摄入后的定义,让它随用户的其余数据一起迁移。
+- **`tokens.json` - 设计令牌(design tokens)。** 一份 [W3C DTCG](https://tr.designtokens.org/format/) 设计令牌文档(即 [Penpot 导入和导出](https://help.penpot.app/user-guide/design-systems/design-tokens/)所用的格式 - 带有 `$value`/`$type`/`$description` 的令牌,按组、集合和主题组织)。归档中的一个令牌集合让用户可以把自己的品牌基元连同会话一起在不同安装之间迁移。(用户自己的品牌令牌今天已经作为 `assets.json` 中的 `user/tokens/brand` 资源随迁移包传输;这个部分则会携带一整份带有其集合和主题的 DTCG 文档。)从长远看,被摄入的令牌集合会成为工具和调色板资源据以解析的一等来源。
+- **`penpot/` - 已摄入的 Penpot 文件。** 为一个 Penpot 文件(或从中提取出的、与 Lolly 相关的子集)预留的目录,该文件会被导入并*作为一个工具*呈现出来。迁移包会携带这份已摄入的定义,因此它会随用户的其余数据一起传输。
 
 除了这些预留名称和上面列出的部分之外的任何内容,对读取器来说都是未知部分:保持原样不动,并计入 `skipped`。
 
@@ -129,4 +174,5 @@ Lolly 用户积累的一切都保存**在自己的设备上** - 没有账号,没
 
 - 模块:[`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts)(`exportBackup`、`importBackup`、`BACKUP_FORMAT`、`BACKUP_FORMAT_VERSION`、`BACKUP_READER_VERSION` - `backupFilename()` 命名函数是内部使用的)。
 - 契约测试:[`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) - 涵盖往返、合并、完整性、向前兼容和读取器门控的用例。
+- 历史记录契约测试:[`tests/file-history-backup.test.ts`](../tests/file-history-backup.test.ts)、[`tests/file-batch-history.test.ts`](../tests/file-batch-history.test.ts) 和 [`tests/file-result-library.test.ts`](../tests/file-result-library.test.ts)。浏览器验收测试:[`tests/file-history.browser.test.ts`](../tests/file-history.browser.test.ts)、[`tests/file-batch-history.browser.test.ts`](../tests/file-batch-history.browser.test.ts) 和 [`tests/file-result-reuse.browser.test.ts`](../tests/file-result-reuse.browser.test.ts)。
 - 使用的桥接面:`host.profile`、`host.state`、`host.assets` - 参见 [Host API](/info/host-api.html)。

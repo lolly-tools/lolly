@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "একই রঙ, প্রতিটি স্পেসের জন্য লেখা। “ক্ল্যাম্পড” চিহ্নিত সারি এমন স্পেস দেখায় যা রঙটি ধরার পক্ষে খুব সরু — CSS ওই সংখ্যাগুলোকে সীমার মধ্যে এনে ফেলত।",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "প্রতিটি প্যালেট রং TEXT (সারি বরাবর) হিসেবে প্রতিটি প্যালেট রং BACKGROUND (কলাম বরাবর) হিসেবে, সাথে সাদা ও কালো। APCA পোলারিটি-নির্ভর, তাই একটি সেল ও তার প্রতিবিম্ব ভিন্ন হয় এবং কর্ণ - নিজের ওপর একটি রং - প্রায় ০ দেখায়। গ্রিড ও ব্র্যান্ড রেইল পুনরায় রং করতে এবং সেই দৃষ্টির জন্য প্রতিটি জোড়া পুনরায় স্কোর করতে একটি ভিশন মোড বেছে নিন।",
   "Assets": "অ্যাসেট",
-  "Runs the deeper AI text check on Verify and in Assets.": "ভেরিফাই আর অ্যাসেট-এ গভীর AI-টেক্সট চেক চালায়।"
+  "Runs the deeper AI text check on Verify and in Assets.": "ভেরিফাই আর অ্যাসেট-এ গভীর AI-টেক্সট চেক চালায়।",
+  "Copied to clipboard": "ক্লিপবোর্ডে কপি হয়েছে",
+  "Copy did not work": "কপি করা যায়নি",
+  "Select the text, then use your device’s copy command.": "টেক্সট নির্বাচন করুন, তারপর আপনার ডিভাইসের কপি কমান্ড ব্যবহার করুন।",
+  "Select text": "টেক্সট নির্বাচন করুন",
+  "Text selected. Use your device’s copy command.": "টেক্সট নির্বাচন করা হয়েছে। আপনার ডিভাইসের কপি কমান্ড ব্যবহার করুন।",
+  "Copy {label}": "{label} কপি করুন"
 }

@@ -34,9 +34,15 @@ Texto que se mueve, escenas en una línea de tiempo y movimiento que se mantiene
 
 Graba una toma limpia con una cuenta atrás, un medidor de nivel e indicaciones suaves, o convierte una nota de voz en un vídeo terminado que se mueve con el sonido. Todavía no hay una página de Grabar aparte: Usar Lolly lo recoge, en la sección de la línea de tiempo.
 
-- **[Usar Lolly](/info/using.html#timeline-sequence-studio)** - grabar una voz en off directamente en la línea de tiempo, donde se guarda la toma y cómo llega a la mezcla.
-- **[Haz algo en 60 segundos](/info/make-something.html#make)** - la escena de audiograma, para cuando prefieres que te oigan a que te vean.
+- **[Usar Lolly](/info/using.html#timeline-sequence)** - grabar una voz en off directamente en la línea de tiempo, donde se guarda la toma y cómo llega a la mezcla.
+- **[Haz tu primer archivo](/info/make-something.html#other-first-projects)** - el audiograma, para cuando prefieres que te oigan a que te vean.
 - **[Vistas de utilidades](/info/utilities.html)** - Script audio, cuando las palabras van primero y la voz llega después.
+
+## Presentar
+
+Superpón tu cámara, tu logotipo y tu nombre sobre una presentación de Design o una Cuenta atrás, con controles privados en una ventana aparte.
+
+- **[Presentar con cámara](/info/presenting.html)** - encuadre, escenas guardadas, compartir con el público, grabación local y las limitaciones actuales de la prueba.
 
 ## Colaborar
 

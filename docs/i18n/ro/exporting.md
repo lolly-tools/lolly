@@ -1,19 +1,33 @@
 # Export și formate
 
-Cum să obții un fișier finalizat dintr-un tool - alegerea formatului potrivit, setarea dimensiunii de ieșire și ce face fiecare opțiune. Ca orice altceva, **exportul se face pe dispozitivul tău**; nimic nu e încărcat pe server.
+Apasă **Exportă** pe pastila **Exportă | Salvează ca** a unui instrument, alege un format din meniul de lângă numele fișierului, apoi apasă **Descarcă**. Fișierul este creat pe dispozitivul tău; nimic nu este încărcat.
+
+Pentru majoritatea sarcinilor, unul din trei formate este potrivit:
+
+| Pentru | Alege | Pentru că |
+|---|---|---|
+| Un ecran, un mesaj sau un slide | **PNG** | Orice aplicație îl deschide, și păstrează un fundal transparent atunci când instrumentul oferă unul |
+| O pagină finalizată, sau orice se tipărește | **PDF** | O dimensiune reală de pagină care se tipărește așa cum arată; **Print PDF**, unde un instrument îl oferă, este versiunea CMYK pentru o tipografie |
+| Grafică ce trebuie să rămână clară la orice dimensiune | **SVG** | Forme vectoriale, clare de la un ecuson la un banner |
+
+::: check Verifică fișierul la dimensiunea la care va fi folosit
+Înainte să-l trimiți, deschide-l pe ecranul pentru care a fost făcut, sau tipărește-l la dimensiunea lui reală.
+:::
+
+Restul acestei pagini acoperă fiecare format, dimensiune și opțiune.
 
 ## Cum funcționează exportul
 
-Previzualizarea *este* fișierul. Când exporți, host-ul randează acel canvas în formatul ales și îți dă un download (sau îl pune pe clipboard). Un tool oferă doar formatele pe care autorul lui le-a declarat, iar selectorul ascunde orice format pe care browserul tău nu-l poate produce (vezi [Video](#video)).
+Previzualizarea *este* fișierul. Când exporți, host-ul randează acel canvas în formatul ales și îți dă un download (sau îl pune pe clipboard). Selectorul ascunde orice format pe care browserul tău nu-l poate produce (vezi [Video](#video)).
 
 Trei căi produc un fișier. Majoritatea tool-urilor **randează canvasul** în formatul ales. Formatele de text și date (HTML, MD, TXT, JSON, CSV, ICS, VCF) sunt în schimb **generate din conținutul tool-ului**, nu rasterizate din imagine. Iar utilitarele de confidențialitate (de ex. *Strip Hidden Data*) folosesc o a treia cale: fișierul pe care *tu* îl alegi este transformat byte cu byte pe dispozitiv și înapoiat direct - fără canvas, fără watermark și fără metadate de proveniență adăugate, pentru că e deja fișierul tău.
 
-Acțiunile din controalele de export:
+Acțiunile din panoul de export:
 
-- <!--i:download--> **Download** - salvează fișierul (acțiunea principală).
-- <!--i:photos--> **Copy** - pune imaginea pe clipboard pentru a o lipi direct în Slack, email, un document. Unde un browser nu poate copia imagini, descarcă în schimb și te anunță.
-- <!--i:folder--> **Save** - păstrează designul curent ca sesiune de tool salvată în biblioteca ta.
-- <!--i:link--> **Share** - deschide **dialogul Share**: un link copiabil care reproduce designul, comutatoare la vizitare (fullscreen, panoul de export, descărcare sau copiere la deschidere) și un opțional **Shortest link** care împachetează întreaga stare într-un token compact (vezi [URL Mode](/info/url-mode.html)).
+- <!--i:download--> **Descarcă** - salvează fișierul (acțiunea principală). Dacă nu-l găsești după aceea, vezi [Găsește un fișier pe care l-ai descărcat](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Copiază** - pune imaginea pe clipboard ca s-o lipești direct în Slack, email, un document. Acolo unde un browser nu poate copia imagini, descarcă în schimb și te anunță.
+- <!--i:folder--> **Salvează** - păstrează designul curent în Proiecte dintr-un singur clic, fără să întrebe unde; nu descarcă niciodată un fișier. **Salvează ca**, lângă **Exportă**, întreabă unde (vezi [Salvarea și continuarea](/info/using.html#saving-continuing)).
+- <!--i:link--> **Distribuie** - deschide **Share dialog**: un link copiabil care reproduce designul, comutatoare la vizitare (fullscreen, panoul de export, descărcare sau copiere la deschidere) și un opțional **Shortest link** care împachetează întreaga stare într-un token compact (vezi [Mod URL](/info/url-mode.html)).
 
 (Autorul unui tool alege care dintre acestea apar; setul implicit este Copy, Download și Save.)
 
@@ -32,13 +46,13 @@ O sesiune salvată poate fi de asemenea partajată din nou ca link de tool din P
 
 ## Alegerea unui format
 
-Câmpul de nume de fișier și selectorul de format stau în partea de sus a panoului ca o singură pereche `nume.format`, iar selectorul listează doar formatele pe care le-a declarat autorul acestui tool.
+Numele fișierului și meniul de format stau împreună ca o singură pereche `name.format`, sub **Descarcă**.
 
 ![The filename field fused to the format picker, so the export reads as one name.format pair](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
 | Vrei… | Folosește | De ce |
 |---|---|---|
-| Logo-uri / grafică clară care se scalează | **SVG** | Vector - se scalează la infinit, mic, editabil |
+| Logo-uri / grafică clară care se scalează | **SVG** | Vector - se scalează la infinit, mic, editabil; un efect pe care exportul vectorial nu îl poate desena este încorporat ca imagine |
 | Vector pentru aplicații Office / Windows | **EMF** | Se lipește ca vector editabil în PowerPoint / Word; textul rămâne activ și editabil, iar Google Drive îl deschide în Google Drawings pentru Slides |
 | Vector pentru tipar / aplicații de design | **EPS**, sau **EPS (CMYK)** | Vector PostScript pentru Illustrator / fluxuri de tipar |
 | Vector pentru mașini de tăiat / CAD | **DXF** | Aparate de tăiat cu laser, plottere de vinil, CNC - trasee de contur în milimetri |
@@ -91,7 +105,7 @@ Util pentru un storyboard, o foaie de miniaturi, o foaie de contact pentru reviz
 
 Eșantionarea se face la **mijlocul** fiecărui interval, nu la margini, pentru că prima clipă a unei secvențe e adesea o tranziție de intrare care încă nu s-a stins, iar ultima e starea de după ce fiecare clip s-a încheiat - eșantionarea la capete ar irosi două dintre cadrele tale pe unele aproape goale. Numărul e limitat la **64** (o foaie de contact e făcută să fie citită de un om), iar orice e introdus fără sens în câmp revine implicit la `1` în loc să eșueze exportul. Fiecare cadru e un export static obișnuit, așa că Content Credentials, imprint-ul, unitățile fizice și DPI se comportă exact ca la un export unic.
 
-Câmpul **Frames** este modul de a obține o foaie astăzi. Motorul rezervă un parametru URL `cuts` corespunzător, dar niciun shell nu-l citește încă dintr-un link, așa că un link partajat se redeschide mereu la cadrul de la playhead - vezi [URL Mode](/info/url-mode.html#contact-sheets-cuts).
+Câmpul **Cadre** este modul de a obține o foaie astăzi. Motorul rezervă un parametru URL `cuts` corespunzător, dar niciun shell nu-l citește încă dintr-un link, așa că un link partajat se redeschide mereu la cadrul de la playhead - vezi [Mod URL](/info/url-parameters.html#contact-sheets-cuts).
 
 ## PDF multi-pagină
 
@@ -235,7 +249,7 @@ Uneltele animate exportă mișcarea ca **MP4**, **WebM** sau **GIF** - și, acol
 
 GIF funcționează peste tot (excelent pentru chat/e-mail; mai mare și cu mai puține culori decât videoul). Uneltele animate expun și **Wait** (secunde cât să se așeze animația înainte de înregistrare) și **Duration** (durata clipului).
 
-> Un link partajat `?format=…` care cere un container pe care browserul tău nu poate să-l înregistreze revine grațios la celălalt și denumește fișierul în consecință.
+> Un link partajat `?format=…` care cere un container pe care browserul tău nu îl poate înregistra revine grațios la celălalt, iar numele fișierului se potrivește cu containerul înregistrat.
 
 **Sunet.** Exporturile video nu sunt tăcute. O unealtă poate pune un **fundal muzical** sub clip - un asset audio din catalog, în buclă sau tăiat la durata clipului, cu fade-in/out, volum și ducking automat sub sunetul propriu al imaginilor - iar uneltele de înregistrare duc sunetul live al propriilor imagini direct în fișier. **MP4** și **WebM** păstrează pista mixată; GIF și formatele de imagine animată (APNG, WebP animat, SVG animat) sunt tăcute prin natura lor.
 
@@ -255,7 +269,9 @@ Acolo unde formatul o suportă, exporturile poartă **metadate de proveniență*
 
 **Credențialul durabil.** Un al doilea marcaj, mai greu, stă alături de Imprint: **Durable credential**, care folosește un model neural pe dispozitiv (format TrustMark) ca să scrie id-ul Lolly *în* pixeli, astfel încât legătura „făcut cu Lolly” să supraviețuiască unei eliminări de metadate, unei recodificări și unei recitiri de către unelte compatibile TrustMark, la fel ca ale Lolly însuși. Este **dezactivat implicit** - spre deosebire de Imprint-ul pur-JavaScript, costă o trecere neurală per export plus o descărcare de model unică, deci e un opt-in deliberat, nu o taxă tăcută. Doar raster (**PNG, JPG, WebP, AVIF, TIFF**), bifat în panoul de export sau pasat ca `durable=1` într-un link partajat. Pe aplicațiile desktop și mobile cardul este ascuns complet, nu arătat ca un no-op, pentru că nu există o origine de la care să preia modelul offline.
 
-**Protecția conținutului.** În panoul de export, *Password protect*, **C2PA Credentials**, **Lolly Imprint** și **Durable credential** se pliază într-un singur grup **Content protection**, colapsat și adaptat formatului, deci proveniența și opțiunile de protecție ale unui fișier stau într-un singur loc - grupul arată doar cardurile care se aplică formatului ales, și se ascunde complet când niciuna nu se aplică. Marcajele de tipar sunt în mod deliberat *excluse* din el: sunt geometrie de producție de tipar, nu protecție, deci **Print marks & bleed** - măsura de bleed în milimetri plus Crop, Registration, Bleed, Colour bars și Stamp details - își păstrează propriul card de nivel superior pe formatele de tipar.
+**Protecția conținutului.** În panoul de export, **Licența** pe care o acorzi, **Credite sursă** pentru orice ai plasat, *Password protect*, **C2PA Credentials**, **Lolly Imprint** și **Acreditare durabilă** se pliază într-un singur grup **Protecția conținutului**, colapsat și adaptat formatului, astfel încât proveniența, drepturile și opțiunile de protecție ale unui fișier stau într-un singur loc. Grupul arată doar cardurile care se aplică formatului ales. Se deschide de la sine atunci când un link sau un document salvat declară deja o licență, sau când o sursă are nevoie de o decizie din partea ta.
+
+**Licența.** Alege cum pot alții să-ți folosească lucrarea: *Niciuna (toate drepturile rezervate)* implicit, sau CC0 1.0, Public Domain Mark 1.0, sau una dintre licențele Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Numele licenței și un link către actul ei sunt scrise în metadatele de licență ale fișierului (EXIF, XMP și RIFF unde formatul are aceste câmpuri) și în Content Credential-ul lui. Alegerea este salvată odată cu documentul și călătorește într-un link de partajare ca `licence=`. Lolly scrie licența pe care ai ales-o. Nu verifică și nu impune termenii. Un instrument cu propriul câmp de licență, precum Claim, păstrează acel câmp în schimb și nu arată un al doilea selector. Reperele de tipar sunt în mod deliberat *excluse* din asta: sunt geometrie de producție de tipar, nu protecție, așa că **Repere de tipar și sângerare** - măsura de sângerare în milimetri plus Crop, Registration, Bleed, Colour bars și Stamp details - își păstrează propriul card de nivel superior pe formatele de tipar.
 
 ![Grupul Content protection deschis la un export PNG, arătând doar cardurile care i se aplică](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
@@ -263,7 +279,7 @@ Acolo unde formatul o suportă, exporturile poartă **metadate de proveniență*
 
 **Cost, calculat din grila ta de tarife.** Sub preflight - ultimul dintre toate, tot deasupra butoanelor - stă un card care transformă aceleași numărători în bani, și numai din prețuri pe care cineva i le-a dat. Citește tot ce a numărat trecerea de preflight, indiferent dacă respectivul card e activat sau nu, și are nevoie ca două lucruri să fie adevărate: lucrarea are ceva ce o listă de prețuri poate să evalueze (plăci, coli, suprafață, pagini, rânduri de variante sau fișiere de ieșire - deci un simplu PNG de logo nu-l arată niciodată), **și** este prezentă o **grilă de tarife**. O grilă de tarife este o listă de prețuri JSON de la tipografia ta. O compilare implicită nu poartă niciuna și nu are niciun mod din aplicație de a încărca una: sosește fie ca asset de catalog livrat de o implementare, fie prin extensia opțională de grilă de tarife pe care un self-hoster sau un plan de control o activează. Fără o grilă de tarife, nu se arată nimic - nici un prompt, nici un tabel gol.
 
-Regula pe care se construiește totul este că **nu inventează niciodată bani**. Fiecare cifră este un tarif pe care l-ai furnizat înmulțit cu o cantitate pe care Lolly a numărat-o - `4 plăci × 35,00 €` - iar totalul își numește propria sursă în aceeași propoziție cu cifra: emitentul pe care-l numește grila, și data la care spune grila că sunt de la aceste tarife. Nu există monedă implicită, niciun substituent și niciun zero care să țină locul unui preț lipsă. Ce spune fișierul despre el însuși rămâne vorbire raportată: *„Fișierul spune: … Lolly nu a verificat asta.”*
+Regula pe care se construiește totul este că **nu inventează niciodată bani**. Fiecare cifră este un tarif pe care l-ai furnizat înmulțit cu o cantitate pe care Lolly a numărat-o - `4 plate × €35.00` - iar totalul își numește propria sursă în aceeași propoziție cu cifra: emitentul pe care-l numește grila, și data la care spune grila că sunt de la aceste tarife. Nu există monedă implicită, niciun substituent și niciun zero care să țină locul unui preț lipsă. Ce spune fișierul despre el însuși rămâne vorbire raportată: *„Fișierul spune: … Lolly nu a verificat asta.”*
 
 Iar când nu poate calcula onest, tabelul de lucru **dispare** în loc să se degradeze într-o cifră estompată sau completată la întâmplare:
 
@@ -318,11 +334,11 @@ Un export care plasează lucrarea altcuiva înregistrează și acea sursă în a
 
 ## Pe telefon
 
-Comenzile de export se află în spatele butonului flotant **Render**, care deschide foaia **Export** - aceleași formate, dimensiune, copiere, descărcare și partajare, dimensionate pentru atingere.
+Comenzile de export se află în spatele butonului flotant **Exportă**, care deschide foaia **Exportă** - aceleași formate, dimensiune, copiere, descărcare și partajare, dimensionate pentru atingere.
 
 ## Referință formate
 
-Fiecare id pe care gazda îl poate reda, grupat. Acestea sunt și valorile pentru parametrul URL `format=` și flag-ul CLI `--export=` - vezi [URL Mode](/info/url-mode.html) și [CLI](/info/cli.html). Un instrument oferă doar subsetul declarat de autorul său, astfel încât selectorul este întotdeauna mai scurt decât această listă.
+Fiecare id pe care gazda îl poate reda, grupat. Acestea sunt și valorile pentru parametrul URL `format=` și flag-ul CLI `--export=` - vezi [Mod URL](/info/url-mode.html) și [CLI](/info/cli.html). Meniul unui instrument arată doar formatele pe care acel instrument le poate produce, așa că este întotdeauna mai scurt decât această listă.
 
 | Tip | ID-uri |
 |---|---|

@@ -2,9 +2,9 @@
 
 **Profil** ialah identiti kerja yang digunakan Lolly untuk mencipta *sebagai*. Ia adalah set kecil butiran yang boleh diambil oleh sesuatu alat supaya anda tidak perlu menaipnya semula setiap kali - nama anda, butiran hubungan, gambar kepala pilihan, beberapa keutamaan - ditambah segala yang anda kumpulkan semasa bekerja: sesi yang disimpan, imej yang dimuat naik dan jumlah aktiviti tempatan.
 
-Semua yang ada dalam profil disimpan **pada peranti**, dalam pangkalan data tempatan pelayar (IndexedDB pada PWA web, sistem fail pada aplikasi Tauri). Tiada akaun dan tiada apa-apa dimuat naik. Anda menguruskannya di bawah **Profil** (di penjuru kanan atas galeri); alat hanya *membaca* profil, dan hanya medan khusus yang direka untuk pra-isi.
+Semua yang ada dalam profil disimpan **pada peranti**, dalam pangkalan data tempatan pelayar (IndexedDB pada PWA web, sistem fail pada aplikasi Tauri). Tiada akaun dan tiada apa-apa dimuat naik. Anda menguruskannya di bawah **Tetapan → Preferences** (pada footer atau menu avatar); alat hanya pernah *membaca*nya, dan hanya medan khusus yang direka untuk pra-isi.
 
-> Profil adalah tentang *anda* (atau sesiapa sahaja yang mencipta di sini). Ia berbeza daripada **Platform** - warna, fon dan tetapan global jenama - dan daripada **Capabilities**, katalog perkara yang boleh dilakukan oleh aplikasi. Lihat [Profile vs Platform vs Capabilities](#profile-vs-platform-vs-capabilities) di penghujung.
+> Tetapan menyatukan profil anda dan Dashboard yang dahulunya berasingan menjadi satu destinasi. **Preferences** menyimpan butiran dan pilihan peribadi anda; **Peranti ini**, **Sistem reka bentuk**, **Keupayaan** dan **Aktiviti & statistik** berada di sebelahnya. Lihat [Tetapan](/info/dashboard.html) untuk peta lengkapnya.
 
 ## Apa yang ada dalam profil
 
@@ -25,9 +25,9 @@ Semua yang ada dalam profil disimpan **pada peranti**, dalam pangkalan data temp
 
 Tiada satu pun daripada ini diwajibkan. Profil kosong adalah profil yang baik sepenuhnya; anda hanya mengisi apa yang menjimatkan masa menaip anda.
 
-Halaman ini panjang, jadi ia membawa **rel tetapan** sendiri di sisi - Your details, Appearance, Accessibility, Lolly instance, Your activity, Storage, Available offline, Feature flags, Content Credentials - dengan medan **Search settings** di atasnya yang menapis senarai semasa anda menaip. Setiap bahagian boleh dipaut-dalam sebagai `#/profile?focus=<section-id>`, yang membukanya dan menatal ke paparannya (`#/profile?focus=storage-section`, `?focus=feature-flags-section`, dan seterusnya), supaya sesuatu pautan boleh menuju kepada satu tetapan sahaja dan bukannya ke bahagian atas halaman.
+Halaman ini panjang, jadi ia membawa **rel tetapan** sendiri di sisi - Your details, Appearance, Accessibility, Lolly instance, Your activity, Storage, Available offline, Feature flags, Content Credentials - dengan medan **Cari tetapan** di atasnya yang menapis senarai semasa anda menaip. Setiap bahagian boleh dipaut-dalam sebagai `#/settings?focus=<section-id>`, yang membukanya dan menatal ke paparannya (`#/settings?focus=storage-section`, `?focus=feature-flags-section`, dan seterusnya), supaya sesuatu pautan boleh menuju kepada satu tetapan sahaja dan bukannya ke bahagian atas halaman.
 
-![Tiga kad tema, masing-masing mempratonton jenis dan warnanya sendiri, dengan yang aktif ditandakan](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
 ## Profil adalah konteks, bukan sekadar seorang individu
 
@@ -37,7 +37,7 @@ Perkataan "profil" memberi kesan seolah-olah ia satu individu yang tetap, tetapi
 
 ![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
-![Kawalan gambar kepala, kosong sehingga anda memuat naik foto yang kemudiannya kekal pada peranti ini](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ### Sebagai pasukan
 
@@ -55,19 +55,19 @@ Pada bila-bila masa, satu pemasangan mempunyai **satu profil aktif** - butiran y
 
 ![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
-- <!--i:trash--> **Penukaran paling bersih:** **Profile → Storage → Clear all my data**, kemudian **Import** bungkusan untuk konteks yang anda masuki. Anda kini mencipta semata-mata sebagai profil itu.
+- <!--i:trash--> **Penukaran paling bersih:** **Tetapan → Preferences → Storan → Kosongkan semua data saya**, kemudian **Import** bungkusan untuk konteks yang anda masuki. Anda kini mencipta semata-mata sebagai profil itu.
 - <!--i:layers--> **Berlapis:** mengimport *tanpa* mengosongkan dahulu akan **bercantum** - profil, sesi dan imej yang diimport mendarat di atas apa yang sudah ada, menggantikan mana-mana yang mempunyai nama sama dan membiarkan selebihnya. Berguna untuk menarik sesi tersimpan sesuatu pasukan ke dalam persediaan anda sendiri; bukan pilihan yang sesuai jika anda memerlukan sempadan peranan yang bersih.
 - <!--i:monitor--> **Bersebelahan:** kerana semuanya bersifat khusus-peranti, profil pelayar berasingan, akaun pengguna berasingan atau PWA kedua yang dipasang masing-masing membawa profil Lolly sendiri yang bebas. Jalankan pemasangan peribadi anda dan pemasangan kiosk acara serentak, tanpa perlu bertukar.
 
 Jadi jika anda benar-benar mengendalikan beberapa konteks serentak (anda, pasukan anda, topi pengurus acara), anda simpan beberapa bungkusan dan muatkan yang mana satu anda perlukan:
 
-![Meter storan, memecahkan sesi tersimpan, imej dan cache berbanding apa yang sebenarnya dilaporkan oleh pelayar](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 > Simpan satu bungkusan bagi setiap konteks dan namakan semula fail-fail tersebut mengikut apa yang diwakilinya (`LollyTools-events-2026.zip`, `LollyTools-me.zip`). Fail itu *ialah* profil tersebut.
 
 ## Kebolehcapaian
 
-**Profile → Accessibility** memegang empat tetapan keselesaan untuk aplikasi *di sekeliling* kerja anda. Setiap satu tidak aktif sehingga anda mengaktifkannya, dan tiada satu pun daripadanya mencapai ke dalam kanvas alat atau eksport - aplikasi yang lebih tenang tidak boleh menggerakkan walau satu piksel pun fail yang anda hantar.
+**Tetapan → Preferences → Kebolehcapaian** memegang empat tetapan keselesaan untuk aplikasi *di sekeliling* kerja anda. Setiap satu tidak aktif sehingga anda mengaktifkannya, dan tiada satu pun daripadanya mencapai ke dalam kanvas alat atau eksport - aplikasi yang lebih tenang tidak boleh menggerakkan walau satu piksel pun fail yang anda hantar.
 
 - <!--i:film--> **Reduce motion** - mematikan peralihan, slaid dan hiasan animasi dalam aplikasi. Kanvas alat anda dan sebarang eksport animasi terus bergerak tepat seperti direka.
 - <!--i:image--> **Hide colourful previews** - menggantikan seni pratonton galeri dengan kad ikon-dan-teks yang lebih tenang, dan merendahkan warna serta kontras lakaran kecil projek anda supaya ia kekal dikenali tanpa "menjerit". Di dalam sesuatu alat, semuanya masih dipaparkan dalam warna penuh.
@@ -78,13 +78,13 @@ Ini disimpan pada rekod profil itu sendiri, itulah sebabnya ia turut serta dalam
 
 ## Instans Lolly anda
 
-**Profile → Lolly instance** menunjukkan dari mana pemasangan ini mendapatkan alat dan katalognya - alamat instans itu, atau *Bundled with this app* apabila segala-galanya dihantar di dalam binaan itu sendiri. Apabila sesuatu penggunaan (deployment) menawarkannya, pautan **Instance console** membuka permukaan pentadbirannya, dan **Change** / **Disconnect** menukar arah pemasangan itu atau memutuskannya.
+**Tetapan → Preferences → Instans Lolly** menunjukkan dari mana pemasangan ini mendapatkan alat dan katalognya - alamat instans itu, atau *Bundled with this app* apabila segala-galanya dihantar di dalam binaan itu sendiri. Apabila sesuatu penggunaan menawarkannya, pautan **Konsol instans** membuka permukaan pentadbirannya, **Tukar** menukar arah pemasangan itu, dan **Tinggalkan** membuang sistem reka bentuk, alat dan katalog instans itu sementara kerja anda sendiri kekal (lihat [Gunakan Lolly di organisasi anda](/info/organisation.html#leaving)).
 
 Menukar arah kepada instans lain memerlukan **aplikasi desktop**: pelayar menyekat sesuatu halaman daripada memuatkan alat dan aset merentasi asal (origin), jadi di web bahagian ini hanya melaporkan di mana anda berada dan berhenti setakat itu.
 
 ## Tersedia luar talian
 
-Lolly melakukan caching semasa anda menggunakannya, tetapi caching-semasa-guna hanya meliputi tempat yang telah anda lawati. **Profile → Available offline** adalah untuk perjalanan yang sudah anda jangkakan: sejam di wifi lapangan terbang sebelum penerbangan yang tiada sambungan langsung. Muat turun bahagian yang anda perlukan, perhatikan satu bar kemajuan, dan segala yang anda ambil terus berfungsi walaupun sambungan hilang.
+Lolly melakukan caching semasa anda menggunakannya, tetapi caching-semasa-guna hanya meliputi tempat yang telah anda lawati. **Tetapan → Preferences → Tersedia luar talian** adalah untuk perjalanan yang sudah anda jangkakan: sejam di wifi lapangan terbang sebelum penerbangan yang tiada sambungan langsung. Muat turun bahagian yang anda perlukan, perhatikan satu bar kemajuan, dan segala yang anda ambil terus berfungsi walaupun sambungan hilang.
 
 Tujuh bahagian, masing-masing dengan saiznya dinyatakan sebelum anda komit:
 
@@ -104,15 +104,15 @@ Jika pelayar belum memberikan storan berterusan, bahagian ini menyatakannya dan 
 
 ## Memindahkan profil ke peranti baharu
 
-![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+Oleh sebab profil adalah sepenuhnya tempatan, ada dua cara untuk memasukkannya ke dalam satu pemasangan yang masih kosong - komputer riba baharu, pelayar yang baru sahaja ditetapkan semula, komputer rakan sekerja, atau kotak luar talian. **Bawa fail itu sendiri**, seperti di bawah, atau selaraskan peranti anda sendiri melalui storan pilihan anda, seperti yang diterangkan oleh [Segerakkan peranti anda](/info/sync.html). Tiada log masuk Lolly yang memulihkannya untuk anda, dan itulah intinya: tiada apa-apa pun yang pernah dihantar ke pelayan Lolly pada mulanya.
 
-Oleh sebab profil adalah sepenuhnya tempatan, satu-satunya cara untuk memasukkannya ke dalam pemasangan kosong - komputer riba baharu, pelayar yang baru sahaja ditetapkan semula, komputer rakan sekerja, atau kotak luar talian - adalah dengan **membawa fail itu sendiri**. Tiada log masuk yang memulihkannya untuk anda, dan itulah intinya: tiada apa-apa pun yang pernah meninggalkan peranti anda pada mulanya.
+Di bawah **Tetapan → Preferences → Storan → Pindah ke peranti lain**:
 
 - <!--i:download--> **Export my data** memuat turun satu `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - dinamakan mengikut profil yang memilikinya, dengan nombor jujukan harian supaya eksport berulang tidak berlanggar (bahagian nama digugurkan apabila profil tidak mempunyainya). Ia mengandungi profil anda, setiap sesi yang disimpan (berserta lakarannya), imej yang anda muat naik - token jenama dan fon yang dipasang turut serta sebagai aset pengguna - dan keutamaan anda (tema, susun atur, statistik aktiviti tempatan).
 - <!--i:upload--> **Import data…** pada pemasangan lain membaca semula fail itu dan anda menyambung tepat di tempat anda berhenti.
 - <!--i:box--> **Export my data & render everything** menulis sandaran yang sama itu *ditambah* satu zip kedua yang merender setiap sesi tersimpan kepada fail hasil siapnya, dalam folder yang mencerminkan Projek anda. Satu arkib luar talian yang lengkap bagi kedua-dua sumber dan hasil - dan ia boleh menjadi besar dan perlahan jika sesinya banyak.
 
-![Dua butang yang memindahkan keseluruhan pemasangan: Export my data menulis satu zip, Import data membacanya semula](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
 Bungkusan itu ialah fail zip yang ringkas dan berdikari sepenuhnya, jadi ia boleh dipindahkan dengan **apa-apa sahaja** cara - USB, AirDrop, perkongsian rangkaian, e-mel kepada diri sendiri - dan sasarannya boleh sepenuhnya luar talian. Setiap bahagian mempunyai checksum, jadi fail yang rosak semasa pemindahan akan dikesan semasa import dan bukannya dipulihkan dalam keadaan separa rosak. Import akan **menggabungkan** (profil/sesi/imej yang mempunyai nama sama akan ditulis ganti; selebihnya dikekalkan), jadi ia tidak akan sekali-kali memadamkan sasaran yang sudah digunakan.
 
@@ -126,9 +126,9 @@ Untuk susun atur bandel yang tepat, dasar versi dan peraturan integriti, lihat *
 
 Sesuatu alat hanya sekali-kali *pra-isi* medan profil yang direka khusus untuknya:
 
-**Opt-in (asal-usul).** Apabila anda mengeksport aset, butiran anda secara pilihan turut disertakan sebagai **asal-usul (provenance)** - satu baris pengarang/kredit yang dibenamkan dalam metadata fail (PNG, PDF, SVG, …) - supaya aset siap boleh menyatakan siapa yang mencipta ia. *Inilah* yang dikawal oleh **Use my details to create**: biarkan ia dimatikan dan eksport masih membawa atribusi alat/platform "Made with Lolly", tetapi tiada baris pengarang/hubungan peribadi dibenamkan. (Opt-in yang sama menetapkan pengarang pada larian kelompok **/pro**.) (Pengarang alat: lihat [Authoring Tools → `bindToProfile`](/info/authoring-tools.html#bindtoprofile) dan [Host API → `host.profile`](/info/host-api.html#host-profile).)
+**Opt-in (asal-usul).** Apabila anda mengeksport satu aset, butiran anda secara pilihan turut disertakan sebagai **asal-usul (provenance)** - satu baris pengarang/kredit yang dibenamkan dalam metadata fail (PNG, PDF, SVG, …) - supaya aset siap boleh menyatakan siapa yang mencipta ia. *Inilah* yang dikawal oleh **Guna butiran saya untuk mencipta**: biarkan ia dimatikan dan eksport masih membawa atribusi alat/platform "Made with Lolly", tetapi tiada baris pengarang/hubungan peribadi dibenamkan. (Opt-in yang sama menetapkan pengarang pada larian kelompok **/pro**.) (Pengarang alat: lihat [Authoring Tools → `bindToProfile`](/info/tool-inputs.html#bindtoprofile) dan [Host API → `host.profile`](/info/host-api.html#host-profile)).
 
-![Suis tunggal Use my details to create, terletak di sebelah Save Profile dan mati sehingga anda menghidupkannya](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![The single Use my details to create switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 ## Profil berbanding Platform berbanding Keupayaan
 
@@ -147,8 +147,8 @@ Perkataan ini digunakan secara bertindih di seluruh projek. Tiada satu pun darip
 - <!--i:box--> **Profil kandungan** - konfigurasi masa-bina dalam `profiles.json` yang mengikat satu set pek alat kepada katalog jenama (contohnya `suse`, `lolly-start`). Inilah yang dipilih oleh pengendali semasa menggunakan (deploy), dan inilah juga yang dipilih oleh **parameter URL/CLI** `profile` sebagai varian *warna* pada masa eksport (keadaan cetakan ICC/CMYK - lihat [URL Mode](/info/url-mode.html)). Kedua-duanya berkaitan *binaan/output*, bukan tentang *anda*. Lihat [Configuration](/info/configuration.html).
 - <!--i:seal--> **Profil identiti** - **identiti Content Credentials yang disahkan** pilihan yang boleh anda daftarkan (sijil berjangka pendek yang mengikat e-mel anda kepada eksport bertandatangan anda). Itu adalah identiti penandatanganan, berasingan daripada medan nama/hubungan profil peribadi, walaupun **Use my details to create** mengawal sama ada mana-mana satu dibenamkan. Lihat [Content Credentials Identity](/info/content-credentials-identity.html).
 
-![Kad identiti Verified, lebar telefon: pemilih tempoh sijil dan langkah pendaftaran di bawahnya - profil identiti, berasingan daripada butiran peribadi anda](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
+![The Verified identity card, phone-width: the certificate lifetime picker and the enrolment step beneath it - the identity profile, separate from your personal details](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 ## Privasi
 
-Selain pendaftaran identiti pilihan di atas (yang menghantar e-mel yang anda daftarkan kepada perkhidmatan sijil - lihat [Server Surface](/info/server-surface.html)), profil tidak pernah dihantar, dimuat naik atau digunakan untuk mengenal pasti atau menjejaki anda - tiada apa-apa untuk dipersetujui, hanya notis ini supaya anda tahu apa yang disimpan. Padamkan semuanya pada bila-bila masa dengan **Profile → Clear all my data**. Lihat [Privacy Policy](/info/privacy.html).
+Selain pendaftaran identiti pilihan di atas (yang menghantar e-mel yang anda daftarkan kepada perkhidmatan sijil - lihat [Server Surface](/info/server-surface.html)), satu profil tidak pernah dihantar, dimuat naik atau digunakan untuk mengenal pasti atau menjejaki anda - tiada apa-apa untuk dipersetujui, hanya notis ini supaya anda tahu apa yang disimpan. Padamkan semuanya pada bila-bila masa dengan **Tetapan → Preferences → Kosongkan semua data saya**. Lihat [Dasar Privasi](/info/privacy.html).

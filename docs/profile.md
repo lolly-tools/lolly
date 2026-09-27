@@ -78,7 +78,7 @@ These live on the profile record itself, which is why they travel in a profile e
 
 ## Your Lolly instance
 
-**Settings → Preferences → Lolly instance** says where this install gets its tools and catalogue from - the address of the instance, or *Bundled with this app* when everything ships inside the build. Where a deployment offers one, an **Instance console** link opens its admin surface, and **Change** / **Disconnect** re-point the install or cut it loose.
+**Settings → Preferences → Lolly instance** says where this install gets its tools and catalogue from - the address of the instance, or *Bundled with this app* when everything ships inside the build. Where a deployment offers one, an **Instance console** link opens its admin surface, **Change** re-points the install, and **Leave** removes the instance's design system, tools and catalogue while your own work stays (see [Use Lolly at your organisation](/info/organisation.html#leaving)).
 
 Re-pointing at another instance needs the **desktop app**: a browser blocks a page from loading tools and assets across origins, so on the web the section reports where you are and leaves it there.
 

@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "وہی رنگ، ہر اسپیس کے لیے لکھا ہوا۔ “کلیمپ شدہ” والی قطار ایسی اسپیس دکھاتی ہے جو اسے سنبھالنے کے لیے بہت تنگ ہے - CSS ان اعداد کو حد کے اندر گول کر دیتا۔",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "ہر پیلٹ رنگ بطور متن (قطاروں میں) ہر پیلٹ رنگ بطور پس منظر (کالموں میں) کے مقابلے میں، نیز سفید اور سیاہ۔ APCA پولیریٹی پر منحصر ہے، اس لیے ایک خانہ اور اس کا آئینہ مختلف ہوتے ہیں اور تِرچھی لائن - خود پر ایک رنگ - تقریباً 0 پڑھتی ہے۔ گرڈ اور برانڈ ریل کو دوبارہ رنگنے اور اس وژن کے لیے ہر جوڑی کا دوبارہ اسکور کرنے کے لیے وژن موڈ منتخب کریں۔",
   "Assets": "اثاثے",
-  "Runs the deeper AI text check on Verify and in Assets.": "ویریفائی اور اثاثوں میں گہری AI-ٹیکسٹ جانچ چلاتا ہے۔"
+  "Runs the deeper AI text check on Verify and in Assets.": "ویریفائی اور اثاثوں میں گہری AI-ٹیکسٹ جانچ چلاتا ہے۔",
+  "Copied to clipboard": "کلپ بورڈ پر کاپی ہو گیا",
+  "Copy did not work": "کاپی ناکام",
+  "Select the text, then use your device’s copy command.": "ٹیکسٹ منتخب کریں، پھر اپنے ڈیوائس کا کاپی کمانڈ استعمال کریں۔",
+  "Select text": "ٹیکسٹ منتخب کریں",
+  "Text selected. Use your device’s copy command.": "ٹیکسٹ منتخب ہو گیا۔ اپنے ڈیوائس کا کاپی کمانڈ استعمال کریں۔",
+  "Copy {label}": "{label} کاپی کریں"
 }

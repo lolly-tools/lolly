@@ -2,10 +2,10 @@
 
 Veelgestelde vragen die in de accordeon op de landingspagina `/info` worden getoond.
 
-**Zo houd je dit bij:** elke `##`-kop hieronder is een vraag; alles eronder
-(tot aan de volgende `##`) is het antwoord. Antwoorden gebruiken dezelfde lichte markdown als
-de rest van de site - scheid alinea's met een lege regel. Voeg hier vragen toe, haal ze weg of
-zet ze in een andere volgorde en draai `npm run build:info` (of `npm run dev:web`) opnieuw.
+**Hoe te onderhouden:** elke `##`-kop hieronder is een vraag; alles eronder
+(tot de volgende `##`) is het antwoord. Antwoorden gebruiken dezelfde lichte markdown als
+de rest van de site - aparte alinea's met een lege regel ertussen. Voeg hier vragen toe, verwijder ze
+of herschik ze en voer daarna opnieuw `pnpm run build:info` uit (of `pnpm run dev:web`).
 Alles boven de eerste `##` (deze titel en deze notities) wordt door de build genegeerd.
 
 ## Wat gebeurt er als ik op de pagina /profile voor opt-in kies?
@@ -66,11 +66,11 @@ Lolly past overal waar je nu al bestanden genereert - de CLI is dezelfde engine
 als de app, dus een pipeline die om 2 uur 's nachts draait kan niet afwijken van wat iemand in een
 browser bekijkt. De weerstand bij invoering is zelden technisch; die is organisatorisch. Verwacht dit:
 
-**Er moet een samengestelde merkcatalogus worden opgebouwd.** Lolly is een platform, geen
-kant-en-klaar pakket met jouw templates. Voor een *bestuurde uitrol* legt iemand de gedeelde
-assetcatalogus vast (logo's, paletten, lettertypes als permanente ID's) en schrijft het manifest +
-template voor elk uitvoertype. Losse gebruikers hoeven daar niet op te wachten - in
-de open app kan iedereen vanaf dag één eigen bestanden in Assets opnemen en tools bouwen in
+**Een samengestelde merkcatalogus moet worden opgesteld.** Lolly is een platform, geen
+afgewerkt pakket van jouw templates. Voor een *gereguleerde uitrol* definieert iemand de gedeelde
+assetcatalogus (logo's, paletten, lettertypen als permanente ID's) en schrijft het manifest +
+template voor elk uitvoertype. Individuen hoeven daar echter niet op te wachten - in
+de open app kan iedereen vanaf dag één zijn eigen bestanden in Assets binnenhalen en tools bouwen in
 Design.
 
 **Geen git nodig om bij te dragen.** Ontwerpers maken hun eigen tools en templates
@@ -121,9 +121,17 @@ We winnen de strijd om governance met uitstekend gemak en uitstekende service.
 
 Ja. Open **Design** en klik op **Import a design** (een ontwerp importeren): het accepteert een native Figma-**.fig** (Save local copy), een Penpot-export **.penpot**, een Illustrator-**.ai** of **.pdf**, een InDesign-**.idml** (File → Export → InDesign Markup) of **elke SVG** (de brede deur - vrijwel elke ontwerpapp exporteert dat). Geen account, geen plug-in en geen licentie voor een ontwerpapp nodig.
 
-![Het open canvas van Design - Een ontwerp importeren staat in het Lolly-menu van de werkbalk](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Het open canvas van Design - Import a design staat in het Lolly-menu van de werkbalk](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Lagen komen binnen als bewerkbare vakken op het open canvas: tekst blijft overtypbaar, vormen blijven vormen, afbeeldingen komen in je eigen afbeeldingsbibliotheek en typografie en kleuren voldoen aan de merkglobals. Sla het op en de lay-out wordt een herbruikbare, via een URL adresseerbare template die iedereen met Lolly opnieuw kan vullen - en je kunt er live tools in mengen (een QR-code, een grafiek) die bij het laden opnieuw renderen. Vanaf daar rendert het net als al het andere in Lolly - SVG, PDF, PNG en de rest, reproduceerbaar vanaf de URL. Zie [Een ontwerp importeren](/info/design-import.html).
+
+## Waar is het ding dat ik gisteren maakte?
+
+Als je op **Opslaan als** of **Opslaan** hebt gedrukt, staat het in **Projecten**, op het startscherm, in de browser of app van waaruit je hebt opgeslagen. Heb je alleen op **Downloaden** gedrukt, dan staat het bestand waar je browser of systeem downloads opslaat, en meestal staat er een kopie in **Assets**. Negen tools bewaren niet-opgeslagen werk ook in **Projecten**. [Vind en herstel je werk](/info/find-your-work.html) behandelt elk geval.
+
+## Ik heb het tabblad gesloten. Is mijn werk weg?
+
+Opgeslagen werk staat nog in **Projecten**. Niet-opgeslagen werk is weg, behalve in de negen tools die opslaan terwijl je werkt, die het ook in **Projecten** bewaren. Druk de volgende keer op **Opslaan als** voordat je vertrekt. Zie [Als je het tabblad sloot of de tool verliet](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Kan ik mijn werk als bestand delen in plaats van als link?
 
@@ -145,7 +153,7 @@ Die grens ligt vast in de licentie, niet in een belofte: alles wat lokaal draait
 
 ## Hoeveel houdt SUSE privé? (oftewel wanneer wordt het kleed onder ons vandaan getrokken)
 
-De engine, de shells, de schema's en de merkonafhankelijke tools zijn open source; de handelsmerken van SUSE en de tools met merk zijn het deel dat privé blijft, en die zijn al afgesplitst. De publieke instantie op [lolly.tools](https://lolly.tools) draait op het lege merk.
+De engine, de shells, de schema's en de merkonafhankelijke tools zijn open source; SUSE's handelsmerken en merktools zijn het deel dat privé blijft, en die zijn al gescheiden. De publieke instantie op [lolly.tools](https://lolly.tools) draait op het blanco merk.
 
 De grens is structureel, geen belofte. Elke uitgebrachte versie is open source en kan niet worden teruggetrokken, er is geen contributor agreement dat iemands werk opnieuw zou kunnen licentiëren, en het enige wat wordt achtergehouden is het handelsmerk. Toen een ander bedrijf in 2023 zijn enterprise-Linux-broncode sloot, was SUSE medeoprichter van [OpenELA](https://openela.org) om die code open te houden - dezelfde houding die dit project overneemt.
 

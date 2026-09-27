@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "Същият цвят, изписан за всяко пространство. Ред, отбелязан като „ограничен“, показва пространство твърде тясно, за да го побере - CSS би закръглил тези числа в границите.",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "APCA зависи от полярността, затова клетка и огледалният ѝ близнак се различават, а диагоналът - цвят върху себе си - отчита ~0. Избери режим на зрение, за да прекрасиш мрежата и лентата на марката и да преизчислиш всяка двойка за него.",
   "Assets": "Активи",
-  "Runs the deeper AI text check on Verify and in Assets.": "Изпълнява задълбочената проверка на ИИ текст в «Проверка» и в Активи."
+  "Runs the deeper AI text check on Verify and in Assets.": "Изпълнява задълбочената проверка на ИИ текст в «Проверка» и в Активи.",
+  "Copied to clipboard": "Копирано в клипборда",
+  "Copy did not work": "Копирането не проработи",
+  "Select the text, then use your device’s copy command.": "Маркирай текста, после използвай командата за копиране на устройството си.",
+  "Select text": "Маркирай текст",
+  "Text selected. Use your device’s copy command.": "Текстът е маркиран. Използвай командата за копиране на устройството си.",
+  "Copy {label}": "Копирай {label}"
 }

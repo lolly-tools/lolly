@@ -2,9 +2,9 @@
 
 Một **profile** là danh tính làm việc mà Lolly tạo ra *dưới tư cách*. Đó là tập hợp nhỏ các chi tiết mà một công cụ có thể lấy ra để bạn không phải gõ lại mỗi lần - tên bạn, thông tin liên hệ, một ảnh chân dung tùy chọn, vài tùy chỉnh - cộng với mọi thứ bạn tích lũy trong khi làm việc: các phiên đã lưu, ảnh đã tải lên và số liệu hoạt động cục bộ.
 
-Mọi thứ trong hồ sơ đều nằm **trên thiết bị**, trong cơ sở dữ liệu cục bộ của trình duyệt (IndexedDB trên web PWA, hệ thống tệp trên các ứng dụng Tauri). Không có tài khoản nào và không có gì được tải lên. Bạn quản lý nó trong mục **Hồ sơ** (góc trên bên phải của thư viện); các công cụ chỉ *đọc* nó, và chỉ những trường cụ thể mà chúng được xây dựng để điền sẵn.
+Mọi thứ trong hồ sơ đều nằm **trên thiết bị**, trong cơ sở dữ liệu cục bộ của trình duyệt (IndexedDB trên web PWA, hệ thống tệp trên các ứng dụng Tauri). Không có tài khoản nào và không có gì được tải lên. Bạn quản lý nó trong mục **Cài đặt → Preferences** (ở chân trang hoặc menu ảnh đại diện); các công cụ chỉ *đọc* nó, và chỉ những trường cụ thể mà chúng được xây dựng để điền sẵn.
 
-> Một profile nói về *bạn* (hoặc bất kỳ ai đang tạo ở đây). Nó khác với **Platform** - màu sắc, font và cài đặt toàn cục của thương hiệu - và khác với **Capabilities**, danh mục những gì ứng dụng có thể làm. Xem [Profile vs Platform vs Capabilities](#profile-vs-platform-vs-capabilities) ở cuối.
+> Cài đặt gộp hồ sơ của bạn và Dashboard trước đây vào một nơi duy nhất. **Preferences** chứa thông tin và các lựa chọn cá nhân của bạn; bên cạnh đó là **Thiết bị này**, **Hệ thống thiết kế**, **Khả năng** và **Hoạt động & thống kê**. Xem [Cài đặt](/info/dashboard.html) để biết toàn bộ sơ đồ.
 
 ## Những gì có trong hồ sơ
 
@@ -25,7 +25,7 @@ Mọi thứ trong hồ sơ đều nằm **trên thiết bị**, trong cơ sở d
 
 Không có mục nào là bắt buộc. Một hồ sơ trống vẫn là một hồ sơ hoàn toàn tốt; bạn chỉ cần điền những gì giúp bạn đỡ phải gõ lại.
 
-Trang này khá dài, nên nó có riêng một **thanh cài đặt** dọc theo cạnh - Your details, Appearance, Accessibility, Lolly instance, Your activity, Storage, Available offline, Feature flags, Content Credentials - cùng một ô **Search settings** phía trên lọc danh sách khi bạn gõ. Mỗi mục đều có thể liên kết trực tiếp dưới dạng `#/profile?focus=<section-id>`, việc này sẽ mở nó và cuộn nó vào tầm nhìn (`#/profile?focus=storage-section`, `?focus=feature-flags-section`, v.v.), nên một link có thể trỏ tới một cài đặt cụ thể thay vì đầu trang.
+Trang này khá dài, nên nó có riêng một **thanh cài đặt** dọc theo cạnh - Your details, Appearance, Accessibility, Lolly instance, Your activity, Storage, Available offline, Feature flags, Content Credentials - cùng một ô **Search settings** phía trên lọc danh sách khi bạn gõ. Mỗi mục đều có thể liên kết trực tiếp dưới dạng `#/settings?focus=<section-id>`, việc này sẽ mở nó và cuộn nó vào tầm nhìn (`#/settings?focus=storage-section`, `?focus=feature-flags-section`, v.v.), nên một link có thể trỏ tới một cài đặt cụ thể thay vì đầu trang.
 
 ![Ba thẻ chủ đề, mỗi thẻ xem trước kiểu chữ và màu sắc riêng, với thẻ đang hoạt động được đánh dấu](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
@@ -55,19 +55,19 @@ Tại mọi thời điểm, một bản cài đặt chỉ có **một profile đ
 
 ![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
-- <!--i:trash--> **Cách chuyển sạch nhất:** **Profile → Storage → Clear all my data**, sau đó **Import** gói cho ngữ cảnh bạn đang bước vào. Giờ bạn đang tạo hoàn toàn với tư cách profile đó.
+- <!--i:trash--> **Cách chuyển sạch nhất:** **Cài đặt → Preferences → Storage → Clear all my data**, sau đó **Import** gói cho ngữ cảnh bạn đang bước vào. Giờ bạn đang tạo hoàn toàn với tư cách profile đó.
 - <!--i:layers--> **Xếp lớp:** import mà *không* xóa trước sẽ **hợp nhất** - profile, phiên và ảnh được import chồng lên những gì đã có sẵn, thay thế bất kỳ thứ gì trùng tên và giữ nguyên phần còn lại. Tiện khi kéo các phiên đã lưu của một nhóm vào bộ thiết lập của riêng bạn; không phải điều bạn muốn nếu cần một ranh giới vai trò sạch sẽ.
 - <!--i:monitor--> **Song song:** vì mọi thứ đều giới hạn theo thiết bị, một profile trình duyệt riêng, một tài khoản người dùng riêng hay một PWA cài đặt thứ hai đều mang một profile Lolly độc lập của riêng nó. Chạy bản cài đặt cá nhân của bạn và bản cài đặt kiosk sự kiện cùng lúc, không cần chuyển đổi.
 
 Vì vậy nếu bạn thực sự phải xoay sở giữa nhiều bối cảnh (bạn, nhóm của bạn, chiếc mũ quản lý sự kiện), bạn giữ nhiều gói và nạp gói bạn cần:
 
-![Đồng hồ đo dung lượng lưu trữ, phân tách các phiên đã lưu, ảnh và cache so với những gì trình duyệt thực sự báo cáo](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![Đồng hồ đo dung lượng lưu trữ, chia nhỏ các phiên đã lưu, hình ảnh và bộ nhớ đệm so với những gì trình duyệt thực sự báo cáo](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 > Giữ một gói cho mỗi bối cảnh và đổi tên tệp theo đúng nội dung của chúng (`LollyTools-events-2026.zip`, `LollyTools-me.zip`). Tệp đó *chính là* hồ sơ.
 
 ## Accessibility
 
-**Profile → Accessibility** chứa bốn cài đặt tiện nghi cho ứng dụng *xung quanh* công việc của bạn. Mỗi cài đặt đều tắt cho tới khi bạn bật nó, và không cái nào chạm vào bên trong canvas công cụ hay bản xuất - một ứng dụng dịu hơn không được phép làm xê dịch dù chỉ một pixel của file bạn gửi đi.
+**Cài đặt → Preferences → Accessibility** chứa bốn cài đặt tiện nghi cho ứng dụng *xung quanh* công việc của bạn. Mỗi cài đặt đều tắt cho tới khi bạn bật nó, và không cái nào chạm vào bên trong canvas công cụ hay bản xuất - một ứng dụng dịu hơn không được phép làm xê dịch dù chỉ một pixel của file bạn gửi đi.
 
 - <!--i:film--> **Reduce motion** - tắt các hiệu ứng chuyển cảnh, trượt và điểm nhấn hoạt hình trong ứng dụng. Canvas công cụ của bạn và bất kỳ bản xuất hoạt hình nào vẫn chuyển động đúng như thiết kế.
 - <!--i:image--> **Hide colourful previews** - thay hình minh họa xem trước trong gallery bằng các thẻ icon-và-chữ trầm lặng, và giảm màu sắc, độ tương phản của ảnh thu nhỏ dự án để chúng vẫn nhận ra được mà không gây chói mắt. Bên trong một công cụ, mọi thứ vẫn hiển thị đầy đủ màu sắc.
@@ -78,13 +78,13 @@ Những cài đặt này nằm ngay trên bản ghi profile, đó là lý do ch�
 
 ## Instance Lolly của bạn
 
-**Profile → Lolly instance** cho biết bản cài đặt này lấy công cụ và catalog từ đâu - địa chỉ của instance, hoặc *Bundled with this app* khi mọi thứ đi kèm sẵn trong bản build. Ở nơi một bản triển khai có cung cấp, một link **Instance console** sẽ mở giao diện quản trị của nó, và **Change** / **Disconnect** trỏ lại bản cài đặt hoặc ngắt kết nối nó.
+**Cài đặt → Preferences → Lolly instance** cho biết bản cài đặt này lấy công cụ và catalog từ đâu - địa chỉ của instance, hoặc *Đi kèm với ứng dụng này* khi mọi thứ đi kèm sẵn trong bản build. Ở nơi một bản triển khai có cung cấp, một liên kết **Instance console** sẽ mở giao diện quản trị của nó, **Thay đổi** trỏ lại bản cài đặt, và **Rời khỏi** xóa bỏ hệ thống thiết kế, công cụ và catalog của instance đó trong khi công việc của riêng bạn vẫn ở lại (xem [Dùng Lolly tại tổ chức của bạn](/info/organisation.html#leaving)).
 
 Trỏ lại một instance khác cần **ứng dụng desktop**: trình duyệt chặn một trang tải công cụ và tài sản từ nguồn gốc khác, nên trên web mục này chỉ báo cáo bạn đang ở đâu và dừng lại ở đó.
 
 ## Available offline
 
-Lolly lưu cache khi bạn dùng, nhưng lưu cache-khi-dùng chỉ bao phủ những nơi bạn đã từng đến. **Profile → Available offline** dành cho chuyến đi bạn có thể thấy trước: một giờ dùng wifi sân bay trước một chuyến bay không có mạng. Tải về những phần bạn sẽ cần, theo dõi một thanh tiến trình, và mọi thứ bạn đã tải vẫn hoạt động khi mất kết nối.
+Lolly lưu cache khi bạn dùng, nhưng lưu cache-khi-dùng chỉ bao phủ những nơi bạn đã từng đến. **Cài đặt → Preferences → Available offline** dành cho chuyến đi bạn có thể thấy trước: một giờ dùng wifi sân bay trước một chuyến bay không có mạng. Tải về những phần bạn sẽ cần, theo dõi một thanh tiến trình, và mọi thứ bạn đã tải vẫn hoạt động khi mất kết nối.
 
 Bảy phần, mỗi phần đều nêu rõ dung lượng trước khi bạn xác nhận:
 
@@ -104,9 +104,9 @@ Nếu trình duyệt chưa cấp quyền lưu trữ lâu dài (persistent storag
 
 ## Chuyển hồ sơ sang thiết bị mới
 
-![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+Vì hồ sơ hoàn toàn cục bộ, có hai cách để đưa nó vào một bản cài đặt trống - một laptop mới, một trình duyệt vừa được đặt lại, máy của đồng nghiệp, một thiết bị ngoại tuyến. **Mang theo tệp**, như bên dưới, hoặc giữ các thiết bị của bạn đồng bộ thông qua nơi lưu trữ bạn chọn, như [Sync your devices](/info/sync.html) giải thích. Không có đăng nhập Lolly nào khôi phục nó giúp bạn, và đó chính là mấu chốt: ngay từ đầu chưa từng có gì được gửi tới một máy chủ Lolly.
 
-Vì hồ sơ hoàn toàn cục bộ, cách duy nhất để đưa nó vào một bản cài đặt trống - một laptop mới, một trình duyệt vừa được đặt lại, máy của đồng nghiệp, một thiết bị ngoại tuyến - là **mang theo tệp**. Không có đăng nhập nào khôi phục nó giúp bạn, và đó chính là mấu chốt: ngay từ đầu chưa từng có gì rời khỏi thiết bị của bạn.
+Trong mục **Cài đặt → Preferences → Storage → Di chuyển sang thiết bị khác**:
 
 - <!--i:download--> **Export my data** tải xuống một tệp `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - đặt tên theo hồ sơ mà nó thuộc về, kèm số thứ tự theo ngày để các lần export lặp lại không bị trùng (các phần tên bị bỏ qua khi hồ sơ không có chúng). Tệp này chứa hồ sơ của bạn, mọi phiên đã lưu (kèm ảnh thu nhỏ), ảnh bạn đã tải lên - token thương hiệu và font đã cài đặt đi kèm dưới dạng tài sản người dùng - và các tùy chọn của bạn (giao diện, bố cục, số liệu hoạt động cục bộ).
 - <!--i:upload--> **Import data…** trên máy cài đặt khác sẽ đọc lại tệp đó và bạn tiếp tục đúng từ chỗ đã dừng.
@@ -126,7 +126,7 @@ Những gì không được mang theo: bộ nhớ đệm danh mục (nó sẽ t�
 
 Một công cụ chỉ bao giờ *điền sẵn* những trường hồ sơ mà nó được xây dựng rõ ràng để liên kết:
 
-**Tùy chọn tham gia (provenance).** Khi bạn export một tài sản, thông tin của bạn có thể tùy chọn đi kèm dưới dạng **provenance** - một dòng tác giả/ghi công được nhúng vào metadata của tệp (PNG, PDF, SVG, …) - để tài sản hoàn chỉnh có thể cho biết ai đã tạo ra nó. *Đây* chính là điều mà **Use my details to create** kiểm soát: để tắt thì export vẫn mang ghi công công cụ/nền tảng "Made with Lolly", nhưng không có dòng tác giả/liên hệ cá nhân nào được nhúng vào. (Cùng một tùy chọn này đặt tác giả cho các lượt chạy hàng loạt trên **/pro**.) (Tác giả công cụ: xem [Authoring Tools → `bindToProfile`](/info/authoring-tools.html#bindtoprofile) và [Host API → `host.profile`](/info/host-api.html#host-profile).)
+**Tùy chọn tham gia (provenance).** Khi bạn export một tài sản, thông tin của bạn có thể tùy chọn đi kèm dưới dạng **provenance** - một dòng tác giả/ghi công được nhúng vào metadata của tệp (PNG, PDF, SVG, …) - để tài sản hoàn chỉnh có thể cho biết ai đã tạo ra nó. *Đây* chính là điều mà **Use my details to create** kiểm soát: để tắt thì export vẫn mang ghi công công cụ/nền tảng "Made with Lolly", nhưng không có dòng tác giả/liên hệ cá nhân nào được nhúng vào. (Cùng một tùy chọn này đặt tác giả cho các lượt chạy hàng loạt trên **/pro**.) (Tác giả công cụ: xem [Authoring Tools → `bindToProfile`](/info/tool-inputs.html#bindtoprofile) và [Host API → `host.profile`](/info/host-api.html#host-profile).)
 
 ![Công tắc duy nhất Use my details to create, nằm cạnh Save Profile và tắt cho đến khi bạn bật nó lên](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
@@ -151,4 +151,4 @@ Từ này bị dùng chồng chéo trong toàn bộ dự án. Không nghĩa nào
 
 ## Quyền riêng tư
 
-Ngoài việc đăng ký danh tính tùy chọn ở trên (gửi email bạn đăng ký đến dịch vụ chứng chỉ - xem [Server Surface](/info/server-surface.html)), hồ sơ không bao giờ được truyền đi, tải lên hay dùng để nhận diện hoặc theo dõi bạn - không có gì cần bạn đồng ý cả, chỉ có thông báo này để bạn biết những gì đang được lưu giữ. Xóa toàn bộ dữ liệu này bất cứ lúc nào bằng **Profile → Clear all my data**. Xem [Privacy Policy](/info/privacy.html).
+Ngoài việc đăng ký danh tính tùy chọn ở trên (gửi email bạn đăng ký đến dịch vụ chứng chỉ - xem [Server Surface](/info/server-surface.html)), hồ sơ không bao giờ được truyền đi, tải lên hay dùng để nhận diện hoặc theo dõi bạn - không có gì cần bạn đồng ý cả, chỉ có thông báo này để bạn biết những gì đang được lưu giữ. Xóa toàn bộ dữ liệu này bất cứ lúc nào bằng **Cài đặt → Preferences → Clear all my data**. Xem [Privacy Policy](/info/privacy.html).

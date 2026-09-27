@@ -334,9 +334,11 @@ test('the build inlines through the shared fn and credits the file it inlined', 
   // …and mdToHtml still dispatches the ::: figure fence to it.
   assert.match(RENDER_TS, /\} else if \(parseFigureFence\(label\)\) \{/, 'mdToHtml no longer dispatches ::: figure');
   // Generated side-door pages (plan 116) also skip the band - they render their h1
-  // in the content column, not a masthead - but a regular page still resolves the
-  // band with its real slug, which is what keeps MASTHEADS able to apply.
-  assert.match(BUILD_TS, /const mast = \(isLanding \|\| page\.generated\) \? null : docsMasthead\(content, page\.slug\);/,
+  // in the content column, not a masthead - and so do the immersive pages, which open
+  // with their own bands; a regular page still resolves the band with its real slug,
+  // which is what keeps MASTHEADS able to apply. The band also receives the pathways
+  // strip and Listen for its first rows (plan 277 step 3c).
+  assert.match(BUILD_TS, /const mast = \(isLanding \|\| page\.generated \|\| page\.immersive\) \? null : docsMasthead\(content, page\.slug, \{ strip, listen \}\);/,
     'the masthead band no longer knows which page it is building, so MASTHEADS can never apply');
 });
 

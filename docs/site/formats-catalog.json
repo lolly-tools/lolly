@@ -695,7 +695,7 @@
       "token": "JXL",
       "name": "JPEG XL",
       "full": "JPEG XL",
-      "category": "Image",
+      "category": "Raster",
       "dir": "both",
       "features": [
         "raster",

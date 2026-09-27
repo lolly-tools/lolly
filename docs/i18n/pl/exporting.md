@@ -1,19 +1,33 @@
 # Eksportowanie i formaty
 
-Jak wydobyć gotowy plik z narzędzia - wybór właściwego formatu, ustawienie rozmiaru wyjściowego i działanie poszczególnych opcji. Podobnie jak wszystko inne, **eksport odbywa się na twoim urządzeniu**; nic nie jest przesyłane.
+Naciśnij **Eksportuj** na pigułce narzędzia **Eksportuj | Zapisz jako**, wybierz format z menu obok nazwy pliku, a potem naciśnij **Pobierz**. Plik powstaje na twoim urządzeniu; nic nie jest przesyłane.
+
+Do większości zadań pasuje jeden z trzech formatów:
+
+| Do czego | Wybierz | Dlaczego |
+|---|---|---|
+| Ekran, wiadomość lub slajd | **PNG** | Otwiera go każda aplikacja, a gdy narzędzie to oferuje, zachowuje przezroczyste tło |
+| Gotowa strona lub cokolwiek drukowanego | **PDF** | Prawdziwy rozmiar strony, który drukuje się tak, jak wygląda; **Print PDF**, tam gdzie narzędzie to oferuje, to wersja CMYK do druku offsetowego |
+| Grafika, która musi pozostać ostra w dowolnym rozmiarze | **SVG** | Kształty wektorowe, ostre od odznaki po baner |
+
+::: check Sprawdź plik w rozmiarze, w jakim będzie używany
+Zanim go wyślesz, otwórz go na ekranie, dla którego został przygotowany, albo wydrukuj go w rzeczywistym rozmiarze.
+:::
+
+Reszta tej strony obejmuje każdy format, rozmiar i opcję.
 
 ## Jak działa eksport
 
-Podgląd *jest* plikiem. Podczas eksportu host renderuje to płótno do wybranego formatu i przekazuje ci plik do pobrania (albo umieszcza go w schowku). Narzędzie oferuje tylko formaty zadeklarowane przez jego autora, a selektor ukrywa te, których twoja przeglądarka nie potrafi wytworzyć (zobacz [Wideo](#video)).
+Podgląd *jest* plikiem. Podczas eksportu host renderuje to płótno do wybranego formatu i przekazuje ci plik do pobrania (albo umieszcza go w schowku). Selektor ukrywa każdy format, którego twoja przeglądarka nie potrafi wytworzyć (zobacz [Wideo](#video)).
 
 Plik może powstać na trzy sposoby. Większość narzędzi **renderuje płótno** do wybranego formatu. Formaty tekstowe i danych (HTML, MD, TXT, JSON, CSV, ICS, VCF) są zamiast tego **generowane z treści narzędzia**, a nie rasteryzowane z obrazu. Narzędzia prywatności (np. *Strip Hidden Data*) korzystają z trzeciej ścieżki: plik, który *ty* wybierzesz, jest przekształcany bajt po bajcie na urządzeniu i zwracany od razu - bez płótna, bez znaku wodnego i bez dodawania metadanych pochodzenia, bo to już jest twój własny plik.
 
-Akcje dostępne w sterowaniu eksportem:
+Akcje w panelu eksportu:
 
-- <!--i:download--> **Download** - zapisz plik (akcja podstawowa).
-- <!--i:photos--> **Copy** - umieść obraz w schowku, aby wkleić go bezpośrednio w Slacku, e-mailu czy dokumencie. Tam, gdzie przeglądarka nie potrafi kopiować obrazów, zamiast tego pobiera plik i informuje o tym.
-- <!--i:folder--> **Save** - zachowaj bieżący projekt jako zapisaną sesję narzędzia w swojej bibliotece.
-- <!--i:link--> **Share** - otwiera **okno Share**: kopiowalny link odtwarzający projekt, przełączniki uruchamiane przy wejściu (pełny ekran, panel eksportu, pobieranie lub kopiowanie po otwarciu) oraz opcjonalny **Shortest link**, który pakuje cały stan w kompaktowy token (zobacz [Tryb URL](/info/url-mode.html)).
+- <!--i:download--> **Pobierz** - zapisz plik (akcja podstawowa). Jeśli nie możesz go potem znaleźć, zobacz [Znajdź pobrany plik](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Kopiuj** - umieść obraz w schowku, aby wkleić go bezpośrednio w Slacku, e-mailu lub dokumencie. Tam, gdzie przeglądarka nie potrafi kopiować obrazów, zamiast tego pobiera plik i informuje cię o tym.
+- <!--i:folder--> **Zapisz** - zachowaj bieżący projekt w Projektach jednym kliknięciem, bez pytania gdzie; nigdy nie pobiera pliku. **Zapisz jako**, obok **Eksportuj**, pyta gdzie (zobacz [Zapisywanie i kontynuowanie](/info/using.html#saving-continuing)).
+- <!--i:link--> **Udostępnij** - otwiera **Share dialog**: kopiowalny link odtwarzający projekt, przełączniki uruchamiane przy wejściu (pełny ekran, panel eksportu, pobieranie lub kopiowanie po otwarciu) oraz opcjonalny **Shortest link**, który pakuje cały stan w kompaktowy token (zobacz [Tryb URL](/info/url-mode.html)).
 
 (Autor narzędzia decyduje, które z nich się pojawiają; domyślny zestaw to Copy, Download i Save.)
 
@@ -32,34 +46,34 @@ Zapisaną sesję można też ponownie udostępnić jako link do narzędzia z poz
 
 ## Wybór formatu
 
-Nazwa pliku i selektor formatu znajdują się na górze panelu jako jedna para `name.format`, a selektor zawiera tylko formaty zadeklarowane przez autora tego narzędzia.
+Nazwa pliku i menu formatu znajdują się razem jako jedna para `name.format`, poniżej **Pobierz**.
 
 ![Pole nazwy pliku połączone z selektorem formatu, tak że eksport wygląda jak jedna para name.format](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
 | Chcesz… | Użyj | Dlaczego |
 |---|---|---|
-| Ostre logo / grafikę, która się skaluje | **SVG** | Wektor - nieskończenie skalowalny, mały, edytowalny |
-| Wektor dla aplikacji Office / Windows | **EMF** | Wkleja się jako edytowalny wektor do PowerPointa / Worda; tekst pozostaje aktywny i edytowalny, a Dysk Google otwiera go w Google Rysunki dla Prezentacji |
-| Wektor do druku / aplikacji projektowych | **EPS** lub **EPS (CMYK)** | Wektor PostScript dla Illustratora / procesów przygotowania do druku |
-| Wektor do maszyn tnących / CAD | **DXF** | Plotery laserowe, plotery winylowe, CNC - ścieżki konturowe w milimetrach |
-| Edytowalna prezentacja | **PowerPoint** (PPTX) | Natywny edytowalny tekst i kształty, z obrazami i wektorami, które można wyodrębnić |
-| Przenośny kurs szkoleniowy | **Export course** | Przejrzyj zawartość projektu i zbuduj wersjonowany pakiet Website, SCORM lub eksperymentalny pakiet xAPI |
-| Edytowalny dokument tekstowy | **Word** (DOCX) lub **OpenDocument** (ODT) | Prawdziwe akapity i nagłówki, które edytor tekstu może dalej edytować (Doc Studio) |
-| Zdjęcie lub obraz ogólnego przeznaczenia | **PNG** (bezstratny) lub **JPG** (mniejszy) | Uniwersalny raster |
+| Ostre logotypy / grafikę, która się skaluje | **SVG** | Wektor - nieskończenie skalowalny, mały, edytowalny; efekt, którego eksport wektorowy nie potrafi narysować, jest osadzany jako obraz |
+| Wektor do aplikacji Office / Windows | **EMF** | Wkleja się jako edytowalny wektor do PowerPoint / Word; tekst pozostaje żywy i edytowalny, a Dysk Google otwiera go w Rysunkach Google dla Slides |
+| Wektor do druku / aplikacji projektowych | **EPS** lub **EPS (CMYK)** | Wektor PostScript do Illustratora / procesów drukarskich |
+| Wektor do wycinarek / maszyn CAD | **DXF** | Plotery laserowe, plotery winylowe, CNC - ścieżki konturowe w milimetrach |
+| Edytowalna prezentacja slajdów | **PowerPoint** (PPTX) | Natywny edytowalny tekst i kształty, z obrazami i wektorami, które pozostają możliwe do wyodrębnienia |
+| Przenośny kurs szkoleniowy | **Export course** | Przejrzyj treść projektu i zbuduj wersjonowaną stronę internetową, pakiet SCORM lub eksperymentalny pakiet xAPI |
+| Edytowalny dokument tekstowy | **Word** (DOCX) lub **OpenDocument** (ODT) | Prawdziwe akapity i nagłówki, które procesor tekstu może dalej edytować (Doc Studio) |
+| Zdjęcie lub obraz ogólnego przeznaczenia | **PNG** (bezstratny) lub **JPG** (mniejszy) | Uniwersalna rastrowa grafika |
 | Mniejsze nowoczesne obrazy | **WebP** / **AVIF** | Lepsza kompresja, kanał alfa |
-| Druk | **PDF** lub **Print PDF** (CMYK) | Rzeczywisty rozmiar strony; CMYK do druku offsetowego |
-| Raster do druku offsetowego | **Print TIFF** (CMYK) | Piksele DeviceCMYK dla RIP-a |
+| Druk | **PDF** lub **Print PDF** (CMYK) | Prawdziwy rozmiar strony; CMYK do druku offsetowego |
+| Rastrowy plik do druku offsetowego | **Print TIFF** (CMYK) | Piksele DeviceCMYK dla naświetlarki (RIP) |
 | Animacja do sieci | **GIF** | Działa wszędzie, większe pliki |
-| Animacja w pełnym kolorze + prawdziwa przezroczystość | **APNG** | Animowany PNG - bez ograniczenia palety, prawdziwa przezroczystość |
-| Animacja, najmniejszy plik | **Animowany WebP** | Pełny kolor + alfa, lepiej skompresowany niż GIF czy APNG |
-| Skalowalna animacja wektorowa | **Animowany SVG** | Samodzielny; zapętla się w przeglądarce lub `<img>`, bez kodeka, w dowolnym rozmiarze |
-| Wideo do social mediów / udostępniania | **MP4** lub **WebM** | Najlepsza jakość na bajt (patrz niżej) |
+| Animacja w pełnym kolorze z prawdziwą przezroczystością | **APNG** | Animowany PNG - bez limitu palety, prawdziwa przezroczystość |
+| Animacja, najmniejszy plik | **Animated WebP** | Pełny kolor i alfa, lepiej skompresowany niż GIF czy APNG |
+| Animowany wektor, który się skaluje | **Animated SVG** | Samodzielny; zapętla się w przeglądarce lub `<img>`, bez kodeka, dowolny rozmiar |
+| Wideo do mediów społecznościowych / udostępniania | **MP4** lub **WebM** | Najlepsza jakość na bajt (zobacz niżej) |
 | Tekst sformatowany / podpis e-mail | **HTML** | Wkleja się sformatowany do klientów poczty |
 | Zwykła treść | **MD** / **TXT** | Tylko tekst |
 | Wydarzenie w kalendarzu | **ICS** | Importuje się do dowolnej aplikacji kalendarza |
-| Wizytówka kontaktu | **VCF** | Importuje się do Kontaktów / książek adresowych |
-| Dane strukturalne do ponownego zaimportowania | **JSON** / **CSV** | Odtwarza zawartość narzędzia w pełnym cyklu |
-| Favikona | **ICO** | Ikona strony w wielu rozmiarach (**ZIP** łączy kilka formatów) |
+| Wizytówka | **VCF** | Importuje się do Kontaktów / książek adresowych |
+| Dane strukturalne do ponownego zaimportowania | **JSON** / **CSV** | Odtwarza treść narzędzia w obie strony |
+| Favikona | **ICO** | Wielorozmiarowa ikona strony (**ZIP** pakuje kilka formatów) |
 
 Pierwszy wiersz to najczęstszy przypadek. Wordmark złożony krojem twojej marki eksportuje się jako SVG, gdzie każda litera jest konturową ścieżką, a nie pikselem, więc pozostaje ostry zarówno w rozmiarze wizytówki, jak i oklejenia budynku - z tego samego pliku.
 
@@ -91,7 +105,7 @@ Przydatne do storyboardu, arkusza miniatur, kontaktówki do przeglądu albo karu
 
 Próbkowanie odbywa się w **punkcie środkowym** każdego przedziału, a nie na jego krańcach, ponieważ pierwsza chwila sekwencji to często przejście wejściowe, które jeszcze się nie pojawiło, a ostatnia to stan po zakończeniu wszystkich klipów - próbkowanie krańcowe zmarnowałoby dwie z twoich klatek na niemal puste. Liczba jest ograniczona do **64** (kontaktówka jest po to, by człowiek mógł ją odczytać), a wszystko bezsensowne wpisane w to pole cofa się do `1` zamiast powodować niepowodzenie eksportu. Każda klatka jest zwykłą klatką nieruchomą, więc Content Credentials, imprint, jednostki fizyczne i DPI zachowują się dokładnie tak samo jak przy pojedynczym eksporcie.
 
-Pole **Frames** to dziś sposób na uzyskanie arkusza. Silnik rezerwuje odpowiadający mu parametr URL `cuts`, ale żadna powłoka nie odczytuje go jeszcze z linku, więc udostępniony link zawsze otwiera się ponownie na klatce głowicy odtwarzania - zobacz [Tryb URL](/info/url-mode.html#contact-sheets-cuts).
+Pole **Klatki** to dzisiejszy sposób na uzyskanie arkusza. Silnik rezerwuje pasujący parametr URL `cuts`, ale żadna powłoka nie odczytuje go jeszcze z linku, więc udostępniony link zawsze otwiera się ponownie na klatce głowicy odtwarzania - zobacz [Tryb URL](/info/url-parameters.html#contact-sheets-cuts).
 
 ## Wielostronicowy PDF
 
@@ -157,7 +171,7 @@ Wybierz **Export course** z obsługiwanego narzędzia, folderu projektu lub zazn
 - <!--i:file--> Wybierz Website, SCORM 1.2, SCORM 2004 4th Edition lub eksperymentalny cel xAPI. Sprawdź faktyczną zawartość i rozmiar ZIP, a następnie zapisz i pobierz sprawdzoną wersję.
 - <!--i:check--> Ukończenie wymaga potwierdzenia każdej wymaganej lekcji i wybrania Finish. Odtwarzacz strony internetowej zapisuje postęp w przeglądarce; pakiet LMS łączy się ze swoim docelowym LMS.
 
-![Panel eksportu na prezentacji Design z wybranym SCORM (LMS)](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+![Panel eksportu na pokazie Design z wybranym SCORM (LMS)](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Pakiet zawiera swoją gotową zawartość i nie wymaga konta Lolly. Rozpakuj ZIP Website na hoście HTTP(S); zaimportuj ZIP LMS bez zmiany jego zawartości. Przetestuj docelowe miejsce przed rozpowszechnieniem kursu.
 
@@ -235,7 +249,7 @@ Narzędzia animacji eksportują ruch jako **MP4**, **WebM** lub **GIF** - a tam,
 
 GIF działa wszędzie (świetny do czatu/e-maila; większy i o mniejszej liczbie kolorów niż wideo). Narzędzia animacji udostępniają też **Wait** (sekundy na ustabilizowanie animacji przed nagraniem) i **Duration** (długość klipu).
 
-> Udostępniony link `?format=…`, który żąda kontenera, którego Twoja przeglądarka nie potrafi nagrać, płynnie przechodzi na inny i odpowiednio nazywa plik.
+> Udostępniony link `?format=…`, który żąda kontenera, którego twoja przeglądarka nie potrafi nagrać, elegancko przechodzi na ten drugi, a nazwa pliku odpowiada kontenerowi, który został nagrany.
 
 **Dźwięk.** Eksporty wideo nie są nieme. Narzędzie może podłożyć **podkład muzyczny** pod klip - zasób audio z katalogu, zapętlony lub przycięty do długości klipu, z narastaniem/wyciszaniem, głośnością i automatycznym duckingiem pod własnym dźwiękiem materiału - a narzędzia nagrywające przenoszą na żywo dźwięk swojego materiału wprost do pliku. **MP4** i **WebM** zachowują zmiksowaną ścieżkę; GIF i animowane formaty obrazu (APNG, Animated WebP, Animowany SVG) są nieme z natury.
 
@@ -255,7 +269,9 @@ Tam, gdzie format to obsługuje, eksporty niosą **metadane pochodzenia** - opro
 
 **Trwałe poświadczenie.** Obok Imprint znajduje się drugi, cięższy znak: **Durable credential**, który używa modelu neuronowego działającego na urządzeniu (format TrustMark), żeby zapisać identyfikator Lolly *w* pikselach, tak by powiązanie "stworzone w Lolly" przetrwało usunięcie metadanych, ponowne kodowanie i ponowny odczyt zarówno przez narzędzia rozumiejące TrustMark, jak i przez samą Lolly. Jest **domyślnie wyłączone** - w przeciwieństwie do czysto JavaScriptowego Imprint kosztuje przebieg neuronowy na każdy eksport plus jednorazowe pobranie modelu, więc to celowy opt-in, a nie cicha danina. Tylko raster (**PNG, JPG, WebP, AVIF, TIFF**), zaznaczane w panelu eksportu albo przekazywane jako `durable=1` w linku udostępniania. W aplikacjach desktopowej i mobilnej karta jest całkowicie ukryta, zamiast pokazywana jako nic nierobiąca, bo nie ma skąd offline pobrać modelu.
 
-**Content protection.** W panelu eksportu *Password protect*, **C2PA Credentials**, **Lolly Imprint** i **Durable credential** łączą się w jedną zwiniętą, świadomą formatu grupę **Content protection**, dzięki czemu opcje pochodzenia i ochrony pliku żyją w jednym miejscu - grupa pokazuje tylko karty pasujące do wybranego formatu i chowa się całkowicie, gdy żadna nie pasuje. Znaki drukarskie celowo nie są w tej grupie: to geometria produkcji drukarskiej, a nie ochrona, więc **Print marks & bleed** - miara spadu w milimetrach plus Crop, Registration, Bleed, Colour bars i Stamp details - zachowuje własną kartę najwyższego poziomu na formatach drukowych.
+**Ochrona treści.** W panelu eksportu **Licencja**, którą przyznajesz, **Przypisania źródeł** wszystkiego, co umieściłeś, *Password protect*, **C2PA Credentials**, **Lolly Imprint** i **Trwałe poświadczenie** zwijają się w jedną, świadomą formatu grupę **Ochrona treści**, dzięki czemu pochodzenie pliku, prawa i opcje ochrony mieszkają w jednym miejscu. Grupa pokazuje tylko karty, które dotyczą wybranego formatu. Otwiera się sama, gdy link lub zapisany dokument już deklaruje licencję, albo gdy źródło wymaga od ciebie decyzji.
+
+**Licencja.** Wybierz, jak inni mogą korzystać z twojej pracy: domyślnie *None (all rights reserved)*, albo CC0 1.0, Public Domain Mark 1.0, albo jedna z licencji Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Nazwa licencji i link do jej opisu są zapisywane w metadanych licencji pliku (EXIF, XMP i RIFF, tam gdzie format ma te pola) oraz w jego Content Credential. Wybór jest zapisywany razem z dokumentem i podróżuje w linku udostępniania jako `licence=`. Lolly zapisuje licencję, którą wybrałeś. Nie sprawdza ani nie egzekwuje jej warunków. Narzędzie z własnym polem licencji, takie jak Claim, zachowuje to pole zamiast tego i nie pokazuje drugiego selektora. Znaczniki drukarskie celowo *nie* są w niej zawarte: to geometria produkcji drukarskiej, a nie ochrona, więc **Znaczniki drukarskie i spad** - pomiar spadu w milimetrach plus Przytnij, Pasowanie, Spad, Colour bars i Szczegóły odcisku - zachowuje własną kartę najwyższego poziomu na formatach drukowanych.
 
 ![Otwarta grupa Content protection przy eksporcie PNG, pokazująca tylko pasujące do niego karty](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
@@ -263,7 +279,7 @@ Tam, gdzie format to obsługuje, eksporty niosą **metadane pochodzenia** - opro
 
 **Koszt, wyliczony z Twojego cennika.** Poniżej preflightu - na samym końcu, wciąż nad przyciskami - znajduje się karta, która zamienia te same liczby na pieniądze, i to zawsze tylko z cen, które ktoś jej podał. Odczytuje wszystko, co policzył przebieg preflightu, niezależnie od tego, czy sama karta preflightu jest włączona, i wymaga, żeby prawdziwe były dwie rzeczy: zlecenie ma coś, co cennik w ogóle potrafi wycenić (płyty, arkusze, powierzchnię, strony, wiersze wariantów lub pliki wyjściowe - więc zwykły PNG z logo nigdy jej nie pokazuje), **oraz** obecny jest **cennik**. Cennik to lista cen w formacie JSON od Twojej drukarni. Domyślna kompilacja nie zawiera żadnego i nie ma w aplikacji sposobu, by go wczytać: pojawia się albo jako zasób katalogowy dostarczony przez wdrożenie, albo przez opcjonalne rozszerzenie cennika włączane przez self-hostera lub płaszczyznę sterowania. Bez cennika nic się nie pokazuje - ani monit, ani pusta tabela.
 
-Reguła, wokół której zbudowana jest cała ta funkcja, brzmi: **nigdy nie zmyśla pieniędzy**. Każda liczba to stawka, którą podałeś, razy ilość policzona przez Lolly - `4 plate × €35.00` - a suma podaje swoje źródło w tym samym zdaniu co liczba: wystawcę wskazanego przez cennik oraz datę, z której - jak twierdzi cennik - pochodzą jego stawki. Nie ma domyślnej waluty, żadnego symbolu zastępczego ani zera stojącego za brakującą ceną. To, co plik mówi o sobie samym, zostaje mową zależną: *"Plik podaje: … Lolly tego nie zweryfikowała"*.
+Reguła, wokół której zbudowana jest cała ta funkcja, jest taka, że **nigdy nie zmyśla pieniędzy**. Każda liczba to stawka, którą podałeś, pomnożona przez ilość, którą policzyło Lolly - `4 plate × €35.00` - a suma niesie własne źródło w tym samym zdaniu co liczba: wydawcę podanego na karcie i datę, z której - jak mówi karta - pochodzą jej stawki. Nie ma domyślnej waluty, symbolu zastępczego ani zera zastępującego brakującą cenę. To, co plik mówi o sobie, pozostaje mową zależną: *„Plik mówi: … Lolly tego nie zweryfikowało.”*
 
 A kiedy nie może policzyć uczciwie, robocza tabela **znika**, zamiast degradować się do wyszarzonej lub uzupełnionej na siłę liczby:
 
@@ -318,11 +334,11 @@ Eksport, który umieszcza cudze dzieło, rejestruje to źródło również w po�
 
 ## Na telefonie
 
-Kontrolki eksportu znajdują się za pływającym przyciskiem **Render**, który otwiera arkusz **Export** - te same formaty, rozmiar, kopiowanie, pobieranie i udostępnianie, dostosowane do dotyku.
+Elementy sterujące eksportem mieszczą się za pływającym przyciskiem **Eksportuj**, który otwiera arkusz **Eksportuj** - te same formaty, rozmiar, kopiowanie, pobieranie i udostępnianie, dopasowane do dotyku.
 
 ## Formaty - skrót
 
-Każdy identyfikator, jaki potrafi wyrenderować host, pogrupowany. To także wartości parametru URL `format=` oraz flagi CLI `--export=` - zobacz [URL Mode](/info/url-mode.html) i [CLI](/info/cli.html). Narzędzie oferuje tylko podzbiór zadeklarowany przez autora, więc selektor jest zawsze krótszy niż ta lista.
+Każdy identyfikator, jaki potrafi wyrenderować host, pogrupowany. To także wartości parametru URL `format=` oraz flagi CLI `--export=` - zobacz [Tryb URL](/info/url-mode.html) i [CLI](/info/cli.html). Menu narzędzia pokazuje tylko formaty, które to narzędzie potrafi utworzyć, więc jest zawsze krótsze niż ta lista.
 
 | Rodzaj | Identyfikatory |
 |---|---|

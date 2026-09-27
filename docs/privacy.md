@@ -53,8 +53,9 @@ your device only**, never transmitted:
 
 None of this is shared, sold or used to identify or track you. There is nothing
 to consent to, because there is no collection happening - only this notice, so you
-know what's kept and where. Wipe all of it at any time with **Profile → Clear all
-my data**, or by clearing the site's storage in your browser. (Under the ePrivacy
+know what's kept and where. Clearing the site's storage in your browser removes
+all of it at any time; **Settings → Storage → Clear all my data** removes your
+profile, saved sessions, uploaded images and the asset cache. (Under the ePrivacy
 Directive Art. 5(3), storage that is strictly necessary for the service you asked
 for doesn't require consent - only transparency, which is what this document and
 the in-app notice both are.)
@@ -62,7 +63,7 @@ the in-app notice both are.)
 ![The storage section of the profile page on a phone-width screen: every category of on-device data named, with the Clear all my data button right beside it](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 Your own backup of this data - the `lolly-backup` bundle produced by **Export my
-data & render everything** - is a file you keep and control. It never touches our
+data** - is a file you keep and control. It never touches our
 servers unless you choose to send it somewhere yourself. See [Data
 Transfer](/info/data-transfer.html).
 
@@ -378,8 +379,8 @@ Because almost everything Lolly touches is stored only on your own device, most 
 what data-protection law calls "your rights" - access, correction, deletion,
 portability - are things you can already do yourself, instantly, without asking
 anyone: your data lives in your browser's storage, in a form you can inspect,
-export (**Export my data & render everything**, above) or delete (**Profile → Clear all
-my data**).
+export (**Export my data**, above) or delete (by clearing the site's storage in
+your browser, as above).
 
 Formally, under GDPR Articles 15-22 you have the right to **access** your
 personal data, to **rectify** it, to **erase** it, to **restrict** or **object

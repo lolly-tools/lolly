@@ -34,7 +34,11 @@
  * lives in lib/docs-landing.ts. This view used to alias 'index' to the Quickstart
  * page, because the landing shipped no rehostable fragment.
  */
+// The chrome both readers share (the round top-row button, the pathways strip, the
+// compact navigation lists), ahead of docs.css so the reader's own placement wins.
+import '../styles/parts/docs-chrome.css';
 import '../styles/parts/docs.css';
+import '../styles/parts/docs-components.css';
 import { escape, safeHref } from '../utils.ts';
 import { t, tRaw, currentLang, normalizeLang, docsInfoHref, LANG_ICON_SVG, type Lang } from '../i18n.ts';
 import { armViewEnter } from '../view-enter.ts';
@@ -50,6 +54,10 @@ import { createDocsNarrationHost, type DocsNarrationHandle } from '../lib/docs-n
 import { createDocsTtsHost, type DocsTtsHost } from '../../../../docs/player/tts-host.ts';
 import { hydrateDocsTryIt } from '../lib/docs-tryit.ts';
 import { icon } from '../lib/icons.ts';
+import { createScope } from '../lib/dispose.ts';
+import { enhanceDocsReading } from '../lib/docs-enhance.ts';
+import { enhancePathwaysStrip } from '../lib/docs-strip.ts';
+import { docsClipboardWriter, docsCopyLabels } from '../lib/docs-clipboard.ts';
 import { enhanceDocsFormats } from '../lib/docs-formats.ts';
 import { ensureLandingStyles, adaptLandingLinks, hydrateLandingCycle, hydrateLandingCovers, fitHeroCtaInk } from '../lib/docs-landing.ts';
 import {
@@ -121,11 +129,18 @@ export async function mountDocs(
   viewEl.innerHTML = shellHtml(`<p class="docs-status">${t('Loading…')}</p>`);
   mountBackPill(viewEl);
   mountHomeFab(viewEl);
+  // One scope owns everything this mount sets up, and the view's cleanup disposes it at
+  // once, even while the fetch or the narration lookup is still in flight. #view persists
+  // across routes, so a mount that loses that race checks scope.disposed after each await
+  // and stops before it can write into, or unregister audio from, the next view.
+  const scope = createScope();
+  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => scope.dispose();
   // On mobile the profile pill becomes the consolidated menu (theme / Home /
   // Language / settings) - the same stable anchor the gallery topbar has - and
   // the standalone language button + home FAB hide (docs.css / overrides.css).
   // Desktop is untouched: the pill stays a plain link to #/settings.
   const detachProfileMenu = attachProfileMenu(viewEl.querySelector<HTMLElement>('.docs-profile-link'), host);
+  scope.add(detachProfileMenu);
   viewEl.querySelector('[data-topright]')?.prepend(createThemeToggle(host, { className: 'docs-top-btn' }));
   // Language switcher, styled as a docs top pill (not the bare .lang-fab icon) so it
   // matches the theme/home/wide cluster it sits in. attachLangMenu takes the element
@@ -141,6 +156,7 @@ export async function mountDocs(
   langBtn.innerHTML = LANG_ICON_SVG;
   viewEl.querySelector('[data-topright]')?.prepend(langBtn);
   const detachLangMenu = attachLangMenu(langBtn, host);
+  scope.add(detachLangMenu);
   if (isLanding) {
     // Both before the fetch, so the loading state already sits in the landing's own
     // single-column shell and the band CSS is parsed by the time the fragment lands.
@@ -196,7 +212,7 @@ export async function mountDocs(
   const fetched = await fetchDocHtml({
     urls: [url, docsInfoHref(slug, 'en')],
     fetch: (input, init) => fetch(input, init),
-    alive: () => viewEl.isConnected,
+    alive: () => !scope.disposed,
   });
   if (!fetched.ok) {
     // An unmounted view says nothing; a 404 and a dead connection each get their
@@ -211,7 +227,7 @@ export async function mountDocs(
     return;
   }
   const html = fetched.html;
-  if (!viewEl.isConnected) return;
+  if (scope.disposed) return;
 
   const doc = new DOMParser().parseFromString(html, 'text/html');
   // Two extraction markers: `.docs-content` on every doc page, `.docs-landing` on the
@@ -261,7 +277,11 @@ export async function mountDocs(
   // (valid inside <main>, and the right role for a doc page), keeping the
   // `docs-content page-<slug>` classes so docs.css applies. Internal doc links are
   // rewritten to the in-app reader first, so navigation stays in the SPA.
-  const node = rehostFragment(fragment, { strip: 'script, .listen-bar', rewriteLinks: rewriteDocLinks });
+  // `.docs-strip-band` is the pathways strip a band-less page (the landing, an immersive
+  // page) carries in its body; the reader shows that strip in its own slot instead. The
+  // strip is adopted first, because the rehost removes the band from the parsed page.
+  const pathwaysStrip = extractPathways(doc);
+  const node = rehostFragment(fragment, { strip: 'script, .listen-bar, .docs-strip-band', rewriteLinks: rewriteDocLinks });
 
   // THE PAGE TITLE. `docsMasthead` (docs/build.ts) lifts each page's <h1> out of the
   // article and into a full-width band that is a SIBLING of `.docs-wrap` - so it sits
@@ -285,6 +305,10 @@ export async function mountDocs(
     }
   }
 
+  // Copy on code blocks and its feedback (lib/docs-enhance.ts), bound before the article
+  // is shown and released with the view. The writer confirms only a real clipboard write.
+  scope.add(enhanceDocsReading(node, { writeText: docsClipboardWriter(host), labels: docsCopyLabels(), copyIcon: icon('clipboard') }));
+
   contentEl.replaceChildren(node);
 
   // Scrolling a heading into view within #view is lib/docs-rehost.ts's
@@ -304,7 +328,18 @@ export async function mountDocs(
     if (!scrollToHeading(node, decodeURIComponent(raw.slice(1)), 'smooth')) return;
     e.preventDefault();
   };
-  node.addEventListener('click', onAnchorClick as EventListener);
+  scope.listen(node, 'click', onAnchorClick as EventListener);
+
+  // A section link to the page already open (from search or Ask) changes only the query,
+  // and the router keeps a reader mounted for the same page, so scroll to the section here.
+  const currentHash = (): string => globalThis.location?.hash ?? '';
+  const mountedPath = currentHash().split('?')[0];
+  scope.listen(window, 'hashchange', () => {
+    const [path, query = ''] = currentHash().split('?');
+    if (path !== mountedPath) return;
+    const h = new URLSearchParams(query).get('h');
+    if (h) scrollToHeading(node, h, 'smooth');
+  });
 
   // ── Navigation: cross-doc (pathways / sidebar / footer sitemap) + in-page (TOC) ──
   // The fetched page's real nav lives OUTSIDE .docs-content, so the reader used to throw
@@ -318,7 +353,7 @@ export async function mountDocs(
     slot.replaceChildren(el);
     slot.hidden = false;
   };
-  fillSlot('[data-pathways]', extractPathways(doc));
+  fillSlot('[data-pathways]', pathwaysStrip);
   // The strip's prepended "Welcome" tab is the landing itself - active only there
   // (the per-page .active marks ride across from the fetched nav for the rest).
   if (isLanding) viewEl.querySelector('.docs-pathway-home')?.classList.add('active');
@@ -351,6 +386,9 @@ export async function mountDocs(
       + `<text class="docs-tsig-num" x="32" y="40">${n}</text>`
       + '</svg>';
     strip.appendChild(donut);
+    // On a phone the strip keeps one line and scrolls, as on /info: fade the edges
+    // with tabs beyond them and bring the current section into view (lib/docs-strip.ts).
+    scope.add(enhancePathwaysStrip(strip));
   }
   fillSlot('[data-sidebar]', extractSidebar(doc));
   fillSlot('[data-sitemap]', extractSitemap(doc));
@@ -362,6 +400,29 @@ export async function mountDocs(
   // bands (hidden in landing mode), and the bands are sections of a front door rather
   // than headings of an article. Its pathways + sitemap slots fill as on any page; it
   // ships no `.docs-sidebar`, so that slot stays hidden on its own.
+  const onTocClick = (e: MouseEvent): void => {
+    const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[data-toc-target]');
+    if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
+    const id = a.dataset.tocTarget || '';
+    const compactGroup = a.closest<HTMLDetailsElement>('.docs-compact-group');
+    if (!compactGroup) {
+      if (scrollToHeading(node, id, 'smooth')) e.preventDefault();
+      return;
+    }
+    // A compact list (phone and tablet) sits above the article, so it folds away BEFORE
+    // the scroll starts: collapsing it mid-scroll pulled the page up under the reader and
+    // left the heading far above the screen. Then the heading takes focus, so keyboard
+    // and screen-reader users arrive where they asked to go.
+    const heading = id ? node.querySelector<HTMLElement>(`#${CSS.escape(id)}`) : null;
+    if (!heading) return;
+    e.preventDefault();
+    compactGroup.open = false;
+    requestAnimationFrame(() => {
+      scrollToHeading(node, id, 'smooth');
+      if (!heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1');
+      heading.focus({ preventScroll: true });
+    });
+  };
   const toc = (isLanding || isImmersive) ? null : buildToc(node);
   let stopSpy: (() => void) | null = null;
   if (toc) {
@@ -370,11 +431,7 @@ export async function mountDocs(
       tocSlot.replaceChildren(toc.el);
       tocSlot.hidden = false;
       // TOC links (`#<id>` + data-toc-target) scroll within the reader, never the route.
-      toc.el.addEventListener('click', (e) => {
-        const a = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[data-toc-target]');
-        if (!a || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button > 0) return;
-        if (scrollToHeading(node, a.dataset.tocTarget || '', 'smooth')) e.preventDefault();
-      });
+      toc.el.addEventListener('click', onTocClick);
       // Scroll-spy (Andy, 2026-08-17): the sticky rail alone just parks the list - the
       // TOC should FOLLOW the reading position. The current section is the last heading
       // above the reading line (120px under the top edge); cheap enough to run on the
@@ -402,6 +459,17 @@ export async function mountDocs(
       spy();
     }
   }
+  scope.add(() => stopSpy?.());
+
+  // Phone and tablet: docs.css folds both rails away at 1024px and below, which left the
+  // section's other pages unreachable and put "On this page" after the whole article.
+  // The same two lists, as native disclosures above the article (hidden on wider screens,
+  // where the rails show). Copies of what the slots already hold, so nothing new is fetched.
+  const compact = compactNav(viewEl.querySelector<HTMLElement>('[data-sidebar] > .docs-sidebar'), toc?.el ?? null);
+  if (compact) {
+    compact.addEventListener('click', onTocClick);
+    contentEl.before(compact);
+  }
 
   // ── M3: interactive "Try it" embeds (progressive enhancement) ─────────────────
   // ADDITIVE: turn the static, C2PA-signed tool screenshots into live affordances under
@@ -427,7 +495,8 @@ export async function mountDocs(
   // (the section heading rides a ?h= query param, since a second '#' can't ride the
   // hash route). Scroll that heading into view now that the fragment is in the DOM -
   // a no-op when absent or the id isn't on the page.
-  if (deepLink) scrollToHeading(node, deepLink, 'auto');
+  // The router keeps this scroll only when the target was really found (main.ts).
+  if (deepLink && scrollToHeading(node, deepLink, 'auto')) viewEl.dataset.deepScrolled = '';
 
   // ── Narration "Listen" dock (unified audio-dock migration, Phase 2a) ──────────
   // ADDITIVE: the reader had no player. Content-gated - mounted ONLY when this slug
@@ -455,31 +524,60 @@ export async function mountDocs(
       tts = null;
     }
   }
-  const block = narration?.host ?? tts;
-  if (block) {
-    if (!viewEl.isConnected) {
-      // The reader unmounted while the track was resolving - never leave audio behind.
-      narration?.destroy();
-      tts?.destroy();
-      narration = null;
-      tts = null;
-    } else {
-      // Either host is a valid DockNarrationPlayer (transport + narration adapter).
-      registerNarrationSource(block);
-    }
+  if (scope.disposed) {
+    // The reader unmounted while the track was resolving: never leave audio behind, and
+    // never touch the shared dock, which may already hold the next page's narration.
+    narration?.destroy();
+    tts?.destroy();
+    return;
   }
+  const block = narration?.host ?? tts;
+  // Either host is a valid DockNarrationPlayer (transport + narration adapter).
+  if (block) registerNarrationSource(block);
 
   armViewEnter(viewEl, '.docs-content, .docs-landing');
 
-  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => {
-    node.removeEventListener('click', onAnchorClick as EventListener);
-    detachLangMenu();
-    detachProfileMenu();
-    stopSpy?.();
+  scope.add(() => {
     // Order: detach the narration block from the shared window (the window stays if music
     // is still registered) before dropping the host (stops audio, removes the <audio> tap).
     unregisterNarrationSource();
     narration?.destroy();
     tts?.destroy();
+  });
+}
+
+/** The phone and tablet navigation: the section's pages and this page's headings as two
+ *  native disclosures, built from copies of the rail and the table of contents. */
+function compactNav(sidebar: HTMLElement | null, toc: HTMLElement | null): HTMLElement | null {
+  const groups: HTMLDetailsElement[] = [];
+  const group = (title: string, glyph: Parameters<typeof icon>[0], body: HTMLElement): HTMLDetailsElement => {
+    const d = document.createElement('details');
+    d.className = 'doc-details docs-compact-group';
+    // Fixed markup plus registry icons; the title goes in through textContent below.
+    d.innerHTML = `<summary><span class="doc-details-glyph" aria-hidden="true">${icon(glyph)}</span>`
+      + '<span class="doc-details-title"></span>'
+      + `<span class="doc-details-chev" aria-hidden="true">${icon('chevronRight')}</span></summary><div class="doc-details-body"></div>`;
+    d.querySelector('.doc-details-title')!.textContent = title;
+    d.querySelector('.doc-details-body')!.append(body);
+    return d;
   };
+  if (sidebar) {
+    const list = sidebar.cloneNode(true) as HTMLElement;
+    const heading = list.querySelector('.sidebar-pathway');
+    const title = heading?.textContent?.trim() || t('Documentation');
+    heading?.remove();
+    list.classList.add('docs-compact-list');
+    groups.push(group(title, 'folder', list));
+  }
+  if (toc) {
+    const list = toc.cloneNode(true) as HTMLElement;
+    list.querySelector('.docs-toc-head')?.remove();
+    list.classList.add('docs-compact-list');
+    groups.push(group(t('On this page'), 'hash', list));
+  }
+  if (!groups.length) return null;
+  const nav = document.createElement('div');
+  nav.className = 'docs-compact-nav';
+  nav.append(...groups);
+  return nav;
 }

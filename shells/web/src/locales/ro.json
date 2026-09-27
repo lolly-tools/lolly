@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "Un rând marcat „limitat” arată un spațiu prea îngust pentru a o cuprinde - CSS ar rotunji acele numere în interval.",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "Fiecare culoare din paletă ca TEXT (pe rânduri) peste fiecare culoare din paletă ca FUNDAL (pe coloane), plus alb și negru. APCA depinde de polaritate, deci o celulă și oglinda ei diferă, iar diagonala - o culoare peste ea însăși - se citește ~0. Alege un mod de vedere pentru a recolora grila și bara de brand și a recalcula scorul fiecărei perechi pentru acea vedere.",
   "Assets": "Resurse",
-  "Runs the deeper AI text check on Verify and in Assets.": "Rulează verificarea AI mai amănunțită a textului, la Verifică și în Resurse."
+  "Runs the deeper AI text check on Verify and in Assets.": "Rulează verificarea AI mai amănunțită a textului, la Verifică și în Resurse.",
+  "Copied to clipboard": "Copiat în clipboard",
+  "Copy did not work": "Copierea nu a funcționat",
+  "Select the text, then use your device’s copy command.": "Selectează textul, apoi folosește comanda de copiere a dispozitivului tău.",
+  "Select text": "Selectează textul",
+  "Text selected. Use your device’s copy command.": "Text selectat. Folosește comanda de copiere a dispozitivului tău.",
+  "Copy {label}": "Copiază {label}"
 }

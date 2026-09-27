@@ -14,6 +14,38 @@ export function stripFrontMatter(md: string): string {
 }
 
 /**
+ * The reading components (`::: note|warning|check|details Title` … `:::`, see
+ * components.ts) are build syntax too. The twin keeps every title and body, since a
+ * reader or a model needs both, and drops the fence lines. A note's kind leads its
+ * bold title ("**Warning: Clearing site data removes saved work**") so the meaning
+ * survives without the icon. Fence-aware and depth-aware: a code sample inside a
+ * note keeps its own lines, and any other directive passes through untouched.
+ */
+export function unwrapComponentFences(md: string): string {
+  const KIND_WORD: Record<string, string> = { note: 'Note', warning: 'Warning', check: 'Check' };
+  const lines = md.split('\n');
+  const out: string[] = [];
+  const stack: boolean[] = []; // one entry per open ::: fence: true when it is a component
+  let inCode = false;
+  for (const line of lines) {
+    if (/^\s*(```|~~~)/.test(line)) { inCode = !inCode; out.push(line); continue; }
+    if (inCode) { out.push(line); continue; }
+    const t = line.trim();
+    const open = /^:::\s*(note|warning|check|details)\s+(.+)$/.exec(t);
+    if (open) {
+      stack.push(true);
+      const word = KIND_WORD[open[1]!];
+      out.push(word ? `**${word}: ${open[2]!.trim()}**` : `**${open[2]!.trim()}**`, '');
+      continue;
+    }
+    if (t.startsWith(':::') && t.length > 3) { stack.push(false); out.push(line); continue; }
+    if (t === ':::' && stack.length) { if (!stack.pop()) out.push(line); continue; }
+    out.push(line);
+  }
+  return out.join('\n');
+}
+
+/**
  * The markdown twin has no build step to inline art into, so a `::: figure <id>`
  * fence there is a reference to something the reader cannot see, wrapped around the
  * only part of it they can: the caption. Unwrap to the caption prose, which was
@@ -95,7 +127,7 @@ export function mdDescription(md: string): string {
     .split(/\n\s*\n/);
   for (const block of blocks) {
     const line = block.trim().split('\n').map(l => l.trim()).join(' ');
-    if (!line || /^#{1,6} /.test(line) || line.startsWith('>') || line.startsWith('<')) continue;
+    if (!line || /^#{1,6} /.test(line) || line.startsWith('>') || line.startsWith('<') || line.startsWith(':::')) continue;
     if (/^-{3,}$/.test(line) || /^\s*[-*] /.test(line) || line.startsWith('|')) continue;
     if (/^\*[^*]+\*$/.test(line) || /^!\[[^\]]*\]\([^)]+\)$/.test(line)) continue;
     const plain = line

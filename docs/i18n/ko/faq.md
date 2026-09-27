@@ -2,10 +2,10 @@
 
 `/info` 랜딩 페이지의 아코디언에 표시되는 자주 묻는 질문이에요.
 
-**유지 관리 방법:** 아래의 각 `##` 제목은 질문이고, 그 아래(다음 `##` 전까지)의
-내용이 답변이에요. 답변은 사이트의 다른 부분과 같은 가벼운 마크다운을 사용해요 - 문단은
-빈 줄로 구분하세요. 여기서 질문을 추가, 삭제, 재정렬한 뒤 `npm run build:info`(또는
-`npm run dev:web`)를 다시 실행하세요.
+**유지 관리 방법:** 아래의 각 `##` 제목은 질문이고, 그 아래
+(다음 `##` 전까지)의 내용이 답변이에요. 답변은 사이트의 다른 부분과 같은 가벼운 마크다운을 사용해요 -
+문단은 빈 줄로 구분하세요. 여기서 질문을 추가, 삭제, 재정렬한 뒤
+`pnpm run build:info`(또는 `pnpm run dev:web`)를 다시 실행하세요.
 첫 번째 `##` 위쪽 내용(이 제목과 이 안내문)은 빌드 시 무시돼요.
 
 ## /profile 페이지에서 옵트인하면 어떻게 되나요?
@@ -124,6 +124,14 @@ Lolly는 모든 것의 수준을 끌어올려요.
 ![Design의 열린 캔버스 - Import a design이 툴바의 Lolly 메뉴 안에 있어요](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 레이어는 열린 캔버스 위에 편집 가능한 상자로 들어와요. 텍스트는 다시 입력할 수 있고, 도형은 도형 그대로 남고, 이미지는 사용자의 이미지 라이브러리에 합류하며, 서체와 색상은 브랜드 전역 값을 따라요. 저장하면 그 레이아웃은 Lolly를 쓰는 누구나 내용을 다시 채울 수 있는, URL로 지정 가능한 재사용 템플릿이 돼요 - 불러올 때 다시 렌더링되는 라이브 도구(QR 코드, 차트)도 함께 섞어 넣을 수 있고요. 그다음부터는 Lolly의 다른 결과물과 똑같이 렌더링돼요 - SVG, PDF, PNG 등 무엇이든, URL로 재현할 수 있어요. [Import a design](/info/design-import.html)을 참고하세요.
+
+## 어제 만든 건 어디에 있나요?
+
+**다른 이름으로 저장** 또는 **저장**을 눌렀다면 저장에 사용한 브라우저나 앱의 홈 화면, **프로젝트**에 있어요. **다운로드**만 눌렀다면 파일은 브라우저나 시스템이 다운로드를 저장하는 위치에 있고, 보통 **애셋**에도 사본이 있어요. 9개 도구는 저장하지 않은 작업도 **프로젝트**에 보관해요. 모든 경우를 [작업 찾기 및 복구](/info/find-your-work.html)에서 다뤄요.
+
+## 탭을 닫았어요. 작업이 사라졌나요?
+
+저장한 작업은 여전히 **프로젝트**에 있어요. 저장하지 않은 작업은 사라지지만, 작업하는 동안 저장되는 9개 도구는 예외이며 이 경우도 **프로젝트**에 보관돼요. 다음에는 나가기 전에 **다른 이름으로 저장**을 누르세요. [탭을 닫았거나 도구를 떠났을 때](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool)를 참고하세요.
 
 ## 작업물을 링크 대신 파일로 공유할 수 있나요?
 

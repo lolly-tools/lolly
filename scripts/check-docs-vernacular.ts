@@ -372,15 +372,31 @@ export function scan(): Violation[] {
  * the VERBATIM CLI output quotes, not our copy. English pages only: locale pages
  * are translated output with their own punctuation rules.
  */
-export function scanBuilt(): Violation[] {
+/** The built English pages scanBuilt reads, repo-relative: the landing and redirect
+ *  stubs at the root plus every page behind a door directory (plans/177 P1 moved the
+ *  real pages to /info/<door>/<slug>.html, so reading the root alone meant reading
+ *  the landing and 100-odd stubs). Exported so a test can assert the scan reaches
+ *  the door pages rather than trusting a directory listing. */
+export const BUILT_DOORS = ['start', 'create', 'build', 'operate', 'trust'] as const;
+export function builtTargets(): string[] {
   const dir = join(ROOT, 'shells/web/public/info');
   if (!existsSync(dir)) return [];
+  const out: string[] = [];
+  for (const sub of ['', ...BUILT_DOORS]) {
+    const abs = join(dir, sub);
+    if (!existsSync(abs)) continue;
+    for (const f of readdirSync(abs)) {
+      if (f.endsWith('.html')) out.push(`shells/web/public/info/${sub ? `${sub}/` : ''}${f}`);
+    }
+  }
+  return out.sort();
+}
+
+export function scanBuilt(): Violation[] {
   const violations: Violation[] = [];
   const STRIP = /<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>|<svg[\s\S]*?<\/svg>|<pre[\s\S]*?<\/pre>|<code[\s\S]*?<\/code>/g;
-  for (const f of readdirSync(dir)) {
-    if (!f.endsWith('.html')) continue;
-    const rel = `shells/web/public/info/${f}`;
-    const stripped = readFileSync(join(dir, f), 'utf8').replace(STRIP, ' ');
+  for (const rel of builtTargets()) {
+    const stripped = readFileSync(join(ROOT, rel), 'utf8').replace(STRIP, ' ');
     const spoken = [...stripped.matchAll(/(?:aria-label|title)="([^"]*)"/g)].map(m => m[1]!).join('\n');
     const visible = stripped.replace(/<[^>]*>/g, ' ');
     for (const [where, text] of [['visible text', visible], ['aria-label/title', spoken]] as const) {
@@ -422,5 +438,5 @@ if (invokedDirectly) {
     printVernacularWhy();
     process.exit(1);
   }
-  console.log(`✓ vernacular + unicode clean across ${targets().length} source files and the built pages`);
+  console.log(`✓ vernacular + unicode clean across ${targets().length} source files and ${builtTargets().length} built pages`);
 }

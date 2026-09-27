@@ -4,9 +4,9 @@ Everything a Lolly user accumulates lives **on their device** - no account, no c
 
 ![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-This page is the format spec. For the end-user walkthrough see [Using Lolly → Moving to another device](/info/using.html). The implementation is [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), and [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) pins the round-trip contract.
+This page is the format spec. For the end-user walkthrough see [Find and recover your work → Move your work to another device](/info/find-your-work.html#move-your-work-to-another-device). The implementation is [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), and [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) pins the round-trip contract.
 
-> **Scope.** A bundle carries *user data*, not tools. Tools and catalog assets are synced separately and are assumed to already be present on the target (worst case at a higher version). Importing never installs or upgrades a tool.
+> **Scope.** A bundle carries *user data*, not catalogue tools. Catalogue tools and catalog assets are synced separately and are assumed to already be present on the target (worst case at a higher version); tools a user made themselves travel inside `profile.json`. Importing never installs or upgrades a catalogue tool.
 
 ## Goals
 
@@ -22,11 +22,12 @@ A bundle is a plain `.zip`. The download is named for the person it belongs to -
 | Path | Required | Contents |
 |---|---|---|
 | `manifest.json` | yes | Format id, versions, counts and per-part integrity. The first thing a reader looks at. |
-| `profile.json` | when set | The user's `me` record (name, contact, headshot ref, flags). Read via `host.profile`. |
+| `profile.json` | when set | The user's whole `me` record: name, contact, headshot ref and flags, plus folders, Trash, project blueprints, user templates and user-made tools, favourites, hidden tools, language and emoji choice. Read via `host.profile`. |
 | `sessions.json` | yes | Every saved session: slot, tool id/version, label, thumbnail (data-URL) and full input data. Read via `host.state`. |
-| `assets.json` | yes | Metadata for each uploaded asset (images, fonts, brand tokens), each pointing at its bytes under `assets/blobs/`. |
+| `assets.json` | yes | Metadata for each uploaded asset (images, fonts, brand tokens, logos, saved copies of downloads), each pointing at its bytes under `assets/blobs/`. |
 | `assets/blobs/<n>.<ext>` | per asset | The raw asset bytes (image and font files). Stored uncompressed (already-compressed formats). The extension is cosmetic. The MIME in `assets.json` is authoritative. |
 | `assets/blobs/<n>.c2pa` | when present | Extracted Content Credentials as exact binary bytes, referenced by `_credentialFile` in the asset record. These are not device signing keys. |
+| `design-systems.json` | when present | The design systems made or added on this install, as `{ active, records }`. Merged by id on import; the bundle's active choice applies only when the target has no design system of its own. |
 | `file-history.json` | optional | Versioned asset snapshots, terminal file-operation reports and complete batch manifests. The history part has its own version; provided by the shell's internal `fileHistory` backup adapter. |
 | `revision-history.json` | optional, manual backups | Stable creation IDs, retained checkpoints, thumbnails and rolling recovery drafts. Provided by `host.state.history.backup` where supported. |
 | `file-history/versions/` | per snapshot | Previous asset bytes and extracted credentials, independent of whether the current asset still exists. |
@@ -98,6 +99,7 @@ Import is **merge-overwrite**, never replace-all:
 
 - Existing data on the target is left in place.
 - Any key that collides - the profile, a session slot, an uploaded image id - is replaced by the imported copy.
+- The profile is one record, so it is replaced whole: the target's folders, Trash, templates, favourites and hidden tools become the bundle's. A session the target had but the bundle did not is kept, unfiled, at the top level of Projects.
 - Historical asset versions and operation IDs are immutable exceptions: a repeat import is idempotent, and an ID already naming different bytes/history is refused, not overwritten. Re-importing an identical current asset preserves its version. A changed current asset must carry a different version.
 - Creation history is also an exception: a conflicting current document or revision identity aborts its restore before profile, asset or preference changes. An identical repeat import adds no storage. Restore a conflicting archive on a separate install to inspect and copy its creations.
 - Nothing that was not in the bundle is touched. A session the target had but the bundle did not survives the import.
@@ -133,7 +135,7 @@ Batch manifests record every selected source before processing, including files 
 - Local result history has a 512 MiB budget and 100-record cap. Asset snapshots have a separate 512 MiB budget and at most 20 historical versions per asset; extracted credential bytes count toward that snapshot budget. Restore respects these limits and never silently evicts existing user data.
 - Local batch metadata has a separate 4 MiB budget, at most 100 manifests and 20 members per batch. Pending members reserve metadata capacity, with a 32 KiB per-member report ceiling. This is a logical budget, not a browser disk-space guarantee; a real quota failure is surfaced and the in-memory report remains downloadable. Retrying a batch member creates a new batch without overwriting the old report. Removing a batch record does not remove individual result bytes or library assets.
 - Converted results can be explicitly added to the library without normalization or re-encoding. Source/output hashes and the operation relation accompany the asset. Repeated adds reuse an unchanged copy; an edited copy is never overwritten. Raster images can start a new Design document. That document uses the current library asset ID: enforcing exact version pins throughout Design's runtime and URL path is still separate work. SVG/HTML/PDF/ZIP results are kept as opaque file assets by this handoff, not promoted to trusted interactive/vector content.
-- **Convert → Recent file operations** exposes history usage, reports, downloads and the version manager. The manager also finds earlier versions of deleted library assets. Restoring a snapshot creates a new current version while keeping the selected snapshot intact. **Profile → Storage** accounts for results and versions separately from disposable caches.
+- **Convert → Recent file operations** exposes history usage, reports, downloads and the version manager. The manager also finds earlier versions of deleted library assets. Restoring a snapshot creates a new current version while keeping the selected snapshot intact. **Settings → Storage** accounts for results and versions separately from disposable caches.
 - Explicit temporary-file cleanup removes only operation-owned, unreferenced bytes. Current records protect their files; recent OPFS files have a one-hour grace period. Saved results and asset snapshots are not automatically cleared.
 
 Older readers still accept the v2 envelope (`minReader: 1`) and restore familiar parts, counting unsupported history parts as skipped. Full history recovery requires a shell with the `fileHistory` adapter; this is a shell-internal seam, not a new tool-facing `HostV1` capability. Real two-device restore is covered by the local Chromium gate; installed Tauri/iOS/Android recovery acceptance remains separate.
@@ -141,7 +143,7 @@ Older readers still accept the v2 envelope (`minReader: 1`) and restore familiar
 ## What does not travel
 
 - **Catalog caches** (downloaded asset metadata and blobs, the tool index) - re-synced for free on the target.
-- **Tools and brand assets** - out of scope, and assumed already present on the target.
+- **Catalogue tools and catalogue assets** - out of scope, and assumed already present on the target. Brand tokens, fonts and logos the user added are user assets, so they do travel.
 - **`blob:` / object URLs** - regenerated by the bridge on load.
 - **Conversion originals, live execution leases and machine-local access/signing secrets** - not portable history payload. A saved result is a copy, not a promise that the original source was backed up.
 - **The export sequence counter** - the per-day download-naming counter (`localStorage` key `lolly-export-seq`) is a local naming convenience. It is kept out of `PREF_KEYS`, so it never rides in a bundle.
@@ -157,13 +159,13 @@ The storage meter itemises the same split. Saved sessions, My images and File re
 Two shells sit outside that guarantee, for different reasons:
 
 - The **one-shot CLI** has nothing to carry - its state is in-memory and ephemeral per invocation.
-- The **TUI** does persist state (`~/.lolly`: sessions, folders, profile) and its Profile view can back it up, but it writes a *simpler* archive of its own: `sessions/<slot>.json` per session plus `profile.json` and `folders.json`, with no manifest, no `formatVersion`/`minReader` and no integrity map. It is **not** importable by this format - a reader rejects it as "not a Lolly backup" - and confusingly it uses a similar name (`lolly-backup-<stamp>.zip`). Unifying the two is a known gap.
+- The **TUI** does persist state (`~/.lolly`: sessions, folders, profile) and its Profile view can back it up, but it writes a *simpler* archive of its own: `saved-state/<slot>.json` per session plus `profile.json` and `folders.json`, with no manifest, no `formatVersion`/`minReader` and no integrity map. It is **not** importable by this format - a reader rejects it as "not a Lolly backup" - and confusingly it uses a similar name (`lolly-backup-<stamp>.zip`). Unifying the two is a known gap.
 
 ## Reserved extension points
 
-The envelope is a manifest plus a set of named parts by design, so new kinds of portable data can ride it later **without a breaking change**. They slot in as additive parts (new `formatVersion`, same `minReader`), and today's reader skips what it does not recognise. These are on the [roadmap](/info/overview.html#roadmap), not yet implemented. The names are reserved here so the format stays coherent when they land.
+The envelope is a manifest plus a set of named parts by design, so new kinds of portable data can ride it later **without a breaking change**. They slot in as additive parts (new `formatVersion`, same `minReader`), and today's reader skips what it does not recognise. These are not built yet. The names are reserved here so the format stays coherent when they land.
 
-- **`tokens.json` - design tokens.** A [W3C DTCG](https://tr.designtokens.org/format/) design-tokens document (the format [Penpot imports and exports](https://help.penpot.app/user-guide/design-systems/design-tokens/) - tokens with `$value`/`$type`/`$description`, organised into groups, sets and themes). A token set in the bundle lets a user move their brand primitives between installs alongside their sessions. Longer term, an ingested token set becomes a first-class source that tools and palette assets resolve against.
+- **`tokens.json` - design tokens.** A [W3C DTCG](https://tr.designtokens.org/format/) design-tokens document (the format [Penpot imports and exports](https://help.penpot.app/user-guide/design-systems/design-tokens/) - tokens with `$value`/`$type`/`$description`, organised into groups, sets and themes). A token set in the bundle lets a user move their brand primitives between installs alongside their sessions. (A user's own brand tokens already travel today as the `user/tokens/brand` asset in `assets.json`; this part would carry a whole DTCG document with its sets and themes.) Longer term, an ingested token set becomes a first-class source that tools and palette assets resolve against.
 - **`penpot/` - ingested Penpot files.** A reserved directory for a Penpot file (or its extracted, Lolly-relevant subset) imported and surfaced *as a tool*. The bundle will carry the ingested definition, so it travels with the rest of the user's data.
 
 Anything outside these reserved names and the parts above is, to a reader, an unknown part: left untouched and counted in `skipped`.

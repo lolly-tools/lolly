@@ -34,9 +34,15 @@ Teks yang bergerak, scene pada sebuah timeline, dan gerakan yang tetap sesuai br
 
 Rekam satu take yang bersih dengan hitungan mundur (count-in), meter level, dan pelatihan (coaching) yang lembut, atau ubah sebuah catatan suara menjadi sebuah video jadi yang bergerak mengikuti suaranya. Belum ada halaman Record terpisah: Menggunakan Lolly memuatnya, di bagian timeline.
 
-- **[Menggunakan Lolly](/info/using.html#timeline-sequence-studio)** - merekam voiceover langsung ke timeline, tempat take tersebut disimpan dan bagaimana take itu masuk ke mix.
-- **[Buat sesuatu dalam 60 detik](/info/make-something.html#make)** - scene audiogram, untuk saat Anda lebih memilih untuk didengar daripada dilihat.
-- **[Tampilan utilitas](/info/utilities.html)** - Script audio, untuk saat kata-kata datang lebih dulu dan suara menyusul kemudian.
+- **[Menggunakan Lolly](/info/using.html#timeline-sequence)** - merekam voiceover langsung ke timeline, tempat take tersebut disimpan dan bagaimana take itu masuk ke mix.
+- **[Buat berkas pertama Anda](/info/make-something.html#other-first-projects)** - audiogram, untuk saat Anda lebih memilih untuk didengar daripada dilihat.
+- **[Tampilan utilitas](/info/utilities.html)** - Script audio, saat kata-kata datang lebih dulu dan suara menyusul kemudian.
+
+## Presentasikan
+
+Tampilkan kamera, logo, dan nama Anda di atas sebuah deck Design atau Countdown, dengan kontrol pribadi di jendela terpisah.
+
+- **[Presentasi dengan kamera](/info/presenting.html)** - framing, scene tersimpan, berbagi ke audiens, perekaman lokal, dan keterbatasan uji coba saat ini.
 
 ## Berkolaborasi
 

@@ -13,7 +13,7 @@ Wybierz narzędzie, wypełnij kilka pól i pobierz gotowy plik. Albo otwórz pł
 - **[Zrób coś w 60 sekund](/info/make-something.html)** - trzy krótkie przewodniki bez niczego do skonfigurowania, jeśli nigdy wcześniej nie otwierałeś Lolly.
 - **[Korzystanie z Lolly](/info/using.html)** - płótno, elementy sterujące, zapisywanie, Projekty i użycie na telefonie: jak zachowuje się sama aplikacja.
 - **[Brand Studio](/info/brand-studio.html)** - kiedy logotypy, kolory i typografia powinny być twoje, a nie domyślne.
-- **[Importowanie projektu](/info/design-import.html)** - gdy grafika już istnieje jako plik `.fig`, `.penpot`, `.ai`, `.idml` lub SVG, a ty chcesz mieć ją do edycji, a nie spłaszczoną.
+- **[Zaimportuj projekt](/info/design-import.html)** - gdy grafika już istnieje jako plik `.fig`, `.penpot`, `.ai`, `.idml` lub SVG, a ty chcesz mieć ją do edycji, a nie spłaszczoną.
 - **[Widoki narzędziowe](/info/utilities.html)** - arkusz kalkulacyjny, konwerter, Colour Lab, ekstraktor PDF i Script audio, do zadań, które nie są renderowaniem narzędzia.
 - **[Rozszerzenie do przeglądarki](/info/extension.html)** - przechwyć żywą stronę internetową i wykorzystaj ją jako zasób we własnych projektach.
 - **[Wyszukiwanie](/info/search.html)** - jedno pole, które sięga do twoich narzędzi, zapisanych prac, katalogu i ustawień.
@@ -34,9 +34,15 @@ Tekst, który się porusza, sceny na osi czasu i ruch, który pozostaje zgodny z
 
 Nagraj czyste ujęcie z odliczaniem, miernikiem poziomu i łagodnym doradztwem, albo zamień notatkę głosową w gotowe wideo, które porusza się razem z dźwiękiem. Nie ma jeszcze osobnej strony Record: mieści się ona w sekcji osi czasu strony Korzystanie z Lolly.
 
-- **[Korzystanie z Lolly](/info/using.html#timeline-sequence-studio)** - nagrywanie lektora bezpośrednio na osi czasu, gdzie zapisywane jest ujęcie i jak trafia ono do miksu.
-- **[Zrób coś w 60 sekund](/info/make-something.html#make)** - scena audiogramu, na wypadek gdy wolisz być usłyszany, niż widziany.
+- **[Korzystanie z Lolly](/info/using.html#timeline-sequence)** - nagrywanie lektora bezpośrednio na osi czasu, gdzie zapisywane jest ujęcie i jak trafia ono do miksu.
+- **[Zrób swój pierwszy plik](/info/make-something.html#other-first-projects)** - audiogram, na wypadek gdy wolisz być usłyszany, niż widziany.
 - **[Widoki narzędziowe](/info/utilities.html)** - Script audio, gdy słowa powstają najpierw, a głos dochodzi później.
+
+## Prezentuj
+
+Nałóż kamerę, logo i swoje imię i nazwisko na prezentację Design lub Countdown, z prywatnymi elementami sterującymi w osobnym oknie.
+
+- **[Prezentowanie z kamerą](/info/presenting.html)** - kadrowanie, zapisane sceny, udostępnianie widzom, nagrywanie lokalne oraz obecne ograniczenia wersji próbnej.
 
 ## Współpracuj
 

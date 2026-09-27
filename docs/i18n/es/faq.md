@@ -5,7 +5,7 @@ Preguntas frecuentes que se muestran en el acordeón de la página de inicio `/i
 **Cómo mantenerlo:** cada encabezado `##` de abajo es una pregunta; todo lo que hay debajo
 (hasta el siguiente `##`) es la respuesta. Las respuestas usan el mismo markdown ligero que
 el resto del sitio - separa los párrafos con una línea en blanco. Añade, quita o
-reordena preguntas aquí y vuelve a ejecutar `npm run build:info` (o `npm run dev:web`).
+reordena preguntas aquí y vuelve a ejecutar `pnpm run build:info` (o `pnpm run dev:web`).
 Todo lo que está por encima del primer `##` (este título y estas notas) lo ignora la compilación.
 
 ## ¿Qué pasa cuando activo la opción en la página /profile?
@@ -124,6 +124,14 @@ Sí. Abre **Design** y haz clic en **Import a design** (Importar un diseño): ac
 ![El lienzo abierto de Design - Importar un diseño está en el menú Lolly de la barra de herramientas](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Las capas llegan como cajas editables al lienzo abierto: el texto se sigue pudiendo reescribir, las formas siguen siendo formas, las imágenes pasan a tu propia biblioteca de imágenes y la tipografía y los colores se ajustan a los globales de la marca. Guárdalo y la maquetación se convierte en una plantilla reutilizable y direccionable por URL que cualquiera con Lolly puede volver a rellenar - y puedes mezclar herramientas vivas (un código QR, un gráfico) que se vuelven a renderizar al cargar. A partir de ahí se renderiza como todo lo demás en Lolly - SVG, PDF, PNG y el resto, reproducible desde su URL. Consulta [Importar un diseño](/info/design-import.html).
+
+## ¿Dónde está lo que hice ayer?
+
+Si pulsaste **Guardar como** o **Guardar**, está en **Proyectos**, en la pantalla de inicio, en el navegador o la app desde la que guardaste. Si solo pulsaste **Descargar**, el archivo está donde tu navegador o sistema guarda las descargas, y normalmente hay una copia en **Recursos**. Nueve herramientas también guardan el trabajo sin guardar en **Proyectos**. [Encuentra y recupera tu trabajo](/info/find-your-work.html) cubre todos los casos.
+
+## Cerré la pestaña. ¿Se ha perdido mi trabajo?
+
+El trabajo guardado sigue en **Proyectos**. El trabajo sin guardar se pierde, excepto en las nueve herramientas que guardan mientras trabajas, que también lo conservan en **Proyectos**. La próxima vez, pulsa **Guardar como** antes de salir. Consulta [Si cerraste la pestaña o saliste de la herramienta](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## ¿Puedo compartir mi trabajo como archivo en vez de como enlace?
 

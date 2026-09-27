@@ -34,9 +34,15 @@ Hareket eden metin, bir zaman çizelgesindeki sahneler ve markaya sadık kalan h
 
 Geri sayım, bir seviye ölçer ve nazik yönlendirmelerle temiz bir çekim kaydet, ya da bir sesli notu sesle birlikte hareket eden bitmiş bir videoya dönüştür. Henüz ayrı bir Kaydet sayfası yok: bunu Lolly'yi Kullanma sayfası, zaman çizelgesi bölümünde ele alır.
 
-- **[Lolly'yi kullanma](/info/using.html#timeline-sequence-studio)** - bir seslendirmeyi doğrudan zaman çizelgesine kaydetme, çekimin nerede kaydedildiği ve karışıma nasıl ulaştığı.
-- **[60 saniyede bir şey yap](/info/make-something.html#make)** - görülmek yerine duyulmayı tercih ettiğinde, ses grafiği sahnesi.
+- **[Lolly'yi kullanma](/info/using.html#timeline-sequence)** - bir seslendirmeyi doğrudan zaman çizelgesine kaydetme, çekimin nerede kaydedildiği ve karışıma nasıl ulaştığı.
+- **[İlk dosyanı oluştur](/info/make-something.html#other-first-projects)** - görülmek yerine duyulmayı tercih ettiğinde, ses grafiği sahnesi.
 - **[Yardımcı görünümler](/info/utilities.html)** - önce kelimeler geldiğinde ve ses sonra geldiğinde, Script audio.
+
+## Sun
+
+Kameranı, logonu ve adını bir Design sunumunun veya Countdown'ın üzerine yerleştir; özel denetimler ayrı bir pencerede.
+
+- **[Kamerayla sunum](/info/presenting.html)** - kadrajlama, kaydedilmiş sahneler, izleyiciyle paylaşım, yerel kayıt ve mevcut deneme sürümü sınırlamaları.
 
 ## İş Birliği Yap
 

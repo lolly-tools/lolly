@@ -29,7 +29,19 @@ const REPO = new URL('..', import.meta.url).pathname;
 const BUILT = join(REPO, 'shells/web/public/info');
 const CATALOG = join(REPO, 'docs/site/formats-catalog.json');
 
-const page = (f: string) => readFileSync(join(BUILT, f), 'utf-8');
+// Door pages live under /info/<door>/<slug>.html (plans/177 P1) and the flat
+// /info/<slug>.html is a redirect stub, so a page is read from its door copy first,
+// behind a locale prefix too. The landing (index.html) has no door and stays flat.
+const DOORS = ['start', 'create', 'build', 'operate', 'trust'];
+const builtFile = (rel: string): string => {
+  const m = /^(?:([a-z]{2}(?:-[a-z]+)?)\/)?([^/]+)$/.exec(rel);
+  if (m) for (const door of DOORS) {
+    const path = join(BUILT, m[1] ?? '', door, m[2]!);
+    if (existsSync(path)) return path;
+  }
+  return join(BUILT, rel);
+};
+const page = (f: string) => readFileSync(builtFile(f), 'utf-8');
 
 /** The shared chrome CSS/JS ship as fingerprinted files linked per page (plan 131 B.1),
  *  not inline. Resolve the file a page links and read it from the build. */
@@ -43,7 +55,7 @@ const linked = (html: string, ext: 'css' | 'js'): string => {
 // fingerprinted chrome files must be present (a concurrent build can momentarily leave a
 // page pointing at a file its own next write has not laid down yet).
 const built = (() => {
-  if (!existsSync(join(BUILT, 'build-guide.html'))) return 'no built /info on disk - run `pnpm run build:info`';
+  if (!existsSync(builtFile('build-guide.html'))) return 'no built /info on disk - run `pnpm run build:info`';
   try { linked(page('build-guide.html'), 'css'); linked(page('build-guide.html'), 'js'); }
   catch { return 'built /info is mid-rebuild (linked chrome file absent) - rerun `pnpm run build:info`'; }
   return false;
@@ -78,14 +90,39 @@ test('every article page opens with the masthead band, and the landing does not'
     const bandAt = body.indexOf('<div class="docs-masthead">');
     const wrapAt = body.indexOf('<div class="docs-wrap">');
     assert.ok(bandAt >= 0 && wrapAt > bandAt, `${f}: the band is not above .docs-wrap`);
-    // Exactly one h1, and it is inside the band.
+    // Exactly one h1, and it is inside the band: after the pathways strip, in the title
+    // row (plan 277 step 3c), so the band opens with the sections and then the title.
     const h1s = [...body.matchAll(/<h1[\s>]/g)];
     assert.equal(h1s.length, 1, `${f}: expected exactly one h1`);
-    assert.match(body, /<div class="docs-mast-inner"><h1[^>]*>/, `${f}: the h1 was not hoisted into the band`);
+    assert.match(body, /<div class="docs-mast-inner"><nav class="docs-pathways" aria-label="[^"]+">[\s\S]*?<\/nav><div class="mast-title"><h1[^>]*>/,
+      `${f}: the h1 was not hoisted into the band's title row, after the pathways strip`);
+    // The strip marks the page's section, and the band carries it once.
+    const band = body.slice(bandAt, wrapAt);
+    assert.equal((band.match(/<nav class="docs-pathways"/g) ?? []).length, 1, `${f}: the band should carry the pathways strip exactly once`);
+    assert.match(band, /<a class="docs-pathway active" href="[^"]+" aria-current="(?:page|true)">/, `${f}: the strip does not mark the current section`);
   }
   const landing = bodyOf(page('index.html'));
   assert.ok(!/docs-masthead/.test(landing), 'the landing page grew an article masthead (it has its own hero)');
   assert.match(landing, /id="heroCanvas"/, 'the landing lost its hero canvas');
+});
+
+test('a page with no masthead still opens with the pathways strip, once, in its body', { skip: built }, () => {
+  // Plan 277 step 3c review, C3: format and conversion pages, specification chapters,
+  // the immersive Tenets page and the landing lost the section links at desktop when the
+  // strip lived only in the masthead band. Each now carries it in a slim band, and the
+  // phone menu opens with the same links as rows (a plain group, not a second nav).
+  const pages = ['formats/png/index.html', 'spec/document-model/conformance.html', 'trust/tenets.html', 'index.html'];
+  for (const rel of pages) {
+    const file = join(BUILT, rel);
+    if (!existsSync(file)) continue; // a page family a trimmed build left out
+    const body = bodyOf(readFileSync(file, 'utf-8'));
+    const navs = body.match(/<nav class="docs-pathways"/g) ?? [];
+    assert.equal(navs.length, 1, `${rel}: expected exactly one pathways strip, found ${navs.length}`);
+    const header = /<header class="site-bar[\s\S]*?<\/header>/.exec(body)?.[0] ?? '';
+    assert.ok(!header.includes('<nav class="docs-pathways"'), `${rel}: the strip must sit in the page, not in the bar or its menu`);
+    assert.match(header, /<div class="site-sheet-sections" role="group" aria-label="[^"]+">/, `${rel}: the phone menu no longer opens with the sections`);
+    assert.match(body, /<div class="docs-strip-band[^"]*"><div class="docs-mast-inner"><nav class="docs-pathways"/, `${rel}: the strip is not in its own band`);
+  }
 });
 
 test('hoisting the h1 into the band does not move its anchor', { skip: built }, () => {
@@ -103,13 +140,16 @@ test('hoisting the h1 into the band does not move its anchor', { skip: built }, 
 });
 
 test('the band ships no provenance line - it is shell decoration, not a signed asset', { skip: built }, () => {
-  const band = /<div class="docs-masthead">[\s\S]*?<\/div>\s*<\/div>/.exec(bodyOf(page('build-guide.html')));
+  // The whole band, up to the rail and article under it: it holds the strip and the
+  // title row with Listen now, so a match that stopped at its first closing pair of
+  // divs would inspect only part of the band.
+  const band = /<div class="docs-masthead">[\s\S]*?(?=<div class="docs-wrap">)/.exec(bodyOf(page('build-guide.html')));
   assert.ok(band, 'no band found');
   assert.ok(!/shot-cred|asset-cred|prov-pill/.test(band[0]), 'the masthead claims a credential it does not have');
 });
 
 test('the locale pages get the band too', { skip: built }, () => {
-  const de = join(BUILT, 'de/build-guide.html');
+  const de = builtFile('de/build-guide.html');
   if (!existsSync(de)) return;
   const body = bodyOf(readFileSync(de, 'utf-8'));
   assert.match(body, /<div class="docs-masthead">/);
@@ -219,7 +259,7 @@ test('a banked masthead would replace the canvas, not join it', { skip: built },
   // shared chip script (in the bundle on every page, plan 131 B.1) self-guards on that
   // canvas, so a page whose band has art paints no second field.
   const src = readFileSync(join(REPO, 'docs/build.ts'), 'utf-8');
-  assert.match(src, /const art = mastheadArt\(slug, m\[0\]\);\s*\n\s*if \(art\) return \{ band: art, rest, canvas: false \};/,
+  assert.match(src, /const art = mastheadArt\(slug, heading\);\s*\n\s*if \(art\) return \{ band: art, rest, canvas: false \};/,
     'docs/build.ts no longer picks banked art INSTEAD of the default band');
   assert.match(src, /var canvas=document\.querySelector\('\.docs-mast-canvas'\);\s*\n\s*if\(!canvas\)return;/,
     'the masthead chip script must self-guard on its canvas - it ships on every page in the shared bundle now');

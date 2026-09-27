@@ -1,12 +1,12 @@
 # Using Lolly
 
-A practical guide to actually *using* the app - opening a tool, working the canvas, exporting, saving and sharing. Everything here runs **on your device**: no account, no upload, no internet required after the first load.
+A practical guide to actually *using* the app - opening a tool, working the canvas, exporting, saving and sharing. Everything here runs **on your device**: no account, no upload, and no internet needed for the screens you have already opened.
 
 > New here? The [Quickstart](/info/quickstart.html) gets you making things in minutes, and [Lolly for Operators](/info/operators.html) covers installing/deploying the app; this page is about driving it once it's open.
 
 ## Opening a tool
 
-The home screen is the **gallery** - every tool, grouped by category. Click a card to open the tool; if you've worked on it before, a **Continue** button resumes your most recent session. Use the search box to filter by name - or [Search](/info/search.html) from the bar at the foot of the six listing screens (the gallery, Utilities, Projects, Assets, the Dashboard and Profile), which reaches your saved work, your assets and your settings as well as the tools. Inside a tool the bar steps aside for the tool's own chrome.
+The home screen is the **gallery** - every tool, grouped by category. Click a card to start something new in that tool; [saved work](#saving-continuing) reopens from **Projects**. Use the search box to filter by name - or [Search](/info/search.html) from the bar at the foot of the six listing screens (the gallery, Utilities, Projects, Assets, the Dashboard and Settings), which reaches your saved work, your assets and your settings as well as the tools. Inside a tool the bar steps aside for the tool's own chrome.
 
 ![A gallery card with example navigation and a New action](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
@@ -42,6 +42,32 @@ selection bullet under Projects uses), click the bar's Hide button
 (`[data-bulk="hide"]` - the literal `data-bulk` value bulkBarHtml() writes,
 confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 (`.gtile--hiddenbox`, confirmed in gallery.ts).
+-->
+
+To act on several cards at once, tick each card's checkbox, drag a selection box across empty space or **Shift/Cmd-click**, and a floating action bar appears. **What the selection bar offers** differs a little by view, since not every action makes sense everywhere:
+
+- **Tools / Utilities:** Favourite (or Unfavourite), Hide (or Unhide), Available offline (or Remove from offline), **View sessions** (opens Projects showing only the sessions made with those tools) and Copy link when exactly one card is selected.
+- **Assets:** Favourite and Hide apply to any selection; Duplicate, Download and Delete only appear once every selected item is one of your own uploads - a shared design-system asset is a permanent contract, so those three stay off it even in bulk.
+- **Projects:** see [Find and recover your work](/info/find-your-work.html#find-something-you-saved).
+
+> One label trap: **View sessions** only exists once something is *selected*. Right-clicking a single unselected card instead offers **N saved sessions**, which opens a list of that tool's saved sessions, where a delete is permanent, rather than navigating to Projects.
+
+![The gallery selection bar for two tools, offering Available offline, View sessions, Favourite and Hide](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
+<!--
+SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
+`[data-select="gradient"]` - the `.tile-check[data-select="<ref>"]` checkbox button
+confirmed directly in views/gallery.ts's card markup (the same attribute
+cardMarkup gives every tile), so these two clicks tick both cards without
+opening either tool.
+
+SHOT NOTE (misc-sessions-by-tool, NOT PUBLISHED): the "View sessions" result
+had a recipe of its own (`/#/p?tools=qr-code,d3`, views/projects.ts's
+toolsBodyHtml()), dropped here because it has no `drive=` that can
+manufacture its own content - a saved session isn't a click away, it has to
+already exist, and build-docs-shots.ts gives every shot a fresh
+`browser.newContext()`. It would publish an empty list. Same dependency the
+`projects` shot (now on find-your-work.md) carries; revisit if the pipeline gains a
+storage-seeding hook.
 -->
 
 ### Ask Lolly
@@ -247,77 +273,29 @@ Tools expose only the inputs that are meant to vary - everything else (colours, 
 
 In a live [collaboration](/info/collaborate.html) the history stays yours alone. A change arriving from the other device never goes onto your stack, so undo can only ever take back something you did.
 
+Undo reaches back only through this visit; nine tools also keep earlier versions under **History**, beside **Undo** (see [Go back to an earlier version](/info/find-your-work.html#go-back-to-an-earlier-version)).
+
 ## Your details & headshot
 
-**Profile** (top-right of the gallery) holds your name, contact details and an optional **headshot**. Tools that ask for those fields pre-fill them automatically - set them once and your email signature, lockups and badges fill themselves in. You can still override any field per session. Opt in with **Use my details to create** so your details ride along as the author on what you export.
+**Settings** (top-right of the gallery, showing your first name once you set one) holds your name, contact details and an optional **headshot**. Tools that ask for those fields pre-fill them automatically - set them once and your email signature, lockups and badges fill themselves in. You can still override any field per session. Opt in with **Use my details to create** so your details ride along as the author on what you export.
 
 Your headshot and details live **only on this device**. A profile can be more than just you - a team or a role you step into now and then. See **[Profiles](/info/profile.html)** for the full picture, including keeping more than one.
 
 ## Saving & continuing
 
-Click **Save** to store the current inputs as a session for that tool. You can keep multiple named sessions per tool; each tool's **Continue** button reopens your most recent, and the **history button** (top-right, beside your profile) lists every saved session across all tools. Sessions are device-local. To organise them, open **Projects** (below).
+To keep your work, press **Save as**, the tick beside **Export**. Under **Save to a project**, leave **My library** selected or choose a project (**＋ New project…** makes one), then press **Save**. Saving again updates the same item rather than making a copy. In Design, **Save as** is in the menu under the Lolly logo; on a phone, press **•••**, then **File menu**, then **Save as**.
 
-![The two-half render pill - an up arrow that opens the export panel, and a tick that saves the session in place](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+The **Save** button in the export panel does the same in one click and never downloads a file: new work goes to My library, and work you saved before is updated where it is.
+
+To come back later, press **Home** at the top left, then open the **Projects** tab (a folder icon on a phone). My library saves are on its first screen; a project is a folder there. Items are named after the file name you typed in the export panel, or else after their tool, such as **QR Code**. Open one and every setting is there, ready to change and export again.
+
+Saved work stays on this device, in the browser or app you saved from, unless you turn on [Sync](/info/sync.html). A file you get with **Download** is a finished copy; to change it later, open the saved item in Projects. If something is not where you expect, see [Find and recover your work](/info/find-your-work.html).
+
+![The two-half render pill - an up arrow that opens the export panel, and a tick labelled Save as that opens the save sheet](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
 ## Projects
 
-**Projects** - open it from the **Projects** tab beside **Tools**, or from **Profile → Storage → Organise in Projects** - is a home for everything you've saved, and it works like a file manager:
-
-![Projects - saved sessions organised into nestable folders](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
-
-- <!--i:folder--> **Folders that nest.** Group saved sessions into folders, and folders inside folders, as deep as you like. Create a folder, rename it or drag a tile onto another folder to move it; a breadcrumb walks you back up. Sessions saved without a folder appear directly at the **Projects** root.
-- <!--i:clock--> **Sort your own way.** **View & sort** offers **Name**, **Date added**, **Last modified** (the default) and, inside a folder, **By tool**. Folders always come first regardless of which sort is active - the sort only orders the sessions and folders within their own group.
-- <!--i:document--> **File new work straight in.** **New asset** opens the shared picker. Choose **Templates** to start from a saved template: open it to edit, or use **+ Add** to save a new creation immediately.
-- <!--i:checklist--> **Multi-select (desktop).** Tick a tile's checkbox, drag a selection box across empty space or **Shift/Cmd-click**; **right-click** a tile for its context menu. Then act on the whole selection at once - the same gesture and the same floating action bar work on the Tools gallery, Utilities, Assets and Projects, not just here.
-- <!--i:download--> **Render a whole folder or selection.** **Render folder** exports every saved session in a folder - including its sub-folders - as one nested `.zip`. **Render selection** does the same for any multi-selection, and a single session renders straight to its own file. No Batch/Pro needed.
-- <!--i:link--> **Jump straight to a tool's saved work.** Tick one or more tools on the Tools gallery and choose **View sessions** from the selection bar - Projects opens showing only the sessions made with those tools, with a **Clear** to get back to the full view.
-- <!--i:link--> **Share a saved session.** Right-click a session → **Share link** to copy a link that reopens it with the exact same inputs (the full Share dialog - see below).
-
-![The View and sort popover in Projects open, with a theme row, a View choice of Preview or List and Name, Date added and Last modified under Sort](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
-<!--
-SHOT NOTE (misc-projects-sort): trigger button confirmed as
-`.filter-fab.projects-viewopts` in views/projects.ts (openViewOpts() is bound
-to `.projects-viewopts` specifically) - `.projects-viewopts` alone is the
-more specific hook, so that's what drives the click. The popover it opens
-(`.projects-viewmenu`, also confirmed directly in openViewOpts()) is body-
-appended, not nested under the Projects root, so cropSelector finds it
-regardless. "By tool" only appears inside a folder - this recipe captures at
-the Projects ROOT (`url=/#/p`), so if the capture pass wants "By tool"
-visible too, point url= at a real folder instead: the route is a path
-segment, `/#/p/<folderId>` (confirmed in main.ts's hash router - `parts[0]
-=== 'p'` reads `folderId` from `parts[1]`), not a query param. Caveat: a
-folder has to already EXIST in the capture profile, which a per-shot fresh
-context has none of.
-Also: the popover is not sort-only. openViewOpts() writes a theme segment, a
-"View" pair (Preview / List) and a sound segment around the Sort rows, so the
-alt text lists them - do not re-caption this as "the sort menu".
--->
-
-**What the selection bar offers** differs a little by view, since not every action makes sense everywhere:
-
-- **Tools / Utilities:** Favourite (or Unfavourite), Hide (or Unhide), Available offline (or Remove from offline), **View sessions** (the jump described above) and Copy link when exactly one card is selected.
-- **Assets:** Favourite and Hide apply to any selection; Duplicate, Download and Delete only appear once every selected item is one of your own uploads - a shared design-system asset is a permanent contract, so those three stay off it even in bulk.
-- **Projects:** **Render selection**, **Move to…**, **New folder**, **Delete**, **Edit together** when the selection is between two and eight single-tool sessions (it opens them side by side under one combined sidebar) and **Edit as sheet**, which opens the whole selection as rows in the batch grid instead. That one has **no size limit** and doesn't care whether the sessions came from the same tool, so it's the escape hatch when a selection is bigger or more mixed than Edit together's two-to-eight.
-
-> One label trap: **View sessions** only exists once something is *selected*. Right-clicking a single unselected card instead offers **N saved sessions**, which opens that tool's own history dialog rather than navigating to Projects.
-
-![The gallery selection bar for two tools, offering Available offline, View sessions, Favourite and Hide](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
-<!--
-SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
-`[data-select="gradient"]` - the `.tile-check[data-select="<ref>"]` checkbox button
-confirmed directly in views/gallery.ts's card markup (the same attribute
-cardMarkup gives every tile), so these two clicks tick both cards without
-opening either tool.
-
-SHOT NOTE (misc-sessions-by-tool, NOT PUBLISHED): the "View sessions" result
-had a recipe of its own (`/#/p?tools=qr-code,d3`, views/projects.ts's
-toolsBodyHtml()), dropped here because it has no `drive=` that can
-manufacture its own content - a saved session isn't a click away, it has to
-already exist, and build-docs-shots.ts gives every shot a fresh
-`browser.newContext()`. It would publish an empty list. Same dependency the
-`projects` shot above already carries; revisit if the pipeline gains a
-storage-seeding hook.
--->
+**Projects**, the **Projects** tab at the top of the home screen, holds everything you have saved, in folders you make. Finding, sorting and searching your work there, and restoring an item from **Trash**, are on [Find and recover your work](/info/find-your-work.html#find-something-you-saved).
 
 
 ## Sharing your work
@@ -348,7 +326,7 @@ Paste the link to a colleague, bookmark it or commit it. (Full details: [URL Mod
 - A **design-system pack** (`lolly-brand`) contains tokens and may contain fonts, logos, published versions and retained resources. Opening adds it as a separate named design system, then switches to it; systems already on the device remain.
 - A **brand workspace / instance pack** is a `lolly-brand` with declared tools, catalogue assets and optionally an instance address. The preflight lists those device-wide effects because loading it replaces the single previously loaded workspace overlay.
 
-A full **device/profile backup is not a `.lolly`**. It remains a `LollyTools-….zip` with format `lolly-backup`, and restores only through **Profile → Storage**. A plain zipped tool folder also remains `.zip`. In other words, session and design-system bundles own `.lolly`; backup and loose archive workflows do not.
+A full **device/profile backup is not a `.lolly`**. It remains a `LollyTools-….zip` with format `lolly-backup`, and restores only through **Settings → Storage**. A plain zipped tool folder also remains `.zip`. In other words, session and design-system bundles own `.lolly`; backup and loose archive workflows do not.
 
 **Download .lolly**, in the Share dialog of the tool you're working in, writes the current design as a shared-design bundle. It carries the saved session together with the images and files available on this device. Ordinary catalogue art rides along too. Licensed art is held back unless you explicitly include it, and a stale or unavailable file remains an external reference rather than disappearing. The prepared receipt shows the actual `.lolly` size, embedded-file count, external-reference count and whether the tool is included. Where your device has a share sheet, **Send to…** hands that file straight to it (AirDrop, an Android share) rather than saving it to disk.
 
@@ -378,7 +356,7 @@ Every photo **Filter** - Halftone, Scanline, Posterize, Voronoi cells, Colour tr
 
 ## My images
 
-When a tool lets you add an image from your device, it's kept exactly as it arrived - so a Content Credential on it still verifies - and saved to your personal **My images** library (under **Profile → Storage**). Only a genuinely huge file asks whether to keep or resize it. Reuse it across any tool. To scrub EXIF/GPS as images come in, turn on **Strip metadata from uploads** in your profile. There's no cap: the library is entirely local and limited only by your device's storage - manage or delete images there.
+When a tool lets you add an image from your device, it's kept exactly as it arrived - so a Content Credential on it still verifies - and saved to your personal **My images** library (under **Settings → Storage**). Only a genuinely huge file asks whether to keep or resize it. Reuse it across any tool. To scrub EXIF/GPS as images come in, turn on **Strip metadata from uploads** in your profile. There's no cap: the library is entirely local and limited only by your device's storage - manage or delete images there.
 
 ## Assets - your library
 
@@ -409,31 +387,19 @@ Assets are one half of the open, do-it-yourself path; the other is **making your
 
 Lolly aims to be comfortable to use for everyone. The interface is keyboard-navigable, custom controls carry proper labels for screen readers and every tool's live preview is exposed as a single labelled image describing what it's making.
 
-A gentle layer of **assistive sounds** confirms what you do - arriving in the gallery, a valid vs. invalid Content Credentials check, closing a panel, switching a filter. It's **off by default**: turn **Sound** on anywhere the switch appears (each view's options popover, or **Profile**), and the choice is remembered.
+A gentle layer of **assistive sounds** confirms what you do - arriving in the gallery, a valid vs. invalid Content Credentials check, closing a panel, switching a filter. It's **off by default**: turn **Sound** on anywhere the switch appears (each view's options popover, or **Settings**), and the choice is remembered.
 
-Four opt-in comfort settings live under **Profile → Accessibility**: **Reduce motion** (drops the app's transitions and flourishes), **Hide colourful previews** (calm icon-and-text gallery cards, and quieter project thumbnails), **High contrast** (stronger borders, text and focus rings) and **Large text** (bigger app type - labels, menus, button text). All four settle the app *around* your work: they never reach inside a tool canvas or change a pixel of what you export, and each is off until you turn it on. Full detail in [Your profile → Accessibility](/info/profile.html#accessibility).
+Four opt-in comfort settings live under **Settings → Accessibility**: **Reduce motion** (drops the app's transitions and flourishes), **Hide colourful previews** (calm icon-and-text gallery cards, and quieter project thumbnails), **High contrast** (stronger borders, text and focus rings) and **Large text** (bigger app type - labels, menus, button text). All four settle the app *around* your work: they never reach inside a tool canvas or change a pixel of what you export, and each is off until you turn it on. Full detail in [Your profile → Accessibility](/info/profile.html#accessibility).
 
 Beside the Sound switch is **Neurospicy Mode** - an optional, calming background focus track that plays quietly while you work. Turning it on opens a small **player dock** in the bottom corner that follows you across the app; from it you can search and pick a track, skip forward and back, set the volume and minimise or close it. The track list spans a few categories - procedural *Lolly Sings* tunes, ambient loops and beats, your own uploaded audio and a handful of live internet **radio** stations (these need a connection; everything else plays offline). It's **off by default** and, like Sound, is remembered across sessions and devices. Turning Sound off mutes the focus track too.
 
 ## Storage & privacy
 
-Everything is stored in your browser's local database (IndexedDB): your profile, saved sessions, uploaded images and a cache of downloaded catalog content. **Profile → Storage** shows usage and lets you:
-
-- <!--i:box--> **Clear cache** - drop downloaded catalog content (re-syncs next load).
-- <!--i:trash--> **Clear all my data** - wipe profile, sessions and images. *Cannot be undone.*
-
-![The storage card on a phone-width screen: every category of on-device data named, with the Clear all my data button at the bottom](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
-
-None of this local data is transmitted anywhere - no telemetry, no cloud rendering. The complete list of what the app ever fetches or sends is in the [Privacy Policy](/info/privacy.html), and [Server Surface](/info/server-surface.html) inventories the optional server components.
+Lolly keeps your work on your device: in this browser's own storage in the web app, and in the app's own storage in the desktop and mobile apps. What is kept, what **Clear all my data** removes and what clearing browser data takes with it are on [Find and recover your work](/info/find-your-work.html#if-you-clear-your-browser-data); the [Privacy Policy](/info/privacy.html) lists everything the app fetches or sends, and [Server Surface](/info/server-surface.html) the optional server components.
 
 ## Moving to another device
 
-Because everything lives on your device, **Profile → Storage → Move to another device** lets you carry it all to a second install - no account, no cloud:
-
-- <!--i:download--> **Export my data** downloads a single `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (the name parts come from your profile and are dropped if unset; `<n>` is a per-day counter so same-day exports don't collide) containing your profile, every saved session (with its thumbnail), your uploaded images and your preferences (theme, sidebar width, local activity stats).
-- <!--i:upload--> **Import data…** on the other install reads that file back in. It **merges**: anything with the same name (your profile, a session slot, an image) is replaced by the imported copy; everything else on that device is kept. Saved sessions re-link to your imported images automatically.
-
-The catalog cache isn't included - it re-downloads itself on the new device. The bundle is a plain zip (`manifest.json` + `profile.json` + `sessions.json` + `assets.json` + `assets/blobs/…` + `prefs.json`, format id `lolly-backup`), so it survives email, USB or AirDrop intact and is the same format every shell reads. Each part is checksummed, so a file damaged in transit is caught on import rather than restored half-broken. (Full format spec: [Data Transfer](/info/data-transfer.html).)
+To carry your work to a second computer or phone, use Sync, a backup file or a `.lolly` file. [Move your work to another device](/info/find-your-work.html#move-your-work-to-another-device) compares the three and walks through **Export my data** and **Import data…**.
 
 ## Importing a design (Figma, Penpot, Illustrator, InDesign)
 
@@ -449,7 +415,7 @@ For power users, **Batch** (linked from the gallery, gated behind the Pro featur
 
 ![The batch toolbar - zip name, units, DPI and the format every row inherits, with Sessions and Render on the right](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.pro-toolbar&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
-Batch is for generating **many variants of one template** at once. To re-render sessions you've **already saved**, use **Projects → Render folder / Render selection** (above) - no Pro needed.
+Batch is for generating **many variants of one template** at once. To re-render sessions you've **already saved**, use **Projects → Render folder / Render selection** (see [Find and recover your work](/info/find-your-work.html#find-something-you-saved)) - no Pro needed.
 
 ## Editing side by side (Multi-edit)
 
@@ -469,8 +435,8 @@ When the selection is bigger than eight, mixes tools or includes images as well 
 
 ## Offline & install
 
-Lolly is a PWA. After the first load it works **offline** - install it from your browser's address bar (or *Add to Home Screen* on mobile) for an app-like, full-screen experience. It updates itself when you're back online.
+Lolly is a PWA. It keeps working **offline** on the screens you have already opened, and **The app** under **Settings → Available offline** downloads the rest - install it from your browser's address bar (or *Add to Home Screen* on mobile) for an app-like, full-screen experience. It updates itself when you're back online.
 
-About updates: if a view ever fails to load right after one (a blank panel, a "failed to fetch" in the corner), reload the page once - the app picks up the new version cleanly and your work, sessions and brand are untouched. It stores everything on your device, not in the page.
+About updates: if a view ever fails to load right after one (a blank panel, a "failed to fetch" in the corner), reload the page once - the app picks up the new version cleanly and your saved work, sessions and brand are untouched; only a picture you added and never saved may need adding again. It stores everything on your device, not in the page.
 
 Design and Darkroom can keep original image precision with **Wide colour / HDR** editing, including Sequence video. Brand swatches can carry separate sRGB and P3 values. See [Wide colour and HDR editing](/info/hdr-editing.html) for output choices and current limits.

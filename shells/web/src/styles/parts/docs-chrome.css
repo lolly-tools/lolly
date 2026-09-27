@@ -1,0 +1,167 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/* ── Docs chrome shared by both readers (plan 277 step 3c) ──────────────────
+   docs/build.ts reads this file verbatim into the /info stylesheet, after the
+   app's buttons.css, and the in-app reader (views/docs.ts) imports it ahead of
+   docs.css. It holds the pieces the two readers show the same way:
+
+     - the round top-row button (.site-fab on /info, .docs-top-btn in the app),
+       sized on the top-row height (--chrome-h), so it is exactly as tall as
+       the home pill and the app's own back pill beside it;
+     - the pathways strip (Welcome and the five documentation sections), which
+       /info builds and the in-app reader adopts from the fetched page;
+     - the compact lists inside the two disclosures (the section's pages and On
+       this page): the in-app reader's phone navigation and the /info menu.
+
+   Built from the app's token roles (tokens.css) only. /info's bridge re-points
+   the two roles its legacy names shadow (surface-muted, border-default), so a
+   role reads the same on both surfaces. Placement stays with each surface:
+   the band, the bar and the sheet in docs/build.ts, the reader's slots in
+   docs.css. */
+
+/* ── Round top-row button ───────────────────────────────────────────────────
+   Language, Theme, GitHub, Search and Menu on /info; Wide, Theme and the
+   profile link in the in-app reader. A glass circle on the canvas with one
+   hairline, the glyph on the type multiplier. */
+.site-fab,
+.docs-top-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  box-sizing: border-box;
+  width: var(--chrome-h);
+  height: var(--chrome-h);
+  padding: 0;
+  border: 1px solid var(--ui-color-border-default);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--ui-color-surface-canvas) 85%, transparent);
+  color: var(--ui-color-text-default);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--ui-motion-feedback), border-color var(--ui-motion-feedback), transform var(--ui-motion-feedback);
+}
+.site-fab:hover,
+.docs-top-btn:hover {
+  background: var(--ui-color-surface-muted);
+  border-color: color-mix(in srgb, var(--ui-color-text-default) 25%, transparent);
+  text-decoration: none;
+}
+.site-fab:active,
+.docs-top-btn:active { transform: scale(0.94); }
+.site-fab:focus-visible,
+.docs-top-btn:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+.site-fab svg,
+.docs-top-btn svg { width: calc(18px * var(--a11y-fs, 1)); height: calc(18px * var(--a11y-fs, 1)); }
+@media (prefers-reduced-motion: reduce) {
+  .site-fab,
+  .docs-top-btn { transition: none; }
+  .site-fab:active,
+  .docs-top-btn:active { transform: none; }
+}
+
+/* ── Pathways strip ─────────────────────────────────────────────────────────
+   Text tabs. The current section takes the full-strength text colour, its weight
+   and a 2px underline in the primary: a line under a tab, never an edge on a
+   rounded shape. The label stays in the foreground role because the primary is
+   too light for small text on the Brand theme's band (4.2:1); as the underline, a
+   non-text marker, it needs 3:1 and has it in every theme. */
+.docs-pathways {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.4rem;
+}
+.docs-pathway {
+  font: 600 calc(0.95rem * var(--a11y-fs, 1)) / 1.4 var(--font-brand, system-ui, sans-serif);
+  color: var(--ui-color-text-muted);
+  text-decoration: none;
+  padding: 0.2rem 0;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+}
+.docs-pathway:hover { color: var(--ui-color-text-default); text-decoration: none; }
+.docs-pathway.active {
+  color: var(--ui-color-text-default);
+  border-bottom-color: var(--ui-color-action-primary);
+}
+.docs-pathway:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: 2px; }
+/* On a phone the strip keeps one line and scrolls. lib/docs-strip.ts marks which
+   edges have tabs beyond them (data-strip-edges) and each marked edge fades, so a
+   cut label never reads as a whole word; it also brings the current tab into view.
+   Without that script only the end fades, a hint that the row goes on. The width is
+   in em so the strip folds earlier when the reader's browser text is larger. */
+@media (max-width: 40em) {
+  .docs-pathways {
+    --strip-fade-start: 0px;
+    --strip-fade-end: 2.5rem;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    gap: 0.3rem 1.1rem;
+    padding-block-end: 2px;
+    -webkit-mask-image: linear-gradient(to right, transparent, black var(--strip-fade-start), black calc(100% - var(--strip-fade-end)), transparent);
+    mask-image: linear-gradient(to right, transparent, black var(--strip-fade-start), black calc(100% - var(--strip-fade-end)), transparent);
+  }
+  .docs-pathways::-webkit-scrollbar { display: none; }
+  .docs-pathways[data-strip-edges] { --strip-fade-end: 0px; }
+  .docs-pathways[data-strip-edges~="start"] { --strip-fade-start: 2.5rem; }
+  .docs-pathways[data-strip-edges~="end"] { --strip-fade-end: 2.5rem; }
+  [dir="rtl"] .docs-pathways {
+    -webkit-mask-image: linear-gradient(to left, transparent, black var(--strip-fade-start), black calc(100% - var(--strip-fade-end)), transparent);
+    mask-image: linear-gradient(to left, transparent, black var(--strip-fade-start), black calc(100% - var(--strip-fade-end)), transparent);
+  }
+}
+
+/* ── Compact lists inside the navigation disclosures ────────────────────────
+   The disclosure itself is the shared reading component (docs-components.css);
+   these are the rows inside it: the section's pages, with their group labels,
+   and the page's own headings. */
+.docs-compact-list,
+.docs-compact-list :is(ul, ol) { list-style: none; margin: 0; padding: 0; }
+.docs-compact-list :is(.docs-sidebar-group, h2, h3, .sidebar-head, .sidebar-label) {
+  margin: 0.9rem 0 0.3rem;
+  font-size: calc(0.72rem * var(--a11y-fs, 1));
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ui-color-text-muted);
+}
+.docs-compact-list a {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 40px;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--ui-radius-control, 6px);
+  color: var(--ui-color-text-default);
+  text-decoration: none;
+  font-size: calc(0.95rem * var(--a11y-fs, 1));
+  line-height: 1.35;
+}
+.docs-compact-list a:hover { background: var(--ui-color-surface-muted); text-decoration: none; }
+.docs-compact-list a:focus-visible { outline: 2px solid var(--ui-color-focus-ring); outline-offset: -2px; }
+/* The current page: the chosen tint behind full-strength text, its glyph in the
+   primary as the marker (the primary as small text fails on Brand, 4.0:1). */
+.docs-compact-list a.active,
+.docs-compact-list a[aria-current] { color: var(--ui-color-text-default); font-weight: 600; background: var(--ui-color-selection-surface); }
+.docs-compact-list a.active svg,
+.docs-compact-list a[aria-current] svg { color: var(--ui-color-action-primary); opacity: 1; }
+.docs-compact-list a.is-h3 { padding-inline-start: 1.5rem; }
+.docs-compact-list .docs-toc-list { border: 0; }
+.docs-compact-list .docs-toc-link { border: 0; margin: 0; }
+.docs-compact-list svg { width: 16px; height: 16px; flex: none; }
+
+/* ── Forced colours (Windows High Contrast) ─────────────────────────────────
+   The system repaints a transparent border in the link colour, which would draw
+   the current tab's underline under every tab, and it drops the chosen tint. So
+   the idle tabs take the canvas colour, the current tab the highlight, and the
+   current page an outline in the highlight. */
+@media (forced-colors: active) {
+  .docs-pathway { border-bottom-color: Canvas; }
+  .docs-pathway.active { border-bottom-color: Highlight; }
+  .docs-compact-list a.active,
+  .docs-compact-list a[aria-current] { outline: 2px solid Highlight; outline-offset: -2px; }
+}

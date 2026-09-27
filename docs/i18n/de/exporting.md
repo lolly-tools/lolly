@@ -1,19 +1,33 @@
 # Exportieren & Formate
 
-Wie man eine fertige Datei aus einem Tool herausbekommt - das richtige Format wählen, die Ausgabegröße festlegen und was jede Option bewirkt. Wie alles andere findet der **Export auf Ihrem Gerät** statt; es wird nichts hochgeladen.
+Drücken Sie **Export** auf der **Export | Save as**-Pille eines Tools, wählen Sie ein Format aus dem Menü neben dem Dateinamen und drücken Sie dann **Herunterladen**. Die Datei wird auf Ihrem Gerät erstellt; nichts wird hochgeladen.
+
+Für die meisten Aufgaben ist eines von drei Formaten richtig:
+
+| Für | Verwenden Sie | Weil |
+|---|---|---|
+| Einen Bildschirm, eine Nachricht oder eine Folie | **PNG** | Jede App öffnet es, und es behält einen transparenten Hintergrund, wenn das Tool einen anbietet |
+| Eine fertige Seite oder etwas Gedrucktes | **PDF** | Eine echte Seitengröße, die so druckt, wie sie aussieht; **Print PDF**, wo ein Tool es anbietet, ist die CMYK-Version für den Druck |
+| Grafik, die in jeder Größe scharf bleiben muss | **SVG** | Vektorformen, scharf vom Badge bis zum Banner |
+
+::: check Prüfen Sie die Datei in der Größe, in der sie verwendet wird
+Bevor Sie sie versenden, öffnen Sie sie auf dem Bildschirm, für den sie gemacht wurde, oder drucken Sie sie in ihrer tatsächlichen Größe.
+:::
+
+Der Rest dieser Seite behandelt jedes Format, jede Größe und jede Option.
 
 ## Wie der Export funktioniert
 
-Die Vorschau *ist* die Datei. Beim Export rendert der Host diese Zeichenfläche in das gewählte Format und übergibt Ihnen einen Download (oder legt ihn in Ihre Zwischenablage). Ein Tool bietet nur die Formate an, die sein Autor deklariert hat, und der Auswähler blendet jedes aus, das Ihr Browser nicht erzeugen kann (siehe [Video](#video)).
+Die Vorschau *ist* die Datei. Beim Export rendert der Host diese Zeichenfläche in das gewählte Format und übergibt Ihnen einen Download (oder legt ihn in Ihre Zwischenablage). Der Auswähler blendet jedes Format aus, das Ihr Browser nicht erzeugen kann (siehe [Video](#video)).
 
 Drei Wege erzeugen eine Datei. Die meisten Tools **rendern die Zeichenfläche** in das gewählte Format. Text- und Datenformate (HTML, MD, TXT, JSON, CSV, ICS, VCF) werden stattdessen **aus dem Inhalt des Tools generiert**, nicht aus dem Bild gerastert. Und Datenschutz-Werkzeuge (z. B. *Versteckte Daten entfernen*) nutzen einen dritten Weg: Die Datei, die *Sie* auswählen, wird byteweise auf dem Gerät transformiert und direkt zurückgegeben - keine Zeichenfläche, kein Wasserzeichen und keine hinzugefügten Herkunftsmetadaten, weil es bereits Ihre eigene Datei ist.
 
 Die Aktionen in den Exportsteuerelementen:
 
-- <!--i:download--> **Download** - die Datei speichern (die Hauptaktion).
-- <!--i:photos--> **Kopieren** - das Bild in Ihre Zwischenablage legen, um es direkt in Slack, E-Mail oder ein Dokument einzufügen. Kann ein Browser keine Bilder kopieren, lädt er stattdessen herunter und sagt Ihnen das.
-- <!--i:folder--> **Speichern** - das aktuelle Design als gespeicherte Tool-Sitzung in Ihrer Bibliothek behalten.
-- <!--i:link--> **Teilen** - öffnet den **Dialog Teilen**: einen kopierbaren Link, der das Design reproduziert, Umschalter beim Besuch (Vollbild, Exportpanel, Download- oder Kopieren-beim-Öffnen) und einen optionalen **Kürzesten Link**, der den gesamten Zustand in ein kompaktes Token packt (siehe [URL-Modus](/info/url-mode.html)).
+- <!--i:download--> **Herunterladen** - die Datei speichern (die Hauptaktion). Wenn Sie sie danach nicht finden, siehe [Eine heruntergeladene Datei finden](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Kopieren** - das Bild in Ihre Zwischenablage legen, um es direkt in Slack, eine E-Mail oder ein Dokument einzufügen. Kann ein Browser keine Bilder kopieren, lädt er stattdessen herunter und sagt Ihnen das.
+- <!--i:folder--> **Speichern** - das aktuelle Design mit einem Klick in Projekte behalten, ohne nach dem Ort zu fragen; es wird nie eine Datei heruntergeladen. **Speichern unter**, neben **Export**, fragt nach dem Ort (siehe [Speichern & Fortsetzen](/info/using.html#saving-continuing)).
+- <!--i:link--> **Teilen** - öffnet den **Dialog Teilen**: einen kopierbaren Link, der das Design reproduziert, Umschalter beim Besuch (Vollbild, Exportbereich, Download- oder Kopieren-beim-Öffnen) und einen optionalen **Kürzesten Link**, der den gesamten Zustand in ein kompaktes Token packt (siehe [URL-Modus](/info/url-mode.html)).
 
 (Welche davon erscheinen, wählt der Autor eines Tools; die Standardauswahl ist Kopieren, Download und Speichern.)
 
@@ -32,26 +46,26 @@ Eine gespeicherte Sitzung kann auch aus Projekte erneut als Tool-Link geteilt we
 
 ## Ein Format wählen
 
-Das Dateinamensfeld und der Format-Auswähler sitzen oben im Panel als ein Paar `name.format`, und der Auswähler listet nur die Formate, die der Autor dieses Tools deklariert hat.
+Der Dateiname und das Formatmenü sitzen zusammen als ein `name.format`-Paar, unterhalb von **Herunterladen**.
 
 ![Das Dateinamensfeld mit dem Format-Auswähler verschmolzen, sodass der Export als ein Paar name.format erscheint](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
 | Sie möchten… | Verwenden Sie | Warum |
 |---|---|---|
-| Scharfe Logos / Grafiken, die skalieren | **SVG** | Vektor - unendlich skalierbar, klein, bearbeitbar |
+| Scharfe Logos / Grafiken, die skalieren | **SVG** | Vektor - unendlich skalierbar, winzig, bearbeitbar; ein Effekt, den der Vektorexport nicht zeichnen kann, wird als Bild eingebettet |
 | Vektor für Office- / Windows-Anwendungen | **EMF** | Wird als bearbeitbarer Vektor in PowerPoint / Word eingefügt; Text bleibt lebendig und editierbar, und Google Drive öffnet es in Google Drawings für Slides |
-| Vektor für Druck- / Designanwendungen | **EPS** oder **EPS (CMYK)** | PostScript-Vektor für Illustrator / Druckworkflows |
+| Vektor für Druck- / Designanwendungen | **EPS**, oder **EPS (CMYK)** | PostScript-Vektor für Illustrator / Druckworkflows |
 | Vektor für Schneid- / CAD-Maschinen | **DXF** | Laserschneider, Vinylplotter, CNC - Konturpfade in Millimetern |
-| Eine bearbeitbare Präsentation | **PowerPoint** (PPTX) | Nativ bearbeitbarer Text und Formen, Bilder und Vektoren bleiben extrahierbar |
+| Eine bearbeitbare Präsentation | **PowerPoint** (PPTX) | Nativ bearbeitbarer Text + Formen, Bilder und Vektoren bleiben extrahierbar |
 | Ein portabler Schulungskurs | **Export course** | Projektinhalte durchsehen und ein versioniertes Website-, SCORM- oder experimentelles xAPI-Paket erstellen |
 | Ein bearbeitbares Textdokument | **Word** (DOCX) oder **OpenDocument** (ODT) | Echte Absätze und Überschriften, die ein Textverarbeitungsprogramm weiter bearbeiten kann (Doc Studio) |
 | Ein Foto oder allgemeines Bild | **PNG** (verlustfrei) oder **JPG** (kleiner) | Universelles Rasterbild |
 | Kleinere moderne Bilder | **WebP** / **AVIF** | Bessere Komprimierung, Alphakanal |
-| Druck | **PDF** oder **Print PDF** (CMYK) | Echte Seitengröße; CMYK für den Druck |
+| Druck | **PDF**, oder **Print PDF** (CMYK) | Echte Seitengröße; CMYK für den Druck |
 | Druck-Raster für eine Druckerei | **Print TIFF** (CMYK) | DeviceCMYK-Pixel für einen RIP |
 | Animiert fürs Web | **GIF** | Funktioniert überall, größere Dateien |
-| Animiert mit Vollfarbe und echtem Alphakanal | **APNG** | Animiertes PNG - keine Palettenbegrenzung, echte Transparenz |
-| Animiert, kleinste Datei | **Animiertes WebP** | Vollfarbe und Alphakanal, besser komprimiert als GIF oder APNG |
+| Animiert mit Vollfarbe + echtem Alphakanal | **APNG** | Animiertes PNG - keine Palettenbegrenzung, echte Transparenz |
+| Animiert, kleinste Datei | **Animiertes WebP** | Vollfarbe + Alphakanal, besser komprimiert als GIF oder APNG |
 | Animierter Vektor, der skaliert | **Animiertes SVG** | In sich geschlossen; läuft in einem Browser oder `<img>` in Schleife, kein Codec, jede Größe |
 | Video für Social Media / zum Teilen | **MP4** oder **WebM** | Bestes Qualität-pro-Byte-Verhältnis (siehe unten) |
 | Rich Text / E-Mail-Signatur | **HTML** | Wird formatiert in Mailprogramme eingefügt |
@@ -91,7 +105,7 @@ Nützlich für ein Storyboard, ein Miniaturbild-Blatt, einen Kontaktabzug zur Du
 
 Die Abtastung erfolgt am **Mittelpunkt** jedes Intervalls statt an den Rändern, weil der erste Moment einer Sequenz oft eine Einblend-Transition ist, die noch nicht eingeblendet hat, und der letzte der Zustand nach dem Ende jedes Clips - eine Abtastung an den Endpunkten würde zwei Ihrer Frames an nahezu leere verschwenden. Die Anzahl ist auf **64** begrenzt (ein Kontaktabzug ist zum Lesen durch einen Menschen gedacht), und alles Unsinnige, das in das Feld eingegeben wird, fällt auf `1` zurück, statt den Export scheitern zu lassen. Jeder Frame ist ein gewöhnliches Standbild, sodass Content Credentials, der Imprint, physische Einheiten und DPI sich genau so verhalten wie bei einem einzelnen Export.
 
-Das Feld **Frames** ist heute der Weg, um ein Blatt zu bekommen. Die Engine reserviert einen passenden URL-Parameter `cuts`, aber noch liest kein Shell ihn aus einem Link, sodass ein geteilter Link immer wieder auf dem Abspielkopf-Bild öffnet - siehe [URL-Modus](/info/url-mode.html#contact-sheets-cuts).
+Das Feld **Frames** ist heute der Weg, um ein Blatt zu bekommen. Die Engine reserviert einen passenden URL-Parameter `cuts`, aber noch liest kein Shell ihn aus einem Link, sodass ein geteilter Link immer wieder auf dem Abspielkopf-Bild öffnet - siehe [URL-Modus](/info/url-parameters.html#contact-sheets-cuts).
 
 ## Mehrseitiges PDF
 
@@ -255,7 +269,9 @@ Wo das Format es unterstützt, tragen Exporte **Herkunftsmetadaten** - Software,
 
 **Die dauerhafte Credential.** Ein zweites, schwereres Merkmal steht neben dem Imprint: **Durable credential**, die mit einem On-Device-Neuronalmodell (TrustMark-Format) Lollys ID *in* die Pixel schreibt, sodass die "mit Lolly erstellt"-Verbindung einen Metadaten-Strip, eine Neukodierung und ein erneutes Auslesen sowohl durch TrustMark-fähige Tools als auch durch Lollys eigene übersteht. Sie ist **standardmäßig deaktiviert** - anders als der reine JavaScript-Imprint kostet sie einen neuronalen Durchlauf pro Export plus einen einmaligen Modell-Download, ist also ein bewusstes Opt-in statt einer stillen Abgabe. Nur Rasterformate (**PNG, JPG, WebP, AVIF, TIFF**), aktivierbar im Exportbereich oder übergeben als `durable=1` in einem Share-Link. In den Desktop- und Mobile-Apps wird die Karte gänzlich ausgeblendet statt als wirkungslos angezeigt zu werden, da es offline keine Quelle gibt, von der das Modell geladen werden könnte.
 
-**Content protection.** Im Exportbereich fasst sich *Passwortschutz*, **C2PA Credentials**, der **Lolly Imprint** und die **Durable credential** zu einer eingeklappten, formatabhängigen **Content protection**-Gruppe zusammen, sodass die Herkunfts- und Schutzoptionen einer Datei an einem Ort liegen - die Gruppe zeigt nur die Karten, die auf das gewählte Format zutreffen, und blendet sich ganz aus, wenn keine davon zutrifft. Druckmarken sind bewusst *nicht* darin enthalten: Sie sind Druckproduktionsgeometrie und kein Schutz, daher behält **Print marks & bleed** - das Beschnittmaß in Millimetern plus Schnitt-, Passer-, Beschnitt-, Farbbalken- und Stempeldetails - eine eigene übergeordnete Karte bei den Druckformaten.
+**Inhaltsschutz.** Im Exportbereich fassen sich die **Lizenz**, die Sie vergeben, die **Quellen-Credits** von allem, was Sie platziert haben, *Passwortschutz*, **C2PA Credentials**, der **Lolly Imprint** und die **Durable credential** zu einer eingeklappten, formatabhängigen **Inhaltsschutz**-Gruppe zusammen, sodass die Herkunfts-, Rechte- und Schutzoptionen einer Datei an einem Ort liegen. Die Gruppe zeigt nur die Karten, die auf das gewählte Format zutreffen. Sie öffnet sich von selbst, wenn ein Link oder ein gespeichertes Dokument bereits eine Lizenz deklariert, oder wenn eine Quelle eine Entscheidung von Ihnen verlangt.
+
+**Lizenz.** Wählen Sie, wie andere Ihre Arbeit nutzen dürfen: standardmäßig *None (all rights reserved)*, oder CC0 1.0, die Public Domain Mark 1.0, oder eine der Creative-Commons-4.0-Lizenzen (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Der Lizenzname und ein Link zu seiner Kurzfassung werden in die Lizenzmetadaten der Datei geschrieben (EXIF, XMP und RIFF, wo das Format diese Felder hat) sowie in ihre Content Credential. Die Wahl wird mit dem Dokument gespeichert und reist in einem Share-Link als `licence=` mit. Lolly schreibt die Lizenz, die Sie gewählt haben. Es prüft oder erzwingt die Bedingungen nicht. Ein Tool mit einem eigenen Lizenzfeld, wie Claim, behält stattdessen dieses Feld und zeigt keinen zweiten Auswähler. Druckmarken sind bewusst *nicht* darin enthalten: Sie sind Druckproduktionsgeometrie und kein Schutz, daher behält **Druckmarken & Beschnitt** - das Beschnittmaß in Millimetern plus Schnitt-, Passer-, Beschnitt-, Farbbalken- und Stempeldetails - eine eigene übergeordnete Karte bei den Druckformaten.
 
 ![Die Content-protection-Gruppe geöffnet bei einem PNG-Export, mit nur den zutreffenden Karten](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
@@ -263,7 +279,7 @@ Wo das Format es unterstützt, tragen Exporte **Herkunftsmetadaten** - Software,
 
 **Kosten, aus Ihrer Preisliste errechnet.** Unterhalb des Preflights - ganz zuletzt, immer noch über den Schaltflächen - sitzt eine Karte, die dieselben Zahlen in Geld umrechnet, und zwar ausschließlich aus Preisen, die ihr jemand vorgegeben hat. Sie liest, was der Preflight-Durchlauf gezählt hat, unabhängig davon, ob die Preflight-Karte selbst eingeschaltet ist, und braucht zwei Dinge, damit sie überhaupt etwas zeigt: Der Auftrag muss etwas enthalten, das eine Preisliste überhaupt bepreisen kann (Platten, Bogen, Fläche, Seiten, Variantenzeilen oder Ausgabedateien - ein einfaches Logo-PNG zeigt sie also nie), **und** eine **Preiskarte** muss vorhanden sein. Eine Preiskarte ist eine JSON-Preisliste Ihrer Druckerei. Ein Standard-Build enthält keine und hat keine In-App-Möglichkeit, eine zu laden: Sie kommt entweder als Katalog-Asset, das ein Deployment mitliefert, oder über die optionale Preiskarten-Erweiterung, die ein Self-Hoster oder eine Steuerungsebene aktiviert. Ohne Preiskarte wird nichts angezeigt - kein Hinweis, keine leere Tabelle.
 
-Die Regel, um die das Ganze gebaut ist, lautet: **Es erfindet nie Geld.** Jede Zahl ist ein von Ihnen angegebener Satz mal eine von Lolly gezählte Menge - `4 Platten × 35,00 €` - und die Summe nennt ihre eigene Quelle im selben Satz wie die Zahl: den von der Karte genannten Herausgeber und das Datum, zu dem die Karte ihre Preise angibt. Es gibt keine Standardwährung, keinen Platzhalter und keine Null, die für einen fehlenden Preis einsteht. Was die Datei über sich selbst sagt, bleibt indirekte Rede: *"Die Datei sagt: … Lolly hat dies nicht überprüft."*
+Die Regel, um die das Ganze gebaut ist, lautet: **Es erfindet nie Geld.** Jede Zahl ist ein von Ihnen angegebener Satz mal eine von Lolly gezählte Menge - `4 plate × €35.00` - und die Summe nennt ihre eigene Quelle im selben Satz wie die Zahl: den von der Karte genannten Herausgeber und das Datum, zu dem die Karte ihre Preise angibt. Es gibt keine Standardwährung, keinen Platzhalter und keine Null, die für einen fehlenden Preis einsteht. Was die Datei über sich selbst sagt, bleibt indirekte Rede: *"Die Datei sagt: … Lolly hat dies nicht überprüft."*
 
 Und wenn nicht ehrlich gerechnet werden kann, **verschwindet** die Arbeitstabelle, statt zu einer ausgegrauten oder aufgefüllten Zahl zu verkommen:
 
@@ -318,11 +334,11 @@ Ein Export, der die Arbeit eines anderen Menschen platziert, erfasst auch diese 
 
 ## Auf einem Smartphone
 
-Die Exportsteuerung liegt hinter der schwebenden **Render**-Schaltfläche, die das **Export**-Sheet öffnet - dieselben Formate, Größe, Kopieren, Herunterladen und Teilen, für Touch dimensioniert.
+Die Exportsteuerung liegt hinter der schwebenden **Export**-Schaltfläche, die das **Export**-Sheet öffnet - dieselben Formate, Größe, Kopieren, Herunterladen und Teilen, für Touch dimensioniert.
 
 ## Formatreferenz
 
-Jede ID, die der Host rendern kann, gruppiert. Dies sind auch die Werte für den URL-Parameter `format=` und das CLI-Flag `--export=` - siehe [URL Mode](/info/url-mode.html) und [CLI](/info/cli.html). Ein Tool bietet nur die Teilmenge an, die sein Autor deklariert hat, daher ist der Picker immer kürzer als diese Liste.
+Jede ID, die der Host rendern kann, gruppiert. Dies sind auch die Werte für den URL-Parameter `format=` und das CLI-Flag `--export=` - siehe [URL Mode](/info/url-mode.html) und [CLI](/info/cli.html). Das Menü eines Tools zeigt nur die Formate, die dieses Tool erzeugen kann, daher ist es immer kürzer als diese Liste.
 
 | Art | IDs |
 |---|---|

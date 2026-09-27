@@ -291,6 +291,9 @@ const PARAM_KEYED_ROUTES: ReadonlySet<RouteName> = new Set(
 );
 
 let _lastRouteName: RouteName | null = null;
+// The docs page last shown (language and slug), so moving between two docs pages
+// counts as a new page for the scroll reset below even though the route name stays.
+let _lastDocsPage: string | null = null;
 // Signature of the route currently mounted - used to drop a redundant re-navigate to the
 // SAME route (a single tool open fires hashchange AND popstate → two navigates). See navigate().
 let mountedRouteSig = '';
@@ -404,6 +407,9 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   if (prevRouteName === 'tool' && route.name !== 'tool') playSfx('leaveSession');
   const returning = _lastRouteName === 'tool' && route.name === 'gallery';
   _lastRouteName = route.name;
+  const docsPage = route.name === 'docs' ? `${route.lang ?? ''}/${route.slug}` : null;
+  const newDocsPage = docsPage !== null && _lastDocsPage !== null && docsPage !== _lastDocsPage;
+  _lastDocsPage = docsPage;
 
   // Cross-view fade: snapshot the OUTGOING view now - before its scoping class
   // flips (below) or its markup is torn down (the clear/incoming mount below) - so
@@ -750,7 +756,13 @@ async function navigate(host: WebHost, opts: { force?: boolean } = {}): Promise<
   // drop you mid-content (e.g. a scrolled gallery → capabilities). Skip the
   // tool→gallery "return" so that path keeps its current feel, and skip same-name
   // updates (those go through replaceState, not navigate, so they never reach here).
-  if (route.name !== prevRouteName && !returning) {
+  // A view that scrolled to a deep link's section (?h=, from search, Ask or a docs link)
+  // says so with data-deep-scrolled, and that scroll stands; resetting here sent every cold
+  // section link in the docs reader back to the top. A ?h= naming no section on the page
+  // sets nothing, so the new page still opens at its top.
+  const deepLinked = view.hasAttribute('data-deep-scrolled');
+  view.removeAttribute('data-deep-scrolled');
+  if ((route.name !== prevRouteName || newDocsPage) && !returning && !deepLinked) {
     window.scrollTo(0, 0);
     view.scrollTop = 0;
   }

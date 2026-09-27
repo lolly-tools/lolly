@@ -2,9 +2,9 @@
 
 Ang isang **profile** ay ang working identity kung saan gumagawa ang Lolly. Ito ang maliit na set ng detalye na maaaring kunin ng isang tool para hindi mo na kailanganing i-type ulit ang mga ito tuwing gagamit - ang pangalan mo, mga contact details, isang optional na headshot, ilang preference - kasama ang lahat ng naiipon mo habang gumagawa: naka-save na sessions, na-upload na larawan at ang lokal na activity tally.
 
-Ang lahat ng nasa profile ay nananatili **sa device**, sa local database ng browser (IndexedDB sa web PWA, ang filesystem sa mga Tauri app). Walang account at walang ino-upload. Pinamamahalaan mo ito sa ilalim ng **Profile** (sa kanang-itaas ng gallery); ang mga tool ay *bumabasa* lamang nito, at ang partikular na mga field lang na dinisenyo talaga nilang i-pre-fill.
+Ang lahat ng nasa profile ay nananatili **sa device**, sa local database ng browser (IndexedDB sa web PWA, ang filesystem sa mga Tauri app). Walang account at walang ino-upload. Pinamamahalaan mo ito sa ilalim ng **Mga Setting → Preferences** (sa footer o avatar menu); ang mga tool ay *bumabasa* lamang nito, at ang partikular na mga field lang na dinisenyo talaga nilang i-pre-fill.
 
-> Ang isang profile ay tungkol sa *iyo* (o kung sino man ang gumagawa dito). Naiiba ito sa **Platform** - ang mga kulay, font at global settings ng brand - at sa **Capabilities**, ang katalogo ng kaya ng app. Tingnan ang [Profile vs Platform vs Capabilities](#profile-vs-platform-vs-capabilities) sa dulo.
+> Pinagsasama ng Mga Setting ang profile mo at ang dating Dashboard sa iisang destinasyon. Hawak ng **Preferences** ang mga detalye at personal na pinipili mo; katabi nito ang **Ang device na ito**, **Design system**, **Mga kakayahan** at **Aktibidad at stats**. Tingnan ang [Mga Setting](/info/dashboard.html) para sa buong mapa.
 
 ## Ano ang laman ng profile
 
@@ -25,7 +25,7 @@ Ang lahat ng nasa profile ay nananatili **sa device**, sa local database ng brow
 
 Wala sa mga ito ang required. Ang blangkong profile ay perpektong profile pa rin; punan mo lang ang mga bagay na makakatipid sa iyo ng pag-type.
 
-Mahaba ang page, kaya may sarili itong **settings rail** pababa sa gilid - Your details, Appearance, Accessibility, Lolly instance, Your activity, Storage, Available offline, Feature flags, Content Credentials - na may **Search settings** field sa itaas nito na nagfi-filter sa listahan habang nagta-type ka. Deep-linkable ang bawat section bilang `#/profile?focus=<section-id>`, na nagbubukas dito at nag-i-scroll papunta rito (`#/profile?focus=storage-section`, `?focus=feature-flags-section`, at iba pa), kaya maaaring itugma ng isang link ang isang setting sa halip na ang itaas ng page.
+Mahaba ang page, kaya may sarili itong **settings rail** pababa sa gilid - Your details, Appearance, Accessibility, Lolly instance, Your activity, Storage, Available offline, Feature flags, Content Credentials - na may **Search settings** field sa itaas nito na nagfi-filter sa listahan habang nagta-type ka. Deep-linkable ang bawat section bilang `#/settings?focus=<section-id>`, na nagbubukas dito at nag-i-scroll papunta rito (`#/settings?focus=storage-section`, `?focus=feature-flags-section`, at iba pa), kaya maaaring itugma ng isang link ang isang setting sa halip na ang itaas ng page.
 
 ![Tatlong theme card, bawat isa ay nagpe-preview ng sariling type at kulay, na may naka-flag na aktibo](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
@@ -55,19 +55,19 @@ Sa anumang sandali, may **isang aktibong profile** ang isang install - ang mga d
 
 ![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
-- <!--i:trash--> **Pinakamalinis na paglipat:** **Profile → Storage → Clear all my data**, tapos **Import** ang bundle para sa context na papasukan mo. Purong gumagawa ka na bilang profile na iyon.
+- <!--i:trash--> **Pinakamalinis na paglipat:** **Mga Setting → Preferences → Storage → Clear all my data**, tapos **Import** ang bundle para sa context na papasukan mo. Purong gumagawa ka na bilang profile na iyon.
 - <!--i:layers--> **Layering:** ang pag-import *nang hindi* muna nililinis ay **nag-me-merge** - ang na-import na profile, sessions at larawan ay dumadapo sa ibabaw ng nandiyan na, pinapalitan ang anumang may parehong pangalan at iniiwan ang iba. Kapaki-pakinabang para sa pagkuha ng naka-save na sessions ng isang team papunta sa sarili mong setup; hindi ito para sa iyo kung kailangan mo ng malinis na role boundary.
 - <!--i:monitor--> **Magkatabi:** dahil device-scoped ang lahat, ang isang hiwalay na browser profile, isang hiwalay na user account o isang pangalawang naka-install na PWA ay may sarili at independiyenteng Lolly profile. Patakbuhin ang personal mong install at ang event kiosk install nang sabay, walang pagpapalit.
 
 Kaya kung talagang nagpapalit-palit ka ng maraming konteksto (ikaw, ang team mo, ang event-manager hat), magtago ka ng ilang bundle at i-load ang kailangan mo:
 
-![Ang storage meter, na nagbabreak down ng naka-save na sessions, mga larawan at cache laban sa aktwal na iniuulat ng browser](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
+![Ang storage meter, na hinahati ang naka-save na sessions, mga larawan at cache laban sa talagang ini-report ng browser](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 > Magtago ng isang bundle bawat konteksto at palitan ang pangalan ng mga file ayon sa kung ano sila (`LollyTools-events-2026.zip`, `LollyTools-me.zip`). Ang file *ang* profile.
 
 ## Accessibility
 
-Sa **Profile → Accessibility** naroroon ang apat na comfort setting para sa app sa *paligid* ng trabaho mo. Naka-off ang bawat isa hanggang i-on mo ito, at wala sa mga ito ang umaabot sa loob ng isang tool canvas o export - hindi dapat igalaw ng isang mas kalmadong app ang kahit isang pixel ng file na ipinapadala mo.
+Sa **Mga Setting → Preferences → Accessibility** naroroon ang apat na comfort setting para sa app sa *paligid* ng trabaho mo. Naka-off ang bawat isa hanggang i-on mo ito, at wala sa mga ito ang umaabot sa loob ng isang tool canvas o export - hindi dapat igalaw ng isang mas kalmadong app ang kahit isang pixel ng file na ipinapadala mo.
 
 - <!--i:film--> **Reduce motion** - nagpapatay ng mga transitions, slides at animated flourishes sa app. Nananatiling gumagalaw ang tool canvas mo at anumang animated export sa eksaktong dinisenyo ito.
 - <!--i:image--> **Hide colourful previews** - pinapalitan ang gallery preview artwork ng mga kalmadong icon-and-text cards, at binababa ang kulay at contrast ng project thumbnails mo para manatiling makikilala nang hindi nangungulit. Sa loob ng isang tool, buong kulay ang lahat na ipinapakita.
@@ -78,13 +78,13 @@ Nakatago ang mga ito sa mismong profile record, kaya naglalakbay ito sa isang pr
 
 ## Ang Lolly instance mo
 
-Sinasabi ng **Profile → Lolly instance** kung saan kinukuha ng install na ito ang mga tool at katalogo nito - ang address ng instance, o *Bundled with this app* kapag naka-ship na lahat sa loob ng build. Kung saan may inaalok ang isang deployment, isang **Instance console** link ang nagbubukas ng admin surface nito, at ang **Change** / **Disconnect** ay muling itinuturo ang install o pinapalaya ito.
+Sinasabi ng **Mga Setting → Preferences → Lolly instance** kung saan kinukuha ng install na ito ang mga tool at katalogo nito - ang address ng instance, o *Naka-bundle sa app na ito* kapag naka-ship na lahat sa loob ng build. Kung saan may inaalok ang isang deployment, isang **Instance console** link ang nagbubukas ng admin surface nito, ang **Baguhin** ay muling itinuturo ang install, at inaalis ng **Umalis** ang design system, mga tool at katalogo ng instance habang nananatili ang sarili mong gawa (tingnan ang [Gamitin ang Lolly sa iyong organisasyon](/info/organisation.html#leaving)).
 
 Ang muling pagtuturo sa ibang instance ay nangangailangan ng **desktop app**: pinipigilan ng browser ang isang page na mag-load ng mga tool at asset sa kabilang origins, kaya sa web, iniuulat lamang ng section kung nasaan ka at iniiwan doon.
 
 ## Available offline
 
-Nag-cache ang Lolly habang gumagalaw ka, ngunit ang caching-as-you-go ay sumasaklaw lang sa napuntahan mo na. Ang **Profile → Available offline** ay para sa biyaheng nakikita mong papalapit: isang oras sa airport wifi bago ang isang flight na wala nito. I-download ang mga bahaging kakailanganin mo, panoorin ang isang progress bar, at patuloy na gumagana lahat ng dinala mo kahit wala nang connection.
+Nag-cache ang Lolly habang gumagalaw ka, ngunit ang caching-as-you-go ay sumasaklaw lang sa napuntahan mo na. Ang **Mga Setting → Preferences → Available offline** ay para sa biyaheng nakikita mong papalapit: isang oras sa airport wifi bago ang isang flight na wala nito. I-download ang mga bahaging kakailanganin mo, panoorin ang isang progress bar, at patuloy na gumagana lahat ng dinala mo kahit wala nang connection.
 
 Pitong bahagi, bawat isa ay may nakasaad na laki bago ka mag-commit:
 
@@ -104,9 +104,9 @@ Kung hindi pa nagbigay ang browser ng persistent storage, sinasabi ito ng seksyo
 
 ## Paglipat ng profile sa bagong device
 
-![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+Dahil ganap na local ang profile, may dalawang paraan para mailagay ito sa isang blangkong install - bagong laptop, bagong-reset na browser, makina ng katrabaho, o offline na device. **Dalhin ang file**, gaya ng nasa ibaba, o panatilihing magkatugma ang sarili mong mga device sa pamamagitan ng storage na pinili mo, gaya ng ipinapaliwanag ng [Sync your devices](/info/sync.html). Walang Lolly login na magre-restore nito para sa iyo, at iyon nga ang punto: wala talagang napunta sa isang Lolly server mula sa umpisa.
 
-Dahil ganap na local ang profile, ang tanging paraan para mailagay ito sa isang blangkong install - bagong laptop, bagong-reset na browser, makina ng katrabaho, o offline na device - ay ang **dalhin ang file**. Walang login ang magre-restore nito para sa iyo, at iyon nga ang punto: wala talagang lumabas sa iyong device mula sa umpisa.
+Sa ilalim ng **Mga Setting → Preferences → Storage → Ilipat sa ibang device**:
 
 - <!--i:download--> Ang **Export my data** ay nagda-download ng isang `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - pinangalanan para sa profile na kinabibilangan nito, may per-day sequence number para hindi magbanggaan ang paulit-ulit na exports (ibinabagsak ang mga bahagi ng pangalan kapag wala ang mga ito sa profile). Naglalaman ito ng iyong profile, bawat na-save na session (kasama ang thumbnail nito), ang iyong mga na-upload na larawan - sumasama rin ang iyong brand tokens at naka-install na fonts bilang user assets - at ang iyong mga kagustuhan (theme, layout, local activity stats).
 - <!--i:upload--> Ang **Import data…** sa ibang install ay babasahin ang file na iyon at magpapatuloy ka mula mismo sa iyong iniwan.
@@ -126,7 +126,7 @@ Para sa eksaktong bundle layout, version policy at integrity rules, tingnan ang 
 
 Ang isang tool ay *nagpu-pre-fill* lamang ng mga field ng profile na talagang dinisenyo nitong i-bind:
 
-**Ang opt-in (provenance).** Kapag nag-export ka ng asset, ang iyong mga detalye ay opsyonal na sumasama bilang **provenance** - isang author/credit line na naka-embed sa metadata ng file (PNG, PDF, SVG, …) - para masabi ng natapos na asset kung sino ang gumawa nito. *Ito* ang pinagagana ng **Use my details to create**: iwanan itong naka-off at dadalhin pa rin ng export ang "Made with Lolly" tool/platform attribution, pero walang personal na author/contact line na naka-embed. (Pinagagana rin ng parehong opt-in ang author sa **/pro** batch runs.) (Para sa tool authors: tingnan ang [Authoring Tools → `bindToProfile`](/info/authoring-tools.html#bindtoprofile) at [Host API → `host.profile`](/info/host-api.html#host-profile).)
+**Ang opt-in (provenance).** Kapag nag-export ka ng asset, ang iyong mga detalye ay opsyonal na sumasama bilang **provenance** - isang author/credit line na naka-embed sa metadata ng file (PNG, PDF, SVG, …) - para masabi ng natapos na asset kung sino ang gumawa nito. *Ito* ang pinagagana ng **Use my details to create**: iwanan itong naka-off at dadalhin pa rin ng export ang "Made with Lolly" tool/platform attribution, pero walang personal na author/contact line na naka-embed. (Pinagagana rin ng parehong opt-in ang author sa **/pro** batch runs.) (Para sa tool authors: tingnan ang [Authoring Tools → `bindToProfile`](/info/tool-inputs.html#bindtoprofile) at [Host API → `host.profile`](/info/host-api.html#host-profile).)
 
 ![Ang iisang Use my details to create switch, katabi ng Save Profile at naka-off hangga't hindi mo ito binubuksan](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
@@ -151,4 +151,4 @@ Masyadong marami ang kahulugan ng salitang ito sa buong proyekto. Wala sa mga su
 
 ## Privacy
 
-Bukod sa opsyonal na identity enrolment sa itaas (na nagpapadala ng email na ini-enrol mo sa certificate service - tingnan ang [Server Surface](/info/server-surface.html)), ang profile ay hindi kailanman ipinapadala, ina-upload o ginagamit para kilalanin o subaybayan ka - walang dapat payagan, ito lang ang paalala para malaman mo kung ano ang naka-imbak. Burahin ang lahat nito anumang oras gamit ang **Profile → Clear all my data**. Tingnan ang [Privacy Policy](/info/privacy.html).
+Bukod sa opsyonal na identity enrolment sa itaas (na nagpapadala ng email na ini-enrol mo sa certificate service - tingnan ang [Server Surface](/info/server-surface.html)), ang profile ay hindi kailanman ipinapadala, ina-upload o ginagamit para kilalanin o subaybayan ka - walang dapat payagan, ito lang ang paalala para malaman mo kung ano ang naka-imbak. Burahin ang lahat nito anumang oras gamit ang **Mga Setting → Preferences → Clear all my data**. Tingnan ang [Privacy Policy](/info/privacy.html).

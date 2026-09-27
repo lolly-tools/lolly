@@ -54,8 +54,9 @@ perangkat Anda**, tidak pernah dikirimkan:
 
 Tak satu pun dari ini dibagikan, dijual, atau digunakan untuk mengidentifikasi atau melacak Anda. Tidak ada
 yang perlu disetujui, karena tidak ada pengumpulan data yang terjadi - hanya pemberitahuan ini, agar Anda
-tahu apa yang disimpan dan di mana. Hapus semuanya kapan saja dengan **Profile → Clear all
-my data**, atau dengan menghapus penyimpanan situs di peramban Anda. (Berdasarkan ePrivacy
+tahu apa yang disimpan dan di mana. Menghapus penyimpanan situs di browser Anda menghapus
+semuanya kapan saja; **Pengaturan → Penyimpanan → Hapus semua data saya** menghapus profil Anda,
+sesi tersimpan, gambar yang diunggah dan cache aset. (Berdasarkan ePrivacy
 Directive Art. 5(3), penyimpanan yang benar-benar diperlukan untuk layanan yang Anda minta
 tidak memerlukan persetujuan - hanya transparansi, yang merupakan tujuan dari dokumen ini dan
 pemberitahuan dalam aplikasi.)
@@ -63,7 +64,7 @@ pemberitahuan dalam aplikasi.)
 ![Bagian penyimpanan pada halaman profil di layar lebar ponsel: setiap kategori data on-device disebutkan, dengan tombol Clear all my data tepat di sampingnya](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
 Backup data Anda sendiri - bundel `lolly-backup` yang dihasilkan oleh **Export my
-data & render everything** - adalah file yang Anda simpan dan kendalikan sendiri. File itu tidak pernah menyentuh server kami
+data** - adalah file yang Anda simpan dan kendalikan sendiri. File itu tidak pernah menyentuh server kami
 kecuali Anda sendiri memilih untuk mengirimkannya ke suatu tempat. Lihat [Data
 Transfer](/info/data-transfer.html).
 
@@ -77,6 +78,17 @@ Utilitas ini bekerja secara offline, dan keluarannya tidak membawa watermark ata
 kami - tujuan sebagian besar tool ini adalah menghapus & melindungi data, bukan menambah risiko.
 
 ![Badge yang dibawa tool-tool ini: Runs on your device - tidak ada yang diunggah](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+
+Prepare for sharing menyimpan input kerja, temuan privat dan peta penggantian
+di memori, tanpa secara otomatis menambahkannya ke riwayat, tautan, backup atau sync.
+Inspeksi dan penggantian tidak mengirim isi berkas ke sebuah server atau memvalidasi
+kredensial secara online. Pengguna memilih apakah akan menyalin, mengunduh, mengirim atau secara eksplisit
+menyimpan sebuah hasil ke pustaka mereka; hasil yang tersimpan kemudian mengikuti pengaturan backup dan
+sync pustaka yang normal. Berkas recipe menghilangkan payload sebelumnya dan pemetaan literal.
+Laporan ringkasan berisi jumlah, ID cakupan dan hash berkas. CLI juga dapat menyimpan
+sebuah berkas review privat berisi nilai asli, hanya ketika diminta secara eksplisit
+dengan `--review-file`. Menghapus atau meninggalkan sebuah tampilan persiapan browser melepaskan
+state kerjanya; ini bukan sebuah janji penghapusan forensik dari memori browser atau OS.
 
 ## Saat aplikasi berkomunikasi dengan jaringan, secara lengkap
 
@@ -92,18 +104,45 @@ jaringan. Jika tidak ada di sini, aplikasi tidak melakukannya.
 | Kirim ke Dropbox | Satu berkas yang Anda pilih untuk dikirim, ke API Dropbox (`api.dropboxapi.com` untuk sign-in dan metadata, `content.dropboxapi.com` untuk berkas itu sendiri), setelah Anda menyelesaikan sign-in Dropbox di jendela Dropbox sendiri. Akses Lolly hanya sebatas app-folder (Lolly hanya bisa melihat `Apps/` dan foldernya sendiri di sana - tidak pernah sisa Dropbox Anda), tautan "Open" yang ditampilkan adalah tautan privat berumur pendek (tidak ada share publik yang dibuat), dan refresh token hanya disimpan jika Anda mencentang "stay connected" | Hanya saat Anda menekan "Send to Dropbox" pada sebuah berkas, dan hanya pada build tempat operator telah mengonfigurasi sebuah client id Dropbox - tanpa itu, tombolnya tidak ada | Tombolnya tidak pernah muncul. Unduh berkasnya dan unggah sendiri ke Dropbox |
 | Kirim ke OneDrive | Satu berkas yang Anda pilih untuk dikirim, ke layanan identitas dan Graph milik Microsoft (`login.microsoftonline.com` untuk sign-in, `graph.microsoft.com` untuk unggahan; berkas besar diunggah dalam chunk ke alamat unggah milik Microsoft di `api.onedrive.com`, `*.up.1drv.com` atau `*.sharepoint.com`), setelah Anda menyelesaikan sign-in Microsoft di jendela Microsoft sendiri. Akses Lolly dibatasi pada foldernya sendiri di bawah `Apps/` (Lolly tidak pernah bisa membaca sisa OneDrive Anda) ditambah nama tampilan Anda untuk label akun, dan refresh token hanya disimpan jika Anda mencentang "stay connected" | Hanya saat Anda menekan "Send to OneDrive" pada sebuah berkas, dan hanya pada build tempat operator telah mengonfigurasi sebuah client id Microsoft - tanpa itu, tombolnya tidak ada | Tombolnya tidak pernah muncul. Unduh berkasnya dan unggah sendiri ke OneDrive |
 | Kirim ke LinkedIn | Satu berkas yang Anda pilih untuk dikirim, beserta namanya sebagai teks postingan, ke LinkedIn (`www.linkedin.com` untuk sign-in, `api.linkedin.com` untuk unggahan dan postingan), setelah Anda menyelesaikan sign-in LinkedIn di browser Anda sendiri. Postingan tersebut masuk ke feed Anda sendiri sebagai sebuah postingan publik atas nama Anda. Lolly dapat memposting atas nama Anda dan membaca nama Anda untuk label akun, tidak ada yang lain di LinkedIn Anda, dan sign-in tersebut hanya disimpan di perangkat ini jika Anda mencentang "stay connected" - token LinkedIn berlaku 60 hari dan tidak dapat diperbarui secara diam-diam, sehingga akan kedaluwarsa dengan sendirinya | Hanya saat Anda menekan "Send to LinkedIn" pada sebuah berkas, hanya di aplikasi desktop, dan hanya pada build tempat sebuah aplikasi LinkedIn telah dikonfigurasi - tanpa itu, tombolnya tidak ada | Tidak ada yang perlu diblokir di aplikasi web: ini hanya ada di **aplikasi desktop**, sehingga kedua host tersebut secara sengaja TIDAK ada dalam Content-Security-Policy aplikasi web di bawah ini. Di aplikasi desktop, hapus aplikasi LinkedIn yang dikonfigurasi dan tombolnya tidak akan pernah muncul |
+| Kirim ke Penpot | Token akses personal Penpot Anda (Anda menempelkannya di aplikasi) dan arsip `.penpot` dari desain yang Anda pilih untuk dikirim, ke API Penpot (`design.penpot.app`) melalui sebuah pass-through kecil pada origin milik aplikasi itu sendiri (`/api/penpot`), karena API Penpot tidak akan merespons langsung ke browser. Pass-through tersebut meneruskan lalu melupakan; aplikasi desktop berbicara langsung dengan Penpot | Hanya saat Anda menekan "Send to Penpot" di tool Design dan mengonfirmasi sebuah project | Pass-through tersebut mengembalikan sebuah error dan pengiriman gagal secara tertutup. Ekspor berkas `.penpot` dan impor sendiri di Penpot |
+| Kirim ke Bluesky | Satu gambar yang Anda pilih untuk dikirim, namanya sebagai teks postingan dan teks alt, serta handle Anda ditambah sebuah app password (Bluesky → Settings → App passwords, bukan kata sandi akun Anda), ke server Bluesky yang Anda sebutkan (`bsky.social` kecuali Anda melakukan self-host). App password disimpan hanya di perangkat ini, tidak pernah di dalam backup, dan Disconnect menghapusnya | Hanya saat Anda menekan "Send to Bluesky" pada sebuah gambar, setelah Anda menghubungkan akun di profil Anda, hanya di **aplikasi desktop** | Tidak ada yang perlu diblokir di aplikasi web: kebijakannya di bawah tidak mencantumkan host Bluesky apa pun, sehingga persilangan itu tidak ada di sana. Di aplikasi desktop, hapus koneksinya dan tombolnya tidak akan pernah muncul |
+| Kirim ke Discord | Satu berkas yang Anda pilih untuk dikirim, sebagai lampiran, ke alamat webhook channel yang Anda tempelkan (`discord.com`). Sebuah alamat webhook memungkinkan siapa pun yang memilikinya memposting ke channel tersebut, sehingga alamat itu disimpan hanya di perangkat ini, tidak pernah di dalam backup, dan Disconnect menghapusnya | Hanya saat Anda menekan "Send to Discord" pada sebuah berkas, hanya di **aplikasi desktop** | Tidak ada yang perlu diblokir di aplikasi web: kebijakannya di bawah tidak menyebutkan `discord.com`, sehingga persilangan itu tidak ada di sana. Di aplikasi desktop, hapus webhook-nya dan tombolnya tidak akan pernah muncul |
+| Kirim ke Mastodon | Satu berkas yang Anda pilih untuk dikirim dan namanya sebagai teks postingan, ke server Mastodon (atau yang kompatibel) yang Anda sebutkan, setelah Anda menyelesaikan sign-in di jendela server itu sendiri. Menghubungkan akun mendaftarkan sebuah aplikasi kecil per perangkat di server tersebut; sign-in tersebut hanya disimpan di perangkat ini jika Anda mencentang "stay connected" | Hanya saat Anda menekan "Send to Mastodon" pada sebuah berkas. Anda memilih servernya, sehingga tidak ada dalam kebijakan di bawah | Server yang Anda sebutkan harus mengizinkan panggilan browser; jika tidak, gunakan aplikasi desktop. Disconnect menghapus tombolnya |
+| Kirim ke Nextcloud / WebDAV | Satu berkas yang Anda pilih untuk dikirim, ke server Anda sendiri, lewat satu PUT terautentikasi dengan alamat server, nama pengguna dan app password yang Anda masukkan (Nextcloud → Settings → Security → Devices & sessions; bukan kata sandi akun Anda). Disimpan hanya di perangkat ini, tidak pernah di dalam backup, dihapus oleh Disconnect | Hanya saat Anda menekan "Send to Nextcloud" pada sebuah berkas. Anda memilih servernya, sehingga tidak ada dalam kebijakan di bawah | Server Anda harus mengizinkan panggilan browser dari origin aplikasi; jika tidak, gunakan aplikasi desktop |
+| Kirim ke penyimpanan yang kompatibel S3 | Satu berkas yang Anda pilih untuk dikirim, ke bucket Anda sendiri (AWS S3, MinIO, R2, B2, Garage - endpoint SigV4 apa pun), ditandatangani di perangkat Anda dengan pasangan kunci yang Anda masukkan. Kunci disimpan hanya di perangkat ini, tidak pernah di dalam backup, dihapus oleh Disconnect | Hanya saat Anda menekan "Send to S3" pada sebuah berkas. Anda memilih endpoint-nya, sehingga tidak ada dalam kebijakan di bawah | Aturan CORS bucket Anda harus mengizinkan origin aplikasi; jika tidak, gunakan aplikasi desktop |
+| Sinkronisasi antar perangkat Anda | Sebuah salinan dari apa yang Anda buat di perangkat ini - sesi dan proyek tersimpan, design system Anda beserta font dan logonya, gambar yang diunggah, profil dan preferensi Anda - sebagai satu berkas, ke satu penyimpanan yang Anda pilih: folder aplikasi Lolly di Dropbox Anda (`api.dropboxapi.com`, `content.dropboxapi.com`), berkas yang dibuat Lolly di Google Drive Anda (`www.googleapis.com`), folder aplikasi Lolly di OneDrive Anda (`graph.microsoft.com`, dengan berkas besar diunggah ke `api.onedrive.com`, `*.up.1drv.com` atau `*.sharepoint.com`, dan unduhan dari `*.files.1drv.com`, `my.microsoftpersonalcontent.com` atau `*.sharepoint.com` milik Microsoft), atau server Nextcloud / WebDAV atau bucket S3 Anda sendiri. Penyimpanan yang sama juga menyimpan hingga tujuh salinan harian dan satu salinan dari sebelum penerapan terakhir Anda. **Tidak ada yang dikirim ke Lolly:** tidak ada server Lolly, relay atau server Lolly Work dalam jalurnya, dan aplikasi tidak memerlukan situs web Lolly untuk itu, bahkan untuk sign-in. Salinan dienkripsi di perangkat Anda terlebih dahulu hanya jika Anda menetapkan sebuah passphrase. Sign-in, kunci, app password, passphrase dan pengaturan sync tetap di perangkat dan tidak pernah ada dalam salinannya. Di web, sebuah koneksi Google Drive yang diingat hanya menyimpan nama akun Anda (dan client id Anda sendiri, jika Anda memberikannya); sign-in Google itu sendiri berlaku untuk satu kunjungan. Di aplikasi Android, sign-in Google Drive melalui layanan Google Play di ponsel, yang dijalankan oleh Google | Hanya setelah Anda mengaktifkan "Sync across my devices" atau menekan "Sync now": sebuah unggahan sesaat setelah tiap perubahan dan saat Anda meninggalkan aplikasi, serta sebuah pemeriksaan untuk salinan yang lebih baru saat aplikasi dimulai | Sync gagal dan menyatakan alasannya; karya Anda tetap di perangkat. Ekspor data Anda ke sebuah berkas dan pindahkan sendiri sebagai gantinya |
 | Profil cetak ICC | Tidak ada yang bersifat pribadi - permintaan untuk sebuah profil kondisi-cetak standar, ke registri publik ICC (`registry.color.org`, `www.color.org`) | Hanya jika Anda mengklik sebuah preset ICC di pengelola profil cetak - satu kali pengambilan per profil, lalu tersimpan di perangkat Anda | Preset ICC gagal. Sediakan profil `.icc` Anda sendiri sebagai gantinya |
 | Radio internet | Tidak ada yang bersifat pribadi - permintaan daftar putar dan stream audio, ke stasiun (`api.somafm.com` dan server icecast yang disebutkannya, `*.somafm.com`) | Hanya saat Anda memutar radio bawaan opsional di pemutar suara | Radio gagal. Semua fitur suara lainnya tetap berfungsi |
 | URL yang Anda minta sebuah alat untuk menangkap | Sebuah permintaan ke alamat web persis yang Anda ketik, dari alat screenshot URL. Apa pun alamat itu. Host ini tidak ada dalam kebijakan di bawah, karena Anda memilihnya pada saat penggunaan | Hanya saat Anda memasukkan sebuah URL di alat tersebut dan memulai penangkapan | Operator tidak bisa mengizinkan ini berdasarkan host (allowlist). Untuk menghapusnya, hapus alatnya |
+| Menambahkan gambar dari sebuah URL | Sebuah permintaan ke alamat gambar persis yang Anda tempelkan di "Add from URL" (di asset picker atau Assets). Kebijakan aplikasi web itu sendiri melarang browser mengambil situs lain secara langsung, sehingga permintaan itu dibuatkan untuk Anda oleh sebuah pass-through kecil pada origin milik aplikasi itu sendiri (`/api/fetch-image`), yang mengambil gambar tersebut di sisi server dan hanya mengembalikan byte-nya - pass-through itu tidak menyimpan apa pun dan melupakan alamatnya. Ia menolak apa pun yang bukan alamat gambar publik (alamat privat atau internal diblokir). Aplikasi desktop mengambil alamat itu secara langsung. Sebuah tautan Lolly yang Anda tempelkan sama sekali tidak diambil - tautan itu dirender di perangkat Anda. Host-nya tidak ada dalam kebijakan di bawah, karena Anda memilihnya pada saat penggunaan | Hanya saat Anda menempelkan sebuah URL di "Add from URL" dan mengonfirmasi | Operator mematikan pass-through tersebut (`LOLLY_DISABLE_IMAGE_PROXY=1`); setelah itu hanya tautan Lolly, gambar `data:` dan gambar same-origin yang bisa ditambahkan di aplikasi web. Aplikasi desktop tidak terpengaruh |
 | Pemeriksaan tanda tangan SEAL | **Tidak ada.** Aplikasi web sama sekali tidak memiliki resolver DNS - lihat di bawah | Tidak pernah | Tidak ada yang perlu diblokir |
 | Model AI di perangkat | Tidak ada yang bersifat pribadi - unduhan berkas model satu kali dari host model milik Lolly (`lolli.li`), lalu di-cache di perangkat Anda; tanpa akun, tanpa identifier, hanya permintaan dan alamat IP Anda | Hanya saat Anda menggunakan sebuah fitur yang memerlukan model (Verify deep scan, image upscale, speech, dan sejenisnya) | Fitur tersebut menunggu unduhan; semua yang lain tetap berfungsi |
 | Instans jarak jauh | Apa pun yang dikembalikan oleh instans yang Anda sebutkan, melalui sinkronisasi katalog yang sama seperti dijelaskan di atas - ditambah sebuah tag versi pada permintaan ke instans tersebut (jenis shell dan versi engine, informasi yang sama seperti yang dibawa oleh user agent), sehingga operatornya dapat melihat versi Lolly mana saja yang ada di lapangan. Pada instans terkelola, selama Anda masuk (signed in), tag tersebut juga membawa sebuah id instalasi per perangkat sehingga daftar perangkat operator dapat membedakan instalasi ini. Tag itu hanya menumpang pada permintaan yang sudah dibuat oleh penggunaan Anda sendiri - tidak ada timer dan tidak ada yang menghubungi rumah (phone home) - dan meninggalkan instans tersebut menghapus id-nya, sehingga sebuah perangkat yang tersambung kembali nanti akan menampilkan id baru. Anda memilih host pada saat penggunaan, sehingga host ini tidak ada dalam kebijakan di bawah | Hanya jika Anda secara eksplisit mengarahkan shell ke deployment Lolly lain | Pergantian instans gagal. Instans lokal Anda tidak terpengaruh |
 
-Setiap host tetap dalam tabel tersebut juga merupakan allowlist lengkap dalam Content-Security-Policy aplikasi, yang ditegakkan oleh browser. Jadi daftar ini bukan hanya deskripsi tentang apa yang dilakukan kode saat ini, melainkan batas yang dipertahankan browser terhadap aplikasi: sebuah perubahan di masa depan yang mencoba menghubungi host lain akan diblokir, bukan diizinkan secara diam-diam. Satu baris adalah pengecualian yang disengaja, dan selnya sendiri menyatakan demikian: Send to LinkedIn hanya ada di aplikasi desktop, sehingga kebijakan aplikasi web tidak menyebutkan salah satu dari kedua hostnya - aplikasi web tidak akan bisa menjangkaunya bahkan jika kodenya mencoba. Dua baris lagi tidak memiliki host tetap, karena Anda memilih alamatnya pada saat penggunaan: sebuah URL yang Anda minta sebuah alat untuk menangkap, dan sebuah instans jarak jauh yang Anda arahkan pada shell. Tidak satu pun ada dalam kebijakan, dan masing-masing hanya terjadi saat Anda mengetik sebuah alamat dan bertindak atasnya. Sebuah deployment yang tidak menginginkan satu pun dari yang opsional (misalnya sebuah instans enterprise dengan fontnya sendiri) menghapus host-host tersebut dari kebijakannya dan fitur-fiturnya gagal secara tertutup (fail closed) alih-alih menjangkau keluar.
+Setiap host tetap dalam tabel tersebut juga merupakan allowlist lengkap dalam
+Content-Security-Policy aplikasi, yang ditegakkan oleh browser. Jadi daftar ini bukan hanya
+deskripsi tentang apa yang dilakukan kode saat ini, melainkan batas yang dipertahankan browser
+terhadap aplikasi: sebuah perubahan di masa depan yang mencoba menghubungi host lain akan diblokir,
+bukan diizinkan secara diam-diam. Satu baris adalah pengecualian yang disengaja, dan selnya sendiri
+menyatakan demikian: Send to LinkedIn hanya ada di aplikasi desktop, sehingga kebijakan aplikasi web
+tidak menyebutkan salah satu dari kedua hostnya - aplikasi web tidak akan bisa menjangkaunya
+bahkan jika kodenya mencoba.
+Dua baris lagi, Bluesky dan Discord, bersifat desktop-only dengan cara yang sama, dan
+host-nya juga tidak dicantumkan dalam kebijakan web karena alasan yang sama. Lima baris tidak memiliki
+host tetap, karena Anda memilih alamatnya pada saat penggunaan: sebuah URL yang Anda minta
+sebuah alat untuk menangkap, sebuah instans jarak jauh yang Anda arahkan pada shell, dan server
+Mastodon, server WebDAV atau bucket S3 Anda sendiri (dua yang terakhir juga sebagai tujuan sync). Tidak satu pun ada dalam kebijakan, dan masing-masing hanya
+terjadi saat Anda mengetik sebuah alamat dan bertindak atasnya. Baris Penpot menjangkau
+Penpot lewat origin milik aplikasi itu sendiri, sehingga sudah tercakup oleh `'self'`. Sebuah deployment yang tidak menginginkan satu pun dari yang
+opsional (misalnya sebuah instans enterprise dengan fontnya sendiri) menghapus
+host-host tersebut dari kebijakannya dan fitur-fiturnya gagal secara tertutup alih-alih menjangkau keluar.
 
-Tak satu pun dari ini mengirim dokumen, proyek, sesi atau file yang Anda unggah ke mana pun.
-Semua ini ada untuk membawa sesuatu *ke* perangkat Anda (tool, font, model), tidak pernah untuk mengirim
-sesuatu *dari* perangkat Anda, dengan pengecualian yang disebutkan secara eksplisit di bagian-bagian di bawah.
+Selain dua jenis baris, tidak ada satu pun dari ini yang mengirim dokumen, proyek,
+sesi atau berkas yang Anda unggah ke mana pun: semuanya ada untuk membawa sesuatu *ke* perangkat Anda
+(tool, font, model). Kedua jenis itu adalah baris Send, yang mengirim satu berkas
+yang Anda pilih, dan baris sync, yang mengirim sebuah salinan karya Anda ke penyimpanan yang Anda
+pilih dan tidak ke server Lolly mana pun. Pengecualian lain mana pun disebutkan secara eksplisit di
+bagian-bagian di bawah ini.
 
 **Catatan tentang apa yang kami hapus.** Verify dapat memeriksa tanda tangan SEAL, sebuah skema di mana
 kunci penandatanganan sebuah file dipublikasikan di DNS. Peramban tidak dapat membuat query DNS, jadi implementasi
@@ -123,11 +162,10 @@ klaim lain di halaman ini, dengan perintah persis dan keluaran yang diharapkan, 
 
 ## URL render hot-linked
 
-> **Aktif di lolly.tools.** Setiap
-> URL `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` benar-benar merender,
-> dan input-inputnya ikut dalam URL itu. Bagian di bawah menjelaskan apa artinya
-> ini bagi Anda, dan seorang operator dapat mematikan fitur ini di instans
-> miliknya sendiri.
+> **Aktif di lolly.tools.** Setiap URL `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>`
+> benar-benar merender, dan input-inputnya ikut dalam URL itu. Bagian di bawah
+> menjelaskan apa artinya ini bagi Anda, dan seorang operator dapat mematikan fitur ini
+> di instansnya sendiri.
 
 Aplikasi itu sendiri tetap sepenuhnya di perangkat Anda. Secara terpisah, seorang operator dapat mengaktifkan
 **URL render hot-link** - `/tool/<tool-id>.<ext>?<inputs>` - sehingga sebuah tautan Lolly yang dibagikan
@@ -136,31 +174,29 @@ meminta server merender **data tool dan katalog publik** dengan input yang
 tertulis dalam URL.
 
 - <!--i:usercheck--> **Tidak ada akun, tidak ada cookie, tidak ada state.** Endpoint ini anonim, dan tidak
-  ada yang dibaca di perangkat Anda. Dokumen, sesi dan unggahan Anda tidak pernah
-  keluar dari browser Anda - itu semua sama sekali tidak bisa muncul di link ini.
+  ada yang dibaca di perangkat Anda. Dokumen, sesi dan unggahan Anda tidak pernah keluar dari
+  browser Anda - itu semua sama sekali tidak bisa muncul di link ini.
 - <!--i:document--> **Tetapi URL itu sendiri tercatat.** Query string sebuah URL adalah bagian dari
-  baris permintaan, jadi ia muncul di access log biasa milik platform hosting sama
-  seperti setiap path yang diminta. Jika input sebuah link berisi nama atau email
-  seseorang - sebuah name badge, sebuah signature email - maka **teks itu tersimpan di
-  log tersebut**, dan tidak ada susunan kata kebijakan yang mengubahnya. Jadi URL hot-link
-  adalah tempat yang salah untuk detail pribadi: berikan hanya apa yang akan Anda taruh di halaman publik.
+  baris permintaan, jadi ia muncul di access log biasa milik platform hosting sama seperti
+  setiap path yang diminta. Jika input sebuah link berisi nama atau email seseorang -
+  sebuah name badge, sebuah signature email - **teks itu tersimpan di log tersebut**, dan
+  tidak ada susunan kata kebijakan yang mengubahnya. Jadi URL hot-link adalah tempat yang salah untuk
+  detail pribadi: berikan hanya apa yang akan Anda taruh di halaman publik.
 - <!--i:globe--> **Input-input itu memang secara struktural bersifat publik** - apa pun isinya, penulis
-  link itulah yang mengetiknya ke dalam URL, dan siapa pun yang menerima link itu
-  dapat membacanya. Jangan taruh rahasia di link yang dibagikan. Lolly menawarkan
-  enkripsi link untuk konten sensitif.
+  link itulah yang mengetiknya ke dalam URL, dan siapa pun yang menerima link itu dapat membacanya.
+  Jangan taruh rahasia di link yang dibagikan. Lolly menawarkan enkripsi link untuk konten sensitif.
 - <!--i:eyeoff--> Respons **di-cache dan dibatasi rate-nya** seperti gambar publik mana pun, dan
   ditandai `noindex` sehingga mesin pencari tidak mengindeks render Anda.
 
 Self-hosting Lolly dan tidak ingin permukaan render publik? Setel
-`LOLLY_DISABLE_RENDER_GET=1` dan setiap
-URL ini mengembalikan 404.
+`LOLLY_DISABLE_RENDER_GET=1` dan setiap URL ini mengembalikan 404.
 
 ## Server MCP (opsional, untuk agen AI)
 
 Lolly juga dapat dijangkau oleh agen AI melalui Model Context Protocol - sebuah
 endpoint yang dijalankan operator (lolly.tools menjalankan satu; siapa pun dapat self-host miliknya sendiri,
 termasuk yang sepenuhnya air-gapped). Ini berbagi sikap tanpa-akun dari render path,
-ditambah tiga tool yang secara inheren menangani byte file:
+ditambah empat tool yang secara inheren menangani byte file:
 
 - <!--i:cpu--> **`lolly_transform`** (menjalankan utilitas on-device di sisi server, atas nama
   agen pemanggil), **`lolly_verify`** (memeriksa Content Credentials) dan **`lolly_redact`**
@@ -168,6 +204,14 @@ ditambah tiga tool yang secara inheren menangani byte file:
   byte file dari pemanggil. File-file ini diproses **in-process, di memori**,
   dan hasilnya dikembalikan dalam panggilan yang sama itu - file tidak pernah ditulis ke
   disk dan tidak pernah disimpan setelah permintaan selesai.
+- <!--i:cpu--> **`lolly_rebrand`** (merenovasi sebuah slide deck lama ke sebuah design system,
+  melalui tahap `plan`, `compile` dan `inspect`-nya) menerima byte sebuah deck dengan
+  cara yang sama, dan memprosesnya **di memori, hanya untuk panggilan itu saja** - tidak ada yang
+  ditulis ke disk atau disimpan setelah respons dikirim. Tahap pertamanya,
+  `capabilities`, menyatakan dengan kata-kata ke mana byte Anda akan pergi sebelum Anda mengirim
+  apa pun: pada sebuah server lokal yang di-self-host, deck tidak pernah meninggalkan mesin itu; pada sebuah
+  server hosted, memanggil `lolly_rebrand` mengirim deck ke sana, hingga batas ukuran
+  dan jumlah slide yang diberikan tahap yang sama.
 - <!--i:checklist--> Setiap tool lainnya - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
   `lolly_describe_tool` - bekerja hanya dari parameter (teks, angka, warna,
   URL, id aset katalog), input yang sama seperti yang diambil oleh URL render hot-link.
@@ -206,9 +250,11 @@ Jika Anda mendaftar, berikut yang persis terjadi:
    pelacakan, dan hanya ada untuk mencegah redirect OAuth dipalsukan. Cookie ini dihapus
    segera setelah sign-in selesai.
 3. **Alamat IP Anda digunakan, sebentar, untuk mencegah penyalahgunaan** endpoint
-   sign-in (sehingga satu skrip tidak dapat mem-spam sebuah kotak masuk atau menghabiskan kuota email) - disimpan
-   hanya di memori server, untuk jendela geser sekitar satu menit, tidak pernah ditulis
-   ke log atau disimpan permanen di mana pun.
+   sign-in (sehingga satu skrip tidak dapat mem-spam sebuah kotak masuk atau menghabiskan kuota email).
+   Lolly meng-hash alamat itu sebelum membuat sebuah bucket abuse-control berumur pendek;
+   alamat mentahnya tidak dikirim ke penyimpanan itu. Bucket tersebut kedaluwarsa setelah sekitar
+   satu menit dan tidak digunakan untuk pelacakan. Log akses hosting biasa terpisah dan
+   dijelaskan di bawah.
 4. **Layanan sertifikat menerbitkan sertifikat berumur pendek** (7, 30, 90 atau 365
    hari, pilihan Anda, dibatasi oleh kebijakan operator) yang mengikat email terverifikasi Anda
    dengan bagian publik dari keypair yang dihasilkan di perangkat Anda. Bagian privat
@@ -270,7 +316,7 @@ sama sekali: alamat IP, path yang diminta, timestamp, user agent. Itu adalah per
 dasar, bukan sesuatu yang ditambahkan Lolly di atasnya, dan itu tidak pernah berisi
 isi dokumen Anda, karena dokumen tersebut tidak pernah mencapai server sejak awal. Satu
 pengecualian yang disengaja adalah file yang secara eksplisit Anda serahkan ke panggilan MCP
-`lolly_transform`, `lolly_verify` atau `lolly_redact`, yang diproses di memori dan tidak pernah
+`lolly_transform`, `lolly_verify`, `lolly_redact` atau `lolly_rebrand`, yang diproses di memori dan tidak pernah
 ditulis ke disk atau log, seperti dijelaskan di atas.
 
 **Kode Lolly sendiri tidak menulis apa pun ke log tersebut.** Server MCP sama sekali tidak berisi
@@ -295,12 +341,14 @@ kelengkapan, berikut daftar lengkapnya:
 |---|---|---|
 | Semua hal di perangkat Anda (dokumen, preferensi, cache, penghitung) | **Sama sekali bukan pemrosesan oleh kami** - data ini tidak pernah sampai ke kami. Penyimpanan di perangkat Anda benar-benar diperlukan untuk layanan yang Anda minta (ePrivacy Art. 5(3)), sehingga tidak memerlukan persetujuan | Sampai Anda menghapusnya |
 | Alamat email Anda saat pendaftaran Content Credentials | **Art. 6(1)(b)**, pelaksanaan layanan yang Anda minta secara eksplisit | Tidak disimpan. Hanya ada di memori selama durasi permintaan |
-| Alamat IP Anda pada endpoint masuk, untuk pembatasan laju | **Art. 6(1)(f)**, kepentingan sah kami dalam mencegah penyalahgunaan layanan gratis dan kuota email pihak ketiga. Kami menganggap ini lolos uji keseimbangan karena hanya ada di memori, tidak pernah dituliskan, dan dibuang dalam waktu sekitar satu menit | ~1 menit, di memori server, tidak pernah disimpan permanen |
+| Sebuah bucket key hasil derivasi satu arah dari alamat IP Anda pada endpoint sign-in, untuk pembatasan laju | **Art. 6(1)(f)**, kepentingan sah kami dalam mencegah penyalahgunaan layanan gratis dan kuota email pihak ketiga. Kami menganggap ini lolos uji keseimbangan karena alamat mentahnya tidak dikirim ke limiter, bucket itu hanya digunakan untuk abuse control dan kedaluwarsa secara otomatis | Sekitar 1 menit di penyimpanan abuse-control; tidak disimpan setelahnya |
 | Log akses hosting (IP, jalur, stempel waktu, agen pengguna) | **Art. 6(1)(f)**, kepentingan sah kami dalam keamanan layanan, pencegahan penyalahgunaan dan diagnosis kesalahan | Default platform Vercel untuk paket kami. Kami tidak menambahkan pengurasan atau ekspor apa pun |
 
 **Penerima.** Kategori penerima adalah: penyedia hosting kami (Vercel
-Inc.), dan - hanya jika Anda menggunakan opsi masuk lewat email - penyedia
-email transaksional (Resend). Jika Anda masuk dengan GitHub, Google atau SUSE (id.suse.com), Anda
+Inc.); penyedia penyimpanan abuse-control kami, yang hanya menerima bucket key
+hasil derivasi satu arah yang berumur pendek dan tidak pernah alamat IP mentah; dan - hanya jika Anda
+menggunakan opsi masuk lewat email - penyedia email transaksional (Resend). Jika Anda masuk
+dengan GitHub, Google atau SUSE (id.suse.com), Anda
 berinteraksi langsung dengan penyedia tersebut di bawah kebijakan privasi mereka sendiri. Mereka memberi tahu
 kami alamat email yang terverifikasi dan tidak ada yang lain. Kami tidak membagikan data pribadi dengan siapa
 pun yang lain, dan kami tidak menjual data, menjalankan iklan atau memprofilkan pengguna.
@@ -311,9 +359,9 @@ pemrosesan terjadi di UE, tetapi sebagai penyedia yang berkantor pusat di AS, me
 mengakses data sebagai pemroses dari AS. Transfer tersebut mengandalkan Klausul
 Kontrak Standar dari Komisi Eropa dan/atau Kerangka Kerja Perlindungan Data
 UE-AS, sebagaimana diatur dalam perjanjian pemrosesan data masing-masing penyedia. Karena
-data pribadi yang sampai ke salah satu penyedia sangat terbatas - sebuah alamat email yang diteruskan
-untuk mengirim satu pesan, dan log akses biasa - paparannya
-pun sekecil itu.
+data pribadi yang sampai ke penyedia-penyedia ini sangat terbatas - sebuah alamat email yang diteruskan
+untuk mengirim satu pesan, log akses biasa, dan sebuah bucket abuse-control turunan yang berumur pendek
+- paparannya pun sekecil itu.
 
 **Pengambilan keputusan otomatis.** Tidak ada. Tidak ada pembuatan profil dan tidak ada keputusan otomatis
 yang menghasilkan efek hukum atau efek signifikan serupa (Art. 22).
@@ -331,8 +379,8 @@ Karena hampir semua yang disentuh Lolly hanya disimpan di perangkat Anda sendiri
 yang oleh hukum perlindungan data disebut "hak Anda" - akses, koreksi, penghapusan,
 portabilitas - adalah hal yang sudah bisa Anda lakukan sendiri, seketika, tanpa meminta izin
 siapa pun: data Anda tersimpan di penyimpanan peramban Anda, dalam bentuk yang bisa Anda periksa,
-ekspor (**Export my data & render everything**, di atas) atau hapus (**Profile → Clear all
-my data**).
+ekspor (**Export my data**, di atas) atau hapus (dengan menghapus penyimpanan situs di
+peramban Anda, seperti di atas).
 
 Secara formal, berdasarkan Pasal 15-22 GDPR, Anda berhak untuk **mengakses** data
 pribadi Anda, **memperbaikinya**, **menghapusnya**, **membatasi** atau **menolak**

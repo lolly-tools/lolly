@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "Ang parehong kulay, nakasulat para sa bawat space. Ang row na may markang “clamped” ay nagpapakita ng space na masyadong makitid para dito - iro-round ng CSS ang mga numerong iyon papasok sa range.",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "Bawat kulay ng palette bilang TEXT (pababa sa mga row) laban sa bawat kulay ng palette bilang BACKGROUND (pahalang sa mga column), kasama ang puti at itim. Polarity-dependent ang APCA, kaya magkaiba ang isang cell at ang mirror nito, at ang diagonal - kulay laban sa sarili nito - ay ~0 ang babasahin. Pumili ng vision mode para muling kulayan ang grid at ang brand rail, at muling i-score ang bawat pares para sa vision na iyon.",
   "Assets": "Mga asset",
-  "Runs the deeper AI text check on Verify and in Assets.": "Pinapatakbo ang mas malalim na AI-text check sa Verify at sa Mga asset."
+  "Runs the deeper AI text check on Verify and in Assets.": "Pinapatakbo ang mas malalim na AI-text check sa Verify at sa Mga asset.",
+  "Copied to clipboard": "Nakopya sa clipboard",
+  "Copy did not work": "Nabigo ang pag-copy",
+  "Select the text, then use your device’s copy command.": "Piliin ang text, tapos gamitin ang copy command ng device mo.",
+  "Select text": "Piliin ang text",
+  "Text selected. Use your device’s copy command.": "Napili ang text. Gamitin ang copy command ng device mo.",
+  "Copy {label}": "Kopyahin ang {label}"
 }

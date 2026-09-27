@@ -8,12 +8,16 @@ Part of [CLI](/info/cli.html).
 
 A batch is **many URL-mode rows under one file** - the same principle as a single render, tabulated. `lolly batch <rows.csv>` renders one output per row into a directory (a directory, not a zip: the lean CLI has no zip dependency, and a folder composes with your own `zip`/`tar`; the TUI's batch packs a zip instead).
 
-```bash
-# Author a starter grid for one or more tools (their input columns + reserved columns):
-pnpm --silent run cli batch --template=qr-code,chart-creator > rows.csv
+Write a starter grid for one or more tools, with their input columns and the reserved columns:
 
-# Render every row → ./out/NN-<name>.<fmt>
-pnpm run cli batch rows.csv --out-dir=./out [--keep-going]
+```bash
+pnpm --silent run cli batch --template=qr-code,chart-creator > rows.csv
+```
+
+Fill in one row per file, then render every row into `./out/NN-<name>.<fmt>`:
+
+```bash
+pnpm run cli batch rows.csv --out-dir=./out
 ```
 
 The header row lists the columns: a **`toolId`** column is required; **`format` · `width` · `height` · `unit` · `dpi` · `filename`** are per-row output settings; every other column is a **tool input id** whose cell is a value (any URL-mode form - plain text, JSON/tilde blocks, `id.field` vectors). Rows can mix tools freely. Example:

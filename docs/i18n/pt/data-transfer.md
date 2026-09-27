@@ -4,14 +4,14 @@ Tudo que um usuário do Lolly acumula vive **no seu dispositivo** - sem conta, s
 
 ![Os dois botões que movem uma instalação inteira: Export my data grava um zip, Import data o lê de volta](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-Esta página é a especificação do formato. Para o passo a passo do usuário final, veja [Using Lolly → Moving to another device](/info/using.html). A implementação está em [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), e [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) fixa o contrato de ida e volta.
+Esta página é a especificação do formato. Para o passo a passo do usuário final, veja [Encontre e recupere seu trabalho → Mova seu trabalho para outro dispositivo](/info/find-your-work.html#move-your-work-to-another-device). A implementação é [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), e [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) fixa o contrato de ida e volta.
 
-> **Escopo.** Um pacote carrega *dados do usuário*, não ferramentas. Ferramentas e ativos do catálogo são sincronizados separadamente e presume-se que já estejam presentes no destino (no pior caso, em uma versão mais nova). Importar nunca instala ou atualiza uma ferramenta.
+> **Escopo.** Um pacote carrega *dados do usuário*, não ferramentas de catálogo. Ferramentas de catálogo e ativos de catálogo são sincronizados separadamente e presume-se que já estejam presentes no destino (no pior caso, em uma versão mais alta); ferramentas que o próprio usuário fez viajam dentro de `profile.json`. Importar nunca instala nem atualiza uma ferramenta de catálogo.
 
 ## Objetivos
 
-- <!--i:box--> **Um formato, todo shell.** Os mesmos bytes são produzidos e consumidos pelo PWA web, pelos apps Tauri desktop/mobile e por qualquer shell futuro. O pacote é o contrato. A ponte de capacidades de cada shell é o adaptador específico da plataforma por trás dele.
-- <!--i:shieldcheck--> **Sobrevive à viagem.** Um pacote corrompido ou truncado em trânsito falha de forma clara ao importar, nunca restaura pela metade.
+- <!--i:box--> **Um formato, todo shell.** O PWA web, os apps de desktop/mobile do Tauri e futuros shells compartilham o mesmo envelope e os mesmos esquemas de parte suportados. Partes opcionais dependem das capacidades de cada shell; partes não suportadas são relatadas. Cada bridge de capacidade fornece seu próprio adaptador de armazenamento.
+- <!--i:shieldcheck--> **Sobrevive à viagem.** Um pacote corrompido ou truncado no trajeto falha ruidosamente na importação, nunca restaura pela metade.
 - <!--i:clock--> **Sobrevive a esta versão.** Um app mais antigo ainda consegue importar as partes reconhecidas de um pacote mais novo. Um formato genuinamente incompatível é recusado de forma limpa.
 - <!--i:check--> **Seguro para mesclar.** Importar em uma instalação já em uso nunca apaga nada que não estava no pacote.
 
@@ -19,15 +19,21 @@ Esta página é a especificação do formato. Para o passo a passo do usuário f
 
 Um pacote é um `.zip` simples. O download recebe o nome da pessoa a quem pertence - `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (por exemplo `LollyTools-Ada-Lovelace-2026-06-26-1.zip`) - para que uma pasta de Downloads cheia de backups continue legível. As partes de primeiro e último nome vêm do perfil e são omitidas quando não definidas. Sem perfil, o resultado é `LollyTools-2026-06-26-1.zip`, e apenas um primeiro nome dá `LollyTools-Ada-2026-06-26-1.zip`. Cada parte é sanitizada para um token seguro para nome de arquivo (letras/dígitos Unicode mantidos, espaços/pontuação removidos, limitado a 32 caracteres). `<n>` é uma sequência por dia, por dispositivo, então exportações repetidas no mesmo dia não colidem e permanecem em ordem. `backupFilename()` em [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts) monta o nome. O conteúdo do zip é idêntico independentemente do nome. Dentro:
 
-| Path | Required | Contents |
+| Caminho | Obrigatório | Conteúdo |
 |---|---|---|
-| `manifest.json` | sim | Id do formato, versões, contagens e integridade por parte. A primeira coisa que um leitor examina. |
-| `profile.json` | quando definido | O registro `me` do usuário (nome, contato, referência de foto, flags). Lido via `host.profile`. |
-| `sessions.json` | sim | Cada sessão salva: slot, id/versão da ferramenta, rótulo, miniatura (data-URL) e dados de entrada completos. Lido via `host.state`. |
-| `assets.json` | sim | Metadados de cada ativo enviado (imagens, fontes, tokens de marca), cada um apontando para seus bytes em `assets/blobs/`. |
-| `assets/blobs/<n>.<ext>` | por ativo | Os bytes brutos do ativo (arquivos de imagem e fonte). Armazenados sem compressão (formatos já compactados). A extensão é cosmética. O MIME em `assets.json` é a fonte autoritativa. |
-| `prefs.json` | sim | Preferências locais de propriedade do usuário: `theme`, `sidebarWidth` e a contagem de atividade `ct-metrics`. |
-| `lolly.txt` | sim | Um resumo legível por humanos do pacote (contagens, perfil, nome do arquivo) para quem abrir o zip sem o Lolly. Regenerado a cada exportação e reconhecido na importação, então nunca conta como parte pulada. É escrito *depois* do mapa de integridade, então fica fora dele. |
+| `manifest.json` | sim | Id do formato, versões, contagens e integridade por parte. A primeira coisa que um leitor observa. |
+| `profile.json` | quando definido | Todo o registro `me` do usuário: nome, contato, referência de foto de perfil e flags, mais pastas, Lixeira, modelos de projeto, modelos do usuário e ferramentas feitas pelo usuário, favoritos, ferramentas ocultas, escolha de idioma e de emoji. Lido via `host.profile`. |
+| `sessions.json` | sim | Cada sessão salva: slot, id/versão da ferramenta, rótulo, miniatura (data-URL) e todos os dados de entrada. Lido via `host.state`. |
+| `assets.json` | sim | Metadados de cada ativo enviado (imagens, fontes, tokens de marca, logos, cópias salvas de downloads), cada um apontando para seus bytes em `assets/blobs/`. |
+| `assets/blobs/<n>.<ext>` | por ativo | Os bytes brutos do ativo (arquivos de imagem e de fonte). Armazenados sem compressão (formatos já comprimidos). A extensão é cosmética. O MIME em `assets.json` é a autoridade. |
+| `assets/blobs/<n>.c2pa` | quando presente | Content Credentials extraídas como bytes binários exatos, referenciadas por `_credentialFile` no registro do ativo. Não são chaves de assinatura do dispositivo. |
+| `design-systems.json` | quando presente | Os design systems criados ou adicionados nesta instalação, como `{ active, records }`. Mesclado por id na importação; a escolha ativa do pacote se aplica só quando o destino não tem design system próprio. |
+| `file-history.json` | opcional | Snapshots de ativos versionados, relatórios de operação de arquivo do terminal e manifestos de lote completos. A parte de histórico tem versão própria; fornecida pelo adaptador de backup interno `fileHistory` do shell. |
+| `revision-history.json` | opcional, backups manuais | IDs de criação estáveis, checkpoints retidos, miniaturas e rascunhos rotativos de recuperação. Fornecida por `host.state.history.backup` onde suportado. |
+| `file-history/versions/` | por snapshot | Bytes anteriores do ativo e credenciais extraídas, independente de o ativo atual ainda existir. |
+| `file-history/results/` | por operação concluída | Bytes de saída exatos. Nenhum arquivo original selecionado para conversão é retido ou incluído. |
+| `prefs.json` | sim | Preferências locais do próprio usuário: `theme`, `sidebarWidth` e a contagem de atividade `ct-metrics`. |
+| `lolly.txt` | sim | Um resumo legível do pacote (contagens, perfil, nome do arquivo) para quem abrir o zip sem o Lolly. Regenerado a cada exportação e reconhecido na importação, então nunca conta como uma parte pulada. É escrito *depois* do mapa de integridade, então fica fora dele. |
 
 O pacote é um zip simples de propósito: sobrevive a qualquer transporte intacto, e qualquer ferramenta de descompactação consegue inspecioná-lo.
 
@@ -40,16 +46,19 @@ O pacote é um zip simples de propósito: sobrevive a qualquer transporte intact
 ```json
 {
   "format": "lolly-backup",
-  "formatVersion": 1,
+  "formatVersion": 3,
   "minReader": 1,
   "app": "lolly",
   "exportedAt": "2026-06-22T09:30:00.000Z",
-  "counts": { "profile": true, "sessions": 2, "userAssets": 4, "prefs": 3 },
+  "counts": { "profile": true, "sessions": 2, "userAssets": 4, "prefs": 3, "assetVersions": 1, "fileOperations": 1 },
   "integrity": {
     "profile.json": "sha256-…",
     "sessions.json": "sha256-…",
     "assets.json": "sha256-…",
-    "assets/blobs/0.webp": "sha256-…",
+    "assets/blobs/0.bin": "sha256-…",
+    "file-history.json": "sha256-…",
+    "file-history/versions/0.bin": "sha256-…",
+    "file-history/results/0.bin": "sha256-…",
     "prefs.json": "sha256-…"
   }
 }
@@ -88,45 +97,82 @@ O manifesto não lista nem a si mesmo nem o README `lolly.txt` regenerado. Os di
 
 A importação é **mesclar e sobrescrever**, nunca substituir tudo:
 
-- Os dados existentes no destino são deixados no lugar.
-- Qualquer chave que colidir - o perfil, um slot de sessão, um id de imagem enviada - é substituída pela cópia importada.
+- Dados existentes no destino são deixados no lugar.
+- Qualquer chave que colida - o perfil, um slot de sessão, um id de imagem enviada - é substituída pela cópia importada.
+- O perfil é um único registro, então é substituído por inteiro: as pastas, Lixeira, modelos, favoritos e ferramentas ocultas do destino passam a ser os do pacote. Uma sessão que o destino tinha, mas o pacote não, é mantida, sem pasta, no nível superior de Projetos.
+- Versões históricas de ativos e IDs de operação são exceções imutáveis: uma importação repetida é idempotente, e um ID que já nomeia bytes/histórico diferentes é recusado, não sobrescrito. Reimportar um ativo atual idêntico preserva sua versão. Um ativo atual alterado precisa carregar uma versão diferente.
+- O histórico de criação também é uma exceção: um documento atual ou identidade de revisão conflitante aborta sua restauração antes de qualquer mudança de perfil, ativo ou preferência. Uma reimportação idêntica não soma armazenamento. Restaure um arquivo conflitante em uma instalação separada para inspecionar e copiar suas criações.
 - Nada que não estava no pacote é tocado. Uma sessão que o destino tinha, mas o pacote não, sobrevive à importação.
 
 Sessões salvas se reconectam automaticamente às suas imagens: as referências de ativos são mantidas por id, e a ponte as resolve novamente depois que as imagens enviadas são restauradas (ela precisa fazer isso de qualquer forma, porque URLs `blob:` não sobrevivem a uma recarga).
 
 O resumo de importação reporta `{ profile, sessions, userAssets, prefs, skipped, failedAssets }`. `failedAssets` conta os ativos enviados que não puderam ser restaurados (armazenamento do dispositivo cheio, por exemplo). É distinto de `skipped`, que conta partes de um gravador mais novo e compatível para trás que esta build não reconheceu. A interface exibe `skipped` ("… · N newer items skipped"), então a restauração é honesta sobre o que deixou para trás.
 
+Quando o histórico de arquivo está presente, o resumo também carrega `assetVersions`, `fileOperations` e `failedHistory`. Esgotamento de armazenamento ou conflitos de ID imutável podem causar uma restauração parcial; a interface diz ao usuário para manter o backup de origem. A sincronização na nuvem **não** avança sua revisão aplicada depois de uma restauração parcial ou não suportada, então o snapshot continua disponível para nova tentativa. Restaurar não é uma única transação em todos os armazenamentos de perfil/sessão/ativo/histórico.
+
+## Histórico de criação (v3)
+
+Backups manuais de um host web com capacidade de histórico incluem `revision-history.json` com seu próprio esquema `{ version: 1, documents, revisions, recoveries }`. Ele carrega os IDs retidos, snapshots canônicos de entrada, marcas de versão, prévias raster e rascunhos de redator separados. O adaptador de histórico captura as sessões atuais e suas pontas em uma única transação de leitura; `sessions.json` usa esses mesmos snapshots atuais para leitores mais antigos.
+
+A restauração checa o SHA-256 e as contagens de bytes do payload, identidades únicas, relações documento/ponta, ancestralidade, timestamps, tipos de prévia e limites antes de confirmar o arquivo em uma única transação. Referências de pai compactadas podem estar ausentes. O trabalho atual existente precisa corresponder ao documento importado; conflitos são recusados em vez de substituídos silenciosamente. O limite de transferência de 384 MiB do arquivo é checado explicitamente, e os limites de armazenamento são aplicados sem truncar checkpoints retidos. O backup geral ainda usa uma implementação de ZIP em memória e não é um arquivo em streaming.
+
+O resumo adiciona `revisions` e `recoveryDrafts`. Um shell sem essa capacidade restaura sessões comuns e relata a parte de histórico como pulada. O histórico de sistema de arquivos nativo continua sem suporte até seu adaptador fornecer transações de histórico duráveis. O estado de convidado P2P não tem histórico durável nem arquivo de recuperação.
+
+A sincronização de snapshot pessoal exclui explicitamente o histórico de criação. Aplicar um snapshot a um documento local com histórico preserva seu estado de trabalho anterior como um rascunho de recuperação separado e invalida o token de escrita de qualquer editor aberto. Seus checkpoints imutáveis permanecem no dispositivo. Isso protege o histórico local durante a substituição de snapshot; não mescla históricos de dispositivos concorrentes.
+
+Referências históricas de ativos são retidas, enquanto a renderização ainda resolve os ativos pela biblioteca existente do destino. Este arquivo ainda não garante bytes exatos de ativos antigos nem renderizações antigas da ferramenta. Bytes de versão de ativo e de resultado de arquivo continuam viajando pela sua própria parte de backup separada.
+
+## Versões salvas e resultados de arquivo (v2)
+
+A parte opcional de histórico contém `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }`; leitores também aceitam o formato anterior history-v1 sem lotes. Cada snapshot identifica o ID estável do ativo e a versão exata, seu horário de salvamento, o comprimento em bytes e o SHA-256 hex, mais um registro de ativo cujo `_file` e `_credentialFile` opcional apontam para partes binárias. Operações carregam os fatos originais do arquivo, requisição, relatório, timestamps e `_file` de resultado opcional; nomes de backend de armazenamento, handles OPFS e leases de execução não viajam. Leitores mais antigos, só de history-v1, recusam a nova versão de histórico antes de importar, em vez de descartar silenciosamente a associação de lote.
+
+Manifestos de lote registram cada fonte selecionada antes do processamento, incluindo arquivos nunca lidos, membros cancelados, falhas ao reservar espaço de resultado e trabalho interrompido. Cada membro tem um ID de operação estável, referência/fatos de fonte, nome de saída solicitado e relatório terminal. Uma fonte não lida tem fatos declarados, não um digest inventado. A importação valida a identidade do membro e a consistência com qualquer relatório de operação carregado. Relatórios de lote continuam disponíveis quando resultados individuais foram removidos explicitamente, mas um recibo não implica que os bytes de saída ainda estejam armazenados.
+
+- Todo registro de histórico, relatório e arquivo referenciado conhecido é validado antes de qualquer escrita de importação de perfil ou ativo. Bytes ausentes e SHA-256 incompatível falham mesmo que o envelope não tenha um mapa de integridade. Credenciais extraídas permanecem como arrays de bytes, incluindo importações de escritores mais antigos que os serializaram em JSON como objetos de chave numérica.
+- Operações em execução se tornam registros interrompidos no backup, com um relatório de falha explicativo e nenhum resultado. Restaurar nunca reinicia trabalho em segundo plano nem importa um lease ativo. Tentar de novo exige selecionar o arquivo original, checado contra seu SHA-256 registrado quando disponível.
+- Resultados restaurados confirmam seus bytes e metadados juntos no IndexedDB. Resultados novos comuns usam OPFS quando disponível, com um fallback para IndexedDB. Uma operação ativa existente nunca é substituída por uma importação.
+- A montagem do ZIP de histórico ainda é em memória: o limite atual é **256 MiB de payload de histórico**, **4 MiB de metadados de histórico**, no máximo **100 operações**, **100 lotes** e **2.000 snapshots**. A exportação recusa explicitamente histórico grande demais ou incompleto; nunca o omite silenciosamente. Baixe versões/resultados importantes individualmente antes de remover cópias locais mais antigas. Esses limites não são uma garantia medida de pico de memória para celulares.
+- O histórico local de resultado tem um orçamento de 512 MiB e um teto de 100 registros. Snapshots de ativo têm um orçamento separado de 512 MiB e no máximo 20 versões históricas por ativo; bytes de credencial extraída contam para esse orçamento de snapshot. A restauração respeita esses limites e nunca despeja silenciosamente dados existentes do usuário.
+- Metadados de lote locais têm um orçamento separado de 4 MiB, no máximo 100 manifestos e 20 membros por lote. Membros pendentes reservam capacidade de metadados, com um teto de relatório de 32 KiB por membro. Isso é um orçamento lógico, não uma garantia de espaço em disco do navegador; uma falha de cota real é sinalizada e o relatório em memória continua para download. Tentar de novo um membro de lote cria um novo lote sem sobrescrever o relatório antigo. Remover um registro de lote não remove bytes de resultado individuais nem ativos da biblioteca.
+- Resultados convertidos podem ser explicitamente adicionados à biblioteca sem normalização ou recodificação. Hashes de origem/saída e a relação de operação acompanham o ativo. Adições repetidas reutilizam uma cópia inalterada; uma cópia editada nunca é sobrescrita. Imagens raster podem iniciar um novo documento Design. Esse documento usa o ID de ativo atual da biblioteca: aplicar fixações de versão exatas em todo o runtime e caminho de URL do Design ainda é trabalho separado. Resultados SVG/HTML/PDF/ZIP são mantidos como ativos de arquivo opacos por essa entrega, não promovidos a conteúdo interativo/vetorial confiável.
+- **Convert → Operações recentes de arquivo** expõe o uso de histórico, relatórios, downloads e o gerenciador de versão. O gerenciador também encontra versões anteriores de ativos de biblioteca excluídos. Restaurar um snapshot cria uma nova versão atual mantendo intacto o snapshot selecionado. **Configurações → Armazenamento** contabiliza resultados e versões separadamente de caches descartáveis.
+- A limpeza explícita de arquivo temporário remove só bytes pertencentes a uma operação e não referenciados. Registros atuais protegem seus arquivos; arquivos OPFS recentes têm um período de tolerância de uma hora. Resultados salvos e snapshots de ativo não são limpos automaticamente.
+
+Leitores mais antigos ainda aceitam o envelope v2 (`minReader: 1`) e restauram as partes conhecidas, contando partes de histórico não suportadas como puladas. A recuperação completa de histórico exige um shell com o adaptador `fileHistory`; isso é uma costura interna do shell, não uma nova capacidade `HostV1` voltada para a ferramenta. A restauração real entre dois dispositivos é coberta pelo portão local do Chromium; a aceitação de recuperação instalada do Tauri/iOS/Android continua separada.
+
 ## O que não viaja
 
-- **Caches do catálogo** (metadados e blobs de ativos baixados, o índice de ferramentas) - ressincronizados de graça no destino.
-- **Ferramentas e ativos de marca** - fora do escopo, e presume-se que já estejam presentes no destino.
-- **URLs `blob:` / object URLs** - regeneradas pela ponte ao carregar.
-- **O contador de sequência de exportação** - o contador de nomeação de download por dia (chave `localStorage` `lolly-export-seq`) é uma conveniência de nomeação local. Fica fora de `PREF_KEYS`, então nunca viaja em um pacote.
+- **Caches de catálogo** (metadados e blobs de ativo baixados, o índice de ferramentas) - ressincronizados de graça no destino.
+- **Ferramentas de catálogo e ativos de catálogo** - fora de escopo, e presume-se que já estejam presentes no destino. Tokens de marca, fontes e logos que o usuário adicionou são ativos do usuário, então eles viajam sim.
+- **URLs `blob:` / de objeto** - regeneradas pela bridge ao carregar.
+- **Originais de conversão, leases de execução ao vivo e segredos de acesso/assinatura locais à máquina** - não são payload de histórico portável. Um resultado salvo é uma cópia, não uma promessa de que a fonte original foi salva em backup.
+- **O contador de sequência de exportação** - o contador de nomeação de download por dia (chave `localStorage` `lolly-export-seq`) é uma conveniência de nomeação local. Ele fica fora de `PREF_KEYS`, então nunca viaja em um pacote.
 
-O medidor de armazenamento detalha essa mesma divisão. Sessões salvas e Minhas imagens viajam em um pacote. O cache de ativos, as prévias de ferramentas e os pins offline abaixo deles são todos re-deriváveis, então ficam de fora.
+O medidor de armazenamento discrimina a mesma divisão. Sessões salvas, My images e File results & versions viajam em um pacote. O cache de ativos, prévias de ferramenta e fixações offline abaixo deles são todos rederiváveis, então ficam para trás.
 
 ![O medidor de armazenamento dividindo os dados deste dispositivo em categorias nomeadas, com Saved sessions e My images rastreados separadamente do Asset cache, aqui em uma instalação nova onde toda categoria ainda está vazia](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Garantia entre shells
 
-`data-transfer.ts` le e grava exclusivamente através da bridge de capacidades (`host.profile`, `host.state`, `host.assets`) e das preferências compartilhadas em `localStorage`. Como a bridge é a única costura, o *mesmo* módulo produz um pacote byte a byte idêntico em cada shell, mesmo com o armazenamento subjacente diferindo - IndexedDB na web, o sistema de arquivos no Tauri. Os shells do Tauri reutilizam esse módulo sem alterações. Só a implementação de `host.state` deles é diferente. O teste headless exercita o round-trip completo contra uma bridge em memória, e é por isso que ele representa todos eles.
+`data-transfer.ts` lê e escreve exclusivamente pela bridge de capacidade (`host.profile`, `host.state`, `host.assets`) e pelas preferências compartilhadas de `localStorage`. O mesmo módulo lê e escreve o envelope comum na web e no Tauri, sobre armazenamento IndexedDB ou de sistema de arquivos. Partes de histórico opcionais aparecem só onde o adaptador correspondente está disponível; uma parte não suportada é relatada como pulada na importação. A suíte headless exercita as partes comuns contra uma bridge em memória, enquanto as transações de histórico também têm testes em navegador real.
 
 Dois shells ficam fora dessa garantia, por motivos diferentes:
 
-- O **CLI one-shot** não tem nada para carregar - seu estado é em memória e efêmero por invocação.
-- O **TUI** persiste estado sim (`~/.lolly`: sessões, pastas, perfil) e sua visão de Perfil pode fazer backup dele, mas grava um arquivo *mais simples*, próprio: `sessions/<slot>.json` por sessão mais `profile.json` e `folders.json`, sem manifesto, sem `formatVersion`/`minReader` e sem mapa de integridade. Ele **não** é importável por este formato - um leitor o rejeita como "not a Lolly backup" - e, para confundir, usa um nome parecido (`lolly-backup-<stamp>.zip`). Unificar os dois é uma lacuna conhecida.
+- A **CLI de uma vez só** não tem nada para carregar - seu estado é em memória e efêmero por invocação.
+- A **TUI** persiste estado sim (`~/.lolly`: sessões, pastas, perfil) e sua visão de Perfil pode fazer backup dele, mas ela escreve um arquivo *mais simples*, próprio: `saved-state/<slot>.json` por sessão mais `profile.json` e `folders.json`, sem manifesto, sem `formatVersion`/`minReader` e sem mapa de integridade. Ele **não** é importável por este formato - um leitor o rejeita como "not a Lolly backup" - e, para confundir mais, usa um nome parecido (`lolly-backup-<stamp>.zip`). Unificar os dois é uma lacuna conhecida.
 
 ## Pontos de extensão reservados
 
-O envelope é um manifesto mais um conjunto de partes nomeadas por design, para que novos tipos de dados portáveis possam usá-lo depois **sem uma mudança que quebre compatibilidade**. Eles entram como partes aditivas (novo `formatVersion`, mesmo `minReader`), e o leitor de hoje ignora o que não reconhece. Isso está no [roadmap](/info/overview.html#roadmap), ainda não implementado. Os nomes são reservados aqui para que o formato permaneça coerente quando chegarem.
+O envelope é, por design, um manifesto mais um conjunto de partes nomeadas, então novos tipos de dado portável podem viajar nele mais tarde **sem uma mudança que quebre compatibilidade**. Eles se encaixam como partes aditivas (novo `formatVersion`, mesmo `minReader`), e o leitor de hoje pula o que não reconhece. Essas partes ainda não foram construídas. Os nomes são reservados aqui para que o formato continue coerente quando elas chegarem.
 
-- **`tokens.json` - design tokens.** Um documento de design tokens [W3C DTCG](https://tr.designtokens.org/format/) (o formato que o [Penpot importa e exporta](https://help.penpot.app/user-guide/design-systems/design-tokens/) - tokens com `$value`/`$type`/`$description`, organizados em grupos, sets e temas). Um conjunto de tokens no pacote permite que um usuário mova os primitivos da sua marca entre instalações junto com suas sessões. No longo prazo, um conjunto de tokens ingerido se torna uma fonte de primeira classe que ferramentas e ativos de paleta resolvem contra.
-- **`penpot/` - arquivos do Penpot ingeridos.** Um diretório reservado para um arquivo do Penpot (ou seu subconjunto extraído, relevante para o Lolly) importado e exposto *como uma ferramenta*. O pacote carregará a definição ingerida, para que viaje junto com o resto dos dados do usuário.
+- **`tokens.json` - tokens de design.** Um documento de tokens de design [W3C DTCG](https://tr.designtokens.org/format/) (o formato que o [Penpot importa e exporta](https://help.penpot.app/user-guide/design-systems/design-tokens/) - tokens com `$value`/`$type`/`$description`, organizados em grupos, conjuntos e temas). Um conjunto de tokens no pacote deixa o usuário mover os primitivos de marca entre instalações junto com suas sessões. (Os próprios tokens de marca do usuário já viajam hoje como o ativo `user/tokens/brand` em `assets.json`; esta parte carregaria um documento DTCG inteiro, com seus conjuntos e temas.) A mais longo prazo, um conjunto de tokens ingerido se torna uma fonte de primeira classe contra a qual ferramentas e ativos de paleta se resolvem.
+- **`penpot/` - arquivos Penpot ingeridos.** Um diretório reservado para um arquivo Penpot (ou seu subconjunto extraído, relevante para o Lolly) importado e apresentado *como uma ferramenta*. O pacote carregará a definição ingerida, então ela viaja com o resto dos dados do usuário.
 
 Qualquer coisa fora desses nomes reservados e das partes acima é, para um leitor, uma parte desconhecida: deixada intocada e contada em `skipped`.
 
 ## Referência
 
 - Módulo: [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts) (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION` - o nomeador `backupFilename()` é interno).
-- Teste de contrato: [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) - casos de round-trip, merge, integridade, compatibilidade futura e bloqueio de leitor.
+- Teste de contrato: [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) - casos de ida e volta, mesclagem, integridade, compatibilidade futura e portão de leitor.
+- Testes de contrato de histórico: [`tests/file-history-backup.test.ts`](../tests/file-history-backup.test.ts), [`tests/file-batch-history.test.ts`](../tests/file-batch-history.test.ts) e [`tests/file-result-library.test.ts`](../tests/file-result-library.test.ts). Aceitação em navegador: [`tests/file-history.browser.test.ts`](../tests/file-history.browser.test.ts), [`tests/file-batch-history.browser.test.ts`](../tests/file-batch-history.browser.test.ts) e [`tests/file-result-reuse.browser.test.ts`](../tests/file-result-reuse.browser.test.ts).
 - Superfície de bridge usada: `host.profile`, `host.state`, `host.assets` - veja [Host API](/info/host-api.html).

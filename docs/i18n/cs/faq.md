@@ -5,7 +5,7 @@
 **Jak se to udržuje:** každý nadpis `##` níže je otázka; všechno pod ním
 (až po další `##`) je odpověď. Odpovědi používají stejný odlehčený markdown jako
 zbytek webu - odstavce odděluj prázdným řádkem. Otázky tady přidávej, odebírej nebo
-přeskupuj a znovu spusť `npm run build:info` (nebo `npm run dev:web`).
+přeskupuj a znovu spusť `pnpm run build:info` (nebo `pnpm run dev:web`).
 Všechno nad prvním `##` (tento nadpis a tyto poznámky) build ignoruje.
 
 ## Co se stane, když na stránce /profile udělím souhlas?
@@ -121,9 +121,17 @@ Válku o governance vyhrajeme skvělým pohodlím a službou.
 
 Ano. Otevři **Design** a klikni na **Import a design**: bere nativní Figma **.fig** (Save local copy), export z Penpotu **.penpot**, Illustrator **.ai** nebo **.pdf**, InDesign **.idml** (File → Export → InDesign Markup) nebo **jakékoli SVG** (ta široká vrata - vyexportuje ho skoro každá designová aplikace). Není potřeba účet, plugin ani licence designové aplikace.
 
-![Design's open canvas - Import a design sits in the toolbar's Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Otevřené plátno Design - Import designu je v nabídce Lolly na liště nástrojů](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Vrstvy přijdou jako upravitelné boxy na otevřeném plátně: text jde dál přepisovat, tvary zůstávají tvary, obrázky se přidají do tvé vlastní knihovny obrázků a písmo i barvy se řídí globálními hodnotami značky. Ulož to a z layoutu je znovupoužitelná šablona s vlastní URL, kterou může kdokoli s Lolly znovu naplnit - a můžeš do ní přimíchat živé nástroje (QR kód, graf), které se při načtení přerenderují. Odtamtud se renderuje jako cokoli jiného v Lolly - SVG, PDF, PNG a zbytek, reprodukovatelné z URL. Viz [Import designu](/info/design-import.html).
+
+## Kde je to, co jsem včera udělal/a?
+
+Pokud jsi stiskl/a **Uložit jako** nebo **Uložit**, je to v **Projektech**, na domovské obrazovce, v prohlížeči nebo aplikaci, ze které jsi ukládal/a. Pokud jsi stiskl/a jen **Stáhnout**, soubor je tam, kam tvůj prohlížeč nebo systém ukládá stažené soubory, a obvykle je kopie i v **Assetech**. Devět nástrojů uchovává neuloženou práci také v **Projektech**. [Najdi a obnov svou práci](/info/find-your-work.html) pokrývá každý z těchto případů.
+
+## Zavřel/a jsem kartu. Zmizela mi práce?
+
+Uložená práce je pořád v **Projektech**. Neuložená práce zmizí, kromě devíti nástrojů, které ukládají průběžně - ty ji taky uchovávají v **Projektech**. Příště stiskni **Uložit jako**, než odejdeš. Viz [Když zavřeš kartu nebo opustíš nástroj](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Můžu svou práci sdílet jako soubor místo odkazu?
 

@@ -7,6 +7,7 @@
 
 import { esc } from './esc.ts';
 import { PROV_SEAL, headingId, parseCells, stripAuthoringComments } from './markdown.ts';
+import { COMPONENT_GLYPH, bodyHasHeading, codeBlock, detailsBlock, fenceCopies, fenceCopyMode, fenceLabel, noteBlock, parseComponentFence, parseFenceInfo } from './components.ts';
 import { renderCredential } from './credential.ts';
 import { parseFigureFence, figureBlock } from './art.ts';
 import type { DocsRenderContext } from './context.ts';
@@ -84,7 +85,12 @@ export function inline(text: string, ctx: DocsRenderContext): string {
         + renderCredential(ctx.credential(dfile), { file: dfile, extraClass: 'shot-cred--alt', fromPresent: false }, ctx);
     }
     const cls = `shot${darkSrc ? ' shot--dual' : ''}`;
-    return `<span class="${cls}" data-shot="${src}"${darkSrc ? ` data-shot-dark="${darkSrc}"` : ''}>`
+    // The size as data for the stylesheet: the frame keeps the screenshot's final size
+    // before a lazy image arrives. Without it an unloaded screenshot measured 0x0, the page
+    // grew under the reader as images loaded, and a link to a section stopped thousands of
+    // pixels short of its heading.
+    const reserve = size ? ` style="--shot-w:${size.w};--shot-h:${size.h}"` : '';
+    return `<span class="${cls}" data-shot="${src}"${darkSrc ? ` data-shot-dark="${darkSrc}"` : ''}${reserve}>`
       + `<img src="${src}"${dims}${rest}>`
       + renderCredential(ctx.credential(file), { file, extraClass: '', fromPresent: false }, ctx)
       + `${twin}</span>${shotTry(file, ctx)}`;
@@ -127,10 +133,14 @@ export function inline(text: string, ctx: DocsRenderContext): string {
     return `<span class="asset-cred" data-shot="${src}"><img src="${src}"${dims}${rest}>${cred}</span>`;
   });
   // External links (absolute http/https) open in a new tab; internal/relative links stay.
-  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, url) =>
+  // A same-page anchor written the way GitHub slugs a heading ("Licensing & structure"
+  // becomes #licensing--structure) collapses its hyphen runs to match headingId, which
+  // never emits two in a row. The README renders on GitHub and as /info/about, so its
+  // links have to land on both.
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, url: string) =>
     /^https?:\/\//i.test(url)
       ? `<a href="${url}" target="_blank" rel="noopener">${label}</a>`
-      : `<a href="${url}">${label}</a>`);
+      : `<a href="${/^#[a-z0-9-]+$/.test(url) ? url.replace(/-{2,}/g, '-') : url}">${label}</a>`);
   // Technology marks: `<!--l:helm-->` → the mark, inline. Matched POST-esc
   // (`&lt;!--l:key--&gt;`) and LAST, so the emitted <svg> path `d=` meets no further regex.
   s = s.replace(/&lt;!--l:([a-z0-9-]+)--&gt;/g, (_m, key: string) => ctx.docLogo(key));
@@ -188,7 +198,47 @@ export function mdToHtml(md: string, ctx: DocsRenderContext): string {
   const lines = stripAuthoringComments(md).split('\n');
   const out: string[] = [];
   let headingOrdinal = 0;
+  let detailsOrdinal = 0;
   let i = 0;
+
+  const fenceBlock = (info: string, code: string[]): string => {
+    const { lang, flags } = parseFenceInfo(info);
+    // A narrate-skip fence is set as an inscription by its page (the Warde verses), not
+    // as code, so it keeps the bare element that page's styles and the narrator expect.
+    if (lang === 'narrate-skip') return `<pre><code class="language-narrate-skip">${esc(code.join('\n'))}</code></pre>`;
+    return codeBlock({
+      lang, label: fenceLabel(lang, ctx.t), copy: fenceCopies(lang, flags), copyMode: fenceCopyMode(lang), wrap: flags.has('wrap'),
+      codeHtml: esc(code.join('\n')),
+    });
+  };
+  /** Reads the fence opening at lines[i] and moves i past its closing line. An unindented
+   *  fence closes at the next line that starts with ``` (as it always has); an indented one
+   *  closes at the next ``` line at any indent, and its code loses the opener's indent. */
+  const readFence = (): string => {
+    const open = lines[i]!;
+    const indent = open.length - open.trimStart().length;
+    const code: string[] = [];
+    i++;
+    while (i < lines.length && !(indent ? lines[i]!.trimStart().startsWith('```') : lines[i]!.startsWith('```'))) {
+      const l = lines[i]!;
+      code.push(l.slice(Math.min(indent, l.length - l.trimStart().length)));
+      i++;
+    }
+    i++;
+    return fenceBlock(open.trim().slice(3), code);
+  };
+  /** A fence set in under a list item, directly or after blank lines, belongs to that item
+   *  (CommonMark reads a list the same way). Returns the item's code blocks and moves i past them. */
+  const takeItemFences = (): string => {
+    let html = '';
+    for (;;) {
+      let j = i;
+      while (j < lines.length && lines[j]!.trim() === '') j++;
+      if (j >= lines.length || !/^\s+```/.test(lines[j]!)) return html;
+      i = j;
+      html += readFence();
+    }
+  };
 
   while (i < lines.length) {
     const line = lines[i]!;
@@ -218,7 +268,24 @@ export function mdToHtml(md: string, ctx: DocsRenderContext): string {
         out.push(buildShowcase(body, ctx));
       } else if (parseFigureFence(label)) {
         out.push(buildFigure(parseFigureFence(label)!, body, ctx));
+      } else if (parseComponentFence(label)) {
+        const { kind, title } = parseComponentFence(label)!;
+        if (!title) throw new Error(`::: ${kind} needs a title on its opening line`);
+        if (bodyHasHeading(body)) throw new Error(`::: ${kind} "${title}" contains a heading; move the heading outside the block`);
+        const titleHtml = inline(title, ctx);
+        const glyph = ctx.docIcon(COMPONENT_GLYPH[kind]);
+        if (kind === 'details') {
+          const slug = headingId(title, 0);
+          const id = slug === 'section-0' ? `details-${++detailsOrdinal}` : slug;
+          out.push(detailsBlock({ id, titleHtml, bodyHtml: mdToHtml(body, ctx), glyph, chevron: ctx.docIcon('adm-chevron') }));
+        } else {
+          const kindWord = ctx.t(kind === 'note' ? 'Note' : kind === 'warning' ? 'Warning' : 'Check');
+          out.push(noteBlock({ kind, kindWord: esc(kindWord), titleHtml, bodyHtml: mdToHtml(body, ctx), glyph }));
+        }
       } else {
+        // An unknown label renders its body as plain Markdown, as it always has, but
+        // says so: a misspelt or machine-translated keyword used to vanish silently.
+        if (label) console.warn(`⚠  unknown ::: directive "${label}" - its body renders as plain Markdown`);
         out.push(mdToHtml(body, ctx));
       }
       continue;
@@ -231,13 +298,8 @@ export function mdToHtml(md: string, ctx: DocsRenderContext): string {
       i++; continue;
     }
 
-    if (line.startsWith('```')) {
-      const lang = line.slice(3).trim();
-      const code: string[] = [];
-      i++;
-      while (i < lines.length && !lines[i]!.startsWith('```')) { code.push(lines[i]!); i++; }
-      i++;
-      out.push(`<pre><code${lang ? ` class="language-${esc(lang)}"` : ''}>${esc(code.join('\n'))}</code></pre>`);
+    if (/^\s*```/.test(line)) {
+      out.push(readFence());
       continue;
     }
 
@@ -346,6 +408,7 @@ export function mdToHtml(md: string, ctx: DocsRenderContext): string {
       while (i < lines.length && /^\s*[-*] /.test(lines[i]!)) {
         const item = [lines[i]!.replace(/^\s*[-*] /, '')]; i++;
         while (itemContinues()) { item.push(lines[i]!.trim()); i++; }
+        const code = takeItemFences();
         let text = item.join(' ');
         // `<!--i:key-->` opens the bullet with a doc icon (invisible on GitHub).
         const im2 = /^<!--i:([a-z-]+)-->\s*/.exec(text);
@@ -353,18 +416,20 @@ export function mdToHtml(md: string, ctx: DocsRenderContext): string {
         if (im2) text = text.slice(im2[0].length);
         if (iconSvg) {
           anyIcon = true;
-          items.push(`<li class="ic"><span class="li-icon">${iconSvg}</span><span>${inline(text, ctx)}</span></li>`);
-        } else items.push(`<li>${inline(text, ctx)}</li>`);
+          items.push(`<li class="ic"><span class="li-icon">${iconSvg}</span><span>${inline(text, ctx)}${code}</span></li>`);
+        } else items.push(`<li>${inline(text, ctx)}${code}</li>`);
       }
       out.push(`<ul${anyIcon ? ' class="icon-list"' : ''}>`, ...items, '</ul>'); continue;
     }
 
     if (/^\d+\. /.test(line)) {
-      out.push('<ol>');
+      // A list that resumes after a code sample ("5. Local dev") keeps its number.
+      const first = Number(/^(\d+)\./.exec(line)![1]);
+      out.push(first === 1 ? '<ol>' : `<ol start="${first}">`);
       while (i < lines.length && /^\d+\. /.test(lines[i]!)) {
         const item = [lines[i]!.replace(/^\d+\. /, '')]; i++;
         while (itemContinues()) { item.push(lines[i]!.trim()); i++; }
-        out.push(`<li>${inline(item.join(' '), ctx)}</li>`);
+        out.push(`<li>${inline(item.join(' '), ctx)}${takeItemFences()}</li>`);
       }
       out.push('</ol>'); continue;
     }
@@ -374,7 +439,7 @@ export function mdToHtml(md: string, ctx: DocsRenderContext): string {
     const para: string[] = [];
     while (
       i < lines.length && lines[i]!.trim() !== '' &&
-      !lines[i]!.startsWith('#') && !lines[i]!.startsWith('```') &&
+      !lines[i]!.startsWith('#') && !/^\s*```/.test(lines[i]!) &&
       !lines[i]!.startsWith('> ') && !/^\s*[-*] /.test(lines[i]!) &&
       !/^\d+\. /.test(lines[i]!) && !/^-{3,}$/.test(lines[i]!.trim()) &&
       !(lines[i]!.includes('|') && i + 1 < lines.length && /^\|?[-|: ]+\|/.test(lines[i + 1]!))

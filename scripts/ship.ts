@@ -521,6 +521,22 @@ export function ship(argv: string[] = process.argv.slice(2)): boolean {
           continue;
         }
 
+        // /robots.txt, the sitemaps, /llms.txt and a Markdown twin must answer as
+        // themselves: the SPA catch-all turns any missing one into a 200 app shell.
+        // Same env as the first-load check, so the protection bypass reaches it too.
+        step(`discovery routes: node scripts/check-discovery-routes.ts ${handle}`);
+        const discovery = spawnSync('node', [join(ROOT, 'scripts/check-discovery-routes.ts'), handle], {
+          cwd: ROOT,
+          stdio: ['ignore', 'inherit', 'inherit'],
+        });
+        if (discovery.status !== 0) {
+          err(`discovery routes FAILED for ${target.name} - NOT promoting; ${target.domain} still serves its previous deployment`);
+          info(`the preview is up at ${handle} - iterate against it, then ship again`);
+          failed.push(`${target.name} -> ${target.domain} (discovery route check failed, not promoted)`);
+          continue;
+        }
+        ok('discovery routes answered as themselves');
+
         // The check that makes the preview worth doing: Lighthouse against the
         // deployment about to become production. Anything non-zero - a blown budget,
         // a missing check-first-load.ts, no resolvable Lighthouse - stops this target

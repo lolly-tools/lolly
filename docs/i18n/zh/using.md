@@ -1,14 +1,14 @@
 # 使用 Lolly
 
-一份关于真正*使用*这个应用的实用指南——打开工具、操作画布、导出、保存和分享。这里的一切都在**你的设备上**运行：无需账号、无需上传，首次加载后无需联网。
+一份关于真正*使用*这个应用的实用指南 - 打开工具、操作画布、导出、保存和分享。这里的一切都在**你的设备上**运行：无需账号、无需上传，对你已经打开过的界面也无需联网。
 
 > 初次使用？[快速入门](/info/quickstart.html)让你几分钟内就能开始创作，[Lolly 面向运营方](/info/operators.html)介绍应用的安装与部署；本页讲的是打开之后如何操作。
 
 ## 打开工具
 
-主屏幕就是**工具库**——所有工具按类别分组。点击卡片即可打开工具；如果你之前用过它，**继续**按钮会恢复你最近的一次会话。用搜索框按名称筛选——或者从六个列表页（工具库、实用工具、项目、素材、控制台和个人资料）底部的栏里[搜索](/info/search.html)，它除了工具，还能找到你保存的作品、你的素材和设置。进入工具后，这条栏会让位给工具自己的界面。
+主屏幕就是**工具库** - 每个工具都按类别分组。点击卡片即可在该工具中开始新的创作；[已保存的作品](#saving-continuing)会从**项目**重新打开。用搜索框按名称筛选 - 或者从六个列表页（工具库、实用工具、项目、素材、控制台和个人资料）底部的栏里[搜索](/info/search.html)，它除了工具，还能找到你保存的作品、你的素材和设置。进入工具后，这条栏会让位给工具自己的界面。
 
-![工具库——每个工具都是一张卡片，按类别分组](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
+![一张工具库卡片，展示了导航示例和“新建”操作](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
 每个工具都是分屏视图：一侧是**控件**，另一侧是实时**预览**（画布）。更改任意控件，预览会立即更新。
 
@@ -44,6 +44,32 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 (`.gtile--hiddenbox`, confirmed in gallery.ts).
 -->
 
+要一次对多张卡片操作，勾选每张卡片的复选框、在空白处拖出一个选框，或按 **Shift/Cmd 点击**，就会出现一条悬浮操作栏。**选择栏提供什么**在不同视图里略有差别，因为并非每个操作在所有地方都说得通：
+
+- **工具 / 实用工具：** 收藏（或取消收藏）、隐藏（或取消隐藏）、可离线使用（或从离线中移除）、**查看会话**（会打开项目，只显示用这些工具做的会话），以及在恰好只选中一张卡片时的复制链接。
+- **素材：** 收藏和隐藏适用于任意选中范围；生成副本、下载和删除只有在选中的每一项都是你自己上传的内容时才出现 - 共享的设计系统素材是一份长期契约，因此即便批量操作，这三项也不会对它开放。
+- **项目：** 见[找到你保存的内容](/info/find-your-work.html#find-something-you-saved)。
+
+> 有一个标签上的坑：**查看会话**只有在*选中*了东西之后才存在。右键点击一张未被选中的卡片，得到的是**N 个已保存的会话**，它打开的是该工具已保存会话的列表，其中的删除是永久性的，而不是跳转到项目。
+
+![两个工具被选中时的工具库选择栏，提供可离线使用、查看会话、收藏和隐藏](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
+<!--
+SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
+`[data-select="gradient"]` - the `.tile-check[data-select="<ref>"]` checkbox button
+confirmed directly in views/gallery.ts's card markup (the same attribute
+cardMarkup gives every tile), so these two clicks tick both cards without
+opening either tool.
+
+SHOT NOTE (misc-sessions-by-tool, NOT PUBLISHED): the "View sessions" result
+had a recipe of its own (`/#/p?tools=qr-code,d3`, views/projects.ts's
+toolsBodyHtml()), dropped here because it has no `drive=` that can
+manufacture its own content - a saved session isn't a click away, it has to
+already exist, and build-docs-shots.ts gives every shot a fresh
+`browser.newContext()`. It would publish an empty list. Same dependency the
+`projects` shot (now on find-your-work.md) carries; revisit if the pipeline gains a
+storage-seeding hook.
+-->
+
 ### Ask Lolly
 
 当你不想翻找、只想直接问时，**Ask Lolly**（`#/ask`）接收你输入的问题，并**原文返回**本文档中匹配的那一节——是指南自己的措辞，既不是摘要也不是生成内容——同时注明它来自哪一页，旁边附有**在文档中打开**链接。答案下方是应用里与同一问题匹配的位置：一个工具、一项设置、一个已保存的项目，每一项都是一个直接跳转过去的按钮。
@@ -75,14 +101,21 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 自由画布类工具会在画板*周围*增加一块工作区域，就像设计师的粘贴板：
 
-- **画布外暂存。** 把方框拖出画框边缘，它仍然完全**可见且可选中**——排布构图时可以先把元素放到一边，需要时再拖回来。画框之外的一切都会**轻微淡化**，使导出区域始终一目了然，画框本身则保留阴影，清楚标示文件从哪里开始。
-- **只有画框内的内容会被导出。** 导出的文件以画板为边界——留在画框外的任何内容（或方框悬出边缘的部分）都会直接从输出中裁掉，位图和矢量格式均是如此。
-- **缩小到超过“适应”比例**（最小可到 20%），当你把元素暂存到离画框很远的地方时，可以借此看到整个粘贴板。
+- **画布外暂存。** 把方框拖出画框边缘，它仍然完全**可见且可选中** - 排布构图时可以先把元素放到一边，需要时再拖回来。画框之外的一切都会**轻微淡化**，使导出区域始终一目了然，画框本身则保留阴影，清楚标示文件从哪里开始。
+- **只有画框内的内容会被导出。** 导出的文件以画板为边界 - 留在画框外的任何内容（或方框悬出边缘的部分）都会直接从输出中裁掉，位图和矢量格式均是如此。
+- **缩小到超过"适应"比例**（最小可到 20%），当你把元素暂存到离画框很远的地方时，可以借此看到整个粘贴板。
 - **可调整大小的画板。** 更改导出尺寸会原地调整画框大小；方框保持原有位置，因此你可以围绕现有内容重新取景。
+- **导出之前。** 检查器的文档部分会检查已保存的图层结构，然后读取已静止的画布，检查文字是否被裁切、纯色是否对比度不足。它还会用 SVG/PDF 轮廓化所使用的同一套字体注册表，逐一询问每段文字是否带有可嵌入的字体字节；图片和渐变背景则被列为需要目测检查的项目，而不是给出一个凭空捏造的对比度分数。
 
-![Design's free canvas - the artboard with its surrounding pasteboard](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Design 的自由画布 - 画板及其周围的粘贴板](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **翻转所选内容。** 右键点击任意方框,选择 **Flip horizontal**(水平翻转)或 **Flip vertical**(垂直翻转)即可原地镜像,或按键盘上的 `Shift+H` / `Shift+V` - 之所以要加 Shift,是因为单独的 `V` 是 Pointer 工具。每个被选中的方框都沿自己的轴镜像,并作为一个撤销步骤记录;镜像是真正的变换,因此它会保留在导出的 SVG、PDF 和 PNG 中,而不只是停留在画布上。
+
+### 图层与检查器
+
+在**图层**中，每个画板都是一个可折叠的父级分组。点击它的名称即可跳转过去，展开其图层，并在该画板内选择或重新排列对象。切换到**页面**可查看缩略图并调整页面顺序。方向键可在图层列表中移动；按左方向键会返回画板标题。
+
+**检查器**会把所选对象的文本或图片控件排在最前面。用选项芯片做快速选择，展开 **Advanced** 查看样式细节。在手机上，从**更多操作**打开**检查器**。控件会在一张工作表中打开；按 Escape 或**返回**可以关闭它，同时保留你的选择。
 
 ### 绘制你自己的形状（钢笔）
 
@@ -137,13 +170,27 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 这些运算有两件事是刻意不做的。它们**宁可拒绝也不破坏**：让两个并不重叠的形状相交，它会告诉你没有可保留的部分，并且什么也不改。另外，文本框和图片框没有可用的轮廓，因此它们会被原样留下，而不是用外框近似代替。合并后的结果以普通贝塞尔曲线存储，绘图软件也是这么做的——原来的样条类型不会在运算后保留。
 
-## 时间轴（Sequence Studio）
+### 3D 场景
 
-![The timeline with the music clip selected: its strip runs along the bottom with Speed, Fades, Volume, Pan, EQ, Pitch, Normalize volume and the Effect slot](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
+在工具栏的添加菜单中选择**3D 场景**，然后拖出一个框：3D Studio 会立即在这个新方框上打开，你在其中所做的设置会回传到画布上。除此之外，场景方框和普通方框没有区别。移动它、缩放它、旋转它、为它添加阴影、把它放到某张幻灯片或时间轴上，它的表现和其他方框完全一样。
 
-**Sequence Studio** 为自由画布加上了*时间*。每个方框都可以在某个时刻开始、持续一段时长、带入场和出场动画，而停靠在画板下方的时间轴就是你排布它们的地方。打开它，已经有一段序列在播放——标题卡、一段片段、片尾卡、下三分之一字幕和一条背景音乐——因此在你动手改动之前，这套模型就已一目了然。
+**场景方框保留的是配方，而不是一张图片。** 图片方框存放的是一个已渲染好的文件；场景方框存放的是一项设置 - 场景本身，以 3D Studio 自己的链接查询串写成，仍停留在工作室默认值上的每一项都会被省略。这就是为什么一个场景大约只有一百字节，而不是一整份配方要花费的那几千字节；为什么同一个字符串在分享链接和编辑器入口都能用；也是为什么工作室新增一个控件时 Design 不需要跟着改动。这也是为什么这个方框会按文档需要的任意尺寸和时刻重新渲染，而不是把先前拍下的图片放大。场景所用到的图片仍然是素材，按 id 传递，因此场景内部的一次上传，会和文档的其余部分一起进入 `.lolly` 文件。
 
-![Sequence Studio 的时间线:传输控制条、标尺、一条叠加轨道、带片段与接缝标记的吸附序列行,以及常驻的 Always on 条](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
+**在工作室中编辑它。** 选中这个方框，检查器会显示一个**3D 场景**分区：一行说明场景由什么构成，第二行在你选定灯光工作室之后说明它是哪一个，还有一个按钮，**在 3D Studio 中编辑**。这个按钮会用该工具的全部控件，在这个方框的场景上打开工作室。点击应用，编辑后的场景会作为一步写回，因此一次撤销就能让方框回到你开始时的那个场景；不点应用直接关闭工作室则什么都不会改变。这个方框的其余一切 - 它在画板上的位置、大小、阴影、什么时候出现在某张幻灯片上 - 仍然留在它一直使用的那些分区里。场景方框本身没有图片，也没有说明文字：它的画面来自工作室，文字也是在那里设置的。
+
+**一个实时场景，其余方框都是海报。** 文档里的每个 3D 方框都会显示一张海报：场景的一张静态图片，通过共享的渲染器池在离屏状态下按方框占据的尺寸绘制出来。一份有二十个场景的文档只占用一个绘图环境，而不是二十个。选中一个场景方框，它就会成为文档唯一的实时场景；取消选中后，屏幕上原本显示的那一帧就变成它的海报，因此画面不会跳变。同一时刻只有一个场景是实时的，同时选中两个场景方框则两者都会保持为海报。在本次发布中，实时场景只能用来查看，不能环绕查看：要更改场景，请通过**在 3D Studio 中编辑**进行。无法打开浮点图形环境的设备会保留海报，并在方框内部说明原因，而不是显示一个空白矩形，文档的其余部分不受影响。打开一份没有 3D 方框的 Design 文档完全不会加载任何 3D 代码。
+
+**在时间轴上**，场景方框会像视频片段一样跟随播放头：它的开始时间、入点修剪和速度会推动场景播放自身的动画，而场景的时长就是你在 3D Studio 中设置的那个时长，因此把方框修剪得更短，看到的场景内容会更少，而不是播放得更快。只有被选中的场景方框是实时的；其余每一个都是静态图片，而静态图片不会随播放头拖动而改变。
+
+**在导出中**，每个场景都会用工作室所用的同一个渲染器，按文件所需的尺寸重新绘制。视频会为每个场景的每一个时刻渲染一帧；PNG、SVG 或 PDF 则会按方框自身的像素尺寸，为每个方框嵌入一张图片。没有任何内容是从屏幕上拍摄下来的，因此导出结果不取决于你当时选中了哪个方框。无法绘制的场景会让导出失败，并用工作室自己的措辞说明原因。
+
+**分享一个基于你自己上传内容构建的场景。** Design 文档的分享链接会原样携带场景内部的一个设备本地上传 id，而图片方框在这种情况下会把它清空。因此，如果一个场景所用的美术素材或模型是你上传的文件，它在别人的设备上会显示工作室对该图片的默认效果，除非文档以携带字节内容的 `.lolly` 文件形式传递。
+
+## 时间轴（Sequence）
+
+**Sequence** 是 Design 的时间轴：它为自由画布加上了*时间*这个维度。每个方框都可以在某个时刻开始、持续一段时长，并带有入场和出场动画，而停靠在画板下方的时间轴就是你安排它们的地方。打开它，已经有一段序列在播放 - 一张标题卡、一段片段、一张片尾卡、一条下三分之一字幕和一条背景音乐 - 因此在你改动任何东西之前，这套模型就已经清晰可见。
+
+![Sequence 的时间轴：传输控制条、标尺、一条叠加轨道、带片段与接缝标记的磁性序列行，以及常驻的 Always on 条](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
 
 轨道有两种，两者的区别正是整个想法的关键：
 
@@ -153,7 +200,7 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 ![编辑舞台:居中的画板、左侧的工具栏,以及角落的缩放 HUD](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-stage)
 
-打开时间轴会把键盘交给它，于是空格键和方向键驱动的是播放头而不是页面——而且由于面对已有时间设定的作品时它会自行打开，从 Sequence Studio 载入的那一刻起就是如此。
+打开时间轴会把键盘交给它，因此空格键和方向键驱动的是播放头，而不是页面 - 而且由于它在已经带有时间设定的作品上会自行打开，从 Sequence 加载的那一刻起就是如此。
 
 > **[序列编辑器](/info/sequence-editor.html)** 更深入地讲了决定按时间编辑是否可预期的四件事：画布上的一次点击编辑的是哪个片段、相邻片段的洋葱皮残影、拆分的作用范围与撤销剪切的合并，以及修剪（包括整套键盘操作）。让时间轴处于焦点状态时按 `?` 可查看快捷键表。
 
@@ -165,9 +212,13 @@ confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 
 **声音。** 添加一个**音频**片段，它会像其他片段一样待在时间轴上：波形、修剪、静音。（默认会话自带的那条生成式背景音乐是唯一的例外——它在导出时才合成，所以在你渲染之前，它的条形一直是空白且无声的。）按下麦克风即可把**旁白录制**直接录到时间轴上，带有预备倒数和电平表，录下的这一条会作为你自己的素材，保存在你开始录制的位置。按下旁边的摄像头即可用同样的方式**录制视频**：拍摄过程中画面会按画板的导出尺寸裁切，因此这个小小的自拍预览显示的，正是会以满幅画面进入播放头处序列的内容——这也是从共享链接收集同事素材的方式。音乐、对白和片段自带的声音都会进入导出的混音。（导出面板里的**音轨**是另一回事：一条铺在整段成片下方的背景音乐，带淡变和自动闪避。两者可以并存。）
 
+**音频条。** 选中任意带声音的片段，时间轴下方就会打开一条紧凑的控制条：**音量**推子、用于立体声定位的**平移**、三段式**EQ**（**低**、**中音**、**强烈**）、以半音为单位变调且保留人声特质的**音高**控件，以及**标准化音量**，它会把片段调整到广播响度标准（BS.1770），让轻声的语音备忘和响亮的音轨听起来一样响。两个片段相接的地方，**交叉淡化**会让接合处变得柔和，而不是直接切断。**效果**插槽会对该片段执行设备端处理 - **人声降噪**能去掉录音里的房间声和嘶声。变速也会保留音高：放慢或加快的片段会被时间拉伸，而不是简单加速造成的尖细声。每次混音，导出都会在语音出现和消失时把音乐压到语音之下，并把整段节目控制在一个真峰值限制器之下，确保输出时不产生削波；本会削波的波形会在发生的位置画出警告标记。
+
+![选中了音乐片段的时间轴：底部控制条依次是速度、淡变、音量、平移、EQ、音高、标准化音量和效果插槽](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
+
 **渲染它。** 动态导出是一次**确定性合成**，不是屏幕录制——每一帧都在精确的时间点被解码、绘制和编码，因此文件不取决于你的机器跟不跟得上，MP4 或 WebM 也没有实际的帧数上限。除非你自己填写时长，否则时长由时间轴本身的长度决定。Content Credentials 会像其他任何导出一样被打上。静帧导出给你的是播放头处的那一帧，或者通过输出尺寸旁的**帧数**字段导出一整张连拍表——见[导出](/info/exporting.html#stills-from-a-timed-composition)。
 
-有几条限制要记住：一段序列最长一小时；GIF 和动态 PNG 会把帧缓存起来，所以它们只能短；速度不是 ×1 的片段没有声音（目前还没有变速不变调）；**实时录制**在这里被隐藏，因为合成器是更好的路径。
+有几条限制要记住：一段序列最长一小时；GIF 和动态 PNG 会把帧缓存起来，所以只能做得比较短；播放变快或变慢的片段会保留原来的音高（音频条会对它做时间拉伸，而**音高**控件则以半音为单位变调，同时保留人声的特质）；**实时录制**在这里被隐藏，因为合成器是更好的路径。
 
 **超越预设:关键帧、深度和镜头。** 转场会在一个片段进入和离开时为其添加动效。若要在一个片段*内部*摆出姿态——让它漂移、淡入淡出、模糊、从页面上升起再落回——就添加关键帧:选中片段,按下 **+Keyframe**(时间线工具组中的菱形图标、画布对象栏上的菱形图标,或按 `K`),播放头所在的位置将决定你下一次编辑写入的是哪个姿态。同一套关键帧系统还为每个带时间线的合成提供了**镜头**功能,可以推近、横移、拉焦,把一个平面的 SVG 变成一叠可以在其间穿梭飞行的图层。**[动画制作](/info/animating.html)** 是完整指南。
 
@@ -175,7 +226,7 @@ Design 工具拥有同一条时间轴，因此你不必换到另一个工具就�
 
 ## 演示
 
-![The inspector's Document section: Voice, Blend with, Speed, Lead-in, Tail and Show captions when presenting](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
+要把你的摄像头画面、一个 Logo 和一个姓名字幕叠加在观众看到的画面上，请使用 **Present with camera**。它的私有控件、已保存的场景、分享与录制步骤在[用摄像头演示](/info/presenting.html)中有详细说明。下面这些常规的幻灯片控件仍然可以通过**演示**使用。
 
 由多个**画板**组成的 Design 文档本身就是一套幻灯片。打开工具栏上的 **Lolly 菜单**并选择**演示**（最后一行），每个画板就会变成一张全屏幻灯片，顺序与画板在画布上的排列一致。演示运行在渲染后画板的副本上，因此底下的编辑器不会被碰到，退出后你会回到原来的位置。
 
@@ -186,7 +237,13 @@ Design 工具拥有同一条时间轴，因此你不必换到另一个工具就�
 - `B` 会定格为黑屏(按任意键恢复幻灯片),`F` 返回全屏,**Escape** 则逐层退出:先从总览退回演示,再从演示退回编辑器。
 - **展台模式(Kiosk)。** 为画板设置一个 **Length**(时长),演示就会在该画板停留相应时间,随后在一条细进度条的提示下自动前进;`K`(或暂停按钮,只有当某个画板设置了时长后才会出现)可以停止并重新开始该流程。在链接中加上 `kiosk`,演示到末尾就会循环播放,这正是它能用作数字标牌的原因。
 
-演示本身也是一个链接。`?present` 直接进入演示，`s=` 指定幻灯片——序号、画板 id，或用 `id.step` 指定某个分步——而地址会随你翻页更新，所以你发出去的就是你正停在的那一张。工具作者请注意：这些参数记录在 [URL 模式](/info/url-mode.html#reserved-parameters)页面上。
+- **子幻灯片堆叠。** 右键点击一个画板，选择**堆叠在上一张幻灯片下方**，它就会变成那张幻灯片的一个步骤，而不是独立的一张幻灯片：总览只显示一张卡片，演示时会按顺序走完整个堆叠，检查器里的**堆叠**一行会说明它属于哪一张幻灯片。
+- **变形。** 当两张连续的幻灯片上都有一个方框设置了相同的**变形匹配**名称（右键点击方框，或在检查器的**变形匹配**一行设置 - 比如叫 `hero`），转场时这个方框会从原来的位置移动到新的位置，并在过程中改变大小和颜色，而不是直接切换。整份演示统一设置的**变形**转场会对每一对匹配的方框做同样的处理。
+- **旁白。** 每张画板的**演讲者备注**都可以被朗读出来。在检查器的**文档**部分选择一个**语音**，可以选择第二个**与之混合**的语音、朗读**速度**，以及每张幻灯片前后的**引入**和**尾部**（单位毫秒）；打开**演示时显示字幕**，文字就会随朗读同步出现。语音在你的设备上运行。同一份备注在视频导出中会变成配音，在 PowerPoint 导出中会变成真正的幻灯片音频，并出现在 [SCORM 课程包](/info/create/exporting.html#scorm-course-packages)里的旁白影片中。
+
+![检查器的文档部分：语音、与之混合、速度、引入、尾部和演示时显示字幕](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
+
+演示本身也是一个链接。`?present` 直接进入演示，`s=` 指定幻灯片 - 可以是位置、画板 id，或用 `id.step` 指定某个分步 - 而地址会随你翻页更新，所以你发出去的就是你正停在的那一张。工具作者请注意：这些参数记录在 [URL 模式](/info/url-parameters.html#reserved-parameters)页面上。
 
 ## 在手机上
 
@@ -207,7 +264,7 @@ Design 工具拥有同一条时间轴，因此你不必换到另一个工具就�
 
 ### 撤销与重做
 
-**Cmd/Ctrl-Z** 后退一步，**Cmd/Ctrl-Shift-Z**（或 **Cmd/Ctrl-Y**）再向前一步。同样这一对以**撤销**和**重做**按钮的形式位于控件上方的一行——在自由画布上它们改放在工具栏上——当没有可收回的内容时各自变灰。每一步都会说明自己是什么：撤销一次改色，会有一条小提示写出它刚刚恢复的那个输入项，提示里还带一个**重做**按钮供你回去。
+**Cmd/Ctrl-Z** 后退一步，**Cmd/Ctrl-Shift-Z**（或 **Cmd/Ctrl-Y**）再向前一步。同样这一对以**撤销**和**重做**按钮的形式位于控件上方的一行 - 在自由画布上它们改放在工具栏上 - 当没有可收回的内容时各自变灰。每一步都会说明自己是什么：撤销一次改色，会有一条小提示写出它刚刚恢复的那个输入项，提示里还带一个**重做**按钮供你回去。
 
 - **一次拖动就是一步。** 半秒之内对同一个控件的连续更改会合并在一起，因此把滑块从头拉到尾是一次撤销，而不是两百次。
 - **保留最近 100 步**——更早的会从末端掉落。撤销之后再做新的编辑会清空前进栈，这一点和别处一样。
@@ -216,77 +273,29 @@ Design 工具拥有同一条时间轴，因此你不必换到另一个工具就�
 
 在一次实时[协作](/info/collaborate.html)中,历史记录只属于你自己。来自另一台设备的更改永远不会进入你的撤销栈,因此撤销操作只能撤回你自己所做的更改。
 
+撤销只能在本次访问期间回溯；九个工具还会在**History**（与**撤销**并排）下保留更早的版本（见[回到更早的版本](/info/find-your-work.html#go-back-to-an-earlier-version)）。
+
 ## 你的详细信息与头像照片
 
-**个人资料**（工具库右上角）保存你的姓名、联系方式和可选的**头像照片**。需要这些字段的工具会自动预填——设置一次，你的邮件签名、组合标识和徽章就会自行填好。你仍然可以在每次会话中单独覆盖任意字段。开启**使用我的资料创作**，你的信息就会作为作者随你导出的内容一同带上。
+**设置**（工具库右上角，一旦你设置了名字就会显示你的名字）保存你的姓名、联系方式和可选的**头像照片**。需要这些字段的工具会自动预填 - 设置一次，你的邮件签名、组合标识和徽章就会自行填好。你仍然可以在每次会话中单独覆盖任意字段。开启**使用我的资料创作**，你的信息就会作为作者随你导出的内容一同带上。
 
 你的头像照片和详细信息**仅保存在本设备上**。一份个人资料不一定只代表你自己——也可以是一个团队，或你偶尔扮演的某个角色。完整说明见**[个人资料](/info/profile.html)**，包括如何保留多份。
 
 ## 保存与继续
 
-点击**保存**可把当前的输入项存为该工具的一个会话。每个工具可以保留多个具名会话；每个工具的**继续**按钮会重新打开你最近的一个，而**历史记录按钮**（右上角，紧邻个人资料）会列出所有工具下的每一个已保存会话。会话保存在本机。要整理它们，请打开下方的**项目**。
+要保留你的作品，选择**导出**旁边的对勾**另存为**。在 **Save to a project** 下，保持选中**我的素材库**，或选择一个项目（**＋ 新建项目…**即可新建一个），然后选择**保存**。再次保存会更新同一项，而不是生成副本。在 Design 中，**另存为**位于 Lolly 标志下方的菜单里；在手机上，先按 **•••**，再按 **File menu**，然后按**另存为**。
 
-![分成两半的渲染胶囊按钮——向上箭头打开导出面板，对勾就地保存会话](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+导出面板里的**保存**按钮一键完成同样的事，并且从不下载文件：新作品会进入我的素材库，之前保存的作品会在原处更新。
+
+要稍后回来，点左上角的**首页**，然后打开**项目**标签页（在手机上是一个文件夹图标）。保存到我的素材库的作品在它的第一屏；项目则是其中的一个文件夹。作品会以你在导出面板中输入的文件名命名，否则以它们的工具命名，比如**QR Code**。打开其中一个，所有设置都还在，随时可以再次修改和导出。
+
+已保存的作品会留在本设备上，留在你保存时所用的浏览器或应用里，除非你打开[同步](/info/sync.html)。用**下载**得到的文件是一份成品副本；要以后修改它，请在项目中打开已保存的那一项。如果找不到你要的东西，请见[找回你的作品](/info/find-your-work.html)。
+
+![分成两半的渲染胶囊 - 向上箭头用于打开导出面板，标有“另存为”字样的对勾用于打开保存表单](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
 ## 项目
 
-**项目**——可从**工具**旁边的**项目**标签页打开，也可从**个人资料 → 存储空间 → 在项目中整理**进入——是你所保存的一切的归处，用起来像一个文件管理器：
-
-![项目——已保存的会话整理在可嵌套的文件夹中](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
-
-- <!--i:folder--> **可嵌套的文件夹。** 把已保存的会话归入文件夹，文件夹里还能再建文件夹，层级不限。你可以新建文件夹、重命名，或把一个磁贴拖到另一个文件夹上来移动它；面包屑可带你逐层返回。 未指定文件夹的已保存会话会直接显示在**项目**的根目录。
-- <!--i:clock--> **按你自己的方式排序。** **查看和排序**提供**名称**、**添加日期**、**最近修改**（默认）以及在文件夹内的**按工具**。无论使用哪种排序，文件夹总是排在前面——排序只在各自的分组内部为会话和文件夹排序。
-- <!--i:document--> **新作品直接归档。** **新建素材**会打开共用选择器。选择**模板**即可从已保存的模板开始：打开模板进行编辑，或使用**+ 添加**立即保存一项新作品。
-- <!--i:checklist--> **多选（桌面端）。** 勾选磁贴的复选框、在空白处拖出一个选框，或按 **Shift/Cmd 点击**；**右键点击**磁贴可打开它的上下文菜单。之后就能对整个选中范围一次性操作——同样的手势和同样的悬浮操作栏在工具库、实用工具、素材和项目中都适用，不只是这里。
-- <!--i:download--> **渲染整个文件夹或选中项。** **渲染文件夹**会把一个文件夹里的每个已保存会话——包括其子文件夹——导出为一个嵌套的 `.zip`。**渲染所选内容**对任意多选执行同样的操作，单个会话则直接渲染为它自己的文件。无需批量/Pro。
-- <!--i:link--> **直接跳到某个工具的已保存作品。** 在工具库中勾选一个或多个工具，从选择栏选择**查看会话**——项目会打开并只显示用这些工具做出的会话，用**清除**即可回到完整视图。
-- <!--i:link--> **分享已保存的会话。** 右键点击一个会话 → **分享链接**，即可复制一个能以完全相同输入项重新打开它的链接（完整的分享对话框——见下文）。
-
-![项目中打开的“查看和排序”弹层：一行主题、“预览或列表”的视图选择，以及排序下的名称、添加日期和最近修改](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
-<!--
-SHOT NOTE (misc-projects-sort): trigger button confirmed as
-`.filter-fab.projects-viewopts` in views/projects.ts (openViewOpts() is bound
-to `.projects-viewopts` specifically) - `.projects-viewopts` alone is the
-more specific hook, so that's what drives the click. The popover it opens
-(`.projects-viewmenu`, also confirmed directly in openViewOpts()) is body-
-appended, not nested under the Projects root, so cropSelector finds it
-regardless. "By tool" only appears inside a folder - this recipe captures at
-the Projects ROOT (`url=/#/p`), so if the capture pass wants "By tool"
-visible too, point url= at a real folder instead: the route is a path
-segment, `/#/p/<folderId>` (confirmed in main.ts's hash router - `parts[0]
-=== 'p'` reads `folderId` from `parts[1]`), not a query param. Caveat: a
-folder has to already EXIST in the capture profile, which a per-shot fresh
-context has none of.
-Also: the popover is not sort-only. openViewOpts() writes a theme segment, a
-"View" pair (Preview / List) and a sound segment around the Sort rows, so the
-alt text names them - do not re-caption this as "the sort menu".
--->
-
-**选择栏提供什么**在不同视图里略有差别，因为并非每个操作在所有地方都说得通：
-
-- **工具 / 实用工具：** 收藏（或取消收藏）、隐藏（或取消隐藏）、可离线使用（或从离线中移除）、**查看会话**（上文说的那个跳转），以及在恰好只选中一张卡片时的复制链接。
-- **素材：** 收藏和隐藏适用于任意选中范围；生成副本、下载和删除只有在选中的每一项都是你自己上传的内容时才出现——共享的设计系统素材是一份长期契约，因此即便批量操作，这三项也不会对它开放。
-- **项目：** **渲染所选内容**、**移动到…**、**新建文件夹**、**删除**；当选中的是二到八个单工具会话时还有**一起编辑**（把它们并排打开在一个合并的侧边栏之下），以及**作为表格编辑**，它改为把整个选中范围作为行打开在批量网格里。后者**没有数量上限**，也不在乎这些会话是否来自同一个工具，因此当选中范围比“一起编辑”的二到八个更大或更混杂时，它就是那条退路。
-
-> 有一个标签上的坑：**查看会话**只有在*选中*了东西之后才存在。右键点击一张未被选中的卡片，得到的是**N 个已保存的会话**，它打开的是该工具自己的历史记录对话框，而不是跳转到项目。
-
-![Tools 图库中被勾选的两张工具卡片,浮动选择栏显示 2 selected,并提供 Available offline、View sessions、Favourite 和 Hide 选项](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
-<!--
-SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
-`[data-select="gradient"]` - the `.tile-check[data-select="<ref>"]` checkbox button
-confirmed directly in views/gallery.ts's card markup (the same attribute
-cardMarkup gives every tile), so these two clicks tick both cards without
-opening either tool.
-
-SHOT NOTE (misc-sessions-by-tool, NOT PUBLISHED): the "View sessions" result
-had a recipe of its own (`/#/p?tools=qr-code,d3`, views/projects.ts's
-toolsBodyHtml()), dropped here because it has no `drive=` that can
-manufacture its own content - a saved session isn't a click away, it has to
-already exist, and build-docs-shots.ts gives every shot a fresh
-`browser.newContext()`. It would publish an empty list. Same dependency the
-`projects` shot above already carries; revisit if the pipeline gains a
-storage-seeding hook.
--->
+**项目**，也就是主屏幕顶部的**项目**标签页，收纳你保存过的一切，存放在你自己创建的文件夹里。在那里查找、排序和搜索你的作品，以及从**回收站**恢复某一项，都写在[找回你的作品](/info/find-your-work.html#find-something-you-saved)里。
 
 
 ## 分享你的作品
@@ -297,8 +306,8 @@ storage-seeding hook.
 
 每一个输入项都记录在页面 URL 中，因此一个链接*就是*这份设计。对话框顶部是可直接复制的链接，下面折叠着两个分区。
 
-- **链接选项**里有**最短链接**（大的设计会产生很长的 URL，这一项把整个状态打包成一个紧凑的令牌，并告诉你省下了多少字符；可读形式也始终保留）、**为此链接设置密码**（对整个链接使用 AES-256，密码绝不会出现在链接里）和**锁定此工具版本**——即 `_v` 标记，把链接钉在你眼前的这个工具版本上，后来的更新就不会改变它渲染出的结果。
-- **链接行为**是收件人打开它时会发生的事：全屏、导出面板已展开、用 `&export` 打开即下载，或用 `&copy` 打开即复制到剪贴板。
+- **Link options** 中包含 **Open in the installed app**（把字段切换为一个 `lolly://` URI，供快捷指令、启动器和自动化使用，所有参数保持不变）、**Shortest link**（大的设计会产生很长的 URL，这一项把整个状态打包成一个紧凑的令牌，并告诉你省下了多少字符；可读形式也始终保留）、**Password-protect this link**（对整个链接使用 AES-256，密码绝不会出现在链接里）和 **Pin this tool version** - 即 `_v` 标记，把链接钉在你眼前的这个工具版本上，后来的更新就不会改变它渲染出的结果。
+- **Link behaviour** 是收件人打开它时会发生的事：全屏、导出面板已展开、用 `&export` 打开即下载，或用 `&copy` 打开即复制到剪贴板。
 
 把链接粘贴给同事、加入书签，或提交到版本库。（完整说明：[URL 模式](/info/url-mode.html)。）
 
@@ -310,7 +319,18 @@ storage-seeding hook.
 
 ### .lolly 文件
 
-在你所用工具的分享对话框里，**下载 .lolly** 会把同一份设计写成一个文件。它带着已保存的会话，连同你从设备添加的图片和文件。设计所用到的目录素材也一并装在里面，因此这个文件在一台从未见过你品牌的机器上也能完整打开。如果你的设备有分享面板，**发送给…**会把该文件直接交给它（AirDrop、Android 的分享），而不是保存到磁盘。
+`.lolly` 是 Lolly 的可移植包扩展名，并不代表每个文件里装的都是同一种东西。真正说了算的是 `manifest.json` 里的 `format`。应用会先读取这份小小的清单，并在写入任何内容之前，显示大小、内容和将要执行的操作：
+
+- 一个**共享设计**（`lolly-share`）包含一个已保存的工具会话、它内嵌的文件，以及针对仍以引用方式解析的任何内容的一份清单。它也可能带有制作它所用的工具和设计系统。打开它会新增一个项目；它绝不会覆盖已有的会话。
+- 一个**共享项目**（`lolly-share`，种类为 `project`）包含**项目**里的一个文件夹：它的子文件夹、归档在其中的每一个已保存会话、每个会话的图块以及归档在那里的图片。打开它会把整个文件夹的一份副本加入**项目**；已有的内容不会被替换。项目文件出现之前的 Lolly 版本无法读取它，会提示需要更新。
+- 一个**设计系统包**（`lolly-brand`）包含 Design tokens，也可能包含字体、Logo、已发布的版本和保留资源。打开它会把它作为一个独立命名的设计系统加入，然后切换到它；设备上已有的设计系统会保留。
+- 一个**品牌工作区 / 实例包**是一个带有已声明工具、目录素材，以及可选实例地址的 `lolly-brand`。预检会列出这些影响整台设备的后果，因为加载它会替换掉此前唯一已加载的工作区叠加层。
+
+完整的**设备 / 个人资料备份并不是 `.lolly`**。它仍然是一个格式为 `lolly-backup` 的 `LollyTools-….zip`，并且只能通过**设置 → 存储空间**还原。一个普通压缩的工具文件夹也仍然是 `.zip`。换句话说，会话包和设计系统包归 `.lolly` 所有；备份和普通压缩包的流程不属于这一类。
+
+在你正在使用的工具的分享对话框中，**Download .lolly** 会把当前设计写成一个共享设计包。它带着已保存的会话，连同本设备上可用的图片和文件。普通的目录美术素材也会一并带上。除非你明确选择包含，否则授权素材会被扣留；过期或不可用的文件仍然保留为外部引用，而不会直接消失。准备好的收据会显示实际的 `.lolly` 大小、内嵌文件数量、外部引用数量，以及是否包含工具本身。如果你的设备有分享面板，**Send to…** 会把该文件直接交给它（AirDrop、Android 的分享），而不是保存到磁盘。
+
+**项目**中某个文件夹菜单里的 **Download project (.lolly)** 会把该文件夹写成一个共享项目，这样其他人就能打开它，并接着处理里面的每一个会话。每个会话都作为独立的一部分传输（`sessions/<key>.json`，其图块位于 `thumbs/` 下），文件夹树结构列在 `manifest.json` 中，上传内容和目录美术素材遵循与单个共享设计相同的规则。批量会话不是工具会话，会被留下；提示会说明数量。旁边的**下载原始文件**保持不变：把每一项分别打包为一个普通 zip 文件。
 
 `.lolly` 就是一个普通的 zip。把它改名为 `.zip` 再打开：你自己的图片在 `assets/uploads/` 下，目录素材在 `assets/catalog/` 下，各自带着真实的名称和扩展名，`manifest.json` 列出了每一个，顶层还有一个 README 说明这个文件是什么。
 
@@ -320,9 +340,13 @@ storage-seeding hook.
 - **授权素材是否写入。** 已授权和品牌锁定的素材默认会被排除在外。如果设计中用到了这类素材,对话框会说明数量,并提供两个按钮 - *Download without them*(不含这些素材下载)或 *Include and download*(包含并下载) - 因为包含它们就相当于把实际文件交给了任何打开该 `.lolly` 文件的人。
 - **工具本身是否写入。** **Include the tool** 会将工具自身的文件与设计一起打包,这样它就能在没有安装该工具的设备上打开。对于自定义工具 - 比如收件人不太可能拥有的分支或私有品牌工具 - 该选项默认勾选;对于签名目录中列出的工具则默认不勾选,因为对方的副本来自同一来源。(在没有签名目录的构建中,每个工具都算作自定义工具,该选项默认勾选。)
 
-**打开一个文件。** 把一个 `.lolly` 文件拖放到应用上:素材会进入你的素材库,会话会进入 Projects,工具会随之打开。你已有的任何内容都不会被覆盖:会话会以一个新的已保存槽位形式到达,而设备上已存在的素材会通过校验和匹配并复用,而不是被重复创建。导入过程中的每个部分都会与文件自带的校验和进行核对,因此传输中损坏的副本会被拒绝,而不是被半途导入。
+**打开一个文件。** 在已安装的桌面版或移动版应用中，双击或点按一个 `.lolly` 文件，选择 **Open with Lolly**，或从系统分享面板把它发送给 Lolly。macOS、Windows、Linux、iOS 和 Android 都会注册这个格式；桌面文件管理器会把它显示为一个 Lolly 文档（GNOME Files 甚至能显示已保存会话自己的缩略图）。在网页版应用中，使用**打开**，或把文件拖放到 Lolly 上。每一个入口都使用同一套以清单优先的预检流程。从 Brand Studio 打开时，如果共享设计带有设计系统，会推荐相应的设计系统操作，但绝不会改写文件的标签，也不会隐藏**开放共享设计**。
 
-如果文件里带着一个你没有的工具，Lolly 会在该工具运行之前先问你：**信任此工具？**会写出它的名称和作者，并明白地说明打开它就是在你的设备上运行该工具自己的代码，**信任并安装**是继续的方式。拒绝的话，分享过来的作品仍会保存到你的项目中，等着你哪天补上这个工具。（有一类工具目前还无法侧载——代码以模块形式提供的那种——它会以同样的方式被挡在门外。）
+从另一个应用交接过来的 iOS 或 Android 文档上限为 48 MB，因为系统原生的交接机制必须把字节复制穿过应用边界。移动版应用会明确说明这一点，而不是悄悄忽略一个过大的文件。Lolly 内部的**打开**不使用这种交接方式；遇到更大的包，应该改用这条路径尝试。
+
+确认之后，所选的读取程序会对这个包解压并校验一次。共享设计的素材会进入你的素材库，它的会话会进入**项目**，它的工具会在可用时打开。共享项目的会话会以其文件夹的一份新副本进入**项目**，并带有新的 id，因此同一个文件可以被打开两次，而文件夹会随之打开；本设备缺少对应工具的会话会先在那里等待。设备上已有的素材会通过校验和匹配并复用。设计系统包会先存入它自己的命名空间，应用随后再切换到它。超过 100 MB 的文件会被标注为大文件，当浏览器存储报告的可用空间小于声明的负载所需空间时，预检会发出警告。每一个带有完整性校验的部分都会在操作提交前被检查；损坏的副本会被拒绝，新建的目标位置也会被回滚。
+
+如果文件里带着一个你没有的工具，Lolly 会在该工具运行之前先问你：**信任此工具？**会写出它的名称和作者，并明白地说明打开它就是在你的设备上运行该工具自己的代码，**信任并安装**是继续的方式。拒绝的话，分享过来的作品仍会保存到你的项目中，等着你哪天补上这个工具。（有一类工具目前还无法侧载 - 代码以模块形式提供的那种 - 它会以同样的方式被挡在门外。）
 
 链接和文件交出的都是一份快照。若要和别人*同时*处理同一个会话——两台设备、没有服务器，同处一个网络时甚至不需要联网——见[协同工作](/info/collaborate.html)。
 
@@ -332,28 +356,28 @@ storage-seeding hook.
 
 ## 我的图片
 
-当某个工具允许你从设备添加图片时，图片会被原封不动地保留——因此它上面的 Content Credential 仍然通得过校验——并保存到你个人的**我的图片**库中（位于**个人资料 → 存储空间**）。只有确实巨大的文件才会问你是保留还是缩小。你可以在任意工具中重复使用它。若想在图片进入时清除 EXIF/GPS，请在个人资料中开启**从上传内容中清除元数据**。没有容量上限：该库完全在本地，只受你设备存储空间的限制——可以在那里管理或删除图片。
+当某个工具允许你从设备添加图片时，图片会被原封不动地保留（因此它上面的 Content Credential 仍然通得过校验），并保存到你个人的**我的图片**库中（位于**设置 → 存储空间**）。只有确实巨大的文件才会问你是保留还是缩小。你可以在任意工具中重复使用它。若想在图片进入时清除 EXIF/GPS，请在个人资料中开启**从上传内容中清除元数据**。没有容量上限：该库完全在本地，只受你设备存储空间的限制 - 可以在那里管理或删除图片。
 
-## 素材：你的素材库
+## 素材 - 你的素材库
 
-**素材**（`#/a`，或每个列表视图顶部“工具 · 实用工具 · 素材 · 项目”切换器中的**素材**那一段）汇集了你的工具可以调用的一切——品牌 Logo、图片、音频和动态素材，按类别分组——它也是你**自己的创意文件**的存放之处。没有服务器，没有管理控制台，没有 pull request：一切都在你的设备上。
+**素材**（`#/a`，或每个列表视图顶部“工具 · 实用工具 · 素材 · 项目”切换器中的**素材**那一段）汇集了你的工具可以调用的一切 - 品牌 Logo、图片、音频和动态，按类别分组 - 也是你**自己的创意文件**的存放之处。没有服务器，没有管理控制台，没有 pull request：一切都在你的设备上。
 
-![素材——品牌素材、色板和字体，以及你自己上传的内容](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
+![素材 - 品牌的色板与字体，以及你自己上传的内容](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
-- <!--i:upload--> **导入你的文件。** 将任意图像、SVG、音频片段、视频、Lottie、PDF 或 PowerPoint 文稿拖到上传区域——或点击进行选择——它会立即出现在素材中,并在每个工具的素材选择器里可用。多页 PDF 或 `.pptx` 会询问要保留哪些页面或幻灯片——每一页都会变成一个 SVG 素材。想导入多少都可以;它永远不会离开你的设备。
-- <!--i:star--> **收藏你常用的素材。** 为一个素材(或一个品牌色板)标星 ★,它就会固定在每个选择器的顶部,让你常用的徽标或颜色一键可达。
-- <!--i:folder--> **整理素材。** 把某个素材重新归类到另一个分组,隐藏你不用的共享品牌素材(可通过 **Show hidden**(显示隐藏项)重新找回),或者直接删除你自己上传的内容。这里同样支持与 Projects 相同的多选手势和浮动操作栏,因此以上操作都可以一次性应用到整批选中的内容。
-- <!--i:layers--> **从视频中抠出背景。** 在任意素材选择器中打开某个视频的详情,或右键点击它的卡片,选择 **Remove background…**(移除背景…)即可保存一个带真实 alpha 通道的透明版本——一个动画 WebP 或 PNG。可选择一种 **Method**(方法):**On-device model**(设备端模型)会从繁杂的场景中把主体抠出来,或者用 **Colour key**(色键)从光照均匀的纯色背景(例如绿幕或素色墙面)中抠像,并通过 **Tolerance**(容差)、**Softness**(柔和度)和 **Spill removal**(溢色去除)来调整边缘效果。色键方式无需下载模型、也无需联网,因此任何视频都可以使用 **Remove background**(移除背景),在画面干净的素材上效果通常也更好。**Resolution**(分辨率)控件(360、480、720 或 1080p,且不会超过源素材)可以用细节换取更小、更快的文件。该过程在你的设备上以后台任务的形式运行。抠好的成品会作为独立素材保存在原素材旁边,源视频的 Content Credential 也会作为素材来源一并随行。(关于为什么移除背景仍属于一次普通编辑,参见[一次生成,渲染始终如一](/info/ai-features.html)。)
+- <!--i:upload--> **导入你的文件。** 将任意图像、SVG、音频片段、视频、Lottie、PDF 或 PowerPoint 文稿拖到上传区域 - 或点击进行选择 - 它会立即出现在素材中，并在每个工具的素材选择器里可用。多页 PDF 或 `.pptx` 会询问要保留哪些页面或幻灯片 - 每一页都会变成一个 SVG 素材。想导入多少都可以；它永远不会离开你的设备。
+- <!--i:star--> **收藏你常用的素材。** 为一个素材（或一个品牌色板）标星 ★，它就会固定在每个选择器的顶部，让你常用的 Logo 或颜色一键可达。
+- <!--i:folder--> **整理素材。** 把某个素材重新归类到另一个分组，隐藏你不用的共享品牌素材（用 **Show hidden** 可以把它找回来），或者直接删除你自己上传的内容。这里同样支持与项目相同的多选手势和浮动操作栏，因此以上操作都可以一次性应用到整批选中的内容。
+- <!--i:layers--> **从视频中抠出背景。** 在任意素材选择器中打开某个视频的详情，或右键点击它的卡片，选择**去除背景…**即可保存一个带真实 alpha 通道的透明版本 - 一个动态 WebP 或 PNG。可以选择一种**方法**：**设备端模型**会从繁杂的场景中把主体抠出来，或者用**配色说明**从光照均匀的纯色背景（例如绿幕或素色墙面）中抠像，并通过**容差**、**柔和度**和**去除溢色**来调整边缘效果。这种色键方式无需下载模型、也无需联网，因此任何视频都可以使用**去除背景**，在画面干净的素材上效果通常也更好。**分辨率**控件（360、480、720 或 1080p，且不会超过源素材）可以用细节换取更小、更快的文件。整个过程会在你的设备上以后台任务的形式运行。抠好的成品会作为独立素材保存在原素材旁边，源视频的 Content Credential 也会作为素材来源一并随行。（关于为什么移除背景仍属于一次普通编辑，参见[一次生成，渲染始终如一](/info/ai-features.html)。）
 
 ### 把你的调色板和字体带到任何地方
 
-素材中的**色板**面板不只是展示——点击某个颜色即可复制它，或以你其他工具所使用的格式**下载整套品牌调色板**：
+素材中的**色板**面板不只是展示 - 点击某个颜色即可复制它，或以你其他工具所使用的格式**下载整套品牌调色板**：
 
 - <!--i:code--> **设计令牌（JSON）**、**CSS 变量**或 **CSS 类**——把品牌直接放进样式表或构建流程；
 - <!--i:palette--> **Adobe Swatch Exchange（.ase）**——载入 Illustrator 或 Photoshop；
 - <!--i:pentool--> **GIMP 调色板（.gpl）**——用于 GIMP 或 Inkscape。
 
-![色板面板——顶部一排五个调色板下载按钮，下面是每一种品牌色，均为可复制的色片](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+![色板面板 - 顶部一排五个调色板下载按钮，下面是每一种品牌色，均为可复制的色片](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
 
 **字体**面板列出你的品牌字体，每种旁边都有**下载**，可在本地安装或交给印刷厂。（[品牌工作室](/info/brand-studio.html)的“颜色”室也提供同样的调色板下载。）
 
@@ -363,31 +387,19 @@ storage-seeding hook.
 
 Lolly 力求让每个人用起来都舒适。界面支持键盘导航，自定义控件带有供屏幕阅读器使用的正确标签，每个工具的实时预览都作为一张带标签的图片呈现，描述它正在制作的内容。
 
-一层轻柔的**辅助音效**会确认你的操作——进入工具库、Content Credentials 校验有效与无效、关闭面板、切换滤镜。它**默认关闭**：在开关出现的任意位置（各视图的选项弹层，或**个人资料**）打开**声音**即可，这个选择会被记住。
+一层轻柔的**辅助音效**会确认你的操作 - 进入工具库、Content Credentials 校验有效与无效、关闭面板、切换滤镜。它**默认关闭**：在开关出现的任意位置（各视图的选项弹层，或**设置**）打开**声音**即可，这个选择会被记住。
 
-**个人资料 → 无障碍**下有四项需要你主动开启的舒适度设置：**减弱动效**（去掉应用的过渡和修饰动画）、**隐藏彩色预览**（工具库卡片变成素净的图标加文字，项目缩略图也更安静）、**高对比度**（更强的边框、文字和焦点框）以及**大号文字**（更大的应用字号——标签、菜单、按钮文字）。这四项都只让你工作*周围*的应用安静下来：它们绝不会伸进工具画布，也不会改变你导出内容的任何一个像素，而且在你打开之前都是关闭的。完整说明见[你的个人资料 → 无障碍](/info/profile.html#accessibility)。
+**设置 → 无障碍**下有四项需要你主动开启的舒适度设置：**Reduce motion**（去掉应用的过渡和修饰动画）、**Hide colourful previews**（工具库卡片变成素净的图标加文字，项目缩略图也更安静）、**High contrast**（更强的边框、文字和焦点框）以及**Large text**（更大的应用字号 - 标签、菜单、按钮文字）。这四项都只让你工作*周围*的应用安静下来：它们绝不会伸进工具画布，也不会改变你导出内容的任何一个像素，而且在你打开之前都是关闭的。完整说明见[你的个人资料 → 无障碍](/info/profile.html#accessibility)。
 
 “声音”开关旁边是 **Neurospicy 模式**——一段可选的、令人平静的背景专注音轨，会在你工作时轻声播放。开启它会在底部角落打开一个小巧的**播放器坞**，它会跟随你在应用中穿行；你可以在其中搜索并挑选音轨、前后切换、设置音量，以及把它最小化或关闭。音轨列表涵盖几个类别——程序化生成的 *Lolly Sings* 曲目、氛围循环与节拍、你自己上传的音频，以及少量实时网络**电台**（这些需要联网；其余内容均可离线播放）。它**默认关闭**，并且和“声音”一样，会跨会话、跨设备被记住。关掉“声音”也会同时静音这条专注音轨。
 
 ## 存储与隐私
 
-一切都保存在浏览器的本地数据库（IndexedDB）中：你的个人资料、已保存的会话、上传的图片，以及已下载目录内容的缓存。**个人资料 → 存储空间**会显示占用情况，并让你可以：
-
-- <!--i:box--> **清除缓存**——丢弃已下载的目录内容（下次加载时重新同步）。
-- <!--i:trash--> **清除我的所有数据**——清空个人资料、会话和图片。*无法撤销。*
-
-![手机宽度屏幕上的存储卡片：设备上每一类数据都一一列出，底部是“清除我的所有数据”按钮](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
-
-这些本地数据不会被传输到任何地方——没有遥测，也没有云端渲染。应用会获取或发送的全部内容清单见[隐私政策](/info/privacy.html)，[服务器接触面](/info/server-surface.html)则清点了可选的服务器组件。
+Lolly 会把你的作品保存在你的设备上：在网页版中保存在这个浏览器自己的存储空间里，在桌面版和移动版应用中则保存在应用自己的存储空间里。保留了什么、**清除我的所有数据**会删除什么，以及清除浏览器数据会带走什么，都写在[找回你的作品](/info/find-your-work.html#if-you-clear-your-browser-data)里；[隐私政策](/info/privacy.html)列出了应用会获取或发送的一切，[服务器攻击面](/info/server-surface.html)则列出了可选的服务器组件。
 
 ## 迁移到另一台设备
 
-由于一切都保存在你的设备上，**个人资料 → 存储空间 → 移动到其他设备**可以让你把这一切带到第二个安装实例——无需账号，无需云端：
-
-- <!--i:download--> **导出我的数据**会下载一个 `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip`（名称中的各部分取自你的个人资料，未设置时会略去；`<n>` 是按天计数的序号，避免同一天的多次导出撞名），其中包含你的个人资料、每一个已保存的会话（含缩略图）、你上传的图片，以及你的偏好设置（主题、侧边栏宽度、本地活动统计）。
-- <!--i:upload--> 在另一个安装实例上用**导入数据…**把该文件读回来。它采用**合并**方式：任何同名内容（你的个人资料、某个会话槽位、某张图片）都会被导入的副本替换；该设备上的其他内容则保持不变。已保存的会话会自动重新关联到你导入的图片。
-
-目录缓存不包含在内——它会在新设备上自行重新下载。这个包是一个普通的 zip（`manifest.json` + `profile.json` + `sessions.json` + `assets.json` + `assets/blobs/…` + `prefs.json`，格式 id 为 `lolly-backup`），因此经电子邮件、U 盘或 AirDrop 传输后依然完整，并且是每个客户端都能读取的同一种格式。每个部分都带校验和，因此传输中损坏的文件会在导入时被发现，而不会被恢复成半坏的状态。（完整格式规范：[数据迁移](/info/data-transfer.html)。）
+要把你的作品带到第二台电脑或手机上，可以用同步、备份文件，或 `.lolly` 文件。[把你的作品移动到另一台设备](/info/find-your-work.html#move-your-work-to-another-device)比较了这三种方式，并演示了**导出我的数据**和**导入数据…**的用法。
 
 ## 导入设计（Figma、Penpot、Illustrator、InDesign）
 
@@ -403,7 +415,7 @@ Lolly 力求让每个人用起来都舒适。界面支持键盘导航，自定�
 
 ![批量工具栏——zip 文件名、单位、DPI,以及每一行都会继承的格式,右侧是 Sessions 和 Render](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.pro-toolbar&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
-批量用于一次生成**同一个模板的许多变体**。若要重新渲染你**已经保存**的会话，请使用**项目 → 渲染文件夹 / 渲染所选内容**（见上文）——无需 Pro。
+批量用于一次生成**同一个模板的许多变体**。若要重新渲染你**已经保存**的会话，请使用**项目 → 渲染文件夹 / 渲染所选内容**（见[找回你的作品](/info/find-your-work.html#find-something-you-saved)） - 无需 Pro。
 
 ## 并排编辑（多重编辑）
 
@@ -423,6 +435,8 @@ Batch(批量)针对的是*同一个*设计的多种变体。**Multi-edit**(多�
 
 ## 离线与安装
 
-Lolly 是一个 PWA。首次加载后即可**离线**使用——从浏览器地址栏安装它（或在移动设备上使用*添加到主屏幕*），即可获得类似原生应用的全屏体验。重新联网后它会自行更新。
+Lolly 是一个 PWA。对你已经打开过的界面，它会继续**离线**工作；**设置 → 可离线使用**下的**应用本身**会下载其余部分 - 从浏览器地址栏安装它（或在移动设备上使用*添加到主屏幕*），即可获得类似原生应用的全屏体验。重新联网后它会自行更新。
 
-关于更新:如果某个视图在更新后一时加载失败(出现空白面板,或角落里的“failed to fetch”提示),只需重新加载一次页面——应用会干净利落地切换到新版本,你的作品、会话和品牌都不会受到影响。它把一切都保存在你的设备上,而不是保存在页面里。
+关于更新:如果某个视图在更新后一时加载失败(出现空白面板,或角落里的“failed to fetch”提示),只需重新加载一次页面 - 应用会干净利落地切换到新版本,你的作品、会话和品牌都不会受到影响;只有你添加过但从未保存的图片可能需要重新添加。它把一切都保存在你的设备上,而不是保存在页面里。
+
+Design 和 Darkroom 可以通过 **Wide colour / HDR** 编辑保留原始图片精度，Sequence 视频也是如此。品牌色板可以携带独立的 sRGB 和 P3 数值。输出选择和当前限制请见[宽色域与 HDR 编辑](/info/hdr-editing.html)。

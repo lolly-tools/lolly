@@ -2,10 +2,11 @@
 
 `/info` のランディングページのアコーディオンに表示される、よくあるご質問です。
 
-**メンテナンス方法:** 以下の `##` 見出しがそれぞれ質問であり、その下（次の `##` まで）が回答です。
-回答はサイトの他の部分と同じ軽量マークダウンを使います。段落は空行で区切ってください。
-ここで質問を追加・削除・並べ替えたうえで、`npm run build:info`（または `npm run dev:web`）を
-再実行してください。最初の `##` より上（このタイトルとこの注記）はビルドでは無視されます。
+**メンテナンス方法:** 以下の `##` 見出しがそれぞれ質問であり、その下
+(次の `##` まで)が回答です。回答はサイトの他の部分と同じ軽量マークダウンを使います -
+段落は空行で区切ってください。ここで質問を追加、削除、並べ替えたうえで
+`pnpm run build:info`(または `pnpm run dev:web`)を再実行してください。
+最初の `##` より上(このタイトルとこの注記)はビルドでは無視されます。
 
 ## /profile ページでオプトインすると何が起こりますか？
 
@@ -67,8 +68,9 @@ Lolly は、すでにファイルを生成しているあらゆる場所に組�
 
 **厳選されたブランドカタログを作成する必要があります。** Lolly はプラットフォームであり、
 あなたのテンプレートが揃った完成品のパックではありません。*統制された展開*では、誰かが共有アセット
-カタログ（恒久 ID としてのロゴ、パレット、フォント）を定義し、出力タイプごとにマニフェストと
-テンプレートを書きます。ただし個人はそれを待つ必要はありません。オープンなアプリでは、誰でも
+カタログ(恒久 ID としてのロゴ、パレット、フォント)を定義し、出力タイプごとにマニフェストと
+テンプレートを書きます。ただし個人はそれを待つ必要はありません。
+オープンなアプリでは、誰でも
 自分のファイルをアセットに取り込み、初日から Design でツールを作れます。
 
 **貢献に git は必要ありません。** デザイナーはアプリの中で自分のツールやテンプレートを作り、
@@ -119,6 +121,14 @@ Lolly は、そのすべてを底上げします。
 ![Design's open canvas - Import a design sits in the toolbar's Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 レイヤーは、オープンキャンバス上に編集できるボックスとして読み込まれます。テキストは入力し直せるままで、シェイプはシェイプのまま、画像はあなた自身の画像ライブラリーに加わり、書体と色はブランドのグローバル設定に従います。保存すれば、そのレイアウトは Lolly を持つ誰もが中身を入れ替えられる、URL で指定できる再利用可能なテンプレートになります。読み込み時に再レンダリングされるライブツール（QR コード、チャートなど）を混ぜ込むこともできます。あとは Lolly の他のものと同じようにレンダリングされ、SVG、PDF、PNG などを、その URL から再現できます。[デザインの読み込み](/info/design-import.html)を参照してください。
+
+## 昨日作ったものはどこにありますか？
+
+**名前を付けて保存**または**保存**を押していれば、保存に使ったブラウザまたはアプリの、ホーム画面の**プロジェクト**の中にあります。**ダウンロード**だけを押した場合、ファイルはブラウザやシステムがダウンロードを保存する場所にあり、通常は**アセット**にもコピーがあります。9つのツールでは、保存していない作業も**プロジェクト**に保持されます。あらゆる場合を[作業を見つけて復元する](/info/find-your-work.html)で説明しています。
+
+## タブを閉じてしまいました。作業内容は消えましたか？
+
+保存した作業は**プロジェクト**にそのまま残っています。保存していない作業は失われますが、作業しながら保存する9つのツールは例外で、それらも**プロジェクト**に保持されます。次回はツールを離れる前に**名前を付けて保存**を押してください。[タブを閉じた場合やツールを離れた場合](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool)をご覧ください。
 
 ## 作品をリンクではなくファイルとして共有できますか？
 

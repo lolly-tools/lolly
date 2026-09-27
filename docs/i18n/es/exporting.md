@@ -1,19 +1,33 @@
 # Exportar y formatos
 
-Cómo obtener un archivo terminado desde una herramienta - elegir el formato correcto, ajustar el tamaño de salida y qué hace cada opción. Como todo lo demás, **la exportación ocurre en tu dispositivo**; no se sube nada.
+Pulsa **Exportar** en la píldora **Exportar | Guardar como** de una herramienta, elige un formato en el menú junto al nombre del archivo y luego pulsa **Descargar**. El archivo se genera en tu dispositivo; no se sube nada.
+
+Para la mayoría de los trabajos, uno de estos tres formatos es el adecuado:
+
+| Para | Elige | Porque |
+|---|---|---|
+| Una pantalla, un mensaje o una diapositiva | **PNG** | Todas las apps lo abren, y mantiene el fondo transparente cuando la herramienta lo ofrece |
+| Una página terminada, o cualquier cosa impresa | **PDF** | Un tamaño de página real que se imprime tal como se ve; **Print PDF**, donde una herramienta lo ofrece, es la versión CMYK para imprenta |
+| Obras que deben mantenerse nítidas a cualquier tamaño | **SVG** | Formas vectoriales, nítidas desde una insignia hasta una valla publicitaria |
+
+::: check Comprueba el archivo al tamaño en que se usará
+Antes de enviarlo, ábrelo en la pantalla para la que se hizo, o imprímelo a su tamaño real.
+:::
+
+El resto de esta página cubre todos los formatos, tamaños y opciones.
 
 ## Cómo funciona la exportación
 
-La vista previa *es* el archivo. Al exportar, el host renderiza ese lienzo al formato que elegiste y te entrega una descarga (o lo pone en tu portapapeles). Una herramienta solo ofrece los formatos que declaró su autor, y el selector oculta cualquiera que tu navegador no pueda producir (ver [Video](#video)).
+La vista previa *es* el archivo. Al exportar, el host renderiza ese lienzo al formato que elegiste y te entrega una descarga (o lo pone en tu portapapeles). El selector oculta cualquier formato que tu navegador no pueda producir (ver [Video](#video)).
 
 Tres rutas producen un archivo. La mayoría de las herramientas **renderizan el lienzo** al formato elegido. Los formatos de texto y datos (HTML, MD, TXT, JSON, CSV, ICS, VCF) se **generan a partir del contenido de la herramienta**, en lugar de rasterizarse desde la imagen. Y las utilidades de privacidad (p. ej. *Strip Hidden Data*) usan una tercera ruta: el archivo que *tú* eliges se transforma byte a byte en el dispositivo y se devuelve tal cual - sin lienzo, sin marca de agua y sin añadir metadatos de procedencia, porque ya es tu propio archivo.
 
-Las acciones en los controles de exportación:
+Las acciones del panel de exportación:
 
-- <!--i:download--> **Descargar** - guarda el archivo (la acción principal).
-- <!--i:photos--> **Copiar** - pone la imagen en tu portapapeles para pegarla directamente en Slack, correo o un documento. Cuando un navegador no puede copiar imágenes, descarga en su lugar y te lo indica.
-- <!--i:folder--> **Guardar** - conserva el diseño actual como una sesión de herramienta guardada en tu biblioteca.
-- <!--i:link--> **Compartir** - abre el **diálogo de compartir**: un enlace copiable que reproduce el diseño, opciones de activación al visitar (pantalla completa, panel de exportación, descarga o copia al abrir) y un **enlace más corto** opcional que empaqueta todo el estado en un token compacto (ver [Modo URL](/info/url-mode.html)).
+- <!--i:download--> **Descargar** - guarda el archivo (la acción principal). Si no lo encuentras después, consulta [Encuentra un archivo que descargaste](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Copiar** - pone la imagen en tu portapapeles para pegarla directamente en Slack, un correo o un documento. Donde un navegador no puede copiar imágenes, descarga en su lugar y te lo indica.
+- <!--i:folder--> **Guardar** - conserva el diseño actual en Proyectos con un clic, sin preguntar dónde; nunca descarga un archivo. **Guardar como**, junto a **Exportar**, pregunta dónde (ver [Guardar y continuar](/info/using.html#saving-continuing)).
+- <!--i:link--> **Compartir** - abre el **Share dialog**: un enlace copiable que reproduce el diseño, opciones de activación al visitar (pantalla completa, panel de exportación, descarga o copia al abrir) y un **Shortest link** opcional que empaqueta todo el estado en un token compacto (ver [Modo URL](/info/url-mode.html)).
 
 (El autor de una herramienta elige cuáles de estas aparecen; el conjunto predeterminado es Copiar, Descargar y Guardar.)
 
@@ -32,13 +46,13 @@ Una sesión guardada también se puede volver a compartir como un enlace de herr
 
 ## Elegir un formato
 
-El campo de nombre de archivo y el selector de formato están en la parte superior del panel como un único par `nombre.formato`, y el selector solo lista los formatos que declaró el autor de esta herramienta.
+El nombre del archivo y el menú de formato están juntos como un único par `name.format`, debajo de **Descargar**.
 
 ![El campo de nombre de archivo fusionado con el selector de formato, de modo que la exportación se lee como un único par name.format](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
 | Quieres… | Usa | Por qué |
 |---|---|---|
-| Logos / obras artísticas nítidas y escalables | **SVG** | Vectorial - infinitamente escalable, ligero, editable |
+| Logos / obras artísticas nítidas y escalables | **SVG** | Vectorial - infinitamente escalable, ligero, editable; un efecto que la exportación vectorial no puede dibujar se incrusta como imagen |
 | Vector para Office / apps de Windows | **EMF** | Se pega como vector editable en PowerPoint / Word; el texto sigue siendo editable, y Google Drive lo abre en Google Dibujos para Presentaciones |
 | Vector para impresión / apps de diseño | **EPS**, o **EPS (CMYK)** | Vector PostScript para Illustrator / flujos de imprenta |
 | Vector para corte / máquinas CAD | **DXF** | Cortadoras láser, plotters de vinilo, CNC - rutas de contorno en milímetros |
@@ -91,7 +105,7 @@ Cuando quieres más de un momento, el campo **Fotogramas** aparece junto al tama
 
 El muestreo se toma en el **punto medio** de cada intervalo en lugar de en los extremos, porque el primer instante de una secuencia suele ser una transición de entrada que aún no ha aparecido del todo y el último es el estado tras haber terminado cada clip - un muestreo en los extremos gastaría dos de tus fotogramas en imágenes casi en blanco. El recuento está limitado a **64** (una hoja de contactos es para que la lea una persona), y cualquier valor sin sentido escrito en el campo vuelve a `1` en lugar de hacer fallar la exportación. Cada fotograma es un fijo normal, así que Content Credentials, la marca, las unidades físicas y el DPI se comportan exactamente igual que en una sola exportación.
 
-El campo **Fotogramas** es la forma de obtener una hoja hoy. El motor reserva un parámetro de URL `cuts` a juego, pero ningún shell lo lee todavía desde un enlace, así que un enlace compartido siempre se reabre en el fotograma de la cabeza de reproducción - ver [Modo URL](/info/url-mode.html#contact-sheets-cuts).
+El campo **Fotogramas** es la forma de obtener una hoja hoy. El motor reserva un parámetro de URL `cuts` a juego, pero ningún shell lo lee todavía desde un enlace, así que un enlace compartido siempre se reabre en el fotograma de la cabeza de reproducción - ver [Modo URL](/info/url-parameters.html#contact-sheets-cuts).
 
 ## PDF multipágina
 
@@ -235,7 +249,7 @@ Las herramientas animadas exportan movimiento como **MP4**, **WebM** o **GIF** -
 
 GIF funciona en todas partes (excelente para chat/correo; más pesado y con menos color que el video). Las herramientas animadas también exponen **Wait** (segundos para dejar que la animación se asiente antes de grabar) y **Duration** (duración del clip).
 
-> Un enlace compartido `?format=…` que solicita un contenedor que tu navegador no puede grabar recurre correctamente al otro y nombra el archivo en consecuencia.
+> Un enlace compartido `?format=…` que solicita un contenedor que tu navegador no puede grabar recurre con elegancia al otro, y el nombre del archivo coincide con el contenedor que grabó.
 
 **Sonido.** Las exportaciones de vídeo no son mudas. Una herramienta puede colocar una **pista musical** bajo el clip - un recurso de audio del catálogo, en bucle o recortado a la duración del clip, con fundido de entrada/salida, volumen y atenuación automática bajo el propio sonido de la grabación - y las herramientas de grabación llevan el audio en directo de su grabación directamente al archivo. **MP4** y **WebM** conservan la pista mezclada; GIF y los formatos de imagen animada (APNG, WebP animado, SVG animado) son mudos por naturaleza.
 
@@ -255,7 +269,9 @@ Donde el formato lo permite, las exportaciones llevan **metadatos de procedencia
 
 **La credencial duradera.** Una segunda marca, más pesada, se sitúa junto al Sello: **Credencial duradera** (Durable credential), que usa un modelo neuronal en el dispositivo (formato TrustMark) para escribir el id de Lolly *en* los píxeles, de modo que el vínculo "hecho con Lolly" sobrevive a la eliminación de metadatos, una recodificación y una nueva lectura por herramientas compatibles con TrustMark, además de las propias de Lolly. Está **desactivada por defecto** - a diferencia del Sello, que es JavaScript puro, esta cuesta un paso neuronal por exportación más una descarga de modelo única, así que es una opción deliberada y no un impuesto silencioso. Solo ráster (**PNG, JPG, WebP, AVIF, TIFF**), se marca en el panel de exportación o se pasa como `durable=1` en un enlace compartido. En las apps de escritorio y móvil la tarjeta se oculta directamente en lugar de mostrarse sin efecto, porque no hay ningún origen desde el que obtener el modelo sin conexión.
 
-**Protección de contenido.** En el panel de exportación, *Password protect*, **C2PA Credentials**, el **Lolly Imprint** y la **Durable credential** se agrupan en un único grupo colapsado y consciente del formato llamado **Content protection**, de modo que las opciones de procedencia y protección de un archivo viven en un solo lugar - el grupo muestra solo las tarjetas que aplican al formato elegido, y se oculta por completo cuando ninguna aplica. Las marcas de impresión están deliberadamente *fuera* de él: son geometría de producción de impresión, no protección, así que **Print marks & bleed** - la medida de sangrado en milímetros más Crop, Registration, Bleed, Colour bars y Stamp details - conserva su propia tarjeta de nivel superior en los formatos de impresión.
+**Protección de contenido.** En el panel de exportación, la **Licencia** que otorgas, los **Créditos de la fuente** de todo lo que hayas colocado, *Password protect*, **C2PA Credentials**, el **Lolly Imprint** y la **Credencial duradera** se pliegan en un único grupo colapsado y consciente del formato llamado **Protección de contenido**, de modo que la procedencia, los derechos y las opciones de protección de un archivo viven en un solo lugar. El grupo muestra solo las tarjetas que se aplican al formato elegido. Se abre por sí solo cuando un enlace o un documento guardado ya declara una licencia, o cuando una fuente necesita que tomes una decisión.
+
+**Licencia.** Elige cómo pueden usar tu trabajo otras personas: *None (all rights reserved)* por defecto, o CC0 1.0, la Public Domain Mark 1.0, o una de las licencias Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). El nombre de la licencia y un enlace a su resumen se escriben en los metadatos de licencia del archivo (EXIF, XMP y RIFF donde el formato tenga esos campos) y en su Content Credential. La elección se guarda con el documento y viaja en un enlace compartido como `licence=`. Lolly escribe la licencia que elegiste. No comprueba ni hace cumplir sus condiciones. Una herramienta con su propio campo de licencia, como Claim, conserva ese campo en su lugar y no muestra un segundo selector. Las marcas de impresión están deliberadamente *fuera* de esto: son geometría de producción de impresión y no protección, así que **Marcas de impresión y sangrado** - la medida de sangrado en milímetros más Recortar, Registro, Sangrado, Barras de color y Detalles del sello - conserva su propia tarjeta de nivel superior en los formatos de impresión.
 
 ![El grupo Content protection abierto en una exportación PNG, mostrando solo las tarjetas que le aplican](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
@@ -263,7 +279,7 @@ Donde el formato lo permite, las exportaciones llevan **metadatos de procedencia
 
 **Coste, calculado a partir de tu tarifario.** Debajo del preflight - la última de todas, aún por encima de los botones - hay una tarjeta que convierte esos mismos recuentos en dinero, y solo a partir de precios que alguien le haya dado. Lee lo que sea que el paso de preflight haya contado, esté o no activada la propia tarjeta de preflight, y necesita que se cumplan dos cosas: que el trabajo tenga algo que una lista de precios pueda tarificar (planchas, pliegos, área, páginas, filas de variantes o archivos de salida - así que un simple PNG de logotipo nunca la muestra), **y** que haya presente un **tarifario**. Un tarifario es una lista de precios en JSON de tu imprenta. Una compilación por defecto no incluye ninguno y no tiene forma de cargarlo dentro de la app: llega bien como recurso de catálogo que envía un despliegue, bien mediante la extensión opcional de tarifario que activa un autoalojador o un plano de control. Sin tarifario, no se muestra nada - ni un aviso, ni una tabla vacía.
 
-La regla sobre la que se construye todo esto es que **nunca inventa dinero**. Cada cifra es una tarifa que tú aportaste multiplicada por una cantidad que Lolly contó - `4 planchas × 35,00 €` - y el total nombra su propia fuente en la misma frase que la cifra: el emisor que nombra el tarifario, y la fecha en que el tarifario dice que datan sus tarifas. No hay moneda por defecto, ni marcador de posición, ni un cero que sustituya a un precio ausente. Lo que el archivo dice de sí mismo se mantiene como discurso referido: *"El archivo dice: … Lolly no lo ha verificado."*
+La regla sobre la que se construye todo esto es que **nunca inventa dinero**. Cada cifra es una tarifa que tú aportaste multiplicada por una cantidad que Lolly contó - `4 plate × €35.00` - y el total lleva su propia fuente en la misma frase que la cifra: el emisor que indica el tarifario, y la fecha en que el tarifario dice que datan sus tarifas. No hay moneda por defecto, ni marcador de posición, ni un cero que sustituya a un precio ausente. Lo que el archivo dice de sí mismo se mantiene como discurso referido: *"El archivo dice: … Lolly no lo ha verificado."*
 
 Y cuando no puede calcular con honestidad, la tabla de trabajo **desaparece** en lugar de degradarse a una cifra en gris o rellenada:
 
@@ -318,11 +334,11 @@ Una exportación que coloca la obra de otra persona también registra esa fuente
 
 ## En un teléfono
 
-Los controles de exportación viven detrás del botón flotante **Render**, que abre la hoja **Export** - los mismos formatos, tamaño, copia, descarga y compartir, dimensionados para tacto.
+Los controles de exportación viven detrás del botón flotante **Exportar**, que abre la hoja **Exportar** - los mismos formatos, tamaño, copia, descarga y compartir, dimensionados para el tacto.
 
 ## Referencia de formatos
 
-Cada id que el host puede renderizar, agrupado. Son también los valores del parámetro de URL `format=` y del flag `--export=` de la CLI - consulta [URL Mode](/info/url-mode.html) y [CLI](/info/cli.html). Una herramienta ofrece solo el subconjunto que declaró su autor, así que el selector siempre es más corto que esta lista.
+Cada id que el host puede renderizar, agrupado. Son también los valores del parámetro de URL `format=` y del flag `--export=` de la CLI - ver [Modo URL](/info/url-mode.html) y [CLI](/info/cli.html). El menú de una herramienta muestra solo los formatos que esa herramienta puede generar, así que siempre es más corto que esta lista.
 
 | Tipo | Ids |
 |---|---|

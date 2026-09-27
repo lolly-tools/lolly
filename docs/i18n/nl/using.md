@@ -1,14 +1,14 @@
 # Lolly gebruiken
 
-Een praktische gids voor het daadwerkelijk *gebruiken* van de app - een tool openen, werken met het canvas, exporteren, opslaan en delen. Alles hier draait **op je eigen apparaat**: geen account, geen upload, geen internet nodig na de eerste keer laden.
+Een praktische gids voor het echt *gebruiken* van de app - een tool openen, op het canvas werken, exporteren, opslaan en delen. Alles hier draait **op je apparaat**: geen account, geen upload en geen internet nodig voor de schermen die je al hebt geopend.
 
 > Nieuw hier? [Snelstart](/info/quickstart.html) helpt je binnen enkele minuten iets te maken, en [Lolly voor operators](/info/operators.html) behandelt het installeren/uitrollen van de app; deze pagina gaat over het bedienen ervan zodra hij open staat.
 
 ## Een tool openen
 
-Het startscherm is de **galerij** - elke tool, gegroepeerd per categorie. Klik op een kaart om de tool te openen; als je er eerder aan hebt gewerkt, hervat een **Doorgaan**-knop je meest recente sessie. Gebruik het zoekvak om op naam te filteren - of [Zoeken](/info/search.html) via de balk onderaan de zes overzichtsschermen (de galerij, Hulpprogramma's, Projecten, Assets, het Dashboard en Profiel), die naast de tools ook je opgeslagen werk, je assets en je instellingen bereikt. Binnen een tool stapt de balk opzij voor de eigen chrome van de tool.
+Het startscherm is de **galerij** - elke tool, gegroepeerd per categorie. Klik op een kaart om iets nieuws in die tool te beginnen; [opgeslagen werk](#saving-continuing) heropent vanuit **Projecten**. Gebruik het zoekvak om op naam te filteren - of [Zoeken](/info/search.html) via de balk onderaan de zes overzichtsschermen (de galerij, Hulpprogramma's, Projecten, Assets, het Dashboard en Instellingen), die naast de tools ook je opgeslagen werk, je assets en je instellingen bereikt. Binnen een tool stapt de balk opzij voor de eigen chrome van de tool.
 
-![De toolgalerij - elke tool als kaart, gegroepeerd per categorie](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
+![Een galerijkaart met voorbeeldnavigatie en een Nieuw-actie](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
 Elke tool is een gesplitste weergave: **bedieningselementen** aan de ene kant, een live **voorvertoning** (het canvas) aan de andere. Verander een bedieningselement en de voorvertoning wordt direct bijgewerkt.
 
@@ -42,6 +42,32 @@ selection bullet under Projects uses), click the bar's Hide button
 (`[data-bulk="hide"]` - the literal `data-bulk` value bulkBarHtml() writes,
 confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 (`.gtile--hiddenbox`, confirmed in gallery.ts).
+-->
+
+Om op meerdere kaarten tegelijk actie te ondernemen, vink je het selectievakje van elke kaart aan, sleep je een selectiekader over lege ruimte of gebruik je **Shift/Cmd-click**, en verschijnt er een zwevende actiebalk. **Wat de selectiebalk biedt** verschilt iets per weergave, omdat niet elke actie overal zin heeft:
+
+- **Tools / Hulpmiddelen:** Favoriet (of Niet-favoriet), Verbergen (of Zichtbaar maken), Offline beschikbaar (of Verwijderen uit offline), **Sessies bekijken** (opent Projecten met alleen de sessies gemaakt met die tools) en Link kopiëren wanneer precies één kaart is geselecteerd.
+- **Assets:** Favoriet en Verbergen gelden voor elke selectie; Dupliceren, Downloaden en Verwijderen verschijnen pas zodra elk geselecteerd item een van je eigen uploads is - een gedeeld design-system-asset is een permanent contract, dus die drie blijven eruit, zelfs in bulk.
+- **Projecten:** zie [Vind en herstel je werk](/info/find-your-work.html#find-something-you-saved).
+
+> Eén valkuil met labels: **Sessies bekijken** bestaat alleen zodra iets is *geselecteerd*. Rechtsklikken op een enkele, niet-geselecteerde kaart biedt in plaats daarvan **N saved sessions**, wat een lijst opent van de opgeslagen sessies van die tool, waar verwijderen definitief is, in plaats van naar Projecten te navigeren.
+
+![De selectiebalk van de galerij voor twee tools, met Available offline, View sessions, Favourite en Hide](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
+<!--
+SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
+`[data-select="gradient"]` - the `.tile-check[data-select="<ref>"]` checkbox button
+confirmed directly in views/gallery.ts's card markup (the same attribute
+cardMarkup gives every tile), so these two clicks tick both cards without
+opening either tool.
+
+SHOT NOTE (misc-sessions-by-tool, NOT PUBLISHED): the "View sessions" result
+had a recipe of its own (`/#/p?tools=qr-code,d3`, views/projects.ts's
+toolsBodyHtml()), dropped here because it has no `drive=` that can
+manufacture its own content - a saved session isn't a click away, it has to
+already exist, and build-docs-shots.ts gives every shot a fresh
+`browser.newContext()`. It would publish an empty list. Same dependency the
+`projects` shot (now on find-your-work.md) carries; revisit if the pipeline gains a
+storage-seeding hook.
 -->
 
 ### Ask Lolly
@@ -79,10 +105,17 @@ Tools met een vrij canvas voegen een werkoppervlak toe *rondom* het tekenvlak, z
 - **Alleen het kader wordt geëxporteerd.** Het geëxporteerde bestand wordt begrensd door het tekenvlak - alles wat daarbuiten blijft (of het deel van een vak dat over de rand hangt) wordt eenvoudigweg uit de uitvoer weggesneden, zowel in raster- als vectorformaten.
 - **Zoom verder uit dan Fit** (tot 20%) om het hele plakbord te zien wanneer je dingen ver buiten het kader hebt geplaatst.
 - **Verstelbaar tekenvlak.** Het wijzigen van de exportafmetingen verandert de grootte van het kader ter plekke; vakken behouden hun positie, zodat je een layout opnieuw kunt kaderen rond bestaande inhoud.
+- **Voor je exporteert.** De sectie Document van de inspector controleert de opgeslagen laagstructuur, en leest daarna het ingestelde canvas op afgesneden tekst en vlakke kleurcontrast. Ook vraagt hij het lettertyperegister dat ook voor SVG/PDF-omlijning wordt gebruikt of elke tekstregel insluitbare lettertypebytes heeft; afbeeldings- en verloopachtergronden worden genoemd als visuele controles in plaats van een verzonnen contrastscore te krijgen.
 
 ![Het vrije canvas van Design - het artboard met het omringende plakbord](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Een selectie spiegelen.** Klik met de rechtermuisknop op een box en kies **Horizontaal spiegelen** of **Verticaal spiegelen** om hem ter plekke te spiegelen, of druk op `Shift+H` / `Shift+V` op het toetsenbord - Shift, omdat een kale `V` de Pointer-tool is. Elke geselecteerde box spiegelt op zijn eigen as in één undo-stap, en de spiegeling is een echte transform, dus die blijft staan in de geëxporteerde SVG, PDF en PNG en niet alleen op het canvas.
+
+### Lagen en Inspecteur
+
+In **Lagen** is elk tekenvlak een inklapbare bovenliggende groep. Selecteer de naam om erheen te springen, klap de lagen uit en selecteer of herschik objecten binnen dat tekenvlak. Schakel over naar **Pagina's** voor miniaturen en paginavolgorde. Pijltjestoetsen bewegen door de lagenlijst; Links keert terug naar de kop van het tekenvlak.
+
+De **Inspecteur** zet tekst- of afbeeldingsbedieningen vooraan voor het geselecteerde object. Gebruik keuzechips voor snelle keuzes en klap **Advanced** uit voor stylingdetails. Zet op telefoons de **Inspecteur** open via **Meer acties**. De bedieningselementen openen in een sheet; Escape of Terug sluit hem met behoud van je selectie.
 
 ### Je eigen vormen tekenen (de pen)
 
@@ -137,13 +170,27 @@ Het resultaat is een nieuw pad dat je met de pen verder kunt bewerken. Gaten zij
 
 Twee dingen doen deze bewerkingen bewust niet. Ze **weigeren liever dan dat ze vernietigen**: vraag je om twee vormen te doorsnijden die elkaar niet overlappen, dan krijg je te horen dat er niets te behouden valt, en er verandert niets. En tekst- en afbeeldingsvakken hebben geen omtrek om mee te werken, dus die worden met rust gelaten in plaats van benaderd door hun kader. Een gecombineerd resultaat wordt bewaard als gewone bezierkrommen, precies zoals een tekenprogramma dat ook doet - het oorspronkelijke splinetype overleeft de bewerking niet.
 
-## Tijdlijn (Sequence Studio)
+### 3D-scènes
 
-![The timeline with the music clip selected: its strip runs along the bottom with Speed, Fades, Volume, Pan, EQ, Pitch, Normalize volume and the Effect slot](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
+Kies **3D-scène** in het toevoegmenu op de toolrail en sleep een kader open: 3D Studio opent meteen op het nieuwe vak, en wat je daar instelt komt terug op het canvas. In elk ander opzicht is een scènevak een gewoon vak. Verplaats het, verander de grootte, roteer het, geef het een schaduw, zet het op een dia of op de tijdlijn, en het gedraagt zich als de rest.
 
-**Sequence Studio** voegt *tijd* toe aan het vrije canvas. Elk vak kan op een moment beginnen, een tijd lang lopen en in- en uitanimeren, en een tijdlijn onder het tekenvlak is waar je ze ordent. Open hem en er speelt al een sequentie - een titelkaart, een clip, een eindkaart, een lower third en een muziekbed - zodat het model zichtbaar is voordat je iets verandert.
+**Een scènevak bewaart het recept, niet een plaatje.** Een afbeeldingsvak bevat een gerenderd bestand; een scènevak bevat één instelling, de scène zelf, geschreven als 3D Studio's eigen linkquery, waarbij elke waarde die nog op de standaard van de studio staat wordt weggelaten. Daarom is een scène ongeveer honderd bytes in plaats van de paar kilobytes die een heel recept kost, daarom werkt dezelfde string in een deellink en in de editor-deur, en daarom vergt een nieuwe studiobediening geen wijziging in Design. Het is ook waarom het vak opnieuw rendert op welke grootte en welk moment het document ook vraagt, in plaats van vergroot te worden vanuit een eerder gemaakt plaatje. Plaatjes die een scène gebruikt blijven assets en reizen op id, dus een upload binnen een scène komt in een `.lolly`-bestand terecht samen met de rest van het document.
 
-![De tijdlijn van Sequence Studio: het transport, de liniaal, een overlaylaan, de magnetische sequence-rij met zijn clips en naadchips en de Always on-strook](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
+**Bewerk hem in de studio.** Selecteer het vak en de inspector toont een sectie **3D-scène**: een regel die noemt waarvan de scène gemaakt is, een tweede die de lichtstudio noemt zodra je er een hebt gekozen, en één knop, **Bewerken in 3D Studio**. De knop opent de studio op de scène van dat vak met alle bedieningselementen die de tool heeft. Pas toe, en de bewerkte scène wordt in één stap teruggeschreven, zodat één keer ongedaan maken het vak terugbrengt naar de scène waarmee je begon; sluit de studio zonder toe te passen en er verandert niets. Al het andere aan het vak - zijn plaats op het tekenvlak, hoe groot het is, zijn schaduw, wanneer het op een dia verschijnt - blijft in de secties die het altijd gebruikte. Een scènevak heeft geen eigen afbeelding en geen bijschrift: zijn beeld komt van de studio, en zijn woorden worden daar ook ingesteld.
+
+**Eén live scène, een poster op elk ander vak.** Elk 3D-vak in een document toont een poster: een stilstaand beeld van de scène, buiten beeld getekend via de gedeelde renderpool op het formaat dat het vak inneemt. Een document met twintig scènes kost één tekencontext, geen twintig. Selecteer een scènevak en het wordt de ene live scène van het document; deselecteer het en het kader dat op het scherm stond wordt zijn poster, zodat niets springt. Er is maar één scène tegelijk live, en het selecteren van twee scènevakken tegelijk laat ze allebei als poster achter. In deze release is de live scène om te bekijken, niet om omheen te draaien: wijzig een scène via **Bewerken in 3D Studio**. Een apparaat dat geen floating-point grafische context kan openen, houdt de poster en zegt waarom binnen het vak in plaats van een leeg rechthoek te tonen, en de rest van het document blijft ongemoeid. Het openen van een Design-document zonder 3D-vak laadt helemaal geen 3D-code.
+
+**Op de tijdlijn** volgt een scènevak de afspeelkop als een videoclip: het begin, de clip-in en de snelheid bewegen de scène door zijn eigen animatie, en de lengte van de scène is die welke je in 3D Studio hebt ingesteld, dus een vak korter trimmen toont minder van de scène in plaats van hem te versnellen. Alleen het geselecteerde scènevak is live; elk ander is een stilstaand beeld, en een stilstaand beeld kun je niet scrubben.
+
+**Bij een export** wordt elke scène opnieuw getekend op het formaat dat het bestand nodig heeft, via dezelfde renderer die de studio gebruikt. Een video rendert één frame per scène per moment; een PNG, SVG of PDF sluit één beeld per vak in op het eigen pixelformaat van het vak. Niets wordt van het scherm gefotografeerd, dus een export hangt niet af van welk vak je had geselecteerd. Een scène die niet getekend kan worden, laat de export mislukken en zegt waarom, in de eigen woorden van de studio.
+
+**Een scène delen die op je eigen upload is gebouwd.** Een deellink van een Design-document draagt een apparaatlokale upload-id binnen een scène zoals die is, terwijl een afbeeldingsvak hem juist leeg zou maken. Dus een scène waarvan het beeldmateriaal of model een bestand is dat je hebt geüpload, toont op het apparaat van iemand anders de standaard van de studio voor dat plaatje, tenzij het document als `.lolly`-bestand reist, dat de bytes meedraagt.
+
+## Tijdlijn (Sequentie)
+
+**Sequentie** is de tijdlijn van Design: het voegt *tijd* toe aan het vrije canvas. Elk vak kan op een moment beginnen, een tijd lang lopen en in- en uitanimeren, en een tijdlijn onder het tekenvlak is waar je ze ordent. Open hem en er speelt al een sequentie - een titelkaart, een clip, een eindkaart, een lower third en een muziekbed - zodat het model zichtbaar is voordat je iets verandert.
+
+![De tijdlijn van Sequentie: het transport, de liniaal, een overlaylaan, de magnetische sequence-rij met zijn clips en naadchips en de Always on-strook](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
 
 Er zijn twee soorten rijen, en het verschil is het hele idee:
 
@@ -153,7 +200,7 @@ Er zijn twee soorten rijen, en het verschil is het hele idee:
 
 ![Het bewerkingsstadium: het artboard voorop en centraal, de toolrail links en de zoom-HUD in de hoek](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-stage)
 
-Het openen van de tijdlijn geeft hem het toetsenbord, zodat Spatie en de pijltjestoetsen de afspeelkop besturen in plaats van de pagina - en omdat hij zichzelf opent bij een compositie die al timing heeft, geldt dat vanaf het moment dat Sequence Studio laadt.
+Het openen van de tijdlijn geeft hem het toetsenbord, zodat Spatie en de pijltjestoetsen de afspeelkop besturen in plaats van de pagina - en omdat hij zichzelf opent bij een compositie die al timing heeft, geldt dat vanaf het moment dat Sequentie laadt.
 
 > **[De sequentie-editor](/info/sequence-editor.html)** gaat dieper in op de vier dingen die bepalen of bewerken in de tijd voorspelbaar aanvoelt: welke clip een klik op het canvas bewerkt, uienschil-schaduwbeelden van de aangrenzende clips, het bereik van een splitsing en de Samenvoegen die een knip ongedaan maakt, en het trimmen (inclusief de toetsenbordset). Druk op `?` met de tijdlijn in focus voor het overzicht met sneltoetsen.
 
@@ -165,9 +212,13 @@ Selecteer een clip en de inspector geeft je dezelfde bewerkingen als getallen: *
 
 **Geluid.** Voeg een **Audio**-clip toe en die leeft op de tijdlijn als elke andere clip: golfvorm, trimmen, dempen. (Het gegenereerde bed waarmee de standaardsessie komt, is de enige uitzondering - het wordt bij het exporteren gesynthetiseerd, dus zijn balk blijft leeg en stil tot je rendert.) Druk op de microfoon om een **voice-over op te nemen** rechtstreeks op de tijdlijn, met aftellen en een niveaumeter, en de opname wordt bewaard als je eigen asset op het punt waar je begon. Druk op de camera ernaast om op dezelfde manier **een video op te nemen**: de opname wordt tijdens het opnemen bijgesneden tot de exportgrootte van het tekenvlak, zodat het kleine eigen beeld precies laat zien wat er bij de afspeelkop, beeldvullend, in de sequentie terechtkomt - de manier om de clip van een collega via een gedeelde link te verzamelen. Muziek, dialoog en het eigen geluid van een clip komen allemaal in de geëxporteerde mix. (Het **audiospoor** van het exportpaneel is iets anders: één bed onder de hele clip, met fade en ducking. Ze bestaan naast elkaar.)
 
+**De audiostrook.** Selecteer een clip die geluid bevat en er opent een compacte strook onder de tijdlijn: een **Volume**-schuif, **Pannen** voor stereopositie, een driebands **EQ** (**Laag**, **Midden**, **Hoog**), een **Toonhoogte**-regelaar die in halve tonen transponeert terwijl de stem zijn karakter behoudt, en **Volume normaliseren**, dat de clip naar uitzendluidheid (BS.1770) brengt zodat een zachte spraaknotitie en een luide track gelijk klinken. Waar twee clips elkaar raken, mengt **Crossfade** de overgang in plaats van te knippen. Een **Effect**-slot voert on-device verwerking op de clip uit - **Stemreiniging** haalt de ruimte en het gesis uit een opname. Snelheidswijzigingen behouden ook de toonhoogte: een vertraagde of versnelde clip wordt time-stretched, niet naar een tekenfilmstem verhaast. Bij elke mix duwt de export muziek onder spraak weg terwijl die komt en gaat, en houdt het hele programma onder een true-peaklimiter, zodat er niets clipt aan de uitgang; een golfvorm die zou hebben geclipt, wordt getekend met een waarschuwing op de plek waar dat gebeurt.
+
+![De tijdlijn met de muziekclip geselecteerd: de strook loopt onderlangs met Snelheid, Fades, Volume, Pan, EQ, Toonhoogte, Volume normaliseren en het Effect-slot](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
+
 **Renderen.** Een bewegingsexport is een **deterministische compositie**, geen schermopname - elk frame wordt op een exact tijdstip gedecodeerd, getekend en gecodeerd, dus het bestand hangt er niet van af of je machine het bijhoudt, en er is geen praktisch framemaximum voor MP4 of WebM. De lengte van de tijdlijn zelf bepaalt de duur, tenzij je er een intypt. Content Credentials worden gestempeld zoals bij elke andere export. Een stilstaande export geeft je het frame bij de afspeelkop, of een heel contactblad via het veld **Frames** naast de uitvoergrootte - zie [Exporteren](/info/exporting.html#stills-from-a-timed-composition).
 
-Een paar grenzen om in gedachten te houden: een sequentie is gemaximeerd op één uur, GIF en geanimeerde PNG bufferen hun frames en blijven daarom kort, audio is stil op een clip waarvan de snelheid niet ×1 is (time-stretching bestaat nog niet) en **Live opnemen** is hier verborgen omdat de compositor de betere weg is.
+Een paar grenzen om in gedachten te houden: een sequentie is gemaximeerd op één uur, GIF en geanimeerde PNG bufferen hun frames en blijven daarom kort, een clip die sneller of langzamer wordt afgespeeld behoudt zijn toonhoogte (de audiostrook rekt hem in de tijd, en een **Toonhoogte**-regelaar transponeert in halve tonen met behoud van het karakter van de stem) en **Live opnemen** is hier verborgen omdat de compositor de betere weg is.
 
 **Meer dan presets: keyframes, diepte en een camera.** Een overgang animeert een clip terwijl die aankomt en vertrekt. Om een box *binnen* een clip te poseren - laten driften, laten faden, vervagen, van de pagina tillen en weer laten landen - voeg je keyframes toe: selecteer de clip, druk op **+Keyframe** (het ruitje in de toolcluster van de tijdlijn, het ruitje op de canvas-objectbalk of `K`) en de positie van de afspeelkop bepaalt welke pose je volgende bewerking vastlegt. Hetzelfde keyframe-systeem geeft elke getimede compositie een **camera** die inzoomt, meepant en scherpstelt, en die één platte SVG omzet in een stapel lagen waartussen je kunt vliegen. **[Animeren](/info/animating.html)** is de volledige handleiding.
 
@@ -175,7 +226,7 @@ De Design-tool heeft dezelfde tijdlijn, dus je kunt een layout van timing voorzi
 
 ## Presenteren
 
-![The inspector's Document section: Voice, Blend with, Speed, Lead-in, Tail and Show captions when presenting](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
+Om je camera, een logo en een naambijschrift over het publieksbeeld te plaatsen, gebruik je **Present with camera**. De eigen bedieningselementen, opgeslagen scènes, deel- en opnamestappen staan beschreven in [Presenteren met camera](/info/presenting.html). De gewone deck-bediening hieronder blijft beschikbaar via **Presenteren**.
 
 Een Design-document dat uit **tekenvlakken** bestaat, is al een presentatie. Open het **Lolly-menu** op de gereedschapsbalk en kies **Presenteren** - de onderste rij - en elk tekenvlak wordt een schermvullende dia, in de volgorde waarin de tekenvlakken op het canvas staan. De presentatie draait op een kopie van de gerenderde tekenvlakken, dus de editor eronder wordt nooit aangeraakt en bij het verlaten sta je precies waar je was.
 
@@ -186,7 +237,13 @@ Een Design-document dat uit **tekenvlakken** bestaat, is al een presentatie. Ope
 - `B` houdt een zwart scherm vast (elke toets brengt de slide terug), `F` keert terug naar volledig scherm en **Escape** pelt telkens één laag af: overzicht terug naar het deck, deck terug naar de editor.
 - **Kiosk.** Geef een artboard een **Length** en het deck blijft daar zo lang staan, om daarna vanzelf verder te gaan achter een dunne voortgangsbalk; `K` (of de pauzeknop, die pas verschijnt zodra iets een lengte heeft) stopt en herstart dat. Voeg `kiosk` toe aan de link en het deck loopt aan het einde door naar het begin, wat er signage van maakt.
 
-De presentatie is ook een link. `?present` opent er meteen in, `s=` benoemt de dia - een positie, een tekenvlak-id of `id.step` voor een opbouwstap - en het adres wordt bijgewerkt terwijl je verder gaat, dus wat je verstuurt is de dia waar je staat. Toolauteurs: die parameters zijn gedocumenteerd op de pagina [URL-modus](/info/url-mode.html#reserved-parameters).
+- **Sub-diastapels.** Rechtsklik op een tekenvlak en kies **Stapel onder de vorige dia** en het wordt een stap van die dia in plaats van een eigen dia: het overzicht toont één kaart, het deck loopt de stapel in volgorde door, en de rij **Stapel** van de inspector zegt bij welke dia het hoort.
+- **Morph.** Wanneer twee opeenvolgende dia's allebei een vak met dezelfde naam voor **Morphing-match** dragen (rechtsklik op een vak, of de rij **Morphing-match** van de inspector - bijvoorbeeld `hero`), verplaatst de overgang dat vak van waar het was naar waar het is, en verandert onderweg van grootte en kleur, in plaats van te knippen. Een deckbrede **Morph**-overgang doet hetzelfde voor elk gekoppeld paar.
+- **Narratie.** De **Sprekersnotities** van elk tekenvlak kunnen worden voorgelezen. Kies in de sectie **Document** van de inspector een **Stem**, eventueel een tweede stem om **Mengen met**, de **Snelheid** van het voorlezen, en een **Inleiding** en **Staart** in milliseconden rond elke dia; zet **Ondertitels tonen tijdens presenteren** aan en de woorden verschijnen terwijl ze worden gesproken. De stem draait op je apparaat. Dezelfde notities worden de film in een video-export, echte dia-audio in een PowerPoint-export, en de ingesproken film in een [SCORM-pakket](/info/create/exporting.html#scorm-course-packages).
+
+![De sectie Document van de inspector: Stem, Mengen met, Snelheid, Inleiding, Staart en Ondertitels tonen tijdens presenteren](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
+
+Het deck is ook een link. `?present` opent er meteen in, `s=` kiest de dia - een positie, een tekenvlak-id of `id.step` voor een opbouwstap - en het adres wordt bijgewerkt terwijl je verder gaat, dus wat je verstuurt is de dia waar je staat. Toolauteurs: die parameters zijn gedocumenteerd op de pagina [URL-modus](/info/url-parameters.html#reserved-parameters).
 
 ## Op een telefoon
 
@@ -216,77 +273,29 @@ Tools tonen alleen de invoervelden die bedoeld zijn om te variëren - al het and
 
 In een live-[samenwerking](/info/collaborate.html) blijft de geschiedenis alleen van jou. Een wijziging die van het andere apparaat binnenkomt, komt nooit op jouw stack terecht, dus ongedaan maken kan alleen ooit iets terugdraaien dat jij hebt gedaan.
 
+Ongedaan maken reikt alleen terug binnen dit bezoek; negen tools bewaren ook eerdere versies onder **History**, naast **Undo** (zie [Terug naar een eerdere versie](/info/find-your-work.html#go-back-to-an-earlier-version)).
+
 ## Jouw gegevens & pasfoto
 
-**Profiel** (rechtsboven in de galerij) bevat je naam, contactgegevens en een optionele **pasfoto**. Tools die om die velden vragen, vullen ze automatisch vooraf in - stel ze eenmalig in en je e-mailhandtekening, lockups en badges vullen zichzelf in. Je kunt elk veld per sessie nog altijd overschrijven. Zet **Gebruik mijn gegevens om te maken** aan zodat je gegevens als auteur meereizen met wat je exporteert.
+**Instellingen** (rechtsboven in de galerij, met je voornaam zodra je er een instelt) bevat je naam, contactgegevens en een optionele **profielfoto**. Tools die om die velden vragen, vullen ze automatisch in - stel ze één keer in en je e-mailhandtekening, lockups en badges vullen zichzelf in. Je kunt elk veld nog steeds per sessie overschrijven. Zet **Gebruik mijn gegevens om te maken** aan zodat je gegevens meereizen als auteur op wat je exporteert.
 
 Je pasfoto en gegevens staan **alleen op dit apparaat**. Een profiel kan meer zijn dan alleen jij - een team of een rol die je af en toe op je neemt. Zie **[Profielen](/info/profile.html)** voor het volledige verhaal, inclusief het bijhouden van meer dan één.
 
 ## Opslaan & doorgaan
 
-Klik op **Opslaan** om de huidige invoer op te slaan als sessie voor die tool. Je kunt meerdere benoemde sessies per tool bewaren; de **Doorgaan**-knop van elke tool heropent je meest recente, en de **geschiedenisknop** (rechtsboven, naast je profiel) toont elke opgeslagen sessie van alle tools. Sessies zijn apparaatgebonden. Om ze te organiseren open je **Projecten** (hieronder).
+Om je werk te bewaren, druk je op **Opslaan als**, het vinkje naast **Exporteren**. Laat onder **Save to a project** **Mijn bibliotheek** geselecteerd of kies een project (**＋ Nieuw project…** maakt er een aan), druk dan op **Opslaan**. Opnieuw opslaan werkt hetzelfde item bij in plaats van een kopie te maken. In Design staat **Opslaan als** in het menu onder het Lolly-logo; druk op een telefoon op **•••**, dan op **File menu**, dan op **Opslaan als**.
 
-![De renderpil in twee helften - een pijl omhoog die het exportpaneel opent, en een vinkje dat de sessie ter plekke opslaat](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+De knop **Opslaan** in het exportpaneel doet hetzelfde in één klik en downloadt nooit een bestand: nieuw werk gaat naar Mijn bibliotheek, en werk dat je eerder hebt opgeslagen, wordt bijgewerkt op de plek waar het staat.
+
+Om later terug te komen, druk je op **Home** linksboven en open je dan het tabblad **Projecten** (een mapicoon op een telefoon). Opslagen in Mijn bibliotheek staan op het eerste scherm ervan; een project is daar een map. Items krijgen de naam die je in het exportpaneel hebt getypt, of anders de naam van hun tool, zoals **QR Code**. Open er een en elke instelling staat er, klaar om te wijzigen en opnieuw te exporteren.
+
+Opgeslagen werk blijft op dit apparaat, in de browser of app waarmee je hebt opgeslagen, tenzij je [Synchronisatie](/info/sync.html) aanzet. Een bestand dat je krijgt via **Downloaden** is een afgewerkte kopie; om het later te wijzigen, open je het opgeslagen item in Projecten. Als iets niet staat waar je het verwacht, zie [Vind en herstel je werk](/info/find-your-work.html).
+
+![De renderpil in twee helften - een pijl omhoog die het exportpaneel opent, en een vinkje met het label Opslaan als dat het opslagvenster opent](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
 ## Projecten
 
-**Projecten** - open het via het tabblad **Projecten** naast **Tools**, of via **Profiel → Opslag → Organiseren in Projecten** - is een thuisbasis voor alles wat je hebt opgeslagen, en het werkt als een bestandsbeheerder:
-
-![Projecten - opgeslagen sessies geordend in nestbare mappen](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
-
-- <!--i:folder--> **Geneste mappen.** Groepeer opgeslagen sessies in mappen, en mappen in mappen, zo diep als je wilt. Maak een map aan, hernoem hem of sleep een tegel op een andere map om die te verplaatsen; een broodkruimelpad brengt je weer omhoog. Sessies die zonder map zijn opgeslagen, verschijnen direct op het hoogste niveau van **Projecten**.
-- <!--i:clock--> **Sorteer op je eigen manier.** **Weergeven & sorteren** biedt **Naam**, **Toegevoegd op**, **Laatst gewijzigd** (de standaard) en, binnen een map, **Op tool**. Mappen komen altijd eerst, welke sortering ook actief is - de sortering ordent alleen de sessies en mappen binnen hun eigen groep.
-- <!--i:document--> **Berg nieuw werk direct op.** **Nieuw asset** opent de gedeelde kiezer. Kies **Sjablonen** om met een opgeslagen sjabloon te beginnen: open die om te bewerken, of gebruik **+ Toevoegen** om meteen een nieuwe creatie op te slaan.
-- <!--i:checklist--> **Meervoudige selectie (desktop).** Vink het selectievakje van een tegel aan, sleep een selectiekader over lege ruimte of gebruik **Shift/Cmd-klik**; **rechtsklik** op een tegel voor het contextmenu. Voer daarna een actie uit op de hele selectie tegelijk - hetzelfde gebaar en dezelfde zwevende actiebalk werken op de galerij Tools, Hulpprogramma's, Assets en Projecten, niet alleen hier.
-- <!--i:download--> **Render een hele map of selectie.** **Map renderen** exporteert elke opgeslagen sessie in een map - inclusief submappen - als één geneste `.zip`. **Selectie renderen** doet hetzelfde voor elke meervoudige selectie, en een enkele sessie rendert rechtstreeks naar zijn eigen bestand. Geen Batch/Pro nodig.
-- <!--i:link--> **Spring direct naar het opgeslagen werk van een tool.** Vink een of meer tools aan in de galerij Tools en kies **Sessies bekijken** in de selectiebalk - Projecten opent met alleen de sessies die met die tools zijn gemaakt, met een **Wissen** om terug te gaan naar het volledige overzicht.
-- <!--i:link--> **Deel een opgeslagen sessie.** Rechtsklik op een sessie → **Link delen** om een link te kopiëren die deze heropent met exact dezelfde invoer (de volledige Deel-dialoog - zie hieronder).
-
-![De geopende popover Weergeven en sorteren in Projecten, met een themarij, een keuze bij Weergeven tussen Voorvertoning of Lijst en Naam, Toegevoegd op en Laatst gewijzigd onder Sorteren](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
-<!--
-SHOT NOTE (misc-projects-sort): trigger button confirmed as
-`.filter-fab.projects-viewopts` in views/projects.ts (openViewOpts() is bound
-to `.projects-viewopts` specifically) - `.projects-viewopts` alone is the
-more specific hook, so that's what drives the click. The popover it opens
-(`.projects-viewmenu`, also confirmed directly in openViewOpts()) is body-
-appended, not nested under the Projects root, so cropSelector finds it
-regardless. "By tool" only appears inside a folder - this recipe captures at
-the Projects ROOT (`url=/#/p`), so if the capture pass wants "By tool"
-visible too, point url= at a real folder instead: the route is a path
-segment, `/#/p/<folderId>` (confirmed in main.ts's hash router - `parts[0]
-=== 'p'` reads `folderId` from `parts[1]`), not a query param. Caveat: a
-folder has to already EXIST in the capture profile, which a per-shot fresh
-context has none of.
-Also: the popover is not sort-only. openViewOpts() writes a theme segment, a
-"View" pair (Preview / List) and a sound segment around the Sort rows, so the
-alt text names them - do not re-caption this as "the sort menu".
--->
-
-**Wat de selectiebalk biedt** verschilt iets per weergave, want niet elke actie is overal zinvol:
-
-- **Tools / Hulpprogramma's:** Favoriet (of Favoriet verwijderen), Verbergen (of Zichtbaar maken), Offline beschikbaar (of Uit offline verwijderen), **Sessies bekijken** (de sprong die hierboven staat beschreven) en Link kopiëren wanneer er precies één kaart geselecteerd is.
-- **Assets:** Favoriet en Verbergen gelden voor elke selectie; Dupliceren, Downloaden en Verwijderen verschijnen pas wanneer elk geselecteerd item een van je eigen uploads is - een gedeeld design-systeemasset is een blijvend contract, dus die drie blijven er ook in bulk van af.
-- **Projecten:** **Selectie renderen**, **Verplaatsen naar…**, **Nieuwe map**, **Verwijderen**, **Samen bewerken** wanneer de selectie tussen twee en acht sessies van één tool telt (die openen naast elkaar onder één gecombineerde zijbalk) en **Bewerken als sheet**, dat de hele selectie in plaats daarvan opent als rijen in het batchraster. Dat laatste kent **geen limiet** en trekt zich er niets van aan of de sessies van dezelfde tool komen, dus het is de uitweg wanneer een selectie groter of gemengder is dan de twee tot acht van Samen bewerken.
-
-> Één labelvalkuil: **Sessies bekijken** bestaat alleen zodra er iets *geselecteerd* is. Rechtsklikken op een enkele niet-geselecteerde kaart biedt in plaats daarvan **N opgeslagen sessies**, wat het eigen geschiedenisvenster van die tool opent in plaats van naar Projecten te navigeren.
-
-![Twee toolkaarten aangevinkt in de Tools-galerij, met de zwevende selectiebalk die '2 selected' toont en Available offline, View sessions, Favourite en Hide aanbiedt](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
-<!--
-SHOT NOTE (misc-bulkbar-gallery): drive-doelen `[data-select="qr-code"]` /
-`[data-select="gradient"]` - de checkboxknop `.tile-check[data-select="<ref>"]`
-rechtstreeks bevestigd in de kaartmarkup van views/gallery.ts (hetzelfde attribuut
-dat cardMarkup elke tile geeft), dus deze twee klikken vinken beide kaarten aan
-zonder een van beide tools te openen.
-
-SHOT NOTE (misc-sessions-by-tool, NOT PUBLISHED): the "View sessions" result
-had a recipe of its own (`/#/p?tools=qr-code,d3`, views/projects.ts's
-toolsBodyHtml()), dropped here because it has no `drive=` that can
-manufacture its own content - a saved session isn't a click away, it has to
-already exist, and build-docs-shots.ts gives every shot a fresh
-`browser.newContext()`. It would publish an empty list. Same dependency the
-`projects` shot above already carries; revisit if the pipeline gains a
-storage-seeding hook.
--->
+**Projecten**, het tabblad **Projecten** boven aan het startscherm, bevat alles wat je hebt opgeslagen, in mappen die je zelf maakt. Je werk daar vinden, sorteren en doorzoeken, en een item herstellen uit de **Prullenbak**, staan in [Vind en herstel je werk](/info/find-your-work.html#find-something-you-saved).
 
 
 ## Je werk delen
@@ -297,7 +306,7 @@ Een ontwerp gaat op één van twee manieren de deur uit: als link of als bestand
 
 Elke invoer wordt vastgelegd in de pagina-URL, dus een link *is* het ontwerp. Bovenaan de dialoog staat de direct te kopiëren link, met twee ingeklapte secties eronder.
 
-- **Linkopties** bevat **Kortste link** (een groot ontwerp levert een lange URL op, dus dit pakt de volledige status in een compact token en laat je de besparing in tekens zien; de leesbare vorm is er altijd ook), **Deze link met een wachtwoord beveiligen** (AES-256 over de hele link, het wachtwoord staat er nooit in) en **Deze toolversie vastzetten** - de vlag `_v`, die de link vastpint op de toolversie die je voor je hebt, zodat een latere update niet kan veranderen wat hij rendert.
+- **Linkopties** bevat **Openen in de geïnstalleerde app** (wisselt het veld naar een `lolly://` URI voor Shortcuts, launchers en automatisering, met alle parameters ongewijzigd), **Kortste link** (een groot ontwerp levert een lange URL op, dus dit pakt de volledige status in een compact token en laat je de besparing in tekens zien; de leesbare vorm is er altijd ook), **Deze link met een wachtwoord beveiligen** (AES-256 over de hele link, het wachtwoord staat er nooit in) en **Deze toolversie vastzetten** - de vlag `_v`, die de link vastpint op de toolversie die je voor je hebt, zodat een latere update niet kan veranderen wat hij rendert.
 - **Linkgedrag** is wat er gebeurt wanneer de ontvanger hem opent: volledig scherm, het exportpaneel al uitgeklapt, downloaden-bij-openen met `&export` of kopiëren-naar-klembord met `&copy`.
 
 Plak de link naar een collega, bookmark hem of commit hem. (Volledige details: [URL-modus](/info/url-mode.html).)
@@ -310,7 +319,18 @@ Plak de link naar een collega, bookmark hem of commit hem. (Volledige details: [
 
 ### Het .lolly-bestand
 
-**Download .lolly**, in de Deel-dialoog van de tool waarin je werkt, schrijft hetzelfde ontwerp weg als bestand. Het draagt de opgeslagen sessie samen met de afbeeldingen en bestanden die je vanaf je apparaat hebt toegevoegd. De catalogusbeelden waar het ontwerp uit put, reizen er ook in mee, zodat het bestand compleet opent op een machine die je merk nooit heeft gezien. Waar je apparaat een deelmenu heeft, geeft **Versturen naar…** dat bestand er rechtstreeks aan door (AirDrop, een Android-deelactie) in plaats van het naar schijf op te slaan.
+`.lolly` is Lolly's draagbare-bundelextensie, geen belofte dat elk bestand hetzelfde bevat. De `format` in `manifest.json` is de autoriteit. De app leest dat kleine manifest eerst en toont de grootte, inhoud en actie voordat hij iets wegschrijft:
+
+- Een **shared design** (`lolly-share`) bevat één opgeslagen toolsessie, de ingesloten bestanden en een bewijs voor alles wat nog via verwijzing wordt opgelost. Het kan ook de tool en het design system dragen waarmee het is gemaakt. Openen voegt een nieuw Project toe; het overschrijft nooit een bestaande sessie.
+- Een **shared project** (`lolly-share` van het type `project`) bevat een map uit Projecten: de submappen, elke daarin opgeslagen sessie, de tegel van elke sessie en de daar opgeslagen afbeeldingen. Openen voegt een kopie van de hele map toe aan Projecten; niets dat er al staat wordt vervangen. Een Lolly van vóór het bestaan van projectbestanden kan er geen lezen en vraagt om te updaten.
+- Een **design-system pack** (`lolly-brand`) bevat tokens en kan lettertypen, logo's, gepubliceerde versies en bewaarde bronnen bevatten. Openen voegt het toe als een apart benoemd design system en schakelt er dan naar over; systemen die al op het apparaat staan blijven behouden.
+- Een **brand workspace / instance pack** is een `lolly-brand` met gedeclareerde tools, catalogusassets en optioneel een instantieadres. De preflight noemt die apparaatbrede effecten omdat het laden ervan de ene eerder geladen workspace-overlay vervangt.
+
+Een volledige **back-up van apparaat/profiel is geen `.lolly`**. Die blijft een `LollyTools-….zip` met format `lolly-backup`, en herstelt alleen via **Instellingen → Opslag**. Een gewoon gezipte toolmap blijft ook `.zip`. Met andere woorden: sessie- en design-systeembundels zijn van `.lolly`; back-up- en losse-archiefworkflows niet.
+
+**Download .lolly**, in de Deel-dialoog van de tool waarin je werkt, schrijft het huidige ontwerp weg als een gedeeld-ontwerpbundel. Het draagt de opgeslagen sessie samen met de afbeeldingen en bestanden die op dit apparaat beschikbaar zijn. Gewone catalogusbeelden reizen ook mee. Gelicentieerde beelden worden achtergehouden tenzij je ze expliciet meeneemt, en een verouderd of onbeschikbaar bestand blijft een externe verwijzing in plaats van te verdwijnen. Het voorbereide bewijs toont de werkelijke `.lolly`-grootte, het aantal ingesloten bestanden, het aantal externe verwijzingen en of de tool is meegenomen. Waar je apparaat een deelmenu heeft, geeft **Stuur naar…** dat bestand er rechtstreeks aan door (AirDrop, een Android-deelactie) in plaats van het naar schijf op te slaan.
+
+**Download project (.lolly)**, in het menu van een map in **Projecten**, schrijft die map weg als een gedeeld project, zodat iemand anders hem kan openen en verdergaan met elke sessie erin. Elke sessie reist als zijn eigen onderdeel (`sessions/<key>.json`, met zijn tegel onder `thumbs/`), de mappenstructuur staat in `manifest.json`, en uploads en catalogusbeelden reizen onder dezelfde regels als een enkel gedeeld ontwerp. Batchsessies zijn geen toolsessies en blijven achter; de melding zegt hoeveel. **Originelen downloaden**, ernaast, is ongewijzigd: een gewone zip van elk item als eigen bestand.
 
 Een `.lolly` is een gewone zip. Hernoem hem naar `.zip` en open hem: je eigen afbeeldingen staan onder `assets/uploads/` en catalogusbeelden onder `assets/catalog/`, elk met hun echte naam en extensie, `manifest.json` somt ze allemaal op en een README bovenin zegt wat het bestand is.
 
@@ -320,7 +340,11 @@ Drie dingen bepaal jij voordat het weggaat:
 - **Of gelicentieerde afbeeldingen erin komen.** Gelicentieerde en merk-vergrendelde assets worden standaard achtergehouden. Als het ontwerp die gebruikt, meldt de dialoog hoeveel er zijn en biedt twee knoppen - *Download without them* of *Include and download* - want ze meenemen geeft de daadwerkelijke bestanden aan wie het `.lolly`-bestand opent.
 - **Of de tool erin komt.** **Include the tool** pakt de eigen bestanden van de tool bij het ontwerp in, zodat het opent op een apparaat dat die tool niet heeft. Het staat aangevinkt voor een custom tool - een fork of een private brandtool die je ontvanger waarschijnlijk niet heeft - en uitgevinkt voor een tool die de ondertekende catalogus vermeldt, omdat hun exemplaar uit dezelfde bron komt. (Op een build zonder ondertekende catalogus telt elke tool als custom en begint het vinkje aangevinkt.)
 
-**Een bestand openen.** Zet een `.lolly` op de app: de assets gaan naar je bibliotheek, de sessie gaat naar Projects en de tool opent erop. Niets van jou wordt overschreven: de sessie komt binnen als een nieuw opgeslagen item, terwijl een asset die al op dit apparaat staat, via checksum wordt herkend en hergebruikt in plaats van gedupliceerd. Elk onderdeel wordt bij binnenkomst gecontroleerd aan de hand van de eigen checksums van het bestand, zodat een kopie die onderweg beschadigd is, wordt geweigerd in plaats van half geïmporteerd.
+**Een bestand openen.** Dubbelklik of tik in een geïnstalleerde desktop- of mobiele app op een `.lolly`, kies **Open with Lolly**, of stuur hem naar Lolly vanuit het systeem-deelmenu. macOS, Windows, Linux, iOS en Android registreren allemaal het formaat; desktop-bestandsbeheerders tonen het als een Lolly-document (en GNOME Files kan de eigen miniatuur van een opgeslagen sessie tonen). Gebruik in de webapp **Openen** of zet het bestand op Lolly neer. Elke deur gebruikt dezelfde manifest-eerst-preflight. Openen vanuit Brand Studio beveelt de design-systeemactie aan wanneer een gedeeld ontwerp er een draagt, maar het hernoemt het bestand nooit en verbergt nooit **Open gedeeld ontwerp**.
+
+Een iOS- of Android-document dat vanuit een andere app wordt overgedragen, is beperkt tot 48 MB omdat de systeemoverdracht de bytes over de app-grens heen moet kopiëren. De mobiele app zegt dit in plaats van een te groot bestand stilzwijgend te negeren. **Openen** binnen Lolly gebruikt die overdracht niet; het is de weg om te proberen voor een grotere bundel.
+
+Na bevestiging pakt de gekozen lezer de bundel één keer uit en verifieert hem. De assets van een gedeeld ontwerp gaan naar je bibliotheek, de sessie ervan gaat naar Projecten en de tool ervan opent zodra beschikbaar. De sessies van een gedeeld project gaan naar Projecten onder een nieuwe kopie van de mappen, met nieuwe id's zodat hetzelfde bestand twee keer geopend kan worden, en de map opent; een sessie waarvan dit apparaat de tool mist, wacht daar. Een asset die al op het apparaat staat, wordt via checksum herkend en hergebruikt. Een design-systeempakket wordt in zijn eigen namespace opgeslagen voordat de app ernaar overschakelt. Bestanden groter dan 100 MB worden als groot aangemerkt, en de preflight waarschuwt wanneer de browseropslag minder vrije ruimte meldt dan de opgegeven payload nodig heeft. Elk door integriteit gedekt onderdeel wordt gecontroleerd voordat de bewerking wordt bevestigd; een beschadigde kopie wordt geweigerd en de nieuw aangemaakte bestemming wordt teruggedraaid.
 
 Draagt het bestand een tool die je niet hebt, dan vraagt Lolly het eerst voordat die tool mag draaien: **Deze tool vertrouwen?** noemt de tool en zijn auteur en zegt onomwonden dat openen de eigen code van de tool op je apparaat uitvoert, met **Vertrouwen & installeren** als de weg erdoorheen. Weiger je, dan wordt het gedeelde werk toch in je projecten opgeslagen en wacht het daar op de dag dat je de tool toevoegt. (Één soort tool kan nog niet zo geladen worden - een tool waarvan de code als module wordt geleverd - en die wordt op dezelfde manier geweigerd.)
 
@@ -332,7 +356,7 @@ Elk foto-**filter** - Halftone, Scanline, Posterize, Voronoi-cellen, Kleurbewerk
 
 ## Mijn afbeeldingen
 
-Wanneer een tool je een afbeelding vanaf je apparaat laat toevoegen, wordt die bewaard precies zoals hij binnenkwam - zodat een Content Credential erop nog steeds verifieert - en opgeslagen in je persoonlijke bibliotheek **Mijn afbeeldingen** (onder **Profiel → Opslag**). Alleen bij een werkelijk enorm bestand wordt gevraagd of je het wilt houden of verkleinen. Hergebruik het in elke tool. Om EXIF/GPS te wissen zodra afbeeldingen binnenkomen, zet je **Metadata uit uploads verwijderen** aan in je profiel. Er is geen limiet: de bibliotheek is volledig lokaal en wordt alleen begrensd door de opslag van je apparaat - beheer of verwijder afbeeldingen daar.
+Wanneer een tool je een afbeelding vanaf je apparaat laat toevoegen, wordt die precies bewaard zoals ze binnenkwam - zodat een Content Credential erop nog steeds verifieert - en opgeslagen in je persoonlijke bibliotheek **My images** (onder **Instellingen → Opslag**). Alleen een werkelijk enorm bestand vraagt of het bewaard of verkleind moet worden. Hergebruik haar in elke tool. Om EXIF/GPS te verwijderen zodra afbeeldingen binnenkomen, zet je **Metadata uit uploads verwijderen** aan in je profiel. Er is geen limiet: de bibliotheek is volledig lokaal en wordt alleen begrensd door de opslag van je apparaat - beheer of verwijder afbeeldingen daar.
 
 ## Assets - je bibliotheek
 
@@ -343,17 +367,17 @@ De weergave **Assets** (`#/a`, of het segment **Assets** van de schakelaar Tools
 - <!--i:upload--> **Breng je bestanden binnen.** Sleep een afbeelding, SVG, audioclip, video, Lottie, PDF of PowerPoint-deck naar het uploadgebied - of klik om te kiezen - en het komt direct in Assets terecht, klaar in de asset-kiezer van elke tool. Een meerpagina-PDF of een `.pptx` vraagt welke pagina's of slides je wilt behouden - elke wordt een SVG-asset. Importeer zoveel je wilt; het verlaat je apparaat nooit.
 - <!--i:star--> **Markeer als favoriet wat je vaak gebruikt.** Geef een asset (of een merkstaal) een ★ en die wordt vastgepind bovenaan elke kiezer, zodat je vaste logo of kleur één klik verwijderd is.
 - <!--i:folder--> **Ruim op.** Herindeel een asset naar een andere groep, verberg een gedeelde merkasset die je niet gebruikt (met **Show hidden** om hem terug te halen) of verwijder je eigen uploads volledig. Hetzelfde multiselectgebaar en dezelfde zwevende actiebalk als bij Projects werken hier ook, zodat dit allemaal op een hele selectie tegelijk kan.
-- <!--i:layers--> **Til een video van zijn achtergrond.** Open het detail van een video of klik met de rechtermuisknop op de kaart in een willekeurige asset-kiezer en kies **Remove background…** om een transparant alternatief op te slaan - een geanimeerde WebP of PNG met echte alpha. Kies een **Method**: een **On-device model** snijdt een onderwerp uit een drukke scène, of een **Colour key** trekt een egaal verlichte, vlakke achtergrond eruit zoals een greenscreen of een effen muur, met **Tolerance**, **Softness** en **Spill removal** om de rand bij te stellen. De colour key heeft geen modeldownload en geen netwerk nodig, dus **Remove background** wordt bij elke video aangeboden en geeft vaak een schoner resultaat bij nette beelden. Een **Resolution**-instelling (360, 480, 720 of 1080p, nooit verder dan de bron) ruilt detail in voor een kleiner, sneller bestand. Het draait als achtergrondtaak op je apparaat. De afgewerkte uitsnede wordt naast het origineel opgeslagen als eigen asset en de Content Credential van de bronvideo reist mee als ingrediënt. (Zie [Eenmaal gegenereerd, hetzelfde gerenderd](/info/ai-features.html) voor waarom het verwijderen van een achtergrond een gewone bewerking blijft.)
+- <!--i:layers--> **Til een video van zijn achtergrond.** Open het detail van een video of klik met de rechtermuisknop op de kaart in een willekeurige asset-kiezer en kies **Achtergrond verwijderen…** om een transparant alternatief op te slaan - een geanimeerde WebP of PNG met echte alpha. Kies een **Methode**: een **Model op het apparaat** snijdt een onderwerp uit een drukke scène, of een **Kleursleutel** trekt een egaal verlichte, vlakke achtergrond eruit zoals een greenscreen of een effen muur, met **Tolerantie**, **Zachtheid** en **Kleurlekkage verwijderen** om de rand bij te stellen. De kleursleutel heeft geen modeldownload en geen netwerk nodig, dus **Achtergrond verwijderen** wordt bij elke video aangeboden en geeft vaak een schoner resultaat bij nette beelden. Een **Resolutie**-instelling (360, 480, 720 of 1080p, nooit verder dan de bron) ruilt detail in voor een kleiner, sneller bestand. Het draait als achtergrondtaak op je apparaat. De afgewerkte uitsnede wordt naast het origineel opgeslagen als eigen asset en de Content Credential van de bronvideo reist mee als ingrediënt. (Zie [Eenmaal gegenereerd, hetzelfde gerenderd](/info/ai-features.html) voor waarom het verwijderen van een achtergrond een gewone bewerking blijft.)
 
 ### Neem je palet en lettertypen overal mee naartoe
 
-Het paneel **Stalen** in Assets doet meer dan tonen - klik op een kleur om hem te kopiëren, of **download het volledige merkpalet** in het formaat dat je andere tool spreekt:
+Het paneel **Kleurstalen** in Assets doet meer dan tonen - klik op een kleur om hem te kopiëren, of **download het volledige merkpalet** in het formaat dat je andere tool spreekt:
 
 - <!--i:code--> **Design tokens (JSON)**, **CSS-variabelen** of **CSS-classes** - zet het merk rechtstreeks in een stylesheet of een build;
 - <!--i:palette--> **Adobe Swatch Exchange (.ase)** - laad het in Illustrator of Photoshop;
 - <!--i:pentool--> **GIMP-palet (.gpl)** - voor GIMP of Inkscape.
 
-![Het paneel Stalen - de vijf paletdownloadknoppen bovenaan, en daaronder elke merkkleur als kopieerbare chip](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
+![Het paneel Kleurstalen - de vijf paletdownloadknoppen bovenaan, en daaronder elke merkkleur als kopieerbare chip](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches&width=1440&height=900&dpi=96&waitMs=1800&css=.cat-group%3Anot%28%5Bdata-group%3Dswatches%5D%29%7Bdisplay%3Anone%7D&cropSelector=%5Bdata-group%3Dswatches%5D&walker=1&format=svg&dark=1&filename=use-swatch-downloads)
 
 Het paneel **Lettertypen** toont je merklettertypen met een **download** naast elk, om lokaal te installeren of aan een drukkerij te geven. (De kamer Kleuren van de [Brand Studio](/info/brand-studio.html) biedt dezelfde paletdownload.)
 
@@ -363,31 +387,19 @@ Assets zijn de ene helft van het open, doe-het-zelf-pad; de andere is **je eigen
 
 Lolly streeft ernaar voor iedereen prettig te gebruiken te zijn. De interface is met het toetsenbord te navigeren, aangepaste bedieningselementen hebben correcte labels voor schermlezers en de live voorvertoning van elke tool wordt weergegeven als één gelabelde afbeelding die beschrijft wat er wordt gemaakt.
 
-Een subtiele laag **ondersteunende geluiden** bevestigt wat je doet - aankomen in de galerij, een geldige versus ongeldige Content Credentials-controle, een paneel sluiten, een filter wisselen. Het staat **standaard uit**: zet **Geluid** aan waar de schakelaar ook verschijnt (het optiepaneel van elke weergave, of **Profiel**), en de keuze wordt onthouden.
+Een zachte laag van **ondersteunende geluiden** bevestigt wat je doet - aankomen in de galerij, een geldige versus ongeldige Content Credentials-controle, een paneel sluiten, een filter wisselen. Dit staat **standaard uit**: zet **Geluid** aan waar de schakelaar ook verschijnt (de opties-popover van elke weergave, of **Instellingen**), en de keuze wordt onthouden.
 
-Vier optionele comfortinstellingen staan onder **Profiel → Toegankelijkheid**: **Beweging beperken** (laat de overgangen en franje van de app vallen), **Kleurrijke voorvertoningen verbergen** (rustige galerijkaarten met alleen pictogram en tekst, en kalmere projectminiaturen), **Hoog contrast** (sterkere randen, tekst en focusringen) en **Grote tekst** (grotere app-typografie - labels, menu's, knoptekst). Alle vier brengen rust *rondom* je werk: ze komen nooit binnen een toolcanvas en veranderen geen pixel van wat je exporteert, en elk staat uit tot je het aanzet. Volledige details in [Je profiel → Toegankelijkheid](/info/profile.html#accessibility).
+Vier optionele comfortinstellingen staan onder **Instellingen → Toegankelijkheid**: **Reduce motion** (laat de overgangen en versierselen van de app weg), **Hide colourful previews** (rustige galerijkaarten met alleen icoon en tekst, en stillere projectminiaturen), **High contrast** (sterkere randen, tekst en focusringen) en **Large text** (grotere apptypografie - labels, menu's, knoptekst). Alle vier passen de app aan *rond* je werk: ze reiken nooit in een tool-canvas en veranderen geen pixel van wat je exporteert, en elk staat uit tot je hem aanzet. Volledige details in [Je profiel → Toegankelijkheid](/info/profile.html#accessibility).
 
 Naast de schakelaar Geluid staat **Neurospicy-modus** - een optionele, rustgevende achtergrond-focustrack die zachtjes speelt terwijl je werkt. Als je hem aanzet, opent er een klein **spelerdock** in de onderhoek dat je door de hele app volgt; van daaruit kun je een track zoeken en kiezen, vooruit- en terugspringen, het volume instellen en hem minimaliseren of sluiten. De tracklijst omvat een paar categorieën - procedurele *Lolly Sings*-deuntjes, ambient loops en beats, je eigen geüploade audio en een handjevol live internet-**radio**stations (deze hebben een verbinding nodig; al het andere speelt offline). Hij staat **standaard uit** en wordt, net als Geluid, onthouden tussen sessies en apparaten. Geluid uitzetten dempt ook de focustrack.
 
 ## Opslag & privacy
 
-Alles wordt opgeslagen in de lokale database van je browser (IndexedDB): je profiel, opgeslagen sessies, geüploade afbeeldingen en een cache van gedownloade catalogusinhoud. **Profiel → Opslag** toont het gebruik en biedt je de mogelijkheid om:
-
-- <!--i:box--> **Cache wissen** - verwijder gedownloade catalogusinhoud (wordt bij de volgende keer laden opnieuw gesynchroniseerd).
-- <!--i:trash--> **Al mijn gegevens wissen** - verwijder profiel, sessies en afbeeldingen volledig. *Kan niet ongedaan worden gemaakt.*
-
-![De opslagkaart op een schermbreedte van een telefoon: elke categorie gegevens op het apparaat met naam genoemd, met onderaan de knop Al mijn gegevens wissen](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
-
-Niets van deze lokale gegevens wordt ergens naartoe verzonden - geen telemetrie, geen cloud-rendering. De volledige lijst van wat de app ooit ophaalt of verstuurt staat in het [Privacybeleid](/info/privacy.html), en [Serveroppervlak](/info/server-surface.html) inventariseert de optionele servercomponenten.
+Lolly bewaart je werk op je apparaat: in de eigen opslag van deze browser in de webapp, en in de eigen opslag van de app in de desktop- en mobiele apps. Wat wordt bewaard, wat **Al mijn gegevens wissen** verwijdert en wat het wissen van browsergegevens meeneemt, staat in [Vind en herstel je werk](/info/find-your-work.html#if-you-clear-your-browser-data); het [Privacybeleid](/info/privacy.html) noemt alles wat de app ophaalt of verstuurt, en [Server Surface](/info/server-surface.html) de optionele servercomponenten.
 
 ## Overstappen naar een ander apparaat
 
-Omdat alles op je apparaat leeft, kun je via **Profiel → Opslag → Overstappen naar een ander apparaat** alles meenemen naar een tweede installatie - geen account, geen cloud:
-
-- <!--i:download--> **Exporteer mijn gegevens** downloadt één `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (de naamdelen komen uit je profiel en worden weggelaten als ze niet zijn ingesteld; `<n>` is een teller per dag zodat exports op dezelfde dag niet botsen) met daarin je profiel, elke opgeslagen sessie (met bijbehorende miniatuur), je geüploade afbeeldingen en je voorkeuren (thema, breedte van de zijbalk, lokale activiteitsstatistieken).
-- <!--i:upload--> **Gegevens importeren…** op de andere installatie leest dat bestand weer in. Dit **voegt samen**: alles met dezelfde naam (je profiel, een sessieslot, een afbeelding) wordt vervangen door de geïmporteerde versie; al het andere op dat apparaat blijft behouden. Opgeslagen sessies worden automatisch opnieuw gekoppeld aan je geïmporteerde afbeeldingen.
-
-De catalogus-cache is niet inbegrepen - die wordt op het nieuwe apparaat opnieuw gedownload. Het pakket is een gewone zip (`manifest.json` + `profile.json` + `sessions.json` + `assets.json` + `assets/blobs/…` + `prefs.json`, format-id `lolly-backup`), zodat het intact blijft na e-mail, USB of AirDrop en overal hetzelfde formaat is dat elke shell inleest. Elk onderdeel heeft een checksum, zodat een bestand dat onderweg beschadigd raakt bij het importeren wordt opgemerkt in plaats van halfstuk te worden hersteld. (Volledige formaatspecificatie: [Gegevensoverdracht](/info/data-transfer.html).)
+Om je werk naar een tweede computer of telefoon te dragen, gebruik je Synchronisatie, een back-upbestand of een `.lolly`-bestand. [Verhuis je werk naar een ander apparaat](/info/find-your-work.html#move-your-work-to-another-device) vergelijkt de drie en loopt door **Exporteer mijn gegevens** en **Import data…** heen.
 
 ## Een ontwerp importeren (Figma, Penpot, Illustrator, InDesign)
 
@@ -403,7 +415,7 @@ Voor gevorderde gebruikers rendert **Batch** (gelinkt vanuit de galerij, afgesch
 
 ![De batch-werkbalk - zipnaam, eenheden, DPI en het formaat dat elke rij erft, met Sessions en Render rechts](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.pro-toolbar&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
-Batch is bedoeld om **veel varianten van één template** tegelijk te genereren. Om sessies die je **al hebt opgeslagen** opnieuw te renderen, gebruik je **Projecten → Map renderen / Selectie renderen** (hierboven) - geen Pro nodig.
+Batch is bedoeld om **veel varianten van één sjabloon** tegelijk te genereren. Om sessies die je **al hebt opgeslagen** opnieuw te renderen, gebruik je **Projecten → Map renderen / Selectie renderen** (zie [Vind en herstel je werk](/info/find-your-work.html#find-something-you-saved)) - geen Pro nodig.
 
 ## Naast elkaar bewerken (Multi-edit)
 
@@ -423,6 +435,8 @@ Is de selectie groter dan acht, mengt hij tools of bevat hij naast sessies ook a
 
 ## Offline & installeren
 
-Lolly is een PWA. Na de eerste keer laden werkt hij **offline** - installeer hem vanuit de adresbalk van je browser (of *Toevoegen aan beginscherm* op mobiel) voor een app-achtige, volledig schermvullende ervaring. Hij werkt zichzelf bij zodra je weer online bent.
+Lolly is een PWA. Hij blijft **offline** werken op de schermen die je al hebt geopend, en **De app**, onder **Instellingen → Offline beschikbaar**, downloadt de rest - installeer hem via de adresbalk van je browser (of *Toevoegen aan startscherm* op mobiel) voor een appachtige, volledig schermvullende ervaring. Hij werkt zichzelf bij zodra je weer online bent.
 
-Over updates: als een weergave direct na een update ooit niet laadt (een leeg paneel, een "failed to fetch" in de hoek), laad de pagina dan één keer opnieuw - de app pakt de nieuwe versie netjes op en je werk, sessies en merk blijven onaangetast. Alles wordt op je apparaat opgeslagen, niet in de pagina.
+Over updates: als een weergave ooit meteen na een update niet laadt (een leeg paneel, een "failed to fetch" in de hoek), herlaad dan eenmaal de pagina - de app neemt de nieuwe versie soepel over en je opgeslagen werk, sessies en merk blijven ongemoeid; alleen een afbeelding die je toevoegde en nooit opsloeg moet je misschien opnieuw toevoegen. Hij bewaart alles op je apparaat, niet in de pagina.
+
+Design en Darkroom kunnen de oorspronkelijke beeldprecisie behouden met **Wide colour / HDR**-bewerking, inclusief Sequentie-video. Merkstalen kunnen aparte sRGB- en P3-waarden dragen. Zie [Wide colour en HDR-bewerking](/info/hdr-editing.html) voor uitvoerkeuzes en huidige limieten.

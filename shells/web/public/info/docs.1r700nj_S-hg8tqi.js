@@ -282,7 +282,7 @@ window.__lollyChipField=function(canvas,opt){
   });
 })();
 ;
-(function(){var order=['light','dark','brand'];var btn=document.querySelector('.nav-theme-toggle');if(!btn)return;function apply(t){var r=document.documentElement;r.dataset.theme=t;r.classList.toggle('dark',t==='dark'||t==='brand');localStorage.setItem('theme',t);}btn.addEventListener('click',function(){var cur=document.documentElement.dataset.theme||'light';var i=order.indexOf(cur);apply(order[i<0?0:(i+1)%order.length]);});window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',function(e){if(!localStorage.getItem('theme')){var r=document.documentElement;r.dataset.theme=e.matches?'dark':'light';r.classList.toggle('dark',e.matches);}});})();
+(function(){var order=['light','dark','brand'];var r=document.documentElement;function sync(){var cur=r.dataset.theme||'light';document.querySelectorAll('[data-theme-set]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-theme-set')===cur));});}function apply(t){r.dataset.theme=t;r.classList.toggle('dark',t==='dark'||t==='brand');try{localStorage.setItem('theme',t);}catch(e){}sync();}var btn=document.querySelector('.site-fab--theme');if(btn)btn.addEventListener('click',function(){var cur=r.dataset.theme||'light';var i=order.indexOf(cur);apply(order[i<0?0:(i+1)%order.length]);});document.addEventListener('click',function(e){var s=e.target.closest&&e.target.closest('[data-theme-set]');if(s)apply(s.getAttribute('data-theme-set'));});window.matchMedia('(prefers-color-scheme:dark)').addEventListener('change',function(e){var stored=null;try{stored=localStorage.getItem('theme');}catch(err){}if(!stored){r.dataset.theme=e.matches?'dark':'light';r.classList.toggle('dark',e.matches);sync();}});sync();})();
 ;
 (function(){
   var els=document.querySelectorAll('.shot');if(!els.length)return;
@@ -337,8 +337,12 @@ window.__lollyChipField=function(canvas,opt){
       svg.setAttribute('class','showcase-art');
       svg.setAttribute('aria-hidden','true');
       svg.setAttribute('focusable','false');
-      svg.removeAttribute('width');svg.removeAttribute('height');
+      // The figure is fit-content, so the art's intrinsic width sizes it. An SVG with
+      // no width of its own falls back to the caption's width and the block shrinks
+      // under the reader, moving every heading below it: carry the image's size over.
       var img=fig.querySelector('.showcase-fallback');
+      svg.removeAttribute('width');svg.removeAttribute('height');
+      if(img&&img.getAttribute('width')&&img.getAttribute('height')){svg.setAttribute('width',img.getAttribute('width'));svg.setAttribute('height',img.getAttribute('height'));}
       var stage=fig.querySelector('.showcase-stage');
       if(!stage)return;
       // The image carried the accessible description; the live SVG is decorative,
@@ -437,15 +441,28 @@ window.__lollyChipField=function(canvas,opt){
   var creds=document.querySelectorAll('.shot-cred:not([data-static])');if(!creds.length)return;
   function close(c){c.removeAttribute('data-open');var b=c.querySelector('.shot-cred-btn');if(b)b.setAttribute('aria-expanded','false');}
   function closeAll(except){creds.forEach(function(c){if(c!==except)close(c);});}
+  // Keep an opened line inside the viewport. It grows from the artwork's corner
+  // toward inline-start, so on a narrow crop it can run past that edge of the
+  // screen; measure it and slide it back by the overshoot (plus an 8px margin).
+  function clamp(c){
+    var line=c.querySelector('.shot-cred-line');if(!line)return;
+    line.style.setProperty('--cred-shift','0px');
+    var r=line.getBoundingClientRect(),edge=8,w=document.documentElement.clientWidth;
+    var shift=r.left<edge?edge-r.left:(r.right>w-edge?w-edge-r.right:0);
+    if(shift)line.style.setProperty('--cred-shift',Math.round(shift)+'px');
+  }
   creds.forEach(function(c){
     var btn=c.querySelector('.shot-cred-btn');if(!btn)return;
+    btn.addEventListener('mouseenter',function(){clamp(c);});
+    btn.addEventListener('focus',function(){clamp(c);});
     btn.addEventListener('click',function(e){
       e.preventDefault();
       var open=!c.hasAttribute('data-open');
       closeAll(c);
-      if(open){c.setAttribute('data-open','');btn.setAttribute('aria-expanded','true');}else close(c);
+      if(open){clamp(c);c.setAttribute('data-open','');btn.setAttribute('aria-expanded','true');}else close(c);
     });
   });
+  window.addEventListener('resize',function(){var o=document.querySelector('.shot-cred[data-open]');if(o)clamp(o);});
   // Escape closes the open line and returns focus to its trigger, matching how the
   // app's own overlays behave.
   document.addEventListener('keydown',function(e){
@@ -649,6 +666,21 @@ function score(r,terms){
 
 function close(){out.hidden=true;out.textContent='';active=-1;input.setAttribute('aria-expanded','false');input.removeAttribute('aria-activedescendant');}
 
+// Below 1000px the field folds into a round button (.site-fab--search). Pressing it
+// opens the field over the bar and moves focus there; Escape on an empty field, or a
+// tap anywhere else, folds it again and returns focus to the button.
+var fab=document.querySelector('.site-fab--search'),bar=wrap.closest('.site-bar');
+// The clear control: shown while there is text to clear, and also while the folded field
+// is open over the bar, where it is the visible way to close the field again. Its name
+// says which it will do.
+var clearBtn=wrap.querySelector('.docs-search-clear');
+function syncClear(){if(!clearBtn)return;var open=!!bar&&bar.classList.contains('is-searching');clearBtn.hidden=!input.value&&!open;clearBtn.setAttribute('aria-label',input.value?(clearBtn.getAttribute('data-clear')||'Clear search'):(clearBtn.getAttribute('data-close')||'Close'));}
+function openField(){if(!bar)return;bar.classList.add('is-searching');fab.setAttribute('aria-expanded','true');input.focus();load();syncClear();}
+function foldField(focusFab){if(!bar||!bar.classList.contains('is-searching'))return;bar.classList.remove('is-searching');if(fab){fab.setAttribute('aria-expanded','false');if(focusFab)fab.focus();}syncClear();}
+if(fab)fab.addEventListener('click',openField);
+if(clearBtn)clearBtn.addEventListener('click',function(){if(input.value){input.value='';close();syncClear();input.focus();}else foldField(true);});
+input.addEventListener('input',syncClear);
+
 // The panel is position:fixed to escape the sidebar's scroll clipping, so it has
 // to be told where the input is - and told again whenever that moves. Clamped so
 // a narrow window can't push it off the inline edge.
@@ -709,14 +741,21 @@ input.addEventListener('keydown',function(e){
   if(e.key==='ArrowDown'){e.preventDefault();move(1);}
   else if(e.key==='ArrowUp'){e.preventDefault();move(-1);}
   else if(e.key==='Enter'){var l=out.querySelector('.docs-search-hit.is-active');if(l){e.preventDefault();l.click();}}
-  else if(e.key==='Escape'){if(input.value){input.value='';close();}else{input.blur();}}
+  else if(e.key==='Escape'){if(input.value){input.value='';close();syncClear();}else if(bar&&bar.classList.contains('is-searching')){foldField(true);}else{input.blur();}}
 });
-document.addEventListener('click',function(e){if(!wrap.contains(e.target)&&!out.contains(e.target))close();});
+document.addEventListener('click',function(e){if(!wrap.contains(e.target)&&!out.contains(e.target)){close();if(!fab||!fab.contains(e.target))foldField(false);}});
 addEventListener('resize',place);
 addEventListener('scroll',place,true);   // capture: the rail scrolls, not the window
 })();
 ;
-(function(){var ham=document.getElementById('navHamburger');var menu=document.getElementById('navMobileMenu');if(!ham||!menu)return;ham.addEventListener('click',function(){var open=menu.classList.toggle('open');ham.classList.toggle('open',open);ham.setAttribute('aria-expanded',open?'true':'false');});menu.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){menu.classList.remove('open');ham.classList.remove('open');ham.setAttribute('aria-expanded','false');});});document.addEventListener('click',function(e){if(!menu.contains(e.target)&&!ham.contains(e.target)){menu.classList.remove('open');ham.classList.remove('open');ham.setAttribute('aria-expanded','false');}});})();
+(function(){
+var menu=document.querySelector('.site-menu');if(!menu)return;var sum=menu.querySelector('summary');
+function close(focus){if(!menu.open)return;menu.open=false;if(focus&&sum)sum.focus();}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&menu.open){e.preventDefault();close(menu.contains(document.activeElement));}});
+document.addEventListener('pointerdown',function(e){if(menu.open&&!menu.contains(e.target))close(false);});
+menu.addEventListener('focusout',function(e){if(menu.open&&e.relatedTarget&&!menu.contains(e.relatedTarget))close(false);});
+menu.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('.site-sheet a[href]'))close(false);});
+})();
 ;
 (function(){
   var btn=document.getElementById('docJumpBtn'),nav=document.getElementById('docJumpNav');
@@ -730,9 +769,13 @@ addEventListener('scroll',place,true);   // capture: the rail scrolls, not the w
 ;
 
 (function(){
-  const trigger = document.querySelector('.lang-fab');
+  // Two ways in: the round Language button in the bar, and the Language row in the
+  // phone menu. The row closes the menu first, so the language menu then hangs from the
+  // menu's own button, which is where focus returns when it closes.
+  const triggers = [...document.querySelectorAll('.site-fab--lang, .site-lang-row')];
   const menu = document.querySelector('.lang-menu');
-  if (!trigger || !menu) return;
+  if (!triggers.length || !menu) return;
+  let anchor = triggers[0];
   const list = menu.querySelector('.lang-menu-list');
   const sortTabs = [...menu.querySelectorAll('.lang-sort-tab')];
   // Reorder the menu in place: speakers (descending data-speakers) or A–Z
@@ -749,34 +792,51 @@ addEventListener('scroll',place,true);   // capture: the rail scrolls, not the w
   }
   try { if (localStorage.getItem('langSort') === 'az') applySort('az', false); } catch (err) {}
   let isOpen = false;
+  // Under the button it hangs from, its inline-end edge on the button's, held 8px
+  // inside the window either way and no taller than the room below.
   function positionMenu() {
-    const rect = trigger.getBoundingClientRect();
+    const rect = anchor.getBoundingClientRect();
+    const vw = document.documentElement.clientWidth;
+    const w = menu.offsetWidth;
     menu.style.top = (rect.bottom + 8) + 'px';
+    menu.style.maxHeight = Math.max(160, window.innerHeight - rect.bottom - 24) + 'px';
+    if (document.documentElement.dir === 'rtl') {
+      menu.style.right = 'auto';
+      menu.style.left = Math.max(8, Math.min(rect.left, vw - w - 8)) + 'px';
+    } else {
+      menu.style.left = 'auto';
+      menu.style.right = Math.max(8, Math.min(vw - rect.right, vw - w - 8)) + 'px';
+    }
   }
-  function close() {
+  function close(returnFocus) {
     if (!isOpen) return;
     menu.hidden = true;
-    trigger.setAttribute('aria-expanded', 'false');
+    triggers.forEach(t => t.setAttribute('aria-expanded', 'false'));
     isOpen = false;
     document.removeEventListener('pointerdown', onOutside);
     document.removeEventListener('keydown', onKey);
     window.removeEventListener('resize', positionMenu);
+    if (returnFocus && anchor) anchor.focus();
   }
-  function open() {
+  function open(from) {
     if (isOpen) return;
+    const sheet = from.closest('details');
+    if (sheet) { sheet.open = false; anchor = sheet.querySelector('summary') || from; } else anchor = from;
     menu.hidden = false;
-    trigger.setAttribute('aria-expanded', 'true');
+    from.setAttribute('aria-expanded', 'true');
     isOpen = true;
     positionMenu();
+    const current = menu.querySelector('.lang-menu-item[aria-pressed="true"]') || menu.querySelector('.lang-menu-item');
+    if (current) current.focus();
     setTimeout(() => document.addEventListener('pointerdown', onOutside), 0);
     document.addEventListener('keydown', onKey);
     window.addEventListener('resize', positionMenu);
   }
   function onOutside(e) {
-    if (!menu.contains(e.target) && !trigger.contains(e.target)) close();
+    if (!menu.contains(e.target) && !triggers.some(t => t.contains(e.target))) close(false);
   }
   function onKey(e) {
-    if (e.key === 'Escape') { e.stopPropagation(); close(); return; }
+    if (e.key === 'Escape') { e.stopPropagation(); close(true); return; }
     if (!['ArrowUp', 'ArrowDown'].includes(e.key)) return;
     const items = [...menu.querySelectorAll('.lang-menu-item')];
     const i = items.indexOf(document.activeElement);
@@ -785,7 +845,14 @@ addEventListener('scroll',place,true);   // capture: the rail scrolls, not the w
     const step = e.key === 'ArrowDown' ? 1 : -1;
     items[(i + step + items.length) % items.length].focus();
   }
-  trigger.addEventListener('click', () => isOpen ? close() : open());
+  triggers.forEach(t => t.addEventListener('click', () => isOpen ? close(true) : open(t)));
+  // Focus moving on out of the open list closes it, so the control that takes focus
+  // next is never hidden beneath the list (WCAG 2.4.11). Back onto its own button is
+  // not leaving: the list hangs from there.
+  menu.addEventListener('focusout', e => {
+    const to = e.relatedTarget;
+    if (isOpen && to && !menu.contains(to) && !triggers.includes(to)) close(false);
+  });
   menu.addEventListener('click', e => {
     const tab = e.target.closest('.lang-sort-tab');
     if (tab) {
@@ -814,7 +881,7 @@ var btn=document.querySelector('.docs-listen');if(!btn)return;
 var produced=btn.hasAttribute('data-listen-produced');
 var hasTts=('speechSynthesis' in window)&&(typeof SpeechSynthesisUtterance!=='undefined');
 var canOpus=false;try{canOpus=!!document.createElement('audio').canPlayType('audio/ogg; codecs=opus');}catch(e){}
-if((!produced||!canOpus)&&!hasTts){var bar=btn.closest('.listen-bar');if(bar)bar.remove();return;}
+if((!produced||!canOpus)&&!hasTts){var bar=btn.closest('.listen-bar');btn.remove();if(bar&&!bar.children.length)bar.remove();return;}
 var busy=false;
 function open(auto){if(busy)return;busy=true;btn.classList.add('is-loading');
 import('/info/docs-player.js').then(function(m){
@@ -823,4 +890,24 @@ import('/info/docs-player.js').then(function(m){
 btn.addEventListener('click',function(){open(true);});
 try{var s=sessionStorage.getItem('lolly-docs-listen');
 if(s&&JSON.parse(s).slug===btn.getAttribute('data-listen-slug'))open(JSON.parse(s).auto);}catch(e){}
+})();
+;
+
+"use strict";var LollyDocsReading=(()=>{var w=Object.defineProperty;var j=Object.getOwnPropertyDescriptor;var B=Object.getOwnPropertyNames;var W=Object.prototype.hasOwnProperty;var K=(c,r)=>{for(var m in r)w(c,m,{get:r[m],enumerable:!0})},z=(c,r,m,n)=>{if(r&&typeof r=="object"||typeof r=="function")for(let a of B(r))!W.call(c,a)&&a!==m&&w(c,a,{get:()=>r[a],enumerable:!(n=j(r,a))||n.enumerable});return c};var V=c=>z(w({},"__esModule",{value:!0}),c);var G={};K(G,{COPY_FEEDBACK_MS:()=>F,enhanceDocsReading:()=>_,shellCommands:()=>O});function O(c){let r=c.split(`
+`),m=/^\s*\$ /,n;if(r.some(s=>m.test(s))){n=[];let s=!1;for(let d of r)m.test(d)?(n.push(d.replace(m,"")),s=/\\$/.test(d)):s&&(n.push(d),s=/\\$/.test(d))}else n=r.filter(s=>!/^\s*#/.test(s));let a=s=>{let d=null;for(let p=0;p<s.length;p++){let y=s[p];if(d){y===d&&(d=null);continue}if(y==='"'||y==="'"){d=y;continue}if(y==="#"&&p>0&&/\s/.test(s[p-1]))return s.slice(0,p).trimEnd()}return s};return n.map(a).join(`
+`).replace(/\n{3,}/g,`
+
+`).replace(/^\n+|\n+$/g,"")}var F=2400,M=8,S=new WeakMap;function _(c,r){var P;let m=S.get(c);if(m)return m;let n=c.ownerDocument,a=n.defaultView,{labels:s}=r,d=[],p=new Map,y=new WeakSet,g=n.createElement("div");g.className="doc-visually-hidden",g.setAttribute("role","status"),g.setAttribute("aria-live","polite"),g.setAttribute("aria-atomic","true"),c.appendChild(g),d.push(g);let b=e=>{g.textContent="",setTimeout(()=>{g.textContent=e},30)};for(let e of c.querySelectorAll(".doc-code[data-copy]")){let t=e.querySelector(":scope > .doc-code-bar"),l=(P=e.querySelector("pre code"))!=null?P:e.querySelector("pre");if(!t||!l||t.querySelector(".doc-copy"))continue;let o=n.createElement("span");o.className="doc-copy-slot";let i=n.createElement("button");i.type="button",i.className="doc-copy",i.dataset.docCopy="",i.setAttribute("aria-label",s.copyNamed(e.dataset.label||s.copy)),r.copyIcon&&i.insertAdjacentHTML("afterbegin",r.copyIcon);let u=n.createElement("span");u.textContent=s.copy,i.appendChild(u);let h=n.createElement("span");h.className="doc-copy-toast",h.setAttribute("aria-hidden","true"),h.hidden=!0,o.append(i,h),t.appendChild(o),d.push(o);let f=n.createElement("div");f.className="doc-copy-help",f.hidden=!0;let E=n.createElement("span");E.textContent=s.help;let v=n.createElement("button");v.type="button",v.className="doc-copy",v.dataset.docSelect="",v.textContent=s.select,f.append(E,v),e.appendChild(f),d.push(f)}let k=e=>{var t,l;return(l=(t=e.closest(".doc-copy-slot"))==null?void 0:t.querySelector(".doc-copy-toast"))!=null?l:null},H=e=>{clearTimeout(p.get(e)),p.delete(e);let t=k(e);t&&(t.hidden=!0)},q=(e,t)=>{var E;let l=k(e);if(!l)return;clearTimeout(p.get(e)),l.textContent=t,l.style.setProperty("--doc-toast-shift","0px"),l.removeAttribute("data-above"),l.hidden=!1;let o=l.getBoundingClientRect(),i=(E=n.elementFromPoint)==null?void 0:E.call(n,Math.min(Math.max(o.left+o.width/2,0),a.innerWidth-1),Math.min(Math.max(o.top+o.height/2,0),a.innerHeight-1)),u=!!i&&!c.contains(i)&&!i.contains(c);(o.bottom>a.innerHeight-M||u)&&l.setAttribute("data-above","");let h=n.documentElement.clientWidth,f=o.left<M?M-o.left:o.right>h-M?h-M-o.right:0;f&&l.style.setProperty("--doc-toast-shift",`${Math.round(f)}px`),p.set(e,setTimeout(()=>H(e),F))},x=()=>{for(let e of[...p.keys()])H(e)},A=e=>{var v,R,$;let t=e.target,l=t==null?void 0:t.closest("[data-doc-select]"),o=t==null?void 0:t.closest(".doc-code");if(l&&o&&c.contains(l)){let T=(v=o.querySelector("pre code"))!=null?v:o.querySelector("pre");if(!T)return;let I=n.createRange();I.selectNodeContents(T);let L=a.getSelection();L==null||L.removeAllRanges(),L==null||L.addRange(I),b(s.selected);return}let i=t==null?void 0:t.closest("[data-doc-copy]");if(!i||!o||!c.contains(i)||y.has(i))return;let u=(R=o.querySelector("pre code"))!=null?R:o.querySelector("pre");if(!u)return;y.add(i),H(i);let h=($=u.textContent)!=null?$:"",f=o.dataset.copy==="shell"?O(h):h,E;try{E=r.writeText(f)}catch(T){E=Promise.reject(T)}E.then(()=>{q(i,s.copied),b(s.copied)},()=>{q(i,s.copyFailed),b(`${s.copyFailed} ${s.help}`);let T=o.querySelector(":scope > .doc-copy-help");T&&(T.hidden=!1)}).finally(()=>{y.delete(i)})},D=e=>{e.key==="Escape"&&x()},C=()=>{var o,i;let e=decodeURIComponent(a.location.hash.slice(1));if(!e)return;let t=n.getElementById(e);if(!t||!c.contains(t))return;let l=!1;t instanceof a.HTMLDetailsElement&&!t.open&&(t.open=!0,l=!0);for(let u=(o=t.parentElement)==null?void 0:o.closest("details");u;u=(i=u.parentElement)==null?void 0:i.closest("details"))u.open||(u.open=!0,l=!0);l&&t.scrollIntoView()};c.addEventListener("click",A),n.addEventListener("keydown",D),a.addEventListener("resize",x),r.openOnHash&&(a.addEventListener("hashchange",C),C());let N=()=>{c.removeEventListener("click",A),n.removeEventListener("keydown",D),a.removeEventListener("resize",x),a.removeEventListener("hashchange",C);for(let e of p.values())clearTimeout(e);p.clear();for(let e of d)e.remove();S.delete(c)};return S.set(c,N),N}return V(G);})();
+(function(){var root=document.querySelector('.docs-content');if(!root)return;var l={};try{l=JSON.parse(root.getAttribute('data-reading')||'{}')}catch(e){}LollyDocsReading.enhanceDocsReading(root,{openOnHash:true,copyIcon:l.icon||'',writeText:function(s){return navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(s):Promise.reject(new Error('unavailable'))},labels:{copy:l.copy||'Copy',copied:l.copied||'Copied to clipboard',copyFailed:l.copyFailed||'Copy did not work',help:l.help||'',select:l.select||'Select text',selected:l.selected||'',copyNamed:function(x){return (l.copyNamed||'Copy {label}').replace('{label}',x)}}});})();
+
+;
+
+"use strict";var LollyDocsStrip=(()=>{var d=Object.defineProperty;var a=Object.getOwnPropertyDescriptor;var r=Object.getOwnPropertyNames;var i=Object.prototype.hasOwnProperty;var u=(e,t)=>{for(var c in t)d(e,c,{get:t[c],enumerable:!0})},f=(e,t,c,o)=>{if(t&&typeof t=="object"||typeof t=="function")for(let n of r(t))!i.call(e,n)&&n!==c&&d(e,n,{get:()=>t[n],enumerable:!(o=a(t,n))||o.enumerable});return e};var v=e=>f(d({},"__esModule",{value:!0}),e);var g={};u(g,{enhancePathwaysStrip:()=>h});function h(e){let t=()=>{let n=e.scrollWidth-e.clientWidth;if(n<=1){e.setAttribute("data-strip-edges","");return}let l=Math.abs(e.scrollLeft),s=[l>1?"start":"",l<n-1?"end":""].filter(Boolean).join(" ");e.getAttribute("data-strip-edges")!==s&&e.setAttribute("data-strip-edges",s)},c=e.querySelector(".docs-pathway.active");if(c&&e.scrollWidth>e.clientWidth){let n=e.getBoundingClientRect(),l=c.getBoundingClientRect();e.scrollLeft+=l.left+l.width/2-(n.left+n.width/2)}t(),e.addEventListener("scroll",t,{passive:!0});let o=typeof ResizeObserver=="function"?new ResizeObserver(t):null;return o==null||o.observe(e),()=>{e.removeEventListener("scroll",t),o==null||o.disconnect()}}return v(g);})();
+(function(){document.querySelectorAll('nav.docs-pathways').forEach(function(s){LollyDocsStrip.enhancePathwaysStrip(s);});})();
+
+;
+(function(){
+var band=document.querySelector('.docs-masthead'),strip=band&&band.querySelector('.docs-pathways');if(!strip)return;
+function fit(){var b=band.getBoundingClientRect(),r=strip.getBoundingClientRect();band.style.setProperty('--mast-clear',Math.round(r.bottom-b.top+8)+'px');}
+fit();if(window.ResizeObserver)new ResizeObserver(fit).observe(band);
 })();

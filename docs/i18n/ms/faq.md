@@ -5,7 +5,7 @@ Soalan lazim yang dipaparkan dalam akordion pada halaman pendaratan `/info`.
 **Cara menyelenggara:** setiap tajuk `##` di bawah ialah satu soalan; segala yang berada
 di bawahnya (sehingga `##` berikutnya) ialah jawapannya. Jawapan menggunakan markdown
 ringan yang sama seperti bahagian lain laman ini - pisahkan perenggan dengan satu baris
-kosong. Tambah, buang atau susun semula soalan di sini dan jalankan semula `npm run build:info` (atau `npm run dev:web`).
+kosong. Tambah, buang atau susun semula soalan di sini dan jalankan semula `pnpm run build:info` (atau `pnpm run dev:web`).
 Segala yang di atas `##` pertama (tajuk ini dan nota ini) diabaikan oleh binaan.
 
 ## Apa yang berlaku apabila saya opt-in pada halaman /profile?
@@ -121,9 +121,17 @@ Kita memenangi perang tadbir urus ini dengan kemudahan dan perkhidmatan yang cem
 
 Ya. Buka **Design** dan klik **Import a design**: ia menerima fail asli Figma **.fig** (Save local copy), eksport Penpot **.penpot**, fail Illustrator **.ai** atau **.pdf**, fail InDesign **.idml** (File → Export → InDesign Markup) atau **sebarang SVG** (pintu paling luas - hampir semua apl reka bentuk mengeksportnya). Tiada akaun, tiada pemalam dan tiada lesen apl reka bentuk diperlukan.
 
-![Design's open canvas - Import a design sits in the toolbar's Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Kanvas terbuka Design - Import reka bentuk berada dalam menu Lolly pada rel alat](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Lapisan tiba sebagai kotak yang boleh disunting pada kanvas terbuka: teks kekal boleh ditaip semula, bentuk kekal sebagai bentuk, imej masuk ke pustaka imej anda sendiri dan tipografi serta warna mematuhi global jenama. Simpan ia dan susun atur itu menjadi templat boleh guna semula yang beralamat URL, yang boleh diisi semula oleh sesiapa sahaja yang mempunyai Lolly - dan anda boleh mencampurkan alat langsung (kod QR, carta) yang dirender semula semasa dimuatkan. Dari situ ia dirender seperti apa-apa sahaja yang lain dalam Lolly - SVG, PDF, PNG dan selebihnya, boleh dihasilkan semula daripada URLnya. Lihat [Import a design](/info/design-import.html).
+
+## Di mana perkara yang saya buat semalam?
+
+Jika anda menekan **Simpan sebagai** atau **Simpan**, ia berada dalam **Projek**, pada skrin utama, dalam pelayar atau aplikasi yang anda simpan daripadanya. Jika anda hanya menekan **Muat turun**, fail itu berada di tempat pelayar atau sistem anda menyimpan muat turun, dan biasanya satu salinan berada dalam **Aset**. Sembilan alat turut menyimpan kerja yang belum disimpan dalam **Projek**. [Cari dan pulihkan hasil kerja anda](/info/find-your-work.html) merangkumi setiap kes.
+
+## Saya menutup tab. Adakah kerja saya hilang?
+
+Kerja yang disimpan masih ada dalam **Projek**. Kerja yang belum disimpan hilang, kecuali pada sembilan alat yang menyimpan semasa anda bekerja, yang turut menyimpannya dalam **Projek**. Lain kali, tekan **Simpan sebagai** sebelum anda keluar. Lihat [Jika anda menutup tab atau meninggalkan alat](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Bolehkah saya berkongsi hasil kerja saya sebagai fail dan bukan pautan?
 

@@ -1,19 +1,33 @@
 # Exporteren & Formaten
 
-Hoe je een afgewerkt bestand uit een tool krijgt - het juiste formaat kiezen, de uitvoergrootte instellen en wat elke optie doet. Zoals met al het andere gebeurt **exporteren op je eigen apparaat**; er wordt niets geüpload.
+Druk op **Exporteren** op de **Exporteren | Opslaan als**-pil van een tool, kies een formaat uit het menu naast de bestandsnaam, en druk dan op **Downloaden**. Het bestand wordt op je apparaat gemaakt; er wordt niets geüpload.
+
+Voor de meeste klussen is een van deze drie formaten de juiste:
+
+| Voor | Kies | Waarom |
+|---|---|---|
+| Een scherm, een bericht of een dia | **PNG** | Elke app opent het, en het behoudt een transparante achtergrond wanneer de tool die biedt |
+| Een afgewerkte pagina, of iets dat gedrukt wordt | **PDF** | Een echte paginagrootte die afdrukt zoals hij eruitziet; **Print PDF**, waar een tool dat biedt, is de CMYK-versie voor een drukkerij |
+| Werk dat op elk formaat scherp moet blijven | **SVG** | Vectorvormen, scherp van een badge tot een banner |
+
+::: check Controleer het bestand op het formaat waarin het gebruikt wordt
+Voordat je het verstuurt, open het op het scherm waarvoor het gemaakt is, of druk het af op het echte formaat.
+:::
+
+De rest van deze pagina behandelt elk formaat, elke grootte en elke optie.
 
 ## Hoe exporteren werkt
 
-De preview *is* het bestand. Wanneer je exporteert, rendert de host dat canvas naar het formaat dat je koos en geeft je een download (of zet het op je klembord). Een tool biedt alleen de formaten aan die de auteur ervan heeft opgegeven, en de kiezer verbergt elk formaat dat je browser niet kan produceren (zie [Video](#video)).
+De preview *is* het bestand. Wanneer je exporteert, rendert de host dat canvas naar het formaat dat je koos en geeft je een download (of zet het op je klembord). De kiezer verbergt elk formaat dat je browser niet kan produceren (zie [Video](#video)).
 
 Drie paden leveren een bestand op. De meeste tools **renderen het canvas** naar het gekozen formaat. Tekst- en dataformaten (HTML, MD, TXT, JSON, CSV, ICS, VCF) worden in plaats daarvan **gegenereerd uit de inhoud van de tool**, niet gerasteriseerd vanuit het beeld. En privacytools (bijv. *Strip Hidden Data*) gebruiken een derde pad: het bestand dat *jij* kiest wordt byte-voor-byte op het apparaat getransformeerd en direct teruggegeven - geen canvas, geen watermerk en geen toegevoegde herkomstmetadata, omdat het al je eigen bestand is.
 
-De acties in de exportbediening:
+De acties in het exportpaneel:
 
-- <!--i:download--> **Download** - het bestand opslaan (de primaire actie).
-- <!--i:photos--> **Kopiëren** - zet de afbeelding op je klembord om direct in Slack, e-mail of een document te plakken. Waar een browser geen afbeeldingen kan kopiëren, wordt in plaats daarvan gedownload en krijg je een melding.
-- <!--i:folder--> **Opslaan** - bewaar het huidige ontwerp als een opgeslagen toolsessie in je bibliotheek.
-- <!--i:link--> **Delen** - opent de **Deeldialoog**: een kopieerbare link die het ontwerp reproduceert, schakelaars bij bezoek (volledig scherm, exportpaneel, downloaden of kopiëren bij openen) en een optionele **Kortste link** die de hele status in een compact token verpakt (zie [URL-modus](/info/url-mode.html)).
+- <!--i:download--> **Downloaden** - het bestand opslaan (de primaire actie). Vind je het daarna niet terug, zie [Een gedownload bestand vinden](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Kopiëren** - zet de afbeelding op je klembord om direct te plakken in Slack, e-mail, een document. Waar een browser geen afbeeldingen kan kopiëren, downloadt hij in plaats daarvan en meldt dat.
+- <!--i:folder--> **Opslaan** - bewaart het huidige design met één klik in Projecten, zonder te vragen waar; downloadt nooit een bestand. **Opslaan als**, naast **Exporteren**, vraagt waar (zie [Opslaan en verdergaan](/info/using.html#saving-continuing)).
+- <!--i:link--> **Delen** - opent de **Deel-dialoog**: een kopieerbare link die het design reproduceert, instellingen voor dit bezoek (volledig scherm, exportpaneel, downloaden of kopiëren bij openen) en een optionele **Kortste link** die de hele status in één compact token samenpakt (zie [URL Mode](/info/url-mode.html)).
 
 (De auteur van een tool kiest welke hiervan verschijnen; de standaardset is Kopiëren, Downloaden en Opslaan.)
 
@@ -32,13 +46,13 @@ Een opgeslagen sessie kan ook opnieuw als toollink worden gedeeld vanuit Project
 
 ## Een formaat kiezen
 
-De bestandsnaam en de formaatkiezer staan bovenaan het paneel als één paar `naam.formaat`, en de kiezer toont alleen de formaten die de auteur van deze tool heeft opgegeven.
+De bestandsnaam en het formaatmenu staan samen als één paar `name.format`, onder **Downloaden**.
 
 ![Het bestandsnaamveld samengevoegd met de formaatkiezer, zodat de export als één paar naam.formaat leest](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
 | Je wilt… | Gebruik | Waarom |
 |---|---|---|
-| Scherpe logo's / artwork dat schaalt | **SVG** | Vector - oneindig schaalbaar, klein, bewerkbaar |
+| Scherpe logo's / artwork dat schaalt | **SVG** | Vector - oneindig schaalbaar, klein, bewerkbaar; een effect dat de vectorexport niet kan tekenen, wordt ingesloten als afbeelding |
 | Vector voor Office / Windows-apps | **EMF** | Plakt als bewerkbare vector in PowerPoint / Word; tekst blijft live en bewerkbaar, en Google Drive opent het in Google Tekeningen voor Slides |
 | Vector voor print / ontwerpapps | **EPS**, of **EPS (CMYK)** | PostScript-vector voor Illustrator / drukwerkflows |
 | Vector voor snij- / CAD-machines | **DXF** | Lasersnijders, vinylplotters, CNC - contourpaden in millimeters |
@@ -91,7 +105,7 @@ Handig voor een storyboard, een miniaturenblad, een contactblad voor review of e
 
 Sampling gebeurt op het **middelpunt** van elk interval in plaats van op de randen, omdat het eerste moment van een sequentie vaak een intro-overgang is die nog niet is ingefaded en het laatste de toestand is nadat elke clip is geëindigd - sampling op de randen zou twee van je frames verspillen aan bijna-lege beelden. Het aantal is begrensd op **64** (een contactblad is bedoeld om door een mens te worden gelezen), en alles onzinnigs dat in het veld wordt getypt valt terug op `1` in plaats van de export te laten mislukken. Elk frame is een gewone still, dus Content Credentials, het watermerk, fysieke eenheden en DPI gedragen zich precies zoals bij een enkele export.
 
-Het veld **Frames** is de manier om vandaag een blad te krijgen. De engine reserveert een bijbehorende URL-parameter `cuts`, maar geen enkele shell leest die nog uit een link, dus een gedeelde link heropent altijd op het playhead-frame - zie [URL-modus](/info/url-mode.html#contact-sheets-cuts).
+Het veld **Frames** is de manier om vandaag een blad te krijgen. De engine reserveert een bijbehorende URL-parameter `cuts`, maar geen enkele shell leest die nog uit een link, dus een gedeelde link heropent altijd op het playhead-frame - zie [URL-modus](/info/url-parameters.html#contact-sheets-cuts).
 
 ## PDF met meerdere pagina's
 
@@ -157,7 +171,7 @@ Kies **Cursus exporteren** vanuit een ondersteunde tool, een projectmap of een s
 - <!--i:file--> Selecteer Website, SCORM 1.2, SCORM 2004 4th Edition, of een experimenteel xAPI-doel. Controleer de daadwerkelijke inhoud en ZIP-grootte, sla dan de gecontroleerde versie op en download hem.
 - <!--i:check--> Voltooiing vereist het bevestigen van elke verplichte les en het selecteren van Finish. De websitespeler bewaart voortgang in de browser; een LMS-pakket verbindt met het ontvangende LMS.
 
-![Het exportpaneel op een Design-presentatie met SCORM (LMS) gekozen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+![Het exportpaneel op een Design-deck met SCORM (LMS) gekozen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Het pakket bevat zijn afgewerkte inhoud en vereist geen Lolly-account. Pak een Website-ZIP uit op een HTTP(S)-host; importeer een LMS-ZIP zonder de inhoud ervan te wijzigen. Test de beoogde bestemming voordat je de cursus verspreidt.
 
@@ -235,7 +249,7 @@ Geanimeerde tools exporteren beweging als **MP4**, **WebM** of **GIF** - en, waa
 
 GIF werkt overal (geweldig voor chat/e-mail; groter en met minder kleuren dan video). Geanimeerde tools tonen ook **Wait** (seconden om de animatie te laten settelen voordat wordt opgenomen) en **Duration** (cliplengte).
 
-> Een gedeelde `?format=…` link die een container aanvraagt die je browser niet netjes kan opnemen, valt automatisch terug op de andere en benoemt het bestand dienovereenkomstig.
+> Een gedeelde `?format=…`-link die een container aanvraagt die je browser niet kan opnemen, valt netjes terug op de andere, en de bestandsnaam komt overeen met de container die is opgenomen.
 
 **Geluid.** Video-exports zijn niet stil. Een tool kan een **muziekbed** onder de clip leggen - een audio-asset uit de catalogus, in lus of ingekort tot de cliplengte, met fade-in/out, volume en automatische ducking onder het eigen geluid van de beelden - en de opnametools voeren het live geluid van hun beelden rechtstreeks door naar het bestand. **MP4** en **WebM** behouden het gemixte spoor; GIF en de geanimeerde afbeeldingsformaten (APNG, Animated WebP, Animated SVG) zijn van nature stil.
 
@@ -255,7 +269,9 @@ Waar het formaat het ondersteunt, dragen exports **herkomstmetadata** - software
 
 **De duurzame credential.** Naast de Imprint staat een tweede, zwaardere markering: **Durable credential**, die een on-device neuraal model (TrustMark-formaat) gebruikt om Lolly's id *in* de pixels te schrijven, zodat de "gemaakt met Lolly"-koppeling een metadatastrip, een hercodering en herlezing door TrustMark-bewuste tools én door Lolly zelf overleeft. Het staat **standaard uit** - in tegenstelling tot de pure JavaScript-Imprint kost het een neurale pas per export plus een eenmalige modeldownload, dus het is een bewuste opt-in in plaats van een stille belasting. Alleen raster (**PNG, JPG, WebP, AVIF, TIFF**), aangevinkt in het exportpaneel of meegegeven als `durable=1` in een deellink. Op de desktop- en mobiele apps is de kaart volledig verborgen in plaats van als no-op getoond, omdat er offline geen bron is om het model van op te halen.
 
-**Contentbescherming.** In het exportpaneel vouwen *Wachtwoordbeveiliging*, **C2PA Credentials**, de **Lolly Imprint** en de **Durable credential** samen tot één ingeklapte, formaatbewuste groep **Contentbescherming**, zodat de herkomst- en beschermingsopties van een bestand op één plek staan - de groep toont alleen de kaarten die van toepassing zijn op het gekozen formaat, en verbergt zichzelf volledig als geen enkele dat is. Drukmarkeringen zitten er bewust *niet* in: het is productiegeometrie voor druk, geen bescherming, dus **Drukmarkeringen & afloop** - de afloopmaat in millimeters plus Snijlijnen, Registratie, Afloop, Kleurbalken en Stempeldetails - houdt zijn eigen kaart op het hoogste niveau bij de drukformaten.
+**Contentbescherming.** In het exportpaneel vouwen de **Licentie** die je verleent, de **Bronvermeldingen** van alles wat je hebt geplaatst, *Wachtwoordbeveiliging*, **C2PA Credentials**, de **Lolly Imprint** en de **Durable credential** samen tot één ingeklapte, formaatbewuste groep **Contentbescherming**, zodat de herkomst-, rechten- en beschermingsopties van een bestand op één plek staan. De groep toont alleen de kaarten die van toepassing zijn op het gekozen formaat. Hij gaat vanzelf open wanneer een link of een opgeslagen document al een licentie vermeldt, of wanneer een bron een beslissing van je nodig heeft.
+
+**Licentie.** Kies hoe anderen je werk mogen gebruiken: standaard *None (all rights reserved)*, of CC0 1.0, de Public Domain Mark 1.0, of een van de Creative Commons 4.0-licenties (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). De naam van de licentie en een link naar de akte worden geschreven in de licentiemetadata van het bestand (EXIF, XMP en RIFF waar het formaat die velden heeft) en in de Content Credential ervan. De keuze wordt opgeslagen bij het document en reist mee in een deellink als `licence=`. Lolly schrijft de licentie die je koos. Het controleert of handhaaft de voorwaarden niet. Een tool met een eigen licentieveld, zoals Claim, houdt dat veld aan en toont geen tweede kiezer. Drukmarkeringen zitten er bewust *niet* in: het is productiegeometrie voor druk, geen bescherming, dus **Drukmarkeringen & afloop** - de afloopmaat in millimeters plus Crop, Registration, Bleed, Colour bars en Stamp details - houdt zijn eigen kaart op het hoogste niveau bij de drukformaten.
 
 ![De groep Contentbescherming geopend op een PNG-export, met alleen de kaarten die erop van toepassing zijn](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
@@ -263,7 +279,7 @@ Waar het formaat het ondersteunt, dragen exports **herkomstmetadata** - software
 
 **Kosten, berekend vanuit je tarievenkaart.** Onder preflight - helemaal onderaan, nog steeds boven de knoppen - staat een kaart die diezelfde tellingen omzet in geld, en dat altijd alleen op basis van prijzen die iemand heeft opgegeven. Hij leest wat de preflight-pas geteld heeft, of de preflight-kaart zelf nu aan staat of niet, en heeft twee dingen nodig om waar te zijn: de opdracht heeft iets dat een prijslijst überhaupt kan prijzen (platen, vellen, oppervlakte, pagina's, variantregels of outputbestanden - dus een gewone logo-PNG toont hem nooit), **en** er is een **tarievenkaart** aanwezig. Een tarievenkaart is een JSON-prijslijst van je drukker. Een standaardbuild bevat er geen en heeft geen manier in de app om er een te laden: hij komt ofwel binnen als catalogus-asset die een implementatie meelevert, of via de optionele tarievenkaart-extensie die een self-hoster of control plane aanzet. Zonder tarievenkaart wordt niets getoond - geen prompt, geen lege tabel.
 
-De regel waar het geheel op gebouwd is, is dat **er nooit geld verzonnen wordt**. Elk cijfer is een tarief dat jij hebt aangeleverd vermenigvuldigd met een hoeveelheid die Lolly geteld heeft - `4 platen × € 35,00` - en het totaal noemt zijn eigen bron in dezelfde zin als het cijfer: de uitgever die de kaart noemt, en de datum waarvan de kaart zegt dat de tarieven zijn. Er is geen standaardvaluta, geen placeholder en geen nul die staat voor een ontbrekende prijs. Wat het bestand over zichzelf zegt, blijft weergegeven als citaat: *"Het bestand zegt: … Lolly heeft dit niet geverifieerd."*
+De regel waar het geheel op gebouwd is, is dat **er nooit geld verzonnen wordt**. Elk cijfer is een tarief dat jij hebt aangeleverd vermenigvuldigd met een hoeveelheid die Lolly geteld heeft - `4 plate × €35.00` - en het totaal noemt zijn eigen bron in dezelfde zin als het cijfer: de uitgever die op de kaart staat, en de datum waarvan de kaart zegt dat de tarieven zijn. Er is geen standaardvaluta, geen placeholder en geen nul die staat voor een ontbrekende prijs. Wat het bestand over zichzelf zegt, blijft weergegeven als citaat: *"Het bestand zegt: … Lolly heeft dit niet geverifieerd."*
 
 En als het niet eerlijk kan rekenen, **verdwijnt** de werktabel in plaats van te verwateren tot een grijs gemaakt of ingevuld cijfer:
 
@@ -318,11 +334,11 @@ Een export die het werk van iemand anders plaatst, legt die bron ook vast in de 
 
 ## Op een telefoon
 
-De exportbediening zit achter de zwevende knop **Render**, die het **Export**-blad opent - dezelfde formaten, formaat, kopiëren, downloaden en delen, aangepast voor touch.
+De exportbediening zit achter de zwevende knop **Exporteren**, die het blad **Exporteren** opent - dezelfde formaten, formaat, kopiëren, downloaden en delen, aangepast voor touch.
 
 ## Formaatoverzicht
 
-Elk id dat de host kan renderen, gegroepeerd. Dit zijn ook de waarden voor de URL-parameter `format=` en de CLI-vlag `--export=` - zie [URL-modus](/info/url-mode.html) en [CLI](/info/cli.html). Een tool biedt alleen de subset die zijn auteur declareerde, dus de kiezer is altijd korter dan deze lijst.
+Elk id dat de host kan renderen, gegroepeerd. Dit zijn ook de waarden voor de URL-parameter `format=` en de CLI-vlag `--export=` - zie [URL-modus](/info/url-mode.html) en [CLI](/info/cli.html). Het menu van een tool toont alleen de formaten die die tool kan maken, dus het is altijd korter dan deze lijst.
 
 | Soort | Id's |
 |---|---|

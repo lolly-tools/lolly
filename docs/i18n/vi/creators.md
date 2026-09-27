@@ -34,9 +34,15 @@ Chữ chuyển động, các cảnh trên một dòng thời gian và chuyển �
 
 Ghi một bản thu sạch với đếm nhịp mở đầu, đồng hồ đo mức và những gợi ý nhẹ nhàng, hoặc biến một ghi chú giọng nói thành một video hoàn chỉnh chuyển động theo âm thanh. Hiện chưa có trang Record riêng: Sử dụng Lolly đảm nhận việc này, trong phần dòng thời gian.
 
-- **[Sử dụng Lolly](/info/using.html#timeline-sequence-studio)** - ghi lời thoại trực tiếp lên dòng thời gian, bản thu được lưu ở đâu và nó đi vào bản trộn âm thanh như thế nào.
-- **[Tạo thứ gì đó trong 60 giây](/info/make-something.html#make)** - cảnh audiogram, cho khi bạn muốn được nghe thấy hơn là được nhìn thấy.
+- **[Sử dụng Lolly](/info/using.html#timeline-sequence)** - ghi lời thoại trực tiếp lên dòng thời gian, bản thu được lưu ở đâu và nó đi vào bản trộn âm thanh như thế nào.
+- **[Tạo tệp đầu tiên của bạn](/info/make-something.html#other-first-projects)** - audiogram, cho khi bạn muốn được nghe thấy hơn là được nhìn thấy.
 - **[Các khung nhìn tiện ích](/info/utilities.html)** - Script audio, khi lời văn có trước và giọng nói có sau.
+
+## Trình chiếu
+
+Đặt camera, logo và tên của bạn lên trên một bản trình chiếu Design hoặc Countdown, với các điều khiển riêng tư trong một cửa sổ riêng.
+
+- **[Presenting with camera](/info/presenting.html)** - canh khung hình, các cảnh đã lưu, chia sẻ với khán giả, ghi hình cục bộ và những giới hạn hiện tại của bản dùng thử.
 
 ## Cộng tác
 

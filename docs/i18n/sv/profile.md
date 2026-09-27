@@ -2,9 +2,9 @@
 
 En **profil** är den arbetsidentitet Lolly skapar *som*. Det är den lilla uppsättningen detaljer ett verktyg kan hämta från så att du slipper skriva om dem varje gång - ditt namn, kontaktuppgifter, en valfri profilbild, några inställningar - plus allt du samlar på dig medan du arbetar: sparade sessioner, uppladdade bilder och den lokala aktivitetssammanräkningen.
 
-Allt i en profil finns **på enheten**, i webbläsarens lokala databas (IndexedDB i webb-PWA:n, filsystemet i Tauri-apparna). Det finns inget konto och inget laddas upp. Du hanterar den under **Profil** (uppe till höger i galleriet); verktyg *läser* den bara någonsin, och endast de specifika fälten de är byggda för att förifylla.
+Allt i en profil finns **på enheten**, i webbläsarens lokala databas (IndexedDB i webb-PWA:n, filsystemet i Tauri-apparna). Det finns inget konto och inget laddas upp. Du hanterar den under **Inställningar → Preferences** (i sidfoten eller avatarmenyn); verktyg *läser* den bara någonsin, och endast de specifika fälten de är byggda för att förifylla.
 
-> En profil handlar om *dig* (eller vem det nu är som skapar här). Den är skild från **Platform** - varumärkets färger, typsnitt och globala inställningar - och från **Capabilities**, katalogen över vad appen kan göra. Se [Profile vs Platform vs Capabilities](#profile-vs-platform-vs-capabilities) i slutet.
+> Inställningar samlar din profil och den tidigare Instrumentpanelen på ett och samma ställe. **Preferences** rymmer dina uppgifter och personliga val; **Den här enheten**, **Designsystem**, **Funktioner** och **Aktivitet och statistik** finns bredvid den. Se [Inställningar](/info/dashboard.html) för hela kartan.
 
 ## Vad som finns i en profil
 
@@ -25,7 +25,7 @@ Allt i en profil finns **på enheten**, i webbläsarens lokala databas (IndexedD
 
 Inget av detta är obligatoriskt. En tom profil är en fullt godtagbar profil; du fyller bara i det som besparar dig onödigt skrivande.
 
-Sidan är lång, så den har en egen **inställningsskena** längs sidan - Your details, Appearance, Accessibility, Lolly instance, Your activity, Storage, Available offline, Feature flags, Content Credentials - med ett **Search settings**-fält ovanför som filtrerar listan medan du skriver. Varje sektion kan djuplänkas som `#/profile?focus=<section-id>`, vilket öppnar den och skrollar den i vy (`#/profile?focus=storage-section`, `?focus=feature-flags-section` och så vidare), så en länk kan peka på en enskild inställning i stället för toppen av sidan.
+Sidan är lång, så den har en egen **inställningsskena** längs sidan - Your details, Appearance, Accessibility, Lolly instance, Your activity, Storage, Available offline, Feature flags, Content Credentials - med ett **Search settings**-fält ovanför som filtrerar listan medan du skriver. Varje sektion kan djuplänkas som `#/settings?focus=<section-id>`, vilket öppnar den och skrollar den i vy (`#/settings?focus=storage-section`, `?focus=feature-flags-section` och så vidare), så en länk kan peka på en enskild inställning i stället för toppen av sidan.
 
 ![Tre temakort, vart och ett med en förhandsvisning av sin egen typografi och färg, med det aktiva flaggat](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
@@ -55,7 +55,7 @@ I varje ögonblick har en installation **en aktiv profil** - de uppgifter ett ve
 
 ![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
-- <!--i:trash--> **Renaste bytet:** **Profile → Storage → Clear all my data**, och sedan **Import** paketet för det sammanhang du går in i. Nu skapar du helt och hållet som den profilen.
+- <!--i:trash--> **Renaste bytet:** **Inställningar → Preferences → Lagring → Rensa all min data**, och sedan **Import** paketet för det sammanhang du går in i. Nu skapar du helt och hållet som den profilen.
 - <!--i:layers--> **Lagring:** att importera *utan* att först rensa **slår ihop** - den importerade profilen, sessionerna och bilderna hamnar ovanpå det som redan finns, ersätter allt med samma namn och lämnar resten. Praktiskt för att dra in ett teams sparade sessioner i din egen uppsättning; inte vad du vill om du behöver en ren rollgräns.
 - <!--i:monitor--> **Sida vid sida:** eftersom allt är enhetsbundet bär en separat webbläsarprofil, ett separat användarkonto eller en andra installerad PWA var sin oberoende Lolly-profil. Kör din personliga installation och event-kioskens installation samtidigt, utan att växla.
 
@@ -67,7 +67,7 @@ Så om du verkligen jonglerar flera sammanhang (du, ditt team, eventansvarig-hat
 
 ## Tillgänglighet
 
-**Profile → Accessibility** rymmer fyra komfortinställningar för appen *runt* ditt arbete. Var och en är av tills du slår på den, och ingen av dem når in i en verktygscanvas eller en export - en lugnare app får inte flytta en enda pixel i filen du skickar.
+**Inställningar → Preferences → Accessibility** rymmer fyra komfortinställningar för appen *runt* ditt arbete. Var och en är av tills du slår på den, och ingen av dem når in i en verktygscanvas eller en export - en lugnare app får inte flytta en enda pixel i filen du skickar.
 
 - <!--i:film--> **Minska rörelse** - stänger av övergångarna, glidningarna och de animerade flourishesna i appen. Din verktygscanvas och alla animerade exporter fortsätter att röra sig precis som avsett.
 - <!--i:image--> **Dölj färgglada förhandsvisningar** - byter ut galleriets förhandsvisningskonst mot lugna ikon-och-text-kort, och sänker färgen och kontrasten på dina projektminiatyrer så de förblir igenkännbara utan att skrika. Inuti ett verktyg visas allt i full färg.
@@ -78,13 +78,13 @@ De här bor på själva profilposten, vilket är varför de följer med i en pro
 
 ## Din Lolly-instans
 
-**Profile → Lolly instance** anger var den här installationen hämtar sina verktyg och sin katalog ifrån - instansens adress, eller *Bundled with this app* när allt levereras inuti bygget. Där en driftsättning erbjuder en visas en **Instance console**-länk som öppnar dess administrationsyta, och **Change** / **Disconnect** pekar om installationen eller kopplar loss den.
+**Inställningar → Preferences → Lolly-instans** anger var den här installationen hämtar sina verktyg och sin katalog ifrån - instansens adress, eller *Bundled with this app* när allt levereras inuti bygget. Där en driftsättning erbjuder en visas en **Instanskonsol**-länk som öppnar dess administrationsyta, **Ändra** pekar om installationen, och **Lämna** tar bort instansens designsystem, verktyg och katalog medan ditt eget arbete stannar kvar (se [Använd Lolly i din organisation](/info/organisation.html#leaving)).
 
 Att peka om mot en annan instans kräver **skrivbordsappen**: en webbläsare blockerar en sida från att ladda verktyg och tillgångar över origin, så på webben rapporterar sektionen bara var du är och lämnar det så.
 
 ## Tillgängligt offline
 
-Lolly cachar allteftersom, men cachning-allteftersom täcker bara där du redan varit. **Profile → Available offline** är till för resan du ser komma: en timme på flygplatsens wifi innan en flygning utan något alls. Ladda ner delarna du kommer behöva, se en enda förloppsindikator, och allt du tog med fortsätter fungera när anslutningen är borta.
+Lolly cachar allteftersom, men cachning-allteftersom täcker bara där du redan varit. **Inställningar → Preferences → Tillgänglig offline** är till för resan du ser komma: en timme på flygplatsens wifi innan en flygning utan något alls. Ladda ner delarna du kommer behöva, se en enda förloppsindikator, och allt du tog med fortsätter fungera när anslutningen är borta.
 
 Sju delar, var och en med sin storlek angiven innan du bestämmer dig:
 
@@ -104,9 +104,9 @@ Om webbläsaren inte har beviljat permanent lagring säger avsnittet det och erb
 
 ## Flytta en profil till en ny enhet
 
-![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+Eftersom en profil är helt lokal finns det två sätt att få den till en tom installation - en ny bärbar dator, en nyligen återställd webbläsare, en kollegas maskin, en offline-burk. **Ta med filen**, som nedan, eller håll dina egna enheter i synk genom lagring du väljer själv, som [Synkronisera dina enheter](/info/sync.html) förklarar. Ingen Lolly-inloggning återställer den åt dig, och det är hela poängen: inget skickades någonsin till en Lolly-server från början.
 
-Eftersom en profil är helt lokal är det enda sättet att få den till en tom installation - en ny bärbar dator, en nyligen återställd webbläsare, en kollegas maskin, en offline-burk - att **ta med filen**. Ingen inloggning återställer den åt dig, och det är hela poängen: inget lämnade någonsin din enhet från början.
+Under **Inställningar → Preferences → Lagring → Flytta till en annan enhet**:
 
 - <!--i:download--> **Export my data** laddar ner en `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - uppkallad efter profilen den tillhör, med ett sekvensnummer per dag så att upprepade exporter inte krockar (namndelar utelämnas om profilen saknar dem). Den innehåller din profil, varje sparad session (med sin miniatyrbild), dina uppladdade bilder - dina varumärkestoken och installerade typsnitt följer med som användartillgångar - och dina inställningar (tema, layout, lokal aktivitetsstatistik).
 - <!--i:upload--> **Import data…** på den andra installationen läser in den filen igen så att du fortsätter precis där du slutade.
@@ -126,7 +126,7 @@ För den exakta paketstrukturen, versionspolicyn och integritetsreglerna, se **[
 
 Ett verktyg *förifyller* bara någonsin de profilfält det uttryckligen är byggt för att binda till:
 
-**Tillvalet (proveniens).** När du exporterar en tillgång följer dina uppgifter valfritt med som **proveniens** - en upphovs-/krediteringsrad inbäddad i filens metadata (PNG, PDF, SVG, …) - så att en färdig tillgång kan visa vem som gjorde den. Det är *detta* som **Använd mina uppgifter för att skapa** styr: låt den vara av och exporten bär ändå attributionen "Made with Lolly" för verktyg/plattform, men ingen personlig upphovs-/kontaktrad bäddas in. (Samma tillval sätter upphovspersonen på batchkörningar i **/pro**.) (Verktygsförfattare: se [Authoring Tools → `bindToProfile`](/info/authoring-tools.html#bindtoprofile) och [Host API → `host.profile`](/info/host-api.html#host-profile).)
+**Tillvalet (proveniens).** När du exporterar en tillgång följer dina uppgifter valfritt med som **proveniens** - en upphovs-/krediteringsrad inbäddad i filens metadata (PNG, PDF, SVG, …) - så att en färdig tillgång kan visa vem som gjorde den. Det är *detta* som **Använd mina uppgifter för att skapa** styr: låt den vara av och exporten bär ändå attributionen "Made with Lolly" för verktyg/plattform, men ingen personlig upphovs-/kontaktrad bäddas in. (Samma tillval sätter upphovspersonen på batchkörningar i **/pro**.) (Verktygsförfattare: se [Authoring Tools → `bindToProfile`](/info/tool-inputs.html#bindtoprofile) och [Host API → `host.profile`](/info/host-api.html#host-profile).)
 
 ![Den enda omkopplaren Använd mina uppgifter för att skapa, bredvid Spara profil och av tills du slår på den](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
@@ -151,4 +151,4 @@ Ordet är överanvänt i projektet. Ingen av dessa är den personliga profil som
 
 ## Integritet
 
-Utöver den valfria identitetsregistreringen ovan (som skickar den e-post du registrerar till certifikattjänsten - se [Serverns yta](/info/server-surface.html)) skickas en profil aldrig, laddas aldrig upp och används aldrig för att identifiera eller spåra dig - det finns inget att samtycka till, bara denna information så att du vet vad som sparas. Radera allt av det när som helst med **Profil → Radera alla mina data**. Se [Integritetspolicyn](/info/privacy.html).
+Utöver den valfria identitetsregistreringen ovan (som skickar den e-post du registrerar till certifikattjänsten - se [Serverns yta](/info/server-surface.html)), skickas en profil aldrig, laddas aldrig upp och används aldrig för att identifiera eller spåra dig - det finns inget att samtycka till, bara denna information så att du vet vad som sparas. Radera allt av det när som helst med **Inställningar → Preferences → Rensa all min data**. Se [Integritetspolicyn](/info/privacy.html).

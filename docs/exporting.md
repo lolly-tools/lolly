@@ -1,18 +1,32 @@
 # Exporting & Formats
 
-How to get a finished file out of a tool - picking the right format, setting the output size and what each option does. Like everything else, **export happens on your device**; nothing is uploaded.
+Press **Export** on a tool's **Export | Save as** pill, pick a format from the menu beside the file name, then press **Download**. The file is made on your device; nothing is uploaded.
+
+For most jobs one of three formats is right:
+
+| For | Choose | Because |
+|---|---|---|
+| A screen, a message or a slide | **PNG** | Every app opens it, and it keeps a transparent background when the tool offers one |
+| A finished page, or anything printed | **PDF** | A true page size that prints as it looks; **Print PDF**, where a tool offers it, is the CMYK version for a press |
+| Artwork that must stay sharp at any size | **SVG** | Vector shapes, crisp from a badge to a banner |
+
+::: check Check the file at the size it will be used
+Before you send it, open it on the screen it was made for, or print it at its real size.
+:::
+
+The rest of this page covers every format, size and option.
 
 ## How export works
 
-The preview *is* the file. When you export, the host renders that canvas to the format you chose and hands you a download (or puts it on your clipboard). A tool only offers the formats its author declared, and the picker hides any your browser can't produce (see [Video](#video)).
+The preview *is* the file. When you export, the host renders that canvas to the format you chose and hands you a download (or puts it on your clipboard). The picker hides any format your browser can't produce (see [Video](#video)).
 
 Three paths produce a file. Most tools **render the canvas** to the chosen format. Text and data formats (HTML, MD, TXT, JSON, CSV, ICS, VCF) are instead **generated from the tool's content**, not rasterised from the picture. And privacy utilities (e.g. *Strip Hidden Data*) use a third path: the file *you* pick is transformed byte-for-byte on device and handed straight back - no canvas, no watermark and no provenance metadata added, because it's already your own file.
 
-The actions in the export controls:
+The actions in the Export panel:
 
-- <!--i:download--> **Download** - save the file (the primary action).
+- <!--i:download--> **Download** - save the file (the primary action). If you cannot find it afterwards, see [Find a file you downloaded](/info/find-your-work.html#find-a-file-you-downloaded).
 - <!--i:photos--> **Copy** - put the image on your clipboard to paste straight into Slack, email, a doc. Where a browser can't copy images, it downloads instead and tells you.
-- <!--i:folder--> **Save** - keep the current design as a saved tool session in your library.
+- <!--i:folder--> **Save** - keep the current design in Projects in one click, without asking where; it never downloads a file. **Save as**, beside **Export**, asks where (see [Saving and continuing](/info/using.html#saving-continuing)).
 - <!--i:link--> **Share** - opens the **Share dialog**: a copyable link that reproduces the design, on-visit toggles (fullscreen, export panel, download- or copy-on-open) and an optional **Shortest link** that packs the whole state into a compact token (see [URL Mode](/info/url-mode.html)).
 
 (A tool's author picks which of these appear; the default set is Copy, Download and Save.)
@@ -32,13 +46,13 @@ A saved session can also be re-shared as a tool link from Projects (it reconstru
 
 ## Choosing a format
 
-The filename and the format picker sit at the top of the panel as one `name.format` pair, and the picker lists only the formats this tool's author declared.
+The file name and the format menu sit together as one `name.format` pair, below **Download**.
 
 ![The filename field fused to the format picker, so the export reads as one name.format pair](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
 | You want… | Use | Why |
 |---|---|---|
-| Crisp logos / artwork that scales | **SVG** | Vector - infinitely scalable, tiny, editable |
+| Crisp logos / artwork that scales | **SVG** | Vector - infinitely scalable, tiny, editable; an effect the vector export cannot draw is embedded as an image |
 | Vector for Office / Windows apps | **EMF** | Pastes as editable vector into PowerPoint / Word; text stays live and editable, and Google Drive opens it in Google Drawings for Slides |
 | Vector for print / design apps | **EPS**, or **EPS (CMYK)** | PostScript vector for Illustrator / press workflows |
 | Vector for cutting / CAD machines | **DXF** | Laser cutters, vinyl plotters, CNC - outline paths in millimetres |
@@ -320,11 +334,11 @@ An export that places someone else's work records that source in the credential 
 
 ## On a phone
 
-The export controls live behind the floating **Render** button, which opens the **Export** sheet - same formats, size, copy, download and share, sized for touch.
+The export controls live behind the floating **Export** button, which opens the **Export** sheet - same formats, size, copy, download and share, sized for touch.
 
 ## Format reference
 
-Every id the host can render, grouped. These are also the values for the URL `format=` parameter and the CLI `--export=` flag - see [URL Mode](/info/url-mode.html) and [CLI](/info/cli.html). A tool offers only the subset its author declared, so the picker is always shorter than this list.
+Every id the host can render, grouped. These are also the values for the URL `format=` parameter and the CLI `--export=` flag - see [URL Mode](/info/url-mode.html) and [CLI](/info/cli.html). A tool's menu shows only the formats that tool can make, so it is always shorter than this list.
 
 | Kind | Ids |
 |---|---|

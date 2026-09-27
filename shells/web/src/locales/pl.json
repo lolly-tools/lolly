@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "Ten sam kolor, zapisany dla każdej przestrzeni. Wiersz oznaczony „przycięte” wskazuje przestrzeń zbyt wąską, aby go pomieścić - CSS zaokrągliłby te liczby do zakresu.",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "Każdy kolor palety jako TEKST (w wierszach) na tle każdego koloru palety jako TŁO (w kolumnach), plus biel i czerń. APCA zależy od polaryzacji, więc komórka i jej lustrzane odbicie różnią się, a przekątna - kolor na sobie samym - daje wynik ~0. Wybierz tryb widzenia, aby przekolorować siatkę i pasek marki oraz przeliczyć każdą parę dla tego trybu.",
   "Assets": "Zasoby",
-  "Runs the deeper AI text check on Verify and in Assets.": "Uruchamia głębszą kontrolę tekstu AI w Weryfikacji i w Zasobach."
+  "Runs the deeper AI text check on Verify and in Assets.": "Uruchamia głębszą kontrolę tekstu AI w Weryfikacji i w Zasobach.",
+  "Copied to clipboard": "Skopiowano do schowka",
+  "Copy did not work": "Kopiowanie nie powiodło się",
+  "Select the text, then use your device’s copy command.": "Wybierz tekst, a następnie użyj polecenia kopiowania swojego urządzenia.",
+  "Select text": "Wybierz tekst",
+  "Text selected. Use your device’s copy command.": "Wybrano tekst. Użyj polecenia kopiowania swojego urządzenia.",
+  "Copy {label}": "Kopiuj {label}"
 }

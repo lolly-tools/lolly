@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "Stejná barva, zapsaná pro každý prostor. Řádek označený „ořezáno“ ukazuje prostor příliš úzký, aby ji pojal - CSS by tato čísla zaokrouhlilo do rozsahu.",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "Každá barva palety jako TEXT (po řádcích) na každé barvě palety jako POZADÍ (napříč sloupci), plus bílá a černá. APCA závisí na polaritě, takže se buňka a její zrcadlo liší a diagonála - barva sama na sobě - vychází ~0. Vyber režim vidění pro přebarvení mřížky a značkové lišty a přepočítej skóre každé dvojice pro tento režim.",
   "Assets": "Assety",
-  "Runs the deeper AI text check on Verify and in Assets.": "Spouští hlubší kontrolu AI textu v Ověření a v Assetech."
+  "Runs the deeper AI text check on Verify and in Assets.": "Spouští hlubší kontrolu AI textu v Ověření a v Assetech.",
+  "Copied to clipboard": "Zkopírováno do schránky",
+  "Copy did not work": "Kopírování se nezdařilo",
+  "Select the text, then use your device’s copy command.": "Vyber text a použij kopírovací příkaz svého zařízení.",
+  "Select text": "Vybrat text",
+  "Text selected. Use your device’s copy command.": "Text vybrán. Použij kopírovací příkaz svého zařízení.",
+  "Copy {label}": "Kopírovat {label}"
 }

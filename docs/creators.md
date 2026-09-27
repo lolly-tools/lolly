@@ -35,7 +35,7 @@ Text that moves, scenes on a timeline and motion that stays on-brand. A motion e
 Record a clean take with a count-in, a level meter and gentle coaching, or turn a voice note into a finished video that moves with the sound. There is no separate Record page yet: Using Lolly carries it, in the timeline section.
 
 - **[Using Lolly](/info/using.html#timeline-sequence)** - recording a voiceover straight onto the timeline, where the take is saved and how it reaches the mix.
-- **[Make something in 60 seconds](/info/make-something.html#make)** - the audiogram scene, for when you would rather be heard than seen.
+- **[Make your first file](/info/make-something.html#other-first-projects)** - the audiogram, for when you would rather be heard than seen.
 - **[Utility views](/info/utilities.html)** - Script audio, when the words come first and the voice comes after.
 
 ## Present

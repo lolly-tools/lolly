@@ -5,7 +5,7 @@ Questions fréquentes affichées dans l'accordéon de la page d'accueil `/info`.
 **Maintenance :** chaque titre `##` ci-dessous est une question ; tout ce qui se trouve en dessous
 (jusqu'au `##` suivant) est la réponse. Les réponses utilisent le même markdown léger que
 le reste du site - sépare les paragraphes par une ligne vide. Ajoute, supprime ou
-réordonne les questions ici, puis relance `npm run build:info` (ou `npm run dev:web`).
+réordonne les questions ici, puis relance `pnpm run build:info` (ou `pnpm run dev:web`).
 Tout ce qui précède le premier `##` (ce titre et ces notes) est ignoré par le build.
 
 ## Que se passe-t-il quand j'active l'option sur la page /profile ?
@@ -118,9 +118,17 @@ On gagne la bataille de la gouvernance par une commodité et un service excellen
 
 Oui. Ouvre **Design** et clique sur **Import a design** (importer un design) : il accepte un **.fig** natif de Figma (Save local copy), un export Penpot **.penpot**, un **.ai** ou un **.pdf** d'Illustrator, un **.idml** d'InDesign (File → Export → InDesign Markup) ou **n'importe quel SVG** (la porte large - presque toutes les applications de design en exportent). Aucun compte, aucun plugin et aucune licence d'application de design ne sont nécessaires.
 
-![Design's open canvas - Import a design sits in the toolbar's Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![Le canevas ouvert de Design - Importer un design se trouve dans le menu Lolly de la barre d'outils](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 Les calques arrivent sous forme de blocs modifiables sur la toile libre : le texte reste ressaisissable, les formes restent des formes, les images rejoignent ta propre bibliothèque d'images, et la typographie comme les couleurs se conforment aux globals de marque. Enregistre-la et la mise en page devient un gabarit réutilisable, adressable par URL, que n'importe qui disposant de Lolly peut remplir à nouveau - et tu peux y mêler des outils vivants (un QR code, un graphique) qui se rendent à nouveau au chargement. À partir de là, elle se rend comme tout le reste dans Lolly - SVG, PDF, PNG et les autres, reproductibles depuis leur URL. Voir [Import a design](/info/design-import.html).
+
+## Où est ce que j'ai fait hier ?
+
+Si tu as appuyé sur **Enregistrer sous** ou **Enregistrer**, c'est dans **Projets**, sur l'écran d'accueil, dans le navigateur ou l'application depuis lequel tu as enregistré. Si tu as seulement appuyé sur **Télécharger**, le fichier est là où ton navigateur ou ton système enregistre les téléchargements, et généralement une copie se trouve aussi dans **Éléments**. Neuf outils gardent aussi le travail non enregistré dans **Projets**. [Retrouver et récupérer ton travail](/info/find-your-work.html) couvre tous les cas.
+
+## J'ai fermé l'onglet. Mon travail a-t-il disparu ?
+
+Le travail enregistré est toujours dans **Projets**. Le travail non enregistré a disparu, sauf dans les neuf outils qui enregistrent au fil du travail, qui le gardent aussi dans **Projets**. La prochaine fois, appuie sur **Enregistrer sous** avant de partir. Voir [Si tu as fermé l'onglet ou quitté l'outil](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Puis-je partager mon travail sous forme de fichier plutôt que de lien ?
 

@@ -4,7 +4,7 @@
    was deleted - the cut is whitespace only, so every message, card and mascot survives.
    If you are about to make a band airier again, check the page height first: the numbers
    above are what "generous everywhere" adds up to over nineteen bands. */
-.quicknav{position:sticky;top:3.75rem;z-index:90;background:hsl(var(--background) / 0.9);border-bottom:1px solid var(--border);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.quicknav{position:sticky;top:var(--site-bar-h);z-index:90;background:hsl(var(--background) / 0.9);border-bottom:1px solid var(--border);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 html[data-theme="dark"] .quicknav{background:rgba(9,26,21,.9)}
 .quicknav-inner{max-width:1180px;margin:0 auto;display:flex;gap:.15rem;padding:0 1.5rem;overflow-x:auto;scrollbar-width:none}
 .quicknav-inner::-webkit-scrollbar{display:none}
@@ -52,10 +52,10 @@ html[data-theme="dark"] .quicknav{background:rgba(9,26,21,.9)}
 .hero-wrap{position:relative;overflow:hidden;background:linear-gradient(180deg,#1c4a2e 0%,#0c3226 100%) top/100% var(--hero-h,100%) no-repeat,#0c3226;background:linear-gradient(180deg,color-mix(in oklab,hsl(var(--primary)) 34%,#0b1512) 0%,color-mix(in oklab,hsl(var(--primary)) 15%,#0a120f) 100%) top/100% var(--hero-h,100%) no-repeat,color-mix(in oklab,hsl(var(--primary)) 15%,#0a120f)}
 .hero{background:transparent;color:hsl(var(--on-band-dark));padding:4.5rem 1.5rem 3.5rem;text-align:center;position:relative;z-index:1;user-select:none;-webkit-user-select:none}
 /* Double-clicking the hero backdrop shouldn't highlight the heading/subtitle/trust copy; buttons keep normal selection. */
-.hero .btn{user-select:auto;-webkit-user-select:auto; }
+.hero .hero-btn{user-select:auto;-webkit-user-select:auto; }
 .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 90% 55% at 50% -5%,rgba(48,186,120,.13) 0%,transparent 65%);pointer-events:none}
 #heroCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:color-dodge;opacity:.6}
-.hero h1{font-size:clamp(2.75rem,6vw,5rem);letter-spacing:-.04em;line-height:1.05;margin-bottom:1.5rem;color:hsl(var(--on-band-dark));position:relative;padding-left:.3em;font-weight:200}
+.hero h1{font-size:clamp(2.75rem,6vw,5rem);line-height:1.05;margin-bottom:1.5rem;color:hsl(var(--on-band-dark));position:relative;padding-left:.3em;font-weight:200}
 /* The hero's headline statement - the page's single h1, above the pilot pill in the
    details column. Displayed in SUSE Mono, uppercased in CSS ONLY: the DOM text stays
    title case, so screen readers read it naturally and the non-Latin locales (whose
@@ -129,7 +129,10 @@ html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{o
 .hero-trust{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.5rem;position:relative}
 .hero-trust span{font-size:.8rem;line-height:1;color:hsl(var(--on-band-dark) / .5);letter-spacing:0}
 .trust-dot{color:hsl(var(--on-band-dark) / .18)!important}
-.btn{display:inline-flex;align-items:center;padding:2rem 3rem;border-radius:1rem;font-weight:700;font-size:1rem;transition:all .18s ease;box-shadow:0 .2em 1em #0002}
+/* The landing's big call-to-action pill. Its own class, not .btn: /info reads the
+   app's buttons.css for its top bar (plan 277 step 3c), and there .btn is the
+   app's small bevelled button. */
+.hero-btn{display:inline-flex;align-items:center;gap:.45em;padding:2rem 3rem;border-radius:1rem;font-weight:700;font-size:1rem;transition:all .18s ease;box-shadow:0 .2em 1em #0002}
 /* The primary CTA wears the brand's primary, and its ink is whichever of black or
    white reads on that fill: --hero-cta-ink is measured off the PAINTED button by
    fitHeroCtaInk (lib/docs-landing.ts) once the fragment is in the DOM, so a near-black
@@ -330,7 +333,7 @@ html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{o
   .hero-logo-slot{width:clamp(120px,32vw,340px);margin-bottom:.5rem}
   .hero .subtitle{margin-bottom:1.2rem}
   .hero-cta{margin-bottom:1.2rem;flex-wrap:nowrap;gap:.6rem}
-  .hero-cta .btn{flex:1 1 0;min-width:0;justify-content:center;padding:1.05rem .75rem;
+  .hero-cta .hero-btn{flex:1 1 0;min-width:0;justify-content:center;padding:1.05rem .75rem;
     font-size:.9375rem;border-radius:.85rem}
 
   .dl-head{margin-bottom:.5rem}
@@ -465,7 +468,7 @@ html[data-a11y-motion="reduce"] .hero-logo-link:focus-visible .hero-logo-still{o
 .card-icon{width:2.5rem;height:2.5rem;color:var(--green);margin-bottom:1.25rem}
 .card-icon svg{width:100%;height:100%}
 .card-audience{font-size:.6875rem;text-transform:uppercase;letter-spacing:.14em;color:var(--green);font-weight:700;margin-bottom:.375rem}
-.card-tagline{font-size:1.5rem;font-weight:800;color:var(--dark);margin-bottom:.75rem;line-height:1.2;letter-spacing:-.02em}
+.card-tagline{font-size:1.5rem;font-weight:800;color:var(--dark);margin-bottom:.75rem;line-height:1.2}
 .card-intro{font-size:.9375rem;color:var(--muted);line-height:1.75;margin-bottom:1.5rem}
 .card-main pre{font-size:.8rem;margin-top:0;margin-bottom:0;white-space:pre-wrap;overflow-wrap:anywhere;box-sizing:border-box}
 .card-main pre::-webkit-scrollbar{display:none}
@@ -609,7 +612,7 @@ html[data-theme="dark"] .behind-para strong{color:hsl(var(--foreground))}
 .mc-ic svg{width:1.25rem;height:1.25rem}
 .machine-card .bullet-icon{flex:none;color:var(--green)}
 .machine-card .bullet-icon svg{width:1.25rem;height:1.25rem}
-.mc-title{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;margin:.5rem 0 .75rem;line-height:1.2;text-transform:none}
+.mc-title{font-size:1.5rem;font-weight:800;margin:.5rem 0 .75rem;line-height:1.2;text-transform:none}
 .mc-intro{font-size:.9375rem;line-height:1.65;margin:0 0 1.25rem;max-width:56ch}
 
 .machine-card--agents{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:2.5rem;align-items:center;background:hsl(var(--band-dark));color:hsl(var(--on-band-dark));padding:2.75rem 3rem}
@@ -895,7 +898,7 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 .import-sources{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:1.75rem}
 .import-source{display:flex;flex-direction:column;align-items:center;text-align:center;gap:.5rem;background:hsl(var(--card));border:0;    box-shadow: 0 .3rem 1rem #00000016;border-radius:14px;padding:1.5rem 1rem;transition:box-shadow .15s,transform .15s}
 .import-source:hover{box-shadow:0 8px 24px rgba(12,50,44,.1);transform:translateY(-2px)}
-.import-badge{display:inline-flex;align-items:center;box-shadow:inset 0 0 0 1px #0002, inset 0 1.25px 2px #fff9,  0 .2rem .4rem #0002;justify-content:center;width:2.75rem;height:2.75rem;border-radius:12px;background:var(--b,#30ba78);color:hsl(var(--on-band-dark));font-weight:800;font-size:.9rem;letter-spacing:-.01em}
+.import-badge{display:inline-flex;align-items:center;box-shadow:inset 0 0 0 1px #0002, inset 0 1.25px 2px #fff9,  0 .2rem .4rem #0002;justify-content:center;width:2.75rem;height:2.75rem;border-radius:12px;background:var(--b,#30ba78);color:hsl(var(--on-band-dark));font-weight:800;font-size:.9rem}
 .import-source strong{color:var(--dark);font-size:.95rem;font-weight:700}
 .import-fmt{font-family:'SUSE Mono','SF Mono',monospace;font-size:.72rem;color:var(--muted);letter-spacing:.02em}
 .import-flow{display:flex;align-items:stretch;gap:.5rem;margin-bottom:2.75rem}
@@ -969,7 +972,7 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 /* FAQ */
 .faq-section{padding:3.25rem 2rem;background:hsl(var(--background))}
 .faq-inner{margin:0 auto; max-width: calc(var(--col-cap) * 1.4);}
-.faq-section h2{text-align:center;margin-bottom:.5rem}
+.faq-section h1,.faq-section h2{text-align:center;margin-bottom:.5rem}
 .faq-lead{text-align:center;color:var(--muted);font-size:1.0625rem;margin-bottom:1.75rem}
 .faq-list{display:flex;flex-direction:column;gap:.75rem}
 .faq-item{border:1px solid var(--border);border-radius:12px;background:var(--pale);overflow:hidden;transition:box-shadow .15s,border-color .15s}
@@ -1050,7 +1053,7 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 [data-theme="dark"] .card-tagline{color:var(--text)}
 [data-theme="dark"] .card-intro{color:var(--muted)}
 [data-theme="dark"] .faq-section{background:hsl(var(--background))}
-[data-theme="dark"] .faq-section h2{color:var(--text)}
+[data-theme="dark"] .faq-section h1,[data-theme="dark"] .faq-section h2{color:var(--text)}
 [data-theme="dark"] .faq-item{background:hsl(var(--muted))}
 [data-theme="dark"] .faq-q{color:var(--text)}
 [data-theme="dark"] .card-benefits strong{color:var(--text)}
@@ -1208,7 +1211,7 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 
 /* ── beat 3: what / why ─────────────────────────────────────────────────── */
 .whatwhy-section{padding:4rem 1.5rem 2.5rem}
-.whatwhy-inner{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:2.5rem 3.5rem}
+.whatwhy-inner{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:2.5rem 3.5rem}
 .whatwhy-eyebrow{font-size:.6875rem;text-transform:uppercase;letter-spacing:.12em;color:color-mix(in oklab,hsl(var(--primary)) 70%,var(--text));font-weight:700}
 .whatwhy-big{font-size:1.6rem;letter-spacing:0;text-transform:none;font-weight:800;margin:.5rem 0 .75rem;text-wrap:balance}
 .whatwhy-body{color:var(--muted);max-width:52ch;margin:0 0 1rem}
@@ -1284,14 +1287,17 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 .lane-links a:hover{border-color:var(--green);text-decoration:none}
 .lane-links code{font-family:'SUSE Mono',monospace;font-size:.75rem;color:var(--muted);background:none;padding:0}
 .lane-cta{display:flex;gap:1rem;align-items:center;flex-wrap:wrap}
-/* Self-contained button styling: the lane CTAs must not depend on the docs
-   template's .btn (absent in the in-app reader) or the app chrome's .btn
+/* Self-contained button styling: the lane CTAs must not depend on the
+   landing's own .hero-btn below or the app chrome's .btn
    (whose light-theme pairing painted them blank - Andy, 2026-09-02). The
    brand token PAIR (--primary + --primary-foreground) keeps the label
    legible whatever design system is loaded. */
-.lane-cta .btn{display:inline-flex;align-items:center;gap:.4em;background:hsl(var(--primary));color:hsl(var(--primary-foreground,0 0% 100%));border:1px solid transparent;border-radius:999px;padding:.55rem 1.1rem;font-size:.875rem;font-weight:700;text-decoration:none;backdrop-filter:none;-webkit-backdrop-filter:none;mix-blend-mode:normal;box-shadow:none}
-.lane-cta .btn:hover{background:hsl(var(--primary));filter:brightness(1.07);text-decoration:none;transform:none;box-shadow:none}
+.lane-cta .hero-btn{display:inline-flex;align-items:center;gap:.4em;background:hsl(var(--primary));color:hsl(var(--primary-foreground,0 0% 100%));border:1px solid transparent;border-radius:999px;padding:.55rem 1.1rem;font-size:.875rem;font-weight:700;text-decoration:none;backdrop-filter:none;-webkit-backdrop-filter:none;mix-blend-mode:normal;box-shadow:none}
+.lane-cta .hero-btn:hover{background:hsl(var(--primary));filter:brightness(1.07);text-decoration:none;transform:none;box-shadow:none}
 .btn-compact{padding:.55rem 1.1rem;font-size:.875rem}
+/* The app's arrow on the Launch App pill, mirrored for right-to-left. */
+.hero-btn svg{flex:none;width:1em;height:1em}
+[dir="rtl"] .hero-btn svg{transform:scaleX(-1)}
 .lane-doc{font-weight:700;color:color-mix(in oklab,hsl(var(--primary)) 70%,var(--text));text-decoration:none;font-size:.875rem}
 .lane-doc:hover{text-decoration:underline}
 /* nth-matched lane pairing, up to the six operator lanes */
@@ -1351,11 +1357,11 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 .work-heading{font-size:1.25rem;font-weight:800;text-transform:none;letter-spacing:0;margin:0 0 .4rem;text-wrap:balance}
 .work-body{margin:0;color:var(--band-primary);max-width:62ch;font-size:.95rem}
 .work-links{display:flex;flex-direction:column;gap:.6rem;align-items:flex-start}
-.work-links .btn{display:inline-flex;align-items:center;gap:.4em;background:hsl(var(--primary));color:hsl(var(--primary-foreground,0 0% 100%));border:1px solid transparent;border-radius:999px;padding:.55rem 1.1rem;font-size:.875rem;font-weight:700;text-decoration:none;white-space:nowrap;backdrop-filter:none;-webkit-backdrop-filter:none;mix-blend-mode:normal}
-.work-links .btn:hover{filter:brightness(1.07);text-decoration:none;transform:none;box-shadow:none}
+.work-links .hero-btn{display:inline-flex;align-items:center;gap:.4em;background:hsl(var(--primary));color:hsl(var(--primary-foreground,0 0% 100%));border:1px solid transparent;border-radius:999px;padding:.55rem 1.1rem;font-size:.875rem;font-weight:700;text-decoration:none;white-space:nowrap;backdrop-filter:none;-webkit-backdrop-filter:none;mix-blend-mode:normal}
+.work-links .hero-btn:hover{filter:brightness(1.07);text-decoration:none;transform:none;box-shadow:none}
 .work-link{font-weight:700;font-size:.875rem;color:color-mix(in oklab,hsl(var(--primary)) 70%,var(--text));text-decoration:none;white-space:nowrap}
 .work-link:hover{text-decoration:underline}
-@media(max-width:719px){.work-cols{grid-template-columns:1fr}.work-links{flex-direction:row;flex-wrap:wrap}}
+@media(max-width:719px){.work-cols{grid-template-columns:minmax(0,1fr)}.work-links{flex-direction:row;flex-wrap:wrap}.work-links .hero-btn,.work-link{white-space:normal}.work-heading{overflow-wrap:break-word;hyphens:auto}}
 
 /* ── beat 5: behind, additions ──────────────────────────────────────────── */
 .behind-quiet{margin:1rem 0 0;font-size:.8125rem;color:var(--muted);text-align:center}

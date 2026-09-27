@@ -10,17 +10,17 @@
 
 選擇一項工具,填寫幾個欄位,下載成品檔案。或者開啟 Design 畫布,自由排版:無論哪種方式,色彩、字體與間距都取自您的品牌,而非憑記憶決定,且完全不需要帳號。
 
-- **[六十秒做出成品](/info/make-something.html)** - 三段簡短示範,完全不用設定,適合從未打開過 Lolly 的您。
-- **[使用 Lolly](/info/using.html)** - 畫布、控制項、儲存、Projects 與手機使用方式:應用程式本身的運作方式。
-- **[The Brand Studio](/info/brand-studio.html)** - 何時該讓標誌、色彩與字體真正屬於您,而非使用預設值。
-- **[匯入設計](/info/design-import.html)** - 當作品已存在為 `.fig`、`.penpot`、`.ai`、`.idml` 或 SVG 檔案,而您希望它可編輯而非扁平化時。
-- **[公用檢視](/info/utilities.html)** - 試算表、轉換器、Colour Lab、PDF 擷取器與 Script audio,適用於不屬於工具算繪的工作。
-- **[瀏覽器擴充功能](/info/extension.html)** - 擷取即時網頁,並在您自己的設計中重複使用它作為素材。
-- **[搜尋](/info/search.html)** - 單一欄位即可搜尋您的工具、已儲存的作品、目錄與設定。
-- **[Ask Lolly](/info/ask.html)** - 輸入問題,即可取得這些指南中相符的章節,並附上直達連結。
+- **[六十秒做出成品](/info/make-something.html)** - 三段簡短示範，完全不用設定，適合從未打開過 Lolly 的您。
+- **[使用 Lolly](/info/using.html)** - 畫布、控制項、儲存、Projects 與手機使用方式：應用程式本身的運作方式。
+- **[The Brand Studio](/info/brand-studio.html)** - 何時該讓標誌、色彩與字體真正屬於您，而非使用預設值。
+- **[匯入設計](/info/design-import.html)** - 當作品已存在為 `.fig`、`.penpot`、`.ai`、`.idml` 或 SVG 檔案，而您希望它可編輯而非扁平化時。
+- **[公用檢視](/info/utilities.html)** - 試算表、轉換器、Colour Lab、PDF 擷取器與 Script audio，適用於不屬於工具算繪的工作。
+- **[瀏覽器擴充功能](/info/extension.html)** - 擷取即時網頁，並在您自己的設計中重複使用它作為素材。
+- **[搜尋](/info/search.html)** - 單一欄位即可搜尋您的工具、已儲存的作品、您的素材與設定。
+- **[Ask Lolly](/info/ask.html)** - 輸入問題，即可取得這些指南中相符的章節，並附上直達連結。
 - **[The Dashboard](/info/dashboard.html)** - 此裝置能做什麼、您的設計系統(唯讀)以及儲存空間概覽。
-- **[您的收藏](/info/favourites.html)** - 為常用項目加星號,讓它在網格上方擁有專屬的方塊。
-- **[Profiles](/info/profile.html)** - 工具用來預先填入的個人資料,以及四個無障礙切換開關,能讓應用程式更沉靜,卻不會動到您匯出成果的任何一個像素。
+- **[您的收藏](/info/favourites.html)** - 為常用項目加星號，讓它在網格上方擁有專屬的方塊。
+- **[Profiles](/info/profile.html)** - 工具用來預先填入的個人資料，以及四個無障礙切換開關，能讓應用程式更沉靜，卻不會動到您匯出成果的任何一個像素。
 
 ## 動畫
 
@@ -34,9 +34,15 @@
 
 以預備拍數、電平表與溫和的引導,錄製一段乾淨的錄音,或是將語音備忘錄轉換成隨聲音而動的成品影片。目前尚未有獨立的 Record 頁面:此內容收錄在「使用 Lolly」的時間軸章節中。
 
-- **[使用 Lolly](/info/using.html#timeline-sequence-studio)** - 直接在時間軸上錄製旁白、錄音檔的儲存位置,以及它如何進入混音。
-- **[六十秒做出成品](/info/make-something.html#make)** - audiogram 場景,適合您想被聽見而非被看見的時候。
-- **[公用檢視](/info/utilities.html)** - Script audio,適用於先有文字、後有聲音的情況。
+- **[使用 Lolly](/info/using.html#timeline-sequence)** - 直接在時間軸上錄製旁白，錄音存在哪裡，以及它如何進入混音。
+- **[製作你的第一個檔案](/info/make-something.html#other-first-projects)** - audiogram，適合您想被聽見而非被看見的時候。
+- **[公用檢視](/info/utilities.html)** - Script audio，適用於先有文字、後有聲音的情況。
+
+## 簡報
+
+把您的攝影機畫面、標誌與姓名疊加在 Design 簡報或倒數計時之上，私有控制項則在另一個視窗中。
+
+- **[用攝影機簡報](/info/presenting.html)** - 取景、已儲存的場景、向觀眾分享、本機錄製，以及目前的試用限制。
 
 ## 協作
 

@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "Dezelfde kleur, geschreven voor elke ruimte. Een rij gemarkeerd met “geclipt” toont een ruimte die te smal is om hem te bevatten - CSS zou die getallen afronden binnen bereik.",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "Elke paletkleur als TEKST (in de rijen) tegen elke paletkleur als ACHTERGROND (in de kolommen), plus wit en zwart. APCA is polariteitsafhankelijk, dus een cel en zijn spiegelbeeld verschillen en de diagonaal - een kleur op zichzelf - leest ~0. Kies een visiemodus om het raster en de merkbalk opnieuw te kleuren en elke combinatie voor die visie opnieuw te scoren.",
   "Assets": "Assets",
-  "Runs the deeper AI text check on Verify and in Assets.": "Voert de diepere AI-tekstcontrole uit bij Verifiëren en in Assets."
+  "Runs the deeper AI text check on Verify and in Assets.": "Voert de diepere AI-tekstcontrole uit bij Verifiëren en in Assets.",
+  "Copied to clipboard": "Gekopieerd naar het klembord",
+  "Copy did not work": "Kopiëren mislukt",
+  "Select the text, then use your device’s copy command.": "Selecteer de tekst en gebruik de kopieeropdracht van je apparaat.",
+  "Select text": "Tekst selecteren",
+  "Text selected. Use your device’s copy command.": "Tekst geselecteerd. Gebruik de kopieeropdracht van je apparaat.",
+  "Copy {label}": "{label} kopiëren"
 }

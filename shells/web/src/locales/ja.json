@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "同じ色を各色空間の表記で書いたものです。「クランプ」と記された行は、その色を収めるには狭すぎる空間です。CSS はそれらの数値を範囲内に丸めます。",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "すべてのパレットカラーをTEXT(行方向)として、すべてのパレットカラーをBACKGROUND(列方向)として、さらに白と黒を掛け合わせます。APCAは極性依存のため、セルとその鏡像は異なり、対角線(自分自身に対する色)はほぼ0になります。視覚モードを選ぶとグリッドとブランドレールの色を変え、そのモードでの各組み合わせを再スコアします。",
   "Assets": "アセット",
-  "Runs the deeper AI text check on Verify and in Assets.": "検証機能と「アセット」で、より詳細なAIテキストチェックを実行します。"
+  "Runs the deeper AI text check on Verify and in Assets.": "検証機能と「アセット」で、より詳細なAIテキストチェックを実行します。",
+  "Copied to clipboard": "クリップボードにコピーしました",
+  "Copy did not work": "コピーできませんでした",
+  "Select the text, then use your device’s copy command.": "テキストを選択し、デバイスのコピー機能を使用してください。",
+  "Select text": "テキスト選択",
+  "Text selected. Use your device’s copy command.": "テキストを選択しました。デバイスのコピー機能を使用してください。",
+  "Copy {label}": "{label}をコピー"
 }

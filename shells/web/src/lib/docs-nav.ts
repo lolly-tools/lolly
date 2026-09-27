@@ -127,13 +127,20 @@ export function extractContactFooter(doc: Document): HTMLElement | null {
 }
 
 /**
- * The top PATHWAYS section switcher - the `.nav-group` anchors from the fetched page's
- * top bar (Quickstart · For Creators · For Builders · For Operators · Trust), rebuilt
- * into a compact bar. Rebuilt rather than cloned so the search box + language menu that
- * ride the same `<nav>` are dropped. The fetched page marks the active pathway, which
- * we carry across.
+ * The PATHWAYS strip (Welcome · Quickstart · For Creators · For Builders · For Operators
+ * · Trust). Since plan 277 step 3c the built page carries the strip itself -
+ * `nav.docs-pathways`, at the top of an article's masthead band, or in the phone menu on
+ * a page with no band - so the reader adopts that very element, links rewritten like
+ * the rail's: both readers show one strip, with the build's Welcome tab, `.active` and
+ * `aria-current`. A page built before then (an older cache, a pinned build) has only the
+ * old top bar's `.nav-group` anchors, which are rebuilt into the same strip as before.
  */
 export function extractPathways(doc: Document): HTMLElement | null {
+  const built = adopt(doc.querySelector('nav.docs-pathways'));
+  if (built) {
+    built.setAttribute('aria-label', t('Documentation sections'));
+    return built;
+  }
   const anchors = Array.from(doc.querySelectorAll<HTMLAnchorElement>('.nav-group a[href]'));
   if (!anchors.length) return null;
   const bar = document.createElement('nav');

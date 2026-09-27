@@ -10,17 +10,17 @@
 
 选择一个工具,填写几个字段,下载成品文件。或者打开 Design 画布,自由排版:无论哪种方式,颜色、字体和间距都取自您的品牌,而不是凭记忆拼凑,且全程无需账户。
 
-- **[60 秒做出一件成品](/info/make-something.html)** - 如果您从未打开过 Lolly,这里有三段无需任何设置的简短演示。
-- **[使用 Lolly](/info/using.html)** - 画布、控件、保存、Projects 与手机使用:应用本身的运作方式。
-- **[品牌工作室](/info/brand-studio.html)** - 何时该用您自己的标志、颜色和字体,而不是默认值。
-- **[导入设计](/info/design-import.html)** - 当作品已经存在于 `.fig`、`.penpot`、`.ai`、`.idml` 或 SVG 文件中,而您希望它可编辑而不是被拍平。
-- **[实用视图](/info/utilities.html)** - 电子表格、转换器、Colour Lab、PDF 提取器和 Script audio,用于不属于工具渲染的那些工作。
-- **[浏览器扩展](/info/extension.html)** - 捕获实时网页,并将其作为素材复用到您自己的设计中。
-- **[搜索](/info/search.html)** - 一个字段即可触达您的工具、已保存的作品、目录和设置。
-- **[问问 Lolly](/info/ask.html)** - 输入一个问题,即可获得这些指南中匹配的章节,并附上直达链接。
-- **[仪表盘](/info/dashboard.html)** - 本设备能做什么、您的设计系统的只读视图,以及存储空间一览。
-- **[您的收藏](/info/favourites.html)** - 为常用项加星标,它就会在网格上方拥有自己的图块。
-- **[个人资料](/info/profile.html)** - 工具据以预填的详细信息,以及四个不改动导出内容任何一个像素、却能让应用更平静的无障碍开关。
+- **[60 秒做出一件成品](/info/make-something.html)** - 如果您从未打开过 Lolly，这里有三段无需任何设置的简短演示。
+- **[使用 Lolly](/info/using.html)** - 画布、控件、保存、Projects 与手机使用：应用本身的运作方式。
+- **[品牌工作室](/info/brand-studio.html)** - 何时该用您自己的标志、颜色和字体，而不是默认值。
+- **[导入设计](/info/design-import.html)** - 当作品已经存在于 `.fig`、`.penpot`、`.ai`、`.idml` 或 SVG 文件中，而您希望它可编辑而不是被拍平。
+- **[实用视图](/info/utilities.html)** - 电子表格、转换器、Colour Lab、PDF 提取器和 Script audio，用于不属于工具渲染的那些工作。
+- **[浏览器扩展](/info/extension.html)** - 捕获实时网页，并将其作为素材复用到您自己的设计中。
+- **[搜索](/info/search.html)** - 一个字段即可触达您的工具、已保存的作品、您的素材和设置。
+- **[问问 Lolly](/info/ask.html)** - 输入一个问题，即可获得这些指南中匹配的章节，并附上直达链接。
+- **[仪表盘](/info/dashboard.html)** - 本设备能做什么、您的设计系统的只读视图，以及存储空间一览。
+- **[您的收藏](/info/favourites.html)** - 为常用项加星标，它就会在网格上方拥有自己的图块。
+- **[个人资料](/info/profile.html)** - 工具据以预填的详细信息，以及四个不改动导出内容任何一个像素、却能让应用更平静的无障碍开关。
 
 ## 动画
 
@@ -34,9 +34,15 @@
 
 借助倒数提示、电平表和轻柔的引导,录制一段干净的素材,或者把一段语音备忘转变成随声音而动的成品视频。目前还没有独立的“录制”页面:相关内容收录在《使用 Lolly》的时间轴部分。
 
-- **[使用 Lolly](/info/using.html#timeline-sequence-studio)** - 直接在时间轴上录制配音、素材保存在哪里,以及它如何进入混音。
-- **[60 秒做出一件成品](/info/make-something.html#make)** - 音频图场景,适合您希望被听见而非被看见的时候。
-- **[实用视图](/info/utilities.html)** - Script audio,适合先有文字、再生成声音的情形。
+- **[使用 Lolly](/info/using.html#timeline-sequence)** - 直接在时间轴上录制旁白，录音保存在哪里，以及它如何进入混音。
+- **[制作你的第一份文件](/info/make-something.html#other-first-projects)** - 音频图，适合您希望被听见而非被看见的时候。
+- **[实用视图](/info/utilities.html)** - Script audio，适合先有文字、再生成声音的情形。
+
+## 演示
+
+把您的摄像头画面、标志和姓名叠加在 Design 演示文稿或倒计时之上，私有控件则在另一个窗口中。
+
+- **[用摄像头演示](/info/presenting.html)** - 取景、已保存的场景、向观众分享、本地录制，以及当前的试用限制。
 
 ## 协作
 

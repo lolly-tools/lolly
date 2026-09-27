@@ -109,11 +109,15 @@ Video bytes are **not** reproducible run to run. The browser's paint and encode 
 
 The frames need a paint engine. The sound does not: a timeline's mix is a closed form over decoded PCM, and every number in it - the equal-power pan, the fades, the signal-derived ducking, the BS.1770 loudness meter, the -1 dBTP true-peak limiter - is engine code shared with the app. `lolly mix` is the door onto that, for a pipeline that wants to hear a timeline, diff two mixes or feed a mastering step without a Chromium in the picture.
 
-```bash
-# A design state: a share link, a bare query, or a file holding one
-pnpm run cli mix 'https://lolly.tools/#/tool/design?bx=…' --out=mix.wav
+It takes a design state, as a share link, a bare query or a file holding one:
 
-# Or a plan JSON: { totalSec, clips: [{ id, src, startMs, durMs, … }], bed }
+```bash
+pnpm run cli mix 'https://lolly.tools/#/tool/design?bx=…' --out=mix.wav
+```
+
+Or a plan JSON, `{ totalSec, clips: [{ id, src, startMs, durMs, … }], bed }`:
+
+```bash
 pnpm run cli mix ./plan.json --out=mix.wav --normalize=-16
 ```
 

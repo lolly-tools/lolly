@@ -125,6 +125,14 @@ Yes. Open **Design** and click **Import a design**: it accepts a native Figma **
 
 Layers arrive as editable boxes on the open canvas: text stays retypable, shapes stay shapes, images join your own image library and type and colours conform to the brand globals. Save it and the layout becomes a reusable, URL-addressable template anyone with Lolly can refill - and you can mix in live tools (a QR code, a chart) that re-render on load. From there it renders like anything else in Lolly - SVG, PDF, PNG and the rest, reproducible from its URL. See [Import a design](/info/design-import.html).
 
+## Where is the thing I made yesterday?
+
+If you pressed **Save as** or **Save**, it is in **Projects**, on the home screen, in the browser or app you saved from. If you only pressed **Download**, the file is where your browser or system saves downloads, and usually a copy is in **Assets**. Nine tools also keep unsaved work in **Projects**. [Find and recover your work](/info/find-your-work.html) covers every case.
+
+## I closed the tab. Is my work gone?
+
+Saved work is still in **Projects**. Unsaved work is gone, except in the nine tools that save as you work, which keep it in **Projects** too. Next time, press **Save as** before you leave. See [If you closed the tab or left the tool](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+
 ## Can I share my work as a file instead of a link?
 
 Yes. When a link can't carry everything (your own photos, long text), the Share dialog says exactly what would go missing and offers a **.lolly** file instead: one file holding the design, the images it uses and, if you choose, the tool itself. You decide how much travels - your name and details go in only if your profile opts in, licensed art is held back unless you include it, and whoever opens a file that carries a tool is asked whether they trust it before it can run. See [Sharing your work](/info/using.html#sharing-your-work).

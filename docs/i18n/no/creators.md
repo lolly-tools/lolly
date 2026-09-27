@@ -34,9 +34,15 @@ Tekst som beveger seg, scener på en tidslinje og bevegelse som holder seg innen
 
 Ta opp et rent opptak med en nedtelling, en nivåmåler og forsiktig veiledning, eller gjør en talemelding om til en ferdig video som beveger seg med lyden. Det finnes ingen egen Ta opp-side ennå: Bruke Lolly dekker det, i tidslinjeseksjonen.
 
-- **[Bruke Lolly](/info/using.html#timeline-sequence-studio)** - ta opp en voiceover rett på tidslinjen, hvor opptaket lagres og hvordan det når miksen.
-- **[Lag noe på 60 sekunder](/info/make-something.html#make)** - audiogram-scenen, for når du heller vil bli hørt enn sett.
+- **[Bruke Lolly](/info/using.html#timeline-sequence)** - ta opp en voiceover rett på tidslinjen, hvor opptaket lagres og hvordan det når miksen.
+- **[Lag din første fil](/info/make-something.html#other-first-projects)** - audiogrammet, for når du heller vil bli hørt enn sett.
 - **[Nyttefunksjoner](/info/utilities.html)** - Script audio, når ordene kommer først og stemmen kommer etterpå.
+
+## Presenter
+
+Legg kameraet, logoen og navnet ditt over et Design-sett eller en Nedtelling, med private kontroller i et eget vindu.
+
+- **[Presentere med kamera](/info/presenting.html)** - beskjæring, lagrede scener, deling med publikum, lokalt opptak og de nåværende prøvebegrensningene.
 
 ## Samarbeid
 

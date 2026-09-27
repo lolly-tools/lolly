@@ -48,19 +48,21 @@ na tvém zařízení**, nikdy je nepřenáší:
 - <!--i:folder--> **Tvoje vlastní dokumenty, uložené relace, nahrané assety a fonty** - uložené
   v IndexedDB na tvém zařízení, nikdy se nenahrávají a nikdo kromě tebe je nikdy nečte.
 
-Nic z toho se nesdílí, neprodává ani nepoužívá k tvé identifikaci či sledování. Není tu s čím
-souhlasit, protože k žádnému sběru nedochází - jen toto oznámení, abys věděl, co se uchovává a kde.
-Vymaž to všechno kdykoli pomocí **Profil → Clear all my data**, nebo vymazáním úložiště webu
-v prohlížeči. (Podle směrnice ePrivacy čl. 5(3) úložiště, které je nezbytně nutné pro službu, o
-kterou jsi požádal, nevyžaduje souhlas - jen transparentnost, kterou poskytuje tento dokument i
-oznámení v aplikaci.)
+Nic z toho se nesdílí, neprodává ani nepoužívá k tvé identifikaci či
+sledování. Není tu s čím souhlasit, protože k žádnému sběru nedochází -
+jen toto oznámení, abys věděl, co se uchovává a kde. Vymazání úložiště
+webu ve tvém prohlížeči to všechno kdykoli odstraní; **Nastavení → Úložiště
+→ Vymazat všechna moje data** odstraní tvůj profil, uložené relace, nahrané
+obrázky a cache assetů. (Podle směrnice ePrivacy čl. 5(3) úložiště, které
+je nezbytně nutné pro službu, o kterou jsi požádal, nevyžaduje souhlas
+- jen transparentnost, kterou poskytuje tento dokument i oznámení v aplikaci.)
 
 ![Sekce úložiště na profilové stránce na obrazovce šířky telefonu: každá kategorie dat na zařízení pojmenovaná, hned vedle s tlačítkem Clear all my data](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
-Tvoje vlastní záloha těchto dat - balíček `lolly-backup` vytvořený tlačítkem **Export my
-data & render everything** - je soubor, který si necháváš a kontroluješ. Nikdy se nedostane na naše
-servery, pokud si sám nezvolíš ho někam poslat. Viz [Přenos
-dat](/info/data-transfer.html).
+Tvoje vlastní záloha těchto dat - balíček `lolly-backup` vytvořený tlačítkem
+**Exportovat moje data** - je soubor, který si necháváš
+a kontroluješ. Nikdy se nedostane na naše servery, pokud
+si sám nezvolíš ho někam poslat. Viz [Přenos dat](/info/data-transfer.html).
 
 ## Nástroje pracující na zařízení
 
@@ -72,6 +74,17 @@ Tyto nástroje fungují offline a jejich výstup nenese žádný náš watermark
 smyslem většiny z nich je data odstranit a chránit, ne přidávat riziko.
 
 ![Odznak, který tyto nástroje nesou: Runs on your device - nic se nenahrává](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+
+Prepare for sharing drží pracovní vstupy, soukromá zjištění a mapy náhrad v
+paměti, aniž by je automaticky přidávalo do historie, odkazů, záloh nebo synchronizace.
+Kontrola a nahrazování neposílají obsah souboru na server ani neověřují credentials online.
+Uživatelé si volí, jestli výsledek zkopírují, stáhnou, odešlou, nebo ho výslovně uloží
+do své knihovny; uložený výsledek se pak řídí běžným nastavením zálohy a
+synchronizace knihovny. Soubory receptu vynechávají dřívější payloady a doslovná mapování. Souhrnná hlášení
+obsahují počty, ID rozsahu a hashe souborů. CLI umí také uložit soukromý
+soubor s revizí obsahující originální hodnoty, jen když je to výslovně vyžádáno
+pomocí `--review-file`. Vymazání nebo opuštění zobrazení přípravy v prohlížeči uvolní jeho pracovní
+stav; není to příslib forenzního vymazání z paměti prohlížeče nebo OS.
 
 ## Kdy aplikace komunikuje se sítí, v úplnosti
 
@@ -87,32 +100,45 @@ tady není, aplikace to nedělá.
 | Send to Dropbox | Ten jeden soubor, který ses rozhodl odeslat, na Dropbox API (`api.dropboxapi.com` pro přihlášení a metadata, `content.dropboxapi.com` pro samotný soubor), po přihlášení přes Dropbox, které dokončíš ve vlastním okně Dropboxu. Přístup Lolly je omezen jen na složku aplikace (vidí jen `Apps/` a svou vlastní složku v ní - nikdy zbytek tvého Dropboxu), odkaz "Open", který ti ukáže, je krátkodobý soukromý odkaz (nevytváří se žádné veřejné sdílení) a obnovovací token se uloží jen pokud zaškrtneš "stay connected" | Jen když stiskneš "Send to Dropbox" u souboru, a jen ve verzích, kde operátor nakonfiguroval Dropbox client id - bez něj tlačítko neexistuje | Tlačítko se nikdy nezobrazí. Soubor si stáhni a do Dropboxu nahraj sám |
 | Send to OneDrive | Ten jeden soubor, který ses rozhodl odeslat, na identitní a Graph služby Microsoftu (`login.microsoftonline.com` pro přihlášení, `graph.microsoft.com` pro nahrání; velký soubor se nahrává po částech na nahrávací adresu vlastněnou Microsoftem na `api.onedrive.com`, `*.up.1drv.com` nebo `*.sharepoint.com`), po přihlášení přes Microsoft, které dokončíš ve vlastním okně Microsoftu. Přístup Lolly je omezen na vlastní složku pod `Apps/` (nikdy nemůže číst zbytek tvého OneDrive) plus tvé zobrazované jméno pro popisek účtu, a obnovovací token se uloží jen pokud zaškrtneš "stay connected" | Jen když stiskneš "Send to OneDrive" u souboru, a jen ve verzích, kde operátor nakonfiguroval Microsoft client id - bez něj tlačítko neexistuje | Tlačítko se nikdy nezobrazí. Soubor si stáhni a do OneDrive nahraj sám |
 | Send to LinkedIn | Ten jeden soubor, který ses rozhodl odeslat, plus jeho název jako text příspěvku, na LinkedIn (`www.linkedin.com` pro přihlášení, `api.linkedin.com` pro nahrání a příspěvek), po přihlášení přes LinkedIn, které dokončíš ve vlastním prohlížeči. Příspěvek jde do tvého vlastního feedu jako veřejný příspěvek pod tvým jménem. Lolly může přispívat za tebe a číst tvé jméno pro popisek účtu, nic jiného na tvém LinkedIn, a přihlášení zůstává na tomto zařízení jen pokud zaškrtneš "stay connected" - tokeny LinkedIn vydrží 60 dní a nelze je tiše obnovit, takže samy vyprší | Jen když stiskneš "Send to LinkedIn" u souboru, jen v desktopových aplikacích, a jen ve verzích, kde je nakonfigurovaná aplikace LinkedIn - bez ní tlačítko neexistuje | Ve webové aplikaci není co blokovat: toto existuje jen **v desktopových aplikacích**, takže tyto dva hostitele úmyslně NEJSOU v Content-Security-Policy webové aplikace níže. V desktopových aplikacích odeber nakonfigurovanou aplikaci LinkedIn a tlačítko se nikdy nezobrazí |
+| Send to Penpot | Tvůj osobní přístupový token Penpot (vložíš ho v aplikaci) a archiv `.penpot` návrhu, který ses rozhodl odeslat, na API Penpot (`design.penpot.app`) přes malý pass-through na vlastním originu aplikace (`/api/penpot`), protože API Penpot neodpoví prohlížeči přímo. Pass-through přeposílá a zapomíná; desktopové aplikace mluví s Penpot přímo | Jen když stiskneš "Send to Penpot" v nástroji Design a potvrdíš projekt | Pass-through vrátí chybu a odeslání selže bezpečně (fail closed). Exportuj soubor `.penpot` a naimportuj ho do Penpot sám |
+| Send to Bluesky | Ten jeden obrázek, který ses rozhodl odeslat, jeho název jako text příspěvku a alt text, a tvůj handle plus heslo aplikace (Bluesky → Settings → App passwords, nikdy heslo tvého účtu), na server Bluesky, který pojmenuješ (`bsky.social`, pokud si ho nehostuješ sám). Heslo aplikace se ukládá jen na tomto zařízení, nikdy v záloze, a **Odpojit** ho smaže | Jen když stiskneš "Send to Bluesky" u obrázku, po připojení účtu ve svém profilu, jen v **desktopových aplikacích** | Ve webové aplikaci není co blokovat: její zásady níže nejmenují žádného hostitele Bluesky, takže tam tento přechod neexistuje. V desktopových aplikacích odeber připojení a tlačítko se nikdy nezobrazí |
+| Send to Discord | Ten jeden soubor, který ses rozhodl odeslat, jako přílohu, na vloženou webhook adresu kanálu (`discord.com`). Webhook adresa umožní komukoli, kdo ji má, přispívat do daného kanálu, takže se ukládá jen na tomto zařízení, nikdy v záloze, a **Odpojit** ji smaže | Jen když stiskneš "Send to Discord" u souboru, jen v **desktopových aplikacích** | Ve webové aplikaci není co blokovat: její zásady níže nejmenují `discord.com`, takže tam tento přechod neexistuje. V desktopových aplikacích odeber webhook a tlačítko se nikdy nezobrazí |
+| Send to Mastodon | Ten jeden soubor, který ses rozhodl odeslat, a jeho název jako text příspěvku, na server Mastodon (nebo kompatibilní), který pojmenuješ, po přihlášení, které dokončíš ve vlastním okně daného serveru. Připojení zaregistruje na tom serveru malou aplikaci pro dané zařízení; přihlášení zůstává na tomto zařízení jen pokud zaškrtneš "stay connected" | Jen když stiskneš "Send to Mastodon" u souboru. Server si volíš sám, takže není v zásadách níže | Server, který pojmenuješ, musí povolovat volání z prohlížeče; pokud nepovoluje, použij desktopové aplikace. **Odpojit** odebere tlačítko |
+| Send to Nextcloud / WebDAV | Ten jeden soubor, který ses rozhodl odeslat, na tvůj vlastní server, přes jeden autentizovaný PUT požadavek s adresou serveru, uživatelským jménem a heslem aplikace, které zadáš (Nextcloud → Settings → Security → Devices & sessions; nikdy heslo tvého účtu). Ukládá se jen na tomto zařízení, nikdy v záloze, smaže to **Odpojit** | Jen když stiskneš "Send to Nextcloud" u souboru. Server si volíš sám, takže není v zásadách níže | Tvůj server musí povolovat volání z prohlížeče z originu aplikace; pokud nepovoluje, použij desktopové aplikace |
+| Send to S3-compatible storage | Ten jeden soubor, který ses rozhodl odeslat, do tvého vlastního bucketu (AWS S3, MinIO, R2, B2, Garage - libovolný SigV4 endpoint), podepsaný na tvém zařízení párem klíčů, který jsi zadal/a. Klíče se ukládají jen na tomto zařízení, nikdy v záloze, smaže je **Odpojit** | Jen když stiskneš "Send to S3" u souboru. Endpoint si volíš sám, takže není v zásadách níže | Pravidla CORS tvého bucketu musí povolovat origin aplikace; pokud nepovolují, použij desktopové aplikace |
+| Synchronizace mezi zařízeními | Kopie toho, co jsi vytvořil/a na tomto zařízení - uložené relace a projekty, tvoje design systémy s jejich fonty a logy, nahrané obrázky, tvůj profil a tvoje předvolby - jako jeden soubor, do jednoho úložiště, které si zvolíš: složku aplikace Lolly ve tvém Dropboxu (`api.dropboxapi.com`, `content.dropboxapi.com`), soubory vytvořené Lolly na tvém Google Disku (`www.googleapis.com`), složku aplikace Lolly ve tvém OneDrive (`graph.microsoft.com`, přičemž větší soubory se nahrávají na `api.onedrive.com`, `*.up.1drv.com` nebo `*.sharepoint.com`, a stahují z `*.files.1drv.com`, `my.microsoftpersonalcontent.com` nebo `*.sharepoint.com` Microsoftu), nebo tvůj vlastní server Nextcloud / WebDAV nebo S3 bucket. Stejné úložiště navíc uchovává až sedm denních kopií a jednu kopii z doby před tvým posledním použitím. **Nic nejde do Lolly:** v cestě není žádný server Lolly, relay ani server Lolly Work, a aplikace k tomu nepotřebují žádný web Lolly, ani na přihlášení. Kopie se šifruje nejdřív na tvém zařízení, jen pokud nastavíš heslo (passphrase). Přihlášení, klíče, hesla aplikací, heslo (passphrase) a nastavení synchronizace zůstávají na zařízení a nikdy nejsou v kopii. Na webu si zapamatované připojení Google Disku uchová jen jméno tvého účtu (a tvůj vlastní client id, pokud jsi ho zadal/a); samotné přihlášení Google trvá jednu návštěvu. V aplikaci pro Android jde přihlášení Google Disku přes službu Google Play na telefonu, kterou provozuje Google | Až po zapnutí "Sync across my devices" nebo stisknutí "Sync now": nahrání krátce po každé změně a při opuštění aplikace, a kontrola novější kopie při spuštění aplikace | Synchronizace selže a řekne proč; tvoje práce zůstane na zařízení. Místo toho exportuj svá data do souboru a přenes je sám/sama |
 | Tiskové profily ICC | Nic osobního - požadavek na standardní profil tiskových podmínek, na veřejný registr ICC (`registry.color.org`, `www.color.org`) | Jen pokud klikneš na přednastavení ICC ve správci tiskových profilů - jednorázové stažení pro každý profil, poté zůstává na tvém zařízení | Přednastavení ICC selžou. Místo toho dodej vlastní profil `.icc` |
 | Internetové rádio | Nic osobního - požadavek na playlist a audio stream, na stanici (`api.somafm.com` a icecast server, který uvádí, `*.somafm.com`) | Jen když přehráváš volitelné vestavěné rádio ve zvukovém přehrávači | Rádio selže. Všechny ostatní zvukové funkce dál fungují |
 | URL adresa, kterou necháš nástroj zachytit | Požadavek přesně na tu webovou adresu, kterou zadáš, z nástroje pro snímky URL. Ať už je ta adresa jakákoliv. Tento hostitel není v zásadách níže, protože si ho volíš v okamžiku použití | Jen když zadáš URL do daného nástroje a spustíš zachycení | Operátor to nemůže povolit podle hostitele. Pro odstranění musí odstranit nástroj |
+| Přidat obrázek z URL | Požadavek na přesně tu adresu obrázku, kterou vložíš do "Add from URL" (ve výběru assetů nebo v Assetech). Vlastní zásady webové aplikace zakazují prohlížeči stahovat přímo z jiného webu, takže požadavek za tebe udělá malý pass-through na vlastním originu aplikace (`/api/fetch-image`), který obrázek stáhne na straně serveru a vrátí zpět jen data - nic neukládá a adresu zapomene. Odmítne cokoli, co není veřejnou adresou obrázku (soukromá nebo interní adresa je zablokovaná). Desktopové aplikace stahují adresu přímo. Vložený odkaz Lolly se vůbec nestahuje - vykreslí se na tvém zařízení. Hostitel není v zásadách níže, protože si ho volíš v okamžiku použití | Jen když vložíš URL do "Add from URL" a potvrdíš | Operátor pass-through vypne (`LOLLY_DISABLE_IMAGE_PROXY=1`); pak lze ve webové aplikaci přidávat jen odkazy Lolly, obrázky `data:` a obrázky ze stejného originu. Desktopové aplikace to neovlivní |
 | Kontrola podpisu SEAL | **Nic.** Webová aplikace nemá žádný DNS resolver - viz níže | Nikdy | Není co blokovat |
 | AI modely na zařízení | Nic osobního - jednorázové stažení souboru modelu z hostitele modelů Lolly (`lolli.li`), poté uloženo do mezipaměti na tvém zařízení; žádný účet, žádný identifikátor, jen požadavek a tvá IP | Jen když použiješ funkci, která potřebuje model (hloubkové skenování Verify, zvětšení obrázku, řeč a podobné) | Daná funkce počká na stažení; všechno ostatní dál funguje |
 | Vzdálená instance | Cokoliv ti daná instance, kterou pojmenuješ, vrátí, přes stejnou synchronizaci katalogu popsanou výše - plus verzní značka u požadavků na ni (druh shellu a verze enginu, stejná informace, jakou nese user agent), takže její operátor vidí, které verze Lolly jsou v provozu. Na spravované instanci, pokud jsi přihlášen, ta značka navíc nese instalační id pro dané zařízení, takže seznam zařízení operátora dokáže tuto instalaci rozlišit. Jede jen na požadavcích, které tvé vlastní použití už dělá - není tu žádný časovač a nic se sám od sebe neozývá - a opuštění instance id smaže, takže zařízení, které se později znovu připojí, předloží nové. Hostitele si volíš v okamžiku použití, takže není v zásadách níže | Jen pokud shell výslovně nasměruješ na jiné nasazení Lolly | Přepnutí instance selže. Tvá lokální instance zůstane nedotčena |
 
-Každý pevný hostitel v této tabulce je zároveň úplným allowlistem v
-Content-Security-Policy aplikace, kterou vynucuje prohlížeč. Seznam tedy
-není jen popisem toho, co kód dělá dnes, je to hranice, ke které prohlížeč
-aplikaci váže: budoucí změna, která by se pokusila kontaktovat nějakého
-jiného hostitele, by byla zablokována, ne tiše povolena. Jeden řádek je
-záměrnou výjimkou a jeho vlastní buňka to uvádí: Send to LinkedIn existuje
-jen v desktopových aplikacích, takže zásady webové aplikace nejmenují ani
-jednoho z jejích hostitelů - webová aplikace by je nedosáhla, ani kdyby se
-o to její kód pokusil. Další dva řádky nemají pevného hostitele, protože si
-adresu volíš v okamžiku použití: URL adresa, kterou necháš nástroj zachytit,
-a vzdálená instance, na kterou nasměruješ shell. Žádný z nich není v
-zásadách a každý nastane jen tehdy, když adresu zadáš a jednáš podle ní.
-Nasazení, které nechce žádnou z volitelných možností (řekněme podniková
-instance s vlastními písmy), odebere tyto hostitele ze svých zásad a dané
-funkce pak selžou bezpečně, místo aby se ozývaly ven.
+Každý pevný hostitel v této tabulce je zároveň úplným allowlistem v Content-Security-Policy aplikace,
+kterou vynucuje prohlížeč. Seznam tedy není jen popisem toho, co kód dělá dnes,
+je to hranice, ke které prohlížeč aplikaci váže: budoucí změna, která by se
+pokusila kontaktovat nějakého jiného hostitele, by byla zablokována, ne tiše povolena. Jeden řádek
+je záměrnou výjimkou a jeho vlastní buňka to uvádí: Send to LinkedIn existuje
+jen v desktopových aplikacích, takže zásady webové aplikace nejmenují ani jednoho z jejích
+hostitelů - webová aplikace by je nedosáhla, ani kdyby se o to její
+kód pokusil. Další dva řádky, Bluesky a Discord, jsou stejným způsobem jen desktopové,
+a jejich hostitelé jsou ze stejného důvodu vynechaní z webových zásad. Pět řádků
+nemá pevného hostitele, protože si adresu volíš v okamžiku použití: URL adresa, kterou
+necháš nástroj zachytit, vzdálená instance, na kterou nasměruješ shell, a tvůj vlastní server
+Mastodon, server WebDAV nebo S3 bucket (poslední dva i jako domov synchronizace). Žádný
+z nich není v zásadách a každý nastane jen tehdy, když adresu
+zadáš a jednáš podle ní. Řádek Penpot dosahuje na Penpot přes vlastní
+origin aplikace, takže je pokrytý `'self'`. Nasazení, které nechce žádnou z volitelných
+možností (řekněme podniková instance s vlastními písmy), odebere tyto hostitele ze svých
+zásad a dané funkce pak selžou bezpečně, místo aby se ozývaly ven.
 
-Nic z toho neposílá tvoje dokumenty, projekty, relace ani nahrané soubory nikam.
-Existují proto, aby ti přinesly věci *na* zařízení (nástroje, fonty, modely), nikdy aby
-posílaly věci *z* něj, s výjimkami výslovně uvedenými v sekcích níže.
+Kromě dvou druhů řádků nic z tohoto nikam neposílá tvoje dokumenty, projekty,
+relace ani nahrané soubory: existují proto, aby ti přinesly věci *na* zařízení
+(nástroje, fonty, modely). Těmi dvěma druhy jsou řádky Send, které pošlou ten
+jeden soubor, který sis vybral/a, a řádek synchronizace, který pošle kopii
+tvé práce do úložiště, které sis zvolil/a, a ne na žádný
+server Lolly. Jakákoli jiná výjimka je výslovně uvedená v sekcích níže.
 
 **Poznámka k tomu, co jsme odstranili.** Verify umí zkontrolovat podpisy SEAL, schéma, kde
 je podpisový klíč souboru zveřejněný v DNS. Prohlížeče neumí dělat DNS dotazy, takže jakákoli
@@ -131,10 +157,10 @@ dalšímu tvrzení na této stránce, s přesnými příkazy a očekávaným vý
 
 ## Hot-linkované render URL
 
-> **Na lolly.tools naostro.** Každá
-> URL `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` se opravdu vykreslí, a vstupy
-> cestují přímo v té URL. Sekce níže popisuje, co to pro tebe znamená, a
-> provozovatel může tuto funkci na své vlastní instanci vypnout.
+> **Na lolly.tools naostro.** Každá URL `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` se opravdu
+vykreslí, a vstupy cestují přímo v té URL. Sekce
+níže popisuje, co to pro tebe znamená, a provozovatel
+může tuto funkci na své vlastní instanci vypnout.
 
 Samotná aplikace zůstává celá na tvém zařízení. Provozovatel může samostatně povolit
 **hot-link render URL** - `/tool/<tool-id>.<ext>?<inputs>` - aby se sdílený odkaz Lolly
@@ -158,29 +184,36 @@ v URL.
   jako `noindex`, takže je vyhledávače neindexují.
 
 Provozuješ Lolly sám (self-hosting) a nechceš veřejný render povrch? Nastav
-`LOLLY_DISABLE_RENDER_GET=1` a každá
-tato URL vrátí 404.
+`LOLLY_DISABLE_RENDER_GET=1` a každá tato URL vrátí 404.
 
 ## MCP server (volitelný, pro AI agenty)
 
-Lolly lze také oslovit AI agentem přes Model Context Protocol - endpoint provozovaný
-provozovatelem (lolly.tools jeden provozuje; kdokoli si může spustit vlastní,
-včetně plně air-gapovaného). Sdílí bezúčtový postoj render cesty,
-plus tři nástroje, které nutně pracují s bajty souborů:
+Lolly lze také oslovit AI agentem přes Model Context Protocol
+- endpoint provozovaný provozovatelem (lolly.tools jeden provozuje; kdokoli si může
+spustit vlastní, včetně plně air-gapovaného). Sdílí bezúčtový postoj render cesty,
+plus čtyři nástroje, které nutně pracují s bajty souborů:
 
-- <!--i:cpu--> **`lolly_transform`** (spustí nástroj pracující na zařízení na straně serveru
-  jménem volajícího agenta), **`lolly_verify`** (zkontroluje Content Credentials) a **`lolly_redact`**
-  (začerní oblasti obrázku nebo PDF) - všechny přijímají
-  bajty souboru od volajícího. Zpracovávají se **v procesu, v paměti**,
-  a výsledek se vrátí v témže volání - soubor se nikdy nezapíše
-  na disk a nikdy se neukládá po dokončení požadavku.
-- <!--i:checklist--> Každý další nástroj - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
-  `lolly_describe_tool` - pracuje jen s parametry (text, čísla, barvy,
-  URL, id assetů katalogu), stejnými vstupy, jaké přijímá hot-link render URL.
-- <!--i:lock--> Přístup je buď sdílený token, který provozovatel vydává klientům, kterým důvěřuje,
-  nebo bezstavové OAuth 2.1: krátkodobé podepsané tokeny ověřované proti sdílenému
-  tajemství, nic se neukládá na straně serveru a samotný token se nikdy nezapíše do
-  logu ani do render URL.
+- <!--i:cpu--> **`lolly_transform`** (spustí nástroj pracující na zařízení na straně
+serveru jménem volajícího agenta), **`lolly_verify`** (zkontroluje Content Credentials) a **`lolly_redact`**
+(začerní oblasti obrázku nebo PDF) všechny přijímají bajty souboru od
+volajícího. Zpracovávají se **v procesu, v paměti**, a výsledek se
+vrátí v témže volání - soubor se nikdy nezapíše
+na disk a nikdy se neukládá po dokončení požadavku.
+- <!--i:cpu--> **`lolly_rebrand`** (renovuje starou prezentaci na design systém, napříč fázemi
+`plan`, `compile` a `inspect`) přijímá bajty prezentace stejným způsobem a zpracovává
+je **v paměti, jen pro toto volání** - nic se nezapíše
+na disk ani neuchová po odeslání odpovědi. Jeho první fáze, `capabilities`,
+slovy uvede, kam by tvoje bajty šly ještě předtím, než
+nějaké pošleš: na self-hostovaném lokálním serveru prezentace nikdy neopustí ten
+stroj; na hostovaném serveru volání `lolly_rebrand` tam prezentaci pošle, až
+do limitu velikosti a počtu snímků, který udává tatáž fáze.
+- <!--i:checklist--> Každý další nástroj - `lolly_render`, `lolly_build_url`, `lolly_list_tools`, `lolly_describe_tool`
+- pracuje jen s parametry (text, čísla, barvy, URL, id
+assetů katalogu), stejnými vstupy, jaké přijímá hot-link render URL.
+- <!--i:lock--> Přístup je buď sdílený token, který provozovatel vydává klientům,
+kterým důvěřuje, nebo bezstavové OAuth 2.1: krátkodobé podepsané tokeny ověřované proti
+sdílenému tajemství, nic se neukládá na straně serveru a samotný
+token se nikdy nezapíše do logu ani do render URL.
 
 ## Identita Content Credentials (přihlášení, které musíš zahájit sám)
 
@@ -190,32 +223,34 @@ Lolly umí do tvých exportů zapečetit kryptografický **Content Credential**,
 
 Pokud se zaregistruješ, přesně tohle se stane:
 
-1. **Zvolíš si způsob přihlášení** - GitHub, Google, SUSE (id.suse.com) nebo odkaz
-   zaslaný e-mailem. U tří poskytovatelů OIDC jsi přesměrován na přihlašovací stránku
-   daného poskytovatele, řízenou jeho vlastními zásadami ochrany osobních údajů, ne našimi.
-   Certifikační služba Lolly zpět dostane jen ověřenou e-mailovou adresu a
-   jméno poskytovatele. U odkazu přes e-mail se adresa, kterou zadáš, předá
-   službě **Resend**, transakčnímu e-mailovému API, výhradně pro doručení toho jednoho odkazu.
-2. **Krátkodobý cookie chrání přesměrování.** Toto je jediný cookie, který v celém
-   systému Lolly nastavujeme: `lolly_ca_state`, `HttpOnly`, omezený na `/api/ca`,
-   platný do deseti minut. Nese náhodnou hodnotu, ne sledovací identifikátor, a existuje
-   jen proto, aby zabránil zfalšování přesměrování OAuth. Smaže se hned po dokončení
-   přihlášení.
-3. **Tvoje IP adresa se krátce používá k zabránění zneužití** přihlašovacích
-   endpointů (aby jeden skript nemohl zahltit schránku nebo vyčerpat e-mailovou kvótu) - drží
-   se jen v paměti serveru, po klouzavém okně asi minuty, nikdy se nezapisuje
-   do logu ani nikde neukládá.
-4. **Certifikační služba vydá krátkodobý certifikát** (7, 30, 90 nebo 365
-   dní, na tvoji volbu, omezeno zásadami provozovatele), který váže tvůj ověřený
-   e-mail na veřejnou polovinu páru klíčů vygenerovaného na tvém zařízení. Soukromá
-   polovina nikdy neopustí tvůj prohlížeč.
+1. **Zvolíš si způsob přihlášení** - GitHub, Google, SUSE (id.suse.com) nebo
+odkaz zaslaný e-mailem. U tří poskytovatelů OIDC jsi přesměrován na přihlašovací
+stránku daného poskytovatele, řízenou jeho vlastními zásadami ochrany osobních údajů, ne
+našimi. Certifikační služba Lolly zpět dostane jen ověřenou e-mailovou adresu a
+jméno poskytovatele. U odkazu přes e-mail se adresa, kterou zadáš, předá
+službě **Resend**, transakčnímu e-mailovému API, výhradně pro doručení toho jednoho odkazu.
+2. **Krátkodobý cookie chrání přesměrování.** Toto je jediný cookie,
+který v celém systému Lolly nastavujeme: `lolly_ca_state`, `HttpOnly`, omezený
+na `/api/ca`, platný do deseti minut. Nese náhodnou hodnotu,
+ne sledovací identifikátor, a existuje jen proto, aby zabránil
+zfalšování přesměrování OAuth. Smaže se hned po dokončení přihlášení.
+3. **Tvoje IP adresa se krátce používá k zabránění zneužití**
+přihlašovacích endpointů (aby jeden skript nemohl zahltit schránku nebo vyčerpat
+e-mailovou kvótu). Lolly ji hashuje před vytvořením krátkodobého zásobníku pro
+kontrolu zneužití; syrová adresa se do tohoto úložiště neposílá. Zásobník
+vyprší po zhruba minutě a nepoužívá se ke sledování.
+Běžné přístupové logy hostingu jsou samostatné a popsané níže.
+4. **Certifikační služba vydá krátkodobý certifikát** (7, 30, 90 nebo
+365 dní, na tvoji volbu, omezeno zásadami provozovatele), který váže
+tvůj ověřený e-mail na veřejnou polovinu páru klíčů vygenerovaného
+na tvém zařízení. Soukromá polovina nikdy neopustí tvůj prohlížeč.
 5. **O vydání se nic nezaznamenává.** Certifikační služba nevede žádný log vydávání:
-   ani tvůj e-mail, ani poskytovatele, ani sériové číslo, ani časové razítko. Žádná databáze, žádný
-   řádek logu, žádný webhook. Tvoje e-mailová adresa existuje v požadavku jen tak dlouho,
-   dokud se nezapíše do certifikátu, který dostane tvoje vlastní zařízení, a pak je z naší strany
-   úplně pryč.
+ani tvůj e-mail, ani poskytovatele, ani sériové číslo, ani časové razítko. Žádná
+databáze, žádný řádek logu, žádný webhook. Tvoje e-mailová adresa existuje v
+požadavku jen tak dlouho, dokud se nezapíše do certifikátu, který dostane
+tvoje vlastní zařízení, a pak je z naší strany úplně pryč.
 6. **Poté je podepisování zase offline** po celou dobu platnosti certifikátu.
-   Export souboru certifikační službu nikdy nekontaktuje - jen registrace ano.
+Export souboru certifikační službu nikdy nekontaktuje - jen registrace ano.
 
 **Kompromis, řečeno na rovinu.** Dřívější verze této služby každé vydání logovala,
 aby bylo možné vystopovat chybně vydaný nebo kompromitovaný certifikát. Odstranili jsme to,
@@ -260,14 +295,14 @@ toho jednoho požadovaného zachycení.
 
 ## Infrastrukturní logy
 
-Stejně jako u kteréhokoli webu servery za lolly.tools - a za jakýmkoli nasazením
-Lolly - generují standardní přístupové logy webového serveru pokaždé, když k nim vůbec
-dorazí požadavek: IP adresa, požadovaná cesta, časové razítko, user agent. To je
-základní chování hostingu, ne něco, co Lolly přidává navrch, a nikdy neobsahuje
-obsah tvých dokumentů, protože ten se k serveru vůbec nedostane. Jedinou záměrnou
-výjimkou je soubor, který výslovně předáš volání MCP
-`lolly_transform`, `lolly_verify` nebo `lolly_redact`, které se zpracuje v paměti a nikdy se
-nezapíše na disk ani do logu, jak je popsáno výše.
+Stejně jako u kteréhokoli webu servery za lolly.tools - a za jakýmkoli
+nasazením Lolly - generují standardní přístupové logy webového serveru pokaždé, když k
+nim vůbec dorazí požadavek: IP adresa, požadovaná cesta, časové razítko, user agent.
+To je základní chování hostingu, ne něco, co Lolly přidává navrch, a
+nikdy neobsahuje obsah tvých dokumentů, protože ten se k serveru vůbec nedostane.
+Jedinou záměrnou výjimkou je soubor, který výslovně předáš volání MCP `lolly_transform`,
+`lolly_verify`, `lolly_redact` nebo `lolly_rebrand`, které se zpracuje v paměti a nikdy
+se nezapíše na disk ani do logu, jak je popsáno výše.
 
 **Vlastní kód Lolly do těchto logů nic nezapisuje.** Server MCP neobsahuje žádné
 logovací příkazy. Certifikační služba vypíše přesně dva řádky, oba jen při selhání a oba
@@ -290,25 +325,27 @@ Skoro nic tady nepotřebuje právní základ, protože skoro nic se nezpracováv
 |---|---|---|
 | Všechno na tvém zařízení (dokumenty, předvolby, cache, čítače) | **Vůbec ne naše zpracování** - k nám se to nikdy nedostane. Ukládání na tvém zařízení je nezbytně nutné pro službu, kterou jsi požádal (ePrivacy čl. 5(3)), takže nepotřebuje souhlas | Dokud to nesmažeš |
 | Tvá e-mailová adresa během registrace Content Credentials | **Čl. 6(1)(b)**, plnění služby, kterou jsi výslovně požádal | Neuchovává se. Přítomná v paměti jen po dobu trvání požadavku |
-| Tvá IP adresa na přihlašovacích koncových bodech, pro omezení rychlosti | **Čl. 6(1)(f)**, náš oprávněný zájem na prevenci zneužití bezplatné služby a e-mailové kvóty třetí strany. Považujeme to za úspěšné vyvážení zájmů, protože je to jen v paměti, nikdy se to nezapisuje a zahazuje se to zhruba do minuty | ~1 minuta, v paměti serveru, nikdy se neukládá trvale |
+| Klíč zásobníku jednosměrně odvozený z tvé IP adresy na přihlašovacích koncových bodech, pro omezení rychlosti | **Čl. 6(1)(f)**, náš oprávněný zájem na prevenci zneužití bezplatné služby a e-mailové kvóty třetí strany. Považujeme to za úspěšné vyvážení zájmů, protože se syrová adresa neposílá k omezovači, zásobník se používá jen pro kontrolu zneužití a automaticky vyprší | Zhruba 1 minuta v úložišti pro kontrolu zneužití; poté se neuchovává |
 | Přístupové logy hostingu (IP, cesta, časové razítko, user agent) | **Čl. 6(1)(f)**, náš oprávněný zájem na bezpečnosti služby, prevenci zneužití a diagnostice chyb | Výchozí hodnota platformy Vercel pro náš tarif. Nepřidáváme žádný odvod ani export |
 
-**Příjemci.** Kategorie příjemců jsou: náš poskytovatel hostingu (Vercel
-Inc.) a - pouze pokud použiješ možnost přihlášení e-mailem - poskytovatel
-transakčních e-mailů (Resend). Pokud se přihlásíš přes GitHub, Google nebo SUSE (id.suse.com),
-jednáš s daným poskytovatelem přímo podle jeho vlastních zásad ochrany soukromí. Nám sdělí
-ověřenou e-mailovou adresu a nic jiného. Osobní údaje nesdílíme s nikým
-jiným a data neprodáváme, neprovozujeme reklamu ani neprofilujeme uživatele.
+**Příjemci.** Kategorie příjemců jsou: náš poskytovatel hostingu (Vercel Inc.); náš poskytovatel
+úložiště pro kontrolu zneužití, který dostává jen krátkodobé, jednosměrně odvozené klíče
+zásobníku, nikdy syrovou IP adresu; a - pouze pokud použiješ
+možnost přihlášení e-mailem - poskytovatel transakčních e-mailů (Resend). Pokud se
+přihlásíš přes GitHub, Google nebo SUSE (id.suse.com), jednáš s daným
+poskytovatelem přímo podle jeho vlastních zásad ochrany soukromí. Nám sdělí
+ověřenou e-mailovou adresu a nic jiného. Osobní údaje nesdílíme s
+nikým jiným a data neprodáváme, neprovozujeme reklamu ani neprofilujeme uživatele.
 
 **Přenosy mimo EHP.** Vercel a Resend jsou americké společnosti. Výpočetní výkon funkcí
-pro lolly.tools je pevně vázán na region Vercel Frankfurt (`fra1`), takže
-zpracování probíhá v EU, ale jako poskytovatelé se sídlem v USA mohou k datům
-stále přistupovat jako zpracovatelé z USA. Tyto přenosy se opírají o standardní
-smluvní doložky Evropské komise a/nebo o rámec EU-US Data Privacy
-Framework, jak je stanoveno ve smlouvě o zpracování dat každého poskytovatele. Protože
-osobní údaje, které se k oběma poskytovatelům dostanou, jsou tak omezené - e-mailová adresa
-předaná k odeslání jedné zprávy a běžné přístupové logy - je odpovídajícím způsobem
-malé i vystavení riziku.
+pro lolly.tools je pevně vázán na region Vercel Frankfurt (`fra1`), takže zpracování
+probíhá v EU, ale jako poskytovatelé se sídlem v USA mohou k
+datům stále přistupovat jako zpracovatelé z USA. Tyto přenosy se opírají o
+standardní smluvní doložky Evropské komise a/nebo o rámec EU-US Data Privacy Framework,
+jak je stanoveno ve smlouvě o zpracování dat každého poskytovatele. Protože osobní
+údaje, které se k těmto poskytovatelům dostanou, jsou tak omezené - e-mailová
+adresa předaná k odeslání jedné zprávy, běžné přístupové logy a krátkodobý, odvozený
+zásobník pro kontrolu zneužití - je odpovídajícím způsobem malé i vystavení riziku.
 
 **Automatizované rozhodování.** Žádné. Neprobíhá žádné profilování ani automatizované
 rozhodování s právními nebo podobně významnými účinky (čl. 22).
@@ -322,12 +359,12 @@ pro děti.
 
 ## Tvá práva
 
-Protože skoro všechno, čeho se Lolly dotkne, se ukládá jen na tvém vlastním zařízení, většina
-toho, co právo na ochranu osobních údajů nazývá "tvá práva" - přístup, oprava, výmaz,
-přenositelnost - jsou věci, které už dokážeš udělat sám, okamžitě, aniž bys musel kohokoli žádat:
-tvá data žijí v úložišti tvého prohlížeče, ve formě, kterou můžeš prozkoumat,
-exportovat (**Export my data & render everything**, výše) nebo smazat (**Profile → Clear all
-my data**).
+Protože skoro všechno, čeho se Lolly dotkne, se ukládá jen na tvém
+vlastním zařízení, většina toho, co právo na ochranu osobních údajů nazývá „tvá
+práva” - přístup, oprava, výmaz, přenositelnost - jsou věci, které už dokážeš
+udělat sám, okamžitě, aniž bys musel kohokoli žádat: tvá data žijí v
+úložišti tvého prohlížeče, ve formě, kterou můžeš prozkoumat, exportovat (**Exportovat moje data**,
+výše) nebo smazat (vymazáním úložiště webu ve tvém prohlížeči, jak výše).
 
 Formálně máš podle článků 15-22 GDPR právo na **přístup** ke svým
 osobním údajům, na jejich **opravu**, na jejich **výmaz**, na **omezení**
@@ -337,14 +374,14 @@ o souhlas - na to, abys **tento souhlas kdykoli odvolal**, aniž by to ovlivnilo
 zákonnost toho, co se stalo před jeho odvoláním.
 
 Tady je upřímný postoj k uplatnění těchto práv vůči nám. Protože už neuchováváme
-log vydávání, **nemáme o tobě žádné osobní údaje, které bychom mohli vyhledat,
-opravit, exportovat nebo smazat.** Pokud nám napíšeš a zeptáš se, co o tobě máme,
-pravdivá odpověď zní nic, a to ti také řekneme. Jedinou kategorií, která vůbec existuje,
-jsou přístupové logy hostingu vázané na IP adresu, uchovávané naším poskytovatelem hostingu
-podle jeho výchozích dob uchovávání. Nemáme možnost je prohledávat ani selektivně
-mazat, a raději ti to řekneme, než abychom to předstírali. Všechno, co je opravdu
-*tvoje*, je na tvém zařízení, kde si to už teď můžeš přečíst, exportovat
-a zničit, aniž bys musel kohokoli žádat o svolení.
+log vydávání, **nemáme o tobě žádné osobní údaje, které bychom mohli vyhledat, opravit,
+exportovat nebo smazat.** Pokud nám napíšeš a zeptáš se, co o tobě máme,
+pravdivá odpověď zní nic, a to ti také řekneme. Jedinou kategorií, která vůbec
+existuje, jsou přístupové logy hostingu vázané na IP adresu, uchovávané naším poskytovatelem
+hostingu podle jeho výchozích dob uchovávání. Nemáme možnost je prohledávat ani selektivně
+mazat, a raději ti to řekneme, než abychom to předstírali. Všechno, co
+je opravdu *tvoje*, je na tvém zařízení, kde si to už teď
+můžeš přečíst, exportovat a zničit, aniž bys musel kohokoli žádat o svolení.
 
 **Máš právo si stěžovat.** Pokud si myslíš, že jsme s tvými daty zacházeli
 nesprávně, můžeš podat stížnost u dozorového úřadu pro ochranu osobních

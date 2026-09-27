@@ -4,13 +4,13 @@ Lolly 使用者累積的一切都存放在**自己的裝置上** - 沒有帳號�
 
 ![搬移整個安裝環境的兩個按鈕:匯出我的資料寫入一個 zip,匯入資料再讀回](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-本頁面是格式規格說明。若需終端使用者的操作說明，請見 [Using Lolly → Moving to another device](/info/using.html)。實作程式碼位於 [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts)，而 [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) 則固定了往返（round-trip）的契約。
+本頁是格式規格。給終端使用者的操作說明見[找回你的成果 → 把你的作品移到另一台裝置](/info/find-your-work.html#move-your-work-to-another-device)。實作程式碼在 [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts)，[`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) 固定了往返契約。
 
-> **範圍。** 打包檔攜帶的是*使用者資料*，而非工具。工具與目錄資產是另外同步的，並假設目標裝置上已經存在（最壞情況下版本較新）。匯入絕不會安裝或升級任何工具。
+> **範圍。** 打包檔攜帶的是*使用者資料*，而不是目錄工具。目錄工具與目錄資產是分開同步的，並假設目標裝置上已經存在（最壞情況下版本較舊）；使用者自己製作的工具則會隨 `profile.json` 一起傳輸。匯入絕不會安裝或升級目錄工具。
 
 ## 目標
 
-- <!--i:box--> **一種格式，通用於所有殼層。** 網頁版 PWA、Tauri 桌面／行動應用程式，以及未來任何殼層，產生與讀取的都是同一份位元組。打包檔就是契約，每個殼層的能力橋接層則是背後的平台專屬轉接器。
+- <!--i:box--> **一種格式，所有殼層通用。** 網頁版 PWA、Tauri 桌面／行動應用程式，以及未來的殼層，共用同一套封裝格式與支援的分片結構（schema）。可選分片取決於各殼層的能力；不支援的分片會被回報。每個能力橋接層都會提供自己的儲存轉接器。
 - <!--i:shieldcheck--> **經得起旅途考驗。** 傳輸過程中損毀或截斷的打包檔，會在匯入時明確失敗，絕不會只還原一半。
 - <!--i:clock--> **比目前版本活得更久。** 較舊版本的應用程式仍可匯入較新打包檔中可辨識的部分。真正不相容的格式則會被乾淨地拒絕。
 - <!--i:check--> **可安全合併。** 匯入到已在使用中的安裝環境時，絕不會清除打包檔中未包含的任何資料。
@@ -22,10 +22,16 @@ Lolly 使用者累積的一切都存放在**自己的裝置上** - 沒有帳號�
 | 路徑 | 是否必要 | 內容 |
 |---|---|---|
 | `manifest.json` | 是 | 格式 id、版本、數量與各部分的完整性資訊。是讀取端最先查看的內容。 |
-| `profile.json` | 有設定時 | 使用者的 `me` 記錄（姓名、聯絡方式、大頭照參照、旗標）。透過 `host.profile` 讀取。 |
+| `profile.json` | 有設定時 | 使用者完整的 `me` 記錄：姓名、聯絡方式、大頭照參照與旗標，加上資料夾、垃圾桶、專案藍圖、使用者範本與使用者自製工具、我的最愛、隱藏的工具、語言與表情符號選擇。透過 `host.profile` 讀取。 |
 | `sessions.json` | 是 | 每一個已儲存的工作階段：欄位、工具 id／版本、標籤、縮圖（data-URL）與完整輸入資料。透過 `host.state` 讀取。 |
-| `assets.json` | 是 | 每個已上傳資產（圖片、字型、品牌 token）的中繼資料，各自指向 `assets/blobs/` 下的位元組。 |
+| `assets.json` | 是 | 每個已上傳資產（圖片、字型、品牌 token、標誌、下載內容的保存副本）的中繼資料，各自指向 `assets/blobs/` 下的位元組。 |
 | `assets/blobs/<n>.<ext>` | 依資產而定 | 原始資產位元組（圖片與字型檔案）。以未壓縮方式儲存（本身已是壓縮格式）。副檔名僅供辨識參考，`assets.json` 中的 MIME 才是權威依據。 |
+| `assets/blobs/<n>.c2pa` | 存在時 | 以精確的二進位位元組擷取出的 Content Credentials，由資產記錄中的 `_credentialFile` 參照。這些並非裝置簽署金鑰。 |
+| `design-systems.json` | 存在時 | 這次安裝製作或新增的設計系統，以 `{ active, records }` 形式儲存。匯入時依 id 合併；僅當目標裝置沒有自己的設計系統時，才會採用打包檔的目前選擇。 |
+| `file-history.json` | 選用 | 附版本的資產快照、終態檔案操作報告與完整的批次清單。此歷史部分有自己的版本號；由殼層內部的 `fileHistory` 備份轉接器提供。 |
+| `revision-history.json` | 選用，手動備份 | 穩定的創作 ID、保留的檢查點、縮圖與滾動式復原草稿。在支援之處由 `host.state.history.backup` 提供。 |
+| `file-history/versions/` | 依快照而定 | 先前的資產位元組與擷取出的憑證，與目前的資產是否仍然存在無關。 |
+| `file-history/results/` | 依已完成的作業而定 | 精確的輸出位元組。不會保留或包含被選取用於轉換的原始檔案。 |
 | `prefs.json` | 是 | 使用者自有的本機偏好設定：`theme`、`sidebarWidth`，以及 `ct-metrics` 活動統計。 |
 | `lolly.txt` | 是 | 打包檔的人類可讀摘要（數量、個人檔案、檔名），供未使用 Lolly 開啟 zip 的人參考。每次匯出都會重新產生，且匯入時會被辨識，因此絕不會被算作跳過的部分。它是在完整性對照表*之後*才寫入的，因此不包含在其中。 |
 
@@ -40,16 +46,19 @@ Lolly 使用者累積的一切都存放在**自己的裝置上** - 沒有帳號�
 ```json
 {
   "format": "lolly-backup",
-  "formatVersion": 1,
+  "formatVersion": 3,
   "minReader": 1,
   "app": "lolly",
   "exportedAt": "2026-06-22T09:30:00.000Z",
-  "counts": { "profile": true, "sessions": 2, "userAssets": 4, "prefs": 3 },
+  "counts": { "profile": true, "sessions": 2, "userAssets": 4, "prefs": 3, "assetVersions": 1, "fileOperations": 1 },
   "integrity": {
     "profile.json": "sha256-…",
     "sessions.json": "sha256-…",
     "assets.json": "sha256-…",
-    "assets/blobs/0.webp": "sha256-…",
+    "assets/blobs/0.bin": "sha256-…",
+    "file-history.json": "sha256-…",
+    "file-history/versions/0.bin": "sha256-…",
+    "file-history/results/0.bin": "sha256-…",
     "prefs.json": "sha256-…"
   }
 }
@@ -90,38 +99,74 @@ Lolly 使用者累積的一切都存放在**自己的裝置上** - 沒有帳號�
 
 - 目標裝置上既有的資料維持原狀。
 - 任何發生衝突的鍵值 - 個人檔案、工作階段欄位、已上傳圖片的 id - 都會被匯入的版本取代。
+- 個人檔案是單一記錄，因此會被整體取代：目標裝置的資料夾、垃圾桶、範本、我的最愛與隱藏的工具都會變成打包檔裡的那一份。目標裝置原有而打包檔沒有的工作階段會被保留，未歸檔地放在專案的頂層。
+- 歷史資產版本與操作 ID 是不可變的例外：重複匯入具有冪等性，而一個已經指名不同位元組／歷史記錄的 ID 會被拒絕，而不是被覆寫。重新匯入相同的目前資產會保留其版本。變更過的目前資產必須帶有不同的版本號。
+- 創作歷史同樣是一項例外：衝突的目前文件或修訂版身分，會在觸及個人檔案、資產或偏好設定之前就中止其復原。完全相同的重複匯入不會增加任何儲存空間。若要檢視並複製其中的創作內容，請在另一台獨立的安裝上復原有衝突的封存檔。
 - 打包檔中未包含的內容一律不會被觸動。目標裝置原有、但打包檔中沒有的工作階段，會在匯入後依然存在。
 
 已儲存的工作階段會自動重新連結到其圖片：資產參照是以 id 保留的，橋接層會在已上傳圖片還原之後重新解析它們（無論如何都必須這麼做，因為 `blob:` URL 無法在重新載入後保留）。
 
 匯入摘要會回報 `{ profile, sessions, userAssets, prefs, skipped, failedAssets }`。`failedAssets` 計算的是無法還原的已上傳資產（例如裝置儲存空間已滿）。這與 `skipped` 不同，後者計算的是來自向前相容的較新寫入端、但此版本無法辨識的部分。使用者介面會呈現 `skipped`（「…‧N 個較新的項目已跳過」），讓還原結果誠實地呈現遺漏的內容。
 
+當檔案歷史存在時，摘要還會攜帶 `assetVersions`、`fileOperations` 與 `failedHistory`。儲存空間耗盡或不可變 ID 衝突可能導致部分還原；介面會提示使用者保留原始備份。雲端同步在一次部分或不受支援的還原之後**不會**推進其已套用的修訂版本，因此該快照仍可用於重試。還原並非跨越個人檔案／工作階段／資產／歷史儲存的單一交易。
+
+## 創作歷史（v3）
+
+來自支援歷史記錄的網頁主機的手動備份，會包含帶有自己的 `{ version: 1, documents, revisions, recoveries }` 結構的 `revision-history.json`。它攜帶保留下來的 ID、規範化的輸入快照、版本戳記、點陣預覽與獨立的寫入端草稿。歷史轉接器會在一次讀取交易中擷取目前的工作階段及其標頭；`sessions.json` 會為較舊的讀取端使用這些相同的目前快照。
+
+還原過程會先檢查酬載的 SHA-256 與位元組數、唯一身分、文件／標頭關係、系譜、時間戳記、預覽類型與各項限制，然後才以一次交易提交該封存檔。被壓縮過的父層參照可能會缺失。既有的目前作品必須與匯入的文件相符；發生衝突時會被拒絕，而不是被靜默取代。封存檔 384 MiB 的傳輸上限會被明確檢查，儲存限制的強制執行也不會截斷已保留的檢查點。整體備份目前仍使用記憶體內的 ZIP 實作，而非串流封存檔。
+
+摘要新增了 `revisions` 與 `recoveryDrafts`。不具備此能力的殼層會還原一般工作階段，並將歷史部分回報為已跳過。原生檔案系統歷史目前仍不受支援，直到其轉接器提供持久的歷史交易為止。P2P 訪客狀態沒有持久的歷史記錄或復原封存檔。
+
+個人快照同步明確不包含創作歷史。將一個快照套用到帶有歷史記錄的本機文件上，會把它先前的工作狀態保留為一份獨立的復原草稿，並使任何開啟中編輯器的寫入權杖失效。其不可變的檢查點仍保留在裝置上。這能在快照取代期間保護本機歷史，但不會合併多台裝置並行產生的歷史記錄。
+
+歷史性的資產參照會被保留，但算繪時仍會透過目標裝置現有的資產庫來解析資產。此封存檔目前尚不保證舊有的資產位元組或舊工具算繪結果完全一致。資產版本與檔案結果的位元組仍會透過它們各自現有的獨立備份部分傳輸。
+
+## 已儲存的版本與檔案結果（v2）
+
+這個選用的歷史部分包含 `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }`；讀取端也接受不含 batches 的較早 history-v1 型態。每個快照都會標明穩定的資產 ID 與確切版本、儲存時間、位元組長度與十六進位 SHA-256，外加一筆資產記錄，其 `_file` 與選用的 `_credentialFile` 指向二進位部分。操作會攜帶原始檔案事實、請求、報告、時間戳記與選用的結果 `_file`；儲存後端名稱、OPFS 控制代碼與執行租約不會隨之傳輸。只支援 history-v1 的較舊讀取端，會在匯入前拒絕新的歷史版本，而不是悄悄捨棄批次成員關係。
+
+批次清單會在處理之前記錄每一個被選取的來源檔案，包括從未被讀取的檔案、被取消的成員、預留結果空間失敗的情形以及被中斷的工作。每個成員都有一個穩定的操作 ID、來源參照／事實、要求的輸出名稱與終態報告。一個未被讀取的來源會有聲明的事實，而非憑空捏造的摘要。匯入會驗證成員身分，並與隨附的任何操作報告核對一致性。即使個別結果已被明確移除，批次報告仍然可用，但一份收據並不代表其輸出位元組仍然被儲存著。
+
+- 在任何個人檔案或資產匯入寫入之前，每一筆已知的歷史記錄、報告與被參照的檔案都會先被驗證。即使封裝沒有完整性對照表，缺失的位元組與不相符的 SHA-256 也會導致失敗。擷取出的憑證始終維持為位元組陣列，即使是來自將其 JSON 序列化為數字鍵物件的舊版寫入端的匯入也是如此。
+- 正在執行的操作在備份中會變成中斷記錄，附有說明性的失敗報告，且沒有結果。還原過程絕不會重新啟動背景工作，也不會匯入一個作用中的執行租約。重試需要重新選取原始檔案，並在可用時對照其記錄的 SHA-256 進行驗證。
+- 已還原的結果會把位元組與中繼資料一起提交到 IndexedDB 中。一般的新結果會在可用時使用 OPFS，並以 IndexedDB 作為後備。一個既有的作用中操作絕不會被匯入取代。
+- 歷史記錄的 ZIP 組裝目前仍在記憶體中完成：目前限制為**256 MiB 的歷史酬載**、**4 MiB 的歷史中繼資料**，最多**100 個操作**、**100 個批次**與**2,000 個快照**。匯出會明確拒絕過大或不完整的歷史記錄；它絕不會悄悄省略。請在移除較舊的本機副本之前，個別下載重要的版本／結果。這些限制並非針對手機尖峰記憶體用量的實測保證。
+- 本機結果歷史有 512 MiB 的額度與 100 筆記錄上限。資產快照另有一份獨立的 512 MiB 額度，每個資產最多 20 個歷史版本；擷取出的憑證位元組會計入該快照額度。還原過程會遵守這些限制，絕不會悄悄清除既有的使用者資料。
+- 本機批次中繼資料另有一份獨立的 4 MiB 額度，最多 100 份清單，每批次最多 20 個成員。待處理的成員會預留中繼資料容量，單一成員的報告上限為 32 KiB。這是邏輯上的額度，而非瀏覽器磁碟空間的保證；真正的配額失敗會被明確呈現，且記憶體中的報告仍可下載。重試一個批次成員會建立一個新批次，而不會覆寫舊報告。移除一筆批次記錄不會移除個別結果的位元組或資產庫中的資產。
+- 轉換後的結果可以被明確加入資產庫，不做正規化或重新編碼。來源／輸出雜湊以及操作關係會隨該資產一併保存。重複加入會重複使用未變更的副本；已編輯的副本絕不會被覆寫。點陣影像可以用來開啟一份新的 Design 文件。該文件使用的是資產庫目前的資產 ID：要在整個 Design 執行環境與網址路徑中強制鎖定精確版本，仍是另外的工作。SVG／HTML／PDF／ZIP 結果會透過這次交接被當作不透明的檔案資產保留，而不會被提升為可信的互動式／向量內容。
+- **Convert → Recent file operations** 會顯示歷史記錄的使用情形、報告、下載記錄與版本管理員。此管理員也能找到已刪除的資產庫資產的較早版本。還原一個快照會建立一個新的目前版本，同時讓所選快照維持原狀。**設定 → 儲存空間**會把結果與版本，和可隨意捨棄的快取分開計算。
+- 明確的暫存檔清理只會移除由操作擁有、且未被參照的位元組。目前的記錄會保護自己的檔案；最近的 OPFS 檔案有一小時的寬限期。已儲存的結果與資產快照不會被自動清除。
+
+較舊的讀取端仍會接受 v2 封裝（`minReader: 1`）並還原它們熟悉的部分，將不受支援的歷史部分計為已跳過。完整的歷史復原需要一個具備 `fileHistory` 轉接器的殼層；這是殼層內部的一條介面，而不是面向工具的新增 `HostV1` 能力。真實的雙裝置還原由本機 Chromium 關卡涵蓋；已安裝的 Tauri／iOS／Android 復原驗收仍是另外的工作。
+
 ## 不會被傳輸的內容
 
 - **目錄快取**（已下載的資產中繼資料與位元組、工具索引） - 會在目標裝置上免費重新同步。
-- **工具與品牌資產** - 不在範圍內，並假設目標裝置上已經存在。
+- **目錄工具與目錄資產** - 不在範圍內，並假設目標裝置上已經存在。使用者新增的品牌 token、字型與標誌屬於使用者資產，因此會隨打包檔傳輸。
 - **`blob:` ／物件 URL** - 由橋接層在載入時重新產生。
+- **轉換原始檔案、作用中的執行租約與裝置本機的存取／簽署密鑰** - 不屬於可攜式的歷史酬載。已儲存的結果是一份副本，並不代表原始來源檔案已被備份。
 - **匯出序號計數器** - 用於每日下載檔名編號的計數器（`localStorage` 鍵值 `lolly-export-seq`）只是本機命名的便利機制。它不列於 `PREF_KEYS` 中，因此絕不會出現在打包檔內。
 
-儲存空間計量表會列出相同的分類。已儲存的工作階段與「我的圖片」會被納入打包檔中；資產快取、工具預覽以及下方的離線固定項目，皆可重新產生，因此不會被納入。
+儲存空間計量表會列出相同的分類。已儲存的工作階段、「我的圖片」與檔案結果與版本都會被納入打包檔中；資產快取、工具預覽以及下方的離線固定項目，皆可重新產生，因此不會被納入。
 
 ![儲存空間計量表將此裝置的資料分成具名類別，其中「已儲存的工作階段」與「我的圖片」與「資產快取」分開追蹤，此處為全新安裝、每個類別皆尚未有內容的畫面](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
 
 ## 跨殼層保證
 
-`data-transfer.ts` 只透過能力橋接（`host.profile`、`host.state`、`host.assets`）與共用的 `localStorage` 偏好設定來讀寫。因為橋接是唯一的接縫，即使底層儲存不同 - 網頁版是 IndexedDB，Tauri 是檔案系統 - *同一個*模組仍會在每個殼層產生位元組完全相同的輸出。Tauri 殼層原封不動地重用這個模組，只有它們的 `host.state` 實作不同。無頭測試針對記憶體內的橋接執行完整的往返測試，因此它可以代表所有殼層。
+`data-transfer.ts` 只透過能力橋接層（`host.profile`、`host.state`、`host.assets`）與共用的 `localStorage` 偏好設定來讀寫。同一個模組在網頁版與 Tauri 上讀寫同一種通用封裝，底層分別是 IndexedDB 或檔案系統儲存。選用的歷史部分只會在對應的轉接器可用時才會出現；不受支援的部分會在匯入時被回報為已跳過。無頭測試套件針對記憶體內的橋接驗證了通用部分，而歷史交易則另有真實瀏覽器測試。
 
 有兩個殼層基於不同原因不在此保證範圍內：
 
 - **一次性 CLI** 沒有東西要保留 - 它的狀態存在記憶體中，每次呼叫後即消失。
-- **TUI** 確實會保留狀態（`~/.lolly`：sessions、folders、profile），其 Profile 畫面也能備份它，但寫出的是它*自己較簡單*的封存格式：每個 session 一個 `sessions/<slot>.json`，再加上 `profile.json` 和 `folders.json`，沒有 manifest、沒有 `formatVersion`/`minReader`，也沒有完整性對照表。這個格式**無法**用本文的方式匯入 - 讀取器會拒絕它，判定為「不是 Lolly 備份」 - 而且容易混淆的是它用了類似的名稱（`lolly-backup-<stamp>.zip`）。統一這兩者是已知的落差。
+- **TUI** 確實會保留狀態（`~/.lolly`：sessions、folders、profile），其 Profile 畫面也能備份它，但寫出的是它*自己較簡單*的封存格式：每個 session 一個 `saved-state/<slot>.json`，再加上 `profile.json` 和 `folders.json`，沒有 manifest、沒有 `formatVersion`/`minReader`，也沒有完整性對照表。這個格式**無法**用本文的方式匯入 - 讀取器會拒絕它，判定為「不是 Lolly 備份」 - 而且容易混淆的是它用了類似的名稱（`lolly-backup-<stamp>.zip`）。統一這兩者是已知的落差。
 
 ## 保留的擴充點
 
-信封格式設計上是一份 manifest 加上一組具名的部分，讓日後新型態的可攜資料能**不需破壞性變更**就搭上這個格式。它們會以附加部分的形式加入（新的 `formatVersion`，相同的 `minReader`），而目前的讀取器會跳過它不認得的內容。這些項目在[路線圖](/info/overview.html#roadmap)上，尚未實作。之所以在此保留這些名稱,是為了讓格式在它們到位時仍保持一致。
+信封格式設計上是一份 manifest 加上一組具名的部分，讓日後新型態的可攜資料能**不需破壞性變更**就搭上這個格式。它們會以附加部分的形式加入（新的 `formatVersion`，相同的 `minReader`），而目前的讀取器會跳過它不認得的內容。這些項目目前還沒有建置。之所以在此保留這些名稱,是為了讓格式在它們到位時仍保持一致。
 
-- **`tokens.json` - 設計權杖（design tokens）。** 一份 [W3C DTCG](https://tr.designtokens.org/format/) 設計權杖文件（[Penpot 匯入匯出](https://help.penpot.app/user-guide/design-systems/design-tokens/)所用的格式 - 帶有 `$value`/`$type`/`$description` 的權杖,並組織成群組、集合與主題）。封裝中的權杖集合可讓使用者在安裝之間連同 session 一起搬移品牌基本元素。長期來看,匯入的權杖集合會成為工具與調色盤資產所依循解析的第一等來源。
-- **`penpot/` - 匯入的 Penpot 檔案。** 為匯入並*以工具形式*呈現的 Penpot 檔案（或其擷取出的、與 Lolly 相關的子集）保留的目錄。封裝將會攜帶這個匯入定義,讓它與使用者其餘的資料一起移動。
+- **`tokens.json` - 設計權杖（design tokens）。** 一份 [W3C DTCG](https://tr.designtokens.org/format/) 設計權杖文件（[Penpot 匯入匯出](https://help.penpot.app/user-guide/design-systems/design-tokens/)所用的格式 - 帶有 `$value`/`$type`/`$description` 的權杖,並組織成群組、集合與主題）。封裝中的權杖集合可讓使用者在安裝之間連同 session 一起搬移品牌基本元素。（使用者自己的品牌權杖，如今已經以 `assets.json` 中的 `user/tokens/brand` 資產形式隨打包檔傳輸；這個部分則會攜帶一整份附有其集合與主題的 DTCG 文件。）長期來看,匯入的權杖集合會成為工具與調色盤資產所依循解析的第一等來源。
+- **`penpot/` - 已匯入的 Penpot 檔案。** 為一個 Penpot 檔案（或從中擷取出、與 Lolly 相關的子集）匯入並*以工具形式*呈現而預留的目錄。打包檔會攜帶這份已匯入的定義，因此它會隨使用者其餘的資料一起傳輸。
 
 對讀取器而言,任何不在這些保留名稱與上述部分之列的內容,都是未知部分：原封不動地保留,並計入 `skipped`。
 
@@ -129,4 +174,5 @@ Lolly 使用者累積的一切都存放在**自己的裝置上** - 沒有帳號�
 
 - 模組：[`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts)（`exportBackup`、`importBackup`、`BACKUP_FORMAT`、`BACKUP_FORMAT_VERSION`、`BACKUP_READER_VERSION` - 命名用的 `backupFilename()` 為內部函式）。
 - 合約測試：[`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) - 涵蓋往返、合併、完整性、向前相容與讀取器把關等案例。
+- 歷史記錄合約測試：[`tests/file-history-backup.test.ts`](../tests/file-history-backup.test.ts)、[`tests/file-batch-history.test.ts`](../tests/file-batch-history.test.ts) 與 [`tests/file-result-library.test.ts`](../tests/file-result-library.test.ts)。瀏覽器驗收測試：[`tests/file-history.browser.test.ts`](../tests/file-history.browser.test.ts)、[`tests/file-batch-history.browser.test.ts`](../tests/file-batch-history.browser.test.ts) 與 [`tests/file-result-reuse.browser.test.ts`](../tests/file-result-reuse.browser.test.ts)。
 - 使用的橋接介面：`host.profile`、`host.state`、`host.assets` - 詳見 [Host API](/info/host-api.html)。

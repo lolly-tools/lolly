@@ -55,20 +55,20 @@ tutulan ve asla iletilmeyen küçük bir miktar veri saklar:
   başka kimse tarafından okunmaz.
 
 Bunların hiçbiri paylaşılmaz, satılmaz veya seni tanımlamak ya da izlemek için
-kullanılmaz. Onay verilecek bir şey yoktur, çünkü herhangi bir toplama işlemi
-olmuyor - yalnızca bu bildirim var, böylece neyin nerede tutulduğunu bilirsin.
-Bunların tümünü istediğin an **Profile → Clear all my data** ile veya
-tarayıcında sitenin depolama alanını temizleyerek silebilirsin. (ePrivacy
-Directive Art. 5(3) uyarınca, talep ettiğin hizmet için kesinlikle gerekli olan
-depolama onay gerektirmez - yalnızca şeffaflık gerektirir; bu belge ve
-uygulama içi bildirim de tam olarak bunu sağlar.)
+kullanılmaz. Onay verilecek bir şey yoktur, çünkü herhangi bir toplama işlemi olmuyor
+- yalnızca bu bildirim var, böylece neyin nerede tutulduğunu bilirsin. Tarayıcında
+sitenin depolama alanını temizlemek bunların tümünü istediğin an kaldırır; **Ayarlar →
+Depolama → Tüm verilerimi temizle** profilini, kaydedilmiş oturumlarını, yüklenen
+görsellerini ve varlık önbelleğini kaldırır. (ePrivacy Directive Art. 5(3) uyarınca,
+talep ettiğin hizmet için kesinlikle gerekli olan depolama onay gerektirmez - yalnızca
+şeffaflık gerektirir; bu belge ve uygulama içi bildirim de tam olarak bunu sağlar.)
 
 ![Profil sayfasının depolama bölümü, telefon genişliğinde bir ekranda: cihaz üzerindeki her veri kategorisi adlandırılmış, hemen yanında Clear all my data düğmesi](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
-Bu verilerin kendi yedeğin - **Export my data & render everything** ile
-üretilen `lolly-backup` paketi - senin sakladığın ve denetlediğin bir
-dosyadır. Sen kendin bir yere göndermeyi seçmedikçe sunucularımıza asla
-dokunmaz. Bkz. [Veri Aktarımı](/info/data-transfer.html).
+Bu verilerin kendi yedeğin - **Verilerimi dışa aktar** ile üretilen
+`lolly-backup` paketi - senin sakladığın ve denetlediğin bir
+dosyadır. Sen kendin bir yere göndermeyi seçmedikçe sunucularımıza
+asla dokunmaz. Bkz. [Veri Aktarımı](/info/data-transfer.html).
 
 ## Cihaz üzerinde çalışan araçlar
 
@@ -81,6 +81,17 @@ filigran veya meta veri taşımaz - çoğunun amacı veriyi kaldırıp korumakt�
 risk eklemek değil.
 
 ![Bu araçların taşıdığı rozet: Runs on your device - hiçbir şey yüklenmez](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+
+Prepare for sharing, çalışma girdilerini, özel bulguları ve değiştirme haritalarını, geçmişe,
+bağlantılara, yedeklere veya senkronizasyona otomatik olarak eklemeden bellekte tutar. İnceleme
+ve değiştirme, dosya içeriğini bir sunucuya göndermez veya kimlik bilgilerini çevrimiçi
+doğrulamaz. Kullanıcılar bir sonucu kopyalamayı, indirmeyi, göndermeyi ya da açıkça
+kütüphanelerine kaydetmeyi seçer; kaydedilen bir sonuç ardından kütüphanenin olağan yedekleme
+ve senkronizasyon ayarlarını izler. Reçete dosyaları önceki yükleri ve gerçek eşlemeleri hariç
+tutar. Özet raporları sayıları, kapsam kimliklerini ve dosya özetlerini içerir. CLI, yalnızca
+`--review-file` ile açıkça istendiğinde, orijinal değerleri içeren özel bir inceleme dosyası da
+kaydedebilir. Bir tarayıcı hazırlama görünümünü temizlemek ya da terk etmek çalışma durumunu
+serbest bırakır; bu, tarayıcı ya da işletim sistemi belleğinden adli bir silme sözü değildir.
 
 ## Uygulama ağla ne zaman konuşur, eksiksiz liste
 
@@ -96,19 +107,45 @@ eksiksiz listesidir. Burada yoksa, uygulama onu yapmıyor demektir.
 | Dropbox'a gönder | Dropbox'ın kendi penceresinde tamamladığın bir Dropbox oturum açma işleminin ardından, göndermeyi seçtiğin tek dosya Dropbox'ın API'sine gönderilir (oturum açma ve meta veriler için `api.dropboxapi.com`, dosyanın kendisi için `content.dropboxapi.com`). Lolly'nin erişimi yalnızca uygulama klasörüyle sınırlıdır (yalnızca `Apps/` klasörünü ve oradaki kendi klasörünü görebilir - Dropbox'ının geri kalanını asla göremez), sana gösterilen "Open" bağlantısı kısa ömürlü bir özel bağlantıdır (herkese açık paylaşım oluşturulmaz) ve bir yenileme jetonu yalnızca "stay connected" seçeneğini işaretlersen saklanır | Yalnızca bir dosyada "Send to Dropbox"a bastığında ve yalnızca operatörün bir Dropbox istemci kimliği yapılandırdığı derlemelerde - bu olmadan düğme hiç var olmaz | Düğme hiç görünmez. Dosyayı indir ve Dropbox'a kendin yükle |
 | OneDrive'a gönder | Microsoft'un kendi penceresinde tamamladığın bir Microsoft oturum açma işleminin ardından, göndermeyi seçtiğin tek dosya Microsoft'un kimlik ve Graph hizmetlerine gönderilir (oturum açma için `login.microsoftonline.com`, yükleme için `graph.microsoft.com`; büyük bir dosya `api.onedrive.com`, `*.up.1drv.com` veya `*.sharepoint.com` üzerindeki Microsoft'a ait bir yükleme adresine parçalar halinde yüklenir). Lolly'nin erişimi `Apps/` altındaki kendi klasörüyle (OneDrive'ının geri kalanını asla okuyamaz) ve hesap etiketi için görünen adınla sınırlıdır, bir yenileme jetonu ise yalnızca "stay connected" seçeneğini işaretlersen saklanır | Yalnızca bir dosyada "Send to OneDrive"a bastığında ve yalnızca operatörün bir Microsoft istemci kimliği yapılandırdığı derlemelerde - bu olmadan düğme hiç var olmaz | Düğme hiç görünmez. Dosyayı indir ve OneDrive'a kendin yükle |
 | LinkedIn'e gönder | Kendi tarayıcında tamamladığın bir LinkedIn oturum açma işleminin ardından, göndermeyi seçtiğin tek dosya, adı gönderi metni olarak birlikte LinkedIn'e gönderilir (oturum açma için `www.linkedin.com`, yükleme ve gönderi için `api.linkedin.com`). Gönderi, adın altında herkese açık bir gönderi olarak kendi akışına gider. Lolly senin adına gönderi paylaşabilir ve hesap etiketi için adını okuyabilir, LinkedIn'inde başka hiçbir şeye erişemez; oturum açma bilgisi yalnızca "stay connected" seçeneğini işaretlersen bu cihazda tutulur - LinkedIn'in jetonları 60 gün sürer ve sessizce yenilenemez, bu yüzden kendiliğinden sona erer | Yalnızca bir dosyada "Send to LinkedIn"e bastığında, yalnızca masaüstü uygulamalarında ve yalnızca bir LinkedIn uygulamasının yapılandırıldığı derlemelerde - bu olmadan düğme hiç var olmaz | Web uygulamasında engellenecek bir şey yok: bu yalnızca **masaüstü uygulamalarında** var, bu yüzden bu iki sunucu aşağıdaki web uygulamasının İçerik Güvenliği Politikası'nda kasıtlı olarak YER ALMAZ. Masaüstü uygulamalarında, yapılandırılmış LinkedIn uygulamasını kaldır, düğme hiç görünmez |
+| Penpot'a gönder | Uygulamaya yapıştırdığın kişisel Penpot erişim jetonun ve göndermeyi seçtiğin tasarımın `.penpot` arşivi, Penpot'un API'sine (`design.penpot.app`) uygulamanın kendi kaynağındaki (`/api/penpot`) küçük bir geçiş aracılığıyla gönderilir, çünkü Penpot'un API'si bir tarayıcıya doğrudan yanıt vermez. Geçiş aracı iletir ve unutur; masaüstü uygulamaları Penpot ile doğrudan konuşur | Yalnızca Design aracında "Send to Penpot"a bastığında ve bir projeyi onayladığında | Geçiş aracı bir hata döndürür ve gönderme kapalı biçimde başarısız olur. `.penpot` dosyasını dışa aktar ve onu kendin Penpot'a içe aktar |
+| Bluesky'e gönder | Göndermeyi seçtiğin tek görsel, gönderi metni ve alt metni olarak adı, ve rumuzun artı bir uygulama parolası (Bluesky → Settings → App passwords, asla hesap parolan), adını verdiğin Bluesky sunucusuna (kendi sunucunu barındırmıyorsan `bsky.social`) gönderilir. Uygulama parolası yalnızca bu cihazda saklanır, asla bir yedekte yer almaz ve Disconnect onu siler | Yalnızca profilinde hesabı bağladıktan sonra, yalnızca **masaüstü uygulamalarında**, bir görselde "Send to Bluesky"a bastığında | Web uygulamasında engellenecek bir şey yok: aşağıdaki politikası hiçbir Bluesky sunucusu listelemez, bu yüzden geçiş orada var olmaz. Masaüstü uygulamalarında, bağlantıyı kaldır, düğme hiç görünmez |
+| Discord'a gönder | Göndermeyi seçtiğin tek dosya, bir ek olarak, yapıştırdığın kanal webhook adresine (`discord.com`) gönderilir. Bir webhook adresi, onu elinde bulunduran herkesin o kanala gönderi yapmasına izin verir, bu yüzden yalnızca bu cihazda saklanır, asla bir yedekte yer almaz ve Disconnect onu siler | Yalnızca **masaüstü uygulamalarında**, bir dosyada "Send to Discord"a bastığında | Web uygulamasında engellenecek bir şey yok: aşağıdaki politikası `discord.com`'u adlandırmaz, bu yüzden geçiş orada var olmaz. Masaüstü uygulamalarında, webhook'u kaldır, düğme hiç görünmez |
+| Mastodon'a gönder | Göndermeyi seçtiğin tek dosya ve gönderi metni olarak adı, o sunucunun kendi penceresinde tamamladığın bir oturum açmanın ardından, adını verdiğin Mastodon (ya da uyumlu) sunucusuna gönderilir. Bağlanmak o sunucuda cihaz başına küçük bir uygulama kaydeder; oturum açma yalnızca "stay connected"ı işaretlersen bu cihazda tutulur | Yalnızca bir dosyada "Send to Mastodon"a bastığında. Sunucuyu sen seçersin, bu yüzden aşağıdaki politikada yer almaz | Adını verdiğin sunucunun tarayıcı çağrılarına izin vermesi gerekir; vermiyorsa, masaüstü uygulamalarını kullan. Disconnect düğmeyi kaldırır |
+| Nextcloud / WebDAV'a gönder | Göndermeyi seçtiğin tek dosya, girdiğin sunucu adresi, kullanıcı adı ve uygulama parolasıyla (Nextcloud → Settings → Security → Devices & sessions; asla hesap parolan) tek bir kimlik doğrulamalı PUT üzerinden kendi sunucuna gönderilir. Yalnızca bu cihazda saklanır, asla bir yedekte yer almaz, Disconnect tarafından silinir | Yalnızca bir dosyada "Send to Nextcloud"a bastığında. Sunucuyu sen seçersin, bu yüzden aşağıdaki politikada yer almaz | Sunucunun, uygulamanın kaynağından gelen tarayıcı çağrılarına izin vermesi gerekir; vermiyorsa, masaüstü uygulamalarını kullan |
+| S3 uyumlu depolamaya gönder | Göndermeyi seçtiğin tek dosya, girdiğin anahtar çiftiyle cihazında imzalanarak kendi bucket'ına (AWS S3, MinIO, R2, B2, Garage - herhangi bir SigV4 uç noktası) gönderilir. Anahtarlar yalnızca bu cihazda saklanır, asla bir yedekte yer almaz, Disconnect tarafından silinir | Yalnızca bir dosyada "Send to S3"e bastığında. Uç noktayı sen seçersin, bu yüzden aşağıdaki politikada yer almaz | Bucket'ının CORS kurallarının uygulamanın kaynağına izin vermesi gerekir; vermiyorsa, masaüstü uygulamalarını kullan |
+| Cihazların arasında senkronize et | Bu cihazda yaptığının bir kopyası - kaydedilmiş oturumlar ve projeler, yazı tipleri ve logolarıyla tasarım sistemlerin, yüklenen görseller, profilin ve tercihlerin - tek bir dosya olarak, seçtiğin tek depolamaya gönderilir: Dropbox'ındaki Lolly uygulama klasörü (`api.dropboxapi.com`, `content.dropboxapi.com`), Lolly'nin Google Drive'ında oluşturduğu dosyalar (`www.googleapis.com`), OneDrive'ındaki Lolly uygulama klasörü (`graph.microsoft.com`, daha büyük dosyalar `api.onedrive.com`, `*.up.1drv.com` veya `*.sharepoint.com`'a yüklenir, indirmeler Microsoft'un `*.files.1drv.com`, `my.microsoftpersonalcontent.com` veya `*.sharepoint.com`'undan gelir), ya da kendi Nextcloud / WebDAV sunucun veya S3 bucket'ın. Aynı depolama ayrıca en fazla yedi günlük kopya ve son uygulamandan önceki bir kopyayı tutar. **Lolly'ye hiçbir şey gitmez:** yolda hiçbir Lolly sunucusu, aktarıcısı ya da Lolly Work sunucusu yoktur ve uygulamaların bunun için, oturum açmak için bile, hiçbir Lolly web sitesine ihtiyacı yoktur. Kopya, yalnızca bir parola belirlersen önce cihazında şifrelenir. Oturum açmalar, anahtarlar, uygulama parolaları, parola ve senkronizasyon ayarları cihazda kalır ve asla kopyada yer almaz. Web'de, hatırlanan bir Google Drive bağlantısı yalnızca hesap adını tutar (ve verdiysen kendi istemci kimliğini); Google oturum açması ise yalnızca bir ziyaret sürer. Android uygulamasında, Google Drive oturum açması telefondaki, Google'ın çalıştırdığı Google Play hizmetleri üzerinden gerçekleşir | Yalnızca "Sync across my devices"ı açtıktan ya da "Sync now"a bastıktan sonra: her değişiklikten kısa bir süre sonra ve uygulamadan ayrıldığında bir yükleme, ve uygulama başladığında daha yeni bir kopya kontrolü | Senkronizasyon başarısız olur ve nedenini söyler; çalışman cihazda kalır. Bunun yerine verilerini bir dosyaya aktar ve kendin taşı |
 | ICC baskı profilleri | Kişisel hiçbir şey yok - standart bir baskı koşulu profili için ICC'nin genel kayıt defterine (`registry.color.org`, `www.color.org`) yapılan bir istek | Yalnızca baskı profili yöneticisinde bir ICC ön ayarına tıklarsan - profil başına tek seferlik bir indirme, ardından cihazında kalır | ICC ön ayarları başarısız olur. Bunun yerine kendi `.icc` profilini sağla |
 | İnternet radyosu | Kişisel hiçbir şey yok - istasyona (`api.somafm.com` ve onun belirttiği icecast sunucusu, `*.somafm.com`) bir çalma listesi isteği ve bir ses akışı | Yalnızca ses oynatıcıdaki isteğe bağlı yerleşik radyoyu çalarken | Radyo başarısız olur. Diğer tüm ses özellikleri çalışmaya devam eder |
 | Bir aracın yakalamasını istediğin bir URL | URL ekran görüntüsü aracından, tam olarak yazdığın web adresine bir istek. O adres her ne ise. Bu sunucu aşağıdaki politikada yer almaz, çünkü onu kullanım anında sen seçersin | Yalnızca o araca bir URL girip yakalamayı başlattığında | Bir operatör bunu sunucuya göre izin listesine ekleyemez. Bunu kaldırmak için aracı kaldır |
+| URL'den bir görsel ekle | "Add from URL"a (varlık seçicide ya da Varlıklar'da) yapıştırdığın tam görsel adresine bir istek. Web uygulamasının kendi politikası, tarayıcının başka bir siteden doğrudan getirme yapmasını yasaklar, bu yüzden istek senin için uygulamanın kendi kaynağındaki (`/api/fetch-image`) küçük bir geçiş aracı tarafından yapılır; bu araç görseli sunucu tarafında getirir ve yalnızca baytları geri verir - hiçbir şey saklamaz ve adresi unutur. Herkese açık bir görsel adresi olmayan hiçbir şeyi kabul etmez (özel ya da iç bir adres engellenir). Masaüstü uygulamaları adresi doğrudan getirir. Yapıştırdığın bir Lolly bağlantısı hiç getirilmez - cihazında render edilir. Sunucu aşağıdaki politikada yer almaz, çünkü onu kullanım anında sen seçersin | Yalnızca "Add from URL"a bir URL yapıştırıp onayladığında | İşletmeci geçiş aracını kapatır (`LOLLY_DISABLE_IMAGE_PROXY=1`); bundan sonra web uygulamasında yalnızca Lolly bağlantıları, `data:` görselleri ve aynı kaynaktan görseller eklenebilir. Masaüstü uygulamaları etkilenmez |
 | SEAL imza denetimi | **Hiçbir şey.** Web uygulamasının hiç DNS çözümleyicisi yok - aşağıya bak | Asla | Engellenecek bir şey yok |
 | Cihaz üstü AI modelleri | Kişisel hiçbir şey yok - Lolly'nin model sunucusundan (`lolli.li`) tek seferlik bir model dosyası indirmesi, ardından cihazında önbelleğe alınır; hesap yok, kimlik belirteci yok, yalnızca istek ve IP adresin | Yalnızca bir modele ihtiyaç duyan bir özelliği kullandığında (Verify derin tarama, görüntü büyütme, konuşma ve benzerleri) | O özellik indirmeyi bekler; geri kalan her şey çalışmaya devam eder |
 | Uzak örnek | Adını verdiğin örneğin geri gönderdiği her ne ise, yukarıda açıklanan aynı katalog eşitlemesi üzerinden - artı ona yapılan isteklere eklenen bir sürüm etiketi (kabuk türü ve motor sürümü, bir kullanıcı aracısının taşıdığı bilgiyle aynı), böylece operatörü hangi Lolly sürümlerinin sahada olduğunu görebilir. Yönetilen bir örnekte, oturum açıkken, bu etiket ayrıca cihaz başına bir kurulum kimliği taşır, böylece operatörün cihaz listesi bu kurulumu ayırt edebilir. Bu yalnızca kendi kullanımının zaten yaptığı isteklere biner - zamanlayıcı yoktur ve hiçbir şey kendiliğinden eve telefon açmaz - ve örnekten ayrılmak kimliği siler, böylece daha sonra yeniden bağlanan bir cihaz yeni bir kimlik sunar. Adresi kullanım anında sen seçersin, bu yüzden aşağıdaki politikada yer almaz | Yalnızca kabuğu açıkça başka bir Lolly dağıtımına yönlendirirsen | Örnek değiştirme başarısız olur. Yerel örneğin etkilenmez |
 
-O tablodaki her sabit sunucu aynı zamanda uygulamanın tarayıcı tarafından zorlanan İçerik Güvenliği Politikası'ndaki eksiksiz izin listesidir. Yani bu liste yalnızca kodun bugün ne yaptığının bir açıklaması değil, tarayıcının uygulamayı tuttuğu sınırdır: başka bir sunucuyla iletişim kurmaya çalışan gelecekteki bir değişiklik sessizce izin verilmez, engellenir. Bir satır kasıtlı istisnadır ve kendi hücresi bunu belirtir: Send to LinkedIn yalnızca masaüstü uygulamalarında bulunur, bu yüzden web uygulamasının politikası bu sunuculardan hiçbirini adlandırmaz - web uygulaması kodu denese bile onlara ulaşamaz. İki satır daha sabit bir sunucuya sahip değildir, çünkü adresi kullanım anında sen seçersin: bir aracın yakalamasını istediğin bir URL ve kabuğu yönlendirdiğin bir uzak örnek. İkisi de politikada yer almaz ve her biri yalnızca bir adres yazıp harekete geçtiğinde gerçekleşir. İsteğe bağlı olanların hiçbirini istemeyen bir dağıtım (örneğin kendi yazı tiplerine sahip bir kurumsal örnek) bu sunucuları politikasından kaldırır ve özellikler dışarıya ulaşmak yerine kapalı biçimde başarısız olur.
+O tablodaki her sabit sunucu aynı zamanda uygulamanın tarayıcı tarafından zorlanan İçerik
+Güvenliği Politikası'ndaki eksiksiz izin listesidir. Yani bu liste yalnızca kodun bugün
+ne yaptığının bir açıklaması değil, tarayıcının uygulamayı tuttuğu sınırdır: başka bir
+sunucuyla iletişim kurmaya çalışan gelecekteki bir değişiklik sessizce izin verilmez,
+engellenir. Bir satır kasıtlı istisnadır ve kendi hücresi bunu belirtir: Send to LinkedIn
+yalnızca masaüstü uygulamalarında bulunur, bu yüzden web uygulamasının politikası bu
+sunuculardan hiçbirini adlandırmaz - web uygulaması kodu denese bile onlara ulaşamaz. İki
+satır daha, Bluesky ve Discord, aynı şekilde yalnızca masaüstündedir ve sunucuları aynı
+nedenle web politikasının dışında bırakılır. Beş satırın sabit bir sunucusu yoktur, çünkü
+adresi kullanım anında sen seçersin: bir aracın yakalamasını istediğin bir URL, kabuğu
+yönlendirdiğin bir uzak örnek, ve kendi Mastodon sunucun, WebDAV sunucun ya da S3
+bucket'ın (son ikisi bir senkronizasyon evi olarak da). Bunların hiçbiri politikada yer
+almaz ve her biri yalnızca bir adres yazıp harekete geçtiğinde gerçekleşir. Penpot
+satırı, uygulamanın kendi kaynağı üzerinden Penpot'a ulaşır, bu yüzden `'self'`
+tarafından kapsanır. İsteğe bağlı olanların hiçbirini istemeyen bir dağıtım (örneğin
+kendi yazı tiplerine sahip bir kurumsal örnek) bu sunucuları politikasından kaldırır ve
+özellikler dışarıya ulaşmak yerine kapalı biçimde başarısız olur.
 
-Bunların hiçbiri belgelerini, projelerini, oturumlarını veya yüklediğin
-dosyaları hiçbir yere göndermez. Bunlar bir şeyleri cihazına *getirmek* için
-vardır (araçlar, yazı tipleri, modeller), aşağıdaki bölümlerde açıkça
-adlandırılan istisnalar dışında cihazından hiçbir şey *göndermek* için değil.
+İki tür satır dışında, bunların hiçbiri belgelerini, projelerini, oturumlarını
+ya da yüklediğin dosyaları hiçbir yere göndermez: bunlar bir şeyleri cihazına
+*getirmek* için vardır (araçlar, yazı tipleri, modeller). Bu iki tür, seçtiğin
+tek dosyayı gönderen Send satırları ve çalışmanın bir kopyasını seçtiğin
+depolamaya ve hiçbir Lolly sunucusuna göndermeyen senkronizasyon satırıdır.
+Başka herhangi bir istisna aşağıdaki bölümlerde açıkça adlandırılır.
 
 **Kaldırdığımız şey hakkında bir not.** Verify, bir dosyanın imzalama
 anahtarının DNS'de yayımlandığı bir şema olan SEAL imzalarını kontrol
@@ -132,11 +169,10 @@ It Yourself](/info/verify-yourself.html) sayfasında bulunur.
 
 ## Doğrudan bağlantılı render URL'leri
 
-> **lolly.tools'ta aktif.** Her
-> `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` URL'si gerçekten render
-> edilir ve girdiler bu URL'nin içinde taşınır. Aşağıdaki bölüm bunun senin
-> için ne anlama geldiğini açıklar; bir işletmeci ise bu özelliği kendi
-> örneğinde kapatabilir.
+> **lolly.tools'ta aktif.** Her `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>`
+> URL'si gerçekten render edilir ve girdiler bu URL'nin içinde taşınır. Aşağıdaki
+> bölüm bunun senin için ne anlama geldiğini açıklar; bir işletmeci ise bu özelliği
+> kendi örneğinde kapatabilir.
 
 Uygulamanın kendisi tamamen cihazında kalır. Ayrı olarak bir işletmeci
 **doğrudan bağlantılı render URL'lerini** etkinleştirebilir -
@@ -165,27 +201,32 @@ Lolly'yi kendin barındırıyorsun ve genel bir render yüzeyi istemiyor musun?
 
 ## MCP sunucusu (isteğe bağlı, yapay zeka ajanları için)
 
-Lolly'ye Model Context Protocol üzerinden bir yapay zeka ajanı tarafından da
-ulaşılabilir - işletmeci tarafından çalıştırılan bir uç nokta (lolly.tools bir
-tane çalıştırır; herkes tamamen hava boşluklu olanlar dahil kendi sunucusunu
-kendi barındırabilir). Render yolunun hesapsız duruşunu paylaşır, buna ek
-olarak dosya baytlarını zorunlu olarak işleyen üç araç vardır:
+Lolly'ye Model Context Protocol üzerinden bir yapay zeka ajanı tarafından da ulaşılabilir -
+işletmeci tarafından çalıştırılan bir uç nokta (lolly.tools bir tane çalıştırır; herkes tamamen
+hava boşluklu olanlar dahil kendi sunucusunu kendi barındırabilir). Render yolunun hesapsız
+duruşunu paylaşır, buna ek olarak dosya baytlarını zorunlu olarak işleyen dört araç vardır:
 
-- <!--i:cpu--> **`lolly_transform`** (çağıran ajan adına, sunucu tarafında bir cihaz
-  üstü aracı çalıştırır), **`lolly_verify`** (Content Credentials kontrolü
-  yapar) ve **`lolly_redact`** (bir görsel veya PDF'in bölgelerini
+- <!--i:cpu--> **`lolly_transform`** (çağıran ajan adına, sunucu tarafında
+  bir cihaz üstü aracı çalıştırır), **`lolly_verify`** (Content Credentials
+  kontrolü yapar) ve **`lolly_redact`** (bir görsel veya PDF'in bölgelerini
   karartır) çağrandan bir dosyanın baytlarını kabul eder. Bunlar **işlem
   içinde, bellekte** işlenir ve sonuç aynı çağrıda döndürülür - dosya asla
   diske yazılmaz ve istek tamamlandığında asla saklanmaz.
-- <!--i:checklist--> Diğer tüm araçlar - `lolly_render`, `lolly_build_url`,
-  `lolly_list_tools`, `lolly_describe_tool` - yalnızca parametrelerle çalışır
-  (metin, sayılar, renkler, URL'ler, katalog varlık kimlikleri), doğrudan
-  bağlantılı bir render URL'sinin aldığı aynı girdilerle.
-- <!--i:lock--> Erişim, ya işletmecinin güvendiği istemcilere verdiği paylaşılan bir
-  jetondur ya da durumsuz OAuth 2.1'dir: paylaşılan bir sırra karşı
-  doğrulanan, kısa ömürlü imzalı jetonlar; sunucu tarafında hiçbir şey
-  saklanmaz ve jetonun kendisi asla bir günlüğe veya render URL'sine
-  yazılmaz.
+- <!--i:cpu--> **`lolly_rebrand`** (eski bir sunum destesini `plan`, `compile` ve
+  `inspect` aşamaları boyunca bir tasarım sistemine yeniler) bir destenin baytlarını
+  aynı şekilde kabul eder ve onları **yalnızca o çağrı için, bellekte** işler -
+  yanıt gönderildikten sonra hiçbir şey diske yazılmaz veya saklanmaz. İlk aşaması
+  olan `capabilities`, herhangi bir bayt göndermeden önce baytlarının nereye
+  gideceğini sözcüklerle belirtir: kendi barındırdığın yerel bir sunucuda deste o
+  makineden asla çıkmaz; barındırılan bir sunucuda, `lolly_rebrand`'i çağırmak
+  desteyi oraya gönderir, yine o aşamanın verdiği boyut ve slayt sınırlarına kadar.
+- <!--i:checklist--> Diğer tüm araçlar - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
+  `lolly_describe_tool` - yalnızca parametrelerle çalışır (metin, sayılar, renkler, URL'ler,
+  katalog varlık kimlikleri), doğrudan bağlantılı bir render URL'sinin aldığı aynı girdilerle.
+- <!--i:lock--> Erişim, ya işletmecinin güvendiği istemcilere verdiği
+  paylaşılan bir jetondur ya da durumsuz OAuth 2.1'dir: paylaşılan bir sırra
+  karşı doğrulanan, kısa ömürlü imzalı jetonlar; sunucu tarafında hiçbir şey
+  saklanmaz ve jetonun kendisi asla bir günlüğe veya render URL'sine yazılmaz.
 
 ## Content Credentials kimliği (senin kendin başlatman gereken bir oturum açma)
 
@@ -200,41 +241,38 @@ dışa aktardığın dosyaların anonim bir anahtar yerine "Verified - signed by
 \<your email\>" yazmasını sağlayan doğrulanmış bir kimlik kaydetmek. **Kayıt olmazsan bu
 bölümdeki hiçbir şey seni ilgilendirmez ve hiçbir kişisel veri cihazından çıkmaz.**
 
-![Profil sayfasındaki Verified kimlik kartı, telefon genişliğinde: sertifika
-yaşam süresi seçici ve altındaki kayıt adımı, sen başlatana kadar hareketsiz](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
+![Profil sayfasındaki Verified kimlik kartı, telefon genişliğinde: sertifika yaşam süresi seçici ve altındaki kayıt adımı, sen başlatana kadar hareketsiz](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Didentity-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23identity-section&dark=1&filename=pv-identity-enrol)
 
 Kayıt olursan, tam olarak şunlar gerçekleşir:
 
-1. **Bir oturum açma yöntemi seçersin** - GitHub, Google, SUSE (id.suse.com)
-   veya e-posta ile gönderilen bir bağlantı. Üç OIDC sağlayıcısı için, o
-   sağlayıcının kendi giriş sayfasına yönlendirilirsin; bu sayfa bizim değil,
-   onların gizlilik politikasına tabidir. Lolly'nin sertifika servisi
-   karşılığında yalnızca doğrulanmış bir e-posta adresi ve sağlayıcının adını
-   alır. E-posta bağlantısı için, yazdığın adres yalnızca o tek bağlantıyı
-   iletmek amacıyla işlemsel bir e-posta API'si olan **Resend**'e geçirilir.
+1. **Bir oturum açma yöntemi seçersin** - GitHub, Google, SUSE (id.suse.com) veya e-posta
+   ile gönderilen bir bağlantı. Üç OIDC sağlayıcısı için, o sağlayıcının kendi giriş
+   sayfasına yönlendirilirsin; bu sayfa bizim değil, onların gizlilik politikasına tabidir.
+   Lolly'nin sertifika servisi karşılığında yalnızca doğrulanmış bir e-posta adresi ve
+   sağlayıcının adını alır. E-posta bağlantısı için, yazdığın adres yalnızca o tek
+   bağlantıyı iletmek amacıyla işlemsel bir e-posta API'si olan **Resend**'e geçirilir.
 2. **Kısa ömürlü bir çerez yönlendirmeyi korur.** Bu, tüm Lolly sisteminin
    ayarladığı tek çerezdir: `lolly_ca_state`, `HttpOnly`, `/api/ca` ile
-   kapsamlandırılmış, on dakika içinde süresi doluyor. Bir izleme
-   tanımlayıcısı değil, rastgele bir değer taşır ve yalnızca OAuth
-   yönlendirmesinin sahtelenmesini önlemek için vardır. Oturum açma
-   tamamlanır tamamlanmaz temizlenir.
-3. **IP adresin, kötüye kullanımı önlemek için kısaca kullanılır** (bir
-   betiğin bir gelen kutusunu spam ile doldurmasını veya e-posta kotasını
-   tüketmesini engellemek için) - yalnızca sunucu belleğinde, yaklaşık bir
-   dakikalık kayan bir pencere boyunca tutulur, asla bir günlüğe yazılmaz
-   veya hiçbir yerde kalıcı hale getirilmez.
-4. **Sertifika servisi kısa ömürlü bir sertifika verir** (7, 30, 90 veya 365
-   gün, seçimin işletmecinin politikasıyla sınırlandırılır), bu sertifika
-   doğrulanmış e-postanı cihazında üretilen anahtar çiftinin genel yarısına
-   bağlar. Özel yarısı tarayıcından asla çıkmaz.
+   kapsamlandırılmış, on dakika içinde süresi doluyor. Bir izleme tanımlayıcısı
+   değil, rastgele bir değer taşır ve yalnızca OAuth yönlendirmesinin sahtelenmesini
+   önlemek için vardır. Oturum açma tamamlanır tamamlanmaz temizlenir.
+3. **IP adresin, kötüye kullanımı önlemek için kısaca kullanılır** (bir betiğin
+   bir gelen kutusunu spam ile doldurmasını veya e-posta kotasını tüketmesini
+   engellemek için). Lolly, kısa ömürlü bir kötüye kullanım kontrolü kovası
+   oluşturmadan önce onu karma haline getirir; ham adres o depoya gönderilmez.
+   Kova yaklaşık bir dakika sonra sona erer ve izleme için kullanılmaz. Sıradan
+   barındırma erişim günlükleri ayrıdır ve aşağıda açıklanır.
+4. **Sertifika servisi kısa ömürlü bir sertifika verir** (7, 30, 90 veya
+   365 gün, seçimin işletmecinin politikasıyla sınırlandırılır), bu
+   sertifika doğrulanmış e-postanı cihazında üretilen anahtar çiftinin
+   genel yarısına bağlar. Özel yarısı tarayıcından asla çıkmaz.
 5. **Veriliş hakkında hiçbir şey kaydedilmez.** Sertifika servisi hiçbir
    veriliş günlüğü tutmaz: ne e-postan, ne sağlayıcı, ne bir seri numarası,
    ne de bir zaman damgası. Veritabanı yok, günlük satırı yok, webhook yok.
    E-posta adresin istekte yalnızca kendi cihazının aldığı sertifikaya
    yazılacak kadar var olur, sonra bizim tarafımızdan tamamen silinir.
-6. **Ondan sonra imzalama, sertifikanın tüm yaşam süresi boyunca** yeniden
-   çevrimdışıdır. Bir dosyayı dışa aktarmak sertifika servisiyle asla
-   iletişime geçmez - yalnızca kayıt olma işlemi geçmişti.
+6. **Ondan sonra imzalama, sertifikanın tüm yaşam süresi boyunca** yeniden çevrimdışıdır. Bir dosyayı
+   dışa aktarmak sertifika servisiyle asla iletişime geçmez - yalnızca kayıt olma işlemi geçmişti.
 
 **Ödünleşim, açıkça söylenmiş.** Bu servisin daha önceki bir sürümü, hatalı
 verilmiş veya ele geçirilmiş bir sertifikanın izlenebilmesi için her verilişi
@@ -282,15 +320,14 @@ geçmişini okumak, izlemek veya iletmek için kullanılmaz.
 
 ## Altyapı günlükleri
 
-Her web sitesi gibi, lolly.tools'un ve herhangi bir Lolly dağıtımının
-arkasındaki sunucular, kendilerine bir istek ulaştığında standart web sunucusu
-erişim günlükleri üretir: IP adresi, istenen yol, zaman damgası, kullanıcı
-ajanı. Bu, Lolly'nin üzerine eklediği bir şey değil, temel barındırma
-davranışıdır ve belgelerinin içeriğini asla içermez, çünkü bunlar zaten bir
-sunucuya hiç ulaşmaz. Kasıtlı olan tek istisna, yukarıda açıklandığı gibi
-bellekte işlenen ve asla diske veya bir günlüğe yazılmayan, açıkça bir MCP
-`lolly_transform`, `lolly_verify` veya `lolly_redact` çağrısına verdiğin
-dosyadır.
+Her web sitesi gibi, lolly.tools'un ve herhangi bir Lolly dağıtımının arkasındaki
+sunucular, kendilerine bir istek ulaştığında standart web sunucusu erişim
+günlükleri üretir: IP adresi, istenen yol, zaman damgası, kullanıcı ajanı. Bu,
+Lolly'nin üzerine eklediği bir şey değil, temel barındırma davranışıdır ve
+belgelerinin içeriğini asla içermez, çünkü bunlar zaten bir sunucuya hiç ulaşmaz.
+Kasıtlı olan tek istisna, yukarıda açıklandığı gibi bellekte işlenen ve asla
+diske veya bir günlüğe yazılmayan, açıkça bir MCP `lolly_transform`,
+`lolly_verify`, `lolly_redact` veya `lolly_rebrand` çağrısına verdiğin dosyadır.
 
 **Lolly'nin kendi kodu bu günlüklere hiçbir şey yazmaz.** MCP sunucusunda
 hiçbir günlükleme ifadesi yoktur. Sertifika servisi tam olarak iki satır
@@ -314,12 +351,27 @@ Burada neredeyse hiçbir şey hukuki bir dayanak gerektirmiyor, çünkü neredey
 |---|---|---|
 | Cihazındaki her şey (belgeler, tercihler, önbellek, sayaçlar) | **Bizim işlememiz bile değil** - bize hiç ulaşmıyor. Cihazındaki depolama, talep ettiğin hizmet için kesinlikle gerekli (ePrivacy Madde 5(3)), bu yüzden onay gerektirmiyor | Sen silene kadar |
 | Content Credentials kaydı sırasındaki e-posta adresin | **Madde 6(1)(b)**, açıkça talep ettiğin bir hizmetin ifası | Saklanmıyor. Yalnızca talep süresi boyunca bellekte bulunuyor |
-| Hız sınırlama amacıyla oturum açma uç noktalarındaki IP adresin | **Madde 6(1)(f)**, ücretsiz bir hizmetin ve üçüncü bir tarafın e-posta kotasının kötüye kullanılmasını önlemedeki meşru menfaatimiz. Bunun bir denge testini geçtiğini düşünüyoruz çünkü yalnızca bellekte tutuluyor, hiçbir zaman kaydedilmiyor ve yaklaşık bir dakika içinde siliniyor | ~1 dakika, sunucu belleğinde, hiç kalıcı hale getirilmiyor |
+| Hız sınırlama amacıyla oturum açma uç noktalarındaki IP adresinden tek yönlü türetilmiş bir kova anahtarı | **Madde 6(1)(f)**, ücretsiz bir hizmetin ve üçüncü bir tarafın e-posta kotasının kötüye kullanılmasını önlemedeki meşru menfaatimiz. Bunun bir denge testini geçtiğini düşünüyoruz çünkü ham adres sınırlayıcıya gönderilmiyor, kova yalnızca kötüye kullanım kontrolü için kullanılıyor ve otomatik olarak sona eriyor | Kötüye kullanım kontrolü deposunda yaklaşık 1 dakika; sonrasında saklanmıyor |
 | Barındırma erişim günlükleri (IP, yol, zaman damgası, kullanıcı aracısı) | **Madde 6(1)(f)**, hizmet güvenliği, kötüye kullanımın önlenmesi ve arızaların teşhisindeki meşru menfaatimiz | Planımız için Vercel'in platform varsayılanı. Herhangi bir aktarım veya dışa aktarım eklemiyoruz |
 
-**Alıcılar.** Alıcı kategorileri şunlardır: barındırma sağlayıcımız (Vercel Inc.) ve - yalnızca e-posta ile oturum açma seçeneğini kullanırsan - bir işlemsel e-posta sağlayıcısı (Resend). GitHub, Google veya SUSE (id.suse.com) ile oturum açarsan, o sağlayıcıyla kendi gizlilik politikası kapsamında doğrudan etkileşim kurarsın. Bize yalnızca doğrulanmış bir e-posta adresi bildirirler, başka hiçbir şey bildirmezler. Kişisel verileri başka hiç kimseyle paylaşmıyoruz ve veri satmıyor, reklam yürütmüyor veya kullanıcı profillemesi yapmıyoruz.
+**Alıcılar.** Alıcı kategorileri şunlardır: barındırma sağlayıcımız (Vercel Inc.);
+yalnızca kısa ömürlü, tek yönlü türetilmiş kova anahtarları alan ve asla ham IP adresini
+almayan kötüye kullanım kontrolü deposu sağlayıcımız; ve - yalnızca e-posta ile oturum
+açma seçeneğini kullanırsan - bir işlemsel e-posta sağlayıcısı (Resend). GitHub, Google
+veya SUSE (id.suse.com) ile oturum açarsan, o sağlayıcıyla kendi gizlilik politikası
+kapsamında doğrudan etkileşim kurarsın. Bize yalnızca doğrulanmış bir e-posta adresi
+bildirirler, başka hiçbir şey bildirmezler. Kişisel verileri başka hiç kimseyle
+paylaşmıyoruz ve veri satmıyor, reklam yürütmüyor veya kullanıcı profillemesi yapmıyoruz.
 
-**AEA dışına aktarımlar.** Vercel ve Resend ABD şirketleridir. lolly.tools için işlev hesaplaması Vercel'in Frankfurt (`fra1`) bölgesine sabitlenmiştir, yani işleme AB'de gerçekleşir, ancak ABD merkezli sağlayıcılar olarak işleyen sıfatıyla verilere ABD'den yine de erişebilirler. Bu aktarımlar, her sağlayıcının veri işleme sözleşmesinde belirtildiği üzere Avrupa Komisyonu'nun Standart Sözleşme Hükümleri'ne ve/veya AB-ABD Veri Gizliliği Çerçevesi'ne dayanır. Her iki sağlayıcıya da ulaşan kişisel veri o kadar sınırlı olduğundan - tek bir mesaj göndermek için iletilen bir e-posta adresi ve sıradan erişim günlükleri - maruziyet de buna orantılı olarak küçüktür.
+**AEA dışına aktarımlar.** Vercel ve Resend ABD şirketleridir. lolly.tools için
+işlev hesaplaması Vercel'in Frankfurt (`fra1`) bölgesine sabitlenmiştir, yani işleme
+AB'de gerçekleşir, ancak ABD merkezli sağlayıcılar olarak işleyen sıfatıyla verilere
+ABD'den yine de erişebilirler. Bu aktarımlar, her sağlayıcının veri işleme
+sözleşmesinde belirtildiği üzere Avrupa Komisyonu'nun Standart Sözleşme Hükümleri'ne
+ve/veya AB-ABD Veri Gizliliği Çerçevesi'ne dayanır. Her iki sağlayıcıya da ulaşan
+kişisel veri o kadar sınırlı olduğundan - tek bir mesaj göndermek için iletilen bir
+e-posta adresi, sıradan erişim günlükleri ve kısa ömürlü, türetilmiş bir kötüye
+kullanım kontrolü kovası - maruziyet de buna orantılı olarak küçüktür.
 
 **Otomatik karar alma.** Yok. Profilleme yapılmıyor ve hukuki veya benzer şekilde önemli etkiler doğuran otomatik bir karar alma süreci yok (Madde 22).
 
@@ -329,11 +381,24 @@ Lolly, uygulamanın olağan kullanımında hiç kimseden, hiçbir yaştan, biler
 
 ## Haklarınız
 
-Lolly'nin dokunduğu neredeyse her şey yalnızca kendi cihazında saklandığından, veri koruma hukukunun "haklarınız" dediği şeylerin çoğu - erişim, düzeltme, silme, taşınabilirlik - zaten kimseye sormadan, anında kendin yapabileceğin şeylerdir: verilerin tarayıcının depolama alanında, inceleyebileceğin, dışa aktarabileceğin (yukarıdaki **Export my data & render everything**) veya silebileceğin (**Profile → Clear all my data**) bir biçimde bulunur.
+Lolly'nin dokunduğu neredeyse her şey yalnızca kendi cihazında saklandığından,
+veri koruma hukukunun "haklarınız" dediği şeylerin çoğu - erişim, düzeltme, silme,
+taşınabilirlik - zaten kimseye sormadan, anında kendin yapabileceğin şeylerdir:
+verilerin tarayıcının depolama alanında, inceleyebileceğin, dışa aktarabileceğin
+(yukarıdaki **Verilerimi dışa aktar**) ya da silebileceğin (yukarıdaki gibi,
+tarayıcında sitenin depolama alanını temizleyerek) bir biçimde bulunur.
 
 Resmi olarak, GDPR Madde 15-22 kapsamında kişisel verilerine **erişme**, onu **düzeltme**, **silme**, işlenmesini **kısıtlama** veya işlenmesine **itiraz etme** (meşru menfaatlere dayandırdığımız her şeye itiraz etmek dahil), **veri taşınabilirliği** ve - işleme onaya dayandığında - önceki işlemin hukuka uygunluğunu etkilemeksizin **onayı istediğin zaman geri çekme** hakkına sahipsin.
 
-Bunları bize karşı kullanma konusunda dürüst durum şu. Artık bir verme günlüğü tutmadığımızdan, **hakkında bakabileceğimiz, düzeltebileceğimiz, dışa aktarabileceğimiz veya silebileceğimiz hiçbir kişisel veri elimizde yok.** Bize yazıp hakkında ne tuttuğumuzu sorarsan, doğru cevap hiçbir şeydir ve bunu sana öyle söyleriz. Var olan tek kategori, barındırma sağlayıcımız tarafından kendi saklama varsayılanları altında tutulan, bir IP adresine bağlı barındırma erişim günlükleridir. Bunları arama veya seçici olarak silme imkânımız yok ve bunu, başka türlü davranıyormuş gibi yapmak yerine sana söyleriz. Gerçekten *senin* olan her şey kendi cihazında, kimsenin iznini almadan zaten okuyabileceğin, dışa aktarabileceğin ve yok edebileceğin bir yerdedir.
+Bunları bize karşı kullanma konusunda dürüst durum şu. Artık bir verme günlüğü
+tutmadığımızdan, **hakkında bakabileceğimiz, düzeltebileceğimiz, dışa aktarabileceğimiz
+veya silebileceğimiz hiçbir kişisel veri elimizde yok.** Bize yazıp hakkında ne
+tuttuğumuzu sorarsan, doğru cevap hiçbir şeydir ve bunu sana öyle söyleriz. Var olan
+tek kategori, barındırma sağlayıcımız tarafından kendi saklama varsayılanları altında
+tutulan, bir IP adresine bağlı barındırma erişim günlükleridir. Bunları arama veya
+seçici olarak silme imkânımız yok ve bunu, başka türlü davranıyormuş gibi yapmak yerine
+sana söyleriz. Gerçekten *senin* olan her şey kendi cihazında, kimsenin iznini almadan
+zaten okuyabileceğin, dışa aktarabileceğin ve yok edebileceğin bir yerdedir.
 
 **Şikayet etme hakkın var.** Verilerini uygun olmayan bir şekilde ele aldığımızı düşünüyorsan, bir veri koruma denetim makamına şikayette bulunabilirsin - AB'de, ikamet ettiğin, çalıştığın veya ihlalin gerçekleştiğini düşündüğün ülkedeki makam (Madde 77). Bizim lider denetim makamımız Almanya'nın Ansbach kentindeki *Bayerisches Landesamt für Datenschutzaufsicht* (BayLDA)'dır. Önce bizimle iletişime geçmen gerekmez, ancak sorunu düzeltme fırsatını isteriz.
 

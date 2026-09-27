@@ -55,7 +55,9 @@ export function stripAuthoringComments(md: string): string {
   let inFence = false;
   let inComment = false;
   for (const line of lines) {
-    if (!inComment && line.startsWith('```')) { inFence = !inFence; out.push(line); continue; }
+    // Indented fences count too (a code sample set in under a list item), or a comment
+    // written inside that sample would be stripped from the code.
+    if (!inComment && /^\s*```/.test(line)) { inFence = !inFence; out.push(line); continue; }
     if (inFence) { out.push(line); continue; }
     if (inComment) {
       const close = line.indexOf('-->');

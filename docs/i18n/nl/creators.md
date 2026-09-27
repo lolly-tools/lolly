@@ -16,7 +16,7 @@ Kies een tool, vul een paar velden in en download het afgewerkte bestand. Of ope
 - **[Een ontwerp importeren](/info/design-import.html)** - wanneer het werk al bestaat als `.fig`-, `.penpot`-, `.ai`-, `.idml`- of SVG-bestand en je het bewerkbaar wilt houden in plaats van platgeslagen.
 - **[Hulpweergaven](/info/utilities.html)** - het spreadsheet, de converter, het Colour Lab, de PDF-extractor en Script audio, voor de klussen die geen toolrender zijn.
 - **[Browserextensie](/info/extension.html)** - leg een live webpagina vast en hergebruik hem als asset in je eigen ontwerpen.
-- **[Zoeken](/info/search.html)** - één veld dat je tools, je opgeslagen werk, de catalogus en je instellingen bereikt.
+- **[Zoeken](/info/search.html)** - één veld dat je tools, je opgeslagen werk, je assets en je instellingen bereikt.
 - **[Ask Lolly](/info/ask.html)** - typ een vraag en krijg het bijbehorende onderdeel van deze handleidingen terug, met een link er rechtstreeks naartoe.
 - **[Het Dashboard](/info/dashboard.html)** - wat dit apparaat kan, je design system alleen-lezen en een blik op de opslag.
 - **[Je favorieten](/info/favourites.html)** - markeer met een ster wat je vaak gebruikt, zodat het een eigen tegel boven het raster krijgt.
@@ -34,9 +34,15 @@ Tekst die beweegt, scènes op een tijdlijn en motion die on-brand blijft. Een mo
 
 Neem een schone take op met een count-in, een niveaumeter en zachte begeleiding, of maak van een spraakmemo een afgewerkte video die meebeweegt met het geluid. Er is nog geen aparte Opnemen-pagina: Lolly gebruiken behandelt dit, in het tijdlijngedeelte.
 
-- **[Lolly gebruiken](/info/using.html#timeline-sequence-studio)** - een voice-over rechtstreeks op de tijdlijn opnemen, waar de take wordt opgeslagen en hoe hij in de mix terechtkomt.
-- **[Iets maken in 60 seconden](/info/make-something.html#make)** - de audiogramscène, voor wanneer je liever gehoord dan gezien wordt.
+- **[Lolly gebruiken](/info/using.html#timeline-sequence)** - een voice-over rechtstreeks op de tijdlijn opnemen, waar de take wordt opgeslagen en hoe hij in de mix terechtkomt.
+- **[Je eerste bestand maken](/info/make-something.html#other-first-projects)** - de audiogramscène, voor wanneer je liever gehoord dan gezien wordt.
 - **[Hulpweergaven](/info/utilities.html)** - Script audio, wanneer de woorden eerst komen en de stem daarna.
+
+## Presenteren
+
+Zet je camera, je logo en je naam over een Design-deck of Countdown heen, met privécontroles in een apart venster.
+
+- **[Presenting with camera](/info/presenting.html)** - kadrering, opgeslagen scènes, delen met het publiek, lokale opname en de huidige beperkingen van de proefversie.
 
 ## Samenwerken
 

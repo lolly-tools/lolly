@@ -341,6 +341,75 @@ test('slug index fetches the real landing page, not the old quickstart alias', a
   view.remove();
 });
 
+/**
+ * A page shaped like the build since plan 277 step 3c: the site bar (with the phone
+ * menu's sheet, which holds a compact copy of the rail) ahead of the masthead band,
+ * whose first row is the pathways strip and whose title row holds the h1 and Listen.
+ */
+const BAND_PAGE_HTML = `<!doctype html><html><head><title>Quickstart - Lolly</title></head>
+<body>
+  <header class="site-bar"><a class="btn--glass site-home" href="/info/index.html">Lolly</a>
+    <details class="site-menu"><summary class="site-fab" aria-label="Menu"></summary><div class="site-sheet">
+      <div class="docs-compact-nav"><details class="doc-details" open><summary>Quickstart</summary><div class="doc-details-body">
+        <div class="docs-compact-list"><a href="/info/start/install.html">Install Lolly</a></div></div></details></div>
+    </div></details>
+  </header>
+  <div class="docs-masthead"><div class="docs-mast-inner">
+    <nav class="docs-pathways" aria-label="Documentation sections"><a class="docs-pathway docs-pathway-home" href="/info/de/index.html">Willkommen</a><a class="docs-pathway active" href="/info/de/start/quickstart.html" aria-current="page">Schnellstart</a><a class="docs-pathway" href="/info/de/create/creators.html">Für Kreative</a></nav>
+    <div class="mast-title"><h1 id="quickstart">Schnellstart</h1><div class="listen-bar"><button type="button" class="docs-listen">Listen</button></div></div>
+  </div></div>
+  <div class="docs-wrap">
+    <aside class="docs-sidebar"><a href="/info/de/start/quickstart.html" class="active">Schnellstart</a><a href="/info/de/start/install.html">Lolly installieren</a></aside>
+    <main class="docs-content page-quickstart">
+      <p>Intro.</p>
+      <h2 id="one">Section One</h2><p>Body one.</p>
+      <h2 id="two">Section Two</h2><p>Body two.</p>
+    </main>
+  </div>
+</body></html>`;
+
+test('adopts the built pathways strip, links rewritten, with its Welcome tab and current section', async () => {
+  stubOkFetch(BAND_PAGE_HTML);
+  const view = freshView();
+
+  await mountDocs(view, host, 'start/quickstart', 'de', '');
+
+  const strip = view.querySelector<HTMLElement>('[data-pathways] nav.docs-pathways')!;
+  assert.ok(strip, 'the strip is the built element, adopted into the pathways slot');
+  const tabs = [...strip.querySelectorAll<HTMLAnchorElement>('a.docs-pathway')];
+  assert.deepEqual(tabs.map((a) => a.textContent), ['Willkommen', 'Schnellstart', 'Für Kreative'], 'the build\'s own tabs and words, not a rebuilt list');
+  assert.deepEqual(tabs.map((a) => a.getAttribute('href')), ['#/docs/index', '#/docs/start/quickstart', '#/docs/create/creators'], 'the tabs route inside the app');
+  assert.ok(tabs[1]!.classList.contains('active') && tabs[1]!.getAttribute('aria-current') === 'page', 'the current section rides across');
+  assert.ok(tabs[0]!.classList.contains('docs-pathway-home'), 'the Welcome tab keeps the class the landing marks active');
+  // The rail slot takes the real rail, never the phone menu's copy of it (which comes first in the page).
+  assert.ok(view.querySelector('[data-sidebar] aside.docs-sidebar'), 'the rail is the aside, not the sheet\'s compact list');
+  // The band's title row gives the article its h1 alone: Listen stays behind.
+  const article = view.querySelector('[data-content] article')!;
+  assert.equal(article.querySelector('h1.docs-page-title')?.textContent, 'Schnellstart', 'the band h1 opens the article');
+  assert.equal(article.querySelector('.docs-listen'), null, 'the band\'s Listen button is not carried into the article');
+
+  view.remove();
+});
+
+test('a landing that carries its strip in a band of its own shows it once, in the slot', async () => {
+  // Since the step 3c review the landing places the strip in a slim band after its hero,
+  // inside <main class="docs-landing">; the phone menu's copy is a plain group, not a nav.
+  const html = LANDING_HTML
+    .replace('<nav class="nav-group">', '<header class="site-bar"><div class="site-sheet-sections" role="group" aria-label="Documentation sections"><a class="docs-pathway" href="/info/de/start/quickstart.html">Schnellstart</a></div></header><nav class="nav-group">')
+    .replace('<section class="hero reveal">', '<div class="docs-strip-band docs-strip-band--flow"><div class="docs-mast-inner"><nav class="docs-pathways" aria-label="Documentation sections"><a class="docs-pathway docs-pathway-home active" href="/info/de/index.html" aria-current="page">Willkommen</a><a class="docs-pathway" href="/info/de/start/quickstart.html">Schnellstart</a></nav></div></div><section class="hero reveal">');
+  stubOkFetch(html);
+  const view = freshView();
+
+  await mountDocs(view, host, 'index', 'de', '');
+
+  const tabs = [...view.querySelectorAll<HTMLAnchorElement>('[data-pathways] a.docs-pathway')].map((a) => a.textContent);
+  assert.deepEqual(tabs, ['Willkommen', 'Schnellstart'], 'the slot adopts the band\'s strip, not the menu\'s rows');
+  assert.equal(view.querySelector('[data-content] .docs-strip-band'), null, 'the band is dropped from the rehosted landing, so the strip shows once');
+  assert.equal(view.querySelectorAll('nav.docs-pathways').length, 1, 'exactly one strip on screen');
+
+  view.remove();
+});
+
 test('landing mode drops the sidebar and TOC rails but keeps pathways + sitemap', async () => {
   stubOkFetch(LANDING_HTML);
   const view = freshView();

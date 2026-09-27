@@ -1,19 +1,33 @@
 # 내보내기 및 형식
 
-도구에서 완성된 파일을 얻는 방법 - 올바른 형식 선택, 출력 크기 설정, 각 옵션이 하는 일. 다른 모든 것과 마찬가지로 **내보내기는 사용자 기기에서 일어나요**. 아무것도 업로드되지 않아요.
+도구의 **Export | Save as** 알약에서 **Export**를 누르고, 파일 이름 옆 메뉴에서 형식을 고른 다음 **다운로드**를 누르세요. 파일은 사용자의 기기에서 만들어지며, 아무것도 업로드되지 않아요.
+
+대부분의 작업에는 다음 세 가지 형식 중 하나가 적합해요:
+
+| 용도 | 선택 | 이유 |
+|---|---|---|
+| 화면, 메시지, 슬라이드 | **PNG** | 어떤 앱에서도 열리고, 도구가 지원하면 투명 배경도 유지돼요 |
+| 완성된 페이지나 인쇄할 모든 것 | **PDF** | 보이는 그대로 인쇄되는 정확한 페이지 크기예요. 도구가 제공하면 **Print PDF**가 인쇄소용 CMYK 버전이에요 |
+| 어떤 크기에서도 선명함을 유지해야 하는 아트워크 | **SVG** | 벡터 도형이라 배지부터 배너까지 선명해요 |
+
+::: check 실제로 사용할 크기로 파일을 확인하세요
+보내기 전에, 그 화면에서 열어 보거나 실제 크기로 인쇄해 보세요.
+:::
+
+이 페이지의 나머지 부분에서는 모든 형식, 크기, 옵션을 다뤄요.
 
 ## 내보내기 작동 방식
 
-미리보기가 *곧* 파일이에요. 내보낼 때 호스트는 그 캔버스를 선택한 형식으로 렌더링해서 다운로드를 건네주거나(또는 클립보드에 넣어줘요). 도구는 제작자가 선언한 형식만 제공하며, 선택기는 브라우저가 만들 수 없는 형식은 숨겨요([비디오](#video) 참고).
+미리보기가 *곧* 파일이에요. 내보낼 때 호스트는 그 캔버스를 선택한 형식으로 렌더링해서 다운로드를 건네주거나(또는 클립보드에 넣어줘요), 선택기는 브라우저가 만들 수 없는 형식은 숨겨요([비디오](#video) 참고).
 
 파일을 만드는 경로는 세 가지예요. 대부분의 도구는 캔버스를 선택한 형식으로 **렌더링**해요. 텍스트 및 데이터 형식(HTML, MD, TXT, JSON, CSV, ICS, VCF)은 그림에서 래스터화되는 대신 도구의 콘텐츠에서 **생성**돼요. 그리고 개인정보 보호 유틸리티(예: *숨겨진 데이터 제거*)는 세 번째 경로를 사용해요. 사용자가 선택한 파일이 기기에서 바이트 단위로 변환되어 그대로 돌려받아요 - 캔버스도 없고, 워터마크도, 출처 메타데이터 추가도 없어요. 이미 사용자 자신의 파일이니까요.
 
-내보내기 컨트롤의 동작들이에요.
+내보내기 패널의 동작들이에요:
 
-- <!--i:download--> **다운로드** - 파일을 저장해요(기본 동작).
+- <!--i:download--> **다운로드** - 파일을 저장해요(기본 동작). 나중에 찾을 수 없다면 [다운로드한 파일 찾기](/info/find-your-work.html#find-a-file-you-downloaded)를 확인하세요.
 - <!--i:photos--> **복사** - 이미지를 클립보드에 넣어 Slack, 이메일, 문서에 바로 붙여넣을 수 있어요. 브라우저가 이미지를 복사할 수 없는 경우 대신 다운로드하고 알려줘요.
-- <!--i:folder--> **저장** - 현재 디자인을 라이브러리에 저장된 도구 세션으로 보관해요.
-- <!--i:link--> **공유** - **공유 대화상자**를 열어요. 디자인을 재현하는 복사 가능한 링크, 방문 시 토글(전체화면, 내보내기 패널, 열 때 다운로드 또는 복사), 그리고 전체 상태를 압축된 토큰에 담는 선택적 **최단 링크**를 제공해요([URL 모드](/info/url-mode.html) 참고).
+- <!--i:folder--> **저장** - 클릭 한 번으로, 어디에 저장할지 묻지 않고 현재 디자인을 프로젝트에 보관해요. 파일을 다운로드하지는 않아요. **내보내기** 옆의 **다른 이름으로 저장**은 어디에 저장할지 물어봐요([저장하고 이어서 하기](/info/using.html#saving-continuing) 참고).
+- <!--i:link--> **공유** - **Share dialog**를 열어요: 디자인을 재현하는 복사 가능한 링크, 방문 시 토글(전체화면, 내보내기 패널, 열 때 다운로드 또는 복사), 그리고 전체 상태를 압축된 토큰에 담는 선택적 **Shortest link**를 제공해요([URL 모드](/info/url-mode.html) 참고).
 
 (이 중 어떤 것이 표시될지는 도구 제작자가 선택해요. 기본 세트는 복사, 다운로드, 저장이에요.)
 
@@ -32,7 +46,7 @@
 
 ## 형식 선택하기
 
-파일명과 형식 선택기는 패널 상단에 하나의 `name.format` 쌍으로 나란히 있고, 선택기에는 이 도구의 제작자가 선언한 형식만 나열돼요.
+파일 이름과 형식 메뉴는 **다운로드** 아래에 하나의 `name.format` 쌍으로 나란히 있어요.
 
 ![파일명 필드가 형식 선택기와 결합되어 내보내기가 하나의 name.format 쌍으로 읽혀요](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
@@ -91,7 +105,7 @@
 
 샘플링은 각 구간의 끝이 아니라 **중간 지점**에서 이루어져요. 시퀀스의 첫 순간은 아직 페이드인이 끝나지 않은 등장 전환인 경우가 많고, 마지막 순간은 모든 클립이 끝난 뒤의 상태이기 때문이에요 - 끝점 샘플링이라면 프레임 두 개를 거의 빈 화면에 낭비하게 돼요. 개수는 **64**로 제한되어 있고(컨택트 시트는 사람이 읽기 위한 것이니까요), 필드에 말이 안 되는 값을 입력하면 내보내기가 실패하는 대신 `1`로 되돌아가요. 각 프레임은 일반적인 스틸이므로 Content Credentials, 임프린트, 물리적 단위, DPI 모두 단일 내보내기와 정확히 똑같이 동작해요.
 
-**프레임** 필드가 오늘날 시트를 얻는 방법이에요. 엔진은 이에 대응하는 `cuts` URL 매개변수를 예약해 두었지만, 아직 어떤 셸도 링크에서 이를 읽지 않아서 공유된 링크는 항상 재생 헤드 프레임으로 다시 열려요 - [URL 모드](/info/url-mode.html#contact-sheets-cuts) 참고.
+**프레임** 필드가 오늘날 시트를 얻는 방법이에요. 엔진은 이에 대응하는 `cuts` URL 매개변수를 예약해 두었지만, 아직 어떤 셸도 링크에서 이를 읽지 않아서 공유된 링크는 항상 재생 헤드 프레임으로 다시 열려요 - [URL 모드](/info/url-parameters.html#contact-sheets-cuts) 참고.
 
 ## 다중 페이지 PDF
 
@@ -157,7 +171,7 @@ SVG를 내보낼 수 있는 도구라면 어떤 것이든 **Penpot 파일**(`.pe
 - <!--i:file--> Website, SCORM 1.2, SCORM 2004 4th Edition, 또는 실험적인 xAPI 대상 중에서 선택하세요. 실제 콘텐츠와 ZIP 크기를 확인한 다음, 확인된 버전을 저장하고 다운로드하세요.
 - <!--i:check--> 완료하려면 필수 레슨을 모두 확인 처리하고 Finish를 선택해야 해요. 웹사이트 플레이어는 진행 상황을 브라우저에 저장하고, LMS 패키지는 이를 받는 LMS에 연결돼요.
 
-![SCORM (LMS)을 선택한 Design 덱의 내보내기 패널](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+![The export panel on a Design deck with SCORM (LMS) chosen](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 패키지에는 완성된 콘텐츠가 포함되어 있고, Lolly 계정이 필요하지 않아요. Website ZIP은 HTTP(S) 호스트에 압축을 풀고, LMS ZIP은 내용을 바꾸지 않은 채로 가져오세요. 강좌를 배포하기 전에 실제 대상 환경에서 테스트해 보세요.
 
@@ -255,7 +269,9 @@ GIF는 어디서나 작동합니다(채팅/이메일에 적합하며, 비디오�
 
 **내구성 있는 크레덴셜.** Imprint 옆에는 두 번째의 더 무거운 마크가 있습니다: **Durable credential**은 온디바이스 신경망 모델(TrustMark 형식)을 사용해 Lolly의 id를 픽셀 *안에* 기록하므로 "made with Lolly" 링크는 메타데이터 제거, 재인코딩, TrustMark를 인식하는 도구(뿐 아니라 Lolly 자체)에 의한 재판독에서도 살아남습니다. **기본적으로 꺼져 있습니다** - 순수 JavaScript인 Imprint와 달리 내보낼 때마다 신경망 처리가 필요하고 모델을 한 번 다운로드해야 하므로 조용히 부과되는 비용이 아니라 의도적인 옵트인입니다. 래스터 전용(**PNG, JPG, WebP, AVIF, TIFF**)이며 내보내기 패널에서 체크하거나 공유 링크에서 `durable=1`로 전달합니다. 데스크톱 및 모바일 앱에서는 오프라인에서 모델을 가져올 출처가 없으므로 이 카드가 아무 동작도 하지 않는 상태로 표시되는 대신 아예 숨겨집니다.
 
-**콘텐츠 보호.** 내보내기 패널에서 *비밀번호 보호*, **C2PA Credentials**, **Lolly Imprint**, **Durable credential**은 하나의 접힌 형식 인식형 **Content protection** 그룹으로 통합되어, 파일의 출처와 보호 옵션이 한 곳에 모입니다 - 이 그룹은 선택한 형식에 적용되는 카드만 표시하고, 하나도 적용되지 않으면 완전히 숨겨집니다. 인쇄 마크는 의도적으로 여기에 포함되지 않습니다: 이는 보호가 아니라 인쇄 제작 지오메트리이므로, **Print marks & bleed** - 재단선 여백 측정값(밀리미터)에 Crop, Registration, Bleed, Colour bars, Stamp details를 더한 것 - 은 인쇄 형식에서 독자적인 최상위 카드를 유지합니다.
+**콘텐츠 보호.** 내보내기 패널에서 사용자가 부여하는 **라이선스**, 배치한 것의 **Source credits**, *비밀번호 보호*, **C2PA Credentials**, **Lolly Imprint**, 그리고 **Durable credential**이 하나의 접힌 형식 인식형 **Content protection** 그룹으로 묶여, 파일의 출처, 권리, 보호 옵션이 한 곳에 모여요. 이 그룹은 선택한 형식에 적용되는 카드만 보여줘요. 링크나 저장된 문서가 이미 라이선스를 선언했거나, 출처에 사용자의 결정이 필요할 때는 저절로 열려요.
+
+**라이선스.** 다른 사람이 작업물을 어떻게 사용할 수 있는지 정하세요: 기본값은 *None(모든 권리 보유)*이고, 그 외에 CC0 1.0, Public Domain Mark 1.0, 또는 Creative Commons 4.0 라이선스 중 하나(BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND)를 고를 수 있어요. 라이선스 이름과 그 deed로 가는 링크는 파일의 라이선스 메타데이터(형식에 해당 필드가 있다면 EXIF, XMP, RIFF)와 Content Credential에 기록돼요. 선택 사항은 문서와 함께 저장되고 공유 링크에서는 `licence=`로 전달돼요. Lolly는 사용자가 고른 라이선스를 기록할 뿐, 조건을 확인하거나 강제하지 않아요. Claim처럼 자체 라이선스 필드가 있는 도구는 그 필드를 그대로 쓰고 두 번째 선택기를 보여주지 않아요. 인쇄 마크는 일부러 여기에 포함하지 않았어요: 이는 보호가 아니라 인쇄 제작 지오메트리이기 때문이에요. 그래서 **Print marks & bleed** - 재단선 여백 측정값(밀리미터)에 Crop, Registration, Bleed, Colour bars, Stamp details를 더한 것 - 은 인쇄 형식에서 독자적인 최상위 카드를 유지해요.
 
 ![PNG 내보내기에서 열린 Content protection 그룹, 여기에 적용되는 카드만 표시함](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
@@ -263,7 +279,7 @@ GIF는 어디서나 작동합니다(채팅/이메일에 적합하며, 비디오�
 
 **비용, 요율표에서 계산됨.** 사전 점검 아래 - 맨 마지막, 버튼 위 - 에는 동일한 수치를 금액으로 바꾸는 카드가 있으며, 누군가가 제공한 가격에서만 계산합니다. 이는 사전 점검 패스가 계산한 값을 읽습니다. 사전 점검 카드 자체가 켜져 있는지 여부와 관계없이 말이죠. 두 가지가 참이어야 합니다: 작업에 가격표가 가격을 매길 수 있는 무언가(판, 시트, 면적, 페이지, 변형 행, 출력 파일)가 있어야 하고(단순한 로고 PNG는 절대 표시되지 않음), **그리고** **요율표**가 있어야 합니다. 요율표는 인쇄소로부터 받은 JSON 가격표입니다. 기본 빌드는 이를 포함하지 않으며 앱 내에서 불러올 방법도 없습니다: 배포판이 제공하는 카탈로그 애셋으로 도착하거나, 셀프호스터나 관리 콘솔이 켜는 선택적 요율표 확장을 통해 제공됩니다. 요율표가 없으면 아무것도 표시되지 않습니다 - 프롬프트도, 빈 표도 없습니다.
 
-전체가 세워진 규칙은 **절대 돈을 지어내지 않는다**는 것입니다. 모든 수치는 사용자가 제공한 요율에 Lolly가 센 수량을 곱한 값입니다 - `4 plate × €35.00` - 그리고 총액은 그 수치와 같은 문장에서 자신의 출처 이름을 밝힙니다: 카드가 명시한 발행자와 카드가 밝힌 요율의 기준일. 기본 통화도, 자리표시자도, 누락된 가격을 대신하는 0도 없습니다. 파일이 자기 자신에 대해 말하는 내용은 인용 발언으로 남습니다: *"파일에 따르면: … Lolly는 이를 검증하지 않았습니다."*
+이 전체가 세워진 규칙은 **절대 돈을 지어내지 않는다**는 것이에요. 모든 수치는 사용자가 제공한 요율에 Lolly가 센 수량을 곱한 값이에요 - `4 plate × €35.00` - 그리고 총액은 그 수치와 같은 문장에서 자신의 출처를 밝혀요: 카드가 명시한 발행자와, 카드가 밝힌 요율의 기준일이에요. 기본 통화도, 자리표시자도, 누락된 가격을 대신하는 0도 없어요. 파일이 자기 자신에 대해 말하는 내용은 인용 발언으로 남아요: *"파일에 따르면: … Lolly는 이를 검증하지 않았습니다."*
 
 정직하게 계산할 수 없을 때는 작업 표가 회색으로 흐려지거나 채워진 수치로 저하되는 대신 **사라집니다**:
 
@@ -318,11 +334,11 @@ GIF는 어디서나 작동합니다(채팅/이메일에 적합하며, 비디오�
 
 ## 휴대폰에서
 
-내보내기 컨트롤은 떠 있는 **Render** 버튼 뒤에 있으며, 이를 누르면 **Export** 시트가 열려요 - 같은 형식, 크기, 복사, 다운로드, 공유가 터치에 맞게 크기 조정되어 있어요.
+내보내기 컨트롤은 떠 있는 **Export** 버튼 뒤에 있으며, 이를 누르면 **Export** 시트가 열려요 - 같은 형식, 크기, 복사, 다운로드, 공유가 터치에 맞게 크기 조정되어 있어요.
 
 ## 형식 참조
 
-호스트가 렌더링할 수 있는 모든 id를 그룹별로 정리했어요. 이 값들은 URL의 `format=` 매개변수와 CLI의 `--export=` 플래그 값이기도 해요 - [URL Mode](/info/url-mode.html)와 [CLI](/info/cli.html)를 참고하세요. 도구는 작성자가 선언한 부분집합만 제공하므로, 선택 목록은 항상 이 목록보다 짧아요.
+호스트가 렌더링할 수 있는 모든 id를 그룹별로 정리했어요. 이 값들은 URL의 `format=` 매개변수와 CLI의 `--export=` 플래그 값이기도 해요 - [URL Mode](/info/url-mode.html)와 [CLI](/info/cli.html)를 참고하세요. 도구의 메뉴에는 그 도구가 만들 수 있는 형식만 표시되므로, 항상 이 목록보다 짧아요.
 
 | 종류 | ID |
 |---|---|

@@ -55,21 +55,21 @@ kaunting data **sa iyong device lamang**, hindi kailanman ipinapadala:
   font** - nakaimbak sa IndexedDB sa iyong device, hindi kailanman ina-upload,
   hindi kailanman binabasa ng kahit sino maliban sa iyo.
 
-Wala sa mga ito ang ibinabahagi, ibinebenta, o ginagamit para kilalanin o subaybayan
-ka. Walang dapat pahintulutan, dahil walang collection na nagaganap - itong abiso
-lang, para malaman mo kung ano ang naka-imbak at saan. Burahin ang lahat ng ito
-anumang oras gamit ang **Profile → Clear all my data**, o sa pamamagitan ng
-pag-clear ng storage ng site sa iyong browser. (Sa ilalim ng ePrivacy Directive
-Art. 5(3), ang storage na mahigpit na kailangan para sa serbisyong hiniling mo ay
-hindi nangangailangan ng pahintulot - transparency lamang, na siyang katuturan ng
-dokumentong ito at ng abiso sa loob ng app.)
+Wala sa mga ito ang ibinabahagi, ibinebenta, o ginagamit para kilalanin o subaybayan ka. Walang dapat
+pahintulutan, dahil walang collection na nagaganap - itong abiso lang, para malaman mo
+kung ano ang naka-imbak at saan. Tinatanggal ng pag-clear ng storage ng site sa browser mo ang
+lahat nito anumang oras; tinatanggal ng **Mga Setting → Imbakan → Burahin ang lahat ng aking data**
+ang profile mo, mga naka-save na session, na-upload na larawan at ang asset cache. (Sa ilalim ng ePrivacy
+Directive Art. 5(3), ang storage na mahigpit na kailangan para sa serbisyong hiniling mo
+ay hindi nangangailangan ng pahintulot - transparency lamang, na siyang katuturan ng dokumentong ito at
+ng abiso sa loob ng app.)
 
 ![Ang seksyon ng storage sa profile page sa isang phone-width na screen: nakalista ang bawat kategorya ng on-device data, kasama ang Clear all my data button sa tabi nito](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
-Ang sarili mong backup ng data na ito - ang `lolly-backup` bundle na ginawa ng
-**Export my data & render everything** - ay isang file na hawak at kontrolado mo.
-Hindi ito kailanman nakakadikit sa aming mga server maliban kung pipiliin mong
-ipadala ito sa iba sa iyong sarili. Tingnan ang [Paglipat ng Data](/info/data-transfer.html).
+Ang sarili mong backup ng data na ito - ang `lolly-backup` bundle na ginawa ng **I-export ang
+data ko** - ay isang file na hawak at kontrolado mo. Hindi ito kailanman nakakadikit sa aming
+mga server maliban kung pipiliin mong ipadala ito sa iba sa iyong sarili. Tingnan ang [Data
+Transfer](/info/data-transfer.html).
 
 ## Mga on-device na utility
 
@@ -82,6 +82,17 @@ walang dalang watermark o metadata mula sa amin - ang layunin ng karamihan sa mg
 ito ay alisin at protektahan ang data, hindi magdagdag ng panganib.
 
 ![Ang badge na dala ng mga tool na ito: Runs on your device - walang ina-upload](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+
+Ang **Prepare for sharing** ay iniingatan sa memory ang mga working input, pribadong natuklasan
+at replacement map, nang hindi awtomatikong idinaragdag ang mga ito sa history, mga link, backup o sync.
+Ang inspection at replacement ay hindi nagpapadala ng laman ng file sa isang server o nagpapatunay ng
+mga kredensyal online. Pipiliin ng user kung kokopyahin, ida-download, ipapadala o tahasang ise-save
+ang resulta sa library nila; ang isang na-save na resulta ay sumusunod na sa normal na setting ng library
+backup at sync. Ang mga recipe file ay hindi kasama ang mga naunang payload at literal na mapping.
+Ang mga summary report ay naglalaman ng mga bilang, scope ID at file hash. Puwede ring i-save ng CLI
+ang isang pribadong review file na naglalaman ng mga orihinal na value, kapag tahasang hiniling lang ito
+gamit ang `--review-file`. Ang pag-clear o pag-alis sa isang browser preparation view ay nagpapalaya sa
+working state nito; hindi ito isang pangako ng forensic erasure mula sa memory ng browser o OS.
 
 ## Kailan nakikipag-ugnayan ang app sa network, nang buo
 
@@ -97,20 +108,45 @@ ipinapadala ng app sa network. Kung wala ito rito, hindi ito ginagawa ng app.
 | Send to Dropbox | Ang isang file na pinili mong ipadala, papunta sa API ng Dropbox (`api.dropboxapi.com` para sa sign-in at metadata, `content.dropboxapi.com` para sa file mismo), pagkatapos ng Dropbox sign-in na kinukumpleto mo sa sarili ng Dropbox na window. App-folder lamang ang access ng Lolly (makikita lang nito ang `Apps/` at ang sarili nitong folder doon - hindi kailanman ang natitira sa iyong Dropbox), ang link na "Open" na ipinapakita nito sa iyo ay isang panandaliang pribadong link (walang nililikhang pampublikong share), at ang refresh token ay naka-store lamang kung tinitikan mo ang "stay connected" | Kapag lang pinindot mo ang "Send to Dropbox" sa isang file, at kapag lang naka-configure ang operator ng Dropbox client id sa build - kung wala nito, hindi umiiral ang button | Hindi kailanman lumalabas ang button. I-download ang file at i-upload mo mismo ito sa Dropbox |
 | Send to OneDrive | Ang isang file na pinili mong ipadala, papunta sa identity at Graph services ng Microsoft (`login.microsoftonline.com` para sa sign-in, `graph.microsoft.com` para sa upload; ang malaking file ay ina-upload nang paputol-putol papunta sa isang upload address na pag-aari ng Microsoft sa `api.onedrive.com`, `*.up.1drv.com` o `*.sharepoint.com`), pagkatapos ng Microsoft sign-in na kinukumpleto mo sa sarili ng Microsoft na window. Limitado ang access ng Lolly sa sarili nitong folder sa ilalim ng `Apps/` (hindi nito kayang basahin ang natitira sa iyong OneDrive) kasama ang iyong display name para sa account label, at ang refresh token ay naka-store lamang kung tinitikan mo ang "stay connected" | Kapag lang pinindot mo ang "Send to OneDrive" sa isang file, at kapag lang naka-configure ang operator ng Microsoft client id sa build - kung wala nito, hindi umiiral ang button | Hindi kailanman lumalabas ang button. I-download ang file at i-upload mo mismo ito sa OneDrive |
 | Send to LinkedIn | Ang isang file na pinili mong ipadala, kasama ang pangalan nito bilang text ng post, papunta sa LinkedIn (`www.linkedin.com` para sa sign-in, `api.linkedin.com` para sa upload at post), pagkatapos ng LinkedIn sign-in na kinukumpleto mo sa sarili mong browser. Ang post ay napupunta sa sarili mong feed bilang pampublikong post sa ilalim ng iyong pangalan. Kayang mag-post ng Lolly bilang ikaw at basahin ang iyong pangalan para sa account label, wala nang iba pa sa iyong LinkedIn, at ang sign-in ay nananatili sa device na ito lamang kung tinitikan mo ang "stay connected" - ang mga token ng LinkedIn ay tumatagal ng 60 araw at hindi maaaring i-renew nang tahimik, kaya mag-e-expire ito nang mag-isa | Kapag lang pinindot mo ang "Send to LinkedIn" sa isang file, sa desktop apps lamang, at kapag lang naka-configure ang isang LinkedIn app sa build - kung wala nito, hindi umiiral ang button | Walang babawalan sa web app: umiiral ito **sa desktop apps lamang**, kaya sinadyang HINDI isinama ang dalawang host na iyon sa Content-Security-Policy ng web app sa ibaba. Sa desktop apps, alisin ang naka-configure na LinkedIn app at hindi na kailanman lumalabas ang button |
+| Send to Penpot | Ang personal access token mo sa Penpot (ipinapaste mo ito sa app) at ang `.penpot` archive ng disenyong pinili mong ipadala, sa API ng Penpot (`design.penpot.app`) sa pamamagitan ng isang maliit na pass-through sa sariling origin ng app (`/api/penpot`), dahil hindi sasagutin ng API ng Penpot ang isang browser nang direkta. Ang pass-through ay nagpapasa lang at kinakalimutan agad ito; direktang nakikipag-usap sa Penpot ang mga desktop app | Kapag lang pinindot mo ang "Send to Penpot" sa Design tool at kinumpirma ang isang project | Nagbabalik ng error ang pass-through at nabibigo at nagsasara ang pagpapadala. I-export ang `.penpot` file at i-import mo mismo ito sa Penpot |
+| Send to Bluesky | Ang isang larawang pinili mong ipadala, ang pangalan nito bilang teksto ng post at alt text, at ang handle mo kasama ang isang app password (Bluesky → Settings → App passwords, hindi kailanman ang password ng account mo), sa Bluesky server na pinangalanan mo (`bsky.social` maliban kung self-host ka). Naka-imbak ang app password sa device na ito lang, hindi kailanman sa isang backup, at binubura ito ng I-disconnect | Kapag lang pinindot mo ang "Send to Bluesky" sa isang larawan, pagkatapos mong ikonekta ang account sa profile mo, sa **desktop app lang** | Walang haharangin sa web app: walang Bluesky host na nakalista sa patakaran nito sa ibaba, kaya hindi umiiral doon ang pagtawid na iyon. Sa desktop app, alisin ang koneksyon at hindi na lalabas ang button |
+| Send to Discord | Ang isang file na pinili mong ipadala, bilang attachment, sa channel webhook address na pinaste mo (`discord.com`). Kahit sino ang may hawak ng isang webhook address ay puwedeng mag-post sa channel na iyon, kaya naka-imbak ito sa device na ito lang, hindi kailanman sa isang backup, at binubura ito ng I-disconnect | Kapag lang pinindot mo ang "Send to Discord" sa isang file, sa **desktop app lang** | Walang haharangin sa web app: hindi pinangalanan ng patakaran nito sa ibaba ang `discord.com`, kaya hindi umiiral doon ang pagtawid na iyon. Sa desktop app, alisin ang webhook at hindi na lalabas ang button |
+| Send to Mastodon | Ang isang file na pinili mong ipadala at ang pangalan nito bilang teksto ng post, sa Mastodon (o katugmang) server na pinangalanan mo, pagkatapos ng isang sign-in na tinapos mo sa sarili nitong window ng server na iyon. Ang pagkonekta ay nagpaparehistro ng isang maliit na per-device na app sa server na iyon; naka-imbak lang ang sign-in sa device na ito kung tinsek mo ang "stay connected" | Kapag lang pinindot mo ang "Send to Mastodon" sa isang file. Ikaw ang pumipili ng server, kaya wala ito sa patakaran sa ibaba | Kailangang payagan ng server na pinangalanan mo ang mga browser call; kung hindi, gamitin ang desktop app. Inaalis ng I-disconnect ang button |
+| Send to Nextcloud / WebDAV | Ang isang file na pinili mong ipadala, sa sarili mong server, sa pamamagitan ng isang authenticated na PUT gamit ang address ng server, user name at app password na inilagay mo (Nextcloud → Settings → Security → Devices & sessions; hindi kailanman ang password ng account mo). Naka-imbak sa device na ito lang, hindi kailanman sa isang backup, binubura ng I-disconnect | Kapag lang pinindot mo ang "Send to Nextcloud" sa isang file. Ikaw ang pumipili ng server, kaya wala ito sa patakaran sa ibaba | Kailangang payagan ng server mo ang mga browser call mula sa origin ng app; kung hindi, gamitin ang desktop app |
+| Send to S3-compatible storage | Ang isang file na pinili mong ipadala, sa sarili mong bucket (AWS S3, MinIO, R2, B2, Garage - anumang SigV4 endpoint), pinirmahan sa device mo gamit ang key pair na inilagay mo. Naka-imbak lang ang mga key sa device na ito, hindi kailanman sa isang backup, binubura ng I-disconnect | Kapag lang pinindot mo ang "Send to S3" sa isang file. Ikaw ang pumipili ng endpoint, kaya wala ito sa patakaran sa ibaba | Kailangang payagan ng mga panuntunang CORS ng bucket mo ang origin ng app; kung hindi, gamitin ang desktop app |
+| I-sync sa lahat ng device mo | Isang kopya ng ginawa mo sa device na ito - mga naka-save na session at project, ang mga design system mo kasama ang mga font at logo nito, na-upload na larawan, ang profile mo at ang mga preference mo - bilang iisang file, sa iisang imbakang pinili mo: ang Lolly app folder sa Dropbox mo (`api.dropboxapi.com`, `content.dropboxapi.com`), mga file na ginawa ng Lolly sa Google Drive mo (`www.googleapis.com`), ang Lolly app folder sa OneDrive mo (`graph.microsoft.com`, na ang mas malalaking file ay ina-upload sa `api.onedrive.com`, `*.up.1drv.com` o `*.sharepoint.com`, at ang mga download naman ay mula sa `*.files.1drv.com`, `my.microsoftpersonalcontent.com` o `*.sharepoint.com` ng Microsoft), o sa sarili mong Nextcloud / WebDAV server o S3 bucket. Iniingatan din ng parehong imbakan ang hanggang pitong pang-araw-araw na kopya at isang kopya mula bago ang huli mong apply. **Walang napupunta sa Lolly:** walang Lolly server, relay o Lolly Work server sa landas, at hindi kailangan ng mga app ang Lolly website para dito, kahit para lang mag-sign in. Naka-encrypt lang ang kopya sa device mo muna kung nagtakda ka ng isang passphrase. Ang mga sign-in, key, app password, ang passphrase at ang mga setting ng sync ay nananatili sa device at hindi kailanman kasama sa kopya. Sa web, ang isang naaalalang koneksyon sa Google Drive ay nag-iingat lang ng pangalan ng account mo (at ng sarili mong client id, kung nagbigay ka ng isa); ang mismong Google sign-in ay tumatagal lang ng isang beses na pagbisita. Sa Android app, dumadaan ang Google Drive sign-in sa Google Play services sa telepono, na pinapatakbo ng Google | Pagkatapos mo lang i-on ang "Sync across my devices" o pindutin ang "Sync now": isang upload nang maikling panahon pagkatapos ng bawat pagbabago at kapag umalis ka sa app, at isang pagsusuri para sa mas bagong kopya kapag nagsimula ang app | Nabibigo ang sync at sinasabi kung bakit; nananatili ang gawa mo sa device. I-export ang data mo sa isang file at ilipat mo na lang ito mismo sa halip |
 | Mga ICC press profile | Walang personal - isang request para sa isang standard na printing-condition profile, papunta sa pampublikong registry ng ICC (`registry.color.org`, `www.color.org`) | Kapag lang nag-click ka ng ICC preset sa print-profile manager - isang beses lang na fetch bawat profile, pagkatapos ay nananatili ito sa iyong device | Nabibigo ang mga ICC preset. Maglagay na lamang ng sarili mong `.icc` profile |
 | Radyo sa internet | Walang personal - isang playlist request at isang audio stream, papunta sa istasyon (`api.somafm.com` at ang icecast server na pinangalanan nito, `*.somafm.com`) | Habang lang pinapatugtog mo ang opsyonal na built-in radio sa sound player | Nabibigo ang radyo. Gumagana pa rin ang lahat ng ibang sound feature |
 | Isang URL na hinihiling mong kunin ng tool | Isang request papunta sa eksaktong web address na ini-type mo, mula sa URL screenshot tool. Anuman ang address na iyon. Hindi kasama ang host na ito sa patakaran sa ibaba, dahil ikaw mismo ang pumipili nito sa sandali ng paggamit | Kapag lang naglagay ka ng URL sa tool na iyon at sinimulan ang capture | Hindi maaaring i-allowlist ito ng operator ayon sa host. Upang alisin ito, alisin ang tool |
+| Magdagdag ng larawan mula sa isang URL | Isang request sa eksaktong image address na pinaste mo sa "Add from URL" (sa asset picker o sa Mga asset). Ipinagbabawal ng sariling patakaran ng web app na direktang kunin ng browser ang laman ng ibang site, kaya ginagawa ang request para sa iyo ng isang maliit na pass-through sa sariling origin ng app (`/api/fetch-image`), na kumukuha ng larawan sa server-side at ibinabalik lang ang mga byte - wala itong iniimbak at kinakalimutan agad ang address. Tinatanggihan nito ang anumang hindi isang pampublikong image address (hinaharang ang isang pribado o internal na address). Direktang kinukuha ng mga desktop app ang address. Ang isang Lolly link na pinaste mo ay hindi kailanman kinukuha - nire-render ito sa device mo. Wala sa patakaran sa ibaba ang host, dahil ikaw ang pumipili nito sa mismong sandali ng paggamit | Kapag lang nagpaste ka ng isang URL sa "Add from URL" at nagkumpirma | Pinapatay ng operator ang pass-through (`LOLLY_DISABLE_IMAGE_PROXY=1`); pagkatapos ay mga Lolly link, mga `data:` na larawan at mga same-origin na larawan lang ang maidaragdag sa web app. Hindi naaapektuhan ang mga desktop app |
 | Pagsuri ng SEAL signature | **Wala.** Walang DNS resolver ang web app - tingnan sa ibaba | Hindi kailanman | Walang babawalan |
 | Mga modelo ng AI na on-device | Walang personal - isang beses lang na model-file download mula sa model host ng Lolly (`lolli.li`), pagkatapos ay naka-cache sa iyong device; walang account, walang identifier, request at IP mo lamang | Kapag lang gumagamit ka ng feature na nangangailangan ng model (Verify deep scan, image upscale, speech, at katulad nito) | Naghihintay ang feature na iyon sa download; gumagana pa rin ang lahat ng iba |
 | Remote instance | Anuman ang ibinabalik ng instance na pinangalanan mo, sa parehong catalogue sync na inilarawan sa itaas - kasama ang isang version tag sa mga request papunta rito (uri ng shell at bersyon ng engine, ang parehong impormasyong dala ng isang user agent), para makita ng operator nito kung aling mga bersyon ng Lolly ang nasa paggamit. Sa isang managed instance, habang naka-sign in ka, dala rin ng tag na iyon ang isang per-device install id para makilala ng listahan ng device ng operator ang install na ito. Sumasakay lang ito sa mga request na ginagawa na ng sarili mong paggamit - walang timer at walang phone home - at pag-alis sa instance ay tinatanggal ang id, kaya ang device na muling kumonekta mamaya ay magpapakita ng panibago. Ikaw ang pumipili ng host sa sandali ng paggamit, kaya hindi ito kasama sa patakaran sa ibaba | Kapag lang tahasang itinuro mo ang shell sa ibang Lolly deployment | Nabibigo ang pagpapalit ng instance. Hindi naaapektuhan ang lokal mong instance |
 
-Ang bawat nakapirming host sa talahanayang iyon ay kabilang din sa kumpletong allowlist sa Content-Security-Policy ng app, na ipinapatupad ng browser. Kaya ang listahan ay hindi lamang isang paglalarawan kung ano ang ginagawa ng code ngayon, ito ang hangganan na ipinapataw ng browser sa app: ang isang pagbabago sa hinaharap na susubukang makipag-ugnayan sa ibang host ay babawalan, hindi tahimik na papayagan. Isang hilera ang sinadyang eksepsyon, at sinasabi mismo ito ng sarili nitong cell: umiiral lang ang Send to LinkedIn sa desktop apps, kaya walang pinapangalanan ang patakaran ng web app sa dalawa nitong host - hindi maaabot ng web app ang mga ito kahit subukan pa ng code nito. Dalawa pang hilera ang walang nakapirming host, dahil ikaw mismo ang pumipili ng address sa sandali ng paggamit: isang URL na hinihiling mong kunin ng tool, at isang remote instance na itinuturo mo ng shell. Wala sa dalawa ang kasama sa patakaran, at bawat isa ay nangyayari lamang kapag nag-type ka ng address at kumilos dito. Ang isang deployment na ayaw sa alinman sa mga opsyonal na ito (halimbawa, isang enterprise instance na may sariling mga font) ay inaalis ang mga host na iyon sa sarili nitong patakaran, at ang mga feature ay nabibigo nang closed sa halip na makipag-ugnayan sa labas.
+Ang bawat nakapirming host sa talahanayang iyon ay kabilang din sa kumpletong allowlist sa Content-Security-Policy
+ng app, na ipinapatupad ng browser. Kaya ang listahan ay hindi lamang isang paglalarawan kung ano ang
+ginagawa ng code ngayon, ito ang hangganan na ipinapataw ng browser sa app: ang isang pagbabago sa
+hinaharap na susubukang makipag-ugnayan sa ibang host ay babawalan, hindi tahimik na papayagan.
+Isang hilera ang sinadyang eksepsyon, at sinasabi mismo ito ng sarili nitong cell: umiiral lang ang
+Send to LinkedIn sa desktop apps, kaya walang pinapangalanan ang patakaran ng web app sa dalawa nitong
+host - hindi maaabot ng web app ang mga ito kahit subukan pa ng code nito.
+Dalawa pang hilera, ang Bluesky at Discord, ay desktop-only din sa parehong paraan, at hindi kasama
+sa web policy ang mga host nila sa parehong dahilan. Limang hilera ang walang nakapirming
+host, dahil ikaw mismo ang pumipili ng address sa sandali ng paggamit: isang URL na hinihiling
+mong kunin ng tool, isang remote instance na itinuturo mo ng shell, at ang sarili mong Mastodon
+server, WebDAV server o S3 bucket (ang huling dalawa ay pati na rin bilang sync home). Wala sa mga iyon
+ang kasama sa patakaran, at bawat isa ay nangyayari lamang kapag nag-type ka ng address at kumilos
+dito. Naaabot ng Penpot row ang Penpot sa pamamagitan ng sariling origin ng app, kaya saklaw ito ng
+`'self'`. Ang isang deployment na ayaw sa alinman sa mga opsyonal na ito (halimbawa, isang enterprise
+instance na may sariling mga font) ay inaalis ang mga host na iyon sa sarili nitong patakaran, at ang
+mga feature ay nabibigo nang closed sa halip na makipag-ugnayan sa labas.
 
-Wala sa mga ito ang nagpapadala ng iyong mga dokumento, proyekto, session, o
-na-upload na file kahit saan. Ang mga ito ay umiiral para magdala ng mga bagay
-*papunta* sa iyong device (mga tool, font, modelo), hindi para magpadala ng mga
-bagay *mula* dito, maliban sa mga eksepsiyon na tahasang binanggit sa mga
-seksyon sa ibaba.
+Maliban sa dalawang uri ng hilera, wala sa mga ito ang nagpapadala ng iyong mga dokumento, proyekto,
+session, o na-upload na file kahit saan: ang mga ito ay umiiral para magdala ng mga bagay *papunta*
+sa iyong device (mga tool, font, modelo). Ang dalawang uri ay ang mga Send row, na nagpapadala
+ng iisang file na pinili mo, at ang sync row, na nagpapadala ng kopya ng gawa mo sa imbakang
+pinili mo at hindi sa anumang Lolly server. Anumang iba pang eksepsiyon ay tahasang pinapangalanan
+sa mga seksyon sa ibaba.
 
 **Isang tala tungkol sa inalis namin.** Kayang suriin ng Verify ang mga SEAL
 signature, isang scheme kung saan ang signing key ng isang file ay na-publish sa
@@ -134,11 +170,10 @@ inaasahang output, ay nasa
 
 ## Hot-linked na render URL
 
-> **Live sa lolly.tools.** Bawat
-> `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>` URL ay talagang
-> nagre-render, at kasama ang mga input sa URL na iyon. Ipinapaliwanag ng
-> seksyon sa ibaba kung ano ang ibig sabihin nito para sa iyo, at puwedeng
-> i-off ng isang operator ang feature na ito sa sarili nilang instance.
+> **Live sa lolly.tools.** Bawat `https://lolly.tools/tool/<tool-id>.<ext>?<inputs>`
+> URL ay talagang nagre-render, at kasama ang mga input sa URL na iyon. Ipinapaliwanag ng
+> seksyon sa ibaba kung ano ang ibig sabihin nito para sa iyo, at puwedeng i-off ng isang operator
+> ang feature na ito sa sarili nilang instance.
 
 Ang app mismo ay nananatiling buong-buo sa iyong device. Hiwalay dito, puwedeng
 paganahin ng isang operator ang **hot-link render URL** - `/tool/<tool-id>.<ext>?<inputs>`
@@ -163,33 +198,36 @@ nakasulat sa URL.
   `noindex` para hindi i-index ng mga search engine ang mga render mo.
 
 Nag-self-host ng Lolly at ayaw ng pampublikong render surface? I-set ang
-`LOLLY_DISABLE_RENDER_GET=1`, at ang
-bawat isa sa mga URL na ito ay magbabalik ng 404.
+`LOLLY_DISABLE_RENDER_GET=1` at ang bawat isa sa mga URL na ito ay magbabalik ng 404.
 
 ## Ang MCP server (opsyonal, para sa mga AI agent)
 
-Maaari ring marating ang Lolly ng isang AI agent sa pamamagitan ng Model Context
-Protocol - isang endpoint na pinapatakbo ng operator (may pinapatakbo ang
-lolly.tools; puwedeng mag-self-host ng sarili nila ang kahit sino, kabilang ang
-buong air-gapped). Ibinabahagi nito ang no-accounts na postura ng render path,
-kasama ng tatlong tool na kinakailangang humawak ng file bytes:
+Maaari ring marating ang Lolly ng isang AI agent sa pamamagitan ng Model Context Protocol - isang
+endpoint na pinapatakbo ng operator (may pinapatakbo ang lolly.tools; puwedeng mag-self-host ng
+sarili nila ang kahit sino, kabilang ang buong air-gapped). Ibinabahagi nito ang no-accounts na
+postura ng render path, kasama ng apat na tool na kinakailangang humawak ng file bytes:
 
-- <!--i:cpu--> Ang **`lolly_transform`** (nagpapatakbo ng on-device na utility sa server-side,
-  sa ngalan ng agent na tumatawag), **`lolly_verify`** (sinusuri ang Content
-  Credentials), at **`lolly_redact`** (nagtatakip ng mga rehiyon ng isang larawan
-  o PDF) - lahat ng ito ay tumatanggap ng bytes ng file mula sa tumatawag. Ang mga
-  ito ay pino-proseso **in-process, sa memory**, at ang resulta ay ibinabalik sa
-  parehong tawag na iyon - hindi kailanman isinusulat ang file sa disk at hindi
-  kailanman naka-store kapag natapos na ang request.
+- <!--i:cpu--> **`lolly_transform`** (nagpapatakbo ng on-device na utility sa server-side, sa
+  ngalan ng tumatawag na agent), **`lolly_verify`** (sinusuri ang Content Credentials) at
+  **`lolly_redact`** (nagtatakip ng mga rehiyon ng isang larawan o PDF) - lahat ng ito ay tumatanggap
+  ng bytes ng file mula sa tumatawag. Pino-proseso ang mga ito **in-process, sa memory**,
+  at ibinabalik ang resulta sa parehong tawag na iyon - hindi kailanman isinusulat ang file sa
+  disk at hindi kailanman naka-store kapag natapos na ang request.
+- <!--i:cpu--> Ang **`lolly_rebrand`** (nagre-renovate ng lumang slide deck patungo sa isang design system,
+  sa buong `plan`, `compile` at `inspect` stages nito) ay tumatanggap ng bytes ng deck sa
+  parehong paraan, at pino-proseso ang mga ito **sa memory, para lang sa tawag na iyon** - walang
+  isinusulat sa disk o iniingatan pagkatapos maipadala ang response. Ang unang stage nito,
+  `capabilities`, ay nagsasaad sa salita kung saan mapupunta ang bytes mo bago ka magpadala
+  ng kahit ano: sa isang self-hosted na lokal na server, hindi kailanman umaalis sa makinang iyon
+  ang deck; sa isang hosted na server, ang pagtawag sa `lolly_rebrand` ay nagpapadala roon ng deck,
+  hanggang sa limitasyon ng laki at bilang ng slide na ibinibigay ng parehong stage.
 - <!--i:checklist--> Ang bawat iba pang tool - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
   `lolly_describe_tool` - ay gumagana mula sa mga parameter lamang (teksto, numero,
-  kulay, URL, catalogue asset id), ang parehong mga input na kinukuha ng isang
-  hot-link render URL.
+  kulay, URL, catalogue asset id), ang parehong mga input na kinukuha ng isang hot-link render URL.
 - <!--i:lock--> Ang access ay alinman sa isang shared token na inilalabas ng operator sa mga
   client na pinagkakatiwalaan nila, o stateless OAuth 2.1: mga short-lived na
-  naka-sign na token na na-verify laban sa isang shared secret, walang naka-store
-  sa server-side at ang token mismo ay hindi kailanman isinusulat sa isang log o
-  isang render URL.
+  naka-sign na token na na-verify laban sa isang shared secret, walang naka-store sa server-side
+  at ang token mismo ay hindi kailanman isinusulat sa isang log o isang render URL.
 
 ## Content Credentials identity (isang sign-in na kailangan mong simulan mismo)
 
@@ -199,40 +237,34 @@ Kaya ng Lolly na maglagay ng cryptographic **Content Credential** sa mga export 
 
 Kung mag-enrol ka, narito nang eksakto ang mangyayari:
 
-1. **Pipili ka ng paraan ng sign-in** - GitHub, Google, SUSE (id.suse.com), o
-   isang emailed na link. Para sa tatlong OIDC provider, ire-redirect ka papunta
-   sa sariling login page ng provider na iyon, na pinamamahalaan ng kanilang
-   sariling patakaran sa privacy, hindi sa amin. Ang certificate service ng
-   Lolly ay tumatanggap lamang pabalik ng isang verified na email address at
-   ang pangalan ng provider. Para sa email link, ang address na tina-type mo ay
-   ipinapasa sa **Resend**, isang transactional email API, para lang maihatid
-   ang link na iyon.
-2. **May proteksiyon ang redirect ng isang short-lived na cookie.** Ito ang
-   nag-iisang cookie na inilalagay ng buong sistema ng Lolly: `lolly_ca_state`,
-   `HttpOnly`, naka-scope sa `/api/ca`, mag-e-expire sa loob ng sampung minuto.
-   Nagdadala ito ng random na value, hindi tracking identifier, at umiiral lang
-   para pigilan ang pagpeke ng OAuth redirect. Nabubura ito sa sandaling
-   matapos ang sign-in.
-3. **Ang iyong IP address ay ginagamit, nang panandalian, para pigilan ang
-   pang-aabuso** ng mga sign-in endpoint (para hindi makapag-spam ng isang inbox
-   o mauubos ang email quota ang iisang script) - naka-hold lang sa server
-   memory, para sa sliding window na mga isang minuto, hindi kailanman
-   isinusulat sa isang log o pinananatili kahit saan.
+1. **Pipili ka ng paraan ng sign-in** - GitHub, Google, SUSE (id.suse.com), o isang
+   emailed na link. Para sa tatlong OIDC provider, ire-redirect ka papunta sa sariling
+   login page ng provider na iyon, na pinamamahalaan ng kanilang sariling patakaran
+   sa privacy, hindi sa amin. Ang certificate service ng Lolly ay tumatanggap lamang
+   pabalik ng isang verified na email address at ang pangalan ng provider. Para sa email
+   link, ang address na tina-type mo ay ipinapasa sa **Resend**, isang transactional
+   email API, para lang maihatid ang link na iyon.
+2. **May proteksiyon ang redirect ng isang short-lived na cookie.** Ito ang nag-iisang
+   cookie na inilalagay ng buong sistema ng Lolly: `lolly_ca_state`, `HttpOnly`,
+   naka-scope sa `/api/ca`, mag-e-expire sa loob ng sampung minuto. Nagdadala ito
+   ng random na value, hindi tracking identifier, at umiiral lang para pigilan ang
+   pagpeke ng OAuth redirect. Nabubura ito sa sandaling matapos ang sign-in.
+3. **Ginagamit ang IP address mo, nang panandalian, para pigilan ang pang-aabuso**
+   sa mga sign-in endpoint (para hindi makapag-spam ng isang inbox o maubos ang
+   email quota ang iisang script). Hina-hash muna ito ng Lolly bago gumawa ng isang
+   short-lived na abuse-control bucket; hindi ipinapadala ang raw address sa store
+   na iyon. Nag-e-expire ang bucket pagkatapos ng mga isang minuto at hindi ito
+   ginagamit para sa tracking. Hiwalay ang ordinaryong hosting access log at inilalarawan ito sa ibaba.
 4. **Naglalabas ang certificate service ng isang short-lived na certificate**
    (7, 30, 90, o 365 araw, ayon sa iyong pili, na naka-cap ng patakaran ng
    operator) na nagbibigkis sa iyong verified na email sa pampublikong kalahati
-   ng keypair na nabuo sa iyong device. Ang pribadong kalahati ay hindi kailanman
-   umaalis sa iyong browser.
+   ng keypair na nabuo sa iyong device. Ang pribadong kalahati ay hindi kailanman umaalis sa iyong browser.
 5. **Walang naitatala tungkol sa pagpapalabas.** Ang certificate service ay
    walang pinapanatiling issuance log: hindi ang iyong email, hindi ang
    provider, hindi ang serial number, hindi ang timestamp. Walang database,
    walang log line, walang webhook. Ang iyong email address ay umiiral sa
-   request nang sapat lang na panahon para maisulat ito sa certificate na
-   natatanggap ng sarili mong device, at pagkatapos ay nawawala na ito sa amin
-   nang lubusan.
-6. **Pagkatapos noon, offline na naman ang pag-sign** sa buong lifetime ng
-   certificate. Ang pag-export ng file ay hindi kailanman nakikipag-ugnayan sa
-   certificate service - ang pag-enrol lang ang nakipag-ugnayan.
+   request nang sapat lang na panahon para maisulat ito sa certificate na natatanggap ng sarili mong device, at pagkatapos ay nawawala na ito sa amin nang lubusan.
+6. **Pagkatapos noon, offline na naman ang pag-sign** sa buong lifetime ng certificate. Ang pag-export ng file ay hindi kailanman nakikipag-ugnayan sa certificate service - ang pag-enrol lang ang nakipag-ugnayan.
 
 **Ang tradeoff, sinabi nang tuwiran.** Nag-log dati ang mas naunang bersyon ng
 serbisyong ito ng bawat pagpapalabas, para masubaybayan ang isang certificate na
@@ -290,11 +322,9 @@ ng anumang Lolly deployment - ay gumagawa ng standard na web-server access log
 tuwing may request na sumasapit sa kanila: IP address, hiniling na path,
 timestamp, user agent. Iyon ay baseline na hosting behaviour, hindi isang bagay
 na idinagdag ng Lolly sa ibabaw, at hindi ito kailanman naglalaman ng nilalaman
-ng iyong mga dokumento, dahil hindi kailanman nakararating ang mga iyon sa
-isang server sa simula pa lang. Ang isang sinasadyang eksepsiyon ay isang file
-na tahasan mong ibinigay sa isang tawag ng MCP na `lolly_transform`,
-`lolly_verify`, o `lolly_redact`, na pino-proseso sa memory at hindi kailanman
-isinusulat sa disk o sa isang log, tulad ng inilarawan sa itaas.
+ng iyong mga dokumento, dahil hindi kailanman nakararating ang mga iyon sa isang server sa simula pa lang. Ang
+isang sinasadyang eksepsiyon ay isang file na tahasan mong ibinigay sa isang tawag ng MCP na `lolly_transform`,
+`lolly_verify`, `lolly_redact`, o `lolly_rebrand`, na pino-proseso sa memory at hindi kailanman isinusulat sa disk o sa isang log, tulad ng inilarawan sa itaas.
 
 **Walang isinusulat ang sariling code ng Lolly sa mga log na iyon.** Ang MCP
 server ay walang kahit anong logging statement. Ang certificate service ay
@@ -320,13 +350,14 @@ kompletuhin, narito ang buong listahan:
 |---|---|---|
 | Lahat sa iyong device (mga dokumento, preferences, cache, counters) | **Hindi namin talaga pagproseso** - hindi ito kailanman umaabot sa amin. Ang storage sa iyong device ay mahigpit na kailangan para sa serbisyong hiniling mo (ePrivacy Art. 5(3)), kaya hindi ito nangangailangan ng consent | Hanggang burahin mo ito |
 | Ang iyong email address sa panahon ng Content Credentials enrolment | **Art. 6(1)(b)**, pagganap ng serbisyong tahasang hiniling mo | Hindi pinapanatili. Naroroon sa memory lamang habang tumatagal ang request |
-| Isang one-way na bucket key na hinango mula sa iyong IP address sa mga sign-in endpoint, para sa rate limiting | **Art. 6(1)(f)**, ang aming lehitimong interes sa pagpigil ng abuso sa isang libreng serbisyo at sa email quota ng third party. Hindi ipinapadala sa limiter ang mismong IP address; ginagamit lamang ang bucket para sa pagpigil ng abuso at awtomatiko itong nag-e-expire | Humigit-kumulang 1 minuto sa abuse-control store; hindi pinananatili pagkatapos |
+| Isang bucket key na one-way na hinango mula sa IP address mo sa mga sign-in endpoint, para sa rate limiting | **Art. 6(1)(f)**, ang aming lehitimong interes sa pagpigil ng abuso sa isang libreng serbisyo at sa email quota ng isang third party. Itinuturing naming pumapasa ito sa isang balancing test dahil hindi ipinapadala sa limiter ang raw address, ginagamit lang ang bucket para sa abuse control at awtomatiko itong nag-e-expire | Humigit-kumulang 1 minuto sa abuse-control store; hindi pinananatili pagkatapos |
 | Hosting access logs (IP, path, timestamp, user agent) | **Art. 6(1)(f)**, ang aming lehitimong interes sa seguridad ng serbisyo, pagpigil ng abuso, at pag-diagnose ng mga problema | Default ng platform ng Vercel para sa aming plan. Wala kaming idinaragdag na drain o export |
 
 **Mga Tatanggap.** Ang mga kategorya ng tatanggap ay: ang aming hosting provider (Vercel
-Inc.); ang aming abuse-control store provider, na tumatanggap lamang ng panandalian at one-way
-na hinangong bucket key at hindi kailanman ng mismong IP address; at - kapag ginamit mo lamang
-ang opsyon na email sign-in - isang transactional email provider (Resend). Kung mag-sign in ka gamit ang GitHub, Google o SUSE (id.suse.com), direkta kang
+Inc.); ang aming abuse-control store provider, na tumatanggap lamang ng panandalian at
+one-way na hinangong bucket key at hindi kailanman ng mismong IP address; at - kapag ginamit mo lamang
+ang opsyon na email sign-in - isang transactional email provider (Resend). Kung mag-sign in ka gamit ang
+GitHub, Google o SUSE (id.suse.com), direkta kang
 nakikipag-ugnayan sa provider na iyon sa ilalim ng sarili nilang privacy policy. Sinasabi nila
 sa amin ang isang na-verify na email address at wala nang iba. Hindi namin ibinabahagi ang personal na data sa kahit sino
 pa, at hindi kami nagbebenta ng data, nagpapatakbo ng advertising, o nagpo-profile ng mga user.
@@ -357,8 +388,8 @@ Dahil halos lahat ng nagagalaw ng Lolly ay iniimbak lamang sa iyong sariling dev
 tinatawag ng batas sa proteksyon ng data na "ang iyong mga karapatan" - access, pagwawasto, pagbura,
 portability - ay mga bagay na kaya mo nang gawin mismo, agad, nang hindi humihingi ng pahintulot
 kaninuman: nasa storage ng iyong browser ang iyong data, sa isang anyo na maaari mong siyasatin,
-i-export (**Export my data & render everything**, sa itaas) o i-delete (**Profile → Clear all
-my data**).
+i-export (**I-export ang data ko**, sa itaas) o i-delete (sa pamamagitan ng pag-clear ng storage ng site sa
+iyong browser, gaya sa itaas).
 
 Pormal, sa ilalim ng GDPR Articles 15-22 may karapatan kang **i-access** ang iyong
 personal na data, **iwasto** ito, **burahin** ito, **paghigpitan** o **tutulan

@@ -1,19 +1,33 @@
 # Export a formáty
 
-Jak z nástroje dostat hotový soubor - výběr správného formátu, nastavení výstupní velikosti a co jednotlivé volby dělají. Stejně jako všechno ostatní **export probíhá na tvém zařízení**; nic se nikam nenahrává.
+Stiskni **Export** na pilulce nástroje **Export | Uložit jako**, vyber formát z nabídky vedle názvu souboru, pak stiskni **Stáhnout**. Soubor vzniká na tvém zařízení; nic se nenahrává.
+
+Pro většinu úkolů se hodí jeden ze tří formátů:
+
+| Pro | Zvol | Protože |
+|---|---|---|
+| Obrazovku, zprávu nebo slide | **PNG** | Otevře ho každá aplikace a zachová průhledné pozadí, pokud ho nástroj nabízí |
+| Hotovou stránku nebo cokoli tištěného | **PDF** | Skutečná velikost stránky, která se vytiskne přesně tak, jak vypadá; **Print PDF**, tam kde to nástroj nabízí, je CMYK verze pro tiskárnu |
+| Grafiku, která musí zůstat ostrá v jakékoli velikosti | **SVG** | Vektorové tvary, ostré od odznaku po banner |
+
+::: check Zkontroluj soubor ve velikosti, ve které se použije
+Než ho pošleš, otevři ho na obrazovce, pro kterou byl vytvořený, nebo ho vytiskni ve skutečné velikosti.
+:::
+
+Zbytek této stránky pokrývá každý formát, velikost a možnost.
 
 ## Jak export funguje
 
-Náhled *je* ten soubor. Při exportu host vyrenderuje dané plátno do zvoleného formátu a předá ti stažení (nebo to dá na schránku). Nástroj nabízí jen formáty, které deklaroval jeho autor, a picker skryje ty, které tvůj prohlížeč neumí vytvořit (viz [Video](#video)).
+Náhled *je* ten soubor. Při exportu host vyrenderuje dané plátno do zvoleného formátu a předá ti stažení (nebo to dá na schránku). Picker skryje každý formát, který tvůj prohlížeč neumí vytvořit (viz [Video](#video)).
 
 K souboru vedou tři cesty. Většina nástrojů **vyrenderuje plátno** do zvoleného formátu. Textové a datové formáty (HTML, MD, TXT, JSON, CSV, ICS, VCF) jsou místo toho **generované z obsahu nástroje**, ne rasterizované z obrázku. A soukromí sloužící utility (např. *Strip Hidden Data*) používají třetí cestu: soubor, který *ty* vybereš, se na zařízení transformuje byte za bytem a rovnou vrátí zpět - žádné plátno, žádný watermark a žádná přidaná metadata o původu, protože je to už tvůj vlastní soubor.
 
-Akce v ovládacích prvcích exportu:
+Akce v exportním panelu:
 
-- <!--i:download--> **Download** - uložit soubor (hlavní akce).
-- <!--i:photos--> **Copy** - dát obrázek na schránku k rovnému vložení do Slacku, e-mailu, dokumentu. Tam, kde prohlížeč neumí kopírovat obrázky, se místo toho stáhne a řekne ti to.
-- <!--i:folder--> **Save** - uložit aktuální návrh jako uloženou session nástroje ve tvé knihovně.
-- <!--i:link--> **Share** - otevře **dialog Share**: kopírovatelný odkaz, který návrh reprodukuje, přepínače při návštěvě (fullscreen, export panel, stažení nebo kopie při otevření) a volitelný **Shortest link**, který zabalí celý stav do kompaktního tokenu (viz [URL Mode](/info/url-mode.html)).
+- <!--i:download--> **Stáhnout** - ulož soubor (hlavní akce). Pokud ho pak nemůžeš najít, viz [Najdi stažený soubor](/info/find-your-work.html#find-a-file-you-downloaded).
+- <!--i:photos--> **Kopírovat** - vlož obrázek do schránky, abys ho mohl/a rovnou vložit do Slacku, e-mailu nebo dokumentu. Tam, kde prohlížeč neumí kopírovat obrázky, místo toho soubor stáhne a řekne ti to.
+- <!--i:folder--> **Uložit** - ulož aktuální návrh do Projektů jedním kliknutím, bez dotazu kam; soubor nikdy nestáhne. **Uložit jako**, vedle **Export**, se zeptá kam (viz [Ukládání a pokračování](/info/using.html#saving-continuing)).
+- <!--i:link--> **Sdílet** - otevře **Share dialog**: odkaz ke kopírování, který návrh znovu vytvoří, přepínače nastavované při vstupu (celá obrazovka, exportní panel, stažení nebo zkopírování po otevření) a volitelný **Shortest link**, který zabalí celý stav do kompaktního tokenu (viz [Režim URL](/info/url-mode.html)).
 
 (Které z nich se zobrazí, volí autor nástroje; výchozí sada je Copy, Download a Save.)
 
@@ -32,34 +46,34 @@ Uložená session se dá znovu sdílet jako odkaz na nástroj z Projects (rekons
 
 ## Výběr formátu
 
-Název souboru a picker formátu sedí navrchu panelu jako jedna dvojice `name.format` a picker vypisuje jen formáty, které deklaroval autor tohoto nástroje.
+Název souboru a nabídka formátu jsou spolu jako jedna dvojice `name.format`, pod tlačítkem **Stáhnout**.
 
 ![Pole s názvem souboru srostlé s pickerem formátu, takže export čte jako jedna dvojice name.format](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26options&width=1440&height=900&dpi=192&waitMs=2000&format=svg&cropSelector=.filename-extension&walker=1&dark=1&filename=exp-format-picker)
 
 | Chceš… | Použij | Proč |
 |---|---|---|
-| Ostrá loga / grafiku, která se škáluje | **SVG** | Vektor - nekonečně škálovatelný, malý, editovatelný |
-| Vektor pro Office / Windows aplikace | **EMF** | Vloží se jako editovatelný vektor do PowerPointu / Wordu; text zůstává živý a editovatelný a Google Disk ho otevře v Google Drawings pro Slides |
-| Vektor pro tisk / designové aplikace | **EPS**, nebo **EPS (CMYK)** | PostScriptový vektor pro Illustrator / tiskové procesy |
-| Vektor pro řezací / CAD stroje | **DXF** | Laserové řezačky, vinylové plotry, CNC - obrysové cesty v milimetrech |
-| Editovatelnou prezentaci | **PowerPoint** (PPTX) | Nativní editovatelný text + tvary, obrázky a vektory zůstávají extrahovatelné |
-| Přenosný školicí kurz | **Export course** | Prohlédni si obsah projektu a sestav verzovaný balíček Website, SCORM nebo experimentální xAPI |
-| Editovatelný textový dokument | **Word** (DOCX) nebo **OpenDocument** (ODT) | Skutečné odstavce a nadpisy, které textový editor může dál editovat (Doc Studio) |
-| Fotku nebo obrázek pro obecné použití | **PNG** (bezeztrátové) nebo **JPG** (menší) | Univerzální rastr |
-| Menší moderní obrázky | **WebP** / **AVIF** | Lepší komprese, alfa |
+| Ostrá loga / grafiku, která se škáluje | **SVG** | Vektor - nekonečně škálovatelný, malý, editovatelný; efekt, který vektorový export neumí nakreslit, se vloží jako obrázek |
+| Vektor pro Office / Windows aplikace | **EMF** | Vloží se jako editovatelný vektor do PowerPointu / Wordu; text zůstává živý a editovatelný a Disk Google ho otevře v Nákresech Google pro Slides |
+| Vektor pro tisk / návrhářské aplikace | **EPS**, nebo **EPS (CMYK)** | PostScriptový vektor pro Illustrator / tiskové workflow |
+| Vektor pro řezací / CNC stroje | **DXF** | Laserové řezačky, vinylové plotry, CNC - obrysové cesty v milimetrech |
+| Editovatelnou prezentaci | **PowerPoint** (PPTX) | Nativní editovatelný text a tvary, s obrázky a vektory, které zůstávají extrahovatelné |
+| Přenosný školicí kurz | **Export course** | Projdi obsah projektu a sestav verzovaný web, balíček SCORM nebo experimentální balíček xAPI |
+| Editovatelný textový dokument | **Word** (DOCX) nebo **OpenDocument** (ODT) | Skutečné odstavce a nadpisy, které textový procesor umí dál upravovat (Doc Studio) |
+| Fotku nebo obrázek pro obecné použití | **PNG** (bezztrátový) nebo **JPG** (menší) | Univerzální rastr |
+| Menší moderní obrázky | **WebP** / **AVIF** | Lepší komprese, alfa kanál |
 | Tisk | **PDF**, nebo **Print PDF** (CMYK) | Skutečná velikost stránky; CMYK pro tiskárnu |
-| Tiskový rastr pro tiskárnu | **Print TIFF** (CMYK) | Pixely DeviceCMYK pro RIP |
-| Animované pro web | **GIF** | Funguje všude, větší soubory |
-| Animované s plnou barvou + skutečnou alfou | **APNG** | Animované PNG - žádný limit palety, skutečná průhlednost |
-| Animované, nejmenší soubor | **Animated WebP** | Plná barva + alfa, lépe komprimované než GIF nebo APNG |
-| Animovaný vektor, který se škáluje | **Animated SVG** | Samostatný; smyčkuje v prohlížeči nebo v `<img>`, žádný kodek, jakákoli velikost |
-| Video pro sociální sítě / sdílení | **MP4** nebo **WebM** | Nejlepší kvalita na bajt (viz níže) |
+| Tiskový rastr pro tiskárnu | **Print TIFF** (CMYK) | Pixely DeviceCMYK pro osvitovou jednotku (RIP) |
+| Animaci pro web | **GIF** | Funguje všude, větší soubory |
+| Animaci s plnou barvou a skutečnou alfou | **APNG** | Animovaný PNG - bez limitu palety, skutečná průhlednost |
+| Animaci, nejmenší soubor | **Animated WebP** | Plná barva a alfa, lépe komprimované než GIF nebo APNG |
+| Animovaný vektor, který se škáluje | **Animated SVG** | Samostatný; smyčkuje se v prohlížeči nebo `<img>`, bez kodeku, jakákoli velikost |
+| Video pro sociální sítě / sdílení | **MP4** nebo **WebM** | Nejlepší poměr kvality k velikosti (viz níže) |
 | Formátovaný text / e-mailový podpis | **HTML** | Vloží se naformátovaný do e-mailových klientů |
-| Prostý obsah | **MD** / **TXT** | Jen text |
-| Kalendářní událost | **ICS** | Naimportuje se do jakékoli kalendářové aplikace |
-| Kontaktní kartu | **VCF** | Naimportuje se do Kontaktů / adresářů |
-| Strukturovaná data pro zpětný import | **JSON** / **CSV** | Obsah nástroje se dá vrátit zpět |
-| Favicon | **ICO** | Ikona webu ve více velikostech (**ZIP** sdružuje několik formátů) |
+| Obyčejný obsah | **MD** / **TXT** | Jen text |
+| Kalendářní událost | **ICS** | Importuje se do libovolné kalendářové aplikace |
+| Kontaktní kartu | **VCF** | Importuje se do Kontaktů / adresářů |
+| Strukturovaná data k opětovnému importu | **JSON** / **CSV** | Obousměrně zachová obsah nástroje |
+| Favicon | **ICO** | Víceformátová ikona webu (**ZIP** sbalí několik formátů) |
 
 První řádek je běžný případ. Wordmark sázený tvým brandovým písmem se exportuje jako SVG, kde je každé písmeno obrysovou cestou místo pixelu, takže zůstává ostrý ve velikosti vizitky i ve velikosti polepu na budově ze stejného souboru.
 
@@ -91,7 +105,7 @@ Užitečné pro storyboard, list náhledů, kontaktní list k revizi nebo sociá
 
 Vzorkování probíhá v **středu** každého intervalu, ne na okrajích, protože první okamžik sekvence bývá přechod na vstupu, který ještě nedoběhl, a poslední je stav po skončení všech klipů - vzorkování na koncových bodech by utratilo dva tvé snímky za skoro prázdné. Počet je omezen na **64** (kontaktní list je pro čtení člověkem) a cokoli nesmyslného zadané do pole spadne zpátky na `1`, místo aby export selhal. Každý snímek je obyčejný statický obrázek, takže Content Credentials, imprint, fyzické jednotky a DPI se chovají přesně stejně jako u jednoho exportu.
 
-Pole **Frames** je dnešní způsob, jak takový list získat. Engine si rezervuje odpovídající URL parametr `cuts`, ale žádný shell ho zatím z odkazu nečte, takže sdílený odkaz se vždy znovu otevře na snímku hlavy přehrávání - viz [URL Mode](/info/url-mode.html#contact-sheets-cuts).
+Pole **Snímky** je dnes způsob, jak získat kontaktní arch. Engine rezervuje odpovídající URL parametr `cuts`, ale žádný shell ho zatím z odkazu nečte, takže sdílený odkaz se vždy znovu otevře na snímku playheadu - viz [Režim URL](/info/url-parameters.html#contact-sheets-cuts).
 
 ## Vícestránkové PDF
 
@@ -157,7 +171,7 @@ Zvol **Export course** z podporovaného nástroje, složky projektu nebo výběr
 - <!--i:file--> Vyber Website, SCORM 1.2, SCORM 2004 4th Edition, nebo experimentální cíl xAPI. Zkontroluj skutečný obsah a velikost ZIP, pak zkontrolovanou verzi ulož a stáhni.
 - <!--i:check--> Dokončení vyžaduje potvrzení každé povinné lekce a výběr Finish. Webový přehrávač ukládá postup v prohlížeči; balíček LMS se připojí ke svému přijímajícímu LMS.
 
-![Panel exportu na prezentaci Design s vybraným SCORM (LMS)](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
+![Exportní panel na sadě Design se zvoleným SCORM (LMS)](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour%26format%3Dscorm%26options&width=1440&height=900&dpi=192&waitMs=3500&css=.fc-insp%7Bdisplay%3Anone!important%7D.edge-dock-slot--fill%7Bflex%3A1%201%20auto!important%3Bheight%3Aauto!important%3Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D.export-popup.is-floating%7Bheight%3Aauto!important%7D.export-popup-body%7Bmax-height%3Anone!important%3Boverflow%3Avisible!important%7D&drive=click:.edge-dock-tab%3Ahas-text%28%22Export%22%29;wait:600&cropSelector=.export-popup&walker=1&format=svg&dark=1&filename=exp-scorm)
 
 Balíček obsahuje svůj hotový obsah a nevyžaduje účet Lolly. Website ZIP rozbal na hostiteli HTTP(S); LMS ZIP naimportuj beze změny jeho obsahu. Než kurz distribuuješ, otestuj zamýšlený cíl.
 
@@ -235,7 +249,7 @@ Animované nástroje exportují pohyb jako **MP4**, **WebM** nebo **GIF** - a ta
 
 GIF funguje všude (skvělý pro chat/e-mail; větší a s méně barvami než video). Animované nástroje také zpřístupňují **Wait** (kolik sekund nechat animaci ustálit před nahráváním) a **Duration** (délku klipu).
 
-> Sdílený odkaz `?format=…`, který požaduje kontejner, jenž tvůj prohlížeč neumí zaznamenat, elegantně přejde na ten druhý a soubor podle toho pojmenuje.
+> Sdílený odkaz `?format=…`, který požaduje kontejner, který tvůj prohlížeč neumí nahrát, elegantně přejde na ten druhý, a název souboru odpovídá kontejneru, který se nahrál.
 
 **Zvuk.** Videoexporty nejsou tiché. Nástroj může pod klip položit **hudební podklad** - zvukový prvek z katalogu, smyčkovaný nebo zkrácený na délku klipu, s prolínáním, hlasitostí a automatickým ztlumením (duckingem) pod vlastním zvukem záběru - a nahrávací nástroje přenášejí živý zvuk záběru přímo do souboru. **MP4** a **WebM** si podrží smíchanou stopu; GIF a animované obrazové formáty (APNG, Animated WebP, Animated SVG) jsou svou podstatou tiché.
 
@@ -255,7 +269,9 @@ Tam, kde to formát podporuje, nesou exporty **metadata o původu** - software, 
 
 **Trvalé pověření.** Vedle Imprintu stojí druhá, těžší značka: **Trvalé pověření** (Durable credential), které pomocí neuronového modelu na zařízení (formát TrustMark) zapíše id Lolly *do* pixelů, takže odkaz "vytvořeno v Lolly" přežije očištění metadat, rekódování i opětovné čtení nástroji, které rozumí TrustMarku, stejně jako těmi z Lolly. Je **ve výchozím stavu vypnuté** - na rozdíl od čistě javascriptového Imprintu stojí neuronový průchod při každém exportu plus jednorázové stažení modelu, takže jde o vědomé zapnutí, ne tichou daň. Jen rastr (**PNG, JPG, WebP, AVIF, TIFF**), zaškrtnuté v exportním panelu nebo předané jako `durable=1` v odkazu ke sdílení. V desktopové a mobilní aplikaci je karta rovnou skrytá, ne zobrazená jako nefunkční, protože offline není odkud model stáhnout.
 
-**Ochrana obsahu.** V exportním panelu se *Password protect*, **C2PA Credentials**, **Lolly Imprint** a **Trvalé pověření** sbalí do jedné skupiny **Ochrana obsahu**, která reaguje na zvolený formát, takže možnosti původu a ochrany souboru žijí na jednom místě - skupina zobrazí jen karty platné pro zvolený formát a celá se skryje, když neplatí žádná z nich. Tiskové značky v ní záměrně *nejsou*: jsou to geometrická data tiskové produkce, ne ochrana, takže **Tiskové značky a spadávka** - rozměr spadávky v milimetrech plus Ořezové značky, Registrační značky, Spadávka, Barevné pruhy a detaily Razítka - si drží vlastní kartu nejvyšší úrovně na tiskových formátech.
+**Ochrana obsahu.** V exportním panelu se **Licence**, kterou udělíš, **Kredity zdrojů** čehokoli, co jsi umístil, *Password protect*, **C2PA Credentials**, **Lolly Imprint** a **Trvalé pověření** sbalí do jedné skupiny **Ochrana obsahu** citlivé na formát, takže provenience, práva a možnosti ochrany souboru žijí na jednom místě. Skupina zobrazuje jen karty, které se týkají zvoleného formátu. Sama se otevře, když odkaz nebo uložený dokument už deklaruje licenci, nebo když zdroj potřebuje tvoje rozhodnutí.
+
+**Licence.** Vyber, jak smí ostatní tvou práci používat: výchozí je *None (all rights reserved)*, nebo CC0 1.0, Public Domain Mark 1.0, nebo jedna z licencí Creative Commons 4.0 (BY, BY-SA, BY-NC, BY-NC-SA, BY-ND, BY-NC-ND). Název licence a odkaz na její popis se zapíší do licenčních metadat souboru (EXIF, XMP a RIFF tam, kde formát tato pole má) a do jeho Content Credential. Volba se uloží spolu s dokumentem a v odkazu ke sdílení cestuje jako `licence=`. Lolly zapíše licenci, kterou jsi zvolil. Nekontroluje ani nevymáhá její podmínky. Nástroj s vlastním polem licence, jako Claim, si ponechá to pole místo toho a nezobrazí druhý výběr. Tiskové značky v ní záměrně *nejsou*: jsou to tiskové výrobní geometrie, ne ochrana, takže **Tiskové značky a spadávka** - míra spadávky v milimetrech plus Oříznout, Soutisk, Spadávka, Colour bars a Podrobnosti o otisku - má na tiskových formátech svou vlastní kartu na nejvyšší úrovni.
 
 ![Skupina Ochrana obsahu otevřená u exportu PNG, zobrazující jen karty, které se na něj vztahují](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26imprint%3D1%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-protection&dark=1&filename=exp-content-protection)
 
@@ -263,7 +279,7 @@ Tam, kde to formát podporuje, nesou exporty **metadata o původu** - software, 
 
 **Cena spočítaná z tvého ceníku.** Pod tiskovou kontrolou - úplně naposled, stále nad tlačítky - sedí karta, která tytéž počty promění v peníze, a to vždy jen z cen, které jí někdo zadal. Čte, co spočítal průchod tiskové kontroly, ať je karta tiskové kontroly zapnutá nebo ne, a potřebuje, aby platily dvě věci: zakázka má vůbec něco, co lze podle ceníku ocenit (desky, archy, plochu, strany, řádky variant nebo výstupní soubory - takže obyčejné logo PNG se nikdy nezobrazí), **a** je přítomný **ceník** (rate card). Ceník je JSON seznam cen od tvé tiskárny. Výchozí sestavení žádný nenese a nemá způsob, jak ho v aplikaci načíst: přichází buď jako katalogový prvek, který dodá nasazení, nebo přes volitelné rozšíření pro ceníky, které zapne provozovatel vlastního hostingu nebo řídicí rovina. Bez ceníku se nezobrazí nic - žádná výzva, žádná prázdná tabulka.
 
-Pravidlo, na kterém je celý mechanismus postavený, je, že **si nikdy nevymýšlí peníze**. Každé číslo je sazba, kterou jsi dodal, krát množství, které spočítalo Lolly - `4 desky × 35,00 €` - a součet uvádí svůj vlastní zdroj ve stejné větě jako číslo: vydavatele, kterého ceník jmenuje, a datum, ke kterému podle ceníku sazby platí. Neexistuje výchozí měna, žádný zástupný symbol ani nula místo chybějící ceny. To, co soubor tvrdí sám o sobě, zůstává v nepřímé řeči: *"Soubor uvádí: … Lolly to neověřilo."*
+Pravidlo, kolem kterého je celá věc postavená, je, že **nikdy nevymýšlí peníze**. Každé číslo je sazba, kterou jsi zadal, vynásobená množstvím, které Lolly spočítalo - `4 plate × €35.00` - a součet nese svůj vlastní zdroj ve stejné větě jako číslo: vydavatele uvedeného na kartě a datum, ze kterého podle karty její sazby pocházejí. Neexistuje výchozí měna, zástupný symbol ani nula nahrazující chybějící cenu. To, co soubor říká sám o sobě, zůstává v nepřímé řeči: *„Soubor říká: … Lolly to neověřilo.”*
 
 A když to nejde spočítat poctivě, pracovní tabulka **zmizí**, místo aby se zdegradovala na zašedlé nebo dopočítané číslo:
 
@@ -318,11 +334,11 @@ Export, který umístí cizí práci, zaznamená ten zdroj i do pověření. Emo
 
 ## Na telefonu
 
-Ovládací prvky exportu se skrývají za plovoucím tlačítkem **Render**, které otevře panel **Export** - stejné formáty, velikost, kopírování, stahování a sdílení, jen přizpůsobené pro dotyk.
+Ovládací prvky exportu se skrývají za plovoucím tlačítkem **Export**, které otevře list **Export** - stejné formáty, velikost, kopírování, stažení a sdílení, přizpůsobené dotyku.
 
 ## Přehled formátů
 
-Každé id, které hostitel umí vykreslit, seskupené. Jsou to zároveň hodnoty pro parametr URL `format=` a příznak CLI `--export=` - viz [URL Mode](/info/url-mode.html) a [CLI](/info/cli.html). Nástroj nabízí jen podmnožinu, kterou deklaroval jeho autor, takže výběr je vždy kratší než tento seznam.
+Každé id, které host umí vykreslit, seskupené. Jsou to zároveň hodnoty pro URL parametr `format=` a příznak CLI `--export=` - viz [Režim URL](/info/url-mode.html) a [CLI](/info/cli.html). Nabídka nástroje zobrazuje jen formáty, které ten nástroj umí vytvořit, takže je vždy kratší než tento seznam.
 
 | Druh | Id |
 |---|---|

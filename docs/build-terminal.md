@@ -53,7 +53,7 @@ Both forms need a content root. Set `LOLLY_ROOT` to a Lolly checkout or a materi
 
 ## TUI
 
-### Development use (no build needed)
+### TUI development use (no build needed)
 
 The interactive terminal shell runs straight from the repo - it needs a real TTY, so run it in your terminal rather than a captured pipe:
 

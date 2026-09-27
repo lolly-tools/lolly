@@ -16,7 +16,7 @@
 - **[디자인 가져오기](/info/design-import.html)** - 작업물이 이미 `.fig`, `.penpot`, `.ai`, `.idml` 또는 SVG 파일로 존재하고, 이를 평면화하지 않고 편집 가능한 상태로 쓰고 싶을 때예요.
 - **[유틸리티 뷰](/info/utilities.html)** - 도구 렌더링이 아닌 작업을 위한 스프레드시트, 변환기, Colour Lab, PDF 추출기, Script audio예요.
 - **[브라우저 확장 프로그램](/info/extension.html)** - 실시간 웹 페이지를 캡처해서 자신의 디자인 안에서 에셋으로 재사용하세요.
-- **[검색](/info/search.html)** - 도구, 저장한 작업물, 카탈로그, 설정에 한 번에 접근하는 입력창 하나예요.
+- **[검색](/info/search.html)** - 도구, 저장한 작업물, 에셋, 설정에 한 번에 접근하는 입력창 하나예요.
 - **[Ask Lolly](/info/ask.html)** - 질문을 입력하면 이 가이드에서 딱 맞는 부분을 링크와 함께 바로 보여줘요.
 - **[대시보드](/info/dashboard.html)** - 이 기기가 할 수 있는 일, 읽기 전용으로 보는 디자인 시스템, 저장 공간을 한눈에 확인하세요.
 - **[즐겨찾기](/info/favourites.html)** - 자주 쓰는 것에 별표를 하면 그리드 위에 따로 타일이 생겨요.
@@ -34,9 +34,15 @@
 
 카운트인, 레벨 미터, 부드러운 코칭과 함께 깔끔한 테이크를 녹음하거나, 음성 메모를 소리에 맞춰 움직이는 완성된 비디오로 바꿔 보세요. 아직 별도의 녹음 페이지는 없고, Lolly 사용하기 문서의 타임라인 섹션에 담겨 있어요.
 
-- **[Lolly 사용하기](/info/using.html#timeline-sequence-studio)** - 타임라인에 바로 보이스오버를 녹음하는 방법, 테이크가 저장되는 위치, 믹스에 반영되는 과정이에요.
-- **[60초 만에 무언가 만들어 보기](/info/make-something.html#make)** - 보이는 것보다 들리는 쪽을 택하고 싶을 때를 위한 audiogram 장면이에요.
+- **[Lolly 사용하기](/info/using.html#timeline-sequence)** - 타임라인에 바로 보이스오버를 녹음하는 방법, 테이크가 저장되는 위치, 믹스에 반영되는 과정이에요.
+- **[첫 파일 만들기](/info/make-something.html#other-first-projects)** - 보이는 것보다 들리는 쪽을 택하고 싶을 때를 위한 오디오그램이에요.
 - **[유틸리티 뷰](/info/utilities.html)** - 글이 먼저고 목소리가 나중일 때 쓰는 Script audio예요.
+
+## 발표하기
+
+카메라, 로고, 이름을 Design 덱이나 Countdown 위에 올리고, 비공개 컨트롤은 별도 창에 두세요.
+
+- **[Presenting with camera](/info/presenting.html)** - 프레이밍, 저장된 장면, 시청자와 공유하기, 로컬 녹화, 그리고 현재의 시험 버전 제한 사항이에요.
 
 ## 협업
 

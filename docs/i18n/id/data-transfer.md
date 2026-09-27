@@ -2,15 +2,15 @@
 
 Semua yang terkumpul dari pengguna Lolly berada **di perangkatnya** - tanpa akun, tanpa cloud. Bundel transfer data adalah cara nilai itu berpindah: ekspor di satu instalasi, bawa file dengan cara apa pun (USB, AirDrop, email ke diri sendiri, berbagi jaringan) dan impor di instalasi lain. File itu *adalah* transportnya. Target bisa offline atau online. Tidak ada bedanya, karena tidak ada yang pernah berbicara dengan server.
 
-![Dua tombol yang memindahkan seluruh instalasi: Export my data menulis satu zip, Import data membacanya kembali](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
 
-Halaman ini adalah spesifikasi formatnya. Untuk panduan langkah demi langkah bagi pengguna akhir lihat [Using Lolly → Moving to another device](/info/using.html). Implementasinya ada di [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), dan [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) mengunci kontrak bolak-balik (round-trip).
+Halaman ini adalah spesifikasi formatnya. Untuk panduan langkah demi langkah bagi pengguna akhir lihat [Temukan dan pulihkan karya Anda → Pindahkan karya Anda ke perangkat lain](/info/find-your-work.html#move-your-work-to-another-device). Implementasinya ada di [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts), dan [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) mengunci kontrak bolak-balik (round-trip).
 
-> **Cakupan.** Sebuah bundel membawa *data pengguna*, bukan tool. Tool dan aset katalog disinkronkan secara terpisah dan diasumsikan sudah ada di target (dalam kasus terburuk pada versi yang lebih tinggi). Mengimpor tidak pernah menginstal atau meningkatkan tool.
+> **Cakupan.** Sebuah bundel membawa *data pengguna*, bukan tool katalog. Tool katalog dan aset katalog disinkronkan secara terpisah dan diasumsikan sudah ada di target (dalam kasus terburuk pada versi yang lebih tinggi); tool yang dibuat sendiri oleh pengguna berpindah di dalam `profile.json`. Mengimpor tidak pernah menginstal atau meningkatkan tool katalog.
 
 ## Tujuan
 
-- <!--i:box--> **Satu format, setiap shell.** Byte yang sama dihasilkan dan dikonsumsi oleh PWA web, aplikasi desktop/mobile Tauri dan shell mana pun di masa depan. Bundel adalah kontraknya. Bridge kemampuan setiap shell adalah adapter khusus platform di baliknya.
+- <!--i:box--> **Satu format, setiap shell.** PWA web, aplikasi desktop/mobile Tauri dan shell mana pun di masa depan berbagi amplop dan skema bagian yang didukung yang sama. Bagian opsional bergantung pada kemampuan tiap shell; bagian yang tidak didukung dilaporkan. Setiap capability bridge menyediakan adapter penyimpanannya sendiri.
 - <!--i:shieldcheck--> **Selamat dalam perjalanan.** Bundel yang rusak atau terpotong saat transit gagal secara jelas saat diimpor, tidak pernah memulihkan sebagian.
 - <!--i:clock--> **Bertahan melampaui versi ini.** Aplikasi yang lebih lama tetap bisa mengimpor bagian yang dikenalinya dari bundel yang lebih baru. Format yang benar-benar tidak kompatibel ditolak secara bersih.
 - <!--i:check--> **Aman untuk digabung.** Mengimpor ke instalasi yang sudah dipakai tidak pernah menghapus apa pun yang tidak ada dalam bundel.
@@ -22,10 +22,16 @@ Sebuah bundel adalah `.zip` biasa. Unduhan diberi nama sesuai orang yang memilik
 | Path | Wajib | Isi |
 |---|---|---|
 | `manifest.json` | ya | Id format, versi, jumlah dan integritas per bagian. Hal pertama yang dilihat pembaca. |
-| `profile.json` | jika diatur | Rekaman `me` milik pengguna (nama, kontak, ref headshot, flag). Dibaca lewat `host.profile`. |
+| `profile.json` | jika diatur | Rekaman `me` lengkap milik pengguna: nama, kontak, ref headshot dan flag, plus folder, Trash, blueprint proyek, template pengguna dan tool buatan pengguna, favorit, tool tersembunyi, pilihan bahasa dan emoji. Dibaca lewat `host.profile`. |
 | `sessions.json` | ya | Setiap sesi tersimpan: slot, id/versi tool, label, thumbnail (data-URL) dan data input lengkap. Dibaca lewat `host.state`. |
-| `assets.json` | ya | Metadata untuk setiap aset yang diunggah (gambar, font, token brand), masing-masing menunjuk ke byte-nya di bawah `assets/blobs/`. |
+| `assets.json` | ya | Metadata untuk setiap aset yang diunggah (gambar, font, token brand, logo, salinan tersimpan dari unduhan), masing-masing menunjuk ke byte-nya di bawah `assets/blobs/`. |
 | `assets/blobs/<n>.<ext>` | per aset | Byte aset mentah (file gambar dan font). Disimpan tanpa kompresi (format yang sudah terkompresi). Ekstensinya bersifat kosmetik. MIME di `assets.json` adalah yang otoritatif. |
+| `assets/blobs/<n>.c2pa` | jika ada | Content Credentials yang diekstrak sebagai byte biner persis, dirujuk oleh `_credentialFile` dalam rekaman aset. Ini bukan kunci penandatanganan perangkat. |
+| `design-systems.json` | jika ada | Design system yang dibuat atau ditambahkan pada instalasi ini, sebagai `{ active, records }`. Digabung berdasarkan id saat impor; pilihan aktif bundel berlaku hanya ketika target belum memiliki design system sendiri. |
+| `file-history.json` | opsional | Snapshot aset berversi, laporan operasi file terminal dan manifest batch lengkap. Bagian history memiliki versinya sendiri; disediakan oleh adapter backup `fileHistory` internal milik shell. |
+| `revision-history.json` | opsional, backup manual | ID creation yang stabil, checkpoint yang dipertahankan, thumbnail dan draf recovery yang berputar. Disediakan oleh `host.state.history.backup` jika didukung. |
+| `file-history/versions/` | per snapshot | Byte aset sebelumnya dan credential yang diekstrak, tidak bergantung pada apakah aset saat ini masih ada. |
+| `file-history/results/` | per operasi selesai | Byte output persis. Tidak ada file asli yang dipilih-untuk-konversi yang dipertahankan atau disertakan. |
 | `prefs.json` | ya | Preferensi lokal milik pengguna: `theme`, `sidebarWidth` dan tally aktivitas `ct-metrics`. |
 | `lolly.txt` | ya | Ringkasan bundel yang dapat dibaca manusia (jumlah, profil, nama file) bagi siapa pun yang membuka zip tanpa Lolly. Dibuat ulang setiap ekspor dan dikenali saat impor, jadi tidak pernah dihitung sebagai bagian yang dilewati. Ditulis *setelah* peta integritas, jadi tetap berada di luar peta itu. |
 
@@ -40,16 +46,19 @@ Bundel sengaja berupa zip biasa: ia bertahan utuh di transport mana pun, dan ala
 ```json
 {
   "format": "lolly-backup",
-  "formatVersion": 1,
+  "formatVersion": 3,
   "minReader": 1,
   "app": "lolly",
   "exportedAt": "2026-06-22T09:30:00.000Z",
-  "counts": { "profile": true, "sessions": 2, "userAssets": 4, "prefs": 3 },
+  "counts": { "profile": true, "sessions": 2, "userAssets": 4, "prefs": 3, "assetVersions": 1, "fileOperations": 1 },
   "integrity": {
     "profile.json": "sha256-…",
     "sessions.json": "sha256-…",
     "assets.json": "sha256-…",
-    "assets/blobs/0.webp": "sha256-…",
+    "assets/blobs/0.bin": "sha256-…",
+    "file-history.json": "sha256-…",
+    "file-history/versions/0.bin": "sha256-…",
+    "file-history/results/0.bin": "sha256-…",
     "prefs.json": "sha256-…"
   }
 }
@@ -90,37 +99,73 @@ Impor bersifat **gabung-timpa** (merge-overwrite), tidak pernah ganti-semua:
 
 - Data yang ada di target dibiarkan apa adanya.
 - Kunci mana pun yang bertabrakan - profil, slot sesi, id gambar yang diunggah - digantikan oleh salinan yang diimpor.
+- Profil adalah satu rekaman, sehingga digantikan secara utuh: folder, Trash, template, favorit dan tool tersembunyi milik target menjadi milik bundel. Sesi yang dimiliki target tetapi tidak ada di bundel disimpan, tanpa folder, di level teratas Projects.
+- Versi aset historis dan ID operasi adalah pengecualian yang tidak dapat diubah: impor berulang bersifat idempoten, dan sebuah ID yang sudah menamai byte/history berbeda ditolak, bukan ditimpa. Mengimpor ulang aset saat ini yang identik mempertahankan versinya. Aset saat ini yang berubah harus membawa versi yang berbeda.
+- Riwayat creation juga sebuah pengecualian: sebuah dokumen saat ini atau identitas revision yang berkonflik membatalkan pemulihannya sebelum perubahan profil, aset atau preferensi. Impor berulang yang identik tidak menambah penyimpanan. Pulihkan sebuah arsip yang berkonflik pada instalasi terpisah untuk memeriksa dan menyalin creation-nya.
 - Apa pun yang tidak ada dalam bundel tidak disentuh. Sesi yang dimiliki target tetapi tidak ada di bundel tetap bertahan setelah impor.
 
 Sesi tersimpan menautkan ulang ke gambarnya secara otomatis: referensi aset dipertahankan berdasarkan id, dan bridge menyelesaikannya ulang setelah gambar yang diunggah dipulihkan (memang harus begitu, karena URL `blob:` tidak bertahan setelah reload).
 
 Ringkasan impor melaporkan `{ profile, sessions, userAssets, prefs, skipped, failedAssets }`. `failedAssets` menghitung aset yang diunggah yang gagal dipulihkan (misalnya penyimpanan perangkat penuh). Ini berbeda dari `skipped`, yang menghitung bagian dari penulis yang lebih baru dan kompatibel-maju yang tidak dikenali oleh build ini. UI menampilkan `skipped` ("… · N item lebih baru dilewati"), sehingga pemulihan jujur soal apa yang ditinggalkannya.
 
+Ketika file history ada, ringkasan juga membawa `assetVersions`, `fileOperations` dan `failedHistory`. Penyimpanan yang habis atau konflik ID yang tidak dapat diubah dapat menyebabkan pemulihan sebagian; UI memberi tahu pengguna untuk mempertahankan backup sumbernya. Cloud sync **tidak** memajukan revision yang diterapkannya setelah pemulihan sebagian atau yang tidak didukung, sehingga snapshot tetap tersedia untuk dicoba lagi. Restore bukan satu transaksi tunggal di seluruh penyimpanan profil/sesi/aset/history.
+
+## Riwayat creation (v3)
+
+Backup manual dari sebuah web host yang mendukung history menyertakan `revision-history.json` dengan skema `{ version: 1, documents, revisions, recoveries }` miliknya sendiri. Ia membawa ID yang dipertahankan, snapshot input kanonis, stempel versi, pratinjau raster dan draf writer terpisah. Adapter history menangkap sesi saat ini dan head-nya dalam satu transaksi baca; `sessions.json` menggunakan snapshot saat ini yang sama untuk pembaca yang lebih lama.
+
+Restore memeriksa SHA-256 payload dan jumlah byte, identitas unik, relasi document/head, ancestry, timestamp, tipe pratinjau dan batas sebelum melakukan commit arsip dalam satu transaksi. Referensi parent yang telah dipadatkan mungkin tidak ada. Karya saat ini yang ada harus cocok dengan dokumen yang diimpor; konflik ditolak, bukan diam-diam menimpanya. Batas transfer 384 MiB milik arsip diperiksa secara eksplisit, dan batas penyimpanan ditegakkan tanpa memotong checkpoint yang dipertahankan. Backup keseluruhan masih menggunakan implementasi ZIP in-memory dan bukan arsip streaming.
+
+Ringkasan menambahkan `revisions` dan `recoveryDrafts`. Sebuah shell tanpa kemampuan ini memulihkan sesi biasa dan melaporkan bagian history sebagai dilewati. History filesystem native tetap tidak didukung sampai adapter-nya menyediakan transaksi history yang durable. State guest P2P tidak memiliki history atau arsip recovery yang durable.
+
+Sync snapshot personal secara eksplisit mengecualikan riwayat creation. Menerapkan sebuah snapshot pada dokumen lokal yang memiliki history mempertahankan state kerja sebelumnya sebagai sebuah draf recovery terpisah dan membatalkan write token editor mana pun yang sedang terbuka. Checkpoint yang tidak dapat diubah tetap ada di perangkat. Ini melindungi history lokal selama penggantian snapshot; ini tidak menggabungkan history perangkat yang konkuren.
+
+Referensi aset historis dipertahankan, sementara rendering tetap menyelesaikan aset lewat pustaka yang sudah ada di destinasi. Arsip ini belum menjamin byte aset lama atau render tool lama yang persis. Byte asset-version dan file-result tetap berpindah lewat bagian backup terpisah yang sudah ada.
+
+## Versi tersimpan dan hasil file (v2)
+
+Bagian history opsional berisi `{ version: 2, assetVersions: [...], operations: [...], batches: [...] }`; pembaca juga menerima bentuk history-v1 yang lebih lama tanpa batches. Setiap snapshot mengidentifikasi ID aset yang stabil dan versi persisnya, waktu penyimpanannya, panjang byte dan SHA-256 hex, plus sebuah rekaman aset yang `_file` dan `_credentialFile` opsionalnya menunjuk ke bagian biner. Operasi membawa fakta file asli, request, laporan, timestamp dan `_file` hasil opsional; nama storage backend, handle OPFS dan execution lease tidak ikut berpindah. Pembaca history-v1-only yang lebih lama menolak versi history baru sebelum mengimpor, alih-alih diam-diam membuang keanggotaan batch.
+
+Manifest batch mencatat setiap sumber yang dipilih sebelum diproses, termasuk file yang tidak pernah dibaca, anggota yang dibatalkan, kegagalan mereservasi ruang hasil dan pekerjaan yang terputus. Setiap anggota memiliki ID operasi yang stabil, referensi/fakta sumber, nama output yang diminta dan laporan terminal. Sebuah sumber yang tidak dibaca memiliki fakta yang dideklarasikan, bukan digest rekaan. Impor memvalidasi identitas anggota dan konsistensi dengan laporan operasi yang dibawa mana pun. Laporan batch tetap tersedia ketika hasil individual telah dihapus secara eksplisit, tetapi sebuah receipt tidak berarti byte outputnya masih tersimpan.
+
+- Setiap rekaman history, laporan dan file yang dirujuk yang diketahui divalidasi sebelum penulisan impor profil atau aset apa pun. Byte yang hilang dan SHA-256 yang tidak cocok gagal bahkan jika amplop tidak memiliki peta integritas. Credential yang diekstrak tetap berupa array byte, termasuk impor dari penulis lama yang men-JSON-serialize-nya sebagai objek numeric-key.
+- Operasi yang sedang berjalan menjadi rekaman terputus di dalam backup, dengan laporan kegagalan yang menjelaskan dan tanpa hasil. Restore tidak pernah memulai ulang pekerjaan background atau mengimpor sebuah execution lease yang aktif. Mencoba lagi memerlukan pemilihan file asli, diperiksa terhadap SHA-256 tercatatnya jika tersedia.
+- Hasil yang dipulihkan meng-commit byte dan metadata-nya bersamaan di IndexedDB. Hasil baru yang biasa menggunakan OPFS jika tersedia, dengan fallback IndexedDB. Sebuah operasi live yang sudah ada tidak pernah digantikan oleh sebuah impor.
+- Penyusunan ZIP history masih di memori: batas saat ini adalah **256 MiB payload history**, **4 MiB metadata history**, paling banyak **100 operasi**, **100 batch** dan **2.000 snapshot**. Ekspor menolak history yang terlalu besar atau tidak lengkap secara eksplisit; ekspor tidak pernah diam-diam menghilangkannya. Unduh versi/hasil penting satu per satu sebelum menghapus salinan lokal yang lebih lama. Batas ini bukan jaminan peak-memory yang terukur untuk ponsel.
+- History hasil lokal memiliki budget 512 MiB dan batas 100 rekaman. Snapshot aset memiliki budget 512 MiB terpisah dan paling banyak 20 versi historis per aset; byte credential yang diekstrak dihitung ke dalam budget snapshot itu. Restore menghormati batas ini dan tidak pernah diam-diam mengeluarkan data pengguna yang sudah ada.
+- Metadata batch lokal memiliki budget 4 MiB terpisah, paling banyak 100 manifest dan 20 anggota per batch. Anggota yang pending mereservasi kapasitas metadata, dengan plafon laporan 32 KiB per anggota. Ini adalah budget logis, bukan jaminan ruang disk browser; kegagalan quota yang sungguhan ditampilkan dan laporan in-memory tetap dapat diunduh. Mencoba ulang sebuah anggota batch membuat batch baru tanpa menimpa laporan lama. Menghapus sebuah rekaman batch tidak menghapus byte hasil individual atau aset pustaka.
+- Hasil yang dikonversi dapat ditambahkan secara eksplisit ke pustaka tanpa normalisasi atau re-encoding. Hash sumber/output dan relasi operasi menyertai aset itu. Penambahan berulang menggunakan ulang salinan yang tidak berubah; sebuah salinan yang telah diedit tidak pernah ditimpa. Gambar raster dapat memulai sebuah dokumen Design baru. Dokumen itu menggunakan ID aset pustaka saat ini: menegakkan pin versi persis di seluruh runtime dan URL path Design masih pekerjaan terpisah. Hasil SVG/HTML/PDF/ZIP dipertahankan sebagai aset file opak oleh handoff ini, tidak dipromosikan menjadi konten interaktif/vektor yang tepercaya.
+- **Convert → Recent file operations** menampilkan penggunaan history, laporan, unduhan dan version manager. Manager itu juga menemukan versi lebih lama dari aset pustaka yang telah dihapus. Memulihkan sebuah snapshot membuat sebuah versi saat ini yang baru sambil mempertahankan snapshot yang dipilih tetap utuh. **Pengaturan → Penyimpanan** menghitung hasil dan versi secara terpisah dari cache yang dapat dibuang.
+- Pembersihan file sementara eksplisit hanya menghapus byte milik-operasi yang tidak dirujuk. Rekaman saat ini melindungi file-nya; file OPFS terbaru memiliki masa tenggang satu jam. Hasil tersimpan dan snapshot aset tidak dihapus secara otomatis.
+
+Pembaca lama tetap menerima amplop v2 (`minReader: 1`) dan memulihkan bagian yang dikenal, menghitung bagian history yang tidak didukung sebagai dilewati. Pemulihan history penuh memerlukan sebuah shell dengan adapter `fileHistory`; ini adalah seam internal-shell, bukan kemampuan `HostV1` baru yang menghadap tool. Restore dua-perangkat yang sungguhan dicakup oleh gate Chromium lokal; penerimaan pemulihan Tauri/iOS/Android yang terinstal tetap terpisah.
+
 ## Apa yang tidak ikut berpindah
 
 - **Cache katalog** (metadata dan blob aset yang diunduh, indeks tool) - disinkronkan ulang secara gratis di target.
-- **Tool dan aset brand** - di luar cakupan, dan diasumsikan sudah ada di target.
+- **Tool katalog dan aset katalog** - di luar cakupan, dan diasumsikan sudah ada di target. Token brand, font dan logo yang ditambahkan pengguna adalah aset pengguna, sehingga tetap ikut berpindah.
 - **URL `blob:` / object** - dibuat ulang oleh bridge saat dimuat.
+- **File asli konversi, execution lease live dan rahasia akses/signing lokal-mesin** - bukan payload history yang portabel. Sebuah hasil tersimpan adalah sebuah salinan, bukan sebuah janji bahwa sumber aslinya telah di-backup.
 - **Penghitung urutan ekspor** - penghitung penamaan unduhan per hari (kunci `localStorage` `lolly-export-seq`) adalah kemudahan penamaan lokal. Ini disengaja tetap di luar `PREF_KEYS`, jadi tidak pernah ikut dalam bundel.
 
-Meteran penyimpanan merinci pemisahan yang sama. Sesi tersimpan dan My images ikut dalam bundel. Cache aset, pratinjau tool dan pin offline di bawahnya semuanya dapat diturunkan ulang, jadi tetap tinggal.
+Meteran penyimpanan merinci pemisahan yang sama. Sesi tersimpan, My images dan File results & versions ikut dalam bundel. Cache aset, pratinjau tool dan pin offline di bawahnya semuanya dapat diturunkan ulang, jadi tetap tinggal.
 
 ![Meteran penyimpanan memecah data perangkat ini ke dalam kategori bernama, dengan Saved sessions dan My images dilacak terpisah dari Asset cache, di sini pada instalasi baru di mana setiap kategori masih kosong](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1600&dpi=192&waitMs=2600&format=svg&css=.store-manages%2C.storage-subsection%2C.store-selbar%7Bdisplay%3Anone%7D&cropSelector=.store-meter&walker=1&dark=1&filename=ce-storage-categories)
 
 ## Jaminan lintas shell
 
-`data-transfer.ts` membaca dan menulis secara eksklusif melalui capability bridge (`host.profile`, `host.state`, `host.assets`) dan preferensi `localStorage` bersama. Karena bridge adalah satu-satunya titik sambung, modul yang *sama* menghasilkan bundel yang identik byte-per-byte di setiap shell meskipun penyimpanan di baliknya berbeda - IndexedDB di web, sistem berkas di Tauri. Shell Tauri menggunakan kembali modul ini tanpa perubahan. Hanya implementasi `host.state` mereka yang berbeda. Uji headless menjalankan round-trip penuh terhadap bridge in-memory, itulah sebabnya uji ini mewakili semuanya.
+`data-transfer.ts` membaca dan menulis secara eksklusif lewat capability bridge (`host.profile`, `host.state`, `host.assets`) dan preferensi `localStorage` bersama. Modul yang sama membaca dan menulis amplop umum di web dan Tauri, lewat penyimpanan IndexedDB atau filesystem. Bagian history opsional muncul hanya di tempat adapter terkaitnya tersedia; sebuah bagian yang tidak didukung dilaporkan sebagai dilewati saat impor. Suite headless menjalankan bagian umum terhadap sebuah bridge in-memory, sementara transaksi history juga memiliki test real-browser.
 
 Dua shell berada di luar jaminan itu, karena alasan yang berbeda:
 
 - **CLI one-shot** tidak memiliki apa pun untuk dibawa - statusnya in-memory dan bersifat sementara per pemanggilan.
-- **TUI** memang menyimpan status (`~/.lolly`: sesi, folder, profil) dan tampilan Profile-nya bisa mencadangkannya, tetapi ia menulis arsip yang *lebih sederhana* miliknya sendiri: `sessions/<slot>.json` per sesi ditambah `profile.json` dan `folders.json`, tanpa manifes, tanpa `formatVersion`/`minReader`, dan tanpa peta integritas. Arsip ini **tidak** bisa diimpor oleh format ini - pembaca akan menolaknya sebagai "bukan cadangan Lolly" - dan membingungkan karena menggunakan nama yang mirip (`lolly-backup-<stamp>.zip`). Menyatukan keduanya adalah kesenjangan yang sudah diketahui.
+- **TUI** memang menyimpan status (`~/.lolly`: sesi, folder, profil) dan tampilan Profile-nya bisa mencadangkannya, tetapi ia menulis arsip yang *lebih sederhana* miliknya sendiri: `saved-state/<slot>.json` per sesi ditambah `profile.json` dan `folders.json`, tanpa manifes, tanpa `formatVersion`/`minReader`, dan tanpa peta integritas. Arsip ini **tidak** bisa diimpor oleh format ini - pembaca akan menolaknya sebagai "bukan cadangan Lolly" - dan membingungkan karena menggunakan nama yang mirip (`lolly-backup-<stamp>.zip`). Menyatukan keduanya adalah kesenjangan yang sudah diketahui.
 
 ## Titik ekstensi yang dicadangkan
 
-Amplop ini sengaja dirancang sebagai manifes plus sekumpulan bagian bernama, sehingga jenis data portabel baru bisa menumpang di kemudian hari **tanpa perubahan yang merusak**. Bagian-bagian ini masuk sebagai bagian aditif (`formatVersion` baru, `minReader` yang sama), dan pembaca saat ini melewati apa pun yang tidak dikenalinya. Ini ada di [roadmap](/info/overview.html#roadmap), belum diimplementasikan. Nama-namanya dicadangkan di sini agar format tetap koheren saat bagian tersebut hadir.
+Amplop ini sengaja dirancang sebagai manifes plus sekumpulan bagian bernama, sehingga jenis data portabel baru bisa menumpang di kemudian hari **tanpa perubahan yang merusak**. Bagian-bagian ini masuk sebagai bagian aditif (`formatVersion` baru, `minReader` yang sama), dan pembaca saat ini melewati apa pun yang tidak dikenalinya. Ini belum dibangun. Nama-namanya dicadangkan di sini agar format tetap koheren saat bagian tersebut hadir.
 
-- **`tokens.json` - token desain.** Sebuah dokumen token desain [W3C DTCG](https://tr.designtokens.org/format/) (format yang [diimpor dan diekspor Penpot](https://help.penpot.app/user-guide/design-systems/design-tokens/) - token dengan `$value`/`$type`/`$description`, diorganisasikan ke dalam grup, set dan tema). Sekumpulan token dalam bundel memungkinkan pengguna memindahkan primitif brand mereka antar instalasi bersama sesi mereka. Dalam jangka panjang, sekumpulan token yang telah diserap menjadi sumber kelas satu yang dijadikan rujukan oleh tool dan aset palet.
+- **`tokens.json` - token desain.** Sebuah dokumen token desain [W3C DTCG](https://tr.designtokens.org/format/) (format yang [diimpor dan diekspor Penpot](https://help.penpot.app/user-guide/design-systems/design-tokens/) - token dengan `$value`/`$type`/`$description`, diorganisasikan ke dalam grup, set dan tema). Sekumpulan token dalam bundel memungkinkan pengguna memindahkan primitif brand mereka antar instalasi bersama sesi mereka. (Token brand milik pengguna sendiri sudah berpindah hari ini sebagai aset `user/tokens/brand` di `assets.json`; bagian ini akan membawa seluruh dokumen DTCG beserta set dan temanya.) Dalam jangka panjang, sekumpulan token yang telah diserap menjadi sumber kelas satu yang dijadikan rujukan oleh tool dan aset palet.
 - **`penpot/` - berkas Penpot yang diserap.** Direktori yang dicadangkan untuk berkas Penpot (atau subset yang relevan dengan Lolly yang diekstrak darinya) yang diimpor dan ditampilkan *sebagai tool*. Bundel akan membawa definisi yang diserap, sehingga ikut berpindah bersama data pengguna lainnya.
 
 Apa pun di luar nama yang dicadangkan dan bagian-bagian di atas, bagi pembaca, adalah bagian yang tidak dikenal: dibiarkan tanpa diubah dan dihitung dalam `skipped`.
@@ -129,4 +174,5 @@ Apa pun di luar nama yang dicadangkan dan bagian-bagian di atas, bagi pembaca, a
 
 - Modul: [`shells/web/src/data-transfer.ts`](../shells/web/src/data-transfer.ts) (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION` - pemberi nama `backupFilename()` bersifat internal).
 - Uji kontrak: [`tests/data-transfer.test.ts`](../tests/data-transfer.test.ts) - kasus round-trip, penggabungan, integritas, kompatibilitas maju dan gerbang pembaca.
+- Uji kontrak history: [`tests/file-history-backup.test.ts`](../tests/file-history-backup.test.ts), [`tests/file-batch-history.test.ts`](../tests/file-batch-history.test.ts) dan [`tests/file-result-library.test.ts`](../tests/file-result-library.test.ts). Penerimaan browser: [`tests/file-history.browser.test.ts`](../tests/file-history.browser.test.ts), [`tests/file-batch-history.browser.test.ts`](../tests/file-batch-history.browser.test.ts) dan [`tests/file-result-reuse.browser.test.ts`](../tests/file-result-reuse.browser.test.ts).
 - Permukaan bridge yang digunakan: `host.profile`, `host.state`, `host.assets` - lihat [Host API](/info/host-api.html).

@@ -16,7 +16,7 @@ Escolha uma ferramenta, preencha alguns campos e baixe o arquivo pronto. Ou abra
 - **[Importar um design](/info/design-import.html)** - quando a arte já existe como um arquivo `.fig`, `.penpot`, `.ai`, `.idml` ou SVG e você quer que ela fique editável em vez de achatada.
 - **[Visões de utilidade](/info/utilities.html)** - a planilha, o conversor, o Colour Lab, o extrator de PDF e o Script audio, para os trabalhos que não são uma renderização de ferramenta.
 - **[Extensão do navegador](/info/extension.html)** - capture uma página web ao vivo e reaproveite-a como um ativo nos seus próprios designs.
-- **[Busca](/info/search.html)** - um único campo que alcança suas ferramentas, seu trabalho salvo, o catálogo e suas configurações.
+- **[Busca](/info/search.html)** - um único campo que alcança suas ferramentas, seu trabalho salvo, seus ativos e suas configurações.
 - **[Pergunte à Lolly](/info/ask.html)** - digite uma pergunta e receba de volta a seção correspondente destes guias, com um link direto para ela.
 - **[O Painel](/info/dashboard.html)** - o que este dispositivo pode fazer, seu sistema de design em modo somente leitura e uma olhada no armazenamento.
 - **[Seus favoritos](/info/favourites.html)** - marque com estrela o que você usa com frequência, para que ganhe um bloco próprio acima da grade.
@@ -34,9 +34,15 @@ Texto que se move, cenas em uma linha do tempo e movimento que permanece fiel à
 
 Grave uma tomada limpa com contagem regressiva, um medidor de nível e orientação leve, ou transforme uma nota de voz em um vídeo pronto que se move com o som. Ainda não há uma página separada de Gravação: Usando a Lolly aborda isso, na seção de linha do tempo.
 
-- **[Usando a Lolly](/info/using.html#timeline-sequence-studio)** - gravando uma narração direto na linha do tempo, onde a tomada é salva e como ela chega até a mixagem.
-- **[Faça algo em 60 segundos](/info/make-something.html#make)** - a cena de audiograma, para quando você prefere ser ouvido a ser visto.
+- **[Usando a Lolly](/info/using.html#timeline-sequence)** - gravando uma narração direto na linha do tempo, onde a tomada é salva e como ela chega até a mixagem.
+- **[Faça seu primeiro arquivo](/info/make-something.html#other-first-projects)** - a cena de audiograma, para quando você prefere ser ouvido a ser visto.
 - **[Visões de utilidade](/info/utilities.html)** - Script audio, para quando as palavras vêm primeiro e a voz vem depois.
+
+## Apresentar
+
+Coloque sua câmera, seu logotipo e seu nome sobre um deck do Design ou um Countdown, com controles privados em uma janela separada.
+
+- **[Presenting with camera](/info/presenting.html)** - enquadramento, cenas salvas, compartilhamento com o público, gravação local e as limitações atuais da versão de teste.
 
 ## Colaborar
 

@@ -50,7 +50,7 @@ Lolly uses a small set of words with exact meanings, and a few of them (profile,
 
 ## Sessions and editing
 
-**Saved tool session.** The persisted state of one tool with its inputs, kept in the shell's storage and listed under Projects. A share link carries the whole session.
+**Saved tool session.** The persisted state of one tool with its inputs, kept in the shell's storage and listed under Projects. A share link carries the inputs and settings; uploaded files travel in a `.lolly`.
 
 **User template.** A saved tool session promoted to a starting point, offered in that tool's "New from template" chooser and deep-linkable as `?template=<id>`. Different from the Handlebars template above.
 

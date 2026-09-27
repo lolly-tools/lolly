@@ -1,14 +1,14 @@
 # Använda Lolly
 
-En praktisk guide till att faktiskt *använda* appen - att öppna ett verktyg, arbeta med arbetsytan, exportera, spara och dela. Allt här körs **på din enhet**: inget konto, ingen uppladdning, ingen internetuppkoppling krävs efter den första inläsningen.
+En praktisk guide till att faktiskt *använda* appen - att öppna ett verktyg, arbeta med arbetsytan, exportera, spara och dela. Allt här körs **på din enhet**: inget konto, ingen uppladdning, och inget internet behövs för de skärmar du redan har öppnat.
 
 > Ny här? [Snabbstart](/info/quickstart.html) får dig att skapa på några minuter, och [Lolly för operatörer](/info/operators.html) beskriver hur du installerar/driftsätter appen; den här sidan handlar om att använda den när den väl är öppen.
 
 ## Öppna ett verktyg
 
-Startskärmen är **galleriet** - alla verktyg, grupperade efter kategori. Klicka på ett kort för att öppna verktyget; om du har arbetat med det tidigare återupptar en **Fortsätt**-knapp din senaste session. Använd sökrutan för att filtrera efter namn - eller [Sök](/info/search.html) från fältet längst ner i de sex listvyerna (galleriet, Utilities, Projekt, Tillgångar, Översikten och Profil), som når ditt sparade arbete, dina tillgångar och dina inställningar lika väl som verktygen. Inne i ett verktyg drar sig fältet undan för verktygets egen ram.
+Startskärmen är **galleriet** - alla verktyg, grupperade efter kategori. Klicka på ett kort för att starta något nytt i det verktyget; [sparat arbete](#saving-continuing) öppnas igen från **Projekt**. Använd sökrutan för att filtrera efter namn - eller [Sök](/info/search.html) från fältet längst ner i de sex listvyerna (galleriet, Utilities, Projekt, Tillgångar, Översikten och Inställningar), som når ditt sparade arbete, dina tillgångar och dina inställningar lika väl som verktygen. Inne i ett verktyg drar sig fältet undan för verktygets egen ram.
 
-![Verktygsgalleriet - varje verktyg som ett kort, grupperat efter kategori](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
+![Ett gallerikort med exempel på navigering och åtgärden + Ny](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone!important%7D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&localize=1&dark=1&cropSelector=.gtile%5Bdata-tool-id%3D%22design%22%5D&filename=gallery&try=1)
 
 Varje verktyg är en delad vy: **kontroller** på ena sidan, en live **förhandsvisning** (arbetsytan) på den andra. Ändra en kontroll så uppdateras förhandsvisningen omedelbart.
 
@@ -42,6 +42,32 @@ selection bullet under Projects uses), click the bar's Hide button
 (`[data-bulk="hide"]` - the literal `data-bulk` value bulkBarHtml() writes,
 confirmed in lib/bulk-bar.ts), then click the grey reveal tile
 (`.gtile--hiddenbox`, confirmed in gallery.ts).
+-->
+
+För att agera på flera kort samtidigt, kryssa i varje korts kryssruta, dra en markeringsruta över tom yta eller **Shift/Cmd-klicka**, så visas ett flytande åtgärdsfält. **Vad markeringsfältet erbjuder** skiljer sig lite mellan vyerna, eftersom inte varje åtgärd är meningsfull överallt:
+
+- **Verktyg / Utilities:** Favorit (eller Ta bort favorit), Dölj (eller Visa igen), Tillgänglig offline (eller Ta bort från offline), **Visa sessioner** (öppnar Projekt och visar bara de sessioner som gjorts med de verktygen) och Kopiera länk när exakt ett kort är markerat.
+- **Tillgångar:** Favorit och Dölj gäller vilken markering som helst; Duplicera, Ladda ner och Radera visas bara när varje markerat objekt är en av dina egna uppladdningar - en delad designsystemtillgång är ett permanent kontrakt, så de tre stannar borta från den även i bulk.
+- **Projekt:** se [Hitta och återfå ditt arbete](/info/find-your-work.html#find-something-you-saved).
+
+> En etikettfälla: **Visa sessioner** finns bara när något är *markerat*. Att högerklicka på ett enskilt omarkerat kort ger i stället **N sparade sessioner**, som öppnar en lista över det verktygets sparade sessioner, där en radering är permanent, i stället för att navigera till Projekt.
+
+![Galleriets urvalsfält för två verktyg, som erbjuder Tillgänglig offline, Visa sessioner, Favorit och Dölj](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
+<!--
+SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
+`[data-select="gradient"]` - the `.tile-check[data-select="<ref>"]` checkbox button
+confirmed directly in views/gallery.ts's card markup (the same attribute
+cardMarkup gives every tile), so these two clicks tick both cards without
+opening either tool.
+
+SHOT NOTE (misc-sessions-by-tool, NOT PUBLISHED): the "View sessions" result
+had a recipe of its own (`/#/p?tools=qr-code,d3`, views/projects.ts's
+toolsBodyHtml()), dropped here because it has no `drive=` that can
+manufacture its own content - a saved session isn't a click away, it has to
+already exist, and build-docs-shots.ts gives every shot a fresh
+`browser.newContext()`. It would publish an empty list. Same dependency the
+`projects` shot (now on find-your-work.md) carries; revisit if the pipeline gains a
+storage-seeding hook.
 -->
 
 ### Fråga Lolly
@@ -79,10 +105,17 @@ Verktyg med fri arbetsyta lägger till en arbetsyta *runt* ritytan, som en formg
 - **Bara ramen exporteras.** Den exporterade filen begränsas av ritytan - allt som lämnas utanför (eller den del av en ruta som hänger över kanten) beskärs helt enkelt bort ur resultatet, i både raster- och vektorformat.
 - **Zooma ut förbi Anpassa** (ner till 20 %) för att se hela arbetsbordet när du har placerat saker långt utanför ramen.
 - **Ritytan kan ändra storlek.** Att ändra exportmåtten ändrar storlek på ramen på plats; rutorna behåller sina positioner, så du kan omrama en layout kring befintligt innehåll.
+- **Innan du exporterar.** Inspektörens Dokumentavsnitt kontrollerar den sparade lagerstrukturen och läser sedan av den färdigställda arbetsytan efter avklippt text och kontrast mellan enfärgade ytor. Den frågar också samma typsnittsregister som används vid konturering för SVG/PDF om varje textrad har inbäddningsbara typsnittsbytes; bild- och gradientbakgrunder anges som visuella kontroller i stället för att få en påhittad kontrastpoäng.
 
 ![Designs fria kanvas - ritytan med den omgivande arbetsytan runt om](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 **Vänd en markering.** Högerklicka på valfri box och välj **Vänd horisontellt** eller **Vänd vertikalt** för att spegla den på plats, eller tryck `Shift+H` / `Shift+V` på tangentbordet - Shift, eftersom ett rent `V` är Pekarverktyget. Varje markerad box speglas på sin egen axel i ett enda ångra-steg, och spegelvändningen är en riktig transform, så den håller i den exporterade SVG:n, PDF:en och PNG:n snarare än bara på duken.
+
+### Lager och Inspektör
+
+I **Lager** är varje rityta en hopfällbar föräldragrupp. Välj dess namn för att hoppa dit, fäll ut dess lager och välj eller ändra ordning på objekt inom den ritytan. Växla till **Sidor** för miniatyrer och sidordning. Piltangenterna flyttar genom lagerlistan; Vänster återgår till ritytans rubrik.
+
+**Inspektören** sätter text- eller bildkontroller först för det markerade objektet. Använd alternativchips för snabba val och fäll ut **Advanced** för formateringsdetaljer. På telefoner öppnar du **Inspektör** från **Fler åtgärder**. Kontrollerna öppnas i ett ark; Escape eller Tillbaka stänger det medan markeringen behålls.
 
 ### Rita egna former (pennan)
 
@@ -137,13 +170,27 @@ Resultatet är en ny bana som du kan fortsätta redigera med pennan. Hål är ri
 
 Två saker gör de här operationerna medvetet inte. De **vägrar hellre än förstör**: be om ett snitt mellan två former som inte överlappar så får du veta att det inte finns något att behålla, och ingenting ändras. Och text- och bildrutor har ingen kontur att arbeta med, så de lämnas i fred i stället för att approximeras av sin ram. Ett kombinerat resultat lagras som vanliga Bezier-kurvor, vilket är vad ett ritprogram också gör - den ursprungliga splinetypen överlever inte operationen.
 
-## Tidslinje (Sequence Studio)
+### 3D-scener
 
-![The timeline with the music clip selected: its strip runs along the bottom with Speed, Fades, Volume, Pan, EQ, Pitch, Normalize volume and the Effect slot](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
+Välj **3D-scen** i verktygslistens läggtill-meny och dra ut en ram: 3D Studio öppnas direkt på den nya rutan, och det du ställer in där kommer tillbaka till arbetsytan. På alla andra sätt är en scenruta en helt vanlig ruta. Flytta den, ändra dess storlek, rotera den, ge den en skugga, lägg den på en bild eller på tidslinjen, och den beter sig som alla de andra.
 
-**Sequence Studio** lägger till *tid* på den fria arbetsytan. Varje ruta kan starta vid ett givet ögonblick, pågå en viss längd och animeras in och ut, och en tidslinje dockad under ritytan är där du arrangerar dem. Öppna det och en sekvens spelar redan - en titelbild, ett klipp, en slutbild, en nedre tredjedel och en musikbädd - så modellen syns innan du ändrar något.
+**En scenruta behåller receptet, inte en bild.** En bildruta rymmer en renderad fil; en scenruta rymmer en enda inställning, själva scenen, skriven som 3D Studios egen länkfråga, där varje värde som fortfarande ligger på studions standard utelämnas. Det är därför en scen väger omkring hundra byte snarare än de kilobyte ett helt recept kostar, därför samma sträng fungerar i en delningslänk och i redigerarens dörr, och därför en ny studiokontroll inte kräver någon ändring i Design. Det är också därför rutan renderas om vid vilken storlek och vilket ögonblick dokumentet än behöver, i stället för att förstoras från en bild tagen tidigare. Bilder en scen använder förblir tillgångar och reser via id, så en uppladdning inuti en scen hamnar i en `.lolly`-fil tillsammans med resten av dokumentet.
 
-![Sequence Studios tidslinje: transporten, linjalen, ett overlay-spår, den magnetiska sekvensraden med dess klipp och skarvchips samt Always on-remsan](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
+**Redigera den i studion.** Markera rutan så visar Inspektören ett avsnitt **3D-scen**: en rad som namnger vad scenen är gjord av, en andra som namnger dess ljusstudio när du väl har valt en, och en knapp, **Redigera i 3D Studio**. Knappen öppnar studion på den rutans scen med alla kontroller verktyget har. Tillämpa, så skrivs den redigerade scenen tillbaka som ett enda steg, så en ångring återför rutan till scenen du började med; stäng studion utan att tillämpa och inget ändras. Allt annat om rutan - dess plats på ritytan, hur stor den är, dess skugga, när den anländer på en bild - ligger kvar i de avsnitt den alltid använt. En scenruta tar ingen egen bild och ingen bildtext: dess bild kommer från studion, och dess ord ställs in där också.
+
+**En levande scen, en affisch på varje annan ruta.** Varje 3D-ruta i ett dokument visar en affisch: en stillbild av scenen, ritad utanför skärmen genom den delade renderarpoolen i den storlek rutan upptar. Ett dokument med tjugo scener kostar en ritningskontext, inte tjugo. Markera en scenruta och den blir dokumentets enda levande scen; avmarkera den och den ram som var på skärmen blir dess affisch, så inget hoppar till. Bara en scen är levande åt gången, och att markera två scenrutor samtidigt lämnar båda som affischer. I den här utgåvan är den levande scenen till för att titta på, inte för att kretsa runt: ändra en scen via **Redigera i 3D Studio**. En enhet som inte kan öppna en flyttalsgrafikkontext behåller affischen och säger varför inuti rutan i stället för att visa en tom rektangel, och resten av dokumentet påverkas inte. Att öppna ett Design-dokument utan någon 3D-ruta laddar ingen 3D-kod alls.
+
+**På tidslinjen** följer en scenruta spelhuvudet som ett videoklipp: dess start, klipp-in och hastighet flyttar scenen genom sin egen animation, och scenens längd är den du ställt in i 3D Studio, så att korta av en ruta visar mindre av scenen i stället för att snabba upp den. Bara den markerade scenrutan är levande; alla andra är stillbilder, och en stillbild går inte att skrubba.
+
+**Vid en export** ritas varje scen på nytt i den storlek filen behöver, genom samma renderare som studion använder. En video renderar en bildruta per scen per ögonblick; en PNG, SVG eller PDF bäddar in en bild per ruta i rutans egen pixelstorlek. Inget fotograferas från skärmen, så en export beror inte på vilken ruta du hade markerad. En scen som inte kan ritas gör att exporten misslyckas och talar om varför, med studions egna ord.
+
+**Att dela en scen byggd på din egen uppladdning.** En delningslänk för ett Design-dokument bär en enhetslokal uppladdnings-id inuti en scen som den står, där en bildruta i stället tömmer den. Så en scen vars grafik eller modell är en fil du laddat upp visar studions standard för den bilden på någon annans enhet, om inte dokumentet reser som en `.lolly`-fil, som bär med sig byten.
+
+## Tidslinje (Sequence)
+
+**Sequence** är Designs tidslinje: den lägger till *tid* på den fria arbetsytan. Varje ruta kan starta vid ett ögonblick, pågå en viss längd och animeras in och ut, och en tidslinje dockad under ritytan är där du arrangerar dem. Öppna den och det spelar redan en sekvens - ett titelkort, ett klipp, ett slutkort, en nedre tredjedel och en musikbädd - så modellen syns innan du ändrar något.
+
+![Sequence-tidslinjen: transporten, linjalen, ett overlay-spår, den magnetiska sekvensraden med dess klipp och skarvchips samt Always on-remsan](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A252px!important%7D&cropSelector=.tl-panel&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-timeline)
 
 Det finns två sorters rader, och skillnaden är hela idén:
 
@@ -153,7 +200,7 @@ Det finns två sorters rader, och skillnaden är hela idén:
 
 ![Redigeringsläget: ritytan i förgrunden och centrum, verktygsraden till vänster och zoom-HUD:en i hörnet](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D11dZBb5swFADgX8MOiRYZB0J76GFpNO2wnbr7ZMwDrBg7s01C8usngmNwSqJszaT2aD8_G54_PUgJXRdK1iJ7CvAcpSHG6FMqG9BPQbwMkmWAMcsCjIP5lwDjUsp1O8DPAcZrJvpIKhsXaLpZ1I323mjXjcJHbCdKO4Ee7ISSxsvQJdmAO0cBNe6gtHDzQbKkkks101ARYRidaaBSZETtg2TlMgw0xuX8LBXANCN7PTVyWki3Kr-6b61yQmG4ay6FeWEHOL1K1E0TzgrhdqIgDCiXs_WjFcsyDi66A1aU_ZMuEPIOcwFNhHYRzgR8GySGs9CW0BDlFzWrVTe2qdCwftOcZP2TtJEfuovFyKZzIvor0fD7WKhVGzsXo2ALhH8UMxvFqmtiXmQFpmSimArYBfGzYHpKZcVEcS87-OHedpK72cHndmYWunu6rtxM-3wuwGqTXskacov-nhs15KNYG7HgWZtMvpNa0LJtUJNJi-2rYhnZ3ybtuNUVZuj9MotOrAbQFmPQbuB0uxwud4NX9-ycrmWIJw59Pg9h5AF6RGd-5vgWPhvG-2b5xs8bl5zvZ0ZK3tf_bd0pxu_lw2YDG2Jv6VRdj9Hi__WrKB7pV3OELuBKIRunReqM9f8d1tbnKPFsJVHs2Zqf9SaMLrSmASCjiNAbokD0lD0t_95Wxu-MVaQ4uT6WQ8ta0V46Z6lq9br1fVEOh7ypju-FFyjBC7fmVy0UaMm3YBcbVYMt-dhfTlUbe2BOuD6ujFd_AA&width=1440&height=900&dpi=192&waitMs=7000&waitSelector=.tl-clip&css=.fc-toolbar%7Bopacity%3A1!important%7D&format=svg&walker=1&tolerance=0.03&dark=1&filename=seq-studio-stage)
 
-Att öppna tidslinjen ger den tangentbordet, så blanksteg och piltangenterna styr spelhuvudet i stället för sidan - och eftersom den öppnas av sig själv för en komposition som redan har tidsättning gäller det från det ögonblick Sequence Studio laddas.
+Att öppna tidslinjen ger den tangentbordet, så blanksteg och piltangenterna styr spelhuvudet i stället för sidan - och eftersom den öppnas av sig själv för en komposition som redan har tidsättning gäller det från det ögonblick Sequence laddas.
 
 > **[Sekvensredigeraren](/info/sequence-editor.html)** går djupare in på de fyra saker som avgör om redigering i tid känns förutsägbar: vilket klipp ett klick på arbetsytan redigerar, lökskalsskuggor av grannklippen, delningens omfattning och den Sammanfogning som ångrar ett snitt samt trimning (inklusive tangentuppsättningen). Tryck på `?` med tidslinjen i fokus för genvägsbladet.
 
@@ -165,9 +212,13 @@ Markera ett klipp så ger inspektören dig samma redigeringar som siffror: **Lä
 
 **Ljud.** Lägg till ett **Ljud**-klipp så lever det på tidslinjen som vilket annat klipp som helst: vågform, trimning, ljud av. (Den genererade bädden som standardsessionen levereras med är det enda undantaget - den syntetiseras vid exporten, så dess stapel förblir tom och tyst tills du renderar.) Tryck på mikrofonen för att **spela in en speakerröst** direkt på tidslinjen, med nedräkning och nivåmätare, och tagningen sparas som din egen resurs vid den punkt där du började. Tryck på kameran bredvid för att **spela in en video** på samma sätt: tagningen beskärs till ritytans exportstorlek medan den spelas in, så den lilla självbilden visar exakt vad som hamnar i sekvensen vid spelhuvudet, i helbild - sättet att hämta in en kollegas klipp från en delad länk. Musik, dialog och ett klipps eget ljudspår når alla den exporterade mixen. (Exportpanelens **Ljudspår** är något annat: en bädd lagd under hela klippet, med toning och ducking. De två samexisterar.)
 
+**Ljudremsan.** Markera ett klipp som bär ljud så öppnas en kompakt remsa under tidslinjen: ett **Volym**-reglage, **Panorera** för stereoposition, en tregradig **EQ** (**Låg**, **Mellan**, **Hög**), en **Tonhöjd**-kontroll som transponerar i halvtoner medan rösten behåller sin karaktär, och **Normalisera volym**, som för klippet till sändningsljudstyrka (BS.1770) så att en tyst röstanteckning och ett högt spår hamnar på samma nivå. Där två klipp möts blandar **Övertoning** ihop skarven i stället för att klippa. Ett **Effekt**-fack kör bearbetning på enheten på klippet - **Röstrensning** tar bort rummet och suset ur en inspelning. Hastighetsändringar behåller också tonhöjden: ett klipp som saktas ner eller snabbas upp tidsstretchas i stället för att bli tonhöjdsförvrängt. Vid varje mix duckar exporten musiken under talet allteftersom talet kommer och går och håller hela programmet under en true peak-begränsare, så inget klipper på vägen ut; en vågform som skulle ha klippt ritas med en varning där det händer.
+
+![Tidslinjen med musikklippet markerat: panelen längs botten visar Hastighet, Toningar, Volym, Panorera, EQ, Tonhöjd, Normalisera volym och Effekt-facket](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fbx%3Dt1%252Ctext%252C200%252C140%252C1500%252C220%252C0%252Crect%252C16%252C%252C100%252C%252Ccontain%252Cnormal%252CVoiceover%252520session%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252Cseq%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1%252C%252Cfalse%252C%252C60%252C%252C%252C1%257Ea1%252Caudio%252C200%252C500%252C400%252C80%252C0%252Crect%252C16%252C%252C100%252Clolly%25252Floops%25252F3-am-echoes%252Ccontain%252Cnormal%252C%252C%25257Bcolor.semantic.text%25257D%252C48%252Ccenter%252Cmiddle%252C500%252Csans%252C1.12%252C0%252Ctrue%252Cfalse%252C%252C%252C8%252Cnone%252C00000055%252C0%252C0%252C10%252Ccenter%252Cfalse%252C%252C%252C0%252Cnonzero%252C0%252C3.3%252C0%252C1%252Cnone%252Cnone%252C400%252C400%252Cfalse%252C%252C%252Cround%252Cround%252C%252C0%252C0%252C0%252C0%252C%252C%252C%252C0%252Ctrue%252Cnone%252Cnone%252C%252Cfalse%252C%252C%252C%252C0%252C%252C%252Cfalse%252C%252C%252C%252C%252Cfalse%252Cfalse%252C%252C1.3%252C%252Cfalse%252C%252C60%252C%252C%252C1%26_sel%3Da1&width=1440&height=900&dpi=192&waitMs=5000&waitSelector=.tl-clip&css=.tl-panel%7Bheight%3A300px%21important%7D&cropSelector=.tl-panel&walker=1&format=svg&dark=1&filename=tl-audio-strip&drive=click%3Abutton%3Ahas-text%28%22Inspector%22%29)
+
 **Att rendera det.** En rörelseexport är en **deterministisk komposition**, inte en skärminspelning - varje bildruta avkodas, ritas och kodas vid en exakt tidpunkt, så filen är inte beroende av att din maskin hänger med, och det finns inget praktiskt tak för antalet bildrutor i MP4 eller WebM. Tidslinjens egen längd sätter varaktigheten om du inte skriver in en. Content Credentials stämplas som vid varje annan export. En stillbildsexport ger dig bildrutan vid spelhuvudet, eller ett helt kontaktark via fältet **Bildrutor** bredvid utdatastorleken - se [Exportera](/info/exporting.html#stills-from-a-timed-composition).
 
-Några begränsningar att ha i minnet: en sekvens är begränsad till en timme, GIF och animerad PNG buffrar sina bildrutor så att de förblir korta, ljudet är tyst i ett klipp vars hastighet inte är ×1 (det finns ingen tidsuttänjning ännu) och **Spela in live** är dolt här eftersom kompositören är den bättre vägen.
+Några begränsningar att ha i minnet: en sekvens är begränsad till en timme, GIF och animerad PNG buffrar sina bildrutor så att de förblir korta, ett klipp som spelas snabbare eller långsammare behåller sin tonhöjd (ljudremsan tidsstretchar det, och en **Tonhöjd**-kontroll transponerar i halvtoner med röstens karaktär bevarad) och **Spela in live** är dolt här eftersom kompositören är den bättre vägen.
 
 **Bortom förinställningar: nyckelbilder, djup och en kamera.** En övergång animerar ett klipp när det kommer in och lämnar. För att posera en ruta *inuti* ett klipp - driva den, tona den, sudda den, lyfta den från sidan och landa den igen - lägg till nyckelbilder: markera klippet, tryck **+Nyckelbild** (romben i tidslinjens verktygskluster, romben på ritytans objektfält eller `K`) och spelhuvudets position avgör vilken pose din nästa ändring skriver. Samma nyckelbildssystem ger varje tidsstyrd komposition en **kamera** som zoomar in, panorerar och drar fokus och förvandlar en platt SVG till en stapel lager du kan flyga mellan. **[Animering](/info/animating.html)** är den fullständiga guiden.
 
@@ -175,7 +226,7 @@ Verktyget Design har samma tidslinje, så du kan tidsätta en layout utan att by
 
 ## Presentera
 
-![The inspector's Document section: Voice, Blend with, Speed, Lead-in, Tail and Show captions when presenting](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
+För att placera din kamera, en logotyp och en namnbildtext över publikbilden, använd **Present with camera**. Dess egna kontroller, sparade scener, delning och inspelningssteg beskrivs i [Presentera med kamera](/info/presenting.html). De vanliga presentationskontrollerna nedan finns fortfarande tillgängliga via **Presentera**.
 
 Ett Design-dokument som består av **ritytor** är redan en presentation. Öppna **Lolly-menyn** i verktygslisten och välj **Presentera** - den sista raden - så blir varje rityta en helskärmsbild, i den ordning ritytorna ligger på arbetsytan. Presentationen körs på en kopia av de renderade ritytorna, så redigeraren under rörs aldrig och när du lämnar är du tillbaka exakt där du var.
 
@@ -186,7 +237,13 @@ Ett Design-dokument som består av **ritytor** är redan en presentation. Öppna
 - `B` håller kvar en svart skärm (valfri tangent tar tillbaka bilden), `F` återgår till helskärm och **Escape** skalar av ett lager i taget: översikt tillbaka till presentationen, presentation tillbaka till redigeraren.
 - **Kiosk.** Ge en rityta en **Längd** så håller presentationen kvar där så länge, och går sedan vidare själv bakom en tunn förloppsindikator; `K` (eller pausknappen, som bara visas när något har en längd) stoppar och startar om det. Lägg till `kiosk` i länken så loopar presentationen på slutet, vilket är det som gör den till skyltning.
 
-Presentationen är också en länk. `?present` öppnar direkt i den, `s=` anger bilden - en position, ett rityte-id eller `id.step` för ett byggsteg - och adressen uppdateras när du förflyttar dig, så det du skickar är den bild du står på. Verktygsförfattare: de parametrarna dokumenteras på sidan [URL-läge](/info/url-mode.html#reserved-parameters).
+- **Understapling av bilder.** Högerklicka på en rityta och välj **Stapla under föregående bild** så blir den ett steg i den bilden i stället för en egen bild: översikten visar ett kort, presentationen går igenom stapeln i ordning, och inspektörens rad **Stapla** anger vilken bild den hör till.
+- **Morfa.** När två på varandra följande bilder båda har en ruta med samma **Morfmatchning**-namn (högerklicka på en ruta, eller inspektörens rad **Morfmatchning** - till exempel `hero`), flyttar övergången den rutan från där den var till där den är, med storleks- och färgändring på vägen, i stället för att klippa. En presentationsomfattande övergång **Morfa** gör samma sak för varje matchat par.
+- **Uppläsning.** **Talarens anteckningar** för varje rityta kan läsas upp. I inspektörens avsnitt **Dokument** väljer du en **Röst**, eventuellt en andra röst att **Blanda med**, uppläsningens **Hastighet**, samt en **Intro** och **Svans** i millisekunder runt varje bild; slå på **Visa undertexter vid presentation** så visas orden medan de sägs. Rösten körs på din enhet. Samma anteckningar blir filmen i en videoexport, riktigt bildljud i en PowerPoint-export, och den berättade filmen inuti ett [SCORM-paket](/info/create/exporting.html#scorm-course-packages).
+
+![Inspektörens Dokumentavsnitt: Röst, Blanda med, Hastighet, Intro, Svans och Visa undertexter vid presentation](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Ftemplate%3Dfeature-tour&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.fc-insp&walker=1&format=svg&dark=1&filename=design-narration)
+
+Presentationen är också en länk. `?present` öppnar direkt i den, `s=` anger bilden - en position, ett rityte-id eller `id.step` för ett byggsteg - och adressen uppdateras när du förflyttar dig, så det du skickar är den bild du står på. Verktygsförfattare: de parametrarna dokumenteras på sidan [URL-läge](/info/url-parameters.html#reserved-parameters).
 
 ## På en telefon
 
@@ -216,77 +273,29 @@ Verktyg exponerar bara de inmatningar som är avsedda att varieras - allt annat 
 
 I ett live-[samarbete](/info/collaborate.html) förblir historiken din egen. En ändring som kommer från den andra enheten hamnar aldrig på din stack, så ångra kan bara någonsin ta tillbaka något du själv gjorde.
 
+Ångra går bara tillbaka genom det här besöket; nio verktyg behåller också tidigare versioner under **History**, bredvid **Ångra** (se [Gå tillbaka till en tidigare version](/info/find-your-work.html#go-back-to-an-earlier-version)).
+
 ## Dina uppgifter och profilbild
 
-**Profil** (uppe till höger i galleriet) innehåller ditt namn, dina kontaktuppgifter och en valfri **profilbild**. Verktyg som efterfrågar dessa fält fyller i dem automatiskt - ange dem en gång så fylls din e-postsignatur, dina lockups och dina märken i av sig själva. Du kan fortfarande skriva över valfritt fält per session. Kryssa i **Använd mina uppgifter för att skapa** så följer dina uppgifter med som upphovsperson på det du exporterar.
+**Inställningar** (uppe till höger i galleriet, som visar ditt förnamn när du väl har angett ett) innehåller ditt namn, dina kontaktuppgifter och en valfri **profilbild**. Verktyg som efterfrågar dessa fält fyller i dem automatiskt - ange dem en gång så fylls din e-postsignatur, dina lockups och dina märken i av sig själva. Du kan fortfarande skriva över valfritt fält per session. Kryssa i **Använd mina uppgifter för att skapa** så följer dina uppgifter med som upphovsperson på det du exporterar.
 
 Din profilbild och dina uppgifter finns **bara på den här enheten**. En profil kan vara mer än bara du - ett team eller en roll du kliver in i då och då. Se **[Profiler](/info/profile.html)** för hela bilden, inklusive hur du behåller fler än en.
 
 ## Spara och fortsätta
 
-Klicka på **Spara** för att lagra de aktuella inmatningarna som en session för det verktyget. Du kan behålla flera namngivna sessioner per verktyg; varje verktygs **Fortsätt**-knapp öppnar din senaste igen, och **historikknappen** (uppe till höger, bredvid din profil) listar varje sparad session i alla verktyg. Sessioner är enhetslokala. För att organisera dem, öppna **Projekt** (nedan).
+För att behålla ditt arbete trycker du på **Spara som**, bocken bredvid **Exportera**. Under **Save to a project** lämnar du **Mitt bibliotek** markerat eller väljer ett projekt (**＋ Nytt projekt…** skapar ett), och trycker sedan på **Spara**. Att spara igen uppdaterar samma objekt i stället för att skapa en kopia. I Design ligger **Spara som** i menyn under Lolly-logotypen; på en telefon, tryck på **•••**, sedan **File menu**, sedan **Spara som**.
 
-![Den tvådelade renderingsknappen - en uppåtpil som öppnar exportpanelen och en bock som sparar sessionen på plats](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
+Knappen **Spara** i exportpanelen gör samma sak med ett klick och laddar aldrig ner en fil: nytt arbete hamnar i Mitt bibliotek, och arbete du sparat tidigare uppdateras där det ligger.
+
+För att komma tillbaka senare trycker du på **Hem** uppe till vänster och öppnar sedan fliken **Projekt** (en mappikon på en telefon). Sparningar i Mitt bibliotek ligger på flikens första skärm; ett projekt är en mapp där. Objekt är namngivna efter filnamnet du skrev i exportpanelen, eller annars efter sitt verktyg, till exempel **QR Code**. Öppna ett och varje inställning finns där, redo att ändras och exporteras igen.
+
+Sparat arbete finns kvar på den här enheten, i webbläsaren eller appen du sparade från, om du inte slår på [Synk](/info/sync.html). En fil du får med **Ladda ner** är en färdig kopia; för att ändra den senare öppnar du det sparade objektet i Projekt. Om något inte finns där du förväntar dig, se [Hitta och återfå ditt arbete](/info/find-your-work.html).
+
+![Den tvådelade renderingsknappen - en uppåtpil som öppnar exportpanelen och en bock märkt Spara som, som öppnar sparaarket](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools&width=1440&height=900&dpi=192&waitMs=2500&css=%23tool-inputs%7Bdisplay%3Anone%7D&cropSelector=.render-pill&walker=1&format=svg&dark=1&filename=use-render-pill)
 
 ## Projekt
 
-**Projekt** - öppna det från fliken **Projekt** bredvid **Verktyg**, eller från **Profil → Lagring → Organisera i Projekt** - är ett hem för allt du har sparat, och det fungerar som en filhanterare:
-
-![Projekt - sparade sessioner organiserade i mappar som kan nästlas](/t/url-shot?url=%2F%23%2Fp&width=1440&height=900&dpi=192&waitMs=1200&walker=1&format=svg&localize=1&dark=1&filename=projects)
-
-- <!--i:folder--> **Mappar som kan nästlas.** Gruppera sparade sessioner i mappar, och mappar inuti mappar, så djupt du vill. Skapa en mapp, byt namn på den eller dra en ruta till en annan mapp för att flytta den; en brödsmulsstig leder dig tillbaka upp. Sessioner som sparas utan mapp visas direkt på översta nivån i **Projekt**.
-- <!--i:clock--> **Sortera på ditt eget sätt.** **Visa och sortera** erbjuder **Namn**, **Datum tillagt**, **Senast ändrad** (standard) och, inuti en mapp, **Efter verktyg**. Mappar kommer alltid först oavsett vilken sortering som är aktiv - sorteringen ordnar bara sessionerna och mapparna inom sin egen grupp.
-- <!--i:document--> **Arkivera nytt arbete direkt.** **Ny resurs** öppnar den gemensamma väljaren. Välj **Mallar** för att börja med en sparad mall: öppna den för att redigera, eller använd **+ Lägg till** för att spara en ny skapelse direkt.
-- <!--i:checklist--> **Flerval (dator).** Kryssa i en rutas kryssruta, dra en markeringsruta över tom yta eller **Shift/Cmd-klicka**; **högerklicka** på en ruta för dess snabbmeny. Agera sedan på hela markeringen på en gång - samma gest och samma flytande åtgärdsfält fungerar i verktygsgalleriet, Utilities, Tillgångar och Projekt, inte bara här.
-- <!--i:download--> **Rendera en hel mapp eller markering.** **Rendera mapp** exporterar varje sparad session i en mapp - inklusive dess undermappar - som en enda nästlad `.zip`. **Rendera markering** gör samma sak för valfri flermarkering, och en enskild session renderas direkt till sin egen fil. Ingen Batch- eller Pro-funktion behövs.
-- <!--i:link--> **Hoppa direkt till ett verktygs sparade arbete.** Kryssa i ett eller flera verktyg i verktygsgalleriet och välj **Visa sessioner** i markeringsfältet - Projekt öppnas och visar bara de sessioner som gjorts med de verktygen, med en **Rensa** för att komma tillbaka till hela vyn.
-- <!--i:link--> **Dela en sparad session.** Högerklicka på en session → **Dela länk** för att kopiera en länk som öppnar den igen med exakt samma inmatningar (hela dialogrutan Dela - se nedan).
-
-![Popovern Visa och sortera öppen i Projekt, med en temarad, ett Visa-val mellan Förhandsvisning och Lista samt Namn, Datum tillagt och Senast ändrad under Sortera](/t/url-shot?url=%2F%23%2Fp&width=900&height=700&dpi=192&waitMs=1400&drive=click%3A.projects-viewopts&cropSelector=.projects-viewmenu&walker=1&format=svg&dark=1&filename=misc-projects-sort)
-<!--
-SHOT NOTE (misc-projects-sort): trigger button confirmed as
-`.filter-fab.projects-viewopts` in views/projects.ts (openViewOpts() is bound
-to `.projects-viewopts` specifically) - `.projects-viewopts` alone is the
-more specific hook, so that's what drives the click. The popover it opens
-(`.projects-viewmenu`, also confirmed directly in openViewOpts()) is body-
-appended, not nested under the Projects root, so cropSelector finds it
-regardless. "By tool" only appears inside a folder - this recipe captures at
-the Projects ROOT (`url=/#/p`), so if the capture pass wants "By tool"
-visible too, point url= at a real folder instead: the route is a path
-segment, `/#/p/<folderId>` (confirmed in main.ts's hash router - `parts[0]
-=== 'p'` reads `folderId` from `parts[1]`), not a query param. Caveat: a
-folder has to already EXIST in the capture profile, which a per-shot fresh
-context has none of.
-Also: the popover is not sort-only. openViewOpts() writes a theme segment, a
-"View" pair (Preview / List) and a sound segment around the Sort rows, so the
-alt text names them - do not re-caption this as "the sort menu".
--->
-
-**Vad markeringsfältet erbjuder** skiljer sig lite mellan vyerna, eftersom inte varje åtgärd är meningsfull överallt:
-
-- **Verktyg / Utilities:** Favorit (eller Ta bort favorit), Dölj (eller Visa igen), Tillgänglig offline (eller Ta bort från offline), **Visa sessioner** (hoppet som beskrivs ovan) och Kopiera länk när exakt ett kort är markerat.
-- **Tillgångar:** Favorit och Dölj gäller vilken markering som helst; Duplicera, Ladda ner och Radera visas bara när varje markerat objekt är en av dina egna uppladdningar - en delad designsystemtillgång är ett permanent kontrakt, så de tre stannar borta från den även i bulk.
-- **Projekt:** **Rendera markering**, **Flytta till…**, **Ny mapp**, **Radera**, **Redigera tillsammans** när markeringen är mellan två och åtta sessioner från ett enda verktyg (den öppnar dem sida vid sida under en gemensam sidopanel) och **Redigera som blad**, som i stället öppnar hela markeringen som rader i batch-rutnätet. Den har **ingen storleksgräns** och bryr sig inte om sessionerna kom från samma verktyg, så den är nödutgången när en markering är större eller mer blandad än Redigera tillsammans två till åtta.
-
-> En etikettfälla: **Visa sessioner** finns bara när något är *markerat*. Att högerklicka på ett enskilt omarkerat kort ger i stället **N sparade sessioner**, som öppnar det verktygets egen historikdialog i stället för att navigera till Projekt.
-
-![Två verktygskort ikryssade i Verktygsgalleriet, med det svävande urvalsfältet som visar 2 valda och erbjuder Tillgänglig offline, Visa sessioner, Favorit och Dölj](/t/url-shot?url=%2F%23%2F&width=1440&height=900&dpi=192&waitMs=1600&css=.welcome-dialog%2C.personalize-nudge%7Bdisplay%3Anone%21important%7D&drive=click%3A%5Bdata-select%3D%22qr-code%22%5D%3Bclick%3A%5Bdata-select%3D%22gradient%22%5D&waitSelector=.gallery-view%5Bdata-shots-settled%5D&walker=1&format=svg&dark=1&filename=misc-bulkbar-gallery&cropSelector=.gallery-bulkbar)
-<!--
-SHOT NOTE (misc-bulkbar-gallery): drive targets `[data-select="qr-code"]` /
-`[data-select="gradient"]` - the `.tile-check[data-select="<ref>"]` checkbox button
-confirmed directly in views/gallery.ts's card markup (the same attribute
-cardMarkup gives every tile), so these two clicks tick both cards without
-opening either tool.
-
-SHOT NOTE (misc-sessions-by-tool, NOT PUBLISHED): the "View sessions" result
-had a recipe of its own (`/#/p?tools=qr-code,d3`, views/projects.ts's
-toolsBodyHtml()), dropped here because it has no `drive=` that can
-manufacture its own content - a saved session isn't a click away, it has to
-already exist, and build-docs-shots.ts gives every shot a fresh
-`browser.newContext()`. It would publish an empty list. Same dependency the
-`projects` shot above already carries; revisit if the pipeline gains a
-storage-seeding hook.
--->
+**Projekt**, fliken **Projekt** högst upp på startskärmen, håller allt du har sparat, i mappar du skapar. Att hitta, sortera och söka i ditt arbete där, och att återställa ett objekt från **Papperskorg**, finns på [Hitta och återfå ditt arbete](/info/find-your-work.html#find-something-you-saved).
 
 
 ## Dela ditt arbete
@@ -297,7 +306,7 @@ En design går ut på ett av två sätt: som en länk eller som en fil. Dialogru
 
 Varje inmatning fångas i sidans URL, så en länk *är* designen. Överst i dialogrutan sitter länken redo att kopieras, med två hopfällda avsnitt under sig.
 
-- **Länkalternativ** innehåller **Kortaste länk** (en stor design ger en lång URL, så det här packar hela tillståndet i en kompakt token och visar dig besparingen i tecken; den läsbara formen finns alltid kvar också), **Lösenordsskydda den här länken** (AES-256 över hela länken, lösenordet aldrig i den) och **Lås till den här verktygsversionen** - flaggan `_v`, som spikar fast länken vid den verktygsversion du tittar på så att en senare uppdatering inte kan ändra vad den renderar.
+- **Länkalternativ** innehåller **Öppna i den installerade appen** (byter fältet till en `lolly://`-URI för Genvägar, startprogram och automation, med varje parameter oförändrad), **Kortaste länk** (en stor design ger en lång URL, så det här packar hela tillståndet i en kompakt token och visar dig besparingen i tecken; den läsbara formen finns alltid kvar också), **Lösenordsskydda den här länken** (AES-256 över hela länken, lösenordet aldrig i den) och **Fäst den här verktygsversionen** - flaggan `_v`, som spikar fast länken vid den verktygsversion du tittar på så att en senare uppdatering inte kan ändra vad den renderar.
 - **Länkbeteende** är vad som händer när mottagaren öppnar den: helskärm, exportpanelen redan expanderad, nedladdning-vid-öppning med `&export` eller kopiering-till-urklipp med `&copy`.
 
 Klistra in länken till en kollega, bokmärk den eller checka in den. (Fullständiga detaljer: [URL-läge](/info/url-mode.html).)
@@ -310,7 +319,18 @@ Klistra in länken till en kollega, bokmärk den eller checka in den. (Fullstän
 
 ### .lolly-filen
 
-**Ladda ner .lolly**, i dialogrutan Dela i det verktyg du arbetar i, skriver samma design som en fil. Den bär den sparade sessionen tillsammans med de bilder och filer du lagt till från din enhet. Katalogmaterialet som designen använder följer med inuti den också, så filen öppnas komplett på en maskin som aldrig har sett ditt varumärke. Där din enhet har ett delningsark lämnar **Skicka till…** den filen direkt till det (AirDrop, en Android-delning) i stället för att spara den på disk.
+`.lolly` är Lollys filändelse för portabla paket, inte ett löfte om att varje fil innehåller samma sak. `format` i `manifest.json` är det som avgör. Appen läser den lilla manifestfilen först och visar storlek, innehåll och åtgärd innan den skriver något:
+
+- En **delad design** (`lolly-share`) innehåller en sparad verktygssession, dess inbäddade filer och ett kvitto för allt som fortfarande löses upp via referens. Den kan också bära med sig verktyget och det designsystem som användes för att skapa den. Att öppna den lägger till ett nytt projekt; den skriver aldrig över en befintlig session.
+- Ett **delat projekt** (`lolly-share` med typen `project`) innehåller en mapp från Projekt: dess undermappar, varje sparad session arkiverad i dem, varje sessions kort och bilderna arkiverade där. Att öppna den lägger till en kopia av hela mappen i Projekt; inget som redan finns ersätts. En Lolly från innan projektfiler fanns kan inte läsa en sådan och ber dig uppdatera.
+- Ett **designsystempaket** (`lolly-brand`) innehåller tokens och kan innehålla typsnitt, logotyper, publicerade versioner och bevarade resurser. Att öppna det lägger till det som ett separat namngivet designsystem och byter sedan till det; system som redan finns på enheten finns kvar.
+- En **varumärkesarbetsyta/instanspaket** är en `lolly-brand` med deklarerade verktyg, katalogtillgångar och eventuellt en instansadress. Förhandskontrollen listar dessa enhetsomfattande effekter, eftersom att läsa in den ersätter den enda tidigare inlästa arbetsyteöverlagringen.
+
+En fullständig **enhets-/profilsäkerhetskopia är inte en `.lolly`**. Den förblir en `LollyTools-….zip` med formatet `lolly-backup`, och återställs bara via **Inställningar → Lagring**. En vanlig zippad verktygsmapp förblir också `.zip`. Med andra ord äger session- och designsystempaket `.lolly`; säkerhetskopior och lösa arkivflöden gör det inte.
+
+**Download .lolly**, i dialogrutan Dela i det verktyg du arbetar i, skriver den aktuella designen som ett delat designpaket. Det bär den sparade sessionen tillsammans med de bilder och filer som finns tillgängliga på den här enheten. Vanlig katalogkonst följer också med. Licensierad konst hålls tillbaka om du inte uttryckligen inkluderar den, och en föråldrad eller otillgänglig fil förblir en extern referens i stället för att försvinna. Det förberedda kvittot visar den faktiska `.lolly`-storleken, antalet inbäddade filer, antalet externa referenser och om verktyget är inkluderat. Där din enhet har ett delningsark lämnar **Skicka till…** den filen direkt till det (AirDrop, en Android-delning) i stället för att spara den på disk.
+
+**Download project (.lolly)**, i en mapps meny i **Projekt**, skriver den mappen som ett delat projekt, så att någon annan kan öppna det och fortsätta med varje session i det. Varje session reser som sin egen del (`sessions/<key>.json`, med sitt kort under `thumbs/`), mappträdet listas i `manifest.json`, och uppladdningar och katalogkonst reser under samma regler som en enskild delad design. Batch-sessioner är inte verktygssessioner och blir kvar; meddelandet anger hur många. **Ladda ner original**, bredvid den, är oförändrad: en vanlig zip av varje objekt som sin egen fil.
 
 En `.lolly` är en vanlig zip. Byt namn på den till `.zip` och öppna den: dina egna bilder ligger under `assets/uploads/` och katalogmaterial under `assets/catalog/`, var och en med sitt riktiga namn och sin ändelse, `manifest.json` listar varenda en och en README överst berättar vad filen är.
 
@@ -320,7 +340,11 @@ Tre saker är dina att avgöra innan den går i väg:
 - **Om licensierad konst tas med.** Licensierade och varumärkeslåsta tillgångar hålls tillbaka som standard. Om designen använder några säger dialogrutan hur många och erbjuder två knappar - *Download without them* eller *Include and download* - eftersom att inkludera dem ger de faktiska filerna till den som öppnar `.lolly`-filen.
 - **Om verktyget tas med.** **Include the tool** packar verktygets egna filer tillsammans med designen, så att den öppnas på en enhet som inte har det verktyget. Det anländer förbockat för ett anpassat verktyg - en fork eller ett privat varumärkesverktyg din mottagare sannolikt inte har - och avbockat för ett verktyg som den signerade katalogen listar, eftersom deras kopia kommer från samma källa. (På en build utan signerad katalog räknas varje verktyg som anpassat och rutan börjar förbockad.)
 
-**Att öppna en.** Släpp en `.lolly` på appen: resurserna går till ditt bibliotek, sessionen går till Projekt och verktyget öppnas med den. Inget av ditt skrivs över: sessionen anländer som en ny sparad plats, medan en resurs som redan finns på den här enheten matchas via checksumma och återanvänds istället för att dupliceras. Varje del kontrolleras mot filens egna checksummor på vägen in, så en kopia som skadats under överföringen avvisas istället för att importeras halvvägs.
+**Att öppna en.** I en installerad dator- eller mobilapp dubbelklickar eller trycker du på en `.lolly`, väljer **Open with Lolly**, eller skickar den till Lolly från systemets delningsark. macOS, Windows, Linux, iOS och Android registrerar alla formatet; datorernas filhanterare visar den som ett Lolly-dokument (och GNOME Files kan visa en sparad sessions egen miniatyrbild). I webbappen använder du **Öppna** eller släpper filen på Lolly. Varje ingång använder samma manifestbaserade förhandskontroll. Att öppna från Brand Studio rekommenderar designsystemåtgärden när en delad design bär ett sådant, men det byter aldrig namn på filen eller döljer **Öppen gemensam design**.
+
+Ett iOS- eller Android-dokument som lämnas över från en annan app är begränsat till 48 MB, eftersom den inbyggda överlämningen måste kopiera sina byte över appgränsen. Mobilappen säger det i stället för att tyst ignorera en alltför stor fil. **Öppna** inuti Lolly använder inte den överlämningen; det är vägen att prova för ett större paket.
+
+Efter bekräftelse packar den valda läsaren upp och verifierar paketet en gång. En delad designs tillgångar går till ditt bibliotek, dess session går till Projekt och dess verktyg öppnas när det är tillgängligt. Ett delat projekts sessioner går till Projekt under en ny kopia av dess mappar, med nya id:n så att samma fil kan öppnas två gånger, och mappen öppnas; en session vars verktyg den här enheten saknar väntar där. En tillgång som redan finns på enheten matchas via checksumma och återanvänds. Ett designsystempaket lagras i sitt eget namnrymd innan appen byter till det. Filer över 100 MB pekas ut som stora, och förhandskontrollen varnar när webbläsarens lagring rapporterar mindre ledigt utrymme än den deklarerade nyttolasten behöver. Varje integritetsskyddad del kontrolleras innan åtgärden slutförs; en skadad kopia avvisas och den nyskapade destinationen återställs.
 
 Om filen bär ett verktyg du inte har frågar Lolly innan det verktyget får köras: **Litar du på det här verktyget?** namnger det och dess upphovsperson och säger rakt ut att öppna det kör verktygets egen kod på din enhet, med **Lita på och installera** som vägen vidare. Tackar du nej sparas det delade arbetet ändå i dina projekt och väntar där tills den dag du lägger till verktyget. (En sorts verktyg går ännu inte att sidoladda - ett vars kod levereras som en modul - och det avvisas på samma sätt.)
 
@@ -332,13 +356,13 @@ Varje **filter** för foto - Halvton, Skanlinje, Posterisera, Voronoi-celler, F�
 
 ## Mina bilder
 
-När ett verktyg låter dig lägga till en bild från din enhet behålls den exakt som den kom in - så en Content Credential på den verifieras fortfarande - och sparas i ditt personliga bibliotek **Mina bilder** (under **Profil → Lagring**). Bara en verkligt enorm fil frågar om den ska behållas eller skalas om. Återanvänd den i vilket verktyg som helst. För att rensa bort EXIF/GPS när bilder kommer in, slå på **Ta bort metadata från uppladdningar** i din profil. Det finns inget tak: biblioteket är helt lokalt och begränsas bara av enhetens lagring - hantera eller ta bort bilder där.
+När ett verktyg låter dig lägga till en bild från din enhet behålls den exakt som den kom in - så en Content Credential på den verifieras fortfarande - och sparas i ditt personliga bibliotek **Mina bilder** (under **Inställningar → Lagring**). Bara en verkligt enorm fil frågar om den ska behållas eller skalas om. Återanvänd den i vilket verktyg som helst. För att rensa bort EXIF/GPS när bilder kommer in, slå på **Ta bort metadata från uppladdningar** i din profil. Det finns inget tak: biblioteket är helt lokalt och begränsas bara av enhetens lagring - hantera eller ta bort bilder där.
 
 ## Tillgångar - ditt bibliotek
 
-Vyn **Tillgångar** (`#/a`, eller segmentet **Tillgångar** i växlaren Verktyg · Utilities · Tillgångar · Projekt överst i varje listvy) samlar allt dina verktyg kan använda - varumärkeslogotyper, bilder, ljud och rörelse, grupperade efter typ - och det är också här dina **egna kreativa filer** bor. Ingen server, ingen adminkonsol, ingen pull request: allt finns på din enhet.
+**Tillgångar** (`#/a`, eller segmentet **Tillgångar** i växlaren Verktyg · Utilities · Tillgångar · Projekt överst i varje listvy) samlar allt dina verktyg kan använda - varumärkeslogotyper, bilder, ljud och rörelse, grupperade efter typ - och det är också här dina **egna kreativa filer** bor. Ingen server, ingen adminkonsol, ingen pull request: allt finns på din enhet.
 
-![Tillgångar - varumärkestillgångar, färgrutor och typsnitt, plus dina egna uppladdningar](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
+![Tillgångar, med varumärkets färgrutor och typsnitt samt dina egna uppladdningar](/t/url-shot?url=%2F%23%2Fa%3Fsection%3Dswatches%2Cfonts&width=1440&height=900&dpi=96&waitMs=2400&css=.plat-swatch-grid~%2A%7Bdisplay%3Anone%7D&walker=1&format=svg&localize=1&dark=1&filename=assets)
 
 - <!--i:upload--> **Ta in dina filer.** Dra valfri bild, SVG, ljudklipp, video, Lottie, PDF eller PowerPoint-presentation till uppladdningsytan - eller klicka för att välja - så hamnar den i Tillgångar direkt, redo i varje verktygs resursväljare. En flersidig PDF eller en `.pptx` frågar vilka sidor eller bilder som ska behållas - var och en blir en SVG-resurs. Mata in så mycket du vill; det lämnar aldrig din enhet.
 - <!--i:star--> **Favoritmarkera det du använder ofta.** ★ en resurs (eller ett varumärkessvatch) och den fästs överst i varje väljare, så din stående logotyp eller färg är ett klick bort.
@@ -363,31 +387,19 @@ Tillgångar är den ena halvan av den öppna gör-det-själv-vägen; den andra �
 
 Lolly strävar efter att vara bekvämt att använda för alla. Gränssnittet är tangentbordsnavigerbart, anpassade kontroller har korrekta etiketter för skärmläsare och varje verktygs live-förhandsvisning exponeras som en enda märkt bild som beskriver vad den skapar.
 
-Ett skonsamt lager av **hjälpljud** bekräftar det du gör - att komma in i galleriet, en giltig kontra ogiltig Content Credentials-kontroll, att stänga en panel, att byta filter. Det är **avstängt som standard**: slå på **Ljud** var som helst reglaget visas (varje vys alternativpopover, eller **Profil**), så kommer valet ihåg.
+Ett skonsamt lager av **hjälpljud** bekräftar det du gör - att komma in i galleriet, en giltig kontra ogiltig Content Credentials-kontroll, att stänga en panel, att byta filter. Det är **avstängt som standard**: slå på **Ljud** var som helst reglaget visas (varje vys alternativpopover, eller **Inställningar**), så kommer valet ihåg.
 
-Fyra valfria bekvämlighetsinställningar finns under **Profil → Tillgänglighet**: **Minska rörelse** (tar bort appens övergångar och utsmyckningar), **Dölj färgstarka förhandsvisningar** (lugna gallerikort med ikon och text, och tystare projektminiatyrer), **Hög kontrast** (starkare kanter, text och fokusringar) och **Stor text** (större apptypografi - etiketter, menyer, knapptext). Alla fyra lugnar appen *runt* ditt arbete: de når aldrig in i ett verktygs arbetsyta eller ändrar en pixel av det du exporterar, och var och en är av tills du slår på den. Fullständiga detaljer i [Din profil → Tillgänglighet](/info/profile.html#accessibility).
+Fyra valfria bekvämlighetsinställningar finns under **Inställningar → Tillgänglighet**: **Minska rörelse** (tar bort appens övergångar och utsmyckningar), **Dölj färgstarka förhandsvisningar** (lugna gallerikort med ikon och text, och tystare projektminiatyrer), **Hög kontrast** (starkare kanter, text och fokusringar) och **Stor text** (större apptypografi - etiketter, menyer, knapptext). Alla fyra lugnar appen *runt* ditt arbete: de når aldrig in i ett verktygs arbetsyta eller ändrar en pixel av det du exporterar, och var och en är av tills du slår på den. Fullständiga detaljer i [Din profil → Tillgänglighet](/info/profile.html#accessibility).
 
 Bredvid Ljud-reglaget finns **Neurospicy Mode** - ett valfritt, lugnande fokusspår i bakgrunden som spelas tyst medan du arbetar. När du slår på det öppnas en liten **spelardocka** i det nedre hörnet som följer med dig genom appen; därifrån kan du söka efter och välja ett spår, hoppa framåt och bakåt, ställa in volymen samt minimera eller stänga den. Spårlistan omfattar några kategorier - procedurella *Lolly Sings*-låtar, ambienta loopar och beats, ditt eget uppladdade ljud och en handfull direktsända **radio**stationer från internet (dessa kräver en anslutning; allt annat spelas offline). Det är **avstängt som standard** och, precis som Ljud, kommer det ihåg mellan sessioner och enheter. Att stänga av Ljud tystar även fokusspåret.
 
 ## Lagring och integritet
 
-Allt lagras i webbläsarens lokala databas (IndexedDB): din profil, sparade sessioner, uppladdade bilder och en cache av nedladdat kataloginnehåll. **Profil → Lagring** visar användningen och låter dig:
-
-- <!--i:box--> **Rensa cache** - släng nedladdat kataloginnehåll (synkas igen vid nästa inläsning).
-- <!--i:trash--> **Rensa all min data** - radera profil, sessioner och bilder. *Kan inte ångras.*
-
-![Lagringskortet på en telefonbred skärm: varje kategori av data på enheten namngiven, med knappen Rensa all min data längst ner](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
-
-Inga av dessa lokala data skickas någonstans - ingen telemetri, ingen molnrendering. Den fullständiga listan över vad appen någonsin hämtar eller skickar finns i [Integritetspolicy](/info/privacy.html), och [Serverns attackyta](/info/server-surface.html) inventerar de valfria serverkomponenterna.
+Lolly håller ditt arbete på din enhet: i den här webbläsarens egen lagring i webbappen, och i appens egen lagring i skrivbords- och mobilapparna. Vad som sparas, vad **Rensa all min data** tar bort och vad rensning av webbläsardata tar med sig finns på [Hitta och återfå ditt arbete](/info/find-your-work.html#if-you-clear-your-browser-data); [Integritetspolicyn](/info/privacy.html) listar allt appen hämtar eller skickar, och [Serverns yta](/info/server-surface.html) de valfria serverkomponenterna.
 
 ## Flytta till en annan enhet
 
-Eftersom allt finns på din enhet låter **Profil → Lagring → Flytta till en annan enhet** dig ta med allt till en andra installation - inget konto, inget moln:
-
-- <!--i:download--> **Exportera mina data** laddar ner en enda `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (namndelarna kommer från din profil och utelämnas om de inte är angivna; `<n>` är en räknare per dag så att exporter samma dag inte krockar) som innehåller din profil, varje sparad session (med dess miniatyrbild), dina uppladdade bilder och dina inställningar (tema, sidopanelens bredd, lokal aktivitetsstatistik).
-- <!--i:upload--> **Importera data…** på den andra installationen läser in den filen igen. Det **sammanfogas**: allt med samma namn (din profil, en sessionsplats, en bild) ersätts av den importerade kopian; allt annat på den enheten behålls. Sparade sessioner länkas automatiskt om till dina importerade bilder.
-
-Katalogcachen ingår inte - den laddas ner igen av sig själv på den nya enheten. Paketet är en vanlig zip (`manifest.json` + `profile.json` + `sessions.json` + `assets.json` + `assets/blobs/…` + `prefs.json`, formatid `lolly-backup`), så det överlever e-post, USB eller AirDrop intakt och är samma format som varje skal läser. Varje del är checksummerad, så en fil som skadats under överföring upptäcks vid import i stället för att återställas halvtrasig. (Fullständig formatspecifikation: [Dataöverföring](/info/data-transfer.html).)
+För att ta med ditt arbete till en andra dator eller telefon, använd Synk, en säkerhetskopia eller en `.lolly`-fil. [Flytta ditt arbete till en annan enhet](/info/find-your-work.html#move-your-work-to-another-device) jämför de tre och går igenom **Exportera mina data** och **Importera data…**.
 
 ## Importera en design (Figma, Penpot, Illustrator, InDesign)
 
@@ -403,7 +415,7 @@ För avancerade användare renderar **Batch** (länkad från galleriet, spärrad
 
 ![Satsverktygsfältet - zip-namn, enheter, DPI och formatet varje rad ärver, med Sessioner och Rendera till höger](/t/url-shot?url=%2F%23%2Fbatch&width=1440&height=900&dpi=192&waitMs=3500&cropSelector=.pro-toolbar&walker=1&format=svg&dark=1&filename=use-batch-toolbar)
 
-Batch är till för att generera **många varianter av en mall** på en gång. För att rendera om sessioner du **redan har sparat**, använd **Projekt → Rendera mapp / Rendera markering** (ovan) - ingen Pro-funktion behövs.
+Batch är till för att generera **många varianter av en mall** på en gång. För att rendera om sessioner du **redan har sparat**, använd **Projekt → Rendera mapp / Rendera markering** (se [Hitta och återfå ditt arbete](/info/find-your-work.html#find-something-you-saved)) - ingen Pro-funktion behövs.
 
 ## Redigera sida vid sida (Multiredigering)
 
@@ -423,6 +435,8 @@ När markeringen är större än åtta, blandar verktyg eller innehåller bilder
 
 ## Offline och installation
 
-Lolly är en PWA. Efter den första inläsningen fungerar den **offline** - installera den från webbläsarens adressfält (eller *Lägg till på hemskärmen* på mobilen) för en app-liknande, helskärmsupplevelse. Den uppdaterar sig själv när du är uppkopplad igen.
+Lolly är en PWA. Den fortsätter fungera **offline** på de skärmar du redan har öppnat, och **Appen** under **Inställningar → Tillgänglig offline** laddar ner resten - installera den från webbläsarens adressfält (eller *Lägg till på hemskärmen* på mobilen) för en app-liknande, helskärmsupplevelse. Den uppdaterar sig själv när du är uppkopplad igen.
 
-Om uppdateringar: om en vy någonsin skulle misslyckas att laddas precis efter en (en tom panel, ett "failed to fetch" i hörnet), ladda om sidan en gång - appen tar upp den nya versionen felfritt och ditt arbete, dina sessioner och ditt varumärke förblir orörda. Den lagrar allt på din enhet, inte i sidan.
+Om uppdateringar: om en vy någonsin skulle misslyckas att laddas precis efter en (en tom panel, ett "failed to fetch" i hörnet), ladda om sidan en gång - appen tar upp den nya versionen felfritt och ditt sparade arbete, dina sessioner och ditt varumärke förblir orörda; bara en bild du lagt till men aldrig sparat kan behöva läggas till igen. Den lagrar allt på din enhet, inte i sidan.
+
+Design och Darkroom kan behålla bildens ursprungliga precision med **Wide colour / HDR**-redigering, inklusive Sequence-video. Varumärkets färgrutor kan bära separata sRGB- och P3-värden. Se [Bred färgåtergivning och HDR-redigering](/info/hdr-editing.html) för utdataval och nuvarande begränsningar.

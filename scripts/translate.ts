@@ -48,6 +48,7 @@
  * see plans/38-localize.md section 8.
  */
 
+import { RENDER_WORDS } from '../packages/docs-render/src/components.ts';
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync, rmSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -387,6 +388,10 @@ export function extractSiteKeys(): string[] {
   // never calls t() on its title, so `index`'s "Lolly" is deliberately not a key.
   for (const page of pages) if (!page.isLanding) keys.add(page.title);
 
+  // The reading components' words (note kinds, code labels), which the renderer passes
+  // through the page's t() with computed arguments this scan cannot read.
+  for (const w of RENDER_WORDS) keys.add(w);
+
   // The landing content files (see LANDING_SITE_JSON above).
   for (const name of LANDING_SITE_JSON) {
     const p = join(REPO_ROOT, 'docs', 'site', name);
@@ -689,12 +694,18 @@ export const DOCS_PAGES: Array<{ slug: string; src: string }> = [
   // that drops a separator silently shifts every audience tab's icon and slug.
   { slug: 'index', src: 'site.md' },
   { slug: 'quickstart', src: 'quickstart.md' },
+  // Plan 277: a new reader starts at the first lesson or the member page, in any language.
+  { slug: 'make-something', src: 'make-something.md' },
+  { slug: 'organisation', src: 'organisation.md' },
   { slug: 'creators', src: 'creators.md' },
   { slug: 'using', src: 'using.md' },
   { slug: 'faq', src: 'faq.md' },
   { slug: 'overview', src: 'overview.md' },
   { slug: 'operators', src: 'operators.md' },
   { slug: 'profile', src: 'profile.md' },
+  // Plan 277 step 5: where saved work, downloads and earlier versions are; a reader
+  // who has lost something reads it in their own language.
+  { slug: 'find-your-work', src: 'find-your-work.md' },
   { slug: 'brand-studio', src: 'brand-studio.md' },
   { slug: 'exporting', src: 'exporting.md' },
   { slug: 'data-transfer', src: 'data-transfer.md' },
@@ -783,6 +794,17 @@ export function validateDocBlock(source: string, translated: string): string | n
   // A fence appearing inside a translatable block means the model invented one.
   if (/^\s*(```|~~~)/m.test(translated) && !/^\s*(```|~~~)/m.test(source)) {
     return 'output introduced a code fence that is not in the source';
+  }
+  // ::: directive lines are build syntax. A translated keyword (`::: nota`) or figure
+  // id renders the body as plain prose and loses the component, so each directive
+  // line must survive: the keyword always, and the whole line for every directive
+  // except the reading components, whose title after the keyword is prose.
+  const directives = (s: string): string[] => s.split('\n').map(l => l.trim()).filter(l => l.startsWith(':::'))
+    .map(l => (/^:::\s*(note|warning|check|details)\s/.test(l) ? l.split(/\s+/).slice(0, 2).join(' ') : l.replace(/\s+/g, ' ')));
+  const srcD = directives(source);
+  const outD = directives(translated);
+  if (srcD.join('\u0000') !== outD.join('\u0000')) {
+    return `directive line changed: source has [${srcD.join(' | ')}], output has [${outD.join(' | ')}]`;
   }
   return null;
 }

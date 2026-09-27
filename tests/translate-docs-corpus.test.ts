@@ -167,3 +167,13 @@ test('the validator is not vacuous - a faithful translation passes', () => {
   assert.equal(validateDocBlock('A plain paragraph with `code` and **bold**.', 'Ein Absatz mit `code` und **fett**.'), null);
   assert.ok(src.length > 0);
 });
+
+test('a translated directive keyword or figure id is rejected; a component title may be translated', () => {
+  const note = '::: note Before you start\nOpen a terminal in a checkout.\n:::';
+  assert.equal(validateDocBlock(note, '::: note Bevor Sie beginnen\nÖffnen Sie ein Terminal in einem Checkout.\n:::'), null,
+    'the title after the keyword is prose');
+  assert.match(validateDocBlock(note, '::: nota Bevor Sie beginnen\nÖffnen Sie ein Terminal.\n:::') ?? '', /directive line changed/);
+  const fig = '::: figure trust-chain\nThe chain of trust.\n:::';
+  assert.match(validateDocBlock(fig, '::: figure vertrauenskette\nDie Vertrauenskette.\n:::') ?? '', /directive line changed/);
+  assert.equal(validateDocBlock(fig, '::: figure trust-chain\nDie Vertrauenskette.\n:::'), null);
+});

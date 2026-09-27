@@ -6,7 +6,7 @@
 // build-time vs runtime differences are injected via DocsRenderContext (added in
 // M0b). See plans: docs-in-app "one shared renderer, two consumers".
 
-export { esc } from './esc.ts';
+export { esc, escAttr } from './esc.ts';
 export {
   stripFrontMatter,
   unwrapFigureFences,
@@ -14,6 +14,7 @@ export {
   stripLogoMarkers,
   commentStandaloneProvenanceLines,
   mdDescription,
+  unwrapComponentFences,
 } from './twin.ts';
 export type {
   DocsRenderContext,
@@ -36,3 +37,8 @@ export {
 export { renderCredential, type CredentialRenderOpts } from './credential.ts';
 export { inline, mdToHtml } from './render.ts';
 export { parseFigureFence, figureBlock } from './art.ts';
+export {
+  NOTE_KINDS, COMPONENT_GLYPH, FENCE_FLAGS, parseComponentFence, parseFenceInfo, bodyHasHeading, noteBlock, detailsBlock,
+  codeBlock, hasCopyBlock, fenceLabel, fenceCopies, fenceCopyMode, RENDER_WORDS,
+  type NoteKind, type ComponentKind, type NoteParts, type DetailsParts, type CodeParts,
+} from './components.ts';

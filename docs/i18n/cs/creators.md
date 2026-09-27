@@ -34,9 +34,15 @@ Text, který se hýbe, scény na časové ose a pohyb, který zůstává v soula
 
 Nahraj čistý záběr s odpočtem, měřičem úrovně a jemným koučováním, nebo proměň hlasovou poznámku v hotové video, které se hýbe se zvukem. Samostatná stránka Nahrávání zatím neexistuje: nese ji Používání Lolly, v sekci časové osy.
 
-- **[Používání Lolly](/info/using.html#timeline-sequence-studio)** - nahrávání komentáře přímo na časovou osu, kam se záběr uloží a jak se dostane do mixu.
-- **[Vytvoř něco za 60 sekund](/info/make-something.html#make)** - scéna audiogramu, pro chvíle, kdy chceš být spíš slyšet než vidět.
+- **[Používání Lolly](/info/using.html#timeline-sequence)** - nahrávání komentáře přímo na časovou osu, kam se záběr uloží a jak se dostane do mixu.
+- **[Vytvoř svůj první soubor](/info/make-something.html#other-first-projects)** - audiogram, pro chvíle, kdy chceš být spíš slyšet než vidět.
 - **[Pomocná zobrazení](/info/utilities.html)** - Script audio, když jsou slova první a hlas přijde až po nich.
+
+## Prezentace
+
+Polož svou kameru, logo a jméno přes prezentaci Design nebo Countdown, se soukromými ovládacími prvky v samostatném okně.
+
+- **[Prezentování s kamerou](/info/presenting.html)** - rámování, uložené scény, sdílení s publikem, lokální nahrávání a aktuální omezení zkušební verze.
 
 ## Spolupráce
 

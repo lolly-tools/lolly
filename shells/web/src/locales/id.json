@@ -6758,5 +6758,11 @@
   "The same colour, written for each space. A row marked “clamped” shows a space too narrow to hold it - CSS would round those numbers into range.": "Warna yang sama, dituliskan untuk setiap ruang. Baris yang ditandai “dijepit” menunjukkan ruang yang terlalu sempit untuk menampungnya - CSS akan membulatkan angka tersebut agar masuk rentang.",
   "Every palette colour as TEXT (down the rows) over every palette colour as BACKGROUND (across the columns), plus white and black. APCA is polarity-dependent: a cell and its mirror differ, and the diagonal - a colour on itself - reads ~0. Pick a vision mode to recolour the grid and the brand rail and rescore each pairing for that vision.": "Setiap warna palet sebagai TEKS (menurun baris) atas setiap warna palet sebagai LATAR (melintasi kolom), plus putih dan hitam. APCA bergantung pada polaritas, jadi satu sel dan cerminannya berbeda dan diagonal - warna pada dirinya sendiri - terbaca ~0. Pilih mode penglihatan untuk mewarnai ulang grid dan rel merek serta menilai ulang setiap pasangan untuk penglihatan itu.",
   "Assets": "Aset",
-  "Runs the deeper AI text check on Verify and in Assets.": "Menjalankan pemeriksaan teks AI yang lebih mendalam pada Verifikasi dan di Aset."
+  "Runs the deeper AI text check on Verify and in Assets.": "Menjalankan pemeriksaan teks AI yang lebih mendalam pada Verifikasi dan di Aset.",
+  "Copied to clipboard": "Disalin ke clipboard",
+  "Copy did not work": "Gagal menyalin",
+  "Select the text, then use your device’s copy command.": "Pilih teks, lalu gunakan perintah salin di perangkat Anda.",
+  "Select text": "Pilih teks",
+  "Text selected. Use your device’s copy command.": "Teks dipilih. Gunakan perintah salin di perangkat Anda.",
+  "Copy {label}": "Salin {label}"
 }

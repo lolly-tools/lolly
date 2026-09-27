@@ -5,7 +5,7 @@
 **طريقة الصيانة:** كل عنوان `##` أدناه هو سؤال، وكل ما يليه
 (حتى العنوان `##` التالي) هو الإجابة. وتستخدم الإجابات صيغة markdown الخفيفة نفسها المستعملة
 في بقية الموقع - افصل الفقرات بسطر فارغ. أضف الأسئلة هنا أو احذفها أو
-أعد ترتيبها، ثم أعد تشغيل `npm run build:info` (أو `npm run dev:web`).
+أعد ترتيبها، ثم أعد تشغيل `pnpm run build:info` (أو `pnpm run dev:web`).
 أما كل ما يسبق أول `##` (هذا العنوان وهذه الملاحظات) فيتجاهله البناء.
 
 ## ماذا يحدث عند الموافقة على المشاركة في صفحة /profile؟
@@ -121,9 +121,17 @@ Lolly يرفع مستوى كل شيء.
 
 نعم. افتح **Design** واضغط **Import a design**: فهو يقبل ملف Figma الأصلي **.fig** (Save local copy)، وتصدير Penpot بصيغة **.penpot**، وملف Illustrator **.ai** أو **.pdf**، وملف InDesign **.idml** (File → Export → InDesign Markup)، أو **أي ملف SVG** (الباب الواسع - إذ يصدره تقريبا كل تطبيق تصميم). ولا حاجة إلى حساب ولا إضافة ولا ترخيص تطبيق تصميم.
 
-![Design's open canvas - Import a design sits in the toolbar's Lolly menu](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
+![لوحة Design المفتوحة - يقع Import a design في قائمة Lolly ضمن شريط الأدوات](/t/url-shot?url=%2F%23%2Ftool%2Fdesign%3Fz%3D17ZTfS8MwEMf_mryO5NZ288GHrdqJv1CUvWdtOgppMtJMNv96yaV1iRNEQRBZoblwab53l0-uq915bXgrCOSDpf3LzgANnQ4eI0rrPJn7Gh9cd0sE8lIryxtFIFfatFx6L4F0Mi-11GbUiZYr25QjK3bW-S8I5MnUbRXKCkMgb5uqki6JFFU7rjoXYsSgT8GaLebKZSeGAPkUYypMHp80DeugYYR4J_U7X4XRkY8dFHuTYEJ-jDWM3qoqsEHo4Y20-xJi-SPVaOfRUuAL1hiZXNrG4gH6M85Z5lTAk8x8DdlnPL8gecVfBIEU6F5v0bbCor3VUu4JpOPCKTCWsPI9rBS107d6QyCfRET_Ac6wX36X6UpX-49Ip1mAlMEPkM6QX20aoSpECLTmpadcazPQ9hPlWxboRndWmFEIG1s4Yp3E3Ts-0f4GbcruWHLzlC0frmfpfbGk82LxmD0vUndSTcvXAoknWBKCz5LDSIdiRHV0D2Tfq1BIvdY42Zim5WZ_-n3_mRvwBg&width=1360&height=850&dpi=192&waitMs=3000&format=svg&walker=1&chrome=1&localize=1&dark=1&filename=design)
 
 تصل الطبقات على شكل صناديق قابلة للتحرير على لوحة العمل المفتوحة: يبقى النص قابلا لإعادة الكتابة، وتبقى الأشكال أشكالا، وتنضم الصور إلى مكتبة صورك، ويلتزم الخط واللون بالإعدادات العامة للعلامة. احفظه ليصير التخطيط قالبا قابلا لإعادة الاستخدام وللعنونة برابط، يستطيع أي مستخدم لـ Lolly إعادة ملئه - ويمكنك أن تمزج فيه أدوات حية (رمز QR أو رسما بيانيا) يعاد تصييرها عند التحميل. ومن هناك يصير كأي شيء آخر في Lolly - SVG وPDF وPNG وغيرها، قابلة لإعادة الإنتاج من رابطها. انظر [استيراد تصميم](/info/design-import.html).
+
+## أين هو الشيء الذي صنعته أمس؟
+
+إن ضغطت **حفظ باسم** أو **حفظ**، فهو في **المشاريع**، على الشاشة الرئيسية، في المتصفح أو التطبيق الذي حفظت منه. وإن ضغطت **تنزيل** فقط، فالملف حيث يحفظ متصفحك أو نظامك التنزيلات، وعادة توجد نسخة منه في **الأصول**. وتحتفظ تسع أدوات أيضا بالعمل غير المحفوظ في **المشاريع**. ويغطي [ابحث عن عملك واستعده](/info/find-your-work.html) كل حالة من هذه الحالات.
+
+## أغلقت التبويب. هل ذهب عملي؟
+
+لا يزال العمل المحفوظ في **المشاريع**. أما العمل غير المحفوظ فيضيع، إلا في الأدوات التسع التي تحفظ أثناء العمل، والتي تبقيه في **المشاريع** أيضا. في المرة القادمة، اضغط **حفظ باسم** قبل أن تغادر. انظر [إن أغلقت التبويب أو غادرت الأداة](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## هل يمكنني مشاركة عملي كملف بدلا من رابط؟
 
@@ -145,7 +153,7 @@ Lolly يرفع مستوى كل شيء.
 
 ## ما مقدار ما تبقيه SUSE خاصا؟ (أي متى يسحب البساط)
 
-المحرك والأغلفة والمخططات والأدوات غير المرتبطة بعلامة كلها مفتوحة المصدر؛ أما علامات SUSE التجارية والأدوات التي تحملها فهي الجزء الذي يبقى خاصا، وقد فصل بالفعل. النسخة العامة على [lolly.tools](https://lolly.tools) تعمل بالعلامة التجارية الفارغة.
+المحرك والأغلفة والمخططات والأدوات المحايدة تجاه العلامة التجارية مفتوحة المصدر؛ أما علامات SUSE التجارية وأدواتها ذات العلامة فهي الجزء الذي يبقى خاصا، وهو مفصول عن الباقي بالفعل. والنسخة العامة على [lolly.tools](https://lolly.tools) تعمل على العلامة الفارغة.
 
 الحد بنيوي لا مجرد وعد. فكل نسخة صادرة مفتوحة المصدر ولا يمكن التراجع عن إصدارها، ولا يوجد اتفاق مساهمين يتيح إعادة ترخيص عمل أي شخص، والشيء الوحيد المحجوب هو العلامة التجارية. وحين أغلقت شركة أخرى مصادر Linux للمؤسسات لديها عام 2023، شاركت SUSE في تأسيس [OpenELA](https://openela.org) لإبقاء ذلك الكود مفتوحا - وهو الموقف نفسه الذي يرثه هذا المشروع.
 

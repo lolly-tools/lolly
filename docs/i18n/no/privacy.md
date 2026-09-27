@@ -51,20 +51,21 @@ på enheten din**, aldri overført:
 - <!--i:folder--> **Dine egne dokumenter, lagrede økter, opplastede ressurser og skrifter** - lagret i
   IndexedDB på enheten din, aldri lastet opp, aldri lest av noen andre enn deg.
 
-Ingenting av dette deles, selges eller brukes til å identifisere eller spore deg. Det er ingenting
-å samtykke til, fordi det ikke foregår noen innsamling - kun dette varselet, slik at du
-vet hva som lagres og hvor. Slett alt sammen når som helst med **Profile → Clear all
-my data**, eller ved å tømme nettstedets lagring i nettleseren din. (I henhold til ePrivacy-
-direktivet Art. 5(3) krever lagring som er strengt nødvendig for tjenesten du ba
-om, ikke samtykke - bare åpenhet, som er hva dette dokumentet og
+Ingenting av dette deles, selges eller brukes til å identifisere eller spore deg.
+Det er ingenting å samtykke til, fordi det ikke foregår noen innsamling - kun
+dette varselet, slik at du vet hva som lagres og hvor. Å tømme nettstedets lagring
+i nettleseren din fjerner alt sammen når som helst; **Innstillinger → Lagring → Slett alle mine data** fjerner profilen din,
+lagrede økter, opplastede bilder og ressurscachen. (I henhold til
+ePrivacy-direktivet Art. 5(3) krever lagring som er strengt nødvendig for
+tjenesten du ba om, ikke samtykke - bare åpenhet, som er hva dette dokumentet og
 varselet i appen begge er.)
 
 ![Lagringsdelen på profilsiden på en telefonbred skjerm: hver kategori av data på enheten er navngitt, med Clear all my data-knappen rett ved siden av](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 
-Din egen sikkerhetskopi av disse dataene - `lolly-backup`-pakken som lages av **Export my
-data & render everything** - er en fil du beholder og kontrollerer selv. Den berører aldri våre
-servere med mindre du selv velger å sende den et sted. Se [Data
-Transfer](/info/data-transfer.html).
+Din egen sikkerhetskopi av disse dataene - `lolly-backup`-pakken som lages av
+**Eksporter dataene mine** - er en fil du beholder og kontrollerer selv. Den berører
+aldri våre servere med mindre du selv velger å sende den et sted.
+Se [Dataoverføring](/info/data-transfer.html).
 
 ## Verktøy som kjører på enheten
 
@@ -76,6 +77,17 @@ Disse verktøyene fungerer offline, og resultatet deres bærer verken vannmerke 
 oss - poenget med de fleste av dem er å fjerne & beskytte data, ikke legge til risiko.
 
 ![Merket disse verktøyene bærer: Runs on your device - ingenting lastes opp](/t/url-shot?url=%2F%23%2Ftool%2Fstrip-data&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&cropSelector=.on-device-badge&dark=1&filename=pv-ondevice-badge)
+
+Forbered for deling holder arbeidsinndata, private funn og erstatningskart i minnet, uten å automatisk
+legge dem til i historikk, lenker, sikkerhetskopier eller synk. Inspeksjon og erstatning sender ikke
+filinnhold til en server eller validerer legitimasjon på nett. Brukere velger om de vil kopiere, laste ned,
+sende eller uttrykkelig lagre et resultat i biblioteket sitt; et lagret resultat følger deretter
+bibliotekets vanlige innstillinger for sikkerhetskopiering og synk. Oppskriftsfiler utelater tidligere
+nyttelaster og bokstavelige tilordninger. Sammendragsrapporter inneholder antall, omfangs-ID-er og
+filhasher. CLI-en kan også lagre en privat gjennomgangsfil som inneholder originalverdier, bare når det
+uttrykkelig blir bedt om det med `--review-file`. Å tømme eller forlate en forberedelsesvisning i nettleseren frigjør
+arbeidstilstanden dens; dette er ikke et løfte om rettsteknisk sletting fra nettleserens eller
+operativsystemets minne.
 
 ## Når appen snakker med et nettverk, i sin helhet
 
@@ -91,18 +103,45 @@ nettverk. Hvis det ikke står her, gjør ikke appen det.
 | Send to Dropbox | Den ene filen du valgte å sende, til Dropboxs API (`api.dropboxapi.com` for innlogging og metadata, `content.dropboxapi.com` for selve filen), etter en Dropbox-innlogging du fullfører i Dropboxs eget vindu. Lollys tilgang er begrenset til appmappen (den kan bare noensinne se `Apps/` og sin egen mappe der - aldri resten av Dropboxen din), «Open»-lenken den viser deg er en kortvarig privat lenke (ingen offentlig deling opprettes), og et fornyingstoken lagres bare hvis du krysser av for «stay connected» | Bare når du trykker på «Send to Dropbox» på en fil, og bare i versjoner der operatøren har konfigurert en Dropbox-klient-ID - uten en finnes ikke knappen | Knappen vises aldri. Last ned filen og last den opp til Dropbox selv |
 | Send to OneDrive | Den ene filen du valgte å sende, til Microsofts identitets- og Graph-tjenester (`login.microsoftonline.com` for innlogging, `graph.microsoft.com` for opplastingen; en stor fil lastes opp i biter til en Microsoft-eid opplastingsadresse på `api.onedrive.com`, `*.up.1drv.com` eller `*.sharepoint.com`), etter en Microsoft-innlogging du fullfører i Microsofts eget vindu. Lollys tilgang er begrenset til sin egen mappe under `Apps/` (den kan aldri lese resten av OneDriven din) pluss visningsnavnet ditt til kontoetiketten, og et fornyingstoken lagres bare hvis du krysser av for «stay connected» | Bare når du trykker på «Send to OneDrive» på en fil, og bare i versjoner der operatøren har konfigurert en Microsoft-klient-ID - uten en finnes ikke knappen | Knappen vises aldri. Last ned filen og last den opp til OneDrive selv |
 | Send to LinkedIn | Den ene filen du valgte å sende, pluss navnet på den som teksten i innlegget, til LinkedIn (`www.linkedin.com` for innloggingen, `api.linkedin.com` for opplastingen og innlegget), etter en LinkedIn-innlogging du fullfører i din egen nettleser. Innlegget går til din egen feed som et offentlig innlegg under navnet ditt. Lolly kan publisere som deg og lese navnet ditt til kontoetiketten, ingenting annet på LinkedIn-en din, og innloggingen beholdes på denne enheten bare hvis du krysser av for «stay connected» - LinkedIns tokener varer i 60 dager og kan ikke fornyes stille, så den utløper av seg selv | Bare når du trykker på «Send to LinkedIn» på en fil, bare i skrivebordsappene, og bare i versjoner der en LinkedIn-app er konfigurert - uten en finnes ikke knappen | Ingenting å blokkere i nettappen: dette finnes **bare i skrivebordsappene**, så disse to vertene er bevisst IKKE i nettappens Content-Security-Policy nedenfor. I skrivebordsappene, fjern den konfigurerte LinkedIn-appen, så vises knappen aldri |
+| Send til Penpot | Din personlige Penpot-tilgangstoken (du limer den inn i appen) og `.penpot`-arkivet for designet du valgte å sende, til Penpots API (`design.penpot.app`) gjennom en liten gjennomstrømning på appens egen opprinnelse (`/api/penpot`), fordi Penpots API ikke svarer en nettleser direkte. Gjennomstrømningen videresender og glemmer; skrivebordsappene snakker direkte med Penpot | Bare når du trykker på «Send to Penpot» i Design-verktøyet og bekrefter et prosjekt | Gjennomstrømningen returnerer en feil, og sendingen feiler lukket. Eksporter `.penpot`-filen og importer den i Penpot selv |
+| Send til Bluesky | Det ene bildet du valgte å sende, navnet på det som posttekst og alt-tekst, samt håndtaket ditt pluss et appløsenord (Bluesky → Settings → App passwords, aldri kontopassordet ditt), til Bluesky-serveren du navngir (`bsky.social` med mindre du selv-hoster). Appløsenordet lagres bare på denne enheten, aldri i en sikkerhetskopi, og Disconnect fjerner det | Bare når du trykker på «Send to Bluesky» på et bilde, etter at du har koblet til kontoen i profilen din, **bare i skrivebordsappene** | Ingenting å blokkere i nettappen: policyen dens nedenfor lister ingen Bluesky-vert, så krysningen finnes ikke der. I skrivebordsappene, fjern tilkoblingen, så vises knappen aldri |
+| Send til Discord | Den ene filen du valgte å sende, som et vedlegg, til kanal-webhook-adressen du limte inn (`discord.com`). En webhook-adresse lar hvem som helst som har den, poste til den kanalen, så den lagres bare på denne enheten, aldri i en sikkerhetskopi, og Disconnect fjerner den | Bare når du trykker på «Send to Discord» på en fil, **bare i skrivebordsappene** | Ingenting å blokkere i nettappen: policyen dens nedenfor navngir ikke `discord.com`, så krysningen finnes ikke der. I skrivebordsappene, fjern webhooken, så vises knappen aldri |
+| Send til Mastodon | Den ene filen du valgte å sende og navnet på den som posttekst, til Mastodon-serveren (eller kompatibel server) du navngir, etter en innlogging du fullfører i den serverens eget vindu. Tilkobling registrerer en liten app per enhet på den serveren; innloggingen beholdes på denne enheten bare hvis du krysser av for «stay connected» | Bare når du trykker på «Send to Mastodon» på en fil. Du velger serveren, så den er ikke i policyen nedenfor | Serveren du navngir, må tillate nettleserkall; hvis den ikke gjør det, bruk skrivebordsappene. Disconnect fjerner knappen |
+| Send til Nextcloud / WebDAV | Den ene filen du valgte å sende, til din egen server, over én autentisert PUT med serveradressen, brukernavnet og appløsenordet du oppga (Nextcloud → Settings → Security → Devices & sessions; aldri kontopassordet ditt). Lagres bare på denne enheten, aldri i en sikkerhetskopi, fjernes av Disconnect | Bare når du trykker på «Send to Nextcloud» på en fil. Du velger serveren, så den er ikke i policyen nedenfor | Serveren din må tillate nettleserkall fra appens opprinnelse; hvis den ikke gjør det, bruk skrivebordsappene |
+| Send til S3-kompatibel lagring | Den ene filen du valgte å sende, til din egen bucket (AWS S3, MinIO, R2, B2, Garage - hvilket som helst SigV4-endepunkt), signert på enheten din med nøkkelparet du oppga. Nøkler lagres bare på denne enheten, aldri i en sikkerhetskopi, fjernes av Disconnect | Bare når du trykker på «Send to S3» på en fil. Du velger endepunktet, så det er ikke i policyen nedenfor | CORS-reglene til bucketen din må tillate appens opprinnelse; hvis de ikke gjør det, bruk skrivebordsappene |
+| Synkroniser på tvers av enhetene dine | En kopi av det du har laget på denne enheten - lagrede økter og prosjekter, designsystemene dine med fontene og logoene deres, opplastede bilder, profilen din og innstillingene dine - som én fil, til den ene lagringen du valgte: Lolly-appmappen i Dropboxen din (`api.dropboxapi.com`, `content.dropboxapi.com`), filer Lolly opprettet i Google Drive-en din (`www.googleapis.com`), Lolly-appmappen i OneDrive-en din (`graph.microsoft.com`, med større filer lastet opp til `api.onedrive.com`, `*.up.1drv.com` eller `*.sharepoint.com`, og nedlastinger fra Microsofts `*.files.1drv.com`, `my.microsoftpersonalcontent.com` eller `*.sharepoint.com`), eller din egen Nextcloud- / WebDAV-server eller S3-bucket. Den samme lagringen holder også på inntil sju daglige kopier og én kopi fra før siste anvendelse. **Ingenting går til Lolly:** ingen Lolly-server, relé eller Lolly Work-server er i veien, og appene trenger ingen Lolly-nettside for det, ikke engang for å logge inn. Kopien krypteres på enheten din først bare hvis du setter en passordfrase. Innlogginger, nøkler, appløsenord, passordfrasen og synkinnstillingene blir på enheten og er aldri i kopien. På nett holder en husket Google Drive-tilkobling bare kontonavnet ditt (og din egen klient-ID, hvis du oppga en); selve Google-innloggingen varer ett besøk. I Android-appen går Google Drive-innloggingen gjennom Google Play-tjenester på telefonen, som Google driver | Bare etter at du har slått på «Sync across my devices» eller trykt «Sync now»: en opplasting kort tid etter hver endring og når du forlater appen, og en sjekk for en nyere kopi når appen starter | Synk feiler og sier hvorfor; arbeidet ditt blir på enheten. Eksporter dataene dine til en fil og flytt den selv i stedet |
 | ICC-trykkprofiler | Ingenting personlig - en forespørsel om en standard trykkforholdsprofil, til ICCs offentlige register (`registry.color.org`, `www.color.org`) | Bare hvis du klikker på en ICC-forhåndsinnstilling i trykkprofilbehandleren - én henting per profil, deretter ligger den på enheten din | ICC-forhåndsinnstillinger feiler. Oppgi din egen `.icc`-profil i stedet |
 | Internettradio | Ingenting personlig - en spillelisteforespørsel og en lydstrøm, til stasjonen (`api.somafm.com` og icecast-serveren den navngir, `*.somafm.com`) | Bare mens du spiller den valgfrie innebygde radioen i lydspilleren | Radioen feiler. Alle andre lydfunksjoner fungerer fortsatt |
 | En URL du ber et verktøy fange opp | En forespørsel til den nøyaktige nettadressen du skriver inn, fra URL-skjermbilde-verktøyet. Uansett hvilken adresse det er. Denne verten er ikke i policyen nedenfor, fordi du velger den i bruksøyeblikket | Bare når du skriver inn en URL i det verktøyet og starter opptaket | En operatør kan ikke sette denne verten på en tillatelsesliste. For å fjerne det, fjern verktøyet |
+| Legg til et bilde fra en URL | En forespørsel til den nøyaktige bildeadressen du limer inn i «Add from URL» (i ressursvelgeren eller Ressurser). Nettappens egen policy forbyr nettleseren å hente fra et annet nettsted direkte, så forespørselen gjøres for deg av en liten gjennomstrømning på appens egen opprinnelse (`/api/fetch-image`), som henter bildet serverside og gir tilbake bare bytene - den lagrer ingenting og glemmer adressen. Den avviser alt som ikke er en offentlig bildeadresse (en privat eller intern adresse blokkeres). Skrivebordsappene henter adressen direkte. En Lolly-lenke du limer inn, hentes ikke i det hele tatt - den rendres på enheten din. Verten er ikke i policyen nedenfor, fordi du velger den i bruksøyeblikket | Bare når du limer inn en URL i «Add from URL» og bekrefter | Operatøren skrur av gjennomstrømningen (`LOLLY_DISABLE_IMAGE_PROXY=1`); da kan bare Lolly-lenker, `data:`-bilder og bilder fra samme opprinnelse legges til i nettappen. Skrivebordsappene påvirkes ikke |
 | SEAL-signatursjekk | **Ingenting.** Nettappen har ingen DNS-oppløser i det hele tatt - se nedenfor | Aldri | Ingenting å blokkere |
 | KI-modeller på enheten | Ingenting personlig - én nedlasting av en modellfil fra Lollys modellvert (`lolli.li`), deretter bufret på enheten din; ingen konto, ingen identifikator, bare forespørselen og IP-en din | Bare når du bruker en funksjon som trenger en modell (Verify dypskanning, oppskalering av bilder, tale og lignende) | Den funksjonen venter på nedlastingen; alt annet fungerer fortsatt |
 | Ekstern instans | Det den instansen du navngir sender tilbake, over den samme katalogsynkroniseringen som er beskrevet ovenfor - pluss en versjonsetikett på forespørsler til den (shell-type og motorversjon, den samme informasjonen en brukeragent bærer), slik at operatøren dens kan se hvilke Lolly-versjoner som er i bruk. På en administrert instans, mens du er innlogget, bærer den etiketten også en per-enhet installasjons-ID slik at operatørens enhetsliste kan skille denne installasjonen fra andre. Den følger bare med forespørsler bruken din allerede gjør - det finnes ingen tidtaker og ingenting ringer hjem - og hvis du forlater instansen, slettes ID-en, slik at en enhet som kobler til igjen senere, presenterer en ny en | Bare hvis du eksplisitt peker skallet mot en annen Lolly-utrulling | Instansbytte feiler. Din lokale instans påvirkes ikke |
 
-Hver faste vert i den tabellen er også hele tillatelseslisten i appens Content-Security-Policy, som nettleseren håndhever. Så listen er ikke bare en beskrivelse av hva koden gjør i dag, den er grensen nettleseren holder appen til: en fremtidig endring som forsøkte å kontakte en annen vert, ville blitt blokkert, ikke stille tillatt. Én rad er det bevisste unntaket, og cellen sier det selv: Send to LinkedIn finnes bare i skrivebordsappene, så nettappens policy nevner ingen av dens verter - nettappen kunne ikke nå dem selv om koden dens forsøkte. To rader til har ingen fast vert, fordi du velger adressen i bruksøyeblikket: en URL du ber et verktøy fange opp, og en ekstern instans du peker skallet mot. Ingen av dem er i policyen, og hver skjer bare når du skriver inn en adresse og handler på den. En utrulling som ikke vil ha noen av de valgfrie (en bedriftsinstans med sine egne skrifter, for eksempel) fjerner de vertene fra policyen sin, og funksjonene feiler lukket i stedet for å nå ut.
+Hver faste vert i den tabellen er også hele tillatelseslisten i appens
+Content-Security-Policy, som nettleseren håndhever. Så listen er ikke bare en
+beskrivelse av hva koden gjør i dag, den er grensen nettleseren holder appen til: en
+fremtidig endring som forsøkte å kontakte en annen vert, ville blitt blokkert, ikke
+stille tillatt. Én rad er det bevisste unntaket, og cellen sier det selv: Send to
+LinkedIn finnes bare i skrivebordsappene, og nettappens policy nevner ingen av
+vertene dens - nettappen kunne ikke nå dem selv om koden dens forsøkte. To rader
+til, Bluesky og Discord, er bare for skrivebordsappene på samme måte, og vertene
+deres er utelatt fra nettpolicyen av samme grunn. Fem rader har ingen fast vert,
+fordi du velger adressen i bruksøyeblikket: en URL du ber et verktøy fange opp, en
+ekstern instans du peker skallet mot, og din egen Mastodon-server, WebDAV-server
+eller S3-bucket (de to siste også som et synkhjem). Ingen av dem er i policyen, og
+hver skjer bare når du skriver inn en adresse og handler på den. Penpot-raden når
+Penpot gjennom appens egen opprinnelse, så den dekkes av `'self'`. En utrulling som ikke
+vil ha noen av de valgfrie (en bedriftsinstans med sine egne skrifter, for eksempel)
+fjerner de vertene fra policyen sin, og funksjonene feiler lukket i stedet for å nå
+ut.
 
-Ingen av disse sender dokumentene, prosjektene, øktene eller opplastede filene dine noe sted.
-De finnes for å bringe ting *til* enheten din (verktøy, skrifter, modeller), aldri for å sende
-ting *fra* den, med unntakene som er nevnt eksplisitt i avsnittene nedenfor.
+Bortsett fra to slags rader sender ingen av disse dokumentene, prosjektene, øktene
+eller opplastede filene dine noe sted: de finnes for å bringe ting *til* enheten din
+(verktøy, skrifter, modeller). De to slagene er Send-radene, som sender den ene filen
+du valgte, og synk-raden, som sender en kopi av arbeidet ditt til lagringen du valgte
+og til ingen Lolly-server. Ethvert annet unntak er navngitt eksplisitt i avsnittene
+nedenfor.
 
 **En merknad om hva vi fjernet.** Verify kan sjekke SEAL-signaturer, en ordning der en
 fils signeringsnøkkel publiseres i DNS. Nettlesere kan ikke gjøre DNS-oppslag, så enhver
@@ -148,16 +187,15 @@ skrevet inn i URL-en.
 - <!--i:eyeoff--> Svar er **mellomlagret og rategrenset** som ethvert offentlig bilde, og merket
   `noindex` slik at søkemotorer ikke indekserer rendringene dine.
 
-Selvhoster du Lolly og ikke vil ha en offentlig render-flate? Sett
-`LOLLY_DISABLE_RENDER_GET=1`, og hver
-eneste av disse URL-ene returnerer 404.
+Selvhoster du Lolly og ikke vil ha en offentlig render-flate? Sett `LOLLY_DISABLE_RENDER_GET=1` og hver eneste av disse URL-ene returnerer
+404.
 
 ## MCP-serveren (valgfritt, for AI-agenter)
 
-Lolly kan også nås av en AI-agent over Model Context Protocol - et
-operatørdrevet endepunkt (lolly.tools drifter ett; hvem som helst kan selvhoste sitt eget,
-inkludert fullstendig luftgapet). Det deler render-banens ingen-kontoer-holdning,
-pluss tre verktøy som nødvendigvis håndterer filbytes:
+Lolly kan også nås av en AI-agent over Model Context Protocol - et operatørdrevet endepunkt
+(lolly.tools drifter ett; hvem som helst kan selvhoste sitt eget, inkludert fullstendig luftgapet).
+Det deler render-banens ingen-kontoer-holdning, pluss fire verktøy som nødvendigvis håndterer
+filbytes:
 
 - <!--i:cpu--> **`lolly_transform`** (kjør et verktøy som normalt kjører på enheten, server-side, på vegne av
   den kallende agenten), **`lolly_verify`** (sjekk Content Credentials) og **`lolly_redact`**
@@ -165,6 +203,14 @@ pluss tre verktøy som nødvendigvis håndterer filbytes:
   bytene til en fil fra den som kaller. De behandles **in-process, i minnet**,
   og resultatet returneres i det samme kallet - filen skrives aldri til
   disk og lagres aldri etter at forespørselen er fullført.
+- <!--i:cpu--> **`lolly_rebrand`** (fornyer en gammel presentasjon til et designsystem,
+  gjennom stegene `plan`, `compile` og `inspect`) tar imot en presentasjons bytes på
+  samme måte, og behandler dem **i minnet, bare for det kallet** - ingenting
+  skrives til disk eller beholdes etter at svaret er sendt. Det første steget,
+  `capabilities`, sier rett ut hvor bytene dine ville gått før du sender
+  noen: på en selvhostet lokal server forlater presentasjonen aldri den maskinen;
+  på en hostet server sender et kall til `lolly_rebrand` presentasjonen dit, opp til de
+  størrelses- og lysbildegrensene det samme steget oppgir.
 - <!--i:checklist--> Alle andre verktøy - `lolly_render`, `lolly_build_url`, `lolly_list_tools`,
   `lolly_describe_tool` - fungerer kun ut fra parametere (tekst, tall, farger,
   URL-er, katalog-ressurs-id-er), de samme inndataene en hot-link render-URL tar.
@@ -203,9 +249,11 @@ Hvis du registrerer deg, er dette nøyaktig hva som skjer:
    identifikator, og finnes kun for å hindre at OAuth-omdirigeringen forfalskes. Den
    fjernes så snart innloggingen er fullført.
 3. **IP-adressen din brukes, kortvarig, for å forhindre misbruk** av innloggings-
-   endepunktene (slik at ett skript ikke kan spamme en innboks eller tømme e-postkvoten) - holdt
-   kun i serverminnet, i et glidende vindu på rundt ett minutt, aldri skrevet
-   til en logg eller lagret noe sted.
+   endepunktene (slik at ett skript ikke kan spamme en innboks eller tømme
+   e-postkvoten). Lolly hasher den før den oppretter en kortvarig misbrukskontroll-
+   bøtte; den rå adressen sendes ikke til den lagringen. Bøtten utløper etter
+   omtrent ett minutt og brukes ikke til sporing. Vanlige hostingtilgangslogger
+   er separate og beskrives nedenfor.
 4. **Sertifikattjenesten utsteder et kortvarig sertifikat** (7, 30, 90 eller 365
    dager, ditt valg, begrenset av operatørens policy) som binder den verifiserte
    e-posten din til den offentlige halvdelen av nøkkelparet generert på enheten din. Den private
@@ -268,7 +316,7 @@ dem: IP-adresse, forespurt bane, tidsstempel, brukeragent. Det er grunnleggende
 vertsatferd, ikke noe Lolly legger til på toppen, og det inneholder aldri
 innholdet i dokumentene dine, fordi de aldri når en server i utgangspunktet. Det
 ene bevisste unntaket er en fil du eksplisitt gir til et MCP-kall
-`lolly_transform`, `lolly_verify` eller `lolly_redact`, som behandles i minnet og aldri
+`lolly_transform`, `lolly_verify`, `lolly_redact` eller `lolly_rebrand`, som behandles i minnet og aldri
 skrives til disk eller en logg, som beskrevet ovenfor.
 
 **Lollys egen kode skriver ingenting til de loggene.** MCP-serveren inneholder ingen
@@ -293,14 +341,16 @@ fullstendighetens skyld, hele listen:
 |---|---|---|
 | Alt på enheten din (dokumenter, innstillinger, buffer, tellere) | **Ikke vår behandling i det hele tatt** - det når aldri oss. Lagring på enheten din er strengt nødvendig for tjenesten du har bedt om (ePrivacy art. 5(3)), så det krever ikke samtykke | Til du sletter det |
 | E-postadressen din under registrering av Content Credentials | **Art. 6(1)(b)**, oppfyllelse av en tjeneste du eksplisitt har bedt om | Lagres ikke. Ligger i minnet kun så lenge forespørselen varer |
-| IP-adressen din på innloggingsendepunktene, for hastighetsbegrensning | **Art. 6(1)(f)**, vår berettigede interesse i å forhindre misbruk av en gratis tjeneste og av en tredjeparts e-postkvote. Vi mener dette består en interesseavveining fordi det kun ligger i minnet, aldri skrives ned og forkastes innen omtrent ett minutt | ~1 minutt, i serverminne, aldri lagret permanent |
+| En enveis-utledet bøttenøkkel laget fra IP-adressen din på innloggingsendepunktene, for hastighetsbegrensning | **Art. 6(1)(f)**, vår berettigede interesse i å forhindre misbruk av en gratis tjeneste og av en tredjeparts e-postkvote. Vi mener dette består en interesseavveining fordi den rå adressen ikke sendes til begrenseren, bøtten brukes bare til misbrukskontroll og den utløper automatisk | Omtrent 1 minutt i misbrukskontroll-lagringen; ikke lagret etterpå |
 | Tilgangslogger for hosting (IP, sti, tidsstempel, brukeragent) | **Art. 6(1)(f)**, vår berettigede interesse i tjenestesikkerhet, misbruksforebygging og feilsøking | Vercels plattformstandard for vår plan. Vi legger ikke til noen ekstra uttrekk eller eksport |
 
 **Mottakere.** Kategoriene av mottakere er: vår hostingleverandør (Vercel
-Inc.), og - kun hvis du bruker innlogging via e-post - en transaksjonell
-e-postleverandør (Resend). Hvis du logger inn med GitHub, Google eller SUSE (id.suse.com),
-samhandler du direkte med den leverandøren under deres egen personvernerklæring. De
-oppgir en verifisert e-postadresse til oss og ingenting annet. Vi deler ikke personopplysninger med noen
+Inc.); leverandøren vår for misbrukskontroll-lagring, som bare mottar kortvarige,
+enveis-utledede bøttenøkler og aldri den rå IP-adressen; og - bare hvis du
+bruker innlogging via e-post - en transaksjonell e-postleverandør (Resend). Hvis du logger
+inn med GitHub, Google eller SUSE (id.suse.com), samhandler du direkte med den
+leverandøren under deres egen personvernerklæring. De oppgir en verifisert
+e-postadresse til oss og ingenting annet. Vi deler ikke personopplysninger med noen
 andre, og vi selger ikke data, driver ikke reklame eller profilerer brukere.
 
 **Overføringer utenfor EØS.** Vercel og Resend er amerikanske selskaper. Funksjonsberegning
@@ -309,9 +359,9 @@ behandlingen skjer i EU, men som USA-baserte leverandører kan de likevel
 få tilgang til data som databehandlere fra USA. Disse overføringene bygger på EU-kommisjonens
 standard personvernbestemmelser og/eller EU-US Data Privacy
 Framework, som fastsatt i hver leverandørs databehandleravtale. Fordi
-personopplysningene som når hver av leverandørene er så begrensede - en e-postadresse videresendt
-for å sende én melding, og ordinære tilgangslogger - er eksponeringen
-tilsvarende liten.
+personopplysningene som når disse leverandørene er så begrensede - en e-postadresse videresendt
+for å sende én melding, ordinære tilgangslogger, og en kortvarig utledet
+misbrukskontroll-bøtte - er eksponeringen tilsvarende liten.
 
 **Automatisert beslutningstaking.** Ingen. Det er ingen profilering og ingen automatisert
 beslutning som gir rettsvirkning eller tilsvarende betydelig effekt (art. 22).
@@ -329,8 +379,8 @@ Fordi nesten alt Lolly berører kun lagres på din egen enhet, er det meste av
 det personvernlovgivningen kaller «dine rettigheter» - innsyn, retting, sletting,
 dataportabilitet - noe du allerede kan gjøre selv, umiddelbart, uten å spørre
 noen: dataene dine ligger i nettleserens lagring, i en form du kan inspisere,
-eksportere (**Export my data & render everything**, ovenfor) eller slette (**Profile → Clear all
-my data**).
+eksportere (**Eksporter dataene mine**, ovenfor) eller slette (ved å tømme nettstedets lagring i
+nettleseren din, som ovenfor).
 
 Formelt sett har du i henhold til GDPR artikkel 15-22 rett til **innsyn** i dine
 personopplysninger, til å **rette** dem, til å **slette** dem, til å **begrense** eller **protestere

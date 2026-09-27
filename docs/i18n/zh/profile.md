@@ -2,9 +2,9 @@
 
 **个人资料**是 Lolly 用以创建内容的工作身份。它是一小组工具可以调用的信息,让你不必每次都重新输入 - 你的姓名、联系方式、一张可选的头像照片、一些偏好设置 - 再加上你工作过程中积累的一切:已保存的会话、上传的图片以及本地活动统计。
 
-个人资料中的一切都保存在**本地设备**上,存放在浏览器的本地数据库中(Web PWA 上使用 IndexedDB,Tauri 应用中使用文件系统)。没有账户,也不会上传任何内容。你可以在**个人资料**(图库右上角)中管理它;工具只会*读取*它,而且只读取它们被设计用来预填的特定字段。
+个人资料中的一切都保存**在设备上**，存在浏览器的本地数据库里（网页版 PWA 用 IndexedDB，Tauri 应用用文件系统）。没有账号，也不会上传任何内容。你可以在**设置 → Preferences**中管理它（在页脚或头像菜单里）；工具只会*读取*它，而且只读取它们本来就是为了预填而设计的那些字段。
 
-> 个人资料关乎*你*(或任何在此创建内容的人)。它不同于**Platform** - 品牌的颜色、字体和全局设置 - 也不同于**Capabilities**,即应用能做什么的目录。参见文末的 [Profile vs Platform vs Capabilities](#profile-vs-platform-vs-capabilities)。
+> 设置把你的个人资料和原来的仪表板整合进了同一个去处。**Preferences** 存放你的详细信息和个人选择；**此设备**、**设计系统**、**能力**和**活动与统计**则在它旁边。完整地图见[设置](/info/dashboard.html)。
 
 ## 个人资料中有什么
 
@@ -25,7 +25,7 @@
 
 以上都不是必填项。一个空白的个人资料本身就是完全可用的;你只需填写能替你省去重复输入的部分。
 
-这个页面很长,因此在侧边带有自己的**设置导航栏** - Your details、Appearance、Accessibility、Lolly instance、Your activity、Storage、Available offline、Feature flags、Content Credentials - 上方还有一个 **Search settings** 输入框,随着你的输入实时过滤列表。每个部分都可以通过 `#/profile?focus=<section-id>` 形成深层链接,打开该部分并将其滚动到可见位置(例如 `#/profile?focus=storage-section`、`?focus=feature-flags-section` 等),因此一个链接可以直接指向某一项设置,而不只是页面顶部。
+这个页面很长，因此在侧边带有自己的**设置导航栏** - Your details、Appearance、Accessibility、Lolly instance、Your activity、Storage、Available offline、Feature flags、Content Credentials - 上方还有一个 **Search settings** 字段，随着你的输入实时过滤列表。每个部分都可以通过 `#/settings?focus=<section-id>` 形成深层链接，打开该部分并将其滚动到可见位置（`#/settings?focus=storage-section`、`?focus=feature-flags-section` 等），因此一个链接可以直接指向某一项设置，而不只是页面顶部。
 
 ![三张主题卡片,各自预览自身的字体和颜色,当前使用的那张会被标出](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
@@ -55,9 +55,9 @@
 
 ![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
-- <!--i:trash--> **最干净的切换方式:** **Profile → Storage → Clear all my data**,然后 **Import** 你即将进入的那个场景所对应的包。此后你就是纯粹以那个个人资料在创建。
-- <!--i:layers--> **叠加:** 不先清空就导入会**合并** - 导入的个人资料、会话和图片会叠加在已有内容之上,覆盖同名的内容,保留其余部分。适合把某个团队已保存的会话拉进你自己的环境;但如果你需要一个干净的角色边界,这就不是你想要的做法。
-- <!--i:monitor--> **并行共存:** 由于一切都限定在设备范围内,一个独立的浏览器 profile、一个独立的用户账户,或者第二个安装的 PWA,各自都会拥有自己独立的 Lolly 个人资料。你可以同时运行个人安装版和活动信息亭安装版,无需切换。
+- <!--i:trash--> **最干净的切换方式：** **设置 → Preferences → 存储空间 → 清除我的所有数据**，然后**导入**你即将进入的那个场景所对应的包。此后你就是纯粹以那个个人资料在创建。
+- <!--i:layers--> **分层叠加：** 不先清除就直接导入会**合并** - 导入的个人资料、会话和图片会叠加在已有内容之上，同名的会被替换，其余保留。适合把某个团队已保存的会话拉进你自己的环境；如果你需要一个干净的角色边界，这就不是你想要的效果。
+- <!--i:monitor--> **并行使用：** 因为一切都是设备范围的，一个独立的浏览器配置、一个独立的用户账号，或者第二个安装的 PWA，都各自携带自己独立的 Lolly 个人资料。你可以同时运行自己的个人安装和活动展台安装，无需切换。
 
 所以,如果你确实需要在多个情境之间切换(你自己、你的团队、活动经理这顶帽子),就保留多个资料包,需要哪个就加载哪个:
 
@@ -67,7 +67,7 @@
 
 ## 无障碍
 
-**Profile → Accessibility** 中有四项舒适度设置,作用于你工作*周围*的应用界面。每一项在你开启之前都是关闭的,而且它们都不会深入到工具画布或导出文件内部 - 一个更平静的应用界面绝不能移动你交付文件中的任何一个像素。
+**设置 → Preferences → 无障碍**中有四项舒适度设置，作用于你工作*周围*的应用界面。每一项在你开启之前都是关闭的，而且它们都不会深入到工具画布或导出文件内部 - 一个更平静的应用界面绝不能移动你交付文件中的任何一个像素。
 
 - <!--i:film--> **Reduce motion** - 关闭应用中的过渡效果、滑动和动画点缀。你的工具画布以及任何动画导出仍会按设计效果运行。
 - <!--i:image--> **Hide colourful previews** - 将图库预览图替换为平静的图标加文字卡片,并降低项目缩略图的颜色与对比度,使其在不刺眼的同时依然可辨识。在工具内部,一切仍以全彩显示。
@@ -78,13 +78,13 @@
 
 ## 你的 Lolly 实例
 
-**Profile → Lolly instance** 说明此次安装从何处获取工具和目录 - 实例地址,或者当一切都随构建内置时显示为 *Bundled with this app*。如果某个部署提供了管理入口,**Instance console** 链接会打开其管理界面,**Change** / **Disconnect** 可以重新指向该安装或将其断开。
+**设置 → Preferences → Lolly 实例**说明此次安装从何处获取工具和目录 - 实例的地址，或者当一切都随构建内置时显示为 *Bundled with this app*。如果某个部署提供了管理入口，**实例控制台**链接会打开其管理界面，**更改**可以重新指向该安装，**离开**则会移除该实例的设计系统、工具和目录，同时保留你自己的作品（见[在你的组织中使用 Lolly](/info/organisation.html#leaving)）。
 
 重新指向另一个实例需要使用**桌面应用**:浏览器会阻止页面跨源加载工具和资源,因此在网页版中,该部分只会显示你当前所在的位置,仅此而已。
 
 ## 离线可用
 
-Lolly 会随着你的使用逐步缓存内容,但这种边用边缓存的方式只能覆盖你已经去过的地方。**Profile → Available offline** 是为你能预见到的行程准备的:比如登机前在机场 WiFi 下的一小时,而航班上则完全没有网络。下载你需要的部分,盯着一条进度条看完,断网之后你下载过的一切依然可以正常使用。
+Lolly 会随着你的使用逐步缓存内容，但这种边用边缓存的方式只能覆盖你已经去过的地方。**设置 → Preferences → 可离线使用**是为你能预见到的行程准备的：比如登机前在机场 WiFi 下的一小时，而航班上完全没有网络。下载你需要的部分，盯着一条进度条看完，断网之后你下载过的一切依然可以正常使用。
 
 共有七个部分,每一项在你确认下载前都会先列出所需容量:
 
@@ -104,9 +104,9 @@ Lolly 会随着你的使用逐步缓存内容,但这种边用边缓存的方式�
 
 ## 将个人资料迁移到新设备
 
-![The two buttons that move a whole install: Export my data writes one zip, Import data reads it back](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=%23storage-section%20.storage-subsection&dark=1&filename=pd-transfer-controls)
+因为个人资料完全保存在本地，要把它带到一次全新的安装 - 一台新笔记本电脑、一个刚重置的浏览器、同事的电脑，或一台离线设备 - 有两种方法：**携带这个文件**，如下文所述；或者通过你选择的存储方式，让你自己的设备保持同步，正如[同步你的设备](/info/sync.html)所说明的那样。没有任何 Lolly 登录能替你恢复它，而这正是重点所在：从一开始就没有任何东西离开过你的设备。
 
-由于个人资料完全保存在本地,要把它带到一次全新的安装——一台新笔记本电脑、一个刚重置的浏览器、同事的电脑、一台离线设备——唯一的方法就是**携带这个文件**。没有登录能替你恢复它,而这正是重点所在:从一开始就没有任何东西离开过你的设备。
+在**设置 → Preferences → 存储空间 → 移动到其他设备**下：
 
 - <!--i:download--> **导出我的数据**会下载一个 `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` - 以所属档案命名,并带有按日的序号,避免重复导出冲突(档案缺少的部分会在文件名中省略)。其中包含你的档案、每一个已保存的会话(含缩略图)、你上传的图片 - 你的品牌令牌和已安装字体也作为用户资产一并打包 - 以及你的偏好设置(主题、布局、本地活动统计)。
 - <!--i:upload--> 在另一台设备上用**导入数据…**读取该文件,即可原样接续。
@@ -126,9 +126,9 @@ Lolly 会随着你的使用逐步缓存内容,但这种边用边缓存的方式�
 
 工具只会*预填*它被明确设计用来绑定的个人资料字段:
 
-**可选项(来源信息)。**当你导出资产时,你的信息可以选择性地随附为**来源信息** - 一条嵌入文件元数据(PNG、PDF、SVG 等)的作者/署名行 - 让完成的资产能说明是谁制作的。**使用我的信息进行创建**管理的正是*这一项*:关闭它,导出仍会带有“Made with Lolly”的工具/平台署名,但不会嵌入个人作者/联系方式行。(同一开关也决定 **/pro** 批处理运行的作者信息。)(工具作者请参见[编写工具指南 → `bindToProfile`](/info/authoring-tools.html#bindtoprofile)和[Host API → `host.profile`](/info/host-api.html#host-profile)。)
+**可选项(来源信息)。**当你导出资产时,你的信息可以选择性地随附为**来源信息** - 一条嵌入文件元数据(PNG、PDF、SVG 等)的作者/署名行 - 让完成的资产能说明是谁制作的。**使用我的资料创作**管理的正是*这一项*:关闭它,导出仍会带有“Made with Lolly”的工具/平台署名,但不会嵌入个人作者/联系方式行。(同一开关也决定 **/pro** 批处理运行的作者信息。)(工具作者请参见[工具创建 → `bindToProfile`](/info/tool-inputs.html#bindtoprofile)和[宿主 API → `host.profile`](/info/host-api.html#host-profile)。)
 
-![单个“使用我的信息进行创建”开关,位于保存档案旁,默认关闭直到你手动打开](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
+![单个使用我的资料创作开关，位于保存资料旁，默认关闭，直到你手动打开](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 ## 个人资料 vs 平台 vs 功能
 
@@ -151,4 +151,4 @@ Lolly 会随着你的使用逐步缓存内容,但这种边用边缓存的方式�
 
 ## 隐私
 
-除了上面这项可选的身份注册(会把你注册用的邮箱发送给证书服务 - 参见[服务器层面](/info/server-surface.html))之外,档案信息永远不会被传输、上传或用于识别、追踪你 - 没有什么需要你同意,这里只是让你了解保存了什么。可随时用**档案 → 清除我的所有数据**将其全部清除。参见[隐私政策](/info/privacy.html)。
+除了上面这项可选的身份注册(会把你注册用的邮箱发送给证书服务 - 参见[服务器层面](/info/server-surface.html))之外,个人资料永远不会被传输、上传或用于识别、追踪你 - 没有什么需要你同意,这里只是让你了解保存了什么。可随时用**设置 → Preferences → 清除我的所有数据**将其全部清除。参见[隐私政策](/info/privacy.html)。

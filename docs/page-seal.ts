@@ -434,8 +434,12 @@ export async function sealPages(o: SealPagesOptions): Promise<SealRun> {
 }
 
 /**
- * The sealed pages already on disk - every top-level `/info/*.html` that carries a
- * seal link pointing at its own slug.
+ * The sealed pages already on disk - every `/info/*.html` and `/info/<dir>/*.html`
+ * that carries a seal link pointing at its own slug. Pages live one directory down,
+ * behind their door (plans/177 P1: /info/create/using.html), while the sidecar stays
+ * flat at /info/using.c2pa; the top level holds the landing and redirect stubs.
+ * Locale directories are walked too and contribute nothing, because locale pages
+ * carry no seal link.
  *
  * Exists for the churn guard (tests/docs-page-seal.test.ts) and for anything that
  * needs to ask the BUILT site what it claims, rather than being told: a test that
@@ -443,11 +447,21 @@ export async function sealPages(o: SealPagesOptions): Promise<SealRun> {
  * Redirect stubs have no seal link, so they are not sealed and not listed.
  */
 export function discoverSealTargets(outDir: string): SealTarget[] {
-  let files: string[] = [];
-  try { files = readdirSync(outDir).filter((f) => f.endsWith('.html')).sort(); } catch { return []; }
+  let entries: import('node:fs').Dirent[] = [];
+  try { entries = readdirSync(outDir, { withFileTypes: true }); } catch { return []; }
+  const files: string[] = [];
+  for (const e of entries) {
+    if (e.isFile() && e.name.endsWith('.html')) files.push(e.name);
+    else if (e.isDirectory()) {
+      try {
+        for (const f of readdirSync(resolve(outDir, e.name))) if (f.endsWith('.html')) files.push(`${e.name}/${f}`);
+      } catch { /* unreadable directory: nothing sealed in it */ }
+    }
+  }
+  files.sort();
   const out: SealTarget[] = [];
   for (const file of files) {
-    const slug = file.slice(0, -'.html'.length);
+    const slug = file.slice(file.lastIndexOf('/') + 1, -'.html'.length);
     const path = resolve(outDir, file);
     let html: string;
     try { html = readFileSync(path, 'utf-8'); } catch { continue; }
