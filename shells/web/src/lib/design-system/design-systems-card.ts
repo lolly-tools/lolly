@@ -22,6 +22,7 @@ import { brandFontStack, tokenValueToHex, contrastText } from '../../brand-vars.
 import type { DesignSystemRecord } from './registry.ts';
 import { createDesignSystem, removeDesignSystem, type ManageHost } from './manage.ts';
 import { switchDesignSystem, type SwitchHost } from './switch.ts';
+import { catalogSourceHtml, catalogSourceLabel, designSystemRemovalMessage } from './catalog-source.ts';
 
 export type CardHost = ManageHost & SwitchHost;
 
@@ -59,7 +60,7 @@ function pickDesignSystemFile(): Promise<File | null> {
 export function sourceLine(record: DesignSystemRecord, now = Date.now()): string {
   const s = record.source;
   switch (s.kind) {
-    case 'shipped': return t('Shipped with this build');
+    case 'shipped': return catalogSourceLabel();
     case 'local': return s.forkedFrom ? t('Made here, copied from {name}', { name: s.forkedFrom.id }) : t('Made here');
     case 'file': return s.publisher ? t('From a file by {publisher}', { publisher: s.publisher }) : t('From a file');
     case 'hosted': {
@@ -132,6 +133,7 @@ export function designSystemCardHtml(r: DesignSystemRecord, activeId: string, by
         <h3 class="ds-row-label">${escape(r.label)}${r.locked ? `<span class="ds-row-lock" title="${escape(t('Read-only'))}">${icon('lock', { size: 14 })}</span>` : ''}</h3>
         <span class="ds-row-source">${escape(sourceLine(r))}</span>
         <span class="ds-row-facts">${t('{n} colours', { n: preview.colorCount ?? preview.colors.length })}${size ? ` <span>·</span> ${escape(size)}` : ''}</span>
+        ${catalogSourceHtml(r)}
       </div>
       <div class="ds-row-actions">
         <button type="button" class="btn ds-row-btn" data-ds-act="studio">${t('Open')}</button>
@@ -213,7 +215,7 @@ export function mountDesignSystemsCard(body: HTMLElement, host: CardHost): void 
         const record = await host.designSystems.get(id);
         const ok = await confirmDialog({
           title: t('Remove “{name}”?', { name: record?.label ?? id }),
-          message: isTauriShell() ? t('Its colours, type and logos leave this device. Sessions made with it stay, and keep rendering with whatever design system is active. Images you uploaded are yours and stay.') : t('Its colours, type and logos are removed from this browser. Sessions made with it stay, and keep rendering with whatever design system is active. Images you uploaded are yours and stay.'),
+          message: await designSystemRemovalMessage(host.designSystems, id),
           confirmLabel: t('Remove'),
           danger: true,
         });

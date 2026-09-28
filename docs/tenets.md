@@ -27,3 +27,7 @@ Attribution, provenance, privacy, & consent
 creativity & trust amongst the infinite
 
 anyone can create, at any scale, anywhere
+
+## Why
+
+### [Because we stand on the shoulders of giants](/info/trust/shoulders-of-giants.html)

@@ -1933,7 +1933,7 @@ ${FAQ_JS}`;
 
 // Tenet copy stays in markdown for search, translation and the downloadable source.
 // The renderer gives each tenet its own visual section.
-const TENET_ORDER = ['mantra', 'values', 'mission'] as const;
+const TENET_ORDER = ['mantra', 'values', 'mission', 'why'] as const;
 const VALUE_ICONS = ['people', 'star', 'seal'];
 const TENET_SAMPLES = [
   { id: 'print', label: 'Print', format: 'pdf', width: 480, height: 640 },

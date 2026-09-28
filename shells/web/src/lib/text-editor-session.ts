@@ -135,7 +135,11 @@ export function mountTextEditor(element: HTMLElement, options: TextEditorOptions
       if (result) { input.style.width = `${result.width}px`; input.style.minHeight = `${result.height}px`; }
       reposition(false);
       surface.update(next);
-      if (pendingSelection) { range = pendingSelection; surface.select(range.start, range.end); pendingSelection = null; }
+      if (pendingSelection) {
+        range = pendingSelection; pendingSelection = null;
+        // Layout can finish after focus has moved to a formatting control.
+        if (input.contains(input.ownerDocument.activeElement)) surface.select(range.start, range.end);
+      }
       input.contentEditable = 'true'; input.removeAttribute('aria-busy'); delete element.dataset.textPending; options.changed?.();
     } catch (error) { if (!disposed && ticket === generation) { input.removeAttribute('aria-busy'); element.dataset.textPending = 'error'; layoutError = error instanceof Error ? error.message : String(error); options.error(error); options.changed?.(); } }
   }
@@ -185,6 +189,7 @@ export function mountTextEditor(element: HTMLElement, options: TextEditorOptions
       } else insert({ source: data.getData('text/plain') }, selected, t('Paste text'));
     },
     selection(value) {
+      if (!input.contains(input.ownerDocument.activeElement)) return;
       const next = { start: Math.min(value.anchor, value.focus), end: Math.max(value.anchor, value.focus) };
       if (next.start !== range.start || next.end !== range.end) typing = undefined;
       range = next; options.changed?.();
@@ -197,6 +202,7 @@ export function mountTextEditor(element: HTMLElement, options: TextEditorOptions
       }
     },
   });
+  input.addEventListener('focus', () => { const selected = logicalRange(); surface.select(selected.start, selected.end); });
   input.addEventListener('compositionend', () => queueMicrotask(() => { if (!disposed) void scheduleDraw(); }));
   input.contentEditable = 'false';
   const ready = scheduleDraw();

@@ -6,6 +6,14 @@ Changes preview **live across the whole app** as you make them, so you can see a
 
 > **This is the editor. The dashboard is the mirror.** The **Design system** tab on the Dashboard (`#/d`) *shows* your brand read-only; you *edit* it here at `#/start`. If you want to change a colour later, come back to the Brand Studio.
 
+## Removing a design system
+
+Open **Settings → Design systems** and choose **Remove** from the system's menu. The confirmation tells you which system will be active afterwards. Saved sessions and personal uploads stay.
+
+The system labelled **Managed by this instance** comes from the deployment's catalogue. Expand **Catalogue source** to see who supplies it and which tokens asset it uses. In an app using its bundled catalogue, the label is **Bundled with this app**. Removing an imported or edited local copy does not remove the supplied system, its logos or its fonts. If the copy was active, the supplied system becomes active again.
+
+Changing those supplied files is an administrator's task. See [Removing a catalogue design system](/info/operate/deployment.html#removing-a-catalogue-design-system) for the self-hosted steps.
+
 ## The rooms
 
 The studio is a set of **rooms** listed in a rail down the side - not steps. Nothing is numbered, nothing is gated on anything else and arriving in any of them is legitimate:

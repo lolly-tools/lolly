@@ -45,6 +45,21 @@ The CSP is the one that matters most, and not for the reason you might expect. T
 
 **Which brand ships, and where the content comes from.** Set `LOLLY_PROFILE=<name>` on the build so the deploy carries the brand you mean rather than whichever profile the resolver would pick; a private pack that is not in the clone can never be it. `pnpm run build:web` writes a real `tools/` + `catalog/` tree into `dist/` from that profile, so the deployed site serves both paths as plain files and nothing has to resolve a profile to answer a page request. A function that *does* read tool source at request time (the `/tool/<id>.<ext>` render route below) needs the packs in its bundle and the same `LOLLY_PROFILE` in its **runtime** environment, not only in the build. See [Configuration](/info/configuration.html) for the resolver and its precedence.
 
+### Removing a catalogue design system
+
+**Settings → Design systems** labels the deployment's default system **Managed by this instance**. Expand **Catalogue source** to see the instance address, tokens asset and asset namespace. An app using its bundled catalogue labels the system **Bundled with this app**.
+
+A system imported into the browser is a separate local copy. Removing that copy cannot delete files on a static host. If the copy was active, the supplied system becomes active again; the removal dialog tells you which system before you confirm. Its colours, type and logos can therefore remain visible after the local copy has gone.
+
+To change or remove a server-installed brand:
+
+1. Update the source content profile in `profiles.json` and its brand pack. For a neutral instance, select `lolly-start`. For a custom catalogue, remove the unwanted asset entries and files from that pack and replace any token or tool references that still need them. Keep permanent asset IDs assigned to their original assets.
+2. Run `pnpm run build:catalog:all` and `pnpm run validate:catalog:all` to check every mounted profile.
+3. Rebuild with the intended `LOLLY_PROFILE` and deploy the complete output, including the catalogue. Replace the old deployment files so removed assets are no longer served; editing only a browser's design system does not change the deployment.
+4. Purge any host or CDN cache for the changed catalogue files, then reload Lolly while online so it fetches the updated catalogue. Check the supplied system's name and **Catalogue source** again. Refresh any downloaded offline copy before testing offline. Assets referenced by saved sessions can remain cached for those sessions.
+
+An instance's administrator controls these files. The browser's **Remove** action only manages local design-system copies.
+
 ### With the optional services
 
 To add the AI-agent (MCP) or verified-identity (CA) endpoints, deploy the two functions under `api/` (`api/mcp/**`, `api/ca/**`) to any serverless platform, or self-host `services/mcp` / `services/ca` as long-running processes. Route the app's `/api/mcp` and `/api/ca` paths to them, and keep the SPA catch-all for everything else - written to **exclude the API prefix** and listed last (`/((?!api/).*)` → `/index.html` in `vercel.json`), so it can't swallow the function routes. MCP also serves the two `/.well-known/oauth-*` discovery paths and a public `GET /tool/<id>.<ext>` render route; route those to the same function.

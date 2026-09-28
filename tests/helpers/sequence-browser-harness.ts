@@ -1082,8 +1082,10 @@ async function stillAt(spec: StageSpec, tMs: number, probes: { x: number; y: num
         v.currentTime = seekSec;
       };
       if (v.readyState >= 2) ready();
-      else v.addEventListener('loadeddata', ready, { once: true });
-      v.load();
+      else {
+        v.addEventListener('loadeddata', ready, { once: true });
+        v.load();
+      }
     });
   }));
 
