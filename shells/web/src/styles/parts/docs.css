@@ -106,6 +106,19 @@
 }
 .docs-status a { color: hsl(var(--primary)); }
 
+.docs-listen-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-block: 1rem;
+}
+.docs-listen-actions .docs-listen {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: var(--ui-size-target);
+}
+.docs-content-col > .docs-listen-actions { padding-inline: 1rem; }
+
 /* ── Body: the rehosted .docs-content fragment ──────────────────────────────── */
 .docs-content {
   min-width: 0;

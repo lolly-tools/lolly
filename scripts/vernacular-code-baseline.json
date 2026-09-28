@@ -647,7 +647,7 @@
   "shells/web/src/lib/audio-coach-core.ts": 1,
   "shells/web/src/lib/audio-cover-viz.ts": 3,
   "shells/web/src/lib/audio-covers.ts": 1,
-  "shells/web/src/lib/audio-dock-singleton.ts": 2,
+  "shells/web/src/lib/audio-dock-singleton.ts": 1,
   "shells/web/src/lib/audio-encode.test.ts": 1,
   "shells/web/src/lib/audio-peaks.ts": 3,
   "shells/web/src/lib/audio-remux.ts": 4,

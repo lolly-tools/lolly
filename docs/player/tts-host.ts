@@ -48,6 +48,8 @@ export interface CreateDocsTtsOpts {
   /** The reader's content node (the in-app #/docs reader renders into its own node,
    *  not the live .docs-content). Omit on the static site. */
   contentRoot?: HTMLElement;
+  /** Allow heading clicks to seek only while the reader exposes playback controls. */
+  canSeekFromContent?: () => boolean;
 }
 
 /**
@@ -62,7 +64,7 @@ export function createDocsTtsHost(opts: CreateDocsTtsOpts): DocsTtsHost | null {
   }
   const blocks = extractDomSpokenText(opts.title, opts.contentRoot);
   if (!blocks.length) return null;
-  const host = new DocsTtsHost(blocks, opts.title);
+  const host = new DocsTtsHost(blocks, opts.title, opts.canSeekFromContent);
   host.start();
   return host;
 }
@@ -78,6 +80,7 @@ export class DocsTtsHost implements DockHost {
   private vol = 1;
   private readonly blocks: DomBlock[];
   private readonly title: string;
+  private readonly canSeekFromContent: () => boolean;
   private readonly listeners = new Set<() => void>();
   private readonly cleanups: Array<() => void> = [];
 
@@ -95,9 +98,10 @@ export class DocsTtsHost implements DockHost {
   private idleTimer: ReturnType<typeof setTimeout> | null = null;
   private autoUntil = 0;
 
-  constructor(blocks: DomBlock[], title: string) {
+  constructor(blocks: DomBlock[], title: string, canSeekFromContent: () => boolean = () => true) {
     this.blocks = blocks;
     this.title = title;
+    this.canSeekFromContent = canSeekFromContent;
 
     try { this.followOff = sessionStorage.getItem(FOLLOW_KEY) === '1'; } catch { /* storage may be disabled */ }
     try {
@@ -315,6 +319,7 @@ export class DocsTtsHost implements DockHost {
    *  highlight to re-engage follow-along. No scrub bar, so this IS the seek. */
   private wireHeadingSeek(): void {
     const onClick = (e: MouseEvent): void => {
+      if (!this.canSeekFromContent()) return;
       const target = e.target as HTMLElement | null;
       const h = target?.closest?.('h1[id],h2[id],h3[id],h4[id]') as HTMLElement | null;
       if (h) {

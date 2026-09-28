@@ -19,12 +19,11 @@
  * audience tabs without touching location.hash, opens a deep-linked FAQ <details>, points
  * the app links back into this SPA, and injects the scoped band stylesheet once.
  *
- * routeLang is always passed as 'de' (a non-English locale) so the English-only narration
- * block in mountDocs is skipped - that block reaches into the app-global audio dock, which
- * is out of scope for a hermetic reader test. With lang 'de' the fetch URL becomes
- * /info/de/<slug>.html, which the URL assertions check.
+ * Most cases have no speech API, so narration is unavailable. The Listen lifecycle
+ * case supplies device speech and exercises the shared player across page changes.
+ * With lang 'de' the fetch URL becomes /info/de/<slug>.html.
  */
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM, VirtualConsole } from 'jsdom';
 
@@ -642,4 +641,127 @@ test('a page whose h1 is already inside the fragment is left alone', async () =>
   assert.equal(article.querySelectorAll('h1').length, 1, 'exactly one title');
 
   view.remove();
+});
+
+const audioDock = await import('../lib/audio-dock-singleton.ts');
+after(() => {
+  audioDock.audioDockController()?.destroy();
+  dom.window.close();
+});
+
+test('Listen opens narration on demand, survives dismissal, and resets on the next page', async () => {
+  const spoken: string[] = [];
+  const speech = {
+    speaking: false,
+    paused: false,
+    speak: (u: SpeechSynthesisUtterance) => { spoken.push(u.text); speech.speaking = true; },
+    cancel: () => { speech.speaking = false; },
+    getVoices: () => [],
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  };
+  class Utterance {
+    text: string;
+    constructor(text: string) { this.text = text; }
+  }
+  Object.assign(globalThis, {
+    speechSynthesis: speech,
+    SpeechSynthesisUtterance: Utterance,
+    addEventListener: dom.window.addEventListener.bind(dom.window),
+    removeEventListener: dom.window.removeEventListener.bind(dom.window),
+    cancelAnimationFrame: dom.window.cancelAnimationFrame.bind(dom.window),
+  });
+  Object.assign(dom.window, { speechSynthesis: speech });
+  const cleanup = (view: HTMLElement): void => {
+    (view as HTMLElement & { _cleanup?: () => void })._cleanup?.();
+    view.remove();
+  };
+  try {
+    stubOkFetch();
+    const view = freshView();
+    await mountDocs(view, host, 'quickstart', 'de', '');
+    const listen = view.querySelector<HTMLButtonElement>('.docs-listen');
+    assert.ok(listen, 'device voice makes Listen available');
+    assert.equal(listen.textContent, 'Listen');
+    assert.equal(audioDock.isAudioDockVisible(), false, 'opening a page leaves the floating player hidden');
+    assert.equal(spoken.length, 0, 'opening a page does not start narration');
+    view.querySelector<HTMLElement>('#one')!.click();
+    assert.equal(spoken.length, 0, 'heading clicks cannot start narration while controls are hidden');
+
+    listen.click();
+    assert.equal(audioDock.isAudioDockVisible(), true);
+    assert.equal(audioDock.audioDockController()?.getCollapse(), 'full');
+    assert.ok(spoken.length > 0, 'Listen starts the page voice');
+    const count = spoken.length;
+    const close = audioDock.audioDockElement()?.querySelector<HTMLButtonElement>('[data-close-btn]');
+    assert.ok(close, 'the player has a close button');
+    close.click();
+    assert.equal(audioDock.isAudioDockVisible(), false, 'the player can be dismissed');
+    view.querySelector<HTMLElement>('#two')!.click();
+    assert.equal(spoken.length, count, 'dismissed controls also disable heading seeks');
+    listen.click();
+    assert.equal(audioDock.isAudioDockVisible(), true, 'Listen reopens the player');
+    assert.equal(spoken.length, count, 'reopening does not restart active narration');
+    cleanup(view);
+    assert.equal(speech.speaking, false, 'leaving the page stops its voice');
+
+    const landing = freshView();
+    stubOkFetch(LANDING_HTML);
+    await mountDocs(landing, host, 'index', 'de', '');
+    assert.ok(landing.querySelector('[data-content] > .docs-listen-actions .docs-listen'), 'the landing has an inline Listen button');
+    assert.equal(audioDock.isAudioDockVisible(), false, 'another docs page also starts with the player hidden');
+    cleanup(landing);
+
+    // A departed English page may still be waiting for its produced-audio index.
+    // Its late fallback must not cancel the next page's device voice.
+    let resolveIndex!: (value: Response) => void;
+    let indexRequested!: () => void;
+    const requested = new Promise<void>((resolve) => { indexRequested = resolve; });
+    stubOkFetch();
+    const regularFetch = globalThis.fetch;
+    globalThis.fetch = ((url, init) => {
+      if (String(url) !== '/info/audio-index.json') return regularFetch(url, init);
+      indexRequested();
+      return new Promise<Response>((resolve) => { resolveIndex = resolve; });
+    }) as typeof fetch;
+    const oldPage = freshView();
+    const oldMount = mountDocs(oldPage, host, 'quickstart', 'en', '');
+    await requested;
+    cleanup(oldPage);
+    const currentPage = freshView();
+    await mountDocs(currentPage, host, 'quickstart', 'de', '');
+    currentPage.querySelector<HTMLButtonElement>('.docs-listen')!.click();
+    assert.equal(speech.speaking, true);
+    resolveIndex(new Response('[]', { headers: { 'Content-Type': 'application/json' } }));
+    await oldMount;
+    assert.equal(speech.speaking, true, 'a late audio lookup cannot cancel the next page voice');
+    assert.equal(audioDock.isAudioDockVisible(), true, 'a late mount cannot hide the next page player');
+    cleanup(currentPage);
+
+    let musicPlaying = true;
+    const dock = audioDock.registerMusicSource({
+      host: {
+        isPlaying: () => musicPlaying,
+        togglePlay: () => { musicPlaying = !musicPlaying; },
+        nowPlaying: () => ({ title: 'Focus music' }),
+        onChange: () => () => {},
+      },
+      onClose: () => audioDock.unregisterMusicSource(),
+    });
+    for (const size of ['full', 'mini'] as const) {
+      dock.setCollapse(size);
+      const page = freshView();
+      stubOkFetch();
+      await mountDocs(page, host, 'quickstart', 'de', '');
+      assert.equal(audioDock.isAudioDockVisible(), true, 'an existing Neurospicy player stays visible');
+      assert.equal(dock.getCollapse(), size, 'the player keeps the size the user chose');
+      assert.equal(musicPlaying, true, 'music continues playing');
+      assert.equal(speech.speaking, false, 'the new page voice waits for Listen');
+      cleanup(page);
+      assert.equal(audioDock.isAudioDockVisible(), true, 'leaving docs keeps the music player');
+    }
+    audioDock.unregisterMusicSource();
+  } finally {
+    Reflect.deleteProperty(dom.window, 'speechSynthesis');
+  }
 });

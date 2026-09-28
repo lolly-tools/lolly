@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * In-app documentation reader (#/docs/<slug>) - plan "this-is-a-very-sparkling-eich"
- * M2, Phase 1 (reader only; no narration/Listen player - that is a later phase).
+ * Page narration opens from Listen in the shared audio dock.
  *
  * This brings the /info docs INTO the app so they render inside #view and inherit the
  * ACTIVE brand's design tokens (unlike the published static site, which is neutral for
@@ -22,7 +22,7 @@
  *   - <script> and <style> nodes (never execute a fetched page's scripts; the only inner
  *     <style> today is the Listen-bar's, and stripping all of them keeps a page's CSS
  *     from leaking into the shell). The reader's own styling lives in docs.css.
- *   - the `.listen-bar` (Phase 1 has no narration player).
+ *   - the `.listen-bar` (the reader mounts its own Listen button).
  *   - the masthead / nav / sidebar / footer (all live OUTSIDE `.docs-content`, so the
  *     fragment naturally excludes them). Theme/brand-reactive mastheads are M3.
  *
@@ -47,7 +47,7 @@ import { createThemeToggle } from '../components/theme-toggle.ts';
 import { attachLangMenu } from '../components/lang-menu.ts';
 import { attachProfileMenu } from '../components/profile-menu.ts';
 import { mountHomeFab } from '../components/home-fab.ts';
-import { registerNarrationSource, unregisterNarrationSource } from '../lib/audio-dock-singleton.ts';
+import { registerNarrationSource, unregisterNarrationSource, showAudioDock, audioDockController, isAudioDockVisible } from '../lib/audio-dock-singleton.ts';
 import { createDocsNarrationHost, type DocsNarrationHandle } from '../lib/docs-narration-host.ts';
 // The device-voice fallback is the dependency-free docs/player module (audio-dock types
 // only), shared with the static /info site so both readers speak every page identically.
@@ -491,35 +491,21 @@ export async function mountDocs(
   // and every card is open on both surfaces.
   if (isLanding) { adaptLandingLinks(node); hydrateLandingCycle(node); hydrateLandingCovers(node); fitHeroCtaInk(node); }
 
-  // Deep-link: a spotlight/Ask docs result routes here as #/docs/<slug>?h=<anchor>
-  // (the section heading rides a ?h= query param, since a second '#' can't ride the
-  // hash route). Scroll that heading into view now that the fragment is in the DOM -
-  // a no-op when absent or the id isn't on the page.
-  // The router keeps this scroll only when the target was really found (main.ts).
-  if (deepLink && scrollToHeading(node, deepLink, 'auto')) viewEl.dataset.deepScrolled = '';
-
-  // ── Narration "Listen" dock (unified audio-dock migration, Phase 2a) ──────────
-  // ADDITIVE: the reader had no player. Content-gated - mounted ONLY when this slug
-  // has committed narration audio in /info/audio-index.json, AND only on the English
-  // reader page (all committed audio is English, and the follow-along block map is
-  // re-derived from the English markdown twin). No track / non-English → no narration (the
-  // "no dead affordance" rule). Registers into the app-global SINGLETON audio dock (shared
-  // with the music player) as the narration BLOCK; unregistered on unmount.
-  // Produced Kokoro audio wins where it exists (English only); every other page - all
-  // locales, the reference pages - falls back to the reader's device voice (plan 131
-  // B.3), so the Listen dock reaches every page here just as it does on /info.
+  // Prepare narration without opening the floating player over the page. Produced
+  // English audio takes priority; other pages use the device voice when available.
+  // An existing music player keeps its current size and visibility.
   let narration: DocsNarrationHandle | null = null;
   let tts: DocsTtsHost | null = null;
   if (lang === 'en') {
     try {
-      narration = await createDocsNarrationHost({ slug, contentRoot: node, title: pageTitle || slug });
+      narration = await createDocsNarrationHost({ slug, contentRoot: node, title: pageTitle || slug, canSeekFromContent: isAudioDockVisible });
     } catch {
       narration = null;
     }
   }
-  if (!narration) {
+  if (!narration && !scope.disposed) {
     try {
-      tts = createDocsTtsHost({ slug, title: pageTitle || slug, contentRoot: node });
+      tts = createDocsTtsHost({ slug, title: pageTitle || slug, contentRoot: node, canSeekFromContent: isAudioDockVisible });
     } catch {
       tts = null;
     }
@@ -532,8 +518,30 @@ export async function mountDocs(
     return;
   }
   const block = narration?.host ?? tts;
-  // Either host is a valid DockNarrationPlayer (transport + narration adapter).
-  if (block) registerNarrationSource(block);
+  if (block) {
+    registerNarrationSource(block);
+    const actions = document.createElement('div');
+    actions.className = 'docs-listen-actions';
+    const listen = document.createElement('button');
+    listen.type = 'button';
+    listen.className = 'btn docs-listen';
+    listen.setAttribute('aria-controls', 'neuro-dock');
+    listen.innerHTML = `${icon('play', { size: 16 })}<span>${escape(t('Listen'))}</span>`;
+    actions.append(listen);
+    const heading = node.querySelector(':scope > h1');
+    if (heading) heading.after(actions);
+    else contentEl.prepend(actions);
+    scope.listen(listen, 'click', () => {
+      showAudioDock();
+      const dock = audioDockController();
+      if (dock?.getCollapse() === 'mini') dock.setCollapse('full');
+      if (!block.isPlaying()) void block.togglePlay();
+    });
+  }
+
+  // Resolve the heading after Listen has taken its place in the page, so inserting
+  // the button cannot shift a deep-linked section below the reading position.
+  if (deepLink && scrollToHeading(node, deepLink, 'auto')) viewEl.dataset.deepScrolled = '';
 
   armViewEnter(viewEl, '.docs-content, .docs-landing');
 

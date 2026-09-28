@@ -213,6 +213,8 @@ export async function createDocsNarrationHost(opts: {
   contentRoot: HTMLElement;
   /** Fallback page title; the audio-index title wins when present. */
   title?: string;
+  /** Allow heading clicks to seek only while the reader exposes playback controls. */
+  canSeekFromContent?: () => boolean;
 }): Promise<DocsNarrationHandle | null> {
   const index = await fetch('/info/audio-index.json')
     .then((r) => (r.ok ? r.json() : []))
@@ -221,7 +223,7 @@ export async function createDocsNarrationHost(opts: {
   const track = list.find((t) => t.slug === opts.slug);
   if (!track) return null; // no audio for this slug → caller mounts nothing
 
-  const host = new DocsNarrationHost(track, opts.contentRoot, opts.title ?? track.title);
+  const host = new DocsNarrationHost(track, opts.contentRoot, opts.title ?? track.title, opts.canSeekFromContent);
   host.start();
   return { host, destroy: () => host.destroy() };
 }
@@ -235,6 +237,7 @@ class DocsNarrationHost implements DockHost {
   private readonly root: HTMLElement;
   private readonly audio: HTMLAudioElement;
   private readonly title: string;
+  private readonly canSeekFromContent: () => boolean;
   private readonly listeners = new Set<() => void>();
   private readonly cleanups: Array<() => void> = [];
 
@@ -263,10 +266,11 @@ class DocsNarrationHost implements DockHost {
 
   private destroyed = false;
 
-  constructor(track: Track, root: HTMLElement, title: string) {
+  constructor(track: Track, root: HTMLElement, title: string, canSeekFromContent: () => boolean = () => true) {
     this.track = track;
     this.root = root;
     this.title = title;
+    this.canSeekFromContent = canSeekFromContent;
     // preservesPitch keeps the voice natural at every rate (a pace choice, never a
     // quality downgrade). Browsers default this true; set it so the promise holds.
     this.audio = Object.assign(new Audio(), { preservesPitch: true });
@@ -484,6 +488,7 @@ class DocsNarrationHost implements DockHost {
    *  highlight to re-engage follow-along. Scoped to the reader's fragment. */
   private wireHeadingSeek(): void {
     const onClick = (e: MouseEvent): void => {
+      if (!this.canSeekFromContent()) return;
       const h = (e.target as HTMLElement | null)?.closest?.('h1[id],h2[id],h3[id],h4[id]') as HTMLElement | null;
       if (h) {
         const cue = this.cues.find((c) => c.blockId === h.id);
