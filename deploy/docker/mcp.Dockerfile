@@ -18,8 +18,8 @@
 # the web image), so the running container needs no pack mount. The default is the
 # neutral lolly-start brand, so a public image ships NO private (SUSE) tools or
 # assets; pass --build-arg LOLLY_PROFILE=suse for the SUSE-branded image (that
-# needs the private brands/suse submodule checked out). Requires the content
-# submodules (community/, brands/*) checked out in the build context.
+# needs the private brands/suse submodule checked out). Community tools and the
+# starter brand are ordinary directories in the build context.
 #
 # Tier-B (browser/Chromium) render formats are DISABLED unless LOLLY_WEB_BASE is
 # set at runtime; svg/data + resvg-png work without a browser. We deliberately do
@@ -28,7 +28,7 @@
 # Keep Tier B disabled for this image's initial hosted scope.
 # ============================================================================
 
-FROM node:26-alpine@sha256:dbaa92e5758cbbcf85d65d5403fdb530fe3442cbe8c6dbfb7ef23365450d5070 AS build
+FROM node:26-alpine@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80 AS build
 WORKDIR /src
 RUN apk add --no-cache libcrypto3=3.5.8-r0 libssl3=3.5.8-r0
 # Neutral by default; a public image must not ship the private SUSE pack.
@@ -44,7 +44,6 @@ COPY schemas ./schemas
 COPY packages ./packages
 COPY shells/cli ./shells/cli
 COPY shells/web/package.json ./shells/web/package.json
-COPY shells/web/build/materialize-directory.ts ./shells/web/build/materialize-directory.ts
 COPY shells/web/public/fonts ./shells/web/public/fonts
 COPY shells/tui/package.json ./shells/tui/package.json
 COPY services/ca/package.json ./services/ca/package.json
@@ -65,16 +64,15 @@ RUN pnpm install --frozen-lockfile --prod
 RUN rm -rf node_modules/onnxruntime-node node_modules/@huggingface/transformers \
     node_modules/phonemizer node_modules/adm-zip
 
-# Profile views may contain absolute build-directory symlinks. Materialise the
-# selected content before moving it to /app, using the same verified copy helper
-# as the web build. The runtime needs no source brand pack or web model cache.
-RUN node --input-type=module -e "import { materializeDirectory } from './shells/web/build/materialize-directory.ts'; for (const dir of ['tools', 'catalog']) materializeDirectory(dir, '/runtime-content/' + dir);"
+# Materialise the selected profile through the same resolver as the web build.
+# The runtime needs no source brand pack or web model cache.
+RUN node --input-type=module -e "import { materializeInto } from './packages/node-shell/src/content-roots.ts'; materializeInto('/runtime-content');"
 # Retain each runtime package's workspace links as well as its source. Remove
 # the service's deployment recipes and tests before copying the package.
 RUN rm -rf services/mcp/deploy services/mcp/test
 
 # ── runtime stage ───────────────────────────────────────────────────────────
-FROM node:26-alpine@sha256:dbaa92e5758cbbcf85d65d5403fdb530fe3442cbe8c6dbfb7ef23365450d5070 AS runtime
+FROM node:26-alpine@sha256:0b36e8c136b94cd4fcf02188228e76c31ad5872eef3fec8cbd2eee500cfd9e80 AS runtime
 WORKDIR /app
 RUN apk add --no-cache libcrypto3=3.5.8-r0 libssl3=3.5.8-r0
 ENV NODE_ENV=production
