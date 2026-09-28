@@ -24,11 +24,13 @@ The three release-pinned manifest fields (`version`, `sources.main.url`, `source
 ```bash
 export LOLLY_PROFILE=lolly-start               # the tarball is public: never the suse pack
 pnpm run release:yunohost --build           # release web build, pack, pin the manifest
-# → ~/.cache/lolly-release/artifacts/lolly-web-<ver>.tar.gz
-shells/tauri-desktop/release/lolli.py put ~/.cache/lolly-release/artifacts/lolly-web-<ver>.tar.gz
+# → ~/.cache/lolly-release/artifacts/lolly-web-<ver>-ynh1.tar.gz
+shells/tauri-desktop/release/lolli.py put ~/.cache/lolly-release/artifacts/lolly-web-<ver>-ynh1.tar.gz
 ```
 
 `--publish` runs that last upload for you when the `LOLLI_S3_*` keys are in the environment. The web build needs the catalog signing material every release build needs (`LOLLY_CATALOG_SIGNING_KEY`, `VITE_CATALOG_PUBLIC_KEY_JWK`); pass `--version x.y.z` to override the version read from the desktop shell, and `--ynh-rev N` for a repackaging of the same upstream version.
+
+Each package revision gets its own archive URL. Keep earlier archives intact: installed packages and earlier release manifests still pin their checksums. Label an early review build explicitly in the package release notes, including its source commit and the planned upstream release.
 
 Then mirror this directory to the app repository and tag it:
 

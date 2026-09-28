@@ -45,9 +45,10 @@ export const MODELS_BASE = 'https://lolli.li';
 
 export interface Pin { version: string; ynhRev: number; url: string; sha256: string }
 
-/** The artifact name for a version: what lolli.li serves and the manifest fetches. */
-export function tarballName(version: string): string {
-  return `lolly-web-${version}.tar.gz`;
+/** Package rebuilds need distinct URLs so published checksums remain valid.
+ *  Omitting the revision reads the legacy archive name. New builds always supply the revision. */
+export function tarballName(version: string, ynhRev?: number): string {
+  return `lolly-web-${version}${ynhRev === undefined ? '' : `-ynh${ynhRev}`}.tar.gz`;
 }
 
 /** The app version the desktop shell carries - the one canonical copy every package reads. */
@@ -177,7 +178,7 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
   }
 
   mkdirSync(args.out, { recursive: true });
-  const name = tarballName(version);
+  const name = tarballName(version, args.ynhRev);
   const outFile = join(args.out, name);
   const locales = translatedLocales();
   console.log(`[yunohost-release] packing ${DIST} -> ${outFile} (dropping ./models and ${locales.length} translated /info copies)`);

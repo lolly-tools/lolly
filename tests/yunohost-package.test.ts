@@ -48,20 +48,29 @@ test('manifest: the release pin is self-consistent', () => {
   const pin = readPin(manifest);
   assert.match(pin.version, /^\d+\.\d+\.\d+$/);
   assert.ok(pin.ynhRev >= 1);
-  assert.equal(pin.url, `${RELEASE_HOST}/${tarballName(pin.version)}`, 'url must name the tarball for the pinned version');
+  assert.ok([
+    `${RELEASE_HOST}/${tarballName(pin.version)}`,
+    `${RELEASE_HOST}/${tarballName(pin.version, pin.ynhRev)}`,
+  ].includes(pin.url), 'url must name the legacy archive or the pinned package revision');
   assert.match(pin.sha256, /^[0-9a-f]{64}$/);
   // in_subdir = false: the tarball is `tar -C dist .`, index.html at its root.
   assert.match(manifest, /^\s*in_subdir = false$/m);
 });
 
 test('release script: pinning rewrites exactly the three fields and reads back', () => {
-  const pin = { version: '9.8.7', ynhRev: 3, url: `${RELEASE_HOST}/${tarballName('9.8.7')}`, sha256: 'ab'.repeat(32) };
+  const pin = { version: '9.8.7', ynhRev: 3, url: `${RELEASE_HOST}/${tarballName('9.8.7', 3)}`, sha256: 'ab'.repeat(32) };
   const pinned = pinManifest(manifest, pin);
   assert.deepEqual(readPin(pinned), pin);
   // Everything that is not a pinned line survives byte for byte.
   const strip = (s: string): string => s.replace(/^version = .*$/m, '').replace(/^\s*url = .*$/m, '').replace(/^\s*sha256 = .*$/m, '');
   assert.equal(strip(pinned), strip(manifest));
   assert.throws(() => pinManifest('no pins here', pin), /rewrote 0/);
+});
+
+test('release script: package rebuilds keep earlier archive URLs intact', () => {
+  assert.equal(tarballName('1.0.9'), 'lolly-web-1.0.9.tar.gz');
+  assert.equal(tarballName('1.0.9', 3), 'lolly-web-1.0.9-ynh3.tar.gz');
+  assert.notEqual(tarballName('1.0.9', 2), tarballName('1.0.9', 3));
 });
 
 test('release script: the cut mirrors the desktop trim (models out, English docs only)', () => {
