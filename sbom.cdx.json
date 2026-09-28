@@ -4,7 +4,7 @@
   "serialNumber": "urn:uuid:0ebc9595-8bdf-4dde-8772-c860fc547af0",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-28T03:11:42.404Z",
+    "timestamp": "2026-09-28T03:52:08.502Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -4279,9 +4279,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -6328,9 +6326,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR BSD-3-Clause"
         }
       ],
       "hashes": [
@@ -7094,9 +7090,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7619,9 +7613,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -12446,7 +12438,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -14789,9 +14781,7 @@
       "scope": "required",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
