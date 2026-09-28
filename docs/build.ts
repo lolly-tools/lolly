@@ -5608,6 +5608,8 @@ let audioBySlug = new Map<string, AudioEntry>();
  *  IS the playlist auto-advance walks. */
 function collectDocsAudio(): Map<string, AudioEntry> {
   const map = new Map<string, AudioEntry>();
+  // Match the web deployment, which excludes recorded narration from its upload.
+  if (process.env.LOLLY_DOCS_AUDIO === '0') return map;
   const base = resolve(repoRoot, 'docs', 'audio', 'en');
   if (!existsSync(base)) return map;
   for (const page of pages) {
