@@ -14,6 +14,7 @@ node_modules
 shells/tauri-desktop
 shells/tauri-mobile
 scratch
+.scratch
 plans
 
 # Scoped Chromium for the CLI/MCP Tier-B raster path (`lolly install-browser`),
