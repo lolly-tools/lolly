@@ -273,7 +273,7 @@ Verktyg exponerar bara de inmatningar som är avsedda att varieras - allt annat 
 
 I ett live-[samarbete](/info/collaborate.html) förblir historiken din egen. En ändring som kommer från den andra enheten hamnar aldrig på din stack, så ångra kan bara någonsin ta tillbaka något du själv gjorde.
 
-Ångra går bara tillbaka genom det här besöket; nio verktyg behåller också tidigare versioner under **History**, bredvid **Ångra** (se [Gå tillbaka till en tidigare version](/info/find-your-work.html#go-back-to-an-earlier-version)).
+Ångra går bara tillbaka genom det här besöket; verktyg som sparar medan du arbetar behåller också tidigare versioner under **Historik**, bredvid **Ångra** (se [Gå tillbaka till en tidigare version](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ## Dina uppgifter och profilbild
 
@@ -313,7 +313,7 @@ Klistra in länken till en kollega, bokmärk den eller checka in den. (Fullstän
 
 **Vissa verktyg gör länken till hela produkten.** Jump Page samlar dina länkar på en sida att dela ut - en bio-länk, ett konferenstal, en butiksfasad. Det finns inget att hosta och inget konto bakom: sidan är länken, så den öppnas lika snabbt som URL:en färdas. I redigeraren ser du den färdiga sidan bredvid fälten; en besökare som öppnar länken får den i full bredd, en länk per scen medan de scrollar.
 
-![Jump Page i redigeraren - rubriken, tre länkscener som var och en har sin egen ton och en Skapad med Lolly-sidfot, upplagda som en sida i ritytan](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page i redigeraren: rubrikscenen överst på sidan, med länkscenerna under](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **Dialogrutan säger vad en länk inte kan bära.** Tre saker får inte plats i en URL: en bild eller fil du lagt till från den här enheten, ett mycket långt textvärde eller en mycket stor lista. Var och en räknas medan länken byggs. Om något har måst utelämnas namnger dialogrutan det och pekar dig mot filen nedan, i stället för att ge dig en länk som öppnas med bilden saknad. En länk som bara är *lång* får en mildare notis med sitt teckenantal, eftersom packning fortfarande kan rädda längd.
 
@@ -423,8 +423,8 @@ Sats är många varianter av *en* design. **Multiredigering** är den andra halv
 
 En enda sidopanel styr alltihop:
 
-- <!--i:sliders--> **Gemensamma** leder den - varje inmatning som två eller flera av de markerade sessionerna deklarerar på *samma sätt* (samma id, samma typ, samma villkor - samma sammanslagningsregel som batch-rutnätet använder på sina kolumner). Redigera en gemensam kontroll en gång så sprids värdet till varje session som deklarerar den, direkt på varje kort. Två sessioner från samma verktyg delar allt; två olika verktyg delar det de råkar ha gemensamt, och inget annat.
-- <!--i:document--> Under den ligger **ett hopfällt kort per session** med alla den sessionens egna inmatningar, med samma trohet som verktygets egen sidopanel - tillgångsväljare, upprepande radgrupper, färgfält - plus ett kompakt exportblock: **Format**, **B** / **H**, **Enhet**, **DPI** och en egen **Ladda ner**. Den nedladdningen sparar sessionen först och renderar den sedan via den vanliga sessionsexportvägen, så filen bär samma filnamn, format och Content Credentials som den skulle direkt från verktyget.
+- <!--i:sliders--> **Gemensamma** leder den - varje inmatning som två eller flera av de markerade sessionerna deklarerar på *samma sätt* (samma id, samma typ, samma villkor - samma sammanslagningsregel som batch-rutnätet använder på sina kolumner). Redigera en gemensam kontroll en gång så sprids värdet till varje session som deklarerar den, direkt på varje kort. Två sessioner från samma verktyg delar allt; två olika verktyg delar bara de fält de har gemensamt.
+- <!--i:document--> Under den ligger **ett hopfällt kort per session** med alla den sessionens egna fält, med samma trohet som verktygets egen sidopanel - tillgångsväljare, upprepande radgrupper, färgfält - plus ett kompakt exportblock: **Format**, **B** / **H**, **Enhet**, **DPI** och en egen **Ladda ner**. Den nedladdningen sparar sessionen först och renderar den sedan via den vanliga sessionsexportvägen, så filen bär samma filnamn, format och Content Credentials som den skulle direkt från verktyget.
 - <!--i:search--> **Filtrera fält…** högst upp smalnar av kontrollerna på *varje* kort samtidigt - vilket är så du hittar "rubriken" i åtta sessioner utan att rulla efter den.
 
 Klicka på valfri arbetsyta (eller tryck på Enter på den) så öppnas den sessionens kort i sidopanelen och rullas fram i vyn. **Spara alla** skriver tillbaka varje session till sin egen plats. **Ladda ner alla** sparar först och renderar sedan hela uppsättningen genom samma pipeline som Projekts **Rendera markering** - en zip, med det valfria lösenordslåset erbjudet på vägen.

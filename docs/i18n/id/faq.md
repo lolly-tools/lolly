@@ -131,7 +131,7 @@ Jika Anda menekan **Simpan sebagai** atau **Simpan**, karya itu ada di **Proyek*
 
 ## Saya menutup tab. Apakah karya saya hilang?
 
-Karya tersimpan masih ada di **Proyek**. Karya yang belum disimpan hilang, kecuali pada sembilan tool yang menyimpan sambil Anda bekerja, yang juga menyimpannya di **Proyek**. Lain kali, tekan **Simpan sebagai** sebelum Anda keluar. Lihat [Jika Anda menutup tab atau meninggalkan tool](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+Karya tersimpan masih ada di **Proyek**. Karya yang belum disimpan hilang, kecuali pada tool yang menyimpan sambil Anda bekerja, yang juga menyimpannya di **Proyek**. Lain kali, tekan **Simpan sebagai** sebelum Anda keluar. Lihat [Jika Anda menutup tab atau meninggalkan tool](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Bisakah saya membagikan karya sebagai file, bukan tautan?
 

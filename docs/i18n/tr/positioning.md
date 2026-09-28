@@ -57,9 +57,9 @@ Lolly, eskiz değil matbaadır. Fikir üretimine istediğini getir - bir model, 
 
 > Yaratıcı sürece güven, titizlikle ölçeklendir.
 
-## Kurallar dosyada değil, araçta yaşar
+## Kurallar araçta ve onun şablonlarında yaşar
 
-Piyasadaki diğer her araç bir *dosya* üretir ve bir dosyaya ancak iş bittikten sonra, her seferinde tek bir çıktı olarak bakılabilir. Lolly marka kurallarını **bir adım yukarı** taşır. Tam hex kodları, lisanslı yazı tipi dosyaları, taşma payları, boşluklar - hepsi aracın HTML ve CSS'ine sabit kodlanmıştır, bu yüzden şablon marka dışı bir çıktı *üretemez*. Uygulamayı zorlayan, düzenin kendisidir.
+Piyasadaki diğer her araç bir *dosya* üretir ve bir dosyaya ancak iş bittikten sonra bakılabilir. Lolly marka kurallarını **bir adım yukarı** taşır. Tam hex kodları, lisanslı yazı tipi dosyaları, taşma payları, boşluklar - hepsi aracın HTML ve CSS'ine sabit kodlanmıştır, bu yüzden şablon marka dışı bir çıktı *üretemez*. Uygulamayı zorlayan, düzenin kendisidir.
 
 Bu yüzden bakmaya değer olan şey, her seferinde ürettiği dosya değil **araçtır**. Aracı doğru kur, ürettiği her varlık yapısı gereği markaya uygun olur. İşini nasıl kontrol ettiğin ve bunu kimin yaptığı sana kalır; Lolly kontrol edilen şeyi küçültür, çıktıyı ise daha çabuk üretir.
 

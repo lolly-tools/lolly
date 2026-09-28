@@ -1,0 +1,36 @@
+{
+  "id": "dark-code",
+  "name": "Dark code",
+  "category": "Still",
+  "description": "A dark editor with clear syntax colours for technical slides.",
+  "values": {
+    "scene": "still",
+    "language": "python",
+    "theme": "github-dark",
+    "windowStyle": "redmond",
+    "lineNumbers": true,
+    "showWindow": true,
+    "shadow": true,
+    "scale": 100,
+    "lineHeight": 1.65,
+    "blinkCursor": false,
+    "textOverflow": "fit",
+    "wrapText": false,
+    "calloutMode": "off",
+    "windowRotate": 0,
+    "windowTiltX": 0,
+    "windowTiltY": 0,
+    "code": "def greet(name):\n    message = f\"Hello, {name}!\"\n    return message\n\nprint(greet(\"World\"))",
+    "fileName": "hello.py"
+  },
+  "presets": [
+    {
+      "id": "design-system",
+      "name": "Design system",
+      "description": "Use your current design system colours.",
+      "values": {
+        "theme": "suse-dark"
+      }
+    }
+  ]
+}

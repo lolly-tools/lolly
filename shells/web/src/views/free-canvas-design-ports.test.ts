@@ -96,6 +96,7 @@ interface MountOpts {
   withActions?: boolean;
   withHistory?: boolean;
   withTime?: boolean;
+  withImport?: boolean;
 }
 
 interface Fixture {
@@ -141,6 +142,7 @@ function mount(initial: Box[] = [], o: MountOpts = {}): Fixture {
     for (const k of ['startField', 'durField', 'clipInField', 'speedField', 'enterField',
       'exitField', 'enterMsField', 'exitMsField', 'muteField', 'laneField']) delete cfg[k];
   }
+  if (o.withImport) cfg.import = { formats: ['svg', 'penpot', 'pdf'] };
   const handle = initFreeCanvas({
     viewEl, stageEl, canvasEl,
     runtime: runtime as never,
@@ -600,6 +602,27 @@ test('with no top bar the mark menu is untouched', () => {
     assert.ok(!keys.includes('theme'), 'the app preferences stay on the zoom HUD');
     assert.ok(!keys.includes('sound'));
   } finally { f.destroy(); }
+});
+
+test('Import a design sits directly under the save rows', () => {
+  const noop = (): void => {};
+  const withBar = mount([frameBox('f1', 0, 0)], {
+    withImport: true,
+    chrome: { saveToLibrary: noop, saveAsTemplate: noop },
+  });
+  try {
+    const keys = markMenuKeys(withBar);
+    assert.deepEqual(keys.slice(0, 3), ['save', 'save-template', 'import'],
+      'Save as, Save as a template, then Import a design');
+  } finally { withBar.destroy(); }
+
+  // No bar: the same file group, after the four output rows it leads with.
+  const bare = mount([frameBox('f1', 0, 0)], { withImport: true });
+  try {
+    const keys = markMenuKeys(bare);
+    assert.equal(keys.indexOf('import'), keys.indexOf('share') + 1, 'Import follows Share');
+    assert.ok(keys.indexOf('import') < keys.indexOf('info'), 'and comes before Document info');
+  } finally { bare.destroy(); }
 });
 
 test('with a top bar the menu sheds duplicated rows and keeps its long-tail controls', () => {

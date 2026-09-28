@@ -1,0 +1,59 @@
+{
+  "id": "live-edit",
+  "name": "Select and replace",
+  "category": "Animated",
+  "description": "Select a draft status and type its replacement in place.",
+  "values": {
+    "scene": "replace",
+    "language": "json",
+    "theme": "suse-light",
+    "windowStyle": "nuremberg",
+    "lineNumbers": true,
+    "showWindow": true,
+    "shadow": true,
+    "scale": 100,
+    "lineHeight": 1.65,
+    "blinkCursor": false,
+    "textOverflow": "fit",
+    "wrapText": false,
+    "calloutMode": "off",
+    "windowRotate": 0,
+    "windowTiltX": 0,
+    "windowTiltY": 0,
+    "showPointer": true,
+    "cursorSize": 125,
+    "clickRing": false,
+    "typingStyle": "natural",
+    "entryMotion": "scale",
+    "exitMotion": "fade",
+    "posterAt": -1,
+    "code": "{\n  \"title\": \"Release notes\",\n  \"status\": \"draft\",\n  \"owner\": \"You\"\n}",
+    "fileName": "release.json",
+    "selectText": "draft",
+    "replacementText": "ready",
+    "typingSeconds": 1.4,
+    "readSeconds": 2.6,
+    "ending": "hold"
+  },
+  "presets": [
+    {
+      "id": "longer-replacement",
+      "name": "Expand the text",
+      "description": "Replace one word with a longer phrase.",
+      "values": {
+        "replacementText": "ready for review",
+        "typingSeconds": 2.2
+      }
+    },
+    {
+      "id": "delete-a-line",
+      "name": "Delete a line",
+      "description": "Select and remove the status line.",
+      "values": {
+        "selectText": "  \"status\": \"draft\",\n",
+        "replacementText": "",
+        "typingSeconds": 0.3
+      }
+    }
+  ]
+}

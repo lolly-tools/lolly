@@ -34,6 +34,13 @@ import {
  */
 function setGlyph(el: HTMLElement, markup: string): void { el.innerHTML = markup; }
 
+/**
+ * The editor's floating surfaces that the free canvas mounts INSIDE the stage: menus
+ * (`.fc-popover`, the context menu included), panels (`.fc-panel`) and the text
+ * controls (`.fc-text-popover`). A plain wheel over one scrolls it instead of panning.
+ */
+export const STAGE_FLOATING_SURFACES = '.fc-popover, .fc-panel, .fc-text-popover';
+
 /** A client-space point. */
 export interface Point { x: number; y: number; }
 /** A client-space rect, the shape both fit targets answer in. */
@@ -920,11 +927,18 @@ export function setupStageNav(stageEl: HTMLElement, outerEl: HTMLElement, canvas
     // Cmd/Ctrl-wheel (and trackpad pinch, which the browser delivers as ctrl+wheel)
     // zooms about the cursor; a plain wheel pans, but only once zoomed in (nothing
     // to pan at Fit). passive:false so we can preventDefault the page zoom/scroll.
+    //
+    // A plain wheel over a menu or panel that floats on the stage is that surface's
+    // own scroll, not a pan. They are children of the stage, so their wheel reaches this
+    // listener too, and panning under them cancelled the scroll: the tail of a long context menu
+    // (the stacking-order and align grids) could not be reached at all.
     stageEl.addEventListener('wheel', e => {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
         holdForWheel();
         zoomAbout(Math.exp(-e.deltaY * 0.0015), e.clientX, e.clientY);
+      } else if ((e.target as Element | null)?.closest?.(STAGE_FLOATING_SURFACES)) {
+        return;
       } else if (isZoomed() || opts?.editorLayout) {
         e.preventDefault();
         holdForWheel();

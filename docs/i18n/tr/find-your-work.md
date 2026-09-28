@@ -1,12 +1,12 @@
 # Çalışmanı bul ve kurtar
 
-Lolly'de yaptığın her şey, [Sync](/info/sync.html)'i açmadıkça, onu yaptığın tarayıcıda ya da uygulamada, o cihazda kalır. Kaydedilmiş iş **Projeler**'dedir. İndirilen bir dosya, tarayıcının ya da sistemin onu koyduğu her yerdedir ve genellikle bir kopyası **Varlıklar**'da bekler. Dokuz araçta, hiç kaydetmediğin çalışma da tutulur. Bu sayfa bunların her birini, artı kapatılmış bir sekmeyi, temizlenmiş tarayıcı verilerini, önceki sürümleri, silinmiş öğeleri ve başka bir cihaza taşımayı kapsar.
+Lolly'de yaptığın her şey, [Sync](/info/sync.html)'i açmadıkça, onu yaptığın tarayıcıda ya da uygulamada, o cihazda kalır. Kaydedilmiş iş **Projeler**'dedir. İndirilen bir dosya, tarayıcının ya da sistemin onu koyduğu her yerdedir ve genellikle bir kopyası **Varlıklar**'da bekler. Çoğu araçta, hiç kaydetmediğin çalışma da tutulur. Bu sayfa bunların her birini, artı kapatılmış bir sekmeyi, temizlenmiş tarayıcı verilerini, önceki sürümleri, silinmiş öğeleri ve başka bir cihaza taşımayı kapsar.
 
 | Ne yaptın | Nereye bak |
 |---|---|
 | **Farklı kaydet** veya **Kaydet**'e bastın | **Projeler** |
 | **İndir**'e bastın | Tarayıcının indirilenleri, ve **Varlıklar**'da bir kopya |
-| Hiçbiri, [çalışırken kaydeden dokuz araçtan](#the-nine-tools-that-save-as-you-work) birinde | **Projeler** ve **History** |
+| Hiçbiri, [çalışırken kaydeden bir araçta](#which-tools-save-as-you-work) | **Projeler** ve **Geçmiş** |
 | Hiçbiri, başka herhangi bir araçta | Yalnızca çalıştığın sekme, onu kapatana kadar |
 | Uygulamada sildin | **Çöp kutusu**, **Projeler**'de, **Varlıklar**'da veya **Ayarlar → Depolama**'da, 30 gün boyunca |
 
@@ -71,20 +71,29 @@ not visible in the closed menu, so the alt does not list them.
 
 Neyin geri geldiği, nasıl ayrıldığına ve hangi aracı kullandığına bağlıdır:
 
-- **Sekmeyi kapattın, ya da başka bir zaman geri döndün.** Kaydedilmemiş çalışma, düzenlemelerini çalışırken kaydeden [dokuz araç](#the-nine-tools-that-save-as-you-work) dışında, kaybolur: onları **Projeler**'den aç.
-- **Sayfayı aynı sekmede yeniden yükledin.** Ayarların sayfa adresinden geri gelir. Dokuz araç dışındaki araçlarda, cihazından eklediğin görseller ve dosyalar, ve 150 karakterden uzun tek satırlık metin geri gelmez, çünkü adres onları tutmaz.
+- **Sekmeyi kapattın, ya da başka bir zaman geri döndün.** Kaydedilmemiş çalışma, [çalışırken kaydeden araçlar](#which-tools-save-as-you-work) dışında kaybolur: o çalışmayı **Projeler**'den aç.
+- **Sayfayı aynı sekmede yeniden yükledin.** Ayarların sayfa adresinden geri gelir. Çalışırken kaydetmeyen araçlarda, cihazından eklediğin görseller ve dosyalar, ve 150 karakterden uzun tek satırlık metin geri gelmez, çünkü adres onları tutmaz.
 - **Ana sayfa'ya ya da sol üstteki geri düğmesine bastın.** Son kaydetmenden, indirmenden ya da kopyalamandan bu yana bir şey değiştirdiysen, bir **Kaydedilmemiş değişiklikler** penceresi önce kaydetmek isteyip istemediğini sorar. **Kaydet & çık** çalışmayı kaydeder ve seni **Projeler**'e, ya da çalışmayı açtığın proje klasörüne geri götürür. **Kaydetmeden çık** değişikliklerini geri alır: kaydedilmiş bir öge en son kaydettiğin hâline döner, hiç kaydetmediğin bir oluşum ise **Projeler**'den ayrılır. **İptal** seni araçta tutar.
 
 Lolly yalnızca bir araçta **Ana sayfa**'ya ya da geri düğmesine bastığında sorar. Sekmeyi kapatmak, yeniden yüklemek ve tarayıcının kendi Geri düğmesi hiçbir zaman sormaz. Emin olmak için bir araçtan ayrılmadan önce **Farklı kaydet**'e, ya da dışa aktarım panelinde **Kaydet**'e bas.
 
 ::: note Yanlışlıkla kaydetmeden mi ayrıldın?
-Çalışırken kaydeden dokuz araçta, History atılan düzenlemelerin bir kopyasını tutar. **History** sayfasını aç, onları **Changes** altında bul ve **Open as a copy**'e bas. Diğer araçlarda değişiklikler kaybolmuştur.
+Çalışırken kaydeden araçlarda, Geçmiş atılan düzenlemelerin bir kopyasını tutar. **Geçmiş** sayfasını aç, onları **Changes** altında bul ve **Kopya olarak aç**'a bas. Diğer araçlarda değişiklikler kaybolmuştur.
 :::
 
-::: details Çalışırken kaydeden dokuz araç
-[Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) ve [Text](/#/tool/text-helper). Daha fazla araç otomatik kaydetme kazandıkça liste büyür.
+::: details Hangi araçlar çalışırken kaydeder
+Web uygulamasında, bir belge oluşturan her araç çalışırken kaydeder: Design, Chart, QR Code, Text, Sandbox ve geri kalanı. Şu araçlar kaydetmez:
 
-Bu araçlarda, ilk değişikliğin çalışmayı sanki kaydetmişsin gibi **Projeler**'e dosyalar, sonraki değişiklikler de birkaç saniye içinde tutulur. Yani kaydedilmemiş bir oluşum, sekmeyi kapattıktan sonra bile Projeler'de kalır ve değişiklikleri kaydedilmemiş olarak işaretlenmiş biçimde yeniden açılır. **Kaydetmeden çık** yine de bunları geri alır, ve History atılan düzenlemelerin bir kopyasını 30 gün boyunca tutar. Aracı ana ekrandan yeniden açmak yeni bir oluşum başlatır; öncekini Projeler'den aç.
+- kendi getirdiğin bir dosya üzerinde çalışan araçlar, örneğin Redact, Sign ya da Convert Image, çünkü Lolly o dosyanın bir kopyasını asla tutmaz;
+- kameranı, mikrofonunu ya da ekranını kaydeden araçlar, örneğin Record, Screen Capture ve Voice Recorder;
+- kendi dosyalarını alan 3D ve Darkroom;
+- değiştirilecek hiçbir şeyi olmayan bir araç, örneğin Countdown.
+
+Bu araçlarda, ilk değişikliğin çalışmayı sanki kaydetmişsin gibi **Projeler**'e dosyalar, sonraki değişiklikler de araç çizimini bitirdikten sonra, çalışırken tutulur. Yani kaydedilmemiş bir oluşum, sekmeyi kapattıktan sonra bile Projeler'de kalır ve değişiklikleri kaydedilmemiş olarak işaretlenmiş biçimde yeniden açılır. **Kaydetmeden çık** yine de bunları geri alır, ve Geçmiş atılan düzenlemelerin bir kopyasını 30 gün boyunca tutar. Aracı ana ekrandan yeniden açmak yeni bir oluşum başlatır; öncekini Projeler'den aç.
+
+[Sync](/info/sync.html) açıkken, bu şekilde dosyalanan bir oluşum, Projeler'deki her şey gibi diğer cihazlarına da gider. Sürümleri ise yapıldıkları cihazda kalır.
+
+Bir oluşum iki sekmede açıksa ve ikisinde de kaydedersen, son kayıt tutulur. Yerini aldığı çalışma kaybolmaz: oluşumun Geçmişinde **Korumalı taslaklar** altındadır, **Taslağı kopya olarak aç** ile birlikte.
 
 Bu yalnızca web uygulamasında çalışır, masaüstü ya da mobil uygulamalarda değil, ve başka biriyle canlı çalışırken de değil.
 :::
@@ -111,21 +120,23 @@ iPhone, iPad ve Android'de yeni bir dosya, aynı ada sahip bir öncekinin yerini
 ## Önceki bir sürüme geri dön
 
 - **Bu ziyaret sırasında:** araçtan ayrılana ya da yeniden yükleyene kadar **Geri al**, son 100 değişikliğin arasında geri gider. Bkz. [Geri alma ve yineleme](/info/using.html#undo-and-redo).
-- **Çalışırken kaydeden dokuz araçta:** her oluşumun önceki sürümleri tutulur. Aşağıdaki adımları izle.
+- **[Çalışırken kaydeden araçlarda](#which-tools-save-as-you-work):** her oluşumun önceki sürümleri tutulur. Aşağıdaki adımları izle.
 - **Cihazdaki her şey:** [Sync](/info/sync.html) açıkken, **Ayarlar → Bağlı hizmetler** altındaki **Restore an earlier copy**, son yedi günlük kopyadan birini, ya da son uygulamandan önceki kopyayı geri getirir. Bu cihazdaki her şey o zaman yalnızca bir tasarımla değil, o kopyayla eşleşir.
 
-Dokuz araçtan birinde önceki bir sürümü açmak için:
+Önceki bir sürümü açmak için:
 
-1. **Geri al** ve **Yinele**'nin yanındaki saat düğmesi olan **History**'e bas. Design'da **History** üst çubuktadır; telefonda, **•••**'e ve ardından **History**'e bas.
-2. Sürümü tarihine ve saatine göre bul. **Automatic checkpoint** satırları çalışırken alınır; **Saved version** satırları kaydettiğin anlardır.
-3. **Open as a copy**'e bas. Sürüm yeni bir oluşum olarak açılır, açık olan da olduğu gibi kalır. Kopya, adının sonunda "(copy)" ile **Projeler**'dedir.
+1. **Geri al** ve **Yinele**'nin yanındaki saat düğmesi olan **Geçmiş**'e bas. Design'da **Geçmiş** üst çubuktadır; telefonda, **•••**'e ve ardından **Geçmiş**'e bas. Text ve Sandbox gibi **Geri al**'ı olmayan araçlarda, **Geçmiş** sol üstteki **Ana sayfa**'nın yanındadır.
+2. Sürümü tarihine ve saatine göre bul. **Otomatik kontrol noktası** satırları çalışırken alınır; **Kaydedilmiş sürüm** satırları kaydettiğin anlardır.
+3. **Kopya olarak aç**'a bas. Sürüm yeni bir oluşum olarak açılır, açık olan da olduğu gibi kalır. Kopya, adının sonunda "(copy)" ile **Projeler**'dedir.
 
 Bir sürümü adıyla tutmak için **Name version**'a bas, bir ad yaz ve **Keep milestone**'a bas. Adlandırılmış sürümler, **History** sayfasında **Milestones** altında listelenir.
 
 ::: details History paneli ve History sayfası
 **History** paneli ayrıca **Recovered work** satırlarını da listeler, **Protected drafts** ise **Open draft as a copy** ile birlikte kontrol noktaları arasındaki son düzenlemelerini tutar. **Compare** ve **Check assets**, bir kopya açmadan önce seçim yapmana yardımcı olur. Her oluşumu görmek için **This creation**'ı **All history on this device**'a çevir.
 
-Otomatik kontrol noktaları yaşlandıkça seyrekleşir: son bir saat için dakikada bir, son bir gün için saatte bir, 30 gün boyunca günde bir, sonra haftada bir. Kaydedilmiş sürümlerin hepsi tutulur. Bir oluşumu **Ayarlar → Depolama**'dan silmek, sürümlerini de siler.
+Otomatik kontrol noktaları yaşlandıkça seyrekleşir: son bir saat için dakikada bir, son bir gün için saatte bir, 30 gün boyunca günde bir, sonra haftada bir. Kaydedilmiş sürümler ve adlandırılmış sürümler hepsi tutulur. Bir oluşumu silmek sürümlerini de **Çöp kutusu**'na taşır, **Kalıcı olarak sil** ise onları kaldırır.
+
+Geçmiş depolaması dolduğunda, önce 30 gündür açmadığın oluşumların en eski otomatik kontrol noktaları kaldırılır. Bir kayıt o zaman bile her zaman tutulur: güncel çalışma olarak yazılır ve Geçmiş, bu kaydın bir sürüm olarak tutulmadığını söyler. **Ayarlar → Depolama**, Geçmiş'in ne kadar yer kapladığını gösterir.
 
 **History** sayfası (`#/history`, ya da panoda **Open app history**), bu tarayıcıdaki her oluşumu kapsar. Bir bilgisayarda, sayfayı ana ekranın ya da **Projeler**'in sağ üstündeki saat düğmesinden aç. Telefonda, ana ekrandaki araçlar galerisine git, sağ üstteki yuvarlak logo düğmesine bas ve History'yi açan **Kaydedilmiş oturumlar**'ı seç. **Projeler**'den o öğe henüz hiçbir şey yapmaz.
 
@@ -157,7 +168,7 @@ Her şeyi bir kerede taşımak için:
 3. Yeni cihazda, **Ayarlar → Depolama**'yı aç, **Veri içe aktar…**'a bas, dosyayı seç ve **İçe aktar**'a bas.
 
 ::: note Geride ne kalır
-Girişler, anahtarlar ve senkronizasyon parolası her cihazda kalır. Son indirmelerin listesi, çevrimdışı indirmeler ve AI modelleri hiçbir yoldan taşınmaz. Sürüm geçmişi yalnızca bir **Verilerimi dışa aktar** dosyasında taşınır, Sync ya da bir `.lolly` üzerinden değil. Sync'in depolamanda tuttuğu bir kopya indirilip açılabilir, ya da bir yedek dosyası gibi **Veri içe aktar…**'da seçilebilir; şifrelenmiş bir kopya parolanı sorar.
+Girişler, anahtarlar ve senkronizasyon parolası her cihazda kalır. Son indirmelerin listesi, çevrimdışı indirmeler ve AI modelleri hiçbir yoldan taşınmaz. Sürüm geçmişi yalnızca bir **Verilerimi dışa aktar** dosyasında taşınır, Sync ya da bir `.lolly` üzerinden değil. Geçmiş tek bir dosya için çok büyük olduğunda, en eski otomatik kontrol noktaları dışarıda bırakılır ve dışa aktarım satırı kaçını bıraktığını söyler. Sync'in depolamanda tuttuğu bir kopya indirilip açılabilir, ya da bir yedek dosyası gibi **Veri içe aktar…**'da seçilebilir; şifrelenmiş bir kopya parolanı sorar.
 :::
 
 ::: details Yedek dosyası ne tutar
@@ -176,7 +187,7 @@ Web uygulamasında Lolly, bu site için tarayıcının depolamasında her şeyi 
 
 Uygulama başladığında, Lolly tarayıcıdan, cihazın alanı azaldığında depolamasını temizlememesini ister. Karar tarayıcıya aittir. **Ayarlar → Çevrimdışı kullanılabilir** altında, **Protected** ile başlayan bir satır tarayıcının kabul ettiği anlamına gelir; "Cihazın alanı azalırsa tarayıcı indirmeleri temizleyebilir" ise kabul etmediği anlamına gelir ve **İndirmeleri koru** yeniden sorar. Tarayıcı kabul etmediyse, alan azaldığında indirmelerin yanı sıra kaydedilmiş çalışmayı da temizleyebilir, bu yüzden yakın tarihli bir **Verilerimi dışa aktar** dosyası sakla.
 
-**Ayarlar → Depolama**, her veri türünün ne kadar alan kullandığını gösterir. **Önbelleği temizle**, indirilen katalog dosyalarını bırakır, bunlar gerektiğinde yeniden indirilir. **Tüm verilerimi temizle**, bir kelime yazmanı ister, Sync'i kapatır, ardından Lolly'nin bu tarayıcıda tuttuğu her şeyi kaldırır: profilin ve ayarların, geçmişleriyle birlikte kaydedilmiş oturumların ve Çöp kutusu, yüklemelerin, yazı tiplerin ve tasarım sistemlerin, indirme günlüğü, Convert sonuçları, indirilen AI modelleri ve çevrimdışı kopyalar. İndirdiğin dosyalar, kaydettiğin yerde kalır. Uygulama ardından ilk ziyaretteki gibi başlar.
+**Ayarlar → Depolama**, her veri türünün ne kadar alan kullandığını gösterir. Onun **Geçmiş** satırı otomatik kontrol noktalarını, önizlemelerini ve kurtarma taslaklarını sayar; **30 günden eski otomatik kontrol noktalarını kaldır**, bu alanı boşaltır ve kaydedilmiş ile adlandırılmış sürümleri korur. **Önbelleği temizle**, indirilen katalog dosyalarını bırakır, bunlar gerektiğinde yeniden indirilir. **Tüm verilerimi temizle**, bir kelime yazmanı ister, Sync'i kapatır, ardından Lolly'nin bu tarayıcıda tuttuğu her şeyi kaldırır: profilin ve ayarların, geçmişleriyle birlikte kaydedilmiş oturumların ve Çöp kutusu, yüklemelerin, yazı tiplerin ve tasarım sistemlerin, indirme günlüğü, Convert sonuçları, indirilen AI modelleri ve çevrimdışı kopyalar. İndirdiğin dosyalar, kaydettiğin yerde kalır. Uygulama ardından ilk ziyaretteki gibi başlar.
 
 ![Telefon genişliğinde bir ekranda depolama kartı: cihazdaki her veri kategorisi adlandırılmış, altta Tüm verilerimi temizle düğmesiyle](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

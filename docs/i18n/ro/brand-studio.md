@@ -15,7 +15,7 @@ Studioul este un set de **camere** listate într-o bară laterală - nu pași. N
 - **Type** - cele patru fonturi pe care le citesc aplicația, uneltele tale și fiecare export.
 - **Logos** - mărcile tale, în fiecare orientare și tratament.
 - **Tokens** - raza colțurilor, spațiere, umbre și restul sistemului.
-- **Files** - fișierele imagine, audio și video pe care le păstrează brandul tău.
+- **Files** - fișierele de imagine, audio și animație pe care le păstrează brandul tău.
 
 Pe telefon, aceeași listă devine o bandă orizontală de chip-uri fixată sub antet. Schimbarea camerei nu reîncarcă niciodată nimic - editorul păstrează toate panourile montate și pur și simplu afișează pe cel cerut.
 
@@ -25,19 +25,20 @@ Fixate la **baza barei** sunt acțiunile care aparțin întregului sistem de des
 
 - **Add from…** - selectorul de sursă, pentru a aduce un brand dintr-un fișier, un PDF, o imagine, un font sau un site web. Vezi [Bring a brand in](#bring-a-brand-in) mai jos.
 - **Tray** - candidații pe care o scanare i-a găsit dar nu i-a confirmat încă. Rămâne ascuns până când o scanare păstrează efectiv ceva, și afișează un număr când o face; nimic din el nu îți schimbă brandul până apeși Add pe acel rând.
-- **Export** - scrie întregul brand ca un singur `LollyBrand-…zip`.
+- **Export** - scrie întregul sistem de design ca un singur `LollyBrand-….lolly`.
 - **Tokens (.json)** - documentul simplu de design tokens de sine stătător, pentru un repo, un pas de build sau o altă unealtă de tokeni.
+- **Restore brand settings** - revino la un punct de control salvat înainte de un import sau o înlocuire a setărilor de brand.
 - **Versions** - publică, activează și restaurează copii denumite ale sistemului de design. Ascuns până există ceva propriu de publicat (sau până un link `?area=versions` îl cere pe nume).
 
 ![Bara camerelor studioului - Overview, Colours, Type, Logos, Tokens și Files](/t/url-shot?url=%2F%23%2Fstart&width=1440&height=900&dpi=192&waitMs=1600&cropSelector=.ds-rail&waitSelector=.ds-rail&format=svg&walker=1&localize=1&dark=1&filename=brand-studio&try=1)
 
 ## Overview
 
-Overview este camera în care ajungi, și are două fețe.
+Overview este prima cameră, și are două fețe.
 
-Cu **nimic configurat încă** oferă două uși - **Start from a file** (design tokens, un proiect Penpot, un pachet de sistem de design sau un SVG) și **Start from scratch** (adaugă o culoare, apoi continuă oricând vrei) - și o ieșire discretă **Explore the tools** sub ele, pentru că a pleca este și el un răspuns legitim.
+Cu **nimic ales încă**, spune **Fă-l al tău**. **Start from a reference** deschide selectorul de sursă pentru un logo, o captură de ecran, o pagină web sau un fișier de design. **Alege o culoare**, **Alege un font** și **Adaugă un logo** deschid direct comenzile lor existente. Fiecare traseu începe cu o alegere; deschiderea uneia nu scrie nimic. **Explorează instrumentele** este disponibil imediat.
 
-Odată ce un sistem de design există, aceeași cameră arată **ce ai**: paleta și numărul ei de culori, familiile de fonturi în vigoare, câte sloturi de logo sunt completate, câți tokeni există și camera Files. Fiecare bloc este o ușă spre camera lui. Aici sunt numere, niciodată o bară de progres și niciodată un card de finalizare - nimic în acest studio nu este datorat.
+Odată ce ceva e al tău, aceeași cameră arată **ce ai**, cu numerele pe care le-ai făcut în frunte. Colours citește numărul de culori pe care le poartă sistemul de design, și adaugă un discret `· N starter` doar acolo unde sunt culori moștenite afișate; banda de lângă el pune întâi culorile pe care le-ai ales tu, apoi o linie fină și cele starter, estompate. Type citește pe rol (*Inter pentru titluri*, cu *Starter pentru rest · SUSE, SUSE Mono* dedesubt). Logos citește câte sloturi sunt completate, sau **Nesetat**. Tokens poartă raza colțurilor, marcată *starter* până o muți. Files spune **Nimic încă** cât timp biblioteca e goală. Fiecare bloc este o ușă spre camera lui. Aici sunt numere, niciodată o bară de progres și niciodată un card de finalizare - nimic în acest studio nu este datorat.
 
 ## Logos
 
@@ -56,60 +57,91 @@ Acestea sunt opt sloturi opționale. Apasă un slot pentru a adăuga un PNG, SVG
 
 - **Custom marks** - adaugă mărci pe care brandul tău le numește în felul lui (o iconiță, o insignă, un favicon) sub **Custom marks**; denumește-o și alege un fișier.
 - **More identities** - un sub-brand, produs sau eveniment poate avea propriul set complet de logouri. Folosește **+ Add another logo** și denumește-l; setul tău principal este pur și simplu "Your logo".
-- **Încarcă un SVG și Lolly îi citește culorile.** La o instalare nouă, setează discret culoarea ta primară din logo și spune asta. La un brand existent, oferă în schimb culoarea ca sugestie - *"Found in the logo: #…"* cu un buton **Use as primary** lângă ea - în camera Colours, unde o poți accepta sau respinge.
+- **Încarcă un SVG și Lolly îi citește culorile.** La o instalare nouă, setează discret culoarea ta primară din logo și spune asta. La un brand existent, oferă în schimb culoarea ca sugestie - *"Found in the logo: #…"* cu un buton **Folosește ca principal** lângă ea - în camera Colours, unde o poți accepta sau respinge.
 
 ## Colours
 
-![The Colours room after one colour - the two panes back, the generate offer, roles reading in three registers and the pane at one colour](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
+Camera crește odată cu sistemul de design. Nimic de care nu ai avut încă nevoie nu se află pe pagină, așa că o primă vizită înseamnă o singură decizie, iar restul sosește pe măsură ce paleta crește.
 
-Cea mai bogată cameră, în două panouri. Cel din stânga este unde lucrezi; cel din dreapta este **paleta ta live**. Trage delimitatorul dintre ele pentru a redimensiona (Enter pe el pliază paleta din cale).
+### Prima culoare
 
-![Camera Colours - o culoare primară derivă ramp-uri, carduri specimen cu rapoarte de contrast și o paletă live](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+Un sistem de design fără culori proprii se deschide pe o singură coloană centrată: **Start with one colour**, un chip live mare, un câmp, și o linie discretă care spune că rolurile, nuanțele și setările de tipar sosesc pe măsură ce sistemul crește.
 
-### Adaugă o culoare, apoi dă-i un rol
+- **Chip-ul este selectorul.** Apasă-l și cardul OKLCH propriu al studioului se deschide pe chip, pornind de la ce ține câmpul: un nume, roata, cele patru cadrane, alfa și **Stocat ca**, cu **Anulează** și **Adaugă culoare** la bază. Tragerea unui cadran colorează chip-ul și rescrie câmpul pe măsură ce lucrezi, și nimic nu ajunge la sistemul de design până apeși **Adaugă culoare**.
+- **Câmpul acceptă orice notație** - `#e0452b`, `rgb(224 69 43)`, `oklch(58% .19 32)` sau un nume simplu de culoare - iar o *listă* întreagă de culori devine un rând de chip-uri pe care le adaugi unul câte unul.
+- **Încă două uși stau alături.** Pipeta (pe un browser care are una) preia o culoare de pe ecran, iar **Preia culori dintr-o imagine** citește o captură de ecran sau o fotografie de pe acest dispozitiv și oferă culorile pe care le găsește.
+- **Add nu este niciodată dezactivat.** Cu nimic lizibil în câmp, deschide selectorul, ceea ce înseamnă de obicei o apăsare pe gol; un text pe care nu-l poate interpreta primește o linie sub câmp care spune asta, în loc de un buton mort.
 
-**Add a colour** este întreaga cale simplă: lipește sau alege o culoare în orice notație și devine exact un token. Nimic nu este derivat din ea, nimic nu este sugerat în ea, nimic altceva nu este cerut. Lipește o *listă* întreagă de culori și fiecare devine un chip pe care îl poți adăuga separat.
+Prima culoare devine **Principal**, iar chip-ul care răspunde adăugării spune asta - *„Principal este acum Vivid Violet”* - cu **Ajustare fină** alături.
 
-**Roles** este stratul de deasupra - ce culoare joacă ce rol. Rolurile sunt opționale (un sistem de design cu trei culori independente și fără roluri este unul perfect valabil), orice mostră poate primi unul și citirea contrastului este măsurată față de suprafață, mai întâi APCA.
+![Camera Colours fără nimic ales încă - un chip live mare, un câmp și o linie despre ce sosește mai târziu](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours)
+
+### Starter
+
+**Starter** este cuvântul pentru orice a venit cu aplicația în loc să fie ales. O instalare nouă nu poartă nicio culoare deloc: ce are este o singură rampă neutră, cerneală prin hârtie, astfel încât suprafețele, textul și liniile fine se randează înainte ca cineva să fi decis ceva. Aceste neutre sunt schelărie, deci nu sunt numărate ca și culori și nu sunt desenate în panoul paletei. Trăiesc în camera [Tokens](#tokens) ca **Neutre · inițial · 9**, cu un **Deschide** care le arată în panoul Colours ca un grup pliat, etichetat (`#/start?area=color&group=neutral`).
+
+Același cuvânt continuă prin fiecare cameră: un rol care stă pe o culoare starter se citește *„Starter Paper stands in”* și selectorul lui oferă **Alege…**; un font starter poartă o etichetă **Starter** și fără nuanțare; o rază de colț starter este etichetată pe Overview. Materialul moștenit nu este niciodată desenat cu o margine punctată, pentru că o margine punctată înseamnă aici o zonă de plasare.
+
+### Pe măsură ce paleta crește
+
+Culorile tale stau alături de o previzualizare **In context** pe un ecran lat și se stivuiesc deasupra ei pe ecrane mai mici. Previzualizarea poate arăta un poster, un grafic sau un card de interfață folosind paleta ta. Culorile starter rămân în propriul lor grup pliabil, separat de culorile pe care le adaugi.
+
+Adaugă culori individuale sau un set de nuanțe, atribuie-le rolurile, și deschide secțiunile avansate când ai nevoie de ele. Diagrama de culori, degradeurile și comenzile de descărcare rămân cu paleta.
+
+![Camera Colours după adăugarea unei culori, cu paleta ei și o previzualizare live a compoziției](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dpick&width=1440&height=840&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-editor-add%5D%3Bwait%3A900&format=svg&walker=1&dark=1&filename=bs-colour-first)
+
+### Roles - ce citesc uneltele
+
+**Roles** este stratul de deasupra eșantioanelor: ce culoare joacă fiecare parte, în fiecare unealtă și export. Rolurile sunt opționale (un sistem de design cu trei culori independente și fără roluri este unul perfect valabil), orice eșantion poate primi unul, iar citirea contrastului este măsurată față de suprafață, mai întâi APCA.
+
+Un rând se citește într-unul dintre trei registre, așa că banda nu pretinde niciodată o decizie pe care nimeni n-a luat-o:
+
+- o culoare proprie care servește rolul, la intensitate maximă;
+- **Starter *Paper* stands in** - estompat, cu **Alege…** pe selectorul său;
+- **↳ urmează Primar** - rolul se rezolvă prin culoarea principală, în loc de o culoare proprie.
+
+Odată ce paleta are nuanțe, banda crește la toate cele șapte sloturi pe care le poate citi o unealtă: Principal, Secundar, Suprafață, Text, Estompat, Margine și Pe principal. Pe principal este derivat din culoarea principală, se citește **Derivat** și nu poartă selector.
+
+**Accentul propriu al aplicației este o preferință, nu un token.** Implicit, interfața urmează sistemul de design, iar accentul cromului preia culoarea principală. Aceasta este o setare de Appearance pe [profilul tău](/info/profile.html) - **Interfața urmează sistemul de design** - iar dezactivarea ei lasă cromul neutru. Uneltele, canvasurile și exporturile nu sunt afectate în niciun caz, iar fonturile și raza colțurilor urmează sistemul de design indiferent dacă setarea e activă sau nu.
 
 ### Aripile pentru experți
 
-Patru secțiuni pliate stau sub cele două de mai sus. Deschide-o pe cea pe care o vrei; fiecare poate fi accesată direct ca `#/start?area=color&focus=<wing>`:
+Patru secțiuni pliate stau sub previzualizarea compoziției și rolurile de culoare. Deschide-o pe cea pe care o vrei; fiecare poate fi accesată direct ca `#/start?area=color&focus=<wing>`, care o deschide indiferent ce arată camera altfel:
 
-- **Generate a starter palette** (`focus=generate`) - o culoare într-un set complet de nuanțe. Descris mai jos.
+- **Explore shades & harmonies** (`focus=generate`) - o culoare într-un set complet de nuanțe. Descris mai jos.
 - **Shade curves** (`focus=curves`) - remodelează un ramp punct cu punct. Luminozitatea, croma și nuanța primesc fiecare propria curbă, comutabile cu L / C / H, iar nuanțele de mai jos se recalculează live pe măsură ce tragi.
 - **Contrast** (`focus=contrast`) - **Contrast-lock** reechilibrează un ramp pentru a atinge ținte APCA față de un fundal pe care îl alegi, fiecare pas păstrându-și propria nuanță și cromă; **Rotate hue** rotește întregul ramp în bloc pe roata cromatică, fiecare nuanță păstrându-și luminozitatea și croma.
-- **Print** (`focus=print`) - ce devine culoarea primară la tipar: valoarea ei automată pentru ecran, sau o valoare CMYK fixată ori o cerneală spot denumită în schimb.
+- **Print** (`focus=print`) - ce devine culoarea principală la tipar: valoarea ei automată pentru ecran, sau o valoare CMYK fixată ori o cerneală spot denumită în schimb.
 
 ### O culoare, o paletă întreagă
 
-În **Generate a starter palette**, alege o **Primary colour** și Lolly calculează o paletă completă - suprafețe deschise și întunecate, text, accente și ramp-uri complete de nuanțe deschise/închise - folosind aceeași matematică perceptuală a culorii (OKLCH) pe care motorul o folosește peste tot. Ajustează derivarea:
+În **Explore shades & harmonies**, alege o **Starting colour**. Lolly sugerează nuanțe potrivite folosind aceeași matematică perceptuală a culorii (OKLCH) pe care motorul o folosește peste tot. Ajustează sugestiile:
 
-- **Scheme** - Mono, Complement, Analogous sau Triad - stabilește cum se raportează culoarea secundară la cea primară a ta.
+- **Scheme** - Mono, Complement, Analogous sau Triad - stabilește cum se raportează culoarea secundară la cea principală a ta.
 - **Shades** - un cursor de la 3 la 20 (implicit 5) controlează câte trepte generează fiecare ramp.
 - **Fine-tune** (pliat) - **UI intensity** (Muted / Deep), **Contrast** (Comfort / High) și **Text on brand** (Auto / Light / Dark).
 
-Nimic în această aripă nu scrie ceva în brandul tău. Este o previzualizare, live în toată aplicația, ca să o poți evalua, până când apeși **Replace palette** (mai jos).
+Schimbarea culorii de start și a comenzilor modifică doar sugestiile. Apasă pe o nuanță pentru a adăuga acea culoare, sau **Adaugă 5 nuanțe** pentru a adăuga un grup (numărul urmează setarea ta Shades). Culorile și rolurile existente rămân neschimbate. Anulează elimină adăugarea.
 
-Sub culoarea primară vei vedea ramp-urile live **Primary / Neutral / Secondary / Blend** și carduri specimen Light și Dark, fiecare purtând propria citire de contrast - raportul WCAG cu cifra APCA `Lc` lângă el. **Apasă o treaptă din ramp-ul Neutral sau Secondary** pentru a ancora acea nuanță în locul celei derivate implicit.
+Rândurile **Principal**, **Neutru** și **Secundar** arată nuanțele sugerate. Deschide **Theme preview** pentru a inspecta exemplele deschise și întunecate și citirile lor de contrast. Alege acolo o treaptă Neutru sau Secundar pentru a ajusta ancorele de temă propuse. Reconstruirea întregii palete rămâne o acțiune separată, revizuită, mai jos.
 
-![Cele patru rampe suprapuse deasupra cardurilor demonstrative deschise și întunecate, fiecare card purtându-și propriul raport de contrast WCAG](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1400&dpi=192&waitMs=1800&css=.start-head%7Bdisplay%3Anone%7D&cropSelector=.be-preview&format=svg&walker=1&dark=1&filename=bs-colour-ramps)
+![Trei grupuri de nuanțe sugerate, cu comenzi individuale de adăugare și un Theme preview separat](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1400&dpi=192&waitMs=1800&css=.start-head%7Bdisplay%3Anone%7D&cropSelector=.be-preview&format=svg&walker=1&dark=1&filename=bs-colour-ramps)
 
 ### Creează-ți paleta (generator de armonii)
 
-Tot în această aripă, **Creează-ți paleta** generează culori de accent asortate din culoarea ta primară. Alege o **Armonie** - **Complementară**, **Adiacentă**, **Triadă**, **Tetradă** sau **Analogă** (care aduce propriul număr de **Accente**, de la 2 la 5, și un **Unghi** de nuanță de la 10° la 45°) - iar fiecare candidat vine cu un nume generat automat, ușor de citit, și un buton **+ Adaugă**. Adăugarea uneia pune imediat acea culoare în paleta ta, o apăsare pentru un token. *„Paleta ta, aplicată”* previzualizează întregul set pe grafice reale.
+În **Find matching colours**, generatorul de armonii sugerează culori de accent asortate din culoarea principală. Alege o **Harmony** - **Complementară**, **Adiacentă**, **Triadă**, **Tetradă** sau **Analoagă** (care aduce propriul număr de **Accente**, de la 2 la 5, și un **Unghi** de nuanță de la 10° la 45°) - iar fiecare candidat vine cu un nume generat automat, ușor de citit, și un buton **+ Adaugă**. Adăugarea uneia pune imediat acea culoare în paletă, o apăsare pentru un token. **In context** previzualizează culorile adăugate de tine pe compoziții demonstrative.
 
 ![Accente generate, fiecare cu un eșantion, un nume generat automat, codul hex și un buton Adaugă](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=900&dpi=192&waitMs=1800&css=.start-head%2C.be-colour%7Bdisplay%3Anone%7D&drive=click%3A.be-generate-detail%3Anot%28%5Bdata-be-rebuild%5D%29%20%3E%20summary%3Bwait%3A500&cropSelector=.be-candidates&walker=1&format=svg&dark=1&filename=bs-harmony-candidates)
 
 ### Confirmarea unei palete generate
 
-**Înlocuiește paleta** este singurul control din această aripă care scrie ceva, și nu scrie niciodată imediat. Apasă-l și se deschide mai întâi un card de revizuire, intitulat „Înlocuiești paleta?”, care detaliază exact ce urmează să se întâmple: câte roluri rămân așa cum le-ai atribuit, câte culori adăugate de tine sunt păstrate, câte curbe de nuanțe sunt reancorate, câte blocaje de tipar sunt re-fixate, câte nuanțe ascunse rămân ascunse, câte capete de degrade își păstrează culoarea.
+Adăugarea unei culori sau a unui grup de nuanțe sugerate păstrează restul paletei tale. Pentru o înlocuire completă, deschide **Rebuild the whole palette…** și apasă **Preview full rebuild**. Recenzia explică schimbările: câte roluri rămân așa cum le-ai atribuit, câte culori adăugate de tine sunt păstrate, câte curbe de nuanțe sunt reancorate, câte blocaje de tipar sunt re-fixate, câte nuanțe ascunse rămân ascunse, câte capete de degrade își păstrează culoarea.
 
-**Înlocuiește paleta** de pe acel card o confirmă; **Anulează** renunță și nu schimbă nimic. După ce a rulat, cardul devine „Paletă înlocuită.” cu un singur **Undo** deja focalizat - iar un punct de control al întregului sistem de design este creat *înainte* de schimbare, astfel încât „pune-l înapoi cum era” înseamnă o restaurare, nu o după-amiază pierdută.
+**Apply rebuilt palette** de pe acel card o confirmă; **Anulează** renunță și nu schimbă nimic. După ce a rulat, cardul oferă **Anulează** cu focusul deja pe el - iar un punct de control al întregului sistem de design este creat *înainte* de schimbare, așa că „pune-l înapoi cum era” înseamnă o restaurare, nu o după-amiază pierdută.
 
 ### Paleta, graficul și fiecare eșantion
 
-Panoul din dreapta listează fiecare culoare din brandul tău, grupată (Primary, Neutral, Secondary, Spectrum, Custom, Roles), fiecare grup putând fi restrâns, cu propriul **+ Add**. Dedesubt, **Colour chart** se deschide pe două vizualizări ale acelorași eșantioane: **Wheel** (roata OKLCH - trage un punct pentru a-i schimba culoarea, apasă un punct pentru a-l edita sau apasă un spațiu gol pentru a adăuga un eșantion nou) și graficul **Gamut**, care arată unde se termină de fapt intervalul afișabil. `#/start?area=color&focus=chart` deschide direct cardul, la fel ca `?wheel` dintotdeauna.
+Paleta listează culorile sistemului de design în grupuri pliabile, fiecare cu propria comandă **+ Adaugă**. Creează și redenumește grupuri ca să-ți organizezi lucrul. Un rol nu creează niciodată o a doua dală: un token este o dală, iar o dală spre care indică un rol poartă în schimb un mic semn de colț (**P**, **S**, **Su**, **T**). Sub dale, **Diagramă de culori** se deschide pe două vizualizări ale acelorași eșantioane: **Roată** (roata OKLCH - trage un punct pentru a-i schimba culoarea, apasă un punct pentru a-l edita sau apasă un spațiu gol pentru a adăuga un eșantion nou) și diagrama **Gamut**, care arată unde se termină de fapt intervalul afișabil. `#/start?area=color&focus=chart` deschide direct cardul, la fel ca `?wheel` dintotdeauna.
 
 ![Panoul paletei, fiecare grup putând fi restrâns, cu pastila de descărcare fixată la marginea de jos](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor%26focus%3Dgenerate%26seed%3D%2523e0452b&width=1440&height=1000&dpi=192&waitMs=1800&drive=click%3A%5Bdata-be-add-ramp%3D%22primary%22%5D%3Bwait%3A1200&cropSelector=.be-split-side&walker=1&format=svg&dark=1&filename=bs-palette-pane)
 
@@ -130,43 +162,70 @@ Aceste blocaje de tipar sunt cele pe care le folosește o tipografie când expor
 
 **Ștergerea unui eșantion** este sigură: pașii de rampă derivați și rolurile de temă sunt *ascunși* (token-ul de bază continuă să se rezolve, deci nimic din aval nu se strică), în timp ce culorile adăugate de tine sunt eliminate definitiv.
 
+### Lucrul cu multe eșantioane
+
+Fiecare eșantion are propriul mâner de tragere. Trage-l pentru a reordona culorile în cadrul grupului său, sau focalizează-l, apasă Space, folosește săgețile, și apasă din nou Space pentru a-l plasa. Escape anulează. Ordinea supraviețuiește redeschiderii studioului și poate fi anulată. Ca să muți culori între grupuri, folosește comanda **Grupează** din editorul eșantionului sau selectează mai multe culori și folosește **Mută**. Numele tokenilor și referințele de rol rămân intacte.
+
+Selecția în panoul paletei este un gest, nu un mod. Nu există un buton de apăsat mai întâi, iar bara apare odată cu prima dală selectată și dispare odată cu ultima.
+
+- **Trage pe spațiul gol al panoului** pentru a desena un dreptunghi: fiecare dală pe care o atinge se alătură selecției, peste granițele grupurilor. O secțiune pliată nu contribuie cu nimic, iar o tragere care nu se mișcă niciodată golește selecția.
+- **Shift-click** ia intervalul în ordinea citirii; **Cmd/Ctrl-click** comută o dală; un click simplu tot deschide editorul acelei dale.
+- Fiecare antet de grup poartă **Selectează tot**, iar **Cmd-A** cu o dală focalizată ia fiecare culoare pe care o deține sistemul de design - niciodată una starter.
+- Grila are un singur punct de tab. Săgețile o parcurg, Shift-săgețile extind selecția, Space comută o dală, Delete elimină selecția, iar Escape o golește. (Săgețile doar mută focusul: ca să ajustezi un canal, apasă mai întâi `l`, `c` sau `h`, așa cum spune citirea.)
+- Pe un ecran tactil nu există dreptunghi. Apasă și ține o dală pentru a începe o selecție, apoi atinge pentru a adăuga; **Selectează tot** per grup preia restul.
+
+Bara însăși se citește **{n} selectate**, apoi **Mută în** (un grup existent, sau unul nou pe care îl denumești în meniu), **Atribuie un rol** (fiecare culoare selectată preia pe rând rolul următor, așa că patru dale umplu toate cele patru roluri dintr-o apăsare), **Descarcă** (selecția în oricare din cele șase formate de paletă), **Copiază valorile** (o linie per culoare, în notația ei stocată) și **Șterge**. Mută în și Atribuie un rol apar odată ce paleta are nuanțe de mutat. Un singur Ctrl/Cmd-Z anulează o întreagă acțiune în masă - o mutare de patruzeci, o distribuire de roluri, o ștergere - iar o ștergere spune ce a păstrat, pentru că o selecție ajunge la dale pe care această cameră nu le elimină.
+
 ### Degradeuri
 
-Un panou opțional **Gradients** (Degradeuri) construiește tokenuri de amestec din paleta ta, pentru fundaluri și accente. Sari peste el complet dacă brandul tău nu folosește degradeuri. Fiecare degrade are o previzualizare, capete numite (2-8) și un unghi. Comportamentul-cheie: **un capăt face referire la un eșantion**, deci recolorează acel eșantion și degradeul îl urmează. Interpolarea rulează în OKLCH pentru amestecuri curate. Șterge un capăt pentru a scurta șirul.
+Un panou opțional **Gradients** construiește tokenuri de amestec din paletă, pentru fundaluri și accente. Sari peste el complet dacă sistemul de design nu folosește degradeuri. Fiecare degrade are o previzualizare, capete numite (2-8) și un unghi. Comportamentul-cheie: **un capăt face referire la un eșantion**, deci recolorează acel eșantion și degradeul îl urmează. Interpolarea rulează în OKLCH pentru amestecuri curate. Șterge un capăt pentru a scurta șirul.
 
 ### Ia paleta în altă parte
 
-Pastila plutitoare fixată la marginea de jos a panoului paletei descarcă întreaga paletă ca **Design tokens (JSON)**, **CSS variables**, **CSS classes**, **SCSS variables**, o paletă **GIMP (.gpl)** sau un **Adobe Swatch Exchange (.ase)** - astfel încât brandul intră direct în Illustrator, Figma, GIMP sau o foaie de stil. Stă în afara zonei derulabile a panoului, deci își păstrează locul indiferent cât de mult derulezi paleta. (Poți descărca paleta și din [Resurse](/info/using.html#assets-your-library).)
+Pastila plutitoare fixată la marginea de jos a panoului paletei descarcă întreaga paletă ca **Tokenuri de design (JSON)**, **Variabile CSS**, **Clase CSS**, **Variabile SCSS**, o **GIMP palette (.gpl)** sau un **Adobe Swatch Exchange (.ase)** - astfel încât sistemul de design intră direct în Illustrator, Figma, GIMP sau o foaie de stil. Stă în afara zonei derulabile a panoului, deci își păstrează locul indiferent cât de mult derulezi paleta, și apare odată ce paleta are nuanțe. (Poți descărca paleta și din [Resurse](/info/using.html#assets-your-library).)
 
 ## Tipografie
 
-![The compare stage open under its card, with the search row, the pinned families and the cards folded to a one-line strip](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dtype%26focus%3Dstage&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-type-stage)
+Această cameră crește la fel. Fără un font propriu, este un singur card și o singură decizie: **Principal**, setat la mărime de citire în fontul care îl servește azi, o etichetă **Starter** lângă nume, un buton plin **Alege un font** și linia *„Nimic nu se instalează până nu alegi unul.”* Sub card stă *„Titlurile, codul și italicul urmează principalul până le alegi”*, cu **Alege-le separat** dezvăluind celelalte trei carduri pentru restul vizitei.
 
-Camera începe cu **patru carduri de rol** - cele patru fonturi pe care aplicația, uneltele tale și fiecare export chiar le citesc. Fiecare card arată ce servește acel rol chiar acum, setat în acel font, cu o linie de text real dedesubt:
+![Camera Type fără niciun font ales încă - un card la mărime de citire, o etichetă Starter pe el și un buton plin Alege un font](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+
+Alege un font și camera se deschide în **patru carduri de rol**, lista Fonts și specimenul live. Cele patru fonturi sunt cele pe care aplicația, uneltele tale și fiecare export chiar le citesc:
 
 - **Primary** (Principal) - text de bază, butoane și fiecare unealtă.
 - **Headings** (Titluri) - fontul de afișare pentru `h1`/`h2`.
 - **Code** (Cod) - un font monospațiat pentru cod și date.
 - **Italic** - un adevărat însoțitor italic pentru accentuare, citate și paranteze.
 
-Titlurile, codul și italicul revin implicit la fontul principal până le atribui, deci un brand cu un singur font nu are nicio decizie de luat aici. Nimic de pe un card nu confirmă ceva: **Change** (Schimbă) (sau **Choose a face** (Alege un font) pe un rol gol) deschide **scena de comparație** limitată la acel rol.
+Titlurile, codul și italicul revin implicit la fontul principal până le atribui, deci un sistem de design cu un singur font nu are nicio decizie de luat aici.
 
-![Camera Type - cardurile de rol și un specimen live al fiecărui font în acțiune](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=brand-type)
+**O nuanțare înseamnă că ai ales-o tu.** Un card este nuanțat doar acolo unde ai instalat acel font. Un font starter poartă aceeași etichetă **Starter** pe care o poartă grupurile moștenite ale paletei, în registrul estompat și fără nuanțare, iar un rol pe care nimeni nu l-a ales se citește **↳ urmează Primar**, în loc să repete numele principalului ca și cum ar fi fost ales. Butonul spune **Schimbă** pe un font propriu și **Alege un font** peste tot altundeva. Nimic de pe un card nu confirmă ceva: butonul deschide **scena de comparație** limitată la acel rol.
+
+![Cele patru carduri de rol dezvăluite - fiecare setat în fontul care îl servește, cu o etichetă Starter acolo unde nimeni nu a ales unul și Italic urmând principalul](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
 
 ### Scena de comparație
 
-Scena se deschide **direct în cameră**, nu într-un dialog, așa că nu pierzi cardurile de la care ai pornit. Caută o familie din Google Fonts (Inter, Fraunces, Space Grotesk...) sau lasă un fișier de font, apasă **Add to the comparison** (Adaugă la comparație) și candidații stau unul lângă altul, în aceleași cuvinte, înainte ca vreunul dintre ei să se instaleze. Escape anulează și predă tastatura înapoi cardului de la care ai deschis-o.
+![Scena de comparație deschisă sub cardul ei, cu rândul de căutare, familiile fixate și cardurile pliate într-o bandă pe un rând](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dtype%26focus%3Dstage&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&dark=1&filename=bs-type-stage)
 
-Aceasta este singura ușă de intrare, motiv pentru care nimic nu intră în brandul tău nevăzut. Sub scenă se află cele două panouri de gestionare:
+Scena se deschide **inline, în cameră**, nu într-un dialog, și direct sub cardul pe care l-ai apăsat. Cât timp este deschisă, cardurile se pliază într-o bandă pe un rând cu rolul și fontul, așa că scena încape pe primul ecran chiar și pe telefon. Escape anulează și predă tastatura înapoi cardului de la care ai deschis-o.
 
-- **Fonts on this device** (Fonturi pe acest dispozitiv) - fiecare familie instalată, rolurile pe care le deservește și o opțiune de ștergere. **Add a face** (Adaugă un font) aici deschide aceeași scenă de comparație, fără limitare de rol.
-- **Your fonts** (Fonturile tale) - încarcă un **TTF**, **OTF** sau **WOFF** de pe propriul calculator. Acesta este drumul pentru un font corporate licențiat pe care îl deții deja.
+Alegerea unui font înseamnă trei apăsări:
 
-Oricum ar fi, fontul rămâne pe acest dispozitiv, se randează în aplicație, în uneltele tale și în fiecare export, offline pentru totdeauna, și călătorește în pachetul tău de brand - nimic nu este preluat în momentul randării. Tot ce se află pe Google Fonts este livrat sub o licență deschisă (OFL/Apache/UFL).
+1. **Alege un font** pe card.
+2. Tastează un nume de familie și apasă **Previzualizare** - sau apasă una dintre cele șase familii **Fixat**, sub câmp, câte o apăsare fiecare. Cardul apare deja în încărcare, cu o bară schelet acolo unde va fi specimenul, în loc de fontul interfeței care ține locul unui font pe care nu l-ai văzut încă.
+3. **Folosește acest font**.
 
-Panoul **Type roles** (Roluri de font) de la bază arată un specimen live al fiecărui rol - text de bază și UI în fontul principal, un font de afișare opțional pentru titlurile de sus, un italic pentru accentuare, un monospațiat pentru cod și date - astfel încât poți vedea tot setul funcționând împreună.
+**Consimțământul este cerut o singură dată, la apăsarea pe care ai făcut-o.** Prima dată când o previzualizare ajunge la Google Fonts, un dialog spune ce se întâmplă: *Google află numele familiei și adresa ta IP. Fișierul este apoi păstrat pe acest dispozitiv și folosit offline. Acesta este singurul pas din studio care ajunge la o terță parte.* **Preia de la Google** merge mai departe și este reținut. **Anulează** lasă cardul să spună *„Nepreluat. Nimic nu a fost trimis către Google.”* cu propriul său **Preia de la Google** viu, așa că a te răzgândi este o singură apăsare pe card. Niciun card nu arată vreodată un buton mort: indiferent în ce stare este, singurul lui buton principal spune care e pasul următor.
 
-![Specimenul rolurilor de font - titlu, text de bază, italic și cod, fiecare setat în fontul spre care se rezolvă rolul respectiv, cu numele fontului alături](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtype&width=1440&height=1000&dpi=192&waitMs=2600&drive=click%3A%5Bdata-be-typemore-toggle%5D%3Bwait%3A600&cropSelector=.be-typecard-grid&walker=1&format=svg&dark=1&filename=bs-type-specimen)
+**Lasă un fișier de font pe scenă** și se previzualizează instantaneu - **TTF**, **OTF** sau **WOFF** de pe propriul tău calculator, ceea ce este calea pentru un font corporate licențiat pe care îl deții deja. Acea zonă de plasare este singura ușă de fișiere din cameră.
+
+Oricum ar fi, fontul rămâne pe acest dispozitiv, se randează în aplicație, în uneltele tale și în fiecare export, offline pentru totdeauna, și călătorește în fișierul sistemului de design - nimic nu este preluat în momentul randării. Tot ce se află pe Google Fonts este livrat sub o licență deschisă (OFL/Apache/UFL).
+
+### Fonts on this device
+
+Panoul **Fonturi** listează fiecare font pe care îl deține acest dispozitiv și rolul pe care îl servește. Fonturile pe care le-ai adăugat conduc sub **În sistemul de design**, fiecare cu rolurile sale și o ștergere, iar cel care servește Principal poartă insigna. Fonturile starter urmează într-un rând pliat - *„Starter · SUSE, SUSE Mono · servind Principal și Cod până alegi”* - estompate, fără ștergere și fără nimic de promovat, pentru că niciuna nu este o decizie pe care a luat-o cineva. **Adaugă un font** deschide aceeași scenă de comparație, nelimitată.
+
+Panoul **Roluri tipografice**, la bază, arată un specimen live al fiecărui rol - text de bază și UI în principal, un font de afișare opțional pentru titlurile de sus, un italic pentru accentuare, un monospațiat pentru cod și date - cu familia și starea ei alături de fiecare (*Inter*, *SUSE · starter*, *SUSE · urmează Principal*), astfel încât întregul set poate fi citit dintr-o privire.
 
 ## Tokenuri
 
@@ -174,22 +233,24 @@ Restul sistemului de design, editabil fără să atingi codul:
 
 ![Camera Tokens - un cursor pentru raza colțurilor plus spațiere, dimensionare, umbre și restul sistemului](/t/url-shot?url=%2F%23%2Fstart%3Ftab%3Dtokens&width=1440&height=740&dpi=192&waitMs=1600&format=svg&walker=1&dark=1&filename=brand-tokens)
 
-- **Rounded corners** (Colțuri rotunjite) - un singur cursor de rază (0-1.5rem) pe care îl urmează cardurile, butoanele și panourile din întreaga aplicație.
-- **More tokens** (Mai multe tokenuri) - adaugă și editează **spacing** (spațiere), **sizing** (dimensionare), **stroke width** (grosime contur), **opacity** (opacitate), **rotation** (rotație), **numbers** (numere) simple și **shadows** (umbre). Alege un tip, dă-i un nume (*Gutter, Card shadow...*) și setează-i valoarea. Acestea sunt stocate ca [tokenuri de design](/info/design-tokens.html) standard (DTCG) și călătoresc împreună cu brandul tău.
+- **Colțuri rotunjite** - un singur cursor de rază (0-1.5rem) pe care îl urmează cardurile, butoanele și panourile din întreaga aplicație.
+- **Neutrals** - rampa cerneală-prin-hârtie cu care vine o instalare nouă, listată ca **Neutre · inițial · 9** cu cele nouă trepte ale ei și un **Deschide** spre panoul Colours. Este singurul loc unde sunt gestionate neutrele starter, iar eticheta *starter* dispare din momentul în care rampa este generată, nu moștenită.
+- **Mai multe tokenuri** - adaugă și editează **spațiere**, **dimensionare**, **grosime contur**, **opacitate**, **rotație**, **numere** simple și **umbre**. Alege un tip, dă-i un nume (*Gutter, Card shadow…*) și setează-i valoarea. Acestea sunt stocate ca [tokenuri de design](/info/design-tokens.html) standard (DTCG) și călătoresc împreună cu sistemul de design.
 
 ## Fișiere
 
-Lasă aici fișierele pe care le păstrează brandul tău - în afară de logo-uri: active **vectoriale**, de **imagine**, **audio** și de **animație** (video, Lottie, animate). Ajung în [Resurse](/info/using.html#assets-your-library), sortate pe secțiuni și gata de folosit în selectorul de active al fiecărei unelte. Totul rămâne pe acest dispozitiv. (Bara laterală etichetează camera **Files** (Fișiere); cheia din URL rămâne `catalogue`, pentru că o cheie de panou este un contract permanent.)
+Lasă aici fișierele pe care le păstrează brandul tău - în afară de logo-uri: active **vector**, de **imagine**, **audio** și de **animație** (video, Lottie, animate). Ajung în [Resurse](/info/using.html#assets-your-library), sortate pe secțiuni și gata de folosit în selectorul de active al fiecărei unelte. Totul rămâne pe acest dispozitiv. (Bara laterală etichetează camera **Files** (Fișiere); cheia din URL rămâne `catalogue`, pentru că o cheie de panou este un contract permanent.)
 
 ## Adu un brand
 
 **Add from...** (Adaugă din...) de la baza barei laterale deschide un selector în două etape. Prima etapă întreabă ce *ai*, nu ce format este:
 
-- **Design tokens or a design file** (Tokenuri de design sau un fișier de design) - JSON DTCG sau Tokens Studio, un proiect Penpot, o **arhivă zip cu seturi de tokenuri**, un pachet de sistem de design Lolly sau un SVG.
+- **Design tokens or a design file** - JSON DTCG sau Tokens Studio, un proiect Penpot, o **arhivă zip cu seturi de tokenuri**, un pachet de sistem de design Lolly sau un SVG.
 - **PDF** - un deck sau un fișier de ghiduri, citit pe acest dispozitiv pentru culorile, marcajele și fonturile sale încorporate.
-- **Image** (Imagine) - o captură de ecran sau o fotografie; culorile ei sunt citite pe acest dispozitiv și nimic nu este încărcat.
-- **Font file** (Fișier de font) - TTF, OTF sau WOFF. Deschide camera Type, unde fontul se instalează.
-- **Website** (Site web) - o singură pagină, citită pentru culorile și fontul ei. Această filă apare doar pe un dispozitiv care poate chiar citi o pagină, pentru că o filă dezactivată care promite ceva ce nimeni nu poate apăsa este mai rea decât nicio filă. Acolo unde apare, numește clar cine citește: preluată de aplicație pe acest dispozitiv, sau citită prin extensia de browser într-un tab de fundal, autentificat ca tine. Introducerea unei adrese URL doar *precompletează* câmpul - butonul de preluare este consimțământul, deci un link trimis de altcineva nu poate porni niciodată o citire.
+- **Logo or screenshot** - o imagine devine o paletă sugerată, citită pe acest dispozitiv. Nimic nu este încărcat. Aceasta citește culori, nu fontul sau aranjamentul din imagine.
+- **Saved web page** - alege un fișier HTML și fișierele lui CSS, sau lipește HTML sau CSS. Până la 20 de fișiere și 2 MB în total. Este citit doar textul furnizat; resursele legate nu sunt preluate și scripturile nu rulează. Această cale funcționează și fără extensie sau aplicația desktop.
+- **Font file** - TTF, OTF sau WOFF. Deschide camera Type, unde se instalează fontul.
+- **Website** - o singură pagină, citită pentru culorile și fontul ei. Această filă apare doar pe un dispozitiv care poate chiar citi o pagină, pentru că o filă dezactivată care promite ceva ce nimeni nu poate apăsa este mai rea decât nicio filă. Acolo unde apare, spune clar ce cititor este folosit: preluată de aplicație pe acest dispozitiv, sau citită prin extensia de browser într-un tab de fundal, autentificat ca tine. Introducerea unei adrese URL doar *precompletează* câmpul - butonul de preluare este consimțământul, deci un link trimis de altcineva nu poate porni niciodată o citire.
 
 Alege sursa fișierului de design, iar a doua etapă este cardul de mai jos: formatele acceptate conduc ca file cu iconițe, în ordinea preferinței, iar întregul card este o singură zonă de plasare - apasă oriunde pe el sau trage un fișier peste el. Poți de asemenea să tragi un fișier direct în studio.
 
@@ -197,21 +258,31 @@ Alege sursa fișierului de design, iar a doua etapă este cardul de mai jos: for
 
 Ce îți oferă fiecare fișier de design:
 
-- un pachet **LollyBrand** (`.zip`) - se instalează într-un singur pas;
+- un pachet **Lolly design-system** (`.lolly`; vechiul `.zip` este încă acceptat) - se instalează într-un singur pas;
 - un export **Penpot** (`.penpot`) - preia tokenurile lui de design;
 - un fișier **Design Tokens** (`.json`) - W3C DTCG;
 - un fișier **Tokens Studio** (`.json`) - Tokens Studio;
 - un **SVG simplu** (`.svg`) - Lolly îi scanează culorile și te lasă să alegi pe care să le păstrezi, prima devenind culoarea ta principală.
 
-O instalare din sursă creează mai întâi un **punct de control**, deci „revino la starea dinaintea importului” înseamnă o singură restaurare. Iar ce găsește o scanare nu intră direct: candidații ajung în **Tray** (Tavă), unde fiecare este adăugat printr-o apăsare proprie, prin camera care deține acel tip de material.
+Un logo/captură de ecran, un site web sau o pagină salvată deschide **Your suggested design system**. Vezi un exemplu folosind culorile propuse, alege o **Main colour** diferită dacă e nevoie, și denumește sistemul. **Use this design system** aplică paletele deschisă și întunecată generate și te întoarce la Overview. Fonturile existente rămân neschimbate. Aceasta înlocuiește culorile sistemului activ și celelalte setări de tokeni. Un punct de control trebuie să reușească mai întâi; **Restore brand settings** recuperează setările anterioare.
 
-`#/start?source=<kind>` deschide selectorul pe o sursă dată (`file`, `pdf`, `image`, `font`, `url`), iar `?import` îl deschide pe lista simplă.
+**Source details and individual choices** arată ce a fost citit, numele de fonturi detectate și contrastul text/acțiune al previzualizării. De asemenea oferă **Choose individual items in the tray** și **Download design context**. Raportul JSON poartă observații, tokeni propuși și informații despre sursă; HTML/CSS-ul salvat include un SHA-256 al textului furnizat. Nu conține text brut al paginii și nu este o Content Credential semnată. Numele de fonturi sunt sugestii: Type rămâne locul unde alegi și instalezi fonturi.
+
+Importurile PDF și celelalte fișiere de design își păstrează comenzile de revizuire existente. Elementele păstrate în **Tavă** nu schimbă nimic până sunt adăugate prin camera care deține acel tip de material.
+
+`#/start?source=<kind>` deschide selectorul pe o sursă dată (`file`, `pdf`, `image`, `font`, `url`, `page`), iar `?import` îl deschide pe lista simplă.
 
 ## Mută un brand între dispozitive
 
-**Export** de la baza barei laterale scrie o singură arhivă **`LollyBrand-…zip`** - tokenurile, fonturile, logo-urile și preferința de temă, cu un manifest de integritate pe care îl verifică la reintroducere. Alături, **Tokens (.json)** scrie doar documentul simplu de tokenuri de design: fără fonturi, fără logo-uri, doar tokenurile, ceea ce citește de fapt un depozit de cod, un pas CI sau o altă unealtă de tokenuri.
+**Export**, la baza barei laterale, scrie o singură arhivă **`LollyBrand-….lolly`** - tokenurile, fonturile, logo-urile și preferința de temă, cu un manifest de integritate pe care îl verifică la reintroducere. Versiunile web dinainte de 1.0.7 numeau aceeași arhivă `.zip`; acea ortografie veche este încă acceptată. Alături, **Tokenuri (.json)** scrie doar documentul simplu de tokenuri de design: fără fonturi, fără logo-uri, doar tokenurile, ceea ce citește de fapt un depozit de cod, un pas CI sau o altă unealtă de tokeni.
 
 Aducerea uneia înapoi se face prin **Add from... → Design tokens or a design file** (mai sus), sau prin tragere directă în studio. Așa îți dă un coleg un brand, sau așa duci unul la o a doua instalare - fără cont, fără cloud. Pentru a aduce un brand din linia de comandă în schimb, vezi [`ingest:brand`](/info/configuration.html#brand-packs).
+
+## Restaurează setări anterioare
+
+Alege **Restore brand settings** la baza barei laterale, selectează un punct de control datat, apoi apasă **Restaurează**. Acesta restaurează culorile, setările de font și ceilalți tokeni de brand pentru brandul activ. Fișierele de font și imagine rămân neschimbate.
+
+Lolly salvează setările tale curente ca **Before restore**, înainte de a aplica punctul de control. Alege acel punct de control pentru a inversa restaurarea, inclusiv după închiderea și redeschiderea browserului. Ultimele 20 de puncte de control sunt păstrate pe acest dispozitiv. Dacă stocarea nu poate fi citită sau setările curente nu pot fi salvate, dialogul raportează problema ca să poți încerca din nou.
 
 ## Versiuni
 
@@ -227,10 +298,49 @@ Poți **Publish only**, sau **Publish and make active** - diferența fiind dacă
 
 ## Când brandul este fixat
 
-Unele build-uri livrează un **brand blocat** - culorile, fonturile și token-urile lui sunt ce folosesc toate tool-urile și exporturile, și nu e nimic de schimbat. În acest caz studioul este înlocuit cu o notă scurtă care explică faptul că acest build vine cu un brand fixat și editarea este dezactivată. Acest lucru e intenționat: așa garantează o organizație că totul rămâne on-brand.
+Unele build-uri livrează un **sistem de design blocat**, cum ar fi SUSE Brand. Deschiderea lui arată o notă doar-pentru-citire cu **Fă o copie editabilă** și **Schimbare**. Culorile, fonturile și tokenii lui originali rămân intacte. Propriile tale sisteme locale rămân editabile, chiar și atunci când sistemul blocat a fost primul de pe dispozitiv. În Profile, **Deschide** selectează un sistem și îi deschide studioul; **Creează unul nou** creează un sistem local și îl deschide la `#/start` cu câmpul de nume focalizat.
 
 ## Ce urmează
 
-- **[Using Lolly](/info/using.html)** - canvasul, salvarea, proiectele și vederea Resurse.
-- **[Design Tokens](/info/design-tokens.html)** - modelul de token-uri în care e exprimat brandul tău.
+- **[Using Lolly](/info/using.html)** - canvasul, salvarea, proiectele și Resursele.
+- **[Design Tokens](/info/design-tokens.html)** - modelul de tokeni în care e exprimat brandul tău.
 - **[Exporting & formats](/info/exporting.html)** - unități de tipar, CMYK și formatele în care se randează brandul tău.
+
+
+## Găsește și compară un aspect
+
+Deschide **Find a look** din Overview sau din lista de sisteme de design din Profile. Răsfoiește sistemele salvate pe acest dispozitiv și câteva exemple Lolly reutilizabile. Caută după nume, etichetă de culoare sau font declarat. **Closest to my current palette** sortează după similaritatea de culoare măsurată, familiile de fonturi potrivite decizând egalitățile; nu este un scor de calitate.
+
+Selectează un aspect pentru a-l revizui, sau două pentru a le compara. Butonul de revizuire rămâne disponibil pe un ecran mic. Selectarea unui aspect nu schimbă nimic. **Use this saved system** comută prin registrul existent de sisteme de design. **Folosește aceste culori** aplică un exemplu prin fluxul obișnuit de punct de control și instalare, păstrând fonturile curente. **Restore brand settings** poate recupera aspectul anterior.
+
+Sub **Details and design context**, sistemele salvate au **Search tags** editabile și o descărcare de context. Exemplele folosesc rețete de culoare originale Lolly; nu există o colecție de inspirație extrasă de la distanță și niciun cont necesar.
+
+![Compară Sunroom și Orchard unul lângă altul înainte de a aplica oricare dintre sistemele de culoare.](/t/url-shot?url=%2F%23%2Fstart&width=1280&height=900&dpi=96&waitMs=3000&format=svg&filename=brand-compare-looks&try=1&drive=click%3A%5Bdata-ds-door%3D%22looks%22%5D%3Bwait%3A500%3Bclick%3A%5Bdata-look-select%3D%22example%3Asunroom%22%5D%3Bclick%3A%5Bdata-look-select%3D%22example%3Aorchard%22%5D%3Bclick%3A%5Bdata-looks-review%5D%3Bwait%3A500&cropSelector=.ds-looks-comparison&waitSelector=%5Bdata-ds-door%3D%22looks%22%5D&walker=1&rasterDpi=96)
+
+Comparația păstrează ambele palete vizibile împreună. Revizuirea unui aspect nu schimbă nimic până alegi **Folosește aceste culori** sau **Use this saved system**.
+
+## Citește dovezile sursei
+
+Detaliile opționale ale revizuirii sursei arată tipografia, spațiile, padding-ul și valorile de colț, acolo unde au fost observate. HTML/CSS-ul salvat și citirile native ale site-urilor raportează declarații, care s-ar putea să nu fie folosite de pagina randată. Extensia de browser poate raporta stiluri măsurate dintr-un eșantion limitat de elemente vizibile, cu viewport-ul și preferința de culoare a browserului. Extensiile mai vechi funcționează în continuare cu stiluri declarate. Câmpurile lipsă spun **Not observed**.
+
+Acestea sunt observații, nu setări automate de stil. Fișierele de font nu sunt preluate sau instalate de o scanare de referință, iar spațierea sursei nu îți înlocuiește tăcut propria spațiere. Numerele descriu apariții în eșantion, nu încredere sau calitate.
+
+## Verifică o compoziție față de sistemul de design
+
+În Design, deschide **Exportă**, apoi **Înainte să exporți**. Verificarea folosește aceeași versiune efectivă a sistemului de design ca și randarea. Compară culorile autorizate, aliasurile de tokeni, alegerile de font și ID-urile activelor de imagine. Valorile personalizate pot fi intenționate; o imagine din afara activelor de brand declarate este un element de revizuit, nu o imagine interzisă.
+
+Acolo unde este disponibilă o sugestie concretă de culoare sau font, butonul ei schimbă doar acel strat. **Anulează** obișnuit restaurează valoarea originală. Straturile blocate sau modificate nu sunt suprascrise de o sugestie veche. Dovezile de sursă lipsă rămân separate de o potrivire. Contrastul randat și aranjarea textului sunt verificate de controalele existente montate. Degradeurile, efectele, conținutul unei unelte imbricate, drepturile și calitatea subiectivă nu sunt evaluate de comparația de brand. Verificările nu blochează Descarcă.
+
+## Folosește contextul de design local
+
+**Download design context** include documentul de tokeni, culorile rezolvate, familiile de fonturi declarate, ID-urile activelor, dovezile de sursă acolo unde sunt înregistrate, acoperirea și regulile explicite. Nu include fișierele de font sau dovada de proprietate. Revizuirea de referință include și tokenii propuși și observațiile ei.
+
+CLI-ul poate citi oricare dintre descărcări fără un server:
+
+```bash
+lolly system import ./lolly-design-context.json
+lolly system context --output=design-context.json
+lolly system check ./design-inputs.json --file=design-context.json
+```
+
+`system check` acceptă intrări Design cu un array `boxes` sau un document Design compilat. Raportează corecții propuse fără să modifice compoziția. Nu poate măsura aspectul browserului sau contrastul randat. Resursa MCP existentă **lolly://design-context** expune contextul sistemului efectiv prin procesul MCP local configurat; nu este nevoie de niciun serviciu găzduit nou sau cheie API.

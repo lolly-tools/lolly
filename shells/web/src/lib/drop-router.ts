@@ -55,6 +55,7 @@ import type { DialogChoice } from '../components/confirm-dialog.ts';
 import type { ToolManifest } from '../../../../engine/src/loader.ts';
 import type { InstalledToolTrust } from './installed-tools.ts';
 import { setPendingVerify } from './verify-handoff.ts';
+import { noteOpenIntent } from './open-intent.ts';
 import { deepLinkToHash } from './deep-link.ts';
 import { tauriInvoke } from './nearby-boot.ts';
 import { isEncryptedSnapshot } from './snapshot-crypto.ts';
@@ -1148,6 +1149,7 @@ export async function openLollyFile(
     }
     if (available) {
       announce(tRaw('Opened {name}', { name: file.name }));
+      noteOpenIntent({ slot: res.slot, name: file.name.replace(/\.lolly$/i, '') });
       const hash = `#/tool/${res.toolId}?slot=${encodeURIComponent(res.slot)}`;
       routeToConsumer(hash, window.location.hash === hash);
     } else {

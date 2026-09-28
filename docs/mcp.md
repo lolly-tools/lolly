@@ -208,14 +208,14 @@ During local development you can also run the server over **stdio** - no token n
 
 ## Reproducibility: what is and is not byte-stable
 
-Every render is reproducible in the sense that matters for design work: the inputs are the whole state, they travel as a link and re-rendering them gives the same picture. Byte-for-byte equality is a narrower promise, and it is the same one the [CLI](/info/cli-automation.html#how-far-the-same-goes-byte-for-byte) documents, because both surfaces drive the same engine:
+Every render is reproducible in the sense that matters for design work: the inputs are the whole state, they travel as a link and re-rendering them gives the same picture. Byte-for-byte equality is a narrower promise, and it is the same one the [CLI](/info/cli-automation.html#how-far-byte-identical-output-goes) documents, because both surfaces drive the same engine:
 
 - **Byte-stable**: `svg`, `emf`, `eps`, `dxf`, the data formats `json`/`csv`/`vcf`/`md`/`txt` and `png` from an SVG-native tool.
 - **Not byte-stable**: `ics` (a required `DTSTAMP`), `pdf` (`/CreationDate` and `/ModDate` in every file) and everything the headless-browser tier paints and encodes - `jpg`, `webp`, HTML-layout `png`, `gif`/`apng`/`webm`/`mp4`. Anything carrying Content Credentials is signed with a fresh timestamp by design.
 
 So do not build a cache key or a CI gate on the digest of a PDF or a browser-tier raster. Compare those by re-rendering and inspecting.
 
-## Self-host it
+## Self-host the full endpoint
 
 The full endpoint is the one part of Lolly that is a **server-side add-on**, not an on-device component - producing the full format range means driving a **headless browser against a built web shell**, which runs as a hosted service (a container or worker), not offline or at the edge. The on-device shells - [web PWA](/info/using.html), desktop, mobile and [CLI](/info/cli.html) - remain the offline / air-gapped path.
 

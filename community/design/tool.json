@@ -2,7 +2,7 @@
   "id": "design",
   "name": "Design",
   "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-  "version": "1.37.0",
+  "version": "1.38.0",
   "engineVersion": "^1.217.0",
   "status": "community",
   "category": "designer",

@@ -57,9 +57,9 @@ Lolly je ten lis, ne skica. K ideaci si přines cokoliv chceš - model, designé
 
 > Důvěřuj kreativnímu procesu, škáluj s rigorózností.
 
-## Pravidla žijí v nástroji, ne v souboru
+## Pravidla žijí v nástroji a jeho šablonách
 
-Každý jiný nástroj na trhu produkuje *soubor*, a soubor lze zkontrolovat až zpětně, jeden výstup po druhém. Lolly posouvá pravidla značky **o krok výš proti proudu**. Přesné hex kódy, licencované soubory fontů, spadávky, rozestupy - to vše je napevno zakódované v HTML a CSS nástroje, takže šablona *nemůže* vyprodukovat asset mimo značku. Enforcement provádí samotný layout.
+Každý jiný nástroj na trhu vyrábí *soubor*, a soubor se dá zkontrolovat až dodatečně. Lolly posouvá pravidla brandu **o krok výš proti proudu**. Přesné hex kódy, licencované soubory s fonty, spadávky, rozestupy - to všechno je napevno zakódované v HTML a CSS nástroje, takže šablona *nemůže* vyprodukovat asset mimo brand. Vynucuje to samotné rozvržení.
 
 Takže to, co stojí za pohled, je **nástroj**, ne každý soubor, který vytvoří. Nastav nástroj správně a každý asset, který kdy vyprodukuje, je on-brand už svou konstrukcí. Jak kontroluješ svou práci a kdo to dělá, zůstává na tobě; Lolly zmenšuje to, co se kontroluje, a dělá výrobu výstupu rychlejší.
 

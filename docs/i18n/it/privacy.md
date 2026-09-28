@@ -89,7 +89,7 @@ originali, solo quando richiesto esplicitamente con `--review-file`. Chiudere o 
 preparazione nel browser rilascia il suo stato di lavoro; questa non è una promessa di cancellazione forense
 dalla memoria del browser o del sistema operativo.
 
-## Quando l'app comunica con una rete, in dettaglio
+## Tutte le richieste di rete che l'app può effettuare
 
 La tabella sotto è l'elenco completo di tutto ciò che l'app recupera o invia su una
 rete. Se non è qui, l'app non lo fa.

@@ -1,13 +1,13 @@
 # Znajdź i odzyskaj swoją pracę
 
-Wszystko, co tworzysz w Lolly, zostaje w przeglądarce lub aplikacji, w której to zrobiłeś, na tym urządzeniu, chyba że włączysz [Synchronizację](/info/sync.html). Zapisana praca jest w **Projektach**. Pobrany plik jest tam, gdzie umieściła go twoja przeglądarka lub system, a kopia zwykle czeka w **Zasobach**. W dziewięciu narzędziach praca, której nigdy nie zapisałeś, też jest zachowywana. Ta strona omawia każdy z tych przypadków, a także zamkniętą kartę, wyczyszczone dane przeglądarki, wcześniejsze wersje, usunięte elementy i przenoszenie na inne urządzenie.
+Wszystko, co tworzysz w Lolly, zostaje w przeglądarce lub aplikacji, w której to zrobiłeś, na tym urządzeniu, chyba że włączysz [Synchronizację](/info/sync.html). Zapisana praca jest w **Projektach**. Pobrany plik jest tam, gdzie umieściła go twoja przeglądarka lub system, a kopia zwykle czeka w **Zasobach**. W większości narzędzi praca, której nigdy nie zapisałeś, też jest zachowywana. Ta strona omawia każdy z tych przypadków, a także zamkniętą kartę, wyczyszczone dane przeglądarki, wcześniejsze wersje, usunięte elementy i przenoszenie na inne urządzenie.
 
 | Co zrobiłeś | Gdzie szukać |
 |---|---|
 | Nacisnąłeś **Zapisz jako** albo **Zapisz** | **Projekty** |
 | Nacisnąłeś **Pobierz** | Pobrane pliki twojej przeglądarki, a kopia w **Zasobach** |
-| Żadne z powyższych, w jednym z [dziewięciu narzędzi, które zapisują w trakcie pracy](#the-nine-tools-that-save-as-you-work) | **Projekty** i **Historia** |
-| Żadne z powyższych, w innym narzędziu | Tylko karta, w której pracowałeś, do czasu jej zamknięcia |
+| Żadne z powyższych, w [narzędziu, które zapisuje w trakcie pracy](#which-tools-save-as-you-work) | **Projekty** i **Historia** |
+| Żadne z powyższych, w narzędziu, które tego nie robi | Tylko karta, w której pracowałeś, do czasu jej zamknięcia |
 | Usunąłeś to w aplikacji | **Kosz**, w **Projektach**, **Zasobach** lub **Ustawienia → Pamięć**, przez 30 dni |
 
 ## Znajdź to, co zapisałeś
@@ -71,20 +71,29 @@ not visible in the closed menu, so the alt does not list them.
 
 To, co wraca, zależy od tego, jak wyszedłeś i którego narzędzia użyłeś:
 
-- **Zamknąłeś kartę albo wróciłeś innym razem.** Niezapisana praca przepada, z wyjątkiem [dziewięciu narzędzi](#the-nine-tools-that-save-as-you-work), które zapisują twoje zmiany w trakcie pracy: otwórz je z **Projektów**.
-- **Przeładowałeś stronę w tej samej karcie.** Twoje ustawienia wracają z adresu strony. W narzędziach innych niż te dziewięć obrazy i pliki, które dodałeś z urządzenia, oraz jednowierszowy tekst dłuższy niż 150 znaków nie wracają, ponieważ adres ich nie przechowuje.
+- **Zamknąłeś kartę albo wróciłeś innym razem.** Niezapisana praca przepada, z wyjątkiem [narzędzi, które zapisują w trakcie pracy](#which-tools-save-as-you-work): otwórz tę pracę z **Projektów**.
+- **Przeładowałeś stronę w tej samej karcie.** Twoje ustawienia wracają z adresu strony. W narzędziach, które nie zapisują w trakcie pracy, obrazy i pliki, które dodałeś z urządzenia, oraz jednowierszowy tekst dłuższy niż 150 znaków nie wracają, ponieważ adres ich nie przechowuje.
 - **Nacisnąłeś Start albo przycisk wstecz w lewym górnym rogu.** Jeśli coś zmieniłeś od ostatniego zapisu, pobrania albo skopiowania, okno **Niezapisane zmiany** pyta, czy najpierw zapisać. **Zapisz i wyjdź** zapisuje pracę i przenosi cię do **Projektów** albo z powrotem do folderu projektu, z którego otworzyłeś pracę. **Wyjdź bez zapisywania** odrzuca twoje zmiany: zapisany element wraca do stanu z ostatniego zapisu, a kreacja, której nigdy nie zapisałeś, znika z **Projektów**. **Anuluj** zatrzymuje cię w narzędziu.
 
 Lolly pyta tylko wtedy, gdy naciśniesz **Start** albo przycisk wstecz w narzędziu. Zamknięcie karty, przeładowanie i własny przycisk Wstecz przeglądarki nigdy nie pytają. Aby mieć pewność, naciśnij **Zapisz jako** albo **Zapisz** w panelu eksportu, zanim opuścisz narzędzie.
 
 ::: note Wyszedłeś bez zapisywania przez pomyłkę?
-W dziewięciu narzędziach Historia zachowuje kopię odrzuconych zmian. Otwórz stronę **Historia**, znajdź je pod **Changes** i naciśnij **Otwórz jako kopię**. W innych narzędziach zmiany przepadają.
+W narzędziach, które zapisują w trakcie pracy, Historia zachowuje kopię odrzuconych zmian. Otwórz stronę **Historia**, znajdź je pod **Zmiany** i naciśnij **Otwórz jako kopię**. W innych narzędziach zmiany przepadają.
 :::
 
-::: details Dziewięć narzędzi, które zapisują w trakcie pracy
-[Design](/#/tool/design), [Wykres](/#/tool/chart), [Kod QR](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Fragment kodu](/#/tool/snippet), [Schemat blokowy](/#/tool/org-chart), [Cennik](/#/tool/pricing-table), [Znak słowny](/#/tool/wordmark) i [Tekst](/#/tool/text-helper). Lista rośnie w miarę jak kolejne narzędzia zyskują automatyczny zapis.
+::: details Które narzędzia zapisują w trakcie pracy
+W aplikacji webowej każde narzędzie, które tworzy dokument, zapisuje w trakcie pracy: Design, Chart, QR Code, Text, Sandbox i pozostałe. Te narzędzia nie:
 
-W tych narzędziach pierwsza zmiana umieszcza pracę w **Projektach** tak, jakbyś ją zapisał, a kolejne zmiany są zachowywane w ciągu kilku sekund. Dzięki temu niezapisana kreacja nadal jest w Projektach po zamknięciu karty i otwiera się ponownie ze swoimi zmianami oznaczonymi jako niezapisane. **Wyjdź bez zapisywania** nadal je odrzuca, a Historia zachowuje kopię odrzuconych zmian przez 30 dni. Ponowne otwarcie narzędzia z ekranu startowego zaczyna nową kreację; otwórz wcześniejszą z Projektów.
+- narzędzia, które pracują na pliku, który przynosisz, takie jak Redact, Sign albo Convert Image, ponieważ Lolly nigdy nie zachowuje kopii tego pliku;
+- narzędzia, które nagrywają z twojej kamery, mikrofonu albo ekranu, takie jak Record, Screen Capture i Voice Recorder;
+- 3D i Darkroom, które przyjmują własny plik;
+- narzędzie, w którym nie ma nic do zmiany, takie jak Countdown.
+
+W pozostałych narzędziach pierwsza zmiana umieszcza pracę w **Projektach** tak, jakbyś ją zapisał, a kolejne zmiany są zachowywane w trakcie pracy, gdy tylko narzędzie skończy rysować. Dzięki temu niezapisana kreacja nadal jest w Projektach po zamknięciu karty i otwiera się ponownie ze swoimi zmianami oznaczonymi jako niezapisane. **Wyjdź bez zapisywania** nadal je odrzuca, a Historia zachowuje kopię odrzuconych zmian przez 30 dni. Ponowne otwarcie narzędzia z ekranu startowego zaczyna nową kreację; otwórz wcześniejszą z Projektów.
+
+Przy włączonej [Synchronizacji](/info/sync.html) kreacja założona w ten sposób trafia na twoje inne urządzenia jak wszystko inne w Projektach. Jej wersje zostają na urządzeniu, na którym powstały.
+
+Jeśli kreacja jest otwarta w dwóch kartach i zapiszesz w obu, zachowany zostaje ostatni zapis. Praca, którą zastąpił, nie jest stracona: znajduje się w Historii kreacji pod **Chronione wersje robocze**, z **Otwórz wersję roboczą jako kopię**.
 
 Działa to wyłącznie w aplikacji webowej, nie w aplikacjach desktopowych ani mobilnych, i nie podczas pracy na żywo z kimś innym.
 :::
@@ -111,21 +120,23 @@ Na iPhonie, iPadzie i Androidzie nowy plik zastępuje wcześniejszy o tej samej 
 ## Wróć do wcześniejszej wersji
 
 - **W trakcie tej wizyty:** **Wycofaj** cofa krok po kroku przez twoje ostatnie 100 zmian, dopóki nie opuścisz narzędzia albo nie przeładujesz strony. Zobacz [Cofanie i ponawianie](/info/using.html#undo-and-redo).
-- **W dziewięciu narzędziach, które zapisują w trakcie pracy:** wcześniejsze wersje każdej kreacji są zachowywane. Wykonaj kroki poniżej.
+- **W [narzędziach, które zapisują w trakcie pracy](#which-tools-save-as-you-work):** wcześniejsze wersje każdej kreacji są zachowywane. Wykonaj kroki poniżej.
 - **Wszystko na urządzeniu:** przy włączonej [Synchronizacji](/info/sync.html) **Restore an earlier copy**, pod **Ustawienia → Połączone usługi**, przywraca jedną z ostatnich siedmiu dziennych kopii albo kopię sprzed ostatniego zastosowania. Wszystko na tym urządzeniu odpowiada wtedy tej kopii, nie tylko jeden projekt.
 
-Aby otworzyć wcześniejszą wersję w jednym z dziewięciu narzędzi:
+Aby otworzyć wcześniejszą wersję:
 
-1. Naciśnij **History**, przycisk zegara obok **Wycofaj** i **Powtórz**. W Design **History** jest na górnym pasku; na telefonie naciśnij **•••**, a potem **History**.
-2. Znajdź wersję po dacie i godzinie. Wiersze **Automatic checkpoint** są rejestrowane w trakcie pracy; wiersze **Saved version** to chwile, w których zapisałeś.
-3. Naciśnij **Open as a copy**. Wersja otwiera się jako nowa kreacja, a ta, którą miałeś otwartą, zostaje bez zmian. Kopia jest w **Projektach**, z dopiskiem „(copy)” po nazwie.
+1. Naciśnij **Historię**, przycisk zegara obok **Wycofaj** i **Powtórz**. W Design **Historia** jest na górnym pasku; na telefonie naciśnij **•••**, a potem **Historia**. W narzędziach bez **Wycofaj**, takich jak Text i Sandbox, **Historia** jest obok **Start** w lewym górnym rogu.
+2. Znajdź wersję po dacie i godzinie. Wiersze **Automatyczny punkt kontrolny** są rejestrowane w trakcie pracy; wiersze **Zapisana wersja** to chwile, w których zapisałeś.
+3. Naciśnij **Otwórz jako kopię**. Wersja otwiera się jako nowa kreacja, a ta, którą miałeś otwartą, zostaje bez zmian. Kopia jest w **Projektach**, z dopiskiem „(copy)” po nazwie.
 
 Aby zachować wersję pod nazwą, naciśnij **Name version**, wpisz nazwę i naciśnij **Keep milestone**. Nazwane wersje są wymienione na stronie **History**, pod **Milestones**.
 
 ::: details Panel History i strona History
 Panel **History** zawiera też wiersze **Recovered work**, a **Protected drafts** przechowuje twoje najnowsze zmiany między checkpointami, z **Open draft as a copy**. **Compare** i **Check assets** pomagają zdecydować, zanim otworzysz kopię. Przełącz **This creation** na **All history on this device**, aby zobaczyć każdą kreację.
 
-Automatyczne punkty kontrolne rzednie z wiekiem: jeden na minutę przez ostatnią godzinę, jeden na godzinę przez ostatni dzień, jeden dziennie przez 30 dni, a potem jeden na tydzień. Zapisane wersje są zachowywane wszystkie. Usunięcie kreacji z **Ustawienia → Pamięć** usuwa też jej wersje.
+Automatyczne punkty kontrolne rzednie z wiekiem: jeden na minutę przez ostatnią godzinę, jeden na godzinę przez ostatni dzień, jeden dziennie przez 30 dni, a potem jeden na tydzień. Zapisane wersje i nazwane wersje są zachowywane wszystkie. Usunięcie kreacji przenosi do **Kosza** też jej wersje, a **Usuń na zawsze** je usuwa.
+
+Gdy pamięć Historii się zapełni, najpierw usuwane są najstarsze automatyczne punkty kontrolne kreacji, których nie otwierałeś od 30 dni. Zapis jest zawsze zachowywany, nawet wtedy: zapisuje się jako bieżąca praca, a Historia podaje, że ten zapis nie jest zachowywany jako wersja. **Ustawienia → Pamięć** pokazuje, ile miejsca zajmuje Historia.
 
 Strona **History** (`#/history`, albo **Open app history** w panelu) obejmuje każdą kreację w tej przeglądarce. Na komputerze otwórz stronę z przycisku zegara w prawym górnym rogu ekranu startowego albo **Projektów**. Na telefonie przejdź do galerii narzędzi na ekranie startowym, naciśnij okrągły przycisk z logo w prawym górnym rogu i wybierz **Zapisane sesje**, co otwiera History. Z **Projektów** ten element na razie nic nie robi.
 
@@ -157,7 +168,7 @@ Aby przenieść wszystko naraz:
 3. Na nowym urządzeniu otwórz **Ustawienia → Pamięć**, naciśnij **Importuj dane…**, wybierz plik i naciśnij **Importuj**.
 
 ::: note Co zostaje na miejscu
-Logowania, klucze i hasło synchronizacji zostają na każdym urządzeniu. Lista ostatnich pobrań, pobrania offline i modele AI nie podróżują żadną drogą. Historia wersji podróżuje wyłącznie w pliku **Eksportuj moje dane**, nie przez Synchronizację ani plik `.lolly`. Kopię, którą Synchronizacja przechowuje w twojej pamięci, można pobrać i otworzyć albo wybrać w **Importuj dane…**, tak jak plik kopii zapasowej; zaszyfrowana kopia poprosi o twoje hasło.
+Logowania, klucze i hasło synchronizacji zostają na każdym urządzeniu. Lista ostatnich pobrań, pobrania offline i modele AI nie podróżują żadną drogą. Historia wersji podróżuje wyłącznie w pliku **Eksportuj moje dane**, nie przez Synchronizację ani plik `.lolly`. Gdy historia jest zbyt duża na jeden plik, najstarsze automatyczne punkty kontrolne są pomijane, a wiersz eksportu podaje ile. Kopię, którą Synchronizacja przechowuje w twojej pamięci, można pobrać i otworzyć albo wybrać w **Importuj dane…**, tak jak plik kopii zapasowej; zaszyfrowana kopia poprosi o twoje hasło.
 :::
 
 ::: details Co zawiera plik kopii zapasowej
@@ -176,7 +187,7 @@ Naciśnij **Eksportuj moje dane** pod **Ustawienia → Pamięć** i zachowaj pli
 
 Gdy aplikacja się uruchamia, Lolly prosi przeglądarkę, aby nie czyściła jej pamięci, gdy na urządzeniu zabraknie miejsca. Decyduje przeglądarka. Pod **Ustawienia → Dostępne offline** wiersz zaczynający się od **Chronione** oznacza, że przeglądarka się zgodziła; „Przeglądarka może usunąć pobrania, jeśli na urządzeniu zabraknie miejsca” oznacza, że się nie zgodziła, a **Chroń pobrane pliki** pyta ponownie. Jeśli przeglądarka się nie zgodziła, może przy braku miejsca wyczyścić zarówno zapisaną pracę, jak i pobrania, więc trzymaj aktualny plik **Eksportuj moje dane**.
 
-**Ustawienia → Pamięć** pokazuje, ile miejsca zajmuje każdy rodzaj danych. **Wyczyść pamięć podręczną** usuwa pobrane pliki katalogu, które pobiorą się ponownie, gdy będą potrzebne. **Wyczyść wszystkie moje dane** prosi cię o wpisanie słowa, wyłącza Synchronizację, a potem usuwa wszystko, co Lolly przechowuje w tej przeglądarce: twój profil i ustawienia, zapisane sesje wraz z ich historią i Koszem, przesłane pliki, fonty i systemy projektowe, dziennik pobrań, wyniki Convert, pobrane modele AI i kopie offline. Pliki, które pobrałeś, zostają tam, gdzie je zapisałeś. Aplikacja uruchamia się wtedy tak, jak przy pierwszej wizycie.
+**Ustawienia → Pamięć** pokazuje, ile miejsca zajmuje każdy rodzaj danych. Jej wiersz **Historia** liczy automatyczne punkty kontrolne, ich podglądy i wersje robocze odzyskiwania; **Usuń automatyczne punkty kontrolne starsze niż 30 dni** zwalnia to miejsce i zachowuje zapisane oraz nazwane wersje. **Wyczyść pamięć podręczną** usuwa pobrane pliki katalogu, które pobiorą się ponownie, gdy będą potrzebne. **Wyczyść wszystkie moje dane** prosi cię o wpisanie słowa, wyłącza Synchronizację, a potem usuwa wszystko, co Lolly przechowuje w tej przeglądarce: twój profil i ustawienia, zapisane sesje wraz z ich historią i Koszem, przesłane pliki, fonty i systemy projektowe, dziennik pobrań, wyniki Convert, pobrane modele AI i kopie offline. Pliki, które pobrałeś, zostają tam, gdzie je zapisałeś. Aplikacja uruchamia się wtedy tak, jak przy pierwszej wizycie.
 
 ![Karta pamięci na ekranie o szerokości telefonu: nazwana każda kategoria danych na urządzeniu, a na dole przycisk Clear all my data](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

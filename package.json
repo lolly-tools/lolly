@@ -108,6 +108,7 @@
     "check:locale-markup": "node scripts/validate-locale-markup.ts",
     "check:parser-assurance": "node scripts/check-parser-assurance.ts",
     "build:rebrand-fixtures": "node scripts/build-rebrand-fixtures.ts",
+    "build:rebrand-sample": "node scripts/build-rebrand-sample.ts",
     "build:parser-inventory": "node scripts/build-parser-inventory.ts",
     "check:parser-inventory": "node scripts/build-parser-inventory.ts --check",
     "audit:all": "node scripts/audit-all.ts",

@@ -52,6 +52,6 @@ You never need AI here. If you choose it, three things hold:
 - <!--i:seal--> **Not a purity claim.** Lolly reads provenance broadly and writes it honestly; it does not pretend to detect every generated pixel on the internet.
 - <!--i:sunburst--> **Not a moral panic.** The flood is not the enemy. Unattributed water is.
 
-## How to hold us to it
+## Check these commitments yourself
 
 Every commitment above is enforced in the open codebase, not in a policy PDF: the provenance path, the GEN AI labelling and the no-trackers guarantee all ship with tests, and the [Verify It Yourself](/info/verify-yourself.html) page walks you through checking the claims against a real export. If you find a place where the code and this page disagree, the code is the bug.

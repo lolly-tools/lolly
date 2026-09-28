@@ -714,10 +714,7 @@
     transition: none;
   }
   .featured--coverflow .featured-track { min-height: calc(var(--cf-cover-h) + 10vw); }
-  .featured--coverflow .ftile.is-centred .ftile-link {
-    box-shadow: 0 0 0 1.5px hsl(var(--primary) / .55), inset 0 0 0 1px #fff2;
-    background-color: #dfe3;
-  }
+ 
   .featured--coverflow .ftile-img { filter: none; }
   /* Smaller cover, smaller button - and no blur here either (the fan drops its own
      backdrop-filter above for the same per-frame paint reason). */

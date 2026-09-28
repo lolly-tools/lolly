@@ -72,7 +72,7 @@ The Dashboard's capability map is the inventory to scope that decision against: 
 
 1. Confirm the **data posture**: no telemetry, nothing uploaded by default and no backend in the core render/verify path - the two optional server components are inventoried on [Server Surface](/info/server-surface.html).
 2. Scope a first rollout to a low-risk context; the independent assurance described in [Status](#status) is still open.
-3. Decide who owns **governance** - see [Governance](#governance-when-you-want-it) below.
+3. Decide who owns **governance** - see [Governance](#governance-when-a-team-wants-a-process) below.
 
 ## Measuring adoption
 
@@ -100,7 +100,7 @@ Adoption runs on a **90-day** feedback loop. Each cycle:
 
 The 90-day cycle is the *cadence*. It is not the goal - it's how often we re-check whether the goal is moving.
 
-## Governance (when you want it)
+## Governance, when a team wants a process
 
 Most people just make things - work in the app, save what they make as a **session** and pass it on as a share link, a backup or a live collaboration, with no git and nothing to wait for.
 

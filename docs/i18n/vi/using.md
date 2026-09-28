@@ -273,7 +273,7 @@ Các công cụ chỉ để lộ những trường đầu vào vốn được ph
 
 Trong một [cộng tác](/info/collaborate.html) trực tiếp, lịch sử vẫn hoàn toàn thuộc về riêng bạn. Một thay đổi đến từ thiết bị khác không bao giờ được đưa vào ngăn xếp của bạn, nên undo chỉ có thể hoàn tác lại điều gì đó chính bạn đã làm.
 
-Hoàn tác chỉ lùi lại được trong lượt truy cập này; chín công cụ còn giữ các phiên bản trước đó dưới **History**, bên cạnh **Hoàn tác** (xem [Quay lại phiên bản trước đó](/info/find-your-work.html#go-back-to-an-earlier-version)).
+**Hoàn tác** chỉ lùi lại trong lượt truy cập này; các công cụ tự lưu khi bạn làm việc còn giữ các phiên bản trước đó dưới **History**, bên cạnh **Hoàn tác** (xem [Quay lại phiên bản trước đó](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ## Thông tin & ảnh chân dung của bạn
 
@@ -313,7 +313,7 @@ Dán liên kết cho một đồng nghiệp, lưu vào bookmark hoặc commit n�
 
 **Một số công cụ biến chính liên kết thành toàn bộ sản phẩm.** Jump Page gom các liên kết của bạn vào một trang duy nhất để chia sẻ - một liên kết bio, một buổi nói chuyện hội nghị, một mặt tiền cửa hàng. Không có gì để host và không có tài khoản đứng sau nó: trang chính là liên kết, nên nó mở nhanh như chính URL di chuyển. Trong trình chỉnh sửa, bạn thấy trang hoàn chỉnh bên cạnh các trường nhập liệu; một khách truy cập mở liên kết sẽ thấy nó ở toàn bộ chiều rộng, mỗi cảnh một liên kết khi họ cuộn.
 
-![Jump Page trong trình chỉnh sửa - tiêu đề, ba cảnh liên kết mỗi cảnh có lớp phủ màu riêng và một footer Made with Lolly, được bố trí thành một trang trong canvas](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page trong trình chỉnh sửa: cảnh tiêu đề ở đầu trang, với các cảnh liên kết bên dưới](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **Hộp thoại nói rõ thứ một liên kết không thể mang theo.** Ba thứ không nhét vừa vào một URL: một ảnh hoặc file bạn thêm từ thiết bị này, một giá trị văn bản rất dài hoặc một danh sách rất lớn. Từng thứ được đếm khi liên kết đang được dựng. Nếu có gì đó buộc phải bỏ lại, hộp thoại gọi tên nó và chỉ bạn sang phần file bên dưới, thay vì đưa cho bạn một liên kết mở ra mà thiếu mất hình. Một liên kết chỉ đơn thuần *dài* thì nhận một ghi chú nhẹ hơn kèm số ký tự, vì việc nén vẫn có thể cứu được độ dài.
 

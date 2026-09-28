@@ -14,6 +14,7 @@ import { t, tRaw } from '../../i18n.ts';
 import { staggerReveal } from '../../lib/reveal.ts';
 import { isHiddenSlot } from '../../lib/batch-slots.ts';
 import { mountModal } from '../../components/modal.ts';
+import { confirmDialog } from '../../components/confirm-dialog.ts';
 import { startBatchExport } from '../../lib/batch-job.ts';
 import { escape as escapeText } from '../../utils.ts';
 import { announce } from '../../a11y.ts';
@@ -31,8 +32,8 @@ import { clearAllLollyData, sealWebStorageUntilReload } from '../../lib/clear-al
 import { isTauriShell } from '../../lib/instance-choice.ts';
 import { fmtBytes } from '../../folder-tiles.ts';
 import { openImageLightbox, userImageThumb } from '../profile-user-images.ts';
-import { fmtPct, reconciliationSentence, sessionRowsHtml } from '../profile-storage-model.ts';
-import type { PreviewsMeasure, SessionEntry, StorageModel } from '../profile-storage-model.ts';
+import { fmtPct, historyBytes, historyParts, pruneOutcome, reconciliationSentence, sessionRowsHtml } from '../profile-storage-model.ts';
+import type { HistoryMeasure, PreviewsMeasure, SessionEntry, StorageModel } from '../profile-storage-model.ts';
 import { CLEAR_CONFIRM_WORDS, COLLAPSE_CHEV, HEADSHOT_ID, HOARD_CONFIRM_WORDS, clearIdbStores, infoDot, openProfileModals } from './shared.ts';
 
 /** The Trash over this view's host (lib/trash.ts): Storage deletes go there too. */
@@ -84,6 +85,10 @@ export async function measure(pv: ProfileViewCtx): Promise<StorageModel> {
     durableCacheBytes().catch(() => ({ bytes: 0, files: 0 })),
     measureFileHistory().catch(() => ({ bytes: 0 })),
   ]);
+  // Version history's bytes (plan 277 P4): checkpoints, previews and recovery
+  // drafts, as the revision store counts them. They sit outside the saved-session
+  // records, so without this slice they would read as "Other".
+  const history: HistoryMeasure | undefined = host.state.history ? await host.state.history.usage().catch(() => undefined) : undefined;
   // What the Trash holds (plan 277 P3). Its bytes stay inside the Saved sessions
   // and My images slices below, so the meter still adds up; the Trash row names
   // them so the person knows Empty Trash is what frees them.
@@ -103,7 +108,7 @@ export async function measure(pv: ProfileViewCtx): Promise<StorageModel> {
   // would render as broken tiles. Their bytes stay in the slice either way.
   const VISUAL = new Set(['raster', 'vector', 'video', 'lottie']);
   const imageList = allImages.filter(a => a.id !== HEADSHOT_ID && VISUAL.has(a.type));
-  const measured = sessBytes + imagesBytes + cacheBytes + previews.bytes + pins.bytes + speech.bytes + upscale.bytes + matte.bytes + ocr.bytes + reword.bytes + aiDetect.bytes + durable.bytes + fileHistory.bytes;
+  const measured = sessBytes + imagesBytes + cacheBytes + previews.bytes + pins.bytes + speech.bytes + upscale.bytes + matte.bytes + ocr.bytes + reword.bytes + aiDetect.bytes + durable.bytes + fileHistory.bytes + historyBytes(history);
   const hasEstimate = !!(estimate && estimate.usage != null);
   const usage: number | null = hasEstimate ? estimate!.usage! : null;
   const quota: number | null = (estimate && estimate.quota) || null;
@@ -125,6 +130,7 @@ export async function measure(pv: ProfileViewCtx): Promise<StorageModel> {
     aiDetect,
     durable,
     fileHistory,
+    ...(history ? { history } : {}),
     measured, hasEstimate, usage, quota, overshoot, other, total,
   };
 }
@@ -176,6 +182,7 @@ export function renderSection(pv: ProfileViewCtx, m: StorageModel, sort: string)
           <button type="button" class="seg" data-cat="sessions" style="flex-grow:0"></button>
           <button type="button" class="seg" data-cat="images" style="flex-grow:0"></button>
           <button type="button" class="seg" data-cat="file-history" style="flex-grow:0"></button>
+          <button type="button" class="seg" data-cat="history" style="flex-grow:0"${m.history ? '' : ' hidden'}></button>
           <button type="button" class="seg" data-cat="cache" style="flex-grow:0"></button>
           <button type="button" class="seg" data-cat="previews" style="flex-grow:0"${hasPrev ? '' : ' hidden'}></button>
           <button type="button" class="seg" data-cat="pins" style="flex-grow:0"${hasPins ? '' : ' hidden'}></button>
@@ -194,6 +201,7 @@ export function renderSection(pv: ProfileViewCtx, m: StorageModel, sort: string)
           <li><button type="button" class="store-chip" data-cat="sessions"><span class="store-chip-sw" data-cat="sessions"></span><span class="store-chip-name">${t('Saved sessions')}</span><span class="store-chip-val" data-size="sessions">-</span></button></li>
           <li><button type="button" class="store-chip" data-cat="images"><span class="store-chip-sw" data-cat="images"></span><span class="store-chip-name">${t('My images')}</span><span class="store-chip-val" data-size="images">-</span></button></li>
           <li><button type="button" class="store-chip" data-cat="file-history"><span class="store-chip-sw" data-cat="file-history"></span><span class="store-chip-name">${t('File results & versions')}</span><span class="store-chip-val" data-size="file-history">-</span></button></li>
+          ${m.history ? `<li><button type="button" class="store-chip" data-cat="history"><span class="store-chip-sw" data-cat="history"></span><span class="store-chip-name">${t('History')}</span><span class="store-chip-val" data-size="history">-</span></button></li>` : ''}
           <li><button type="button" class="store-chip" data-cat="cache"><span class="store-chip-sw" data-cat="cache"></span><span class="store-chip-name">${t('Asset cache')}</span><span class="store-chip-val" data-size="cache">-</span></button></li>
           ${hasPrev ? `<li><button type="button" class="store-chip" data-cat="previews"><span class="store-chip-sw" data-cat="previews"></span><span class="store-chip-name">${t('Tool previews')}</span><span class="store-chip-val" data-size="previews">-</span></button></li>` : ''}
           ${hasPins ? `<li><button type="button" class="store-chip" data-cat="pins"><span class="store-chip-sw" data-cat="pins"></span><span class="store-chip-name">${t('Available offline')}</span><span class="store-chip-val" data-size="pins">-</span></button></li>` : ''}
@@ -239,6 +247,14 @@ export function renderSection(pv: ProfileViewCtx, m: StorageModel, sort: string)
               <p class="profile-inline-error" id="userimg-error" style="color:hsl(var(--destructive));font-size:13px;margin:.4rem 0 0" hidden></p>
             </div>
           </details>
+
+          ${m.history ? `<div class="store-manage store-manage--row" data-cat="history">
+            <span class="store-manage-name">${t('History')} ${infoDot(t('The automatic checkpoints, previews and recovery drafts that let you go back to an earlier version of a creation. Older automatic checkpoints thin out on their own. Explicit saves and named versions stay until you delete the creation.'))} <span class="storage-count" data-size-label="history">0 KB</span><small data-history-parts>${escapeText(historyParts(m.history))}</small></span>
+            <span class="store-history-actions">
+              <a class="btn" href="#/history">${t('Open History')}</a>
+              <button type="button" id="prune-history-btn" class="btn-link-danger">${t('Remove automatic checkpoints older than 30 days')}</button>
+            </span>
+          </div>` : ''}
 
           <div class="store-manage store-manage--row" data-cat="trash">
             <span class="store-manage-name">${t('Trash')} ${infoDot(t('Saved sessions, folders and uploads you deleted here, in Projects or in Assets. They stay for 30 days, then go for good. Their space is counted above until the Trash is emptied.'))} <span class="storage-count" data-trash-summary>${trashSummary(m.trash)}</span></span>
@@ -394,6 +410,7 @@ export async function loadStorage(pv: ProfileViewCtx) {
       ['sessions', m.sessions.bytes, t('Saved sessions'), true],
       ['images', m.images.bytes, t('My images'), true],
       ['file-history', m.fileHistory?.bytes ?? 0, t('File results & versions'), true],
+      ['history', historyBytes(m.history), t('History'), !!m.history],
       ['cache', m.cache.bytes, t('Asset cache'), true],
       ['previews', m.previews.bytes, t('Tool previews'), m.previews.available],
       ['pins', m.pins.bytes, t('Available offline'), m.pins.count > 0],
@@ -420,6 +437,9 @@ export async function loadStorage(pv: ProfileViewCtx) {
     setText('[data-size="images"]', fmtBytes(m.images.bytes));
     setText('[data-size="file-history"]', fmtBytes(m.fileHistory?.bytes ?? 0));
     setText('[data-size-label="file-history"]', fmtBytes(m.fileHistory?.bytes ?? 0));
+    setText('[data-size="history"]', fmtBytes(historyBytes(m.history)));
+    setText('[data-size-label="history"]', fmtBytes(historyBytes(m.history)));
+    setText('[data-history-parts]', historyParts(m.history));
     setText('[data-size="cache"]', fmtBytes(m.cache.bytes));
     setText('[data-size="previews"]', fmtBytes(m.previews.bytes));
     setText('[data-size="pins"]', fmtBytes(m.pins.bytes));
@@ -653,6 +673,30 @@ export async function loadStorage(pv: ProfileViewCtx) {
     if (rewordBtn) { await clearRegenerable(rewordBtn, () => removePart('reword'), t('Removed the rewriter model')); return; }
     const aiDetectBtn = (e.target as Element).closest<HTMLButtonElement>('#clear-aidetect-btn');
     if (aiDetectBtn) { await clearRegenerable(aiDetectBtn, () => clearAiDetectCaches(), t('Removed the AI text detector')); return; }
+
+    // History's own clear-out (plan 277 P4): automatic checkpoints older than 30
+    // days go; explicit saves, named versions and each creation's current version stay.
+    const pruneBtn = (e.target as Element).closest<HTMLButtonElement>('#prune-history-btn');
+    if (pruneBtn && host.state.history) {
+      const history = host.state.history;
+      // Removed checkpoints cannot come back, so this asks first.
+      if (!await confirmDialog({
+        title: tRaw('Remove automatic checkpoints older than 30 days?'),
+        message: tRaw('Older automatic checkpoints go for good, in every creation. Explicit saves, named versions and the current version of each creation stay. This cannot be undone.'),
+        confirmLabel: tRaw('Remove checkpoints'),
+      })) { pruneBtn.focus(); return; }
+      const prev = pruneBtn.textContent; pruneBtn.disabled = true; pruneBtn.textContent = t('Removing…');
+      try {
+        const { removed, bytes } = await history.pruneAutomatic();
+        announce(pruneOutcome(removed, bytes));
+      } catch (err) {
+        host.log?.('error', 'Removing old checkpoints failed', { error: String(err) });
+        announce(t('Older checkpoints could not be removed. Try again.'), { assertive: true });
+      }
+      pruneBtn.textContent = prev; pruneBtn.disabled = false;
+      await refreshMeter();
+      return;
+    }
 
     if ((e.target as Element).closest('.store-selbar-clear')) { body.querySelectorAll<HTMLInputElement>('.store-sess-check').forEach(c => { c.checked = false; }); syncSelbar(); return; }
     const selDel = (e.target as Element).closest<HTMLButtonElement>('.store-selbar-del');

@@ -273,7 +273,7 @@ Verktøy viser bare de feltene som er ment å variere - alt annet (farger, layou
 
 I et [samarbeid](/info/collaborate.html) i sanntid forblir historikken din alene. En endring som kommer fra den andre enheten, havner aldri på din stabel, så angre kan bare noensinne reversere noe du selv gjorde.
 
-Angre går bare tilbake gjennom dette besøket; ni verktøy beholder også tidligere versjoner under **History**, ved siden av **Angre** (se [Gå tilbake til en tidligere versjon](/info/find-your-work.html#go-back-to-an-earlier-version)).
+Angre går bare tilbake gjennom dette besøket; verktøy som lagrer mens du jobber, tar også vare på tidligere versjoner under **Historikk**, ved siden av **Angre** (se [Gå tilbake til en tidligere versjon](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ## Opplysningene og portrettbildet ditt
 
@@ -313,7 +313,7 @@ Lim lenken inn til en kollega, bokmerk den eller sjekk den inn i koden. (Alle de
 
 **Noen verktøy gjør lenken til hele produktet.** Jump Page samler lenkene dine på én side å dele ut - en bio-lenke, et konferanseforedrag, en butikkfront. Det er ingenting å hoste og ingen konto bak det: siden er lenken, så den åpner like raskt som URL-en reiser. I redigeringsverktøyet ser du den ferdige siden ved siden av feltene; en besøkende som åpner lenken, får den i full bredde, én lenke per scene etter hvert som de ruller.
 
-![Jump Page i redigeringsverktøyet - overskriften, tre lenkescener hver med sin egen fargevask og en Made with Lolly-footer, lagt ut som én side på lerretet](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page i redigeringsverktøyet: overskriftscenen øverst på siden, med lenkescenene under](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **Dialogen sier hva en lenke ikke kan bære.** Tre ting får ikke plass i en URL: et bilde eller en fil du la til fra denne enheten, en svært lang tekstverdi eller en svært stor liste. Hver av dem telles mens lenken bygges. Måtte noe utelates, navngir dialogen det og peker deg til filen nedenfor, i stedet for å gi deg en lenke som åpnes uten bildet. En lenke som bare er *lang*, får en mildere merknad med antall tegn, siden pakking fortsatt kan redde lengden.
 
@@ -423,7 +423,7 @@ Batch er mange varianter av *ett* design. **Multi-edit** er den andre halvparten
 
 Ett sidepanel styrer hele settet:
 
-- <!--i:sliders--> **Delt** står først - hvert felt som to eller flere av de valgte øktene erklærer *på samme måte* (samme id, samme type, samme begrensninger - den samme flettereglen batch-rutenettet bruker på kolonnene sine). Endre en delt kontroll én gang, så sprer verdien seg til hver økt som erklærer den, direkte på hvert kort. To økter fra samme verktøy deler alt; to forskjellige verktøy deler det de tilfeldigvis har felles, og ingenting mer.
+- <!--i:sliders--> **Delt** står først - hvert felt som to eller flere av de valgte øktene erklærer *på samme måte* (samme id, samme type, samme begrensninger - den samme flettereglen batch-rutenettet bruker på kolonnene sine). Endre en delt kontroll én gang, så sprer verdien seg til hver økt som erklærer den, direkte på hvert kort. To økter fra samme verktøy deler alt; to forskjellige verktøy deler bare feltene de har felles.
 - <!--i:document--> Under det ligger **ett sammenslått kort per økt** med alle den øktens egne felter, like fullstendig som verktøyets eget sidepanel - ressursvelgere, gjentakende radgrupper, fargefelter - pluss en kompakt eksportblokk: **Format**, **B** / **H**, **Enhet**, **DPI** og sin egen **Last ned**. Den nedlastingen lagrer økten først og rendrer den så gjennom den vanlige eksportveien for økter, så filen bærer det samme filnavnet, formatet og de samme Content Credentials som den ville gjort rett fra verktøyet.
 - <!--i:search--> **Filtrer felt…** øverst snevrer inn kontrollene på *alle* kortene samtidig - det er slik du kommer til «overskriften» i åtte økter uten å måtte rulle etter den.
 

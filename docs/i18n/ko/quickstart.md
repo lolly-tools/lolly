@@ -16,7 +16,7 @@ Lolly에서 여러분의 브랜드는 작은 **디자인 토큰** 문서예요 -
 
 처음 실행하면 **갤러리**가 열리고, 그 위에 짧은 환영 대화상자가 세 가지 시작 방법을 안내해요 - **Make it yours**(`#/start`의 Brand Studio), **Bring your design**(Figma, Penpot, InDesign, PDF 파일을 끌어다 놓으면 편집 가능한 레이아웃으로 열려요 - 아래 [이미 가진 것 가져오기](#2-bring-in-what-you-already-have)로 가는 가장 빠른 길이에요), 그리고 **Explore the community tools**예요. 영어가 모국어가 아니라면 언어 목록도 함께 나와요. 첫 번째 카드를 고르면 [**Brand Studio**](/info/brand-studio.html)로 이동해요. 이름과 기본 색상만 정하면 Lolly가 거기에서 완전하고 접근성 있는 팔레트를 *도출*해요 - 밝은/어두운 표면, 텍스트, 강조색까지 - 엔진이 다른 곳에서도 쓰는 것과 같은 색상 계산으로요.
 
-![Brand Studio의 Colours 룸 - 기본 색상, 그리고 Lolly가 거기에서 도출한 접근성 팔레트](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) 폰트를 고르면 1분도 안 되어 쓸 수 있는 브랜드가 완성돼요. 그다음부터는 스튜디오의 여섯 개 룸 - Overview, Colours, Type, Logos, Tokens, Files - 에서 원하는 만큼, 원하는 순서로 다듬을 수 있고, 다시 돌아올 때마다 언제든 고칠 수 있어요. 대시보드의 **Design system** 탭(`#/d`)은 그 결과를 읽기 전용으로 보여 주고, 편집이 이뤄지는 `#/start`를 가리켜요(브랜드가 고정된 brand-locked 빌드를 쓰고 있다면 브랜드는 잠겨 있어 바꿀 것이 없어요).
+![새로 설치했을 때의 Brand Studio Colours 룸 - 라이브 칩 하나, 필드 하나, 그리고 첫 번째 결정의 전부](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) 폰트를 고르면 1분도 안 되어 쓸 수 있는 브랜드가 완성돼요. 그다음부터는 스튜디오의 여섯 개 룸 - Overview, Colours, Type, Logos, Tokens, Files - 에서 원하는 만큼, 원하는 순서로 다듬을 수 있고, 다시 돌아올 때마다 언제든 고칠 수 있어요. 대시보드의 **Design system** 탭(`#/d`)은 그 결과를 읽기 전용으로 보여 주고, 편집이 이뤄지는 `#/start`를 가리켜요(잠긴 디자인 시스템은 읽기 전용으로 유지되고, 사용자 자신의 로컬 시스템은 계속 편집할 수 있어요).
 
 ### 이미 가진 브랜드 가져오기
 
@@ -27,7 +27,7 @@ Lolly에서 여러분의 브랜드는 작은 **디자인 토큰** 문서예요 -
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand`는 Penpot / Tokens Studio가 같은 문서를 내보낼 때 쓰는 세 가지 컨테이너를 모두 받아요 - 단일 `tokens.json`, 디렉터리(`$metadata.json` + 세트별 파일), 또는 `project.penpot` 아카이브요. `--activate`를 쓰면 브랜드를 프로필로 등록하고 그 프로필로 전환한 뒤 카탈로그를 다시 빌드해요. 브랜드 팩과 프로필이 어떻게 맞물리는지는 [설정](/info/configuration.html)을 참고하세요.
@@ -60,7 +60,7 @@ npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
 
 가져오기는 전부 **여러분의 기기에서** 이뤄져요 - 파일은 브라우저 안에서 해석되고 아무것도 업로드되지 않아요. 자세한 내용과 무엇이 그대로 넘어오는지는 [디자인 가져오기](/info/design-import.html)에 있어요.
 
-**PowerPoint 덱**이 있으신가요? `.pptx`를 **Deck Builder**에 끌어다 놓으면 이미 브랜드에 맞춰진 상태로 슬라이드를 하나씩 편집할 수 있고, **Rebrand a Deck**을 돌리면 차트와 애니메이션이 그대로인 채 테마만 바뀐 같은 덱을 돌려받아요.
+**PowerPoint 덱**을 갖고 계신가요? `.pptx`를 업로드 가능한 위치 어디든 놓으면 슬라이드를 에셋으로 담을 수 있어요. **Markdown Slides**에서 Markdown으로 새 덱을 작성하거나, **Rebrand**를 실행해서 차트와 애니메이션은 그대로 둔 채 테마만 바뀐 같은 덱을 돌려받을 수도 있어요.
 
 ### 한 번 쓰고 마는 작업물에서 템플릿으로
 
@@ -72,7 +72,7 @@ npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
 
 도구에 여러분의 열린 데이터도 넣어 보세요. **CSV**나 **JSON** 표를 붙여 넣거나 끌어다 놓으면 도구의 반복 항목이 그 값으로 채워지고, 행마다 완성된 자산이 하나씩 나와요.
 
-## 3. 만들고, 공유하거나 자동화하기
+## 3. 무언가를 만들고, 그 결과를 공유하거나 자동화하기
 
 브랜드를 활성화하고 재료도 갖췄다면, 모든 도구가 완성된 파일을 내놓아요:
 

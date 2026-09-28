@@ -58,6 +58,8 @@ interface DocEditorOpts {
   setCanvasSize?: (w: number, h: number, unit?: string) => void;
   editTool?: (url: string, mode?: string) => void;
   history?: { register: (sync: (u: boolean, r: boolean) => void) => void };
+  /** Version history (plan 277 P4): a History button beside Undo and Redo on the rail. */
+  revisions?: { open: () => void };
   actions?: { export?: () => void; save?: () => void; canSave?: boolean; dirtyRef?: HTMLElement | null };
 }
 
@@ -575,7 +577,10 @@ export function initDocEditor(opts: DocEditorOpts): { destroy(): void } {
   const bExport = btn('fc-btn fc-action fc-action-primary', IC.export, 'Export / download');
   const bSave = btn('fc-btn fc-action fc-action-save', IC.save, 'Save');
   const bSetup = btn('fc-btn', IC.gear, 'Page setup');
-  rail.append(bUndo, bRedo, el('span', 'fc-sep'), bExport, ...(opts.actions?.canSave ? [bSave] : []), el('span', 'fc-sep'), bSetup);
+  const bHistory = btn('fc-btn', icon('history'), t('History'));
+  bHistory.dataset.historyOpen = '';
+  rail.append(bUndo, bRedo, ...(opts.revisions ? [bHistory] : []), el('span', 'fc-sep'), bExport, ...(opts.actions?.canSave ? [bSave] : []), el('span', 'fc-sep'), bSetup);
+  if (opts.revisions) { const { open } = opts.revisions; on(bHistory, 'click', () => { flushCommit(); open(); }); }
   on(bUndo, 'click', () => editor.chain().focus().undo().run());
   on(bRedo, 'click', () => editor.chain().focus().redo().run());
   on(bExport, 'click', () => { flushCommit(); opts.actions?.export?.(); });

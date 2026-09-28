@@ -227,13 +227,30 @@ export const HOOK_BUDGET_MS = {
   exportStill: 10000,
 };
 
+/** Options for an intermediate patch (v1.228). */
+export interface HookReportOpts {
+  /**
+   * The document can be shown as it now stands: a view created with
+   * `progressiveInit` stops waiting for onInit here and mounts, and the hook's final
+   * result applies when it arrives. Only onInit's reports carry it; anywhere else,
+   * and without the option, it is an ordinary report.
+   */
+  ready?: boolean;
+}
+/** Publish an intermediate onInit/onInput patch. Ignored after a newer run. */
+export type HookReport = (patch: Record<string, unknown>, opts?: HookReportOpts) => void;
+
 /** The lifecycle context every hook receives. */
 interface HookContext {
   lang?: string;
   model: InputModelItem[];
   host: HostV1;
   /** Publish an intermediate onInit/onInput patch. Ignored after a newer run. */
-  report?: (patch: Record<string, unknown>) => void;
+  report?: HookReport;
+  /** onInit only (v1.228): this view shows reported patches as they arrive and opens on
+   *  a `ready` one (createRuntime's `progressiveInit`). Without it nobody is watching,
+   *  so a partial render is wasted work. */
+  progressive?: boolean;
 }
 
 type OnInitHook = (ctx: HookContext) => unknown;
@@ -384,6 +401,16 @@ export interface Runtime {
    */
   resolveRefs(): Promise<void>;
   subscribe(fn: (state: RuntimeState) => void): () => void;
+  /**
+   * Resolves once the newest onInit/onInput run is done: its patch applied (within its
+   * budget or late), the run failed, or a newer run superseded it and that one is done.
+   * Resolves on the next task when nothing is outstanding, and at destroy(). (v1.226)
+   *
+   * A run raced out past HOOK_BUDGET_MS keeps computing and may still apply, and that
+   * late patch reaches subscribers with no other signal. A shell opening a large
+   * document waits here to know the document it shows is laid out.
+   */
+  whenSettled(): Promise<void>;
   /** Re-notify subscribers with the CURRENT model - no value change. */
   refresh(): void;
   /** True when this tool declares an `onFrame` hook. */
@@ -473,7 +500,21 @@ export async function createRuntime(
   tool: LoadedTool,
   host: HostV1,
   initialState: Record<string, InputValue> = {},
-  opts: { composeStack?: readonly string[]; hookExecutor?: HookExecutor } = {},
+  opts: {
+    composeStack?: readonly string[];
+    hookExecutor?: HookExecutor;
+    /** Let onInit end its own wait (v1.228): a `report(patch, { ready: true })` mounts
+     *  the view with the document as far as it has got, and the rest applies as it
+     *  arrives. For an interactive view only. A render, an export or a script must
+     *  leave it off, or it would deliver half a document. */
+    progressiveInit?: boolean;
+    /** The emoji style to compose with from the first render (v1.227), in place of the
+     *  default. A shell that already knows the document's style passes it here, so
+     *  onInit lays text out once with the right glyphs instead of composing everything
+     *  again when the style arrives through setEmojiStyle. `null` means no set. An
+     *  invalid style is logged and the default kept. */
+    emojiStyle?: EmojiStyleV1 | null;
+  } = {},
 ): Promise<Runtime> {
   if (host.version !== '1') {
     throw new Error(`Tool requires host bridge v1, got v${host.version}`);
@@ -492,6 +533,11 @@ export async function createRuntime(
   // DOM pass. The listing is metadata only; artwork stays on demand.
   let emojiSets: EmojiSetInfoV1[] | undefined = host.emoji ? await host.emoji.sets().catch(() => []) : undefined;
   let emojiStyle: EmojiStyleV1 | null = defaultEmojiStyle(emojiSets ?? []);
+  if (opts.emojiStyle !== undefined) {
+    const issue = opts.emojiStyle ? (await import('./emoji-pack.ts')).validateEmojiStyle(opts.emojiStyle) : null;
+    if (issue) host.log('warn', `emojiStyle ${issue.message}`, { toolId: tool.manifest.id });
+    else emojiStyle = opts.emojiStyle ? structuredClone(opts.emojiStyle) : null;
+  }
   type ToolEmoji = ReturnType<typeof import('./emoji-tool-text.ts')['createEmojiToolText']>;
   let toolEmoji: ToolEmoji | null = null;
   const emojiApi = host.emoji, textApi = host.text;
@@ -580,10 +626,26 @@ export async function createRuntime(
   // the work resolves, while a superseding keystroke still wins. Export hooks
   // never late-apply: a budget overrun there fails that export visibly.
   let hookRunSeq = 0;
+  // whenSettled (v1.226): the hookRunSeq of the newest onInit/onInput run still out,
+  // or 0. A superseded run's landing is ignored; only the newest one counts.
+  let outstandingSeq = 0;
+  const settleWaiters: Array<() => void> = [];
+  const flushSettled = (): void => { for (const resolve of settleWaiters.splice(0)) resolve(); };
+  const noteLanded = (seq: number): void => {
+    if (seq !== outstandingSeq) return;
+    outstandingSeq = 0;
+    // One task later: the caller's merge and emit (or the late apply) run in the
+    // microtasks behind the hook's promise, and a waiter must hear "settled" once the
+    // repaint is done. A run started in between keeps the waiters waiting.
+    setTimeout(() => { if (!outstandingSeq) flushSettled(); }, 0);
+  };
   function runHook(
     name: keyof typeof HOOK_BUDGET_MS,
-    invoke: (report?: (patch: Record<string, unknown>) => void) => unknown,
+    invoke: (report?: HookReport) => unknown,
     onLate?: (patch: unknown) => void,
+    // v1.228: a `ready` report ends the wait (see HookReportOpts). onInit only, and
+    // only for a runtime created with `progressiveInit`.
+    honourReady = false,
   ): Promise<unknown> {
     const budget = HOOK_BUDGET_MS[name];
     const started = Date.now();
@@ -592,30 +654,53 @@ export async function createRuntime(
     // async result land on top of it.
     const seq = onLate ? ++hookRunSeq : 0;
     let finished = false;
-    const report = onLate ? (patch: Record<string, unknown>) => {
-      if (!finished && seq === hookRunSeq) onLate(patch);
+    let markReady: (() => void) | undefined;
+    const ready = new Promise<'ready'>((resolve) => { markReady = () => resolve('ready'); });
+    const report: HookReport | undefined = onLate ? (patch, opts) => {
+      if (finished || seq !== hookRunSeq) return;
+      onLate(patch);
+      if (opts?.ready && honourReady) markReady?.();
     } : undefined;
-    const out = invoke(report);
+    if (onLate) outstandingSeq = seq;
+    let out: unknown;
+    try {
+      out = invoke(report);
+    } catch (error) {
+      if (onLate) noteLanded(seq);
+      throw error;
+    }
     if (out == null || typeof (out as { then?: unknown }).then !== 'function') {
       const elapsed = Date.now() - started;
       if (elapsed > budget) {
         host.log('warn', `${name} ran ${elapsed}ms synchronously (budget ${budget}ms - sync hooks can't be preempted)`, { toolId: tool.manifest.id });
       }
+      if (onLate) noteLanded(seq);
       return Promise.resolve(out);
     }
     const p = Promise.resolve(out).then(patch => {
       finished = true;
       return onLate && seq !== hookRunSeq ? null : patch;
     }, error => { finished = true; throw error; });
+    if (onLate) void p.then(() => noteLanded(seq), () => noteLanded(seq));
     if (!onLate) return withTimeout(p, budget, tool.manifest.id);
-    return withTimeout(p, budget, tool.manifest.id).catch((err: unknown) => {
-      // Timed out (a hook REJECTION reaches this catch too, but then the late .then
-      // below never fires). Keep listening for the real result.
+    // Keep listening for the real result once the caller has stopped waiting.
+    const applyWhenDone = (): void => {
       p.then((patch) => {
         if (seq !== hookRunSeq || !patch) return;
         host.log('info', `${name} finished ${Date.now() - started}ms in (budget ${budget}ms) - applying late, still the newest run`, { toolId: tool.manifest.id });
         onLate(patch);
       }, () => { /* the timeout already told the story */ });
+    };
+    return Promise.race([withTimeout(p, budget, tool.manifest.id), ready]).then((patch) => {
+      // Ready before done: what the hook reported is already merged, and the rest
+      // arrives through the same late path a budget overrun takes, without the error.
+      if (patch !== 'ready') return patch;
+      applyWhenDone();
+      return null;
+    }, (err: unknown) => {
+      // Timed out (a hook REJECTION reaches this catch too, but then the late .then
+      // never fires).
+      applyWhenDone();
       throw err;
     });
   }
@@ -648,7 +733,8 @@ export async function createRuntime(
     const onInit = hooks.onInit;
     if (onInit) {
       try {
-        const patch = await runHook('onInit', report => onInit({ model: modelForHooks(model), lang: hookLang, host, report }), applyLatePatch);
+        const progressive = opts.progressiveInit === true;
+        const patch = await runHook('onInit', report => onInit({ model: modelForHooks(model), lang: hookLang, host, report, ...(progressive ? { progressive } : {}) }), applyLatePatch, progressive);
         if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
       } catch (e) {
         // Record the failure (not just log it) so the shell can show a canvas-error
@@ -925,6 +1011,10 @@ export async function createRuntime(
 
   let emojiAssets: import('@lolly-tools/core/host-v1').AssetRef[] = [];
   let emojiStyleGeneration = 0;
+  // The generation whose change has finished, and the style `emojiAssets` was resolved
+  // for. Together they let setEmojiStyle tell "already in force" from "on its way".
+  let emojiStyleSettled = 0;
+  let emojiAssetsFor: string | null = null;
   const emojiSnapshot = (): RuntimeEmojiState => ({
     assets: structuredClone(emojiAssets),
     present: Boolean(host.emoji),
@@ -1143,17 +1233,43 @@ export async function createRuntime(
     }),
     async setEmojiStyle(style) {
       if (style) { const issue = (await import('./emoji-pack.ts')).validateEmojiStyle(style); if (issue) throw new Error(issue.message); }
-      const generation = ++emojiStyleGeneration;
       const next = style ? structuredClone(style) : null;
-      const assets = next && host.emoji?.dependencies ? await host.emoji.dependencies([next.primary, ...next.fallbacks]) : [];
+      const key = JSON.stringify(next);
+      const dependencies = async (): Promise<import('@lolly-tools/core/host-v1').AssetRef[]> =>
+        next && host.emoji?.dependencies ? host.emoji.dependencies([next.primary, ...next.fallbacks]) : [];
+      // The style already in force, with no other change on its way (v1.227): a shell
+      // applying the style the runtime was created with, or a picker choosing the
+      // current set again. No glyph changes, so the tool's onInput does not run: on a
+      // large text document that run is a second full composition. The assets are
+      // still resolved once, because a save carries them.
+      if (key === JSON.stringify(emojiStyle) && emojiStyleSettled === emojiStyleGeneration) {
+        if (emojiAssetsFor !== key) {
+          const generation = emojiStyleGeneration;
+          const assets = await dependencies();
+          if (generation === emojiStyleGeneration && emojiAssetsFor !== key) { emojiAssets = assets; emojiAssetsFor = key; notifyEmoji(); }
+        }
+        return;
+      }
+      const generation = ++emojiStyleGeneration;
+      const assets = await dependencies();
       if (generation !== emojiStyleGeneration) return;
       emojiAssets = assets;
+      emojiAssetsFor = key;
       emojiStyle = next;
+      emojiStyleSettled = generation; // in force now; its onInput below covers any repeat
       if (toolEmoji?.used && hooks?.onInput) {
         const seq = setInputSeq;
-        const patch = await runHook('onInput', report => hooks!.onInput!({id:'__emoji', value:null, model:modelForHooks(model), host, report}), late => {
-          if (generation === emojiStyleGeneration && seq === setInputSeq) applyLatePatch(late);
-        });
+        // Caught like every other onInput run: a slow hook (a large document's first
+        // composition) is logged and its late patch is still applied, instead of the
+        // rejection escaping into the shell and failing the view's mount.
+        let patch: unknown;
+        try {
+          patch = await runHook('onInput', report => hooks!.onInput!({id:'__emoji', value:null, model:modelForHooks(model), host, report}), late => {
+            if (generation === emojiStyleGeneration && seq === setInputSeq) applyLatePatch(late);
+          });
+        } catch (e) {
+          host.log('warn', `onInput ${(e as Error).message}`, { toolId: tool.manifest.id });
+        }
         if (generation !== emojiStyleGeneration || seq !== setInputSeq) return;
         if (patch) { ({model, extras} = mergePatch(model,extras,patch,inputIds)); emit(); }
       }
@@ -1360,6 +1476,13 @@ export async function createRuntime(
       listeners.add(fn);
       fn({ model, hydrated: getHydrated() });
       return () => listeners.delete(fn);
+    },
+
+    whenSettled() {
+      return new Promise<void>((resolve) => {
+        if (outstandingSeq && !destroyed) settleWaiters.push(resolve);
+        else setTimeout(resolve, 0);
+      });
     },
 
     // Re-notify subscribers with the CURRENT model - no value change. For shell
@@ -1937,6 +2060,8 @@ export async function createRuntime(
       stopMeterLoop();
       cancelRecording();
       ++hookRunSeq; // Ignore late reports/results from a tool that is no longer mounted.
+      outstandingSeq = 0;
+      flushSettled(); // nothing that runs from here on can land, so nobody waits for it
       // Let the tree the emoji pass last walked go. An offscreen export stage is
       // removed from the document right after its render, and holding the node
       // here would keep the whole detached stage alive for nothing.

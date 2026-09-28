@@ -1,13 +1,13 @@
 # Retrouver et récupérer ton travail
 
-Tout ce que tu crées dans Lolly reste dans le navigateur ou l'application où tu l'as créé, sur cet appareil, sauf si tu actives la [synchronisation](/info/sync.html). Le travail enregistré est dans **Projets**. Un fichier téléchargé se trouve là où ton navigateur ou ton système l'a placé, et une copie attend généralement dans **Éléments**. Dans neuf outils, le travail jamais enregistré est conservé aussi. Cette page couvre chacun de ces cas, plus un onglet fermé, des données de navigateur effacées, des versions antérieures, des éléments supprimés et le transfert vers un autre appareil.
+Tout ce que tu crées dans Lolly reste dans le navigateur ou l'application où tu l'as créé, sur cet appareil, sauf si tu actives la [synchronisation](/info/sync.html). Le travail enregistré est dans **Projets**. Un fichier téléchargé se trouve là où ton navigateur ou ton système l'a placé, et une copie attend généralement dans **Éléments**. Dans la plupart des outils, le travail jamais enregistré est conservé aussi. Cette page couvre chacun de ces cas, plus un onglet fermé, des données de navigateur effacées, des versions antérieures, des éléments supprimés et le transfert vers un autre appareil.
 
 | Ce que tu as fait | Où regarder |
 |---|---|
 | Appuyé sur **Enregistrer sous** ou **Enregistrer** | **Projets** |
 | Appuyé sur **Télécharger** | Les téléchargements de ton navigateur, et une copie dans **Éléments** |
-| Ni l'un ni l'autre, dans l'un des [neuf outils qui enregistrent au fil du travail](#the-nine-tools-that-save-as-you-work) | **Projets** et **Historique** |
-| Ni l'un ni l'autre, dans un autre outil | Seulement l'onglet où tu as travaillé, jusqu'à ce que tu le fermes |
+| Ni l'un ni l'autre, dans un [outil qui enregistre au fil du travail](#which-tools-save-as-you-work) | **Projets** et **Historique** |
+| Ni l'un ni l'autre, dans un outil qui ne le fait pas | Seulement l'onglet où tu as travaillé, jusqu'à ce que tu le fermes |
 | Supprimé dans l'application | **Corbeille**, dans **Projets**, **Éléments** ou **Paramètres → Stockage**, pendant 30 jours |
 
 ## Retrouver quelque chose que tu as enregistré
@@ -71,20 +71,29 @@ not visible in the closed menu, so the alt does not list them.
 
 Ce qui revient dépend de la façon dont tu es parti et de l'outil que tu as utilisé :
 
-- **Tu as fermé l'onglet, ou tu reviens une autre fois.** Le travail non enregistré a disparu, sauf dans les [neuf outils](#the-nine-tools-that-save-as-you-work), qui enregistrent tes modifications au fil du travail : ouvre-les depuis **Projets**.
-- **Tu as rechargé la page dans le même onglet.** Tes réglages reviennent depuis l'adresse de la page. Dans les outils autres que les neuf, les images et fichiers que tu as ajoutés depuis ton appareil, et le texte sur une ligne de plus de 150 caractères, ne reviennent pas, parce que l'adresse ne les contient pas.
+- **Tu as fermé l'onglet, ou tu reviens une autre fois.** Le travail non enregistré a disparu, sauf dans les [outils qui enregistrent au fil du travail](#which-tools-save-as-you-work) : ouvre ce travail depuis **Projets**.
+- **Tu as rechargé la page dans le même onglet.** Tes réglages reviennent depuis l'adresse de la page. Dans les outils qui n'enregistrent pas au fil du travail, les images et fichiers que tu as ajoutés depuis ton appareil, et le texte sur une ligne de plus de 150 caractères, ne reviennent pas, parce que l'adresse ne les contient pas.
 - **Tu as appuyé sur Accueil, ou le bouton retour en haut à gauche.** Si tu as changé quelque chose depuis ton dernier enregistrement, téléchargement ou copie, une boîte de dialogue **Modifications non enregistrées** demande s'il faut d'abord enregistrer. **Enregistrer et quitter** enregistre le travail et t'emmène vers **Projets**, ou vers le dossier de projet depuis lequel tu as ouvert le travail. **Quitter sans enregistrer** annule tes modifications : un élément enregistré revient à l'état de son dernier enregistrement, et une création que tu n'as jamais enregistrée quitte **Projets**. **Annuler** te garde dans l'outil.
 
 Lolly ne demande que lorsque tu appuies sur **Accueil** ou le bouton retour dans un outil. Fermer l'onglet, recharger et le propre bouton retour de ton navigateur ne demandent jamais. Pour être sûr, appuie sur **Enregistrer sous**, ou **Enregistrer** dans le panneau d'export, avant de quitter un outil.
 
 ::: note Parti sans enregistrer par erreur ?
-Dans les neuf outils, l'historique conserve une copie des modifications abandonnées. Ouvre la page **Historique**, trouve-les sous **Changes** et appuie sur **Ouvrir comme copie**. Dans les autres outils, les modifications ont disparu.
+Dans les outils qui enregistrent au fil du travail, l'historique conserve une copie des modifications abandonnées. Ouvre la page **Historique**, trouve-les sous **Changes** et appuie sur **Ouvrir comme copie**. Dans les autres outils, les modifications ont disparu.
 :::
 
-::: details Les neuf outils qui enregistrent au fil du travail
-[Design](/#/tool/design), [Graphique](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Diagramme de flux](/#/tool/org-chart), [Tarifs](/#/tool/pricing-table), [Logotype](/#/tool/wordmark) et [Texte](/#/tool/text-helper). La liste s'allonge à mesure que d'autres outils gagnent l'enregistrement automatique.
+::: details Quels outils enregistrent au fil du travail
+Dans l'application web, chaque outil qui crée un document enregistre au fil du travail : Design, Chart, QR Code, Text, Sandbox et les autres. Ces outils ne le font pas :
 
-Dans ces outils, ta première modification classe le travail dans **Projets** comme si tu avais enregistré, et les modifications suivantes sont conservées en quelques secondes. Une création non enregistrée reste donc dans Projets après la fermeture de l'onglet et se rouvre avec ses modifications marquées comme non enregistrées. **Quitter sans enregistrer** les rejette quand même, et l'historique conserve une copie des modifications abandonnées pendant 30 jours. Rouvrir l'outil depuis l'écran d'accueil démarre une nouvelle création ; ouvre l'ancienne depuis Projets.
+- les outils qui travaillent sur un fichier que tu apportes, comme Redact, Sign ou Convert Image, parce que Lolly ne garde jamais de copie de ce fichier ;
+- les outils qui enregistrent depuis ta caméra, ton micro ou ton écran, comme Record, Screen Capture et Voice Recorder ;
+- 3D et Darkroom, qui prennent leur propre fichier ;
+- un outil sans rien à changer, comme Countdown.
+
+Dans les autres outils, ta première modification classe le travail dans **Projets** comme si tu avais enregistré, et les modifications suivantes sont conservées au fil du travail, une fois que l'outil a fini de dessiner. Une création non enregistrée reste donc dans Projets après la fermeture de l'onglet et se rouvre avec ses modifications marquées comme non enregistrées. **Quitter sans enregistrer** les rejette quand même, et l'historique conserve une copie des modifications abandonnées pendant 30 jours. Rouvrir l'outil depuis l'écran d'accueil démarre une nouvelle création ; ouvre l'ancienne depuis Projets.
+
+Avec la [synchronisation](/info/sync.html) activée, une création classée de cette façon rejoint tes autres appareils comme tout le reste dans Projets. Ses versions restent sur l'appareil où elles ont été créées.
+
+Si une création est ouverte dans deux onglets et que tu enregistres dans les deux, c'est le dernier enregistrement qui est conservé. Le travail qu'il a remplacé n'est pas perdu : il se trouve sous **Brouillons protégés** dans l'historique de la création, avec **Ouvrir le brouillon comme copie**.
 
 Cela ne fonctionne que dans l'application web, pas dans les applications de bureau ou mobiles, et pas pendant que tu travailles en direct avec quelqu'un d'autre.
 :::
@@ -111,21 +120,23 @@ Sur iPhone, iPad et Android, un nouveau fichier remplace un précédent portant 
 ## Revenir à une version antérieure
 
 - **Pendant cette visite :** **Annuler** remonte tes 100 dernières modifications, jusqu'à ce que tu quittes l'outil ou recharges. Voir [Annuler et rétablir](/info/using.html#undo-and-redo).
-- **Dans les neuf outils qui enregistrent au fil du travail :** les versions antérieures de chaque création sont conservées. Suis les étapes ci-dessous.
+- **Dans les [outils qui enregistrent au fil du travail](#which-tools-save-as-you-work) :** les versions antérieures de chaque création sont conservées. Suis les étapes ci-dessous.
 - **Tout sur l'appareil :** avec la [synchronisation](/info/sync.html) activée, **Restore an earlier copy**, sous **Paramètres → Services connectés**, ramène l'une des sept dernières copies quotidiennes, ou la copie d'avant ta dernière application. Tout sur cet appareil correspond alors à cette copie, pas seulement un design.
 
-Pour ouvrir une version antérieure dans l'un des neuf outils :
+Pour ouvrir une version antérieure :
 
-1. Appuie sur **History**, le bouton horloge à côté d'**Annuler** et **Rétablir**. Dans Design, **History** se trouve dans la barre du haut ; sur un téléphone, appuie sur **•••** puis **History**.
-2. Trouve la version par sa date et son heure. Les lignes **Automatic checkpoint** sont prises au fil du travail ; les lignes **Saved version** sont les moments où tu as enregistré.
-3. Appuie sur **Open as a copy**. La version s'ouvre comme une nouvelle création, et celle que tu avais ouverte reste telle quelle. La copie est dans **Projets**, avec "(copy)" après son nom.
+1. Appuie sur **Historique**, le bouton horloge à côté d'**Annuler** et **Rétablir**. Dans Design, **Historique** se trouve dans la barre du haut ; sur un téléphone, appuie sur **•••** puis **Historique**. Dans les outils sans **Annuler**, comme Text et Sandbox, **Historique** se trouve à côté d'**Accueil** en haut à gauche.
+2. Trouve la version par sa date et son heure. Les lignes **Point de contrôle automatique** sont prises au fil du travail ; les lignes **Version enregistrée** sont les moments où tu as enregistré.
+3. Appuie sur **Ouvrir comme copie**. La version s'ouvre comme une nouvelle création, et celle que tu avais ouverte reste telle quelle. La copie est dans **Projets**, avec "(copy)" après son nom.
 
 Pour conserver une version sous un nom, appuie sur **Name version**, tape un nom et appuie sur **Keep milestone**. Les versions nommées sont listées sur la page **History**, sous **Milestones**.
 
 ::: details Le panneau History et la page History
 Le panneau **History** liste aussi des lignes **Recovered work**, et **Protected drafts** contient tes dernières modifications entre les points de contrôle, avec **Open draft as a copy**. **Compare** et **Check assets** t'aident à choisir avant d'ouvrir une copie. Bascule **This creation** vers **All history on this device** pour voir toutes les créations.
 
-Les points de contrôle automatiques s'éclaircissent avec le temps : un par minute pour la dernière heure, un par heure pour le dernier jour, un par jour pendant 30 jours, puis un par semaine. Les versions enregistrées sont toutes conservées. Supprimer une création depuis **Paramètres → Stockage** supprime aussi ses versions.
+Les points de contrôle automatiques s'éclaircissent avec le temps : un par minute pour la dernière heure, un par heure pour le dernier jour, un par jour pendant 30 jours, puis un par semaine. Les versions enregistrées et les versions nommées sont toutes conservées. Supprimer une création déplace aussi ses versions vers la **Corbeille**, et **Supprimer définitivement** les retire.
+
+Quand le stockage de l'historique se remplit, les checkpoints automatiques les plus anciens des créations que tu n'as pas ouvertes depuis 30 jours sont retirés en premier. Un enregistrement est toujours conservé, même alors : il est écrit comme le travail actuel, et l'historique indique que cet enregistrement n'est pas conservé comme version. **Paramètres → Stockage** montre combien l'historique utilise.
 
 La page **History** (`#/history`, ou **Open app history** dans le panneau) couvre chaque création dans ce navigateur. Sur un ordinateur, ouvre la page depuis le bouton horloge en haut à droite de l'écran d'accueil ou de **Projets**. Sur un téléphone, va dans la galerie d'outils sur l'écran d'accueil, appuie sur le bouton logo rond en haut à droite et choisis **Sessions enregistrées**, ce qui ouvre History. Depuis **Projets**, cet élément ne fait encore rien.
 
@@ -157,7 +168,7 @@ Pour tout transférer une fois :
 3. Sur le nouvel appareil, ouvre **Paramètres → Stockage**, appuie sur **Importer les données…**, choisis le fichier et appuie sur **Import**.
 
 ::: note Ce qui ne voyage pas
-Les connexions, les clés et la phrase secrète de synchronisation restent sur chaque appareil. La liste des téléchargements récents, les téléchargements hors ligne et les modèles d'IA ne voyagent par aucune voie. L'historique des versions ne voyage que dans un fichier **Exporter mes données**, pas via Sync ou un `.lolly`. Une copie que Sync conserve dans ton espace de stockage peut être téléchargée et ouverte, ou choisie dans **Importer les données…**, comme un fichier de sauvegarde ; une copie chiffrée demande ta phrase secrète.
+Les connexions, les clés et la phrase secrète de synchronisation restent sur chaque appareil. La liste des téléchargements récents, les téléchargements hors ligne et les modèles d'IA ne voyagent par aucune voie. L'historique des versions ne voyage que dans un fichier **Exporter mes données**, pas via Sync ou un `.lolly`. Quand l'historique est trop volumineux pour un seul fichier, les checkpoints automatiques les plus anciens sont laissés de côté, et la ligne d'export indique combien. Une copie que Sync conserve dans ton espace de stockage peut être téléchargée et ouverte, ou choisie dans **Importer les données…**, comme un fichier de sauvegarde ; une copie chiffrée demande ta phrase secrète.
 :::
 
 ::: details Ce que contient le fichier de sauvegarde
@@ -176,7 +187,7 @@ Appuie sur **Exporter mes données** sous **Paramètres → Stockage**, et conse
 
 Au démarrage de l'application, Lolly demande au navigateur de ne pas effacer son stockage quand l'appareil manque d'espace. C'est le navigateur qui décide. Sous **Paramètres → Disponible hors ligne**, une ligne commençant par **Protected** signifie que le navigateur a accepté ; "The browser may clear downloads if the device runs low on space" signifie qu'il n'a pas accepté, et **Protect downloads** redemande. Si le navigateur n'a pas accepté, il peut effacer le travail enregistré autant que les téléchargements quand l'espace manque, garde donc un fichier récent **Exporter mes données**.
 
-**Paramètres → Stockage** montre combien d'espace utilise chaque type de données. **Vider le cache** abandonne les fichiers de catalogue téléchargés, qui se retéléchargent en cas de besoin. **Effacer toutes mes données** te demande de taper un mot, désactive Sync, puis supprime tout ce que Lolly conserve dans ce navigateur : ton profil et tes réglages, les sessions enregistrées avec leur historique et la Corbeille, les imports, les polices et les design systems, le journal de téléchargement, les résultats de Convert, les modèles d'IA téléchargés et les copies hors ligne. Les fichiers que tu as téléchargés restent où tu les as enregistrés. L'application redémarre alors comme lors d'une première visite.
+**Paramètres → Stockage** montre combien d'espace utilise chaque type de données. Sa ligne **Historique** compte les checkpoints automatiques, leurs aperçus et les brouillons de récupération ; **Supprimer les checkpoints automatiques de plus de 30 jours** libère cet espace et garde les versions enregistrées et nommées. **Vider le cache** abandonne les fichiers de catalogue téléchargés, qui se retéléchargent en cas de besoin. **Effacer toutes mes données** te demande de taper un mot, désactive Sync, puis supprime tout ce que Lolly conserve dans ce navigateur : ton profil et tes réglages, les sessions enregistrées avec leur historique et la Corbeille, les imports, les polices et les design systems, le journal de téléchargement, les résultats de Convert, les modèles d'IA téléchargés et les copies hors ligne. Les fichiers que tu as téléchargés restent où tu les as enregistrés. L'application redémarre alors comme lors d'une première visite.
 
 ![La carte de stockage sur un écran de largeur téléphone : chaque catégorie de données présentes sur l'appareil est nommée, avec le bouton Effacer toutes mes données en bas](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

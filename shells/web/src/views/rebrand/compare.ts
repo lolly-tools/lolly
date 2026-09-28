@@ -1696,6 +1696,7 @@ export function renderCompare(rb: RbCtx): void {
   ].join('|');
   if (rb.memo.compare === key && !state.pending) return;
   rb.memo.compare = key;
+  rb.els.root.toggleAttribute('data-drawn', false);
   if (!slideId || !rb.derived) {
     state.overlayKey = '';
     state.originalKey = '';
@@ -1718,6 +1719,10 @@ export function renderCompare(rb: RbCtx): void {
     state.overlayKey = overlayKey;
   }
   markSelection(rb);
+  // Every part of the selected slide is drawn in its final fonts, so a docs capture (or
+  // anything else that waits on the view) can wait for `.rb[data-drawn]` rather than
+  // guessing a delay.
+  rb.els.root.toggleAttribute('data-drawn', !state.pending && !rb.state.previewStale && fontsReady(rb) && !!preview);
 }
 
 export function compareOps(rb: RbCtx) {

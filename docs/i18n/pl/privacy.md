@@ -92,7 +92,7 @@ plik przeglądu zawierający oryginalne wartości, tylko gdy zostanie to jawnie 
 `--review-file`. Wyczyszczenie albo opuszczenie widoku przygotowania w przeglądarce zwalnia jego stan roboczy;
 to nie jest obietnica kryminalistycznego wymazania z pamięci przeglądarki albo systemu operacyjnego.
 
-## Kiedy aplikacja komunikuje się z siecią - pełna lista
+## Każde żądanie sieciowe, jakie może wykonać aplikacja
 
 Poniższa tabela to pełna lista wszystkiego, co aplikacja pobiera lub wysyła przez
 sieć. Jeśli czegoś tu nie ma, aplikacja tego nie robi.

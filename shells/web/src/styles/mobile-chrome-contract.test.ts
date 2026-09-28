@@ -188,7 +188,7 @@ const BOTTOM_SURFACES: Array<{
 }> = [
   { cls: 'job-toast',        file: 'styles/parts/job-toast.css',    keyboard: true },
   { cls: 'undo-toasts',      file: 'styles/parts/job-toast.css',    keyboard: true },
-  { cls: 'render-pill',      file: 'styles/parts/tool-chrome.css',  keyboard: true },
+  { cls: 'render-pill',      file: 'styles/parts/tool.css',         keyboard: true },
   { cls: 'projects-bulkbar', file: 'styles/parts/projects.css',     keyboard: true },
   { cls: 'cat-bulkbar',      file: 'styles/parts/asset-shared.css', keyboard: true },
   // The view-options sheet (Tools, Utilities, Catalogue). No text field inside it, so no keyboard lift.
@@ -273,7 +273,7 @@ test('the surfaces reachable while a field is focused ride var(--vv-bottom)', ()
 
 test('the two top-anchored fixed surfaces clear the notch', () => {
   const tops = [
-    { cls: 'sidebar', file: 'styles/parts/tool-chrome.css', what: 'the mobile controls sheet' },
+    { cls: 'sidebar', file: 'styles/parts/tool.css', what: 'the mobile controls sheet' },
     { cls: 'userimg-lightbox-close', file: 'styles/parts/storage.css', what: "the image lightbox's only close button" },
   ];
   for (const { cls, file, what } of tops) {
@@ -309,7 +309,7 @@ test('the job toast dismiss and the undo action keep the 44px coarse-pointer flo
 
 test('both draggable bottom sheets clamp their dvh height against the keyboard', () => {
   const sheets = [
-    { file: 'styles/parts/tool-chrome.css',  attr: 'data-sheet',     token: '--sheet-h',     what: 'the tool controls sheet' },
+    { file: 'styles/parts/tool.css',         attr: 'data-sheet',     token: '--sheet-h',     what: 'the tool controls sheet' },
     { file: 'styles/parts/brand-studio.css', attr: 'data-stu-sheet', token: '--stu-sheet-h', what: 'the brand-studio sheet' },
   ];
   for (const { file, attr, token, what } of sheets) {

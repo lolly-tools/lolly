@@ -10,7 +10,7 @@ Lolly vznikla uprostřed největší změny ve způsobu tvorby médií od dob kn
 
 %file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} vygenerovaný obrázek %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} a %act{exported to WebP} jako %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Ověřit nyní](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
-Abychom byli přesní, protože tahle stránka tvrdí, že na přesnosti záleží: obrázek výše je vygenerovaný, ne vyfocený. Na tu usedlost nemířil žádný fotoaparát, protože žádná taková usedlost neexistuje. Zobrazuje region Queensland v Austrálii, zadaný promptem ze Spojeného království, vygenerovaný v datacentru ve Spojených státech. Snaží se být věrný místu, aniž by byl jeho záznamem, a přesně to je celý důvod, proč to jeho Content Credentials uvádějí.
+Abychom byli přesní, protože tahle stránka tvrdí, že na přesnosti záleží: obrázek výše je vygenerovaný, ne vyfocený. Na tu usedlost nemířil žádný fotoaparát, protože žádná taková usedlost neexistuje. Popisuje region Queensland v Austrálii, zadaný ze Spojeného království, vygenerovaný v datacentru ve Spojených státech. Snaží se být věrný místu, aniž by byl jeho záznamem, a tohle rozlišení je celý důvod, proč to jeho Content Credentials zaznamenávají.
 
 Takhle to vypadá, když si to ověříš. V souboru přežije devět kroků: pět zaznamenal Google při generování a vodoznačení obrázku, čtyři pak Lolly při otevření, vytvoření, označení a konverzi verze na této stránce. Lolly nic negenerovala a její záznam to tak i uvádí.
 
@@ -52,6 +52,6 @@ AI tu nikdy nepotřebuješ. Pokud si ji zvolíš, platí tři věci:
 - <!--i:seal--> **Není to nárok na čistotu.** Lolly čte provenienci široce a zapisuje ji poctivě; nepředstírá, že rozpozná každý generovaný pixel na internetu.
 - <!--i:sunburst--> **Není to morální panika.** Nepřítelem není příval sám. Nepřiznaná voda ano.
 
-## Jak nás k tomu přidržet
+## Ověř si tyto závazky sám
 
 Každý závazek výše je vynucen v otevřeném kódu, ne v PDF s politikou: cesta provenience, značení GEN AI i garance bez trackerů - to všechno má testy, a stránka [Verify It Yourself](/info/verify-yourself.html) tě provede tím, jak si tvrzení ověřit na skutečném exportu. Pokud najdeš místo, kde se kód a tahle stránka rozcházejí, chyba je v kódu.

@@ -39,7 +39,7 @@ Bundel sengaja berupa zip biasa: ia bertahan utuh di transport mana pun, dan ala
 
 `profile.json` adalah bagian terkecil dan yang pertama kali dilihat pembaca di aplikasi: detail yang diisi sekali oleh pembuat, plus opsi ikut serta yang memungkinkan tool memakainya.
 
-![Formulir detail Profile yang menjadi profile.json - nama, kontak, headshot dan opsi ikut serta di sampingnya](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![Formulir detail Profil yang menjadi profile.json: nama, detail kontak dan headshot](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

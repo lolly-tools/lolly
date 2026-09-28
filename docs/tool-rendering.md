@@ -30,7 +30,7 @@ Handlebars-flavoured. **Logic-less by design.**
 
 ![The Wordmark canvas rendering the word Handlebars at weight 800, the whole output of a template whose only moving part is one text value](/t/url-shot?url=%2F%23%2Ftool%2Fwordmark%3Ftext%3DHandlebars%26weight%3D800%26size%3D150%26full&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&dark=1&filename=at2-template-wordmark)
 
-**Custom helpers.** The engine registers these in `engine/src/template.ts` (the source of truth - this table should list exactly what it registers, no more, no fewer):
+**Custom helpers.** The engine registers these in `engine/src/template.ts` (the source of truth - this table should list exactly the helpers it registers):
 
 | Helper | What it does |
 |---|---|

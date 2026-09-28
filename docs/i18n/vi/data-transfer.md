@@ -39,7 +39,7 @@ Gói này cố tình chỉ là một zip thông thường: nó sống sót nguy�
 
 `profile.json` là phần nhỏ nhất và là phần mà trình đọc thấy đầu tiên trong ứng dụng: các thông tin mà người tạo điền một lần, cộng với tùy chọn cho phép các công cụ sử dụng chúng.
 
-![Biểu mẫu chi tiết Profile trở thành profile.json - tên, liên hệ, ảnh đại diện và tùy chọn cho phép bên cạnh chúng](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![Biểu mẫu chi tiết Hồ sơ trở thành profile.json: tên, thông tin liên hệ và ảnh đại diện](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

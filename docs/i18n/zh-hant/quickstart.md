@@ -16,7 +16,7 @@ Lolly 把你的規範（色彩、字體、版面、邏輯）變成任何人都�
 
 首次啟動會直接把你帶到**工具庫**，上面疊著一個簡短的歡迎對話框，提供三條入口：**Make it yours**（位於 `#/start` 的 Brand Studio）、**Bring your design**（丟進 Figma、Penpot、InDesign 或 PDF 檔案，它會以可編輯的版面打開，這是通往下方[把你既有的資產帶進來](#2-bring-in-what-you-already-have)最快的路徑），以及 **Explore the community tools**；如果英文不是你的語言，還有一排語言可選。選第一張卡，你會來到 [**Brand Studio**](/info/brand-studio.html)。給它一個名字和一個主色，Lolly 就會從中*推導*出一整套無障礙色盤（淺色／深色底、文字、強調色），用的是引擎在其他地方所用的同一套色彩運算。
 
-![Brand Studio 的色彩區：一個主色，以及 Lolly 從它推導出的無障礙色盤](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) 挑一個字型，不到一分鐘你就有一套可用的品牌。接下來工作室的六個區域（總覽、色彩、字體、標誌、Tokens、檔案）讓你想做多深就做多深、順序隨你，之後任何時候回來都能再修改。儀表板的 **Design system** 分頁（`#/d`）以唯讀方式呈現結果，並指回 `#/start`，編輯是在那裡進行（除非你用的是品牌鎖定版的 Lolly，此時品牌是固定的，沒有東西可改）。
+![全新安裝狀態下的品牌工作室『色彩』房間 - 一個即時色塊、一個欄位，以及第一個決定的全部內容](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) 挑一款字體，不到一分鐘你就有了一套可用的品牌。接下來工作室的六個房間 - 總覽、色彩、字體、標誌、權杖、檔案 - 讓你依任何順序做到你想要的程度，之後隨時回來都能繼續調整。儀表板的**設計系統**分頁(`#/d`)以唯讀方式顯示結果，並指回 `#/start`，編輯就在那裡進行(鎖定的設計系統會保持唯讀，而你自己的本機系統仍可編輯)。
 
 ### 匯入你已經有的品牌
 
@@ -27,7 +27,7 @@ Lolly 把你的規範（色彩、字體、版面、邏輯）變成任何人都�
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` 接受 Penpot／Tokens Studio 匯出同一份文件時所用的三種容器：單一 `tokens.json`、一個目錄（`$metadata.json` 加上各集合檔案），或一個 `project.penpot` 壓縮檔。加上 `--activate`，它會把該品牌註冊為一個 profile、切換過去，並重建目錄。品牌套件與 profile 如何搭配，請見[設定](/info/configuration.html)。
@@ -60,7 +60,7 @@ npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
 
 整個匯入過程都發生**在你的裝置上**：檔案在你的瀏覽器裡解析，不會上傳任何東西。完整細節，以及究竟有哪些內容會被帶過來，請見[匯入設計](/info/design-import.html)。
 
-手上是 **PowerPoint 簡報**？把 `.pptx` 丟到 **Deck Builder**，就能一頁一頁編輯，而且已經對齊你的品牌；或是執行 **Rebrand a Deck**，拿回同一份簡報換上新主題，圖表與動畫都完好。
+手上有一份 **PowerPoint 簡報**？把 `.pptx` 拖放到任何上傳區域，把它的投影片存成素材；在 **Markdown Slides** 中用 Markdown 撰寫一份新簡報；或是執行 **Rebrand**，換個主題拿回同一份簡報，圖表與動畫完好無缺。
 
 ### 從一次性作品變成範本
 

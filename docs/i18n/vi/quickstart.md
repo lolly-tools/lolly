@@ -16,7 +16,7 @@ Thương hiệu của bạn trong Lolly là một tài liệu **design-tokens** 
 
 Lần chạy đầu tiên đưa bạn tới **gallery**, với một hộp thoại chào mừng ngắn phủ lên trên, mời ba đường vào - **Make it yours** (Brand Studio tại `#/start`), **Bring your design** (thả một tệp Figma, Penpot, InDesign hay PDF vào và nó mở ra thành một bố cục chỉnh sửa được - lối nhanh nhất tới [Mang vào những gì bạn đã có](#2-bring-in-what-you-already-have) bên dưới) và **Explore the community tools** - cùng một hàng ngôn ngữ nếu tiếng Anh không phải tiếng của bạn. Chọn thẻ đầu tiên và bạn tới [**Brand Studio**](/info/brand-studio.html). Đặt tên và chọn một màu chính, rồi Lolly *suy ra* từ đó cả một bảng màu đầy đủ, dễ tiếp cận - nền sáng/tối, chữ, màu nhấn - bằng đúng phép toán màu mà engine dùng ở mọi nơi khác.
 
-![Phòng Colours của Brand Studio - một màu chính, và bảng màu dễ tiếp cận mà Lolly suy ra từ nó](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Chọn một phông chữ là bạn đã có một thương hiệu dùng được trong chưa đầy một phút. Từ đó, sáu phòng của studio - Overview, Colours, Type, Logos, Tokens, Files - cho bạn đi xa tới đâu tuỳ ý, theo thứ tự nào cũng được, tinh chỉnh lại bất cứ phần nào mỗi lần quay lại. Thẻ **Design system** trên dashboard (`#/d`) hiển thị kết quả ở chế độ chỉ đọc và trỏ ngược về `#/start`, nơi việc chỉnh sửa diễn ra (trừ khi bạn đang dùng bản Lolly khoá thương hiệu, khi đó thương hiệu là cố định và không có gì để đổi).
+![Phòng Colours của Brand Studio khi mới cài đặt - một chip màu sống động, một ô nhập, và toàn bộ quyết định đầu tiên](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Chọn một phông chữ là bạn đã có một thương hiệu dùng được trong chưa đầy một phút. Từ đó, sáu phòng của studio - Overview, Colours, Type, Logos, Tokens, Files - cho bạn đi xa tới đâu tuỳ ý, theo thứ tự nào cũng được, tinh chỉnh lại bất cứ phần nào mỗi lần quay lại. Thẻ **Design system** trên dashboard (`#/d`) hiển thị kết quả ở chế độ chỉ đọc và trỏ ngược về `#/start`, nơi việc chỉnh sửa diễn ra (một hệ thống thiết kế bị khoá vẫn ở chế độ chỉ đọc, còn hệ thống cục bộ của riêng bạn vẫn có thể chỉnh sửa được).
 
 ### Nhập một thương hiệu bạn đã có
 
@@ -27,7 +27,7 @@ Nếu thương hiệu của bạn đã được ghi lại dưới dạng design 
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` nhận cả ba dạng chứa mà Penpot / Tokens Studio dùng để xuất cùng một tài liệu - một tệp `tokens.json` duy nhất, một thư mục (`$metadata.json` + các tệp theo từng bộ) hay một kho lưu trữ `project.penpot`. Với `--activate`, nó đăng ký thương hiệu thành một profile, chuyển sang profile đó và dựng lại catalog. Xem [Cấu hình](/info/configuration.html) để biết gói thương hiệu và profile khớp với nhau ra sao.
@@ -60,7 +60,7 @@ Việc đã làm xong trong **Figma, Penpot, Illustrator, InDesign hay bất k�
 
 Toàn bộ việc nhập diễn ra **trên thiết bị của bạn** - tệp được phân tích ngay trong trình duyệt và không có gì được tải lên. Chi tiết đầy đủ, và chính xác những gì được giữ lại, nằm ở [Nhập một bản thiết kế](/info/design-import.html).
 
-Bạn có một **bộ slide PowerPoint** thay vì thế? Thả tệp `.pptx` vào **Deck Builder** để sửa từng slide, đã bám sẵn thương hiệu của bạn - hoặc chạy **Rebrand a Deck** để nhận lại đúng bộ slide đó với chủ đề mới, biểu đồ và hiệu ứng động còn nguyên.
+Bạn có một **bộ slide PowerPoint** thay vì thế? Thả tệp `.pptx` vào bất kỳ bề mặt tải lên nào để đưa các slide của nó vào thành tài sản, viết một bộ slide mới từ Markdown trong **Markdown Slides**, hoặc chạy **Rebrand** để nhận lại đúng bộ slide đó với chủ đề mới, biểu đồ và hiệu ứng động còn nguyên.
 
 ### Từ một bản làm một lần thành một mẫu
 
@@ -72,7 +72,7 @@ Phần thưởng là đây: một bố cục đã nhập chính là một phiên
 
 Bạn cũng có thể nạp dữ liệu mở của chính mình cho công cụ: dán hoặc thả một bảng **CSV** hay **JSON** vào và các trường lặp của công cụ tự điền theo, mỗi dòng ra một tài nguyên hoàn chỉnh.
 
-## 3. Làm ra thứ gì đó, rồi chia sẻ hoặc tự động hoá nó
+## 3. Làm ra thứ gì đó, rồi chia sẻ hoặc tự động hoá kết quả
 
 Với một thương hiệu đang kích hoạt và tư liệu trong tay, mọi công cụ đều cho ra một tệp hoàn chỉnh:
 

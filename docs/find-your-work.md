@@ -1,13 +1,13 @@
 # Find and recover your work
 
-Everything you make in Lolly stays in the browser or app you made it in, on that device, unless you turn on [Sync](/info/sync.html). Saved work is in **Projects**. A downloaded file is wherever your browser or system put it, and a copy usually waits in **Assets**. In nine tools, work you never saved is kept as well. This page covers each of these, plus a closed tab, cleared browser data, earlier versions, deleted items and moving to another device.
+Everything you make in Lolly stays in the browser or app you made it in, on that device, unless you turn on [Sync](/info/sync.html). Saved work is in **Projects**. A downloaded file is wherever your browser or system put it, and a copy usually waits in **Assets**. In most tools, work you never saved is kept as well. This page covers each of these, plus a closed tab, cleared browser data, earlier versions, deleted items and moving to another device.
 
 | What you did | Where to look |
 |---|---|
 | Pressed **Save as** or **Save** | **Projects** |
 | Pressed **Download** | Your browser's downloads, and a copy in **Assets** |
-| Neither, in one of the [nine tools that save as you work](#the-nine-tools-that-save-as-you-work) | **Projects** and **History** |
-| Neither, in any other tool | Only the tab you worked in, until you close the tab |
+| Neither, in a [tool that saves as you work](#which-tools-save-as-you-work) | **Projects** and **History** |
+| Neither, in a tool that does not | Only the tab you worked in, until you close the tab |
 | Deleted it in the app | **Trash**, in **Projects**, **Assets** or **Settings → Storage**, for 30 days |
 
 ## Find something you saved
@@ -71,20 +71,29 @@ not visible in the closed menu, so the alt does not list them.
 
 What comes back depends on how you left and which tool you used:
 
-- **You closed the tab, or came back another time.** Unsaved work is gone, except in the [nine tools](#the-nine-tools-that-save-as-you-work), which save your edits as you work: open them from **Projects**.
-- **You reloaded the page in the same tab.** Your settings come back from the page address. In tools other than the nine, pictures and files you added from your device, and single-line text longer than 150 characters, do not come back, because the address does not hold them.
+- **You closed the tab, or came back another time.** Unsaved work is gone, except in the [tools that save as you work](#which-tools-save-as-you-work): open that work from **Projects**.
+- **You reloaded the page in the same tab.** Your settings come back from the page address. In tools that do not save as you work, pictures and files you added from your device, and single-line text longer than 150 characters, do not come back, because the address does not hold them.
 - **You pressed Home, or the back button at the top left.** If you changed something since you last saved, downloaded or copied, an **Unsaved changes** dialog asks whether to save first. **Save & leave** saves the work and takes you to **Projects**, or back to the project folder you opened the work from. **Leave without saving** discards your changes: a saved item goes back to how you last saved it, and a creation you never saved leaves **Projects**. **Cancel** keeps you in the tool.
 
 Lolly asks only when you press **Home** or the back button in a tool. Closing the tab, reloading and your browser's own Back button never ask. To be sure, press **Save as**, or **Save** in the export panel, before you leave a tool.
 
 ::: note Left without saving by mistake?
-In the nine tools, History keeps a copy of the discarded edits. Open the **History** page, find them under **Changes** and press **Open as a copy**. In other tools the changes are gone.
+In tools that save as you work, History keeps a copy of the discarded edits. Open the **History** page, find them under **Changes** and press **Open as a copy**. In other tools the changes are gone.
 :::
 
-::: details The nine tools that save as you work
-[Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) and [Text](/#/tool/text-helper). The list grows as more tools gain automatic saving.
+::: details Which tools save as you work
+In the web app, every tool that makes a document saves as you work: Design, Chart, QR Code, Text, Sandbox and the rest. These tools do not:
 
-In these tools, your first change files the work in **Projects** as if you had saved, and later changes are kept within a few seconds. So an unsaved creation is still in Projects after you close the tab and reopens with its changes marked unsaved. **Leave without saving** still discards them, and History keeps a copy of the discarded edits for 30 days. Opening the tool again from the home screen starts a new creation; open the earlier one from Projects.
+- tools that work on a file you bring, such as Redact, Sign or Convert Image, because Lolly never keeps a copy of that file;
+- tools that record from your camera, microphone or screen, such as Record, Screen Capture and Voice Recorder;
+- 3D and Darkroom, which take a file of their own;
+- a tool with nothing to change, such as Countdown.
+
+In the other tools, your first change files the work in **Projects** as if you had saved, and later changes are kept as you work, once the tool has finished drawing. So an unsaved creation is still in Projects after you close the tab and reopens with its changes marked unsaved. **Leave without saving** still discards them, and History keeps a copy of the discarded edits for 30 days. Opening the tool again from the home screen starts a new creation; open the earlier one from Projects.
+
+With [Sync](/info/sync.html) on, a creation filed this way goes to your other devices like anything else in Projects. Its versions stay on the device where they were made.
+
+If a creation is open in two tabs and you save in both, the last save is kept. The work it replaced is not lost: it is under **Protected drafts** in the creation's History, with **Open draft as a copy**.
 
 This works in the web app only, not in the desktop or mobile apps, and not while you work live with someone else.
 :::
@@ -111,12 +120,12 @@ On iPhone, iPad and Android, a new file replaces an earlier one with the same na
 ## Go back to an earlier version
 
 - **During this visit:** **Undo** steps back through your last 100 changes, until you leave the tool or reload. See [Undo and redo](/info/using.html#undo-and-redo).
-- **In the nine tools that save as you work:** earlier versions of each creation are kept. Follow the steps below.
+- **In [tools that save as you work](#which-tools-save-as-you-work):** earlier versions of each creation are kept. Follow the steps below.
 - **Everything on the device:** with [Sync](/info/sync.html) on, **Restore an earlier copy**, under **Settings → Connected services**, brings back one of the last seven daily copies, or the copy from before your last apply. Everything on this device then matches that copy, not just one design.
 
-To open an earlier version in one of the nine tools:
+To open an earlier version:
 
-1. Press **History**, the clock button beside **Undo** and **Redo**. In Design, **History** is in the top bar; on a phone, press **•••** and then **History**.
+1. Press **History**, the clock button beside **Undo** and **Redo**. In Design, **History** is in the top bar; on a phone, press **•••** and then **History**. In tools without **Undo**, such as Text and Sandbox, **History** is beside **Home** at the top left.
 2. Find the version by its date and time. **Automatic checkpoint** rows are taken as you work; **Saved version** rows are the times you saved.
 3. Press **Open as a copy**. The version opens as a new creation, and the one you had open stays as it was. The copy is in **Projects**, with "(copy)" after its name.
 
@@ -125,7 +134,9 @@ To keep a version by name, press **Name version**, type a name and press **Keep 
 ::: details The History panel and the History page
 The **History** panel also lists **Recovered work** rows, and **Protected drafts** holds your latest edits between checkpoints, with **Open draft as a copy**. **Compare** and **Check assets** help you choose before you open a copy. Switch **This creation** to **All history on this device** to see every creation.
 
-Automatic checkpoints thin out with age: one a minute for the last hour, one an hour for the last day, one a day for 30 days, then one a week. Saved versions are all kept. Deleting a creation from **Settings → Storage** deletes its versions too.
+Automatic checkpoints thin out with age: one a minute for the last hour, one an hour for the last day, one a day for 30 days, then one a week. Saved versions and named versions are all kept. Deleting a creation moves its versions to **Trash** too, and **Delete forever** removes them.
+
+When History storage fills up, the oldest automatic checkpoints of creations you have not opened for 30 days are removed first. A save is always kept, even then: it is written as the current work, and History says that this save is not kept as a version. **Settings → Storage** shows how much History uses.
 
 The **History** page (`#/history`, or **Open app history** in the panel) covers every creation in this browser. On a computer, open the page from the clock button at the top right of the home screen or of **Projects**. On a phone, go to the tools gallery on the home screen, press the round logo button at the top right and choose **Saved sessions**, which opens History. From **Projects** that item does nothing yet.
 
@@ -157,7 +168,7 @@ To move everything once:
 3. On the new device, open **Settings → Storage**, press **Import data…**, choose the file and press **Import**.
 
 ::: note What stays behind
-Sign-ins, keys and the sync passphrase stay on each device. The list of recent downloads, offline downloads and AI models do not travel by any route. Version history travels only in an **Export my data** file, not through Sync or a `.lolly`. A copy Sync keeps in your storage can be downloaded and opened, or picked in **Import data…**, like a backup file; an encrypted copy asks for your passphrase.
+Sign-ins, keys and the sync passphrase stay on each device. The list of recent downloads, offline downloads and AI models do not travel by any route. Version history travels only in an **Export my data** file, not through Sync or a `.lolly`. When the history is too large for one file, the oldest automatic checkpoints are left out and the export line says how many. A copy Sync keeps in your storage can be downloaded and opened, or picked in **Import data…**, like a backup file; an encrypted copy asks for your passphrase.
 :::
 
 ::: details What the backup file holds
@@ -176,7 +187,7 @@ Press **Export my data** under **Settings → Storage**, and keep the file somew
 
 When the app starts, Lolly asks the browser not to clear its storage when the device runs low on space. The browser decides. Under **Settings → Available offline**, a line starting **Protected** means the browser agreed; "The browser may clear downloads if the device runs low on space" means it did not, and **Protect downloads** asks again. If the browser did not agree, it may clear saved work as well as downloads when space runs low, so keep a recent **Export my data** file.
 
-**Settings → Storage** shows how much space each kind of data uses. **Clear cache** drops downloaded catalogue files, which download again when needed. **Clear all my data** asks you to type a word, turns off Sync, then removes everything Lolly keeps in this browser: your profile and settings, saved sessions with their history and the Trash, uploads, fonts and design systems, the download log, Convert results, downloaded AI models and offline copies. Files you downloaded stay where you saved them. The app then starts as on a first visit.
+**Settings → Storage** shows how much space each kind of data uses. Its **History** row counts automatic checkpoints, their previews and recovery drafts; **Remove automatic checkpoints older than 30 days** frees that space and keeps saved and named versions. **Clear cache** drops downloaded catalogue files, which download again when needed. **Clear all my data** asks you to type a word, turns off Sync, then removes everything Lolly keeps in this browser: your profile and settings, saved sessions with their history and the Trash, uploads, fonts and design systems, the download log, Convert results, downloaded AI models and offline copies. Files you downloaded stay where you saved them. The app then starts as on a first visit.
 
 ![The storage card on a phone-width screen: every category of on-device data named, with the Clear all my data button at the bottom](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

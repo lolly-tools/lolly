@@ -86,3 +86,17 @@ test('a non-http(s) scheme is rejected before any fetch', async () => {
   await assert.rejects(fetchImageUrlAsFile('ftp://x.example/a.png'), (e: unknown) => e instanceof AddViaUrlError);
   assert.equal(calls.length, 0);
 });
+
+test('anyType (Verify) accepts a non-image file where the shell fetches directly', async () => {
+  reset(() => new Response(new Uint8Array([0x25, 0x50, 0x44, 0x46]), { status: 200, headers: { 'content-type': 'application/pdf' } }));
+  const f = await fetchImageUrlAsFile('https://lolly.tools/docs/report.pdf', { anyType: true });
+  assert.equal(f.name, 'report.pdf');
+  assert.equal(f.type, 'application/pdf');
+  assert.equal(calls[0], 'https://lolly.tools/docs/report.pdf');
+});
+
+test('anyType still routes a remote address through the image proxy on the deployed web', async () => {
+  reset(() => new Response(JSON.stringify({ error: 'Only images can be fetched.' }), { status: 415, headers: { 'content-type': 'application/json' } }));
+  await assert.rejects(fetchImageUrlAsFile('https://elsewhere.example/a.pdf', { anyType: true }), (e: unknown) => e instanceof AddViaUrlError && /only images/i.test((e as Error).message));
+  assert.ok(calls[0]!.startsWith(`${IMAGE_PROXY_PATH}?url=`));
+});

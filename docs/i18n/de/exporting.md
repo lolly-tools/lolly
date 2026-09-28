@@ -300,7 +300,7 @@ Zwei unabhängige Arten von Sperren, beide vollständig auf dem Gerät.
 
 ![Die Passwortschutz-Karte aufgeklappt bei einem PDF-Export, mit dem Passwortfeld und den beiden Sicherheitsstufen](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - eine einfache 40-Bit-Sperre (RC4). Sie öffnet sich in *jeder* PDF-App und kann - als leichte Abschreckung, kein echter Schutz - in einem Share-Link mitreisen (Klartext, mit Absicht). Nur RGB-`pdf`.
+- **Standard** - eine einfache 40-Bit-Sperre (RC4). Sie öffnet sich in *jeder* PDF-App und kann - als leichte Abschreckung, kein echter Schutz - in einem Share-Link mitreisen (im Klartext). Nur RGB-`pdf`.
 - **Strong** - AES-256 (PDF 2.0). Ihr Passwort wird beim Export eingegeben und **niemals** in einen Link gesetzt; sie öffnet sich nur in neueren PDF-Apps (Acrobat/Preview ~2018 an), und ältere Apps melden die Datei möglicherweise als beschädigt. Strong gilt auch für **Print-/CMYK-PDFs** und für **jedes PDF in einem Batch-ZIP** (der Batch-Bestätigungsdialog erfasst das Passwort). Da PDF/X-4 Verschlüsselung verbietet, behält ein Strong-gesperrtes Print-PDF sein CMYK, seine Marken und seinen Output-Intent, verliert aber die PDF/X-4-Konformitätsangabe.
 
 Jede Stufe schließt sich mit Content Credentials gegenseitig aus (ein verschlüsseltes PDF kann die Credential nicht aufnehmen).

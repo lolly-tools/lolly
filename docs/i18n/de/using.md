@@ -273,7 +273,7 @@ Tools legen nur die Eingaben offen, die variieren sollen - alles andere (Farben,
 
 In einer Live-[Zusammenarbeit](/info/collaborate.html) bleibt der Verlauf ausschließlich Ihrer. Eine vom anderen Gerät eintreffende Änderung landet nie auf Ihrem Stapel, daher kann Rückgängig immer nur etwas zurücknehmen, das Sie selbst getan haben.
 
-Rückgängig reicht nur innerhalb dieses Besuchs zurück; neun Tools halten außerdem frühere Versionen unter **History**, neben **Rückgängig** (siehe [Zu einer früheren Version zurückkehren](/info/find-your-work.html#go-back-to-an-earlier-version)).
+Rückgängig reicht nur innerhalb dieses Besuchs zurück; Tools, die während der Arbeit speichern, bewahren außerdem frühere Versionen unter **Verlauf** auf, neben **Rückgängig** (siehe [Zu einer früheren Version zurückkehren](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ## Ihre Angaben & Ihr Porträtfoto
 
@@ -313,7 +313,7 @@ Geben Sie den Link an Kolleginnen und Kollegen weiter, setzen Sie ein Lesezeiche
 
 **Manche Tools machen den Link zum ganzen Produkt.** Jump Page sammelt Ihre Links auf einer Seite zum Weitergeben - ein Bio-Link, ein Konferenzvortrag, eine Schaufensterseite. Es gibt nichts zu hosten und kein Konto dahinter: Die Seite ist der Link, daher öffnet sie sich so schnell, wie die URL reist. Im Editor sehen Sie die fertige Seite neben den Feldern; wer den Link als Besucherin oder Besucher öffnet, bekommt sie in voller Breite, eine Szene pro Link beim Scrollen.
 
-![Jump Page im Editor - die Überschrift, drei Link-Szenen, jede mit eigener Tönung, und eine Made-with-Lolly-Fußzeile, als eine Seite auf der Leinwand angeordnet](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page im Editor: die Überschriften-Szene oben auf der Seite, darunter die Link-Szenen](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **Der Dialog sagt, was ein Link nicht tragen kann.** Drei Dinge passen nicht in eine URL: ein Bild oder eine Datei, die Sie von diesem Gerät hinzugefügt haben, ein sehr langer Textwert oder eine sehr große Liste. Jedes davon wird beim Bauen des Links gezählt. Musste etwas wegfallen, benennt der Dialog es und verweist Sie auf die Datei weiter unten, statt Ihnen einen Link zu geben, der ohne das Bild aufgeht. Ein Link, der bloß *lang* ist, bekommt einen milderen Hinweis samt Zeichenzahl, denn Länge lässt sich durch Packen noch retten.
 
@@ -423,7 +423,7 @@ Batch bedeutet viele Varianten *eines* Designs. **Multi-Edit** ist die andere H�
 
 Eine Seitenleiste steuert das Ganze:
 
-- <!--i:sliders--> **Gemeinsam** steht voran - jede Eingabe, die zwei oder mehr der ausgewählten Sitzungen *gleich* deklarieren (gleiche ID, gleicher Typ, gleiche Beschränkungen - dieselbe Zusammenführungsregel, die das Batch-Raster auf seine Spalten anwendet). Ändern Sie ein gemeinsames Steuerelement einmal, und der Wert fächert sich auf jede Sitzung auf, die es deklariert, live auf jeder Karte. Zwei Sitzungen desselben Tools teilen alles; zwei verschiedene Tools teilen, was sie zufällig gemeinsam haben, und sonst nichts.
+- <!--i:sliders--> **Gemeinsam** steht voran - jede Eingabe, die zwei oder mehr der ausgewählten Sitzungen *gleich* deklarieren (gleiche ID, gleicher Typ, gleiche Beschränkungen - dieselbe Zusammenführungsregel, die das Batch-Raster auf seine Spalten anwendet). Ändern Sie ein gemeinsames Steuerelement einmal, und der Wert fächert sich auf jede Sitzung auf, die es deklariert, live auf jeder Karte. Zwei Sitzungen desselben Tools teilen alles; zwei verschiedene Tools teilen nur die Eingaben, die sie gemeinsam haben.
 - <!--i:document--> Darunter **eine eingeklappte Karte je Sitzung** mit allen eigenen Eingaben dieser Sitzung, in derselben Güte wie in der Seitenleiste des Tools selbst - Asset-Auswahl, sich wiederholende Zeilengruppen, Farbfelder - dazu ein kompakter Exportblock: **Format**, **B** / **H**, **Einheit**, **DPI** und ein eigenes **Herunterladen**. Dieses Herunterladen speichert die Sitzung zuerst und rendert sie dann über den gewöhnlichen Sitzungsexport, sodass die Datei denselben Dateinamen, dasselbe Format und dieselben Content Credentials trägt wie direkt aus dem Tool.
 - <!--i:search--> **Eingaben filtern…** ganz oben grenzt die Steuerelemente über *alle* Karten hinweg ein - so kommen Sie in acht Sitzungen an „die Überschrift“, ohne danach zu scrollen.
 

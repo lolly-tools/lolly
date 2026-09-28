@@ -273,7 +273,7 @@ Araçlar yalnızca değişmesi amaçlanan girdileri gösterir - geri kalan her �
 
 Canlı bir [işbirliğinde](/info/collaborate.html) geçmiş yalnızca sana ait kalır. Diğer cihazdan gelen bir değişiklik asla senin yığınına eklenmez, bu yüzden geri al yalnızca senin yaptığın bir şeyi geri getirebilir.
 
-Geri al yalnızca bu ziyaret boyunca geri gider; dokuz araç ayrıca **Geri al**'ın yanında, **History** altında önceki sürümleri de tutar (bkz. [Önceki bir sürüme geri dön](/info/find-your-work.html#go-back-to-an-earlier-version)).
+Geri al yalnızca bu ziyaret boyunca geri gider; çalışırken kaydeden araçlar da **Geri al**'ın yanında, **Geçmiş** altında önceki sürümleri tutar (bkz. [Önceki bir sürüme geri dön](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ## Bilgilerin ve profil fotoğrafın
 
@@ -313,7 +313,7 @@ Bağlantıyı bir meslektaşına yapıştır, yer imlerine ekle ya da commit'le.
 
 **Bazı araçlar bağlantıyı ürünün tamamı yapar.** Jump Page, dağıtmak için bağlantılarını tek bir sayfada toplar - bir bio bağlantısı, bir konferans konuşması, bir mağaza vitrini. Barındırılacak hiçbir şey ve arkasında hiçbir hesap yoktur: sayfa bağlantının kendisidir, bu yüzden URL ne kadar hızlı gidiyorsa o kadar hızlı açılır. Düzenleyicide bitmiş sayfayı alanların yanında görürsün; bağlantıyı açan bir ziyaretçi onu tam genişlikte alır, kaydırdıkça sahne başına bir bağlantı.
 
-![Düzenleyicideki Jump Page - başlık, her biri kendi rengine sahip üç bağlantı sahnesi ve bir Made with Lolly altbilgisi, tuvalde tek bir sayfa olarak düzenlenmiş](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Düzenleyicideki Jump Page: sayfanın üstündeki başlık sahnesi ve altındaki bağlantı sahneleri](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **Pencere, bir bağlantının neyi taşıyamayacağını söyler.** Üç şey bir URL'ye sığmaz: bu cihazdan eklediğin bir görsel ya da dosya, çok uzun bir metin değeri ve çok büyük bir liste. Her biri bağlantı kurulurken sayılır. Bir şey dışarıda kalmak zorunda kaldıysa pencere bunu adıyla söyler ve seni aşağıdaki dosyaya yönlendirir; görseli eksik açılan bir bağlantı vermez. Yalnızca *uzun* olan bir bağlantı, karakter sayısıyla birlikte daha yumuşak bir not alır, çünkü sıkıştırma uzunluğu hâlâ kurtarabilir.
 

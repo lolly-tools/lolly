@@ -9,7 +9,7 @@ Have the web address the code should open, starting with `https://`.
 ## Make the code
 
 1. Open [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). The controls sit beside the preview, or above it on a phone; what the preview shows is what the file will be.
-2. In **URL**, replace the example address with yours, in full. The preview changes as you type.
+2. In **URL**, replace the whole example address with yours. The preview changes as you type.
 3. To match your own colours, set **Module colour** and **Background**. Keep a strong contrast between them, or phones struggle to read the code.
 4. **Quiet zone**, under **Modules**, starts at 4. Keep it at 4 or more: that plain margin is what a phone camera looks for.
 

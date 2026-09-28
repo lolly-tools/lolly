@@ -390,7 +390,7 @@ Web kabuğu: IndexedDB. Tauri: dosya sistemi. CLI: bellek içi. Araçlar yalnız
 
 Kullanıcılar araç başına birden çok adlandırılmış düzenleme yuvası kaydedebilir ve her oturuma sonradan dönebilir. Hesap oluşturmaya gerek yoktur; durum cihaz başınadır. Köprü tek dikiş noktası olduğundan, bu cihaz başına durum aynı zamanda *taşınabilir*: `shells/web/src/data-transfer.ts`, `host.profile`/`host.state`/`host.assets` üzerinden her şeyi geri okuyarak tek bir `lolly-backup` zip dosyasına aktarır ve bu dosya başka herhangi bir kuruluma sunucu gerektirmeden içe aktarılabilir - "yeni bir cihaza geçme" sorusunun çevrimdışı yanıtı budur (tam özellik: `docs/data-transfer.md`). Çoklu cihaz senkronizasyonu bunun üzerinde zaten çalışır, aynı demeti kişinin seçtiği depolamaya gönderir (`docs/sync.md`).
 
-### 7. Olgunluk etiketleri, tasarım gereği bir aracın ne olduğunu söyler
+### 7. Olgunluk etiketleri bir aracın ne olduğunu söyler
 
 Her araç, manifestosunda `status: official | community | experimental` beyan eder. Galeri, duruma göre sıralanır. Deneysel araçlar dışa aktarımlarını otomatik olarak filigranlar - filigran, araç tarafından değil `host.export.render` tarafından uygulanır, bu yüzden resmi olmayan bir araç yazarı bunu devre dışı bırakamaz.
 
@@ -434,7 +434,7 @@ Herhangi bir aracın çıktısını bileştir: bir **SVG** alt öğe, üst öğe
 
 ---
 
-## Yaşam döngüsü, baştan sona
+## Bir render'ın yaşam döngüsü
 
 Bir kullanıcı `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H` adresini açar:
 

@@ -93,7 +93,7 @@ empreintes de fichiers. La CLI peut aussi enregistrer un fichier de relecture pr
 d'origine, uniquement sur demande explicite avec `--review-file` . Effacer ou quitter une vue de préparation
 dans le navigateur libère son état de travail ; ce n'est pas une promesse d'effacement forensique de la mémoire du navigateur ou du système.
 
-## Quand l'application communique avec un réseau, en détail
+## Chaque requête réseau que l'application peut effectuer
 
 Le tableau ci-dessous est la liste complète de tout ce que l'application récupère ou
 envoie sur un réseau. Si ce n'est pas ici, l'application ne le fait pas.

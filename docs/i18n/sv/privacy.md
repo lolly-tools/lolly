@@ -87,7 +87,7 @@ originalvärden, bara när det uttryckligen begärs med `--review-file`. Att ren
 webbläsaren frigör dess arbetstillstånd; det är inget löfte om forensisk radering från webbläsarens eller
 operativsystemets minne.
 
-## När appen pratar med ett nätverk, i sin helhet
+## Varje nätverksförfrågan appen kan göra
 
 Tabellen nedan är den fullständiga listan över allt appen hämtar eller skickar över ett
 nätverk. Om det inte finns här gör appen det inte.

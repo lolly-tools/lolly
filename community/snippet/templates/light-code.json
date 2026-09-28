@@ -1,0 +1,36 @@
+{
+  "id": "light-code",
+  "name": "Light code",
+  "category": "Still",
+  "description": "A bright editor window for code samples and documentation.",
+  "values": {
+    "scene": "still",
+    "language": "javascript",
+    "theme": "suse-light",
+    "windowStyle": "nuremberg",
+    "lineNumbers": true,
+    "showWindow": true,
+    "shadow": true,
+    "scale": 100,
+    "lineHeight": 1.65,
+    "blinkCursor": false,
+    "textOverflow": "fit",
+    "wrapText": false,
+    "calloutMode": "off",
+    "windowRotate": 0,
+    "windowTiltX": 0,
+    "windowTiltY": 0,
+    "code": "const greeting = (name) => {\n  return `Hello, ${name}!`;\n};\n\ngreeting(\"World\");",
+    "fileName": "hello.js"
+  },
+  "presets": [
+    {
+      "id": "without-numbers",
+      "name": "No line numbers",
+      "description": "Give a short example more breathing room.",
+      "values": {
+        "lineNumbers": false
+      }
+    }
+  ]
+}

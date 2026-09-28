@@ -1,13 +1,13 @@
 # Temukan dan pulihkan karya Anda
 
-Semua yang Anda buat di Lolly tetap berada di browser atau aplikasi tempat Anda membuatnya, di perangkat itu, kecuali Anda mengaktifkan [Sync](/info/sync.html). Karya tersimpan ada di **Proyek**. Berkas yang diunduh berada di mana pun browser atau sistem Anda menaruhnya, dan sebuah salinan biasanya menunggu di **Aset**. Di sembilan tool, karya yang belum pernah Anda simpan juga dipertahankan. Halaman ini membahas masing-masing hal ini, ditambah tab yang tertutup, data browser yang terhapus, versi sebelumnya, item yang dihapus dan berpindah ke perangkat lain.
+Semua yang Anda buat di Lolly tetap berada di browser atau aplikasi tempat Anda membuatnya, di perangkat itu, kecuali Anda mengaktifkan [Sync](/info/sync.html). Karya tersimpan ada di **Proyek**. File yang diunduh berada di mana pun browser atau sistem Anda meletakkannya, dan sebuah salinan biasanya menunggu di **Aset**. Di sebagian besar tool, karya yang belum pernah Anda simpan juga tetap disimpan. Halaman ini membahas masing-masing, ditambah tab yang tertutup, data browser yang dibersihkan, versi sebelumnya, item yang dihapus, dan berpindah ke perangkat lain.
 
 | Apa yang Anda lakukan | Di mana harus mencari |
 |---|---|
 | Menekan **Simpan sebagai** atau **Simpan** | **Proyek** |
 | Menekan **Unduh** | Unduhan browser Anda, dan sebuah salinan di **Aset** |
-| Tidak keduanya, di salah satu [sembilan tool yang menyimpan sambil Anda bekerja](#the-nine-tools-that-save-as-you-work) | **Proyek** dan **History** |
-| Tidak keduanya, di tool lain mana pun | Hanya tab tempat Anda bekerja, sampai Anda menutup tab itu |
+| Tidak keduanya, di satu [tool yang menyimpan sambil Anda bekerja](#which-tools-save-as-you-work) | **Proyek** dan **History** |
+| Tidak keduanya, di tool yang tidak begitu | Hanya tab tempat Anda bekerja, sampai Anda menutup tab itu |
 | Menghapusnya di aplikasi | **Sampah**, di **Proyek**, **Aset** atau **Pengaturan → Penyimpanan**, selama 30 hari |
 
 ## Temukan sesuatu yang Anda simpan
@@ -71,20 +71,29 @@ not visible in the closed menu, so the alt does not list them.
 
 Apa yang kembali bergantung pada bagaimana Anda meninggalkannya dan tool mana yang Anda gunakan:
 
-- **Anda menutup tab, atau kembali di lain waktu.** Karya yang belum disimpan hilang, kecuali di [sembilan tool](#the-nine-tools-that-save-as-you-work), yang menyimpan editan Anda sambil Anda bekerja: buka dari **Proyek**.
-- **Anda memuat ulang halaman di tab yang sama.** Pengaturan Anda kembali dari alamat halaman. Di tool selain sembilan itu, gambar dan berkas yang Anda tambahkan dari perangkat Anda, dan teks satu baris yang lebih panjang dari 150 karakter, tidak kembali, karena alamat itu tidak menyimpannya.
+- **Anda menutup tab, atau kembali di lain waktu.** Karya yang belum disimpan hilang, kecuali di [tool yang menyimpan sambil Anda bekerja](#which-tools-save-as-you-work): buka karya itu dari **Proyek**.
+- **Anda memuat ulang halaman di tab yang sama.** Pengaturan Anda kembali dari alamat halaman. Di tool yang tidak menyimpan sambil Anda bekerja, gambar dan berkas yang Anda tambahkan dari perangkat Anda, dan teks satu baris yang lebih panjang dari 150 karakter, tidak kembali, karena alamat itu tidak menyimpannya.
 - **Anda menekan Beranda, atau tombol kembali di kiri atas.** Jika Anda mengubah sesuatu sejak terakhir menyimpan, mengunduh atau menyalin, sebuah dialog **Perubahan belum disimpan** menanyakan apakah akan menyimpan dulu. **Simpan & keluar** menyimpan karya dan membawa Anda ke **Proyek**, atau kembali ke folder proyek tempat Anda membuka karya itu. **Keluar tanpa menyimpan** membuang perubahan Anda: item yang sudah tersimpan kembali ke kondisi terakhir Anda menyimpannya, dan kreasi yang belum pernah Anda simpan meninggalkan **Proyek**. **Batalkan** mempertahankan Anda di tool itu.
 
 Lolly hanya bertanya ketika Anda menekan **Beranda** atau tombol kembali di dalam sebuah tool. Menutup tab, memuat ulang dan tombol Back milik browser Anda sendiri tidak pernah bertanya. Untuk memastikan, tekan **Simpan sebagai**, atau **Simpan** di panel ekspor, sebelum Anda meninggalkan sebuah tool.
 
 ::: note Tidak sengaja keluar tanpa menyimpan?
-Di sembilan tool, History menyimpan sebuah salinan editan yang dibuang. Buka halaman **History**, temukan di bawah **Changes** dan tekan **Open as a copy**. Di tool lain, perubahannya hilang.
+Di tool yang menyimpan sambil Anda bekerja, History menyimpan sebuah salinan editan yang dibuang. Buka halaman **History**, temukan di bawah **Changes** dan tekan **Open as a copy**. Di tool lain, perubahannya hilang.
 :::
 
-::: details Sembilan tool yang menyimpan sambil Anda bekerja
-[Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) dan [Text](/#/tool/text-helper). Daftar ini bertambah seiring makin banyak tool yang mendapatkan penyimpanan otomatis.
+::: details Tool mana yang menyimpan sambil Anda bekerja
+Di aplikasi web, setiap tool yang menghasilkan sebuah dokumen menyimpan sambil Anda bekerja: Design, Chart, QR Code, Text, Sandbox dan yang lainnya. Tool berikut tidak:
 
-Di tool-tool ini, perubahan pertama Anda mengajukan karya itu ke **Proyek** seolah-olah Anda sudah menyimpannya, dan perubahan berikutnya dipertahankan dalam hitungan detik. Jadi sebuah kreasi yang belum disimpan tetap ada di Proyek setelah Anda menutup tab dan terbuka kembali dengan perubahannya ditandai belum disimpan. **Keluar tanpa menyimpan** tetap membuang perubahan itu, dan History menyimpan sebuah salinan editan yang dibuang selama 30 hari. Membuka tool itu lagi dari layar utama memulai sebuah kreasi baru; buka yang sebelumnya dari Proyek.
+- tool yang bekerja pada sebuah berkas yang Anda bawa sendiri, seperti Redact, Sign atau Convert Image, karena Lolly tidak pernah menyimpan salinan berkas itu;
+- tool yang merekam dari kamera, mikrofon atau layar Anda, seperti Record, Screen Capture dan Voice Recorder;
+- 3D dan Darkroom, yang mengambil berkasnya sendiri;
+- sebuah tool yang tidak ada apa pun untuk diubah, seperti Countdown.
+
+Di tool lainnya, perubahan pertama Anda mengajukan karya itu ke **Proyek** seolah-olah Anda sudah menyimpannya, dan perubahan berikutnya dipertahankan sambil Anda bekerja, begitu tool itu selesai menggambar. Jadi sebuah kreasi yang belum disimpan tetap ada di Proyek setelah Anda menutup tab, dan terbuka kembali dengan perubahannya ditandai belum disimpan. **Keluar tanpa menyimpan** tetap membuang perubahan itu, dan History menyimpan sebuah salinan editan yang dibuang selama 30 hari. Membuka tool itu lagi dari layar utama memulai sebuah kreasi baru; buka yang sebelumnya dari Proyek.
+
+Dengan [Sync](/info/sync.html) aktif, sebuah kreasi yang diajukan dengan cara ini ikut ke perangkat lain Anda seperti hal lain di Proyek. Versinya tetap berada di perangkat tempat ia dibuat.
+
+Jika sebuah kreasi terbuka di dua tab dan Anda menyimpan di keduanya, simpanan terakhir yang dipertahankan. Karya yang digantikannya tidak hilang: karya itu ada di bawah **Protected drafts** dalam History kreasi itu, dengan **Open draft as a copy**.
 
 Ini hanya berfungsi di aplikasi web, tidak di aplikasi desktop atau mobile, dan tidak saat Anda bekerja live bersama orang lain.
 :::
@@ -111,12 +120,12 @@ Di iPhone, iPad dan Android, berkas baru menggantikan yang sebelumnya dengan nam
 ## Kembali ke versi sebelumnya
 
 - **Selama kunjungan ini:** **Undo** mundur melalui 100 perubahan terakhir Anda, sampai Anda meninggalkan tool atau memuat ulang. Lihat [Undo dan redo](/info/using.html#undo-and-redo).
-- **Di sembilan tool yang menyimpan sambil Anda bekerja:** versi sebelumnya dari setiap kreasi dipertahankan. Ikuti langkah-langkah di bawah.
+- **Di [tool yang menyimpan sambil Anda bekerja](#which-tools-save-as-you-work):** versi sebelumnya dari setiap kreasi dipertahankan. Ikuti langkah-langkah di bawah.
 - **Semua yang ada di perangkat:** dengan [Sync](/info/sync.html) aktif, **Restore an earlier copy**, di bawah **Pengaturan → Layanan terhubung**, mengembalikan salah satu dari tujuh salinan harian terakhir, atau salinan dari sebelum penerapan terakhir Anda. Semua yang ada di perangkat ini kemudian cocok dengan salinan itu, bukan hanya satu desain.
 
-Untuk membuka versi sebelumnya di salah satu dari sembilan tool:
+Untuk membuka versi sebelumnya:
 
-1. Tekan **History**, tombol jam di samping **Undo** dan **Redo**. Di Design, **History** ada di bilah atas; di ponsel, tekan **•••** lalu **History**.
+1. Tekan **History**, tombol jam di samping **Undo** dan **Redo**. Di Design, **History** ada di bilah atas; di ponsel, tekan **•••** lalu **History**. Di tool tanpa **Undo**, seperti Text dan Sandbox, **History** ada di samping **Beranda** di kiri atas.
 2. Temukan versi itu berdasarkan tanggal dan waktunya. Baris **Automatic checkpoint** diambil sambil Anda bekerja; baris **Saved version** adalah waktu-waktu Anda menyimpan.
 3. Tekan **Open as a copy**. Versi itu terbuka sebagai sebuah kreasi baru, dan yang tadinya Anda buka tetap seperti semula. Salinannya ada di **Proyek**, dengan "(copy)" setelah namanya.
 
@@ -125,7 +134,9 @@ Untuk mempertahankan sebuah versi dengan nama, tekan **Name version**, ketik seb
 ::: details Panel History dan halaman History
 Panel **History** juga mencantumkan baris **Recovered work**, dan **Protected drafts** menyimpan editan terbaru Anda di antara checkpoint, dengan **Open draft as a copy**. **Compare** dan **Check assets** membantu Anda memilih sebelum membuka sebuah salinan. Alihkan **This creation** ke **All history on this device** untuk melihat setiap kreasi.
 
-Automatic checkpoint makin jarang seiring waktu: satu per menit untuk satu jam terakhir, satu per jam untuk satu hari terakhir, satu per hari selama 30 hari, lalu satu per minggu. Saved version semuanya dipertahankan. Menghapus sebuah kreasi dari **Pengaturan → Penyimpanan** juga menghapus versinya.
+Automatic checkpoint makin jarang seiring waktu: satu per menit untuk satu jam terakhir, satu per jam untuk satu hari terakhir, satu per hari selama 30 hari, lalu satu per minggu. Saved version dan versi bernama semuanya dipertahankan. Menghapus sebuah kreasi juga memindahkan versinya ke **Sampah**, dan **Hapus permanen** menghapusnya.
+
+Ketika penyimpanan History penuh, automatic checkpoint tertua dari kreasi yang belum Anda buka selama 30 hari dihapus lebih dulu. Sebuah simpanan selalu dipertahankan, bahkan saat itu: simpanan itu ditulis sebagai karya saat ini, dan History menyatakan bahwa simpanan ini tidak dipertahankan sebagai sebuah versi. **Pengaturan → Penyimpanan** menampilkan berapa banyak yang digunakan History.
 
 Halaman **History** (`#/history`, atau **Open app history** di panel) mencakup setiap kreasi di browser ini. Di komputer, buka halaman itu dari tombol jam di kanan atas layar utama atau **Proyek**. Di ponsel, buka galeri tools di layar utama, tekan tombol logo bundar di kanan atas dan pilih **Sesi tersimpan**, yang membuka History. Dari **Proyek** item itu belum melakukan apa-apa.
 
@@ -157,7 +168,7 @@ Untuk memindahkan semuanya sekaligus:
 3. Di perangkat baru, buka **Pengaturan → Penyimpanan**, tekan **Import data…**, pilih berkasnya dan tekan **Impor**.
 
 ::: note Apa yang tertinggal
-Sign-in, kunci dan passphrase sync tetap ada di masing-masing perangkat. Daftar unduhan terbaru, unduhan offline dan model AI tidak berpindah lewat jalur mana pun. Riwayat versi hanya berpindah dalam sebuah berkas **Export my data**, bukan lewat Sync atau sebuah `.lolly`. Sebuah salinan yang disimpan Sync di penyimpanan Anda dapat diunduh dan dibuka, atau dipilih di **Import data…**, seperti sebuah berkas backup; sebuah salinan terenkripsi meminta passphrase Anda.
+Login, kunci dan passphrase sync tetap di setiap perangkat. Daftar unduhan terbaru, unduhan offline dan model AI tidak ikut lewat jalur mana pun. Riwayat versi hanya berpindah dalam sebuah berkas **Export my data**, bukan lewat Sync atau sebuah `.lolly`. Ketika riwayatnya terlalu besar untuk satu berkas, automatic checkpoint tertua ditinggalkan dan baris ekspor menyatakan berapa banyak. Sebuah salinan yang disimpan Sync di penyimpanan Anda dapat diunduh dan dibuka, atau dipilih di **Import data…**, seperti sebuah berkas cadangan; sebuah salinan terenkripsi meminta passphrase Anda.
 :::
 
 ::: details Apa yang dimuat berkas backup
@@ -176,7 +187,7 @@ Tekan **Export my data** di bawah **Pengaturan → Penyimpanan**, dan simpan ber
 
 Ketika aplikasi dimulai, Lolly meminta browser untuk tidak menghapus penyimpanannya ketika perangkat kehabisan ruang. Browser yang memutuskan. Di bawah **Pengaturan → Tersedia offline**, sebuah baris yang dimulai dengan **Protected** berarti browser menyetujuinya; "The browser may clear downloads if the device runs low on space" berarti tidak, dan **Lindungi unduhan** bertanya lagi. Jika browser tidak menyetujuinya, browser bisa menghapus karya tersimpan selain unduhan ketika ruang menipis, jadi simpan sebuah berkas **Export my data** terbaru.
 
-**Pengaturan → Penyimpanan** menampilkan berapa banyak ruang yang digunakan tiap jenis data. **Hapus cache** membuang berkas katalog yang diunduh, yang akan diunduh lagi saat dibutuhkan. **Hapus semua data saya** meminta Anda mengetik sebuah kata, mematikan Sync, lalu menghapus semua yang disimpan Lolly di browser ini: profil dan pengaturan Anda, sesi tersimpan beserta riwayat dan Trash-nya, unggahan, font dan design system, log unduhan, hasil Convert, model AI yang diunduh dan salinan offline. Berkas yang Anda unduh tetap ada di tempat Anda menyimpannya. Aplikasi kemudian mulai seperti pada kunjungan pertama.
+**Pengaturan → Penyimpanan** menampilkan berapa banyak ruang yang digunakan tiap jenis data. Baris **History**-nya menghitung automatic checkpoint, pratinjaunya, dan draf pemulihan; **Remove automatic checkpoints older than 30 days** membebaskan ruang itu dan mempertahankan saved version serta versi bernama. **Hapus cache** membuang berkas katalog yang diunduh, yang akan diunduh lagi saat dibutuhkan. **Hapus semua data saya** meminta Anda mengetik sebuah kata, mematikan Sync, lalu menghapus semua yang disimpan Lolly di browser ini: profil dan pengaturan Anda, sesi tersimpan beserta riwayat dan Sampahnya, unggahan, font dan design system, log unduhan, hasil Convert, model AI yang diunduh dan salinan offline. Berkas yang Anda unduh tetap ada di tempat Anda menyimpannya. Aplikasi kemudian mulai seperti pada kunjungan pertama.
 
 ![Kartu penyimpanan pada layar selebar ponsel: setiap kategori data di perangkat disebutkan, dengan tombol Clear all my data di bagian bawah](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

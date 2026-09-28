@@ -39,7 +39,7 @@ De bundel is bewust een gewone zip: hij overleeft elk transport intact, en elke 
 
 `profile.json` is het kleinste onderdeel en het onderdeel dat een lezer in de app als eerste ziet: de gegevens die een producent één keer invult, plus de opt-in die tools toestaat ze te gebruiken.
 
-![Het formulier Profielgegevens dat profile.json wordt - naam, contactgegevens, pasfoto en de opt-in ernaast](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![Het formulier met profielgegevens dat profile.json wordt: naam, contactgegevens en profielfoto](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

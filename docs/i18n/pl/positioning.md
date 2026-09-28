@@ -57,9 +57,9 @@ Lolly jest prasą, nie szkicem. Przynieś do ideacji, co chcesz - model, projekt
 
 > Ufaj procesowi twórczemu, skaluj z rygorem.
 
-## Reguły znajdują się w narzędziu, nie w pliku
+## Reguły żyją w narzędziu i jego szablonach
 
-Każde inne narzędzie na rynku produkuje *plik*, a plik można obejrzeć dopiero po fakcie, jeden wynik na raz. Lolly przesuwa reguły marki **o krok wcześniej**. Dokładne kody hex, licencjonowane pliki czcionek, marginesy na spad, odstępy - to wszystko jest zakodowane na sztywno w HTML i CSS narzędzia, więc szablon *nie może* wygenerować zasobu niezgodnego z marką. Sam układ egzekwuje te reguły.
+Każde inne narzędzie na rynku produkuje *plik*, a plik można sprawdzić dopiero po fakcie. Lolly przesuwa reguły marki **o krok wcześniej w łańcuchu**. Dokładne kody hex, licencjonowane pliki czcionek, spady, odstępy - to wszystko jest na stałe zakodowane w HTML i CSS narzędzia, więc szablon *nie może* wyprodukować zasobu spoza marki. Egzekwuje to sam układ.
 
 Więc rzeczą wartą uwagi jest **narzędzie**, a nie każdy plik, który ono tworzy. Ustaw narzędzie poprawnie, a każdy zasób, jaki kiedykolwiek wyprodukuje, jest zgodny z marką z definicji. To, jak sprawdzasz swoją pracę i kto to robi, pozostaje twoją sprawą; Lolly sprawia, że rzecz do sprawdzenia jest mniejsza, a wynik szybszy do wykonania.
 

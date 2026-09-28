@@ -300,7 +300,7 @@ Dos tipos de bloqueo independientes, ambos completamente en el dispositivo.
 
 ![La tarjeta Password protect desplegada en una exportación de PDF, con el campo de contraseña y los dos niveles de bloqueo](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - un bloqueo básico de 40 bits (RC4). Se abre en *cualquier* app de PDF y - al ser un disuasorio ligero, no una protección real - puede viajar en un enlace compartido (en texto claro, por diseño). Solo `pdf` RGB.
+- **Standard** - un bloqueo básico de 40 bits (RC4). Se abre en *cualquier* app de PDF y - al ser un disuasorio ligero, no una protección real - puede viajar en un enlace compartido (en texto claro). Solo `pdf` RGB.
 - **Strong** - AES-256 (PDF 2.0). Su contraseña se escribe al exportar y **nunca** se coloca en un enlace; solo se abre en apps de PDF más recientes (Acrobat / Preview ~2018 en adelante), y las apps más antiguas pueden reportar el archivo como dañado. Strong también se aplica a los **PDF de impresión / CMYK** y a **cada PDF dentro de un zip por lotes** (el diálogo de confirmación del lote recoge la contraseña). Como PDF/X-4 prohíbe el cifrado, un PDF de impresión bloqueado con Strong conserva su CMYK, sus marcas y su intención de salida, pero pierde la declaración de conformidad PDF/X-4.
 
 Cualquiera de los dos niveles es mutuamente excluyente con Content Credentials (un PDF cifrado no puede llevar la credencial).

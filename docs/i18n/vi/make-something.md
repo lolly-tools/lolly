@@ -8,10 +8,10 @@ Chuẩn bị sẵn địa chỉ web mà mã QR sẽ mở, bắt đầu bằng `h
 
 ## Tạo mã
 
-1. Mở [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Các điều khiển nằm bên cạnh bản xem trước, hoặc phía trên nó trên điện thoại; những gì bản xem trước hiển thị chính là những gì tệp sẽ là.
-2. Trong **URL**, thay địa chỉ mẫu bằng địa chỉ của bạn, đầy đủ. Bản xem trước thay đổi khi bạn gõ.
-3. Để khớp với màu của riêng bạn, đặt **Màu mô-đun** và **Nền**. Giữ độ tương phản mạnh giữa chúng, nếu không điện thoại sẽ khó đọc được mã.
-4. **Vùng đệm**, trong mục **Modules**, bắt đầu ở mức 4. Giữ nó ở mức 4 trở lên: khoảng lề trống đó là thứ camera điện thoại tìm kiếm.
+1. Mở [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Các điều khiển nằm cạnh bản xem trước, hoặc phía trên nó trên điện thoại; những gì bản xem trước hiển thị chính là tệp sẽ được tạo ra.
+2. Trong **URL**, thay toàn bộ địa chỉ mẫu bằng địa chỉ của bạn. Bản xem trước thay đổi khi bạn gõ.
+3. Để khớp với màu của riêng bạn, đặt **Module colour** và **Background**. Giữ độ tương phản mạnh giữa hai màu, nếu không điện thoại sẽ khó đọc mã.
+4. **Quiet zone**, dưới **Modules**, bắt đầu ở mức 4. Giữ nó ở mức 4 trở lên: khoảng lề trống đó là thứ camera điện thoại tìm kiếm.
 
 ## Tải tệp xuống
 

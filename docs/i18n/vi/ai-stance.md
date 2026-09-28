@@ -52,6 +52,6 @@ Bạn không bao giờ bắt buộc phải dùng AI ở đây. Nếu bạn chọ
 - <!--i:seal--> **Không phải một tuyên bố về sự thuần khiết.** Lolly đọc nguồn gốc xuất xứ một cách rộng rãi và ghi lại nó một cách trung thực; nó không giả vờ có thể phát hiện mọi pixel được tạo ra trên internet.
 - <!--i:sunburst--> **Không phải một cơn hoảng loạn đạo đức.** Trận lũ không phải là kẻ thù. Dòng nước không rõ nguồn gốc mới là kẻ thù.
 
-## Cách để buộc chúng tôi giữ lời
+## Tự mình kiểm tra các cam kết này
 
 Mọi cam kết ở trên đều được thực thi trong mã nguồn mở, không phải trong một tệp PDF chính sách: đường đi nguồn gốc xuất xứ, việc gắn nhãn GEN AI và cam kết không theo dõi đều đi kèm các bài kiểm thử, và trang [Tự mình xác minh](/info/verify-yourself.html) sẽ hướng dẫn bạn kiểm tra các tuyên bố này so với một bản xuất thực tế. Nếu bạn tìm thấy chỗ nào mà mã nguồn và trang này không khớp nhau, thì mã nguồn mới là lỗi.

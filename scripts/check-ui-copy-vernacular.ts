@@ -17,7 +17,7 @@
  */
 import { readFileSync, readdirSync, statSync, existsSync, writeFileSync } from 'node:fs';
 import { resolve, join, relative } from 'node:path';
-import { BANNED_PHRASES } from './check-docs-vernacular.ts';
+import { BANNED_PHRASES, RATCHETED_PHRASES } from './check-docs-vernacular.ts';
 import { printVernacularWhy } from './lib/vernacular-why.ts';
 
 const ROOT = resolve(new URL('..', import.meta.url).pathname);
@@ -30,7 +30,7 @@ export interface Finding { file: string; text: string; what: string }
 function findingsIn(text: string): string[] {
   const out: string[] = [];
   if (EM_DASH.test(text)) out.push('em dash');
-  for (const { what, re } of BANNED_PHRASES) if (re.test(text)) out.push(what);
+  for (const { what, re } of [...BANNED_PHRASES, ...RATCHETED_PHRASES]) if (re.test(text)) out.push(what);
   return out;
 }
 

@@ -1,13 +1,13 @@
 # Encuentra y recupera tu trabajo
 
-Todo lo que haces en Lolly permanece en el navegador o la app donde lo hiciste, en ese dispositivo, a menos que actives [Sincronización](/info/sync.html). El trabajo guardado está en **Proyectos**. Un archivo descargado está donde lo puso tu navegador o tu sistema, y normalmente una copia espera en **Recursos**. En nueve herramientas, el trabajo que nunca guardaste también se conserva. Esta página cubre cada uno de estos casos, además de una pestaña cerrada, datos del navegador borrados, versiones anteriores, elementos eliminados y el traslado a otro dispositivo.
+Todo lo que haces en Lolly permanece en el navegador o la app donde lo hiciste, en ese dispositivo, a menos que actives [Sincronización](/info/sync.html). El trabajo guardado está en **Proyectos**. Un archivo descargado está donde lo puso tu navegador o tu sistema, y normalmente una copia espera en **Recursos**. En la mayoría de las herramientas, el trabajo que nunca guardaste también se conserva. Esta página cubre cada uno de estos casos, además de una pestaña cerrada, datos del navegador borrados, versiones anteriores, elementos eliminados y el traslado a otro dispositivo.
 
 | Qué hiciste | Dónde mirar |
 |---|---|
 | Pulsaste **Guardar como** o **Guardar** | **Proyectos** |
 | Pulsaste **Descargar** | Las descargas de tu navegador, y una copia en **Recursos** |
-| Ninguna de las dos, en una de las [nueve herramientas que guardan mientras trabajas](#the-nine-tools-that-save-as-you-work) | **Proyectos** y **Historial** |
-| Ninguna de las dos, en cualquier otra herramienta | Solo la pestaña en la que trabajaste, hasta que la cierres |
+| Ninguna de las dos, en una [herramienta que guarda mientras trabajas](#which-tools-save-as-you-work) | **Proyectos** e **Historial** |
+| Ninguna de las dos, en una herramienta que no lo hace | Solo la pestaña en la que trabajaste, hasta que la cierres |
 | Lo eliminaste en la aplicación | **Papelera**, en **Proyectos**, **Recursos** o **Ajustes → Almacenamiento**, durante 30 días |
 
 ## Encuentra algo que guardaste
@@ -71,20 +71,29 @@ not visible in the closed menu, so the alt does not list them.
 
 Lo que vuelve depende de cómo saliste y de qué herramienta usaste:
 
-- **Cerraste la pestaña, o volviste en otro momento.** El trabajo sin guardar se pierde, excepto en las [nueve herramientas](#the-nine-tools-that-save-as-you-work), que guardan tus cambios mientras trabajas: ábrelas desde **Proyectos**.
-- **Recargaste la página en la misma pestaña.** Tus ajustes vuelven desde la dirección de la página. En herramientas distintas de las nueve, las imágenes y archivos que añadiste desde tu dispositivo, y el texto de una línea de más de 150 caracteres, no vuelven, porque la dirección no los contiene.
+- **Cerraste la pestaña, o volviste en otro momento.** El trabajo sin guardar se pierde, excepto en las [herramientas que guardan mientras trabajas](#which-tools-save-as-you-work): ábrelo desde **Proyectos**.
+- **Recargaste la página en la misma pestaña.** Tus ajustes vuelven desde la dirección de la página. En las herramientas que no guardan mientras trabajas, las imágenes y archivos que añadiste desde tu dispositivo, y el texto de una línea de más de 150 caracteres, no vuelven, porque la dirección no los contiene.
 - **Pulsaste Inicio, o el botón de retroceso arriba a la izquierda.** Si cambiaste algo desde la última vez que guardaste, descargaste o copiaste, un diálogo de **Cambios sin guardar** pregunta si guardar antes. **Guardar y salir** guarda el trabajo y te lleva a **Proyectos**, o de vuelta a la carpeta de proyecto desde la que abriste el trabajo. **Salir sin guardar** descarta tus cambios: un elemento guardado vuelve a como lo dejaste la última vez que lo guardaste, y una creación que nunca guardaste desaparece de **Proyectos**. **Cancelar** te mantiene en la herramienta.
 
 Lolly solo pregunta cuando pulsas **Inicio** o el botón de retroceso en una herramienta. Cerrar la pestaña, recargar y el propio botón Atrás de tu navegador nunca preguntan. Para estar seguro, pulsa **Guardar como**, o **Guardar** en el panel de exportación, antes de salir de una herramienta.
 
 ::: note ¿Saliste sin guardar por error?
-En las nueve herramientas, el historial conserva una copia de los cambios descartados. Abre la página **Historial**, encuéntralos bajo **Changes** y pulsa **Abrir como copia**. En otras herramientas los cambios han desaparecido.
+En las herramientas que guardan mientras trabajas, el Historial conserva una copia de los cambios descartados. Abre la página **Historial**, encuéntralos bajo **Cambios** y pulsa **Abrir como copia**. En otras herramientas los cambios han desaparecido.
 :::
 
-::: details Las nueve herramientas que guardan mientras trabajas
-[Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) y [Text](/#/tool/text-helper). La lista crece a medida que más herramientas obtienen guardado automático.
+::: details Qué herramientas guardan mientras trabajas
+En la app web, toda herramienta que crea un documento guarda mientras trabajas: Design, Chart, QR Code, Text, Sandbox y el resto. Estas herramientas no lo hacen:
 
-En estas herramientas, tu primer cambio archiva el trabajo en **Proyectos** como si lo hubieras guardado, y los cambios posteriores se conservan en cuestión de segundos. Así que una creación sin guardar sigue en Proyectos después de cerrar la pestaña y se vuelve a abrir con sus cambios marcados como sin guardar. **Salir sin guardar** los descarta de todos modos, y el historial conserva una copia de los cambios descartados durante 30 días. Abrir la herramienta de nuevo desde la pantalla de inicio empieza una creación nueva; abre la anterior desde Proyectos.
+- las herramientas que trabajan sobre un archivo que tú aportas, como Redact, Sign o Convert Image, porque Lolly nunca conserva una copia de ese archivo;
+- las herramientas que graban desde tu cámara, micrófono o pantalla, como Record, Screen Capture y Voice Recorder;
+- 3D y Darkroom, que toman un archivo propio;
+- una herramienta sin nada que cambiar, como Countdown.
+
+En las demás herramientas, tu primer cambio archiva el trabajo en **Proyectos** como si lo hubieras guardado, y los cambios posteriores se conservan mientras trabajas, en cuanto la herramienta termina de dibujar. Así que una creación sin guardar sigue en Proyectos después de cerrar la pestaña y se vuelve a abrir con sus cambios marcados como sin guardar. **Salir sin guardar** los descarta de todos modos, y el Historial conserva una copia de los cambios descartados durante 30 días. Abrir la herramienta de nuevo desde la pantalla de inicio empieza una creación nueva; abre la anterior desde Proyectos.
+
+Con [Sincronización](/info/sync.html) activada, una creación archivada así llega a tus otros dispositivos como cualquier otra cosa en Proyectos. Sus versiones permanecen en el dispositivo donde se hicieron.
+
+Si una creación está abierta en dos pestañas y guardas en ambas, se conserva el último guardado. El trabajo que reemplazó no se pierde: está bajo **Borradores protegidos** en el Historial de la creación, con **Abrir borrador como copia**.
 
 Esto funciona solo en la app web, no en las apps de escritorio o móviles, y no mientras trabajas en vivo con otra persona.
 :::
@@ -111,21 +120,23 @@ En iPhone, iPad y Android, un archivo nuevo reemplaza a uno anterior con el mism
 ## Vuelve a una versión anterior
 
 - **Durante esta visita:** **Deshacer** retrocede por tus últimos 100 cambios, hasta que sales de la herramienta o recargas. Consulta [Deshacer y rehacer](/info/using.html#undo-and-redo).
-- **En las nueve herramientas que guardan mientras trabajas:** se conservan versiones anteriores de cada creación. Sigue los pasos de abajo.
+- **En las [herramientas que guardan mientras trabajas](#which-tools-save-as-you-work):** se conservan versiones anteriores de cada creación. Sigue los pasos de abajo.
 - **Todo en el dispositivo:** con [Sincronización](/info/sync.html) activada, **Restore an earlier copy**, bajo **Ajustes → Servicios conectados**, recupera una de las últimas siete copias diarias, o la copia de antes de tu última aplicación. Todo en este dispositivo coincide entonces con esa copia, no solo un diseño.
 
-Para abrir una versión anterior en una de las nueve herramientas:
+Para abrir una versión anterior:
 
-1. Pulsa **History**, el botón de reloj junto a **Deshacer** y **Rehacer**. En Design, **History** está en la barra superior; en un móvil, pulsa **•••** y luego **History**.
-2. Encuentra la versión por su fecha y hora. Las filas **Automatic checkpoint** se toman mientras trabajas; las filas **Saved version** son los momentos en que guardaste.
-3. Pulsa **Open as a copy**. La versión se abre como una nueva creación, y la que tenías abierta se queda como estaba. La copia está en **Proyectos**, con "(copy)" después de su nombre.
+1. Pulsa **Historial**, el botón de reloj junto a **Deshacer** y **Rehacer**. En Design, **Historial** está en la barra superior; en un móvil, pulsa **•••** y luego **Historial**. En las herramientas sin **Deshacer**, como Text y Sandbox, **Historial** está junto a **Inicio** arriba a la izquierda.
+2. Encuentra la versión por su fecha y hora. Las filas **Punto de control automático** se toman mientras trabajas; las filas **Versión guardada** son los momentos en que guardaste.
+3. Pulsa **Abrir como copia**. La versión se abre como una nueva creación, y la que tenías abierta se queda como estaba. La copia está en **Proyectos**, con "(copy)" después de su nombre.
 
 Para conservar una versión con nombre, pulsa **Name version**, escribe un nombre y pulsa **Keep milestone**. Las versiones con nombre aparecen en la página **History**, bajo **Milestones**.
 
 ::: details El panel de History y la página de History
 El panel de **History** también lista filas de **Recovered work**, y **Protected drafts** guarda tus últimos cambios entre puntos de control, con **Open draft as a copy**. **Compare** y **Check assets** te ayudan a elegir antes de abrir una copia. Cambia **This creation** a **All history on this device** para ver todas las creaciones.
 
-Los puntos de control automáticos se van reduciendo con el tiempo: uno por minuto durante la última hora, uno por hora durante el último día, uno al día durante 30 días, y luego uno a la semana. Las versiones guardadas se conservan todas. Eliminar una creación desde **Ajustes → Almacenamiento** elimina también sus versiones.
+Los puntos de control automáticos se van reduciendo con el tiempo: uno por minuto durante la última hora, uno por hora durante el último día, uno al día durante 30 días, y luego uno a la semana. Las versiones guardadas y las versiones con nombre se conservan todas. Eliminar una creación mueve también sus versiones a la **Papelera**, y **Eliminar para siempre** las elimina.
+
+Cuando el almacenamiento del Historial se llena, se eliminan primero los puntos de control automáticos más antiguos de las creaciones que no has abierto en 30 días. Un guardado siempre se conserva, incluso entonces: se escribe como el trabajo actual, y el Historial indica que ese guardado no se conserva como versión. **Ajustes → Almacenamiento** muestra cuánto usa el Historial.
 
 La página **History** (`#/history`, o **Open app history** en el panel) cubre todas las creaciones en este navegador. En un ordenador, abre la página desde el botón de reloj arriba a la derecha de la pantalla de inicio o de **Proyectos**. En un móvil, ve a la galería de herramientas en la pantalla de inicio, pulsa el botón redondo del logotipo arriba a la derecha y elige **Sesiones guardadas**, que abre History. Desde **Proyectos** ese elemento todavía no hace nada.
 
@@ -157,7 +168,7 @@ Para trasladarlo todo de una vez:
 3. En el dispositivo nuevo, abre **Ajustes → Almacenamiento**, pulsa **Importar datos…**, elige el archivo y pulsa **Importar**.
 
 ::: note Qué se queda atrás
-Los inicios de sesión, las claves y la frase de contraseña de sincronización permanecen en cada dispositivo. La lista de descargas recientes, las descargas sin conexión y los modelos de IA no viajan por ninguna vía. El historial de versiones viaja solo en un archivo de **Exportar mis datos**, no a través de Sincronización ni de un `.lolly`. Una copia que Sincronización guarda en tu almacenamiento se puede descargar y abrir, o elegir en **Importar datos…**, como un archivo de copia de seguridad; una copia cifrada pide tu frase de contraseña.
+Los inicios de sesión, las claves y la frase de contraseña de sincronización permanecen en cada dispositivo. La lista de descargas recientes, las descargas sin conexión y los modelos de IA no viajan por ninguna vía. El historial de versiones viaja solo en un archivo de **Exportar mis datos**, no a través de Sincronización ni de un `.lolly`. Cuando el historial es demasiado grande para un solo archivo, se dejan fuera los puntos de control automáticos más antiguos y la línea de exportación indica cuántos. Una copia que Sincronización guarda en tu almacenamiento se puede descargar y abrir, o elegir en **Importar datos…**, como un archivo de copia de seguridad; una copia cifrada pide tu frase de contraseña.
 :::
 
 ::: details Qué contiene el archivo de copia de seguridad
@@ -176,7 +187,7 @@ Pulsa **Exportar mis datos** bajo **Ajustes → Almacenamiento**, y guarda el ar
 
 Cuando la app arranca, Lolly le pide al navegador que no borre su almacenamiento cuando al dispositivo le quede poco espacio. El navegador decide. Bajo **Ajustes → Disponible sin conexión**, una línea que empieza por **Protected** significa que el navegador aceptó; "The browser may clear downloads if the device runs low on space" significa que no, y **Protect downloads** vuelve a preguntar. Si el navegador no aceptó, puede borrar el trabajo guardado además de las descargas cuando escasee el espacio, así que conserva un archivo reciente de **Exportar mis datos**.
 
-**Ajustes → Almacenamiento** muestra cuánto espacio usa cada tipo de dato. **Borrar caché** elimina los archivos de catálogo descargados, que se vuelven a descargar cuando hacen falta. **Borrar todos mis datos** te pide que escribas una palabra, desactiva Sincronización y luego elimina todo lo que Lolly guarda en este navegador: tu perfil y tus ajustes, las sesiones guardadas con su historial y la Papelera, los archivos subidos, las tipografías y los sistemas de diseño, el registro de descargas, los resultados de Convert, los modelos de IA descargados y las copias sin conexión. Los archivos que descargaste se quedan donde los guardaste. La aplicación arranca entonces como en la primera visita.
+**Ajustes → Almacenamiento** muestra cuánto espacio usa cada tipo de dato. Su fila **Historial** cuenta los puntos de control automáticos, sus vistas previas y los borradores de recuperación; **Eliminar puntos de control automáticos de más de 30 días** libera ese espacio y conserva las versiones guardadas y con nombre. **Borrar caché** elimina los archivos de catálogo descargados, que se vuelven a descargar cuando hacen falta. **Borrar todos mis datos** te pide que escribas una palabra, desactiva Sincronización y luego elimina todo lo que Lolly guarda en este navegador: tu perfil y tus ajustes, las sesiones guardadas con su historial y la Papelera, los archivos subidos, las tipografías y los sistemas de diseño, el registro de descargas, los resultados de Convert, los modelos de IA descargados y las copias sin conexión. Los archivos que descargaste se quedan donde los guardaste. La aplicación arranca entonces como en la primera visita.
 
 ![La tarjeta de almacenamiento en una pantalla de ancho de teléfono: cada categoría de datos del dispositivo con su nombre, y el botón Borrar todos mis datos abajo](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

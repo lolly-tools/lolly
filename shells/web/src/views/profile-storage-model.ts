@@ -22,6 +22,28 @@ export interface SessionEntry extends StateEntry {
 
 export interface PreviewsMeasure { bytes: number; count: number; available: boolean }
 
+/** Version history's three parts, read from `revision-usage` (plan 277 P4): the
+ *  deflated automatic checkpoints and saves, their previews, and recovery drafts. */
+export interface HistoryMeasure { checkpoints: number; previews: number; recovery: number }
+
+/** Every byte of version history. */
+export const historyBytes = (h: HistoryMeasure | undefined): number => h ? h.checkpoints + h.previews + h.recovery : 0;
+
+/** The History row's breakdown, each part named. */
+export function historyParts(h: HistoryMeasure | undefined): string {
+  return tRaw('Checkpoints {checkpoints} · Previews {previews} · Recovery drafts {recovery}', {
+    checkpoints: fmtBytes(h?.checkpoints ?? 0), previews: fmtBytes(h?.previews ?? 0), recovery: fmtBytes(h?.recovery ?? 0),
+  });
+}
+
+/** What removing old automatic checkpoints did, in one sentence. */
+export function pruneOutcome(removed: number, bytes: number): string {
+  if (!removed) return t('No automatic checkpoints are older than 30 days.');
+  return removed === 1
+    ? t('Removed 1 automatic checkpoint older than 30 days ({size}).', { size: fmtBytes(bytes) })
+    : t('Removed {n} automatic checkpoints older than 30 days ({size}).', { n: removed, size: fmtBytes(bytes) });
+}
+
 export interface StorageModel {
   sessions: { bytes: number; count: number; sizes: Record<string, number>; list: SessionEntry[] };
   images: { bytes: number; count: number; list: AssetRef[] };
@@ -32,6 +54,9 @@ export interface StorageModel {
   trash?: { count: number; bytes: number };
   cache: { bytes: number };
   fileHistory?: { bytes: number };
+  /** Version history (plan 277 P4); absent where the state bridge keeps none.
+   *  Optional for older test fixtures. */
+  history?: HistoryMeasure;
   previews: PreviewsMeasure;
   /** Tools pinned "available offline" - their cached FILE bytes (lib/offline-pins.ts).
    *  Their prefetched catalog asset blobs are counted by the `cache` slice. */
@@ -91,6 +116,7 @@ export function reconciliationSentence(m: StorageModel): string {
   ];
   if (m.previews.available) parts.push(`Tool previews ${fmtBytes(m.previews.bytes)}`);
   if (m.fileHistory?.bytes) parts.push(`File results & versions ${fmtBytes(m.fileHistory.bytes)}`);
+  if (historyBytes(m.history)) parts.push(`${t('History')} ${fmtBytes(historyBytes(m.history))}`);
   if (m.pins.count) parts.push(`Available offline ${fmtBytes(m.pins.bytes)}`);
   if (m.speech.bytes) parts.push(`Voice models ${fmtBytes(m.speech.bytes)}`);
   if (m.upscale.bytes) parts.push(`Upscaling models ${fmtBytes(m.upscale.bytes)}`);

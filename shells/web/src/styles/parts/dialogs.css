@@ -44,6 +44,32 @@
 @media (min-width: 641px) {
   .modal:has(.modal-actions--choices) { width: auto; max-width: min(760px, 92vw); }
 }
+/* ─── "Opening…" card (components/open-progress.ts) ────────────────────────
+   The plain .modal card while a saved document opens: its thumbnail when the
+   opening view had one, its name, the step now running, the shared candy-stripe
+   bar (parts/job-toast.css, which also stops the drift under reduced motion)
+   and Cancel. */
+.open-progress {
+  width: min(360px, 92vw);
+  --candy-a: var(--job-candy-a);
+  --candy-b: var(--job-candy-b);
+}
+.open-progress-thumb {
+  display: flex; align-items: center; justify-content: center;
+  height: 168px; margin: 0 0 var(--sp-6);
+  border-radius: var(--ui-radius-control); overflow: hidden;
+  background: var(--ui-color-surface-muted);
+}
+.open-progress-thumb img { display: block; max-width: 100%; max-height: 100%; object-fit: contain; }
+.open-progress .modal-title { overflow-wrap: anywhere; }
+/* The step on the left, the story count on the right: the count changes per story and
+   is not in the live region, so it sits beside the step rather than inside it. */
+.open-progress-status { display: flex; align-items: baseline; justify-content: space-between; gap: var(--sp-4); margin: 0 0 var(--sp-5); }
+.open-progress-step { margin: 0; font-size: var(--fs-md); line-height: 1.5; color: var(--ui-color-text-muted); }
+.open-progress-count { flex: none; font-size: var(--fs-sm); font-variant-numeric: tabular-nums; color: var(--ui-color-text-muted); }
+.open-progress-count[hidden] { display: none; }
+.open-progress .job-bar { margin: 0 0 18px; }
+
 /* ─── "Make copies…" chooser (gallery bulk action) ──────────────────────────
    A compact list of the selected tools, each with a native copy-count field,
    above the two editor destinations (Edit together / Edit as sheet). */

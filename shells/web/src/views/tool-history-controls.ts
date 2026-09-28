@@ -24,10 +24,33 @@ export function mountUndoControls(backRow: HTMLElement, undo: () => void, redo: 
   } };
 }
 
-/** Adopt the existing undo/redo group; editor layouts use their own top bar. */
-export function mountRevisionHistoryControl(root: HTMLElement, open: () => void): () => void {
+/**
+ * Put the History button where this view keeps its other document controls: in the
+ * sidebar's undo/redo group, else (a tool with no sidebar: Sandbox, Doc Studio, Text)
+ * beside the corner back pill, in the same top-left island the Home button joins
+ * (components/back-pill.ts). Design and Org Chart draw it in their own top bar, so
+ * `editorBar` skips the fallback for them.
+ */
+export function mountRevisionHistoryControl(root: HTMLElement, open: () => void, opts: { editorBar?: boolean } = {}): () => void {
   const group = root.querySelector('.history-controls');
-  if (!group) return () => {};
-  const button = historyButton(t('History'), 'history', open); button.dataset.historyOpen = '';
-  group.append(button); return () => button.remove();
+  if (group) {
+    const button = historyButton(t('History'), 'history', open); button.dataset.historyOpen = '';
+    group.append(button); return () => button.remove();
+  }
+  const pill = opts.editorBar ? null : root.querySelector<HTMLElement>('.tools-home.home-full[data-back-pill]');
+  if (!pill) return () => {};
+  // The same button, in the glass square the corner island's controls wear.
+  const button = historyButton(t('History'), 'history', open);
+  button.className = 'history-fab'; button.dataset.historyOpen = '';
+  // The corner pill pins itself (position: fixed), so a sibling would land in flow:
+  // the island takes over the pinning, as addHomeEscape does for the Home button.
+  let island = pill.parentElement?.classList.contains('chrome-topleft') ? pill.parentElement : null;
+  if (!island) {
+    island = document.createElement('div');
+    island.className = 'chrome-topleft';
+    pill.replaceWith(island);
+    island.append(pill);
+  }
+  island.append(button);
+  return () => button.remove();
 }

@@ -82,8 +82,12 @@ export function needsAdopt(doc: DocumentHead | undefined): boolean {
   return !!doc && (doc.workingHash === '' || doc.saved === undefined);
 }
 
+/** Write a draft's or checkpoint's data as the current state. The Projects tile
+ * keeps the picture it had until the checkpoint's own capture replaces it
+ * (attachPreview): a capture that never arrives (the tool closed first, a busy
+ * tab) must not leave the tile blank. */
 export async function writeCurrentState(tx: RevisionTransaction, record: StateRecord, data: SavedStateData, documentId: string): Promise<void> {
   const state = tx.objectStore('state');
   const prior = await state.get(record.slot) as StateRecord | undefined;
-  await state.put(indexSavedWork({ ...record, data, thumb: null, documentId, openedAt: prior?.openedAt, createdAt: prior?.createdAt ?? record.createdAt }));
+  await state.put(indexSavedWork({ ...record, data, thumb: prior?.thumb ?? null, documentId, openedAt: prior?.openedAt, createdAt: prior?.createdAt ?? record.createdAt }));
 }

@@ -131,7 +131,7 @@ Pokud jsi stiskl/a **Uložit jako** nebo **Uložit**, je to v **Projektech**, na
 
 ## Zavřel/a jsem kartu. Zmizela mi práce?
 
-Uložená práce je pořád v **Projektech**. Neuložená práce zmizí, kromě devíti nástrojů, které ukládají průběžně - ty ji taky uchovávají v **Projektech**. Příště stiskni **Uložit jako**, než odejdeš. Viz [Když zavřeš kartu nebo opustíš nástroj](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+Uložená práce je pořád v **Projektech**. Neuložená práce zmizí, kromě nástrojů, které ukládají za chodu - ty ji taky uchovávají v **Projektech**. Příště stiskni **Uložit jako**, než odejdeš. Viz [Když zavřeš kartu nebo opustíš nástroj](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Můžu svou práci sdílet jako soubor místo odkazu?
 

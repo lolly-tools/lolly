@@ -2072,6 +2072,12 @@ html[data-a11y-previews="hidden"] .tool-meta-dialog .meta-look-thumb { display: 
   background: hsl(var(--muted) / .6); border: none;
 }
 .gallery-bulkbar-clear:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+/* Icon-only when the labels would wrap or overflow (lib/bulk-bar.ts fitBulkBar sets
+   .is-compact by measuring). Labels are clipped, not removed, so each button keeps its
+   accessible name; the label is also its tooltip. */
+.gallery-bulkbar.is-compact .gallery-bulkbar-actions { flex-wrap: nowrap; }
+.gallery-bulkbar.is-compact .gallery-bulkbar-actions .btn { padding: 8px 10px; gap: 0; }
+.gallery-bulkbar.is-compact .gallery-bulkbar-actions .btn > span { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 /* Reserve room so the fixed bar never buries the last tile row. */
 .gallery.has-selection { padding-bottom: calc(8rem + var(--safe-bottom)); }
 @media (max-width: 640px) {

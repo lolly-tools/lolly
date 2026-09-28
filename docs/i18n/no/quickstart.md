@@ -16,7 +16,7 @@ Merkevaren din i Lolly er et lite **design-tokens**-dokument - farger, skrifter 
 
 Første gang lander du i **galleriet**, med en kort velkomstdialog over som tilbyr tre veier inn - **Make it yours** (Brand Studio på `#/start`), **Bring your design** (slipp en Figma-, Penpot-, InDesign- eller PDF-fil, så åpnes den som en redigerbar layout - den raskeste veien til [Ta med det du allerede har](#2-bring-in-what-you-already-have) nedenfor) og **Explore the community tools** - pluss en rad med språk hvis engelsk ikke er ditt. Velg det første kortet, så havner du i [**Brand Studio**](/info/brand-studio.html). Gi den et navn og en primærfarge, så *utleder* Lolly en komplett, tilgjengelig palett fra den - lyse og mørke flater, tekst, aksenter - med den samme fargematematikken motoren bruker overalt ellers.
 
-![Fargerommet i Brand Studio - en primærfarge, og den tilgjengelige paletten Lolly utleder fra den](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Velg en skrift, og du har en fungerende merkevare på under ett minutt. Derfra lar studioets seks rom - Overview, Colours, Type, Logos, Tokens, Files - deg ta den så langt du vil, i hvilken rekkefølge du vil, og finpusse hva som helst hver gang du kommer tilbake. Fanen **Design system** på dashbordet (`#/d`) viser resultatet skrivebeskyttet og peker tilbake til `#/start`, som er der redigeringen skjer (med mindre du kjører en merkevarelåst utgave av Lolly, der merkevaren er fast og det ikke er noe å endre).
+![Fargerommet i Brand Studio ved en ny installasjon - én levende fargeprøve, ett felt og hele det første valget](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Velg en skrift, og du har en fungerende merkevare på under ett minutt. Derfra lar studioets seks rom - Oversikt, Farger, Typografi, Logoer, Tokens, Filer - deg ta den så langt du vil, i hvilken rekkefølge du vil, og finpusse hva som helst av det hver gang du kommer tilbake. Fanen **Designsystem** på dashbordet (`#/d`) viser resultatet skrivebeskyttet og peker tilbake til `#/start`, som er der redigeringen skjer (et låst designsystem forblir skrivebeskyttet, mens dine egne lokale systemer forblir redigerbare).
 
 ### Importer en merkevare du allerede har
 
@@ -27,7 +27,7 @@ Er merkevaren din allerede fanget som design-tokens - fra **Penpot**, **Tokens S
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` godtar alle de tre beholderne Penpot / Tokens Studio eksporterer det samme dokumentet i - en enkelt `tokens.json`, en mappe (`$metadata.json` + filer per sett) eller et `project.penpot`-arkiv. Med `--activate` registreres merkevaren som en profil, den aktiveres og katalogen bygges på nytt. Se [Konfigurasjon](/info/configuration.html) for hvordan merkevarepakker og profiler henger sammen.
@@ -60,7 +60,7 @@ Ferdig arbeid i **Figma, Penpot, Illustrator, InDesign eller en hvilken som hels
 
 Hele importen skjer **på enheten din** - filen tolkes i nettleseren din og ingenting lastes opp. Alle detaljer, og nøyaktig hva som følger med over, finner du i [Importer et design](/info/design-import.html).
 
-Har du en **PowerPoint-presentasjon** i stedet? Slipp `.pptx`-filen på **Deck Builder** for å redigere den lysbilde for lysbilde, allerede tilpasset merkevaren din - eller kjør **Rebrand a Deck** for å få den samme presentasjonen tilbake med nytt tema, med diagrammer og animasjoner intakt.
+Har du i stedet et **PowerPoint-sett**? Slipp `.pptx`-filen på hvilken som helst opplastingsflate for å arkivere lysbildene som ressurser, skriv et nytt sett fra Markdown i **Markdown Slides**, eller kjør **Rebrand** for å få tilbake det samme settet omtemasatt, med diagrammer og animasjoner intakt.
 
 ### Fra engangsjobb til mal
 

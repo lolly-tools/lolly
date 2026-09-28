@@ -28,8 +28,15 @@ export function createTextCompositionCache(){
         }else entry={prepared,bytes:0};
       }
       const {shape,hyphen,...metadata}=entry.prepared;
-      // A caller may annotate its layout. It must never mutate another revision.
-      return {key,prepared:{...structuredClone(metadata),shape:async(...args:Parameters<typeof shape>)=>structuredClone(await shape(...args)),hyphen:async(at:number)=>structuredClone(await hyphen(at))}};
+      // A caller may annotate its layout. It must never mutate another revision, so
+      // every result is a copy. `.shared` reads the cached result itself, for a caller
+      // that only reads and copies what it keeps: line breaking asks for many candidate
+      // lines and keeps a few, and copying each one was the largest single cost of
+      // composing a long document. A wrapper that replaces `shape` (a drop capital)
+      // drops `.shared` with it, so its callers are back to copies.
+      const copiedShape=Object.assign(async(...args:Parameters<typeof shape>)=>structuredClone(await shape(...args)),{shared:shape});
+      const copiedHyphen=Object.assign(async(at:number)=>structuredClone(await hyphen(at)),{shared:hyphen});
+      return {key,prepared:{...structuredClone(metadata),shape:copiedShape,hyphen:copiedHyphen}};
     },
     previous():TextFlowCache|undefined{return flow;},
     remember(value:TextFlowCache):void{

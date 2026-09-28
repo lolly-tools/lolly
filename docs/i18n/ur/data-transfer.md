@@ -39,7 +39,7 @@
 
 `profile.json` سب سے چھوٹا حصہ ہے اور وہ ہے جسے ریڈر ایپ میں سب سے پہلے دیکھتا ہے: وہ تفصیلات جو تخلیق کار ایک بار پُر کرتا ہے، ساتھ ہی وہ آپٹ-ان جو ٹولز کو انہیں استعمال کرنے دیتا ہے۔
 
-![Profile details فارم جو profile.json بنتا ہے - نام، رابطہ، ہیڈ شاٹ اور ان کے ساتھ آپٹ-ان](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![پروفائل کی تفصیلات کا فارم جو profile.json بن جاتا ہے: نام، رابطہ تفصیلات اور ہیڈ شاٹ](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

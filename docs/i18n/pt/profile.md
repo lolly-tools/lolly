@@ -19,7 +19,7 @@ Tudo em um perfil vive **no dispositivo**, no banco de dados local do navegador 
 | **Acessibilidade** | Quatro interruptores de conforto - *Reduce motion*, *Hide colourful previews*, *High contrast*, *Large text* - mantidos no registro do perfil, então acompanham uma exportação de perfil. Veja [Acessibilidade](#accessibility). |
 | **Seu trabalho** | Sessões salvas (com miniaturas) - organizadas em pastas aninhadas em **[Projects](/info/using.html)** - sua biblioteca **My images** e as estatísticas de atividade local, todas vinculadas a este perfil. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
 ![A tela Profile - nome, contato, uma foto opcional e suas preferências](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -35,7 +35,7 @@ A palavra "perfil" sugere uma única pessoa fixa, mas no Lolly é, na verdade, u
 
 ### Como indivíduo
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ![O controle de foto de perfil, vazio até você enviar uma foto, que então permanece neste dispositivo](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -53,7 +53,7 @@ No Lolly, essa função é apenas **outro perfil que você mantém à mão** - u
 
 A qualquer momento, uma instalação tem **um perfil ativo** - os detalhes que uma ferramenta vê agora. Não há um alternador de perfis dentro do aplicativo; em vez disso, cada perfil é um **pacote portátil** (um único `.zip`, veja [abaixo](#moving-a-profile-to-a-new-device)). Esse é deliberadamente o mesmo mecanismo usado para mudar de dispositivo - um perfil é um arquivo que você pode salvar, copiar e carregar.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 - <!--i:trash--> **Troca mais limpa:** **Configurações → Preferences → Armazenamento → Limpar todos os meus dados**, depois **Importar** o pacote do contexto para o qual você está indo. Agora você está criando puramente como esse perfil.
 - <!--i:layers--> **Camadas:** importar *sem* limpar antes **mescla** - as sessões e imagens importadas entram por cima do que já existe; onde ambas têm o mesmo item, a cópia salva mais recentemente é mantida, e o resto fica intacto. Pastas, favoritos e modelos são adicionados aos seus, e seus próprios dados e configurações permanecem. Útil para trazer as sessões salvas de uma equipe para dentro da sua própria configuração; não é o que você quer se precisar de uma fronteira de papéis limpa.
@@ -122,7 +122,7 @@ Para o layout exato do pacote, política de versão e regras de integridade, vej
 
 ## Como as ferramentas usam seu perfil
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 Uma ferramenta só *pré-preenche* os campos do perfil para os quais foi explicitamente construída:
 

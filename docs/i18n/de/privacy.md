@@ -89,7 +89,7 @@ kann außerdem eine private Prüfdatei mit den Originalwerten speichern, aber nu
 `--review-file` ausdrücklich angefordert wird. Das Leeren oder Verlassen einer
 Browser-Vorbereitungsansicht gibt ihren Arbeitszustand frei; das ist kein Versprechen forensischer Löschung aus dem Speicher des Browsers oder Betriebssystems.
 
-## Wenn die App mit einem Netzwerk spricht, vollständig
+## Jede Netzwerkanfrage, die die App stellen kann
 
 Die untenstehende Tabelle ist die vollständige Liste von allem, was die App über ein
 Netzwerk abruft oder sendet. Steht es nicht hier, tut die App es nicht.

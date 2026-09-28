@@ -90,7 +90,7 @@ privé-controlebestand opslaan met de oorspronkelijke waarden, alleen wanneer da
 met `--review-file`. Een voorbereidingsweergave in de browser wissen of verlaten maakt zijn
 werktoestand vrij; dit is geen belofte van forensische verwijdering uit browser- of OS-geheugen.
 
-## Wanneer de app met een netwerk praat, volledig
+## Elk netwerkverzoek dat de app kan doen
 
 De onderstaande tabel is de volledige lijst van alles wat de app ophaalt of verzendt over een
 netwerk. Staat het hier niet, dan doet de app het niet.

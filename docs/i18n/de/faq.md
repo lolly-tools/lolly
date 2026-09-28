@@ -131,7 +131,7 @@ Wenn Sie **Speichern unter** oder **Speichern** gedrückt haben, ist es in **Pro
 
 ## Ich habe den Tab geschlossen. Ist meine Arbeit weg?
 
-Gespeicherte Arbeit ist weiterhin in **Projekte**. Nicht gespeicherte Arbeit ist weg, außer in den neun Tools, die während der Arbeit speichern, welche sie ebenfalls in **Projekte** halten. Drücken Sie beim nächsten Mal **Speichern unter**, bevor Sie das Tool verlassen. Siehe [Wenn Sie den Tab geschlossen oder das Tool verlassen haben](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+Gespeicherte Arbeit ist weiterhin in **Projekte**. Nicht gespeicherte Arbeit ist weg, außer in den Tools, die während der Arbeit speichern, welche sie ebenfalls in **Projekte** halten. Drücken Sie beim nächsten Mal **Speichern unter**, bevor Sie das Tool verlassen. Siehe [Wenn Sie den Tab geschlossen oder das Tool verlassen haben](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Kann ich meine Arbeit als Datei statt als Link teilen?
 

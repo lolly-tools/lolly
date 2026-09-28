@@ -53,6 +53,18 @@ export interface ModalOptions<T> {
    *  (Escape, backdrop, Back, or a caller-driven `close(result)`). A route change
    *  under the dialog resolves `undefined`, never cancelValue: nobody dismissed it. */
   onClose?: (result: T | undefined) => void;
+  /** Join the shared system-Back stack (lib/overlay-back.ts): a history entry for Back
+   *  to consume, and teardown on a route change. Default true. False only for a dialog
+   *  that opens while the router is still settling a route: the "Opening…" card opens
+   *  during a tool mount, and a tool open fires a late popstate the stack would read as
+   *  a Back press. Such a caller closes the dialog on navigation itself. */
+  backStack?: boolean;
+  /** Close with cancelValue on a click outside the content box. Default true. */
+  dismissOnBackdrop?: boolean;
+  /** Escape runs this INSTEAD of closing, for a dialog whose Escape starts an action
+   *  that closes it later (the "Opening…" card's Cancel, which waits for the mount to
+   *  stop). Omitted, Escape closes with cancelValue. */
+  onEscape?: (el: HTMLDialogElement) => void;
 }
 
 import { adoptFloatCluster, releaseFloatCluster } from '../lib/float-cluster.ts';
@@ -90,7 +102,11 @@ export function mountModal<T = void>(content: string, opts: ModalOptions<T>): Mo
     pop: () => { back?.disown(); close(cancelResult()); },
   };
 
-  dlg.addEventListener('cancel', (e) => { e.preventDefault(); close(cancelResult()); }); // Escape
+  dlg.addEventListener('cancel', (e) => { // Escape
+    e.preventDefault();
+    if (opts.onEscape) opts.onEscape(dlg);
+    else close(cancelResult());
+  });
   // Safety net for outside callers that close the <dialog> natively instead of via
   // the handle (confirm-dialog's closeConfirmDialogs teardown does) - without this
   // the stack record and its owed history entry outlive the dialog, and the next
@@ -108,14 +124,14 @@ export function mountModal<T = void>(content: string, opts: ModalOptions<T>): Mo
     // a backdrop hit and dismiss as Cancel before the caller's data-act listener
     // (registered after this one) ever sees it. A true backdrop or padding click
     // always targets the <dialog> element, never an inner node.
-    if (e.target !== dlg) return;
+    if (e.target !== dlg || opts.dismissOnBackdrop === false) return;
     const r = dlg.getBoundingClientRect();
     if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) close(cancelResult());
   });
 
   // On the stack before showModal(), so open order stays the Back order even if a
   // caller's initialFocus or an adopted float opens something of its own.
-  back = registerOverlay(record);
+  if (opts.backStack !== false) back = registerOverlay(record);
 
   dlg.showModal();
   // Everything outside a modal dialog is inert and below the top layer, so the

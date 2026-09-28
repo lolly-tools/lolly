@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { JSDOM } from 'jsdom';
 import { createMockHost } from '@lolly-tools/core';
-import { createRuntime } from '../engine/src/runtime.ts';
+import { createRuntime, HOOK_BUDGET_MS } from '../engine/src/runtime.ts';
 import { loadTool } from '../engine/src/loader.ts';
 import { makeGeomApi } from '../engine/src/geom-api.ts';
 import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.ts';
@@ -111,4 +111,92 @@ test('hidden editable vector backups validate their source without requiring the
     assert.ok(restored.querySelector('[data-text-frame="source"]')); assert.ok(!restored.querySelector('[data-box-id="source"]')!.hasAttribute('data-export-hide'));
     await runtime.export(restored, 'svg', { c2pa: false }); assert.equal(rendered, 2);
   } finally { runtime.destroy(); }
+});
+
+test('a slow onInput during setEmojiStyle is logged and does not reject, so a large document still mounts',async()=>{
+  const {createNodeEmojiAPI}=await import('../packages/node-shell/src/emoji.ts');
+  const emoji=await createNodeEmojiAPI({parseXml}),sets=await emoji.sets();
+  const value=host();value.emoji=emoji;const logs:string[]=[];value.log=(level:string,message:string)=>{logs.push(`${level}:${message}`);};
+  const initial=upgradeDesignText('',[{id:'box',kind:'text',text:'',w:350,h:150}],'box',{storyId:'story',source:'Office 😀 copy',character:{font:'sans',size:24},fonts:[font]});
+  const runtime=await createRuntime(tool,value,initial as Parameters<typeof createRuntime>[2]);
+  const budget=HOOK_BUDGET_MS.onInput;
+  try{
+    const set=sets.find(set=>set.pin.id==='community/emoji/twemoji/color')!;
+    await runtime.setEmojiStyle({schemaVersion:1,primary:set.pin,fallbacks:[],metricsPolicy:'inline-em-v1',treatment:{mode:'original',strengthBps:0}});
+    HOOK_BUDGET_MS.onInput=1;
+    const black=sets.find(set=>set.pin.id==='community/emoji/openmoji/black')!;
+    await runtime.setEmojiStyle({schemaVersion:1,primary:black.pin,fallbacks:[],metricsPolicy:'inline-em-v1',treatment:{mode:'original',strengthBps:0}});
+    assert.ok(logs.some(line=>/^warn:onInput timed out/.test(line)),'the overrun is logged as a warning');
+  }finally{HOOK_BUDGET_MS.onInput=budget;runtime.destroy();}
+});
+
+test('a style given at creation lays text out once; applying it again runs nothing and still carries its pack',async()=>{
+  const {createNodeEmojiAPI}=await import('../packages/node-shell/src/emoji.ts');
+  const emoji=await createNodeEmojiAPI({parseXml}),sets=await emoji.sets();
+  const style={schemaVersion:1 as const,primary:sets.find(set=>set.pin.id==='community/emoji/twemoji/color')!.pin,fallbacks:[],metricsPolicy:'inline-em-v1' as const,treatment:{mode:'original' as const,strengthBps:0}};
+  const initial=upgradeDesignText('',[{id:'box',kind:'text',text:'',w:350,h:150}],'box',{storyId:'story',source:'Office 😀 ❤️\nSecond line',character:{font:'sans',size:24},fonts:[font]});
+  // A host that lists each pack as a dependency, so the assets a save carries are visible.
+  const withDependencies={...emoji,dependencies:async(pins:readonly {id:string}[])=>pins.map(pin=>({id:`pack:${pin.id}`}) as never)};
+  const counted=()=>{const value=host();value.emoji=withDependencies;let calls=0;const layout=value.text!.layoutRuns!;value.text={...value.text!,layoutRuns:async request=>{calls++;return layout(request);}};return {value,calls:()=>calls};};
+  // The old order: the default style first, then the document's own.
+  const two=counted(),before=await createRuntime(tool,two.value,initial as Parameters<typeof createRuntime>[2]);
+  const one=counted();let after:Awaited<ReturnType<typeof createRuntime>>|undefined;
+  try{
+    await before.setEmojiStyle(style);
+    after=await createRuntime(tool,one.value,initial as Parameters<typeof createRuntime>[2],{emojiStyle:style});
+    assert.deepEqual(after.hookErrors,[]);
+    assert.equal(after.getHydrated(),before.getHydrated(),'the same render as seeding the style after creation');
+    assert.ok(one.calls()<two.calls(),`one composition instead of two (${one.calls()} layouts against ${two.calls()})`);
+    const composed=one.calls(),markup=after.getHydrated();
+    await after.setEmojiStyle(structuredClone(style));
+    assert.equal(one.calls(),composed,'the style already in force runs no second composition');
+    assert.equal(after.getHydrated(),markup);
+    assert.deepEqual(after.emoji.assets,before.emoji.assets,'and the pack a save carries is still resolved');
+    assert.ok(after.emoji.assets.length>0);
+    await after.setEmojiStyle(null);
+    assert.ok(one.calls()>composed,'a different style still recomposes');
+  }finally{before.destroy();after?.destroy();}
+});
+
+test('a watched first composition opens on the first page, then fills in, and ends where a single pass would',async()=>{
+  // Three pages; the document lists the LAST page's story first, so reading order and
+  // document order disagree.
+  let boxes:Record<string,unknown>[]=[
+    {id:'p3',kind:'frame',x:1000,y:0,w:400,h:300,order:2},{id:'p1',kind:'frame',x:0,y:0,w:400,h:300,order:0},{id:'p2',kind:'frame',x:500,y:0,w:400,h:300,order:1},
+    {id:'t3',kind:'text',text:'',frame:'p3',x:1020,y:20,w:300,h:60},{id:'t1',kind:'text',text:'',frame:'p1',x:20,y:20,w:300,h:60},{id:'t2',kind:'text',text:'',frame:'p2',x:520,y:20,w:300,h:60},
+  ];
+  let textDocument:unknown='';
+  for(const [id,source] of [['t3','Third page'],['t1','First page'],['t2','Second page']] as const){
+    const next=upgradeDesignText(textDocument,boxes as never,id,{storyId:`s-${id}`,source,character:{font:'sans',size:24},fonts:[font]});
+    textDocument=next.textDocument;boxes=next.boxes as Record<string,unknown>[];
+  }
+  const values={boxes,textDocument} as Parameters<typeof createRuntime>[2];
+  // Each story takes long enough that the progress thresholds are crossed.
+  const slow=()=>{const value=host();const layout=value.text!.layoutRuns!;const order:string[]=[];
+    value.text={...value.text!,layoutRuns:async request=>{order.push(request.storyId);await new Promise(r=>setTimeout(r,180));return layout(request);}};return {value,order};};
+  const single=await createRuntime(tool,slow().value,values);
+  const watched=slow(),runtime=await createRuntime(tool,watched.value,values,{progressiveInit:true});
+  try{
+    const opened=new JSDOM(runtime.getHydrated()).window.document;
+    const drawn=[...opened.querySelectorAll('[data-text-frame]')].map(node=>node.getAttribute('data-text-frame'));
+    assert.ok(drawn.includes('t1'),'the first page is laid out when the view opens');
+    assert.ok(!drawn.includes('t3'),`the last page is not yet (drawn: ${drawn.join(', ')})`);
+    assert.deepEqual(watched.order.slice(0,2),['s-t1','s-t2'],'stories are laid out in reading order, not document order');
+    assert.deepEqual(runtime.hookErrors,[]);
+    await runtime.whenSettled();
+    assert.equal(runtime.getHydrated(),single.getHydrated(),'the finished document is exactly what a single pass delivers');
+  }finally{single.destroy();runtime.destroy();}
+
+  // An edit while pages are still landing: the edit's own pass reuses what is finished
+  // and what is in flight, so no story is laid out twice, and the end state is the
+  // edited document.
+  const editing=slow(),live=await createRuntime(tool,editing.value,values,{progressiveInit:true});
+  const edited=await createRuntime(tool,host(),{...values,background:'#224466'} as Parameters<typeof createRuntime>[2]);
+  try{
+    await live.setInput('background','#224466');
+    await live.whenSettled();
+    const perStory=editing.order.reduce<Record<string,number>>((count,id)=>{count[id]=(count[id]??0)+1;return count;},{});
+    assert.deepEqual(perStory,{'s-t1':1,'s-t2':1,'s-t3':1},'each story laid out once across both passes');
+    assert.equal(live.getHydrated(),edited.getHydrated(),'and the result is the edited document, whole');
+  }finally{live.destroy();edited.destroy();}
 });

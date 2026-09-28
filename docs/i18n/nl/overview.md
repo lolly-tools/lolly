@@ -390,7 +390,7 @@ Web shell: IndexedDB. Tauri: bestandssysteem. CLI: in-memory. Tools zien alleen 
 
 Gebruikers kunnen meerdere genoemde bewerkingsslots per tool opslaan en later naar elke sessie terugkeren. Er is geen accountaanmaak nodig; status is per apparaat. Omdat de bridge de enige naad is, is die status per apparaat ook *draagbaar*: `shells/web/src/data-transfer.ts` leest alles terug via `host.profile`/`host.state`/`host.assets` in één `lolly-backup`-zip die op elke andere installatie importeert - het offline antwoord op "verhuizen naar een nieuw apparaat" waar geen server voor nodig is (volledige specificatie: `docs/data-transfer.md`). Synchronisatie tussen meerdere apparaten draait hier al bovenop, door dezelfde bundel te sturen naar de opslag die de persoon kiest (`docs/sync.md`).
 
-### 7. Volwassenheidslabels tonen wat een tool is, bij ontwerp
+### 7. Volwassenheidslabels tonen wat een tool is
 
 Elke tool declareert `status: official | community | experimental` in zijn manifest. De galerij sorteert op status. Experimentele tools voorzien hun exports automatisch van een watermerk - het watermerk wordt toegepast door `host.export.render`, niet door de tool, dus een niet-officiële tool-auteur kan er niet voor uitschakelen.
 
@@ -434,7 +434,7 @@ Stel de render van elke tool samen: een **SVG**-kind blijft een echte vector wan
 
 ---
 
-## Levenscyclus, van begin tot eind
+## De levenscyclus van één render
 
 Een gebruiker opent `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 

@@ -39,7 +39,7 @@ Demet bilerek düz bir zip'tir: herhangi bir taşımayı bozulmadan atlatır ve 
 
 `profile.json` en küçük parçadır ve bir okuyucunun uygulamada ilk gördüğü parçadır: bir üreticinin bir kez doldurduğu bilgiler, artı araçların bunları kullanmasına izin veren tercih.
 
-![profile.json'a dönüşen Profil bilgileri formu - ad, iletişim, profil fotoğrafı ve yanlarındaki tercih](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![profile.json haline gelen Profil ayrıntıları formu: ad, iletişim bilgileri ve portre](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

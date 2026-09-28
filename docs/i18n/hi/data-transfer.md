@@ -39,7 +39,7 @@ Lolly उपयोगकर्ता जो कुछ भी जमा करत
 
 `profile.json` सबसे छोटा भाग है और वह जिसे ऐप में एक रीडर सबसे पहले देखता है: वे विवरण जिन्हें एक निर्माता एक बार भरता है, साथ ही वह ऑप्ट-इन जो टूल को उनका उपयोग करने देता है।
 
-![Profile details फ़ॉर्म जो profile.json बनता है - नाम, संपर्क, हेडशॉट और उनके बगल में ऑप्ट-इन](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![प्रोफ़ाइल विवरण फ़ॉर्म जो profile.json बन जाता है: नाम, संपर्क विवरण और हेडशॉट](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

@@ -39,7 +39,7 @@ O pacote é um zip simples de propósito: sobrevive a qualquer transporte intact
 
 `profile.json` é a menor parte e a primeira que um leitor vê no app: os detalhes que uma produtora preenche uma vez, mais o opt-in que permite às ferramentas usá-los.
 
-![O formulário de detalhes do Profile que se torna profile.json - nome, contato, foto e o opt-in ao lado](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![O formulário de detalhes do Perfil que se torna profile.json: nome, dados de contato e foto de perfil](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

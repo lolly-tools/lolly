@@ -52,6 +52,6 @@ Hindi mo kailanman kailangan ang AI dito. Kung pipiliin mo ito, may tatlong baga
 - <!--i:seal--> **Hindi isang claim ng purity.** Malawak na binabasa ni Lolly ang provenance at tapat itong isinusulat; hindi nito pinapanggap na nade-detect nito ang bawat generated pixel sa internet.
 - <!--i:sunburst--> **Hindi isang moral panic.** Hindi ang baha ang kaaway. Ang unattributed na tubig ang kaaway.
 
-## Paano kami panagutin dito
+## Suriin ang mga pangakong ito mismo
 
 Bawat pangako sa itaas ay ini-enforce sa open codebase, hindi sa isang policy PDF: ang provenance path, ang GEN AI labelling at ang no-trackers guarantee lahat ay ipinapadala kasama ng tests, at ang pahinang [Verify It Yourself](/info/verify-yourself.html) ay gumagabay sa iyo sa pagsuri sa mga claim laban sa totoong export. Kung nakakita ka ng lugar kung saan hindi magkasundo ang code at ang pahinang ito, ang code ang bug.

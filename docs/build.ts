@@ -248,6 +248,7 @@ const pages: Page[] = [
   // inline arrow body (or a template literal) puts braces inside the entry, which
   // drops it from that guard's count.
   { slug: 'design-import',    title: 'Import a design (Figma, Penpot, Illustrator, InDesign)', src: 'design-import.md', pathway: 'creators', description: "Bring a finished design out of Figma, Penpot, Illustrator or InDesign and into Lolly as an editable, re-renderable tool rather than a flat picture.", render: renderDesignImportPage },
+  { slug: 'rebrand',          title: 'Rebrand a deck', src: 'rebrand.md', pathway: 'creators', description: "Move a PowerPoint or PDF deck someone else made onto your design system, on your device: review what Rebrand suggests for each slide, decide, and open the result in Design." },
   { slug: 'formats',          title: 'Every format Lolly can open and make', src: 'formats.md', pathway: 'creators', description: "Every file format Lolly reads, every format it writes, and the ones it does both ways - grouped by what each one is, with a plain-language card behind every chip.", render: renderFormatsPage },
   { slug: 'text-composition', title: 'Text in Design', src: 'text-composition.md', pathway: 'creators', description: 'Edit text on canvas, flow articles through frames, compose typography and retain editable source.' },
   { slug: 'text-composition-engine', title: 'Authored text composition', src: '../engine/text-composition.md', pathway: 'builders', description: 'Literal text, pinned fonts, shared shaping, frame and path geometry, native editing and export receipts.' },
@@ -537,6 +538,7 @@ const SIDEBARS: Record<Pathway, { title: string; groups: SideGroup[] }> = {
         { slug: '3d-studio', label: '3D Studio' },
         { slug: 'text-composition', label: 'Text in Design' },
         { slug: 'design-import',   label: 'Import a design' },
+        { slug: 'rebrand',         label: 'Rebrand a deck' },
         { slug: 'utilities',       label: 'Utility views' },
         { slug: 'extension',       label: 'Browser Extension' } ] },
       { label: 'Animate', items: [
@@ -5308,7 +5310,7 @@ const FOOTER_SECTIONS: SitemapSection[] = [
   // kind of thing - who-you-are doors - so they read as one group, with each pathway's
   // sub-columns following after the trio. Membership is unchanged, order only.
   { hub: 'creators', label: 'For Creators', slugs: [
-    'using', 'training-creators', 'templates', 'create-a-tool', 'brand-studio', '3d-studio', 'text-composition', 'design-import', 'sequence-editor', 'hdr-editing', 'animating', 'utilities', 'extension'] },
+    'using', 'training-creators', 'templates', 'create-a-tool', 'brand-studio', '3d-studio', 'text-composition', 'design-import', 'rebrand', 'sequence-editor', 'hdr-editing', 'animating', 'utilities', 'extension'] },
   { hub: 'builders', label: 'For Builders', slugs: [
     'overview', 'design-tokens', 'glossary', 'document-model', 'authoring-tools', 'authoring-assets', 'text-composition-engine', 'host-api', 'url-mode'] },
   { hub: 'operators', label: 'For Operators', slugs: [
@@ -5429,7 +5431,7 @@ const SIDEBAR_ICON: Record<string, string> = {
   quickstart: 'star', creators: 'palette', builders: 'wrench', operators: 'checklist', trust: 'shieldcheck',
   'status-quo': 'convert', 'input-not-impersonation': 'usercheck',
   // Creators
-  'design-tool-contract': 'convert', 'create-a-tool': 'pentool', 'learning-integration': 'convert', 'training-creators': 'folder', using: 'pentool', templates: 'folder', 'brand-studio': 'palette', profile: 'usercheck', 'design-import': 'upload',
+  'design-tool-contract': 'convert', 'create-a-tool': 'pentool', 'learning-integration': 'convert', 'training-creators': 'folder', using: 'pentool', templates: 'folder', 'brand-studio': 'palette', profile: 'usercheck', 'design-import': 'upload', rebrand: 'convert',
   agenda: 'checklist', presenting: 'monitor', 'sequence-editor': 'clock', 'hdr-editing': 'sliders', animating: 'layers', exporting: 'download', formats: 'convert', positioning: 'sliders', compare: 'checklist',
   'compare-canva': 'checklist', 'compare-adobe': 'checklist', 'compare-figma': 'checklist', 'compare-render-apis': 'checklist', 'compare-converters': 'checklist',
   'compare-penpot': 'checklist', 'compare-brand-portals': 'checklist',

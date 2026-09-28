@@ -153,7 +153,7 @@ Naming the format explicitly is how you opt out, because then you have said whic
 
 ## Rebrand: renovate an old deck
 
-`lolly rebrand` reads a `.pptx` someone else made and turns it into the active design system's own: colours, fonts and logo snapped to the system, decoration and page furniture pulled out, kept content carried over. It runs in three explicit stages, so an agent or a script can look at what a deck's first pass proposed before anything is written:
+`lolly rebrand` reads a `.pptx` someone else made and turns it into the active design system's own: colours, fonts and logo snapped to the system, decoration and page furniture pulled out, kept content carried over. The app's Rebrand view does the same with a review screen, and [Rebrand a deck](/info/rebrand.html) explains the ideas both share. It runs in three explicit stages, so an agent or a script can look at what a deck's first pass proposed before anything is written:
 
 ```bash
 lolly rebrand plan old.pptx --plan-out=plan.json

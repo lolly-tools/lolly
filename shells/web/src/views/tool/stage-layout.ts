@@ -51,10 +51,9 @@ export function setSidebarWidth(tview: ToolViewCtx, w: number, save = true): voi
   layout.dataset.sidebar = isOpen ? 'open' : 'closed';
   if (fullscreenToggle) {
     fullscreenToggle.toggleAttribute('open', isOpen);
-    fullscreenToggle.setAttribute(
-      'aria-label',
-      isOpen ? t('Collapse sidebar') : t('Expand sidebar')
-    );
+    const label = isOpen ? t('Collapse sidebar') : t('Expand sidebar');
+    fullscreenToggle.setAttribute('aria-label', label);
+    fullscreenToggle.dataset.tip = label;
   }
   if (save) localStorage.setItem('sidebarWidth', String(snapped));
 }
@@ -360,7 +359,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
             </div>
             <div class="sidebar-header-row">
               <span class="sidebar-title-wrap">
-                <span class="sidebar-title">${escapeText(tview.tool.manifest.name)}</span>
+                <span class="sidebar-title" title="${escapeText(tview.tool.manifest.name)}">${escapeText(tview.tool.manifest.name)}</span>
                 ${hasGuide(tview.tool.manifest) ? guideButtonHtml() : ''}
                 ${canSaveSession ? `<button type="button" class="multi-edit-btn" id="multi-edit-btn" data-tip="${escapeText(t('Make variants'))}" aria-label="${escapeText(t('Make variants'))}" aria-haspopup="menu" aria-expanded="false">${icon('grid', { className: 'multi-edit-icon' })}</button>` : ''}
                 ${
@@ -378,8 +377,8 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
                 ${canBulk ? `<button type="button" class="multi-edit-btn" id="bulk-rows-btn" data-tip="${escapeText(t('Bulk from rows'))}" aria-label="${escapeText(t('Bulk from rows'))}">${icon('table', { className: 'multi-edit-icon' })}</button>` : ''}
                 ${/* "Bulk from files" (plans/147 M2) - loop this transform tool over N picked files into one zip. */ ''}
                 ${bulkFilesId ? `<button type="button" class="multi-edit-btn" id="bulk-files-btn" data-tip="${escapeText(t('Bulk from files'))}" aria-label="${escapeText(t('Bulk from files'))}">${icon('layersStack', { className: 'multi-edit-icon' })}</button>` : ''}
+                <button type="button" class="fullscreen-toggle" id="fullscreen-toggle" ${sidebarOpen ? 'open' : ''} data-tip-align="end" data-tip="${escapeText(sidebarOpen ? t('Collapse sidebar') : t('Expand sidebar'))}" aria-label="${escapeText(sidebarOpen ? t('Collapse sidebar') : t('Expand sidebar'))}">${icon('panelLeft', { className: 'fullscreen-toggle-collapse' })}${icon('arrowRight', { className: 'fullscreen-toggle-expand' })}</button>
               </span>
-              <button class="fullscreen-toggle" id="fullscreen-toggle" ${sidebarOpen ? 'open' : ''} aria-label="${escapeText(sidebarOpen ? t('Collapse sidebar') : t('Expand sidebar'))}"></button>
             </div>
           </div>
           <div class="sidebar-body">
@@ -426,7 +425,7 @@ export async function wireSidebar(tview: ToolViewCtx): Promise<void> {
       }
       <div class="tool-stage" id="tool-stage">
         ${runtime.manifest.render.urlSync !== false && !exportUiEmpty && !visitorPage ? `<div class="url-budget" id="url-budget-gauge" role="button" tabindex="0" aria-label="${escapeText(t('URL budget'))}" title="${escapeText(t('URL budget'))}" hidden><span class="url-budget-fill" data-gauge-fill></span></div><div class="url-budget-toast" data-gauge-toast role="status" aria-live="polite" hidden></div>` : ''}
-        ${showAside ? `<button class="fullscreen-toggle-float" id="fullscreen-toggle-float" aria-label="${escapeText(t('Expand sidebar'))}"></button>` : ''}
+        ${showAside ? `<button type="button" class="fullscreen-toggle-float" id="fullscreen-toggle-float" data-tip-below data-tip-align="start" data-tip="${escapeText(t('Expand sidebar'))}" aria-label="${escapeText(t('Expand sidebar'))}">${icon('arrowRight')}</button>` : ''}
         ${
           hideSidebar && onDevice
             ? `<div class="on-device-badge on-device-badge--float" title="${escapeText(t('This tool runs entirely in your browser. Your file is never uploaded.'))}">

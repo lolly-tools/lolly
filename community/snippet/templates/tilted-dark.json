@@ -1,0 +1,46 @@
+{
+  "id": "tilted-dark",
+  "name": "Tilted dark",
+  "category": "Tilted",
+  "description": "A cool, dark window with perspective for a feature slide.",
+  "values": {
+    "scene": "still",
+    "language": "javascript",
+    "theme": "nord",
+    "windowStyle": "nuremberg",
+    "lineNumbers": true,
+    "showWindow": true,
+    "shadow": true,
+    "scale": 100,
+    "lineHeight": 1.65,
+    "blinkCursor": false,
+    "textOverflow": "fit",
+    "wrapText": false,
+    "calloutMode": "off",
+    "windowRotate": 3,
+    "windowTiltX": -6,
+    "windowTiltY": 18,
+    "code": "const scene = {\n  window: \"open\",\n  text: \"Ready for the spotlight\",\n  motion: \"intentional\"\n};",
+    "fileName": "scene.js"
+  },
+  "presets": [
+    {
+      "id": "type-the-scene",
+      "name": "Animate",
+      "description": "Open the tilted window, type and close.",
+      "values": {
+        "showPointer": true,
+        "cursorSize": 125,
+        "clickRing": false,
+        "typingStyle": "natural",
+        "entryMotion": "scale",
+        "exitMotion": "fade",
+        "posterAt": -1,
+        "scene": "demo",
+        "typingSeconds": 4.5,
+        "readSeconds": 2.5,
+        "ending": "close"
+      }
+    }
+  ]
+}

@@ -19,7 +19,7 @@
 | **접근성** | 네 가지 편의 스위치 - *동작 줄이기*, *화려한 미리보기 숨기기*, *고대비*, *큰 텍스트* - 는 프로필 레코드에 저장되므로 프로필 내보내기에도 함께 담깁니다. [Accessibility](#accessibility) 참고. |
 | **작업물** | (썸네일이 있는) 저장된 세션 - **[Projects](/info/using.html)**의 중첩 폴더로 정리됨 - 사용자의 **My images** 라이브러리, 그리고 이 프로필에 연결된 로컬 활동 통계. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
 ![The Profile screen - name, contact, an optional headshot and your preferences](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -35,7 +35,7 @@
 
 ### 개인으로서
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -53,7 +53,7 @@ Lolly에서 그 역할은 그저 **손 닿는 곳에 두는 또 하나의 프로
 
 어느 순간이든 설치본에는 **활성 프로필 하나**만 있습니다 - 도구가 지금 보고 있는 정보입니다. 앱 안에 프로필 전환기는 없습니다. 대신 각 프로필은 **이동 가능한 번들**입니다(하나의 `.zip` 파일, [아래](#moving-a-profile-to-a-new-device) 참고). 이는 새 기기로 옮길 때와 의도적으로 같은 방식입니다 - 프로필은 저장하고 복사하고 불러올 수 있는 파일입니다.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 - <!--i:trash--> **가장 깔끔한 전환:** **설정 → Preferences → 저장 공간 → 내 데이터 모두 지우기**를 실행한 다음, 새로 들어갈 맥락에 맞는 번들에서 **가져오기**를 누르세요. 이제부터는 오직 그 프로필로만 제작하는 거예요.
 - <!--i:layers--> **레이어링:** 먼저 지우지 *않고* 가져오면 **병합**돼요 - 가져온 세션과 이미지가 기존 내용 위에 얹히고, 양쪽에 같은 항목이 있으면 더 최근에 저장된 사본이 유지되며, 나머지는 그대로 둬요. 폴더, 즐겨찾기, 템플릿은 사용자의 것에 추가되고, 사용자 자신의 정보와 설정은 그대로 남아요. 한 팀의 저장된 세션을 내 설정에 끌어오고 싶을 때 유용하지만, 깔끔한 역할 경계가 필요할 때는 맞지 않아요.
@@ -122,7 +122,7 @@ Lolly는 사용하는 동안 계속 캐시를 쌓지만, 이런 자연스러운 
 
 ## 도구가 프로필을 사용하는 방식
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 도구는 명시적으로 연결하도록 만들어진 프로필 필드만 *미리 채워요*.
 

@@ -20,8 +20,7 @@ import { emojiParams } from '../../../../../engine/src/emoji-style.ts';
 import { isDefaultEmojiStyle } from '../../../../../engine/src/emoji-default.ts';
 import type { EmojiPaletteEntry } from '../../../../../engine/src/emoji-style.ts';
 import type { EmojiParamPair } from '../../lib/emoji-prefs.ts';
-import { currentEmojiPreference, emojiSeedParams } from '../../lib/emoji-prefs.ts';
-import { emojiStyleFrom } from '../../lib/emoji-runtime-style.ts';
+import { mountEmojiStyle } from '../../lib/emoji-runtime-style.ts';
 export { emojiStyleFrom } from '../../lib/emoji-runtime-style.ts';
 import { notifyEmojiDocument, setEmojiDocumentPort } from './emoji-doc.ts';
 
@@ -97,13 +96,10 @@ export async function mountEmojiSection(opts: EmojiSectionOpts): Promise<EmojiSe
   const palette: EmojiPaletteEntry[] = swatches.map(swatch => ({ id: swatch.ref, hex: swatch.value }));
 
   // Link, saved session, brand, personal preference, then the runtime default.
-  // An explicit document choice always wins over a seed for new work.
-  const brand = (await import('../../../../../engine/src/emoji-style.ts')).readEmojiStyle((await host.tokens?.snapshot?.())?.document ?? {});
-  const seed = emojiSeedParams({
-    url: opts.url ?? null,
-    session: opts.session ?? (brand.status === 'selected' ? emojiParams(brand.style) : null),
-    preference: await currentEmojiPreference(host),
-  });
+  // An explicit document choice always wins over a seed for new work. The tool view
+  // resolved the same way before creating the runtime (mountEmojiStyle), so applying
+  // it below normally finds the style already in force and costs nothing.
+  const seeded = await mountEmojiStyle(host, { url: opts.url ?? null, session: opts.session ?? null });
   const announce = (next: EmojiStyleV1 | null): void => opts.onStyle(next, next ? emojiParams(next) : { emoji: 'none', emojifx: '' });
 
   let control: { update(next: EmojiStyleV1 | null): void; destroy(): void } | null = null;
@@ -130,8 +126,8 @@ export async function mountEmojiSection(opts: EmojiSectionOpts): Promise<EmojiSe
   const release = (): void => setEmojiDocumentPort(null);
 
   style = JSON.stringify(runtime.emoji.style) !== initialStyle
-    ? runtime.emoji.style : seed ? emojiStyleFrom(seed, sets, palette) : runtime.emoji.style;
-  if (style || seed) {
+    ? runtime.emoji.style : seeded !== undefined ? seeded : runtime.emoji.style;
+  if (style || seeded !== undefined) {
     await runtime.setEmojiStyle(style);
     announce(style);
     notifyEmojiDocument();

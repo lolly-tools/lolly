@@ -351,3 +351,44 @@ test('a wheel burst measures the wrapper once and lands exactly where measuring 
     assert.equal(reads(), 2, 'a resize releases the hold, so the next tick measures afresh');
   } finally { h.teardown(); }
 });
+
+// ── A wheel over a floating menu or panel is its own scroll ────────────────────────
+//
+// The free canvas mounts its menus and panels INSIDE the stage, so their wheel bubbled
+// into the pan below. In editor layout a plain wheel always pans, and the pan's
+// preventDefault cancelled the menu's scroll: the tail of a long context menu (the
+// stacking-order and align grids) could not be reached at all.
+
+test('a plain wheel over a floating surface scrolls it, and still pans anywhere else', () => {
+  const h = mount({ hud: false, editorLayout: true });
+  try {
+    const plain = (target: Element): WheelEvent => {
+      const e = new dom.window.WheelEvent('wheel', { deltaY: 40, bubbles: true, cancelable: true });
+      target.dispatchEvent(e);
+      return e;
+    };
+    const panned = plain(h.canvas);
+    assert.equal(panned.defaultPrevented, true, 'over the canvas the editor pans');
+    const moved = h.outer.style.transform;
+    assert.match(moved, /translate/, 'and the view moved');
+
+    for (const cls of ['fc-popover fc-context-menu', 'fc-panel', 'fc-text-popover']) {
+      const surface = document.createElement('div');
+      surface.className = cls;
+      const row = document.createElement('button');
+      surface.appendChild(row);
+      h.stage.appendChild(surface);
+      const e = plain(row);
+      assert.equal(e.defaultPrevented, false, `a wheel over .${cls.split(' ')[0]} is left to scroll it`);
+      assert.equal(h.outer.style.transform, moved, 'and the canvas under it stays put');
+      surface.remove();
+    }
+
+    const pinch = new dom.window.WheelEvent('wheel', { deltaY: -40, ctrlKey: true, bubbles: true, cancelable: true });
+    const menu = document.createElement('div');
+    menu.className = 'fc-popover';
+    h.stage.appendChild(menu);
+    menu.dispatchEvent(pinch);
+    assert.equal(pinch.defaultPrevented, true, 'a pinch over a menu still never zooms the page');
+  } finally { h.teardown(); }
+});

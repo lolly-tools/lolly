@@ -16,7 +16,7 @@ Lolly 把你的规则（配色、字体、版式、逻辑）变成任何人都�
 
 首次运行会把你带到**图库**，上面浮着一个简短的欢迎对话框，提供三条入口：**Make it yours**（位于 `#/start` 的 Brand Studio）、**Bring your design**（拖入一个 Figma、Penpot、InDesign 或 PDF 文件，它会作为可编辑的版面打开，这是通往下文[带入你已有的东西](#2-bring-in-what-you-already-have)最快的路径），以及 **Explore the community tools**，如果英语不是你的语言，下面还有一排语言可选。选第一张卡片，你就落到了[**Brand Studio**](/info/brand-studio.html)。给它起个名字、选一个主色，Lolly 就会由此*推导*出一整套无障碍调色板，包括明暗表面、文字和强调色，用的正是引擎在别处使用的同一套色彩数学。
 
-![Brand Studio 的 Colours 房间：一个主色，以及 Lolly 由它推导出的无障碍调色板](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) 再选一款字体，不到一分钟你就有了一个能用的品牌。从这里开始，工作室的六个房间（Overview、Colours、Type、Logos、Tokens、Files）让你按任意顺序把它做到你想要的程度，随时回来继续打磨。仪表板的 **Design system** 标签页（`#/d`）以只读方式显示结果，并指回 `#/start`，编辑就发生在那里（除非你用的是品牌锁定版的 Lolly，那里的品牌是固定的，没有什么可改）。
+![全新安装下的品牌工作室『颜色』房间 - 一个实时色块、一个输入框，以及第一个决定的全部内容](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) 再选一款字体，不到一分钟你就有了一个能用的品牌。从这里开始，工作室的六个房间 - 概览、颜色、字体、标志、令牌、文件 - 让你按任意顺序把它做到你想要的程度，随时回来继续打磨。仪表板的**设计系统**标签页(`#/d`)以只读方式显示结果，并指回 `#/start`，编辑就发生在那里(锁定的设计系统保持只读，而你自己的本地系统仍可编辑)。
 
 ### 导入你已有的品牌
 
@@ -27,7 +27,7 @@ Lolly 把你的规则（配色、字体、版式、逻辑）变成任何人都�
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` 接受 Penpot / Tokens Studio 导出同一份文档时用的全部三种容器：单个 `tokens.json`、一个目录（`$metadata.json` 加上每个集合的文件），或一个 `project.penpot` 归档。加上 `--activate`，它会把该品牌注册为一个配置档、切换过去并重建目录。品牌包和配置档如何配合，见[配置](/info/configuration.html)。
@@ -60,7 +60,7 @@ npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
 
 整个导入过程都发生**在你的设备上**：文件在你的浏览器里解析，不会上传任何东西。完整细节，以及究竟哪些内容会被带过来，见[导入设计](/info/design-import.html)。
 
-手上是一份 **PowerPoint 演示文稿**？把 `.pptx` 拖到 **Deck Builder** 上，就能逐页编辑，而且已经贴合你的品牌；或者运行 **Rebrand a Deck**，把同一份演示文稿换上新主题拿回来，图表和动画都完好。
+手上是一份 **PowerPoint 演示文稿**？把 `.pptx` 拖放到任意上传区域，把它的幻灯片存为素材；在 **Markdown Slides** 中用 Markdown 写一份新演示文稿；或者运行 **Rebrand**，换个主题拿回同一份演示文稿，图表和动画完好无损。
 
 ### 从一次性作品到模板
 

@@ -131,7 +131,7 @@ If you pressed **Save as** or **Save**, it is in **Projects**, on the home scree
 
 ## I closed the tab. Is my work gone?
 
-Saved work is still in **Projects**. Unsaved work is gone, except in the nine tools that save as you work, which keep it in **Projects** too. Next time, press **Save as** before you leave. See [If you closed the tab or left the tool](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+Saved work is still in **Projects**. Unsaved work is gone, except in the tools that save as you work, which keep it in **Projects** too. Next time, press **Save as** before you leave. See [If you closed the tab or left the tool](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Can I share my work as a file instead of a link?
 

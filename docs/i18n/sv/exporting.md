@@ -300,8 +300,8 @@ Två oberoende typer av lås, båda helt på enheten.
 
 ![Kortet Password protect utfällt vid en PDF-export, med lösenordsfältet och de två låsnivåerna](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - ett enkelt 40-bitars lås (RC4). Det öppnas i *alla* PDF-appar, och - eftersom det är ett lätt avskräckande medel, inte ett verkligt skydd - kan det följa med i en delningslänk (klartext, med avsikt). Endast RGB `pdf`.
-- **Strong** - AES-256 (PDF 2.0). Lösenordet skrivs in vid export och läggs **aldrig** in i en länk; det öppnas bara i nyare PDF-appar (Acrobat/Preview ~2018 och senare), och äldre appar kan rapportera filen som skadad. Strong gäller även **Print/CMYK-PDF:er** och **varje PDF inuti en batch-zip** (bekräftelsedialogen för batchen samlar in lösenordet). Eftersom PDF/X-4 förbjuder kryptering behåller en Strong-låst Print-PDF sin CMYK, sina märken och sitt output intent, men tappar sitt PDF/X-4-konformitetskrav.
+- **Standard** - ett enkelt 40-bitars lås (RC4). Det öppnas i *alla* PDF-appar, och - eftersom det är ett lätt avskräckande medel, inte ett verkligt skydd - kan det följa med i en delningslänk (i klartext). Endast RGB `pdf`.
+- **Stark** - AES-256 (PDF 2.0). Lösenordet skrivs in vid export och läggs **aldrig** in i en länk; det öppnas bara i nyare PDF-appar (Acrobat/Preview ~2018 och senare), och äldre appar kan rapportera filen som skadad. Stark gäller även **Print/CMYK-PDF:er** och **varje PDF inuti en batch-zip** (bekräftelsedialogen för batchen samlar in lösenordet). Eftersom PDF/X-4 förbjuder kryptering behåller en Stark-låst Print-PDF sin CMYK, sina märken och sitt output-intent, men tappar sitt PDF/X-4-konformitetskrav.
 
 Ingen av nivåerna kan kombineras med Content Credentials (en krypterad PDF kan inte ta emot autentiseringsuppgiften).
 

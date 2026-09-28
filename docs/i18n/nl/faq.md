@@ -131,7 +131,7 @@ Als je op **Opslaan als** of **Opslaan** hebt gedrukt, staat het in **Projecten*
 
 ## Ik heb het tabblad gesloten. Is mijn werk weg?
 
-Opgeslagen werk staat nog in **Projecten**. Niet-opgeslagen werk is weg, behalve in de negen tools die opslaan terwijl je werkt, die het ook in **Projecten** bewaren. Druk de volgende keer op **Opslaan als** voordat je vertrekt. Zie [Als je het tabblad sloot of de tool verliet](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+Opgeslagen werk staat nog in **Projecten**. Niet-opgeslagen werk is weg, behalve in de tools die opslaan terwijl je werkt, die het ook in **Projecten** bewaren. Druk de volgende keer op **Opslaan als** voordat je vertrekt. Zie [Als je het tabblad sloot of de tool verliet](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Kan ik mijn werk als bestand delen in plaats van als link?
 

@@ -300,7 +300,7 @@ Due tipi di blocco indipendenti, entrambi interamente sul dispositivo.
 
 ![La card Proteggi con password espansa su un'esportazione PDF, con il campo password e i due livelli di blocco](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - un blocco di base a 40 bit (RC4). Si apre in *qualsiasi* app PDF e - essendo un deterrente leggero, non una protezione reale - può viaggiare in un link di condivisione (in chiaro, di proposito). Solo `pdf` RGB.
+- **Standard** - un blocco di base a 40 bit (RC4). Si apre in *qualsiasi* app PDF e - essendo un deterrente leggero, non una protezione reale - può viaggiare in un link di condivisione (in chiaro). Solo `pdf` RGB.
 - **Forte** - AES-256 (PDF 2.0). La password viene digitata al momento dell'esportazione e **non** viene mai inserita in un link; si apre solo nelle app PDF più recenti (Acrobat / Preview ~2018 in poi), e le app più vecchie potrebbero segnalare il file come danneggiato. Forte si applica anche ai **PDF Stampa / CMYK** e a **ogni PDF dentro uno zip batch** (la finestra di conferma del batch raccoglie la password). Poiché PDF/X-4 vieta la crittografia, un PDF Stampa bloccato con Forte mantiene il suo CMYK, i marchi di stampa e l'output intent ma perde la dichiarazione di conformità PDF/X-4.
 
 Entrambi i livelli sono reciprocamente esclusivi con Content Credentials (un PDF crittografato non può ricevere la credenziale).

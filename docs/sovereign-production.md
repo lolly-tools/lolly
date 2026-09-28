@@ -12,7 +12,7 @@ Three absences on that page are the ones an operator asks about first. There is 
 
 ## Every network crossing is a user act
 
-The complete list of what the app can fetch or send lives in the [privacy policy's network table](/info/privacy.html#when-the-app-talks-to-a-network-in-full). It is a table because each row carries four facts: what it is, what actually leaves the device, the act that triggers it and what happens when an operator blocks it. The rows cover catalogue sync, a tool that needs live data, Google Fonts, ICC press profiles, internet radio, a URL you ask a tool to capture, the SEAL signature check, deep-scan detector models and a remote instance you point the shell at. Read the table rather than a summary of it - the specifics are the point, and each row gives its host.
+The complete list of what the app can fetch or send lives in the [privacy policy's network table](/info/privacy.html#every-network-request-the-app-can-make). It is a table because each row carries four facts: what it is, what actually leaves the device, the act that triggers it and what happens when an operator blocks it. The rows cover catalogue sync, a tool that needs live data, Google Fonts, ICC press profiles, internet radio, a URL you ask a tool to capture, the SEAL signature check, deep-scan detector models and a remote instance you point the shell at. Read the table rather than a summary of it - the specifics are the point, and each row gives its host.
 
 Two properties of that table matter more than any single row. Every fixed host in it is also the app's Content-Security-Policy allowlist, which the browser enforces, so the list is the boundary the app is held to rather than a description of current behaviour. And `tests/security-headers.test.ts` pins that policy across both places it is expressed in the repo - `vercel.json` and `deploy/docker/nginx.conf` - so one copy cannot silently lose a directive. There were three until 2026-08; the third, `shells/web/vercel.json`, was a config nothing deployed from, which is how it managed to ship a stale CSP for months, and the test now pins it deleted rather than trusting the next reader to know it was dead.
 
@@ -62,7 +62,7 @@ A fourth one is worth running if you are evaluating for an air-gapped site: turn
 | The question | Where the answer lives |
 |---|---|
 | What runs server-side? | [Server Surface](/info/server-surface.html) - two optional components, both removable |
-| What leaves the device, and when? | the [privacy policy's network table](/info/privacy.html#when-the-app-talks-to-a-network-in-full) |
+| What leaves the device, and when? | the [privacy policy's network table](/info/privacy.html#every-network-request-the-app-can-make) |
 | What is the trust boundary, and what is out of scope? | [Threat Model](/info/threat-model.html) |
 | Which cryptography, and how is it tested? | [Security & Verification](/info/security.html) |
 | How do we host it ourselves, or without a network? | [Deployment](/info/deployment.html) |

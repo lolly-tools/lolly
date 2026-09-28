@@ -1,0 +1,38 @@
+{
+  "id": "tilted-light",
+  "name": "Tilted light",
+  "category": "Tilted",
+  "description": "A light window with a gentle perspective and an angled baseline.",
+  "values": {
+    "scene": "still",
+    "language": "json",
+    "theme": "suse-light",
+    "windowStyle": "cupertino",
+    "lineNumbers": true,
+    "showWindow": true,
+    "shadow": true,
+    "scale": 100,
+    "lineHeight": 1.65,
+    "blinkCursor": false,
+    "textOverflow": "fit",
+    "wrapText": false,
+    "calloutMode": "off",
+    "windowRotate": -4,
+    "windowTiltX": 8,
+    "windowTiltY": -16,
+    "code": "{\n  \"idea\": \"Make text feel alive\",\n  \"details\": \"Worth a closer look\",\n  \"ready\": true\n}",
+    "fileName": "idea.json"
+  },
+  "presets": [
+    {
+      "id": "subtle",
+      "name": "Subtle tilt",
+      "description": "Reduce the angle for a quieter composition.",
+      "values": {
+        "windowRotate": -2,
+        "windowTiltX": 3,
+        "windowTiltY": -8
+      }
+    }
+  ]
+}

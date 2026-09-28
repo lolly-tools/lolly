@@ -39,7 +39,7 @@ Das Bundle ist absichtlich ein einfaches Zip: Es übersteht jeden Transportweg u
 
 `profile.json` ist der kleinste Teil und der, den ein Reader in der App zuerst sieht: die Angaben, die ein Ersteller einmal einträgt, plus die Opt-in-Einstellung, die Tools erlaubt, sie zu nutzen.
 
-![Das Formular für Profildetails, aus dem profile.json wird - Name, Kontakt, Headshot und das Opt-in daneben](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![Das Profildetails-Formular, aus dem profile.json wird: Name, Kontaktdaten und Profilfoto](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

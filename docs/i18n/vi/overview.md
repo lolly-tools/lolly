@@ -390,7 +390,7 @@ Web shell: IndexedDB. Tauri: hệ thống tệp. CLI: trong bộ nhớ. Các cô
 
 Người dùng có thể lưu nhiều vị trí chỉnh sửa có tên riêng cho mỗi công cụ và quay lại từng phiên sau đó. Không cần tạo tài khoản; trạng thái là theo từng thiết bị. Vì bridge là điểm nối duy nhất, trạng thái theo thiết bị đó cũng *có thể mang đi được*: `shells/web/src/data-transfer.ts` đọc lại mọi thứ qua `host.profile`/`host.state`/`host.assets` thành một tệp zip `lolly-backup` duy nhất, nhập được vào bất kỳ bản cài đặt nào khác - câu trả lời ngoại tuyến cho việc "chuyển sang thiết bị mới" mà không cần máy chủ (đặc tả đầy đủ: `docs/data-transfer.md`). Đồng bộ đa thiết bị đã chạy trên nền này, gửi cùng một gói đến nơi lưu trữ mà người dùng chọn (`docs/sync.md`).
 
-### 7. Nhãn độ trưởng thành cho biết một công cụ là gì, ngay từ thiết kế
+### 7. Nhãn độ trưởng thành cho biết một công cụ là gì
 
 Mỗi công cụ khai báo `status: official | community | experimental` trong manifest của nó. Gallery sắp xếp theo status. Các công cụ thử nghiệm tự động đóng dấu bản quyền (watermark) khi xuất - watermark được áp dụng bởi `host.export.render`, không phải bởi công cụ, nên tác giả của một công cụ không chính thức không thể tắt nó.
 
@@ -434,7 +434,7 @@ Ghép bản kết xuất của bất kỳ công cụ nào: một công cụ con 
 
 ---
 
-## Vòng đời, từ đầu đến cuối
+## Vòng đời của một lượt render
 
 Một người dùng mở `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 

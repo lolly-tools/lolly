@@ -48,6 +48,8 @@ import type { presentationOps } from './presentation.ts';
 import type { canvasObjectsOps } from './canvas-objects.ts';
 import type { popoversOps } from './popovers.ts';
 import type { renderOps } from './render.ts';
+import type { openDocumentOps } from './open-document.ts';
+import type { OpenProgress } from '../../components/open-progress.ts';
 import type { setupOps } from './setup.ts';
 
 export interface ToolViewCtx {
@@ -71,6 +73,8 @@ export interface ToolViewCtx {
   catalog: ToolIndex & { tools?: { id: string; }[]; };
   fetchFile: (path: string) => Promise<string>;
   loadingTimer: NodeJS.Timeout;
+  /** The "Opening…" card of a saved-document open (open-document.ts), else null. */
+  openCard: OpenProgress | null;
   tool: LoadedTool;
   sup: ToolSupport;
   captureHint: boolean;
@@ -146,6 +150,11 @@ export interface ToolViewCtx {
   removeDocumentSurface: () => void;
   inputHistory: HistoryModel;
   revisionChanged: () => void;
+  /** What a tool's own workspace adds to the saved record (Text: the title of the file
+   *  it opened, and the text in its editor, which runs ahead of the model while someone
+   *  types). Unset for every other tool. It stays set after the workspace unmounts: the
+   *  actions bar flushes once more on teardown, and that write must keep both. */
+  documentMeta?: () => Record<string, unknown>;
   applyingHistory: boolean;
   historyControls: HistoryControls | null;
   historyToastEl: HTMLElement | null;
@@ -309,6 +318,7 @@ export interface ToolViewCtx {
   canvasObjects: ReturnType<typeof canvasObjectsOps>;
   render: ReturnType<typeof renderOps>;
   setup: ReturnType<typeof setupOps>;
+  openDocument: ReturnType<typeof openDocumentOps>;
 }
 
 /** A module function minus its leading context parameter. */

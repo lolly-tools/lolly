@@ -236,6 +236,22 @@ export function buildToolbar(fc: FcCtx): void {
         run: () => actions.share(),
       });
     }
+    // Import closes the file group, right under the save rows: saving a document out
+    // and bringing one in are the same file-level moment (Andy, 2026-09-27; it used to
+    // sit below Bulk from rows).
+    //
+    // keepOpen, because openImportPanel closes this menu and then assigns its own
+    // panel to `popover`: without it fillPopover's trailing closePopover() would
+    // tear the freshly-mounted import panel down in the same click. (The pages /
+    // size / info rows are safe - those assign `morePanel`, a different variable.)
+    if (importCfg)
+      items.push({
+        label: t('Import a design'),
+        icon: icon(SVG.importFile),
+        key: 'import',
+        keepOpen: true,
+        run: () => fc.menus.openImportPanel(anchorEl()),
+      });
     if (history && (!barMounted || barFolded())) {
       if (items.length) items.push({ sep: true });
       items.push({
@@ -283,7 +299,7 @@ export function buildToolbar(fc: FcCtx): void {
           run: () => fc.document.openSizeMenu(anchorEl()),
         });
     }
-    if (info || importCfg || actions?.newFromTemplate || actions?.bulk) {
+    if (info || actions?.newFromTemplate || actions?.bulk) {
       if (items.length) items.push({ sep: true });
       if (info)
         items.push({
@@ -292,8 +308,8 @@ export function buildToolbar(fc: FcCtx): void {
           key: 'info',
           run: () => fc.fieldPanels.openInfoPanel(anchorEl()),
         });
-      // Back to the Start chooser (plans/142 WP-1) - sits in the same "bring a
-      // document in" group as Import. The pick applies through the tool's own
+      // Back to the Start chooser (plans/142 WP-1) - the "start a document from
+      // something" group. The pick applies through the tool's own
       // undoable path, so it is one ⌘Z away, never a destructive reset.
       if (actions?.newFromTemplate)
         items.push({
@@ -310,18 +326,6 @@ export function buildToolbar(fc: FcCtx): void {
           icon: icon(SVG.rows),
           key: 'bulk',
           run: () => actions.bulk!(),
-        });
-      // keepOpen, because openImportPanel closes this menu and then assigns its own
-      // panel to `popover`: without it fillPopover's trailing closePopover() would
-      // tear the freshly-mounted import panel down in the same click. (The pages /
-      // size / info rows are safe - those assign `morePanel`, a different variable.)
-      if (importCfg)
-        items.push({
-          label: t('Import a design'),
-          icon: icon(SVG.importFile),
-          key: 'import',
-          keepOpen: true,
-          run: () => fc.menus.openImportPanel(anchorEl()),
         });
     }
     // Custom CSS (plan 112 M4): only for a tool that declares the `customCss` input

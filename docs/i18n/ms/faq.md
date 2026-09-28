@@ -131,7 +131,7 @@ Jika anda menekan **Simpan sebagai** atau **Simpan**, ia berada dalam **Projek**
 
 ## Saya menutup tab. Adakah kerja saya hilang?
 
-Kerja yang disimpan masih ada dalam **Projek**. Kerja yang belum disimpan hilang, kecuali pada sembilan alat yang menyimpan semasa anda bekerja, yang turut menyimpannya dalam **Projek**. Lain kali, tekan **Simpan sebagai** sebelum anda keluar. Lihat [Jika anda menutup tab atau meninggalkan alat](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+Kerja yang disimpan masih ada dalam **Projek**. Kerja yang belum disimpan hilang, kecuali pada alat yang menyimpan semasa anda bekerja, yang turut menyimpannya dalam **Projek**. Lain kali, tekan **Simpan sebagai** sebelum anda keluar. Lihat [Jika anda menutup tab atau meninggalkan alat](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Bolehkah saya berkongsi hasil kerja saya sebagai fail dan bukan pautan?
 

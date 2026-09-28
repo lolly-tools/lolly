@@ -97,14 +97,17 @@ test('bulk-bar action labels collapse to VISUALLY-HIDDEN on phones (never displa
     'removing the span from the a11y tree leaves an unnamed control');
 });
 
-test('the bulk-bar label collapse is MOBILE-ONLY (desktop keeps the text)', () => {
-  // The same rule must not appear at base scope (outside any phone @media), or desktop
-  // would lose its labels too.
-  assert.ok(
-    !/\.cat-bulkbar-actions\s+\.btn\s*>?\s*span\s*\{[^}]*position\s*:\s*absolute/.test(BASE),
-    'the bulk-bar label span is visually-hidden at BASE scope - desktop would lose its ' +
-    'text labels. Keep the collapse inside the phone @media block only.',
-  );
+test('outside phones the bulk-bar label collapse only applies when it does not fit', () => {
+  // At base scope (outside any phone @media) a rule that clips the label must be
+  // qualified by .is-compact, which lib/bulk-bar.ts sets only when the labelled row
+  // overflows. An unqualified rule would take the text away from every desktop.
+  const rules = [...BASE.matchAll(/([^{}]*\.cat-bulkbar-actions\s+\.btn\s*>?\s*span)\s*\{([^}]*)\}/g)]
+    .filter(m => /position\s*:\s*absolute/.test(m[2] ?? ''));
+  for (const m of rules) {
+    assert.match(m[1] ?? '', /\.cat-bulkbar\.is-compact\b/,
+      `the bulk-bar label is visually hidden at BASE scope without .is-compact ("${(m[1] ?? '').trim()}") - ` +
+      'desktop would lose its labels even when they fit.');
+  }
 });
 
 test('the type-filter labels collapse on phones', () => {

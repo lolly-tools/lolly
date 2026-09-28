@@ -8,10 +8,10 @@ Zorg dat je het webadres bij de hand hebt dat de code moet openen, beginnend met
 
 ## De code maken
 
-1. Open [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). De bedieningselementen staan naast de preview, of erboven op een telefoon; wat de preview toont, is wat het bestand zal zijn.
-2. Vervang bij **URL** het voorbeeldadres door het jouwe, volledig. De preview verandert terwijl je typt.
-3. Om je eigen kleuren te gebruiken, stel **Module colour** en **Achtergrond** in. Houd een sterk contrast tussen beide, anders hebben telefoons moeite de code te lezen.
-4. **Quiet zone**, onder **Modules**, begint op 4. Houd hem op 4 of hoger: die effen rand is waar een telefooncamera naar zoekt.
+1. Open [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). De bedieningselementen staan naast de voorvertoning, of erboven op een telefoon; wat de voorvertoning toont, is wat het bestand zal zijn.
+2. Vervang bij **URL** het hele voorbeeldadres door het jouwe. De voorvertoning verandert terwijl je typt.
+3. Om bij je eigen kleuren aan te sluiten, stel je **Module colour** en **Background** in. Houd een sterk contrast tussen beide aan, anders hebben telefoons moeite om de code te lezen.
+4. **Quiet zone**, onder **Modules**, begint op 4. Houd het op 4 of hoger: die vlakke marge is waar een telefooncamera naar zoekt.
 
 ## Het bestand downloaden
 

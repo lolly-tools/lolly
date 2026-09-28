@@ -49,6 +49,7 @@ import { historyParticipation, localHistorySlot, mountCollabActionHistory, track
 import { entryHoldsUnsavedEdits, localDocument } from '../tool-leave.ts';
 import { asRow } from '../tool-types.ts';
 import { openToolSession } from '../tool-session-open.ts';
+import { carriedEmojiPins } from '../tool-session-snapshot.ts';
 import { _sliderDragging, fileToRef, fmtBytes, makeBlocksDropper, syncInputs } from '../tool-inputs.ts';
 import { notifyToolInputMount, policyValuesFor } from '../../lib/input-policy.ts';
 import { createLiveControls, mountSidebarLiveControls, registerLiveControls } from '../live-controls.ts';
@@ -140,7 +141,7 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   tview.urlParams = await expandQuery(tview.urlParams ?? '');
 
   const carriedMount = takeCarriedMountState(toolId); tview.carriedMount = carriedMount as ToolViewCtx['carriedMount'];
-  const openedSession = await openToolSession(tview.host.state, toolId, parseUrlState(tview.urlParams, tview.tool.manifest), carriedMount?.slot); tview.openedSession = openedSession;
+  const openedSession = await openToolSession(tview.host.state, tview.tool.manifest, parseUrlState(tview.urlParams, tview.tool.manifest), carriedMount?.slot); tview.openedSession = openedSession;
   const {
     values,
     format: urlFormat,
@@ -203,7 +204,7 @@ export async function guardNetworkAndSeed(tview: ToolViewCtx): Promise<void> {
   // a FRESH session and the inviter's first Save would mint a duplicate beside the one
   // they were collaborating on (section 6.2a pins a private collab to the session it started
   // from). The route still wins when it names one.
-  const slot = routeSlot ?? carriedMount?.slot ?? localHistorySlot(tview.host.state, toolId); tview.slot = slot;
+  const slot = routeSlot ?? carriedMount?.slot ?? localHistorySlot(tview.host.state, tview.tool.manifest); tview.slot = slot;
   const urlFlags = new URLSearchParams(tview.urlParams || ''); tview.urlFlags = urlFlags;
   const isFull = urlFlags.has('full'); tview.isFull = isFull;
   // `?template=<id>` launches straight into a template starting point, SKIPPING the "New
@@ -383,6 +384,24 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
       { toolId, templateMeta, presetId: presetParam },
     );
     if (found) await applyTemplateSeed(found.values);
+    // Design's intent was first guessed in guardNetworkAndSeed from the bare id, before
+    // the template was read, so a Video template opened by link got the plain Design
+    // layout, and that layout shuts the timeline its clips need. Guess again with the
+    // template's category, exactly as the chooser's onPick does. An intent the document
+    // saved still wins, and without the index metadata the first guess stands.
+    const ref = found?.ref;
+    if (ref && ref.kind === 'shipped' && toolId === 'design') {
+      const { parseTemplates } = await import('../../lib/template-source.ts');
+      const category = parseTemplates(templateMeta).find((v) => v.id === ref.id)?.category;
+      if (category) {
+        tview.designIntent = inferDesignIntent({
+          saved: tview.initialValues.__workspace_intent,
+          templateId: templateParam,
+          templateCategory: category,
+        });
+        tview.viewEl.dataset.designIntent = tview.designIntent;
+      }
+    }
   } else if (captureNeutralPinned()) {
     // A pinned docs capture honours an explicit template but skips personal
     // defaults and the chooser, which would need someone to dismiss it.
@@ -597,15 +616,26 @@ export async function templatePick(tview: ToolViewCtx): Promise<void> {
     madeWith,
   } = await prepareToolDesignSystemContext(tview.host, urlDesignSystem, slot); tview.dsRegistry = dsRegistry; tview.mountedSystemId = mountedSystemId; tview.madeWith = madeWith;
 
-  const runtime: ToolRuntime = await createRuntime(tview.tool, tview.host, tview.initialValues); tview.runtime = runtime;
-  // Input pickers can open before the optional sidebar section mounts. Seed an
-  // explicit link choice before any of those controls become interactive.
-  const emoji = tview.urlFlags.get('emoji') ?? '';
-  const emojistyle = tview.urlFlags.get('emojistyle') ?? '';
-  if (emoji || emojistyle) {
-    const { seedEmojiRuntime } = await import('../../lib/emoji-runtime-style.ts');
-    await seedEmojiRuntime(runtime, tview.host, { emoji, emojistyle, emojifx: tview.urlFlags.get('emojifx') ?? '' });
-  }
+  // The document's emoji style (link, saved session or brand, preference) goes in at
+  // creation, before onInit: the tool's first text composition then uses the right
+  // glyphs, input pickers that open before the Emoji section see the right set, and
+  // the section's own apply later finds the style already in force. Seeded after
+  // creation, a text-heavy tool composed the whole document twice on open.
+  const { mountEmojiStyle } = await import('../../lib/emoji-runtime-style.ts');
+  const emojiStyle = await mountEmojiStyle(tview.host, {
+    url: { emoji: tview.urlFlags.get('emoji') ?? '', emojifx: tview.urlFlags.get('emojifx') ?? '', emojistyle: tview.urlFlags.get('emojistyle') ?? '' },
+    session: tview.openedSession.emoji ?? null,
+  });
+  // A person is watching this view, so a long first composition may open it as soon as
+  // the first page is ready and fill in the rest page by page (engine progressiveInit,
+  // Design's page-by-page reports). Not for a scripted export or copy, or a docs
+  // capture: they read the page as soon as the view is up and must never see half a
+  // document.
+  const progressiveInit = !tview.autoExport && !tview.autoCopy && !captureNeutralPinned();
+  const runtime: ToolRuntime = await createRuntime(tview.tool, tview.host, tview.initialValues, {
+    progressiveInit,
+    ...(emojiStyle === undefined ? {} : { emojiStyle }),
+  }); tview.runtime = runtime;
   // A locked policy value (and a choice whose current value is outside the
   // allowed set) goes into the runtime, not only onto the sidebar: the canvas,
   // the saved session and any link then carry the value the control shows.
@@ -827,7 +857,9 @@ export function mountActions(tview: ToolViewCtx): void {
       openSaveAs: () => { void tview.openSaveAs?.(); },
       current: toolId === 'design' ? () => tview.session.currentDesignOutcome() : undefined,
       sessionMeta: () => ({ ...(getDesignPublication(runtime) ? {__designPublication:getDesignPublication(runtime)} : {}), ...(getRebrandHandoff(runtime) ? { [REBRAND_HANDOFF_MARKER]: getRebrandHandoff(runtime) } : {}), ...(getDesignToolSource(runtime) ? { __designToolSource: getDesignToolSource(runtime) } : {}), ...(tview.tool.artifactDigest ? { __toolArtifact: tview.tool.artifactDigest } : {}), ...(getDesignToolDraft(runtime) ? { __designTool: getDesignToolDraft(runtime) } : {}), ...(toolId === 'design' ? { __workspace_intent: tview.designIntent } : {}),
-        ...(tview.presentationScene ? { __presentation: tview.presentationScene } : {}) }),
+        ...(tview.presentationScene ? { __presentation: tview.presentationScene } : {}),
+        ...carriedEmojiPins(runtime.emoji, tview.initialValues),
+        ...tview.documentMeta?.() }),
       ...historyParticipation(tview.tool.manifest, !!collabHandle || !!ephemeralState || !!getCollabSessionSource()),
     }
   ); tview.actionsApi = actionsApi;
@@ -853,7 +885,7 @@ export function mountActions(tview: ToolViewCtx): void {
   const revisionPanel = wireToolRevisionHistory({ state: tview.host.state as import('../../bridge/state.ts').WebStateAPI,
     copyState: libraryHost.state as import('../../bridge/state.ts').WebStateAPI,
     slot: () => actionsApi?.getSlot?.() ?? null, controller: actionsApi?.history, currentSnapshot: actionsApi?.sessionState,
-    collab: collabHandle?.history, collaborating: !!collabHandle || !!ephemeralState, root: viewEl, connected: () => viewEl.isConnected,
+    collab: collabHandle?.history, collaborating: !!collabHandle || !!ephemeralState, root: viewEl, editorBar: tview.designChrome || tview.documentLayout, connected: () => viewEl.isConnected,
     ...(peerHistory ? { peer: peerHistory } : {}) }); tview.revisionPanel = revisionPanel;
   const _openRevisions = () => revisionPanel.open();
   mountLifecycle.add('revision history panel', revisionPanel.dispose);

@@ -26,11 +26,7 @@ const MOVES: Record<string, Record<string, { slug: string; anchor: string }>> =
 
 /** Pages whose duplicate ids are known and owned elsewhere, each with its reason.
  *  The check fails both ways: a listed page that no longer repeats an id must leave. */
-const DUPLICATE_IDS_KNOWN: Record<string, string> = {
-  // "Hear it" appears twice; the page is being reworded under the new rule against
-  // headings that end in "it" (another session, 26 September 2026).
-  'trust/beatrice-warde.html': 'two "Hear it" headings; reworded in a concurrent edit',
-};
+const DUPLICATE_IDS_KNOWN: Record<string, string> = {};
 
 const skip = !existsSync(join(BUILT, 'create', 'using.html')) ? 'no built /info on disk - run `pnpm run build:info`' : false;
 

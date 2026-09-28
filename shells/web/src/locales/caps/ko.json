@@ -339,7 +339,7 @@
   "Finishes as plates": "판으로 표현하는 가공",
   "A spot can be a finish rather than an ink: foil, emboss or deboss, spot varnish, soft touch, or a die cut, crease or perforation. It exports as its own named plate with a solid black fallback, so a press that flattens spots shows an unmistakable mask. The <strong>Finishes</strong> tool previews the effect on your artwork.": "별색은 잉크가 아니라 가공일 수도 있어요. 박, 엠보싱이나 디보싱, 스팟 니스, 소프트 터치, 또는 다이컷, 접는선, 천공 같은 것들이에요. 100% 검은색 대체값이 있는 고유한 이름의 판으로 내보내져서, 별색을 평면화해버리는 인쇄기에서도 확실히 알아볼 수 있는 마스크로 나타나요. <strong>마감</strong> 도구에서는 아트워크에 그 효과를 미리 볼 수 있어요.",
   "Agree the finish with your printer": "가공 방식은 인쇄업체와 협의하세요",
-  "Overprint is not supported yet, so a finish plate knocks out the artwork underneath.": "오버프린트는 아직 지원되지 않아서, 가공 판이 아래 아트워크를 지워버려요.",
+  "Overprint is not supported yet, so a finish plate knocks out the artwork underneath.": "오버프린트는 아직 지원되지 않아서, 마감 판이 아래 아트워크를 지워버려요.",
   "Press conditions": "인쇄 조건",
   "OutputIntent": "OutputIntent",
   "A CMYK PDF declares its target press condition (Coated FOGRA39 by default; FOGRA51, SWOP and more) so a RIP knows how the inks are meant to read. On-screen and raster stay sRGB.": "CMYK PDF는 대상 인쇄 조건을 선언해(기본은 Coated FOGRA39; FOGRA51, SWOP 등), RIP가 잉크가 어떻게 읽혀야 하는지 알게 해요. 화면과 래스터는 sRGB로 유지돼요.",

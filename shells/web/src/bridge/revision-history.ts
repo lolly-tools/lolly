@@ -10,6 +10,7 @@ import { type DocumentHead, type RevisionCursor, documentVersion, holdsUnsavedWo
 export { revisionSnapshot } from './revision-snapshot.ts';
 import type { SavedStateData, StateRecord } from './state.ts';
 import type { RevisionQuery } from './revision-query.ts';
+import type { RevisionCapture } from './revision-capture.ts';
 export type { RevisionQuery } from './revision-query.ts';
 
 export interface RevisionEntry {
@@ -41,7 +42,18 @@ export interface RevisionOptions {
    * opening a state that was saved outside it (or before history existed) keeps
    * that state's thumbnail and times, and Leave without saving has it to return to. */
   adopt?: boolean;
+  /** The document as the editor froze it (revision-capture.ts): canonical and
+   * pinned already, so the store hashes it without walking it again. When given,
+   * the store keeps this data and ignores the record's. */
+  capture?: RevisionCapture;
 }
+/** What a commit wrote. `skipped`: an explicit save found no room in the history
+ * budget, so it was written as the current state and no revision was recorded
+ * (plan 277 P4 section 5); `id` is then the head the document still has, or
+ * empty when the document has none. */
+export type CommitResult = RevisionEntry & { currentVersion?: string; skipped?: true };
+/** Bytes history holds, as `revision-usage` counts them. */
+export interface RevisionUsage { checkpoints: number; previews: number; recovery: number }
 /** What Leave without saving did: put the last explicit save back, moved a
  * never-saved creation out of Projects (to `slot`), or found nothing to undo. */
 export interface DiscardResult { outcome: 'restored' | 'removed' | 'unchanged'; slot: string }
@@ -55,7 +67,7 @@ export interface RevisionStore {
   open(slot: string): Promise<RevisionCursor & { record: StateRecord | null }>;
   recovery: RecoveryStore;
   replace(record: StateRecord): Promise<void>;
-  commit(record: StateRecord, options: RevisionOptions): Promise<RevisionEntry & { currentVersion?: string }>;
+  commit(record: StateRecord, options: RevisionOptions): Promise<CommitResult>;
   list(options?: RevisionQuery): Promise<RevisionPage>;
   name(id: string, name: string): Promise<void>;
   read(id: string): Promise<SavedStateData | null>;
@@ -67,10 +79,18 @@ export interface RevisionStore {
   discard(slot: string): Promise<DiscardResult>;
   assetRefs(): Promise<Set<string>>;
   recentSessions(): Promise<Array<{ slot: string; toolId: string; label?: string; filename?: string; updatedAt: string }>>;
+  /** Checkpoint, preview and recovery bytes, for Settings > Storage. */
+  usage(): Promise<RevisionUsage>;
+  /** The History-open sweep: discarded never-saved creations and protected drafts
+   * older than 30 days go for good. */
+  sweep(): Promise<{ discarded: number; drafts: number }>;
+  /** Remove automatic checkpoints older than 30 days. Explicit saves, named
+   * versions and each document's head stay. */
+  pruneAutomatic(): Promise<{ removed: number; bytes: number }>;
 }
 export interface RevisionHistoryAPI extends Omit<RevisionStore, 'commit' | 'replace' | 'recovery'> {
   recovery: RecoveryAPI;
-  checkpoint(slot: string, data: SavedStateData, options: RevisionOptions): Promise<RevisionEntry & { currentVersion?: string }>;
+  checkpoint(slot: string, data: SavedStateData, options: RevisionOptions): Promise<CommitResult>;
 }
 
 /** Constructed with the SAME database as host.state. Memory/native hosts do not
@@ -89,7 +109,7 @@ export function createRevisionStore(db: IDBPDatabase): RevisionStore {
     },
     recovery,
     backup: {
-      export: async () => (await import('./revision-archive.ts')).createRevisionArchive(db).export(),
+      export: async options => (await import('./revision-archive.ts')).createRevisionArchive(db).export(options),
       restore: async (archive, options) => (await import('./revision-archive.ts')).createRevisionArchive(db).restore(archive, options),
     },
     replace: record => recovery.replace(record),
@@ -121,5 +141,11 @@ export function createRevisionStore(db: IDBPDatabase): RevisionStore {
     discard: async slot => (await import('./revision-discard.ts')).discardUnsaved(db, recovery, slot),
     assetRefs: async () => (await import('./revision-maintenance.ts')).revisionMaintenance(db, recovery).assetRefs(),
     recentSessions: async () => (await import('./revision-maintenance.ts')).revisionMaintenance(db, recovery).recentSessions(),
+    async usage() {
+      const [total, drafts] = await Promise.all([db.get('revision-usage', 'total'), db.get('revision-usage', 'recovery')]) as [{ bytes?: number; previews?: number } | undefined, number | undefined];
+      return { checkpoints: Math.max(0, total?.bytes ?? 0), previews: Math.max(0, total?.previews ?? 0), recovery: Math.max(0, drafts ?? 0) };
+    },
+    sweep: async () => (await import('./revision-maintenance.ts')).revisionMaintenance(db, recovery).sweep(),
+    pruneAutomatic: async () => (await import('./revision-maintenance.ts')).revisionMaintenance(db, recovery).pruneAutomatic(),
   };
 }

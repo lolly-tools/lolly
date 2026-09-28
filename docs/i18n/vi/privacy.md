@@ -89,7 +89,7 @@ review riêng tư chứa các giá trị gốc, chỉ khi được yêu cầu r�
 Việc xóa hoặc rời khỏi một khung xem chuẩn bị (preparation view) trên trình duyệt sẽ giải phóng
 trạng thái đang xử lý của nó; đây không phải là một lời hứa xóa dấu vết pháp y khỏi bộ nhớ trình duyệt hay hệ điều hành.
 
-## Khi ứng dụng giao tiếp với mạng, đầy đủ
+## Mọi yêu cầu mạng mà ứng dụng có thể thực hiện
 
 Bảng dưới đây là danh sách đầy đủ mọi thứ ứng dụng lấy về hoặc gửi đi qua
 mạng. Nếu không có ở đây, ứng dụng không làm điều đó.

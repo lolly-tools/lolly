@@ -45,8 +45,17 @@ export interface RevisionArchiveRestoreOptions {
    * state is kept as a protected draft either way. See lib/backup-sessions.ts. */
   sameId?: 'newer' | 'incoming';
 }
+export interface RevisionArchiveExportOptions {
+  /** The archive's size limit in bytes of JSON; MAX_REVISION_ARCHIVE_BYTES by default. */
+  maxBytes?: number;
+  /** Told how many automatic checkpoints were left out, oldest first, to stay
+   * under the limit. Not called when every checkpoint fits. */
+  leftOut?(count: number): void;
+}
 export interface RevisionArchiveAPI {
-  export(): Promise<RevisionArchive>;
+  /** The whole history, or all of it but the oldest automatic checkpoints when
+   * that would pass the limit (plan 277 P4 section 5). */
+  export(options?: RevisionArchiveExportOptions): Promise<RevisionArchive>;
   restore(archive: unknown, options?: RevisionArchiveRestoreOptions): Promise<RevisionArchiveSummary>;
 }
 const MAX_ITEMS = 100_000;

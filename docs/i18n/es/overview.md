@@ -390,7 +390,7 @@ Web shell: IndexedDB. Tauri: sistema de archivos. CLI: en memoria. Las herramien
 
 Los usuarios pueden guardar varias ranuras de edición con nombre por herramienta y retomar cada sesión más tarde. No hace falta crear una cuenta; el estado es por dispositivo. Como el bridge es el único punto de paso, ese estado por dispositivo también es *portable*: `shells/web/src/data-transfer.ts` lee todo de vuelta a través de `host.profile`/`host.state`/`host.assets` en un único zip `lolly-backup` que se importa en cualquier otra instalación - la respuesta sin conexión a "pasar a un dispositivo nuevo" que no necesita servidor (especificación completa: `docs/data-transfer.md`). La sincronización entre varios dispositivos ya funciona sobre esta base, y envía el mismo paquete al almacenamiento que elija la persona (`docs/sync.md`).
 
-### 7. Las etiquetas de madurez dicen qué es una herramienta, por diseño
+### 7. Las etiquetas de madurez dicen qué es una herramienta
 
 Cada herramienta declara `status: official | community | experimental` en su manifiesto. La galería ordena por estado. Las herramientas experimentales marcan sus exportaciones con marca de agua automáticamente - la marca de agua la aplica `host.export.render`, no la herramienta, así que un autor de herramientas no oficial no puede desactivarla.
 
@@ -434,7 +434,7 @@ Compón el render de cualquier herramienta: una hija **SVG** sigue siendo un vec
 
 ---
 
-## Ciclo de vida, de principio a fin
+## El ciclo de vida de un renderizado
 
 Un usuario abre `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 

@@ -62,7 +62,7 @@ pnpm run cli validate ./contract.pdf --metadata --json
 
 Honesty rules this output holds to, because a person decides what to send based on it:
 
-- The report ends with what it did **not** check, every time. Nothing found is not the same as nothing there.
+- Every report ends with what it did **not** check. Nothing found is not the same as nothing there.
 - **No invisible or neural watermark detection runs here.** SynthID is not detected by Lolly at all. The TrustMark, Content Seal and Lolly durable pixel marks need the browser tier - that is `--deep`, not `--metadata`.
 - The hidden-text pass covers one case: text under an opaque shape that covers most of the line. Text hidden by invisible render mode, by a clip path, by white-on-white colouring, or under a bar drawn tightly around the glyphs is not reported.
 - PDFs are read to a page cap (25). When a document is longer, the report says how many pages it read and claims nothing about the rest.

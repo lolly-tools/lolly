@@ -72,6 +72,7 @@ import { auxiliaryMetadataHtml } from './valid-auxiliary.ts';
 import { metadataValueHtml, metadataLinkHtml, metadataUrl, wireMetadataLinks, visibleLinkedTextHtml } from './valid-links.ts';
 import { wireVerifyActions } from './valid-actions.ts';
 import { wireAddressRequests } from './valid-location.ts';
+import { intakeAltsHtml, wireIntakeAlts } from './valid-intake-alts.ts';
 import { saveReportCard } from './valid-report-card.ts';
 // The C2PA 2.4 text-binding models - same pure-module rule as valid-verdict.ts.
 // The copy for every carrier state, the snippet cap, and the ONE url gate both
@@ -2078,6 +2079,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
         <div class="valid-header-actions" aria-label="${escape(t('Verify another item'))}">
           <button type="button" class="btn" data-check-more>${svgIcon('document')}<span>${t('Choose other files')}</span></button>
           <button type="button" class="btn" data-result-paste>${svgIcon('clipboard')}<span>${t('Paste text')}</span></button>
+          <button type="button" class="btn" data-result-url>${svgIcon('link')}<span>${t('Add from URL…')}</span></button>
         </div>
       </header>
 
@@ -2095,18 +2097,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
           <span>${t('Choose one or more files, or paste text.')}</span>
         </div>
 
-        <div class="valid-paste">
-          <button type="button" class="btn valid-paste-open" data-paste-open aria-expanded="false" aria-controls="valid-paste-panel">${t('Paste text')}</button>
-          <div class="valid-paste-panel" id="valid-paste-panel" data-paste-panel hidden>
-            <label class="valid-paste-label" for="valid-paste-text">${t('Paste the text, markup or source you want to check')}</label>
-            <textarea id="valid-paste-text" class="valid-paste-text" data-paste-text rows="8" spellcheck="false" autocomplete="off"></textarea>
-            <div class="valid-paste-actions">
-              <button type="button" class="btn valid-paste-verify" data-paste-verify>${t('Verify this text')}</button>
-              <button type="button" class="btn valid-paste-cancel" data-paste-cancel>${t('Cancel')}</button>
-            </div>
-            <p class="valid-paste-foot">${t('The text is checked on this device, exactly as pasted. Invisible characters matter here - a C2PA text credential is made of them - so paste rather than retype.')}</p>
-          </div>
-        </div>
+        ${intakeAltsHtml()}
       </div>
 
       <div class="valid-report" data-report hidden></div>
@@ -2125,7 +2116,7 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
   const layoutEl = viewEl.querySelector<HTMLElement>('.valid-layout')!;
   const enterResultMode = (): void => {
     layoutEl.classList.add('has-results');
-    layoutEl.classList.remove('is-pasting');
+    layoutEl.classList.remove('is-pasting', 'is-linking');
   };
 
   // The view's own liveness. A watermark job outlives this view by design (WP-F),
@@ -3843,8 +3834,10 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
       await verifyFromUrl(gate.path, () => tRaw('Could not read {src} from this site.', { src: gate.path }));
       return;
     }
+    // Another site: nothing is fetched from a paste alone. The address goes into
+    // the "Add from URL" field, and the person presses Verify to fetch the file.
     if (gate?.kind === 'elsewhere') {
-      sayVerifyProblem(t('That address is on another site, and nothing is fetched on your behalf here - save the file and drop it on this page instead.'));
+      intakeAlts.openUrl(text.trim());
       return;
     }
     if (gate?.kind === 'unresolvable') {
@@ -3881,46 +3874,15 @@ export async function mountValid(viewEl: HTMLElement, host: HostV1, params = '')
     el._cleanup = () => { prev?.(); document.removeEventListener('paste', onPaste); };
   }
 
-  // The visible fallback. The clipboard is NEVER read programmatically here - 
-  // navigator.clipboard.readText() would raise a permission prompt for a page
-  // that has not been asked to read anything, and on the platforms where the
-  // paste event is awkward (an iPad without a keyboard, a locked-down browser)
-  // the honest answer is a plain textarea the person pastes into themselves.
-  const pasteOpen = viewEl.querySelector<HTMLButtonElement>('[data-paste-open]')!;
-  const pastePanel = viewEl.querySelector<HTMLElement>('[data-paste-panel]')!;
-  const pasteText = viewEl.querySelector<HTMLTextAreaElement>('[data-paste-text]')!;
-  const setPasteOpen = (open: boolean, restoreFocus = false): void => {
-    pastePanel.hidden = !open;
-    pasteOpen.setAttribute('aria-expanded', String(open));
-    if (open) pasteText.focus();
-    else {
-      layoutEl.classList.remove('is-pasting');
-      if (restoreFocus) pasteOpen.focus();
-    }
-  };
-  pasteOpen.addEventListener('click', () => setPasteOpen(pastePanel.hidden));
-  viewEl.querySelector<HTMLButtonElement>('[data-paste-cancel]')!
-    .addEventListener('click', () => setPasteOpen(false, true));
-  viewEl.querySelector<HTMLButtonElement>('[data-paste-verify]')!.addEventListener('click', () => {
-    const text = pasteText.value;
-    if (!text.trim()) { pasteText.focus(); return; }
-    setPasteOpen(false);
-    void handlePastedText(text);
-  });
-  // House rule: Esc closes and hands focus back to what opened it. Scoped to the
-  // panel, so it can't swallow an Esc meant for anything else on the page.
-  pastePanel.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    e.preventDefault();
-    setPasteOpen(false, true);
-  });
   viewEl.querySelector<HTMLButtonElement>('[data-check-more]')!
     .addEventListener('click', () => { input.value = ''; input.click(); });
-  viewEl.querySelector<HTMLButtonElement>('[data-result-paste]')!
-    .addEventListener('click', () => {
-      layoutEl.classList.add('is-pasting');
-      setPasteOpen(true);
-    });
+  // "Paste text" and "Add from URL" (views/valid-intake-alts.ts): the two panels beside
+  // the drop zone and the header buttons that reopen them over a report. A fetched file
+  // keeps its address, for a relative credential reference in it, exactly as for ?src=.
+  const intakeAlts = wireIntakeAlts(viewEl, {
+    host, layoutEl, checkText: handlePastedText, verifyFromUrl,
+    checkFetched: async (file, url) => { pendingSourceUrl = url; await handle([file]); },
+  });
 
   // A cross-page image drag carries text/uri-list (and text/html with the <img>),
   // never the pixels. Fetching the URL is the only way to get bytes - it happens

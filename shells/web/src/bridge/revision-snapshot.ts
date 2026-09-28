@@ -2,7 +2,9 @@
 import { deflateSync, inflateSync } from 'fflate';
 import { MAX_REVISION_EXPANDED, MAX_REVISION_SNAPSHOT } from './revision-limits.ts';
 import type { SavedStateData } from './state.ts';
-import { isToolUrl } from '../../../../engine/src/tool-url.ts';
+import { canonicalDocument, type RevisionCapture } from './revision-capture.ts';
+import { t } from '../i18n.ts';
+export { isRefetchableRemote } from './revision-capture.ts';
 
 /** A checkpoint as `revision-payloads` keeps it: the snapshot's canonical JSON,
  * deflated. A saved document never holds bytes (canonicalRevisionData refuses
@@ -22,8 +24,9 @@ export interface PackedRevisionSnapshot extends RevisionSnapshot {
   payload: RevisionPayload;
 }
 
-const TOO_LARGE = 'This document is too large for automatic history. Save an editable .lolly file.';
-const unreadable = (): never => { throw new Error('This saved version could not be read.'); };
+// Translated when thrown: these reach the editor's toasts and History.
+const TOO_LARGE = (): string => t('This document is too large for automatic history. Save an editable .lolly file.');
+const unreadable = (): never => { throw new Error(t('This saved version could not be read.')); };
 
 export function isRevisionPayload(value: unknown): value is RevisionPayload {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
@@ -43,51 +46,12 @@ export function unpackRevision(payload: RevisionPayload): SavedStateData {
   return value as SavedStateData;
 }
 
-/** A `source: 'remote'` asset reference whose id the runtime resolves again on
- * every open: a plain http(s) file, or a Lolly tool link it renders again. */
-export function isRefetchableRemote(record: Record<string, unknown>): boolean {
-  return record.source === 'remote' && typeof record.id === 'string' && (/^https?:\/\//i.test(record.id) || isToolUrl(record.id));
-}
-const holdsBlobUrl = (value: unknown): boolean => typeof value === 'string' ? value.startsWith('blob:')
-  : !!value && typeof value === 'object' && typeof (value as { url?: unknown }).url === 'string' && (value as { url: string }).url.startsWith('blob:');
-
 /** Deterministic JSON, retaining row identity/order. Refuse transient bytes instead
  * of claiming a File, typed array, or temporary URL is a recoverable document.
- * A stored payload is inflated first, so callers compare documents, not bytes. */
+ * A stored payload is inflated first, so callers compare documents, not bytes.
+ * The walk itself is revision-capture.ts's, shared with the write path. */
 export function canonicalRevisionData(input: SavedStateData | RevisionPayload): SavedStateData {
-  const data = isRevisionPayload(input) ? unpackRevision(input) : input;
-  const seen = new Set<object>();
-  const normalise = (value: unknown): unknown => {
-    if (value === undefined) return undefined;
-    if (value === null || typeof value === 'boolean') return value;
-    if (typeof value === 'number' && Number.isFinite(value)) return value;
-    if (typeof value === 'string') {
-      if (value.startsWith('blob:')) throw new Error('History needs a saved asset for this temporary file.');
-      return value;
-    }
-    if (typeof value !== 'object' || seen.has(value)) throw new Error('This document contains a value history cannot save yet.');
-    const proto = Object.getPrototypeOf(value);
-    if (!Array.isArray(value) && proto !== Object.prototype && proto !== null) throw new Error('Save imported files to the library before keeping history.');
-    seen.add(value);
-    let result: unknown;
-    if (Array.isArray(value)) result = value.map(item => normalise(item) ?? null);
-    else {
-      const record = value as Record<string, unknown>;
-      const baked = !!record.meta && typeof record.meta === 'object' && (record.meta as Record<string, unknown>).baked === true;
-      const durable = !baked && (record.source === 'library' || record.source === 'user') && typeof record.id === 'string';
-      // A remote reference whose id is fetched again on open (an http(s) file or a
-      // Lolly tool link) keeps its id; the page-local blob: copy of its bytes is
-      // dropped rather than refused (plan 277 P1, review B2). Only blob: values go,
-      // so a checkpoint admitted before keeps its hash.
-      const refetchable = !baked && isRefetchableRemote(record);
-      const transient = (key: string): boolean => refetchable && (key === 'url' || key === 'original') && holdsBlobUrl(record[key]);
-      result = Object.fromEntries(Object.keys(record).sort().filter(key => !(durable && (key === 'url' || key === 'original')) && !transient(key))
-        .map(key => [key, normalise(record[key])]).filter(([, item]) => item !== undefined));
-    }
-    seen.delete(value);
-    return result;
-  };
-  return normalise(data) as SavedStateData;
+  return canonicalDocument(isRevisionPayload(input) ? unpackRevision(input) : input);
 }
 
 /** zlib's deflateBound: no deflate stream of `n` bytes is longer than this, so
@@ -118,11 +82,29 @@ async function pack(json: Uint8Array<ArrayBuffer>, hash: string): Promise<Revisi
   return payload;
 }
 
-async function freeze(input: SavedStateData | RevisionPayload): Promise<{ data: SavedStateData; json: Uint8Array<ArrayBuffer>; hash: string }> {
-  const data = canonicalRevisionData(input);
-  const json = new TextEncoder().encode(JSON.stringify(data));
+type Frozen = { data: SavedStateData; json: Uint8Array<ArrayBuffer>; hash: string };
+/** Hash a canonical document's JSON text: the one step every write shares. */
+async function hashed(data: SavedStateData, text: string): Promise<Frozen> {
+  const json = new TextEncoder().encode(text);
   const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', json)), b => b.toString(16).padStart(2, '0')).join('');
   return { data, json, hash };
+}
+// A flush hands one capture to both the draft and the checkpoint: it is hashed once.
+const captured = new WeakMap<RevisionCapture, Promise<Frozen>>();
+function hashCapture(capture: RevisionCapture): Promise<Frozen> {
+  let frozen = captured.get(capture);
+  if (!frozen) { frozen = hashed(capture.data, capture.json); captured.set(capture, frozen); }
+  return frozen;
+}
+async function freeze(input: SavedStateData | RevisionPayload): Promise<Frozen> {
+  const data = canonicalRevisionData(input);
+  return hashed(data, JSON.stringify(data));
+}
+/** A new document is admitted when its JSON fits MAX_REVISION_EXPANDED and its
+ * deflated JSON fits MAX_REVISION_SNAPSHOT. */
+async function admitNew({ json, hash }: Frozen): Promise<void> {
+  if (json.byteLength > MAX_REVISION_EXPANDED) throw new Error(TOO_LARGE());
+  if (deflateBound(json.byteLength) > MAX_REVISION_SNAPSHOT && (await pack(json, hash)).deflated.byteLength > MAX_REVISION_SNAPSHOT) throw new Error(TOO_LARGE());
 }
 
 /** Canonical document, its hash and its JSON length, for writes and integrity
@@ -131,19 +113,41 @@ async function freeze(input: SavedStateData | RevisionPayload): Promise<{ data: 
  * admitted when its deflated JSON fits MAX_REVISION_SNAPSHOT; a stored payload
  * was admitted when it was written and is not measured again. */
 export async function revisionSnapshot(input: SavedStateData | RevisionPayload): Promise<RevisionSnapshot> {
-  const { data, json, hash } = await freeze(input);
-  if (!isRevisionPayload(input)) {
-    if (json.byteLength > MAX_REVISION_EXPANDED) throw new Error(TOO_LARGE);
-    if (deflateBound(json.byteLength) > MAX_REVISION_SNAPSHOT && (await pack(json, hash)).deflated.byteLength > MAX_REVISION_SNAPSHOT) throw new Error(TOO_LARGE);
-  }
-  return { data, hash, bytes: json.byteLength };
+  const frozen = await freeze(input);
+  if (!isRevisionPayload(input)) await admitNew(frozen);
+  return { data: frozen.data, hash: frozen.hash, bytes: frozen.json.byteLength };
+}
+
+/** A recovery draft's snapshot from a capture, which is canonical already: the
+ * document is hashed without being walked a second time. */
+export async function captureSnapshot(capture: RevisionCapture): Promise<RevisionSnapshot> {
+  const frozen = await hashCapture(capture);
+  await admitNew(frozen);
+  return { data: frozen.data, hash: frozen.hash, bytes: frozen.json.byteLength };
+}
+
+async function packFrozen({ data, json, hash }: Frozen): Promise<PackedRevisionSnapshot> {
+  if (json.byteLength > MAX_REVISION_EXPANDED) throw new Error(TOO_LARGE());
+  const payload = await pack(json, hash);
+  if (payload.deflated.byteLength > MAX_REVISION_SNAPSHOT) throw new Error(TOO_LARGE());
+  return { data, hash, bytes: json.byteLength, stored: payload.deflated.byteLength, payload };
 }
 
 /** The same snapshot plus the compressed payload a checkpoint stores. */
 export async function packedRevisionSnapshot(input: SavedStateData): Promise<PackedRevisionSnapshot> {
-  const { data, json, hash } = await freeze(input);
-  if (json.byteLength > MAX_REVISION_EXPANDED) throw new Error(TOO_LARGE);
-  const payload = await pack(json, hash);
-  if (payload.deflated.byteLength > MAX_REVISION_SNAPSHOT) throw new Error(TOO_LARGE);
-  return { data, hash, bytes: json.byteLength, stored: payload.deflated.byteLength, payload };
+  return packFrozen(await freeze(input));
+}
+
+/** A checkpoint's snapshot and payload from a capture, walked once. */
+export async function packCapture(capture: RevisionCapture): Promise<PackedRevisionSnapshot> {
+  return packFrozen(await hashCapture(capture));
+}
+
+/** Deflate a canonical document a restore already verified, so restored history
+ * costs its deflated size (plan 277 P4 section 5). Not measured against
+ * MAX_REVISION_SNAPSHOT: the checkpoint was admitted where it was written. */
+export async function packCanonical(data: SavedStateData): Promise<{ payload: RevisionPayload; stored: number }> {
+  const json = new TextEncoder().encode(JSON.stringify(data));
+  const payload: RevisionPayload = { revisionPayload: 1, encoding: 'deflate-raw', size: json.byteLength, deflated: await deflate(json) };
+  return { payload, stored: payload.deflated.byteLength };
 }

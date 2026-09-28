@@ -273,7 +273,7 @@ Tools tonen alleen de invoervelden die bedoeld zijn om te variëren - al het and
 
 In een live-[samenwerking](/info/collaborate.html) blijft de geschiedenis alleen van jou. Een wijziging die van het andere apparaat binnenkomt, komt nooit op jouw stack terecht, dus ongedaan maken kan alleen ooit iets terugdraaien dat jij hebt gedaan.
 
-Ongedaan maken reikt alleen terug binnen dit bezoek; negen tools bewaren ook eerdere versies onder **History**, naast **Undo** (zie [Terug naar een eerdere versie](/info/find-your-work.html#go-back-to-an-earlier-version)).
+Ongedaan maken reikt alleen terug binnen dit bezoek; tools die opslaan terwijl je werkt, bewaren ook eerdere versies onder **Geschiedenis**, naast **Undo** (zie [Terug naar een eerdere versie](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ## Jouw gegevens & pasfoto
 
@@ -313,7 +313,7 @@ Plak de link naar een collega, bookmark hem of commit hem. (Volledige details: [
 
 **Bij sommige tools is de link het hele product.** Jump Page verzamelt je links op één pagina om uit te delen - een bio-link, een conferentiepraatje, een winkelpui. Er is niets te hosten en geen account nodig: de pagina is de link, dus die opent zo snel als de URL reist. In de editor zie je de afgewerkte pagina naast de velden; een bezoeker die de link opent, krijgt hem op volle breedte, één link per scène terwijl hij scrollt.
 
-![Jump Page in de editor - de kop, drie linkscènes elk met een eigen kleurwas en een 'Made with Lolly'-voettekst, uitgelijnd als één pagina op het canvas](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page in de editor: de kopscène boven aan de pagina, met de linkscènes eronder](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **De dialoog zegt wat een link niet kan meenemen.** Drie dingen passen niet in een URL: een afbeelding of bestand dat je vanaf dit apparaat hebt toegevoegd, een heel lange tekstwaarde of een heel grote lijst. Elk daarvan wordt geteld terwijl de link wordt opgebouwd. Als er iets weg moest, noemt de dialoog het en wijst hij je naar het bestand hieronder, in plaats van je een link te geven die opent met de afbeelding weg. Een link die alleen maar *lang* is, krijgt een mildere melding met zijn aantal tekens, want inpakken kan lengte nog redden.
 
@@ -423,7 +423,7 @@ Batch is vele varianten van *één* ontwerp. **Multi-edit** is de andere helft v
 
 Eén zijbalk bestuurt het geheel:
 
-- <!--i:sliders--> **Gedeeld** staat voorop - elk invoerveld dat twee of meer van de geselecteerde sessies op *dezelfde manier* declareren (dezelfde id, hetzelfde type, dezelfde beperkingen - dezelfde samenvoegregel die het batchraster op zijn kolommen toepast). Bewerk een gedeeld bedieningselement één keer en de waarde waaiert uit naar elke sessie die het declareert, live op elke kaart. Twee sessies van dezelfde tool delen alles; twee verschillende tools delen wat ze toevallig gemeen hebben, en verder niets.
+- <!--i:sliders--> **Gedeeld** staat voorop - elk invoerveld dat twee of meer van de geselecteerde sessies op *dezelfde manier* declareren (dezelfde id, hetzelfde type, dezelfde beperkingen - dezelfde samenvoegregel die het batchraster op zijn kolommen toepast). Bewerk een gedeeld bedieningselement één keer en de waarde waaiert uit naar elke sessie die het declareert, live op elke kaart. Twee sessies van dezelfde tool delen alles; twee verschillende tools delen alleen de invoervelden die ze gemeen hebben.
 - <!--i:document--> Daaronder **één ingeklapte kaart per sessie** met alle eigen invoervelden van die sessie, in dezelfde kwaliteit als de zijbalk van de tool zelf - assetkiezers, herhalende rijgroepen, kleurvelden - plus een compact exportblok: **Formaat**, **B** / **H**, **Eenheid**, **DPI** en een eigen **Downloaden**. Dat Downloaden slaat de sessie eerst op en rendert hem daarna via het gewone sessie-exportpad, zodat het bestand dezelfde bestandsnaam, hetzelfde formaat en dezelfde Content Credentials draagt als rechtstreeks uit de tool.
 - <!--i:search--> **Invoervelden filteren…** bovenaan versmalt de bedieningselementen over *alle* kaarten tegelijk - en zo kom je in acht sessies bij "de kop" zonder ernaar te scrollen.
 

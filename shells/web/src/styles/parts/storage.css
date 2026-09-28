@@ -384,6 +384,17 @@
 .profile-view .store-bar .seg[data-cat="durable"],
 .profile-view .store-chip-sw[data-cat="durable"] { background: hsl(var(--store-12, 8 62% 60%)); }
 
+/* Version history (plan 277 P4): checkpoints, their previews and recovery drafts,
+   in a magenta held apart from the violet and pink slices above. The row wraps its
+   breakdown under the name and its two actions under both on a narrow screen. */
+.profile-view .store-bar .seg[data-cat="history"],
+.profile-view .store-chip-sw[data-cat="history"] { background: hsl(var(--store-13, 296 48% 52%)); }
+.profile-view .store-manage[data-cat="history"] { flex-wrap: wrap; padding: .5rem 0; }
+.profile-view .store-manage[data-cat="history"] .store-manage-name { display: block; flex: 1 1 18rem; min-width: 0; overflow-wrap: anywhere; }
+.profile-view .store-manage[data-cat="history"] small { display: block; margin-top: .15rem; font-size: var(--fs-sm); font-weight: 400; line-height: 1.5; color: hsl(var(--muted-foreground)); }
+.profile-view .store-history-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; }
+.profile-view .store-history-actions .btn { min-height: 44px; }
+
 /* `.segmented-control`/`.segmented-btn` (component audit rec 1) used to live here -
    a byte-for-byte duplicate of `.view-seg`/`.view-seg-btn` (styles/parts/gallery.css)
    with nothing in shells/web/src ever minting the markup (verified: not one

@@ -39,7 +39,7 @@ Lollyユーザーが蓄積するすべてのデータは**そのデバイス上*
 
 `profile.json` は最小のパートであり、アプリ内でリーダーが最初に目にするものでもあります。作成者が一度だけ入力する詳細情報と、それをツールが利用できるようにするオプトインです。
 
-![profile.jsonのもとになるProfile詳細フォーム - 氏名、連絡先、顔写真、そして横にあるオプトイン](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![profile.json になるプロフィール詳細フォーム: 氏名、連絡先、プロフィール写真](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

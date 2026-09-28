@@ -280,7 +280,10 @@ export function inspectDesignV1(
         : {}),
     };
     layers.push(layer);
-    if (kind === 'text' && !text(row.text).trim()) {
+    // A composed text box keeps its words in the named story (`textStory`), and its
+    // own `text` field must stay empty, so an empty field is only a fault on a
+    // plain text box.
+    if (kind === 'text' && !text(row.text).trim() && !text(row.textStory)) {
       finding(
         findings,
         'design.text.empty',

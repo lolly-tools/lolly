@@ -221,5 +221,9 @@ export async function mountHistory(view: HTMLElement & { _cleanup?: () => void }
   };
   refresh.addEventListener('click', () => { void updateContext().then(() => { if (!disposed) reload(); }).catch(fail); });
   view._cleanup = () => { disposed = true; generation++; clearTimeout(timer); closePanel?.(); projectPicker.dispose(); toolPicker.dispose(); previews.dispose(); currentRows.clear(); };
-  try { await updateContext(); if (!disposed) await load(); } catch (error) { fail(error); }
+  // The History-open sweep (plan 277 P4 section 5): discarded never-saved creations
+  // and protected drafts older than 30 days go for good before the first listing.
+  // A sweep that fails leaves them for the next visit; History still opens.
+  const sweep = state.history?.sweep().catch(() => undefined);
+  try { await updateContext(); await sweep; if (!disposed) await load(); } catch (error) { fail(error); }
 }

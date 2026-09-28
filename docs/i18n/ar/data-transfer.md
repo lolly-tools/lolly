@@ -39,7 +39,7 @@
 
 `profile.json` هو أصغر جزء والجزء الذي يراه القارئ أولا في التطبيق: التفاصيل التي يملؤها المُنشئ مرة واحدة، بالإضافة إلى الموافقة التي تسمح للأدوات باستخدامها.
 
-![نموذج تفاصيل Profile الذي يصبح profile.json - الاسم وجهة الاتصال والصورة الشخصية والموافقة بجانبها](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![نموذج تفاصيل الملف الشخصي الذي يصبح profile.json: الاسم، وبيانات التواصل، والصورة الشخصية](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

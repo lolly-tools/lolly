@@ -273,7 +273,7 @@ Instrumentele expun doar câmpurile care sunt menite să varieze - tot restul (c
 
 Într-o [colaborare](/info/collaborate.html) live, istoricul rămâne doar al tău. O modificare venită de pe celălalt dispozitiv nu ajunge niciodată pe stiva ta, astfel încât anularea poate readuce doar ceva ce ai făcut tu.
 
-Anulează ajunge înapoi doar prin această vizită; nouă instrumente păstrează și versiuni anterioare sub **History**, lângă **Anulează** (vezi [Revino la o versiune anterioară](/info/find-your-work.html#go-back-to-an-earlier-version)).
+Anulează ajunge înapoi doar prin această vizită; instrumentele care salvează pe măsură ce lucrezi păstrează și versiuni anterioare sub **Istoric**, lângă **Anulează** (vezi [Revino la o versiune anterioară](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ## Datele tale & fotografia de profil
 
@@ -313,7 +313,7 @@ Trimite linkul unui coleg, pune-l la favorite sau comite-l în cod. (Detalii com
 
 **Unele instrumente fac din link întregul produs.** Jump Page adună linkurile tale pe o singură pagină de distribuit - un link bio, o prezentare de conferință, o vitrină de magazin. Nu este nimic de găzduit și niciun cont în spate: pagina este linkul, așa că se deschide la fel de repede pe cât călătorește adresa URL. În editor vezi pagina finalizată lângă câmpuri; un vizitator care deschide linkul o primește pe toată lățimea, un link per scenă pe măsură ce derulează.
 
-![Jump Page în editor - titlul, trei scene de linkuri, fiecare cu propriul fundal colorat, și un subsol Made with Lolly, aranjate ca o singură pagină pe pânză](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page în editor: scena cu titlul în partea de sus a paginii, cu scenele de linkuri dedesubt](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **Dialogul spune ce nu poate duce un link.** Trei lucruri nu încap într-un URL: o imagine sau un fișier adăugat de pe dispozitivul ăsta, o valoare de text foarte lungă sau o listă foarte mare. Fiecare e numărat pe măsură ce se construiește linkul. Dacă a trebuit să se renunțe la ceva, dialogul îl numește și te trimite la fișierul de mai jos, în loc să-ți dea un link care se deschide fără poză. Un link doar *lung* primește o notă mai blândă, cu numărul de caractere, fiindcă împachetarea încă poate salva situația.
 
@@ -424,8 +424,8 @@ Batch înseamnă multe variante ale *unui singur* design. **Multi-edit** este ce
 O singură bară laterală le conduce pe toate:
 
 - <!--i:sliders--> **Shared** deschide lista - fiecare câmp pe care două sau mai multe dintre sesiunile selectate îl declară *la fel* (același id, același tip, aceleași constrângeri - aceeași regulă de îmbinare pe care grila de loturi o aplică pe coloanele ei). Editezi o comandă partajată o dată și valoarea se răspândește la fiecare sesiune care o declară, live pe fiecare fișă. Două sesiuni ale aceluiași instrument împart totul; două instrumente diferite împart doar ce se întâmplă să aibă în comun, și nimic altceva.
-- <!--i:document--> Sub ea, **câte o fișă restrânsă pentru fiecare sesiune**, cu toate câmpurile proprii ale acelei sesiuni, la aceeași fidelitate ca bara laterală a instrumentului - selectoare de resurse, grupuri de rânduri repetabile, câmpuri de culoare - plus un bloc compact de export: **Format**, **W** / **H**, **Unit**, **DPI** și propriul **Download**. Descărcarea aceea salvează întâi sesiunea și abia apoi o randează pe calea obișnuită de export a sesiunilor, așa că fișierul poartă același nume, același format și aceleași Content Credentials pe care le-ar avea direct din instrument.
-- <!--i:search--> **Filter inputs…** din capul listei restrânge comenzile de pe *fiecare* fișă deodată - și așa ajungi la "titlu" în opt sesiuni fără să-l cauți derulând.
+- <!--i:document--> Sub ea, **câte o fișă restrânsă pentru fiecare sesiune**, cu toate câmpurile proprii ale acelei sesiuni, la aceeași fidelitate ca bara laterală a instrumentului - selectoare de resurse, grupuri de rânduri repetabile, câmpuri de culoare - plus un bloc compact de export: **Format**, **L** / **Î**, **Unitate**, **DPI** și propriul **Descarcă**. Descărcarea aceea salvează întâi sesiunea și abia apoi o randează pe calea obișnuită de export a sesiunilor, așa că fișierul poartă același nume, același format și aceleași Content Credentials pe care le-ar avea direct din instrument.
+- <!--i:search--> **Filtrează câmpurile…** din capul listei restrânge comenzile de pe *fiecare* fișă deodată - și așa ajungi la "titlu" în opt sesiuni fără să-l cauți derulând.
 
 Dă clic pe orice canvas (sau apasă Enter pe el) și fișa din bara laterală a sesiunii aceleia se deschide și intră în vedere. **Save all** scrie fiecare sesiune înapoi în slotul ei. **Download all** salvează întâi, apoi randează tot setul prin aceeași conductă ca **Render selection** din Projects - o singură arhivă zip, cu blocarea opțională prin parolă oferită pe drum.
 

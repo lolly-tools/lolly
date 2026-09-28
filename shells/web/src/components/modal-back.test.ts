@@ -80,6 +80,43 @@ test('onClose fires exactly once however many close paths run', () => {
   assert.equal(calls, 1);
 });
 
+// The "Opening…" card (components/open-progress.ts) opens during a tool mount, while
+// the router is still settling the route, so it stays off the Back stack.
+test('backStack: false pushes no entry and ignores Back and route events', async () => {
+  const before = window.history.length;
+  const closed: unknown[] = [];
+  const handle = mountModal<string>('<p>a</p>', { className: 'modal', backStack: false, cancelValue: 'esc', onClose: r => closed.push(r) });
+  assert.equal(window.history.length, before, 'no entry for Back to consume');
+  fire('popstate');
+  fire('hashchange');
+  fire('lolly:navigate');
+  assert.equal(dialogs(), 1, 'the caller closes it, not the stack');
+  const backsBefore = backs;
+  handle.close('done');
+  await settle();
+  assert.deepEqual(closed, ['done']);
+  assert.equal(backs, backsBefore, 'closing pops nothing it never pushed');
+});
+
+test('dismissOnBackdrop: false ignores a click outside the card, and onEscape replaces the Escape close', () => {
+  let escapes = 0;
+  const closed: unknown[] = [];
+  const handle = mountModal<string>('<p>a</p>', {
+    className: 'modal', backStack: false, dismissOnBackdrop: false, cancelValue: 'esc',
+    onEscape: () => { escapes += 1; }, onClose: r => closed.push(r),
+  });
+  handle.el.getBoundingClientRect = () => ({ left: 100, top: 100, right: 200, bottom: 200, width: 100, height: 100, x: 100, y: 100, toJSON: () => ({}) }) as DOMRect;
+  handle.el.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true, clientX: 5, clientY: 5 }));
+  assert.equal(dialogs(), 1, 'a backdrop click leaves it up');
+  const esc = new dom.window.Event('cancel', { cancelable: true });
+  handle.el.dispatchEvent(esc);
+  assert.equal(esc.defaultPrevented, true, 'the native Escape close is still suppressed');
+  assert.equal(escapes, 1, 'Escape ran the action');
+  assert.equal(dialogs(), 1, 'and the dialog stays until the caller closes it');
+  handle.close('done');
+  assert.deepEqual(closed, ['done']);
+});
+
 test('opening pushes one entry per dialog', () => {
   const before = window.history.length;
   const a = mountModal('<p>a</p>', { className: 'modal' });

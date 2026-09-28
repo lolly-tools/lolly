@@ -52,6 +52,6 @@ Burada AI'ya asla ihtiyacın yok. Onu seçersen, üç şey geçerli olur:
 - <!--i:seal--> **Bir saflık iddiası değil.** Lolly, köken bilgisini geniş kapsamlı okur ve dürüstçe yazar; internetteki her üretilmiş pikseli tespit ettiğini iddia etmez.
 - <!--i:sunburst--> **Bir ahlaki panik değil.** Düşman sel değildir. Kaynağı belirtilmemiş su, düşmandır.
 
-## Bizi buna nasıl bağlı tutarsın
+## Bu taahhütleri kendin kontrol et
 
 Yukarıdaki her taahhüt, bir politika PDF'inde değil, açık kod tabanında uygulanır: köken bilgisi yolu, GEN AI etiketlemesi ve izleyici bulunmaması garantisi, hepsi testlerle birlikte gelir; [Kendin Doğrula](/info/verify-yourself.html) sayfası da bu iddiaları gerçek bir dışa aktarıma karşı nasıl kontrol edeceğini adım adım gösterir. Kod ile bu sayfanın uyuşmadığı bir yer bulursan, hata koddadır.

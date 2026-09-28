@@ -273,7 +273,7 @@ Tools expose only the inputs that are meant to vary - everything else (colours, 
 
 In a live [collaboration](/info/collaborate.html) the history stays yours alone. A change arriving from the other device never goes onto your stack, so undo can only ever take back something you did.
 
-Undo reaches back only through this visit; nine tools also keep earlier versions under **History**, beside **Undo** (see [Go back to an earlier version](/info/find-your-work.html#go-back-to-an-earlier-version)).
+Undo reaches back only through this visit; tools that save as you work also keep earlier versions under **History**, beside **Undo** (see [Go back to an earlier version](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ## Your details & headshot
 
@@ -313,7 +313,7 @@ Paste the link to a colleague, bookmark it or commit it. (Full details: [URL Mod
 
 **Some tools make the link the whole product.** Jump Page gathers your links into one page to hand out - a bio link, a conference talk, a shop front. There is nothing to host and no account behind it: the page is the link, so it opens as fast as the URL travels. In the editor you see the finished page beside the fields; a visitor who opens the link gets it full width, one link per scene as they scroll.
 
-![Jump Page in the editor - the heading, three link scenes each with its own wash and a Made with Lolly footer, laid out as one page in the canvas](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page in the editor: the heading scene at the top of the page, with the link scenes below it](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **The dialog says what a link cannot carry.** Three things don't fit in a URL: an image or file you added from this device, a very long text value or a very large list. Each one is counted as the link is built. If anything had to be dropped the dialog lists it and points you at the file below, instead of handing you a link that opens with the picture missing. A link that is merely *long* gets a milder note with its character count, since packing can still rescue length.
 
@@ -423,7 +423,7 @@ Batch is many variants of *one* design. **Multi-edit** is the other half of the 
 
 One sidebar drives the lot:
 
-- <!--i:sliders--> **Shared** leads it - every input that two or more of the selected sessions declare the *same way* (same id, same type, same constraints - the same merge rule the batch grid uses on its columns). Edit a shared control once and the value fans out to every session that declares it, live on every card. Two sessions of the same tool share everything; two different tools share whatever they happen to have in common, and nothing else.
+- <!--i:sliders--> **Shared** leads it - every input that two or more of the selected sessions declare the *same way* (same id, same type, same constraints - the same merge rule the batch grid uses on its columns). Edit a shared control once and the value fans out to every session that declares it, live on every card. Two sessions of the same tool share everything; two different tools share only the inputs they have in common.
 - <!--i:document--> Under it, **one collapsed card per session** with all of that session's own inputs, at the same fidelity as the tool's own sidebar - asset pickers, repeating row groups, colour fields - plus a compact export block: **Format**, **W** / **H**, **Unit**, **DPI** and its own **Download**. That Download saves the session first and then renders it through the ordinary session-export path, so the file carries the same filename, format and Content Credentials it would straight from the tool.
 - <!--i:search--> **Filter inputs…** at the top narrows the controls across *every* card at once - which is how you get to "the headline" in eight sessions without scrolling for it.
 

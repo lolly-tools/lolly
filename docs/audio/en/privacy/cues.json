@@ -121,32 +121,32 @@
       "end": 346.875
     },
     {
-      "blockId": "when-the-app-talks-to-a-network-in-full",
+      "blockId": "every-network-request-the-app-can-make",
       "start": 347.575,
       "end": 350.7
     },
     {
-      "blockId": "when-the-app-talks-to-a-network-in-full:p1",
+      "blockId": "every-network-request-the-app-can-make:p1",
       "start": 351.05,
       "end": 363.15000000000003
     },
     {
-      "blockId": "when-the-app-talks-to-a-network-in-full:p2",
+      "blockId": "every-network-request-the-app-can-make:p2",
       "start": 363.5,
       "end": 445.775
     },
     {
-      "blockId": "when-the-app-talks-to-a-network-in-full:p3",
+      "blockId": "every-network-request-the-app-can-make:p3",
       "start": 446.125,
       "end": 465.475
     },
     {
-      "blockId": "when-the-app-talks-to-a-network-in-full:p4",
+      "blockId": "every-network-request-the-app-can-make:p4",
       "start": 465.825,
       "end": 535.6
     },
     {
-      "blockId": "when-the-app-talks-to-a-network-in-full:p5",
+      "blockId": "every-network-request-the-app-can-make:p5",
       "start": 535.95,
       "end": 549.25
     },

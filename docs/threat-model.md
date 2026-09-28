@@ -158,7 +158,7 @@ CI's independent jobs are defined in `.github/workflows/ci.yml`: tests,
 typechecks and boundary ratchets, catalogue validation, smoke renders, release
 build/budgets, generated API bundles, render-action self-tests, dependency and
 licence audits, secret history scanning and SAST. The weekly fuzz discovery
-soak is in `.github/workflows/fuzz-soak.yml`. Lint is not among them, by design.
+soak is in `.github/workflows/fuzz-soak.yml`. Lint is not among them.
 
 ## Reporting
 

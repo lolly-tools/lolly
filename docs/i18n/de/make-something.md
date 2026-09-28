@@ -9,7 +9,7 @@ Halten Sie die Webadresse bereit, die der Code öffnen soll, beginnend mit `http
 ## Den Code erstellen
 
 1. Öffnen Sie [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Die Steuerelemente sitzen neben der Vorschau, auf dem Smartphone darüber; was die Vorschau zeigt, ist das, was die Datei sein wird.
-2. Ersetzen Sie unter **URL** die Beispieladresse vollständig durch Ihre eigene. Die Vorschau ändert sich, während Sie tippen.
+2. Ersetzen Sie unter **URL** die gesamte Beispieladresse durch Ihre eigene. Die Vorschau ändert sich, während Sie tippen.
 3. Um Ihre eigenen Farben zu verwenden, stellen Sie **Module colour** und **Background** ein. Halten Sie zwischen beiden einen starken Kontrast, sonst haben Smartphones Mühe, den Code zu lesen.
 4. **Quiet zone**, unter **Modules**, beginnt bei 4. Belassen Sie es bei 4 oder mehr: Dieser schlichte Rand ist es, wonach eine Handykamera sucht.
 

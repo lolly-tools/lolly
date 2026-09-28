@@ -55,6 +55,11 @@
 @media (max-width: 640px) {
   .cat-showhidden .cat-btn-label { display: none; }
 }
+/* Wider screens drop the same labels only when the toolbar would overflow: views/
+   assets/sections.ts fitToolbar measures and adds .is-tight, then .is-compact. */
+.cat-toolbar.is-tight .cat-showhidden .cat-btn-label,
+.cat-toolbar.is-compact .cat-typefilter-opt .cat-btn-label { display: none; }
+.cat-toolbar.is-compact .cat-typefilter-opt { padding: 6px 9px; }
 /* Mobile: the fixed topbar is taller (safe-area inset) - clear it - and let the pill wrap
    / drop the count rather than overflow a narrow viewport. */
 @media (max-width: 640px) {

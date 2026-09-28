@@ -42,6 +42,7 @@ import { strToU8 } from 'fflate';
 import { assetRecordsToImport, packBackupSessions, restoreBackupSessions, type BackupState, type BackupHistoryMode } from './lib/backup-sessions.ts';
 import { backupOwnCounts } from './lib/backup-summary.ts';
 import { mergeProfileRecords } from './lib/profile-merge.ts';
+import { isDiscardedSlot } from './lib/batch-slots.ts';
 import { zipAsync } from './lib/zip.ts';
 import {
   BUNDLE_HEADER, README_NAME, buildIntegrity, readJson, unzipBundle, verifyIntegrity,
@@ -138,6 +139,9 @@ interface BackupSummary {
   assetVersions?: number;
   fileOperations?: number;
   fileBatches?: number;
+  /** The oldest automatic checkpoints left out to keep the history file under its
+   *  limit (plan 277 P4 section 5). Absent when every checkpoint fits. */
+  checkpointsLeftOut?: number;
 }
 
 interface ImportSummary extends BackupSummary {
@@ -249,6 +253,7 @@ function backupReadme(
     `⚙  Preferences        ${summary.prefs}`,
     `↶  Creation checkpoints  ${summary.revisions ?? 0}`,
     `↶  Protected drafts      ${summary.recoveryDrafts ?? 0}`,
+    ...(summary.checkpointsLeftOut ? [`↶  Older automatic checkpoints left out  ${summary.checkpointsLeftOut} (the backup limit)`] : []),
     `↶  Saved asset versions  ${summary.assetVersions ?? 0}`,
     `✓  File operation records ${summary.fileOperations ?? 0} (completed copies included)`,
     `☷  File batch manifests  ${summary.fileBatches ?? 0} (all selected members)`,
@@ -595,8 +600,10 @@ async function removeAbsent(
     sessions: new Set(scope.removable.sessions), assets: new Set(scope.removable.assets),
     designSystems: new Set(scope.removable.designSystems), prefs: new Set(scope.removable.prefs),
   };
+  // Discarded edits kept for History never travel (plan 277 P4), so no bundle holds
+  // them and no replace may remove them.
   const mayRemove = (kind: keyof BackupIds, id: string): boolean =>
-    !keep[kind].has(id) && (allowed === null || allowed[kind].has(id));
+    !keep[kind].has(id) && (allowed === null || allowed[kind].has(id)) && !(kind === 'sessions' && isDiscardedSlot(id));
   const attempt = async (fn: () => Promise<unknown> | unknown): Promise<void> => {
     try { await fn(); removed++; } catch (error) {
       failedRemovals++;

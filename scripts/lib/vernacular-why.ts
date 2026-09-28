@@ -31,7 +31,9 @@ Why it is a ratchet
 
 How to pass
   Reword the flagged lines in plain English. Replace an em dash with a comma,
-  a full stop or " - ". The full phrase list is BANNED_PHRASES in
+  a full stop or " - ". A heading or sentence that ends in "it" makes the
+  reader guess what "it" is: name the thing instead. The full phrase list is
+  BANNED_PHRASES (and RATCHETED_PHRASES) in
   scripts/check-docs-vernacular.ts, with the rules for a literal-use ALLOW entry
   in that file's header.
 `.trimEnd();

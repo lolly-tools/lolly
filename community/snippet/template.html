@@ -3,6 +3,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 .cc-root {
+  position: relative;
   width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
   padding: 56px;
@@ -15,6 +16,7 @@
 
 /* ── Window card ── */
 .cc-window {
+  position: relative;
   width: 100%; max-width: 1088px;
   border-radius: 12px;
   overflow: hidden;
@@ -40,11 +42,13 @@
 
 /* ── Code body ── */
 .cc-body {
+  position: relative;
   display: flex;
   overflow: hidden;
 }
 .cc-gutter {
   flex-shrink: 0;
+  overflow: hidden;
   padding: 20px 16px 20px 20px;
   text-align: right; white-space: pre;
   user-select: none;
@@ -127,9 +131,26 @@
 .cc-callout-text  { display: inline; font-style: var(--cc-ca-style, normal); }
 .cc-callout-text strong { font-weight: 800; }
 .cc-callout-text em     { font-style: italic; }
+
+.cc-marks { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.cc-caret, .cc-selection { position: absolute; }
+.cc-caret { width: 2px; }
+.cc-selection { border-radius: 2px; }
+.cc-pointer { position: absolute; width: 25px; height: 30px; pointer-events: none; z-index: 5; }
+.cc-click-ring { position: absolute; width: 32px; height: 32px; border: 2px solid; border-radius: 50%; pointer-events: none; z-index: 4; }
+.cc-target { position: absolute; width: 0; height: 0; pointer-events: none; }
+.cc-suggestion { position: absolute; z-index: 3; max-width: 80%; padding: 10px 14px; border-radius: 7px; border: 1px solid; font-size: 14px; line-height: 1.5; box-shadow: 0 6px 20px #0003; white-space: normal; }
+.cc-suggestion-text { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 340px; }
+.cc-suggestion-key { display: block; opacity: .7; font-size: 12px; margin-top: 4px; }
+.cc-playback { position: absolute; left: 56px; right: 56px; bottom: 10px; display: flex; align-items: center; gap: 12px; font: 16px/1.3 ui-sans-serif, sans-serif; }
+.cc-playback button { color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 6px; padding: 6px 12px; font: inherit; }
+.cc-playback input { flex: 1; min-width: 30px; }
+.cc-playback output { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cc-scene-warning { position: absolute; left: 56px; right: 56px; top: 12px; font: 16px/1.3 ui-sans-serif, sans-serif; }
+.cc-root [hidden] { display: none !important; }
 </style>
 
-<div class="cc-root" id="cc-root" data-code="{{code}}" data-language="{{language}}" data-theme="{{theme}}" data-window-style="{{windowStyle}}" data-line-numbers="{{lineNumbers}}" data-show-window="{{showWindow}}" data-shadow="{{#if shadow}}on{{else}}off{{/if}}" data-scale="{{scale}}" data-title-scale="{{titleScale}}" data-icon-scale="{{iconScale}}" data-line-height="{{lineHeight}}" data-callout-mode="{{calloutMode}}" data-callout-prefix="{{calloutPrefix}}" data-callout-font="{{calloutFont}}" data-transparent-bg="{{transparentBg}}" data-blink="{{#if blinkCursor}}on{{else}}off{{/if}}">
+<div class="cc-root" id="cc-root" data-clip-ms="{{snippetClipMs}}" data-code="{{code}}" data-language="{{language}}" data-theme="{{theme}}" data-window-style="{{windowStyle}}" data-line-numbers="{{lineNumbers}}" data-show-window="{{showWindow}}" data-shadow="{{#if shadow}}on{{else}}off{{/if}}" data-scale="{{scale}}" data-title-scale="{{titleScale}}" data-icon-scale="{{iconScale}}" data-line-height="{{lineHeight}}" data-callout-mode="{{calloutMode}}" data-callout-prefix="{{calloutPrefix}}" data-callout-font="{{calloutFont}}" data-transparent-bg="{{transparentBg}}" data-blink="{{#if blinkCursor}}on{{else}}off{{/if}}">
   <div class="cc-window" id="cc-window">
     <div class="cc-header" id="cc-header">
       <div class="cc-controls cc-controls-left" id="cc-controls-left"></div>
@@ -141,6 +162,7 @@
       <pre class="cc-code" id="cc-code"></pre>
     </div>
   </div>
+  <script type="application/json" class="cc-scene">{{{snippetScene}}}</script>
 </div>
 
 <script>
@@ -178,8 +200,11 @@
     return out;
   }
 
-  var root = document.getElementById('cc-root');
-  var code = expandTabs(root.dataset.code || DEFAULT_CODE, TAB_SIZE);
+  var root = document.currentScript && document.currentScript.previousElementSibling;
+  if (!root || root.id !== 'cc-root') root = document.getElementById('cc-root');
+  if (root.__snippet) root.__snippet.destroy();
+  var code = expandTabs(root.dataset.code == null ? DEFAULT_CODE : root.dataset.code.replace(/\r\n?/g, '\n'), TAB_SIZE);
+  var scene = JSON.parse(root.querySelector('.cc-scene').textContent);
   var language = root.dataset.language || 'javascript';
   var theme = root.dataset.theme || 'suse-dark';
   var lineNums = root.dataset.lineNumbers !== 'false';
@@ -371,13 +396,13 @@
   var t = THEMES[theme] || THEMES['suse-dark'];
 
   // ── Apply theme ──────────────────────────────────────────────────────────
-  var window_ = document.getElementById('cc-window');
-  var header = document.getElementById('cc-header');
-  var codeEl = document.getElementById('cc-code');
-  var gutter = document.getElementById('cc-gutter');
-  var filenameEl = document.getElementById('cc-filename');
-  var leftCtl = document.getElementById('cc-controls-left');
-  var rightCtl = document.getElementById('cc-controls-right');
+  var window_ = root.querySelector('#cc-window');
+  var header = root.querySelector('#cc-header');
+  var codeEl = root.querySelector('#cc-code');
+  var gutter = root.querySelector('#cc-gutter');
+  var filenameEl = root.querySelector('#cc-filename');
+  var leftCtl = root.querySelector('#cc-controls-left');
+  var rightCtl = root.querySelector('#cc-controls-right');
 
   root.style.background = transparentBg ? 'transparent' : t.outerBg;
   if (!shadow) window_.style.boxShadow = 'none';
@@ -403,7 +428,7 @@
 
   // ── Window chrome ────────────────────────────────────────────────────────
   if (!showWindow) {
-    document.getElementById('cc-header').style.display = 'none';
+    header.style.display = 'none';
     gutter.style.borderTop = 'none';
   }
 
@@ -590,27 +615,377 @@
   function fit() {
     var availH = root.clientHeight - 112; // 56px root-padding each side
     if (availH <= 0) { applyFs(13 * IS); return; }
-    var lo = 7, hi = 26;
+    var lo = 0, hi = 26 * IS;
     applyFs(hi);
     if (window_.scrollHeight <= availH && codeEl.scrollWidth <= codeEl.clientWidth) {
-      applyFs(hi * IS); return;
+      applyFs(hi); return;
     }
-    while (hi - lo > 0.25) {
+    while (hi - lo > 0.01) {
       var mid = (lo + hi) / 2;
       applyFs(mid);
       if (window_.scrollHeight > availH || codeEl.scrollWidth > codeEl.clientWidth) hi = mid;
       else lo = mid;
     }
-    applyFs(lo * IS);
+    applyFs(lo);
   }
 
   fit();
+  mountScene();
 
-  // Re-fit whenever the canvas element is resized
-  if (window.__ccRo) window.__ccRo.disconnect();
-  if (typeof ResizeObserver !== 'undefined') {
-    window.__ccRo = new ResizeObserver(function() { fit(); });
-    window.__ccRo.observe(root);
+  function mountScene() {
+    let body = root.querySelector('#cc-body');
+    let source = document.createElement('span');
+    source.className = 'cc-source'; source.style.display = 'block';
+    source.innerHTML = highlighted;
+    codeEl.replaceChildren(source);
+    let numberLines = document.createElement('div'); numberLines.className = 'cc-number-lines'; numberLines.textContent = gutter.textContent;
+    gutter.replaceChildren(numberLines);
+    let library = document.createElement('div'); library.hidden = true; library.dataset.exportHide = ''; library.setAttribute('aria-hidden', 'true');
+    let documents = scene.animated ? scene.docs.map(function (doc) {
+      let element = document.createElement('span'); element.innerHTML = doc.html; library.appendChild(element);
+      return { element: element, parts: null };
+    }) : [];
+    root.appendChild(library);
+    let marks = document.createElement('div'); marks.className = 'cc-marks'; marks.setAttribute('aria-hidden', 'true'); body.appendChild(marks);
+    let caret = document.createElement('div'); caret.className = 'cc-caret'; caret.style.background = t.fg; marks.appendChild(caret);
+    let suggestion = document.createElement('div'); suggestion.className = 'cc-suggestion'; suggestion.hidden = true;
+    suggestion.style.background = t.headerBg; suggestion.style.color = t.fg; suggestion.style.borderColor = rgba(t.fg, .25);
+    let suggestionText = document.createElement('span'); suggestionText.className = 'cc-suggestion-text';
+    let suggestionKey = document.createElement('span'); suggestionKey.className = 'cc-suggestion-key'; suggestionKey.textContent = 'Tab to accept';
+    suggestion.append(suggestionText, suggestionKey); body.appendChild(suggestion);
+    let target = document.createElement('span'); target.className = 'cc-target'; window_.appendChild(target);
+    let pointer = document.createElementNS(SVGNS, 'svg'); pointer.classList.add('cc-pointer'); pointer.setAttribute('viewBox', '0 0 25 30'); pointer.setAttribute('aria-hidden', 'true');
+    let cursorScale = scene.cursorScale || 1;
+    pointer.style.width = (25 * cursorScale) + 'px'; pointer.style.height = (30 * cursorScale) + 'px';
+    let arrow = document.createElementNS(SVGNS, 'path'); arrow.setAttribute('d', 'M3 2 L3 23 L8 18 L12 27 L16 25 L12 17 L20 17 Z'); arrow.setAttribute('fill', t.fg); arrow.setAttribute('stroke', t.codeBg); arrow.setAttribute('stroke-width', '1.5');
+    let beam = document.createElementNS(SVGNS, 'path'); beam.setAttribute('d', 'M3 2 H13 M8 2 V23 M3 23 H13'); beam.setAttribute('fill', 'none'); beam.setAttribute('stroke', t.fg); beam.setAttribute('stroke-width', '2');
+    pointer.append(arrow, beam); root.appendChild(pointer);
+    let ring = document.createElement('div'); ring.className = 'cc-click-ring'; ring.style.borderColor = t.fg; root.appendChild(ring);
+    let clock = document.createElement('canvas'); clock.width = clock.height = 0; clock.style.display = 'none'; clock.setAttribute('aria-hidden', 'true');
+    if (scene.animated) root.appendChild(clock);
+    let controls = document.createElement('div'); controls.className = 'cc-playback'; controls.dataset.exportHide = ''; controls.style.color = t.fg;
+    let play = document.createElement('button'); play.type = 'button'; play.textContent = 'Play';
+    let scrub = document.createElement('input'); scrub.type = 'range'; scrub.min = '0'; scrub.max = String(scene.duration); scrub.step = '.01'; scrub.setAttribute('aria-label', 'Scene time in seconds');
+    let output = document.createElement('output'); output.setAttribute('aria-live', 'off');
+    controls.append(play, scrub, output); controls.hidden = !scene.animated; root.appendChild(controls);
+    let warning = document.createElement('div'); warning.className = 'cc-scene-warning'; warning.dataset.exportHide = ''; warning.setAttribute('role', 'status'); warning.style.color = t.fg;
+    warning.textContent = scene.warnings.join(' '); warning.hidden = !warning.textContent; root.appendChild(warning);
+    let closeButton = windowStyle === 'cupertino' ? leftCtl.firstElementChild : rightCtl.lastElementChild;
+    let selected = [], textNodes = [], currentDoc = -1, lastCut = '', time = scene.posterAt < 0 ? scene.poster : scene.posterAt;
+    let playing = false, poster = true, frame = 0, lastNow = 0, exportMode = '', exportLength = scene.duration, saved = null, disposed = false;
+    let observer, removal, poseFit = 1;
+    let maxLines = Math.max.apply(null, scene.docs.map(function (doc) { return doc.text.split('\n').length; }));
+    if (lineNums && scene.animated) gutter.style.width = 'calc(' + String(maxLines).length + 'ch + ' + (36 * IS + 1) + 'px)';
+    if (scene.animated) root.dataset.blink = 'off';
+    codeEl.style.whiteSpace = scene.wrap ? 'pre-wrap' : 'pre';
+    codeEl.style.overflowWrap = scene.wrap ? 'anywhere' : 'normal';
+
+    function clamp(n) { return Math.max(0, Math.min(1, n)); }
+    function ease(n) { n = clamp(n); return n * n * (3 - 2 * n); }
+    function revealed(cuts, fraction) {
+      let lo = 0, hi = cuts.length;
+      while (lo < hi) { let mid = (lo + hi) >> 1; if (cuts[mid][0] <= fraction) lo = mid + 1; else hi = mid; }
+      return lo ? cuts[lo - 1][1] : 0;
+    }
+    function viewAt(seconds) {
+      let state = scene.initial, active = null;
+      for (let i = 0; i < scene.events.length; i++) {
+        let event = scene.events[i];
+        if (seconds >= event.end) state = event.after;
+        else if (seconds >= event.start) { active = event; break; }
+        else break;
+      }
+      let view = { state: Object.assign({}, state), event: active, progress: 1, hidden: null, opening: state.open ? 1 : 0, closing: 0, typing: false, completion: false };
+      if (!active) return view;
+      let p = clamp((seconds - active.start) / Math.max(.001, active.end - active.start));
+      view.progress = p; view.state = Object.assign({}, active.before);
+      if (active.action === 'open') { view.state.open = true; view.opening = ease(p); }
+      if (active.action === 'close') { view.closing = ease((p - .6) / .3); view.opening = active.before.open ? 1 : 0; }
+      if (active.action === 'click' && p >= .85) view.state = Object.assign({}, active.after);
+      if (['type', 'replace', 'complete'].includes(active.action) && (active.action !== 'replace' || active.before.selection)) {
+        let count = active.action === 'complete' ? (p < .8 ? 0 : active.insert.length) : revealed(active.cuts, p);
+        view.state = Object.assign({}, active.after);
+        view.state.caret = active.at + count;
+        view.hidden = [active.at + count, active.at + active.insert.length];
+        view.opening = 1; view.typing = true; view.completion = active.action === 'complete' && p < .8;
+      }
+      if (active.action === 'select' && active.after.selection) {
+        let range = active.after.selection;
+        let end = range[0] + revealed(active.cuts, clamp((p - .3) / .7));
+        view.state.selection = [range[0], end]; view.state.caret = end;
+        view.state.focused = true;
+      }
+      return view;
+    }
+    function documentParts(record) {
+      if (record.parts && record.parts.every(function (part) { return record.element.contains(part.node); })) return record.parts;
+      if (record.parts) record.parts.forEach(function (part) { if (record.element.contains(part.node) && !part.emoji) part.node.textContent = part.text; });
+      let parts = [], offset = 0;
+      function visit(node) {
+        let emoji = node.nodeType === 1 && node.classList.contains('lolly-emoji');
+        if (emoji || node.nodeType === 3) {
+          let text = emoji ? node.getAttribute('data-emoji') : node.textContent;
+          parts.push({ node: node, text: text, start: offset, emoji: emoji }); offset += text.length;
+        } else Array.from(node.childNodes).forEach(visit);
+      }
+      visit(record.element); record.parts = parts; return parts;
+    }
+    function restoreDocument(record) {
+      documentParts(record).forEach(function (part) { if (part.emoji) part.node.hidden = false; else part.node.textContent = part.text; });
+    }
+    function loadDocument(id) {
+      let record = documents[id], parts = documentParts(record);
+      if (id === currentDoc && parts === textNodes) return;
+      if (source.firstChild !== record.element && documents.some(function (doc) { return doc.element === source.firstChild; })) library.appendChild(source.firstChild);
+      source.replaceChildren(record.element);
+      currentDoc = id; textNodes = parts; lastCut = '';
+    }
+    function paintText(view) {
+      loadDocument(view.state.doc);
+      let hidden = view.hidden || [0, 0], key = hidden.join(':');
+      if (lastCut === key) return;
+      lastCut = key;
+      textNodes.forEach(function (part) {
+        let a = Math.max(0, Math.min(part.text.length, hidden[0] - part.start));
+        let b = Math.max(0, Math.min(part.text.length, hidden[1] - part.start));
+        if (part.emoji) part.node.hidden = a === 0 && b === part.text.length && b > a;
+        else part.node.textContent = part.text.slice(0, a) + part.text.slice(b);
+      });
+      if (lineNums) {
+        let count = visibleText().split('\n').length;
+        numberLines.textContent = Array.from({ length: count }, function (_, n) { return n + 1; }).join('\n');
+      }
+    }
+    function visibleText() {
+      return scene.animated ? textNodes.map(function (part) { return part.emoji ? (part.node.hidden ? '' : part.text) : part.node.textContent; }).join('') : source.textContent;
+    }
+    function textRange(start, end) {
+      let parts = scene.animated ? textNodes : documentParts({ element: source, parts: null });
+      let offset = 0, first = null, last = null;
+      function endpoint(part, at) {
+        if (!part.emoji) return [part.node, at];
+        let parent = part.node.parentNode, index = Array.prototype.indexOf.call(parent.childNodes, part.node);
+        return [parent, index + (at > 0 ? 1 : 0)];
+      }
+      for (let i = 0; i < parts.length; i++) {
+        let part = parts[i];
+        if (part.emoji && part.node.hidden) continue;
+        let length = part.emoji ? part.text.length : part.node.textContent.length, next = offset + length;
+        if (!first && start <= next) first = endpoint(part, Math.max(0, start - offset));
+        if (end <= next) { last = endpoint(part, Math.max(0, end - offset)); break; }
+        offset = next;
+      }
+      if (!first || !last) return null;
+      let range = document.createRange(); range.setStart(first[0], first[1]); range.setEnd(last[0], last[1]); return range;
+    }
+    function caretRect(offset) {
+      let range = textRange(offset, offset), rect = range && range.getBoundingClientRect && range.getBoundingClientRect();
+      if (rect && rect.height) return rect;
+      let box = codeEl.getBoundingClientRect(), css = getComputedStyle(codeEl), zoom = root.getBoundingClientRect().width / (root.clientWidth || 1) || 1;
+      let x = box.left + parseFloat(css.paddingLeft) * zoom, y = box.top + parseFloat(css.paddingTop) * zoom;
+      if (offset > 0) {
+        let start = offset - 1, position = 0;
+        textNodes.forEach(function (part) {
+          let length = part.emoji ? (part.node.hidden ? 0 : part.text.length) : part.node.textContent.length;
+          if (part.emoji && offset > position && offset <= position + length) start = position;
+          position += length;
+        });
+        let previous = textRange(start, offset), before = previous && previous.getBoundingClientRect && previous.getBoundingClientRect();
+        if (before && before.height) {
+          let newline = visibleText().charAt(offset - 1) === '\n';
+          x = newline ? x - codeEl.scrollLeft * zoom : before.right;
+          y = before.top + (newline ? parseFloat(css.lineHeight) * zoom : 0);
+          return { left: x, right: x, top: y, bottom: y + before.height, height: before.height };
+        }
+      }
+      let height = parseFloat(css.fontSize) * zoom;
+      return { left: x, right: x, top: y, bottom: y + height, height: height };
+    }
+    function poseStyle(view, exit) {
+      let intro = 1 - view.opening, outro = exit ? view.closing : 0;
+      let scaleBy = 1 - (scene.entry === 'scale' ? intro * .06 : 0) - (scene.exit === 'scale' ? outro * .08 : 0);
+      let y = (scene.entry === 'slide' ? intro * 45 : 0) + (scene.exit === 'slide' ? outro * 45 : 0);
+      let transforms = [];
+      if (scene.tiltX || scene.tiltY) transforms.push('perspective(1100px)', 'rotateX(' + scene.tiltX + 'deg)', 'rotateY(' + scene.tiltY + 'deg)');
+      if (scene.rotate) transforms.push('rotate(' + scene.rotate + 'deg)');
+      if (y) transforms.push('translateY(' + y + 'px)');
+      if (scaleBy * poseFit !== 1) transforms.push('scale(' + scaleBy * poseFit + ')');
+      return transforms.join(' ') || 'none';
+    }
+    function placePointer(view, point, isPoster) {
+      let stage = root.getBoundingClientRect(), sx = root.clientWidth / (stage.width || 1), sy = root.clientHeight / (stage.height || 1);
+      let idle = { x: root.clientWidth * .85, y: root.clientHeight * .78 };
+      target.style.left = point.x + 'px'; target.style.top = point.y + 'px';
+      let rect = target.getBoundingClientRect();
+      let hit = { x: (rect.left - stage.left) * sx, y: (rect.top - stage.top) * sy };
+      let event = view.event, p = view.progress, action = event && event.action, position = idle, isText = false;
+      function mix(a, b, amount) { return { x: a.x + (b.x - a.x) * amount, y: a.y + (b.y - a.y) * amount }; }
+      if (action === 'click') { position = mix(idle, hit, ease(p / .85)); isText = p >= .85; }
+      if (action === 'type' || action === 'replace' || action === 'complete') position = mix(hit, idle, ease(p * 5));
+      if (action === 'select') { position = p < .3 ? mix(idle, hit, ease(p / .3)) : hit; isText = p >= .3; }
+      if (action === 'wait' && view.state.selection) { position = hit; isText = true; }
+      if (action === 'close' && showWindow && closeButton) {
+        let close = closeButton.getBoundingClientRect();
+        hit = { x: (close.left + close.width / 2 - stage.left) * sx, y: (close.top + close.height / 2 - stage.top) * sy };
+        position = mix(idle, hit, ease(p / .55));
+      }
+      pointer.hidden = isPoster || !scene.animated || !scene.pointer || !view.state.open || view.closing >= 1 || action === 'open';
+      pointer.style.display = pointer.hidden ? 'none' : 'block';
+      pointer.style.left = (position.x - (isText ? 8 : 3) * cursorScale) + 'px'; pointer.style.top = (position.y - (isText ? 12 : 2) * cursorScale) + 'px';
+      if (closeButton) closeButton.style.filter = action === 'close' && p > .45 && p < .75 ? 'brightness(1.25)' : '';
+      arrow.style.display = isText ? 'none' : ''; beam.style.display = isText ? '' : 'none';
+      let pulse = action === 'click' ? (p - .85) / .15 : action === 'close' && showWindow ? (p - .55) / .15 : -1;
+      ring.hidden = pointer.hidden || !scene.clickRing || pulse < 0 || pulse > 1;
+      ring.style.left = (position.x - 16) + 'px'; ring.style.top = (position.y - 16) + 'px'; ring.style.opacity = String(1 - clamp(pulse)); ring.style.transform = 'scale(' + (.5 + clamp(pulse)) + ')';
+    }
+    function paint(seconds, isPoster) {
+      time = Math.max(0, Math.min(scene.duration, seconds)); poster = isPoster;
+      let view = viewAt(time);
+      window_.style.transform = 'none';
+      if (scene.animated) paintText(view);
+      let zoom = root.getBoundingClientRect().width / (root.clientWidth || 1) || 1;
+      codeEl.scrollTop = codeEl.scrollLeft = gutter.scrollTop = 0;
+      source.style.transform = numberLines.style.transform = 'none';
+      let rect = caretRect(view.state.caret), area = body.getBoundingClientRect();
+      if (scene.wrap && lineNums) {
+        let offset = 0, css = getComputedStyle(codeEl), linePx = parseFloat(css.fontSize) * lineHeight;
+        let numbers = visibleText().split('\n').map(function (line, index) {
+          let range = textRange(offset, offset + line.length), rows = range && range.getClientRects ? Array.from(range.getClientRects()) : [];
+          let tops = rows.filter(function (r) { return r.height; }).map(function (r) { return r.top; });
+          let height = tops.length ? (Math.max.apply(null, tops) - Math.min.apply(null, tops)) / zoom + linePx : linePx;
+          let number = document.createElement('span'); number.textContent = String(index + 1); number.style.display = 'block'; number.style.height = height + 'px';
+          offset += line.length + 1;
+          return number;
+        });
+        numberLines.replaceChildren.apply(numberLines, numbers);
+      }
+      if (scene.scroll) {
+        let scrollY = Math.max(0, Math.min(codeEl.scrollHeight - codeEl.clientHeight, (rect.bottom - area.bottom) / zoom + 40 * IS));
+        let scrollX = scene.wrap ? 0 : Math.max(0, Math.min(codeEl.scrollWidth - codeEl.clientWidth + 24 * IS, (rect.right - codeEl.getBoundingClientRect().right) / zoom + 35 * IS));
+        // Content transforms preserve the scroll position in captured frames.
+        source.style.transform = 'translate(' + -scrollX + 'px,' + -scrollY + 'px)';
+        numberLines.style.transform = 'translateY(' + -scrollY + 'px)';
+        rect = caretRect(view.state.caret);
+      }
+      let base = window_.getBoundingClientRect();
+      let point = { x: (rect.left - base.left) / zoom, y: (rect.top - base.top + rect.height * .6) / zoom };
+      selected.forEach(function (el) { el.remove(); }); selected = [];
+      if (view.state.selection && !isPoster) {
+        let range = textRange(view.state.selection[0], view.state.selection[1]);
+        if (range && range.getClientRects) Array.from(range.getClientRects()).forEach(function (r) {
+          let el = document.createElement('div'); el.className = 'cc-selection'; el.style.background = rgba(t.number, .3);
+          el.style.cssText += ';left:' + (r.left - area.left) / zoom + 'px;top:' + (r.top - area.top) / zoom + 'px;width:' + r.width / zoom + 'px;height:' + r.height / zoom + 'px';
+          marks.appendChild(el); selected.push(el);
+        });
+      }
+      caret.hidden = !scene.animated || isPoster || !view.state.focused || !!view.state.selection || (!view.typing && Math.floor(time * 2) % 2 === 1);
+      caret.style.left = (rect.left - area.left) / zoom + 'px'; caret.style.top = (rect.top - area.top) / zoom + 'px'; caret.style.height = rect.height / zoom + 'px';
+      suggestion.hidden = !view.completion || isPoster;
+      if (view.completion) {
+        suggestionText.textContent = view.event.insert.split('\n')[0] || 'Insert remaining text';
+        suggestion.style.left = suggestion.style.top = '0px';
+        let menuWidth = suggestion.offsetWidth, menuHeight = suggestion.offsetHeight;
+        suggestion.style.left = Math.max(0, Math.min(body.clientWidth - menuWidth - 4, (rect.left - area.left) / zoom)) + 'px';
+        suggestion.style.top = Math.max(0, Math.min(body.clientHeight - menuHeight - 4, (rect.bottom - area.top) / zoom + 5)) + 'px';
+      }
+      window_.style.transform = poseStyle(view, false);
+      placePointer(view, point, isPoster);
+      window_.style.transform = poseStyle(view, true);
+      window_.style.opacity = String((scene.entry === 'none' ? (view.opening > 0 ? 1 : 0) : view.opening) * (scene.exit === 'none' ? (view.closing < 1 ? 1 : 0) : 1 - view.closing));
+      root.dataset.sceneAction = view.event ? view.event.action : 'hold';
+      scrub.value = String(time); output.textContent = time.toFixed(1) + ' / ' + scene.duration.toFixed(1) + ' s';
+      play.textContent = playing ? 'Pause' : 'Play'; play.setAttribute('aria-pressed', String(playing));
+    }
+    function layout() {
+      if (disposed) return;
+      window_.style.transform = 'none'; body.style.height = ''; codeEl.style.height = ''; gutter.style.height = '';
+      source.style.transform = numberLines.style.transform = 'none';
+      if (scene.animated) {
+        let maxHeight = 0;
+        function measure(fs) {
+          applyFs(fs); let fits = true; maxHeight = 0;
+          documents.forEach(function (record, index) {
+            restoreDocument(record); loadDocument(index);
+            if (lineNums) numberLines.textContent = Array.from({ length: scene.docs[index].text.split('\n').length }, function (_, n) { return n + 1; }).join('\n');
+            maxHeight = Math.max(maxHeight, codeEl.scrollHeight);
+            if (codeEl.scrollWidth > codeEl.clientWidth + 1 || window_.scrollHeight > root.clientHeight - 112) fits = false;
+          });
+          return fits;
+        }
+        if (scene.scroll) measure(22 * IS);
+        else {
+          let lo = 0, hi = 26 * IS;
+          while (hi - lo > .01) { let mid = (lo + hi) / 2; if (measure(mid)) lo = mid; else hi = mid; }
+          measure(lo);
+        }
+        let minHeight = scene.events.some(function (event) { return event.action === 'complete'; }) ? 80 : 60;
+        body.style.height = Math.max(minHeight, Math.min(maxHeight, root.clientHeight - 112 - header.offsetHeight)) + 'px';
+        codeEl.style.height = gutter.style.height = '100%';
+        currentDoc = -1;
+      } else { fit(); }
+      let smallText = !scene.scroll && parseFloat(codeEl.style.fontSize) < 7 * IS;
+      warning.textContent = scene.warnings.join(' ') + (smallText ? ' Text is very small. Choose Scroll with the caret for a closer view.' : '');
+      warning.hidden = !warning.textContent;
+      poseFit = 1;
+      if (root.clientWidth && (scene.rotate || scene.tiltX || scene.tiltY)) {
+        for (let attempt = 0; attempt < 3; attempt++) {
+          window_.style.transform = poseStyle({ opening: 1, closing: 0 }, false);
+          let stage = root.getBoundingClientRect(), posed = window_.getBoundingClientRect();
+          let cx = stage.left + stage.width / 2, cy = stage.top + stage.height / 2;
+          let fitScale = Math.min(1, stage.width * .45 / Math.max(cx - posed.left, posed.right - cx, 1), stage.height * .43 / Math.max(cy - posed.top, posed.bottom - cy, 1));
+          poseFit *= fitScale;
+        }
+      }
+      paint(time, poster);
+    }
+    function stop() { playing = false; if (frame && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame); }
+    function tick(now) {
+      if (disposed || !root.isConnected) { destroy(); return; }
+      if (!playing) return;
+      if (!clock.__lollyFrameDriven && !exportMode) {
+        let next = Math.min(scene.duration, time + (now - lastNow) / 1000);
+        if (next >= scene.duration) stop();
+        paint(next, false);
+      }
+      lastNow = now;
+      if (playing) frame = requestAnimationFrame(tick);
+    }
+    function destroy() { disposed = true; stop(); if (observer) observer.disconnect(); if (removal) removal.disconnect(); }
+    play.addEventListener('click', function () {
+      if (playing) stop();
+      else { if (poster || time >= scene.duration) time = 0; playing = true; lastNow = performance.now(); frame = requestAnimationFrame(tick); }
+      paint(time, false);
+    });
+    scrub.addEventListener('input', function () { stop(); paint(Number(scrub.value), false); });
+    clock.__lollyFrameRender = function (fraction, clipSeconds) {
+      let still = exportMode === 'still' || (!clipSeconds && exportMode !== 'motion');
+      let span = exportMode === 'motion' ? (clipSeconds || exportLength) * scene.duration / exportLength : scene.duration;
+      paint(still ? (scene.posterAt < 0 ? scene.poster : scene.posterAt) : clamp(fraction) * span, still);
+    };
+    root.__snippet = {
+      animated: scene.animated, duration: scene.duration,
+      seek: function (seconds) { stop(); paint(seconds, false); },
+      prepareExport: function (motion, length) {
+        if (motion && scene.warnings.length) throw new Error(scene.warnings.join(' '));
+        documents.forEach(restoreDocument);
+        currentDoc = -1;
+        saved = { time: time, playing: playing, poster: poster }; stop(); exportMode = motion ? 'motion' : 'still';
+        exportLength = Number.isFinite(length) && length > 0 ? length : scene.duration;
+        paint(motion ? 0 : (scene.posterAt < 0 ? scene.poster : scene.posterAt), !motion);
+      },
+      finishExport: function () {
+        exportMode = '';
+        if (!saved) return;
+        let previous = saved; saved = null; playing = previous.playing;
+        paint(previous.time, previous.poster);
+        if (playing) { lastNow = performance.now(); frame = requestAnimationFrame(tick); }
+      },
+      destroy: destroy
+    };
+    layout();
+    if (typeof ResizeObserver !== 'undefined') { observer = new ResizeObserver(layout); observer.observe(root); }
+    if (typeof MutationObserver !== 'undefined') { removal = new MutationObserver(function () { if (!root.isConnected) destroy(); }); removal.observe(root.ownerDocument, { childList: true, subtree: true }); }
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { if (!disposed && root.isConnected) layout(); });
   }
 
 }());

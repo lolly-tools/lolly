@@ -224,14 +224,15 @@ export function openHistoryPanel(opts: {
   };
   let showedDivergence = false;
   const unsubscribe = opts.controller?.subscribe(() => {
-    // The controller's message drives the refresh cadence; it is no longer rendered
-    // (failures still reach the user through the undo toast the controller raises).
-    const message = opts.controller?.status() ?? '';
-    if (message.startsWith('Checkpoint saved at')) { previews?.refresh(); void recoveryView.refresh(); }
+    // What the controller did drives the refresh cadence. Its message is translated
+    // and no longer rendered here (failures still reach the user through the undo
+    // toast the controller raises), so the code, not the words, is compared.
+    const activity = opts.controller?.activity();
+    if (activity === 'checkpoint') { previews?.refresh(); void recoveryView.refresh(); }
     // Do not reset someone's older page or move keyboard focus on each save.
-    if (message.startsWith('Checkpoint saved at') && !list.querySelector('article')) void load();
-    if (message.startsWith('Current work saved')) void (recovery.hidden ? recoveryView.refresh() : recoveryView.update());
-    if (message.startsWith('Another tab saved') && !showedDivergence) { showedDivergence = true; void recoveryView.refresh(); }
+    if (activity === 'checkpoint' && !list.querySelector('article')) void load();
+    if (activity === 'draft') void (recovery.hidden ? recoveryView.refresh() : recoveryView.update());
+    if (activity === 'diverged' && !showedDivergence) { showedDivergence = true; void recoveryView.refresh(); }
   });
   close.addEventListener('click', dispose);
   refresh.addEventListener('click', () => { void load(); });

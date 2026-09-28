@@ -35,7 +35,7 @@
 
 ### एक व्यक्ति के रूप में
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ![हेडशॉट कंट्रोल, जो तब तक खाली रहता है जब तक आप एक फ़ोटो अपलोड नहीं करते, जो फिर इसी डिवाइस पर बनी रहती है](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -122,7 +122,7 @@ parts के नीचे प्रति-टूल सूची है: हर 
 
 ## टूल आपकी प्रोफ़ाइल का उपयोग कैसे करते हैं
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 कोई भी टूल केवल वही प्रोफ़ाइल फ़ील्ड *प्री-फ़िल* करता है जिन्हें बाँधने के लिए वह स्पष्ट रूप से बनाया गया था:
 

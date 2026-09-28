@@ -52,6 +52,6 @@ Nu ai nevoie de AI aici, niciodată. Dacă alegi să-l folosești, trei lucruri 
 - <!--i:seal--> **Nu este o pretenție de puritate.** Lolly citește proveniența cât mai larg posibil și o scrie onest; nu pretinde că detectează fiecare pixel generat de pe internet.
 - <!--i:sunburst--> **Nu este panică morală.** Potopul nu este dușmanul. Apa neatribuită este.
 
-## Cum să ne tragi la răspundere
+## Verifică singur aceste angajamente
 
 Fiecare angajament de mai sus este aplicat în codul sursă deschis, nu într-un PDF de politici: traseul proveniență, etichetarea GEN AI și garanția fără trackere vin toate cu teste, iar pagina [Verifică singur](/info/verify-yourself.html) te ghidează pas cu pas prin verificarea afirmațiilor pe un export real. Dacă găsești un loc în care codul și această pagină nu sunt de acord, codul este bug-ul.

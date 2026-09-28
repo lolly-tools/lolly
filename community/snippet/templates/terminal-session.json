@@ -1,0 +1,71 @@
+{
+  "id": "terminal-session",
+  "name": "Terminal walkthrough",
+  "category": "Animated",
+  "description": "A short authored command, a pause for output and a finished build.",
+  "values": {
+    "scene": "custom",
+    "language": "plain",
+    "theme": "github-dark",
+    "windowStyle": "nuremberg",
+    "lineNumbers": false,
+    "showWindow": true,
+    "shadow": true,
+    "scale": 100,
+    "lineHeight": 1.65,
+    "blinkCursor": false,
+    "textOverflow": "fit",
+    "wrapText": false,
+    "calloutMode": "off",
+    "windowRotate": 0,
+    "windowTiltX": 0,
+    "windowTiltY": 0,
+    "showPointer": true,
+    "cursorSize": 125,
+    "clickRing": false,
+    "typingStyle": "natural",
+    "entryMotion": "scale",
+    "exitMotion": "fade",
+    "posterAt": -1,
+    "code": "$ npm run build\n\nBuilt 12 modules.\nReady to ship.",
+    "fileName": "Terminal",
+    "startFilled": false,
+    "steps": [
+      {
+        "action": "open",
+        "text": "",
+        "seconds": 0.4
+      },
+      {
+        "action": "click",
+        "text": "",
+        "seconds": 0.6
+      },
+      {
+        "action": "type",
+        "text": "$ npm run build",
+        "seconds": 1.8
+      },
+      {
+        "action": "wait",
+        "text": "",
+        "seconds": 0.7
+      },
+      {
+        "action": "type",
+        "text": "\n\nBuilt 12 modules.\nReady to ship.",
+        "seconds": 0.3
+      },
+      {
+        "action": "wait",
+        "text": "",
+        "seconds": 2.4
+      },
+      {
+        "action": "close",
+        "text": "",
+        "seconds": 0.8
+      }
+    ]
+  }
+}

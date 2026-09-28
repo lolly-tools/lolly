@@ -16,7 +16,7 @@ Tvá značka je v Lolly malý dokument s **design tokeny** - barvy, písma a pá
 
 Při prvním spuštění se ocitneš v **galerii** a přes ni je krátký uvítací dialog se třemi cestami dovnitř - **Udělej si to po svém** (Brand Studio na `#/start`), **Přines svůj design** (přetáhni soubor z Figmy, Penpotu, InDesignu nebo PDF a otevře se jako editovatelné rozvržení - nejrychlejší cesta k [Přines si, co už máš](#2-bring-in-what-you-already-have) níže) a **Prozkoumat nástroje komunity** - a k tomu řádek jazyků, pokud angličtina není ta tvá. Vezmi první kartu a přistaneš v [**Brand Studiu**](/info/brand-studio.html). Zadej název a primární barvu a Lolly z nich *odvodí* kompletní, přístupnou paletu - světlé/tmavé plochy, text, akcenty - pomocí stejné barevné matematiky, kterou engine používá všude jinde.
 
-![Místnost Barvy v Brand Studiu - primární barva a přístupná paleta, kterou z ní Lolly odvodí](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Vyber písmo a za necelou minutu máš funkční značku. Odtud tě šest místností studia - Přehled, Barvy, Písmo, Loga, Tokeny, Soubory - pustí tak daleko, jak chceš, v libovolném pořadí, a cokoli z toho můžeš doladit, kdykoli se vrátíš. Záložka **Systém designu** v přehledu (`#/d`) ukazuje výsledek jen ke čtení a odkazuje zpět na `#/start`, kde se edituje (pokud nejsi na sestavení Lolly se zamčenou značkou, kde je značka pevně daná a není co měnit).
+![Místnost Barvy v Brand Studiu na čerstvé instalaci - jeden živý čip, jedno pole a celé první rozhodnutí](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Vyber písmo a za necelou minutu máš funkční značku. Odtud tě šest místností studia - Přehled, Barvy, Písmo, Loga, Tokeny, Soubory - pustí tak daleko, jak chceš, v libovolném pořadí, a cokoli z toho můžeš doladit, kdykoli se vrátíš. Záložka **Systém designu** v přehledu (`#/d`) ukazuje výsledek jen ke čtení a odkazuje zpět na `#/start`, kde se edituje (uzamčený systém designu zůstává jen ke čtení, zatímco tvé vlastní lokální systémy zůstávají upravitelné).
 
 ### Importuj značku, kterou už máš
 
@@ -27,7 +27,7 @@ Pokud je tvá značka už zachycená jako design tokeny - z **Penpotu**, **Token
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` přijímá všechny tři kontejnery, ve kterých Penpot / Tokens Studio exportují tentýž dokument - jediný soubor `tokens.json`, adresář (`$metadata.json` + soubory po jednotlivých sadách) nebo archiv `project.penpot`. S `--activate` registruje značku jako profil, přepne se na ni a znovu sestaví katalog. Viz [Konfigurace](/info/configuration.html), jak spolu balíčky značek a profily souvisí.
@@ -60,7 +60,7 @@ Hotová práce z **Figmy, Penpotu, Illustratoru, InDesignu nebo jakékoli aplika
 
 Celý import probíhá **na tvém zařízení** - soubor se zpracuje v tvém prohlížeči a nic se nenahrává. Všechny podrobnosti, a přesně co se přenese, najdeš v [Import návrhu](/info/design-import.html).
 
-Máš místo toho **prezentaci v PowerPointu**? Přetáhni `.pptx` na **Tvůrce prezentací** a uprav ji snímek po snímku, rovnou srovnanou s tvou značkou - nebo spusť **Rebrandovat prezentaci** a dostaneš tutéž prezentaci zpátky s novým vzhledem, s grafy i animacemi netknutými.
+Máš místo toho **prezentaci v PowerPointu**? Přetáhni `.pptx` na jakoukoli nahrávací plochu, aby se její snímky založily jako assety, napiš novou prezentaci z Markdownu v **Markdown Slides**, nebo spusť **Rebrand** a dostaneš tutéž prezentaci zpátky s novým vzhledem, s grafy i animacemi netknutými.
 
 ### Od jednorázovky k šabloně
 
@@ -72,7 +72,7 @@ A tady je ten zisk: importované rozvržení je obyčejná relace nástroje Desi
 
 Nástrojům můžeš dodat i svá vlastní otevřená data: vlož nebo přetáhni tabulku **CSV** nebo **JSON** a opakující se pole nástroje se z ní vyplní, jeden hotový výstup na řádek.
 
-## 3. Vytvoř něco a pak to sdílej nebo automatizuj
+## 3. Vytvoř něco a pak výsledek sdílej nebo automatizuj
 
 S aktivní značkou a materiálem po ruce vytvoří každý nástroj hotový soubor:
 

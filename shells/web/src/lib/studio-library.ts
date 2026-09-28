@@ -25,6 +25,11 @@
  * Everything above the mount is headless: the operations take a runtime slice and a
  * template store, so they run under Node in a test and are what the contact sheet's
  * Studio control (lane B) calls as well.
+ *
+ * Every operation that writes takes an optional `changed`, called after each batch:
+ * `applyPatch` goes round the tool view's setInput wrapper, so the view hands in its
+ * automatic-history signal and a studio applied, updated or detached is kept as an
+ * edit (plan 277 P4).
  */
 
 import {
@@ -108,14 +113,18 @@ export function listStudios(store: UserTemplateStore, toolId: string): Promise<U
 async function writeStudio(
   runtime: StudioLibraryRuntime,
   template: UserTemplate,
-  keepOverrides: readonly string[]
+  keepOverrides: readonly string[],
+  changed?: () => void
 ): Promise<void> {
   const values = studioValuesOf(runtime);
   const next = studioApplyLook(values, template.values, keepOverrides);
   const patch: StudioValues = {};
   for (const id of STUDIO_LOOK_INPUT_IDS)
     if (next[id] !== values[id]) patch[id] = next[id];
-  if (Object.keys(patch).length) await runtime.applyPatch(patch);
+  if (Object.keys(patch).length) {
+    await runtime.applyPatch(patch);
+    changed?.();
+  }
   // Second batch, on purpose: see the header. The hook cannot tell an applied value
   // from a typed one, so the truth about the link is written after it has run.
   await runtime.applyPatch({
@@ -125,14 +134,16 @@ async function writeStudio(
       version: Math.max(1, Math.trunc(Number(template.lookVersion) || 1)),
     }),
   });
+  changed?.();
 }
 
 /** Apply a saved studio to this document. Every override is dropped: this is a fresh start. */
 export function applyStudio(
   runtime: StudioLibraryRuntime,
-  template: UserTemplate
+  template: UserTemplate,
+  changed?: () => void
 ): Promise<void> {
-  return writeStudio(runtime, template, []);
+  return writeStudio(runtime, template, [], changed);
 }
 
 /**
@@ -142,18 +153,20 @@ export function applyStudio(
  */
 export async function updateFromStudio(
   runtime: StudioLibraryRuntime,
-  store: UserTemplateStore
+  store: UserTemplateStore,
+  changed?: () => void
 ): Promise<'updated' | 'missing' | 'none'> {
   const state = await studioLinkState(studioValuesOf(runtime), store);
   if (!state.ref) return 'none';
   if (!state.template) return 'missing';
-  await writeStudio(runtime, state.template, state.overrides);
+  await writeStudio(runtime, state.template, state.overrides, changed);
   return 'updated';
 }
 
 /** Stop using a saved studio. The values stay exactly as they are. */
-export function detachStudio(runtime: StudioLibraryRuntime): Promise<void> {
-  return runtime.applyPatch({ studioRef: '', studioOverrides: '' });
+export async function detachStudio(runtime: StudioLibraryRuntime, changed?: () => void): Promise<void> {
+  await runtime.applyPatch({ studioRef: '', studioOverrides: '' });
+  changed?.();
 }
 
 /**
@@ -164,7 +177,8 @@ export function detachStudio(runtime: StudioLibraryRuntime): Promise<void> {
 export async function saveStudio(
   runtime: StudioLibraryRuntime,
   store: UserTemplateStore,
-  input: { toolId: string; name: string; description?: string }
+  input: { toolId: string; name: string; description?: string },
+  changed?: () => void
 ): Promise<UserTemplate> {
   const saved = await store.save({
     toolId: input.toolId,
@@ -173,7 +187,7 @@ export async function saveStudio(
     values: studioLookOf(studioValuesOf(runtime)),
     scope: 'look',
   });
-  await writeStudio(runtime, saved, []);
+  await writeStudio(runtime, saved, [], changed);
   return saved;
 }
 
@@ -181,11 +195,12 @@ export async function saveStudio(
 export async function saveStudioOver(
   runtime: StudioLibraryRuntime,
   store: UserTemplateStore,
-  id: string
+  id: string,
+  changed?: () => void
 ): Promise<UserTemplate | null> {
   const saved = await store.updateLook(id, studioLookOf(studioValuesOf(runtime)));
   if (!saved) return null;
-  await writeStudio(runtime, saved, []);
+  await writeStudio(runtime, saved, [], changed);
   return saved;
 }
 
@@ -198,6 +213,8 @@ export interface StudioActionsDeps {
   /** The web host, for the profile the templates ride on. */
   host: UserTemplateHost;
   toolId: string;
+  /** Automatic history's change signal, called after every write (see the header). */
+  changed?: () => void;
 }
 
 function button(label: string, action: string, enabled: boolean): string {
@@ -311,7 +328,7 @@ async function run(action: string, deps: StudioActionsDeps, panel: ParentNode): 
       });
       if (!choice) return;
       if (choice === 'over') {
-        const saved = await saveStudioOver(deps.runtime, store, state.template.id);
+        const saved = await saveStudioOver(deps.runtime, store, state.template.id, deps.changed);
         say(saved ? tRaw('Saved over {name}.', { name: saved.name }) : t('That studio is gone.'));
         mountStudioActions(panel, deps);
         return;
@@ -325,7 +342,7 @@ async function run(action: string, deps: StudioActionsDeps, panel: ParentNode): 
     });
     const clean = String(name ?? '').trim().slice(0, MAX_TEMPLATE_NAME);
     if (!clean) return;
-    const studio = await saveStudio(deps.runtime, store, { toolId: deps.toolId, name: clean });
+    const studio = await saveStudio(deps.runtime, store, { toolId: deps.toolId, name: clean }, deps.changed);
     say(tRaw('Saved {name}.', { name: studio.name }));
   } else if (action === 'apply') {
     const saved = await listStudios(store, deps.toolId);
@@ -341,10 +358,10 @@ async function run(action: string, deps: StudioActionsDeps, panel: ParentNode): 
     });
     const chosen = saved.find((studio) => studio.id === pick);
     if (!chosen) return;
-    await applyStudio(deps.runtime, chosen);
+    await applyStudio(deps.runtime, chosen, deps.changed);
     say(tRaw('Applied {name}.', { name: chosen.name }));
   } else if (action === 'update') {
-    const result = await updateFromStudio(deps.runtime, store);
+    const result = await updateFromStudio(deps.runtime, store, deps.changed);
     say(
       result === 'updated'
         ? t('Updated from the studio.')
@@ -353,7 +370,7 @@ async function run(action: string, deps: StudioActionsDeps, panel: ParentNode): 
           : t('No studio is in use.')
     );
   } else if (action === 'detach') {
-    await detachStudio(deps.runtime);
+    await detachStudio(deps.runtime, deps.changed);
     say(t('Detached. The look stays in this document.'));
   }
   mountStudioActions(panel, deps);

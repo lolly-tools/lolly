@@ -57,9 +57,9 @@ Lolly là máy in, không phải bản phác thảo. Hãy mang bất cứ thứ 
 
 > Tin tưởng quá trình sáng tạo, mở rộng bằng sự nghiêm ngặt.
 
-## Quy tắc nằm trong công cụ, không phải trong tệp
+## Quy tắc nằm trong công cụ và trong các mẫu của nó
 
-Mọi công cụ khác trên thị trường đều tạo ra một *tệp*, và một tệp chỉ có thể được xem lại sau khi việc đã xong, từng đầu ra một. Lolly đưa các quy tắc thương hiệu **lùi lên một bước**. Mã hex chính xác, tệp phông chữ có bản quyền, lề tràn (bleed), khoảng cách - tất cả đều được mã hóa cứng vào HTML và CSS của công cụ, vì vậy mẫu *không thể* tạo ra một tài sản sai thương hiệu. Chính bố cục thực hiện việc thực thi đó.
+Mọi công cụ khác trên thị trường đều tạo ra một *tệp*, và một tệp chỉ có thể được xem lại sau khi việc đã xong. Lolly đưa các quy tắc thương hiệu **lùi lên một bước**. Mã hex chính xác, tệp phông chữ có bản quyền, lề tràn (bleed), khoảng cách - tất cả đều được mã hóa cứng vào HTML và CSS của công cụ, vì vậy mẫu *không thể* tạo ra một tài sản sai thương hiệu. Chính bố cục thực hiện việc thực thi đó.
 
 Vì vậy thứ đáng xem xét chính là **công cụ**, không phải từng tệp mà nó tạo ra. Làm đúng công cụ, và mọi tài sản mà nó từng tạo ra đều đúng thương hiệu theo cấu trúc. Cách bạn kiểm tra công việc của mình, và ai làm việc đó, vẫn là việc của bạn; Lolly làm cho thứ đã kiểm tra nhỏ hơn và việc tạo ra đầu ra nhanh hơn.
 

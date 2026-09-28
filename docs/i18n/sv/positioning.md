@@ -57,9 +57,9 @@ Lolly är pressen, inte skissen. Ta med vad du vill till idéarbetet - en modell
 
 > Lita på den kreativa processen, skala med noggrannhet.
 
-## Reglerna lever i verktyget, inte i filen
+## Reglerna lever i verktyget och dess mallar
 
-Alla andra verktyg på marknaden producerar en *fil*, och en fil går bara att titta på i efterhand, en utdata i taget. Lolly flyttar varumärkesreglerna **ett steg uppströms**. Exakta hex-koder, licensierade typsnittsfiler, utfallsmarginaler, avstånd - allt är hårdkodat i verktygets HTML och CSS, så mallen *kan inte* producera en tillgång som avviker från varumärket. Det är själva layouten som gör kontrollen.
+Alla andra verktyg på marknaden producerar en *fil*, och en fil går bara att titta på i efterhand. Lolly flyttar varumärkesreglerna **ett steg uppströms**. Exakta hex-koder, licensierade typsnittsfiler, utfallsmarginaler, avstånd - allt är hårdkodat i verktygets HTML och CSS, så mallen *kan inte* producera en tillgång som avviker från varumärket. Det är själva layouten som gör kontrollen.
 
 Så det som är värt att titta på är **verktyget**, inte varje fil det skapar. Få verktyget rätt, så är varje tillgång det någonsin producerar varumärkesenlig genom sin konstruktion. Hur du kontrollerar ditt arbete, och vem som gör det, är fortfarande upp till dig; Lolly gör det som kontrolleras mindre och utdatan snabbare att skapa.
 

@@ -1,6 +1,11 @@
 {
   "$comment": "Plan 171 (2026-08-28, the freeze): the compact blocks URL form is POSITIONAL, so a blocks input's field ORDER is a permanent wire contract - reordering, renaming or removing a field scrambles every link ever shared. This file pins every blocks input's field-id list; validate-catalog fails on any change that is not a pure append, and an append must ratchet this file forward in the same change. Never edit a pinned prefix.",
   "inputs": {
+    "snippet:steps": [
+      "action",
+      "text",
+      "seconds"
+    ],
     "annotate:annotations": [
       "kind",
       "x",

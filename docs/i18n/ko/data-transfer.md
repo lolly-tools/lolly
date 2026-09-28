@@ -39,7 +39,7 @@ Lolly 사용자가 쌓아온 모든 것은 **기기에** 있어요 - 계정도 �
 
 `profile.json`은 가장 작은 부분이면서 앱에서 리더가 가장 먼저 보게 되는 부분이에요. 작성자가 한 번 채워 넣는 정보와, 도구가 그 정보를 사용하도록 허용하는 옵트인이에요.
 
-![profile.json이 되는 Profile 상세 정보 폼 - 이름, 연락처, 프로필 사진, 그리고 옆의 옵트인](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![profile.json이 되는 프로필 세부 정보 양식: 이름, 연락처, 헤드샷](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

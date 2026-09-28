@@ -53,6 +53,7 @@ import { canvasObjectsOps } from './tool/canvas-objects.ts';
 import { popoversOps } from './tool/popovers.ts';
 import { renderOps } from './tool/render.ts';
 import { setupOps } from './tool/setup.ts';
+import { openDocumentOps } from './tool/open-document.ts';
 export type { IdentityStatus, EmbedDescribe, WebToolHost, ToolRuntime, PanelEl, PrintMarks, ExportDefaults, ActionsApi, ExportExperience, RunExportOpts } from './tool/shared.ts';
 
 
@@ -123,6 +124,24 @@ export async function mountTool(
   urlParams: string | null | undefined
 ): Promise<void> {
   const tview = {} as ToolViewCtx;
+  try {
+    await mountToolInto(tview, viewEl, host, toolId, urlParams);
+  } catch (e) {
+    // A mount that throws ends on the router's Reload card, and the "Opening…" card of a
+    // saved-document open must not stay up over that Reload card.
+    tview.openCard?.close();
+    throw e;
+  }
+}
+
+async function mountToolInto(
+  tview: ToolViewCtx,
+  viewEl: ViewEl,
+  host: WebToolHost,
+  toolId: string,
+  urlParams: string | null | undefined
+): Promise<void> {
+  tview.openCard = null;
   tview.history = historyOps(tview);
   tview.designSystem = designSystemOps(tview);
   tview.stageLayout = stageLayoutOps(tview);
@@ -133,6 +152,7 @@ export async function mountTool(
   tview.canvasObjects = canvasObjectsOps(tview);
   tview.render = renderOps(tview);
   tview.setup = setupOps(tview);
+  tview.openDocument = openDocumentOps(tview);
   tview.viewEl = viewEl;
   tview.host = host;
   tview.toolId = toolId;
@@ -275,7 +295,13 @@ export async function mountTool(
     return;
   }
 
+  // A saved document (Projects, Home, an opened .lolly) gets the "Opening…" card from
+  // here to its laid-out first paint, with Cancel (views/tool/open-document.ts). Each
+  // awaited step below is followed by a check, so a stopped open unwinds at the next one.
+  tview.openDocument.begin(requestedSlot);
+
   await tview.setup.guardNetworkAndSeed();
+  if (tview.openDocument.stopped()) { releaseTeamSessionOrigin(); return tview.openDocument.abandon(); }
   tview.refreshDesignExperience = (_pickDefault = false): void => {
     /* armed after the export panel mounts */
   };
@@ -287,9 +313,14 @@ export async function mountTool(
   };
 
   await tview.setup.seedDirect();
+  if (tview.openDocument.stopped()) { releaseTeamSessionOrigin(); return tview.openDocument.abandon(); }
   tview.poseTemplate = (): void => {};
 
-  await tview.setup.templatePick();
+  // The runtime is created here and the tool's onInit runs inside it, up to its budget:
+  // the longest step of a large open, so a Cancel does not wait for it to end.
+  tview.openDocument.phase('pages');
+  if (!(await tview.openDocument.race(tview.setup.templatePick()))) { releaseTeamSessionOrigin(); return tview.openDocument.abandon(); }
+  tview.openDocument.phase('editor');
 
   tview.setup.documentSurface();
   tview.revisionChanged = (): void => {};
@@ -310,6 +341,7 @@ export async function mountTool(
   tview.history.wireHistory();
 
   await tview.stageLayout.wireSidebar();
+  if (tview.openDocument.stopped()) { releaseTeamSessionOrigin(); return tview.openDocument.abandon(); }
 
   tview.stageLayout.wireFilmstrip();
   window.addEventListener('lolly:design-system-changed', tview.designSystem.onDesignSystemChanged);
@@ -337,6 +369,7 @@ export async function mountTool(
   if (tview.pagesMode) tview.stageLayout.syncStrip();
 
   await tview.stageLayout.wireCanvas();
+  if (tview.openDocument.stopped()) { releaseTeamSessionOrigin(); return tview.openDocument.abandon(); }
 
   // ── Wire up ───────────────────────────────────────────────────────────────
 
@@ -377,10 +410,12 @@ export async function mountTool(
   tview.setup.wireBulkRows();
 
   await tview.session.wireLiveEditing();
+  if (tview.openDocument.stopped()) { releaseTeamSessionOrigin(); return tview.openDocument.abandon(); }
   if(tview.canvasEl) {
     const {openPendingRules}=await import('./session-rules.ts');
     const closeRules=await openPendingRules({tool:tview.tool,runtime:tview.runtime,host:tview.host,canvas:tview.canvasEl,size:{width:tview.nativeW,height:tview.nativeH},saveMaster:()=>{void tview.openSaveAs?.();}});
     if(closeRules)tview.mountLifecycle.add('session rules',closeRules);
+    if (tview.openDocument.stopped()) { releaseTeamSessionOrigin(); return tview.openDocument.abandon(); }
   }
 
   tview.setup.wireBackPill();
@@ -392,11 +427,14 @@ export async function mountTool(
   tview.render.wireRenderLoop();
 
   await tview.setup.mountLiveControls();
+  if (tview.openDocument.stopped()) { releaseTeamSessionOrigin(); return tview.openDocument.abandon(); }
 
   // Emoji (plans/252): last, because it seeds from the link, the saved session
   // and the profile in that order, and both of the first two are only settled
   // once everything above has run.
   await tview.setup.wireEmojiSection();
+  if (tview.openDocument.stopped()) { releaseTeamSessionOrigin(); return tview.openDocument.abandon(); }
+  void tview.openDocument.finish();
 }
 
 // makeFetchFile is imported from bridge/tool-loader.ts - the one shared implementation

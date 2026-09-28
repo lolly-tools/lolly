@@ -4,7 +4,7 @@
  * No model in the loop, ever: this is character and substring scanning with an
  * explicit, literal allowlist. It exists because banned AI-vernacular phrases
  * and fingerprint unicode kept reappearing in copy, and a list in a memory file
- * only binds whoever reads it. A script binds everyone.
+ * only binds whoever reads that file. A script binds everyone.
  *
  * Enforced twice: `tests/docs-vernacular.test.ts` (so `pnpm test` and the
  * `loldev ship` gate fail on a violation) and as a standalone CLI:
@@ -26,8 +26,11 @@
  *    (crucial, robust, navigate…) are NOT here - a script cannot judge, so
  *    those stay in the writing guidance. A phrase ban may carry ALLOW entries:
  *    exact substrings of lines where the literal (non-tic) use is sanctioned.
+ *  - RATCHETED phrases: tics too common in the existing copy to ban at once.
+ *    They are counted per file against scripts/vernacular-docs-baseline.json,
+ *    which may only go down. `--write` records a reviewed improvement.
  */
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, writeFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { printVernacularWhy } from './lib/vernacular-why.ts';
@@ -125,7 +128,7 @@ export const BANNED_PHRASES: { what: string; re: RegExp }[] = [
   // same sentence as "the document declares operations", one clause shorter.
   // Write the fact.
   { what: '"so the X Y its Z" framing (drop the clause and the possessive)', re: /\bso (?:the|a|an|this|that|each|every|one|its|their) \S+ \S+ its\b/i },
-  // "names" as a verb - "the row names its input", "one names it". A person
+  // "names" as a verb - "the row names its input". A person
   // names a child; a document does not name anything. Say what it actually
   // does: gives, lists, points at, says which. The NOUN is untouched
   // ("attendee names"), which is why the object words are part of the match.
@@ -232,6 +235,33 @@ export const BANNED_PHRASES: { what: string; re: RegExp }[] = [
   { what: 'self-referential "(that/the/this line is X)"', re: /\b(?:that|the|this) line is\b/i },
   { what: '"the boundary is X" self-reference', re: /\bthe boundary is\b/i },
   { what: '"the X is structural" adjective-hedge', re: /\bis structural\b/i },
+  // A short assertion tacked on after a comma (owner-banned 2026-09-27): the
+  // tags "in full", "end to end", "by design", "honestly" and the rest of the
+  // list below. The tag only insists on what the clause already said. Drop it,
+  // or put the real detail in the sentence. Tags that carry a fact ("verbatim"
+  // before a quote, "unchanged" for a file that passes through) are left out.
+  { what: 'short assertion after a comma (", in full", ", by design", ", end to end"...)', re: /,\s+(?:in full|in short|by design|on purpose|deliberately|end[- ]to[- ]end|for real|full stop|period|every time|nothing (?:more|less)|no (?:more|less)|for good|and nothing else|by construction|no exceptions|plain and simple|simple as that|once and for all|precisely|honestly|byte[- ]for[- ]byte|in one place|and that(?:'s| is) (?:it|all))(?=[*_"'’”]*(?:[.,;:!?)]|\s+-\s|\s*$))/i },
+  // A heading that ends in "it" ("How to hold us to it", "What we made of it",
+  // "Self-host it") is abstract and wordy at once (owner-banned 2026-09-26): the
+  // reader has to guess what "it" is. Name the thing instead. Markdown headings
+  // and HTML <h1>-<h6>; lower-case "it" only, so "IT" (the department) passes.
+  { what: 'heading that ends in "it" (name the thing)', re: /^\s{0,3}#{1,6}\s.*(?<![\w.'’`-])[Ii]t[\s*_"'’”)\]?!.:]*$|<h[1-6]\b[^>]*>(?:(?!<\/h[1-6]).)*?(?<![\w.'’`-])[Ii]t[\s*_"'’”)\]?!.:]*<\/h[1-6]>/ },
+];
+
+/**
+ * Ratcheted phrases: the same tic family, but common enough in the existing
+ * copy that a hard ban would mean rewording hundreds of lines at once. Each
+ * gate counts these per file against its baseline instead, so the count only
+ * goes down and a new file must be clean. The docs gate keeps its own baseline
+ * (scripts/vernacular-docs-baseline.json); the comment and UI-copy gates fold
+ * these into the baselines they already have.
+ */
+export const RATCHETED_PHRASES: { what: string; re: RegExp }[] = [
+  // A sentence that ends in "it" (owner-banned 2026-09-26, same reason as the
+  // heading rule above). Say what the pronoun stands for, or end on the verb's
+  // real object. A code token such as `it.skip` does not match, because a word
+  // character must not follow the full stop.
+  { what: 'sentence that ends in "it" (name the thing)', re: /(?<![\w.'’`-])[Ii]t[*_"'’”)\]]*[.!?](?=[\s*_"'’”)\]<|]|$)/ },
 ];
 
 /**
@@ -362,6 +392,53 @@ export function scan(): Violation[] {
   return violations;
 }
 
+const DOCS_BASELINE_PATH = join(ROOT, 'scripts/vernacular-docs-baseline.json');
+
+/** Per-file count of lines that hit a RATCHETED_PHRASES rule in the docs
+ *  sources, non-zero files only. ALLOW entries apply here as they do in scan(). */
+export function ratchetCounts(): Record<string, number> {
+  const counts: Record<string, number> = {};
+  for (const rel of targets()) {
+    const abs = join(ROOT, rel);
+    if (!existsSync(abs)) continue;
+    const allowed = ALLOW[rel] ?? [];
+    let n = 0;
+    for (const text of readFileSync(abs, 'utf8').split('\n')) {
+      if (allowed.some(a => text.includes(a))) continue;
+      for (const { re } of RATCHETED_PHRASES) if (re.test(text)) n += 1;
+    }
+    if (n > 0) counts[rel] = n;
+  }
+  return counts;
+}
+
+export function loadDocsBaseline(): Record<string, number> {
+  return existsSync(DOCS_BASELINE_PATH) ? JSON.parse(readFileSync(DOCS_BASELINE_PATH, 'utf8')) : {};
+}
+
+/** Compare the ratcheted counts to the baseline, the same three ways the comment
+ *  gate does: a file that rose, a new file with any hit, and an improvement that
+ *  was not recorded (so the baseline always states the real floor). */
+export function ratchetDrift(current = ratchetCounts(), baseline = loadDocsBaseline()): {
+  over: { file: string; was: number; now: number }[];
+  fresh: { file: string; now: number }[];
+  under: { file: string; was: number; now: number }[];
+} {
+  const over: { file: string; was: number; now: number }[] = [];
+  const fresh: { file: string; now: number }[] = [];
+  const under: { file: string; was: number; now: number }[] = [];
+  for (const [file, now] of Object.entries(current)) {
+    const was = baseline[file];
+    if (was === undefined) fresh.push({ file, now });
+    else if (now > was) over.push({ file, was, now });
+    else if (now < was) under.push({ file, was, now });
+  }
+  for (const [file, was] of Object.entries(baseline)) {
+    if (current[file] === undefined && existsSync(join(ROOT, file))) under.push({ file, was, now: 0 });
+  }
+  return { over, fresh, under };
+}
+
 /**
  * Layer 3 - the BUILT output. Sources can be clean while a generator assembles
  * a banned character into the page (the credential label join and the theme
@@ -429,12 +506,25 @@ export function staleAllows(): string[] {
 
 const invokedDirectly = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (invokedDirectly) {
+  if (process.argv.includes('--write')) {
+    const current = ratchetCounts();
+    const sorted: Record<string, number> = {};
+    for (const k of Object.keys(current).sort()) sorted[k] = current[k]!;
+    writeFileSync(DOCS_BASELINE_PATH, JSON.stringify(sorted, null, 2) + '\n');
+    console.log(`✓ wrote docs ratchet baseline: ${Object.keys(sorted).length} files, ${Object.values(sorted).reduce((a, b) => a + b, 0)} lines`);
+    process.exit(0);
+  }
   const v = [...scan(), ...scanBuilt()];
   const stale = staleAllows();
+  const d = ratchetDrift();
   for (const x of v) console.error(`✗ ${x.file}${x.line ? ':' + x.line : ''} [${x.kind}] ${x.what} - ${x.excerpt}`);
   for (const s of stale) console.error(`✗ stale allow entry: ${s}`);
-  if (v.length || stale.length) {
-    console.error(`\n${v.length} violation(s), ${stale.length} stale allow(s).`);
+  for (const x of d.over) console.error(`✗ ${x.file}: ratcheted phrase hits rose ${x.was} -> ${x.now} (${RATCHETED_PHRASES.map(p => p.what).join('; ')})`);
+  for (const x of d.fresh) console.error(`✗ ${x.file}: new file has ${x.now} ratcheted phrase hit(s) - it must start clean`);
+  for (const x of d.under) console.error(`✗ ${x.file}: improved ${x.was} -> ${x.now} - record it: node scripts/check-docs-vernacular.ts --write`);
+  const ratchetFails = d.over.length + d.fresh.length + d.under.length;
+  if (v.length || stale.length || ratchetFails) {
+    console.error(`\n${v.length} violation(s), ${stale.length} stale allow(s), ${ratchetFails} ratchet drift(s).`);
     printVernacularWhy();
     process.exit(1);
   }

@@ -90,6 +90,19 @@ import { framesForSlide } from './shared.ts';
 /** What the file input offers: a PowerPoint deck or a PDF. */
 const DECK_ACCEPT = '.pptx,.pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/pdf';
 
+/**
+ * The sample decks a first-time user can try, and a `?sample=<name>` link opens, by
+ * name. Each is a static file under shells/web/public/samples/rebrand/, built by
+ * scripts/build-rebrand-sample.ts. A name outside this list is ignored, so a link can
+ * never make the view fetch an arbitrary path.
+ */
+export const REBRAND_SAMPLES: Readonly<Record<string, string>> = {
+  'harbourside-night-market': 'Harbourside Night Market.pptx',
+};
+/** The sample the intake offers. */
+export const DEFAULT_REBRAND_SAMPLE = 'harbourside-night-market';
+const PPTX_TYPE = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+
 /** The frames the reading row draws before it counts the rest ("+28"). */
 export const READ_FRAMES_MAX = 12;
 
@@ -540,6 +553,29 @@ export async function refreshRecent(rb: RbCtx): Promise<void> {
 
 /** Take one file: a pptx starts a project; anything else is named and left alone. */
 export async function takeFile(rb: RbCtx, file: File): Promise<void> {
+  await takeFiles(rb, [file]);
+}
+
+/**
+ * Read one of the sample decks as if it had been dropped. It is fetched from this
+ * app's own files, so nothing leaves the device; a name the list does not hold does
+ * nothing, and a fetch that fails says so where a failed read would.
+ */
+export async function takeSample(rb: RbCtx, name: string): Promise<void> {
+  const fileName = REBRAND_SAMPLES[name];
+  if (!fileName) return;
+  let file: File;
+  try {
+    const response = await fetch(`/samples/rebrand/${name}.pptx`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    file = new File([await response.blob()], fileName, { type: PPTX_TYPE });
+  } catch {
+    const local = localOf(rb);
+    local.notice = tRaw('The sample deck could not be loaded.');
+    rb.announce(local.notice);
+    renderIntake(rb);
+    return;
+  }
   await takeFiles(rb, [file]);
 }
 
@@ -1035,12 +1071,14 @@ export function wireIntake(rb: RbCtx): void {
   const dropTitle = node('p', 'rb-drop-title', tRaw('Drop a PowerPoint or PDF deck here'));
   const pick = button('btn btn--primary rb-drop-pick', tRaw('Choose a deck'), 'upload');
   const dropNote = node('p', 'rb-drop-note', tRaw('Read on this device, not uploaded. A 30-slide deck takes about 5 seconds.'));
+  // A first-time user with no deck to hand can watch the whole journey on a made-up one.
+  const sample = button('btn btn--text btn--sm rb-drop-sample', tRaw('No deck to hand? Try the sample deck'));
   const input = node('input');
   input.type = 'file';
   input.accept = DECK_ACCEPT;
   input.multiple = true;
   input.hidden = true;
-  drop.append(dropTitle, pick, dropNote, input);
+  drop.append(dropTitle, pick, dropNote, sample, input);
 
   // The preset the next read applies, and the choice of it.
   const presetLine = node('p', 'rb-intake-preset');
@@ -1154,6 +1192,7 @@ export function wireIntake(rb: RbCtx): void {
   };
 
   pick.addEventListener('click', () => pickFile(rb));
+  sample.addEventListener('click', () => void takeSample(rb, DEFAULT_REBRAND_SAMPLE));
   presetPick.addEventListener('click', () => void choosePreset(rb, 'next'));
   mode.addEventListener('click', (event) => {
     const value = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-intake-mode]')?.dataset.intakeMode : undefined;
@@ -1753,6 +1792,7 @@ export function intakeOps(rb: RbCtx) {
     render: bindOp(rb, renderIntake),
     take: bindOp(rb, takeFile),
     takeMany: bindOp(rb, takeFiles),
+    takeSample: bindOp(rb, takeSample),
     offerTextReading: bindOp(rb, offerTextReading),
     choosePreset: bindOp(rb, choosePreset),
     savePreset: bindOp(rb, savePreset),

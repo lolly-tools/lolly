@@ -45,6 +45,8 @@ const AUDIO = join(ROOT, 'docs', 'audio');
  * for locale narration (translation sidecars, plan section 9) is not wired into this
  * test yet, so a committed non-en directory must be listed here until it is.
  */
+const ENDS_IN_IT = '2026-09-26: headings that ended in "it" joined the vernacular ban list and were reworded (cues.json blockIds remapped to the new heading ids); narration re-render deferred by the owner - re-render, then delete this line.';
+
 const STALE_ALLOWED: Record<string, string> = {
   // The 2026-08-22 narration re-render (two passes, after the claudism sweep that
   // reworded operators/animating/builders/faq/README and the wording
@@ -56,6 +58,9 @@ const STALE_ALLOWED: Record<string, string> = {
     + 'C2PA and offline qualifications); narration re-render deferred by the owner - re-render, then delete this line.',
   'en/ai-stance': '2026-09-12: "say so" joined the vernacular ban list and one sentence was reworded '
     + '(its Content Credentials record it); narration re-render deferred by the owner - re-render, then delete this line.',
+  'en/beatrice-warde': ENDS_IN_IT,
+  'en/inclusive-design': ENDS_IN_IT,
+  'en/quickstart': ENDS_IN_IT,
   'en/privacy': '2026-09-06: the review pass corrected the send-target inventory (six rows; Bluesky '
     + 'and Discord are desktop-only); narration re-render deferred by the owner - re-render, then delete this line.',
 };

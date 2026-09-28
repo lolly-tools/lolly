@@ -131,7 +131,7 @@ Katmanlar açık tuvale düzenlenebilir kutular olarak gelir: metin yeniden yaz�
 
 ## Sekmeyi kapattım. Çalışmam gitti mi?
 
-Kaydedilmiş çalışma hâlâ **Projeler**'dedir. Kaydedilmemiş çalışma gider, çalışırken kaydeden dokuz araç dışında; onlar da bunu **Projeler**'de tutar. Bir dahaki sefere, ayrılmadan önce **Farklı kaydet**'e bas. Bkz. [Sekmeyi kapattıysan ya da araçtan ayrıldıysan](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+Kaydedilmiş çalışma hâlâ **Projeler**'dedir. Kaydedilmemiş çalışma gider, çalışırken kaydeden araçlar dışında; onlar da bunu **Projeler**'de tutar. Bir dahaki sefere, ayrılmadan önce **Farklı kaydet**'e bas. Bkz. [Sekmeyi kapattıysan ya da araçtan ayrıldıysan](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Çalışmamı bağlantı yerine dosya olarak paylaşabilir miyim?
 

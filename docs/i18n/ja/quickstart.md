@@ -16,7 +16,7 @@ Lolly におけるブランドとは、色、フォント、いくつかのル�
 
 初回起動では **gallery**（ギャラリー）が開き、その上に短いウェルカムダイアログが重なって、3つの入り口を示します。**Make it yours**（`#/start` の Brand Studio）、**Bring your design**（Figma、Penpot、InDesign、PDF のファイルをドロップすると編集できるレイアウトとして開きます。後述の [すでにお持ちのものを取り込む](#2-bring-in-what-you-already-have) への最短ルートです）、そして **Explore the community tools** の3つで、英語が母語でない方のために言語の並びも添えられています。1枚目のカードを選ぶと [**Brand Studio**](/info/brand-studio.html) に着きます。名前とプライマリカラーを与えれば、Lolly はそこから、ライト／ダークの面、テキスト、アクセントまで含む完全でアクセシブルなパレットを*導出*します。エンジンが他のどこでも使っているのと同じ色の計算によるものです。
 
-![Brand Studio の Colours ルーム。プライマリカラーと、そこから Lolly が導出したアクセシブルなパレット](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) フォントを選べば、1分とかからず使えるブランドができあがります。そこから先は、スタジオの6つのルーム、Overview、Colours、Type、Logos、Tokens、Files で、好きな順に、好きなところまで作り込めます。あとから戻っていつでも手直しできます。ダッシュボードの **Design system** タブ（`#/d`）は結果を読み取り専用で表示し、編集の場である `#/start` を指し示します（ブランドが固定されたブランドロック版の Lolly では、変更できるものはありません）。
+![新規インストール時のBrand Studio Coloursルーム - ライブチップ1つ、フィールド1つ、そして最初の決定のすべて](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) フォントを選べば、1分とかからず使えるブランドができあがります。そこから先は、スタジオの6つのルーム - Overview、Colours、Type、Logos、Tokens、Files - で、好きな順に、好きなところまで作り込め、あとから戻ってもいつでも手直しできます。ダッシュボードの**Design system**タブ(`#/d`)は結果を読み取り専用で表示し、編集の場である`#/start`を指し示します(ロックされたデザインシステムは読み取り専用のままですが、あなた自身のローカルシステムは引き続き編集できます)。
 
 ### すでにあるブランドをインポートする
 
@@ -27,7 +27,7 @@ Lolly におけるブランドとは、色、フォント、いくつかのル�
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` は、Penpot / Tokens Studio が同じドキュメントを書き出す3つの入れ物すべてを受け付けます。単一の `tokens.json`、ディレクトリ（`$metadata.json` とセットごとのファイル）、`project.penpot` アーカイブです。`--activate` を付けると、そのブランドをプロファイルとして登録し、そこへ切り替え、カタログを再構築します。ブランドパックとプロファイルの関係は [設定](/info/configuration.html) を参照してください。
@@ -60,7 +60,7 @@ npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
 
 インポートはすべて**お使いのデバイス上で**行われます。ファイルはブラウザー内で解析され、何もアップロードされません。詳細と、何がそのまま引き継がれるかは [デザインをインポートする](/info/design-import.html) にあります。
 
-お持ちなのが **PowerPoint のデッキ**なら、`.pptx` を **Deck Builder** にドロップすれば、すでにブランドに沿った状態でスライドごとに編集できます。**Rebrand a Deck** を使えば、同じデッキがグラフもアニメーションもそのままにテーマだけ変わって返ってきます。
+**PowerPointのデッキ**をお持ちですか? `.pptx`をどのアップロード面にでもドロップすればそのスライドをアセットとして取り込めます。**Markdown Slides**でMarkdownから新しいデッキを書き出すことも、**Rebrand**を実行して同じデッキをチャートやアニメーションはそのままにテーマだけ変えて返してもらうこともできます。
 
 ### 一度きりの制作物からテンプレートへ
 
@@ -72,7 +72,7 @@ npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
 
 ツールには自分のオープンデータも渡せます。**CSV** や **JSON** の表を貼り付けるかドロップすると、ツールの繰り返しフィールドがそこから埋まり、1行につき1つの完成アセットができます。
 
-## 3. 何かを作り、共有するか自動化する
+## 3. 何かを作って、その結果を共有するか自動化する
 
 ブランドが有効になり、素材が手元にあれば、どのツールも完成ファイルを生み出します。
 

@@ -390,7 +390,7 @@ Web shell: IndexedDB. Tauri: filesystem. CLI: in-memory. Tools see only `host.st
 
 Users can save multiple named edit slots per tool and return to each session later. No account creation is required; state is per-device. Because the bridge is the only seam, that per-device state is also *portable*: `shells/web/src/data-transfer.ts` reads everything back out through `host.profile`/`host.state`/`host.assets` into a single `lolly-backup` zip that imports on any other install - the offline answer to "move to a new device" that doesn't need a server (full spec: `docs/data-transfer.md`). Multi-device sync already runs on top of this, sending the same bundle to storage the person chooses (`docs/sync.md`).
 
-### 7. Maturity tags say what a tool is, by design
+### 7. Maturity tags say what a tool is
 
 Every tool declares `status: official | community | experimental` in its manifest. The gallery sorts by status. Experimental tools watermark their exports automatically - the watermark is applied by `host.export.render`, not by the tool, so it cannot be opted out of by a non-official tool author.
 
@@ -434,7 +434,7 @@ Compose any tool's render: an **SVG** child stays a true vector when the parent 
 
 ---
 
-## Lifecycle, end to end
+## The lifecycle of one render
 
 A user opens `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 

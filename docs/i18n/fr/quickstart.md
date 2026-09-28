@@ -16,7 +16,7 @@ Ta marque dans Lolly est un petit document de **design tokens** - couleurs, poli
 
 Au premier lancement, tu atterris sur la **galerie**, avec un court dialogue de bienvenue par-dessus qui propose trois portes d'entrée - **Personnalise-le** (le Brand Studio à `#/start`), **Apporte ton design** (dépose un fichier Figma, Penpot, InDesign ou PDF et il s'ouvre comme une mise en page modifiable - le chemin le plus rapide vers [Importe ce que tu as déjà](#2-bring-in-what-you-already-have) plus bas) et **Explorer les outils de la communauté** - plus une rangée de langues si l'anglais n'est pas la tienne. Prends la première carte et tu arrives dans le [**Brand Studio**](/info/brand-studio.html). Donne-lui un nom et une couleur principale et Lolly *dérive* une palette complète et accessible à partir de celle-ci - surfaces claires/sombres, texte, accents - avec les mêmes calculs de couleur que le moteur utilise partout ailleurs.
 
-![L'espace Couleurs du Brand Studio - une couleur principale, et la palette accessible que Lolly en dérive](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Choisis une police et tu as une marque fonctionnelle en moins d'une minute. À partir de là, les six espaces du studio - Vue d'ensemble, Couleurs, Typographie, Logos, Tokens, Fichiers - te laissent aller aussi loin que tu veux, dans l'ordre que tu veux, et affiner n'importe quelle partie à chaque fois que tu reviens. L'onglet **Design system** du tableau de bord (`#/d`) montre le résultat en lecture seule et renvoie vers `#/start`, où se fait l'édition (sauf si tu es sur une version de Lolly verrouillée sur une marque, où la marque est fixe et où il n'y a rien à changer).
+![L'espace Couleurs du Brand Studio à l'installation, tout neuf - une puce active, un champ et toute la première décision](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Choisis une police et tu as une marque fonctionnelle en moins d'une minute. À partir de là, les six espaces du studio - Vue d'ensemble, Couleurs, Typographie, Logos, Tokens, Fichiers - te laissent aller aussi loin que tu veux, dans l'ordre que tu veux, et tu affines n'importe quelle partie à chaque fois que tu reviens. L'onglet **Design system** du tableau de bord (`#/d`) montre le résultat en lecture seule et renvoie vers `#/start`, où se fait l'édition (un design system verrouillé reste en lecture seule, tandis que tes propres systèmes locaux restent modifiables).
 
 ### Importer une marque que tu as déjà
 
@@ -27,7 +27,7 @@ Si ta marque est déjà consignée sous forme de design tokens - depuis **Penpot
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` accepte les trois conteneurs dans lesquels Penpot / Tokens Studio exportent le même document - un unique `tokens.json`, un répertoire (`$metadata.json` + fichiers par ensemble) ou une archive `project.penpot`. Avec `--activate`, il enregistre la marque comme profil, bascule dessus et reconstruit le catalogue. Voir [Configuration](/info/configuration.html) pour savoir comment les packs de marque et les profils s'articulent.
@@ -60,7 +60,7 @@ Le travail terminé dans **Figma, Penpot, Illustrator, InDesign ou n'importe que
 
 L'import se fait entièrement **sur ton appareil** - le fichier est analysé dans ton navigateur et rien n'est téléversé. Tous les détails, et ce qui est exactement conservé, se trouvent dans [Importer un design](/info/design-import.html).
 
-Tu as plutôt une **présentation PowerPoint** ? Dépose le `.pptx` sur **Deck Builder** pour la modifier diapo par diapo, déjà alignée sur ta marque - ou lance **Rebrand a Deck** pour récupérer la même présentation rehabillée, graphiques et animations intacts.
+Tu as plutôt une **présentation PowerPoint** ? Dépose le `.pptx` sur n'importe quelle zone de dépôt pour classer ses diapositives comme éléments, écris un nouveau deck à partir de Markdown dans **Markdown Slides**, ou lance **Rebrand** pour récupérer le même deck rethémé, graphiques et animations intacts.
 
 ### D'une création ponctuelle à un modèle
 
@@ -72,7 +72,7 @@ L'[ensemble d'outils communautaires](/info/builders.html) est open source et ind
 
 Alimente aussi les outils avec tes propres données ouvertes : colle ou dépose un tableau **CSV** ou **JSON** et les champs répétitifs d'un outil s'en remplissent, un fichier fini par ligne.
 
-## 3. Crée quelque chose, puis partage-le ou automatise-le
+## 3. Crée quelque chose, puis partage ou automatise le résultat
 
 Avec une marque active et ton matériel en main, chaque outil produit un fichier fini :
 

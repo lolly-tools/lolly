@@ -131,7 +131,7 @@ Se você pressionou **Salvar como** ou **Salvar**, está em **Projetos**, na tel
 
 ## Fechei a aba. Meu trabalho se foi?
 
-O trabalho salvo continua em **Projetos**. O trabalho não salvo se foi, exceto nas nove ferramentas que salvam enquanto você trabalha, que também o guardam em **Projetos**. Da próxima vez, pressione **Salvar como** antes de sair. Veja [Se você fechou a aba ou saiu da ferramenta](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+O trabalho salvo continua em **Projetos**. O trabalho não salvo se foi, exceto nas ferramentas que salvam enquanto você trabalha, que o mantêm em **Projetos** também. Da próxima vez, pressione **Salvar como** antes de sair. Veja [Se você fechou a aba ou saiu da ferramenta](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Posso compartilhar meu trabalho como arquivo em vez de link?
 

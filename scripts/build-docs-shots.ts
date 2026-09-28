@@ -57,7 +57,9 @@
  * the committed bytes ship, exactly like catalog/og and catalog/previews.
  *
  * Options:
- *   --accept       promote changed captures to the new baseline
+ *   --accept       promote changed captures to the new baseline, except ones that look
+ *                  like a failed render (tiny, blank, 90%+ smaller, the loading screen)
+ *   --accept-suspect  promote those too, for a deliberate reframe
  *   --rebuild      full refresh: rebuild the shell, re-shoot EVERY recipe, write
  *                  every baseline (even unchanged ones) and prune retired files.
  *                  Implies --accept. Use after a renderer/engine change.
@@ -89,7 +91,7 @@ import { embedC2pa, windowPdfSvg, prepareC2paIngredient, type summarizeInputs } 
 import { aiKind } from '../engine/src/c2pa-extract.ts';
 import { embedWatermark, LOSSLESS_STRENGTH, DEFAULT_STRENGTH } from '../engine/src/pixel-watermark.ts';
 import {
-  DEFAULT_THRESHOLDS, MAX_SHOT_PX, clampDpr, classifyShot, classifyVectorShot,
+  DEFAULT_THRESHOLDS, MAX_SHOT_PX, acceptBlocker, clampDpr, classifyShot, classifyVectorShot,
   ineffectiveTolerance, parseShotRecipes,
   type RawImage, type ShotDef, type ShotVerdict,
 } from './lib/shot-compare.ts';
@@ -155,6 +157,9 @@ const driveOptsFor = (shot: ShotDef): DriveOpts => ({
 
 interface Opts {
   accept: boolean;
+  /** --accept-suspect: also promote a changed capture that acceptBlocker refuses
+   *  (tiny, blank, a 90%+ shrink, the loading screen), for a deliberate reframe. */
+  acceptSuspect: boolean;
   /** Force a full refresh: rebuild the shell, re-capture EVERY recipe, and write
    *  every baseline even when the bytes are unchanged, then prune baselines no
    *  recipe claims any more. Implies --accept. This is the "the renderer changed,
@@ -180,9 +185,10 @@ interface Opts {
 }
 
 function parseOpts(argv: string[]): Opts {
-  const o: Opts = { accept: false, rebuild: false, changed: false, list: false, noBuild: false, url: null, only: [], locales: [] };
+  const o: Opts = { accept: false, acceptSuspect: false, rebuild: false, changed: false, list: false, noBuild: false, url: null, only: [], locales: [] };
   for (const a of argv) {
     if (a === '--accept') o.accept = true;
+    else if (a === '--accept-suspect') { o.accept = true; o.acceptSuspect = true; }
     else if (a === '--rebuild') { o.rebuild = true; o.accept = true; }
     else if (a === '--changed') o.changed = true;
     else if (a === '--list') o.list = true;
@@ -219,6 +225,8 @@ interface ShotResult {
   bytes: number;
   /** Device-pixel width of the capture - reported when a weight flag fires. */
   width?: number;
+  /** Why --accept did not promote this changed capture (acceptBlocker). */
+  refused?: string;
 }
 
 const opts = parseOpts(process.argv.slice(2));
@@ -814,13 +822,14 @@ async function captureOneRaster(sharp: Sharp, baseUrl: string, shot: ShotDef): P
     { ...DEFAULT_THRESHOLDS, pixelDiffFrac: shot.pixelDiffFrac ?? DEFAULT_THRESHOLDS.pixelDiffFrac },
   );
 
-  const promote = opts.rebuild || verdict.kind === 'new' || (verdict.kind === 'changed' && opts.accept);
+  const refused = opts.acceptSuspect ? null : acceptBlocker(verdict);
+  const promote = verdict.kind === 'new' || (!refused && (opts.rebuild || (verdict.kind === 'changed' && opts.accept)));
   // Content Credentials only on a real (re)write: the C2PA signature carries a
   // timestamp, so stamping every run would churn bytes for unchanged pixels.
   if (promote) writeFileSync(baselinePath, await stampC2pa(bytes, shot, dims));
   return {
     slug: shot.slug, format: shot.format, lang: shot.lang, theme: shot.theme, verdict,
-    wrote: promote, bytes: bytes.byteLength, width: newImg.width,
+    wrote: promote, bytes: bytes.byteLength, width: newImg.width, ...(refused ? { refused } : {}),
   };
 }
 
@@ -1321,7 +1330,10 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
   // baseline reports a change on every capture forever.
   if (bytes !== rawBytes) {
     const gate = await svgFidelityGate(rawBytes, bytes);
-    if (!gate.ok) {
+    if (gate.renderError) {
+      console.warn(`  FIDELITY GATE: the renderer failed on ${shot.slug} (${gate.renderError}) - keeping unoptimised bytes`);
+      bytes = rawBytes;
+    } else if (!gate.ok) {
       console.warn(`  FIDELITY GATE: svgo altered ${shot.slug} beyond tolerance `
         + `(maxΔ ${gate.maxChannelDelta}/255, ${(gate.overFrac * 100).toFixed(3)}% px >2) - keeping unoptimised bytes`);
       bytes = rawBytes;
@@ -1365,11 +1377,12 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
   }
 
   const verdict = classifyVectorShot({ newText, newBytes: bytes.byteLength, expected, oldText, oldBytes });
-  const promote = opts.rebuild || verdict.kind === 'new' || (verdict.kind === 'changed' && opts.accept);
+  const refused = opts.acceptSuspect ? null : acceptBlocker(verdict, newText);
+  const promote = verdict.kind === 'new' || (!refused && (opts.rebuild || (verdict.kind === 'changed' && opts.accept)));
   if (promote) {
     writeFileSync(baselinePath, await stampC2pa(bytes, shot, dims, imageB64));
   }
-  return { slug: shot.slug, format: shot.format, lang: shot.lang, theme: shot.theme, verdict, wrote: promote, bytes: bytes.byteLength };
+  return { slug: shot.slug, format: shot.format, lang: shot.lang, theme: shot.theme, verdict, wrote: promote, bytes: bytes.byteLength, ...(refused ? { refused } : {}) };
 }
 
 async function imprintRaster(sharp: Sharp, raster: Uint8Array, format: string): Promise<Uint8Array> {
@@ -1514,6 +1527,12 @@ function summarize(results: ShotResult[]): void {
     `${results.filter((r) => r.wrote).length} written, ${pending.length} pending review, ${failed.length} failed.`);
   if (suspicious.length) {
     console.log(`⚠  possible failed renders (tiny/blank/size-jump): ${suspicious.map((r) => r.slug).join(', ')}`);
+  }
+  const refused = results.filter((r) => r.refused && (opts.accept || opts.rebuild));
+  if (refused.length) {
+    console.log(`✗  not accepted, the capture looks like a failed render (baseline kept):`);
+    for (const r of refused) console.log(`     ${r.slug}${r.theme === 'dark' ? ' (dark)' : ''}: ${r.refused}`);
+    console.log('   Re-capture with --only=<slug>, or promote a deliberate reframe with --accept-suspect.');
   }
   if (legacyHeavy.length) {
     console.log(`⚠  over the weight budget, not rewritten this run (reframe: crop to the area of focus): ${legacyHeavy.map((r) => r.slug).join(', ')}`);

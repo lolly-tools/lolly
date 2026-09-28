@@ -273,7 +273,7 @@ Les outils n'exposent que les champs destinés à varier - tout le reste (couleu
 
 Dans une [collaboration](/info/collaborate.html) en direct, l'historique reste uniquement le tien. Une modification arrivant depuis l'autre appareil n'atterrit jamais sur ta pile, donc annuler ne peut jamais reprendre que quelque chose que tu as fait toi-même.
 
-Annuler ne remonte que sur cette visite ; neuf outils gardent aussi des versions antérieures sous **History**, à côté d'**Annuler** (voir [Revenir à une version antérieure](/info/find-your-work.html#go-back-to-an-earlier-version)).
+Annuler ne remonte que sur cette visite ; les outils qui enregistrent au fil du travail gardent aussi des versions antérieures sous **Historique**, à côté d'**Annuler** (voir [Revenir à une version antérieure](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ## Tes informations et ta photo
 
@@ -313,7 +313,7 @@ Colle le lien à un collègue, mets-le en favori ou commite-le. (Tous les détai
 
 **Certains outils font du lien le produit tout entier.** Jump Page rassemble tes liens sur une seule page à distribuer - un lien bio, une conférence, une vitrine. Il n'y a rien à héberger et aucun compte derrière : la page est le lien, donc elle s'ouvre aussi vite que l'URL voyage. Dans l'éditeur, tu vois la page finie à côté des champs ; qui ouvre le lien la reçoit en pleine largeur, une scène par lien au fil du défilement.
 
-![Jump Page dans l'éditeur - le titre, trois scènes de liens ayant chacune sa propre teinte, et un pied de page Made with Lolly, disposés comme une seule page sur le canevas](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page dans l'éditeur : la scène du titre en haut de la page, avec les scènes de liens en dessous](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **La boîte de dialogue dit ce qu'un lien ne peut pas transporter.** Trois choses n'entrent pas dans une URL : une image ou un fichier ajouté depuis cet appareil, une valeur de texte très longue ou une liste très grande. Chacune est comptée à mesure que le lien se construit. Si quelque chose a dû être abandonné, la boîte de dialogue le nomme et te renvoie au fichier ci-dessous, au lieu de te remettre un lien qui s'ouvre sans l'image. Un lien seulement *long* reçoit une note plus douce avec son nombre de caractères, puisque la compression peut encore sauver la longueur.
 
@@ -423,7 +423,7 @@ Batch, c'est plusieurs variantes d'*un seul* design. **Multi-Edit** est l'autre 
 
 Une seule barre latérale pilote l'ensemble :
 
-- <!--i:sliders--> **Partagés** ouvre la marche - chaque champ que deux sessions sélectionnées ou plus déclarent de la *même façon* (même id, même type, mêmes contraintes - la règle de fusion qu'applique la grille de lot à ses colonnes). Modifie un contrôle partagé une fois et la valeur se diffuse à chaque session qui le déclare, en direct sur chaque carte. Deux sessions du même outil partagent tout ; deux outils différents ne partagent que ce qu'ils ont en commun, rien de plus.
+- <!--i:sliders--> **Partagés** ouvre la marche - chaque champ que deux sessions sélectionnées ou plus déclarent de la *même façon* (même id, même type, mêmes contraintes - la règle de fusion qu'applique la grille de lot à ses colonnes). Modifie un contrôle partagé une fois et la valeur se diffuse à chaque session qui le déclare, en direct sur chaque carte. Deux sessions du même outil partagent tout ; deux outils différents ne partagent que les champs qu'ils ont en commun.
 - <!--i:document--> En dessous, **une carte repliée par session** avec tous les champs propres à cette session, avec la même fidélité que la barre latérale de l'outil - sélecteurs d'assets, groupes de lignes répétitives, champs de couleur - plus un bloc d'export compact : **Format**, **L** / **H**, **Unité**, **DPI** et son propre **Télécharger**. Ce Télécharger enregistre d'abord la session puis la rend par le chemin d'export de session ordinaire, si bien que le fichier porte le même nom, le même format et les mêmes Content Credentials que depuis l'outil lui-même.
 - <!--i:search--> **Filtrer les champs…** en haut réduit les contrôles de *toutes* les cartes d'un coup - c'est comme ça qu'on atteint « le titre » dans huit sessions sans le chercher en défilant.
 

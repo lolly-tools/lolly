@@ -166,6 +166,29 @@ export interface ShotVerdict {
   sizeDelta: number | null;
 }
 
+/** A changed capture that lost this share of its baseline's bytes is refused by
+ *  --accept as a likely failed render (a page caught blank or still loading). */
+export const ACCEPT_MAX_SHRINK = 0.9;
+
+/**
+ * Why --accept (or --rebuild) must NOT promote a changed capture, or null when it
+ * may. The suspicious flags used to only warn, so a long run could quietly accept a
+ * blank frame or the app's loading splash over a good baseline (2026-09-26: twelve
+ * such files in one run). A reframe that genuinely shrinks a shot this much is rare
+ * and deliberate, so it takes --accept-suspect. `newText` is a vector capture's SVG,
+ * checked for the boot splash's loading icon.
+ */
+export function acceptBlocker(v: ShotVerdict, newText?: string): string | null {
+  if (v.kind !== 'changed') return null;
+  if (v.flags.includes('tiny')) return 'tiny file';
+  if (v.flags.includes('blank')) return 'near-blank image';
+  if (v.sizeDelta !== null && v.sizeDelta <= -ACCEPT_MAX_SHRINK) {
+    return `${Math.round(-v.sizeDelta * 100)}% smaller than its baseline`;
+  }
+  if (newText && /\bloading-icon\b/.test(newText)) return "the app's loading screen";
+  return null;
+}
+
 export interface ShotComparison {
   newBytes: number;
   newImg: RawImage;

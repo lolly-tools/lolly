@@ -86,7 +86,7 @@ soubor s revizí obsahující originální hodnoty, jen když je to výslovně v
 pomocí `--review-file`. Vymazání nebo opuštění zobrazení přípravy v prohlížeči uvolní jeho pracovní
 stav; není to příslib forenzního vymazání z paměti prohlížeče nebo OS.
 
-## Kdy aplikace komunikuje se sítí, v úplnosti
+## Každý síťový požadavek, který aplikace může vytvořit
 
 Tabulka níže je úplný seznam všeho, co aplikace přes síť stahuje nebo odesílá. Pokud to
 tady není, aplikace to nedělá.

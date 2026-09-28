@@ -52,6 +52,6 @@ Sie brauchen hier nie KI. Wenn Sie sich dafür entscheiden, gelten drei Dinge:
 - <!--i:seal--> **Kein Reinheitsanspruch.** Lolly liest Herkunftsnachweise breit und schreibt sie ehrlich; es gibt nicht vor, jedes generierte Pixel im Internet zu erkennen.
 - <!--i:sunburst--> **Keine Moralpanik.** Die Flut ist nicht der Feind. Nicht zugeordnetes Wasser ist es.
 
-## Wie Sie uns daran messen können
+## Prüfen Sie diese Verpflichtungen selbst
 
 Jede oben genannte Verpflichtung wird im offenen Quellcode durchgesetzt, nicht in einem Richtlinien-PDF: der Herkunftspfad, die GEN-AI-Kennzeichnung und die Zusage ohne Tracker liefern alle mit Tests aus, und die Seite [Selbst überprüfen](/info/verify-yourself.html) führt Sie durch die Kontrolle der Aussagen anhand eines echten Exports. Wenn Sie eine Stelle finden, an der Code und diese Seite sich widersprechen, ist der Code der Fehler.

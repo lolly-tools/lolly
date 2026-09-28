@@ -123,3 +123,110 @@ test('a sync-mode import with no explicit rule takes the incoming copy; other im
   assert.equal(sameIdRule({ mode: 'sync' }), 'incoming');
   assert.equal(sameIdRule({ mode: 'sync', sameId: 'newer' }), 'newer', "Bring it to this device states 'newer' and keeps it");
 });
+
+// ---- History in backups and sync (plan 277 P4 section 5) -----------------------
+
+/** A browser: the real state bridge and revision store over the in-memory IndexedDB. */
+async function browser() {
+  const { memoryDb } = await import('../bridge/idb-memory.test-utils.ts');
+  const { createStateAPI } = await import('../bridge/state.ts');
+  const { createRevisionStore } = await import('../bridge/revision-history.ts');
+  const { db: memory, stores } = memoryDb();
+  const db = memory as unknown as import('idb').IDBPDatabase;
+  const state = createStateAPI(db as unknown as import('../bridge/state.ts').StateDb, createRevisionStore(db));
+  return { db, stores, state, history: state.history! };
+}
+type Browser = Awaited<ReturnType<typeof browser>>;
+const doc = (url: string) => ({ __toolId: 'qr-code', __label: 'Launch', payload: 'url', url });
+/** The clock the test enabled (context.mock.timers). */
+let timers: { setTime(ms: number): void } | null = null;
+async function write(b: Browser, slot: string, url: string, reason: 'automatic' | 'save', when: number) {
+  timers?.setTime(when);
+  const cursor = await b.history.current(slot);
+  return b.history.checkpoint(slot, doc(url), { reason, expectedHead: cursor.head, expectedVersion: cursor.version });
+}
+
+test('an archive over its limit leaves out the oldest automatic checkpoints and says how many; saves and heads always travel', async (context) => {
+  context.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-01T09:00:00Z') }); timers = context.mock.timers;
+  const b = await browser();
+  const t = Date.parse('2026-09-01T09:00:00Z'), min = 60_000;
+  const saved = await write(b, 'qr-code:a', 'https://example.com/saved', 'save', t);
+  const autos = [];
+  for (let i = 1; i <= 6; i++) autos.push(await write(b, 'qr-code:a', `https://example.com/auto-${i}`, 'automatic', t + i * 2 * min));
+  const whole = await b.history.backup.export();
+  assert.equal(whole.revisions.length, 7);
+  const full = new TextEncoder().encode(JSON.stringify(whole)).byteLength;
+  let leftOut = 0;
+  const partial = await b.history.backup.export({ maxBytes: full - 600, leftOut: n => { leftOut = n; } });
+  assert.ok(leftOut >= 1, `left out ${leftOut}`);
+  const ids = partial.revisions.map(row => row.entry.id);
+  assert.equal(ids.length, 7 - leftOut);
+  assert.ok(ids.includes(saved.id) && ids.includes(autos.at(-1)!.id), 'the explicit save and the head travel');
+  assert.deepEqual(autos.slice(0, leftOut).map(e => e.id).filter(id => ids.includes(id)), [], 'the oldest automatic checkpoints are the ones left out');
+  assert.ok(new TextEncoder().encode(JSON.stringify(partial)).byteLength <= full - 600, 'and the archive fits');
+
+  // packBackupSessions reports the count, and the export line gives the number.
+  const { packBackupSessions } = await import('./backup-sessions.ts');
+  const { backupHistoryNote } = await import('./backup-summary.ts');
+  const reporting: BackupState = { ...b.state, history: { backup: { ...b.history.backup,
+    export: (options) => b.history.backup.export({ ...options, maxBytes: full - 600 }) } } };
+  const packed = await packBackupSessions(reporting, {}, { mode: 'manual' });
+  assert.equal(packed.checkpointsLeftOut, leftOut);
+  assert.match(backupHistoryNote(packed), leftOut === 1 ? /1 older automatic checkpoint left out/ : new RegExp(`${leftOut} older automatic checkpoints left out`));
+  const complete = await packBackupSessions(b.state, {}, { mode: 'manual' });
+  assert.equal(complete.checkpointsLeftOut, undefined, 'nothing left out, nothing said');
+});
+
+test('device sync carries neither history nor discarded edits kept for History; Trash slots travel as before', async (context) => {
+  context.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-01T09:00:00Z') }); timers = context.mock.timers;
+  const { packBackupSessions } = await import('./backup-sessions.ts');
+  const { discardUnsaved } = await import('../bridge/revision-discard.ts');
+  const { createRevisionRecovery } = await import('../bridge/revision-recovery.ts');
+  const { strFromU8 } = await import('fflate');
+  const b = await browser();
+  const t = Date.parse('2026-09-01T09:00:00Z');
+  await write(b, 'qr-code:kept', 'https://example.com/kept', 'save', t);
+  await write(b, 'qr-code:auto', 'https://example.com/never-saved', 'automatic', t);
+  const discarded = await discardUnsaved(b.db, createRevisionRecovery(b.db), 'qr-code:auto', t);
+  await write(b, 'qr-code:bin', 'https://example.com/bin', 'save', t);
+  await b.history.move('qr-code:bin', '__trash__:qr-code:bin');
+
+  const entries: Record<string, Uint8Array> = {};
+  const packed = await packBackupSessions(b.state, entries as never, { mode: 'sync' });
+  assert.equal(entries['revision-history.json'], undefined, 'no history in a sync copy');
+  const slots = (JSON.parse(strFromU8(entries['sessions.json']!)) as Array<{ slot: string }>).map(row => row.slot).sort();
+  assert.deepEqual(slots, ['__trash__:qr-code:bin', 'qr-code:kept'], 'the discarded slot stays here; the Trash follows the profile');
+  assert.deepEqual([...packed.slots].sort(), slots, 'and a later replace sync never counts it as removable');
+
+  // A manual backup carries it, since its checkpoints are History's.
+  const manual: Record<string, Uint8Array> = {};
+  await packBackupSessions(b.state, manual as never, { mode: 'manual' });
+  assert.ok((JSON.parse(strFromU8(manual['sessions.json']!)) as Array<{ slot: string }>).some(row => row.slot === discarded.slot));
+
+  // A sync copy written by an older build that still carries one: applying it leaves the slot out.
+  const older = { 'sessions.json': strToU8(JSON.stringify([{ slot: '__discarded__:abc:qr-code:x', data: doc('https://example.com/x'), updatedAt: '2026-09-01T09:00:00Z' }])) } as Record<string, Uint8Array<ArrayBuffer>>;
+  const target = await browser();
+  const applied = await restoreBackupSessions(target.state, older, { mode: 'sync' });
+  assert.equal(applied.sessions, 0);
+  assert.deepEqual(await target.state.list(), []);
+});
+
+test('a restore stores checkpoints deflated, so restored history costs its deflated size', async (context) => {
+  context.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-09-01T09:00:00Z') }); timers = context.mock.timers;
+  const { isRevisionPayload } = await import('../bridge/revision-snapshot.ts');
+  const laptop = await browser(), phone = await browser();
+  const t = Date.parse('2026-09-01T09:00:00Z');
+  const long = 'https://example.com/' + 'campaign/'.repeat(200);
+  await write(laptop, 'qr-code:p', `${long}1`, 'save', t);
+  const head = await write(laptop, 'qr-code:p', `${long}2`, 'automatic', t + 120_000);
+  const archive = JSON.parse(JSON.stringify(await laptop.history.backup.export()));
+  await phone.history.backup.restore(archive);
+  const rows = [...phone.stores.get('revisions')!.values()].map(row => row.value as { id: string; bytes: number; stored?: number });
+  assert.equal(rows.length, 2);
+  for (const row of rows) {
+    assert.ok(row.stored && row.stored < row.bytes, `${row.id}: ${row.stored} stored of ${row.bytes}`);
+    assert.ok(isRevisionPayload(phone.stores.get('revision-payloads')!.get(JSON.stringify(row.id))!.value), 'the payload is the packed form');
+  }
+  assert.equal((await phone.history.usage()).checkpoints, rows.reduce((sum, row) => sum + row.stored!, 0));
+  assert.equal((await phone.history.read(head.id))?.url, `${long}2`, 'and reads back, verified against its hash');
+});

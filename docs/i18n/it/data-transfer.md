@@ -39,7 +39,7 @@ Il bundle è di proposito un semplice zip: sopravvive intatto a qualsiasi traspo
 
 `profile.json` è la parte più piccola e la prima che un lettore vede nell'app: i dati che un produttore compila una volta, più l'opt-in che permette agli strumenti di usarli.
 
-![Il modulo dei dettagli del profilo che diventa profile.json - nome, contatto, foto e l'opt-in accanto](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![Il modulo dei dettagli del profilo che diventa profile.json: nome, contatti e ritratto](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

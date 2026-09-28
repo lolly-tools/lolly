@@ -14,7 +14,7 @@
 import type { ToolManifest } from '../../../../engine/src/loader.js';
 import { onExtensionsChanged } from '../lib/extensions.ts';
 import { marksToCsv } from '../lib/print-marks-csv.ts';
-import { mountActionHistory } from './tool-revision-history.ts';
+import { documentWords, mountActionHistory } from './tool-revision-history.ts';
 import type { ActionsApi, ActionsExperience, ExportDefaults, ExportUnscaled, PanelEl, ToolRuntime, WebToolHost } from './tool.ts';
 import { c2paDefaultOn } from '../lib/c2pa-policy.ts';
 import { extFor, isCmykFmt, isPrintFmt, printEnabled, readBleed, readMarks } from './tool-actions/shared.ts';
@@ -42,6 +42,20 @@ export { captureThumbnail, exportTargetNode, flatExportNode } from './tool-actio
 // The C2PA card only renders for C2PA-capable formats, so it's a no-op for
 // graphic-less tools. Re-exported below for tool.ts.
 
+
+/** The automatic-history controller for this panel's document, when the mount keeps
+ *  history (plan 277 P4: every document tool, by its manifest). */
+function mountHistory(ta: ActionsCtx): ActionsApi['history'] {
+  const { canvasEl, el, experience, host, manifest, runtime } = ta;
+  return mountActionHistory({
+    enabled: experience.localHistory, host, toolId: manifest.id, el, canvas: canvasEl,
+    getSlot: () => ta.activeSlot, setSlot: slot => { ta.activeSlot = slot; },
+    takeFolder: () => { const folder = ta.fileIntoFolder; ta.fileIntoFolder = null; return folder; },
+    snapshot: ta.saving.sessionSnapshot, initial: experience.historyBase,
+    onEmojiChange: listener => runtime.onEmojiChange(listener),
+    previewWords: () => documentWords(manifest.inputs ?? [], new Map(runtime.getModel().map(item => [item.id, item.value]))),
+  });
+}
 
 // fitCanvas and exportUnscaled are passed in so refreshCanvasPreview and the
 // export actions can coordinate with the responsive-scaling logic in mountTool.
@@ -108,7 +122,6 @@ function renderActions(
   ta.formatRules.readCanvasBlocks();
 
   if (manifest.render.export === false) {
-    if (!el) return;
     const hasInputs = (manifest.inputs?.length ?? 0) > 0;
     // An explicit empty actions list opts out of the default Save+Share bar - for
     // on-device file utilities that provide their own download button and must
@@ -116,9 +129,21 @@ function renderActions(
     // IndexedDB, contradicting the "nothing is stored/uploaded" promise).
     const optedOut = Array.isArray(manifest.render.actions) && manifest.render.actions.length === 0;
     if (!hasInputs || optedOut) {
+      if (!el) return;
       el.innerHTML = '';
       return {};
     }
+    // A tool with no export still keeps its document: automatic recovery and version
+    // history mount here as they do on the full bar (plan 277 P4). Jump keeps a Save
+    // button; Text has no bar at all (its workspace is the chrome), so it gets the
+    // history without one.
+    ta.automaticHistory = mountHistory(ta);
+    const kept = {
+      getSlot: () => ta.activeSlot, history: ta.automaticHistory, sessionState: ta.saving.sessionSnapshot,
+      // Leaving the view protects the last edits and stops the controller, as the full bar's dispose does.
+      dispose: (): void => { void ta.automaticHistory?.flush(); ta.automaticHistory?.dispose(); },
+    };
+    if (!el) return kept;
     el.innerHTML = `<div class="export-action-buttons">${ta.saving.saveBtnHtml()}${ta.copyUrlBtn}</div>`;
     el.querySelector<HTMLButtonElement>('[data-action="save"]')!.addEventListener(
       'click',
@@ -128,7 +153,7 @@ function renderActions(
           ta.saving.settleSaveButton(this);
       }
     );
-    return { save: ta.saving.performSave, getSlot: () => ta.activeSlot };
+    return { ...kept, save: ta.saving.performSave };
   }
 
   const actions = manifest.render.actions ?? ['copy', 'download', 'save']; ta.actions = actions;
@@ -380,12 +405,7 @@ function renderActions(
   // popup-close + tool-teardown paths silence an in-progress audio audition.
   // `sessionState` is the SAME snapshot a save writes, read (never written) by the beam
   // for its `__export_*` markers - the one place they exist outside this panel's DOM.
-  ta.automaticHistory = mountActionHistory({
-    enabled: experience.localHistory, host, toolId: manifest.id, el, canvas: canvasEl,
-    getSlot: () => ta.activeSlot, setSlot: slot => { ta.activeSlot = slot; },
-    takeFolder: () => { const folder = ta.fileIntoFolder; ta.fileIntoFolder = null; return folder; },
-    snapshot: ta.saving.sessionSnapshot, initial: experience.historyBase,
-  });
+  ta.automaticHistory = mountHistory(ta);
   return {
     copy: ta.copying.performCopy,
     preview: ta.copying.preview,

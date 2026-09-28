@@ -89,7 +89,7 @@ um arquivo de revisão privado contendo os valores originais, só quando pedido 
 com `--review-file`. Limpar ou sair de uma visão de preparação no navegador libera seu
 estado de trabalho; isso não é uma promessa de apagamento forense da memória do navegador ou do sistema.
 
-## Quando o aplicativo se comunica com uma rede, por completo
+## Cada requisição de rede que o app pode fazer
 
 A tabela abaixo é a lista completa de tudo que o aplicativo busca ou envia por uma
 rede. Se não estiver aqui, o aplicativo não faz isso.

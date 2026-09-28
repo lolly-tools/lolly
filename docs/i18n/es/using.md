@@ -273,7 +273,7 @@ Las herramientas exponen solo las entradas que están pensadas para variar - tod
 
 En una [colaboración](/info/collaborate.html) en directo, el historial sigue siendo solo tuyo. Un cambio que llega desde el otro dispositivo nunca aterriza en tu pila, así que deshacer solo puede recuperar algo que hiciste tú.
 
-Deshacer solo alcanza hasta el principio de esta visita; nueve herramientas también conservan versiones anteriores bajo **Historial**, junto a **Deshacer** (consulta [Vuelve a una versión anterior](/info/find-your-work.html#go-back-to-an-earlier-version)).
+Deshacer solo alcanza hasta el principio de esta visita; las herramientas que guardan mientras trabajas también conservan versiones anteriores bajo **Historial**, junto a **Deshacer** (consulta [Vuelve a una versión anterior](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ## Tus datos y tu foto
 
@@ -313,7 +313,7 @@ Pégale el enlace a un colega, guárdalo en marcadores o inclúyelo en un commit
 
 **Algunas herramientas hacen del enlace el producto entero.** Jump Page reúne tus enlaces en una sola página para repartir - un enlace de bio, una charla de conferencia, un escaparate. No hay nada que alojar ni ninguna cuenta detrás: la página es el enlace, así que se abre tan rápido como viaja la URL. En el editor ves la página terminada junto a los campos; quien abre el enlace la recibe a todo lo ancho, una escena por enlace conforme se desplaza.
 
-![Jump Page en el editor - el título, tres escenas de enlaces con su propio tinte cada una, y un pie de página Made with Lolly, dispuestos como una sola página en el lienzo](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page en el editor: la escena del título en la parte superior de la página, con las escenas de enlaces debajo](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **El diálogo dice lo que un enlace no puede llevar.** Tres cosas no caben en una URL: una imagen o un archivo que añadiste desde este dispositivo, un valor de texto muy largo o una lista muy grande. Cada una se cuenta mientras se construye el enlace. Si hubo que dejar algo fuera, el diálogo lo nombra y te señala el archivo de más abajo, en lugar de darte un enlace que se abre sin la imagen. Un enlace que solo es *largo* recibe un aviso más suave con su recuento de caracteres, ya que empaquetarlo aún puede salvar la longitud.
 
@@ -423,7 +423,7 @@ Batch son muchas variantes de *un solo* diseño. **Multi-Edit** es la otra mitad
 
 Una sola barra lateral lo gobierna todo:
 
-- <!--i:sliders--> **Compartidos** va primero - cada entrada que dos o más de las sesiones seleccionadas declaran *igual* (mismo id, mismo tipo, mismas restricciones - la misma regla de fusión que usa la cuadrícula por lotes en sus columnas). Edita un control compartido una vez y el valor se reparte a cada sesión que lo declara, en vivo en todas las tarjetas. Dos sesiones de la misma herramienta lo comparten todo; dos herramientas distintas comparten lo que casualmente tengan en común, y nada más.
+- <!--i:sliders--> **Compartidos** va primero - cada entrada que dos o más de las sesiones seleccionadas declaran *igual* (mismo id, mismo tipo, mismas restricciones - la misma regla de fusión que usa la cuadrícula por lotes en sus columnas). Edita un control compartido una vez y el valor se reparte a cada sesión que lo declara, en vivo en todas las tarjetas. Dos sesiones de la misma herramienta lo comparten todo; dos herramientas distintas solo comparten las entradas que tienen en común.
 - <!--i:document--> Debajo, **una tarjeta plegada por sesión** con todas las entradas propias de esa sesión, con la misma fidelidad que la barra lateral de la herramienta - selectores de recursos, grupos de filas repetibles, campos de color - más un bloque de exportación compacto: **Formato**, **W** / **H**, **Unidad**, **DPI** y su propio **Descargar**. Ese Descargar guarda primero la sesión y luego la renderiza por la ruta normal de exportación de sesiones, así que el archivo lleva el mismo nombre, formato y Content Credentials que llevaría directamente desde la herramienta.
 - <!--i:search--> **Filtrar campos…** en la parte superior acota los controles de *todas* las tarjetas a la vez - que es como llegas al «titular» de ocho sesiones sin tener que buscarlo desplazándote.
 

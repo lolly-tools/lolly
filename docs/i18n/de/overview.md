@@ -390,7 +390,7 @@ Web-Shell: IndexedDB. Tauri: Dateisystem. CLI: im Arbeitsspeicher. Tools sehen n
 
 Nutzer können mehrere benannte Bearbeitungsstände pro Tool speichern und später zu jeder Sitzung zurückkehren. Es ist keine Kontoerstellung nötig; der Zustand ist gerätebezogen. Weil die Bridge die einzige Schnittstelle ist, ist dieser gerätebezogene Zustand auch *portabel*: `shells/web/src/data-transfer.ts` liest alles über `host.profile`/`host.state`/`host.assets` wieder aus in ein einziges `lolly-backup`-Zip, das sich auf jeder anderen Installation importieren lässt - die Offline-Antwort auf "auf ein neues Gerät umziehen", die keinen Server braucht (vollständige Spezifikation: `docs/data-transfer.md`). Die Mehrgeräte-Synchronisierung läuft bereits auf dieser Grundlage und sendet dasselbe Bundle an den vom Nutzer gewählten Speicherort (`docs/sync.md`).
 
-### 7. Reifegrad-Tags sagen von Grund auf, was ein Tool ist
+### 7. Reifegrad-Tags sagen, was ein Tool ist
 
 Jedes Tool gibt in seinem Manifest `status: official | community | experimental` an. Die Galerie sortiert nach Status. Experimentelle Tools versehen ihre Exporte automatisch mit einem Wasserzeichen - das Wasserzeichen wird von `host.export.render` angewendet, nicht vom Tool, sodass es von keinem nicht-offiziellen Tool-Autor abgeschaltet werden kann.
 
@@ -434,7 +434,7 @@ Das Rendering jedes beliebigen Tools lässt sich zusammensetzen: Ein **SVG**-Kin
 
 ---
 
-## Lebenszyklus, von Anfang bis Ende
+## Der Lebenszyklus eines Renders
 
 Ein Nutzer öffnet `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 

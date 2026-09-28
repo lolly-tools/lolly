@@ -126,6 +126,82 @@ test('time-box: a raced-out onInput superseded by a newer run stays discarded', 
   }
 });
 
+// ─── whenSettled (v1.226): the newest run is done, late patches included ───────
+
+test('whenSettled: waits for a raced-out onInit, and hears it after the late patch repainted', async () => {
+  setBudgets({ onInit: 15 });
+  let resolveLate!: (v: unknown) => void;
+  (globalThis as any).__lollySettleGate = new Promise((r) => { resolveLate = r; });
+  try {
+    const { host } = logHost();
+    const rt = await createRuntime(
+      toolWith({ onInit: true }, 'function onInit() { return globalThis.__lollySettleGate; }'),
+      host, {},
+    );
+    let settled = false;
+    const painted: string[] = [];
+    rt.subscribe((s) => painted.push(s.hydrated));
+    void rt.whenSettled().then(() => { settled = true; });
+    await sleep(20);
+    assert.equal(settled, false, 'the raced-out onInit is still out');
+    resolveLate({ note: 'LATE' });
+    await rt.whenSettled();
+    assert.equal(settled, true);
+    assert.equal(painted.at(-1), '<b>hi</b><i>LATE</i>', 'a waiter hears it after the late patch reached subscribers');
+  } finally {
+    setBudgets();
+    delete (globalThis as any).__lollySettleGate;
+  }
+});
+
+test('whenSettled: a superseded run does not hold it, and nothing outstanding resolves at once', async () => {
+  setBudgets({ onInput: 15 });
+  (globalThis as any).__lollyNeverGate = new Promise(() => {});
+  try {
+    const { host } = logHost();
+    const rt = await createRuntime(
+      toolWith({ onInput: true },
+        `function onInput({ value }) {
+           if (value === 'stuck') return globalThis.__lollyNeverGate;
+           return Promise.resolve({ note: 'ok:' + value });
+         }`),
+      host, {},
+    );
+    await rt.whenSettled();   // no hook run yet: resolves on the next task
+    await rt.setInput('msg', 'stuck');
+    let settled = false;
+    void rt.whenSettled().then(() => { settled = true; });
+    await sleep(20);
+    assert.equal(settled, false, 'the newest run is stuck');
+    await rt.setInput('msg', 'next');
+    await sleep(5);
+    assert.equal(settled, true, 'a newer run that landed settles it; the stuck one is superseded');
+  } finally {
+    setBudgets();
+    delete (globalThis as any).__lollyNeverGate;
+  }
+});
+
+test('whenSettled: destroy() releases a waiter whose run will never land', async () => {
+  setBudgets({ onInput: 15 });
+  (globalThis as any).__lollyNeverGate2 = new Promise(() => {});
+  try {
+    const { host } = logHost();
+    const rt = await createRuntime(
+      toolWith({ onInput: true }, 'function onInput() { return globalThis.__lollyNeverGate2; }'),
+      host, {},
+    );
+    await rt.setInput('msg', 'x');
+    const waiting = rt.whenSettled();
+    rt.destroy();
+    await waiting;
+    await rt.whenSettled();
+  } finally {
+    setBudgets();
+    delete (globalThis as any).__lollyNeverGate2;
+  }
+});
+
 // ─── patch merge: undefined keeps, null clears - BOTH directions are contracts ─
 
 test('patch merge: an undefined extra KEEPS the published value (darkroom videoLook cache); a null extra CLEARS it (design frameGroups)', async () => {
@@ -347,5 +423,59 @@ test('every budgeted hook has a real invocation site, and the schema matches', a
     assert.match(runtimeSrc, new RegExp(`runHook\\(\\s*'${name}'`),
       `HOOK_BUDGET_MS budgets '${name}' but runtime.ts never calls runHook('${name}', …) - ` +
       'a budgeted hook with no invocation site is the beforeRender trap');
+  }
+});
+
+// ─── progressiveInit (v1.228): a ready report opens the view early ──────────────
+
+test('progressiveInit: a ready report mounts at once, the result lands later, and nothing is logged as a timeout', async () => {
+  let finish!: (v: unknown) => void;
+  (globalThis as any).__lollyProgressGate = new Promise((r) => { finish = r; });
+  (globalThis as any).__lollyProgressSeen = undefined;
+  try {
+    const { host, logs } = logHost();
+    const tool = toolWith({ onInit: true },
+      `function onInit({ report, progressive }) {
+         globalThis.__lollyProgressSeen = progressive;
+         report({ note: 'page one' }, { ready: true });
+         return globalThis.__lollyProgressGate;
+       }`);
+    const started = Date.now();
+    const rt = await createRuntime(tool, host, {}, { progressiveInit: true });
+    assert.ok(Date.now() - started < 1000, 'the view does not wait out the onInit budget');
+    assert.equal((globalThis as any).__lollyProgressSeen, true, 'the hook is told a view is watching');
+    assert.equal(rt.getHydrated(), '<b>hi</b><i>page one</i>', 'mounted with what was reported');
+    assert.deepEqual(rt.hookErrors, [], 'an early open is not a failure');
+    let settled = false;
+    void rt.whenSettled().then(() => { settled = true; });
+    await sleep(10);
+    assert.equal(settled, false, 'the rest is still on its way');
+    finish({ note: 'every page' });
+    await rt.whenSettled();
+    assert.equal(rt.getHydrated(), '<b>hi</b><i>every page</i>', 'the result applies when it arrives');
+    assert.ok(!logs.some((l) => l.startsWith('error:')), `no error logged, got: ${logs.join(' | ')}`);
+    rt.destroy();
+  } finally {
+    delete (globalThis as any).__lollyProgressGate;
+    delete (globalThis as any).__lollyProgressSeen;
+  }
+});
+
+test('without progressiveInit a ready report is only a report: creation waits for the result', async () => {
+  (globalThis as any).__lollyProgressSeen = 'unset';
+  try {
+    const { host } = logHost();
+    const tool = toolWith({ onInit: true },
+      `function onInit({ report, progressive }) {
+         globalThis.__lollyProgressSeen = progressive;
+         report({ note: 'page one' }, { ready: true });
+         return new Promise((r) => setTimeout(() => r({ note: 'every page' }), 30));
+       }`);
+    const rt = await createRuntime(tool, host, {});
+    assert.equal((globalThis as any).__lollyProgressSeen, undefined, 'no view is watching, so the hook is not told one is');
+    assert.equal(rt.getHydrated(), '<b>hi</b><i>every page</i>', 'a render or an export gets the whole document');
+    rt.destroy();
+  } finally {
+    delete (globalThis as any).__lollyProgressSeen;
   }
 });

@@ -339,7 +339,7 @@
   "Finishes as plates": "Finisaje ca planșe",
   "A spot can be a finish rather than an ink: foil, emboss or deboss, spot varnish, soft touch, or a die cut, crease or perforation. It exports as its own named plate with a solid black fallback, so a press that flattens spots shows an unmistakable mask. The <strong>Finishes</strong> tool previews the effect on your artwork.": "O culoare directă poate fi un finisaj în loc de o cerneală: foliere, reliefare sau debosare, lac de protecție localizat, soft touch, sau un decupaj, o linie de îndoire ori o perforare. Se exportă ca propria sa planșă denumită cu o rezervă în negru solid, așa că o tipografie care aplatizează culorile directe arată o mască de netăgăduit. Instrumentul <strong>Finisaje</strong> previzualizează efectul pe arta ta.",
   "Agree the finish with your printer": "Stabilește finisajul cu tipografia ta",
-  "Overprint is not supported yet, so a finish plate knocks out the artwork underneath.": "Suprimarea încă nu este acceptată, așa că o planșă de finisaj rezervă arta de dedesubt.",
+  "Overprint is not supported yet, so a finish plate knocks out the artwork underneath.": "Overprint încă nu este acceptat, așa că o planșă de finisaj elimină arta de dedesubt.",
   "Press conditions": "Condiții de tipar",
   "OutputIntent": "OutputIntent",
   "A CMYK PDF declares its target press condition (Coated FOGRA39 by default; FOGRA51, SWOP and more) so a RIP knows how the inks are meant to read. On-screen and raster stay sRGB.": "Un PDF CMYK își declară condiția țintă de tipar (Coated FOGRA39 implicit; FOGRA51, SWOP și altele) așa că un RIP știe cum sunt menite să se citească cernelurile. Pe ecran și raster rămâne sRGB.",

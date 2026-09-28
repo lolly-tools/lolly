@@ -150,6 +150,10 @@ Three hand-offs go straight into the brand: a font row installs its face, a mark
 
 Limits, stated: 400 pages and 120 MB, beyond which it reads what it can and says the rest is too long, and a single mark over 4 MB is not sent to the studio (download the SVG instead).
 
+## Rebrand - `#/rebrand`
+
+Where Unpack takes a deck apart, Rebrand moves it onto your design system: it reads a PowerPoint or PDF deck, proposes each slide on the design system's own layouts, colours and typeface, and waits for you to review each suggestion before it opens the result in Design. **Keep the design** swaps only the theme, colours and fonts of a PowerPoint deck instead. Unlike the other views here, Rebrand keeps each deck as a project on this device, so a review can wait until you come back. [Rebrand a deck](/info/rebrand.html) walks through it step by step with a sample deck.
+
 ## Script audio - `#/script`
 
 A writing surface over on-device speech. Write or paste a script - markdown is fine, only the words are read, so code blocks and images drop out and links keep their text - pick a voice, audition it, choose a speed and press **Generate speech** (or Ctrl/Cmd-Enter). Under the sheet sit the two numbers a narrator wants: how many words, and roughly how long they take to listen to, always labelled as an estimate.

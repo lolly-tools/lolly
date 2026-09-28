@@ -1,0 +1,7 @@
+{
+  "$comment": "Tools kept out of automatic recovery and version history, each with the reason the round-trip gate found (plan 277 P4, decision 7). scripts/tool-history-audit.ts measures every document and side-file tool; tests/history-round-trip.test.ts fails when a tool fails without an entry here and when a listed tool passes, so the map only shrinks. Phase 1's manifest rule reads this file.",
+  "exceptions": {
+    "3d": "Class B. With a model loaded, the modelUpload file input holds the file's bytes, which canonicalRevisionData refuses (\"Save imported files to the library before keeping history.\"), so no checkpoint can hold the document. Every other case round-trips, including the empty file slot. Remove this entry when historyRedact records the file as not kept (phase 4).",
+    "darkroom": "Class B. With a LUT loaded, the lutFile file input holds the file's bytes, which canonicalRevisionData refuses (\"Save imported files to the library before keeping history.\"), so no checkpoint can hold the document. Every other case round-trips, including the empty file slot. Remove this entry when historyRedact records the file as not kept (phase 4)."
+  }
+}

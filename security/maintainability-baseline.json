@@ -70,10 +70,10 @@
       "typeEscapes": 68
     },
     "shells/web/src/views/gallery.ts": {
-      "lines": 1952,
+      "lines": 1958,
       "largestFunctionLines": 1769,
       "importFanIn": 1,
-      "importFanOut": 61,
+      "importFanOut": 62,
       "typeEscapes": 8
     },
     "shells/web/src/views/picker.ts": {
@@ -84,10 +84,10 @@
       "typeEscapes": 3
     },
     "shells/web/src/views/projects.ts": {
-      "lines": 2178,
+      "lines": 2150,
       "largestFunctionLines": 2844,
       "importFanIn": 1,
-      "importFanOut": 48,
+      "importFanOut": 50,
       "typeEscapes": 8
     },
     "shells/web/src/views/tool-inputs.ts": {
@@ -105,10 +105,10 @@
       "typeEscapes": 10
     },
     "shells/web/src/views/valid.ts": {
-      "lines": 2762,
-      "largestFunctionLines": 1979,
+      "lines": 2726,
+      "largestFunctionLines": 1940,
       "importFanIn": 3,
-      "importFanOut": 50,
+      "importFanOut": 51,
       "typeEscapes": 1
     }
   },

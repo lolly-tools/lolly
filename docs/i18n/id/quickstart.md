@@ -16,7 +16,7 @@ Merek Anda di Lolly adalah sebuah dokumen **design-tokens** kecil - warna, font 
 
 Saat pertama dijalankan Anda mendarat di **galeri**, dengan dialog sambutan singkat di atasnya yang menawarkan tiga jalan masuk - **Make it yours** (Brand Studio di `#/start`), **Bring your design** (jatuhkan berkas Figma, Penpot, InDesign atau PDF dan berkas itu terbuka sebagai tata letak yang bisa disunting - rute tercepat menuju [Bawa masuk apa yang sudah Anda punya](#2-bring-in-what-you-already-have) di bawah) dan **Explore the community tools** - plus sebaris pilihan bahasa jika bahasa Inggris bukan bahasa Anda. Ambil kartu pertama dan Anda tiba di [**Brand Studio**](/info/brand-studio.html). Beri sebuah nama dan satu warna utama, lalu Lolly *menurunkan* palet lengkap yang mudah diakses dari warna itu - permukaan terang/gelap, teks, aksen - memakai matematika warna yang sama seperti yang dipakai engine di mana pun.
 
-![Ruang Colours di Brand Studio - satu warna utama, dan palet mudah diakses yang diturunkan Lolly darinya](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Pilih font, dan dalam kurang dari semenit Anda punya merek yang siap pakai. Dari sana enam ruang studio - Overview, Colours, Type, Logos, Tokens, Files - membiarkan Anda melangkah sejauh yang Anda mau, dalam urutan bebas, menyempurnakan bagian mana pun kapan saja Anda kembali. Tab **Design system** di dasbor (`#/d`) menampilkan hasilnya secara hanya-baca dan menunjuk kembali ke `#/start`, tempat penyuntingan sebenarnya terjadi (kecuali Anda memakai build Lolly yang mereknya terkunci, di mana merek sudah tetap dan tidak ada yang bisa diubah).
+![Ruang Colours Brand Studio pada instalasi baru - satu chip live, satu field, dan keseluruhan keputusan pertama](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Pilih font, dan Anda sudah memiliki brand yang berfungsi dalam waktu kurang dari semenit. Dari situ, enam ruang studio - Overview, Colours, Type, Logos, Tokens, Files - memungkinkan Anda membawanya sejauh yang Anda mau, dalam urutan apa pun, menyempurnakan bagian mana pun setiap kali Anda kembali. Tab **Design system** di dashboard (`#/d`) menampilkan hasilnya dalam mode baca saja dan mengarah kembali ke `#/start`, tempat penyuntingan berlangsung (sistem desain yang terkunci tetap baca saja, sementara sistem lokal Anda sendiri tetap dapat disunting).
 
 ### Impor merek yang sudah Anda punya
 
@@ -27,7 +27,7 @@ Jika merek Anda sudah tercatat sebagai design tokens - dari **Penpot**, **Tokens
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` menerima ketiga wadah yang dipakai Penpot / Tokens Studio untuk mengekspor dokumen yang sama - satu `tokens.json`, sebuah direktori (`$metadata.json` + berkas per set) atau arsip `project.penpot`. Dengan `--activate` ia mendaftarkan merek sebagai profil, beralih ke profil itu dan membangun ulang katalog. Lihat [Konfigurasi](/info/configuration.html) untuk memahami bagaimana paket merek dan profil saling terkait.
@@ -60,7 +60,7 @@ Karya jadi di **Figma, Penpot, Illustrator, InDesign atau aplikasi SVG apa pun**
 
 Seluruh proses impor berlangsung **di perangkat Anda** - berkasnya diurai di peramban Anda dan tidak ada yang diunggah. Rincian lengkap, dan apa saja persisnya yang ikut terbawa, ada di [Impor sebuah desain](/info/design-import.html).
 
-Punya **dek PowerPoint**? Jatuhkan `.pptx` ke **Deck Builder** untuk menyuntingnya slide demi slide, sudah menempel pada merek Anda - atau jalankan **Rebrand a Deck** untuk mendapatkan dek yang sama kembali dengan tema baru, bagan dan animasi tetap utuh.
+Punya **deck PowerPoint**? Jatuhkan `.pptx` ke permukaan unggah mana pun untuk mengarsipkan slidenya sebagai aset, tulis deck baru dari Markdown di **Markdown Slides**, atau jalankan **Rebrand** untuk mendapatkan kembali deck yang sama dengan tema baru, chart dan animasi tetap utuh.
 
 ### Dari sekali pakai menjadi templat
 
@@ -72,7 +72,7 @@ Inilah hasilnya: tata letak hasil impor adalah sesi Design biasa, jadi begitu An
 
 Beri alat data terbuka Anda sendiri juga: tempel atau jatuhkan tabel **CSV** atau **JSON** dan kolom berulang sebuah alat akan terisi darinya, satu aset jadi untuk tiap baris.
 
-## 3. Buat sesuatu, lalu bagikan atau otomatiskan
+## 3. Buat sesuatu, lalu bagikan atau otomatiskan hasilnya
 
 Dengan merek yang aktif dan materi Anda di tangan, setiap alat menghasilkan berkas jadi:
 

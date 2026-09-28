@@ -16,9 +16,12 @@ export function backupOwnCounts(profile: unknown): { templates: number; userTool
   };
 }
 
-export function backupHistoryNote(summary: { revisions?: number; recoveryDrafts?: number; assetVersions?: number; fileOperations?: number; fileBatches?: number; failedHistory?: number; historyLeftOut?: number }): string {
+export function backupHistoryNote(summary: { revisions?: number; recoveryDrafts?: number; assetVersions?: number; fileOperations?: number; fileBatches?: number; failedHistory?: number; historyLeftOut?: number; checkpointsLeftOut?: number }): string {
   const parts: string[] = [];
   if (summary.revisions) parts.push(t('{n} creation checkpoints', { n: summary.revisions }));
+  // An export over the history file's limit leaves the oldest automatic
+  // checkpoints out instead of failing (plan 277 P4 section 5).
+  if (summary.checkpointsLeftOut) parts.push(summary.checkpointsLeftOut === 1 ? t('1 older automatic checkpoint left out') : t('{n} older automatic checkpoints left out', { n: summary.checkpointsLeftOut }));
   if (summary.recoveryDrafts) parts.push(t('{n} protected drafts', { n: summary.recoveryDrafts }));
   if (summary.assetVersions) parts.push(t('{n} saved asset versions', { n: summary.assetVersions }));
   if (summary.fileOperations) parts.push(t('{n} file operation records', { n: summary.fileOperations }));

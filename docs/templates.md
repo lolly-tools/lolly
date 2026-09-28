@@ -98,7 +98,7 @@ Template cards load previews as they come into view, using your current brand. A
 
 ![The New asset picker with rendered QR templates and their Add actions](/t/url-shot?url=%2F%23%2Fp&width=1440&height=850&dpi=192&waitMs=1600&drive=click%3A%5Bdata-create-btn%3D%22tool%22%5D%3Bclick%3A%5Bdata-tab%3D%22templates%22%5D%3Bpress%3AQ%7Con%3D.asset-picker-search%3Bpress%3AR%3Bhover%3A.asset-picker-toolcell%3Alast-child+img%5Bdata-preview-state%3D%22ready%22%5D&cropSelector=.asset-picker-panel&walker=1&format=svg&dark=1&filename=templates-picker)
 
-### Hide or delete, by who made it
+### Hide or delete, depending on the author
 
 What you made, you **delete**, and it is gone from this device.
 

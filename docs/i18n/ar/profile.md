@@ -19,7 +19,7 @@
 | **إمكانية الوصول** | أربعة مفاتيح راحة - *تقليل الحركة*، و*إخفاء المعاينات الملوّنة*، و*تباين عالٍ*، و*نص كبير* - محفوظة في سجل الملف الشخصي، لذا تنتقل معه عند تصديره. انظر [إمكانية الوصول](#accessibility). |
 | **عملك** | الجلسات المحفوظة (مع الصور المصغَّرة) - منظَّمة في مجلدات متداخلة ضمن **[المشاريع](/info/using.html)** - ومكتبة **صوري** الخاصة بك، وإحصاءات النشاط المحلية، جميعها مرتبطة بهذا الملف الشخصي. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
 ![شاشة الملف الشخصي - الاسم، والتواصل، وصورة شخصية اختيارية، وتفضيلاتك](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -43,7 +43,7 @@
 
 ### كفرد
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ![عنصر تحكم الصورة الشخصية، فارغ إلى أن ترفع صورة تبقى بعدها على هذا الجهاز](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -61,7 +61,7 @@
 
 في أي لحظة، تحتوي النسخة المثبَّتة على **ملف شخصي نشط واحد** - التفاصيل التي تراها الأداة الآن. لا يوجد مبدّل ملفات شخصية داخل التطبيق؛ بدلاً من ذلك، كل ملف شخصي هو **حزمة قابلة للنقل** (ملف `.zip` واحد، انظر [أدناه](#moving-a-profile-to-a-new-device)). وهذا عمدًا الآلية نفسها المستخدمة للانتقال إلى جهاز جديد - فالملف الشخصي ملف يمكنك حفظه ونسخه وتحميله.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 - <!--i:trash--> **أنظف تبديل:** **الإعدادات → Preferences → التخزين → امسح كل بياناتي**، ثم **استيراد** الحزمة الخاصة بالسياق الذي تنتقل إليه. أنت الآن تنشئ بحتا باسم ذلك الملف الشخصي.
 - <!--i:layers--> **التكديس:** استيراد الحزمة *دون* المسح أولا **يدمج** - تهبط الجلسات والصور المستوردة فوق ما هو موجود بالفعل؛ وحين يكون العنصر نفسه في الطرفين، تُحفظ النسخة الأحدث حفظا، ويُترك الباقي كما هو. وتُضاف المجلدات والمفضلة والقوالب إلى مجلداتك، وتبقى تفاصيلك وإعداداتك الخاصة. مفيد لسحب جلسات محفوظة لفريق واحد إلى إعدادك الخاص؛ وليس ما تريده إن احتجت حدودا نظيفة للأدوار.
@@ -130,7 +130,7 @@
 
 ## كيف تستخدم الأدوات ملفك الشخصي
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 الأداة لا تفعل أبدا سوى *الملء المسبق* لحقول الملف الشخصي التي بنيت صراحة لربطها:
 

@@ -390,7 +390,7 @@ Kelongsong web: IndexedDB. Tauri: sistem fail. CLI: dalam-memori. Alat hanya nam
 
 Pengguna boleh menyimpan pelbagai slot suntingan bernama bagi setiap alat dan kembali ke setiap sesi kemudian. Tiada penciptaan akaun diperlukan; keadaan adalah setiap peranti. Oleh kerana titi adalah satu-satunya sempadan, keadaan setiap peranti itu juga *mudah alih*: `shells/web/src/data-transfer.ts` membaca semula segala-galanya melalui `host.profile`/`host.state`/`host.assets` ke dalam satu zip `lolly-backup` yang diimport pada mana-mana pemasangan lain - jawapan luar talian kepada "pindah ke peranti baharu" yang tidak memerlukan pelayan (spesifikasi penuh: `docs/data-transfer.md`). Penyegerakan pelbagai peranti sudah berjalan di atas ini, menghantar bungkusan yang sama ke storan pilihan pengguna (`docs/sync.md`).
 
-### 7. Tag kematangan menyatakan apa sesuatu alat itu, mengikut reka bentuk
+### 7. Tag kematangan menyatakan apa sesuatu alat itu
 
 Setiap alat mengisytiharkan `status: official | community | experimental` dalam manifesnya. Galeri diisih mengikut status. Alat eksperimen menandatera eksport mereka secara automatik - tanda air dikenakan oleh `host.export.render`, bukan oleh alat, jadi ia tidak boleh dipilih keluar oleh pengarang alat bukan-rasmi.
 
@@ -434,7 +434,7 @@ Gubah render mana-mana alat: anak **SVG** kekal sebagai vektor sebenar apabila i
 
 ---
 
-## Kitaran hayat, hujung ke hujung
+## Kitaran hayat satu render
 
 Seorang pengguna membuka `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 

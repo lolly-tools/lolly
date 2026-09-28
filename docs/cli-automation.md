@@ -117,7 +117,7 @@ Leaving them on means the file carries a verifiable statement of where it came f
 
 `--no-provenance` is the switch, per run. `smoke` and `batch` already render bare, because a machine path wants reproducibility by default.
 
-### How far "the same" goes, byte for byte
+### How far byte-identical output goes
 
 Reproducible *renders* and reproducible *bytes* are not the same promise, and only some formats keep the second one.
 
@@ -145,7 +145,7 @@ Measured, not assumed - two consecutive runs of the same command, hashed, **with
 | **PDF** | **No.** Every PDF carries `/CreationDate` and `/ModDate`; two runs a second apart differ in those bytes (128 differing bytes in a measured 57 KB file with `--c2pa=off`, all of them in the trailer and metadata). | `qr-code --export=pdf --c2pa=off` |
 | **JPG, WebP, HTML-layout PNG** (the headless-Chromium tier) | **No.** The browser's paint and encode are not byte-reproducible run to run; the file length itself moves between runs. | `qr-code --export=jpg`, `qr-code --export=webp`, `color-block --export=png`† |
 | **Video** (`gif`/`apng`/`webm`/`mp4`) and **PPTX** | **No**, for the row above's reason plus a frame-timed capture. These do render here, and what they cost and produce is measured ([Video and timelines](/info/cli-rendering.html#video-and-timelines)); it is their run-to-run byte identity that is not, and nothing about a browser encode suggests it holds. | `design --export=mp4`, `design --export=webm`, `deck-studio --export=pptx` |
-| Anything carrying `--c2pa`, `--durable` or `--imprint` - **which is the default** | **No.** A credential is signed with a fresh timestamp, by design; the Imprint moves the pixels. Drop them with `--no-provenance`. | `qr-code --export=svg` (defaults) |
+| Anything carrying `--c2pa`, `--durable` or `--imprint` - **which is the default** | **No.** Each credential is signed with a fresh timestamp; the Imprint moves the pixels. Drop them with `--no-provenance`. | `qr-code --export=svg` (defaults) |
 
 † These commands name tools from the **SUSE brand pack**, which is a private submodule. On a community-only clone the active profile is `lolly-start` and they print `Tool not found`. The measurements were taken on the SUSE profile; the format-level claim in each row is what travels, not the specific command.
 

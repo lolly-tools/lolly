@@ -1,0 +1,45 @@
+{
+  "id": "light-note",
+  "name": "Light note",
+  "category": "Still",
+  "description": "A quiet window for a short message, quote or announcement.",
+  "values": {
+    "scene": "still",
+    "language": "plain",
+    "theme": "suse-light",
+    "windowStyle": "cupertino",
+    "lineNumbers": false,
+    "showWindow": true,
+    "shadow": true,
+    "scale": 145,
+    "lineHeight": 1.8,
+    "blinkCursor": false,
+    "textOverflow": "fit",
+    "wrapText": true,
+    "calloutMode": "off",
+    "windowRotate": 0,
+    "windowTiltX": 0,
+    "windowTiltY": 0,
+    "code": "Make the idea clear.\nGive the words room.\nLet the details do the work.",
+    "fileName": "A note to the team"
+  },
+  "presets": [
+    {
+      "id": "type-the-note",
+      "name": "Type the note",
+      "description": "Type each word, then leave the message visible.",
+      "values": {
+        "showPointer": true,
+        "cursorSize": 125,
+        "clickRing": false,
+        "typingStyle": "word",
+        "entryMotion": "scale",
+        "exitMotion": "fade",
+        "posterAt": -1,
+        "scene": "typing",
+        "typingSeconds": 5,
+        "readSeconds": 3
+      }
+    }
+  ]
+}

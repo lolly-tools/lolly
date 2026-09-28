@@ -131,7 +131,7 @@ Jeśli nacisnąłeś **Zapisz jako** albo **Zapisz**, jest to w **Projektach**, 
 
 ## Zamknąłem kartę. Czy moja praca przepadła?
 
-Zapisana praca nadal jest w **Projektach**. Niezapisana praca przepada, z wyjątkiem dziewięciu narzędzi, które zapisują w trakcie pracy - one też trzymają ją w **Projektach**. Następnym razem naciśnij **Zapisz jako**, zanim wyjdziesz. Zobacz [Jeśli zamknąłeś kartę albo opuściłeś narzędzie](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+Zapisana praca nadal jest w **Projektach**. Niezapisana praca przepada, z wyjątkiem narzędzi, które zapisują w trakcie pracy - one też trzymają ją w **Projektach**. Następnym razem naciśnij **Zapisz jako**, zanim wyjdziesz. Zobacz [Jeśli zamknąłeś kartę albo opuściłeś narzędzie](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Czy mogę udostępnić swoją pracę jako plik zamiast linku?
 

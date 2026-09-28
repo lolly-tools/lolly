@@ -58,7 +58,7 @@ const invokeWaiters = new Map<string, {
   resolve: (v: unknown) => void;
   reject: (e: unknown) => void;
   timer: ReturnType<typeof setTimeout>;
-  report?: (patch: Record<string, unknown>) => void;
+  report?: (patch: Record<string, unknown>, opts?: { ready?: boolean }) => void;
 }>(); // `runId:callId`
 
 /** Terminate one wedged/crashed Worker. Workers are deliberately per-mount: an
@@ -101,7 +101,7 @@ function onMessage(boundRunId: number, source: Worker, m: HookWorkerOut): void {
   // own dedicated Worker and cannot impersonate another run.
   if (m.runId !== boundRunId || workers.get(boundRunId) !== source) return;
   if (m.t === 'init-done') { initWaiters.get(m.runId)?.resolve(m); initWaiters.delete(m.runId); return; }
-  if (m.t === 'report') { invokeWaiters.get(`${m.runId}:${m.callId}`)?.report?.(m.patch); return; }
+  if (m.t === 'report') { invokeWaiters.get(`${m.runId}:${m.callId}`)?.report?.(m.patch, m.ready ? { ready: true } : undefined); return; }
   if (m.t === 'invoke-done') {
     const key = `${m.runId}:${(m as HookInvokeDoneMsg).callId}`;
     const p = invokeWaiters.get(key);
@@ -210,7 +210,7 @@ function invokeInWorker(runId: number, name: WorkerHookName, ctx: unknown): Prom
   const callId = ++callSeq;
   const key = `${runId}:${callId}`;
   const { host: _omit, report, ...rest } = (ctx ?? {}) as Record<string, unknown> & {
-    host?: unknown; report?: (patch: Record<string, unknown>) => void;
+    host?: unknown; report?: (patch: Record<string, unknown>, opts?: { ready?: boolean }) => void;
   };
   // An onFrame ctx carries `frame.data` (a Uint8ClampedArray); it crosses by
   // STRUCTURED CLONE, deliberately NOT a Transferable. media.ts fans ONE shared

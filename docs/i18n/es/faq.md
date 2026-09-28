@@ -131,7 +131,7 @@ Si pulsaste **Guardar como** o **Guardar**, está en **Proyectos**, en la pantal
 
 ## Cerré la pestaña. ¿Se ha perdido mi trabajo?
 
-El trabajo guardado sigue en **Proyectos**. El trabajo sin guardar se pierde, excepto en las nueve herramientas que guardan mientras trabajas, que también lo conservan en **Proyectos**. La próxima vez, pulsa **Guardar como** antes de salir. Consulta [Si cerraste la pestaña o saliste de la herramienta](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+El trabajo guardado sigue en **Proyectos**. El trabajo sin guardar se pierde, excepto en las herramientas que guardan mientras trabajas, que también lo conservan en **Proyectos**. La próxima vez, pulsa **Guardar como** antes de salir. Consulta [Si cerraste la pestaña o saliste de la herramienta](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## ¿Puedo compartir mi trabajo como archivo en vez de como enlace?
 

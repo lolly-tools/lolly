@@ -3,9 +3,10 @@ import type { IDBPDatabase } from 'idb';
 import { indexSavedWork } from './history-index.ts';
 import type { RevisionEntry } from './revision-history.ts';
 import type { RecoveryEntry } from './revision-recovery.ts';
-import { MAX_RECOVERY_BYTES, MAX_REVISION_BYTES, MAX_REVISION_PREVIEWS, MAX_REVISION_ARCHIVE_BYTES } from './revision-limits.ts';
-import { revisionSnapshot } from './revision-snapshot.ts';
+import { MAX_REVISION_ARCHIVE_BYTES } from './revision-limits.ts';
+import { packCanonical, revisionSnapshot, type RevisionPayload } from './revision-snapshot.ts';
 import { pinRevisionAssets } from './revision-asset-pins.ts';
+import { revisionBudgets } from './revision-budget.ts';
 import { collectAssetRefs } from './asset-ref-collector.ts';
 import { REVISION_STORES, type DocumentHead, type RevisionTransaction, documentVersion, holdsUnsavedWork, savedRevision } from './revision-records.ts';
 import { validateRevisionArchive, type RevisionArchive, type RevisionArchiveAPI, type RevisionArchiveSummary } from './revision-archive-format.ts';
@@ -16,40 +17,63 @@ import { incomingIsNewer, sessionSavedAt } from '../lib/backup-sessions.ts';
 
 export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
   return {
-    async export() {
+    async export(options = {}) {
+      const limit = options.maxBytes ?? MAX_REVISION_ARCHIVE_BYTES;
       // A single read transaction pairs each current session with its exact head
       // and draft generation, even while another tab continues editing.
       const tx = db.transaction(REVISION_STORES);
-      const usage = await tx.objectStore('revision-usage').get('total') ?? { bytes: 0, previews: 0 };
-      let bytes = usage.bytes + usage.previews + (await tx.objectStore('revision-usage').get('recovery') ?? 0);
       const archive: RevisionArchive = { version: 1, documents: [], revisions: [], recoveries: [] };
+      const size = (value: unknown): number => new TextEncoder().encode(JSON.stringify(value)).byteLength;
+      // Current states, drafts, explicit saves, named versions, heads and the last
+      // explicit saves always travel; only automatic checkpoints may be left out,
+      // oldest first, when the archive would pass the limit (plan 277 P4 section 5).
+      let fixed = 0;
+      const pinned = new Set<string>();
       for (const document of await tx.objectStore('revision-documents').getAll() as DocumentHead[]) {
         const state = await tx.objectStore('state').get(document.slot) as StateRecord | undefined;
         if (!state) throw new Error('A history document is missing its current state. Keep this device and repair it before backing up.');
-        bytes += new TextEncoder().encode(JSON.stringify(state)).byteLength;
-        if (bytes > MAX_REVISION_ARCHIVE_BYTES) throw new Error('Complete revision history exceeds the 384 MiB backup limit. No partial history backup was created.');
+        // The archive carries the state without its thumbnail (validateRevisionArchive).
+        fixed += size(document) + size({ ...state, thumb: null });
         archive.documents.push({ document, state });
+        if (document.head) pinned.add(document.head);
+        if (document.saved) pinned.add(document.saved.id);
       }
+      const drafts = await tx.objectStore('revision-recovery').getAll() as RecoveryEntry[];
+      for (const entry of drafts) fixed += entry.bytes + size(entry);
+      // What each checkpoint adds, measured before any payload is inflated: its
+      // canonical JSON length is on the entry, and the preview is read as it is.
+      const rows: Array<{ entry: RevisionEntry; preview?: string; bytes: number }> = [];
       let cursor = await tx.objectStore('revisions').openCursor();
       while (cursor) {
         const entry = cursor.value as RevisionEntry;
-        const data = await tx.objectStore('revision-payloads').get(entry.id);
         const preview = await tx.objectStore('revision-previews').get(entry.id) as string | undefined;
-        archive.revisions.push({ entry, data, ...(preview ? { preview } : {}) }); cursor = await cursor.continue();
+        rows.push({ entry, ...(preview ? { preview } : {}), bytes: entry.bytes + size(entry) + (preview?.length ?? 0) + 64 });
+        if (entry.reason === 'save') pinned.add(entry.id);
+        cursor = await cursor.continue();
       }
-      let drafts = await tx.objectStore('revision-recovery').openCursor();
-      while (drafts) {
-        const entry = drafts.value as RecoveryEntry;
-        archive.recoveries.push({ ...entry, data: await tx.objectStore('revision-recovery-payloads').get(entry.id) });
-        drafts = await drafts.continue();
+      const chosen = admit(rows.map(row => ({ id: row.entry.id, at: row.entry.at, bytes: row.bytes })), limit - fixed - 1024, pinned);
+      if (rows.filter(row => pinned.has(row.entry.id)).reduce((sum, row) => sum + row.bytes, fixed) > limit)
+        throw new Error('Complete revision history exceeds the 384 MiB backup limit. No partial history backup was created.');
+      for (const row of rows) {
+        if (!chosen.ids.has(row.entry.id)) continue;
+        const data = await tx.objectStore('revision-payloads').get(row.entry.id);
+        archive.revisions.push({ entry: row.entry, data, ...(row.preview ? { preview: row.preview } : {}) });
       }
+      for (const entry of drafts) archive.recoveries.push({ ...entry, data: await tx.objectStore('revision-recovery-payloads').get(entry.id) });
       await tx.done;
+      if (chosen.leftOut) options.leftOut?.(chosen.leftOut);
       return validateRevisionArchive(archive);
     },
     async restore(value, options = {}) {
       const archive = await validateRevisionArchive(value);
       // Everything that needs hashing happens before the write transaction opens.
       const plans = await planDocuments(db, archive, options.sameId ?? 'newer');
+      const budgets = await revisionBudgets();
+      // Restored checkpoints are stored deflated, as new ones are, so restored
+      // history costs its deflated size (plan 277 P4 section 5). Compressing is
+      // asynchronous, so it happens here too.
+      const packed = new Map<string, { payload: RevisionPayload; stored: number }>();
+      for (const row of archive.revisions) packed.set(row.entry.id, await packCanonical(row.data));
       const tx = db.transaction(REVISION_STORES, 'readwrite'); void tx.done.catch(() => {});
       try {
         // Counts describe what this import changed here (plan 277 P1, recheck R1), not
@@ -65,8 +89,8 @@ export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
         // states and last explicit saves always come in.
         const present = new Set<string>();
         for (const row of archive.revisions) if (await tx.objectStore('revisions').get(row.entry.id)) present.add(row.entry.id);
-        const admitted = admit(archive.revisions.filter(row => !present.has(row.entry.id)).map(row => ({ id: row.entry.id, at: row.entry.at, bytes: row.entry.bytes })),
-          MAX_REVISION_BYTES - usage.bytes, pinnedCheckpoints(archive));
+        const admitted = admit(archive.revisions.filter(row => !present.has(row.entry.id)).map(row => ({ id: row.entry.id, at: row.entry.at, bytes: packed.get(row.entry.id)!.stored })),
+          budgets.checkpoints - usage.bytes, pinnedCheckpoints(archive));
         summary.historyLeftOut! += admitted.leftOut;
         for (const row of archive.revisions) {
           const existing = await tx.objectStore('revisions').get(row.entry.id) as RevisionEntry | undefined;
@@ -80,12 +104,13 @@ export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
             if ((row.entry.reason === 'save' && existing.reason === 'automatic') || (milestone && !existing.milestone))
               await tx.objectStore('revisions').put({ ...existing, reason: 'save', ...(milestone ? { milestone } : {}) });
           } else {
-            usage.bytes += row.entry.bytes; summary.revisions++;
-            await tx.objectStore('revisions').add({ ...row.entry, slot: slotOf.get(row.entry.documentId) ?? row.entry.slot });
-            await tx.objectStore('revision-payloads').add(row.data, row.entry.id);
+            const { payload, stored } = packed.get(row.entry.id)!;
+            usage.bytes += stored; summary.revisions++;
+            await tx.objectStore('revisions').add({ ...row.entry, stored, slot: slotOf.get(row.entry.documentId) ?? row.entry.slot });
+            await tx.objectStore('revision-payloads').add(payload, row.entry.id);
           }
           // A preview is decoration: one that does not fit is skipped, not counted.
-          if (row.preview && usage.previews + row.preview.length <= MAX_REVISION_PREVIEWS && !await tx.objectStore('revision-previews').get(row.entry.id)) {
+          if (row.preview && usage.previews + row.preview.length <= budgets.previews && !await tx.objectStore('revision-previews').get(row.entry.id)) {
             usage.previews += row.preview.length;
             await tx.objectStore('revision-previews').put(row.preview, row.entry.id);
           }
@@ -98,7 +123,7 @@ export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
           await tx.objectStore('revision-recovery').put(entry);
           await tx.objectStore('revision-recovery-payloads').put(data, entry.id);
         };
-        const fits = (bytes: number): boolean => recoveryBytes + bytes <= MAX_RECOVERY_BYTES;
+        const fits = (bytes: number): boolean => recoveryBytes + bytes <= budgets.recovery;
         // Drafts that keep this device's state before a replacement come first; the
         // backup's own drafts share what space is left, newest first.
         const reserved = plans.reduce((sum, plan) => sum + (plan.takeIncoming && plan.localSnapshot && !plan.held.has(plan.localSnapshot.hash) ? plan.localSnapshot.bytes : 0), 0);
@@ -109,7 +134,7 @@ export function createRevisionArchive(db: IDBPDatabase): RevisionArchiveAPI {
           // A writer's draft on both sides keeps its later generation.
           if (!existing || (existing.hash !== entry.hash && entry.at > existing.at)) incomingDrafts.push({ entry: moved, data });
         }
-        const draftsAdmitted = admit(incomingDrafts.map(row => ({ id: row.entry.id, at: row.entry.at, bytes: row.entry.bytes })), MAX_RECOVERY_BYTES - recoveryBytes - reserved, new Set());
+        const draftsAdmitted = admit(incomingDrafts.map(row => ({ id: row.entry.id, at: row.entry.at, bytes: row.entry.bytes })), budgets.recovery - recoveryBytes - reserved, new Set());
         summary.historyLeftOut! += draftsAdmitted.leftOut;
         for (const row of incomingDrafts) if (draftsAdmitted.ids.has(row.entry.id)) await putDraft(row.entry, row.data);
         for (const plan of plans) await applyPlan(tx, plan, summary, putDraft, fits);

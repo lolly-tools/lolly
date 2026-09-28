@@ -390,7 +390,7 @@ Web shell: IndexedDB. Tauri: sistem de fișiere. CLI: în memorie. Uneltele văd
 
 Utilizatorii pot salva mai multe sloturi de editare denumite per unealtă și pot reveni la fiecare sesiune ulterior. Nu este necesară crearea unui cont; starea este per dispozitiv. Deoarece bridge-ul este singura cusătură, această stare per dispozitiv este și *portabilă*: `shells/web/src/data-transfer.ts` citește totul înapoi prin `host.profile`/`host.state`/`host.assets` într-un singur zip `lolly-backup` care se importă pe orice altă instalare - răspunsul offline la "mutare pe un dispozitiv nou" care nu necesită server (specificație completă: `docs/data-transfer.md`). Sincronizarea multi-dispozitiv rulează deja peste asta, trimițând același pachet către stocarea aleasă de persoană (`docs/sync.md`).
 
-### 7. Etichetele de maturitate spun ce este un instrument, prin design
+### 7. Etichetele de maturitate spun ce este un instrument
 
 Fiecare unealtă declară `status: official | community | experimental` în manifestul ei. Galeria sortează după status. Uneltele experimentale filigranează automat exporturile - filigranul este aplicat de `host.export.render`, nu de unealtă, deci nu poate fi dezactivat de un autor de unelte neoficial.
 
@@ -434,7 +434,7 @@ Compune randarea oricărei unelte: un copil **SVG** rămâne un vector adevărat
 
 ---
 
-## Ciclul de viață, de la un capăt la altul
+## Ciclul de viață al unei randări
 
 Un utilizator deschide `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 

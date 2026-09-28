@@ -66,7 +66,7 @@ document rather than a handful of fields: **chart** (`chart.md`), **design**
 | `qr-code` | QR Code | everyone | svg, penpot, png, jpeg, webp, avif, tiff, pdf, pdf-cmyk, cmyk-tiff, eps, eps-cmyk, dxf, emf | - | - | Scannable codes of every kind: QR, Micro QR, Data Matrix, Aztec and PDF417 for links, contacts, Wi-Fi, events, locati… |
 | `record` | Record | everyone | mp4, webm, srt, vtt, gif, webp-anim | - | camera, microphone | Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically. |
 | `signature` | Signature | everyone | svg, penpot, png, webp, avif, pdf | - | - | Sign with a finger, stylus or mouse and get a clean signature on transparency - SVG or PNG, no scanner, no photo of a… |
-| `snippet` | Snippet | everyone | png, svg, penpot, jpg, webp, pdf | textTools | - | Turn code snippets into clean, syntax-highlighted, shareable images. |
+| `snippet` | Snippet | everyone | png, svg, penpot, jpg, webp, pdf, mp4, webm, gif, webp-anim | textTools | - | Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete an… |
 | `spatial-photo` | Spatial Photo | designer | png, jpg, webp, webm, mp4, gif, avif, tiff, webp-anim | - | - | Drop in one photo and move a camera through it: depth is read on your device, so a flat picture becomes a scene with… |
 | `stationery` | Stationery | everyone | pdf, pdf-cmyk, svg, penpot, png, jpg, webp, tiff, cmyk-tiff | - | - | Business cards, letterhead and compliments slips from the design system, each piece sized to its real print trim, rea… |
 | `street-map` | Street Map | designer | svg, penpot, emf, dxf, pdf, pdf-cmyk, png, jpg, webp, avif, tiff, eps | - | - | Clean vector street-block maps of any city. |

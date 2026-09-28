@@ -1,12 +1,12 @@
 # Hitta och återfå ditt arbete
 
-Allt du skapar i Lolly stannar i webbläsaren eller appen du skapade det i, på den enheten, om du inte slår på [Synk](/info/sync.html). Sparat arbete finns i **Projekt**. En nedladdad fil ligger där din webbläsare eller ditt system placerade den, och en kopia väntar oftast i **Tillgångar**. I nio verktyg sparas även arbete du aldrig sparade själv. Den här sidan tar upp vart och ett av dessa, plus en stängd flik, rensad webbläsardata, tidigare versioner, raderade objekt och att flytta till en annan enhet.
+Allt du skapar i Lolly stannar i webbläsaren eller appen du skapade det i, på den enheten, om du inte slår på [Synk](/info/sync.html). Sparat arbete finns i **Projekt**. En nedladdad fil ligger där din webbläsare eller ditt system placerade den, och en kopia väntar oftast i **Tillgångar**. I de flesta verktyg sparas även arbete du aldrig sparade själv. Den här sidan tar upp vart och ett av dessa, plus en stängd flik, rensad webbläsardata, tidigare versioner, raderade objekt och att flytta till en annan enhet.
 
 | Vad du gjorde | Var du ska titta |
 |---|---|
 | Tryckte på **Spara som** eller **Spara** | **Projekt** |
 | Tryckte på **Ladda ner** | Din webbläsares nedladdningar, och en kopia i **Tillgångar** |
-| Inget av detta, i ett av [de nio verktyg som sparar medan du arbetar](#the-nine-tools-that-save-as-you-work) | **Projekt** och **History** |
+| Inget av detta, i ett [verktyg som sparar medan du arbetar](#which-tools-save-as-you-work) | **Projekt** och **Historik** |
 | Inget av detta, i något annat verktyg | Bara fliken du arbetade i, tills du stänger den |
 | Raderade det i appen | **Papperskorgen**, i **Projekt**, **Tillgångar** eller **Inställningar → Lagring**, i 30 dagar |
 
@@ -71,20 +71,29 @@ not visible in the closed menu, so the alt does not list them.
 
 Vad som kommer tillbaka beror på hur du lämnade och vilket verktyg du använde:
 
-- **Du stängde fliken, eller kom tillbaka en annan gång.** Osparat arbete är borta, förutom i [de nio verktygen](#the-nine-tools-that-save-as-you-work), som sparar dina ändringar medan du arbetar: öppna dem från **Projekt**.
-- **Du laddade om sidan i samma flik.** Dina inställningar kommer tillbaka från sidans adress. I andra verktyg än de nio kommer bilder och filer du lagt till från din enhet, samt enradig text längre än 150 tecken, inte tillbaka, eftersom adressen inte rymmer dem.
+- **Du stängde fliken, eller kom tillbaka en annan gång.** Osparat arbete är borta, förutom i [de verktyg som sparar medan du arbetar](#which-tools-save-as-you-work): öppna det arbetet från **Projekt**.
+- **Du laddade om sidan i samma flik.** Dina inställningar kommer tillbaka från sidans adress. I verktyg som inte sparar medan du arbetar kommer bilder och filer du lagt till från din enhet, samt enradig text längre än 150 tecken, inte tillbaka, eftersom adressen inte rymmer dem.
 - **Du tryckte på Hem, eller bakåtknappen längst upp till vänster.** Om du ändrat något sedan du senast sparade, laddade ner eller kopierade, frågar dialogen **Osparade ändringar** om du vill spara först. **Spara & lämna** sparar arbetet och tar dig till **Projekt**, eller tillbaka till den projektmapp du öppnade arbetet från. **Lämna utan att spara** kastar dina ändringar: ett sparat objekt återgår till hur du senast sparade det, och en skapelse du aldrig sparade lämnar **Projekt**. **Avbryt** håller dig kvar i verktyget.
 
 Lolly frågar bara när du trycker på **Hem** eller bakåtknappen i ett verktyg. Att stänga fliken, ladda om eller använda webbläsarens egen bakåtknapp frågar aldrig. För att vara säker, tryck på **Spara som**, eller **Spara** i exportpanelen, innan du lämnar ett verktyg.
 
 ::: note Lämnade utan att spara av misstag?
-I de nio verktygen håller History kvar en kopia av de kastade ändringarna. Öppna sidan **History**, hitta dem under **Changes** och tryck på **Öppna som en kopia**. I andra verktyg är ändringarna borta.
+I verktyg som sparar medan du arbetar håller Historik kvar en kopia av de kastade ändringarna. Öppna sidan **Historik**, hitta dem under **Changes** och tryck på **Öppna som en kopia**. I andra verktyg är ändringarna borta.
 :::
 
-::: details De nio verktyg som sparar medan du arbetar
-[Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) och [Text](/#/tool/text-helper). Listan växer när fler verktyg får automatisk sparning.
+::: details Vilka verktyg som sparar medan du arbetar
+I webbappen sparar varje verktyg som skapar ett dokument medan du arbetar: Design, Chart, QR Code, Text, Sandbox och resten. De här verktygen gör det inte:
 
-I dessa verktyg arkiverar din första ändring arbetet i **Projekt** som om du hade sparat, och senare ändringar sparas inom några sekunder. Så en osparad skapelse finns kvar i Projekt efter att du stängt fliken och öppnas igen med sina ändringar markerade som osparade. **Lämna utan att spara** kastar dem ändå, och History behåller en kopia av de kastade ändringarna i 30 dagar. Att öppna verktyget igen från startskärmen påbörjar en ny skapelse; öppna den tidigare från Projekt.
+- verktyg som arbetar på en fil du tar med, som Redact, Sign eller Convert Image, eftersom Lolly aldrig behåller en kopia av den filen;
+- verktyg som spelar in från din kamera, mikrofon eller skärm, som Record, Screen Capture och Voice Recorder;
+- 3D och Darkroom, som tar en egen fil;
+- ett verktyg utan något att ändra, som Countdown.
+
+I de andra verktygen arkiverar din första ändring arbetet i **Projekt** som om du hade sparat, och senare ändringar sparas medan du arbetar, när verktyget har ritat klart. Så en osparad skapelse finns kvar i Projekt efter att du stängt fliken och öppnas igen med sina ändringar markerade som osparade. **Lämna utan att spara** kastar dem ändå, och Historik behåller en kopia av de kastade ändringarna i 30 dagar. Att öppna verktyget igen från startskärmen påbörjar en ny skapelse; öppna den tidigare från Projekt.
+
+Med [Synk](/info/sync.html) på går en skapelse som arkiverats på det här sättet till dina andra enheter som allt annat i Projekt. Dess versioner stannar på enheten där de gjordes.
+
+Om en skapelse är öppen i två flikar och du sparar i båda, behålls det senaste sparandet. Arbetet det ersatte är inte förlorat: det finns under **Protected drafts** i skapelsens Historik, med **Open draft as a copy**.
 
 Det här fungerar bara i webbappen, inte i skrivbords- eller mobilapparna, och inte medan du arbetar live med någon annan.
 :::
@@ -111,21 +120,23 @@ På iPhone, iPad och Android ersätter en ny fil en tidigare med samma namn.
 ## Gå tillbaka till en tidigare version
 
 - **Under det här besöket:** **Ångra** går bakåt genom dina senaste 100 ändringar, tills du lämnar verktyget eller laddar om. Se [Ångra och gör om](/info/using.html#undo-and-redo).
-- **I de nio verktyg som sparar medan du arbetar:** tidigare versioner av varje skapelse behålls. Följ stegen nedan.
+- **I [verktyg som sparar medan du arbetar](#which-tools-save-as-you-work):** tidigare versioner av varje skapelse behålls. Följ stegen nedan.
 - **Allt på enheten:** med [Synk](/info/sync.html) på, **Restore an earlier copy**, under **Inställningar → Anslutna tjänster**, tar tillbaka en av de senaste sju dagliga kopiorna, eller kopian från innan din senaste tillämpning. Allt på den här enheten matchar då den kopian, inte bara en design.
 
-För att öppna en tidigare version i ett av de nio verktygen:
+För att öppna en tidigare version:
 
-1. Tryck på **History**, klockknappen bredvid **Ångra** och **Gör om**. I Design finns **History** i det övre fältet; på en telefon, tryck på **•••** och sedan **History**.
-2. Hitta versionen efter datum och tid. Raderna **Automatic checkpoint** tas medan du arbetar; raderna **Saved version** är de tillfällen du sparade.
-3. Tryck på **Open as a copy**. Versionen öppnas som en ny skapelse, och den du hade öppen förblir som den var. Kopian finns i **Projekt**, med "(copy)" efter sitt namn.
+1. Tryck på **Historik**, klockknappen bredvid **Ångra** och **Gör om**. I Design finns **Historik** i det övre fältet; på en telefon, tryck på **•••** och sedan **Historik**. I verktyg utan **Ångra**, som Text och Sandbox, finns **Historik** bredvid **Hem** längst upp till vänster.
+2. Hitta versionen efter datum och tid. Raderna **Automatisk kontrollpunkt** tas medan du arbetar; raderna **Sparad version** är de tillfällen du sparade.
+3. Tryck på **Öppna som en kopia**. Versionen öppnas som en ny skapelse, och den du hade öppen förblir som den var. Kopian finns i **Projekt**, med "(copy)" efter sitt namn.
 
 För att behålla en version med ett namn, tryck på **Name version**, skriv ett namn och tryck på **Keep milestone**. Namngivna versioner listas på sidan **History**, under **Milestones**.
 
 ::: details History-panelen och History-sidan
 Panelen **History** listar också rader med **Recovered work**, och **Protected drafts** håller dina senaste ändringar mellan checkpoints, med **Open draft as a copy**. **Compare** och **Check assets** hjälper dig att välja innan du öppnar en kopia. Växla **This creation** till **All history on this device** för att se varje skapelse.
 
-Automatiska checkpoints glesas ut med åldern: en i minuten den senaste timmen, en i timmen det senaste dygnet, en om dagen i 30 dagar, sedan en i veckan. Sparade versioner behålls alla. Att radera en skapelse från **Inställningar → Lagring** raderar även dess versioner.
+Automatiska kontrollpunkter glesas ut med åldern: en i minuten den senaste timmen, en i timmen det senaste dygnet, en om dagen i 30 dagar, sedan en i veckan. Sparade versioner och namngivna versioner behålls alla. Att radera en skapelse flyttar även dess versioner till **Papperskorgen**, och **Ta bort permanent** tar bort dem.
+
+När Historik-lagringen blir full tas de äldsta automatiska kontrollpunkterna bort först, för skapelser du inte öppnat på 30 dagar. Ett sparande behålls alltid, även då: det skrivs som det aktuella arbetet, och Historik säger att det här sparandet inte behålls som en version. **Inställningar → Lagring** visar hur mycket Historik använder.
 
 Sidan **History** (`#/history`, eller **Open app history** i panelen) täcker varje skapelse i den här webbläsaren. På en dator, öppna sidan från klockknappen uppe till höger på startskärmen eller i **Projekt**. På en telefon, gå till verktygsgalleriet på startskärmen, tryck på den runda logotypknappen uppe till höger och välj **Sparade sessioner**, som öppnar History. Från **Projekt** gör det objektet ännu ingenting.
 
@@ -157,7 +168,7 @@ För att flytta allt på en gång:
 3. På den nya enheten, öppna **Inställningar → Lagring**, tryck på **Importera data…**, välj filen och tryck på **Importera**.
 
 ::: note Vad som stannar kvar
-Inloggningar, nycklar och synk-lösenfrasen stannar på varje enhet. Listan över senaste nedladdningar, offlinenedladdningar och AI-modeller följer inte med på någon väg. Versionshistoriken följer bara med i en fil från **Exportera mina data**, inte via Synk eller en `.lolly`. En kopia som Synk håller i din lagring kan laddas ner och öppnas, eller väljas i **Importera data…**, precis som en säkerhetskopia; en krypterad kopia frågar efter din lösenfras.
+Inloggningar, nycklar och synk-lösenfrasen stannar på varje enhet. Listan över senaste nedladdningar, offlinenedladdningar och AI-modeller följer inte med på någon väg. Versionshistoriken följer bara med i en fil från **Exportera mina data**, inte via Synk eller en `.lolly`. När historiken är för stor för en enda fil utelämnas de äldsta automatiska kontrollpunkterna, och exportraden anger hur många. En kopia som Synk håller i din lagring kan laddas ner och öppnas, eller väljas i **Importera data…**, precis som en säkerhetskopia; en krypterad kopia frågar efter din lösenfras.
 :::
 
 ::: details Vad säkerhetskopian innehåller
@@ -176,7 +187,7 @@ Tryck på **Exportera mina data** under **Inställningar → Lagring**, och spar
 
 När appen startar ber Lolly webbläsaren att inte rensa dess lagring när enheten får ont om utrymme. Webbläsaren bestämmer. Under **Inställningar → Tillgänglig offline** betyder en rad som börjar med **Protected** att webbläsaren gick med på det; "The browser may clear downloads if the device runs low on space" betyder att den inte gjorde det, och **Skydda nedladdningar** frågar igen. Om webbläsaren inte gick med på det kan den rensa både sparat arbete och nedladdningar när utrymmet tar slut, så håll en färsk fil från **Exportera mina data**.
 
-**Inställningar → Lagring** visar hur mycket utrymme varje typ av data använder. **Rensa cache** släpper nedladdade katalogfiler, som laddas ner igen vid behov. **Rensa all min data** ber dig skriva ett ord, stänger av Synk, och tar sedan bort allt Lolly sparar i den här webbläsaren: din profil och dina inställningar, sparade sessioner med sin historik och Papperskorgen, uppladdningar, typsnitt och designsystem, nedladdningsloggen, Convert-resultat, nedladdade AI-modeller och offlinekopior. Filer du laddat ner ligger kvar där du sparade dem. Appen startar sedan som vid ett första besök.
+**Inställningar → Lagring** visar hur mycket utrymme varje typ av data använder. Dess **Historik**-rad räknar automatiska kontrollpunkter, deras förhandsvisningar och återställningsutkast; **Remove automatic checkpoints older than 30 days** frigör det utrymmet och behåller sparade och namngivna versioner. **Rensa cache** släpper nedladdade katalogfiler, som laddas ner igen vid behov. **Rensa all min data** ber dig skriva ett ord, stänger av Synk, och tar sedan bort allt Lolly sparar i den här webbläsaren: din profil och dina inställningar, sparade sessioner med sin historik och Papperskorgen, uppladdningar, typsnitt och designsystem, nedladdningsloggen, Convert-resultat, nedladdade AI-modeller och offlinekopior. Filer du laddat ner ligger kvar där du sparade dem. Appen startar sedan som vid ett första besök.
 
 ![Lagringskortet på en telefonbred skärm: varje kategori av data på enheten namngiven, med knappen Rensa all min data längst ner](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

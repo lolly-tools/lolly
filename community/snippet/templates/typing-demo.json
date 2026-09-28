@@ -1,0 +1,56 @@
+{
+  "id": "typing-demo",
+  "name": "Open, type and close",
+  "category": "Animated",
+  "description": "The complete interaction: open, click, type, pause and close.",
+  "values": {
+    "scene": "demo",
+    "language": "javascript",
+    "theme": "suse-dark",
+    "windowStyle": "cupertino",
+    "lineNumbers": true,
+    "showWindow": true,
+    "shadow": true,
+    "scale": 100,
+    "lineHeight": 1.65,
+    "blinkCursor": false,
+    "textOverflow": "fit",
+    "wrapText": false,
+    "calloutMode": "off",
+    "windowRotate": 0,
+    "windowTiltX": 0,
+    "windowTiltY": 0,
+    "showPointer": true,
+    "cursorSize": 125,
+    "clickRing": false,
+    "typingStyle": "natural",
+    "entryMotion": "scale",
+    "exitMotion": "fade",
+    "posterAt": -1,
+    "code": "const makeScene = () => {\n  return \"Small details. Real presence.\";\n};\n\nmakeScene();",
+    "fileName": "demo.js",
+    "typingSeconds": 4.5,
+    "readSeconds": 2.5,
+    "ending": "close"
+  },
+  "presets": [
+    {
+      "id": "hold-the-result",
+      "name": "Hold the result",
+      "description": "Keep the finished window on screen.",
+      "values": {
+        "ending": "hold",
+        "readSeconds": 4
+      }
+    },
+    {
+      "id": "brisk",
+      "name": "Brisk",
+      "description": "A shorter sequence for a quick reveal.",
+      "values": {
+        "typingSeconds": 2.5,
+        "readSeconds": 1.5
+      }
+    }
+  ]
+}

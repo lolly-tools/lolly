@@ -199,7 +199,7 @@ input.lp-head-name:focus {
   align-items: center;
   gap: var(--sp-2);
   margin: 0;
-  padding: var(--sp-5) var(--sp-3) var(--sp-2);
+  padding: var(--sp-5) var(--sp-3) var(--sp-2) 0;
   font-size: var(--ui-type-band);
   font-weight: var(--ui-type-weight-label);
   text-transform: uppercase;

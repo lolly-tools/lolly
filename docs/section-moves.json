@@ -496,8 +496,8 @@
     },
     "how-far-the-same-goes-byte-for-byte": {
       "slug": "cli-automation",
-      "anchor": "how-far-the-same-goes-byte-for-byte",
-      "label": "How far \"the same\" goes, byte for byte"
+      "anchor": "how-far-byte-identical-output-goes",
+      "label": "How far byte-identical output goes"
     },
     "exit-codes": {
       "slug": "cli-automation",

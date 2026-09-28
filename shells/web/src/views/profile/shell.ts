@@ -68,7 +68,6 @@ export function renderShell(pv: ProfileViewCtx): void {
                 : `<input type="checkbox" name="useDetails" ${profile.useDetails ? 'checked' : ''}>`}
               <span class="profile-check-text">${t(profile.useDetails ? 'Using my details' : 'Use my details to create')}</span>
             </label>
-            <p class="profile-optin-note">${t('Only when this is on do your details go into the files you export - shown per file at export time.')}</p>
           </div>
           <div class="profile-details-grid">
             <div class="profile-details-main">

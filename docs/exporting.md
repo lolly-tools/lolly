@@ -300,7 +300,7 @@ Two independent kinds of lock, both entirely on-device.
 
 ![The Password protect card expanded on a PDF export, with the password field and the two lock tiers](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - a basic 40-bit lock (RC4). It opens in *any* PDF app, and - being a light deterrent, not real protection - it can travel in a share link (clear-text, by design). RGB `pdf` only.
+- **Standard** - a basic 40-bit lock (RC4). It opens in *any* PDF app, and - being a light deterrent, not real protection - it can travel in a share link (in clear text). RGB `pdf` only.
 - **Strong** - AES-256 (PDF 2.0). Its password is typed at export and is **never** put in a link; it opens only in newer PDF apps (Acrobat / Preview ~2018 on), and older apps may report the file as damaged. Strong also applies to **Print / CMYK PDFs** and to **each PDF inside a batch zip** (the batch confirm dialog collects the password). Because PDF/X-4 forbids encryption, a Strong-locked Print PDF keeps its CMYK, marks and output-intent but drops the PDF/X-4 conformance claim.
 
 Either tier is mutually exclusive with Content Credentials (an encrypted PDF can't take the credential).

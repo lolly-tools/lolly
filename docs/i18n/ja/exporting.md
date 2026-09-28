@@ -300,8 +300,8 @@ GIFはどこでも動作します(チャットやメールに最適で、動画�
 
 ![PDFエクスポートで展開されたPassword protectカード。パスワード欄と2つのロック階層が表示されている](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - 基本的な40ビットロック（RC4）。*どの*PDFアプリでも開けますが、軽度の抑止力に過ぎず実質的な保護ではないため、共有リンクにそのまま含まれることがあります（設計上、平文で）。RGB `pdf` のみ。
-- **Strong** - AES-256（PDF 2.0）。パスワードはエクスポート時に入力され、リンクに含まれることは**決してありません**。開けるのは比較的新しいPDFアプリ（Acrobat / Preview ~2018以降）のみで、古いアプリではファイルが破損していると表示される場合があります。Strongは**印刷用/CMYK PDF**や**バッチzip内の各PDF**にも適用されます（バッチ確認ダイアログでパスワードを収集します）。PDF/X-4は暗号化を禁じているため、Strongでロックされた印刷用PDFはCMYK、トンボ、出力インテントを保持しますが、PDF/X-4適合性の主張は失われます。
+- **Standard** - 基本的な40ビットロック(RC4)。*どの*PDFアプリでも開けますが、軽度の抑止力に過ぎず実質的な保護ではないため、共有リンクにそのまま(平文で)含まれることがあります。RGB `pdf` のみ。
+- **Strong** - AES-256(PDF 2.0)。パスワードはエクスポート時に入力され、リンクに含まれることは**決してありません**。開けるのは比較的新しいPDFアプリ(Acrobat / Preview ~2018以降)のみで、古いアプリではファイルが破損していると表示される場合があります。Strongは**印刷用/CMYK PDF**や**バッチzip内の各PDF**にも適用されます(バッチ確認ダイアログでパスワードを収集します)。PDF/X-4は暗号化を禁じているため、Strongでロックされた印刷用PDFはCMYK、トンボ、出力インテントを保持しますが、PDF/X-4適合性の主張は失われます。
 
 どちらの階層もContent Credentialsとは併用できません（暗号化されたPDFにはクレデンシャルを付与できません）。
 

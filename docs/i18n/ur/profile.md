@@ -35,7 +35,7 @@
 
 ### ایک فرد کے طور پر
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ![ہیڈ شاٹ کنٹرول، خالی جب تک آپ کوئی تصویر اپ لوڈ نہ کریں، جو پھر اسی ڈیوائس پر رہتی ہے](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -122,7 +122,7 @@ Lolly چلتے چلتے کیش کرتا ہے، لیکن چلتے چلتے کیش
 
 ## ٹولز آپ کی پروفائل کو کیسے استعمال کرتے ہیں
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 کوئی ٹول صرف انہی پروفائل فیلڈز کو *پہلے سے بھرتا* ہے جنہیں بائنڈ کرنے کے لیے اسے واضح طور پر بنایا گیا تھا:
 

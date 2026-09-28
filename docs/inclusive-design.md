@@ -170,7 +170,7 @@ your content has nothing to revise.
   accessibility attributes, the ban on preferences reaching exports and the
   keeping-in-step of the app's two copies of each preference.
 
-## Holding ourselves to it
+## Tests hold us to this policy
 
 Inclusive design here is a policy in the engineering sense: invariants with
 tests, not aspirations with adjectives. When an accommodation and a feature

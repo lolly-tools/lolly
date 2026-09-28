@@ -1,12 +1,12 @@
 # Encontre e recupere seu trabalho
 
-Tudo o que você cria no Lolly permanece no navegador ou app em que você o criou, nesse dispositivo, a menos que você ative a [Sincronização](/info/sync.html). O trabalho salvo fica em **Projetos**. Um arquivo baixado fica onde seu navegador ou sistema o colocou, e uma cópia costuma esperar em **Ativos**. Em nove ferramentas, o trabalho que você nunca salvou também é mantido. Esta página cobre cada um desses casos, além de uma aba fechada, dados do navegador apagados, versões anteriores, itens excluídos e a mudança para outro dispositivo.
+Tudo o que você cria no Lolly permanece no navegador ou app em que você o criou, nesse dispositivo, a menos que você ative a [Sincronização](/info/sync.html). O trabalho salvo fica em **Projetos**. Um arquivo baixado fica onde seu navegador ou sistema o colocou, e uma cópia costuma esperar em **Ativos**. Na maioria das ferramentas, o trabalho que você nunca salvou também é mantido. Esta página cobre cada um desses casos, além de uma aba fechada, dados do navegador apagados, versões anteriores, itens excluídos e a mudança para outro dispositivo.
 
 | O que você fez | Onde procurar |
 |---|---|
 | Pressionou **Salvar como** ou **Salvar** | **Projetos** |
 | Pressionou **Baixar** | Os downloads do seu navegador, e uma cópia em **Ativos** |
-| Nenhum dos dois, em uma das [nove ferramentas que salvam enquanto você trabalha](#the-nine-tools-that-save-as-you-work) | **Projetos** e **History** |
+| Nenhum dos dois, em uma [ferramenta que salva enquanto você trabalha](#which-tools-save-as-you-work) | **Projetos** e **Histórico** |
 | Nenhum dos dois, em qualquer outra ferramenta | Só a aba em que você trabalhou, até você fechá-la |
 | Excluiu no app | **Lixeira**, em **Projetos**, **Ativos** ou **Configurações → Armazenamento**, por 30 dias |
 
@@ -71,20 +71,29 @@ not visible in the closed menu, so the alt does not list them.
 
 O que volta depende de como você saiu e de qual ferramenta você usou:
 
-- **Você fechou a aba, ou voltou outra hora.** O trabalho não salvo se foi, exceto nas [nove ferramentas](#the-nine-tools-that-save-as-you-work), que salvam suas edições enquanto você trabalha: abra-as em **Projetos**.
-- **Você recarregou a página na mesma aba.** Suas configurações voltam a partir do endereço da página. Em ferramentas fora as nove, imagens e arquivos que você adicionou do seu dispositivo, e texto de uma linha com mais de 150 caracteres, não voltam, porque o endereço não os guarda.
+- **Você fechou a aba, ou voltou outra hora.** O trabalho não salvo se foi, exceto nas [ferramentas que salvam enquanto você trabalha](#which-tools-save-as-you-work): abra esse trabalho em **Projetos**.
+- **Você recarregou a página na mesma aba.** Suas configurações voltam a partir do endereço da página. Em ferramentas que não salvam enquanto você trabalha, imagens e arquivos que você adicionou do seu dispositivo, e texto de uma linha com mais de 150 caracteres, não voltam, porque o endereço não os guarda.
 - **Você pressionou Home, ou o botão de voltar no canto superior esquerdo.** Se você mudou algo desde a última vez que salvou, baixou ou copiou, um diálogo de **Alterações não salvas** pergunta se quer salvar primeiro. **Salvar & sair** salva o trabalho e leva você a **Projetos**, ou de volta à pasta do projeto de onde você abriu o trabalho. **Sair sem salvar** descarta suas alterações: um item salvo volta a como você o salvou pela última vez, e uma criação nunca salva sai de **Projetos**. **Cancelar** mantém você na ferramenta.
 
 O Lolly só pergunta quando você pressiona **Home** ou o botão de voltar em uma ferramenta. Fechar a aba, recarregar e o próprio botão Voltar do navegador nunca perguntam. Para garantir, pressione **Salvar como**, ou **Salvar** no painel de exportação, antes de sair de uma ferramenta.
 
 ::: note Saiu sem salvar por engano?
-Nas nove ferramentas, Histórico guarda uma cópia das edições descartadas. Abra a página **History**, encontre-as em **Changes** e pressione **Open as a copy**. Nas outras ferramentas as alterações se foram.
+Nas ferramentas que salvam enquanto você trabalha, o Histórico guarda uma cópia das edições descartadas. Abra a página **Histórico**, encontre-as em **Changes** e pressione **Open as a copy**. Nas outras ferramentas as alterações se foram.
 :::
 
-::: details As nove ferramentas que salvam enquanto você trabalha
-[Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) e [Text](/#/tool/text-helper). A lista cresce conforme mais ferramentas ganham salvamento automático.
+::: details Quais ferramentas salvam enquanto você trabalha
+No app web, toda ferramenta que produz um documento salva enquanto você trabalha: Design, Chart, QR Code, Text, Sandbox e as demais. Estas ferramentas não:
 
-Nessas ferramentas, sua primeira mudança arquiva o trabalho em **Projetos** como se você tivesse salvo, e mudanças posteriores são mantidas em poucos segundos. Então uma criação não salva continua em Projetos depois que você fecha a aba e reabre com suas alterações marcadas como não salvas. **Sair sem salvar** ainda assim as descarta, e o Histórico guarda uma cópia das edições descartadas por 30 dias. Abrir a ferramenta de novo pela tela inicial começa uma nova criação; abra a anterior em Projetos.
+- ferramentas que trabalham sobre um arquivo que você traz, como Redact, Sign ou Convert Image, porque o Lolly nunca guarda uma cópia desse arquivo;
+- ferramentas que gravam pela sua câmera, microfone ou tela, como Record, Screen Capture e Voice Recorder;
+- 3D e Darkroom, que recebem um arquivo próprio;
+- uma ferramenta sem nada a mudar, como Countdown.
+
+Nas outras ferramentas, sua primeira mudança arquiva o trabalho em **Projetos** como se você tivesse salvo, e mudanças posteriores são mantidas enquanto você trabalha, assim que a ferramenta termina de desenhar. Então uma criação não salva continua em Projetos depois que você fecha a aba, e reabre com suas alterações marcadas como não salvas. **Sair sem salvar** ainda assim as descarta, e o Histórico guarda uma cópia das edições descartadas por 30 dias. Abrir a ferramenta de novo pela tela inicial começa uma nova criação; abra a anterior em Projetos.
+
+Com a [Sincronização](/info/sync.html) ativada, uma criação arquivada dessa forma vai para seus outros dispositivos como qualquer outra coisa em Projetos. Suas versões ficam no dispositivo onde foram feitas.
+
+Se uma criação está aberta em duas abas e você salva em ambas, o último salvamento é mantido. O trabalho que ele substituiu não se perde: fica em **Rascunhos protegidos**, no Histórico da criação, com **Open draft as a copy**.
 
 Isso funciona só no app web, não nos apps de desktop ou mobile, e não enquanto você trabalha ao vivo com outra pessoa.
 :::
@@ -110,13 +119,13 @@ No iPhone, iPad e Android, um arquivo novo substitui um anterior com o mesmo nom
 
 ## Volte a uma versão anterior
 
-- **Durante esta visita:** **Desfazer** volta pelas suas últimas 100 mudanças, até você sair da ferramenta ou recarregar. Veja [Desfazer e refazer](/info/using.html#undo-and-redo).
-- **Nas nove ferramentas que salvam enquanto você trabalha:** versões anteriores de cada criação são mantidas. Siga os passos abaixo.
+- **Durante esta visita:** **Undo** volta pelas suas últimas 100 mudanças, até você sair da ferramenta ou recarregar. Veja [Desfazer e refazer](/info/using.html#undo-and-redo).
+- **Nas [ferramentas que salvam enquanto você trabalha](#which-tools-save-as-you-work):** versões anteriores de cada criação são mantidas. Siga os passos abaixo.
 - **Tudo no dispositivo:** com a [Sincronização](/info/sync.html) ativada, **Restore an earlier copy**, em **Configurações → Serviços conectados**, traz de volta uma das últimas sete cópias diárias, ou a cópia de antes da sua última aplicação. Tudo neste dispositivo passa a corresponder àquela cópia, não só um design.
 
-Para abrir uma versão anterior em uma das nove ferramentas:
+Para abrir uma versão anterior:
 
-1. Pressione **History**, o botão de relógio ao lado de **Desfazer** e **Refazer**. No Design, **History** fica na barra superior; no celular, toque em **•••** e depois em **History**.
+1. Pressione **Histórico**, o botão de relógio ao lado de **Undo** e **Redo**. No Design, **Histórico** fica na barra superior; no celular, toque em **•••** e depois em **Histórico**. Em ferramentas sem **Undo**, como Text e Sandbox, **Histórico** fica ao lado de **Home** no canto superior esquerdo.
 2. Encontre a versão pela data e hora. Linhas de **Automatic checkpoint** são tiradas enquanto você trabalha; linhas de **Saved version** são os momentos em que você salvou.
 3. Pressione **Open as a copy**. A versão abre como uma nova criação, e a que você tinha aberta continua como estava. A cópia fica em **Projetos**, com "(copy)" depois do nome.
 
@@ -125,7 +134,9 @@ Para manter uma versão com nome, pressione **Name version**, digite um nome e p
 ::: details O painel History e a página History
 O painel **History** também lista linhas de **Recovered work**, e **Protected drafts** guarda suas últimas edições entre checkpoints, com **Open draft as a copy**. **Compare** e **Check assets** ajudam você a escolher antes de abrir uma cópia. Alterne **This creation** para **All history on this device** para ver cada criação.
 
-Automatic checkpoints se tornam mais espaçados com o tempo: um por minuto na última hora, um por hora no último dia, um por dia durante 30 dias, depois um por semana. Saved versions são todas mantidas. Excluir uma criação em **Configurações → Armazenamento** exclui suas versões também.
+Checkpoints automáticos se tornam mais espaçados com o tempo: um por minuto na última hora, um por hora no último dia, um por dia durante 30 dias, depois um por semana. Versões salvas e versões nomeadas são todas mantidas. Excluir uma criação move suas versões para a **Lixeira** também, e **Delete forever** as remove.
+
+Quando o armazenamento do Histórico se enche, os checkpoints automáticos mais antigos de criações que você não abre há 30 dias são removidos primeiro. Um salvamento é sempre mantido, mesmo assim: ele é gravado como o trabalho atual, e o Histórico avisa que esse salvamento não é mantido como uma versão. **Configurações → Armazenamento** mostra quanto o Histórico usa.
 
 A página **History** (`#/history`, ou **Open app history** no painel) cobre cada criação neste navegador. No computador, abra a página pelo botão de relógio no canto superior direito da tela inicial ou de **Projetos**. No celular, vá até a galeria de ferramentas na tela inicial, toque no botão redondo do logo no canto superior direito e escolha **Saved sessions**, que abre History. Em **Projetos** esse item ainda não faz nada.
 
@@ -157,7 +168,7 @@ Para mover tudo de uma vez:
 3. No dispositivo novo, abra **Configurações → Armazenamento**, pressione **Import data…**, escolha o arquivo e pressione **Import**.
 
 ::: note O que fica para trás
-Logins, chaves e a frase secreta de sincronização ficam em cada dispositivo. A lista de downloads recentes, downloads offline e modelos de IA não viajam por nenhum caminho. O histórico de versões viaja só em um arquivo de **Exportar meus dados**, não pela Sincronização ou por um `.lolly`. Uma cópia que a Sincronização guarda no seu armazenamento pode ser baixada e aberta, ou escolhida em **Importar dados…**, como um arquivo de backup; uma cópia criptografada pede sua frase secreta.
+Logins, chaves e a frase-senha de sincronização ficam em cada dispositivo. A lista de downloads recentes, downloads offline e modelos de IA não viajam por nenhuma rota. O histórico de versões viaja apenas em um arquivo de **Exportar meus dados**, não pela Sincronização nem por um `.lolly`. Quando o histórico é grande demais para um único arquivo, os checkpoints automáticos mais antigos ficam de fora e a linha da exportação diz quantos. Uma cópia que a Sincronização guarda no seu armazenamento pode ser baixada e aberta, ou escolhida em **Import data…**, como um arquivo de backup; uma cópia criptografada pede sua frase-senha.
 :::
 
 ::: details O que o arquivo de backup contém
@@ -176,7 +187,7 @@ Pressione **Exportar meus dados** em **Configurações → Armazenamento**, e gu
 
 Quando o app inicia, o Lolly pede ao navegador para não limpar seu armazenamento quando o dispositivo ficar sem espaço. O navegador decide. Em **Configurações → Disponível offline**, uma linha começando com **Protected** significa que o navegador concordou; "The browser may clear downloads if the device runs low on space" significa que não concordou, e **Protect downloads** pergunta de novo. Se o navegador não concordou, ele pode limpar trabalho salvo além de downloads quando o espaço acabar, então guarde um arquivo recente de **Exportar meus dados**.
 
-**Configurações → Armazenamento** mostra quanto espaço cada tipo de dado usa. **Limpar cache** descarta arquivos de catálogo baixados, que baixam de novo quando necessário. **Limpar todos os meus dados** pede que você digite uma palavra, desliga a Sincronização, depois remove tudo que o Lolly guarda neste navegador: seu perfil e configurações, sessões salvas com seu histórico e a Lixeira, uploads, fontes e design systems, o log de downloads, resultados do Convert, modelos de IA baixados e cópias offline. Arquivos que você baixou permanecem onde você os salvou. O app então inicia como em uma primeira visita.
+**Configurações → Armazenamento** mostra quanto espaço cada tipo de dado usa. Sua linha de **Histórico** conta checkpoints automáticos, suas prévias e rascunhos de recuperação; **Remover checkpoints automáticos com mais de 30 dias** libera esse espaço e mantém as versões salvas e nomeadas. **Limpar cache** descarta arquivos de catálogo baixados, que baixam de novo quando necessário. **Limpar todos os meus dados** pede que você digite uma palavra, desliga a Sincronização, depois remove tudo que o Lolly guarda neste navegador: seu perfil e configurações, sessões salvas com seu histórico e a Lixeira, uploads, fontes e design systems, o log de downloads, resultados do Convert, modelos de IA baixados e cópias offline. Arquivos que você baixou permanecem onde você os salvou. O app então inicia como em uma primeira visita.
 
 ![O cartão de armazenamento em uma tela com largura de celular: cada categoria de dados no dispositivo nomeada, com o botão Limpar todos os meus dados embaixo](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

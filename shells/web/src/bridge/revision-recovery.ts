@@ -4,8 +4,16 @@
 import type { IDBPDatabase } from 'idb';
 import type { SavedStateData, StateRecord } from './state.ts';
 import type { RevisionTransaction } from './revision-records.ts';
+import type { RevisionCapture } from './revision-capture.ts';
 
-export interface RecoveryOptions { writerId: string; expectedHead: string | null; expectedVersion: string | null }
+export interface RecoveryOptions {
+  writerId: string; expectedHead: string | null; expectedVersion: string | null;
+  /** The editor's frozen, canonical document; the store hashes it without walking it again. */
+  capture?: RevisionCapture;
+  /** Keep this draft as a protected branch beside the current state, never over
+   * it: the state holds an explicit save that history could not record yet. */
+  branch?: boolean;
+}
 export interface RecoveryEntry {
   id: string; slot: string; documentId: string; version: string;
   baseHead: string | null; baseVersion: string | null;

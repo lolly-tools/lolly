@@ -1,12 +1,12 @@
 # Găsește și recuperează-ți lucrarea
 
-Tot ce faci în Lolly rămâne în browserul sau aplicația în care l-ai făcut, pe dispozitivul respectiv, decât dacă activezi [Sync](/info/sync.html). Lucrarea salvată e în **Proiecte**. Un fișier descărcat e oriunde l-a pus browserul sau sistemul tău, iar o copie te așteaptă de obicei în **Resurse**. În nouă instrumente, lucrarea pe care n-ai salvat-o niciodată este păstrată și ea. Pagina asta acoperă fiecare dintre acestea, plus o filă închisă, date de browser șterse, versiuni anterioare, elemente șterse și mutarea pe alt dispozitiv.
+Tot ce faci în Lolly rămâne în browserul sau aplicația în care l-ai făcut, pe dispozitivul respectiv, decât dacă activezi [Sync](/info/sync.html). Lucrarea salvată e în **Proiecte**. Un fișier descărcat e oriunde l-a pus browserul sau sistemul tău, iar o copie te așteaptă de obicei în **Resurse**. În majoritatea instrumentelor, lucrarea pe care n-ai salvat-o niciodată este păstrată și ea. Pagina asta acoperă fiecare dintre acestea, plus o filă închisă, date de browser șterse, versiuni anterioare, elemente șterse și mutarea pe alt dispozitiv.
 
 | Ce ai făcut | Unde te uiți |
 |---|---|
 | Ai apăsat **Salvează ca** sau **Salvează** | **Proiecte** |
 | Ai apăsat **Descarcă** | Descărcările browserului tău, și o copie în **Resurse** |
-| Niciuna, într-unul dintre [cele nouă instrumente care salvează pe măsură ce lucrezi](#the-nine-tools-that-save-as-you-work) | **Proiecte** și **History** |
+| Niciuna, într-un [instrument care salvează pe măsură ce lucrezi](#which-tools-save-as-you-work) | **Proiecte** și **Istoric** |
 | Niciuna, în orice alt instrument | Doar fila în care ai lucrat, până o închizi |
 | L-ai șters în aplicație | **Coș de gunoi**, în **Proiecte**, **Resurse** sau **Setări → Stocare**, timp de 30 de zile |
 
@@ -71,20 +71,29 @@ not visible in the closed menu, so the alt does not list them.
 
 Ce revine depinde de cum ai plecat și ce instrument ai folosit:
 
-- **Ai închis fila, sau ai revenit altă dată.** Lucrarea nesalvată dispare, cu excepția [celor nouă instrumente](#the-nine-tools-that-save-as-you-work), care îți salvează modificările pe măsură ce lucrezi: deschide-le din **Proiecte**.
-- **Ai reîncărcat pagina în aceeași filă.** Setările tale revin din adresa paginii. În instrumentele, altele decât cele nouă, fotografiile și fișierele pe care le-ai adăugat de pe dispozitivul tău, și textul pe un singur rând mai lung de 150 de caractere, nu revin, fiindcă adresa nu le conține.
+- **Ai închis fila, sau ai revenit altă dată.** Lucrarea nesalvată dispare, cu excepția [instrumentelor care salvează pe măsură ce lucrezi](#which-tools-save-as-you-work): deschide acea lucrare din **Proiecte**.
+- **Ai reîncărcat pagina în aceeași filă.** Setările tale revin din adresa paginii. În instrumentele care nu salvează pe măsură ce lucrezi, fotografiile și fișierele pe care le-ai adăugat de pe dispozitivul tău, și textul pe un singur rând mai lung de 150 de caractere, nu revin, fiindcă adresa nu le conține.
 - **Ai apăsat Acasă, sau butonul de înapoi din stânga sus.** Dacă ai schimbat ceva de la ultima salvare, descărcare sau copiere, un dialog **Modificări nesalvate** te întreabă dacă vrei să salvezi întâi. **Salvează și ieși** salvează lucrarea și te duce la **Proiecte**, sau înapoi la folderul de proiect din care ai deschis lucrarea. **Ieși fără să salvezi** îți anulează modificările: un element salvat revine la felul în care l-ai salvat ultima dată, iar o creație pe care n-ai salvat-o niciodată părăsește **Proiecte**. **Anulează** te ține în instrument.
 
 Lolly întreabă doar când apeși **Acasă** sau butonul de înapoi într-un instrument. Închiderea filei, reîncărcarea și butonul propriu de înapoi al browserului tău nu întreabă niciodată. Ca să fii sigur, apasă **Salvează ca**, sau **Salvează** din panoul de export, înainte să părăsești un instrument.
 
 ::: note Ai plecat fără să salvezi din greșeală?
-În cele nouă instrumente, History păstrează o copie a modificărilor abandonate. Deschide pagina **History**, găsește-le sub **Changes** și apasă **Open as a copy**. În celelalte instrumente, modificările s-au pierdut.
+În instrumentele care salvează pe măsură ce lucrezi, Istoricul păstrează o copie a modificărilor abandonate. Deschide pagina **Istoric**, găsește-le sub **Changes** și apasă **Deschide ca o copie**. În celelalte instrumente, modificările s-au pierdut.
 :::
 
-::: details Cele nouă instrumente care salvează pe măsură ce lucrezi
-[Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) și [Text](/#/tool/text-helper). Lista crește pe măsură ce mai multe instrumente capătă salvare automată.
+::: details Ce instrumente salvează pe măsură ce lucrezi
+În aplicația web, fiecare instrument care produce un document salvează pe măsură ce lucrezi: Design, Chart, QR Code, Text, Sandbox și restul. Acestea nu salvează:
 
-În aceste instrumente, prima ta modificare depune lucrarea în **Proiecte** ca și cum ai fi salvat, iar modificările ulterioare sunt păstrate în câteva secunde. Așa că o creație nesalvată rămâne în Proiecte după ce închizi fila și reapare cu modificările ei marcate ca nesalvate. **Ieși fără să salvezi** tot le anulează, iar History păstrează o copie a modificărilor abandonate timp de 30 de zile. Deschiderea din nou a instrumentului din ecranul principal pornește o creație nouă; deschide-o pe cea anterioară din Proiecte.
+- instrumentele care lucrează pe un fișier pe care îl aduci tu, cum ar fi Redact, Sign sau Convert Image, pentru că Lolly nu păstrează niciodată o copie a acelui fișier;
+- instrumentele care înregistrează de la camera, microfonul sau ecranul tău, cum ar fi Record, Screen Capture și Voice Recorder;
+- 3D și Darkroom, care preiau un fișier propriu;
+- un instrument fără nimic de schimbat, cum ar fi Countdown.
+
+În celelalte instrumente, prima ta modificare depune lucrarea în **Proiecte** ca și cum ai fi salvat, iar modificările ulterioare sunt păstrate pe măsură ce lucrezi, odată ce instrumentul a terminat de desenat. Așa că o creație nesalvată rămâne în Proiecte după ce închizi fila și reapare cu modificările ei marcate ca nesalvate. **Ieși fără să salvezi** tot le anulează, iar Istoricul păstrează o copie a modificărilor abandonate timp de 30 de zile. Deschiderea din nou a instrumentului din ecranul principal pornește o creație nouă; deschide-o pe cea anterioară din Proiecte.
+
+Cu [Sync](/info/sync.html) activat, o creație depusă astfel ajunge pe celelalte dispozitive ale tale ca orice altceva din Proiecte. Versiunile ei rămân pe dispozitivul pe care au fost făcute.
+
+Dacă o creație este deschisă în două file și salvezi în ambele, este păstrată ultima salvare. Lucrarea pe care a înlocuit-o nu se pierde: se află sub **Ciorne protejate**, în Istoricul creației, cu **Deschide ciorna ca o copie**.
 
 Asta funcționează doar în aplicația web, nu în aplicațiile desktop sau mobile, și nu cât timp lucrezi live cu altcineva.
 :::
@@ -111,21 +120,23 @@ Pe iPhone, iPad și Android, un fișier nou îl înlocuiește pe unul anterior c
 ## Revino la o versiune anterioară
 
 - **În timpul acestei vizite:** **Anulează** dă înapoi prin ultimele tale 100 de modificări, până când părăsești instrumentul sau reîncarci. Vezi [Anulare și refacere](/info/using.html#undo-and-redo).
-- **În cele nouă instrumente care salvează pe măsură ce lucrezi:** versiunile anterioare ale fiecărei creații sunt păstrate. Urmează pașii de mai jos.
+- **În [instrumentele care salvează pe măsură ce lucrezi](#which-tools-save-as-you-work):** versiunile anterioare ale fiecărei creații sunt păstrate. Urmează pașii de mai jos.
 - **Tot ce e pe dispozitiv:** cu [Sync](/info/sync.html) activat, **Restore an earlier copy**, sub **Setări → Servicii conectate**, aduce înapoi una dintre ultimele șapte copii zilnice, sau copia dinainte de ultima ta aplicare. Tot ce e pe dispozitivul ăsta se potrivește apoi cu acea copie, nu doar un design.
 
-Ca să deschizi o versiune anterioară într-unul dintre cele nouă instrumente:
+Ca să deschizi o versiune anterioară:
 
-1. Apasă **History**, butonul cu ceas de lângă **Anulează** și **Refă**. În Design, **History** e în bara de sus; pe telefon, apasă **•••** și apoi **History**.
-2. Găsește versiunea după data și ora ei. Rândurile **Automatic checkpoint** sunt luate pe măsură ce lucrezi; rândurile **Saved version** sunt momentele în care ai salvat.
-3. Apasă **Open as a copy**. Versiunea se deschide ca o creație nouă, iar cea pe care o aveai deschisă rămâne așa cum era. Copia e în **Proiecte**, cu „(copy)” după numele ei.
+1. Apasă **Istoric**, butonul cu ceas de lângă **Anulează** și **Refă**. În Design, **Istoric** este în bara de sus; pe telefon, apasă **•••** și apoi **Istoric**. În instrumentele fără **Anulează**, cum ar fi Text și Sandbox, **Istoric** este lângă **Acasă**, în stânga sus.
+2. Găsește versiunea după data și ora ei. Rândurile **Punct de control automat** sunt luate pe măsură ce lucrezi; rândurile **Versiune salvată** sunt momentele în care ai salvat.
+3. Apasă **Deschide ca o copie**. Versiunea se deschide ca o creație nouă, iar cea pe care o aveai deschisă rămâne așa cum era. Copia e în **Proiecte**, cu „(copy)” după numele ei.
 
 Ca să păstrezi o versiune după nume, apasă **Name version**, tastează un nume și apasă **Keep milestone**. Versiunile numite sunt listate pe pagina **History**, sub **Milestones**.
 
 ::: details Panoul History și pagina History
 Panoul **History** mai listează și rânduri **Recovered work**, iar **Protected drafts** păstrează ultimele tale modificări dintre puncte de control, cu **Open draft as a copy**. **Compare** și **Check assets** te ajută să alegi înainte să deschizi o copie. Comută **This creation** pe **All history on this device** ca să vezi fiecare creație.
 
-Punctele de control automate se răresc odată cu vechimea: unul pe minut în ultima oră, unul pe oră în ultima zi, unul pe zi timp de 30 de zile, apoi unul pe săptămână. Versiunile salvate sunt păstrate toate. Ștergerea unei creații din **Setări → Stocare** îi șterge și versiunile.
+Punctele de control automate se răresc odată cu vechimea: unul pe minut în ultima oră, unul pe oră în ultima zi, unul pe zi timp de 30 de zile, apoi unul pe săptămână. Versiunile salvate și versiunile denumite sunt păstrate toate. Ștergerea unei creații îi mută și versiunile în **Coș de gunoi**, iar **Șterge definitiv** le elimină.
+
+Când stocarea Istoricului se umple, primele eliminate sunt cele mai vechi puncte de control automate ale creațiilor pe care nu le-ai deschis de 30 de zile. O salvare este întotdeauna păstrată, chiar și atunci: este scrisă ca lucrarea curentă, iar Istoricul spune că această salvare nu este păstrată ca versiune. **Setări → Stocare** arată cât spațiu folosește Istoricul.
 
 Pagina **History** (`#/history`, sau **Open app history** din panou) acoperă fiecare creație din browserul ăsta. Pe un computer, deschide pagina din butonul cu ceas din dreapta sus a ecranului principal sau din **Proiecte**. Pe telefon, mergi la galeria de instrumente de pe ecranul principal, apasă butonul rotund cu logo din dreapta sus și alege **Sesiuni salvate**, care deschide History. Din **Proiecte** elementul respectiv nu face încă nimic.
 
@@ -157,7 +168,7 @@ Ca să muți totul o singură dată:
 3. Pe dispozitivul nou, deschide **Setări → Stocare**, apasă **Importă date…**, alege fișierul și apasă **Importă**.
 
 ::: note Ce rămâne în urmă
-Autentificările, cheile și fraza de acces pentru sincronizare rămân pe fiecare dispozitiv. Lista descărcărilor recente, descărcările offline și modelele AI nu călătoresc pe nicio cale. Istoricul versiunilor călătorește doar într-un fișier **Exportă datele mele**, nu prin Sync sau printr-un `.lolly`. O copie pe care Sync o ține în stocarea ta poate fi descărcată și deschisă, sau aleasă din **Importă date…**, ca un fișier de backup; o copie criptată îți cere fraza de acces.
+Autentificările, cheile și fraza de acces pentru sincronizare rămân pe fiecare dispozitiv. Lista descărcărilor recente, descărcările offline și modelele AI nu călătoresc pe nicio cale. Istoricul versiunilor călătorește doar într-un fișier **Exportă datele mele**, nu prin Sync sau printr-un `.lolly`. Când istoricul este prea mare pentru un singur fișier, cele mai vechi puncte de control automate sunt omise, iar linia de export spune câte. O copie pe care Sync o ține în stocarea ta poate fi descărcată și deschisă, sau aleasă din **Importă date…**, ca un fișier de backup; o copie criptată îți cere fraza de acces.
 :::
 
 ::: details Ce conține fișierul de rezervă
@@ -176,7 +187,7 @@ Apasă **Exportă datele mele** sub **Setări → Stocare**, și păstrează fi�
 
 Când pornește aplicația, Lolly cere browserului să nu-i șteargă stocarea când dispozitivul rămâne fără spațiu. Browserul decide. Sub **Setări → Disponibil offline**, un rând care începe cu **Protected** înseamnă că browserul a fost de acord; „Browserul poate șterge descărcările dacă dispozitivul rămâne fără spațiu” înseamnă că n-a fost, iar **Protejează descărcările** întreabă din nou. Dacă browserul n-a fost de acord, poate șterge atât lucrarea salvată, cât și descărcările când spațiul se termină, așa că păstrează un fișier **Exportă datele mele** recent.
 
-**Setări → Stocare** arată cât spațiu folosește fiecare tip de date. **Golește cache-ul** elimină fișierele de catalog descărcate, care se descarcă din nou când e nevoie. **Șterge toate datele mele** îți cere să tastezi un cuvânt, oprește Sync, apoi elimină tot ce păstrează Lolly în acest browser: profilul și setările tale, sesiunile salvate împreună cu istoricul lor și Coșul de gunoi, încărcările, fonturile și sistemele de design, jurnalul de descărcări, rezultatele Convert, modelele AI descărcate și copiile offline. Fișierele pe care le-ai descărcat rămân unde le-ai salvat. Aplicația pornește apoi ca la prima vizită.
+**Setări → Stocare** arată cât spațiu folosește fiecare tip de date. Rândul ei **Istoric** numără punctele de control automate, previzualizările lor și ciornele de recuperare; **Elimină punctele de control automate mai vechi de 30 de zile** eliberează acel spațiu și păstrează versiunile salvate și cele denumite. **Golește cache-ul** elimină fișierele de catalog descărcate, care se descarcă din nou când e nevoie. **Șterge toate datele mele** îți cere să tastezi un cuvânt, oprește Sync, apoi elimină tot ce păstrează Lolly în acest browser: profilul și setările tale, sesiunile salvate împreună cu istoricul lor și Coșul de gunoi, încărcările, fonturile și sistemele de design, jurnalul de descărcări, rezultatele Convert, modelele AI descărcate și copiile offline. Fișierele pe care le-ai descărcat rămân unde le-ai salvat. Aplicația pornește apoi ca la prima vizită.
 
 ![Cardul de stocare pe un ecran de lățimea unui telefon: fiecare categorie de date de pe dispozitiv, numită, cu butonul Clear all my data jos](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

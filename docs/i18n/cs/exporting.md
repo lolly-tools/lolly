@@ -300,8 +300,8 @@ Dva nezávislé druhy zámku, oba zcela na zařízení.
 
 ![Karta Password protect rozbalená u exportu PDF, s polem pro heslo a dvěma úrovněmi zámku](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - základní 40bitový zámek (RC4). Otevře se v *jakékoli* aplikaci pro PDF a - jelikož jde o lehké odrazení, ne skutečnou ochranu - může cestovat v odkazu ke sdílení (záměrně v čistém textu). Jen RGB `pdf`.
-- **Strong** - AES-256 (PDF 2.0). Heslo se zadává při exportu a **nikdy** se nedává do odkazu; otevře se jen v novějších aplikacích pro PDF (Acrobat / Preview přibližně od roku 2018), starší aplikace mohou soubor hlásit jako poškozený. Strong se vztahuje i na **tiskové/CMYK PDF** a na **každé PDF uvnitř dávkového zipu** (heslo shromáždí potvrzovací dialog dávky). Protože PDF/X-4 zakazuje šifrování, tiskové PDF zamčené pomocí Strong si podrží CMYK, značky a output intent, ale ztratí nárok na shodu s PDF/X-4.
+- **Standardní** - základní 40bitový zámek (RC4). Otevře se v *jakékoli* aplikaci pro PDF, a - protože je to jen lehké odrazení, ne skutečná ochrana - může cestovat v odkazu ke sdílení (v čistém textu). Jen RGB `pdf`.
+- **Silné** - AES-256 (PDF 2.0). Jeho heslo se zadává při exportu a **nikdy** se nedává do odkazu; otevře se jen v novějších aplikacích pro PDF (Acrobat / Preview ~2018 a novější), a starší aplikace mohou soubor hlásit jako poškozený. Silné se vztahuje i na **tiskové/CMYK PDF** a na **každé PDF uvnitř dávkového zipu** (dávkový potvrzovací dialog heslo vybere). Protože PDF/X-4 zakazuje šifrování, silně uzamčené tiskové PDF si ponechá své CMYK, značky a output-intent, ale ztratí nárok na shodu s PDF/X-4.
 
 Obě úrovně se vzájemně vylučují s Content Credentials (zašifrované PDF nemůže nést pověření).
 

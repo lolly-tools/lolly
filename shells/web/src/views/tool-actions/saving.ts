@@ -79,17 +79,23 @@ export async function performSave(ta: ActionsCtx,
     // Background thumbnail patch. captureThumbnail swallows its own errors, and
     // the race caps a render that never quiesces. The generation check keeps a
     // slow capture from clobbering a NEWER re-save's data with this older data.
+    // A save history recorded gets its picture through the controller, which sets
+    // the revision's preview and the Projects tile (plan 277 P4); one written
+    // directly patches the record as before. Either way the capture starts now,
+    // while the canvas is still mounted, and is attached even after Save & leave.
     const gen = ++ta.saveGen;
-    const thumbnail = outcome === 'stored' ? Promise.race([
+    const history = ta.automaticHistory;
+    const thumbnail = Promise.race([
       captureThumbnail(manifest, canvasEl, runtime, exportUnscaled, data.__export_format),
       new Promise<null>((resolve) => setTimeout(() => resolve(null), THUMB_CAPTURE_TIMEOUT_MS)),
     ])
-      .then((thumb) =>
-        thumb && gen === ta.saveGen ? host.state.save(slot, data, thumb) : undefined
-      )
+      .then((thumb) => {
+        if (!thumb || gen !== ta.saveGen) return undefined;
+        return outcome === 'recorded' && history ? history.attachSaveThumbnail(thumb) : host.state.save(slot, data, thumb);
+      })
       .catch(() => {
         /* the thumbnail is an extra - the session is already saved */
-      }) : Promise.resolve();
+      });
     // Keep the studio mounted until its preview is attached before Save leaves for Projects.
     if (manifest.id === '3d-studio') await thumbnail;
     // Remember the slot so the next save updates THIS session rather than creating a

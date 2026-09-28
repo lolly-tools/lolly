@@ -273,7 +273,7 @@ Narzędzia udostępniają tylko te pola, które mają się zmieniać - cała res
 
 W trakcie [współpracy](/info/collaborate.html) na żywo historia pozostaje wyłącznie Twoja. Zmiana napływająca z innego urządzenia nigdy nie trafia na Twój stos, więc cofnięcie może cofnąć tylko to, co zrobiłeś sam.
 
-Wycofywanie sięga wstecz tylko w obrębie tej wizyty; dziewięć narzędzi trzyma też wcześniejsze wersje pod **History**, obok **Wycofaj** (zobacz [Wróć do wcześniejszej wersji](/info/find-your-work.html#go-back-to-an-earlier-version)).
+Wycofywanie sięga wstecz tylko w obrębie tej wizyty; narzędzia, które zapisują w trakcie pracy, trzymają też wcześniejsze wersje pod **Historią**, obok **Wycofaj** (zobacz [Wróć do wcześniejszej wersji](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ## Twoje dane i zdjęcie profilowe
 
@@ -313,7 +313,7 @@ Wklej link koledze, dodaj go do zakładek albo wrzuć do repozytorium. (Pełne s
 
 **Niektóre narzędzia sprawiają, że link jest całym produktem.** Jump Page zbiera Twoje linki na jednej stronie do rozdawania - link biograficzny, prelekcja konferencyjna, witryna sklepowa. Nie ma nic do hostowania i nie stoi za tym żadne konto: strona to link, więc otwiera się tak szybko, jak podróżuje adres URL. W edytorze widzisz gotową stronę obok pól; osoba odwiedzająca, która otworzy link, dostaje ją na pełną szerokość, jeden link na scenę w miarę przewijania.
 
-![Jump Page w edytorze - nagłówek, trzy sceny linków, każda z własnym tłem, oraz stopka Made with Lolly, ułożone jako jedna strona na płótnie](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page w edytorze: scena z nagłówkiem w górnej części strony, a pod nią sceny z linkami](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **Okno mówi, czego link nie uniesie.** Trzy rzeczy nie mieszczą się w adresie URL: obraz albo plik dodany z tego urządzenia, bardzo długa wartość tekstowa i bardzo duża lista. Każda z nich jest liczona przy budowaniu linku. Jeśli coś trzeba było pominąć, okno nazywa to i kieruje cię do pliku opisanego niżej, zamiast wręczać ci link, który otworzy się bez obrazka. Link, który jest po prostu *długi*, dostaje łagodniejszą uwagę z liczbą znaków, bo długość wciąż da się uratować pakowaniem.
 
@@ -423,9 +423,9 @@ Batch to wiele wariantów *jednego* projektu. **Multi-edit** to druga połowa te
 
 Wszystkim steruje jeden pasek boczny:
 
-- <!--i:sliders--> Na czele stoi **Shared** - każde pole, które co najmniej dwie z zaznaczonych sesji deklarują *tak samo* (to samo id, ten sam typ, te same ograniczenia - ta sama reguła scalania, której siatka wsadowa używa dla swoich kolumn). Zmień wspólną kontrolkę raz, a wartość rozejdzie się do każdej sesji, która ją deklaruje, na żywo na każdej karcie. Dwie sesje tego samego narzędzia dzielą wszystko; dwa różne narzędzia dzielą to, co akurat mają wspólnego, i nic poza tym.
-- <!--i:document--> Pod nim **jedna zwinięta karta na sesję** ze wszystkimi własnymi polami tej sesji, w tej samej jakości co pasek boczny samego narzędzia - okna wyboru zasobów, powtarzalne grupy wierszy, pola koloru - plus zwarty blok eksportu: **Format**, **W** / **H**, **Unit**, **DPI** i własny **Download**. To pobieranie najpierw zapisuje sesję, a potem renderuje ją zwykłą ścieżką eksportu sesji, więc plik niesie tę samą nazwę, format i Content Credentials, co prosto z narzędzia.
-- <!--i:search--> **Filter inputs…** na górze zawęża kontrolki na *wszystkich* kartach naraz - i tak właśnie docierasz do "nagłówka" w ośmiu sesjach bez przewijania za nim.
+- <!--i:sliders--> Na czele stoi **Udostępnione** - każde pole, które co najmniej dwie z zaznaczonych sesji deklarują *tak samo* (to samo id, ten sam typ, te same ograniczenia - ta sama reguła scalania, której siatka wsadowa używa dla swoich kolumn). Zmień wspólną kontrolkę raz, a wartość rozejdzie się do każdej sesji, która ją deklaruje, na żywo na każdej karcie. Dwie sesje tego samego narzędzia dzielą wszystko; dwa różne narzędzia dzielą tylko te pola, które mają wspólne.
+- <!--i:document--> Pod nim **jedna zwinięta karta na sesję** ze wszystkimi własnymi polami tej sesji, w tej samej jakości co pasek boczny samego narzędzia - okna wyboru zasobów, powtarzalne grupy wierszy, pola koloru - plus zwarty blok eksportu: **Format**, **W** / **H**, **Jednostka**, **DPI** i własny **Pobierz**. To Pobierz najpierw zapisuje sesję, a potem renderuje ją zwykłą ścieżką eksportu sesji, więc plik niesie tę samą nazwę, format i Content Credentials, co prosto z narzędzia.
+- <!--i:search--> **Filtruj pola…** na górze zawęża kontrolki na *wszystkich* kartach naraz - i tak właśnie docierasz do "nagłówka" w ośmiu sesjach bez przewijania za nim.
 
 Kliknij dowolną kanwę (albo naciśnij na niej Enter), a karta tej sesji na pasku bocznym otworzy się i przewinie do widoku. **Save all** zapisuje każdą sesję z powrotem do jej własnego miejsca. **Download all** najpierw zapisuje, a potem renderuje cały zestaw tym samym potokiem co **Render selection** w Projects - jeden zip, z opcjonalną blokadą hasłem proponowaną po drodze.
 

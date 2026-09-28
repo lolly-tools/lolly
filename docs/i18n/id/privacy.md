@@ -90,7 +90,7 @@ sebuah berkas review privat berisi nilai asli, hanya ketika diminta secara ekspl
 dengan `--review-file`. Menghapus atau meninggalkan sebuah tampilan persiapan browser melepaskan
 state kerjanya; ini bukan sebuah janji penghapusan forensik dari memori browser atau OS.
 
-## Saat aplikasi berkomunikasi dengan jaringan, secara lengkap
+## Setiap permintaan jaringan yang dapat dibuat aplikasi
 
 Tabel di bawah adalah daftar lengkap segala sesuatu yang diambil atau dikirim aplikasi melalui
 jaringan. Jika tidak ada di sini, aplikasi tidak melakukannya.

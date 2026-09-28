@@ -57,9 +57,9 @@ Lolly adalah mesin cetak, bukan sketsa. Bawa apa pun yang Anda suka ke tahap ide
 
 > Percayai proses kreatif, berskala dengan kedisiplinan.
 
-## Aturan ada di alat, bukan di file
+## Aturan tinggal di dalam tool dan templatnya
 
-Setiap alat lain di papan ini menghasilkan sebuah *file*, dan sebuah file hanya bisa dilihat setelah jadi, satu output pada satu waktu. Lolly memindahkan aturan brand **satu langkah ke hulu**. Kode hex yang tepat, file font berlisensi, margin bleed, spasi - semuanya dikodekan langsung ke dalam HTML dan CSS alat tersebut, sehingga template *tidak bisa* menghasilkan aset yang menyimpang dari brand. Tata letak itu sendiri yang menegakkannya.
+Setiap alat lain di papan ini menghasilkan sebuah *file*, dan sebuah file hanya bisa dilihat setelah jadi. Lolly memindahkan aturan brand **satu langkah ke hulu**. Kode hex yang tepat, file font berlisensi, margin bleed, spasi - semuanya dikodekan langsung ke dalam HTML dan CSS alat tersebut, sehingga template *tidak bisa* menghasilkan aset yang menyimpang dari brand. Tata letak itu sendiri yang menegakkannya.
 
 Jadi yang layak diperhatikan adalah **alat**-nya, bukan setiap file yang dibuatnya. Buat alatnya benar, dan setiap aset yang pernah dihasilkannya sesuai brand sejak dari konstruksinya. Bagaimana Anda memeriksa pekerjaan Anda, dan siapa yang melakukannya, tetap urusan Anda; Lolly membuat hal yang diperiksa menjadi lebih kecil dan outputnya lebih cepat dibuat.
 

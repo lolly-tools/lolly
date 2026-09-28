@@ -57,9 +57,9 @@ Lolly è la stampa, non lo schizzo. Porta quello che vuoi all'ideazione - un mod
 
 > Fidati del processo creativo, scala con rigore.
 
-## Le regole vivono nello strumento, non nel file
+## Le regole vivono nello strumento e nei suoi template
 
-Ogni altro strumento sul mercato produce un *file*, e un file può essere osservato solo a cose fatte, un output alla volta. Lolly sposta le regole del brand **un passo più a monte**. Codici hex esatti, file dei font con licenza, margini di abbondanza, spaziatura - tutto è codificato direttamente nell'HTML e nel CSS dello strumento, quindi il template *non può* generare un asset fuori brand. È il layout stesso a farla rispettare.
+Ogni altro strumento sul mercato produce un *file*, e un file può essere osservato solo a cose fatte. Lolly sposta le regole del brand **un passo più a monte**. Codici hex esatti, file dei font con licenza, margini di abbondanza, spaziatura - tutto è codificato direttamente nell'HTML e nel CSS dello strumento, quindi il template *non può* generare un asset fuori brand. È il layout stesso a farla rispettare.
 
 Quindi la cosa da guardare è lo **strumento**, non ogni file che produce. Fai bene lo strumento, e ogni asset che produrrà sarà in linea con il brand per costruzione. Come controlli il tuo lavoro, e chi lo fa, resta una tua scelta; Lolly rende più piccola la cosa da controllare e più veloce da produrre l'output.
 

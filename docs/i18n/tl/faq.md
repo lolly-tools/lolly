@@ -131,7 +131,7 @@ Kung pinindot mo ang **I-save bilang** o **I-save**, nasa **Mga Project** ito, s
 
 ## Isinara ko ang tab. Nawala na ba ang ginawa ko?
 
-Nasa **Mga Project** pa rin ang na-save na gawa. Nawawala ang hindi na-save na gawa, maliban sa siyam na tool na nag-sa-save habang ginagawa mo ito, na iniingatan din ito sa **Mga Project**. Sa susunod, pindutin ang **I-save bilang** bago ka umalis. Tingnan ang [Kung isinara mo ang tab o umalis ka sa tool](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+Nasa **Mga Project** pa rin ang na-save na gawa. Nawawala ang hindi na-save na gawa, maliban sa mga tool na nag-sa-save habang ginagawa mo, na iniingatan din ito sa **Mga Project**. Sa susunod, pindutin ang **I-save bilang** bago ka umalis. Tingnan ang [Kung isinara mo ang tab o umalis ka sa tool](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Puwede ko bang ibahagi ang gawa ko bilang file sa halip na link?
 

@@ -6,7 +6,6 @@ import {
   wireSelectionActions,
   openTextMenu,
 } from './text/presentation.ts';
-import { mountActionHistory } from './tool-revision-history.ts';
 import type { AutomaticHistory } from './automatic-history.ts';
 import type { HostV1 } from '@lolly-tools/core/host-v1';
 import type { Runtime } from '../../../../engine/src/runtime.ts';
@@ -39,17 +38,19 @@ import { mountLogResults } from './text/logs.ts';
 import { mountTextInspection } from './text/inspection.ts';
 import { showResult } from './text/results.ts';
 import { query, type TextContext } from './text/context.ts';
+import { t } from '../i18n.ts';
 import './text/text.css';
 export async function mountTextWorkspace(options: {
   container: HTMLElement;
   runtime: Runtime;
   host: HostV1;
   onDirty: (id: string) => void;
-  flushState?: () => Promise<void>;
+  /** The tool view's automatic-history controller (plan 277 P4): the same one every
+   *  document tool gets, so drafts, checkpoints and History behave as they do there. */
   history?: AutomaticHistory;
-  historyEnabled?: boolean;
-  slot?: string;
-  historyBase?: import('../bridge/revision-records.ts').RevisionCursor;
+  /** Hands the tool view what the saved record takes from this workspace: the title,
+   *  and the editor's text, which runs up to 180 ms ahead of the `body` input. */
+  meta?: (read: () => Record<string, unknown>) => void;
 }): Promise<() => void> {
   const { container, runtime, host } = options;
   const root = document.createElement('section');
@@ -80,8 +81,7 @@ export async function mountTextWorkspace(options: {
     },
   });
   let ctx: TextContext;
-  let automatic: AutomaticHistory | undefined = options.history;
-  let activeSlot = options.slot ?? null;
+  const automatic: AutomaticHistory | undefined = options.history;
   let ignore = false,
     persistTimer: ReturnType<typeof setTimeout> | undefined;
   let cleanupCharacters: (() => void) | null = null,
@@ -272,29 +272,23 @@ export async function mountTextWorkspace(options: {
       query(ctx, '[data-result-title]').focus({ preventScroll: true });
     },
   };
-  if (!automatic)
-    automatic = mountActionHistory({
-      enabled: options.historyEnabled,
-      host,
-      toolId: runtime.manifest.id,
-      el: root,
-      canvas: null,
-      initial: options.historyBase,
-      getSlot: () => activeSlot,
-      setSlot: (slot) => {
-        activeSlot = slot;
-      },
-      takeFolder: () => undefined,
-      snapshot: () => ({
-        ...Object.fromEntries(runtime.getModel().map((input) => [input.id, input.value])),
-        body: editor.document.value.text,
-        source: JSON.stringify(ctx.source),
-        __toolId: runtime.manifest.id,
-        __toolVersion: runtime.manifest.version,
-        __label: ctx.source.name ?? 'Text draft',
-      }),
-    });
+  // The saved record is the tool view's own snapshot of the inputs, so everything the
+  // workspace keeps goes through setInput: the text as `body`, the opened file as
+  // `source`. The record takes its title from that file, and its body from the editor
+  // itself, so a write made before the 180 ms debounce (the tool view's pagehide
+  // flush runs before this workspace's) still holds the last keystrokes.
+  let finalText: string | null = null;
+  options.meta?.(() => ({ __label: ctx.source.name ?? t('Text draft'), body: finalText ?? editor.document.value.text }));
+  /** Write the text typed in the last 180 ms now, so a flush keeps those keystrokes.
+   *  setInput puts the value in the model before its hook runs, so the snapshot
+   *  taken right after holds the new text. */
+  const writePending = (): void => {
+    clearTimeout(persistTimer);
+    persistTimer = undefined;
+    if (value('body') !== editor.document.value.text) write('body', editor.document.value.text);
+  };
   const flush = async (): Promise<void> => {
+    writePending();
     automatic?.changed();
     await automatic?.flush();
   };
@@ -312,16 +306,18 @@ export async function mountTextWorkspace(options: {
     },
     { signal: abort.signal }
   );
+  // Read the controller's activity code, not its words: its status is translated.
   const updateHistory = (): void => {
-    const state = automatic?.status() ?? 'Save a copy to keep this text.';
+    const state = automatic?.status() ?? t('Save a copy to keep this text.');
+    const activity = automatic?.activity();
     const label = query(ctx, '[data-history-status]');
     label.title = state;
-    label.textContent = /(?:work|checkpoint) saved at/i.test(state)
-      ? 'Draft saved on this device'
-      : /could not|paused|another tab|failed/i.test(state)
+    label.textContent = activity === 'checkpoint' || activity === 'draft'
+      ? t('Draft saved on this device')
+      : activity === 'diverged' || activity === 'paused' || activity === 'failed' || activity === 'recovery-failed'
         ? state
         : automatic
-          ? 'Draft recovery on'
+          ? t('Draft recovery on')
           : state;
   };
   const stopHistory = automatic?.subscribe(updateHistory);
@@ -690,11 +686,8 @@ export async function mountTextWorkspace(options: {
   showSource();
   selected();
   return () => {
-    clearTimeout(persistTimer);
-    if (value('body') !== editor.document.value.text) write('body', editor.document.value.text);
-    void flush().finally(() => {
-      if (automatic !== options.history) automatic?.dispose();
-    });
+    void flush();
+    finalText = editor.document.value.text;
     abort.abort();
     ctx.activeJob?.abort();
     ctx.aiAbort?.();

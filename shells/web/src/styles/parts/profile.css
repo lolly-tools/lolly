@@ -298,11 +298,7 @@
   background: hsl(var(--muted) / .35);
 }
 .profile-view .profile-optin .profile-check { margin: 0; }
-.profile-view .profile-optin-note {
-  margin: .5rem 0 0;
-  font-size: var(--fs-sm);
-  color: hsl(var(--muted-foreground));
-}
+
 
 /* Form: "use my details" toggle (a pill that hugs its label) + actions row */
 .profile-view .profile-check {
@@ -368,7 +364,8 @@
 .profile-view .feature-flags { list-style: none; margin: .5rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
 .profile-view .feature-flag {
   
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  display: flex; align-items: center; justify-content: start; gap: 1rem;
+  flex-direction: row-reverse;
   padding: .55rem .9rem;
   border: 1px solid hsl(var(--border)); border-radius: var(--radius);
   font-size: var(--fs-lg); cursor: pointer;

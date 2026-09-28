@@ -300,7 +300,7 @@ Dua jenis kunci yang berasingan, kedua-duanya sepenuhnya di peranti.
 
 ![Kad Password protect dikembangkan pada eksport PDF, dengan medan kata laluan dan dua peringkat kunci](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - kunci asas 40-bit (RC4). Ia terbuka pada *mana-mana* aplikasi PDF, dan - kerana ia hanya penghalang ringan, bukan perlindungan sebenar - ia boleh dibawa dalam pautan kongsi (teks jelas, secara sengaja). Hanya `pdf` RGB.
+- **Standard** - kunci asas 40-bit (RC4). Ia terbuka pada *mana-mana* aplikasi PDF, dan - kerana ia hanya penghalang ringan, bukan perlindungan sebenar - ia boleh dibawa dalam pautan kongsi (teks jelas). Hanya `pdf` RGB.
 - **Strong** - AES-256 (PDF 2.0). Kata laluannya ditaip semasa eksport dan **tidak sekali-kali** diletakkan dalam pautan; ia hanya terbuka pada aplikasi PDF yang lebih baharu (Acrobat / Preview ~2018 ke atas), dan aplikasi lama mungkin melaporkan fail sebagai rosak. Strong juga terpakai pada **PDF Print / CMYK** dan pada **setiap PDF di dalam zip kelompok** (kotak dialog pengesahan kelompok mengumpul kata laluan itu). Kerana PDF/X-4 melarang penyulitan, PDF Print yang dikunci Strong mengekalkan CMYK, tanda dan niat outputnya tetapi menggugurkan tuntutan pematuhan PDF/X-4.
 
 Kedua-dua peringkat itu saling eksklusif dengan Content Credentials (PDF yang disulitkan tidak boleh membawa kelayakan itu).

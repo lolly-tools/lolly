@@ -131,7 +131,7 @@ Nếu bạn nhấn **Lưu thành** hoặc **Lưu**, nó nằm trong **Dự án**
 
 ## Tôi đã đóng tab. Tác phẩm của tôi mất rồi à?
 
-Công việc đã lưu vẫn còn trong **Dự án**. Công việc chưa lưu sẽ mất, trừ chín công cụ tự lưu trong lúc bạn làm việc, chúng cũng giữ nó trong **Dự án**. Lần sau, hãy nhấn **Lưu thành** trước khi rời đi. Xem [Nếu bạn đã đóng tab hoặc rời khỏi công cụ](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+Công việc đã lưu vẫn còn trong **Dự án**. Công việc chưa lưu sẽ mất, trừ ở các công cụ tự lưu khi bạn làm việc, cũng giữ nó trong **Dự án**. Lần sau, hãy nhấn **Lưu thành** trước khi rời đi. Xem [Nếu bạn đã đóng tab hoặc rời khỏi công cụ](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Tôi có thể chia sẻ tác phẩm dưới dạng tệp thay vì liên kết không?
 

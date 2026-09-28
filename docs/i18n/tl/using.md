@@ -273,7 +273,7 @@ Ang **Cmd/Ctrl-Z** ay bumabalik at ang **Cmd/Ctrl-Shift-Z** (o **Cmd/Ctrl-Y**) a
 
 Sa isang live na [collaboration](/info/collaborate.html), ang history ay nananatiling sa iyo lamang. Ang isang pagbabagong dumarating mula sa ibang device ay hindi kailanman napupunta sa stack mo, kaya ang undo ay maaari lang bumawi sa isang bagay na ginawa mo mismo.
 
-Umuurong lang ang I-undo sa loob ng pagbisitang ito; itinatago rin ng siyam na tool ang mas naunang bersyon sa ilalim ng **History**, sa tabi ng **I-undo** (tingnan ang [Bumalik sa mas naunang bersyon](/info/find-your-work.html#go-back-to-an-earlier-version)).
+Umuurong lang ang **I-undo** sa loob ng pagbisitang ito; iniingatan din ng mga tool na nag-sa-save habang ginagawa mo ang mas naunang bersyon sa ilalim ng **History**, sa tabi ng **I-undo** (tingnan ang [Bumalik sa mas naunang bersyon](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ## Mga detalye mo at headshot
 
@@ -313,7 +313,7 @@ I-paste ang link sa isang katrabaho, i-bookmark ito o i-commit ito. (Buong detal
 
 **May mga tool na ginagawang buong produkto ang link.** Tinitipon ng Jump Page ang mga link mo sa isang page para ibigay - isang bio link, isang talumpati sa conference, isang shop front. Walang kailangang i-host at walang account sa likod nito: ang page ang link, kaya bumubukas ito kasing bilis ng paglalakbay ng URL. Sa editor, makikita mo ang tapos na page sa tabi ng mga field; ang isang bisitang nagbukas ng link ay makakakuha nito sa buong lapad, isang link kada eksena habang nag-i-scroll sila.
 
-![Jump Page sa editor - ang heading, tatlong eksena ng link bawat isa may sariling wash, at isang footer na Made with Lolly, na naka-layout bilang isang page sa canvas](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page sa editor: ang eksenang heading sa itaas ng page, na may mga eksenang link sa ibaba nito](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **Sinasabi ng dialog kung ano ang hindi kayang dalhin ng isang link.** May tatlong bagay na hindi kasya sa isang URL: isang larawan o file na idinagdag mo mula sa device na ito, isang napakahabang halaga ng teksto o isang napakalaking listahan. Binibilang ang bawat isa habang binubuo ang link. Kung may kinailangang alisin, pinangangalanan ito ng dialog at itinuturo ka nito sa file sa ibaba, sa halip na abutan ka ng link na bumubukas nang nawawala ang larawan. Ang link na *mahaba* lang ay binibigyan ng mas banayad na paalala kasama ang bilang ng karakter nito, dahil kaya pang isalba ng packing ang haba.
 
@@ -423,7 +423,7 @@ Ang Batch ay maraming variant ng *isang* disenyo. Ang **Multi-edit** ang kalahat
 
 Isang sidebar ang nagpapatakbo sa lahat:
 
-- <!--i:sliders--> Ang **Shared** ang nangunguna - bawat input na idineklara ng dalawa o higit pa sa mga napiling session sa *parehong paraan* (parehong id, parehong uri, parehong constraint - ang parehong merge rule na ginagamit ng batch grid sa mga column nito). I-edit nang minsan ang isang shared na control at kakalat ang halaga sa bawat session na nagdedeklara nito, buhay sa bawat card. Ang dalawang session ng parehong tool ay nagbabahagi ng lahat; ang dalawang magkaibang tool ay nagbabahagi ng anumang nagkataong pareho sa kanila, at wala nang iba.
+- <!--i:sliders--> **Shared** ang nangunguna - bawat input na idineklara ng dalawa o higit pa sa mga napiling session sa *parehong paraan* (parehong id, parehong uri, parehong constraint - ang parehong merge rule na ginagamit ng batch grid sa mga column nito). I-edit nang minsan ang isang shared na control at kakalat ang halaga sa bawat session na nagdedeklara nito, buhay sa bawat card. Ang dalawang session ng parehong tool ay nagbabahagi ng lahat; ang dalawang magkaibang tool ay nagbabahagi ng anumang nagkataong pareho sa kanila, at wala nang iba.
 - <!--i:document--> Sa ilalim nito, **isang nakatiklop na card kada session** kasama ang lahat ng sariling input ng session na iyon, sa parehong katapatan ng sariling sidebar ng tool - mga asset picker, paulit-ulit na row group, colour field - kasama ang isang siksik na export block: **Format**, **W** / **H**, **Unit**, **DPI** at sarili nitong **Download**. Ang Download na iyon ay sine-save muna ang session at saka ito nire-render sa karaniwang session-export na daan, kaya dala ng file ang parehong filename, format at Content Credentials na dadalhin nito kung diretso mula sa tool.
 - <!--i:search--> Ang **Filter inputs…** sa itaas ay pinapaliit ang mga control sa *bawat* card nang sabay - at ganoon mo naaabot ang "ang headline" sa walong session nang hindi ito hinahanap sa scroll.
 

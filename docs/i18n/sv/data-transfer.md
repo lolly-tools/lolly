@@ -39,7 +39,7 @@ Paketet är avsiktligt en vanlig zip: det överlever alla transporter intakt, oc
 
 `profile.json` är den minsta delen och den en läsare ser först i appen: uppgifterna som en producent fyller i en gång, plus samtycket som låter verktyg använda dem.
 
-![Profilformuläret med detaljer som blir profile.json - namn, kontaktuppgifter, profilbild och samtycket bredvid dem](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![Formuläret med profildetaljer som blir profile.json: namn, kontaktuppgifter och profilbild](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

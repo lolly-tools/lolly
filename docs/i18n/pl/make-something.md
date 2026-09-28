@@ -9,9 +9,9 @@ Miej gotowy adres internetowy, który ma otwierać kod, zaczynający się od `ht
 ## Zrób kod
 
 1. Otwórz [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Elementy sterujące znajdują się obok podglądu, a na telefonie nad nim; to, co pokazuje podgląd, jest tym, czym będzie plik.
-2. W polu **URL** zastąp przykładowy adres swoim, w całości. Podgląd zmienia się w miarę pisania.
-3. Aby dopasować własne kolory, ustaw **Module colour** i **Tło**. Zachowaj mocny kontrast między nimi, inaczej telefony będą miały problem z odczytaniem kodu.
-4. **Quiet zone**, w sekcji **Modules**, zaczyna się od 4. Zachowaj wartość 4 lub więcej: ten pusty margines jest tym, czego szuka aparat telefonu.
+2. W polu **URL** zastąp cały przykładowy adres swoim. Podgląd zmienia się w miarę pisania.
+3. Aby dopasować własne kolory, ustaw **Kolor modułu** i **Tło**. Zachowaj mocny kontrast między nimi, inaczej telefony będą miały problem z odczytaniem kodu.
+4. **Strefa ciszy**, w sekcji **Moduły**, zaczyna się od 4. Zachowaj wartość 4 lub więcej: ten pusty margines jest tym, czego szuka aparat telefonu.
 
 ## Pobierz plik
 

@@ -57,9 +57,9 @@ Lolly este tiparul, nu schița. Adu orice vrei la etapa de idee - un model, un d
 
 > Ai încredere în procesul creativ, scalează cu rigoare.
 
-## Regulile trăiesc în instrument, nu în fișier
+## Regulile trăiesc în instrument și în șabloanele lui
 
-Orice alt instrument de pe piață produce un *fișier*, iar un fișier poate fi privit doar după fapt, câte un rezultat pe rând. Lolly mută regulile de brand **cu un pas mai devreme**. Codurile hex exacte, fișierele de fonturi licențiate, marginile de sângerare, spațierea - toate sunt integrate direct în HTML-ul și CSS-ul instrumentului, astfel încât șablonul *nu poate* produce un asset care nu respectă brandul. Layout-ul însuși aplică regulile.
+Orice alt instrument de pe piață produce un *fișier*, iar un fișier poate fi privit doar după fapt. Lolly mută regulile de brand **cu un pas mai devreme**. Codurile hex exacte, fișierele de fonturi licențiate, marginile de sângerare, spațierea - toate sunt integrate direct în HTML-ul și CSS-ul instrumentului, astfel încât șablonul *nu poate* produce un asset care nu respectă brandul. Layout-ul însuși aplică regulile.
 
 Așadar lucrul care merită privit este **instrumentul**, nu fiecare fișier pe care îl produce. Pune instrumentul la punct, și fiecare asset pe care îl produce vreodată respectă brandul prin construcție. Cum îți verifici munca, și cine o face, rămâne alegerea ta; Lolly face lucrul verificat mai mic și rezultatul mai rapid de produs.
 

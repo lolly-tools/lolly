@@ -19,7 +19,7 @@ Mọi thứ trong hồ sơ đều nằm **trên thiết bị**, trong cơ sở d
 | **Accessibility** | Bốn công tắc tiện nghi - *Reduce motion*, *Hide colourful previews*, *High contrast*, *Large text* - được giữ trên bản ghi profile, nên chúng đi kèm khi xuất profile. Xem [Accessibility](#accessibility). |
 | **Your work** | Các phiên đã lưu (kèm ảnh thu nhỏ) - được tổ chức thành các thư mục lồng nhau trong **[Projects](/info/using.html)** - thư viện **My images** của bạn và số liệu thống kê hoạt động cục bộ, tất cả đều gắn với profile này. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
 ![Màn hình Profile - tên, liên hệ, một ảnh chân dung tùy chọn và các tùy chỉnh của bạn](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -35,7 +35,7 @@ Từ "hồ sơ" gợi ý một con người cố định duy nhất, nhưng tron
 
 ### Với tư cách cá nhân
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ![Công cụ ảnh chân dung, trống cho tới khi bạn tải lên một ảnh rồi ảnh đó ở lại trên thiết bị này](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -53,7 +53,7 @@ Trong Lolly, vai trò đó chỉ đơn giản là **một hồ sơ khác mà b�
 
 Tại mọi thời điểm, một bản cài đặt chỉ có **một profile đang hoạt động** - những thông tin mà một công cụ nhìn thấy ngay lúc này. Không có bộ chuyển profile trong ứng dụng; thay vào đó, mỗi profile là một **gói di động** (một file `.zip` duy nhất, xem [bên dưới](#moving-a-profile-to-a-new-device)). Đó là cơ chế cố ý giống hệt việc chuyển sang thiết bị mới - một profile là một file bạn có thể lưu, sao chép và nạp lại.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 - <!--i:trash--> **Cách chuyển sạch nhất:** **Cài đặt → Preferences → Bộ nhớ → Xóa toàn bộ dữ liệu của tôi**, sau đó **Nhập** gói cho ngữ cảnh bạn đang bước vào. Giờ bạn đang tạo hoàn toàn với tư cách profile đó.
 - <!--i:layers--> **Xếp lớp:** nhập mà *không* xóa trước sẽ **hợp nhất** - các phiên và hình ảnh được nhập chồng lên những gì đã có sẵn; nơi cả hai bên có cùng một mục, bản sao được lưu gần đây hơn sẽ được giữ lại, còn phần còn lại không bị đụng tới. Thư mục, mục yêu thích và mẫu được thêm vào của bạn, còn thông tin và tùy chọn của riêng bạn vẫn giữ nguyên. Tiện khi kéo các phiên đã lưu của một nhóm vào bộ thiết lập của riêng bạn; không phải điều bạn muốn nếu cần một ranh giới vai trò sạch sẽ.
@@ -122,7 +122,7 @@ Những gì không được mang theo: bộ nhớ đệm danh mục (nó sẽ t�
 
 ## Cách các công cụ sử dụng hồ sơ của bạn
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 Một công cụ chỉ bao giờ *điền sẵn* những trường hồ sơ mà nó được xây dựng rõ ràng để liên kết:
 

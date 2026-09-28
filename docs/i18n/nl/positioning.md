@@ -57,9 +57,9 @@ Lolly is de pers, niet de schets. Breng wat je wilt naar de ideevorming - een mo
 
 > Vertrouw het creatieve proces, schaal met precisie.
 
-## De regels leven in de tool, niet in het bestand
+## De regels leven in de tool en zijn templates
 
-Elke andere tool op het bord produceert een *bestand*, en een bestand kan pas achteraf bekeken worden, één output tegelijk. Lolly verplaatst de merkregels **een stap stroomopwaarts**. Exacte hexcodes, gelicentieerde lettertypebestanden, afloopmarges, spatiëring - dat alles is hardgecodeerd in de HTML en CSS van de tool, zodat het template *geen* off-brand asset kan uitvoeren. De opmaak zelf handhaaft het.
+Elke andere tool op het bord produceert een *bestand*, en een bestand kan pas achteraf bekeken worden. Lolly verplaatst de merkregels **één stap stroomopwaarts**. Exacte hexcodes, gelicentieerde lettertypebestanden, afloopmarges, tussenruimte - dat alles staat hardgecodeerd in de HTML en CSS van de tool, zodat de template *geen* asset buiten het merk kan afleveren. De lay-out zelf handhaaft dit.
 
 Dus het ding dat de moeite waard is om naar te kijken, is de **tool**, niet elk bestand dat hij maakt. Zet de tool goed neer, en elk asset dat hij ooit produceert is on-brand door constructie. Hoe je je werk controleert, en wie dat doet, blijft aan jou; Lolly maakt het gecontroleerde ding kleiner en de output sneller om te maken.
 

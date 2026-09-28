@@ -452,7 +452,7 @@
   "No analytics, no telemetry, and rendering happens locally - what you create is stored on your machine, not on a server.": "Без анализи, без телеметрия, а рендирането се случва локално - това, което създаваш, се съхранява на твоята машина, не на сървър.",
   "Local storage": "Локално съхранение",
   "Your browser’s database": "Базата данни на твоя браузър",
-  "Profile, saved sessions, uploaded images and the cached brand assets live in IndexedDB; Storage tools show usage and can clear that data.": "Профилът, запазените сесии, качените изображения и кешираните брандови активи живеят в IndexedDB; инструментите за съхранение показват употребата и могат да изчистят тези данни.",
+  "Profile, saved sessions, uploaded images and the cached brand assets live in IndexedDB; Storage tools show usage and can clear that data.": "Профилът, запазените сесии, качените изображения и кешираните брандови активи живеят в IndexedDB; инструментите „Хранилище“ показват употребата и могат да изчистят тези данни.",
   "Sync only where you say": "Синхронизация само където кажеш",
   "Turn on sync and a copy goes to the one storage you nominate, and nowhere else.": "Включи синхронизация и копие отива в единственото хранилище, което посочиш, и никъде другаде.",
   "Image hygiene": "Хигиена на изображенията",

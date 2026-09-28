@@ -16,6 +16,7 @@ import { helpTip } from '../../components/help-tip.ts';
 import { escape } from '../../utils.ts';
 import { icon } from '../../lib/icons.ts';
 import type { SessionEntry } from '../profile-storage-model.ts';
+import type { RevisionHistoryAPI } from '../../bridge/revision-history.ts';
 
 /** The slice of the tool-previews cache this view reads. */
 export interface PreviewsSlice {
@@ -68,6 +69,8 @@ export interface ProfileHost extends HostV1 {
     list(): Promise<SessionEntry[]>;
     delete(slot: string): Promise<void>;
     sizes?(): Promise<Record<string, number>>;
+    /** Version history, where the state bridge keeps one (plan 277 P4). */
+    history?: Pick<RevisionHistoryAPI, 'usage' | 'pruneAutomatic'>;
   };
   identity: IdentityAPI;
   previews: PreviewsSlice;

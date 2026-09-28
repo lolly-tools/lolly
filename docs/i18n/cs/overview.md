@@ -390,7 +390,7 @@ Web shell: IndexedDB. Tauri: souborový systém. CLI: v paměti. Nástroje vidí
 
 Uživatelé si mohou uložit více pojmenovaných edit slotů na nástroj a vrátit se ke každé relaci později. Vytváření účtu není potřeba, stav je per-device. Protože bridge je jediný švík, tento per-device stav je zároveň *přenositelný*: `shells/web/src/data-transfer.ts` čte vše zpět přes `host.profile`/`host.state`/`host.assets` do jednoho `lolly-backup` zipu, který se naimportuje na jakékoli jiné instalaci - offline odpověď na "přesun na nové zařízení", která nepotřebuje server (celá specifikace: `docs/data-transfer.md`). Synchronizace napříč zařízeními už na tomto základu běží a posílá stejný balíček do úložiště, které si zvolí uživatel (`docs/sync.md`).
 
-### 7. Značky zralosti už v návrhu říkají, co nástroj je
+### 7. Značky zralosti říkají, co nástroj je
 
 Každý nástroj deklaruje `status: official | community | experimental` ve svém manifestu. Galerie řadí podle statusu. Experimentální nástroje automaticky vodoznakují své exporty - vodoznak vkládá `host.export.render`, ne nástroj sám, takže ho autor neoficiálního nástroje nemůže vypnout.
 
@@ -434,7 +434,7 @@ Skládat lze vykreslení jakéhokoli nástroje: potomek **SVG** zůstane skuteč
 
 ---
 
-## Životní cyklus, od začátku do konce
+## Životní cyklus jednoho vykreslení
 
 Uživatel otevře `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 

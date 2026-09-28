@@ -273,7 +273,7 @@ Tool hanya menampilkan input yang memang boleh berubah - selebihnya (warna, tata
 
 Dalam sebuah [kolaborasi](/info/collaborate.html) live, riwayat tetap hanya milik Anda. Perubahan yang datang dari perangkat lain tidak pernah masuk ke stack Anda, jadi undo hanya bisa membatalkan sesuatu yang Anda lakukan sendiri.
 
-Undo hanya menjangkau kembali sepanjang kunjungan ini; sembilan tool juga menyimpan versi sebelumnya di bawah **History**, di samping **Undo** (lihat [Kembali ke versi sebelumnya](/info/find-your-work.html#go-back-to-an-earlier-version)).
+Undo hanya menjangkau kembali sepanjang kunjungan ini; tool yang menyimpan saat Anda bekerja juga menyimpan versi sebelumnya di bawah **History**, di sebelah **Undo** (lihat [Kembali ke versi sebelumnya](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ## Data diri & foto Anda
 
@@ -313,7 +313,7 @@ Tempelkan tautannya untuk rekan kerja, jadikan bookmark atau commit ke repositor
 
 **Bagi beberapa alat, link adalah keseluruhan produknya.** Jump Page mengumpulkan link Anda ke dalam satu halaman untuk dibagikan - sebuah bio link, sebuah talk konferensi, sebuah shop front. Tidak ada yang perlu di-hosting dan tidak ada akun di baliknya: halamannya adalah linknya, jadi ia terbuka secepat URL itu sampai. Di editor Anda melihat halaman jadi di samping field-fieldnya; pengunjung yang membuka link mendapatkannya dalam lebar penuh, satu link per scene saat mereka scroll.
 
-![Jump Page di editor - heading, tiga scene link masing-masing dengan wash-nya sendiri dan sebuah footer Made with Lolly, ditata sebagai satu halaman di kanvas](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page di editor: scene heading di bagian atas halaman, dengan scene link di bawahnya](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **Dialognya menyebutkan apa yang tidak bisa dibawa sebuah tautan.** Tiga hal tidak muat di dalam URL: gambar atau berkas yang Anda tambahkan dari perangkat ini, nilai teks yang sangat panjang atau daftar yang sangat besar. Masing-masing dihitung saat tautannya dibangun. Jika ada yang terpaksa ditinggalkan, dialog menyebutkannya dan mengarahkan Anda ke berkas di bawah, alih-alih menyerahkan tautan yang terbuka tanpa gambarnya. Tautan yang sekadar *panjang* mendapat catatan yang lebih ringan beserta jumlah karakternya, karena pemampatan masih bisa menyelamatkan panjangnya.
 
@@ -423,9 +423,9 @@ Batch adalah banyak varian dari *satu* desain. **Multi-edit** adalah setengah pe
 
 Satu sidebar mengendalikan semuanya:
 
-- <!--i:sliders--> **Shared** memimpin - berisi setiap input yang dideklarasikan dua sesi terpilih atau lebih dengan *cara yang sama* (id sama, tipe sama, batasan sama - aturan penggabungan yang sama seperti yang dipakai kisi batch pada kolomnya). Sunting satu kontrol bersama sekali dan nilainya menyebar ke setiap sesi yang mendeklarasikannya, langsung di setiap kartu. Dua sesi dari tool yang sama berbagi segalanya; dua tool berbeda berbagi apa pun yang kebetulan sama, dan tidak lebih.
-- <!--i:document--> Di bawahnya, **satu kartu terlipat per sesi** berisi seluruh input milik sesi itu, dengan kesetiaan yang sama seperti sidebar tool-nya sendiri - pemilih aset, grup baris berulang, kolom warna - ditambah blok ekspor ringkas: **Format**, **W** / **H**, **Unit**, **DPI** dan **Download** miliknya sendiri. Download itu menyimpan sesinya lebih dulu lalu merendernya lewat jalur ekspor sesi yang biasa, sehingga berkasnya membawa nama berkas, format dan Content Credentials yang sama seperti bila diekspor langsung dari tool-nya.
-- <!--i:search--> **Filter inputs…** di bagian atas mempersempit kontrol di *seluruh* kartu sekaligus - begitulah cara Anda mencapai "judul utama" pada delapan sesi tanpa harus menggulir mencarinya.
+- <!--i:sliders--> **Shared** memimpinnya - setiap input yang dideklarasikan dengan cara yang *sama* oleh dua atau lebih sesi terpilih (id sama, tipe sama, batasan sama - aturan merge yang sama yang dipakai grid batch pada kolomnya). Edit satu kontrol shared sekali dan nilainya menyebar ke setiap sesi yang mendeklarasikannya, langsung di setiap kartu. Dua sesi dari tool yang sama berbagi segalanya; dua tool berbeda hanya berbagi input yang sama-sama mereka miliki.
+- <!--i:document--> Di bawahnya, **satu kartu terlipat per sesi** dengan semua input sesi itu sendiri, pada fidelitas yang sama seperti sidebar tool itu sendiri - asset picker, grup baris berulang, kolom warna - ditambah satu blok ekspor ringkas: **Format**, **W** / **H**, **Unit**, **DPI**, dan **Download** miliknya sendiri. Download itu menyimpan sesi terlebih dahulu lalu merendernya lewat jalur ekspor sesi biasa, sehingga file itu membawa nama file, format, dan Content Credentials yang sama seperti langsung dari tool itu.
+- <!--i:search--> **Filter inputs…** di bagian atas mempersempit kontrol di *semua* kartu sekaligus - begitulah caranya Anda sampai ke "judul utama" dalam delapan sesi tanpa perlu menggulir mencarinya.
 
 Klik kanvas mana pun (atau tekan Enter padanya) dan kartu sidebar sesi itu terbuka lalu tergulir ke tampilan. **Save all** menuliskan setiap sesi kembali ke slotnya masing-masing. **Download all** menyimpan lebih dulu, lalu merender seluruh set lewat alur yang sama dengan **Render selection** di Projects - satu zip, dengan kunci kata sandi opsional yang ditawarkan di tengah jalan.
 

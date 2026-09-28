@@ -88,7 +88,7 @@ recenzie care conține valorile originale, doar când e cerut explicit cu `--rev
 părăsirea unei vederi de pregătire din browser eliberează starea ei de lucru; asta nu e o promisiune de
 ștergere criminalistică din memoria browserului sau a sistemului de operare.
 
-## Când aplicația comunică cu o rețea, în întregime
+## Fiecare cerere de rețea pe care o poate face aplicația
 
 Tabelul de mai jos este lista completă a tot ce preia sau trimite aplicația printr-o
 rețea. Dacă nu e aici, aplicația nu o face.

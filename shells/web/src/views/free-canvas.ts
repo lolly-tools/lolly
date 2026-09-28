@@ -1941,6 +1941,19 @@ export function initFreeCanvas(opts: InitFreeCanvasOpts): FreeCanvasHandle {
           onWarning: o.onWarning,
           onIdsKept: (kept: boolean) => { keptIds = kept; },
         });
+        // The compiled rows name their pictures and marks by asset id, and setInput does
+        // not resolve refs: the mount ran its one resolution before these rows existed.
+        // resolveRefs completes them in the model, and one quiet re-apply runs onInput
+        // again so the markup the hook builds from them shows the pictures. Without both,
+        // a picture draws as an empty box until the document is reopened.
+        if (!fc.disposed && landed > 0 && runtime.resolveRefs) {
+          await runtime.resolveRefs();
+          const resolved = runtime.getModel().find((item) => item.id === blockId)?.value;
+          const quiet =
+            (runtime as RuntimeApi & { setInputNoHistory?: RuntimeApi['setInput'] }).setInputNoHistory ??
+            ((id: string, value: unknown) => runtime.setInput(id, value));
+          if (!fc.disposed && Array.isArray(resolved)) await quiet(blockId, resolved);
+        }
         if (!fc.disposed) announce(landed === 1 ? t('Added 1 artboard.') : t('Added {n} artboards.', { n: landed }));
         return { landed, keptIds: o.keepIds && keptIds };
       },

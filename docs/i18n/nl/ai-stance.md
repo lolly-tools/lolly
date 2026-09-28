@@ -10,7 +10,7 @@ Lolly is gebouwd te midden van de grootste verandering in hoe media gemaakt word
 
 %file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} genereerde afbeelding %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} en %act{exported to WebP} als %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Verifieer dit nu](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
-Om precies te zijn, omdat deze pagina betoogt dat precisie ertoe doet: de afbeelding hierboven is gegenereerd, niet gefotografeerd. Er is geen camera op dat homestead gericht, want er is geen homestead. Het beschrijft regionaal Queensland, Australië, geprompt vanuit het Verenigd Koninkrijk, gegenereerd in een datacenter in de Verenigde Staten. Het probeert trouw te zijn aan een plek zonder een registratie van een plek te zijn, en dat onderscheid is precies waarom de Content Credentials dat vermelden.
+Om precies te zijn, omdat deze pagina betoogt dat precisie ertoe doet: de afbeelding hierboven is gegenereerd, niet gefotografeerd. Er is geen camera op dat homestead gericht, want er is geen homestead. Het beschrijft regionaal Queensland, Australië, geprompt vanuit het Verenigd Koninkrijk, gegenereerd in een datacenter in de Verenigde Staten. Het probeert trouw te zijn aan een plek zonder een registratie van een plek te zijn, en dat onderscheid is de hele reden waarom de Content Credentials dat vastleggen.
 
 Zo ziet dat eruit als je het controleert. Negen stappen overleven in het bestand: vijf vastgelegd door Google terwijl het de afbeelding genereerde en watermerkte, dan vier vastgelegd door Lolly terwijl het de versie op deze pagina opende, aanmaakte, markeerde en converteerde. Lolly heeft niets gegenereerd, en zijn vermelding zegt dat ook.
 
@@ -52,6 +52,6 @@ Je hebt hier nooit AI nodig. Als je ervoor kiest, gelden drie dingen:
 - <!--i:seal--> **Geen zuiverheidsclaim.** Lolly leest herkomst breed en schrijft die eerlijk weg; het doet niet alsof het elke gegenereerde pixel op internet kan detecteren.
 - <!--i:sunburst--> **Geen morele paniek.** De vloed is niet de vijand. Niet-toegeschreven water wel.
 
-## Hoe je ons eraan kunt houden
+## Controleer deze toezeggingen zelf
 
 Elke belofte hierboven wordt afgedwongen in de open codebase, niet in een beleids-pdf: het herkomstpad, de GEN AI-labeling en de garantie zonder trackers komen allemaal met tests, en de pagina [Verify It Yourself](/info/verify-yourself.html) leidt je stap voor stap door het controleren van deze claims aan de hand van een echte export. Vind je een plek waar de code en deze pagina elkaar tegenspreken, dan is de code de bug.

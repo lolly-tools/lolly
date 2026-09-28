@@ -81,7 +81,7 @@ test('continuous edits checkpoint by a minute, explicit saves reuse the slot, an
   assert.equal(writes.length, count);
 });
 
-test('a delayed preview is discarded after another edit, and failed writes do not advance the expected head', async () => {
+test('a delayed checkpoint preview is discarded after another edit, and failed writes do not advance the expected head', async () => {
   let finish: ((thumb: string) => void) | undefined;
   let fail = false;
   const heads: Array<string | null> = [];
@@ -92,8 +92,8 @@ test('a delayed preview is discarded after another edit, and failed writes do no
     async attachPreview() { previews++; },
   } satisfies Pick<RevisionHistoryAPI, 'head' | 'checkpoint' | 'attachPreview'>;
   const controller = createAutomaticHistory({ history, toolId: 'design', getSlot: () => null, setSlot() {}, snapshot: () => ({}), load: async () => null, capture: () => new Promise(resolve => { finish = resolve; }), saved() {} });
-  await controller.save('slot', { text: 'first' });
-  controller.changed(); finish!('data:image/png;base64,AA==');
+  controller.changed(); await controller.flush();               // an automatic checkpoint; its capture is pending
+  controller.changed(); finish!('data:image/png;base64,AA==');   // an edit arrives before the picture does
   await Promise.resolve(); await Promise.resolve();
   assert.equal(previews, 0);
   fail = true;
@@ -191,16 +191,21 @@ test('close protects the latest edits once, then nothing the controller does wri
 
 test('a saved state no revision holds is adopted as a saved revision before the first edit (plan 277 P1)', async () => {
   const calls: Array<{ slot: string; reason: string; adopt?: boolean; expectedHead: string | null; expectedVersion?: string | null; data: unknown }> = [];
+  const captures: Array<string | undefined> = [];
   const controller = createAutomaticHistory({
     toolId: 'qr-code', initial: { head: 'older-save', version: 'replaced-version', workingHash: '' },
     getSlot: () => 'qr-code:renamed', setSlot() {}, snapshot: () => ({ url: 'edited' }),
     load: async () => ({ url: 'renamed in Projects' }), capture: async () => null, saved() {},
     history: { head: async () => 'older-save', current: async () => ({ head: 'older-save', version: 'replaced-version' }), attachPreview: async () => {},
-      checkpoint: async (slot, data, options) => { calls.push({ slot, data: data.url, ...options }); return { id: 'adopted', currentVersion: 'v-adopted' } as RevisionEntry & { currentVersion: string }; },
+      checkpoint: async (slot, data, { capture, ...options }) => {
+        captures.push(capture?.json); calls.push({ slot, data: data.url, ...options });
+        return { id: 'adopted', currentVersion: 'v-adopted' } as RevisionEntry & { currentVersion: string };
+      },
     },
   });
   await controller.flush();
   assert.deepEqual(calls, [{ slot: 'qr-code:renamed', data: 'renamed in Projects', reason: 'save', adopt: true, expectedHead: 'older-save', expectedVersion: 'replaced-version' }]);
+  assert.deepEqual(captures, ['{"url":"renamed in Projects"}'], 'the adopted state reaches the store frozen once, as canonical JSON');
   controller.dispose();
 });
 
@@ -319,4 +324,142 @@ test('a creation never explicitly saved says so until a save or an adopt (rechec
   const saved = createAutomaticHistory({ toolId: 'qr-code', initial: { head: 'h', version: 'v' }, getSlot: () => 'qr-code:saved', setSlot() {}, snapshot: () => ({}), load: async () => ({}), capture: async () => null, saved() {}, history: { ...history, head: async () => 'h' } });
   assert.equal(saved.neverSaved(), false, 'a saved creation');
   fresh.dispose(); opened.dispose(); saved.dispose();
+});
+
+// ---- The hash short-circuit (plan 277 P4 section 3 item 6) ---------------------
+
+test('a write that would store what this writer already stored is skipped, and the generations settle', async context => {
+  context.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: 1000 });
+  let live: Record<string, unknown> = { url: 'https://example.com/a', size: 4 }, reads = 0;
+  const drafts: Array<{ json?: string; capture: unknown }> = [], checkpoints: Array<{ json?: string; capture: unknown; reason: string }> = [];
+  let slot: string | null = null;
+  const controller = createAutomaticHistory({
+    toolId: 'qr-code', getSlot: () => slot, setSlot: next => { slot = next; }, snapshot: () => { reads++; return live; },
+    load: async () => null, capture: async () => null, saved() {},
+    history: { head: async () => null, current: async () => ({ head: null, version: null }), attachPreview: async () => {},
+      checkpoint: async (_slot, _data, options) => { checkpoints.push({ json: options.capture?.json, capture: options.capture, reason: options.reason }); return { id: `c${checkpoints.length}` } as RevisionEntry; },
+      recovery: { list: async () => ({ entries: [] }), read: async () => null,
+        save: async (_slot, _data, options) => { drafts.push({ json: options.capture?.json, capture: options.capture }); return { version: `d${drafts.length}`, diverged: false } as RecoveryEntry; } },
+    },
+  });
+  const settle = async (): Promise<void> => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
+  await settle();
+
+  controller.changed(); await controller.flush();
+  assert.equal(drafts.length, 1); assert.equal(checkpoints.length, 1);
+  assert.equal(reads, 1, 'one flush reads the document once');
+  assert.equal(drafts[0]!.capture, checkpoints[0]!.capture, 'the draft and the checkpoint share one capture, so the store hashes it once');
+  assert.equal(checkpoints[0]!.json, '{"size":4,"url":"https://example.com/a"}', 'canonical JSON: keys sorted');
+
+  // A change that changes nothing (the same value set again): no draft, no checkpoint.
+  controller.changed(); await controller.flush();
+  assert.equal(drafts.length, 1, 'no draft: the current state already holds this');
+  assert.equal(checkpoints.length, 1, 'no checkpoint: the head already holds this');
+  const before = reads;
+  await controller.flush();
+  assert.equal(reads, before, 'flush sees nothing unsaved once the skip settled the generations');
+  // Timers after a skip find nothing to do either.
+  controller.changed(); context.mock.timers.tick(1000); await settle();
+  context.mock.timers.tick(120_000); await settle();
+  assert.equal(drafts.length, 1); assert.equal(checkpoints.length, 1);
+
+  // A real edit writes; undoing it writes again, and the checkpoint clears the draft.
+  live = { url: 'https://example.com/b', size: 4 }; controller.changed(); await controller.flush();
+  live = { url: 'https://example.com/a', size: 4 }; controller.changed(); await controller.flush();
+  assert.equal(drafts.length, 3); assert.equal(checkpoints.length, 3);
+  // An explicit save is never skipped, even when nothing changed.
+  assert.equal(await controller.save(slot!, live), 'recorded');
+  assert.equal(checkpoints.at(-1)!.reason, 'save');
+  const count = drafts.length + checkpoints.length;
+  await controller.close();
+  assert.equal(drafts.length + checkpoints.length, count, 'close writes nothing when nothing is unsaved');
+});
+
+test('status words are translated; code reacts to activity() instead', async () => {
+  let slot: string | null = null;
+  const controller = createAutomaticHistory({
+    toolId: 'qr-code', getSlot: () => slot, setSlot: next => { slot = next; }, snapshot: () => ({ n: 1 }),
+    load: async () => null, capture: async () => null, saved() {},
+    history: { head: async () => null, current: async () => ({ head: null, version: null }), attachPreview: async () => {},
+      checkpoint: async () => ({ id: 'c1' }) as RevisionEntry,
+      recovery: { list: async () => ({ entries: [] }), read: async () => null, save: async () => ({ version: 'd1', diverged: false }) as RecoveryEntry } },
+  });
+  assert.equal(controller.activity(), 'on');
+  const seen: string[] = [];
+  controller.subscribe(() => { seen.push(controller.activity()); });
+  controller.changed(); await controller.flush();
+  assert.deepEqual(seen, ['draft', 'saving', 'checkpoint']);
+  assert.match(controller.status(), /^Checkpoint saved at .+ in this browser$/, 'the web says where the work is kept');
+  controller.dispose();
+});
+
+test("an explicit save's picture comes from the Save action and lands even after the tool has closed (review S1)", async () => {
+  const attached: Array<[string, string]> = [];
+  let value = 1, captures = 0;
+  const controller = createAutomaticHistory({
+    toolId: 'qr-code', getSlot: () => 'qr-code:s', setSlot() {}, snapshot: () => ({ value }), initial: { head: 'h0', version: 'h0' },
+    load: async () => null, capture: async () => { captures++; return 'data:image/png;base64,CC=='; }, saved() {},
+    history: { head: async () => 'h0', attachPreview: async (id, thumb) => { attached.push([id, thumb]); },
+      checkpoint: async (_slot, _data, options) => ({ id: options.reason === 'save' ? 'saved-1' : 'auto-1' }) as RevisionEntry },
+  });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(await controller.save('qr-code:s', { value }), 'recorded');
+  assert.equal(captures, 1, 'while the tool is open, the controller takes its small preview');
+  await controller.close(); controller.dispose();                 // Save & leave: the tool is gone
+  const before = attached.length;
+  await controller.attachSaveThumbnail('data:image/png;base64,SAVE');
+  assert.deepEqual(attached.slice(before), [['saved-1', 'data:image/png;base64,SAVE']], 'the saved revision gets the Save picture, which also sets the tile');
+
+  // While the tool stays open, an edit made since the save means the picture may show that edit: it is not attached.
+  const open = createAutomaticHistory({
+    toolId: 'qr-code', getSlot: () => 'qr-code:o', setSlot() {}, snapshot: () => ({ value }), initial: { head: 'h0', version: 'h0' },
+    load: async () => null, capture: async () => null, saved() {},
+    history: { head: async () => 'h0', attachPreview: async (id, thumb) => { attached.push([id, thumb]); },
+      checkpoint: async () => ({ id: 'saved-2' }) as RevisionEntry },
+  });
+  await new Promise(resolve => setTimeout(resolve, 0));
+  await open.save('qr-code:o', { value });
+  value = 2; open.changed();
+  const seen = attached.length;
+  await open.attachSaveThumbnail('data:image/png;base64,LATE');
+  assert.equal(attached.length, seen);
+  open.dispose();
+});
+
+test('a refused checkpoint is tried again on an edit a minute later, and drafts continue after a save the budget skipped', async context => {
+  context.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: 1000 });
+  let full = true, value = 0;
+  const checkpoints: string[] = [], drafts: Array<{ branch?: boolean }> = [];
+  const controller = createAutomaticHistory({
+    toolId: 'qr-code', getSlot: () => 'qr-code:r', setSlot() {}, snapshot: () => ({ value }), initial: { head: 'h0', version: 'v0' },
+    load: async () => ({ value }), capture: async () => null, saved() {}, store: async () => {},
+    history: { head: async () => 'h0', current: async () => ({ head: 'h0', version: 'v0' }), attachPreview: async () => {},
+      checkpoint: async (_slot, _data, options) => {
+        if (full && options.reason === 'automatic') throw new Error('History storage is full.');
+        if (full && options.reason === 'save') return { id: '', currentVersion: 'v1', skipped: true } as RevisionEntry & { skipped: true; currentVersion: string };
+        checkpoints.push(options.reason); return { id: `c${checkpoints.length}` } as RevisionEntry;
+      },
+      recovery: { list: async () => ({ entries: [] }), read: async () => null,
+        save: async (_slot, _data, options) => { drafts.push({ branch: options.branch }); return { version: `d${drafts.length}`, diverged: !!options.branch } as RecoveryEntry; } },
+    },
+  });
+  const settle = async (): Promise<void> => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
+  await settle();
+  value = 1; controller.changed(); await controller.flush();
+  assert.equal(controller.activity(), 'failed', 'the automatic checkpoint was refused');
+  full = false;
+  value = 2; controller.changed(); context.mock.timers.tick(5000); await settle();
+  assert.deepEqual(checkpoints, [], 'right after a refusal, checkpoints wait');
+  context.mock.timers.tick(60_000); await settle();
+  value = 3; controller.changed(); context.mock.timers.tick(61_000); await settle();
+  assert.deepEqual(checkpoints, ['automatic'], 'an edit a minute later tries again, and the space freed since takes it');
+
+  full = true;
+  assert.equal(await controller.save('qr-code:r', { value }), 'stored', 'the budget skipped the save, which still reached the record');
+  const before = drafts.length;
+  value = 4; controller.changed(); await controller.flush();
+  assert.equal(drafts.length, before + 1, 'drafts continue');
+  assert.equal(drafts.at(-1)!.branch, true, 'as a protected branch beside the saved record, never over it');
+  assert.equal(controller.activity(), 'draft');
+  controller.dispose();
 });

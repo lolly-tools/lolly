@@ -28,7 +28,7 @@ A template embodies a decision. The layout, the type ramp, the safe area and the
 
 This is why the [MCP endpoint](/info/mcp.html) exposes renders from parameters rather than image generation. An agent choosing input values inside a tool's declared bounds cannot produce an off-brand file, and the same call next month returns the same thing.
 
-## The same render, byte for byte: how far it goes
+## How far byte-identical renders go
 
 Reproducible renders and reproducible bytes are separate promises, and only some formats keep the second one. The measured table lives in [the CLI guide](/info/cli.html) and this page does not restate it loosely - the summary that matters here is its first line.
 

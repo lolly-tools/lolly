@@ -300,7 +300,7 @@ Dua jenis kunci independen, keduanya sepenuhnya on-device.
 
 ![Kartu Password protect yang diperluas pada ekspor PDF, dengan bidang kata sandi dan dua tingkat kunci](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - kunci 40-bit dasar (RC4). Terbuka di *aplikasi PDF apa pun*, dan - karena hanya penghalang ringan, bukan perlindungan sungguhan - kata sandinya bisa ikut dalam tautan berbagi (teks polos, memang disengaja). Hanya `pdf` RGB.
+- **Standard** - kunci 40-bit dasar (RC4). Terbuka di *aplikasi PDF apa pun*, dan - karena hanya penghalang ringan, bukan perlindungan sungguhan - kata sandinya bisa ikut dalam tautan berbagi (teks polos). Hanya `pdf` RGB.
 - **Strong** - AES-256 (PDF 2.0). Kata sandinya diketik saat ekspor dan **tidak pernah** dimasukkan ke tautan; hanya terbuka di aplikasi PDF yang lebih baru (Acrobat / Preview ~2018 ke atas), dan aplikasi lama mungkin melaporkan file sebagai rusak. Strong juga berlaku untuk **PDF Print / CMYK** dan untuk **setiap PDF di dalam zip batch** (dialog konfirmasi batch mengumpulkan kata sandinya). Karena PDF/X-4 melarang enkripsi, PDF Print yang dikunci Strong tetap mempertahankan CMYK, tanda cetak dan output-intent-nya tetapi kehilangan klaim kesesuaian PDF/X-4.
 
 Kedua tingkat saling eksklusif dengan Content Credentials (PDF terenkripsi tidak bisa membawa kredensial).

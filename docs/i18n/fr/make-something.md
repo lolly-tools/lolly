@@ -9,7 +9,7 @@ Aie sous la main l'adresse web que le code doit ouvrir, commençant par `https:/
 ## Créer le code
 
 1. Ouvre [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Les contrôles se trouvent à côté de l'aperçu, ou au-dessus sur un téléphone ; ce que montre l'aperçu est ce que sera le fichier.
-2. Dans **URL**, remplace l'adresse d'exemple par la tienne, en entier. L'aperçu change au fur et à mesure que tu tapes.
+2. Dans **URL**, remplace toute l'adresse d'exemple par la tienne. L'aperçu change au fur et à mesure que tu tapes.
 3. Pour reprendre tes propres couleurs, règle **Module colour** et **Background**. Garde un fort contraste entre les deux, sinon les téléphones ont du mal à lire le code.
 4. **Quiet zone**, sous **Modules**, commence à 4. Garde-le à 4 ou plus : cette marge unie est ce qu'une caméra de téléphone recherche.
 

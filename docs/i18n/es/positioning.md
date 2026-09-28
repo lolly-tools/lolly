@@ -57,9 +57,9 @@ Lolly es la imprenta, no el boceto. Trae lo que quieras a la ideación - un mode
 
 > Confía en el proceso creativo, escala con rigor.
 
-## Las reglas viven en la herramienta, no en el archivo
+## Las reglas viven en la herramienta y en sus plantillas
 
-Cualquier otra herramienta del panorama produce un *archivo*, y un archivo solo puede mirarse después de los hechos, un resultado cada vez. Lolly mueve las reglas de marca **un paso hacia arriba**. Códigos hexadecimales exactos, archivos de fuentes con licencia, márgenes de sangrado, espaciados - todo eso está codificado en el HTML y el CSS de la herramienta, de modo que la plantilla *no puede* generar un recurso fuera de marca. Es la propia maqueta la que hace cumplir las reglas.
+Cualquier otra herramienta del panorama produce un *archivo*, y un archivo solo puede mirarse después de los hechos. Lolly mueve las reglas de marca **un paso hacia arriba**. Códigos hexadecimales exactos, archivos de fuentes con licencia, márgenes de sangrado, espaciados - todo eso está codificado en el HTML y el CSS de la herramienta, de modo que la plantilla *no puede* generar un recurso fuera de marca. Es el propio maquetado el que impone las reglas.
 
 Así que lo que merece la pena mirar es la **herramienta**, no cada archivo que produce. Ajusta bien la herramienta, y cada recurso que produzca a partir de entonces es conforme a la marca por construcción. Cómo compruebas tu trabajo, y quién lo hace, sigue siendo tuyo; Lolly hace más pequeño lo comprobado y más rápida la salida.
 

@@ -652,7 +652,7 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
     if (tview.mountLifecycle.disposed) return;
     const content = tview.contentEl;
     content.style.display = 'none';
-    const cleanup = await mountTextWorkspace({ container: content.parentElement!, runtime: tview.runtime, host: tview.host, onDirty: tview.session.markUserDirty, history: tview.actionsApi?.history, historyEnabled: !tview.ephemeralState && !tview.collabHandle, slot: tview.slot, historyBase: tview.openedSession.cursor, flushState: async () => { tview.actionsApi?.history?.changed(); await tview.actionsApi?.history?.flush(); } });
+    const cleanup = await mountTextWorkspace({ container: content.parentElement!, runtime: tview.runtime, host: tview.host, onDirty: tview.session.markUserDirty, history: tview.actionsApi?.history, meta: (read) => { tview.documentMeta = read; } });
     tview.mountLifecycle.add('text-workspace', () => { cleanup(); content.style.removeProperty('display'); });
   }
 
@@ -2077,10 +2077,10 @@ export async function wireLiveEditing(tview: ToolViewCtx): Promise<void> {
             undo: tview.history.undoHistory,
             redo: tview.history.redoHistory,
             register: (sync: (canUndo: boolean, canRedo: boolean) => void) => {
-              tview.historyControls = { sync };
-              tview.history.refreshHistoryUI();
+              tview.historyControls = { sync }; tview.history.refreshHistoryUI();
             },
           },
+          revisions: actionsApi?.history || collabHandle?.history ? { open: () => { void tview.session.openRevisions(); } } : undefined,
           actions: {
             export: () => renderFab?.click(),
             save: () => tview.renderSaveBtn?.click(),

@@ -57,7 +57,7 @@ Lolly est la presse, pas l'esquisse. Apporte ce que tu veux à l'idéation - un 
 
 > Fais confiance au processus créatif, passe à l'échelle avec rigueur.
 
-## Les règles vivent dans l'outil, pas dans le fichier
+## Les règles vivent dans l'outil et ses gabarits
 
 Tout autre outil du tableau produit un *fichier*, et un fichier ne peut être regardé qu'après coup, une sortie à la fois. Lolly déplace les règles de marque **une étape en amont**. Codes hexadécimaux exacts, polices sous licence, marges de fond perdu, espacement - tout cela est codé en dur dans le HTML et le CSS de l'outil, si bien que le gabarit *ne peut pas* produire un rendu hors marque. C'est la mise en page elle-même qui fait respecter les règles.
 

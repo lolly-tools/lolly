@@ -16,7 +16,7 @@ Je merk in Lolly is een klein **design-tokens**-document - kleuren, lettertypen 
 
 Bij de eerste keer starten kom je uit in de **galerij**, met daaroverheen een kort welkomstvenster dat drie ingangen biedt - **Maak het van jou** (de Brand Studio op `#/start`), **Breng je ontwerp mee** (sleep er een Figma-, Penpot-, InDesign- of PDF-bestand in en het opent als een bewerkbare lay-out - de snelste route naar [Breng mee wat je al hebt](#2-bring-in-what-you-already-have) hieronder) en **Verken de tools van de community** - plus een rij talen als Engels de jouwe niet is. Kies de eerste kaart en je belandt in de [**Brand Studio**](/info/brand-studio.html). Geef het een naam en een primaire kleur, en Lolly *leidt* daar een compleet, toegankelijk palet van af - light/dark-oppervlakken, tekst, accenten - met dezelfde kleurwiskunde die de engine overal elders gebruikt.
 
-![De Kleuren-ruimte van de Brand Studio - een primaire kleur, en het toegankelijke palet dat Lolly daaruit afleidt](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Kies een lettertype en je hebt binnen een minuut een werkend merk. Vanaf daar kun je met de zes ruimtes van de studio - Overzicht, Kleuren, Type, Logo's, Tokens, Bestanden - zo ver gaan als je wilt, in willekeurige volgorde, en alles verfijnen wanneer je terugkomt. Het tabblad **Design system** van het dashboard (`#/d`) toont het resultaat alleen-lezen en verwijst terug naar `#/start`, waar het bewerken gebeurt (tenzij je een brand-locked build van Lolly gebruikt, waarin het merk vastligt en er niets te wijzigen valt).
+![De Colours-room van de Brand Studio bij een verse installatie - één live chip, één veld, en de hele eerste beslissing](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Kies een lettertype en je hebt binnen een minuut een werkend merk. Van daaruit laten de zes rooms van de studio - Overview, Colours, Type, Logos, Tokens, Files - je zo ver gaan als je wilt, in elke volgorde, en verfijn je alles telkens wanneer je terugkomt. Het tabblad **Design system** van het dashboard (`#/d`) toont het resultaat alleen-lezen en verwijst terug naar `#/start`, waar het bewerken gebeurt (een vergrendeld design system blijft alleen-lezen, terwijl je eigen lokale systemen bewerkbaar blijven).
 
 ### Importeer een merk dat je al hebt
 
@@ -27,7 +27,7 @@ Als je merk al is vastgelegd als design tokens - vanuit **Penpot**, **Tokens Stu
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` accepteert alle drie de containers waarin Penpot / Tokens Studio hetzelfde document exporteren - een losse `tokens.json`, een map (`$metadata.json` + bestanden per set) of een `project.penpot`-archief. Met `--activate` registreert het het merk als profiel, schakelt het ernaar over en bouwt het de catalogus opnieuw op. Zie [Configuratie](/info/configuration.html) voor hoe merkpakketten en profielen samenhangen.
@@ -60,7 +60,7 @@ Afgewerkt werk in **Figma, Penpot, Illustrator, InDesign of een willekeurige SVG
 
 De hele import gebeurt **op je apparaat** - het bestand wordt in je browser geparsed en er wordt niets geüpload. Alle details, en precies wat er behouden blijft, staan in [Een ontwerp importeren](/info/design-import.html).
 
-Heb je in plaats daarvan een **PowerPoint-deck**? Sleep de `.pptx` op **Deck Builder** om het dia voor dia te bewerken, meteen passend in je merk - of gebruik **Rebrand a Deck** om hetzelfde deck opnieuw gethematiseerd terug te krijgen, met grafieken en animaties intact.
+Heb je in plaats daarvan een **PowerPoint-presentatie**? Sleep de `.pptx` naar elk upload-oppervlak om de slides als assets vast te leggen, schrijf een nieuwe presentatie vanuit Markdown in **Markdown Slides**, of voer **Rebrand** uit om dezelfde presentatie terug te krijgen met een nieuw thema, met grafieken en animaties intact.
 
 ### Van eenmalig ontwerp naar template
 
@@ -72,7 +72,7 @@ De [community-toolset](/info/builders.html) is open source en merk-onafhankelijk
 
 Voer tools ook met je eigen open data: plak of sleep een **CSV**- of **JSON**-tabel en de herhalende velden van een tool vullen zich daarmee, één afgewerkte asset per rij.
 
-## 3. Maak iets, deel het daarna of automatiseer het
+## 3. Maak iets, deel het dan of automatiseer het resultaat
 
 Met een actief merk en je materiaal bij de hand levert elke tool een afgewerkt bestand op:
 

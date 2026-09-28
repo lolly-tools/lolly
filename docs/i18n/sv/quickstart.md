@@ -16,7 +16,7 @@ Ditt varumärke i Lolly är ett litet **designtokens**-dokument - färger, typsn
 
 Första körningen släpper av dig i **galleriet**, med en kort välkomstdialog över det som erbjuder tre vägar in - **Gör den till din** (Brand Studio på `#/start`), **Ta med din design** (släpp en Figma-, Penpot-, InDesign- eller PDF-fil så öppnas den som en redigerbar layout - snabbaste vägen till [Ta in det du redan har](#2-bring-in-what-you-already-have) nedan) och **Utforska community-verktygen** - plus en rad med språk om engelska inte är ditt. Ta det första kortet så landar du i [**Brand Studio**](/info/brand-studio.html). Ge det ett namn och en primärfärg så *härleder* Lolly en komplett, tillgänglig palett från den - ljusa/mörka ytor, text, accenter - med samma färgmatematik som motorn använder överallt annars.
 
-![Brand Studios rum Färger - en primärfärg, och den tillgängliga palett Lolly härleder från den](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Välj ett typsnitt, så har du ett fungerande varumärke på under en minut. Därifrån låter studions sex rum - Översikt, Färger, Typografi, Logotyper, Tokens, Filer - dig ta det så långt du vill, i valfri ordning, och förfina vad som helst när du kommer tillbaka. Instrumentpanelens flik **Designsystem** (`#/d`) visar resultatet skrivskyddat och pekar tillbaka till `#/start`, där redigeringen sker (om du inte kör en varumärkeslåst version av Lolly, där varumärket är fast och det inte finns något att ändra).
+![Brand Studios Färgrum vid en ny installation - ett levande färgprov, ett fält och hela det första beslutet](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Välj ett typsnitt, så har du ett fungerande varumärke på under en minut. Därifrån låter studions sex rum - Översikt, Färger, Typografi, Logotyper, Tokens, Filer - dig ta det så långt du vill, i valfri ordning, och förfina vad som helst av det när du kommer tillbaka. Instrumentpanelens flik **Designsystem** (`#/d`) visar resultatet skrivskyddat och pekar tillbaka till `#/start`, där redigeringen sker (ett låst designsystem förblir skrivskyddat, medan dina egna lokala system förblir redigerbara).
 
 ### Importera ett varumärke du redan har
 
@@ -27,7 +27,7 @@ Om ditt varumärke redan är fångat som designtokens - från **Penpot**, **Toke
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` tar emot alla tre behållare som Penpot / Tokens Studio exporterar samma dokument i - en enda `tokens.json`, en katalog (`$metadata.json` + filer per set) eller ett `project.penpot`-arkiv. Med `--activate` registreras varumärket som en profil, växlar till den och bygger om katalogen. Se [Konfiguration](/info/configuration.html) för hur varumärkespaket och profiler hänger ihop.
@@ -60,7 +60,7 @@ Färdigt arbete i **Figma, Penpot, Illustrator, InDesign eller vilken SVG-app so
 
 Hela importen sker **på din enhet** - filen tolkas i din webbläsare och inget laddas upp. Fullständiga detaljer, och exakt vad som följer med, finns i [Importera en design](/info/design-import.html).
 
-Har du en **PowerPoint-presentation** i stället? Släpp `.pptx`-filen på **Bildspelsbyggare** för att redigera den bild för bild, redan anpassad till ditt varumärke - eller kör **Ombranda en presentation** för att få tillbaka samma presentation omtemad, med diagram och animationer intakta.
+Har du i stället ett **PowerPoint-bygge**? Släpp `.pptx`-filen på vilken uppladdningsyta som helst för att arkivera dess bilder som tillgångar, skriv ett nytt bygge från Markdown i **Markdown Slides**, eller kör **Rebrand** för att få tillbaka samma bygge omtemat, med diagram och animationer intakta.
 
 ### Från engångsjobb till mall
 

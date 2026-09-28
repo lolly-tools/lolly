@@ -74,7 +74,7 @@ export interface HookInitDoneMsg {
   compileError?: string;
 }
 export interface HookInvokeDoneMsg { t: 'invoke-done'; runId: number; callId: number; ok: boolean; patch?: unknown; error?: string }
-export interface HookReportMsg { t: 'report'; runId: number; callId: number; patch: Record<string, unknown> }
+export interface HookReportMsg { t: 'report'; runId: number; callId: number; patch: Record<string, unknown>; ready?: boolean }
 export interface HookHostCallMsg { t: 'host-call'; runId: number; hostCallId: number; method: string; args: unknown[] }
 export interface HookLogMsg { t: 'log'; runId: number; entries: { level: string; msg: string; ctx?: unknown }[] }
 export type HookWorkerOut = HookInitDoneMsg | HookInvokeDoneMsg | HookReportMsg | HookHostCallMsg | HookLogMsg;
@@ -425,7 +425,7 @@ export function createHookWorkerCore(port: HookWorkerPort, opts: HookWorkerCoreO
       // Re-attach the worker's host proxy - ctx crossed the wire WITHOUT it.
       const ctx = { ...msg.ctx, host: run.host,
         ...((msg.name === 'onInit' || msg.name === 'onInput') ? {
-          report: (patch: Record<string, unknown>) => port.post({ t: 'report', runId: msg.runId, callId: msg.callId, patch }),
+          report: (patch: Record<string, unknown>, opts?: { ready?: boolean }) => port.post({ t: 'report', runId: msg.runId, callId: msg.callId, patch, ...(opts?.ready ? { ready: true } : {}) }),
         } : {}),
       };
       Promise.resolve()

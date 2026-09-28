@@ -18,6 +18,7 @@ import { armMotionPreviews } from '../../lib/preview-media.ts';
 import { armViewEnter } from '../../view-enter.ts';
 import { assetBaseId } from '../../lib/asset-favourites.ts';
 import { mountUploadDropzone } from '../../lib/upload-dropzone.ts';
+import { fitLabels } from '../../lib/fit-labels.ts';
 import { bulkBarHtml as buildBulkBar } from '../../lib/bulk-bar.ts';
 import { mountAudioThumbs } from '../picker.ts';
 import type { PickerHost } from '../picker.ts';
@@ -199,6 +200,7 @@ export function render(cat: CatCtx): void {
   mountPdfThumbGrid(cat);
   mountEmojiSpecimenGrid(cat);
   mountDropzone(cat);
+  fitToolbar(cat);
   if (cat.firstPaint) { armViewEnter(viewEl, '.cat-assets, .cat-group--ref'); cat.firstPaint = false; }
 }
 // Search re-render: rebuild ONLY the body so the fixed footer - and the search input's
@@ -306,6 +308,16 @@ export function renderBody(cat: CatCtx): void {
   mountEmojiSpecimenGrid(cat);
   mountDropzone(cat);
   fillStorageChip(cat);
+  fitToolbar(cat);
+}
+// The sticky toolbar drops labels only when they do not fit (lib/fit-labels.ts):
+// first the Collapse all / Show hidden labels, then the type-filter labels. Every
+// one of those buttons carries its own aria-label and title, so assets.css may
+// display:none the label. Without this a tablet pushed the last buttons past the
+// right edge and the whole page scrolled sideways.
+function fitToolbar(cat: CatCtx): void {
+  const bar = cat.viewEl.querySelector<HTMLElement>('.cat-toolbar');
+  if (bar) fitLabels(bar, ['is-tight', 'is-compact']);
 }
 // Device-storage chip in the uploads bar (plans/132 WP-K item 2) - the same
 // navigator.storage.estimate() read the /profile meter uses, one quiet line.

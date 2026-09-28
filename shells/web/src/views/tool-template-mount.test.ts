@@ -278,6 +278,21 @@ test('an empty `?template=` still asks, whatever the "Start with" says', () => {
   assert.ok(gate < startAt, 'the setting is only read once the ask has been ruled out');
 });
 
+test('a `?template=` link re-reads Design\'s intent from the template category, as the chooser does', () => {
+  // The first intent guess (guardNetworkAndSeed) runs before the template is read, so a
+  // Video template opened by link came up in the plain Design layout with its timeline
+  // shut. The launcher guesses again once the template is known, with the same inputs
+  // the chooser's onPick uses (id and category), and a saved intent still wins.
+  const named = CODE.indexOf('await resolveTemplateSeed(');
+  const launcher = CODE.slice(named, CODE.indexOf('} else if (captureNeutralPinned())'));
+  assert.match(launcher, /parseTemplates\(templateMeta\)\.find\(\(v\) => v\.id === ref\.id\)\?\.category/,
+    'the category comes from the index metadata for this shipped template');
+  assert.match(launcher, /tview\.designIntent = inferDesignIntent\(\{\s*saved: tview\.initialValues\.__workspace_intent,\s*templateId: templateParam,\s*templateCategory: category,\s*\}\)/,
+    'the launcher re-infers with the saved intent first, then the template id and category');
+  assert.match(launcher, /tview\.viewEl\.dataset\.designIntent = tview\.designIntent/,
+    'the view attribute follows the new intent');
+});
+
 test('a "Start with" ref seeds through the SAME applier as `?template=`', () => {
   const branch = ladderBranch();
   assert.match(branch, /const start = loadTemplateStart\(mountProfile, toolId\);/,

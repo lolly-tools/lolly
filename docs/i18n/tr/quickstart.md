@@ -16,7 +16,7 @@ Lolly'deki markan küçük bir **design-tokens** belgesidir - renkler, fontlar v
 
 İlk açılışta seni **galeri** karşılar; üzerinde üç giriş yolu sunan kısa bir hoş geldin penceresi olur - **Make it yours** (`#/start` adresindeki Brand Studio), **Bring your design** (bir Figma, Penpot, InDesign ya da PDF dosyası bırak, düzenlenebilir bir yerleşim olarak açılsın - aşağıdaki [Halihazırda elinde olanı içeri al](#2-bring-in-what-you-already-have) bölümüne giden en hızlı yol) ve **Explore the community tools** - ayrıca İngilizce senin dilin değilse bir dil sırası. İlk kartı seç, [**Brand Studio**](/info/brand-studio.html) açılsın. Ona bir ad ve bir ana renk ver; Lolly bundan eksiksiz, erişilebilir bir palet *türetir* - açık/koyu yüzeyler, metin, vurgular - motorun her yerde kullandığı aynı renk matematiğiyle.
 
-![Brand Studio'nun Colours odası - bir ana renk ve Lolly'nin ondan türettiği erişilebilir palet](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Bir font seç, bir dakikadan kısa sürede çalışan bir markan olsun. Sonrasında stüdyonun altı odası - Overview, Colours, Type, Logos, Tokens, Files - markanı istediğin kadar ileri götürmene izin verir; sıra fark etmez, her geri dönüşünde herhangi bir yerini yeniden inceltebilirsin. Panonun **Design system** sekmesi (`#/d`) sonucu salt okunur gösterir ve düzenlemenin yapıldığı `#/start` adresine yönlendirir (markası kilitli bir Lolly sürümünde değilsen; orada marka sabittir ve değiştirilecek bir şey yoktur).
+![Yeni bir kurulumda Brand Studio'nun Colours odası - bir canlı çip, bir alan ve ilk kararın tamamı](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Bir font seç, bir dakikadan kısa sürede çalışan bir markan olsun. Sonrasında stüdyonun altı odası - Overview, Colours, Type, Logos, Tokens, Files - markanı istediğin kadar ileri götürmene izin verir; sıra fark etmez, her geri dönüşünde herhangi bir yerini yeniden inceltebilirsin. Panonun **Design system** sekmesi (`#/d`) sonucu salt okunur gösterir ve düzenlemenin yapıldığı `#/start`'a geri işaret eder (kilitli bir tasarım sistemi salt okunur kalır, kendi yerel sistemlerin ise düzenlenebilir kalır).
 
 ### Halihazırda sahip olduğun bir markayı içeri aktar
 
@@ -27,7 +27,7 @@ Markan zaten design token olarak kayıtlıysa - **Penpot**, **Tokens Studio** (F
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand`, Penpot / Tokens Studio'nun aynı belgeyi dışa aktardığı üç kabın üçünü de kabul eder - tek bir `tokens.json`, bir dizin (`$metadata.json` + set başına dosyalar) ya da bir `project.penpot` arşivi. `--activate` ile markayı bir profil olarak kaydeder, ona geçer ve kataloğu yeniden derler. Marka paketleriyle profillerin birbirine nasıl oturduğu için [Yapılandırma](/info/configuration.html) sayfasına bak.
@@ -60,7 +60,7 @@ Boş bir sayfadan başlamıyorsun. Lolly, zaten sahip olduğun tasarım işlerin
 
 İçeri aktarmanın tamamı **cihazında** olur - dosya tarayıcında ayrıştırılır ve hiçbir şey yüklenmez. Tüm ayrıntılar ve tam olarak nelerin aktarıldığı [Import a design](/info/design-import.html) sayfasında.
 
-Elinde bir **PowerPoint sunumu** mu var? `.pptx` dosyasını **Deck Builder** üzerine bırak, markana oturmuş halde slayt slayt düzenle - ya da **Rebrand a Deck**'i çalıştır, aynı sunumu grafikleri ve animasyonları bozulmadan yeniden temalanmış olarak geri al.
+Elinde bir **PowerPoint sunusu** mu var? `.pptx` dosyasını herhangi bir yükleme yüzeyine bırak, slaytlarını varlık olarak dosyala; **Markdown Slides**'ta Markdown'dan yeni bir sunum yaz; ya da aynı sunumu grafikleri ve animasyonları bozulmadan yeniden temalanmış geri almak için **Rebrand**'ı çalıştır.
 
 ### Tek seferlik bir işten şablona
 

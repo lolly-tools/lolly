@@ -16,7 +16,7 @@ Il tuo brand in Lolly è un piccolo documento di **design token** - colori, font
 
 Al primo avvio atterri sulla **galleria**, con sopra una breve finestra di benvenuto che offre tre strade - **Rendilo tuo** (il Brand Studio su `#/start`), **Porta il tuo design** (trascina un file Figma, Penpot, InDesign o PDF e si apre come layout modificabile - la via più rapida verso [Porta con te quello che hai già](#2-bring-in-what-you-already-have) qui sotto) e **Esplora gli strumenti della community** - più una riga di lingue se l'inglese non è la tua. Scegli la prima scheda e arrivi nel [**Brand Studio**](/info/brand-studio.html). Dagli un nome e un colore primario e Lolly ne *deriva* una palette completa e accessibile - superfici chiare/scure, testo, accenti - usando la stessa matematica del colore che il motore usa ovunque.
 
-![La stanza Colori del Brand Studio - un colore primario e la palette accessibile che Lolly ne deriva](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Scegli un font e hai un brand funzionante in meno di un minuto. Da lì le sei stanze dello studio - Panoramica, Colori, Tipografia, Loghi, Token, File - ti lasciano spingerti quanto vuoi, in qualsiasi ordine, perfezionando ogni dettaglio ogni volta che torni. La scheda **Sistema di design** della dashboard (`#/d`) mostra il risultato in sola lettura e rimanda a `#/start`, dove avviene la modifica (a meno che tu non sia su una build di Lolly con brand bloccato, dove il brand è fisso e non c'è nulla da cambiare).
+![La stanza Colori del Brand Studio su un'installazione nuova - un chip dal vivo, un campo e l'intera prima decisione](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Scegli un font e avrai un brand funzionante in meno di un minuto. Da lì, le sei stanze dello studio - Panoramica, Colori, Tipografia, Loghi, Token, File - ti permettono di portarlo avanti quanto vuoi, in qualsiasi ordine, perfezionando qualsiasi parte ogni volta che torni. La scheda **Sistema di design** della dashboard (`#/d`) mostra il risultato in sola lettura e rimanda a `#/start`, dove avviene la modifica (un sistema di design bloccato resta in sola lettura, mentre i tuoi sistemi locali restano modificabili).
 
 ### Importa un brand che hai già
 
@@ -27,7 +27,7 @@ Se il tuo brand è già catturato come design token - da **Penpot**, **Tokens St
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` accetta tutti e tre i contenitori in cui Penpot / Tokens Studio esportano lo stesso documento - un singolo `tokens.json`, una cartella (`$metadata.json` + file per ogni set) o un archivio `project.penpot`. Con `--activate` registra il brand come profilo, vi passa e ricostruisce il catalogo. Consulta [Configurazione](/info/configuration.html) per capire come si combinano pacchetti di brand e profili.
@@ -60,7 +60,7 @@ Il lavoro finito in **Figma, Penpot, Illustrator, InDesign o qualsiasi app SVG**
 
 L'intera importazione avviene **sul tuo dispositivo** - il file viene analizzato nel tuo browser e non viene caricato nulla. I dettagli completi, e cosa esattamente viene mantenuto, sono in [Importare un design](/info/design-import.html).
 
-Hai invece una **presentazione PowerPoint**? Trascina il `.pptx` su **Creatore di deck** per modificarla diapositiva per diapositiva, già allineata al tuo brand - oppure usa **Rebrand di una presentazione** per riavere la stessa presentazione ritematizzata, con grafici e animazioni intatti.
+Hai invece una **presentazione PowerPoint**? Trascina il `.pptx` su qualsiasi superficie di caricamento per archiviare le sue diapositive come risorse, scrivi una nuova presentazione da Markdown in **Markdown Slides**, oppure esegui **Rebrand** per riavere la stessa presentazione ritematizzata, con grafici e animazioni intatti.
 
 ### Da un progetto singolo a un template
 
@@ -72,7 +72,7 @@ Il [set di strumenti della community](/info/builders.html) è open source e agno
 
 Alimenta gli strumenti anche con i tuoi dati aperti: incolla o trascina una tabella **CSV** o **JSON** e i campi ripetibili di uno strumento si compilano da essa, un asset finito per riga.
 
-## 3. Crea qualcosa, poi condividilo o automatizzalo
+## 3. Crea qualcosa, poi condividi o automatizza il risultato
 
 Con un brand attivo e il tuo materiale a portata di mano, ogni strumento produce un file finito:
 

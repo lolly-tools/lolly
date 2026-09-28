@@ -390,7 +390,7 @@ Web-shell: IndexedDB. Tauri: filsystem. CLI: i minnet. Verktøy ser bare `host.s
 
 Brukere kan lagre flere navngitte redigeringsplasser per verktøy og komme tilbake til hver økt senere. Ingen kontoopprettelse kreves; tilstanden er per enhet. Fordi broen er den eneste skjøten, er denne per-enhet-tilstanden også *portabel*: `shells/web/src/data-transfer.ts` leser alt tilbake gjennom `host.profile`/`host.state`/`host.assets` til en enkelt `lolly-backup`-zip som kan importeres på enhver annen installasjon - det frakoblede svaret på "flytt til en ny enhet" som ikke trenger en server (full spesifikasjon: `docs/data-transfer.md`). Synkronisering på tvers av enheter kjører allerede oppå dette, og sender den samme pakken til lagringen personen velger (`docs/sync.md`).
 
-### 7. Modenhetsmerker sier bevisst hva et verktøy er
+### 7. Modenhetsmerker sier hva et verktøy er
 
 Hvert verktøy erklærer `status: official | community | experimental` i manifestet sitt. Galleriet sorterer etter status. Eksperimentelle verktøy vannmerker eksportene sine automatisk - vannmerket påføres av `host.export.render`, ikke av verktøyet, så det kan ikke velges bort av en ikke-offisiell verktøyforfatter.
 
@@ -434,7 +434,7 @@ Komponer renderingen av et hvilket som helst verktøy: et **SVG**-barn forblir e
 
 ---
 
-## Livssyklus, fra ende til ende
+## Livssyklusen til én gjengivelse
 
 En bruker åpner `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 

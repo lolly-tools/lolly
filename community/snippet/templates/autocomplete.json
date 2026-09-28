@@ -1,0 +1,56 @@
+{
+  "id": "autocomplete",
+  "name": "Accept a suggestion",
+  "category": "Animated",
+  "description": "Type the opening, reveal a suggestion and accept the remaining text.",
+  "values": {
+    "scene": "autocomplete",
+    "language": "javascript",
+    "theme": "github-dark",
+    "windowStyle": "redmond",
+    "lineNumbers": true,
+    "showWindow": true,
+    "shadow": true,
+    "scale": 100,
+    "lineHeight": 1.65,
+    "blinkCursor": false,
+    "textOverflow": "fit",
+    "wrapText": false,
+    "calloutMode": "off",
+    "windowRotate": 0,
+    "windowTiltX": 0,
+    "windowTiltY": 0,
+    "showPointer": true,
+    "cursorSize": 125,
+    "clickRing": false,
+    "typingStyle": "natural",
+    "entryMotion": "scale",
+    "exitMotion": "fade",
+    "posterAt": -1,
+    "code": "const message = {\n  title: \"A head start\",\n  detail: \"Finish the thought with one suggestion.\"\n};",
+    "fileName": "suggestion.js",
+    "typingSeconds": 3,
+    "completeAfter": 32,
+    "readSeconds": 3,
+    "ending": "hold"
+  },
+  "presets": [
+    {
+      "id": "light",
+      "name": "Light",
+      "description": "Present the same interaction in a light window.",
+      "values": {
+        "theme": "suse-light",
+        "windowStyle": "nuremberg"
+      }
+    },
+    {
+      "id": "close-afterwards",
+      "name": "Close afterwards",
+      "description": "Close the window after the result has been read.",
+      "values": {
+        "ending": "close"
+      }
+    }
+  ]
+}

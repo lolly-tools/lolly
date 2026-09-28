@@ -273,7 +273,7 @@ As ferramentas expõem apenas os inputs que devem variar - tudo o mais (cores, l
 
 Em uma [colaboração](/info/collaborate.html) ao vivo, o histórico continua sendo só seu. Uma alteração vinda do outro dispositivo nunca entra na sua pilha, então desfazer só pode reverter algo que você mesmo fez.
 
-Desfazer alcança apenas o que aconteceu durante esta visita; nove ferramentas também guardam versões anteriores em **History**, ao lado de **Undo** (veja [Volte a uma versão anterior](/info/find-your-work.html#go-back-to-an-earlier-version)).
+Desfazer alcança apenas o que aconteceu durante esta visita; ferramentas que salvam enquanto você trabalha também guardam versões anteriores em **Histórico**, ao lado de **Undo** (veja [Volte a uma versão anterior](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ## Seus dados e sua foto de perfil
 
@@ -313,7 +313,7 @@ Cole o link para um colega, salve nos favoritos ou faça o commit dele. (Detalhe
 
 **Algumas ferramentas fazem do link o produto inteiro.** O Jump Page reúne seus links em uma única página para distribuir - um link de bio, uma palestra de conferência, uma vitrine de loja. Não há nada para hospedar e nenhuma conta por trás disso: a página é o link, então ela abre tão rápido quanto a URL viaja. No editor, você vê a página finalizada ao lado dos campos; um visitante que abre o link a recebe em largura total, um link por cena conforme rola a página.
 
-![O Jump Page no editor - o título, três cenas de link cada uma com seu próprio banho de cor e um rodapé Made with Lolly, dispostos como uma única página na tela](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page no editor: a cena do título na parte superior da página, com as cenas de links abaixo](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **O diálogo diz o que um link não consegue carregar.** Três coisas não cabem em uma URL: uma imagem ou arquivo que você adicionou deste dispositivo, um valor de texto muito longo ou uma lista muito grande. Cada uma é contabilizada enquanto o link é montado. Se alguma coisa precisou ficar de fora, o diálogo diz qual foi e aponta você para o arquivo abaixo, em vez de entregar um link que abre com a imagem faltando. Um link que é apenas *longo* recebe um aviso mais brando, com sua contagem de caracteres, já que a compactação ainda pode resolver o comprimento.
 
@@ -423,9 +423,9 @@ Batch são muitas variantes de *um* design. **Multi-edit** é a outra metade do 
 
 Uma única barra lateral comanda o conjunto:
 
-- <!--i:sliders--> **Compartilhados** vem primeiro - todo input que duas ou mais das sessões selecionadas declaram *da mesma forma* (mesmo id, mesmo tipo, mesmas restrições - a mesma regra de mesclagem que a grade de lote usa nas suas colunas). Edite um controle compartilhado uma vez e o valor se espalha para todas as sessões que o declaram, ao vivo em cada cartão. Duas sessões da mesma ferramenta compartilham tudo; duas ferramentas diferentes compartilham o que por acaso tiverem em comum, e nada além disso.
-- <!--i:document--> Abaixo dele, **um cartão recolhido por sessão** com todos os inputs próprios daquela sessão, na mesma fidelidade da barra lateral da própria ferramenta - seletores de ativos, grupos de linhas repetidas, campos de cor - além de um bloco de exportação compacto: **Formato**, **L** / **A**, **Unidade**, **DPI** e o seu próprio **Baixar**. Esse Baixar salva a sessão primeiro e depois a renderiza pelo caminho comum de exportação de sessão, então o arquivo carrega o mesmo nome, formato e Content Credentials que carregaria direto da ferramenta.
-- <!--i:search--> **Filtrar campos…** no topo estreita os controles em *todos* os cartões de uma vez - que é como você chega até "o título" em oito sessões sem ter de rolar atrás dele.
+- <!--i:sliders--> **Shared** lidera - todo input que duas ou mais das sessões selecionadas declaram *da mesma forma* (mesmo id, mesmo tipo, mesmas restrições - a mesma regra de mesclagem que a grade de lote usa nas suas colunas). Edite um controle compartilhado uma vez e o valor se espalha para toda sessão que o declara, ao vivo em cada cartão. Duas sessões da mesma ferramenta compartilham tudo; duas ferramentas diferentes compartilham só os inputs que têm em comum.
+- <!--i:document--> Abaixo dele, **um cartão recolhido por sessão** com todos os inputs próprios daquela sessão, na mesma fidelidade da barra lateral da própria ferramenta - seletores de recursos, grupos de linhas repetidas, campos de cor - mais um bloco de exportação compacto: **Format**, **W** / **H**, **Unit**, **DPI** e seu próprio **Download**. Esse Download salva a sessão primeiro e depois a renderiza pelo caminho comum de exportação de sessão, então o arquivo carrega o mesmo nome, formato e Content Credentials que teria direto da ferramenta.
+- <!--i:search--> **Filter inputs…** no topo restringe os controles em *todos* os cartões de uma vez - é assim que você chega ao "título" em oito sessões sem rolar para encontrá-lo.
 
 Clique em qualquer tela (ou pressione Enter sobre ela) e o cartão da barra lateral daquela sessão se abre e é rolado até ficar visível. **Salvar tudo** grava cada sessão de volta no seu próprio espaço. **Baixar tudo** salva primeiro e depois renderiza o conjunto inteiro pelo mesmo pipeline do **Renderizar seleção** de Projetos - um único zip, com a trava opcional por senha oferecida no caminho.
 

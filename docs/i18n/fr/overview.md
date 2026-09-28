@@ -390,7 +390,7 @@ Web shell : IndexedDB. Tauri : système de fichiers. CLI : en mémoire. Les outi
 
 Les utilisateurs peuvent enregistrer plusieurs emplacements d'édition nommés par outil et retrouver chaque session plus tard. Aucune création de compte n'est requise ; l'état est propre à l'appareil. Comme le pont est le seul point de passage, cet état par appareil est aussi *portable* : `shells/web/src/data-transfer.ts` relit tout via `host.profile`/`host.state`/`host.assets` dans un unique zip `lolly-backup` qui s'importe sur n'importe quelle autre installation - la réponse hors ligne à "passer à un nouvel appareil" qui ne nécessite aucun serveur (spécification complète : `docs/data-transfer.md`). La synchronisation multi-appareils fonctionne déjà par-dessus cela, en envoyant le même bundle vers le stockage que la personne choisit (`docs/sync.md`).
 
-### 7. Les étiquettes de maturité disent ce qu'est un outil, par conception
+### 7. Les étiquettes de maturité disent ce qu'est un outil
 
 Chaque outil déclare `status: official | community | experimental` dans son manifeste. La galerie trie par statut. Les outils expérimentaux filigranent automatiquement leurs exports - le filigrane est appliqué par `host.export.render`, pas par l'outil, si bien qu'un auteur d'outil non officiel ne peut pas le désactiver.
 
@@ -434,7 +434,7 @@ Composer le rendu de n'importe quel outil : un enfant **SVG** reste un vrai vect
 
 ---
 
-## Le cycle de vie, de bout en bout
+## Le cycle de vie d'un rendu
 
 Un utilisateur ouvre `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H` :
 

@@ -39,7 +39,7 @@
 
 `profile.json` - найменша частина і та, яку читач бачить першою в застосунку: дані, які виробник заповнює один раз, разом зі згодою, що дозволяє інструментам їх використовувати.
 
-![Форма даних профілю, яка стає profile.json - ім'я, контакти, фото та згода поруч із ними](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![Форма деталей профілю, яка стає файлом profile.json: ім'я, контактні дані та портрет](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

@@ -39,7 +39,7 @@ Pachetul este un zip simplu în mod intenționat: supraviețuiește intact oric�
 
 `profile.json` este cea mai mică parte și cea pe care un cititor o vede prima în aplicație: detaliile pe care un producător le completează o singură dată, plus opțiunea de consimțământ care permite instrumentelor să le folosească.
 
-![Formularul de detalii Profile care devine profile.json - nume, contact, fotografie și opțiunea de consimțământ alături](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![Formularul cu detaliile de profil care devine profile.json: nume, detalii de contact și fotografie de profil](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

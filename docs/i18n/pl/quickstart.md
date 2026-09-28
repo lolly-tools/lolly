@@ -16,7 +16,7 @@ Twoja marka w Lolly to niewielki dokument **design tokens** - kolory, fonty i ki
 
 Pierwsze uruchomienie zostawia cię w **galerii**, z krótkim oknem powitalnym, które proponuje trzy drogi wejścia - **Make it yours** (Brand Studio pod `#/start`), **Bring your design** (upuść plik Figma, Penpot, InDesign lub PDF, a otworzy się jako edytowalny układ - najszybsza droga do sekcji [Wnieś to, co już masz](#2-bring-in-what-you-already-have) poniżej) oraz **Explore the community tools** - plus rząd języków, jeśli angielski nie jest twoim. Wybierz pierwszą kartę, a trafisz do [**Brand Studio**](/info/brand-studio.html). Podaj nazwę i kolor podstawowy, a Lolly *wyprowadzi* z niego kompletną, dostępną paletę - jasne i ciemne tła, tekst, akcenty - tą samą matematyką koloru, której silnik używa wszędzie indziej.
 
-![Pokój Colours w Brand Studio - kolor podstawowy i dostępna paleta, którą Lolly z niego wyprowadza](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Wybierz font i w niecałą minutę masz działającą markę. Dalej sześć pokoi studia - Overview, Colours, Type, Logos, Tokens, Files - pozwala rozwinąć ją tak daleko, jak chcesz, w dowolnej kolejności, dopracowując dowolny element przy każdym powrocie. Zakładka **Design system** na pulpicie (`#/d`) pokazuje wynik tylko do odczytu i odsyła z powrotem do `#/start`, gdzie odbywa się edycja (chyba że pracujesz na wersji Lolly z zablokowaną marką, gdzie marka jest stała i nie ma czego zmieniać).
+![Pokój Colours w Brand Studio na świeżej instalacji - jeden żywy chip, jedno pole i cała pierwsza decyzja](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Wybierz font i w niecałą minutę masz działającą markę. Dalej sześć pokoi studia - Overview, Colours, Type, Logos, Tokens, Files - pozwala rozwinąć ją tak daleko, jak chcesz, w dowolnej kolejności, dopracowując dowolny element przy każdym powrocie. Zakładka **Design system** na pulpicie (`#/d`) pokazuje wynik tylko do odczytu i odsyła z powrotem do `#/start`, gdzie odbywa się edycja (zablokowany system projektowy pozostaje tylko do odczytu, a twoje własne lokalne systemy pozostają edytowalne).
 
 ### Zaimportuj markę, którą już masz
 
@@ -27,7 +27,7 @@ Jeśli twoja marka jest już zapisana jako design tokens - z **Penpot**, **Token
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` przyjmuje wszystkie trzy kontenery, w których Penpot / Tokens Studio eksportują ten sam dokument - pojedynczy `tokens.json`, katalog (`$metadata.json` + pliki poszczególnych zestawów) albo archiwum `project.penpot`. Z `--activate` rejestruje markę jako profil, przełącza się na nią i przebudowuje katalog. Zobacz [Konfiguracja](/info/configuration.html), aby poznać, jak paczki marek i profile łączą się ze sobą.
@@ -60,7 +60,7 @@ Gotowa praca w **Figmie, Penpot, Illustratorze, InDesignie lub dowolnej aplikacj
 
 Cały import odbywa się **na twoim urządzeniu** - plik jest parsowany w twojej przeglądarce i nic nie jest wysyłane. Pełne szczegóły i dokładny zakres tego, co się przenosi, znajdziesz w [Import projektu](/info/design-import.html).
 
-Masz zamiast tego **prezentację PowerPoint**? Upuść `.pptx` na **Deck Builder**, aby edytować ją slajd po slajdzie, od razu dopasowaną do twojej marki - albo uruchom **Rebrand a Deck**, aby dostać tę samą prezentację w nowej szacie, z nienaruszonymi wykresami i animacjami.
+Zamiast tego masz **prezentację PowerPoint**? Upuść plik `.pptx` na dowolną powierzchnię przesyłania, aby zapisać jej slajdy jako zasoby, napisz nową prezentację z Markdownu w **Markdown Slides**, albo uruchom **Rebrand**, aby odzyskać tę samą prezentację w nowej szacie, z nienaruszonymi wykresami i animacjami.
 
 ### Od jednorazowego projektu do szablonu
 
@@ -72,7 +72,7 @@ Oto zysk: zaimportowany układ jest zwykłą sesją Design, więc gdy go **zapis
 
 Zasil narzędzia także własnymi otwartymi danymi: wklej lub upuść tabelę **CSV** albo **JSON**, a powtarzalne pola narzędzia wypełnią się z niej, jeden gotowy plik na wiersz.
 
-## 3. Zrób coś, a potem udostępnij to lub zautomatyzuj
+## 3. Zrób coś, a potem udostępnij lub zautomatyzuj wynik
 
 Z aktywną marką i twoim materiałem pod ręką każde narzędzie tworzy gotowy plik:
 

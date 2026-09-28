@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import {
   DEFAULT_THRESHOLDS, MAX_SHOT_PX, clampDpr, ineffectiveTolerance, channelStddev, isBlank, pixelDiffFraction, classifyShot,
   parseShotRecipes, stripSvgC2pa, svgRootSize, classifyVectorShot,
-  type RawImage, walkerWindow } from '../scripts/lib/shot-compare.ts';
+  type RawImage, type ShotVerdict, walkerWindow, acceptBlocker } from '../scripts/lib/shot-compare.ts';
 
 /** Uniform w×h RGBA image. */
 function uniform(w: number, h: number, [r, g, b, a]: [number, number, number, number]): RawImage {
@@ -397,4 +397,28 @@ test('the windowing inlined in the browser context still matches walkerWindow', 
     assert.deepEqual(inline(frame, nat.w, nat.h, off), walkerWindow(nat, frame, off),
       `inline windowing diverged from walkerWindow for ${JSON.stringify(nat)}`);
   }
+});
+
+// ── --accept refuses captures that look like failed renders ─────────────────
+
+const changed = (flags: ShotVerdict['flags'], sizeDelta: number | null): ShotVerdict =>
+  ({ kind: 'changed', flags, pixelDiff: null, sizeDelta });
+
+test('acceptBlocker: a tiny, blank or loading-screen capture is refused, with the reason', () => {
+  assert.equal(acceptBlocker(changed(['tiny', 'size-jump'], -0.99)), 'tiny file');
+  assert.equal(acceptBlocker(changed(['blank'], -0.2)), 'near-blank image');
+  assert.equal(acceptBlocker(changed(['size-jump'], -0.93)), '93% smaller than its baseline');
+  assert.equal(acceptBlocker(changed([], -0.1), '<svg><g class="lolly-icon loading-icon"/></svg>'), "the app's loading screen");
+});
+
+test('acceptBlocker: an ordinary change, a growth or a moderate shrink is accepted', () => {
+  assert.equal(acceptBlocker(changed([], -0.04)), null);
+  assert.equal(acceptBlocker(changed(['size-jump'], -0.58)), null);
+  assert.equal(acceptBlocker(changed(['size-jump', 'heavy'], 2.9)), null);
+  assert.equal(acceptBlocker(changed([], null), '<svg><text>fine</text></svg>'), null);
+});
+
+test('acceptBlocker: new and unchanged shots are never refused (nothing to keep instead)', () => {
+  assert.equal(acceptBlocker({ kind: 'new', flags: ['tiny'], pixelDiff: null, sizeDelta: null }), null);
+  assert.equal(acceptBlocker({ kind: 'unchanged', flags: [], pixelDiff: 0, sizeDelta: 0 }), null);
 });

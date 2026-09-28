@@ -273,7 +273,7 @@ Gli strumenti espongono solo gli input pensati per variare - tutto il resto (col
 
 In una [collaborazione](/info/collaborate.html) dal vivo, la cronologia resta solo tua. Una modifica proveniente dall'altro dispositivo non finisce mai sulla tua pila, quindi annulla può recuperare solo qualcosa che hai fatto tu.
 
-L'annulla arriva indietro solo fino all'inizio di questa visita; nove strumenti conservano anche le versioni precedenti sotto **Cronologia**, accanto ad **Annulla** (vedi [Torna a una versione precedente](/info/find-your-work.html#go-back-to-an-earlier-version)).
+L'annulla arriva indietro solo fino all'inizio di questa visita; gli strumenti che salvano mentre lavori conservano anche le versioni precedenti sotto **Cronologia**, accanto ad **Annulla** (vedi [Torna a una versione precedente](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ## I tuoi dati e la tua foto
 
@@ -313,7 +313,7 @@ Incolla il link a un collega, salvalo nei preferiti o mettilo in un commit. (Det
 
 **Alcuni strumenti fanno del link l'intero prodotto.** Jump Page riunisce i tuoi link in un'unica pagina da distribuire - un link bio, un intervento a una conferenza, una vetrina. Non c'è niente da ospitare e nessun account dietro: la pagina è il link, quindi si apre tanto velocemente quanto l'URL viaggia. Nell'editor vedi la pagina finita accanto ai campi; chi apre il link la riceve a tutta larghezza, una scena per link man mano che scorre.
 
-![Jump Page nell'editor - il titolo, tre scene di link ciascuna con la propria tinta, e un piè di pagina Made with Lolly, disposti come un'unica pagina sulla tela](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page nell'editor: la scena del titolo nella parte superiore della pagina, con le scene dei link sotto](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **La finestra di dialogo dice cosa un link non può portare con sé.** Tre cose non stanno in un URL: un'immagine o un file che hai aggiunto da questo dispositivo, un valore di testo molto lungo o un elenco molto grande. Ognuna viene conteggiata mentre il link viene costruito. Se qualcosa è dovuto restare fuori, la finestra lo dice e ti indirizza al file qui sotto, invece di consegnarti un link che si apre senza l'immagine. Un link semplicemente *lungo* riceve una nota più leggera con il suo conteggio di caratteri, dato che la compressione può ancora salvare la lunghezza.
 
@@ -423,7 +423,7 @@ Batch sono molte varianti di *un solo* design. **Multi-Edit** è l'altra metà d
 
 Un'unica barra laterale guida il tutto:
 
-- <!--i:sliders--> In testa ci sono i **Condivisi** - ogni input che due o più delle sessioni selezionate dichiarano nello *stesso modo* (stesso id, stesso tipo, stessi vincoli - la stessa regola di fusione che la griglia batch usa sulle sue colonne). Modifica un controllo condiviso una volta e il valore si propaga a ogni sessione che lo dichiara, dal vivo su ogni card. Due sessioni dello stesso strumento condividono tutto; due strumenti diversi condividono quello che hanno in comune, e nient'altro.
+- <!--i:sliders--> In testa ci sono i **Condivisi** - ogni input che due o più delle sessioni selezionate dichiarano nello *stesso modo* (stesso id, stesso tipo, stessi vincoli - la stessa regola di fusione che la griglia batch usa sulle sue colonne). Modifica un controllo condiviso una volta e il valore si propaga a ogni sessione che lo dichiara, dal vivo su ogni card. Due sessioni dello stesso strumento condividono tutto; due strumenti diversi condividono solo gli input che hanno in comune.
 - <!--i:document--> Sotto, **una card compressa per sessione** con tutti gli input propri di quella sessione, con la stessa fedeltà della barra laterale dello strumento - selettori di asset, gruppi di righe ripetibili, campi di colore - più un blocco di esportazione compatto: **Formato**, **W** / **H**, **Unità**, **DPI** e il proprio **Scarica**. Quel pulsante Scarica salva prima la sessione e poi la renderizza attraverso il consueto percorso di esportazione della sessione, così il file porta lo stesso nome, formato e Content Credentials che avrebbe direttamente dallo strumento.
 - <!--i:search--> **Filtra i campi…** in cima restringe i controlli su *tutte* le card in una volta - ed è così che arrivi al "titolo" in otto sessioni senza doverlo cercare scorrendo.
 

@@ -89,7 +89,7 @@ archivo de revisión privado que contenga los valores originales, solo cuando se
 `--review-file`. Cerrar o abandonar una vista de preparación en el navegador libera su estado de trabajo; esto
 no es una promesa de borrado forense de la memoria del navegador o del sistema operativo.
 
-## Cuando la aplicación se comunica con una red, en su totalidad
+## Todas las solicitudes de red que puede hacer la app
 
 La tabla siguiente es la lista completa de todo lo que la aplicación obtiene o envía a través de una
 red. Si no está aquí, la aplicación no lo hace.

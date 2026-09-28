@@ -23,9 +23,12 @@
 .valid-header-actions { display: none; flex-wrap: wrap; gap: var(--ui-space-control-inline); }
 .valid-layout.has-results .valid-header-actions { display: flex; margin-left: auto; }
 .valid-layout.has-results .valid-intake { display: none; }
-.valid-layout.has-results.is-pasting .valid-intake { display: block; }
+.valid-layout.has-results.is-pasting .valid-intake,
+.valid-layout.has-results.is-linking .valid-intake { display: block; }
 .valid-layout.has-results.is-pasting .valid-drop,
-.valid-layout.has-results.is-pasting .valid-paste-open { display: none; }
+.valid-layout.has-results.is-pasting .valid-intake-alts,
+.valid-layout.has-results.is-linking .valid-drop,
+.valid-layout.has-results.is-linking .valid-intake-alts { display: none; }
 
 @media (min-width: 1440px) {
   .verify-view .platform-layout { max-width: min(1680px, 96vw); padding: var(--ui-space-page) var(--ui-space-panel) calc(var(--ui-space-page) * 3); }
@@ -1516,10 +1519,20 @@ box-shadow: var(--ui-elevation-control);
 .valid-paste-text:focus { outline: none; border-color: color-mix(in srgb, var(--ui-color-action-primary) 60%, transparent); box-shadow: var(--ui-effect-focus-halo); }
 .valid-paste-actions { display: flex; gap: var(--sp-5); flex-wrap: wrap; }
 .valid-paste-foot { margin: 0; font-size: var(--fs-xs); line-height: 1.5; color: var(--ui-color-text-muted); max-width: 72ch; }
+/* "Paste text" and "Add from URL" side by side; each opens its own panel below. */
+.valid-intake-alts { display: flex; flex-wrap: wrap; gap: var(--ui-space-control-inline); }
+.valid-paste-open,
+.valid-url-open { display: inline-flex; align-items: center; gap: var(--ui-space-control-inline); }
+.valid-paste-open svg,
+.valid-url-open svg { width: calc(16px * var(--a11y-fs)); height: calc(16px * var(--a11y-fs)); }
+.valid-url-input { width: 100%; }
+.valid-url-error { margin: 0; font-size: var(--fs-xs); line-height: 1.5; color: var(--ui-color-status-danger); }
 /* Touch: the chip and the two panel buttons are real 44px targets (the chip measured
    30px). Height only - .btn keeps its own padding and label width. */
 @media (pointer: coarse) {
   .valid-paste-open,
+  .valid-url-open,
+  .valid-url-input,
   .valid-paste-actions .btn { min-height: 44px; padding-inline: var(--ui-space-panel); }
 }
 

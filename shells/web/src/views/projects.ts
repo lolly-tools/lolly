@@ -30,6 +30,8 @@ import { icon } from '../lib/icons.ts';
 import { createFolderStore, childFolders, folderPath, descendantFolderIds, FOLDER_COLORS } from '../folders.ts';
 import type { Folder, FolderItem, TrashEntry, ProjectTemplate } from '../folders.ts';
 import { PTPL_SLOT_PREFIX, isHiddenSlot } from '../lib/batch-slots.ts';
+import { noteSessionOpen } from '../lib/open-intent.ts';
+import { instantiateBlueprint } from './projects-blueprint.ts';
 import { createTrash } from '../lib/trash.ts';
 import { openTrashDialog as openSharedTrashDialog, showTrashUndoToast } from '../components/trash-dialog.ts';
 import { openSavedSessionsDialog } from '../components/recents-dialog.ts';
@@ -184,6 +186,7 @@ const FOLDER_PLUS_ICON = icon('folderPlus', { strokeWidth: 1.8 });
 const FILE_PLUS_ICON = icon('filePlus', { strokeWidth: 1.8 });
 const BACK_ICON = icon('chevronLeft');
 const RENDER_ICON = icon('play');
+const COURSE_ICON = icon('graduationCap', { strokeWidth: 1.9 });
 // "history" (clock-rewind) - matches the gallery's saved-sessions button.
 // "sliders-horizontal" - the gallery's filter/view-options button, reused here for
 // view mode (preview/list) + sort.
@@ -903,7 +906,7 @@ export async function mountProjects(
     const batchFrom = folderId && folderId !== UNCAT ? folderId : null;
     const batchHref = `#/batch${batchFrom ? `?from=${encodeURIComponent(batchFrom)}` : ''}`;
     // nosemgrep: lolly-href-escape-is-not-scheme-validation - first-party `#/batch` hash route built just above
-    return `${folderId ? `<button type="button" class="btn" data-course-folder="${escape(folderId)}">${t('Export course')}</button>` : ''}<a class="btn" href="#/learning${batchFrom ? `?from=${encodeURIComponent(batchFrom)}` : ''}">${t('Create learning module')}</a><a href="${escape(batchHref)}" class="btn projects-batch-btn" aria-label="${escape(t('Open Batch mode - render many at once'))}" title="${escape(t('Batch'))}">${BATCH_ICON}<span>${t('Batch')}</span></a>`;
+    return `${folderId ? `<button type="button" class="btn projects-create-btn" data-course-folder="${escape(folderId)}">${COURSE_ICON}<span>${t('Export course')}</span></button>` : ''}<a class="btn projects-create-btn" href="#/learning${batchFrom ? `?from=${encodeURIComponent(batchFrom)}` : ''}">${COURSE_ICON}<span>${t('Create learning module')}</span></a><a href="${escape(batchHref)}" class="btn projects-batch-btn" aria-label="${escape(t('Open Batch mode - render many at once'))}" title="${escape(t('Batch'))}">${BATCH_ICON}<span>${t('Batch')}</span></a>`;
   }
 
   function shell(heading: string, active: 'tools' | 'projects' | 'catalog', inner: string, { inFolder = false }: { inFolder?: boolean } = {}): string {
@@ -968,7 +971,7 @@ export async function mountProjects(
     rootSelector: '.projects',
     count: () => selected.size,
     actions: [
-      { id: 'course', icon: RENDER_ICON, label: () => t('Export course'), hidden: () => inTemplates() },
+      { id: 'course', icon: COURSE_ICON, label: () => t('Export course'), hidden: () => inTemplates() },
       { id: 'render', icon: RENDER_ICON, label: () => t('Render selection'), extraClass: 'projects-render projects-bulk-render', hidden: () => inTemplates() },
       { id: 'edit', icon: EDIT_ICON, label: () => t('Edit together'), title: () => t('Open the selected sessions side by side with one combined sidebar'), hidden: () => !editableSelection() },
       { id: 'sheet', icon: SHEET_ICON, label: () => t('Edit as sheet'), title: () => t('Open the whole selection as rows in the batch grid - no size limit'), hidden: () => !sheetableSelection() },
@@ -1548,7 +1551,7 @@ export async function mountProjects(
         menuItem('move-folder', MOVE_ICON, t('Move to…')),
         clip(),
         canPaste ? menuItem('paste-into', PASTE_ICON, t('Paste here')) : '',
-        menuItem('course-folder', RENDER_ICON, t('Export course')),
+        menuItem('course-folder', COURSE_ICON, t('Export course')),
         menuItem('render', RENDER_ICON, t('Render folder'), { render: true }),
         menuItem('download-project', DOWNLOAD_ICON, t('Download project (.lolly)')),
         menuItem('download-folder', DOWNLOAD_ICON, t('Download originals')),
@@ -1558,7 +1561,7 @@ export async function mountProjects(
         menuItem('delete', TRASH_ICON, t('Move to Trash'), { danger: true }),
       ].join('');
     }
-    if (kind === 'image') return menuItem('course-image', RENDER_ICON, t('Export course')) + projectAssetMenu(imageRefs.get(ref), fav(), clip());
+    if (kind === 'image') return menuItem('course-image', COURSE_ICON, t('Export course')) + projectAssetMenu(imageRefs.get(ref), fav(), clip());
     // A batch session is a multi-row group with no single tool URL, so it can't be
     // shared as a link - offer Share only for single-tool sessions.
     const canShare = !isBatchSlot(ref);
@@ -1575,7 +1578,7 @@ export async function mountProjects(
       canShare ? menuItem('share-with-rules', SHARE_ICON, t('Share with rules')) : '',
       canShare ? menuItem('share', SHARE_ICON, t('Share link')) : '',
       menuItem('info', INFO_ICON, t('Get info')),
-      menuItem('course-session', RENDER_ICON, t('Export course')),
+      menuItem('course-session', COURSE_ICON, t('Export course')),
       menuItem('render-session', RENDER_ICON, t('Render'), { render: true }),
       menuItem('delete-session', TRASH_ICON, t('Move to Trash'), { danger: true }),
     ].join('');
@@ -2372,9 +2375,9 @@ export async function mountProjects(
 
   function resumeSession(slot: string): void {
     closeMenu();
-    const batch = isBatchSlot(slot);
-    if (!batch) armReturn();   // a batch grid opens in /pro, which owns its own return
-    window.location.hash = sessionOpenHref({ slot, toolId: entryBySlot().get(slot)?.toolId || '' }, batch);
+    const batch = isBatchSlot(slot), entry = entryBySlot().get(slot);
+    if (!batch) { armReturn(); noteSessionOpen(slot, entry, toolName(entry?.toolId ?? '')); }   // a batch grid opens in /pro, which owns its own return
+    window.location.hash = sessionOpenHref({ slot, toolId: entry?.toolId || '' }, batch);
   }
 
   // The href resumeSession() ends up at (the shared sessionOpenHref - same target the
@@ -3059,44 +3062,4 @@ export async function mountProjects(
     onClear: exitSearch,
   });
   render();
-}
-
-/** What the lifted blueprint step borrows from the mount: data access and a repaint. */
-type BlueprintView = { host: ProjectsHost; store: ReturnType<typeof createFolderStore>; isMounted(): boolean; refresh(): Promise<void> };
-
-/**
- * Copy a blueprint's stored sessions out of the `__ptpl__:` namespace under fresh slots,
- * then rebuild its folder tree over them. Module scope rather than a closure function: it
- * needs only the host, the folder store and a repaint, so the mount lends it those.
- */
-async function instantiateBlueprint(tp: ProjectTemplate, parent: string | null, view: BlueprintView): Promise<void> {
-  const h = view.host;
-  const rows = await h.state.list().catch(() => [] as Entry[]);
-  const thumbOf = new Map(rows.map(r => [r.slot, r.thumb]));
-  const live = new Set(rows.map(r => r.slot));
-  const slotMap = new Map<string, string>();
-  let i = 0;
-  for (const f of tp.tree) for (const it of f.items) {
-    if (it.type !== 'session' || slotMap.has(it.ref)) continue;
-    const data = await h.state.load(it.ref).catch(() => null);
-    if (!data) continue;
-    // The original slot sits after the template token: __ptpl__:<token>:<toolId:ts | __batch__:label>.
-    const original = it.ref.slice(PTPL_SLOT_PREFIX.length).split(':').slice(1).join(':');
-    let slot: string;
-    if (isBatchSlot(original)) {
-      const base = original.slice(BATCH_SLOT_PREFIX.length);
-      slot = BATCH_SLOT_PREFIX + base;
-      for (let n = 2; live.has(slot); n++) slot = `${BATCH_SLOT_PREFIX}${base} ${n}`;
-    } else {
-      const toolId = String((data as { __toolId?: unknown }).__toolId || original.split(':')[0] || 'session');
-      slot = `${toolId}:${Date.now()}-${++i}`;
-    }
-    await h.state.save(slot, data, thumbOf.get(it.ref) ?? undefined);
-    live.add(slot);
-    slotMap.set(it.ref, slot);
-  }
-  const root = await view.store.instantiateSubtree(tp.tree, parent, slotMap);
-  if (!view.isMounted()) return;
-  await view.refresh();
-  if (root) announce(tRaw('Created "{name}" from the blueprint', { name: root.name }));
 }

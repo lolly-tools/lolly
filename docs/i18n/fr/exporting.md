@@ -300,7 +300,7 @@ Deux types de verrouillage indépendants, entièrement sur l'appareil.
 
 ![La carte Password protect développée sur un export PDF, avec le champ de mot de passe et les deux niveaux de verrouillage](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - un verrou basique 40 bits (RC4). Il s'ouvre dans *n'importe quelle* application PDF et - n'étant qu'une dissuasion légère, pas une vraie protection - il peut voyager dans un lien de partage (en clair, par conception). RGB `pdf` uniquement.
+- **Standard** - un verrou basique 40 bits (RC4). Il s'ouvre dans *n'importe quelle* application PDF et - n'étant qu'une dissuasion légère, pas une vraie protection - il peut voyager dans un lien de partage (en clair). RGB `pdf` uniquement.
 - **Strong** - AES-256 (PDF 2.0). Son mot de passe est saisi à l'export et n'est **jamais** placé dans un lien ; il ne s'ouvre que dans les applications PDF récentes (Acrobat / Preview ~2018 et après), et les applications plus anciennes peuvent signaler le fichier comme endommagé. Strong s'applique aussi aux **PDF Print / CMYK** et à **chaque PDF à l'intérieur d'un zip de lot** (la boîte de dialogue de confirmation du lot recueille le mot de passe). PDF/X-4 interdisant le chiffrement, un PDF Print verrouillé en Strong conserve son CMYK, ses repères et son intention de sortie mais perd la conformité PDF/X-4.
 
 Les deux niveaux sont mutuellement exclusifs avec Content Credentials (un PDF chiffré ne peut pas recevoir le credential).

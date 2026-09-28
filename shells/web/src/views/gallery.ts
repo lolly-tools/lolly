@@ -21,6 +21,7 @@ import { escape } from '../utils.ts';
 import { cssEscape } from '../lib/util/escape.ts';
 import { presentApis } from '@lolly-tools/core/host-v1';
 import { isHiddenSlot } from '../lib/batch-slots.ts';
+import { noteSessionOpen } from '../lib/open-intent.ts';
 import { t, tRaw } from '../i18n.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import { icon } from '../lib/icons.ts';
@@ -200,6 +201,17 @@ function deckPageFit(ar: number): { w: number; h: number } {
 
 /** A saved-session entry as returned by host.state.list(). */
 type SavedEntry = StateEntry & { filename: string | null; thumb: string | null; openedAt?: string };
+
+/** Open the saved session a `[data-resume][data-slot]` control names. First hands the
+ *  tool view the name and thumbnail this list already shows for it, for its "Opening…"
+ *  card (lib/open-intent.ts). */
+function openResume(el: HTMLElement, entries: readonly StateEntry[]): void {
+  const slot = el.dataset.slot!;
+  // host.state.list() rows ARE SavedEntry-shaped; the host type widens them (see
+  // entriesByTool below), so this re-narrows the one it found. Erased cast.
+  noteSessionOpen(slot, entries.find((e) => e.slot === slot) as SavedEntry | undefined);
+  window.location.hash = `#/tool/${el.dataset.resume}?slot=${encodeURIComponent(slot)}`;
+}
 
 /**
  * The host surface the gallery touches: HostV1 plus the web-shell extras this view
@@ -1727,7 +1739,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
       el.addEventListener('click', (e) => {
         e.stopPropagation();
         el.closest('.gtile')?.classList.add('is-navigating');
-        window.location.hash = `#/tool/${el.dataset.resume}?slot=${encodeURIComponent(el.dataset.slot!)}`;
+        openResume(el, savedEntries);
       });
     });
     // Favourite / offline / About / history moved off the card: they live in the
@@ -3009,7 +3021,7 @@ function showHistoryDialog(tool: GalleryTool | undefined, entries: SavedEntry[],
     if (resume) {
       e.stopPropagation();
       modal.close();
-      window.location.hash = `#/tool/${resume.dataset.resume}?slot=${encodeURIComponent(resume.dataset.slot!)}`;
+      openResume(resume, entries);
       return;
     }
     const el = (e.target as Element).closest<HTMLElement>('[data-delete]');

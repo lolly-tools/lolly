@@ -132,7 +132,7 @@ Om du tryckte på **Spara som** eller **Spara** finns det i **Projekt**, på sta
 
 ## Jag stängde fliken. Är mitt arbete borta?
 
-Sparat arbete finns fortfarande i **Projekt**. Osparat arbete är borta, förutom i de nio verktyg som sparar medan du arbetar, som behåller det i **Projekt** också. Tryck på **Spara som** nästa gång innan du lämnar. Se [Om du stängde fliken eller lämnade verktyget](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+Sparat arbete finns fortfarande i **Projekt**. Osparat arbete är borta, förutom i de verktyg som sparar medan du arbetar, som behåller det i **Projekt** också. Nästa gång, tryck på **Spara som** innan du lämnar. Se [Om du stängde fliken eller lämnade verktyget](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Kan jag dela mitt arbete som en fil i stället för en länk?
 

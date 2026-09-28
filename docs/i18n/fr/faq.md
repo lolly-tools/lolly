@@ -128,7 +128,7 @@ Si tu as appuyé sur **Enregistrer sous** ou **Enregistrer**, c'est dans **Proje
 
 ## J'ai fermé l'onglet. Mon travail a-t-il disparu ?
 
-Le travail enregistré est toujours dans **Projets**. Le travail non enregistré a disparu, sauf dans les neuf outils qui enregistrent au fil du travail, qui le gardent aussi dans **Projets**. La prochaine fois, appuie sur **Enregistrer sous** avant de partir. Voir [Si tu as fermé l'onglet ou quitté l'outil](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+Le travail enregistré est toujours dans **Projets**. Le travail non enregistré a disparu, sauf dans les outils qui enregistrent au fil du travail, qui le gardent aussi dans **Projets**. La prochaine fois, appuie sur **Enregistrer sous** avant de partir. Voir [Si tu as fermé l'onglet ou quitté l'outil](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Puis-je partager mon travail sous forme de fichier plutôt que de lien ?
 

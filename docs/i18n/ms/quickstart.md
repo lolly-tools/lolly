@@ -16,7 +16,7 @@ Jenama anda dalam Lolly ialah satu dokumen **design-tokens** yang kecil - warna,
 
 Larian pertama membawa anda ke **galeri**, dengan dialog aluan ringkas di atasnya yang menawarkan tiga jalan masuk - **Make it yours** (Brand Studio di `#/start`), **Bring your design** (lepaskan fail Figma, Penpot, InDesign atau PDF dan ia terbuka sebagai susun atur boleh sunting - laluan terpantas ke [Bawa masuk apa yang anda sudah ada](#2-bring-in-what-you-already-have) di bawah) dan **Explore the community tools** - serta sebaris bahasa jika bahasa Inggeris bukan bahasa anda. Ambil kad pertama dan anda tiba di [**Brand Studio**](/info/brand-studio.html). Berikan nama dan satu warna utama, dan Lolly *menerbitkan* palet lengkap yang mudah diakses daripadanya - permukaan cerah/gelap, teks, aksen - menggunakan matematik warna yang sama seperti yang digunakan enjin di tempat lain.
 
-![Bilik Colours dalam Brand Studio - satu warna utama, dan palet mudah akses yang diterbitkan Lolly daripadanya](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Pilih fon, dan anda sudah mempunyai jenama yang berfungsi dalam masa kurang seminit. Dari situ, enam bilik studio - Overview, Colours, Type, Logos, Tokens, Files - membolehkan anda membawanya sejauh yang anda mahu, dalam apa-apa susunan, memperhalusi mana-mana bahagiannya bila-bila anda kembali. Tab **Design system** pada papan pemuka (`#/d`) memaparkan hasilnya secara baca sahaja dan menunjuk kembali ke `#/start`, iaitu tempat penyuntingan berlaku (melainkan anda menggunakan binaan Lolly yang dikunci jenama, iaitu jenamanya tetap dan tiada apa-apa untuk diubah).
+![Bilik Colours Brand Studio pada pemasangan baharu - satu cip langsung, satu medan, dan keseluruhan keputusan pertama](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Pilih fon, dan anda mempunyai jenama yang berfungsi dalam masa kurang seminit. Dari situ, enam bilik studio - Overview, Colours, Type, Logos, Tokens, Files - membolehkan anda membawanya sejauh yang anda mahu, dalam apa jua susunan, memperhalusi mana-mana bahagiannya apabila anda kembali. Tab **Design system** pada papan pemuka (`#/d`) memaparkan hasilnya secara baca sahaja dan menghala semula ke `#/start`, iaitu tempat penyuntingan berlaku (satu sistem reka bentuk yang dikunci kekal baca sahaja, manakala sistem tempatan anda sendiri kekal boleh disunting).
 
 ### Import jenama yang anda sudah ada
 
@@ -27,7 +27,7 @@ Jika jenama anda sudah dirakam sebagai design tokens - daripada **Penpot**, **To
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` menerima ketiga-tiga bekas yang digunakan Penpot / Tokens Studio untuk mengeksport dokumen yang sama - satu `tokens.json` tunggal, sebuah direktori (`$metadata.json` + fail bagi setiap set) atau arkib `project.penpot`. Dengan `--activate` ia mendaftarkan jenama itu sebagai profil, bertukar kepadanya dan membina semula katalog. Lihat [Konfigurasi](/info/configuration.html) untuk memahami bagaimana pek jenama dan profil saling berkait.
@@ -60,7 +60,7 @@ Kerja siap dalam **Figma, Penpot, Illustrator, InDesign atau mana-mana aplikasi 
 
 Seluruh proses import berlaku **pada peranti anda** - fail itu dihurai dalam pelayar anda dan tiada apa-apa yang dimuat naik. Butiran penuh, dan apa sebenarnya yang terbawa bersama, ada dalam [Import reka bentuk](/info/design-import.html).
 
-Ada **dek PowerPoint** pula? Lepaskan fail `.pptx` pada **Deck Builder** untuk menyuntingnya slaid demi slaid, sudah pun terikat pada jenama anda - atau jalankan **Rebrand a Deck** untuk mendapat dek yang sama kembali dengan tema baharu, carta dan animasi utuh.
+Ada **dek PowerPoint** pula? Lepaskan `.pptx` pada mana-mana permukaan muat naik untuk memfailkan slaidnya sebagai aset, tulis satu dek baharu daripada Markdown dalam **Markdown Slides**, atau jalankan **Rebrand** untuk mendapatkan semula dek yang sama dengan tema baharu, carta dan animasi kekal utuh.
 
 ### Daripada kerja sekali guna kepada templat
 
@@ -72,7 +72,7 @@ Inilah hasilnya: susun atur yang diimport ialah sesi Design biasa, jadi sebaik a
 
 Suapkan juga data terbuka anda sendiri kepada alat: tampal atau lepaskan jadual **CSV** atau **JSON** dan medan berulang sesebuah alat akan diisi daripadanya, satu aset siap bagi setiap baris.
 
-## 3. Hasilkan sesuatu, kemudian kongsi atau automasikannya
+## 3. Hasilkan sesuatu, kemudian kongsi atau automasikan hasilnya
 
 Dengan jenama yang aktif dan bahan anda di tangan, setiap alat menghasilkan fail yang siap:
 

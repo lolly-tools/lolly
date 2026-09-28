@@ -457,4 +457,10 @@ export async function mountRebrand(view: HTMLElement, host: RebrandHost, params:
     urlLive = true;
     syncUrl(viewEl, controller.getState(), onUrlSync);
   }
+  // ?sample=<name> reads one of the bundled sample decks (intake.ts REBRAND_SAMPLES), as
+  // the intake's "Try the sample deck" does. It is how a docs screenshot or a Try it link
+  // reaches a loaded review. Once the project exists the address carries its id instead,
+  // so a reload reopens that project rather than reading the sample again.
+  const sample = rb.params.get('sample');
+  if (sample && !projectId) await rb.intake.takeSample(sample);
 }

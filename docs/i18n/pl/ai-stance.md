@@ -10,7 +10,7 @@ Lolly powstało w środku największej zmiany w sposobie tworzenia mediów od cz
 
 %file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} wygenerowany obraz %sig{podpisany przez %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} i %act{wyeksportowała do WebP} jako %file{the-flood.webp} %detail{10,6 MB do 0,8 MB} %sig{podpisany przez %entity{Lolly}} [Zweryfikuj to teraz](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
-Dla precyzji, bo ta strona twierdzi, że precyzja ma znaczenie: obraz powyżej jest wygenerowany, a nie sfotografowany. Żaden aparat nie był skierowany na tę zagrodę, bo żadnej takiej zagrody nie ma. Przedstawia region Queensland w Australii, na polecenie z Wielkiej Brytanii, wygenerowany w centrum danych w Stanach Zjednoczonych. Stara się być wierny miejscu, nie będąc jego zapisem, i to rozróżnienie jest całym powodem, dla którego mówią o tym jego Content Credentials.
+Żeby być precyzyjnym, bo ta strona twierdzi, że precyzja ma znaczenie: obraz powyżej jest wygenerowany, nie sfotografowany. Żaden aparat nie był skierowany na to gospodarstwo, ponieważ żadne takie gospodarstwo nie istnieje. Przedstawia region Queensland w Australii, zlecony ze Zjednoczonego Królestwa, wygenerowany w centrum danych w Stanach Zjednoczonych. Stara się być wierny miejscu, nie będąc jego zapisem, i to rozróżnienie jest całym powodem, dla którego zapisują je jego Content Credentials.
 
 Oto jak to wygląda, gdy to sprawdzisz. W pliku zachowało się dziewięć kroków: pięć zapisanych przez Google podczas generowania i znakowania obrazu, potem cztery zapisane przez Lolly, gdy otwierało, tworzyło, oznaczało i konwertowało wersję na tej stronie. Lolly niczego nie wygenerowało, i jego wpis to potwierdza.
 
@@ -52,6 +52,6 @@ Nigdy nie musisz tu korzystać z AI. Jeśli jednak z niej skorzystasz, obowiązu
 - <!--i:seal--> **Nie jest deklaracją czystości.** Lolly odczytuje pochodzenie szeroko i zapisuje je uczciwie; nie udaje, że wykrywa każdy wygenerowany piksel w internecie.
 - <!--i:sunburst--> **Nie jest moralną paniką.** Powódź nie jest wrogiem. Wroga jest woda bez przypisanego pochodzenia.
 
-## Jak rozliczać nas z tego
+## Sprawdź te zobowiązania sam
 
 Każde zobowiązanie powyżej jest egzekwowane w otwartym kodzie źródłowym, nie w dokumencie polityki PDF: ścieżka pochodzenia, oznaczenia GEN AI i gwarancja braku trackerów - wszystko to jest objęte testami, a strona [Zweryfikuj to sam](/info/verify-yourself.html) prowadzi cię przez sprawdzanie tych twierdzeń na rzeczywistym eksporcie. Jeśli znajdziesz miejsce, w którym kod i ta strona są ze sobą sprzeczne, to kod jest błędem.

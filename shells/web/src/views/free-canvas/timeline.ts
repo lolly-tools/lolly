@@ -203,6 +203,7 @@ export async function importAnimation(fc: FcCtx, file: File): Promise<void> {
   if (fc.runtime.applyPatch) {
     fc.onDirty?.(fc.blockId);
     await fc.runtime.applyPatch({ projectFps: rate, [fc.blockId]: boxes });
+    fc.history?.changed?.();
   } else {
     fc.runtime.setInput('projectFps', rate);
     fc.select.commit(boxes);

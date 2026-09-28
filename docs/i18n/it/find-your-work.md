@@ -1,13 +1,13 @@
 # Trova e recupera il tuo lavoro
 
-Tutto ciò che crei in Lolly resta nel browser o nell'app in cui lo hai creato, su quel dispositivo, a meno che tu non attivi la [Sincronizzazione](/info/sync.html). Il lavoro salvato è in **Progetti**. Un file scaricato è dove lo ha messo il tuo browser o il tuo sistema, e di solito una copia ti aspetta in **Risorse**. In nove strumenti, anche il lavoro che non hai mai salvato viene conservato. Questa pagina copre ciascuno di questi casi, più una scheda chiusa, i dati del browser cancellati, le versioni precedenti, gli elementi eliminati e il trasferimento su un altro dispositivo.
+Tutto ciò che crei in Lolly resta nel browser o nell'app in cui lo hai creato, su quel dispositivo, a meno che tu non attivi la [Sincronizzazione](/info/sync.html). Il lavoro salvato è in **Progetti**. Un file scaricato è dove lo ha messo il tuo browser o il tuo sistema, e di solito una copia ti aspetta in **Risorse**. Nella maggior parte degli strumenti, anche il lavoro che non hai mai salvato viene conservato. Questa pagina copre ciascuno di questi casi, più una scheda chiusa, i dati del browser cancellati, le versioni precedenti, gli elementi eliminati e il trasferimento su un altro dispositivo.
 
 | Cosa hai fatto | Dove guardare |
 |---|---|
 | Hai premuto **Salva come** o **Salva** | **Progetti** |
 | Hai premuto **Scarica** | I download del tuo browser, e una copia in **Risorse** |
-| Nessuna delle due, in uno dei [nove strumenti che salvano mentre lavori](#the-nine-tools-that-save-as-you-work) | **Progetti** e **History** |
-| Nessuna delle due, in qualsiasi altro strumento | Solo la scheda in cui hai lavorato, finché non la chiudi |
+| Nessuna delle due, in uno [strumento che salva mentre lavori](#which-tools-save-as-you-work) | **Progetti** e **Cronologia** |
+| Nessuna delle due, in uno strumento che non lo fa | Solo la scheda in cui hai lavorato, finché non la chiudi |
 | L'hai eliminato nell'app | **Cestino**, in **Progetti**, **Risorse** o **Impostazioni → Spazio di archiviazione**, per 30 giorni |
 
 ## Trova qualcosa che hai salvato
@@ -71,20 +71,29 @@ not visible in the closed menu, so the alt does not list them.
 
 Ciò che torna dipende da come sei uscito e da quale strumento hai usato:
 
-- **Hai chiuso la scheda, o sei tornato un'altra volta.** Il lavoro non salvato va perso, tranne nei [nove strumenti](#the-nine-tools-that-save-as-you-work), che salvano le tue modifiche mentre lavori: aprili da **Progetti**.
-- **Hai ricaricato la pagina nella stessa scheda.** Le tue impostazioni tornano dall'indirizzo della pagina. Negli strumenti diversi dai nove, le immagini e i file che hai aggiunto dal tuo dispositivo, e il testo su una riga più lungo di 150 caratteri, non tornano, perché l'indirizzo non li contiene.
+- **Hai chiuso la scheda, o sei tornato un'altra volta.** Il lavoro non salvato va perso, tranne negli [strumenti che salvano mentre lavori](#which-tools-save-as-you-work): apri quel lavoro da **Progetti**.
+- **Hai ricaricato la pagina nella stessa scheda.** Le tue impostazioni tornano dall'indirizzo della pagina. Negli strumenti che non salvano mentre lavori, le immagini e i file che hai aggiunto dal tuo dispositivo, e il testo su una riga più lungo di 150 caratteri, non tornano, perché l'indirizzo non li contiene.
 - **Hai premuto Home, o il pulsante indietro in alto a sinistra.** Se hai cambiato qualcosa dall'ultima volta che hai salvato, scaricato o copiato, una finestra di dialogo **Modifiche non salvate** chiede se salvare prima. **Salva & esci** salva il lavoro e ti porta a **Progetti**, oppure indietro alla cartella di progetto da cui hai aperto il lavoro. **Esci senza salvare** scarta le tue modifiche: un elemento salvato torna a come l'avevi salvato l'ultima volta, e una creazione mai salvata esce da **Progetti**. **Annulla** ti mantiene nello strumento.
 
 Lolly chiede solo quando premi **Home** o il pulsante indietro in uno strumento. Chiudere la scheda, ricaricare e il pulsante Indietro del tuo browser non chiedono mai. Per essere sicuro, premi **Salva come**, oppure **Salva** nel pannello di esportazione, prima di lasciare uno strumento.
 
 ::: note Sei uscito senza salvare per sbaglio?
-Nei nove strumenti, Cronologia conserva una copia delle modifiche scartate. Apri la pagina **History**, trovale sotto **Changes** e premi **Open as a copy**. Negli altri strumenti le modifiche sono perse.
+Negli strumenti che salvano mentre lavori, la Cronologia conserva una copia delle modifiche scartate. Apri la pagina **Cronologia**, trovale sotto **Modifiche** e premi **Apri come copia**. Negli altri strumenti le modifiche sono perse.
 :::
 
-::: details I nove strumenti che salvano mentre lavori
-[Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) e [Text](/#/tool/text-helper). L'elenco cresce man mano che più strumenti ottengono il salvataggio automatico.
+::: details Quali strumenti salvano mentre lavori
+Nell'app web, ogni strumento che crea un documento salva mentre lavori: Design, Chart, QR Code, Text, Sandbox e il resto. Questi strumenti non lo fanno:
 
-In questi strumenti, la tua prima modifica archivia il lavoro in **Progetti** come se lo avessi salvato, e le modifiche successive vengono conservate entro pochi secondi. Così una creazione non salvata resta in Progetti dopo che chiudi la scheda e si riapre con le sue modifiche contrassegnate come non salvate. **Esci senza salvare** le scarta comunque, e Cronologia conserva una copia delle modifiche scartate per 30 giorni. Aprire di nuovo lo strumento dalla schermata iniziale avvia una nuova creazione; apri quella precedente da Progetti.
+- gli strumenti che lavorano su un file che porti tu, come Redact, Sign o Convert Image, perché Lolly non conserva mai una copia di quel file;
+- gli strumenti che registrano dalla tua fotocamera, microfono o schermo, come Record, Screen Capture e Voice Recorder;
+- 3D e Darkroom, che prendono un file proprio;
+- uno strumento senza nulla da cambiare, come Countdown.
+
+Negli altri strumenti, la tua prima modifica archivia il lavoro in **Progetti** come se lo avessi salvato, e le modifiche successive vengono conservate mentre lavori, una volta che lo strumento ha finito di disegnare. Così una creazione non salvata resta in Progetti dopo che chiudi la scheda e si riapre con le sue modifiche contrassegnate come non salvate. **Esci senza salvare** le scarta comunque, e la Cronologia conserva una copia delle modifiche scartate per 30 giorni. Aprire di nuovo lo strumento dalla schermata iniziale avvia una nuova creazione; apri quella precedente da Progetti.
+
+Con la [Sincronizzazione](/info/sync.html) attiva, una creazione archiviata in questo modo arriva sui tuoi altri dispositivi come qualsiasi altra cosa in Progetti. Le sue versioni restano sul dispositivo su cui sono state fatte.
+
+Se una creazione è aperta in due schede e salvi in entrambe, viene conservato l'ultimo salvataggio. Il lavoro che ha sostituito non va perso: si trova sotto **Bozze protette** nella Cronologia della creazione, con **Apri bozza come copia**.
 
 Questo funziona solo nell'app web, non nelle app desktop o mobili, e non mentre lavori dal vivo con qualcun altro.
 :::
@@ -111,21 +120,23 @@ Su iPhone, iPad e Android, un file nuovo sostituisce uno precedente con lo stess
 ## Torna a una versione precedente
 
 - **Durante questa visita:** **Annulla** torna indietro attraverso le tue ultime 100 modifiche, finché non lasci lo strumento o ricarichi. Vedi [Annulla e ripeti](/info/using.html#undo-and-redo).
-- **Nei nove strumenti che salvano mentre lavori:** le versioni precedenti di ogni creazione vengono conservate. Segui i passaggi qui sotto.
+- **Negli [strumenti che salvano mentre lavori](#which-tools-save-as-you-work):** le versioni precedenti di ogni creazione vengono conservate. Segui i passaggi qui sotto.
 - **Tutto sul dispositivo:** con la [Sincronizzazione](/info/sync.html) attiva, **Restore an earlier copy**, sotto **Impostazioni → Servizi connessi**, recupera una delle ultime sette copie giornaliere, o la copia precedente alla tua ultima applicazione. Tutto su questo dispositivo corrisponde allora a quella copia, non solo un design.
 
-Per aprire una versione precedente in uno dei nove strumenti:
+Per aprire una versione precedente:
 
-1. Premi **History**, il pulsante a forma di orologio accanto a **Annulla** e **Ripeti**. In Design, **History** è nella barra superiore; su un telefono, premi **•••** e poi **History**.
-2. Trova la versione dalla sua data e ora. Le righe **Automatic checkpoint** vengono prese mentre lavori; le righe **Saved version** sono i momenti in cui hai salvato.
-3. Premi **Open as a copy**. La versione si apre come una nuova creazione, e quella che avevi aperta resta com'era. La copia è in **Progetti**, con "(copy)" dopo il suo nome.
+1. Premi **Cronologia**, il pulsante a forma di orologio accanto a **Annulla** e **Ripeti**. In Design, **Cronologia** è nella barra superiore; su un telefono, premi **•••** e poi **Cronologia**. Negli strumenti senza **Annulla**, come Text e Sandbox, **Cronologia** è accanto a **Home** in alto a sinistra.
+2. Trova la versione dalla sua data e ora. Le righe **Punto di controllo automatico** vengono prese mentre lavori; le righe **Versione salvata** sono i momenti in cui hai salvato.
+3. Premi **Apri come copia**. La versione si apre come una nuova creazione, e quella che avevi aperta resta com'era. La copia è in **Progetti**, con "(copy)" dopo il suo nome.
 
 Per conservare una versione con un nome, premi **Name version**, digita un nome e premi **Keep milestone**. Le versioni con nome sono elencate nella pagina **History**, sotto **Milestones**.
 
 ::: details Il pannello History e la pagina History
 Il pannello **History** elenca anche righe **Recovered work**, e **Protected drafts** conserva le tue ultime modifiche tra un checkpoint e l'altro, con **Open draft as a copy**. **Compare** e **Check assets** ti aiutano a scegliere prima di aprire una copia. Passa da **This creation** a **All history on this device** per vedere ogni creazione.
 
-I checkpoint automatici si diradano con il tempo: uno al minuto per l'ultima ora, uno all'ora per l'ultimo giorno, uno al giorno per 30 giorni, poi uno alla settimana. Le versioni salvate vengono conservate tutte. Eliminare una creazione da **Impostazioni → Spazio di archiviazione** elimina anche le sue versioni.
+I checkpoint automatici si diradano con il tempo: uno al minuto per l'ultima ora, uno all'ora per l'ultimo giorno, uno al giorno per 30 giorni, poi uno alla settimana. Le versioni salvate e le versioni con nome vengono conservate tutte. Eliminare una creazione sposta anche le sue versioni nel **Cestino**, ed **Elimina per sempre** le rimuove.
+
+Quando lo spazio della Cronologia si riempie, vengono rimossi per primi i checkpoint automatici più vecchi delle creazioni che non hai aperto da 30 giorni. Un salvataggio viene sempre conservato, anche in questo caso: viene scritto come il lavoro attuale, e la Cronologia indica che questo salvataggio non viene conservato come versione. **Impostazioni → Spazio di archiviazione** mostra quanto usa la Cronologia.
 
 La pagina **History** (`#/history`, o **Open app history** nel pannello) copre ogni creazione in questo browser. Su un computer, apri la pagina dal pulsante a forma di orologio in alto a destra della schermata iniziale o di **Progetti**. Su un telefono, vai alla galleria degli strumenti nella schermata iniziale, premi il pulsante rotondo del logo in alto a destra e scegli **Sessioni salvate**, che apre History. Da **Progetti** quella voce non fa ancora nulla.
 
@@ -157,7 +168,7 @@ Per spostare tutto in una volta:
 3. Sul nuovo dispositivo, apri **Impostazioni → Spazio di archiviazione**, premi **Importa dati…**, scegli il file e premi **Importa**.
 
 ::: note Cosa resta indietro
-Gli accessi, le chiavi e la passphrase di sincronizzazione restano su ogni dispositivo. L'elenco dei download recenti, i download offline e i modelli AI non viaggiano per nessuna via. La cronologia delle versioni viaggia solo in un file di **Esporta i miei dati**, non tramite la Sincronizzazione o un `.lolly`. Una copia che la Sincronizzazione conserva nel tuo storage può essere scaricata e aperta, oppure scelta in **Importa dati…**, come un file di backup; una copia cifrata chiede la tua passphrase.
+Gli accessi, le chiavi e la passphrase di sincronizzazione restano su ogni dispositivo. L'elenco dei download recenti, i download offline e i modelli AI non viaggiano per nessuna via. La cronologia delle versioni viaggia solo in un file di **Esporta i miei dati**, non tramite la Sincronizzazione o un `.lolly`. Quando la cronologia è troppo grande per un unico file, i checkpoint automatici più vecchi vengono esclusi e la riga di esportazione indica quanti. Una copia che la Sincronizzazione conserva nel tuo storage può essere scaricata e aperta, oppure scelta in **Importa dati…**, come un file di backup; una copia cifrata chiede la tua passphrase.
 :::
 
 ::: details Cosa contiene il file di backup
@@ -176,7 +187,7 @@ Premi **Esporta i miei dati** sotto **Impostazioni → Spazio di archiviazione**
 
 Quando l'app si avvia, Lolly chiede al browser di non cancellare il suo storage quando al dispositivo rimane poco spazio. Decide il browser. Sotto **Impostazioni → Disponibile offline**, una riga che inizia con **Protected** significa che il browser ha accettato; "The browser may clear downloads if the device runs low on space" significa che non lo ha fatto, e **Protect downloads** chiede di nuovo. Se il browser non ha accettato, potrebbe cancellare il lavoro salvato oltre ai download quando lo spazio scarseggia, quindi conserva un file recente di **Esporta i miei dati**.
 
-**Impostazioni → Spazio di archiviazione** mostra quanto spazio usa ogni tipo di dato. **Svuota cache** elimina i file di catalogo scaricati, che si riscaricano quando servono. **Cancella tutti i miei dati** ti chiede di digitare una parola, disattiva la Sincronizzazione, poi rimuove tutto ciò che Lolly conserva in questo browser: il tuo profilo e le impostazioni, le sessioni salvate con la loro cronologia e il Cestino, i caricamenti, i font e i sistemi di design, il registro dei download, i risultati di Convert, i modelli AI scaricati e le copie offline. I file che hai scaricato restano dove li hai salvati. L'app riparte poi come alla prima visita.
+**Impostazioni → Spazio di archiviazione** mostra quanto spazio usa ogni tipo di dato. La sua riga **Cronologia** conta i checkpoint automatici, le loro anteprime e le bozze di recupero; **Rimuovi i checkpoint automatici più vecchi di 30 giorni** libera quello spazio e conserva le versioni salvate e con nome. **Svuota cache** elimina i file di catalogo scaricati, che si riscaricano quando servono. **Cancella tutti i miei dati** ti chiede di digitare una parola, disattiva la Sincronizzazione, poi rimuove tutto ciò che Lolly conserva in questo browser: il tuo profilo e le impostazioni, le sessioni salvate con la loro cronologia e il Cestino, i caricamenti, i font e i sistemi di design, il registro dei download, i risultati di Convert, i modelli AI scaricati e le copie offline. I file che hai scaricato restano dove li hai salvati. L'app riparte poi come alla prima visita.
 
 ![La card dello spazio di archiviazione su uno schermo largo come un telefono: ogni categoria di dati sul dispositivo nominata, con il pulsante Clear all my data in fondo](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

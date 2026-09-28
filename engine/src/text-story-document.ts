@@ -84,7 +84,10 @@ export function parseTextDocument(input: unknown): TextDocumentV1 {
   let json: string, value: unknown;
   try { json = typeof input === 'string' ? input : JSON.stringify(input); }
   catch { return error('document-json', 'The text document must be finite JSON.'); }
-  if (typeof json !== 'string' || new TextEncoder().encode(json).byteLength > TEXT_DOCUMENT_MAX_BYTES) return error('document-size', 'The text document exceeds the supported size.');
+  // UTF-8 spends at most 3 bytes per UTF-16 unit, so a string under a third of the
+  // budget is inside it without encoding: composition parses the whole document once
+  // per story, and the encode alone was over a third of each parse.
+  if (typeof json !== 'string' || json.length * 3 > TEXT_DOCUMENT_MAX_BYTES && new TextEncoder().encode(json).byteLength > TEXT_DOCUMENT_MAX_BYTES) return error('document-size', 'The text document exceeds the supported size.');
   try { value = typeof input === 'string' ? JSON.parse(json) : input; }
   catch { return error('document-json', 'The text document is not valid JSON.'); }
   if (!validate(value)) return error('document-schema', `Invalid text document at ${validate.errors?.[0]?.instancePath || '/'}: ${validate.errors?.[0]?.message ?? 'schema mismatch'}`);

@@ -390,7 +390,7 @@ Webbskal: IndexedDB. Tauri: filsystem. CLI: i minnet. Verktyg ser bara `host.sta
 
 Användare kan spara flera namngivna redigeringsplatser per verktyg och återgå till varje session senare. Inget konto krävs; tillståndet är per enhet. Eftersom bryggan är den enda sömmen är det tillståndet per enhet också *portabelt*: `shells/web/src/data-transfer.ts` läser tillbaka allt via `host.profile`/`host.state`/`host.assets` till en enda `lolly-backup`-zip som importeras på vilken annan installation som helst - offlinesvaret på att "flytta till en ny enhet" som inte kräver någon server (fullständig spec: `docs/data-transfer.md`). Synk mellan flera enheter körs redan ovanpå detta och skickar samma paket till den lagring personen väljer (`docs/sync.md`).
 
-### 7. Mognadstaggar säger vad ett verktyg är, genom design
+### 7. Mognadstaggar säger vad ett verktyg är
 
 Varje verktyg deklarerar `status: official | community | experimental` i sitt manifest. Galleriet sorterar efter status. Experimentella verktyg vattenmärker sina exporter automatiskt - vattenmärket appliceras av `host.export.render`, inte av verktyget, så det kan inte väljas bort av en icke-officiell verktygsförfattare.
 
@@ -434,7 +434,7 @@ Komponera vilket verktygs rendering som helst: ett **SVG**-barn förblir en äkt
 
 ---
 
-## Livscykel, från början till slut
+## Livscykeln för en rendering
 
 En användare öppnar `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 

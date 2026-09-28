@@ -68,7 +68,7 @@ interface Mount {
   host: HostV1;
   allowedRpc: Set<string>;
   worker: Worker;
-  invokes: Map<number, { resolve: (v: unknown) => void; reject: (e: unknown) => void; timer: NodeJS.Timeout; report?: (patch: Record<string, unknown>) => void }>;
+  invokes: Map<number, { resolve: (v: unknown) => void; reject: (e: unknown) => void; timer: NodeJS.Timeout; report?: (patch: Record<string, unknown>, opts?: { ready?: boolean }) => void }>;
 }
 
 let runSeq = 0;
@@ -134,7 +134,7 @@ export function createNodeHookExecutor(opts: NodeHookExecutorOpts = {}): HookExe
         if (m.t === 'init-done') { clearTimeout(timer); resolve(m); return; }
         if (m.t === 'host-call') { void dispatchHostCall(mount, m); return; }
         if (m.t === 'log') { for (const e of (m as HookLogMsg).entries) host.log(e.level as 'info', e.msg, e.ctx as object | undefined); return; }
-        if (m.t === 'report') { mount.invokes.get(m.callId)?.report?.(m.patch); return; }
+        if (m.t === 'report') { mount.invokes.get(m.callId)?.report?.(m.patch, m.ready ? { ready: true } : undefined); return; }
         if (m.t === 'invoke-done') {
           const done = m as HookInvokeDoneMsg;
           const p = mount.invokes.get(done.callId);

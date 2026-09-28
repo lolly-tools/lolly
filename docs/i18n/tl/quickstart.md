@@ -16,7 +16,7 @@ Ang brand mo sa Lolly ay isang maliit na **design-tokens** na dokumento - mga ku
 
 Sa unang pagbukas, dadalhin ka sa **gallery**, na may maikling welcome dialog sa ibabaw nito na nag-aalok ng tatlong paraan para pumasok - **Make it yours** (ang Brand Studio sa `#/start`), **Bring your design** (i-drop ang isang Figma, Penpot, InDesign o PDF file at magbubukas ito bilang isang layout na puwedeng i-edit - ang pinakamabilis na daan papunta sa [Dalhin ang mga meron ka na](#2-bring-in-what-you-already-have) sa ibaba) at **Explore the community tools** - saka isang hanay ng mga wika kung hindi Ingles ang sa iyo. Piliin ang unang card at mapupunta ka sa [**Brand Studio**](/info/brand-studio.html). Bigyan ito ng pangalan at isang primary na kulay at *kukunin* ng Lolly mula rito ang isang kumpleto at accessible na palette - light/dark surfaces, text, accents - gamit ang parehong colour maths na ginagamit ng engine sa lahat ng dako.
 
-![Ang Colours room ng Brand Studio - isang primary na kulay, at ang accessible na palette na kinukuha ng Lolly mula rito](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Pumili ng font, at may gumaganang brand ka na sa loob ng wala pang isang minuto. Mula roon, ang anim na room ng studio - Overview, Colours, Type, Logos, Tokens, Files - ang magdadala nito hanggang saan mo gusto, sa kahit anong pagkakasunod-sunod, at puwede mong pinuhin ang alinman dito tuwing babalik ka. Ipinapakita ng **Design system** tab ng dashboard (`#/d`) ang resulta bilang read-only at itinuturo ka nito pabalik sa `#/start`, kung saan nangyayari ang pag-e-edit (maliban kung nasa brand-locked na build ka ng Lolly, kung saan nakapirmi ang brand at wala nang mababago).
+![Ang Colours room ng Brand Studio sa bagong install - isang live na chip, isang field, at ang buong unang desisyon](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Pumili ng font, at may gumaganang brand ka na sa loob ng wala pang isang minuto. Mula roon, ang anim na room ng studio - Overview, Colours, Type, Logos, Tokens, Files - ang magdadala nito hanggang saan mo gusto, sa kahit anong pagkakasunod-sunod, at puwede mong pinuhin ang alinman dito tuwing babalik ka. Ipinapakita ng **Design system** tab ng dashboard (`#/d`) ang resulta bilang read-only at itinuturo ka nito pabalik sa `#/start`, kung saan nangyayari ang pag-e-edit (nananatiling read-only ang isang naka-lock na design system, habang nananatiling editable ang sarili mong lokal na mga system).
 
 ### I-import ang brand na meron ka na
 
@@ -27,7 +27,7 @@ Kung nakuha na ang brand mo bilang design tokens - mula sa **Penpot**, **Tokens 
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 Tinatanggap ng `ingest:brand` ang lahat ng tatlong container kung saan ini-export ng Penpot / Tokens Studio ang parehong dokumento - isang solong `tokens.json`, isang directory (`$metadata.json` + mga per-set file) o isang `project.penpot` archive. Gamit ang `--activate`, ire-register nito ang brand bilang isang profile, lilipat dito at ire-rebuild ang catalog. Tingnan ang [Configuration](/info/configuration.html) kung paano magkasya ang mga brand pack at profile.
@@ -60,7 +60,7 @@ Ang natapos na trabaho sa **Figma, Penpot, Illustrator, InDesign o kahit anong S
 
 Ang buong import ay nangyayari **sa device mo** - pino-parse ang file sa browser mo at walang ini-upload. Nasa [Import a design](/info/design-import.html) ang buong detalye, at kung ano eksaktong nadadala.
 
-**PowerPoint deck** ba ang meron ka? I-drop ang `.pptx` sa **Deck Builder** para i-edit ito nang slide by slide, naka-snap na sa brand mo - o patakbuhin ang **Rebrand a Deck** para makuha ang parehong deck na muling na-theme, buo pa rin ang mga chart at animation.
+May **PowerPoint deck** ka ba sa halip? I-drop ang `.pptx` sa alinmang upload surface para i-file ang mga slide nito bilang mga asset, sumulat ng bagong deck mula sa Markdown sa **Markdown Slides**, o patakbuhin ang **Rebrand** para makuha ulit ang parehong deck na muling na-theme, buo pa rin ang mga chart at animation.
 
 ### Mula sa isang beses lang papuntang template
 
@@ -72,7 +72,7 @@ Ang [koleksyon ng community tools](/info/builders.html) ay open source at brand-
 
 Pakainin din ang mga tool ng sarili mong open data: i-paste o i-drop ang isang **CSV** o **JSON** table at pupunuin mula rito ang mga repeating field ng isang tool, isang natapos na asset kada row.
 
-## 3. Gumawa ng isang bagay, tapos ibahagi o i-automate ito
+## 3. Gumawa ng isang bagay, tapos ibahagi o i-automate ang resulta
 
 Kapag aktibo na ang isang brand at nasa kamay mo na ang iyong materyal, gumagawa ang bawat tool ng isang natapos na file:
 

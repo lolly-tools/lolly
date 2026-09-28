@@ -1,13 +1,13 @@
 # Cari dan pulihkan hasil kerja anda
 
-Semua yang anda buat dalam Lolly kekal dalam pelayar atau aplikasi tempat anda membuatnya, pada peranti itu, melainkan anda menghidupkan [Sync](/info/sync.html). Kerja tersimpan berada dalam **Projek**. Satu fail yang dimuat turun berada di mana sahaja pelayar atau sistem anda meletakkannya, dan satu salinan biasanya menunggu dalam **Aset**. Dalam sembilan alat, kerja yang tidak pernah anda simpan turut disimpan. Halaman ini merangkumi setiap satu daripadanya, ditambah tab yang ditutup, data pelayar yang dikosongkan, versi terdahulu, item yang dipadam dan berpindah ke peranti lain.
+Semua yang anda buat dalam Lolly kekal dalam pelayar atau aplikasi tempat anda membuatnya, pada peranti itu, melainkan anda menghidupkan [Sync](/info/sync.html). Kerja tersimpan berada dalam **Projek**. Satu fail yang dimuat turun berada di mana sahaja pelayar atau sistem anda meletakkannya, dan satu salinan biasanya menunggu dalam **Aset**. Dalam kebanyakan alat, kerja yang tidak pernah anda simpan turut disimpan. Halaman ini merangkumi setiap satu daripadanya, ditambah tab yang ditutup, data pelayar yang dikosongkan, versi terdahulu, item yang dipadam dan berpindah ke peranti lain.
 
 | Apa yang anda lakukan | Di mana hendak melihat |
 |---|---|
 | Menekan **Simpan sebagai** atau **Simpan** | **Projek** |
 | Menekan **Muat turun** | Muat turun pelayar anda, dan satu salinan dalam **Aset** |
-| Tidak keduanya, dalam salah satu [sembilan alat yang menyimpan semasa anda bekerja](#the-nine-tools-that-save-as-you-work) | **Projek** dan **History** |
-| Tidak keduanya, dalam mana-mana alat lain | Hanya tab tempat anda bekerja, sehingga anda menutup tab itu |
+| Tidak keduanya, dalam satu [alat yang menyimpan semasa anda bekerja](#which-tools-save-as-you-work) | **Projek** dan **History** |
+| Tidak keduanya, dalam satu alat yang tidak berbuat demikian | Hanya tab tempat anda bekerja, sehingga anda menutup tab itu |
 | Memadamkannya dalam aplikasi | **Tong Sampah**, dalam **Projek**, **Aset** atau **Tetapan → Storan**, selama 30 hari |
 
 ## Cari sesuatu yang anda simpan
@@ -71,20 +71,29 @@ not visible in the closed menu, so the alt does not list them.
 
 Apa yang kembali bergantung pada cara anda meninggalkannya dan alat mana yang anda gunakan:
 
-- **Anda menutup tab, atau kembali pada masa lain.** Kerja yang belum disimpan hilang, kecuali dalam [sembilan alat](#the-nine-tools-that-save-as-you-work), yang menyimpan suntingan anda semasa anda bekerja: buka daripada **Projek**.
-- **Anda memuat semula halaman dalam tab yang sama.** Tetapan anda kembali daripada alamat halaman. Dalam alat selain sembilan itu, gambar dan fail yang anda tambah daripada peranti anda, dan teks satu baris yang lebih panjang daripada 150 aksara, tidak kembali, kerana alamat itu tidak menyimpannya.
+- **Anda menutup tab, atau kembali pada masa lain.** Kerja yang belum disimpan hilang, kecuali dalam [alat yang menyimpan semasa anda bekerja](#which-tools-save-as-you-work): buka kerja itu daripada **Projek**.
+- **Anda memuat semula halaman dalam tab yang sama.** Tetapan anda kembali daripada alamat halaman. Dalam alat yang tidak menyimpan semasa anda bekerja, gambar dan fail yang anda tambah daripada peranti anda, dan teks satu baris yang lebih panjang daripada 150 aksara, tidak kembali, kerana alamat itu tidak menyimpannya.
 - **Anda menekan Laman utama, atau butang kembali di kiri atas.** Jika anda mengubah sesuatu sejak kali terakhir anda menyimpan, memuat turun atau menyalin, satu dialog **Perubahan belum disimpan** bertanya sama ada hendak menyimpan dahulu. **Simpan & tinggalkan** menyimpan kerja itu dan membawa anda ke **Projek**, atau kembali ke folder projek tempat anda membuka kerja itu. **Tinggalkan tanpa menyimpan** membuang perubahan anda: item yang telah disimpan kembali kepada keadaan kali terakhir anda menyimpannya, dan ciptaan yang tidak pernah anda simpan meninggalkan **Projek**. **Batal** mengekalkan anda dalam alat itu.
 
 Lolly hanya bertanya apabila anda menekan **Laman utama** atau butang kembali dalam sesuatu alat. Menutup tab, memuat semula dan butang Back milik pelayar anda sendiri tidak pernah bertanya. Untuk memastikan, tekan **Simpan sebagai**, atau **Simpan** dalam panel eksport, sebelum anda meninggalkan sesuatu alat.
 
 ::: note Tersilap tinggalkan tanpa menyimpan?
-Dalam sembilan alat, History menyimpan satu salinan suntingan yang dibuang. Buka halaman **History**, cari suntingan itu di bawah **Changes** dan tekan **Open as a copy**. Dalam alat lain suntingan itu hilang.
+Dalam alat yang menyimpan semasa anda bekerja, History menyimpan satu salinan suntingan yang dibuang. Buka halaman **History**, cari suntingan itu di bawah **Changes** dan tekan **Open as a copy**. Dalam alat lain suntingan itu hilang.
 :::
 
-::: details Sembilan alat yang menyimpan semasa anda bekerja
-[Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) dan [Text](/#/tool/text-helper). Senarai ini berkembang seiring lebih banyak alat memperoleh penyimpanan automatik.
+::: details Alat mana yang menyimpan semasa anda bekerja
+Dalam aplikasi web, setiap alat yang menghasilkan satu dokumen menyimpan semasa anda bekerja: Design, Chart, QR Code, Text, Sandbox dan selebihnya. Alat berikut tidak:
 
-Dalam alat-alat ini, perubahan pertama anda memfailkan kerja itu dalam **Projek** seolah-olah anda telah menyimpannya, dan perubahan seterusnya dikekalkan dalam beberapa saat. Jadi satu ciptaan yang belum disimpan masih berada dalam Projek selepas anda menutup tab dan dibuka semula dengan perubahannya ditanda belum disimpan. **Tinggalkan tanpa menyimpan** tetap membuang perubahan itu, dan History menyimpan satu salinan suntingan yang dibuang selama 30 hari. Membuka alat itu semula daripada skrin utama memulakan satu ciptaan baharu; buka yang terdahulu daripada Projek.
+- alat yang bekerja pada satu fail yang anda bawa sendiri, seperti Redact, Sign atau Convert Image, kerana Lolly tidak pernah menyimpan satu salinan fail itu;
+- alat yang merakam daripada kamera, mikrofon atau skrin anda, seperti Record, Screen Capture dan Voice Recorder;
+- 3D dan Darkroom, yang mengambil failnya sendiri;
+- satu alat yang tiada apa untuk diubah, seperti Countdown.
+
+Dalam alat-alat lain, perubahan pertama anda memfailkan kerja itu dalam **Projek** seolah-olah anda telah menyimpannya, dan perubahan seterusnya dikekalkan semasa anda bekerja, sebaik sahaja alat itu selesai melukis. Jadi satu ciptaan yang belum disimpan masih berada dalam Projek selepas anda menutup tab, dan dibuka semula dengan perubahannya ditanda belum disimpan. **Tinggalkan tanpa menyimpan** tetap membuang perubahan itu, dan History menyimpan satu salinan suntingan yang dibuang selama 30 hari. Membuka alat itu semula daripada skrin utama memulakan satu ciptaan baharu; buka yang terdahulu daripada Projek.
+
+Dengan [Sync](/info/sync.html) dihidupkan, satu ciptaan yang difailkan dengan cara ini pergi ke peranti lain anda seperti apa-apa sahaja lain dalam Projek. Versinya kekal pada peranti tempat ia dibuat.
+
+Jika satu ciptaan terbuka dalam dua tab dan anda menyimpan pada kedua-duanya, simpanan terakhir yang dikekalkan. Kerja yang digantikannya tidak hilang: ia berada di bawah **Protected drafts** dalam History ciptaan itu, dengan **Open draft as a copy**.
 
 Ini hanya berfungsi dalam aplikasi web, bukan dalam aplikasi desktop atau mudah alih, dan bukan semasa anda bekerja langsung bersama orang lain.
 :::
@@ -111,12 +120,12 @@ Pada iPhone, iPad dan Android, satu fail baharu menggantikan yang terdahulu deng
 ## Kembali ke versi terdahulu
 
 - **Semasa lawatan ini:** **Undo** melangkah kembali melalui 100 perubahan terakhir anda, sehingga anda meninggalkan alat itu atau memuat semula. Lihat [Buat asal dan buat semula](/info/using.html#undo-and-redo).
-- **Dalam sembilan alat yang menyimpan semasa anda bekerja:** versi terdahulu bagi setiap ciptaan disimpan. Ikuti langkah di bawah.
+- **Dalam [alat yang menyimpan semasa anda bekerja](#which-tools-save-as-you-work):** versi terdahulu bagi setiap ciptaan disimpan. Ikuti langkah di bawah.
 - **Semua yang ada pada peranti:** dengan [Sync](/info/sync.html) dihidupkan, **Restore an earlier copy**, di bawah **Tetapan → Perkhidmatan disambungkan**, mengembalikan salah satu daripada tujuh salinan harian terakhir, atau salinan sebelum penggunaan terakhir anda. Semua yang ada pada peranti ini kemudian sepadan dengan salinan itu, bukan hanya satu reka bentuk.
 
-Untuk membuka versi terdahulu dalam salah satu daripada sembilan alat:
+Untuk membuka satu versi terdahulu:
 
-1. Tekan **History**, butang jam di sebelah **Undo** dan **Redo**. Dalam Design, **History** berada dalam bar atas; pada telefon, tekan **•••** kemudian **History**.
+1. Tekan **History**, butang jam di sebelah **Undo** dan **Redo**. Dalam Design, **History** berada dalam bar atas; pada telefon, tekan **•••** kemudian **History**. Dalam alat tanpa **Undo**, seperti Text dan Sandbox, **History** berada di sebelah **Laman utama** di kiri atas.
 2. Cari versi itu mengikut tarikh dan masanya. Baris **Automatic checkpoint** diambil semasa anda bekerja; baris **Saved version** adalah masa-masa anda menyimpan.
 3. Tekan **Open as a copy**. Versi itu terbuka sebagai satu ciptaan baharu, dan yang anda buka tadi kekal seperti sedia ada. Salinan itu berada dalam **Projek**, dengan "(copy)" selepas namanya.
 
@@ -125,7 +134,9 @@ Untuk mengekalkan satu versi dengan nama, tekan **Name version**, taip satu nama
 ::: details Panel History dan halaman History
 Panel **History** turut menyenaraikan baris **Recovered work**, dan **Protected drafts** menyimpan suntingan terkini anda di antara checkpoint, dengan **Open draft as a copy**. **Compare** dan **Check assets** membantu anda memilih sebelum membuka satu salinan. Tukar **This creation** kepada **All history on this device** untuk melihat setiap ciptaan.
 
-Automatic checkpoint semakin jarang seiring usianya: satu seminit untuk sejam terakhir, satu sejam untuk sehari terakhir, satu sehari selama 30 hari, kemudian satu seminggu. Saved version semuanya dikekalkan. Memadam satu ciptaan daripada **Tetapan → Storan** turut memadam versinya.
+Automatic checkpoint semakin jarang seiring usianya: satu seminit untuk sejam terakhir, satu sejam untuk sehari terakhir, satu sehari selama 30 hari, kemudian satu seminggu. Saved version dan versi bernama semuanya dikekalkan. Memadam satu ciptaan turut mengalihkan versinya ke **Tong Sampah**, dan **Padam selama-lamanya** mengeluarkannya.
+
+Apabila storan History penuh, checkpoint automatik paling lama bagi ciptaan yang tidak anda buka selama 30 hari dikeluarkan dahulu. Satu simpanan sentiasa dikekalkan, walaupun begitu: ia ditulis sebagai kerja semasa, dan History menyatakan bahawa simpanan ini tidak dikekalkan sebagai satu versi. **Tetapan → Storan** menunjukkan berapa banyak yang digunakan oleh History.
 
 Halaman **History** (`#/history`, atau **Open app history** dalam panel) merangkumi setiap ciptaan dalam pelayar ini. Pada komputer, buka halaman itu daripada butang jam di kanan atas skrin utama atau **Projek**. Pada telefon, pergi ke galeri alat pada skrin utama, tekan butang logo bulat di kanan atas dan pilih **Sesi disimpan**, yang membuka History. Daripada **Projek** item itu belum melakukan apa-apa.
 
@@ -156,8 +167,8 @@ Untuk memindahkan semuanya sekali sahaja:
 2. Bawa fail itu melalui USB, e-mel kepada diri sendiri, AirDrop atau satu folder dikongsi.
 3. Pada peranti baharu, buka **Tetapan → Storan**, tekan **Import data…**, pilih fail itu dan tekan **Import**.
 
-::: note Apa yang tertinggal
-Log masuk, kunci dan frasa laluan sync kekal pada setiap peranti. Senarai muat turun terkini, muat turun luar talian dan model AI tidak berpindah melalui apa-apa laluan. Sejarah versi hanya berpindah dalam satu fail **Export my data**, bukan melalui Sync atau satu `.lolly`. Satu salinan yang disimpan Sync dalam storan anda boleh dimuat turun dan dibuka, atau dipilih dalam **Import data…**, seperti satu fail sandaran; satu salinan yang disulitkan meminta frasa laluan anda.
+::: note Apa yang kekal tertinggal
+Log masuk, kunci dan frasa laluan sync kekal pada setiap peranti. Senarai muat turun terkini, muat turun luar talian dan model AI tidak berpindah melalui apa-apa laluan. Sejarah versi hanya berpindah dalam satu fail **Export my data**, bukan melalui Sync atau satu `.lolly`. Apabila sejarah itu terlalu besar untuk satu fail, checkpoint automatik paling lama ditinggalkan dan baris eksport menyatakan berapa banyak. Satu salinan yang disimpan Sync dalam storan anda boleh dimuat turun dan dibuka, atau dipilih dalam **Import data…**, seperti satu fail sandaran; satu salinan disulitkan meminta frasa laluan anda.
 :::
 
 ::: details Apa yang dibawa fail sandaran
@@ -176,7 +187,7 @@ Tekan **Export my data** di bawah **Tetapan → Storan**, dan simpan fail itu di
 
 Apabila aplikasi bermula, Lolly meminta pelayar supaya tidak mengosongkan storannya apabila peranti kehabisan ruang. Pelayar yang memutuskan. Di bawah **Tetapan → Tersedia luar talian**, satu baris yang bermula dengan **Protected** bermakna pelayar bersetuju; "The browser may clear downloads if the device runs low on space" bermakna ia tidak bersetuju, dan **Lindungi muat turun** bertanya semula. Jika pelayar tidak bersetuju, ia mungkin mengosongkan kerja tersimpan selain muat turun apabila ruang menipis, jadi simpan satu fail **Export my data** terkini.
 
-**Tetapan → Storan** menunjukkan berapa banyak ruang yang digunakan setiap jenis data. **Kosongkan cache** membuang fail katalog yang dimuat turun, yang akan dimuat turun semula apabila diperlukan. **Kosongkan semua data saya** meminta anda menaip satu perkataan, mematikan Sync, kemudian mengeluarkan segala yang disimpan Lolly dalam pelayar ini: profil dan tetapan anda, sesi tersimpan berserta sejarah dan Tong Sampahnya, muat naik, fon dan sistem reka bentuk, log muat turun, hasil Convert, model AI yang dimuat turun dan salinan luar talian. Fail yang anda muat turun kekal di tempat anda menyimpannya. Aplikasi itu kemudian bermula seperti pada lawatan pertama.
+**Tetapan → Storan** menunjukkan berapa banyak ruang yang digunakan setiap jenis data. Baris **History**nya mengira checkpoint automatik, pratonton dan draf pemulihannya; **Remove automatic checkpoints older than 30 days** membebaskan ruang itu dan mengekalkan saved version serta versi bernama. **Kosongkan cache** membuang fail katalog yang dimuat turun, yang akan dimuat turun semula apabila diperlukan. **Kosongkan semua data saya** meminta anda menaip satu perkataan, mematikan Sync, kemudian mengeluarkan segala yang disimpan Lolly dalam pelayar ini: profil dan tetapan anda, sesi tersimpan berserta sejarah dan Tong Sampahnya, muat naik, fon dan sistem reka bentuk, log muat turun, hasil Convert, model AI yang dimuat turun dan salinan luar talian. Fail yang anda muat turun kekal di tempat anda menyimpannya. Aplikasi itu kemudian bermula seperti pada lawatan pertama.
 
 ![Kad storan pada skrin selebar telefon: setiap kategori data pada peranti dinamakan, dengan butang Clear all my data di bahagian bawah](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

@@ -433,7 +433,7 @@ Web shell:IndexedDB。Tauri:檔案系統。CLI:記憶體內。工具只能看到
 
 ---
 
-## 完整生命週期
+## 一次算繪的完整生命週期
 
 使用者開啟 `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 

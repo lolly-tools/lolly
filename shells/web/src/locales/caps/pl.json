@@ -452,7 +452,7 @@
   "No analytics, no telemetry, and rendering happens locally - what you create is stored on your machine, not on a server.": "Żadnej analityki, żadnej telemetrii, a renderowanie odbywa się lokalnie - to, co tworzysz, jest przechowywane na twoim komputerze, nie na serwerze.",
   "Local storage": "Lokalne przechowywanie danych",
   "Your browser’s database": "Baza danych Twojej przeglądarki",
-  "Profile, saved sessions, uploaded images and the cached brand assets live in IndexedDB; Storage tools show usage and can clear that data.": "Profil, zapisane sesje, przesłane obrazy i zbuforowane zasoby marki znajdują się w IndexedDB; narzędzia Storage pokazują zużycie i mogą wyczyścić te dane.",
+  "Profile, saved sessions, uploaded images and the cached brand assets live in IndexedDB; Storage tools show usage and can clear that data.": "Profil, zapisane sesje, przesłane obrazy i zbuforowane zasoby marki znajdują się w IndexedDB; narzędzia Pamięć pokazują zużycie i mogą wyczyścić te dane.",
   "Sync only where you say": "Synchronizuj tylko tam, gdzie chcesz",
   "Turn on sync and a copy goes to the one storage you nominate, and nowhere else.": "Włącz synchronizację, a kopia trafia do jednej wskazanej przez Ciebie pamięci, i nigdzie indziej.",
   "Image hygiene": "Higiena obrazów",

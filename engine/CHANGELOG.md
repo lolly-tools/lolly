@@ -6,6 +6,20 @@ minors, never removed or signature-changed without a major bump.
 
 Moved verbatim from the comment block that used to live in `src/index.ts`.
 
+## 1.228.0
+
+- Pages appear as they finish. A hook's `report(patch, opts)` takes `{ ready: true }` (`HookReportOpts`, `HookReport`): the document can be shown as it now stands. A runtime created with `progressiveInit` stops waiting for onInit at that report and mounts; the hook's result applies when it arrives through the same late path a budget overrun takes, without the error, and `whenSettled()` resolves after it. onInit's context carries `progressive: true` for such a runtime, so a tool reports partial renders only when a view is watching. Without the option `ready` is an ordinary report and creation waits for the whole result, so renders, exports and scripts never deliver half a document. The flag crosses the hook-worker boundary (`HookReportMsg.ready`).
+- Design (1.38.0) uses it: stories are laid out in reading order and each finished page is reported, the first as ready; the result is assembled in document order, so it is the same bytes a single pass gives. On the 19-page document the editor opens with the first page's text at about 2 s instead of 6 s, and the rest fills in.
+
+## 1.227.0
+
+- Large text documents open with one composition, not two. `createRuntime` takes the document's emoji style (`opts.emojiStyle`, validated, `null` for no set) so onInit lays text out with the right glyphs, and `setEmojiStyle` given the style already in force runs no onInput (it still resolves the style's pack assets once, because a save carries them). The web shell used to seed the style after creation, which made Design compose every story again: on a 19-page document that second pass was 6.8 s.
+- Text composition does less work for the same bytes. `translateTextPath` shifts a glyph outline in the composer's own form without the general SVG parser (`translateOutlinePath`, falling back to `translateParsedPath` for anything else); line breaking reads shaped lines from the workspace without copying them and copies only the lines it returns (`shape.shared` on the workspace accessors; a wrapper that replaces `shape` drops it); each break candidate's trimmed end is found once; the break search keys its frontier by number; and `parseTextDocument` skips the UTF-8 encode when the string is provably inside the size budget. On the same document the composer's CPU time fell by about a fifth, and the rendered output hashes the same.
+
+## 1.226.0
+
+- `runtime.whenSettled()` resolves once the newest onInit/onInput run is done: applied within its budget, applied late, failed, or superseded by a newer run that is done. It resolves on the next task when nothing is outstanding and at `destroy()`. A run that outran `HOOK_BUDGET_MS` keeps computing and its late patch reaches subscribers with no other signal, so the web shell's open-document modal waits here: a 19-page Design document runs `onInit` past its 5 s budget and composes its text with a 6.8 s `onInput` whose patch arrives 13 s after the click.
+
 ## 1.225.0
 
 - Rebrand close-out, engine half: the renovated compile fits text before it calls it cut (a text shrinks to the master's smallest size for its role, then its box grows into free room below, and only then `text.overflow` names the words the box clips), and `designTextFit` and `layoutDesignText` share that layout with the preview, which now clips a text box the way Design draws it. Every renovated text row carries no family (the design system's face) or `mono` for code when the design system has a mono face; no source typeface reaches a renovated frame.

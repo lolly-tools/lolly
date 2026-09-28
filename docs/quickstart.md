@@ -72,7 +72,7 @@ The [community tool set](/info/builders.html) is open source and brand-agnostic 
 
 Feed tools your own open data too: paste or drop a **CSV** or **JSON** table and a tool's repeating fields fill from it, one finished asset per row.
 
-## 3. Make something, then share or automate it
+## 3. Make something, then share or automate the result
 
 With a brand active and your material in hand, every tool produces a finished file:
 

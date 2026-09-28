@@ -16,7 +16,7 @@ Brandul tău în Lolly este un mic document de **design tokens** - culori, fontu
 
 Prima rulare te lasă în **galerie**, cu un scurt dialog de bun venit peste ea, care oferă trei căi de intrare - **Make it yours** (fă-l al tău: Brand Studio, la `#/start`), **Bring your design** (adu-ți designul: trage un fișier Figma, Penpot, InDesign sau PDF și se deschide ca layout editabil - cea mai rapidă cale spre [Adu ce ai deja](#2-bring-in-what-you-already-have), mai jos) și **Explore the community tools** (explorează instrumentele comunității) - plus un rând de limbi, dacă engleza nu e a ta. Alege primul card și ajungi în [**Brand Studio**](/info/brand-studio.html). Dă-i un nume și o culoare primară, iar Lolly *derivă* din ea o paletă completă și accesibilă - suprafețe deschise/închise, text, accente - folosind aceeași matematică a culorii pe care motorul o folosește peste tot.
 
-![Camera Colours din Brand Studio - o culoare primară și paleta accesibilă pe care Lolly o derivă din ea](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Alege un font și ai un brand funcțional în mai puțin de un minut. De acolo, cele șase camere ale studioului - Overview, Colours, Type, Logos, Tokens, Files - te lasă să-l duci oricât de departe vrei, în orice ordine, rafinând orice de câte ori revii. Fila **Design system** din dashboard (`#/d`) arată rezultatul doar în citire și trimite înapoi la `#/start`, acolo unde se face editarea (dacă nu cumva ești pe o versiune de Lolly cu brandul blocat, unde brandul e fix și nu ai ce schimba).
+![Camera Colours din Brand Studio la o instalare nouă - un chip live, un câmp și întreaga primă decizie](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Alege un font și ai un brand funcțional în mai puțin de un minut. De acolo, cele șase camere ale studioului - Overview, Colours, Type, Logos, Tokens, Files - te lasă să-l duci oricât de departe vrei, în orice ordine, rafinând orice de câte ori revii. Fila **Design system** din dashboard (`#/d`) arată rezultatul doar în citire și trimite înapoi la `#/start`, acolo unde se face editarea (un sistem de design blocat rămâne doar-citire, în timp ce propriile tale sisteme locale rămân editabile).
 
 ### Importă un brand pe care îl ai deja
 
@@ -27,7 +27,7 @@ Dacă brandul tău este deja capturat ca design tokens - din **Penpot**, **Token
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` acceptă toate cele trei forme de container în care Penpot / Tokens Studio exportă același document - un singur `tokens.json`, un director (`$metadata.json` + fișiere per set) sau o arhivă `project.penpot`. Cu `--activate` înregistrează brandul ca profil, comută la el și reconstruiește catalogul. Vezi [Configurare](/info/configuration.html) pentru modul în care pachetele de brand și profilurile se îmbină.
@@ -60,7 +60,7 @@ Lucrările finite din **Figma, Penpot, Illustrator, InDesign sau orice aplicați
 
 Tot importul se întâmplă **pe dispozitivul tău** - fișierul este parsat în browser și nimic nu este încărcat. Detaliile complete, și exact ce se păstrează, sunt în [Import a design](/info/design-import.html).
 
-Ai în schimb o **prezentare PowerPoint**? Trage `.pptx` peste **Deck Builder** ca s-o editezi slide cu slide, deja aliniată la brandul tău - sau rulează **Rebrand a Deck** ca să primești aceeași prezentare re-tematizată, cu grafice și animații intacte.
+Ai în schimb o **prezentare PowerPoint**? Trage `.pptx` pe orice suprafață de încărcare ca să-i depui slide-urile ca resurse, scrie o prezentare nouă din Markdown în **Markdown Slides**, sau rulează **Rebrand** ca să primești aceeași prezentare înapoi re-tematizată, cu grafice și animații intacte.
 
 ### De la o creație unică la un șablon
 

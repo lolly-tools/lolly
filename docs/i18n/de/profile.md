@@ -19,7 +19,7 @@ Alles in einem Profil befindet sich **auf dem Gerät**, in der lokalen Datenbank
 | **Barrierefreiheit** | Vier Komfortschalter - *Bewegung reduzieren*, *Farbige Vorschauen ausblenden*, *Hoher Kontrast*, *Große Schrift* - im Profil gespeichert, sodass sie bei einem Profilexport mitwandern. Siehe [Barrierefreiheit](#accessibility). |
 | **Ihre Arbeit** | Gespeicherte Sitzungen (mit Vorschaubildern) - organisiert in verschachtelten Ordnern unter **[Projekte](/info/using.html)** -, Ihre **Meine Bilder**-Bibliothek und die lokalen Aktivitätsstatistiken, alle diesem Profil zugeordnet. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
 ![Der Profil-Bildschirm - Name, Kontakt, ein optionales Porträtfoto und Ihre Einstellungen](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -35,7 +35,7 @@ Das Wort „Profil" legt eine feste Person nahe, aber in Lolly ist es eigentlich
 
 ### Als Einzelperson
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ![Die Porträtfoto-Steuerung, leer bis Sie ein Foto hochladen, das dann auf diesem Gerät bleibt](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -53,7 +53,7 @@ In Lolly ist diese Rolle einfach **ein weiteres Profil, das Sie griffbereit halt
 
 Zu jedem Zeitpunkt hat eine Installation **ein aktives Profil** - die Angaben, die ein Tool gerade sieht. Es gibt keinen In-App-Profilwechsler; stattdessen ist jedes Profil ein **portables Bündel** (eine einzelne `.zip`-Datei, siehe [unten](#moving-a-profile-to-a-new-device)). Das ist bewusst derselbe Mechanismus wie der Wechsel auf ein neues Gerät - ein Profil ist eine Datei, die Sie speichern, kopieren und laden können.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 - <!--i:trash--> **Sauberster Wechsel:** **Einstellungen → Preferences → Speicher → Alle meine Daten löschen**, dann **Importieren** Sie das Bundle für den Kontext, in den Sie wechseln. Sie erstellen jetzt rein als dieses Profil.
 - <!--i:layers--> **Schichten:** Ein Import *ohne* vorheriges Löschen **führt zusammen** - die importierten Sitzungen und Bilder landen oben auf dem, was bereits da ist; haben beide dasselbe Element, bleibt die zuletzt gespeicherte Kopie erhalten, der Rest bleibt unangetastet. Ordner, Favoriten und Vorlagen werden zu Ihren hinzugefügt, und Ihre eigenen Angaben und Einstellungen bleiben erhalten. Praktisch, um die gespeicherten Sitzungen eines Teams in Ihr eigenes Setup zu übernehmen; nicht das Richtige, wenn Sie eine saubere Rollentrennung brauchen.
@@ -122,7 +122,7 @@ Für den genauen Bündelaufbau, die Versionsrichtlinie und die Integritätsregel
 
 ## Wie Tools Ihr Profil nutzen
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 Ein Tool *füllt* stets nur die Profilfelder *vor*, für deren Bindung es ausdrücklich gebaut wurde:
 

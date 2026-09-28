@@ -3,6 +3,7 @@ import { strToU8 } from 'fflate';
 import type { RevisionArchiveAPI, RevisionArchive, RevisionArchiveSummary } from '../bridge/revision-archive-format.ts';
 import { MAX_REVISION_ARCHIVE_BYTES } from '../bridge/revision-limits.ts';
 import { readJson, type BundleEntry } from './bundle.ts';
+import { isDiscardedSlot } from './batch-slots.ts';
 
 interface SessionRow { slot: string; toolId?: unknown; toolVersion?: unknown; label?: unknown; thumb?: string | null; updatedAt?: string | null; savedAt?: string | null }
 export interface BackupState {
@@ -80,10 +81,35 @@ export async function assetRecordsToImport<T extends { id?: unknown; meta?: unkn
   });
 }
 
-export async function packBackupSessions(state: BackupState, entries: Record<string, BundleEntry>, options: BackupHistoryMode): Promise<{ sessions: number; slots: string[]; revisions?: number; recoveryDrafts?: number }> {
-  const history = options.mode !== 'sync' && state.history ? await state.history.backup.export() : null;
+/** What packBackupSessions put in the bundle. `checkpointsLeftOut`: the oldest
+ *  automatic checkpoints left out so the history file stays under its limit
+ *  (plan 277 P4 section 5); absent when every checkpoint fits. */
+export interface PackedSessions { sessions: number; slots: string[]; revisions?: number; recoveryDrafts?: number; checkpointsLeftOut?: number }
+
+/**
+ * Sessions, and for a manual backup the history that goes with them.
+ *
+ * Device sync (`mode: 'sync'`) carries current sessions only (decision 5). Hidden
+ * `__discarded__:` slots, which keep edits someone discarded so History can still
+ * open them, stay on the device they were made on, like history itself (Andy's
+ * decision of 27 September 2026); Trash slots travel as before, following the
+ * profile record.
+ */
+export async function packBackupSessions(state: BackupState, entries: Record<string, BundleEntry>, options: BackupHistoryMode): Promise<PackedSessions> {
+  let leftOut = 0;
+  const archive = async (maxBytes: number): Promise<RevisionArchive> => {
+    leftOut = 0;
+    return state.history!.backup.export({ maxBytes, leftOut: count => { leftOut = count; } });
+  };
+  let history = options.mode !== 'sync' && state.history ? await archive(MAX_REVISION_ARCHIVE_BYTES) : null;
   if (history) {
-    const bytes = strToU8(JSON.stringify(history));
+    let bytes = strToU8(JSON.stringify(history));
+    // The archive measures itself before it is serialised; if the file still comes
+    // out over the limit, it is made again with the overshoot and a margin taken off.
+    if (bytes.byteLength > MAX_REVISION_ARCHIVE_BYTES) {
+      history = await archive(MAX_REVISION_ARCHIVE_BYTES - (bytes.byteLength - MAX_REVISION_ARCHIVE_BYTES) - 1024 * 1024);
+      bytes = strToU8(JSON.stringify(history));
+    }
     if (bytes.byteLength > MAX_REVISION_ARCHIVE_BYTES) throw new Error('Complete revision history exceeds the 384 MiB backup limit. No partial history backup was created.');
     entries['revision-history.json'] = bytes;
   }
@@ -92,14 +118,16 @@ export async function packBackupSessions(state: BackupState, entries: Record<str
   const sessions: Array<SessionRow & { data: unknown }> = history?.documents.map(row => ({ ...row.state })) ?? [];
   const captured = new Set(sessions.map(row => row.slot));
   for (const row of await state.list()) {
-    if (captured.has(row.slot)) continue;
+    if (captured.has(row.slot) || (options.mode === 'sync' && isDiscardedSlot(row.slot))) continue;
     const data = await state.load(row.slot);
     if (data) sessions.push({ slot: row.slot, toolId: row.toolId, toolVersion: row.toolVersion,
       label: row.label ?? null, thumb: row.thumb ?? null, updatedAt: row.updatedAt ?? null,
       ...(row.savedAt ? { savedAt: row.savedAt } : {}), data });
   }
   entries['sessions.json'] = strToU8(JSON.stringify(sessions, null, 2));
-  return { sessions: sessions.length, slots: sessions.map(row => row.slot), ...(history ? { revisions: history.revisions.length, recoveryDrafts: history.recoveries.length } : {}) };
+  return { sessions: sessions.length, slots: sessions.map(row => row.slot),
+    ...(history ? { revisions: history.revisions.length, recoveryDrafts: history.recoveries.length } : {}),
+    ...(leftOut ? { checkpointsLeftOut: leftOut } : {}) };
 }
 
 /** Called before profile/assets/preferences writes. History validates the complete
@@ -125,6 +153,8 @@ export async function restoreBackupSessions(state: BackupState, files: Record<st
   const savedHere = sameIdRule(options) === 'incoming' ? null : new Map((await state.list()).map(row => [row.slot, sessionSavedAt(row)]));
   for (const row of sessions) {
     if (!row || typeof row.slot !== 'string' || !row.data || captured.has(row.slot)) continue;
+    // A sync copy from an older build may still carry discarded edits: they stay where they were made.
+    if (options.mode === 'sync' && isDiscardedSlot(row.slot)) continue;
     if (savedHere?.has(row.slot) && !incomingIsNewer(savedHere.get(row.slot), sessionSavedAt(row))) {
       if (incomingIsNewer(sessionSavedAt(row), savedHere.get(row.slot))) keptHere++;   // this browser's copy is newer
       continue;

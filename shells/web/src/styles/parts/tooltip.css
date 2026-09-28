@@ -101,3 +101,21 @@
 @media (prefers-reduced-motion: reduce) {
   [data-tip]::after { transition: none; transform: translateX(-50%); }
 }
+
+/* Opt-in: pin the bubble to one EDGE of the element instead of centring it, for a
+   host that sits against the side of a clipping container or the viewport (the tool
+   sidebar's collapse toggle, the corner expand button). `start` lines the bubble's
+   left edge up with the element's, `end` its right edge; the arrow stays centred on
+   the element. Combines with data-tip-below. */
+[data-tip-align="start"]::after { left: 0; }
+[data-tip-align="end"]::after { left: auto; right: 0; }
+[data-tip-align]::after { transform: translateY(3px); }
+[data-tip-below][data-tip-align]::after { transform: translateY(-3px); }
+[data-tip-align]:hover::after,
+[data-tip-align]:focus-visible::after { transform: none; }
+@media (hover: none) {
+  [data-tip-align]:focus::after { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-tip-align]::after { transform: none; }
+}

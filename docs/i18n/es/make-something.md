@@ -9,9 +9,9 @@ Ten a mano la dirección web que el código debe abrir, que empiece por `https:/
 ## Crea el código
 
 1. Abre [Código QR](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Los controles están junto a la vista previa, o encima de ella en un móvil; lo que muestra la vista previa es lo que será el archivo.
-2. En **URL**, sustituye la dirección de ejemplo por la tuya, completa. La vista previa cambia mientras escribes.
+2. En **URL**, sustituye toda la dirección de ejemplo por la tuya. La vista previa cambia mientras escribes.
 3. Para que coincida con tus propios colores, ajusta **Color de los módulos** y **Fondo**. Mantén un contraste fuerte entre ambos, o los móviles tendrán problemas para leer el código.
-4. **Zona de silencio**, en **Modules**, empieza en 4. Mantenla en 4 o más: ese margen liso es lo que busca la cámara de un móvil.
+4. **Zona de silencio**, bajo **Modules**, empieza en 4. Mantenla en 4 o más: ese margen liso es lo que busca la cámara de un móvil.
 
 ## Descarga el archivo
 

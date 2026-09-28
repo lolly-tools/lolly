@@ -19,7 +19,7 @@ Alles in een profiel leeft **op het apparaat**, in de lokale database van de bro
 | **Toegankelijkheid** | Vier comfortschakelaars - *Beweging beperken*, *Kleurrijke previews verbergen*, *Hoog contrast*, *Grote tekst* - die op het profielrecord staan, zodat ze meegaan in een profielexport. Zie [Toegankelijkheid](#accessibility). |
 | **Je werk** | Opgeslagen sessies (met miniaturen) - georganiseerd in geneste mappen in **[Projecten](/info/using.html)** - je **Mijn afbeeldingen** bibliotheek en de lokale activiteitsstatistieken, allemaal gekoppeld aan dit profiel. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
 ![Het Profielscherm - naam, contact, een optionele pasfoto en je voorkeuren](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -35,7 +35,7 @@ Het woord "profiel" doet een vaste persoon vermoeden, maar in Lolly is het eigen
 
 ### Als individu
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ![De pasfotobediening, leeg totdat je een foto uploadt die vervolgens op dit apparaat blijft](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -53,7 +53,7 @@ In Lolly is die rol gewoon **een ander profiel dat je bij de hand houdt** - een 
 
 Op elk moment heeft een installatie **één actief profiel** - de gegevens die een tool op dat moment ziet. Er is geen profielwisselaar in de app; in plaats daarvan is elk profiel een **draagbaar pakket** (één `.zip`, zie [hieronder](#moving-a-profile-to-a-new-device)). Dat is bewust hetzelfde mechanisme als verhuizen naar een nieuw apparaat - een profiel is een bestand dat je kunt opslaan, kopiëren en laden.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 - <!--i:trash--> **Schoonste wissel:** **Instellingen → Preferences → Opslag → Al mijn gegevens wissen**, en dan het pakket **Importeren** voor de context waar je naartoe gaat. Je maakt nu puur als dat profiel.
 - <!--i:layers--> **Laagsgewijs:** importeren *zonder* eerst te wissen **voegt samen** - de geïmporteerde sessies en afbeeldingen komen boven op wat er al staat; waar beide hetzelfde item hebben, wordt de meest recent opgeslagen kopie bewaard, en de rest blijft ongemoeid. Mappen, favorieten en sjablonen worden aan de jouwe toegevoegd, en je eigen gegevens en instellingen blijven staan. Handig om de opgeslagen sessies van één team in je eigen opstelling te trekken; niet wat je wilt als je een schone rolgrens nodig hebt.
@@ -122,7 +122,7 @@ Voor de exacte pakketopbouw, versiebeleid en integriteitsregels, zie **[Gegevens
 
 ## Hoe tools je profiel gebruiken
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 Een tool *vult* alleen ooit de profielvelden *vooraf in* die het expliciet is gebouwd om te koppelen:
 

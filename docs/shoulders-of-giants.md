@@ -204,7 +204,7 @@ The story above had room for only some of the names. Here are the rest, grouped 
 - **[Node.js](https://nodejs.org/en/about)**, which Ryan Dahl released in 2009, runs everything outside the browser.
 - The workshop tools never ship but shaped all of it: **[TypeScript](https://www.typescriptlang.org/)**, from Anders Hejlsberg, who wrote Turbo Pascal in 1983, plus **[Vite](https://vite.dev/)** (Evan You), **[esbuild](https://esbuild.github.io/)** (Evan Wallace again), **[Biome](https://biomejs.dev/)** and **[SVGO](https://github.com/svg/svgo)**.
 
-## Every licence, in full
+## The full text of every licence
 
 Curation is not the record. The record is:
 

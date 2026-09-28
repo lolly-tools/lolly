@@ -9,9 +9,9 @@ Měj připravenou webovou adresu, kterou má kód otevírat, začínající na `
 ## Vytvoř kód
 
 1. Otevři [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Ovládací prvky jsou vedle náhledu, na mobilu nad ním; to, co ukazuje náhled, je to, čím soubor bude.
-2. Do pole **URL** vlož místo ukázkové adresy tu svou, celou. Náhled se mění, jak píšeš.
-3. Aby seděly tvé vlastní barvy, nastav **Module colour** a **Pozadí**. Udržuj mezi nimi silný kontrast, jinak mají telefony problém kód přečíst.
-4. **Quiet zone** pod **Modules** začíná na 4. Nech ji na 4 nebo víc: tenhle prázdný okraj je to, co hledá fotoaparát telefonu.
+2. V **URL** nahraď celou ukázkovou adresu tou svou. Náhled se mění, jak píšeš.
+3. Aby seděly tvé vlastní barvy, nastav **Barvu modulů** a **Pozadí**. Udržuj mezi nimi silný kontrast, jinak mají telefony problém kód přečíst.
+4. **Klidová zóna** pod **Moduly** začíná na 4. Nech ji na 4 nebo víc: tenhle prázdný okraj je to, co hledá fotoaparát telefonu.
 
 ## Stáhni soubor
 

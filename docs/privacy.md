@@ -89,7 +89,7 @@ a private review file containing original values, only when explicitly requested
 with `--review-file`. Clearing or leaving a browser preparation view releases its
 working state; this is not a promise of forensic erasure from browser or OS memory.
 
-## When the app talks to a network, in full
+## Every network request the app can make
 
 The table below is the complete list of everything the app fetches or sends over a
 network. If it isn't here, the app doesn't do it.

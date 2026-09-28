@@ -57,9 +57,9 @@ Lolly adalah mesin cetak, bukan lakaran. Bawa apa sahaja yang anda suka kepada p
 
 > Percayai proses kreatif, skala dengan ketelitian.
 
-## Peraturan berada dalam alat, bukan fail
+## Peraturan tinggal dalam alat dan templatnya
 
-Setiap alat lain di papan menghasilkan *fail*, dan fail hanya boleh dilihat selepas faktanya, satu output pada satu masa. Lolly menggerakkan peraturan jenama **satu langkah ke hulu**. Kod hex yang tepat, fail fon berlesen, jidar bleed, jarak - kesemuanya dikodkan keras ke dalam HTML dan CSS alat itu, jadi templat itu *tidak boleh* menghasilkan aset yang terkeluar daripada jenama. Susun atur itu sendiri yang menguatkuasakannya.
+Setiap alat lain di papan ini menghasilkan *fail*, dan fail hanya boleh dilihat selepas faktanya. Lolly menggerakkan peraturan jenama **satu langkah ke hulu**. Kod hex yang tepat, fail fon berlesen, jidar bleed, jarak - kesemuanya dikodkan keras ke dalam HTML dan CSS alat itu, jadi templat itu *tidak boleh* menghasilkan aset yang terkeluar daripada jenama. Susun atur itu sendiri yang menguatkuasakannya.
 
 Jadi perkara yang patut dilihat ialah **alat** itu, bukan setiap fail yang dihasilkannya. Betulkan alat itu, dan setiap aset yang pernah dihasilkannya patuh jenama secara binaan. Cara anda menyemak kerja anda, dan siapa yang melakukannya, kekal terpulang kepada anda; Lolly menjadikan perkara yang patut disemak lebih kecil dan output lebih pantas dihasilkan.
 

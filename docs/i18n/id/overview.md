@@ -390,7 +390,7 @@ Web shell: IndexedDB. Tauri: filesystem. CLI: in-memory. Tools hanya melihat `ho
 
 Pengguna dapat menyimpan beberapa slot edit bernama per tool dan kembali ke tiap sesi nanti. Tidak perlu membuat akun; state bersifat per perangkat. Karena bridge adalah satu-satunya titik sambung, state per perangkat itu juga *portabel*: `shells/web/src/data-transfer.ts` membaca kembali semuanya lewat `host.profile`/`host.state`/`host.assets` menjadi satu zip `lolly-backup` yang bisa diimpor di instalasi lain - jawaban offline untuk "pindah ke perangkat baru" yang tidak butuh server (spesifikasi lengkap: `docs/data-transfer.md`). Sinkronisasi multi-perangkat sudah berjalan di atas mekanisme ini, mengirim bundel yang sama ke penyimpanan pilihan pengguna (`docs/sync.md`).
 
-### 7. Tag kematangan menyatakan apa itu sebuah tool, secara desain
+### 7. Tag maturity menyatakan apa itu sebuah tool
 
 Setiap tool mendeklarasikan `status: official | community | experimental` dalam manifesnya. Galeri diurutkan berdasarkan status. Tool experimental otomatis membubuhkan watermark pada ekspornya - watermark diterapkan oleh `host.export.render`, bukan oleh tool, sehingga tidak bisa dinonaktifkan oleh penulis tool non-official.
 
@@ -434,7 +434,7 @@ Menyusun render tool apa pun: anak **SVG** tetap menjadi vektor sejati saat indu
 
 ---
 
-## Siklus hidup, dari awal sampai akhir
+## Siklus hidup satu render
 
 Seorang pengguna membuka `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 

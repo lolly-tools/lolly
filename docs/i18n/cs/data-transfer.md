@@ -39,7 +39,7 @@ Balíček je záměrně obyčejný zip: přežije jakýkoli přenos neporušený
 
 `profile.json` je nejmenší část a ta, kterou uživatel v aplikaci vidí jako první: údaje, které producent vyplní jednou, plus opt-in, který nástrojům dovolí je použít.
 
-![Formulář Profile details, ze kterého vznikne profile.json - jméno, kontakt, fotografie a opt-in vedle nich](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![Formulář s podrobnostmi profilu, který se stává souborem profile.json: jméno, kontaktní údaje a profilová fotka](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

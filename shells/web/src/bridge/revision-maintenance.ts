@@ -7,9 +7,22 @@ import type { RecoveryStore } from './revision-recovery.ts';
 import type { StateRecord } from './state.ts';
 import { REVISION_STORES as STORES, type DocumentHead, type RevisionTransaction } from './revision-records.ts';
 import { indexSavedWork } from './history-index.ts';
-import { MAX_REVISION_PREVIEWS as MAX_PREVIEWS } from './revision-limits.ts';
 import { collectAssetRefs } from './asset-ref-collector.ts';
-import { isHiddenSlot } from '../lib/batch-slots.ts';
+import { DISCARDED_SLOT_PREFIX, DISCARD_RETENTION_MS, discardedAt, isHiddenSlot } from '../lib/batch-slots.ts';
+import {
+  EVICTIONS_PER_WRITE, EVICT_AT, EVICT_TO, RELIEF_STORES, evictPreviews, keptRevisions, noteWritten, readUsage, retireRevision,
+  revisionBudgets, sweepDrafts, writeUsage,
+} from './revision-budget.ts';
+
+/** A preview History keeps: a small raster data URL. */
+const KEEPABLE_PREVIEW = /^data:image\/(png|jpeg|webp);base64,/;
+/** A picture the Projects tile may show: any image data URL, as a save writes one. */
+const TILE_PICTURE = /^data:image\//;
+
+/** Automatic checkpoints older than this are what Settings > Storage offers to remove. */
+export const PRUNE_AGE_MS = 30 * 86_400_000;
+/** Checkpoints one pruning transaction retires; the prune runs as many as it needs. */
+const PRUNE_BATCH = 200;
 
 /** The stores a slot move touches; a caller that checks more first opens these. */
 export const MOVE_STORES = ['state', 'revision-documents', 'revisions', 'revision-recovery'];
@@ -31,7 +44,20 @@ export async function moveSlot(tx: RevisionTransaction, from: string, to: string
   await tx.objectStore('state').delete(from);
 }
 
-export function revisionMaintenance(db: IDBPDatabase, recovery: RecoveryStore): Pick<RevisionStore, 'move' | 'delete' | 'recentSessions' | 'name' | 'attachPreview' | 'assetRefs'> {
+/** Discarded creations keep their history for DISCARD_RETENTION_MS, as the trash
+ * does, then go for good: on a later discard, and when History opens. */
+export async function purgeDiscarded(db: IDBPDatabase, recovery: RecoveryStore, now: number): Promise<number> {
+  const slots = await db.getAllKeys('state', IDBKeyRange.bound(DISCARDED_SLOT_PREFIX, `${DISCARDED_SLOT_PREFIX}\uffff`)) as string[];
+  const maintenance = revisionMaintenance(db, recovery);
+  let removed = 0;
+  for (const slot of slots) {
+    const at = discardedAt(slot);
+    if (at !== null && now - at > DISCARD_RETENTION_MS) { await maintenance.delete(slot); removed++; }
+  }
+  return removed;
+}
+
+export function revisionMaintenance(db: IDBPDatabase, recovery: RecoveryStore): Pick<RevisionStore, 'move' | 'delete' | 'recentSessions' | 'name' | 'attachPreview' | 'assetRefs' | 'sweep' | 'pruneAutomatic'> {
   return {
     async assetRefs() {
       const refs = new Set<string>();
@@ -47,22 +73,38 @@ export function revisionMaintenance(db: IDBPDatabase, recovery: RecoveryStore): 
       return refs;
     },
     async attachPreview(id, thumb) {
-      if (!/^data:image\/(png|jpeg|webp);base64,/.test(thumb) || thumb.length > 256 * 1024) return;
-      const tx = db.transaction(['state', 'revision-documents', 'revisions', 'revision-previews', 'revision-usage'], 'readwrite');
+      const keepable = KEEPABLE_PREVIEW.test(thumb) && thumb.length <= 256 * 1024;
+      if (!keepable && !TILE_PICTURE.test(thumb)) return;
+      const budgets = await revisionBudgets();
+      const tx = db.transaction(RELIEF_STORES, 'readwrite');
       const row = await tx.objectStore('revisions').get(id) as RevisionEntry | undefined;
       if (!row) return;
       const previews = tx.objectStore('revision-previews');
       const prior = await previews.get(id) as string | undefined;
-      const usage = await tx.objectStore('revision-usage').get('total') ?? { bytes: 0, previews: 0 };
-      const size = new TextEncoder().encode(thumb).byteLength;
-      const total = usage.previews + size - (prior ? new TextEncoder().encode(prior).byteLength : 0);
-      if (total > MAX_PREVIEWS) return; // text-only history remains fully usable
-      await previews.put(thumb, id);
-      await tx.objectStore('revision-usage').put({ ...usage, previews: total }, 'total');
+      const usage = await readUsage(tx);
+      const before = usage.previews;
+      const size = new TextEncoder().encode(thumb).byteLength, priorSize = prior ? new TextEncoder().encode(prior).byteLength : 0;
+      // Previews are the budget that fills first (plan 277 P4 section 5): past 90 %,
+      // older automatic checkpoints give up their previews, down to 85 %, before
+      // this one is refused.
+      if (keepable && usage.previews + size - priorSize > EVICT_AT * budgets.previews) {
+        const kept = await keptRevisions(tx); kept.add(id);
+        await evictPreviews(tx, usage, usage.previews + size - priorSize - EVICT_TO * budgets.previews, kept, EVICTIONS_PER_WRITE);
+      }
+      // A preview that still does not fit, or is too big to keep, is skipped:
+      // text-only history stays usable.
+      if (keepable && usage.previews + size - priorSize <= budgets.previews) {
+        await previews.put(thumb, id);
+        usage.previews += size - priorSize;
+      }
+      await writeUsage(tx, usage);
+      // The Projects tile is not history: it gets its picture whether or not the
+      // preview was kept.
       const head = await tx.objectStore('revision-documents').get(row.slot) as DocumentHead | undefined;
       const state = await tx.objectStore('state').get(row.slot) as StateRecord | undefined;
-      if (head?.head === id && (head.workingHash ?? head.hash) === row.hash && state?.documentId === row.documentId) await tx.objectStore('state').put({ ...state, thumb });
+      if (state && head?.head === id && (head.workingHash ?? head.hash) === row.hash && state.documentId === row.documentId) await tx.objectStore('state').put({ ...state, thumb });
       await tx.done;
+      noteWritten(usage.previews - before);
     },
     async name(id, name) {
       const label = name.trim();
@@ -98,6 +140,34 @@ export function revisionMaintenance(db: IDBPDatabase, recovery: RecoveryStore): 
       await recovery.clearCommitted(tx, slot, true);
       await tx.objectStore('state').delete(slot);
       await tx.done;
+    },
+    async sweep() {
+      const now = Date.now();
+      const discarded = await purgeDiscarded(db, recovery, now);
+      const drafts = await sweepDrafts(db, now);
+      return { discarded, drafts };
+    },
+    async pruneAutomatic() {
+      const cutoff = new Date(Date.now() - PRUNE_AGE_MS).toISOString();
+      let removed = 0, bytes = 0;
+      for (;;) {
+        const tx = db.transaction(RELIEF_STORES, 'readwrite');
+        const usage = await readUsage(tx), kept = await keptRevisions(tx);
+        const before = usage.bytes + usage.previews;
+        let batch = 0;
+        let cursor = await tx.objectStore('revisions').index('time').openCursor(IDBKeyRange.upperBound([cutoff]));
+        while (cursor && batch < PRUNE_BATCH) {
+          const row = cursor.value as RevisionEntry;
+          if (row.reason === 'automatic' && !kept.has(row.id)) { await retireRevision(tx, usage, row); batch++; }
+          cursor = await cursor.continue();
+        }
+        await writeUsage(tx, usage);
+        await tx.done;
+        const freed = before - (usage.bytes + usage.previews);
+        noteWritten(-freed);
+        removed += batch; bytes += freed;
+        if (batch < PRUNE_BATCH) return { removed, bytes };
+      }
     },
     async recentSessions() {
       const result: Array<{ slot: string; toolId: string; label?: string; filename?: string; updatedAt: string }> = [];

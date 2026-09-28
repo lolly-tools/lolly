@@ -1936,51 +1936,51 @@
     },
     {
       "file": "tests/history-adapters.browser.test.ts",
-      "fullName": "chart: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "fullName": "every enrolled community tool: the first edit files it, a checkpoint appears in History, a reload reopens it, and an older version opens as a copy",
       "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
       "capability": "environment",
       "owner": "tests"
     },
     {
       "file": "tests/history-adapters.browser.test.ts",
-      "fullName": "gradient: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "fullName": "countdown-timer: a tool with nothing to keep files nothing and offers no History",
       "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
       "capability": "environment",
       "owner": "tests"
     },
     {
-      "file": "tests/history-adapters.browser.test.ts",
-      "fullName": "org-chart: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "file": "tests/history-round-trip.browser.test.ts",
+      "fullName": "every document tool files nothing at defaults, then reopens as it was stored, in the real app",
       "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
       "capability": "environment",
       "owner": "tests"
     },
     {
-      "file": "tests/history-adapters.browser.test.ts",
-      "fullName": "pricing-table: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
+      "file": "tests/history-round-trip.browser.test.ts",
+      "fullName": "an upload is stored by reference and version, and reopens as it was stored, in the real app",
       "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
       "capability": "environment",
       "owner": "tests"
     },
     {
-      "file": "tests/history-adapters.browser.test.ts",
-      "fullName": "qr-code: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
+      "file": "tests/history-round-trip.test.ts",
+      "fullName": "census: the SUSE pack adds 11 document tools and 1 recording tool",
+      "reason": "brands/suse is not checked out, so the SUSE pack cannot be counted here",
+      "capability": "brand:suse",
       "owner": "tests"
     },
     {
-      "file": "tests/history-adapters.browser.test.ts",
-      "fullName": "snippet: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
-      "owner": "tests"
+      "file": "shells/web/src/views/tool-history-adapters.test.ts",
+      "fullName": "SUSE: the pack adds 11 document tools and 1 recording tool",
+      "reason": "brands/suse is not checked out, so the SUSE pack cannot be counted here",
+      "capability": "brand:suse",
+      "owner": "shells/web"
     },
     {
-      "file": "tests/history-adapters.browser.test.ts",
-      "fullName": "wordmark: edits recover, checkpoint with a thumbnail, reload, and reopen an older copy",
-      "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
-      "capability": "environment",
+      "file": "tests/revision-snapshot-bench.test.ts",
+      "fullName": "revisionSnapshot() stays within 10 ms per MiB of canonical JSON",
+      "reason": "perf/timing guard - set BENCH=1 to run (wall-clock, flakes under load)",
+      "capability": "benchmark",
       "owner": "tests"
     },
     {

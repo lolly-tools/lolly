@@ -19,7 +19,7 @@
 | **无障碍** | 四个舒适度开关 - *Reduce motion*、*Hide colourful previews*、*High contrast*、*Large text* - 保存在个人资料记录中,因此会随个人资料一起导出。参见 [无障碍](#accessibility)。 |
 | **你的工作内容** | 已保存的会话(带缩略图) - 在 **[Projects](/info/using.html)** 中组织为嵌套文件夹 - 你的 **My images** 图库以及本地活动统计,全部与此个人资料关联。 |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
 ![个人资料页面 - 姓名、联系方式、一张可选头像照片以及你的偏好设置](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -35,7 +35,7 @@
 
 ### 作为个人
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ![头像控件,在你上传照片之前为空,上传后照片会保留在此设备上](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -53,7 +53,7 @@
 
 在任意时刻,一个安装只有**一个活动个人资料** - 也就是工具此刻能看到的信息。应用内没有个人资料切换器;取而代之的是,每个个人资料都是一个**可移动的包**(一个 `.zip` 文件,参见[下文](#moving-a-profile-to-a-new-device))。这是刻意与迁移到新设备使用相同的机制 - 个人资料就是一个可以保存、复制和加载的文件。
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 - <!--i:trash--> **最干净的切换方式：** **设置 → Preferences → 存储空间 → 清除我的所有数据**，然后**导入**你即将进入的那个场景所对应的包。此后你就是纯粹以那个个人资料在创建。
 - <!--i:layers--> **分层叠加：** *不先*清除就直接导入会**合并** - 导入的会话和图片会叠加在已有内容之上；两边都有的同一项，会保留保存时间更近的那份副本，其余保持不变。文件里的文件夹、收藏和模板会添加到你自己的内容中，你自己的详细信息和设置保持不变。适合把某个团队已保存的会话拉进你自己的环境；如果你需要一个干净的角色边界，这就不是你想要的效果。
@@ -122,7 +122,7 @@ Lolly 会随着你的使用逐步缓存内容，但这种边用边缓存的方�
 
 ## 工具如何使用你的个人资料
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 工具只会*预填*它被明确设计用来绑定的个人资料字段:
 

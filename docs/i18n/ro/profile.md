@@ -19,7 +19,7 @@ Tot ce ține de un profil trăiește **pe dispozitiv**, în baza de date locală
 | **Accesibilitate** | Patru comutatoare de confort - *Reduce motion*, *Hide colourful previews*, *High contrast*, *Large text* - păstrate în înregistrarea profilului, deci sunt incluse la exportul unui profil. Vezi [Accessibility](#accessibility). |
 | **Munca ta** | Sesiuni salvate (cu miniaturi) - organizate în foldere imbricate în **[Projects](/info/using.html)** - biblioteca ta **My images** și statisticile locale de activitate, toate asociate acestui profil. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
 ![Ecranul Profil - nume, contact, o fotografie de profil opțională și preferințele tale](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -35,7 +35,7 @@ Cuvântul „profil" sugerează o singură persoană fixă, dar în Lolly este d
 
 ### Ca individ
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ![Controlul pentru fotografia de profil, gol până încarci o fotografie care apoi rămâne pe acest dispozitiv](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -53,7 +53,7 @@ Acesta este cazul pe care modelul rigid „o persoană, un profil" îl ratează.
 
 În orice moment, o instalare are **un singur profil activ** - detaliile pe care le vede un instrument chiar acum. Nu există un comutator de profiluri în aplicație; în schimb, fiecare profil este un **pachet portabil** (un singur `.zip`, vezi [mai jos](#moving-a-profile-to-a-new-device)). Acesta este, în mod deliberat, același mecanism ca mutarea pe un dispozitiv nou - un profil este un fișier pe care îl poți salva, copia și încărca.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 - <!--i:trash--> **Comutarea cea mai curată:** **Setări → Preferences → Stocare → Șterge toate datele mele**, apoi **Importă** pachetul pentru contextul în care intri. Acum creezi exclusiv sub acel profil.
 - <!--i:layers--> **Suprapunere:** importul *fără* a curăța mai întâi **suprapune** - sesiunile și imaginile importate se așază peste ce există deja; când există același element pe ambele părți, este păstrată copia salvată mai recent, iar restul rămâne neatins. Folderele, favoritele și șabloanele sunt adăugate la ale tale, iar propriile tale detalii și setări rămân. Util pentru a prelua sesiunile salvate ale unei echipe în propria configurație; nu ce vrei dacă ai nevoie de o delimitare clară de rol.
@@ -122,7 +122,7 @@ Pentru structura exactă a pachetului, politica de versiuni și regulile de inte
 
 ## Cum folosesc instrumentele profilul tău
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 Un instrument doar *precompletează* câmpurile de profil pentru care a fost construit explicit să se lege:
 

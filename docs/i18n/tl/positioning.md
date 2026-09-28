@@ -57,9 +57,9 @@ Ang Lolly ang press, hindi ang sketch. Dalhin ang kahit ano sa ideation - isang 
 
 > Pagkatiwalaan ang creative process, mag-scale nang may rigor.
 
-## Nakatira ang mga alituntunin sa tool, hindi sa file
+## Nakatira ang mga alituntunin sa tool at sa mga template nito
 
-Ang bawat ibang tool sa board ay gumagawa ng *file*, at matitingnan lang ang isang file pagkatapos itong magawa, isang output sa isang pagkakataon. Inililipat ni Lolly ang mga brand rules **isang hakbang paatras**. Eksaktong hex codes, licensed font files, bleed margins, spacing - lahat ay naka-hard-code sa HTML at CSS ng tool, kaya *hindi kayang* mag-emit ang template ng off-brand na asset. Ang layout mismo ang nag-eenforce.
+Ang bawat ibang tool sa board ay gumagawa ng *file*, at matitingnan lang ang isang file pagkatapos itong magawa. Inililipat ni Lolly ang mga brand rules **isang hakbang paatras**. Eksaktong hex codes, licensed font files, bleed margins, spacing - lahat ay naka-hard-code sa HTML at CSS ng tool, kaya *hindi kayang* mag-emit ang template ng off-brand na asset. Ang layout mismo ang nag-eenforce.
 
 Kaya ang bagay na dapat tingnan ay ang **tool**, hindi ang bawat file na ginagawa nito. Kapag tama na ang tool, on-brand na ang bawat asset na ilalabas nito sa mismong pagkakabuo nito. Ikaw pa rin ang bahala kung paano mo susuriin ang iyong trabaho, at kung sino ang gagawa nito; pinaliit ni Lolly ang bagay na sinusuri at pinabilis ang paggawa ng output.
 

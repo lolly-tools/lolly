@@ -93,7 +93,7 @@ tutar. Özet raporları sayıları, kapsam kimliklerini ve dosya özetlerini iç
 kaydedebilir. Bir tarayıcı hazırlama görünümünü temizlemek ya da terk etmek çalışma durumunu
 serbest bırakır; bu, tarayıcı ya da işletim sistemi belleğinden adli bir silme sözü değildir.
 
-## Uygulama ağla ne zaman konuşur, eksiksiz liste
+## Uygulamanın yapabileceği her ağ isteği
 
 Aşağıdaki tablo, uygulamanın ağ üzerinden getirdiği veya gönderdiği her şeyin
 eksiksiz listesidir. Burada yoksa, uygulama onu yapmıyor demektir.

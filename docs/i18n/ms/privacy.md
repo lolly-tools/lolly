@@ -90,7 +90,7 @@ satu fail semakan peribadi yang mengandungi nilai asal, hanya apabila diminta se
 dengan `--review-file`. Mengosongkan atau meninggalkan satu paparan penyediaan pelayar melepaskan
 keadaan kerjanya; ini bukan satu janji pemadaman forensik daripada memori pelayar atau OS.
 
-## Apabila aplikasi berhubung dengan rangkaian, secara lengkap
+## Setiap permintaan rangkaian yang boleh dibuat oleh aplikasi
 
 Jadual di bawah ialah senarai lengkap segala yang diambil atau dihantar oleh aplikasi melalui
 rangkaian. Jika ia tiada di sini, aplikasi tidak melakukannya.

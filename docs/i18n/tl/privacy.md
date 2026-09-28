@@ -94,7 +94,7 @@ ang isang pribadong review file na naglalaman ng mga orihinal na value, kapag ta
 gamit ang `--review-file`. Ang pag-clear o pag-alis sa isang browser preparation view ay nagpapalaya sa
 working state nito; hindi ito isang pangako ng forensic erasure mula sa memory ng browser o OS.
 
-## Kailan nakikipag-ugnayan ang app sa network, nang buo
+## Bawat network request na maaaring gawin ng app
 
 Ang talahanayan sa ibaba ang kumpletong listahan ng lahat ng kinukuha o
 ipinapadala ng app sa network. Kung wala ito rito, hindi ito ginagawa ng app.

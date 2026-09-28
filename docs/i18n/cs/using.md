@@ -273,7 +273,7 @@ Nástroje zpřístupňují jen ty vstupy, které se mají měnit - všechno osta
 
 Při živé [spolupráci](/info/collaborate.html) zůstává historie jen tvoje. Změna přicházející z druhého zařízení se nikdy nedostane na tvůj zásobník, takže zpět můžeš vzít jen to, co jsi udělal ty sám.
 
-Zpět sahá zpátky jen v rámci této návštěvy; devět nástrojů navíc uchovává dřívější verze pod **History**, vedle **Zpět** (viz [Vrať se k dřívější verzi](/info/find-your-work.html#go-back-to-an-earlier-version)).
+Zpět sahá zpátky jen v rámci této návštěvy; nástroje, které ukládají za chodu, navíc uchovávají dřívější verze pod **Historií**, vedle **Zpět** (viz [Vrať se k dřívější verzi](/info/find-your-work.html#go-back-to-an-earlier-version)).
 
 ## Tvoje údaje a fotka
 
@@ -313,7 +313,7 @@ Pošli odkaz kolegovi, přidej si ho do záložek nebo ho commitni. (Plné detai
 
 **Některé nástroje udělají z odkazu celý produkt.** Jump Page shromáždí tvoje odkazy na jednu stránku k rozdání - odkaz na bio, konferenční přednášku, výlohu obchodu. Není co hostovat a nestojí za tím žádný účet: stránka je odkaz, takže se otevře tak rychle, jak cestuje URL adresa. V editoru vidíš hotovou stránku vedle polí; návštěvník, který odkaz otevře, ji dostane na celou šířku, jeden odkaz na scénu, jak scrolluje.
 
-![Jump Page v editoru - nadpis, tři scény odkazů, každá s vlastní barevnou podmalbou, a patička Made with Lolly, uspořádané jako jedna stránka na plátně](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
+![Jump Page v editoru: scéna s nadpisem v horní části stránky a pod ní scény s odkazy](/t/url-shot?url=%2F%23%2Ftool%2Fjump%3Ffull%26heading%3DFind%2520us%2520everywhere%26subheading%3DOne%2520link%2520for%2520everything.%26links%3DURL%252CName%252CEmoji%257Ehttps%25253A%25252F%25252Fexample.com%252CWebsite%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fnews%252CNewsletter%252C%257Ehttps%25253A%25252F%25252Fexample.com%25252Fhello%252CSay%252520hello%252C&width=900&height=1300&dpi=96&waitMs=2000&cropSelector=%23tool-canvas&walker=1&format=svg&dark=1&filename=use-jump-page)
 
 **Dialog říká, co odkaz unést nedokáže.** Do URL se nevejdou tři věci: obrázek nebo soubor, který jsi přidal/a z tohoto zařízení, hodně dlouhá textová hodnota nebo hodně velký seznam. Každá z nich se při stavbě odkazu spočítá. Pokud se něco muselo vypustit, dialog to pojmenuje a nasměruje tě na soubor níže, místo aby ti podal odkaz, který se otevře bez obrázku. Odkaz, který je jen *dlouhý*, dostane mírnější poznámku s počtem znaků, protože délku ještě může zachránit sbalení.
 
@@ -423,9 +423,9 @@ Batch je mnoho variant *jednoho* návrhu. **Multi-edit** je druhá polovina úko
 
 Všechno řídí jeden postranní panel:
 
-- <!--i:sliders--> V čele jsou **Sdílené** - každý vstup, který dvě nebo víc vybraných relací deklarují *stejně* (stejné id, stejný typ, stejná omezení - stejné pravidlo slučování, jaké dávková mřížka používá u svých sloupců). Uprav sdílený ovládací prvek jednou a hodnota se rozletí do každé relace, která ho deklaruje, živě na každé kartě. Dvě relace stejného nástroje sdílejí všechno; dva různé nástroje sdílejí to, co náhodou mají společné, a nic víc.
-- <!--i:document--> Pod nimi **jedna sbalená karta na relaci** se všemi vlastními vstupy dané relace, ve stejné věrnosti jako postranní panel samotného nástroje - výběry assetů, opakující se skupiny řádků, barevná pole - plus kompaktní blok exportu: **Formát**, **Š** / **V**, **Jednotka**, **DPI** a vlastní **Stáhnout**. To Stáhnout relaci nejdřív uloží a pak ji vykreslí obyčejnou cestou exportu relace, takže soubor nese stejný název, formát a Content Credentials, jaké by měl rovnou z nástroje.
-- <!--i:search--> **Filtrovat vstupy…** nahoře zúží ovládací prvky napříč *všemi* kartami najednou - a tak se dostaneš k "titulku" v osmi relacích, aniž bys ho musel/a hledat rolováním.
+- <!--i:sliders--> **Sdílené** vede - každý vstup, který dvě nebo víc vybraných relací deklaruje *stejným způsobem* (stejné id, stejný typ, stejná omezení - stejné pravidlo slučování, jaké dávková mřížka používá u svých sloupců). Uprav sdílený ovládací prvek jednou a hodnota se rozletí do každé relace, která ho deklaruje, živě na každé kartě. Dvě relace stejného nástroje sdílejí všechno; dva různé nástroje sdílejí jen vstupy, které mají společné.
+- <!--i:document--> Pod tím **jedna sbalená karta na relaci** se všemi vlastními vstupy dané relace, ve stejné věrnosti jako postranní panel samotného nástroje - výběry assetů, opakující se skupiny řádků, barevná pole - plus kompaktní blok exportu: **Formát**, **Š** / **V**, **Jednotka**, **DPI** a vlastní **Stáhnout**. Tohle Stáhnout relaci nejdřív uloží a pak ji vykreslí obyčejnou cestou exportu relace, takže soubor nese stejný název, formát a Content Credentials, jaké by měl rovnou z nástroje.
+- <!--i:search--> **Filtrovat vstupy…** nahoře zúží ovládací prvky napříč *všemi* kartami najednou - takhle se dostaneš k "titulku" v osmi relacích, aniž bys ho musel/a hledat rolováním.
 
 Klikni na kterékoli plátno (nebo na něm stiskni Enter) a karta té relace v postranním panelu se otevře a posune do zobrazení. **Uložit vše** zapíše každou relaci zpátky do jejího slotu. **Stáhnout vše** nejdřív uloží a pak vykreslí celou sadu stejnou cestou jako **Vykreslit výběr** v Projektech - jeden zip, cestou nabídne i volitelný zámek heslem.
 

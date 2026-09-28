@@ -52,6 +52,6 @@ Qui non hai mai bisogno dell'AI. Se la scegli, valgono tre cose:
 - <!--i:seal--> **Non è una pretesa di purezza.** Lolly legge la provenienza in modo ampio e la scrive onestamente; non pretende di rilevare ogni pixel generato su internet.
 - <!--i:sunburst--> **Non è panico morale.** L'alluvione non è il nemico. L'acqua non attribuita lo è.
 
-## Come tenerci fede
+## Verifica tu stesso questi impegni
 
 Ogni impegno qui sopra viene fatto rispettare nel codice open, non in un PDF di policy: il percorso di provenienza, l'etichettatura GEN AI e la garanzia di assenza di tracker sono tutti accompagnati da test, e la pagina [Verify It Yourself](/info/verify-yourself.html) ti guida nel verificare le affermazioni rispetto a un'esportazione reale. Se trovi un punto in cui il codice e questa pagina non concordano, il bug è nel codice.

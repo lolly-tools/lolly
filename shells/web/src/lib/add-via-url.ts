@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
  * "Add from URL" - turn a pasted address into an image File, wherever the shell
- * can reach it. Shared by the asset picker and the catalogue's upload dropzone.
+ * can reach that address. Shared by the asset picker, the catalogue's upload dropzone and
+ * Verify (which passes `anyType`, since a PDF or a video is as checkable as an
+ * image - though the web proxy still only relays images).
  *
  * The reach differs by shell because of the web PWA's CSP (img-src/connect-src
  * 'self', vercel.json):
@@ -51,13 +53,21 @@ function fileNameFor(url: string, mime: string): string {
     ? `pasted-${Date.now()}`
     : (url.split(/[?#]/)[0]!.split('/').pop() || `image-${Date.now()}`);
   if (/\.[a-z0-9]{2,5}$/i.test(base)) return base;
+  // An image type supplies the extension; anything else keeps the bare name,
+  // and Verify sniffs the bytes rather than trusting the name.
+  if (!IMAGE_MIME.test(mime)) return base;
   const ext = mime === 'image/svg+xml' ? 'svg'
     : (mime.slice(6).replace('jpeg', 'jpg').replace('vnd.microsoft.icon', 'ico').replace('x-icon', 'ico') || 'png');
   return `${base}.${ext}`;
 }
 
+export interface FetchUrlOpts {
+  /** Accept any content type, not only `image/*`. The proxy path stays images-only. */
+  anyType?: boolean;
+}
+
 /** Fetch one URL and turn an image response into a File; throw on anything else. */
-async function fetchToImageFile(fetchUrl: string, srcUrl: string): Promise<File> {
+async function fetchToImageFile(fetchUrl: string, srcUrl: string, opts: FetchUrlOpts = {}): Promise<File> {
   let res: Response;
   try {
     res = await fetch(fetchUrl, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
@@ -76,8 +86,8 @@ async function fetchToImageFile(fetchUrl: string, srcUrl: string): Promise<File>
   }
   const blob = await res.blob();
   const mime = (blob.type || '').toLowerCase();
-  if (!IMAGE_MIME.test(mime)) throw new AddViaUrlError(t('That URL is not an image.'));
-  return new File([blob], fileNameFor(srcUrl, mime), { type: blob.type || 'image/png' });
+  if (!opts.anyType && !IMAGE_MIME.test(mime)) throw new AddViaUrlError(t('That URL is not an image.'));
+  return new File([blob], fileNameFor(srcUrl, mime), { type: blob.type || (opts.anyType ? '' : 'image/png') });
 }
 
 /**
@@ -85,9 +95,9 @@ async function fetchToImageFile(fetchUrl: string, srcUrl: string): Promise<File>
  * the proxied path for this shell. Throws AddViaUrlError with a user-ready
  * message on any failure - including the honest "this browser blocked it" case.
  */
-export async function fetchImageUrlAsFile(rawUrl: string): Promise<File> {
+export async function fetchImageUrlAsFile(rawUrl: string, opts: FetchUrlOpts = {}): Promise<File> {
   const url = rawUrl.trim();
-  if (/^data:/i.test(url)) return fetchToImageFile(url, url);   // CSP admits data:
+  if (/^data:/i.test(url)) return fetchToImageFile(url, url, opts);   // CSP admits data:
   if (!/^https?:\/\//i.test(url)) throw new AddViaUrlError(t('Enter an image address that starts with https://'));
 
   let sameOrigin = false;
@@ -97,7 +107,7 @@ export async function fetchImageUrlAsFile(rawUrl: string): Promise<File> {
   // Direct where it can work; the same-origin proxy otherwise. A Tauri/dev direct
   // attempt that a host's CORS refuses still falls through to the proxy.
   if (sameOrigin || canFetchAnyOrigin()) {
-    try { return await fetchToImageFile(url, url); }
+    try { return await fetchToImageFile(url, url, opts); }
     catch (e) { if (sameOrigin) throw e; /* else try the proxy */ }
   }
   return fetchToImageFile(`${IMAGE_PROXY_PATH}?url=${encodeURIComponent(url)}`, url);

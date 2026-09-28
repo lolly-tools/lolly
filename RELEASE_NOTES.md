@@ -34,6 +34,10 @@ Lolly is completely free and open source. It is licensed under the **Mozilla Pub
   catalog and render path to AI agents (list, describe, build a link, render, transform,
   redact, verify) under the same rules as the app.
 
+### New in 1.1.0 (unreleased)
+
+The proposed release is **the fancy one**. See the [draft 1.1.0 release notes](releases/1.1.0-draft.md) for Rebrand, slide masters and PowerPoint layouts in Design, the one panel every tool now uses, Assets, Diagram Builder looks, the export licence and the draft document model, together with the support limits. This remains a draft until the release is published.
+
 ### New in 1.0.9
 
 **The DTP one** brings publishing tools, Agenda, inspector, sharing and export changes. Read the [1.0.9 release notes](releases/1.0.9.md) for the highlights, downloads and support limits.

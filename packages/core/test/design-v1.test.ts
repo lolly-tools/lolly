@@ -78,6 +78,16 @@ test('Design inspection reports structural errors and actionable warnings', () =
   assert.ok(report.summary.warnings >= 4);
 });
 
+test('A composed text box is not reported as empty: its words live in its story', () => {
+  const report = inspectDesignV1([
+    { id: 'page', kind: 'frame', name: 'Page', x: 0, y: 0, w: 100, h: 100 },
+    { id: 'body', kind: 'text', frame: 'page', x: 0, y: 0, w: 100, h: 50, text: '', textStory: 'story-1' },
+    { id: 'plain', kind: 'text', frame: 'page', x: 0, y: 50, w: 100, h: 50, text: '' },
+  ]);
+  const empty = report.findings.filter((item) => item.id === 'design.text.empty');
+  assert.deepEqual(empty.map((item) => (item as { layerId?: string }).layerId ?? item.path), ['plain']);
+});
+
 test('Design inspection fails honestly when boxes is not an array', () => {
   const report = inspectDesignV1({});
   assert.equal(report.valid, false);

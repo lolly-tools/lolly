@@ -57,7 +57,7 @@ Lolly ist die Presse, nicht die Skizze. Bringen Sie zur Ideenfindung mit, was Si
 
 > Dem kreativen Prozess vertrauen, mit Präzision skalieren.
 
-## Die Regeln liegen im Tool, nicht in der Datei
+## Die Regeln liegen im Tool und seinen Vorlagen
 
 Jedes andere Tool auf dem Markt erzeugt eine *Datei*, und eine Datei lässt sich immer erst im Nachhinein betrachten, eine Ausgabe nach der anderen. Lolly verschiebt die Markenregeln **einen Schritt weiter vorn**. Exakte Hex-Codes, lizenzierte Schriftdateien, Anschnittmargen, Abstände - all das ist fest in HTML und CSS des Tools kodiert, sodass das Template *kein* markenfremdes Asset ausgeben kann. Das Layout selbst setzt die Regeln durch.
 

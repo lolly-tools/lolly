@@ -1,12 +1,12 @@
 # Finn og gjenopprett arbeidet ditt
 
-Alt du lager i Lolly, blir værende i nettleseren eller appen du laget det i, på den enheten, med mindre du slår på [Synk](/info/sync.html). Lagret arbeid ligger i **Prosjekter**. En nedlastet fil ligger der nettleseren eller systemet ditt la den, og en kopi venter som regel i **Ressurser**. I ni verktøy blir også arbeid du aldri lagret, tatt vare på. Denne siden dekker hver av disse, pluss en lukket fane, slettet nettleserdata, tidligere versjoner, slettede elementer og det å flytte til en annen enhet.
+Alt du lager i Lolly, blir værende i nettleseren eller appen du laget det i, på den enheten, med mindre du slår på [Synk](/info/sync.html). Lagret arbeid ligger i **Prosjekter**. En nedlastet fil ligger der nettleseren eller systemet ditt la den, og en kopi venter som regel i **Ressurser**. I de fleste verktøy blir også arbeid du aldri lagret selv, tatt vare på. Denne siden dekker hver av disse, pluss en lukket fane, slettet nettleserdata, tidligere versjoner, slettede elementer og det å flytte til en annen enhet.
 
 | Hva du gjorde | Hvor du skal se |
 |---|---|
 | Trykte **Lagre som** eller **Lagre** | **Prosjekter** |
 | Trykte **Last ned** | Nettleserens nedlastinger, og en kopi i **Ressurser** |
-| Ingen av delene, i ett av [de ni verktøyene som lagrer mens du jobber](#the-nine-tools-that-save-as-you-work) | **Prosjekter** og **History** |
+| Ingen av delene, i et [verktøy som lagrer mens du jobber](#which-tools-save-as-you-work) | **Prosjekter** og **Historikk** |
 | Ingen av delene, i et annet verktøy | Bare fanen du jobbet i, til du lukker den |
 | Slettet det i appen | **Papirkurv**, i **Prosjekter**, **Ressurser** eller **Innstillinger → Lagring**, i 30 dager |
 
@@ -71,20 +71,29 @@ not visible in the closed menu, so the alt does not list them.
 
 Hva som kommer tilbake, avhenger av hvordan du forlot og hvilket verktøy du brukte:
 
-- **Du lukket fanen, eller kom tilbake en annen gang.** Ulagret arbeid er borte, unntatt i [de ni verktøyene](#the-nine-tools-that-save-as-you-work), som lagrer endringene dine mens du jobber: åpne dem fra **Prosjekter**.
-- **Du lastet siden på nytt i samme fane.** Innstillingene dine kommer tilbake fra sideadressen. I andre verktøy enn de ni kommer bilder og filer du har lagt til fra enheten din, og enkeltlinjetekst lengre enn 150 tegn, ikke tilbake, fordi adressen ikke inneholder dem.
+- **Du lukket fanen, eller kom tilbake en annen gang.** Ulagret arbeid er borte, unntatt i [verktøyene som lagrer mens du jobber](#which-tools-save-as-you-work): åpne det arbeidet fra **Prosjekter**.
+- **Du lastet siden på nytt i samme fane.** Innstillingene dine kommer tilbake fra sideadressen. I verktøy som ikke lagrer mens du jobber, kommer bilder og filer du har lagt til fra enheten din, og enkeltlinjetekst lengre enn 150 tegn, ikke tilbake, fordi adressen ikke inneholder dem.
 - **Du trykte Hjem, eller tilbakeknappen øverst til venstre.** Hvis du har endret noe siden du sist lagret, lastet ned eller kopierte, spør dialogen **Ulagrede endringer** om du vil lagre først. **Lagre & forlat** lagrer arbeidet og tar deg til **Prosjekter**, eller tilbake til prosjektmappen du åpnet arbeidet fra. **Forlat uten å lagre** forkaster endringene dine: et lagret element går tilbake til slik du sist lagret det, og en kreasjon du aldri lagret, forlater **Prosjekter**. **Avbryt** holder deg igjen i verktøyet.
 
 Lolly spør bare når du trykker **Hjem** eller tilbakeknappen i et verktøy. Å lukke fanen, laste på nytt og nettleserens egen tilbakeknapp spør aldri. For å være sikker, trykk **Lagre som**, eller **Lagre** i eksportpanelet, før du forlater et verktøy.
 
 ::: note Forlot uten å lagre ved en feil?
-I de ni verktøyene holder History på en kopi av de forkastede endringene. Åpne siden **History**, finn dem under **Changes** og trykk **Åpne som en kopi**. I andre verktøy er endringene borte.
+I verktøy som lagrer mens du jobber, holder Historikk på en kopi av de forkastede endringene. Åpne siden **Historikk**, finn dem under **Changes** og trykk **Åpne som en kopi**. I andre verktøy er endringene borte.
 :::
 
-::: details De ni verktøyene som lagrer mens du jobber
-[Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) og [Text](/#/tool/text-helper). Listen vokser etter hvert som flere verktøy får automatisk lagring.
+::: details Hvilke verktøy som lagrer mens du jobber
+I nettappen lagrer hvert verktøy som lager et dokument, mens du jobber: Design, Chart, QR Code, Text, Sandbox og resten. Disse verktøyene gjør det ikke:
 
-I disse verktøyene arkiverer den første endringen din arbeidet i **Prosjekter** som om du hadde lagret, og senere endringer lagres i løpet av noen sekunder. Så en ulagret kreasjon blir værende i Prosjekter etter at du har lukket fanen, og åpnes igjen med endringene markert som ulagret. **Forlat uten å lagre** forkaster dem likevel, og History beholder en kopi av de forkastede endringene i 30 dager. Å åpne verktøyet igjen fra hjemskjermen starter en ny kreasjon; åpne den tidligere fra Prosjekter.
+- verktøy som jobber på en fil du tar med, som Redact, Sign eller Convert Image, fordi Lolly aldri beholder en kopi av den filen;
+- verktøy som tar opp fra kameraet, mikrofonen eller skjermen din, som Record, Screen Capture og Voice Recorder;
+- 3D og Darkroom, som tar sin egen fil;
+- et verktøy uten noe å endre, som Countdown.
+
+I de andre verktøyene arkiverer den første endringen din arbeidet i **Prosjekter** som om du hadde lagret, og senere endringer lagres mens du jobber, når verktøyet er ferdig med å tegne. Så en ulagret kreasjon blir værende i Prosjekter etter at du har lukket fanen, og åpnes igjen med endringene markert som ulagret. **Forlat uten å lagre** forkaster dem likevel, og Historikk beholder en kopi av de forkastede endringene i 30 dager. Å åpne verktøyet igjen fra hjemskjermen starter en ny kreasjon; åpne den tidligere fra Prosjekter.
+
+Med [Synk](/info/sync.html) på går en kreasjon som er arkivert på denne måten, til dine andre enheter som alt annet i Prosjekter. Versjonene dens blir på enheten der de ble laget.
+
+Hvis en kreasjon er åpen i to faner og du lagrer i begge, beholdes det siste lagringen. Arbeidet det erstattet, er ikke tapt: det ligger under **Protected drafts** i kreasjonens Historikk, med **Open draft as a copy**.
 
 Dette fungerer bare i nettappen, ikke i skrivebords- eller mobilappene, og ikke mens du jobber live med noen andre.
 :::
@@ -111,21 +120,23 @@ På iPhone, iPad og Android erstatter en ny fil en tidligere med samme navn.
 ## Gå tilbake til en tidligere versjon
 
 - **I løpet av dette besøket:** **Angre** går bakover gjennom dine siste 100 endringer, til du forlater verktøyet eller laster på nytt. Se [Angre og gjøre om](/info/using.html#undo-and-redo).
-- **I de ni verktøyene som lagrer mens du jobber:** tidligere versjoner av hver kreasjon beholdes. Følg trinnene under.
+- **I [verktøy som lagrer mens du jobber](#which-tools-save-as-you-work):** tidligere versjoner av hver kreasjon beholdes. Følg trinnene under.
 - **Alt på enheten:** med [Synk](/info/sync.html) på, bringer **Restore an earlier copy**, under **Innstillinger → Tilkoblede tjenester**, tilbake en av de siste sju daglige kopiene, eller kopien fra før din siste anvendelse. Alt på denne enheten samsvarer da med den kopien, ikke bare ett design.
 
-For å åpne en tidligere versjon i ett av de ni verktøyene:
+For å åpne en tidligere versjon:
 
-1. Trykk **History**, klokkeknappen ved siden av **Angre** og **Gjør om**. I Design ligger **History** i den øverste linjen; på en telefon, trykk **•••** og deretter **History**.
-2. Finn versjonen etter dato og klokkeslett. **Automatic checkpoint**-rader tas mens du jobber; **Saved version**-rader er tidspunktene du lagret.
-3. Trykk **Open as a copy**. Versjonen åpnes som en ny kreasjon, og den du hadde åpen, blir værende som den var. Kopien ligger i **Prosjekter**, med "(copy)" etter navnet sitt.
+1. Trykk **Historikk**, klokkeknappen ved siden av **Angre** og **Gjør om**. I Design ligger **Historikk** i den øverste linjen; på en telefon, trykk **•••** og deretter **Historikk**. I verktøy uten **Angre**, som Text og Sandbox, ligger **Historikk** ved siden av **Hjem** øverst til venstre.
+2. Finn versjonen etter dato og klokkeslett. **Automatisk kontrollpunkt**-rader tas mens du jobber; **Lagret versjon**-rader er tidspunktene du lagret.
+3. Trykk **Åpne som en kopi**. Versjonen åpnes som en ny kreasjon, og den du hadde åpen, blir værende som den var. Kopien ligger i **Prosjekter**, med "(copy)" etter navnet sitt.
 
 For å beholde en versjon med navn, trykk **Name version**, skriv et navn og trykk **Keep milestone**. Navngitte versjoner listes på siden **History**, under **Milestones**.
 
 ::: details History-panelet og History-siden
 Panelet **History** lister også opp rader med **Recovered work**, og **Protected drafts** holder de siste endringene dine mellom sjekkpunkter, med **Open draft as a copy**. **Compare** og **Check assets** hjelper deg å velge før du åpner en kopi. Bytt **This creation** til **All history on this device** for å se hver kreasjon.
 
-Automatiske sjekkpunkter tynnes ut med alderen: ett i minuttet den siste timen, ett i timen det siste døgnet, ett om dagen i 30 dager, deretter ett i uken. Lagrede versjoner beholdes alle. Å slette en kreasjon fra **Innstillinger → Lagring** sletter også versjonene dens.
+Automatiske kontrollpunkter tynnes ut med alderen: ett i minuttet den siste timen, ett i timen det siste døgnet, ett om dagen i 30 dager, deretter ett i uken. Lagrede versjoner og navngitte versjoner beholdes alle. Å slette en kreasjon flytter også versjonene dens til **Papirkurv**, og **Slett for godt** fjerner dem.
+
+Når Historikk-lagringen blir full, fjernes de eldste automatiske kontrollpunktene først, for kreasjoner du ikke har åpnet på 30 dager. Et lagringspunkt beholdes alltid, selv da: det skrives som det gjeldende arbeidet, og Historikk sier at dette lagringspunktet ikke beholdes som en versjon. **Innstillinger → Lagring** viser hvor mye Historikk bruker.
 
 Siden **History** (`#/history`, eller **Open app history** i panelet) dekker hver kreasjon i denne nettleseren. På en datamaskin, åpne siden fra klokkeknappen øverst til høyre på hjemskjermen eller i **Prosjekter**. På en telefon, gå til verktøygalleriet på hjemskjermen, trykk på den runde logoknappen øverst til høyre og velg **Lagrede økter**, som åpner History. Fra **Prosjekter** gjør det elementet ingenting ennå.
 
@@ -157,7 +168,7 @@ For å flytte alt på én gang:
 3. På den nye enheten, åpne **Innstillinger → Lagring**, trykk **Importer data…**, velg filen og trykk **Importer**.
 
 ::: note Hva som blir igjen
-Innlogginger, nøkler og synk-passordfrasen blir på hver enhet. Listen over nylige nedlastinger, offline nedlastinger og AI-modeller følger ikke med på noen måte. Versjonshistorikken følger bare med i en fil fra **Eksporter dataene mine**, ikke via Synk eller en `.lolly`. En kopi Synk holder i lagringen din, kan lastes ned og åpnes, eller velges i **Importer data…**, som en sikkerhetskopi; en kryptert kopi spør etter passordfrasen din.
+Innlogginger, nøkler og synk-passordfrasen blir på hver enhet. Listen over nylige nedlastinger, offline nedlastinger og AI-modeller følger ikke med på noen måte. Versjonshistorikken følger bare med i en fil fra **Eksporter dataene mine**, ikke via Synk eller en `.lolly`. Når historikken er for stor for én fil, utelates de eldste automatiske kontrollpunktene, og eksportlinjen oppgir hvor mange. En kopi Synk holder i lagringen din, kan lastes ned og åpnes, eller velges i **Importer data…**, som en sikkerhetskopi; en kryptert kopi spør etter passordfrasen din.
 :::
 
 ::: details Hva sikkerhetskopifilen inneholder
@@ -176,7 +187,7 @@ Trykk **Eksporter dataene mine** under **Innstillinger → Lagring**, og oppbeva
 
 Når appen starter, ber Lolly nettleseren om ikke å slette lagringen sin når enheten går tom for plass. Nettleseren avgjør. Under **Innstillinger → Tilgjengelig offline** betyr en linje som starter med **Protected** at nettleseren sa seg enig; "The browser may clear downloads if the device runs low on space" betyr at den ikke gjorde det, og **Beskytt nedlastinger** spør på nytt. Hvis nettleseren ikke sa seg enig, kan den slette både lagret arbeid og nedlastinger når plassen tar slutt, så ta vare på en fersk fil fra **Eksporter dataene mine**.
 
-**Innstillinger → Lagring** viser hvor mye plass hver type data bruker. **Tøm cache** dropper nedlastede katalogfiler, som lastes ned på nytt ved behov. **Slett alle mine data** ber deg skrive et ord, slår av Synk, og fjerner deretter alt Lolly lagrer i denne nettleseren: profilen og innstillingene dine, lagrede økter med historikken og Papirkurven deres, opplastinger, fonter og designsystemer, nedlastingsloggen, Convert-resultater, nedlastede AI-modeller og offlinekopier. Filer du har lastet ned, blir liggende der du lagret dem. Appen starter deretter som ved et første besøk.
+**Innstillinger → Lagring** viser hvor mye plass hver type data bruker. **Historikk**-raden dens teller automatiske kontrollpunkter, forhåndsvisningene deres og gjenopprettingsutkast; **Remove automatic checkpoints older than 30 days** frigjør den plassen og beholder lagrede og navngitte versjoner. **Tøm cache** dropper nedlastede katalogfiler, som lastes ned på nytt ved behov. **Slett alle mine data** ber deg skrive et ord, slår av Synk, og fjerner deretter alt Lolly lagrer i denne nettleseren: profilen og innstillingene dine, lagrede økter med historikken og Papirkurven deres, opplastinger, fonter og designsystemer, nedlastingsloggen, Convert-resultater, nedlastede AI-modeller og offlinekopier. Filer du har lastet ned, blir liggende der du lagret dem. Appen starter deretter som ved et første besøk.
 
 ![Lagringskortet på en telefonbred skjerm: hver kategori av data på enheten navngitt, med knappen Slett alle mine data nederst](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

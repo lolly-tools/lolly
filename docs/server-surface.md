@@ -158,7 +158,7 @@ that, and nothing in the app does it, because this app is the individual's.
 
 The complete list of every network request the *app* itself can make (fonts,
 catalog sync, the optional endpoints above) is maintained in the
-[Privacy Policy](/info/privacy.html#when-the-app-talks-to-a-network-in-full).
+[Privacy Policy](/info/privacy.html#every-network-request-the-app-can-make).
 
 ## For self-hosters
 

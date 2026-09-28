@@ -23,6 +23,7 @@
 
 import { t } from '../i18n.ts';
 import { escape } from '../utils.ts';
+import { fitLabels, rowOverflows } from './fit-labels.ts';
 
 export interface BulkBarAction {
   /** The `data-bulk` value the view's delegated click handler dispatches on. */
@@ -53,7 +54,7 @@ const readText = (v: string | (() => string) | undefined): string => (typeof v =
 export function bulkBarHtml(cfg: BulkBarConfig): string {
   const buttons = cfg.actions.map(a => {
     const title = readText(a.title);
-    return `<button type="button" class="btn${a.extraClass ? ` ${a.extraClass}` : ''}" data-bulk="${escape(a.id)}"${a.hidden?.() ? ' hidden' : ''}${a.disabled?.() ? ' disabled' : ''}${title ? ` title="${escape(title)}"` : ''}>${a.icon ?? ''}<span>${escape(readText(a.label))}</span></button>`;
+    return `<button type="button" class="btn${a.extraClass ? ` ${a.extraClass}` : ''}" data-bulk="${escape(a.id)}"${a.hidden?.() ? ' hidden' : ''}${a.disabled?.() ? ' disabled' : ''}${title ? ` title="${escape(title)}" data-own-title` : ''}>${a.icon ?? ''}<span>${escape(readText(a.label))}</span></button>`;
   }).join('');
   return `
     <div class="${cfg.prefix}" role="region" aria-label="${escape(t('Selection actions'))}" hidden>
@@ -84,8 +85,26 @@ export function syncBulkBar(host: HTMLElement, cfg: BulkBarConfig): void {
     const label = btn.querySelector('span');
     if (label) label.textContent = readText(a.label);
     const title = readText(a.title);
-    if (title) btn.title = title;
+    if (title) { btn.title = title; btn.dataset.ownTitle = ''; }
   }
+  fitBulkBar(bar);
+}
+
+// Icon-only when the labels do not fit (lib/fit-labels.ts): the action set changes
+// with the selection (Projects can show a dozen verbs), so the bar measures itself.
+// `.is-compact` lets each view's sheet clip the label spans (visually hidden, so the
+// buttons keep their accessible names), and the label becomes the tooltip.
+export function fitBulkBar(bar: HTMLElement): void {
+  const actions = bar.querySelector<HTMLElement>('[class$="-actions"]');
+  if (!actions) return;
+  fitLabels(bar, ['is-compact'], () => rowOverflows(bar, actions), (applied) => {
+    for (const btn of actions.querySelectorAll<HTMLButtonElement>(':scope > .btn')) {
+      if (btn.dataset.ownTitle !== undefined) continue;
+      const label = btn.querySelector('span')?.textContent ?? '';
+      if (applied && label) btn.title = label;
+      else btn.removeAttribute('title');
+    }
+  });
 }
 
 /** Put the bar into (or out of) a busy state for a long-running bulk action: the

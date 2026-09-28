@@ -1,8 +1,8 @@
 {
   "id": "snippet",
   "name": "Snippet",
-  "description": "Turn code snippets into clean, syntax-highlighted, shareable images.",
-  "version": "1.3.1",
+  "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+  "version": "1.6.0",
   "engineVersion": "^1.191.0",
   "status": "official",
   "category": "everyone",
@@ -10,7 +10,11 @@
     "code",
     "developer",
     "snippet",
-    "export"
+    "export",
+    "text",
+    "typing",
+    "animation",
+    "video"
   ],
   "featured": {
     "order": 5
@@ -20,7 +24,10 @@
       "Text": "font",
       "Title bar": "panelTop",
       "Look": "paintbrush",
-      "Callouts": "messageCircle"
+      "Callouts": "messageCircle",
+      "Interaction": "animate",
+      "Scene steps": "checklist",
+      "Window pose": "rotateCw"
     },
     "width": 1200,
     "height": 800,
@@ -30,27 +37,37 @@
       "penpot",
       "jpg",
       "webp",
-      "pdf"
+      "pdf",
+      "mp4",
+      "webm",
+      "gif",
+      "webp-anim"
     ],
     "actions": [
       "copy",
       "download",
       "save"
     ],
-    "transparentBg": false
+    "transparentBg": false,
+    "video": {
+      "wait": 0,
+      "duration": 10.3
+    }
   },
   "isolate": true,
   "hooks": {
     "onInit": true,
-    "onInput": true
+    "onInput": true,
+    "beforeExport": true,
+    "afterExport": true
   },
   "inputs": [
     {
       "id": "code",
-      "label": "Code",
+      "label": "Text",
       "type": "longtext",
       "default": "const greet = (name) => {\n  console.log(`Hello, ${name}!`);\n  return name;\n};\n\ngreet('World');",
-      "placeholder": "Paste your code here…"
+      "placeholder": "Paste code or plain text here..."
     },
     {
       "id": "language",
@@ -142,8 +159,34 @@
       "id": "blinkCursor",
       "display": "pill",
       "label": "Blink cursor",
-      "help": "A terminal-style blinking caret after the code, on screen. Off keeps the exported still clean.",
+      "help": "A blinking caret for a still scene preview. Animated scenes manage the caret as part of the interaction.",
       "type": "boolean",
+      "default": false,
+      "section": "Text"
+    },
+    {
+      "id": "textOverflow",
+      "label": "Long text",
+      "type": "select",
+      "default": "fit",
+      "options": [
+        {
+          "value": "fit",
+          "label": "Fit the whole snippet"
+        },
+        {
+          "value": "scroll",
+          "label": "Scroll with the caret"
+        }
+      ],
+      "section": "Text",
+      "help": "Scrolling keeps text at a readable size while the window stays fixed."
+    },
+    {
+      "id": "wrapText",
+      "label": "Wrap long lines",
+      "type": "boolean",
+      "display": "pill",
       "default": false,
       "section": "Text"
     },
@@ -259,7 +302,7 @@
       "label": "Comment callouts",
       "type": "select",
       "default": "off",
-      "help": "Turn trailing end-of-line comments into pill callouts pointing at the line, instead of dim inline text.",
+      "help": "Turn trailing end-of-line comments into pill callouts pointing at the line, instead of dim inline text. Animated scenes keep comments inline.",
       "options": [
         {
           "value": "off",
@@ -316,9 +359,496 @@
           "label": "Design system italic"
         }
       ]
+    },
+    {
+      "id": "scene",
+      "label": "Scene",
+      "type": "select",
+      "default": "still",
+      "options": [
+        {
+          "value": "still",
+          "label": "Still image"
+        },
+        {
+          "value": "typing",
+          "label": "Type and hold"
+        },
+        {
+          "value": "demo",
+          "label": "Open, type and close"
+        },
+        {
+          "value": "autocomplete",
+          "label": "Accept a suggestion"
+        },
+        {
+          "value": "replace",
+          "label": "Select and replace"
+        },
+        {
+          "value": "custom",
+          "label": "Custom steps"
+        }
+      ],
+      "section": "Interaction",
+      "help": "Choose an interaction, then adjust its timing. Preview controls appear below the window."
+    },
+    {
+      "id": "typingSeconds",
+      "label": "Typing time (seconds)",
+      "type": "number",
+      "display": "slider",
+      "default": 6,
+      "min": 0.2,
+      "max": 30,
+      "step": 0.1,
+      "section": "Interaction",
+      "showIf": {
+        "scene": [
+          "typing",
+          "demo",
+          "autocomplete",
+          "replace"
+        ]
+      }
+    },
+    {
+      "id": "readSeconds",
+      "label": "Reading pause (seconds)",
+      "type": "number",
+      "display": "slider",
+      "default": 2,
+      "min": 0,
+      "max": 30,
+      "step": 0.5,
+      "section": "Interaction",
+      "showIf": {
+        "scene": [
+          "typing",
+          "demo",
+          "autocomplete",
+          "replace"
+        ]
+      }
+    },
+    {
+      "id": "typingStyle",
+      "label": "Text arrival",
+      "type": "select",
+      "default": "natural",
+      "options": [
+        {
+          "value": "natural",
+          "label": "Natural typing"
+        },
+        {
+          "value": "steady",
+          "label": "Steady typing"
+        },
+        {
+          "value": "word",
+          "label": "Word by word"
+        },
+        {
+          "value": "line",
+          "label": "Line by line"
+        },
+        {
+          "value": "paste",
+          "label": "Paste at once"
+        }
+      ],
+      "section": "Interaction",
+      "showIf": {
+        "scene": [
+          "typing",
+          "demo",
+          "autocomplete",
+          "replace",
+          "custom"
+        ]
+      }
+    },
+    {
+      "id": "ending",
+      "label": "Ending",
+      "type": "select",
+      "default": "close",
+      "options": [
+        {
+          "value": "close",
+          "label": "Click close"
+        },
+        {
+          "value": "hold",
+          "label": "Leave open"
+        }
+      ],
+      "section": "Interaction",
+      "showIf": {
+        "scene": [
+          "demo",
+          "autocomplete",
+          "replace"
+        ]
+      }
+    },
+    {
+      "id": "completeAfter",
+      "label": "Type before suggestion (%)",
+      "type": "number",
+      "display": "slider",
+      "default": 35,
+      "min": 0,
+      "max": 95,
+      "step": 5,
+      "section": "Interaction",
+      "showIf": {
+        "scene": "autocomplete"
+      },
+      "help": "The rest of your text appears as a suggestion and is accepted with Tab."
+    },
+    {
+      "id": "selectText",
+      "label": "Text to select",
+      "type": "text",
+      "default": "World",
+      "section": "Interaction",
+      "showIf": {
+        "scene": "replace"
+      },
+      "help": "Selects the first exact match, including spaces and case."
+    },
+    {
+      "id": "replacementText",
+      "label": "Replacement",
+      "type": "longtext",
+      "default": "Lolly",
+      "section": "Interaction",
+      "showIf": {
+        "scene": "replace"
+      },
+      "help": "Replaces the selected text. Leave empty to delete the selection."
+    },
+    {
+      "id": "showPointer",
+      "label": "Show mouse pointer",
+      "type": "boolean",
+      "display": "pill",
+      "default": true,
+      "section": "Interaction",
+      "showIf": {
+        "scene": [
+          "typing",
+          "demo",
+          "autocomplete",
+          "replace",
+          "custom"
+        ]
+      }
+    },
+    {
+      "id": "cursorSize",
+      "label": "Cursor size",
+      "type": "number",
+      "display": "slider",
+      "default": 100,
+      "min": 50,
+      "max": 250,
+      "step": 10,
+      "section": "Interaction",
+      "help": "Scales the mouse pointer and its text-selection shape. The caret follows the text size.",
+      "showIf": {
+        "showPointer": true,
+        "scene": ["typing", "demo", "autocomplete", "replace", "custom"]
+      }
+    },
+    {
+      "id": "clickRing",
+      "label": "Show click rings",
+      "type": "boolean",
+      "display": "pill",
+      "default": false,
+      "section": "Interaction",
+      "showIf": {
+        "scene": [
+          "typing",
+          "demo",
+          "autocomplete",
+          "replace",
+          "custom"
+        ]
+      }
+    },
+    {
+      "id": "entryMotion",
+      "label": "Opening motion",
+      "type": "select",
+      "default": "scale",
+      "options": [
+        {
+          "value": "scale",
+          "label": "Grow into place"
+        },
+        {
+          "value": "fade",
+          "label": "Fade in"
+        },
+        {
+          "value": "slide",
+          "label": "Slide up"
+        },
+        {
+          "value": "none",
+          "label": "Appear"
+        }
+      ],
+      "section": "Interaction",
+      "showIf": {
+        "scene": [
+          "demo",
+          "autocomplete",
+          "replace",
+          "custom"
+        ]
+      }
+    },
+    {
+      "id": "exitMotion",
+      "label": "Closing motion",
+      "type": "select",
+      "default": "scale",
+      "options": [
+        {
+          "value": "scale",
+          "label": "Shrink away"
+        },
+        {
+          "value": "fade",
+          "label": "Fade out"
+        },
+        {
+          "value": "slide",
+          "label": "Slide down"
+        },
+        {
+          "value": "none",
+          "label": "Disappear"
+        }
+      ],
+      "section": "Interaction",
+      "showIf": {
+        "scene": [
+          "demo",
+          "autocomplete",
+          "replace",
+          "custom"
+        ]
+      }
+    },
+    {
+      "id": "posterAt",
+      "label": "Still frame (seconds)",
+      "type": "number",
+      "display": "slider",
+      "default": -1,
+      "min": -1,
+      "max": 120,
+      "step": 0.1,
+      "section": "Interaction",
+      "showIf": {
+        "scene": [
+          "typing",
+          "demo",
+          "autocomplete",
+          "replace",
+          "custom"
+        ]
+      },
+      "help": "-1 uses the finished text before closing. Another value chooses an exact scene time for still exports."
+    },
+    {
+      "id": "startFilled",
+      "label": "Start with text visible",
+      "type": "boolean",
+      "display": "pill",
+      "default": false,
+      "section": "Scene steps",
+      "showIf": {
+        "scene": "custom"
+      }
+    },
+    {
+      "id": "steps",
+      "label": "Steps",
+      "type": "blocks",
+      "section": "Scene steps",
+      "showIf": {
+        "scene": "custom"
+      },
+      "labelledFields": true,
+      "rowActions": true,
+      "help": "Up to 24 steps. Empty Type text uses the main text. Select finds the first exact match; Replace edits that selection. Each step has its own duration.",
+      "default": [
+        {
+          "action": "open",
+          "seconds": 0.5
+        },
+        {
+          "action": "click",
+          "seconds": 0.8
+        },
+        {
+          "action": "type",
+          "seconds": 6
+        },
+        {
+          "action": "wait",
+          "seconds": 2
+        },
+        {
+          "action": "close",
+          "seconds": 1
+        }
+      ],
+      "fields": [
+        {
+          "id": "action",
+          "label": "Action",
+          "type": "select",
+          "default": "wait",
+          "options": [
+            {
+              "value": "open",
+              "label": "Open window"
+            },
+            {
+              "value": "click",
+              "label": "Click text"
+            },
+            {
+              "value": "type",
+              "label": "Type text"
+            },
+            {
+              "value": "wait",
+              "label": "Wait"
+            },
+            {
+              "value": "select",
+              "label": "Select text"
+            },
+            {
+              "value": "replace",
+              "label": "Replace selection"
+            },
+            {
+              "value": "complete",
+              "label": "Accept suggestion"
+            },
+            {
+              "value": "close",
+              "label": "Close window"
+            }
+          ]
+        },
+        {
+          "id": "text",
+          "label": "Text or selection",
+          "type": "text",
+          "default": "",
+          "showIf": {
+            "action": [
+              "type",
+              "select",
+              "replace",
+              "complete"
+            ]
+          }
+        },
+        {
+          "id": "seconds",
+          "label": "Seconds",
+          "type": "number",
+          "default": 1,
+          "min": 0,
+          "max": 30,
+          "step": 0.1
+        }
+      ]
+    },
+    {
+      "id": "windowRotate",
+      "label": "Rotation",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -15,
+      "max": 15,
+      "step": 1,
+      "section": "Window pose"
+    },
+    {
+      "id": "windowTiltX",
+      "label": "Tilt up or down",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -25,
+      "max": 25,
+      "step": 1,
+      "section": "Window pose"
+    },
+    {
+      "id": "windowTiltY",
+      "label": "Tilt left or right",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -25,
+      "max": 25,
+      "step": 1,
+      "section": "Window pose"
     }
   ],
   "requires": [
     "textTools"
+  ],
+  "examples": [
+    {
+      "label": "Typing demo",
+      "values": {
+        "code": "console.log(\"Hello\");",
+        "language": "javascript",
+        "scene": "demo",
+        "typingSeconds": 6,
+        "readSeconds": 2,
+        "windowRotate": -2
+      }
+    },
+    {
+      "label": "Autocomplete",
+      "values": {
+        "code": "Make text feel alive.",
+        "language": "plain",
+        "scene": "autocomplete",
+        "completeAfter": 35,
+        "typingSeconds": 3,
+        "readSeconds": 3
+      }
+    },
+    {
+      "label": "Edit a word",
+      "values": {
+        "code": "Hello, World!",
+        "language": "plain",
+        "scene": "replace",
+        "selectText": "World",
+        "replacementText": "Lolly",
+        "typingSeconds": 1.5,
+        "readSeconds": 2
+      }
+    }
   ]
 }

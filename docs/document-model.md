@@ -20,7 +20,7 @@ This is a draft for review, dated 2026-09-24. Nothing in it is normative until t
 
 A D id is a confirmed direction. An R id is a resolution proposed from evidence; it stands unless the review overturns it. A C id is a correction the final review made before drafting started.
 
-## Where to read it
+## Where to read the specification
 
 The specification is its own web document, twelve chapters long. [Read it in the app](/#/document-model), with the chapter list, the headings and a search field beside the text. The same chapters are on this site:
 
@@ -39,7 +39,7 @@ The specification is its own web document, twelve chapters long. [Read it in the
 
 The twelve chapters are also written out in order as one file, [document-model.md](/info/spec/document-model/document-model.md), for reading offline or handing to an agent.
 
-## How to review it
+## How to review a chapter
 
 Read a chapter, then send what you found, quoting the chapter and heading. Open an issue on [the repository](https://github.com/lolly-tools/lolly/issues).
 

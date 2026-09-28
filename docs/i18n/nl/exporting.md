@@ -300,7 +300,7 @@ Twee onafhankelijke soorten sloten, beide volledig on-device.
 
 ![De kaart Wachtwoordbeveiliging uitgeklapt op een PDF-export, met het wachtwoordveld en de twee slotniveaus](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standaard** - een eenvoudig 40-bits slot (RC4). Het opent in *elke* PDF-app, en - als lichte afschrikking, geen echte bescherming - kan het meereizen in een deellink (leesbare tekst, met opzet). Alleen RGB `pdf`.
+- **Standaard** - een eenvoudig 40-bits slot (RC4). Het opent in *elke* PDF-app, en - als lichte afschrikking, geen echte bescherming - kan het meereizen in een deellink (leesbare tekst). Alleen RGB `pdf`.
 - **Sterk** - AES-256 (PDF 2.0). Het wachtwoord wordt getypt bij export en komt **nooit** in een link; het opent alleen in nieuwere PDF-apps (Acrobat / Preview ~2018 en later), en oudere apps kunnen het bestand als beschadigd melden. Sterk geldt ook voor **Print/CMYK-PDF's** en voor **elke PDF binnen een batch-zip** (de batchbevestigingsdialoog verzamelt het wachtwoord). Omdat PDF/X-4 versleuteling verbiedt, behoudt een met Sterk vergrendelde Print-PDF zijn CMYK, markeringen en output-intent maar laat de PDF/X-4-conformiteitsclaim vallen.
 
 Beide niveaus sluiten Content Credentials wederzijds uit (een versleutelde PDF kan de credential niet dragen).

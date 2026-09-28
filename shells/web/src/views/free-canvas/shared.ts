@@ -322,6 +322,8 @@ export interface RuntimeApi {
   getModel(): ModelItem[];
   setInput(id: string, value: any): void;
   applyPatch?(values: Record<string, unknown>): Promise<void>;
+  /** Resolve asset and token refs in values applied after mount (the engine's own pass). */
+  resolveRefs?(): Promise<void>;
   subscribe(fn: () => void): (() => void) | undefined;
   /** Feature-detected (engine 1.196): the emoji pass, so a clone of the page (an artboard
    *  thumbnail) draws the chosen set's artwork and never the machine's own emoji font. */
@@ -361,6 +363,9 @@ export interface HistoryApi {
   register(cb: (canUndo: boolean, canRedo: boolean) => void): void;
   commit?(values: Record<string, unknown>, label: string, typingGroup?: string): Promise<void>;
   endGesture?(): void;
+  /** Automatic history's change signal, for a user action that writes through
+   *  `applyPatch` and so goes round the tool view's setInput wrapper (plan 277 P4). */
+  changed?(): void;
 }
 
 /**

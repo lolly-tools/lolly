@@ -389,7 +389,7 @@ Web shell: IndexedDB. Tauri: filesystem. CLI: in-memory. Ang tanging nakikita ng
 
 Puwedeng mag-save ang mga user ng maraming pinangalanang edit slot bawat tool at bumalik sa bawat session mamaya. Walang kinakailangang gumawa ng account; per-device ang state. Dahil ang bridge lang ang tanging seam, ang per-device na state na iyon ay *portable* din: binabasa ulit ng `shells/web/src/data-transfer.ts` ang lahat sa pamamagitan ng `host.profile`/`host.state`/`host.assets` papunta sa iisang `lolly-backup` na zip na na-i-import sa kahit anong ibang install - ang offline na sagot sa "paglipat sa bagong device" na hindi nangangailangan ng server (buong spec: `docs/data-transfer.md`). Tumatakbo na ang multi-device sync sa ibabaw nito, na nagpapadala ng parehong bundle sa imbakang pinipili ng tao (`docs/sync.md`).
 
-### 7. Sinasabi ng maturity tags kung ano ang isang tool, ayon sa disenyo
+### 7. Sinasabi ng maturity tags kung ano ang isang tool
 
 Idinideklara ng bawat tool ang `status: official | community | experimental` sa manifest nito. Inaayos ng gallery ayon sa status. Awtomatikong nilalagyan ng watermark ang mga export ng experimental na tool - inilalapat ang watermark ng `host.export.render`, hindi ng tool, kaya hindi ito maaaring i-opt out ng isang non-official na tool author.
 
@@ -433,7 +433,7 @@ Pinagsasama ang render ng kahit anong tool: nananatiling tunay na vector ang isa
 
 ---
 
-## Lifecycle, mula simula hanggang katapusan
+## Ang lifecycle ng isang render
 
 Binubuksan ng isang user ang `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 

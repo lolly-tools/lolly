@@ -131,7 +131,7 @@ Hvis du trykte på **Lagre som** eller **Lagre**, er det i **Prosjekter**, på h
 
 ## Jeg lukket fanen. Er arbeidet mitt borte?
 
-Lagret arbeid ligger fortsatt i **Prosjekter**. Ulagret arbeid er borte, unntatt i de ni verktøyene som lagrer mens du jobber, som beholder det i **Prosjekter** også. Trykk **Lagre som** neste gang før du forlater. Se [Hvis du lukket fanen eller forlot verktøyet](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+Lagret arbeid ligger fortsatt i **Prosjekter**. Ulagret arbeid er borte, unntatt i de verktøyene som lagrer mens du jobber, som beholder det i **Prosjekter** også. Neste gang, trykk **Lagre som** før du forlater. Se [Hvis du lukket fanen eller forlot verktøyet](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Kan jeg dele arbeidet mitt som en fil i stedet for en lenke?
 

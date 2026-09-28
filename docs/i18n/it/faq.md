@@ -131,7 +131,7 @@ Se hai premuto **Salva come** o **Salva**, è in **Progetti**, sulla schermata i
 
 ## Ho chiuso la scheda. Il mio lavoro è perso?
 
-Il lavoro salvato resta in **Progetti**. Il lavoro non salvato va perso, tranne nei nove strumenti che salvano mentre lavori, che lo conservano anch'essi in **Progetti**. La prossima volta, premi **Salva come** prima di uscire. Vedi [Se hai chiuso la scheda o hai lasciato lo strumento](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+Il lavoro salvato resta in **Progetti**. Il lavoro non salvato va perso, tranne negli strumenti che salvano mentre lavori, che lo conservano anch'essi in **Progetti**. La prossima volta, premi **Salva come** prima di uscire. Vedi [Se hai chiuso la scheda o hai lasciato lo strumento](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Posso condividere il mio lavoro come file invece che come link?
 

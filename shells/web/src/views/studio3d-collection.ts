@@ -165,7 +165,9 @@ async function drawContactSheet(
   );
 }
 
-export function openStudioCollection(runtime: Runtime, host: WebToolHost): void {
+/** `changed` is the tool view's automatic-history signal: applying a saved studio writes
+ *  through applyPatch, round the setInput wrapper that normally reports an edit. */
+export function openStudioCollection(runtime: Runtime, host: WebToolHost, changed?: () => void): void {
   if (open.has(runtime)) return;
   open.add(runtime);
   let closed = false,
@@ -414,7 +416,7 @@ export function openStudioCollection(runtime: Runtime, host: WebToolHost): void 
         const chosen = saved.find((studio) => studio.id === select.value);
         if (!chosen) return;
         status.textContent = tRaw('Applying {name}...', { name: chosen.name });
-        void applyStudio(runtime, chosen).catch((error: unknown) => {
+        void applyStudio(runtime, chosen, changed).catch((error: unknown) => {
           if (!closed) status.textContent = (error as Error).message;
         });
       };

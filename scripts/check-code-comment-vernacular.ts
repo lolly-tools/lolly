@@ -11,7 +11,7 @@
  * primitive-guards.test.ts R10: a per-file baseline (scripts/vernacular-code-baseline.json)
  * that can only go DOWN. A new file must be clean. A file that improves must lower
  * its baseline (run --write to lock the win). A file that regresses fails. So the
- * count is driven to zero over many passes, and no new comment can add to it.
+ * count is driven to zero over many passes, and no new comment can push the total back up.
  *
  *   node scripts/check-code-comment-vernacular.ts            # check (exit 1 on drift)
  *   node scripts/check-code-comment-vernacular.ts --write    # regenerate the baseline
@@ -25,7 +25,7 @@ import { readFileSync, readdirSync, lstatSync, existsSync, writeFileSync } from 
 import { printVernacularWhy } from './lib/vernacular-why.ts';
 import { resolve, join, relative } from 'node:path';
 import ts from 'typescript';
-import { BANNED_PHRASES } from './check-docs-vernacular.ts';
+import { BANNED_PHRASES, RATCHETED_PHRASES } from './check-docs-vernacular.ts';
 
 const ROOT = resolve(new URL('..', import.meta.url).pathname);
 const BASELINE_PATH = join(ROOT, 'scripts/vernacular-code-baseline.json');
@@ -122,7 +122,9 @@ const CODE_EXEMPT = new Set<string>([
   // domain term, not a claudism, so the docs-prose ban does not reach comments.
   '"survivable" (prose)',
 ]);
-const CODE_PHRASES = BANNED_PHRASES.filter(p => !CODE_EXEMPT.has(p.what));
+// The ratcheted docs phrases (a sentence that ends in "it") count here too: this
+// gate is a ratchet already, so they fold into the same per-file baseline.
+const CODE_PHRASES = [...BANNED_PHRASES, ...RATCHETED_PHRASES].filter(p => !CODE_EXEMPT.has(p.what));
 
 /**
  * Roots whose STRING LITERALS are user-facing copy and therefore carry the

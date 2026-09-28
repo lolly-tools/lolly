@@ -215,7 +215,9 @@ function addHomeEscape(root: HTMLElement, pill: HTMLElement, opts: MountBackPill
   const corner = pill.classList.contains('home-full');
   if (!corner && !pill.classList.contains('sidebar-back')) return;
   const fab = homeFabEl({ intercept: opts.intercept });
-  if (!corner) { pill.after(fab); return; }
+  // Beside the pill when it already sits in a row: the sidebar back row, or an island
+  // the tool view built for its History button (views/tool-history-controls.ts).
+  if (!corner || pill.parentElement?.classList.contains('chrome-topleft')) { pill.after(fab); return; }
   // The corner pill pins ITSELF (position: fixed, tool.css .tools-home.home-full),
   // so a sibling would land in flow. Hand the pinning to the .chrome-topleft island
   // instead - the same row backHomeHtml() renders, and the one place that resets the

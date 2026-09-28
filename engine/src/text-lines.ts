@@ -9,6 +9,8 @@ import { chooseParagraphBreaks, paragraphLineFit, type TextBreakCandidate } from
 import { textSpaceWidth } from './text-spacing.ts';
 import type { prepareTextParagraph, ShapedTextLine } from './text-paragraph.ts';
 type Prepared = Awaited<ReturnType<typeof prepareTextParagraph>>;
+/** An accessor that can also read without copying (text-composition-cache.ts). */
+type SharedRead<F> = F & { shared?: F };
 export interface TextLineNotice extends TextRangeV1 { code: string; message: string }
 /** Unicode word units for short-line preferences, independent of platform segmentation. */
 function wordCount(source: string): number {
@@ -18,6 +20,13 @@ function wordCount(source: string): number {
 export async function composeParagraphLines(story: TextStoryV1, range: TextRangeV1, prepared: Prepared, width: (line: number) => number) {
   const result: ShapedTextLine[] = [], diagnostics: TextLineNotice[] = [], resources: Array<{ id: string; sha256: string }> = [];
   const inlineMeaning=new Map(story.inlines.map(inline=>[inline.offset,inline.originalText]));
+  // Read shapes without copying where the workspace allows it: nothing below mutates a
+  // shaped line, and the lines this function returns are copied on the way out, so a
+  // caller still never holds the cache's own objects.
+  const sharedShape = (prepared.shape as SharedRead<Prepared['shape']>).shared;
+  const readShape = sharedShape ?? prepared.shape;
+  const readHyphen = sharedShape && (prepared.hyphen as SharedRead<Prepared['hyphen']>).shared || prepared.hyphen;
+  const keep = (line: ShapedTextLine): ShapedTextLine => sharedShape ? structuredClone(line) : line;
   const settings = prepared.settings, mode = settings.hyphenation?.mode ?? 'manual';
   const hyphenator = mode === 'auto' ? await textHyphenator(settings.language) : null;
   if (mode === 'auto' && !hyphenator) diagnostics.push({ ...range, code: 'hyphenation-language', message: 'Automatic hyphenation is unavailable for this language. Choose a supported language or use manual hyphens.' });
@@ -28,7 +37,7 @@ export async function composeParagraphLines(story: TextStoryV1, range: TextRange
   const boundaries = textBoundaries(story.source);
   let segmentStart = range.start;
   for (const ending of [...forced.map(item => ({ end: item.start, next: item.start + item.length })), { end: range.end, next: range.end }]) {
-    const probe = await prepared.shape({ start: segmentStart, end: ending.end }, false, false);
+    const probe = await readShape({ start: segmentStart, end: ending.end }, false, false);
     const advances = probe.pieces.flatMap(piece => piece.shape ? piece.shape.clusters.map(cluster => ({ start: cluster.start, end: cluster.end, advance: cluster.advance, carets: cluster.carets, x: cluster.x, rtl: piece.shape!.direction === 'rtl' }))
       : [{ start: piece.start, end: piece.end, advance: piece.advance, carets: [], x: 0, rtl: false }]).sort((a,b) => a.start-b.start);
     const prefix = new Map<number, number>([[segmentStart, 0]]), spacePrefix = new Map<number, number>([[segmentStart, 0]]); let sum = 0, spaceSum = 0;
@@ -56,13 +65,18 @@ export async function composeParagraphLines(story: TextStoryV1, range: TextRange
     const candidates: TextBreakCandidate[] = [{ at: segmentStart, hyphen: false, hyphenWidth: 0 }];
     for (const [at, hyphen] of [...offsets].sort((a,b) => a[0]-b[0])) {
       if (!boundaries.has(at) || at !== ending.end && story.spans.some(span => span.noBreak && span.start < at && span.end > at)) continue;
-      candidates.push({ at, hyphen, hyphenWidth: hyphen ? (await prepared.hyphen(at)).shape.advance : 0 });
+      candidates.push({ at, hyphen, hyphenWidth: hyphen ? (await readHyphen(at)).shape.advance : 0 });
     }
-    const measuredEnd = (a: number, b: number): number => {
-      const start = candidates[a]!.at, candidate = candidates[b]!; let end = candidate.at;
-      while (end > start && /^[ \t\u200b]+$/.test(inlineMeaning.get(end-1)??story.source[end-1]!)) end--;
+    // A line's measured end drops its trailing spaces, never past the line's start.
+    // Each candidate's trimmed end is found once, against the segment start, and the
+    // line start is applied as a floor: the same answer the per-call scan gave, which
+    // ran three times for every candidate pair the break search priced.
+    const trimmedEnd = candidates.map(candidate => {
+      let end = candidate.at;
+      while (end > segmentStart && /^[ \t\u200b]+$/.test(inlineMeaning.get(end-1)??story.source[end-1]!)) end--;
       return end;
-    };
+    });
+    const measuredEnd = (a: number, b: number): number => Math.max(candidates[a]!.at, trimmedEnd[b]!);
     const measure = (a: number, b: number): number => (prefix.get(measuredEnd(a,b)) ?? Infinity) - (prefix.get(candidates[a]!.at) ?? 0) + candidates[b]!.hyphenWidth;
     const spaces = (a: number, b: number): number => (spacePrefix.get(measuredEnd(a,b)) ?? 0) - (spacePrefix.get(candidates[a]!.at) ?? 0);
     const segmentSettings = ending.next > ending.end ? { ...settings, shortLastLine: { enabled: false, words: 2, fraction: .2 } } : settings;
@@ -72,8 +86,8 @@ export async function composeParagraphLines(story: TextStoryV1, range: TextRange
     const settledGreedy = new Map<string,ShapedTextLine>();
     const shape = async (a: number, b: number): Promise<ShapedTextLine> => {
       const held=settledGreedy.get(`${a}:${b}`);if(held)return held;
-      const candidate = candidates[b]!, line = await prepared.shape({ start: candidates[a]!.at, end: candidate.at });
-      return candidate.hyphen ? { ...line, advance: line.advance + candidate.hyphenWidth, hyphen: await prepared.hyphen(candidate.at) } : line;
+      const candidate = candidates[b]!, line = await readShape({ start: candidates[a]!.at, end: candidate.at });
+      return candidate.hyphen ? { ...line, advance: line.advance + candidate.hyphenWidth, hyphen: await readHyphen(candidate.at) } : line;
     };
     const firstLine = result.length, greedy: number[] = []; let start = 0, consecutive = 0;
     while (start < candidates.length - 1) {
@@ -112,8 +126,8 @@ export async function composeParagraphLines(story: TextStoryV1, range: TextRange
     }
     if (limited) diagnostics.push({ start: segmentStart, end: ending.end, code: 'composition-budget', message: 'This paragraph exceeded the composition budget. Standard breaks were used.' });
     let previous = 0;
-    if (!selected.length) result.push(await prepared.shape({ start: segmentStart, end: ending.end }));
-    for (const end of selected) { result.push(await shape(previous, end)); previous = end; }
+    if (!selected.length) result.push(keep(await readShape({ start: segmentStart, end: ending.end })));
+    for (const end of selected) { result.push(keep(await shape(previous, end))); previous = end; }
     const last = result.at(-1)!;
     if (ending.next === ending.end && settings.shortLastLine?.enabled && selected.length > 1 && !(selected.length === 2 && wordCount(story.source.slice(segmentStart, ending.end)) <= 2)
       && (wordCount(story.source.slice(last.start, ending.end)) < settings.shortLastLine.words || last.advance < width(result.length-1) * settings.shortLastLine.fraction))

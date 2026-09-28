@@ -433,7 +433,7 @@ Web 端：IndexedDB。Tauri：文件系统。CLI：内存中。工具只能看�
 
 ---
 
-## 端到端的生命周期
+## 一次渲染的完整生命周期
 
 用户打开 `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`：
 

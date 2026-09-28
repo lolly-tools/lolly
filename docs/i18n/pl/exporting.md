@@ -300,8 +300,8 @@ Dwa niezależne rodzaje blokady, obie całkowicie na urządzeniu.
 
 ![Rozwinięta karta Password protect przy eksporcie PDF, z polem hasła i dwoma poziomami blokady](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - podstawowa blokada 40-bitowa (RC4). Otwiera się w *dowolnej* aplikacji PDF i - jako lekki środek odstraszający, a nie prawdziwa ochrona - może być przesyłana w linku udostępniania (jawnym tekstem, celowo). Tylko RGB `pdf`.
-- **Strong** - AES-256 (PDF 2.0). Hasło wpisuje się przy eksporcie i **nigdy** nie trafia do linku; otwiera się tylko w nowszych aplikacjach PDF (Acrobat / Preview od ok. 2018), a starsze aplikacje mogą zgłosić uszkodzenie pliku. Strong dotyczy też **PDF-ów Print / CMYK** oraz **każdego PDF-u w zbiorczym zipie** (okno potwierdzenia zbiorczego eksportu zbiera hasło). Ponieważ PDF/X-4 zabrania szyfrowania, zablokowany trybem Strong PDF Print zachowuje CMYK, znaczniki i output intent, ale traci deklarację zgodności PDF/X-4.
+- **Standardowy** - podstawowa 40-bitowa blokada (RC4). Otwiera się w *dowolnej* aplikacji PDF, i - będąc lekkim odstraszaczem, nie prawdziwą ochroną - może podróżować w linku udostępniania (jawnym tekstem). Tylko RGB `pdf`.
+- **Mocne** - AES-256 (PDF 2.0). Jego hasło jest wpisywane przy eksporcie i **nigdy** nie trafia do linku; otwiera się tylko w nowszych aplikacjach PDF (Acrobat / Preview od ~2018), a starsze aplikacje mogą zgłosić plik jako uszkodzony. Mocne dotyczy też **PDF do druku / CMYK** i **każdego PDF wewnątrz zipu wsadowego** (okno potwierdzenia wsadu zbiera hasło). Ponieważ PDF/X-4 zabrania szyfrowania, mocno zablokowany PDF do druku zachowuje swoje CMYK, znaczniki i output-intent, ale traci deklarację zgodności PDF/X-4.
 
 Żaden z poziomów nie jest kompatybilny z Content Credentials (zaszyfrowany PDF nie może otrzymać poświadczenia).
 

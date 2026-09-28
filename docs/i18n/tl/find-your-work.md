@@ -1,12 +1,12 @@
 # Hanapin at bawiin ang gawa mo
 
-Lahat ng ginagawa mo sa Lolly ay nananatili sa browser o app na ginamit mo, sa device na iyon, maliban kung i-on mo ang [Sync](/info/sync.html). Nasa **Mga Project** ang na-save na gawa. Ang isang na-download na file ay nasa kahit saan inilagay ito ng browser o system mo, at karaniwang may kopya sa **Mga asset**. Sa siyam na tool, iniingatan din ang gawang hindi mo na-save. Sinasaklaw ng pahinang ito ang bawat isa sa mga ito, kasama ang isang isinarang tab, nabura na data ng browser, mas naunang bersyon, na-delete na item at paglipat sa ibang device.
+Lahat ng ginagawa mo sa Lolly ay nananatili sa browser o app na ginamit mo, sa device na iyon, maliban kung i-on mo ang [Sync](/info/sync.html). Nasa **Mga Project** ang na-save na gawa. Ang isang na-download na file ay nasa kahit saan inilagay ito ng browser o system mo, at karaniwang may kopya sa **Mga asset**. Sa karamihan ng mga tool, iniingatan din ang gawang hindi mo na-save. Sinasaklaw ng pahinang ito ang bawat isa sa mga ito, kasama ang isang isinarang tab, nabura na data ng browser, mas naunang bersyon, na-delete na item at paglipat sa ibang device.
 
 | Ano ang ginawa mo | Saan titingin |
 |---|---|
 | Pinindot ang **I-save bilang** o **I-save** | **Mga Project** |
 | Pinindot ang **I-download** | Downloads ng browser mo, at may kopya sa **Mga asset** |
-| Wala sa dalawa, sa isa sa [siyam na tool na nag-sa-save habang ginagawa mo](#the-nine-tools-that-save-as-you-work) | **Mga Project** at **History** |
+| Wala sa dalawa, sa [isang tool na nag-sa-save habang ginagawa mo](#which-tools-save-as-you-work) | **Mga Project** at **History** |
 | Wala sa dalawa, sa ibang tool | Ang tab lang na ginamit mo, hanggang isara mo ang tab |
 | Na-delete mo ito sa app | **Trash**, sa **Mga Project**, **Mga asset** o **Mga Setting → Imbakan**, sa loob ng 30 araw |
 
@@ -71,20 +71,29 @@ not visible in the closed menu, so the alt does not list them.
 
 Nakadepende ang babalik sa kung paano ka umalis at kung aling tool ang ginamit mo:
 
-- **Isinara mo ang tab, o bumalik ka sa ibang pagkakataon.** Nawawala ang hindi na-save na gawa, maliban sa [siyam na tool](#the-nine-tools-that-save-as-you-work), na nag-sa-save ng mga edit mo habang ginagawa mo ito: buksan ang mga ito mula sa **Mga Project**.
-- **Ni-reload mo ang page sa parehong tab.** Bumabalik ang mga setting mo mula sa address ng page. Sa mga tool maliban sa siyam, hindi bumabalik ang mga larawan at file na idinagdag mo mula sa device mo, at ang single-line na text na mas mahaba sa 150 character, dahil hindi ito hawak ng address.
+- **Isinara mo ang tab, o bumalik ka sa ibang pagkakataon.** Nawawala ang hindi na-save na gawa, maliban sa [mga tool na nag-sa-save habang ginagawa mo](#which-tools-save-as-you-work): buksan ang gawang iyon mula sa **Mga Project**.
+- **Ni-reload mo ang page sa parehong tab.** Bumabalik ang mga setting mo mula sa address ng page. Sa mga tool na hindi nag-sa-save habang ginagawa mo, hindi bumabalik ang mga larawan at file na idinagdag mo mula sa device mo, at ang single-line na text na mas mahaba sa 150 character, dahil hindi ito hawak ng address.
 - **Pinindot mo ang Home, o ang back button sa kaliwang itaas.** Kung may binago ka mula noong huli kang nag-save, nag-download o kumopya, magtatanong ang isang **Mga hindi na-save na pagbabago** na dialog kung i-save muna. Ise-save ng **I-save & umalis** ang gawa at dadalhin ka sa **Mga Project**, o babalik sa project folder na pinagbuksan mo ng gawa. Tinatanggal ng **Umalis nang hindi nagse-save** ang mga pagbabago mo: babalik ang isang na-save na item sa huli mong pagkaka-save nito, at aalis sa **Mga Project** ang isang creation na hindi mo na-save kailanman. Pananatilihin ka ng **Kanselahin** sa tool.
 
 Nagtatanong lang ang Lolly kapag pinindot mo ang **Home** o ang back button sa isang tool. Hindi kailanman nagtatanong ang pagsara ng tab, pag-reload at ang sariling Back button ng browser mo. Para sigurado, pindutin ang **I-save bilang**, o **I-save** sa export panel, bago ka umalis sa isang tool.
 
 ::: note Hindi sinasadyang umalis nang hindi nag-save?
-Sa siyam na tool, may kopya ang History ng mga natanggal na edit. Buksan ang **History** page, hanapin ang mga ito sa ilalim ng **Changes** at pindutin ang **Open as a copy**. Sa ibang tool, nawawala na ang mga pagbabago.
+Sa mga tool na nag-sa-save habang ginagawa mo, may kopya ang History ng mga natanggal na edit. Buksan ang **History** page, hanapin ang mga ito sa ilalim ng **Changes** at pindutin ang **Open as a copy**. Sa ibang tool, nawawala na ang mga pagbabago.
 :::
 
-::: details Ang siyam na tool na nag-sa-save habang ginagawa mo
-[Design](/#/tool/design), [Chart](/#/tool/chart), [QR Code](/#/tool/qr-code), [Gradient](/#/tool/gradient), [Snippet](/#/tool/snippet), [Flow Chart](/#/tool/org-chart), [Pricing](/#/tool/pricing-table), [Wordmark](/#/tool/wordmark) at [Text](/#/tool/text-helper). Lumalaki ang listahan habang mas maraming tool ang nagkakaroon ng automatic saving.
+::: details Aling mga tool ang nag-sa-save habang ginagawa mo
+Sa web app, nag-sa-save habang ginagawa mo ang bawat tool na gumagawa ng dokumento: Design, Chart, QR Code, Text, Sandbox at ang iba pa. Hindi ito ginagawa ng mga sumusunod na tool:
 
-Sa mga tool na ito, ang unang pagbabago mo ay nag-file na ng gawa sa **Mga Project** na parang na-save mo na, at iniingatan ang mga susunod na pagbabago sa loob ng ilang segundo. Kaya nandoon pa rin sa Projects ang isang hindi na-save na likha kahit isara mo ang tab, at muling bubukas na naka-mark ang mga pagbabago nito bilang hindi na-save. Tinatanggal pa rin ng **Umalis nang hindi nagse-save** ang mga ito, at may kopya ang History ng mga natanggal na edit sa loob ng 30 araw. Ang muling pagbukas ng tool mula sa home screen ay nagsisimula ng bagong likha; buksan ang naunang isa mula sa Projects.
+- mga tool na gumagana sa isang file na dinadala mo, tulad ng Redact, Sign o Convert Image, dahil hindi kailanman nag-iimbak si Lolly ng kopya ng file na iyon;
+- mga tool na nagre-record mula sa camera, microphone o screen mo, tulad ng Record, Screen Capture at Voice Recorder;
+- ang 3D at Darkroom, na may sariling file na dinadala;
+- isang tool na walang babaguhin, tulad ng Countdown.
+
+Sa mga ibang tool, ang unang pagbabago mo ay nag-file na ng gawa sa **Mga Project** na parang na-save mo na, at iniingatan ang mga susunod na pagbabago habang ginagawa mo ito, kapag tapos nang gumuhit ang tool. Kaya nandoon pa rin sa Projects ang isang hindi na-save na likha kahit isara mo ang tab, at muling bubukas na naka-mark ang mga pagbabago nito bilang hindi na-save. Tinatanggal pa rin ng **Umalis nang hindi nagse-save** ang mga ito, at may kopya ang History ng mga natanggal na edit sa loob ng 30 araw. Ang muling pagbukas ng tool mula sa home screen ay nagsisimula ng bagong likha; buksan ang naunang isa mula sa Projects.
+
+Kapag naka-on ang [Sync](/info/sync.html), pumupunta rin sa ibang device mo ang isang likhang na-file sa ganitong paraan, tulad ng iba pang laman ng Projects. Nananatili ang mga bersyon nito sa device kung saan ito ginawa.
+
+Kung bukas ang isang likha sa dalawang tab at nag-save ka sa pareho, ang huling pag-save ang mananatili. Hindi nawawala ang ginawang pinalitan nito: nasa ilalim ito ng **Protected drafts** sa History ng likha, may **Open draft as a copy**.
 
 Gumagana ito sa web app lang, hindi sa desktop o mobile app, at hindi habang nagtatrabaho ka nang live kasama ang iba.
 :::
@@ -111,12 +120,12 @@ Sa iPhone, iPad at Android, pinapalitan ng bagong file ang naunang isa na may pa
 ## Bumalik sa mas naunang bersyon
 
 - **Habang nasa pagbisitang ito:** umuurong ang **I-undo** sa huli mong 100 pagbabago, hangga't hindi ka umaalis sa tool o nagre-reload. Tingnan ang [Undo at redo](/info/using.html#undo-and-redo).
-- **Sa siyam na tool na nag-sa-save habang ginagawa mo:** iniingatan ang mas naunang bersyon ng bawat likha. Sundin ang mga hakbang sa ibaba.
+- **Sa [mga tool na nag-sa-save habang ginagawa mo](#which-tools-save-as-you-work):** iniingatan ang mas naunang bersyon ng bawat likha. Sundin ang mga hakbang sa ibaba.
 - **Lahat sa device:** kapag naka-on ang [Sync](/info/sync.html), ibinabalik ng **Restore an earlier copy**, sa ilalim ng **Mga Setting → Mga nakakonektang serbisyo**, ang isa sa huling pitong pang-araw-araw na kopya, o ang kopya mula bago ang huli mong apply. Tutugma noon ang lahat sa device na ito sa kopyang iyon, hindi lang iisang disenyo.
 
-Para buksan ang mas naunang bersyon sa isa sa siyam na tool:
+Para buksan ang mas naunang bersyon:
 
-1. Pindutin ang **History**, ang clock button sa tabi ng **I-undo** at **I-redo**. Sa Design, nasa top bar ang **History**; sa telepono, pindutin ang **•••** at pagkatapos ay **History**.
+1. Pindutin ang **History**, ang clock button sa tabi ng **I-undo** at **I-redo**. Sa Design, nasa top bar ang **History**; sa telepono, pindutin ang **•••** at pagkatapos ay **History**. Sa mga tool na walang **I-undo**, tulad ng Text at Sandbox, nasa tabi ng **Home** ang **History** sa kaliwang itaas.
 2. Hanapin ang bersyon ayon sa petsa at oras nito. Kinukuha ang mga row ng **Automatic checkpoint** habang ginagawa mo ito; ang mga row ng **Saved version** ay ang mga oras na nag-save ka.
 3. Pindutin ang **Open as a copy**. Bubukas ang bersyon bilang bagong likha, at mananatili ang isang bukas ka na sa dating anyo. Nasa **Mga Project** ang kopya, may "(copy)" pagkatapos ng pangalan nito.
 
@@ -125,7 +134,9 @@ Para itago ang isang bersyon ayon sa pangalan, pindutin ang **Name version**, ma
 ::: details Ang History panel at ang History page
 Nililista rin ng **History** panel ang mga row ng **Recovered work**, at hawak ng **Protected drafts** ang huli mong mga edit sa pagitan ng mga checkpoint, may **Open draft as a copy**. Tinutulungan ka ng **Compare** at **Check assets** na pumili bago ka magbukas ng kopya. Baguhin ang **This creation** tungong **All history on this device** para makita ang bawat likha.
 
-Nagiging mas iilan ang Automatic checkpoint habang tumatagal: isa kada minuto para sa huling oras, isa kada oras para sa huling araw, isa kada araw para sa 30 araw, tapos isa kada linggo. Iniingatan lahat ang mga Saved version. Ang pagbura ng isang likha mula sa **Mga Setting → Imbakan** ay nagbubura rin ng mga bersyon nito.
+Nagiging mas iilan ang Automatic checkpoint habang tumatagal: isa kada minuto para sa huling oras, isa kada oras para sa huling araw, isa kada araw para sa 30 araw, tapos isa kada linggo. Iniingatan lahat ang mga Saved version at ang mga pinangalanang bersyon. Ang pagbura ng isang likha ay naglilipat din ng mga bersyon nito sa **Trash**, at inaalis ito ng **I-delete nang tuluyan**.
+
+Kapag napuno na ang imbakan ng History, ang pinakalumang Automatic checkpoint ng mga likhang hindi mo binuksan sa loob ng 30 araw ang unang inaalis. Palaging naiingatan ang isang save, kahit noon: isinusulat ito bilang kasalukuyang gawa, at sinasabi ng History na hindi ini-keep ang save na ito bilang isang bersyon. Ipinapakita ng **Mga Setting → Imbakan** kung gaano karami ang ginagamit ng History.
 
 Sinasaklaw ng **History** page (`#/history`, o **Open app history** sa panel) ang bawat likha sa browser na ito. Sa computer, buksan ang page mula sa clock button sa kanang itaas ng home screen o ng **Mga Project**. Sa telepono, pumunta sa tools gallery sa home screen, pindutin ang round logo button sa kanang itaas at piliin ang **Mga naka-save na session**, na magbubukas ng History. Mula sa **Mga Project**, wala pang ginagawa ang item na iyon.
 
@@ -157,7 +168,7 @@ Para ilipat ang lahat nang minsan:
 3. Sa bagong device, buksan ang **Mga Setting → Imbakan**, pindutin ang **I-import ang data…**, piliin ang file at pindutin ang **I-import**.
 
 ::: note Ang naiiwan
-Nananatili sa bawat device ang mga sign-in, key at sync passphrase. Hindi naglalakbay sa anumang ruta ang listahan ng kamakailang download, offline download at AI model. Naglalakbay lang ang version history sa isang **Export my data** file, hindi sa pamamagitan ng Sync o isang `.lolly`. Puwedeng i-download at buksan ang isang kopyang hawak ng Sync sa storage mo, o piliin sa **Import data…**, tulad ng isang backup file; hihingi ng passphrase mo ang isang naka-encrypt na kopya.
+Nananatili sa bawat device ang mga sign-in, key at sync passphrase. Hindi naglalakbay sa anumang ruta ang listahan ng kamakailang download, offline download at AI model. Naglalakbay lang ang version history sa isang **Export my data** file, hindi sa pamamagitan ng Sync o isang `.lolly`. Kapag masyadong malaki ang history para sa isang file, inaalis ang pinakalumang Automatic checkpoint at sinasabi ng export line kung ilan. Puwedeng i-download at buksan ang isang kopyang hawak ng Sync sa storage mo, o piliin sa **Import data…**, tulad ng isang backup file; hihingi ng passphrase mo ang isang naka-encrypt na kopya.
 :::
 
 ::: details Ano ang laman ng backup file
@@ -176,7 +187,7 @@ Pindutin ang **I-export ang data ko** sa ilalim ng **Mga Setting → Imbakan**, 
 
 Kapag nagsimula ang app, hinihiling ng Lolly sa browser na huwag i-clear ang imbakan nito kapag paubos na ang espasyo ng device. Ang browser ang magpapasya. Sa ilalim ng **Mga Setting → Magagamit offline**, ang isang linyang nagsisimula sa **Protected** ay nangangahulugang sumang-ayon ang browser; ang "The browser may clear downloads if the device runs low on space" ay nangangahulugang hindi, at muling magtatanong ang **Protektahan ang mga download**. Kung hindi sumang-ayon ang browser, puwede nitong i-clear ang na-save na gawa pati ang mga download kapag paubos ang espasyo, kaya mag-ingat ng kamakailang **I-export ang data ko** na file.
 
-Ipinapakita ng **Mga Setting → Imbakan** kung gaano karaming espasyo ang ginagamit ng bawat uri ng data. Inaalis ng **Burahin ang cache** ang mga na-download na catalogue file, na muling magda-download kapag kailangan. Hinihiling sa iyo ng **Burahin ang lahat ng aking data** na mag-type ng isang salita, i-off ang Sync, at pagkatapos ay alisin ang lahat ng hawak ng Lolly sa browser na ito: ang profile at setting mo, mga naka-save na session kasama ang history at Trash ng mga ito, mga upload, font at design system, ang download log, resulta ng Convert, na-download na AI model at offline copies. Nananatili ang mga file na na-download mo kung saan mo ito na-save. Magsisimula ang app tulad ng sa unang bisita.
+Ipinapakita ng **Mga Setting → Imbakan** kung gaano karaming espasyo ang ginagamit ng bawat uri ng data. Binibilang ng row ng **History** nito ang Automatic checkpoint, ang mga preview at recovery draft ng mga ito; pinapalaya ng **Remove automatic checkpoints older than 30 days** ang espasyong iyon at iniingatan ang mga Saved version at pinangalanang bersyon. Inaalis ng **Burahin ang cache** ang mga na-download na catalogue file, na muling magda-download kapag kailangan. Hinihiling sa iyo ng **Burahin ang lahat ng aking data** na mag-type ng isang salita, i-off ang Sync, at pagkatapos ay alisin ang lahat ng hawak ng Lolly sa browser na ito: ang profile at setting mo, mga naka-save na session kasama ang history at Trash ng mga ito, mga upload, font at design system, ang download log, resulta ng Convert, na-download na AI model at offline copies. Nananatili ang mga file na na-download mo kung saan mo ito na-save. Magsisimula ang app tulad ng sa unang bisita.
 
 ![Ang storage card sa screen na kasinlapad ng telepono: pinangalanan ang bawat kategorya ng datos na nasa device, kasama ang Clear all my data na button sa ibaba](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

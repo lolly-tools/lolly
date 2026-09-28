@@ -57,9 +57,9 @@ Lolly er pressen, ikke skissen. Ta med hva du vil til idéutviklingen - en model
 
 > Stol på den kreative prosessen, skaler med presisjon.
 
-## Reglene ligger i verktøyet, ikke i filen
+## Reglene ligger i verktøyet og malene dets
 
-Alle andre verktøy på markedet produserer en *fil*, og en fil kan bare ses i etterkant, én output om gangen. Lolly flytter merkevarereglene **ett steg oppstrøms**. Eksakte heksfarger, lisensierte skriftfiler, utfallsmarginer, avstander - alt sammen er hardkodet inn i verktøyets HTML og CSS, slik at malen *ikke kan* levere en ressurs som bryter med merkevaren. Selve oppsettet håndhever reglene.
+Alle andre verktøy på markedet produserer en *fil*, og en fil kan bare ses i etterkant. Lolly flytter merkevarereglene **ett steg oppstrøms**. Eksakte heksfarger, lisensierte skriftfiler, utfallsmarginer, avstander - alt sammen er hardkodet inn i verktøyets HTML og CSS, slik at malen *ikke kan* levere en ressurs som bryter med merkevaren. Selve oppsettet håndhever reglene.
 
 Så det som er verdt å se på, er **verktøyet**, ikke hver fil det lager. Få verktøyet riktig, og hver ressurs det noensinne produserer, er merkevaretro av konstruksjon. Hvordan du sjekker arbeidet ditt, og hvem som gjør det, er fortsatt opp til deg; Lolly gjør det som sjekkes mindre og outputen raskere å lage.
 

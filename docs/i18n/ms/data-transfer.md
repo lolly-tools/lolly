@@ -39,7 +39,7 @@ Bundel itu sengaja dijadikan zip biasa: ia bertahan pada mana-mana pengangkutan 
 
 `profile.json` adalah bahagian terkecil dan yang pertama dilihat oleh pembaca dalam aplikasi: butiran yang diisi sekali oleh pengeluar, ditambah opt-in yang membenarkan alat menggunakannya.
 
-![Borang butiran Profile yang menjadi profile.json - nama, hubungan, gambar kepala dan opt-in di sebelahnya](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![Borang butiran Profil yang menjadi profile.json: nama, butiran hubungan dan foto profil](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

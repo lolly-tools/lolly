@@ -49,7 +49,11 @@ export function toolEmojiParams(): EmojiParamPair | null {
 // ── Shell-side type aliases (all erased at build; no runtime effect) ──────────
 
 /** The view root; the router reads back a `_cleanup` teardown hook off it. */
-export type ViewEl = HTMLElement & { _cleanup?: () => void };
+export type ViewEl = HTMLElement & {
+  _cleanup?: () => void;
+  /** Asked by the router before it leaves this view (main.ts navigate()). */
+  _beforeLeave?: () => Promise<boolean>;
+};
 
 /** `render.transcribe` - the manifest's speech-to-text declaration (v1.150). */
 export type TranscribeSpec = NonNullable<ToolRenderSpec['transcribe']>;

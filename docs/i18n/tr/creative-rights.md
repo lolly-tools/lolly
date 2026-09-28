@@ -1,6 +1,6 @@
 # Yaratıcı haklar, atıflar ve sende kalanlar
 
-Başkalarının yaptığı iyi bir işi, lisanslama uzmanı olmadan ve onu yapan insanları sessizce göz ardı etmeden kullanabilmelisin. Bu yüzden Lolly, kullandığı her işin kaynağını tutar, onun için kaydedilen lisansı okur, o lisansın senin gerçekte yaptığın kullanımdan ne istediğini hesaplar, bir programın yapabileceği kısmı yapar ve yalnızca senin yapabileceğin kısmı adlandırır.
+Başkalarının yaptığı iyi bir işi, lisanslama uzmanı olmadan ve onu yapanları sessizce göz ardı etmeden kullanabilmelisin. Bu yüzden Lolly, kullandığı her işin kaynağını tutar, onun için kaydedilen lisansı okur, o lisansın gerçekte yaptığın kullanımdan ne istediğini hesaplar, bir programın yapabileceği kısmı yapar ve yalnızca senin yapabileceğin kısmı sana söyler.
 
 Bunların hiçbiri hukuki tavsiye değildir ve hiçbiri projen hakkında bir hüküm değildir. Lolly gerçekleri kaydeder, lisansların kendi hukuki metinlerinden okunmuş küçük bir kurallar kümesini uygular ve çalışmasını gösterir. Koşullu bir lisans, normal ve izin verilen bir seçimdir. Hiçbir zaman bozuk bir varlık olarak sunulmaz.
 
@@ -14,7 +14,7 @@ Bunların hiçbiri hukuki tavsiye değildir ve hiçbiri projen hakkında bir hü
 
 ## Bununla ilk karşılaştığın yer
 
-Emoji setleri günlük durumdur. Twemoji, CC BY 4.0'dır, bu yüzden içinde emoji bulunan bir başlık, çalışmanın atfı yapılmış olarak dışa aktarılır ve yapman gereken hiçbir şey kalmaz. Her iki OpenMoji seti de CC BY-SA 4.0'dır, bu yüzden onların bir glifini bir marka işlemesiyle yeniden renklendirmek bir uyarlamadır ve bu uyarlamayı paylaşmak senden bir kez uyumlu bir lisans seçmeni ister. Seti seçmek asla engellenmez ve set denetimi, onu seçtiğin yerde lisansı adlandırır. Aynı kurallar bir katalog illüstrasyonu, bir LUT, bir yazı tipi ve kaydedilmiş başka herhangi bir iş için de geçerlidir.
+Emoji setleri günlük durumdur. Twemoji CC BY 4.0'dır, bu yüzden içinde emoji olan bir başlık, çizim kredilendirilmiş ve senin yapman gereken hiçbir şey kalmamış halde dışa aktarılır. Her iki OpenMoji seti de CC BY-SA 4.0'dır, bu yüzden bir marka işlemiyle onların glifinden birini yeniden renklendirmek bir uyarlamadır ve o uyarlamayı paylaşmak, bir kez uyumlu bir lisans seçmeni ister. Seti seçmek asla engellenmez ve set denetimi, seçimini yaptığın yerde lisansı gösterir. Aynı kurallar bir katalog illüstrasyonu, bir LUT, bir yazı tipi ve kaydedilmiş başka her iş için de geçerlidir.
 
 ## Lolly'nin kullandığı sözcükler
 
@@ -64,7 +64,7 @@ Eksik lisans bilgisi, bir işin aktarılmakta özgür olduğuna dair bir kanıt 
 ## Lolly'nin senin için yaptıkları
 
 - **Katalogda.** Bir işin sayfası, kaynağını ve yaratıcısını, orijinal etiketi altında tutulan kanonik lisans adını, kaydedilmişse kopyalanabilir bir atfı ve onu kullanmanın ne istediğini söyleyen tek bir satırı gösterir. Bir kart, gereksinimi belirtir; bir dışa aktarmanın tamamlandığını asla iddia etmez.
-- **Dışa aktarma panelinde.** Bir render kaydedilmiş bir iş kullandığında bir Kaynak atıfları kartı belirir. Durumu, Ayrıntılar'ın arkasındaki atıf metnini, bir Atfı kopyala düğmesini ve bir karar gerektiğinde satır içi bir kartı gösterir. Bir karar asla engelleyici bir iletişim kutusu değildir: kalan bir eylemi olan bir indirme devam eder ve özel iş kullanılabilir kalır.
+- **Dışa aktarma panelinde.** Bir render kaydedilmiş bir iş kullandığında, kendi dışa aktarımın için seçtiğin Lisans'ın yanında, Content protection içinde bir Kaynak atıfları kartı belirir. Durumu, Ayrıntılar'ın arkasındaki atıf metnini, bir Atfı kopyala düğmesini ve bir karar gerektiğinde satır içi bir kartı gösterir. Bir karar asla engelleyici bir iletişim kutusu değildir: kalan bir eylemi olan bir indirme devam eder ve özel iş kullanılabilir kalır.
 - **Dosyada.** Kaydedilmiş bir iş yerleştiren bir dışa aktarma, ayrı iş başına bir Content Credentials kaynak bileşeni yazar; bu, orijinal baytlara kamuya açık adreslerinde bağlıdır ve yaratıcıyı, lisansı ve bağlantısını, kaynağı, sürümü ve değişiklikleri taşır. Lolly gözlemlediği şeyi imzalar. Yukarı akış sanatçısı adına bir iddiayı asla imzalamaz ve Verify ikisinden hangisinin gerçekleştiğini söyler.
 - **Yazdıktan sonra.** Teslim edilen baytlar, herhangi bir şey atıfların dahil edildiğini söylemeden önce geri okunur. Doğrulanmayan bir kimlik bilgisi, teslim edilmiş bir atıf olarak sayılmaz.
 - **Düzenlenebilir bir `.lolly` dosyasında.** Baytlar yalnızca incelenen bir lisans kaynağı aktarma izni kaydettiğinde yolculuk eder ve paketin `CREDITS.txt` dosyası neyin yolculuk ettiğini, hangi lisans altında olduğunu ve nedeniyle birlikte neyin geri tutulduğunu listeler. Kaydedilmemiş bir lisans geri tutulur. Geri tutulan içeriği yine de bilerek dahil edebilirsin ve atıf dosyası bunun senin seçimin olduğunu kaydeder.

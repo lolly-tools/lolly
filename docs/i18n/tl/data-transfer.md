@@ -39,7 +39,7 @@ Sadyang isang plain zip ang bundle: nakakaligtas itong buo sa anumang transport,
 
 Ang `profile.json` ang pinakamaliit na bahagi at ang unang nakikita ng isang reader sa app: ang mga detalyeng pinupunan ng isang producer nang isang beses, kasama ang opt-in na nagpapahintulot sa mga tool na gamitin ang mga ito.
 
-![Ang Profile details form na nagiging profile.json - pangalan, contact, headshot at ang opt-in sa tabi nila](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![Ang form ng mga detalye ng Profile na nagiging profile.json: pangalan, contact detail at larawan sa profile](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

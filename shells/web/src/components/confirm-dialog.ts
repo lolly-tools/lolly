@@ -11,6 +11,7 @@
  * the safe Cancel button takes default focus.
  */
 import { escape } from '../utils.ts';
+import { t } from '../i18n.ts';
 import { jellyActive } from '../lib/jelly.ts';
 import { mountModal } from './modal.ts';
 
@@ -48,7 +49,7 @@ export function confirmDialog({ title, message, confirmLabel = 'Delete', danger 
       <h2 class="modal-title">${escape(title)}</h2>
       <p class="modal-msg">${escape(message)}</p>
       <div class="modal-actions">
-        ${actionBtn('Cancel', 'data-act="cancel"', 'cancel')}
+        ${actionBtn(t('Cancel'), 'data-act="cancel"', 'cancel')}
         ${actionBtn(confirmLabel, 'data-act="ok"', danger ? 'danger' : 'plain')}
       </div>`;
     const modal = mountModal<boolean>(content, {
@@ -95,7 +96,7 @@ export function choiceDialog({ title, message, choices = [], tag }: ChoiceDialog
       <h2 class="modal-title">${escape(title)}</h2>
       <p class="modal-msg">${escape(message)}</p>
       <div class="modal-actions modal-actions--choices">
-        ${actionBtn('Cancel', 'data-act="cancel"', 'cancel')}
+        ${actionBtn(t('Cancel'), 'data-act="cancel"', 'cancel')}
         ${choices.map(c => actionBtn(c.label, `data-choice="${escape(c.id)}"`, c.primary ? 'primary' : 'plain')).join('')}
       </div>`;
     const modal = mountModal<string | null>(content, {
@@ -186,7 +187,7 @@ export function promptDialog({ title, message, confirmLabel = 'OK', placeholder 
              autocomplete="${inputType === 'password' ? 'off' : 'on'}" spellcheck="false" placeholder="${escape(placeholder)}"
              style="width:100%;box-sizing:border-box;padding:9px 12px;margin:.1rem 0 .3rem;font-size:14px;border:1px solid hsl(var(--input));border-radius:var(--radius);background:hsl(var(--background));color:hsl(var(--foreground))">`}
       <div class="modal-actions">
-        ${actionBtn('Cancel', 'data-act="cancel"', 'cancel')}
+        ${actionBtn(t('Cancel'), 'data-act="cancel"', 'cancel')}
         ${actionBtn(confirmLabel, 'data-act="ok"', 'primary')}
       </div>`;
     const modal = mountModal<string | null>(content, {

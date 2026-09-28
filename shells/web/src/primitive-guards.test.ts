@@ -1922,7 +1922,8 @@ const R12_RATCHETS: Array<{ what: string; pin: number; count: (text: string) => 
     // owns the profile and export inputs by class now.
     // 300 to 299: help-tip paint is shared by the component and uses semantic elevation.
     // Shared surfaces replace repeated paint in the pending editor and report work.
-    pin: 263,
+    // 263 to 262: the docs reading components print with an outline, not a shadow.
+    pin: 262,
     count: (t) => [...t.matchAll(/box-shadow:\s*([^;}]+)/g)]
       .map(m => m[1]!.trim())
       .filter(v => v !== 'none' && !/var\(--(?:ui-(?:edge|elevation|effect)|shadow|edge|ring-focus|bevel)/.test(v)).length,

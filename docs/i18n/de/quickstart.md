@@ -16,7 +16,7 @@ Ihre Marke in Lolly ist ein kleines **Design-Tokens**-Dokument - Farben, Schrift
 
 Beim ersten Start landen Sie in der **Galerie**, darüber ein kurzer Willkommensdialog mit drei Wegen hinein - **Machen Sie es sich zu eigen** (das Brand Studio unter `#/start`), **Bringen Sie Ihr Design mit** (legen Sie eine Figma-, Penpot-, InDesign- oder PDF-Datei ab, und sie öffnet sich als bearbeitbares Layout - der schnellste Weg zu [Bringen Sie ein, was Sie bereits haben](#2-bring-in-what-you-already-have) weiter unten) und **Community-Tools entdecken** - dazu eine Reihe von Sprachen, falls Englisch nicht Ihre ist. Nehmen Sie die erste Karte, und Sie landen im [**Brand Studio**](/info/brand-studio.html). Geben Sie ihm einen Namen und eine Primärfarbe, und Lolly *leitet* daraus eine vollständige, barrierefreie Palette ab - helle/dunkle Oberflächen, Text, Akzente - mit derselben Farbmathematik, die die Engine überall sonst verwendet.
 
-![Der Raum Farben im Brand Studio - eine Primärfarbe und die barrierefreie Palette, die Lolly daraus ableitet](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Wählen Sie eine Schrift, und Sie haben in weniger als einer Minute eine funktionierende Marke. Von dort führen Sie die sechs Räume des Studios - Übersicht, Farben, Typografie, Logos, Tokens, Dateien - so weit, wie Sie möchten, in beliebiger Reihenfolge, und Sie können jederzeit zurückkommen und alles nachschärfen. Der Tab **Design-System** im Dashboard (`#/d`) zeigt das Ergebnis nur zur Ansicht und verweist zurück auf `#/start`, wo bearbeitet wird (es sei denn, Sie nutzen einen markengesperrten Build von Lolly, bei dem die Marke fest steht und es nichts zu ändern gibt).
+![Der Raum Farben im Brand Studio bei einer frischen Installation - ein Live-Chip, ein Feld und die ganze erste Entscheidung](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Wählen Sie eine Schrift, und Sie haben in weniger als einer Minute eine funktionierende Marke. Von dort aus führen Sie die sechs Räume des Studios - Übersicht, Farben, Schrift, Logos, Tokens, Dateien - so weit, wie Sie möchten, in beliebiger Reihenfolge, und Sie verfeinern jederzeit weiter, wenn Sie zurückkommen. Der Tab **Design-System** im Dashboard (`#/d`) zeigt das Ergebnis nur zur Ansicht und verweist zurück auf `#/start`, wo bearbeitet wird (ein gesperrtes Designsystem bleibt schreibgeschützt, während Ihre eigenen lokalen Systeme bearbeitbar bleiben).
 
 ### Eine bereits vorhandene Marke importieren
 
@@ -27,7 +27,7 @@ Wenn Ihre Marke bereits als Design-Tokens erfasst ist - aus **Penpot**, **Tokens
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` akzeptiert alle drei Containerformen, in denen Penpot / Tokens Studio dasselbe Dokument exportieren - eine einzelne `tokens.json`, ein Verzeichnis (`$metadata.json` + Dateien pro Set) oder ein `project.penpot`-Archiv. Mit `--activate` registriert es die Marke als Profil, wechselt zu ihr und baut den Katalog neu auf. Siehe [Konfiguration](/info/configuration.html) dafür, wie Markenpakete und Profile zusammenpassen.
@@ -60,7 +60,7 @@ Fertige Arbeiten aus **Figma, Penpot, Illustrator, InDesign oder einer beliebige
 
 Der gesamte Import erfolgt **auf Ihrem Gerät** - die Datei wird in Ihrem Browser verarbeitet, und nichts wird hochgeladen. Alle Details und was genau übernommen wird, finden Sie unter [Ein Design importieren](/info/design-import.html).
 
-Stattdessen ein **PowerPoint-Deck**? Legen Sie die `.pptx` auf **Deck Builder**, um es Folie für Folie zu bearbeiten, schon auf Ihre Marke gesetzt - oder starten Sie **Ein Deck rebranden**, und Sie bekommen dasselbe Deck neu eingefärbt zurück, mit Diagrammen und Animationen intakt.
+Stattdessen eine **PowerPoint-Präsentation**? Legen Sie die `.pptx` auf einer beliebigen Upload-Fläche ab, um ihre Folien als Assets abzulegen, schreiben Sie ein neues Deck aus Markdown in **Markdown Slides**, oder lassen Sie **Rebrand** laufen, um dasselbe Deck neu eingefärbt zurückzubekommen, mit intakten Diagrammen und Animationen.
 
 ### Vom Einzelstück zur Vorlage
 
@@ -72,7 +72,7 @@ Die [Community-Werkzeugsammlung](/info/builders.html) ist Open Source und marken
 
 Füttern Sie die Werkzeuge auch mit Ihren eigenen offenen Daten: Fügen Sie eine **CSV**- oder **JSON**-Tabelle ein oder legen Sie sie ab, und die sich wiederholenden Felder eines Werkzeugs werden daraus befüllt - ein fertiges Asset pro Zeile.
 
-## 3. Erstellen Sie etwas - und teilen oder automatisieren Sie es
+## 3. Erstellen Sie etwas - und teilen oder automatisieren Sie das Ergebnis
 
 Mit einer aktiven Marke und Ihrem Material zur Hand erzeugt jedes Werkzeug eine fertige Datei:
 

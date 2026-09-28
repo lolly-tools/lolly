@@ -390,7 +390,7 @@ Web shell: IndexedDB. Tauri: filesystem. CLI: in memoria. I tool vedono solo `ho
 
 Gli utenti possono salvare più slot di modifica con nome per ogni tool e tornare a ogni sessione in seguito. Non è richiesta la creazione di un account; lo stato è per dispositivo. Poiché il bridge è l'unico punto di passaggio, quello stato per dispositivo è anche *portabile*: `shells/web/src/data-transfer.ts` rilegge tutto tramite `host.profile`/`host.state`/`host.assets` in un unico zip `lolly-backup` che si importa su qualsiasi altra installazione - la risposta offline a "passa a un nuovo dispositivo" che non richiede un server (specifica completa: `docs/data-transfer.md`). La sincronizzazione multi-dispositivo funziona già sopra questa base, inviando lo stesso pacchetto allo storage scelto dalla persona (`docs/sync.md`).
 
-### 7. I tag di maturità dicono cos'è un tool, per design
+### 7. I tag di maturità dicono cos'è uno strumento
 
 Ogni tool dichiara `status: official | community | experimental` nel proprio manifest. La galleria ordina per status. I tool sperimentali filigranano automaticamente i propri export - la filigrana è applicata da `host.export.render`, non dal tool, quindi non può essere disattivata da un autore di tool non ufficiale.
 
@@ -434,7 +434,7 @@ Componi il render di qualsiasi tool: un figlio **SVG** resta un vero vettore qua
 
 ---
 
-## Ciclo di vita, dall'inizio alla fine
+## Il ciclo di vita di un render
 
 Un utente apre `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 

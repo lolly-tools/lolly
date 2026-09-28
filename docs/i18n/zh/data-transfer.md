@@ -39,7 +39,7 @@ Lolly 用户积累的一切都保存**在自己的设备上** - 没有账号,没
 
 `profile.json` 是最小的一部分,也是应用中读取者最先看到的部分:制作者只需填写一次的详细信息,以及允许工具使用这些信息的选择开关。
 
-![成为 profile.json 的个人资料详情表单 - 姓名、联系方式、头像以及旁边的选择开关](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![变成 profile.json 的个人资料详情表单：姓名、联系方式和头像](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

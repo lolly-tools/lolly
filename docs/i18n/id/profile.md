@@ -19,7 +19,7 @@ Semua isi profil tersimpan **di perangkat**, dalam basis data lokal browser (Ind
 | **Accessibility** | Empat sakelar kenyamanan - *Reduce motion*, *Hide colourful previews*, *High contrast*, *Large text* - disimpan pada catatan profil, sehingga ikut terbawa dalam ekspor profil. Lihat [Accessibility](#accessibility). |
 | **Your work** | Sesi tersimpan (dengan thumbnail) - diatur ke dalam folder bersarang di **[Projects](/info/using.html)** - pustaka **My images** Anda, dan statistik aktivitas lokal, semuanya terkait dengan profil ini. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
 ![Layar Profile - nama, kontak, foto profil opsional, dan preferensi Anda](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -35,7 +35,7 @@ Kata "profil" mengesankan satu orang yang tetap, tapi di Lolly ini sebenarnya se
 
 ### Sebagai individu
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -53,7 +53,7 @@ Di Lolly, peran itu hanyalah **profil lain yang Anda simpan siap pakai** - sebua
 
 Pada suatu saat, satu instalasi memiliki **satu profil aktif** - detail yang dilihat oleh sebuah alat saat ini. Tidak ada pengalih profil di dalam aplikasi; sebagai gantinya, setiap profil adalah **bundle portabel** (satu file `.zip`, lihat [di bawah](#moving-a-profile-to-a-new-device)). Ini sengaja dibuat sebagai mekanisme yang sama dengan memindahkan ke perangkat baru - sebuah profil adalah file yang dapat Anda simpan, salin, dan muat.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 - <!--i:trash--> **Peralihan paling bersih:** **Pengaturan → Preferences → Penyimpanan → Hapus semua data saya**, lalu **Impor** bundle untuk konteks yang akan Anda masuki. Anda sekarang berkarya murni sebagai profil tersebut.
 - <!--i:layers--> **Layering:** mengimpor *tanpa* menghapus terlebih dahulu **menggabungkan** - sesi dan gambar yang diimpor mendarat di atas apa yang sudah ada; ketika keduanya memiliki yang sama, salinan yang disimpan lebih baru dipertahankan, dan sisanya dibiarkan. Folder, favorit dan template ditambahkan ke milik Anda, dan detail serta pengaturan Anda sendiri tetap ada. Berguna untuk menarik sesi tersimpan satu tim ke dalam setup Anda sendiri; bukan yang Anda inginkan jika Anda memerlukan batas peran yang bersih.
@@ -122,7 +122,7 @@ Untuk tata letak bundel yang tepat, kebijakan versi dan aturan integritas, lihat
 
 ## Cara tool menggunakan profil Anda
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 Sebuah tool hanya *mengisi otomatis* field profil yang memang secara eksplisit dirancang untuk diikat:
 

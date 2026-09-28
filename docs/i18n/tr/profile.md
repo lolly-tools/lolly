@@ -19,7 +19,7 @@ Bir profildeki her şey, tarayıcının yerel veritabanında **cihazda** yaşar 
 | **Erişilebilirlik** | Profil kaydında tutulan dört konfor anahtarı - *Reduce motion*, *Hide colourful previews*, *High contrast*, *Large text* - böylece bir profil dışa aktarımında da eşlik ederler. Bkz. [Erişilebilirlik](#accessibility). |
 | **Çalışman** | **[Projects](/info/using.html)** içinde iç içe klasörlere düzenlenmiş kaydedilmiş oturumlar (küçük resimlerle) - **My images** kütüphanen (Görsellerim) ve bu profile bağlı yerel etkinlik istatistikleri. |
 
-![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=1400&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-card--appearance&filename=pd-theme-picker)
+![Three theme cards, each previewing its own type and colour, with the active one flagged](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dappearance-section&width=1440&height=1400&dpi=192&waitMs=1600&walker=1&format=svg&cropSelector=.profile-card--appearance&dark=1&filename=pd-theme-picker)
 
 ![Profil ekranı - ad, iletişim, isteğe bağlı bir vesikalık ve tercihlerin](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&walker=1&localize=1&dark=1&filename=profile-details)
 
@@ -43,7 +43,7 @@ Sayfa uzun olduğundan, yanında kendi **ayarlar şeridini** taşır - Bilgileri
 
 ### Bir birey olarak
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ![Bir fotoğraf yükleyene kadar boş kalan, yüklendikten sonra bu cihazda kalan vesikalık kontrolü](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -61,7 +61,7 @@ Lolly'de o rol yalnızca **el altında tuttuğun bir başka profildir** - etkinl
 
 Herhangi bir anda bir kurulumun **tek bir etkin profili** vardır - bir aracın şu anda gördüğü detaylar. Uygulama içinde bir profil değiştirici yoktur; bunun yerine her profil **taşınabilir bir paket**tir (tek bir `.zip`, bkz. [aşağı](#moving-a-profile-to-a-new-device)). Bu, kasıtlı olarak yeni bir cihaza taşınmakla aynı mekanizmadır - bir profil, kaydedebileceğin, kopyalayabileceğin ve yükleyebileceğin bir dosyadır.
 
-![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&format=svg&cropSelector=.store-meter&filename=pd-storage-meter)
+![The storage meter, breaking down saved sessions, images and cache against what the browser actually reports](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Dstorage-section&width=1440&height=1800&dpi=192&waitMs=2400&css=.store-manages%2C.storage-subsection%2C.storage-actions%7Bdisplay%3Anone%7D&walker=1&format=svg&cropSelector=.store-meter&dark=1&filename=pd-storage-meter)
 
 - <!--i:trash--> **En temiz geçiş:** **Ayarlar → Preferences → Depolama → Tüm verilerimi temizle**, ardından geçtiğin bağlam için paketi **İçe aktar**. Artık yalnızca o profil olarak oluşturuyorsun.
 - <!--i:layers--> **Katmanlama:** önce temizlemeden içe aktarmak **birleştirir** - içe aktarılan oturumlar ve görseller zaten orada olanın üstüne iner; ikisinde de aynısı varsa, daha yakın zamanda kaydedilen kopya tutulur, geri kalanına dokunulmaz. Klasörler, favoriler ve şablonlar seninkilere eklenir, ve kendi bilgilerin ve ayarların kalır. Bir ekibin kaydedilmiş oturumlarını kendi kurulumuna çekmek için kullanışlıdır; net bir rol sınırına ihtiyacın varsa istediğin şey bu değildir.
@@ -130,7 +130,7 @@ Tam paket düzeni, sürüm ilkesi ve bütünlük kuralları için bkz. **[Data T
 
 ## Araçlar profilini nasıl kullanır
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 Bir araç yalnızca bağlamak üzere açıkça yapıldığı profil alanlarını *önceden doldurur*:
 

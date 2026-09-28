@@ -263,7 +263,7 @@ pnpm --silent run cli validate ./out.svg --no-default-anchors
 
 Every verdict prints the anchor set that produced it (`Trust anchors: …`), and `--json` carries the same facts as `result.files[].anchors`. "Verified" without "verified by what" is not an answer.
 
-Note what the default does **not** do: a stranger's CA is not trusted because it is a CA. The pin is what makes an identity verifiable, on purpose.
+Note what the default does **not** do: a stranger's CA is not trusted because it is a CA. Only the pin makes an identity verifiable.
 
 ---
 
@@ -342,7 +342,7 @@ Every message below is the exact text the CLI prints, keyed to what to do about 
 
 **If a key is compromised, assume everything it signed is suspect** - not just what was signed after the theft, because there is no trusted timestamp yet and therefore no way to prove *when* anything was signed.
 
-**Revocation, honestly: there is none.** The Lolly CA writes no issuance log and publishes no CRL or OCSP responder - a deliberate privacy choice, recorded in `services/ca/lib/enroll.mjs`, that leaves nothing personal at rest on a server. **Expiry is the only revocation**, which is why certificates are short-lived (7/30/90/365 days). If yours is compromised: stop using it, get a new one and if you run your own root, rotate the root and re-issue - because the only lever you have is un-pinning something. Prefer the shortest lifetime your workflow tolerates; a 7-day certificate is a 7-day incident, a 365-day one is a year-long one.
+**Revocation: there is none.** The Lolly CA writes no issuance log and publishes no CRL or OCSP responder - a deliberate privacy choice, recorded in `services/ca/lib/enroll.mjs`, that leaves nothing personal at rest on a server. **Expiry is the only revocation**, which is why certificates are short-lived (7/30/90/365 days). If yours is compromised: stop using it, get a new one and if you run your own root, rotate the root and re-issue - because the only lever you have is un-pinning something. Prefer the shortest lifetime your workflow tolerates; a 7-day certificate is a 7-day incident, a 365-day one is a year-long one.
 
 **A signature asserts identity, so a shared key is shared accountability.** A key on a CI runner signs as whoever the certificate names, and every file it produces is attributable to that person. Give a build pipeline its own identity with its own address (`release-bot@…`), not a human's. If several people can trigger that pipeline, the credential proves the pipeline signed it and nothing about which of them pressed the button - the credential is not an audit log, and treating it as one is how the wrong person ends up accountable.
 

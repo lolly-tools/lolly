@@ -89,7 +89,7 @@ uttrykkelig blir bedt om det med `--review-file`. Å tømme eller forlate en for
 arbeidstilstanden dens; dette er ikke et løfte om rettsteknisk sletting fra nettleserens eller
 operativsystemets minne.
 
-## Når appen snakker med et nettverk, i sin helhet
+## Hver nettverksforespørsel appen kan gjøre
 
 Tabellen nedenfor er den komplette listen over alt appen henter eller sender over et
 nettverk. Hvis det ikke står her, gjør ikke appen det.

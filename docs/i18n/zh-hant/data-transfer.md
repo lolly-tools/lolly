@@ -39,7 +39,7 @@ Lolly 使用者累積的一切都存放在**自己的裝置上** - 沒有帳號�
 
 `profile.json` 是最小的一部分，也是在應用程式中最先被讀取端看到的部分：由製作者填寫一次的詳細資料，以及讓工具得以使用這些資料的選擇性開啟設定。
 
-![會轉換成 profile.json 的個人檔案詳細資料表單 - 姓名、聯絡方式、大頭照，以及旁邊的選擇性開啟設定](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![變成 profile.json 的個人資料詳細資訊表單：姓名、聯絡方式和大頭照](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

@@ -463,8 +463,33 @@ html[data-a11y-motion="reduce"] .fc-btn-lolly:focus-visible svg .lolly-mark__spi
 }
 .fc-pop-gitem svg { width: calc(18px * var(--a11y-fs)); height: calc(18px * var(--a11y-fs)); display: block; }
 .fc-pop-gitem:hover:not(:disabled) { background: var(--ui-color-surface-muted); }
-/* Right-click context menu - longer, so cap its height and scroll. */
-.fc-context-menu { max-height: min(80vh, 560px); overflow-y: auto; min-width: 210px; }
+/* Right-click context menu - longer, so cap its height and scroll. The stage term
+   keeps the base rule's promise: without it a stage shorter than 572px pushed the
+   menu's tail through its `overflow: hidden` edge. 12px is the 6px inset openContextMenu
+   clamps to at the top and at the bottom. */
+.fc-context-menu { max-height: min(80vh, 560px, calc(100% - 12px)); overflow-y: auto; min-width: 210px; }
+/* More rows below: a menu that runs out of room scrolls, but an overlay scrollbar
+   (macOS, phones) stays hidden until you scroll, so nothing said the stacking and
+   align buttons were down there. A fade on the foot says so while rows are hidden
+   below and goes once the last row is in view. It is a scroll-driven animation, so
+   it costs nothing per frame; where that is unsupported, or the menu fits, the fade
+   stays at opacity 0. The negative top margin lays it over the last rows rather than
+   adding height, and sticky `bottom: 0` pins it to the menu's inner edge; a negative
+   bottom margin here would make every menu 5px shorter than its rows, so each one
+   scrolled by 5px and showed the fade. */
+@supports (animation-timeline: scroll()) {
+  .fc-popover::after {
+    content: ''; flex: none; position: sticky; bottom: 0;
+    height: 32px; margin: -32px -5px 0; pointer-events: none;
+    border-radius: 0 0 var(--ui-radius-panel) var(--ui-radius-panel);
+    background: linear-gradient(to bottom, transparent, var(--ui-color-surface-overlay) 85%);
+    opacity: 0;
+    animation: fc-pop-more linear both;
+    animation-duration: auto;
+    animation-timeline: scroll(nearest block);
+  }
+  @keyframes fc-pop-more { 0%, 94% { opacity: 1; } 100% { opacity: 0; } }
+}
 /* The boolean row is 4 across, which is wider than the align grid's 3 - let the menu
    grow to fit rather than clipping the fourth glyph. */
 .fc-context-menu .fc-pop-grid { justify-content: start; }

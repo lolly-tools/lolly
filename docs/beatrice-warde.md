@@ -35,13 +35,13 @@ This is a Printing Office
 
 %file{printing-office-plaque.jpg} %entity{U.S. Government Printing Office} historic photo gallery %detail{public domain, a work of the United States federal government under 17 U.S.C. 105} %entity{Lolly} %act{published} it unaltered
 
-### Hear it
+### Hear the original
 
 <audio src="media/warde-printing-office.opus" captions="media/warde-printing-office.vtt" label="English: the original"></audio>
 
 %file{warde-printing-office.opus} %entity{Google AI Studio} %act{generated} a reading of Warde's original %detail{Gemini speech model, voice Sulafat, transatlantic accent, empathetic read - generated audio, not a human reader} %entity{Lolly} %act{directed and published} it %sig{signed by %entity{Lolly}} %detail{Ogg/Opus has no standardised C2PA mapping yet, so this credential rides in the file's OpusTags header and Lolly's verifier is the one that reads it}
 
-## What we made of it
+## What we made of her words
 
 ```narrate-skip
 Lolly is a Production Studio
@@ -61,7 +61,7 @@ Friend, you stand on sacred ground
 Lolly is a Production Studio
 ```
 
-### Hear it
+### Hear our version
 
 <video src="media/warde-production-studio.mp4" captions="media/warde-production-studio.vtt" poster="media/warde-production-studio.poster.jpg" label="English" width="1920" height="1080"></video>
 

@@ -35,7 +35,7 @@
 
 ### একজন ব্যক্তি হিসেবে
 
-![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&filename=pd-profile-headshot)
+![The headshot control, empty until you upload a photo that then stays on this device](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
 ![হেডশট কন্ট্রোল, ফাঁকা থাকে যতক্ষণ না আপনি একটি ছবি আপলোড করেন যা এরপর এই ডিভাইসেই থেকে যায়](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-side&walker=1&dark=1&filename=pd-profile-headshot&css=.profile-details-main%7Bdisplay%3Anone%7D)
 
@@ -122,7 +122,7 @@ Lolly আপনি যেতে যেতে ক্যাশ করে, কি�
 
 ## আপনার প্রোফাইল টুল কীভাবে ব্যবহার করে
 
-![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&filename=pd-use-my-details)
+![The single Use my details switch, sitting beside Save Profile and off until you turn it on](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Duse-details&width=1440&height=900&dpi=192&waitMs=1600&format=svg&cropSelector=.profile-check&walker=1&dark=1&filename=pd-use-my-details)
 
 একটি টুল কেবল সেই প্রোফাইল ফিল্ডগুলোই *প্রি-ফিল* করে যেগুলো বাঁধার জন্য এটি স্পষ্টভাবে তৈরি করা হয়েছিল:
 

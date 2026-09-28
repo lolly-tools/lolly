@@ -103,7 +103,7 @@ Your numbers will differ; the pattern will not. A timeline carrying an audio box
 
 The clip is yours to shape: `--fps=60 --seconds=6 --codec=h264 --vq=best` renders six seconds at 60 frames a second in H.264, and `--wait=2` holds two seconds before the first frame for a tool that fades in. These are the export panel's Frame rate, Duration, Start after, Codec and Quality fields; the CLI hands them to the browser tier as the URL params `fps`, `seconds`, `wait`, `codec` and `vq`, so a share link carrying them and this command render the same clip. Without them the tool's own defaults apply - 30 frames a second, the manifest's length or the material's, whichever the tool's hook decides.
 
-Video bytes are **not** reproducible run to run. The browser's paint and encode move, and a frame-timed capture moves with them. Compare video by rendering and inspecting, never by digest - see [How far "the same" goes](/info/cli-automation.html#how-far-the-same-goes-byte-for-byte).
+Video bytes are **not** reproducible run to run. The browser's paint and encode move, and a frame-timed capture moves with them. Compare video by rendering and inspecting, never by digest - see [How far "the same" goes](/info/cli-automation.html#how-far-byte-identical-output-goes).
 
 ### The soundtrack, with no browser (`lolly mix`)
 

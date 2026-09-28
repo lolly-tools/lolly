@@ -131,7 +131,7 @@ Dacă ai apăsat **Salvează ca** sau **Salvează**, e în **Proiecte**, pe ecra
 
 ## Am închis fila. S-a dus lucrarea mea?
 
-Lucrarea salvată e tot în **Proiecte**. Lucrarea nesalvată dispare, cu excepția celor nouă instrumente care salvează pe măsură ce lucrezi, care o păstrează și ele în **Proiecte**. Data viitoare, apasă **Salvează ca** înainte să pleci. Vezi [Dacă ai închis fila sau ai părăsit instrumentul](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
+Lucrarea salvată e tot în **Proiecte**. Lucrarea nesalvată dispare, cu excepția instrumentelor care salvează pe măsură ce lucrezi, care o păstrează și ele în **Proiecte**. Data viitoare, apasă **Salvează ca** înainte să pleci. Vezi [Dacă ai închis fila sau ai părăsit instrumentul](/info/find-your-work.html#if-you-closed-the-tab-or-left-the-tool).
 
 ## Pot să îmi partajez lucrarea ca fișier în loc de link?
 

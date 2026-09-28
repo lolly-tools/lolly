@@ -9,9 +9,9 @@ Ihanda ang web address na dapat buksan ng code, nagsisimula sa `https://`.
 ## Gumawa ng code
 
 1. Buksan ang [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Nasa tabi ng preview ang mga control, o sa itaas nito sa telepono; ang ipinapakita ng preview ang magiging file.
-2. Sa **URL**, palitan ang halimbawang address ng sarili mo, nang buo. Nagbabago ang preview habang nagta-type ka.
+2. Sa **URL**, palitan ang buong halimbawang address ng sarili mo. Nagbabago ang preview habang nagta-type ka.
 3. Para itugma ang sarili mong mga kulay, itakda ang **Kulay ng module** at **Background**. Panatilihing malakas ang contrast sa pagitan nila, o mahihirapang basahin ng mga telepono ang code.
-4. Nagsisimula sa 4 ang **Tahimik na sona**, sa ilalim ng **Modules**. Panatilihin itong 4 o higit pa: ang plain margin na iyon ang hinahanap ng camera ng telepono.
+4. **Tahimik na sona**, sa ilalim ng **Modules**, nagsisimula sa 4. Panatilihin itong 4 o higit pa: iyon ang plain margin na hinahanap ng camera ng telepono.
 
 ## I-download ang file
 

@@ -390,7 +390,7 @@ Web shell: IndexedDB. Tauri: sistema de arquivos. CLI: em memória. As ferrament
 
 Usuários podem salvar vários slots de edição nomeados por ferramenta e voltar a cada sessão depois. Não é preciso criar conta; o estado é por dispositivo. Como a bridge é a única costura, esse estado por dispositivo também é *portável*: `shells/web/src/data-transfer.ts` lê tudo de volta pela `host.profile`/`host.state`/`host.assets` em um único zip `lolly-backup` que importa em qualquer outra instalação - a resposta offline para "mudar para um dispositivo novo" que não precisa de servidor (especificação completa: `docs/data-transfer.md`). A sincronização entre vários dispositivos já roda em cima disso, enviando o mesmo pacote para o armazenamento que a pessoa escolher (`docs/sync.md`).
 
-### 7. As tags de maturidade dizem o que uma ferramenta é, por design
+### 7. As tags de maturidade dizem o que uma ferramenta é
 
 Toda ferramenta declara `status: official | community | experimental` no seu manifesto. A galeria ordena por status. Ferramentas experimentais aplicam marca d'água nas exportações automaticamente - a marca d'água é aplicada por `host.export.render`, não pela ferramenta, então não pode ser desativada por um autor de ferramenta não oficial.
 
@@ -434,7 +434,7 @@ Compõe a renderização de qualquer ferramenta: um filho em **SVG** permanece u
 
 ---
 
-## Ciclo de vida, do início ao fim
+## O ciclo de vida de uma renderização
 
 Um usuário abre `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 

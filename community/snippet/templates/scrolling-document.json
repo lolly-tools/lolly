@@ -1,0 +1,54 @@
+{
+  "id": "scrolling-document",
+  "name": "Scrolling document",
+  "category": "Animated",
+  "description": "A longer passage types at a readable size while the window follows the caret.",
+  "values": {
+    "scene": "typing",
+    "language": "plain",
+    "theme": "nord",
+    "windowStyle": "redmond",
+    "lineNumbers": true,
+    "showWindow": true,
+    "shadow": true,
+    "scale": 100,
+    "lineHeight": 1.65,
+    "blinkCursor": false,
+    "textOverflow": "scroll",
+    "wrapText": true,
+    "calloutMode": "off",
+    "windowRotate": 0,
+    "windowTiltX": 0,
+    "windowTiltY": 0,
+    "showPointer": true,
+    "cursorSize": 125,
+    "clickRing": false,
+    "typingStyle": "natural",
+    "entryMotion": "scale",
+    "exitMotion": "fade",
+    "posterAt": -1,
+    "code": "Before you share\n\nStart with one clear idea.\nWrite for the person reading.\nChoose words you would say aloud.\n\nGive the window a purpose.\nLeave room around the text.\nKeep the title short.\n\nLet the pointer arrive.\nPause before the first word.\nGive each line time to land.\n\nRead the result once more.\nRemove what does not help.\nKeep the details that matter.\n\nThen share the finished scene.",
+    "fileName": "before-you-share.txt",
+    "typingSeconds": 10,
+    "readSeconds": 3
+  },
+  "presets": [
+    {
+      "id": "light",
+      "name": "Light",
+      "description": "Read the passage in a light window.",
+      "values": {
+        "theme": "suse-light"
+      }
+    },
+    {
+      "id": "open-and-close",
+      "name": "Open and close",
+      "description": "Frame the passage with opening and closing gestures.",
+      "values": {
+        "scene": "demo",
+        "ending": "close"
+      }
+    }
+  ]
+}

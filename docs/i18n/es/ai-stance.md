@@ -52,6 +52,6 @@ Aquí nunca necesitas la IA. Si la eliges, se cumplen tres cosas:
 - <!--i:seal--> **No es una afirmación de pureza.** Lolly lee la procedencia de forma amplia y la escribe con honestidad; no pretende detectar cada píxel generado en internet.
 - <!--i:sunburst--> **No es un pánico moral.** La inundación no es el enemigo. El agua sin atribuir sí lo es.
 
-## Cómo exigirnos que lo cumplamos
+## Comprueba estos compromisos tú mismo
 
 Todos los compromisos anteriores se hacen cumplir en el código abierto, no en un PDF de políticas: la ruta de procedencia, el etiquetado GEN AI y la garantía de ausencia de rastreadores se publican con pruebas, y la página [Verifícalo tú mismo](/info/verify-yourself.html) te guía para comprobar las afirmaciones frente a una exportación real. Si encuentras un lugar donde el código y esta página no coinciden, el código es el error.

@@ -8,10 +8,10 @@ Tenha em mãos o endereço da web que o código deve abrir, começando com `http
 
 ## Faça o código
 
-1. Abra o [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Os controles ficam ao lado da pré-visualização, ou acima dela no celular; o que a pré-visualização mostra é o que o arquivo será.
-2. Em **URL**, substitua o endereço de exemplo pelo seu, por completo. A pré-visualização muda enquanto você digita.
-3. Para combinar com suas próprias cores, defina **Module colour** e **Fundo**. Mantenha um contraste forte entre elas, ou os celulares terão dificuldade para ler o código.
-4. **Quiet zone**, em **Modules**, começa em 4. Mantenha em 4 ou mais: essa margem simples é o que a câmera do celular procura.
+1. Abra [QR Code](/#/tool/qr-code?url=https%3A%2F%2Fexample.com). Os controles ficam ao lado da prévia, ou acima dela no celular; o que a prévia mostra é o que o arquivo será.
+2. Em **URL**, substitua o endereço de exemplo inteiro pelo seu. A prévia muda enquanto você digita.
+3. Para combinar com suas próprias cores, defina **Module colour** e **Background**. Mantenha um contraste forte entre eles, ou celulares terão dificuldade para ler o código.
+4. **Quiet zone**, em **Modules**, começa em 4. Mantenha em 4 ou mais: essa margem simples é o que a câmera de um celular procura.
 
 ## Baixe o arquivo
 

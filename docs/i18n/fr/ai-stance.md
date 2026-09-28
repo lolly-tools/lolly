@@ -52,6 +52,6 @@ Tu n'as jamais besoin de l'IA ici. Si tu la choisis, trois choses tiennent :
 - <!--i:seal--> **Pas une revendication de pureté.** Lolly lit la provenance largement et l'écrit honnêtement ; il ne prétend pas détecter chaque pixel généré sur Internet.
 - <!--i:sunburst--> **Pas une panique morale.** L'inondation n'est pas l'ennemie. L'eau non attribuée l'est.
 
-## Comment nous tenir responsables
+## Vérifie ces engagements toi-même
 
 Chaque engagement ci-dessus est appliqué dans le code source ouvert, pas dans un PDF de politique : le chemin de provenance, l'étiquetage GEN AI et la garantie sans traqueurs sont tous livrés avec des tests, et la page [Vérifie-le toi-même](/info/verify-yourself.html) t'explique comment vérifier ces affirmations sur un export réel. Si tu trouves un endroit où le code et cette page se contredisent, le code fait foi et la page a un bug.

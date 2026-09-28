@@ -390,7 +390,7 @@ Web shell: IndexedDB. Tauri: system plików. CLI: pamięć tymczasowa. Narzędzi
 
 Użytkownicy mogą zapisać wiele nazwanych slotów edycji dla każdego narzędzia i wrócić do każdej sesji później. Nie jest wymagane zakładanie konta; stan jest przechowywany lokalnie na urządzeniu. Ponieważ mostek jest jedynym punktem styku, ten lokalny stan jest też *przenośny*: `shells/web/src/data-transfer.ts` odczytuje wszystko z powrotem przez `host.profile`/`host.state`/`host.assets` do jednego pliku zip `lolly-backup`, który importuje się na dowolnej innej instalacji - offline'owa odpowiedź na "przeniesienie na nowe urządzenie", niewymagająca serwera (pełna specyfikacja: `docs/data-transfer.md`). Synchronizacja wielourządzeniowa działa już na tej podstawie, wysyłając tę samą paczkę do pamięci wybranej przez użytkownika (`docs/sync.md`).
 
-### 7. Znaczniki dojrzałości celowo mówią, czym jest narzędzie
+### 7. Znaczniki dojrzałości mówią, czym jest narzędzie
 
 Każde narzędzie deklaruje `status: official | community | experimental` w swoim manifeście. Galeria sortuje według statusu. Narzędzia eksperymentalne automatycznie znakują swoje eksporty znakiem wodnym - znak wodny jest nakładany przez `host.export.render`, a nie przez narzędzie, więc autor narzędzia niebędącego oficjalnym nie może z niego zrezygnować.
 
@@ -434,7 +434,7 @@ Można komponować render dowolnego narzędzia: dziecko w formacie **SVG** pozos
 
 ---
 
-## Cykl życia od początku do końca
+## Cykl życia jednego renderu
 
 Użytkownik otwiera `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 

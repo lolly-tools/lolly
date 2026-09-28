@@ -2787,11 +2787,57 @@ function textWrapContextFor(boxes) {
   }) };
 }
 
+// One settled layout per story, reused while nothing it depends on changes. Every
+// render recomposed every story, so a long document (dozens of stories across many
+// pages) spent seconds per edit and ran past the export hook's time budget. The key
+// holds everything a layout reads: the story, the document's styles and font pins,
+// its frames as placed, the page's wrap context and whether it is a hidden backup.
+// A layout is kept the moment it is done, not only when the whole document is, so an
+// edit made while a long document is still laying out reuses what is finished, and a
+// layout still in progress is shared rather than started twice (storyLayoutPending).
+// Only keys used by the latest composition are kept, so memory tracks the open document.
+var storyLayoutMemo = new Map();
+var storyLayoutPending = new Map();
+// Part of every key. A new emoji set bumps it, so a layout that was still in flight
+// under the old set can never be reused under the new one.
+var storyLayoutEpoch = 0;
+// The composition that started last; only that one prunes the memo to its own keys.
+var storyLayoutRun = 0;
+// How soon, and how often, a long first composition shows the pages it has finished.
+// A document done inside the first wait shows once, complete.
+var STORY_PROGRESS_FIRST_MS = 250;
+var STORY_PROGRESS_EVERY_MS = 800;
+
+function storyLayoutFor(key, request) {
+  var remembered = storyLayoutMemo.get(key);
+  if (remembered) return Promise.resolve(remembered);
+  var pending = storyLayoutPending.get(key);
+  if (pending) return pending;
+  pending = host.text.layoutRuns(request).then(function (layout) {
+    if (storyLayoutPending.get(key) === pending) storyLayoutPending.delete(key);
+    storyLayoutMemo.set(key, layout);
+    return layout;
+  }, function (error) {
+    if (storyLayoutPending.get(key) === pending) storyLayoutPending.delete(key);
+    throw error;
+  });
+  storyLayoutPending.set(key, pending);
+  return pending;
+}
+
 // Composed stories have one source; boxes own only placement and frame settings.
-function composeDesignStories(model, inp, exporting) {
+//
+// Stories are laid out in reading order - the first page's first - and, when the
+// caller passes `report` (onInit), each finished page is shown as it lands: the first
+// report says the document is ready to open, and later ones follow at most every
+// STORY_PROGRESS_EVERY_MS. The result itself is assembled in document order, exactly
+// as a single pass built it, so the order of work never changes what is delivered.
+function composeDesignStories(model, inp, exporting, report) {
   if (!host.text || typeof host.text.layoutRuns !== 'function') throw new Error('This engine cannot compose this text document.');
   var doc = JSON.parse(inp.textDocument);
   var boxes = Array.isArray(inp.boxes) ? inp.boxes : [];
+  var used = new Map();
+  var shared = JSON.stringify([doc.styles, (doc.fonts || []).map(function (font) { return [font.id, font.sha256, font.faceIndex]; })]);
   var byId = Object.create(null), composed = Object.create(null), textPreflight = { frames: [], issues: [] };
   boxes.forEach(function (box) {
     if (box && box.textStory) {
@@ -2801,54 +2847,101 @@ function composeDesignStories(model, inp, exporting) {
     }
   });
   if (!doc || !Array.isArray(doc.stories)) throw new Error('Invalid text document.');
-  return doc.stories.reduce(function (pending, story) {
+  var run = ++storyLayoutRun, started = Date.now(), lastReport = 0, reports = 0;
+  var wrap = textWrapContextFor(boxes);
+  var plans = doc.stories.map(function (story, index) {
+    var frames = story.frameIds.map(function (id) {
+      var box = byId[id];
+      if (!box || box.textStory !== story.id) throw new Error('The text story names a missing frame.');
+      var settings = JSON.parse(box.textFrame);
+      if (!settings || ['id','storyId','width','height'].some(function (key) { return Object.prototype.hasOwnProperty.call(settings, key); })) throw new Error('Text frame identity and size belong to the box.');
+      return Object.assign({}, settings, { id: id, storyId: story.id, width: Number(box.w), height: Number(box.h), hidden: boolVal(box.hidden, false), locked: boolVal(box.locked, false) });
+    });
+    var sourceCopy = story.frameIds.length && story.frameIds.every(function (id) { var box = byId[id], value = box.vectorSource; try { return boolVal(box.hidden, false) && value && JSON.parse(value).sourceCopy === true; } catch (_) { return false; } });
+    // Hidden editable backups retain their source without loading fonts to paint it.
+    // An unplaced validation request still enforces the complete document schema.
+    var layoutDoc = sourceCopy ? Object.assign({}, doc, { stories: doc.stories.map(function (item) { return item === story ? Object.assign({}, item, { frameIds: [] }) : item; }) }) : doc;
+    return {
+      index: index, frames: frames, sourceCopy: sourceCopy,
+      key: JSON.stringify([story, frames, wrap, sourceCopy, storyLayoutEpoch]) + shared,
+      request: { document: layoutDoc, storyId: story.id, frames: sourceCopy ? [] : frames, wrap: wrap, includeSvg: true },
+    };
+  });
+  // Reading order: visible pages by the page rule frameGroupsFor uses (order, then x),
+  // then hidden pages, then text outside any page, then hidden backups.
+  var pages = [];
+  boxes.forEach(function (box) { if (box && String(box.kind) === 'frame') pages.push({ id: String(box.id), hidden: isHiddenBox(box) ? 1 : 0, order: num(box.order, 0), x: num(box.x, 0) }); });
+  pages.sort(function (a, b) { return (a.hidden - b.hidden) || (a.order - b.order) || (a.x - b.x); });
+  var pageIndex = Object.create(null);
+  pages.forEach(function (page, i) { pageIndex[page.id] = i; });
+  function pageOf(plan) {
+    if (plan.sourceCopy || !plan.frames.length) return pages.length + 1;
+    var first = byId[plan.frames[0].id], at = first && first.frame != null ? pageIndex[String(first.frame)] : undefined;
+    return at === undefined ? pages.length : at;
+  }
+  var order = plans.slice().sort(function (a, b) { return (pageOf(a) - pageOf(b)) || (a.index - b.index); });
+  var layouts = new Array(plans.length);
+  // What the stories finished so far draw, in the same shape the final pass builds.
+  function composedSoFar() {
+    var partial = Object.create(null);
+    plans.forEach(function (plan) {
+      var layout = layouts[plan.index];
+      if (!layout) return;
+      if (plan.sourceCopy) plan.frames.forEach(function (frame) { partial[frame.id] = { id: frame.id, width: frame.width, height: frame.height, svg: '' }; });
+      layout.frames.forEach(function (frame) { partial[frame.id] = frame; });
+    });
+    return partial;
+  }
+  return order.reduce(function (pending, plan, position) {
     return pending.then(function () {
-      var frames = story.frameIds.map(function (id) {
-        var box = byId[id];
-        if (!box || box.textStory !== story.id) throw new Error('The text story names a missing frame.');
-        var settings = JSON.parse(box.textFrame);
-        if (!settings || ['id','storyId','width','height'].some(function (key) { return Object.prototype.hasOwnProperty.call(settings, key); })) throw new Error('Text frame identity and size belong to the box.');
-        return Object.assign({}, settings, { id: id, storyId: story.id, width: Number(box.w), height: Number(box.h), hidden: boolVal(box.hidden, false), locked: boolVal(box.locked, false) });
-      });
-      var sourceCopy = story.frameIds.length && story.frameIds.every(function (id) { var box = byId[id], value = box.vectorSource; try { return boolVal(box.hidden, false) && value && JSON.parse(value).sourceCopy === true; } catch (_) { return false; } });
-      // Hidden editable backups retain their source without loading fonts to paint it.
-      // An unplaced validation request still enforces the complete document schema.
-      var layoutDoc = sourceCopy ? Object.assign({}, doc, { stories: doc.stories.map(function (item) { return item === story ? Object.assign({}, item, { frameIds: [] }) : item; }) }) : doc;
-      return host.text.layoutRuns({ document: layoutDoc, storyId: story.id, frames: sourceCopy ? [] : frames, wrap: textWrapContextFor(boxes), includeSvg: true }).then(function (layout) {
-        if (sourceCopy) frames.forEach(function (frame) { composed[frame.id] = { id: frame.id, width: frame.width, height: frame.height, svg: '' }; });
-        if (!sourceCopy) textPreflight.issues = textPreflight.issues.concat(layout.diagnostics.filter(function (notice) { return notice.severity === 'error'; }).map(function (notice) { return notice.message; }));
-        layout.frames.forEach(function (frame) {
-          if (!boolVal(byId[frame.id].hidden, false) && !sourceCopy) {
-            var stamp = /data-text-layout="([a-f0-9]+)"/.exec(frame.svg || '');
-            if (!stamp) throw new Error('The composed text layout has no export receipt.');
-            textPreflight.frames.push({ id: frame.id, stamp: stamp[1] });
-          }
-        });
-        if (exporting) {
-          if (!sourceCopy) {
-            var problems = layout.diagnostics.filter(function (notice) { return notice.severity === 'error' && !(inp.exportVisibleText === true && ['overset','story-unplaced','line-width'].indexOf(notice.code) >= 0); });
-            if (problems.length) throw new Error('Text export needs attention: ' + problems.map(function (notice) { return notice.message; }).join(' ') + ' Review the story or choose Export visible text only.');
-          }
-          var nodes = exporting.node && exporting.node.querySelectorAll ? Array.from(exporting.node.querySelectorAll('[data-text-frame]')) : [];
-          if (exporting.node && exporting.node.matches && exporting.node.matches('[data-text-frame]')) nodes.push(exporting.node);
-          var scopeBoxes = exporting.node && exporting.node.querySelectorAll ? Array.from(exporting.node.querySelectorAll('[data-box-id]')) : [];
-          if (exporting.node && exporting.node.matches && exporting.node.matches('[data-box-id]')) scopeBoxes.push(exporting.node);
-          var scopePage = exporting.node && exporting.node.closest && exporting.node.closest('[data-frame-id]');
-          var pageId = scopePage && scopePage.getAttribute('data-frame-id');
-          layout.frames.forEach(function (frame) {
-            var copies = nodes.filter(function (node) { return node.getAttribute('data-text-frame') === frame.id; });
-            var inScope = scopeBoxes.some(function (node) { return node.getAttribute('data-box-id') === frame.id; }) || !scopeBoxes.length && (!pageId || String(byId[frame.id].frame || '') === pageId);
-            if (!sourceCopy && !boolVal(byId[frame.id].hidden, false) && inScope && !copies.length) throw new Error('Text layout is still changing. Wait for the current text to appear, then export again.');
-            var expected = /data-text-layout="([a-f0-9]+)"/.exec(frame.svg || '');
-            copies.forEach(function (node) {
-              if (!expected || node.getAttribute('data-text-layout') !== expected[1]) throw new Error('Text layout is still changing. Wait for the current text to appear, then export again.');
-            });
-          });
-        }
-        layout.frames.forEach(function (frame) { composed[frame.id] = frame; });
+      return storyLayoutFor(plan.key, plan.request).then(function (layout) {
+        layouts[plan.index] = layout;
+        used.set(plan.key, layout);
+        var next = order[position + 1];
+        // A page boundary, with more still to come (the result itself follows the last).
+        if (!report || exporting || !next || pageOf(next) === pageOf(plan)) return;
+        var now = Date.now();
+        if (now - started < STORY_PROGRESS_FIRST_MS || reports && now - lastReport < STORY_PROGRESS_EVERY_MS) return;
+        reports++; lastReport = now;
+        report(compute(model, composedSoFar()), reports === 1 ? { ready: true } : undefined);
       });
     });
   }, Promise.resolve()).then(function () {
+    if (run === storyLayoutRun) storyLayoutMemo = used;
+    plans.forEach(function (plan) {
+      var layout = layouts[plan.index], frames = plan.frames, sourceCopy = plan.sourceCopy;
+      if (sourceCopy) frames.forEach(function (frame) { composed[frame.id] = { id: frame.id, width: frame.width, height: frame.height, svg: '' }; });
+      if (!sourceCopy) textPreflight.issues = textPreflight.issues.concat(layout.diagnostics.filter(function (notice) { return notice.severity === 'error'; }).map(function (notice) { return notice.message; }));
+      layout.frames.forEach(function (frame) {
+        if (!boolVal(byId[frame.id].hidden, false) && !sourceCopy) {
+          var stamp = /data-text-layout="([a-f0-9]+)"/.exec(frame.svg || '');
+          if (!stamp) throw new Error('The composed text layout has no export receipt.');
+          textPreflight.frames.push({ id: frame.id, stamp: stamp[1] });
+        }
+      });
+      if (exporting) {
+        if (!sourceCopy) {
+          var problems = layout.diagnostics.filter(function (notice) { return notice.severity === 'error' && !(inp.exportVisibleText === true && ['overset','story-unplaced','line-width'].indexOf(notice.code) >= 0); });
+          if (problems.length) throw new Error('Text export needs attention: ' + problems.map(function (notice) { return notice.message; }).join(' ') + ' Review the story or choose Export visible text only.');
+        }
+        var nodes = exporting.node && exporting.node.querySelectorAll ? Array.from(exporting.node.querySelectorAll('[data-text-frame]')) : [];
+        if (exporting.node && exporting.node.matches && exporting.node.matches('[data-text-frame]')) nodes.push(exporting.node);
+        var scopeBoxes = exporting.node && exporting.node.querySelectorAll ? Array.from(exporting.node.querySelectorAll('[data-box-id]')) : [];
+        if (exporting.node && exporting.node.matches && exporting.node.matches('[data-box-id]')) scopeBoxes.push(exporting.node);
+        var scopePage = exporting.node && exporting.node.closest && exporting.node.closest('[data-frame-id]');
+        var pageId = scopePage && scopePage.getAttribute('data-frame-id');
+        layout.frames.forEach(function (frame) {
+          var copies = nodes.filter(function (node) { return node.getAttribute('data-text-frame') === frame.id; });
+          var inScope = scopeBoxes.some(function (node) { return node.getAttribute('data-box-id') === frame.id; }) || !scopeBoxes.length && (!pageId || String(byId[frame.id].frame || '') === pageId);
+          if (!sourceCopy && !boolVal(byId[frame.id].hidden, false) && inScope && !copies.length) throw new Error('Text layout is still changing. Wait for the current text to appear, then export again.');
+          var expected = /data-text-layout="([a-f0-9]+)"/.exec(frame.svg || '');
+          copies.forEach(function (node) {
+            if (!expected || node.getAttribute('data-text-layout') !== expected[1]) throw new Error('Text layout is still changing. Wait for the current text to appear, then export again.');
+          });
+        });
+      }
+      layout.frames.forEach(function (frame) { composed[frame.id] = frame; });
+    });
     Object.keys(byId).forEach(function (id) { if (!composed[id]) throw new Error('A text frame has no owning story.'); });
     var output = compute(model, composed);
     output.textPreflight = textPreflight;
@@ -2856,9 +2949,9 @@ function composeDesignStories(model, inp, exporting) {
   });
 }
 
-function compute(model, composed) {
+function compute(model, composed, report) {
   var inp = inputsFrom(model);
-  if (inp.textDocument && !composed) return composeDesignStories(model, inp);
+  if (inp.textDocument && !composed) return composeDesignStories(model, inp, undefined, report);
   if (!inp.textDocument && Array.isArray(inp.boxes) && inp.boxes.some(function (box) { return box && box.textStory; })) throw new Error('This design is missing its text document.');
   var boxes = Array.isArray(inp.boxes) ? inp.boxes : [];
   var resizedText = false;

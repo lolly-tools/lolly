@@ -267,7 +267,7 @@ export function paint(tview: ToolViewCtx): void {
             setInput: (id, value) => tview.runtime.setInput(id, value as Parameters<typeof tview.runtime.setInput>[1]),
             reviewCollection: () => {
               void import('../studio3d-collection.ts').then(m => {
-                if (tview.contentEl.isConnected) m.openStudioCollection(tview.runtime, tview.host);
+                if (tview.contentEl.isConnected) m.openStudioCollection(tview.runtime, tview.host, () => tview.revisionChanged());
               });
             },
             addObjects: () => {
@@ -292,6 +292,7 @@ export function paint(tview: ToolViewCtx): void {
               runtime: tview.runtime,
               host: tview.host,
               toolId: tview.toolId,
+              changed: () => tview.revisionChanged(),
             }))
             .catch(error => console.warn('studio library mount failed:', error));
         }

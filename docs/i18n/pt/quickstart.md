@@ -16,7 +16,7 @@ Sua marca em Lolly é um pequeno documento de **design tokens** - cores, fontes 
 
 Na primeira execução você cai na **galeria**, com um breve diálogo de boas-vindas por cima oferecendo três caminhos - **Make it yours** (o Brand Studio em `#/start`), **Bring your design** (solte um arquivo do Figma, Penpot, InDesign ou PDF e ele abre como um layout editável - a rota mais rápida para [Traga o que você já tem](#2-bring-in-what-you-already-have) abaixo) e **Explore the community tools** - além de uma fileira de idiomas, caso o inglês não seja o seu. Escolha o primeiro card e você chega no [**Brand Studio**](/info/brand-studio.html). Dê um nome e uma cor primária e Lolly *deriva* dali uma paleta completa e acessível - superfícies claras/escuras, texto, destaques - usando a mesma matemática de cor que o motor usa em todo o resto.
 
-![A sala Colours do Brand Studio - uma cor primária e a paleta acessível que Lolly deriva dela](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Escolha uma fonte e você tem uma marca funcionando em menos de um minuto. Dali, as seis salas do studio - Overview, Colours, Type, Logos, Tokens, Files - deixam você levar isso até onde quiser, em qualquer ordem, refinando qualquer parte sempre que voltar. A aba **Design system** do painel (`#/d`) mostra o resultado em modo somente leitura e aponta de volta para `#/start`, que é onde a edição acontece (a menos que você esteja em uma build de Lolly com marca travada, em que a marca é fixa e não há nada a mudar).
+![A sala Colours do Brand Studio numa instalação nova - um chip ao vivo, um campo, e toda a primeira decisão](/t/url-shot?url=%2F%23%2Fstart%3Farea%3Dcolor&width=1440&height=740&dpi=192&waitMs=1800&format=svg&walker=1&localize=1&dark=1&filename=brand-colours) Escolha uma fonte e você tem uma marca funcionando em menos de um minuto. Dali, as seis salas do studio - Overview, Colours, Type, Logos, Tokens, Files - deixam você levar isso até onde quiser, em qualquer ordem, refinando qualquer parte sempre que voltar. A aba **Design system** do painel (`#/d`) mostra o resultado em modo somente leitura e aponta de volta para `#/start`, que é onde a edição acontece (um sistema de design travado permanece somente leitura, enquanto seus próprios sistemas locais continuam editáveis).
 
 ### Importe uma marca que você já tem
 
@@ -27,7 +27,7 @@ Se sua marca já está registrada como design tokens - do **Penpot**, do **Token
 
 ```bash
 # a monolithic tokens.json, a one-file-per-set directory, or a Penpot project archive
-npm run ingest:brand -- ./my-tokens.json --name acme --label "Acme" --activate
+pnpm run ingest:brand ./my-tokens.json --name acme --label "Acme" --activate
 ```
 
 `ingest:brand` aceita os três contêineres em que Penpot / Tokens Studio exportam o mesmo documento - um único `tokens.json`, um diretório (`$metadata.json` + arquivos por conjunto) ou um arquivo `project.penpot`. Com `--activate` ele registra a marca como um perfil, muda para ela e reconstrói o catálogo. Veja [Configuração](/info/configuration.html) para entender como pacotes de marca e perfis se encaixam.
@@ -60,7 +60,7 @@ Trabalho finalizado no **Figma, Penpot, Illustrator, InDesign ou qualquer app de
 
 Toda a importação acontece **no seu dispositivo** - o arquivo é interpretado no seu navegador e nada é enviado. Os detalhes completos, e exatamente o que é preservado, estão em [Importar um design](/info/design-import.html).
 
-Tem uma **apresentação do PowerPoint**? Solte o `.pptx` no **Deck Builder** para editar slide a slide, já ajustada à sua marca - ou rode o **Rebrand a Deck** para receber a mesma apresentação de volta com outro tema, com gráficos e animações intactos.
+Tem uma **apresentação do PowerPoint** em vez disso? Solte o `.pptx` em qualquer superfície de upload para arquivar seus slides como ativos, escreva uma nova apresentação a partir de Markdown no **Markdown Slides**, ou rode o **Rebrand** para receber a mesma apresentação de volta com outro tema, com gráficos e animações intactos.
 
 ### De um trabalho pontual a um template
 
@@ -72,7 +72,7 @@ O [conjunto de ferramentas da comunidade](/info/builders.html) é de código abe
 
 Alimente as ferramentas com seus próprios dados abertos também: cole ou solte uma tabela **CSV** ou **JSON** e os campos repetíveis de uma ferramenta se preenchem a partir dela, um asset pronto por linha.
 
-## 3. Crie algo, depois compartilhe ou automatize
+## 3. Crie algo, depois compartilhe ou automatize o resultado
 
 Com uma marca ativa e seu material em mãos, toda ferramenta produz um arquivo pronto:
 

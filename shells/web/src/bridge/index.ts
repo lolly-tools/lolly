@@ -62,6 +62,7 @@ import { ocrModelsFor, OCR_MODEL_BYTES } from '../lib/ocr-models.ts';
 import { isTauriShell } from '../lib/instance-choice.ts';
 import { PROVIDED_CAPABILITIES } from './capabilities-provided.ts';
 import { openDB } from './db.ts';
+import { noteTextLayoutDone } from '../lib/text-layout-progress.ts';
 
 /**
  * The web shell's full host surface: HostV1 with `shell` pinned to 'web', plus
@@ -234,7 +235,10 @@ export async function createBridge(): Promise<WebHost> {
   host.text = {
     fontInfo: async (font) => (await loadText()).fontInfo!(font),
     shapeRun: async (request) => (await loadText()).shapeRun!(request),
-    layoutRuns: async (request) => (await loadText()).layoutRuns!(request),
+    // Counted for the "Opening…" card's progress (lib/text-layout-progress.ts).
+    layoutRuns: async (request) => {
+      try { return await (await loadText()).layoutRuns!(request); } finally { noteTextLayoutDone(); }
+    },
     toPath: async (opts) => (await loadText()).toPath(opts),
     preload: async (fontUrl) => (await loadText()).preload(fontUrl),
     axisDefaults: async (fontUrl) => (await loadText()).axisDefaults!(fontUrl),

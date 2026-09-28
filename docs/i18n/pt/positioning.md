@@ -57,9 +57,9 @@ O Lolly é a prensa, não o esboço. Traga o que quiser para a ideação - um mo
 
 > Confie no processo criativo, escale com rigor.
 
-## As regras vivem na ferramenta, não no arquivo
+## As regras vivem na ferramenta e em seus templates
 
-Toda outra ferramenta do mercado produz um *arquivo*, e um arquivo só pode ser olhado depois do fato, um resultado de cada vez. Lolly move as regras de marca **uma etapa para trás**. Códigos hex exatos, arquivos de fonte licenciados, margens de sangria, espaçamento - tudo isso está codificado no HTML e no CSS da ferramenta, de modo que o template *não pode* gerar um asset fora da marca. É o próprio layout que faz a fiscalização.
+Toda outra ferramenta do mercado produz um *arquivo*, e um arquivo só pode ser observado depois do fato. O Lolly move as regras de marca **um passo antes**. Códigos hex exatos, arquivos de fonte licenciados, margens de sangria, espaçamento - tudo isso está fixado no HTML e no CSS da ferramenta, então o template *não pode* emitir um ativo fora da marca. É o próprio layout que faz o cumprimento.
 
 Então a coisa que vale a pena olhar é a **ferramenta**, não cada arquivo que ela produz. Acerte a ferramenta, e todo asset que ela vier a produzir estará dentro da marca por construção. Como você confere seu trabalho, e quem faz isso, continua sendo escolha sua; o Lolly torna a coisa conferida menor e a saída mais rápida de produzir.
 

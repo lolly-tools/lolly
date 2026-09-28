@@ -17,8 +17,8 @@ import type { StateRecord } from './state.ts';
 import { type DocumentHead, type SavedPointer, documentVersion, holdsUnsavedWork, savedRevision } from './revision-records.ts';
 import { indexSavedWork } from './history-index.ts';
 import { readRevision } from './revision-read.ts';
-import { MOVE_STORES, moveSlot, revisionMaintenance } from './revision-maintenance.ts';
-import { DISCARDED_SLOT_PREFIX, DISCARD_RETENTION_MS, discardedAt, discardedSlot } from '../lib/batch-slots.ts';
+import { MOVE_STORES, moveSlot, purgeDiscarded } from './revision-maintenance.ts';
+import { discardedSlot } from '../lib/batch-slots.ts';
 
 const CHANGED = 'This creation changed in another tab. Your edits were kept.';
 /** A discard that could not run, with the reason the tool view tells the person. */
@@ -103,15 +103,4 @@ export function restoredRecord(record: StateRecord, data: StateRecord['data'], e
     ...(stamps.emoji ? { emoji: stamps.emoji } : {}),
     ...(stamps.rightsDecisions ? { rightsDecisions: stamps.rightsDecisions } : {}),
   };
-}
-
-/** Discarded creations keep their history for DISCARD_RETENTION_MS, as the trash
- * does, then go for good. Swept here because only a discard adds to them. */
-async function purgeDiscarded(db: IDBPDatabase, recovery: RecoveryStore, now: number): Promise<void> {
-  const slots = await db.getAllKeys('state', IDBKeyRange.bound(DISCARDED_SLOT_PREFIX, `${DISCARDED_SLOT_PREFIX}￿`)) as string[];
-  const maintenance = revisionMaintenance(db, recovery);
-  for (const slot of slots) {
-    const at = discardedAt(slot);
-    if (at !== null && now - at > DISCARD_RETENTION_MS) await maintenance.delete(slot);
-  }
 }

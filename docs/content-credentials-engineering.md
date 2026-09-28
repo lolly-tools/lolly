@@ -27,7 +27,7 @@ threat model and the roadmap.
 └────────────────────────────────────────────────┘   └────────────────────────┘
 ```
 
-**Enrollment is app-level. Signing reached the bridge later, deliberately.**
+**Enrollment is app-level. Signing reached the bridge in a later release.**
 No tool can start, observe or inspect enrolment: there is no `host.identity`,
 the profile UI owns the flow and the ordinary export path consumes the signer
 inside the shell's own export implementation. What *is* on the bridge is
@@ -401,7 +401,7 @@ would 501.
 - **Repo is public** → contains no secrets; root cert is public by design.
 - **Device key theft** → key is non-extractable; even XSS can at worst *use*
   it while the page is open, bounded by the cert lifetime. Expiry is the only
-  recall mechanism - there is no revocation infrastructure, by design.
+  recall mechanism - there is no revocation infrastructure.
 - **CA key theft** → catastrophic for trust, as with any CA; mitigations:
   env-only storage now, KMS/HSM at Tier 4 and short leaf lifetimes bound how
   long any misissued certificate stays usable (there is no revocation to miss).

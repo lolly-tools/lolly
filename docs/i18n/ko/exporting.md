@@ -300,7 +300,7 @@ GIF는 어디서나 작동합니다(채팅/이메일에 적합하며, 비디오�
 
 ![PDF 내보내기에서 펼쳐진 비밀번호 보호 카드. 비밀번호 필드와 두 가지 잠금 등급이 표시됨](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpdf%26password%3Ddemo%26options&width=1440&height=900&dpi=192&waitMs=2000&walker=1&format=svg&cropSelector=.export-pdfpass&dark=1&filename=exp-pdf-password)
 
-- **Standard** - 기본적인 40비트 잠금(RC4)이에요. *어떤* PDF 앱에서도 열리지만, 가벼운 억제책일 뿐 실제 보호가 아니라서 공유 링크에 그대로(평문으로, 설계상) 담길 수 있어요. RGB `pdf` 전용이에요.
+- **Standard** - 기본적인 40비트 잠금(RC4)이에요. *어떤* PDF 앱에서도 열리지만, 가벼운 억제책일 뿐 실제 보호가 아니라서 공유 링크에 그대로(평문으로) 담길 수 있어요. RGB `pdf` 전용이에요.
 - **Strong** - AES-256(PDF 2.0)이에요. 비밀번호는 내보내기 시점에 입력하며 링크에는 **절대** 포함되지 않아요. 최신 PDF 앱(Acrobat / Preview 2018년경 이후)에서만 열리고, 구형 앱은 파일이 손상됐다고 표시할 수 있어요. Strong은 **인쇄 / CMYK PDF**와 **배치 zip 안의 각 PDF**에도 적용돼요(배치 확인 대화상자에서 비밀번호를 수집해요). PDF/X-4는 암호화를 허용하지 않기 때문에 Strong으로 잠근 인쇄 PDF는 CMYK, 마크, 출력 의도는 유지하되 PDF/X-4 준수 표시는 잃어요.
 
 두 등급 모두 Content Credentials와 상호 배타적이에요(암호화된 PDF는 크리덴셜을 담을 수 없어요).

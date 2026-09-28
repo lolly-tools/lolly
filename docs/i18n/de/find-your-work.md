@@ -1,13 +1,13 @@
 # Ihre Arbeit finden und wiederherstellen
 
-Alles, was Sie in Lolly erstellen, bleibt in dem Browser oder der App, in der Sie es erstellt haben, auf diesem Gerät, sofern Sie nicht die [Synchronisierung](/info/sync.html) einschalten. Gespeicherte Arbeit ist in **Projekte**. Eine heruntergeladene Datei liegt dort, wo Ihr Browser oder System sie abgelegt hat, und eine Kopie wartet meist in **Assets**. In neun Tools wird auch nie gespeicherte Arbeit aufbewahrt. Diese Seite behandelt jeden dieser Fälle, dazu einen geschlossenen Tab, gelöschte Browserdaten, frühere Versionen, gelöschte Elemente und den Umzug auf ein anderes Gerät.
+Alles, was Sie in Lolly erstellen, bleibt in dem Browser oder der App, in der Sie es erstellt haben, auf diesem Gerät, sofern Sie nicht die [Synchronisierung](/info/sync.html) einschalten. Gespeicherte Arbeit ist in **Projekte**. Eine heruntergeladene Datei liegt dort, wo Ihr Browser oder System sie abgelegt hat, und eine Kopie wartet meist in **Assets**. In den meisten Tools wird auch nie gespeicherte Arbeit aufbewahrt. Diese Seite behandelt jeden dieser Fälle, dazu einen geschlossenen Tab, gelöschte Browserdaten, frühere Versionen, gelöschte Elemente und den Umzug auf ein anderes Gerät.
 
 | Was Sie getan haben | Wo Sie nachsehen sollten |
 |---|---|
 | **Speichern unter** oder **Speichern** gedrückt | **Projekte** |
 | **Herunterladen** gedrückt | Die Downloads Ihres Browsers, und eine Kopie in **Assets** |
-| Weder noch, in einem der [neun Tools, die während der Arbeit speichern](#the-nine-tools-that-save-as-you-work) | **Projekte** und **Verlauf** |
-| Weder noch, in einem anderen Tool | Nur der Tab, in dem Sie gearbeitet haben, bis Sie ihn schließen |
+| Weder noch, in einem [Tool, das während der Arbeit speichert](#which-tools-save-as-you-work) | **Projekte** und **Verlauf** |
+| Weder noch, in einem Tool, das das nicht tut | Nur der Tab, in dem Sie gearbeitet haben, bis Sie ihn schließen |
 | In der App gelöscht | **Papierkorb**, in **Projekte**, **Assets** oder **Einstellungen → Speicher**, für 30 Tage |
 
 ## Etwas finden, das Sie gespeichert haben
@@ -71,20 +71,29 @@ not visible in the closed menu, so the alt does not list them.
 
 Was zurückkommt, hängt davon ab, wie Sie das Tool verlassen haben und welches Tool Sie genutzt haben:
 
-- **Sie haben den Tab geschlossen oder kommen ein anderes Mal zurück.** Nicht gespeicherte Arbeit ist weg, außer in den [neun Tools](#the-nine-tools-that-save-as-you-work), die Ihre Änderungen während der Arbeit speichern: Öffnen Sie sie über **Projekte**.
-- **Sie haben die Seite im selben Tab neu geladen.** Ihre Einstellungen kommen aus der Seitenadresse zurück. In anderen Tools als den neun kommen Bilder und Dateien, die Sie von Ihrem Gerät hinzugefügt haben, sowie einzeiliger Text über 150 Zeichen nicht zurück, weil die Adresse sie nicht enthält.
+- **Sie haben den Tab geschlossen oder kommen ein anderes Mal zurück.** Nicht gespeicherte Arbeit ist weg, außer in den [Tools, die während der Arbeit speichern](#which-tools-save-as-you-work): Öffnen Sie diese Arbeit über **Projekte**.
+- **Sie haben die Seite im selben Tab neu geladen.** Ihre Einstellungen kommen aus der Seitenadresse zurück. In Tools, die nicht während der Arbeit speichern, kommen Bilder und Dateien, die Sie von Ihrem Gerät hinzugefügt haben, sowie einzeiliger Text über 150 Zeichen nicht zurück, weil die Adresse sie nicht enthält.
 - **Sie haben Start oder die Zurück-Schaltfläche oben links gedrückt.** Wenn Sie seit dem letzten Speichern, Herunterladen oder Kopieren etwas geändert haben, fragt ein Dialog **Nicht gespeicherte Änderungen**, ob zuerst gespeichert werden soll. **Speichern & verlassen** speichert die Arbeit und bringt Sie zu **Projekte**, oder zurück in den Projektordner, aus dem Sie die Arbeit geöffnet haben. **Verlassen ohne zu speichern** verwirft Ihre Änderungen: Ein gespeichertes Element kehrt zu dem Stand zurück, in dem Sie es zuletzt gespeichert haben, und eine nie gespeicherte Kreation verlässt **Projekte**. **Abbrechen** hält Sie im Tool.
 
 Lolly fragt nur, wenn Sie **Start** oder die Zurück-Schaltfläche in einem Tool drücken. Das Schließen des Tabs, ein Neuladen und die eigene Zurück-Schaltfläche Ihres Browsers fragen nie. Um sicherzugehen, drücken Sie **Speichern unter** oder **Speichern** im Exportbereich, bevor Sie ein Tool verlassen.
 
 ::: note Versehentlich ohne Speichern verlassen?
-In den neun Tools bewahrt der Verlauf eine Kopie der verworfenen Änderungen auf. Öffnen Sie die Seite **Verlauf**, finden Sie sie unter **Changes** und drücken Sie **Als Kopie öffnen**. In anderen Tools sind die Änderungen weg.
+In Tools, die während der Arbeit speichern, bewahrt der Verlauf eine Kopie der verworfenen Änderungen auf. Öffnen Sie die Seite **Verlauf**, finden Sie sie unter **Changes** und drücken Sie **Als Kopie öffnen**. In anderen Tools sind die Änderungen weg.
 :::
 
-::: details Die neun Tools, die während der Arbeit speichern
-[Design](/#/tool/design), [Diagramm](/#/tool/chart), [QR-Code](/#/tool/qr-code), [Verlauf](/#/tool/gradient), [Schnipsel](/#/tool/snippet), [Flussdiagramm](/#/tool/org-chart), [Preise](/#/tool/pricing-table), [Wortmarke](/#/tool/wordmark) und [Text](/#/tool/text-helper). Die Liste wächst, sobald weitere Tools automatisches Speichern erhalten.
+::: details Welche Tools während der Arbeit speichern
+In der Web-App speichert jedes Tool, das ein Dokument erstellt, während der Arbeit: Design, Chart, QR Code, Text, Sandbox und die übrigen. Diese Tools tun es nicht:
 
-In diesen Tools legt Ihre erste Änderung die Arbeit in **Projekte** ab, als hätten Sie gespeichert, und spätere Änderungen werden innerhalb weniger Sekunden gesichert. Eine nicht gespeicherte Kreation bleibt also auch nach dem Schließen des Tabs in Projekte und öffnet sich mit als nicht gespeichert markierten Änderungen erneut. **Verlassen ohne zu speichern** verwirft sie weiterhin, und der Verlauf bewahrt eine Kopie der verworfenen Änderungen für 30 Tage auf. Das erneute Öffnen des Tools über den Startbildschirm beginnt eine neue Kreation; öffnen Sie die frühere aus Projekte.
+- Tools, die mit einer Datei arbeiten, die Sie mitbringen, wie Redact, Sign oder Convert Image, weil Lolly nie eine Kopie dieser Datei behält;
+- Tools, die von Ihrer Kamera, Ihrem Mikrofon oder Bildschirm aufzeichnen, wie Record, Screen Capture und Voice Recorder;
+- 3D und Darkroom, die eine eigene Datei entgegennehmen;
+- ein Tool, bei dem es nichts zu ändern gibt, wie Countdown.
+
+In den anderen Tools legt Ihre erste Änderung die Arbeit in **Projekte** ab, als hätten Sie gespeichert, und spätere Änderungen werden während der Arbeit gesichert, sobald das Tool mit dem Zeichnen fertig ist. Eine nicht gespeicherte Kreation bleibt also auch nach dem Schließen des Tabs in Projekte und öffnet sich mit als nicht gespeichert markierten Änderungen erneut. **Verlassen ohne zu speichern** verwirft sie weiterhin, und der Verlauf bewahrt eine Kopie der verworfenen Änderungen für 30 Tage auf. Das erneute Öffnen des Tools über den Startbildschirm beginnt eine neue Kreation; öffnen Sie die frühere aus Projekte.
+
+Bei eingeschalteter [Synchronisierung](/info/sync.html) gelangt eine so abgelegte Kreation wie alles andere in Projekte auf Ihre anderen Geräte. Ihre Versionen bleiben auf dem Gerät, auf dem sie entstanden sind.
+
+Ist eine Kreation in zwei Tabs geöffnet und Sie speichern in beiden, bleibt der letzte Speicherstand erhalten. Die ersetzte Arbeit geht dabei nicht verloren: Sie liegt unter **Geschützte Entwürfe** im Verlauf der Kreation, mit **Entwurf als Kopie öffnen**.
 
 Dies funktioniert nur in der Web-App, nicht in den Desktop- oder Mobil-Apps, und nicht, während Sie live mit jemand anderem zusammenarbeiten.
 :::
@@ -111,21 +120,23 @@ Auf iPhone, iPad und Android ersetzt eine neue Datei eine frühere mit demselben
 ## Zu einer früheren Version zurückkehren
 
 - **Während dieses Besuchs:** **Rückgängig** geht durch Ihre letzten 100 Änderungen zurück, bis Sie das Tool verlassen oder neu laden. Siehe [Rückgängig und Wiederholen](/info/using.html#undo-and-redo).
-- **In den neun Tools, die während der Arbeit speichern:** Frühere Versionen jeder Kreation werden aufbewahrt. Folgen Sie den Schritten unten.
+- **In [Tools, die während der Arbeit speichern](#which-tools-save-as-you-work):** Frühere Versionen jeder Kreation werden aufbewahrt. Folgen Sie den Schritten unten.
 - **Alles auf dem Gerät:** Bei eingeschalteter [Synchronisierung](/info/sync.html) bringt **Restore an earlier copy**, unter **Einstellungen → Verbundene Dienste**, eine der letzten sieben täglichen Kopien zurück, oder die Kopie von vor Ihrer letzten Anwendung. Alles auf diesem Gerät entspricht dann dieser Kopie, nicht nur ein Design.
 
-So öffnen Sie eine frühere Version in einem der neun Tools:
+So öffnen Sie eine frühere Version:
 
-1. Drücken Sie **History**, die Uhr-Schaltfläche neben **Rückgängig** und **Wiederholen**. In Design befindet sich **History** in der oberen Leiste; auf dem Smartphone drücken Sie **•••** und dann **History**.
-2. Finden Sie die Version anhand ihres Datums und ihrer Uhrzeit. Zeilen mit **Automatic checkpoint** werden während der Arbeit erstellt; Zeilen mit **Saved version** sind die Zeitpunkte, zu denen Sie gespeichert haben.
-3. Drücken Sie **Open as a copy**. Die Version öffnet sich als neue Kreation, und die geöffnete bleibt, wie sie war. Die Kopie ist in **Projekte**, mit "(copy)" nach ihrem Namen.
+1. Drücken Sie **Verlauf**, die Uhr-Schaltfläche neben **Rückgängig** und **Wiederholen**. In Design befindet sich **Verlauf** in der oberen Leiste; auf dem Smartphone drücken Sie **•••** und dann **Verlauf**. In Tools ohne **Rückgängig**, wie Text und Sandbox, befindet sich **Verlauf** oben links neben **Start**.
+2. Finden Sie die Version anhand ihres Datums und ihrer Uhrzeit. Zeilen mit **Automatischer Checkpoint** werden während der Arbeit erstellt; Zeilen mit **Gespeicherte Version** sind die Zeitpunkte, zu denen Sie gespeichert haben.
+3. Drücken Sie **Als Kopie öffnen**. Die Version öffnet sich als neue Kreation, und die geöffnete bleibt, wie sie war. Die Kopie ist in **Projekte**, mit "(copy)" nach ihrem Namen.
 
 Um eine Version namentlich zu behalten, drücken Sie **Name version**, geben Sie einen Namen ein und drücken Sie **Keep milestone**. Benannte Versionen werden auf der Seite **History** unter **Milestones** aufgelistet.
 
 ::: details Das History-Panel und die History-Seite
 Das **History**-Panel listet außerdem Zeilen mit **Recovered work** auf, und **Protected drafts** hält Ihre neuesten Änderungen zwischen Checkpoints, mit **Open draft as a copy**. **Compare** und **Check assets** helfen Ihnen bei der Wahl, bevor Sie eine Kopie öffnen. Schalten Sie **This creation** auf **All history on this device**, um jede Kreation zu sehen.
 
-Automatische Checkpoints werden mit der Zeit ausgedünnt: einer pro Minute für die letzte Stunde, einer pro Stunde für den letzten Tag, einer pro Tag für 30 Tage, danach einer pro Woche. Gespeicherte Versionen werden alle behalten. Das Löschen einer Kreation über **Einstellungen → Speicher** löscht auch ihre Versionen.
+Automatische Checkpoints werden mit der Zeit ausgedünnt: einer pro Minute für die letzte Stunde, einer pro Stunde für den letzten Tag, einer pro Tag für 30 Tage, danach einer pro Woche. Gespeicherte Versionen und benannte Versionen werden alle behalten. Das Löschen einer Kreation verschiebt auch ihre Versionen in den **Papierkorb**, und **Endgültig löschen** entfernt sie.
+
+Wenn der Speicher des Verlaufs voll wird, werden zuerst die ältesten automatischen Checkpoints von Kreationen entfernt, die Sie seit 30 Tagen nicht geöffnet haben. Ein Speicherstand bleibt dabei immer erhalten: Er wird als aktuelle Arbeit geschrieben, und der Verlauf vermerkt, dass dieser Speicherstand nicht als Version aufbewahrt wird. **Einstellungen → Speicher** zeigt, wie viel der Verlauf verbraucht.
 
 Die Seite **History** (`#/history`, oder **Open app history** im Panel) deckt jede Kreation in diesem Browser ab. Öffnen Sie die Seite an einem Computer über die Uhr-Schaltfläche oben rechts auf dem Startbildschirm oder in **Projekte**. Gehen Sie auf einem Smartphone zur Tools-Galerie auf dem Startbildschirm, drücken Sie die runde Logo-Schaltfläche oben rechts und wählen Sie **Gespeicherte Sitzungen**, was History öffnet. Von **Projekte** aus tut dieses Element noch nichts.
 
@@ -157,7 +168,7 @@ So übertragen Sie alles einmal:
 3. Öffnen Sie auf dem neuen Gerät **Einstellungen → Speicher**, drücken Sie **Daten importieren…**, wählen Sie die Datei und drücken Sie **Import**.
 
 ::: note Was zurückbleibt
-Anmeldungen, Schlüssel und die Synchronisierungs-Passphrase bleiben auf jedem Gerät. Die Liste der letzten Downloads, Offline-Downloads und KI-Modelle reisen auf keinem Weg mit. Der Versionsverlauf reist nur in einer Datei von **Meine Daten exportieren**, nicht über Sync oder eine `.lolly`. Eine Kopie, die Sync in Ihrem Speicher ablegt, kann heruntergeladen und geöffnet oder in **Daten importieren…** ausgewählt werden, wie eine Sicherungsdatei; eine verschlüsselte Kopie fragt nach Ihrer Passphrase.
+Anmeldungen, Schlüssel und die Synchronisierungs-Passphrase bleiben auf jedem Gerät. Die Liste der letzten Downloads, Offline-Downloads und KI-Modelle reisen auf keinem Weg mit. Der Versionsverlauf reist nur in einer Datei von **Meine Daten exportieren**, nicht über Sync oder eine `.lolly`. Wenn der Verlauf zu groß für eine Datei ist, werden die ältesten automatischen Checkpoints ausgelassen, und die Export-Zeile nennt, wie viele. Eine Kopie, die Sync in Ihrem Speicher ablegt, kann heruntergeladen und geöffnet oder in **Daten importieren…** ausgewählt werden, wie eine Sicherungsdatei; eine verschlüsselte Kopie fragt nach Ihrer Passphrase.
 :::
 
 ::: details Was die Sicherungsdatei enthält
@@ -176,7 +187,7 @@ Drücken Sie **Meine Daten exportieren** unter **Einstellungen → Speicher**, u
 
 Beim Start der App bittet Lolly den Browser, seinen Speicher nicht zu löschen, wenn dem Gerät der Platz ausgeht. Der Browser entscheidet. Unter **Einstellungen → Offline verfügbar** bedeutet eine mit **Protected** beginnende Zeile, dass der Browser zugestimmt hat; "The browser may clear downloads if the device runs low on space" bedeutet, dass er es nicht getan hat, und **Downloads schützen** fragt erneut. Hat der Browser nicht zugestimmt, kann er bei knappem Speicherplatz sowohl gespeicherte Arbeit als auch Downloads löschen, bewahren Sie also eine aktuelle Datei von **Meine Daten exportieren** auf.
 
-**Einstellungen → Speicher** zeigt, wie viel Platz jede Art von Daten belegt. **Cache leeren** verwirft heruntergeladene Katalogdateien, die bei Bedarf erneut heruntergeladen werden. **Alle meine Daten löschen** verlangt die Eingabe eines Wortes, schaltet Sync aus und entfernt dann alles, was Lolly in diesem Browser aufbewahrt: Ihr Profil und Ihre Einstellungen, gespeicherte Sitzungen mit ihrem Verlauf und dem Papierkorb, Uploads, Schriften und Designsysteme, das Download-Protokoll, Convert-Ergebnisse, heruntergeladene KI-Modelle und Offline-Kopien. Dateien, die Sie heruntergeladen haben, bleiben dort, wo Sie sie gespeichert haben. Die App startet danach wie bei einem ersten Besuch.
+**Einstellungen → Speicher** zeigt, wie viel Platz jede Art von Daten belegt. Die Zeile **Verlauf** zählt automatische Checkpoints, ihre Vorschauen und Wiederherstellungsentwürfe; **Automatische Checkpoints älter als 30 Tage entfernen** gibt diesen Platz frei und behält gespeicherte und benannte Versionen. **Cache leeren** verwirft heruntergeladene Katalogdateien, die bei Bedarf erneut heruntergeladen werden. **Alle meine Daten löschen** verlangt die Eingabe eines Wortes, schaltet Sync aus und entfernt dann alles, was Lolly in diesem Browser aufbewahrt: Ihr Profil und Ihre Einstellungen, gespeicherte Sitzungen mit ihrem Verlauf und dem Papierkorb, Uploads, Schriften und Designsysteme, das Download-Protokoll, Convert-Ergebnisse, heruntergeladene KI-Modelle und Offline-Kopien. Dateien, die Sie heruntergeladen haben, bleiben dort, wo Sie sie gespeichert haben. Die App startet danach wie bei einem ersten Besuch.
 
 ![Die Speicherkarte auf einem schmalen Smartphone-Bildschirm: jede Kategorie der Daten auf dem Gerät benannt, unten die Schaltfläche Alle meine Daten löschen](/t/url-shot?url=%2F%23%2Fprofile%3Ffocus%3Dstorage-section&width=430&height=1600&dpi=192&waitMs=2400&css=.welcome-dialog%2C.personalize-nudge%2C.store-manages%2C.storage-subsection%2C.store-selbar%2C.store-chip-val%2C%23store-hero-num%2C%23store-headroom%2C%23store-quota%2C%23store-reclaim%7Bdisplay%3Anone%7D&format=svg&walker=1&cropSelector=%23storage-section&dark=1&filename=pv-storage-clear)
 

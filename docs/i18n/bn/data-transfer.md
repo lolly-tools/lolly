@@ -39,7 +39,7 @@
 
 `profile.json` সবচেয়ে ছোট অংশ এবং অ্যাপে রিডার প্রথমে যা দেখে: একজন প্রযোজক একবার যা পূরণ করেন তার বিবরণ, এবং টুলগুলোকে সেগুলো ব্যবহার করতে দেওয়ার অপ্ট-ইন।
 
-![Profile details ফর্ম যা profile.json হয়ে ওঠে - নাম, যোগাযোগ, হেডশট এবং তাদের পাশে অপ্ট-ইন](/t/url-shot?url=%2F%23%2Fprofile&width=1440&height=900&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
+![যে Profile ডিটেইল ফর্ম profile.json হয়ে যায়: নাম, যোগাযোগের বিবরণ এবং হেডশট](/t/url-shot?url=%2F%23%2Fsettings%3Ffocus%3Ddetails-section&width=1440&height=1100&dpi=192&waitMs=1800&format=svg&cropSelector=.profile-details-grid&walker=1&dark=1&filename=ce-profile-record)
 
 ## `manifest.json`
 

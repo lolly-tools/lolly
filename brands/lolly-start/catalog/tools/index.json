@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-26T02:04:19.264Z",
+  "generatedAt": "2026-09-27T19:48:16.959Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -3817,7 +3817,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-      "version": "1.37.0",
+      "version": "1.38.0",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -10473,8 +10473,8 @@
     {
       "id": "snippet",
       "name": "Snippet",
-      "description": "Turn code snippets into clean, syntax-highlighted, shareable images.",
-      "version": "1.3.1",
+      "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
+      "version": "1.6.0",
       "status": "official",
       "category": "everyone",
       "requires": [
@@ -10484,7 +10484,11 @@
         "code",
         "developer",
         "snippet",
-        "export"
+        "export",
+        "text",
+        "typing",
+        "animation",
+        "video"
       ],
       "added": "2026-08-16",
       "formats": [
@@ -10493,7 +10497,11 @@
         "penpot",
         "jpg",
         "webp",
-        "pdf"
+        "pdf",
+        "mp4",
+        "webm",
+        "gif",
+        "webp-anim"
       ],
       "width": 1200,
       "height": 800,
@@ -10503,13 +10511,192 @@
       "featured": {
         "order": 5
       },
+      "examples": [
+        {
+          "label": "Typing demo",
+          "values": {
+            "code": "console.log(\"Hello\");",
+            "language": "javascript",
+            "scene": "demo",
+            "typingSeconds": 6,
+            "readSeconds": 2,
+            "windowRotate": -2
+          }
+        },
+        {
+          "label": "Autocomplete",
+          "values": {
+            "code": "Make text feel alive.",
+            "language": "plain",
+            "scene": "autocomplete",
+            "completeAfter": 35,
+            "typingSeconds": 3,
+            "readSeconds": 3
+          }
+        },
+        {
+          "label": "Edit a word",
+          "values": {
+            "code": "Hello, World!",
+            "language": "plain",
+            "scene": "replace",
+            "selectText": "World",
+            "replacementText": "Lolly",
+            "typingSeconds": 1.5,
+            "readSeconds": 2
+          }
+        }
+      ],
       "templates": [
+        {
+          "id": "autocomplete",
+          "name": "Accept a suggestion",
+          "category": "Animated",
+          "description": "Type the opening, reveal a suggestion and accept the remaining text.",
+          "presets": [
+            {
+              "id": "light",
+              "name": "Light",
+              "description": "Present the same interaction in a light window."
+            },
+            {
+              "id": "close-afterwards",
+              "name": "Close afterwards",
+              "description": "Close the window after the result has been read."
+            }
+          ]
+        },
         {
           "id": "brand-starter",
           "name": "Hello, open world",
           "category": "Brand",
           "description": "A small, readable code window on transparency.",
           "galleryCover": true
+        },
+        {
+          "id": "dark-code",
+          "name": "Dark code",
+          "category": "Still",
+          "description": "A dark editor with clear syntax colours for technical slides.",
+          "presets": [
+            {
+              "id": "design-system",
+              "name": "Design system",
+              "description": "Use your current design system colours."
+            }
+          ]
+        },
+        {
+          "id": "light-code",
+          "name": "Light code",
+          "category": "Still",
+          "description": "A bright editor window for code samples and documentation.",
+          "presets": [
+            {
+              "id": "without-numbers",
+              "name": "No line numbers",
+              "description": "Give a short example more breathing room."
+            }
+          ]
+        },
+        {
+          "id": "light-note",
+          "name": "Light note",
+          "category": "Still",
+          "description": "A quiet window for a short message, quote or announcement.",
+          "presets": [
+            {
+              "id": "type-the-note",
+              "name": "Type the note",
+              "description": "Type each word, then leave the message visible."
+            }
+          ]
+        },
+        {
+          "id": "live-edit",
+          "name": "Select and replace",
+          "category": "Animated",
+          "description": "Select a draft status and type its replacement in place.",
+          "presets": [
+            {
+              "id": "longer-replacement",
+              "name": "Expand the text",
+              "description": "Replace one word with a longer phrase."
+            },
+            {
+              "id": "delete-a-line",
+              "name": "Delete a line",
+              "description": "Select and remove the status line."
+            }
+          ]
+        },
+        {
+          "id": "scrolling-document",
+          "name": "Scrolling document",
+          "category": "Animated",
+          "description": "A longer passage types at a readable size while the window follows the caret.",
+          "presets": [
+            {
+              "id": "light",
+              "name": "Light",
+              "description": "Read the passage in a light window."
+            },
+            {
+              "id": "open-and-close",
+              "name": "Open and close",
+              "description": "Frame the passage with opening and closing gestures."
+            }
+          ]
+        },
+        {
+          "id": "terminal-session",
+          "name": "Terminal walkthrough",
+          "category": "Animated",
+          "description": "A short authored command, a pause for output and a finished build."
+        },
+        {
+          "id": "tilted-dark",
+          "name": "Tilted dark",
+          "category": "Tilted",
+          "description": "A cool, dark window with perspective for a feature slide.",
+          "presets": [
+            {
+              "id": "type-the-scene",
+              "name": "Animate",
+              "description": "Open the tilted window, type and close."
+            }
+          ]
+        },
+        {
+          "id": "tilted-light",
+          "name": "Tilted light",
+          "category": "Tilted",
+          "description": "A light window with a gentle perspective and an angled baseline.",
+          "presets": [
+            {
+              "id": "subtle",
+              "name": "Subtle tilt",
+              "description": "Reduce the angle for a quieter composition."
+            }
+          ]
+        },
+        {
+          "id": "typing-demo",
+          "name": "Open, type and close",
+          "category": "Animated",
+          "description": "The complete interaction: open, click, type, pause and close.",
+          "presets": [
+            {
+              "id": "hold-the-result",
+              "name": "Hold the result",
+              "description": "Keep the finished window on screen."
+            },
+            {
+              "id": "brisk",
+              "name": "Brisk",
+              "description": "A shorter sequence for a quick reveal."
+            }
+          ]
         }
       ],
       "i18n": {

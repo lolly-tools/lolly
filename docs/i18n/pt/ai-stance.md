@@ -10,7 +10,7 @@ Lolly foi construído no meio da maior mudança na forma de produzir mídia desd
 
 %file{Gemini_Generated_Image_vmy7thvmy7thvmy7.png} %entity{Gemini} imagem gerada %sig{signed by %entity{Google LLC}} %entity{Lolly} %act{opened}, %act{resized} e %act{exported to WebP} como %file{the-flood.webp} %detail{10.6 MB down to 0.8 MB} %sig{signed by %entity{Lolly}} [Verificar agora](/#/verify?src=%2Finfo%2Fthe-flood.webp)
 
-Para ser preciso, porque esta página defende que precisão importa: a imagem acima é gerada, não fotografada. Nenhuma câmera foi apontada para essa fazenda, porque não existe fazenda. Ela descreve o interior de Queensland, Austrália, solicitada a partir do Reino Unido, gerada num data center nos Estados Unidos. Ela busca ser fiel a um lugar sem ser o registro de um lugar, e essa distinção é toda a razão de seus Content Credentials dizerem isso.
+Para ser preciso, porque esta página defende que precisão importa: a imagem acima é gerada, não fotografada. Nenhuma câmera foi apontada para essa fazenda, porque não existe fazenda. Ela descreve o interior de Queensland, Austrália, solicitada a partir do Reino Unido, gerada num data center nos Estados Unidos. Ela busca ser fiel a um lugar sem ser o registro de um lugar, e essa distinção é toda a razão de seus Content Credentials registrarem isso.
 
 É assim que fica quando você verifica. Nove etapas sobrevivem no arquivo: cinco registradas pelo Google ao gerar e marcar a imagem com marca d'água, depois quatro registradas pelo Lolly ao abrir, criar, marcar e converter a versão desta página. Lolly não gerou nada, e sua entrada diz isso.
 
@@ -52,6 +52,6 @@ Você nunca precisa de IA aqui. Se você optar por usá-la, três coisas valem:
 - <!--i:seal--> **Não é uma alegação de pureza.** Lolly lê procedência de forma ampla e a registra com honestidade; não finge detectar todo pixel gerado na internet.
 - <!--i:sunburst--> **Não é pânico moral.** A enchente não é a inimiga. Água sem atribuição é.
 
-## Como nos cobrar por isso
+## Verifique esses compromissos você mesmo
 
 Todo compromisso acima é aplicado no código aberto, não num PDF de política: o caminho de procedência, a rotulagem GEN AI e a garantia de ausência de rastreadores vêm todos com testes, e a página [Verifique Você Mesmo](/info/verify-yourself.html) mostra passo a passo como conferir as afirmações contra uma exportação real. Se você encontrar um lugar onde o código e esta página discordam, o código é o bug.

@@ -40,6 +40,6 @@ Keeping the test this strict is what keeps the badge worth reading. It means "a 
 
 ![The export panel's Content Credentials card, pre-ticked, so an AI-origin ingredient rides into whatever file the render becomes rather than being left behind](/t/url-shot?url=%2F%23%2Ftool%2Fqr-code%3Furl%3Dhttps%3A%2F%2Flolly.tools%26format%3Dpng%26options%26c2pa%3D90%26imprint%3D1&width=1440&height=900&dpi=192&waitMs=2400&walker=1&format=svg&css=%23tool-inputs%2C%23sidebar-utils%7Bdisplay%3Anone%7D&cropSelector=.export-c2pa&dark=1&filename=aif-export-cc)
 
-## How to hold us to it
+## Check these claims yourself
 
 Each claim here has a mechanism behind it, and each mechanism ships with tests: the on-device boundary, the source-type a given operation stamps and the flag that does or does not appear. Run any output through [Verify It Yourself](/info/verify-yourself.html) and read the change history back for yourself. The engineering-level detail of these bridges lives in [Host API](/info/host-api.html), and the wider position they follow from is [Our AI Stance](/info/ai-stance.html). If the code and this page ever disagree, the code is the bug.

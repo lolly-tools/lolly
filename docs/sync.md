@@ -38,7 +38,7 @@ The full list of every network request the app makes is on the
 
 **Syncs:**
 
-- saved sessions and projects;
+- saved sessions and projects, including work a tool filed in **Projects** as you worked;
 - your design systems, with their uploaded fonts and logos;
 - your uploaded images and the copies of your downloads that Lolly keeps;
 - Convert's file results;

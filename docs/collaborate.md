@@ -278,7 +278,7 @@ This is the case the feature was built for.
 
 **The hotspot trick.** If there is no network to share, make one. Turn on the personal hotspot on a phone and connect the other device to it. That is a network with exactly two devices on it, no route to anywhere, and it is enough - a plane, a basement, a site with no coverage. This is also the standing answer when a venue's Wi-Fi will not let two of its own clients talk to each other, which happens more often than you would like.
 
-**What needs what**, honestly:
+**What needs what**:
 
 | The part | What it needs |
 |---|---|
