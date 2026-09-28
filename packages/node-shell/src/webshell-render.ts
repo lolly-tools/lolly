@@ -22,6 +22,7 @@ import {
   rendererPreference, renderViaRenderServer,
 } from './desktop-renderer.ts';
 import { repoRoot } from './repo-root.ts';
+import { waitForExport, type ExportWait } from './export-wait.ts';
 
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
@@ -149,14 +150,6 @@ export function exportUrl(base: string, toolId: string, query: string, fmt: stri
   return `${base}/#/tool/${encodeURIComponent(toolId)}?${p.toString()}`;
 }
 
-/** How long to wait for the download. Video records in real time. */
-function timeoutFor(fmt: string): number {
-  const f = fmt.toLowerCase();
-  if (['webm', 'mp4', 'gif', 'apng'].includes(f)) return 180_000;
-  if (['pdf', 'pdf-cmyk', 'cmyk-tiff', 'tiff'].includes(f)) return 90_000;
-  return 60_000;
-}
-
 // ── Tier-B debug (--tier-b-debug / LOLLY_TIER_B_DEBUG=1) ──────────────────────
 //
 // A Tier-B failure used to be one sentence with no evidence in it: "the web shell
@@ -281,13 +274,12 @@ function withDebugLog(err: unknown, label: string, debug: DebugRecorder): unknow
 }
 
 /** The download-timeout sentence, with the debug log's evidence when it is on. */
-function noFileError(toolId: string, format: string, debug: DebugRecorder): BrowserError {
+function noFileError(toolId: string, format: string, debug: DebugRecorder, reason: unknown): BrowserError {
   const where = debug.where();
   const log = debug.write(`${toolId}.${format}`, `no "${format}" file (${where || 'download wait'})`);
   return new BrowserError(
-    `The web shell produced no "${format}" file for "${toolId}" in time - the tool may have ` +
-    `failed to render or doesn't support that format. Try a different format or check the inputs.` +
-    (where ? ` Timed out in ${where}.` : '') +
+    `The web shell produced no "${format}" file for "${toolId}". ${reason instanceof Error ? reason.message : String(reason)}` +
+    (where ? ` Stopped in ${where}.` : '') +
     (log ? ` Debug log: ${log}` : tierBDebugOn() ? '' : ' Re-run with --tier-b-debug for the browser console and network log.'),
   );
 }
@@ -559,18 +551,20 @@ async function renderViaChromiumShell(
   debug.step('launch the browser');
   const browser = await getBrowser();
   const ctx = await browser.newContext({ serviceWorkers: 'block', acceptDownloads: true });
+  let waiting: ExportWait | undefined;
   try {
     const page = await ctx.newPage();
     debug.attach(page);
-    const downloadP = page.waitForEvent('download', { timeout: timeoutFor(format) });
+    waiting = await waitForExport(page, format);
+    const downloadP = waiting.result;
     debug.step('open the tool page');
     await page.goto(url, { waitUntil: 'commit', timeout: 30_000 });
     debug.step(`wait for the ${format} download`);
     let download: Awaited<typeof downloadP>;
     try {
       download = await downloadP;
-    } catch {
-      throw noFileError(toolId, format, debug);
+    } catch (error) {
+      throw noFileError(toolId, format, debug, error);
     }
     debug.step('read the downloaded bytes');
     const path = await download.path();
@@ -581,6 +575,7 @@ async function renderViaChromiumShell(
   } catch (err) {
     throw withDebugLog(err, `${toolId}.${format}`, debug);
   } finally {
+    waiting?.dispose();
     await ctx.close();
   }
 }
@@ -667,6 +662,7 @@ export async function renderVideoViaScreenshot(
     serviceWorkers: 'block', acceptDownloads: true, deviceScaleFactor: 1,
     viewport: { width: vw, height: vh },
   });
+  let waiting: ExportWait | undefined;
   try {
     const page = await ctx.newPage();
     // Exposed before navigation. The binding survives the goto() below and every
@@ -678,15 +674,16 @@ export async function renderVideoViaScreenshot(
       return buf.toString('base64');
     });
     debug.attach(page);
-    const downloadP = page.waitForEvent('download', { timeout: timeoutFor(format) });
+    waiting = await waitForExport(page, format);
+    const downloadP = waiting.result;
     debug.step('open the tool page');
     await page.goto(url, { waitUntil: 'commit', timeout: 30_000 });
     debug.step(`wait for the ${format} download`);
     let download: Awaited<typeof downloadP>;
     try {
       download = await downloadP;
-    } catch {
-      throw noFileError(toolId, format, debug);
+    } catch (error) {
+      throw noFileError(toolId, format, debug, error);
     }
     debug.step('read the downloaded bytes');
     const path = await download.path();
@@ -697,6 +694,7 @@ export async function renderVideoViaScreenshot(
   } catch (err) {
     throw withDebugLog(err, `${toolId}.${format}`, debug);
   } finally {
+    waiting?.dispose();
     await ctx.close();
   }
 }
@@ -706,6 +704,7 @@ export async function renderToolPackageViaWebShell(bytes: Uint8Array, toolId: st
   const base = await webShellBase();
   const browser = await getBrowser();
   const context = await browser.newContext({serviceWorkers:'block',acceptDownloads:true});
+  let waiting: ExportWait | undefined;
   try {
     const page = await context.newPage();
     await page.goto(base, {waitUntil:'load',timeout:30_000});
@@ -716,10 +715,11 @@ export async function renderToolPackageViaWebShell(bytes: Uint8Array, toolId: st
     }, [...bytes]);
     await page.getByRole('button', {name:'Trust & install',exact:true}).click({timeout:10_000}).catch(async () => { throw new BrowserError(`The reader could not open this tool file: ${(await page.locator('body').innerText()).slice(-1500)}`); });
     await page.locator('.lolly-locked-design').waitFor({timeout:30_000});
-    const downloading = page.waitForEvent('download', {timeout:timeoutFor(format)});
+    waiting = await waitForExport(page, format);
+    const downloading = waiting.result;
     await page.goto(exportUrl(base,toolId,query,format,{}), {waitUntil:'commit'});
     const download = await downloading;
     const path = await download.path(); if (!path) throw new BrowserError('The tool produced no output file.');
     return new Uint8Array(await readFile(path));
-  } finally { await context.close(); }
+  } finally { waiting?.dispose(); await context.close(); }
 }

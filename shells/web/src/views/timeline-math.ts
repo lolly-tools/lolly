@@ -55,6 +55,10 @@ export interface TimeCfg {
   muteField: string;
   laneField: string;
   idField: string;
+  /** Explicit artboard membership takes priority over an overlay's temporal anchor. */
+  frameField?: string;
+  frameKindField?: string;
+  frameKind?: string;
   /**
    * OPTIONAL. The sub-field carrying an A/V link - the id of the box this one was
    * detached from (or detached into), written on BOTH sides so re-attach works from
@@ -1315,6 +1319,7 @@ export function rippleOverlays(before: Box[], after: Box[], cfg: TimeCfg): Box[]
     moved.set(String(id), boxTiming(b, cfg).start ?? 0);
   }
   const oldById = new Map(prev.map(b => [String(b?.[cfg.idField] ?? ""), b]));
+  const scenes = !!cfg.frameKindField && spans.some(span => oldById.get(span.id)?.[cfg.frameKindField!] === cfg.frameKind);
   return next.map((b) => {
     if (!b) return b;
     const old = oldById.get(String(b[cfg.idField] ?? ""));
@@ -1322,7 +1327,11 @@ export function rippleOverlays(before: Box[], after: Box[], cfg: TimeCfg): Box[]
     const t = boxTiming(old, cfg);
     if (t.lane === 'seq' || t.start === null) return b;   // seq clips and scenery are not overlays
     let span: (typeof spans)[number] | undefined;
-    if (disjoint) {
+    const owner = cfg.frameField ? String(old[cfg.frameField] ?? '') : '';
+    if (scenes && !owner) return b;
+    if (owner) {
+      span = spans.find(s => s.id === owner);
+    } else if (disjoint) {
       let lo = 0;
       let hi = spans.length;
       while (lo < hi) {

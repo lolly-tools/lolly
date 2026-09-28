@@ -1354,7 +1354,7 @@
   "shells/web/src/views/timeline-math.ts": 42,
   "shells/web/src/views/timeline-panel.test.ts": 40,
   "shells/web/src/views/timeline-panel.ts": 23,
-  "shells/web/src/views/timeline-panel/camera.ts": 2,
+  "shells/web/src/views/timeline-panel/camera.ts": 1,
   "shells/web/src/views/timeline-panel/crossfade.ts": 4,
   "shells/web/src/views/timeline-panel/edit.ts": 1,
   "shells/web/src/views/timeline-panel/gestures.ts": 2,

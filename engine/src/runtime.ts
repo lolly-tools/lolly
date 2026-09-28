@@ -83,6 +83,8 @@ export interface RuntimeEmojiState {
   present: boolean;
   /** Pinned pack assets carried by saves, templates and portable files. */
   assets?: import('@lolly-tools/core/host-v1').AssetRef[];
+  /** Artwork used by the render, excluding the picker and other untracked chrome. */
+  sources?: Array<Pick<EmojiLineSource, 'pack' | 'assetId'>>;
   /** Glyphs drawn from the chosen set in the last pass. */
   replaced: number;
   /** Clusters the last pass left as the neutral placeholder. */
@@ -991,6 +993,7 @@ export async function createRuntime(
   let emojiReplaced = 0, emojiUnresolved = 0;
   // The last tree the pass ran on, so changing the set re-draws what is on screen.
   let emojiNode: unknown = null;
+  let emojiCensusKnown = false;
   // Prepared plus treated artwork, keyed by pack pin, meaning and treatment, so a
   // glyph used a hundred times is prepared once and a repaint prepares nothing.
   const emojiArtwork: EmojiArtworkCache = new Map();
@@ -1017,6 +1020,7 @@ export async function createRuntime(
   let emojiAssetsFor: string | null = null;
   const emojiSnapshot = (): RuntimeEmojiState => ({
     assets: structuredClone(emojiAssets),
+    sources: emojiCensusKnown ? emojiCensus.map(({ pack, assetId }) => ({ pack: structuredClone(pack), assetId })) : undefined,
     present: Boolean(host.emoji),
     replaced: emojiReplaced,
     unresolved: emojiUnresolved,
@@ -1114,9 +1118,10 @@ export async function createRuntime(
       const missingParagraph = (root as {querySelectorAll?: (selector:string) => ArrayLike<{getAttribute(name:string):string|null}>}).querySelectorAll?.('[data-text-emoji-missing]');
       emojiUnresolved = result.unresolved + Array.from(missingParagraph ?? []).reduce((count, el) => count + Math.max(0, Number(el.getAttribute('data-text-emoji-missing')) || 0), 0);
       emojiCensus = result.census;
+      emojiCensusKnown = true;
       notifyEmoji();
     };
-    if (track) emojiNode = root;
+    if (track) { emojiNode = root; emojiCensusKnown = false; }
     if (!EMOJI_MAYBE.test(root.textContent ?? '') && !(root as {querySelector?: (selector:string) => unknown}).querySelector?.('[data-emoji-tool-source]')) {
       record(nothing);
       return { present: true, ...nothing };
@@ -1742,7 +1747,7 @@ export async function createRuntime(
           script: tool.presentationSource, title: String(model.find(i => i.id === 'title')?.value || tool.manifest.name), lang: hookLang,
         } };
       }
-      if (format === 'lottie') opts = { ...opts, width: opts.width ?? tool.manifest.render?.width, height: opts.height ?? tool.manifest.render?.height, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model)) } };
+      if (format === 'lottie' || format === 'html' && tool.manifest.id === 'design') opts = { ...opts, width: opts.width ?? tool.manifest.render?.width, height: opts.height ?? tool.manifest.render?.height, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model)) } };
       if (tool.manifest.designTool) {
         if (tool.manifest.designTool.sourceTool && extras.__lollySourceError) throw new Error(String(extras.__lollySourceError));
         if (tool.manifest.designTool.sourceTool) {

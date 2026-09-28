@@ -30,15 +30,26 @@ export const cameraKind = (tp: TpCtx): TimelineAddKind | undefined => { const { 
 export function isCameraBox(_tp: TpCtx, b: Box | undefined): boolean {
   return !!b && String(b.kind ?? '') === 'camera';
 }
-/** The scene camera's id, or '' - the FIRST camera in the array (DOM order). */
+/** Selected artboard, selected member's owner, or the scene at the playhead. */
+function activeScene(tp: TpCtx, rows: Box[]): Box | undefined {
+  const { cfg } = tp;
+  if (!cfg.frameField) return;
+  const selected = rows.find(row => tp.selection.get().includes(String(row[cfg.idField])));
+  const owner = selected?.kind === 'frame' ? selected[cfg.idField] : selected?.[cfg.frameField];
+  const at = tp.clock.t() / 1000;
+  return rows.find(row => row.kind === 'frame' && String(row[cfg.idField]) === String(owner))
+    ?? rows.find(row => row.kind === 'frame' && isTimed(row, cfg) && at >= Number(row[cfg.startField]) && at < Number(row[cfg.startField]) + Number(row[cfg.durField]));
+}
+/** The first camera in this artboard's context, or the single-stage camera. */
 export function sceneCameraId(tp: TpCtx, rows: Box[]): string {
   const { cfg } = tp;
-  for (const b of rows) if (isCameraBox(tp, b)) return String(b?.[cfg.idField] ?? '');
+  const owner = activeScene(tp, rows)?.[cfg.idField] ?? '';
+  for (const b of rows) if (isCameraBox(tp, b) && (!cfg.frameField || String(b[cfg.frameField] ?? '') === String(owner))) return String(b?.[cfg.idField] ?? '');
   return '';
 }
 /**
  * THE IMPLICIT SCENE CAMERA (section 5.4's "default experience", the review's strongest UX
- * finding): the first depth interaction auto-creates ONE untimed camera box.
+ * finding): the first depth interaction creates a camera in the selected scene.
  *
  * PURE - it returns the array and the id, and commits nothing, so the gesture that
  * triggered it composes the camera and its own write into ONE commit and therefore
@@ -46,10 +57,8 @@ export function sceneCameraId(tp: TpCtx, rows: Box[]): string {
  * minting the camera that looks at it is one action to the user, and two ⌘Zs to undo
  * it would be a lie about what just happened.
  *
- * UNTIMED, deliberately: no `start` field, so it renders as an "Always on" scenery
- * chip whose inspector is the scene-camera panel - Depthfield's SCENE DEFAULTS. It
- * becomes a timed clip only when promoted (the existing timed ⇄ always-on switch),
- * and a SECOND camera is how you cut.
+ * A single-stage camera starts untimed as an "Always on" scenery chip. An artboard
+ * camera inherits its scene's interval and membership. Another camera can add a cut.
  *
  * It is born from the manifest's own `camera` add-kind seed where the tool declares
  * one, exactly as a recorded take is born from the audio seed - the panel never
@@ -64,10 +73,12 @@ export function ensureSceneCameraRows(tp: TpCtx, rows: Box[]): { rows: Box[]; id
   const found = sceneCameraId(tp, rows);
   if (found) return { rows, id: found };
   const id = tp.edit.mintId(rows);
+  const owner = activeScene(tp, rows);
   const box: Box = {
     ...(cameraKind(tp)?.seed as Box | undefined),
     kind: 'camera',
     [cfg.idField]: id,
+    ...(owner && cfg.frameField ? { [cfg.frameField]: owner[cfg.idField], [cfg.startField]: owner[cfg.startField] || 0, [cfg.durField]: owner[cfg.durField] || 3 } : {}),
   };
   return { rows: [...rows, box], id };
 }
@@ -213,7 +224,8 @@ export function applyCameraPreset(tp: TpCtx, preset: { label: string; track: str
   // A scene with no derived duration (a still with no clip timing) keeps the authored
   // length - `deriveDuration` returns 0, and `rescaleKfTrack` treats a 0 target as
   // "leave it", so nothing regresses. The floor keeps a sub-second scene from strobing.
-  const sceneMs = deriveDuration(seeded.rows, cfg);
+  const owner = activeScene(tp, seeded.rows);
+  const sceneMs = owner ? Number(owner[cfg.durField]) * 1000 : deriveDuration(seeded.rows, cfg);
   const track =
     sceneMs > 0
       ? rescaleKfTrack(parseKf(preset.track), Math.max(PRESET_MIN_MS, sceneMs))

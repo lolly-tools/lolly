@@ -369,7 +369,7 @@ test('the ease reaches the driver too - a live take is eased like the preview', 
 function framesStage(): HTMLElement {
   const root = dom.window.document.createElement('div');
   root.innerHTML = `
-    <div class="lolly-frames">
+    <div class="lolly-frames" data-deck-transition="cut">
       <div class="lolly-frame-page" data-pdf-page data-t-start="0" data-t-dur="3000" data-t-lane="seq"
            style="position:absolute;left:0px;top:0px;width:800px;height:600px"></div>
       <div class="lolly-frame-page" data-pdf-page data-t-start="3000" data-t-dur="3000" data-t-lane="seq"
@@ -588,18 +588,9 @@ test('what never settles does NOT drag the still back to its own beginning', () 
   assert.equal(snapshot(page), before);
 });
 
-test('the per-artboard still is composed on the DOCUMENT, drawn whole, and refuses depth', () => {
-  // The three rules the still export (views/tool-actions.ts) depends on, pinned against
-  // the real applier because each one was got wrong by composing a single PAGE:
-  //
-  //   1. the frames-as-scenes DEPTH OPT-OUT is latched from the `[data-pdf-page]`
-  //      elements, which are not descendants of any one page - so a page-scoped session
-  //      projected a lifted box through a camera the preview and the compositor refuse;
-  //   2. `data-seq-ms` is stamped on the `.lolly-frames` root, so a page-scoped session
-  //      measured every open-ended box against "no sequence at all";
-  //   3. the applier HIDES whatever is outside its window - inside the page it was asked
-  //      to pose - so a still of a slide with staggered bullets came out showing only the
-  //      last one. The exporter keeps the pose and lifts the hiding again.
+test('the per-artboard still is composed on the document, drawn whole, and projects within its own page', () => {
+  // The document owns timing while each page supplies its projection dimensions.
+  // A still keeps the evaluated pose and lifts visibility gates to show every layer.
   const root = dom.window.document.createElement('div');
   root.innerHTML = `
     <div class="lolly-frames" data-seq-ms="8000">
@@ -621,7 +612,7 @@ test('the per-artboard still is composed on the DOCUMENT, drawn whole, and refus
   assert.equal(sequenceDurationMs(root), 8000, 'the document knows its own length…');
   assert.equal(sequenceDurationMs(page), 0, '…and a single page does not - rule 2');
 
-  // The three steps the exporter runs, per page.
+  // The exporter poses the document before capturing each whole page.
   const rest = restMsOf(page);
   assert.equal(rest, 1400, 'the last enter on this page finishes at 1000 + 400');
   applySequenceTime(root, rest);
@@ -630,17 +621,16 @@ test('the per-artboard still is composed on the DOCUMENT, drawn whole, and refus
     for (const id of ['early', 'late', 'lift']) {
       assert.ok(!off(box(page, id)), `${id} is drawn - a still of an artboard draws all of it`);
     }
-    assert.equal(box(page, 'lift').style.transform, '',
-      'a frames document opts out of depth, so nothing is projected - rule 1');
+    assert.equal(box(page, 'lift').style.transform, 'translate(-38.889px, -30.556px) scale(1.111)',
+      'depth uses the owning 800 by 600 page, not the document pasteboard');
   } finally { restoreSequenceTime(root); }
   assert.equal(snapshot(page), before, 'and the page is handed back exactly as it was found');
 
-  // The control: hand the SAME composition a single page and the opt-out is bypassed,
-  // because the elements that declare it are outside the subtree.
+  // A page evaluated directly retains its depth projection too.
   applySequenceTime(page, rest);
   try {
     assert.notEqual(box(page, 'lift').style.transform, '',
-      'page-scoped, the lift IS projected - which is the divergence rule 1 exists to stop');
+      'the lifted layer is projected when its page is evaluated directly');
   } finally { restoreSequenceTime(page); }
   assert.equal(snapshot(page), before);
 });

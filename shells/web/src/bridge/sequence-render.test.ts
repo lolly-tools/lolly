@@ -570,6 +570,6 @@ test('contract (plans/184 R1): a slide’s boxes are posed by the SAME rule the 
   // A posed slide is a live layer, its static plate is at rest with off-screen boxes hidden,
   // and everything is put back in the render’s outer finally.
   assert.match(src, /if \(slidePose && !liveBoxes\.has\(L\.idx\)\) \{\s*liveBoxes\.set\(L\.idx, \{ marker: null, box: el, hide: \[\] \}\);\s*needsLiveRaster = true;/);
-  assert.match(src, /if \(slidePose\) plateHide = slideHiddenAt\(slidePose, slideRestMs\(slidePose, L\)\);\s*under = await rasterBox\(el, PS, plateHide, plateOpts\);/);
+  assert.match(src, /if \(slidePose\) plateHide = slideHiddenAt\(slidePose, slideRestMs\(slidePose, L\), L\.startMs \+ L\.durMs\);\s*under = await rasterBox\(el, PS, plateHide, plateOpts\);/);
   assert.match(src, /slideStore\.restoreAll\(\);\s*for \(const pose of slidePoses\.values\(\)\) \{\s*for \(const b of pose\.boxes\) b\.classList\.remove\(OFF_CLASS\);\s*pose\.restore\(\);/);
 });

@@ -12,13 +12,13 @@ What a fixture must state is specified in [Conformance and fidelity](conformance
 
 Each case carries two parts. The setup lists what is involved: the records, the operation and, where it decides the answer, the execution class. The expected outcome is what must hold for the case to pass.
 
-None of the 25 has a fixture yet, so the status of every case below is the same until one is built.
+The original 25 cases have no admitted fixture yet. Cases 26 and 27 add motion requirements: plan 281 supplies local pilot evidence for part of case 26, while neither case is an admitted conformance suite.
 
 A case states the resolution or confirmed decision it tests. Plan section 17 lists the cases and their required evidence; the ids in this chapter are this chapter's own mapping of each case onto the decisions in plan section 2 and the corrections in section 0.1.
 
 A case must never be reworded to match an implementation that failed it. That is why the plan's section 18 places these fixtures before any shared type is frozen: a failure is evidence about the model, not about the fixture.
 
-Twelve cases come from the three pilots and the utilities. Eleven more were added by review: four after the first round and seven from the final review's findings C1 to C7. Two more, 24 and 25, were added on 2026-09-26 for invariants that had no case of their own. The thirteen added cases are grouped below under the resolution or decision each one tests.
+Twelve cases come from the three pilots and the utilities. Eleven more were added by review: four after the first round and seven from the final review's findings C1 to C7. Two more, 24 and 25, were added on 2026-09-26 for invariants that had no case of their own. Cases 26 and 27 were added on 2026-09-28 for editable motion and nested time. The added cases are grouped below under the resolution or decision each one tests.
 
 ## Pilot and utility cases
 
@@ -116,6 +116,17 @@ Expected outcome: each output must carry the parts its format has a place for, a
 
 **25. Local utility with no record.** The on-device `strip-data` tool removes metadata from a person's file under Q4's default for a utility: capture off, retention none and replay semantic from pinned inputs (`community/strip-data/tool.json`).
 Expected outcome: the operation must succeed with a typed outcome and no receipt, and an absent receipt must read as "no receipt was retained", never as "not evaluated" (D11, R15). The output must carry no provenance and no watermark. The host must keep neither the input file nor a record of the run once it ends, and the run must declare that it kept none rather than leave it to be inferred. A second run on the same input file, held by the person and not by the host, must compare as `equivalent-content` or `identical-bytes` with the first (`engine/src/compare.ts`). Today a picked file never reaches a link (`engine/src/url-mode.ts`) and the output carries no stamp (`engine/src/runtime.ts`), but no declaration says what a run captured or kept, so neither fact can be checked from outside the run.
+
+### Editable motion and nested time (R1, R10, R11, R12, R15)
+
+**26. Editable film and playback projection.** A Design scene with captured UI text and shapes, split text, a camera, a staged pointer and a soundtrack is saved as `.lolly`, opened in a fresh session, edited and exported to HTML and a movie. Change a headline, move the panel and retime the interaction. Seek to the same sample after a different sequence of earlier seeks. Open the HTML with network access disabled.
+Expected outcome: text and geometry must remain editable; imported asset ids must resolve to the carried bytes; the edited values must survive another save and reopen. The player and the movie must evaluate the same authored motion, with raster and codec differences reported separately. Font dependencies must be identified, and embedded HTML fonts must not imply that the editable package carries those fonts. Audio must follow the declared time mapping. Pausing, muting or seeking the player must not alter the source revision. The last displayed sample and encoded frame count must follow an explicit endpoint policy. Plan 281 is local pilot evidence for the current adapter, not proof of general video, Lottie, 3D or arbitrary CSS support.
+
+**27. Nested motion and regeneration.** A timed composition contains a clipped panel, staggered text and a trimmed audio clip. The parent moves, rotates and changes playback rate. An author then changes one generated key and reapplies the recipe. An older reader opens the document and saves an unrelated permitted edit before restart.
+Expected outcome: local geometry, transform order, clipping, opacity composition and time mapping must be unambiguous. Direct seek and continuous playback must agree at trim and composition boundaries. A declared writer conflict must be refused rather than resolved by execution order. Regeneration must preserve the authored key or require an explicit decision to replace the properties it owns. Required motion records must survive the older reader's round trip or that reader must refuse the operation through its gate. A flat set of boxes that happens to look right at one time cannot pass this case. No fixture exists yet; this case must run before a shared hierarchy or timeline payload is frozen.
+
+**28. Timed artboards as scenes.** A film has three differently sized artboards, child motion, one camera per scene, scene-owned audio and an unframed soundtrack. Move the second scene before the first through the timeline, save, reopen and export. Seek repeatedly across scene boundaries and a dissolve, then use the HTML player's scene menu.
+Expected outcome: scene membership determines which starts move, even when a member extends beyond its owner's end. Local keys and the global soundtrack stay unchanged. Each camera affects only its own scene and uses that artboard's size. Scene audio is clipped with its source trim and gain preserved. The outgoing picture holds its final in-bounds sample through a dissolve. HTML and movie contain-fit each scene consistently. Playback navigation must not change the saved source. Deleting a scene removes its members in the same undoable edit. The current adapter stores member starts in project time; passing this case does not prove nested rate or parent-transform support. Plan 281 supplies local examples and targeted tests, not an admitted general conformance suite.
 
 ## What must never pass
 

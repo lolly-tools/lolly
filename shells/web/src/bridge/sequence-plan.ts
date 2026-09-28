@@ -54,6 +54,7 @@ import {
   type KfTrack, type KfPose, type KfCameraClip, type KfCameraView, type KfMatrix3,
 } from '@lolly/engine';
 import { clamp } from '@lolly/engine';
+import { sceneAudioTiming } from './scene-audio.ts';
 
 // ── clamps (mirroring the tool hook + timeline-math, so nothing can disagree) ──
 
@@ -627,14 +628,24 @@ export function parseSequenceStage(node: HTMLElement): SequenceStage | null {
   // boxes under a timed page join the walk as audio layers of their own, read from
   // their own attributes; the page stays the one still it always was.
   const soundInPages = frames.length > 0 && stage.querySelectorAll
-    ? [...stage.querySelectorAll<HTMLElement>('[data-pdf-page][data-t-start] .lolly-box[data-t-start]')]
+    ? [...stage.querySelectorAll<HTMLElement>('.lolly-box[data-t-start]')]
         .filter((b) => b.getAttribute?.('data-pdf-page') == null
-          && (hasClass(b, 'lolly-box-audio') || !!b.querySelector?.('[data-audio-src]')))
+          && (hasClass(b, 'lolly-box-audio') || !!b.querySelector?.('[data-audio-src]'))
+          && (!b.closest('[data-pdf-page]') || b.closest('[data-pdf-page]')!.hasAttribute('data-t-start')))
     : [];
   const els = frames.length > 0
     ? [...frames, ...soundInPages]
     : (stage.querySelectorAll ? [...stage.querySelectorAll<HTMLElement>('.lolly-box')] : []);
-  return { layers: applyDeckTransitions(els.map((el, i) => readLayer(el, i, totalMs))), totalMs };
+  const layers = els.map((el, i) => readLayer(el, i, totalMs));
+  for (const layer of layers) {
+    if (layer.kind !== 'audio') continue;
+    const page = layer.el.closest<HTMLElement>('[data-pdf-page]');
+    const owner = layers.find(candidate => candidate.el === page);
+    if (!owner) continue;
+    if (stage.hasAttribute('data-deck-staged')) layer.startMs += owner.startMs;
+    Object.assign(layer, sceneAudioTiming(layer, owner.startMs, owner.startMs + owner.durMs), { openEnded: false, ignored: layer.ignored || owner.ignored });
+  }
+  return { layers: applyDeckTransitions(layers), totalMs };
 }
 
 /**

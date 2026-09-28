@@ -28,17 +28,17 @@
       "typeEscapes": 19
     },
     "shells/web/src/bridge/export.ts": {
-      "lines": 4544,
+      "lines": 4518,
       "largestFunctionLines": 647,
       "importFanIn": 26,
       "importFanOut": 59,
       "typeEscapes": 60
     },
     "shells/web/src/bridge/sequence-render.ts": {
-      "lines": 1788,
-      "largestFunctionLines": 1048,
-      "importFanIn": 4,
-      "importFanOut": 28,
+      "lines": 1780,
+      "largestFunctionLines": 1035,
+      "importFanIn": 5,
+      "importFanOut": 31,
       "typeEscapes": 13
     },
     "shells/web/src/lib/rebrand/controller.ts": {

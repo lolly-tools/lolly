@@ -70,6 +70,7 @@ import { renderSvgFromHtml, stripCommentNodes, inlineBlobUrlsInEl, inlineSvgFrom
 import type { Deco } from './export-svg-walker.ts';
 import { outlineSvgTextRuns } from './export-svg-text-runs.ts';
 import { buildLinearGradientEl, buildRadialGradientEl } from './export-gradients.ts';
+import { assertExportReady, browserExportProgress } from './export-progress.ts';
 
 export { videoSupport, cmykTiffSupport, tiffSupport } from './format-support.ts';
 export { _host, __setDomToImageForTest, fontMetricsPx } from './export-shared.ts';
@@ -147,8 +148,7 @@ export function createExportAPI(host: WebHost) {
       return checkTextLayout(node, host.text);
     },
     async render(node: Element, format: string, opts: ExportOpts = {}): Promise<Blob> {
-      const unavailable = node.matches('[data-export-error]') ? node : node.querySelector('[data-export-error]');
-      if (unavailable) throw new Error(unavailable.getAttribute('data-export-error') || 'The tool is not ready to export.');
+      assertExportReady(node);
       // Wait for the brand webfont before ANY format reads the live node's layout.
       // render() rasterises (renderRaster/renderBitmap) or walks (renderSvg/pdf) the
       // LIVE node, so an export fired before the font has loaded would capture the
@@ -193,7 +193,7 @@ export function createExportAPI(host: WebHost) {
       // footage. Stills KEEP the freeze on purpose: a still export of a sequence is
       // the frame at the playhead, with each video exactly where the preview had
       // it (the phase-2 WYSIWYG contract).
-      const restoreMotion = (SEQUENCE_MOTION_FORMATS.has(format) && isSequenceStage(node))
+      const restoreMotion = ((SEQUENCE_MOTION_FORMATS.has(format) || format === 'html') && isSequenceStage(node))
         ? (): void => {}
         : snapshotMotion(node);
 
@@ -215,7 +215,7 @@ export function createExportAPI(host: WebHost) {
         // the library, which cannot be cancelled. Wait for it, with a bound, or
         // its teardown clears the sandbox iframe and url cache from under THIS render.
         await drainNodeRasters();
-        return await renderFormat(node, format, opts);
+        return await renderFormat(node, format, browserExportProgress(opts));
       } finally {
         restoreMotion();
         resumeThumbRasters();
@@ -631,8 +631,7 @@ async function renderFormatDispatch(node: Element, format: string, opts: ExportO
     case 'pdf-cmyk':
       return await renderCmykPdf(node, opts);
     case 'html':
-      if (opts.portableDocument) return (await import('./export-portable.ts')).renderPortableHtml(node, opts.portableDocument);
-      return renderStaticHtml(node, opts);
+      return (await import('./export-html.ts')).renderHtml(node, opts, _host ?? null);
     case 'md':
       // A tool with a template.md gives model-derived markdown (opts.dataText, set by
       // the engine); otherwise serialise the rendered DOM (renderMarkdown) as before.
@@ -7075,43 +7074,6 @@ function detachExportHidden(node: Element): () => void {
 
 // ── Text-based export formats ─────────────────────────────────────────────────
 
-// Standalone HTML document with the tool's template CSS and baked-in content.
-// The fitting script is stripped - the computed font-size is already on the element.
-//
-// opts.fullPage drops the fixed-size tool-canvas frame: the canvas div is the
-// shell's preview box, so we promote its content straight into the document body
-// and let it fill the whole page (no centring, no neutral backdrop). The default
-// keeps the canvas as a centred, fixed-size card on a grey backdrop.
-function renderStaticHtml(node: Element, opts: ExportOpts = {}): Blob {
-  const styles = [...node.querySelectorAll('style')].map(s => s.textContent).join('\n');
-  const clone = node.cloneNode(true) as Element;
-  clone.querySelectorAll('style, script').forEach(el => el.remove());
-  // Full-page: give html/body a definite full-viewport height so a promoted root
-  // that sizes itself to height:100% (e.g. bag-video's .scene) resolves against the
-  // viewport instead of collapsing to zero (which rendered a blank white page);
-  // min-height keeps taller, flowing content able to extend the page.
-  const modeCss = opts.fullPage
-    ? `html, body { height: 100%; }\nbody { min-height: 100dvh; }`
-    : `body { display: flex; align-items: center; justify-content: center; min-height: 100dvh; background: #555; padding: 16px; }`;
-  const content = opts.fullPage ? clone.innerHTML : clone.outerHTML;
-  const doc = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-*, *::before, *::after { box-sizing: border-box; }
-html, body { margin: 0; }
-${modeCss}
-${styles}
-</style>
-</head>
-<body>
-${content}
-</body>
-</html>`;
-  return new Blob([doc], { type: 'text/html' });
-}
 
 interface DomHandlers {
   text: (t: string) => string;

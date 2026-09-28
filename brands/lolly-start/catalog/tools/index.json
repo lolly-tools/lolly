@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-28T12:56:09.682Z",
+  "generatedAt": "2026-09-28T20:53:15.581Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -3817,7 +3817,7 @@
       "id": "design",
       "name": "Design",
       "description": "An open canvas for free arrangement - text, images, shapes and live renders from your other Lolly tools, all held to your design system.",
-      "version": "1.38.0",
+      "version": "1.38.1",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -3863,7 +3863,8 @@
         "tiff",
         "emf",
         "webp-anim",
-        "lottie"
+        "lottie",
+        "html"
       ],
       "width": 1920,
       "height": 1080,
@@ -10474,7 +10475,7 @@
       "id": "snippet",
       "name": "Snippet",
       "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
-      "version": "1.6.1",
+      "version": "1.6.2",
       "status": "official",
       "category": "everyone",
       "requires": [
@@ -10501,7 +10502,8 @@
         "mp4",
         "webm",
         "gif",
-        "webp-anim"
+        "webp-anim",
+        "html"
       ],
       "width": 1200,
       "height": 800,

@@ -64,7 +64,7 @@ export function createEmojiAPI(assets: EmojiAssets): EmojiAPI {
       const meta = readEntryMeta((ref.meta as { emoji?: unknown } | undefined)?.emoji);
       if (!meta) continue;
       const size = (ref.meta as { size?: unknown } | undefined)?.size;
-      if (found.some(entry => entry.meta.id === meta.id && entry.meta.version === meta.version && entry.meta.checksum === meta.checksum)) continue;
+      if (found.some(entry => entry.assetId === ref.id)) continue;
       found.push({ assetId: ref.id, meta, bytes: typeof size === 'number' ? size : undefined });
     }
     return found;
@@ -79,8 +79,8 @@ export function createEmojiAPI(assets: EmojiAssets): EmojiAPI {
       entry.meta.id === pin.id && entry.meta.version === pin.pin.version && entry.meta.checksum === pin.checksum) ?? null;
   }
 
-  async function fetchBundle(pin: EmojiPackPinV1): Promise<EmojiPackBundleV1 | null> {
-    const entry = await entryFor(pin);
+  async function fetchBundle(pin: EmojiPackPinV1, from?: Entry): Promise<EmojiPackBundleV1 | null> {
+    const entry = from ?? await entryFor(pin);
     if (!entry) return null;
     // `bytes` is optional on the contract, so a host without a byte reader simply
     // has no packs. That is never a reason to reach for anything else.
@@ -109,11 +109,11 @@ export function createEmojiAPI(assets: EmojiAssets): EmojiAPI {
     return bundle;
   }
 
-  function bundleFor(pin: EmojiPackPinV1): Promise<EmojiPackBundleV1 | null> {
-    const key = pinKey(pin);
+  function bundleFor(pin: EmojiPackPinV1, from?: Entry): Promise<EmojiPackBundleV1 | null> {
+    const key = `${pinKey(pin)}:${from?.assetId ?? ''}`;
     let hit = bundles.get(key);
     if (!hit) {
-      hit = fetchBundle(pin).catch(() => {
+      hit = fetchBundle(pin, from).catch(() => {
         // A failed download can be retried from the set browser. Admission
         // refusals still resolve to null and stay cached for this exact pin.
         if (bundles.get(key) === hit) bundles.delete(key);
@@ -150,8 +150,14 @@ export function createEmojiAPI(assets: EmojiAssets): EmojiAPI {
       await api.sets();
       const refs = [];
       for (const pin of pins) {
-        const bundle = await bundleFor(pin);
-        if (!bundle) continue;
+        const matching = (await entries()).filter(entry => entry.meta.id === pin.id && entry.meta.version === pin.pin.version && entry.meta.checksum === pin.checksum);
+        const available = (await Promise.all(matching.map(entry => bundleFor(pin, entry))))
+          .filter((bundle): bundle is EmojiPackBundleV1 => bundle !== null)
+          .sort((a, b) => Object.keys(b.artwork).length - Object.keys(a.artwork).length);
+        if (!available.length) continue;
+        // A document can bring only some glyphs. Preserve the union of locally
+        // held subsets and the catalog's exact pack when the catalog is available.
+        const bundle = { ...available[0]!, artwork: Object.assign(Object.create(null), ...available.map(bundle => bundle.artwork)) };
         const info = (await api.sets()).find(set => pinKey(set.pin) === pinKey(pin));
         if (info) refs.push(await storeEmojiBundle(assets, bundle, info));
       }
@@ -159,9 +165,10 @@ export function createEmojiAPI(assets: EmojiAssets): EmojiAPI {
     },
     async sets(): Promise<EmojiSetInfoV1[]> {
       const found = await entries();
-      const nextListing = found.map(entry => JSON.stringify(entry.meta)).sort().join('\n');
+      const nextListing = found.map(entry => JSON.stringify([entry.assetId, entry.meta])).sort().join('\n');
       if (nextListing !== listing) { bundles.clear(); listing = nextListing; }
-      return found.map((entry) => ({
+      const distinct = found.filter((entry, at) => found.findIndex(other => other.meta.id === entry.meta.id && other.meta.version === entry.meta.version && other.meta.checksum === entry.meta.checksum) === at);
+      return distinct.map((entry) => ({
         pin: { id: entry.meta.id, pin: { version: entry.meta.version }, checksum: entry.meta.checksum },
         family: entry.meta.family,
         style: entry.meta.style,
@@ -184,7 +191,16 @@ export function createEmojiAPI(assets: EmojiAssets): EmojiAPI {
       const bundle = await bundleFor(pin);
       const key = asset?.url ?? '';
       const svg = bundle && Object.hasOwn(bundle.artwork, key) ? bundle.artwork[key] : null;
-      return typeof svg === 'string' ? new TextEncoder().encode(svg) : null;
+      if (typeof svg === 'string') return new TextEncoder().encode(svg);
+      // Never let one imported subset hide another document's glyphs or the
+      // complete catalog pack. Only sources with the exact same pin qualify.
+      for (const entry of await entries()) {
+        if (entry.meta.id !== pin.id || entry.meta.version !== pin.pin.version || entry.meta.checksum !== pin.checksum) continue;
+        const other = await bundleFor(pin, entry);
+        const art = other && Object.hasOwn(other.artwork, key) ? other.artwork[key] : null;
+        if (typeof art === 'string') return new TextEncoder().encode(art);
+      }
+      return null;
     },
 
     parseXml(source: string): unknown {

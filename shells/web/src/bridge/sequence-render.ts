@@ -204,6 +204,9 @@ import {
   isActiveAt, readTiming, stageNativeSize, transitionAt, withAuthoredDom,
 } from './sequence-dom.ts';
 import { poseSlideBoxes, type SlidePose } from '../lib/slide-pose.ts';
+import { sceneSampleMs } from './sequence-scenes.ts';
+import { boxShadowPad } from './sequence-paint-pad.ts';
+import { slideRestMs, slideHiddenAt } from './sequence-scene-raster.ts';
 // bridge → views. Phase 3 already has this edge (sequence-providers.ts reuses the
 // clock's seek semantics); reusing the LIVE Lottie player instance is the only way
 // a Lottie box can be exported at all - re-mounting a second player would double
@@ -828,7 +831,7 @@ export function plateWindowDemands(
   const out = new Map<number, PlateWindowDemand>();
   const shadowsOf = new Map<number, ReturnType<typeof parseDropShadows>>();
   for (const L of layers) {
-    out.set(L.idx, { pad: 0, maxEff: 1, maxW: L.rect.w, maxH: L.rect.h, sized: false });
+    out.set(L.idx, { pad: boxShadowPad(L.el?.style?.boxShadow), maxEff: 1, maxW: L.rect.w, maxH: L.rect.h, sized: false });
     // Only a layer whose fx the COMPOSITOR owns needs room for the spill: a layer that
     // keeps its filter on its plate has its effect baked in and clipped at the box
     // edge, exactly as every export before this feature did it (section 5.5, `ownsLayerFx`).
@@ -1615,9 +1618,6 @@ export async function renderSequence(
   return await withAuthoredDom(node as HTMLElement, () => renderSequenceAuthored(node, format, opts, host));
 }
 
-/** A start so far ahead it can only be a parked fragment - never a rest moment. */
-const PENDING_SLIDE_MS = 86_400_000;
-
 async function renderSequenceAuthored(
   node: Element, format: 'mp4' | 'webm' | 'gif' | 'apng' | 'webp-anim', opts: ExportOpts, host: SeqHost | null = null,
 ): Promise<Blob> {
@@ -1920,21 +1920,7 @@ async function renderSequenceAuthored(
   // the render ends.
   const slidePoses = new Map<number, SlidePose>();
   const slideStore = createAuthoredStore();
-  const slideCtx = { seqMs: stage.totalMs, store: slideStore, stage: () => stageNativeSize(stageEl) };
-  /** The boxes of a posed slide that are OFF at `t` - hidden from that shot, since
-   *  rasterBox lifts the applier's own off class for its photograph. */
-  const slideHiddenAt = (pose: SlidePose, t: number): Element[] =>
-    pose.boxes.filter((b) => !isActiveAt(readTiming(b), t, stage.totalMs));
-  /** When a posed slide is at rest for its static plate: every enter done. */
-  const slideRestMs = (pose: SlidePose, L: SeqLayer): number => {
-    let rest = L.startMs;
-    for (const b of pose.boxes) {
-      const tm = readTiming(b);
-      if (tm.start >= PENDING_SLIDE_MS) continue;
-      rest = Math.max(rest, tm.start + (tm.enter && tm.enter !== 'none' ? tm.enterMs : 0));
-    }
-    return Math.min(rest, L.startMs + Math.max(0, L.durMs - 1));
-  };
+  const slideCtx = (layer: SeqLayer) => ({ seqMs: layer.startMs + layer.durMs, store: slideStore, stage: () => stageNativeSize(layer.el) });
   let bgRaster: HTMLCanvasElement | null = null;
   // The timeline panel's frame thumbnails run through the SAME dom-to-image instance
   // this render is about to drive, and that library's options / url cache / sandbox
@@ -1997,7 +1983,7 @@ async function renderSequenceAuthored(
         const el = L.el;
         // A posed slide's static plate is its picture at rest (see above).
         const slidePose = slidePoses.get(L.idx) ?? null;
-        if (slidePose) applyTimeToElements(slidePose.boxes, slideRestMs(slidePose, L), slideCtx);
+        if (slidePose) applyTimeToElements(slidePose.boxes, slideRestMs(slidePose, L), slideCtx(L));
         // `neutralFilter` follows the ONE ownership predicate (section 5.5, `ownsLayerFx`): a
         // layer with depth is shot clean and the compositor applies its whole filter;
         // a layer without keeps its filter baked into the plate, which is what every
@@ -2048,7 +2034,7 @@ async function renderSequenceAuthored(
             liveBoxes.set(L.idx, { marker, box: el, hide: [] });
             needsLiveRaster = true;
           } else {
-            if (slidePose) plateHide = slideHiddenAt(slidePose, slideRestMs(slidePose, L));
+            if (slidePose) plateHide = slideHiddenAt(slidePose, slideRestMs(slidePose, L), L.startMs + L.durMs);
             under = await rasterBox(el, PS, plateHide, plateOpts);
           }
           // A posed slide (plans/184 R1) is re-shot live while its boxes move.
@@ -2160,8 +2146,9 @@ async function renderSequenceAuthored(
     const slideShotAt = (idx: number, frameIndex: number): { t: number; animating: boolean; restKey: number; hide: Element[] } | null => {
       const pose = slidePoses.get(idx);
       if (!pose) return null;
-      const t = usedGrid[frameIndex] ?? 0;
-      applyTimeToElements(pose.boxes, t, slideCtx);
+      const layer = stage.layers.find(layer => layer.idx === idx)!;
+      const t = sceneSampleMs(usedGrid[frameIndex] ?? 0, layer.startMs, layer.durMs);
+      applyTimeToElements(pose.boxes, t, slideCtx(layer));
       let animating = false;
       let restKey = 7;
       const hide: Element[] = [];

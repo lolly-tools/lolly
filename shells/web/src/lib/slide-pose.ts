@@ -21,7 +21,7 @@
  * DOM only. Every attribute it writes is remembered, and `restore()` puts them back
  * byte for byte - the compositor poses the live editor DOM for the length of a render.
  */
-import { appearModeOf } from './motion-model.ts';
+import { appearModeOf } from './motion-appear.ts';
 
 /** A parked start: so far ahead that the applier reads the box as "not yet" and hides it.
  *  What holds a build fragment back until its click. One day, in ms. */
@@ -80,12 +80,14 @@ const num = (el: Element, name: string, fallback: number): number => {
 
 const hasMotion = (box: Element): boolean =>
   box.hasAttribute('data-t-enter') || box.hasAttribute('data-t-exit')
-  || box.hasAttribute('data-t-hold') || box.hasAttribute('data-t-kf');
+  || box.hasAttribute('data-t-hold') || box.hasAttribute('data-t-kf')
+  || box.hasAttribute('data-t-z') || box.hasAttribute('data-t-rx') || box.hasAttribute('data-t-ry');
 
 export function poseSlideBoxes(page: HTMLElement, o: SlidePoseOpts): SlidePose {
   const saved: Array<[HTMLElement, Array<[string, string | null]>]> = [];
   const boxes: HTMLElement[] = [];
   const pageEnd = o.pageDurMs != null && o.pageDurMs > 0 ? o.pageStartMs + o.pageDurMs : null;
+  const camera = !!page.querySelector('[data-cam]');
   for (const box of page.querySelectorAll<HTMLElement>('.lolly-box')) {
     saved.push([box, TIMING_ATTRS.map((a) => [a, box.getAttribute(a)])]);
     adoptPresenterMotion(box);
@@ -117,6 +119,8 @@ export function poseSlideBoxes(page: HTMLElement, o: SlidePoseOpts): SlidePose {
       // Arrives with the slide AND has something to animate. A box with nothing to
       // animate is left exactly as rendered: it is already on screen, and every element
       // the applier is handed is one more it measures every frame and hands back after.
+      settle(o.pageStartMs, false);
+    } else if (camera) {
       settle(o.pageStartMs, false);
     }
   }

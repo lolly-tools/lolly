@@ -148,3 +148,51 @@ END:VCALENDAR
 Reference wirings: `meeting-planner`→ICS, `email-signature`→vCard, `chart-creator`→CSV. Raster, `pdf`, video, `zip` and `ico` come from a browser engine - the web shell, the Tauri-bundled CLI or the node CLI's raster tiers (resvg renders `png` from SVG-native tools browser-free; a scoped Chromium via `lolly install-browser` covers the rest) - while the node CLI writes `svg`/`svgz`/`emf`/`wmf`/`eps`/`eps-cmyk`/`dxf`/`bmp` and the text/data formats DOM-free. The CMYK formats pair with the `convertPaths` outlining toggle (see [The `render` block](/info/tool-manifest.html#the-render-block)) for fonts-not-installed print fidelity; `pdf-cmyk` ships on more tools than `cmyk-tiff` does (a subset) - e.g. `qr-code` offers both, while `wayfinding-signage` and `event-name-badge` ship `pdf-cmyk`.
 
 [Back to Authoring Tools](/info/authoring-tools.html).
+
+
+## Animated HTML
+
+Design and Snippet offer HTML in the export format menu. The file embeds its fonts,
+images and playback code, and opens paused with play, replay, seeking and fullscreen
+controls. A Design soundtrack adds mute and volume. Space or K toggles playback,
+arrows seek, M toggles sound and F toggles fullscreen. Playback also works offline.
+
+Design supports native layers, mixed audio and multiple timed artboards as scenes.
+Each scene has its own camera and child animation window. The player offers a scene
+menu; Page Up and Page Down jump between scenes. Different artboard sizes fit inside
+the output size using the same proportions as the movie exporter. Cuts, fades and
+bounded custom fades share the movie transition policy; slide, morph and flight
+transitions currently become dissolves.
+
+Use Timeline's **Place in order** to arrange artboards as timed scenes. Dragging a
+scene in the sequence carries its members' start times and leaves their local keys
+unchanged. Audio assigned to an artboard stops at that scene's bounds; an unframed
+audio layer can span the whole film. Untimed decks receive five seconds per page
+during export without changing the saved document. A still Design exports without
+transport controls. Embedded video, Lottie and 3D receive an explicit HTML export
+error. Their playback adapters remain separate work. The CLI uses the browser
+render tier for Design HTML and for trusted tools that declare portable presentations.
+
+A trusted tool can reuse the controls by declaring `render.portable: true`, listing
+`html` in `render.formats`, and shipping `presentation.js`. That declared runtime
+marks its stage with `data-lolly-player` and assigns `element.__lollyPlayback`:
+
+```js
+stage.__lollyPlayback = {
+  duration: 12,          // seconds
+  poster: 6,            // initial paused frame
+  seek(seconds) { renderFrame(seconds); },
+  portableMarkup() { return authoredMarkup; }
+};
+```
+
+`seek` must recreate a frame directly in either direction, without starting another
+clock. `portableMarkup` supplies authored markup with any prepared emoji artwork;
+exclude transient selection, caret and animation writes. Omit the method when the
+freshly hydrated template is sufficient. `animated: false` produces a still without
+transport controls. Snippet's presentation runtime is a working example.
+
+The shell bundles the shared Sequence evaluator into the player during its build.
+The export embeds that source in the HTML, so playback has no dependency on an app
+server. Tools keep their own scene evaluation; they do not implement another
+transport or copy Design's keyframe maths.

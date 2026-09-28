@@ -26,6 +26,7 @@ export function snapshotSession(el: HTMLElement | null, manifest: ToolManifest, 
       ...values,
       ...(runtime.emoji?.style ? { __emoji: emojiParams(runtime.emoji.style), __emojiAssets: runtime.emoji.assets ?? [] } : { __emoji: { emoji: 'none', emojifx: '' }, __emojiAssets: [] }),
       ...meta,
+      __emojiUsage: runtime.emoji?.sources?.map(({ pack, assetId }) => ({ packId: pack.id, version: pack.pin.version, checksum: pack.checksum, assetId })),
       __toolId: manifest.id,
       __toolVersion: manifest.version,
       // The saved record's TITLE, which is the document name the author typed - the same

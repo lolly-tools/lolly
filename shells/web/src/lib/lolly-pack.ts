@@ -34,6 +34,7 @@ import { assetDependency, encodeAssetVersion } from '../../../../engine/src/asse
 import { ensureSceneManifest } from '../bridge/asset-dependencies.ts';
 import { base64ToBytes, bytesToBin } from '../../../../engine/src/bytes.ts';
 import { resolveSessionUserAsset, rebaseImportedAssetPins } from './session-asset-versions.ts';
+import { prepareLollyEmoji } from './lolly-emoji.ts';
 import { zipAsync } from './zip.ts';
 import {
   type BundleEntry,
@@ -64,7 +65,9 @@ export const LOLLY_FILE_FORMAT = 'lolly-share' as const;
 export const LOLLY_FILE_VERSION = 1;
 /** Readers gate on this, never `formatVersion` - additive parts stay compatible. */
 export const LOLLY_MIN_READER = 1;
-export const LOLLY_READER_VERSION = 4;
+export const LOLLY_READER_VERSION = 5;
+/** Older emoji hosts hide later subsets behind the first pack with the same pin. */
+export const LOLLY_EMOJI_SUBSET_MIN_READER = 5;
 /** A project file (a folder tree and its sessions) needs a reader that knows the
  *  `project` kind, so it asks for 3: a reader from before it says "update" instead of
  *  opening the first session and dropping the rest. */
@@ -605,6 +608,7 @@ function assetPath(dir: string, base: string, format: string, mime: string, take
  * `data-transfer.ts` does, so integrity + `minReader` behave identically.
  */
 export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuildResult> {
+  input = await prepareLollyEmoji(input);
   if (input.kind === 'tool' && (!input.tool || input.session != null || input.templates?.length || input.designSystem || input.renovation)) throw new Error('A tool file carries exactly one tool, without a saved session or design-system install.');
   const renovation = input.renovation ? renovationBlock(input.renovation) : null;
   if (renovation) {
@@ -632,7 +636,7 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
     project
       ? (renovation ? { project: projectClosure(project), renovationMedia: renovationMedia(renovation) } : projectClosure(project))
       : renovation ? renovationClosure(renovation, input.session)
-      : input.session,
+      : { session: input.session, templates: input.templates?.map(template => template?.values) },
   );
   const byId = new Map(input.userAssets.map(r => [r.id, r]));
 
@@ -664,7 +668,7 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
     const format = record.format ?? '';
     const mime = blob.type || '';
     const path = assetPath('assets/uploads/', label, format, mime, takenPaths);
-    entries[path] = [bytes, { level: 0 }];   // already-compressed image/av bytes
+    entries[path] = record.meta?.emoji && format === 'json' ? bytes : [bytes, { level: 0 }];
     totalBytes += bytes.length;
     assets.push({
       kind: 'asset', id, source: 'user', path, bytes: bytes.length,
@@ -770,10 +774,14 @@ export async function buildLollyFile(input: LollyBuildInput): Promise<LollyBuild
     if (bundledTool) for (const f of bundledTool.files) f.checksum = integrity[f.path];
   }
 
+  const hasEmojiSubsets = assets.some(asset => {
+    const count = asset.meta?.emojiArtworkCount, emoji = asset.meta?.emoji as { glyphs?: number } | undefined;
+    return typeof count === 'number' && typeof emoji?.glyphs === 'number' && count < emoji.glyphs;
+  });
   const manifest: LollyManifest = {
     format: LOLLY_FILE_FORMAT,
     formatVersion: LOLLY_FILE_VERSION,
-    minReader: renovation ? LOLLY_RENOVATION_MIN_READER : input.kind === 'project' ? LOLLY_PROJECT_MIN_READER : input.kind === 'tool' ? 2 : 1,
+    minReader: hasEmojiSubsets ? LOLLY_EMOJI_SUBSET_MIN_READER : renovation ? LOLLY_RENOVATION_MIN_READER : input.kind === 'project' ? LOLLY_PROJECT_MIN_READER : input.kind === 'tool' ? 2 : 1,
     app: input.appVersion ?? 'Lolly',
     ...(input.engineVersion ? { engineVersion: input.engineVersion } : {}),
     kind: input.kind ?? 'session',

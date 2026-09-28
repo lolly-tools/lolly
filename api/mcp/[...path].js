@@ -47075,6 +47075,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   let emojiCensus2 = [];
   let emojiReplaced = 0, emojiUnresolved = 0;
   let emojiNode = null;
+  let emojiCensusKnown = false;
   const emojiArtwork = /* @__PURE__ */ new Map();
   const emojiPacks = /* @__PURE__ */ new Map();
   const emojiListeners = /* @__PURE__ */ new Set();
@@ -47086,6 +47087,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   let emojiAssetsFor = null;
   const emojiSnapshot = () => ({
     assets: structuredClone(emojiAssets),
+    sources: emojiCensusKnown ? emojiCensus2.map(({ pack, assetId: assetId2 }) => ({ pack: structuredClone(pack), assetId: assetId2 })) : void 0,
     present: Boolean(host.emoji),
     replaced: emojiReplaced,
     unresolved: emojiUnresolved,
@@ -47179,9 +47181,13 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       const missingParagraph = root2.querySelectorAll?.("[data-text-emoji-missing]");
       emojiUnresolved = result2.unresolved + Array.from(missingParagraph ?? []).reduce((count4, el) => count4 + Math.max(0, Number(el.getAttribute("data-text-emoji-missing")) || 0), 0);
       emojiCensus2 = result2.census;
+      emojiCensusKnown = true;
       notifyEmoji();
     };
-    if (track) emojiNode = root2;
+    if (track) {
+      emojiNode = root2;
+      emojiCensusKnown = false;
+    }
     if (!EMOJI_MAYBE.test(root2.textContent ?? "") && !root2.querySelector?.("[data-emoji-tool-source]")) {
       record13(nothing);
       return { present: true, ...nothing };
@@ -47740,7 +47746,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
           lang: hookLang
         } };
       }
-      if (format === "lottie") opts2 = { ...opts2, width: opts2.width ?? tool.manifest.render?.width, height: opts2.height ?? tool.manifest.render?.height, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model2)) } };
+      if (format === "lottie" || format === "html" && tool.manifest.id === "design") opts2 = { ...opts2, width: opts2.width ?? tool.manifest.render?.width, height: opts2.height ?? tool.manifest.render?.height, sourceDocument: { toolId: tool.manifest.id, values: structuredClone(modelToValues(model2)) } };
       if (tool.manifest.designTool) {
         if (tool.manifest.designTool.sourceTool && extras.__lollySourceError) throw new Error(String(extras.__lollySourceError));
         if (tool.manifest.designTool.sourceTool) {
@@ -130567,7 +130573,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
         if (format !== "penpot") strip("data-lolly-bind");
       }
       if (format === "html") {
-        if (opts.portableDocument) throw Object.assign(new Error("Portable HTML with embedded fonts needs a browser."), { code: "NEEDS_BROWSER" });
+        if (opts.portableDocument || opts.sourceDocument?.toolId === "design") throw Object.assign(new Error("Portable HTML with embedded fonts needs a browser."), { code: "NEEDS_BROWSER" });
         const clone5 = node.cloneNode(true);
         clone5.querySelectorAll("script").forEach((el) => el.remove());
         return new Blob([clone5.outerHTML], { type: "text/html" });

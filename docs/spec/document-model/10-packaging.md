@@ -84,6 +84,14 @@ The container already carries evaluation facts beside the payload: `engineVersio
 
 A font digest is taken over the whole source font file and never over the subset an export embedded (`packages/node-shell/src/lolly-file.ts`). A receipt that identifies a font by digest therefore points at the file a reader could fetch again.
 
+## Editable motion and playback projections
+
+An animation made from existing Design rows needs no new container version merely because it exports an HTML player or a movie. Its saved session remains the editable source, and its referenced audio and images must travel through the existing asset closure and integrity map. A compiled render wrapper is not interchangeable with saved tool inputs: a valid archive must also reopen as editable content in the target tool.
+
+HTML resource closure and editable document portability are separate claims. An HTML projection can embed its resolved fonts, images and prepared audio. Today's `.lolly` font entries identify faces without carrying font bytes (`shells/web/src/lib/lolly-pack.ts`), so that HTML's ability to play offline does not prove that another editor can reconstruct the same typography without its font dependencies.
+
+Future motion records must follow the retained-part rules in this chapter. A new part needs an owner, integrity coverage, preservation through local save and restart, and a reader gate when losing that part would change required behaviour. Arbitrary ZIP members or an ignored second timeline must never stand in for those guarantees. Cases 26 and 27 in [Proof cases](proof-cases.html) exercise the distinction between the existing source adapter and proposed motion records.
+
 ## Migration as a versioned transform
 
 Every migration must be a versioned transform that returns findings, and no import may rewrite content invisibly (R11). The findings half has no working precedent in this tree, which the paragraph below states. The version rules are OpenTimelineIO's, adopted as written (R11).

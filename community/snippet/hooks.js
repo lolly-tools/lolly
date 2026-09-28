@@ -176,7 +176,7 @@ function snippetController(node) {
 function beforeExport(ctx) {
   const player = snippetController(ctx.node);
   if (!player) return;
-  const motion = ['mp4', 'webm', 'gif', 'webp-anim', 'apng'].includes(ctx.format);
+  const motion = ['mp4', 'webm', 'gif', 'webp-anim', 'apng', 'html'].includes(ctx.format);
   const requestedDuration = ctx.opts.durationUserSet || ctx.opts.thumbnail ? ctx.opts.duration : player.duration;
   player.prepareExport(motion, requestedDuration);
   if (motion && player.animated) {

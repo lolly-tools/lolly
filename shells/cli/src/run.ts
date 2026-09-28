@@ -1101,7 +1101,8 @@ export async function runToolCli({ toolId, params, repeated = {}, outputPath, fo
         // through the bridge. Raster/PDF/video route to raster.ts: Tier A (resvg, no browser)
         // for PNG from an SVG-native tool, else Tier B (the scoped Chromium driving the built
         // web shell). `usedBrowser` tells us to tear the browser + server down before exit.
-        const portableVisual = targetFormat.toLowerCase() !== 'ics' && tool.manifest.render.portable;
+        const portableVisual = targetFormat.toLowerCase() !== 'ics' && tool.manifest.render.portable
+          || targetFormat.toLowerCase() === 'html' && tool.manifest.id === 'design';
         const domFree = NODE_FORMATS.includes(targetFormat.toLowerCase()) && !portableVisual && !needsFloatScene(tool.manifest.id, values.editingRange, targetFormat, exportOpts.hdr);
         // TIER A FOR `pptx`, on a Design document (plan 274 work package 6). Design
         // carries its authored rows in the render, so the deck is lowered straight from

@@ -189,6 +189,26 @@ Plan 196's `TimelineV1` is not built, and motion sampling is staged behind it (R
 
 Interaction distinguishes four things that are often conflated: user intent, device input, state transition and effect (invariant 11). An activation may declare pointer, keyboard or another input alternative, and a declared alternative is what makes the intent reachable rather than the device.
 
+## Motion requirements before a shared timeline type
+
+The animation expansion pilot (plan 281) uses existing Design rows, `start`/`dur`, compact `kf` tracks, split text, a camera and an audio asset. Those are a source adapter for present behaviour, not an implementation of `TimelineV1`. A standalone HTML player can evaluate that source through the same Sequence evaluator without adding a second authored timeline. The following requirements extend the draft; nested composition remains unimplemented.
+
+- **Hierarchy has separate meanings.** An organisational group, a transform parent, a clipping group and a timed composition must be distinguishable. A composition must declare its coordinate domain, pivot and parent transform order. Parentage must be acyclic. Moving a parent must not require rewriting every child's intrinsic geometry.
+- **Time maps must be explicit.** Project presentation time maps to composition-local time and then to media time through declared offsets, trims and rates. Bounds, looping, reverse playback and sample intervals need defined behaviour. Seeking to a sample must give the same pose after forward playback, backward seeking or a fresh load. A transport at the end may display a declared final sample without inventing an extra movie frame.
+- **Property writers must compose explicitly.** Base values, entry and exit transitions, effects, authored tracks, parent transforms and the camera need a declared evaluation order and conflict rule. The model must not allow CSS motion and a timeline to compete silently for the same transform. Existing `kf` behaviour, including linear opacity between non-hold keys, must survive its source adapter.
+- **Structured motion follows the payload rule.** New tracks, effects and time maps belong in typed payload records referenced by id. An adapter may read today's compact tracks, but a migration must name one authoritative source when old and new representations coexist. Recipe version, seed and owned properties must be recorded before regeneration can promise to preserve manual edits.
+- **Playback is separate from authored state.** Poster time, player controls and autoplay policy describe a playback projection. Transient seek position, mute and volume must not change the source revision. A reduced-motion preference must permit a readable static presentation. A staged pointer in a film is artwork; its apparent click does not grant an interactive control or a host effect.
+
+These requirements are tested by cases 26 to 28 in [Proof cases](proof-cases.html). They do not freeze a payload schema or widen the current engine contract.
+
+### Bounded scenes in the current adapter
+
+Timed Design artboards now provide a bounded scene adapter. Membership uses the existing frame id. A child's geometry is relative to its artboard, while its stored start remains in project time. Moving a scene shifts its members' explicit starts; their clip-local keyframes remain unchanged. This storage convention is compatible with current Design files but is not the proposed intrinsic local-time model for nested compositions.
+
+Each scene evaluates its camera using its own dimensions and member layers. Scene audio intersects the parent's interval, advancing the source trim and gain track when the beginning is clipped. Unframed audio can span the project independently. During a dissolve, an outgoing scene holds its last in-bounds visual sample; its audio ends at the scene boundary. The HTML player and movie share the existing transition lowering and contain-fit policy.
+
+The adapter supports scenes without introducing another saved timeline. Stored starts remain nonnegative: moving a scene to zero clamps any earlier member start to zero. Preserving negative local preroll through that move needs a richer time map. Arbitrary parent transforms, nested playback rates, looping and recipe ownership still require case 27 and typed motion records. Case 28 tests the narrower scene boundary so success there cannot be mistaken for general nesting support.
+
 ## Open points
 
 - **Q4. What "non-recordable" means for the first two cases, a local utility and a live-input tool.** Default from plan section 16: for a utility, capture off, retention none and replay semantic from pinned inputs. For a live-input tool, capture unsupported unless the person turns it on, retention for the session and no replay. It touches the `onFrame` and `onLevel` protocols above, which are the live-input path. Evidence that would change it: a regulated workflow that needs durable receipts for utilities.

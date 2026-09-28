@@ -368,7 +368,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `rights-profiles.ts` | 648 | Versioned licence identifiers, the reviewed licence profiles the rights evaluator applies, and the one locator rule every credit reads (plan 253). | yes | `tests/rights-profiles.test.ts` | – |
 | `rights-report.ts` | 154 | Reads a verified credential back as the three rights questions Verify asks about a file (plan 253). | yes | `tests/rights-report.test.ts` | – |
 | `rpm.ts` | 443 | RPM v4 package writer - the container half of a `.rpm`. | yes | `tests/rpm.test.ts` | – |
-| `runtime.ts` | 2442 | Runtime - orchestrates the 5-step lifecycle for a single mounted tool. | yes | indirect | – |
+| `runtime.ts` | 2447 | Runtime - orchestrates the 5-step lifecycle for a single mounted tool. | yes | indirect | – |
 | `scorm.ts` | 627 | SCORM packaging - the pure half (plans/180 section 6). | yes | `tests/scorm.test.ts` | – |
 | `seal.ts` | 756 | SEAL (hackerfactor.com) signature verifier - pure, DOM-free (globalThis.crypto only, like c2pa-verify.ts / x509.ts). | yes | `tests/seal.test.ts` | yes |
 | `semver-range.ts` | 112 | Minimal SemVer range satisfaction - enough to enforce a tool manifest's `engineVersion` against the running ENGINE_VERSION (loader.ts, P0-3). | yes | `tests/semver-range.test.ts` | – |

@@ -112,9 +112,10 @@ export interface EmojiStyleV1 {
 
 /**
  * A pack as one file: the exact manifest text (its sha256 is the pin checksum)
- * plus every glyph's source SVG text keyed by the manifest's `asset.url`. A
- * catalog registers one bundle as one asset, so a set is one lazy download
- * with one integrity check, cached like any other asset.
+ * plus source SVG text keyed by the manifest's `asset.url`. Catalog bundles and
+ * set installs contain every declared glyph. Portable documents may carry only
+ * used artwork, retaining the exact manifest and its pin. Missing artwork in a
+ * document subset is unavailable unless another source holds that exact pin.
  */
 export interface EmojiPackBundleV1 {
   schemaVersion: 1;

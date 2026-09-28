@@ -96,7 +96,7 @@ export async function ensureTimeline(fc: FcCtx, open: boolean): Promise<void> {
         // Enter/Exit on an artboard stamps `custom`" branch was unreachable in the app:
         // the only thing that ever set the name was a test's own cfg patch, so every
         // hand-set slide transition was still fair game for the next "Place in order".
-        cfg: { ...timeCfg, frameTransitionField: frameCfg?.transitionField || '' },
+        cfg: { ...timeCfg, frameTransitionField: frameCfg?.transitionField || '', frameField: frameCfg?.frameField, frameKindField: cfg.kindField, frameKind: frameCfg?.frameKind },
         getBoxes: fc.select.getBoxes,
         ...(runtime.getModel().some(input => input.id === 'sequenceMarks') ? {
           projectTime: {

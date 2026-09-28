@@ -49,7 +49,7 @@ export function playheadSec(tp: TpCtx): number {
 export function isKeyframable(tp: TpCtx, row: Box | undefined, id: string, mediaKind?: string): boolean {
   const { cfg } = tp;
   if (!cfg.kfField || !row) return false;
-  return String(row.kind ?? '') !== 'audio' && (mediaKind ?? tp.helpers.mediaOf(id).kind) !== 'audio';
+  return !['audio', 'frame'].includes(String(row.kind ?? '')) && (mediaKind ?? tp.helpers.mediaOf(id).kind) !== 'audio';
 }
 /** WHICH of the selected boxes "+Keyframe" would act on. */
 export function kfActionIds(tp: TpCtx): string[] {

@@ -864,7 +864,7 @@ function rootSvgOf(node: Element | null): Element | null {
         if (format !== 'penpot') strip('data-lolly-bind');
       }
       if (format === 'html') {
-        if (opts.portableDocument) throw Object.assign(new Error('Portable HTML with embedded fonts needs a browser.'), { code: 'NEEDS_BROWSER' });
+        if (opts.portableDocument || opts.sourceDocument?.toolId === 'design') throw Object.assign(new Error('Portable HTML with embedded fonts needs a browser.'), { code: 'NEEDS_BROWSER' });
         // Strip any template <script> (editor-runtime helpers - e.g. a canvas
         // auto-resize hook) before serialising: the exported markup is static, and
         // the web shell's HTML export (renderStaticHtml) does the same. Clone so the

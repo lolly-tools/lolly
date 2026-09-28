@@ -88,6 +88,7 @@ import {
   type KfCameraClip, type KfCameraView, type KfMatrix3, type KfTrack,
 } from '@lolly/engine';
 import { clamp } from '@lolly/engine';
+import { applySceneElements } from './sequence-scenes.ts';
 
 export { MIN_SPEED, MAX_SPEED, MIN_TRANSITION_MS, MAX_TRANSITION_MS };
 
@@ -853,8 +854,8 @@ export function createAuthoredStore(): AuthoredStore {
           lastWidth: null,
           lastHeight: null,
           handover: false,
-          audio: !!el.querySelector('.lolly-box-audio'),
-          camera: !!(el.matches?.('[data-cam]') || el.querySelector?.('[data-cam]')),
+          audio: layerKind(el) === 'audio',
+          camera: layerKind(el) === 'camera',
           plane: isBackgroundPlane(el),
         };
         map.set(el, rec);
@@ -1220,6 +1221,10 @@ export function releaseShotBorrow(el: HTMLElement): void {
  * by having no `data-t-start`, so it is never in the caller's list and is never hidden.
  */
 export function applyTimeToElements(els: HTMLElement[], tMs: number, ctx: ApplyCtx): void {
+  if (!applySceneElements(els, tMs, ctx, applyFlatTimeToElements)) applyFlatTimeToElements(els, tMs, ctx);
+}
+
+function applyFlatTimeToElements(els: HTMLElement[], tMs: number, ctx: ApplyCtx): void {
   // Timing is read for EVERY element before anything is written, because the
   // per-frame `z-index` (section 4.2) is a RANK across the whole stage: it cannot be known
   // while the first box is still being read. This first pass touches attributes only
@@ -1244,7 +1249,7 @@ export function applyTimeToElements(els: HTMLElement[], tMs: number, ctx: ApplyC
     // The camera marker, asked exactly as the AuthoredStore asks it. `layerKind` in the
     // planner asks the same question of the same attribute - the audio precedent only
     // works because BOTH evaluators actively detect it, and so does this one.
-    const cam = !!(el.matches?.('[data-cam]') || el.querySelector?.('[data-cam]'));
+    const cam = layerKind(el) === 'camera';
     if (cam) {
       derived.push({
         // Butted, half-open windows - cuts, not blends. An open-ended camera (the
@@ -1614,7 +1619,7 @@ export function sequenceTimeElements(stage: HTMLElement | null): HTMLElement[] {
     // ON the element too, which is why the fallback is the element itself.
     push(el.hasAttribute?.('data-cam') ? (el.closest?.('.lolly-box') as HTMLElement | null) ?? el : el);
   }
-  if (stage.querySelector?.('[data-cam]')) {
+  if (stage.querySelector?.('[data-cam], [data-pdf-page][data-t-start]')) {
     for (const child of [...stage.children]) {
       if (isBackgroundPlane(child as HTMLElement)) push(child as HTMLElement);
     }

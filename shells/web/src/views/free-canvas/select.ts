@@ -16,6 +16,7 @@ import { openDesignShortcuts } from '../design-shortcuts.ts';
 import { contrastText } from '../../brand-vars.ts';
 import { boolOf } from './shared.ts';
 import { bindOp, type FcCtx } from './context.ts';
+import { retimeSceneMembers } from '../../lib/scene-edit.ts';
 
 export function notifySelection(fc: FcCtx): void {
   const { selListeners } = fc;
@@ -128,6 +129,7 @@ export function freshId(fc: FcCtx, boxes: Box[]): string {
 export const withIds = (fc: FcCtx, boxes: Box[]): Box[] => { const { cfg, hasIdField } = fc; return (hasIdField ? ensureRowIds(boxes, cfg.idField) : boxes); };
 export function commit(fc: FcCtx, nextBoxes: Box[]): void {
   const { blockId, onDirty, runtime } = fc;
+  if (fc.frameCfg && fc.timeCfg) nextBoxes = retimeSceneMembers(getBoxes(fc), nextBoxes, { ...frameFields(fc), startField: fc.timeCfg.startField });
   if (fc.storyFlow?.reconcile(nextBoxes)) return;
   onDirty?.(blockId);
   runtime.setInput(blockId, withIds(fc, fc.cv.textDocumentInput ? resizeDesignTextFrames(getBoxes(fc), nextBoxes) : nextBoxes));

@@ -59,6 +59,8 @@ scene to that length. A still export uses the finished text before closing,
 or the exact time chosen with **Still frame (seconds)**. A value of -1 selects
 the automatic finished frame. Preview controls never appear in exports.
 
+HTML exports a standalone player with embedded fonts and images, a central Play button, a slim seek bar, replay and fullscreen. Playback starts paused on the authored still frame. Space or K toggles playback, arrows seek, and F opens fullscreen. The same player controls serve Design animations. Snippet has no soundtrack, so its player hides sound controls. The file works offline and uses the same scene evaluator as the preview.
+
 The preview's time and playback state are restored after export. Invalid
 selection or replacement steps show a message and refuse a motion export.
 Perspective follows the shell's existing export policy: tilted content can
@@ -66,7 +68,7 @@ be embedded as a raster inside vector formats.
 
 ## Implementation and checks
 
-`hooks.js` compiles serializable document states and timed events. The template
+`hooks.js` compiles serializable document states and timed events. The declared `presentation.js` runtime
 evaluates those events directly at a requested time and measures text ranges
 for carets, selections and pointer targets. Fit mode sizes the text from the
 measured glyph box rather than `scrollWidth`, so every line and the caret stay

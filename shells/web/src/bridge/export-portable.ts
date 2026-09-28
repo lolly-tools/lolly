@@ -45,7 +45,7 @@ export async function renderPortableHtml(node: Element, doc: NonNullable<ExportO
     if (/^--(?:font-|brand-)/.test(name)) vars.push(`${name}:${cs.getPropertyValue(name)}`);
   }
   const families = new Set<string>();
-  for (const el of [root, ...root.querySelectorAll('h1,h2,h3,p,span,button')].slice(0, 4096)) {
+  for (const el of [root, ...root.querySelectorAll('*')].slice(0, 4096)) {
     for (const family of getComputedStyle(el).fontFamily.split(',')) families.add(family.trim().replace(/["']/g, '').toLowerCase());
   }
   const faces: Array<{ css: string; base: string }> = [];
@@ -69,6 +69,11 @@ export async function renderPortableHtml(node: Element, doc: NonNullable<ExportO
       const attr = element.hasAttribute('src') ? 'src' : element.hasAttribute('href') ? 'href' : 'xlink:href';
       element.setAttribute(attr, await inline(src));
     }
+  }
+  for (const element of fragment.content.querySelectorAll('style')) element.textContent = await inlineCss(element.textContent ?? '');
+  for (const element of fragment.content.querySelectorAll<HTMLElement>('[style]')) {
+    const css = element.getAttribute('style')!;
+    if (css.includes('url(')) element.setAttribute('style', await inlineCss(css));
   }
   markup = fragment.innerHTML;
   return new Blob([portableHtml({ ...doc, markup, styles: await inlineCss(doc.styles) }, resourceCss)], { type: 'text/html' });
