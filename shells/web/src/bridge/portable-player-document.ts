@@ -1,4 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
+import { icon } from '../lib/icons.ts';
+
 /** Data shared by the portable writer and its standalone playback runtime. */
 export interface PortablePlayerScene {
   id: string;
@@ -27,15 +29,14 @@ export interface PortablePlayback {
 }
 export type PlaybackElement = HTMLElement & { __lollyPlayback?: PortablePlayback };
 
-const svg = (paths: string) => `<svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
 export const playerIcons = {
-  play: svg('<path d="m9 5 11 7-11 7Z"/>'),
-  pause: svg('<path d="M8 5v14M16 5v14"/>'),
-  replay: svg('<path d="M5 8a8 8 0 1 1-1 8M5 3v5h5"/>'),
-  sound: svg('<path d="M11 5 6 9H3v6h3l5 4ZM15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/>'),
-  muted: svg('<path d="M11 5 6 9H3v6h3l5 4Zm5 4 5 6m0-6-5 6"/>'),
-  fullscreen: svg('<path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5"/>'),
-  scenes: svg('<rect x="3" y="4" width="7" height="6" rx="1"/><rect x="14" y="4" width="7" height="6" rx="1"/><rect x="3" y="14" width="7" height="6" rx="1"/><rect x="14" y="14" width="7" height="6" rx="1"/>'),
+  play: icon('play'),
+  pause: icon('pause'),
+  replay: icon('rotateCw'),
+  sound: icon('volumeOn'),
+  muted: icon('volumeOff'),
+  fullscreen: icon('resize'),
+  scenes: icon('grid'),
 };
 const button = (action: string, label: string, icon: string) => `<button type="button" data-player-${action} aria-label="${label}" title="${label}">${icon}</button>`;
 export function playerMarkup(markup: string, config: PortablePlayerConfig, audio = ''): string {

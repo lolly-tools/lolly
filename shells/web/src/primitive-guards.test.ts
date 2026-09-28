@@ -1673,6 +1673,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // Hydrated tool markup enters an inert template for resource embedding, then
   // portableHtml strips undeclared scripts, event handlers and unsafe URLs.
   'bridge/export-portable.ts': 1,
+  // Playback state selects only fixed registry icons. Scene labels use textContent.
+  'bridge/portable-player.ts': 3,
   // Registry icons only; labels use textContent and DOM attributes.
   'lib/text-control-ui.ts': 1,
   'lib/text-editor-controls.ts': 1,
