@@ -110,6 +110,16 @@ The designers came too. [Jakub Steiner](https://jimmac.eu/) (jimmac), who drew m
 
 There are far too many to name. People like these are force multipliers: a welcome, an answer or a drawing at the right moment makes a whole project better, and the work of everyone who follows travels further. What free creative software has become, it owes to all of them.
 
+## Open fonts, shared with the world
+
+[Raph Levien](https://levien.com/), who created Gill, also gave type designers [Spiro](https://levien.com/spiro/), a toolkit for drawing curves, and readers [Inconsolata](https://levien.com/type/myfonts/inconsolata.html). [Dave Crossland](https://github.com/davelab6) has spent years making the case for free fonts and helping designers publish them. Their work met at Google: at the [2010 Libre Graphics Meeting](https://av.tib.eu/media/21423), Dave presented the font sponsorship initiative Raph was leading, funding typefaces that people could share and improve together. They helped build the tools, funding and community that made open fonts a practical choice for designers everywhere.
+
+That work reached Andy Fitzsimon too. He played a part in commissioning and open-sourcing [Outfit](https://github.com/Outfitio/Outfit-Fonts), [Overpass](https://github.com/RedHatOfficial/Overpass) and the [SUSE type family](https://github.com/SUSE/suse-font). Open licensing was the starting point: the ecosystem Raph, Dave and their fellow contributors had built made sharing the natural choice. The type designers deserve their own credit: Rodrigo Fuenzalida for Outfit, the [Overpass design team](https://github.com/RedHatOfficial/Overpass#contributors) for Overpass, and René Bieder for SUSE and SUSE Mono.
+
+The scale of that shared work is visible in [Google Fonts' analytics](https://fonts.google.com/analytics). On 28 September 2026, the service reported more than **125 trillion total font views**. Its cumulative counts included **91.9 billion for Outfit**, **72.0 billion for Overpass**, **595 million for SUSE** and **17.2 million for SUSE Mono**. Those are font views served through Google Fonts, not a count of individual people or websites; they do not capture every use of an open font. A typeface commissioned for one organisation can become part of everyday reading across the world.
+
+Lolly owes Raph and Dave a particular thank you, alongside the designers and maintainers who keep that work open. The freedom to choose, use and share good typography is part of what makes a tool like Lolly possible.
+
 <!--lb:d3-->
 ## Data that tells a story: D3
 
