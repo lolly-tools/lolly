@@ -2160,7 +2160,6 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 /* ── beat 3: what / why ─────────────────────────────────────────────────── */
 .whatwhy-section{padding:4rem 1.5rem 2.5rem}
 .whatwhy-inner{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:2.5rem 3.5rem}
-.whatwhy-eyebrow{font-size:.6875rem;text-transform:uppercase;letter-spacing:.12em;color:color-mix(in oklab,hsl(var(--primary)) 70%,var(--text));font-weight:700}
 .whatwhy-big{font-size:1.6rem;letter-spacing:0;text-transform:none;font-weight:800;margin:.5rem 0 .75rem;text-wrap:balance}
 .whatwhy-body{color:var(--muted);max-width:52ch;margin:0 0 1rem}
 .whatwhy-maxim{margin:0 0 1rem;max-width:52ch}
@@ -3132,7 +3131,7 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
    bytes are exactly what Lolly exported - never re-encode it in a build step.
    Full column width: it is the page's one image and the argument's evidence. */
 .docs-content img[src*="the-flood"]{width:100%;max-width:100%;border-radius:1.2em;box-shadow:0 3px 6px #0002, 0 6px 2em #0001}
-.docs-content h2{font-size:1.5rem;font-weight:700;letter-spacing:normal;text-transform:none;border-top:1px solid var(--border);padding-top:2rem;margin-top:2.5rem;margin-bottom:.75rem;color:var(--dark)}
+.docs-content h2{font-size:1.75rem;font-weight:350;letter-spacing:normal;text-transform:none;border-top:1px solid var(--border);padding-top:2rem;margin-top:2.5rem;margin-bottom:1rem;color:var(--dark)}
 .docs-content h2:first-of-type{border-top:none;padding-top:0;margin-top:0}
 .docs-content h3{font-size:1.15rem;margin-top:1.75rem;margin-bottom:.5rem;color:var(--dark)}
 .docs-content h4{font-size:1rem;margin-top:1.25rem;margin-bottom:.35rem;color:var(--muted)}

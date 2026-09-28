@@ -186,7 +186,7 @@
 
 .docs-content code {
   font-family: 'SUSE Mono', 'SF Mono', 'Fira Code', monospace;
-  font-size: 0.875em; background: hsl(var(--card) / 1); padding: 0.15em 0.35em; border-radius: 3px;
+  font-size: 0.875em; background: var(--ui-color-surface-muted); padding: 0.15em 0.35em; border-radius: 3px;
 }
 .docs-content pre {
   background: hsl(var(--muted)); padding: 1.25rem 1.5rem; border-radius: 8px;

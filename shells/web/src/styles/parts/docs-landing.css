@@ -1212,7 +1212,6 @@ html[data-theme="dark"] .fmt-dialog-unsup{background:rgba(254,124,63,.13)}
 /* ── beat 3: what / why ─────────────────────────────────────────────────── */
 .whatwhy-section{padding:4rem 1.5rem 2.5rem}
 .whatwhy-inner{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:2.5rem 3.5rem}
-.whatwhy-eyebrow{font-size:.6875rem;text-transform:uppercase;letter-spacing:.12em;color:color-mix(in oklab,hsl(var(--primary)) 70%,var(--text));font-weight:700}
 .whatwhy-big{font-size:1.6rem;letter-spacing:0;text-transform:none;font-weight:800;margin:.5rem 0 .75rem;text-wrap:balance}
 .whatwhy-body{color:var(--muted);max-width:52ch;margin:0 0 1rem}
 .whatwhy-maxim{margin:0 0 1rem;max-width:52ch}
