@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:0ebc9595-8bdf-4dde-8772-c860fc547af0",
+  "serialNumber": "urn:uuid:7e22338b-c938-4ded-880c-86d87fec2421",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-09-28T03:52:08.502Z",
+    "timestamp": "2026-09-28T10:51:30.371Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -22843,10 +22843,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/cli@2.11.4",
+      "bom-ref": "pkg:npm/%40tauri-apps/cli@2.11.5",
       "name": "@tauri-apps/cli",
-      "version": "2.11.4",
-      "purl": "pkg:npm/%40tauri-apps/cli@2.11.4",
+      "version": "2.11.5",
+      "purl": "pkg:npm/%40tauri-apps/cli@2.11.5",
       "scope": "excluded",
       "licenses": [
         {
@@ -22856,7 +22856,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "47cc46b4ca70c9eb5ac12aa6f6460eb8c984aa48546ef714cbc9f468d5c8c689652812c4494bb97f8171fbae218004989b51fe8d25aaea3096eb3a939c7ea1a9"
+          "content": "61b789ead72d368a38d29bab3b8bb711ea37455aa6b2326bd0da0a411bbee29bcee2030bce48ed6bbc7493de92c522e6c7ead0fbcba6d5384e970f872e9805ba"
         }
       ],
       "properties": [
@@ -22944,10 +22944,10 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/%40tauri-apps/plugin-updater@2.11.0",
+      "bom-ref": "pkg:npm/%40tauri-apps/plugin-updater@2.12.0",
       "name": "@tauri-apps/plugin-updater",
-      "version": "2.11.0",
-      "purl": "pkg:npm/%40tauri-apps/plugin-updater@2.11.0",
+      "version": "2.12.0",
+      "purl": "pkg:npm/%40tauri-apps/plugin-updater@2.12.0",
       "scope": "required",
       "licenses": [
         {
@@ -22957,7 +22957,7 @@
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "004dfa5e43a84a76b6e06e348d9318d799f302791710f2ffef7b46a2c786aed18e1ee23f719c16cc7a5914b8ca5c33e0cd8678df9cf5807bb6f0b82bb01c08c5"
+          "content": "ef8fa0eeb4881d74237b7b6d47ab586a9dc524ffd4b59aaa63119517d104d0aa73d18003c475f6627c3f78894d3cccbd0f5686f85f28068b13fba9e98526bc3a"
         }
       ]
     },
@@ -32915,6 +32915,33 @@
         {
           "alg": "SHA-512",
           "content": "96164156f10779f804f874190bd3bb101260094fe757314d97bbe44b8444d003ed58b3f4dbff10548910b730713eaba1ee5ab9ffbf0d1e2a538fb38343a5eec9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "cdx:npm:package:development",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/vite@8.3.1",
+      "name": "vite",
+      "version": "8.3.1",
+      "purl": "pkg:npm/vite@8.3.1",
+      "scope": "excluded",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "fdbbc7f44f6d9825d11a9dae5d8dd66ce95daa94f01646e16bff0035a110e95931847eb42b2a8bc2066aea51b6cbee2e4f9e71f7ef5e50732943bb869ce08a8c"
         }
       ],
       "properties": [

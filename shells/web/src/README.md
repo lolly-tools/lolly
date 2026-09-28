@@ -5,22 +5,22 @@ This file exists so you can find the code for a feature without reading all of i
 The counts below are GENERATED - `pnpm run build:web-src-readme`, checked in CI by `pnpm run check:web-src-readme`, so they cannot rot the way the hand-measured ones did. They convey proportion; don't cite them as an API.
 
 <!-- web-src-dirs:start -->
-Roughly 658,000 lines of TypeScript, tests included, and 56,000 lines of CSS.
+Roughly 660,000 lines of TypeScript, tests included, and 56,000 lines of CSS.
 
 | Directory | Source | Tests | CSS |
 |---|---|---|---|
-| `views/` | 419 files, 183,719 lines | 193 files, 71,215 lines | 6 files, 1,427 lines |
-| `lib/` | 646 files, 148,449 lines | 369 files, 79,027 lines | 11 files, 1,782 lines |
-| `bridge/` | 170 files, 49,678 lines | 107 files, 23,425 lines | none |
+| `views/` | 420 files, 183,846 lines | 193 files, 71,215 lines | 6 files, 1,427 lines |
+| `lib/` | 650 files, 149,183 lines | 372 files, 80,073 lines | 11 files, 1,782 lines |
+| `bridge/` | 170 files, 49,687 lines | 107 files, 23,457 lines | none |
 | `components/` | 85 files, 24,185 lines | 39 files, 11,457 lines | 14 files, 945 lines |
 | `collab/` | 20 files, 13,532 lines | 22 files, 14,132 lines | none |
 | `pro/` | 22 files, 8,521 lines | 11 files, 1,738 lines | 3 files, 1,226 lines |
 | `org/` | 19 files, 5,881 lines | 15 files, 4,257 lines | none |
 | `catalog/` | 2 files, 895 lines | 2 files, 231 lines | none |
 | `ext/` | 2 files, 136 lines | 1 file, 86 lines | none |
-| `styles/` | none | 6 files, 1,234 lines | 111 files, 50,948 lines |
+| `styles/` | none | 6 files, 1,234 lines | 111 files, 50,960 lines |
 
-Plus 50 `.ts`/`.js` files at the top level of `src/`, 16,605 lines all told, of which 24 are tests and 3 are ambient declarations. `main.ts` is 2,206 of that.
+Plus 50 `.ts`/`.js` files at the top level of `src/`, 16,595 lines all told, of which 24 are tests and 3 are ambient declarations. `main.ts` is 2,206 of that.
 <!-- web-src-dirs:end -->
 
 ## How do I find a feature
@@ -64,8 +64,8 @@ Do not be ambushed by these. The largest source files, by line count:
 | 3,898 | `views/tool-inputs.ts` | none |
 | 3,659 | `views/color-lab.ts` | yes |
 | 3,257 | `bridge/sequence-render.ts` | yes |
-| 3,142 | `views/gallery.ts` | none |
-| 3,066 | `views/projects.ts` | none |
+| 3,151 | `views/gallery.ts` | none |
+| 3,064 | `views/projects.ts` | none |
 | 3,033 | `bridge/export-svg-walker.ts` | **none** |
 | 3,009 | `lib/rebrand/controller.ts` | yes |
 | 2,674 | `views/deck-editor.ts` | yes |

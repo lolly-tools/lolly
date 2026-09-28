@@ -46,7 +46,8 @@ import {
 } from '../folder-tiles.ts';
 import type { PickerHost } from './picker.ts';   // type-only (erased); the value is lazy-imported in openAddPicker
 import { wireTileSelect } from '../lib/tile-select.ts';
-import { wireTileContextMenu, menuItemHtml } from '../lib/context-menu.ts';
+import { menuItemHtml } from '../lib/context-menu.ts';
+import { wireProjectContextMenu } from './projects-context-menu.ts';
 import { loadProjectFavourites, saveProjectFavourites } from '../lib/project-favourites.ts';
 import { bulkBarHtml as buildBulkBar, syncBulkBar as syncSharedBulkBar, wireEscapeClearsSelection } from '../lib/bulk-bar.ts';
 import type { BulkBarConfig } from '../lib/bulk-bar.ts';
@@ -70,7 +71,7 @@ import { announce } from '../a11y.ts';
 import { listCreateBtns as createButtonsHtml, emptyFolderHtml } from './projects-create.ts';
 import { FEATURED_VIEW_STORAGE, liveAnchor, mountProjectsViewOptions, readFeaturedView, switchFavouritesView } from './projects-view-options.ts';
 import type { BodyPopoverHandle } from '../components/body-popover.ts';
-import { shareProjectSession } from './projects-sharing.ts';
+import { shareProjectFavourite, shareProjectSession } from './projects-sharing.ts';
 import { downloadOriginals, downloadProject, type ProjectDownloadHost, type ProjectDownloadView } from './projects-download.ts';
 import { serializeUrlState } from '@lolly/engine';
 import { createToolRuntime as createRuntime } from '../lib/mount-runtime.ts';
@@ -1048,19 +1049,16 @@ export async function mountProjects(
   // (recreated each render) route through tileMenu.openAt with themselves as the
   // focus-restore delegate. Create tiles + the synthetic Uncategorised tile decline
   // (refOf → null) → the NATIVE menu shows, as before.
-  const tileMenu = wireTileContextMenu({
+  const tileMenu = wireProjectContextMenu({
     host: viewEl,
-    tileSelector: '.folder-tile[data-ref][data-kind]',
-    refOf: (tile) => tile.classList.contains('folder-tile--create')
-      ? null : tile.dataset.ref ?? null,
-    isBulkTarget: (ref) => selected.size > 1 && selected.has(ref),
-    singleHtml: (tgt) => tileMenuHtml(tgt.data ?? tgt.tile?.dataset.kind ?? 'session', tgt.ref),
+    selected,
+    strip: () => featuredHandle,
+    singleHtml: tileMenuHtml,
     bulkHtml: () => bulkMenuHtml(),
     // Right-click on empty canvas (WP-13): the file-manager background menu. Not
     // in results mode - "New folder" there would have no clear home.
     backgroundHtml: () => query ? '' : backgroundMenuHtml(),
     onAction: (act, tgt, kind) => { void (kind === 'background' ? onBackgroundAction(act) : onMenuAction(act, tgt)); },
-    className: 'folder-menu projects-menu',
   });
 
   // Destructive actions (delete a folder + its contents, delete a saved session) use
@@ -1682,7 +1680,7 @@ export async function mountProjects(
     }
     else if (act.startsWith('course-')) await exportCourse(act.slice(7), ref);
     else if (act === 'render-session') renderSession(ref);
-    else if (act === 'share') { closeMenu(); await shareProjectSession(host, sessionSource(ref), false, announce); }
+    else if (act === 'share') { closeMenu(); await shareProjectFavourite(host, downloadView(), sessionSource(ref), announce); }
     else if (act === 'delete-session') { await trashSessions([ref]); }
     else if (act === 'open-image') openImagePreview(ref);
     else if (act === 'move-image') {

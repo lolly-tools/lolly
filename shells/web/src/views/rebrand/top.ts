@@ -403,6 +403,12 @@ export function wireTop(rb: RbCtx): void {
 
   const title = node('div', 'rb-top-title');
   const name = node('h1', 'rb-top-name', tRaw('Rebrand'));
+  // Rebrand is early: the pill sits beside the heading, which a loaded deck renames,
+  // so the notice stays whatever the heading says.
+  const nameRow = node('div', 'rb-top-name-row');
+  const stage = node('span', 'chip chip--flag rb-top-stage', tRaw('Pre-alpha'));
+  stage.title = tRaw('Rebrand is at an early stage. Check every slide before you use the result.');
+  nameRow.append(name, stage);
   const system = node('p', 'rb-top-system');
   // The Deck theme control sits beside the design system name (plan 275 section 6.3);
   // theme.ts fills the slot and keeps it.
@@ -410,7 +416,7 @@ export function wireTop(rb: RbCtx): void {
   const theme = node('div', 'rb-top-theme');
   theme.hidden = true;
   line.append(system, theme);
-  title.append(name, line);
+  title.append(nameRow, line);
 
   const actions = node('div', 'rb-top-actions');
   const save = node('p', 'rb-save');

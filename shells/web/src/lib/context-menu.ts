@@ -111,7 +111,7 @@ export interface TileContextMenuOptions {
    */
   tileAt?(x: number, y: number): HTMLElement | null;
   /** True when the ref is part of the current multi-selection → open the bulk menu. */
-  isBulkTarget?(ref: string): boolean;
+  isBulkTarget?(ref: string, tile: HTMLElement): boolean;
   /** Rows for one tile's menu (menuItemHtml strings). Return '' to decline. */
   singleHtml(target: ContextMenuTarget): string;
   /** Bulk menu body: a `.folder-menu-head` count + an inner role="menu" list. */
@@ -322,7 +322,7 @@ export function wireTileContextMenu(opts: TileContextMenuOptions): TileContextMe
 
   /** Open at a point, routing to the bulk menu when the tile is in the selection. */
   function openFor(ref: string, tile: HTMLElement, x: number, y: number, finger: boolean): void {
-    if (opts.bulkHtml && opts.isBulkTarget?.(ref)) openKind({ kind: 'bulk' }, x, y, null, finger);
+    if (opts.bulkHtml && opts.isBulkTarget?.(ref, tile)) openKind({ kind: 'bulk' }, x, y, null, finger);
     else openKind({ kind: 'single', target: { ref, tile } }, x, y, null, finger);
   }
 

@@ -32,6 +32,8 @@
  * Shift-click). The delegated mousedown + the anchor both outlive a re-render.
  */
 
+import { nearestInDirection, type ArrowKey } from './arrow-nav.ts';
+
 /** How the view exposes its grid + selection store to the gestures. */
 export interface TileSelectAdapter {
   /**
@@ -343,24 +345,9 @@ export function wireTileSelect(a: TileSelectAdapter): TileSelect {
     const labelOf = (tile: HTMLElement): string =>
       (kb.labelOf?.(tile) ?? tile.querySelector('.tile-title, .cat-tile-name')?.textContent ?? tile.textContent ?? '').trim().toLowerCase();
 
-    /** Geometric arrow move - nearest tile centre in the pressed direction. */
+    /** Geometric arrow move - nearest tile centre in the pressed direction (lib/arrow-nav.ts). */
     function arrowTarget(from: DOMRect, dir: string, tiles: Array<{ tile: HTMLElement; r: DOMRect }>): HTMLElement | null {
-      const cx = (from.left + from.right) / 2, cy = (from.top + from.bottom) / 2;
-      let best: HTMLElement | null = null;
-      let bestScore = Infinity;
-      for (const { tile, r } of tiles) {
-        const tx = (r.left + r.right) / 2, ty = (r.top + r.bottom) / 2;
-        const dx = tx - cx, dy = ty - cy;
-        const ahead = dir === 'ArrowRight' ? dx > 1 : dir === 'ArrowLeft' ? dx < -1 : dir === 'ArrowDown' ? dy > 1 : dy < -1;
-        if (!ahead) continue;
-        // Distance along the axis dominates; cross-axis drift is a tie-breaker,
-        // so Down lands on the tile below, not the nearest diagonal neighbour.
-        const score = dir === 'ArrowLeft' || dir === 'ArrowRight'
-          ? Math.abs(dx) + Math.abs(dy) * 3
-          : Math.abs(dy) + Math.abs(dx) * 3;
-        if (score < bestScore) { bestScore = score; best = tile; }
-      }
-      return best;
+      return nearestInDirection(from, dir as ArrowKey, tiles.map(({ tile, r }) => ({ item: tile, r })));
     }
 
     const toggleRef = (ref: string): void => {

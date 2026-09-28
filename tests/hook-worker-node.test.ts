@@ -7,6 +7,8 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { createNodeHookExecutor, NodeHookIsolationError } from '../packages/node-shell/src/hook-worker.ts';
 
@@ -88,4 +90,23 @@ test('strict mode: the thread has an empty environment, no require and no fetch'
   `), h, {}, { hookExecutor: createNodeHookExecutor({ strict: true }) });
   assert.match(runtime.getHydrated(), /0,undefined,undefined/);
   runtime.destroy?.();
+});
+
+test('an init timeout terminates the worker so the owning process can exit', async () => {
+  const executorUrl = new URL('../packages/node-shell/src/hook-worker.ts', import.meta.url).href;
+  const script = `
+    import { createNodeHookExecutor } from ${JSON.stringify(executorUrl)};
+    const run = createNodeHookExecutor({ strict: true,
+      threadUrl: new URL('data:text/javascript,setInterval(() => {}, 1000)') });
+    try {
+      await run({ hooksSource: 'function onInit() {}', manifest: { hooks: { onInit: true } } },
+        { shell: 'cli', capabilities: [], log() {} });
+      process.exitCode = 1;
+    } catch (error) {
+      if (error.message !== 'hook thread init timed out') throw error;
+      console.log(error.message);
+    }
+  `;
+  const { stdout } = await promisify(execFile)(process.execPath, ['--input-type=module', '--eval', script], { timeout: 20_000 });
+  assert.match(stdout, /hook thread init timed out/);
 });

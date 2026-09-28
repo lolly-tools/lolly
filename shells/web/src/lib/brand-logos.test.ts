@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import {
   withLogoToken, logoGroupOf, LOGO_VARIANTS, splitVariant, variantLabel, isReverseTreatment,
   LOGO_SLUG_RE, LOGO_DEFAULT_IDENTITY, isCanonicalVariant, logoAssetId, parseLogoAssetId,
-  listLogos, installLogo, removeLogo, USER_LOGO_PREFIX,
+  listLogos, installLogo, removeLogo, USER_LOGO_PREFIX, withLogoGroupFrom,
 } from './brand-logos.ts';
 import type { UserFontsHost } from '../user-fonts.ts';
 import { USER_TOKENS_ID } from '../bridge/tokens.ts';
@@ -50,12 +50,50 @@ test('asset id scheme: default identity keeps the two-segment form', () => {
   assert.equal(logoAssetId('horizontal-primary'), 'user/logo/horizontal-primary');
   assert.equal(logoAssetId('icon', LOGO_DEFAULT_IDENTITY), 'user/logo/icon');
   assert.equal(logoAssetId('icon', 'acme'), 'user/logo/acme/icon');
-  assert.deepEqual(parseLogoAssetId('user/logo/horizontal-primary'), { identity: 'default', variant: 'horizontal-primary' });
-  assert.deepEqual(parseLogoAssetId('user/logo/acme/icon'), { identity: 'acme', variant: 'icon' });
+  assert.deepEqual(parseLogoAssetId('user/logo/horizontal-primary'), { identity: 'default', variant: 'horizontal-primary', systemId: 'default' });
+  assert.deepEqual(parseLogoAssetId('user/logo/acme/icon'), { identity: 'acme', variant: 'icon', systemId: 'default' });
   assert.equal(parseLogoAssetId('user/logo/a/b/c'), null, 'extra segments rejected');
   assert.equal(parseLogoAssetId('user/logo/Foo!'), null, 'invalid variant slug rejected');
   assert.equal(parseLogoAssetId('user/logo/B@d/icon'), null, 'invalid identity slug rejected');
   assert.equal(parseLogoAssetId('user/upload/1'), null, 'foreign namespace rejected');
+});
+
+test('asset id scheme: a named design system mints and parses under its own namespace', () => {
+  assert.equal(logoAssetId('horizontal-primary', LOGO_DEFAULT_IDENTITY, 'user/ds/acme/'), 'user/ds/acme/logo/horizontal-primary');
+  assert.equal(logoAssetId('icon', 'sub', 'user/ds/acme/'), 'user/ds/acme/logo/sub/icon');
+  assert.deepEqual(parseLogoAssetId('user/ds/acme/logo/horizontal-primary'), { identity: 'default', variant: 'horizontal-primary', systemId: 'acme' });
+  assert.deepEqual(parseLogoAssetId('user/ds/acme/logo/sub/icon'), { identity: 'sub', variant: 'icon', systemId: 'acme' });
+  // Round trip for every shape the Logos room writes.
+  for (const [variant, identity, ns] of [['vertical-mono', 'default', 'user/'], ['crest', 'event', 'user/ds/beta-2/']] as const) {
+    const parsed = parseLogoAssetId(logoAssetId(variant, identity, ns));
+    assert.deepEqual(parsed && { variant: parsed.variant, identity: parsed.identity }, { variant, identity });
+  }
+  // Not logos, or not a namespace any system mints under.
+  assert.equal(parseLogoAssetId('user/ds/acme/fonts/inter/0'), null);
+  assert.equal(parseLogoAssetId('user/ds/acme/logo/a/b/c'), null);
+  assert.equal(parseLogoAssetId('user/ds/Bad/logo/icon'), null);
+  assert.equal(parseLogoAssetId('user/ds/shipped/logo/icon'), null, 'the shipped system mints nothing');
+  assert.equal(parseLogoAssetId('user/ds/default/logo/icon'), null, 'the default system lives at user/, not user/ds/default/');
+});
+
+test('withLogoGroupFrom takes the logo group from one doc and keeps everything else of the other', () => {
+  const stored = withLogoToken(withLogoToken({ color: { a: 1 } }, 'horizontal-primary', 'user/ds/acme/logo/horizontal-primary'),
+    'icon', 'user/ds/acme/logo/sub/icon', 'sub');
+  const stale = { color: { a: 2 }, asset: { logo: { 'horizontal-primary': { $type: 'asset', $value: 'lolly/logo/primary' } }, photo: { $type: 'asset', $value: 'x' } } };
+  const out = withLogoGroupFrom(stale, stored) as any;
+  assert.equal(out.color.a, 2, 'the edited document keeps its own colours');
+  assert.equal(out.asset.photo.$value, 'x', 'and its other asset tokens');
+  assert.equal(out.asset.logo['horizontal-primary'].$value, 'user/ds/acme/logo/horizontal-primary');
+  assert.equal(out.asset.logo.sub.icon.$value, 'user/ds/acme/logo/sub/icon');
+  assert.equal((stale.asset.logo['horizontal-primary'] as { $value: string }).$value, 'lolly/logo/primary', 'the input is not touched');
+  // A stored doc with no logos clears the stale ones, pruning what it empties.
+  const cleared = withLogoGroupFrom({ asset: { logo: { 'vertical-mono': { $type: 'asset', $value: 'user/logo/vertical-mono' } } } }, { color: {} });
+  assert.equal(cleared.asset, undefined);
+  // Layered docs: written into base, read from whichever set of the stored doc holds the group.
+  const layered = withLogoGroupFrom({ $themes: [{ name: 'light' }], base: { color: {} }, light: {} },
+    { $themes: [{ name: 'light' }], base: { asset: { logo: { crest: { $type: 'asset', $value: 'user/logo/crest' } } } } }) as any;
+  assert.equal(layered.base.asset.logo.crest.$value, 'user/logo/crest');
+  assert.ok(layered.base.color, 'the set keeps its other groups');
 });
 
 test('withLogoToken adds/reads/clears a variant on a layered doc (writes into base)', () => {

@@ -8,6 +8,17 @@ import { openShareDialog } from '../components/share-dialog.ts';
 import { launchRulesCopy } from '../lib/rules-launch.ts';
 import { t } from '../i18n.ts';
 import type { SessionSaveSource } from './projects-templates.ts';
+import { isBatchSlot } from '../lib/batch-slots.ts';
+import { downloadOriginals, downloadProject, type ProjectDownloadView } from './projects-download.ts';
+
+export async function shareProjectFavourite(host: HostV1, view: ProjectDownloadView, source: SessionSaveSource, announce: (message: string) => void): Promise<void> {
+  const ref = source.slot;
+  if (view.folders.some(folder => folder.id === ref)) { await downloadProject(view, ref, true); return; }
+  const image = view.imageRefs().get(ref);
+  if (image) { await downloadOriginals(view, String(image.meta?.name ?? ref), [], [ref], [], true); return; }
+  if (isBatchSlot(ref)) { await downloadOriginals(view, source.label || ref, [ref], [], [], true); return; }
+  await shareProjectSession(host, source, false, announce);
+}
 
 export async function shareProjectSession(host:HostV1,source:SessionSaveSource,rules:boolean,announce:(message:string)=>void):Promise<void> {
   try {

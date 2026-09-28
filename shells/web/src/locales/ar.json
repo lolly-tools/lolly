@@ -6992,5 +6992,7 @@
   "Draft recovery on": "استرداد المسودة مفعل",
   "File address": "عنوان الملف",
   "The file is downloaded, then checked on this device. In the web app, images from other sites come through Lolly's own relay.": "ينزل الملف، ثم يفحص على هذا الجهاز. في تطبيق الويب، تمر الصور من المواقع الأخرى عبر تتابع Lolly الخاص به.",
-  "Enter an address that starts with https://": "أدخل عنوانا يبدأ بـ https://"
+  "Enter an address that starts with https://": "أدخل عنوانا يبدأ بـ https://",
+  "Pre-alpha": "قبل ألفا",
+  "Rebrand is at an early stage. Check every slide before you use the result.": "Rebrand في مرحلة مبكرة. تحقّق من كل شريحة قبل استخدام النتيجة."
 }

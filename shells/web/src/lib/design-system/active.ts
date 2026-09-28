@@ -20,6 +20,9 @@
  * modules that must keep running under plain node.
  */
 import { USER_TOKENS_ID } from '../../bridge/tokens.ts';
+import {
+  DEFAULT_DESIGN_SYSTEM_ID, designMaterialOf, designSystemNamespace,
+} from '../../../../../engine/src/design-system.ts';
 import type { DesignSystemRecord } from './registry.ts';
 
 /** The part of a record these reads need. A slice of the real one, so a caller
@@ -81,6 +84,23 @@ export async function activeHeadId(host: ActiveSystemHost): Promise<string> {
   const record = await activeDesignSystemRecord(host);
   if (record && record.source.kind !== 'shipped' && record.headId) return record.headId;
   return USER_TOKENS_ID;
+}
+
+/**
+ * The design system the person's own material is written to right now, and the
+ * asset-id prefix it mints under: `user/ds/<id>/` for a named system, the legacy
+ * `user/` for the default one.
+ *
+ * Read from the head id rather than the record, so it is the same answer
+ * activeHeadId gives, fallback included: while the shipped system is active (or
+ * on a host with no registry) a write goes to the default system, which is
+ * where the first install has always gone.
+ */
+export async function activeMaterialSystem(host: ActiveSystemHost): Promise<{ id: string; ns: string }> {
+  const material = designMaterialOf(await activeHeadId(host));
+  const id = material?.kind === 'tokens' ? material.systemId : DEFAULT_DESIGN_SYSTEM_ID;
+  const ns = designSystemNamespace(id);
+  return ns ? { id, ns } : { id: DEFAULT_DESIGN_SYSTEM_ID, ns: designSystemNamespace(DEFAULT_DESIGN_SYSTEM_ID) };
 }
 
 /**

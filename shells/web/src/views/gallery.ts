@@ -340,6 +340,7 @@ function dimText(tool: GalleryTool | undefined): string {
 import { isBatchSlot } from '../lib/batch-slots.ts';
 import { yoursShelfTools, yoursShelfHtml } from './yours-shelf.ts';
 import { captureNeutralPinned, settleForCapture } from '../lib/capture-neutral.ts';
+import { wireArrowNav } from '../lib/arrow-nav.ts';
 
 // Lucide "info" and "history" - context-menu / bulk-bar action icons. Path data
 // lives in lib/icons.ts; 'info' is deduped against profile.ts's identical
@@ -539,6 +540,23 @@ function observeGalleryTheme(theme: { dark: boolean }, refreshFeatured: () => vo
   });
   observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   return () => observer.disconnect();
+}
+
+function createGalleryLifecycle(viewEl: HTMLElement) {
+  // Cleanup registry - main.js's navigate() calls viewEl._cleanup on unmount. Both
+  // the featured row (timers + drift loop) and the preview queue below
+  // register their teardown here so neither keeps running after the user moves on.
+  const cleanups: Array<() => void> = [];
+  const previewQueue = createPreviewQueue();
+  previewQueue.setPaused(true); // Wait for the welcome decision before rendering behind it.
+  cleanups.push(() => previewQueue.destroy());
+  // Arrow keys walk the cards once one has focus (lib/arrow-nav.ts), landing on each
+  // card's name link, so browsing never means tabbing through every dot and "+ New".
+  cleanups.push(wireArrowNav(viewEl, { items: '.gtile', primary: '.gtile-name' }));
+  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => {
+    for (const fn of cleanups.splice(0)) { try { fn(); } catch { /* best-effort teardown */ } }
+  };
+  return { cleanups, previewQueue };
 }
 
 export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts: GalleryMountOpts = {}): Promise<void> {
@@ -1006,16 +1024,7 @@ export async function mountGallery(viewEl: HTMLElement, host: GalleryHost, opts:
   const pillbar    = viewEl.querySelector<HTMLElement>('.filter-pop-pills'); // category pills now live in the filter popover
   const masonry    = viewEl.querySelector<HTMLElement>('.tool-masonry');
 
-  // Cleanup registry - main.js's navigate() calls viewEl._cleanup on unmount. Both
-  // the featured row (timers + drift loop) and the preview queue below
-  // register their teardown here so neither keeps running after the user moves on.
-  const cleanups: Array<() => void> = [];
-  const previewQueue = createPreviewQueue();
-  previewQueue.setPaused(true); // Wait for the welcome decision before rendering behind it.
-  cleanups.push(() => previewQueue.destroy());
-  (viewEl as HTMLElement & { _cleanup?: () => void })._cleanup = () => {
-    for (const fn of cleanups.splice(0)) { try { fn(); } catch { /* best-effort teardown */ } }
-  };
+  const { cleanups, previewQueue } = createGalleryLifecycle(viewEl);
   // False once this gallery is no longer the mounted view - a background job that
   // outlives it (pinSelection) checks this before touching the bar.
   let mounted = true;

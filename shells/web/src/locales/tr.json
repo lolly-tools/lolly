@@ -6992,5 +6992,7 @@
   "Draft recovery on": "Taslak kurtarma açık",
   "File address": "Dosya adresi",
   "The file is downloaded, then checked on this device. In the web app, images from other sites come through Lolly's own relay.": "Dosya indirilir, ardından bu cihazda kontrol edilir. Web uygulamasında, diğer sitelerden gelen görseller Lolly'nin kendi aktarımından geçer.",
-  "Enter an address that starts with https://": "https:// ile başlayan bir adres girin"
+  "Enter an address that starts with https://": "https:// ile başlayan bir adres girin",
+  "Pre-alpha": "Ön alfa",
+  "Rebrand is at an early stage. Check every slide before you use the result.": "Rebrand erken bir aşamada bulunuyor. Sonucu kullanmadan önce her slaytı kontrol et."
 }

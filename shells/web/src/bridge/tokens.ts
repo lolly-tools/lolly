@@ -269,7 +269,15 @@ export class VersionExistsError extends Error {
 export async function installUserTokens(
   host: InstallTokensHost, doc: unknown,
   opts: {
-    label?: string; versionSlug?: string; allowVersionWrite?: boolean;
+    /** Renames the target design system. Pass it only for an explicit rename or
+     *  a create; a routine write that passes one renames whatever is active. */
+    label?: string;
+    /** The name a design system gets if this write has to CREATE one (the first
+     *  write on a device still on the shipped system). Never renames an existing
+     *  system, so an edit or an import that wants a name for a fresh system uses
+     *  this, not `label`. */
+    labelIfNew?: string;
+    versionSlug?: string; allowVersionWrite?: boolean;
     /** Which design system to write (plans/186). Default: the active one. */
     system?: string;
     /**
@@ -286,7 +294,7 @@ export async function installUserTokens(
   if (typeof doc !== 'object' || doc === null || Array.isArray(doc)) {
     throw new Error('installUserTokens: expected a DTCG token document (a plain object)');
   }
-  const target = await writeTarget(host, opts.system, opts.label);
+  const target = await writeTarget(host, opts.system, opts.label || opts.labelIfNew);
   const headId = target.headId;
 
   if (!opts.versionSlug) {

@@ -246,3 +246,35 @@ test('the pointer key lives in the profile store and the records in their own st
   assert.equal(r.db.stores.get('profile')!.get(ACTIVE_DESIGN_SYSTEM_KEY), 'default');
   assert.equal(r.db.stores.get(DESIGN_SYSTEMS_STORE)!.size, 2);
 });
+
+// ── Naming: a write labels a NEW system, never an existing one (user report:
+// "every now and again it renames a brand you're editing to My brand") ──────
+
+test('labelIfNew is the label of the system a first install creates', async () => {
+  const r = await rig();
+  await installUserTokens(r.host as unknown as Parameters<typeof installUserTokens>[0], DOC, { labelIfNew: 'Acme tokens' });
+  const active = await r.tokens.active();
+  assert.equal(active?.id, 'default');
+  assert.equal(active?.label, 'Acme tokens');
+});
+
+test('labelIfNew never renames the system being edited (an import keeps its name)', async () => {
+  const r = await rig({ legacyHead: DOC });
+  assert.equal((await r.tokens.active())?.label, 'Acme');
+  await installUserTokens(r.host as unknown as Parameters<typeof installUserTokens>[0], DOC2, { labelIfNew: 'My brand' });
+  assert.equal((await r.tokens.active())?.label, 'Acme');
+  assert.equal(await r.tokens.resolve('{color.brand.jungle}'), '#123456', 'the material still changed');
+});
+
+test('a radius edit leaves the active one of two design systems named as it was', async () => {
+  const r = await rig({ legacyHead: DOC });
+  const second = await createDesignSystem(r.host, { label: 'Client B' });
+  await r.registry.setActive(second.id);
+  r.tokens.bust();
+  const { setBrandRadius } = await import('../user-fonts.ts');
+  await setBrandRadius(r.host as unknown as Parameters<typeof setBrandRadius>[0], '0.5rem');
+  r.tokens.bust();
+  assert.match(JSON.stringify(await r.tokens.raw()), /0\.5rem/, 'the edit reached the active system');
+  assert.equal((await r.registry.get(second.id))?.label, 'Client B');
+  assert.equal((await r.registry.get('default'))?.label, 'Acme', 'the other system is untouched too');
+});

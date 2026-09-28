@@ -6992,5 +6992,7 @@
   "Draft recovery on": "Възстановяването на чернова е включено",
   "File address": "Адрес на файла",
   "The file is downloaded, then checked on this device. In the web app, images from other sites come through Lolly's own relay.": "Файлът се изтегля, после се проверява на това устройство. В уеб приложението изображения от други сайтове преминават през собствения релей на Lolly.",
-  "Enter an address that starts with https://": "Въведи адрес, който започва с https://"
+  "Enter an address that starts with https://": "Въведи адрес, който започва с https://",
+  "Pre-alpha": "Предалфа",
+  "Rebrand is at an early stage. Check every slide before you use the result.": "Rebrand е в ранен етап. Провери всеки слайд, преди да използваш резултата."
 }

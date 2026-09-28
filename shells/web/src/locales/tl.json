@@ -6992,5 +6992,7 @@
   "Draft recovery on": "Naka-on ang draft recovery",
   "File address": "Address ng file",
   "The file is downloaded, then checked on this device. In the web app, images from other sites come through Lolly's own relay.": "Dina-download ang file, pagkatapos ay sinusuri ito sa device na ito. Sa web app, dumadaan sa sariling relay ng Lolly ang mga imahe mula sa ibang site.",
-  "Enter an address that starts with https://": "Ilagay ang address na nagsisimula sa https://"
+  "Enter an address that starts with https://": "Ilagay ang address na nagsisimula sa https://",
+  "Pre-alpha": "Pre-alpha",
+  "Rebrand is at an early stage. Check every slide before you use the result.": "Nasa unang yugto ang Rebrand. Suriin ang bawat slide bago gamitin ang resulta."
 }
