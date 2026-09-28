@@ -526,7 +526,10 @@ export async function mountDocs(
     listen.type = 'button';
     listen.className = 'btn docs-listen';
     listen.setAttribute('aria-controls', 'neuro-dock');
-    listen.innerHTML = `${icon('play', { size: 16 })}<span>${escape(t('Listen'))}</span>`;
+    listen.innerHTML = icon('play', { size: 16 });
+    const label = document.createElement('span');
+    label.textContent = t('Listen');
+    listen.append(label);
     actions.append(listen);
     const heading = node.querySelector(':scope > h1');
     if (heading) heading.after(actions);

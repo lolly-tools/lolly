@@ -718,7 +718,8 @@ const RAW_HTML_ALLOWED: Record<string, number> = {
   // analyser's closed band union (escape()d anyway); its label is an aria attribute.
   // +1 2026-09-26 (plan 277 step 2): the compact navigation's disclosure summary, fixed
   // markup plus two lib/icons glyphs; the section title goes in through textContent.
-  'views/docs.ts': 6,
+  // Listen inserts a fixed registry icon; its translated label uses textContent.
+  'views/docs.ts': 7,
   // #/prepare route scaffold: the shared chrome (backHomeHtml/langFabHtml) plus t() copy,
   // no free text; the panel itself mounts into an empty slot (components/prepare/panel.ts).
   'views/prepare.ts': 1,
