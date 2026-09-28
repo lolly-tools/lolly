@@ -1,3 +1,35 @@
+// === lolly:shared brand-logo - generated from community/_shared/brand-logo.js; edit there and run pnpm run sync:shared ===
+// Resolve only slots declared by the active design system. Catalogue tags describe
+// available artwork; they do not say which identity the person selected.
+async function resolveBrandLogo(dark, mono) {
+  if (!host.tokens || !host.tokens.resolve || !host.assets || !host.assets.get) return null;
+  var suffix = dark ? '-reverse' : '';
+  var treatments = mono ? ['mono', 'primary'] : ['primary', 'mono'];
+  for (var t = 0; t < treatments.length; t++) {
+    for (var o = 0; o < 2; o++) {
+      var variant = (o ? 'vertical-' : 'horizontal-') + treatments[t] + suffix;
+      try {
+        var id = await host.tokens.resolve('{asset.logo.' + variant + '}');
+        if (typeof id !== 'string' || !id.trim() || id.indexOf('{') !== -1) continue;
+        var asset = await host.assets.get(id);
+        if (asset && typeof asset.url === 'string' && asset.url) return asset;
+      } catch { /* Try another declared slot on the same background. */ }
+    }
+  }
+  return null;
+}
+
+var _lastBrandLogoWarning = '';
+function brandLogoWarning(missing) {
+  var message = missing
+    ? 'A logo for this background is unavailable in the active design system. Add a matching mark in Logos, or turn off the logo.'
+    : '';
+  if (message && message !== _lastBrandLogoWarning && host.log) host.log('warn', message);
+  _lastBrandLogoWarning = message;
+  return message;
+}
+// === /lolly:shared brand-logo ===
+
 /* global host */
 /**
  * Stationery hooks.
@@ -12,12 +44,9 @@
  * 85 x 55 mm page. The same numbers are stamped on the root element here, so
  * the rendered markup says what it was drawn for and a test can read it back.
  *
- * The lockup comes from the ACTIVE brand, discovered by catalog tag
- * (logo + on-light | on-dark, the convention deck-builder and multi-page-pdf
- * use) rather than a hardcoded asset id, so the tool follows whatever brand is
- * mounted. When the brand ships no logo - or the shell has no asset query at
- * all - the company name is set as a wordmark instead. Nothing here throws:
- * a failure comes back as an `error` note the template renders in place.
+ * The lockup follows the active design system's logo tokens. When a matching
+ * mark is unavailable, the company name remains as the wordmark and a preview
+ * notice explains how to add a logo or turn the logo off.
  */
 
 // Every piece, in millimetres. Landscape for the card and the slip, portrait
@@ -111,54 +140,9 @@ function _onColor(hex) {
 // A surface that wants the pale ink wants the reversed lockup. One decision, so
 // the logo polarity can never disagree with the type printed beside it.
 function _isDark(hex) { return _onColor(hex) === PALE_INK; }
-
-/**
- * The active brand's logo for a light or dark surface, as a URL. Discovered by
- * catalog tag, never a hardcoded brand asset. Prefers a horizontal lockup and
- * falls back to any logo with the right polarity. Empty string when the brand
- * ships none, when the host has no asset query, or on any failure - the
- * template then prints the wordmark.
- *
- * The last pass drops the polarity tag, because a brand may ship one untagged
- * lockup and nothing else (lolly/logo/primary is tagged logo + mark + primary,
- * with no polarity at all). It still refuses a logo tagged for the OPPOSITE
- * surface: a reversed lockup is white artwork, and printing that on white paper
- * gives nothing, which is worse than the wordmark it would have replaced.
- *
- * M7-style contract for other tools copying this: feature-detect, query, and
- * always resolve to a string.
- */
-async function brandLogoUrl(darkSurface) {
-  try {
-    if (typeof host === 'undefined' || !host || !host.assets || !host.assets.query) return '';
-    var on = darkSurface ? 'on-dark' : 'on-light';
-    var opposite = darkSurface ? 'on-light' : 'on-dark';
-    async function q(tags) {
-      try { return (await host.assets.query({ type: 'vector', tags: tags })) || []; }
-      catch (e) { return []; }
-    }
-    function tagged(ref, tag) {
-      var t = ref && ref.meta && ref.meta.tags;
-      return Array.isArray(t) && t.indexOf(tag) !== -1;
-    }
-    var found = await q(['logo', on, 'horizontal']);
-    if (!found.length) found = await q(['logo', on]);
-    if (!found.length) {
-      found = (await q(['logo'])).filter(function (r) { return !tagged(r, opposite); });
-    }
-    var ref = found[0];
-    if (!ref) return '';
-    if (typeof ref.url === 'string' && ref.url) return ref.url;
-    if (host.assets.get) {
-      try {
-        var full = await host.assets.get(ref.id);
-        if (full && typeof full.url === 'string') return full.url;
-      } catch (e) { /* fall through to the wordmark */ }
-    }
-    return '';
-  } catch (e) {
-    return '';
-  }
+async function brandLogoUrl(dark) {
+  var asset = await resolveBrandLogo(dark, false);
+  return asset ? asset.url : '';
 }
 
 function _lines(list) {
@@ -242,18 +226,14 @@ async function _build(args) {
     error: '',
   };
 
-  out.logoUrl = await brandLogoUrl(_isDark(surface));
+  var wantLogo = args.brandLogo !== false;
+  out.logoUrl = wantLogo ? await brandLogoUrl(_isDark(surface)) : '';
+  out._logoWarning = brandLogoWarning(wantLogo && !out.logoUrl);
   out.hasLogo = Boolean(out.logoUrl);
   return out;
 }
 
-var _memoKey = null;
-var _memoResult = null;
-
 async function compute(args) {
-  var key;
-  try { key = JSON.stringify(args); } catch (e) { key = null; }
-  if (key !== null && key === _memoKey) return _memoResult;
 
   var result;
   try {
@@ -262,8 +242,6 @@ async function compute(args) {
     result = await _build({}).catch(function () { return {}; });
     result.error = 'Could not lay this piece out. Check the inputs and try again.';
   }
-  _memoKey = key;
-  _memoResult = result;
   return result;
 }
 

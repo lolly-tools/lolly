@@ -322,25 +322,20 @@ test('every clip budget is a whole number of lines, and long words wrap', { skip
     'the card must let an unbreakable word wrap - the property is inherited, so once is enough');
 });
 
-test('a brand lockup is discovered by tag, and the wrong polarity is refused', { skip: SKIP }, async () => {
-  const withLogos = (assets: Array<{ id: string; url: string; meta: { tags: string[] } }>) =>
-    baseHost({
-      assets: {
-        get: async (id: string) => ({ id, url: 'asset:' + id }),
-        query: async (f: { tags?: string[] }) =>
-          assets.filter(a => (f.tags ?? []).every(t => a.meta.tags.includes(t))),
-      },
-    });
-  const wide = [{ id: 'b/logo/wide', url: 'asset:b/logo/wide', meta: { tags: ['logo', 'on-light', 'horizontal'] } }];
-  const reverseOnly = [{ id: 'b/logo/rev', url: 'asset:rev', meta: { tags: ['logo', 'on-dark'] } }];
-
-  const light = await mount({ background: '#ffffff' }, withLogos(wide));
-  assert.match(light.html, /<img class="lc-logo" src="asset:b\/logo\/wide"/);
-
-  // White artwork on a white card shows nothing, so the reversed lockup is
-  // refused there and taken on the dark card.
-  const refused = await mount({ background: '#ffffff' }, withLogos(reverseOnly));
+test('a brand lockup follows declared tokens and the wrong polarity is refused', { skip: SKIP }, async () => {
+  const withLogos = (slots: Record<string, string>) => baseHost({
+    tokens: { resolve: async (ref: string) => slots[ref] },
+    assets: {
+      get: async (id: string) => ({ id, url: 'asset:' + id }),
+      query: async () => { assert.fail('must not search unrelated catalogue marks'); },
+    },
+  });
+  const values = { siteName: 'Example', background: '#ffffff' };
+  const light = await mount(values, withLogos({ '{asset.logo.horizontal-primary}': 'brand/logo/wide' }));
+  assert.ok(light.html.includes('src="asset:brand/logo/wide"'));
+  const reverse = { '{asset.logo.horizontal-primary-reverse}': 'brand/logo/reverse' };
+  const refused = await mount(values, withLogos(reverse));
   assert.equal(refused.rt.getHydratedString('{{logoUrl}}'), '');
-  const dark = await mount({ background: '#14181b' }, withLogos(reverseOnly));
-  assert.equal(dark.rt.getHydratedString('{{logoUrl}}'), 'asset:rev');
+  const dark = await mount({ ...values, background: '#14181b' }, withLogos(reverse));
+  assert.equal(dark.rt.getHydratedString('{{logoUrl}}'), 'asset:brand/logo/reverse');
 });

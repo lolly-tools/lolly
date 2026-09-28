@@ -5,6 +5,7 @@
    preview and the PDF/PNG DOM-walk export only. */
 
 #ds-stage {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 24px;

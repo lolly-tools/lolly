@@ -162,30 +162,23 @@ test('canonical ids pre-fill from the profile and reach the card', { skip: SKIP 
   assert.match(html, /class="st-wordmark">Rue Verte</);
 });
 
-test('a brand logo asset is used in place of the wordmark', { skip: SKIP }, async () => {
-  const queried: unknown[] = [];
+test('a declared brand logo replaces the wordmark and follows the surface', { skip: SKIP }, async () => {
+  const resolved: string[] = [];
   const host = baseHost({
+    tokens: { resolve: async (ref: string) => { resolved.push(ref); return 'brand/logo/' + (ref.includes('reverse') ? 'reverse' : 'wide'); } },
     assets: {
       get: async (id: string) => ({ id, url: 'asset:' + id }),
-      query: async (filter: unknown) => {
-        queried.push(filter);
-        return [{ id: 'brand/logo/wide', url: 'asset:brand/logo/wide' }];
-      },
+      query: async () => { assert.fail('must not search unrelated catalogue marks'); },
     },
   });
   const rt = await createRuntime(tool, host, { piece: 'business-card-front' });
   const html = rt.getHydrated() as string;
-
-  assert.ok(!html.includes('st-wordmark'), 'wordmark rendered even though a logo resolved');
-  assert.match(html, /<img class="st-logo" src="asset:brand\/logo\/wide"/);
-  // Discovered by tag, never by a hardcoded brand asset id.
-  assert.deepEqual(queried[0], { type: 'vector', tags: ['logo', 'on-light', 'horizontal'] });
-
-  // A dark surface asks for the on-dark lockup instead (the card back prints on
-  // the accent field, so it is the accent's luminance that decides).
-  const rt2 = await createRuntime(tool, host, { piece: 'business-card-back', accent: '#14181b' });
-  rt2.getHydrated();
-  assert.deepEqual(queried[queried.length - 1], { type: 'vector', tags: ['logo', 'on-dark', 'horizontal'] });
+  assert.ok(!html.includes('st-wordmark'));
+  assert.ok(html.includes('src="asset:brand/logo/wide"'));
+  assert.equal(resolved[0], '{asset.logo.horizontal-primary}');
+  const dark = await createRuntime(tool, host, { piece: 'business-card-back', accent: '#14181b' });
+  assert.equal(dark.getHydratedString('{{logoUrl}}'), 'asset:brand/logo/reverse');
+  assert.equal(resolved.at(-1), '{asset.logo.horizontal-primary-reverse}');
 });
 
 // WCAG contrast of two opaque #rrggbb colours - the measure the card back's ink
@@ -241,38 +234,19 @@ test('a brand colour that carries alpha keeps its hue', { skip: SKIP }, async ()
   assert.equal(direct.rt.getHydratedString('{{inkColor}}'), '#aabbcc');
 });
 
-test('a lockup for the wrong surface is refused, an untagged one is not', { skip: SKIP }, async () => {
-  // The last discovery pass drops the polarity tag, because a brand may ship a
-  // single untagged lockup (lolly/logo/primary carries no on-light). It must not
-  // thereby hand a REVERSED lockup to a light surface: white artwork on white
-  // paper prints nothing, and the wordmark it displaced was legible.
-  const withLogos = (assets: Array<{ id: string; url: string; meta: { tags: string[] } }>) =>
-    baseHost({
-      assets: {
-        get: async (id: string) => ({ id, url: 'asset:' + id }),
-        query: async (f: { tags?: string[] }) =>
-          assets.filter(a => (f.tags ?? []).every(t => a.meta.tags.includes(t))),
-      },
-    });
-  const reverseOnly = [{ id: 'b/logo/rev', url: 'asset:rev', meta: { tags: ['logo', 'on-dark'] } }];
-  const untagged = [{ id: 'b/logo/primary', url: 'asset:primary', meta: { tags: ['logo', 'mark'] } }];
-
-  const light = await createRuntime(tool, withLogos(reverseOnly), { piece: 'business-card-front' });
-  light.getHydrated();
-  assert.equal(light.getHydratedString('{{logoUrl}}'), '', 'a reversed lockup was placed on white paper');
+test('logo tokens define the surface; a missing slot does not borrow catalogue artwork', { skip: SKIP }, async () => {
+  const host = baseHost({
+    tokens: { resolve: async (ref: string) => ref.endsWith('-reverse}') ? 'brand/logo/reverse' : undefined },
+    assets: {
+      get: async (id: string) => ({ id, url: 'asset:' + id }),
+      query: async () => { assert.fail('must not search unrelated catalogue marks'); },
+    },
+  });
+  const light = await createRuntime(tool, host, { piece: 'business-card-front' });
+  assert.equal(light.getHydratedString('{{logoUrl}}'), '');
   assert.match(light.getHydrated() as string, /class="st-wordmark"/);
-
-  // The same brand on a dark field: the reversed lockup is exactly right there.
-  const dark = await createRuntime(tool, withLogos(reverseOnly), { piece: 'business-card-back', accent: '#14181b' });
-  dark.getHydrated();
-  assert.equal(dark.getHydratedString('{{logoUrl}}'), 'asset:rev');
-
-  // An untagged lockup still reaches both surfaces (the lolly-start case).
-  for (const piece of ['business-card-front', 'business-card-back']) {
-    const rt = await createRuntime(tool, withLogos(untagged), { piece });
-    rt.getHydrated();
-    assert.equal(rt.getHydratedString('{{logoUrl}}'), 'asset:primary', `${piece}: untagged lockup dropped`);
-  }
+  const dark = await createRuntime(tool, host, { piece: 'business-card-back', accent: '#14181b' });
+  assert.equal(dark.getHydratedString('{{logoUrl}}'), 'asset:brand/logo/reverse');
 });
 
 test('a letter pasted with CRLF sets exactly as one with LF', { skip: SKIP }, async () => {

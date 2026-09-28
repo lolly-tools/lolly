@@ -1,3 +1,35 @@
+// === lolly:shared brand-logo - generated from community/_shared/brand-logo.js; edit there and run pnpm run sync:shared ===
+// Resolve only slots declared by the active design system. Catalogue tags describe
+// available artwork; they do not say which identity the person selected.
+async function resolveBrandLogo(dark, mono) {
+  if (!host.tokens || !host.tokens.resolve || !host.assets || !host.assets.get) return null;
+  var suffix = dark ? '-reverse' : '';
+  var treatments = mono ? ['mono', 'primary'] : ['primary', 'mono'];
+  for (var t = 0; t < treatments.length; t++) {
+    for (var o = 0; o < 2; o++) {
+      var variant = (o ? 'vertical-' : 'horizontal-') + treatments[t] + suffix;
+      try {
+        var id = await host.tokens.resolve('{asset.logo.' + variant + '}');
+        if (typeof id !== 'string' || !id.trim() || id.indexOf('{') !== -1) continue;
+        var asset = await host.assets.get(id);
+        if (asset && typeof asset.url === 'string' && asset.url) return asset;
+      } catch { /* Try another declared slot on the same background. */ }
+    }
+  }
+  return null;
+}
+
+var _lastBrandLogoWarning = '';
+function brandLogoWarning(missing) {
+  var message = missing
+    ? 'A logo for this background is unavailable in the active design system. Add a matching mark in Logos, or turn off the logo.'
+    : '';
+  if (message && message !== _lastBrandLogoWarning && host.log) host.log('warn', message);
+  _lastBrandLogoWarning = message;
+  return message;
+}
+// === /lolly:shared brand-logo ===
+
 /* global host */
 /**
  * Certificate hooks.
@@ -126,34 +158,9 @@ function toPx(value, unit) {
   return Math.round(value);
 }
 
-// The brand's logo for this paper colour. One cached lookup per side: onInput
-// runs on every keystroke and the catalog does not change under the tool.
-var _logoCache = {};
-async function brandLogoUrl(darkPaper) {
-  var side = darkPaper ? 'on-dark' : 'on-light';
-  if (Object.prototype.hasOwnProperty.call(_logoCache, side)) return _logoCache[side];
-  var url = '';
-  try {
-    if (host && host.assets && host.assets.query) {
-      var q = async function (tags) {
-        try { return (await host.assets.query({ type: 'vector', tags: tags })) || []; } catch (e) { return []; }
-      };
-      var all = await q(['logo', side, 'horizontal']);
-      if (!all.length) all = await q(['logo', side]);
-      var ref = all[0];
-      if (ref) {
-        if (typeof ref.url === 'string' && ref.url) url = ref.url;
-        else if (host.assets.get) {
-          try {
-            var full = await host.assets.get(ref.id);
-            if (full && typeof full.url === 'string') url = full.url;
-          } catch (e) { /* the brand just renders without one */ }
-        }
-      }
-    }
-  } catch (e) { url = ''; }
-  _logoCache[side] = url;
-  return url;
+async function brandLogoUrl(dark) {
+  var asset = await resolveBrandLogo(dark, false);
+  return asset ? asset.url : '';
 }
 
 // The name is sized to stay on ONE line. A sheet is a fixed box: the copy above
@@ -253,16 +260,9 @@ function blank(note) {
   return out;
 }
 
-var _memoKey = null;
-var _memoResult = null;
-
 async function compute(model) {
   var args = {};
   for (var i = 0; i < model.length; i++) args[model[i].id] = model[i].value;
-
-  var key;
-  try { key = JSON.stringify(args); } catch (e) { key = null; }
-  if (key !== null && key === _memoKey) return _memoResult;
 
   var result;
   try {
@@ -270,11 +270,10 @@ async function compute(model) {
     var wantLogo = args.brandLogo !== false;
     var logoUrl = wantLogo ? await brandLogoUrl(isDark(paper)) : '';
     result = build(args, logoUrl);
+    result._logoWarning = brandLogoWarning(wantLogo && !logoUrl);
   } catch (err) {
     result = blank('This certificate could not be laid out. Check the sheet size and the colours.');
   }
-  _memoKey = key;
-  _memoResult = result;
   return result;
 }
 

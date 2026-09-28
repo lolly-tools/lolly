@@ -408,27 +408,20 @@ test('a brand colour with an alpha still paints the sheet', { skip: SKIP }, asyn
   assert.equal(junk.rt.getHydratedString('{{accentColor}}'), '#8a6a2b');
 });
 
-test('the brand logo is discovered by tag, and the issuer line stands in without one', { skip: SKIP }, async () => {
-  // The shared base host has no assets.query, which is exactly the shell that
-  // ships no brand logo: the sheet falls back to the issuer line.
+test('the brand logo follows its declared slot and the issuer line stands in without one', { skip: SKIP }, async () => {
   const { rt, html } = await mount({ company: 'Riverside Library' });
   assert.equal(rt.getHydratedString('{{hasLogo}}'), 'false');
-  assert.ok(!html.includes('<img'), 'no logo element when the brand has none');
-  assert.ok(html.includes('Riverside Library'), 'the issuer line carries the lockup instead');
-
-  const queried: Array<{ tags: string[] }> = [];
+  assert.ok(!html.includes('<img'));
+  assert.ok(html.includes('Riverside Library'));
+  const resolved: string[] = [];
   const host = baseHost({
+    tokens: { resolve: async (ref: string) => { resolved.push(ref); return 'brand/logo/horizontal'; } },
     assets: {
       get: async (id: string) => ({ id, url: 'asset:' + id }),
-      query: async (q: { tags: string[] }) => {
-        queried.push(q);
-        return [{ id: 'brand/logo/horizontal', url: 'asset:brand/logo/horizontal' }];
-      },
+      query: async () => { assert.fail('must not search unrelated catalogue marks'); },
     },
   });
-  const rt2 = await createRuntime(tool, host, { background: '#ffffff' });
-  assert.equal(rt2.getHydratedString('{{logoUrl}}'), 'asset:brand/logo/horizontal');
-  assert.ok((rt2.getHydrated() as string).includes('<img class="ct-logo"'));
-  assert.deepEqual(queried[0]?.tags, ['logo', 'on-light', 'horizontal'],
-    'a light paper asks for the on-light lockup');
+  const branded = await createRuntime(tool, host, { company: 'Riverside Library' });
+  assert.equal(branded.getHydratedString('{{logoUrl}}'), 'asset:brand/logo/horizontal');
+  assert.equal(resolved[0], '{asset.logo.horizontal-primary}');
 });

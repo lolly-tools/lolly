@@ -1,3 +1,35 @@
+// === lolly:shared brand-logo - generated from community/_shared/brand-logo.js; edit there and run pnpm run sync:shared ===
+// Resolve only slots declared by the active design system. Catalogue tags describe
+// available artwork; they do not say which identity the person selected.
+async function resolveBrandLogo(dark, mono) {
+  if (!host.tokens || !host.tokens.resolve || !host.assets || !host.assets.get) return null;
+  var suffix = dark ? '-reverse' : '';
+  var treatments = mono ? ['mono', 'primary'] : ['primary', 'mono'];
+  for (var t = 0; t < treatments.length; t++) {
+    for (var o = 0; o < 2; o++) {
+      var variant = (o ? 'vertical-' : 'horizontal-') + treatments[t] + suffix;
+      try {
+        var id = await host.tokens.resolve('{asset.logo.' + variant + '}');
+        if (typeof id !== 'string' || !id.trim() || id.indexOf('{') !== -1) continue;
+        var asset = await host.assets.get(id);
+        if (asset && typeof asset.url === 'string' && asset.url) return asset;
+      } catch { /* Try another declared slot on the same background. */ }
+    }
+  }
+  return null;
+}
+
+var _lastBrandLogoWarning = '';
+function brandLogoWarning(missing) {
+  var message = missing
+    ? 'A logo for this background is unavailable in the active design system. Add a matching mark in Logos, or turn off the logo.'
+    : '';
+  if (message && message !== _lastBrandLogoWarning && host.log) host.log('warn', message);
+  _lastBrandLogoWarning = message;
+  return message;
+}
+// === /lolly:shared brand-logo ===
+
 /**
  * Multi-Page PDF - hooks.
  *
@@ -69,24 +101,11 @@ async function getAssetUrl(id) {
   try { var a = await host.assets.get(id); return (a && a.url) || ''; }
   catch (e) { if (host.log) host.log('warn', 'multi-page-pdf: asset unavailable', { id: id }); return ''; }
 }
-// The ACTIVE brand's horizontal logo for a light/dark background - discovered by catalog
-// tag (logo + on-light|on-dark, the same convention community/deck-builder uses), never a
-// hardcoded brand asset, so it follows whatever brand is mounted. Empty string when the brand
-// ships no logo, so the cover/back just render without one.
-async function brandLogoUrl(darkBg) {
-  try {
-    if (!host || !host.assets || !host.assets.query) return '';
-    var on = darkBg ? 'on-dark' : 'on-light';
-    async function q(tags) { try { return (await host.assets.query({ type: 'vector', tags: tags })) || []; } catch (e) { return []; } }
-    var all = await q(['logo', on, 'horizontal']);
-    if (!all.length) all = await q(['logo', on]);
-    var ref = all[0];
-    if (!ref) return '';
-    if (typeof ref.url === 'string' && ref.url) return ref.url;
-    if (host.assets.get) { try { var full = await host.assets.get(ref.id); if (full && full.url) return full.url; } catch (e) { /* none */ } }
-    return '';
-  } catch (e) { return ''; }
+async function brandLogoUrl(dark) {
+  var asset = await resolveBrandLogo(dark, false);
+  return asset ? asset.url : '';
 }
+
 function refUrl(ref) {
   return (ref && typeof ref === 'object' && typeof ref.url === 'string') ? ref.url : '';
 }
@@ -257,11 +276,12 @@ async function compute(model) {
   }
 
   // ── resolve cover / back assets ──────────────────────────────────────────
-  var coverLogoUrl = refUrl(inputs.coverLogo) || await brandLogoUrl(coverDark);
+  var wantLogo = inputs.brandLogo !== false;
+  var coverLogoUrl = refUrl(inputs.coverLogo) || (wantLogo ? await brandLogoUrl(coverDark) : '');
   var coverImageUrl = refUrl(inputs.coverImage);
   // Back logo follows the back page's own light/dark style: the brand's on-dark (knockout)
   // logo on a dark back so it stays legible, its on-light logo otherwise.
-  var backLogoUrl = await brandLogoUrl(backDark);
+  var backLogoUrl = wantLogo ? await brandLogoUrl(backDark) : '';
   var backImageUrl = refUrl(inputs.backImage);
 
   // ── assemble the page list: cover, content pages, back ───────────────────
@@ -321,6 +341,7 @@ async function compute(model) {
   ].join(';');
 
   return {
+    _logoWarning: brandLogoWarning(wantLogo && (!coverLogoUrl || !backLogoUrl)),
     pages: pages,
     docStyle: docStyle,
     pageCount: total,

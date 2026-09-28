@@ -1,3 +1,35 @@
+// === lolly:shared brand-logo - generated from community/_shared/brand-logo.js; edit there and run pnpm run sync:shared ===
+// Resolve only slots declared by the active design system. Catalogue tags describe
+// available artwork; they do not say which identity the person selected.
+async function resolveBrandLogo(dark, mono) {
+  if (!host.tokens || !host.tokens.resolve || !host.assets || !host.assets.get) return null;
+  var suffix = dark ? '-reverse' : '';
+  var treatments = mono ? ['mono', 'primary'] : ['primary', 'mono'];
+  for (var t = 0; t < treatments.length; t++) {
+    for (var o = 0; o < 2; o++) {
+      var variant = (o ? 'vertical-' : 'horizontal-') + treatments[t] + suffix;
+      try {
+        var id = await host.tokens.resolve('{asset.logo.' + variant + '}');
+        if (typeof id !== 'string' || !id.trim() || id.indexOf('{') !== -1) continue;
+        var asset = await host.assets.get(id);
+        if (asset && typeof asset.url === 'string' && asset.url) return asset;
+      } catch { /* Try another declared slot on the same background. */ }
+    }
+  }
+  return null;
+}
+
+var _lastBrandLogoWarning = '';
+function brandLogoWarning(missing) {
+  var message = missing
+    ? 'A logo for this background is unavailable in the active design system. Add a matching mark in Logos, or turn off the logo.'
+    : '';
+  if (message && message !== _lastBrandLogoWarning && host.log) host.log('warn', message);
+  _lastBrandLogoWarning = message;
+  return message;
+}
+// === /lolly:shared brand-logo ===
+
 /* global host */
 /**
  * Link Card hooks.
@@ -112,53 +144,9 @@ function _onColor(hex) {
 // A surface that wants the pale ink wants the reversed lockup too, so the logo
 // polarity can never disagree with the type printed beside it.
 function _isDark(hex) { return _onColor(hex) === PALE_INK; }
-
-/**
- * The active brand's logo for a light or dark surface, as a URL. Discovered by
- * catalog tag, never a hardcoded brand asset. Prefers a horizontal lockup and
- * falls back to any logo with the right polarity. Empty string when the brand
- * ships none, when the host has no asset query, or on any failure - the card
- * then prints the site chip on its own.
- *
- * The last pass drops the polarity tag, because a brand may ship one untagged
- * lockup and nothing else. It still refuses a logo tagged for the OPPOSITE
- * surface: a reversed lockup is white artwork, and white artwork on a white
- * card shows nothing at all.
- *
- * Copied from community/stationery/hooks.js. Feature-detect, query, always
- * resolve to a string.
- */
-async function brandLogoUrl(darkSurface) {
-  try {
-    if (typeof host === 'undefined' || !host || !host.assets || !host.assets.query) return '';
-    var on = darkSurface ? 'on-dark' : 'on-light';
-    var opposite = darkSurface ? 'on-light' : 'on-dark';
-    async function q(tags) {
-      try { return (await host.assets.query({ type: 'vector', tags: tags })) || []; }
-      catch (e) { return []; }
-    }
-    function tagged(ref, tag) {
-      var t = ref && ref.meta && ref.meta.tags;
-      return Array.isArray(t) && t.indexOf(tag) !== -1;
-    }
-    var found = await q(['logo', on, 'horizontal']);
-    if (!found.length) found = await q(['logo', on]);
-    if (!found.length) {
-      found = (await q(['logo'])).filter(function (r) { return !tagged(r, opposite); });
-    }
-    var ref = found[0];
-    if (!ref) return '';
-    if (typeof ref.url === 'string' && ref.url) return ref.url;
-    if (host.assets.get) {
-      try {
-        var full = await host.assets.get(ref.id);
-        if (full && typeof full.url === 'string') return full.url;
-      } catch (e) { /* fall through to the chip on its own */ }
-    }
-    return '';
-  } catch (e) {
-    return '';
-  }
+async function brandLogoUrl(dark) {
+  var asset = await resolveBrandLogo(dark, false);
+  return asset ? asset.url : '';
 }
 
 /**
@@ -276,18 +264,14 @@ async function _build(args) {
     headingLabel: _str(args.heading) || 'an untitled page',
   };
 
-  out.logoUrl = await brandLogoUrl(_isDark(card));
+  var wantLogo = args.brandLogo !== false && out.hasChip;
+  out.logoUrl = wantLogo ? await brandLogoUrl(_isDark(card)) : '';
+  out._logoWarning = brandLogoWarning(wantLogo && !out.logoUrl);
   out.hasLogo = Boolean(out.logoUrl);
   return out;
 }
 
-var _memoKey = null;
-var _memoResult = null;
-
 async function compute(args) {
-  var key;
-  try { key = JSON.stringify(args); } catch (e) { key = null; }
-  if (key !== null && key === _memoKey) return _memoResult;
 
   var result;
   try {
@@ -296,8 +280,6 @@ async function compute(args) {
     result = await _build({}).catch(function () { return {}; });
     result.error = 'Could not lay this card out. Check the inputs and try again.';
   }
-  _memoKey = key;
-  _memoResult = result;
   return result;
 }
 

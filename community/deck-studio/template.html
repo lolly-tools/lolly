@@ -1,2 +1,3 @@
-<div id="ds-stage" class="ds-stage" style="--ds-ar: {{_aspect}};"{{#if sourceAuthor}} data-source-author="{{sourceAuthor}}"{{/if}}>{{{_previewHtml}}}</div>
+<div id="ds-stage" class="ds-stage" style="--ds-ar: {{_aspect}};"{{#if sourceAuthor}} data-source-author="{{sourceAuthor}}"{{/if}}>
+  {{#if _logoWarning}}<p data-export-hide role="status" style="position:absolute;z-index:10;top:8px;left:8px;right:8px;margin:0;padding:10px 14px;border:1px solid #b45309;border-radius:6px;background:#fffbeb;color:#78350f;font:14px/1.4 sans-serif">{{_logoWarning}}</p>{{/if}}{{{_previewHtml}}}</div>
 <script type="application/json" data-pptx-deck>{{{_deckJson}}}</script>

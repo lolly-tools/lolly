@@ -4,6 +4,7 @@
      mpdf-prefixed so the unscoped rules can't leak. drawHtmlVectors skips <style>. */
 
   .mpdf-doc {
+    position: relative;
     --gap: 22px;
     box-sizing: border-box;
     width: 100%;
@@ -223,6 +224,7 @@
 </style>
 
 <div class="mpdf-doc" data-lolly-anno="{{theme}}" style="{{{docStyle}}};--body-weight:{{default bodyWeight 400}};--heading-weight:{{default headingWeight 700}}">
+  {{#if _logoWarning}}<p data-export-hide role="status" style="position:absolute;z-index:10;top:8px;left:8px;right:8px;margin:0;padding:10px 14px;border:1px solid #b45309;border-radius:6px;background:#fffbeb;color:#78350f;font:14px/1.4 sans-serif">{{_logoWarning}}</p>{{/if}}
   {{#each pages}}
   <div class="mpdf-page mpdf-page--{{type}}" data-pdf-page data-lolly-anno="{{pageSize}}">
 

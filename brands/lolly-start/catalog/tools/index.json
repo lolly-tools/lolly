@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-28T08:50:47.173Z",
+  "generatedAt": "2026-09-28T12:56:09.682Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -2007,7 +2007,7 @@
       "id": "deck-studio",
       "name": "Markdown Slides",
       "description": "Turn Markdown or a JSON spec into a native, editable PowerPoint deck - real text, bullets, tables and the design system theme - in seconds. The fast text-first path to a deck; reach for the Design canvas when you want to lay slides out by hand or animate them. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG.",
-      "version": "1.2.2",
+      "version": "1.2.3",
       "status": "community",
       "category": "designer",
       "tags": [
@@ -5092,7 +5092,7 @@
       "id": "multi-page-pdf",
       "name": "Booklet",
       "description": "Build a multi-page PDF - a cover, flowing content blocks, and a back page.",
-      "version": "1.1.2",
+      "version": "1.1.3",
       "status": "official",
       "category": "designer",
       "tags": [
@@ -6090,7 +6090,7 @@
       "id": "certificate",
       "name": "Certificate",
       "description": "Completion and award certificates from the active design system - one name at a time, or a whole roster from a CSV in Bulk from rows.",
-      "version": "1.0.4",
+      "version": "1.0.5",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -6580,7 +6580,7 @@
       "id": "stationery",
       "name": "Stationery",
       "description": "Business cards, letterhead and compliments slips from the design system, each piece sized to its real print trim, ready as a print PDF.",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "status": "community",
       "category": "everyone",
       "tags": [
@@ -7389,7 +7389,7 @@
       "id": "link-card",
       "name": "Link Card",
       "description": "Paste a link, get a social card in your design system - title, description, site chip and a thumbnail, at Open Graph, square or summary size.",
-      "version": "1.0.2",
+      "version": "1.0.3",
       "status": "community",
       "category": "everyone",
       "tags": [

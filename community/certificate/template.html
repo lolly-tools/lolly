@@ -7,6 +7,7 @@
      and the screen size share one layout at whatever pixel size the sheet is
      being painted. Colours arrive as custom properties the hook resolved. --}}
 <div class="ct-root" style="--ct-name-size:{{nameSizeU}};--ct-course-size:{{courseSizeU}};--ct-ink:{{inkColor}};--ct-paper:{{paperColor}};--ct-accent:{{accentColor}};--ct-muted:{{mutedColor}};--ct-rule-soft:{{ruleSoftColor}}">
+  {{#if _logoWarning}}<p data-export-hide role="status" style="position:absolute;z-index:10;top:8px;left:8px;right:8px;margin:0;padding:10px 14px;border:1px solid #b45309;border-radius:6px;background:#fffbeb;color:#78350f;font:14px/1.4 sans-serif">{{_logoWarning}}</p>{{/if}}
 
   <svg class="ct-frame" viewBox="0 0 1000 {{vbH}}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
     <rect x="26" y="26" width="948" height="{{frameH}}" fill="none" stroke="{{accentColor}}" stroke-width="5"/>

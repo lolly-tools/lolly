@@ -1,3 +1,35 @@
+// === lolly:shared brand-logo - generated from community/_shared/brand-logo.js; edit there and run pnpm run sync:shared ===
+// Resolve only slots declared by the active design system. Catalogue tags describe
+// available artwork; they do not say which identity the person selected.
+async function resolveBrandLogo(dark, mono) {
+  if (!host.tokens || !host.tokens.resolve || !host.assets || !host.assets.get) return null;
+  var suffix = dark ? '-reverse' : '';
+  var treatments = mono ? ['mono', 'primary'] : ['primary', 'mono'];
+  for (var t = 0; t < treatments.length; t++) {
+    for (var o = 0; o < 2; o++) {
+      var variant = (o ? 'vertical-' : 'horizontal-') + treatments[t] + suffix;
+      try {
+        var id = await host.tokens.resolve('{asset.logo.' + variant + '}');
+        if (typeof id !== 'string' || !id.trim() || id.indexOf('{') !== -1) continue;
+        var asset = await host.assets.get(id);
+        if (asset && typeof asset.url === 'string' && asset.url) return asset;
+      } catch { /* Try another declared slot on the same background. */ }
+    }
+  }
+  return null;
+}
+
+var _lastBrandLogoWarning = '';
+function brandLogoWarning(missing) {
+  var message = missing
+    ? 'A logo for this background is unavailable in the active design system. Add a matching mark in Logos, or turn off the logo.'
+    : '';
+  if (message && message !== _lastBrandLogoWarning && host.log) host.log('warn', message);
+  _lastBrandLogoWarning = message;
+  return message;
+}
+// === /lolly:shared brand-logo ===
+
 // Deck Studio - turn a simple slide spec (the block builder OR a pasted JSON deck) into
 // ONE px-positioned element list per slide, then render that same list two ways:
 //   • an HTML preview (a [data-pdf-page] section per slide) for the canvas + PDF/PNG export
@@ -105,11 +137,7 @@ function pptxTheme(T) {
 }
 
 // ─── brand logo (host.assets - pick light/dark + colour/mono variant per slide) ─
-// The active brand's logo is tagged in the catalog: logo + on-light|on-dark + optional
-// mono + horizontal|vertical. We query by those TAGS (portable across brands that follow
-// the convention) and identify the colour vs mono variant by id (the mono one carries the
-// `mono` tag, so it's the query result WITH it; the colour one is the other). Blank brands
-// with no logo asset just get nothing (guarded everywhere).
+// Logo identities come from the active design system's declared slots.
 // A logo SVG's true width/height ratio, read from its viewBox - the catalog carries no
 // dimensions, so a fallback ratio would clip a wide lockup. Handles a data: URI (what
 // get() returns headless) and a plain url (fetched in the browser).
@@ -132,38 +160,17 @@ async function svgAspect(url) {
 }
 async function resolveLogos() {
   var out = { onLight: { color: null, mono: null }, onDark: { color: null, mono: null } };
-  try {
-    if (typeof host === 'undefined' || !host || !host.assets || !host.assets.query) return out;
-    async function q(tags) { try { return (await host.assets.query({ type: 'vector', tags: tags })) || []; } catch (e) { return []; } }
-    // query() results may carry no url (some shells return metadata only - the real url
-    // comes from get()). Always resolve the chosen id to a fetchable url + its real aspect.
-    async function resolve(ref) {
-      if (!ref) return null;
-      var url = ref.url, w = ref.width, h = ref.height;
-      if ((!url || !w) && host.assets.get) {
-        try { var full = await host.assets.get(ref.id); if (full) { url = full.url || url; w = full.width || w; h = full.height || h; } } catch (e) { /* keep what we have */ }
-      }
-      if (typeof url !== 'string' || !url) return null;
-      var asp = (await svgAspect(url)) || (w && h ? w / h : 3.4);
-      return { url: url, aspect: asp };
+  for (var side = 0; side < 2; side++) {
+    for (var treatment = 0; treatment < 2; treatment++) {
+      var asset = await resolveBrandLogo(!!side, !!treatment);
+      if (!asset) continue;
+      var aspect = (await svgAspect(asset.url)) || (asset.width && asset.height ? asset.width / asset.height : 3.4);
+      out[side ? 'onDark' : 'onLight'][treatment ? 'mono' : 'color'] = { url: asset.url, aspect: aspect };
     }
-    var sides = [['onLight', 'on-light'], ['onDark', 'on-dark']];
-    for (var i = 0; i < sides.length; i++) {
-      var key = sides[i][0], on = sides[i][1];
-      var all = await q(['logo', on, 'horizontal']);
-      if (!all.length) all = await q(['logo', on]);
-      var monoList = await q(['logo', on, 'mono', 'horizontal']);
-      if (!monoList.length) monoList = await q(['logo', on, 'mono']);
-      var mono = monoList[0] || null;
-      var color = null;
-      for (var k = 0; k < all.length; k++) { if (!mono || all[k].id !== mono.id) { color = all[k]; break; } }
-      if (!color) color = all[0] || null;
-      out[key].color = await resolve(color);
-      out[key].mono = (await resolve(mono)) || out[key].color;
-    }
-  } catch (e) { /* no logos - decks just render without one */ }
+  }
   return out;
 }
+
 function pickLogo(logos, darkBg, mono) {
   if (!logos) return null;
   var g = darkBg ? logos.onDark : logos.onLight;
@@ -479,6 +486,7 @@ function addChrome(els, bg, sc, ctx, W, H, T, opts) {
   }
   if (ctx.brandLogo && sc.logo !== 'off' && ctx.logos) {
     var v = pickLogo(ctx.logos, darkBg, sc.logo === 'mono');
+    if (!v && ctx.logoWarnings) ctx.logoWarnings.push(darkBg ? 'dark' : 'light');
     if (v && v.url) {
       // Box matches the logo's REAL aspect (from its viewBox) and fits `contain`, so a wide
       // lockup is never clipped or stretched.
@@ -917,8 +925,6 @@ function slideHtml(slide, W, H, notes, idx) {
 }
 
 // ─── compute ──────────────────────────────────────────────────────────────────
-var _cachedTheme = null;
-var _cachedLogos = null;
 
 function boolInput(model, id, dflt) { for (var i = 0; i < model.length; i++) if (model[i].id === id) return model[i].value !== false; return dflt; }
 function strInput(model, id) { for (var i = 0; i < model.length; i++) if (model[i].id === id) return str(model[i].value); return ''; }
@@ -936,9 +942,10 @@ function build(model, theme, logos) {
   var pageNumbers = boolInput(model, 'pageNumbers', true);
   var brandLogo = boolInput(model, 'brandLogo', true);
   var footerText = strInput(model, 'footerText');
-  var ctxBase = { sections: sections, logos: logos, pageNumbers: pageNumbers, brandLogo: brandLogo, footerText: footerText };
+  var logoWarnings = [];
+  var ctxBase = { sections: sections, logos: logos, pageNumbers: pageNumbers, brandLogo: brandLogo, footerText: footerText, logoWarnings: logoWarnings };
   var laid = slides.map(function (sc, i) {
-    return layoutSlide(sc, W, H, theme, { index: i, total: slides.length, sections: ctxBase.sections, logos: logos, pageNumbers: pageNumbers, brandLogo: brandLogo, footerText: footerText });
+    return layoutSlide(sc, W, H, theme, { index: i, total: slides.length, sections: ctxBase.sections, logos: logos, pageNumbers: pageNumbers, brandLogo: brandLogo, footerText: footerText, logoWarnings: logoWarnings });
   });
   var deck = {
     size: { w: W, h: H },
@@ -949,16 +956,12 @@ function build(model, theme, logos) {
     slides: laid.map(function (sl, i) { return { bg: sl.bg, layout: galleryIndexFor(slides[i].layout, sl.dark), notes: slides[i].notes || undefined, elements: sl.elements }; }),
   };
   var previewHtml = laid.map(function (sl, i) { return slideHtml(sl, W, H, slides[i].notes, i); }).join('');
-  return { _deckJson: safeJson(deck), _previewHtml: previewHtml, _aspect: W + ' / ' + H, _slideCount: slides.length };
+  return { _logoWarning: brandLogoWarning(logoWarnings.length > 0), _deckJson: safeJson(deck), _previewHtml: previewHtml, _aspect: W + ' / ' + H, _slideCount: slides.length };
 }
 function pickSize(model) { for (var i = 0; i < model.length; i++) if (model[i].id === 'size') return model[i].value; return 'wide'; }
-
 async function onInit(ctx) {
-  _cachedTheme = await readBrandTheme();
-  _cachedLogos = await resolveLogos();
-  return build(ctx.model, _cachedTheme, _cachedLogos);
+  var theme = await readBrandTheme();
+  var logos = await resolveLogos();
+  return build(ctx.model, theme, logos);
 }
-function onInput(ctx) {
-  var theme = _cachedTheme || { primary: '#0c322c', accent: '#30ba78', dark: '#1b1b1b', light: '#ffffff', font: 'SUSE' };
-  return build(ctx.model, theme, _cachedLogos);
-}
+function onInput(ctx) { return onInit(ctx); }
