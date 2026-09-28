@@ -9,10 +9,12 @@
  * switch to it: the caller decides, because a copy made for later and a system
  * made to work in now are different gestures.
  *
- * Removing a system deletes exactly the material in its namespace (tokens,
- * versions, fonts, logos) and nothing else: personal uploads are outside every
- * system, and frozen bytes are shared by content and reclaimed by a later scan.
- * The shipped system cannot be removed.
+ * Removing a system deletes the material in its namespace (tokens, versions,
+ * fonts, logos) and nothing else: personal uploads are outside every system,
+ * and frozen bytes are shared by content and reclaimed by a later scan. A row
+ * of its namespace that another system's head or published version still names
+ * is kept, so no other system loses what it draws. The shipped system cannot
+ * be removed.
  */
 import {
   DEFAULT_DESIGN_SYSTEM_ID, SHIPPED_DESIGN_SYSTEM_ID, designMaterialOf, designSystemHeadId, designSystemNamespace,
@@ -20,6 +22,7 @@ import {
 } from '../../../../../engine/src/design-system.ts';
 import { stripVersionIndex } from '../../../../../engine/src/design-version.ts';
 import { installUserTokens } from '../../bridge/tokens.ts';
+import { ensureOwnLogos, idsNamedByOtherSystems, ownLogosOf } from './logo-ownership.ts';
 import type { DesignSystemRecord, DesignSystemRegistry, DesignSystemSource } from './registry.ts';
 
 export interface ManageHost {
@@ -28,7 +31,7 @@ export interface ManageHost {
     _getBlob(id: string): Promise<Blob | null>;
     _exportUserAssets(): Promise<Array<{ id: string; type: string }>>;
     _deleteUserAsset(id: string): Promise<void>;
-    _uploadUserAsset(record: { id: string; type: 'tokens'; format: string; blob: Blob; version?: string; meta?: Record<string, unknown> }, opts?: { skipQuota?: boolean }): Promise<void>;
+    _uploadUserAsset(record: { id: string; type: 'tokens' | 'vector' | 'raster'; format: string; blob: Blob; version?: string; meta?: Record<string, unknown> }, opts?: { skipQuota?: boolean }): Promise<void>;
     _getUserRecord?(id: string): Promise<{ meta?: Record<string, unknown> } | null>;
   };
   tokens?: { bust?(opts?: { lock?: boolean }): void; isLocked?(): Promise<boolean> };
@@ -86,6 +89,12 @@ export async function createDesignSystem(
   // Target the new record so the outgoing system's lock cannot block creation.
   // The quota and record label apply as for any other install.
   await installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], doc, { system: id, label });
+  // A copy of another system borrows that system's logo rows through the seed's
+  // tokens. It gets rows of its own now, or the next upload to the same slot in
+  // either system would redraw the other, and removing the original would also
+  // remove the copy's logos. A seed from the shipped catalog points at catalog
+  // logos, which are nobody's material, so a shipped seed copies nothing.
+  await ownLogosOf(host, record).catch(() => 0);
   return record;
 }
 
@@ -100,10 +109,11 @@ export async function renameDesignSystem(host: ManageHost, id: string, label: st
 
 /**
  * Remove a design system and the material in its namespace. Returns how many
- * asset rows were deleted. The caller switches afterwards if it was active
+ * asset rows were deleted, and how many of its rows were kept because another
+ * system still depends on them. The caller switches afterwards if it was active
  * (the registry already moved the pointer to `shipped`).
  */
-export async function removeDesignSystem(host: ManageHost, id: string): Promise<{ deleted: number; wasActive: boolean }> {
+export async function removeDesignSystem(host: ManageHost, id: string): Promise<{ deleted: number; kept: number; wasActive: boolean }> {
   if (!isDesignSystemId(id) || id === SHIPPED_DESIGN_SYSTEM_ID) {
     throw new Error('design systems: the shipped system cannot be removed');
   }
@@ -111,14 +121,23 @@ export async function removeDesignSystem(host: ManageHost, id: string): Promise<
   const record = await registry.get(id);
   if (!record) throw new Error(`design systems: no system “${id}”`);
   const wasActive = (await registry.activeId()) === id;
+  // Any other system still drawing a logo from THIS system's rows gets its own
+  // copy first, so removing one system never takes another system's marks.
+  await ensureOwnLogos(host, { skip: id });
+  // A copy that could not be made (a full disk), and a version another system
+  // published before the copies existed, still name this system's rows. Those
+  // rows stay: a removal must never delete bytes another system draws or pins.
+  const needed = await idsNamedByOtherSystems(host, id);
   let deleted = 0;
+  let kept = 0;
   const rows = await host.assets._exportUserAssets().catch(() => [] as Array<{ id: string; type: string }>);
   for (const row of rows) {
     const material = designMaterialOf(row.id);
     if (!material || material.systemId !== id) continue;
+    if (needed.has(row.id)) { kept++; continue; }
     try { await host.assets._deleteUserAsset(row.id); deleted++; } catch { /* one stuck row never blocks the rest */ }
   }
   await registry.remove(id);
   host.tokens?.bust?.({ lock: true });
-  return { deleted, wasActive };
+  return { deleted, kept, wasActive };
 }

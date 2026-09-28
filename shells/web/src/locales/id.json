@@ -6992,5 +6992,7 @@
   "Draft recovery on": "Pemulihan draf aktif",
   "File address": "Alamat file",
   "The file is downloaded, then checked on this device. In the web app, images from other sites come through Lolly's own relay.": "File diunduh, lalu diperiksa di perangkat ini. Di aplikasi web, gambar dari situs lain melewati relai milik Lolly sendiri.",
-  "Enter an address that starts with https://": "Masukkan alamat yang dimulai dengan https://"
+  "Enter an address that starts with https://": "Masukkan alamat yang dimulai dengan https://",
+  "Pre-alpha": "Pra-alfa",
+  "Rebrand is at an early stage. Check every slide before you use the result.": "Rebrand berada pada tahap awal. Periksa setiap slide sebelum menggunakan hasilnya."
 }

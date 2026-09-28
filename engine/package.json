@@ -28,9 +28,9 @@
     "css-tree": "^3.2.1",
     "fflate": "^0.8.3",
     "handlebars": "^4.7.8",
-    "prettier": "^3.9.8",
-    "smol-toml": "^1.8.0",
-    "sql-formatter": "^15.8.2",
+    "prettier": "^3.9.9",
+    "smol-toml": "^1.9.0",
+    "sql-formatter": "^15.9.0",
     "terser": "^5.51.2",
     "yaml": "2.9.1"
   },

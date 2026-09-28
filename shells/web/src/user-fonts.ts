@@ -225,7 +225,10 @@ export function withSpaceToken(doc: unknown, value: string | null): Record<strin
 export async function setBrandRadius(host: UserFontsHost, value: string | null): Promise<void> {
   if (value && !brandRadiusValue(value)) throw new Error(`"${value}" isn't a plain CSS length (e.g. "0.5rem").`);
   const doc = withRadiusToken(await primaryBaseDoc(host), value);
-  await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc, { label: 'My brand' });
+  // No label on any write in this file: a font, radius or spacing edit is not a
+  // rename. A label here renamed whichever design system was active to "My brand"
+  // (the same bug brand-logos.ts fixed for logo uploads).
+  await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc);
   await applyChromeBrandVars(host as Parameters<typeof applyChromeBrandVars>[0]).catch(() => {});
 }
 
@@ -234,7 +237,7 @@ export async function setBrandRadius(host: UserFontsHost, value: string | null):
 export async function setBrandSpace(host: UserFontsHost, value: string | null): Promise<void> {
   if (value && !brandSpaceValue(value)) throw new Error(`"${value}" isn't a plain CSS length (e.g. "0.5rem").`);
   const doc = withSpaceToken(await primaryBaseDoc(host), value);
-  await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc, { label: 'My brand' });
+  await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc);
   await applyChromeBrandVars(host as Parameters<typeof applyChromeBrandVars>[0]).catch(() => {});
 }
 
@@ -306,7 +309,7 @@ export async function primaryFontFamily(host: UserFontsHost): Promise<string> {
  *  land, even if the chrome can't be redrawn (no DOM, a broken token doc, …). */
 export async function setPrimaryFont(host: UserFontsHost, family: string | null): Promise<void> {
   const doc = withBrandFontToken(await primaryBaseDoc(host), family);
-  await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc, { label: 'My brand' });
+  await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc);
   await applyChromeBrandVars(host as Parameters<typeof applyChromeBrandVars>[0]).catch(() => {});
 }
 
@@ -320,7 +323,7 @@ export async function monoFontFamily(host: UserFontsHost): Promise<string> {
  *  and repaint the chrome. Same contract as setPrimaryFont. */
 export async function setMonoFont(host: UserFontsHost, family: string | null): Promise<void> {
   const doc = withFontRoleToken(await primaryBaseDoc(host), 'mono', family);
-  await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc, { label: 'My brand' });
+  await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc);
   await applyChromeBrandVars(host as Parameters<typeof applyChromeBrandVars>[0]).catch(() => {});
 }
 
@@ -334,7 +337,7 @@ export async function displayFontFamily(host: UserFontsHost): Promise<string> {
  *  for h1/h2 - and repaint the chrome. Same contract as setPrimaryFont. */
 export async function setDisplayFont(host: UserFontsHost, family: string | null): Promise<void> {
   const doc = withFontRoleToken(await primaryBaseDoc(host), 'display', family);
-  await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc, { label: 'My brand' });
+  await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc);
   await applyChromeBrandVars(host as Parameters<typeof applyChromeBrandVars>[0]).catch(() => {});
 }
 
@@ -348,7 +351,7 @@ export async function italicFontFamily(host: UserFontsHost): Promise<string> {
  *  repaint the chrome. Same contract as setPrimaryFont. */
 export async function setItalicFont(host: UserFontsHost, family: string | null): Promise<void> {
   const doc = withFontRoleToken(await primaryBaseDoc(host), 'italic', family);
-  await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc, { label: 'My brand' });
+  await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc);
   await applyChromeBrandVars(host as Parameters<typeof applyChromeBrandVars>[0]).catch(() => {});
 }
 
@@ -744,7 +747,7 @@ export async function restoreFontRoles(
   if (other) {
     await installUserTokens(host as Parameters<typeof installUserTokens>[0], next, { system: other.id });
   } else {
-    await installUserTokens(host as Parameters<typeof installUserTokens>[0], next, { label: 'My brand' });
+    await installUserTokens(host as Parameters<typeof installUserTokens>[0], next);
     await applyChromeBrandVars(host as Parameters<typeof applyChromeBrandVars>[0]).catch(() => {});
   }
   return [...serving, ...toSet];
@@ -811,7 +814,7 @@ export async function trashUserFont(host: UserFontsHost, family: UserFontFamily,
     if (roles.includes('brand')) doc = withFontRoleToken(doc, 'brand', nextPrimary);
     for (const role of roles) if (role !== 'brand') doc = withFontRoleToken(doc, role, null);
     if (roles.length) {
-      await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc, { label: 'My brand' });
+      await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc);
       await applyChromeBrandVars(host as Parameters<typeof applyChromeBrandVars>[0]).catch(() => {});
     }
   } catch { /* the roles could not be released; the family is in the Trash either way */ }

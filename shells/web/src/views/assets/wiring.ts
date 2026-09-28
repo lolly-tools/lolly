@@ -16,7 +16,6 @@ import { clearSearchBar } from '../../components/search-bar.ts';
 import { syncSortDir } from '../../components/view-options.ts';
 import { wireDisclosure } from '../../components/body-popover.ts';
 import { playSfx } from '../../lib/sfx.ts';
-import { saveFavouriteAssets } from '../../lib/asset-favourites.ts';
 import type { PickerHost } from '../picker.ts';
 import { exportSwatches, paletteEntriesToSwatches } from '../../lib/swatch-export.ts';
 import type { SwatchExportFormat } from '../../lib/swatch-export.ts';
@@ -249,15 +248,7 @@ export function wire(cat: CatCtx): void {
     const sFav = target.closest<HTMLElement>('.plat-swatch-fav');
     if (sFav) {
       const key = cat.filters.swatchFavKey(sFav.dataset.favSwatch ?? '');
-      const on = !cat.favSet.has(key);
-      if (on) cat.favSet.add(key); else cat.favSet.delete(key);
-      if (cat.profile) void saveFavouriteAssets(host, cat.profile, cat.favSet);
-      sFav.classList.toggle('is-on', on);
-      sFav.setAttribute('aria-pressed', String(on));
-      const label = on ? t('Remove from favourites') : t('Add to favourites');
-      sFav.setAttribute('aria-label', label);
-      sFav.title = label;
-      cat.sections.refreshFavStrip();
+      await cat.userAssets.toggleFavourite(key);
       return;
     }
 

@@ -34,7 +34,7 @@ export async function toggleFavourite(cat: CatCtx, id: string): Promise<void> {
   // membership just changed) instead of rebuilding the whole grid via render().
   cat.sections.reflectFavInGrid(base, on);
   cat.sections.refreshFavStrip();
-  const name = String(cat.assetById.get(id)?.meta?.name ?? id);
+  const name = id.startsWith('swatch:') ? id.slice('swatch:'.length) : String(cat.assetById.get(id)?.meta?.name ?? id);
   announce(on ? tRaw('Added {name} to favourites', { name }) : tRaw('Removed {name} from favourites', { name }));
 }
 export async function setHidden(cat: CatCtx, base: string, hide: boolean, opts: { toast?: boolean } = {}): Promise<void> {

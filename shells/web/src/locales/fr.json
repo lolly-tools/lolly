@@ -6992,5 +6992,7 @@
   "Draft recovery on": "Récupération de brouillon activée",
   "File address": "Adresse du fichier",
   "The file is downloaded, then checked on this device. In the web app, images from other sites come through Lolly's own relay.": "Le fichier est téléchargé, puis vérifié sur cet appareil. Dans l'application web, les images d'autres sites passent par le relais propre à Lolly.",
-  "Enter an address that starts with https://": "Saisis une adresse qui commence par https://"
+  "Enter an address that starts with https://": "Saisis une adresse qui commence par https://",
+  "Pre-alpha": "Pré-alpha",
+  "Rebrand is at an early stage. Check every slide before you use the result.": "Rebrand est à un stade précoce. Vérifie chaque diapositive avant d'utiliser le résultat."
 }

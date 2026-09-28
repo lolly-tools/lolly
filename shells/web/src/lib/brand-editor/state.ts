@@ -10,6 +10,7 @@
 import { RAMP_STEPS_MAX, RAMP_STEPS_MIN, aliasPath, colorToHex, createTokenSet, deriveBrandTokens, deserializeCurve } from '@lolly/engine';
 import { installUserTokens } from '../../bridge/tokens.ts';
 import { isUserDesignSystemActive } from '../design-system/active.ts';
+import { saveWithStoredLogos } from '../brand-logos.ts';
 import { RAMP_IDS, getRampCurve, isRec, leafAt, walkSwatches } from '../brand-doc.ts';
 import type { RampCurves, RampId } from '../brand-doc.ts';
 import { applyChromeBrandVars, tokenValueToHex } from '../../brand-vars.ts';
@@ -67,7 +68,7 @@ export const ctxCheckpoint = (bedit: BrandEditorCtx, label: string): void => {
 export const notify = (bedit: BrandEditorCtx, tab: BrandTabKey): void => {
   const { opts } = bedit; try { opts.onChange?.(tab); } catch { /* host's problem */ } };
 export const persist = (bedit: BrandEditorCtx, immediate = false): void => {
-  const { host, root, tokens } = bedit;
+  const { fontsHost, host, root, tokens } = bedit;
   const revision = ++bedit.saveRevision;
   clearTimeout(bedit.saveTimer);
   const status = bedit.ramps.$<HTMLElement>('[data-be-save-state]');
@@ -78,7 +79,12 @@ export const persist = (bedit: BrandEditorCtx, immediate = false): void => {
     const snapshot = structuredClone(bedit.doc);
     bedit.saveQueue = bedit.saveQueue.then(async () => {
     try {
-      await installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], snapshot);
+      // The Logos room writes its tokens straight into the stored head, not into
+      // this editor's copy of the document, so the stored logo groups win here,
+      // read and written as one step. Without it, a colour edit after an upload
+      // put back the logo tokens the studio opened with, and the new mark
+      // stopped being drawn.
+      await saveWithStoredLogos(fontsHost, snapshot, doc => installUserTokens(host as unknown as Parameters<typeof installUserTokens>[0], doc));
       if (status && revision === bedit.saveRevision) { status.textContent = t('Saved'); }
       void applyChromeBrandVars(host);
       // Reflect the new palette in every picker without a tool remount.

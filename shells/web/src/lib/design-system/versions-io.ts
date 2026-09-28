@@ -43,6 +43,8 @@ import {
   sha256Hex, slugifyVersion, stripVersionIndex, versionAssetId, withVersionIndex,
 } from './versions.ts';
 import type { PinnedAsset, VersionEntry, VersionIndex } from './versions.ts';
+import { designMaterialOf } from '../../../../../engine/src/design-system.ts';
+import { rewriteAssetRefs } from './namespace.ts';
 
 /** What the studio hands this module: a host, and how to write the head. */
 export interface VersionsIoCtx {
@@ -299,9 +301,40 @@ export async function restoreLatestFrom(ctx: VersionsIoCtx, slug: string): Promi
 }
 
 /**
+ * The head's logo ids that are the SAME logo the version named at the same token
+ * path: a different id, but bytes identical to the ones the version pinned. The
+ * logo ownership pass (logo-ownership.ts) moves a borrowed logo to the system's
+ * own row without changing a byte of it, and that move must not read as an edit
+ * of a system nobody touched. Keyed head id to version id.
+ */
+async function sameLogoIds(
+  ctx: VersionsIoCtx, payload: unknown, before: unknown, entry: VersionEntry | undefined,
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  if (!entry?.assets?.length || !isDoc(before)) return out;
+  const pinned = new Map(entry.assets.map(p => [p.id, p.sha256]));
+  const was = new Map(collectAssetTokens(before).map(ref => [ref.path, ref.id]));
+  for (const { path, id } of collectAssetTokens(payload)) {
+    const old = was.get(path);
+    if (!old || old === id || out.has(id)) continue;
+    if (designMaterialOf(id)?.kind !== 'logo' || designMaterialOf(old)?.kind !== 'logo') continue;
+    const sha = pinned.get(old);
+    const blob = sha ? await assetsOf(ctx)._getBlob(id).catch(() => null) : null;
+    if (blob && await sha256Hex(new Uint8Array(await blob.arrayBuffer())) === sha) out.set(id, old);
+  }
+  return out;
+}
+
+/** `payload` with each re-homed logo id put back to the id the version named. */
+const asPublished = (payload: unknown, same: Map<string, string>): unknown =>
+  (same.size ? rewriteAssetRefs(payload, id => same.get(id) ?? id) : payload);
+
+/**
  * Whether the head has moved on from the active version, and by how much - the
  * "Editing ahead of {label}" banner. With nothing active there is nothing to be
- * ahead OF: the head is live everywhere, so `ahead` is false by definition.
+ * ahead OF: the head is live everywhere, so `ahead` is false by definition. A
+ * logo that only moved to the system's own row with the same bytes is not a
+ * change (see sameLogoIds).
  */
 export async function headAhead(
   ctx: VersionsIoCtx,
@@ -311,10 +344,13 @@ export async function headAhead(
   const entry = index.active ? index.versions.find(v => v.slug === index.active) : undefined;
   if (!entry) return { slug: null, label: '', ahead: false, changes: 0 };
   const payload = stripVersionIndex(head);
-  const ahead = (await docChecksum(payload)) !== entry.checksum;
-  if (!ahead) return { slug: entry.slug, label: entry.label, ahead: false, changes: 0 };
+  if ((await docChecksum(payload)) === entry.checksum) return { slug: entry.slug, label: entry.label, ahead: false, changes: 0 };
   const before = await readVersionDoc(ctx, entry.slug);
-  const diff = diffTokenDocs(before, payload);
+  const compared = asPublished(payload, await sameLogoIds(ctx, payload, before, entry));
+  if (compared !== payload && (await docChecksum(compared)) === entry.checksum) {
+    return { slug: entry.slug, label: entry.label, ahead: false, changes: 0 };
+  }
+  const diff = diffTokenDocs(before, compared);
   return {
     slug: entry.slug,
     label: entry.label,
@@ -347,9 +383,11 @@ export async function publishPreview(ctx: VersionsIoCtx, label: string): Promise
     ?? index.versions[index.versions.length - 1];
   const payload = stripVersionIndex(head);
   const before = baseline ? await readVersionDoc(ctx, baseline.slug) : null;
-  const diff = diffTokenDocs(before, payload);
+  // A logo moved to the system's own row with the same bytes is not a change.
+  const same = await sameLogoIds(ctx, payload, before, baseline);
+  const diff = diffTokenDocs(before, asPublished(payload, same));
 
-  const next = await buildAssetManifest(ctx, payload);
+  const next = (await buildAssetManifest(ctx, payload)).map(p => ({ ...p, id: same.get(p.id) ?? p.id }));
   const prev = baseline?.assets ?? [];
   const prevById = new Map(prev.map(p => [p.id, p]));
   const nextById = new Map(next.map(p => [p.id, p]));

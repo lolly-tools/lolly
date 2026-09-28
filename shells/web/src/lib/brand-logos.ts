@@ -10,23 +10,35 @@
  *
  * Id / token scheme (both are permanent contracts - existing installs only
  * know the default form):
- *   default identity   user/logo/<variant>              asset.logo.<variant>
- *   other identities   user/logo/<identity>/<variant>   asset.logo.<identity>.<variant>
+ *   default identity   <ns>logo/<variant>              asset.logo.<variant>
+ *   other identities   <ns>logo/<identity>/<variant>   asset.logo.<identity>.<variant>
  * In the token tree a default-identity variant is a TOKEN (has `$value`); an
  * identity is a GROUP (no `$value`) holding that identity's variant tokens.
+ *
+ * `<ns>` is the namespace of the design system the logo belongs to (plans/186):
+ * `user/` for the default system, so a device that only ever had one system
+ * keeps exactly the ids it always had, and `user/ds/<id>/` for a named one. A
+ * mark is written to, listed from and removed from the ACTIVE system's
+ * namespace, so two systems that fill the same slot hold two rows, and neither
+ * upload can replace the other system's logo.
  *
  * The doc surgery (withLogoToken / logoGroupOf) is pure + testable; the blob I/O
  * rides the same bridge methods fonts use. Logos render as `<img src=blobURL>`,
  * so an uploaded SVG's markup is drawn, not executed.
  */
 
+import { designMaterialOf, designSystemNamespace } from '../../../../engine/src/design-system.ts';
 import { installUserTokens } from '../bridge/tokens.ts';
-import { activeHeadId } from './design-system/active.ts';
+import { activeHeadId, activeMaterialSystem } from './design-system/active.ts';
+import { ensureOwnLogos, withLogoHeadLock, type LogoOwnershipHost } from './design-system/logo-ownership.ts';
+import { LEGACY_NS } from './design-system/namespace.ts';
 import type { UserFontsHost } from '../user-fonts.ts';
 import { t, tRaw } from '../i18n.ts';
 
-/** Every logo asset id starts here (fixed namespace, like USER_FONT_PREFIX). */
-export const USER_LOGO_PREFIX = 'user/logo/';
+/** Every logo asset id of the DEFAULT design system starts here (the legacy
+ *  namespace, like USER_FONT_PREFIX). A named system's are `user/ds/<id>/logo/`,
+ *  and a brand pack always carries this portable form. */
+export const USER_LOGO_PREFIX = `${LEGACY_NS}logo/`;
 
 /** The unnamed first identity - its ids/tokens carry NO identity segment. */
 export const LOGO_DEFAULT_IDENTITY = 'default';
@@ -89,25 +101,34 @@ export function variantLabel(v: string): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
-/** The asset id for a slot - the default identity keeps the original two-segment
- *  form so pre-identity installs stay valid. */
-export function logoAssetId(variant: string, identity: string = LOGO_DEFAULT_IDENTITY): string {
-  return identity === LOGO_DEFAULT_IDENTITY
-    ? USER_LOGO_PREFIX + variant
-    : `${USER_LOGO_PREFIX}${identity}/${variant}`;
+/** The asset id for a slot in the design system whose namespace is `ns` (the
+ *  default system's legacy `user/` when omitted). The default identity keeps the
+ *  original two-segment form so pre-identity installs stay valid. */
+export function logoAssetId(variant: string, identity: string = LOGO_DEFAULT_IDENTITY, ns: string = LEGACY_NS): string {
+  const prefix = `${ns}logo/`;
+  return identity === LOGO_DEFAULT_IDENTITY ? prefix + variant : `${prefix}${identity}/${variant}`;
 }
 
-/** Parse a logo asset id back into identity + variant, or null when it isn't a
- *  well-formed logo id (wrong prefix, extra segments, invalid slugs). */
-export function parseLogoAssetId(id: string): { identity: string; variant: string } | null {
-  if (!id.startsWith(USER_LOGO_PREFIX)) return null;
-  const segs = id.slice(USER_LOGO_PREFIX.length).split('/');
+/**
+ * Parse a logo asset id back into the design system it belongs to, its identity
+ * and its variant, or null when it isn't a well-formed logo id (not a logo,
+ * extra segments, invalid slugs). Both shapes parse: the default system's
+ * `user/logo/…` and a named system's `user/ds/<id>/logo/…`; which system owns
+ * the id is the engine's structural reading (`designMaterialOf`).
+ */
+export function parseLogoAssetId(id: string): { identity: string; variant: string; systemId: string } | null {
+  const material = designMaterialOf(id);
+  if (material?.kind !== 'logo') return null;
+  const ns = designSystemNamespace(material.systemId);
+  const prefix = `${ns}logo/`;
+  if (!ns || !id.startsWith(prefix)) return null;
+  const segs = id.slice(prefix.length).split('/');
   const [identity, variant] = segs.length === 1
     ? [LOGO_DEFAULT_IDENTITY, segs[0]!]
     : segs.length === 2 ? [segs[0]!, segs[1]!] : [null, null];
   if (!identity || !variant || !LOGO_SLUG_RE.test(variant)) return null;
   if (identity !== LOGO_DEFAULT_IDENTITY && !LOGO_SLUG_RE.test(identity)) return null;
-  return { identity, variant };
+  return { identity, variant, systemId: material.systemId };
 }
 
 export interface LogoSlot {
@@ -144,18 +165,24 @@ function assetTargetOf(out: Rec): Rec {
   return (isRec(out.base) ? out.base : (out.base = {} as Rec)) as Rec;
 }
 
+/** The record whose `asset.logo` is the doc's logo group: the root of a plain
+ *  doc, the first set carrying one on a layered doc (`base` first). */
+function logoHolderOf(doc: Rec): Rec | undefined {
+  const layered = Array.isArray(doc.$themes) && doc.$themes.length > 0;
+  return layered
+    ? (['base', ...Object.keys(doc).filter(k => !k.startsWith('$'))]
+      .map(k => doc[k])
+      .find(v => isRec(v) && isRec((v as Rec).asset) && isRec(((v as Rec).asset as Rec).logo)) as Rec | undefined)
+    : doc;
+}
+
 /** The `asset.logo` token group in a doc (layered or plain), or null. Pass an
  *  identity to get that identity's nested group instead (null when absent).
  *  NOTE the default group holds BOTH the default identity's variant tokens
  *  (entries with `$value`) and any identity subgroups (entries without). */
 export function logoGroupOf(doc: unknown, identity: string = LOGO_DEFAULT_IDENTITY): Rec | null {
   if (!isRec(doc)) return null;
-  const layered = Array.isArray(doc.$themes) && doc.$themes.length > 0;
-  const holder = layered
-    ? (['base', ...Object.keys(doc).filter(k => !k.startsWith('$'))]
-      .map(k => doc[k])
-      .find(v => isRec(v) && isRec((v as Rec).asset) && isRec(((v as Rec).asset as Rec).logo)) as Rec | undefined)
-    : doc;
+  const holder = logoHolderOf(doc);
   const asset = holder && isRec(holder.asset) ? holder.asset as Rec : null;
   const logo = asset && isRec(asset.logo) ? asset.logo as Rec : null;
   if (!logo || identity === LOGO_DEFAULT_IDENTITY) return logo;
@@ -192,46 +219,189 @@ export function withLogoToken(
   return out;
 }
 
-// ── Bridge-backed I/O ─────────────────────────────────────────────────────────
-type LogoHost = UserFontsHost;
-
-/** The user's installed tokens doc, or an empty doc when none is installed yet.
- *  Read at the ACTIVE design system's head (plans/186 section 3.3), which is the
- *  same asset installUserTokens writes back to below. */
-async function userDoc(host: LogoHost): Promise<Rec> {
-  try {
-    const blob = await host.assets._getBlob(await activeHeadId(host));
-    if (blob) { const parsed = JSON.parse(await blob.text()); if (isRec(parsed)) return parsed; }
-  } catch { /* no/corrupt doc - start from empty, same as the font path */ }
-  return {};
+/** `set`'s `asset.logo` group replaced by `group` (a copy), or removed with
+ *  null, pruning an `asset` group it empties. Mutates `set`. */
+function setLogoGroup(set: Rec, group: Rec | null): void {
+  const asset = isRec(set.asset) ? set.asset as Rec : null;
+  if (group) {
+    const into = asset ?? {};
+    into.logo = structuredClone(group);
+    set.asset = into;
+  } else if (asset) {
+    delete asset.logo;
+    if (!named(asset)) delete set.asset;
+  }
 }
 
-/** Every stored logo - canonical AND custom, all identities - each with a fresh
- *  object URL for preview. Identity + variant come from the id (existing
- *  installs never wrote them into meta); only malformed slugs are skipped. */
-export async function listLogos(host: LogoHost): Promise<LogoSlot[]> {
-  const records = await host.assets._exportUserAssets().catch(() => []);
-  const out: LogoSlot[] = [];
-  for (const r of records) {
-    if (!r.id.startsWith(USER_LOGO_PREFIX) || !r.blob) continue;
-    const parsed = parseLogoAssetId(r.id);
-    if (!parsed) continue;
-    const { identity, variant } = parsed;
-    const metaLabel = r.meta?.label;
-    out.push({
-      variant, identity,
-      label: typeof metaLabel === 'string' && metaLabel ? metaLabel : variantLabel(variant),
-      custom: !isCanonicalVariant(variant),
-      assetId: r.id, url: URL.createObjectURL(r.blob),
-      format: (r.meta?.format as string) || '', bytes: r.blob.size,
-    });
+/**
+ * `target` with its logo tokens replaced by `source`'s, on a copy: every
+ * `asset.logo` group (every identity included) is taken from `source`, and
+ * `target` keeps everything else. On two layered docs the swap is made set by
+ * set, so per-theme logo groups stay in the sets that hold them. Pure; exported
+ * for tests.
+ *
+ * The Logos room writes its tokens straight into the stored head, while the
+ * brand studio edits a copy of that document it read when it opened. Its next
+ * save grafts the stored logo groups on first (saveWithStoredLogos), so a
+ * colour edit made after an upload cannot put back the logo tokens the studio
+ * opened with.
+ */
+export function withLogoGroupFrom(target: unknown, source: unknown): Rec {
+  const out = structuredClone(isRec(target) ? target : {}) as Rec;
+  const src: Rec = isRec(source) ? source : {};
+  const layered = (d: Rec): boolean => Array.isArray(d.$themes) && d.$themes.length > 0;
+  const groupIn = (set: unknown): Rec | null =>
+    (isRec(set) && isRec(set.asset) && isRec((set.asset as Rec).logo) ? (set.asset as Rec).logo as Rec : null);
+  if (layered(out) && layered(src)) {
+    const sets = new Set([...Object.keys(out), ...Object.keys(src)].filter(k => !k.startsWith('$')));
+    for (const key of sets) {
+      const from = groupIn(src[key]);
+      if (isRec(out[key])) setLogoGroup(out[key] as Rec, from);
+      // A set the studio no longer has only comes back for `base`, which is
+      // where every logo write goes.
+      else if (from && key === 'base') out.base = { asset: { logo: structuredClone(from) } };
+    }
+    return out;
+  }
+  const holder = logoHolderOf(out);
+  if (holder) setLogoGroup(holder, null);
+  const incoming = logoGroupOf(src);
+  if (incoming) setLogoGroup(assetTargetOf(out), incoming);
+  return out;
+}
+
+/** One logo token of a doc: the slot it fills and the asset id it names. */
+export interface LogoTokenRef { identity: string; variant: string; id: string }
+
+/**
+ * Every logo token in a doc's logo group, in document order: the default
+ * identity's variants, then each named identity's. Keys that are not slugs, and
+ * values that are not plain ids (aliases), are skipped. Pure; exported for tests.
+ */
+export function logoTokensOf(doc: unknown): LogoTokenRef[] {
+  const group = logoGroupOf(doc);
+  if (!group) return [];
+  const out: LogoTokenRef[] = [];
+  const idOf = (leaf: unknown): string | null => {
+    const value = isRec(leaf) ? leaf.$value : null;
+    return typeof value === 'string' && value && !value.startsWith('{') ? value : null;
+  };
+  for (const [key, node] of Object.entries(group)) {
+    if (key.startsWith('$') || !isRec(node) || !LOGO_SLUG_RE.test(key)) continue;
+    if ('$value' in node) {
+      const id = idOf(node);
+      if (id) out.push({ identity: LOGO_DEFAULT_IDENTITY, variant: key, id });
+      continue;
+    }
+    for (const [variant, leaf] of Object.entries(node)) {
+      const id = !variant.startsWith('$') && LOGO_SLUG_RE.test(variant) ? idOf(leaf) : null;
+      if (id) out.push({ identity: key, variant, id });
+    }
   }
   return out;
 }
 
-/** Store `file` as the given variant (replacing any existing) + record the
- *  token. `opts.identity` targets a named identity; `opts.label` names a
- *  custom variant in the UI (canonical slots label themselves). */
+// ── Bridge-backed I/O ─────────────────────────────────────────────────────────
+type LogoHost = UserFontsHost;
+
+/**
+ * The active design system's stored head document, or null when it has none yet.
+ * Read at the ACTIVE design system's head (plans/186 section 3.3), which is the
+ * same asset installUserTokens writes back to.
+ */
+export async function readActiveHeadDoc(host: { assets: { _getBlob(id: string): Promise<Blob | null> }; tokens?: unknown }): Promise<Rec | null> {
+  try {
+    const blob = await host.assets._getBlob(await activeHeadId(host));
+    if (blob) { const parsed = JSON.parse(await blob.text()); if (isRec(parsed)) return parsed; }
+  } catch { /* no/corrupt doc - the caller starts from empty */ }
+  return null;
+}
+
+/** The user's installed tokens doc, or an empty doc when none is installed yet. */
+async function userDoc(host: LogoHost): Promise<Rec> {
+  return await readActiveHeadDoc(host) ?? {};
+}
+
+/**
+ * The brand studio's save: `doc` with the STORED head's logo groups grafted on,
+ * handed to `write`, as one step in the same queue the Logos room's writes use
+ * (logo-ownership.ts `withLogoHeadLock`). Reading the head and writing it
+ * separately let an upload written in between be overwritten.
+ */
+export function saveWithStoredLogos(
+  host: { assets: { _getBlob(id: string): Promise<Blob | null> }; tokens?: unknown },
+  doc: unknown, write: (doc: Rec) => Promise<void>,
+): Promise<void> {
+  return withLogoHeadLock(async () => {
+    const head = await readActiveHeadDoc(host);
+    await write(head ? withLogoGroupFrom(doc, head) : structuredClone(isRec(doc) ? doc : {}) as Rec);
+  });
+}
+
+/** The repair pass (design-system/logo-ownership.ts) over this module's host slice. */
+const ownLogos = (host: LogoHost): Promise<number> => ensureOwnLogos(host as LogoOwnershipHost);
+
+/** One Logos-room tile's data from a stored row. */
+function slotOf(
+  r: { id: string; blob?: Blob; meta?: Record<string, unknown> }, identity: string, variant: string, blob: Blob,
+): LogoSlot {
+  const metaLabel = r.meta?.label;
+  return {
+    variant, identity,
+    label: typeof metaLabel === 'string' && metaLabel ? metaLabel : variantLabel(variant),
+    custom: !isCanonicalVariant(variant),
+    assetId: r.id, url: URL.createObjectURL(blob),
+    format: (r.meta?.format as string) || '', bytes: blob.size,
+  };
+}
+
+/**
+ * The ACTIVE design system's logos - canonical AND custom, all identities -
+ * each with a fresh object URL for preview. Marks in the Trash are left out, as
+ * a brand pack leaves them out.
+ *
+ * What the system DRAWS comes first: every logo token in its head points at the row
+ * that fills that slot, and the slot comes from the token, not from the row's id
+ * (a mark copied in by the repair pass, or restored with a published version,
+ * can sit at an id of another shape). Then the system's own rows that no token
+ * names, at the slot their id spells, where that slot is still empty: an upload
+ * whose token was lost still shows, so it can be replaced or removed. Rows the
+ * repair pass kept beside a slot (`meta.kept`) only ever show through a token.
+ * Another system's rows never show on their own account.
+ */
+export async function listLogos(host: LogoHost): Promise<LogoSlot[]> {
+  await ownLogos(host);
+  const system = await activeMaterialSystem(host);
+  const head = await readActiveHeadDoc(host);
+  const records = await host.assets._exportUserAssets().catch(() => []);
+  const byId = new Map(records.map(r => [r.id, r]));
+  const out: LogoSlot[] = [];
+  const filled = new Set<string>();
+  const drawn = new Set<string>();
+  for (const ref of logoTokensOf(head)) {
+    const r = byId.get(ref.id);
+    const key = `${ref.identity}/${ref.variant}`;
+    if (!r?.blob || r.trashedAt || filled.has(key) || designMaterialOf(ref.id)?.kind !== 'logo') continue;
+    filled.add(key);
+    drawn.add(ref.id);
+    out.push(slotOf(r, ref.identity, ref.variant, r.blob));
+  }
+  for (const r of records) {
+    if (!r.blob || r.trashedAt || drawn.has(r.id) || r.meta?.kept) continue;
+    const parsed = parseLogoAssetId(r.id);
+    if (!parsed || parsed.systemId !== system.id) continue;
+    const key = `${parsed.identity}/${parsed.variant}`;
+    if (filled.has(key)) continue;
+    filled.add(key);
+    out.push(slotOf(r, parsed.identity, parsed.variant, r.blob));
+  }
+  return out;
+}
+
+/** Store `file` as the given variant of the ACTIVE design system (replacing
+ *  that system's existing mark, never another system's) + record the token.
+ *  `opts.identity` targets a named identity; `opts.label` names a custom
+ *  variant in the UI (canonical slots label themselves). */
 export async function installLogo(
   host: LogoHost, variant: string, file: File,
   opts: { identity?: string; label?: string } = {},
@@ -257,11 +427,16 @@ export async function installLogo(
   }
   if (!ACCEPT.test(file.type)) throw new Error(t('Use a PNG, JPEG, SVG or WebP image.'));
   if (file.size > MAX_BYTES) throw new Error(t('That logo is {size} MB - the limit is 4 MB.', { size: (file.size / 1024 / 1024).toFixed(1) }));
-  // asset.logo.<key> is ONE namespace shared by default-identity variants and
-  // identity groups - refuse a write whose key currently holds the OTHER shape,
-  // instead of letting withLogoToken silently destroy it.
-  {
-    const cur = logoGroupOf(await userDoc(host))?.[identity !== LOGO_DEFAULT_IDENTITY ? identity : variant];
+  // The head read below, and the token written into it, must be this system's
+  // own: any mark it still borrows from another system's rows is copied first.
+  await ownLogos(host);
+  const { ns } = await activeMaterialSystem(host);
+  await withLogoHeadLock(async () => {
+    const doc = await userDoc(host);
+    // asset.logo.<key> is ONE namespace shared by default-identity variants and
+    // identity groups - refuse a write whose key currently holds the OTHER shape,
+    // instead of letting withLogoToken silently destroy that group or token.
+    const cur = logoGroupOf(doc)?.[identity !== LOGO_DEFAULT_IDENTITY ? identity : variant];
     if (isRec(cur)) {
       if (identity !== LOGO_DEFAULT_IDENTITY && '$value' in cur) {
         throw new Error(tRaw('“{identity}” is already a mark’s name - pick a different name for the identity.', { identity }));
@@ -270,26 +445,45 @@ export async function installLogo(
         throw new Error(tRaw('“{variant}” is already a logo’s name - pick a different name for the mark.', { variant }));
       }
     }
-  }
-  const id = logoAssetId(variant, identity);
-  const format = EXT[file.type] || 'png';
-  // Store under a real catalogue asset type (the schema enum has no 'image'):
-  // an SVG mark is vector, everything else raster - so it shows in the catalog.
-  const type = format === 'svg' ? 'vector' : 'raster';
-  const label = opts.label?.trim();
-  await host.assets._uploadUserAsset({
-    id, type, format, blob: file,
-    meta: { format, variant, identity, ...(label ? { label } : {}), kind: 'logo' },
+    const id = logoAssetId(variant, identity, ns);
+    const format = EXT[file.type] || 'png';
+    // Store under a real catalogue asset type (the schema enum has no 'image'):
+    // an SVG mark is vector, everything else raster - so it shows in the catalog.
+    const type = format === 'svg' ? 'vector' : 'raster';
+    const label = opts.label?.trim();
+    await host.assets._uploadUserAsset({
+      id, type, format, blob: file,
+      meta: { format, variant, identity, ...(label ? { label } : {}), kind: 'logo' },
+    });
+    // No label: placing a mark is not a rename. A label here renamed whichever
+    // system was active to "My brand" on every upload.
+    await installUserTokens(host as Parameters<typeof installUserTokens>[0], withLogoToken(doc, variant, id, identity));
   });
-  const doc = withLogoToken(await userDoc(host), variant, id, identity);
-  await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc, { label: 'My brand' });
 }
 
-/** Remove a slot's asset + clear its token (pruning an emptied identity group). */
+/**
+ * Empty a slot of the ACTIVE design system: clear its token (pruning an emptied
+ * identity group), then delete the rows that filled it - the row the token
+ * named and the slot's own row - when they are this system's own and no other
+ * token of the head still points at them. Another system's row is never deleted
+ * here, even when this system was drawing that mark.
+ */
 export async function removeLogo(
   host: LogoHost, variant: string, identity: string = LOGO_DEFAULT_IDENTITY,
 ): Promise<void> {
-  await host.assets._deleteUserAsset(logoAssetId(variant, identity)).catch(() => {});
-  const doc = withLogoToken(await userDoc(host), variant, null, identity);
-  await installUserTokens(host as Parameters<typeof installUserTokens>[0], doc, { label: 'My brand' });
+  await ownLogos(host);
+  const system = await activeMaterialSystem(host);
+  await withLogoHeadLock(async () => {
+    const doc = await userDoc(host);
+    const drawnId = logoTokensOf(doc).find(ref => ref.identity === identity && ref.variant === variant)?.id;
+    const next = withLogoToken(doc, variant, null, identity);
+    await installUserTokens(host as Parameters<typeof installUserTokens>[0], next);
+    const stillNamed = new Set(logoTokensOf(next).map(ref => ref.id));
+    for (const id of new Set([drawnId, logoAssetId(variant, identity, system.ns)])) {
+      if (!id || stillNamed.has(id)) continue;
+      const owner = designMaterialOf(id);
+      if (owner?.kind !== 'logo' || owner.systemId !== system.id) continue;
+      await host.assets._deleteUserAsset(id).catch(() => {});
+    }
+  });
 }

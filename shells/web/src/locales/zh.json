@@ -6992,5 +6992,7 @@
   "Draft recovery on": "草稿恢复已开启",
   "File address": "文件地址",
   "The file is downloaded, then checked on this device. In the web app, images from other sites come through Lolly's own relay.": "文件会先下载，再在此设备上检查。在网页应用中，来自其他网站的图片会经过 Lolly 自己的中转服务。",
-  "Enter an address that starts with https://": "输入一个以 https:// 开头的地址"
+  "Enter an address that starts with https://": "输入一个以 https:// 开头的地址",
+  "Pre-alpha": "预测试版",
+  "Rebrand is at an early stage. Check every slide before you use the result.": "Rebrand 处于早期阶段。请在使用结果前检查每张幻灯片。"
 }

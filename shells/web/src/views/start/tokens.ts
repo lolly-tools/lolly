@@ -71,7 +71,10 @@ export async function install(start: StartCtx,
     // A doc with no font group inherits the fonts already installed here, so an
     // import never silently undoes a chosen face.
     const withFonts = await carryUserFontTokens(host as unknown as UserFontsHost, doc);
-    await installUserTokens(host, withFonts, { label });
+    // An import replaces the ACTIVE system's material but keeps its name: `label`
+    // (the file's name, or "My brand" when it has none) is used only for a system
+    // this write creates. Passed as a rename, it renamed whichever system was open.
+    await installUserTokens(host, withFonts, { labelIfNew: label });
     void applyChromeBrandVars(host); // bust() cleared caches; nothing repaints chrome by itself
     await start.editor?.reload();
     await start.exporting.refreshHead(); // the head moved - the tokens export follows it

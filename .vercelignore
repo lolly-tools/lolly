@@ -14,6 +14,7 @@ node_modules
 shells/tauri-desktop
 shells/tauri-mobile
 scratch
+.scratch
 plans
 
 # Scoped Chromium for the CLI/MCP Tier-B raster path (`lolly install-browser`),
@@ -146,6 +147,7 @@ shells/web/public/info/llms.txt
 # are only written when it is non-empty), and the Listen control falls back to device
 # TTS uniformly - matching the mobile apps (plans/131 B.3). Source stays git-tracked,
 # so this is reversible and local dev still narrates; only the deploy drops it.
+# Reproduce this payload locally with LOLLY_DOCS_AUDIO=0 pnpm run build:web.
 docs/audio
 shells/web/public/info/audio
 

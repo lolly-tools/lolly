@@ -36,7 +36,7 @@ Lolly is completely free and open source. It is licensed under the **Mozilla Pub
 
 ### New in 1.1.0 (unreleased)
 
-The proposed release is **the fancy one**. See the [draft 1.1.0 release notes](releases/1.1.0-draft.md) for Rebrand, slide masters and PowerPoint layouts in Design, the one panel every tool now uses, Assets, Diagram Builder looks, the export licence and the draft document model, together with the support limits. This remains a draft until the release is published.
+The proposed release is **the fancy one**. See the [draft 1.1.0 release notes](releases/1.1.0-draft.md) for Rebrand, slide masters and PowerPoint layouts in Design, animated Snippet scenes and templates, automatic recovery and History in more tools, the Trash, the shared settings panel, Assets, Diagram Builder looks and recent mobile and export fixes. The draft also covers export licences, the proposed document model and support limits. This remains a draft until the release is published.
 
 ### New in 1.0.9
 

@@ -52,6 +52,18 @@
     flex-direction: column;
     gap: 2px;
   }
+  .rb-top-name-row {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-width: 0;
+  }
+  .rb-top-name-row > .rb-top-name { flex: 0 1 auto; min-width: 0; }
+  .rb-top-stage {
+    flex: none;
+    background: var(--ui-color-status-notice-surface);
+    color: var(--ui-color-text-default);
+  }
   .rb-top-name {
     margin: 0;
     font-size: var(--ui-type-title);
