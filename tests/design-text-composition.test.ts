@@ -133,7 +133,7 @@ test('a slow onInput during setEmojiStyle is logged and does not reject, so a la
 test('a style given at creation lays text out once; applying it again runs nothing and still carries its pack',async()=>{
   const {createNodeEmojiAPI}=await import('../packages/node-shell/src/emoji.ts');
   const emoji=await createNodeEmojiAPI({parseXml}),sets=await emoji.sets();
-  const style={schemaVersion:1 as const,primary:sets.find(set=>set.pin.id==='community/emoji/twemoji/color')!.pin,fallbacks:[],metricsPolicy:'inline-em-v1' as const,treatment:{mode:'original' as const,strengthBps:0}};
+  const style={schemaVersion:1 as const,primary:sets.find(set=>set.pin.id==='community/emoji/twemoji/color')!.pin,fallbacks:[],metricsPolicy:'inline-em-v1' as const,treatment:{mode:'original' as const,strengthBps:0 as const}};
   const initial=upgradeDesignText('',[{id:'box',kind:'text',text:'',w:350,h:150}],'box',{storyId:'story',source:'Office 😀 ❤️\nSecond line',character:{font:'sans',size:24},fonts:[font]});
   // A host that lists each pack as a dependency, so the assets a save carries are visible.
   const withDependencies={...emoji,dependencies:async(pins:readonly {id:string}[])=>pins.map(pin=>({id:`pack:${pin.id}`}) as never)};
@@ -152,7 +152,7 @@ test('a style given at creation lays text out once; applying it again runs nothi
     assert.equal(one.calls(),composed,'the style already in force runs no second composition');
     assert.equal(after.getHydrated(),markup);
     assert.deepEqual(after.emoji.assets,before.emoji.assets,'and the pack a save carries is still resolved');
-    assert.ok(after.emoji.assets.length>0);
+    assert.ok((after.emoji.assets?.length ?? 0)>0);
     await after.setEmojiStyle(null);
     assert.ok(one.calls()>composed,'a different style still recomposes');
   }finally{before.destroy();after?.destroy();}

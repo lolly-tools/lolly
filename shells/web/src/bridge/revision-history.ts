@@ -7,7 +7,11 @@ import type { RevisionArchiveAPI } from './revision-archive-format.ts';
 import type { RevisionFidelityAPI } from './revision-fidelity.ts';
 import { createRevisionRecovery, type RecoveryStore, type RecoveryAPI } from './revision-recovery.ts';
 import { type DocumentHead, type RevisionCursor, documentVersion, holdsUnsavedWork, needsAdopt, savedRevision } from './revision-records.ts';
-export { revisionSnapshot } from './revision-snapshot.ts';
+// No static edge to revision-snapshot.ts from here, not even a re-export: this
+// store is built at boot (bridge/index.ts), and that one edge put the snapshot,
+// the capture walk, engine tool-url and the whole of fflate on first paint (12 KB
+// gz, measured 2026-09-28). The write and read paths below reach the snapshot
+// through their lazy modules.
 import type { SavedStateData, StateRecord } from './state.ts';
 import type { RevisionQuery } from './revision-query.ts';
 import type { RevisionCapture } from './revision-capture.ts';

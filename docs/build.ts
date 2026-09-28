@@ -1118,12 +1118,12 @@ interface SearchRecord { p: string; t: string; h: string; a: string; x: string; 
 
 /** Longest section body kept per record. The lead of a section carries almost all
  *  of its search signal, and an uncapped index is ~4x the size for the tail. */
-const SEARCH_SNIPPET_MAX = 240;
+const SEARCH_SNIPPET_MAX = 200;
 /** The same budget in UTF-8 bytes. A script that spends three bytes on a
  *  character (Bengali, Hindi, Japanese, Chinese) would otherwise carry an index
  *  three times the size of the English one for the same reading, and the
  *  per-locale ceiling tests/docs-search-index.test.ts holds is in bytes. */
-const SEARCH_SNIPPET_MAX_BYTES = 220;
+const SEARCH_SNIPPET_MAX_BYTES = 180;
 const utf8 = new TextEncoder();
 
 /** A section body cut to the character budget, then to the byte budget on a

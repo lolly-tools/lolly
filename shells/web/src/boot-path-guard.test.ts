@@ -37,6 +37,11 @@ const FORBIDDEN: { name: string; test: (spec: string) => boolean }[] = [
   { name: 'the @lolly-tools/core root barrel (import a subpath such as @lolly-tools/core/host-v1)', test: (s) => s === '@lolly-tools/core' },
   { name: 'the C2PA read side', test: (s) => /engine\/src\/c2pa-(verify|extract|containers)\.(ts|js)$/.test(s) },
   { name: 'the render/export codecs', test: (s) => /engine\/src\/(pdf-map|design-map|pptx|emf|eps|dxf|psd-write)\.(ts|js)$/.test(s) },
+  // fflate is one module, so a single boot importer carries every export the whole
+  // app uses (zip, unzip, the streaming inflaters): 21 KB minified. A re-export in
+  // bridge/revision-history.ts kept it on boot until 2026-09-28. Load it where the
+  // archive work happens; strToU8 is TextEncoder.encode.
+  { name: 'the zip/deflate codec', test: (s) => s === 'fflate' || s.startsWith('fflate/') },
 ];
 
 /** Static, value-level import specifiers of one module (type-only and dynamic imports excluded). */

@@ -125,6 +125,17 @@ const FORBIDDEN_BOOT_CHUNK = /(engine-render|engine-c2pa|handlebars|ajv|html2can
 // in CI against 157.0. That is the wave's first-paint weight, not the fold's: the same
 // tree without the fold measured the same. Reclaim it from the text views before the
 // next raise.
+// 2026-09-28: the history wave (plan 277 P4) measured 158.0 against 157.2 on the commit
+// before it (+2.6 KB minified). Most of that was revision-capture.ts, the larger
+// revision-history.ts and the revision limits; the open-document card notes
+// (lib/open-intent.ts, lib/text-layout-progress.ts) add 0.3 KB. The capture and
+// the limits reached boot through one line: bridge/revision-history.ts re-exported
+// revisionSnapshot, which no production module read from there. That edge alone kept
+// revision-snapshot, revision-capture, the engine-toolurl chunk and the whole of
+// fflate (one module, so every export the app uses: 21.5 KB minified) on first
+// paint. With the re-export gone boot measured 146.1,
+// ceiling unchanged, and boot-path-guard.test.ts now refuses a static fflate import
+// reachable from main.ts.
 const MAX_PRELOAD_JS_GZ = 158 * 1024;
 // -----------------------------------------------------------------------------
 

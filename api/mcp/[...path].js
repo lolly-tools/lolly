@@ -3752,7 +3752,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.225.0";
+    ENGINE_VERSION = "1.228.0";
   }
 });
 
@@ -8258,7 +8258,7 @@ function inspectDesignV1(boxes, opts = {}) {
       } : {}
     };
     layers.push(layer);
-    if (kind === "text" && !text2(row.text).trim()) {
+    if (kind === "text" && !text2(row.text).trim() && !text2(row.textStory)) {
       finding2(
         findings,
         "design.text.empty",
@@ -37959,7 +37959,7 @@ function parseTextDocument(input) {
   } catch {
     return error("document-json", "The text document must be finite JSON.");
   }
-  if (typeof json !== "string" || new TextEncoder().encode(json).byteLength > TEXT_DOCUMENT_MAX_BYTES) return error("document-size", "The text document exceeds the supported size.");
+  if (typeof json !== "string" || json.length * 3 > TEXT_DOCUMENT_MAX_BYTES && new TextEncoder().encode(json).byteLength > TEXT_DOCUMENT_MAX_BYTES) return error("document-size", "The text document exceeds the supported size.");
   try {
     value = typeof input === "string" ? JSON.parse(json) : input;
   } catch {
@@ -46779,6 +46779,11 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   }
   let emojiSets2 = host.emoji ? await host.emoji.sets().catch(() => []) : void 0;
   let emojiStyle = defaultEmojiStyle(emojiSets2 ?? []);
+  if (opts.emojiStyle !== void 0) {
+    const issue2 = opts.emojiStyle ? (await Promise.resolve().then(() => (init_emoji_pack(), emoji_pack_exports))).validateEmojiStyle(opts.emojiStyle) : null;
+    if (issue2) host.log("warn", `emojiStyle ${issue2.message}`, { toolId: tool.manifest.id });
+    else emojiStyle = opts.emojiStyle ? structuredClone(opts.emojiStyle) : null;
+  }
   let toolEmoji = null;
   const emojiApi = host.emoji, textApi = host.text;
   let toolEmojiPending;
@@ -46825,20 +46830,46 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   model2 = await resolveTokenRefs(model2, host);
   let extras = {};
   let hookRunSeq = 0;
-  function runHook(name, invoke, onLate) {
+  let outstandingSeq = 0;
+  const settleWaiters = [];
+  const flushSettled = () => {
+    for (const resolve6 of settleWaiters.splice(0)) resolve6();
+  };
+  const noteLanded = (seq) => {
+    if (seq !== outstandingSeq) return;
+    outstandingSeq = 0;
+    setTimeout(() => {
+      if (!outstandingSeq) flushSettled();
+    }, 0);
+  };
+  function runHook(name, invoke, onLate, honourReady = false) {
     const budget3 = HOOK_BUDGET_MS[name];
     const started = Date.now();
     const seq = onLate ? ++hookRunSeq : 0;
     let finished = false;
-    const report2 = onLate ? (patch) => {
-      if (!finished && seq === hookRunSeq) onLate(patch);
+    let markReady;
+    const ready = new Promise((resolve6) => {
+      markReady = () => resolve6("ready");
+    });
+    const report2 = onLate ? (patch, opts2) => {
+      if (finished || seq !== hookRunSeq) return;
+      onLate(patch);
+      if (opts2?.ready && honourReady) markReady?.();
     } : void 0;
-    const out = invoke(report2);
+    if (onLate) outstandingSeq = seq;
+    let out;
+    try {
+      out = invoke(report2);
+    } catch (error2) {
+      if (onLate) noteLanded(seq);
+      throw error2;
+    }
     if (out == null || typeof out.then !== "function") {
       const elapsed2 = Date.now() - started;
       if (elapsed2 > budget3) {
         host.log("warn", `${name} ran ${elapsed2}ms synchronously (budget ${budget3}ms - sync hooks can't be preempted)`, { toolId: tool.manifest.id });
       }
+      if (onLate) noteLanded(seq);
       return Promise.resolve(out);
     }
     const p = Promise.resolve(out).then((patch) => {
@@ -46848,14 +46879,22 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       finished = true;
       throw error2;
     });
+    if (onLate) void p.then(() => noteLanded(seq), () => noteLanded(seq));
     if (!onLate) return withTimeout2(p, budget3, tool.manifest.id);
-    return withTimeout2(p, budget3, tool.manifest.id).catch((err) => {
+    const applyWhenDone = () => {
       p.then((patch) => {
         if (seq !== hookRunSeq || !patch) return;
         host.log("info", `${name} finished ${Date.now() - started}ms in (budget ${budget3}ms) - applying late, still the newest run`, { toolId: tool.manifest.id });
         onLate(patch);
       }, () => {
       });
+    };
+    return Promise.race([withTimeout2(p, budget3, tool.manifest.id), ready]).then((patch) => {
+      if (patch !== "ready") return patch;
+      applyWhenDone();
+      return null;
+    }, (err) => {
+      applyWhenDone();
       throw err;
     });
   }
@@ -46874,7 +46913,8 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     const onInit = hooks.onInit;
     if (onInit) {
       try {
-        const patch = await runHook("onInit", (report2) => onInit({ model: modelForHooks(model2), lang: hookLang, host, report: report2 }), applyLatePatch);
+        const progressive = opts.progressiveInit === true;
+        const patch = await runHook("onInit", (report2) => onInit({ model: modelForHooks(model2), lang: hookLang, host, report: report2, ...progressive ? { progressive } : {} }), applyLatePatch, progressive);
         if (patch) ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
       } catch (e) {
         hookErrors.push({ hook: "onInit", message: e.message });
@@ -47042,6 +47082,8 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   const EMOJI_MAYBE = /[\u00A9-\uFFFF]/;
   let emojiAssets = [];
   let emojiStyleGeneration = 0;
+  let emojiStyleSettled = 0;
+  let emojiAssetsFor = null;
   const emojiSnapshot = () => ({
     assets: structuredClone(emojiAssets),
     present: Boolean(host.emoji),
@@ -47230,17 +47272,38 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         const issue2 = (await Promise.resolve().then(() => (init_emoji_pack(), emoji_pack_exports))).validateEmojiStyle(style);
         if (issue2) throw new Error(issue2.message);
       }
-      const generation = ++emojiStyleGeneration;
       const next = style ? structuredClone(style) : null;
-      const assets = next && host.emoji?.dependencies ? await host.emoji.dependencies([next.primary, ...next.fallbacks]) : [];
+      const key = JSON.stringify(next);
+      const dependencies = async () => next && host.emoji?.dependencies ? host.emoji.dependencies([next.primary, ...next.fallbacks]) : [];
+      if (key === JSON.stringify(emojiStyle) && emojiStyleSettled === emojiStyleGeneration) {
+        if (emojiAssetsFor !== key) {
+          const generation2 = emojiStyleGeneration;
+          const assets2 = await dependencies();
+          if (generation2 === emojiStyleGeneration && emojiAssetsFor !== key) {
+            emojiAssets = assets2;
+            emojiAssetsFor = key;
+            notifyEmoji();
+          }
+        }
+        return;
+      }
+      const generation = ++emojiStyleGeneration;
+      const assets = await dependencies();
       if (generation !== emojiStyleGeneration) return;
       emojiAssets = assets;
+      emojiAssetsFor = key;
       emojiStyle = next;
+      emojiStyleSettled = generation;
       if (toolEmoji?.used && hooks?.onInput) {
         const seq = setInputSeq;
-        const patch = await runHook("onInput", (report2) => hooks.onInput({ id: "__emoji", value: null, model: modelForHooks(model2), host, report: report2 }), (late) => {
-          if (generation === emojiStyleGeneration && seq === setInputSeq) applyLatePatch(late);
-        });
+        let patch;
+        try {
+          patch = await runHook("onInput", (report2) => hooks.onInput({ id: "__emoji", value: null, model: modelForHooks(model2), host, report: report2 }), (late) => {
+            if (generation === emojiStyleGeneration && seq === setInputSeq) applyLatePatch(late);
+          });
+        } catch (e) {
+          host.log("warn", `onInput ${e.message}`, { toolId: tool.manifest.id });
+        }
         if (generation !== emojiStyleGeneration || seq !== setInputSeq) return;
         if (patch) {
           ({ model: model2, extras } = mergePatch(model2, extras, patch, inputIds));
@@ -47435,6 +47498,12 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       listeners.add(fn);
       fn({ model: model2, hydrated: getHydrated() });
       return () => listeners.delete(fn);
+    },
+    whenSettled() {
+      return new Promise((resolve6) => {
+        if (outstandingSeq && !destroyed) settleWaiters.push(resolve6);
+        else setTimeout(resolve6, 0);
+      });
     },
     // Re-notify subscribers with the CURRENT model - no value change. For shell
     // state that lives outside the input model but still affects the render (e.g.
@@ -47878,6 +47947,8 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       stopMeterLoop();
       cancelRecording();
       ++hookRunSeq;
+      outstandingSeq = 0;
+      flushSettled();
       emojiNode = null;
       emojiListeners.clear();
       emojiArtwork.clear();
@@ -58165,7 +58236,7 @@ function createHookWorkerCore(port, opts = {}) {
         ...msg3.ctx,
         host: run.host,
         ...msg3.name === "onInit" || msg3.name === "onInput" ? {
-          report: (patch) => port.post({ t: "report", runId: msg3.runId, callId: msg3.callId, patch })
+          report: (patch, opts2) => port.post({ t: "report", runId: msg3.runId, callId: msg3.callId, patch, ...opts2?.ready ? { ready: true } : {} })
         } : {}
       };
       Promise.resolve().then(() => fn(ctx)).then(
@@ -97910,7 +97981,90 @@ function transformTextPath(d, matrix) {
 }
 function translateTextPath(d, x, y = 0) {
   if (!d || !x && !y) return d;
+  return translateOutlinePath(d, x, y) ?? translateParsedPath(d, x, y);
+}
+function translateParsedPath(d, x, y) {
   return parseSvgPath(d).map((path) => path.segments.map((segment) => segment.op === "C" ? `C${n4(segment.x1 + x)},${n4(segment.y1 + y)} ${n4(segment.x2 + x)},${n4(segment.y2 + y)} ${n4(segment.x + x)},${n4(segment.y + y)}` : `${segment.op}${n4(segment.x + x)},${n4(segment.y + y)}`).join("") + (path.closed ? "Z" : "")).join("");
+}
+function translateOutlinePath(d, x, y) {
+  if (d.length > 4e4) return null;
+  let i = 0, out = "", sub = "", drawn = false, cx2 = 0, cy3 = 0, open2 = false;
+  const flush = () => {
+    if (drawn) out += sub;
+    sub = "";
+    drawn = false;
+  };
+  const digits = () => {
+    const from = i;
+    for (let c = d.charCodeAt(i); c >= 48 && c <= 57; c = d.charCodeAt(++i)) ;
+    return i > from;
+  };
+  const num11 = () => {
+    const from = i;
+    if (d.charCodeAt(i) === 45) i++;
+    if (!digits()) return null;
+    if (d.charCodeAt(i) === 46) {
+      i++;
+      if (!digits()) return null;
+    }
+    return Number(d.slice(from, i));
+  };
+  const pair = (spaced) => {
+    if (spaced) {
+      if (d.charCodeAt(i) !== 32) return null;
+      i++;
+    }
+    const px3 = num11();
+    if (px3 === null || d.charCodeAt(i) !== 44) return null;
+    i++;
+    const py = num11();
+    return py === null ? null : [px3, py];
+  };
+  const at = (px3, py) => `${n4(px3 + x)},${n4(py + y)}`;
+  while (i < d.length) {
+    const op = d[i++];
+    if (op === "M") {
+      const p = pair(false);
+      if (!p) return null;
+      flush();
+      sub = `M${at(p[0], p[1])}`;
+      cx2 = p[0];
+      cy3 = p[1];
+      open2 = true;
+    } else if (!open2) {
+      return null;
+    } else if (op === "L") {
+      const p = pair(false);
+      if (!p) return null;
+      sub += `L${at(p[0], p[1])}`;
+      cx2 = p[0];
+      cy3 = p[1];
+      drawn = true;
+    } else if (op === "C") {
+      const a = pair(false), b = a && pair(true), c = b && pair(true);
+      if (!a || !b || !c) return null;
+      sub += `C${at(a[0], a[1])} ${at(b[0], b[1])} ${at(c[0], c[1])}`;
+      cx2 = c[0];
+      cy3 = c[1];
+      drawn = true;
+    } else if (op === "Q") {
+      const q = pair(false), p = q && pair(true);
+      if (!q || !p) return null;
+      const x1 = cx2 + 2 / 3 * (q[0] - cx2), y1 = cy3 + 2 / 3 * (q[1] - cy3);
+      const x2 = p[0] + 2 / 3 * (q[0] - p[0]), y2 = p[1] + 2 / 3 * (q[1] - p[1]);
+      sub += `C${at(x1, y1)} ${at(x2, y2)} ${at(p[0], p[1])}`;
+      cx2 = p[0];
+      cy3 = p[1];
+      drawn = true;
+    } else if (op === "Z") {
+      sub += "Z";
+      open2 = false;
+    } else {
+      return null;
+    }
+  }
+  flush();
+  return out;
 }
 function textSpaceWidth(line, source) {
   return line.pieces.reduce((sum, piece) => sum + (piece.artwork?.whitespace ? piece.advance : piece.shape?.clusters.reduce((sum2, cluster2) => sum2 + (/^[ \u00a0\u202f]+$/u.test(source.slice(cluster2.start, cluster2.end)) ? cluster2.advance : 0), 0) ?? 0), 0);
@@ -98654,7 +98808,7 @@ function paragraphLineFit(graph, start, end, room) {
   const shrink = align === "justify" ? spaces * (1 - spacing.min / ideal) : 0;
   const stretch = align === "justify" ? spaces * (spacing.max / ideal - 1) : 0;
   const residual = room - natural, allowance = residual < 0 ? shrink : stretch;
-  return { fits: natural - shrink <= room + 1e-3, cost: align === "justify" ? allowance > 1e-4 ? Math.abs(residual / allowance) ** 3 : Math.abs(residual) < 1e-3 ? 0 : 10 : (residual / Math.max(1, room)) ** 2 };
+  return { fits: natural - shrink <= room + 1e-3, cost: align === "justify" ? allowance > 1e-4 ? Math.abs(residual / allowance) ** 3 : Math.abs(residual) < 1e-3 ? 0 : 1e3 : (residual / Math.max(1, room)) ** 2 };
 }
 function chooseParagraphBreaks(graph, greedy) {
   const { candidates: candidates2, settings, width, measure: measure2, words } = graph;
@@ -98663,8 +98817,10 @@ function chooseParagraphBreaks(graph, greedy) {
   if (candidates2.length > 2048 || greedy.length > 128) return { ends: greedy, limited: true };
   const targetLines = mode2 === "balanced" ? greedy.length : null;
   const final = candidates2.length - 1, total = measure2(0, final), target = total / greedy.length;
-  let frontier = /* @__PURE__ */ new Map([["0:0", { end: 0, hyphens: 0, cost: 0 }]]), winner, work = 0;
+  let frontier = /* @__PURE__ */ new Map([[0, { end: 0, hyphens: 0, cost: 0 }]]), winner, work = 0;
   const maximum = targetLines ?? Math.min(final, greedy.length + 8);
+  const spacing = settings.wordSpacing ?? { min: 0.8, ideal: 1, max: 1.5 };
+  const floor = settings.align === "justify" ? Math.min(1, spacing.min / (spacing.ideal || 1)) : 1;
   for (let line = 0; line < maximum && frontier.size; line++) {
     const next = /* @__PURE__ */ new Map(), room = Math.max(1, width(line));
     for (const previous of frontier.values()) {
@@ -98672,8 +98828,11 @@ function chooseParagraphBreaks(graph, greedy) {
         if (++work > TEXT_LINE_GRAPH_BUDGET) return { ends: greedy, limited: true };
         const candidate = candidates2[end], natural = measure2(previous.end, end), hyphens = candidate.hyphen ? previous.hyphens + 1 : 0;
         const fit = paragraphLineFit(graph, previous.end, end, room);
-        if (!fit.fits) continue;
-        if (graph.forbidden?.has(`${previous.end}:${end}`)) continue;
+        if (!fit.fits) {
+          if (floor > 0 && (natural - candidate.hyphenWidth) * floor > room + 1e-3) break;
+          continue;
+        }
+        if (graph.forbidden?.size && graph.forbidden.has(`${previous.end}:${end}`)) continue;
         if (candidate.hyphen && hyphens > (settings.hyphenation?.consecutive ?? 2)) continue;
         if (targetLines && end === final !== (line === targetLines - 1)) continue;
         const last = end === final;
@@ -98690,7 +98849,7 @@ function chooseParagraphBreaks(graph, greedy) {
           if (!winner || cost < winner.cost - 1e-9) winner = node;
           continue;
         }
-        const key = `${end}:${hyphens}`, held = next.get(key);
+        const key = end * 65536 + hyphens, held = next.get(key);
         if (!held || cost < held.cost - 1e-9) next.set(key, node);
       }
     }
@@ -98790,6 +98949,10 @@ function wordCount2(source) {
 async function composeParagraphLines(story, range, prepared3, width) {
   const result = [], diagnostics = [], resources = [];
   const inlineMeaning = new Map(story.inlines.map((inline) => [inline.offset, inline.originalText]));
+  const sharedShape = prepared3.shape.shared;
+  const readShape = sharedShape ?? prepared3.shape;
+  const readHyphen = sharedShape && prepared3.hyphen.shared || prepared3.hyphen;
+  const keep = (line) => sharedShape ? structuredClone(line) : line;
   const settings = prepared3.settings, mode2 = settings.hyphenation?.mode ?? "manual";
   const hyphenator = mode2 === "auto" ? await textHyphenator(settings.language) : null;
   if (mode2 === "auto" && !hyphenator) diagnostics.push({ ...range, code: "hyphenation-language", message: "Automatic hyphenation is unavailable for this language. Choose a supported language or use manual hyphens." });
@@ -98800,7 +98963,7 @@ async function composeParagraphLines(story, range, prepared3, width) {
   const boundaries = textBoundaries(story.source);
   let segmentStart = range.start;
   for (const ending of [...forced.map((item) => ({ end: item.start, next: item.start + item.length })), { end: range.end, next: range.end }]) {
-    const probe = await prepared3.shape({ start: segmentStart, end: ending.end }, false, false);
+    const probe = await readShape({ start: segmentStart, end: ending.end }, false, false);
     const advances = probe.pieces.flatMap((piece) => piece.shape ? piece.shape.clusters.map((cluster2) => ({ start: cluster2.start, end: cluster2.end, advance: cluster2.advance, carets: cluster2.carets, x: cluster2.x, rtl: piece.shape.direction === "rtl" })) : [{ start: piece.start, end: piece.end, advance: piece.advance, carets: [], x: 0, rtl: false }]).sort((a, b) => a.start - b.start);
     const prefix = /* @__PURE__ */ new Map([[segmentStart, 0]]), spacePrefix = /* @__PURE__ */ new Map([[segmentStart, 0]]);
     let sum = 0, spaceSum = 0;
@@ -98835,14 +98998,14 @@ async function composeParagraphLines(story, range, prepared3, width) {
     const candidates2 = [{ at: segmentStart, hyphen: false, hyphenWidth: 0 }];
     for (const [at, hyphen] of [...offsets].sort((a, b) => a[0] - b[0])) {
       if (!boundaries.has(at) || at !== ending.end && story.spans.some((span) => span.noBreak && span.start < at && span.end > at)) continue;
-      candidates2.push({ at, hyphen, hyphenWidth: hyphen ? (await prepared3.hyphen(at)).shape.advance : 0 });
+      candidates2.push({ at, hyphen, hyphenWidth: hyphen ? (await readHyphen(at)).shape.advance : 0 });
     }
-    const measuredEnd = (a, b) => {
-      const start2 = candidates2[a].at, candidate = candidates2[b];
+    const trimmedEnd = candidates2.map((candidate) => {
       let end = candidate.at;
-      while (end > start2 && /^[ \t\u200b]+$/.test(inlineMeaning.get(end - 1) ?? story.source[end - 1])) end--;
+      while (end > segmentStart && /^[ \t\u200b]+$/.test(inlineMeaning.get(end - 1) ?? story.source[end - 1])) end--;
       return end;
-    };
+    });
+    const measuredEnd = (a, b) => Math.max(candidates2[a].at, trimmedEnd[b]);
     const measure2 = (a, b) => (prefix.get(measuredEnd(a, b)) ?? Infinity) - (prefix.get(candidates2[a].at) ?? 0) + candidates2[b].hyphenWidth;
     const spaces = (a, b) => (spacePrefix.get(measuredEnd(a, b)) ?? 0) - (spacePrefix.get(candidates2[a].at) ?? 0);
     const segmentSettings = ending.next > ending.end ? { ...settings, shortLastLine: { enabled: false, words: 2, fraction: 0.2 } } : settings;
@@ -98852,8 +99015,8 @@ async function composeParagraphLines(story, range, prepared3, width) {
     const shape = async (a, b) => {
       const held = settledGreedy.get(`${a}:${b}`);
       if (held) return held;
-      const candidate = candidates2[b], line = await prepared3.shape({ start: candidates2[a].at, end: candidate.at });
-      return candidate.hyphen ? { ...line, advance: line.advance + candidate.hyphenWidth, hyphen: await prepared3.hyphen(candidate.at) } : line;
+      const candidate = candidates2[b], line = await readShape({ start: candidates2[a].at, end: candidate.at });
+      return candidate.hyphen ? { ...line, advance: line.advance + candidate.hyphenWidth, hyphen: await readHyphen(candidate.at) } : line;
     };
     const firstLine2 = result.length, greedy = [];
     let start = 0, consecutive = 0;
@@ -98906,9 +99069,9 @@ async function composeParagraphLines(story, range, prepared3, width) {
     }
     if (limited2) diagnostics.push({ start: segmentStart, end: ending.end, code: "composition-budget", message: "This paragraph exceeded the composition budget. Standard breaks were used." });
     let previous = 0;
-    if (!selected.length) result.push(await prepared3.shape({ start: segmentStart, end: ending.end }));
+    if (!selected.length) result.push(keep(await readShape({ start: segmentStart, end: ending.end })));
     for (const end of selected) {
-      result.push(await shape(previous, end));
+      result.push(keep(await shape(previous, end)));
       previous = end;
     }
     const last = result.at(-1);
@@ -125082,7 +125245,9 @@ function createTextCompositionCache() {
         } else entry2 = { prepared: prepared3, bytes: 0 };
       }
       const { shape, hyphen, ...metadata } = entry2.prepared;
-      return { key, prepared: { ...structuredClone(metadata), shape: async (...args) => structuredClone(await shape(...args)), hyphen: async (at) => structuredClone(await hyphen(at)) } };
+      const copiedShape = Object.assign(async (...args) => structuredClone(await shape(...args)), { shared: shape });
+      const copiedHyphen = Object.assign(async (at) => structuredClone(await hyphen(at)), { shared: hyphen });
+      return { key, prepared: { ...structuredClone(metadata), shape: copiedShape, hyphen: copiedHyphen } };
     },
     previous() {
       return flow;
@@ -130387,7 +130552,17 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist, designVers
             el.removeAttribute(attr4);
           });
         };
+        for (const el of [node, ...node.querySelectorAll("[data-canvas-settings]")]) {
+          if (!el.hasAttribute?.("data-canvas-settings")) continue;
+          el.removeAttribute("tabindex");
+          if (el.getAttribute("role") === "button") el.removeAttribute("role");
+        }
+        node.querySelectorAll("[data-export-hide]:not([data-cam])").forEach((el) => {
+          el.remove();
+        });
         strip("data-canvas-input");
+        strip("data-canvas-settings");
+        strip("data-canvas-name");
         strip("data-lolly-paint");
         if (format !== "penpot") strip("data-lolly-bind");
       }

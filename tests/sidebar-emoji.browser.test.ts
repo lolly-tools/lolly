@@ -120,8 +120,9 @@ test('tool sidebars choose an emoji set once, insert at the caret, and preserve 
       return field.scrollTop > 0 && mirror.style.transform.includes(`${-field.scrollTop}px`);
     });
     // The sidebar orders sections by the plan 273 band ladder, so Callouts (content) comes before Look (style).
-    assert.deepEqual(await page.locator('#tool-inputs .input-section-summary').allTextContents(), ['Text', 'Title bar', 'Callouts', 'Look']);
-    assert.equal(await page.locator('#tool-inputs .input-section-icon svg').count(), 4);
+    // Snippet 1.6 added Interaction and Window pose; Scene steps stays hidden until the scene is set to custom.
+    assert.deepEqual(await page.locator('#tool-inputs .input-section-summary').allTextContents(), ['Text', 'Title bar', 'Callouts', 'Interaction', 'Window pose', 'Look']);
+    assert.equal(await page.locator('#tool-inputs .input-section-icon svg').count(), 6);
 
     // Block fields use qualified row identities and retain the other cards.
     await page.goto(`${origin}/#/tool/diagram-builder`, { waitUntil: 'networkidle' });

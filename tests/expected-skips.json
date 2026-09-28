@@ -1641,6 +1641,20 @@
       "owner": "tests"
     },
     {
+      "file": "tests/docs-vernacular.test.ts",
+      "fullName": "built pages carry no fingerprint unicode in visible text or spoken attributes",
+      "reason": "no built /info on disk (run pnpm run build:info) - enforced where the site is built",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-vernacular.test.ts",
+      "fullName": "the built-page scan reaches the pages behind every door, not only the stubs",
+      "reason": "no built /info on disk (run pnpm run build:info) - enforced where the site is built",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
       "file": "tests/email-signature-inline-logo.test.ts",
       "fullName": "email-signature: LOGO_GREY's credential verifies as SUSE, delivered by Lolly",
       "reason": "SUSE brand pack not mounted (see profiles.json)",
@@ -2958,7 +2972,7 @@
     },
     {
       "file": "tests/revision-history.browser.test.ts",
-      "fullName": "manual backup round-trips revision IDs, previews and drafts; reimport is idempotent and conflicts roll back",
+      "fullName": "manual backup round-trips revision IDs, previews and drafts; reimport is idempotent and a creation on both sides merges",
       "reason": "LOLLY_HISTORY_TEST_URL not set (serve the web shell and point it here)",
       "capability": "environment",
       "owner": "tests"

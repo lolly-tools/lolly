@@ -17,6 +17,14 @@ import { BUILT_DOORS, builtTargets, scan, scanBuilt, staleAllows, targets } from
 import { VERNACULAR_WHY } from '../scripts/lib/vernacular-why.ts';
 
 const BUILT = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'shells/web/public/info');
+// The directory is always there on a clean clone: ask-vectors, capabilities.json,
+// the figures and the hashed docs bundle are committed under shells/web/public/info.
+// The pages are gitignored and only `pnpm run build:info` writes them, so the
+// landing page is what says a built site exists to scan. Keyed on the directory,
+// CI read zero pages, passed the scan vacuously and failed the per-door count.
+const NOT_BUILT = existsSync(resolve(BUILT, 'index.html'))
+  ? false
+  : 'no built /info on disk (run pnpm run build:info) - enforced where the site is built';
 
 test('docs sources carry no banned vernacular or fingerprint unicode', () => {
   const v = scan();
@@ -27,7 +35,7 @@ test('docs sources carry no banned vernacular or fingerprint unicode', () => {
   );
 });
 
-test('built pages carry no fingerprint unicode in visible text or spoken attributes', { skip: !existsSync(BUILT) }, () => {
+test('built pages carry no fingerprint unicode in visible text or spoken attributes', { skip: NOT_BUILT }, () => {
   // Layer 3: sources can be clean while a GENERATOR assembles the character
   // into the page (the credential-label join did). English pages only; styles,
   // scripts, inlined SVGs and code samples are out of scope by construction.
@@ -39,7 +47,7 @@ test('built pages carry no fingerprint unicode in visible text or spoken attribu
   );
 });
 
-test('the built-page scan reaches the pages behind every door, not only the stubs', { skip: !existsSync(BUILT) }, () => {
+test('the built-page scan reaches the pages behind every door, not only the stubs', { skip: NOT_BUILT }, () => {
   // The real English pages moved to /info/<door>/<slug>.html; the top level is the
   // landing plus redirect stubs. A scan of the top level alone read one real page
   // and still reported the site clean. Every door directory must contribute pages.

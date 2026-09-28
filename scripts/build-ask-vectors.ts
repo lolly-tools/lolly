@@ -29,7 +29,7 @@
  * function the runtime and the drift test use, so nothing here can quietly
  * disagree with what the app extracts. A record that cannot be aligned (its page
  * has no twin, e.g. the generated formats/* pages and the landing page) falls
- * back to the record's own 240-char `x` snippet, so index positions stay dense
+ * back to the record's own 200-char `x` snippet, so index positions stay dense
  * and a vector row always means record i.
  *
  * The string handed to the model is the page title, the heading and that section
@@ -264,7 +264,7 @@ async function main(): Promise<void> {
   const alignedCount = alignedFlags.filter(Boolean).length;
   process.stdout.write(
     `Corpus: ${index.length} records over ${new Set(index.map((r) => r.p)).size} pages ` +
-    `(${alignedCount} aligned to a full section, ${index.length - alignedCount} on the 240-char snippet).\n`,
+    `(${alignedCount} aligned to a full section, ${index.length - alignedCount} on the 200-char snippet).\n`,
   );
 
   const corpusHash = corpusHashOf(sectionTexts);
