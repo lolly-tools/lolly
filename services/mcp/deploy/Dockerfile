@@ -15,7 +15,7 @@
 
 # glibc base (Debian) is REQUIRED - @resvg/resvg-js prebuilt binaries and Chromium
 # do not run on alpine/musl. Node 24 runs the repo's .ts sources natively.
-FROM node:26-bookworm-slim@sha256:cd9f682fa2885cd1056e830424764158570061c59736a1da836bc3d73df095ae
+FROM node:26-bookworm-slim@sha256:662933cf47f013bc8e4beb31a6116448427a82057ba7c42c97e4c5ba766504c2
 
 ENV NODE_ENV=production \
     # Chromium lands here at build time; render.ts + install-browser.ts both point
