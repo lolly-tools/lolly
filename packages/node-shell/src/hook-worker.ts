@@ -128,7 +128,11 @@ export function createNodeHookExecutor(opts: NodeHookExecutorOpts = {}): HookExe
     const tokenDoc = await snapshotTokens(host);
 
     const initDone = new Promise<HookInitDoneMsg>((resolve, reject) => {
-      const timer = setTimeout(() => reject(new NodeHookIsolationError('hook thread init timed out')), INIT_TIMEOUT_MS);
+      const timer = setTimeout(() => {
+        const error = new NodeHookIsolationError('hook thread init timed out');
+        teardown(mount, error);
+        reject(error);
+      }, INIT_TIMEOUT_MS);
       worker.on('message', (m: HookWorkerOut) => {
         if (m.runId !== runId) return;
         if (m.t === 'init-done') { clearTimeout(timer); resolve(m); return; }
