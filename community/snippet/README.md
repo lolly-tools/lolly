@@ -68,7 +68,9 @@ be embedded as a raster inside vector formats.
 
 `hooks.js` compiles serializable document states and timed events. The template
 evaluates those events directly at a requested time and measures text ranges
-for carets, selections and pointer targets. Content transforms carry scrolling
+for carets, selections and pointer targets. Fit mode sizes the text from the
+measured glyph box rather than `scrollWidth`, so every line and the caret stay
+inside the code padding with any platform font. Content transforms carry scrolling
 into serialized export frames, keeping the text and line numbers aligned.
 Export hooks read the mounted
 controller, so interactive hooks can continue running in a Worker.

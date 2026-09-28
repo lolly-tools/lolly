@@ -42,7 +42,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readPnpmLock } from './lib/pnpm-lock.ts';
+import { byCodepoint, readPnpmLock } from './lib/pnpm-lock.ts';
 
 // A single rendered attribution record, shared by the npm-loaded components, the
 // hand-maintained MANIFEST entries, and the HarfBuzz WASM entry.
@@ -792,8 +792,10 @@ function readLicenseText(dir: string): string {
     const p = join(dir, name);
     if (existsSync(p)) return readFileSync(p, 'utf8').replace(/\r\n/g, '\n').trim();
   }
-  // Last resort: any file whose name starts with LICEN.
-  const hit = readdirSync(dir).find((f) => /^licen[cs]e/i.test(f));
+  // Last resort: any file whose name starts with LICEN. Sorted, because
+  // readdirSync returns whatever order the filesystem keeps (APFS and ext4
+  // differ), and the notices must come out the same on macOS and Linux.
+  const hit = readdirSync(dir).sort(byCodepoint).find((f) => /^licen[cs]e/i.test(f));
   if (hit) return readFileSync(join(dir, hit), 'utf8').replace(/\r\n/g, '\n').trim();
   throw new Error(`No LICENSE file found for ${dir}`);
 }

@@ -1354,6 +1354,27 @@
       "owner": "tests"
     },
     {
+      "file": "tests/docs-anchors.test.ts",
+      "fullName": "every same-site section link in the English docs points at a real section",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-anchors.test.ts",
+      "fullName": "no English docs page repeats an id",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
+      "file": "tests/docs-masthead.test.ts",
+      "fullName": "a page with no masthead still opens with the pathways strip, once, in its body",
+      "reason": "no built /info on disk - run `pnpm run build:info`",
+      "capability": "docs-build",
+      "owner": "tests"
+    },
+    {
       "file": "tests/docs-landing-fragment.test.ts",
       "fullName": "every built /info landing wraps its body in the .docs-landing fragment marker",
       "reason": "no built /info on disk (run pnpm run build:info) - enforced where the site is built",

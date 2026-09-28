@@ -612,18 +612,37 @@
     codeEl.style.setProperty('--cc-ca-max', (fs * lineHeight) + 'px');
   }
 
+  // True when a line reaches past the code's content edge, leaving `room` px after
+  // its last glyph (the caret's width in animated scenes). scrollWidth alone is not
+  // a safe test: for an unwrapped line Chromium leaves the right padding out of it,
+  // so a fitted long line could end anywhere in that padding, up to the window edge,
+  // depending on how the platform font's advances landed (a Linux fallback face put
+  // the caret outside the window). The glyph box is measured from the live layout,
+  // so the padding holds on every font. Wrapped lines break at the content edge.
+  function overflowsX(slack, room) {
+    if (codeEl.scrollWidth > codeEl.clientWidth + slack) return true;
+    if (scene.wrap) return false;
+    var css = getComputedStyle(codeEl), range = document.createRange();
+    range.selectNodeContents(codeEl.querySelector('.cc-source') || codeEl);
+    var glyphs = range.getBoundingClientRect();
+    if (!glyphs.width) return false;
+    var box = codeEl.getBoundingClientRect(), zoom = root.getBoundingClientRect().width / (root.clientWidth || 1) || 1;
+    var edge = box.left + (codeEl.clientLeft + codeEl.clientWidth - parseFloat(css.paddingRight)) * zoom;
+    return glyphs.right + room * zoom > edge;
+  }
+
   function fit() {
     var availH = root.clientHeight - 112; // 56px root-padding each side
     if (availH <= 0) { applyFs(13 * IS); return; }
     var lo = 0, hi = 26 * IS;
     applyFs(hi);
-    if (window_.scrollHeight <= availH && codeEl.scrollWidth <= codeEl.clientWidth) {
+    if (window_.scrollHeight <= availH && !overflowsX(0, 0)) {
       applyFs(hi); return;
     }
     while (hi - lo > 0.01) {
       var mid = (lo + hi) / 2;
       applyFs(mid);
-      if (window_.scrollHeight > availH || codeEl.scrollWidth > codeEl.clientWidth) hi = mid;
+      if (window_.scrollHeight > availH || overflowsX(0, 0)) hi = mid;
       else lo = mid;
     }
     applyFs(lo);
@@ -901,14 +920,14 @@
       window_.style.transform = 'none'; body.style.height = ''; codeEl.style.height = ''; gutter.style.height = '';
       source.style.transform = numberLines.style.transform = 'none';
       if (scene.animated) {
-        let maxHeight = 0;
+        let maxHeight = 0, caretWidth = parseFloat(getComputedStyle(caret).width) || 2;
         function measure(fs) {
           applyFs(fs); let fits = true; maxHeight = 0;
           documents.forEach(function (record, index) {
             restoreDocument(record); loadDocument(index);
             if (lineNums) numberLines.textContent = Array.from({ length: scene.docs[index].text.split('\n').length }, function (_, n) { return n + 1; }).join('\n');
             maxHeight = Math.max(maxHeight, codeEl.scrollHeight);
-            if (codeEl.scrollWidth > codeEl.clientWidth + 1 || window_.scrollHeight > root.clientHeight - 112) fits = false;
+            if (overflowsX(1, caretWidth) || window_.scrollHeight > root.clientHeight - 112) fits = false;
           });
           return fits;
         }

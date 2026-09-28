@@ -18,6 +18,12 @@
  *   - Reads pnpm-lock.yaml and the committed exact-version license cache in
  *     security/npm-licenses.json. Generation is offline and deterministic;
  *     `pnpm run update:npm-licenses` refreshes registry metadata separately.
+ *     The output must be the same bytes on every machine, because CI
+ *     regenerates it on Linux and fails on any diff. So nothing here may depend
+ *     on which optional platform packages this machine installed: a version the
+ *     cache lacks takes its licence from node_modules only when every platform
+ *     installs it (scripts/lib/pnpm-lock.ts has the rule), and components sort
+ *     in codepoint order rather than the process locale's.
  *   - Source of truth is the root `pnpm-lock.yaml` (lockfileVersion 9). Its
  *     per-package `integrity` (SRI) and cached registry licenses become CycloneDX
  *     hashes and licenses verbatim - we don't re-derive them, so the SBOM can't disagree
@@ -47,7 +53,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { readPnpmLock } from './lib/pnpm-lock.ts';
+import { byCodepoint, readPnpmLock } from './lib/pnpm-lock.ts';
 
 // ─── CycloneDX component shapes (partial - only the fields this tool emits) ───
 interface Hash {
@@ -150,13 +156,11 @@ for (const [path, entry] of Object.entries(lock.packages ?? {}) as [string, any]
     // on this field.
     scope: entry.dev ? 'excluded' : 'required',
   };
-  // npm only copies a `license` into the lockfile when the package declares the
-  // modern string form; packages still using the legacy `licenses: [{type}]`
-  // array land here with nothing. Fall back to the installed package.json, which
-  // licensesFromPackage() understands in every shape.
-  const licenses =
-    licensesFromString(entry.license) ??
-    licensesFromPackage(readJsonOptional(join(path, 'package.json')));
+  // The licence comes from the lock reader alone. It used to fall back to
+  // node_modules/<name>/package.json here, which is present only where that
+  // package installs (a platform binary) and is not checked against the locked
+  // version, so the SBOM changed with the machine that generated the file.
+  const licenses = licensesFromString(entry.license);
   if (licenses) component.licenses = licenses;
   const hashes = hashesFromIntegrity(entry.integrity);
   if (hashes) component.hashes = hashes;
@@ -280,6 +284,7 @@ for (const lib of VENDORED_LIBS) {
 }
 
 // ─── Tauri shells: separate pnpm installs with their own lockfiles ────────────
+const shellUncached: string[] = [];
 addNpmShellDeps('shells/tauri-desktop');
 addNpmShellDeps('shells/tauri-mobile');
 
@@ -300,7 +305,7 @@ addCargoCrates('shells/tauri-desktop/src-tauri/Cargo.lock');
 addCargoCrates('shells/tauri-mobile/src-tauri/Cargo.lock');
 addCargoCrates('packages/node-shell/wasm/skera/Cargo.lock');
 
-const components = [...byPurl.values()].sort((a, b) => a.purl.localeCompare(b.purl));
+const components = [...byPurl.values()].sort((a, b) => byCodepoint(a.purl, b.purl));
 
 // ─── Describe the thing the SBOM is *for* (the workspace itself) ─────────────
 const subjectVersion = rootPkg.version ?? '0.0.0';
@@ -382,6 +387,17 @@ if (unlicensed.length) {
   console.warn(`⚠ ${unlicensed.length} component(s) without license metadata:`);
   for (const c of unlicensed) console.warn(`    ${c.purl || c['bom-ref'] || c.name}`);
 }
+// A locked version missing from the committed cache is described from this
+// machine's install, or not at all for a platform package. Name them, so the
+// fix (a registry lookup that records every platform's licence) is one command.
+const uncached = [...new Set([...lock.uncached, ...shellUncached])].sort(byCodepoint);
+if (uncached.length) {
+  console.warn(
+    `⚠ ${uncached.length} locked version(s) missing from security/npm-licenses.json. ` +
+      'Run `pnpm run update:npm-licenses`, then build:sbom again:'
+  );
+  for (const key of uncached) console.warn(`    ${key}`);
+}
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 function readJson(rel: string): any {
@@ -456,7 +472,13 @@ function licensesFromLegacy(list: any[]): LicenseChoice[] | undefined {
 function addNpmShellDeps(shellDir: string): void {
   const pkg = readJsonOptional(join(shellDir, 'package.json'));
   if (!pkg) return;
-  const shellLock = existsSync(join(ROOT, shellDir, 'pnpm-lock.yaml')) ? readPnpmLock(ROOT, join(shellDir, 'pnpm-lock.yaml')) : null;
+  // Licences from the committed cache only: CI's audit job never installs the
+  // Tauri shells, so reading their node_modules would make the SBOM follow
+  // whether this checkout ran `pnpm -C shells/tauri-desktop install`.
+  const shellLock = existsSync(join(ROOT, shellDir, 'pnpm-lock.yaml'))
+    ? readPnpmLock(ROOT, join(shellDir, 'pnpm-lock.yaml'), { readInstalled: false })
+    : null;
+  if (shellLock) shellUncached.push(...shellLock.uncached);
   const dev = new Set(Object.keys(pkg.devDependencies ?? {}));
   const declared = { ...(pkg.dependencies ?? {}), ...(pkg.devDependencies ?? {}) };
   for (const [name, range] of Object.entries(declared) as [string, any][]) {

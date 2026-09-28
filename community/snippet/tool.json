@@ -2,7 +2,7 @@
   "id": "snippet",
   "name": "Snippet",
   "description": "Present text in a desktop window, as a still image or a directed interaction with typing, selections, autocomplete and motion.",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "engineVersion": "^1.191.0",
   "status": "official",
   "category": "everyone",
