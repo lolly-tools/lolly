@@ -1,6 +1,5 @@
 {
   "what": {
-    "eyebrow": "What is it?",
     "heading": "A template-driven creative engine.",
     "body": "A tool remembers layout, type and colours. Add your words, media, or data. You get a finished file in the format you need.",
     "more": { "label": "How a tool works", "slug": "overview" }
@@ -12,7 +11,6 @@
     { "count": "languages", "label": "languages", "slug": "inclusive-design" }
   ],
   "why": {
-    "eyebrow": "Why would I want it?",
     "heading": "Safely make and manage media files.",
     "statement": "**Lolly works offline.** Nothing you make ever leaves your device without your say. **Freedom is sweet.**",
     "receipts": [

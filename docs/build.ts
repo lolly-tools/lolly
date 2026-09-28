@@ -2071,9 +2071,9 @@ interface HeroChrome {
 interface LandingCover { img: string; video?: string; hue?: number; name: string; promise: string; href: string; alt: string }
 interface CoversJson { label: string; open: string; prev: string; next: string; pick: string; covers: LandingCover[] }
 interface WhatWhyJson {
-  what: { eyebrow: string; heading: string; body: string; more: { label: string; slug: string } };
+  what: { heading: string; body: string; more: { label: string; slug: string } };
   stats: Array<{ count: string; label: string; slug: string }>;
-  why: { eyebrow: string; heading: string; statement: string; receipts: Array<{ label: string; slug: string }>; more: { label: string; slug: string } };
+  why: { heading: string; statement: string; receipts: Array<{ label: string; slug: string }>; more: { label: string; slug: string } };
 }
 interface Lane { tab: string; pitch: string; mascot?: string; links?: Array<{ label: string; slug?: string; href?: string; note?: string }>; cta?: { label: string; href: string }; doc: { label: string; slug: string } }
 interface Door { id: string; name: string; sub: string; mascot: string; lanes: Lane[] }
@@ -2333,7 +2333,6 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
   const whatWhyHtml = `<section class="whatwhy-section" id="why">
   <div class="whatwhy-inner">
     <div class="whatwhy-col reveal">
-      <span class="whatwhy-eyebrow">${esc(ww.what.eyebrow)}</span>
       <h2 class="whatwhy-big">${esc(ww.what.heading)}</h2>
       <p class="whatwhy-body">${esc(ww.what.body)}</p>
       <div class="whatwhy-stats">
@@ -2342,7 +2341,6 @@ function buildLandingContent(md: string, lang: Lang = 'en') {
       <a class="whatwhy-more" href="${esc(localeHref(lang, ww.what.more.slug))}">${esc(ww.what.more.label)} <span aria-hidden="true">→</span></a>
     </div>
     <div class="whatwhy-col reveal reveal-2">
-      <span class="whatwhy-eyebrow">${esc(ww.why.eyebrow)}</span>
       <h2 class="whatwhy-big">${esc(ww.why.heading)}</h2>
       <p class="whatwhy-maxim">${inline(ww.why.statement)}</p>
 
@@ -3663,7 +3661,7 @@ button.shot-cred-copy{border:0;background:none;padding:.1em .35em;font:inherit;f
    bytes are exactly what Lolly exported - never re-encode it in a build step.
    Full column width: it is the page's one image and the argument's evidence. */
 .docs-content img[src*="the-flood"]{width:100%;max-width:100%;border-radius:1.2em;box-shadow:0 3px 6px #0002, 0 6px 2em #0001}
-.docs-content h2{font-size:1.5rem;font-weight:700;letter-spacing:normal;text-transform:none;border-top:1px solid var(--border);padding-top:2rem;margin-top:2.5rem;margin-bottom:.75rem;color:var(--dark)}
+.docs-content h2{font-size:1.75rem;font-weight:350;letter-spacing:normal;text-transform:none;border-top:1px solid var(--border);padding-top:2rem;margin-top:2.5rem;margin-bottom:1rem;color:var(--dark)}
 .docs-content h2:first-of-type{border-top:none;padding-top:0;margin-top:0}
 .docs-content h3{font-size:1.15rem;margin-top:1.75rem;margin-bottom:.5rem;color:var(--dark)}
 .docs-content h4{font-size:1rem;margin-top:1.25rem;margin-bottom:.35rem;color:var(--muted)}
