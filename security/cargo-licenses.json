@@ -307,7 +307,7 @@
     "macro_rules_attribute@0.2.3": "Apache-2.0 OR MIT OR Zlib",
     "markup5ever@0.38.0": "MIT OR Apache-2.0",
     "matrixmultiply@0.3.11": "MIT OR Apache-2.0",
-    "mdns-sd@0.21.3": "Apache-2.0 OR MIT",
+    "mdns-sd@0.21.4": "Apache-2.0 OR MIT",
     "memchr@2.8.1": "Unlicense OR MIT",
     "memchr@2.8.2": "Unlicense OR MIT",
     "memoffset@0.9.1": "MIT",
