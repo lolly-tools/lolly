@@ -170,7 +170,7 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ```
 
-### prettier 3.9.6
+### prettier 3.9.8
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright © James Long and contributors
@@ -607,7 +607,7 @@ ON AN "AS IS" BASIS, AND THE COPYRIGHT HOLDER HAS NO OBLIGATION TO
 PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 ```
 
-### mediabunny 1.56.2
+### mediabunny 1.58.0
 
 - SPDX-License-Identifier: `MPL-2.0 (elected from "MPL-2.0")`
 - Copyright: (c) under Patent Claims infringed by Covered Software in the absence of
@@ -988,7 +988,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 ```
 
-### @mediabunny/flac-encoder 1.56.2
+### @mediabunny/flac-encoder 1.58.0
 
 - SPDX-License-Identifier: `MPL-2.0 (elected from "MPL-2.0")`
 - Copyright: (c) under Patent Claims infringed by Covered Software in the absence of
@@ -1864,7 +1864,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### onnxruntime-web 1.22.0-dev.20250409-89f8206ba4
+### onnxruntime-web 1.30.0
 
 - SPDX-License-Identifier: `MIT`
 - Copyright: Copyright (c) Microsoft Corporation. All rights reserved.
@@ -2066,7 +2066,7 @@ SOFTWARE.
 
 ```
 
-### @huggingface/transformers 3.8.1
+### @huggingface/transformers 4.3.0
 
 - SPDX-License-Identifier: `Apache-2.0`
 - Copyright: copyright notice that is included in or attached to the work; copyright license to reproduce, prepare Derivative Works of,; (c) You must retain, in the Source form of any Derivative Works; Copyright [yyyy] [name of copyright owner]
