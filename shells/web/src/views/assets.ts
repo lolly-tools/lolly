@@ -38,7 +38,8 @@ import { LIB_GROUPS } from '../lib/asset-category.ts';
 import { assetBaseId } from '../lib/asset-favourites.ts';
 import { icon } from '../lib/icons.ts';
 import { wireTileSelect } from '../lib/tile-select.ts';
-import { wireTileContextMenu } from '../lib/context-menu.ts';
+import { wireArrowNav } from '../lib/arrow-nav.ts';
+import { menuItemHtml, wireTileContextMenu } from '../lib/context-menu.ts';
 import { wireEscapeClearsSelection } from '../lib/bulk-bar.ts';
 import type { BulkBarConfig } from '../lib/bulk-bar.ts';
 import { modDecoderAvailable } from '../lib/mod-render.ts';
@@ -215,12 +216,21 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
   }); cat.tileSelect = tileSelect;
   const tileMenu = wireTileContextMenu({
     host: viewEl,
-    tileSelector: '.cat-tile[data-id]',
-    refOf: (tile) => tile.dataset.id ?? null,
-    isBulkTarget: (id) => selected.size > 1 && selected.has(id),
-    singleHtml: (tgt) => cat.tiles.catTileMenuHtml(tgt.ref),
+    tileSelector: '.cat-tile[data-id], .cat-fav-strip .ftile[data-tool]',
+    refOf: (tile) => tile.dataset.id ?? tile.dataset.tool ?? null,
+    tileAt: (x, y) => cat.featuredHandle?.tileAt(x, y) ?? null,
+    isBulkTarget: (id, tile) => !tile.closest('.cat-fav-strip') && selected.size > 1 && selected.has(id),
+    singleHtml: (tgt) => tgt.tile?.closest('.cat-fav-strip')
+      ? menuItemHtml('fav', STAR_ICON, t('Unfavourite')) + menuItemHtml('share-favourite', icon('share'), t('Share'))
+      : cat.tiles.catTileMenuHtml(tgt.ref),
     bulkHtml: () => cat.tiles.catBulkMenuHtml(),
-    onAction: (act, tgt) => { void cat.tiles.onTileMenuAction(act, tgt?.ref ?? null); },
+    onAction: (act, tgt) => {
+      if (act === 'fav' && tgt?.tile?.closest('.cat-fav-strip')) {
+        void cat.userAssets.toggleFavourite(tgt.ref);
+        return;
+      }
+      void cat.tiles.onTileMenuAction(act, tgt?.ref ?? null);
+    },
   }); cat.tileMenu = tileMenu;
 
   // Favourites strip presentation - the same cinematic component as the Tools hero,
@@ -390,8 +400,13 @@ export async function mountCatalog(viewEl: HTMLElement, hostIn: HostV1, params =
     },
   }); cat.releaseSearch = releaseSearch;
   viewEl.addEventListener('dragstart', cat.wiring.onTileDragStart);
+  // Arrow keys walk every asset tile once one has focus (lib/arrow-nav.ts). The
+  // multi-select above only covers your own uploads, so this is what reaches the
+  // catalogue's tiles.
+  const unwireArrows = wireArrowNav(viewEl, { items: '.cat-tile', primary: '.cat-tile-open' });
 
   (viewEl as ViewElement)._cleanup = () => {
+    unwireArrows();
     cat.mounted = false;
     viewEl.removeEventListener('dragstart', cat.wiring.onTileDragStart);
     // Deferred deletions must not outlive the view that owns their Undo.

@@ -38,6 +38,8 @@ import { SOMAFM_HOME, radioAvailable } from './radio.ts';
 import { vizSupported } from './viz-support.ts';
 import { neuroDemoActive, DEMO_VIZ_PRESET_ID, demoVizWave, pumpVizDemoFrames } from './neuro-demo.ts';
 import { prefersReducedMotion } from './a11y-prefs.ts';
+import { activeMaterialSystem } from './design-system/active.ts';
+import { designMaterialOf } from '../../../../engine/src/design-system.ts';
 import { perfUiOn, subscribePerfUi } from '../feature-flags.ts';
 import { icon, hasIcon } from './icons.ts';
 import { mountViz, type VizHandle } from './butterchurn-viz.ts';
@@ -158,7 +160,8 @@ class NeuroDockViz implements DockViz {
 
   // The brand silhouette for the immersive/fullscreen viz (plans/147): the brand's
   // MONO-REVERSE logo (a one-colour, dark-background mark), resolved across BOTH logo
-  // systems - user-uploaded variants (`user/logo/horizontal-mono-reverse`) AND pack/catalog
+  // systems - the active design system's uploaded variants (`user/logo/horizontal-mono-reverse`,
+  // or `user/ds/<id>/logo/…` for a named system) AND pack/catalog
   // logos, whose naming differs per brand (SUSE's is `suse/logo/hor-neg-white`: neg =
   // reverse, white = mono). So match on reverse + mono rather than one rigid id. Null when
   // the brand carries no such mark. Cached - resolved once per dock.
@@ -168,7 +171,15 @@ class NeuroDockViz implements DockViz {
     const cands: Array<{ id: string; url: string }> = [];
     try {
       const users = this.host.assets._listUserAssets ? await this.host.assets._listUserAssets() : [];
-      for (const a of users) if (a.url && /logo/i.test(a.id)) cands.push({ id: a.id, url: a.url });
+      // Uploaded marks belong to one design system each (plans/186): only the
+      // active system's count, or the silhouette could be another system's logo.
+      const system = await activeMaterialSystem(this.host).catch(() => null);
+      for (const a of users) {
+        if (!a.url || !/logo/i.test(a.id)) continue;
+        const owner = designMaterialOf(a.id);
+        if (owner?.kind === 'logo' && system && owner.systemId !== system.id) continue;
+        cands.push({ id: a.id, url: a.url });
+      }
     } catch { /* no user assets on this host */ }
     try {
       // Pack/catalog logos are vectors (SVG).

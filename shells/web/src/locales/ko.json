@@ -6992,5 +6992,7 @@
   "Draft recovery on": "초안 복구가 켜져 있어요",
   "File address": "파일 주소",
   "The file is downloaded, then checked on this device. In the web app, images from other sites come through Lolly's own relay.": "파일은 다운로드된 뒤 이 기기에서 확인돼요. 웹 앱에서는 다른 사이트의 이미지가 Lolly 자체 중계를 거쳐요.",
-  "Enter an address that starts with https://": "https://로 시작하는 주소를 입력하세요"
+  "Enter an address that starts with https://": "https://로 시작하는 주소를 입력하세요",
+  "Pre-alpha": "프리알파",
+  "Rebrand is at an early stage. Check every slide before you use the result.": "Rebrand은(는) 초기 단계예요. 결과를 사용하기 전에 모든 슬라이드를 확인하세요."
 }

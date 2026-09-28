@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-09-28T03:12:17.725Z",
+  "generatedAt": "2026-09-28T08:50:47.173Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -10322,7 +10322,7 @@
       "id": "sandbox",
       "name": "Sandbox",
       "description": "Paste HTML, CSS, JS - or a JSX/TypeScript component - and watch it run in a private, offline sandbox. Perfect for previewing code from an AI assistant.",
-      "version": "1.5.2",
+      "version": "1.5.3",
       "status": "official",
       "category": "utility",
       "tags": [

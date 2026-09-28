@@ -19,6 +19,7 @@ import { announce } from '../a11y.ts';
 import { childFolders, descendantFolderIds } from '../folders.ts';
 import type { Folder, FolderItem } from '../folders.ts';
 import { isBatchSlot } from '../lib/batch-slots.ts';
+import { shareFile } from '../lib/share-file.ts';
 import type { JobHandle } from '../lib/jobs.ts';
 import type { LollyProjectSessionInput } from '../lib/lolly-pack.ts';
 import type { DesignSystemRegistry } from '../lib/design-system/registry.ts';
@@ -31,7 +32,7 @@ export interface ProjectDownloadHost {
   state: Pick<WebStateAPI, 'load'>;
   /** Catalog and user-asset reads, the same slice the Share dialog's `.lolly` uses. */
   assets: LollyAssetsSlice;
-  export: Pick<HostV1['export'], 'file'>;
+  export: Pick<HostV1['export'], 'file' | 'share'>;
   log?: HostV1['log'];
   /** Read by bridge/tokens.ts readUserDesignSystem to find the sender's active design system. */
   designSystems?: DesignSystemRegistry;
@@ -73,7 +74,7 @@ function readSenderDesignSystem(host: ProjectDownloadHost): Promise<Awaited<Retu
  * assets, thumb), a batch session as its stored JSON, every folder image as its bytes.
  * Nothing is rendered - that is what Render is for. Folders recurse into zip paths.
  */
-export async function downloadOriginals(view: ProjectDownloadView, label: string, sessionSlots: readonly string[], imageIds: readonly string[], folderIds: readonly string[]): Promise<void> {
+export async function downloadOriginals(view: ProjectDownloadView, label: string, sessionSlots: readonly string[], imageIds: readonly string[], folderIds: readonly string[], share = false): Promise<void> {
   const { host, folders } = view;
   view.closeMenu();
   const items: Array<{ dir: string; kind: 'session' | 'image'; ref: string }> = [];
@@ -139,7 +140,9 @@ export async function downloadOriginals(view: ProjectDownloadView, label: string
     }
     if (!Object.keys(entries).length) throw new Error(t('Nothing could be packed.'));
     const bytes = await zipAsync(entries);
-    await host.export.file(new Blob([bytes as BlobPart], { type: 'application/zip' }), { filename: zipName });
+    const blob = new Blob([bytes as BlobPart], { type: 'application/zip' });
+    if (share) await shareFile(host.export, blob, zipName);
+    else await host.export.file(blob, { filename: zipName });
     if (skipped) announce(skipped === 1 ? t('1 file could not be packed and was left out') : t('{n} files could not be packed and were left out', { n: skipped }));
     return { zipName };
   });
@@ -152,7 +155,7 @@ export async function downloadOriginals(view: ProjectDownloadView, label: string
  * stay behind, which the toast says. Opening the file rebuilds the tree with fresh ids
  * (lib/drop-router.ts openLollyProject).
  */
-export async function downloadProject(view: ProjectDownloadView, id: string): Promise<void> {
+export async function downloadProject(view: ProjectDownloadView, id: string, share = false): Promise<void> {
   const { host, folders } = view;
   view.closeMenu();
   const root = folders.find(f => f.id === id);
@@ -198,7 +201,8 @@ export async function downloadProject(view: ProjectDownloadView, id: string): Pr
       creator: lp.creatorFromProfile(view.profile(), { appVersion }), appVersion, engineVersion: ENGINE_VERSION,
       ...(designSystem ? { designSystem } : {}),
     });
-    await host.export.file(blob, { filename });
+    if (share) await shareFile(host.export, blob, filename);
+    else await host.export.file(blob, { filename });
     if (skipped) announce(skipped === 1 ? t('1 file could not be packed and was left out') : t('{n} files could not be packed and were left out', { n: skipped }));
     return { zipName: filename };
   });

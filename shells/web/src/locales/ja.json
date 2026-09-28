@@ -6992,5 +6992,7 @@
   "Draft recovery on": "下書きの復元がオンです",
   "File address": "ファイルアドレス",
   "The file is downloaded, then checked on this device. In the web app, images from other sites come through Lolly's own relay.": "ファイルはダウンロードされた後、この端末で確認されます。ウェブアプリでは、他のサイトからの画像はLolly独自の中継を経由します。",
-  "Enter an address that starts with https://": "https://で始まるアドレスを入力してください"
+  "Enter an address that starts with https://": "https://で始まるアドレスを入力してください",
+  "Pre-alpha": "プレアルファ",
+  "Rebrand is at an early stage. Check every slide before you use the result.": "Rebrandは初期段階です。結果を使う前に、すべてのスライドを確認してください。"
 }

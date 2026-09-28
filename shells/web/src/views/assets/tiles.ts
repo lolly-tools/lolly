@@ -19,6 +19,7 @@ import { loadAssetCategories } from '../../lib/asset-category.ts';
 import { assetBaseId, loadFavouriteAssets, loadHiddenAssets } from '../../lib/asset-favourites.ts';
 import { icon } from '../../lib/icons.ts';
 import { menuItemHtml } from '../../lib/context-menu.ts';
+import { shareFile } from '../../lib/share-file.ts';
 import { audioThumbPool } from '../../lib/audio-thumb-colour.ts';
 import type { ThumbTheme } from '../../lib/audio-thumb-colour.ts';
 import { loadAudioCovers } from '../../lib/audio-covers.ts';
@@ -30,7 +31,7 @@ import { familyFromTokenValue, listUserFonts } from '../../user-fonts.ts';
 import type { AssetRef } from '@lolly-tools/core/host-v1';
 import type { PhotoTreatment } from '../../../../../engine/src/photo-treatment.ts';
 import type { IconTheme } from '../../../../../engine/src/icon-theme.ts';
-import { CHEVRON, HEADSHOT_ID, gridAdmits, isThemable } from './shared.ts';
+import { CHEVRON, HEADSHOT_ID, downloadName, gridAdmits, isThemable } from './shared.ts';
 import type { CatFont } from './shared.ts';
 import { bindOp, type CatCtx } from './context.ts';
 
@@ -96,6 +97,7 @@ export function catBulkMenuHtml(cat: CatCtx): string {
 export async function onTileMenuAction(cat: CatCtx, act: string, id: string | null): Promise<void> {
   const { host, selected, viewEl } = cat;
   if (id === null) { cat.bulk.handleBulk(act); return; }   // bulk menu mirrors the bulk bar
+  if (act === 'share-favourite') { await shareFavourite(cat, id); return; }
   const ref = cat.assetById.get(id);
   if (!ref) return;
   if (act === 'open') { cat.details.openDetails(ref); return; }
@@ -137,6 +139,24 @@ export async function onTileMenuAction(cat: CatCtx, act: string, id: string | nu
     return;
   }
   if (act === 'hide') { await cat.userAssets.setHidden(assetBaseId(id), !cat.hiddenSet.has(assetBaseId(id))); }
+}
+
+async function shareFavourite(cat: CatCtx, id: string): Promise<void> {
+  try {
+    const swatch = cat.palette.find(color => cat.filters.swatchFavKey(color.label) === id);
+    if (swatch) {
+      await navigator.clipboard.writeText(swatch.hex);
+      announce(t('Copied!'));
+      return;
+    }
+    const ref = cat.assetById.get(id);
+    if (!ref) return;
+    if (ref.source === 'user') {
+      await shareFile(cat.host.export, await cat.bulk.credentialedBytes(ref), downloadName(ref, String(ref.format || 'bin')));
+      return;
+    }
+    await onTileMenuAction(cat, 'share', id);
+  } catch (error) { announce(error instanceof Error ? error.message : t('Sharing failed. You can still download the file.'), { assertive: true }); }
 }
 export const persistCollapsed = (cat: CatCtx): void => {
   const { COLLAPSE_KEY, collapsed } = cat;

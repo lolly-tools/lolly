@@ -6992,5 +6992,7 @@
   "Draft recovery on": "ड्राफ़्ट पुनर्प्राप्ति चालू",
   "File address": "फ़ाइल का पता",
   "The file is downloaded, then checked on this device. In the web app, images from other sites come through Lolly's own relay.": "फ़ाइल डाउनलोड की जाती है, फिर इस डिवाइस पर जांची जाती है। वेब ऐप में, अन्य साइट की इमेज Lolly के अपने रिले से होकर आती हैं।",
-  "Enter an address that starts with https://": "एक पता दर्ज करें जो https:// से शुरू हो"
+  "Enter an address that starts with https://": "एक पता दर्ज करें जो https:// से शुरू हो",
+  "Pre-alpha": "प्री-अल्फा",
+  "Rebrand is at an early stage. Check every slide before you use the result.": "Rebrand शुरुआती चरण में है। परिणाम का उपयोग करने से पहले हर स्लाइड जाँच लें।"
 }

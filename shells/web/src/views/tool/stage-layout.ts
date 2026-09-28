@@ -31,6 +31,7 @@ import { playSfx } from '../../lib/sfx.ts';
 import { attachCanvasCommit } from '../../lib/canvas-commit.ts';
 import { mountUndoControls } from '../tool-history-controls.ts';
 import { icon } from '../../lib/icons.ts';
+import { isTypingTarget } from '../../lib/typing-target.ts';
 import { setupStageNav } from '../tool-stage-nav.ts';
 import { stopSlotPreview } from '../tool-inputs.ts';
 import { armViewEnter } from '../../view-enter.ts';
@@ -703,6 +704,26 @@ export function wireStageZoom(tview: ToolViewCtx): void {
 
     // Apply saved/initial width without triggering a save
     tview.stageLayout.setSidebarWidth(sidebarOpen ? openWidth : 0, false);
+
+    // `\` hides and shows the side panels, the same key Design uses to clear its
+    // chrome (free-canvas/keys.ts onPreviewKey). It only fires while nothing is
+    // being typed into, so a backslash in a field stays a backslash, and it waits
+    // for any open dialog. Hiding also closes an open export panel. Desktop only:
+    // on a phone the sidebar is the bottom sheet, which has its own grip.
+    const mqPhone = window.matchMedia('(max-width: 640px)');
+    const onPanelKey = (e: KeyboardEvent): void => {
+      if (e.key !== '\\' || e.metaKey || e.ctrlKey || e.altKey || e.defaultPrevented) return;
+      if (mqPhone.matches || isTypingTarget() || document.querySelector('dialog[open]')) return;
+      e.preventDefault();
+      const hiding = layout.dataset.sidebar === 'open';
+      if (hiding && layout.classList.contains('export-open')) {
+        layout.querySelector<HTMLElement>('[data-export-close]')?.click();
+      }
+      fullscreenToggle!.click();
+      announce(hiding ? t('Side panels hidden. Press \\ to show them.') : t('Side panels shown.'));
+    };
+    document.addEventListener('keydown', onPanelKey);
+    tview.panelKeyTeardown = () => document.removeEventListener('keydown', onPanelKey);
   }
 }
 
@@ -1261,6 +1282,8 @@ export async function wireCanvas(tview: ToolViewCtx): Promise<void> {
     cancelAnimationFrame(resizeFrame);
     tview.stageZoom?.destroy();
     tview.exportTeardown?.();
+    tview.panelKeyTeardown?.();
+    tview.panelKeyTeardown = null;
     tview.framingTeardown?.();
     tview.framingTeardown = null; // framing overlay: listeners + its layer
     tview.filmstrip?.destroy();

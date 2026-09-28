@@ -121,6 +121,17 @@ export function refreshFavStrip(cat: CatCtx): void {
 // cover a fav toggle.
 export function reflectFavInGrid(cat: CatCtx, base: string, on: boolean): void {
   const { viewEl } = cat;
+  if (base.startsWith('swatch:')) {
+    for (const button of viewEl.querySelectorAll<HTMLElement>('.plat-swatch-fav')) {
+      if (cat.filters.swatchFavKey(button.dataset.favSwatch ?? '') !== base) continue;
+      button.classList.toggle('is-on', on);
+      button.setAttribute('aria-pressed', String(on));
+      const label = on ? t('Remove from favourites') : t('Add to favourites');
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    return;
+  }
   for (const tile of viewEl.querySelectorAll<HTMLElement>('.cat-tile')) {
     const id = tile.dataset.id ?? '';
     if (assetBaseId(id) !== base) continue;

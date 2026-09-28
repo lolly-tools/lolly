@@ -320,6 +320,46 @@
 .rwc-hl .tk-com{color:var(--tk-com);font-style:italic} .rwc-hl .tk-num{color:var(--tk-num)}
 .rwc-hl .tk-fn{color:var(--tk-fn)} .rwc-hl .tk-type{color:var(--tk-type)}
 .rwc-hl .tk-op{color:var(--tk-op)} .rwc-hl .tk-tag{color:var(--tk-tag)} .rwc-hl .tk-atr{color:var(--tk-atr)}
+/* Two ways the overlay could drift from the textarea it paints, both measured by the
+   line-number script below and both fixed here:
+   - Type size. On a touch screen the shell floors every text-entry control at 16px
+     (iOS zooms the page on focus below that; parts/notfound.css), with a layered
+     !important this tool cannot override, so the textarea can be larger than the
+     13px it asks for. --rwc-code-fs carries the size the textarea really has; the
+     overlay and the gutter use it, so their lines stay the textarea's lines.
+   - Scrollbars. The overlay has none of its own, so where the textarea shows classic
+     (non-overlay) ones the <pre> would run out of scroll range a scrollbar early and
+     drift at the very bottom or far right. --rwc-sb-h / --rwc-sb-w are their sizes
+     (0 with overlay scrollbars: the macOS default, phones); the extra end padding
+     gives the overlay the same range. */
+.rwc-hl {
+  font-size: var(--rwc-code-fs, 13px);
+  padding-bottom: calc(14px + var(--rwc-sb-h, 0px)); padding-right: calc(16px + var(--rwc-sb-w, 0px));
+}
+/* Line-number gutter: a column of numbers at the left of each pane, one per text
+   line. Panes never wrap (wrap="off"), which is what keeps one number per line
+   exact. The textarea and its overlay BOTH start after the column: left, width and
+   padding-left change together on the two, so they never drift apart sideways and
+   code scrolled sideways never slides under the numbers. --rwc-ln-ch is the digit
+   count (at least 2, so 1-99 share a width), and 1ch is one digit of the editor's
+   monospace face. The column stops --rwc-sb-h short of the bottom so no number sits
+   beside a line the textarea's horizontal scrollbar covers. Gated on .rwc-ln-on
+   (added by JS only once the columns mount), so without the script the panes keep
+   their full width. aria-hidden (set in JS) and user-select:none keep the numbers
+   out of screen readers and out of anything copied. */
+.rwc-ln-on .rwc-panes { --rwc-ln-w: calc(var(--rwc-ln-ch, 2) * 1ch + 20px); }
+.rwc-ln-on .rwc-code, .rwc-ln-on .rwc-hl { left: var(--rwc-ln-w); width: calc(100% - var(--rwc-ln-w)); padding-left: 12px; }
+.rwc-ln {
+  position:absolute; top:0; left:0; bottom:var(--rwc-sb-h, 0px); width:var(--rwc-ln-w, 0px); display:none;
+  overflow:hidden; pointer-events:none; user-select:none; -webkit-user-select:none;
+  font-family: var(--font-mono,"SUSE Mono",ui-monospace,"SF Mono",Menlo,monospace);
+  font-size: var(--rwc-code-fs, 13px); line-height:1.6;
+}
+.rwc-ln-on .rwc-ln.is-active { display:block; }
+.rwc-ln-col {
+  padding:14px 8px 14px 12px; white-space:pre; text-align:right;
+  font-variant-numeric: tabular-nums; color: hsl(var(--rwc-muted) / .72);
+}
 
 /* ── Preview ─────────────────────────────────────────────────────────────── */
 .rwc-preview-head {
@@ -1313,12 +1353,19 @@
 
     var pres={}, raf={};
     function paint(pane){
-      var ta=codeEls[pane], pre=pres[pane]; if(!ta||!pre) return;
-      var src=ta.value, o=esc(src);
-      if(src.slice(-1)==='\n') o+=' ';
-      pre.innerHTML=o;
-      root.dispatchEvent(new CustomEvent('lolly:highlight-code', { bubbles:true, detail:{ text:src, language:langOf(pane), target:pre, sandbox:true } }));
-      pre.scrollTop=ta.scrollTop; pre.scrollLeft=ta.scrollLeft;
+      var ta=codeEls[pane], pre=pres[pane];
+      if(ta&&pre){
+        var src=ta.value, o=esc(src);
+        if(src.slice(-1)==='\n') o+=' ';
+        pre.innerHTML=o;
+        root.dispatchEvent(new CustomEvent('lolly:highlight-code', { bubbles:true, detail:{ text:src, language:langOf(pane), target:pre, sandbox:true } }));
+        pre.scrollTop=ta.scrollTop; pre.scrollLeft=ta.scrollLeft;
+      }
+      // Every programmatic load (a pen, a session, a remote edit, Reset) repaints
+      // through here, so the line numbers follow in the same frame as the colours.
+      // Called last: the scroll read above has just refreshed layout, so the
+      // gutter's own scrollTop read costs nothing extra.
+      if(typeof ln!=='undefined'&&ln) ln.sync(pane);
     }
     function schedule(pane){ if(raf[pane])return; raf[pane]=requestAnimationFrame(function(){ raf[pane]=0; paint(pane); }); }
     function paintAll(){ Object.keys(codeEls).forEach(paint); }
@@ -1347,6 +1394,106 @@
     if (themeSel) themeSel.addEventListener('change', function(){ hl.applyTheme(themeSel.value); idbSet('theme', themeSel.value).catch(function(){}); });
     idbGet('theme').then(function(v){ if(v){ if(themeSel) themeSel.value=v; hl.applyTheme(v); } }, function(){});
   } catch (e) { /* highlighting is progressive enhancement - the plain textareas still work */ }
+
+  // ── Line numbers ─────────────────────────────────────────────────────────────
+  // A gutter column beside each pane. Panes never wrap (wrap="off"), so the count is
+  // newlines + 1: a trailing newline opens a new line, as in any code editor. Text
+  // changes reach sync() three ways: typing, paste and undo (the input event, at most
+  // once per pane per animation frame); programmatic loads (each one repaints the
+  // overlay, whose paint() calls sync in the same frame); and a pane switch. The
+  // numbers are ONE text node, appended to or trimmed at its end, so Enter on line
+  // 10,000 costs one short appendData rather than a rebuild. Scrolling moves the column
+  // by a transform read straight from textarea.scrollTop, so it cannot clamp early the
+  // way a scrolled <pre> can. A keystroke never forces a layout of its own: sync reads
+  // scrollTop before it writes anything, and the scrollbar sizes are measured only in a
+  // ResizeObserver, which runs after layout. The digit count, the scrollbar sizes and
+  // the type size (which the overlay shares) follow the ACTIVE pane, since the other
+  // panes are display:none. Progressive enhancement like the overlay: .rwc-ln-on,
+  // which makes room for the gutter, is only added once the columns mount.
+  var ln = (function () {
+    var panesEl = $('.rwc-panes');
+    var cols = {}, texts = {}, counts = {}, raf = {}, active = 'html', fitted = {};
+    function countLines(s) { var n = 1, i = -1; while ((i = s.indexOf('\n', i + 1)) !== -1) n++; return n; }
+    // Length of "1\n2\n...\nn" without building the string: every digit, plus n-1 newlines.
+    function lenTo(n) {
+      var len = n - 1, lo = 1, d = 1;
+      while (lo <= n) { len += (Math.min(n, lo * 10 - 1) - lo + 1) * d; lo *= 10; d++; }
+      return len;
+    }
+    function seq(a, b) { var out = []; for (var i = a; i <= b; i++) out.push(i); return out.join('\n'); }
+    function setVar(name, v) { if (fitted[name] === v) return; fitted[name] = v; panesEl.style.setProperty(name, v); }
+    function align(pane) {
+      var col = cols[pane], ta = codeEls[pane];
+      if (col && ta) col.style.transform = 'translateY(' + (-ta.scrollTop) + 'px)';
+    }
+    // The textarea's own scrollbars, which the overlay's end padding and the gutter's
+    // bottom edge allow for (both 0 with overlay scrollbars).
+    function fitScrollbars(pane) {
+      var ta = codeEls[pane]; if (!ta) return;
+      setVar('--rwc-sb-h', Math.max(0, ta.offsetHeight - ta.clientHeight) + 'px');
+      setVar('--rwc-sb-w', Math.max(0, ta.offsetWidth - ta.clientWidth) + 'px');
+    }
+    function sync(pane) {
+      if (raf[pane]) { cancelAnimationFrame(raf[pane]); raf[pane] = 0; }
+      var ta = codeEls[pane], t = texts[pane]; if (!ta || !t) return;
+      // Reads before any write here, so sync adds no layout pass of its own.
+      var top = ta.scrollTop, fs = pane === active ? getComputedStyle(ta).fontSize : '';
+      var n = countLines(ta.value), had = counts[pane] || 0;
+      if (n > had) t.appendData(had ? '\n' + seq(had + 1, n) : seq(1, n));
+      else if (n < had) { var keep = lenTo(n); t.deleteData(keep, t.length - keep); }
+      counts[pane] = n;
+      if (pane === active) {
+        setVar('--rwc-code-fs', fs);   // see the overlay CSS: the textarea's real type size
+        setVar('--rwc-ln-ch', String(Math.max(2, String(n).length)));
+      }
+      cols[pane].style.transform = 'translateY(' + (-top) + 'px)';
+    }
+    function schedule(pane) {
+      if (raf[pane]) return;
+      raf[pane] = requestAnimationFrame(function () { raf[pane] = 0; sync(pane); });
+    }
+    function ensure() {
+      if (!panesEl) return;
+      // Fires after layout whenever a pane's content box changes: the split or window is
+      // resized, a collapsed editor or a hidden pane is shown, or a classic scrollbar
+      // appears or goes (it takes its room from the content box). Any of these can also
+      // clamp scrollTop, so realign as well.
+      var ro = typeof ResizeObserver === 'function' ? new ResizeObserver(function () { fitScrollbars(active); align(active); }) : null;
+      Object.keys(codeEls).forEach(function (pane) {
+        var ta = codeEls[pane];
+        var box = panesEl.querySelector('.rwc-ln[data-pane="' + pane + '"]');
+        if (!box) {
+          box = document.createElement('div'); box.className = 'rwc-ln';
+          box.setAttribute('data-pane', pane); box.setAttribute('aria-hidden', 'true');
+          var col = document.createElement('div'); col.className = 'rwc-ln-col';
+          col.appendChild(document.createTextNode(''));
+          box.appendChild(col); panesEl.insertBefore(box, panesEl.firstChild);
+        }
+        cols[pane] = box.firstChild; texts[pane] = box.firstChild.firstChild;
+        counts[pane] = 0; texts[pane].data = '';
+        var on = ta.classList.contains('is-active');
+        box.classList.toggle('is-active', on);
+        if (on) active = pane;
+        if (!ta.dataset.lnWired) {
+          ta.dataset.lnWired = '1';
+          ta.addEventListener('input', function () { schedule(pane); });
+          ta.addEventListener('scroll', function () { align(pane); });
+          // A pane switch: show this pane's column and take its digit count. Its
+          // scrollbars follow from the ResizeObserver once the textarea is laid out.
+          if (typeof MutationObserver === 'function') new MutationObserver(function () {
+            var now = ta.classList.contains('is-active');
+            box.classList.toggle('is-active', now);
+            if (now) { active = pane; sync(pane); }
+          }).observe(ta, { attributes: true, attributeFilter: ['class'] });
+          if (ro) ro.observe(ta);
+        }
+      });
+      Object.keys(codeEls).forEach(sync);
+      root.classList.add('rwc-ln-on');   // only now make room for the gutter (columns are live)
+    }
+    return { ensure: ensure, sync: sync };
+  })();
+  try { ln.ensure(); } catch (e) { /* line numbers are progressive enhancement - editing still works */ }
 
   // Reset - two-click confirm to avoid clobbering pasted work.
   var resetBtn = $('[data-rwc-reset]'), resetArmed = false, resetTimer = null;

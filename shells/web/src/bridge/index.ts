@@ -202,6 +202,7 @@ export async function createBridge(): Promise<WebHost> {
     render: async (node, format, opts) => (await loadExport()).render(node, format, opts),
     download: deferredDownload(async () => (await loadExport()).download),
     file: async (blob, opts) => (await loadExport()).file(blob, opts),
+    share: async (blob, opts) => (await loadExport()).share?.(blob, opts) ?? false,
     imprint: async (bytes, format, opts) => (await loadExport()).imprint(bytes, format, opts),
     // Linux packaging (plan 197 M5). Must be on the facade or hooks can't see it -
     // introspect() enumerates host.export's own methods to build the worker host proxy.

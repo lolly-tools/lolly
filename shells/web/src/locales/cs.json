@@ -6992,5 +6992,7 @@
   "Draft recovery on": "Obnovení konceptu zapnuto",
   "File address": "Adresa souboru",
   "The file is downloaded, then checked on this device. In the web app, images from other sites come through Lolly's own relay.": "Soubor se stáhne, poté se zkontroluje na tomto zařízení. Ve webové aplikaci procházejí obrázky z jiných webů přes vlastní přenosový server Lolly.",
-  "Enter an address that starts with https://": "Zadej adresu, která začíná na https://"
+  "Enter an address that starts with https://": "Zadej adresu, která začíná na https://",
+  "Pre-alpha": "Pre-alfa",
+  "Rebrand is at an early stage. Check every slide before you use the result.": "Rebrand je v rané fázi. Zkontroluj každý snímek, než použiješ výsledek."
 }

@@ -6992,5 +6992,7 @@
   "Draft recovery on": "খসড়া পুনরুদ্ধার চালু",
   "File address": "ফাইলের ঠিকানা",
   "The file is downloaded, then checked on this device. In the web app, images from other sites come through Lolly's own relay.": "ফাইলটি ডাউনলোড করা হয়, তারপর এই ডিভাইসে যাচাই করা হয়। ওয়েব অ্যাপে, অন্য সাইটের ছবি Lolly-র নিজস্ব রিলের মাধ্যমে আসে।",
-  "Enter an address that starts with https://": "একটি ঠিকানা লিখুন যা https:// দিয়ে শুরু হয়"
+  "Enter an address that starts with https://": "একটি ঠিকানা লিখুন যা https:// দিয়ে শুরু হয়",
+  "Pre-alpha": "প্রি-আলফা",
+  "Rebrand is at an early stage. Check every slide before you use the result.": "Rebrand প্রাথমিক পর্যায়ে আছে। ফলাফল ব্যবহারের আগে প্রতিটি স্লাইড পরীক্ষা করুন।"
 }

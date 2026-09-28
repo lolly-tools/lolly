@@ -6992,5 +6992,7 @@
   "Draft recovery on": "Đã bật phục hồi bản nháp",
   "File address": "Địa chỉ tệp",
   "The file is downloaded, then checked on this device. In the web app, images from other sites come through Lolly's own relay.": "Tệp được tải xuống, sau đó được kiểm tra trên thiết bị này. Trong ứng dụng web, hình ảnh từ các trang khác đi qua bộ chuyển tiếp riêng của Lolly.",
-  "Enter an address that starts with https://": "Nhập địa chỉ bắt đầu bằng https://"
+  "Enter an address that starts with https://": "Nhập địa chỉ bắt đầu bằng https://",
+  "Pre-alpha": "Tiền-alpha",
+  "Rebrand is at an early stage. Check every slide before you use the result.": "Rebrand đang ở giai đoạn đầu. Hãy kiểm tra từng trang chiếu trước khi sử dụng kết quả."
 }

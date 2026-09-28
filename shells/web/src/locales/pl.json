@@ -6992,5 +6992,7 @@
   "Draft recovery on": "Odzyskiwanie wersji roboczej włączone",
   "File address": "Adres pliku",
   "The file is downloaded, then checked on this device. In the web app, images from other sites come through Lolly's own relay.": "Plik zostaje pobrany, a następnie sprawdzony na tym urządzeniu. W aplikacji webowej obrazy z innych witryn przechodzą przez własny serwer pośredniczący Lolly.",
-  "Enter an address that starts with https://": "Wpisz adres zaczynający się od https://"
+  "Enter an address that starts with https://": "Wpisz adres zaczynający się od https://",
+  "Pre-alpha": "Pre-alfa",
+  "Rebrand is at an early stage. Check every slide before you use the result.": "Rebrand jest na wczesnym etapie. Sprawdź każdy slajd, zanim użyjesz wyniku."
 }

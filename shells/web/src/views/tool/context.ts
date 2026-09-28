@@ -248,6 +248,8 @@ export interface ToolViewCtx {
   canvasStage: boolean;
   collabHandle: CollabSessionHandle | null;
   exportTeardown: (() => void) | null;
+  /** Drops the `\\` show/hide-sidebar shortcut (wireStageZoom). */
+  panelKeyTeardown: (() => void) | null;
   framingTeardown: (() => void) | null;
   renderSaveBtn: HTMLButtonElement | null;
   renderPill: HTMLElement | null;
