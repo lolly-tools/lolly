@@ -546,6 +546,7 @@
     "tauri-winres@0.3.6": "MIT",
     "tauri-winrt-notification@0.7.3": "MIT OR Apache-2.0",
     "tauri@2.11.5": "Apache-2.0 OR MIT",
+    "tauri@2.11.6": "Apache-2.0 OR MIT",
     "tempfile@3.27.0": "MIT OR Apache-2.0",
     "tendril@0.5.0": "MIT OR Apache-2.0",
     "tendril@0.5.1": "MIT OR Apache-2.0",
