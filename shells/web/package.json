@@ -18,7 +18,7 @@
     "@lolly-tools/core": "workspace:*",
     "@lolly-tools/node-shell": "workspace:*",
     "@lolly/engine": "workspace:*",
-    "@mediabunny/flac-encoder": "^1.58.0",
+    "@mediabunny/flac-encoder": "^1.59.1",
     "@tiptap/core": "^3.30.4",
     "@tiptap/extension-image": "^3.30.4",
     "@tiptap/extension-placeholder": "^3.30.4",
@@ -32,19 +32,19 @@
     "@tiptap/starter-kit": "^3.30.4",
     "butterchurn": "^2.6.7",
     "butterchurn-presets": "^2.4.7",
-    "dom-to-image-more": "^3.10.2",
-    "dompurify": "^3.4.15",
+    "dom-to-image-more": "^3.11.0",
+    "dompurify": "^3.4.16",
     "fflate": "^0.8.3",
     "flatpickr": "^4.6.13",
     "fzstd": "^0.1.1",
     "gifenc": "^1.0.3",
-    "harfbuzzjs": "^1.6.1",
+    "harfbuzzjs": "^1.6.2",
     "heic-to": "^1.5.2",
     "idb": "^8.0.0",
     "kiwi-schema": "^0.5.0",
     "libxml2-wasm": "^0.7.2",
     "lottie-web": "^5.12.2",
-    "mediabunny": "^1.58.0",
+    "mediabunny": "^1.59.1",
     "onnxruntime-web": "^1.30.0",
     "pdf-lib": "^1.17.1",
     "phonemizer": "^1.2.1",
@@ -55,6 +55,6 @@
   },
   "devDependencies": {
     "@lolly-tools/node-shell": "workspace:*",
-    "vite": "^8.2.2"
+    "vite": "^8.3.1"
   }
 }

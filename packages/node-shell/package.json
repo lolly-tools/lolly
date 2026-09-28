@@ -102,7 +102,7 @@
     "@lolly/engine": "workspace:*",
     "@resvg/resvg-js": "^2.6.2",
     "fflate": "^0.8.3",
-    "harfbuzzjs": "^1.6.1",
+    "harfbuzzjs": "^1.6.2",
     "libxml2-wasm": "^0.7.2",
     "pdf-lib": "^1.17.1",
     "playwright-core": "^1.49.0",

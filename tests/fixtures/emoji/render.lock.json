@@ -4,9 +4,9 @@
     "checksum": "sha256:fc7287273e66929776e2ba54f144fe699080bec29f61bf649d70d871468aeade"
   },
   "harfbuzzjs": {
-    "version": "1.6.1",
+    "version": "1.6.2",
     "files": {
-      "node_modules/harfbuzzjs/dist/harfbuzz.wasm": "sha256:37777ced92a2ba10279c33e1dbacf08835ddcacc215b7fcb3131e558dd01ce71",
+      "node_modules/harfbuzzjs/dist/harfbuzz.wasm": "sha256:684bda29aee2411d05e6859070a9b1a6b8d061025ededb5a8910098fd0cf10f4",
       "node_modules/harfbuzzjs/dist/index.mjs": "sha256:04ece1914c8720ad96257728119c1bf24088ee4ef3ab2a2ca688c9a4895d4e7e",
       "node_modules/harfbuzzjs/dist/harfbuzz.js": "sha256:ba43463df44851fd58211ef8c19aa7956965390857727ae867b70dc7b3682de1"
     }
