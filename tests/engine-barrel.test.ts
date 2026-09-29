@@ -853,6 +853,12 @@ const EXPECTED: readonly string[] = [
   'SeededFrameV1',
   'RelayoutOptsV1',
   'TokenResolver',
+  'SlideLayoutRecipe',
+  'slideContentGroups',
+  'slideLayoutChoices',
+  'slideLayoutName',
+  'slideLayoutRecipe',
+  'withSlideLayoutComponents',
   // The slide layout library and the cells of a seeded repeat (plan 275 work package 1).
   'archetypePlaceholders',
   'SeededCellV1',
